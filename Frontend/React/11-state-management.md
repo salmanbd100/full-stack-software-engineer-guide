@@ -6,6 +6,8 @@ Managing state in complex React applications requires understanding various stat
 
 ### 1. Local State (useState)
 
+**useState** - Basic local component state for a simple counter. Best for component-specific state that doesn't need to be shared with other components.
+
 ```jsx
 function Counter() {
     const [count, setCount] = useState(0);
@@ -14,6 +16,8 @@ function Counter() {
 ```
 
 ### 2. Global State (Context + useReducer)
+
+**createContext, useContext, useReducer** - Combines Context API with useReducer for global state management. The reducer centralizes state logic with actions, while Context distributes state across the component tree without prop drilling.
 
 ```jsx
 const AppContext = createContext();
@@ -56,6 +60,8 @@ function useAppState() {
 
 ### 3. Redux Pattern
 
+**useSelector, useDispatch** - Demonstrates Redux state management with selectors to read state and dispatch to trigger actions. Redux provides a predictable state container with a single source of truth for the entire application.
+
 ```jsx
 // Store
 import { createStore } from 'redux';
@@ -92,6 +98,8 @@ function Counter() {
 ```
 
 ### 4. Zustand (Lightweight Alternative)
+
+**Zustand create** - Shows Zustand's simplified state management approach. Actions are defined directly in the store, and components can consume state without providers or boilerplate, making it more lightweight than Redux.
 
 ```jsx
 import create from 'zustand';

@@ -6,6 +6,8 @@ React 18 provides several hooks and techniques to optimize component performance
 
 ### 1. React.memo()
 
+**memo** - Higher-order component that prevents re-renders when props haven't changed. Uses shallow comparison by default, or accepts a custom comparison function for complex props.
+
 ```jsx
 import { memo } from 'react';
 
@@ -16,6 +18,8 @@ const MyComponent = memo(function MyComponent({ name, count }) {
 });
 
 // With custom comparison
+**memo with Custom Comparison** - Provides custom equality function to control when component should re-render. Return true to skip render, false to allow it.
+
 const MyComponent = memo(
     function MyComponent(props) {
         return <div>{props.data.value}</div>;
@@ -28,6 +32,8 @@ const MyComponent = memo(
 ```
 
 ### 2. useMemo()
+
+**useMemo** - Memoizes expensive computation results. Only recalculates when dependencies change, preventing unnecessary work on every render.
 
 ```jsx
 import { useMemo } from 'react';
@@ -49,6 +55,8 @@ function ExpensiveComponent({ items, filter }) {
 }
 
 // Without useMemo (recalculates on every render)
+**Without Memoization** - Shows the problem: without useMemo, filtering runs on every render, even when items and filter haven't changed, causing performance issues.
+
 function SlowComponent({ items, filter }) {
     const filteredItems = items.filter(item => item.category === filter);
     return <ul>...</ul>;
@@ -56,6 +64,8 @@ function SlowComponent({ items, filter }) {
 ```
 
 ### 3. useCallback()
+
+**useCallback, memo** - `useCallback` memoizes function references to work with `memo()`. Without it, functions are recreated on every render, causing memoized children to re-render unnecessarily.
 
 ```jsx
 import { useState, useCallback, memo } from 'react';
@@ -95,6 +105,8 @@ function ParentComponent() {
 
 ### 4. When to Use Each
 
+**useMemo, useCallback, memo** - Quick reference for choosing the right optimization tool: useMemo for values, useCallback for functions, and memo for components.
+
 ```jsx
 import { useMemo, useCallback, memo } from 'react';
 
@@ -117,6 +129,8 @@ const ListItem = memo(({ item }) => {
 ## 💡 Practical Examples
 
 ### Example 1: Optimized List
+
+**useState, useCallback, memo** - Real-world list optimization. Combines memo for list items and useCallback for the delete handler to prevent unnecessary re-renders of unchanged items.
 
 ```jsx
 import { useState, useCallback, memo } from 'react';
@@ -157,6 +171,8 @@ function TodoList() {
 ```
 
 ### Example 2: Search with Expensive Filter
+
+**useState, useMemo** - Optimizes expensive filtering and sorting operations. Only recalculates when products, searchTerm, or sortBy changes, not on every keystroke or render.
 
 ```jsx
 import { useState, useMemo } from 'react';
@@ -201,6 +217,8 @@ function ProductSearch() {
 React 18 introduces concurrent features that improve performance for expensive operations without blocking the UI.
 
 ### Example 3: useTransition for Non-Urgent Updates
+
+**useState, useTransition** - React 18 concurrent feature that keeps input responsive while filtering large datasets. Urgent updates (input) happen immediately, non-urgent (filtering) can be interrupted.
 
 ```jsx
 import { useState, useTransition } from 'react';
@@ -248,6 +266,8 @@ const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
 ```
 
 ### Example 4: useDeferredValue for Expensive Components
+
+**useState, useDeferredValue, memo** - Alternative to useTransition. Creates a deferred version of the query that updates after urgent renders, keeping input responsive.
 
 ```jsx
 import { useState, useDeferredValue, memo } from 'react';
@@ -297,6 +317,8 @@ const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
 | **Use Case** | You control when to defer | React defers the value automatically |
 | **isPending** | Provides loading state | Check if value is stale manually |
 | **Best For** | Tab switching, navigation | Expensive child components |
+
+**useState, useTransition, useDeferredValue** - Side-by-side comparison showing when to use each concurrent feature. useTransition for explicit control, useDeferredValue for automatic deferral.
 
 ```jsx
 import { useState, useTransition, useDeferredValue } from 'react';
@@ -351,6 +373,8 @@ const ExpensiveResults = memo(({ query }) => {
 
 **Answer:** Use useMemo for expensive calculations that don't need to run on every render. Don't overuse it for simple operations.
 
+**useMemo for Expensive Operations** - Good use case: reduces huge arrays or complex calculations. Bad use case: simple arithmetic where memoization overhead isn't worth it.
+
 ```jsx
 // Good use case
 const expensiveValue = useMemo(() => {
@@ -366,6 +390,8 @@ const simple = useMemo(() => a + b, [a, b]);
 **Answer:**
 - **useMemo**: Memoizes a VALUE (result of a function)
 - **useCallback**: Memoizes a FUNCTION itself
+
+**useMemo vs useCallback** - useMemo calls the function and caches the result, useCallback caches the function itself. useCallback is essentially useMemo that returns a function.
 
 ```jsx
 const value = useMemo(() => expensiveCalc(), [dep]); // Returns result

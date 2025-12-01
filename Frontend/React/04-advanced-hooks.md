@@ -19,6 +19,8 @@ Advanced hooks like **useContext**, **useReducer**, **useCallback**, **useMemo**
 
 ## Example 1: useContext
 
+**useContext** - Provides access to context values without prop drilling. Accepts a context object (created by createContext) and returns the current context value from the nearest Provider.
+
 ```jsx
 import React, { createContext, useContext, useState } from 'react';
 
@@ -90,6 +92,8 @@ function UserProfile() {
 
 ## Example 2: useReducer
 
+**useReducer** - Manages complex state logic using a reducer function. Takes a reducer and initial state, returns current state and dispatch function. Ideal for state with multiple sub-values or complex update logic.
+
 ```jsx
 import { useReducer } from 'react';
 
@@ -140,6 +144,8 @@ function Counter() {
 }
 
 // Complex state example
+**useReducer for Async State** - Demonstrates managing loading, error, and data states in a single reducer. Each action type handles a different phase of the async operation.
+
 const initialState = {
     user: null,
     loading: false,
@@ -191,6 +197,8 @@ function UserProfile() {
 
 ## Example 3: useCallback
 
+**useCallback, memo** - `useCallback` memoizes function references to prevent unnecessary re-renders. Works with `memo()` to optimize child components by keeping function identity stable across renders.
+
 ```jsx
 import { useState, useCallback, memo } from 'react';
 
@@ -238,6 +246,8 @@ function ParentComponent() {
 }
 
 // Real-world example: Search with debounce
+**useCallback with Debounce** - Combines useCallback with a debounced function to optimize API calls during user input. The memoized debounce function maintains its timeout state across renders.
+
 function SearchComponent() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
@@ -279,6 +289,8 @@ function debounce(fn, delay) {
 
 ## Example 4: useMemo
 
+**useMemo** - Memoizes expensive computed values, only recalculating when dependencies change. Prevents unnecessary recalculations on every render, improving performance for heavy operations.
+
 ```jsx
 import { useState, useMemo } from 'react';
 
@@ -315,6 +327,8 @@ function ExpensiveComputation() {
 }
 
 // Example: Filtering and sorting large lists
+**useMemo for Data Processing** - Memoizes filtered and sorted data to avoid reprocessing large lists on every render. Only recalculates when users, searchTerm, or sortBy changes.
+
 function UserList({ users }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('name');
@@ -356,6 +370,8 @@ function UserList({ users }) {
 }
 
 // Memoizing object/array references
+**useMemo for Reference Stability** - Memoizes object/array references to prevent child components from re-rendering unnecessarily when parent renders but the actual data hasn't changed.
+
 function ObjectMemo({ items }) {
     const [count, setCount] = useState(0);
 
@@ -374,10 +390,14 @@ function ObjectMemo({ items }) {
 
 ## Example 5: useRef
 
+**useRef** - Creates a mutable reference object that persists across renders without triggering re-renders. Used for DOM access, storing mutable values, and avoiding stale closures.
+
 ```jsx
 import { useRef, useState, useEffect } from 'react';
 
 // Use case 1: Accessing DOM elements
+**useRef for DOM Access** - Stores a reference to a DOM element, allowing direct manipulation like focusing an input without causing re-renders.
+
 function FocusInput() {
     const inputRef = useRef(null);
 
@@ -399,6 +419,8 @@ function FocusInput() {
 }
 
 // Use case 2: Storing mutable values that don't cause re-renders
+**useRef for Mutable Values** - Stores interval IDs or other values that need to persist but shouldn't trigger re-renders. Essential for cleanup of timers and subscriptions.
+
 function Timer() {
     const [count, setCount] = useState(0);
     const [isRunning, setIsRunning] = useState(false);
@@ -433,6 +455,8 @@ function Timer() {
 }
 
 // Use case 3: Previous value tracking
+**useRef for Previous Values** - Custom hook that tracks the previous value of a prop or state. Updates the ref in useEffect after render, so it always holds the previous value.
+
 function usePrevious(value) {
     const ref = useRef();
 
@@ -457,6 +481,8 @@ function Counter() {
 }
 
 // Use case 4: Measuring element dimensions
+**useRef with getBoundingClientRect** - Accesses DOM element dimensions using getBoundingClientRect(). Useful for responsive layouts and positioning calculations.
+
 function MeasureExample() {
     const divRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -477,6 +503,8 @@ function MeasureExample() {
 }
 
 // Use case 5: Avoiding stale closures
+**useRef to Avoid Stale Closures** - Maintains a reference to the latest value for use in async operations or event handlers, avoiding stale closures in setTimeout or callbacks.
+
 function LatestValue() {
     const [count, setCount] = useState(0);
     const latestCount = useRef(count);
@@ -508,6 +536,8 @@ function LatestValue() {
 
 ### Example 6: useId
 
+**useId** - Generates unique, stable IDs for accessibility attributes. IDs are consistent between server and client renders, preventing SSR hydration mismatches.
+
 ```jsx
 import { useId } from 'react';
 
@@ -524,6 +554,8 @@ function FormField({ label, type = 'text' }) {
 }
 
 // Multiple fields in same component
+**Multiple useId Calls** - Each call to useId generates a unique ID. Use multiple calls in the same component for different form fields.
+
 function RegistrationForm() {
     const nameId = useId();
     const emailId = useId();
@@ -544,6 +576,8 @@ function RegistrationForm() {
 }
 
 // Related elements with same base ID
+**useId with aria-describedby** - Demonstrates using a single base ID with suffixes for related elements like labels, inputs, and hint text for better accessibility.
+
 function AccessibleField({ label }) {
     const id = useId();
 
@@ -563,6 +597,8 @@ function AccessibleField({ label }) {
 }
 
 // Why useId? Solves SSR hydration mismatches
+**SSR Hydration Safety** - Shows why useId is necessary: Math.random() generates different IDs on server and client, causing hydration errors. useId ensures consistency.
+
 // BAD - Math.random() causes hydration mismatch
 function BadUniqueId() {
     const id = `field-${Math.random()}`;
@@ -577,6 +613,8 @@ function GoodUniqueId() {
 ```
 
 ### Example 7: useTransition
+
+**useTransition** - Marks state updates as non-urgent transitions. Returns isPending flag and startTransition function. Keeps UI responsive by allowing urgent updates to interrupt non-urgent ones.
 
 ```jsx
 import { useState, useTransition } from 'react';
@@ -619,6 +657,8 @@ function SearchWithTransition() {
 }
 
 // Tab switching example
+**useTransition for Tab Navigation** - Defers expensive tab content rendering to keep tab buttons responsive. Shows loading indicator while transition is pending.
+
 function TabContainer() {
     const [activeTab, setActiveTab] = useState('home');
     const [isPending, startTransition] = useTransition();
@@ -647,6 +687,8 @@ function TabContainer() {
 }
 
 // Real-world: Form submission
+**useTransition for Async Operations** - Wraps async form submissions in transitions to show loading states and keep the form interactive during submission.
+
 function FormWithTransition() {
     const [name, setName] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -692,6 +734,8 @@ function ExpensiveSettingsTab() {
 
 ### Example 8: useDeferredValue
 
+**useDeferredValue** - Creates a deferred version of a value that lags behind the actual value. Keeps urgent UI updates responsive while deferring expensive updates.
+
 ```jsx
 import { useState, useDeferredValue, memo } from 'react';
 
@@ -733,6 +777,8 @@ const ExpensiveList = memo(({ query }) => {
 });
 
 // Show stale content indicator
+**useDeferredValue with Stale Indicator** - Detects when deferred value lags behind actual value to show loading indicators or reduce opacity during updates.
+
 function SearchWithIndicator() {
     const [query, setQuery] = useState('');
     const deferredQuery = useDeferredValue(query);
@@ -755,6 +801,8 @@ function SearchWithIndicator() {
 }
 
 // Comparison: useTransition vs useDeferredValue
+**useTransition vs useDeferredValue** - useTransition gives you control over when to defer (wrap state update), while useDeferredValue automatically defers the value itself.
+
 function ComparisonExample() {
     // useTransition - you control when to defer
     const [isPending, startTransition] = useTransition();
@@ -773,6 +821,8 @@ function ComparisonExample() {
 ```
 
 ### Example 9: useSyncExternalStore
+
+**useSyncExternalStore** - Safely subscribes to external stores (browser APIs, global state) with concurrent rendering support. Takes subscribe, getSnapshot, and optional getServerSnapshot functions.
 
 ```jsx
 import { useSyncExternalStore } from 'react';
@@ -823,6 +873,8 @@ function OnlineStatusIndicator() {
 }
 
 // Custom store example: Window dimensions
+**useSyncExternalStore for Window Events** - Subscribes to window resize events safely. Provides SSR fallback to avoid errors during server rendering.
+
 function useWindowDimensions() {
     const dimensions = useSyncExternalStore(
         (callback) => {
@@ -850,6 +902,8 @@ function WindowSize() {
 }
 
 // External store with selector
+**useSyncExternalStore with Selector** - Demonstrates custom store implementation with selector pattern for subscribing to specific parts of state, optimizing re-renders.
+
 function useStore(selector) {
     return useSyncExternalStore(
         store.subscribe,
@@ -909,6 +963,8 @@ function Counter() {
 
 ### Pitfall 1: useCallback/useMemo Overuse
 
+**Premature Optimization** - Shows common mistake of over-using useCallback/useMemo for simple operations. Memoization has overhead; only use for expensive computations or preventing child re-renders.
+
 ```jsx
 // BAD - Unnecessary memoization
 function SimpleComponent({ name }) {
@@ -935,6 +991,8 @@ function SimpleComponent({ name }) {
 ```
 
 ### Pitfall 2: Missing Dependencies
+
+**Stale Closures from Missing Dependencies** - Common bug where useCallback/useMemo dependencies are incomplete, causing stale values. Always include all variables used inside the callback.
 
 ```jsx
 // BAD - Missing dependencies
@@ -964,6 +1022,8 @@ function GoodExample() {
 
 ### Pitfall 3: Mutating useRef in Render
 
+**useRef, useEffect** - Mutating ref.current during render is a side effect and violates React's rules. Always update refs in useEffect or event handlers, not during render.
+
 ```jsx
 // BAD - Mutating ref during render
 function BadRef() {
@@ -990,6 +1050,8 @@ function GoodRef() {
 ## Best Practices
 
 ### 1. Combine useReducer with useContext
+
+**useReducer, useContext** - Best practice for global state management. useReducer manages complex state, useContext shares it across components without prop drilling. Similar pattern to Redux.
 
 ```jsx
 const TaskContext = createContext();
@@ -1049,6 +1111,8 @@ function TaskList() {
 ```
 
 ### 2. Custom Hooks with Advanced Hooks
+
+**useState, useCallback** - Custom hook that combines multiple hooks to create reusable logic. useLocalStorage syncs state with localStorage, demonstrating composition of built-in hooks.
 
 ```jsx
 // Custom hook combining multiple advanced hooks

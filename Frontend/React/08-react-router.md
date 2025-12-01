@@ -6,6 +6,8 @@ React Router enables navigation and routing in single-page React applications.
 
 ### 1. Basic Setup
 
+**BrowserRouter, Routes, Route, Link** - Sets up basic client-side routing with React Router. BrowserRouter provides the routing context, Routes defines route matching logic, Route maps paths to components, and Link enables navigation without page refreshes.
+
 ```jsx
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
@@ -30,6 +32,8 @@ function App() {
 ```
 
 ### 2. Dynamic Routes
+
+**useParams, useNavigate** - Demonstrates dynamic route parameters and programmatic navigation. useParams extracts URL parameters (like :id), while useNavigate provides a function to navigate between routes programmatically.
 
 ```jsx
 import { useParams, useNavigate } from 'react-router-dom';
@@ -60,6 +64,8 @@ function UserDetail() {
 
 ### 3. Nested Routes
 
+**Outlet** - Shows how to create nested routes with a parent-child relationship. The Outlet component acts as a placeholder where child route components will be rendered, enabling shared layouts and nested navigation structures.
+
 ```jsx
 function App() {
     return (
@@ -87,6 +93,8 @@ function Dashboard() {
 ```
 
 ### 4. Protected Routes
+
+**Navigate, useAuth** - Implements route protection by checking authentication status and redirecting unauthorized users to login. Uses a custom useAuth hook to access authentication context and Navigate component for redirection.
 
 ```jsx
 function ProtectedRoute({ children }) {
@@ -122,6 +130,8 @@ function App() {
 
 **Answer:** Use the `useNavigate` hook:
 
+**useNavigate** - Provides programmatic navigation capabilities. Can navigate to paths, pass state, or go back in history.
+
 ```jsx
 const navigate = useNavigate();
 
@@ -138,6 +148,8 @@ navigate(-1);
 ### Q2: How to access URL parameters?
 
 **Answer:** Use `useParams`, `useSearchParams`, or `useLocation`:
+
+**useParams, useSearchParams, useLocation** - Three different hooks for accessing URL information. useParams extracts dynamic route parameters, useSearchParams handles query strings, and useLocation provides the complete location object.
 
 ```jsx
 // Path params: /users/:id

@@ -6,6 +6,8 @@ Handling forms and validation in React requires understanding controlled compone
 
 ### 1. Controlled Components
 
+**useState** - Demonstrates controlled form inputs where React state controls input values. Each input's value is tied to state and updates via onChange handlers, giving React full control over form data.
+
 ```jsx
 function LoginForm() {
     const [email, setEmail] = useState('');
@@ -37,6 +39,8 @@ function LoginForm() {
 ```
 
 ### 2. Form Validation
+
+**useState** - Implements custom form validation with real-time error checking. Maintains separate state for form values and errors, validates on change and submit, and provides user feedback for invalid inputs.
 
 ```jsx
 function SignupForm() {
@@ -134,6 +138,8 @@ function SignupForm() {
 ```
 
 ### 3. Uncontrolled Components with Refs
+
+**useRef** - Shows uncontrolled form inputs where the DOM maintains input values instead of React state. Refs provide direct access to input values on submit without managing state for each keystroke.
 
 ```jsx
 function UncontrolledForm() {

@@ -6,6 +6,8 @@ The Context API provides a way to pass data through the component tree without h
 
 ### 1. Creating and Using Context
 
+**createContext, useContext, useState** - Creates a theme context with a provider component and custom hook. Demonstrates the basic pattern for creating and consuming context values throughout the component tree.
+
 ```jsx
 import { createContext, useContext, useState } from 'react';
 
@@ -62,6 +64,8 @@ function Header() {
 ```
 
 ### 2. Auth Context Example
+
+**createContext, useContext, useState, useEffect** - Implements an authentication context that manages user state, login/logout actions, and persists auth tokens. Shows how to check authentication status on mount and provide auth-related functionality to child components.
 
 ```jsx
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -148,6 +152,8 @@ const api = {
 
 ### 3. Memoized Context Values (Prevent Unnecessary Re-renders)
 
+**createContext, useContext, useState, useMemo, useCallback** - Optimizes context performance by memoizing callback functions with useCallback and the context value object with useMemo. This prevents unnecessary re-renders of components consuming the context.
+
 ```jsx
 import { createContext, useContext, useState, useMemo, useCallback } from 'react';
 
@@ -223,6 +229,8 @@ function TodoItem({ todo, onToggle }) {
 
 ### 4. Split Contexts for Better Performance
 
+**createContext, useContext, useState, useMemo** - Separates data and actions into different contexts to optimize re-renders. Components only subscribing to actions won't re-render when data changes, and vice versa. This is a powerful optimization technique for large applications.
+
 ```jsx
 import { createContext, useContext, useState, useMemo } from 'react';
 
@@ -295,6 +303,8 @@ function UserForm() {
 ```
 
 ### 5. Context with Reducer (Complex State)
+
+**createContext, useContext, useReducer, useMemo** - Combines Context API with useReducer for managing complex shopping cart state. The reducer pattern provides predictable state updates through actions, and memoization prevents unnecessary re-renders.
 
 ```jsx
 import { createContext, useContext, useReducer, useMemo } from 'react';

@@ -16,6 +16,8 @@
 
 ## Example 1: State with useState
 
+**useState** - A hook that declares a state variable. Returns an array with the current state value and a setter function. The initial state is passed as an argument and can be a value or a function (lazy initialization).
+
 ```jsx
 import { useState } from 'react';
 
@@ -100,6 +102,8 @@ function computeExpensiveValue() {
 
 ## Example 2: setState Patterns (React 18)
 
+**useState with Batching** - Demonstrates different patterns for updating state. React 18 automatically batches all state updates (including in async functions) to optimize re-renders.
+
 ```jsx
 import { useState } from 'react';
 
@@ -170,6 +174,8 @@ function StatePatterns() {
 ---
 
 ## Example 3: Effects with useEffect (Lifecycle Replacement)
+
+**useEffect** - A hook for side effects in functional components. Accepts a function and an optional dependency array. Replaces componentDidMount, componentDidUpdate, and componentWillUnmount lifecycle methods.
 
 ```jsx
 import { useState, useEffect } from 'react';
@@ -243,6 +249,8 @@ function LifecycleWithHooks() {
 
 ## Example 4: Data Fetching (Modern Pattern)
 
+**useState, useEffect, AbortController** - Combines useState for managing loading/error states and useEffect for fetching data. Uses AbortController to cancel requests when the component unmounts or URL changes.
+
 ```jsx
 import { useState, useEffect } from 'react';
 
@@ -307,6 +315,8 @@ function DataFetcher({ url }) {
 
 ## Example 5: Timer Component (Hooks)
 
+**useState, useEffect with Cleanup** - Uses useState for timer state and useEffect to start/stop intervals. Demonstrates proper cleanup of timers to prevent memory leaks.
+
 ```jsx
 import { useState, useEffect } from 'react';
 
@@ -366,6 +376,8 @@ function Timer() {
 
 ### Pitfall 1: Directly Mutating State
 
+**useState** - Shows common mistake of mutating state directly. React uses shallow comparison for reference types, so mutations don't trigger re-renders. Always create new objects/arrays.
+
 ```jsx
 import { useState } from 'react';
 
@@ -406,6 +418,8 @@ function GoodComponent() {
 
 ### Pitfall 2: Stale Closures in Effects
 
+**useState, useEffect** - Demonstrates stale closure problem where the effect captures old state values. Solution is to use functional updates `setState(prev => prev + 1)` or include dependencies.
+
 ```jsx
 import { useState, useEffect } from 'react';
 
@@ -442,6 +456,8 @@ function FixedExample() {
 
 ### Pitfall 3: Infinite Loop in useEffect
 
+**useState, useEffect** - Shows how incorrect dependencies cause infinite loops. When state in dependency array is updated inside the effect, it triggers another effect run.
+
 ```jsx
 import { useState, useEffect } from 'react';
 
@@ -472,6 +488,8 @@ function Fixed() {
 ```
 
 ### Pitfall 4: Missing Dependencies
+
+**useState, useEffect** - Common mistake of not including all dependencies in the dependency array. Can lead to stale data and bugs. Use ESLint plugin to catch these issues.
 
 ```jsx
 import { useState, useEffect } from 'react';
@@ -509,6 +527,8 @@ function fetchUser(id) {
 
 ### 1. Use Functional Updates for State
 
+**useState with Functional Updates** - Best practice for updating state based on previous state. Ensures you're always working with the latest state value, especially important with batching.
+
 ```jsx
 import { useState } from 'react';
 
@@ -539,6 +559,8 @@ function Counter() {
 ```
 
 ### 2. Separate Effects by Concern
+
+**useState, useEffect** - Best practice to split related logic into separate useEffect calls. Makes code more maintainable and easier to understand. Each effect handles one concern.
 
 ```jsx
 import { useState, useEffect } from 'react';
@@ -573,6 +595,8 @@ function fetchAnalytics(id) { /* implementation */ }
 
 ### 3. Cleanup Subscriptions and Timers
 
+**useState, useEffect** - Best practice to always return a cleanup function from useEffect to prevent memory leaks. Cleanup runs before re-running the effect or when the component unmounts.
+
 ```jsx
 import { useState, useEffect } from 'react';
 
@@ -606,6 +630,8 @@ function ProperCleanup() {
 ## Real-world Scenarios
 
 ### Scenario 1: Form with Validation
+
+**useState, useEffect** - Real-world form handling with validation. useEffect validates form data whenever it changes, while useState manages form state, errors, and submission status.
 
 ```jsx
 import { useState, useEffect } from 'react';
@@ -701,6 +727,8 @@ async function submitForm(data) {
 ```
 
 ### Scenario 2: Infinite Scroll
+
+**useState, useEffect** - Real-world infinite scroll implementation. One useEffect handles scroll events and updates page number, another effect loads data when page changes.
 
 ```jsx
 import { useState, useEffect } from 'react';

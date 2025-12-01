@@ -16,6 +16,8 @@
 
 ## Example 1: Functional Components
 
+**Functional Components** - Functions that accept props and return JSX. They are the modern way to create components in React, replacing class components.
+
 ```jsx
 // Simple functional component
 function Welcome(props) {
@@ -63,6 +65,8 @@ function App() {
 ---
 
 ## Example 2: Props and Default Props
+
+**Default Props** - Set default values for props using parameter destructuring or the `defaultProps` property. This ensures components work even when props are not provided.
 
 ```jsx
 // Default props with destructuring
@@ -112,6 +116,8 @@ Setting sensible defaults prevents undefined errors and makes components easier 
 ---
 
 ## Example 3: Children Prop and Composition
+
+**Children Prop** - A special prop that contains the content between a component's opening and closing tags. It enables composition patterns where components can wrap arbitrary content.
 
 ```jsx
 // Container component using children
@@ -163,6 +169,8 @@ Children prop enables flexible composition where components can wrap any content
 ---
 
 ## Example 4: PropTypes for Type Checking
+
+**PropTypes** - Runtime type checking for props. Validates that components receive the correct data types and provides warnings in development when types don't match.
 
 ```jsx
 import PropTypes from 'prop-types';
@@ -228,6 +236,8 @@ function App() {
 ---
 
 ## Example 5: Advanced Prop Patterns
+
+**useState, useEffect** - `useState` manages component state, while `useEffect` handles side effects. These hooks are used in the render props pattern to share stateful logic between components.
 
 ```jsx
 // Render props pattern
@@ -314,6 +324,8 @@ function GoodComponent(props) {
 
 ### Pitfall 2: Using Props in Initial State Incorrectly
 
+**useState, useEffect** - Demonstrates how `useState` initializes state and how `useEffect` synchronizes state with prop changes when needed.
+
 ```jsx
 // PROBLEM - State won't update when props change
 import { useState, useEffect } from 'react';
@@ -396,6 +408,8 @@ function UserCard({ user: { name, email, age } }) {
 ## Best Practices
 
 ### 1. Keep Components Small and Focused
+
+**useState** - Used to manage component-level state. Breaking large components into smaller ones improves maintainability and reusability.
 
 ```jsx
 // BAD - Component does too much
@@ -501,6 +515,8 @@ function Input({ label, error, ...inputProps }) {
 
 ### Scenario 1: Reusable Form Components
 
+**useState** - Manages form state including input values, errors, and touched fields. The spread operator (`...props`) forwards additional props to the input element.
+
 ```jsx
 function FormInput({ label, error, touched, ...props }) {
     const showError = error && touched;
@@ -601,6 +617,8 @@ function App() {
 ```
 
 ### Scenario 3: Conditional Component Rendering
+
+**useState** - Controls the visibility of the alert component. Demonstrates conditional rendering based on state and props.
 
 ```jsx
 function Alert({ type = 'info', message, onClose, actions }) {

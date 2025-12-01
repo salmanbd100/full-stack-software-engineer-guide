@@ -17,6 +17,8 @@
 
 ## Example 1: useState Hook
 
+**useState** - The primary hook for adding state to functional components. Returns a pair: current state value and a function to update it. Supports lazy initialization for expensive computations.
+
 ```javascript
 import { useState } from 'react';
 
@@ -98,6 +100,8 @@ function computeExpensiveValue() {
 ---
 
 ## Example 2: useEffect Hook
+
+**useEffect** - Hook for performing side effects in functional components. Runs after render and can optionally clean up. Dependency array controls when it re-runs.
 
 ```javascript
 import { useState, useEffect } from 'react';
@@ -192,6 +196,8 @@ function UserProfile({ userId }) {
 
 ## Example 3: Rules of Hooks
 
+**Hooks Rules** - Hooks must be called at the top level (not in loops, conditions, or nested functions) and only from React functions. This ensures hooks are called in the same order each render.
+
 ```javascript
 // ✅ CORRECT - Hooks at top level
 function GoodComponent() {
@@ -253,6 +259,8 @@ function GoodLoop() {
 
 ### Pitfall 1: Stale Closure in useEffect
 
+**useState, useEffect** - Common issue where closures capture stale state values. Use functional updates or add dependencies to avoid this problem.
+
 ```javascript
 // PROBLEM
 function Counter() {
@@ -302,6 +310,8 @@ function CounterFixed2() {
 
 ### Pitfall 2: Infinite Loop
 
+**useState, useEffect** - Occurs when state updates inside useEffect trigger the effect again. Fix by adjusting dependencies or effect logic.
+
 ```javascript
 // PROBLEM - Infinite loop
 function InfiniteLoop() {
@@ -330,6 +340,8 @@ function Fixed() {
 ```
 
 ### Pitfall 3: Missing Cleanup
+
+**useEffect** - Forgetting to return a cleanup function causes memory leaks with subscriptions, timers, or event listeners. Always clean up side effects.
 
 ```javascript
 // PROBLEM - Memory leak
@@ -366,6 +378,8 @@ function GoodSubscription({ userId }) {
 
 ### 1. Name Custom Hooks with "use" Prefix
 
+**Custom Hooks Convention** - Custom hooks must start with "use" to follow React conventions and enable linting rules. This signals it's a hook and follows hook rules.
+
 ```javascript
 // Good - custom hook
 function useWindowSize() {
@@ -398,6 +412,8 @@ function Component() {
 
 ### 2. Separate Concerns with Multiple useEffects
 
+**useEffect** - Best practice to use multiple useEffect hooks for different concerns rather than one complex effect. Makes code more maintainable and easier to debug.
+
 ```javascript
 // Good - each effect has one responsibility
 function UserDashboard({ userId }) {
@@ -427,6 +443,8 @@ function UserDashboard({ userId }) {
 
 ### 3. Use Functional Updates for State Based on Previous State
 
+**useState** - When new state depends on previous state, always use the functional update form `setState(prev => ...)` to ensure correctness.
+
 ```javascript
 // Good
 function Counter() {
@@ -452,6 +470,8 @@ function Counter() {
 ## React 18: Automatic Batching
 
 React 18 automatically batches all state updates, including those in async functions, timeouts, and native event handlers. This improves performance by reducing re-renders.
+
+**Automatic Batching** - All state updates are automatically batched together, even in async code, promises, and timeouts. Reduces re-renders without code changes. Use `flushSync` to opt-out if needed.
 
 ```javascript
 import { useState } from 'react';
@@ -514,6 +534,8 @@ function AutoBatchingExample() {
 // Opt-out of batching (rare cases)
 import { flushSync } from 'react-dom';
 
+**flushSync** - Forces React to flush updates synchronously, opting out of automatic batching. Use sparingly as it can hurt performance.
+
 function OptOutExample() {
     const [count, setCount] = useState(0);
     const [flag, setFlag] = useState(false);
@@ -544,6 +566,8 @@ function OptOutExample() {
 ## Real-world Scenarios
 
 ### Scenario 1: Form Handling
+
+**useState** - Real-world form with multiple state variables for form data, errors, and submission status. Demonstrates controlled inputs and form validation.
 
 ```javascript
 function ContactForm() {
@@ -600,6 +624,8 @@ function ContactForm() {
 ```
 
 ### Scenario 2: Data Fetching with Loading and Error States
+
+**useState, useEffect** - Complete data fetching pattern with loading, error, and success states. Includes cleanup to prevent state updates on unmounted components.
 
 ```javascript
 function UserList() {

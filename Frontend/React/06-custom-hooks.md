@@ -6,6 +6,8 @@ Custom hooks allow you to extract and reuse stateful logic across multiple compo
 
 ### 1. Creating Custom Hooks
 
+**useState** - Basic custom hook example that encapsulates counter logic. Custom hooks must start with "use" and can call other hooks to extract reusable stateful logic.
+
 ```jsx
 import { useState } from 'react';
 
@@ -36,6 +38,8 @@ function Counter() {
 ```
 
 ### 2. useLocalStorage Hook
+
+**useState, useCallback** - Custom hook that syncs state with localStorage. Uses lazy initialization to read from storage on mount, and useCallback to memoize the setter function.
 
 ```jsx
 import { useState, useCallback } from 'react';
@@ -81,6 +85,8 @@ function App() {
 ```
 
 ### 3. useFetch Hook
+
+**useState, useEffect, AbortController** - Custom hook for data fetching with loading, error, and data states. Includes cleanup with AbortController to prevent memory leaks and race conditions.
 
 ```jsx
 import { useState, useEffect } from 'react';
@@ -147,6 +153,8 @@ function UserProfile({ userId }) {
 
 ### 4. useToggle Hook
 
+**useState, useCallback** - Simple custom hook for boolean toggle state. Returns a stable toggle function using useCallback, useful for modals, dropdowns, and visibility toggles.
+
 ```jsx
 import { useState, useCallback } from 'react';
 
@@ -174,6 +182,8 @@ function Modal() {
 ```
 
 ### 5. useDebounce Hook
+
+**useState, useEffect** - Custom hook that delays updating a value until after a specified delay. Essential for optimizing search inputs and API calls by reducing unnecessary requests.
 
 ```jsx
 import { useState, useEffect } from 'react';
@@ -219,6 +229,8 @@ function SearchInput() {
 ## 💡 Practical Examples
 
 ### Example 1: useForm Hook
+
+**useState** - Custom hook for form state management. Handles form values, errors, changes, submission, and reset logic in a reusable way across different forms.
 
 ```jsx
 import { useState } from 'react';
@@ -284,6 +296,8 @@ function LoginForm() {
 
 ### Example 2: useMediaQuery Hook
 
+**useState, useEffect** - Custom hook for responsive design. Subscribes to CSS media query changes and updates state when screen size changes, enabling responsive React components.
+
 ```jsx
 import { useState, useEffect } from 'react';
 
@@ -330,6 +344,8 @@ function DesktopView() {
 ## ⚡ React 18: Advanced Custom Hooks
 
 ### Example 3: useTransitionState (React 18)
+
+**useState, useTransition** - Custom hook combining state with React 18 transitions. Wraps setState in startTransition to mark updates as non-urgent, keeping UI responsive during heavy operations.
 
 ```jsx
 import { useState, useTransition } from 'react';
@@ -381,6 +397,8 @@ const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
 
 ### Example 4: useDeferredSearch (React 18)
 
+**useDeferredValue, useMemo** - Custom hook for search with deferred updates. Combines useDeferredValue to delay filtering and useMemo to optimize computation, detecting stale state for loading indicators.
+
 ```jsx
 import { useState, useDeferredValue, useMemo } from 'react';
 
@@ -431,6 +449,8 @@ const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
 ```
 
 ### Example 5: useId Hook (React 18)
+
+**useId** - Custom hook for accessible form fields. Uses React 18's useId to generate unique, SSR-safe IDs for labels, inputs, and hint text with proper ARIA attributes.
 
 ```jsx
 import { useId } from 'react';

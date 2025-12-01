@@ -6,6 +6,8 @@ Error boundaries catch JavaScript errors in component tree and display fallback 
 
 ### 1. Class Component Error Boundary
 
+**getDerivedStateFromError, componentDidCatch** - Implements an error boundary using class component lifecycle methods. getDerivedStateFromError updates state to display fallback UI, while componentDidCatch logs error details for debugging or reporting.
+
 ```jsx
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -57,6 +59,8 @@ function App() {
 - Errors in error boundary itself
 
 ### 3. Handling Async Errors
+
+**useState, useEffect** - Demonstrates error handling for asynchronous operations that error boundaries cannot catch. Uses local state to capture and display errors from async operations like API calls.
 
 ```jsx
 function AsyncComponent() {

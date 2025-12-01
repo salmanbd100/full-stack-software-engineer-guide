@@ -6,6 +6,8 @@ Optimizing React applications involves understanding rendering behavior and usin
 
 ### 1. Code Splitting & Lazy Loading
 
+**lazy, Suspense** - Implements code splitting to load components on demand rather than in the initial bundle. Suspense provides a fallback UI while lazy-loaded components are being fetched, reducing initial load time.
+
 ```jsx
 import { lazy, Suspense } from 'react';
 
@@ -26,6 +28,8 @@ function App() {
 ```
 
 ### 2. Memoization
+
+**React.memo, useMemo, useCallback** - Demonstrates three memoization techniques to prevent unnecessary re-renders. React.memo memoizes component rendering, useMemo caches expensive calculations, and useCallback memoizes function references.
 
 ```jsx
 // React.memo for components
@@ -54,6 +58,8 @@ function Parent() {
 
 ### 3. Virtualization (Large Lists)
 
+**react-window** - Implements list virtualization to render only visible items in large lists. Instead of rendering thousands of items, it renders only what fits in the viewport, dramatically improving performance for long lists.
+
 ```jsx
 import { FixedSizeList } from 'react-window';
 
@@ -77,6 +83,8 @@ function VirtualizedList({ items }) {
 ```
 
 ### 4. Profiling with React DevTools
+
+**Profiler** - Uses React's built-in Profiler component to measure rendering performance. The onRender callback receives detailed timing information for each render, helping identify performance bottlenecks.
 
 ```jsx
 import { Profiler } from 'react';
