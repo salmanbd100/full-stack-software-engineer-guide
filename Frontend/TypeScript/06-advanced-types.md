@@ -20,6 +20,8 @@ Union types allow a value to be one of several types using the `|` operator.
 
 ### Basic Union Types
 
+**Basic Union Type Syntax** - Union types allow a value to be one of several types using the | operator. TypeScript enforces type safety by preventing assignment of types not in the union.
+
 ```typescript
 // Simple union
 let value: string | number;
@@ -44,6 +46,8 @@ currentStatus = "pending"; // Error
 
 ### Working with Union Types
 
+**Type Narrowing with Union Types** - Union types require type guards to access type-specific methods. Only common methods available on all union members can be used without narrowing.
+
 ```typescript
 // Need to narrow types before using type-specific methods
 function processValue(value: string | number) {
@@ -65,6 +69,8 @@ function formatValue(value: string | number): string {
 ```
 
 ### Union with null and undefined
+
+**Nullable Union Types** - Unions with null/undefined handle optional or absent values. Optional properties (?) are equivalent to union with undefined but differ from explicit null unions.
 
 ```typescript
 // Nullable types
@@ -88,6 +94,8 @@ const user2: User = { name: "Bob", age: 25, email: "bob@ex.com" }; // OK
 ```
 
 ### Union of Object Types
+
+**Discriminated Union Pattern** - Union of object types with a common discriminant property. TypeScript uses the discriminant to narrow types and provide access to type-specific properties.
 
 ```typescript
 interface Dog {
@@ -121,6 +129,8 @@ function handlePet(pet: Pet) {
 
 ### Arrays with Union Types
 
+**Union Types with Arrays** - Arrays can hold union types as elements, or a type can be a union of array and non-array. Use Array.isArray() to distinguish between single values and arrays.
+
 ```typescript
 // Array of mixed types
 const mixed: (string | number)[] = [1, "two", 3, "four"];
@@ -148,6 +158,8 @@ Intersection types combine multiple types into one using the `&` operator.
 
 ### Basic Intersection Types
 
+**Basic Intersection Type Syntax** - Intersection types combine multiple types using the & operator. The resulting type must have ALL properties from all intersected types.
+
 ```typescript
 interface Person {
   name: string;
@@ -171,6 +183,8 @@ const employee: EmployeePerson = {
 ```
 
 ### Intersection with Type Aliases
+
+**Combining Functionalities with Intersection** - Intersection types merge capabilities from multiple type aliases. The result requires implementing all methods and properties from all intersected types.
 
 ```typescript
 type Printable = {
@@ -196,6 +210,8 @@ const doc: Document = {
 
 ### Intersection vs Extends
 
+**Intersection vs Interface Extension** - Both intersection (&) and interface extends achieve similar results but with different syntax. Extends is more common for interfaces, while intersection works with any type.
+
 ```typescript
 // Using intersection
 interface A {
@@ -218,6 +234,8 @@ const obj2: D = { a: "hello", b: 42, d: true };
 ```
 
 ### Mixing Intersection and Union
+
+**Combining Union and Intersection Types** - Complex types can mix union and intersection operators. Parentheses control precedence, creating unions of intersections or other combinations.
 
 ```typescript
 type Admin = {
@@ -249,6 +267,8 @@ const admin: AuthenticatedUser = {
 ```
 
 ### Conflicting Properties
+
+**Intersection with Conflicting Property Types** - When intersecting types with same property names but different types, the property becomes never (impossible to satisfy). Avoid conflicts by ensuring compatible property types.
 
 ```typescript
 // Intersection with conflicting types
@@ -286,6 +306,8 @@ type Combined = A & B; // OK - no conflicts
 
 ### Type Aliases
 
+**Type Alias Definitions** - Type aliases create reusable names for any type including primitives, unions, objects, and functions. More flexible than interfaces for non-object types.
+
 ```typescript
 // Basic type alias
 type ID = string | number;
@@ -304,6 +326,8 @@ const add: MathOperation = (a, b) => a + b;
 ```
 
 ### Interfaces
+
+**Interface Definitions** - Interfaces define contracts for object shapes with properties and methods. Support inheritance through extends, ideal for object-oriented patterns.
 
 ```typescript
 // Basic interface
@@ -326,6 +350,8 @@ interface Admin extends User {
 ```
 
 ### Key Differences
+
+**Interface vs Type Alias Comparison** - Interfaces support declaration merging and are limited to object shapes. Type aliases can represent any type including unions, primitives, and tuples but cannot be merged.
 
 ```typescript
 // 1. Declaration merging (interfaces only)
@@ -375,6 +401,8 @@ interface ICoordinate {
 
 ### When to Use Which
 
+**Choosing Between Interface and Type** - Use interfaces for object shapes, classes, and when declaration merging is needed. Use type aliases for unions, primitives, tuples, and complex type transformations.
+
 ```typescript
 // Use interfaces for:
 // - Object shapes
@@ -408,6 +436,8 @@ Literal types allow you to specify exact values a variable can have.
 
 ### String Literal Types
 
+**String Literal Type Unions** - String literal types restrict values to specific strings. Useful for defining allowed values like directions, HTTP methods, or status codes.
+
 ```typescript
 // Single literal
 type Direction = "north" | "south" | "east" | "west";
@@ -432,6 +462,8 @@ makeRequest("/api/users", "FETCH"); // Error
 
 ### Number Literal Types
 
+**Number Literal Type Unions** - Number literals restrict values to specific numbers. Common for dice rolls, HTTP status codes, or other numeric constants with finite valid values.
+
 ```typescript
 type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -454,6 +486,8 @@ function handleResponse(status: HttpStatus) {
 ```
 
 ### Boolean Literal Types
+
+**Boolean Literal Types for Discriminated Unions** - Specific true/false literals enable type discrimination. Commonly used in success/error response patterns to distinguish between outcomes.
 
 ```typescript
 // Specific boolean value
@@ -483,6 +517,8 @@ function handleResponse(response: ApiResponse) {
 ```
 
 ### Literal Type Inference
+
+**Literal Type Inference and Widening** - TypeScript widens let variables to general types but keeps const as literals. Use 'as const' assertion to force literal types and make objects deeply readonly.
 
 ```typescript
 // Without const - type is widened
@@ -520,6 +556,8 @@ Template literal types build new string literal types using template literal syn
 
 ### Basic Template Literals
 
+**Template Literal Type Syntax** - Template literals create string types from patterns, combining string literals with interpolation. Generates all combinations when used with union types.
+
 ```typescript
 // Simple template literal type
 type Greeting = `Hello, ${string}`;
@@ -539,6 +577,8 @@ const padding2: Padding = "margin-left"; // Error
 ```
 
 ### Complex Template Literals
+
+**Multi-Part Template Literal Types** - Multiple interpolations create complex patterns. Cartesian product of all union combinations generates comprehensive type coverage for API routes, CSS values, etc.
 
 ```typescript
 // Multiple interpolations
@@ -566,6 +606,8 @@ const height: Size = "2.5rem"; // OK
 ```
 
 ### Intrinsic String Manipulation Types
+
+**Built-in String Transformation Utilities** - TypeScript provides intrinsic string manipulation types for case conversion. Commonly used with template literals to generate event handlers, method names, or CSS classes.
 
 ```typescript
 // Built-in utilities
@@ -595,6 +637,8 @@ interface Events {
 ```
 
 ### Practical Examples
+
+**Real-World Template Literal Applications** - Template literals excel at generating API routes, CSS class names, and database column references. Combines type safety with string pattern generation.
 
 ```typescript
 // API endpoints
@@ -626,6 +670,8 @@ Conditional types select types based on conditions using the `extends` keyword.
 
 ### Basic Conditional Types
 
+**Conditional Type Ternary Syntax** - Conditional types use extends keyword with ternary-like syntax (T extends U ? X : Y). Checks if type T is assignable to U, returning X if true, Y if false.
+
 ```typescript
 // Syntax: T extends U ? X : Y
 type IsString<T> = T extends string ? true : false;
@@ -641,6 +687,8 @@ type D = IsArray<number>; // false
 ```
 
 ### Conditional Types with infer
+
+**Type Inference with infer Keyword** - infer keyword extracts types from conditional type checks. Captures type information from function returns, array elements, Promise resolutions, or any structural type.
 
 ```typescript
 // Extract return type
@@ -667,6 +715,8 @@ type P2 = Unpromise<number>; // number
 
 ### Distributive Conditional Types
 
+**Distribution Over Union Types** - Conditional types automatically distribute over unions, applying the condition to each member separately. Wrap in tuple [T] to prevent distribution and treat union as single type.
+
 ```typescript
 // Distributes over union types
 type ToArray<T> = T extends any ? T[] : never;
@@ -683,6 +733,8 @@ type StrOrNumArray2 = ToArrayNonDist<StrOrNum>;
 ```
 
 ### Practical Conditional Types
+
+**Utility Type Implementations** - Conditional types power utility types like NonNullable, function extractors, and recursive transformations. Enable deep readonly, nullability removal, and type filtering.
 
 ```typescript
 // Remove null and undefined
@@ -716,6 +768,8 @@ type ReadonlyUser = DeepReadonly<User>;
 
 ### Nested Conditional Types
 
+**Recursive Conditional Type Navigation** - Nested conditionals with template literals and infer enable type-safe property path navigation. Parses dot-notation paths to extract deeply nested property types.
+
 ```typescript
 // Get type of nested property
 type GetProperty<T, K extends string> = K extends `${infer First}.${infer Rest}`
@@ -744,6 +798,8 @@ type Age = GetProperty<User, "info.age">; // number
 Mapped types create new types by transforming properties of existing types.
 
 ### Basic Mapped Types
+
+**Mapped Type Transformations** - Mapped types iterate over keys using [P in keyof T] to transform all properties. Add or remove modifiers like optional (?) or readonly using + and - prefixes.
 
 ```typescript
 // Make all properties optional
@@ -776,6 +832,8 @@ type RequiredConfig = Required<Config>;
 
 ### Readonly Mapped Types
 
+**Readonly Modifiers in Mapped Types** - Add readonly modifier to prevent mutations, or remove it with -readonly for mutable versions. Useful for immutable data structures and configuration objects.
+
 ```typescript
 // Make all properties readonly
 type Readonly<T> = {
@@ -792,6 +850,8 @@ type Mutable<T> = {
 ```
 
 ### Pick and Omit
+
+**Selective Property Mapping** - Pick selects specific properties by mapping over a subset of keys. Omit excludes properties by combining Exclude and Pick for inverse selection.
 
 ```typescript
 // Pick specific properties
@@ -810,6 +870,8 @@ type UserWithoutId = Omit<User, "id">;
 ```
 
 ### Record Type
+
+**Record Type for Key-Value Mappings** - Creates object types with specified keys and uniform value types. Maps over provided keys K, assigning type T to each, ideal for dictionaries and lookup tables.
 
 ```typescript
 // Create object type with specific keys
@@ -831,6 +893,8 @@ const statusMessages: HttpStatusMessages = {
 ```
 
 ### Advanced Mapped Types
+
+**Property Type Transformation** - Mapped types can change property types uniformly. Transform all properties to string, add nullability, or apply any type transformation while preserving property names.
 
 ```typescript
 // Change property types
@@ -857,6 +921,8 @@ type NullableUser = Nullable<User>;
 ```
 
 ### Key Remapping
+
+**Key Remapping in Mapped Types (TypeScript 4.1+)** - Use 'as' clause to rename keys during mapping. Combines with template literals and Exclude to generate getter methods or filter unwanted properties.
 
 ```typescript
 // Rename keys (TypeScript 4.1+)
@@ -897,6 +963,8 @@ Index access types allow you to look up specific properties on another type.
 
 ### Basic Index Access
 
+**Index Access Type Syntax** - Access property types using bracket notation T["property"]. Returns the type of that property, or union of multiple property types when accessing multiple keys.
+
 ```typescript
 interface User {
   id: number;
@@ -916,6 +984,8 @@ type UserContact = User["name" | "email"];
 
 ### Array Index Access
 
+**Array Element Type Extraction** - Use [number] to access array element types. With const assertions, extracts union of literal values. Generic pattern works for any readonly array type.
+
 ```typescript
 // Get element type from array
 const colors = ["red", "green", "blue"] as const;
@@ -930,6 +1000,8 @@ type Num = ArrayElement<typeof numbers>; // 1 | 2 | 3
 ```
 
 ### Nested Index Access
+
+**Chained Index Access for Nested Types** - Chain bracket notation to access deeply nested property types. Each level of access narrows to the specific nested type at that path.
 
 ```typescript
 interface Data {
@@ -947,6 +1019,8 @@ type Profile = Data["user"]["profile"];
 ```
 
 ### Index Access with keyof
+
+**Combined keyof and Index Access** - Use keyof to get all keys, then index access to get union of all value types. Enables generic property getter functions with full type safety.
 
 ```typescript
 interface User {
@@ -971,6 +1045,8 @@ const id = getProperty(user, "id"); // number
 
 ### Conditional Index Access
 
+**Index Access with ReturnType** - Combine index access with ReturnType to extract return types from interface methods. Type-safe way to get return types without invoking functions.
+
 ```typescript
 // Get function return types
 interface Api {
@@ -991,6 +1067,8 @@ type PostsReturn = ApiReturnType<"getPosts">; // Promise<Post[]>
 
 ### Pitfall 1: Union vs Intersection Confusion
 
+**Common Misunderstanding** - Union (|) means value can be ONE of the types, not "combine properties". Intersection (&) means value MUST have ALL properties from all types. Understanding this distinction prevents logical errors.
+
 ```typescript
 // Wrong assumption
 type A = { a: string };
@@ -1010,6 +1088,8 @@ const inter1: IntersectionAB = { a: "hello", b: 42 }; // OK
 
 ### Pitfall 2: Type vs Interface for Unions
 
+**Syntax Limitation** - Interfaces cannot represent union types, only object shapes. Always use type aliases for union types, primitives, or any non-object type definitions.
+
 ```typescript
 // Wrong - interfaces can't represent unions
 // interface StringOrNumber = string | number; // Error
@@ -1019,6 +1099,8 @@ type StringOrNumber = string | number; // OK
 ```
 
 ### Pitfall 3: Modifying Literal Types
+
+**Type Widening Issue** - Object literals without 'as const' widen to general types (string instead of "GET"). Use 'as const' assertion to preserve literal types and make properties readonly.
 
 ```typescript
 // Wrong - type widening
@@ -1033,6 +1115,8 @@ const config2 = {
 ```
 
 ### Pitfall 4: Optional vs Undefined
+
+**Optional vs Explicit Undefined** - Optional properties (?) can be omitted entirely. Properties typed as 'type | undefined' must be present in the object, even if value is undefined.
 
 ```typescript
 interface User {
@@ -1053,6 +1137,9 @@ const user3: User = { name: "Charlie", age: 25, email: undefined }; // OK
 ### Q1: What's the difference between union and intersection types?
 
 **Answer:**
+
+**Union vs Intersection Operators** - Union (|) allows one of several types. Intersection (&) requires all types simultaneously. Union for alternatives, intersection for combinations.
+
 ```typescript
 // Union (|) - value can be ONE of the types
 type Union = string | number;
@@ -1083,6 +1170,9 @@ const value: Intersection = {
 ### Q2: When should you use type alias vs interface?
 
 **Answer:**
+
+**Type vs Interface Decision Guide** - Use interfaces for objects, classes, and extensibility. Use types for unions, primitives, tuples, and complex transformations. Interfaces offer better ergonomics for object-oriented patterns.
+
 ```typescript
 // Use interface for:
 // 1. Object shapes and classes
@@ -1127,6 +1217,9 @@ type Readonly<T> = {
 ### Q3: Explain conditional types with an example
 
 **Answer:**
+
+**Conditional Type Examples** - Demonstrates ternary-like type selection based on extends checks. Shows type checking, infer for extraction, and null removal. Foundation for utility types.
+
 ```typescript
 // Conditional type syntax: T extends U ? X : Y
 // If T extends U, return X, otherwise Y
@@ -1164,6 +1257,9 @@ type T2 = NonNullable<number | undefined>; // number
 ### Q4: What are mapped types and how do you use them?
 
 **Answer:**
+
+**Mapped Type Pattern Examples** - Shows common mapped type patterns including Partial, Readonly, Pick, and type transformation. Demonstrates modifier syntax (+/- for optional and readonly).
+
 ```typescript
 // Mapped types transform properties of existing types
 
@@ -1216,6 +1312,9 @@ type StringUser = Stringify<User>;
 ### Q5: What are template literal types?
 
 **Answer:**
+
+**Template Literal Type Applications** - Demonstrates template literal syntax for generating type-safe strings. Shows basic patterns, union combinations, case transformations, and practical API/event handler examples.
+
 ```typescript
 // Template literal types create string literal types using template syntax
 
@@ -1264,6 +1363,9 @@ type ApiRoute = `${HttpMethod} /${Resource}`;
 ### Q6: How do you create a type that picks only function properties?
 
 **Answer:**
+
+**Advanced Mapped and Conditional Type Combination** - Uses mapped types with conditional checks to filter properties by type. Demonstrates function property extraction and its inverse (non-function properties).
+
 ```typescript
 // Solution using conditional types and mapped types
 
@@ -1322,7 +1424,8 @@ type UserData = NonFunctionProperties<User>;
 
 ## Best Practices
 
-1. **Prefer interfaces for object shapes**
+**Best Practice: Interfaces for Objects** - Prefer interfaces for object shapes due to better error messages and extensibility. Reserve type aliases for non-object types.
+
 ```typescript
 // Good
 interface User {
@@ -1334,7 +1437,8 @@ interface User {
 type ID = string | number;
 ```
 
-2. **Use const assertions for literal types**
+**Best Practice: Const Assertions** - Use 'as const' to preserve literal types and create deeply readonly objects. Prevents unintended type widening.
+
 ```typescript
 const config = {
   theme: "dark",
@@ -1342,12 +1446,14 @@ const config = {
 } as const;
 ```
 
-3. **Combine union and intersection wisely**
+**Best Practice: Union and Intersection Combinations** - Combine operators strategically with parentheses for complex type requirements. Union of intersections or vice versa.
+
 ```typescript
 type AuthenticatedUser = (Admin | User) & { token: string };
 ```
 
-4. **Use template literals for string patterns**
+**Best Practice: Template Literals for Patterns** - Leverage template literal types for type-safe string patterns in CSS, APIs, or event handlers.
+
 ```typescript
 type CssClass = `${Color}-${Shade}`;
 ```

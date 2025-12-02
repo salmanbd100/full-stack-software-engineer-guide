@@ -21,6 +21,8 @@ TypeScript enhances React development with type safety, better IDE support, and 
 
 ### Benefits of TypeScript with React
 
+**Compile-Time Safety vs Runtime Errors** - TypeScript catches type errors during development before code runs. Without TypeScript, invalid props pass undetected until runtime, causing errors in production.
+
 ```typescript
 // Without TypeScript - runtime errors
 function Button({ onClick, label }) {
@@ -56,6 +58,8 @@ function Button({ onClick, label }: ButtonProps) {
 ## Typing React Components
 
 ### Function Components
+
+**Four Methods for Typing Function Components** - Choose between explicit JSX.Element return, React.FC type, inline props, or separate props interface. Props interface recommended for complex components.
 
 ```typescript
 // Method 1: Explicit return type
@@ -93,6 +97,8 @@ function Welcome({ name, age }: WelcomeProps) {
 
 ### React.FC vs Regular Function
 
+**React.FC Auto-Includes Children** - React.FC type automatically includes children prop. Regular functions require explicit children typing. Modern best practice favors regular functions for explicit control.
+
 ```typescript
 // React.FC includes children automatically
 const Component1: React.FC<{ title: string }> = ({ title, children }) => {
@@ -124,6 +130,8 @@ function Component2({ title, children }: Props) {
 ```
 
 ### Class Components
+
+**Typing Class Component Props and State** - Class components use generic React.Component<Props, State> with separate interfaces for props and state. Constructor and methods follow standard TypeScript patterns.
 
 ```typescript
 import React from 'react';
@@ -173,6 +181,8 @@ class Counter extends React.Component<CounterProps, CounterState> {
 
 ### Basic Props
 
+**Simple Props with Optional Values and Defaults** - Define props interface with required and optional properties. Use literal types for variants. Provide default values in destructuring.
+
 ```typescript
 // Simple props
 interface ButtonProps {
@@ -195,6 +205,8 @@ function Button({ label, disabled = false, variant = 'primary' }: ButtonProps) {
 ```
 
 ### Children Props
+
+**ReactNode for Flexible Children** - React.ReactNode accepts any renderable content (elements, strings, numbers, fragments). Use ReactElement for specific component type restrictions.
 
 ```typescript
 // React.ReactNode - most flexible (recommended)
@@ -335,6 +347,8 @@ function Layout({ Header, Sidebar, children }: LayoutProps) {
 ## Event Handlers
 
 ### Common Event Types
+
+**React Synthetic Event Types** - Use React.MouseEvent for clicks, React.ChangeEvent for inputs, React.FormEvent for forms, and React.KeyboardEvent for keyboard. Always specify element type parameter.
 
 ```typescript
 // Click events
@@ -486,6 +500,8 @@ function EventExamples() {
 
 ### useState
 
+**useState Type Inference and Explicit Types** - Simple types infer automatically. Use explicit types for unions, objects, nullable/undefined states, and arrays. Essential for complex state management.
+
 ```typescript
 // Inferred type
 const [count, setCount] = useState(0); // number
@@ -570,6 +586,8 @@ useEffect(() => {
 ```
 
 ### useRef
+
+**useRef for DOM Elements and Mutable Values** - Type DOM refs with specific HTMLElement. Use null initial value and optional chaining. Type mutable values explicitly for timers, counters, or storing previous values.
 
 ```typescript
 // DOM element ref
@@ -705,6 +723,8 @@ function UserList({ users }: { users: User[] }) {
 
 ### useReducer
 
+**Discriminated Union for Action Types** - Define State interface and Action discriminated union. Reducer function provides type-safe state transitions. TypeScript validates action types and payloads.
+
 ```typescript
 // State and action types
 interface State {
@@ -755,6 +775,8 @@ function Counter() {
 
 ### Basic Custom Hook
 
+**Custom Hook with Tuple Return Type** - Define explicit return type as tuple for array destructuring. Follow hook naming convention (use prefix). Return state and setter/toggle functions.
+
 ```typescript
 // Toggle hook
 function useToggle(initialValue: boolean = false): [boolean, () => void] {
@@ -781,6 +803,8 @@ function Component() {
 ```
 
 ### Generic Custom Hook
+
+**Generic Hook for Type-Safe Reusability** - Use generics to create hooks that work with any data type. Enables localStorage, fetch, or form hooks with full type inference at usage site.
 
 ```typescript
 // Local storage hook
@@ -947,6 +971,8 @@ function LoginForm() {
 ## Context API
 
 ### Basic Context
+
+**Type-Safe Context with Custom Hook** - Create context with undefined default, define context type interface, provide custom hook that validates provider usage. Pattern prevents accessing context outside provider.
 
 ```typescript
 // Create context

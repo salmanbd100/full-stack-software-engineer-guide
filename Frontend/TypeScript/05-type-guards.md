@@ -20,6 +20,8 @@ Type guards are expressions that perform runtime checks to narrow down types wit
 
 ### Why Type Guards?
 
+**Type Guard Benefits** - Demonstrates the problem without type guards (compile errors) and the solution with type guards (safe runtime type checking for union types).
+
 ```typescript
 // Without type guard
 function processValue(value: string | number) {
@@ -50,6 +52,8 @@ The `typeof` operator checks primitive types at runtime.
 
 ### Basic typeof Guards
 
+**typeof Operator for Primitives** - Runtime type checking using typeof operator. TypeScript narrows types automatically within conditional blocks based on typeof checks.
+
 ```typescript
 function processValue(value: string | number | boolean) {
   if (typeof value === "string") {
@@ -78,6 +82,8 @@ function formatValue(value: unknown): string {
 
 ### typeof Limitations
 
+**typeof Quirks and Solutions** - typeof has limitations: returns "object" for arrays and null. Use Array.isArray() for arrays and strict equality for null checks.
+
 ```typescript
 // typeof returns "object" for arrays and null
 typeof [1, 2, 3] === "object"; // true
@@ -96,6 +102,8 @@ function isNull(value: unknown): value is null {
 ```
 
 ### Valid typeof Values
+
+**typeof Return Values** - Complete list of possible typeof return values. Useful for type-safe typeof comparisons and exhaustive type checking.
 
 ```typescript
 type TypeofValues =
@@ -120,6 +128,8 @@ function getType(value: unknown): TypeofValues {
 The `instanceof` operator checks if an object is an instance of a class or constructor function.
 
 ### Basic instanceof Guards
+
+**instanceof Operator for Classes** - Checks if an object is an instance of a class. TypeScript automatically narrows to the specific class type in conditional blocks.
 
 ```typescript
 class Dog {
@@ -151,6 +161,8 @@ makeSound(cat); // "Meow!"
 
 ### instanceof with Built-in Types
 
+**instanceof with Built-in Objects** - Works with built-in types like Date, RegExp, Error, and Array. Essential for safe error handling and type-specific operations.
+
 ```typescript
 function processValue(value: Date | RegExp | Error) {
   if (value instanceof Date) {
@@ -181,6 +193,8 @@ function handleError(error: unknown) {
 ```
 
 ### instanceof with Inheritance
+
+**instanceof with Class Hierarchies** - instanceof checks the entire prototype chain, so it works with inheritance. Subclass instances are also instances of their parent class.
 
 ```typescript
 class Animal {
@@ -221,6 +235,8 @@ The `in` operator checks if a property exists in an object.
 
 ### Basic in Guards
 
+**in Operator for Property Checks** - Checks if a property exists in an object at runtime. TypeScript uses this to narrow union types based on unique properties.
+
 ```typescript
 interface Car {
   drive(): void;
@@ -245,6 +261,8 @@ function operate(vehicle: Car | Boat) {
 
 ### in with Optional Properties
 
+**in Operator with Optional Fields** - Be careful: 'in' returns true even if the property value is undefined. Combine with additional undefined checks for safety.
+
 ```typescript
 interface User {
   name: string;
@@ -264,6 +282,8 @@ function printUserInfo(user: User) {
 ```
 
 ### in with Index Signatures
+
+**in Operator with Dynamic Keys** - Works with index signatures and dynamic property access. Useful for safe dictionary/map operations and API response handling.
 
 ```typescript
 interface Dictionary {
@@ -300,6 +320,8 @@ Custom type guards use the `is` predicate to create user-defined type checks.
 
 ### Basic Custom Type Guard
 
+**Custom Type Guard with 'is' Predicate** - User-defined type guards using 'value is Type' syntax. Return boolean to tell TypeScript the type when true.
+
 ```typescript
 // Type predicate: value is Type
 function isString(value: unknown): value is string {
@@ -314,6 +336,8 @@ function processValue(value: unknown) {
 ```
 
 ### Interface Type Guards
+
+**Type Guards for Interfaces** - Check for unique properties to distinguish between interface types. Essential for working with similar interfaces that differ in specific properties.
 
 ```typescript
 interface User {
@@ -345,6 +369,8 @@ function grantAccess(user: User | Admin) {
 
 ### Complex Type Guards
 
+**Generic Type Guards** - Type guards can work with generic types. Check discriminant properties to narrow generic union types safely.
+
 ```typescript
 interface Success<T> {
   success: true;
@@ -375,6 +401,8 @@ function handleResult(result: Result<{ name: string }>) {
 
 ### Array Type Guards
 
+**Type Guards for Array Element Types** - Combine Array.isArray() with every() to validate all elements. Ensures type safety for arrays with specific element types.
+
 ```typescript
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
@@ -394,6 +422,8 @@ function processArray(arr: unknown) {
 ```
 
 ### Nullable Type Guards
+
+**Generic Null/Undefined Guards** - Reusable type guards for filtering null and undefined. Essential for array.filter() operations and optional chaining.
 
 ```typescript
 function isNotNull<T>(value: T | null): value is T {
@@ -420,6 +450,8 @@ const definedValues = values.filter(isDefined); // string[]
 Discriminated unions (tagged unions) use a common property to distinguish between types.
 
 ### Basic Discriminated Union
+
+**Discriminated Unions (Tagged Unions)** - Use a common literal property (discriminant) to distinguish between union members. TypeScript narrows types based on the discriminant in switch statements.
 
 ```typescript
 interface Circle {
@@ -454,6 +486,8 @@ function getArea(shape: Shape): number {
 
 ### API Response with Discriminated Union
 
+**Async State Pattern** - Common pattern for managing loading, success, and error states. Each state has unique properties accessible only in that state's branch.
+
 ```typescript
 interface LoadingState {
   status: "loading";
@@ -487,6 +521,8 @@ function handleState(state: AsyncState<{ name: string }>) {
 ```
 
 ### Complex Discriminated Union
+
+**Payment Method Pattern** - Real-world example with multiple payment types. Each payment method has type-specific properties that are safely accessible after type narrowing.
 
 ```typescript
 interface BankAccount {
@@ -533,6 +569,8 @@ Exhaustiveness checking ensures all possible cases are handled in discriminated 
 
 ### Using never Type
 
+**Exhaustiveness Checking with never** - Assigns remaining cases to never type. If all cases aren't handled, TypeScript throws compile error, preventing bugs from missing cases.
+
 ```typescript
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -576,6 +614,8 @@ function handleStatus2(status: Status2): string {
 
 ### Helper Function
 
+**assertNever Helper** - Throws runtime error for unhandled cases while providing compile-time exhaustiveness checking. Useful for detecting missing switch cases.
+
 ```typescript
 function assertNever(value: never): never {
   throw new Error(`Unexpected value: ${value}`);
@@ -611,6 +651,8 @@ function getArea(shape: Shape): number {
 
 ### Truthiness Narrowing
 
+**Truthiness-Based Type Narrowing** - TypeScript narrows types based on truthy/falsy checks. Be careful: 0 and empty string are falsy but valid values.
+
 ```typescript
 function printLength(value: string | null | undefined) {
   // Truthiness check
@@ -638,6 +680,8 @@ function printValue2(value: string | number) {
 
 ### Equality Narrowing
 
+**Equality-Based Type Narrowing** - When comparing two values with ===, TypeScript infers they must be the same type. Useful for narrowing union types.
+
 ```typescript
 function compare(x: string | number, y: string | boolean) {
   if (x === y) {
@@ -664,6 +708,8 @@ function processValue(value: string | null | undefined) {
 
 ### Control Flow Analysis
 
+**Control Flow-Based Narrowing** - TypeScript tracks types through code paths. Early returns and type checks narrow remaining possibilities in subsequent code.
+
 ```typescript
 function processValue(value: string | number | null) {
   if (value === null) {
@@ -682,6 +728,8 @@ function processValue(value: string | number | null) {
 ```
 
 ### Type Predicates in Filter
+
+**Type Guards with Array.filter()** - Regular filter doesn't narrow types, but type predicate functions do. Essential for filtering null/undefined from arrays.
 
 ```typescript
 interface User {
@@ -715,6 +763,8 @@ const validUsers2 = users.filter(isNotNull);
 
 ### Pitfall 1: Not Returning Boolean
 
+**Missing Return Statement** - Type guards must return boolean. Forgetting the return statement causes the guard to always return undefined (falsy), breaking type narrowing.
+
 ```typescript
 // Wrong - doesn't return boolean
 function isString(value: unknown): value is string {
@@ -728,6 +778,8 @@ function isString(value: unknown): value is string {
 ```
 
 ### Pitfall 2: Incorrect Type Predicate
+
+**Mismatched Type Predicate** - Type predicate must match the actual check. Lying to TypeScript about types causes runtime errors despite passing type checks.
 
 ```typescript
 // Wrong - predicate doesn't match implementation

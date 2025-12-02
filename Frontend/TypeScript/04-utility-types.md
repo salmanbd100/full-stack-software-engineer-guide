@@ -22,6 +22,8 @@ TypeScript provides built-in utility types to transform and manipulate existing 
 ### Partial<T>
 Makes all properties optional.
 
+**Partial Utility Type** - Makes all properties of a type optional. Useful for update operations where you only want to modify some properties without requiring all fields.
+
 ```typescript
 interface User {
   id: number;
@@ -51,6 +53,8 @@ updateUser(2, { age: 30, email: "bob@ex.com" }); // OK
 ### Required<T>
 Makes all properties required.
 
+**Required Utility Type** - Removes optionality from all properties, making them required. Ensures complete data when optional properties need to become mandatory.
+
 ```typescript
 interface User {
   id?: number;
@@ -77,6 +81,8 @@ createUser({ id: 1, name: "Alice", email: "a@ex.com" }); // OK
 
 ### Readonly<T>
 Makes all properties readonly.
+
+**Readonly Utility Type** - Adds readonly modifier to all properties, preventing mutations. Essential for immutable data structures and configuration objects.
 
 ```typescript
 interface User {
@@ -119,6 +125,8 @@ config.timeout = 3000; // Error
 ### Pick<T, K>
 Creates a type by picking specific properties from T.
 
+**Pick Utility Type** - Selects specific properties from a type to create a new type. Ideal for creating API response types or selecting public properties.
+
 ```typescript
 interface User {
   id: number;
@@ -147,6 +155,8 @@ function getPublicUserInfo(user: User): UserPublicInfo {
 
 ### Omit<T, K>
 Creates a type by omitting specific properties from T.
+
+**Omit Utility Type** - Excludes specific properties from a type. Useful for removing sensitive data like passwords or generated fields like IDs.
 
 ```typescript
 interface User {
@@ -183,6 +193,8 @@ function createUser(input: CreateUserInput): User {
 
 ### Record<K, T>
 Creates an object type with keys K and values T.
+
+**Record Utility Type** - Creates an object type with specified keys and uniform value types. Perfect for dictionaries, maps, and lookup tables.
 
 ```typescript
 // Simple record
@@ -221,6 +233,8 @@ const en: Translations = {
 ### Extract<T, U>
 Extracts from T types that are assignable to U.
 
+**Extract Utility Type** - Filters a union type to include only types assignable to U. Useful for narrowing down union types to specific subsets.
+
 ```typescript
 type Status = "pending" | "success" | "error" | "cancelled";
 
@@ -246,6 +260,8 @@ type FunctionTypes = Extract<T, Function>;
 ### Exclude<T, U>
 Excludes from T types that are assignable to U.
 
+**Exclude Utility Type** - Filters a union type to remove types assignable to U. Opposite of Extract, useful for removing unwanted types from unions.
+
 ```typescript
 type Status = "pending" | "success" | "error" | "cancelled";
 
@@ -266,6 +282,8 @@ type StringOrNumber = Exclude<T, boolean>;
 
 ### NonNullable<T>
 Excludes null and undefined from T.
+
+**NonNullable Utility Type** - Removes null and undefined from a type. Ensures values are defined, useful for strict null checking and validation functions.
 
 ```typescript
 type T = string | number | null | undefined;
@@ -291,6 +309,8 @@ const result = processValue<string | null>("hello"); // string
 ### Uppercase<T>
 Converts string literal type to uppercase.
 
+**Uppercase String Utility** - Transforms string literal types to uppercase. Useful for constant naming conventions and API method normalization.
+
 ```typescript
 type Greeting = "hello";
 type UpperGreeting = Uppercase<Greeting>;
@@ -307,6 +327,8 @@ const method: HttpMethodUpper = "GET"; // OK
 ### Lowercase<T>
 Converts string literal type to lowercase.
 
+**Lowercase String Utility** - Transforms string literal types to lowercase. Useful for normalizing user input types or status codes.
+
 ```typescript
 type Greeting = "HELLO";
 type LowerGreeting = Lowercase<Greeting>;
@@ -319,6 +341,8 @@ type LowerStatus = Lowercase<Status>;
 
 ### Capitalize<T>
 Capitalizes first letter of string literal type.
+
+**Capitalize String Utility** - Capitalizes the first character of string literal types. Useful for property name transformations and display formatting.
 
 ```typescript
 type Greeting = "hello";
@@ -333,6 +357,8 @@ type StatusCapitalized = Capitalize<Status>;
 
 ### Uncapitalize<T>
 Uncapitalizes first letter of string literal type.
+
+**Uncapitalize String Utility** - Lowercases the first character of string literal types. Useful for converting PascalCase to camelCase in type transformations.
 
 ```typescript
 type Greeting = "Hello";
@@ -350,6 +376,8 @@ type LowerName = Uncapitalize<Name>;
 
 ### ReturnType<T>
 Extracts the return type of a function.
+
+**ReturnType Utility** - Extracts the return type from a function type. Essential for type inference when working with functions whose return types aren't explicitly defined.
 
 ```typescript
 function getUser() {
@@ -387,6 +415,8 @@ type Response = ReturnType<typeof createResponse<string>>;
 ### Parameters<T>
 Extracts the parameter types of a function as a tuple.
 
+**Parameters Utility** - Extracts function parameter types as a tuple. Useful for wrapper functions, decorators, and forwarding function arguments.
+
 ```typescript
 function createUser(name: string, age: number, email: string) {
   return { name, age, email };
@@ -407,6 +437,8 @@ loggedCreateUser("Alice", 25, "a@ex.com");
 ### ConstructorParameters<T>
 Extracts constructor parameter types.
 
+**ConstructorParameters Utility** - Extracts constructor parameter types as a tuple. Useful for factory functions and dependency injection patterns.
+
 ```typescript
 class User {
   constructor(public name: string, public age: number) {}
@@ -423,6 +455,8 @@ function createUser(...args: ConstructorParameters<typeof User>): User {
 
 ### InstanceType<T>
 Extracts the instance type of a constructor function.
+
+**InstanceType Utility** - Extracts the instance type from a constructor function. Useful for generic factories that work with class constructors.
 
 ```typescript
 class User {
@@ -445,6 +479,8 @@ const user = createInstance(User, "Alice", 25);
 
 ### Awaited<T>
 Unwraps Promise types recursively.
+
+**Awaited Utility (TypeScript 4.5+)** - Recursively unwraps Promise types to get the resolved value type. Essential for typing async/await functions and promise chains.
 
 ```typescript
 type A = Awaited<Promise<string>>;
@@ -471,6 +507,8 @@ type User = Awaited<ReturnType<typeof fetchUser>>;
 
 ### DeepPartial
 Makes all properties and nested properties optional.
+
+**DeepPartial Custom Utility** - Recursively makes all properties optional, including nested objects. Useful for deeply nested update operations.
 
 ```typescript
 type DeepPartial<T> = {
@@ -502,6 +540,8 @@ type PartialUser = DeepPartial<User>;
 ### Nullable
 Makes type nullable.
 
+**Nullable Custom Utility** - Adds null to a type, creating a union with null. Simple but commonly used pattern for optional values that can be explicitly null.
+
 ```typescript
 type Nullable<T> = T | null;
 
@@ -528,6 +568,8 @@ type UserWithNullableProps = NullableProps<User>;
 ### ValueOf
 Gets all value types from object.
 
+**ValueOf Custom Utility** - Extracts all property value types from an object type as a union. Useful for getting all possible values an object can contain.
+
 ```typescript
 type ValueOf<T> = T[keyof T];
 
@@ -553,6 +595,8 @@ type UserValue = ValueOf<User>;
 
 ### PickByType
 Pick properties by their type.
+
+**PickByType Custom Utility** - Selects properties based on their value type. Advanced mapped type using conditional types to filter properties.
 
 ```typescript
 type PickByType<T, U> = {
@@ -590,6 +634,8 @@ type NumberProps = PickByType<User, number>;
 - `Pick`: Selects specific properties to **include**
 - `Omit`: Selects specific properties to **exclude**
 
+**Pick vs Omit Comparison** - Pick explicitly includes properties, while Omit explicitly excludes them. Choose based on whether it's easier to list what to keep or what to remove.
+
 ```typescript
 interface User {
   id: number;
@@ -612,6 +658,9 @@ type UserWithoutPassword = Omit<User, "password">;
 ### Q2: How do you make all properties of an interface optional?
 
 **Answer:**
+
+**Making Properties Optional** - Two approaches: built-in Partial utility or manual mapped type. Partial is preferred for simplicity and readability.
+
 ```typescript
 interface User {
   id: number;
@@ -637,6 +686,9 @@ const user2: OptionalUser = { name: "Alice" }; // OK
 ### Q3: Create a type that represents a readonly version of User excluding the id
 
 **Answer:**
+
+**Combining Utility Types** - Chain multiple utilities to create complex transformations. Order matters: Omit first removes id, then Readonly makes remaining properties immutable.
+
 ```typescript
 interface User {
   id: number;
@@ -661,6 +713,9 @@ type Result = Readonly<Pick<User, "name" | "email" | "age">>;
 ### Q4: Extract the return type of an async function
 
 **Answer:**
+
+**Unwrapping Async Return Types** - Combine Awaited and ReturnType to extract the resolved type from async functions. Handles nested Promises automatically.
+
 ```typescript
 async function fetchUser(id: number) {
   return {
@@ -684,6 +739,9 @@ type User2 = UnwrapPromise<ReturnType<typeof fetchUser>>;
 ### Q5: Create a Record type for HTTP status codes
 
 **Answer:**
+
+**Record for HTTP Status Codes** - Creates a type-safe mapping of status codes to messages. Ensures all status codes are handled and values match expected structure.
+
 ```typescript
 // Define status codes
 type StatusCode = 200 | 201 | 400 | 404 | 500;
@@ -730,6 +788,8 @@ const statuses: HttpStatus = {
 ---
 
 ## Common Combinations
+
+**Utility Type Composition** - Common patterns for combining utilities. Order of application affects the final type - experiment to achieve desired results.
 
 ```typescript
 // Partial + Pick

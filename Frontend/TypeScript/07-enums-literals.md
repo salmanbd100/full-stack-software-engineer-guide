@@ -21,6 +21,8 @@ Enums (enumerations) allow you to define a set of named constants. They make cod
 
 ### Why Use Enums?
 
+**Problem with Magic Numbers and Enum Solution** - Magic numbers lack context and readability. Enums provide named constants that self-document code intent and enable type safety.
+
 ```typescript
 // Without enums - magic numbers
 function setStatus(status: number) {
@@ -70,6 +72,8 @@ Numeric enums are the default type of enum in TypeScript.
 
 ### Auto-incrementing Enums
 
+**Numeric Enum Auto-increment Behavior** - Numeric enums auto-increment from 0 by default, or from any specified starting value. Subsequent members increment by 1 without explicit values.
+
 ```typescript
 // Auto-incrementing from 0
 enum Direction {
@@ -94,6 +98,8 @@ console.log(Status.Active); // 2
 ```
 
 ### Explicit Values
+
+**Explicit Numeric Enum Values** - Manually assign meaningful numeric values to enum members. Useful for HTTP status codes, error codes, or any domain-specific numeric constants.
 
 ```typescript
 // Explicit values
@@ -124,6 +130,8 @@ handleResponse(HttpStatus.OK); // "Success"
 
 ### Reverse Mapping
 
+**Numeric Enum Reverse Mapping** - Numeric enums create bidirectional mapping: name-to-value and value-to-name. Access member names using numeric values for lookups and debugging.
+
 ```typescript
 // Numeric enums have reverse mapping
 enum Color {
@@ -151,6 +159,8 @@ console.log(getColorName(99)); // undefined
 
 ### Computed Values
 
+**Computed Enum Values with Bitwise Operations** - Enum values can be computed using expressions. Bitwise shifts create flag patterns for permissions and options that can be combined with OR and checked with AND.
+
 ```typescript
 // Computed enum values
 enum FileAccess {
@@ -175,6 +185,8 @@ console.log(hasPermission(FileAccess.Read, FileAccess.Write)); // false
 ```
 
 ### Using Numeric Enums
+
+**Numeric Enums in Interfaces and Functions** - Numeric enums provide type safety for interface properties and function parameters. TypeScript accepts both enum members and raw numbers (less safe).
 
 ```typescript
 enum Priority {
@@ -226,6 +238,8 @@ String enums assign string values to each member.
 
 ### Basic String Enums
 
+**String Enum Definition and Usage** - String enums assign string values to each member. More debuggable than numeric enums, values appear clearly in runtime and logs. Requires using enum members, not raw strings.
+
 ```typescript
 // String enum
 enum Direction {
@@ -248,6 +262,8 @@ move(Direction.Up); // "Moving UP"
 ```
 
 ### Meaningful String Values
+
+**String Enums for Logging and API Integration** - String enum values appear directly in logs and API payloads. Use lowercase for API compatibility. Values are self-describing for debugging and monitoring.
 
 ```typescript
 // String enum with meaningful values
@@ -288,6 +304,8 @@ const user: User = {
 
 ### No Reverse Mapping
 
+**String Enum Limitation: No Reverse Mapping** - Unlike numeric enums, string enums don't support reverse lookup from value to name. Only forward mapping (name to value) is available.
+
 ```typescript
 // String enums do NOT have reverse mapping
 enum Status {
@@ -309,6 +327,8 @@ console.log(NumericStatus[1]); // "Active" (reverse mapping works)
 ```
 
 ### Real-World String Enums
+
+**Practical String Enum Examples** - String enums excel for HTTP methods, environments, and DOM events. Values match actual API/browser strings, providing type safety without transformation.
 
 ```typescript
 // HTTP methods
@@ -358,6 +378,8 @@ Heterogeneous enums mix string and numeric values (not recommended).
 
 ### Mixed Enums
 
+**Heterogeneous Enums: Mixing Types (Not Recommended)** - TypeScript allows mixing string and numeric values in one enum. Creates inconsistent behavior and confusing type semantics. Avoid in production code.
+
 ```typescript
 // Heterogeneous enum (avoid in most cases)
 enum Mixed {
@@ -380,6 +402,8 @@ enum Status {
 ```
 
 ### Why to Avoid
+
+**Better Alternatives to Heterogeneous Enums** - Replace mixed enums with separate typed enums or union literal types. Maintains type consistency and predictable behavior.
 
 ```typescript
 // Instead of heterogeneous enum
@@ -410,6 +434,8 @@ type Status = 0 | "PENDING" | "COMPLETE";
 Const enums are completely removed during compilation, resulting in more efficient code.
 
 ### Basic Const Enums
+
+**Const Enum Compilation and Inlining** - Const enums are completely removed during compilation, with values inlined at usage sites. Regular enums generate JavaScript objects, const enums generate nothing.
 
 ```typescript
 // Regular enum
@@ -443,6 +469,8 @@ const direction = ConstDirection.Up;
 
 ### Performance Benefits
 
+**Zero Runtime Overhead with Const Enums** - Const enum values are inlined at compile time, eliminating runtime objects. Results in smaller bundle size and faster execution compared to regular enums.
+
 ```typescript
 // Const enum - fully inlined
 const enum Color {
@@ -459,6 +487,8 @@ let myColor = Color.Red;
 ```
 
 ### Limitations of Const Enums
+
+**Const Enum Restrictions** - Const enums cannot be iterated, accessed dynamically, or used with keyof. No runtime object means no runtime features. Use regular enums when these capabilities are needed.
 
 ```typescript
 const enum Status {
@@ -490,6 +520,8 @@ type RegularKey = keyof typeof RegularStatus; // OK
 
 ### When to Use Const Enums
 
+**Ideal Use Cases for Const Enums** - Use const enums for direct access patterns where runtime features aren't needed. Perfect for API endpoints, configuration constants, or any values accessed statically.
+
 ```typescript
 // Use const enum when:
 // 1. Values are accessed directly (not computed)
@@ -520,6 +552,8 @@ Literal types specify exact values rather than general types.
 
 ### String Literal Types
 
+**String Literal Union Types** - Define exact string values using union types. Provides type safety without runtime overhead. More flexible and lightweight than string enums.
+
 ```typescript
 // String literal type
 type Status = "pending" | "active" | "inactive";
@@ -546,6 +580,8 @@ interface RequestOptions {
 ```
 
 ### Number Literal Types
+
+**Numeric Literal Union Types** - Restrict values to specific numbers like dice rolls or HTTP status codes. Combines type safety with numeric constants for finite value sets.
 
 ```typescript
 // Number literal type
@@ -575,6 +611,8 @@ function handleStatus(status: HttpStatusCode) {
 
 ### Boolean Literal Types
 
+**Boolean Literal Types for Type Discrimination** - Specific true/false literals enable discriminated unions. TypeScript narrows types based on boolean property checks in success/error response patterns.
+
 ```typescript
 // Boolean literal types (rare but useful)
 type AlwaysTrue = true;
@@ -603,6 +641,8 @@ function handleResponse(response: ApiResponse) {
 ```
 
 ### const Assertions
+
+**Const Assertions for Immutable Literals** - 'as const' converts values to readonly literal types. Objects become deeply readonly, arrays become tuples, primitives become literal types instead of widening.
 
 ```typescript
 // Without const assertion
@@ -634,6 +674,8 @@ type Color = typeof colors2[number]; // "red" | "green" | "blue"
 
 ### Comparison
 
+**Enum vs Literal Type Side-by-Side** - Enums require member access (Status.Active), literals accept raw values ("active"). Enums create runtime objects, literals are compile-time only.
+
 ```typescript
 // Enum approach
 enum Status {
@@ -659,6 +701,8 @@ setStatusLiteral("active");
 ```
 
 ### Key Differences
+
+**Four Critical Distinctions Between Enums and Literals** - Runtime vs compile-time, nominal vs structural typing, member access requirements, and reverse mapping support differentiate enums from literal types.
 
 ```typescript
 // 1. Enums create runtime objects
@@ -712,6 +756,8 @@ type NumericLiteral = 1 | 2;
 
 ### Pros and Cons
 
+**Trade-offs Summary** - Enums offer better developer experience (autocomplete, centralization) at the cost of bundle size. Literals optimize for performance and flexibility with less tooling support.
+
 ```typescript
 // Enum Pros:
 // ✅ Self-documenting with named constants
@@ -745,6 +791,8 @@ type NumericLiteral = 1 | 2;
 ## When to Use Each
 
 ### Use Enums When:
+
+**Enum Use Case Scenarios** - Choose enums for reverse mapping needs, iteration requirements, grouped constants namespacing, or bitwise flag operations. Enums excel at runtime reflection.
 
 ```typescript
 // 1. You need reverse mapping
@@ -792,6 +840,8 @@ const userPermissions = Permission.Read | Permission.Write;
 
 ### Use Literal Types When:
 
+**Literal Type Use Case Scenarios** - Choose literals for API integration, bundle size optimization, simple constants, discriminated unions, and framework props. Literals excel at compile-time type safety.
+
 ```typescript
 // 1. Working with APIs (string values)
 type UserRole = "admin" | "user" | "guest";
@@ -822,6 +872,8 @@ interface ButtonProps {
 ```
 
 ### Hybrid Approach
+
+**Combining Enum and Literal Type Benefits** - Define enum for named constants and autocomplete, extract literal type for API compatibility. Enables both enum member usage and raw string values.
 
 ```typescript
 // Combine benefits of both
@@ -864,6 +916,8 @@ const user2: ApiUser = {
 
 ### 1. Prefer String Enums Over Numeric
 
+**Best Practice: String Over Numeric Enums** - String enums provide better debugging experience with meaningful values in logs. Avoid magic numbers in favor of self-documenting strings.
+
 ```typescript
 // ❌ Less readable
 enum Status {
@@ -882,6 +936,8 @@ enum Status {
 
 ### 2. Use const Enums for Performance
 
+**Best Practice: Const Enums for Direct Access** - Use const enums when values are accessed directly and runtime features aren't needed. Achieves zero-overhead while maintaining type safety.
+
 ```typescript
 // ✅ For constants accessed directly
 const enum Direction {
@@ -897,6 +953,8 @@ const dir = Direction.Up; // Inlined to "UP"
 
 ### 3. Use Literal Types for Simple Values
 
+**Best Practice: Literals for Simplicity** - Prefer literal types for simple value sets. Avoids unnecessary complexity and bundle overhead when enum features aren't needed.
+
 ```typescript
 // ✅ Simple, no runtime overhead
 type Status = "pending" | "active" | "inactive";
@@ -910,6 +968,8 @@ enum Status {
 ```
 
 ### 4. Create Type from Enum
+
+**Best Practice: Extract Types from Enums** - Generate literal types from enums using template literals for values or keyof for keys. Combines enum benefits with type flexibility.
 
 ```typescript
 // ✅ Get union type from enum
@@ -927,6 +987,8 @@ type StatusKey = keyof typeof Status;
 ```
 
 ### 5. Use Descriptive Names
+
+**Best Practice: Descriptive Enum Names** - Use clear, specific names for enums and members. Avoid abbreviations. Name should convey domain context (OrderStatus, not just Status).
 
 ```typescript
 // ❌ Unclear
@@ -949,6 +1011,8 @@ enum OrderStatus {
 ## Common Pitfalls
 
 ### Pitfall 1: Enum Numeric Coercion
+
+**Common Pitfall: Numeric Enum Type Unsafety** - Numeric enums accept any number, not just defined values. TypeScript doesn't validate numeric values. Use string enums for stricter type safety.
 
 ```typescript
 enum Status {
@@ -980,6 +1044,8 @@ setStringStatus(StringStatus.Pending); // OK
 
 ### Pitfall 2: Const Enum Limitations
 
+**Common Pitfall: Const Enum Runtime Absence** - Const enums have no runtime object, preventing iteration, dynamic access, or keyof usage. Switch to regular enums when runtime features are required.
+
 ```typescript
 const enum Status {
   Active = "ACTIVE",
@@ -1007,6 +1073,8 @@ type Key = keyof typeof RegularStatus; // OK
 
 ### Pitfall 3: Forgetting to Export
 
+**Common Pitfall: Module Scope Isolation** - Enums must be exported to use across files. Export enum directly or extract and export as literal type for public API.
+
 ```typescript
 // ❌ Enum not exported
 enum Status {
@@ -1029,6 +1097,8 @@ export type Status = `${InternalStatus}`;
 ```
 
 ### Pitfall 4: Mixing Enum with Literals
+
+**Common Pitfall: Inconsistent Type Patterns** - Mixing enums and literals creates confusion and type complexity. Choose one approach and use consistently throughout the codebase.
 
 ```typescript
 // ❌ Confusing mix
@@ -1055,6 +1125,9 @@ type AllStatusLiteral = "ACTIVE" | "PENDING";
 ### Q1: What's the difference between numeric and string enums?
 
 **Answer:**
+
+**Numeric vs String Enum Comparison** - Numeric enums support reverse mapping and auto-increment but accept any number. String enums are more debuggable, type-safe, and API-friendly but require explicit values.
+
 ```typescript
 // Numeric enum
 enum NumericStatus {
@@ -1091,6 +1164,9 @@ console.log(StringStatus["ACTIVE"]); // undefined (no reverse mapping)
 ### Q2: When should you use const enums?
 
 **Answer:**
+
+**Const Enum Decision Criteria** - Use when performance is critical and values are accessed directly without runtime features. Avoid when needing iteration, computed access, or type operations like keyof.
+
 ```typescript
 // Const enum - fully inlined at compile time
 const enum Direction {
@@ -1132,6 +1208,9 @@ fetch(ApiEndpoint.Users);
 ### Q3: What are the advantages of literal types over enums?
 
 **Answer:**
+
+**Literal Type Advantages Over Enums** - Zero runtime cost, direct value usage, better API/JSON compatibility, template literal integration, smaller bundles, and greater flexibility with mixed unions.
+
 ```typescript
 // Literal types
 type Status = "pending" | "active" | "inactive";
@@ -1180,6 +1259,9 @@ type Union = "A" | "B" | 1 | 2; // Mix types easily
 ### Q4: How do you get all values from an enum?
 
 **Answer:**
+
+**Extracting Enum Values and Keys** - Use Object.values() for string enums. Numeric enums need filtering due to reverse mapping. Object.keys() and Object.entries() provide alternatives.
+
 ```typescript
 // String enum
 enum Status {
@@ -1240,6 +1322,9 @@ const values = getEnumValues(Status);
 ### Q5: How do you create a type from enum values?
 
 **Answer:**
+
+**Extracting Types from Enums** - Use template literal types (`${Enum}`) for values or keyof typeof for keys. Enables hybrid approaches combining enum autocomplete with literal type flexibility.
+
 ```typescript
 // Enum
 enum Status {
@@ -1298,6 +1383,9 @@ type MethodHandlers = {
 ### Q6: Should you use enums or literal types in modern TypeScript?
 
 **Answer:**
+
+**Modern TypeScript Recommendation** - Default to literal types for zero overhead and flexibility. Use enums only when specifically needing reverse mapping, iteration, bitwise flags, or large constant groups.
+
 ```typescript
 // Modern recommendation: Prefer literal types unless you need enum features
 

@@ -17,6 +17,8 @@ Generics allow you to write reusable, type-safe code that works with multiple ty
 
 ### Without Generics
 
+**Type-Specific Functions vs any** - Shows the problem: either duplicate code for each type or lose type safety with any. This motivates the need for generics.
+
 ```typescript
 // Specific to numbers
 function identityNumber(arg: number): number {
@@ -38,6 +40,8 @@ num.toUpperCase(); // No error, but will crash at runtime!
 ```
 
 ### With Generics
+
+**Generic Type Parameters** - Type parameter T acts as a placeholder that preserves type information. TypeScript infers T from the argument or accepts explicit type specification.
 
 ```typescript
 // Generic function - works with any type
@@ -69,6 +73,8 @@ str.toUpperCase(); // OK
 
 ### Basic Syntax
 
+**Generic Function Syntax** - Single and multiple type parameters for flexible, type-safe functions. Type parameters are specified in angle brackets <T, U>.
+
 ```typescript
 // Single type parameter
 function first<T>(arr: T[]): T | undefined {
@@ -89,6 +95,8 @@ const p2 = pair("a", true); // [string, boolean]
 
 ### Generic Arrow Functions
 
+**Generic Arrow Function Syntax** - Arrow functions support generics with the same syntax. Use intersection types (&) to merge multiple object types.
+
 ```typescript
 // Arrow function with generic
 const identity = <T>(arg: T): T => arg;
@@ -103,6 +111,8 @@ const result = merge({ name: "Alice" }, { age: 25 });
 ```
 
 ### Generic Function with Array Methods
+
+**Generic Higher-Order Functions** - Transform arrays while maintaining type safety. Input type T transforms to output type U through the mapping function.
 
 ```typescript
 // Map function
@@ -129,6 +139,8 @@ const evens = filter([1, 2, 3, 4], (n) => n % 2 === 0);
 
 ### Basic Generic Interface
 
+**Generic Interface Definition** - Interfaces with type parameters create reusable contracts. Each instance specifies its own concrete type for T.
+
 ```typescript
 interface Box<T> {
   value: T;
@@ -142,6 +154,8 @@ const invalidBox: Box<number> = { value: "hello" };
 ```
 
 ### Generic Interface with Methods
+
+**Generic Repository Pattern** - Common pattern for CRUD operations. Generic type T represents the entity being managed, ensuring type consistency across all methods.
 
 ```typescript
 interface Repository<T> {
@@ -188,6 +202,8 @@ class UserRepository implements Repository<User> {
 
 ### Multiple Type Parameters
 
+**Multiple Generic Parameters** - Interfaces can use multiple type parameters for flexible data structures like maps, pairs, or relationships between different types.
+
 ```typescript
 interface KeyValuePair<K, V> {
   key: K;
@@ -218,6 +234,8 @@ interface Map<K, V> {
 ## Generic Classes
 
 ### Basic Generic Class
+
+**Generic Class Implementation** - Generic classes create type-safe data structures. All instance methods automatically use the class's type parameter T.
 
 ```typescript
 class Stack<T> {
@@ -258,6 +276,8 @@ console.log(stringStack.pop()); // "b"
 
 ### Generic Class with Static Methods
 
+**Static Methods in Generic Classes** - Static methods can't use the class type parameter but can define their own. Useful for factory methods and utilities.
+
 ```typescript
 class DataProcessor<T> {
   constructor(private data: T[]) {}
@@ -292,6 +312,8 @@ const merged = DataProcessor.merge([1, 2], [3, 4]);
 
 ### extends Keyword
 
+**Generic Constraints with extends** - Limit generic types to those with specific properties or structure. Enables safe property access within generic functions.
+
 ```typescript
 // Constrain to objects with specific property
 interface HasLength {
@@ -310,6 +332,8 @@ logLength(42); // Error - number doesn't have length
 ```
 
 ### Constraining to Specific Types
+
+**Union Type Constraints** - Restrict generics to specific types using union constraints. Also supports class constraints for constructor-based generics.
 
 ```typescript
 // Must be a number or string
@@ -345,6 +369,8 @@ dog.bark(); // OK
 
 ### Using keyof Constraint
 
+**keyof Constraint for Type-Safe Property Access** - Ensures property keys are valid for the object type. Return type T[K] is inferred from the specific property accessed.
+
 ```typescript
 // Get property value from object
 function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
@@ -365,6 +391,8 @@ const invalid = getProperty(person, "address");
 ```
 
 ### Multiple Constraints
+
+**Intersection Type Constraints** - Combine multiple constraints using intersection (&). Generic type must satisfy all constraints simultaneously.
 
 ```typescript
 // Must have both length and toString
@@ -389,6 +417,8 @@ processItem(42); // Error - no length property
 
 ### Generic Type Aliases
 
+**Generic Type Definitions** - Create reusable type patterns with type aliases. Supports object types, function types, and complex transformations.
+
 ```typescript
 type Container<T> = {
   value: T;
@@ -410,6 +440,8 @@ const toNumber: Transformer<string, number> = (s) => parseInt(s);
 ```
 
 ### Conditional Types with Generics
+
+**Conditional Type Operators** - Types that depend on conditions like ternary operators. Use infer keyword to extract types from function signatures or complex structures.
 
 ```typescript
 // If T extends U, return X, else return Y
@@ -435,6 +467,8 @@ type B = NonNullable<number | undefined>; // number
 ```
 
 ### Mapped Types with Generics
+
+**Mapped Type Transformations** - Transform all properties of a type programmatically. Use keyof to iterate over properties and apply modifiers like optional (?) or readonly.
 
 ```typescript
 // Make all properties optional
@@ -470,6 +504,8 @@ type UserCredentials = Pick<User, "name" | "email">;
 
 ### Generic Default Parameters
 
+**Default Type Parameters** - Provide fallback types when generic parameters are omitted. Useful for common cases while maintaining flexibility for specific needs.
+
 ```typescript
 // Default type parameter
 interface Container<T = string> {
@@ -497,6 +533,9 @@ const response3: Response<User, string> = { error: "Failed" };
 ### Q1: What's the difference between `T` and `any`?
 
 **Answer:**
+
+**Generic vs any Comparison** - Generics preserve type information and catch errors at compile time, while any disables all type checking and allows runtime errors.
+
 ```typescript
 // any - no type safety
 function identityAny(arg: any): any {
@@ -522,6 +561,9 @@ result2.toFixed(); // Error - string doesn't have toFixed
 ### Q2: Implement a generic function to get the last element of an array
 
 **Answer:**
+
+**Generic Array Access Function** - Returns the last element with proper type inference. Union with undefined handles empty array case safely.
+
 ```typescript
 function last<T>(arr: T[]): T | undefined {
   return arr[arr.length - 1];
@@ -543,6 +585,9 @@ function lastSafe<T>(arr: T[]): T | undefined {
 ### Q3: How do you constrain a generic type?
 
 **Answer:**
+
+**Generic Constraints Examples** - Shows two common constraint patterns: property constraints (extends HasLength) and key constraints (extends keyof T) for type-safe operations.
+
 ```typescript
 // Constraint: T must have length property
 interface HasLength {
@@ -572,6 +617,9 @@ getProperty(person, "email"); // Error - email not in person
 ### Q4: Implement a generic Stack class
 
 **Answer:**
+
+**Complete Generic Stack Implementation** - Full implementation of a type-safe stack data structure with all standard operations: push, pop, peek, isEmpty, size, and clear.
+
 ```typescript
 class Stack<T> {
   private items: T[] = [];
@@ -613,6 +661,9 @@ console.log(numberStack.pop()); // 2
 ### Q5: Create a generic API response type
 
 **Answer:**
+
+**Generic API Response Pattern** - Real-world pattern for typed HTTP responses. Includes success/error states, status codes, and a handler function that throws on errors.
+
 ```typescript
 interface ApiResponse<T> {
   data: T | null;
@@ -672,6 +723,8 @@ const user = handleResponse(successResponse); // User
 ---
 
 ## Common Generic Patterns
+
+**Common Generic Use Cases** - Collection of frequently used generic patterns: array operations, property access, async operations, type transformations, and API responses.
 
 ```typescript
 // 1. Array operations
