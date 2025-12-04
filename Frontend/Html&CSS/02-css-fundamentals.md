@@ -7,49 +7,84 @@ Understanding CSS fundamentals is essential for styling web pages effectively. T
 ### 1. CSS Selectors
 
 **Basic Selectors**
+
+```html
+<!-- HTML Structure -->
+<div id="header">
+    <p>Welcome to our website</p>
+    <button class="button">Click Me</button>
+</div>
+```
+
 ```css
-/* Element selector */
+/* Element selector - targets all <p> elements */
 p {
     color: blue;
 }
 
-/* Class selector */
+/* Class selector - reusable across multiple elements */
 .button {
     background-color: green;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-/* ID selector (use sparingly) */
+/* ID selector (use sparingly - should be unique) */
 #header {
     font-size: 24px;
+    padding: 20px;
+    background-color: #f0f0f0;
 }
 
-/* Universal selector */
+/* Universal selector - resets all elements */
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 ```
 
 **Combinators**
+
+```html
+<!-- HTML Structure -->
+<div class="container">
+    <p>Direct child paragraph</p>
+    <div>
+        <p>Nested paragraph (descendant but not direct child)</p>
+    </div>
+    <h2>Heading</h2>
+    <p>First paragraph after heading (adjacent sibling)</p>
+    <p>Second paragraph after heading (general sibling)</p>
+</div>
+```
+
 ```css
-/* Descendant selector (all children) */
+/* Descendant selector - targets ALL <p> inside .container at any level */
 .container p {
     color: gray;
 }
 
-/* Child selector (direct children only) */
+/* Child selector - targets ONLY direct <p> children of .container */
 .container > p {
     font-weight: bold;
+    /* Only "Direct child paragraph" becomes bold */
 }
 
-/* Adjacent sibling */
+/* Adjacent sibling - targets the FIRST <p> immediately after <h2> */
 h2 + p {
     margin-top: 0;
+    font-size: 1.2rem;
+    /* Only "First paragraph after heading" affected */
 }
 
-/* General sibling */
+/* General sibling - targets ALL <p> elements that are siblings after <h2> */
 h2 ~ p {
     color: blue;
+    /* Both "First" and "Second paragraph after heading" turn blue */
 }
 ```
 
@@ -87,25 +122,57 @@ div[class~="highlight"] {
 ```
 
 **Pseudo-classes**
+
+```html
+<!-- HTML Structure -->
+<nav>
+    <a href="https://example.com">External Link</a>
+    <a href="#section">Internal Link</a>
+</nav>
+
+<form>
+    <input type="email" required placeholder="Enter email">
+    <input type="checkbox" id="terms">
+    <label for="terms">Accept Terms</label>
+    <input type="text" disabled value="Disabled field">
+</form>
+
+<ul class="list">
+    <li>First item</li>
+    <li>Second item</li>
+    <li class="special">Third item (special)</li>
+    <li>Fourth item</li>
+    <li>Fifth item</li>
+    <li>Sixth item</li>
+</ul>
+```
+
 ```css
-/* Link states */
+/* Link states - must be in this order (LVHA) */
 a:link { color: blue; }
 a:visited { color: purple; }
-a:hover { color: red; }
+a:hover {
+    color: red;
+    text-decoration: none;
+}
 a:active { color: orange; }
 
 /* Form states */
 input:focus {
     border-color: blue;
     outline: 2px solid blue;
+    background-color: #f0f8ff;
 }
 
 input:disabled {
     opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f5f5f5;
 }
 
 input:checked + label {
     font-weight: bold;
+    color: green;
 }
 
 input:valid {
@@ -119,10 +186,12 @@ input:invalid {
 /* Structural pseudo-classes */
 li:first-child {
     font-weight: bold;
+    color: darkblue;
 }
 
 li:last-child {
     border-bottom: none;
+    font-style: italic;
 }
 
 li:nth-child(odd) {
@@ -130,7 +199,7 @@ li:nth-child(odd) {
 }
 
 li:nth-child(3n) {
-    color: blue;
+    color: blue; /* Every 3rd item (3, 6, 9...) */
 }
 
 p:not(.special) {
@@ -138,7 +207,7 @@ p:not(.special) {
 }
 
 div:empty {
-    display: none;
+    display: none; /* Hides empty divs */
 }
 ```
 
@@ -224,41 +293,65 @@ p {
 
 ### 3. The Box Model
 
+```html
+<!-- HTML Structure -->
+<div class="box-container">
+    <div class="box box-default">Default Box Model</div>
+    <div class="box box-border-box">Border Box Model</div>
+</div>
+```
+
 ```css
-.box {
+.box-container {
+    display: flex;
+    gap: 40px;
+    padding: 20px;
+}
+
+/* Default box model */
+.box-default {
     /* Content */
     width: 200px;
     height: 100px;
 
     /* Padding (inside border) */
     padding: 20px;
-    /* Or: padding: top right bottom left; */
-    padding: 10px 20px 10px 20px;
-    /* Or: padding: vertical horizontal; */
-    padding: 10px 20px;
+    /* Shorthand options:
+       padding: 10px;                  (all sides)
+       padding: 10px 20px;             (vertical horizontal)
+       padding: 10px 20px 10px 20px;   (top right bottom left) */
 
     /* Border */
     border: 2px solid black;
-    border-width: 2px;
-    border-style: solid;
-    border-color: black;
+    /* Or separately:
+       border-width: 2px;
+       border-style: solid;
+       border-color: black; */
     border-radius: 8px;
 
     /* Margin (outside border) */
     margin: 20px;
-    margin: 10px 20px 30px 40px;
+
+    /* Background to visualize content area */
+    background-color: lightblue;
 
     /* Total width = width + padding + border + margin */
     /* Total: 200 + 40 + 4 + 40 = 284px */
 }
 
-/* box-sizing (changes box model) */
-.box-sizing-example {
+/* Modern box-sizing (RECOMMENDED) */
+.box-border-box {
     box-sizing: border-box; /* Includes padding and border in width */
     width: 200px;
+    height: 100px;
     padding: 20px;
-    border: 2px solid black;
-    /* Total width = 200px (not 244px) */
+    border: 2px solid darkblue;
+    border-radius: 8px;
+    background-color: lightgreen;
+    margin: 20px;
+
+    /* Total width = 200px (padding and border are INSIDE) */
+    /* Content width = 200 - 40 (padding) - 4 (border) = 156px */
 }
 
 /* Best practice: Apply to all elements */
@@ -267,108 +360,259 @@ p {
 }
 ```
 
+**Visual Representation:**
+```
+Default (content-box):
+┌─────────────────────────────────────┐
+│  Margin (20px)                      │
+│  ┌───────────────────────────────┐  │
+│  │ Border (2px)                  │  │
+│  │ ┌───────────────────────────┐ │  │
+│  │ │ Padding (20px)            │ │  │
+│  │ │ ┌───────────────────────┐ │ │  │
+│  │ │ │ Content (200x100)     │ │ │  │
+│  │ │ └───────────────────────┘ │ │  │
+│  │ └───────────────────────────┘ │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+
+Border-box:
+┌─────────────────────────────────────┐
+│  Margin (20px)                      │
+│  ┌───────────────────────────────┐  │
+│  │ Border (2px)                  │  │
+│  │ Padding (20px)                │  │
+│  │ Content (156x56px)            │  │
+│  │  Total box: 200x100           │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
+```
+
 ### 4. Display Property
 
+```html
+<!-- HTML Structure -->
+<div class="demo-container">
+    <div class="block">Block Element (div)</div>
+    <div class="block">Another Block</div>
+
+    <span class="inline">Inline 1</span>
+    <span class="inline">Inline 2</span>
+    <span class="inline">Inline 3</span>
+
+    <div class="inline-block-demo">
+        <div class="inline-block">Box 1</div>
+        <div class="inline-block">Box 2</div>
+        <div class="inline-block">Box 3</div>
+    </div>
+
+    <div class="hidden">This is hidden (display: none)</div>
+    <div class="invisible">This is invisible (visibility: hidden)</div>
+</div>
+```
+
 ```css
-/* Block (takes full width) */
-div {
+.demo-container {
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+/* Block - Takes full width, starts on new line */
+.block {
     display: block;
+    background-color: lightblue;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 2px solid blue;
 }
 
-/* Inline (flows with text) */
-span {
+/* Inline - Flows with text, ignores width/height */
+.inline {
     display: inline;
+    background-color: lightcoral;
+    padding: 5px; /* Note: vertical padding doesn't affect layout */
+    margin: 0 5px;
+    border: 1px solid red;
+    /* width and height are IGNORED on inline elements */
 }
 
-/* Inline-block (best of both) */
-.button {
+/* Inline-block - Best of both worlds */
+.inline-block {
     display: inline-block;
     width: 100px;
-    height: 40px;
+    height: 100px;
+    background-color: lightgreen;
+    margin: 10px;
+    padding: 10px;
+    text-align: center;
+    vertical-align: top; /* Can be aligned vertically */
 }
 
-/* None (removes from layout) */
+/* None - Completely removes from layout (no space taken) */
 .hidden {
     display: none;
+    /* Element is not rendered, takes no space */
 }
 
-/* Visibility (keeps space) */
+/* Visibility - Hides element but keeps its space */
 .invisible {
     visibility: hidden;
+    /* Element is invisible but still takes up space in layout */
+    background-color: lightyellow;
+    padding: 20px;
 }
 ```
+
+**Key Differences:**
+- **Block**: Full width, new line, respects width/height
+- **Inline**: Flows with text, ignores width/height, respects horizontal margin/padding only
+- **Inline-block**: Flows like inline, respects width/height like block
+- **None**: Removed from layout entirely
+- **Visibility hidden**: Hidden but space reserved
 
 ### 5. Position Property
 
-**Static (default)**
-```css
-.static {
-    position: static; /* Default, not affected by top/left/right/bottom */
-}
+```html
+<!-- HTML Structure -->
+<div class="position-demo">
+    <!-- Static (default) -->
+    <div class="box static-box">
+        Static (default)
+    </div>
+
+    <!-- Relative -->
+    <div class="box relative-box">
+        Relative (moved 20px down, 20px right)
+    </div>
+
+    <!-- Absolute inside Relative container -->
+    <div class="container-relative">
+        Container (position: relative)
+        <div class="box absolute-box">
+            Absolute (top: 10px, right: 10px)
+        </div>
+    </div>
+
+    <!-- Fixed -->
+    <div class="fixed-box">
+        Fixed to viewport
+    </div>
+
+    <!-- Sticky -->
+    <div class="sticky-box">
+        Sticky (scroll to see effect)
+    </div>
+</div>
 ```
 
-**Relative**
 ```css
-.relative {
+.position-demo {
     position: relative;
-    top: 10px;    /* Moves 10px down from original position */
+    padding: 20px;
+    background-color: #f9f9f9;
+    min-height: 1500px; /* For scroll demo */
+}
+
+.box {
+    padding: 20px;
+    margin: 10px 0;
+    background-color: lightblue;
+    border: 2px solid blue;
+}
+
+/* Static (default) - Normal document flow */
+.static-box {
+    position: static; /* Default, not affected by top/left/right/bottom */
+    /* top, left, right, bottom properties have NO effect */
+}
+
+/* Relative - Moves relative to its normal position */
+.relative-box {
+    position: relative;
+    top: 20px;    /* Moves 20px down from original position */
     left: 20px;   /* Moves 20px right from original position */
-    /* Original space is preserved */
-}
-```
-
-**Absolute**
-```css
-.container {
-    position: relative; /* Positioning context */
+    background-color: lightcoral;
+    /* Original space in layout is PRESERVED (leaves gap) */
 }
 
-.absolute {
+/* Absolute - Positioned relative to nearest positioned ancestor */
+.container-relative {
+    position: relative; /* This becomes the positioning context */
+    height: 150px;
+    background-color: #ffe4e1;
+    border: 2px dashed #ff6b6b;
+    margin: 20px 0;
+}
+
+.absolute-box {
     position: absolute;
-    top: 0;
-    right: 0;
-    /* Positioned relative to nearest positioned ancestor */
+    top: 10px;
+    right: 10px;
+    width: 200px;
+    background-color: lightgreen;
     /* Removed from normal document flow */
+    /* Positioned relative to .container-relative */
 }
-```
 
-**Fixed**
-```css
-.fixed-header {
+/* Fixed - Positioned relative to viewport */
+.fixed-box {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    /* Fixed to viewport, doesn't scroll */
+    bottom: 20px;
+    right: 20px;
+    width: 200px;
+    background-color: lightyellow;
+    border: 2px solid orange;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    /* Fixed to viewport, stays in place when scrolling */
 }
-```
 
-**Sticky**
-```css
-.sticky-nav {
+/* Sticky - Toggles between relative and fixed */
+.sticky-box {
     position: sticky;
     top: 0;
-    /* Behaves like relative until scrolled to threshold, then becomes fixed */
+    background-color: #e0f7fa;
+    border: 2px solid #00bcd4;
+    z-index: 10;
+    /* Behaves like relative until scrolled to top: 0 */
+    /* Then "sticks" like fixed until parent scroll container ends */
 }
-```
 
-**Z-index**
-```css
+/* Z-index Example (Layering) */
 .modal {
     position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 1000; /* Higher values appear on top */
+    background: white;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
 .overlay {
     position: fixed;
-    z-index: 999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999; /* Below modal, above content */
 }
 
 .content {
     position: relative;
-    z-index: 1;
+    z-index: 1; /* Normal content layer */
 }
 ```
+
+**Position Summary:**
+- **Static**: Default, normal flow, ignores top/left/right/bottom
+- **Relative**: Offset from normal position, space reserved
+- **Absolute**: Removed from flow, positioned relative to nearest positioned ancestor
+- **Fixed**: Removed from flow, positioned relative to viewport
+- **Sticky**: Hybrid of relative + fixed based on scroll position
+- **Z-index**: Only works on positioned elements (not static)
 
 ### 6. Colors and Units
 

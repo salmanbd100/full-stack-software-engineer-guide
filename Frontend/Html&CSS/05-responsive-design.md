@@ -308,12 +308,58 @@ img {
 
 ### Example 2: Responsive Card Grid
 
+```html
+<!-- HTML Structure -->
+<div class="card-grid">
+    <article class="card">
+        <img src="image1.jpg" alt="Product 1">
+        <div class="card-content">
+            <h3>Product Title 1</h3>
+            <p>Description of the product goes here.</p>
+            <button class="card-button">Learn More</button>
+        </div>
+    </article>
+
+    <article class="card">
+        <img src="image2.jpg" alt="Product 2">
+        <div class="card-content">
+            <h3>Product Title 2</h3>
+            <p>Description of the product goes here.</p>
+            <button class="card-button">Learn More</button>
+        </div>
+    </article>
+
+    <article class="card">
+        <img src="image3.jpg" alt="Product 3">
+        <div class="card-content">
+            <h3>Product Title 3</h3>
+            <p>Description of the product goes here.</p>
+            <button class="card-button">Learn More</button>
+        </div>
+    </article>
+
+    <article class="card">
+        <img src="image4.jpg" alt="Product 4">
+        <div class="card-content">
+            <h3>Product Title 4</h3>
+            <p>Description of the product goes here.</p>
+            <button class="card-button">Learn More</button>
+        </div>
+    </article>
+</div>
+```
+
 ```css
+/* Mobile-first base styles */
 .card-grid {
     display: grid;
+    /* Auto-fit creates as many columns as will fit
+       minmax(280px, 1fr) = min 280px, max equal fraction */
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2rem;
     padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .card {
@@ -321,22 +367,78 @@ img {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .card img {
     width: 100%;
     height: 200px;
     object-fit: cover;
+    display: block; /* Removes bottom gap */
 }
 
 .card-content {
     padding: 1.5rem;
 }
 
+.card-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.card-content p {
+    margin: 0 0 1rem 0;
+    color: #666;
+    line-height: 1.6;
+}
+
+.card-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.card-button:hover {
+    background-color: #2980b9;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .card-content h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Mobile - single column, reduced padding */
 @media (max-width: 600px) {
     .card-grid {
         grid-template-columns: 1fr;
         padding: 1rem;
+        gap: 1.5rem;
+    }
+
+    .card img {
+        height: 250px; /* Taller images on mobile */
+    }
+
+    .card-content {
+        padding: 1rem;
+    }
+
+    .card-content h3 {
+        font-size: 1.125rem;
     }
 }
 ```
@@ -372,7 +474,41 @@ small {
 
 ### Example 4: Responsive Dashboard
 
+```html
+<!-- HTML Structure -->
+<div class="dashboard">
+    <aside class="sidebar">
+        <div class="sidebar-brand">Dashboard</div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active">Dashboard</a>
+            <a href="#" class="nav-item">Analytics</a>
+            <a href="#" class="nav-item">Users</a>
+            <a href="#" class="nav-item">Settings</a>
+        </nav>
+    </aside>
+
+    <header class="header">
+        <button class="menu-toggle">☰</button>
+        <h1>Dashboard Title</h1>
+        <div class="header-actions">
+            <button class="notification-btn">🔔</button>
+            <div class="user-profile">User</div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="widget-grid">
+            <div class="widget">Widget 1</div>
+            <div class="widget">Widget 2</div>
+            <div class="widget">Widget 3</div>
+            <div class="widget">Widget 4</div>
+        </div>
+    </main>
+</div>
+```
+
 ```css
+/* Desktop Layout */
 .dashboard {
     display: grid;
     grid-template-columns: 250px 1fr;
@@ -381,13 +517,114 @@ small {
         "sidebar header"
         "sidebar main";
     height: 100vh;
+    gap: 0;
+}
+
+.sidebar {
+    grid-area: sidebar;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-item {
+    padding: 12px 16px;
+    color: #ecf0f1;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.header {
+    grid-area: header;
+    background-color: white;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.menu-toggle {
+    display: none; /* Hidden on desktop */
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.user-profile {
+    width: 40px;
+    height: 40px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main {
+    grid-area: main;
+    background-color: #ecf0f1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.widget-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
 }
 
-.sidebar { grid-area: sidebar; }
-.header { grid-area: header; }
-.main { grid-area: main; }
+.widget {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-height: 200px;
+}
 
+/* Tablet - Collapse sidebar */
 @media (max-width: 1024px) {
     .dashboard {
         grid-template-columns: 1fr;
@@ -400,6 +637,45 @@ small {
 
     .sidebar {
         height: auto;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .sidebar.open {
+        max-height: 400px; /* Adjust as needed */
+    }
+
+    .menu-toggle {
+        display: block; /* Show hamburger menu */
+    }
+
+    .widget-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+/* Mobile - Stack everything */
+@media (max-width: 640px) {
+    .header h1 {
+        font-size: 1.125rem;
+    }
+
+    .header-actions {
+        gap: 0.5rem;
+    }
+
+    .main {
+        padding: 15px;
+    }
+
+    .widget-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .widget {
+        min-height: 150px;
     }
 }
 ```

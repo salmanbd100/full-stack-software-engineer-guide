@@ -6,45 +6,160 @@ CSS Grid is a powerful two-dimensional layout system that allows you to create c
 
 ### 1. Grid Container
 
-```css
-.container {
-    display: grid;
+```html
+<!-- HTML Structure -->
+<div class="grid-container">
+    <div class="grid-item">1</div>
+    <div class="grid-item">2</div>
+    <div class="grid-item">3</div>
+    <div class="grid-item">4</div>
+    <div class="grid-item">5</div>
+    <div class="grid-item">6</div>
+</div>
+```
 
-    /* Define columns */
+```css
+.grid-container {
+    display: grid; /* or inline-grid */
+
+    /* Styling for visibility */
+    background-color: #f0f0f0;
+    padding: 20px;
+    border: 2px solid #333;
+
+    /* Define columns - different ways */
     grid-template-columns: 200px 200px 200px; /* 3 fixed columns */
     grid-template-columns: 1fr 1fr 1fr; /* 3 equal flexible columns */
-    grid-template-columns: 1fr 2fr 1fr; /* Middle column is 2x */
-    grid-template-columns: repeat(3, 1fr); /* Shorthand */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive */
+    grid-template-columns: 1fr 2fr 1fr; /* Middle column is 2x wider */
+    grid-template-columns: repeat(3, 1fr); /* Shorthand for 3 equal columns */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive! */
 
     /* Define rows */
-    grid-template-rows: 100px 200px 100px;
-    grid-template-rows: auto 1fr auto; /* Header, content, footer */
+    grid-template-rows: 100px 200px 100px; /* 3 fixed rows */
+    grid-template-rows: auto 1fr auto; /* Header (auto), content (flexible), footer (auto) */
 
-    /* Gap between cells */
-    gap: 20px; /* Row and column gap */
-    gap: 20px 10px; /* row-gap column-gap */
-    row-gap: 20px;
-    column-gap: 10px;
+    /* Gap between cells (preferred over margins) */
+    gap: 20px; /* Both row and column gap */
+    gap: 20px 10px; /* row-gap column-gap separately */
+    row-gap: 20px; /* Just row gap */
+    column-gap: 10px; /* Just column gap */
+}
+
+.grid-item {
+    background-color: #3498db;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 24px;
+}
+```
+
+**fr Unit Explained:**
+```html
+<div class="grid-demo-fr">
+    <div class="item">1fr</div>
+    <div class="item">2fr</div>
+    <div class="item">1fr</div>
+</div>
+```
+
+```css
+.grid-demo-fr {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    /* If container is 400px wide:
+       Column 1: 100px (1/4 of space)
+       Column 2: 200px (2/4 of space)
+       Column 3: 100px (1/4 of space) */
+    gap: 10px;
+    background-color: #f5f5f5;
+    padding: 10px;
+}
+
+.item {
+    background-color: #2ecc71;
+    padding: 20px;
+    text-align: center;
 }
 ```
 
 ### 2. Grid Items
 
+```html
+<!-- HTML Structure -->
+<div class="grid-span-demo">
+    <div class="item item-1">Item 1 (spans 2 columns)</div>
+    <div class="item item-2">Item 2</div>
+    <div class="item item-3">Item 3 (spans 2 rows)</div>
+    <div class="item item-4">Item 4</div>
+    <div class="item item-5">Item 5</div>
+</div>
+```
+
 ```css
-.item {
-    /* Span multiple columns */
-    grid-column: 1 / 3; /* Start line 1, end line 3 */
-    grid-column: 1 / span 2; /* Start at 1, span 2 columns */
-    grid-column: 1 / -1; /* Start to end */
-
-    /* Span multiple rows */
-    grid-row: 1 / 3;
-    grid-row: 1 / span 2;
-
-    /* Shorthand */
-    grid-area: 1 / 1 / 3 / 3; /* row-start / col-start / row-end / col-end */
+.grid-span-demo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    background-color: #f5f5f5;
+    padding: 10px;
 }
+
+.item {
+    background-color: #3498db;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Span multiple columns */
+.item-1 {
+    grid-column: 1 / 3; /* Start at line 1, end at line 3 (spans 2 columns) */
+    /* Or: grid-column: 1 / span 2; */
+    /* Or: grid-column-start: 1; grid-column-end: 3; */
+    background-color: #e74c3c;
+}
+
+.item-3 {
+    /* Span multiple rows */
+    grid-row: 2 / 4; /* Start at line 2, end at line 4 (spans 2 rows) */
+    /* Or: grid-row: 2 / span 2; */
+    background-color: #2ecc71;
+}
+
+/* Full width item using negative line numbers */
+.item-full-width {
+    grid-column: 1 / -1; /* From first to last column */
+    background-color: #9b59b6;
+}
+
+/* Shorthand: grid-area */
+.item-large {
+    /* row-start / col-start / row-end / col-end */
+    grid-area: 1 / 1 / 3 / 3; /* Spans 2 rows and 2 columns */
+    background-color: #f39c12;
+}
+```
+
+**Visual Grid Lines:**
+```
+     1      2      3      4
+   ┌──────┬──────┬──────┐
+ 1 │      │      │      │
+   ├──────┼──────┼──────┤
+ 2 │      │      │      │
+   ├──────┼──────┼──────┤
+ 3 │      │      │      │
+   └──────┴──────┴──────┘
+ 4
+
+grid-column: 1 / 3  →  Spans columns from line 1 to 3
+grid-row: 2 / 4     →  Spans rows from line 2 to 4
 ```
 
 ### 3. Named Grid Lines
@@ -63,37 +178,95 @@ CSS Grid is a powerful two-dimensional layout system that allows you to create c
 
 ### 4. Grid Template Areas
 
+```html
+<!-- HTML Structure -->
+<div class="layout-container">
+    <header class="header">Header</header>
+    <nav class="sidebar">Sidebar</nav>
+    <main class="main">Main Content</main>
+    <aside class="aside">Aside</aside>
+    <footer class="footer">Footer</footer>
+</div>
+```
+
 ```css
-.container {
+.layout-container {
     display: grid;
     grid-template-columns: 200px 1fr 200px;
     grid-template-rows: auto 1fr auto;
+
+    /* Define named grid areas - visual layout representation */
     grid-template-areas:
-        "header header header"
-        "sidebar main aside"
-        "footer footer footer";
+        "header header header"    /* Row 1: header spans all 3 columns */
+        "sidebar main aside"      /* Row 2: 3 separate columns */
+        "footer footer footer";   /* Row 3: footer spans all 3 columns */
+
     gap: 20px;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    padding: 20px;
 }
 
+/* Assign elements to named areas */
 .header {
     grid-area: header;
+    background-color: #3498db;
+    padding: 20px;
+    color: white;
+    text-align: center;
 }
 
 .sidebar {
     grid-area: sidebar;
+    background-color: #2ecc71;
+    padding: 20px;
 }
 
 .main {
     grid-area: main;
+    background-color: #ecf0f1;
+    padding: 20px;
 }
 
 .aside {
     grid-area: aside;
+    background-color: #f39c12;
+    padding: 20px;
 }
 
 .footer {
     grid-area: footer;
+    background-color: #e74c3c;
+    padding: 20px;
+    color: white;
+    text-align: center;
 }
+
+/* Responsive: Stack on mobile */
+@media (max-width: 768px) {
+    .layout-container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "header"
+            "sidebar"
+            "main"
+            "aside"
+            "footer";
+    }
+}
+```
+
+**Visual Representation:**
+```
+┌─────────────────────────────────┐
+│          header                 │
+├──────────┬──────────────┬───────┤
+│          │              │       │
+│ sidebar  │     main     │ aside │
+│          │              │       │
+├──────────┴──────────────┴───────┤
+│          footer                 │
+└─────────────────────────────────┘
 ```
 
 ### 5. Alignment

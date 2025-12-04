@@ -265,7 +265,26 @@ CSS animations bring life to web pages, creating engaging user experiences witho
 
 ### Example 1: Animated Button
 
+```html
+<!-- HTML Structure -->
+<div class="button-demo">
+    <button class="button button-primary">Hover Me</button>
+    <button class="button button-secondary">Click for Ripple</button>
+    <button class="button button-animated">Animated Border</button>
+</div>
+```
+
 ```css
+.button-demo {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 40px;
+    background-color: #f5f5f5;
+    justify-content: center;
+}
+
+/* Base button styles */
 .button {
     background: #3498db;
     color: white;
@@ -273,24 +292,35 @@ CSS animations bring life to web pages, creating engaging user experiences witho
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
-.button:hover {
+/* Primary button - Lift on hover */
+.button-primary {
+    background: #3498db;
+}
+
+.button-primary:hover {
     background: #2980b9;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.button:active {
+.button-primary:active {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Ripple effect */
-.button::after {
+/* Secondary button - Ripple effect on click */
+.button-secondary {
+    background: #2ecc71;
+}
+
+.button-secondary::after {
     content: '';
     position: absolute;
     top: 50%;
@@ -303,16 +333,120 @@ CSS animations bring life to web pages, creating engaging user experiences witho
     transition: width 0.6s, height 0.6s;
 }
 
-.button:active::after {
+.button-secondary:active::after {
     width: 300px;
     height: 300px;
+}
+
+/* Animated button - Border animation */
+.button-animated {
+    background: #e74c3c;
+    border: 2px solid transparent;
+    position: relative;
+}
+
+.button-animated::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 4px;
+    padding: 2px;
+    background: linear-gradient(45deg, #f39c12, #e74c3c, #9b59b6, #3498db);
+    background-size: 300% 300%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: border-rotate 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.button-animated:hover::before {
+    opacity: 1;
+}
+
+@keyframes border-rotate {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 ```
 
 ### Example 2: Loading Spinner
 
+```html
+<!-- HTML Structure -->
+<div class="spinner-demo">
+    <!-- Classic spinner -->
+    <div class="spinner-container">
+        <div class="spinner spinner-circle"></div>
+        <p>Circle Spinner</p>
+    </div>
+
+    <!-- Dots spinner -->
+    <div class="spinner-container">
+        <div class="dots-spinner">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <p>Dots Spinner</p>
+    </div>
+
+    <!-- Pulse spinner -->
+    <div class="spinner-container">
+        <div class="spinner spinner-pulse"></div>
+        <p>Pulse Spinner</p>
+    </div>
+
+    <!-- Bar spinner -->
+    <div class="spinner-container">
+        <div class="bars-spinner">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <p>Bars Spinner</p>
+    </div>
+</div>
+```
+
 ```css
-.spinner {
+.spinner-demo {
+    display: flex;
+    gap: 40px;
+    padding: 40px;
+    background-color: #f5f5f5;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.spinner-container p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Classic circle spinner */
+.spinner-circle {
     width: 50px;
     height: 50px;
     border: 4px solid #f3f3f3;
@@ -352,53 +486,215 @@ CSS animations bring life to web pages, creating engaging user experiences witho
     animation-delay: -0.16s;
 }
 
+.dot:nth-child(3) {
+    animation-delay: 0s;
+}
+
 @keyframes bounce-dots {
     0%, 80%, 100% {
         transform: scale(0);
+        opacity: 0.5;
     }
     40% {
         transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Pulse spinner */
+.spinner-pulse {
+    width: 50px;
+    height: 50px;
+    background: #3498db;
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* Bars spinner */
+.bars-spinner {
+    display: flex;
+    gap: 5px;
+    align-items: flex-end;
+    height: 50px;
+}
+
+.bar {
+    width: 8px;
+    background: #3498db;
+    border-radius: 4px;
+    animation: bounce-bars 1s ease-in-out infinite;
+}
+
+.bar:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.bar:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.bar:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.bar:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+@keyframes bounce-bars {
+    0%, 100% {
+        height: 20px;
+    }
+    50% {
+        height: 50px;
     }
 }
 ```
 
 ### Example 3: Card Flip
 
+```html
+<!-- HTML Structure -->
+<div class="flip-demo">
+    <div class="flip-card">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <h3>Front Side</h3>
+                <p>Hover to flip</p>
+            </div>
+            <div class="flip-card-back">
+                <h3>Back Side</h3>
+                <p>Hidden information revealed!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flip-card">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <div class="card-icon">🎨</div>
+                <h3>Design</h3>
+            </div>
+            <div class="flip-card-back">
+                <h3>Details</h3>
+                <p>Modern UI/UX design services with cutting-edge solutions.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flip-card">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <div class="card-icon">💻</div>
+                <h3>Development</h3>
+            </div>
+            <div class="flip-card-back">
+                <h3>Tech Stack</h3>
+                <p>Full-stack development using modern technologies.</p>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
 ```css
+.flip-demo {
+    display: flex;
+    gap: 30px;
+    padding: 40px;
+    background-color: #f5f5f5;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Flip card container */
 .flip-card {
     width: 300px;
     height: 200px;
-    perspective: 1000px;
+    perspective: 1000px; /* Creates 3D space */
+    cursor: pointer;
 }
 
+/* Inner container that flips */
 .flip-card-inner {
     position: relative;
     width: 100%;
     height: 100%;
     transition: transform 0.6s;
-    transform-style: preserve-3d;
+    transform-style: preserve-3d; /* Enables 3D transforms */
 }
 
+/* Trigger flip on hover */
 .flip-card:hover .flip-card-inner {
     transform: rotateY(180deg);
 }
 
+/* Front and back faces */
 .flip-card-front,
 .flip-card-back {
     position: absolute;
     width: 100%;
     height: 100%;
-    backface-visibility: hidden;
+    backface-visibility: hidden; /* Hide back when facing away */
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
+/* Front side */
 .flip-card-front {
-    background: #3498db;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
 }
 
+.card-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.flip-card-front h3 {
+    margin: 10px 0;
+    font-size: 24px;
+}
+
+.flip-card-front p {
+    margin: 5px 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Back side */
 .flip-card-back {
-    background: #2ecc71;
-    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    transform: rotateY(180deg); /* Pre-rotated to face correct direction when flipped */
+}
+
+.flip-card-back h3 {
+    margin: 0 0 15px 0;
+    font-size: 22px;
+}
+
+.flip-card-back p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
 }
 ```
 

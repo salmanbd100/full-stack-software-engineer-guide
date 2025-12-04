@@ -15,39 +15,80 @@
 
 ## Example 1: Basic Flexbox Container
 
+```html
+<!-- HTML Structure -->
+<div class="flex-container">
+    <div class="flex-item">Item 1</div>
+    <div class="flex-item">Item 2</div>
+    <div class="flex-item">Item 3</div>
+    <div class="flex-item">Item 4</div>
+    <div class="flex-item">Item 5</div>
+</div>
+```
+
 ```css
 /* Container properties */
 .flex-container {
     display: flex; /* or inline-flex */
 
-    /* Direction */
+    /* Styling for visibility */
+    background-color: #f0f0f0;
+    padding: 20px;
+    border: 2px solid #333;
+
+    /* Direction - defines main axis */
     flex-direction: row; /* row | row-reverse | column | column-reverse */
 
-    /* Wrapping */
+    /* Wrapping - single line vs multi-line */
     flex-wrap: nowrap; /* nowrap | wrap | wrap-reverse */
 
     /* Shorthand for direction and wrap */
     flex-flow: row wrap;
 
-    /* Main axis alignment */
+    /* Main axis alignment - horizontal in row, vertical in column */
     justify-content: flex-start; /* flex-start | flex-end | center | space-between | space-around | space-evenly */
 
-    /* Cross axis alignment */
+    /* Cross axis alignment - vertical in row, horizontal in column */
     align-items: stretch; /* stretch | flex-start | flex-end | center | baseline */
 
-    /* Multi-line cross axis alignment */
+    /* Multi-line cross axis alignment (only with flex-wrap) */
     align-content: flex-start; /* Same values as justify-content */
 
-    /* Gap between items (modern) */
+    /* Gap between items (modern - preferred over margins) */
     gap: 10px; /* or row-gap, column-gap */
+}
+
+.flex-item {
+    background-color: #3498db;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 4px;
+    min-width: 100px;
 }
 ```
 
+**Visual Examples of justify-content:**
 ```html
-<div class="flex-container">
-    <div class="flex-item">Item 1</div>
-    <div class="flex-item">Item 2</div>
-    <div class="flex-item">Item 3</div>
+<!-- Try different values -->
+<div class="flex-container" style="justify-content: flex-start;">
+    <!-- Items at start -->
+</div>
+
+<div class="flex-container" style="justify-content: center;">
+    <!-- Items centered -->
+</div>
+
+<div class="flex-container" style="justify-content: space-between;">
+    <!-- Equal space between items, no space at edges -->
+</div>
+
+<div class="flex-container" style="justify-content: space-around;">
+    <!-- Equal space around items, half space at edges -->
+</div>
+
+<div class="flex-container" style="justify-content: space-evenly;">
+    <!-- Equal space everywhere including edges -->
 </div>
 ```
 
@@ -55,30 +96,130 @@
 
 ## Example 2: Flex Item Properties
 
+```html
+<!-- HTML Structure -->
+<div class="flex-demo">
+    <div class="item item-grow-0">flex-grow: 0</div>
+    <div class="item item-grow-1">flex-grow: 1</div>
+    <div class="item item-grow-2">flex-grow: 2</div>
+</div>
+
+<div class="flex-demo">
+    <div class="item item-basis">flex-basis: 200px</div>
+    <div class="item item-flex-1">flex: 1</div>
+    <div class="item item-flex-2">flex: 2</div>
+</div>
+
+<div class="flex-demo">
+    <div class="item item-order-3" style="order: 3">Order: 3</div>
+    <div class="item item-order-1" style="order: 1">Order: 1</div>
+    <div class="item item-order-2" style="order: 2">Order: 2</div>
+</div>
+```
+
 ```css
-.flex-item {
-    /* Growth factor */
-    flex-grow: 0; /* Default: 0, doesn't grow */
+.flex-demo {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border: 2px solid #ddd;
+}
 
-    /* Shrink factor */
-    flex-shrink: 1; /* Default: 1, can shrink */
+.item {
+    padding: 20px;
+    background-color: #3498db;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+}
 
-    /* Base size before growing/shrinking */
-    flex-basis: auto; /* auto | length | percentage */
+/* Growth factor - how much item grows relative to others */
+.item-grow-0 {
+    flex-grow: 0; /* Doesn't grow, stays at content size */
+}
 
-    /* Shorthand: flex-grow flex-shrink flex-basis */
-    flex: 0 1 auto; /* Default */
-    flex: 1; /* Same as flex: 1 1 0 */
-    flex: auto; /* Same as flex: 1 1 auto */
-    flex: none; /* Same as flex: 0 0 auto */
+.item-grow-1 {
+    flex-grow: 1; /* Grows 1x */
+    background-color: #2ecc71;
+}
 
-    /* Override container's align-items for this item */
-    align-self: auto; /* auto | flex-start | flex-end | center | baseline | stretch */
+.item-grow-2 {
+    flex-grow: 2; /* Grows 2x (twice as much as grow-1) */
+    background-color: #e74c3c;
+}
 
-    /* Change visual order (doesn't affect DOM) */
-    order: 0; /* Default, lower numbers come first */
+/* Shrink factor - how much item shrinks when space is limited */
+.item-shrink {
+    flex-shrink: 1; /* Default: can shrink */
+}
+
+.item-no-shrink {
+    flex-shrink: 0; /* Won't shrink below its size */
+}
+
+/* Base size before growing/shrinking */
+.item-basis {
+    flex-basis: 200px; /* Starting width (in row direction) */
+    background-color: #9b59b6;
+}
+
+/* Common flex shorthand values */
+.item-flex-1 {
+    flex: 1; /* Same as: flex-grow: 1, flex-shrink: 1, flex-basis: 0 */
+    /* Takes equal space with other flex: 1 items */
+}
+
+.item-flex-2 {
+    flex: 2; /* Takes 2x space compared to flex: 1 */
+    background-color: #e67e22;
+}
+
+.item-flex-auto {
+    flex: auto; /* Same as: flex: 1 1 auto */
+    /* Grows/shrinks, basis is content size */
+}
+
+.item-flex-none {
+    flex: none; /* Same as: flex: 0 0 auto */
+    /* Doesn't grow or shrink, stays at content size */
+}
+
+/* Override container's align-items for this item */
+.item-align-start {
+    align-self: flex-start; /* Align to start of cross axis */
+}
+
+.item-align-center {
+    align-self: center; /* Center on cross axis */
+}
+
+.item-align-end {
+    align-self: flex-end; /* Align to end of cross axis */
+}
+
+/* Change visual order (doesn't affect DOM or screen readers) */
+.item-order-1 {
+    order: 1; /* Lower numbers come first */
+}
+
+.item-order-2 {
+    order: 2;
+}
+
+.item-order-3 {
+    order: 3;
 }
 ```
+
+**Key Concepts:**
+- **flex-grow**: How much extra space the item takes (relative to siblings)
+- **flex-shrink**: How much the item shrinks when space is limited
+- **flex-basis**: Initial size before growing/shrinking
+- **flex**: Shorthand for grow, shrink, and basis
+- **align-self**: Override container's align-items for specific item
+- **order**: Visual reordering without changing HTML
 
 ---
 

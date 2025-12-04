@@ -72,6 +72,15 @@ Master React fundamentals and advanced concepts for modern frontend interviews. 
     - React Profiler
     - Virtual DOM optimization
 
+13. **[React 19 Features](./13-react-19-features.md)**
+    - React Compiler (automatic optimization)
+    - Actions and useActionState
+    - useOptimistic hook
+    - use() hook for async data
+    - Built-in document metadata
+    - Ref as props (no forwardRef)
+    - Context provider shorthand
+
 ---
 
 ## 🎯 Interview Focus Areas
@@ -95,6 +104,7 @@ Master React fundamentals and advanced concepts for modern frontend interviews. 
 12. Code splitting and lazy loading
 13. Server-side rendering basics
 14. Testing React components
+15. React 19 new features (Compiler, Actions, use hook)
 
 ---
 
@@ -109,6 +119,9 @@ Master React fundamentals and advanced concepts for modern frontend interviews. 
 6. "What is prop drilling? How to avoid it?"
 7. "How to optimize React performance?"
 8. "Controlled vs uncontrolled components?"
+9. "What's new in React 19?"
+10. "How does the React Compiler work?"
+11. "When to use useOptimistic vs regular state?"
 
 ### Essential Patterns
 ```javascript

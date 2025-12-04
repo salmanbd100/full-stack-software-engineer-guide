@@ -347,16 +347,56 @@ body {
 
 ### Example 1: Neumorphism
 
+```html
+<!-- HTML Structure -->
+<div class="neu-demo">
+    <button class="neu-button">Neumorphic Button</button>
+    <div class="neu-card">
+        <h3>Neumorphic Card</h3>
+        <p>Soft UI design with subtle shadows</p>
+        <div class="neu-input-group">
+            <input type="text" class="neu-input" placeholder="Enter text">
+            <button class="neu-icon-button">→</button>
+        </div>
+    </div>
+    <div class="neu-toggle">
+        <input type="checkbox" id="neu-switch">
+        <label for="neu-switch"></label>
+    </div>
+</div>
+```
+
 ```css
+.neu-demo {
+    background: #e0e5ec;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    min-height: 400px;
+}
+
+/* Neumorphic Button */
 .neu-button {
     background: #e0e5ec;
+    color: #333;
     border-radius: 12px;
     box-shadow:
         12px 12px 16px #a3b1c6,
         -12px -12px 16px #ffffff;
     padding: 20px 40px;
     border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
     transition: all 0.2s ease;
+}
+
+.neu-button:hover {
+    box-shadow:
+        14px 14px 18px #a3b1c6,
+        -14px -14px 18px #ffffff;
 }
 
 .neu-button:active {
@@ -364,31 +404,399 @@ body {
         inset 6px 6px 10px #a3b1c6,
         inset -6px -6px 10px #ffffff;
 }
+
+/* Neumorphic Card */
+.neu-card {
+    background: #e0e5ec;
+    border-radius: 20px;
+    box-shadow:
+        15px 15px 30px #a3b1c6,
+        -15px -15px 30px #ffffff;
+    padding: 30px;
+    max-width: 400px;
+    width: 100%;
+}
+
+.neu-card h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.neu-card p {
+    margin: 0 0 20px 0;
+    color: #666;
+}
+
+/* Neumorphic Input Group */
+.neu-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.neu-input {
+    flex: 1;
+    background: #e0e5ec;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow:
+        inset 4px 4px 8px #a3b1c6,
+        inset -4px -4px 8px #ffffff;
+    outline: none;
+    color: #333;
+    font-size: 14px;
+}
+
+.neu-input::placeholder {
+    color: #999;
+}
+
+.neu-icon-button {
+    background: #e0e5ec;
+    border: none;
+    border-radius: 10px;
+    width: 50px;
+    box-shadow:
+        8px 8px 12px #a3b1c6,
+        -8px -8px 12px #ffffff;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.2s ease;
+}
+
+.neu-icon-button:active {
+    box-shadow:
+        inset 4px 4px 8px #a3b1c6,
+        inset -4px -4px 8px #ffffff;
+}
+
+/* Neumorphic Toggle */
+.neu-toggle {
+    position: relative;
+}
+
+.neu-toggle input {
+    display: none;
+}
+
+.neu-toggle label {
+    display: block;
+    width: 80px;
+    height: 40px;
+    background: #e0e5ec;
+    border-radius: 20px;
+    box-shadow:
+        inset 4px 4px 8px #a3b1c6,
+        inset -4px -4px 8px #ffffff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.neu-toggle label::after {
+    content: '';
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: #e0e5ec;
+    border-radius: 50%;
+    top: 4px;
+    left: 4px;
+    box-shadow:
+        4px 4px 8px #a3b1c6,
+        -4px -4px 8px #ffffff;
+    transition: all 0.3s ease;
+}
+
+.neu-toggle input:checked + label::after {
+    left: 44px;
+}
+
+.neu-toggle input:checked + label {
+    box-shadow:
+        inset 4px 4px 8px #a3b1c6,
+        inset -4px -4px 8px #ffffff;
+}
 ```
 
 ### Example 2: Glassmorphism
 
+```html
+<!-- HTML Structure -->
+<div class="glass-demo">
+    <div class="glass-card">
+        <div class="glass-icon">✨</div>
+        <h3>Glassmorphism</h3>
+        <p>Modern frosted glass effect with backdrop blur and transparency.</p>
+        <button class="glass-button">Learn More</button>
+    </div>
+
+    <div class="glass-card glass-card-dark">
+        <div class="glass-icon">🎨</div>
+        <h3>Dark Variant</h3>
+        <p>Works beautifully on both light and dark backgrounds.</p>
+        <button class="glass-button">Explore</button>
+    </div>
+
+    <div class="glass-navbar">
+        <div class="glass-brand">Brand</div>
+        <nav class="glass-nav">
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </nav>
+    </div>
+</div>
+```
+
 ```css
+.glass-demo {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 40px;
+    min-height: 600px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: flex-start;
+    justify-content: center;
+    position: relative;
+}
+
+/* Glassmorphism Card */
 .glass-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     padding: 2rem;
+    max-width: 300px;
+    width: 100%;
+    color: white;
+}
+
+.glass-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.glass-card h3 {
+    margin: 0 0 15px 0;
+    font-size: 24px;
+}
+
+.glass-card p {
+    margin: 0 0 20px 0;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* Dark variant */
+.glass-card-dark {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glass Button */
+.glass-button {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2);
+}
+
+/* Glassmorphic Navbar */
+.glass-navbar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px) saturate(180%);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+}
+
+.glass-brand {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.glass-nav {
+    display: flex;
+    gap: 25px;
+}
+
+.glass-nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+.glass-nav a:hover {
+    opacity: 0.7;
 }
 ```
 
 ### Example 3: Text Gradient
 
+```html
+<!-- HTML Structure -->
+<div class="text-gradient-demo">
+    <h1 class="gradient-text gradient-1">Gradient Text Effect</h1>
+    <h2 class="gradient-text gradient-2">Beautiful Typography</h2>
+    <h3 class="gradient-text gradient-3">Modern Design</h3>
+
+    <div class="gradient-card">
+        <h2 class="gradient-heading">Premium Service</h2>
+        <p>Experience the best with our advanced features and stunning visual effects.</p>
+        <button class="gradient-button">Get Started</button>
+    </div>
+</div>
+```
+
 ```css
+.text-gradient-demo {
+    background: #1a1a1a;
+    padding: 60px 40px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+/* Base gradient text */
 .gradient-text {
-    background: linear-gradient(45deg, #3498db, #2ecc71, #e74c3c);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 3rem;
     font-weight: bold;
+    text-align: center;
+    margin: 0;
+}
+
+/* Gradient variation 1 - Blue to green to red */
+.gradient-1 {
+    background: linear-gradient(45deg, #3498db, #2ecc71, #e74c3c);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+/* Gradient variation 2 - Purple to pink */
+.gradient-2 {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+/* Gradient variation 3 - Gold to orange */
+.gradient-3 {
+    background: linear-gradient(135deg, #f39c12, #e74c3c, #c0392b);
+    font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+/* Animated gradient text */
+@keyframes gradient-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gradient-heading {
+    background: linear-gradient(
+        90deg,
+        #667eea,
+        #764ba2,
+        #f093fb,
+        #4facfe
+    );
+    background-size: 300% 300%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 3s ease infinite;
+    font-size: 2rem;
+    margin: 0 0 15px 0;
+}
+
+/* Gradient Card */
+.gradient-card {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+    padding: 40px;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    color: white;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.gradient-card p {
+    margin: 0 0 25px 0;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+/* Gradient Button */
+.gradient-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 35px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.gradient-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gradient-button:hover::before {
+    opacity: 1;
+}
+
+.gradient-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 ```
 
