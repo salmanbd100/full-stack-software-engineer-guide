@@ -19,6 +19,8 @@ Content Security Policy (CSP) is a powerful security layer that helps prevent Cr
 
 ### How CSP Works
 
+CSP acts as a whitelist mechanism that instructs browsers to only load resources from approved sources, blocking everything else. By defining which domains can serve scripts, styles, and other content, CSP prevents injected malicious code from executing even if XSS vulnerabilities exist.
+
 ```javascript
 // Without CSP: All scripts execute
 <script src="https://evil.com/malware.js"></script> // ✅ Executes
@@ -32,11 +34,15 @@ Content Security Policy (CSP) is a powerful security layer that helps prevent Cr
 
 ### CSP Header Format
 
+CSP policies consist of directives (like script-src, style-src) paired with source lists that define allowed origins. Multiple directives are separated by semicolons, creating a comprehensive security policy delivered via HTTP headers.
+
 ```http
 Content-Security-Policy: directive-name source-list; another-directive source-list
 ```
 
 ### Simple Example
+
+A basic CSP implementation demonstrates how to restrict resources to the same origin plus specific trusted CDNs. This example blocks inline scripts and third-party resources by default, requiring all content to come from explicitly allowed sources.
 
 ```javascript
 // Express.js
@@ -57,6 +63,8 @@ app.use((req, res, next) => {
 ## CSP Directives
 
 ### Common Directives
+
+CSP provides granular control over different resource types through specialized directives. Each directive governs a specific category of content, from scripts and styles to fonts and frames, enabling fine-tuned security policies.
 
 ```javascript
 const cspDirectives = {
@@ -87,6 +95,8 @@ const cspDirectives = {
 
 ### Source Values
 
+Source values define which origins are permitted for each directive, ranging from strict (none) to permissive (unsafe-inline). Keywords like 'self' and 'nonce-{random}' provide security without sacrificing functionality, while unsafe-* values should be avoided.
+
 ```javascript
 const sourceValues = {
   "'none'": 'Block all sources',
@@ -105,6 +115,8 @@ const sourceValues = {
 ## Basic CSP Implementation
 
 ### Starter CSP
+
+A production-ready starter CSP restricts all resources to same-origin by default while allowing images from HTTPS and data URIs. This baseline provides strong security for static sites and can be incrementally relaxed as needed for specific use cases.
 
 ```javascript
 // Minimal secure CSP
@@ -128,6 +140,8 @@ app.use((req, res, next) => {
 
 ### Express with helmet.js
 
+Helmet.js simplifies CSP configuration with a JavaScript object syntax and sensible defaults. The middleware automatically formats directives into proper CSP headers, reducing errors and improving maintainability for Express applications.
+
 ```javascript
 const helmet = require('helmet');
 
@@ -149,6 +163,8 @@ app.use(
 ```
 
 ### Next.js Configuration
+
+Next.js CSP configuration uses the headers() function in next.config.js to apply security headers to all routes. The framework's build process requires unsafe-eval and unsafe-inline in development, which should be replaced with nonces in production.
 
 ```javascript
 // next.config.js
@@ -185,6 +201,8 @@ module.exports = {
 
 ### What is a Nonce?
 
+A nonce is a cryptographically random string generated per request that whitelists specific inline scripts without allowing all inline code. Scripts with matching nonce attributes execute while all other inline scripts are blocked, providing strong security for dynamic applications.
+
 ```javascript
 // Nonce: Number used once
 // Random value generated per request
@@ -198,6 +216,8 @@ module.exports = {
 ```
 
 ### Server-Side Implementation
+
+Server-side nonce implementation generates a unique random value per request, includes it in the CSP header, and makes it available to templates. All legitimate inline scripts receive the nonce attribute, while injected XSS scripts lack the correct nonce and are blocked.
 
 ```javascript
 const crypto = require('crypto');
@@ -245,6 +265,8 @@ app.get('/', (req, res) => {
 
 ### React with SSR
 
+Server-side rendering with nonces requires passing the nonce value through the React component tree to dynamically created scripts. The nonce must be embedded in the initial HTML and made available to client-side hydration code for runtime script injection.
+
 ```jsx
 // server.js
 import crypto from 'crypto';
@@ -278,6 +300,8 @@ app.get('*', (req, res) => {
 ```
 
 ### Adding Nonce to Dynamic Scripts
+
+Client-side code that dynamically creates script elements must apply the nonce attribute to comply with CSP. The nonce value from the initial page load should be reused for all runtime-generated scripts to ensure they're whitelisted.
 
 ```javascript
 // Client-side: Add nonce to dynamically created scripts

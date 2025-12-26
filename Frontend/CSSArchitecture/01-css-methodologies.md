@@ -32,6 +32,8 @@ A good CSS methodology provides:
 
 ### BEM Structure
 
+The BEM naming pattern follows a simple Block__Element--Modifier format where double underscores separate blocks from elements, and double hyphens separate the modifier. This strict naming convention ensures predictable, self-documenting class names that clearly communicate the component hierarchy and variations.
+
 ```
 Block__Element--Modifier
 ```
@@ -41,6 +43,8 @@ Block__Element--Modifier
 - **Modifier**: Variation or state (e.g., `button--primary`, `card--featured`)
 
 ### BEM Naming Convention
+
+Real-world examples demonstrate how BEM naming translates abstract concepts into practical CSS class names. Each class name immediately reveals whether it's an independent component, a component part, or a variation, making the codebase self-documenting.
 
 ```css
 /* Block */
@@ -65,10 +69,12 @@ Block__Element--Modifier
 
 ### BEM Example: Complete Button Component
 
+A complete button component showcases how BEM handles variations and internal elements with consistent naming. This example demonstrates modifiers for different button styles and elements for icons and text within the button.
+
 ```html
 <!-- HTML -->
 <button class="button button--primary">
-    <span class="button__icon">í</span>
+    <span class="button__icon">ÔøΩ</span>
     <span class="button__text">Click me</span>
 </button>
 
@@ -136,6 +142,8 @@ Block__Element--Modifier
 ```
 
 ### BEM Example: Card Component
+
+Card components typically contain multiple nested elements and modifiers, illustrating BEM's strength in managing complex component structures. This example shows how to organize images, content sections, metadata, and actions within a cohesive BEM naming system.
 
 ```html
 <!-- HTML -->
@@ -264,6 +272,8 @@ Block__Element--Modifier
 6. **Limited features**: No variables, nesting, or other preprocessor features (without Sass)
 
 ### Common BEM Mistakes
+
+Even with its simple rules, BEM can be misused, leading to confusing or overly complex class names. Understanding these common pitfalls helps teams maintain clean, consistent BEM implementations across large codebases.
 
 ```css
 /* WRONG: Using more than two underscores */
@@ -539,6 +549,8 @@ Styles for theming (colors, fonts, visual treatment).
 
 ### SMACSS File Organization
 
+A typical SMACSS file structure mirrors the five categories, making it easy to locate styles by their purpose. This organization scales well as the project grows, with each category containing multiple focused files.
+
 ```
 css/
    base/
@@ -565,6 +577,8 @@ css/
 ```
 
 ### SMACSS Example: Complete Form Component
+
+This form component demonstrates how SMACSS categories work together, combining layout, module, and state styles. Notice how layout classes handle structure, module classes define component appearance, and state classes manage dynamic behaviors.
 
 ```html
 <!-- HTML -->
@@ -706,17 +720,21 @@ css/
 
 ### ITCSS Layers (Top to Bottom)
 
+The seven ITCSS layers create an intentional specificity gradient from generic to specific styles. Each layer builds upon the previous, ensuring CSS cascade and specificity work with you rather than against you.
+
 ```
-1. Settings       ê  Widest reach, lowest specificity
+1. Settings       ÔøΩ  Widest reach, lowest specificity
 2. Tools
 3. Generic
 4. Elements
 5. Objects
 6. Components
-7. Utilities      í  Narrowest reach, highest specificity
+7. Utilities      ÔøΩ  Narrowest reach, highest specificity
 ```
 
 ### Layer Details
+
+Each ITCSS layer serves a specific purpose in the architecture, from configuration and tools to concrete styles and overrides. Understanding what belongs in each layer prevents specificity conflicts and makes the codebase predictable.
 
 #### **1. Settings**
 Variables, configuration (no CSS output, Sass variables only).
@@ -965,6 +983,8 @@ Single-responsibility utilities (can use !important).
 
 ### ITCSS File Structure
 
+A well-organized ITCSS project uses numbered folders to enforce import order, ensuring layers are loaded in the correct sequence. This structure makes it impossible to accidentally violate the specificity cascade.
+
 ```
 scss/
    1-settings/
@@ -997,6 +1017,8 @@ scss/
 ```
 
 ### ITCSS Example: Complete Page
+
+The main stylesheet demonstrates how to import ITCSS layers in the correct order, from settings through utilities. This import sequence is critical - changing the order would break the intended specificity cascade.
 
 ```scss
 // main.scss - Importing in order
@@ -1055,7 +1077,11 @@ scss/
 
 ### OOCSS Principles
 
+OOCSS is built on two fundamental principles that maximize code reuse and minimize duplication. These principles challenge traditional CSS thinking by separating layout from aesthetics and components from their containers.
+
 #### **Principle 1: Separate Structure from Skin**
+
+Separating structural CSS (layout, dimensions, positioning) from visual CSS (colors, borders, shadows) allows different visual treatments to share the same structure. This principle dramatically reduces CSS duplication across components with similar layouts but different appearances.
 
 ```css
 /* WRONG: Structure and skin combined */
@@ -1109,6 +1135,8 @@ scss/
 ```
 
 #### **Principle 2: Separate Container and Content**
+
+Content components should look the same regardless of where they appear in the page hierarchy. This principle eliminates location-dependent styling, making components truly reusable across different contexts without code duplication.
 
 ```css
 /* WRONG: Content depends on container */
@@ -1276,6 +1304,8 @@ The "media object" is a classic OOCSS pattern for image + text combinations.
 | **Preprocessor** | Optional | Helpful | Recommended | Optional |
 
 ### When to Use Each
+
+Choosing the right methodology depends on project requirements, team experience, and long-term maintainability goals. Each methodology excels in different scenarios, and understanding these contexts helps teams make informed architectural decisions.
 
 **Choose BEM if:**
 - Team is learning CSS architecture for first time
@@ -1636,11 +1666,11 @@ Consider four factors:
 **Decision Tree:**
 ```
 Start here
-  New team learning CSS? í BEM
-  Small-medium growing app? í SMACSS
-  Large enterprise app? í ITCSS
-  High traffic site? í OOCSS
-  Unsure? í Start with BEM, upgrade to SMACSS
+  New team learning CSS? ÔøΩ BEM
+  Small-medium growing app? ÔøΩ SMACSS
+  Large enterprise app? ÔøΩ ITCSS
+  High traffic site? ÔøΩ OOCSS
+  Unsure? ÔøΩ Start with BEM, upgrade to SMACSS
 ```
 
 ---
@@ -1864,4 +1894,4 @@ CSS methodologies are essential for building scalable, maintainable applications
 
 ---
 
-[ê Back to CSS Architecture](./README.md)
+[ÔøΩ Back to CSS Architecture](./README.md)

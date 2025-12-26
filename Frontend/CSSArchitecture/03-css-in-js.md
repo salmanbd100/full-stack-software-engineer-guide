@@ -36,7 +36,7 @@ CSS-in-JS allows writing styles in JavaScript, bringing styling logic closer to 
 
 1. **No naming conflicts** - Automatic class name generation
 2. **Component-scoped** - Styles isolated to component
-3. **Dynamic styling** - Props í styles mapping
+3. **Dynamic styling** - Props ÔøΩ styles mapping
 4. **Type safety** - TypeScript support for themes
 5. **Dead code elimination** - Unused styles removed
 6. **Easier refactoring** - Move component = move styles
@@ -75,12 +75,16 @@ CSS-in-JS allows writing styles in JavaScript, bringing styling logic closer to 
 
 ### Installation
 
+Getting started with styled-components requires installing the core library and optionally the Babel plugin for better debugging and optimization. The Babel plugin adds component names and enables SSR optimizations.
+
 ```bash
 npm install styled-components
 npm install -D babel-plugin-styled-components  # Optional but recommended
 ```
 
 ### Basic Syntax
+
+Styled-components uses tagged template literals to define component styles, creating React components with CSS directly attached. The syntax feels like writing regular CSS with full support for nesting, pseudo-selectors, and media queries.
 
 ```jsx
 import styled from 'styled-components';
@@ -113,6 +117,8 @@ const Button = ({ children, ...props }) => (
 ```
 
 ### Props-Based Styling
+
+Props enable dynamic styling where component appearance adapts based on component state or data. This pattern eliminates separate CSS classes for variations, as JavaScript functions interpolate props directly into CSS values.
 
 ```jsx
 import styled from 'styled-components';
@@ -147,6 +153,8 @@ const Input = styled.input`
 ```
 
 ### styled-components Complete Button Example
+
+A production-ready button component demonstrates styled-components' full feature set including variants, sizes, states, and icons. Notice how props drive all styling decisions without className logic or separate CSS files.
 
 ```jsx
 import styled from 'styled-components';
@@ -213,6 +221,8 @@ const DangerButton = styled(ButtonBase)`
 ```
 
 ### styled-components Complete Card Component
+
+Complex multi-element components benefit from styled-components' modularity, where each visual element exports as an independent styled component. This card example shows how breaking down UI into small styled pieces creates a composable, maintainable component API.
 
 ```jsx
 import styled from 'styled-components';
@@ -310,6 +320,8 @@ const Card = ({ featured, image, title, description, author, date, onAction }) =
 
 ### Theming with styled-components
 
+ThemeProvider enables application-wide theming by injecting theme objects into all styled components via React context. This pattern makes dark mode, brand switching, or accessibility themes possible without prop drilling or manual CSS variable management.
+
 ```jsx
 import styled, { ThemeProvider } from 'styled-components';
 
@@ -381,6 +393,8 @@ const App = () => {
 
 ### Extending Styled Components
 
+Component extension allows creating style variations by inheriting from base styled components. This pattern promotes code reuse by sharing common styles while layering on specific modifications, similar to class inheritance in OOP.
+
 ```jsx
 import styled from 'styled-components';
 
@@ -423,6 +437,8 @@ const LinkButton = styled(PrimaryButton).attrs({ as: 'a' })`
 ```
 
 ### styled-components with TypeScript
+
+TypeScript transforms styled-components from flexible but error-prone to type-safe and IDE-friendly. Interfaces define valid prop combinations and theme shapes, catching mismatches at compile time and enabling autocomplete for theme properties.
 
 ```tsx
 import styled from 'styled-components';
@@ -484,6 +500,8 @@ const Button = styled.button<ButtonProps>`
 
 ### styled-components Common Mistakes
 
+Performance anti-patterns in styled-components often stem from creating components inside render functions or inline logic that recreates functions. Understanding these pitfalls prevents unnecessary re-renders and memory leaks in production applications.
+
 ```jsx
 // WRONG: Creating new component in render
 const Component = () => {
@@ -531,12 +549,16 @@ const Button = styled.button`
 
 ### Installation
 
+Emotion requires two packages: the React integration and the styled API, plus an optional Babel plugin for performance. Emotion is lighter than styled-components, making it attractive for bundle-size-conscious projects.
+
 ```bash
 npm install @emotion/react @emotion/styled
 npm install -D @emotion/babel-plugin  # For optimizations
 ```
 
 ### Basic Syntax
+
+Emotion offers two APIs: styled components similar to styled-components, and a css prop for inline styling. The css prop provides a lighter-weight alternative when full styled components feel heavyweight for simple use cases.
 
 ```jsx
 import styled from '@emotion/styled';
@@ -567,6 +589,8 @@ const MyButton = () => <button css={buttonStyles}>Click</button>;
 ```
 
 ### Emotion Complete Card Component
+
+Emotion's styled API mirrors styled-components, making migration straightforward for teams switching libraries. This card implementation demonstrates identical patterns to styled-components but with Emotion's smaller runtime footprint.
 
 ```jsx
 import styled from '@emotion/styled';
@@ -643,6 +667,8 @@ const CardComponent = ({ featured, image, title, description, onAction }) => (
 ```
 
 ### Emotion Global Styles
+
+The Global component injects global CSS without separate files, useful for resets, typography, or base styles. Unlike component-scoped styles, global styles apply across the entire application and persist as long as the Global component is mounted.
 
 ```jsx
 import { Global, css } from '@emotion/react';
@@ -727,11 +753,15 @@ Linaria is a zero-runtime CSS-in-JS solution that extracts CSS at build time, le
 
 ### Installation
 
+Setting up Linaria requires additional webpack or bundler configuration to enable build-time CSS extraction. Unlike runtime solutions, Linaria processes styles during compilation, outputting traditional CSS files.
+
 ```bash
 npm install @linaria/core @linaria/react
 ```
 
 ### Basic Usage
+
+Linaria's syntax mirrors runtime CSS-in-JS libraries, but styles are static at build time. Dynamic values require CSS variables, and prop-based styling is limited compared to styled-components or Emotion.
 
 ```jsx
 import { css } from '@linaria/core';
@@ -786,11 +816,15 @@ Vanilla Extract is a zero-runtime CSS-in-JS solution with TypeScript support, pr
 
 ### Installation
 
+Vanilla Extract integrates with bundlers like Vite, webpack, or esbuild to enable TypeScript-powered CSS generation. The setup provides end-to-end type safety from theme definitions to component styles.
+
 ```bash
 npm install @vanilla-extract/css @vanilla-extract/react
 ```
 
 ### Basic Usage
+
+Vanilla Extract uses .css.ts files where TypeScript defines styles as JavaScript objects. This approach combines type safety with zero-runtime overhead, as all styles compile to static CSS at build time.
 
 ```tsx
 // styles.css.ts
@@ -924,10 +958,10 @@ export const button = styleVariants({
 ```
 Base application: 50KB
 
-+ styled-components:   +16KB í 66KB
-+ Emotion:             +7KB  í 57KB
-+ Linaria:             +1KB  í 51KB
-+ Vanilla Extract:     +1KB  í 51KB
++ styled-components:   +16KB ÔøΩ 66KB
++ Emotion:             +7KB  ÔøΩ 57KB
++ Linaria:             +1KB  ÔøΩ 51KB
++ Vanilla Extract:     +1KB  ÔøΩ 51KB
 ```
 
 ### Runtime Performance
@@ -1059,7 +1093,7 @@ CSS-in-JS writes CSS directly in JavaScript, enabling component-scoped styling a
 **Benefits:**
 1. **No naming conflicts** - Automatic class name generation
 2. **Component scoping** - Styles isolated to component
-3. **Dynamic styling** - Props í styles mapping
+3. **Dynamic styling** - Props ÔøΩ styles mapping
 4. **Type safety** - Full TypeScript support
 5. **No dead CSS** - Unused styles removed
 6. **Easy refactoring** - Move component = move styles
@@ -1111,10 +1145,10 @@ const Button = styled.button`
 - Steeper learning curve
 
 **Choice depends on:**
-- Dynamic styling needs? í styled-components, Emotion
-- Performance critical? í Linaria, Vanilla Extract
-- TypeScript project? í Vanilla Extract
-- Bundle size sensitive? í Emotion, Linaria, Vanilla Extract
+- Dynamic styling needs? ÔøΩ styled-components, Emotion
+- Performance critical? ÔøΩ Linaria, Vanilla Extract
+- TypeScript project? ÔøΩ Vanilla Extract
+- Bundle size sensitive? ÔøΩ Emotion, Linaria, Vanilla Extract
 
 ---
 
@@ -1473,4 +1507,4 @@ export default FormInput;
 
 ---
 
-[ê Back to CSS Architecture](./README.md)
+[ÔøΩ Back to CSS Architecture](./README.md)

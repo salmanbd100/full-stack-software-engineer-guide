@@ -19,6 +19,8 @@ Security headers are HTTP response headers that instruct browsers to enable addi
 
 ### Complete Security Headers Suite
 
+A comprehensive suite of security headers provides layered protection against various attack vectors simultaneously. Each header addresses specific threats, and together they create a robust security posture that complements application-level defenses.
+
 ```javascript
 const securityHeaders = {
   // Force HTTPS
@@ -45,6 +47,8 @@ const securityHeaders = {
 ```
 
 ### Express Implementation
+
+Implementing security headers in Express.js requires middleware that sets response headers before sending content to clients. This middleware approach ensures consistent security across all routes without requiring header configuration for each endpoint individually.
 
 ```javascript
 app.use((req, res, next) => {
@@ -80,6 +84,8 @@ app.use((req, res, next) => {
 
 ### What is HSTS?
 
+HTTP Strict Transport Security (HSTS) forces browsers to always use HTTPS connections, preventing downgrade attacks and SSL stripping. After a browser sees the HSTS header once, it automatically upgrades all HTTP requests to HTTPS for the specified duration.
+
 ```javascript
 // HSTS forces browsers to use HTTPS for all requests
 
@@ -95,6 +101,8 @@ app.use((req, res, next) => {
 ```
 
 ### HSTS Configuration
+
+HSTS configuration defines how long browsers should enforce HTTPS-only connections and whether subdomains are included. The max-age directive specifies duration in seconds, while includeSubDomains extends protection to all subdomains of the current domain.
 
 ```javascript
 // Basic HSTS
@@ -117,6 +125,8 @@ res.setHeader(
 ```
 
 ### HSTS Preload
+
+HSTS preload lists are hardcoded in browsers to enforce HTTPS even on first visit, eliminating the bootstrap vulnerability. Submitting to the preload list requires strict requirements including long max-age, subdomain coverage, and permanent HTTPS commitment.
 
 ```javascript
 // To submit to HSTS preload list (hstspreload.org):
@@ -143,6 +153,8 @@ app.use((req, res, next) => {
 ```
 
 ### HSTS Considerations
+
+HSTS decisions have long-lasting consequences as browsers cache the policy for the specified duration. Careful planning is required before enabling HSTS, especially with includeSubDomains, as reverting requires waiting for max-age expiration or client cache clearing.
 
 ```javascript
 const hstsConsiderations = {

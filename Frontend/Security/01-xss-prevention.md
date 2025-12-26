@@ -20,6 +20,8 @@ Cross-Site Scripting (XSS) is one of the most common and dangerous web vulnerabi
 
 ### Attack Surface
 
+XSS attacks exploit different entry points in web applications, categorized by how malicious scripts are injected and executed. Understanding these three attack vectors is essential for implementing comprehensive defense strategies that address each unique exploitation path.
+
 ```javascript
 // Three main types of XSS
 const xssTypes = {
@@ -32,6 +34,8 @@ const xssTypes = {
 ## Reflected XSS
 
 ### Attack Example
+
+Reflected XSS occurs when user input from the request (URL parameters, form data) is immediately echoed back in the response without sanitization. The malicious script executes in the victim's browser when they visit a crafted URL, often delivered through phishing emails or malicious links.
 
 ```html
 <!-- Vulnerable URL: https://example.com/search?q=<script>alert('XSS')</script> -->
@@ -49,6 +53,8 @@ const xssTypes = {
 
 ### Real Attack Scenario
 
+Real-world reflected XSS attacks typically involve social engineering to trick victims into clicking malicious links. Once executed, the injected script can steal session cookies, redirect to phishing sites, or perform actions on behalf of the authenticated user.
+
 ```javascript
 // Attacker sends phishing email with malicious link
 const maliciousUrl = `
@@ -62,6 +68,8 @@ const maliciousUrl = `
 ```
 
 ### Prevention
+
+Preventing reflected XSS requires encoding user input before rendering it in HTML responses. Server-side HTML entity encoding transforms dangerous characters like `<` and `>` into safe representations, ensuring browsers display them as text rather than executing them as code.
 
 ```javascript
 // ✅ Server-side encoding
@@ -83,7 +91,11 @@ res.send(`<div>Search results for: ${escapeHtml(userInput)}</div>`);
 
 ## Stored XSS
 
+Stored XSS (persistent XSS) is the most dangerous variant where malicious scripts are permanently saved in the application's database. Every user who views the compromised content executes the attacker's script, making it particularly effective for widespread attacks.
+
 ### Attack Example
+
+Stored XSS typically targets user-generated content like comments, profiles, or messages that are saved to the database and displayed to other users. Unlike reflected XSS, the attack persists and automatically affects all subsequent visitors without requiring them to click a malicious link.
 
 ```javascript
 // ❌ Vulnerable blog comment system
@@ -109,6 +121,8 @@ app.get('/post/:id', (req, res) => {
 ```
 
 ### Prevention
+
+Defending against stored XSS requires sanitization both when storing data and when displaying it. Server-side sanitization libraries like DOMPurify remove dangerous HTML while preserving safe formatting, and frontend frameworks like React provide automatic escaping for text content.
 
 ```javascript
 // ✅ Server-side: Store escaped content
@@ -140,7 +154,11 @@ function CommentList({ comments }) {
 
 ## DOM-based XSS
 
+DOM-based XSS occurs entirely in the client-side JavaScript without server involvement, where unsafe DOM manipulation APIs directly insert user-controlled data. This attack vector is unique because the malicious payload never reaches the server, making it invisible to server-side security measures.
+
 ### Attack Example
+
+The vulnerability arises when JavaScript reads from unsafe sources (URL parameters, localStorage, postMessage) and writes to dangerous sinks (innerHTML, eval) without sanitization. Attackers exploit client-side routing and dynamic content generation to inject scripts that execute in the victim's browser.
 
 ```javascript
 // ❌ Vulnerable code
@@ -155,6 +173,8 @@ document.getElementById('greeting').innerHTML = `Hello, ${name}!`;
 ```
 
 ### More Dangerous Sinks
+
+JavaScript provides numerous APIs that can execute arbitrary code when passed user input, collectively known as "dangerous sinks." Understanding and avoiding these methods is critical for preventing DOM-based XSS, as they bypass traditional server-side protections entirely.
 
 ```javascript
 // ❌ All of these are dangerous with user input
@@ -173,6 +193,8 @@ $('#div').append(userInput);
 ```
 
 ### Prevention
+
+Preventing DOM-based XSS requires using safe DOM APIs like textContent that treat input as text, never as HTML or code. When HTML insertion is necessary, DOMPurify sanitizes the content by removing dangerous elements and attributes while preserving safe markup.
 
 ```javascript
 // ✅ Use textContent instead of innerHTML
@@ -195,6 +217,8 @@ element.innerHTML = clean;
 ## Prevention Techniques
 
 ### Output Encoding Contexts
+
+The same user input requires different encoding strategies depending on where it's rendered in the HTML document. Context-aware encoding ensures special characters are properly escaped for HTML content, attributes, JavaScript strings, URLs, and CSS to prevent injection across all rendering contexts.
 
 ```javascript
 // Different contexts require different encoding
@@ -250,6 +274,8 @@ const url = `<a href="/search?q=${encodeURL(userInput)}">Search</a>`;
 
 ### Installation and Basic Usage
 
+DOMPurify is the industry-standard library for sanitizing HTML by parsing and filtering out dangerous elements and attributes. It works in both browser and Node.js environments, providing a robust defense against XSS while allowing safe HTML formatting to be preserved.
+
 ```bash
 npm install dompurify
 # For browser + Node.js
@@ -279,6 +305,8 @@ const clean = DOMPurify.sanitize(dirty, {
 
 ### Advanced Configuration
 
+DOMPurify's configuration options enable fine-grained control over which HTML tags, attributes, and URL schemes are permitted. Custom configurations let you define allowlists for trusted content while blocking everything else, balancing security with feature requirements.
+
 ```javascript
 // Custom configuration
 const config = {
@@ -301,6 +329,8 @@ const clean = DOMPurify.sanitize(dirty, config);
 ```
 
 ### React Integration
+
+When React components need to render HTML content (like from a rich text editor or CMS), DOMPurify sanitizes it before using dangerouslySetInnerHTML. Wrapping DOMPurify in a reusable component ensures all HTML rendering goes through sanitization, preventing accidental XSS vulnerabilities.
 
 ```jsx
 import DOMPurify from 'dompurify';
@@ -326,6 +356,8 @@ function BlogPost({ content }) {
 ```
 
 ### Hooks for Custom Logic
+
+DOMPurify hooks provide extension points for custom sanitization logic, logging, or additional security checks. Hooks execute at various stages of the sanitization process, enabling teams to enforce organization-specific security policies beyond DOMPurify's defaults.
 
 ```javascript
 // Add a hook to track removed elements
@@ -354,6 +386,8 @@ const clean = DOMPurify.sanitize(dirty);
 
 ### Built-in Protection
 
+React's JSX automatically escapes variables rendered as text content, converting HTML special characters to their entity equivalents. This default behavior provides strong XSS protection for most use cases, making React applications secure by default when following standard patterns.
+
 ```jsx
 // ✅ React automatically escapes text content
 function UserGreeting({ name }) {
@@ -366,6 +400,8 @@ function UserGreeting({ name }) {
 ```
 
 ### Dangerous Patterns in React
+
+React's dangerouslySetInnerHTML API bypasses built-in XSS protections and should only be used with sanitized content. Other dangerous patterns include directly manipulating the DOM, using user input in href attributes without validation, and rendering user-controlled URLs in iframes.
 
 ```jsx
 // ❌ dangerouslySetInnerHTML without sanitization
@@ -401,6 +437,8 @@ function SafeButton({ onClick }) {
 ```
 
 ### Server-Side Rendering (SSR) XSS
+
+Server-side rendered applications face unique XSS risks when serializing data into inline scripts for client hydration. Attackers can break out of JSON strings using closing script tags or special characters, requiring careful escaping of all data embedded in HTML responses.
 
 ```jsx
 // ❌ Vulnerable SSR
@@ -447,6 +485,8 @@ app.get('/user/:id', (req, res) => {
 
 ### Basic CSP Header
 
+Content Security Policy (CSP) provides a defense-in-depth layer that prevents XSS execution even if malicious scripts are injected. CSP headers instruct browsers to block inline scripts, restrict script sources, and enforce other security policies that make XSS attacks much harder to execute.
+
 ```javascript
 // Express middleware
 app.use((req, res, next) => {
@@ -462,6 +502,8 @@ app.use((req, res, next) => {
 ```
 
 ### Nonce-based CSP
+
+Nonce-based CSP uses cryptographically random tokens to whitelist specific inline scripts while blocking all others. The server generates a unique nonce for each request, adds it to the CSP header, and includes it in legitimate script tags, providing strong XSS protection without breaking necessary inline scripts.
 
 ```javascript
 const crypto = require('crypto');

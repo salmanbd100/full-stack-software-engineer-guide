@@ -57,6 +57,8 @@ Atomic CSS shifts the paradigm from semantic CSS classes to utility classes that
 
 ### The Philosophy Shift
 
+Atomic CSS represents a fundamental rethinking of how developers approach styling, moving from component-centric stylesheets to markup-centric composition. This paradigm shift trades semantic CSS for consistency, speed, and predictability.
+
 - **From**: Custom CSS files � **To**: Utility classes in markup
 - **From**: Naming conventions (BEM, OOCSS) � **To**: Standardized utility names
 - **From**: CSS specificity wars � **To**: Single-specificity utilities
@@ -66,6 +68,8 @@ Atomic CSS shifts the paradigm from semantic CSS classes to utility classes that
 ## Principles and Benefits
 
 ### 1. Consistency Across Projects
+
+Atomic CSS enforces design system constraints through standardized utility classes, eliminating ad-hoc magic numbers. Every project using the same atomic framework shares spacing scales, color palettes, and typography systems automatically.
 
 ```html
 <!-- All projects use same spacing scale -->
@@ -79,6 +83,8 @@ Atomic CSS shifts the paradigm from semantic CSS classes to utility classes that
 ```
 
 ### 2. Reduced CSS File Size
+
+Atomic CSS dramatically reduces bundle size through aggressive purging of unused utilities at build time. Traditional CSS often ships hundreds of KB of unused styles, while atomic frameworks include only the exact utilities present in markup.
 
 ```javascript
 // Traditional approach - lots of unused CSS
@@ -102,6 +108,8 @@ Atomic CSS shifts the paradigm from semantic CSS classes to utility classes that
 
 ### 3. Faster Development
 
+Eliminating context switching between HTML and CSS files accelerates development velocity. Developers compose layouts directly in markup with instant visual feedback, avoiding the ceremony of naming classes and managing separate stylesheets.
+
 ```html
 <!-- No context switching between HTML and CSS files -->
 <!-- Developers see and control all styles in one place -->
@@ -114,6 +122,8 @@ Atomic CSS shifts the paradigm from semantic CSS classes to utility classes that
 ```
 
 ### 4. Easier Refactoring
+
+Refactoring becomes a find-and-replace operation on utility class names rather than hunting through cascading stylesheets. Changing component styles means updating class lists in markup, with no risk of breaking unrelated components through cascade side effects.
 
 ```html
 <!-- Change in one place, everywhere updates -->
@@ -128,6 +138,8 @@ Atomic CSS shifts the paradigm from semantic CSS classes to utility classes that
 ```
 
 ### 5. Predictable Output
+
+Every utility class has identical specificity, eliminating specificity wars and cascade unpredictability. The last class in the class list wins when multiple utilities target the same property, creating deterministic, understandable behavior.
 
 ```html
 <!-- No CSS conflicts or specificity issues -->
@@ -144,6 +156,8 @@ Atomic CSS shifts the paradigm from semantic CSS classes to utility classes that
 
 ### Installation and Setup
 
+Setting up Tailwind requires installing the library and configuring PostCSS for processing. The init command scaffolds configuration files that control which files to scan and how to extend Tailwind's default design system.
+
 ```bash
 # Install Tailwind CSS via npm
 npm install -D tailwindcss postcss autoprefixer
@@ -157,6 +171,8 @@ npx tailwindcss init -p
 ```
 
 ### Basic Configuration
+
+The Tailwind config file defines which files to scan for class names, theme customizations, and plugins. The content array enables tree-shaking by telling Tailwind where to look for utility usage, while the theme object extends the default design system.
 
 ```javascript
 // tailwind.config.js
@@ -187,6 +203,8 @@ module.exports = {
 ```
 
 ### Adding Tailwind to CSS
+
+The @tailwind directives inject Tailwind's base styles, component layer, and utilities into your CSS bundle. PostCSS processes these directives during build, replacing them with actual CSS rules based on configuration and usage.
 
 ```css
 /* main.css */

@@ -22,6 +22,8 @@ Input validation and sanitization are fundamental security practices that preven
 
 ### Comparison
 
+Client-side validation provides immediate user feedback but offers zero security since attackers can bypass it entirely through browser tools or API calls. Server-side validation is the security boundary that must validate all inputs regardless of client-side checks.
+
 ```javascript
 // Security Principle: NEVER trust client-side validation alone!
 
@@ -121,6 +123,8 @@ app.post('/api/contact', async (req, res) => {
 
 ### Popular Libraries Comparison
 
+Modern JavaScript validation libraries offer different trade-offs between bundle size, TypeScript integration, and API design. Choosing the right library depends on project requirements, whether validation runs client-side or server-side, and team TypeScript adoption.
+
 ```javascript
 // Library comparison
 const validationLibraries = {
@@ -154,6 +158,8 @@ const validationLibraries = {
 ## Zod Validation
 
 ### Basic Usage
+
+Zod provides TypeScript-first schema validation with automatic type inference, meaning validation schemas double as type definitions. This eliminates duplication between runtime validation and compile-time types, ensuring they stay synchronized.
 
 ```typescript
 import { z } from 'zod';
@@ -1295,4 +1301,4 @@ Good for simple validation without heavy schema libraries.
 
 ---
 
-[Next: Browser APIs í](../BrowserAPIs/README.md) | [ê Back to Security](./README.md)
+[Next: Browser APIs ÔøΩ](../BrowserAPIs/README.md) | [ÔøΩ Back to Security](./README.md)

@@ -19,6 +19,8 @@ Cross-Site Request Forgery (CSRF) is an attack that tricks authenticated users i
 
 ### How CSRF Works
 
+CSRF attacks exploit the browser's automatic inclusion of cookies with cross-origin requests, allowing malicious sites to make authenticated requests on behalf of logged-in users. The attack succeeds because the server can't distinguish between legitimate user-initiated requests and forged requests from malicious sites.
+
 ```javascript
 // User is logged into bank.com
 // Session cookie: sessionId=abc123
@@ -38,6 +40,8 @@ Cross-Site Request Forgery (CSRF) is an attack that tricks authenticated users i
 ```
 
 ### Key Characteristics
+
+CSRF targets state-changing operations (POST, PUT, DELETE) while GET requests should remain safe by design, following REST principles. The attack leverages authenticated sessions without requiring access to the victim's credentials, making it effective even against strong authentication systems.
 
 ```javascript
 const csrfCharacteristics = {
@@ -65,6 +69,8 @@ const csrfCharacteristics = {
 
 ### Scenario 1: Money Transfer
 
+Financial transactions are prime targets for CSRF attacks, where malicious sites submit hidden forms to initiate unauthorized transfers. Victims unknowingly authorize these transactions simply by visiting the attacker's website while logged into their banking application.
+
 ```html
 <!-- evil.com -->
 <!DOCTYPE html>
@@ -89,6 +95,8 @@ const csrfCharacteristics = {
 
 ### Scenario 2: Account Deletion
 
+Even GET requests can be weaponized in CSRF attacks through img tags, demonstrating why state-changing operations should never use GET. This attack vector works through emails, forum posts, or any context where the attacker can inject HTML that the victim's browser renders.
+
 ```javascript
 // Attacker sends email with image tag
 <img src="https://social-network.com/api/account/delete" />
@@ -98,6 +106,8 @@ const csrfCharacteristics = {
 ```
 
 ### Scenario 3: Password Change
+
+Password changes are high-value CSRF targets that grant attackers persistent access to accounts. Auto-submitting forms bypass user awareness, changing credentials before the victim realizes their session is being exploited.
 
 ```html
 <!-- Malicious website -->
@@ -114,6 +124,8 @@ const csrfCharacteristics = {
 
 ### How It Works
 
+The Synchronizer Token Pattern defends against CSRF by requiring a secret token that attackers cannot access or predict. Malicious sites can't include the token in forged requests because the Same-Origin Policy prevents them from reading it from the victim's session.
+
 ```javascript
 // 1. Server generates unique token per session
 // 2. Token embedded in form/page
@@ -123,6 +135,8 @@ const csrfCharacteristics = {
 ```
 
 ### Server-Side Implementation
+
+Server-side CSRF protection middleware generates unique tokens per session, validates them on state-changing requests, and rejects requests with missing or invalid tokens. Express.js's csurf middleware automates this process, integrating seamlessly with session management.
 
 ```javascript
 const express = require('express');
@@ -176,6 +190,8 @@ app.use((err, req, res, next) => {
 
 ### HTML Form with Token
 
+Traditional HTML forms include CSRF tokens as hidden inputs that submit alongside user data. The server validates this token matches the session, ensuring the request originated from a legitimate form on the application's domain.
+
 ```html
 <form action="/transfer" method="POST">
   <!-- CSRF token as hidden field -->
@@ -194,6 +210,8 @@ app.use((err, req, res, next) => {
 ```
 
 ### AJAX Request with Token
+
+Single-page applications send CSRF tokens in custom headers (X-CSRF-Token) for AJAX requests, as malicious sites cannot set custom headers on cross-origin requests. This approach works with fetch, axios, and other HTTP clients.
 
 ```javascript
 // Get CSRF token from meta tag
@@ -217,6 +235,8 @@ fetch('/api/transfer', {
 
 ### How It Works
 
+The Double Submit Cookie pattern stores the CSRF token in both a cookie and request parameter, requiring attackers to both read and write cookies - which Same-Origin Policy prevents. This stateless approach doesn't require server-side session storage, making it scalable for distributed systems.
+
 ```javascript
 // 1. Server sets CSRF token in cookie
 // 2. Client reads cookie and includes token in request
@@ -225,6 +245,8 @@ fetch('/api/transfer', {
 ```
 
 ### Implementation
+
+Server implementation generates a random token, sets it as a non-httpOnly cookie (readable by JavaScript), and validates that incoming requests include the same token in a custom header. Malicious sites can't read the cookie to copy the token into their forged requests.
 
 ```javascript
 const cookieParser = require('cookie-parser');
@@ -267,6 +289,8 @@ app.post('/api/data', validateCSRF, (req, res) => {
 
 ### Client-Side Usage
 
+Client-side code reads the CSRF token from the cookie and includes it in request headers for all state-changing operations. JavaScript running on the legitimate domain can access the cookie, but cross-origin attackers cannot due to browser security restrictions.
+
 ```javascript
 // Read CSRF token from cookie
 function getCSRFToken() {
@@ -288,6 +312,8 @@ fetch('/api/data', {
 ## SameSite Cookie Attribute
 
 ### SameSite Values
+
+The SameSite cookie attribute provides built-in CSRF protection by controlling when browsers send cookies with cross-site requests. Different values offer varying security-usability trade-offs, from complete cross-site blocking (Strict) to selective sending (Lax) to no protection (None).
 
 ```javascript
 // 1. Strict: Never sent in cross-site requests
@@ -314,6 +340,8 @@ res.cookie('sessionId', token, {
 
 ### Comparison
 
+Understanding SameSite value differences helps choose the right protection level for each application's needs. Strict provides maximum security but may break legitimate flows, Lax balances security and usability for most sites, and None should only be used when cross-site cookies are essential.
+
 ```javascript
 const sameSiteComparison = {
   strict: {
@@ -337,6 +365,8 @@ const sameSiteComparison = {
 ```
 
 ### Example Scenarios
+
+Real-world scenarios demonstrate how SameSite affects user experience and security. Strict mode may require users to re-authenticate after clicking email links, while Lax allows smoother flows while still blocking CSRF POST attacks.
 
 ```javascript
 // User logged into bank.com with SameSite=Strict
