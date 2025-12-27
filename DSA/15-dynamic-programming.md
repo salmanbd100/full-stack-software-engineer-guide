@@ -1,5 +1,70 @@
 # Dynamic Programming Pattern
 
+## What is Dynamic Programming? (In Simple Words)
+
+Imagine you're **calculating Fibonacci numbers** the hard way:
+
+```
+fib(5) = fib(4) + fib(3)
+       = (fib(3) + fib(2)) + (fib(2) + fib(1))
+       = ((fib(2) + fib(1)) + fib(2)) + (fib(2) + fib(1))
+
+Notice: You're calculating fib(2) MULTIPLE times!
+```
+
+**Dynamic Programming says:** "Why calculate the same thing over and over? **Remember** the answer!"
+
+### Real-World Analogy: Remembering vs Recalculating
+
+**Without DP (Wasteful):**
+```
+You: "What's 7 + 5?"
+Friend: *counts on fingers* "12"
+
+You: "What's 7 + 5 + 3?"
+Friend: *counts 7+5 again on fingers* "wait... 12 + 3 = 15"
+
+You're recalculating 7+5 every time!
+```
+
+**With DP (Smart):**
+```
+You: "What's 7 + 5?"
+Friend: *counts on fingers* "12" *writes it down*
+
+You: "What's 7 + 5 + 3?"
+Friend: *looks at paper* "I already know 7+5 is 12, so 12+3 = 15"
+
+You saved work by remembering!
+```
+
+### Another Analogy: Cooking Multiple Dishes
+
+**Problem:** You're cooking 3 dishes that all need boiled water.
+
+**Naive Approach:**
+```
+Dish 1: Boil water (10 min) → Cook
+Dish 2: Boil water (10 min) → Cook  ← Wasteful!
+Dish 3: Boil water (10 min) → Cook  ← Wasteful!
+
+Total: 30 minutes of boiling
+```
+
+**DP Approach (Memoization):**
+```
+Step 1: Boil water ONCE (10 min) → Store in pot
+Step 2: Use stored water for Dish 1
+Step 3: Use stored water for Dish 2
+Step 4: Use stored water for Dish 3
+
+Total: 10 minutes of boiling + reuse!
+```
+
+**This is DP:** Solve a subproblem once, **store the result**, and **reuse** it!
+
+---
+
 ## Pattern Overview
 
 **Dynamic Programming (DP)** solves complex problems by breaking them into simpler overlapping subproblems and storing results to avoid redundant computation. It combines optimal substructure with memoization or tabulation.
@@ -12,20 +77,89 @@
 - Finding longest/shortest/most optimal solution
 
 ### Key Characteristics
-- Overlapping subproblems
-- Optimal substructure
-- Two approaches: Top-down (memoization) or Bottom-up (tabulation)
+- **Overlapping subproblems**: Same subproblem appears multiple times
+- **Optimal substructure**: Optimal solution contains optimal solutions to subproblems
+- Two approaches: **Top-down** (memoization) or **Bottom-up** (tabulation)
 - Trades space for time
 - Often involves 1D or 2D arrays/tables
 
 ### Pattern Identification
 Look for this pattern when you see:
-- "Find maximum/minimum..."
-- "Count number of ways..."
-- "Longest/shortest..."
-- "Can you reach..."
+- "Find **maximum/minimum**..."
+- "Count **number of ways**..."
+- "**Longest/shortest**..."
+- "Can you **reach**..."
 - Fibonacci-like recurrence relations
-- "Optimal" or "best" solution
+- "**Optimal**" or "**best**" solution
+
+---
+
+## Understanding DP: The Two Approaches
+
+### Top-Down (Memoization)
+
+**Think:** "Solve the big problem, break it into smaller ones, remember answers"
+
+```javascript
+function fib(n, memo = {}) {
+    // BASE CASE
+    if (n <= 1) return n;
+
+    // CHECK MEMO (already solved?)
+    if (memo[n]) return memo[n];
+
+    // SOLVE (break into smaller problems)
+    memo[n] = fib(n - 1, memo) + fib(n - 2, memo);
+
+    // RETURN
+    return memo[n];
+}
+```
+
+**Analogy:** Like looking up answers in the back of a textbook. If you've solved problem 5 before, you wrote down the answer. Next time you see problem 5, just look it up!
+
+---
+
+### Bottom-Up (Tabulation)
+
+**Think:** "Solve the smallest problems first, build up to the big one"
+
+```javascript
+function fib(n) {
+    // Handle base cases
+    if (n <= 1) return n;
+
+    // CREATE TABLE
+    const dp = new Array(n + 1);
+    dp[0] = 0;  // Smallest problem
+    dp[1] = 1;  // Next smallest
+
+    // BUILD UP (solve small → big)
+    for (let i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+    }
+
+    // RETURN final answer
+    return dp[n];
+}
+```
+
+**Analogy:** Like climbing stairs. Start at step 0, then step 1, then step 2... Each step uses the previous steps you've already climbed!
+
+---
+
+## Top-Down vs Bottom-Up: Which to Use?
+
+| Aspect | Top-Down (Memoization) | Bottom-Up (Tabulation) |
+|--------|------------------------|------------------------|
+| **Direction** | Big → Small (recursive) | Small → Big (iterative) |
+| **Style** | Recursive + cache | Iterative + array |
+| **Space** | O(n) stack + O(n) cache | O(n) array only |
+| **Speed** | Slightly slower (function calls) | Slightly faster |
+| **Ease** | More intuitive for beginners | Requires planning |
+| **When to use** | When not all subproblems are needed | When all subproblems must be solved |
+
+**Rule of thumb:** Start with top-down (easier to think about), optimize to bottom-up if needed!
 
 ---
 
@@ -114,35 +248,134 @@ console.log(climbStairs(3));           // Output: 3
 // Explanation: 1+1+1, 1+2, or 2+1
 
 console.log(climbStairsBottomUp(5));   // Output: 8
-// Explanation: 1+1+1+1+1, 1+1+1+2, 1+1+2+1, 1+2+1+1, 2+1+1+1,
-//              1+2+2, 2+1+2, 2+2+1
 
 console.log(climbStairsOptimized(4));  // Output: 5
 ```
 
-### Explanation
+### Detailed Code Walkthrough: Top-Down (Memoization)
 
-**Recurrence Relation**:
+```javascript
+function climbStairs(n) {
+    const memo = new Map();  // MEMOIZATION: Store solved subproblems
+
+    function dp(i) {
+        // STEP 1: BASE CASE - Simplest problems
+        if (i <= 2) return i;
+        // i=1: 1 way [1]
+        // i=2: 2 ways [1+1, 2]
+
+        // STEP 2: CHECK MEMO - Already solved?
+        if (memo.has(i)) {
+            return memo.get(i);  // REUSE! Don't recalculate
+        }
+
+        // STEP 3: RECURRENCE - Break into smaller subproblems
+        const result = dp(i - 1) + dp(i - 2);
+        // To reach step i:
+        // - Take 1 step from step i-1 (dp(i-1) ways)
+        // - Take 2 steps from step i-2 (dp(i-2) ways)
+        // Total = sum of both
+
+        // STEP 4: MEMOIZE - Remember for later
+        memo.set(i, result);
+
+        return result;
+    }
+
+    return dp(n);
+}
 ```
-dp[i] = dp[i-1] + dp[i-2]
 
-Why? To reach step i, you can:
-- Take 1 step from step i-1 (dp[i-1] ways)
-- Take 2 steps from step i-2 (dp[i-2] ways)
+**Execution Trace for n=5:**
+
+```
+Call dp(5):
+  i=5, not in memo
+  Compute: dp(4) + dp(3)
+
+  Call dp(4):
+    i=4, not in memo
+    Compute: dp(3) + dp(2)
+
+    Call dp(3):
+      i=3, not in memo
+      Compute: dp(2) + dp(1)
+
+      Call dp(2): return 2 (base case)
+      Call dp(1): return 1 (base case)
+
+      result = 2 + 1 = 3
+      memo[3] = 3 ✓
+      return 3
+
+    Call dp(2): return 2 (base case)
+
+    result = 3 + 2 = 5
+    memo[4] = 5 ✓
+    return 5
+
+  Call dp(3): return 3 (from memo!) ← Avoided recalculation!
+
+  result = 5 + 3 = 8
+  memo[5] = 8 ✓
+  return 8
+
+Final: 8
 ```
 
-**Visual Example for n=5**:
-```
-Step 0: 0 ways (base)
-Step 1: 1 way  [1]
-Step 2: 2 ways [1+1, 2]
-Step 3: 3 ways [1+1+1, 1+2, 2+1]
-Step 4: 5 ways [1+1+1+1, 1+1+2, 1+2+1, 2+1+1, 2+2]
-Step 5: 8 ways [combine step 3 + step 4]
+**Key insight:** dp(3) was calculated once and reused! Without memoization, it would be calculated multiple times.
 
-dp[3] = dp[2] + dp[1] = 2 + 1 = 3
-dp[4] = dp[3] + dp[2] = 3 + 2 = 5
-dp[5] = dp[4] + dp[3] = 5 + 3 = 8
+### Detailed Code Walkthrough: Bottom-Up (Tabulation)
+
+```javascript
+function climbStairsBottomUp(n) {
+    if (n <= 2) return n;
+
+    // STEP 1: CREATE TABLE
+    const dp = new Array(n + 1);
+    // dp[i] = ways to reach step i
+
+    // STEP 2: BASE CASES (smallest subproblems)
+    dp[1] = 1;  // 1 way: [1]
+    dp[2] = 2;  // 2 ways: [1+1, 2]
+
+    // STEP 3: BUILD UP (solve small to big)
+    for (let i = 3; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+        // Use previously solved subproblems!
+    }
+
+    // STEP 4: RETURN final answer
+    return dp[n];
+}
+```
+
+**DP Table for n=5:**
+
+```
+i:       1   2   3   4   5
+dp[i]:   1   2   3   5   8
+
+Step 3: dp[3] = dp[2] + dp[1] = 2 + 1 = 3
+Step 4: dp[4] = dp[3] + dp[2] = 3 + 2 = 5
+Step 5: dp[5] = dp[4] + dp[3] = 5 + 3 = 8
+
+Result: 8
+```
+
+**Visual Representation:**
+
+```
+Ways to reach step 5:
+
+From step 4 (5 ways):          From step 3 (3 ways):
+1+1+1+1 → +1 step              1+1+1 → +2 steps
+1+1+2   → +1 step              1+2   → +2 steps
+1+2+1   → +1 step              2+1   → +2 steps
+2+1+1   → +1 step
+2+2     → +1 step
+
+Total: 5 + 3 = 8 ways
 ```
 
 ---
@@ -231,56 +464,137 @@ amount2 = 3
 print(solution.coinChange(coins2, amount2))  # Output: -1
 # Explanation: Cannot make 3 with only coin of 2
 
-# Example 3
-coins3 = [1]
-amount3 = 0
-print(solution.coinChange(coins3, amount3))  # Output: 0
-
-# Example 4 - Using top-down approach
-coins4 = [1, 2, 5]
-amount4 = 11
-print(solution.coinChangeTopDown(coins4, amount4))  # Output: 3
+# Example 3 - Using top-down approach
+coins3 = [1, 2, 5]
+amount3 = 11
+print(solution.coinChangeTopDown(coins3, amount3))  # Output: 3
 ```
 
-### Explanation
+### Detailed Explanation: Bottom-Up Coin Change
 
-**Recurrence Relation**:
-```
-dp[i] = min(dp[i], dp[i - coin] + 1) for each coin
+```python
+def coinChange(self, coins: List[int], amount: int) -> int:
+    # STEP 1: INITIALIZE DP TABLE
+    dp = [float('inf')] * (amount + 1)
+    # dp[i] = minimum coins to make amount i
+    # Initialize with infinity (impossible)
 
-Why? To make amount i:
-- Try each coin denomination
-- If coin <= i, take it and solve for (i - coin)
-- Choose the coin that gives minimum total coins
-```
+    # STEP 2: BASE CASE
+    dp[0] = 0  # Need 0 coins to make amount 0
 
-**DP Table for coins=[1,2,5], amount=11**:
-```
-Amount:  0  1  2  3  4  5  6  7  8  9  10 11
-dp[i]:   0  1  1  2  2  1  2  2  3  3  2  3
+    # STEP 3: BUILD UP (solve for each amount from 1 to target)
+    for i in range(1, amount + 1):
+        # For current amount i, try each coin
 
-Explanation:
-dp[0] = 0 (base case)
-dp[1] = 1 (1×1)
-dp[2] = 1 (1×2)
-dp[3] = 2 (1×2 + 1×1)
-dp[4] = 2 (2×2)
-dp[5] = 1 (1×5)
-dp[6] = 2 (1×5 + 1×1)
-...
-dp[11] = 3 (2×5 + 1×1)
+        for coin in coins:
+            if coin <= i:
+                # CAN use this coin
+                # dp[i-coin] = min coins to make (i-coin)
+                # dp[i-coin] + 1 = add current coin
+                dp[i] = min(dp[i], dp[i - coin] + 1)
+
+    # STEP 4: RETURN RESULT
+    return dp[amount] if dp[amount] != float('inf') else -1
 ```
 
-**Step-by-step for amount=11**:
-```
-For i=11, try each coin:
+**DP Table Evolution for coins=[1,2,5], amount=11:**
 
-Coin=1: dp[11] = min(∞, dp[10] + 1) = min(∞, 2+1) = 3
-Coin=2: dp[11] = min(3, dp[9] + 1) = min(3, 3+1) = 3
-Coin=5: dp[11] = min(3, dp[6] + 1) = min(3, 2+1) = 3
-
-Final: dp[11] = 3
 ```
+Initial: dp = [0, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞]
+
+For i=1:
+  coin=1: dp[1] = min(∞, dp[0]+1) = min(∞, 0+1) = 1
+  dp = [0, 1, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞]
+
+For i=2:
+  coin=1: dp[2] = min(∞, dp[1]+1) = min(∞, 1+1) = 2
+  coin=2: dp[2] = min(2, dp[0]+1) = min(2, 0+1) = 1
+  dp = [0, 1, 1, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞]
+
+For i=3:
+  coin=1: dp[3] = min(∞, dp[2]+1) = min(∞, 1+1) = 2
+  coin=2: dp[3] = min(2, dp[1]+1) = min(2, 1+1) = 2
+  dp = [0, 1, 1, 2, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞]
+
+For i=5:
+  coin=1: dp[5] = min(∞, dp[4]+1) = min(∞, 2+1) = 3
+  coin=2: dp[5] = min(3, dp[3]+1) = min(3, 2+1) = 3
+  coin=5: dp[5] = min(3, dp[0]+1) = min(3, 0+1) = 1
+  dp = [0, 1, 1, 2, 2, 1, ∞, ∞, ∞, ∞, ∞, ∞]
+
+... continuing ...
+
+For i=11:
+  coin=1: dp[11] = min(∞, dp[10]+1) = min(∞, 2+1) = 3
+  coin=2: dp[11] = min(3, dp[9]+1) = min(3, 3+1) = 3
+  coin=5: dp[11] = min(3, dp[6]+1) = min(3, 2+1) = 3
+  dp = [0, 1, 1, 2, 2, 1, 2, 2, 3, 3, 2, 3]
+
+Final: dp[11] = 3 (11 = 5 + 5 + 1)
+```
+
+**Visual Explanation:**
+
+```
+Target: 11
+Coins: [1, 2, 5]
+
+Option 1: 11 = 10 + 1
+  dp[11] = dp[10] + 1 = 2 + 1 = 3
+
+Option 2: 11 = 9 + 2
+  dp[11] = dp[9] + 1 = 3 + 1 = 4
+
+Option 3: 11 = 6 + 5
+  dp[11] = dp[6] + 1 = 2 + 1 = 3
+
+Minimum = 3 ✓
+```
+
+---
+
+## The DP Decision Framework
+
+### Step 1: Identify if it's a DP Problem
+
+**Ask yourself:**
+1. ✅ Can I break this into smaller subproblems?
+2. ✅ Do subproblems overlap (solved multiple times)?
+3. ✅ Does optimal solution use optimal subproblem solutions?
+
+**If YES to all three → Use DP!**
+
+### Step 2: Define the DP State
+
+**Question:** "What does dp[i] represent?"
+
+**Examples:**
+- Climbing Stairs: `dp[i]` = ways to reach step i
+- Coin Change: `dp[i]` = min coins to make amount i
+- Longest Subsequence: `dp[i]` = length of longest subsequence ending at i
+
+### Step 3: Find the Recurrence Relation
+
+**Question:** "How does dp[i] relate to smaller subproblems?"
+
+**Examples:**
+- Climbing Stairs: `dp[i] = dp[i-1] + dp[i-2]`
+- Coin Change: `dp[i] = min(dp[i-coin] + 1)` for each coin
+- Fibonacci: `dp[i] = dp[i-1] + dp[i-2]`
+
+### Step 4: Identify Base Cases
+
+**Question:** "What are the simplest subproblems I can solve directly?"
+
+**Examples:**
+- Climbing Stairs: `dp[1] = 1, dp[2] = 2`
+- Coin Change: `dp[0] = 0`
+- Fibonacci: `dp[0] = 0, dp[1] = 1`
+
+### Step 5: Determine Computation Order
+
+**Bottom-up:** Solve smallest to largest
+**Top-down:** Start from goal, recursively solve smaller
 
 ---
 
@@ -298,33 +612,54 @@ Final: dp[11] = 3
   - Space: O(1) - Only two variables
 
 ### Example 2: Coin Change
-- **Time Complexity**: O(amount × coins.length)
-- **Space Complexity**: O(amount) - DP array
+- **Bottom-up**:
+  - Time: O(amount × coins) - For each amount, try each coin
+  - Space: O(amount) - DP array
+- **Top-down**:
+  - Time: O(amount × coins)
+  - Space: O(amount) - Memo + recursion stack
+
+---
+
+## Common DP Patterns
+
+### Pattern 1: Linear DP (1D Array)
+**Examples:** Climbing Stairs, House Robber, Decode Ways
+**Recurrence:** `dp[i]` depends on `dp[i-1]`, `dp[i-2]`, etc.
+
+### Pattern 2: Grid DP (2D Array)
+**Examples:** Unique Paths, Minimum Path Sum, Edit Distance
+**Recurrence:** `dp[i][j]` depends on `dp[i-1][j]`, `dp[i][j-1]`, etc.
+
+### Pattern 3: Subsequence DP
+**Examples:** Longest Increasing Subsequence, Longest Common Subsequence
+**Recurrence:** Compare elements, extend previous subsequences
+
+### Pattern 4: Knapsack DP
+**Examples:** 0/1 Knapsack, Partition Equal Subset Sum
+**Recurrence:** Include/exclude item
 
 ---
 
 ## Common Variations
 
-1. **Fibonacci-style**
+1. **1D DP Problems**
    - LeetCode: [70. Climbing Stairs](https://leetcode.com/problems/climbing-stairs/)
-   - LeetCode: [509. Fibonacci Number](https://leetcode.com/problems/fibonacci-number/)
+   - LeetCode: [198. House Robber](https://leetcode.com/problems/house-robber/)
+   - LeetCode: [91. Decode Ways](https://leetcode.com/problems/decode-ways/)
 
-2. **Knapsack Problems**
+2. **2D DP Problems**
    - LeetCode: [322. Coin Change](https://leetcode.com/problems/coin-change/)
-   - LeetCode: [518. Coin Change II](https://leetcode.com/problems/coin-change-ii/)
-   - LeetCode: [416. Partition Equal Subset Sum](https://leetcode.com/problems/partition-equal-subset-sum/)
+   - LeetCode: [62. Unique Paths](https://leetcode.com/problems/unique-paths/)
+   - LeetCode: [72. Edit Distance](https://leetcode.com/problems/edit-distance/)
 
-3. **Longest/Shortest Subsequence**
+3. **Subsequence Problems**
    - LeetCode: [300. Longest Increasing Subsequence](https://leetcode.com/problems/longest-increasing-subsequence/)
    - LeetCode: [1143. Longest Common Subsequence](https://leetcode.com/problems/longest-common-subsequence/)
 
-4. **Grid-based DP**
-   - LeetCode: [62. Unique Paths](https://leetcode.com/problems/unique-paths/)
-   - LeetCode: [64. Minimum Path Sum](https://leetcode.com/problems/minimum-path-sum/)
-
-5. **String DP**
-   - LeetCode: [72. Edit Distance](https://leetcode.com/problems/edit-distance/)
-   - LeetCode: [139. Word Break](https://leetcode.com/problems/word-break/)
+4. **Knapsack Problems**
+   - LeetCode: [416. Partition Equal Subset Sum](https://leetcode.com/problems/partition-equal-subset-sum/)
+   - LeetCode: [518. Coin Change 2](https://leetcode.com/problems/coin-change-2/)
 
 ---
 
@@ -332,48 +667,58 @@ Final: dp[11] = 3
 
 ### Easy
 1. [70. Climbing Stairs](https://leetcode.com/problems/climbing-stairs/)
-2. [509. Fibonacci Number](https://leetcode.com/problems/fibonacci-number/)
-3. [746. Min Cost Climbing Stairs](https://leetcode.com/problems/min-cost-climbing-stairs/)
+2. [746. Min Cost Climbing Stairs](https://leetcode.com/problems/min-cost-climbing-stairs/)
+3. [509. Fibonacci Number](https://leetcode.com/problems/fibonacci-number/)
 
 ### Medium
 4. [322. Coin Change](https://leetcode.com/problems/coin-change/)
-5. [300. Longest Increasing Subsequence](https://leetcode.com/problems/longest-increasing-subsequence/)
+5. [198. House Robber](https://leetcode.com/problems/house-robber/)
 6. [62. Unique Paths](https://leetcode.com/problems/unique-paths/)
-7. [198. House Robber](https://leetcode.com/problems/house-robber/)
+7. [300. Longest Increasing Subsequence](https://leetcode.com/problems/longest-increasing-subsequence/)
 8. [139. Word Break](https://leetcode.com/problems/word-break/)
 9. [416. Partition Equal Subset Sum](https://leetcode.com/problems/partition-equal-subset-sum/)
 
 ### Hard
 10. [72. Edit Distance](https://leetcode.com/problems/edit-distance/)
-11. [1143. Longest Common Subsequence](https://leetcode.com/problems/longest-common-subsequence/)
-12. [10. Regular Expression Matching](https://leetcode.com/problems/regular-expression-matching/)
+11. [10. Regular Expression Matching](https://leetcode.com/problems/regular-expression-matching/)
+12. [123. Best Time to Buy and Sell Stock III](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/)
 
 ---
 
 ## Key Takeaways
 
-1. **Two approaches**:
-   - **Top-down (Memoization)**: Start from problem, recurse, cache results
-   - **Bottom-up (Tabulation)**: Start from base cases, build up
+### Core Concepts
+1. **Overlapping subproblems**: Same subproblem solved multiple times
+2. **Optimal substructure**: Optimal solution contains optimal subproblem solutions
+3. **Memoization**: Cache results to avoid recomputation
+4. **Tabulation**: Build solution from smallest subproblems up
 
-2. **Identify DP**:
-   - Overlapping subproblems
-   - Optimal substructure
-   - Optimization/counting problems
+### Approaches
+5. **Top-down**: Recursive + memoization, more intuitive
+6. **Bottom-up**: Iterative + table, more efficient
+7. **Space optimization**: Often can reduce to O(1) or O(k)
 
-3. **Steps to solve**:
-   1. Define state (what does dp[i] represent?)
-   2. Find recurrence relation
-   3. Identify base cases
-   4. Determine computation order (bottom-up) or add memoization (top-down)
-   5. Space optimization if possible
+### Problem-Solving Steps
+8. **Identify DP**: Overlapping subproblems + optimal substructure
+9. **Define state**: What does dp[i] mean?
+10. **Find recurrence**: How does dp[i] relate to smaller problems?
+11. **Set base cases**: Simplest problems you can solve directly
+12. **Choose approach**: Top-down or bottom-up?
 
-4. **Space optimization**: Often can reduce from O(n) or O(n²) to O(1) or O(n)
+### Common Patterns
+13. **Linear DP**: `dp[i]` depends on previous elements
+14. **Grid DP**: `dp[i][j]` depends on neighbors
+15. **Subsequence**: Compare, extend previous solutions
+16. **Knapsack**: Include/exclude decisions
 
-5. **Common patterns**:
-   - 1D DP: Previous state(s)
-   - 2D DP: Grid or two sequences
+### Implementation Tips
+17. **Start simple**: Get brute force working first
+18. **Add memoization**: Cache recursive results
+19. **Convert to tabulation**: If needed for efficiency
+20. **Optimize space**: Reduce dimensions where possible
 
-6. **Start simple**: Solve recursively first, then add memoization, then consider tabulation
+Happy coding!
 
-[← Previous: Backtracking](./13-backtracking.md) | [Back to Index](./README.md) | [Next: Graph Algorithms →](./15-graph-algorithms.md)
+---
+
+[← Previous: Backtracking](./14-backtracking.md) | [Back to Index](./README.md) | [Next: Graph Algorithms →](./16-graph-algorithms.md)
