@@ -6,7 +6,7 @@ React Router enables navigation and routing in single-page React applications.
 
 ### 1. Basic Setup
 
-**BrowserRouter, Routes, Route, Link** - Sets up basic client-side routing with React Router. BrowserRouter provides the routing context, Routes defines route matching logic, Route maps paths to components, and Link enables navigation without page refreshes.
+**React Router Fundamentals** enable building single-page applications (SPAs) with multiple views while maintaining browser history and deep linking capabilities. BrowserRouter uses the HTML5 History API to keep the UI in sync with the URL, providing the routing context for the entire app. Routes acts as a switch, rendering only the first matching Route. Link components replace `<a>` tags to enable client-side navigation without full page reloads - critically important for SPAs. The catch-all route (`path="*"`) handles 404s gracefully. This architecture allows complex multi-page user experiences while maintaining the fast, app-like feel of a SPA.
 
 ```jsx
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
@@ -33,7 +33,7 @@ function App() {
 
 ### 2. Dynamic Routes
 
-**useParams, useNavigate** - Demonstrates dynamic route parameters and programmatic navigation. useParams extracts URL parameters (like :id), while useNavigate provides a function to navigate between routes programmatically.
+**Dynamic Routing** enables creating routes that respond to URL parameters, essential for detail pages, user profiles, or any content accessed by ID. The colon syntax (`:id`) creates a parameter placeholder that React Router extracts and provides via useParams. This pattern enables RESTful URL structures like `/users/123` or `/posts/abc/comments/456`. useNavigate provides programmatic navigation for actions like redirecting after form submission, going back in history, or navigating based on business logic. The `navigate(-1)` pattern mimics a browser back button, while passing state enables sharing data between routes without URL parameters.
 
 ```jsx
 import { useParams, useNavigate } from 'react-router-dom';
@@ -64,7 +64,7 @@ function UserDetail() {
 
 ### 3. Nested Routes
 
-**Outlet** - Shows how to create nested routes with a parent-child relationship. The Outlet component acts as a placeholder where child route components will be rendered, enabling shared layouts and nested navigation structures.
+**Nested Routing** enables hierarchical URL structures and shared layouts - a dashboard layout that wraps profile and settings pages, for example. The parent route renders once, providing a consistent wrapper (navigation, headers, sidebars), while the Outlet component marks where child route content should appear. This architecture eliminates code duplication and creates intuitive URL hierarchies like `/dashboard/profile` and `/dashboard/settings`. Nested routes are fundamental to complex applications where different sections share common UI elements but vary in their main content area.
 
 ```jsx
 function App() {
@@ -94,7 +94,7 @@ function Dashboard() {
 
 ### 4. Protected Routes
 
-**Navigate, useAuth** - Implements route protection by checking authentication status and redirecting unauthorized users to login. Uses a custom useAuth hook to access authentication context and Navigate component for redirection.
+**Route Protection** is essential for securing application areas that require authentication or specific permissions. The ProtectedRoute wrapper component checks authentication status before rendering children, redirecting unauthorized users to login. The `replace` prop on Navigate replaces the current history entry instead of adding a new one, preventing users from navigating back to protected routes they can't access. This pattern centralizes authorization logic, making it easy to protect multiple routes consistently. In production applications, you'd extend this with role-based access control (RBAC) and more sophisticated permission checks.
 
 ```jsx
 function ProtectedRoute({ children }) {

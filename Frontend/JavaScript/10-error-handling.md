@@ -8,7 +8,7 @@ Proper error handling is crucial for building robust applications. Understanding
 
 **Basic Structure**
 
-**Try/Catch/Finally Blocks** - Fundamental error handling structure: try executes code, catch handles errors, finally always runs for cleanup.
+**Try/Catch/Finally Blocks** - Try/catch/finally is JavaScript's structured exception handling mechanism, enabling graceful error recovery instead of crashes. The try block contains potentially failing code, catch receives and handles errors (with access to the error object containing message and stack trace), and finally runs cleanup code regardless of success or failure - perfect for releasing resources like file handles or database connections. The finally block executes even if try or catch contains return statements, making it the guaranteed cleanup mechanism. This pattern transforms unpredictable errors into handled, recoverable situations, essential for building robust applications.
 
 ```javascript
 try {
@@ -73,7 +73,7 @@ function readFile(filename) {
 
 **throw Statement**
 
-**Throwing Custom Errors** - Creates and throws Error objects with custom messages to signal exceptional conditions in code.
+**Throwing Custom Errors** - Throwing errors is how you signal exceptional conditions that callers should handle. Always throw Error objects (not strings or numbers) - they capture stack traces for debugging. The throw statement immediately stops execution and transfers control to the nearest catch block, unwinding the call stack until a handler is found or the program crashes. Good error messages are specific and actionable, describing what went wrong and potentially how to fix it. Throwing errors for truly exceptional conditions (invalid arguments, impossible states) while using return values for expected failure cases (not found, validation failed) creates clearer APIs.
 
 ```javascript
 function divide(a, b) {
@@ -123,7 +123,7 @@ try {
 
 **Built-in Error Types**
 
-**JavaScript Error Hierarchy** - Built-in error types (Error, SyntaxError, ReferenceError, TypeError, RangeError, URIError) for different error scenarios.
+**JavaScript Error Hierarchy** - JavaScript provides specific error types for different failure categories, making errors more descriptive than generic Error. TypeError indicates wrong types (calling non-function, accessing null properties), ReferenceError means undefined variables, RangeError signals out-of-bounds values, SyntaxError catches parsing errors, and URIError handles malformed URIs. Using specific error types helps callers distinguish error categories and handle them appropriately - you might retry RangeErrors but not TypeErrors. Creating custom error classes (extending Error) enables application-specific error hierarchies, allowing fine-grained error handling based on error type.
 
 ```javascript
 // Error - Generic error

@@ -15,7 +15,7 @@ JavaScript determines `this` using these rules (in priority order):
 
 ### 2. Default Binding
 
-When function is called standalone, `this` refers to global object (or `undefined` in strict mode).
+**Default Binding** is the fallback rule when no other binding applies - when a function is called as a standalone function (not as a method, not with new, not with call/apply/bind). In non-strict mode, `this` defaults to the global object (window in browsers, global in Node.js), which is usually undesirable and can lead to accidental global variable creation. Strict mode fixes this dangerous behavior by making `this` undefined in standalone function calls, causing immediate errors instead of silent bugs. This is why strict mode is recommended - it catches this-related mistakes early. Understanding default binding helps explain why arrow functions (which don't have default binding) behave differently.
 
 **Default 'this' Binding** - Shows how 'this' defaults to global object in non-strict mode and undefined in strict mode when functions are called standalone.
 
@@ -37,7 +37,7 @@ showThisStrict(); // undefined
 
 ### 3. Implicit Binding
 
-When function is called as object method, `this` refers to the object.
+**Implicit Binding** occurs when a function is invoked as an object method - the object becomes `this`. This is the most common way `this` is used and feels intuitive: `obj.method()` makes `this` equal to `obj` inside `method`. However, implicit binding is easily lost when you extract the method from its object - assigning it to a variable or passing it as a callback breaks the binding. This is a common source of bugs, especially with event handlers and setTimeout callbacks where the function reference is passed without its original object context. Understanding this loss is crucial for knowing when to use arrow functions or .bind().
 
 **Method Invocation** - Demonstrates implicit 'this' binding where 'this' refers to the object the method is called on, and how this binding can be lost.
 
@@ -76,7 +76,7 @@ company.department.show(); // "Engineering" (not "TechCorp")
 
 ### 4. Explicit Binding
 
-Using `call`, `apply`, or `bind` to explicitly set `this`.
+**Explicit Binding** gives you direct control over `this` using call(), apply(), or bind(). These methods override implicit and default binding, letting you call a function with any object as `this`. call() and apply() invoke the function immediately with a specified `this` and arguments (call takes individual args, apply takes an array). bind() creates a new function with `this` permanently bound - it doesn't execute immediately but returns a new function that will always use your specified `this`. These methods are essential for borrowing methods, setting callback context, and partial application. Understanding explicit binding is crucial for advanced JavaScript patterns.
 
 **call()**
 

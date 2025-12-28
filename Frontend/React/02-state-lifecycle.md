@@ -16,7 +16,7 @@
 
 ## Example 1: State with useState
 
-**useState** - A hook that declares a state variable. Returns an array with the current state value and a setter function. The initial state is passed as an argument and can be a value or a function (lazy initialization).
+**useState** is React's fundamental hook for adding local state to functional components. It returns a pair: the current state value and a function to update it, using array destructuring for clean syntax. The setter function triggers a re-render with the new state value, making React update the UI. Functional updates (passing a function to setState) are crucial when the new state depends on the previous state - they guarantee you're working with the latest value, especially important with React 18's automatic batching. Lazy initialization (passing a function to useState) defers expensive initial state calculations until absolutely necessary, running only once on mount rather than on every render.
 
 ```jsx
 import { useState } from 'react';
@@ -102,7 +102,7 @@ function computeExpensiveValue() {
 
 ## Example 2: setState Patterns (React 18)
 
-**useState with Batching** - Demonstrates different patterns for updating state. React 18 automatically batches all state updates (including in async functions) to optimize re-renders.
+**State Update Patterns** are critical for writing correct, performant React code. React 18's automatic batching groups multiple state updates into a single re-render, even in async functions, promises, and timeouts - a major improvement over React 17. However, batching only works correctly when you use functional updates for state that depends on previous state. Calling `setCount(count + 1)` twice uses the same stale `count` value both times, while `setCount(prev => prev + 1)` correctly uses the latest value each time. For object and array state, always create new references using spread operators or array methods - mutating state directly breaks React's change detection and prevents re-renders.
 
 ```jsx
 import { useState } from 'react';
@@ -175,7 +175,7 @@ function StatePatterns() {
 
 ## Example 3: Effects with useEffect (Lifecycle Replacement)
 
-**useEffect** - A hook for side effects in functional components. Accepts a function and an optional dependency array. Replaces componentDidMount, componentDidUpdate, and componentWillUnmount lifecycle methods.
+**useEffect** is React's unified API for side effects - operations that interact with the outside world like data fetching, subscriptions, timers, or DOM manipulation. It replaces the three main class lifecycle methods (componentDidMount, componentDidUpdate, componentWillUnmount) with a single, more flexible hook. The dependency array controls when the effect runs: no array means run after every render, empty array means run once on mount, and array with dependencies means run when those dependencies change. The cleanup function (returned from useEffect) runs before re-running the effect or when the component unmounts, crucial for preventing memory leaks from subscriptions, timers, or event listeners.
 
 ```jsx
 import { useState, useEffect } from 'react';
@@ -249,7 +249,7 @@ function LifecycleWithHooks() {
 
 ## Example 4: Data Fetching (Modern Pattern)
 
-**useState, useEffect, AbortController** - Combines useState for managing loading/error states and useEffect for fetching data. Uses AbortController to cancel requests when the component unmounts or URL changes.
+**Modern Data Fetching** patterns combine multiple useState hooks for different states (data, loading, error) with useEffect for the fetch logic. This is the standard pattern before adopting data fetching libraries like React Query or SWR. The AbortController cancels in-flight requests when the component unmounts or dependencies change, preventing the common error of setting state on unmounted components. The `cancelled` flag provides an additional safety check. The pattern demonstrates proper error handling, loading states, and cleanup - all essential for production-quality data fetching. This example represents what you'll write manually before reaching for higher-level abstractions.
 
 ```jsx
 import { useState, useEffect } from 'react';

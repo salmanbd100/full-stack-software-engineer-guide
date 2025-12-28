@@ -6,7 +6,7 @@ The Context API provides a way to pass data through the component tree without h
 
 ### 1. Creating and Using Context
 
-**createContext, useContext, useState** - Creates a theme context with a provider component and custom hook. Demonstrates the basic pattern for creating and consuming context values throughout the component tree.
+**Context API Pattern** - The fundamental pattern involves three steps: create a context with createContext(), wrap components with a Provider passing a value, and consume that value anywhere in the tree with useContext(). This eliminates prop drilling - passing data through many component layers. The custom hook pattern (useTheme) is a best practice that provides a cleaner API and enables runtime validation (throwing an error if used outside the Provider). This pattern is essential for truly global data like themes, authentication state, or language preferences that many disconnected components need to access.
 
 ```jsx
 import { createContext, useContext, useState } from 'react';
@@ -65,7 +65,7 @@ function Header() {
 
 ### 2. Auth Context Example
 
-**createContext, useContext, useState, useEffect** - Implements an authentication context that manages user state, login/logout actions, and persists auth tokens. Shows how to check authentication status on mount and provide auth-related functionality to child components.
+**Authentication Context** demonstrates a production-ready pattern for managing global auth state. The useEffect on mount checks localStorage for existing tokens and attempts to restore the user session - essential for maintaining login across page refreshes. The loading state prevents rendering protected content before authentication status is determined, avoiding flashes of unauthorized UI. This pattern centralizes all auth logic (login, logout, token management) in one place, making it easier to secure the application and update auth behavior. Any component can access user state and auth functions without prop drilling through potentially dozens of intermediate components.
 
 ```jsx
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -152,7 +152,7 @@ const api = {
 
 ### 3. Memoized Context Values (Prevent Unnecessary Re-renders)
 
-**createContext, useContext, useState, useMemo, useCallback** - Optimizes context performance by memoizing callback functions with useCallback and the context value object with useMemo. This prevents unnecessary re-renders of components consuming the context.
+**Performance Optimization** for context is critical because context consumers re-render whenever the context value changes, even if they don't use the changed part. Creating a new object or function on every render creates a new reference, triggering re-renders in all consumers. useCallback memoizes function references so they remain stable across renders, while useMemo memoizes the entire context value object. This optimization is especially important for contexts with many consumers or frequently updating providers - without it, every state update in the provider causes all consumers to re-render unnecessarily, potentially causing performance issues in large applications.
 
 ```jsx
 import { createContext, useContext, useState, useMemo, useCallback } from 'react';

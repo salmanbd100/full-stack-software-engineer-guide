@@ -6,7 +6,7 @@ Custom hooks allow you to extract and reuse stateful logic across multiple compo
 
 ### 1. Creating Custom Hooks
 
-**useState** - Basic custom hook example that encapsulates counter logic. Custom hooks must start with "use" and can call other hooks to extract reusable stateful logic.
+**Custom Hooks** are the primary mechanism for extracting and reusing stateful logic in React. They're regular JavaScript functions that use built-in hooks and follow hook rules. The "use" prefix is mandatory - it signals to React and linting tools that hook rules apply. Custom hooks enable sharing logic without changing component hierarchy (unlike render props or HOCs). They can call other hooks, manage state, set up effects, and return any values or functions - essentially creating reusable "logic components." This is one of React's most powerful composition patterns, enabling DRY principles for stateful behavior like form handling, data fetching, subscriptions, or animations.
 
 ```jsx
 import { useState } from 'react';
@@ -39,7 +39,7 @@ function Counter() {
 
 ### 2. useLocalStorage Hook
 
-**useState, useCallback** - Custom hook that syncs state with localStorage. Uses lazy initialization to read from storage on mount, and useCallback to memoize the setter function.
+**useLocalStorage** demonstrates a practical custom hook that synchronizes React state with browser localStorage, enabling state persistence across page refreshes. The lazy initialization pattern (function passed to useState) reads from localStorage only once on mount, avoiding expensive localStorage access on every render. The custom hook handles JSON serialization/deserialization and error cases (like quota exceeded or disabled localStorage), providing a clean API to consumers. Supporting function updaters (like regular useState) ensures the hook works as a drop-in useState replacement. This pattern is so common that many apps include a useLocalStorage hook in their utilities.
 
 ```jsx
 import { useState, useCallback } from 'react';
@@ -86,7 +86,7 @@ function App() {
 
 ### 3. useFetch Hook
 
-**useState, useEffect, AbortController** - Custom hook for data fetching with loading, error, and data states. Includes cleanup with AbortController to prevent memory leaks and race conditions.
+**useFetch** encapsulates the complete data fetching pattern - managing loading states, error handling, and cleanup - into a reusable hook. This pattern appears frequently in React applications before adopting dedicated data fetching libraries like React Query or SWR. The AbortController prevents race conditions when the URL changes rapidly or the component unmounts during fetch - without it, stale requests can overwrite newer data or set state on unmounted components causing memory leaks. The `cancelled` flag provides defense in depth. While production apps often use libraries, understanding this pattern is essential for interviews and scenarios where third-party dependencies aren't appropriate.
 
 ```jsx
 import { useState, useEffect } from 'react';

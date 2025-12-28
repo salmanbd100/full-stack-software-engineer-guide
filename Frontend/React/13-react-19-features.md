@@ -6,7 +6,7 @@ React 19 introduces groundbreaking features that simplify development, improve p
 
 ### 1. React Compiler (Automatic Optimization)
 
-React 19 includes an **automatic compiler** that optimizes your code without manual memoization.
+**React Compiler** is React 19's game-changing feature - an automatic optimization compiler that eliminates the need for manual memoization with useMemo, useCallback, and memo(). The compiler analyzes your code at build time, identifying which parts can be safely memoized and automatically applying optimizations. This represents a fundamental shift in React development: you write clean, straightforward code without performance concerns, and the compiler ensures it runs efficiently. No more deciding which components to memoize or debugging stale closures - the compiler handles optimization automatically while preserving React's declarative programming model and making applications performant by default.
 
 **Before React 19 (Manual Memoization):**
 ```jsx
@@ -67,7 +67,7 @@ function TodoList({ todos, tab }) {
 
 ### 2. Actions and useActionState Hook
 
-**Actions** provide a new way to handle asynchronous operations with built-in pending states.
+**Actions and useActionState** revolutionize form handling by providing built-in async state management, eliminating the boilerplate of manually tracking loading/error states. Actions are async functions that can be passed directly to form actions or called programmatically. useActionState wraps these actions, automatically managing pending state and handling state transitions. This pattern integrates seamlessly with Server Actions in React Server Components, enabling form submissions that work even before JavaScript loads. The automatic pending state management and error handling reduce common bugs and make form interactions feel instant with optimistic updates, while the progressive enhancement ensures basic functionality without JavaScript.
 
 **HTML Structure:**
 ```jsx
@@ -128,7 +128,7 @@ function CommentForm({ postId }) {
 
 ### 3. useOptimistic Hook
 
-Optimistically update UI before server confirmation, with automatic rollback on failure.
+**useOptimistic** enables optimistic UI updates - immediately updating the UI to reflect expected results while the actual operation completes in the background. This creates an instant, responsive feel even for operations requiring server communication. The hook automatically handles rollback if the operation fails, returning the UI to its previous state. This pattern is crucial for modern applications where users expect immediate feedback - clicking "like" should instantly update the UI, not wait for the server. useOptimistic makes implementing this pattern trivial, handling the complex state synchronization that was previously error-prone and required careful manual coordination between local and server state.
 
 ```jsx
 import { useOptimistic, useActionState } from 'react';

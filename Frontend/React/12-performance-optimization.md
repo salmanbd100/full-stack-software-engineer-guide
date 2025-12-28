@@ -6,7 +6,7 @@ Optimizing React applications involves understanding rendering behavior and usin
 
 ### 1. Code Splitting & Lazy Loading
 
-**lazy, Suspense** - Implements code splitting to load components on demand rather than in the initial bundle. Suspense provides a fallback UI while lazy-loaded components are being fetched, reducing initial load time.
+**Code Splitting** is the single most impactful performance optimization for React applications - breaking your bundle into smaller chunks that load on demand. Users only download code for routes and features they actually use, dramatically reducing initial load time. React.lazy() handles the dynamic import, while Suspense provides fallback UI during loading. This pattern is especially powerful for route-based splitting - most users only visit a handful of routes in any session, so loading all routes upfront wastes bandwidth. Combine with Suspense boundaries at route and feature boundaries to create a fast, progressive loading experience where the app becomes interactive quickly even as additional features load in the background.
 
 ```jsx
 import { lazy, Suspense } from 'react';
@@ -29,7 +29,7 @@ function App() {
 
 ### 2. Memoization
 
-**React.memo, useMemo, useCallback** - Demonstrates three memoization techniques to prevent unnecessary re-renders. React.memo memoizes component rendering, useMemo caches expensive calculations, and useCallback memoizes function references.
+**Memoization** prevents redundant work by caching results and reusing them when inputs haven't changed. React.memo prevents component re-renders when props are unchanged, useMemo caches expensive computation results, and useCallback preserves function references across renders. These tools are essential for performance but must be used judiciously - memoization itself has overhead. Profile before optimizing to identify actual bottlenecks. Memoize expensive computations (array sorting, filtering thousands of items), leaf components that render frequently, or functions passed to memoized children. Don't memoize everything - premature optimization wastes effort and can actually hurt performance by adding unnecessary comparison overhead.
 
 ```jsx
 // React.memo for components
@@ -58,7 +58,7 @@ function Parent() {
 
 ### 3. Virtualization (Large Lists)
 
-**react-window** - Implements list virtualization to render only visible items in large lists. Instead of rendering thousands of items, it renders only what fits in the viewport, dramatically improving performance for long lists.
+**List Virtualization** solves the performance problem of rendering thousands of list items by only rendering what's visible in the viewport, plus a small buffer. As users scroll, items are recycled - DOM nodes get reused with new data instead of creating new nodes. This keeps the DOM size constant regardless of list length, preventing the exponential performance degradation that occurs when rendering thousands of DOM nodes. Virtualization is essential for lists with 100+ items - the performance gains are dramatic. react-window and react-virtualized are popular libraries handling the complex math and scroll handling, while maintaining smooth 60fps scrolling even with massive datasets.
 
 ```jsx
 import { FixedSizeList } from 'react-window';

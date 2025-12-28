@@ -15,7 +15,7 @@ JavaScript has **dynamic typing**, meaning variables can hold values of any type
 
 ## Example 1: Primitive vs Reference Types
 
-**Primitive vs Reference Types** - Demonstrates how primitive types are stored by value while reference types (objects, arrays) are stored by reference, showing the key difference in memory allocation.
+**Primitive vs Reference Types** - Understanding the fundamental difference between primitive and reference types is crucial for avoiding bugs and understanding JavaScript's memory model. Primitives (number, string, boolean, null, undefined, symbol, bigint) are immutable and stored by value - when you assign or pass them, JavaScript copies the actual value. Reference types (objects, arrays, functions) store a reference (memory address) to the data - copying them copies only the reference, not the data itself. This means multiple variables can point to the same object, and modifying it through one variable affects all others. This is one of JavaScript's most common sources of bugs - accidentally mutating shared objects.
 
 ```javascript
 // PRIMITIVE TYPES (stored by value)
@@ -48,7 +48,7 @@ console.log(arr2); // [1, 2, 3, 4]
 
 ## Example 2: Type Coercion
 
-**Type Coercion** - Shows JavaScript's implicit type conversion in operations and comparisons, including falsy values and the difference between == and ===.
+**Type Coercion** - JavaScript's automatic type conversion is both powerful and dangerous. When operators encounter mixed types, JavaScript attempts to convert them to compatible types - sometimes with surprising results. The `+` operator with strings triggers string concatenation, converting numbers to strings, while `-`, `*`, `/` trigger numeric conversion. Boolean values coerce to numbers (true=1, false=0). The loose equality operator `==` performs type coercion before comparison, leading to confusing results like `'0' == false` being true. Always use strict equality `===` to avoid this. Understanding falsy values (0, '', null, undefined, NaN, false) is essential for conditional logic - everything else is truthy, including '0', 'false', [], and {}.
 
 ```javascript
 // Implicit type coercion
@@ -83,7 +83,7 @@ console.log(Boolean({}));       // true
 
 ## Example 3: Variable Declarations
 
-**var, let, const** - Compares function-scoped var with block-scoped let and const, demonstrating hoisting and temporal dead zone.
+**var, let, const** - The evolution from var to let/const represents a major improvement in JavaScript. var is function-scoped and hoisted, creating confusing behavior - variables are accessible before declaration (as undefined) and variables declared in blocks leak to the surrounding function. let and const are block-scoped (respecting curly braces) and have a temporal dead zone - accessing them before declaration throws an error, catching bugs early. const prevents reassignment but doesn't make objects immutable - you can still modify object properties or array contents. Modern JavaScript strongly favors const by default (for values that won't be reassigned), let when reassignment is needed, and avoids var entirely.
 
 ```javascript
 // VAR (function-scoped, hoisted)

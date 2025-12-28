@@ -8,7 +8,7 @@ Understanding functions and scope is fundamental to JavaScript. This topic cover
 
 **Function Declaration**
 
-**Hoisted Function Declaration** - Function declarations are hoisted to the top of their scope, allowing them to be called before their definition in the code.
+**Hoisted Function Declaration** - Function declarations are the traditional way to define functions in JavaScript, featuring complete hoisting - both the name and implementation are hoisted to the top of their scope. This means you can call a function before it appears in the code, which some consider helpful for organizing code (putting main logic at top, helper functions below) while others view as confusing. Function declarations create named functions in the current scope, making them suitable for functions that need to be available throughout a module or need to call themselves recursively.
 
 ```javascript
 // Hoisted to top of scope
@@ -49,7 +49,7 @@ console.log(factorial(5)); // 120
 
 **Basic Syntax**
 
-**Arrow Function Syntax Variants** - Shows various arrow function forms from single expressions to multi-statement blocks, demonstrating concise syntax options.
+**Arrow Function Syntax Variants** - Arrow functions, introduced in ES6, provide concise syntax especially useful for short functions and callbacks. Single-expression arrows implicitly return the expression result (no `return` keyword needed), while multi-statement bodies require explicit return. Single parameters don't need parentheses. The conciseness makes arrow functions ideal for array methods like map, filter, and reduce. However, the brevity can hurt readability for complex operations - use regular functions when the logic is non-trivial or when you need function naming for stack traces and debugging.
 
 ```javascript
 // Traditional function
@@ -75,7 +75,7 @@ const processUser = (user) => {
 
 **Key Differences from Regular Functions**
 
-**Arrow Function Limitations** - Arrow functions lack their own 'this' binding, cannot be constructors, and don't have an arguments object, requiring rest parameters instead.
+**Arrow Function Limitations** - Arrow functions sacrifice flexibility for conciseness. They don't have their own `this` - they inherit it lexically from the surrounding scope. This is perfect for callbacks (avoiding `.bind(this)`) but makes them unsuitable for object methods or constructors. They can't be used with `new` because they lack a `[[Construct]]` internal method. They don't have an `arguments` object - use rest parameters (...args) instead for variable arguments. Understanding when to use arrow functions versus regular functions is crucial: arrows for callbacks and short utilities, regular functions for methods and constructors.
 
 ```javascript
 // 1. No 'this' binding
@@ -150,7 +150,7 @@ function outer() {
 
 **Block Scope (let & const)**
 
-**Block-Scoped Variables** - let and const create variables scoped to their containing block (curly braces), preventing common closure bugs in loops.
+**Block-Scoped Variables** - Block scoping, enabled by let and const, treats any curly braces as a scope boundary - if statements, loops, even standalone blocks. This prevents variables from leaking outside their intended scope, a major improvement over var. The classic example is loop variables: with let, each iteration gets its own copy of the variable, so closures capture the correct value. With var, all iterations share the same variable, leading to the classic closure bug where all callbacks reference the final loop value. Block scoping makes JavaScript's scoping model more intuitive and closer to other languages like Java or C.
 
 ```javascript
 {

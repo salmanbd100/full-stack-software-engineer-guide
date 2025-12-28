@@ -15,6 +15,8 @@
 
 ## Example 1: Promise Basics
 
+**Creating and Consuming Promises** - Promises represent asynchronous operations that will eventually complete (resolve) or fail (reject). The Promise constructor takes an executor function with resolve and reject callbacks. Promises are eager - they start executing immediately upon creation, not when you call .then(). The .then() method registers callbacks for success and returns a new promise, enabling chaining. Each .then() can transform the value by returning something new, passing it to the next .then(). The .catch() handles any rejection in the chain, and .finally() runs cleanup code regardless of outcome. Promises solve callback hell by providing a clean, chainable API for async operations and standardized error handling.
+
 **Creating and Consuming Promises** - Shows how to create promises with resolve/reject, chain with then/catch, and use finally for cleanup operations.
 
 ```javascript
@@ -56,6 +58,8 @@ myPromise
 ---
 
 ## Example 2: Async/Await Syntax
+
+**Async/Await Pattern** - Async/await is syntactic sugar over promises that makes asynchronous code look and behave like synchronous code. The async keyword makes a function return a promise automatically, while await pauses execution until a promise resolves, returning its value. This eliminates promise chains, making code linear and easier to read. Error handling uses familiar try/catch instead of .catch(), and you can use regular control flow (if/else, loops) with async operations. Despite looking synchronous, await doesn't block the JavaScript event loop - it only pauses the async function while other code continues executing. Async/await is now the preferred way to work with promises for its readability and debuggability.
 
 **Async/Await Pattern** - Modern async syntax using async functions and await keyword for cleaner, synchronous-looking asynchronous code with try/catch error handling.
 
@@ -103,6 +107,8 @@ getUserInfo(123)
 ---
 
 ## Example 3: Multiple Promises
+
+**Handling Multiple Async Operations** - When you have multiple independent async operations, running them in parallel is much faster than sequential execution. Promise.all() takes an array of promises and resolves when all complete, returning an array of results - but if any reject, the entire operation rejects (fail-fast behavior). Promise.allSettled() waits for all promises regardless of outcome, returning status and value/reason for each - ideal when some failures are acceptable. Promise.race() resolves/rejects as soon as the first promise settles - useful for timeouts or redundant requests. Promise.any() resolves when the first promise resolves, ignoring rejections - good for fallback strategies. Choosing the right method depends on whether you need all results, can tolerate failures, or want the fastest response.
 
 **Handling Multiple Async Operations** - Demonstrates Promise.all for parallel execution, Promise.allSettled for resilient handling, Promise.race for fastest response, and sequential patterns.
 

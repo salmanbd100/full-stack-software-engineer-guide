@@ -6,7 +6,7 @@ ES6 (ECMAScript 2015) and later versions introduced many features that modernize
 
 ### 1. Let and Const
 
-**Block-Scoped Variable Declarations** - Compares var (function-scoped) with let (block-scoped, reassignable) and const (block-scoped, immutable binding) for modern variable declaration.
+**Block-Scoped Variable Declarations** - ES6's let and const modernized JavaScript's variable system, fixing var's problematic behavior. let is block-scoped (respects curly braces), has temporal dead zone (no hoisting), and prevents accidental redeclaration. const works like let but prevents reassignment - crucial for preventing accidental mutation of references. However, const doesn't make objects/arrays immutable - it only prevents reassigning the variable to a different reference. Modern best practice: use const by default (signals intent that value won't change), let when reassignment is needed, never use var (it's kept only for backwards compatibility). This simple rule prevents many scoping bugs.
 
 ```javascript
 // var: function-scoped, hoisted, can redeclare
@@ -77,7 +77,7 @@ const obj = {
 
 ### 3. Template Literals
 
-**String Interpolation and Multiline Strings** - Template literals enable variable interpolation, multiline strings, and tagged templates for advanced string processing.
+**String Interpolation and Multiline Strings** - Template literals (backticks) revolutionized string handling in JavaScript. They enable expression interpolation with ${}, eliminating ugly concatenation. Multiline strings work naturally without escape characters, perfect for HTML templates or SQL queries. The real power is tagged templates - functions that process template literals, enabling custom string processing like HTML escaping, localization, or styled-components' CSS-in-JS. Tagged templates receive the string parts and interpolated values separately, allowing complete control over how the final string is constructed. This feature enables domain-specific languages (DSLs) embedded in JavaScript.
 
 ```javascript
 const name = 'Alice';
@@ -116,7 +116,7 @@ const highlighted = highlight`Name: ${name}, Age: ${age}`;
 
 **Array Destructuring**
 
-**Array Pattern Matching** - Extracts values from arrays into variables, supporting skipping elements, rest patterns, default values, and variable swapping.
+**Array Pattern Matching** - Destructuring extracts values from arrays (or iterables) into variables based on position, dramatically reducing boilerplate code. It supports advanced patterns: skipping elements with empty slots, capturing remaining elements with rest syntax (...), providing defaults for missing values, and even elegant variable swapping without temporary variables. Array destructuring shines when unpacking function returns (like React's useState), working with iterables, or handling tuple-like data. The pattern matching is position-based, so order matters - unlike object destructuring which uses property names.
 
 ```javascript
 const numbers = [1, 2, 3, 4, 5];

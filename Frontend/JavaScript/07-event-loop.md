@@ -15,7 +15,7 @@ The **Event Loop** is the mechanism that allows JavaScript to perform non-blocki
 
 ## Example 1: Event Loop Execution Order
 
-**Execution Order: Sync, Microtasks, Macrotasks** - Demonstrates the event loop's execution order: synchronous code first, then microtasks (promises), then macrotasks (setTimeout).
+**Execution Order: Sync, Microtasks, Macrotasks** - Understanding the event loop's execution priority is crucial for predicting async code behavior. JavaScript executes code in a strict order: all synchronous code runs first (added to call stack immediately), then all microtasks (Promise callbacks, queueMicrotask) execute before any macrotasks (setTimeout, setInterval, I/O callbacks) can run. This prioritization ensures promises resolve quickly while preventing long-running timers from blocking promise resolutions. The event loop continuously checks if the call stack is empty, then processes all pending microtasks, then processes one macrotask, then repeats. This is why setTimeout(..., 0) never executes before promises - microtasks always have priority.
 
 ```javascript
 console.log('1. Script start');
@@ -90,7 +90,7 @@ first();
 
 ## Example 3: Microtasks vs Macrotasks
 
-**Task Queue Priority** - Demonstrates that microtasks (Promises, queueMicrotask) always execute before macrotasks (setTimeout, setInterval), showing queue priorities.
+**Task Queue Priority** - The distinction between microtasks and macrotasks is fundamental to understanding JavaScript's async behavior. Microtasks (promises, queueMicrotask, MutationObserver) get priority over macrotasks (setTimeout, setInterval, I/O, UI rendering). After each macrotask, the event loop processes ALL pending microtasks before moving to the next macrotask. This means a flood of promises can actually starve setTimeout callbacks, preventing them from running. Understanding this priority system explains seemingly strange async behavior and is a common interview topic. The key insight: microtasks run between macrotasks, ensuring promise chains complete before timers execute.
 
 ```javascript
 // Macrotasks (Task Queue)

@@ -17,7 +17,7 @@
 
 ## Example 1: useState Hook
 
-**useState** - The primary hook for adding state to functional components. Returns a pair: current state value and a function to update it. Supports lazy initialization for expensive computations.
+**useState** is the cornerstone of functional React components, bringing stateful behavior to what were previously stateless functions. Each useState call creates an independent state variable with its own setter, allowing fine-grained control over what triggers re-renders. Multiple useState calls are common and encouraged for separating concerns - one for user data, another for loading status, etc. The functional update form `setState(prev => ...)` is essential when the new value depends on the old, ensuring correctness even with React 18's aggressive batching. Lazy initialization with a function prevents expensive calculations from running on every render, executing only once during component initialization.
 
 ```javascript
 import { useState } from 'react';
@@ -101,7 +101,7 @@ function computeExpensiveValue() {
 
 ## Example 2: useEffect Hook
 
-**useEffect** - Hook for performing side effects in functional components. Runs after render and can optionally clean up. Dependency array controls when it re-runs.
+**useEffect** synchronizes React components with external systems - anything outside React's rendering flow. Unlike render logic which must be pure, effects handle impure operations: API calls, browser APIs, third-party integrations, logging, analytics, etc. Effects run asynchronously after React has committed changes to the DOM, so they don't block rendering. The dependency array is React's way of tracking what the effect depends on - omit it and the effect runs every render (usually wrong), provide an empty array for mount-only effects, or list specific dependencies to re-run only when those values change. Proper dependency management is critical for avoiding both unnecessary re-runs and stale data bugs.
 
 ```javascript
 import { useState, useEffect } from 'react';
@@ -196,7 +196,7 @@ function UserProfile({ userId }) {
 
 ## Example 3: Rules of Hooks
 
-**Hooks Rules** - Hooks must be called at the top level (not in loops, conditions, or nested functions) and only from React functions. This ensures hooks are called in the same order each render.
+**Rules of Hooks** are fundamental constraints that enable React's hooks implementation to work correctly. Hooks must be called in the same order every render because React relies on call order to match hook calls with their corresponding state. Conditional hooks or hooks in loops break this order invariant, causing state to become mismatched with the wrong component or the wrong render. The ESLint plugin `eslint-plugin-react-hooks` automatically catches these violations. These rules seem restrictive but enable the elegant hooks API - the alternative would be requiring explicit identifiers for each hook, making the API more complex and verbose.
 
 ```javascript
 // ✅ CORRECT - Hooks at top level
@@ -469,9 +469,7 @@ function Counter() {
 
 ## React 18: Automatic Batching
 
-React 18 automatically batches all state updates, including those in async functions, timeouts, and native event handlers. This improves performance by reducing re-renders.
-
-**Automatic Batching** - All state updates are automatically batched together, even in async code, promises, and timeouts. Reduces re-renders without code changes. Use `flushSync` to opt-out if needed.
+**Automatic Batching** is one of React 18's most significant performance improvements. In React 17, state updates were only batched inside React event handlers - updates in promises, setTimeout, or native event handlers each triggered separate re-renders. React 18 extends batching everywhere automatically, dramatically reducing unnecessary renders without any code changes. This is especially impactful for data fetching code where multiple state updates often happen in sequence (setLoading, setData, setError). The automatic upgrade means existing React 17 code runs faster in React 18 with zero modifications. flushSync provides an escape hatch for rare cases needing synchronous updates, like measuring DOM after state changes.
 
 ```javascript
 import { useState } from 'react';

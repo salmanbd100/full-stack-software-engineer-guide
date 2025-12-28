@@ -6,7 +6,7 @@ React 18 provides several hooks and techniques to optimize component performance
 
 ### 1. React.memo()
 
-**memo** - Higher-order component that prevents re-renders when props haven't changed. Uses shallow comparison by default, or accepts a custom comparison function for complex props.
+**React.memo()** is React's primary tool for preventing unnecessary re-renders of function components. By default, React re-renders a component whenever its parent re-renders, even if props haven't changed. memo() adds a props comparison check - if props are equal (shallow comparison), React skips rendering and reuses the previous result. This is particularly powerful for expensive components (complex calculations, large lists) or leaf components that receive the same props frequently. The custom comparison function enables deep comparison or selective prop checking for complex scenarios. However, memo() adds overhead, so profile before optimizing - premature memoization can hurt performance more than help.
 
 ```jsx
 import { memo } from 'react';
@@ -33,7 +33,7 @@ const MyComponent = memo(
 
 ### 2. useMemo()
 
-**useMemo** - Memoizes expensive computation results. Only recalculates when dependencies change, preventing unnecessary work on every render.
+**useMemo()** caches the result of expensive computations, recalculating only when dependencies change. Every render in React runs the component function from top to bottom - without useMemo, complex operations like sorting, filtering, or formatting large datasets run every time, even when inputs haven't changed. useMemo intercepts this, returning the cached result when dependencies are unchanged. The hook is essential for performance in data-heavy components but has overhead itself - only use it for genuinely expensive operations (loops over hundreds of items, complex calculations) or when creating objects/arrays passed to memoized child components. The dependency array works like useEffect - include all values used in the calculation.
 
 ```jsx
 import { useMemo } from 'react';

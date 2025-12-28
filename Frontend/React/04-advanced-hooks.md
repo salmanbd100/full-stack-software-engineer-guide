@@ -19,7 +19,7 @@ Advanced hooks like **useContext**, **useReducer**, **useCallback**, **useMemo**
 
 ## Example 1: useContext
 
-**useContext** - Provides access to context values without prop drilling. Accepts a context object (created by createContext) and returns the current context value from the nearest Provider.
+**useContext** solves prop drilling - the anti-pattern of passing props through many intermediate components that don't use them, just to reach deeply nested children. Context creates a "wormhole" for data, allowing any component in the tree to access shared values without manual prop threading. This is essential for truly global data like themes, authentication state, or language preferences. However, context comes with a tradeoff: any component using a context re-renders when that context value changes, regardless of whether it uses the changed part. For this reason, separate contexts for different concerns (theme vs. user data) prevents unnecessary re-renders. Context + useReducer is a lightweight alternative to Redux for medium-complexity state management.
 
 ```jsx
 import React, { createContext, useContext, useState } from 'react';
@@ -92,7 +92,7 @@ function UserProfile() {
 
 ## Example 2: useReducer
 
-**useReducer** - Manages complex state logic using a reducer function. Takes a reducer and initial state, returns current state and dispatch function. Ideal for state with multiple sub-values or complex update logic.
+**useReducer** is React's built-in implementation of the Redux pattern for managing complex state transitions. When state updates depend on multiple sub-values or have complex logic (like form validation, multi-step workflows, or undo/redo), useReducer provides better organization than multiple useState calls. The reducer function centralizes all state update logic in one place, making it easier to reason about state changes, test independently, and avoid bugs from scattered setState calls. Actions with descriptive type constants serve as documentation of what operations are possible. useReducer pairs excellently with useContext for component-level Redux-like state management without external libraries.
 
 ```jsx
 import { useReducer } from 'react';

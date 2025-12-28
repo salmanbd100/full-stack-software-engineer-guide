@@ -14,7 +14,7 @@ A **closure** is a function that has access to variables in its outer (enclosing
 
 ## Example 1: Basic Closure
 
-**Closure Fundamentals** - Demonstrates how inner functions retain access to outer function variables even after the outer function has returned, forming a closure.
+**Closure Fundamentals** - Closures are one of JavaScript's most powerful and misunderstood features. When a function is created, it captures references to variables in its lexical scope (the scope where it was defined). Even after the outer function completes and its execution context is removed from the call stack, the inner function maintains access to those variables through the closure. This happens because JavaScript uses lexical scoping - functions "remember" where they were defined, not where they're called. The closure keeps the outer scope variables alive in memory as long as the inner function exists. This enables powerful patterns like private variables, function factories, and callbacks that need access to surrounding context.
 
 ```javascript
 function outerFunction() {
@@ -45,7 +45,7 @@ closure(); // Output: "I am from outer scope"
 
 ## Example 2: Counter with Closure (Data Privacy)
 
-**Data Encapsulation** - Uses closures to create private variables that can only be accessed and modified through exposed methods, ensuring data privacy.
+**Data Encapsulation** - Before ES6 classes and private fields, closures were JavaScript's primary mechanism for data privacy. Variables declared in a function's scope are inaccessible from outside, but functions returned from that scope (closures) can access and modify them. This creates truly private state - there's no way to access `count` directly from outside, unlike object properties which can always be accessed. Each call to `createCounter` creates a new, independent closure with its own private `count`, enabling multiple instances with separate state. This pattern is fundamental to module patterns and is still relevant even with modern JavaScript features.
 
 ```javascript
 function createCounter() {
@@ -88,7 +88,7 @@ Data encapsulation - `count` is private and can only be modified through defined
 
 ## Example 3: Function Factory
 
-**Function Factory with Closures** - Creates specialized functions by capturing different parameter values in separate closures, enabling function customization.
+**Function Factory with Closures** - Function factories leverage closures to generate customized functions programmatically. The factory function takes configuration parameters and returns a function that "remembers" those parameters via closure. Each generated function gets its own closure capturing its specific parameters, enabling the creation of many specialized variations from a single factory. This pattern is powerful for creating configurable utilities, partial application, currying, and dependency injection. It's the basis for many functional programming patterns and makes code highly reusable - one factory creates infinite specialized functions without code duplication.
 
 ```javascript
 function createMultiplier(multiplier) {
@@ -115,7 +115,7 @@ Creating specialized functions from a generic function template.
 
 ### Pitfall 1: Closures in Loops with var
 
-**Loop Variable Capture Problem** - Shows the classic issue where var in loops causes all closures to share the same variable, and solutions using let or IIFE.
+**Loop Variable Capture Problem** - This is JavaScript's most infamous closure gotcha and a common interview question. When creating closures in a loop with var, all closures capture the same variable (not its value at each iteration, but the actual variable reference). After the loop completes, that variable has its final value, so all closures reference that final value. The issue stems from var being function-scoped - there's only one `i` variable shared across all iterations. Using let creates a new variable for each iteration (block-scoped), so each closure captures its own copy. The IIFE solution works by creating a new function scope per iteration, capturing the current value. This bug is less common with modern JavaScript (use let), but understanding it demonstrates deep knowledge of closures and scoping.
 
 ```javascript
 // WRONG - Common mistake
@@ -147,7 +147,7 @@ for (var i = 0; i < 3; i++) {
 
 ### Pitfall 2: Memory Leaks
 
-**Closure Memory Management** - Demonstrates how closures can unintentionally keep large objects in memory, and how to extract only needed values to prevent leaks.
+**Closure Memory Management** - Closures can inadvertently create memory leaks by keeping references to large data structures. When a closure references any variable from an outer scope, JavaScript must keep that entire scope alive - even if the closure only uses a tiny fraction of it. This is especially problematic with large arrays, DOM nodes, or cached data. The garbage collector can't free memory that closures still reference. The solution is to extract only the specific values needed before creating the closure, allowing the large structure to be garbage collected. This is a subtle but important consideration for long-running applications where closures might persist for extended periods.
 
 ```javascript
 // Potential memory leak

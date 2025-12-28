@@ -6,7 +6,7 @@ JavaScript uses prototypal inheritance, which is different from classical inheri
 
 ### 1. What is a Prototype?
 
-Every JavaScript object has an internal property `[[Prototype]]` (accessible via `__proto__` or `Object.getPrototypeOf()`).
+**Prototypes** are JavaScript's inheritance mechanism - every object has a hidden internal property [[Prototype]] that references another object. When you access a property that doesn't exist on an object, JavaScript automatically looks up the prototype chain until it finds the property or reaches null. This delegation-based inheritance differs from classical inheritance in Java/C++ where classes define blueprints that are copied to instances. In JavaScript, objects inherit directly from other objects through prototype links. The `__proto__` property provides direct access to an object's prototype (though Object.getPrototypeOf() is preferred). Understanding prototypes is essential because they underlie all JavaScript inheritance, including ES6 classes which are just syntactic sugar over prototypes.
 
 **Prototype Property Access** - Shows how to access an object's prototype using __proto__ or Object.getPrototypeOf(), and how objects inherit from Object.prototype.
 
@@ -58,7 +58,7 @@ console.log(child.surname); // 'Smith' (from grandparent)
 
 ### 3. Constructor Functions
 
-Before ES6 classes, constructor functions were the main way to create objects.
+**Constructor Functions** are the pre-ES6 way to create object "classes" in JavaScript. They're regular functions called with `new` that initialize object properties. The key pattern is putting methods on the constructor's prototype property rather than directly on instances - this way all instances share the same method functions, saving memory. Without prototypes, each instance would get its own copy of every method, wasting memory when you have thousands of objects. The prototype pattern enables memory-efficient object creation while maintaining the ability to add/modify methods for all instances. This pattern is the foundation that ES6 classes build upon.
 
 **Constructor Functions with Prototypes** - Shows how constructor functions create instances with shared methods on the prototype for memory efficiency.
 
@@ -112,7 +112,7 @@ function createPerson(name) {
 
 ### 4. ES6 Classes
 
-Classes are syntactic sugar over constructor functions and prototypes.
+**ES6 Classes** provide cleaner, more familiar syntax for creating constructor functions and prototypes, making JavaScript more accessible to developers from classical OOP backgrounds. Despite the class keyword, JavaScript doesn't have true classes - they're syntactic sugar over the same prototype mechanism. The class syntax automatically puts methods on the prototype, handles constructor setup, and provides clearer inheritance syntax with extends. Static methods attach to the class itself (like factory methods), while regular methods go on the prototype. Understanding that classes are just functions with special syntax is crucial - typeof Person is still "function", and the prototype chain works identically.
 
 **ES6 Class Syntax** - Modern class syntax that compiles to prototype-based code, offering cleaner syntax for inheritance and methods.
 
