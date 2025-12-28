@@ -16,6 +16,8 @@ Lazy loading is a performance optimization technique that defers loading of non-
 
 ### Native Browser Lazy Loading
 
+Modern browsers provide built-in lazy loading through the `loading` attribute, eliminating the need for JavaScript-based solutions for basic use cases. When `loading="lazy"` is set, the browser automatically delays loading the image until it's about to enter the viewport (with some buffer distance). This native approach is performant, requires no JavaScript, and works even if JavaScript is disabled. However, you must be careful to use `loading="eager"` for above-the-fold images (especially LCP elements) to avoid accidentally delaying critical content.
+
 ```html
 <!-- Modern browsers support loading="lazy" -->
 <img
@@ -52,6 +54,8 @@ if ('loading' in HTMLImageElement.prototype) {
 ```
 
 ### Custom Lazy Loading with Intersection Observer
+
+For more control over lazy loading behavior, the Intersection Observer API provides a powerful, performant alternative to scroll event listeners. Unlike scroll events which fire continuously, Intersection Observer efficiently detects when elements enter the viewport with minimal performance impact. This approach allows customizing the trigger distance (rootMargin), intersection threshold, and loading behavior. It's particularly useful when you need features beyond native lazy loading, such as progressive image loading, analytics tracking, or custom placeholder behavior.
 
 ```javascript
 // Lazy load images using Intersection Observer
@@ -140,6 +144,8 @@ lazyLoader.observe(images);
 
 ### Progressive Image Loading (Blur-up)
 
+Progressive image loading (also called "blur-up") dramatically improves perceived performance by showing a tiny, blurred version of the image immediately while the full-resolution version loads in the background. This technique is popularized by Medium and Facebook. The placeholder is typically a tiny base64-encoded image (just a few hundred bytes) embedded directly in the HTML, so it displays instantly. When the full image finishes loading, it smoothly transitions in, replacing the blurred placeholder. This gives users immediate visual feedback and a sense of content loading, reducing perceived wait time.
+
 ```jsx
 // React component with blur-up effect
 import { useState, useEffect } from 'react';
@@ -201,6 +207,8 @@ function ProgressiveImage({ placeholder, src, alt }) {
 
 ### Next.js Image Lazy Loading
 
+Next.js provides an optimized Image component that automatically handles lazy loading, responsive images, and modern image formats. By default, all images are lazy-loaded unless you set `loading="eager"` or `priority={true}`. The component intelligently determines which images should load eagerly based on their position in the viewport. For image galleries or grids, you can conditionally set the first few images to eager loading while lazy-loading the rest. The blur placeholder feature provides a smooth loading experience similar to the custom progressive loading approach, but with automatic generation.
+
 ```jsx
 import Image from 'next/image';
 
@@ -228,6 +236,8 @@ function Gallery({ images }) {
 ## Component Lazy Loading
 
 ### React Lazy and Suspense
+
+Component lazy loading is just as important as image lazy loading for performance. Large React components (especially those with heavy dependencies like charts, maps, or rich text editors) can significantly bloat your initial JavaScript bundle. React's `lazy()` function combined with `Suspense` allows you to split these components into separate chunks that only load when needed. This reduces initial bundle size, speeds up Time to Interactive, and improves Core Web Vitals. The Suspense boundary shows a fallback UI while the component loads, preventing layout shifts and providing visual feedback.
 
 ```jsx
 import { lazy, Suspense } from 'react';
@@ -266,6 +276,8 @@ function App() {
 
 ### Named Exports Lazy Loading
 
+React.lazy() only works with default exports by default, but many codebases use named exports for better organization and tree-shaking. To lazy-load named exports, you need to transform the import to return an object with a `default` property. This extra step is necessary because React.lazy expects a dynamic import that resolves to a module with a default export. While slightly more verbose, this pattern allows lazy loading any component regardless of how it's exported, maintaining flexibility in your module structure.
+
 ```jsx
 // Component with named exports
 // MyComponent.jsx
@@ -292,6 +304,8 @@ const AnotherComponent = lazy(() =>
 ```
 
 ### Error Boundaries for Lazy Components
+
+Lazy-loaded components can fail to load due to network errors, server issues, or deployment updates that invalidate old chunk files. Without error handling, these failures result in a broken user experience with blank screens. Error boundaries catch these loading errors and display a fallback UI with recovery options. This is especially important for production applications where users might have poor network conditions or open your app during a deployment. Always wrap lazy-loaded components in error boundaries to gracefully handle loading failures.
 
 ```jsx
 import { Component, lazy, Suspense } from 'react';
@@ -336,6 +350,8 @@ function App() {
 
 ### Preloading Components
 
+While lazy loading improves initial performance, it introduces a delay when users actually need the lazy-loaded component. Preloading solves this by loading components speculatively based on user intent before they're actually needed. For example, preload a modal when a user hovers over the button that opens it, or preload the next route when a user hovers over a navigation link. This combines the benefits of lazy loading (smaller initial bundle) with the perceived performance of eager loading (no loading delay when actually needed). The key is predicting user intent accurately.
+
 ```jsx
 import { lazy, Suspense, useEffect } from 'react';
 
@@ -378,6 +394,8 @@ function useRoutePreload(route) {
 
 ### React Router Lazy Loading
 
+Route-based code splitting is one of the most impactful performance optimizations you can implement. Each route in your application becomes a separate JavaScript chunk that only loads when users navigate to that route. This is extremely effective because users typically only visit a small subset of routes in any given session. By splitting at route boundaries, you ensure users only download the code they actually need. The loading state during route transitions is handled by Suspense, providing smooth navigation with visual feedback.
+
 ```jsx
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -407,6 +425,8 @@ function App() {
 ```
 
 ### Next.js Dynamic Imports
+
+Next.js provides the `dynamic()` function as a more flexible alternative to React.lazy(). It supports additional options like disabling server-side rendering for client-only components (useful for components that depend on browser APIs), custom loading components, and more. The `ssr: false` option is particularly important for components that use window, document, or other browser-only APIs that would break during server-side rendering. Dynamic imports also support conditional rendering patterns, allowing you to load components only when certain conditions are met.
 
 ```jsx
 // pages/index.jsx
@@ -475,6 +495,8 @@ export default {
 
 ### Basic Intersection Observer
 
+The Intersection Observer API is the foundation of modern lazy loading implementations. It provides an efficient way to detect when elements enter or exit the viewport without the performance overhead of scroll event listeners. The API works asynchronously, offloading intersection calculations to the browser's rendering engine, which can perform them much more efficiently than JavaScript calculations. Configuration options like rootMargin (load before entering viewport) and threshold (percentage of element that must be visible) provide fine-grained control over loading behavior.
+
 ```javascript
 // Create observer
 const observer = new IntersectionObserver((entries) => {
@@ -528,6 +550,8 @@ const observer = new IntersectionObserver((entries) => {
 ```
 
 ### Infinite Scroll Implementation
+
+Infinite scroll is a popular UX pattern that loads more content as users scroll down, commonly used in social media feeds and product listings. Implementation relies on Intersection Observer watching a "sentinel" element at the bottom of the list. When this sentinel enters the viewport, it triggers loading of the next page of data. The key challenges are preventing duplicate loading requests (using a loading state), handling the end of data gracefully, and maintaining smooth scroll performance by efficiently rendering only visible items (often combined with virtual scrolling for very long lists).
 
 ```jsx
 import { useEffect, useRef, useState } from 'react';
@@ -583,6 +607,8 @@ function InfiniteScroll() {
 ```
 
 ### Lazy Load Sections
+
+Lazy loading entire sections of a page (not just individual images or components) can dramatically improve initial load performance for long pages. This is particularly effective for below-the-fold content like testimonials, feature sections, or footer content that users might never scroll to. By wrapping sections in a lazy boundary, you defer rendering their content until they're about to become visible. The placeholder ensures the layout space is reserved to prevent layout shifts. This technique combines well with component lazy loading - the section triggers loading its child components only when needed.
 
 ```jsx
 function LazySection({ children, placeholder }) {
@@ -661,6 +687,8 @@ const loadingStrategy = {
 
 ### Skeleton Loading
 
+Skeleton screens are placeholder UI elements that mimic the shape and structure of the actual content being loaded. They're superior to generic loading spinners because they: (1) provide context about what's loading, (2) reserve exact space to prevent layout shifts, and (3) create a perception of faster loading through visual progression. Skeletons work best when they closely match the final content's layout - same number of items, same sizes, same spacing. The animated shimmer effect (created with CSS gradients) adds polish and reinforces that content is actively loading.
+
 ```jsx
 function ProductList({ products, loading }) {
   if (loading) {
@@ -735,6 +763,8 @@ function ProductSkeleton() {
 ```
 
 ### Content Visibility CSS
+
+The `content-visibility: auto` CSS property is a powerful, pure-CSS approach to lazy rendering. Unlike lazy loading which defers downloading resources, content-visibility defers rendering - the browser skips layout, paint, and style calculations for off-screen content. This can provide 50%+ faster initial render times for long pages. The `contain-intrinsic-size` property is crucial - it tells the browser how much space to reserve for unrendered content, preventing scrollbar jumping and layout shifts. This CSS-only approach requires no JavaScript and works automatically as users scroll.
 
 ```css
 /* Modern CSS property for lazy rendering */

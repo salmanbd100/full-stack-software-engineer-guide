@@ -17,6 +17,8 @@ Code splitting breaks your JavaScript bundle into smaller chunks that can be loa
 
 ### Basic Dynamic Import
 
+Dynamic imports are the foundation of code splitting in modern JavaScript applications. Unlike static imports which bundle all code together upfront, dynamic imports create separate chunks that load on demand. This dramatically reduces initial bundle size by deferring non-critical code until it's actually needed. The browser only downloads what's required for the current page or user action. Dynamic imports return Promises, allowing async/await syntax for clean handling. They're essential for features users might never access (admin panels, advanced editors) and route-based splitting.
+
 ```javascript
 // Static import (bundled together)
 import { heavyFunction } from './heavy-module.js';
@@ -96,6 +98,8 @@ if (featureFlags.newDashboard) {
 
 ### Webpack Bundle Analyzer
 
+Before optimizing bundle size, you must understand what's in your bundles. Webpack Bundle Analyzer provides an interactive treemap visualization showing the size of each module in your bundle. Large blocks indicate heavy dependencies that might be candidates for code splitting or replacement. The analyzer reveals duplicate dependencies, unexpectedly large libraries, and modules that shouldn't be in certain bundles. It's the essential first step in any bundle optimization effort - you can't optimize what you can't measure.
+
 ```bash
 npm install --save-dev webpack-bundle-analyzer
 ```
@@ -153,6 +157,8 @@ import { formatBytes } from './utils.js';
 ## Webpack Configuration
 
 ### Basic Code Splitting
+
+Webpack's splitChunks optimization automatically splits your bundle into smaller chunks based on configurable rules. The `chunks: 'all'` setting enables splitting for both dynamic imports and regular imports, maximizing optimization opportunities. Cache groups allow defining custom splitting strategies - for example, separating vendor code (node_modules) from your application code. This separation is crucial because vendor code changes less frequently than your app code, enabling better long-term caching. The configuration balances bundle size with HTTP request overhead.
 
 ```javascript
 // webpack.config.js

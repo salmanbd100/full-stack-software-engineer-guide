@@ -16,6 +16,8 @@ Caching is one of the most effective performance optimization techniques. It sto
 
 ### HTTP Cache Headers
 
+HTTP caching is one of the most effective performance optimizations available - cached resources load instantly with zero network requests. Cache-Control headers tell browsers (and CDNs) how long to cache resources before checking for updates. The maxAge directive specifies cache duration in seconds, while the immutable flag indicates the resource will never change at this URL (perfect for hash-based filenames). Proper caching reduces server load, bandwidth costs, and dramatically improves repeat visit performance. The challenge is balancing cache duration with the need to deploy updates quickly.
+
 ```javascript
 // Express.js cache headers
 app.use('/static', express.static('public', {
@@ -130,6 +132,8 @@ export default {
 
 ### Basic Service Worker
 
+Service Workers are programmable network proxies that intercept all network requests from your web app. They enable advanced caching strategies, offline functionality, and background sync - capabilities previously limited to native apps. Service Workers operate independently of your web pages, running in a separate thread with a lifecycle distinct from your app. They persist across page loads and can serve cached responses even when offline. The install event is your opportunity to precache critical assets, ensuring instant loads on subsequent visits. Understanding the Service Worker lifecycle is crucial for effective implementation.
+
 ```javascript
 // sw.js
 const CACHE_NAME = 'my-app-v1';
@@ -171,6 +175,8 @@ self.addEventListener('activate', (event) => {
 ```
 
 ### Caching Strategies
+
+Service Worker caching strategies determine how and when to serve cached content versus fetching from the network. Each strategy balances freshness (getting the latest content) with performance (serving cached content instantly). Cache First prioritizes speed by serving cached content immediately, perfect for static assets that rarely change. Network First ensures freshness for dynamic content like API responses while falling back to cache when offline. Stale While Revalidate provides instant responses from cache while fetching fresh content in the background - the best of both worlds for most content.
 
 ```javascript
 // 1. Cache First (Good for static assets)

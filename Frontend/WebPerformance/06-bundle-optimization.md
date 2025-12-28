@@ -16,7 +16,7 @@ JavaScript bundle size directly impacts page load time. Optimizing your bundles 
 
 ### What is Tree Shaking?
 
-Tree shaking eliminates dead code (unused exports) from your bundle. Works with ES6 modules.
+Tree shaking is dead code elimination for JavaScript bundles - it removes exported code that's never imported or used anywhere in your application. The name comes from the metaphor of shaking a tree to remove dead leaves. Modern bundlers analyze your dependency graph and include only the code paths actually used. This requires ES6 modules (`import`/`export`) because their static structure allows tools to determine what's used at build time. Tree shaking can reduce bundle size by 20-40% in typical applications by eliminating unused library functions, React components, and utility modules.
 
 ```javascript
 // utils.js - Library with many functions
@@ -111,6 +111,8 @@ import { debounce } from 'lodash-es';
 
 ### JavaScript Minification
 
+Minification compresses JavaScript by removing whitespace, shortening variable names, simplifying expressions, and removing comments - all without changing functionality. This reduces file size by 30-50%, directly improving download time. Modern minifiers like Terser also perform advanced optimizations like function inlining, dead code removal, and constant folding. The `drop_console` option removes console.log statements from production builds, preventing both bloat and potential information leakage. Minification is essential for production - never ship unminified code.
+
 ```javascript
 // webpack.config.js
 const TerserPlugin = require('terser-webpack-plugin');
@@ -203,6 +205,8 @@ module.exports = {
 ## Compression
 
 ### Gzip Compression
+
+Gzip compression is the most widely-deployed HTTP compression method, reducing text-based assets (HTML, CSS, JavaScript) by 60-80%. It works by finding and replacing repeated patterns in files - highly effective for code with common keywords and structures. Modern servers and CDNs handle compression automatically, but you can configure the compression level (1-9) to balance compression ratio versus CPU usage. Level 6 is usually optimal. Enable compression for all text assets but not for already-compressed formats like images and videos. The transfer savings dramatically improve load times on slow connections.
 
 ```javascript
 // Express server

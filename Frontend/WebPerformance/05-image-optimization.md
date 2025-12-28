@@ -16,6 +16,8 @@ Images account for 50%+ of average page weight. Optimizing images is one of the 
 
 ### Format Comparison
 
+Choosing the right image format is the single most impactful image optimization decision. Modern formats like AVIF and WebP use advanced compression algorithms that achieve dramatically better compression than legacy JPEG and PNG - often 40-50% smaller files at the same visual quality. AVIF is the newest and best, offering superior compression and supporting both lossy and lossless modes. WebP provides excellent compression with broader browser support. The key is using the `<picture>` element to provide multiple formats with graceful fallbacks, ensuring every browser gets the most efficient format it supports.
+
 ```javascript
 // File size comparison (same image, same quality)
 const formatSizes = {
@@ -142,6 +144,8 @@ export default {
 ## Responsive Images
 
 ### srcset and sizes
+
+Serving the same large image to all devices wastes bandwidth and slows load times, especially on mobile. The srcset attribute provides multiple image sizes, allowing browsers to choose the optimal size based on screen width and pixel density. The sizes attribute tells the browser what size the image will be displayed at different breakpoints, enabling smarter selection. This responsive images approach can reduce image data transfer by 60-80% for mobile users. Combined with modern formats, it's essential for performance on bandwidth-constrained networks.
 
 ```html
 <!-- Different resolutions -->

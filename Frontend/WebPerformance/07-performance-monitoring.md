@@ -16,6 +16,8 @@ Measuring performance is essential for optimization. This guide covers Lighthous
 
 ### Running Lighthouse
 
+Lighthouse is Google's automated performance auditing tool that analyzes your web app across five categories: Performance, Accessibility, Best Practices, SEO, and PWA. It simulates real-world conditions (throttled CPU and network) to provide consistent, repeatable measurements. Lighthouse identifies specific issues with actionable recommendations - not just "your site is slow" but "defer offscreen images to save 500KB". Run Lighthouse in CI/CD pipelines to catch performance regressions before deployment. The programmatic API enables custom testing scenarios and integration with your monitoring infrastructure.
+
 ```bash
 # CLI
 npm install -g lighthouse
@@ -113,6 +115,8 @@ const lighthouseMetrics = {
 
 ### Using web-vitals Library
 
+The web-vitals library provides the easiest way to measure Core Web Vitals and other performance metrics from real users in production. Unlike Lighthouse which provides lab data in controlled conditions, web-vitals captures field data reflecting actual user experiences across diverse devices, networks, and usage patterns. This Real User Monitoring (RUM) approach reveals how your site performs for real users, not just in synthetic tests. Send this data to your analytics platform to track performance over time, segment by user demographics or device types, and correlate performance with business metrics like conversion rates.
+
 ```bash
 npm install web-vitals
 ```
@@ -192,6 +196,8 @@ function App() {
 ## Performance Observer
 
 ### Basic Usage
+
+The Performance Observer API provides efficient access to browser performance measurements without polling. Instead of repeatedly calling `performance.getEntries()`, you register an observer that asynchronously notifies you when new performance entries are recorded. This approach has minimal performance impact compared to polling. Observers can track various entry types: navigation timing, resource timing, paint timing, layout shifts, and user-defined marks/measures. The buffered option retrieves entries that occurred before the observer was created, ensuring you don't miss early page events.
 
 ```javascript
 // Observe LCP

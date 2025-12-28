@@ -16,6 +16,8 @@ Rendering optimization ensures smooth, responsive user interfaces by minimizing 
 
 ### useMemo and useCallback
 
+React re-renders components whenever props or state change, which can trigger expensive recalculations and unnecessary child component renders. useMemo caches the result of expensive computations, only recalculating when dependencies change - essential for operations like sorting, filtering, or complex calculations. useCallback caches function references, preventing child components from re-rendering when they receive the same logical function. Together, these hooks eliminate redundant work during renders, keeping your app responsive even with complex component trees. The key is using them strategically - premature optimization wastes effort.
+
 ```jsx
 import { useMemo, useCallback, useState } from 'react';
 
@@ -61,6 +63,8 @@ function DataTable({ data, onRowClick }) {
 ```
 
 ### React.memo
+
+React.memo is a higher-order component that prevents unnecessary re-renders by memoizing the component's output. When props haven't changed (using shallow comparison), React reuses the previous render result instead of rendering again. This is powerful for expensive components with complex render logic or large lists of child components. You can provide a custom comparison function for fine-grained control over when to re-render. However, memo adds overhead - only use it when re-renders are actually expensive or frequent. Profile first, optimize second.
 
 ```jsx
 import { memo } from 'react';
@@ -186,6 +190,8 @@ const handleClick = useCallback((id) => {
 
 ### Debounce
 
+Debouncing delays function execution until after a period of inactivity. It's perfect for search inputs where you want to wait until the user stops typing before making an API request. Without debouncing, you'd make hundreds of requests as the user types "performance optimization", one for each keystroke. With debouncing (typically 300ms), you only make the request after they pause, dramatically reducing server load and improving UI responsiveness. The pattern cancels the previous timer on each event, ensuring only the final value triggers execution.
+
 ```javascript
 // Wait for user to stop typing before executing
 function debounce(func, wait) {
@@ -291,6 +297,8 @@ function useThrottle(callback, delay) {
 
 ### Smooth Animations
 
+requestAnimationFrame synchronizes JavaScript animations with the browser's repaint cycle, ensuring smooth 60fps animations. Unlike setTimeout/setInterval which run at fixed intervals regardless of browser rendering, rAF fires right before the browser paints, allowing your changes to be included in the next frame. It automatically pauses when the tab is inactive, saving CPU and battery. The browser can optimize rAF callbacks, potentially batching multiple animations together. This API is essential for all JavaScript animations - layout changes, canvas drawing, or WebGL rendering.
+
 ```javascript
 // ❌ Bad: Using setTimeout/setInterval
 let position = 0;
@@ -370,6 +378,8 @@ function AnimatedComponent() {
 
 ### contain Property
 
+CSS containment tells the browser that an element's internal layout is independent from the rest of the page, allowing aggressive rendering optimizations. With `contain: layout`, the browser knows changes inside the element won't affect outside layout, so it can skip recalculating layout for the entire page. `contain: paint` ensures the element doesn't paint outside its bounds, enabling optimization. Size containment makes the element's size independent of its children. These hints allow browsers to isolate and optimize rendering of independent components, crucial for complex web apps with many independent widgets.
+
 ```css
 /* Layout containment */
 .article {
@@ -446,6 +456,8 @@ function AnimatedComponent() {
 ## Virtual Scrolling
 
 ### Basic Implementation
+
+Virtual scrolling (also called windowing) is a technique that renders only visible items in a long list, dramatically improving performance for lists with thousands or millions of items. Instead of rendering all 10,000 items and letting most sit off-screen, virtual scrolling calculates which items are visible based on scroll position and only renders those (~10-20 items). This keeps DOM size small, reduces memory usage, and ensures consistent performance regardless of list length. The technique requires calculating visible range, maintaining total scroll height, and repositioning visible items as users scroll.
 
 ```jsx
 import { useEffect, useRef, useState } from 'react';
