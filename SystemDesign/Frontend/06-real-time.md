@@ -22,6 +22,35 @@ Full-duplex communication protocol enabling persistent, bidirectional connection
 
 ### Basic Implementation
 
+**Why WebSockets?**
+Traditional HTTP is request-response: client asks, server responds. For real-time features, this means constant polling (inefficient) or long-polling (complex). WebSockets establish a persistent, bidirectional connection allowing both client and server to send messages anytime.
+
+**WebSocket Lifecycle:**
+1. **Handshake**: HTTP upgrade request from client
+2. **Connection**: Established WebSocket connection
+3. **Communication**: Both sides send/receive messages freely
+4. **Close**: Either side can close connection
+
+**When to Use WebSockets:**
+✅ Chat applications (instant messaging)
+✅ Live collaboration (Google Docs-style)
+✅ Real-time gaming
+✅ Live dashboards (stock prices, analytics)
+✅ Notifications requiring instant delivery
+
+**When NOT to Use:**
+❌ Simple one-way updates (use SSE)
+❌ Infrequent updates (use polling)
+❌ RESTful APIs (use HTTP)
+
+**Production Considerations:**
+For production, you need:
+- Automatic reconnection on disconnect
+- Exponential backoff to prevent server overload
+- Heartbeat/ping to detect dead connections
+- Message queuing for offline periods
+- Authentication and authorization
+
 Client-side WebSocket class with automatic reconnection and exponential backoff for production reliability.
 
 ```javascript

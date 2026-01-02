@@ -18,6 +18,38 @@ Web applications that use modern web capabilities to provide app-like experience
 
 ### Service Workers
 
+**What are Service Workers?**
+Service workers are JavaScript files that run in the background, separate from your web page, acting as a programmable network proxy. They intercept network requests and can respond with cached data, enabling offline functionality.
+
+**Key Characteristics:**
+- Runs on a separate thread (doesn't block main thread)
+- Can intercept and modify network requests
+- Has access to Cache API and IndexedDB
+- Cannot directly access the DOM
+- Requires HTTPS (except localhost)
+- Event-driven (install, activate, fetch)
+
+**Service Worker Lifecycle:**
+1. **Registration**: Page registers service worker
+2. **Installation**: Service worker downloads and installs
+3. **Activation**: Service worker takes control
+4. **Fetch**: Intercepts network requests
+5. **Update**: New version triggers new lifecycle
+
+**Why Service Workers Matter:**
+- Enable offline-first experiences
+- Dramatically improve performance (instant loads from cache)
+- Enable background sync
+- Enable push notifications
+- Foundation for Progressive Web Apps (PWAs)
+
+**Caching Strategies** (implemented in fetch handler):
+1. **Cache First**: Try cache, fallback to network (static assets)
+2. **Network First**: Try network, fallback to cache (API calls)
+3. **Stale While Revalidate**: Return cache, update in background
+4. **Network Only**: Always fetch from network
+5. **Cache Only**: Only use cache (offline-only content)
+
 JavaScript that runs in the background, separate from the web page, enabling offline functionality.
 
 ```javascript

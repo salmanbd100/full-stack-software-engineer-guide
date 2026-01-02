@@ -9,6 +9,29 @@ Fundamental architectural patterns that form the foundation of frontend applicat
 
 ### MVC (Model-View-Controller)
 
+**What is MVC?**
+MVC is a foundational architectural pattern that separates an application into three interconnected components. This separation promotes organized code and makes testing, maintenance, and scaling easier.
+
+**The Three Components:**
+1. **Model**: Manages data and business logic. Handles data retrieval, storage, and validation.
+2. **View**: Presents data to the user. Renders UI based on Model data.
+3. **Controller**: Handles user input and updates Model/View. Acts as intermediary.
+
+**Data Flow:**
+User interacts with View → Controller processes input → Controller updates Model → Model notifies View → View re-renders
+
+**When to Use MVC:**
+- Server-rendered applications (traditional web apps)
+- Applications with clear separation between data and presentation
+- Teams familiar with this pattern from backend development
+
+**Trade-offs:**
+✅ Clear separation of concerns
+✅ Easier to test components independently
+✅ Well-understood pattern with extensive documentation
+❌ Can be verbose for simple applications
+❌ Bidirectional data flow can be hard to debug
+
 Traditional pattern separating data (Model), presentation (View), and control logic (Controller).
 ```javascript
 // Model
@@ -52,6 +75,32 @@ class UserController {
 
 ### Component-Based Architecture
 
+**What is Component-Based Architecture?**
+Component-based architecture treats UI as a composition of independent, reusable pieces called components. Each component encapsulates its own logic, styling, and state. This is the dominant pattern in modern frontend frameworks (React, Vue, Angular).
+
+**Core Principles:**
+1. **Reusability**: Write once, use everywhere
+2. **Encapsulation**: Component internals are hidden from outside
+3. **Composition**: Build complex UIs from simple components
+4. **Single Responsibility**: Each component does one thing well
+
+**Why It Matters:**
+- Dramatically improves code reusability (70-80% code reuse is common)
+- Makes testing easier (test components in isolation)
+- Enables parallel development (different team members work on different components)
+- Reduces bugs through isolation and reusability
+
+**Component Types:**
+- **Presentational**: Dumb components that just render props
+- **Container**: Smart components that manage state and logic
+- **Higher-Order Components (HOC)**: Components that enhance other components
+- **Hooks-based**: Functional components with React Hooks
+
+**When to Use:**
+- All modern React, Vue, Angular applications
+- Any application requiring reusable UI elements
+- Applications with multiple developers
+
 Modular approach building UIs from reusable, self-contained components with encapsulated logic and styling.
 
 ```jsx
@@ -84,6 +133,36 @@ const Header = ({ onSearch, user }) => (
 ```
 
 ### Micro-Frontend Architecture
+
+**What are Micro-Frontends?**
+Micro-frontends extend the microservices concept to frontend development. Instead of one large frontend application, you have multiple smaller frontend apps, each owned by different teams, integrated into one user experience.
+
+**The Problem They Solve:**
+In large organizations, a monolithic frontend becomes a bottleneck:
+- Changes require coordination across teams
+- One team's bugs can break the entire app
+- Different teams may want different tech stacks
+- Deployment of one feature requires deploying everything
+
+**How Micro-Frontends Work:**
+Each team builds and deploys their own frontend module independently. A container/shell application orchestrates these modules, loading them dynamically at runtime.
+
+**Architecture Patterns:**
+1. **Build-time integration**: Modules are npm packages (simple but couples deployments)
+2. **Runtime integration via JavaScript**: Modules loaded dynamically (most flexible)
+3. **iframes**: Strong isolation but poor UX
+4. **Web Components**: Standard-based, framework agnostic
+
+**When to Use Micro-Frontends:**
+✅ Large organizations with 5+ frontend teams
+✅ Need for independent deployments
+✅ Different parts need different tech stacks
+✅ Very large applications (100+ pages)
+
+**When NOT to Use:**
+❌ Small teams (< 5 developers)
+❌ Startups / MVPs
+❌ Applications with tight coupling requirements
 
 Architectural style splitting frontend monoliths into smaller, independently deployable applications.
 
@@ -201,6 +280,35 @@ function NestedComponent() {
 Advanced patterns for managing application state, data flow, and dependency organization.
 
 ### Flux Architecture
+
+**What is Flux?**
+Flux is an architectural pattern introduced by Facebook to address problems with bidirectional data flow in large applications. It enforces a strict unidirectional data flow, making application state more predictable and easier to debug.
+
+**The Problem with Bidirectional Flow:**
+In traditional MVC, models and views can update each other, creating complex dependency chains that are hard to track and debug as the application grows. Changes cascade in unpredictable ways.
+
+**Flux Solution - Unidirectional Flow:**
+Action → Dispatcher → Store → View → (back to Action)
+
+This one-way flow makes it easy to understand how data moves through your application.
+
+**Core Components:**
+1. **Actions**: Objects describing what happened (e.g., "user clicked button")
+2. **Dispatcher**: Central hub that receives actions and distributes to stores
+3. **Stores**: Hold application state and business logic
+4. **Views**: React components that render based on store data
+
+**Benefits:**
+- Predictable state updates (always follow the same path)
+- Easier debugging (can log every action and state change)
+- Scales well to large applications
+- Foundation for Redux and other state management libraries
+
+**Trade-offs:**
+✅ Predictable data flow
+✅ Excellent for large applications
+❌ More boilerplate code
+❌ Overkill for simple apps
 
 Unidirectional data flow pattern with Actions, Dispatcher, Stores, and Views for predictable state management.
 ```javascript

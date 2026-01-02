@@ -1,6 +1,30 @@
 # Prototypes & Inheritance
 
-JavaScript uses prototypal inheritance, which is different from classical inheritance in languages like Java or C++. Understanding prototypes is essential for mastering JavaScript.
+JavaScript uses **prototypal inheritance**, fundamentally different from classical inheritance in languages like Java, C++, or Python. Instead of classes creating instances, JavaScript objects inherit directly from other objects through prototype links. This delegation-based model is more flexible but requires a different mental model.
+
+## Why Prototypes Matter
+
+**Interview Perspective:**
+- Distinguishes candidates who truly understand JavaScript vs those who just know syntax
+- Classic question: "Explain how prototypal inheritance works"
+- Tests understanding of memory management and performance
+- Foundation for understanding ES6 classes (which are syntactic sugar)
+
+**Real-World Importance:**
+- **Performance**: Shared methods save memory (vs creating copies for each instance)
+- **Framework Understanding**: React, Vue all use prototypes under the hood
+- **Debugging**: Understanding `__proto__` helps debug inheritance issues
+- **Architecture**: Enables powerful patterns like mixins and composition
+
+## Classical vs Prototypal Inheritance
+
+| Aspect | Classical (Java/C++) | Prototypal (JavaScript) |
+|--------|---------------------|------------------------|
+| **Model** | Class blueprint → Instance copies | Object → Object delegation |
+| **Inheritance** | Class extends class | Object links to object |
+| **Properties** | Copied to instances | Shared via prototype chain |
+| **Flexibility** | Fixed at class definition | Dynamic at runtime |
+| **Syntax** | `class`, `extends`, `new` | Functions, `prototype`, `Object.create` |
 
 ## 📚 Core Concepts
 

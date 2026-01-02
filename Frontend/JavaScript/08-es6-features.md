@@ -1,6 +1,49 @@
 # ES6+ Features
 
-ES6 (ECMAScript 2015) and later versions introduced many features that modernized JavaScript. These features are essential for contemporary frontend development.
+ES6 (ECMAScript 2015) and later versions introduced many features that fundamentally modernized JavaScript, transforming it from a "toy language" into a robust, modern programming language suitable for large-scale applications. These features are now considered essential knowledge for any JavaScript developer.
+
+## Why ES6+ Features Matter
+
+**Interview Perspective:**
+- ES6+ is expected knowledge for mid to senior positions
+- Demonstrates awareness of modern JavaScript practices
+- Many questions assume ES6+ syntax (arrow functions, destructuring, etc.)
+- Shows commitment to staying current with language evolution
+
+**Real-World Importance:**
+- **Readability**: Destructuring, template literals make code clearer
+- **Productivity**: Arrow functions, default parameters reduce boilerplate
+- **Safety**: `const`/`let`, modules prevent common bugs
+- **Modern Frameworks**: React, Vue, Angular rely heavily on ES6+ features
+
+## Feature Categories Overview
+
+### **Syntax Improvements**
+- Arrow functions, template literals, destructuring
+- Classes, enhanced object literals
+- Default parameters, rest/spread operators
+
+### **New Capabilities**
+- Promises, async/await
+- Symbols, iterators, generators
+- Maps, Sets, WeakMaps, WeakSets
+
+### **Module System**
+- import/export
+- Dynamic imports
+- Module namespaces
+
+## ES6 vs ES5: Key Differences
+
+| Feature | ES5 | ES6+ |
+|---------|-----|------|
+| **Variables** | `var` (function-scoped) | `let`, `const` (block-scoped) |
+| **Functions** | `function() {}` | Arrow functions `() => {}` |
+| **Strings** | Concatenation `'a' + b` | Template literals `` `a ${b}` `` |
+| **Objects** | Verbose syntax | Destructuring, shorthand |
+| **Async** | Callbacks | Promises, async/await |
+| **Modules** | CommonJS, AMD | Native import/export |
+| **Classes** | Constructor functions | Class syntax |
 
 ## 📚 Core Features
 

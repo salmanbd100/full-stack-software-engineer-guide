@@ -9,6 +9,32 @@ Google's user-centric performance metrics that impact SEO and user experience.
 
 ### Largest Contentful Paint (LCP)
 
+**What is LCP?**
+Largest Contentful Paint (LCP) measures when the largest content element (image, video, or text block) becomes visible in the viewport. It's Google's primary metric for measuring perceived load speed and directly impacts SEO rankings.
+
+**Why LCP Matters:**
+- Directly correlates with perceived load speed
+- Users judge page speed based on when they see main content
+- Poor LCP (> 4s) increases bounce rate by 32%
+- Google uses it as a ranking factor
+
+**What Counts as LCP Element:**
+- `<img>` elements
+- `<video>` elements
+- Background images loaded via CSS
+- Block-level text elements
+
+**LCP Targets:**
+- **Good**: < 2.5 seconds
+- **Needs Improvement**: 2.5 - 4.0 seconds
+- **Poor**: > 4.0 seconds
+
+**Common LCP Issues:**
+1. Slow server response time (TTFB)
+2. Render-blocking JavaScript/CSS
+3. Slow resource load times (images, fonts)
+4. Client-side rendering delay
+
 Measures loading performance. Should occur within 2.5 seconds.
 
 ```javascript
@@ -54,6 +80,30 @@ new PerformanceObserver((list) => {
 ```
 
 ### First Input Delay (FID)
+
+**What is FID?**
+First Input Delay measures the time from when a user first interacts with your page (clicks a link, taps a button) to when the browser can actually begin processing that event. It captures the user's first impression of interactivity.
+
+**Why FID Matters:**
+- Measures real-world interactivity, not theoretical
+- Nothing is more frustrating than clicking and nothing happening
+- Poor FID makes users think the site is broken
+- Google ranking factor
+
+**What Causes High FID:**
+FID happens when the main thread is busy executing JavaScript. Common culprits:
+1. **Large JavaScript bundles**: Browser busy parsing/executing
+2. **Long tasks**: Any task taking > 50ms blocks interaction
+3. **Heavy third-party scripts**: Ads, analytics blocking main thread
+4. **Inefficient event handlers**: Slow code in click/input handlers
+
+**FID Targets:**
+- **Good**: < 100ms
+- **Needs Improvement**: 100 - 300ms
+- **Poor**: > 300ms
+
+**Interaction to Next Paint (INP):**
+FID is being replaced by INP in 2024, which measures ALL interactions throughout the page lifetime, not just first input. Same optimization techniques apply.
 
 Measures interactivity. Should be less than 100ms.
 
@@ -201,7 +251,7 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'));
 npx depcheck
 
 // 5. Use smaller alternatives
-// moment.js (232KB) í date-fns (13KB) or day.js (2KB)
+// moment.js (232KB) ÔøΩ date-fns (13KB) or day.js (2KB)
 import { format } from 'date-fns';
 ```
 
@@ -885,4 +935,4 @@ useEffect(() => {
 - Optimize critical rendering path first
 
 ---
-[ê Back to SystemDesign](../README.md)
+[ÔøΩ Back to SystemDesign](../README.md)

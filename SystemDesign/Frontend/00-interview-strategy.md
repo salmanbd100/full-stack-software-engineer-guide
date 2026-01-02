@@ -76,6 +76,24 @@ Saying "I'll optimize later" is an instant failure signal.
 **What Strong Candidates Discuss:**
 
 #### Code Splitting & Lazy Loading
+
+**What is Code Splitting?**
+Code splitting is the practice of breaking your JavaScript bundle into smaller chunks that can be loaded on-demand rather than loading everything upfront. This dramatically improves initial page load time, especially for large applications.
+
+**Why It Matters:**
+- Reduces initial bundle size by 50-70% in most applications
+- Improves Time to Interactive (TTI) - users can interact with the page faster
+- Better Core Web Vitals scores (LCP, FID)
+- Essential for applications over 1MB of JavaScript
+
+**When to Use:**
+- Route-based splitting: Different pages load different code
+- Component-based splitting: Heavy components load only when needed
+- Library splitting: Large dependencies (charts, editors) load on-demand
+
+**Implementation Strategy:**
+React provides `lazy()` and `Suspense` as the primary tools for code splitting. The browser loads code chunks in parallel and caches them for subsequent visits.
+
 ```javascript
 // Route-based code splitting
 import { lazy, Suspense } from 'react';
@@ -116,6 +134,28 @@ function Analytics() {
 ```
 
 #### CDN Distribution
+
+**What is a CDN?**
+A Content Delivery Network (CDN) is a geographically distributed network of servers that caches and serves static assets from locations closest to users. Instead of every user requesting files from your origin server (which might be in one location), they get files from the nearest CDN edge server.
+
+**Why It Matters:**
+- Reduces latency by 60-80% for international users
+- Decreases origin server load by 70-90%
+- Improves reliability through redundancy
+- Reduces bandwidth costs
+- Essential for global applications
+
+**How CDN Works:**
+1. First request: CDN fetches from origin, caches, serves to user
+2. Subsequent requests: CDN serves from cache (much faster)
+3. Cache invalidation: Old content purged when you update files
+
+**Key Considerations:**
+- Cache-Control headers determine how long files are cached
+- Use versioned URLs (e.g., `app.abc123.js`) for cache busting
+- Static assets should have long cache times (1 year)
+- API calls typically bypass CDN or have short cache times
+
 ```
 Architecture:
 User → CloudFront (CDN) → Origin Server
@@ -131,6 +171,25 @@ Benefits:
 ```
 
 #### Caching Strategies
+
+**Why Caching is Critical:**
+Caching is one of the most effective performance optimizations. It eliminates network requests entirely for cached resources, providing instant load times and enabling offline functionality.
+
+**Caching Layers:**
+1. **Browser Cache**: HTTP cache controlled by Cache-Control headers
+2. **Service Worker Cache**: Programmatic cache for offline-first apps
+3. **Application Cache**: In-memory caching of API responses (React Query, SWR)
+4. **CDN Cache**: Edge caching for static assets
+
+**Caching Strategy Selection:**
+- **Static assets** (JS, CSS, images): Long cache (1 year) + versioned URLs
+- **API responses**: Short cache (5-30 min) or no cache for real-time data
+- **User-specific data**: Private cache or no cache
+- **Public content**: Public cache with appropriate TTL
+
+**Service Workers for Advanced Caching:**
+Service workers run in the background and intercept network requests, allowing you to implement sophisticated caching strategies that work even when offline.
+
 ```javascript
 // Service Worker caching
 self.addEventListener('install', (event) => {
@@ -171,6 +230,26 @@ Cache-Control: no-cache                             // Always revalidate
 ```
 
 #### Image Optimization
+
+**Why Image Optimization Matters:**
+Images typically account for 50-70% of total page weight. Optimizing images is one of the highest-impact performance improvements you can make.
+
+**Key Optimization Techniques:**
+1. **Modern Formats**: WebP (25-35% smaller than JPEG), AVIF (30-50% smaller than WebP)
+2. **Responsive Images**: Serve appropriate sizes for different devices
+3. **Lazy Loading**: Load images only when they enter the viewport
+4. **Compression**: Balance quality vs file size (80-85% quality is optimal)
+5. **Dimensions**: Include width/height to prevent layout shift (CLS)
+
+**Format Selection Guide:**
+- **Photos**: WebP or AVIF with JPEG fallback
+- **Icons/logos**: SVG (vector, scalable)
+- **Transparency needed**: PNG or WebP
+- **Animations**: WebP (better than GIF)
+
+**Responsive Images Strategy:**
+The `<picture>` element and `srcset` attribute allow the browser to choose the most appropriate image based on screen size, resolution, and format support.
+
 ```jsx
 // Responsive images
 <picture>
@@ -227,6 +306,31 @@ function ProgressiveImage({ src, placeholder }) {
 ```
 
 #### Bundle Size Management
+
+**The Bundle Size Problem:**
+Modern web applications can easily exceed 1-2MB of JavaScript, leading to slow load times, especially on mobile networks. Every 100KB of JavaScript takes ~1 second to download and parse on average mobile devices.
+
+**Bundle Optimization Strategies:**
+
+**1. Tree Shaking:**
+Eliminates unused code from your final bundle. Only works with ES6 modules (import/export), not CommonJS (require).
+
+**2. Code Splitting:**
+Breaks bundles into smaller chunks loaded on-demand (see above).
+
+**3. Library Alternatives:**
+Choose smaller alternatives:
+- moment.js (232KB) → date-fns (13KB) or day.js (2KB)
+- lodash (entire library 70KB) → lodash-es (per-function imports)
+
+**4. Dynamic Imports:**
+Load heavy libraries only when needed, not upfront.
+
+**5. Bundle Analysis:**
+Regularly analyze your bundle to identify bloat. Use tools like webpack-bundle-analyzer to visualize what's consuming space.
+
+**Tree Shaking Best Practices:**
+
 ```javascript
 // Tree-shaking with ES modules
 import { debounce } from 'lodash-es'; // Only imports debounce
@@ -271,6 +375,29 @@ module.exports = {
 ```
 
 #### Rendering Patterns
+
+**Understanding Rendering Strategies:**
+The rendering pattern you choose fundamentally impacts performance, SEO, and user experience. There's no one-size-fits-all solution - the best choice depends on your specific requirements.
+
+**Core Question: When and where is HTML generated?**
+- **Client Side (CSR)**: Browser generates HTML using JavaScript
+- **Server Side (SSR)**: Server generates HTML for each request
+- **Build Time (SSG)**: HTML generated once during build
+- **Hybrid (ISR)**: Mix of static generation with periodic updates
+
+**Decision Factors:**
+1. **SEO Requirements**: Public content needs SSR/SSG
+2. **Content Freshness**: Real-time data needs CSR/SSR
+3. **Scale**: Static content can use SSG
+4. **Interactivity**: Rich interactions work well with CSR
+5. **Infrastructure**: SSR requires Node.js server
+
+**Performance Characteristics:**
+Each pattern has different trade-offs for key metrics:
+- **TTFB** (Time to First Byte): SSG fastest, SSR slowest
+- **FCP** (First Contentful Paint): SSG/SSR fast, CSR slow
+- **TTI** (Time to Interactive): CSR can be slow if bundle is large
+
 ```javascript
 // CSR (Client-Side Rendering) - SPA
 // ❌ Slow initial load, poor SEO

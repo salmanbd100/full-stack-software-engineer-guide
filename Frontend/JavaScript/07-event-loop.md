@@ -1,15 +1,54 @@
 # Event Loop
 
-## Concept
+## Understanding JavaScript's Concurrency Model
 
-The **Event Loop** is the mechanism that allows JavaScript to perform non-blocking operations despite being single-threaded. It coordinates the execution of code, collection of events, and execution of queued sub-tasks.
+The **Event Loop** is the mechanism that allows JavaScript to perform non-blocking operations despite being single-threaded. It's the secret behind JavaScript's ability to handle thousands of concurrent operations in a browser or Node.js without creating new threads.
+
+### Why the Event Loop Matters
+
+**For Interviews:**
+- Explains how JavaScript handles asynchronous operations
+- Common interview question: "How does JavaScript handle concurrency?"
+- Essential for understanding timing issues and race conditions
+- Distinguishes junior from senior developers
+
+**For Development:**
+- **Performance**: Understanding it prevents UI freezing
+- **Debugging**: Explains why console.log order might surprise you
+- **Architecture**: Guides decisions on when to use promises vs callbacks
+- **Optimization**: Helps identify and fix performance bottlenecks
+
+### The Core Architecture
+
+```
+┌───────────────────────────┐
+│      Call Stack           │ ← Executes synchronous code
+│  (LIFO - Last In First Out)│
+└───────────────────────────┘
+            ↓
+┌───────────────────────────┐
+│    Microtask Queue        │ ← Promises, queueMicrotask
+│   (Higher Priority)       │
+└───────────────────────────┘
+            ↓
+┌───────────────────────────┐
+│    Macrotask Queue        │ ← setTimeout, setInterval, I/O
+│   (Lower Priority)        │
+└───────────────────────────┘
+            ↑
+    ┌───────────────┐
+    │  Event Loop   │ ← Continuously monitors and moves tasks
+    └───────────────┘
+```
 
 ### Key Points
-- JavaScript is single-threaded but non-blocking
-- Call stack executes synchronous code
-- Web APIs handle async operations
-- Task Queue (macrotasks) and Microtask Queue handle async callbacks
-- Event loop continuously checks and moves tasks to call stack
+- **Single-Threaded**: JavaScript runs one piece of code at a time
+- **Non-Blocking**: Async operations don't halt execution
+- **Call Stack**: Executes all synchronous code first (LIFO)
+- **Web APIs**: Browser/Node.js handles async operations (timers, fetch, etc.)
+- **Microtasks** (High Priority): Promises, queueMicrotask, MutationObserver
+- **Macrotasks** (Standard Priority): setTimeout, setInterval, setImmediate (Node), I/O
+- **Event Loop**: Monitors stack → processes ALL microtasks → processes ONE macrotask → repeat
 
 ---
 

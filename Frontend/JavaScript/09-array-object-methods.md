@@ -1,6 +1,55 @@
 # Array & Object Methods
 
-Mastering array and object methods is essential for efficient JavaScript programming and commonly tested in interviews.
+Mastering array and object methods is essential for efficient JavaScript programming and one of the most practical skills tested in interviews. These methods enable functional programming patterns, reduce code complexity, and are the foundation of modern JavaScript development.
+
+## Why Array & Object Methods Matter
+
+**Interview Perspective:**
+- Most common coding questions involve array manipulation
+- Tests functional programming understanding
+- Demonstrates knowledge of method chaining and composition
+- `map`/`filter`/`reduce` appear in 70%+ of technical interviews
+
+**Real-World Importance:**
+- **Data Transformation**: API responses, state management, data processing
+- **Performance**: Built-in methods are optimized by JavaScript engines
+- **Readability**: Declarative code is easier to understand than imperative loops
+- **Framework Integration**: React, Vue heavily use array methods for rendering lists
+
+## Method Categories Overview
+
+### **Transformation Methods** (Return new array)
+- `map()` - Transform each element
+- `filter()` - Select elements matching criteria
+- `reduce()` - Reduce to single value
+- `flatMap()` - Map and flatten
+
+### **Search Methods** (Return element/index/boolean)
+- `find()` / `findIndex()` - First match
+- `includes()` / `indexOf()` - Check existence
+- `some()` / `every()` - Test conditions
+
+### **Mutation Methods** (Modify original)
+- `push()` / `pop()` / `shift()` / `unshift()` - Add/remove
+- `splice()` - Add/remove at index
+- `sort()` / `reverse()` - Reorder
+
+### **Iteration Methods**
+- `forEach()` - Execute for each
+- `for...of` - Iterate values
+
+## Quick Reference Table
+
+| Method | Returns | Mutates | Use When |
+|--------|---------|---------|----------|
+| `map()` | New array (same length) | No | Transform each element |
+| `filter()` | New array (≤ length) | No | Select subset |
+| `reduce()` | Single value | No | Aggregate data |
+| `find()` | Element or undefined | No | Get first match |
+| `some()` | Boolean | No | Check if any pass |
+| `every()` | Boolean | No | Check if all pass |
+| `forEach()` | undefined | No | Side effects only |
+| `sort()` | Same array | **Yes** | Reorder elements |
 
 ## 📚 Array Methods
 

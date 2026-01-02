@@ -1,15 +1,55 @@
 # Promises & Async/Await
 
-## Concept
+## Understanding Asynchronous JavaScript
 
-**Promises** represent the eventual completion (or failure) of an asynchronous operation and its resulting value. **Async/await** is syntactic sugar built on top of promises, making asynchronous code look and behave more like synchronous code.
+**Promises** represent the eventual completion (or failure) of an asynchronous operation and its resulting value. They revolutionized JavaScript async programming by solving "callback hell" and providing a standardized way to handle async operations. **Async/await** is syntactic sugar built on top of promises, making asynchronous code look and behave more like synchronous code while maintaining non-blocking behavior.
+
+## Why Promises Matter
+
+**Interview Perspective:**
+- One of the top 3 most tested JavaScript concepts
+- Required knowledge for modern JavaScript development
+- Tests understanding of asynchronous flow and the event loop
+- Gateway to advanced patterns (Promise.all, Promise.race, etc.)
+
+**Real-World Importance:**
+- **API Calls**: Almost all modern APIs return promises
+- **Framework Integration**: React, Vue, Angular all use promises extensively
+- **Error Handling**: Standardized async error management
+- **Composition**: Chain and combine async operations cleanly
+
+## Promise States & Lifecycle
+
+```
+                    ┌──────────┐
+                    │ PENDING  │ Initial state
+                    └────┬─────┘
+                         │
+            ┌────────────┴────────────┐
+            ↓                         ↓
+      ┌─────────┐               ┌──────────┐
+      │FULFILLED│ Success       │ REJECTED │ Failure
+      └─────────┘               └──────────┘
+      (resolved)                (error)
+            ↓                         ↓
+        .then()                   .catch()
+```
+
+### Promise State Characteristics
+
+| State | Description | Settled? | Can Transition? | Result |
+|-------|-------------|----------|-----------------|--------|
+| **Pending** | Initial, operation ongoing | No | Yes | None yet |
+| **Fulfilled** | Operation succeeded | Yes | No | Value available |
+| **Rejected** | Operation failed | Yes | No | Error reason available |
 
 ### Key Points
-- Promises have three states: pending, fulfilled, rejected
-- Async/await makes asynchronous code easier to read and write
-- Error handling uses `.catch()` for promises, `try/catch` for async/await
-- Promises are eager (execute immediately), not lazy
-- Async functions always return a promise
+- **Three States**: pending → fulfilled OR rejected (once settled, immutable)
+- **Eager Execution**: Promises start executing immediately upon creation (not lazy)
+- **Async/await**: Syntactic sugar that makes async code look synchronous
+- **Error Handling**: `.catch()` for promise chains, `try/catch` for async/await
+- **Chaining**: `.then()` returns a new promise, enabling clean composition
+- **Async functions**: Always return a promise (automatically wraps non-promise returns)
 
 ---
 

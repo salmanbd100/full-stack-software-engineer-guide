@@ -1,15 +1,34 @@
 # Data Types & Variables
 
-## Concept
+## Understanding JavaScript Type System
 
-JavaScript has **dynamic typing**, meaning variables can hold values of any type without explicit type declaration. Understanding data types and how JavaScript handles them is fundamental for writing reliable code.
+JavaScript has **dynamic typing**, which means variables can hold values of any type without explicit type declaration. Unlike statically-typed languages (Java, C++, TypeScript), JavaScript determines types at runtime, offering flexibility but requiring careful handling to avoid type-related bugs.
+
+### Why This Matters for Interviews
+
+Understanding JavaScript's type system is fundamental because:
+
+1. **Type-related bugs** are among the most common in JavaScript applications
+2. **Type coercion** behavior is frequently tested in interviews
+3. **Memory management** differences between primitives and references affect performance
+4. **Variable scoping** (var vs let vs const) is a classic interview topic
+
+### Core Concepts at a Glance
+
+| Aspect | Primitives | Reference Types |
+|--------|-----------|-----------------|
+| **Storage** | Stored by value | Stored by reference |
+| **Mutability** | Immutable | Mutable |
+| **Comparison** | Compares values | Compares references |
+| **Types** | string, number, boolean, null, undefined, symbol, bigint | Object, Array, Function |
+| **Memory** | Stack | Heap |
 
 ### Key Points
-- Two categories: Primitives and Reference types
-- Primitives are immutable, stored by value
-- Objects are mutable, stored by reference
-- Type coercion can lead to unexpected behavior
-- Variables: var (function-scoped), let & const (block-scoped)
+- **Two categories**: Primitives (7 types) and Reference types (objects)
+- **Primitives are immutable**: You can't change a primitive value, only reassign the variable
+- **Objects are mutable**: Properties can be added, modified, or deleted
+- **Type coercion** can lead to unexpected behavior (especially with `==`)
+- **Variables**: `var` (function-scoped, hoisted), `let` & `const` (block-scoped, temporal dead zone)
 
 ---
 

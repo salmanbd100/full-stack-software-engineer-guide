@@ -7,6 +7,31 @@ Modern web applications can be rendered in different ways, each with unique trad
 
 ### Client-Side Rendering (CSR)
 
+**What is Client-Side Rendering?**
+Client-Side Rendering (CSR) is the traditional Single Page Application (SPA) approach where the server sends a minimal HTML shell and all rendering happens in the user's browser using JavaScript. This was popularized by frameworks like React, Vue, and Angular.
+
+**How CSR Works:**
+1. Server sends nearly empty HTML with JavaScript bundle reference
+2. Browser downloads and executes JavaScript
+3. JavaScript fetches data from APIs
+4. JavaScript renders the entire UI
+5. User can now interact with the application
+
+**The CSR Trade-off:**
+CSR trades initial load performance for subsequent navigation speed. The first page load is slow (download JS, execute, fetch data, render), but after that, navigating between pages is instant because everything is already loaded.
+
+**Performance Characteristics:**
+- **TTFB (Time to First Byte)**: Fast (minimal HTML)
+- **FCP (First Contentful Paint)**: Slow (must download and execute JS first)
+- **TTI (Time to Interactive)**: Slow (same as FCP in CSR)
+- **Subsequent navigation**: Instant (client-side routing)
+
+**SEO Implications:**
+While Google can index JavaScript-rendered content, it's not ideal:
+- Slower indexing (bots must execute JavaScript)
+- Social media crawlers (Facebook, Twitter) don't execute JavaScript
+- Less reliable than server-rendered content
+
 Traditional Single Page Applications where rendering happens entirely in the browser.
 
 ```javascript
@@ -64,6 +89,40 @@ root.render(<App />);
 - Apps where SEO isn't critical
 
 ### Server-Side Rendering (SSR)
+
+**What is Server-Side Rendering?**
+With SSR, the server generates complete HTML for each request. When a user requests a page, the server fetches necessary data, renders React components to HTML, and sends fully-formed HTML to the browser. This is how traditional websites (PHP, Ruby on Rails) worked, but modernized for React applications.
+
+**How SSR Works:**
+1. User requests a page
+2. Server runs React components
+3. Server fetches required data
+4. Server renders components to HTML string
+5. Server sends complete HTML to browser
+6. Browser displays content immediately (page is visible)
+7. JavaScript downloads in background
+8. React "hydrates" the HTML (attaches event listeners)
+9. Page becomes interactive
+
+**The SSR Trade-off:**
+SSR provides fast initial paint and good SEO, but requires a Node.js server (higher infrastructure costs) and has slower Time to First Byte (server must do work before responding).
+
+**Performance Characteristics:**
+- **TTFB**: Slower (server must render before responding)
+- **FCP**: Fast (HTML contains content)
+- **TTI**: Medium (wait for JS to download and hydrate)
+- **Subsequent navigation**: Fast (usually client-side after hydration)
+
+**When to Use SSR:**
+✅ SEO is critical (marketing sites, blogs, e-commerce)
+✅ Content changes frequently
+✅ Personalized content for each user
+✅ First load performance matters
+
+**When NOT to Use:**
+❌ Authenticated dashboards (no SEO benefit)
+❌ Very high traffic (server costs)
+❌ Static content (use SSG instead)
 
 HTML is generated on the server for each request.
 
@@ -458,4 +517,4 @@ Example: Product catalog with prices that change daily.
 - Choose based on: SEO needs, content freshness, scale, budget
 
 ---
-[� Back to SystemDesign](../README.md)
+[� Back to SystemDesign](../README.md)
