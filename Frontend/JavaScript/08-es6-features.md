@@ -120,7 +120,176 @@ const obj = {
 
 ### 3. Template Literals
 
-**String Interpolation and Multiline Strings** - Template literals (backticks) revolutionized string handling in JavaScript. They enable expression interpolation with ${}, eliminating ugly concatenation. Multiline strings work naturally without escape characters, perfect for HTML templates or SQL queries. The real power is tagged templates - functions that process template literals, enabling custom string processing like HTML escaping, localization, or styled-components' CSS-in-JS. Tagged templates receive the string parts and interpolated values separately, allowing complete control over how the final string is constructed. This feature enables domain-specific languages (DSLs) embedded in JavaScript.
+### 💡 **String Interpolation and Multiline Strings**
+
+Template literals (backticks) revolutionized string handling in JavaScript.
+
+**Core Features:**
+
+**1. Expression Interpolation:**
+- Syntax: `` `text ${expression} more text` ``
+- Replaces ugly concatenation
+- Evaluates any JavaScript expression
+
+```javascript
+// Old Way (concatenation)
+const message = 'Hello, ' + name + '! You are ' + age + ' years old.';
+
+// New Way (template literal ✅)
+const message = `Hello, ${name}! You are ${age} years old.`;
+```
+
+**2. Multiline Strings:**
+- Natural line breaks (no `\n` needed)
+- Perfect for HTML, SQL, or formatted text
+
+```javascript
+// Old Way (ugly)
+const html = '<div>\n' +
+             '  <h1>' + title + '</h1>\n' +
+             '  <p>' + content + '</p>\n' +
+             '</div>';
+
+// New Way (readable ✅)
+const html = `
+    <div>
+        <h1>${title}</h1>
+        <p>${content}</p>
+    </div>
+`;
+```
+
+**3. Expression Evaluation:**
+
+Any JavaScript expression works inside `${}`:
+
+```javascript
+const price = 19.99;
+const quantity = 3;
+
+const total = `Total: $${(price * quantity).toFixed(2)}`;
+// "Total: $59.97"
+
+const status = `User is ${age >= 18 ? 'adult' : 'minor'}`;
+
+const items = `Cart has ${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+```
+
+**4. Tagged Templates (Advanced):**
+
+Functions that process template literals with full control.
+
+**How Tagged Templates Work:**
+
+```javascript
+function tag(strings, ...values) {
+    // strings: array of string parts
+    // values: array of interpolated values
+    return processedString;
+}
+
+const result = tag`Hello ${name}, you are ${age}`;
+```
+
+**Practical Examples:**
+
+**HTML Escaping:**
+```javascript
+function safeHTML(strings, ...values) {
+    const escape = (str) => String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    return strings.reduce((result, str, i) => {
+        const value = values[i] ? escape(values[i]) : '';
+        return result + str + value;
+    }, '');
+}
+
+const userInput = '<script>alert("xss")</script>';
+const safe = safeHTML`User said: ${userInput}`;
+// "User said: &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"
+```
+
+**Styled-Components (CSS-in-JS):**
+```javascript
+const Button = styled.button`
+    background: ${props => props.primary ? 'blue' : 'gray'};
+    color: white;
+    padding: 10px;
+`;
+```
+
+**Localization:**
+```javascript
+function i18n(strings, ...values) {
+    // Lookup translation, replace placeholders
+    const key = strings.join('{}');
+    return translate(key, values);
+}
+
+const greeting = i18n`Hello ${userName}, you have ${count} messages`;
+```
+
+**When to Use Template Literals:**
+
+| Use Case | Technique |
+|----------|-----------|
+| Simple string interpolation | `` `text ${var}` `` |
+| Multiline strings | Template literals |
+| Complex string building | Template literals |
+| HTML templates | Template literals |
+| Dynamic styling | Tagged templates |
+| Localization | Tagged templates |
+| Custom string processing | Tagged templates |
+
+**Benefits Over Concatenation:**
+
+| Aspect | Concatenation | Template Literals |
+|--------|--------------|-------------------|
+| **Readability** | ❌ Hard to read | ✅ Clear and natural |
+| **Multiline** | ❌ Requires `\n` or `+` | ✅ Natural |
+| **Expressions** | ❌ Break into parts | ✅ Inline with `${}` |
+| **Escaping** | ❌ Manual | ✅ Tagged templates |
+| **Type coercion** | ❌ Implicit | ✅ Explicit with `${}` |
+
+**Common Use Cases:**
+
+**1. Dynamic HTML:**
+```javascript
+const renderCard = (user) => `
+    <div class="card">
+        <h2>${user.name}</h2>
+        <p>${user.bio}</p>
+        <span>Joined: ${user.joinDate}</span>
+    </div>
+`;
+```
+
+**2. SQL Queries:**
+```javascript
+const query = `
+    SELECT *
+    FROM users
+    WHERE age > ${minAge}
+    AND status = '${status}'
+    LIMIT ${limit}
+`;
+```
+
+**3. Logging:**
+```javascript
+console.log(`[${timestamp}] ${level}: ${message}`);
+```
+
+**4. URLs:**
+```javascript
+const apiUrl = `${baseUrl}/api/users/${userId}/posts?page=${page}`;
+```
+
+**Key Insight:**
+> Tagged templates enable **domain-specific languages (DSLs)** embedded in JavaScript. Libraries like styled-components, GraphQL, and i18n use tagged templates to create powerful, type-safe APIs that feel native to JavaScript.
 
 ```javascript
 const name = 'Alice';
@@ -159,7 +328,128 @@ const highlighted = highlight`Name: ${name}, Age: ${age}`;
 
 **Array Destructuring**
 
-**Array Pattern Matching** - Destructuring extracts values from arrays (or iterables) into variables based on position, dramatically reducing boilerplate code. It supports advanced patterns: skipping elements with empty slots, capturing remaining elements with rest syntax (...), providing defaults for missing values, and even elegant variable swapping without temporary variables. Array destructuring shines when unpacking function returns (like React's useState), working with iterables, or handling tuple-like data. The pattern matching is position-based, so order matters - unlike object destructuring which uses property names.
+### 💡 **Array Pattern Matching**
+
+Destructuring extracts values from arrays into variables based on position.
+
+**Basic Pattern:**
+
+```javascript
+const [first, second, third] = array;
+// Unpacks by position
+```
+
+**Key Features:**
+
+**1. Position-Based Extraction:**
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+
+// Old way
+const first = numbers[0];
+const second = numbers[1];
+
+// Destructuring way ✅
+const [first, second] = numbers;
+```
+
+**2. Skipping Elements:**
+```javascript
+const [first, , third] = [1, 2, 3, 4, 5];
+// first = 1, third = 3
+// Leave empty slot to skip
+```
+
+**3. Rest Pattern (Gather Remaining):**
+```javascript
+const [head, ...tail] = [1, 2, 3, 4, 5];
+// head = 1
+// tail = [2, 3, 4, 5]
+```
+
+**4. Default Values:**
+```javascript
+const [a, b, c = 0] = [1, 2];
+// a = 1, b = 2, c = 0 (default)
+```
+
+**5. Variable Swapping:**
+```javascript
+let x = 1, y = 2;
+[x, y] = [y, x]; // Swap without temp variable
+// x = 2, y = 1
+```
+
+**Perfect Use Cases:**
+
+**React Hooks:**
+```javascript
+const [count, setCount] = useState(0);
+const [user, setUser] = useState(null);
+```
+
+**Function Returns:**
+```javascript
+function getCoordinates() {
+    return [10, 20];
+}
+const [x, y] = getCoordinates();
+```
+
+**Iterables:**
+```javascript
+const [first, second] = new Set([1, 2, 3]);
+const [char1, char2] = 'hello';
+```
+
+**Array vs Object Destructuring:**
+
+| Feature | Array | Object |
+|---------|-------|--------|
+| **Matching** | By position | By property name |
+| **Order** | ✅ Matters | ❌ Doesn't matter |
+| **Renaming** | Automatic (use any name) | Explicit `{name: newName}` |
+| **Skipping** | Empty slots `,` | Just omit property |
+| **Use for** | Tuples, returns, iterables | API responses, configs |
+
+**Advanced Patterns:**
+
+**Nested Destructuring:**
+```javascript
+const matrix = [[1, 2], [3, 4]];
+const [[a, b], [c, d]] = matrix;
+// a=1, b=2, c=3, d=4
+```
+
+**With Default + Rest:**
+```javascript
+const [first = 0, ...rest] = [];
+// first = 0 (default)
+// rest = []
+```
+
+**Common Patterns:**
+
+**1. Tuple Returns:**
+```javascript
+function getMinMax(arr) {
+    return [Math.min(...arr), Math.max(...arr)];
+}
+const [min, max] = getMinMax([1, 5, 3]);
+```
+
+**2. Splitting Strings:**
+```javascript
+const [firstName, lastName] = 'John Doe'.split(' ');
+```
+
+**3. Pagination:**
+```javascript
+const [first, second, ...remaining] = items;
+```
+
+**Key Insight:**
+> Array destructuring is **position-based** - order matters. This makes it perfect for tuple-like data (coordinates, ranges) and function returns where order is meaningful.
 
 ```javascript
 const numbers = [1, 2, 3, 4, 5];

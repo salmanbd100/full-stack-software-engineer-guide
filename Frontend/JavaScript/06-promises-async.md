@@ -55,9 +55,139 @@
 
 ## Example 1: Promise Basics
 
-**Creating and Consuming Promises** - Promises represent asynchronous operations that will eventually complete (resolve) or fail (reject). The Promise constructor takes an executor function with resolve and reject callbacks. Promises are eager - they start executing immediately upon creation, not when you call .then(). The .then() method registers callbacks for success and returns a new promise, enabling chaining. Each .then() can transform the value by returning something new, passing it to the next .then(). The .catch() handles any rejection in the chain, and .finally() runs cleanup code regardless of outcome. Promises solve callback hell by providing a clean, chainable API for async operations and standardized error handling.
+### 💡 **Creating and Consuming Promises**
 
-**Creating and Consuming Promises** - Shows how to create promises with resolve/reject, chain with then/catch, and use finally for cleanup operations.
+Promises represent asynchronous operations that will eventually complete or fail.
+
+**Promise Lifecycle:**
+
+```
+Create Promise
+    ↓
+Executor runs immediately (eager!)
+    ↓
+Async operation starts
+    ↓
+Operation completes
+    ↓
+Call resolve(value) OR reject(error)
+    ↓
+Promise settles (fulfilled or rejected)
+    ↓
+.then() or .catch() handlers execute
+    ↓
+.finally() runs (if present)
+```
+
+**Key Characteristics:**
+
+**1. Eager Execution:**
+```javascript
+const promise = new Promise((resolve, reject) => {
+    console.log('Executing!'); // ← Runs immediately
+    setTimeout(() => resolve('Done'), 1000);
+});
+// "Executing!" logged right away, NOT when .then() is called
+```
+
+**2. Promise Constructor:**
+```javascript
+new Promise((resolve, reject) => {
+    // resolve(value) → fulfills promise
+    // reject(error) → rejects promise
+});
+```
+
+**3. Chaining with .then():**
+- Each `.then()` returns a **new promise**
+- Return value becomes next `.then()`'s input
+- Enables clean, linear async flow
+
+**4. Error Handling:**
+- `.catch()` handles any rejection in the chain
+- Acts like a `try/catch` for async code
+
+**5. Cleanup with .finally():**
+- Runs regardless of success or failure
+- Perfect for cleanup operations
+
+**Promise Method Returns:**
+
+| Method | Returns | Purpose |
+|--------|---------|---------|
+| `.then(callback)` | New promise | Handle success, chain operations |
+| `.catch(callback)` | New promise | Handle errors |
+| `.finally(callback)` | New promise | Cleanup (always runs) |
+
+**Chaining Example:**
+
+```javascript
+fetchUser(1)
+    .then(user => {
+        console.log('Got user:', user.name);
+        return fetchPosts(user.id); // ← Returns new promise
+    })
+    .then(posts => {
+        console.log('Got posts:', posts.length);
+        return posts[0]; // ← Returns value (auto-wrapped in promise)
+    })
+    .then(firstPost => {
+        console.log('First post:', firstPost.title);
+    })
+    .catch(error => {
+        console.error('Error anywhere in chain:', error);
+    })
+    .finally(() => {
+        console.log('Cleanup code here');
+    });
+```
+
+**Value Transformation:**
+
+Each `.then()` can transform the value:
+```javascript
+Promise.resolve(5)
+    .then(n => n * 2)        // 10
+    .then(n => n + 3)        // 13
+    .then(n => `Result: ${n}`) // "Result: 13"
+    .then(str => console.log(str));
+```
+
+**Solving Callback Hell:**
+
+**Before (Callback Hell):**
+```javascript
+getData(function(a) {
+    getMoreData(a, function(b) {
+        getMoreData(b, function(c) {
+            getMoreData(c, function(d) {
+                console.log(d); // 😱 Pyramid of doom
+            });
+        });
+    });
+});
+```
+
+**After (Promise Chain):**
+```javascript
+getData()
+    .then(a => getMoreData(a))
+    .then(b => getMoreData(b))
+    .then(c => getMoreData(c))
+    .then(d => console.log(d)); // ✅ Clean and linear
+```
+
+**Why Promises Are Better:**
+
+| Callback Hell | Promises |
+|--------------|----------|
+| Nested indentation | Flat, chainable |
+| Error handling scattered | Centralized `.catch()` |
+| Hard to read | Linear flow |
+| Difficult to compose | Easy composition |
+
+**Critical Insight:**
+> Promises execute **immediately** when created, not when `.then()` is called. This "eager" behavior differs from lazy evaluation in some languages.
 
 ```javascript
 // Creating a promise
@@ -99,9 +229,187 @@ myPromise
 
 ## Example 2: Async/Await Syntax
 
-**Async/Await Pattern** - Async/await is syntactic sugar over promises that makes asynchronous code look and behave like synchronous code. The async keyword makes a function return a promise automatically, while await pauses execution until a promise resolves, returning its value. This eliminates promise chains, making code linear and easier to read. Error handling uses familiar try/catch instead of .catch(), and you can use regular control flow (if/else, loops) with async operations. Despite looking synchronous, await doesn't block the JavaScript event loop - it only pauses the async function while other code continues executing. Async/await is now the preferred way to work with promises for its readability and debuggability.
+### 💡 **Async/Await - Syntactic Sugar for Promises**
 
-**Async/Await Pattern** - Modern async syntax using async functions and await keyword for cleaner, synchronous-looking asynchronous code with try/catch error handling.
+Async/await makes asynchronous code look and behave like synchronous code.
+
+**How It Works:**
+
+**The `async` Keyword:**
+- Makes function **always** return a promise
+- Automatically wraps return values in `Promise.resolve()`
+
+```javascript
+async function example() {
+    return 42;
+}
+// Same as:
+function example() {
+    return Promise.resolve(42);
+}
+```
+
+**The `await` Keyword:**
+- **Pauses** async function execution
+- Waits for promise to resolve
+- Returns the resolved value
+- Can only be used inside `async` functions
+
+```javascript
+async function example() {
+    const result = await fetchData(); // Pauses here until promise resolves
+    console.log(result); // Uses resolved value
+}
+```
+
+**Key Transformations:**
+
+**Promise Chain → Async/Await:**
+
+```javascript
+// Promise Chain (nested, harder to read)
+function getUser() {
+    return fetchUser(1)
+        .then(user => {
+            return fetchPosts(user.id);
+        })
+        .then(posts => {
+            return posts[0];
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+
+// Async/Await (linear, easier to read ✅)
+async function getUser() {
+    try {
+        const user = await fetchUser(1);
+        const posts = await fetchPosts(user.id);
+        return posts[0];
+    } catch (error) {
+        console.error(error);
+    }
+}
+```
+
+**Benefits of Async/Await:**
+
+| Feature | Promises | Async/Await |
+|---------|----------|-------------|
+| **Syntax** | `.then()` chains | Linear, looks synchronous |
+| **Error Handling** | `.catch()` | `try/catch` (familiar) |
+| **Debugging** | Complex stack traces | Clear stack traces |
+| **Readability** | Can be nested | Top-to-bottom |
+| **Control Flow** | Chaining only | `if/else`, `loops`, etc. |
+
+**Error Handling:**
+
+```javascript
+// With Promises
+fetchData()
+    .then(data => processData(data))
+    .catch(error => console.error(error));
+
+// With Async/Await (more familiar ✅)
+async function handleData() {
+    try {
+        const data = await fetchData();
+        const result = await processData(data);
+        return result;
+    } catch (error) {
+        console.error(error);
+        throw error; // Re-throw if needed
+    }
+}
+```
+
+**Control Flow Advantages:**
+
+**Conditional Logic:**
+```javascript
+async function getUser(id) {
+    const user = await fetchUser(id);
+
+    if (user.isPremium) {
+        const premiumData = await fetchPremiumData(user.id);
+        return { ...user, ...premiumData };
+    }
+
+    return user;
+}
+```
+
+**Loops:**
+```javascript
+async function processItems(items) {
+    for (const item of items) {
+        await processItem(item); // Sequential processing
+    }
+}
+```
+
+**Important: await Doesn't Block the Event Loop:**
+
+```javascript
+async function task1() {
+    console.log('Task 1 start');
+    await delay(1000); // Pauses this function, NOT JavaScript
+    console.log('Task 1 end');
+}
+
+async function task2() {
+    console.log('Task 2 start');
+    await delay(500);
+    console.log('Task 2 end');
+}
+
+task1();
+task2();
+
+// Output:
+// Task 1 start
+// Task 2 start
+// Task 2 end (after 500ms)
+// Task 1 end (after 1000ms)
+```
+
+**Common Patterns:**
+
+**Sequential vs Parallel:**
+
+```javascript
+// ❌ Sequential (slower - waits for each)
+async function sequential() {
+    const user = await fetchUser();     // 1s
+    const posts = await fetchPosts();   // 1s
+    const comments = await fetchComments(); // 1s
+    // Total: 3 seconds
+}
+
+// ✅ Parallel (faster - runs simultaneously)
+async function parallel() {
+    const [user, posts, comments] = await Promise.all([
+        fetchUser(),
+        fetchPosts(),
+        fetchComments()
+    ]);
+    // Total: 1 second (longest operation)
+}
+```
+
+**When to Use Each:**
+
+| Use Case | Use This |
+|----------|---------|
+| Simple async operations | `async/await` ✅ |
+| Multiple independent operations | `Promise.all()` + `await` |
+| Need fine control over promise handling | Promise chains |
+| Working with existing promise APIs | `async/await` wrapper |
+| Debugging async code | `async/await` (clearer) |
+
+**Key Insight:**
+> `await` only pauses the **async function**, not the entire JavaScript engine. Other code continues executing on the event loop - async/await is non-blocking despite looking synchronous!
 
 ```javascript
 // Function returns a promise

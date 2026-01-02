@@ -54,7 +54,116 @@ The **Event Loop** is the mechanism that allows JavaScript to perform non-blocki
 
 ## Example 1: Event Loop Execution Order
 
-**Execution Order: Sync, Microtasks, Macrotasks** - Understanding the event loop's execution priority is crucial for predicting async code behavior. JavaScript executes code in a strict order: all synchronous code runs first (added to call stack immediately), then all microtasks (Promise callbacks, queueMicrotask) execute before any macrotasks (setTimeout, setInterval, I/O callbacks) can run. This prioritization ensures promises resolve quickly while preventing long-running timers from blocking promise resolutions. The event loop continuously checks if the call stack is empty, then processes all pending microtasks, then processes one macrotask, then repeats. This is why setTimeout(..., 0) never executes before promises - microtasks always have priority.
+### 💡 **Execution Order: Sync → Microtasks → Macrotasks**
+
+Understanding the event loop's execution priority is crucial for predicting async code behavior.
+
+**The Execution Order (Priority):**
+
+```
+1. ⚡ Synchronous Code     (Highest Priority)
+   ↓
+2. 🔹 ALL Microtasks      (High Priority)
+   ↓
+3. 🔸 ONE Macrotask        (Standard Priority)
+   ↓
+4. 🎨 Render (if needed)
+   ↓
+   Repeat from step 2
+```
+
+**Detailed Breakdown:**
+
+**Phase 1: Synchronous Execution**
+- All synchronous code runs first
+- Executes top-to-bottom
+- Added to call stack immediately
+- Completes before any async code
+
+**Phase 2: Microtask Queue**
+- Process **ALL** pending microtasks
+- Includes:
+  - Promise `.then()` / `.catch()` / `.finally()`
+  - `queueMicrotask()`
+  - `MutationObserver` callbacks
+- Must finish before moving to macrotasks
+
+**Phase 3: Macrotask Queue**
+- Process **ONE** macrotask
+- Includes:
+  - `setTimeout()` / `setInterval()`
+  - `setImmediate()` (Node.js)
+  - I/O operations
+  - UI rendering events
+- Then back to Phase 2 (check microtasks again)
+
+**Why This Order Matters:**
+
+**Example:**
+```javascript
+console.log('1. Script start');          // Sync
+
+setTimeout(() => {
+    console.log('2. setTimeout');        // Macrotask
+}, 0);
+
+Promise.resolve().then(() => {
+    console.log('3. Promise');           // Microtask
+});
+
+console.log('4. Script end');            // Sync
+
+// Output:
+// 1. Script start    ← Sync first
+// 4. Script end      ← Sync first
+// 3. Promise         ← Microtask second
+// 2. setTimeout      ← Macrotask last
+```
+
+**Step-by-Step Execution:**
+
+1. **Execute Sync Code:**
+   - Log "1. Script start"
+   - Schedule setTimeout (add to macrotask queue)
+   - Schedule Promise (add to microtask queue)
+   - Log "4. Script end"
+
+2. **Call Stack Empty → Check Microtasks:**
+   - Execute Promise callback
+   - Log "3. Promise"
+
+3. **Microtasks Done → Process ONE Macrotask:**
+   - Execute setTimeout callback
+   - Log "2. setTimeout"
+
+**Common Gotcha:**
+
+```javascript
+setTimeout(() => console.log('timeout'), 0);
+Promise.resolve().then(() => console.log('promise'));
+
+// Always: promise, then timeout
+// Even though setTimeout has 0ms delay!
+```
+
+**Why setTimeout(0) Isn't Immediate:**
+
+| Misconception | Reality |
+|--------------|---------|
+| `setTimeout(..., 0)` runs immediately | ❌ Goes to macrotask queue |
+| Must wait for | ✅ All sync code + ALL microtasks |
+| Minimum delay | ~4ms (browser throttling) |
+
+**Priority Summary:**
+
+| Priority | Type | Examples |
+|----------|------|----------|
+| **Highest** | Synchronous | Regular code |
+| **High** | Microtasks | Promises, queueMicrotask |
+| **Standard** | Macrotasks | setTimeout, I/O |
+
+**Key Insight:**
+> Microtasks **always** run before macrotasks, even if a macrotask was scheduled first. This is why Promise callbacks execute before setTimeout, regardless of delay.
 
 ```javascript
 console.log('1. Script start');

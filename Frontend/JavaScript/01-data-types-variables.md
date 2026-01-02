@@ -34,7 +34,27 @@ Understanding JavaScript's type system is fundamental because:
 
 ## Example 1: Primitive vs Reference Types
 
-**Primitive vs Reference Types** - Understanding the fundamental difference between primitive and reference types is crucial for avoiding bugs and understanding JavaScript's memory model. Primitives (number, string, boolean, null, undefined, symbol, bigint) are immutable and stored by value - when you assign or pass them, JavaScript copies the actual value. Reference types (objects, arrays, functions) store a reference (memory address) to the data - copying them copies only the reference, not the data itself. This means multiple variables can point to the same object, and modifying it through one variable affects all others. This is one of JavaScript's most common sources of bugs - accidentally mutating shared objects.
+### 💡 **Primitive vs Reference Types**
+
+Understanding the fundamental difference between these types is crucial for avoiding bugs and mastering JavaScript's memory model.
+
+**Primitive Types (Stored by Value):**
+- **Types**: `number`, `string`, `boolean`, `null`, `undefined`, `symbol`, `bigint`
+- **Behavior**: Immutable - values cannot be changed, only reassigned
+- **Memory**: When assigned or passed, JavaScript **copies the actual value**
+- **Result**: Each variable has its own independent copy
+
+**Reference Types (Stored by Reference):**
+- **Types**: `Object`, `Array`, `Function`, `Date`, `RegExp`, etc.
+- **Behavior**: Mutable - properties/elements can be modified
+- **Memory**: Variables store a **reference (memory address)**, not the data itself
+- **Result**: Multiple variables can point to the same object
+
+**⚠️ Critical Implication:**
+> When you copy a reference type, you're copying the **pointer**, not the data. Modifying the object through one variable affects **all** variables pointing to it.
+
+**Common Bug Source:**
+This is one of JavaScript's most frequent sources of bugs - accidentally mutating shared objects when you intended to create independent copies.
 
 ```javascript
 // PRIMITIVE TYPES (stored by value)
@@ -67,7 +87,49 @@ console.log(arr2); // [1, 2, 3, 4]
 
 ## Example 2: Type Coercion
 
-**Type Coercion** - JavaScript's automatic type conversion is both powerful and dangerous. When operators encounter mixed types, JavaScript attempts to convert them to compatible types - sometimes with surprising results. The `+` operator with strings triggers string concatenation, converting numbers to strings, while `-`, `*`, `/` trigger numeric conversion. Boolean values coerce to numbers (true=1, false=0). The loose equality operator `==` performs type coercion before comparison, leading to confusing results like `'0' == false` being true. Always use strict equality `===` to avoid this. Understanding falsy values (0, '', null, undefined, NaN, false) is essential for conditional logic - everything else is truthy, including '0', 'false', [], and {}.
+### 💡 **Type Coercion**
+
+JavaScript's automatic type conversion is both **powerful** and **dangerous**.
+
+**How Type Coercion Works:**
+
+When operators encounter mixed types, JavaScript attempts to convert them to compatible types - sometimes with surprising results:
+
+**String Coercion (+ operator):**
+- `'5' + 3` → `'53'` (number converted to string for concatenation)
+- **Rule**: If either operand is a string, convert both to strings
+
+**Numeric Coercion (-, *, / operators):**
+- `'5' - 3` → `2` (string converted to number)
+- `'5' * '2'` → `10` (both strings converted to numbers)
+- **Rule**: Convert both operands to numbers
+
+**Boolean to Number:**
+- `true` → `1`
+- `false` → `0`
+- Example: `true + 1` → `2`
+
+**⚠️ The == vs === Problem:**
+
+**Loose Equality (==)** - Performs type coercion before comparison:
+- `'0' == false` → `true` (both coerced to 0)
+- `null == undefined` → `true`
+- `5 == '5'` → `true`
+
+**Strict Equality (===)** - No coercion, compares type AND value:
+- `'0' === false` → `false`
+- `null === undefined` → `false`
+- `5 === '5'` → `false`
+
+**✅ Best Practice:** Always use `===` and `!==` to avoid unexpected coercion bugs.
+
+**Falsy vs Truthy Values:**
+
+**Falsy (6 values only):**
+- `0`, `''` (empty string), `null`, `undefined`, `NaN`, `false`
+
+**Truthy (everything else):**
+- `'0'`, `'false'`, `[]`, `{}`, any non-zero number, any function
 
 ```javascript
 // Implicit type coercion
@@ -102,7 +164,51 @@ console.log(Boolean({}));       // true
 
 ## Example 3: Variable Declarations
 
-**var, let, const** - The evolution from var to let/const represents a major improvement in JavaScript. var is function-scoped and hoisted, creating confusing behavior - variables are accessible before declaration (as undefined) and variables declared in blocks leak to the surrounding function. let and const are block-scoped (respecting curly braces) and have a temporal dead zone - accessing them before declaration throws an error, catching bugs early. const prevents reassignment but doesn't make objects immutable - you can still modify object properties or array contents. Modern JavaScript strongly favors const by default (for values that won't be reassigned), let when reassignment is needed, and avoids var entirely.
+### 💡 **var, let, const - Evolution of JavaScript Variables**
+
+The evolution from `var` to `let`/`const` represents a major improvement in JavaScript's variable system.
+
+**var (The Old Way - Avoid):**
+- **Scope**: Function-scoped (ignores block boundaries)
+- **Hoisting**: Declaration hoisted, initialized as `undefined`
+- **Re-declaration**: Allowed (can redeclare same variable)
+- **Problems**:
+  - Variables leak out of blocks (`if`, `for`, etc.)
+  - Accessible before declaration (returns `undefined`)
+  - Easy to accidentally create bugs
+
+**let (Block-Scoped, Reassignable):**
+- **Scope**: Block-scoped (respects `{ }` boundaries)
+- **Hoisting**: Declaration hoisted, but in **Temporal Dead Zone (TDZ)**
+- **Re-declaration**: Not allowed in same scope
+- **Benefits**:
+  - Variables stay within their blocks
+  - Accessing before declaration → Error (catches bugs early)
+  - Each loop iteration gets fresh variable
+
+**const (Block-Scoped, Immutable Binding):**
+- **Scope**: Block-scoped (same as `let`)
+- **Reassignment**: ❌ Not allowed
+- **Mutation**: ✅ Objects/arrays CAN be mutated
+- **Initialization**: Must be initialized at declaration
+- **Key Point**:
+  ```javascript
+  const obj = { a: 1 };
+  obj.a = 2;        // ✅ OK - mutating property
+  obj = {};         // ❌ Error - reassigning variable
+
+  const arr = [1, 2];
+  arr.push(3);      // ✅ OK - mutating array
+  arr = [];         // ❌ Error - reassigning variable
+  ```
+
+**✅ Modern Best Practice:**
+
+1. **Default to `const`** - Use for all variables that won't be reassigned
+2. **Use `let`** - Only when reassignment is needed (counters, accumulators)
+3. **Never use `var`** - Kept only for backward compatibility
+
+This simple rule prevents many scoping bugs and signals your intent clearly.
 
 ```javascript
 // VAR (function-scoped, hoisted)

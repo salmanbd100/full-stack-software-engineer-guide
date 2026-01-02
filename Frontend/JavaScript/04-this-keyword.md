@@ -58,9 +58,68 @@ Standalone function call
 
 ### 2. Default Binding
 
-**Default Binding** is the fallback rule when no other binding applies - when a function is called as a standalone function (not as a method, not with new, not with call/apply/bind). In non-strict mode, `this` defaults to the global object (window in browsers, global in Node.js), which is usually undesirable and can lead to accidental global variable creation. Strict mode fixes this dangerous behavior by making `this` undefined in standalone function calls, causing immediate errors instead of silent bugs. This is why strict mode is recommended - it catches this-related mistakes early. Understanding default binding helps explain why arrow functions (which don't have default binding) behave differently.
+### 💡 **Default Binding - The Fallback Rule**
 
-**Default 'this' Binding** - Shows how 'this' defaults to global object in non-strict mode and undefined in strict mode when functions are called standalone.
+Default binding is the fallback when no other binding rules apply.
+
+**When It Applies:**
+- Standalone function call
+- Not a method call (`obj.method()`)
+- Not using `new`
+- Not using `call`/`apply`/`bind`
+
+**Behavior Depends on Strict Mode:**
+
+**Non-Strict Mode (Dangerous):**
+```javascript
+function showThis() {
+    console.log(this);
+}
+showThis(); // window (browser) or global (Node.js)
+```
+
+- `this` → global object
+- **Problem**: Can accidentally create global variables
+- **Dangerous**: Silent bugs instead of errors
+
+**Strict Mode (Safe):**
+```javascript
+'use strict';
+function showThisStrict() {
+    console.log(this);
+}
+showThisStrict(); // undefined
+```
+
+- `this` → `undefined`
+- **Benefit**: Throws errors instead of silent bugs
+- **Recommended**: Catches mistakes early
+
+**Why Strict Mode Matters:**
+
+| Mode | `this` Value | Accidental Globals | Error Detection |
+|------|-------------|-------------------|-----------------|
+| **Non-Strict** | Global object | ✅ Possible | ❌ Silent bugs |
+| **Strict** | `undefined` | ❌ Prevented | ✅ Immediate errors |
+
+**Example of the Problem:**
+```javascript
+// Without strict mode
+function createUser(name) {
+    this.name = name; // Oops! Creates window.name
+}
+createUser('Alice'); // Should use 'new'
+console.log(window.name); // 'Alice' 🔴 Global pollution!
+
+// With strict mode
+'use strict';
+function createUserStrict(name) {
+    this.name = name; // TypeError: Cannot set property 'name' of undefined
+}
+```
+
+**Key Insight:**
+> Default binding explains why arrow functions (which don't have their own `this`) behave differently - they skip default binding and inherit `this` lexically.
 
 ```javascript
 function showThis() {
@@ -80,7 +139,120 @@ showThisStrict(); // undefined
 
 ### 3. Implicit Binding
 
-**Implicit Binding** occurs when a function is invoked as an object method - the object becomes `this`. This is the most common way `this` is used and feels intuitive: `obj.method()` makes `this` equal to `obj` inside `method`. However, implicit binding is easily lost when you extract the method from its object - assigning it to a variable or passing it as a callback breaks the binding. This is a common source of bugs, especially with event handlers and setTimeout callbacks where the function reference is passed without its original object context. Understanding this loss is crucial for knowing when to use arrow functions or .bind().
+### 💡 **Implicit Binding - Method Calls**
+
+Implicit binding occurs when a function is invoked as an object method.
+
+**The Rule:**
+```javascript
+obj.method() → this = obj (object before the dot)
+```
+
+**How It Works:**
+
+**Simple Case:**
+```javascript
+const user = {
+    name: 'Alice',
+    greet: function() {
+        console.log(`Hello, I'm ${this.name}`);
+    }
+};
+
+user.greet(); // ✅ "Hello, I'm Alice"
+                // this = user
+```
+
+**Multiple Levels:**
+```javascript
+const company = {
+    name: 'TechCorp',
+    department: {
+        name: 'Engineering',
+        show: function() {
+            console.log(this.name);
+        }
+    }
+};
+
+company.department.show(); // "Engineering"
+// this = immediate parent (department), not company
+```
+
+**⚠️ Losing Implicit Binding:**
+
+This is a **major source of bugs** in JavaScript:
+
+**Problem 1: Extracting Methods**
+```javascript
+const user = {
+    name: 'Alice',
+    greet: function() {
+        console.log(`Hello, I'm ${this.name}`);
+    }
+};
+
+const greet = user.greet; // Extract method
+greet(); // ❌ "Hello, I'm undefined"
+         // Lost binding! Now standalone function call
+```
+
+**Problem 2: Callback Functions**
+```javascript
+const user = {
+    name: 'Alice',
+    greet: function() {
+        console.log(`Hello, I'm ${this.name}`);
+    }
+};
+
+setTimeout(user.greet, 1000); // ❌ "Hello, I'm undefined"
+// Function reference passed, binding lost!
+```
+
+**Problem 3: Event Handlers**
+```javascript
+button.addEventListener('click', user.greet);
+// ❌ this = button element, not user!
+```
+
+**Solutions:**
+
+**Solution 1: Arrow Function Wrapper**
+```javascript
+setTimeout(() => user.greet(), 1000); // ✅ Works
+// Arrow keeps user reference
+```
+
+**Solution 2: bind()**
+```javascript
+setTimeout(user.greet.bind(user), 1000); // ✅ Works
+// Permanently bind this to user
+```
+
+**Solution 3: Arrow Function Method (ES6)**
+```javascript
+const user = {
+    name: 'Alice',
+    greet: () => {
+        console.log(`Hello, I'm ${this.name}`);
+    }
+};
+// ⚠️ But this creates different problems - arrow inherits outer this!
+```
+
+**When Binding Is Lost:**
+
+| Scenario | Binding Lost? | Fix |
+|----------|--------------|-----|
+| `obj.method()` | ❌ No | - |
+| `const fn = obj.method` | ✅ Yes | Use `.bind()` |
+| `setTimeout(obj.method, 1000)` | ✅ Yes | Wrapper or `.bind()` |
+| `element.addEventListener('click', obj.method)` | ✅ Yes | `.bind()` or arrow |
+| `array.map(obj.method)` | ✅ Yes | Wrapper or `.bind()` |
+
+**Key Insight:**
+> Implicit binding only works when the function is called **as a method** with the dot notation. Extracting or passing the method breaks this binding.
 
 **Method Invocation** - Demonstrates implicit 'this' binding where 'this' refers to the object the method is called on, and how this binding can be lost.
 

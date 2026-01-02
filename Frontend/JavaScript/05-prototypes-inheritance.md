@@ -30,9 +30,81 @@ JavaScript uses **prototypal inheritance**, fundamentally different from classic
 
 ### 1. What is a Prototype?
 
-**Prototypes** are JavaScript's inheritance mechanism - every object has a hidden internal property [[Prototype]] that references another object. When you access a property that doesn't exist on an object, JavaScript automatically looks up the prototype chain until it finds the property or reaches null. This delegation-based inheritance differs from classical inheritance in Java/C++ where classes define blueprints that are copied to instances. In JavaScript, objects inherit directly from other objects through prototype links. The `__proto__` property provides direct access to an object's prototype (though Object.getPrototypeOf() is preferred). Understanding prototypes is essential because they underlie all JavaScript inheritance, including ES6 classes which are just syntactic sugar over prototypes.
+### 💡 **JavaScript's Inheritance Mechanism**
 
-**Prototype Property Access** - Shows how to access an object's prototype using __proto__ or Object.getPrototypeOf(), and how objects inherit from Object.prototype.
+Prototypes are the foundation of JavaScript's inheritance system.
+
+**Core Concept:**
+
+Every object has a hidden internal property `[[Prototype]]` that references another object.
+
+**How Prototype Lookup Works:**
+
+```
+Access obj.property
+    ↓
+1. Check obj itself → Found? Return it
+    ↓ Not found
+2. Check obj.[[Prototype]] → Found? Return it
+    ↓ Not found
+3. Check [[Prototype]].[[Prototype]] → Found? Return it
+    ↓ Not found
+4. ... Continue up the chain
+    ↓ Reached null
+5. Return undefined
+```
+
+**Key Characteristics:**
+
+**1. Delegation-Based Inheritance:**
+- Objects inherit **directly** from other objects
+- No classes as blueprints (unlike Java/C++)
+- Properties are **shared**, not copied
+
+**2. Prototype Chain:**
+- Each object links to its prototype
+- Forms a chain: `obj → prototype → prototype → ... → null`
+- Property lookup traverses the chain
+
+**3. Accessing Prototypes:**
+```javascript
+const obj = {};
+
+// Method 1: __proto__ (non-standard but widely supported)
+obj.__proto__
+
+// Method 2: Object.getPrototypeOf() (preferred ✅)
+Object.getPrototypeOf(obj)
+
+// Method 3: Constructor's prototype
+obj.constructor.prototype
+```
+
+**Comparison with Classical Inheritance:**
+
+| JavaScript (Prototypal) | Java/C++ (Classical) |
+|------------------------|---------------------|
+| Object → Object links | Class → Instance copies |
+| Delegation (shared) | Inheritance (copied) |
+| Dynamic at runtime | Fixed at compile time |
+| Prototype chain lookup | Hierarchical structure |
+
+**Why This Matters:**
+
+**Memory Efficiency:**
+- Methods shared via prototype (not duplicated per instance)
+- One method in memory, used by all instances
+
+**Dynamic Behavior:**
+- Add methods to prototype → all instances get them
+- Modify prototype → affects all instances
+
+**Foundation of Everything:**
+- ES6 classes are syntactic sugar over prototypes
+- Understanding prototypes = understanding JavaScript objects
+
+**The Hidden Truth:**
+> Every object in JavaScript (except `null`) has a prototype. Even ES6 classes use prototypes under the hood - `class` syntax is just a cleaner way to work with the prototype system.
 
 ```javascript
 const obj = {};
@@ -82,9 +154,113 @@ console.log(child.surname); // 'Smith' (from grandparent)
 
 ### 3. Constructor Functions
 
-**Constructor Functions** are the pre-ES6 way to create object "classes" in JavaScript. They're regular functions called with `new` that initialize object properties. The key pattern is putting methods on the constructor's prototype property rather than directly on instances - this way all instances share the same method functions, saving memory. Without prototypes, each instance would get its own copy of every method, wasting memory when you have thousands of objects. The prototype pattern enables memory-efficient object creation while maintaining the ability to add/modify methods for all instances. This pattern is the foundation that ES6 classes build upon.
+### 💡 **Pre-ES6 Object "Classes"**
 
-**Constructor Functions with Prototypes** - Shows how constructor functions create instances with shared methods on the prototype for memory efficiency.
+Constructor functions are the traditional way to create object templates in JavaScript.
+
+**The Pattern:**
+
+**Instance Properties** (unique per object):
+- Defined inside constructor with `this.property`
+- Each instance gets its own copy
+
+**Shared Methods** (shared across all instances):
+- Defined on `Constructor.prototype`
+- All instances reference the same function
+
+**Why Use Prototypes for Methods:**
+
+**❌ Without Prototype (Inefficient):**
+```javascript
+function Person(name) {
+    this.name = name;
+    // Each instance gets its own copy of greet
+    this.greet = function() {
+        console.log(`Hi, I'm ${this.name}`);
+    };
+}
+
+const p1 = new Person('Alice');
+const p2 = new Person('Bob');
+
+console.log(p1.greet === p2.greet); // false ❌
+// Two separate functions in memory!
+```
+
+**Memory Cost:**
+- 1 instance = 1 method copy
+- 1000 instances = 1000 method copies 🔴
+- Wastes memory
+
+**✅ With Prototype (Efficient):**
+```javascript
+function Person(name) {
+    this.name = name; // Instance property
+}
+
+// Method on prototype (shared)
+Person.prototype.greet = function() {
+    console.log(`Hi, I'm ${this.name}`);
+};
+
+const p1 = new Person('Alice');
+const p2 = new Person('Bob');
+
+console.log(p1.greet === p2.greet); // true ✅
+// Same function reference!
+```
+
+**Memory Cost:**
+- 1 method in memory
+- 1000 instances = still 1 method copy ✅
+- Memory efficient
+
+**The Prototype Pattern Benefits:**
+
+| Benefit | Description |
+|---------|-------------|
+| **Memory Efficiency** | Methods shared, not duplicated |
+| **Dynamic Updates** | Change prototype → affects all instances |
+| **Inheritance** | Easy to set up prototype chains |
+| **Performance** | Less memory = better performance |
+
+**Memory Comparison:**
+
+```
+Without Prototype:
+Person Instance 1: { name: 'Alice', greet: function() {...} }
+Person Instance 2: { name: 'Bob',   greet: function() {...} }
+Person Instance 3: { name: 'Carol', greet: function() {...} }
+→ 3 greet functions in memory
+
+With Prototype:
+Person Instance 1: { name: 'Alice' } ──┐
+Person Instance 2: { name: 'Bob' }   ──┼──> Person.prototype.greet: function() {...}
+Person Instance 3: { name: 'Carol' } ──┘
+→ 1 greet function in memory
+```
+
+**ES6 Classes Build on This:**
+
+This exact pattern is what ES6 `class` syntax uses under the hood:
+
+```javascript
+class Person {
+    constructor(name) {
+        this.name = name; // Instance property
+    }
+
+    greet() {
+        // Goes on Person.prototype automatically!
+        console.log(`Hi, I'm ${this.name}`);
+    }
+}
+
+// Equivalent to constructor function + prototype pattern
+```
+
+**Key Insight:**
+> The prototype pattern isn't just a legacy feature - it's the efficient, scalable way to create objects with shared behavior. ES6 classes are syntactic sugar that make this pattern cleaner to write.
 
 ```javascript
 function Person(name, age) {

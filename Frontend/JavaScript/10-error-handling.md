@@ -46,7 +46,183 @@ Proper error handling separates production-ready code from prototypes. It's the 
 
 **Basic Structure**
 
-**Try/Catch/Finally Blocks** - Try/catch/finally is JavaScript's structured exception handling mechanism, enabling graceful error recovery instead of crashes. The try block contains potentially failing code, catch receives and handles errors (with access to the error object containing message and stack trace), and finally runs cleanup code regardless of success or failure - perfect for releasing resources like file handles or database connections. The finally block executes even if try or catch contains return statements, making it the guaranteed cleanup mechanism. This pattern transforms unpredictable errors into handled, recoverable situations, essential for building robust applications.
+### 💡 **Try/Catch/Finally Blocks**
+
+JavaScript's structured exception handling mechanism for graceful error recovery.
+
+**The Three Blocks:**
+
+```javascript
+try {
+    // Code that might throw errors
+} catch (error) {
+    // Handle the error
+} finally {
+    // Cleanup (always runs)
+}
+```
+
+**How Each Block Works:**
+
+**1. Try Block:**
+- Contains potentially failing code
+- Execution stops at first error
+- Jumps to catch block if error occurs
+
+**2. Catch Block:**
+- Receives error object
+- Access to `error.message` and `error.stack`
+- Handles or logs the error
+- Can re-throw if needed
+
+**3. Finally Block:**
+- **Always executes** (success or failure)
+- Perfect for cleanup operations
+- Runs even if try/catch has `return`
+
+**Execution Flow:**
+
+```
+try {
+    statement1; ✅ Executes
+    statement2; ✅ Executes
+    throwError(); ❌ Error thrown!
+    statement3; ⏭️ Skipped
+}
+    ↓
+catch (error) {
+    handleError(); ✅ Executes
+}
+    ↓
+finally {
+    cleanup(); ✅ Always executes
+}
+```
+
+**Error Object Properties:**
+
+```javascript
+try {
+    throw new Error('Something went wrong');
+} catch (error) {
+    console.log(error.name);    // "Error"
+    console.log(error.message); // "Something went wrong"
+    console.log(error.stack);   // Full stack trace
+}
+```
+
+**Finally Block Guarantees:**
+
+**Scenario 1: Success**
+```javascript
+try {
+    return 'success';
+} finally {
+    console.log('Cleanup'); // Still runs before return!
+}
+// Output: "Cleanup", then returns "success"
+```
+
+**Scenario 2: Error**
+```javascript
+try {
+    throw new Error('fail');
+} catch (e) {
+    return 'handled';
+} finally {
+    console.log('Cleanup'); // Still runs!
+}
+```
+
+**Scenario 3: Early Return**
+```javascript
+try {
+    if (condition) return early;
+    doWork();
+} finally {
+    cleanup(); // Runs even with early return!
+}
+```
+
+**Common Use Cases:**
+
+**1. Resource Cleanup:**
+```javascript
+function readFile(filename) {
+    let file;
+    try {
+        file = openFile(filename);
+        return file.read();
+    } catch (error) {
+        console.error('Read failed:', error);
+        return null;
+    } finally {
+        if (file) file.close(); // Always close file
+    }
+}
+```
+
+**2. Database Connections:**
+```javascript
+async function queryDatabase() {
+    let connection;
+    try {
+        connection = await db.connect();
+        return await connection.query('SELECT * FROM users');
+    } catch (error) {
+        console.error('Query failed:', error);
+        throw error;
+    } finally {
+        if (connection) await connection.close(); // Always close
+    }
+}
+```
+
+**3. Loading States:**
+```javascript
+async function fetchData() {
+    setLoading(true);
+    try {
+        const data = await api.fetch();
+        setData(data);
+    } catch (error) {
+        setError(error);
+    } finally {
+        setLoading(false); // Always reset loading state
+    }
+}
+```
+
+**Best Practices:**
+
+| Practice | Why |
+|----------|-----|
+| **Use finally for cleanup** | Guaranteed execution |
+| **Don't swallow errors** | Always log or handle |
+| **Re-throw when appropriate** | Let caller handle if needed |
+| **Specific error handling** | Check error types |
+| **Clean up resources** | Prevent memory leaks |
+
+**The Transformation:**
+
+**From Crashes:**
+```javascript
+const data = JSON.parse(invalidJSON); // 💥 Crash!
+```
+
+**To Handled Errors:**
+```javascript
+try {
+    const data = JSON.parse(invalidJSON);
+    processData(data);
+} catch (error) {
+    console.error('Parse failed:', error.message);
+    return { error: 'Invalid JSON' }; // Graceful degradation
+}
+```
+
+**Key Insight:**
+> The `finally` block is the **only** guaranteed cleanup mechanism in JavaScript. It executes even if `try` or `catch` contains `return`, `throw`, or `break` statements - making it perfect for releasing resources.
 
 ```javascript
 try {
@@ -111,7 +287,195 @@ function readFile(filename) {
 
 **throw Statement**
 
-**Throwing Custom Errors** - Throwing errors is how you signal exceptional conditions that callers should handle. Always throw Error objects (not strings or numbers) - they capture stack traces for debugging. The throw statement immediately stops execution and transfers control to the nearest catch block, unwinding the call stack until a handler is found or the program crashes. Good error messages are specific and actionable, describing what went wrong and potentially how to fix it. Throwing errors for truly exceptional conditions (invalid arguments, impossible states) while using return values for expected failure cases (not found, validation failed) creates clearer APIs.
+### 💡 **Throwing Custom Errors**
+
+How to signal exceptional conditions that callers should handle.
+
+**The Basics:**
+
+**Syntax:**
+```javascript
+throw new Error('Error message');
+```
+
+**What Happens:**
+```
+throw statement
+    ↓
+Execution stops immediately
+    ↓
+Call stack unwinds
+    ↓
+Searches for catch block
+    ↓
+Found? → Execute catch
+Not found? → Program crashes
+```
+
+**Always Throw Error Objects:**
+
+**❌ Bad (Primitives):**
+```javascript
+throw 'Error!';           // String
+throw 404;                // Number
+throw { message: 'Bad' }; // Plain object
+```
+
+**Problems:**
+- No stack trace
+- Hard to debug
+- Can't determine error type
+
+**✅ Good (Error Objects):**
+```javascript
+throw new Error('Something went wrong');
+throw new TypeError('Expected string');
+throw new RangeError('Value out of bounds');
+```
+
+**Benefits:**
+- ✅ Automatic stack trace
+- ✅ Error type information
+- ✅ Debugging-friendly
+- ✅ Standardized interface
+
+**Error Message Best Practices:**
+
+**❌ Vague:**
+```javascript
+throw new Error('Error'); // What error?
+throw new Error('Bad input'); // Which input? What's wrong?
+```
+
+**✅ Specific and Actionable:**
+```javascript
+throw new Error('User ID must be a positive integer, got: ' + userId);
+throw new Error('Email format invalid: missing @ symbol');
+throw new TypeError(`Expected array, got ${typeof value}`);
+```
+
+**Good Error Messages:**
+1. **Describe what went wrong**
+2. **Include the problematic value** (if safe)
+3. **Suggest how to fix it** (when possible)
+4. **Be specific, not generic**
+
+**When to Throw vs Return:**
+
+| Scenario | Use | Example |
+|----------|-----|---------|
+| **Exceptional/Unexpected** | `throw` | Invalid arguments, impossible states |
+| **Expected failures** | `return` | Item not found, validation failed |
+| **Programmer errors** | `throw` | Function misused, contract violated |
+| **User errors** | `return` | Invalid form input, missing data |
+| **Unrecoverable** | `throw` | System failures, critical errors |
+| **Recoverable** | `return` | Retry-able failures, alternatives |
+
+**Examples:**
+
+**Throw for Exceptional Conditions:**
+```javascript
+function divide(a, b) {
+    if (typeof a !== 'number' || typeof b !== 'number') {
+        throw new TypeError('Arguments must be numbers');
+    }
+    if (b === 0) {
+        throw new Error('Division by zero');
+    }
+    return a / b;
+}
+```
+
+**Return for Expected Failures:**
+```javascript
+function findUser(id) {
+    const user = database.find(id);
+    if (!user) {
+        return null; // Expected - user might not exist
+    }
+    return user;
+}
+```
+
+**API Design Pattern:**
+
+```javascript
+// ❌ Poor API - throws for expected case
+function getConfig(key) {
+    if (!config[key]) {
+        throw new Error('Config not found'); // Expected case!
+    }
+    return config[key];
+}
+
+// ✅ Better API - return for expected, throw for exceptional
+function getConfig(key) {
+    if (typeof key !== 'string') {
+        throw new TypeError('Key must be string'); // Exceptional
+    }
+    return config[key] || null; // Expected
+}
+```
+
+**Error Propagation:**
+
+**Stack Unwinding:**
+```javascript
+function level3() {
+    throw new Error('Error at level 3');
+}
+
+function level2() {
+    level3(); // Error propagates up
+}
+
+function level1() {
+    try {
+        level2();
+    } catch (error) {
+        console.error('Caught:', error.message);
+        // Stack trace shows: level3 → level2 → level1
+    }
+}
+```
+
+**Re-throwing:**
+```javascript
+function processData(data) {
+    try {
+        return riskyOperation(data);
+    } catch (error) {
+        console.error('Operation failed:', error);
+        throw error; // Re-throw for caller to handle
+    }
+}
+```
+
+**Creating Informative Errors:**
+
+```javascript
+function validateAge(age) {
+    if (typeof age !== 'number') {
+        throw new TypeError(
+            `Age must be a number, got ${typeof age}`
+        );
+    }
+    if (age < 0) {
+        throw new RangeError(
+            `Age cannot be negative, got ${age}`
+        );
+    }
+    if (age < 18) {
+        throw new Error(
+            `Must be 18 or older, got ${age}`
+        );
+    }
+    return true;
+}
+```
+
+**Key Insight:**
+> Use `throw` for **exceptional conditions** (contract violations, impossible states) and `return` for **expected failures** (not found, validation). This creates clearer APIs where errors truly mean something went wrong, not just "this is an alternative path."
 
 ```javascript
 function divide(a, b) {
