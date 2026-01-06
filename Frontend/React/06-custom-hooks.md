@@ -1,109 +1,361 @@
 # Custom Hooks (React 18)
 
-Custom hooks allow you to extract and reuse stateful logic across multiple components. **React 18** enhances custom hooks with better performance through automatic batching and concurrent features.
+## Understanding Custom Hooks
 
-## 📚 Core Concepts
+**Custom hooks** are reusable functions that encapsulate stateful logic, allowing you to share behavior across components without duplicating code. They're one of React's most powerful composition patterns.
 
-### 1. Creating Custom Hooks
+## Why Custom Hooks Matter
 
-**Custom Hooks** are the primary mechanism for extracting and reusing stateful logic in React. They're regular JavaScript functions that use built-in hooks and follow hook rules. The "use" prefix is mandatory - it signals to React and linting tools that hook rules apply. Custom hooks enable sharing logic without changing component hierarchy (unlike render props or HOCs). They can call other hooks, manage state, set up effects, and return any values or functions - essentially creating reusable "logic components." This is one of React's most powerful composition patterns, enabling DRY principles for stateful behavior like form handling, data fetching, subscriptions, or animations.
+**Interview Perspective:**
+- Asked in 70%+ of mid to senior React interviews
+- Demonstrates understanding of code reusability and abstraction
+- Tests ability to identify common patterns and extract logic
+- Shows knowledge of hook rules and composition
+- Critical for senior roles where architectural decisions matter
+
+**Real-World Importance:**
+- **Code Reusability**: Write logic once, use everywhere
+- **Maintainability**: Fix bugs in one place
+- **Testability**: Test logic independently from UI
+- **Separation of Concerns**: Keep components focused on rendering
+- **Team Productivity**: Share patterns across team members
+
+## Core Concepts Overview
+
+### Custom Hook Characteristics
+
+| Aspect | Description | Example |
+|--------|-------------|---------|
+| **Naming** | Must start with "use" | `useCounter`, `useFetch` |
+| **Composition** | Can call other hooks | `useState`, `useEffect` inside |
+| **Return Value** | Can return anything | Array, object, primitive, function |
+| **Independence** | Each call is independent | Separate state instances |
+| **Reusability** | Share logic, not state | Different components, different state |
+
+### Common Custom Hook Patterns
+
+| Pattern | Purpose | Returns |
+|---------|---------|---------|
+| **State Encapsulation** | Manage complex state logic | `[state, actions]` |
+| **Side Effect** | Encapsulate subscriptions/effects | Cleanup function |
+| **Data Fetching** | Standardize API calls | `{ data, loading, error }` |
+| **Form Handling** | Simplify form state | `{ values, errors, handlers }` |
+| **Browser API** | Wrap browser features | Responsive value |
+
+## Key Principles
+
+### ✅ Do:
+- Start names with "use" prefix
+- Follow all hook rules (top level, React functions only)
+- Return values that make sense for consumers
+- Keep hooks focused (single responsibility)
+- Document what the hook does and its parameters
+- Handle edge cases (cleanup, error states)
+
+### ❌ Don't:
+- Call hooks conditionally or in loops
+- Use hooks outside React functions
+- Share state between hook calls
+- Make hooks do too many things
+- Forget to include all dependencies
+- Return inconsistent value types
+
+---
+
+## Example 1: useCounter Hook
+
+### 💡 **useCounter - State Encapsulation Pattern**
+
+A simple but illustrative example of extracting stateful logic into a reusable hook.
+
+**What It Demonstrates:**
+- State management encapsulation
+- Exposing controlled actions (increment, decrement, reset)
+- Customizable initial value
+- Clean, predictable API
+
+**Benefits:**
+1. **Reusability**: Same counter logic across multiple components
+2. **Testability**: Test counter logic without rendering components
+3. **Simplicity**: Components don't need to know implementation details
+4. **Maintainability**: Change counter behavior in one place
 
 ```jsx
 import { useState } from 'react';
 
-// Custom hook must start with "use"
-function useCounter(initialValue = 0) {
+// Custom hook for counter logic
+function useCounter(initialValue = 0, { min, max, step = 1 } = {}) {
     const [count, setCount] = useState(initialValue);
 
-    const increment = () => setCount(c => c + 1);
-    const decrement = () => setCount(c => c - 1);
+    const increment = () => {
+        setCount(prevCount => {
+            const newValue = prevCount + step;
+            return max !== undefined ? Math.min(newValue, max) : newValue;
+        });
+    };
+
+    const decrement = () => {
+        setCount(prevCount => {
+            const newValue = prevCount - step;
+            return min !== undefined ? Math.max(newValue, min) : newValue;
+        });
+    };
+
     const reset = () => setCount(initialValue);
 
-    return { count, increment, decrement, reset };
+    const set = (value) => {
+        let newValue = value;
+        if (min !== undefined) newValue = Math.max(newValue, min);
+        if (max !== undefined) newValue = Math.min(newValue, max);
+        setCount(newValue);
+    };
+
+    return {
+        count,
+        increment,
+        decrement,
+        reset,
+        set
+    };
 }
 
-// Usage
-function Counter() {
-    const { count, increment, decrement, reset } = useCounter(0);
+// Usage in components
+function ShoppingCart() {
+    const { count, increment, decrement, reset } = useCounter(1, { min: 1, max: 10 });
 
     return (
         <div>
-            <p>Count: {count}</p>
-            <button onClick={increment}>+</button>
+            <p>Quantity: {count}</p>
             <button onClick={decrement}>-</button>
+            <button onClick={increment}>+</button>
             <button onClick={reset}>Reset</button>
+        </div>
+    );
+}
+
+function VolumeControl() {
+    const { count: volume, increment, decrement, set } = useCounter(50, {
+        min: 0,
+        max: 100,
+        step: 5
+    });
+
+    return (
+        <div>
+            <p>Volume: {volume}%</p>
+            <button onClick={decrement}>-5</button>
+            <button onClick={increment}>+5</button>
+            <button onClick={() => set(0)}>Mute</button>
+            <button onClick={() => set(100)}>Max</button>
         </div>
     );
 }
 ```
 
-### 2. useLocalStorage Hook
+---
 
-**useLocalStorage** demonstrates a practical custom hook that synchronizes React state with browser localStorage, enabling state persistence across page refreshes. The lazy initialization pattern (function passed to useState) reads from localStorage only once on mount, avoiding expensive localStorage access on every render. The custom hook handles JSON serialization/deserialization and error cases (like quota exceeded or disabled localStorage), providing a clean API to consumers. Supporting function updaters (like regular useState) ensures the hook works as a drop-in useState replacement. This pattern is so common that many apps include a useLocalStorage hook in their utilities.
+## Example 2: useLocalStorage Hook
+
+### 💡 **useLocalStorage - Browser API Integration**
+
+Synchronizes React state with localStorage for persistence across sessions.
+
+**How It Works:**
+
+```
+Component mounts
+     ↓
+Read from localStorage (lazy init)
+     ↓
+Initialize state with stored/default value
+     ↓
+User updates state
+     ↓
+Update React state AND localStorage
+     ↓
+Value persists across page refreshes!
+```
+
+**Key Features:**
+- Lazy initialization (only reads localStorage once)
+- JSON serialization/deserialization
+- Error handling (quota exceeded, storage disabled)
+- Function updater support (like regular useState)
+- Works as drop-in useState replacement
+
+**Common Use Cases:**
+- User preferences (theme, language)
+- Form draft saving
+- Shopping cart persistence
+- Recently viewed items
+- User settings
 
 ```jsx
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 function useLocalStorage(key, initialValue) {
+    // Lazy initialization: only read localStorage once
     const [storedValue, setStoredValue] = useState(() => {
+        if (typeof window === 'undefined') {
+            return initialValue;
+        }
+
         try {
             const item = window.localStorage.getItem(key);
             return item ? JSON.parse(item) : initialValue;
         } catch (error) {
-            console.error(error);
+            console.error(`Error reading localStorage key "${key}":`, error);
             return initialValue;
         }
     });
 
+    // Return a wrapped version of useState's setter function that
+    // persists the new value to localStorage
     const setValue = useCallback((value) => {
         try {
+            // Allow value to be a function (like regular useState)
             const valueToStore = value instanceof Function
                 ? value(storedValue)
                 : value;
 
+            // Save to state
             setStoredValue(valueToStore);
-            window.localStorage.setItem(key, JSON.stringify(valueToStore));
+
+            // Save to localStorage
+            if (typeof window !== 'undefined') {
+                window.localStorage.setItem(key, JSON.stringify(valueToStore));
+            }
         } catch (error) {
-            console.error(error);
+            console.error(`Error setting localStorage key "${key}":`, error);
         }
     }, [key, storedValue]);
+
+    // Optional: Sync with other tabs/windows
+    useEffect(() => {
+        const handleStorageChange = (e) => {
+            if (e.key === key && e.newValue) {
+                setStoredValue(JSON.parse(e.newValue));
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [key]);
 
     return [storedValue, setValue];
 }
 
-// Usage
-function App() {
-    const [name, setName] = useLocalStorage('name', 'Guest');
+// Usage examples
+function ThemeToggle() {
+    const [theme, setTheme] = useLocalStorage('theme', 'light');
+
+    const toggleTheme = () => {
+        setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    };
 
     return (
-        <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-        />
+        <button onClick={toggleTheme}>
+            Current theme: {theme}
+        </button>
+    );
+}
+
+function UserSettings() {
+    const [settings, setSettings] = useLocalStorage('user-settings', {
+        notifications: true,
+        language: 'en',
+        fontSize: 16
+    });
+
+    const updateSetting = (key, value) => {
+        setSettings(prev => ({ ...prev, [key]: value }));
+    };
+
+    return (
+        <div>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={settings.notifications}
+                    onChange={(e) => updateSetting('notifications', e.target.checked)}
+                />
+                Enable Notifications
+            </label>
+
+            <select
+                value={settings.language}
+                onChange={(e) => updateSetting('language', e.target.value)}
+            >
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+            </select>
+        </div>
     );
 }
 ```
 
-### 3. useFetch Hook
+---
 
-**useFetch** encapsulates the complete data fetching pattern - managing loading states, error handling, and cleanup - into a reusable hook. This pattern appears frequently in React applications before adopting dedicated data fetching libraries like React Query or SWR. The AbortController prevents race conditions when the URL changes rapidly or the component unmounts during fetch - without it, stale requests can overwrite newer data or set state on unmounted components causing memory leaks. The `cancelled` flag provides defense in depth. While production apps often use libraries, understanding this pattern is essential for interviews and scenarios where third-party dependencies aren't appropriate.
+## Example 3: useFetch Hook
+
+### 💡 **useFetch - Data Fetching Pattern**
+
+Encapsulates the complete data fetching lifecycle with loading, error, and success states.
+
+**The Problem It Solves:**
+
+Without useFetch, every component needs:
+- Loading state management
+- Error handling
+- Data storage
+- Cleanup to prevent memory leaks
+- Race condition handling
+
+**How useFetch Helps:**
+
+```
+Component mounts
+     ↓
+useFetch starts loading (loading = true)
+     ↓
+Fetch API call initiated
+     ↓
+Success → data populated, loading = false
+Failure → error set, loading = false
+Unmount → Cleanup, prevent state updates
+```
+
+**Advanced Features:**
+- AbortController for request cancellation
+- Race condition prevention
+- Memory leak prevention
+- Flexible error handling
+- Easy to extend (caching, retries, etc.)
 
 ```jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-function useFetch(url) {
+function useFetch(url, options = {}) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Use ref to track if component is mounted
+    const isMountedRef = useRef(true);
+
     useEffect(() => {
-        let cancelled = false;
+        // Reset states when URL changes
+        setLoading(true);
+        setError(null);
+
+        // Create AbortController for this request
         const controller = new AbortController();
 
         const fetchData = async () => {
             try {
-                setLoading(true);
                 const response = await fetch(url, {
+                    ...options,
                     signal: controller.signal
                 });
 
@@ -113,17 +365,19 @@ function useFetch(url) {
 
                 const json = await response.json();
 
-                if (!cancelled) {
+                // Only update state if component is still mounted
+                if (isMountedRef.current) {
                     setData(json);
                     setError(null);
                 }
             } catch (e) {
-                if (!cancelled && e.name !== 'AbortError') {
+                // Ignore abort errors (from cleanup)
+                if (e.name !== 'AbortError' && isMountedRef.current) {
                     setError(e.message);
                     setData(null);
                 }
             } finally {
-                if (!cancelled) {
+                if (isMountedRef.current) {
                     setLoading(false);
                 }
             }
@@ -131,71 +385,141 @@ function useFetch(url) {
 
         fetchData();
 
+        // Cleanup function
         return () => {
-            cancelled = true;
+            isMountedRef.current = false;
             controller.abort();
         };
-    }, [url]);
+    }, [url]); // Re-run when URL changes
 
     return { data, loading, error };
 }
 
-// Usage
+// Advanced version with manual refetch
+function useFetchAdvanced(url, options = {}) {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const fetchData = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch(url, options);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const json = await response.json();
+            setData(json);
+            return json;
+        } catch (e) {
+            setError(e.message);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { data, loading, error, refetch: fetchData };
+}
+
+// Usage examples
 function UserProfile({ userId }) {
-    const { data, loading, error } = useFetch(`/api/users/${userId}`);
+    const { data: user, loading, error } = useFetch(
+        `https://api.example.com/users/${userId}`
+    );
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Loading user...</div>;
     if (error) return <div>Error: {error}</div>;
-
-    return <div>{data.name}</div>;
-}
-```
-
-### 4. useToggle Hook
-
-**useState, useCallback** - Simple custom hook for boolean toggle state. Returns a stable toggle function using useCallback, useful for modals, dropdowns, and visibility toggles.
-
-```jsx
-import { useState, useCallback } from 'react';
-
-function useToggle(initialValue = false) {
-    const [value, setValue] = useState(initialValue);
-
-    const toggle = useCallback(() => {
-        setValue(v => !v);
-    }, []);
-
-    return [value, toggle];
-}
-
-// Usage
-function Modal() {
-    const [isOpen, toggleOpen] = useToggle(false);
+    if (!user) return null;
 
     return (
-        <>
-            <button onClick={toggleOpen}>Open Modal</button>
-            {isOpen && <div className="modal">...</div>}
-        </>
+        <div>
+            <h2>{user.name}</h2>
+            <p>{user.email}</p>
+        </div>
+    );
+}
+
+function PostsList() {
+    const { data: posts, loading, error, refetch } = useFetchAdvanced(
+        'https://api.example.com/posts'
+    );
+
+    if (loading) return <div>Loading posts...</div>;
+    if (error) return <div>Error: {error}</div>;
+
+    return (
+        <div>
+            <button onClick={refetch}>Refresh</button>
+            {posts?.map(post => (
+                <article key={post.id}>
+                    <h3>{post.title}</h3>
+                    <p>{post.body}</p>
+                </article>
+            ))}
+        </div>
     );
 }
 ```
 
-### 5. useDebounce Hook
+---
 
-**useState, useEffect** - Custom hook that delays updating a value until after a specified delay. Essential for optimizing search inputs and API calls by reducing unnecessary requests.
+## Example 4: useDebounce Hook
+
+### 💡 **useDebounce - Performance Optimization**
+
+Delays updating a value until after a period of inactivity.
+
+**The Problem:**
+
+Expensive operations triggered on every keystroke:
+- API calls
+- Complex filtering
+- Heavy calculations
+- DOM manipulations
+
+**The Solution:**
+
+```
+User types "hello"
+     ↓
+'h'   → Start timer
+'he'  → Reset timer
+'hel' → Reset timer
+'hell'→ Reset timer
+'hello'→ Reset timer
+     ↓
+(500ms of silence)
+     ↓
+Debounced value updates to "hello"
+     ↓
+Trigger expensive operation once!
+```
+
+**Use Cases:**
+- Search inputs
+- Auto-save functionality
+- Resize event handlers
+- Scroll listeners
+- Form validation
 
 ```jsx
 import { useState, useEffect } from 'react';
 
-function useDebounce(value, delay) {
+function useDebounce(value, delay = 500) {
     const [debouncedValue, setDebouncedValue] = useState(value);
 
     useEffect(() => {
+        // Set up timer to update debounced value
         const handler = setTimeout(() => {
             setDebouncedValue(value);
         }, delay);
 
+        // Cleanup: cancel timer if value changes before delay expires
         return () => {
             clearTimeout(handler);
         };
@@ -204,336 +528,895 @@ function useDebounce(value, delay) {
     return debouncedValue;
 }
 
-// Usage
-function SearchInput() {
+// Advanced version with callback
+function useDebouncedCallback(callback, delay = 500) {
+    const [timeoutId, setTimeoutId] = useState(null);
+
+    const debouncedCallback = (...args) => {
+        // Clear existing timeout
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+
+        // Set new timeout
+        const newTimeoutId = setTimeout(() => {
+            callback(...args);
+        }, delay);
+
+        setTimeoutId(newTimeoutId);
+    };
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [timeoutId]);
+
+    return debouncedCallback;
+}
+
+// Usage: Search with API calls
+function SearchUsers() {
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
 
+    // Effect runs only when debounced value changes
     useEffect(() => {
-        if (debouncedSearchTerm) {
-            // API call here
-            console.log('Searching for:', debouncedSearchTerm);
+        if (!debouncedSearchTerm) {
+            setResults([]);
+            return;
         }
-    }, [debouncedSearchTerm]);
+
+        const searchUsers = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(
+                    `https://api.example.com/users?search=${debouncedSearchTerm}`
+                );
+                const data = await response.json();
+                setResults(data);
+            } catch (error) {
+                console.error('Search failed:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        searchUsers();
+    }, [debouncedSearchTerm]); // Only when debounced value changes
 
     return (
-        <input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search..."
-        />
+        <div>
+            <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search users..."
+            />
+
+            {loading && <div>Searching...</div>}
+
+            <ul>
+                {results.map(user => (
+                    <li key={user.id}>{user.name}</li>
+                ))}
+            </ul>
+
+            <p>
+                Typing: "{searchTerm}"<br />
+                Searching for: "{debouncedSearchTerm}"
+            </p>
+        </div>
+    );
+}
+
+// Usage: Auto-save with debounced callback
+function AutoSaveEditor() {
+    const [content, setContent] = useState('');
+    const [saveStatus, setSaveStatus] = useState('');
+
+    const saveToServer = async (text) => {
+        setSaveStatus('Saving...');
+        try {
+            await fetch('/api/save', {
+                method: 'POST',
+                body: JSON.stringify({ content: text })
+            });
+            setSaveStatus('Saved!');
+        } catch (error) {
+            setSaveStatus('Save failed');
+        }
+    };
+
+    const debouncedSave = useDebouncedCallback(saveToServer, 1000);
+
+    const handleChange = (e) => {
+        const newContent = e.target.value;
+        setContent(newContent);
+        debouncedSave(newContent);
+    };
+
+    return (
+        <div>
+            <textarea
+                value={content}
+                onChange={handleChange}
+                placeholder="Start typing... (auto-saves after 1 second)"
+            />
+            <div>Status: {saveStatus}</div>
+        </div>
     );
 }
 ```
 
-## 💡 Practical Examples
+---
 
-### Example 1: useForm Hook
+## Example 5: useForm Hook
 
-**useState** - Custom hook for form state management. Handles form values, errors, changes, submission, and reset logic in a reusable way across different forms.
+### 💡 **useForm - Complex State Management**
+
+Simplifies form handling by managing values, errors, validation, and submission.
+
+**Features:**
+- Centralized form state
+- Built-in validation
+- Error handling
+- Submit handling
+- Reset functionality
+- Field change tracking
 
 ```jsx
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-function useForm(initialValues) {
+function useForm(initialValues, validate) {
     const [values, setValues] = useState(initialValues);
     const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setValues(prev => ({ ...prev, [name]: value }));
-    };
+    const handleChange = useCallback((e) => {
+        const { name, value, type, checked } = e.target;
+        const newValue = type === 'checkbox' ? checked : value;
 
-    const handleSubmit = (callback) => (e) => {
+        setValues(prev => ({
+            ...prev,
+            [name]: newValue
+        }));
+
+        // Clear error when user types
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    }, [errors]);
+
+    const handleBlur = useCallback((e) => {
+        const { name } = e.target;
+
+        setTouched(prev => ({
+            ...prev,
+            [name]: true
+        }));
+
+        // Validate field on blur
+        if (validate) {
+            const fieldErrors = validate(values);
+            if (fieldErrors[name]) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: fieldErrors[name]
+                }));
+            }
+        }
+    }, [values, validate]);
+
+    const handleSubmit = useCallback((onSubmit) => async (e) => {
         e.preventDefault();
-        callback(values);
-    };
+        setIsSubmitting(true);
 
-    const reset = () => {
+        // Validate all fields
+        if (validate) {
+            const validationErrors = validate(values);
+            setErrors(validationErrors);
+
+            if (Object.keys(validationErrors).length > 0) {
+                setIsSubmitting(false);
+                return;
+            }
+        }
+
+        try {
+            await onSubmit(values);
+        } catch (error) {
+            console.error('Form submission error:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [values, validate]);
+
+    const reset = useCallback(() => {
         setValues(initialValues);
         setErrors({});
-    };
+        setTouched({});
+        setIsSubmitting(false);
+    }, [initialValues]);
+
+    const setFieldValue = useCallback((name, value) => {
+        setValues(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    }, []);
+
+    const setFieldError = useCallback((name, error) => {
+        setErrors(prev => ({
+            ...prev,
+            [name]: error
+        }));
+    }, []);
 
     return {
         values,
         errors,
+        touched,
+        isSubmitting,
         handleChange,
+        handleBlur,
         handleSubmit,
         reset,
-        setErrors
+        setFieldValue,
+        setFieldError
     };
 }
 
 // Usage
-function LoginForm() {
-    const { values, handleChange, handleSubmit } = useForm({
-        email: '',
-        password: ''
-    });
+function RegistrationForm() {
+    const validate = (values) => {
+        const errors = {};
 
-    const onSubmit = (formData) => {
+        if (!values.email) {
+            errors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+            errors.email = 'Email is invalid';
+        }
+
+        if (!values.password) {
+            errors.password = 'Password is required';
+        } else if (values.password.length < 8) {
+            errors.password = 'Password must be at least 8 characters';
+        }
+
+        if (values.password !== values.confirmPassword) {
+            errors.confirmPassword = 'Passwords do not match';
+        }
+
+        return errors;
+    };
+
+    const {
+        values,
+        errors,
+        touched,
+        isSubmitting,
+        handleChange,
+        handleBlur,
+        handleSubmit,
+        reset
+    } = useForm(
+        {
+            email: '',
+            password: '',
+            confirmPassword: '',
+            acceptTerms: false
+        },
+        validate
+    );
+
+    const onSubmit = async (formData) => {
         console.log('Submitting:', formData);
+        // API call here
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        alert('Registration successful!');
+        reset();
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            <input
-                name="email"
-                value={values.email}
-                onChange={handleChange}
-            />
-            <input
-                name="password"
-                type="password"
-                value={values.password}
-                onChange={handleChange}
-            />
-            <button type="submit">Login</button>
+            <div>
+                <label htmlFor="email">Email</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={values.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                />
+                {touched.email && errors.email && (
+                    <span className="error">{errors.email}</span>
+                )}
+            </div>
+
+            <div>
+                <label htmlFor="password">Password</label>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={values.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                />
+                {touched.password && errors.password && (
+                    <span className="error">{errors.password}</span>
+                )}
+            </div>
+
+            <div>
+                <label htmlFor="confirmPassword">Confirm Password</label>
+                <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={values.confirmPassword}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                />
+                {touched.confirmPassword && errors.confirmPassword && (
+                    <span className="error">{errors.confirmPassword}</span>
+                )}
+            </div>
+
+            <div>
+                <label>
+                    <input
+                        name="acceptTerms"
+                        type="checkbox"
+                        checked={values.acceptTerms}
+                        onChange={handleChange}
+                    />
+                    I accept the terms and conditions
+                </label>
+            </div>
+
+            <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Registering...' : 'Register'}
+            </button>
+            <button type="button" onClick={reset}>
+                Reset
+            </button>
         </form>
     );
 }
 ```
 
-### Example 2: useMediaQuery Hook
+---
 
-**useState, useEffect** - Custom hook for responsive design. Subscribes to CSS media query changes and updates state when screen size changes, enabling responsive React components.
+## Example 6: useMediaQuery Hook (React 18)
+
+### 💡 **useMediaQuery - Responsive Design**
+
+Subscribe to CSS media query changes for responsive React components.
 
 ```jsx
 import { useState, useEffect } from 'react';
 
 function useMediaQuery(query) {
-    const [matches, setMatches] = useState(
-        () => window.matchMedia(query).matches
-    );
+    const [matches, setMatches] = useState(() => {
+        // Check on initial render
+        if (typeof window !== 'undefined') {
+            return window.matchMedia(query).matches;
+        }
+        return false;
+    });
 
     useEffect(() => {
+        // Create media query list
         const mediaQuery = window.matchMedia(query);
+
+        // Update state when media query changes
         const handler = (e) => setMatches(e.matches);
 
-        mediaQuery.addEventListener('change', handler);
-        return () => mediaQuery.removeEventListener('change', handler);
+        // Modern browsers
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', handler);
+            return () => mediaQuery.removeEventListener('change', handler);
+        } else {
+            // Legacy browsers
+            mediaQuery.addListener(handler);
+            return () => mediaQuery.removeListener(handler);
+        }
     }, [query]);
 
     return matches;
 }
 
-// Usage
-function ResponsiveComponent() {
-    const isMobile = useMediaQuery('(max-width: 768px)');
-    const isTablet = useMediaQuery('(min-width: 769px) and (max-width: 1024px)');
-    const isDesktop = useMediaQuery('(min-width: 1025px)');
-
-    if (isMobile) return <MobileView />;
-    if (isTablet) return <TabletView />;
-    return <DesktopView />;
-}
-
-function MobileView() {
-    return <div>Mobile View</div>;
-}
-
-function TabletView() {
-    return <div>Tablet View</div>;
-}
-
-function DesktopView() {
-    return <div>Desktop View</div>;
-}
-```
-
-## ⚡ React 18: Advanced Custom Hooks
-
-### Example 3: useTransitionState (React 18)
-
-**useState, useTransition** - Custom hook combining state with React 18 transitions. Wraps setState in startTransition to mark updates as non-urgent, keeping UI responsive during heavy operations.
-
-```jsx
-import { useState, useTransition } from 'react';
-
-// Custom hook combining useState with useTransition
-function useTransitionState(initialValue) {
-    const [state, setState] = useState(initialValue);
-    const [isPending, startTransition] = useTransition();
-
-    const setTransitionState = (newValue) => {
-        startTransition(() => {
-            setState(newValue);
-        });
-    };
-
-    return [state, setTransitionState, isPending];
-}
-
-// Usage
-function SearchResults() {
-    const [query, setQuery, isPending] = useTransitionState('');
-    const [results, setResults] = useState([]);
-
-    const handleSearch = (e) => {
-        setQuery(e.target.value);
-        // Filter large dataset without blocking UI
-        const filtered = largeDataset.filter(item =>
-            item.name.toLowerCase().includes(e.target.value.toLowerCase())
-        );
-        setResults(filtered);
-    };
-
-    return (
-        <div>
-            <input onChange={handleSearch} placeholder="Search..." />
-            {isPending && <span>Updating...</span>}
-            <div style={{ opacity: isPending ? 0.5 : 1 }}>
-                {results.map(item => <div key={item.id}>{item.name}</div>)}
-            </div>
-        </div>
-    );
-}
-
-const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
-    id: i,
-    name: `Item ${i}`
-}));
-```
-
-### Example 4: useDeferredSearch (React 18)
-
-**useDeferredValue, useMemo** - Custom hook for search with deferred updates. Combines useDeferredValue to delay filtering and useMemo to optimize computation, detecting stale state for loading indicators.
-
-```jsx
-import { useState, useDeferredValue, useMemo } from 'react';
-
-// Custom hook for deferred search
-function useDeferredSearch(items, searchTerm) {
-    const deferredSearchTerm = useDeferredValue(searchTerm);
-
-    const filteredItems = useMemo(() => {
-        if (!deferredSearchTerm) return items;
-
-        return items.filter(item =>
-            item.name.toLowerCase().includes(deferredSearchTerm.toLowerCase())
-        );
-    }, [items, deferredSearchTerm]);
-
-    const isStale = searchTerm !== deferredSearchTerm;
-
-    return { filteredItems, isStale };
-}
-
-// Usage
-function ProductList() {
-    const [products] = useState(largeDataset);
-    const [searchTerm, setSearchTerm] = useState('');
-    const { filteredItems, isStale } = useDeferredSearch(products, searchTerm);
-
-    return (
-        <div>
-            <input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search products..."
-            />
-            {isStale && <span>Updating...</span>}
-            <div style={{ opacity: isStale ? 0.6 : 1 }}>
-                {filteredItems.map(item => (
-                    <div key={item.id}>{item.name}</div>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-const largeDataset = Array.from({ length: 10000 }, (_, i) => ({
-    id: i,
-    name: `Item ${i}`
-}));
-```
-
-### Example 5: useId Hook (React 18)
-
-**useId** - Custom hook for accessible form fields. Uses React 18's useId to generate unique, SSR-safe IDs for labels, inputs, and hint text with proper ARIA attributes.
-
-```jsx
-import { useId } from 'react';
-
-// Custom hook for form field with accessibility
-function useFormField(label) {
-    const id = useId();
-
-    const getInputProps = () => ({
-        id,
-        'aria-describedby': `${id}-hint`
-    });
-
-    const getLabelProps = () => ({
-        htmlFor: id
-    });
-
-    const getHintProps = () => ({
-        id: `${id}-hint`
-    });
+// Multiple breakpoint hook
+function useBreakpoint() {
+    const isMobile = useMediaQuery('(max-width: 767px)');
+    const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1023px)');
+    const isDesktop = useMediaQuery('(min-width: 1024px)');
+    const isWidescreen = useMediaQuery('(min-width: 1440px)');
 
     return {
-        id,
-        label,
-        getInputProps,
-        getLabelProps,
-        getHintProps
+        isMobile,
+        isTablet,
+        isDesktop,
+        isWidescreen,
+        // Convenience properties
+        isSmallScreen: isMobile,
+        isMediumScreen: isTablet,
+        isLargeScreen: isDesktop || isWidescreen
     };
 }
 
 // Usage
-function AccessibleForm() {
-    const emailField = useFormField('Email Address');
-    const passwordField = useFormField('Password');
+function ResponsiveNav() {
+    const isMobile = useMediaQuery('(max-width: 767px)');
 
     return (
-        <form>
-            <div>
-                <label {...emailField.getLabelProps()}>
-                    {emailField.label}
-                </label>
-                <input {...emailField.getInputProps()} type="email" />
-                <span {...emailField.getHintProps()}>
-                    We'll never share your email
-                </span>
-            </div>
-
-            <div>
-                <label {...passwordField.getLabelProps()}>
-                    {passwordField.label}
-                </label>
-                <input {...passwordField.getInputProps()} type="password" />
-                <span {...passwordField.getHintProps()}>
-                    Must be at least 8 characters
-                </span>
-            </div>
-        </form>
+        <nav>
+            {isMobile ? (
+                <MobileMenu />
+            ) : (
+                <DesktopMenu />
+            )}
+        </nav>
     );
 }
+
+function Dashboard() {
+    const { isMobile, isTablet, isDesktop } = useBreakpoint();
+
+    return (
+        <div className="dashboard">
+            {isMobile && <MobileLayout />}
+            {isTablet && <TabletLayout />}
+            {isDesktop && <DesktopLayout />}
+        </div>
+    );
+}
+
+function MobileMenu() {
+    return <div>Mobile Menu</div>;
+}
+
+function DesktopMenu() {
+    return <div>Desktop Menu</div>;
+}
+
+function MobileLayout() {
+    return <div>Mobile Layout</div>;
+}
+
+function TabletLayout() {
+    return <div>Tablet Layout</div>;
+}
+
+function DesktopLayout() {
+    return <div>Desktop Layout</div>;
+}
 ```
-
-## 🎯 Common Interview Questions
-
-### Q1: What are custom hooks and why use them?
-
-**Answer:** Custom hooks extract reusable stateful logic. They let you share logic between components without changing component hierarchy.
-
-### Q2: Rules of custom hooks?
-
-**Answer:**
-1. Must start with "use"
-2. Can call other hooks
-3. Only call at top level
-4. Only call from React functions
-
-## 🎓 Best Practices
-
-1. **Name with "use" prefix**
-2. **Extract reusable logic**
-3. **Return arrays or objects**
-4. **Keep hooks focused** (single responsibility)
-5. **Document dependencies** clearly
 
 ---
 
-[← Back to React](./README.md)
+## Common Mistakes
+
+### Mistake 1: Not Following Hook Rules
+
+**The Problem:** Breaking hook rules causes bugs and errors.
+
+```jsx
+// ❌ Bad: Conditional hook call
+function BadComponent({ shouldFetch }) {
+    if (shouldFetch) {
+        const data = useFetch('/api/data'); // DON'T DO THIS
+    }
+
+    return <div>...</div>;
+}
+
+// ✅ Good: Hooks at top level, conditional logic inside
+function GoodComponent({ shouldFetch }) {
+    const { data, loading } = useFetch(shouldFetch ? '/api/data' : null);
+
+    if (!shouldFetch) return null;
+    if (loading) return <div>Loading...</div>;
+
+    return <div>{data}</div>;
+}
+```
+
+### Mistake 2: Sharing State Between Hooks
+
+**The Problem:** Expecting custom hooks to share state.
+
+```jsx
+// ❌ Wrong expectation
+function ComponentA() {
+    const { count } = useCounter(0);
+    return <div>{count}</div>; // 0
+}
+
+function ComponentB() {
+    const { count, increment } = useCounter(0);
+    increment(); // This only affects ComponentB!
+    return <div>{count}</div>; // 1
+}
+
+// ✅ Correct: Each hook call is independent
+// If you need shared state, use Context or state management
+```
+
+### Mistake 3: Forgetting Dependencies
+
+**The Problem:** Missing dependencies in custom hooks.
+
+```jsx
+// ❌ Bad: Missing dependencies in useEffect
+function useBadFetch(url, query) {
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+        fetch(`${url}?q=${query}`)
+            .then(res => res.json())
+            .then(setData);
+    }, [url]); // Missing 'query'!
+
+    return data;
+}
+
+// ✅ Good: All dependencies included
+function useGoodFetch(url, query) {
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+        fetch(`${url}?q=${query}`)
+            .then(res => res.json())
+            .then(setData);
+    }, [url, query]); // All dependencies
+
+    return data;
+}
+```
+
+---
+
+## Best Practices
+
+### 1. Use Meaningful Names
+
+```jsx
+// ✅ Good: Clear, descriptive names
+useUserAuthentication()
+useShoppingCart()
+useFormValidation()
+useWindowSize()
+
+// ❌ Bad: Vague or unclear
+useData()
+useHelper()
+useStuff()
+```
+
+### 2. Return Consistent Types
+
+```jsx
+// ✅ Good: Consistent return types
+function useCounter() {
+    return { count, increment, decrement }; // Always object
+}
+
+function useFetch() {
+    return { data, loading, error }; // Always object
+}
+
+function useToggle() {
+    return [value, toggle]; // Always array (like useState)
+}
+
+// ❌ Bad: Inconsistent returns
+function useBadHook(condition) {
+    if (condition) {
+        return { data: value }; // Sometimes object
+    }
+    return value; // Sometimes primitive
+}
+```
+
+### 3. Handle Edge Cases
+
+```jsx
+function useRobustFetch(url) {
+    const [state, setState] = useState({
+        data: null,
+        loading: false,
+        error: null
+    });
+
+    useEffect(() => {
+        // Don't fetch if no URL
+        if (!url) {
+            setState({ data: null, loading: false, error: null });
+            return;
+        }
+
+        const controller = new AbortController();
+        setState(prev => ({ ...prev, loading: true, error: null }));
+
+        fetch(url, { signal: controller.signal })
+            .then(res => res.json())
+            .then(data => setState({ data, loading: false, error: null }))
+            .catch(error => {
+                // Ignore abort errors
+                if (error.name !== 'AbortError') {
+                    setState({ data: null, loading: false, error: error.message });
+                }
+            });
+
+        return () => controller.abort();
+    }, [url]);
+
+    return state;
+}
+```
+
+### 4. Document Your Hooks
+
+```jsx
+/**
+ * Custom hook for managing pagination state
+ *
+ * @param {number} totalItems - Total number of items
+ * @param {number} itemsPerPage - Items to display per page
+ * @returns {Object} Pagination state and controls
+ * @returns {number} currentPage - Current page number (1-indexed)
+ * @returns {number} totalPages - Total number of pages
+ * @returns {function} nextPage - Go to next page
+ * @returns {function} prevPage - Go to previous page
+ * @returns {function} goToPage - Go to specific page
+ *
+ * @example
+ * const { currentPage, totalPages, nextPage, prevPage } = usePagination(100, 10);
+ */
+function usePagination(totalItems, itemsPerPage) {
+    // Implementation...
+}
+```
+
+---
+
+## Interview Questions
+
+### Q1: What are custom hooks and why use them?
+
+**Structured Answer:**
+
+**Definition:**
+Custom hooks are reusable functions that encapsulate stateful logic using built-in React hooks. They must start with "use" and follow hook rules.
+
+**Why Use Them:**
+1. **Code Reusability**: Share logic across components without duplication
+2. **Separation of Concerns**: Extract business logic from UI
+3. **Testability**: Test logic independently from components
+4. **Maintainability**: Update behavior in one place
+5. **Composition**: Combine hooks to create complex behaviors
+
+**Example:**
+```jsx
+// Extract form logic into custom hook
+function useForm(initialValues) {
+    const [values, setValues] = useState(initialValues);
+
+    const handleChange = (e) => {
+        setValues({ ...values, [e.target.name]: e.target.value });
+    };
+
+    return { values, handleChange };
+}
+
+// Use in multiple components
+function LoginForm() {
+    const { values, handleChange } = useForm({ email: '', password: '' });
+    // ...
+}
+
+function RegisterForm() {
+    const { values, handleChange } = useForm({ email: '', password: '', name: '' });
+    // ...
+}
+```
+
+### Q2: What are the rules of custom hooks?
+
+**Structured Answer:**
+
+**The Rules:**
+
+1. **Naming Convention:**
+   - Must start with "use" prefix
+   - Signals to React and linters that hook rules apply
+   - Examples: `useCounter`, `useFetch`, `useForm`
+
+2. **Top-Level Calls Only:**
+   - Can't call hooks in conditions, loops, or nested functions
+   - Same rules as built-in hooks
+
+3. **React Functions Only:**
+   - Call only from React function components
+   - Call only from other custom hooks
+
+4. **Can Call Other Hooks:**
+   - Custom hooks can use built-in hooks
+   - Custom hooks can call other custom hooks
+
+**Examples:**
+
+```jsx
+// ✅ Good: Follows all rules
+function useCounter(initialValue) {
+    const [count, setCount] = useState(initialValue); // Top level
+    return { count, increment: () => setCount(c => c + 1) };
+}
+
+// ❌ Bad: Breaks rules
+function useBadCounter(shouldCount) {
+    if (shouldCount) {
+        const [count, setCount] = useState(0); // Conditional hook!
+    }
+}
+```
+
+### Q3: How do custom hooks differ from utility functions?
+
+**Structured Answer:**
+
+| Aspect | Custom Hook | Utility Function |
+|--------|-------------|------------------|
+| **Can use hooks** | ✅ Yes | ❌ No |
+| **Has own state** | ✅ Yes | ❌ No |
+| **Naming** | Must start with "use" | Any valid name |
+| **Re-renders** | Triggers re-renders | Doesn't affect renders |
+| **Use case** | Stateful logic | Pure computations |
+
+**Example:**
+
+```jsx
+// Custom Hook - manages state
+function useSearch(items) {
+    const [query, setQuery] = useState('');
+
+    const results = items.filter(item =>
+        item.name.includes(query)
+    );
+
+    return { query, setQuery, results };
+}
+
+// Utility Function - pure computation
+function filterItems(items, query) {
+    return items.filter(item => item.name.includes(query));
+}
+
+// Usage
+function SearchComponent({ items }) {
+    // Hook manages state and returns filtered results
+    const { query, setQuery, results } = useSearch(items);
+
+    // Function is called with explicit parameters
+    const results2 = filterItems(items, query);
+}
+```
+
+### Q4: Can custom hooks share state?
+
+**Structured Answer:**
+
+**Short Answer:** No. Each hook call creates its own independent state.
+
+**Explanation:**
+
+Custom hooks create **new instances** of state on each call. If you need shared state, use:
+
+1. **Lift state up** to a common parent
+2. **Context API** for global state
+3. **State management library** (Redux, Zustand)
+
+**Example:**
+
+```jsx
+// Each component gets INDEPENDENT state
+function Counter1() {
+    const { count, increment } = useCounter(0);
+    return <div>{count}</div>; // Independent count
+}
+
+function Counter2() {
+    const { count, increment } = useCounter(0);
+    return <div>{count}</div>; // Different count!
+}
+
+// To share state, use Context
+const CountContext = createContext();
+
+function SharedCounterProvider({ children }) {
+    const counter = useCounter(0); // Single instance
+    return (
+        <CountContext.Provider value={counter}>
+            {children}
+        </CountContext.Provider>
+    );
+}
+
+function useSharedCounter() {
+    return useContext(CountContext); // Shared state!
+}
+```
+
+### Q5: When should you create a custom hook vs using a utility function?
+
+**Structured Answer:**
+
+**Create a Custom Hook When:**
+- ✅ Logic needs React state
+- ✅ Logic uses other hooks (useEffect, useContext)
+- ✅ Logic triggers re-renders
+- ✅ Logic involves component lifecycle
+
+**Use a Utility Function When:**
+- ✅ Pure computation (no side effects)
+- ✅ No state management needed
+- ✅ Doesn't interact with React lifecycle
+- ✅ Can be tested without React
+
+**Examples:**
+
+```jsx
+// Custom Hook - needs state and effects
+function useWindowSize() {
+    const [size, setSize] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+        const handleResize = () => {
+            setSize({ width: window.innerWidth, height: window.innerHeight });
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return size;
+}
+
+// Utility Function - pure calculation
+function calculateDiscount(price, discountPercent) {
+    return price * (1 - discountPercent / 100);
+}
+
+// Utility Function - data transformation
+function formatCurrency(amount, currency = 'USD') {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency
+    }).format(amount);
+}
+```
+
+---
+
+## External Resources
+
+- [React Docs: Reusing Logic with Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)
+- [React Docs: Custom Hooks](https://react.dev/reference/react)
+- [useHooks.com: Collection of Hooks](https://usehooks.com/)
+- [React Hooks Cheatsheet](https://react-hooks-cheatsheet.com/)
+
+---
+
+[← Back to React](./README.md) | [Next: Context API →](./07-context-api.md)
