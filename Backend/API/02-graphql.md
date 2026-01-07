@@ -829,7 +829,7 @@ Mutation: {
 
 ---
 
-## 📚 Interview Questions
+## 📚 Common Interview Questions
 
 ### Q1: Explain the N+1 problem in GraphQL and how to solve it.
 
@@ -840,30 +840,98 @@ The N+1 problem occurs when fetching related data results in 1 query to fetch pa
 **Example:**
 ```graphql
 query {
-  posts {          # 1 query
+  posts {          # 1 query to get 100 posts
     title
-    author {       # N queries (one per post)
+    author {       # 100 queries (one per post) = N+1 problem!
       name
     }
   }
 }
 ```
 
-**Solutions:**
-
-1. **DataLoader**: Batches and caches database requests
+**Without DataLoader:**
 ```javascript
-const userLoader = new DataLoader(async (userIds) => {
-  const users = await User.find({ _id: { $in: userIds } });
-  return userIds.map(id => users.find(u => u.id.equals(id)));
-});
-
-// In resolver
-author: (post) => userLoader.load(post.authorId)
+// ❌ BAD: Causes N+1 queries
+Post: {
+  author: async (parent) => {
+    // Called 100 times for 100 posts!
+    return await User.findById(parent.authorId); // 100 DB queries
+  }
+}
 ```
 
-2. **Select fields intelligently**: Only fetch needed data
-3. **Use projections**: Reduce database query overhead
+**Solutions:**
+
+**1. DataLoader (Primary Solution):**
+```javascript
+const DataLoader = require('dataloader');
+
+// Batch function - receives array of IDs
+async function batchGetUsers(userIds) {
+  console.log('Fetching users:', userIds); // Called ONCE for all IDs
+
+  // Single database query for all users
+  const users = await User.find({ _id: { $in: userIds } });
+
+  // Return in same order as input IDs
+  return userIds.map(id =>
+    users.find(user => user._id.toString() === id.toString())
+  );
+}
+
+// Create loader in context
+const userLoader = new DataLoader(batchGetUsers);
+
+// Use in resolver
+Post: {
+  author: (post, args, { userLoader }) => {
+    return userLoader.load(post.authorId); // Batched automatically!
+  }
+}
+
+// Result: 1 query to get posts + 1 batched query to get all authors = 2 queries total!
+```
+
+**2. Field Selection (GraphQL Specific):**
+```javascript
+// Only query author if requested
+const resolveFieldList = (info) => {
+  return info.fieldNodes[0].selectionSet.selections.map(s => s.name.value);
+};
+
+Query: {
+  posts: (parent, args, context, info) => {
+    const fields = resolveFieldList(info);
+    if (fields.includes('author')) {
+      // Fetch with author join
+      return Post.find().populate('author');
+    }
+    return Post.find(); // Without author
+  }
+}
+```
+
+**3. Query Optimization (Database Level):**
+```javascript
+// Use database joins/aggregations
+Query: {
+  posts: async () => {
+    return await Post.aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'authorId',
+          foreignField: '_id',
+          as: 'author'
+        }
+      },
+      { $unwind: '$author' }
+    ]);
+  }
+}
+```
+
+**Interview Tip:** Always mention DataLoader as the standard solution. Explain that it batches requests within a single event loop tick and caches results for the duration of the request.
 
 ---
 
@@ -871,65 +939,252 @@ author: (post) => userLoader.load(post.authorId)
 
 **Answer:**
 
-**Choose GraphQL when:**
-- Frontend needs flexible data fetching
-- Mobile apps need to minimize data transfer
-- Multiple related resources accessed together
-- Schema changes frequently
-- Strong typing beneficial
+| Scenario | GraphQL | REST |
+|----------|---------|------|
+| **Mobile apps** (bandwidth limited) | ✅ Perfect - fetch only needed fields | ❌ Over-fetching wastes bandwidth |
+| **Complex UIs** (many data relationships) | ✅ Single query for nested data | ❌ Multiple round trips needed |
+| **Rapid frontend changes** | ✅ No backend changes needed | ❌ Need new endpoints |
+| **Microservices** (aggregate data) | ✅ GraphQL as API gateway | ❌ Client calls multiple services |
+| **Public APIs** | ❌ Less familiar, harder to cache | ✅ Standard, well-understood |
+| **File uploads** | ❌ Complex, needs special handling | ✅ Simple multipart/form-data |
+| **Simple CRUD** | ❌ Overkill | ✅ Straightforward |
 
-**Choose REST when:**
-- Simple CRUD operations
-- HTTP caching important
-- File uploads/downloads primary use case
-- Team unfamiliar with GraphQL
-- Public API with wide adoption needed
+**Real-World Examples:**
 
-**Example:** E-commerce dashboard showing user + orders + products → GraphQL perfect for fetching all in one query.
+**GraphQL Perfect For:**
+```graphql
+# E-commerce: User + Orders + Products in ONE request
+query {
+  user(id: "123") {
+    name
+    email
+    orders(limit: 5) {
+      id
+      total
+      items {
+        product {
+          name
+          price
+          images(size: THUMBNAIL)
+        }
+        quantity
+      }
+    }
+    recommendedProducts(limit: 10) {
+      name
+      price
+    }
+  }
+}
+
+# REST would need: /users/123, /users/123/orders, /orders/*/items, /products/*, etc.
+```
+
+**REST Perfect For:**
+```
+GET /health              // Simple status check
+POST /auth/login         // Standard authentication
+GET /download/file.pdf   // File downloads
+POST /upload             // File uploads
+GET /products?page=1     // Simple list with caching
+```
+
+**Interview Tip:** Mention that many companies use both - GraphQL for complex client-facing APIs, REST for simple microservice communication.
 
 ---
 
-### Q3: How do you handle authentication in GraphQL?
+### Q3: How do you handle authentication and authorization in GraphQL?
 
 **Answer:**
 
+**Authentication (Who are you?):**
+
+**JavaScript:**
 ```javascript
+const { ApolloServer, AuthenticationError } = require('apollo-server');
+const jwt = require('jsonwebtoken');
+
 const server = new ApolloServer({
+  typeDefs,
+  resolvers,
   context: ({ req }) => {
-    // 1. Extract token from header
+    // 1. Extract token from Authorization header
     const token = req.headers.authorization?.replace('Bearer ', '');
 
-    // 2. Verify token
+    // 2. Verify and decode token
     let user = null;
     if (token) {
       try {
         user = jwt.verify(token, process.env.JWT_SECRET);
-      } catch (err) {
-        // Invalid token - ignore or throw error
+      } catch (error) {
+        // Token invalid/expired - return null user
+        console.error('Invalid token:', error.message);
       }
     }
 
-    // 3. Add user to context
-    return { user };
+    // 3. Return context with user
+    return {
+      user,
+      req,
+      // Add DataLoaders here
+      userLoader: createUserLoader(),
+    };
   },
 });
 
-// 4. Check auth in resolvers
+// Use in resolvers
 const resolvers = {
   Query: {
     me: (parent, args, { user }) => {
-      if (!user) throw new AuthenticationError('Not authenticated');
-      return user;
-    },
-  },
-  Mutation: {
-    createPost: (parent, args, { user }) => {
-      if (!user) throw new AuthenticationError('Not authenticated');
-      // Create post
+      if (!user) {
+        throw new AuthenticationError('You must be logged in');
+      }
+      return User.findById(user.id);
     },
   },
 };
 ```
+
+**Python:**
+```python
+from ariadne import make_executable_schema, QueryType
+from jose import jwt, JWTError
+
+def get_context_value(request):
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+
+    user = None
+    if token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            user = payload
+        except JWTError:
+            pass
+
+    return {"user": user, "request": request}
+
+# Use in resolvers
+@query.field("me")
+def resolve_me(obj, info):
+    user = info.context["user"]
+    if not user:
+        raise Exception("Not authenticated")
+    return get_user_by_id(user["id"])
+```
+
+---
+
+**Authorization (What can you do?):**
+
+**1. Field-Level Authorization:**
+```javascript
+const resolvers = {
+  User: {
+    email: (parent, args, { user }) => {
+      // Only owner or admin can see email
+      if (!user || (user.id !== parent.id && user.role !== 'admin')) {
+        return null; // or throw error
+      }
+      return parent.email;
+    },
+    ssn: (parent, args, { user }) => {
+      // Only admins can see SSN
+      if (!user || user.role !== 'admin') {
+        throw new ForbiddenError('Insufficient permissions');
+      }
+      return parent.ssn;
+    },
+  },
+};
+```
+
+**2. Directive-Based Authorization:**
+```graphql
+directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
+
+type Query {
+  users: [User!]! @auth(requires: ADMIN)
+  me: User @auth(requires: USER)
+  publicPosts: [Post!]!
+}
+
+type Mutation {
+  deleteUser(id: ID!): Boolean! @auth(requires: ADMIN)
+  updateProfile(input: ProfileInput!): User! @auth(requires: USER)
+}
+```
+
+**Implementation:**
+```javascript
+const { SchemaDirectiveVisitor } = require('graphql-tools');
+const { ForbiddenError } = require('apollo-server');
+
+class AuthDirective extends SchemaDirectiveVisitor {
+  visitFieldDefinition(field) {
+    const { resolve = defaultFieldResolver } = field;
+    const requiredRole = this.args.requires;
+
+    field.resolve = async function(...args) {
+      const context = args[2];
+      const user = context.user;
+
+      if (!user) {
+        throw new AuthenticationError('Not authenticated');
+      }
+
+      if (user.role !== requiredRole) {
+        throw new ForbiddenError(`Requires ${requiredRole} role`);
+      }
+
+      return resolve.apply(this, args);
+    };
+  }
+}
+```
+
+**3. Resolver-Level Guards:**
+```javascript
+// Guard middleware
+const requireAuth = (next) => (parent, args, context, info) => {
+  if (!context.user) {
+    throw new AuthenticationError('Not authenticated');
+  }
+  return next(parent, args, context, info);
+};
+
+const requireRole = (...roles) => (next) => (parent, args, context, info) => {
+  if (!context.user || !roles.includes(context.user.role)) {
+    throw new ForbiddenError('Insufficient permissions');
+  }
+  return next(parent, args, context, info);
+};
+
+// Apply to resolvers
+const resolvers = {
+  Query: {
+    users: requireAuth(requireRole('admin')(async () => {
+      return await User.find();
+    })),
+  },
+  Mutation: {
+    deleteUser: requireAuth(requireRole('admin', 'moderator')(
+      async (parent, { id }) => {
+        await User.findByIdAndDelete(id);
+        return true;
+      }
+    )),
+  },
+};
+```
+
+**Interview Tip:** Mention that authentication happens in the context function (once per request), while authorization happens in resolvers (per field). Also mention field-level authorization for sensitive data.
 
 ---
 
@@ -937,25 +1192,116 @@ const resolvers = {
 
 **Answer:**
 
-**Two approaches:**
+**Three Approaches:**
 
-**1. Offset-based (simpler):**
+**1. Offset-Based (Simple but Limited):**
 ```graphql
+type Query {
+  posts(limit: Int, offset: Int): PostConnection!
+}
+
+type PostConnection {
+  posts: [Post!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+```
+
+```javascript
+Query: {
+  posts: async (parent, { limit = 20, offset = 0 }) => {
+    const posts = await Post.find().skip(offset).limit(limit);
+    const totalCount = await Post.countDocuments();
+
+    return {
+      posts,
+      totalCount,
+      hasMore: offset + limit < totalCount,
+    };
+  }
+}
+
+// Usage
 query {
-  posts(limit: 10, offset: 20) {
-    id
-    title
+  posts(limit: 20, offset: 40) {
+    posts { id title }
+    totalCount
+    hasMore
   }
 }
 ```
 
-Pros: Simple, familiar
-Cons: Performance issues with large offsets, inconsistent if data changes
+**Pros:** Simple, can jump to any page
+**Cons:** Slow for large offsets, inconsistent if data changes
 
-**2. Cursor-based (recommended):**
+---
+
+**2. Cursor-Based (Relay-Style - Recommended):**
 ```graphql
+type Query {
+  posts(first: Int, after: String, last: Int, before: String): PostConnection!
+}
+
+type PostConnection {
+  edges: [PostEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+
+type PostEdge {
+  cursor: String!
+  node: Post!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+```
+
+```javascript
+Query: {
+  posts: async (parent, { first = 20, after }) => {
+    let query = Post.find().sort({ _id: -1 });
+
+    // Apply cursor filter
+    if (after) {
+      const decodedCursor = Buffer.from(after, 'base64').toString();
+      query = query.where('_id').lt(decodedCursor);
+    }
+
+    // Fetch one extra to check if there's more
+    const posts = await query.limit(first + 1).exec();
+    const hasMore = posts.length > first;
+
+    if (hasMore) {
+      posts.pop(); // Remove extra
+    }
+
+    // Generate edges with cursors
+    const edges = posts.map(post => ({
+      cursor: Buffer.from(post._id.toString()).toString('base64'),
+      node: post,
+    }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: hasMore,
+        hasPreviousPage: !!after,
+        startCursor: edges[0]?.cursor,
+        endCursor: edges[edges.length - 1]?.cursor,
+      },
+      totalCount: await Post.countDocuments(),
+    };
+  }
+}
+
+// Usage
 query {
-  posts(first: 10, after: "cursor123") {
+  posts(first: 20, after: "Y3Vyc29yMTIz") {
     edges {
       cursor
       node {
@@ -971,20 +1317,302 @@ query {
 }
 ```
 
-Pros: Consistent, performant, handles real-time changes
-Cons: More complex implementation
+**Pros:** Fast, consistent, standard (Relay spec)
+**Cons:** More complex, can't jump to specific page
+
+---
+
+**3. Hybrid Approach (Page + Cursor):**
+```graphql
+type Query {
+  posts(page: Int, pageSize: Int, cursor: String): PostConnection!
+}
+```
+
+**Comparison Table:**
+
+| Feature | Offset | Cursor | Hybrid |
+|---------|--------|--------|--------|
+| **Complexity** | Low | High | Medium |
+| **Performance** | Slow (large offset) | Fast | Fast |
+| **Jump to page** | ✅ Yes | ❌ No | ✅ Yes |
+| **Real-time data** | ❌ Inconsistent | ✅ Consistent | ⚠️ Partial |
+| **Use Case** | Admin panels | Infinite scroll | Hybrid UIs |
+
+**Interview Tip:** Mention that for public-facing apps with infinite scroll (Twitter, Instagram), cursor-based is standard. For admin dashboards with page numbers, offset-based is acceptable.
+
+---
+
+### Q5: What are the main performance challenges with GraphQL and how do you solve them?
+
+**Answer:**
+
+**1. N+1 Problem → DataLoader**
+```javascript
+// Problem: 1 + N queries
+// Solution: DataLoader batches into 1 + 1 queries
+const userLoader = new DataLoader(batchGetUsers);
+```
+
+**2. Deep/Complex Queries → Query Depth/Complexity Limiting**
+```javascript
+const depthLimit = require('graphql-depth-limit');
+const { createComplexityLimitRule } = require('graphql-validation-complexity');
+
+const server = new ApolloServer({
+  validationRules: [
+    depthLimit(5), // Max depth: 5 levels
+    createComplexityLimitRule(1000), // Max cost: 1000 points
+  ],
+});
+
+// Prevent: query { user { posts { comments { user { posts... }}}}}
+```
+
+**3. Over-fetching from Database → Field-Level Resolvers**
+```javascript
+// ❌ BAD: Fetch all fields even if not requested
+Query: {
+  user: (parent, { id }) => User.findById(id)
+}
+
+// ✅ GOOD: Only fetch requested fields
+const getRequestedFields = (info) => {
+  const fields = {};
+  info.fieldNodes[0].selectionSet.selections.forEach(field => {
+    fields[field.name.value] = 1;
+  });
+  return fields;
+};
+
+Query: {
+  user: (parent, { id }, context, info) => {
+    const projection = getRequestedFields(info);
+    return User.findById(id).select(projection);
+  }
+}
+```
+
+**4. Slow Queries → Query Caching**
+```javascript
+// Response caching (Apollo)
+const { ApolloServer } = require('apollo-server');
+const { InMemoryLRUCache } = require('apollo-server-caching');
+
+const server = new ApolloServer({
+  cache: new InMemoryLRUCache({
+    maxSize: Math.pow(2, 20) * 100, // 100MB
+    ttl: 300, // 5 minutes
+  }),
+  resolvers: {
+    Query: {
+      posts: async () => {
+        // Results cached automatically
+        return await Post.find();
+      },
+    },
+  },
+});
+
+// Or use Redis for distributed caching
+const RedisCache = require('apollo-server-cache-redis').default;
+const cache = new RedisCache({
+  host: 'redis-server',
+  ttl: 600,
+});
+```
+
+**5. Large Payloads → Pagination + Field Limiting**
+```javascript
+// Force pagination
+posts: (parent, { limit = 20, offset = 0 }) => {
+  const maxLimit = 100;
+  const safeLimit = Math.min(limit, maxLimit);
+  return Post.find().skip(offset).limit(safeLimit);
+}
+```
+
+**Interview Tip:** Explain that GraphQL gives clients power, but you must protect your API with query complexity analysis, depth limiting, and pagination.
+
+---
+
+### Q6: How would you handle file uploads in GraphQL?
+
+**Answer:**
+
+**Option 1: GraphQL Upload (multipart/form-data)**
+
+```javascript
+const { GraphQLUpload } = require('graphql-upload');
+const { createWriteStream } = require('fs');
+const { finished } = require('stream/promises');
+const path = require('path');
+
+const typeDefs = gql`
+  scalar Upload
+
+  type File {
+    filename: String!
+    mimetype: String!
+    encoding: String!
+    url: String!
+  }
+
+  type Mutation {
+    uploadFile(file: Upload!): File!
+    uploadMultiple(files: [Upload!]!): [File!]!
+  }
+`;
+
+const resolvers = {
+  Upload: GraphQLUpload,
+
+  Mutation: {
+    uploadFile: async (parent, { file }) => {
+      const { createReadStream, filename, mimetype, encoding } = await file;
+
+      // Save to local filesystem
+      const stream = createReadStream();
+      const filePath = path.join(__dirname, 'uploads', filename);
+      const writeStream = createWriteStream(filePath);
+
+      stream.pipe(writeStream);
+      await finished(writeStream);
+
+      // Or upload to S3
+      // await s3.upload({ Body: stream, Key: filename }).promise();
+
+      return {
+        filename,
+        mimetype,
+        encoding,
+        url: `/uploads/${filename}`,
+      };
+    },
+
+    uploadMultiple: async (parent, { files }) => {
+      return Promise.all(files.map(file => resolvers.Mutation.uploadFile(null, { file })));
+    },
+  },
+};
+```
+
+**Client Usage:**
+```javascript
+// React + Apollo Client
+import { gql, useMutation } from '@apollo/client';
+
+const UPLOAD_FILE = gql`
+  mutation UploadFile($file: Upload!) {
+    uploadFile(file: $file) {
+      filename
+      url
+    }
+  }
+`;
+
+function FileUpload() {
+  const [uploadFile] = useMutation(UPLOAD_FILE);
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const { data } = await uploadFile({ variables: { file } });
+      console.log('Uploaded:', data.uploadFile.url);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
+  };
+
+  return <input type="file" onChange={handleFileChange} />;
+}
+```
+
+---
+
+**Option 2: Signed URL Approach (Recommended for Production)**
+
+```graphql
+type Mutation {
+  getUploadUrl(filename: String!, contentType: String!): UploadUrl!
+}
+
+type UploadUrl {
+  uploadUrl: String!
+  fileUrl: String!
+}
+```
+
+```javascript
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3();
+
+const resolvers = {
+  Mutation: {
+    getUploadUrl: async (parent, { filename, contentType }) => {
+      const key = `uploads/${Date.now()}_${filename}`;
+
+      // Generate presigned URL for upload
+      const uploadUrl = await s3.getSignedUrlPromise('putObject', {
+        Bucket: process.env.S3_BUCKET,
+        Key: key,
+        ContentType: contentType,
+        Expires: 300, // 5 minutes
+      });
+
+      const fileUrl = `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${key}`;
+
+      return { uploadUrl, fileUrl };
+    },
+  },
+};
+```
+
+**Client Usage:**
+```javascript
+// 1. Get signed URL from GraphQL
+const { data } = await getUploadUrl({
+  variables: {
+    filename: file.name,
+    contentType: file.type,
+  },
+});
+
+// 2. Upload directly to S3
+await fetch(data.getUploadUrl.uploadUrl, {
+  method: 'PUT',
+  headers: { 'Content-Type': file.type },
+  body: file,
+});
+
+// 3. File now available at data.getUploadUrl.fileUrl
+```
+
+**Comparison:**
+
+| Method | Pros | Cons | Use Case |
+|--------|------|------|----------|
+| **GraphQL Upload** | Simple, all in one request | Large files block GraphQL | Small files, simple apps |
+| **Signed URL** | Scalable, doesn't block API | Two-step process | Production, large files |
+
+**Interview Tip:** Mention that for production apps with large files, signed URLs are preferred because they don't route files through your API server, reducing load and allowing parallel uploads.
 
 ---
 
 ## ✅ Key Takeaways
 
 1. **GraphQL solves over/under-fetching** by allowing clients to request exactly what they need
-2. **N+1 problem** is common - use DataLoader to batch requests
-3. **Schema-first development** with strong typing catches errors early
-4. **Authentication via context** - verify JWT in context function
-5. **Pagination: cursor-based > offset-based** for large datasets
-6. **Disable introspection** in production for security
-7. **GraphQL complements REST** - doesn't always replace it
+2. **N+1 problem** is the most common performance issue - use DataLoader to batch requests
+3. **Schema-first development** with strong typing catches errors early and improves tooling
+4. **Authentication via context** - verify JWT in context function, check permissions in resolvers
+5. **Pagination: cursor-based > offset-based** for large datasets and real-time data
+6. **Query complexity limits** are essential to prevent malicious queries
+7. **Disable introspection and playground** in production for security
+8. **GraphQL complements REST** - doesn't always replace it (use REST for file operations)
+9. **Field-level authorization** provides fine-grained security control
+10. **Caching is more complex** than REST - requires careful planning with tools like DataLoader
 
 ---
 
