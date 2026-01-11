@@ -5,7 +5,7 @@ System design is the process of defining architecture, components, modules, inte
 
 ## Core Principles
 
-### Functional Requirements
+### 💡 **Functional Requirements**
 
 What the system must do - specific features and capabilities.
 
@@ -24,40 +24,20 @@ What the system must do - specific features and capabilities.
 - What's the MVP vs nice-to-have features?
 ```
 
-### Non-Functional Requirements
+### 💡 **Non-Functional Requirements**
 
 How the system should perform - quality attributes.
 
 **Key Attributes:**
 
-1. **Scalability**: Handle growing users/data
-   - Can serve 1M → 100M users
-   - Storage grows from GB → PB
-
-2. **Performance**: Response time and throughput
-   - API response < 200ms
-   - Page load < 2 seconds
-   - Handle 10K requests/second
-
-3. **Availability**: System uptime
-   - 99.9% (43 min downtime/month)
-   - 99.99% (4.3 min downtime/month)
-   - 99.999% (26 sec downtime/month)
-
-4. **Reliability**: Correct behavior under failures
-   - Data not lost
-   - Transactions are ACID
-   - Graceful degradation
-
-5. **Consistency**: Data correctness across replicas
-   - Strong: Always latest data
-   - Eventual: Eventually consistent
-   - Causal: Respects ordering
-
-6. **Maintainability**: Ease of updates and debugging
-   - Clear code structure
-   - Good logging
-   - Easy deployment
+| Attribute | Description | Target Metrics |
+|-----------|-------------|----------------|
+| **Scalability** | Handle growing users/data | 1M → 100M users, GB → PB |
+| **Performance** | Response time & throughput | < 200ms API, < 2s page load, 10K req/s |
+| **Availability** | System uptime | 99.9% (43 min/month), 99.99% (4.3 min/month), 99.999% (26 sec/month) |
+| **Reliability** | Correct under failures | No data loss, ACID transactions, graceful degradation |
+| **Consistency** | Data correctness | Strong/Eventual/Causal consistency |
+| **Maintainability** | Easy updates/debugging | Clear structure, good logging, easy deployment |
 
 ## Basic Components
 

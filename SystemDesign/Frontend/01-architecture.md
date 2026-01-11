@@ -7,32 +7,56 @@ Architectural patterns for building scalable frontend applications.
 
 Fundamental architectural patterns that form the foundation of frontend application design.
 
-### MVC (Model-View-Controller)
-
-**What is MVC?**
-MVC is a foundational architectural pattern that separates an application into three interconnected components. This separation promotes organized code and makes testing, maintenance, and scaling easier.
-
-**The Three Components:**
-1. **Model**: Manages data and business logic. Handles data retrieval, storage, and validation.
-2. **View**: Presents data to the user. Renders UI based on Model data.
-3. **Controller**: Handles user input and updates Model/View. Acts as intermediary.
-
-**Data Flow:**
-User interacts with View → Controller processes input → Controller updates Model → Model notifies View → View re-renders
-
-**When to Use MVC:**
-- Server-rendered applications (traditional web apps)
-- Applications with clear separation between data and presentation
-- Teams familiar with this pattern from backend development
-
-**Trade-offs:**
-✅ Clear separation of concerns
-✅ Easier to test components independently
-✅ Well-understood pattern with extensive documentation
-❌ Can be verbose for simple applications
-❌ Bidirectional data flow can be hard to debug
+### 💡 **MVC (Model-View-Controller)**
 
 Traditional pattern separating data (Model), presentation (View), and control logic (Controller).
+
+**What is MVC?**
+
+MVC is a foundational architectural pattern that separates an application into three interconnected components.
+
+**The Three Components:**
+
+| Component | Responsibility | Example |
+|-----------|---------------|---------|
+| **Model** | Data & business logic | User data, validation rules |
+| **View** | UI presentation | HTML templates, React components |
+| **Controller** | Handle user input | Route handlers, event listeners |
+
+**Data Flow:**
+
+```
+User interacts with View
+         ↓
+Controller processes input
+         ↓
+Controller updates Model
+         ↓
+Model notifies View
+         ↓
+View re-renders
+```
+
+**When to Use:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Server-rendered apps | ✅ Excellent fit |
+| Traditional web apps | ✅ Well-suited |
+| SPAs with complex state | ⚠️ Consider Flux/Redux instead |
+| Simple prototypes | ❌ Too much overhead |
+
+**Trade-offs:**
+
+**Pros:**
+- Clear separation of concerns
+- Easier to test components independently
+- Well-understood pattern with extensive documentation
+
+**Cons:**
+- Can be verbose for simple applications
+- Bidirectional data flow can be hard to debug
+- Not ideal for modern reactive UIs
 ```javascript
 // Model
 class UserModel {
@@ -73,35 +97,40 @@ class UserController {
 }
 ```
 
-### Component-Based Architecture
-
-**What is Component-Based Architecture?**
-Component-based architecture treats UI as a composition of independent, reusable pieces called components. Each component encapsulates its own logic, styling, and state. This is the dominant pattern in modern frontend frameworks (React, Vue, Angular).
-
-**Core Principles:**
-1. **Reusability**: Write once, use everywhere
-2. **Encapsulation**: Component internals are hidden from outside
-3. **Composition**: Build complex UIs from simple components
-4. **Single Responsibility**: Each component does one thing well
-
-**Why It Matters:**
-- Dramatically improves code reusability (70-80% code reuse is common)
-- Makes testing easier (test components in isolation)
-- Enables parallel development (different team members work on different components)
-- Reduces bugs through isolation and reusability
-
-**Component Types:**
-- **Presentational**: Dumb components that just render props
-- **Container**: Smart components that manage state and logic
-- **Higher-Order Components (HOC)**: Components that enhance other components
-- **Hooks-based**: Functional components with React Hooks
-
-**When to Use:**
-- All modern React, Vue, Angular applications
-- Any application requiring reusable UI elements
-- Applications with multiple developers
+### 💡 **Component-Based Architecture**
 
 Modular approach building UIs from reusable, self-contained components with encapsulated logic and styling.
+
+**What is Component-Based Architecture?**
+
+Component-based architecture treats UI as a composition of independent, reusable pieces called components. This is the dominant pattern in modern frontend frameworks.
+
+**Core Principles:**
+
+| Principle | Meaning | Benefit |
+|-----------|---------|---------|
+| **Reusability** | Write once, use everywhere | 70-80% code reuse common |
+| **Encapsulation** | Internals hidden | Prevents coupling |
+| **Composition** | Build complex from simple | Easier maintenance |
+| **Single Responsibility** | One thing well | Simpler testing |
+
+**Component Types:**
+
+| Type | Purpose | Example |
+|------|---------|---------|
+| **Presentational** | Display data | `<UserCard />` |
+| **Container** | Manage state/logic | `<UserListContainer />` |
+| **HOC** | Enhance components | `withAuth(Component)` |
+| **Hooks-based** | Functional + state | `function UserProfile()` |
+
+**When to Use:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Modern React/Vue/Angular apps | ✅ Default choice |
+| Reusable UI elements needed | ✅ Perfect fit |
+| Multiple developers | ✅ Enables parallelization |
+| Simple static pages | ❌ Overkill |
 
 ```jsx
 // Atomic Design Pattern
@@ -132,39 +161,42 @@ const Header = ({ onSearch, user }) => (
 );
 ```
 
-### Micro-Frontend Architecture
-
-**What are Micro-Frontends?**
-Micro-frontends extend the microservices concept to frontend development. Instead of one large frontend application, you have multiple smaller frontend apps, each owned by different teams, integrated into one user experience.
-
-**The Problem They Solve:**
-In large organizations, a monolithic frontend becomes a bottleneck:
-- Changes require coordination across teams
-- One team's bugs can break the entire app
-- Different teams may want different tech stacks
-- Deployment of one feature requires deploying everything
-
-**How Micro-Frontends Work:**
-Each team builds and deploys their own frontend module independently. A container/shell application orchestrates these modules, loading them dynamically at runtime.
-
-**Architecture Patterns:**
-1. **Build-time integration**: Modules are npm packages (simple but couples deployments)
-2. **Runtime integration via JavaScript**: Modules loaded dynamically (most flexible)
-3. **iframes**: Strong isolation but poor UX
-4. **Web Components**: Standard-based, framework agnostic
-
-**When to Use Micro-Frontends:**
-✅ Large organizations with 5+ frontend teams
-✅ Need for independent deployments
-✅ Different parts need different tech stacks
-✅ Very large applications (100+ pages)
-
-**When NOT to Use:**
-❌ Small teams (< 5 developers)
-❌ Startups / MVPs
-❌ Applications with tight coupling requirements
+### 💡 **Micro-Frontend Architecture**
 
 Architectural style splitting frontend monoliths into smaller, independently deployable applications.
+
+**What are Micro-Frontends?**
+
+Multiple smaller frontend apps, each owned by different teams, integrated into one user experience.
+
+**The Problem They Solve:**
+
+| Monolith Problem | Micro-Frontend Solution |
+|------------------|-------------------------|
+| Coordination bottlenecks | Independent deployments |
+| One bug breaks everything | Isolated failures |
+| Single tech stack | Team chooses stack |
+| Deploy everything together | Deploy independently |
+
+**Implementation Patterns:**
+
+| Pattern | Pros | Cons | Best For |
+|---------|------|------|----------|
+| **Build-time** | Simple, type-safe | Coupled deploys | 2-3 teams |
+| **Runtime JS** | True independence | Coordination overhead | 5+ teams |
+| **iframes** | Strong isolation | Poor UX | Legacy integration |
+| **Web Components** | Standard-based | Limited ecosystem | Mixed stacks |
+
+**When to Use:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Large org (5+ frontend teams) | ✅ Excellent fit |
+| Independent deployments needed | ✅ Perfect use case |
+| Different tech stacks | ✅ Major benefit |
+| Small team (< 5 devs) | ❌ Too much overhead |
+| Startups / MVPs | ❌ Unnecessary complexity |
+| Tight coupling needed | ❌ Use monolith |
 
 ```javascript
 // Container Application

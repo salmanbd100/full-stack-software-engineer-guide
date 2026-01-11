@@ -1,14 +1,22 @@
 # Content Delivery Network (CDN)
 
-## Problem → Solution
+## 💡 **Problem → Solution**
 
-**Problem**: Latency + Global
-**Solution**: Content Delivery Network (CDN)
-**When to Use**:
-- Your users are geographically distributed (multiple continents) and experiencing high latency (> 500ms from distant locations)
-- You serve static content (images, videos, CSS, JavaScript) that accounts for 70-90% of bandwidth
-- Your origin servers are overwhelmed by requests for the same content repeatedly
-- You need to reduce bandwidth costs by 60-80% and improve global page load times from 3 seconds to under 1 second
+| Aspect | Details |
+|--------|---------|
+| **Problem** | Latency + Global Distribution |
+| **Solution** | Content Delivery Network (CDN) |
+| **Latency Improvement** | 500ms → 20-50ms |
+| **Bandwidth Savings** | 60-80% reduction |
+
+**When to Use:**
+
+| Scenario | Benefit |
+|----------|---------|
+| ✅ Global users | Reduce 500ms+ latency |
+| ✅ Static content heavy | 70-90% bandwidth for assets |
+| ✅ Origin overload | Reduce repeated requests |
+| ✅ Page load optimization | 3s → <1s load time |
 
 ---
 

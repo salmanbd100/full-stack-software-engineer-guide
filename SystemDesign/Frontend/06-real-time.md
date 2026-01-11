@@ -16,7 +16,7 @@ Comparison of different real-time communication technologies to help choose the 
 | Long Polling | No | No | Universal | Fallback, simple updates |
 | HTTP/2 Server Push | No | No | Limited | Asset optimization |
 
-## WebSockets
+## 💡 **WebSockets**
 
 Full-duplex communication protocol enabling persistent, bidirectional connections for low-latency real-time data exchange.
 

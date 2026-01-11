@@ -3,7 +3,7 @@
 ## Overview
 Search Engine Optimization (SEO) and analytics are essential for discoverability and understanding user behavior. Good SEO increases organic traffic, while analytics provide insights for data-driven decisions.
 
-## SEO Fundamentals
+## 💡 **SEO Fundamentals**
 
 Core SEO concepts including meta tags, structured data, and sitemaps for better search engine visibility.
 

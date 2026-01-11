@@ -7,7 +7,17 @@ Managing application state in large-scale frontend applications.
 
 Different approaches to managing application state, each with unique trade-offs for complexity, performance, and scalability.
 
-### Redux Pattern
+**Choosing the Right Solution:**
+
+| Solution | Bundle Size | Complexity | Best For |
+|----------|-------------|------------|----------|
+| **useState** | 0KB (built-in) | Low | Local component state |
+| **Context API** | 0KB (built-in) | Low-Medium | Small to medium apps |
+| **Redux** | 5KB + toolkit | High | Large apps, complex state |
+| **Zustand** | 1KB | Low | Medium apps, simple API |
+| **Recoil** | 14KB | Medium | Granular reactivity needs |
+
+### 💡 **Redux Pattern**
 
 **What is Redux?**
 Redux is a predictable state container that implements the Flux pattern with some refinements. It provides a single source of truth for your entire application state, making state management consistent and debuggable across large applications.
@@ -25,15 +35,16 @@ Redux is a predictable state container that implements the Flux pattern with som
 - Time-travel debugging: Can replay actions
 
 **When to Use Redux:**
-✅ Large applications (10+ pages)
-✅ Complex state with many updates
-✅ State shared across many components
-✅ Need to understand how state changed over time
 
-**When NOT to Use Redux:**
-❌ Small applications or prototypes
-❌ Simple state requirements
-❌ State only needed in 1-2 components
+| Scenario | Use Redux? |
+|----------|-----------|
+| Large app (10+ pages) | ✅ Yes |
+| Complex state logic | ✅ Yes |
+| State shared across many components | ✅ Yes |
+| Need time-travel debugging | ✅ Yes |
+| Small app/prototype | ❌ No - overkill |
+| Simple state | ❌ No - use Context |
+| State in 1-2 components only | ❌ No - use useState |
 
 **Redux Data Flow:**
 1. Component dispatches an action
@@ -167,7 +178,7 @@ export const selectUserById = (state, userId) =>
   state.users.entities.find(user => user.id === userId);
 ```
 
-### Context API + useReducer
+### 💡 **Context API + useReducer**
 
 **What is Context API?**
 Context provides a way to pass data through the component tree without manually passing props at every level. Combined with useReducer, it becomes a lightweight state management solution built into React.
@@ -246,7 +257,7 @@ function useTodos() {
 }
 ```
 
-### Zustand (Lightweight Alternative)
+### 💡 **Zustand (Lightweight Alternative)**
 
 **What is Zustand?**
 Zustand is a small, fast state management library that offers Redux-like capabilities with a much simpler API. It's become popular as a lightweight alternative to Redux for applications that find Redux too complex but Context API too limited.
@@ -324,7 +335,7 @@ function UserList() {
 }
 ```
 
-### Recoil (Atom-based State)
+### 💡 **Recoil (Atom-based State)**
 
 **What is Recoil?**
 Recoil is Facebook's experimental state management library that takes a fundamentally different approach from Redux. Instead of a single store, Recoil uses atoms (independent state units) and selectors (derived state) with automatic dependency tracking.

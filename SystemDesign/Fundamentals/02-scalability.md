@@ -5,9 +5,20 @@ Scalability is the capability of a system to handle growing amounts of work by a
 
 ## Types of Scalability
 
-### Vertical Scaling (Scale Up)
+### 💡 **Vertical Scaling (Scale Up)**
 
 Adding more resources to a single machine.
+
+**Quick Comparison:**
+
+| Aspect | Vertical | Horizontal |
+|--------|----------|------------|
+| **Method** | Upgrade single machine | Add more machines |
+| **Cost** | Expensive (exponential) | Cost-effective (linear) |
+| **Limits** | Hard limits | No limits |
+| **Complexity** | Simple | Complex |
+| **Availability** | Single point of failure | High availability |
+| **When to Use** | Early stage, ACID needs | High traffic, global users |
 
 **What it means:**
 - Upgrade CPU: 4 cores → 16 cores
@@ -15,17 +26,17 @@ Adding more resources to a single machine.
 - Better storage: HDD → SSD
 - Faster network: 1Gbps → 10Gbps
 
-**Advantages:**
-- **Simple**: No architectural changes needed
-- **No Distribution Complexity**: Single machine, easier to manage
-- **Data Consistency**: No distributed data issues
-- **Inter-Process Communication**: Faster than network calls
+**Pros:**
+- ✅ Simple - No architectural changes needed
+- ✅ No distribution complexity - Single machine
+- ✅ Data consistency - No distributed data issues
+- ✅ Fast IPC - Faster than network calls
 
-**Disadvantages:**
-- **Hard Limits**: Can't add infinite resources
-- **Expensive**: High-end hardware costs exponentially more
-- **Single Point of Failure**: One machine down = entire system down
-- **Downtime Required**: Often need to take system offline to upgrade
+**Cons:**
+- ❌ Hard limits - Can't add infinite resources
+- ❌ Expensive - Costs grow exponentially
+- ❌ Single point of failure - One machine down = system down
+- ❌ Downtime required - Often need offline upgrades
 
 **When to Use:**
 - Early stages with limited traffic

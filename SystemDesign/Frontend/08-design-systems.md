@@ -7,7 +7,7 @@ A design system is a collection of reusable components, guided by clear standard
 
 Core building blocks including design tokens, component libraries, and documentation that form a complete design system.
 
-### 1. Design Tokens
+### 💡 **1. Design Tokens**
 
 Atomic design decisions stored as data (color, spacing, typography, etc.).
 
@@ -122,7 +122,7 @@ export const shadows = {
 };
 ```
 
-### 2. Component Library
+### 💡 **2. Component Library**
 
 Reusable UI components built with design tokens.
 

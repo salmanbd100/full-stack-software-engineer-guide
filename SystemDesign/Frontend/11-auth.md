@@ -7,7 +7,7 @@ Authentication verifies user identity (who you are), while authorization determi
 
 Different approaches to user authentication from stateless tokens to session-based systems with varying security trade-offs.
 
-### JWT (JSON Web Tokens)
+### 💡 **JWT (JSON Web Tokens)**
 
 Stateless authentication using signed tokens.
 

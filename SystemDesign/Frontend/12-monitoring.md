@@ -3,7 +3,7 @@
 ## Overview
 Monitoring enables proactive issue detection, performance optimization, and understanding user experience. Effective observability combines metrics, logs, and traces to provide complete visibility into frontend applications.
 
-## Three Pillars of Observability
+## 💡 **Three Pillars of Observability**
 
 Comprehensive observability requires collecting metrics, logs, and traces to understand system behavior and diagnose issues.
 

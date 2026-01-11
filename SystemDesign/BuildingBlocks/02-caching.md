@@ -1,14 +1,22 @@
 # Caching
 
-## Problem → Solution
+## 💡 **Problem → Solution**
 
-**Problem**: Read + Bottleneck
-**Solution**: Cache
-**When to Use**:
-- Your database is overwhelmed by repeated queries for the same data (read-heavy workload with 90%+ read ratio)
-- Response times are unacceptable (> 500ms) and most requests fetch identical data
-- You need to reduce database load by 80-95% and improve response time from 200ms to 5ms
-- You're scaling to millions of users and database vertical scaling is no longer cost-effective
+| Aspect | Details |
+|--------|---------|
+| **Problem** | Read + Bottleneck |
+| **Solution** | Cache |
+| **Performance Gain** | 200ms → 5ms |
+| **Load Reduction** | 80-95% |
+
+**When to Use:**
+
+| Scenario | Metric |
+|----------|--------|
+| ✅ Read-heavy workload | 90%+ read ratio |
+| ✅ Slow response times | > 500ms unacceptable |
+| ✅ Repeated queries | Same data fetched often |
+| ✅ Scaling challenges | DB vertical scaling limits |
 
 ---
 

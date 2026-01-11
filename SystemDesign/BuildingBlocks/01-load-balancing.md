@@ -1,14 +1,22 @@
 # Load Balancing
 
-## Problem → Solution
+## 💡 **Problem → Solution**
 
-**Problem**: Traffic + Reliability
-**Solution**: Load Balancer
-**When to Use**:
-- Your application receives more traffic than a single server can handle (> 10,000 requests/sec)
-- You need high availability and want to eliminate single points of failure (99.9%+ uptime requirement)
-- You're scaling horizontally and need to distribute traffic across multiple servers
-- You want to perform zero-downtime deployments or rolling updates
+| Aspect | Details |
+|--------|---------|
+| **Problem** | Traffic + Reliability |
+| **Solution** | Load Balancer |
+| **Scale** | > 10,000 requests/sec |
+| **Uptime Target** | 99.9%+ |
+
+**When to Use:**
+
+| Scenario | Reason |
+|----------|--------|
+| ✅ High traffic volume | Single server can't handle > 10K req/sec |
+| ✅ High availability needed | Eliminate single points of failure |
+| ✅ Horizontal scaling | Distribute across multiple servers |
+| ✅ Zero-downtime deploys | Rolling updates without downtime |
 
 ---
 
@@ -24,12 +32,14 @@ In modern cloud architectures, load balancers are essential for achieving horizo
 
 ### Key Characteristics
 
-- **Traffic Distribution**: Distributes millions of requests per second across server pools using configurable algorithms
-- **High Availability**: Eliminates single points of failure; if one server fails, traffic automatically routes to healthy servers
-- **Health Monitoring**: Continuously checks server health (every 5-30 seconds) and removes unhealthy instances from rotation
-- **Session Persistence**: Can maintain user sessions on the same server (sticky sessions) when needed
-- **SSL Termination**: Offloads expensive SSL/TLS encryption from backend servers, improving performance
-- **Complexity**: Time O(1) for routing decisions, Space O(n) where n = number of backend servers
+| Feature | Description | Benefit |
+|---------|-------------|---------|
+| **Traffic Distribution** | Millions of requests/sec across servers | Balanced load |
+| **High Availability** | Auto-routes from failed servers | No downtime |
+| **Health Monitoring** | Checks every 5-30 seconds | Quick failure detection |
+| **Session Persistence** | Sticky sessions support | Stateful apps work |
+| **SSL Termination** | Offloads encryption | Better performance |
+| **Complexity** | O(1) time, O(n) space | Efficient routing |
 
 ### Real-World Applications
 

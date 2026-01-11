@@ -2,15 +2,23 @@
 
 ## Part 1: Message Queue Pattern
 
-### Problem → Solution
+### 💡 **Problem → Solution**
 
-**Problem**: Write + Spike → Traffic spikes overwhelm backend services, causing timeouts and failures
-**Solution**: Message Queue - Decouple producers from consumers, buffer requests, enable async processing
-**When to Use**:
-- Processing 10M+ daily background jobs (email, notifications, reports)
-- Handling traffic spikes from 1k → 100k requests/second during flash sales
-- Decoupling microservices that process at different rates (API: 50k RPS, Worker: 5k RPS)
-- Ensuring reliable delivery when downstream services are temporarily unavailable
+| Aspect | Details |
+|--------|---------|
+| **Problem** | Write + Spike (Traffic overwhelms backend) |
+| **Solution** | Message Queue (Buffer + Async) |
+| **Scale** | 10M+ daily jobs |
+| **Spike Handling** | 1K → 100K req/sec |
+
+**When to Use:**
+
+| Scenario | Example |
+|----------|---------|
+| ✅ Background jobs | 10M+ emails/notifications/reports daily |
+| ✅ Traffic spikes | Flash sales: 1K → 100K req/sec |
+| ✅ Rate mismatch | API: 50K RPS, Worker: 5K RPS |
+| ✅ Reliability needs | Downstream service unavailable |
 
 ---
 

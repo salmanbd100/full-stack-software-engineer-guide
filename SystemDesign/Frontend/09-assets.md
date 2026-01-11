@@ -3,7 +3,7 @@
 ## Overview
 Efficient asset management is critical for web performance. Images, videos, fonts, and other media often account for 50-90% of page weight. Proper optimization reduces load time, improves user experience, and lowers bandwidth costs.
 
-## Image Optimization
+## 💡 **Image Optimization**
 
 Techniques for reducing image file sizes while maintaining quality to improve page load performance and user experience.
 

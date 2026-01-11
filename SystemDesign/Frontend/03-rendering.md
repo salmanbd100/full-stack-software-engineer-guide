@@ -5,7 +5,16 @@ Modern web applications can be rendered in different ways, each with unique trad
 
 ## Rendering Patterns
 
-### Client-Side Rendering (CSR)
+**Quick Comparison:**
+
+| Pattern | TTFB | FCP | SEO | Cost | Best For |
+|---------|------|-----|-----|------|----------|
+| **CSR** | ⚡ Fast | 🐌 Slow | ❌ Poor | 💰 Low | Dashboards |
+| **SSR** | 🐌 Slow | ⚡ Fast | ✅ Great | 💰💰 High | E-commerce |
+| **SSG** | ⚡ Fastest | ⚡ Fastest | ✅ Best | 💰 Lowest | Blogs |
+| **ISR** | ⚡ Fastest | ⚡ Fastest | ✅ Best | 💰 Low | Most apps |
+
+### 💡 **Client-Side Rendering (CSR)**
 
 **What is Client-Side Rendering?**
 Client-Side Rendering (CSR) is the traditional Single Page Application (SPA) approach where the server sends a minimal HTML shell and all rendering happens in the user's browser using JavaScript. This was popularized by frameworks like React, Vue, and Angular.
@@ -88,7 +97,7 @@ root.render(<App />);
 - Tools and SaaS applications
 - Apps where SEO isn't critical
 
-### Server-Side Rendering (SSR)
+### 💡 **Server-Side Rendering (SSR)**
 
 **What is Server-Side Rendering?**
 With SSR, the server generates complete HTML for each request. When a user requests a page, the server fetches necessary data, renders React components to HTML, and sends fully-formed HTML to the browser. This is how traditional websites (PHP, Ruby on Rails) worked, but modernized for React applications.
@@ -179,7 +188,7 @@ export default function Page({ data }) {
 - Marketing pages with dynamic content
 - Apps requiring fresh data per request
 
-### Static Site Generation (SSG)
+### 💡 **Static Site Generation (SSG)**
 
 HTML is generated at build time and served from CDN.
 
@@ -247,7 +256,7 @@ export default function Post({ posts }) {
 - Marketing websites
 - Product catalogs (relatively stable)
 
-### Incremental Static Regeneration (ISR)
+### 💡 **Incremental Static Regeneration (ISR)**
 
 Combines benefits of SSG and SSR by allowing static pages to be updated after build.
 
@@ -302,7 +311,7 @@ export default function Products({ products }) {
 - Blogs with new posts
 - Product listings
 
-### Progressive Hydration
+### 💡 **Progressive Hydration**
 
 Load and hydrate components progressively based on priority.
 
@@ -349,7 +358,7 @@ export default function ProductPage() {
 - Better perceived performance
 - Reduced initial JavaScript
 
-### Islands Architecture
+### 💡 **Islands Architecture**
 
 Only interactive components are hydrated, rest remains static HTML.
 

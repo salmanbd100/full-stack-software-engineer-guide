@@ -5,7 +5,7 @@ Offline-first applications work seamlessly regardless of network connectivity. T
 
 ## Core Concepts
 
-### Progressive Web Apps (PWA)
+### 💡 **Progressive Web Apps (PWA)**
 
 Web applications that use modern web capabilities to provide app-like experiences.
 
@@ -16,7 +16,7 @@ Web applications that use modern web capabilities to provide app-like experience
 - **Responsive**: Work on any device
 - **Safe**: Served via HTTPS
 
-### Service Workers
+### 💡 **Service Workers**
 
 **What are Service Workers?**
 Service workers are JavaScript files that run in the background, separate from your web page, acting as a programmable network proxy. They intercept network requests and can respond with cached data, enabling offline functionality.

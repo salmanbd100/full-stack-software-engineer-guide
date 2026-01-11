@@ -7,7 +7,15 @@ Frontend performance directly impacts user experience, SEO rankings, and convers
 
 Google's user-centric performance metrics that impact SEO and user experience.
 
-### Largest Contentful Paint (LCP)
+**Performance Targets:**
+
+| Metric | Good | Needs Improvement | Poor | Impact |
+|--------|------|-------------------|------|--------|
+| **LCP** | < 2.5s | 2.5s - 4.0s | > 4.0s | Loading speed |
+| **FID** | < 100ms | 100ms - 300ms | > 300ms | Interactivity |
+| **CLS** | < 0.1 | 0.1 - 0.25 | > 0.25 | Visual stability |
+
+### 💡 **Largest Contentful Paint (LCP)**
 
 **What is LCP?**
 Largest Contentful Paint (LCP) measures when the largest content element (image, video, or text block) becomes visible in the viewport. It's Google's primary metric for measuring perceived load speed and directly impacts SEO rankings.
@@ -79,7 +87,7 @@ new PerformanceObserver((list) => {
 />
 ```
 
-### First Input Delay (FID)
+### 💡 **First Input Delay (FID)**
 
 **What is FID?**
 First Input Delay measures the time from when a user first interacts with your page (clicks a link, taps a button) to when the browser can actually begin processing that event. It captures the user's first impression of interactivity.
@@ -159,7 +167,7 @@ worker.onmessage = (e) => {
 };
 ```
 
-### Cumulative Layout Shift (CLS)
+### 💡 **Cumulative Layout Shift (CLS)**
 
 Measures visual stability. Should be less than 0.1.
 
