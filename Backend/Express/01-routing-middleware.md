@@ -6,6 +6,23 @@
 
 **Key Principle:** Express is essentially a series of middleware function calls. Each request flows through a pipeline of middleware until a response is sent.
 
+**Request Flow:**
+```
+Request → Middleware 1 → Middleware 2 → Route Handler → Response
+              ↓              ↓              ↓
+           Logging      JSON Parser    Business Logic
+```
+
+**HTTP Methods Comparison:**
+
+| Method | Purpose | Body | Idempotent | Safe | Use Case |
+|--------|---------|------|------------|------|----------|
+| **GET** | Read | ❌ No | ✅ Yes | ✅ Yes | Fetch data |
+| **POST** | Create | ✅ Yes | ❌ No | ❌ No | Create resource |
+| **PUT** | Replace | ✅ Yes | ✅ Yes | ❌ No | Full update |
+| **PATCH** | Modify | ✅ Yes | ❌ No | ❌ No | Partial update |
+| **DELETE** | Remove | ❌ No | ✅ Yes | ❌ No | Delete resource |
+
 ---
 
 ## 🛣️ Routing Fundamentals
@@ -1740,14 +1757,39 @@ app.post('/users', userController.createUser);
 
 ## 🎯 Summary
 
-- **Routing** determines how your app responds to client requests to endpoints
-- **Middleware** functions form a pipeline that processes requests
-- **Express Router** enables modular, mountable route handlers
-- **Execution order matters** - middleware runs in definition order
-- **Always call next()** or send a response to avoid hanging requests
-- **Error handlers** must have 4 parameters: `(err, req, res, next)`
-- **Async errors** need manual handling (try-catch or wrapper)
-- **Separate concerns** using MVC pattern (Routes → Controllers → Services)
+**Core Concepts:**
+
+1. **Routing:**
+   - ✅ Maps HTTP methods + paths to handlers
+   - ✅ Supports params, query strings, regex patterns
+   - ✅ Route order matters (first match wins)
+   - ✅ Use Express Router for modular routes
+
+2. **Middleware:**
+   - ✅ Functions with `(req, res, next)` signature
+   - ✅ Execute in definition order (pipeline)
+   - ✅ Must call `next()` or send response
+   - ✅ Types: Application, Router, Error, Third-party
+
+3. **Error Handling:**
+   - ✅ Error middleware has 4 params: `(err, req, res, next)`
+   - ✅ Must be defined last
+   - ⚠️ Async errors need try-catch or wrapper
+   - ✅ Centralized error handler for consistency
+
+4. **Best Practices:**
+   - ✅ Separate concerns (MVC pattern)
+   - ✅ Use async wrapper for async routes
+   - ✅ Validate inputs with middleware
+   - ✅ Use Router for modularity
+   - ❌ Don't send multiple responses
+   - ❌ Don't forget to call next()
+
+**Key Insights:**
+> - Express is just middleware functions in sequence
+> - Execution order is critical - middleware runs top to bottom
+> - Error handlers must have exactly 4 parameters to be recognized
+> - Async errors won't be caught without try-catch or wrapper function
 
 ---
 

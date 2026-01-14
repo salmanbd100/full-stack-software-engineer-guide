@@ -4,6 +4,25 @@
 
 Amazon Web Services (AWS) is the leading cloud platform for modern DevOps. Understanding AWS fundamentals is essential for deploying, managing, and scaling applications in the cloud. This guide covers core AWS concepts for DevOps engineers.
 
+**Why AWS for DevOps:**
+- Market leader (32% cloud market share)
+- 200+ services covering all needs
+- Global infrastructure (30+ regions)
+- Pay-as-you-go pricing
+- Infrastructure as Code support (CloudFormation, CDK)
+- Deep CI/CD integration (CodePipeline, CodeBuild)
+
+**Core Service Categories:**
+
+| Category | Key Services | Use Case |
+|----------|-------------|----------|
+| **Compute** | EC2, Lambda, ECS, EKS | Run applications |
+| **Storage** | S3, EBS, EFS | Store data |
+| **Database** | RDS, DynamoDB, Aurora | Manage data |
+| **Networking** | VPC, Route53, CloudFront, ELB | Connect and route |
+| **Security** | IAM, KMS, Secrets Manager, WAF | Control access |
+| **DevOps** | CodePipeline, CodeBuild, CodeDeploy | CI/CD |
+
 ## AWS Global Infrastructure
 
 ### Regions and Availability Zones
@@ -710,15 +729,51 @@ A:
 
 ## Summary
 
-AWS Fundamentals are essential for DevOps:
-- **Global Infrastructure** - Regions, AZs, edge locations
-- **Compute** - EC2 (VMs), Lambda (serverless)
-- **Storage** - S3 (objects), EBS (block), EFS (file)
-- **Networking** - VPC, subnets, security groups, route tables
-- **IAM** - Users, groups, roles, policies
-- **AWS CLI** - Command-line automation
+**Core Concepts:**
 
-Master these fundamentals before diving into advanced AWS services like ECS, EKS, RDS, and CloudFormation.
+1. **Global Infrastructure:**
+   - ✅ **Regions**: Geographic locations (30+)
+   - ✅ **Availability Zones**: Data centers within region (3+ per region)
+   - ✅ **Edge Locations**: CDN endpoints (400+)
+   - ✅ Multi-AZ for high availability, Multi-Region for DR
+
+2. **Compute:**
+   - **EC2**: Virtual machines, flexible, full control
+   - **Lambda**: Serverless functions, auto-scaling, pay-per-use
+   - **ECS/EKS**: Container orchestration (Docker, Kubernetes)
+
+3. **Storage:**
+   - **S3**: Object storage, 11 9's durability, web-scale
+   - **EBS**: Block storage, attached to EC2, persistent
+   - **EFS**: Network file system, shared across EC2
+
+4. **Networking:**
+   - ✅ **VPC**: Isolated network (your own data center)
+   - ✅ **Subnets**: Public (internet access) vs Private (internal)
+   - ✅ **Security Groups**: Stateful firewall (instance-level)
+   - ✅ **NACLs**: Stateless firewall (subnet-level)
+   - ✅ **Internet Gateway**: VPC to internet
+   - ✅ **NAT Gateway**: Private subnet to internet (outbound)
+
+5. **Security (IAM):**
+   - **Users**: Individual identities
+   - **Groups**: Collection of users
+   - **Roles**: Assumed by services/users
+   - **Policies**: JSON permissions documents
+   - ⚠️ Principle of least privilege
+
+6. **AWS CLI:**
+   - ✅ Automation and scripting
+   - ✅ Access keys (programmatic access)
+   - ✅ Profiles for multiple accounts
+   - ✅ Essential for DevOps workflows
+
+**Key Insights:**
+> - Always deploy across multiple AZs for high availability
+> - Use IAM roles instead of access keys for EC2/Lambda
+> - S3 is object storage (not a filesystem), EFS is NFS
+> - Security Groups are stateful (return traffic automatic)
+> - Public subnet = Internet Gateway route, Private = no direct internet
 
 ---
 [← Back to DevOps](../README.md) | [Next: IAM Deep Dive →](./02-iam.md)

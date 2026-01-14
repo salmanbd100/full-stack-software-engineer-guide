@@ -4,6 +4,22 @@
 
 Node.js runs on a single thread, but modern servers have multiple CPU cores. Clustering allows Node.js to utilize all available CPU cores by creating multiple worker processes, dramatically improving application performance and scalability.
 
+**Why Clustering:**
+- Node.js is single-threaded (uses 1 CPU core by default)
+- Modern servers have 4-32+ CPU cores
+- Clustering uses ALL available cores
+- Improves throughput by 4-8x on typical servers
+- Provides fault tolerance (worker crashes don't kill app)
+
+**Scaling Strategies:**
+
+| Strategy | Description | When to Use |
+|----------|-------------|-------------|
+| **Vertical Scaling** | Bigger server (more RAM/CPU) | Quick fix, limited by hardware |
+| **Clustering** | Multiple processes on same server | Utilize multi-core CPU |
+| **Horizontal Scaling** | Multiple servers | Handle massive traffic, redundancy |
+| **PM2** | Production process manager | Production deployments |
+
 ## The Cluster Module
 
 ### Basic Clustering
@@ -713,16 +729,47 @@ app.get('/health', healthCheckHandler);
 
 ## Summary
 
-**Key Takeaways:**
-- Clustering utilizes multiple CPU cores
-- Each worker is an independent process
-- Master process manages workers
-- Round-robin load balancing by default
-- PM2 recommended for production
-- Use Redis for shared state
-- Implement graceful shutdown
-- Monitor worker health
-- Use load balancers for horizontal scaling
+**Core Concepts:**
+
+1. **Cluster Module:**
+   - ✅ Master process manages workers
+   - ✅ Each worker is independent process
+   - ✅ Automatic load balancing (round-robin)
+   - ✅ Workers share same server port
+   - ✅ Auto-restart crashed workers
+
+2. **PM2 - Production Standard:**
+   - ✅ Zero-downtime deployments (`pm2 reload`)
+   - ✅ Auto-restart on crashes
+   - ✅ Built-in load balancing
+   - ✅ Log management
+   - ✅ Monitoring and metrics
+
+3. **Scaling Approaches:**
+   - **Vertical**: Bigger server (limited by hardware)
+   - **Clustering**: Use all CPU cores (4-8x improvement)
+   - **Horizontal**: Multiple servers (unlimited scaling)
+   - **PM2**: Best of both (easy management)
+
+4. **Shared State:**
+   - ⚠️ Workers don't share memory
+   - ✅ Use Redis for sessions/cache
+   - ✅ Use database for persistent data
+   - ✅ IPC for master-worker communication
+
+5. **Best Practices:**
+   - ✅ Match workers to CPU cores
+   - ✅ Implement graceful shutdown
+   - ✅ Auto-restart crashed workers
+   - ✅ Use PM2 in production
+   - ✅ Monitor worker health
+   - ✅ Health check endpoints
+
+**Key Insights:**
+> - Clustering can improve throughput by 4-8x on typical multi-core servers
+> - PM2 is the industry standard for production Node.js deployments
+> - Workers are isolated - one crash doesn't bring down the app
+> - Use Redis/DB for shared state - workers can't share memory
 
 ## Related Topics
 - [Child Processes](./07-child-processes.md)

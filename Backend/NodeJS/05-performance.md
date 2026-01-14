@@ -4,6 +4,23 @@
 
 Optimizing Node.js applications is essential for handling high traffic, reducing latency, and minimizing resource usage. This guide covers profiling, monitoring, and optimization techniques.
 
+**Why This Matters:**
+- Poor performance = lost users and revenue
+- Node.js single-threaded nature requires careful optimization
+- Blocking the event loop kills performance
+- Memory leaks crash production applications
+- Proper profiling identifies real bottlenecks
+
+**Optimization Priorities:**
+
+| Priority | Area | Impact | Difficulty |
+|----------|------|--------|------------|
+| **1. Critical** | Don't block event loop | ⚡ High | ⚠️ Medium |
+| **2. High** | Database query optimization | ⚡ High | ✅ Easy |
+| **3. High** | Memory leak prevention | ⚡ High | ⚠️ Hard |
+| **4. Medium** | Caching implementation | ⚡ Medium | ✅ Easy |
+| **5. Medium** | Async optimization | ⚡ Medium | ✅ Easy |
+
 ## Profiling & Monitoring
 
 ### Built-in Profiler
@@ -701,17 +718,45 @@ app.get('/metrics', async (req, res) => {
 
 ## Summary
 
-**Key Takeaways:**
-- Profile before optimizing - measure, don't guess
-- Avoid blocking the event loop
-- Use worker threads for CPU-intensive tasks
-- Implement caching at multiple levels
-- Use connection pooling for databases
-- Optimize database queries (indexes, JOINs, pagination)
-- Enable compression for responses
-- Monitor memory usage to detect leaks
-- Run operations in parallel when possible
-- Keep V8 optimized (monomorphic functions, stable object shapes)
+**Core Optimization Strategies:**
+
+1. **Event Loop:**
+   - ⚠️ Never block the event loop
+   - ✅ Use Worker Threads for CPU-intensive tasks
+   - ✅ Monitor event loop lag in production
+   - ✅ Break work into chunks for long operations
+
+2. **Memory:**
+   - ✅ Clear timers and event listeners
+   - ✅ Close database connections
+   - ⚠️ Avoid global variables
+   - ✅ Use appropriate data structures (Set/Map over Array/Object)
+   - ✅ Profile with heap snapshots
+
+3. **Database:**
+   - ✅ Use connection pooling
+   - ✅ Optimize queries (indexes, EXPLAIN)
+   - ✅ Avoid N+1 queries
+   - ✅ Paginate results
+   - ✅ Select only needed fields
+
+4. **Async Operations:**
+   - ✅ Run independent operations in parallel
+   - ✅ Limit concurrency for resource-intensive tasks
+   - ✅ Use Promise.all() for parallel execution
+   - ❌ Don't use sequential await unnecessarily
+
+5. **V8 Optimization:**
+   - ✅ Keep functions monomorphic (same types)
+   - ✅ Keep object shapes consistent
+   - ❌ Don't delete object properties
+   - ✅ Pre-compile regex patterns
+
+**Key Insights:**
+> - Profile first, optimize second - measure, don't guess
+> - 80% of performance issues come from: blocking event loop, bad queries, memory leaks
+> - Caching is the easiest way to improve performance
+> - Parallel execution can provide 10x speedup for independent operations
 
 ## Related Topics
 - [Event Loop & Async Programming](./01-event-loop-async.md)

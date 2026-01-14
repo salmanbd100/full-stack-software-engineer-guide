@@ -833,13 +833,46 @@ await request(app)
 
 ## Summary
 
-- Write unit tests for functions, integration tests for APIs
-- Use Jest for testing framework, Supertest for HTTP testing
-- Mock external dependencies to isolate tests
-- Test authentication, validation, and error handling
-- Use test helpers for common operations
-- Aim for good test coverage
-- Follow AAA pattern: Arrange, Act, Assert
+**Core Concepts:**
+
+1. **Test Types:**
+   - **Unit Tests**: Test functions in isolation
+   - **Integration Tests**: Test API endpoints
+   - **E2E Tests**: Test complete user flows
+   - **Coverage**: Aim for 80%+ on critical paths
+
+2. **Testing Stack:**
+   - ✅ **Jest**: Testing framework
+   - ✅ **Supertest**: HTTP assertions
+   - ✅ **Sinon**: Mocking/stubbing (if needed)
+   - ✅ **Mock databases**: In-memory or test DB
+
+3. **Test Structure (AAA Pattern):**
+   - **Arrange**: Set up test data and mocks
+   - **Act**: Execute the code being tested
+   - **Assert**: Verify expected results
+
+4. **What to Test:**
+   - ✅ Happy paths (successful scenarios)
+   - ✅ Edge cases (boundary conditions)
+   - ✅ Error handling (failures)
+   - ✅ Authentication/authorization
+   - ✅ Input validation
+   - ✅ Business logic
+
+5. **Best Practices:**
+   - ✅ Isolate tests (no dependencies between tests)
+   - ✅ Use descriptive test names
+   - ✅ Mock external services (APIs, databases)
+   - ✅ Test one thing per test
+   - ❌ Don't test implementation details
+   - ✅ Run tests in CI/CD pipeline
+
+**Key Insights:**
+> - Integration tests are most valuable for APIs - they test real behavior
+> - Mock external dependencies to keep tests fast and reliable
+> - Good tests = confidence to refactor and deploy
+> - Test coverage % is a metric, not a goal - focus on critical paths
 
 ---
 

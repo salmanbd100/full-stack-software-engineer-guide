@@ -950,28 +950,37 @@ docker history myapp:latest
 
 ## Summary
 
-**Key Takeaways:**
-- Use multi-stage builds for production (smaller, more secure images)
-- Order Dockerfile instructions by change frequency (optimize caching)
-- Always run as non-root user
-- Use Alpine or slim variants
-- Never store secrets in layers
-- Combine RUN commands and clean up in same layer
-- Use specific version tags, never `latest`
-- Implement healthchecks
-- Use .dockerignore to exclude unnecessary files
+**Core Best Practices:**
 
-**Optimization Checklist:**
-- [ ] Multi-stage build
-- [ ] Alpine base image
-- [ ] Non-root user
-- [ ] Specific version tags
-- [ ] Combined RUN commands
-- [ ] .dockerignore file
-- [ ] Healthcheck
-- [ ] Security scan passed
-- [ ] Layer caching optimized
-- [ ] No secrets in layers
+1. **Image Size:**
+   - ✅ Multi-stage builds (10x+ reduction)
+   - ✅ Alpine or slim base images
+   - ✅ Combine RUN commands
+   - ✅ Clean up in same layer (`rm -rf`)
+
+2. **Caching:**
+   - ✅ Order by change frequency (dependencies before code)
+   - ✅ Copy package files first, then install
+   - ✅ Copy application code last
+   - ✅ Use .dockerignore
+
+3. **Security:**
+   - ✅ Non-root user (USER directive)
+   - ✅ Specific version tags (not `latest`)
+   - ✅ Never store secrets in layers
+   - ✅ Security scanning (Trivy, Snyk)
+
+4. **Production Readiness:**
+   - ✅ HEALTHCHECK for monitoring
+   - ✅ LABEL for metadata
+   - ✅ EXPOSE for documentation
+   - ✅ ENTRYPOINT + CMD pattern
+
+**Key Insights:**
+> - Layer order matters: dependencies change less than code
+> - Multi-stage builds = smaller images = faster deployments
+> - Non-root user prevents privilege escalation
+> - `latest` tag is dangerous in production - always use specific versions
 
 ---
 

@@ -4,6 +4,23 @@
 
 Container security is critical for production deployments. This guide covers Docker security best practices, vulnerability scanning, runtime security, secrets management, and compliance requirements.
 
+### 💡 **Why Docker Security Matters**
+
+**The Container Security Challenge:**
+- Containers **share the host kernel** - compromised container can impact host and other containers
+- **Images can contain vulnerabilities** - inherited from base images and dependencies
+- **Secrets exposure** - environment variables, build layers, and config files can leak credentials
+- **Attack surface** - default configurations often run as root with unnecessary capabilities
+
+**Real-World Impact:**
+- Cryptominers exploiting exposed Docker APIs and vulnerable images
+- Data breaches from exposed secrets in public registries
+- Container breakouts gaining host access through misconfigurations
+- Supply chain attacks through compromised base images
+
+**Key Value:**
+> Docker security requires defense in depth - securing images, build process, runtime configuration, network isolation, secrets management, and continuous vulnerability scanning across the entire container lifecycle.
+
 ## Table of Contents
 - [Image Security](#image-security)
 - [Container Runtime Security](#container-runtime-security)
@@ -765,38 +782,98 @@ export DOCKER_CONTENT_TRUST=1
 
 ## Summary
 
-**Security Layers:**
-1. **Image Security**: Minimal base images, vulnerability scanning, non-root users
-2. **Runtime Security**: Capabilities, read-only FS, resource limits
-3. **Network Security**: Segmentation, TLS, firewall rules
-4. **Secrets Management**: Never in environment, use proper secret stores
-5. **Access Control**: User namespaces, Content Trust, RBAC
+**Core Concepts:**
+
+1. **Image Security (Build Time):**
+   - ✅ **Base Images**: Use official images with specific versions (not `latest`), verify with digest
+   - ✅ **Minimal Images**: Alpine (~170MB), distroless (~150MB) - fewer packages = fewer vulnerabilities
+   - ✅ **Non-Root User**: Create and use non-root user (UID 1001+), never run as root
+   - ✅ **Multi-Stage Builds**: Remove build tools from final image, secrets stay in builder stage only
+   - ✅ **Vulnerability Scanning**: Trivy, Grype, Docker Scan - fail CI/CD on CRITICAL vulnerabilities
+   - ❌ Never commit secrets to image layers (visible in `docker history`)
+
+2. **Runtime Security (Execution Time):**
+   - ✅ **Drop Capabilities**: `cap_drop: ALL`, then `cap_add` only what's needed (NET_BIND_SERVICE)
+   - ✅ **Read-Only Filesystem**: `read_only: true` with `tmpfs` for writable directories
+   - ✅ **No New Privileges**: `--security-opt=no-new-privileges:true` prevents escalation
+   - ✅ **Resource Limits**: CPU, memory, PIDs - prevent DoS, cryptominers, fork bombs
+   - ✅ **AppArmor/SELinux**: Mandatory Access Control profiles for additional isolation
+   - ⚠️ Never mount Docker socket (`/var/run/docker.sock`) - grants full root access to host
+
+3. **Secrets Management:**
+   - ✅ **Docker Secrets**: Swarm mode, stored in `/run/secrets/`, encrypted at rest and in transit
+   - ✅ **BuildKit Secrets**: `--mount=type=secret` for build-time secrets (not stored in image)
+   - ✅ **External Secret Stores**: AWS Secrets Manager, HashiCorp Vault - fetch at runtime
+   - ❌ Never use environment variables for secrets (visible in `docker inspect`, logs, process list)
+   - ❌ Never hardcode secrets in Dockerfile or docker-compose.yml
+
+4. **Network Security:**
+   - ✅ **Network Segmentation**: Frontend/backend/data tiers on separate networks
+   - ✅ **Internal Networks**: `internal: true` for databases (no external internet access)
+   - ✅ **TLS/SSL**: Encrypt traffic with proper certificates (TLS 1.2+)
+   - ✅ **Firewall Rules**: Use `iptables DOCKER-USER` chain for custom rules
+   - ✅ **Minimal Port Exposure**: Only expose required ports, use `expose` instead of `ports` when possible
+
+5. **Access Control & Compliance:**
+   - ✅ **User Namespaces**: Map container root (UID 0) to unprivileged host user (UID 100000+)
+   - ✅ **Docker Content Trust**: `DOCKER_CONTENT_TRUST=1` - only signed images allowed
+   - ✅ **Logging & Monitoring**: Centralized logging (CloudWatch, ELK), audit container events
+   - ✅ **CIS Docker Benchmark**: Run Docker Bench Security for compliance checks
+   - ✅ **Regular Audits**: Scan images weekly, rotate secrets quarterly, review access controls
+
+**Best Practices:**
+
+**Do:**
+- ✅ Run as non-root user with specific UID/GID
+- ✅ Use minimal base images (Alpine, distroless, scratch for static binaries)
+- ✅ Scan images in CI/CD and fail on CRITICAL vulnerabilities
+- ✅ Use Docker Secrets or external secret managers (Vault, AWS Secrets Manager)
+- ✅ Drop all capabilities, add only what's needed
+- ✅ Implement read-only filesystem with tmpfs for writable directories
+- ✅ Use network segmentation with internal networks for databases
+- ✅ Set resource limits (CPU, memory, PIDs)
+- ✅ Enable Docker Content Trust for image verification
+- ✅ Centralize logging and monitor container events
+
+**Don't:**
+- ❌ Never run containers as root (default in many images)
+- ❌ Never use `latest` tag (unpredictable, no version control)
+- ❌ Never store secrets in environment variables, images, or docker-compose.yml
+- ❌ Never mount Docker socket in untrusted containers (grants root access)
+- ❌ Never skip vulnerability scanning before production deployment
+- ❌ Never expose unnecessary ports to host or internet
+- ❌ Never trust unverified images from unknown sources
+- ❌ Never run containers with full capabilities or privileged mode
+- ⚠️ Never ignore HIGH/CRITICAL vulnerabilities - patch or find alternatives
+
+**Key Insights:**
+> - **Defense in depth is required** - secure every layer: image, build, runtime, network, host
+> - **Container root = host root without user namespaces** - always run as non-root user
+> - **Secrets in environment variables are NOT secret** - visible in logs, inspect, process list
+> - **Smaller images = smaller attack surface** - Alpine (170MB) vs Full OS (1GB+)
+> - **Mounting Docker socket = full root access** - container can create privileged containers and escape
+> - **Scanning must be continuous** - new vulnerabilities discovered daily, scan on build and schedule
+> - **Read-only filesystem prevents malware persistence** - attackers can't modify binaries or install backdoors
 
 **Production Security Checklist:**
-- [ ] Non-root user configured
-- [ ] Minimal base image (Alpine/distroless)
-- [ ] Multi-stage builds implemented
-- [ ] Vulnerability scanning in CI/CD
-- [ ] No secrets in images/environment
-- [ ] Docker Content Trust enabled
-- [ ] Resource limits configured
-- [ ] Read-only filesystem where possible
-- [ ] Capabilities dropped
-- [ ] Network segmentation implemented
-- [ ] Logging and monitoring configured
-- [ ] Regular security audits (Docker Bench)
-
-**Critical Rules:**
-- ❌ Never run as root
-- ❌ Never mount Docker socket untrusted
-- ❌ Never store secrets in images
-- ❌ Never use latest tag
-- ❌ Never trust unverified images
-- ✅ Always scan images
-- ✅ Always use specific versions
-- ✅ Always implement network segmentation
-- ✅ Always use secrets management
-- ✅ Always monitor and log
+- [ ] Non-root user configured (UID 1001+, verified with `docker run myapp id`)
+- [ ] Minimal base image (Alpine/distroless, <200MB)
+- [ ] Multi-stage builds implemented (build tools not in final image)
+- [ ] Vulnerability scanning in CI/CD (Trivy `--exit-code 1 --severity CRITICAL`)
+- [ ] No secrets in images/environment (use Docker Secrets or Vault)
+- [ ] Docker Content Trust enabled (`DOCKER_CONTENT_TRUST=1`)
+- [ ] Resource limits configured (CPU, memory, PIDs)
+- [ ] Read-only filesystem where possible (`read_only: true` + tmpfs)
+- [ ] Capabilities dropped (`cap_drop: ALL`, add only needed)
+- [ ] Network segmentation implemented (frontend/backend/data tiers)
+- [ ] Internal networks for databases (`internal: true`)
+- [ ] TLS/SSL configured for external traffic
+- [ ] Logging and monitoring configured (CloudWatch, ELK, Prometheus)
+- [ ] Regular security audits (Docker Bench Security monthly)
+- [ ] User namespaces enabled (container UID 0 → host UID 100000+)
+- [ ] No Docker socket mounted in containers
+- [ ] Secrets rotation policy implemented (quarterly minimum)
+- [ ] Incident response plan documented
 
 ---
 

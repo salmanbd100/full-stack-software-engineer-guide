@@ -647,13 +647,38 @@ process.on('unhandledRejection', (reason, promise) => {
 
 ## Summary
 
-- Error-handling middleware has 4 parameters
-- Use custom error classes for different error types
-- Handle async errors with try-catch or wrapper
-- Differentiate between development and production errors
-- Log errors for debugging
-- Handle unhandled rejections and exceptions
-- Use proper HTTP status codes
+**Core Concepts:**
+
+1. **Error Middleware:**
+   - ✅ Must have 4 parameters: `(err, req, res, next)`
+   - ✅ Must be defined last (after all routes)
+   - ✅ Centralize error handling logic
+   - ✅ Use custom error classes
+
+2. **Async Errors:**
+   - ⚠️ Express doesn't catch async errors automatically
+   - ✅ Use try-catch or async wrapper
+   - ✅ Always call `next(err)` for errors
+   - ✅ Handle Promise rejections
+
+3. **Error Types:**
+   - **Operational**: Expected errors (handle gracefully)
+   - **Programmer**: Bugs (fix and prevent)
+   - **Validation**: Bad input (400 status)
+   - **Authentication**: Auth failures (401/403 status)
+
+4. **Best Practices:**
+   - ✅ Log all errors with context
+   - ✅ Use appropriate status codes
+   - ❌ Don't expose stack traces in production
+   - ❌ Don't send HTML in API errors
+   - ✅ Handle unhandled rejections globally
+
+**Key Insights:**
+> - Error middleware signature is crucial: exactly 4 parameters
+> - Async errors need manual handling (try-catch or wrapper)
+> - Always return consistent error response format
+> - Never expose sensitive error details to clients
 
 ---
 

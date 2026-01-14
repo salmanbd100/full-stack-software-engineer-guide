@@ -725,20 +725,46 @@ app.post('/login', async (req, res) => {
 
 ## Summary
 
-**Key Security Practices:**
-- Validate and sanitize all input
-- Use parameterized queries (prevent SQL injection)
-- Hash passwords with bcrypt (salt rounds ≥ 12)
-- Use JWT for stateless authentication
-- Implement RBAC for authorization
-- Set security headers with Helmet
-- Enable CORS properly
-- Implement rate limiting
-- Use HTTPS in production
-- Keep dependencies updated
-- Never commit secrets to git
-- Log security events
-- Audit code regularly
+**Core Security Concepts:**
+
+1. **Input Validation:**
+   - ✅ Validate all user input (whitelist approach)
+   - ✅ Sanitize output to prevent XSS
+   - ✅ Use parameterized queries (prevent SQL injection)
+   - ✅ Validate file uploads (type, size, content)
+
+2. **Authentication & Authorization:**
+   - ✅ Hash passwords with bcrypt (saltRounds ≥ 12)
+   - ✅ Use JWT for stateless authentication
+   - ✅ Implement refresh tokens for long sessions
+   - ✅ RBAC for fine-grained permissions
+
+3. **Security Headers:**
+   - ✅ Use Helmet.js for Express
+   - ✅ CSP to prevent XSS
+   - ✅ HSTS for HTTPS enforcement
+   - ✅ X-Frame-Options to prevent clickjacking
+
+4. **Common Vulnerabilities:**
+   - ⚠️ SQL Injection: Use parameterized queries
+   - ⚠️ XSS: Escape output, use CSP
+   - ⚠️ CSRF: Use tokens
+   - ⚠️ Command Injection: Use execFile, validate input
+   - ⚠️ NoSQL Injection: Validate types
+
+5. **Best Practices:**
+   - ✅ Rate limiting to prevent brute force
+   - ✅ HTTPS in production
+   - ✅ Environment variables for secrets
+   - ✅ Audit dependencies (npm audit, Snyk)
+   - ✅ Log security events
+   - ❌ Never commit secrets to git
+
+**Key Insights:**
+> - Defense in depth: multiple layers of security
+> - Input validation is the first line of defense
+> - bcrypt with 12+ rounds is secure for password hashing
+> - Most vulnerabilities come from not validating/sanitizing input
 
 ## Common Interview Questions
 

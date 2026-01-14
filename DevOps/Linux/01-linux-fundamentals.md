@@ -4,6 +4,23 @@
 
 Linux is the backbone of modern DevOps. Understanding Linux fundamentals is essential for managing servers, containers, and cloud infrastructure. This guide covers essential Linux concepts for DevOps engineers.
 
+**Why Linux for DevOps:**
+- 90%+ of servers run Linux
+- Docker and Kubernetes are built on Linux
+- Cloud infrastructure (AWS, Azure, GCP) heavily uses Linux
+- Most DevOps tools are Linux-first
+- Open source and highly customizable
+
+**Core Skills Comparison:**
+
+| Skill | Beginner | Intermediate | Advanced |
+|-------|----------|--------------|----------|
+| **File System** | Basic navigation (cd, ls, pwd) | Permissions, links, finding files | LVM, disk quotas, filesystem tuning |
+| **Processes** | View processes (ps, top) | Kill/manage processes | Process priorities, cgroups |
+| **Networking** | Check connectivity (ping, curl) | Configure network, firewall | Advanced routing, tunneling |
+| **Package Mgmt** | Install packages (apt, yum) | Manage repos, dependencies | Build packages, custom repos |
+| **Text Processing** | Read files (cat, less) | grep, sed, awk | Complex text pipelines |
+
 ## File System Hierarchy
 
 ### Standard Linux Directory Structure
@@ -639,16 +656,50 @@ uptime                              # System load
 
 ## Summary
 
-Linux fundamentals are critical for DevOps:
-- **File system** - Understanding hierarchy and navigation
-- **Permissions** - Managing user access and security
-- **Processes** - Managing and troubleshooting running services
-- **Networking** - Connectivity, debugging, and configuration
-- **Package management** - Installing and updating software
-- **Disk management** - Storage, mounting, and monitoring
-- **Text processing** - Log analysis and file manipulation
+**Core Concepts:**
 
-Master these basics before moving to advanced DevOps tools like Docker, Kubernetes, and Terraform.
+1. **File System:**
+   - ✅ Hierarchy: `/` (root), `/etc` (config), `/var/log` (logs)
+   - ✅ Navigation: `cd`, `ls`, `pwd`, `find`
+   - ✅ Permissions: `chmod`, `chown`, user/group/other (rwx)
+   - ✅ Links: Hard links vs symbolic links
+
+2. **Processes:**
+   - ✅ View: `ps aux`, `top`, `htop`
+   - ✅ Manage: `kill`, `systemctl`, `service`
+   - ✅ Background: `&`, `nohup`, `screen`, `tmux`
+   - ✅ Signals: SIGTERM (15), SIGKILL (9)
+
+3. **Networking:**
+   - ✅ Connectivity: `ping`, `curl`, `wget`, `nc`
+   - ✅ Debug: `netstat`, `ss`, `tcpdump`, `traceroute`
+   - ✅ Configure: `ip`, `ifconfig`, `route`
+   - ✅ DNS: `/etc/hosts`, `/etc/resolv.conf`
+
+4. **Package Management:**
+   - **Debian/Ubuntu**: `apt`, `dpkg`
+   - **RHEL/CentOS**: `yum`, `dnf`, `rpm`
+   - ✅ Update: `apt update && apt upgrade`
+   - ✅ Search: `apt search`, `yum search`
+
+5. **Text Processing:**
+   - ✅ View: `cat`, `less`, `head`, `tail`
+   - ✅ Search: `grep`, `egrep`, `ag`
+   - ✅ Transform: `sed`, `awk`, `cut`, `tr`
+   - ✅ Combine: Pipes (`|`), redirects (`>`, `>>`)
+
+6. **Disk Management:**
+   - ✅ Check: `df -h`, `du -sh`
+   - ✅ Mount: `mount`, `/etc/fstab`
+   - ✅ Partitions: `fdisk`, `lsblk`
+   - ✅ LVM: Logical Volume Management
+
+**Key Insights:**
+> - Everything in Linux is a file (devices, processes, sockets)
+> - Permissions are critical for security (principle of least privilege)
+> - Understanding processes is essential for troubleshooting
+> - Text processing skills = log analysis superpowers
+> - Master these basics before Docker, Kubernetes, and Terraform
 
 ---
 [← Back to DevOps](../README.md) | [Next: Shell Scripting →](./02-shell-scripting.md)

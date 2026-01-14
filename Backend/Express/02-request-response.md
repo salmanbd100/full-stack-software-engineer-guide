@@ -4,6 +4,26 @@
 
 The request (req) and response (res) objects are central to handling HTTP communication in Express. Understanding these objects and their methods is essential for building APIs and web applications.
 
+**Key Request Properties:**
+
+| Property | Purpose | Example |
+|----------|---------|---------|
+| `req.params` | URL parameters | `/:id` → `{ id: '123' }` |
+| `req.query` | Query string | `?page=1` → `{ page: '1' }` |
+| `req.body` | Request body | JSON, form data |
+| `req.headers` | HTTP headers | Authentication, content-type |
+| `req.cookies` | Cookies | Session tokens |
+
+**Key Response Methods:**
+
+| Method | Purpose | Status Code |
+|--------|---------|-------------|
+| `res.send()` | Send response (any type) | 200 |
+| `res.json()` | Send JSON | 200 |
+| `res.status()` | Set status code | Custom |
+| `res.redirect()` | Redirect | 302/301 |
+| `res.sendFile()` | Send file | 200 |
+
 ## Request Object (req)
 
 ### What is the Request Object?
@@ -697,12 +717,41 @@ res.status(500).json({ error: 'Internal server error' });
 
 ## Summary
 
-- **Request object** contains all information about the HTTP request
-- **Response object** is used to send HTTP response back to the client
-- Use appropriate response methods (json, send, sendFile, etc.)
-- Set proper status codes and headers
-- Handle file uploads with Multer
-- Always validate and sanitize user input
+**Core Concepts:**
+
+1. **Request Object (req):**
+   - ✅ `req.params`: URL parameters (`/:id`)
+   - ✅ `req.query`: Query strings (`?page=1`)
+   - ✅ `req.body`: Request payload (needs middleware)
+   - ✅ `req.headers`: HTTP headers
+   - ✅ `req.cookies`: Cookies (needs cookie-parser)
+
+2. **Response Object (res):**
+   - ✅ `res.json()`: Send JSON (most common for APIs)
+   - ✅ `res.send()`: Send any type (auto-detects)
+   - ✅ `res.status()`: Set status code (chain with send/json)
+   - ✅ `res.redirect()`: Redirect to different URL
+   - ✅ `res.sendFile()`: Send static files
+
+3. **Status Codes:**
+   - **2xx**: Success (200 OK, 201 Created)
+   - **3xx**: Redirection (301 Moved, 302 Found)
+   - **4xx**: Client errors (400 Bad Request, 404 Not Found)
+   - **5xx**: Server errors (500 Internal Error)
+
+4. **Best Practices:**
+   - ✅ Always validate user input
+   - ✅ Set proper status codes
+   - ✅ Use appropriate content-type
+   - ❌ Never send multiple responses
+   - ❌ Don't expose sensitive information
+   - ✅ Handle file uploads securely (Multer)
+
+**Key Insights:**
+> - `req.body` is undefined without body-parser middleware
+> - Status codes communicate intent - use them properly
+> - Always send exactly one response per request
+> - File uploads need special handling (multipart/form-data)
 
 ---
 

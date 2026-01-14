@@ -4,6 +4,22 @@
 
 Git is the foundation of modern DevOps workflows. Understanding Git is essential for version control, collaboration, CI/CD pipelines, and infrastructure as code. This guide covers Git fundamentals with a DevOps focus.
 
+**Why Git in DevOps:**
+- Version control for code AND infrastructure (IaC)
+- CI/CD pipelines triggered by Git commits
+- GitOps: Git as single source of truth
+- Collaboration via pull requests and code review
+- Rollback capabilities for quick incident recovery
+
+**Git Workflow Levels:**
+
+| Level | Focus | Key Commands | Use Case |
+|-------|-------|--------------|----------|
+| **Individual** | Local work | `add`, `commit`, `status`, `diff` | Daily development |
+| **Team** | Collaboration | `branch`, `merge`, `pull`, `push` | Feature development |
+| **Project** | Management | `rebase`, `cherry-pick`, `tag` | Release management |
+| **DevOps** | Automation | Hooks, CI/CD integration | Automated deployments |
+
 ## Git Basics
 
 ### Git Architecture
@@ -767,15 +783,44 @@ git bisect reset                # Return to original state
 
 ## Summary
 
-Git is essential for DevOps:
-- **Version control** - Track code and infrastructure changes
-- **Collaboration** - Team workflows and code review
-- **CI/CD integration** - Trigger pipelines on commits
-- **GitOps** - Infrastructure changes via Git
-- **Branching strategies** - Organize development workflow
-- **History management** - Debug and rollback changes
+**Core Concepts:**
 
-Master Git before diving into advanced DevOps tools and practices.
+1. **Git Architecture:**
+   - ✅ Working Directory → Staging Area → Local Repo → Remote Repo
+   - ✅ `git add` (stage), `git commit` (save), `git push` (share)
+   - ✅ `.git` directory stores all history
+   - ✅ Distributed: every clone is a full backup
+
+2. **Essential Commands:**
+   - **Status**: `git status`, `git diff`, `git log`
+   - **Changes**: `git add`, `git commit`, `git rm`, `git mv`
+   - **Branches**: `git branch`, `git checkout`, `git merge`
+   - **Remote**: `git clone`, `git pull`, `git push`, `git fetch`
+
+3. **Branching & Merging:**
+   - ✅ Branches are cheap and fast (just pointers)
+   - ✅ `merge` preserves history, `rebase` rewrites it
+   - ✅ Feature branches for isolation
+   - ✅ Merge conflicts resolved manually
+
+4. **History Management:**
+   - ✅ `git log` with filtering (`--author`, `--since`, `--grep`)
+   - ✅ `git reset` (undo commits)
+   - ✅ `git revert` (undo with new commit - safe for shared history)
+   - ✅ `git reflog` (recover lost commits)
+
+5. **DevOps Integration:**
+   - ✅ Git hooks for automation (pre-commit, post-receive)
+   - ✅ CI/CD triggered by Git events
+   - ✅ GitOps: Infrastructure changes via Git commits
+   - ✅ Tags for releases (`git tag v1.0.0`)
+
+**Key Insights:**
+> - Git is distributed: every developer has full history
+> - Branches are lightweight - use them liberally for features
+> - Never rebase shared history (use revert instead)
+> - Understanding merge vs rebase is critical for clean history
+> - Git hooks enable powerful automation for DevOps workflows
 
 ---
 [← Back to DevOps](../README.md) | [Next: Branching Strategies →](./03-branching-strategies.md)

@@ -4,6 +4,22 @@
 
 Node.js can spawn child processes to execute external commands, run CPU-intensive tasks, or leverage multi-core systems. Understanding child processes is essential for building scalable Node.js applications.
 
+**Why Child Processes:**
+- Execute external commands (git, ffmpeg, imagemagick)
+- Run CPU-intensive tasks without blocking event loop
+- Utilize multiple CPU cores
+- Isolate potentially crashing code
+- Run untrusted code safely
+
+**Process Types Comparison:**
+
+| Method | Use Case | Communication | Shell | Best For |
+|--------|----------|---------------|-------|----------|
+| **spawn()** | Long-running, streams | stdout/stderr | ❌ No | Video processing, large data |
+| **exec()** | Short commands | Buffered output | ✅ Yes | Git commands, small output |
+| **execFile()** | Security-critical | Buffered output | ❌ No | User input, safer than exec |
+| **fork()** | Node.js processes | IPC messages | ❌ No | CPU-intensive JS, worker pools |
+
 ## Child Process Types
 
 Node.js provides four ways to create child processes:
@@ -664,15 +680,42 @@ child.unref(); // Allow parent to exit independently
 
 ## Summary
 
-**Key Takeaways:**
-- `spawn()` for long-running processes and streams
-- `exec()` for short commands with small output
-- `execFile()` for security (no shell)
-- `fork()` for Node.js processes with IPC
-- Worker Threads often better than child processes for CPU tasks
-- Always handle errors and timeouts
-- Never use user input directly in exec()
-- Clean up processes on exit
+**Core Concepts:**
+
+1. **Child Process Methods:**
+   - ✅ `spawn()`: Long-running, streams, no shell
+   - ✅ `exec()`: Short commands, buffered, has shell
+   - ✅ `execFile()`: Like exec but safer (no shell)
+   - ✅ `fork()`: Node.js processes with IPC
+
+2. **When to Use Each:**
+   - **spawn()**: Video processing, large files, real-time output
+   - **exec()**: Git commands, quick shell scripts
+   - **execFile()**: User input, security-critical
+   - **fork()**: CPU-intensive JavaScript, worker pools
+
+3. **vs Worker Threads:**
+   - ✅ Worker Threads: CPU-intensive JS (shared memory)
+   - ✅ Child Processes: External commands, isolation
+
+4. **Security:**
+   - ⚠️ Never use user input in `exec()` (command injection)
+   - ✅ Always use `execFile()` with user input
+   - ✅ Validate input before execution
+   - ✅ Use argument arrays, not string concatenation
+
+5. **Best Practices:**
+   - ✅ Handle errors on every process
+   - ✅ Set timeouts for long-running processes
+   - ✅ Clean up processes on exit
+   - ✅ Use process pools for frequent operations
+   - ✅ Monitor memory usage
+
+**Key Insights:**
+> - Child processes provide isolation - crashes don't affect main app
+> - Worker Threads share memory, Child Processes don't
+> - Always use execFile() with user input to prevent command injection
+> - fork() is perfect for CPU-intensive tasks while keeping event loop free
 
 ## Related Topics
 - [Event Loop & Async](./01-event-loop-async.md)

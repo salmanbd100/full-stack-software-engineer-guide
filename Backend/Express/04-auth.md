@@ -660,13 +660,36 @@ Refresh tokens allow obtaining new access tokens without re-login:
 
 ## Summary
 
-- Authentication verifies identity, authorization controls access
-- JWT is stateless and scalable
-- Use refresh tokens for better security
-- Role-based access control for authorization
-- Hash passwords with bcrypt
-- Implement password reset flows
-- Use HTTP-only cookies for tokens
+**Core Concepts:**
+
+1. **Authentication vs Authorization:**
+   - **Authentication**: Who are you? (Login, identity verification)
+   - **Authorization**: What can you do? (Permissions, access control)
+   - ✅ Authentication comes first, then authorization
+
+2. **JWT (JSON Web Tokens):**
+   - ✅ Stateless authentication
+   - ✅ Self-contained (payload + signature)
+   - ✅ Use refresh tokens for long sessions
+   - ⚠️ Don't store sensitive data in payload (it's not encrypted)
+
+3. **Password Security:**
+   - ✅ Use bcrypt with saltRounds ≥ 12
+   - ❌ Never store plaintext passwords
+   - ✅ Implement password strength requirements
+   - ✅ Rate limit auth endpoints
+
+4. **Token Storage:**
+   - ✅ HTTP-only cookies (best for web)
+   - ❌ LocalStorage (vulnerable to XSS)
+   - ✅ Implement token refresh mechanism
+   - ✅ Set appropriate expiration times
+
+**Key Insights:**
+> - JWT is stateless but requires refresh tokens for security
+> - bcrypt with 12+ rounds is the standard for password hashing
+> - HTTP-only cookies prevent XSS token theft
+> - Always rate limit authentication endpoints to prevent brute force
 
 ---
 

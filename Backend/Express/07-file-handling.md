@@ -732,14 +732,41 @@ app.get('/download/:id', authenticate, async (req, res) => {
 
 ## Summary
 
-- Use Multer for file uploads
-- Validate file types and sizes
-- Generate secure, unique filenames
-- Process images with Sharp
-- Implement file streaming for large files
-- Use cloud storage (S3) for scalability
-- Always implement access control
-- Clean up files on errors
+**Core Concepts:**
+
+1. **File Upload (Multer):**
+   - ✅ Handle multipart/form-data
+   - ✅ Configure storage (disk/memory)
+   - ✅ Set file size limits
+   - ✅ Filter file types
+
+2. **Security:**
+   - ⚠️ Never trust file extensions
+   - ✅ Validate MIME types
+   - ✅ Check magic numbers for true file type
+   - ✅ Generate secure, random filenames
+   - ✅ Store outside web root
+   - ✅ Implement virus scanning (production)
+
+3. **Image Processing:**
+   - ✅ Use Sharp for resizing/optimization
+   - ✅ Generate thumbnails
+   - ✅ Convert formats (WebP for efficiency)
+   - ✅ Strip metadata for privacy
+
+4. **Best Practices:**
+   - ✅ Stream large files (don't load in memory)
+   - ✅ Use cloud storage (S3) for scalability
+   - ✅ Implement access control
+   - ✅ Clean up failed uploads
+   - ✅ Set appropriate file size limits
+   - ❌ Don't store in database (store paths only)
+
+**Key Insights:**
+> - Multer is the standard for file uploads in Express
+> - Always validate file types by content, not extension
+> - Stream large files to avoid memory issues
+> - Cloud storage (S3) scales better than local filesystem
 
 ---
 

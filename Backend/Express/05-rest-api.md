@@ -755,13 +755,39 @@ Non-idempotent: POST, PATCH
 
 ## Summary
 
-- REST is an architectural style for networked applications
-- Use HTTP methods appropriately (GET, POST, PUT, PATCH, DELETE)
-- Return correct HTTP status codes
-- Use nouns for resource names
-- Implement pagination for collections
-- Version your API for backward compatibility
-- Provide consistent response formats
+**Core Concepts:**
+
+1. **REST Principles:**
+   - ✅ Resource-based (nouns, not verbs)
+   - ✅ HTTP methods = actions (GET, POST, PUT, DELETE)
+   - ✅ Stateless communication
+   - ✅ Standard status codes
+
+2. **URL Design:**
+   - ✅ Use nouns: `/users`, `/posts`
+   - ❌ Avoid verbs: `/getUsers`, `/createPost`
+   - ✅ Hierarchical: `/users/123/posts`
+   - ✅ Query params for filters: `?status=active&sort=date`
+
+3. **HTTP Methods:**
+   - **GET**: Retrieve (safe, idempotent)
+   - **POST**: Create (not idempotent)
+   - **PUT**: Replace (idempotent)
+   - **PATCH**: Update (not idempotent)
+   - **DELETE**: Remove (idempotent)
+
+4. **Best Practices:**
+   - ✅ Version your API (`/v1/users`)
+   - ✅ Paginate collections (limit, offset)
+   - ✅ Filter and sort with query params
+   - ✅ Return consistent response format
+   - ✅ Use proper status codes (200, 201, 400, 404, 500)
+
+**Key Insights:**
+> - RESTful design makes APIs predictable and easy to use
+> - Idempotent methods (GET, PUT, DELETE) can be safely retried
+> - Pagination is mandatory for scalability - never return all records
+> - API versioning prevents breaking changes for existing clients
 
 ---
 

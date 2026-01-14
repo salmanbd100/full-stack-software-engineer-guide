@@ -4,6 +4,25 @@
 
 Docker is the de facto standard for containerization in DevOps. It enables consistent application deployment across environments, from development to production. This guide covers Docker essentials for DevOps engineers.
 
+**Why Docker in DevOps:**
+- "Works on my machine" problem solved
+- Consistent environments (dev = staging = prod)
+- Fast deployment (seconds vs minutes for VMs)
+- Resource efficient (share OS kernel)
+- Microservices architecture enabler
+- CI/CD pipeline standard artifact
+
+**Docker vs VMs:**
+
+| Feature | Docker Containers | Virtual Machines |
+|---------|------------------|------------------|
+| **Start Time** | Seconds | Minutes |
+| **Size** | MBs | GBs |
+| **Resource Usage** | Low (shared kernel) | High (full OS) |
+| **Isolation** | Process-level | Hardware-level |
+| **Portability** | High | Medium |
+| **Density** | 100s per host | 10s per host |
+
 ## Docker Architecture
 
 ### Components
@@ -822,15 +841,47 @@ docker stats container_id
 
 ## Summary
 
-Docker is essential for modern DevOps:
-- **Consistency** - Same environment everywhere
-- **Isolation** - Applications run in isolated containers
-- **Portability** - Run anywhere Docker runs
-- **Efficiency** - Lightweight compared to VMs
-- **Scalability** - Easy to scale horizontally
-- **CI/CD** - Standard artifact for pipelines
+**Core Concepts:**
 
-Master Docker before moving to orchestration (Kubernetes) and cloud container services (ECS, EKS).
+1. **Docker Architecture:**
+   - ✅ Client → Daemon → Container Runtime
+   - ✅ Images (templates) → Containers (running instances)
+   - ✅ Dockerfile (build instructions)
+   - ✅ Registry (Docker Hub, ECR, GCR)
+
+2. **Essential Commands:**
+   - **Images**: `docker build`, `docker pull`, `docker push`, `docker images`
+   - **Containers**: `docker run`, `docker ps`, `docker stop`, `docker rm`
+   - **Debug**: `docker logs`, `docker exec`, `docker inspect`
+   - **Cleanup**: `docker system prune`
+
+3. **Key Features:**
+   - ✅ Layered filesystem (efficient storage)
+   - ✅ Copy-on-write (fast container creation)
+   - ✅ Volumes for persistent data
+   - ✅ Networks for container communication
+   - ✅ Port mapping for external access
+
+4. **Best Practices:**
+   - ✅ Use official base images
+   - ✅ Multi-stage builds for smaller images
+   - ✅ One process per container
+   - ✅ Use .dockerignore
+   - ✅ Don't run as root
+   - ✅ Tag images properly (not just `latest`)
+
+5. **DevOps Integration:**
+   - ✅ CI/CD: Build → Test → Push → Deploy
+   - ✅ Artifact: Docker image is deployable unit
+   - ✅ Environment parity: Same image everywhere
+   - ✅ Microservices: One service per container
+
+**Key Insights:**
+> - Containers share the host OS kernel (lightweight)
+> - Images are immutable, containers are ephemeral
+> - Volumes persist data beyond container lifecycle
+> - Multi-stage builds reduce final image size by 10x+
+> - Docker is the foundation for Kubernetes and cloud container services
 
 ---
 [← Back to DevOps](../README.md) | [Next: Dockerfile Best Practices →](./02-dockerfile.md)

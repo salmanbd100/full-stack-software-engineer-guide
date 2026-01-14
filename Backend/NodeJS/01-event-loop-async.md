@@ -6,9 +6,18 @@ The Node.js event loop is the foundation of its non-blocking I/O model. Understa
 
 ## The Event Loop
 
-### What is the Event Loop?
+### 💡 **What is the Event Loop?**
 
-The event loop is what allows Node.js to perform non-blocking I/O operations despite JavaScript being single-threaded. It delegates operations to the system kernel whenever possible.
+The event loop enables Node.js to perform non-blocking I/O operations despite JavaScript being single-threaded.
+
+**How It Works:**
+- Delegates operations to the system kernel whenever possible
+- Handles callbacks when operations complete
+- Processes events in a continuous loop
+- Allows handling thousands of concurrent connections efficiently
+
+**Key Insight:**
+> Node.js can handle 10,000+ concurrent connections on a single thread because most operations (I/O, network, timers) are non-blocking and handled by the OS kernel.
 
 ### Event Loop Phases
 
@@ -35,24 +44,33 @@ The event loop has 6 main phases, each with a FIFO queue of callbacks:
    └───────────────────────────┘
 ```
 
-**1. Timers Phase**
-- Executes callbacks scheduled by `setTimeout()` and `setInterval()`
-- Timers specify a threshold after which a callback may be executed, not exact time
+**Phase Details:**
 
-**2. Pending Callbacks Phase**
-- Executes I/O callbacks deferred to the next loop iteration
-- System operations like TCP errors
+| Phase | Purpose | Examples |
+|-------|---------|----------|
+| **1. Timers** | Execute scheduled callbacks | `setTimeout()`, `setInterval()` |
+| **2. Pending Callbacks** | I/O callbacks deferred to next iteration | TCP errors, system operations |
+| **3. Idle, Prepare** | Internal use only | Used internally by Node.js |
+| **4. Poll** | Retrieve and execute I/O callbacks | Most I/O operations, blocking when appropriate |
+| **5. Check** | Execute immediate callbacks | `setImmediate()` |
+| **6. Close Callbacks** | Handle close events | `socket.on('close')`, cleanup |
 
-**3. Poll Phase** (Most Important)
-- Retrieve new I/O events
-- Execute I/O related callbacks
-- Node will block here when appropriate
+**Key Characteristics:**
 
-**4. Check Phase**
-- `setImmediate()` callbacks are invoked here
+1. **Timers Phase:**
+   - Executes `setTimeout()` and `setInterval()` callbacks
+   - **Important:** Timers specify a *threshold*, not exact execution time
+   - Actual execution depends on event loop performance
 
-**5. Close Callbacks Phase**
-- Close event callbacks (e.g., `socket.on('close', ...)`)
+2. **Poll Phase (Most Important):**
+   - Retrieves new I/O events
+   - Executes I/O-related callbacks
+   - Node will block here when appropriate
+   - Most application time spent here
+
+3. **Check Phase:**
+   - `setImmediate()` callbacks execute here
+   - Always runs after poll phase
 
 ### Code Example: Event Loop in Action
 
@@ -95,7 +113,17 @@ console.log('End');
 
 ## Asynchronous Patterns
 
-### 1. Callbacks (Legacy Pattern)
+Node.js provides three main patterns for handling asynchronous operations, each with different trade-offs.
+
+| Pattern | Introduced | Pros | Cons | Use When |
+|---------|-----------|------|------|----------|
+| **Callbacks** | Node.js 0.x | Simple, universal support | Callback hell, error handling | Legacy code, simple operations |
+| **Promises** | ES6 (2015) | Chainable, better errors | Verbose for multiple operations | Modern async, API calls |
+| **Async/Await** | ES2017 | Clean syntax, easy to read | Requires promises | New code, sequential logic |
+
+### 1. ❌ **Callbacks (Legacy Pattern)**
+
+Error-first callback pattern - the traditional Node.js approach.
 
 ```javascript
 // Error-first callback pattern
@@ -128,7 +156,9 @@ getData((err, data) => {
 - Hard to reason about flow
 - No return values
 
-### 2. Promises
+### 2. ✅ **Promises**
+
+Promises represent the eventual completion (or failure) of an asynchronous operation.
 
 ```javascript
 const fs = require('fs').promises;
@@ -196,7 +226,21 @@ Promise.allSettled([
   });
 ```
 
-### 3. Async/Await (Modern Approach)
+**Key Promise Methods:**
+
+| Method | Behavior | Use Case |
+|--------|----------|----------|
+| `Promise.all()` | Waits for all, fails if any fails | Parallel operations, all must succeed |
+| `Promise.race()` | Returns first settled promise | Timeout patterns, fastest wins |
+| `Promise.allSettled()` | Waits for all, never fails | Parallel operations, handle each result |
+| `Promise.any()` | Returns first fulfilled promise | Fallback scenarios, first success wins |
+
+**Key Insight:**
+> Use `Promise.all()` for parallel operations where all must succeed. Use `Promise.allSettled()` when you need results from all operations regardless of success/failure.
+
+### 3. ✅ **Async/Await (Modern Approach)**
+
+Syntactic sugar over Promises - makes asynchronous code look synchronous.
 
 ```javascript
 const fs = require('fs').promises;
@@ -265,7 +309,20 @@ console.log(data);
 
 ## Concurrency Model
 
-### Node.js vs Multi-threaded Servers
+### 💡 **Node.js vs Multi-threaded Servers**
+
+Understanding the difference between Node.js's event-driven model and traditional multi-threaded servers is crucial.
+
+**Comparison:**
+
+| Feature | Node.js (Event Loop) | Multi-threaded (e.g., Apache) |
+|---------|---------------------|-------------------------------|
+| **Model** | Single-threaded, event-driven | One thread per request |
+| **Concurrency** | 10,000+ connections | ~500-1,000 connections |
+| **Memory per connection** | ~2KB | ~2MB (thread stack) |
+| **Context switching** | None | Significant overhead |
+| **Best for** | I/O-heavy workloads | CPU-intensive tasks |
+| **Scalability** | Vertical + horizontal | Mainly vertical |
 
 ```javascript
 // Node.js - Single-threaded Event Loop
@@ -294,7 +351,11 @@ const server = http.createServer((req, res) => {
 - CPU-intensive tasks block the event loop
 - Need worker threads or child processes for CPU-heavy work
 
-### Handling CPU-Intensive Tasks
+### ⚠️ **Handling CPU-Intensive Tasks**
+
+CPU-intensive operations block the event loop and hurt performance. Here's how to handle them properly.
+
+**Problem:** CPU-intensive tasks block the event loop, preventing other requests from being processed.
 
 ```javascript
 // BAD: Blocks event loop
@@ -340,6 +401,12 @@ parentPort.postMessage(fibonacci(workerData));
 
 ### Q1: Explain the difference between process.nextTick() and setImmediate()
 
+**Short Answer:**
+- `process.nextTick()` executes **before** any I/O operations in the current phase
+- `setImmediate()` executes in the **check phase** after I/O operations
+
+**Detailed Answer:**
+
 ```javascript
 // process.nextTick() - Executes before any I/O operations
 // setImmediate() - Executes in the check phase
@@ -375,23 +442,47 @@ setImmediate(function immediate() {
 });
 ```
 
-**Answer:**
-- `process.nextTick()` fires immediately after the current operation, before I/O
-- `setImmediate()` fires in the check phase, after I/O
-- Use `process.nextTick()` sparingly; prefer `setImmediate()` for deferring work
+**When to Use Each:**
+
+| Scenario | Use | Reason |
+|----------|-----|--------|
+| Need to execute before I/O | `process.nextTick()` | Runs immediately after current operation |
+| General async deferral | `setImmediate()` | Safer, allows I/O between iterations |
+| Recursive operations | `setImmediate()` | Prevents I/O starvation |
+
+**Key Insight:**
+> `process.nextTick()` can cause I/O starvation if used recursively. Always prefer `setImmediate()` unless you have a specific reason to run before I/O.
+
+---
 
 ### Q2: What are Promises and how do they differ from callbacks?
 
-**Answer:**
-- **Promises** represent the eventual completion/failure of an async operation
-- **Advantages over callbacks:**
-  - Better error handling with `.catch()`
-  - Chaining with `.then()`
-  - Composition with `Promise.all()`, `Promise.race()`
-  - Avoid callback hell
-  - Can use with async/await
+**Short Answer:**
+Promises represent the eventual result of an asynchronous operation with better composition and error handling than callbacks.
+
+**Detailed Comparison:**
+
+| Feature | Callbacks | Promises |
+|---------|-----------|----------|
+| **Error Handling** | Separate error parameter | `.catch()` method |
+| **Chaining** | Callback hell / pyramid of doom | Clean `.then()` chains |
+| **Composition** | Difficult | `Promise.all()`, `Promise.race()` |
+| **Return Values** | Via callback parameters | Returns promise |
+| **Async/Await** | Not compatible | Fully compatible |
+
+**Advantages of Promises:**
+1. **Better Error Handling:** Single `.catch()` for entire chain
+2. **Chaining:** Flat `.then()` chains instead of nested callbacks
+3. **Composition:** Built-in methods for parallel operations
+4. **Guaranteed Execution:** Always async (even if already resolved)
+5. **State Management:** Pending, fulfilled, or rejected states
+
+---
 
 ### Q3: How does async/await work under the hood?
+
+**Short Answer:**
+`async/await` is syntactic sugar over Promises. An `async` function always returns a Promise, and `await` pauses execution until the Promise resolves.
 
 ```javascript
 // This async function:
@@ -409,14 +500,31 @@ function fetchData() {
 }
 ```
 
-**Answer:**
-- `async` functions always return a Promise
-- `await` pauses execution until Promise resolves
-- Execution context is saved, event loop continues
-- When Promise resolves, execution resumes
-- Errors can be caught with try/catch
+**How It Works:**
+
+1. **`async` function declaration:**
+   - Wraps return value in a Promise
+   - Enables use of `await` keyword inside
+
+2. **`await` keyword:**
+   - Pauses function execution
+   - Saves execution context
+   - Event loop continues with other tasks
+   - Resumes when Promise settles
+
+3. **Error handling:**
+   - `try/catch` works naturally with async/await
+   - Rejected promises throw exceptions
+
+**Key Insight:**
+> `async/await` makes asynchronous code read like synchronous code, but it's still non-blocking. The event loop continues processing other requests while `await` is waiting.
+
+---
 
 ### Q4: How would you handle multiple async operations?
+
+**Short Answer:**
+Choose between sequential (one after another) or concurrent (all at once) execution based on dependencies.
 
 ```javascript
 // Sequential - one after another
@@ -463,9 +571,21 @@ async function withErrors() {
 }
 ```
 
+**Comparison:**
+
+| Pattern | Execution Time | When to Use |
+|---------|---------------|-------------|
+| **Sequential** | t1 + t2 + t3 | Operations depend on previous results |
+| **Concurrent** | max(t1, t2, t3) | Independent operations, maximize speed |
+| **Conditional Concurrent** | t1 + max(t2, t3) | Some operations depend on others |
+| **Error Handling** | max(t1, t2, t3) | Need results from all, even if some fail |
+
+**Key Insight:**
+> Use `Promise.all()` for maximum speed when operations are independent. Use sequential `await` only when operations have dependencies.
+
 ## Best Practices
 
-### 1. Always Handle Promise Rejections
+### 1. ✅ **Always Handle Promise Rejections**
 
 ```javascript
 // BAD: Unhandled rejection
@@ -490,7 +610,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 ```
 
-### 2. Avoid Blocking the Event Loop
+### 2. ⚠️ **Avoid Blocking the Event Loop**
 
 ```javascript
 // BAD: Synchronous operations
@@ -509,7 +629,7 @@ setInterval(() => {
 }, 1000);
 ```
 
-### 3. Use Appropriate Concurrency Patterns
+### 3. ✅ **Use Appropriate Concurrency Patterns**
 
 ```javascript
 // Limit concurrent operations
@@ -564,15 +684,34 @@ async function measurePerformance() {
 
 ## Summary
 
-**Key Takeaways:**
-- Event loop enables non-blocking I/O in single-threaded Node.js
-- Understand the 6 phases: timers, pending callbacks, poll, check, close
-- `process.nextTick()` > microtasks > timers > setImmediate
-- Use async/await for cleaner asynchronous code
-- Handle errors properly to avoid unhandled rejections
-- Don't block the event loop with CPU-intensive tasks
-- Use `Promise.all()` for concurrent operations
-- Monitor event loop performance in production
+**Core Concepts:**
+
+1. **Event Loop:**
+   - ✅ Enables non-blocking I/O in single-threaded Node.js
+   - ✅ 6 phases: timers → pending callbacks → poll → check → close
+   - ✅ Execution order: `process.nextTick()` → microtasks → event loop phases
+
+2. **Asynchronous Patterns:**
+   - ❌ Callbacks: Legacy, callback hell, difficult error handling
+   - ✅ Promises: Chainable, better errors, composable
+   - ✅ Async/Await: Modern, clean syntax, synchronous-looking code
+
+3. **Performance:**
+   - ⚠️ Don't block the event loop with CPU-intensive tasks
+   - ✅ Use Worker Threads for heavy computation
+   - ✅ Run independent operations in parallel with `Promise.all()`
+   - ✅ Monitor event loop utilization in production
+
+4. **Error Handling:**
+   - ✅ Always handle promise rejections
+   - ✅ Use try/catch with async/await
+   - ✅ Implement global handlers for unhandled rejections
+
+**Key Insights:**
+> - Node.js can handle 10,000+ concurrent connections on a single thread
+> - The event loop is what makes Node.js scalable for I/O-heavy workloads
+> - `async/await` is preferred for new code - it's cleaner and easier to maintain
+> - Always use parallel execution (`Promise.all()`) when operations are independent
 
 ## Related Topics
 - [Streams & Buffers](./02-streams-buffers.md)

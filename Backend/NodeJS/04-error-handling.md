@@ -4,6 +4,23 @@
 
 Proper error handling is crucial for building robust Node.js applications. Understanding error types, handling patterns, and best practices prevents application crashes and improves debugging.
 
+**Why This Matters:**
+- Unhandled errors crash the application
+- Poor error handling hides bugs
+- Good error handling improves user experience
+- Proper logging aids debugging in production
+- Error types determine handling strategy
+
+**Error Handling Hierarchy:**
+
+| Level | Handling Method | Example |
+|-------|----------------|---------|
+| **Synchronous** | try/catch | `JSON.parse()` errors |
+| **Callbacks** | Error-first pattern | `fs.readFile(path, callback)` |
+| **Promises** | `.catch()` or try/catch | `fetch().catch()` |
+| **Async/Await** | try/catch | `try { await op() } catch(e) {}` |
+| **Global** | Process listeners | `process.on('uncaughtException')` |
+
 ## Error Types in Node.js
 
 ### 1. Standard JavaScript Errors
@@ -493,9 +510,18 @@ app.get('/posts', AsyncRoute.wrap(async (req, res) => {
 
 ## Operational vs Programmer Errors
 
-### Operational Errors
+### 💡 **Key Distinction**
 
-Properly handled runtime problems:
+Understanding the difference between these error types is critical for proper error handling strategy.
+
+| Type | Description | How to Handle |
+|------|-------------|---------------|
+| **Operational Errors** | Expected runtime problems | ✅ Handle gracefully, log, retry |
+| **Programmer Errors** | Bugs in code | ❌ Let crash, fix the bug |
+
+### ✅ **Operational Errors**
+
+Expected runtime problems that should be handled gracefully.
 
 ```javascript
 // Operational errors (expected, handle gracefully)
@@ -788,15 +814,37 @@ Express error middleware has 4 parameters: `(err, req, res, next)`. Errors are p
 
 ## Summary
 
-**Key Takeaways:**
-- Use try-catch for synchronous code
-- Use .catch() or try-catch with async/await for promises
-- Create custom error classes for specific error types
-- Distinguish between operational (handle) and programmer errors (crash)
-- Always handle unhandled rejections and uncaught exceptions
-- Use error middleware in Express
-- Log errors with context
-- Clean up resources in finally blocks
+**Core Concepts:**
+
+1. **Error Types:**
+   - ✅ Standard errors: SyntaxError, TypeError, ReferenceError
+   - ✅ System errors: ENOENT, EACCES, etc.
+   - ✅ Custom errors: Extend Error class
+   - ✅ HTTP errors: 400, 401, 404, 500
+
+2. **Handling Patterns:**
+   - ✅ Synchronous: try/catch
+   - ✅ Callbacks: error-first pattern
+   - ✅ Promises: .catch() or try/catch
+   - ✅ Async/Await: try/catch (cleanest)
+
+3. **Operational vs Programmer:**
+   - ✅ Operational: Handle gracefully (network, DB, validation)
+   - ❌ Programmer: Let crash and fix (bugs, logic errors)
+   - ⚠️ Don't catch programmer errors - they hide bugs
+
+4. **Best Practices:**
+   - ✅ Always handle promise rejections
+   - ✅ Use error middleware in Express
+   - ✅ Log with context (not just message)
+   - ✅ Clean up in finally blocks
+   - ✅ Global handlers as safety net
+
+**Key Insights:**
+> - Operational errors: handle gracefully. Programmer errors: crash and fix
+> - async/await + try/catch is the cleanest error handling pattern
+> - Unhandled promise rejections will crash Node.js (as they should)
+> - Express error middleware must have 4 parameters: (err, req, res, next)
 
 ## Related Topics
 - [Event Loop & Async Programming](./01-event-loop-async.md)

@@ -699,16 +699,39 @@ CORS (Cross-Origin Resource Sharing) controls which origins can access your API.
 
 ## Summary
 
-- Security is paramount in web applications
-- Prevent common vulnerabilities (XSS, SQL injection, CSRF)
-- Use Helmet for security headers
-- Implement proper CORS configuration
-- Rate limit all endpoints
-- Validate and sanitize all input
-- Hash passwords with bcrypt
-- Use HTTPS in production
-- Keep dependencies updated
-- Regular security audits
+**Core Concepts:**
+
+1. **Common Vulnerabilities:**
+   - ⚠️ **XSS**: Escape output, use CSP headers
+   - ⚠️ **SQL Injection**: Use parameterized queries
+   - ⚠️ **CSRF**: Use tokens for state-changing operations
+   - ⚠️ **NoSQL Injection**: Validate input types
+
+2. **Security Headers (Helmet.js):**
+   - ✅ Content-Security-Policy (CSP)
+   - ✅ X-Frame-Options (clickjacking prevention)
+   - ✅ HSTS (force HTTPS)
+   - ✅ X-Content-Type-Options (MIME sniffing)
+
+3. **Input Validation:**
+   - ✅ Validate all input (whitelist approach)
+   - ✅ Sanitize output to prevent XSS
+   - ✅ Use validation libraries (express-validator, Joi)
+   - ❌ Never trust user input
+
+4. **Best Practices:**
+   - ✅ Rate limiting to prevent brute force
+   - ✅ CORS configuration for API access control
+   - ✅ HTTPS in production
+   - ✅ Keep dependencies updated (npm audit)
+   - ✅ Hash passwords with bcrypt (saltRounds ≥ 12)
+   - ❌ Never commit secrets to git
+
+**Key Insights:**
+> - Defense in depth: multiple security layers
+> - Helmet.js provides essential security headers out of the box
+> - Input validation is the first line of defense
+> - Rate limiting prevents automated attacks and brute force
 
 ---
 
