@@ -2,14 +2,19 @@
 
 ## Overview
 
-Git is the foundation of modern DevOps workflows. Understanding Git is essential for version control, collaboration, CI/CD pipelines, and infrastructure as code. This guide covers Git fundamentals with a DevOps focus.
+### 💡 **What is Git?**
 
-**Why Git in DevOps:**
-- Version control for code AND infrastructure (IaC)
-- CI/CD pipelines triggered by Git commits
-- GitOps: Git as single source of truth
-- Collaboration via pull requests and code review
-- Rollback capabilities for quick incident recovery
+Git is a distributed version control system that forms the backbone of modern DevOps workflows. Every developer has a complete copy of the repository history, enabling offline work and providing built-in backup.
+
+**Why Git Matters in DevOps:**
+
+| Area | How Git is Used | Impact |
+|------|----------------|--------|
+| **Version Control** | Track code AND infrastructure changes | Full audit trail |
+| **CI/CD** | Commits trigger automated pipelines | Faster deployments |
+| **GitOps** | Git as single source of truth | Declarative infrastructure |
+| **Collaboration** | Pull requests and code review | Quality assurance |
+| **Rollback** | Instant revert to previous versions | Quick incident recovery |
 
 **Git Workflow Levels:**
 
@@ -20,35 +25,79 @@ Git is the foundation of modern DevOps workflows. Understanding Git is essential
 | **Project** | Management | `rebase`, `cherry-pick`, `tag` | Release management |
 | **DevOps** | Automation | Hooks, CI/CD integration | Automated deployments |
 
+> **Key Insight:** Git is distributed - every clone contains the complete history. This means you can work offline, and every copy serves as a backup.
+
+---
+
 ## Git Basics
 
-### Git Architecture
+### 💡 **Git's Four-Stage Architecture**
+
+Understanding Git's architecture is crucial for effective use.
 
 ```
 Working Directory  →  Staging Area  →  Local Repository  →  Remote Repository
     (Files)           (git add)        (git commit)         (git push)
-                                           ↓
-                                       .git directory
-                                       (All history)
+     ↓                    ↓                  ↓
+  Your files         Index/Cache         .git directory
+  (modified)         (prepared)         (committed history)
 ```
+
+**How It Works:**
+
+**1. Working Directory:**
+- Your actual project files
+- Where you make changes
+- Not tracked until you stage them
+
+**2. Staging Area (Index):**
+- Intermediate holding area
+- Lets you choose what to commit
+- Prepare commits piece by piece
+
+**3. Local Repository:**
+- Your `.git` directory
+- Contains complete history
+- All commits stored here
+
+**4. Remote Repository:**
+- Shared repository (GitHub, GitLab)
+- Team collaboration point
+- Backup and distribution
+
+> **Key Insight:** The staging area is Git's unique feature - it lets you craft precise commits by choosing exactly what changes to include.
+
+---
 
 ### Configuration
 
+**Initial Setup:**
+
 ```bash
-# Global configuration
+# Global configuration (applies to all repositories)
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 git config --global core.editor "vim"
 git config --global init.defaultBranch main
+```
 
-# View configuration
-git config --list
-git config user.name
+**View Configuration:**
 
-# Local repository config (override global)
+```bash
+git config --list              # All settings
+git config user.name           # Specific setting
+```
+
+**Local Repository Config (Overrides Global):**
+
+```bash
+# Different email for work projects
 git config user.email "work@company.com"
+```
 
-# Common aliases
+**Useful Aliases:**
+
+```bash
 git config --global alias.st status
 git config --global alias.co checkout
 git config --global alias.br branch
@@ -58,247 +107,631 @@ git config --global alias.last 'log -1 HEAD'
 git config --global alias.visual 'log --oneline --graph --all'
 ```
 
+> **Pro Tip:** Set up aliases early - they'll save you hours of typing over your career.
+
+---
+
 ### Repository Initialization
 
+**Creating a New Repository:**
+
 ```bash
-# Create new repository
 git init                        # Initialize in current directory
 git init project-name           # Create and initialize new directory
+```
 
-# Clone existing repository
+**Cloning an Existing Repository:**
+
+```bash
+# HTTPS (requires password/token)
 git clone https://github.com/user/repo.git
-git clone git@github.com:user/repo.git              # SSH
-git clone https://github.com/user/repo.git mydir    # Custom directory name
 
-# Check repository status
+# SSH (requires SSH key setup - recommended)
+git clone git@github.com:user/repo.git
+
+# Custom directory name
+git clone https://github.com/user/repo.git my-project
+```
+
+**✅ Best Practice:** Use SSH for authentication - it's more secure and convenient than HTTPS with passwords.
+
+**Checking Repository Status:**
+
+```bash
 git status                      # Detailed status
 git status -s                   # Short status
 git status -sb                  # Short with branch info
 ```
 
+---
+
 ## Basic Workflow
+
+### 💡 **The Add-Commit-Push Cycle**
+
+This is the fundamental Git workflow you'll use daily.
+
+**Step-by-Step Process:**
+
+```
+1. Make changes to files
+    ↓
+2. Stage changes (git add)
+    ↓
+3. Commit to local repo (git commit)
+    ↓
+4. Push to remote (git push)
+```
 
 ### Staging and Committing
 
+**Adding Files to Staging:**
+
 ```bash
-# Add files to staging
-git add file.txt                # Add specific file
-git add .                       # Add all files in current directory
-git add -A                      # Add all changes (new, modified, deleted)
-git add -u                      # Add modified and deleted (not new)
-git add *.js                    # Add all JS files
-git add -p                      # Interactive staging (patch mode)
+# Specific file
+git add file.txt
 
-# Unstage files
-git reset HEAD file.txt         # Unstage file
-git restore --staged file.txt   # Modern way to unstage
+# All files in current directory
+git add .
 
-# Commit changes
-git commit -m "Commit message"  # Commit with message
-git commit -am "Message"        # Add and commit tracked files
-git commit --amend              # Amend last commit
-git commit --amend --no-edit    # Amend without changing message
+# All changes everywhere (new, modified, deleted)
+git add -A
 
-# View changes
-git diff                        # Changes in working directory
-git diff --staged               # Changes in staging area
-git diff HEAD                   # All changes since last commit
-git diff branch1 branch2        # Differences between branches
-git diff commit1 commit2        # Differences between commits
+# Only modified and deleted (not new files)
+git add -u
+
+# Pattern matching
+git add *.js
+
+# Interactive staging (choose hunks)
+git add -p
 ```
+
+**When to Use Each:**
+
+| Command | Use When | What It Does |
+|---------|----------|--------------|
+| `git add file.txt` | Single file change | Stages one specific file |
+| `git add .` | Multiple files in directory | Stages current directory |
+| `git add -A` | Want everything staged | Stages all changes everywhere |
+| `git add -u` | Only update tracked files | Ignores new files |
+| `git add -p` | Need precise control | Interactive hunk selection |
+
+**Unstaging Files:**
+
+```bash
+# Old way
+git reset HEAD file.txt
+
+# Modern way (Git 2.23+)
+git restore --staged file.txt
+```
+
+**Committing Changes:**
+
+```bash
+# Commit with message
+git commit -m "feat: add user authentication"
+
+# Add and commit tracked files in one step
+git commit -am "fix: resolve login bug"
+
+# Amend last commit (change message or add files)
+git commit --amend
+
+# Amend without changing message
+git commit --amend --no-edit
+```
+
+**⚠️ Warning:** Only amend commits that haven't been pushed! Amending rewrites history.
+
+**Viewing Changes:**
+
+```bash
+# Changes in working directory (unstaged)
+git diff
+
+# Changes in staging area (staged)
+git diff --staged
+
+# All changes since last commit
+git diff HEAD
+
+# Differences between branches
+git diff branch1 branch2
+
+# Differences between commits
+git diff commit1 commit2
+```
+
+---
 
 ### Viewing History
 
+**Basic Log Commands:**
+
 ```bash
-# Log viewing
-git log                         # Full commit history
-git log --oneline               # Condensed one-line format
-git log --graph                 # ASCII graph
-git log --oneline --graph --all # Visual branch history
-git log -p                      # Show patches (diffs)
-git log -5                      # Last 5 commits
-git log --since="2 weeks ago"   # Time-based filter
-git log --author="John"         # Author filter
-git log --grep="fix"            # Search commit messages
-git log -- file.txt             # History of specific file
-git log -S "function_name"      # Search code changes
+# Full commit history
+git log
 
-# Show commit details
-git show <commit-hash>          # Show commit details
-git show HEAD                   # Show last commit
-git show HEAD~2                 # Show 2 commits back
-git show <commit>:file.txt      # Show file at specific commit
+# Condensed one-line format
+git log --oneline
 
-# Blame (who changed what)
-git blame file.txt              # Line-by-line authorship
-git blame -L 10,20 file.txt     # Lines 10-20 only
+# Visual branch history
+git log --oneline --graph --all
+
+# Show patches (actual code changes)
+git log -p
+
+# Last N commits
+git log -5
 ```
+
+**Filtering Log Output:**
+
+```bash
+# Time-based
+git log --since="2 weeks ago"
+git log --until="2024-01-01"
+
+# Author-based
+git log --author="John"
+
+# Search commit messages
+git log --grep="fix"
+
+# Search code changes
+git log -S "function_name"
+
+# Specific file history
+git log -- file.txt
+```
+
+**Examining Specific Commits:**
+
+```bash
+# Show commit details
+git show <commit-hash>
+
+# Show last commit
+git show HEAD
+
+# Show 2 commits back
+git show HEAD~2
+
+# Show file at specific commit
+git show <commit>:file.txt
+```
+
+**Finding Who Changed What:**
+
+```bash
+# Line-by-line authorship
+git blame file.txt
+
+# Specific line range
+git blame -L 10,20 file.txt
+```
+
+---
 
 ## Branching and Merging
 
+### 💡 **Why Branches Matter**
+
+Branches are Git's killer feature - they're fast, lightweight, and enable parallel development.
+
+**How Branches Work:**
+
+- A branch is just a moveable pointer to a commit
+- Creating a branch takes milliseconds (just creates a 41-byte file)
+- Switching branches updates your working directory instantly
+
+> **Key Insight:** Branches are cheap - use them liberally! Create a branch for every feature, bug fix, or experiment.
+
 ### Branch Operations
 
+**Listing Branches:**
+
 ```bash
-# List branches
 git branch                      # Local branches
 git branch -r                   # Remote branches
-git branch -a                   # All branches
-git branch -v                   # With last commit
+git branch -a                   # All branches (local + remote)
+git branch -v                   # With last commit info
 git branch --merged             # Branches merged into current
-git branch --no-merged          # Branches not merged
-
-# Create branches
-git branch feature-xyz          # Create branch
-git checkout -b feature-xyz     # Create and switch
-git switch -c feature-xyz       # Modern way (Git 2.23+)
-
-# Switch branches
-git checkout main               # Switch to main
-git switch main                 # Modern way
-git checkout -                  # Switch to previous branch
-
-# Delete branches
-git branch -d feature-xyz       # Delete merged branch
-git branch -D feature-xyz       # Force delete unmerged branch
-git push origin --delete feature-xyz  # Delete remote branch
-
-# Rename branch
-git branch -m old-name new-name # Rename branch
-git branch -M new-name          # Rename current branch
+git branch --no-merged          # Branches not yet merged
 ```
 
-### Merging Strategies
+**Creating Branches:**
 
 ```bash
-# Merge branches
-git merge feature-xyz           # Merge into current branch
-git merge --no-ff feature-xyz   # Force merge commit (no fast-forward)
-git merge --squash feature-xyz  # Squash all commits into one
+# Create branch (but don't switch)
+git branch feature-xyz
 
-# Merge conflicts
-# 1. Git will mark conflicts in files:
+# Create and switch to branch (old way)
+git checkout -b feature-xyz
+
+# Create and switch to branch (modern way, Git 2.23+)
+git switch -c feature-xyz
+```
+
+**Switching Branches:**
+
+```bash
+# Old way
+git checkout main
+
+# Modern way (Git 2.23+)
+git switch main
+
+# Switch to previous branch
+git checkout -
+```
+
+**Deleting Branches:**
+
+```bash
+# Delete merged branch (safe)
+git branch -d feature-xyz
+
+# Force delete unmerged branch
+git branch -D feature-xyz
+
+# Delete remote branch
+git push origin --delete feature-xyz
+```
+
+**Renaming Branches:**
+
+```bash
+# Rename specific branch
+git branch -m old-name new-name
+
+# Rename current branch
+git branch -M new-name
+```
+
+---
+
+### 💡 **Merge vs Rebase: The Critical Decision**
+
+Understanding the difference between merge and rebase is essential for maintaining clean history.
+
+**Comparison:**
+
+| Aspect | Merge | Rebase |
+|--------|-------|--------|
+| **History** | Preserves complete history | Creates linear history |
+| **Commits** | Adds merge commit | No merge commit |
+| **Traceability** | Shows when branches merged | Looks like linear development |
+| **Safety** | Safe for public branches | Dangerous for shared branches |
+| **Use Case** | Feature branches → main | Clean up local branch |
+| **Conflicts** | Resolve once | May resolve multiple times |
+
+**Merge:**
+
+```bash
+# Merge feature into current branch
+git merge feature-xyz
+
+# Force merge commit (no fast-forward)
+git merge --no-ff feature-xyz
+
+# Squash all commits into one
+git merge --squash feature-xyz
+```
+
+**When to Use Merge:**
+
+- ✅ Merging feature branches into main
+- ✅ Public/shared branches
+- ✅ Want to preserve full history
+- ✅ Want to see when feature was integrated
+
+**Rebase:**
+
+```bash
+# Rebase current branch onto main
+git rebase main
+
+# Continue after resolving conflicts
+git rebase --continue
+
+# Skip current commit
+git rebase --skip
+
+# Abort rebase
+git rebase --abort
+```
+
+**When to Use Rebase:**
+
+- ✅ Clean up private branch before merging
+- ✅ Update feature branch with main's changes
+- ✅ Want linear, clean history
+- ❌ **NEVER** on public/shared branches!
+
+> **Critical Rule:** Never rebase commits that exist outside your repository. Rewriting public history breaks everyone's work.
+
+---
+
+### Interactive Rebase
+
+### 💡 **Rewriting History Safely**
+
+Interactive rebase lets you edit, squash, reorder, or drop commits before sharing them.
+
+```bash
+# Rebase last 3 commits
+git rebase -i HEAD~3
+
+# Rebase onto main with options
+git rebase -i main
+```
+
+**Interactive Rebase Commands:**
+
+| Command | What It Does | When to Use |
+|---------|-------------|-------------|
+| `pick` | Use commit as-is | Keep commit unchanged |
+| `reword` | Use commit, edit message | Fix typo in message |
+| `edit` | Use commit, stop for amending | Add forgotten file |
+| `squash` | Combine with previous, keep message | Merge related commits |
+| `fixup` | Combine with previous, discard message | Merge cleanup commits |
+| `drop` | Remove commit entirely | Delete unwanted commit |
+
+**Example Interactive Rebase:**
+
+```bash
+pick abc123 Add feature
+reword def456 Fix bug          # Will prompt to edit message
+squash ghi789 Update tests     # Will combine with previous
+fixup jkl012 Fix typo          # Will combine, discard message
+drop mno345 Bad commit         # Will remove
+```
+
+**⚠️ Golden Rule:** Interactive rebase is for private branches only!
+
+---
+
+### Handling Merge Conflicts
+
+**What Causes Conflicts:**
+
+Conflicts occur when the same lines are changed differently in two branches.
+
+**Conflict Resolution Process:**
+
+**Step 1: Git marks conflicts in files**
+
+```
 <<<<<<< HEAD
 Current branch content
 =======
 Incoming branch content
 >>>>>>> feature-xyz
+```
 
-# 2. Resolve conflicts manually
-# 3. Stage resolved files
+**Step 2: Resolve conflicts manually**
+
+Edit the file to keep what you want, remove the markers.
+
+**Step 3: Stage resolved files**
+
+```bash
 git add resolved-file.txt
+```
 
-# 4. Complete merge
+**Step 4: Complete merge**
+
+```bash
 git commit
+```
 
-# Abort merge if needed
+**Aborting a Merge:**
+
+```bash
 git merge --abort
 ```
 
-### Rebasing
+> **Pro Tip:** Use a merge tool for complex conflicts: `git mergetool`
 
-```bash
-# Basic rebase
-git rebase main                 # Rebase current branch onto main
-git rebase --continue           # Continue after resolving conflicts
-git rebase --abort              # Abort rebase
-git rebase --skip               # Skip current commit
-
-# Interactive rebase
-git rebase -i HEAD~3            # Rebase last 3 commits
-git rebase -i main              # Rebase onto main with options
-
-# Interactive rebase commands:
-# pick   = use commit
-# reword = use commit, edit message
-# edit   = use commit, stop for amending
-# squash = combine with previous commit
-# fixup  = like squash, discard message
-# drop   = remove commit
-
-# Example interactive rebase:
-pick abc123 Add feature
-reword def456 Fix bug          # Will prompt to edit message
-squash ghi789 Update tests     # Will combine with previous
-drop jkl012 Bad commit         # Will remove
-
-# Never rebase public branches!
-```
+---
 
 ## Remote Repositories
 
-### Remote Operations
+### 💡 **Working with Remotes**
+
+Remote repositories enable collaboration by providing a shared location for code.
+
+**Viewing Remotes:**
 
 ```bash
-# View remotes
 git remote                      # List remotes
 git remote -v                   # List with URLs
 git remote show origin          # Detailed remote info
-
-# Add/remove remotes
-git remote add origin https://github.com/user/repo.git
-git remote add upstream https://github.com/original/repo.git
-git remote remove origin
-git remote rename origin upstream
-
-# Fetch changes
-git fetch                       # Fetch from default remote
-git fetch origin                # Fetch from origin
-git fetch --all                 # Fetch from all remotes
-git fetch --prune               # Remove deleted remote branches
-
-# Pull changes
-git pull                        # Fetch + merge
-git pull --rebase               # Fetch + rebase (preferred for clean history)
-git pull origin main            # Pull specific branch
-
-# Push changes
-git push                        # Push to default remote
-git push origin main            # Push to specific branch
-git push -u origin feature-xyz  # Push and set upstream
-git push --force                # Force push (dangerous!)
-git push --force-with-lease     # Safer force push
-git push --tags                 # Push tags
-git push --all                  # Push all branches
 ```
+
+**Adding/Removing Remotes:**
+
+```bash
+# Add remote
+git remote add origin https://github.com/user/repo.git
+
+# Add upstream for forked repo
+git remote add upstream https://github.com/original/repo.git
+
+# Remove remote
+git remote remove origin
+
+# Rename remote
+git remote rename origin upstream
+```
+
+### Fetch vs Pull
+
+### 💡 **The Critical Difference**
+
+| Command | What It Does | Safety | When to Use |
+|---------|-------------|--------|-------------|
+| `git fetch` | Downloads changes, doesn't merge | Safe | Review changes first |
+| `git pull` | Downloads + merges automatically | Can cause conflicts | When you trust changes |
+
+**Fetch Commands:**
+
+```bash
+# Fetch from default remote
+git fetch
+
+# Fetch from specific remote
+git fetch origin
+
+# Fetch from all remotes
+git fetch --all
+
+# Fetch and prune deleted branches
+git fetch --prune
+```
+
+**Pull Commands:**
+
+```bash
+# Fetch + merge
+git pull
+
+# Fetch + rebase (cleaner history)
+git pull --rebase
+
+# Pull specific branch
+git pull origin main
+```
+
+**✅ Best Practice:** Use `fetch` first to review changes, then merge manually:
+
+```bash
+git fetch origin
+git log origin/main        # Review changes
+git merge origin/main      # Merge when ready
+```
+
+---
+
+### Push Operations
+
+**Basic Push:**
+
+```bash
+# Push to default remote
+git push
+
+# Push to specific branch
+git push origin main
+
+# Push and set upstream (first push)
+git push -u origin feature-xyz
+```
+
+**Advanced Push:**
+
+```bash
+# Push all branches
+git push --all
+
+# Push tags
+git push --tags
+
+# Delete remote branch
+git push origin --delete feature-xyz
+```
+
+**Force Push:**
+
+```bash
+# Force push (DANGEROUS!)
+git push --force
+
+# Safer force push (fails if remote updated)
+git push --force-with-lease
+```
+
+**⚠️ Warning:** Never force push to shared branches like `main`! Only use on your own feature branches.
+
+---
 
 ### Working with Forks
 
+**Fork Workflow:**
+
+**Step 1: Fork on GitHub (use the Fork button)**
+
+**Step 2: Clone your fork**
+
 ```bash
-# Fork workflow
-# 1. Fork on GitHub
-# 2. Clone your fork
 git clone https://github.com/yourusername/repo.git
 cd repo
+```
 
-# 3. Add upstream remote
+**Step 3: Add upstream remote**
+
+```bash
 git remote add upstream https://github.com/original/repo.git
+```
 
-# 4. Keep your fork updated
+**Step 4: Keep your fork updated**
+
+```bash
 git fetch upstream
 git checkout main
 git merge upstream/main
 git push origin main
-
-# 5. Create feature branch
-git checkout -b feature-xyz
-
-# 6. Make changes, commit, push to your fork
-git push origin feature-xyz
-
-# 7. Create Pull Request on GitHub
 ```
+
+**Step 5: Create feature branch**
+
+```bash
+git checkout -b feature/new-feature
+```
+
+**Step 6: Make changes, commit, push**
+
+```bash
+git push origin feature/new-feature
+```
+
+**Step 7: Create Pull Request on GitHub**
+
+---
 
 ## Undoing Changes
 
+### 💡 **Reset vs Revert: Choose Wisely**
+
+Different situations require different undo strategies.
+
+| Situation | Use This | Why |
+|-----------|----------|-----|
+| Uncommitted changes | `git restore` | Safest, only affects working directory |
+| Wrong files staged | `git restore --staged` | Unstage without losing changes |
+| Private branch commits | `git reset` | Rewrite history cleanly |
+| Public branch commits | `git revert` | Safe, doesn't rewrite history |
+| Lost commits | `git reflog` | Find and recover |
+
 ### Undoing Uncommitted Changes
 
+**Discard Working Directory Changes:**
+
 ```bash
-# Discard changes in working directory
+# Modern way (Git 2.23+)
 git restore file.txt            # Discard changes in file
 git restore .                   # Discard all changes
-git checkout -- file.txt        # Old way
 
-# Remove untracked files
+# Old way
+git checkout -- file.txt
+```
+
+**Remove Untracked Files:**
+
+```bash
 git clean -n                    # Dry run (preview)
 git clean -f                    # Remove untracked files
 git clean -fd                   # Remove files and directories
@@ -306,133 +739,327 @@ git clean -fX                   # Remove only ignored files
 git clean -fx                   # Remove ignored and untracked
 ```
 
-### Undoing Commits
+---
+
+### 💡 **Git Reset Modes Explained**
+
+The `reset` command has three modes that do different things.
+
+**Comparison:**
+
+| Mode | HEAD | Staging | Working Dir | Use Case |
+|------|------|---------|-------------|----------|
+| `--soft` | ✅ Moves | ❌ Keeps | ❌ Keeps | Redo commit with more changes |
+| `--mixed` (default) | ✅ Moves | ✅ Resets | ❌ Keeps | Unstage everything, keep changes |
+| `--hard` | ✅ Moves | ✅ Resets | ✅ Resets | **Discard everything (DANGER!)** |
+
+**Visual Example:**
+
+```
+Before: A -- B -- C -- D (HEAD, main)
+
+git reset --soft HEAD~2
+After:  A -- B (main)
+        Changes from C and D are staged
+
+git reset --mixed HEAD~2
+After:  A -- B (main)
+        Changes from C and D are unstaged in working directory
+
+git reset --hard HEAD~2
+After:  A -- B (main)
+        Changes from C and D are GONE FOREVER
+```
+
+**Reset Commands:**
 
 ```bash
-# Undo last commit (keep changes)
-git reset --soft HEAD~1         # Keep changes staged
-git reset HEAD~1                # Keep changes unstaged (default)
-git reset --hard HEAD~1         # Discard changes (dangerous!)
+# Undo last commit, keep changes staged
+git reset --soft HEAD~1
+
+# Undo last commit, keep changes unstaged (default)
+git reset HEAD~1
+
+# Undo last commit, discard all changes (DANGEROUS!)
+git reset --hard HEAD~1
 
 # Undo multiple commits
-git reset --hard HEAD~3         # Go back 3 commits
+git reset --hard HEAD~3
 
 # Reset to specific commit
 git reset --hard <commit-hash>
-
-# Revert commit (create new commit that undoes)
-git revert <commit-hash>        # Creates new commit
-git revert HEAD                 # Revert last commit
-git revert HEAD~3..HEAD         # Revert last 3 commits
-
-# Difference:
-# reset = rewrites history (don't use on public branches)
-# revert = creates new commit (safe for public branches)
 ```
+
+**⚠️ Critical Warning:** `git reset --hard` permanently deletes uncommitted changes. There's no undo!
+
+---
+
+### 💡 **Git Revert: The Safe Undo**
+
+Unlike `reset`, `revert` creates new commits that undo changes - it doesn't rewrite history.
+
+```bash
+# Revert specific commit (creates new commit)
+git revert <commit-hash>
+
+# Revert last commit
+git revert HEAD
+
+# Revert range of commits
+git revert HEAD~3..HEAD
+```
+
+**When to Use Revert:**
+
+- ✅ Undoing commits on public/shared branches
+- ✅ Want to preserve history
+- ✅ Need to track that changes were undone
+- ✅ CI/CD has already deployed the commit
+
+**When to Use Reset:**
+
+- ✅ Private branches only
+- ✅ Clean up messy commit history
+- ✅ Changes not yet pushed
+
+> **Key Insight:** If you've pushed, use `revert`. If you haven't pushed, use `reset`.
+
+---
 
 ## Advanced Git
 
-### Stashing
+### 💡 **Stashing: Temporary Storage**
+
+Stash saves your uncommitted changes temporarily so you can switch branches.
+
+**Creating Stashes:**
 
 ```bash
-# Save work temporarily
-git stash                       # Stash changes
-git stash save "Work in progress"  # Stash with message
-git stash -u                    # Include untracked files
-git stash --all                 # Include ignored files
+# Stash changes
+git stash
 
-# View stashes
-git stash list                  # List all stashes
-git stash show                  # Show latest stash
-git stash show stash@{1}        # Show specific stash
-git stash show -p               # Show stash diff
+# Stash with descriptive message
+git stash save "Work in progress on auth feature"
 
-# Apply stashes
-git stash apply                 # Apply latest stash (keep in list)
-git stash pop                   # Apply and remove from list
-git stash apply stash@{2}       # Apply specific stash
+# Include untracked files
+git stash -u
 
-# Delete stashes
-git stash drop                  # Delete latest stash
-git stash drop stash@{1}        # Delete specific stash
-git stash clear                 # Delete all stashes
-
-# Create branch from stash
-git stash branch feature-xyz    # Create branch and apply stash
+# Include ignored files too
+git stash --all
 ```
+
+**Viewing Stashes:**
+
+```bash
+# List all stashes
+git stash list
+
+# Show latest stash
+git stash show
+
+# Show specific stash
+git stash show stash@{1}
+
+# Show stash diff
+git stash show -p
+```
+
+**Applying Stashes:**
+
+```bash
+# Apply latest stash (keeps in list)
+git stash apply
+
+# Apply and remove from list
+git stash pop
+
+# Apply specific stash
+git stash apply stash@{2}
+```
+
+**Deleting Stashes:**
+
+```bash
+# Delete latest stash
+git stash drop
+
+# Delete specific stash
+git stash drop stash@{1}
+
+# Delete all stashes
+git stash clear
+```
+
+**Creating Branch from Stash:**
+
+```bash
+# Create branch and apply stash in one step
+git stash branch feature-xyz
+```
+
+**Use Cases:**
+
+| Scenario | Solution |
+|----------|----------|
+| Need to switch branches | `git stash` |
+| Accidentally started work on wrong branch | `git stash && git switch correct-branch && git stash pop` |
+| Pull failed due to conflicts | `git stash && git pull && git stash pop` |
+| Want to experiment | `git stash` before trying risky changes |
+
+---
 
 ### Cherry-Picking
 
-```bash
-# Apply specific commits to current branch
-git cherry-pick <commit-hash>   # Apply single commit
-git cherry-pick abc123 def456   # Apply multiple commits
-git cherry-pick abc123..def456  # Apply commit range
+### 💡 **Selectively Apply Commits**
 
-# Cherry-pick without committing
+Cherry-pick applies specific commits from one branch to another.
+
+```bash
+# Apply single commit
+git cherry-pick <commit-hash>
+
+# Apply multiple commits
+git cherry-pick abc123 def456
+
+# Apply commit range
+git cherry-pick abc123..def456
+
+# Cherry-pick without committing (stage only)
 git cherry-pick -n <commit-hash>
+```
+
+**Handling Conflicts:**
+
+```bash
+# Continue after resolving conflicts
+git cherry-pick --continue
 
 # Abort cherry-pick
 git cherry-pick --abort
-
-# Continue after resolving conflicts
-git cherry-pick --continue
 ```
+
+**When to Use Cherry-Pick:**
+
+- ✅ Apply hotfix from main to release branch
+- ✅ Pull single feature from experimental branch
+- ✅ Backport bug fixes to older versions
+- ❌ Don't use for regular merging (use `merge` instead)
+
+---
 
 ### Tagging
 
-```bash
-# List tags
-git tag                         # List all tags
-git tag -l "v1.*"               # List matching pattern
+### 💡 **Marking Release Points**
 
-# Create tags
-git tag v1.0.0                  # Lightweight tag
-git tag -a v1.0.0 -m "Version 1.0.0"  # Annotated tag
-git tag -a v1.0.0 <commit-hash> # Tag specific commit
+Tags mark specific points in history as important (usually releases).
+
+**Types of Tags:**
+
+| Type | Storage | Contains | Use Case |
+|------|---------|----------|----------|
+| **Lightweight** | Just a pointer | Only commit reference | Quick temporary marks |
+| **Annotated** | Git object | Author, date, message, GPG signature | Production releases |
+
+**Creating Tags:**
+
+```bash
+# Lightweight tag
+git tag v1.0.0
+
+# Annotated tag (recommended for releases)
+git tag -a v1.0.0 -m "Version 1.0.0 - Initial release"
+
+# Tag specific commit
+git tag -a v1.0.0 <commit-hash>
+```
+
+**Listing Tags:**
+
+```bash
+# All tags
+git tag
+
+# Pattern matching
+git tag -l "v1.*"
 
 # Show tag details
 git show v1.0.0
-
-# Push tags
-git push origin v1.0.0          # Push single tag
-git push origin --tags          # Push all tags
-
-# Delete tags
-git tag -d v1.0.0               # Delete local tag
-git push origin --delete v1.0.0 # Delete remote tag
-
-# Checkout tag
-git checkout v1.0.0             # Detached HEAD state
-git checkout -b branch-v1.0.0 v1.0.0  # Create branch from tag
 ```
+
+**Pushing Tags:**
+
+```bash
+# Push single tag
+git push origin v1.0.0
+
+# Push all tags
+git push origin --tags
+```
+
+**Deleting Tags:**
+
+```bash
+# Delete local tag
+git tag -d v1.0.0
+
+# Delete remote tag
+git push origin --delete v1.0.0
+```
+
+**Checking Out Tags:**
+
+```bash
+# View code at tag (detached HEAD)
+git checkout v1.0.0
+
+# Create branch from tag
+git checkout -b release-v1.0.0 v1.0.0
+```
+
+**✅ Best Practice:** Use semantic versioning (v1.2.3) and annotated tags for releases.
+
+---
 
 ## Git in DevOps
 
-### .gitignore
+### 💡 **.gitignore: What NOT to Track**
+
+Not everything should be version controlled.
+
+**Common Patterns:**
 
 ```bash
 # .gitignore patterns
 *.log                   # Ignore all .log files
 /build/                 # Ignore build directory
-node_modules/           # Ignore node_modules
+node_modules/           # Ignore dependencies
 *.env                   # Ignore environment files
 .DS_Store               # Ignore Mac files
 **/*.pyc                # Ignore Python compiled files
 
-# Negation (don't ignore)
+# Negation (explicitly track)
 !important.log
 
 # Track empty directory
 logs/.gitkeep
+```
 
-# Global gitignore
+**Useful Commands:**
+
+```bash
+# Set global gitignore
 git config --global core.excludesfile ~/.gitignore_global
 
 # Check if file is ignored
 git check-ignore -v file.txt
 
-# Common DevOps .gitignore
+# Check why file is ignored
+git check-ignore -v path/to/file
+```
+
+**DevOps .gitignore Template:**
+
+```bash
 cat > .gitignore << 'EOF'
 # Terraform
 *.tfstate
@@ -451,10 +1078,12 @@ cat > .gitignore << 'EOF'
 *.key
 secrets.yaml
 .env
+credentials.json
 
 # IDE
 .vscode/
 .idea/
+*.swp
 
 # OS
 .DS_Store
@@ -472,20 +1101,38 @@ dist/
 EOF
 ```
 
-### Git Hooks
+**What to Ignore:**
+
+| Category | Examples | Why |
+|----------|----------|-----|
+| **Build artifacts** | `dist/`, `build/`, `*.o` | Generated from source |
+| **Dependencies** | `node_modules/`, `vendor/` | Downloaded via package manager |
+| **Secrets** | `.env`, `*.pem`, `credentials.json` | Security risk |
+| **IDE files** | `.vscode/`, `.idea/` | Personal preference |
+| **OS files** | `.DS_Store`, `Thumbs.db` | System-specific |
+| **Logs** | `*.log`, `logs/` | Generated at runtime |
+
+> **Critical:** Never commit secrets! If you do, assume they're compromised and rotate them immediately.
+
+---
+
+### 💡 **Git Hooks: Automation Power**
+
+Hooks are scripts that run automatically on Git events.
+
+**Common Hooks:**
+
+| Hook | When It Runs | Use Case |
+|------|-------------|----------|
+| `pre-commit` | Before commit | Run linters, tests |
+| `commit-msg` | After commit message entered | Enforce commit conventions |
+| `pre-push` | Before push | Run full test suite |
+| `post-checkout` | After checking out branch | Update dependencies |
+| `post-merge` | After successful merge | Update environment |
+
+**Example: Pre-Commit Linting**
 
 ```bash
-# Hooks are scripts in .git/hooks/
-# Remove .sample extension to activate
-
-# Common hooks:
-# pre-commit       - Before commit
-# commit-msg       - Edit commit message
-# pre-push         - Before push
-# post-checkout    - After checkout
-# post-merge       - After merge
-
-# Example: pre-commit hook for linting
 cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
 # Run linter before commit
@@ -495,24 +1142,27 @@ echo "Running pre-commit checks..."
 # Run tests
 npm test
 if [ $? -ne 0 ]; then
-    echo "Tests failed. Commit aborted."
+    echo "❌ Tests failed. Commit aborted."
     exit 1
 fi
 
 # Run linter
 npm run lint
 if [ $? -ne 0 ]; then
-    echo "Linter failed. Commit aborted."
+    echo "❌ Linter failed. Commit aborted."
     exit 1
 fi
 
-echo "Pre-commit checks passed!"
+echo "✅ Pre-commit checks passed!"
 exit 0
 EOF
 
 chmod +x .git/hooks/pre-commit
+```
 
-# Example: commit-msg hook for conventional commits
+**Example: Conventional Commit Enforcement**
+
+```bash
 cat > .git/hooks/commit-msg << 'EOF'
 #!/bin/bash
 # Enforce conventional commit format
@@ -521,8 +1171,10 @@ commit_msg=$(cat "$1")
 pattern="^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{10,}"
 
 if ! echo "$commit_msg" | grep -qE "$pattern"; then
-    echo "Error: Invalid commit message format"
+    echo "❌ Invalid commit message format"
     echo "Format: <type>(scope): <description>"
+    echo ""
+    echo "Types: feat, fix, docs, style, refactor, test, chore"
     echo "Example: feat(api): add user authentication"
     exit 1
 fi
@@ -531,24 +1183,34 @@ EOF
 chmod +x .git/hooks/commit-msg
 ```
 
-### Git for Infrastructure as Code
+**✅ Best Practice:** Use tools like [Husky](https://typicode.github.io/husky/) to share hooks with your team via Git.
+
+---
+
+### 💡 **Git for Infrastructure as Code**
+
+Git is essential for managing infrastructure - GitOps treats Git as the single source of truth.
+
+**Terraform with Git:**
 
 ```bash
-# Terraform with Git
-.
-├── .gitignore          # Ignore state files
+project/
+├── .gitignore          # Ignore state files!
 ├── README.md
 ├── main.tf
 ├── variables.tf
 ├── outputs.tf
-├── terraform.tfvars    # Should be in .gitignore!
+├── terraform.tfvars    # Should be in .gitignore
 └── environments/
     ├── dev/
     ├── staging/
     └── production/
+```
 
-# Kubernetes manifests with Git
-.
+**Kubernetes Manifests with Git:**
+
+```bash
+k8s/
 ├── base/
 │   ├── deployment.yaml
 │   ├── service.yaml
@@ -557,270 +1219,820 @@ chmod +x .git/hooks/commit-msg
     ├── dev/
     ├── staging/
     └── production/
-
-# GitOps workflow
-git commit -m "feat: update deployment replicas to 5"
-git push origin main
-# ArgoCD/FluxCD automatically deploys changes
 ```
+
+**GitOps Workflow:**
+
+```bash
+# 1. Make infrastructure change
+git add terraform/main.tf
+git commit -m "feat(infra): scale deployment to 5 replicas"
+
+# 2. Push to Git
+git push origin main
+
+# 3. ArgoCD/FluxCD detects change and applies automatically
+# No manual kubectl apply needed!
+```
+
+**Benefits of GitOps:**
+
+- ✅ Infrastructure changes are code-reviewed
+- ✅ Full audit trail of who changed what
+- ✅ Easy rollback with `git revert`
+- ✅ Declarative - Git is source of truth
+- ✅ Automated deployment via CI/CD
+
+> **Key Insight:** GitOps means your Git repository defines your infrastructure. Push to Git, infrastructure updates automatically.
+
+---
 
 ## Branching Strategies
 
+### 💡 **Choosing the Right Strategy**
+
+Different teams need different branching models.
+
+**Comparison:**
+
+| Strategy | Complexity | Release Frequency | Team Size | Best For |
+|----------|-----------|------------------|-----------|----------|
+| **GitFlow** | High | Scheduled releases | Large | Enterprise, regulated industries |
+| **GitHub Flow** | Low | Continuous | Small-Medium | Continuous deployment |
+| **Trunk-Based** | Very Low | Continuous | Any | High-performing teams, DevOps |
+
+---
+
 ### GitFlow
 
-```bash
-# Branch structure:
-main            # Production-ready code
+**Branch Structure:**
+
+```
+main            # Production code
 develop         # Integration branch
 feature/*       # New features
 release/*       # Release preparation
 hotfix/*        # Production fixes
+```
 
-# Feature workflow
+**Feature Workflow:**
+
+```bash
+# Start feature
 git checkout develop
 git checkout -b feature/user-auth
+
 # ... work on feature ...
 git push origin feature/user-auth
-# Create PR to develop
 
-# Release workflow
+# Create PR to develop
+# After merge, delete feature branch
+```
+
+**Release Workflow:**
+
+```bash
+# Create release branch
 git checkout develop
 git checkout -b release/v1.2.0
-# ... final testing, version bumps ...
+
+# Final testing, version bumps, bug fixes
+
+# Merge to main
 git checkout main
 git merge release/v1.2.0
 git tag v1.2.0
+
+# Merge back to develop
 git checkout develop
 git merge release/v1.2.0
-git branch -d release/v1.2.0
 
-# Hotfix workflow
+# Delete release branch
+git branch -d release/v1.2.0
+```
+
+**Hotfix Workflow:**
+
+```bash
+# Create hotfix from main
 git checkout main
 git checkout -b hotfix/security-patch
-# ... fix issue ...
+
+# Fix critical issue
+
+# Merge to main
 git checkout main
 git merge hotfix/security-patch
 git tag v1.2.1
+
+# Merge to develop
 git checkout develop
 git merge hotfix/security-patch
 ```
 
-### GitHub Flow (Simpler)
+**When to Use GitFlow:**
 
-```bash
-# Branch structure:
+- ✅ Scheduled releases (not continuous)
+- ✅ Multiple versions in production
+- ✅ Need long-lived release branches
+- ✅ Regulated industries requiring approval gates
+
+---
+
+### GitHub Flow
+
+**Branch Structure:**
+
+```
 main            # Always deployable
 feature/*       # Feature branches
+```
 
-# Workflow
+**Simple Workflow:**
+
+```bash
+# 1. Update main
 git checkout main
 git pull origin main
+
+# 2. Create feature branch
 git checkout -b feature/new-feature
-# ... work and commit ...
+
+# 3. Make changes, commit frequently
+git commit -m "feat: add feature"
+
+# 4. Push to remote
 git push origin feature/new-feature
-# Create Pull Request
-# Review, test, merge to main
-# Deploy main to production
+
+# 5. Create Pull Request on GitHub
+
+# 6. Review, discuss, make changes
+
+# 7. Merge to main (via PR)
+
+# 8. Deploy main to production
+
+# 9. Delete feature branch
 ```
+
+**When to Use GitHub Flow:**
+
+- ✅ Continuous deployment
+- ✅ Single production version
+- ✅ Small to medium teams
+- ✅ Fast iteration needed
+
+**Key Rules:**
+
+- Main branch is **always deployable**
+- Every change goes through PR and code review
+- Deploy immediately after merging to main
+
+---
 
 ### Trunk-Based Development
 
+**Philosophy:**
+
+All developers work on a single branch (trunk/main) with short-lived feature branches.
+
+**Branch Structure:**
+
+```
+main            # Everyone commits here (directly or via short PR)
+```
+
+**Workflow:**
+
 ```bash
-# Single main branch
-main            # Everyone commits here
+# Option 1: Direct commits to main (advanced teams)
+git checkout main
+git pull origin main
+# ... make small change ...
+git commit -m "feat: add validation"
+git push origin main
 
-# Short-lived feature branches (< 1 day)
-git checkout -b short-feature
+# Option 2: Very short-lived feature branches (< 1 day)
+git checkout -b quick-feature
 # ... quick changes ...
-git push origin short-feature
-# PR and merge same day
+git push origin quick-feature
+# Create PR, merge same day
+```
 
-# Feature flags for incomplete features
+**Feature Flags:**
+
+```javascript
+// Ship incomplete features behind flags
 if (featureFlags.newUI) {
-  // New UI code
+  return <NewUI />
 } else {
-  // Old UI code
+  return <OldUI />
 }
 ```
 
+**When to Use Trunk-Based:**
+
+- ✅ High-performing DevOps teams
+- ✅ Continuous integration is critical
+- ✅ Want fastest feedback loop
+- ✅ Can deploy multiple times per day
+
+**Requirements:**
+
+- Strong automated testing
+- Feature flags for incomplete work
+- Fast code review process
+- Small, atomic commits
+
+> **Key Insight:** Trunk-based development requires discipline but enables the fastest delivery.
+
+---
+
 ## Git Best Practices for DevOps
 
-### Commit Messages
+### 💡 **Write Better Commit Messages**
 
-```bash
-# Good commit message format
+Good commit messages are documentation for your project's history.
+
+**Conventional Commits Format:**
+
+```
 <type>(<scope>): <subject>
 
 <body>
 
 <footer>
+```
 
-# Types:
-feat:     New feature
-fix:      Bug fix
-docs:     Documentation
-style:    Formatting
-refactor: Code restructuring
-test:     Adding tests
-chore:    Maintenance
+**Types:**
 
-# Examples:
-feat(api): add user authentication endpoint
-fix(auth): resolve token expiration issue
-docs(readme): update installation instructions
-chore(deps): upgrade react to v18.0.0
+| Type | Purpose | Example |
+|------|---------|---------|
+| `feat` | New feature | `feat(api): add user authentication` |
+| `fix` | Bug fix | `fix(auth): resolve token expiration` |
+| `docs` | Documentation | `docs(readme): update installation steps` |
+| `style` | Formatting (no code change) | `style: fix indentation` |
+| `refactor` | Code restructuring | `refactor(api): simplify error handling` |
+| `test` | Adding tests | `test(api): add user endpoint tests` |
+| `chore` | Maintenance | `chore(deps): upgrade react to v18` |
+| `perf` | Performance improvement | `perf(api): add database indexing` |
+| `ci` | CI/CD changes | `ci: add docker build step` |
 
-# Atomic commits
-# ✅ Good
+**Good vs Bad Examples:**
+
+❌ **Bad:**
+```bash
+git commit -m "fixes"
+git commit -m "update stuff"
+git commit -m "changes"
+git commit -m "Added feature, fixed bugs, updated docs"
+```
+
+✅ **Good:**
+```bash
+git commit -m "feat(api): add user authentication endpoint"
+git commit -m "fix(auth): resolve token expiration issue"
+git commit -m "docs(readme): add environment setup instructions"
+git commit -m "test(api): add comprehensive user endpoint tests"
+```
+
+**Atomic Commits:**
+
+✅ **One logical change per commit:**
+```bash
 git commit -m "feat(api): add user endpoint"
 git commit -m "test(api): add user endpoint tests"
+git commit -m "docs(api): document user endpoint"
+```
 
-# ❌ Bad
+❌ **Multiple unrelated changes:**
+```bash
 git commit -m "Added user endpoint, tests, updated docs, fixed bugs"
 ```
 
-### Security Best Practices
+> **Key Insight:** A good commit message explains **why** the change was made, not just **what** changed.
+
+---
+
+### 💡 **Security Best Practices**
+
+**Never Commit Secrets:**
+
+❌ **Bad:**
+```javascript
+const API_KEY = "sk_live_abc123xyz"
+const DB_PASSWORD = "admin123"
+```
+
+✅ **Good:**
+```javascript
+const API_KEY = process.env.API_KEY
+const DB_PASSWORD = process.env.DB_PASSWORD
+```
+
+**Check for Secrets Before Committing:**
 
 ```bash
-# Never commit secrets!
-# ✅ Use environment variables
-DATABASE_URL=${DATABASE_URL}
-
-# ✅ Use secret management
-aws secretsmanager get-secret-value --secret-id db-password
-
-# Check for secrets before committing
-git diff --cached | grep -i 'password\|secret\|key\|token'
+# Manual check
+git diff --cached | grep -iE 'password|secret|key|token|api_key'
 
 # Use git-secrets tool
 git secrets --install
 git secrets --register-aws
 
-# If secret was committed:
-# 1. Remove from Git history
+# Scan repository
+git secrets --scan
+```
+
+**If You Committed a Secret:**
+
+**Step 1: Remove from history**
+
+```bash
+# Using BFG Repo-Cleaner (recommended)
+bfg --delete-files secrets.txt
+
+# Using git filter-branch
 git filter-branch --force --index-filter \
   'git rm --cached --ignore-unmatch secrets.txt' \
   --prune-empty --tag-name-filter cat -- --all
-
-# 2. Or use BFG Repo-Cleaner
-bfg --delete-files secrets.txt
-
-# 3. Rotate the compromised secret immediately!
 ```
+
+**Step 2: Force push**
+
+```bash
+git push --force-with-lease
+```
+
+**Step 3: Rotate the secret immediately!**
+
+The secret is compromised and must be changed in all systems.
+
+**Security Checklist:**
+
+- ✅ Use environment variables for secrets
+- ✅ Add `*.env`, `*.pem`, `*.key` to `.gitignore`
+- ✅ Use secret management (AWS Secrets Manager, Vault)
+- ✅ Enable secret scanning (GitHub Advanced Security)
+- ✅ Review PRs for accidental secrets
+- ✅ Use pre-commit hooks to block secrets
+
+---
 
 ### Repository Maintenance
 
+**Clean Up Local Branches:**
+
 ```bash
-# Clean up local branches
+# Delete branches that have been merged
 git branch --merged | grep -v "\*" | xargs git branch -d
 
-# Prune remote tracking branches
+# Delete branches that have been merged to main
+git branch --merged main | grep -v "\* main" | xargs git branch -d
+```
+
+**Prune Remote Tracking Branches:**
+
+```bash
+# Remove local references to deleted remote branches
 git fetch --prune
 git remote prune origin
+```
 
-# Garbage collection
-git gc                  # Cleanup and optimize
-git gc --aggressive     # More thorough cleanup
+**Repository Optimization:**
+
+```bash
+# Garbage collection (cleanup and optimize)
+git gc
+
+# Aggressive garbage collection (slower, more thorough)
+git gc --aggressive
 
 # Check repository health
-git fsck                # File system check
-du -sh .git             # Repository size
+git fsck
 
-# Reduce repository size
+# Check repository size
+du -sh .git
+```
+
+**Reduce Repository Size:**
+
+```bash
+# Expire reflog entries
 git reflog expire --expire=now --all
+
+# Garbage collect with pruning
 git gc --prune=now --aggressive
 ```
 
+**Maintenance Schedule:**
+
+| Task | Frequency | Command |
+|------|-----------|---------|
+| Delete merged branches | Weekly | `git branch --merged \| xargs git branch -d` |
+| Prune remote branches | Weekly | `git fetch --prune` |
+| Garbage collection | Monthly | `git gc` |
+| Repository health check | Quarterly | `git fsck` |
+
+---
+
 ## Interview Questions
 
-**Q1: What's the difference between `git pull` and `git fetch`?**
-A: `git fetch` downloads changes from remote but doesn't merge them. `git pull` = `git fetch` + `git merge`. In DevOps, `git fetch` followed by review is often safer.
+### Q1: What's the difference between `git pull` and `git fetch`?
 
-**Q2: When would you use `git rebase` vs `git merge`?**
-A: Use `rebase` for clean linear history on private branches. Use `merge` for public branches and to preserve feature branch history. Never rebase public/shared branches!
+**Answer:**
 
-**Q3: How do you undo a commit that's already pushed?**
-A: Use `git revert <commit-hash>` which creates a new commit that undoes changes. Avoid `git reset` on public branches as it rewrites history.
+| Command | What It Does | Result |
+|---------|-------------|--------|
+| `git fetch` | Downloads changes from remote | Changes in remote tracking branches, working directory unchanged |
+| `git pull` | Downloads + merges automatically | `git fetch` + `git merge` - working directory updated |
 
-**Q4: Explain Git's three-tree architecture.**
-A:
-1. **Working Directory** - Current files
-2. **Staging Area (Index)** - Changes to be committed
-3. **Repository (.git)** - Committed history
+**In DevOps practice:** `git fetch` is safer because you can review changes before merging.
 
-**Q5: How do you resolve merge conflicts?**
+```bash
+# Safer workflow
+git fetch origin
+git log origin/main       # Review what changed
+git merge origin/main     # Merge when ready
+
+# Convenient but risky
+git pull                  # Immediate merge, possible conflicts
+```
+
+---
+
+### Q2: When would you use `git rebase` vs `git merge`?
+
+**Answer:**
+
+**Use `git merge` when:**
+- ✅ Merging feature branches into main
+- ✅ Working on public/shared branches
+- ✅ Want to preserve complete history
+- ✅ Want to see exactly when feature was integrated
+
+**Use `git rebase` when:**
+- ✅ Cleaning up private branch before merging
+- ✅ Updating feature branch with main's changes
+- ✅ Want linear, clean history
+- ❌ **NEVER** on public branches
+
+**Critical rule:** Never rebase commits that exist outside your repository!
+
+---
+
+### Q3: How do you undo a commit that's already pushed?
+
+**Answer:**
+
+Use `git revert` (NOT `git reset`) for public branches:
+
+```bash
+# Creates new commit that undoes changes
+git revert <commit-hash>
+
+# Revert last commit
+git revert HEAD
+
+# Revert range of commits
+git revert HEAD~3..HEAD
+```
+
+**Why not reset?**
+```bash
+# ❌ BAD for public branches (rewrites history)
+git reset --hard HEAD~1
+git push --force  # Breaks everyone's work!
+
+# ✅ GOOD for public branches (preserves history)
+git revert HEAD
+git push  # Creates undo commit
+```
+
+> **Key Point:** `revert` is safe for public branches, `reset` is only for private branches.
+
+---
+
+### Q4: Explain Git's three-tree architecture.
+
+**Answer:**
+
+Git has three main areas:
+
+**1. Working Directory:**
+- Your actual project files
+- Where you make changes
+- Not tracked until staged
+
+**2. Staging Area (Index):**
+- Holds changes prepared for commit
+- Allows selective commits
+- Unique to Git (other VCS don't have this)
+
+**3. Repository (.git directory):**
+- Contains all committed history
+- Compressed and efficient
+- Complete project history
+
+**Flow:**
+```
+Working Directory  →  Staging Area  →  Repository
+   (git add)           (git commit)
+```
+
+---
+
+### Q5: How do you resolve merge conflicts?
+
+**Answer:**
+
+**Step-by-step process:**
+
 ```bash
 # 1. Attempt merge
 git merge feature-branch
+# CONFLICT: Merge conflict in app.js
 
 # 2. Git marks conflicts in files
-# 3. Edit files to resolve conflicts
+<<<<<<< HEAD
+const version = "1.0.0";  // Current branch
+=======
+const version = "2.0.0";  // Incoming branch
+>>>>>>> feature-branch
+
+# 3. Edit file to resolve (remove markers, choose code)
+const version = "2.0.0";
+
 # 4. Stage resolved files
-git add resolved-file.txt
+git add app.js
 
 # 5. Complete merge
 git commit
+
+# If you want to abort instead:
+git merge --abort
 ```
 
-**Q6: What's the difference between `git reset --soft`, `--mixed`, and `--hard`?**
-A:
-- `--soft`: Moves HEAD, keeps staging and working directory
-- `--mixed` (default): Moves HEAD, resets staging, keeps working directory
-- `--hard`: Moves HEAD, resets staging and working directory (dangerous!)
+**Pro tips:**
+- Use `git mergetool` for complex conflicts
+- Test after resolving
+- Communicate with the other developer
 
-**Q7: How do you find a commit that introduced a bug?**
+---
+
+### Q6: What's the difference between `git reset --soft`, `--mixed`, and `--hard`?
+
+**Answer:**
+
+| Mode | HEAD | Staging | Working Dir | Use Case |
+|------|------|---------|-------------|----------|
+| `--soft` | Moves | Unchanged | Unchanged | Redo commit with more changes |
+| `--mixed` | Moves | Reset | Unchanged | Unstage everything |
+| `--hard` | Moves | Reset | Reset | **Discard all changes (DANGER!)** |
+
+**Examples:**
+
 ```bash
-# Binary search through commits
-git bisect start
-git bisect bad                  # Current version is bad
-git bisect good v1.0.0          # v1.0.0 was good
-# Git checks out middle commit
-# Test and mark as good or bad
-git bisect good/bad
-# Repeat until found
-git bisect reset                # Return to original state
+# Keep changes staged (can re-commit immediately)
+git reset --soft HEAD~1
+
+# Keep changes unstaged (can edit before re-committing)
+git reset --mixed HEAD~1  # or just: git reset HEAD~1
+
+# Discard all changes (PERMANENT!)
+git reset --hard HEAD~1
 ```
+
+⚠️ **Warning:** `--hard` permanently deletes uncommitted changes!
+
+---
+
+### Q7: How do you find a commit that introduced a bug?
+
+**Answer:**
+
+Use `git bisect` for binary search through commits:
+
+```bash
+# 1. Start bisect
+git bisect start
+
+# 2. Mark current version as bad
+git bisect bad
+
+# 3. Mark known good version
+git bisect good v1.0.0
+
+# Git checks out middle commit
+# 4. Test and mark as good or bad
+git bisect good   # if test passes
+git bisect bad    # if test fails
+
+# 5. Repeat until found
+# Git will tell you: "X is the first bad commit"
+
+# 6. Return to original state
+git bisect reset
+```
+
+**Automated bisect:**
+
+```bash
+# Run test script automatically
+git bisect start HEAD v1.0.0
+git bisect run npm test
+```
+
+---
+
+### Q8: What are Git hooks and how are they used in DevOps?
+
+**Answer:**
+
+Git hooks are scripts that run automatically on Git events.
+
+**Common DevOps Uses:**
+
+| Hook | Use Case | Example |
+|------|----------|---------|
+| `pre-commit` | Run linters/formatters | Ensure code quality |
+| `commit-msg` | Enforce conventions | Validate commit format |
+| `pre-push` | Run tests | Prevent pushing broken code |
+| `post-receive` | Deploy code | Auto-deploy on push (GitOps) |
+
+**Example: Prevent commits without tests:**
+
+```bash
+# .git/hooks/pre-commit
+#!/bin/bash
+npm test
+if [ $? -ne 0 ]; then
+    echo "Tests failed. Commit aborted."
+    exit 1
+fi
+```
+
+---
+
+### Q9: What's the difference between a lightweight and annotated tag?
+
+**Answer:**
+
+| Type | Storage | Contains | Command | Use Case |
+|------|---------|----------|---------|----------|
+| **Lightweight** | Pointer to commit | Only commit hash | `git tag v1.0` | Temporary marks |
+| **Annotated** | Full Git object | Author, date, message, GPG signature | `git tag -a v1.0 -m "msg"` | **Production releases** |
+
+**Best practice:** Always use annotated tags for releases:
+
+```bash
+# ✅ Good - annotated tag
+git tag -a v1.0.0 -m "Release 1.0.0"
+
+# ❌ Bad for releases - lightweight tag
+git tag v1.0.0
+```
+
+---
+
+### Q10: How does GitOps work?
+
+**Answer:**
+
+GitOps treats Git as the single source of truth for infrastructure.
+
+**How it works:**
+
+```
+1. Developer commits infrastructure change to Git
+   ↓
+2. Git triggers CI/CD pipeline
+   ↓
+3. Pipeline validates changes
+   ↓
+4. ArgoCD/FluxCD detects Git change
+   ↓
+5. Automatically applies changes to cluster
+   ↓
+6. Monitors and reconciles state continuously
+```
+
+**Benefits:**
+- ✅ Infrastructure changes are code-reviewed
+- ✅ Full audit trail (who changed what, when, why)
+- ✅ Easy rollback (`git revert`)
+- ✅ Declarative - Git defines desired state
+- ✅ No manual `kubectl apply` needed
+
+**Example:**
+```bash
+# Change replica count in Git
+git add k8s/deployment.yaml
+git commit -m "feat: scale to 5 replicas"
+git push
+
+# ArgoCD automatically applies change to cluster
+# No manual intervention needed!
+```
+
+---
 
 ## Summary
 
-**Core Concepts:**
+### Core Concepts
 
-1. **Git Architecture:**
-   - ✅ Working Directory → Staging Area → Local Repo → Remote Repo
-   - ✅ `git add` (stage), `git commit` (save), `git push` (share)
-   - ✅ `.git` directory stores all history
-   - ✅ Distributed: every clone is a full backup
+**1. Git Architecture:**
 
-2. **Essential Commands:**
-   - **Status**: `git status`, `git diff`, `git log`
-   - **Changes**: `git add`, `git commit`, `git rm`, `git mv`
-   - **Branches**: `git branch`, `git checkout`, `git merge`
-   - **Remote**: `git clone`, `git pull`, `git push`, `git fetch`
+```
+Working Directory  →  Staging Area  →  Local Repository  →  Remote Repository
+```
 
-3. **Branching & Merging:**
-   - ✅ Branches are cheap and fast (just pointers)
-   - ✅ `merge` preserves history, `rebase` rewrites it
-   - ✅ Feature branches for isolation
-   - ✅ Merge conflicts resolved manually
+- ✅ Distributed: Every clone has full history
+- ✅ `.git` directory stores complete history
+- ✅ Staging area enables precise commits
+- ✅ Three-tree architecture: working → staging → repository
 
-4. **History Management:**
-   - ✅ `git log` with filtering (`--author`, `--since`, `--grep`)
-   - ✅ `git reset` (undo commits)
-   - ✅ `git revert` (undo with new commit - safe for shared history)
-   - ✅ `git reflog` (recover lost commits)
+**2. Essential Workflow:**
 
-5. **DevOps Integration:**
-   - ✅ Git hooks for automation (pre-commit, post-receive)
-   - ✅ CI/CD triggered by Git events
-   - ✅ GitOps: Infrastructure changes via Git commits
-   - ✅ Tags for releases (`git tag v1.0.0`)
+```bash
+git add .              # Stage changes
+git commit -m "msg"    # Commit to local repo
+git push               # Share with team
+```
 
-**Key Insights:**
-> - Git is distributed: every developer has full history
-> - Branches are lightweight - use them liberally for features
-> - Never rebase shared history (use revert instead)
-> - Understanding merge vs rebase is critical for clean history
-> - Git hooks enable powerful automation for DevOps workflows
+**3. Branching Philosophy:**
+
+- ✅ Branches are lightweight pointers (cheap and fast)
+- ✅ Use liberally - branch for every feature/fix
+- ✅ Merge preserves history, rebase creates linear history
+- ✅ Never rebase public/shared branches
+
+**4. Merge vs Rebase:**
+
+| Use Case | Use This | Why |
+|----------|----------|-----|
+| Feature → main | `git merge` | Preserve history |
+| Clean up local branch | `git rebase` | Linear history |
+| Public branches | **Always merge** | Never rewrite shared history |
+
+**5. Undo Strategies:**
+
+| Situation | Command | Safety |
+|-----------|---------|--------|
+| Uncommitted changes | `git restore` | Safe |
+| Private branch commits | `git reset` | Rewrites history |
+| Public branch commits | `git revert` | Safe, preserves history |
+
+**6. DevOps Integration:**
+
+- ✅ Git hooks automate quality checks (pre-commit, pre-push)
+- ✅ CI/CD pipelines triggered by Git events
+- ✅ GitOps: Infrastructure as code in Git
+- ✅ Tags mark release points (`v1.0.0`)
+- ✅ Conventional commits provide meaningful history
+
+**7. Branching Strategies:**
+
+| Strategy | Best For | Release Cadence |
+|----------|----------|----------------|
+| **GitFlow** | Enterprise, scheduled releases | Weekly/monthly |
+| **GitHub Flow** | Continuous deployment | Daily |
+| **Trunk-Based** | High-performing DevOps teams | Multiple times/day |
+
+### Key Insights
+
+> **Git is distributed:** Every developer has the complete history - you can work offline, and every clone is a full backup.
+
+> **Branches are cheap:** Creating a branch takes milliseconds. Use them liberally for every feature, bug fix, or experiment.
+
+> **Never rebase shared history:** Rewriting public commits breaks everyone's work. Use `git revert` instead.
+
+> **Staging area is powerful:** It lets you craft precise, atomic commits by selectively staging changes.
+
+> **Commit messages are documentation:** Good messages explain **why** changes were made, not just **what** changed.
+
+> **Git enables GitOps:** Infrastructure as code + Git = automated, auditable deployments.
+
+### Best Practices Checklist
+
+- ✅ Use conventional commits (`feat:`, `fix:`, `docs:`)
+- ✅ Write atomic commits (one logical change each)
+- ✅ Never commit secrets (use `.gitignore` and environment variables)
+- ✅ Use annotated tags for releases (`git tag -a v1.0.0`)
+- ✅ Prefer `git revert` over `git reset` for public branches
+- ✅ Use `git fetch` + review before merging
+- ✅ Set up Git hooks for automated quality checks
+- ✅ Use `.gitignore` for build artifacts and secrets
+- ✅ Clean up merged branches regularly
+- ✅ Use SSH for authentication (more secure than HTTPS)
 
 ---
-[← Back to DevOps](../README.md) | [Next: Branching Strategies →](./03-branching-strategies.md)
+
+**Next Steps:**
+- [Advanced Git →](./02-advanced-git.md) - Reflog, bisect, worktrees, submodules
+- [Branching Strategies →](./03-branching-strategies.md) - Deep dive into GitFlow, GitHub Flow, Trunk-Based
+- [Best Practices →](./04-best-practices.md) - Security, automation, team workflows
+
+---
+
+[← Back to DevOps](../README.md)

@@ -183,57 +183,12 @@ English and communication mastery for international technical assessments and pr
 
 ---
 
-## 🌟 Success Metrics
-
-### Technical Excellence
-
-- ✅ Solve 80%+ of LeetCode Medium in 30 minutes
-- ✅ Explain system design trade-offs confidently
-- ✅ Write production-ready code with tests
-- ✅ Discuss 5+ projects in depth
-
-### Communication Excellence
-
-- ✅ B2-C1 English proficiency (CEFR scale)
-- ✅ Tell STAR stories in 2-3 minutes clearly
-- ✅ Think aloud during coding naturally
-- ✅ Handle technical disagreements professionally
-
-### Career Success Indicators
-
-- ✅ Pass phone screens 70%+ rate
-- ✅ Pass technical assessments 50%+ rate
-- ✅ Receive positive feedback on communication
-- ✅ Receive multiple offers
-
----
-
 ## 🔗 External Links
 
 - **Portfolio:** [salmanrahman.com](https://salmanrahman.com)
 - **LeetCode:** [leetcode.com](https://leetcode.com)
 - **System Design Primer:** [GitHub](https://github.com/donnemartin/system-design-primer)
 - **Frontend Handbook:** [frontendinterviewhandbook.com](https://www.frontendinterviewhandbook.com/)
-
----
-
-## 💡 Tips for Success
-
-### Daily Habits
-
-1. **Solve 2 LeetCode problems** (1 review, 1 new)
-2. **Read 1 technical article** and summarize in English
-3. **Practice speaking** for 30 minutes (explain code/concepts)
-4. **Review 1 system design concept**
-5. **Write professional communication** (email, Slack, docs)
-
-### Weekly Goals
-
-1. **Complete 1-2 practice sessions**
-2. **Finish 1 major topic** from chosen domain
-3. **Record yourself** explaining 3 technical concepts
-4. **Update progress** and adjust study plan
-5. **Network** on LinkedIn or reach out to referrals
 
 ---
 

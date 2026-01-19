@@ -5,6 +5,7 @@
 SQL (Structured Query Language) is the universal language for communicating with relational databases.
 
 **What You'll Learn:**
+
 - Core SQL commands for data manipulation (SELECT, INSERT, UPDATE, DELETE)
 - Advanced querying techniques (JOINs, subqueries, CTEs)
 - Aggregate functions and data grouping
@@ -12,14 +13,11 @@ SQL (Structured Query Language) is the universal language for communicating with
 - Interview-ready patterns and best practices
 
 **Why This Matters:**
+
 - SQL is used by 90%+ of modern applications
 - Database operations are among the most common backend tasks
 - SQL knowledge is tested in virtually every backend interview
 - Mastering SQL fundamentals enables efficient data manipulation and retrieval
-
-![SQL Fundamentals Overview](./images/sql-fundamentals-overview.png)
-
-*Figure: Visual overview of SQL fundamentals - covering statements, queries, JOINs, subqueries, and execution order*
 
 ## Basic SQL Commands
 
@@ -33,12 +31,12 @@ SELECT specifies which columns to retrieve, FROM specifies the table, and option
 
 **Common Patterns:**
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| `SELECT *` | Get all columns (avoid in production) | `SELECT * FROM users` |
-| `SELECT col1, col2` | Get specific columns (recommended) | `SELECT name, email FROM users` |
-| `SELECT DISTINCT` | Get unique values only | `SELECT DISTINCT country FROM users` |
-| `SELECT ... AS` | Rename columns in output | `SELECT name AS full_name FROM users` |
+| Pattern             | Use Case                              | Example                               |
+| ------------------- | ------------------------------------- | ------------------------------------- |
+| `SELECT *`          | Get all columns (avoid in production) | `SELECT * FROM users`                 |
+| `SELECT col1, col2` | Get specific columns (recommended)    | `SELECT name, email FROM users`       |
+| `SELECT DISTINCT`   | Get unique values only                | `SELECT DISTINCT country FROM users`  |
+| `SELECT ... AS`     | Rename columns in output              | `SELECT name AS full_name FROM users` |
 
 **Basic Syntax Examples:**
 
@@ -82,22 +80,22 @@ WHERE clause evaluates each row against the condition. Only rows where the condi
 
 **Comparison Operators:**
 
-| Operator | Meaning | Example |
-|----------|---------|---------|
-| `=` | Equal to | `WHERE age = 25` |
-| `!=` or `<>` | Not equal to | `WHERE age != 25` |
-| `>` | Greater than | `WHERE age > 18` |
-| `>=` | Greater than or equal | `WHERE age >= 18` |
-| `<` | Less than | `WHERE age < 65` |
-| `<=` | Less than or equal | `WHERE age <= 65` |
+| Operator     | Meaning               | Example           |
+| ------------ | --------------------- | ----------------- |
+| `=`          | Equal to              | `WHERE age = 25`  |
+| `!=` or `<>` | Not equal to          | `WHERE age != 25` |
+| `>`          | Greater than          | `WHERE age > 18`  |
+| `>=`         | Greater than or equal | `WHERE age >= 18` |
+| `<`          | Less than             | `WHERE age < 65`  |
+| `<=`         | Less than or equal    | `WHERE age <= 65` |
 
 **Logical Operators:**
 
-| Operator | Purpose | Example |
-|----------|---------|---------|
-| `AND` | All conditions must be true | `WHERE age > 18 AND country = 'USA'` |
-| `OR` | At least one condition must be true | `WHERE age < 18 OR age > 65` |
-| `NOT` | Negates a condition | `WHERE NOT country = 'USA'` |
+| Operator | Purpose                             | Example                              |
+| -------- | ----------------------------------- | ------------------------------------ |
+| `AND`    | All conditions must be true         | `WHERE age > 18 AND country = 'USA'` |
+| `OR`     | At least one condition must be true | `WHERE age < 18 OR age > 65`         |
+| `NOT`    | Negates a condition                 | `WHERE NOT country = 'USA'`          |
 
 **Examples:**
 
@@ -139,12 +137,12 @@ SELECT * FROM users WHERE phone IS NOT NULL;   -- Has a phone
 
 **LIKE Pattern Matching:**
 
-| Pattern | Matches | Example |
-|---------|---------|---------|
-| `'John%'` | Starts with "John" | John, Johnny, Johnson |
-| `'%Doe'` | Ends with "Doe" | Doe, Jane Doe |
-| `'%son%'` | Contains "son" | Johnson, Mason, Samson |
-| `'J_hn'` | J, any char, hn | John, Jahn |
+| Pattern   | Matches            | Example                |
+| --------- | ------------------ | ---------------------- |
+| `'John%'` | Starts with "John" | John, Johnny, Johnson  |
+| `'%Doe'`  | Ends with "Doe"    | Doe, Jane Doe          |
+| `'%son%'` | Contains "son"     | Johnson, Mason, Samson |
+| `'J_hn'`  | J, any char, hn    | John, Jahn             |
 
 > **Key Insight:** Always use `IS NULL` / `IS NOT NULL` to check for NULL values. Using `= NULL` or `!= NULL` won't work because NULL represents unknown, and comparisons with NULL always return NULL (not TRUE or FALSE).
 
@@ -158,10 +156,10 @@ ORDER BY sorts the result set based on specified columns. Default is ascending (
 
 **Sort Order:**
 
-| Order | Keyword | Example |
-|-------|---------|---------|
-| **Ascending** | `ASC` (default) | `ORDER BY name` or `ORDER BY name ASC` |
-| **Descending** | `DESC` | `ORDER BY age DESC` |
+| Order          | Keyword         | Example                                |
+| -------------- | --------------- | -------------------------------------- |
+| **Ascending**  | `ASC` (default) | `ORDER BY name` or `ORDER BY name ASC` |
+| **Descending** | `DESC`          | `ORDER BY age DESC`                    |
 
 **Examples:**
 
@@ -219,11 +217,11 @@ INSERT adds new records to a table. You specify the table name, columns, and val
 
 **Syntax Patterns:**
 
-| Pattern | Use Case | Performance |
-|---------|----------|-------------|
-| Single row | Insert one record | Fast |
-| Multiple rows | Insert many records at once | Faster than multiple single inserts |
-| INSERT from SELECT | Copy data from another table/query | Fastest for bulk data |
+| Pattern            | Use Case                           | Performance                         |
+| ------------------ | ---------------------------------- | ----------------------------------- |
+| Single row         | Insert one record                  | Fast                                |
+| Multiple rows      | Insert many records at once        | Faster than multiple single inserts |
+| INSERT from SELECT | Copy data from another table/query | Fastest for bulk data               |
 
 **Examples:**
 
@@ -383,14 +381,14 @@ DELETE FROM users WHERE id = 1;
 
 **DELETE vs TRUNCATE:**
 
-| Feature | DELETE | TRUNCATE |
-|---------|--------|----------|
-| **WHERE Clause** | ✅ Supported | ❌ Not supported |
-| **Speed** | Slower (row-by-row) | Faster (drops table) |
-| **Rollback** | ✅ Can rollback | ❌ Can't rollback (DDL) |
-| **Triggers** | ✅ Fires triggers | ❌ Doesn't fire triggers |
-| **Auto-increment** | Keeps value | Resets to 1 |
-| **Identity** | Logs each deletion | Minimal logging |
+| Feature            | DELETE              | TRUNCATE                 |
+| ------------------ | ------------------- | ------------------------ |
+| **WHERE Clause**   | ✅ Supported        | ❌ Not supported         |
+| **Speed**          | Slower (row-by-row) | Faster (drops table)     |
+| **Rollback**       | ✅ Can rollback     | ❌ Can't rollback (DDL)  |
+| **Triggers**       | ✅ Fires triggers   | ❌ Doesn't fire triggers |
+| **Auto-increment** | Keeps value         | Resets to 1              |
+| **Identity**       | Logs each deletion  | Minimal logging          |
 
 **Examples:**
 
@@ -475,14 +473,14 @@ Aggregate functions process multiple rows and return a single summary value. The
 
 **Common Aggregate Functions:**
 
-| Function | Purpose | Example Result | NULL Handling |
-|----------|---------|----------------|---------------|
-| `COUNT(*)` | Count all rows | `1000` | Counts NULL rows |
-| `COUNT(column)` | Count non-NULL values | `950` | Ignores NULLs |
-| `SUM(column)` | Sum numeric values | `50000` | Ignores NULLs |
-| `AVG(column)` | Average of values | `28.5` | Ignores NULLs |
-| `MIN(column)` | Minimum value | `18` | Ignores NULLs |
-| `MAX(column)` | Maximum value | `65` | Ignores NULLs |
+| Function        | Purpose               | Example Result | NULL Handling    |
+| --------------- | --------------------- | -------------- | ---------------- |
+| `COUNT(*)`      | Count all rows        | `1000`         | Counts NULL rows |
+| `COUNT(column)` | Count non-NULL values | `950`          | Ignores NULLs    |
+| `SUM(column)`   | Sum numeric values    | `50000`        | Ignores NULLs    |
+| `AVG(column)`   | Average of values     | `28.5`         | Ignores NULLs    |
+| `MIN(column)`   | Minimum value         | `18`           | Ignores NULLs    |
+| `MAX(column)`   | Maximum value         | `65`           | Ignores NULLs    |
 
 **Examples:**
 
@@ -554,7 +552,7 @@ SELECT
 FROM users;
 ```
 
-> **Key Insight:** Aggregate functions ignore NULL values (except COUNT(*)). Use COUNT(*) to count all rows including NULLs, or COUNT(column) to count only non-NULL values.
+> **Key Insight:** Aggregate functions ignore NULL values (except COUNT(_)). Use COUNT(_) to count all rows including NULLs, or COUNT(column) to count only non-NULL values.
 
 ## 💡 **GROUP BY**
 
@@ -577,10 +575,10 @@ GROUP BY divides rows into groups based on column values, then applies aggregate
 
 **WHERE vs HAVING:**
 
-| Clause | Filters | When Applied | Works With |
-|--------|---------|--------------|------------|
-| **WHERE** | Individual rows | Before grouping | Column values |
-| **HAVING** | Groups | After grouping | Aggregate results |
+| Clause     | Filters         | When Applied    | Works With        |
+| ---------- | --------------- | --------------- | ----------------- |
+| **WHERE**  | Individual rows | Before grouping | Column values     |
+| **HAVING** | Groups          | After grouping  | Aggregate results |
 
 **Examples:**
 
@@ -718,13 +716,13 @@ JOIN operations match rows from different tables using a join condition (usually
 
 **JOIN Types Decision Table:**
 
-| JOIN Type | Returns | Use When | NULL Handling |
-|-----------|---------|----------|---------------|
-| **INNER JOIN** | Only matching rows | You need related data from both tables | Excludes unmatched |
-| **LEFT JOIN** | All from left + matches from right | You need all records from primary table | NULL for unmatched |
-| **RIGHT JOIN** | All from right + matches from left | You need all records from secondary table | NULL for unmatched |
-| **FULL OUTER JOIN** | All rows from both tables | You need everything from both sides | NULL for unmatched |
-| **CROSS JOIN** | All combinations (Cartesian product) | You need every combination | N/A |
+| JOIN Type           | Returns                              | Use When                                  | NULL Handling      |
+| ------------------- | ------------------------------------ | ----------------------------------------- | ------------------ |
+| **INNER JOIN**      | Only matching rows                   | You need related data from both tables    | Excludes unmatched |
+| **LEFT JOIN**       | All from left + matches from right   | You need all records from primary table   | NULL for unmatched |
+| **RIGHT JOIN**      | All from right + matches from left   | You need all records from secondary table | NULL for unmatched |
+| **FULL OUTER JOIN** | All rows from both tables            | You need everything from both sides       | NULL for unmatched |
+| **CROSS JOIN**      | All combinations (Cartesian product) | You need every combination                | N/A                |
 
 **Visual Representation:**
 
@@ -819,11 +817,11 @@ Subqueries execute first and return results that the outer query uses. They can 
 
 **Types of Subqueries:**
 
-| Type | Location | Returns | Use Case |
-|------|----------|---------|----------|
-| **Scalar** | SELECT, WHERE | Single value | Get a specific value |
-| **Column** | WHERE | Single column | List of values for IN |
-| **Table** | FROM | Multiple rows/columns | Temporary result set |
+| Type           | Location      | Returns                | Use Case              |
+| -------------- | ------------- | ---------------------- | --------------------- |
+| **Scalar**     | SELECT, WHERE | Single value           | Get a specific value  |
+| **Column**     | WHERE         | Single column          | List of values for IN |
+| **Table**      | FROM          | Multiple rows/columns  | Temporary result set  |
 | **Correlated** | WHERE, SELECT | Depends on outer query | Row-by-row comparison |
 
 **Examples:**
@@ -927,12 +925,12 @@ CTEs use the WITH clause to create named subqueries that can be referenced multi
 
 **CTE vs Subquery:**
 
-| Feature | CTE | Subquery |
-|---------|-----|----------|
-| **Readability** | Excellent (named, at top) | Can be hard to read when nested |
-| **Reusability** | Can reference multiple times | Must repeat subquery |
-| **Recursive** | ✅ Supports recursion | ❌ No recursion |
-| **Performance** | Similar (depends on optimizer) | Similar |
+| Feature         | CTE                            | Subquery                        |
+| --------------- | ------------------------------ | ------------------------------- |
+| **Readability** | Excellent (named, at top)      | Can be hard to read when nested |
+| **Reusability** | Can reference multiple times   | Must repeat subquery            |
+| **Recursive**   | ✅ Supports recursion          | ❌ No recursion                 |
+| **Performance** | Similar (depends on optimizer) | Similar                         |
 
 **Examples:**
 
@@ -1060,23 +1058,23 @@ Unlike aggregate functions (which return one result per group), window functions
 
 **Window Functions vs GROUP BY:**
 
-| Feature | Window Functions | GROUP BY |
-|---------|------------------|----------|
-| **Result Rows** | One row per input row | One row per group |
-| **Access to Individual Rows** | ✅ Yes | ❌ No (only aggregates) |
-| **Use Case** | Rankings, running totals, comparisons | Summaries, counts by group |
+| Feature                       | Window Functions                      | GROUP BY                   |
+| ----------------------------- | ------------------------------------- | -------------------------- |
+| **Result Rows**               | One row per input row                 | One row per group          |
+| **Access to Individual Rows** | ✅ Yes                                | ❌ No (only aggregates)    |
+| **Use Case**                  | Rankings, running totals, comparisons | Summaries, counts by group |
 
 **Common Window Functions:**
 
-| Function | Purpose | Example Use |
-|----------|---------|-------------|
-| `ROW_NUMBER()` | Sequential numbering | Pagination, unique row ID |
-| `RANK()` | Ranking with gaps | Competition rankings (1, 2, 2, 4) |
-| `DENSE_RANK()` | Ranking without gaps | Leaderboards (1, 2, 2, 3) |
-| `LAG()` | Access previous row | Compare with previous |
-| `LEAD()` | Access next row | Compare with next |
-| `SUM()` | Running total | Cumulative values |
-| `AVG()` | Moving average | Trends over time |
+| Function       | Purpose              | Example Use                       |
+| -------------- | -------------------- | --------------------------------- |
+| `ROW_NUMBER()` | Sequential numbering | Pagination, unique row ID         |
+| `RANK()`       | Ranking with gaps    | Competition rankings (1, 2, 2, 4) |
+| `DENSE_RANK()` | Ranking without gaps | Leaderboards (1, 2, 2, 3)         |
+| `LAG()`        | Access previous row  | Compare with previous             |
+| `LEAD()`       | Access next row      | Compare with next                 |
+| `SUM()`        | Running total        | Cumulative values                 |
+| `AVG()`        | Moving average       | Trends over time                  |
 
 **Examples:**
 
@@ -1188,12 +1186,12 @@ FROM category_revenue;
 
 **Answer:**
 
-| Aspect | WHERE | HAVING |
-|--------|-------|--------|
-| **Purpose** | Filters individual rows | Filters grouped results |
-| **When Applied** | Before GROUP BY | After GROUP BY |
-| **Works With** | Column values | Aggregate functions |
-| **Use Case** | Filter raw data | Filter aggregated data |
+| Aspect           | WHERE                   | HAVING                  |
+| ---------------- | ----------------------- | ----------------------- |
+| **Purpose**      | Filters individual rows | Filters grouped results |
+| **When Applied** | Before GROUP BY         | After GROUP BY          |
+| **Works With**   | Column values           | Aggregate functions     |
+| **Use Case**     | Filter raw data         | Filter aggregated data  |
 
 **Example:**
 
@@ -1206,6 +1204,7 @@ HAVING COUNT(*) > 100;      -- ✅ Filter groups AFTER grouping
 ```
 
 **Step-by-Step Execution:**
+
 1. **WHERE** filters rows where `age > 18`
 2. **GROUP BY** groups remaining rows by country
 3. **HAVING** keeps only groups with more than 100 users
@@ -1218,10 +1217,10 @@ HAVING COUNT(*) > 100;      -- ✅ Filter groups AFTER grouping
 
 **Answer:**
 
-| JOIN Type | Returns | Example Result |
-|-----------|---------|----------------|
-| **INNER JOIN** | Only matching rows from both tables | Users who have orders |
-| **LEFT JOIN** | All rows from left table + matches from right | All users, with or without orders |
+| JOIN Type      | Returns                                       | Example Result                    |
+| -------------- | --------------------------------------------- | --------------------------------- |
+| **INNER JOIN** | Only matching rows from both tables           | Users who have orders             |
+| **LEFT JOIN**  | All rows from left table + matches from right | All users, with or without orders |
 
 **Example:**
 
@@ -1253,15 +1252,15 @@ WHERE o.id IS NULL;
 
 **Answer:**
 
-| Feature | DELETE | TRUNCATE |
-|---------|--------|----------|
-| **Removes** | Specific rows or all rows | All rows only |
-| **WHERE Clause** | ✅ Supported | ❌ Not supported |
-| **Speed** | Slower (row-by-row) | Faster (drops/recreates) |
-| **Rollback** | ✅ Can rollback (in transaction) | ❌ Can't rollback (DDL) |
-| **Triggers** | ✅ Fires delete triggers | ❌ Doesn't fire triggers |
-| **Auto-increment** | Keeps current value | Resets to 1 |
-| **Logging** | Logs each row deletion | Minimal logging |
+| Feature            | DELETE                           | TRUNCATE                 |
+| ------------------ | -------------------------------- | ------------------------ |
+| **Removes**        | Specific rows or all rows        | All rows only            |
+| **WHERE Clause**   | ✅ Supported                     | ❌ Not supported         |
+| **Speed**          | Slower (row-by-row)              | Faster (drops/recreates) |
+| **Rollback**       | ✅ Can rollback (in transaction) | ❌ Can't rollback (DDL)  |
+| **Triggers**       | ✅ Fires delete triggers         | ❌ Doesn't fire triggers |
+| **Auto-increment** | Keeps current value              | Resets to 1              |
+| **Logging**        | Logs each row deletion           | Minimal logging          |
 
 **Examples:**
 
@@ -1325,14 +1324,14 @@ Aggregate functions perform calculations on multiple rows and return a single va
 
 **Common Aggregate Functions:**
 
-| Function | Purpose | Example | Returns |
-|----------|---------|---------|---------|
-| `COUNT()` | Count rows | `COUNT(*)` | Number of rows |
+| Function        | Purpose               | Example        | Returns         |
+| --------------- | --------------------- | -------------- | --------------- |
+| `COUNT()`       | Count rows            | `COUNT(*)`     | Number of rows  |
 | `COUNT(column)` | Count non-NULL values | `COUNT(email)` | Non-NULL emails |
-| `SUM()` | Sum numeric values | `SUM(price)` | Total price |
-| `AVG()` | Average of values | `AVG(age)` | Average age |
-| `MIN()` | Minimum value | `MIN(price)` | Lowest price |
-| `MAX()` | Maximum value | `MAX(salary)` | Highest salary |
+| `SUM()`         | Sum numeric values    | `SUM(price)`   | Total price     |
+| `AVG()`         | Average of values     | `AVG(age)`     | Average age     |
+| `MIN()`         | Minimum value         | `MIN(price)`   | Lowest price    |
+| `MAX()`         | Maximum value         | `MAX(salary)`  | Highest salary  |
 
 **Examples:**
 
@@ -1364,6 +1363,7 @@ ORDER BY user_count DESC;
 ### **Do's**
 
 1. **✅ Use Explicit Column Names**
+
    ```sql
    -- Good: Select specific columns
    SELECT id, name, email FROM users;
@@ -1373,6 +1373,7 @@ ORDER BY user_count DESC;
    ```
 
 2. **✅ Always Use WHERE Clause with UPDATE/DELETE**
+
    ```sql
    -- Good: Targets specific rows
    UPDATE users SET status = 'inactive' WHERE id = 1;
@@ -1382,6 +1383,7 @@ ORDER BY user_count DESC;
    ```
 
 3. **✅ Use Indexes on Frequently Queried Columns**
+
    ```sql
    -- Add indexes for better performance
    CREATE INDEX idx_users_email ON users(email);
@@ -1389,6 +1391,7 @@ ORDER BY user_count DESC;
    ```
 
 4. **✅ Use JOINs Instead of Multiple Queries**
+
    ```sql
    -- Good: Single query with JOIN
    SELECT u.name, COUNT(o.id) as order_count
@@ -1402,15 +1405,17 @@ ORDER BY user_count DESC;
    ```
 
 5. **✅ Use Prepared Statements to Prevent SQL Injection**
+
    ```javascript
    // Good: Parameterized query
-   db.query('SELECT * FROM users WHERE email = ?', [email]);
+   db.query("SELECT * FROM users WHERE email = ?", [email]);
 
    // Bad: String concatenation (SQL injection risk)
    db.query(`SELECT * FROM users WHERE email = '${email}'`);
    ```
 
 6. **✅ Use Transactions for Related Operations**
+
    ```sql
    START TRANSACTION;
    UPDATE accounts SET balance = balance - 100 WHERE id = 1;
@@ -1419,11 +1424,13 @@ ORDER BY user_count DESC;
    ```
 
 7. **✅ Use LIMIT for Large Result Sets**
+
    ```sql
    SELECT * FROM users LIMIT 100;  -- Pagination
    ```
 
 8. **✅ Use EXISTS Instead of IN for Large Subqueries**
+
    ```sql
    -- Good: EXISTS (stops at first match)
    SELECT name FROM users u
@@ -1436,12 +1443,14 @@ ORDER BY user_count DESC;
 
 ### **Don'ts**
 
-1. **❌ Don't Use SELECT * in Production**
+1. **❌ Don't Use SELECT \* in Production**
+
    - Retrieves unnecessary data
    - Impacts performance and network
    - Breaks when columns are added/removed
 
 2. **❌ Don't Forget WHERE with UPDATE/DELETE**
+
    ```sql
    -- 🔴 DANGEROUS: Affects all rows
    DELETE FROM users;  -- Deletes EVERYTHING!
@@ -1449,6 +1458,7 @@ ORDER BY user_count DESC;
    ```
 
 3. **❌ Don't Use Functions on Indexed Columns in WHERE**
+
    ```sql
    -- Bad: Can't use index
    SELECT * FROM users WHERE UPPER(email) = 'JOHN@EXAMPLE.COM';
@@ -1458,6 +1468,7 @@ ORDER BY user_count DESC;
    ```
 
 4. **❌ Don't Use LIKE with Leading Wildcard**
+
    ```sql
    -- Bad: Can't use index (scans entire table)
    SELECT * FROM users WHERE name LIKE '%john%';
@@ -1467,6 +1478,7 @@ ORDER BY user_count DESC;
    ```
 
 5. **❌ Don't Use OR on Different Indexed Columns**
+
    ```sql
    -- Bad: Can't efficiently use indexes
    SELECT * FROM users WHERE email = 'john@example.com' OR phone = '123-456-7890';
@@ -1478,6 +1490,7 @@ ORDER BY user_count DESC;
    ```
 
 6. **❌ Don't Retrieve Unnecessary Data**
+
    ```sql
    -- Bad: Retrieves all data then filters in application
    SELECT * FROM products;  -- Then filter in code
@@ -1487,6 +1500,7 @@ ORDER BY user_count DESC;
    ```
 
 7. **❌ Don't Use Subqueries in SELECT for Large Result Sets**
+
    ```sql
    -- Bad: N+1 subquery problem
    SELECT
@@ -1506,6 +1520,7 @@ ORDER BY user_count DESC;
 ## 🎯 **Summary**
 
 **Key SQL Concepts:**
+
 - **SELECT**: Retrieve data from tables with filtering, sorting, and pagination
 - **WHERE**: Filter individual rows before aggregation
 - **HAVING**: Filter grouped results after aggregation
@@ -1516,21 +1531,25 @@ ORDER BY user_count DESC;
 - **Window Functions**: Perform calculations across rows without collapsing results
 
 **Data Modification:**
+
 - **INSERT**: Add new rows (use batch inserts for better performance)
 - **UPDATE**: Modify existing rows (always use WHERE clause!)
 - **DELETE**: Remove rows (always use WHERE clause!)
 - **TRUNCATE**: Remove all rows quickly (can't rollback)
 
 **Aggregate Functions:**
+
 - COUNT, SUM, AVG, MIN, MAX for summarizing data
 
 **Advanced Features:**
+
 - Window functions for rankings, running totals, and analytics
 - Recursive CTEs for hierarchical data
 - Transaction control for data integrity
 
 **Best Practices:**
-- ✅ Use specific columns, not SELECT *
+
+- ✅ Use specific columns, not SELECT \*
 - ✅ Always include WHERE with UPDATE/DELETE
 - ✅ Use JOINs instead of multiple queries
 - ✅ Use prepared statements to prevent SQL injection
