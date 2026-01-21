@@ -81,6 +81,18 @@ Master React fundamentals and advanced concepts for modern frontend interviews. 
     - Ref as props (no forwardRef)
     - Context provider shorthand
 
+14. **[Low-Level Design Interview Questions](./14-lld-interview-questions.md)**
+    - Toast notification system
+    - Nested comment thread (Reddit-style)
+    - Responsive sidebar navigation
+    - Tab component with animations
+    - Filterable, sortable data table
+    - Like button with optimistic updates
+    - Live chat feature
+    - Throttle/debounce button clicks
+    - Collapsible accordion component
+    - Dark/light mode theming
+
 ---
 
 ## 🎯 Interview Focus Areas
@@ -98,13 +110,14 @@ Master React fundamentals and advanced concepts for modern frontend interviews. 
 8. React Router
 9. Forms and controlled components
 10. Error handling
+11. Low-Level Design (LLD) questions - building real-world components
 
 ### Good to Know
-11. Redux or state management library
-12. Code splitting and lazy loading
-13. Server-side rendering basics
-14. Testing React components
-15. React 19 new features (Compiler, Actions, use hook)
+12. Redux or state management library
+13. Code splitting and lazy loading
+14. Server-side rendering basics
+15. Testing React components
+16. React 19 new features (Compiler, Actions, use hook)
 
 ---
 
