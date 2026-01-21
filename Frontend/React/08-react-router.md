@@ -2,7 +2,35 @@
 
 ## Understanding Client-Side Routing
 
-React Router enables navigation and routing in single-page React applications, providing the foundation for multi-page user experiences without full page reloads.
+### 💡 **React Router - SPA Navigation**
+
+Enable multi-page experiences in single-page applications without full page reloads.
+
+**Traditional vs SPA Routing:**
+
+| Traditional (MPA) | SPA with React Router |
+|-------------------|----------------------|
+| New page = New HTTP request | New page = Component swap |
+| Full page reload | No reload, instant |
+| Server renders HTML | Client renders components |
+| Slow navigation | Fast navigation |
+| SEO friendly by default | Needs extra work for SEO |
+
+**How It Works:**
+
+```
+User clicks link
+    ↓
+URL changes (pushState)
+    ↓
+Router matches URL to route
+    ↓
+Renders component instantly
+    ↓
+No server request needed!
+```
+
+> **Key Insight:** React Router makes your single-page app feel like a multi-page website, but with instant navigation and no loading spinners.
 
 ## Why This Matters
 

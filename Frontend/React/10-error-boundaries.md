@@ -2,16 +2,46 @@
 
 ## Understanding Error Boundaries in React
 
-**Error Boundaries** are React's safety net for handling runtime errors gracefully - specialized components that catch JavaScript errors anywhere in their child component tree, log those errors, and display fallback UI instead of crashing the entire application.
+### 💡 **Error Boundaries - React's Safety Net**
+
+Catch runtime errors gracefully and prevent entire app crashes.
+
+**The Problem:**
+
+**Without Error Boundaries:**
+```
+One component throws error
+    ↓
+Entire React tree unmounts
+    ↓
+User sees blank white screen
+    ↓
+App completely broken
+```
+
+**With Error Boundaries:**
+```
+One component throws error
+    ↓
+Error boundary catches it
+    ↓
+Shows fallback UI
+    ↓
+Rest of app still works!
+```
 
 **How They Work:**
 
-Error boundaries act like a JavaScript try/catch block, but for React's declarative component tree. Instead of letting one broken component crash your entire app, they:
+Error boundaries act like try/catch for React's declarative component tree:
 
-1. **Catch errors** during rendering, in lifecycle methods, and in constructors
-2. **Display fallback UI** to keep the app partially functional
-3. **Log error details** for debugging and monitoring
-4. **Isolate failures** to specific app sections
+| Step | Action | Result |
+|------|--------|--------|
+| **1. Wrap** | Error boundary wraps components | Creates safety zone |
+| **2. Error occurs** | Child component throws | Caught by boundary |
+| **3. Display fallback** | Show error UI | User sees friendly message |
+| **4. Log error** | Report to monitoring service | Track for fixing |
+
+> **Key Insight:** Error boundaries isolate failures - one broken component doesn't crash your entire application.
 
 ## Why Error Boundaries Matter
 

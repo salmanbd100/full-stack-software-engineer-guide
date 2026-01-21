@@ -2,7 +2,54 @@
 
 ## Understanding React Context
 
-**Context** provides a way to pass data through the component tree without manually passing props down through every level. It's React's built-in solution for managing global or semi-global state.
+### 💡 **Context API - Escape Prop Drilling**
+
+Pass data through the component tree without manually threading props through every level.
+
+**The Prop Drilling Problem:**
+
+❌ **Without Context:**
+```jsx
+<App userData={user}>
+  <Layout userData={user}>
+    <Sidebar userData={user}>
+      <Nav userData={user}>
+        <UserMenu userData={user}>
+          <Avatar user={user} /> // Finally uses it!
+        </UserMenu>
+      </Nav>
+    </Sidebar>
+  </Layout>
+</App>
+```
+
+✅ **With Context:**
+```jsx
+<UserContext.Provider value={user}>
+  <App>
+    <Layout>
+      <Sidebar>
+        <Nav>
+          <UserMenu>
+            <Avatar /> // Direct access via useContext!
+          </UserMenu>
+        </Nav>
+      </Sidebar>
+    </Layout>
+  </App>
+</UserContext.Provider>
+```
+
+**Benefits:**
+
+| Benefit | Impact |
+|---------|--------|
+| **No prop drilling** | Cleaner intermediate components |
+| **Loose coupling** | Components don't know about passed-through data |
+| **Easy refactoring** | Move components without prop chain updates |
+| **Global access** | Any component can access the data |
+
+> **Key Insight:** Context creates a "wormhole" through your component tree - data goes in at the top (Provider) and comes out wherever needed (useContext).
 
 ## Why Context API Matters
 

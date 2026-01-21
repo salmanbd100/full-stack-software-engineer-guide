@@ -154,7 +154,58 @@ function UserProfile() {
 
 ## Example 2: useReducer
 
-**useReducer** is React's built-in implementation of the Redux pattern for managing complex state transitions. When state updates depend on multiple sub-values or have complex logic (like form validation, multi-step workflows, or undo/redo), useReducer provides better organization than multiple useState calls. The reducer function centralizes all state update logic in one place, making it easier to reason about state changes, test independently, and avoid bugs from scattered setState calls. Actions with descriptive type constants serve as documentation of what operations are possible. useReducer pairs excellently with useContext for component-level Redux-like state management without external libraries.
+### 💡 **useReducer - Redux Pattern for Complex State**
+
+React's built-in implementation of the Redux pattern for managing complex state transitions.
+
+**How It Works:**
+
+```
+Action Dispatched → Reducer Function → New State → Component Re-renders
+```
+
+**Key Characteristics:**
+
+1. **Centralized State Logic:**
+   - All state updates in one reducer function
+   - Easier to reason about state changes
+   - Test reducer independently from components
+   - Avoid scattered setState calls
+
+2. **Action-Based Updates:**
+   - Descriptive action types as documentation
+   - Payload for additional data
+   - Predictable state transitions
+   - Clear intent of each update
+
+3. **Better for Complex State:**
+   - Multiple sub-values that change together
+   - Complex update logic
+   - State depends on previous state
+   - Multi-step workflows
+
+**useState vs useReducer:**
+
+| Scenario | Use useState | Use useReducer |
+|----------|-------------|----------------|
+| **Simple values** | ✅ Single toggle, counter | ❌ Overkill |
+| **Related state** | ⚠️ Multiple setState calls | ✅ Single dispatch |
+| **Complex logic** | ❌ Scattered conditions | ✅ Centralized reducer |
+| **State history** | ❌ Hard to track | ✅ Action log |
+| **Testing** | ⚠️ Test in component | ✅ Test reducer alone |
+
+**When to Use useReducer:**
+
+- ✅ Form validation with multiple fields
+- ✅ Multi-step wizards
+- ✅ Undo/redo functionality
+- ✅ State depends on previous state
+- ✅ Complex state objects
+- ❌ Simple counters or toggles
+
+**Pattern with useContext:**
+
+> **Key Insight:** Combine useReducer + useContext for Redux-like state management without external libraries. Perfect for medium-complexity apps.
 
 ```jsx
 import { useReducer } from 'react';
@@ -259,7 +310,59 @@ function UserProfile() {
 
 ## Example 3: useCallback
 
-**useCallback, memo** - `useCallback` memoizes function references to prevent unnecessary re-renders. Works with `memo()` to optimize child components by keeping function identity stable across renders.
+### 💡 **useCallback - Memoize Function References**
+
+Preserves function identity across renders to prevent unnecessary child re-renders.
+
+**The Problem It Solves:**
+
+**Without useCallback:**
+```
+Parent renders → New function created → Child receives new prop → Child re-renders
+```
+
+**With useCallback:**
+```
+Parent renders → Same function returned → Child prop unchanged → Child skips render
+```
+
+**How It Works:**
+
+1. **Function Memoization:**
+   - Returns same function reference until dependencies change
+   - Function identity stays stable
+   - Prevents child component re-renders
+
+2. **Works with React.memo:**
+   - `memo()` does shallow comparison of props
+   - New function = different reference = re-render
+   - `useCallback` keeps reference stable
+
+**When to Use:**
+
+| Scenario | useCallback? | Why |
+|----------|-------------|-----|
+| **Function passed to memo'd child** | ✅ Yes | Prevents re-render |
+| **Function passed to regular div** | ❌ No | No optimization benefit |
+| **Dependency of useEffect** | ✅ Yes | Prevents effect re-run |
+| **Simple onClick handler** | ❌ No | Premature optimization |
+| **Expensive function** | ❌ No | Use useMemo for results |
+
+**Common Pattern:**
+
+```jsx
+// Parent optimizes callback
+const handleClick = useCallback(() => {
+  doSomething(id);
+}, [id]);
+
+// Child memoized to skip re-renders
+const Child = memo(({ onClick }) => {
+  return <button onClick={onClick}>Click</button>;
+});
+```
+
+> **Key Rule:** Only use useCallback when passing functions to memoized children or as effect dependencies. Otherwise, it adds overhead without benefit.
 
 ```jsx
 import { useState, useCallback, memo } from 'react';
@@ -351,7 +454,70 @@ function debounce(fn, delay) {
 
 ## Example 4: useMemo
 
-**useMemo** - Memoizes expensive computed values, only recalculating when dependencies change. Prevents unnecessary recalculations on every render, improving performance for heavy operations.
+### 💡 **useMemo - Memoize Expensive Calculations**
+
+Caches computed values and only recalculates when dependencies change.
+
+**The Problem It Solves:**
+
+**Without useMemo:**
+```
+Component renders → Expensive calculation runs → Result used → Render completes
+(Repeats on every render, even if inputs unchanged)
+```
+
+**With useMemo:**
+```
+Component renders → Check dependencies → Use cached result → Render completes
+(Calculation only runs when dependencies change)
+```
+
+**How It Works:**
+
+1. **Value Memoization:**
+   - Calls the function and caches the result
+   - Returns cached value on subsequent renders
+   - Recalculates only when dependencies change
+
+2. **Performance Optimization:**
+   - Skips expensive operations
+   - Reduces render time
+   - Improves UI responsiveness
+
+**useMemo vs useCallback:**
+
+| Hook | Memoizes | Returns | Use For |
+|------|----------|---------|---------|
+| **useMemo** | Function result | Computed value | Expensive calculations |
+| **useCallback** | Function itself | Function reference | Stable function identity |
+
+**When to Use:**
+
+| Operation | useMemo? | Why |
+|-----------|----------|-----|
+| **Filter 10,000 items** | ✅ Yes | Expensive operation |
+| **Filter 10 items** | ❌ No | Faster without memoization |
+| **Complex calculations** | ✅ Yes | Save computation time |
+| **String concatenation** | ❌ No | Trivial operation |
+| **Object/array creation** | ✅ Sometimes | Stabilize references for deps |
+
+**Common Patterns:**
+
+```jsx
+// Heavy computation
+const filtered = useMemo(() =>
+  items.filter(i => i.active),
+  [items]
+);
+
+// Stabilize object reference
+const config = useMemo(() => ({
+  theme,
+  locale
+}), [theme, locale]);
+```
+
+> **Key Insight:** useMemo is for expensive calculations. Don't memoize everything - measure first, optimize second. The memoization itself has overhead.
 
 ```jsx
 import { useState, useMemo } from 'react';
@@ -452,7 +618,63 @@ function ObjectMemo({ items }) {
 
 ## Example 5: useRef
 
-**useRef** - Creates a mutable reference object that persists across renders without triggering re-renders. Used for DOM access, storing mutable values, and avoiding stale closures.
+### 💡 **useRef - Mutable Values Without Re-renders**
+
+Creates a persistent mutable container that survives across renders without causing re-renders.
+
+**How It Works:**
+
+```
+useRef returns: { current: initialValue }
+Mutate: ref.current = newValue (no re-render)
+Access: ref.current (always current value)
+```
+
+**Key Characteristics:**
+
+1. **Persistence Without Re-renders:**
+   - Value survives across renders
+   - Updating doesn't trigger re-render
+   - Same object reference always
+
+2. **Mutable Container:**
+   - Can modify `ref.current` directly
+   - No setter function needed
+   - Changes are immediate
+
+**useRef vs useState:**
+
+| Feature | useRef | useState |
+|---------|--------|----------|
+| **Triggers re-render** | ❌ No | ✅ Yes |
+| **Persists across renders** | ✅ Yes | ✅ Yes |
+| **Mutable** | ✅ Direct mutation | ❌ Use setter |
+| **Use for UI** | ❌ No | ✅ Yes |
+| **Use for side effects** | ✅ Yes | ❌ No |
+
+**Common Use Cases:**
+
+| Use Case | Example | Why useRef |
+|----------|---------|-----------|
+| **DOM access** | Focus input, measure size | Need DOM reference |
+| **Interval/timeout IDs** | Store timer ID | Need to clear later |
+| **Previous values** | Track prev props/state | Compare changes |
+| **Animation frames** | Store requestAnimationFrame ID | Need to cancel |
+| **Third-party instances** | Store library objects | Persist across renders |
+
+**Critical Rules:**
+
+✅ **Safe to mutate:**
+- Inside useEffect
+- Inside event handlers
+- Inside async callbacks
+
+❌ **Never mutate during render:**
+- Violates React purity
+- Unpredictable in Concurrent Mode
+- Causes bugs
+
+> **Key Insight:** useRef is your escape hatch from React's declarative model. Use it for imperative operations (DOM manipulation, timers) that don't affect the rendered output.
 
 ```jsx
 import { useRef, useState, useEffect } from 'react';
@@ -676,7 +898,58 @@ function GoodUniqueId() {
 
 ### Example 7: useTransition
 
-**useTransition** - Marks state updates as non-urgent transitions. Returns isPending flag and startTransition function. Keeps UI responsive by allowing urgent updates to interrupt non-urgent ones.
+### 💡 **useTransition - Keep UI Responsive**
+
+Marks state updates as non-urgent, allowing React to prioritize more important updates.
+
+**How It Works:**
+
+```
+User types → Urgent update (input) renders immediately
+           → Non-urgent update (results) can be interrupted
+           → UI stays responsive
+```
+
+**Returns:**
+```jsx
+const [isPending, startTransition] = useTransition();
+```
+
+**Key Characteristics:**
+
+1. **Update Prioritization:**
+   - Urgent updates (user input) happen immediately
+   - Non-urgent updates (heavy rendering) can be interrupted
+   - React decides optimal scheduling
+
+2. **Pending State:**
+   - `isPending` tells you when transition is happening
+   - Show loading indicators
+   - Reduce opacity of updating content
+
+3. **Better UX:**
+   - Input stays responsive during heavy operations
+   - No frozen UI
+   - Smooth interactions
+
+**Urgent vs Non-Urgent:**
+
+| Update Type | Priority | Example |
+|-------------|----------|---------|
+| **Urgent** | Immediate | Input field, button click response |
+| **Non-Urgent** | Deferred | Search results, filtered lists, tab content |
+
+**When to Use:**
+
+| Scenario | useTransition? | Why |
+|----------|---------------|-----|
+| **Tab switching** | ✅ Yes | Keep tabs responsive |
+| **Search filtering** | ✅ Yes | Keep input responsive |
+| **Large list updates** | ✅ Yes | Prevent UI freeze |
+| **Simple state toggle** | ❌ No | Already fast |
+| **Form submission** | ✅ Sometimes | Show pending state |
+
+> **Key Insight:** useTransition tells React "this update can wait if something more important happens." Perfect for keeping UI responsive during expensive operations.
 
 ```jsx
 import { useState, useTransition } from 'react';
@@ -796,7 +1069,55 @@ function ExpensiveSettingsTab() {
 
 ### Example 8: useDeferredValue
 
-**useDeferredValue** - Creates a deferred version of a value that lags behind the actual value. Keeps urgent UI updates responsive while deferring expensive updates.
+### 💡 **useDeferredValue - Defer Expensive Updates**
+
+Creates a "lagged" version of a value that updates after more urgent updates.
+
+**How It Works:**
+
+```
+User types "a" → query = "a" (immediate)
+             → deferredQuery = "" (still old)
+             → Expensive list renders with ""
+
+Next frame    → deferredQuery = "a" (catches up)
+             → Expensive list renders with "a"
+```
+
+**Key Difference from useTransition:**
+
+| Feature | useTransition | useDeferredValue |
+|---------|--------------|------------------|
+| **Control** | You wrap the setState | React defers the value |
+| **Returns** | [isPending, startTransition] | deferred value |
+| **Use When** | You own the setState | Value from props/state |
+
+**When to Use:**
+
+| Scenario | Best Choice | Why |
+|----------|------------|-----|
+| **Control the update** | useTransition | Wrap setState directly |
+| **Value from parent** | useDeferredValue | Can't wrap parent's setState |
+| **Multiple consumers** | useDeferredValue | One deferred value, many uses |
+
+**Pattern:**
+
+```jsx
+const [query, setQuery] = useState('');
+const deferredQuery = useDeferredValue(query);
+
+// query updates immediately (input stays responsive)
+// deferredQuery updates after (list updates when React has time)
+```
+
+**Detecting Stale State:**
+
+```jsx
+const isStale = query !== deferredQuery;
+// true when deferred value hasn't caught up yet
+```
+
+> **Key Insight:** useDeferredValue is like useTransition but for values instead of updates. Use it when you receive a value from props or can't control the setState.
 
 ```jsx
 import { useState, useDeferredValue, memo } from 'react';
@@ -884,7 +1205,61 @@ function ComparisonExample() {
 
 ### Example 9: useSyncExternalStore
 
-**useSyncExternalStore** - Safely subscribes to external stores (browser APIs, global state) with concurrent rendering support. Takes subscribe, getSnapshot, and optional getServerSnapshot functions.
+### 💡 **useSyncExternalStore - Subscribe to External Stores**
+
+Safely subscribes to external data sources with React 18 concurrent rendering support.
+
+**How It Works:**
+
+```
+Component mounts → Subscribe to external store
+External store changes → React gets snapshot
+React detects change → Component re-renders
+Component unmounts → Unsubscribe (cleanup)
+```
+
+**Three Functions Required:**
+
+| Function | Purpose | Returns |
+|----------|---------|---------|
+| **subscribe** | Setup listener, return cleanup | Unsubscribe function |
+| **getSnapshot** | Get current value | Current state |
+| **getServerSnapshot** | SSR fallback value | Server-side state |
+
+**Why This Hook Exists:**
+
+**The Problem:**
+- External stores (browser APIs, global state) update outside React
+- React 18 concurrent rendering can cause tearing (inconsistent UI)
+- Need safe way to subscribe to external data
+
+**The Solution:**
+- React manages subscriptions safely
+- Prevents tearing in concurrent mode
+- Consistent snapshots across component tree
+
+**When to Use:**
+
+| External Store | Use Case |
+|----------------|----------|
+| **Browser APIs** | navigator.onLine, window size, media queries |
+| **Global stores** | Redux, MobX, Zustand (if not using React bindings) |
+| **Event emitters** | WebSocket, EventEmitter |
+| **Third-party state** | Non-React state management |
+
+**Pattern:**
+
+```jsx
+function useExternalStore() {
+  return useSyncExternalStore(
+    subscribe,        // How to listen
+    getSnapshot,      // Get current value
+    getServerSnapshot // SSR fallback
+  );
+}
+```
+
+> **Key Insight:** Use this hook when integrating React with external state systems. Most apps don't need it directly - libraries like Redux provide React-specific hooks that use this internally.
 
 ```jsx
 import { useSyncExternalStore } from 'react';
@@ -1025,7 +1400,24 @@ function Counter() {
 
 ### ❌ Mistake 1: Premature Optimization with useCallback/useMemo
 
-**The Problem:** Over-using memoization for simple operations adds overhead without benefits.
+**The Problem:**
+
+Adding useCallback/useMemo everywhere creates overhead without performance benefits for simple operations.
+
+**Why It's Wrong:**
+- Memoization itself costs memory and CPU
+- Simple operations are faster without memoization
+- Makes code harder to read
+- No actual performance gain
+
+**The Overhead:**
+```
+useMemo overhead:
+1. Store dependencies
+2. Compare dependencies on each render
+3. Store cached value
+4. Sometimes slower than just recalculating!
+```
 
 | Scenario | Should Memoize? | Reason |
 |----------|----------------|---------|
@@ -1306,19 +1698,135 @@ function App() {
 ## Interview Questions
 
 ### Q1: When should you use useReducer instead of useState?
-**Answer:** Use useReducer when state logic is complex, involves multiple sub-values, or next state depends on previous state. Also when you want to centralize state update logic.
+
+**Answer:**
+
+Use useReducer when state management becomes complex:
+
+| Scenario | useState | useReducer |
+|----------|----------|------------|
+| **Single value** | ✅ Better | ❌ Overkill |
+| **Multiple related values** | ⚠️ Possible | ✅ Better |
+| **Complex update logic** | ❌ Scattered | ✅ Centralized |
+| **State depends on previous** | ⚠️ Functional updates | ✅ Natural pattern |
+
+**Use useReducer when:**
+- State has multiple sub-values
+- Complex update logic
+- Need to track state changes (action log)
+- Want to separate state logic from component
+- Building something Redux-like
 
 ### Q2: What's the difference between useCallback and useMemo?
-**Answer:** useCallback memoizes functions, useMemo memoizes values. useCallback returns the function itself, useMemo calls the function and returns its result.
+
+**Answer:**
+
+| Hook | Memoizes | Returns | Syntax |
+|------|----------|---------|--------|
+| **useCallback** | Function itself | Function reference | `useCallback(fn, deps)` |
+| **useMemo** | Function result | Computed value | `useMemo(() => value, deps)` |
+
+**Examples:**
+```jsx
+// useCallback - returns the function
+const handleClick = useCallback(() => {
+  doSomething();
+}, []);
+
+// useMemo - calls function, returns result
+const value = useMemo(() => {
+  return expensiveCalculation();
+}, []);
+```
+
+**Rule of Thumb:**
+- useCallback = Save the function
+- useMemo = Save the result
 
 ### Q3: Why use useRef instead of useState for some values?
-**Answer:** useRef doesn't trigger re-renders when updated. Use it for values that need to persist across renders but don't affect the UI.
+
+**Answer:**
+
+| Feature | useRef | useState |
+|---------|--------|----------|
+| **Re-renders** | ❌ No | ✅ Yes |
+| **Updates** | Immediate | Async/batched |
+| **Use for** | Side effects | UI state |
+
+**Use useRef for:**
+- DOM references
+- Timer/interval IDs
+- Previous values
+- Mutable values that don't affect UI
+- Avoiding stale closures
+
+**Use useState for:**
+- Anything that affects the rendered output
 
 ### Q4: Can you update useRef in render?
-**Answer:** No, it's a side effect. Refs should be updated in useEffect or event handlers, not during render.
+
+**Answer:** No, it's a side effect that violates React's purity rules.
+
+**❌ Wrong:**
+```jsx
+function Bad() {
+  const ref = useRef(0);
+  ref.current++; // Side effect during render!
+  return <div>{ref.current}</div>;
+}
+```
+
+**✅ Correct:**
+```jsx
+function Good() {
+  const ref = useRef(0);
+
+  useEffect(() => {
+    ref.current++; // Side effect in effect
+  });
+
+  return <div>{ref.current}</div>;
+}
+```
+
+**Safe places to mutate refs:**
+- useEffect
+- Event handlers
+- Async callbacks
 
 ### Q5: How does useContext prevent prop drilling?
-**Answer:** It allows deeply nested components to access shared data directly without passing props through every intermediate component.
+
+**Answer:**
+
+**Prop Drilling (Problem):**
+```jsx
+<App data={data}>
+  <Page data={data}>      // Just passing through
+    <Section data={data}> // Just passing through
+      <Component data={data} /> // Finally uses it!
+    </Section>
+  </Page>
+</App>
+```
+
+**Context (Solution):**
+```jsx
+<DataContext.Provider value={data}>
+  <App>
+    <Page>
+      <Section>
+        <Component /> // Accesses data via useContext!
+      </Section>
+    </Page>
+  </App>
+</DataContext.Provider>
+```
+
+**Benefits:**
+- No props through intermediate components
+- Cleaner component APIs
+- Easier refactoring
+- Central data source
 
 ---
 

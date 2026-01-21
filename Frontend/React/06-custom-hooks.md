@@ -2,7 +2,38 @@
 
 ## Understanding Custom Hooks
 
-**Custom hooks** are reusable functions that encapsulate stateful logic, allowing you to share behavior across components without duplicating code. They're one of React's most powerful composition patterns.
+### 💡 **Custom Hooks - Reusable Stateful Logic**
+
+Extract and share component logic without duplicating code.
+
+**The Power of Custom Hooks:**
+
+**Without Custom Hooks:**
+```
+Component A: useState + useEffect + logic
+Component B: useState + useEffect + same logic (duplicated!)
+Component C: useState + useEffect + same logic (duplicated!)
+```
+
+**With Custom Hooks:**
+```
+useCustomHook: useState + useEffect + logic (one place)
+Component A: useCustomHook()
+Component B: useCustomHook()
+Component C: useCustomHook()
+```
+
+**Key Benefits:**
+
+| Benefit | Impact |
+|---------|--------|
+| **Reusability** | Write once, use everywhere |
+| **Maintainability** | Fix bugs in one place |
+| **Testability** | Test logic independently |
+| **Separation of Concerns** | Components focus on UI |
+| **Team Sharing** | Common patterns across team |
+
+> **Key Insight:** Custom hooks share logic, not state. Each component that uses a custom hook gets its own independent state instance.
 
 ## Why Custom Hooks Matter
 
@@ -476,11 +507,32 @@ Delays updating a value until after a period of inactivity.
 
 **The Problem:**
 
-Expensive operations triggered on every keystroke:
-- API calls
-- Complex filtering
-- Heavy calculations
-- DOM manipulations
+**Without Debouncing:**
+```
+User types "react" (5 keystrokes)
+→ 5 API calls
+→ Wasted bandwidth
+→ Race conditions
+→ Poor performance
+```
+
+**With Debouncing:**
+```
+User types "react" (5 keystrokes)
+→ Wait for pause
+→ 1 API call
+→ Efficient
+→ Better UX
+```
+
+**Expensive Operations to Debounce:**
+
+| Operation | Why Debounce | Typical Delay |
+|-----------|--------------|---------------|
+| **Search API calls** | Reduce requests | 300-500ms |
+| **Auto-save** | Reduce writes | 1000-2000ms |
+| **Filter large lists** | Reduce calculations | 200-300ms |
+| **Validation** | Reduce checks | 300-500ms |
 
 **The Solution:**
 

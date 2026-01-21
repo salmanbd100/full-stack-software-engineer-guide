@@ -2,7 +2,31 @@
 
 ## Understanding React Performance Optimization
 
-**Performance hooks** are React's built-in tools for optimizing component rendering and preventing unnecessary computations. They're essential for building responsive applications that handle complex UIs and large datasets efficiently.
+### 💡 **Performance Hooks Overview**
+
+React's built-in tools for optimizing component rendering and preventing unnecessary computations.
+
+**The Performance Challenge:**
+
+```
+User types → Parent renders → All children render → Expensive calculations → Slow UI
+```
+
+**With Optimization:**
+
+```
+User types → Parent renders → Only changed children render → Cached calculations → Fast UI
+```
+
+**Key Tools:**
+
+| Tool | Prevents | Cost |
+|------|----------|------|
+| **React.memo** | Unnecessary renders | Comparison overhead |
+| **useMemo** | Expensive calculations | Memory + comparison |
+| **useCallback** | Function recreation | Memory + comparison |
+
+> **Critical Rule:** Profile first, optimize second. Most components don't need optimization.
 
 ## Why Performance Optimization Matters
 
