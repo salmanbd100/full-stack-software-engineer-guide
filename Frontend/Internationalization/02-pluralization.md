@@ -2,14 +2,17 @@
 
 ## Overview
 
-Pluralization is one of the most complex aspects of internationalization. While English has two plural forms (singular and plural), many languages have different rules. Arabic has six forms, Slavic languages have three, and others have their own unique patterns. Understanding pluralization rules and how to implement them correctly is essential for building truly international applications.
+Pluralization is one of the most complex aspects of internationalization. While English has two plural forms (singular and plural), many languages have different rules. Arabic has six forms, Slavic languages have three, and others have unique patterns. Understanding these rules is essential for building truly international applications.
+
+---
 
 ## Table of Contents
+
 - [Plural Rules Across Languages](#plural-rules-across-languages)
 - [CLDR Plural Categories](#cldr-plural-categories)
 - [ICU MessageFormat](#icu-messageformat)
 - [Implementation with i18next](#implementation-with-i18next)
-- [Intl.PluralRules API](#intlpluralsrules-api)
+- [Intl.PluralRules API](#intlpluralrules-api)
 - [Edge Cases and Common Mistakes](#edge-cases-and-common-mistakes)
 - [Testing Pluralization](#testing-pluralization)
 - [Performance Considerations](#performance-considerations)
@@ -19,159 +22,111 @@ Pluralization is one of the most complex aspects of internationalization. While 
 
 ## Plural Rules Across Languages
 
-### English (2 forms)
+### 💡 **Language Plural Forms Comparison**
 
-English has the simplest plural system: singular (1) and other (everything else).
+| Language | Forms | Categories Used |
+|----------|-------|-----------------|
+| **English** | 2 | one, other |
+| **German** | 2 | one, other |
+| **French** | 2 | one, other |
+| **Russian** | 4 | one, few, many, other |
+| **Polish** | 4 | one, few, many, other |
+| **Arabic** | 6 | zero, one, two, few, many, other |
+| **Chinese** | 1 | other (no pluralization) |
+
+> **Key Insight:** Never assume English plural rules work for other languages. Always use library support or Intl.PluralRules.
+
+---
+
+### 💡 **English (2 Forms)**
+
+The simplest plural system: singular (1) and other (everything else).
+
+**Rules:**
+
+| Count | Category | Example |
+|-------|----------|---------|
+| 1 | `one` | "1 message" |
+| 0, 2, 3... | `other` | "0 messages", "5 messages" |
+
+**Translation File:**
+
+```json
+{
+  "messages_one": "You have {{count}} message",
+  "messages_other": "You have {{count}} messages"
+}
+```
+
+**Usage:**
 
 ```javascript
-// Plural categories: one, other
-const englishRules = {
-  one: [1],           // singular: 1 item
-  other: [0, 2, 3, 4, 5, ...] // plural: 0, 2, 3, ... items
-};
-
-// Examples
-const examples = [
-  { count: 0, form: 'other', text: '0 messages' },
-  { count: 1, form: 'one', text: '1 message' },
-  { count: 2, form: 'other', text: '2 messages' },
-  { count: 21, form: 'other', text: '21 messages' }
-];
-
-// Translation file
-// en.json
-{
-  "messages": "You have {{count}} message",
-  "messages_plural": "You have {{count}} messages"
-}
-
-// Usage
 t('messages', { count: 1 })  // "You have 1 message"
-t('messages', { count: 2 })  // "You have 2 messages"
+t('messages', { count: 5 })  // "You have 5 messages"
+t('messages', { count: 0 })  // "You have 0 messages"
 ```
 
-### Russian (3 forms)
+---
 
-Russian has three plural forms based on the number:
+### 💡 **Russian (4 Forms)**
 
-```javascript
-// Plural categories: one, few, many, other
-// one: ends in 1 (except 11)
-// few: ends in 2-4 (except 12-14)
-// many: other numbers
-// other: (fallback)
+Russian plural forms depend on the last digit and whether it ends in 11-14.
 
-const russianRules = {
-  one: [1, 21, 31, 41, 51, ...],      // 1, 21, 31, ...
-  few: [2, 3, 4, 22, 23, 24, ...],    // 2-4, 22-24, ...
-  many: [0, 5, 6, 7, 8, 9, 10, 11, ...], // 0, 5-20, 25-30, ...
-};
+**Rules:**
 
-// Examples
-const examples = [
-  { count: 0, form: 'many', text: '0 A>>1I5=89' },
-  { count: 1, form: 'one', text: '1 A>>1I5=85' },
-  { count: 2, form: 'few', text: '2 A>>1I5=8O' },
-  { count: 5, form: 'many', text: '5 A>>1I5=89' },
-  { count: 21, form: 'one', text: '21 A>>1I5=85' },
-  { count: 22, form: 'few', text: '22 A>>1I5=8O' }
-];
+| Category | When | Examples |
+|----------|------|----------|
+| `one` | Ends in 1 (except 11) | 1, 21, 31, 101 |
+| `few` | Ends in 2-4 (except 12-14) | 2, 3, 4, 22, 23 |
+| `many` | Ends in 0, 5-9, or 11-14 | 0, 5, 10, 11, 12, 25 |
+| `other` | Fallback | — |
 
-// Translation file
-// ru.json
+**Translation File:**
+
+```json
 {
-  "messages": "{{count}} A>>1I5=85",
-  "messages_few": "{{count}} A>>1I5=8O",
-  "messages_many": "{{count}} A>>1I5=89"
+  "messages_one": "{{count}} сообщение",
+  "messages_few": "{{count}} сообщения",
+  "messages_many": "{{count}} сообщений"
 }
 ```
 
-### Arabic (6 forms)
-
-Arabic has the most complex pluralization with six different forms:
+**Examples:**
 
 ```javascript
-// Plural categories: zero, one, two, few, many, other
-// zero: 0
-// one: 1
-// two: 2
-// few: 3-10
-// many: 11-99
-// other: 100+
-
-const arabicRules = {
-  zero: [0],
-  one: [1],
-  two: [2],
-  few: [3, 4, 5, 6, 7, 8, 9, 10],
-  many: [11, 12, 13, ..., 99],
-  other: [100, 101, ...] // 100+
-};
-
-// Examples
-const examples = [
-  { count: 0, form: 'zero', text: 'D' *H,/ 13'&D' },      // no messages
-  { count: 1, form: 'one', text: '13'D) H'-/)' },         // 1 message
-  { count: 2, form: 'two', text: '13'D*'F' },             // 2 messages
-  { count: 5, form: 'few', text: '5 13'&D' },             // 3-10 messages
-  { count: 50, form: 'many', text: '50 13'D)' },          // 11-99 messages
-  { count: 100, form: 'other', text: '100 13'D)' }        // 100+ messages
-];
-
-// Translation file
-// ar.json
-{
-  "messages": "D' *H,/ 13'&D",
-  "messages_one": "13'D) H'-/)",
-  "messages_two": "13'D*'F",
-  "messages_few": "{{count}} 13'&D",
-  "messages_many": "{{count}} 13'D)",
-  "messages_other": "{{count}} 13'D)"
-}
+t('messages', { count: 1 })   // "1 сообщение"
+t('messages', { count: 2 })   // "2 сообщения"
+t('messages', { count: 5 })   // "5 сообщений"
+t('messages', { count: 21 })  // "21 сообщение"
 ```
 
-### German (2 forms, like English)
+---
 
-```javascript
-// Plural categories: one, other
-const germanRules = {
-  one: [1],
-  other: [0, 2, 3, 4, ...]
-};
+### 💡 **Arabic (6 Forms)**
 
-// Translation file
-// de.json
+Arabic has the most complex pluralization with six different forms.
+
+**Rules:**
+
+| Category | When | Examples |
+|----------|------|----------|
+| `zero` | 0 | 0 |
+| `one` | 1 | 1 |
+| `two` | 2 | 2 |
+| `few` | 3-10 | 3, 4, 5, 6, 7, 8, 9, 10 |
+| `many` | 11-99 | 11, 50, 99 |
+| `other` | 100+ | 100, 101, 1000 |
+
+**Translation File:**
+
+```json
 {
-  "messages": "{{count}} Nachricht",
-  "messages_plural": "{{count}} Nachrichten"
-}
-
-// Usage
-t('messages', { count: 1 })  // "1 Nachricht"
-t('messages', { count: 2 })  // "2 Nachrichten"
-```
-
-### Polish (3 forms)
-
-```javascript
-// Plural categories: one, few, many, other
-// one: 1
-// few: ends in 2-4 (except 12-14)
-// many: other cases
-// other: (fallback)
-
-const polishRules = {
-  one: [1],                           // 1
-  few: [2, 3, 4, 22, 23, 24, ...],   // 2-4, 22-24, ...
-  many: [0, 5, 6, ..., 21, 25, ...], // 0, 5-21, 25+
-};
-
-// Translation file
-// pl.json
-{
-  "messages": "{{count}} wiadomo[",
-  "messages_few": "{{count}} wiadomo[ci",
-  "messages_many": "{{count}} wiadomo[ci"
+  "messages_zero": "لا توجد رسائل",
+  "messages_one": "رسالة واحدة",
+  "messages_two": "رسالتان",
+  "messages_few": "{{count}} رسائل",
+  "messages_many": "{{count}} رسالة",
+  "messages_other": "{{count}} رسالة"
 }
 ```
 
@@ -179,337 +134,242 @@ const polishRules = {
 
 ## CLDR Plural Categories
 
-### Understanding CLDR
+### 💡 **What is CLDR?**
 
-The **Common Locale Data Repository (CLDR)** defines plural rules for every language. It specifies which numbers belong to which plural category for each language.
+The **Common Locale Data Repository (CLDR)** defines plural rules for 300+ languages. It specifies which numbers belong to which plural category.
+
+**All Possible Categories:**
+
+| Category | Description |
+|----------|-------------|
+| `zero` | Zero quantity |
+| `one` | Singular |
+| `two` | Dual (exactly two) |
+| `few` | Paucal (few items) |
+| `many` | Greater plural |
+| `other` | Default fallback |
+
+> **Key Insight:** Not all languages use all categories. English only uses `one` and `other`.
+
+---
+
+### 💡 **Checking Categories for a Language**
 
 ```javascript
-// CLDR defines pluralization for 300+ languages
-// Each language has categories it supports:
-// Possible categories: zero, one, two, few, many, other
+// Use Intl.PluralRules to check supported categories
+const enCategories = new Intl.PluralRules('en').resolvedOptions().pluralCategories;
+// ['one', 'other']
 
-// Example language categories
-const cldrCategories = {
-  english: ['one', 'other'],           // 2 categories
-  russian: ['one', 'few', 'many', 'other'], // 4 categories
-  arabic: ['zero', 'one', 'two', 'few', 'many', 'other'], // 6 categories
-  french: ['one', 'many', 'other'],    // 3 categories
-  chinese: ['other']                   // 1 category (no pluralization)
-};
+const ruCategories = new Intl.PluralRules('ru').resolvedOptions().pluralCategories;
+// ['one', 'few', 'many', 'other']
 
-// CLDR rules use mathematical formulas
-// Example: Russian rule for 'one' category
-// (n % 10 == 1 && n % 100 != 11) -> belongs to 'one'
-
-// This means:
-// n=1: (1 % 10 == 1 && 1 % 100 != 11) = true  -> 'one'
-// n=11: (11 % 10 == 1 && 11 % 100 != 11) = false -> not 'one'
-// n=21: (21 % 10 == 1 && 21 % 100 != 11) = true  -> 'one'
+const arCategories = new Intl.PluralRules('ar').resolvedOptions().pluralCategories;
+// ['zero', 'one', 'two', 'few', 'many', 'other']
 ```
 
-### Checking Supported Categories for a Language
+---
+
+### 💡 **Selecting Category for a Number**
 
 ```javascript
-// Use Intl.PluralRules to check categories
-const intlCategories = {
-  english: new Intl.PluralRules('en').resolvedOptions().pluralCategories,
-  // Result: ['one', 'other']
-
-  russian: new Intl.PluralRules('ru').resolvedOptions().pluralCategories,
-  // Result: ['one', 'few', 'many', 'other']
-
-  arabic: new Intl.PluralRules('ar').resolvedOptions().pluralCategories,
-  // Result: ['zero', 'one', 'two', 'few', 'many', 'other']
-};
-
-// Check which category a number belongs to
-function getCategory(number, locale) {
-  const pluralRules = new Intl.PluralRules(locale);
-  return pluralRules.select(number);
+function getPluralCategory(number, locale) {
+  return new Intl.PluralRules(locale).select(number);
 }
 
-getCategory(0, 'en')    // 'other'
-getCategory(1, 'en')    // 'one'
-getCategory(2, 'en')    // 'other'
-getCategory(0, 'ar')    // 'zero'
-getCategory(1, 'ar')    // 'one'
-getCategory(2, 'ar')    // 'two'
-getCategory(5, 'ar')    // 'few'
+// English
+getPluralCategory(0, 'en')   // 'other'
+getPluralCategory(1, 'en')   // 'one'
+getPluralCategory(2, 'en')   // 'other'
+
+// Arabic
+getPluralCategory(0, 'ar')   // 'zero'
+getPluralCategory(1, 'ar')   // 'one'
+getPluralCategory(2, 'ar')   // 'two'
+getPluralCategory(5, 'ar')   // 'few'
+getPluralCategory(50, 'ar')  // 'many'
 ```
 
 ---
 
 ## ICU MessageFormat
 
-### Basic Syntax
+### 💡 **What is ICU MessageFormat?**
 
-The **ICU MessageFormat** is an industry standard for handling pluralization and other message formatting.
+Industry standard for handling pluralization and message formatting.
 
-```javascript
-// Basic ICU format for pluralization
-// {variable, plural, singular_form {text} plural_form {text}}
+**Basic Syntax:**
 
-// English example
-const englishICU = "{count, plural, one {# item} other {# items}}";
-
-// Usage
-// count = 1 -> "1 item"
-// count = 5 -> "5 items"
-// # is replaced with the actual count
-
-// Russian example (3 forms)
-const russianICU = "{count, plural, one {# A>>1I5=85} few {# A>>1I5=8O} many {# A>>1I5=89}}";
-
-// Arabic example (6 forms)
-const arabicICU = "{count, plural, zero {=5B A>>1I5=89} one {# A>>1I5=85} two {# A>>1I5=8O} few {# A>>1I5=8O} many {# A>>1I5=89} other {# A>>1I5=89}}";
+```
+{variable, plural, category1 {text} category2 {text} other {text}}
 ```
 
-### Advanced ICU Features
+**Examples:**
 
 ```javascript
-// 1. Nested formatting
-"{name} has {count, plural, one {# book} other {# books}}";
-// "Alice has 1 book"
-// "Bob has 3 books"
+// English
+"{count, plural, one {# item} other {# items}}"
 
-// 2. Offset formatting (for natural language)
-"{count, plural, offset:1, one {You} one {# other person} other {# other people}}";
-// count = 1: "You"
-// count = 2: "1 other person"
-// count = 3: "2 other people"
-
-// 3. Select with plural
-"{gender, select, male {He} female {She} other {They}} have {count, plural, one {# book} other {# books}}";
-// gender=male, count=1: "He has 1 book"
-// gender=female, count=3: "She has 3 books"
-
-// 4. Complex nesting
-"{gender, select, male {He} female {She} other {They}} {action, select, buy {bought} sell {sold} other {have}} {count, plural, one {# book} other {# books}}";
-// "She bought 3 books"
+// Russian
+"{count, plural, one {# товар} few {# товара} many {# товаров} other {# товаров}}"
 ```
 
-### ICU in JSON Format
+> **Note:** `#` is replaced with the actual count value.
+
+---
+
+### 💡 **ICU Features**
+
+| Feature | Syntax | Example |
+|---------|--------|---------|
+| **Basic Plural** | `{var, plural, ...}` | `{count, plural, one {#} other {#s}}` |
+| **Select (Gender)** | `{var, select, ...}` | `{gender, select, male {He} female {She}}` |
+| **Nested** | Combined | `{gender, select, male {He has} female {She has}} {count, plural, ...}` |
+| **Offset** | `offset:N` | `{count, plural, offset:1, one {You} other {# others}}` |
+
+**Complex Example:**
 
 ```javascript
-// How ICU messages look in translation files
+// Gender + Plural
+const message = `{gender, select,
+  male {He}
+  female {She}
+  other {They}
+} bought {count, plural,
+  one {# book}
+  other {# books}
+}`;
 
-// en.json
+// Result: "She bought 3 books"
+```
+
+---
+
+### 💡 **ICU in Translation Files**
+
+```json
 {
   "itemCount": "{count, plural, one {# item} other {# items}}",
-  "userAction": "{user} {action, select, buy {bought} read {read} other {has}} {count, plural, one {# book} other {# books}}",
-  "notificationMessage": "{name} sent you {count, plural, one {# message} other {# messages}}"
+  "notification": "{name} sent you {count, plural, one {a message} other {# messages}}"
 }
+```
 
-// Usage with i18n
-i18n.t('itemCount', { count: 1 })  // "1 item"
-i18n.t('itemCount', { count: 5 })  // "5 items"
+**Usage with FormatJS:**
 
-// Usage with FormatJS
-intl.formatMessage({ id: 'itemCount' }, { count: 5 })  // "5 items"
+```javascript
+intl.formatMessage({ id: 'itemCount' }, { count: 5 })
+// "5 items"
 ```
 
 ---
 
 ## Implementation with i18next
 
-### Setting Up Pluralization
+### 💡 **Setup**
 
 ```javascript
-// i18n.js
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import enTranslation from './locales/en.json';
-import ruTranslation from './locales/ru.json';
-import arTranslation from './locales/ar.json';
 
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: enTranslation },
-    ru: { translation: ruTranslation },
-    ar: { translation: arTranslation }
+    ru: { translation: ruTranslation }
   },
   lng: 'en',
   fallbackLng: 'en',
-
-  // Pluralization configuration
-  pluralSeparator: '_',  // Default: '_one', '_other', '_plural'
-
-  // Handle pluralization correctly
-  interpolation: {
-    escapeValue: false,
-    formatSeparator: ','
-  },
-
-  // These settings work automatically with i18next
-  // It uses CLDR rules internally
+  pluralSeparator: '_',  // Default suffix separator
+  interpolation: { escapeValue: false }
 });
-
-export default i18n;
 ```
 
-### Translation File Structure
+---
 
-```javascript
-// en.json - English (2 plural forms)
+### 💡 **Translation File Structure**
+
+**i18next v21+ Suffix Pattern:**
+
+| Language | Suffixes Used |
+|----------|---------------|
+| English | `_one`, `_other` |
+| Russian | `_one`, `_few`, `_many` |
+| Arabic | `_zero`, `_one`, `_two`, `_few`, `_many`, `_other` |
+
+**English Example:**
+
+```json
 {
-  "messages": "You have {{count}} message",
-  "messages_plural": "You have {{count}} messages",
-
-  "notifications": "You have {{count}} notification",
-  "notifications_plural": "You have {{count}} notifications"
-}
-
-// ru.json - Russian (3+ plural forms)
-{
-  "messages": "# 20A {{count}} A>>1I5=85",
-  "messages_few": "# 20A {{count}} A>>1I5=8O",
-  "messages_many": "# 20A {{count}} A>>1I5=89",
-
-  "followers": "{{count}} ?>4?8AG8:",
-  "followers_few": "{{count}} ?>4?8AG8:0",
-  "followers_many": "{{count}} ?>4?8AG8:>2"
-}
-
-// ar.json - Arabic (6 plural forms)
-{
-  "messages": "DJ3 D/JC 13'&D",
-  "messages_one": "D/JC {{count}} 13'D)",
-  "messages_two": "D/JC {{count}} 13'D*'F",
-  "messages_few": "D/JC {{count}} 13'&D",
-  "messages_many": "D/JC {{count}} 13'D)",
-  "messages_other": "D/JC {{count}} 13'D)"
+  "messages_one": "You have {{count}} message",
+  "messages_other": "You have {{count}} messages"
 }
 ```
 
-### Using Pluralization in Components
+**Russian Example:**
+
+```json
+{
+  "messages_one": "У вас {{count}} сообщение",
+  "messages_few": "У вас {{count}} сообщения",
+  "messages_many": "У вас {{count}} сообщений"
+}
+```
+
+---
+
+### 💡 **Usage in Components**
 
 ```javascript
 import { useTranslation } from 'react-i18next';
 
-// Basic usage
 function MessageCount({ count }) {
   const { t } = useTranslation();
 
-  return <p>{t('messages', { count })}</p>;
-  // count=1: "You have 1 message"
-  // count=5: "You have 5 messages"
-}
-
-// With all languages
-function MultiLanguageCount({ count }) {
-  const { t } = useTranslation();
-
-  // Same code works for all languages!
-  // i18next automatically handles plural forms
+  // i18next automatically selects correct plural form!
   return <p>{t('messages', { count })}</p>;
 }
 
-// Dynamic lists
-function NotificationList({ notifications }) {
-  const { t } = useTranslation();
-
-  return (
-    <div>
-      <h2>{t('notifications', { count: notifications.length })}</h2>
-      <ul>
-        {notifications.map(notif => (
-          <li key={notif.id}>{notif.message}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-// Custom suffix handling
-function AdvancedPluralization({ count, namespace = 'common' }) {
-  const { t } = useTranslation(namespace);
-
-  // Manually specify plural form (if needed)
-  const suffix = getPluralSuffix(count, 'en');
-  const key = `items${suffix}`;
-
-  return <p>{t(key, { count })}</p>;
-}
-
-function getPluralSuffix(count, lang) {
-  if (lang === 'en') {
-    return count === 1 ? '' : '_plural';
-  }
-  if (lang === 'ru') {
-    // Complex Russian rules
-    if (count % 10 === 1 && count % 100 !== 11) return '';
-    if (count % 10 >= 2 && count % 10 <= 4 && !(count % 100 >= 12 && count % 100 <= 14)) return '_few';
-    return '_many';
-  }
-  return '_plural';
-}
+// Same code works for all languages
+<MessageCount count={1} />  // English: "You have 1 message"
+<MessageCount count={5} />  // English: "You have 5 messages"
+<MessageCount count={21} /> // Russian: "У вас 21 сообщение"
 ```
 
 ---
 
 ## Intl.PluralRules API
 
-### Native Browser API
+### 💡 **Native Browser API**
+
+No dependencies needed for basic pluralization.
 
 ```javascript
-// Intl.PluralRules - native browser API for pluralization
-// No dependencies needed!
-
-// Basic usage
+// Create plural rules instance
 const pluralRules = new Intl.PluralRules('en');
+
+// Select category for a number
 pluralRules.select(0)   // 'other'
 pluralRules.select(1)   // 'one'
 pluralRules.select(2)   // 'other'
-
-// Different locales
-const enRules = new Intl.PluralRules('en');
-const ruRules = new Intl.PluralRules('ru');
-const arRules = new Intl.PluralRules('ar');
-
-ruRules.select(0)   // 'many'
-ruRules.select(1)   // 'one'
-ruRules.select(2)   // 'few'
-ruRules.select(5)   // 'many'
-
-arRules.select(0)   // 'zero'
-arRules.select(1)   // 'one'
-arRules.select(2)   // 'two'
-arRules.select(5)   // 'few'
 ```
 
-### Building a Custom Pluralization System
+---
+
+### 💡 **Building Custom Pluralization**
 
 ```javascript
-// Create a custom pluralization function
 class PluralFormatter {
-  constructor(locale = 'en', translations = {}) {
+  constructor(locale, translations) {
     this.pluralRules = new Intl.PluralRules(locale);
-    this.locale = locale;
     this.translations = translations;
   }
 
   format(key, count) {
     const category = this.pluralRules.select(count);
-    const message = this.translations[key];
+    const forms = this.translations[key];
 
-    if (!message) {
-      console.warn(`Missing translation key: ${key}`);
-      return key;
-    }
+    if (!forms) return key;
 
-    // Handle both ICU format and simple suffix format
-    if (typeof message === 'string') {
-      return message.replace('{{count}}', count);
-    }
-
-    // For object format
-    const form = message[category] || message.other;
-    if (!form) {
-      console.warn(`Missing plural form for key: ${key}, category: ${category}`);
-      return key;
-    }
-
-    return form.replace('{{count}}', count);
+    const text = forms[category] || forms.other;
+    return text.replace('{{count}}', count);
   }
 }
 
@@ -518,231 +378,142 @@ const translations = {
   messages: {
     one: 'You have {{count}} message',
     other: 'You have {{count}} messages'
-  },
-  followers: {
-    one: '{{count}} follower',
-    few: '{{count}} followers',
-    other: '{{count}} followers'
   }
 };
 
 const formatter = new PluralFormatter('en', translations);
-formatter.format('messages', 1)   // "You have 1 message"
-formatter.format('messages', 5)   // "You have 5 messages"
-```
-
-### Advanced: ICU MessageFormat Parsing
-
-```javascript
-// Parse and format ICU messages
-function parseICUMessage(message, values = {}) {
-  // Extract plural rule: {variable, plural, ...}
-  const pluralMatch = message.match(/\{(\w+),\s*plural,\s*(.+?)\}/);
-
-  if (!pluralMatch) return message;
-
-  const [, variable, forms] = pluralMatch;
-  const count = values[variable];
-
-  if (count === undefined) return message;
-
-  // Parse forms: "one {text} other {text}"
-  const formPattern = /(\w+)\s*\{([^}]+)\}/g;
-  const formMap = {};
-  let match;
-
-  while ((match = formPattern.exec(forms)) !== null) {
-    formMap[match[1]] = match[2];
-  }
-
-  // Get appropriate form using PluralRules
-  const pluralRules = new Intl.PluralRules();
-  const form = pluralRules.select(count);
-  const selectedForm = formMap[form] || formMap.other;
-
-  // Replace # with count and variables
-  return selectedForm
-    .replace(/#/g, count)
-    .replace(/\{\{(\w+)\}\}/g, (match, key) => values[key] || match);
-}
-
-// Usage
-const message = "{count, plural, one {# item} other {# items}}";
-parseICUMessage(message, { count: 1 })   // "1 item"
-parseICUMessage(message, { count: 5 })   // "5 items"
-
-const complex = "{name} has {count, plural, one {# book} other {# books}}";
-parseICUMessage(complex, { name: 'Alice', count: 3 })
-// "Alice has 3 books"
+formatter.format('messages', 1)  // "You have 1 message"
+formatter.format('messages', 5)  // "You have 5 messages"
 ```
 
 ---
 
 ## Edge Cases and Common Mistakes
 
-### 1. Off-by-One Errors
+### 💡 **Common Mistakes**
+
+| Mistake | Problem | Solution |
+|---------|---------|----------|
+| **Hardcoded rules** | `count === 1 ? 'item' : 'items'` | Breaks for other languages |
+| **Missing forms** | Only singular in Russian | Provide all required forms |
+| **Forgetting zero** | "You have 0 item" | Handle zero case explicitly |
+| **No count in text** | `"Message" / "Messages"` | Always include `{{count}}` |
+
+---
+
+### 💡 **Hardcoded Plural Logic**
 
 ```javascript
-// WRONG: Forgetting that 0 is also plural
-const bad = {
-  one: 'You have 1 item',
-  other: 'You have multiple items'
-};
-// 0 items -> "You have multiple items"  Actually correct for English!
-
-// Another wrong approach: Using other conditions
-if (count === 1) {
-  msg = 'item';
-} else {
-  msg = 'items';
+// ❌ Bad: Works only for English
+function pluralize(count, singular, plural) {
+  return count === 1 ? singular : plural;
 }
-// This works for English but NOT for other languages!
 
-// RIGHT: Use built-in plural rules
-t('items', { count }) // Works for all languages
+// ✅ Good: Use library or Intl.PluralRules
+t('items', { count })
 ```
 
-### 2. Missing Plural Forms
+---
+
+### 💡 **Missing Plural Forms**
 
 ```javascript
-// WRONG: Only providing singular form for Russian
+// ❌ Bad: Missing forms for Russian
 // ru.json
 {
-  "items": "{{count}} B>20@"  // Only singular!
+  "items": "{{count}} товар"  // Only singular!
 }
 
-// RIGHT: Provide all forms needed by the language
+// ✅ Good: All required forms
 // ru.json
 {
-  "items": "{{count}} B>20@",
-  "items_few": "{{count}} B>20@0",
-  "items_many": "{{count}} B>20@>2"
+  "items_one": "{{count}} товар",
+  "items_few": "{{count}} товара",
+  "items_many": "{{count}} товаров"
 }
 ```
 
-### 3. Forgetting to Include Count in Message
+---
 
-```javascript
-// WRONG: Translation doesn't include count
-// en.json
+### 💡 **Handling Zero**
+
+```json
+// Standard approach - 0 uses "other" in English
 {
-  "messages": "Message",
-  "messages_plural": "Messages"
+  "items_one": "You have {{count}} item",
+  "items_other": "You have {{count}} items"
 }
+// t('items', { count: 0 }) → "You have 0 items"
 
-// RIGHT: Include the count variable
-// en.json
+// Better UX - special message for zero
 {
-  "messages": "You have {{count}} message",
-  "messages_plural": "You have {{count}} messages"
+  "items_zero": "You have no items",
+  "items_one": "You have {{count}} item",
+  "items_other": "You have {{count}} items"
 }
-```
-
-### 4. Not Handling Zero
-
-```javascript
-// WRONG: Not considering zero case
-t('items', { count: 0 })  // "You have 0 items" (grammatically weird)
-
-// RIGHT: Special handling for zero
-// en.json
-{
-  "items": "You have {{count}} item",
-  "items_plural": "You have {{count}} items",
-  "items_zero": "You have no items"  // Add special handling for 0
-}
-```
-
-### 5. Context-Dependent Pluralization
-
-```javascript
-// WRONG: Same key used in different contexts
-{
-  "items": "You have {{count}} items"
-}
-
-// RIGHT: Different keys for different contexts
-{
-  "cart_items": "{{count}} item in cart",
-  "cart_items_plural": "{{count}} items in cart",
-  "list_items": "Showing {{count}} item",
-  "list_items_plural": "Showing {{count}} items"
-}
+// t('items', { count: 0 }) → "You have no items"
 ```
 
 ---
 
 ## Testing Pluralization
 
-### Unit Tests
+### 💡 **Test Cases by Language**
+
+**English Test Cases:**
+
+| Count | Expected Category | Expected Output |
+|-------|-------------------|-----------------|
+| 0 | other | "0 messages" |
+| 1 | one | "1 message" |
+| 2 | other | "2 messages" |
+| 100 | other | "100 messages" |
+
+**Russian Test Cases:**
+
+| Count | Expected Category | Expected Output |
+|-------|-------------------|-----------------|
+| 0 | many | "0 сообщений" |
+| 1 | one | "1 сообщение" |
+| 2 | few | "2 сообщения" |
+| 5 | many | "5 сообщений" |
+| 21 | one | "21 сообщение" |
+| 22 | few | "22 сообщения" |
+
+---
+
+### 💡 **Unit Tests**
 
 ```javascript
-// Using Jest + React Testing Library
 import { render, screen } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../i18n';
-import MessageCount from '../components/MessageCount';
 
 describe('MessageCount Pluralization', () => {
   beforeEach(() => {
     i18n.changeLanguage('en');
   });
 
-  test('shows singular for count=1', () => {
+  test.each([
+    [0, 'You have 0 messages'],
+    [1, 'You have 1 message'],
+    [5, 'You have 5 messages'],
+  ])('count=%i shows "%s"', (count, expected) => {
     render(
       <I18nextProvider i18n={i18n}>
-        <MessageCount count={1} />
+        <MessageCount count={count} />
       </I18nextProvider>
     );
-    expect(screen.getByText('You have 1 message')).toBeInTheDocument();
-  });
-
-  test('shows plural for count=0', () => {
-    render(
-      <I18nextProvider i18n={i18n}>
-        <MessageCount count={0} />
-      </I18nextProvider>
-    );
-    expect(screen.getByText('You have 0 messages')).toBeInTheDocument();
-  });
-
-  test('shows plural for count>1', () => {
-    render(
-      <I18nextProvider i18n={i18n}>
-        <MessageCount count={5} />
-      </I18nextProvider>
-    );
-    expect(screen.getByText('You have 5 messages')).toBeInTheDocument();
+    expect(screen.getByText(expected)).toBeInTheDocument();
   });
 });
+```
 
-// Test for different languages
-describe('MessageCount - Russian Pluralization', () => {
-  beforeEach(() => {
-    i18n.changeLanguage('ru');
-  });
+---
 
-  const testCases = [
-    { count: 0, expected: '# 20A 0 A>>1I5=89' },
-    { count: 1, expected: '# 20A 1 A>>1I5=85' },
-    { count: 2, expected: '# 20A 2 A>>1I5=8O' },
-    { count: 5, expected: '# 20A 5 A>>1I5=89' },
-    { count: 21, expected: '# 20A 21 A>>1I5=85' }
-  ];
+### 💡 **Testing Intl.PluralRules Directly**
 
-  testCases.forEach(({ count, expected }) => {
-    test(`count=${count} shows correct form`, () => {
-      render(
-        <I18nextProvider i18n={i18n}>
-          <MessageCount count={count} />
-        </I18nextProvider>
-      );
-      expect(screen.getByText(expected)).toBeInTheDocument();
-    });
-  });
-});
-
-// Test with Intl.PluralRules directly
+```javascript
 describe('Intl.PluralRules', () => {
   test('English plural forms', () => {
     const rules = new Intl.PluralRules('en');
@@ -756,6 +527,7 @@ describe('Intl.PluralRules', () => {
     expect(rules.select(1)).toBe('one');
     expect(rules.select(2)).toBe('few');
     expect(rules.select(5)).toBe('many');
+    expect(rules.select(21)).toBe('one');
   });
 
   test('Arabic plural forms', () => {
@@ -764,41 +536,7 @@ describe('Intl.PluralRules', () => {
     expect(rules.select(1)).toBe('one');
     expect(rules.select(2)).toBe('two');
     expect(rules.select(5)).toBe('few');
-  });
-});
-```
-
-### Property-Based Testing
-
-```javascript
-// Using fast-check for property-based testing
-import fc from 'fast-check';
-
-describe('Pluralization Properties', () => {
-  test('plural form is always defined for any count', () => {
-    fc.assert(
-      fc.property(fc.integer({ min: 0, max: 1000000 }), (count) => {
-        const rules = new Intl.PluralRules('en');
-        const form = rules.select(count);
-        return ['one', 'other'].includes(form);
-      })
-    );
-  });
-
-  test('each count maps to exactly one plural category', () => {
-    const testLocales = ['en', 'ru', 'ar', 'pl', 'de'];
-
-    testLocales.forEach(locale => {
-      fc.assert(
-        fc.property(fc.integer({ min: 0, max: 100 }), (count) => {
-          const rules = new Intl.PluralRules(locale);
-          const form = rules.select(count);
-          // Form should be one of the supported categories
-          const categories = rules.resolvedOptions().pluralCategories;
-          return categories.includes(form);
-        })
-      );
-    });
+    expect(rules.select(50)).toBe('many');
   });
 });
 ```
@@ -807,89 +545,41 @@ describe('Pluralization Properties', () => {
 
 ## Performance Considerations
 
-### 1. Avoiding Excessive Instantiation
+### 💡 **Memoize PluralRules Instances**
 
 ```javascript
-// WRONG: Creating PluralRules for every call
+// ❌ Bad: Creating instance on every call
 function getPluralForm(count, locale) {
-  const rules = new Intl.PluralRules(locale); // Created every time!
+  const rules = new Intl.PluralRules(locale);  // Created every time!
   return rules.select(count);
 }
 
-// RIGHT: Memoize instances
-const pluralRulesCache = {};
+// ✅ Good: Memoize instances
+const pluralRulesCache = new Map();
 
 function getPluralForm(count, locale) {
-  if (!pluralRulesCache[locale]) {
-    pluralRulesCache[locale] = new Intl.PluralRules(locale);
+  if (!pluralRulesCache.has(locale)) {
+    pluralRulesCache.set(locale, new Intl.PluralRules(locale));
   }
-  return pluralRulesCache[locale].select(count);
-}
-
-// Or use a class
-class PluralHelper {
-  constructor() {
-    this.cache = new Map();
-  }
-
-  getForm(count, locale) {
-    if (!this.cache.has(locale)) {
-      this.cache.set(locale, new Intl.PluralRules(locale));
-    }
-    return this.cache.get(locale).select(count);
-  }
+  return pluralRulesCache.get(locale).select(count);
 }
 ```
 
-### 2. Translation File Optimization
+---
+
+### 💡 **React Component Optimization**
 
 ```javascript
-// WRONG: Including all forms for all keys
-{
-  "items": {
-    "one": "Item",
-    "few": "Items",
-    "many": "Items",
-    "other": "Items"
-  },
-  "messages": {
-    "one": "Message",
-    "few": "Messages",
-    "many": "Messages",
-    "other": "Messages"
-  }
-}
-
-// RIGHT: Only include needed forms
-{
-  "items": "Item",
-  "items_plural": "Items",
-  "messages": "Message",
-  "messages_plural": "Messages"
-}
-
-// For languages that need more:
-// ru.json
-{
-  "items": "">20@",
-  "items_few": "">20@0",
-  "items_many": "">20@>2"
-}
-```
-
-### 3. Caching Formatted Messages
-
-```javascript
-// React component with memoization
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+// Memoize component to prevent unnecessary re-renders
 const MessageCount = memo(function MessageCount({ count }) {
   const { t } = useTranslation();
   return <p>{t('messages', { count })}</p>;
 });
 
-// Or use useMemo
+// Or use useMemo for expensive operations
 function MessageList({ counts }) {
   const { t } = useTranslation();
 
@@ -904,105 +594,204 @@ function MessageList({ counts }) {
 
 ---
 
+### 💡 **Translation File Optimization**
+
+```javascript
+// ❌ Bad: Redundant forms
+{
+  "items_one": "Item",
+  "items_few": "Items",    // Same as other
+  "items_many": "Items",   // Same as other
+  "items_other": "Items"   // Same as other
+}
+
+// ✅ Good: Only needed forms
+{
+  "items_one": "Item",
+  "items_other": "Items"
+}
+```
+
+---
+
 ## Interview Questions
 
 ### 1. Why is pluralization language-dependent?
 
 **Answer:**
-Different languages have different grammatical rules for plurals. English uses only 2 forms (singular/plural based on count == 1), while Russian has 3 forms based on the last digit and whether it's divisible by 100, and Arabic has 6 forms. Proper internationalization must respect these language-specific rules.
+
+Different languages have different grammatical rules for plurals:
+- English: 2 forms (1 vs everything else)
+- Russian: 4 forms (based on last digit and 11-14 range)
+- Arabic: 6 forms (zero, one, two, few, many, other)
+
+Proper i18n must respect these language-specific rules.
+
+---
 
 ### 2. What are the CLDR plural categories?
 
 **Answer:**
-CLDR (Common Locale Data Repository) defines plural categories: zero, one, two, few, many, and other. Not all languages use all categories. English uses 'one' and 'other', Arabic uses all six, and Slavic languages typically use 'one', 'few', 'many', and 'other'.
+
+| Category | Description |
+|----------|-------------|
+| `zero` | Zero quantity |
+| `one` | Singular |
+| `two` | Dual (exactly two) |
+| `few` | Paucal |
+| `many` | Greater plural |
+| `other` | Default fallback |
+
+Not all languages use all categories.
+
+---
 
 ### 3. How do you implement pluralization in react-i18next?
 
 **Answer:**
-Create separate translation keys with suffixes:
+
+Create translation keys with plural suffixes:
+
 ```json
-{ "items": "Item", "items_plural": "Items" }
+{ "items_one": "# item", "items_other": "# items" }
 ```
-Then use: `t('items', { count: 5 })` and i18next automatically selects the right form based on the count and language rules.
 
-### 4. What's the difference between ICU MessageFormat and i18next plural syntax?
+Use with count:
+
+```javascript
+t('items', { count: 5 })  // "5 items"
+```
+
+i18next automatically selects correct form.
+
+---
+
+### 4. Difference between ICU MessageFormat and i18next syntax?
+
+| Feature | ICU | i18next |
+|---------|-----|---------|
+| **Format** | Single string with rules | Separate keys |
+| **Example** | `{count, plural, one {#} other {#s}}` | `key_one`, `key_other` |
+| **Complexity** | More compact | Simpler to implement |
+
+---
+
+### 5. How do you handle zero in pluralization?
 
 **Answer:**
-- **ICU MessageFormat**: Industry standard format using `{count, plural, one {text} other {text}}` syntax
-- **i18next**: Uses separate keys with suffixes like `items` and `items_plural`
 
-Both achieve the same goal, but ICU is more compact while i18next is simpler to implement.
+Option 1: Use `_zero` suffix for special message:
 
-### 5. How do you handle the zero case in pluralization?
-
-**Answer:**
-Some languages and contexts require special handling for zero. You can add a `_zero` suffix or create a separate key:
 ```json
 {
-  "items": "You have {{count}} item",
-  "items_plural": "You have {{count}} items",
-  "items_zero": "You have no items"
+  "items_zero": "No items",
+  "items_one": "1 item",
+  "items_other": "{{count}} items"
 }
 ```
 
-### 6. What's Intl.PluralRules and why should you use it?
+Option 2: Handle in component:
+
+```javascript
+count === 0 ? t('noItems') : t('items', { count })
+```
+
+---
+
+### 6. What's Intl.PluralRules and why use it?
 
 **Answer:**
-It's a native browser API that applies the correct plural rules for any language without external libraries. Performance-efficient and always accurate according to Unicode standards. Use it when you need low-level pluralization logic.
 
-### 7. How do you test pluralization across multiple languages?
+Native browser API for determining plural category. Benefits:
+- ✅ No dependencies
+- ✅ Follows Unicode CLDR standard
+- ✅ Works for all languages
+- ✅ Lightweight
+
+```javascript
+new Intl.PluralRules('en').select(5)  // 'other'
+```
+
+---
+
+### 7. How do you test pluralization across languages?
 
 **Answer:**
+
 Create test cases for each language's plural forms:
-- English: test count 0, 1, 2+
-- Russian: test for 'one', 'few', 'many' categories
-- Arabic: test all 6 categories
 
-Use parametrized tests to avoid duplication.
+```javascript
+// Russian edge cases
+test.each([
+  [1, 'one'],
+  [2, 'few'],
+  [5, 'many'],
+  [21, 'one'],  // Important edge case!
+  [22, 'few'],
+])('Russian: %i = %s', (count, category) => {
+  expect(new Intl.PluralRules('ru').select(count)).toBe(category);
+});
+```
 
-### 8. What happens if a translation file is missing plural forms for a language?
+---
+
+### 8. What happens if plural forms are missing?
 
 **Answer:**
-The application will either:
-1. Fallback to the default form (error/undefined)
-2. Fallback to another language's form
-3. Show the key name itself
 
-This is why validation is important - check that all necessary plural forms are provided for each language.
+The library will either:
+1. Fallback to `other` form
+2. Fallback to another language
+3. Show the key name
 
-### 9. Can you explain Russian pluralization rules?
+Always provide all required forms for each language.
+
+---
+
+### 9. Explain Russian pluralization rules.
 
 **Answer:**
-Russian has 4 plural forms selected based on:
-- **one**: n % 10 == 1 AND n % 100 != 11 (1, 21, 31...)
-- **few**: n % 10 IN 2..4 AND n % 100 NOT IN 12..14 (2-4, 22-24...)
-- **many**: Everything else
-- **other**: Fallback
+
+```
+one:  n % 10 == 1 AND n % 100 != 11
+few:  n % 10 IN 2..4 AND n % 100 NOT IN 12..14
+many: Everything else
+```
+
+| Count | Form |
+|-------|------|
+| 1, 21, 31 | one |
+| 2, 3, 4, 22 | few |
+| 0, 5-20, 25-30 | many |
+
+---
 
 ### 10. How would you optimize pluralization for performance?
 
 **Answer:**
-1. Memoize Intl.PluralRules instances
-2. Cache formatted messages
-3. Use React.memo for pluralization components
-4. Lazy load translation files by language
-5. Only include needed plural forms in bundles
+
+1. **Memoize** Intl.PluralRules instances
+2. **Cache** formatted messages
+3. Use **React.memo** for components
+4. **Lazy load** translations
+5. Only include **needed forms** in bundles
 
 ---
 
 ## Navigation
 
 **Continue Reading:**
-- [03 - Date & Number Formatting](./03-date-number-formatting.md) - Format dates and numbers
-- [04 - RTL Support](./04-rtl-support.md) - Support right-to-left languages
+
+- [03 - Date & Number Formatting](./03-date-number-formatting.md) - Intl APIs
+- [04 - RTL Support](./04-rtl-support.md) - Right-to-left languages
 
 **Related Topics:**
-- [01 - i18n Fundamentals](./01-i18n-fundamentals.md) - Core i18n concepts
-- Frontend/React - Component patterns
+
+- [01 - i18n Fundamentals](./01-i18n-fundamentals.md) - Core concepts
 - Frontend/JavaScript - String handling
 
 ---
 
-**Last Updated:** December 2025
+**Last Updated:** January 2026
 **Difficulty:** Intermediate
 **Estimated Time:** 3-4 hours
