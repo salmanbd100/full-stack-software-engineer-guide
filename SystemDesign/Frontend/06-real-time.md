@@ -12,11 +12,11 @@ Comparison of different real-time communication technologies to help choose the 
 | Protocol | Bi-directional | Full-duplex | Browser Support | Use Case |
 |----------|---------------|-------------|-----------------|----------|
 | WebSocket | Yes | Yes | Excellent | Chat, gaming, collaboration |
-| SSE | No (server�client) | No | Good | Notifications, feeds |
+| SSE | No (server→client) | No | Good | Notifications, feeds |
 | Long Polling | No | No | Universal | Fallback, simple updates |
 | HTTP/2 Server Push | No | No | Limited | Asset optimization |
 
-## 💡 **WebSockets**
+### 💡 **WebSockets**
 
 Full-duplex communication protocol enabling persistent, bidirectional connections for low-latency real-time data exchange.
 
@@ -51,7 +51,10 @@ For production, you need:
 - Message queuing for offline periods
 - Authentication and authorization
 
-Client-side WebSocket class with automatic reconnection and exponential backoff for production reliability.
+**Key Insight:**
+> Always implement reconnection with exponential backoff in production. Without it, a brief network blip will permanently disconnect users.
+
+**Client-side Implementation:**
 
 ```javascript
 // Client-side WebSocket
@@ -161,8 +164,6 @@ wsClient.send('message', { text: 'Hello!' });
 
 ### React WebSocket Hook
 
-Custom React hook encapsulating WebSocket connection lifecycle and event handling for reusable real-time functionality.
-
 ```javascript
 import { useEffect, useRef, useCallback } from 'react';
 
@@ -249,8 +250,6 @@ function ChatRoom({ roomId }) {
 ```
 
 ### Server Implementation (Node.js)
-
-Node.js server handling multiple WebSocket connections with heartbeat mechanism for detecting broken connections.
 
 ```javascript
 // Using ws library
@@ -358,13 +357,24 @@ wss.on('close', () => {
 });
 ```
 
-## Server-Sent Events (SSE)
+### 💡 **Server-Sent Events (SSE)**
 
 Lightweight unidirectional protocol for server-to-client real-time updates using standard HTTP connections.
 
-### Client Implementation
+**When to Use SSE vs WebSockets:**
 
-SSE client wrapper providing event subscription and automatic reconnection with minimal browser API complexity.
+| Feature | SSE | WebSockets |
+|---------|-----|-----------|
+| **Direction** | Server → Client only | Bidirectional |
+| **Protocol** | HTTP | WS (upgrade from HTTP) |
+| **Reconnection** | Automatic (built-in) | Manual implementation |
+| **Complexity** | Simple | More complex |
+| **Best For** | Notifications, feeds | Chat, gaming |
+
+**Key Insight:**
+> If you only need server-to-client updates, SSE is simpler than WebSockets — automatic reconnection, works through proxies/firewalls, and uses standard HTTP.
+
+### Client Implementation
 
 ```javascript
 class SSEClient {
@@ -442,8 +452,6 @@ sseClient.on('stock-update', (stock) => {
 
 ### React SSE Hook
 
-React hook for consuming server-sent events with automatic cleanup and state management.
-
 ```javascript
 import { useEffect, useState } from 'react';
 
@@ -506,8 +514,6 @@ function StockTicker() {
 
 ### Server Implementation (Express)
 
-Express server streaming events to clients with proper SSE headers and connection management.
-
 ```javascript
 const express = require('express');
 const app = express();
@@ -566,9 +572,22 @@ function sendNotification(notification) {
 app.listen(3000);
 ```
 
-## Long Polling
+### 💡 **Long Polling**
 
 Fallback technique simulating real-time updates through sequential HTTP requests with server-side waiting.
+
+**How It Works:**
+1. Client sends HTTP request to server
+2. Server holds the connection open until new data is available (or timeout)
+3. Server responds with data
+4. Client immediately sends a new request
+5. Repeat
+
+**When to Use:**
+- ✅ Need widest browser compatibility
+- ✅ As fallback when WebSockets/SSE unavailable
+- ❌ High-frequency updates (too much overhead)
+- ❌ Low latency requirements
 
 ```javascript
 class LongPollingClient {
@@ -646,9 +665,17 @@ app.get('/api/poll', async (req, res) => {
 });
 ```
 
-## Socket.IO
+### 💡 **Socket.IO**
 
 Popular real-time library providing WebSocket-like API with automatic fallbacks and enhanced features like rooms and namespaces.
+
+**Why Socket.IO Over Raw WebSockets:**
+- ✅ Automatic fallback to polling if WebSockets unavailable
+- ✅ Built-in reconnection with configurable strategy
+- ✅ Room/namespace support for grouping connections
+- ✅ Acknowledgements (confirm message received)
+- ❌ Larger bundle size than raw WebSocket
+- ❌ Not a WebSocket — uses custom protocol
 
 ```javascript
 // Client
@@ -725,11 +752,7 @@ server.listen(3000);
 
 ## Real-Time Use Cases
 
-Practical implementations of real-time features for common application scenarios like chat, notifications, and collaboration.
-
 ### Live Chat
-
-Complete chat room implementation with WebSocket connections, message history, and user presence tracking.
 
 ```javascript
 // React chat component
@@ -796,8 +819,6 @@ function ChatRoom({ roomId }) {
 
 ### Live Notifications
 
-Real-time notification center using SSE to push updates and browser notifications for desktop alerts.
-
 ```javascript
 function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
@@ -837,8 +858,6 @@ function NotificationCenter() {
 ```
 
 ### Collaborative Editing
-
-Google Docs-style collaborative editor using operational transforms to merge concurrent edits from multiple users.
 
 ```javascript
 // Operational Transform for collaborative editing
@@ -956,12 +975,15 @@ A:
 
 ## Summary
 
-- WebSockets: Bidirectional, full-duplex, best for chat/collaboration
-- SSE: Server-to-client, simpler, auto-reconnect, best for notifications
-- Long Polling: Fallback, highest latency, widest compatibility
-- Socket.IO: High-level abstraction with fallbacks
-- Choose based on: direction of data flow, scale, latency requirements
-- Always handle reconnection and error cases
+| Technology | Direction | Best For | Key Feature |
+|-----------|-----------|----------|-------------|
+| **WebSockets** | Bidirectional | Chat, gaming, collaboration | Full-duplex, low latency |
+| **SSE** | Server → Client | Notifications, feeds | Auto-reconnect, simple |
+| **Long Polling** | Client → Server → Client | Fallback | Widest compatibility |
+| **Socket.IO** | Bidirectional | Production apps | Fallbacks, rooms, ACK |
+
+**Key Insight:**
+> Choose the simplest technology that meets your requirements. If you only need server-to-client updates, use SSE. Only reach for WebSockets when you need bidirectional communication.
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

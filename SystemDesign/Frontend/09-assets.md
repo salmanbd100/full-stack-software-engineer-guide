@@ -32,7 +32,7 @@ Choosing the right image format significantly impacts file size and quality.
 
 ### Responsive Images
 
-Delivering appropriately sized images based on device screen size and resolution using srcset and sizes attributes. Serve different image sizes based on device.
+Serve different image sizes based on device screen size and resolution.
 
 ```html
 <!-- Using srcset for different resolutions -->
@@ -82,7 +82,7 @@ Delivering appropriately sized images based on device screen size and resolution
 
 ### Lazy Loading
 
-Delaying image loading until they're needed (near viewport) to reduce initial page load time and bandwidth. Defer loading offscreen images.
+Defer loading offscreen images until they're near the viewport.
 
 ```html
 <!-- Native lazy loading -->
@@ -387,8 +387,6 @@ body {
 
 ### Preloading Fonts
 
-Using resource hints to load critical fonts early in page load for faster text rendering.
-
 ```html
 <!-- Preload critical fonts -->
 <link
@@ -417,11 +415,14 @@ Using resource hints to load critical fonts early in page load for faster text r
 
 ## Icon Management
 
-Different approaches for implementing icons including SVG sprites, icon fonts, and component libraries.
-
 ### Icon Strategies
 
-Comparison of various icon implementation methods from SVG sprites to dynamic component imports.
+| Approach | Bundle Size | Flexibility | Best For |
+|----------|------------|-------------|----------|
+| **SVG Sprites** | Small (one file) | Medium | Static icon sets |
+| **Inline SVG** | Per-icon cost | High | Dynamic colors/sizes |
+| **Icon Fonts** | Medium (full set) | Low | Legacy projects |
+| **React Components** | Tree-shakeable | Highest | Modern React apps |
 
 ```jsx
 // 1. SVG Sprite
@@ -729,12 +730,16 @@ This shows system font immediately, swaps when custom font loads.
 
 ## Summary
 
-- Modern image formats (AVIF/WebP) significantly reduce file size
-- Responsive images and lazy loading improve performance
-- Font optimization prevents FOIT and reduces bundle size
-- CDN and caching strategies reduce latency
-- Code splitting and minification optimize bundle size
-- Proper asset management is critical for Core Web Vitals
+| Asset Type | Key Optimization | Savings |
+|-----------|-----------------|---------|
+| **Images** | AVIF/WebP + responsive + lazy | 30-70% smaller |
+| **Fonts** | Subset + `font-display: swap` + preload | Eliminates FOIT |
+| **JavaScript** | Code split + tree shake + minify | 40-60% smaller |
+| **CSS** | Critical CSS + purge unused | 50-80% smaller |
+| **Icons** | SVG sprites or inline SVG | No extra requests |
+
+**Key Insight:**
+> Images and fonts typically account for 50-90% of page weight. Optimizing these two categories alone can cut page load times in half. Start with `loading="lazy"` and modern formats — they're the highest-impact, lowest-effort wins.
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

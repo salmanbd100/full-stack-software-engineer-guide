@@ -217,9 +217,13 @@ registerApplication({
 start();
 ```
 
-### Layered Architecture
+### 💡 **Layered Architecture**
 
 Hierarchical organization separating presentation, business logic, and data access into distinct layers.
+
+**How It Works:**
+
+Each layer has a specific responsibility and can only communicate with the layer directly below it, enforcing a clean separation of concerns.
 
 ```
 ┌─────────────────────────────────────┐
@@ -243,6 +247,18 @@ Hierarchical organization separating presentation, business logic, and data acce
 │  - Cache Layer                      │
 └─────────────────────────────────────┘
 ```
+
+**When to Use:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Enterprise applications | ✅ Clear boundaries |
+| Multiple teams working in parallel | ✅ Reduces conflicts |
+| Need strict separation of concerns | ✅ Enforced by architecture |
+| Small apps or prototypes | ❌ Too much overhead |
+
+**Key Insight:**
+> Layered architecture enforces dependency direction — upper layers depend on lower layers, never the reverse. This makes each layer independently testable and replaceable.
 
 ## Interview Questions
 
@@ -311,38 +327,54 @@ function NestedComponent() {
 
 Advanced patterns for managing application state, data flow, and dependency organization.
 
-### Flux Architecture
+### 💡 **Flux Architecture**
 
-**What is Flux?**
-Flux is an architectural pattern introduced by Facebook to address problems with bidirectional data flow in large applications. It enforces a strict unidirectional data flow, making application state more predictable and easier to debug.
+Unidirectional data flow pattern with Actions, Dispatcher, Stores, and Views for predictable state management.
 
-**The Problem with Bidirectional Flow:**
+**The Problem It Solves:**
+
 In traditional MVC, models and views can update each other, creating complex dependency chains that are hard to track and debug as the application grows. Changes cascade in unpredictable ways.
 
-**Flux Solution - Unidirectional Flow:**
+**How It Works:**
+
+```
 Action → Dispatcher → Store → View → (back to Action)
+```
 
 This one-way flow makes it easy to understand how data moves through your application.
 
 **Core Components:**
+
 1. **Actions**: Objects describing what happened (e.g., "user clicked button")
 2. **Dispatcher**: Central hub that receives actions and distributes to stores
 3. **Stores**: Hold application state and business logic
 4. **Views**: React components that render based on store data
 
-**Benefits:**
+**When to Use:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Large apps with complex state | ✅ Predictable flow |
+| Need time-travel debugging | ✅ Every action logged |
+| Multiple data consumers | ✅ Single source of truth |
+| Simple apps / prototypes | ❌ Too much boilerplate |
+| Small local state | ❌ Overkill |
+
+**Trade-offs:**
+
+**Pros:**
 - Predictable state updates (always follow the same path)
 - Easier debugging (can log every action and state change)
 - Scales well to large applications
 - Foundation for Redux and other state management libraries
 
-**Trade-offs:**
-✅ Predictable data flow
-✅ Excellent for large applications
-❌ More boilerplate code
-❌ Overkill for simple apps
+**Cons:**
+- More boilerplate code than simpler patterns
+- Overkill for simple applications
+- Learning curve for new developers
 
-Unidirectional data flow pattern with Actions, Dispatcher, Stores, and Views for predictable state management.
+**Key Insight:**
+> Flux's strict unidirectional flow trades development speed for predictability. It's the conceptual foundation of Redux — understanding Flux makes Redux intuitive.
 ```javascript
 // Action
 const addTodo = (text) => ({
@@ -383,9 +415,41 @@ function TodoList() {
 }
 ```
 
-### Clean Architecture
+### 💡 **Clean Architecture**
 
 Dependency rule-based architecture organizing code in concentric layers with business logic at the center.
+
+**How It Works:**
+
+Code is organized in concentric layers where dependencies point inward — outer layers depend on inner layers, never the reverse.
+
+```
+┌─────────────────────────────────────────┐
+│  Frameworks & Drivers (UI, DB, Web)     │
+│  ┌─────────────────────────────────┐    │
+│  │  Interface Adapters (Controllers)│    │
+│  │  ┌─────────────────────────┐    │    │
+│  │  │  Use Cases (App Logic)  │    │    │
+│  │  │  ┌─────────────────┐   │    │    │
+│  │  │  │  Entities (Core)│   │    │    │
+│  │  │  └─────────────────┘   │    │    │
+│  │  └─────────────────────────┘    │    │
+│  └─────────────────────────────────┘    │
+└─────────────────────────────────────────┘
+```
+
+**When to Use:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Large enterprise applications | ✅ Excellent testability |
+| Long-lived projects | ✅ Easy to evolve |
+| Need to swap frameworks | ✅ Core is framework-agnostic |
+| Small apps / MVPs | ❌ Over-engineered |
+| Prototypes | ❌ Too many layers |
+
+**Key Insight:**
+> Clean Architecture's dependency rule means your business logic never knows about React, databases, or APIs. You could swap React for Vue without touching core logic.
 
 ```typescript
 // Domain Layer (Entities)
@@ -467,7 +531,7 @@ Guidelines and principles for building maintainable, scalable, and performant fr
 
 Reusable solutions to common problems in React and component-based architectures.
 
-### Presentational vs Container Components
+### 💡 **Presentational vs Container Components**
 
 Separation pattern dividing components into stateless UI (presentational) and stateful logic (container) components.
 ```jsx
@@ -497,7 +561,7 @@ const UserCardContainer = ({ userId }) => {
 };
 ```
 
-### Higher-Order Components (HOC)
+### 💡 **Higher-Order Components (HOC)**
 
 Function that takes a component and returns a new component with additional props or behavior.
 
@@ -516,9 +580,11 @@ function withAuth(Component) {
 const ProtectedPage = withAuth(Dashboard);
 ```
 
-### Render Props Pattern
+### 💡 **Render Props Pattern**
 
 Pattern using a function prop to share code and logic between components through rendering.
+
+> ⚠️ **Note:** With React Hooks, render props are less common. Custom hooks often provide a cleaner solution for sharing logic.
 
 ```jsx
 class DataFetcher extends React.Component {
@@ -544,12 +610,18 @@ class DataFetcher extends React.Component {
 ```
 
 ## Summary
-- Frontend architecture defines structure and organization
-- Choose patterns based on application scale and complexity
-- Component-based architectures dominate modern frameworks
-- Micro-frontends enable team autonomy at scale
-- Clean architecture improves testability and maintainability
-- Balance simplicity with scalability needs
+
+| Pattern | Best For | Key Benefit |
+|---------|----------|-------------|
+| **MVC** | Server-rendered apps | Clear separation of concerns |
+| **Component-Based** | Modern SPAs | Reusability and encapsulation |
+| **Micro-Frontends** | Large orgs (5+ teams) | Team autonomy |
+| **Layered** | Enterprise apps | Strict boundaries |
+| **Flux/Redux** | Complex state | Predictable data flow |
+| **Clean Architecture** | Long-lived projects | Framework independence |
+
+**Key Insight:**
+> Architecture is about trade-offs. Start simple (component-based), add complexity only when scale demands it. Over-architecting a small app is worse than under-architecting a growing one.
 
 ---
 [← Back to SystemDesign](../README.md)

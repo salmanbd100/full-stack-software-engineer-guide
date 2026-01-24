@@ -5,7 +5,23 @@ A design system is a collection of reusable components, guided by clear standard
 
 ## Components of a Design System
 
-Core building blocks including design tokens, component libraries, and documentation that form a complete design system.
+```
+Design System Architecture:
+┌─────────────────────────────────────────┐
+│           Design Tokens                  │
+│  (Colors, Spacing, Typography, Shadows)  │
+└─────────────────────┬───────────────────┘
+                      ↓
+┌─────────────────────────────────────────┐
+│         Component Library                │
+│  (Atoms → Molecules → Organisms)         │
+└─────────────────────┬───────────────────┘
+                      ↓
+┌─────────────────────────────────────────┐
+│        Documentation & Guidelines        │
+│  (Storybook, Usage Docs, Accessibility)  │
+└─────────────────────────────────────────┘
+```
 
 ### 💡 **1. Design Tokens**
 
@@ -533,9 +549,9 @@ export function ProductsPage() {
 }
 ```
 
-## Theming
+## 💡 **Theming**
 
-Dynamic styling system enabling multiple visual themes like light/dark modes and brand variations across the design system.
+System for switching between visual themes (light/dark mode, brand variations) using CSS custom properties and styled-components.
 
 Support multiple themes (light/dark mode, brand variations).
 
@@ -896,13 +912,17 @@ A: Approaches:
 
 ## Summary
 
-- Design systems ensure consistency and speed development
-- Built from design tokens, components, and documentation
-- Atomic design provides clear hierarchy
-- Versioning and publishing enable team adoption
-- Accessibility should be built-in, not added later
-- Testing includes unit, integration, and visual regression
-- Clear governance and contribution process critical for scale
+| Layer | What It Contains | Example |
+|-------|-----------------|---------|
+| **Design Tokens** | Colors, spacing, typography | `primary.500: #2196f3` |
+| **Atoms** | Smallest UI elements | Button, Input, Icon |
+| **Molecules** | Grouped atoms | SearchBar, FormField |
+| **Organisms** | Complex UI sections | Navbar, ProductCard |
+| **Templates** | Page layouts | ProductListTemplate |
+| **Pages** | Templates with real data | ProductsPage |
+
+**Key Insight:**
+> A design system is only successful if teams actually use it. Invest equally in component quality and developer experience (documentation, Storybook, easy installation). The best design system is the one people voluntarily adopt.
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

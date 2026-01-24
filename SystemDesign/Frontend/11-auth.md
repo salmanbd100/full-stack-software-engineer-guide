@@ -156,9 +156,9 @@ app.post('/api/auth/logout', (req, res) => {
 });
 ```
 
-### OAuth 2.0 / Social Login
+### 💡 **OAuth 2.0 / Social Login**
 
-Third-party authentication using providers like Google, Facebook for simplified user onboarding and security.
+Third-party authentication delegating identity verification to trusted providers (Google, Facebook, GitHub).
 
 ```javascript
 // OAuth flow with Google
@@ -853,12 +853,22 @@ setInterval(async () => {
 
 ## Summary
 
-- JWT enables stateless authentication, sessions require server storage
-- Store tokens securely (httpOnly cookies or memory)
-- Implement refresh tokens for better security
-- RBAC for simple permissions, ABAC for complex scenarios
-- Always use HTTPS and protect against XSS/CSRF
-- MFA adds extra security layer for sensitive operations
+| Approach | Stateless | Storage | Best For |
+|----------|----------|---------|----------|
+| **JWT** | Yes | Client-side | SPAs, microservices |
+| **Sessions** | No | Server-side | Traditional web apps |
+| **OAuth 2.0** | Varies | Provider | Social login, third-party |
+
+**Token Storage Security:**
+
+| Location | XSS Risk | CSRF Risk | Recommendation |
+|----------|---------|-----------|----------------|
+| **localStorage** | ❌ Vulnerable | ✅ Safe | Avoid for sensitive apps |
+| **httpOnly Cookie** | ✅ Safe | ❌ Vulnerable | Use with CSRF token |
+| **Memory (variable)** | ✅ Safe | ✅ Safe | Best security, lost on refresh |
+
+**Key Insight:**
+> Never store sensitive tokens in localStorage — it's accessible to any JavaScript on the page (XSS attack surface). Use httpOnly cookies with CSRF protection, or store in memory with a refresh token in a secure cookie.
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

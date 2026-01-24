@@ -41,7 +41,10 @@ While Google can index JavaScript-rendered content, it's not ideal:
 - Social media crawlers (Facebook, Twitter) don't execute JavaScript
 - Less reliable than server-rendered content
 
-Traditional Single Page Applications where rendering happens entirely in the browser.
+**Key Insight:**
+> CSR trades initial load speed for subsequent navigation speed. Perfect for authenticated apps where SEO doesn't matter.
+
+**Implementation:**
 
 ```javascript
 // CSR with React
@@ -133,7 +136,10 @@ SSR provides fast initial paint and good SEO, but requires a Node.js server (hig
 ❌ Very high traffic (server costs)
 ❌ Static content (use SSG instead)
 
-HTML is generated on the server for each request.
+**Key Insight:**
+> SSR gives you the best of both worlds — SEO-friendly content with full interactivity after hydration. The trade-off is server infrastructure costs and slower TTFB.
+
+**Implementation:**
 
 ```javascript
 // SSR with Next.js
@@ -190,7 +196,35 @@ export default function Page({ data }) {
 
 ### 💡 **Static Site Generation (SSG)**
 
-HTML is generated at build time and served from CDN.
+**What is Static Site Generation?**
+
+SSG pre-renders all pages at build time, creating static HTML files that are deployed to a CDN. When a user requests a page, the CDN serves the pre-built HTML instantly — no server computation needed.
+
+**How SSG Works:**
+
+1. Build process runs (e.g., `next build`)
+2. Framework fetches all data needed for every page
+3. React components render to static HTML files
+4. HTML files deploy to CDN/static hosting
+5. Users receive pre-built HTML instantly
+6. JavaScript hydrates for interactivity
+
+**The SSG Trade-off:**
+
+SSG provides the fastest possible delivery (pre-built files from CDN) but content becomes stale between builds. Any data change requires a full rebuild and redeploy.
+
+**When to Use SSG:**
+- ✅ Content changes infrequently (blogs, docs, portfolios)
+- ✅ Maximum performance is critical
+- ✅ Low infrastructure cost desired
+- ❌ Content changes frequently (use ISR or SSR)
+- ❌ Personalized content per user (use CSR or SSR)
+- ❌ Thousands of pages that change often (build times too long)
+
+**Key Insight:**
+> SSG is the fastest rendering strategy because there's zero server computation at request time. If your content can be pre-built, always prefer SSG.
+
+**Implementation:**
 
 ```javascript
 // SSG with Next.js
@@ -258,7 +292,35 @@ export default function Post({ posts }) {
 
 ### 💡 **Incremental Static Regeneration (ISR)**
 
-Combines benefits of SSG and SSR by allowing static pages to be updated after build.
+**What is ISR?**
+
+ISR combines the performance of SSG with the freshness of SSR. Pages are statically generated at build time but can be regenerated in the background after a specified time interval — no full rebuild needed.
+
+**How ISR Works:**
+
+1. Initial build generates static pages (like SSG)
+2. CDN serves the static page to users
+3. After `revalidate` time expires, next request triggers background regeneration
+4. New static page is generated with fresh data
+5. CDN swaps old page with new one
+6. Subsequent users get the updated page
+
+**The ISR Trade-off:**
+
+ISR gives SSG-level performance with near-real-time freshness. The trade-off is that the first visitor after the revalidation window sees stale content (which triggers the regeneration for the next visitor).
+
+**When to Use ISR:**
+- ✅ Content updates periodically (hourly, daily)
+- ✅ Too many pages to rebuild entirely
+- ✅ Need fresh content without full rebuilds
+- ✅ E-commerce with changing inventory/prices
+- ❌ Content must be real-time (use SSR)
+- ❌ Personalized per user (use CSR)
+
+**Key Insight:**
+> ISR is the "best of both worlds" — SSG performance with SSR freshness. For most content-driven sites, ISR is the optimal choice.
+
+**Implementation:**
 
 ```javascript
 // ISR with Next.js
@@ -313,6 +375,27 @@ export default function Products({ products }) {
 
 ### 💡 **Progressive Hydration**
 
+**What is Progressive Hydration?**
+
+Instead of hydrating the entire page at once (which blocks interactivity), progressive hydration prioritizes critical above-the-fold components and defers hydration of below-fold content until needed.
+
+**How It Works:**
+
+```
+Page loads with full HTML (from SSR/SSG)
+    ↓
+Critical components hydrate immediately (Header, Hero)
+    ↓
+Non-critical components hydrate on scroll/interaction
+    ↓
+Result: Faster TTI with same full HTML
+```
+
+**When to Use:**
+- ✅ Pages with lots of interactive components
+- ✅ Long pages where most content is below fold
+- ✅ Need to improve Time to Interactive (TTI)
+
 Load and hydrate components progressively based on priority.
 
 ```javascript
@@ -359,6 +442,33 @@ export default function ProductPage() {
 - Reduced initial JavaScript
 
 ### 💡 **Islands Architecture**
+
+**What is Islands Architecture?**
+
+Islands architecture treats the page as a sea of static HTML with interactive "islands" that hydrate independently. Only interactive components ship JavaScript — the rest stays as zero-JS static HTML.
+
+**How It Works:**
+
+```
+┌────────────────────────────────────────┐
+│  Static HTML (No JavaScript)           │
+│  ┌──────────┐        ┌──────────┐     │
+│  │ Interactive│       │ Interactive│    │
+│  │  Island 1 │       │  Island 2 │    │
+│  │  (React)  │       │   (Vue)   │    │
+│  └──────────┘        └──────────┘     │
+│                                        │
+│  Static HTML continues...              │
+└────────────────────────────────────────┘
+```
+
+**When to Use:**
+- ✅ Content-heavy sites with few interactive widgets
+- ✅ Want minimal JavaScript sent to client
+- ✅ Performance is the top priority
+- ❌ Highly interactive apps (dashboards, SPAs)
+
+**Frameworks:** Astro, Fresh (Deno), Eleventy
 
 Only interactive components are hydrated, rest remains static HTML.
 
@@ -518,12 +628,17 @@ Example: Product catalog with prices that change daily.
 
 ## Summary
 
-- **CSR**: Best for authenticated apps, poor for SEO
-- **SSR**: Best for dynamic content needing SEO
-- **SSG**: Best for static content, optimal performance
-- **ISR**: Best of SSG + SSR, great for most use cases
-- **Hybrid**: Combine strategies based on page requirements
-- Choose based on: SEO needs, content freshness, scale, budget
+| Strategy | Best For | Key Trade-off |
+|----------|----------|---------------|
+| **CSR** | Authenticated dashboards | Fast nav, slow initial load |
+| **SSR** | SEO + dynamic content | Fresh data, higher server cost |
+| **SSG** | Static content | Fastest delivery, stale data |
+| **ISR** | Most content sites | Best of SSG + SSR |
+| **Progressive Hydration** | Long interactive pages | Faster TTI |
+| **Islands** | Content sites + few widgets | Minimal JS |
+
+**Key Insight:**
+> Don't pick one strategy for your entire app. Modern frameworks like Next.js let you use different strategies per page — SSG for marketing, ISR for products, CSR for dashboards.
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

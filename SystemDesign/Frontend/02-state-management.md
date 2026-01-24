@@ -53,7 +53,11 @@ Redux is a predictable state container that implements the Flux pattern with som
 4. Store updates and notifies subscribers
 5. Component re-renders with new state
 
-Predictable state container using unidirectional data flow with actions, reducers, and a single store.
+**Key Insight:**
+> Redux is predictable because the same action always produces the same state. This makes debugging trivial — you can replay every action to reproduce any bug.
+
+**Implementation Example:**
+
 ```javascript
 // Actions
 const INCREMENT = 'INCREMENT';
@@ -102,9 +106,8 @@ const fetchUsers = () => async (dispatch) => {
 };
 ```
 
-### Redux Toolkit (Modern Approach)
+### 💡 **Redux Toolkit (Modern Approach)**
 
-**What is Redux Toolkit?**
 Redux Toolkit (RTK) is the official, recommended way to write Redux code. It provides utilities that simplify common Redux patterns and reduce boilerplate code by 50-70% compared to vanilla Redux.
 
 **Why Redux Toolkit Exists:**
@@ -129,7 +132,10 @@ Classic Redux required too much boilerplate:
 **When to Use RTK:**
 If you're using Redux, always use Redux Toolkit. There's no reason to use vanilla Redux in new projects.
 
-Official opinionated toolset for efficient Redux development, reducing boilerplate with built-in best practices.
+**Key Insight:**
+> If you're using Redux, always use Redux Toolkit. There's no reason to use vanilla Redux in new projects — RTK is simpler, faster, and has built-in best practices.
+
+**Implementation Example:**
 
 ```javascript
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
@@ -209,7 +215,10 @@ Context provides a way to pass data through the component tree without manually 
 **Performance Consideration:**
 Every context update re-renders ALL consumers, even if they only use part of the context. Solution: Split contexts or use selector libraries.
 
-React's built-in state management solution combining Context for distribution and useReducer for complex state logic.
+**Key Insight:**
+> Context + useReducer is "Redux lite" — good enough for medium apps, but beware of re-render performance issues in large apps. Every context update re-renders ALL consumers.
+
+**Implementation Example:**
 
 ```jsx
 // Context with reducer
@@ -290,7 +299,10 @@ Zustand is a small, fast state management library that offers Redux-like capabil
 - Automatic shallow equality checks
 - TypeScript support
 
-Minimal state management library with simple API and no boilerplate, offering Redux-like capabilities without the complexity.
+**Key Insight:**
+> Zustand offers the best developer experience for medium apps — no providers, no reducers, no boilerplate. It's Redux's simplicity without Redux's ceremony.
+
+**Implementation Example:**
 
 ```javascript
 import create from 'zustand';
@@ -374,7 +386,10 @@ Recoil is Facebook's experimental state management library that takes a fundamen
 - Composable selectors
 - Works great with React Concurrent Mode
 
-Facebook's experimental state library using atoms and selectors for granular, composable state management with automatic dependency tracking.
+**Key Insight:**
+> Recoil's atom-based approach means only components subscribing to a changed atom re-render — solving Context's biggest performance problem. Think of atoms as "distributed useState".
+
+**Implementation Example:**
 
 ```javascript
 import { atom, selector, useRecoilState, useRecoilValue } from 'recoil';
@@ -552,7 +567,11 @@ Store data in flat lookup tables (like database tables) with IDs as references.
 ❌ Data only used in one place
 ❌ Very small datasets
 
-Flat data structure using lookup tables instead of nested objects for efficient access and updates.
+**Key Insight:**
+> Think of normalized state like a relational database — entities in lookup tables, referenced by IDs. This eliminates duplication and makes updates O(1) instead of O(n).
+
+**❌ Before (Nested - Problem):**
+
 ```javascript
 // Instead of nested data
 const badState = {
@@ -568,7 +587,7 @@ const badState = {
   ]
 };
 
-// Use normalized structure
+// ✅ After (Normalized - Solution)
 const goodState = {
   entities: {
     users: {
@@ -631,12 +650,22 @@ Guidelines for organizing, optimizing, and maintaining state management in produ
 - Avoid storing non-serializable values in Redux
 
 ## Summary
-- Choose state management based on application complexity
-- Redux excels at large-scale applications with complex state
-- Context API is sufficient for simpler state needs
-- Modern alternatives like Zustand offer simpler APIs
-- Normalize state for better performance and maintainability
-- Keep state as local as possible
+
+**Decision Guide:**
+
+| App Complexity | Recommended Solution | Why |
+|----------------|---------------------|-----|
+| Simple (1-3 components) | `useState` | No overhead |
+| Medium (5-10 pages) | Context + useReducer or Zustand | Built-in or minimal deps |
+| Large (10+ pages, complex state) | Redux Toolkit | Predictable, debuggable |
+| Granular reactivity needed | Recoil | Atom-based, minimal re-renders |
+
+**Key Principles:**
+- ✅ Keep state as local as possible
+- ✅ Normalize complex/relational data
+- ✅ Use selectors for derived state
+- ❌ Don't store derived data in state
+- ❌ Don't over-use global state
 
 ---
 [← Back to SystemDesign](../README.md)

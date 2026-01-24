@@ -169,6 +169,27 @@ worker.onmessage = (e) => {
 
 ### 💡 **Cumulative Layout Shift (CLS)**
 
+**What is CLS?**
+
+Cumulative Layout Shift measures visual stability — how much the page layout shifts unexpectedly during loading. Nothing frustrates users more than clicking a button only to have the page shift and accidentally clicking something else.
+
+**Why CLS Matters:**
+- Causes accidental clicks (user frustration)
+- Makes content hard to read while loading
+- Damages trust in the application
+- Google uses it as a ranking factor
+
+**What Causes High CLS:**
+1. **Images without dimensions**: Browser doesn't know size until loaded
+2. **Dynamic content injection**: Ads, banners, or embeds pushing content down
+3. **Web fonts causing FOUT/FOIT**: Text resizes when custom font loads
+4. **Dynamic content above existing content**: New elements inserted above viewport
+
+**CLS Targets:**
+- **Good**: < 0.1
+- **Needs Improvement**: 0.1 - 0.25
+- **Poor**: > 0.25
+
 Measures visual stability. Should be less than 0.1.
 
 ```javascript
@@ -235,14 +256,17 @@ function ProductCard({ loading, product }) {
 }
 ```
 
+**Key Insight:**
+> CLS is the easiest Core Web Vital to fix — always set explicit width/height on images and videos, reserve space for dynamic content, and use `font-display: swap`.
+
 ## Code Optimization
 
-### Bundle Size Reduction
+### 💡 **Bundle Size Reduction**
 
 ```javascript
 // 1. Tree shaking - import only what you need
-import { debounce } from 'lodash-es';  //  Good
-import _ from 'lodash';                 // L Bad - imports everything
+import { debounce } from 'lodash-es';  // ✅ Good - only imports what's needed
+import _ from 'lodash';                 // ❌ Bad - imports everything (70KB+)
 
 // 2. Dynamic imports
 const HeavyComponent = lazy(() => import('./HeavyComponent'));
@@ -259,7 +283,7 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'));
 npx depcheck
 
 // 5. Use smaller alternatives
-// moment.js (232KB) � date-fns (13KB) or day.js (2KB)
+// moment.js (232KB) → date-fns (13KB) or day.js (2KB)
 import { format } from 'date-fns';
 ```
 
@@ -582,18 +606,20 @@ function Analytics() {
 }
 ```
 
-### JavaScript Performance
+### 💡 **JavaScript Performance**
+
+**Key patterns for runtime performance:**
 
 ```javascript
 // 1. Avoid unnecessary DOM manipulation
-// L Bad - multiple reflows
+// ❌ Bad - multiple reflows
 for (let i = 0; i < 1000; i++) {
   const div = document.createElement('div');
   div.textContent = i;
   document.body.appendChild(div);  // Reflow each time
 }
 
-//  Good - single reflow
+// ✅ Good - single reflow
 const fragment = document.createDocumentFragment();
 for (let i = 0; i < 1000; i++) {
   const div = document.createElement('div');
@@ -603,12 +629,12 @@ for (let i = 0; i < 1000; i++) {
 document.body.appendChild(fragment);  // Single reflow
 
 // 2. Use event delegation
-// L Bad - multiple listeners
+// ❌ Bad - multiple listeners
 items.forEach(item => {
   item.addEventListener('click', handleClick);
 });
 
-//  Good - single listener
+// ✅ Good - single listener
 list.addEventListener('click', (e) => {
   if (e.target.matches('.item')) {
     handleClick(e);
@@ -616,13 +642,13 @@ list.addEventListener('click', (e) => {
 });
 
 // 3. Efficient array operations
-// L Bad - multiple iterations
+// ❌ Bad - multiple iterations
 const result = items
   .filter(item => item.active)
   .map(item => item.price)
   .reduce((sum, price) => sum + price, 0);
 
-//  Good - single iteration
+// ✅ Good - single iteration
 const result = items.reduce((sum, item) => {
   return item.active ? sum + item.price : sum;
 }, 0);
@@ -943,4 +969,4 @@ useEffect(() => {
 - Optimize critical rendering path first
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

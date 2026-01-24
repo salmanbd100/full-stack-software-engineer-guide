@@ -851,13 +851,21 @@ if (Math.random() < sampleRate) {
 
 ## Summary
 
-- Observability requires metrics, logs, and traces
-- Core Web Vitals are critical for user experience
-- Error tracking with Sentry provides detailed context
-- RUM shows real user experience in production
-- Dashboards and alerts enable proactive issue detection
-- Balance monitoring detail with performance impact
-- Always respect user privacy in monitoring
+| Pillar | What It Answers | Tools |
+|--------|----------------|-------|
+| **Metrics** | "How is the system performing?" | Custom monitors, web-vitals |
+| **Logs** | "What happened and when?" | Structured logging, log levels |
+| **Traces** | "What was the request path?" | Distributed tracing, spans |
+
+**Monitoring Priorities:**
+
+1. **Core Web Vitals** (LCP, FID, CLS) — user-facing impact
+2. **Error rates** — catch issues before users report them
+3. **API latency** (p50, p95, p99) — performance degradation
+4. **JavaScript exceptions** — unhandled errors in production
+
+**Key Insight:**
+> Monitor percentiles (p95, p99), not averages. An average response time of 200ms hides the fact that 5% of users wait 3+ seconds. Percentile-based alerting catches real problems that averages mask.
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

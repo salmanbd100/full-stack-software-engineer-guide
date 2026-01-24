@@ -51,8 +51,6 @@ Essential metadata for search engines and social media.
 
 ### React Meta Tags
 
-Dynamic meta tag management in React applications using libraries like react-helmet for client-side routing.
-
 ```jsx
 // Using react-helmet
 import { Helmet } from 'react-helmet';
@@ -438,8 +436,6 @@ ReactGA.event('purchase', {
 
 ### Custom Analytics
 
-Building custom analytics tracking system for complete control over data collection and privacy.
-
 ```javascript
 // Custom analytics tracker
 class Analytics {
@@ -799,12 +795,16 @@ Use canonical for duplicate content, redirect for moved pages.
 
 ## Summary
 
-- SEO requires semantic HTML, meta tags, and structured data
-- SSR/SSG provides better SEO than CSR
-- Core Web Vitals impact both UX and search rankings
-- Analytics should be privacy-conscious and performant
-- Structured data helps search engines understand content
-- Cookie consent is required for GDPR compliance
+| SEO Factor | Implementation | Impact |
+|-----------|---------------|--------|
+| **Meta Tags** | `<title>`, `<meta description>` | Search appearance |
+| **Structured Data** | JSON-LD Schema.org | Rich snippets |
+| **Rendering** | SSR/SSG over CSR | Crawlability |
+| **Core Web Vitals** | LCP, FID, CLS optimization | Ranking factor |
+| **Semantic HTML** | Proper heading hierarchy | Content understanding |
+
+**Key Insight:**
+> SEO and performance are the same problem in disguise. Fix Core Web Vitals and you improve both user experience AND search rankings. Google rewards fast, accessible sites.
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)

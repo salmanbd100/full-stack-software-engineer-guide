@@ -50,7 +50,10 @@ Service workers are JavaScript files that run in the background, separate from y
 4. **Network Only**: Always fetch from network
 5. **Cache Only**: Only use cache (offline-only content)
 
-JavaScript that runs in the background, separate from the web page, enabling offline functionality.
+**Key Insight:**
+> Service workers are the foundation of offline-first — they sit between the browser and network, letting you control every request. Master caching strategies and you can make any web app work offline.
+
+**Implementation:**
 
 ```javascript
 // sw.js - Service Worker
@@ -164,7 +167,15 @@ if ('serviceWorker' in navigator) {
 
 ## Caching Strategies
 
-Different caching approaches optimized for various content types, balancing freshness with offline availability.
+**Strategy Decision Table:**
+
+| Strategy | Freshness | Speed | Best For |
+|----------|-----------|-------|----------|
+| **Cache First** | Stale | Fastest | Static assets (CSS, JS, images) |
+| **Network First** | Fresh | Slower | API responses, user data |
+| **Stale While Revalidate** | Balanced | Fast | Semi-dynamic content |
+| **Network Only** | Always fresh | Depends | Analytics, real-time data |
+| **Cache Only** | Stale | Instant | App shell, pre-cached assets |
 
 ### 1. Cache First (Cache Falling Back to Network)
 
@@ -189,7 +200,7 @@ self.addEventListener('fetch', (event) => {
 
 ### 2. Network First (Network Falling Back to Cache)
 
-Prioritizes fresh data from the network, using cached version only when offline for dynamic content. Best for dynamic content where freshness is important.
+Best for dynamic content where freshness is important.
 
 ```javascript
 self.addEventListener('fetch', (event) => {
@@ -215,7 +226,7 @@ self.addEventListener('fetch', (event) => {
 
 ### 3. Stale While Revalidate
 
-Serves cached content immediately for fast response while simultaneously fetching fresh data in the background. Serve from cache immediately, update cache in background.
+Serve from cache immediately, update cache in background for next visit.
 
 ```javascript
 self.addEventListener('fetch', (event) => {
@@ -238,7 +249,7 @@ self.addEventListener('fetch', (event) => {
 
 ### 4. Network Only
 
-Never uses cache, always fetching fresh data from network for real-time or sensitive content. Always fetch from network (e.g., analytics).
+Always fetch from network (e.g., analytics, real-time data).
 
 ```javascript
 self.addEventListener('fetch', (event) => {
@@ -251,7 +262,7 @@ self.addEventListener('fetch', (event) => {
 
 ### 5. Cache Only
 
-Serves content exclusively from cache, ignoring network completely for maximum offline reliability. Only serve from cache (pre-cached assets).
+Only serve from cache (pre-cached assets, app shell).
 
 ```javascript
 self.addEventListener('fetch', (event) => {
@@ -261,13 +272,18 @@ self.addEventListener('fetch', (event) => {
 
 ## Offline Data Management
 
-Strategies for storing and managing application data locally for offline access and synchronization.
-
-### IndexedDB
+### 💡 **IndexedDB**
 
 Browser-based NoSQL database for storing large amounts of structured data with indexing and transactions.
 
-Low-level API for client-side storage of structured data.
+**Storage Comparison:**
+
+| Storage | Size Limit | Async | Structured Data | Use Case |
+|---------|-----------|-------|-----------------|----------|
+| **localStorage** | 5-10MB | No | No (strings only) | Simple key-value |
+| **sessionStorage** | 5-10MB | No | No | Tab-scoped data |
+| **IndexedDB** | 50MB+ | Yes | Yes (indexes) | Offline-first apps |
+| **Cache API** | Varies | Yes | HTTP responses | Request/response caching |
 
 ```javascript
 // Open database
@@ -367,7 +383,7 @@ const deleteTodo = async (id) => {
 
 ### Wrapper Libraries
 
-Higher-level libraries simplifying IndexedDB operations with cleaner APIs and better developer experience.
+> ✨ **Pro Tip:** Raw IndexedDB API is verbose. Use Dexie.js for a cleaner, Promise-based API.
 
 #### Dexie.js (IndexedDB Wrapper)
 
@@ -442,13 +458,9 @@ await localforage.iterate((value, key) => {
 
 ## Sync Strategies
 
-Techniques for synchronizing local and remote data to keep offline changes in sync with the server.
+### 💡 **Background Sync**
 
-### Background Sync
-
-Service Worker API enabling deferred network requests that retry automatically until successful, even after page close.
-
-Defer actions until user has connectivity.
+Defer actions until user has connectivity. The Browser's Background Sync API retries requests automatically, even after the page is closed.
 
 ```javascript
 // Register sync in service worker
@@ -621,9 +633,9 @@ function TodoList() {
   return (
     <div>
       <div className="sync-status">
-        {!isOnline && '� Offline'}
-        {isSyncing && '= Syncing...'}
-        {isOnline && !isSyncing && ' Synced'}
+        {!isOnline && '🔴 Offline'}
+        {isSyncing && '🔄 Syncing...'}
+        {isOnline && !isSyncing && '✅ Synced'}
       </div>
 
       <TodoInput onAdd={addTodo} />
@@ -649,6 +661,15 @@ function TodoList() {
 ```
 
 ## Conflict Resolution
+
+**Conflict Resolution Strategy Comparison:**
+
+| Strategy | Complexity | Data Loss Risk | Best For |
+|----------|-----------|---------------|----------|
+| **Last Write Wins** | Low | High | Simple data, timestamps reliable |
+| **Operational Transform** | High | None | Collaborative text editing |
+| **CRDTs** | Medium-High | None | Distributed systems, counters |
+| **Manual Resolution** | Medium | None (user decides) | Business-critical data |
 
 ### Last Write Wins
 
@@ -850,13 +871,18 @@ A:
 
 ## Summary
 
-- Offline-first improves UX on unreliable networks
-- Service workers enable offline functionality
-- Multiple caching strategies for different content types
-- IndexedDB for client-side data storage
-- Background sync for deferred operations
-- Conflict resolution strategies vary by use case
-- PWAs combine offline capabilities with app-like experience
+**Key Insight:**
+> Offline-first doesn't mean "works without internet." It means "treats the network as an enhancement, not a requirement." Build for offline, then add network sync on top.
+
+**Offline-First Checklist:**
+- ✅ Service worker registered with appropriate caching strategy
+- ✅ Critical app shell cached (Cache First)
+- ✅ API data cached with Network First or Stale While Revalidate
+- ✅ IndexedDB stores structured user data
+- ✅ Background sync handles deferred writes
+- ✅ Conflict resolution strategy chosen
+- ✅ Online/offline status shown to users
+- ✅ Unsynced changes clearly indicated
 
 ---
-[� Back to SystemDesign](../README.md)
+[← Back to SystemDesign](../README.md)
