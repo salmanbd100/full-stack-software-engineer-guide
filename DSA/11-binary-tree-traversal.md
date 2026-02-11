@@ -272,7 +272,7 @@ Or flat: [4, 2, 6, 1, 3, 5, 7]
 
 ---
 
-## Example 1: Binary Tree Inorder Traversal (JavaScript)
+## Example 1: Binary Tree Inorder Traversal (TypeScript)
 
 ### Problem
 Given the root of a binary tree, return the inorder traversal of its nodes' values (Left → Root → Right).
@@ -281,12 +281,16 @@ Given the root of a binary tree, return the inorder traversal of its nodes' valu
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Definition for a binary tree node
  */
 class TreeNode {
-    constructor(val, left = null, right = null) {
+    val: number;
+    left: TreeNode | null;
+    right: TreeNode | null;
+
+    constructor(val: number, left: TreeNode | null = null, right: TreeNode | null = null) {
         this.val = val;
         this.left = left;
         this.right = right;
@@ -295,13 +299,13 @@ class TreeNode {
 
 /**
  * Inorder traversal - Recursive approach
- * @param {TreeNode} root - Root of binary tree
- * @return {number[]} - Inorder traversal values
+ * @param root - Root of binary tree
+ * @returns Inorder traversal values
  */
-function inorderTraversal(root) {
-    const result = [];
+function inorderTraversal(root: TreeNode | null): number[] {
+    const result: number[] = [];
 
-    function traverse(node) {
+    function traverse(node: TreeNode | null): void {
         if (node === null) return;
 
         // Left → Root → Right
@@ -316,13 +320,13 @@ function inorderTraversal(root) {
 
 /**
  * Inorder traversal - Iterative approach using stack
- * @param {TreeNode} root
- * @return {number[]}
+ * @param root - Root of binary tree
+ * @returns Inorder traversal values
  */
-function inorderTraversalIterative(root) {
-    const result = [];
-    const stack = [];
-    let current = root;
+function inorderTraversalIterative(root: TreeNode | null): number[] {
+    const result: number[] = [];
+    const stack: TreeNode[] = [];
+    let current: TreeNode | null = root;
 
     while (current !== null || stack.length > 0) {
         // Go to leftmost node
@@ -332,7 +336,7 @@ function inorderTraversalIterative(root) {
         }
 
         // Current is null, pop from stack
-        current = stack.pop();
+        current = stack.pop()!;
         result.push(current.val);    // Process node
 
         // Move to right subtree
@@ -343,24 +347,24 @@ function inorderTraversalIterative(root) {
 }
 
 // Helper function to create tree from array (level-order)
-function createTree(arr) {
-    if (!arr.length) return null;
+function createTree(arr: (number | null)[]): TreeNode | null {
+    if (!arr.length || arr[0] === null) return null;
 
-    const root = new TreeNode(arr[0]);
-    const queue = [root];
-    let i = 1;
+    const root: TreeNode = new TreeNode(arr[0]);
+    const queue: TreeNode[] = [root];
+    let i: number = 1;
 
     while (queue.length && i < arr.length) {
-        const node = queue.shift();
+        const node: TreeNode = queue.shift()!;
 
         if (i < arr.length && arr[i] !== null) {
-            node.left = new TreeNode(arr[i]);
+            node.left = new TreeNode(arr[i] as number);
             queue.push(node.left);
         }
         i++;
 
         if (i < arr.length && arr[i] !== null) {
-            node.right = new TreeNode(arr[i]);
+            node.right = new TreeNode(arr[i] as number);
             queue.push(node.right);
         }
         i++;
@@ -375,7 +379,7 @@ function createTree(arr) {
 //             2
 //            /
 //           3
-const root1 = createTree([1, null, 2, 3]);
+const root1: TreeNode | null = createTree([1, null, 2, 3]);
 console.log(inorderTraversal(root1));           // Output: [1, 3, 2]
 console.log(inorderTraversalIterative(root1));  // Output: [1, 3, 2]
 
@@ -384,7 +388,7 @@ console.log(inorderTraversalIterative(root1));  // Output: [1, 3, 2]
 //          2     6
 //         / \   / \
 //        1   3 5   7
-const root2 = createTree([4, 2, 6, 1, 3, 5, 7]);
+const root2: TreeNode | null = createTree([4, 2, 6, 1, 3, 5, 7]);
 console.log(inorderTraversal(root2));           // Output: [1, 2, 3, 4, 5, 6, 7]
 // Note: For BST, inorder gives sorted order!
 ```
@@ -393,11 +397,11 @@ console.log(inorderTraversal(root2));           // Output: [1, 2, 3, 4, 5, 6, 7]
 
 Let's trace through the recursive approach step by step:
 
-```javascript
-function inorderTraversal(root) {
-    const result = [];  // This array will collect all node values
+```typescript
+function inorderTraversal(root: TreeNode | null): number[] {
+    const result: number[] = [];  // This array will collect all node values
 
-    function traverse(node) {
+    function traverse(node: TreeNode | null): void {
         // BASE CASE: If node is null, we've reached the end of a branch
         if (node === null) return;
 
@@ -448,11 +452,11 @@ Final result: [1, 3, 2]
 
 The iterative version uses a **stack** to simulate the recursion:
 
-```javascript
-function inorderTraversalIterative(root) {
-    const result = [];
-    const stack = [];      // Simulates call stack
-    let current = root;
+```typescript
+function inorderTraversalIterative(root: TreeNode | null): number[] {
+    const result: number[] = [];
+    const stack: TreeNode[] = [];      // Simulates call stack
+    let current: TreeNode | null = root;
 
     // Keep going while there are nodes to process
     while (current !== null || stack.length > 0) {
@@ -466,7 +470,7 @@ function inorderTraversalIterative(root) {
         // When this loop ends, current is null (found leftmost)
 
         // PHASE 2: Process node from stack
-        current = stack.pop();        // Get the leftmost unprocessed node
+        current = stack.pop()!;       // Get the leftmost unprocessed node
         result.push(current.val);     // Process it
 
         // PHASE 3: Move to right subtree
@@ -574,20 +578,20 @@ FINAL: [1, 2, 3, 4, 5, 6, 7]
 
 ---
 
-## Example 2: Preorder and Postorder Traversals (JavaScript)
+## Example 2: Preorder and Postorder Traversals (TypeScript)
 
 ### Preorder Traversal (Root → Left → Right)
 
-```javascript
+```typescript
 /**
  * Preorder traversal - Recursive
- * @param {TreeNode} root
- * @return {number[]}
+ * @param root - Root of binary tree
+ * @returns Preorder traversal values
  */
-function preorderTraversal(root) {
-    const result = [];
+function preorderTraversal(root: TreeNode | null): number[] {
+    const result: number[] = [];
 
-    function traverse(node) {
+    function traverse(node: TreeNode | null): void {
         if (node === null) return;
 
         // Root → Left → Right
@@ -602,17 +606,17 @@ function preorderTraversal(root) {
 
 /**
  * Preorder traversal - Iterative using stack
- * @param {TreeNode} root
- * @return {number[]}
+ * @param root - Root of binary tree
+ * @returns Preorder traversal values
  */
-function preorderTraversalIterative(root) {
+function preorderTraversalIterative(root: TreeNode | null): number[] {
     if (root === null) return [];
 
-    const result = [];
-    const stack = [root];
+    const result: number[] = [];
+    const stack: TreeNode[] = [root];
 
     while (stack.length > 0) {
-        const node = stack.pop();
+        const node: TreeNode = stack.pop()!;
         result.push(node.val);     // Process node immediately
 
         // Push right first, then left (stack is LIFO)
@@ -625,7 +629,7 @@ function preorderTraversalIterative(root) {
 }
 
 // Example
-const tree = createTree([4, 2, 6, 1, 3, 5, 7]);
+const tree: TreeNode | null = createTree([4, 2, 6, 1, 3, 5, 7]);
 console.log(preorderTraversal(tree));  // Output: [4, 2, 1, 3, 6, 5, 7]
 ```
 
@@ -638,16 +642,16 @@ console.log(preorderTraversal(tree));  // Output: [4, 2, 1, 3, 6, 5, 7]
 
 ### Postorder Traversal (Left → Right → Root)
 
-```javascript
+```typescript
 /**
  * Postorder traversal - Recursive
- * @param {TreeNode} root
- * @return {number[]}
+ * @param root - Root of binary tree
+ * @returns Postorder traversal values
  */
-function postorderTraversal(root) {
-    const result = [];
+function postorderTraversal(root: TreeNode | null): number[] {
+    const result: number[] = [];
 
-    function traverse(node) {
+    function traverse(node: TreeNode | null): void {
         if (node === null) return;
 
         // Left → Right → Root
@@ -662,19 +666,19 @@ function postorderTraversal(root) {
 
 /**
  * Postorder traversal - Iterative using two stacks
- * @param {TreeNode} root
- * @return {number[]}
+ * @param root - Root of binary tree
+ * @returns Postorder traversal values
  */
-function postorderTraversalIterative(root) {
+function postorderTraversalIterative(root: TreeNode | null): number[] {
     if (root === null) return [];
 
-    const result = [];
-    const stack1 = [root];
-    const stack2 = [];
+    const result: number[] = [];
+    const stack1: TreeNode[] = [root];
+    const stack2: TreeNode[] = [];
 
     // Stack1: Process in reverse postorder
     while (stack1.length > 0) {
-        const node = stack1.pop();
+        const node: TreeNode = stack1.pop()!;
         stack2.push(node);
 
         // Push left first, then right
@@ -685,14 +689,14 @@ function postorderTraversalIterative(root) {
     // Stack2 has nodes in reverse postorder
     // Pop to get postorder
     while (stack2.length > 0) {
-        result.push(stack2.pop().val);
+        result.push(stack2.pop()!.val);
     }
 
     return result;
 }
 
 // Example
-const tree = createTree([4, 2, 6, 1, 3, 5, 7]);
+const tree: TreeNode | null = createTree([4, 2, 6, 1, 3, 5, 7]);
 console.log(postorderTraversal(tree));  // Output: [1, 3, 2, 5, 7, 6, 4]
 ```
 
@@ -702,7 +706,7 @@ console.log(postorderTraversal(tree));  // Output: [1, 3, 2, 5, 7, 6, 4]
 
 ---
 
-## Example 3: Binary Tree Level Order Traversal (Python)
+## Example 3: Binary Tree Level Order Traversal (TypeScript)
 
 ### Problem
 Given the root of a binary tree, return the level order traversal of its nodes' values (from left to right, level by level).
@@ -711,170 +715,195 @@ Given the root of a binary tree, return the level order traversal of its nodes' 
 
 ### Solution
 
-```python
-from typing import Optional, List
-from collections import deque
+```typescript
+/**
+ * Definition for a binary tree node
+ */
+class TreeNode {
+    val: number;
+    left: TreeNode | null;
+    right: TreeNode | null;
 
-class TreeNode:
-    """Definition for a binary tree node"""
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+    constructor(val: number = 0, left: TreeNode | null = null, right: TreeNode | null = null) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
 
-class Solution:
-    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
-        """
-        Level order traversal using BFS with queue
+/**
+ * Level order traversal using BFS with queue
+ * @param root - Root of binary tree
+ * @returns List of lists, each containing nodes at that level
+ */
+function levelOrder(root: TreeNode | null): number[][] {
+    if (root === null) {
+        return [];
+    }
 
-        Args:
-            root: Root of binary tree
+    const result: number[][] = [];
+    const queue: TreeNode[] = [root];
 
-        Returns:
-            List of lists, each containing nodes at that level
-        """
-        if not root:
-            return []
+    while (queue.length > 0) {
+        const levelSize: number = queue.length;  // Number of nodes at current level
+        const currentLevel: number[] = [];
 
-        result = []
-        queue = deque([root])
+        // Process all nodes at current level
+        for (let i = 0; i < levelSize; i++) {
+            const node: TreeNode = queue.shift()!;
+            currentLevel.push(node.val);
 
-        while queue:
-            level_size = len(queue)  # Number of nodes at current level
-            current_level = []
+            // Add children to queue for next level
+            if (node.left) {
+                queue.push(node.left);
+            }
+            if (node.right) {
+                queue.push(node.right);
+            }
+        }
 
-            # Process all nodes at current level
-            for _ in range(level_size):
-                node = queue.popleft()
-                current_level.append(node.val)
+        result.push(currentLevel);
+    }
 
-                # Add children to queue for next level
-                if node.left:
-                    queue.append(node.left)
-                if node.right:
-                    queue.append(node.right)
+    return result;
+}
 
-            result.append(current_level)
+/**
+ * Alternative: Recursive DFS approach with level tracking
+ * @param root - Root of binary tree
+ * @returns List of lists, each containing nodes at that level
+ */
+function levelOrderRecursive(root: TreeNode | null): number[][] {
+    const result: number[][] = [];
 
-        return result
+    function dfs(node: TreeNode | null, level: number): void {
+        if (node === null) {
+            return;
+        }
 
-    def levelOrderRecursive(self, root: Optional[TreeNode]) -> List[List[int]]:
-        """
-        Alternative: Recursive DFS approach with level tracking
-        """
-        result = []
+        // Create new level list if this is first node at this level
+        if (level === result.length) {
+            result.push([]);
+        }
 
-        def dfs(node, level):
-            if not node:
-                return
+        // Add current node to its level
+        result[level].push(node.val);
 
-            # Create new level list if this is first node at this level
-            if level == len(result):
-                result.append([])
+        // Recursively process children at next level
+        dfs(node.left, level + 1);
+        dfs(node.right, level + 1);
+    }
 
-            # Add current node to its level
-            result[level].append(node.val)
+    dfs(root, 0);
+    return result;
+}
 
-            # Recursively process children at next level
-            dfs(node.left, level + 1)
-            dfs(node.right, level + 1)
+/**
+ * Helper function to create tree from level-order list
+ * @param values - Array of values in level-order
+ * @returns Root of created binary tree
+ */
+function createTreeForLevelOrder(values: (number | null)[]): TreeNode | null {
+    if (values.length === 0 || values[0] === null) {
+        return null;
+    }
 
-        dfs(root, 0)
-        return result
+    const root: TreeNode = new TreeNode(values[0]);
+    const queue: TreeNode[] = [root];
+    let i: number = 1;
 
-# Helper function to create tree
-def create_tree(values):
-    """Create binary tree from level-order list"""
-    if not values:
-        return None
+    while (queue.length > 0 && i < values.length) {
+        const node: TreeNode = queue.shift()!;
 
-    root = TreeNode(values[0])
-    queue = deque([root])
-    i = 1
+        if (i < values.length && values[i] !== null) {
+            node.left = new TreeNode(values[i] as number);
+            queue.push(node.left);
+        }
+        i++;
 
-    while queue and i < len(values):
-        node = queue.popleft()
+        if (i < values.length && values[i] !== null) {
+            node.right = new TreeNode(values[i] as number);
+            queue.push(node.right);
+        }
+        i++;
+    }
 
-        if i < len(values) and values[i] is not None:
-            node.left = TreeNode(values[i])
-            queue.append(node.left)
-        i += 1
+    return root;
+}
 
-        if i < len(values) and values[i] is not None:
-            node.right = TreeNode(values[i])
-            queue.append(node.right)
-        i += 1
+// Example usage
 
-    return root
+// Example 1
+//     3
+//    / \
+//   9  20
+//     /  \
+//    15   7
+const root1: TreeNode | null = createTreeForLevelOrder([3, 9, 20, null, null, 15, 7]);
+console.log(levelOrder(root1));
+// Output: [[3], [9, 20], [15, 7]]
 
-# Example usage
-solution = Solution()
+// Example 2
+const root2: TreeNode | null = createTreeForLevelOrder([1]);
+console.log(levelOrder(root2));
+// Output: [[1]]
 
-# Example 1
-#     3
-#    / \
-#   9  20
-#     /  \
-#    15   7
-root1 = create_tree([3, 9, 20, None, None, 15, 7])
-print(solution.levelOrder(root1))
-# Output: [[3], [9, 20], [15, 7]]
+// Example 3
+const root3: TreeNode | null = createTreeForLevelOrder([]);
+console.log(levelOrder(root3));
+// Output: []
 
-# Example 2
-root2 = create_tree([1])
-print(solution.levelOrder(root2))
-# Output: [[1]]
-
-# Example 3
-root3 = create_tree([])
-print(solution.levelOrder(root3))
-# Output: []
-
-# Example 4 - Using recursive approach
-#       1
-#      / \
-#     2   3
-#    / \
-#   4   5
-root4 = create_tree([1, 2, 3, 4, 5])
-print(solution.levelOrderRecursive(root4))
-# Output: [[1], [2, 3], [4, 5]]
+// Example 4 - Using recursive approach
+//       1
+//      / \
+//     2   3
+//    / \
+//   4   5
+const root4: TreeNode | null = createTreeForLevelOrder([1, 2, 3, 4, 5]);
+console.log(levelOrderRecursive(root4));
+// Output: [[1], [2, 3], [4, 5]]
 ```
 
 ### Detailed Code Walkthrough: Level Order (BFS)
 
-```python
-def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
-    # STEP 1: Handle edge case
-    if not root:
-        return []
+```typescript
+function levelOrder(root: TreeNode | null): number[][] {
+    // STEP 1: Handle edge case
+    if (root === null) {
+        return [];
+    }
 
-    result = []           # Final result: list of levels
-    queue = deque([root]) # Queue for BFS (start with root)
+    const result: number[][] = [];           // Final result: list of levels
+    const queue: TreeNode[] = [root];        // Queue for BFS (start with root)
 
-    # STEP 2: Process level by level
-    while queue:
-        # KEY INSIGHT: Snapshot the queue size at START of level
-        level_size = len(queue)
-        # This tells us how many nodes are at current level
+    // STEP 2: Process level by level
+    while (queue.length > 0) {
+        // KEY INSIGHT: Snapshot the queue size at START of level
+        const levelSize: number = queue.length;
+        // This tells us how many nodes are at current level
 
-        current_level = []  # Collect nodes for this level
+        const currentLevel: number[] = [];   // Collect nodes for this level
 
-        # STEP 3: Process EXACTLY level_size nodes
-        for _ in range(level_size):
-            node = queue.popleft()  # Get next node in queue
-            current_level.append(node.val)  # Add to current level
+        // STEP 3: Process EXACTLY levelSize nodes
+        for (let i = 0; i < levelSize; i++) {
+            const node: TreeNode = queue.shift()!;  // Get next node in queue
+            currentLevel.push(node.val);            // Add to current level
 
-            # Add children for NEXT level
-            if node.left:
-                queue.append(node.left)
-            if node.right:
-                queue.append(node.right)
+            // Add children for NEXT level
+            if (node.left) {
+                queue.push(node.left);
+            }
+            if (node.right) {
+                queue.push(node.right);
+            }
+        }
 
-        # STEP 4: After processing all nodes at this level, add to result
-        result.append(current_level)
+        // STEP 4: After processing all nodes at this level, add to result
+        result.push(currentLevel);
+    }
 
-    return result
+    return result;
+}
 ```
 
 **Visual Trace for tree [3, 9, 20, None, None, 15, 7]:**
@@ -1006,11 +1035,11 @@ FINAL: [[3], [9, 20], [15, 7]]
 ### 1. Confusing the Order in Recursive Calls
 
 **WRONG (Trying to do Inorder but got Preorder):**
-```javascript
-function inorderWrong(root) {
-    const result = [];
+```typescript
+function inorderWrong(root: TreeNode | null): number[] {
+    const result: number[] = [];
 
-    function traverse(node) {
+    function traverse(node: TreeNode | null): void {
         if (node === null) return;
 
         result.push(node.val);     // BUG: This makes it PREORDER!
@@ -1024,11 +1053,11 @@ function inorderWrong(root) {
 ```
 
 **RIGHT:**
-```javascript
-function inorderCorrect(root) {
-    const result = [];
+```typescript
+function inorderCorrect(root: TreeNode | null): number[] {
+    const result: number[] = [];
 
-    function traverse(node) {
+    function traverse(node: TreeNode | null): void {
         if (node === null) return;
 
         traverse(node.left);       // Left first
@@ -1048,19 +1077,19 @@ function inorderCorrect(root) {
 ### 2. Level Order: Not Capturing Level Size
 
 **WRONG:**
-```javascript
-function levelOrderWrong(root) {
-    if (!root) return [];
+```typescript
+function levelOrderWrong(root: TreeNode | null): number[][] {
+    if (root === null) return [];
 
-    const result = [];
-    const queue = [root];
+    const result: number[][] = [];
+    const queue: TreeNode[] = [root];
 
     while (queue.length > 0) {
-        const currentLevel = [];
+        const currentLevel: number[] = [];
 
         // BUG: Queue size changes as we add children!
         for (let i = 0; i < queue.length; i++) {  // WRONG!
-            const node = queue.shift();
+            const node: TreeNode = queue.shift()!;
             currentLevel.push(node.val);
 
             if (node.left) queue.push(node.left);
@@ -1077,19 +1106,19 @@ function levelOrderWrong(root) {
 **Why it's wrong:** `queue.length` changes during the loop as we add children, so the loop condition is dynamic and unreliable.
 
 **RIGHT:**
-```javascript
-function levelOrderCorrect(root) {
-    if (!root) return [];
+```typescript
+function levelOrderCorrect(root: TreeNode | null): number[][] {
+    if (root === null) return [];
 
-    const result = [];
-    const queue = [root];
+    const result: number[][] = [];
+    const queue: TreeNode[] = [root];
 
     while (queue.length > 0) {
-        const levelSize = queue.length;  // Snapshot size BEFORE loop
-        const currentLevel = [];
+        const levelSize: number = queue.length;  // Snapshot size BEFORE loop
+        const currentLevel: number[] = [];
 
         for (let i = 0; i < levelSize; i++) {  // Use snapshot
-            const node = queue.shift();
+            const node: TreeNode = queue.shift()!;
             currentLevel.push(node.val);
 
             if (node.left) queue.push(node.left);
@@ -1108,11 +1137,11 @@ function levelOrderCorrect(root) {
 ### 3. Iterative Inorder: Forgetting to Check Stack
 
 **WRONG:**
-```javascript
-function inorderIterativeWrong(root) {
-    const result = [];
-    const stack = [];
-    let current = root;
+```typescript
+function inorderIterativeWrong(root: TreeNode | null): number[] {
+    const result: number[] = [];
+    const stack: TreeNode[] = [];
+    let current: TreeNode | null = root;
 
     while (current !== null) {  // BUG: Only checks current!
         while (current !== null) {
@@ -1120,7 +1149,7 @@ function inorderIterativeWrong(root) {
             current = current.left;
         }
 
-        current = stack.pop();
+        current = stack.pop()!;
         result.push(current.val);
         current = current.right;
     }
@@ -1132,11 +1161,11 @@ function inorderIterativeWrong(root) {
 **Problem:** After processing root's right subtree, `current` becomes null, but stack still has nodes!
 
 **RIGHT:**
-```javascript
-function inorderIterativeCorrect(root) {
-    const result = [];
-    const stack = [];
-    let current = root;
+```typescript
+function inorderIterativeCorrect(root: TreeNode | null): number[] {
+    const result: number[] = [];
+    const stack: TreeNode[] = [];
+    let current: TreeNode | null = root;
 
     while (current !== null || stack.length > 0) {  // Check BOTH!
         while (current !== null) {
@@ -1144,7 +1173,7 @@ function inorderIterativeCorrect(root) {
             current = current.left;
         }
 
-        current = stack.pop();
+        current = stack.pop()!;
         result.push(current.val);
         current = current.right;
     }
@@ -1158,15 +1187,15 @@ function inorderIterativeCorrect(root) {
 ### 4. Preorder Iterative: Wrong Stack Order
 
 **WRONG:**
-```javascript
-function preorderWrong(root) {
-    if (!root) return [];
+```typescript
+function preorderWrong(root: TreeNode | null): number[] {
+    if (root === null) return [];
 
-    const result = [];
-    const stack = [root];
+    const result: number[] = [];
+    const stack: TreeNode[] = [root];
 
     while (stack.length > 0) {
-        const node = stack.pop();
+        const node: TreeNode = stack.pop()!;
         result.push(node.val);
 
         if (node.left) stack.push(node.left);   // BUG: Left pushed last
@@ -1179,15 +1208,15 @@ function preorderWrong(root) {
 ```
 
 **RIGHT:**
-```javascript
-function preorderCorrect(root) {
-    if (!root) return [];
+```typescript
+function preorderCorrect(root: TreeNode | null): number[] {
+    if (root === null) return [];
 
-    const result = [];
-    const stack = [root];
+    const result: number[] = [];
+    const stack: TreeNode[] = [root];
 
     while (stack.length > 0) {
-        const node = stack.pop();
+        const node: TreeNode = stack.pop()!;
         result.push(node.val);
 
         if (node.right) stack.push(node.right); // Push right FIRST
@@ -1269,7 +1298,7 @@ Inorder: [1, 2, 3] + [4] + [5, 6, 7] = [1,2,3,4,5,6,7] ✓ Sorted!
 - Then push **Left** (goes to top)
 - Left gets popped first!
 
-```javascript
+```typescript
 // PREORDER: Root → LEFT → Right
 if (node.right) stack.push(node.right);  // Right BEFORE
 if (node.left) stack.push(node.left);    // Left
@@ -1314,12 +1343,12 @@ BFS (Level):    [1, 2, 3, 4, 5, 6, 7] (go wide first)
 
 **Answer:** Yes! You can use **recursive DFS with level tracking**:
 
-```javascript
-function levelOrderDFS(root) {
-    const result = [];
+```typescript
+function levelOrderDFS(root: TreeNode | null): number[][] {
+    const result: number[][] = [];
 
-    function dfs(node, level) {
-        if (!node) return;
+    function dfs(node: TreeNode | null, level: number): void {
+        if (node === null) return;
 
         // Create level array if first time at this level
         if (level === result.length) {
@@ -1348,27 +1377,27 @@ function levelOrderDFS(root) {
 **Answer:** Two approaches:
 
 **Approach 1:** Normal level order, then reverse result
-```javascript
-function levelOrderBottom(root) {
-    const result = levelOrder(root);  // Get [[1], [2,3], [4,5,6,7]]
-    return result.reverse();           // Return [[4,5,6,7], [2,3], [1]]
+```typescript
+function levelOrderBottom(root: TreeNode | null): number[][] {
+    const result: number[][] = levelOrder(root);  // Get [[1], [2,3], [4,5,6,7]]
+    return result.reverse();                       // Return [[4,5,6,7], [2,3], [1]]
 }
 ```
 
 **Approach 2:** Add levels to front of result
-```javascript
-function levelOrderBottom(root) {
-    if (!root) return [];
+```typescript
+function levelOrderBottomAlt(root: TreeNode | null): number[][] {
+    if (root === null) return [];
 
-    const result = [];
-    const queue = [root];
+    const result: number[][] = [];
+    const queue: TreeNode[] = [root];
 
     while (queue.length > 0) {
-        const levelSize = queue.length;
-        const currentLevel = [];
+        const levelSize: number = queue.length;
+        const currentLevel: number[] = [];
 
         for (let i = 0; i < levelSize; i++) {
-            const node = queue.shift();
+            const node: TreeNode = queue.shift()!;
             currentLevel.push(node.val);
 
             if (node.left) queue.push(node.left);
@@ -1388,18 +1417,18 @@ function levelOrderBottom(root) {
 
 **Answer:** Use level order, but only take the **last node of each level**:
 
-```javascript
-function rightSideView(root) {
-    if (!root) return [];
+```typescript
+function rightSideView(root: TreeNode | null): number[] {
+    if (root === null) return [];
 
-    const result = [];
-    const queue = [root];
+    const result: number[] = [];
+    const queue: TreeNode[] = [root];
 
     while (queue.length > 0) {
-        const levelSize = queue.length;
+        const levelSize: number = queue.length;
 
         for (let i = 0; i < levelSize; i++) {
-            const node = queue.shift();
+            const node: TreeNode = queue.shift()!;
 
             // Only add the LAST node of each level
             if (i === levelSize - 1) {
@@ -1467,11 +1496,11 @@ Interviewers love seeing you think through examples!
 
 When writing traversal code, **say the order out loud**:
 
-```javascript
-function inorderTraversal(root) {
+```typescript
+function inorderTraversal(root: TreeNode | null): number[] {
     // You say: "Inorder is Left, Root, Right"
 
-    if (!root) return [];
+    if (root === null) return [];
 
     traverse(root.left);      // "Left"
     result.push(root.val);    // "Root"
@@ -1536,11 +1565,11 @@ a stack? It's more verbose but avoids recursion overhead."
 ### Tip 7: Handle Null Checks Gracefully
 
 **Good approach:**
-```javascript
-function inorderTraversal(root) {
-    const result = [];
+```typescript
+function inorderTraversal(root: TreeNode | null): number[] {
+    const result: number[] = [];
 
-    function traverse(node) {
+    function traverse(node: TreeNode | null): void {
         if (node === null) return;  // Handle null at START
 
         traverse(node.left);
@@ -1670,8 +1699,8 @@ Start: Need to traverse binary tree?
 ### The 4 Traversals at a Glance
 
 **1. Inorder (Left → Root → Right)**
-```javascript
-function inorder(node) {
+```typescript
+function inorder(node: TreeNode | null): void {
     if (!node) return;
     inorder(node.left);
     visit(node);           // Process in middle
@@ -1681,8 +1710,8 @@ function inorder(node) {
 ```
 
 **2. Preorder (Root → Left → Right)**
-```javascript
-function preorder(node) {
+```typescript
+function preorder(node: TreeNode | null): void {
     if (!node) return;
     visit(node);           // Process first
     preorder(node.left);
@@ -1692,8 +1721,8 @@ function preorder(node) {
 ```
 
 **3. Postorder (Left → Right → Root)**
-```javascript
-function postorder(node) {
+```typescript
+function postorder(node: TreeNode | null): void {
     if (!node) return;
     postorder(node.left);
     postorder(node.right);
@@ -1703,12 +1732,12 @@ function postorder(node) {
 ```
 
 **4. Level Order (BFS)**
-```javascript
-function levelOrder(root) {
-    if (!root) return [];
-    const queue = [root];
+```typescript
+function levelOrder(root: TreeNode | null): void {
+    if (!root) return;
+    const queue: TreeNode[] = [root];
     while (queue.length > 0) {
-        const node = queue.shift();
+        const node: TreeNode = queue.shift()!;
         visit(node);
         if (node.left) queue.push(node.left);
         if (node.right) queue.push(node.right);

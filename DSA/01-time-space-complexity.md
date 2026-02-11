@@ -46,24 +46,15 @@ Understanding time and space complexity is fundamental to algorithm analysis and
 - Math operations
 - Variable assignment
 
-```javascript
+```typescript
 // O(1) - Constant time
-function getFirstElement(arr) {
+function getFirstElement<T>(arr: T[]): T {
   return arr[0]; // Single operation, doesn't depend on array size
 }
 
-function hashLookup(map, key) {
+function hashLookup<K, V>(map: Map<K, V>, key: K): V | undefined {
   return map.get(key); // Hash map lookup is O(1) average case
 }
-```
-
-```python
-# O(1) - Constant time
-def get_first_element(arr):
-    return arr[0]  # Single array access
-
-def hash_lookup(hash_map, key):
-    return hash_map.get(key)  # Dictionary lookup
 ```
 
 ---
@@ -76,14 +67,14 @@ def hash_lookup(hash_map, key):
 - Balanced tree operations
 - Finding in sorted array
 
-```javascript
+```typescript
 // O(log n) - Binary search
-function binarySearch(arr, target) {
-  let left = 0;
-  let right = arr.length - 1;
+function binarySearch(arr: number[], target: number): number {
+  let left: number = 0;
+  let right: number = arr.length - 1;
 
   while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
+    const mid: number = Math.floor((left + right) / 2);
 
     if (arr[mid] === target) return mid;
     if (arr[mid] < target) left = mid + 1;
@@ -95,27 +86,6 @@ function binarySearch(arr, target) {
 
 // Time: O(log n) - halves search space each iteration
 // Space: O(1) - only uses a few variables
-```
-
-```python
-# O(log n) - Binary search
-def binary_search(arr, target):
-    left, right = 0, len(arr) - 1
-
-    while left <= right:
-        mid = (left + right) // 2
-
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            left = mid + 1
-        else:
-            right = mid - 1
-
-    return -1
-
-# Time: O(log n)
-# Space: O(1)
 ```
 
 **Why O(log n)?**
@@ -133,10 +103,10 @@ def binary_search(arr, target):
 - Linear search
 - Finding min/max in unsorted array
 
-```javascript
+```typescript
 // O(n) - Linear time
-function findMax(arr) {
-  let max = arr[0];
+function findMax(arr: number[]): number {
+  let max: number = arr[0];
 
   // Loop runs n times
   for (let i = 1; i < arr.length; i++) {
@@ -152,25 +122,10 @@ function findMax(arr) {
 // Space: O(1) - only one variable
 ```
 
-```python
-# O(n) - Linear time
-def find_max(arr):
-    max_val = arr[0]
-
-    for num in arr:
-        if num > max_val:
-            max_val = num
-
-    return max_val
-
-# Time: O(n)
-# Space: O(1)
-```
-
 **Multiple Loops:**
-```javascript
+```typescript
 // Still O(n) - sequential loops
-function processArray(arr) {
+function processArray(arr: number[]): void {
   // First loop: O(n)
   for (let i = 0; i < arr.length; i++) {
     console.log(arr[i]);
@@ -195,20 +150,20 @@ function processArray(arr) {
 - Efficient sorting (Merge Sort, Quick Sort, Heap Sort)
 - Divide and conquer algorithms
 
-```javascript
+```typescript
 // O(n log n) - Merge Sort
-function mergeSort(arr) {
+function mergeSort(arr: number[]): number[] {
   if (arr.length <= 1) return arr;
 
-  const mid = Math.floor(arr.length / 2);
-  const left = mergeSort(arr.slice(0, mid));   // O(log n) divisions
-  const right = mergeSort(arr.slice(mid));     // O(log n) divisions
+  const mid: number = Math.floor(arr.length / 2);
+  const left: number[] = mergeSort(arr.slice(0, mid));   // O(log n) divisions
+  const right: number[] = mergeSort(arr.slice(mid));     // O(log n) divisions
 
-  return merge(left, right);                   // O(n) merge
+  return merge(left, right);                              // O(n) merge
 }
 
-function merge(left, right) {
-  const result = [];
+function merge(left: number[], right: number[]): number[] {
+  const result: number[] = [];
   let i = 0, j = 0;
 
   while (i < left.length && j < right.length) {
@@ -226,38 +181,6 @@ function merge(left, right) {
 // Space: O(n) - temporary arrays for merging
 ```
 
-```python
-# O(n log n) - Merge Sort
-def merge_sort(arr):
-    if len(arr) <= 1:
-        return arr
-
-    mid = len(arr) // 2
-    left = merge_sort(arr[:mid])
-    right = merge_sort(arr[mid:])
-
-    return merge(left, right)
-
-def merge(left, right):
-    result = []
-    i = j = 0
-
-    while i < len(left) and j < len(right):
-        if left[i] < right[j]:
-            result.append(left[i])
-            i += 1
-        else:
-            result.append(right[j])
-            j += 1
-
-    result.extend(left[i:])
-    result.extend(right[j:])
-    return result
-
-# Time: O(n log n)
-# Space: O(n)
-```
-
 **Why O(n log n)?**
 - Divides array log n times (like binary search)
 - Each level does O(n) work (merging)
@@ -273,10 +196,10 @@ def merge(left, right):
 - Bubble sort, Selection sort
 - Comparing all pairs
 
-```javascript
+```typescript
 // O(n²) - Nested loops
-function findDuplicates(arr) {
-  const duplicates = [];
+function findDuplicates(arr: number[]): number[] {
+  const duplicates: number[] = [];
 
   // Outer loop: n iterations
   for (let i = 0; i < arr.length; i++) {
@@ -295,28 +218,32 @@ function findDuplicates(arr) {
 // Space: O(n) - worst case all are duplicates
 ```
 
-```python
-# O(n²) - Bubble Sort
-def bubble_sort(arr):
-    n = len(arr)
+```typescript
+// O(n²) - Bubble Sort
+function bubbleSort(arr: number[]): number[] {
+  const n: number = arr.length;
 
-    for i in range(n):
-        for j in range(0, n - i - 1):
-            if arr[j] > arr[j + 1]:
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+      }
+    }
+  }
 
-    return arr
+  return arr;
+}
 
-# Time: O(n²)
-# Space: O(1) - in-place sorting
+// Time: O(n²)
+// Space: O(1) - in-place sorting
 ```
 
 **Optimization:**
-```javascript
+```typescript
 // O(n) - Better approach using hash set
-function findDuplicates(arr) {
-  const seen = new Set();
-  const duplicates = new Set();
+function findDuplicatesOptimized(arr: number[]): number[] {
+  const seen: Set<number> = new Set();
+  const duplicates: Set<number> = new Set();
 
   for (const num of arr) {
     if (seen.has(num)) {
@@ -343,9 +270,9 @@ function findDuplicates(arr) {
 - Generating all subsets
 - Brute force solutions
 
-```javascript
+```typescript
 // O(2ⁿ) - Naive Fibonacci
-function fibonacci(n) {
+function fibonacci(n: number): number {
   if (n <= 1) return n;
 
   // Each call makes 2 more calls
@@ -360,26 +287,14 @@ function fibonacci(n) {
 // For n=20: Makes 21,891 function calls!
 ```
 
-```python
-# O(2ⁿ) - Naive Fibonacci
-def fibonacci(n):
-    if n <= 1:
-        return n
-
-    return fibonacci(n - 1) + fibonacci(n - 2)
-
-# Time: O(2ⁿ)
-# Space: O(n) - call stack depth
-```
-
 **Optimization with Memoization:**
-```javascript
+```typescript
 // O(n) - Optimized with memoization
-function fibonacci(n, memo = {}) {
+function fibonacciMemo(n: number, memo: Record<number, number> = {}): number {
   if (n <= 1) return n;
   if (memo[n]) return memo[n];
 
-  memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo);
+  memo[n] = fibonacciMemo(n - 1, memo) + fibonacciMemo(n - 2, memo);
   return memo[n];
 }
 
@@ -397,17 +312,17 @@ function fibonacci(n, memo = {}) {
 - Traveling salesman (brute force)
 - Combinatorial problems
 
-```javascript
+```typescript
 // O(n!) - Generate all permutations
-function permutations(arr) {
+function permutations<T>(arr: T[]): T[][] {
   if (arr.length <= 1) return [arr];
 
-  const result = [];
+  const result: T[][] = [];
 
   for (let i = 0; i < arr.length; i++) {
-    const current = arr[i];
-    const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
-    const remainingPerms = permutations(remaining);
+    const current: T = arr[i];
+    const remaining: T[] = arr.slice(0, i).concat(arr.slice(i + 1));
+    const remainingPerms: T[][] = permutations(remaining);
 
     for (const perm of remainingPerms) {
       result.push([current, ...perm]);
@@ -424,27 +339,6 @@ function permutations(arr) {
 // For n=10: 3,628,800 permutations!
 ```
 
-```python
-# O(n!) - Generate all permutations
-def permutations(arr):
-    if len(arr) <= 1:
-        return [arr]
-
-    result = []
-
-    for i in range(len(arr)):
-        current = arr[i]
-        remaining = arr[:i] + arr[i+1:]
-
-        for perm in permutations(remaining):
-            result.append([current] + perm)
-
-    return result
-
-# Time: O(n!)
-# Space: O(n!)
-```
-
 ---
 
 ## 📦 Space Complexity Analysis
@@ -452,10 +346,10 @@ def permutations(arr):
 ### O(1) - Constant Space
 **Only uses fixed amount of extra space**
 
-```javascript
+```typescript
 // O(1) space
-function sumArray(arr) {
-  let sum = 0; // Only one variable
+function sumArray(arr: number[]): number {
+  let sum: number = 0; // Only one variable
 
   for (const num of arr) {
     sum += num;
@@ -473,10 +367,10 @@ function sumArray(arr) {
 ### O(n) - Linear Space
 **Space grows with input size**
 
-```javascript
+```typescript
 // O(n) space - Creating new array
-function doubleValues(arr) {
-  const result = []; // New array of size n
+function doubleValues(arr: number[]): number[] {
+  const result: number[] = []; // New array of size n
 
   for (const num of arr) {
     result.push(num * 2);
@@ -490,9 +384,9 @@ function doubleValues(arr) {
 ```
 
 **Recursion Stack Space:**
-```javascript
+```typescript
 // O(n) space - Recursion depth
-function factorial(n) {
+function factorial(n: number): number {
   if (n <= 1) return 1;
   return n * factorial(n - 1);
 }
@@ -506,12 +400,17 @@ function factorial(n) {
 ### O(log n) - Logarithmic Space
 **Space for balanced tree or divide-and-conquer**
 
-```javascript
+```typescript
 // O(log n) space - Binary search (recursive)
-function binarySearchRecursive(arr, target, left = 0, right = arr.length - 1) {
+function binarySearchRecursive(
+  arr: number[],
+  target: number,
+  left: number = 0,
+  right: number = arr.length - 1
+): number {
   if (left > right) return -1;
 
-  const mid = Math.floor((left + right) / 2);
+  const mid: number = Math.floor((left + right) / 2);
 
   if (arr[mid] === target) return mid;
   if (arr[mid] < target) {
@@ -532,15 +431,15 @@ function binarySearchRecursive(arr, target, left = 0, right = arr.length - 1) {
 ### Step 1: Identify Operations
 Count how many times key operations execute relative to input size.
 
-```javascript
-function example(arr) {
-  let sum = 0;                    // O(1) - single operation
+```typescript
+function example(arr: number[]): number {
+  let sum: number = 0;                    // O(1) - single operation
 
   for (let i = 0; i < arr.length; i++) {   // O(n) - loops n times
-    sum += arr[i];                // O(1) per iteration
+    sum += arr[i];                         // O(1) per iteration
   }
 
-  return sum;                     // O(1) - single operation
+  return sum;                              // O(1) - single operation
 }
 
 // Total Time: O(1) + O(n) × O(1) + O(1) = O(n)
@@ -550,8 +449,8 @@ function example(arr) {
 ### Step 2: Count Nested Loops
 Multiply complexities of nested operations.
 
-```javascript
-function example(arr) {
+```typescript
+function exampleNested(arr: number[]): void {
   for (let i = 0; i < arr.length; i++) {        // O(n)
     for (let j = 0; j < arr.length; j++) {      // O(n)
       console.log(arr[i], arr[j]);              // O(1)
@@ -565,8 +464,8 @@ function example(arr) {
 ### Step 3: Sequential Operations
 Add complexities of sequential operations.
 
-```javascript
-function example(arr) {
+```typescript
+function exampleSequential(arr: number[]): void {
   // First loop
   for (let i = 0; i < arr.length; i++) {     // O(n)
     console.log(arr[i]);
@@ -592,7 +491,7 @@ function example(arr) {
 ### Step 4: Drop Constants and Lower Terms
 Big O cares about growth rate, not exact count.
 
-```javascript
+```typescript
 // O(3n² + 5n + 10) → O(n²)
 // Drop constants: 3, 5, 10
 // Drop lower terms: n compared to n²
@@ -628,8 +527,8 @@ Big O cares about growth rate, not exact count.
 ### Scenario 1: Two Sum Problem
 
 **Brute Force - O(n²):**
-```javascript
-function twoSum(nums, target) {
+```typescript
+function twoSumBrute(nums: number[], target: number): number[] {
   for (let i = 0; i < nums.length; i++) {
     for (let j = i + 1; j < nums.length; j++) {
       if (nums[i] + nums[j] === target) {
@@ -645,15 +544,15 @@ function twoSum(nums, target) {
 ```
 
 **Optimized - O(n):**
-```javascript
-function twoSum(nums, target) {
-  const map = new Map();
+```typescript
+function twoSum(nums: number[], target: number): number[] {
+  const map: Map<number, number> = new Map();
 
   for (let i = 0; i < nums.length; i++) {
-    const complement = target - nums[i];
+    const complement: number = target - nums[i];
 
     if (map.has(complement)) {
-      return [map.get(complement), i];
+      return [map.get(complement)!, i];
     }
 
     map.set(nums[i], i);
@@ -672,8 +571,8 @@ function twoSum(nums, target) {
 ### Scenario 2: Finding Duplicates
 
 **Brute Force - O(n²):**
-```javascript
-function containsDuplicate(nums) {
+```typescript
+function containsDuplicateBrute(nums: number[]): boolean {
   for (let i = 0; i < nums.length; i++) {
     for (let j = i + 1; j < nums.length; j++) {
       if (nums[i] === nums[j]) return true;
@@ -687,8 +586,8 @@ function containsDuplicate(nums) {
 ```
 
 **Sort First - O(n log n):**
-```javascript
-function containsDuplicate(nums) {
+```typescript
+function containsDuplicateSort(nums: number[]): boolean {
   nums.sort((a, b) => a - b);
 
   for (let i = 1; i < nums.length; i++) {
@@ -703,9 +602,9 @@ function containsDuplicate(nums) {
 ```
 
 **Hash Set - O(n):**
-```javascript
-function containsDuplicate(nums) {
-  const seen = new Set();
+```typescript
+function containsDuplicate(nums: number[]): boolean {
+  const seen: Set<number> = new Set();
 
   for (const num of nums) {
     if (seen.has(num)) return true;
@@ -738,8 +637,8 @@ function containsDuplicate(nums) {
 💡 **Pattern**: Trade space for time with O(1) lookups
 
 **❌ Brute Force (O(n²)):**
-```javascript
-function hasPairWithSum(arr, target) {
+```typescript
+function hasPairWithSumBrute(arr: number[], target: number): boolean {
   for (let i = 0; i < arr.length; i++) {           // O(n)
     for (let j = i + 1; j < arr.length; j++) {     // O(n)
       if (arr[i] + arr[j] === target) return true;
@@ -751,9 +650,9 @@ function hasPairWithSum(arr, target) {
 ```
 
 **✅ Optimized with Hash Set (O(n)):**
-```javascript
-function hasPairWithSum(arr, target) {
-  const seen = new Set();
+```typescript
+function hasPairWithSum(arr: number[], target: number): boolean {
+  const seen: Set<number> = new Set();
 
   for (const num of arr) {                         // O(n)
     if (seen.has(target - num)) return true;       // O(1) lookup!
@@ -765,34 +664,20 @@ function hasPairWithSum(arr, target) {
 // 🎯 100x faster for n=1000: 1,000,000 → 1,000 operations
 ```
 
-```python
-# ✅ Python version
-def has_pair_with_sum(arr, target):
-    seen = set()
-
-    for num in arr:
-        if target - num in seen:  # O(1) lookup
-            return True
-        seen.add(num)
-    return False
-
-# Time: O(n), Space: O(n)
-```
-
 ---
 
 ### 2. Sort First
 💡 **Pattern**: Preprocessing unlocks better algorithms
 
-**❌ Linear Search (O(n)):**
-```javascript
-function binarySearch(arr, target) {
+**Sort then Binary Search:**
+```typescript
+function sortThenSearch(arr: number[], target: number): number {
   // Must sort first!
   arr.sort((a, b) => a - b);  // O(n log n)
 
   let left = 0, right = arr.length - 1;
   while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
+    const mid: number = Math.floor((left + right) / 2);
     if (arr[mid] === target) return mid;
     if (arr[mid] < target) left = mid + 1;
     else right = mid - 1;
@@ -813,9 +698,9 @@ function binarySearch(arr, target) {
 ### 3. Two Pointers
 💡 **Pattern**: Replace nested loops on sorted data
 
-**❌ Nested Loop (O(n²)):**
-```javascript
-function threeSumBrute(nums, target) {
+**❌ Nested Loop (O(n³)):**
+```typescript
+function threeSumBrute(nums: number[], target: number): number[] {
   for (let i = 0; i < nums.length; i++) {
     for (let j = i + 1; j < nums.length; j++) {
       for (let k = j + 1; k < nums.length; k++) {
@@ -831,16 +716,16 @@ function threeSumBrute(nums, target) {
 ```
 
 **✅ Sort + Two Pointers (O(n²)):**
-```javascript
-function threeSum(nums, target) {
+```typescript
+function threeSum(nums: number[], target: number): number[] {
   nums.sort((a, b) => a - b);  // O(n log n)
 
   for (let i = 0; i < nums.length - 2; i++) {
-    let left = i + 1;
-    let right = nums.length - 1;
+    let left: number = i + 1;
+    let right: number = nums.length - 1;
 
     while (left < right) {  // Two pointers: O(n)
-      const sum = nums[i] + nums[left] + nums[right];
+      const sum: number = nums[i] + nums[left] + nums[right];
       if (sum === target) return [nums[i], nums[left], nums[right]];
       if (sum < target) left++;
       else right--;
@@ -852,39 +737,18 @@ function threeSum(nums, target) {
 // Reduced O(n³) → O(n²) by eliminating one loop!
 ```
 
-```python
-# ✅ Python version
-def three_sum(nums, target):
-    nums.sort()  # O(n log n)
-
-    for i in range(len(nums) - 2):
-        left, right = i + 1, len(nums) - 1
-
-        while left < right:
-            total = nums[i] + nums[left] + nums[right]
-            if total == target:
-                return [nums[i], nums[left], nums[right]]
-            elif total < target:
-                left += 1
-            else:
-                right -= 1
-    return []
-
-# Time: O(n²), Space: O(1)
-```
-
 ---
 
 ### 4. Sliding Window
 💡 **Pattern**: Reuse calculations instead of recomputing
 
 **❌ Recalculating Every Window (O(n×k)):**
-```javascript
-function maxSumSubarray(arr, k) {
-  let maxSum = -Infinity;
+```typescript
+function maxSumSubarrayBrute(arr: number[], k: number): number {
+  let maxSum: number = -Infinity;
 
   for (let i = 0; i <= arr.length - k; i++) {     // O(n)
-    let sum = 0;
+    let sum: number = 0;
     for (let j = i; j < i + k; j++) {             // O(k)
       sum += arr[j];
     }
@@ -896,10 +760,10 @@ function maxSumSubarray(arr, k) {
 ```
 
 **✅ Sliding Window (O(n)):**
-```javascript
-function maxSumSubarray(arr, k) {
-  let windowSum = 0;
-  let maxSum = 0;
+```typescript
+function maxSumSubarray(arr: number[], k: number): number {
+  let windowSum: number = 0;
+  let maxSum: number = 0;
 
   // Calculate first window
   for (let i = 0; i < k; i++) {
@@ -916,22 +780,6 @@ function maxSumSubarray(arr, k) {
 }
 // Time: O(n), Space: O(1)
 // For n=10000, k=100: 1,000,000 → 10,000 operations (100x faster!)
-```
-
-```python
-# ✅ Python version
-def max_sum_subarray(arr, k):
-    window_sum = sum(arr[:k])  # First window
-    max_sum = window_sum
-
-    for i in range(k, len(arr)):
-        # Slide: remove left, add right
-        window_sum = window_sum - arr[i - k] + arr[i]
-        max_sum = max(max_sum, window_sum)
-
-    return max_sum
-
-# Time: O(n), Space: O(1)
 ```
 
 ---
@@ -966,10 +814,10 @@ Total: O(n log n) = 8 × 3 = 24 operations
 💡 **Pattern**: Cache results to avoid recomputation
 
 **❌ Naive Recursion (O(2ⁿ)):**
-```javascript
-function fibonacci(n) {
+```typescript
+function fibonacciNaive(n: number): number {
   if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
+  return fibonacciNaive(n - 1) + fibonacciNaive(n - 2);
 }
 
 // Call tree for fib(5):
@@ -988,12 +836,15 @@ function fibonacci(n) {
 ```
 
 **✅ Memoization (O(n)):**
-```javascript
-function fibonacci(n, memo = {}) {
+```typescript
+function fibonacciMemoized(
+  n: number,
+  memo: Record<number, number> = {}
+): number {
   if (n <= 1) return n;
   if (memo[n]) return memo[n];  // ✅ Return cached result!
 
-  memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo);
+  memo[n] = fibonacciMemoized(n - 1, memo) + fibonacciMemoized(n - 2, memo);
   return memo[n];
 }
 
@@ -1003,25 +854,12 @@ function fibonacci(n, memo = {}) {
 // 🎯 For n=40: 2,692,537,351 → 79 calls (34 million times faster!)
 ```
 
-```python
-# ✅ Python with @lru_cache decorator
-from functools import lru_cache
-
-@lru_cache(maxsize=None)
-def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n - 1) + fibonacci(n - 2)
-
-# Time: O(n), Space: O(n)
-```
-
 **✅ Bottom-Up DP (O(n) time, O(1) space):**
-```javascript
-function fibonacci(n) {
+```typescript
+function fibonacciDP(n: number): number {
   if (n <= 1) return n;
 
-  let prev = 0, curr = 1;
+  let prev: number = 0, curr: number = 1;
   for (let i = 2; i <= n; i++) {
     [prev, curr] = [curr, prev + curr];
   }
@@ -1221,8 +1059,8 @@ the expected input size and gives us optimal time complexity."
 #### Mistake 1: Ignoring Hidden Operations
 
 **❌ Wrong Analysis:**
-```javascript
-function solution(arr) {
+```typescript
+function solutionWrong(arr: number[]): void {
   for (let i = 0; i < arr.length; i++) {
     arr.sort();  // "This is just one line, so O(1)"
   }
@@ -1231,8 +1069,8 @@ function solution(arr) {
 ```
 
 **✅ Correct Analysis:**
-```javascript
-function solution(arr) {
+```typescript
+function solutionCorrect(arr: number[]): void {
   for (let i = 0; i < arr.length; i++) {     // O(n)
     arr.sort();  // ❌ O(n log n) - NOT O(1)!
   }
@@ -1269,19 +1107,19 @@ My solution is O(n) average, O(n²) worst case."
 #### Mistake 3: Not Counting Space for Recursion
 
 **❌ Wrong Analysis:**
-```javascript
-function factorial(n) {
+```typescript
+function factorialWrong(n: number): number {
   if (n <= 1) return 1;
-  return n * factorial(n - 1);
+  return n * factorialWrong(n - 1);
 }
 // Claimed: O(1) space "because I don't create arrays"
 ```
 
 **✅ Correct Analysis:**
-```javascript
-function factorial(n) {
+```typescript
+function factorialCorrect(n: number): number {
   if (n <= 1) return 1;
-  return n * factorial(n - 1);
+  return n * factorialCorrect(n - 1);
 }
 // Actual: O(n) space for call stack
 // Each recursive call adds a stack frame
@@ -1294,8 +1132,8 @@ function factorial(n) {
 #### Mistake 4: Dropping Important Terms
 
 **❌ Wrong Simplification:**
-```javascript
-function solution(arr1, arr2) {
+```typescript
+function solutionTwoArraysWrong(arr1: number[], arr2: number[]): void {
   for (const x of arr1) {        // O(n)
     for (const y of arr2) {      // O(m)
       console.log(x, y);
@@ -1306,8 +1144,8 @@ function solution(arr1, arr2) {
 ```
 
 **✅ Correct Analysis:**
-```javascript
-function solution(arr1, arr2) {
+```typescript
+function solutionTwoArraysCorrect(arr1: number[], arr2: number[]): void {
   for (const x of arr1) {        // O(n)
     for (const y of arr2) {      // O(m)
       console.log(x, y);
@@ -1328,8 +1166,8 @@ function solution(arr1, arr2) {
 #### Mistake 5: Misunderstanding Amortized Complexity
 
 **❌ Wrong Analysis:**
-```javascript
-const arr = [];
+```typescript
+const arr: number[] = [];
 for (let i = 0; i < n; i++) {
   arr.push(i);  // "Sometimes O(n) when resizing"
 }
@@ -1337,10 +1175,10 @@ for (let i = 0; i < n; i++) {
 ```
 
 **✅ Correct Analysis:**
-```javascript
-const arr = [];
+```typescript
+const arrCorrect: number[] = [];
 for (let i = 0; i < n; i++) {
-  arr.push(i);  // O(1) amortized
+  arrCorrect.push(i);  // O(1) amortized
 }
 // Actual: O(n) total
 // Array doubling happens log(n) times: 1→2→4→8→...→n
@@ -1582,38 +1420,38 @@ If k > log_b(a): O(n^k)
 ### Big O Calculation Examples
 
 **Example 1: Sequential Loops**
-```javascript
+```typescript
 for (let i = 0; i < n; i++) { }      // O(n)
 for (let i = 0; i < n; i++) { }      // O(n)
 for (let i = 0; i < n; i++) {        // O(n)
   for (let j = 0; j < n; j++) { }    // O(n)
 }
 
-Total: O(n) + O(n) + O(n²) = O(n²)  // Keep dominant term
+// Total: O(n) + O(n) + O(n²) = O(n²)  // Keep dominant term
 ```
 
 **Example 2: Different Variables**
-```javascript
+```typescript
 for (let i = 0; i < n; i++) {        // O(n)
   for (let j = 0; j < m; j++) {      // O(m)
     for (let k = 0; k < p; k++) { }  // O(p)
   }
 }
 
-Total: O(n × m × p)  // Don't simplify - different variables!
+// Total: O(n × m × p)  // Don't simplify - different variables!
 ```
 
 **Example 3: Logarithmic**
-```javascript
+```typescript
 for (let i = n; i > 0; i = Math.floor(i / 2)) { }
 
 // i values: n → n/2 → n/4 → ... → 1
 // Number of iterations: log₂(n)
-Total: O(log n)
+// Total: O(log n)
 ```
 
 **Example 4: Complex Combination**
-```javascript
+```typescript
 for (let i = 0; i < n; i++) {           // O(n)
   arr.sort();                            // O(n log n)
   for (let j = 0; j < n; j++) {          // O(n)
@@ -1621,9 +1459,9 @@ for (let i = 0; i < n; i++) {           // O(n)
   }
 }
 
-Total: O(n) × [O(n log n) + O(n) × O(1)]
-     = O(n) × O(n log n)
-     = O(n² log n)
+// Total: O(n) × [O(n log n) + O(n) × O(1)]
+//      = O(n) × O(n log n)
+//      = O(n² log n)
 ```
 
 ---

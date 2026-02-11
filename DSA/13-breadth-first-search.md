@@ -246,7 +246,7 @@ Trade-off:
 
 ---
 
-## Example 1: Binary Tree Right Side View (JavaScript)
+## Example 1: Binary Tree Right Side View (TypeScript)
 
 ### Problem
 Given the root of a binary tree, imagine yourself standing on the right side of it. Return the values of the nodes you can see ordered from top to bottom (rightmost node at each level).
@@ -255,12 +255,16 @@ Given the root of a binary tree, imagine yourself standing on the right side of 
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Definition for a binary tree node
  */
 class TreeNode {
-    constructor(val, left = null, right = null) {
+    val: number;
+    left: TreeNode | null;
+    right: TreeNode | null;
+
+    constructor(val: number, left: TreeNode | null = null, right: TreeNode | null = null) {
         this.val = val;
         this.left = left;
         this.right = right;
@@ -269,21 +273,21 @@ class TreeNode {
 
 /**
  * Get right side view of binary tree using BFS
- * @param {TreeNode} root - Root of binary tree
- * @return {number[]} - Values visible from right side
+ * @param root - Root of binary tree
+ * @returns Values visible from right side
  */
-function rightSideView(root) {
+function rightSideView(root: TreeNode | null): number[] {
     if (root === null) return [];
 
-    const result = [];
-    const queue = [root];
+    const result: number[] = [];
+    const queue: TreeNode[] = [root];
 
     while (queue.length > 0) {
-        const levelSize = queue.length;
+        const levelSize: number = queue.length;
 
         // Process all nodes at current level
         for (let i = 0; i < levelSize; i++) {
-            const node = queue.shift();
+            const node: TreeNode = queue.shift()!;
 
             // The last node at each level is visible from right
             if (i === levelSize - 1) {
@@ -301,13 +305,13 @@ function rightSideView(root) {
 
 /**
  * Alternative: DFS approach with level tracking
- * @param {TreeNode} root
- * @return {number[]}
+ * @param root - Root of binary tree
+ * @returns Values visible from right side
  */
-function rightSideViewDFS(root) {
-    const result = [];
+function rightSideViewDFS(root: TreeNode | null): number[] {
+    const result: number[] = [];
 
-    function dfs(node, level) {
+    function dfs(node: TreeNode | null, level: number): void {
         if (node === null) return;
 
         // First node we see at this level is the rightmost
@@ -326,24 +330,24 @@ function rightSideViewDFS(root) {
 }
 
 // Helper function
-function createTree(values) {
+function createTree(values: (number | null)[]): TreeNode | null {
     if (!values || values.length === 0) return null;
 
-    const root = new TreeNode(values[0]);
-    const queue = [root];
-    let i = 1;
+    const root: TreeNode = new TreeNode(values[0] as number);
+    const queue: TreeNode[] = [root];
+    let i: number = 1;
 
     while (queue.length && i < values.length) {
-        const node = queue.shift();
+        const node: TreeNode = queue.shift()!;
 
         if (i < values.length && values[i] !== null) {
-            node.left = new TreeNode(values[i]);
+            node.left = new TreeNode(values[i] as number);
             queue.push(node.left);
         }
         i++;
 
         if (i < values.length && values[i] !== null) {
-            node.right = new TreeNode(values[i]);
+            node.right = new TreeNode(values[i] as number);
             queue.push(node.right);
         }
         i++;
@@ -358,7 +362,7 @@ function createTree(values) {
 //     2   3
 //      \   \
 //       5   4
-const root1 = createTree([1, 2, 3, null, 5, null, 4]);
+const root1: TreeNode | null = createTree([1, 2, 3, null, 5, null, 4]);
 console.log(rightSideView(root1));     // Output: [1, 3, 4]
 console.log(rightSideViewDFS(root1));  // Output: [1, 3, 4]
 // Explanation: From right side, you see 1, 3, 4
@@ -366,32 +370,32 @@ console.log(rightSideViewDFS(root1));  // Output: [1, 3, 4]
 //     1
 //    / \
 //   2   3
-const root2 = createTree([1, 2, 3]);
+const root2: TreeNode | null = createTree([1, 2, 3]);
 console.log(rightSideView(root2));     // Output: [1, 3]
 
-const root3 = createTree([1]);
+const root3: TreeNode | null = createTree([1]);
 console.log(rightSideView(root3));     // Output: [1]
 ```
 
 ### Detailed Code Walkthrough: BFS Right Side View
 
-```javascript
-function rightSideView(root) {
+```typescript
+function rightSideView(root: TreeNode | null): number[] {
     // STEP 1: Handle edge case
     if (root === null) return [];
 
-    const result = [];   // Stores rightmost node at each level
-    const queue = [root]; // BFS queue, start with root
+    const result: number[] = [];   // Stores rightmost node at each level
+    const queue: TreeNode[] = [root]; // BFS queue, start with root
 
     // STEP 2: Process level by level
     while (queue.length > 0) {
         // KEY INSIGHT: Capture level size BEFORE processing
-        const levelSize = queue.length;
+        const levelSize: number = queue.length;
         // This tells us how many nodes are at current level
 
         // STEP 3: Process EXACTLY levelSize nodes (one level)
         for (let i = 0; i < levelSize; i++) {
-            const node = queue.shift();  // FIFO: first node in queue
+            const node: TreeNode = queue.shift()!;  // FIFO: first node in queue
 
             // STEP 4: Is this the LAST node of the level?
             if (i === levelSize - 1) {
@@ -458,7 +462,7 @@ Final: [1, 3, 4]
 
 ---
 
-## Example 2: Rotting Oranges (Python) - Multi-Source BFS
+## Example 2: Rotting Oranges (TypeScript) - Multi-Source BFS
 
 ### Problem
 You are given an m x n grid where each cell can have one of three values:
@@ -472,91 +476,99 @@ Every minute, any fresh orange that is 4-directionally adjacent to a rotten oran
 
 ### Solution
 
-```python
-from typing import List
-from collections import deque
+```typescript
+/**
+ * Queue item for BFS containing position and time
+ */
+interface QueueItem {
+    row: number;
+    col: number;
+    time: number;
+}
 
-class Solution:
-    def orangesRotting(self, grid: List[List[str]]) -> int:
-        """
-        Find minimum minutes for all oranges to rot using BFS
+/**
+ * Find minimum minutes for all oranges to rot using BFS
+ * @param grid - m x n grid with 0 (empty), 1 (fresh), 2 (rotten)
+ * @returns Minimum minutes, or -1 if impossible
+ */
+function orangesRotting(grid: number[][]): number {
+    const rows: number = grid.length;
+    const cols: number = grid[0].length;
+    const queue: QueueItem[] = [];
+    let freshCount: number = 0;
 
-        Args:
-            grid: m x n grid with 0 (empty), 1 (fresh), 2 (rotten)
+    // Step 1: Find all rotten oranges and count fresh ones
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === 2) {
+                queue.push({ row: r, col: c, time: 0 }); // (row, col, time)
+            } else if (grid[r][c] === 1) {
+                freshCount++;
+            }
+        }
+    }
 
-        Returns:
-            Minimum minutes, or -1 if impossible
-        """
-        rows, cols = len(grid), len(grid[0])
-        queue = deque()
-        fresh_count = 0
+    // Edge case: no fresh oranges
+    if (freshCount === 0) {
+        return 0;
+    }
 
-        # Step 1: Find all rotten oranges and count fresh ones
-        for r in range(rows):
-            for c in range(cols):
-                if grid[r][c] == 2:
-                    queue.append((r, c, 0))  # (row, col, time)
-                elif grid[r][c] == 1:
-                    fresh_count += 1
+    // Step 2: BFS from all rotten oranges simultaneously
+    const directions: [number, number][] = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // right, down, left, up
+    let maxTime: number = 0;
 
-        # Edge case: no fresh oranges
-        if fresh_count == 0:
-            return 0
+    while (queue.length > 0) {
+        const { row: r, col: c, time } = queue.shift()!;
+        maxTime = Math.max(maxTime, time);
 
-        # Step 2: BFS from all rotten oranges simultaneously
-        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
-        max_time = 0
+        // Check all 4 adjacent cells
+        for (const [dr, dc] of directions) {
+            const nr: number = r + dr;
+            const nc: number = c + dc;
 
-        while queue:
-            r, c, time = queue.popleft()
-            max_time = max(max_time, time)
+            // If adjacent cell is a fresh orange
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] === 1) {
+                // Make it rotten
+                grid[nr][nc] = 2;
+                freshCount--;
+                // Add to queue with incremented time
+                queue.push({ row: nr, col: nc, time: time + 1 });
+            }
+        }
+    }
 
-            # Check all 4 adjacent cells
-            for dr, dc in directions:
-                nr, nc = r + dr, c + dc
+    // Step 3: Check if all fresh oranges became rotten
+    return freshCount === 0 ? maxTime : -1;
+}
 
-                # If adjacent cell is a fresh orange
-                if (0 <= nr < rows and 0 <= nc < cols and
-                    grid[nr][nc] == 1):
-                    # Make it rotten
-                    grid[nr][nc] = 2
-                    fresh_count -= 1
-                    # Add to queue with incremented time
-                    queue.append((nr, nc, time + 1))
-
-        # Step 3: Check if all fresh oranges became rotten
-        return max_time if fresh_count == 0 else -1
-
-# Example usage
-solution = Solution()
-
-# Example 1
-grid1 = [
+// Example usage
+// Example 1
+const grid1: number[][] = [
     [2, 1, 1],
     [1, 1, 0],
     [0, 1, 1]
-]
-print(solution.orangesRotting(grid1))  # Output: 4
-# Explanation:
-# Minute 0: [2,1,1],[1,1,0],[0,1,1]
-# Minute 1: [2,2,1],[2,1,0],[0,1,1]
-# Minute 2: [2,2,2],[2,2,0],[0,1,1]
-# Minute 3: [2,2,2],[2,2,0],[0,2,1]
-# Minute 4: [2,2,2],[2,2,0],[0,2,2]
+];
+console.log(orangesRotting(grid1)); // Output: 4
+// Explanation:
+// Minute 0: [2,1,1],[1,1,0],[0,1,1]
+// Minute 1: [2,2,1],[2,1,0],[0,1,1]
+// Minute 2: [2,2,2],[2,2,0],[0,1,1]
+// Minute 3: [2,2,2],[2,2,0],[0,2,1]
+// Minute 4: [2,2,2],[2,2,0],[0,2,2]
 
-# Example 2
-grid2 = [
+// Example 2
+const grid2: number[][] = [
     [2, 1, 1],
     [0, 1, 1],
     [1, 0, 1]
-]
-print(solution.orangesRotting(grid2))  # Output: -1
-# Explanation: Bottom left orange can never rot
+];
+console.log(orangesRotting(grid2)); // Output: -1
+// Explanation: Bottom left orange can never rot
 
-# Example 3
-grid3 = [[0, 2]]
-print(solution.orangesRotting(grid3))  # Output: 0
-# Explanation: No fresh oranges
+// Example 3
+const grid3: number[][] = [[0, 2]];
+console.log(orangesRotting(grid3)); // Output: 0
+// Explanation: No fresh oranges
 ```
 
 ### Detailed Explanation: Multi-Source BFS
@@ -578,46 +590,56 @@ Both fires spread outward at the same rate, as if they're one big fire!
 
 In "Rotting Oranges", ALL rotten oranges rot their neighbors simultaneously. It's not one-by-one!
 
-```python
-def orangesRotting(self, grid: List[List[int]]) -> int:
-    # PHASE 1: Setup - Find ALL starting points
-    rows, cols = len(grid), len(grid[0])
-    queue = deque()
-    fresh_count = 0
+```typescript
+function orangesRottingExplained(grid: number[][]): number {
+    // PHASE 1: Setup - Find ALL starting points
+    const rows: number = grid.length;
+    const cols: number = grid[0].length;
+    const queue: { row: number; col: number; time: number }[] = [];
+    let freshCount: number = 0;
 
-    for r in range(rows):
-        for c in range(cols):
-            if grid[r][c] == 2:
-                # Found a rotten orange - it's a starting point!
-                queue.append((r, c, 0))  # Start at time 0
-            elif grid[r][c] == 1:
-                fresh_count += 1  # Track fresh oranges
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === 2) {
+                // Found a rotten orange - it's a starting point!
+                queue.push({ row: r, col: c, time: 0 }); // Start at time 0
+            } else if (grid[r][c] === 1) {
+                freshCount++; // Track fresh oranges
+            }
+        }
+    }
 
-    # EDGE CASE: Already all rotten (or no oranges)
-    if fresh_count == 0:
-        return 0
+    // EDGE CASE: Already all rotten (or no oranges)
+    if (freshCount === 0) {
+        return 0;
+    }
 
-    # PHASE 2: Multi-source BFS
-    # Process all starting points (rotten oranges) level by level
-    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    max_time = 0
+    // PHASE 2: Multi-source BFS
+    // Process all starting points (rotten oranges) level by level
+    const directions: [number, number][] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    let maxTime: number = 0;
 
-    while queue:
-        r, c, time = queue.popleft()  # Get next rotten orange
-        max_time = max(max_time, time)  # Track highest time
+    while (queue.length > 0) {
+        const { row: r, col: c, time } = queue.shift()!; // Get next rotten orange
+        maxTime = Math.max(maxTime, time); // Track highest time
 
-        # Try to rot all 4 neighbors
-        for dr, dc in directions:
-            nr, nc = r + dr, c + dc
+        // Try to rot all 4 neighbors
+        for (const [dr, dc] of directions) {
+            const nr: number = r + dr;
+            const nc: number = c + dc;
 
-            # Is neighbor a fresh orange?
-            if (0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 1):
-                grid[nr][nc] = 2  # Rot it!
-                fresh_count -= 1   # One less fresh orange
-                queue.append((nr, nc, time + 1))  # Will rot ITS neighbors at time+1
+            // Is neighbor a fresh orange?
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] === 1) {
+                grid[nr][nc] = 2; // Rot it!
+                freshCount--; // One less fresh orange
+                queue.push({ row: nr, col: nc, time: time + 1 }); // Will rot ITS neighbors at time+1
+            }
+        }
+    }
 
-    # PHASE 3: Verify all oranges are rotten
-    return max_time if fresh_count == 0 else -1
+    // PHASE 3: Verify all oranges are rotten
+    return freshCount === 0 ? maxTime : -1;
+}
 ```
 
 ### Visual Trace: Multi-Source BFS
@@ -857,11 +879,11 @@ This is GUARANTEED to be the shortest path!
 ### 1. Not Capturing Level Size Before Loop
 
 **WRONG:**
-```javascript
+```typescript
 while (queue.length > 0) {
     // BUG: Using queue.length directly in loop condition!
     for (let i = 0; i < queue.length; i++) {
-        const node = queue.shift();
+        const node: TreeNode = queue.shift()!;
         // Add children...
     }
 }
@@ -870,12 +892,12 @@ while (queue.length > 0) {
 **Problem:** `queue.length` changes as you add children, so the loop never terminates properly!
 
 **RIGHT:**
-```javascript
+```typescript
 while (queue.length > 0) {
-    const levelSize = queue.length;  // SNAPSHOT the size!
+    const levelSize: number = queue.length; // SNAPSHOT the size!
 
     for (let i = 0; i < levelSize; i++) {
-        const node = queue.shift();
+        const node: TreeNode = queue.shift()!;
         // Add children...
     }
 }
@@ -886,38 +908,51 @@ while (queue.length > 0) {
 ### 2. Forgetting to Mark Visited in Grid BFS
 
 **WRONG:**
-```python
-def bfs(grid, start):
-    queue = deque([start])
+```typescript
+function bfsWrong(grid: number[][], start: [number, number]): void {
+    const queue: [number, number][] = [start];
+    const directions: [number, number][] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 
-    while queue:
-        r, c = queue.popleft()
+    while (queue.length > 0) {
+        const [r, c] = queue.shift()!;
 
-        # BUG: Not marking as visited!
-        # Will revisit same cell infinitely!
+        // BUG: Not marking as visited!
+        // Will revisit same cell infinitely!
 
-        for dr, dc in directions:
-            nr, nc = r + dr, c + dc
-            if is_valid(nr, nc):
-                queue.append((nr, nc))
+        for (const [dr, dc] of directions) {
+            const nr: number = r + dr;
+            const nc: number = c + dc;
+            if (isValid(nr, nc)) {
+                queue.push([nr, nc]);
+            }
+        }
+    }
+}
 ```
 
 **Problem:** You'll add the same cell to queue over and over!
 
 **RIGHT:**
-```python
-def bfs(grid, start):
-    queue = deque([start])
-    visited = set([start])  # Or mark in grid
+```typescript
+function bfsRight(grid: number[][], start: [number, number]): void {
+    const queue: [number, number][] = [start];
+    const visited: Set<string> = new Set([`${start[0]},${start[1]}`]); // Or mark in grid
+    const directions: [number, number][] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 
-    while queue:
-        r, c = queue.popleft()
+    while (queue.length > 0) {
+        const [r, c] = queue.shift()!;
 
-        for dr, dc in directions:
-            nr, nc = r + dr, c + dc
-            if is_valid(nr, nc) and (nr, nc) not in visited:
-                visited.add((nr, nc))  # Mark BEFORE adding to queue!
-                queue.append((nr, nc))
+        for (const [dr, dc] of directions) {
+            const nr: number = r + dr;
+            const nc: number = c + dc;
+            const key: string = `${nr},${nc}`;
+            if (isValid(nr, nc) && !visited.has(key)) {
+                visited.add(key); // Mark BEFORE adding to queue!
+                queue.push([nr, nc]);
+            }
+        }
+    }
+}
 ```
 
 **Key:** Mark visited WHEN YOU ADD to queue, not when you process!
@@ -927,21 +962,21 @@ def bfs(grid, start):
 ### 3. Using Stack Instead of Queue
 
 **WRONG (This is DFS, not BFS!):**
-```javascript
-const stack = [root];  // Stack (LIFO)
+```typescript
+const stack: TreeNode[] = [root]; // Stack (LIFO)
 
 while (stack.length > 0) {
-    const node = stack.pop();  // POP from end = DFS!
+    const node: TreeNode = stack.pop()!; // POP from end = DFS!
     // ...
 }
 ```
 
 **RIGHT:**
-```javascript
-const queue = [root];  // Queue (FIFO)
+```typescript
+const queue: TreeNode[] = [root]; // Queue (FIFO)
 
 while (queue.length > 0) {
-    const node = queue.shift();  // SHIFT from front = BFS!
+    const node: TreeNode = queue.shift()!; // SHIFT from front = BFS!
     // ...
 }
 ```
@@ -955,23 +990,25 @@ while (queue.length > 0) {
 ### 4. Not Handling Empty Input
 
 **WRONG:**
-```javascript
-function rightSideView(root) {
-    const queue = [root];  // BUG: If root is null, queue = [null]!
+```typescript
+function rightSideViewWrong(root: TreeNode | null): number[] {
+    const queue: (TreeNode | null)[] = [root]; // BUG: If root is null, queue = [null]!
 
     while (queue.length > 0) {
-        // Will try to access null.left, null.right → ERROR!
+        // Will try to access null.left, null.right -> ERROR!
     }
+    return [];
 }
 ```
 
 **RIGHT:**
-```javascript
-function rightSideView(root) {
-    if (root === null) return [];  // Check FIRST!
+```typescript
+function rightSideViewCorrect(root: TreeNode | null): number[] {
+    if (root === null) return []; // Check FIRST!
 
-    const queue = [root];
+    const queue: TreeNode[] = [root];
     // Now we know root is valid
+    return [];
 }
 ```
 
@@ -980,29 +1017,36 @@ function rightSideView(root) {
 ### 5. Multi-Source BFS: Adding Sources One by One
 
 **WRONG:**
-```python
-# BUG: Adding rotten oranges one at a time!
-for r in range(rows):
-    for c in range(cols):
-        if grid[r][c] == 2:
-            queue.append((r, c, 0))
-            # Process this orange immediately → WRONG!
-            bfs(queue, ...)  # This processes them sequentially, not simultaneously!
+```typescript
+// BUG: Adding rotten oranges one at a time!
+for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+        if (grid[r][c] === 2) {
+            queue.push({ row: r, col: c, time: 0 });
+            // Process this orange immediately -> WRONG!
+            bfs(queue); // This processes them sequentially, not simultaneously!
+        }
+    }
+}
 ```
 
 **RIGHT:**
-```python
-# Add ALL sources first, THEN start BFS
-queue = deque()
+```typescript
+// Add ALL sources first, THEN start BFS
+const queue: { row: number; col: number; time: number }[] = [];
 
-for r in range(rows):
-    for c in range(cols):
-        if grid[r][c] == 2:
-            queue.append((r, c, 0))  # Just add, don't process yet
+for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+        if (grid[r][c] === 2) {
+            queue.push({ row: r, col: c, time: 0 }); // Just add, don't process yet
+        }
+    }
+}
 
-# NOW start BFS with all sources
-while queue:
-    # All sources spread simultaneously!
+// NOW start BFS with all sources
+while (queue.length > 0) {
+    // All sources spread simultaneously!
+}
 ```
 
 ---
@@ -1083,60 +1127,71 @@ BFS ALWAYS finds shortest first!
 
 **Approach 1: Store parent pointers**
 
-```javascript
-function shortestPath(graph, start, end) {
-    const queue = [start];
-    const visited = new Set([start]);
-    const parent = new Map();  // Track where we came from
+```typescript
+function shortestPathWithParent<T>(
+    graph: Map<T, T[]>,
+    start: T,
+    end: T
+): T[] | null {
+    const queue: T[] = [start];
+    const visited: Set<T> = new Set([start]);
+    const parent: Map<T, T | null> = new Map(); // Track where we came from
 
     parent.set(start, null);
 
     while (queue.length > 0) {
-        const node = queue.shift();
+        const node: T = queue.shift()!;
 
         if (node === end) {
             // Reconstruct path by following parent pointers
-            const path = [];
-            let current = end;
+            const path: T[] = [];
+            let current: T | null = end;
 
             while (current !== null) {
                 path.unshift(current);
-                current = parent.get(current);
+                current = parent.get(current) ?? null;
             }
 
             return path;
         }
 
-        for (const neighbor of graph[node]) {
+        const neighbors: T[] = graph.get(node) ?? [];
+        for (const neighbor of neighbors) {
             if (!visited.has(neighbor)) {
                 visited.add(neighbor);
-                parent.set(neighbor, node);  // Remember where we came from!
+                parent.set(neighbor, node); // Remember where we came from!
                 queue.push(neighbor);
             }
         }
     }
 
-    return null;  // No path found
+    return null; // No path found
 }
 ```
 
 **Approach 2: Store path with each node**
 
-```javascript
-function shortestPath(grid, start, end) {
-    const queue = [[start, [start]]];  // [position, path_to_position]
-    const visited = new Set([start]);
+```typescript
+function shortestPathWithPath<T>(
+    getNeighbors: (node: T) => T[],
+    start: T,
+    end: T,
+    serialize: (node: T) => string
+): T[] | null {
+    const queue: [T, T[]][] = [[start, [start]]]; // [position, path_to_position]
+    const visited: Set<string> = new Set([serialize(start)]);
 
     while (queue.length > 0) {
-        const [current, path] = queue.shift();
+        const [current, path] = queue.shift()!;
 
-        if (current === end) {
-            return path;  // Found it!
+        if (serialize(current) === serialize(end)) {
+            return path; // Found it!
         }
 
         for (const neighbor of getNeighbors(current)) {
-            if (!visited.has(neighbor)) {
-                visited.add(neighbor);
+            const key: string = serialize(neighbor);
+            if (!visited.has(key)) {
+                visited.add(key);
                 queue.push([neighbor, [...path, neighbor]]);
                 // Append neighbor to current path
             }
@@ -1170,15 +1225,15 @@ function shortestPath(grid, start, end) {
 3. **Forest Fire:** Multiple fires spreading at once
 
 **How it works:**
-```python
-# Normal BFS (single source)
-queue = [start]
+```typescript
+// Normal BFS (single source)
+const queue: T[] = [start];
 
-# Multi-source BFS (multiple sources)
-queue = [source1, source2, source3, ...]  # Add ALL sources at start
+// Multi-source BFS (multiple sources)
+const multiQueue: T[] = [source1, source2, source3]; // Add ALL sources at start
 
-# Then run normal BFS!
-# All sources spread "together" level by level
+// Then run normal BFS!
+// All sources spread "together" level by level
 ```
 
 **Visual:**
@@ -1208,11 +1263,15 @@ Minute 2:
 BFS is naturally iterative (uses queue). Recursion is natural for DFS (uses stack/call stack).
 
 **Awkward recursive BFS:**
-```javascript
-function bfs(queue, visited, result) {
-    if (queue.length === 0) return;  // Base case
+```typescript
+function bfsRecursive(
+    queue: TreeNode[],
+    visited: Set<TreeNode>,
+    result: number[]
+): void {
+    if (queue.length === 0) return; // Base case
 
-    const node = queue.shift();
+    const node: TreeNode = queue.shift()!;
     result.push(node.val);
 
     // Add children
@@ -1225,7 +1284,7 @@ function bfs(queue, visited, result) {
         queue.push(node.right);
     }
 
-    bfs(queue, visited, result);  // Recurse
+    bfsRecursive(queue, visited, result); // Recurse
 }
 ```
 
@@ -1243,30 +1302,32 @@ function bfs(queue, visited, result) {
 **Answer:**
 
 **Option 1: Modify the grid**
-```python
-grid[r][c] = -1  # Mark as visited
+```typescript
+grid[r][c] = -1; // Mark as visited
 ```
 Pros: No extra space
 Cons: Destroys original grid
 
 **Option 2: Separate visited set**
-```python
-visited = set()
-visited.add((r, c))
+```typescript
+const visited: Set<string> = new Set();
+visited.add(`${r},${c}`);
 ```
 Pros: Preserves grid
-Cons: O(m×n) extra space
+Cons: O(m*n) extra space
 
 **Option 3: Mark when adding to queue (not when processing!)**
-```python
-# GOOD: Mark when adding
-if (nr, nc) not in visited:
-    visited.add((nr, nc))  # Mark NOW!
-    queue.append((nr, nc))
+```typescript
+// GOOD: Mark when adding
+const key: string = `${nr},${nc}`;
+if (!visited.has(key)) {
+    visited.add(key); // Mark NOW!
+    queue.push([nr, nc]);
+}
 
-# BAD: Mark when processing
-(r, c) = queue.popleft()
-visited.add((r, c))  # Too late! Might have been added multiple times
+// BAD: Mark when processing
+const [r, c] = queue.shift()!;
+visited.add(`${r},${c}`); // Too late! Might have been added multiple times
 ```
 
 **Why mark when adding?**
@@ -1284,10 +1345,10 @@ visited.add((r, c))  # Too late! Might have been added multiple times
 - Don't need visited tracking
 - Can go left/right without worrying about loops
 
-```javascript
+```typescript
 // Tree BFS - no visited needed
 while (queue.length > 0) {
-    const node = queue.shift();
+    const node: TreeNode = queue.shift()!;
     if (node.left) queue.push(node.left);
     if (node.right) queue.push(node.right);
 }
@@ -1298,16 +1359,17 @@ while (queue.length > 0) {
 - MUST track visited to avoid infinite loops
 - Need to check before adding neighbors
 
-```javascript
+```typescript
 // Graph BFS - visited required!
-const visited = new Set([start]);
+const visited: Set<string> = new Set([start]);
 
 while (queue.length > 0) {
-    const node = queue.shift();
+    const node: string = queue.shift()!;
 
-    for (const neighbor of graph[node]) {
+    const neighbors: string[] = graph.get(node) ?? [];
+    for (const neighbor of neighbors) {
         if (!visited.has(neighbor)) {
-            visited.add(neighbor);  // Critical!
+            visited.add(neighbor); // Critical!
             queue.push(neighbor);
         }
     }
@@ -1336,13 +1398,13 @@ This shows you understand the trade-offs!
 
 When coding BFS:
 
-```javascript
-const queue = [root];  // You say: "Using queue for level-by-level traversal"
+```typescript
+const queue: TreeNode[] = [root]; // You say: "Using queue for level-by-level traversal"
 
 while (queue.length > 0) {
-    const node = queue.shift();  // You say: "Shift removes from front (FIFO)"
+    const node: TreeNode = queue.shift()!; // You say: "Shift removes from front (FIFO)"
     // ...
-    queue.push(child);  // You say: "Push adds to back, so children process after current level"
+    queue.push(child); // You say: "Push adds to back, so children process after current level"
 }
 ```
 
@@ -1352,12 +1414,12 @@ Explaining FIFO shows you understand why BFS works!
 
 ### Tip 3: Always Capture Level Size
 
-```javascript
+```typescript
 while (queue.length > 0) {
-    const levelSize = queue.length;  // You say: "Snapshot the level size"
+    const levelSize: number = queue.length;  // You say: "Snapshot the level size"
 
     // You say: "This loop processes exactly ONE level"
-    for (let i = 0; i < levelSize; i++) {
+    for (let i: number = 0; i < levelSize; i++) {
         // ...
     }
     // You say: "After this loop, queue contains only next level"
@@ -1513,18 +1575,18 @@ Solution: BFS with distance tracking
 ### BFS Template
 
 **For Trees (Level Order):**
-```javascript
-function bfs(root) {
+```typescript
+function bfs(root: TreeNode | null): number[] {
     if (!root) return [];
 
-    const queue = [root];
-    const result = [];
+    const queue: TreeNode[] = [root];
+    const result: number[] = [];
 
     while (queue.length > 0) {
-        const levelSize = queue.length;
+        const levelSize: number = queue.length;
 
-        for (let i = 0; i < levelSize; i++) {
-            const node = queue.shift();  // FIFO!
+        for (let i: number = 0; i < levelSize; i++) {
+            const node: TreeNode = queue.shift()!;  // FIFO!
             result.push(node.val);
 
             if (node.left) queue.push(node.left);
@@ -1537,27 +1599,37 @@ function bfs(root) {
 ```
 
 **For Grids (Shortest Path):**
-```python
-from collections import deque
+```typescript
+function bfsGrid(
+    grid: string[][],
+    start: [number, number],
+    end: [number, number]
+): boolean {
+    const queue: [number, number][] = [start];
+    const visited: Set<string> = new Set([`${start[0]},${start[1]}`]);
 
-def bfs(grid, start, end):
-    queue = deque([start])
-    visited = set([start])
+    while (queue.length > 0) {
+        const [r, c] = queue.shift()!;  // FIFO!
 
-    while queue:
-        r, c = queue.popleft()  # FIFO!
+        if (r === end[0] && c === end[1]) {
+            return true;  // Found!
+        }
 
-        if (r, c) == end:
-            return True  # Found!
+        const directions: [number, number][] = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+        for (const [dr, dc] of directions) {
+            const nr: number = r + dr;
+            const nc: number = c + dc;
+            const key: string = `${nr},${nc}`;
 
-        for dr, dc in [(0,1), (1,0), (0,-1), (-1,0)]:
-            nr, nc = r + dr, c + dc
+            if (isValid(nr, nc) && !visited.has(key)) {
+                visited.add(key);  // Mark when adding!
+                queue.push([nr, nc]);
+            }
+        }
+    }
 
-            if is_valid(nr, nc) and (nr, nc) not in visited:
-                visited.add((nr, nc))  # Mark when adding!
-                queue.append((nr, nc))
-
-    return False
+    return false;
+}
 ```
 
 ### Mental Model (Simple!)

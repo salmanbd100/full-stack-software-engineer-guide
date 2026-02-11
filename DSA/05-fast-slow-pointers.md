@@ -173,7 +173,7 @@ Gap = 5 → 4 → 3 → 2 → 1 → 0 (MEET!)
 
 ---
 
-## Example 1: Linked List Cycle Detection (JavaScript)
+## Example 1: Linked List Cycle Detection (TypeScript)
 
 ### Problem
 Given the head of a linked list, determine if the linked list has a cycle in it. Return `true` if there is a cycle, otherwise return `false`.
@@ -182,12 +182,15 @@ Given the head of a linked list, determine if the linked list has a cycle in it.
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Definition for singly-linked list node
  */
 class ListNode {
-    constructor(val) {
+    val: number;
+    next: ListNode | null;
+
+    constructor(val: number) {
         this.val = val;
         this.next = null;
     }
@@ -195,23 +198,23 @@ class ListNode {
 
 /**
  * Detect if linked list has a cycle using fast & slow pointers
- * @param {ListNode} head - Head of the linked list
- * @return {boolean} - True if cycle exists, false otherwise
+ * @param head - Head of the linked list
+ * @returns True if cycle exists, false otherwise
  */
-function hasCycle(head) {
+function hasCycle(head: ListNode | null): boolean {
     // Edge case: empty list or single node
     if (!head || !head.next) {
         return false;
     }
 
     // Initialize slow and fast pointers
-    let slow = head;
-    let fast = head;
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
 
     // Move pointers until fast reaches end or they meet
     while (fast && fast.next) {
-        slow = slow.next;       // Move slow pointer 1 step
-        fast = fast.next.next;  // Move fast pointer 2 steps
+        slow = slow!.next;       // Move slow pointer 1 step
+        fast = fast.next.next;   // Move fast pointer 2 steps
 
         // If pointers meet, cycle exists
         if (slow === fast) {
@@ -225,10 +228,10 @@ function hasCycle(head) {
 
 // Example usage
 // Example 1: List with cycle [3,2,0,-4] where -4 points back to node with value 2
-const node1 = new ListNode(3);
-const node2 = new ListNode(2);
-const node3 = new ListNode(0);
-const node4 = new ListNode(-4);
+const node1: ListNode = new ListNode(3);
+const node2: ListNode = new ListNode(2);
+const node3: ListNode = new ListNode(0);
+const node4: ListNode = new ListNode(-4);
 
 node1.next = node2;
 node2.next = node3;
@@ -238,14 +241,14 @@ node4.next = node2;  // Creates cycle
 console.log(hasCycle(node1));  // Output: true
 
 // Example 2: List without cycle [1,2]
-const nodeA = new ListNode(1);
-const nodeB = new ListNode(2);
+const nodeA: ListNode = new ListNode(1);
+const nodeB: ListNode = new ListNode(2);
 nodeA.next = nodeB;
 
 console.log(hasCycle(nodeA));  // Output: false
 
 // Example 3: Single node with cycle [1] pointing to itself
-const single = new ListNode(1);
+const single: ListNode = new ListNode(1);
 single.next = single;
 
 console.log(hasCycle(single)); // Output: true
@@ -255,8 +258,8 @@ console.log(hasCycle(single)); // Output: true
 
 Let's break down the `hasCycle` function:
 
-```javascript
-function hasCycle(head) {
+```typescript
+function hasCycle(head: ListNode | null): boolean {
     // STEP 1: Handle edge cases
     if (!head || !head.next) {
         return false;
@@ -266,15 +269,15 @@ function hasCycle(head) {
     // one points back to another.
 ```
 
-```javascript
+```typescript
     // STEP 2: Initialize pointers
-    let slow = head;
-    let fast = head;
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
     // Both start at the same position (the head of the list)
     // Think: Both runners start at the same starting line
 ```
 
-```javascript
+```typescript
     // STEP 3: The main loop - move pointers at different speeds
     while (fast && fast.next) {
         // Why this condition?
@@ -283,27 +286,27 @@ function hasCycle(head) {
         // If either is null, we've reached the end (no cycle)
 ```
 
-```javascript
-        slow = slow.next;       // Slow takes 1 step
-        fast = fast.next.next;  // Fast takes 2 steps
+```typescript
+        slow = slow!.next;       // Slow takes 1 step
+        fast = fast.next.next;   // Fast takes 2 steps
 
         // Visualization:
         // Before: slow→A, fast→A
         // After:  slow→B, fast→C (if B→C exists)
 ```
 
-```javascript
+```typescript
         // STEP 4: Check if they meet
         if (slow === fast) {
             return true;
         }
-        // In JavaScript, === checks if both pointers reference
+        // In TypeScript, === checks if both pointers reference
         // the SAME node object (same memory location)
         // Not just same value!
     }
 ```
 
-```javascript
+```typescript
     // STEP 5: Fast reached the end
     return false;
     // If we exit the loop, fast reached null (end of list)
@@ -345,11 +348,11 @@ Iteration 3: gap = 1 - 1 = 0 (MEET!)
 - Space: O(1) - only 2 pointer variables
 
 **Alternative HashSet Approach:**
-```javascript
+```typescript
 // This works but uses more space
-function hasCycleHashSet(head) {
-    const visited = new Set();
-    let current = head;
+function hasCycleHashSet(head: ListNode | null): boolean {
+    const visited = new Set<ListNode>();
+    let current: ListNode | null = head;
 
     while (current) {
         if (visited.has(current)) {
@@ -370,21 +373,21 @@ Fast & Slow is better because it saves memory!
 
 This is a brilliant extension of the basic algorithm!
 
-```javascript
+```typescript
 /**
  * Find the node where cycle begins
- * @param {ListNode} head
- * @return {ListNode} - Node where cycle begins, or null if no cycle
+ * @param head - Head of the linked list
+ * @returns Node where cycle begins, or null if no cycle
  */
-function detectCycle(head) {
+function detectCycle(head: ListNode | null): ListNode | null {
     if (!head || !head.next) return null;
 
-    let slow = head;
-    let fast = head;
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
 
     // PHASE 1: Detect if cycle exists (same as before)
     while (fast && fast.next) {
-        slow = slow.next;
+        slow = slow!.next;
         fast = fast.next.next;
 
         if (slow === fast) {
@@ -396,8 +399,8 @@ function detectCycle(head) {
             // Move both pointers ONE step at a time
             // (now they move at same speed!)
             while (slow !== fast) {
-                slow = slow.next;  // 1 step
-                fast = fast.next;  // 1 step (not 2!)
+                slow = slow!.next;  // 1 step
+                fast = fast!.next;  // 1 step (not 2!)
             }
 
             return slow;  // This is the start of the cycle
@@ -458,7 +461,7 @@ They meet at 3, the cycle start!
 
 ---
 
-## Example 2: Middle of the Linked List (Python)
+## Example 2: Middle of the Linked List (TypeScript)
 
 ### Problem
 Given the head of a singly linked list, return the middle node. If there are two middle nodes, return the second middle node.
@@ -467,122 +470,126 @@ Given the head of a singly linked list, return the middle node. If there are two
 
 ### Solution
 
-```python
-from typing import Optional
+```typescript
+/**
+ * Definition for singly-linked list node
+ */
+class ListNode {
+    val: number;
+    next: ListNode | null;
 
-class ListNode:
-    """Definition for singly-linked list node"""
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+    constructor(val: number = 0, next: ListNode | null = null) {
+        this.val = val;
+        this.next = next;
+    }
+}
 
-class Solution:
-    def middleNode(self, head: Optional[ListNode]) -> Optional[ListNode]:
-        """
-        Find middle node using fast & slow pointers
+/**
+ * Find middle node using fast & slow pointers
+ * @param head - Head of the linked list
+ * @returns Middle node (second middle if even number of nodes)
+ */
+function middleNode(head: ListNode | null): ListNode | null {
+    // Initialize both pointers at head
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
 
-        Args:
-            head: Head of the linked list
+    // Move fast pointer 2x speed of slow pointer
+    // When fast reaches end, slow will be at middle
+    while (fast && fast.next) {
+        slow = slow!.next;        // Move 1 step
+        fast = fast.next.next;    // Move 2 steps
+    }
 
-        Returns:
-            Middle node (second middle if even number of nodes)
-        """
-        # Initialize both pointers at head
-        slow = head
-        fast = head
+    // Slow pointer is now at middle
+    return slow;
+}
 
-        # Move fast pointer 2x speed of slow pointer
-        # When fast reaches end, slow will be at middle
-        while fast and fast.next:
-            slow = slow.next        # Move 1 step
-            fast = fast.next.next   # Move 2 steps
+// Helper function to create linked list from array of values
+function createLinkedList(values: number[]): ListNode | null {
+    if (values.length === 0) {
+        return null;
+    }
 
-        # Slow pointer is now at middle
-        return slow
+    const head: ListNode = new ListNode(values[0]);
+    let current: ListNode = head;
 
-# Example usage
-def create_linked_list(values):
-    """Helper function to create linked list from list of values"""
-    if not values:
-        return None
+    for (let i = 1; i < values.length; i++) {
+        current.next = new ListNode(values[i]);
+        current = current.next;
+    }
 
-    head = ListNode(values[0])
-    current = head
+    return head;
+}
 
-    for val in values[1:]:
-        current.next = ListNode(val)
-        current = current.next
+// Helper function to print linked list from a given node
+function printFromNode(node: ListNode | null): number[] {
+    const result: number[] = [];
+    while (node) {
+        result.push(node.val);
+        node = node.next;
+    }
+    return result;
+}
 
-    return head
+// Example 1: Odd number of nodes [1,2,3,4,5]
+const head1: ListNode | null = createLinkedList([1, 2, 3, 4, 5]);
+const middle1: ListNode | null = middleNode(head1);
+console.log(printFromNode(middle1));  // Output: [3, 4, 5]
+// Explanation: Middle node is 3
 
-def print_from_node(node):
-    """Helper function to print linked list from a given node"""
-    result = []
-    while node:
-        result.append(node.val)
-        node = node.next
-    return result
+// Example 2: Even number of nodes [1,2,3,4,5,6]
+const head2: ListNode | null = createLinkedList([1, 2, 3, 4, 5, 6]);
+const middle2: ListNode | null = middleNode(head2);
+console.log(printFromNode(middle2));  // Output: [4, 5, 6]
+// Explanation: Two middle nodes (3 and 4), return second middle
 
-solution = Solution()
+// Example 3: Two nodes [1,2]
+const head3: ListNode | null = createLinkedList([1, 2]);
+const middle3: ListNode | null = middleNode(head3);
+console.log(printFromNode(middle3));  // Output: [2]
 
-# Example 1: Odd number of nodes [1,2,3,4,5]
-head1 = create_linked_list([1, 2, 3, 4, 5])
-middle1 = solution.middleNode(head1)
-print(print_from_node(middle1))  # Output: [3, 4, 5]
-# Explanation: Middle node is 3
-
-# Example 2: Even number of nodes [1,2,3,4,5,6]
-head2 = create_linked_list([1, 2, 3, 4, 5, 6])
-middle2 = solution.middleNode(head2)
-print(print_from_node(middle2))  # Output: [4, 5, 6]
-# Explanation: Two middle nodes (3 and 4), return second middle
-
-# Example 3: Two nodes [1,2]
-head3 = create_linked_list([1, 2])
-middle3 = solution.middleNode(head3)
-print(print_from_node(middle3))  # Output: [2]
-
-# Example 4: Single node [1]
-head4 = create_linked_list([1])
-middle4 = solution.middleNode(head4)
-print(print_from_node(middle4))  # Output: [1]
+// Example 4: Single node [1]
+const head4: ListNode | null = createLinkedList([1]);
+const middle4: ListNode | null = middleNode(head4);
+console.log(printFromNode(middle4));  // Output: [1]
 ```
 
 ### Detailed Code Explanation
 
 Let's understand the middle-finding algorithm step by step:
 
-```python
-def middleNode(self, head: Optional[ListNode]) -> Optional[ListNode]:
-    # STEP 1: Initialize both pointers at head
-    slow = head
-    fast = head
-    # Think: Both runners start at the same starting line
+```typescript
+function middleNode(head: ListNode | null): ListNode | null {
+    // STEP 1: Initialize both pointers at head
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
+    // Think: Both runners start at the same starting line
 ```
 
-```python
-    # STEP 2: Move pointers at different speeds
-    while fast and fast.next:
-        # Condition check:
-        # - 'fast' exists (not None)
-        # - 'fast.next' exists (so we can do fast.next.next)
-        #
-        # When does this fail?
-        # - Odd length: fast.next becomes None
-        # - Even length: fast becomes None
+```typescript
+    // STEP 2: Move pointers at different speeds
+    while (fast && fast.next) {
+        // Condition check:
+        // - 'fast' exists (not null)
+        // - 'fast.next' exists (so we can do fast.next.next)
+        //
+        // When does this fail?
+        // - Odd length: fast.next becomes null
+        // - Even length: fast becomes null
 ```
 
-```python
-        slow = slow.next        # Slow moves 1 step
-        fast = fast.next.next   # Fast moves 2 steps
-        # For every 1 step slow takes, fast takes 2 steps
-        # This 2:1 ratio is the key!
+```typescript
+        slow = slow!.next;        // Slow moves 1 step
+        fast = fast.next.next;    // Fast moves 2 steps
+        // For every 1 step slow takes, fast takes 2 steps
+        // This 2:1 ratio is the key!
 ```
 
-```python
-    # STEP 3: Return slow pointer
-    return slow
-    # When loop exits, slow is at the middle!
+```typescript
+    // STEP 3: Return slow pointer
+    return slow;
+    // When loop exits, slow is at the middle!
 }
 ```
 
@@ -693,30 +700,32 @@ This is because fast runs at 2x speed!
 ### 1. Forgetting Null Checks
 
 **WRONG:**
-```javascript
-function hasCycle(head) {
-    let slow = head;
-    let fast = head;
+```typescript
+function hasCycle(head: ListNode | null): boolean {
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
 
     while (fast) {  // BUG: Missing fast.next check
-        slow = slow.next;
-        fast = fast.next.next;  // ERROR! fast.next might be null
+        slow = slow!.next;
+        fast = fast.next!.next;  // ERROR! fast.next might be null
         // ...
     }
+    return false;
 }
 ```
 
 **RIGHT:**
-```javascript
-function hasCycle(head) {
-    let slow = head;
-    let fast = head;
+```typescript
+function hasCycle(head: ListNode | null): boolean {
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
 
     while (fast && fast.next) {  // Check both!
-        slow = slow.next;
+        slow = slow!.next;
         fast = fast.next.next;
         // ...
     }
+    return false;
 }
 ```
 
@@ -727,14 +736,14 @@ function hasCycle(head) {
 ### 2. Comparing Values Instead of References
 
 **WRONG:**
-```javascript
-if (slow.val === fast.val) {  // BUG: Comparing values
+```typescript
+if (slow!.val === fast!.val) {  // BUG: Comparing values
     return true;
 }
 ```
 
 **RIGHT:**
-```javascript
+```typescript
 if (slow === fast) {  // Correct: Comparing references
     return true;
 }
@@ -747,20 +756,20 @@ if (slow === fast) {  // Correct: Comparing references
 ### 3. Moving Pointers in Wrong Order
 
 **WRONG:**
-```javascript
+```typescript
 if (slow === fast) {  // BUG: Check before moving
     return true;
 }
-slow = slow.next;
-fast = fast.next.next;
+slow = slow!.next;
+fast = fast!.next!.next;
 ```
 
 This will detect a cycle at the start when both are at head!
 
 **RIGHT:**
-```javascript
-slow = slow.next;
-fast = fast.next.next;
+```typescript
+slow = slow!.next;
+fast = fast!.next!.next;
 
 if (slow === fast) {  // Check after moving
     return true;
@@ -772,24 +781,26 @@ if (slow === fast) {  // Check after moving
 ### 4. Not Handling Edge Cases
 
 **WRONG:**
-```javascript
-function hasCycle(head) {
-    let slow = head;
-    let fast = head;
+```typescript
+function hasCycle(head: ListNode | null): boolean {
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
     // What if head is null? ERROR!
     // ...
+    return false;
 }
 ```
 
 **RIGHT:**
-```javascript
-function hasCycle(head) {
+```typescript
+function hasCycle(head: ListNode | null): boolean {
     if (!head || !head.next) {  // Handle edge cases
         return false;
     }
-    let slow = head;
-    let fast = head;
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
     // ...
+    return false;
 }
 ```
 
@@ -803,17 +814,17 @@ function hasCycle(head) {
 ### 5. Wrong Speed Ratio
 
 **WRONG:**
-```javascript
-slow = slow.next;      // 1 step
-fast = fast.next;      // 1 step (should be 2!)
+```typescript
+slow = slow!.next;      // 1 step
+fast = fast!.next;      // 1 step (should be 2!)
 ```
 
 This defeats the purpose! Both move at same speed, won't catch cycle efficiently.
 
 **RIGHT:**
-```javascript
-slow = slow.next;       // 1 step
-fast = fast.next.next;  // 2 steps
+```typescript
+slow = slow!.next;       // 1 step
+fast = fast!.next!.next; // 2 steps
 ```
 
 ---
@@ -857,10 +868,10 @@ But they WILL always meet somewhere inside the cycle.
 **Answer:** Yes! Same concept applies.
 
 **Example:** Find duplicate in array [1,3,4,2,2]
-```javascript
-function findDuplicate(nums) {
-    let slow = nums[0];
-    let fast = nums[0];
+```typescript
+function findDuplicate(nums: number[]): number {
+    let slow: number = nums[0];
+    let fast: number = nums[0];
 
     do {
         slow = nums[slow];           // 1 step
@@ -906,18 +917,18 @@ function findDuplicate(nums) {
 - To get first middle: add condition `while (fast.next && fast.next.next)`
 
 **Example:**
-```javascript
+```typescript
 // Second middle (current algorithm)
 while (fast && fast.next) {
-    slow = slow.next;
+    slow = slow!.next;
     fast = fast.next.next;
 }
 // List [1,2,3,4] → returns 3
 
 // First middle (modified)
-while (fast.next && fast.next.next) {
-    slow = slow.next;
-    fast = fast.next.next;
+while (fast!.next && fast!.next.next) {
+    slow = slow!.next;
+    fast = fast!.next.next;
 }
 // List [1,2,3,4] → returns 2
 ```
@@ -927,20 +938,21 @@ while (fast.next && fast.next.next) {
 ## Pro Tips for Interviews
 
 ### Tip 1: Always Start with Edge Cases
-```javascript
+```typescript
 // Template to follow
-function solution(head) {
+function solution(head: ListNode | null): ListNode | null {
     // 1. Handle edge cases first
     if (!head || !head.next) {
-        return /* appropriate value */;
+        return null; /* appropriate value */
     }
 
     // 2. Initialize pointers
-    let slow = head;
-    let fast = head;
+    let slow: ListNode | null = head;
+    let fast: ListNode | null = head;
 
     // 3. Main logic
     // ...
+    return slow;
 }
 ```
 
@@ -986,27 +998,27 @@ Be ready to adapt for:
 ### Tip 6: Test with These Cases
 
 Always test your solution with:
-```javascript
+```typescript
 // 1. Empty list
-hasCycle(null) → false
+hasCycle(null) // → false
 
 // 2. Single node, no cycle
-hasCycle(1→null) → false
+hasCycle(1→null) // → false
 
 // 3. Single node, self cycle
-hasCycle(1→1) → true
+hasCycle(1→1) // → true
 
 // 4. Two nodes, no cycle
-hasCycle(1→2→null) → false
+hasCycle(1→2→null) // → false
 
 // 5. Two nodes, cycle
-hasCycle(1→2→1) → true
+hasCycle(1→2→1) // → true
 
 // 6. Larger list with cycle
-hasCycle(1→2→3→4→5→3) → true
+hasCycle(1→2→3→4→5→3) // → true
 
 // 7. Larger list, no cycle
-hasCycle(1→2→3→4→5→null) → false
+hasCycle(1→2→3→4→5→null) // → false
 ```
 
 ---
@@ -1157,9 +1169,9 @@ DON'T use fast & slow if:
 ### The 3 Core Uses
 
 **1. Cycle Detection**
-```javascript
+```typescript
 while (fast && fast.next) {
-    slow = slow.next;
+    slow = slow!.next;
     fast = fast.next.next;
     if (slow === fast) return true;  // Cycle found!
 }
@@ -1167,19 +1179,19 @@ return false;  // No cycle
 ```
 
 **2. Find Middle**
-```javascript
+```typescript
 while (fast && fast.next) {
-    slow = slow.next;
+    slow = slow!.next;
     fast = fast.next.next;
 }
 return slow;  // Slow is at middle
 ```
 
 **3. Find Cycle Start**
-```javascript
+```typescript
 // Phase 1: Detect cycle
 while (fast && fast.next) {
-    slow = slow.next;
+    slow = slow!.next;
     fast = fast.next.next;
     if (slow === fast) break;
 }
@@ -1188,8 +1200,8 @@ if (!fast || !fast.next) return null;  // No cycle
 // Phase 2: Find start
 slow = head;
 while (slow !== fast) {
-    slow = slow.next;
-    fast = fast.next;
+    slow = slow!.next;
+    fast = fast!.next;
 }
 return slow;  // Cycle start
 ```

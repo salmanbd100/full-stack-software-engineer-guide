@@ -100,23 +100,28 @@ Look for this pattern when you see:
 
 **Best for**: Sparse graphs (few edges)
 
-```javascript
+```typescript
+// Type definitions for graph representations
+type AdjacencyList = Record<number, number[]>;
+type AdjacencyListArray = number[][];
+type WeightedAdjacencyList = Record<number, [number, number][]>;
+
 // Example: 0 → 1, 0 → 2, 1 → 2
-const graph = {
+const graph: AdjacencyList = {
     0: [1, 2],
     1: [2],
     2: []
 };
 
 // Or as array of arrays:
-const graph = [
+const graphArray: AdjacencyListArray = [
     [1, 2],  // node 0's neighbors
     [2],     // node 1's neighbors
     []       // node 2's neighbors
 ];
 
 // Weighted graph:
-const graph = {
+const weightedGraph: WeightedAdjacencyList = {
     0: [[1, 5], [2, 3]],  // [neighbor, weight]
     1: [[2, 2]],
     2: []
@@ -129,9 +134,11 @@ const graph = {
 
 **Best for**: Dense graphs, fast edge lookup
 
-```javascript
+```typescript
+type AdjacencyMatrix = number[][];
+
 // Same graph: 0 → 1, 0 → 2, 1 → 2
-const graph = [
+const graph: AdjacencyMatrix = [
     [0, 1, 1],  // row 0: edges from node 0
     [0, 0, 1],  // row 1: edges from node 1
     [0, 0, 0]   // row 2: edges from node 2
@@ -141,7 +148,7 @@ const graph = [
 // graph[i][j] = 0 means no edge
 
 // Weighted graph:
-const graph = [
+const weightedMatrix: AdjacencyMatrix = [
     [0, 5, 3],  // 0→1 weight 5, 0→2 weight 3
     [0, 0, 2],  // 1→2 weight 2
     [0, 0, 0]
@@ -154,15 +161,18 @@ const graph = [
 
 **Best for**: Simple iteration over all edges
 
-```javascript
-const edges = [
+```typescript
+type Edge = [number, number];
+type WeightedEdge = [number, number, number];
+
+const edges: Edge[] = [
     [0, 1],  // edge from 0 to 1
     [0, 2],  // edge from 0 to 2
     [1, 2]   // edge from 1 to 2
 ];
 
 // Weighted:
-const edges = [
+const weightedEdges: WeightedEdge[] = [
     [0, 1, 5],  // from, to, weight
     [0, 2, 3],
     [1, 2, 2]
@@ -173,7 +183,7 @@ const edges = [
 
 ---
 
-## Example 1: Course Schedule (JavaScript)
+## Example 1: Course Schedule (TypeScript)
 
 ### Problem
 There are `numCourses` courses labeled from 0 to numCourses-1. You are given an array `prerequisites` where `prerequisites[i] = [a, b]` indicates you must take course b before course a. Return `true` if you can finish all courses (no cycle in dependency graph).
@@ -182,25 +192,25 @@ There are `numCourses` courses labeled from 0 to numCourses-1. You are given an 
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Detect cycle in directed graph using DFS (topological sort approach)
- * @param {number} numCourses - Number of courses
- * @param {number[][]} prerequisites - [course, prerequisite] pairs
- * @return {boolean} - True if can finish all courses
+ * @param numCourses - Number of courses
+ * @param prerequisites - [course, prerequisite] pairs
+ * @returns True if can finish all courses
  */
-function canFinish(numCourses, prerequisites) {
+function canFinish(numCourses: number, prerequisites: number[][]): boolean {
     // Build adjacency list
-    const graph = Array.from({ length: numCourses }, () => []);
+    const graph: number[][] = Array.from({ length: numCourses }, (): number[] => []);
 
     for (const [course, prereq] of prerequisites) {
         graph[prereq].push(course);
     }
 
     // Track visited states: 0=unvisited, 1=visiting, 2=visited
-    const visited = new Array(numCourses).fill(0);
+    const visited: number[] = new Array(numCourses).fill(0);
 
-    function hasCycle(course) {
+    function hasCycle(course: number): boolean {
         if (visited[course] === 1) {
             // Currently visiting - found cycle!
             return true;
@@ -238,14 +248,14 @@ function canFinish(numCourses, prerequisites) {
 
 /**
  * Alternative: BFS approach (Kahn's algorithm for topological sort)
- * @param {number} numCourses
- * @param {number[][]} prerequisites
- * @return {boolean}
+ * @param numCourses - Number of courses
+ * @param prerequisites - [course, prerequisite] pairs
+ * @returns True if can finish all courses
  */
-function canFinishBFS(numCourses, prerequisites) {
+function canFinishBFS(numCourses: number, prerequisites: number[][]): boolean {
     // Build graph and indegree count
-    const graph = Array.from({ length: numCourses }, () => []);
-    const indegree = new Array(numCourses).fill(0);
+    const graph: number[][] = Array.from({ length: numCourses }, (): number[] => []);
+    const indegree: number[] = new Array(numCourses).fill(0);
 
     for (const [course, prereq] of prerequisites) {
         graph[prereq].push(course);
@@ -253,17 +263,17 @@ function canFinishBFS(numCourses, prerequisites) {
     }
 
     // Start with courses that have no prerequisites
-    const queue = [];
+    const queue: number[] = [];
     for (let i = 0; i < numCourses; i++) {
         if (indegree[i] === 0) {
             queue.push(i);
         }
     }
 
-    let processed = 0;
+    let processed: number = 0;
 
     while (queue.length > 0) {
-        const course = queue.shift();
+        const course: number = queue.shift()!;
         processed++;
 
         // Remove this course from graph
@@ -461,7 +471,7 @@ No gray nodes revisited → No cycle → Can finish
 
 ---
 
-## Example 2: Network Delay Time (Python)
+## Example 2: Network Delay Time (TypeScript)
 
 ### Problem
 You are given a network of `n` nodes labeled 1 to n, and `times`, an array of travel times as directed edges `times[i] = (u, v, w)` where `u` is source, `v` is target, and `w` is the time for signal to travel. Send signal from node `k`. Return minimum time for all nodes to receive signal, or -1 if impossible.
@@ -470,104 +480,112 @@ You are given a network of `n` nodes labeled 1 to n, and `times`, an array of tr
 
 ### Solution
 
-```python
-from typing import List
-import heapq
-from collections import defaultdict
+```typescript
+/**
+ * Find shortest path to all nodes using Dijkstra's algorithm
+ * @param times - Directed weighted edges [source, target, time]
+ * @param n - Number of nodes (1 to n)
+ * @param k - Starting node
+ * @returns Minimum time for signal to reach all nodes, or -1 if impossible
+ */
+function networkDelayTime(times: number[][], n: number, k: number): number {
+    // Build adjacency list
+    const graph: Map<number, [number, number][]> = new Map();
+    for (let i = 1; i <= n; i++) {
+        graph.set(i, []);
+    }
+    for (const [u, v, w] of times) {
+        graph.get(u)!.push([v, w]);  // [neighbor, weight]
+    }
 
-class Solution:
-    def networkDelayTime(self, times: List[List[int]], n: int, k: int) -> int:
-        """
-        Find shortest path to all nodes using Dijkstra's algorithm
+    // Dijkstra's algorithm using array as min-heap (sorted by time)
+    const minHeap: [number, number][] = [[0, k]];  // [time, node]
+    const visited: Set<number> = new Set();
+    let maxTime: number = 0;
 
-        Args:
-            times: Directed weighted edges [source, target, time]
-            n: Number of nodes (1 to n)
-            k: Starting node
+    while (minHeap.length > 0) {
+        // Sort to get minimum time first (simulating min-heap)
+        minHeap.sort((a, b) => a[0] - b[0]);
+        const [time, node] = minHeap.shift()!;
 
-        Returns:
-            Minimum time for signal to reach all nodes, or -1 if impossible
-        """
-        # Build adjacency list
-        graph = defaultdict(list)
-        for u, v, w in times:
-            graph[u].append((v, w))  # (neighbor, weight)
+        // Skip if already visited
+        if (visited.has(node)) {
+            continue;
+        }
 
-        # Dijkstra's algorithm
-        min_heap = [(0, k)]  # (time, node)
-        visited = set()
-        max_time = 0
+        // Mark as visited and update max time
+        visited.add(node);
+        maxTime = Math.max(maxTime, time);
 
-        while min_heap:
-            time, node = heapq.heappop(min_heap)
+        // Explore neighbors
+        for (const [neighbor, weight] of graph.get(node) || []) {
+            if (!visited.has(neighbor)) {
+                minHeap.push([time + weight, neighbor]);
+            }
+        }
+    }
 
-            # Skip if already visited
-            if node in visited:
-                continue
+    // Check if all nodes were visited
+    return visited.size === n ? maxTime : -1;
+}
 
-            # Mark as visited and update max time
-            visited.add(node)
-            max_time = max(max_time, time)
+/**
+ * Alternative: Bellman-Ford algorithm
+ * Works with negative weights (though not needed here)
+ * @param times - Directed weighted edges [source, target, time]
+ * @param n - Number of nodes (1 to n)
+ * @param k - Starting node
+ * @returns Minimum time for signal to reach all nodes, or -1 if impossible
+ */
+function networkDelayTimeBellmanFord(times: number[][], n: number, k: number): number {
+    // Initialize distances
+    const dist: number[] = new Array(n + 1).fill(Infinity);
+    dist[k] = 0;
 
-            # Explore neighbors
-            for neighbor, weight in graph[node]:
-                if neighbor not in visited:
-                    heapq.heappush(min_heap, (time + weight, neighbor))
+    // Relax edges n-1 times
+    for (let i = 0; i < n - 1; i++) {
+        for (const [u, v, w] of times) {
+            if (dist[u] !== Infinity && dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+            }
+        }
+    }
 
-        # Check if all nodes were visited
-        return max_time if len(visited) == n else -1
+    // Find maximum distance
+    const maxDist: number = Math.max(...dist.slice(1));
+    return maxDist !== Infinity ? maxDist : -1;
+}
 
-    def networkDelayTimeBellmanFord(self, times: List[List[int]], n: int, k: int) -> int:
-        """
-        Alternative: Bellman-Ford algorithm
-        Works with negative weights (though not needed here)
-        """
-        # Initialize distances
-        dist = [float('inf')] * (n + 1)
-        dist[k] = 0
+// Example usage
+// Example 1
+const times1: number[][] = [[2, 1, 1], [2, 3, 1], [3, 4, 1]];
+const n1: number = 4;
+const k1: number = 2;
+console.log(networkDelayTime(times1, n1, k1));  // Output: 2
+// Explanation:
+// Node 2 → Node 1: time 1
+// Node 2 → Node 3: time 1
+// Node 3 → Node 4: time 1 (total from 2: 2)
+// Max time: 2
 
-        # Relax edges n-1 times
-        for _ in range(n - 1):
-            for u, v, w in times:
-                if dist[u] != float('inf') and dist[u] + w < dist[v]:
-                    dist[v] = dist[u] + w
+// Example 2
+const times2: number[][] = [[1, 2, 1]];
+const n2: number = 2;
+const k2: number = 1;
+console.log(networkDelayTime(times2, n2, k2));  // Output: 1
 
-        # Find maximum distance
-        max_dist = max(dist[1:])
-        return max_dist if max_dist != float('inf') else -1
+// Example 3
+const times3: number[][] = [[1, 2, 1]];
+const n3: number = 2;
+const k3: number = 2;
+console.log(networkDelayTime(times3, n3, k3));  // Output: -1
+// Explanation: Node 1 is unreachable from node 2
 
-# Example usage
-solution = Solution()
-
-# Example 1
-times1 = [[2, 1, 1], [2, 3, 1], [3, 4, 1]]
-n1 = 4
-k1 = 2
-print(solution.networkDelayTime(times1, n1, k1))  # Output: 2
-# Explanation:
-# Node 2 → Node 1: time 1
-# Node 2 → Node 3: time 1
-# Node 3 → Node 4: time 1 (total from 2: 2)
-# Max time: 2
-
-# Example 2
-times2 = [[1, 2, 1]]
-n2 = 2
-k2 = 1
-print(solution.networkDelayTime(times2, n2, k2))  # Output: 1
-
-# Example 3
-times3 = [[1, 2, 1]]
-n3 = 2
-k3 = 2
-print(solution.networkDelayTime(times3, n3, k3))  # Output: -1
-# Explanation: Node 1 is unreachable from node 2
-
-# Example 4 - Using Bellman-Ford
-times4 = [[2, 1, 1], [2, 3, 1], [3, 4, 1]]
-n4 = 4
-k4 = 2
-print(solution.networkDelayTimeBellmanFord(times4, n4, k4))  # Output: 2
+// Example 4 - Using Bellman-Ford
+const times4: number[][] = [[2, 1, 1], [2, 3, 1], [3, 4, 1]];
+const n4: number = 4;
+const k4: number = 2;
+console.log(networkDelayTimeBellmanFord(times4, n4, k4));  // Output: 2
 ```
 
 ### Step-by-Step Walkthrough: Dijkstra's Algorithm
@@ -745,11 +763,15 @@ Imagine you're at a **party** and want to figure out **friend groups**:
 
 ### Implementation
 
-```javascript
+```typescript
 class UnionFind {
-    constructor(n) {
+    private parent: number[];
+    private rank: number[];
+    private components: number;
+
+    constructor(n: number) {
         // Each node is its own parent initially
-        this.parent = Array.from({ length: n }, (_, i) => i);
+        this.parent = Array.from({ length: n }, (_, i: number) => i);
 
         // Optimization: track tree size for union by rank
         this.rank = new Array(n).fill(1);
@@ -760,10 +782,10 @@ class UnionFind {
 
     /**
      * Find root parent with path compression
-     * @param {number} x - Node to find
-     * @return {number} - Root parent
+     * @param x - Node to find
+     * @returns Root parent
      */
-    find(x) {
+    find(x: number): number {
         // Path compression: make x point directly to root
         if (this.parent[x] !== x) {
             this.parent[x] = this.find(this.parent[x]);
@@ -773,13 +795,13 @@ class UnionFind {
 
     /**
      * Union two sets
-     * @param {number} x - First node
-     * @param {number} y - Second node
-     * @return {boolean} - True if union happened, false if already connected
+     * @param x - First node
+     * @param y - Second node
+     * @returns True if union happened, false if already connected
      */
-    union(x, y) {
-        const rootX = this.find(x);
-        const rootY = this.find(y);
+    union(x: number, y: number): boolean {
+        const rootX: number = this.find(x);
+        const rootY: number = this.find(y);
 
         // Already in same set
         if (rootX === rootY) {
@@ -802,27 +824,27 @@ class UnionFind {
 
     /**
      * Check if two nodes are connected
-     * @param {number} x - First node
-     * @param {number} y - Second node
-     * @return {boolean}
+     * @param x - First node
+     * @param y - Second node
+     * @returns True if connected
      */
-    connected(x, y) {
+    connected(x: number, y: number): boolean {
         return this.find(x) === this.find(y);
     }
 
     /**
      * Get number of connected components
-     * @return {number}
+     * @returns Number of components
      */
-    getComponents() {
+    getComponents(): number {
         return this.components;
     }
 }
 
 // Example: Detect redundant connection
-function findRedundantConnection(edges) {
-    const n = edges.length;
-    const uf = new UnionFind(n + 1);
+function findRedundantConnection(edges: number[][]): number[] {
+    const n: number = edges.length;
+    const uf: UnionFind = new UnionFind(n + 1);
 
     for (const [u, v] of edges) {
         // If union returns false, these nodes are already connected
@@ -937,8 +959,8 @@ Next find(5): only 1 hop!
 
 ### Template 1: DFS (Recursive)
 
-```javascript
-function dfs(graph, node, visited) {
+```typescript
+function dfs(graph: number[][], node: number, visited: Set<number>): void {
     // Mark current node as visited
     visited.add(node);
 
@@ -954,19 +976,19 @@ function dfs(graph, node, visited) {
 }
 
 // Usage
-const visited = new Set();
+const visited: Set<number> = new Set();
 dfs(graph, startNode, visited);
 ```
 
 ### Template 2: DFS (Iterative with Stack)
 
-```javascript
-function dfsIterative(graph, start) {
-    const visited = new Set();
-    const stack = [start];
+```typescript
+function dfsIterative(graph: number[][], start: number): void {
+    const visited: Set<number> = new Set();
+    const stack: number[] = [start];
 
     while (stack.length > 0) {
-        const node = stack.pop();
+        const node: number = stack.pop()!;
 
         if (visited.has(node)) continue;
 
@@ -985,13 +1007,13 @@ function dfsIterative(graph, start) {
 
 ### Template 3: BFS (Level-Order)
 
-```javascript
-function bfs(graph, start) {
-    const visited = new Set([start]);
-    const queue = [start];
+```typescript
+function bfs(graph: number[][], start: number): void {
+    const visited: Set<number> = new Set([start]);
+    const queue: number[] = [start];
 
     while (queue.length > 0) {
-        const node = queue.shift();
+        const node: number = queue.shift()!;
         console.log(node);
 
         for (const neighbor of graph[node]) {
@@ -1006,22 +1028,22 @@ function bfs(graph, start) {
 
 ### Template 4: Dijkstra's Shortest Path
 
-```javascript
-function dijkstra(graph, start, n) {
-    const distances = new Array(n).fill(Infinity);
+```typescript
+function dijkstra(graph: [number, number][][], start: number, n: number): number[] {
+    const distances: number[] = new Array(n).fill(Infinity);
     distances[start] = 0;
 
-    const minHeap = [[0, start]];  // [distance, node]
-    const visited = new Set();
+    const minHeap: [number, number][] = [[0, start]];  // [distance, node]
+    const visited: Set<number> = new Set();
 
     while (minHeap.length > 0) {
-        const [dist, node] = minHeap.shift();  // In real code, use priority queue
+        const [dist, node] = minHeap.shift()!;  // In real code, use priority queue
 
         if (visited.has(node)) continue;
         visited.add(node);
 
         for (const [neighbor, weight] of graph[node]) {
-            const newDist = dist + weight;
+            const newDist: number = dist + weight;
             if (newDist < distances[neighbor]) {
                 distances[neighbor] = newDist;
                 minHeap.push([newDist, neighbor]);
@@ -1053,47 +1075,52 @@ function dijkstra(graph, start, n) {
 - Finding nodes within k distance
 - Minimum steps problems
 
-```javascript
+```typescript
 // DFS: Goes deep first
-Graph:    1
-         /  \
-        2    3
-       / \
-      4   5
+// Graph:    1
+//          /  \
+//         2    3
+//        / \
+//       4   5
 
-DFS order: 1 → 2 → 4 → 5 → 3
+// DFS order: 1 → 2 → 4 → 5 → 3
 
 // BFS: Goes level by level
-BFS order: 1 → 2 → 3 → 4 → 5
+// BFS order: 1 → 2 → 3 → 4 → 5
 ```
 
 ### 2. What's the difference between directed and undirected graphs?
 
 **Directed** (one-way streets):
-```javascript
+```typescript
 // Edge from A to B doesn't mean B to A
-graph = {
+const graph: Record<string, string[]> = {
     'A': ['B'],
     'B': []
-}
+};
 // A → B (can't go B → A)
 ```
 
 **Undirected** (two-way streets):
-```javascript
+```typescript
 // Edge between A and B goes both ways
-graph = {
+const graph: Record<string, string[]> = {
     'A': ['B'],
     'B': ['A']
-}
+};
 // A ↔ B (can go either direction)
 ```
 
 ### 3. How do I detect a cycle in a graph?
 
 **Undirected graph** (use parent tracking):
-```javascript
-function hasCycleUndirected(graph, node, visited, parent) {
+```typescript
+function hasCycleUndirected(
+    graph: number[][],
+    node: number,
+    visited: Set<number>,
+    parent: number
+): boolean {
     visited.add(node);
 
     for (const neighbor of graph[node]) {
@@ -1112,8 +1139,13 @@ function hasCycleUndirected(graph, node, visited, parent) {
 ```
 
 **Directed graph** (use three states):
-```javascript
-function hasCycleDirected(graph, node, visiting, visited) {
+```typescript
+function hasCycleDirected(
+    graph: number[][],
+    node: number,
+    visiting: Set<number>,
+    visited: Set<number>
+): boolean {
     if (visiting.has(node)) return true;  // Cycle!
     if (visited.has(node)) return false;
 
@@ -1169,7 +1201,7 @@ Must take B and C before D
 - Directed graphs
 - Distance/level information needed
 
-```javascript
+```typescript
 // Union-Find: O(α(n)) ≈ O(1) per operation
 // Great for: "Are these nodes connected?"
 
@@ -1210,19 +1242,19 @@ Dijkstra explores:
 | **Algorithm type** | Greedy | Dynamic Programming |
 | **When to use** | Fastest for non-negative | When negatives possible |
 
-```javascript
+```typescript
 // Dijkstra: Use min-heap, greedy
 // Bellman-Ford: Relax all edges V-1 times
 
 // Example with negative weight:
-Graph: A --5--> B
-       |        |
-       |       -3  (negative!)
-       ↓        ↓
-       C --1--> D
+// Graph: A --5--> B
+//        |        |
+//        |       -3  (negative!)
+//        ↓        ↓
+//        C --1--> D
 
-Dijkstra might fail (assumes greedy is optimal)
-Bellman-Ford handles correctly: A → B → D = 5 + (-3) = 2
+// Dijkstra might fail (assumes greedy is optimal)
+// Bellman-Ford handles correctly: A → B → D = 5 + (-3) = 2
 ```
 
 ---
@@ -1232,9 +1264,9 @@ Bellman-Ford handles correctly: A → B → D = 5 + (-3) = 2
 ### Pitfall 1: Forgetting to Mark Nodes as Visited ⚠️
 
 **Problem**:
-```javascript
+```typescript
 // WRONG: Infinite loop!
-function dfs(graph, node) {
+function dfs(graph: number[][], node: number): void {
     console.log(node);
     for (const neighbor of graph[node]) {
         dfs(graph, neighbor);  // No visited check!
@@ -1243,9 +1275,9 @@ function dfs(graph, node) {
 ```
 
 **Fix**:
-```javascript
+```typescript
 // CORRECT: Track visited nodes
-function dfs(graph, node, visited = new Set()) {
+function dfs(graph: number[][], node: number, visited: Set<number> = new Set()): void {
     if (visited.has(node)) return;  // ✓ Prevent infinite loop
 
     visited.add(node);
@@ -1264,13 +1296,13 @@ function dfs(graph, node, visited = new Set()) {
 ### Pitfall 2: Using DFS for Shortest Path in Unweighted Graphs ⚠️
 
 **Problem**:
-```javascript
+```typescript
 // WRONG: DFS doesn't guarantee shortest path
-function shortestPath(graph, start, end) {
-    function dfs(node, path) {
+function shortestPath(graph: number[][], start: number, end: number): number {
+    function dfs(node: number, path: number[]): number {
         if (node === end) return path.length;
 
-        let minPath = Infinity;
+        let minPath: number = Infinity;
         for (const neighbor of graph[node]) {
             if (!path.includes(neighbor)) {
                 minPath = Math.min(minPath, dfs(neighbor, [...path, neighbor]));
@@ -1284,14 +1316,14 @@ function shortestPath(graph, start, end) {
 ```
 
 **Fix**:
-```javascript
+```typescript
 // CORRECT: Use BFS for shortest path in unweighted graphs
-function shortestPath(graph, start, end) {
-    const queue = [[start, 0]];  // [node, distance]
-    const visited = new Set([start]);
+function shortestPath(graph: number[][], start: number, end: number): number {
+    const queue: [number, number][] = [[start, 0]];  // [node, distance]
+    const visited: Set<number> = new Set([start]);
 
     while (queue.length > 0) {
-        const [node, dist] = queue.shift();
+        const [node, dist] = queue.shift()!;
 
         if (node === end) return dist;  // ✓ First time we reach = shortest
 
@@ -1313,23 +1345,23 @@ function shortestPath(graph, start, end) {
 ### Pitfall 3: Modifying Graph During Traversal ⚠️
 
 **Problem**:
-```javascript
+```typescript
 // WRONG: Modifying while iterating
-function removeEdges(graph, node) {
+function removeEdges(graph: number[][], node: number): void {
     for (const neighbor of graph[node]) {
-        graph[node] = graph[node].filter(n => n !== neighbor);  // ⚠️ Bad!
+        graph[node] = graph[node].filter((n: number) => n !== neighbor);  // ⚠️ Bad!
         // Modifying array while iterating causes issues
     }
 }
 ```
 
 **Fix**:
-```javascript
+```typescript
 // CORRECT: Create copy or clear after iteration
-function removeEdges(graph, node) {
-    const neighbors = [...graph[node]];  // ✓ Copy first
+function removeEdges(graph: number[][], node: number): void {
+    const neighbors: number[] = [...graph[node]];  // ✓ Copy first
     for (const neighbor of neighbors) {
-        graph[node] = graph[node].filter(n => n !== neighbor);
+        graph[node] = graph[node].filter((n: number) => n !== neighbor);
     }
 
     // Or simply:
@@ -1342,21 +1374,21 @@ function removeEdges(graph, node) {
 ### Pitfall 4: Not Handling Disconnected Components ⚠️
 
 **Problem**:
-```javascript
+```typescript
 // WRONG: Only explores from one starting node
-function countNodes(graph) {
-    const visited = new Set();
+function countNodes(graph: number[][]): number {
+    const visited: Set<number> = new Set();
     dfs(graph, 0, visited);
     return visited.size;  // ⚠️ Misses disconnected nodes!
 }
 ```
 
 **Fix**:
-```javascript
+```typescript
 // CORRECT: Explore from all unvisited nodes
-function countComponents(graph) {
-    const visited = new Set();
-    let components = 0;
+function countComponents(graph: number[][]): number {
+    const visited: Set<number> = new Set();
+    let components: number = 0;
 
     for (let node = 0; node < graph.length; node++) {
         if (!visited.has(node)) {
@@ -1382,9 +1414,9 @@ Starting only from 0 misses components 2 and 3!
 ### Pitfall 5: Wrong Cycle Detection in Undirected Graphs ⚠️
 
 **Problem**:
-```javascript
+```typescript
 // WRONG: Detects false cycles in undirected graphs
-function hasCycle(graph, node, visited) {
+function hasCycle(graph: number[][], node: number, visited: Set<number>): boolean {
     visited.add(node);
 
     for (const neighbor of graph[node]) {
@@ -1412,9 +1444,14 @@ But there's no cycle, just the edge we came from!
 ```
 
 **Fix**:
-```javascript
+```typescript
 // CORRECT: Track parent to avoid false positives
-function hasCycle(graph, node, visited, parent = null) {
+function hasCycle(
+    graph: number[][],
+    node: number,
+    visited: Set<number>,
+    parent: number | null = null
+): boolean {
     visited.add(node);
 
     for (const neighbor of graph[node]) {
@@ -1443,8 +1480,10 @@ function hasCycle(graph, node, visited, parent = null) {
 4. **Connected or disconnected?** (Affects iteration strategy)
 5. **Node labels** (0-indexed? 1-indexed? Strings?)
 
-```javascript
+```typescript
 // Example: Building adjacency list
+const graph: number[][] = [];
+const edges: [number, number][] = [[0, 1], [1, 2]];
 
 // Undirected:
 for (const [u, v] of edges) {
@@ -1491,9 +1530,9 @@ Now you can see:
 | **Adjacency Matrix** | O(V²) | O(1) | O(V) | Dense graphs |
 | **Edge List** | O(E) | O(E) | O(E) | Simple iteration |
 
-```javascript
+```typescript
 // Sparse graph (few edges): Use adjacency list
-const graph = {
+const sparseGraph: Record<number, number[]> = {
     0: [1, 2],
     1: [3],
     2: [],
@@ -1501,7 +1540,7 @@ const graph = {
 };
 
 // Dense graph (many edges): Consider adjacency matrix
-const graph = [
+const denseGraph: number[][] = [
     [0, 1, 1, 1],
     [1, 0, 1, 1],
     [1, 1, 0, 1],
@@ -1521,25 +1560,25 @@ const graph = [
 3. **Distance array**: Track shortest distances
 4. **Indegree array**: For topological sort
 
-```javascript
+```typescript
 // Example: Finding path with parent tracking
-function findPath(graph, start, end) {
-    const visited = new Set();
-    const parent = new Map();
-    const queue = [start];
+function findPath(graph: number[][], start: number, end: number): number[] | null {
+    const visited: Set<number> = new Set();
+    const parent: Map<number, number | null> = new Map();
+    const queue: number[] = [start];
 
     parent.set(start, null);
 
     while (queue.length > 0) {
-        const node = queue.shift();
+        const node: number = queue.shift()!;
 
         if (node === end) {
             // Reconstruct path using parent map
-            const path = [];
-            let current = end;
+            const path: number[] = [];
+            let current: number | null = end;
             while (current !== null) {
                 path.unshift(current);
-                current = parent.get(current);
+                current = parent.get(current) ?? null;
             }
             return path;
         }
@@ -1563,9 +1602,9 @@ function findPath(graph, start, end) {
 
 **Always analyze** and state complexity:
 
-```javascript
+```typescript
 // Example: DFS
-function dfs(graph, node, visited) {
+function dfs(graph: number[][], node: number, visited: Set<number>): void {
     visited.add(node);
     for (const neighbor of graph[node]) {
         if (!visited.has(neighbor)) {
@@ -1596,8 +1635,8 @@ function dfs(graph, node, visited) {
 4. **Self-loops** (node connects to itself)
 5. **Duplicate edges**
 
-```javascript
-function bfs(graph, start) {
+```typescript
+function bfs(graph: number[][], start: number): number[] {
     // Edge case: empty graph
     if (!graph || graph.length === 0) return [];
 
@@ -1605,12 +1644,12 @@ function bfs(graph, start) {
     if (start < 0 || start >= graph.length) return [];
 
     // Normal case
-    const visited = new Set([start]);
-    const queue = [start];
-    const result = [];
+    const visited: Set<number> = new Set([start]);
+    const queue: number[] = [start];
+    const result: number[] = [];
 
     while (queue.length > 0) {
-        const node = queue.shift();
+        const node: number = queue.shift()!;
         result.push(node);
 
         // Edge case: graph[node] might be undefined
@@ -1865,10 +1904,10 @@ Use Topological Sort:
 ### Essential Code Templates
 
 **1. DFS (Recursive)**
-```javascript
-function dfs(graph, node, visited) {
+```typescript
+function dfs(graph: Map<number, number[]>, node: number, visited: Set<number>): void {
     visited.add(node);
-    for (const neighbor of graph[node]) {
+    for (const neighbor of graph.get(node) || []) {
         if (!visited.has(neighbor)) {
             dfs(graph, neighbor, visited);
         }
@@ -1877,13 +1916,13 @@ function dfs(graph, node, visited) {
 ```
 
 **2. BFS**
-```javascript
-function bfs(graph, start) {
-    const visited = new Set([start]);
-    const queue = [start];
+```typescript
+function bfs(graph: Map<number, number[]>, start: number): void {
+    const visited = new Set<number>([start]);
+    const queue: number[] = [start];
     while (queue.length > 0) {
-        const node = queue.shift();
-        for (const neighbor of graph[node]) {
+        const node = queue.shift()!;
+        for (const neighbor of graph.get(node) || []) {
             if (!visited.has(neighbor)) {
                 visited.add(neighbor);
                 queue.push(neighbor);
@@ -1894,13 +1933,13 @@ function bfs(graph, start) {
 ```
 
 **3. Cycle Detection (Directed)**
-```javascript
-function hasCycle(graph, node, visiting, visited) {
+```typescript
+function hasCycle(graph: Map<number, number[]>, node: number, visiting: Set<number>, visited: Set<number>): boolean {
     if (visiting.has(node)) return true;
     if (visited.has(node)) return false;
 
     visiting.add(node);
-    for (const neighbor of graph[node]) {
+    for (const neighbor of graph.get(node) || []) {
         if (hasCycle(graph, neighbor, visiting, visited)) {
             return true;
         }
@@ -1912,20 +1951,22 @@ function hasCycle(graph, node, visiting, visited) {
 ```
 
 **4. Union-Find**
-```javascript
+```typescript
 class UnionFind {
-    constructor(n) {
+    parent: number[];
+
+    constructor(n: number) {
         this.parent = Array.from({length: n}, (_, i) => i);
     }
 
-    find(x) {
+    find(x: number): number {
         if (this.parent[x] !== x) {
             this.parent[x] = this.find(this.parent[x]);
         }
         return this.parent[x];
     }
 
-    union(x, y) {
+    union(x: number, y: number): boolean {
         const rootX = this.find(x);
         const rootY = this.find(y);
         if (rootX === rootY) return false;

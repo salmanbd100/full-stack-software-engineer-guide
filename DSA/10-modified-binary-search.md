@@ -102,7 +102,7 @@ All of these can use BINARY SEARCH concepts!
 
 ---
 
-## Example 1: Search in Rotated Sorted Array (JavaScript)
+## Example 1: Search in Rotated Sorted Array (TypeScript)
 
 ### Problem
 Given a rotated sorted array `nums` (rotated at an unknown pivot) and a target value, return the index of the target if it exists, otherwise return -1. You must write an algorithm with O(log n) runtime complexity.
@@ -111,19 +111,19 @@ Given a rotated sorted array `nums` (rotated at an unknown pivot) and a target v
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Search in rotated sorted array using modified binary search
- * @param {number[]} nums - Rotated sorted array
- * @param {number} target - Target value to find
- * @return {number} - Index of target, or -1 if not found
+ * @param nums - Rotated sorted array
+ * @param target - Target value to find
+ * @returns Index of target, or -1 if not found
  */
-function search(nums, target) {
-    let left = 0;
-    let right = nums.length - 1;
+function search(nums: number[], target: number): number {
+    let left: number = 0;
+    let right: number = nums.length - 1;
 
     while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
+        const mid: number = Math.floor((left + right) / 2);
 
         // Found target
         if (nums[mid] === target) {
@@ -172,13 +172,13 @@ console.log(search([3, 1], 1));                     // Output: 1
 
 Let's break down the code line by line for beginners:
 
-```javascript
-function search(nums, target) {
-    let left = 0;                    // Start of search range
-    let right = nums.length - 1;     // End of search range
+```typescript
+function search(nums: number[], target: number): number {
+    let left: number = 0;                    // Start of search range
+    let right: number = nums.length - 1;     // End of search range
 
     while (left <= right) {          // Keep searching while range is valid
-        const mid = Math.floor((left + right) / 2);  // Middle point
+        const mid: number = Math.floor((left + right) / 2);  // Middle point
 ```
 
 **Why `Math.floor((left + right) / 2)`?**
@@ -186,7 +186,7 @@ function search(nums, target) {
 - `Math.floor` rounds down (so for indices 0-6, mid is 3)
 - Alternative: `left + Math.floor((right - left) / 2)` (avoids overflow in some languages)
 
-```javascript
+```typescript
         if (nums[mid] === target) {
             return mid;              // Lucky! Found it right away
         }
@@ -194,7 +194,7 @@ function search(nums, target) {
 
 **First Check**: Did we get lucky and hit the target on our first guess?
 
-```javascript
+```typescript
         if (nums[left] <= nums[mid]) {
             // Left half is sorted: [left...mid]
 ```
@@ -203,7 +203,7 @@ function search(nums, target) {
 - If `nums[left] <= nums[mid]`, the left portion goes up smoothly (sorted)
 - Example: `[4,5,6,7,0,1,2]` - left half `[4,5,6,7]` is sorted
 
-```javascript
+```typescript
             if (nums[left] <= target && target < nums[mid]) {
                 right = mid - 1;     // Target is in sorted left half
             } else {
@@ -217,7 +217,7 @@ function search(nums, target) {
 - If YES: search left (set `right = mid - 1`)
 - If NO: search right (set `left = mid + 1`)
 
-```javascript
+```typescript
         else {
             // Right half is sorted: [mid...right]
             if (nums[mid] < target && target <= nums[right]) {
@@ -342,7 +342,7 @@ At least one section still goes "up" smoothly!
 
 ---
 
-## Example 2: Find Minimum in Rotated Sorted Array (Python)
+## Example 2: Find Minimum in Rotated Sorted Array (TypeScript)
 
 ### Problem
 Suppose an array of length `n` sorted in ascending order is rotated between 1 and `n` times. Find the minimum element.
@@ -351,105 +351,111 @@ Suppose an array of length `n` sorted in ascending order is rotated between 1 an
 
 ### Solution
 
-```python
-from typing import List
+```typescript
+/**
+ * Find minimum element in rotated sorted array
+ * @param nums - Rotated sorted array with unique elements
+ * @returns Minimum element in the array
+ */
+function findMin(nums: number[]): number {
+    let left: number = 0;
+    let right: number = nums.length - 1;
 
-class Solution:
-    def findMin(self, nums: List[int]) -> int:
-        """
-        Find minimum element in rotated sorted array
+    // If array is not rotated (already sorted)
+    if (nums[left] < nums[right]) {
+        return nums[left];
+    }
 
-        Args:
-            nums: Rotated sorted array with unique elements
+    while (left < right) {
+        const mid: number = Math.floor((left + right) / 2);
 
-        Returns:
-            Minimum element in the array
-        """
-        left = 0
-        right = len(nums) - 1
+        // Check if mid+1 is the minimum
+        // (mid is greater than its next element)
+        if (mid < nums.length - 1 && nums[mid] > nums[mid + 1]) {
+            return nums[mid + 1];
+        }
 
-        # If array is not rotated (already sorted)
-        if nums[left] < nums[right]:
-            return nums[left]
+        // Check if mid is the minimum
+        // (mid is smaller than its previous element)
+        if (mid > 0 && nums[mid] < nums[mid - 1]) {
+            return nums[mid];
+        }
 
-        while left < right:
-            mid = (left + right) // 2
+        // Decide which half to search
+        // If left half is sorted, minimum is in right half
+        if (nums[left] <= nums[mid]) {
+            left = mid + 1;
+        }
+        // Right half is sorted, minimum is in left half
+        else {
+            right = mid;
+        }
+    }
 
-            # Check if mid+1 is the minimum
-            # (mid is greater than its next element)
-            if mid < len(nums) - 1 and nums[mid] > nums[mid + 1]:
-                return nums[mid + 1]
+    return nums[left];
+}
 
-            # Check if mid is the minimum
-            # (mid is smaller than its previous element)
-            if mid > 0 and nums[mid] < nums[mid - 1]:
-                return nums[mid]
+/**
+ * Alternative cleaner approach to find minimum
+ * @param nums - Rotated sorted array with unique elements
+ * @returns Minimum element in the array
+ */
+function findMinAlternative(nums: number[]): number {
+    let left: number = 0;
+    let right: number = nums.length - 1;
 
-            # Decide which half to search
-            # If left half is sorted, minimum is in right half
-            if nums[left] <= nums[mid]:
-                left = mid + 1
-            # Right half is sorted, minimum is in left half
-            else:
-                right = mid
+    while (left < right) {
+        const mid: number = Math.floor((left + right) / 2);
 
-        return nums[left]
+        // If mid element is greater than right element,
+        // minimum must be in right half
+        if (nums[mid] > nums[right]) {
+            left = mid + 1;
+        }
+        // Otherwise, minimum is in left half (including mid)
+        else {
+            right = mid;
+        }
+    }
 
-    def findMinAlternative(self, nums: List[int]) -> int:
-        """
-        Alternative cleaner approach
-        """
-        left, right = 0, len(nums) - 1
+    return nums[left];
+}
 
-        while left < right:
-            mid = (left + right) // 2
+// Example usage
+// Example 1
+const nums1: number[] = [3, 4, 5, 1, 2];
+console.log(findMin(nums1));  // Output: 1
+// Explanation: Original array was [1,2,3,4,5] rotated 3 times
 
-            # If mid element is greater than right element,
-            # minimum must be in right half
-            if nums[mid] > nums[right]:
-                left = mid + 1
-            # Otherwise, minimum is in left half (including mid)
-            else:
-                right = mid
+// Example 2
+const nums2: number[] = [4, 5, 6, 7, 0, 1, 2];
+console.log(findMin(nums2));  // Output: 0
+// Explanation: Original array was [0,1,2,4,5,6,7] rotated 4 times
 
-        return nums[left]
+// Example 3
+const nums3: number[] = [11, 13, 15, 17];
+console.log(findMin(nums3));  // Output: 11
+// Explanation: Array is not rotated (or rotated 0 times)
 
-# Example usage
-solution = Solution()
+// Example 4
+const nums4: number[] = [2, 1];
+console.log(findMin(nums4));  // Output: 1
 
-# Example 1
-nums1 = [3, 4, 5, 1, 2]
-print(solution.findMin(nums1))  # Output: 1
-# Explanation: Original array was [1,2,3,4,5] rotated 3 times
-
-# Example 2
-nums2 = [4, 5, 6, 7, 0, 1, 2]
-print(solution.findMin(nums2))  # Output: 0
-# Explanation: Original array was [0,1,2,4,5,6,7] rotated 4 times
-
-# Example 3
-nums3 = [11, 13, 15, 17]
-print(solution.findMin(nums3))  # Output: 11
-# Explanation: Array is not rotated (or rotated 0 times)
-
-# Example 4
-nums4 = [2, 1]
-print(solution.findMin(nums4))  # Output: 1
-
-# Example 5 - Using alternative approach
-nums5 = [3, 4, 5, 1, 2]
-print(solution.findMinAlternative(nums5))  # Output: 1
+// Example 5 - Using alternative approach
+const nums5: number[] = [3, 4, 5, 1, 2];
+console.log(findMinAlternative(nums5));  // Output: 1
 ```
 
 ### Step-by-Step Code Walkthrough (Alternative Approach)
 
 The cleaner approach (`findMinAlternative`) is easier to understand:
 
-```python
-def findMinAlternative(self, nums: List[int]) -> int:
-    left, right = 0, len(nums) - 1
+```typescript
+function findMinAlternative(nums: number[]): number {
+    let left: number = 0;
+    let right: number = nums.length - 1;
 
-    while left < right:  # Note: left < right (not <=)
+    while (left < right) {  // Note: left < right (not <=)
 ```
 
 **Why `left < right` instead of `left <= right`?**
@@ -457,16 +463,17 @@ def findMinAlternative(self, nums: List[int]) -> int:
 - When `left == right`, we've narrowed down to one element (the answer!)
 - No need to check equality because we're shrinking the range
 
-```python
-        mid = (left + right) // 2
+```typescript
+        const mid: number = Math.floor((left + right) / 2);
 ```
 
 **Middle calculation**: Find the midpoint to split the search space
 
-```python
-        if nums[mid] > nums[right]:
-            # Minimum MUST be in right half
-            left = mid + 1
+```typescript
+        if (nums[mid] > nums[right]) {
+            // Minimum MUST be in right half
+            left = mid + 1;
+        }
 ```
 
 **Case 1: `nums[mid] > nums[right]`**
@@ -475,11 +482,12 @@ def findMinAlternative(self, nums: List[int]) -> int:
 - The minimum is definitely in the right half (where the break is)
 - We can skip mid because it's definitely not the minimum
 
-```python
-        else:
-            # nums[mid] <= nums[right]
-            # Minimum could be mid OR in left half
-            right = mid
+```typescript
+        else {
+            // nums[mid] <= nums[right]
+            // Minimum could be mid OR in left half
+            right = mid;
+        }
 ```
 
 **Case 2: `nums[mid] <= nums[right]`**

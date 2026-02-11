@@ -117,7 +117,7 @@ Sum from 2 to 4 = 15 - 4 = 11
 
 ---
 
-## Example 1: Range Sum Query (JavaScript)
+## Example 1: Range Sum Query (TypeScript)
 
 ### Problem
 Given an integer array `nums`, handle multiple queries of the following type:
@@ -127,16 +127,17 @@ Given an integer array `nums`, handle multiple queries of the following type:
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Range Sum Query using Prefix Sum
- * @param {number[]} nums - Input array
  */
 class NumArray {
-    constructor(nums) {
+    private prefix: number[];
+
+    constructor(nums: number[]) {
         // Build prefix sum array
         // prefix[i] = sum of elements from index 0 to i-1
-        this.prefix = new Array(nums.length + 1).fill(0);
+        this.prefix = new Array<number>(nums.length + 1).fill(0);
 
         for (let i = 0; i < nums.length; i++) {
             this.prefix[i + 1] = this.prefix[i] + nums[i];
@@ -145,18 +146,18 @@ class NumArray {
 
     /**
      * Calculate sum between left and right indices
-     * @param {number} left - Start index
-     * @param {number} right - End index (inclusive)
-     * @return {number} Sum of elements in range
+     * @param left - Start index
+     * @param right - End index (inclusive)
+     * @returns Sum of elements in range
      */
-    sumRange(left, right) {
+    sumRange(left: number, right: number): number {
         // Sum from left to right = prefix[right+1] - prefix[left]
         return this.prefix[right + 1] - this.prefix[left];
     }
 }
 
 // Example usage
-const nums = [-2, 0, 3, -5, 2, -1];
+const nums: number[] = [-2, 0, 3, -5, 2, -1];
 const numArray = new NumArray(nums);
 
 console.log(numArray.sumRange(0, 2)); // Output: 1 (sum of -2, 0, 3)
@@ -168,8 +169,8 @@ console.log(numArray.sumRange(0, 5)); // Output: -3 (sum of all elements)
 
 #### Building the Prefix Sum (Constructor)
 
-```javascript
-this.prefix = new Array(nums.length + 1).fill(0);
+```typescript
+this.prefix = new Array<number>(nums.length + 1).fill(0);
 ```
 **Why size `nums.length + 1`?**
 - We create one extra slot at the beginning (prefix[0] = 0)
@@ -186,7 +187,7 @@ prefix: [0,  -2, -2,  1, -4, -2, -3]  (length = 7)
              0→0 0→1 0→2 0→3 0→4 0→5
 ```
 
-```javascript
+```typescript
 for (let i = 0; i < nums.length; i++) {
     this.prefix[i + 1] = this.prefix[i] + nums[i];
 }
@@ -218,8 +219,8 @@ Final prefix array is complete!
 
 #### Querying the Sum (sumRange Method)
 
-```javascript
-sumRange(left, right) {
+```typescript
+sumRange(left: number, right: number): number {
     return this.prefix[right + 1] - this.prefix[left];
 }
 ```
@@ -270,7 +271,7 @@ Sum from 2 to 5 = prefix[6] - prefix[2]
 ### ⚠️ Common Mistakes to Avoid
 
 1. **Off-by-one errors:**
-   ```javascript
+   ```typescript
    // ❌ WRONG
    return this.prefix[right] - this.prefix[left-1];  // Can cause issues when left=0
 
@@ -279,17 +280,17 @@ Sum from 2 to 5 = prefix[6] - prefix[2]
    ```
 
 2. **Not using the extra slot:**
-   ```javascript
+   ```typescript
    // ❌ WRONG - Makes code complex
-   this.prefix = new Array(nums.length).fill(0);
+   this.prefix = new Array<number>(nums.length).fill(0);
    // Now you need special handling for left=0
 
    // ✓ CORRECT - Simpler code
-   this.prefix = new Array(nums.length + 1).fill(0);
+   this.prefix = new Array<number>(nums.length + 1).fill(0);
    ```
 
 3. **Forgetting prefix is cumulative:**
-   ```javascript
+   ```typescript
    // ❌ WRONG
    this.prefix[i] = nums[i];  // This is just copying!
 
@@ -306,7 +307,7 @@ Sum from 2 to 5 = prefix[6] - prefix[2]
 
 ---
 
-## Example 2: Subarray Sum Equals K (Python)
+## Example 2: Subarray Sum Equals K (TypeScript)
 
 ### Problem
 Given an array of integers `nums` and an integer `k`, return the total number of subarrays whose sum equals to `k`.
@@ -315,63 +316,56 @@ Given an array of integers `nums` and an integer `k`, return the total number of
 
 ### Solution
 
-```python
-from typing import List
-from collections import defaultdict
+```typescript
+/**
+ * Count subarrays with sum equal to k using prefix sum + hashmap
+ * @param nums - Array of integers
+ * @param k - Target sum
+ * @returns Count of subarrays with sum equal to k
+ */
+function subarraySum(nums: number[], k: number): number {
+    // Map to store frequency of prefix sums
+    const prefixSumCount: Map<number, number> = new Map();
+    prefixSumCount.set(0, 1);  // Empty subarray has sum 0
 
-class Solution:
-    def subarraySum(self, nums: List[int], k: int) -> int:
-        """
-        Count subarrays with sum equal to k using prefix sum + hashmap
+    let currentSum: number = 0;
+    let count: number = 0;
 
-        Args:
-            nums: List of integers
-            k: Target sum
+    for (const num of nums) {
+        // Calculate running prefix sum
+        currentSum += num;
 
-        Returns:
-            Count of subarrays with sum equal to k
-        """
-        # HashMap to store frequency of prefix sums
-        prefix_sum_count = defaultdict(int)
-        prefix_sum_count[0] = 1  # Empty subarray has sum 0
+        // Check if (currentSum - k) exists in map
+        // If yes, it means there's a subarray ending at current index with sum k
+        if (prefixSumCount.has(currentSum - k)) {
+            count += prefixSumCount.get(currentSum - k)!;
+        }
 
-        current_sum = 0
-        count = 0
+        // Add current prefix sum to map
+        prefixSumCount.set(currentSum, (prefixSumCount.get(currentSum) || 0) + 1);
+    }
 
-        for num in nums:
-            # Calculate running prefix sum
-            current_sum += num
+    return count;
+}
 
-            # Check if (current_sum - k) exists in hashmap
-            # If yes, it means there's a subarray ending at current index with sum k
-            if (current_sum - k) in prefix_sum_count:
-                count += prefix_sum_count[current_sum - k]
+// Example usage
+// Example 1
+const nums1: number[] = [1, 1, 1];
+const k1: number = 2;
+console.log(subarraySum(nums1, k1));  // Output: 2
+// Subarrays: [1,1] and [1,1]
 
-            # Add current prefix sum to hashmap
-            prefix_sum_count[current_sum] += 1
+// Example 2
+const nums2: number[] = [1, 2, 3];
+const k2: number = 3;
+console.log(subarraySum(nums2, k2));  // Output: 2
+// Subarrays: [1,2] and [3]
 
-        return count
-
-# Example usage
-solution = Solution()
-
-# Example 1
-nums1 = [1, 1, 1]
-k1 = 2
-print(solution.subarraySum(nums1, k1))  # Output: 2
-# Subarrays: [1,1] and [1,1]
-
-# Example 2
-nums2 = [1, 2, 3]
-k2 = 3
-print(solution.subarraySum(nums2, k2))  # Output: 2
-# Subarrays: [1,2] and [3]
-
-# Example 3
-nums3 = [1, -1, 1, -1, 1]
-k3 = 0
-print(solution.subarraySum(nums3, k3))  # Output: 4
-# Subarrays: [1,-1], [1,-1], [-1,1], [1,-1,1,-1]
+// Example 3
+const nums3: number[] = [1, -1, 1, -1, 1];
+const k3: number = 0;
+console.log(subarraySum(nums3, k3));  // Output: 4
+// Subarrays: [1,-1], [1,-1], [-1,1], [1,-1,1,-1]
 ```
 
 ### 🔍 Detailed Explanation (Step-by-Step)
@@ -545,22 +539,25 @@ Final count = 6
 #### Why HashMap is Crucial
 
 **Without HashMap (Brute Force - O(n²)):**
-```python
-count = 0
-for i in range(len(nums)):
-    current_sum = 0
-    for j in range(i, len(nums)):
-        current_sum += nums[j]
-        if current_sum == k:
-            count += 1
-# This checks EVERY possible subarray - SLOW!
+```typescript
+let count: number = 0;
+for (let i = 0; i < nums.length; i++) {
+    let currentSum: number = 0;
+    for (let j = i; j < nums.length; j++) {
+        currentSum += nums[j];
+        if (currentSum === k) {
+            count += 1;
+        }
+    }
+}
+// This checks EVERY possible subarray - SLOW!
 ```
 
 **With HashMap + Prefix Sum (O(n)):**
-```python
-# We check each element ONCE
-# HashMap gives us O(1) lookup to find matching prefix sums
-# Much faster!
+```typescript
+// We check each element ONCE
+// Map gives us O(1) lookup to find matching prefix sums
+// Much faster!
 ```
 
 ---
@@ -624,63 +621,65 @@ for i in range(len(nums)):
 ## ⚠️ Common Pitfalls & How to Avoid Them
 
 ### 1. Forgetting the Dummy Zero
-```python
-# ❌ WRONG - No dummy 0
-prefix = [nums[0]]
-for i in range(1, len(nums)):
-    prefix.append(prefix[-1] + nums[i])
-# Now you need special handling for queries starting at index 0!
+```typescript
+// ❌ WRONG - No dummy 0
+const prefix: number[] = [nums[0]];
+for (let i = 1; i < nums.length; i++) {
+    prefix.push(prefix[prefix.length - 1] + nums[i]);
+}
+// Now you need special handling for queries starting at index 0!
 
-# ✓ CORRECT - With dummy 0
-prefix = [0]
-for num in nums:
-    prefix.append(prefix[-1] + num)
-# Clean, no edge cases!
+// ✓ CORRECT - With dummy 0
+const prefix: number[] = [0];
+for (const num of nums) {
+    prefix.push(prefix[prefix.length - 1] + num);
+}
+// Clean, no edge cases!
 ```
 
 ### 2. Off-by-One Errors in Range Queries
-```javascript
+```typescript
 // ❌ WRONG
-sum = prefix[right] - prefix[left - 1];  // What if left = 0? Error!
+const sum = prefix[right] - prefix[left - 1];  // What if left = 0? Error!
 
 // ✓ CORRECT
-sum = prefix[right + 1] - prefix[left];  // Always works!
+const sum = prefix[right + 1] - prefix[left];  // Always works!
 ```
 
 ### 3. Not Handling Negative Numbers
-```python
-# Prefix sum DOES work with negative numbers!
-nums = [1, -2, 3, -4]
-prefix = [0, 1, -1, 2, -2]  # Perfectly fine ✓
+```typescript
+// Prefix sum DOES work with negative numbers!
+const nums: number[] = [1, -2, 3, -4];
+const prefix: number[] = [0, 1, -1, 2, -2];  // Perfectly fine ✓
 
-# The math still works:
-# Sum from index 1 to 2 = prefix[3] - prefix[1] = 2 - 1 = 1
-# Verify: nums[1] + nums[2] = -2 + 3 = 1 ✓
+// The math still works:
+// Sum from index 1 to 2 = prefix[3] - prefix[1] = 2 - 1 = 1
+// Verify: nums[1] + nums[2] = -2 + 3 = 1 ✓
 ```
 
 ### 4. Modifying Array While Building Prefix Sum
-```javascript
+```typescript
 // ❌ WRONG - Modifying original array
 for (let i = 1; i < nums.length; i++) {
     nums[i] += nums[i - 1];  // Destroys original data!
 }
 
 // ✓ CORRECT - Separate prefix array
-const prefix = [0];
-for (let num of nums) {
+const prefix: number[] = [0];
+for (const num of nums) {
     prefix.push(prefix[prefix.length - 1] + num);
 }
 ```
 
-### 5. Forgetting HashMap Initialization for Subarray Sum
-```python
-# ❌ WRONG - Missing {0: 1}
-prefix_sum_count = {}
-# This misses subarrays that start from index 0!
+### 5. Forgetting Map Initialization for Subarray Sum
+```typescript
+// ❌ WRONG - Missing initial entry
+const prefixSumCount: Map<number, number> = new Map();
+// This misses subarrays that start from index 0!
 
-# ✓ CORRECT
-prefix_sum_count = {0: 1}
-# Now subarrays starting from index 0 are counted
+// ✓ CORRECT
+const prefixSumCount: Map<number, number> = new Map([[0, 1]]);
+// Now subarrays starting from index 0 are counted
 ```
 
 ---
@@ -785,10 +784,10 @@ The frequency tells us how many different starting points work!
 
 ## 📝 Quick Reference Template
 
-```javascript
+```typescript
 // Building Prefix Sum
-function buildPrefixSum(nums) {
-    const prefix = [0];
+function buildPrefixSum(nums: number[]): number[] {
+    const prefix: number[] = [0];
     for (const num of nums) {
         prefix.push(prefix[prefix.length - 1] + num);
     }
@@ -796,19 +795,19 @@ function buildPrefixSum(nums) {
 }
 
 // Range Sum Query
-function rangeSum(prefix, left, right) {
+function rangeSum(prefix: number[], left: number, right: number): number {
     return prefix[right + 1] - prefix[left];
 }
 
 // Subarray Sum Equals K
-function subarraySum(nums, k) {
-    const map = new Map([[0, 1]]);
-    let sum = 0, count = 0;
+function subarraySum(nums: number[], k: number): number {
+    const map: Map<number, number> = new Map([[0, 1]]);
+    let sum: number = 0, count: number = 0;
 
     for (const num of nums) {
         sum += num;
         if (map.has(sum - k)) {
-            count += map.get(sum - k);
+            count += map.get(sum - k)!;
         }
         map.set(sum, (map.get(sum) || 0) + 1);
     }

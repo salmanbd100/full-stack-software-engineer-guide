@@ -1,6 +1,6 @@
 # Data Structures & Algorithms - Interview Preparation Guide
 
-A comprehensive guide covering essential algorithm concepts and 15 LeetCode patterns for technical interviews. Each topic includes detailed explanations, JavaScript and Python implementations, complexity analysis, and practice problems.
+A comprehensive guide covering essential algorithm concepts and 15 LeetCode patterns for technical interviews. Each topic includes detailed explanations, TypeScript implementations, complexity analysis, and practice problems.
 
 ## 📚 Pattern Index
 
@@ -80,7 +80,7 @@ A comprehensive guide covering essential algorithm concepts and 15 LeetCode patt
 ## 🎯 How to Use This Guide
 
 1. **Learn the Pattern**: Start with the pattern overview to understand when and why to use it
-2. **Study Examples**: Review both JavaScript and Python implementations
+2. **Study Examples**: Review TypeScript implementations with full type annotations
 3. **Analyze Complexity**: Understand the time and space trade-offs
 4. **Practice**: Solve the linked LeetCode problems to reinforce learning
 5. **Master Variations**: Explore common variations to handle different scenarios
@@ -104,7 +104,7 @@ A comprehensive guide covering essential algorithm concepts and 15 LeetCode patt
 
 **Note**: Each pattern file includes:
 - Pattern explanation and identification tips
-- Two complete examples (JavaScript & Python)
+- Complete TypeScript examples with type annotations
 - Time & Space complexity analysis
 - Common variations
 - Curated practice problems from LeetCode

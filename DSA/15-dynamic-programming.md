@@ -100,8 +100,8 @@ Look for this pattern when you see:
 
 **Think:** "Solve the big problem, break it into smaller ones, remember answers"
 
-```javascript
-function fib(n, memo = {}) {
+```typescript
+function fib(n: number, memo: Record<number, number> = {}): number {
     // BASE CASE
     if (n <= 1) return n;
 
@@ -124,13 +124,13 @@ function fib(n, memo = {}) {
 
 **Think:** "Solve the smallest problems first, build up to the big one"
 
-```javascript
-function fib(n) {
+```typescript
+function fib(n: number): number {
     // Handle base cases
     if (n <= 1) return n;
 
     // CREATE TABLE
-    const dp = new Array(n + 1);
+    const dp: number[] = new Array(n + 1);
     dp[0] = 0;  // Smallest problem
     dp[1] = 1;  // Next smallest
 
@@ -163,7 +163,7 @@ function fib(n) {
 
 ---
 
-## Example 1: Climbing Stairs (JavaScript)
+## Example 1: Climbing Stairs (TypeScript)
 
 ### Problem
 You are climbing a staircase. It takes `n` steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?
@@ -172,24 +172,24 @@ You are climbing a staircase. It takes `n` steps to reach the top. Each time you
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Count ways to climb stairs - Top-down (Memoization)
- * @param {number} n - Number of stairs
- * @return {number} - Number of distinct ways
+ * @param n - Number of stairs
+ * @returns Number of distinct ways
  */
-function climbStairs(n) {
-    const memo = new Map();
+function climbStairs(n: number): number {
+    const memo: Map<number, number> = new Map();
 
-    function dp(i) {
+    function dp(i: number): number {
         // Base cases
         if (i <= 2) return i;
 
         // Check memo
-        if (memo.has(i)) return memo.get(i);
+        if (memo.has(i)) return memo.get(i)!;
 
         // Recurrence: ways(i) = ways(i-1) + ways(i-2)
-        const result = dp(i - 1) + dp(i - 2);
+        const result: number = dp(i - 1) + dp(i - 2);
 
         // Store in memo
         memo.set(i, result);
@@ -201,14 +201,14 @@ function climbStairs(n) {
 
 /**
  * Bottom-up approach (Tabulation)
- * @param {number} n
- * @return {number}
+ * @param n - Number of stairs
+ * @returns Number of distinct ways
  */
-function climbStairsBottomUp(n) {
+function climbStairsBottomUp(n: number): number {
     if (n <= 2) return n;
 
     // dp[i] = number of ways to reach step i
-    const dp = new Array(n + 1);
+    const dp: number[] = new Array(n + 1);
     dp[1] = 1;  // 1 way to reach step 1
     dp[2] = 2;  // 2 ways to reach step 2
 
@@ -222,17 +222,17 @@ function climbStairsBottomUp(n) {
 
 /**
  * Space-optimized approach
- * @param {number} n
- * @return {number}
+ * @param n - Number of stairs
+ * @returns Number of distinct ways
  */
-function climbStairsOptimized(n) {
+function climbStairsOptimized(n: number): number {
     if (n <= 2) return n;
 
-    let prev2 = 1;  // dp[i-2]
-    let prev1 = 2;  // dp[i-1]
+    let prev2: number = 1;  // dp[i-2]
+    let prev1: number = 2;  // dp[i-1]
 
     for (let i = 3; i <= n; i++) {
-        const current = prev1 + prev2;
+        const current: number = prev1 + prev2;
         prev2 = prev1;
         prev1 = current;
     }
@@ -254,11 +254,11 @@ console.log(climbStairsOptimized(4));  // Output: 5
 
 ### Detailed Code Walkthrough: Top-Down (Memoization)
 
-```javascript
-function climbStairs(n) {
-    const memo = new Map();  // MEMOIZATION: Store solved subproblems
+```typescript
+function climbStairs(n: number): number {
+    const memo: Map<number, number> = new Map();  // MEMOIZATION: Store solved subproblems
 
-    function dp(i) {
+    function dp(i: number): number {
         // STEP 1: BASE CASE - Simplest problems
         if (i <= 2) return i;
         // i=1: 1 way [1]
@@ -266,11 +266,11 @@ function climbStairs(n) {
 
         // STEP 2: CHECK MEMO - Already solved?
         if (memo.has(i)) {
-            return memo.get(i);  // REUSE! Don't recalculate
+            return memo.get(i)!;  // REUSE! Don't recalculate
         }
 
         // STEP 3: RECURRENCE - Break into smaller subproblems
-        const result = dp(i - 1) + dp(i - 2);
+        const result: number = dp(i - 1) + dp(i - 2);
         // To reach step i:
         // - Take 1 step from step i-1 (dp(i-1) ways)
         // - Take 2 steps from step i-2 (dp(i-2) ways)
@@ -327,12 +327,12 @@ Final: 8
 
 ### Detailed Code Walkthrough: Bottom-Up (Tabulation)
 
-```javascript
-function climbStairsBottomUp(n) {
+```typescript
+function climbStairsBottomUp(n: number): number {
     if (n <= 2) return n;
 
     // STEP 1: CREATE TABLE
-    const dp = new Array(n + 1);
+    const dp: number[] = new Array(n + 1);
     // dp[i] = ways to reach step i
 
     // STEP 2: BASE CASES (smallest subproblems)
@@ -380,7 +380,7 @@ Total: 5 + 3 = 8 ways
 
 ---
 
-## Example 2: Coin Change (Python)
+## Example 2: Coin Change (TypeScript)
 
 ### Problem
 You are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money. Return the fewest number of coins needed to make up that amount. If impossible, return -1.
@@ -389,112 +389,122 @@ You are given an integer array `coins` representing coins of different denominat
 
 ### Solution
 
-```python
-from typing import List
+```typescript
+class Solution {
+    /**
+     * Find minimum coins needed using bottom-up DP
+     * @param coins - List of coin denominations
+     * @param amount - Target amount
+     * @returns Minimum number of coins, or -1 if impossible
+     */
+    coinChange(coins: number[], amount: number): number {
+        // dp[i] = minimum coins needed to make amount i
+        const dp: number[] = new Array(amount + 1).fill(Infinity);
+        dp[0] = 0;  // 0 coins needed for amount 0
 
-class Solution:
-    def coinChange(self, coins: List[int], amount: int) -> int:
-        """
-        Find minimum coins needed using bottom-up DP
+        // For each amount from 1 to target
+        for (let i = 1; i <= amount; i++) {
+            // Try each coin
+            for (const coin of coins) {
+                if (coin <= i) {
+                    // Take coin and add to solution for (i - coin)
+                    dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+                }
+            }
+        }
 
-        Args:
-            coins: List of coin denominations
-            amount: Target amount
+        // Return result, or -1 if impossible
+        return dp[amount] !== Infinity ? dp[amount] : -1;
+    }
 
-        Returns:
-            Minimum number of coins, or -1 if impossible
-        """
-        # dp[i] = minimum coins needed to make amount i
-        dp = [float('inf')] * (amount + 1)
-        dp[0] = 0  # 0 coins needed for amount 0
+    /**
+     * Alternative: Top-down with memoization
+     */
+    coinChangeTopDown(coins: number[], amount: number): number {
+        const memo: Map<number, number> = new Map();
 
-        # For each amount from 1 to target
-        for i in range(1, amount + 1):
-            # Try each coin
-            for coin in coins:
-                if coin <= i:
-                    # Take coin and add to solution for (i - coin)
-                    dp[i] = min(dp[i], dp[i - coin] + 1)
+        const dp = (remaining: number): number => {
+            // Base cases
+            if (remaining === 0) {
+                return 0;
+            }
+            if (remaining < 0) {
+                return Infinity;
+            }
 
-        # Return result, or -1 if impossible
-        return dp[amount] if dp[amount] != float('inf') else -1
+            // Check memo
+            if (memo.has(remaining)) {
+                return memo.get(remaining)!;
+            }
 
-    def coinChangeTopDown(self, coins: List[int], amount: int) -> int:
-        """
-        Alternative: Top-down with memoization
-        """
-        memo = {}
+            // Try each coin and take minimum
+            let minCoins: number = Infinity;
+            for (const coin of coins) {
+                const result: number = dp(remaining - coin);
+                if (result !== Infinity) {
+                    minCoins = Math.min(minCoins, result + 1);
+                }
+            }
 
-        def dp(remaining):
-            # Base cases
-            if remaining == 0:
-                return 0
-            if remaining < 0:
-                return float('inf')
+            memo.set(remaining, minCoins);
+            return minCoins;
+        };
 
-            # Check memo
-            if remaining in memo:
-                return memo[remaining]
+        const result: number = dp(amount);
+        return result !== Infinity ? result : -1;
+    }
+}
 
-            # Try each coin and take minimum
-            min_coins = float('inf')
-            for coin in coins:
-                result = dp(remaining - coin)
-                if result != float('inf'):
-                    min_coins = min(min_coins, result + 1)
+// Example usage
+const solution = new Solution();
 
-            memo[remaining] = min_coins
-            return min_coins
+// Example 1
+const coins1: number[] = [1, 2, 5];
+const amount1: number = 11;
+console.log(solution.coinChange(coins1, amount1));  // Output: 3
+// Explanation: 11 = 5 + 5 + 1 (3 coins)
 
-        result = dp(amount)
-        return result if result != float('inf') else -1
+// Example 2
+const coins2: number[] = [2];
+const amount2: number = 3;
+console.log(solution.coinChange(coins2, amount2));  // Output: -1
+// Explanation: Cannot make 3 with only coin of 2
 
-# Example usage
-solution = Solution()
-
-# Example 1
-coins1 = [1, 2, 5]
-amount1 = 11
-print(solution.coinChange(coins1, amount1))  # Output: 3
-# Explanation: 11 = 5 + 5 + 1 (3 coins)
-
-# Example 2
-coins2 = [2]
-amount2 = 3
-print(solution.coinChange(coins2, amount2))  # Output: -1
-# Explanation: Cannot make 3 with only coin of 2
-
-# Example 3 - Using top-down approach
-coins3 = [1, 2, 5]
-amount3 = 11
-print(solution.coinChangeTopDown(coins3, amount3))  # Output: 3
+// Example 3 - Using top-down approach
+const coins3: number[] = [1, 2, 5];
+const amount3: number = 11;
+console.log(solution.coinChangeTopDown(coins3, amount3));  // Output: 3
 ```
 
 ### Detailed Explanation: Bottom-Up Coin Change
 
-```python
-def coinChange(self, coins: List[int], amount: int) -> int:
-    # STEP 1: INITIALIZE DP TABLE
-    dp = [float('inf')] * (amount + 1)
-    # dp[i] = minimum coins to make amount i
-    # Initialize with infinity (impossible)
+```typescript
+coinChange(coins: number[], amount: number): number {
+    // STEP 1: INITIALIZE DP TABLE
+    const dp: number[] = new Array(amount + 1).fill(Infinity);
+    // dp[i] = minimum coins to make amount i
+    // Initialize with infinity (impossible)
 
-    # STEP 2: BASE CASE
-    dp[0] = 0  # Need 0 coins to make amount 0
+    // STEP 2: BASE CASE
+    dp[0] = 0;  // Need 0 coins to make amount 0
 
-    # STEP 3: BUILD UP (solve for each amount from 1 to target)
-    for i in range(1, amount + 1):
-        # For current amount i, try each coin
+    // STEP 3: BUILD UP (solve for each amount from 1 to target)
+    for (let i = 1; i <= amount; i++) {
+        // For current amount i, try each coin
 
-        for coin in coins:
-            if coin <= i:
-                # CAN use this coin
-                # dp[i-coin] = min coins to make (i-coin)
-                # dp[i-coin] + 1 = add current coin
-                dp[i] = min(dp[i], dp[i - coin] + 1)
+        for (const coin of coins) {
+            if (coin <= i) {
+                // CAN use this coin
+                // dp[i-coin] = min coins to make (i-coin)
+                // dp[i-coin] + 1 = add current coin
+                dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+            }
+        }
+    }
 
-    # STEP 4: RETURN RESULT
-    return dp[amount] if dp[amount] != float('inf') else -1
+    // STEP 4: RETURN RESULT
+    return dp[amount] !== Infinity ? dp[amount] : -1;
+}
 ```
 
 **DP Table Evolution for coins=[1,2,5], amount=11:**

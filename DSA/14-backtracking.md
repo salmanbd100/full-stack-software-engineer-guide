@@ -183,7 +183,7 @@ you DON'T start over - you just go back one step!
 
 ---
 
-## Example 1: Subsets (JavaScript)
+## Example 1: Subsets (TypeScript)
 
 ### Problem
 Given an integer array `nums` of unique elements, return all possible subsets (the power set). The solution set must not contain duplicate subsets.
@@ -192,16 +192,14 @@ Given an integer array `nums` of unique elements, return all possible subsets (t
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Generate all subsets using backtracking
- * @param {number[]} nums - Array of unique integers
- * @return {number[][]} - All possible subsets
  */
-function subsets(nums) {
-    const result = [];
+function subsets(nums: number[]): number[][] {
+    const result: number[][] = [];
 
-    function backtrack(start, currentSubset) {
+    function backtrack(start: number, currentSubset: number[]): void {
         // Add current subset to result (deep copy)
         result.push([...currentSubset]);
 
@@ -224,14 +222,12 @@ function subsets(nums) {
 
 /**
  * Alternative: Iterative approach
- * @param {number[]} nums
- * @return {number[][]}
  */
-function subsetsIterative(nums) {
-    const result = [[]];  // Start with empty subset
+function subsetsIterative(nums: number[]): number[][] {
+    const result: number[][] = [[]];  // Start with empty subset
 
     for (const num of nums) {
-        const size = result.length;
+        const size: number = result.length;
         // For each existing subset, create new subset by adding current num
         for (let i = 0; i < size; i++) {
             result.push([...result[i], num]);
@@ -256,8 +252,8 @@ console.log(subsetsIterative([1, 2, 3]));
 
 Let's trace through `subsets([1, 2, 3])` step by step:
 
-```javascript
-function backtrack(start, currentSubset) {
+```typescript
+function backtrack(start: number, currentSubset: number[]): void {
     // STEP 1: Add current state to result
     result.push([...currentSubset]);
     // Why? Every state is a valid subset!
@@ -377,7 +373,7 @@ Coming back up is "UNCHOOSE" (backtracking)
 
 ---
 
-## Example 2: Generate Parentheses (Python)
+## Example 2: Generate Parentheses (TypeScript)
 
 ### Problem
 Given `n` pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
@@ -386,67 +382,59 @@ Given `n` pairs of parentheses, write a function to generate all combinations of
 
 ### Solution
 
-```python
-from typing import List
+```typescript
+/**
+ * Generate all valid parentheses combinations using backtracking
+ */
+function generateParenthesis(n: number): string[] {
+    const result: string[] = [];
 
-class Solution:
-    def generateParenthesis(self, n: int) -> List[str]:
-        """
-        Generate all valid parentheses combinations using backtracking
+    /**
+     * Build valid parentheses strings
+     * @param current - Current string being built
+     * @param openCount - Number of '(' added so far
+     * @param closeCount - Number of ')' added so far
+     */
+    function backtrack(current: string, openCount: number, closeCount: number): void {
+        // Base case: if we've used all parentheses
+        if (current.length === 2 * n) {
+            result.push(current);
+            return;
+        }
 
-        Args:
-            n: Number of pairs of parentheses
+        // Choice 1: Add '(' if we haven't used all opening brackets
+        if (openCount < n) {
+            // CHOOSE '('
+            // EXPLORE
+            backtrack(current + '(', openCount + 1, closeCount);
+            // UNCHOOSE (automatic - string is immutable)
+        }
 
-        Returns:
-            List of all valid combinations
-        """
-        result = []
+        // Choice 2: Add ')' if it doesn't exceed opening brackets
+        if (closeCount < openCount) {
+            // CHOOSE ')'
+            // EXPLORE
+            backtrack(current + ')', openCount, closeCount + 1);
+            // UNCHOOSE (automatic)
+        }
+    }
 
-        def backtrack(current, open_count, close_count):
-            """
-            Build valid parentheses strings
+    backtrack('', 0, 0);
+    return result;
+}
 
-            Args:
-                current: Current string being built
-                open_count: Number of '(' added so far
-                close_count: Number of ')' added so far
-            """
-            # Base case: if we've used all parentheses
-            if len(current) == 2 * n:
-                result.append(current)
-                return
+// Example usage
+// Example 1
+console.log(generateParenthesis(3));
+// Output: ["((()))", "(()())", "(())()", "()(())", "()()()"]
 
-            # Choice 1: Add '(' if we haven't used all opening brackets
-            if open_count < n:
-                # CHOOSE '('
-                # EXPLORE
-                backtrack(current + '(', open_count + 1, close_count)
-                # UNCHOOSE (automatic - string is immutable)
+// Example 2
+console.log(generateParenthesis(1));
+// Output: ["()"]
 
-            # Choice 2: Add ')' if it doesn't exceed opening brackets
-            if close_count < open_count:
-                # CHOOSE ')'
-                # EXPLORE
-                backtrack(current + ')', open_count, close_count + 1)
-                # UNCHOOSE (automatic)
-
-        backtrack('', 0, 0)
-        return result
-
-# Example usage
-solution = Solution()
-
-# Example 1
-print(solution.generateParenthesis(3))
-# Output: ["((()))", "(()())", "(())()", "()(())", "()()()"]
-
-# Example 2
-print(solution.generateParenthesis(1))
-# Output: ["()"]
-
-# Example 3
-print(solution.generateParenthesis(2))
-# Output: ["(())", "()()"]
+// Example 3
+console.log(generateParenthesis(2));
+// Output: ["(())", "()()"]
 ```
 
 ### Detailed Explanation: Generate Parentheses
@@ -458,22 +446,26 @@ print(solution.generateParenthesis(2))
 
 These constraints PRUNE invalid paths early!
 
-```python
-def backtrack(current, open_count, close_count):
-    # BASE CASE: Complete string
-    if len(current) == 2 * n:
-        result.append(current)  # Found a valid combination!
-        return
+```typescript
+function backtrack(current: string, openCount: number, closeCount: number): void {
+    // BASE CASE: Complete string
+    if (current.length === 2 * n) {
+        result.push(current);  // Found a valid combination!
+        return;
+    }
 
-    # CONSTRAINT 1: Can we add '('?
-    if open_count < n:
-        # Yes! We haven't used all opening brackets
-        backtrack(current + '(', open_count + 1, close_count)
+    // CONSTRAINT 1: Can we add '('?
+    if (openCount < n) {
+        // Yes! We haven't used all opening brackets
+        backtrack(current + '(', openCount + 1, closeCount);
+    }
 
-    # CONSTRAINT 2: Can we add ')'?
-    if close_count < open_count:
-        # Yes! We have more '(' than ')', so adding ')' is valid
-        backtrack(current + ')', open_count, close_count + 1)
+    // CONSTRAINT 2: Can we add ')'?
+    if (closeCount < openCount) {
+        // Yes! We have more '(' than ')', so adding ')' is valid
+        backtrack(current + ')', openCount, closeCount + 1);
+    }
+}
 ```
 
 **Why these constraints work:**
@@ -562,7 +554,7 @@ Key:
 
 ---
 
-## Example 3: Permutations (JavaScript)
+## Example 3: Permutations (TypeScript)
 
 ### Problem
 Given an array `nums` of distinct integers, return all possible permutations.
@@ -571,16 +563,14 @@ Given an array `nums` of distinct integers, return all possible permutations.
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Generate all permutations using backtracking
- * @param {number[]} nums
- * @return {number[][]}
  */
-function permute(nums) {
-    const result = [];
+function permute(nums: number[]): number[][] {
+    const result: number[][] = [];
 
-    function backtrack(currentPerm, remaining) {
+    function backtrack(currentPerm: number[], remaining: number[]): void {
         // Base case: no more elements to add
         if (remaining.length === 0) {
             result.push([...currentPerm]);
@@ -593,7 +583,7 @@ function permute(nums) {
             currentPerm.push(remaining[i]);
 
             // Create new remaining array without chosen element
-            const newRemaining = [...remaining.slice(0, i), ...remaining.slice(i + 1)];
+            const newRemaining: number[] = [...remaining.slice(0, i), ...remaining.slice(i + 1)];
 
             // EXPLORE: Recurse with chosen element removed
             backtrack(currentPerm, newRemaining);
@@ -609,14 +599,12 @@ function permute(nums) {
 
 /**
  * Alternative: Using visited tracking
- * @param {number[]} nums
- * @return {number[][]}
  */
-function permuteWithVisited(nums) {
-    const result = [];
-    const visited = new Set();
+function permuteWithVisited(nums: number[]): number[][] {
+    const result: number[][] = [];
+    const visited: Set<number> = new Set();
 
-    function backtrack(currentPerm) {
+    function backtrack(currentPerm: number[]): void {
         // Base case: permutation is complete
         if (currentPerm.length === nums.length) {
             result.push([...currentPerm]);
@@ -800,11 +788,11 @@ FINAL: 6 permutations
 ### 1. Forgetting to Make a Copy When Adding to Result
 
 **WRONG:**
-```javascript
-function subsets(nums) {
-    const result = [];
+```typescript
+function subsets(nums: number[]): number[][] {
+    const result: number[][] = [];
 
-    function backtrack(start, currentSubset) {
+    function backtrack(start: number, currentSubset: number[]): void {
         result.push(currentSubset);  // BUG: Adds reference!
 
         for (let i = start; i < nums.length; i++) {
@@ -824,7 +812,7 @@ function subsets(nums) {
 **Output:** `[[], [], [], [], [], [], [], []]` - all empty!
 
 **RIGHT:**
-```javascript
+```typescript
 result.push([...currentSubset]);  // Make a COPY!
 ```
 
@@ -833,11 +821,11 @@ result.push([...currentSubset]);  // Make a COPY!
 ### 2. Not Backtracking (Forgetting to Undo)
 
 **WRONG:**
-```javascript
-function permute(nums) {
-    const result = [];
+```typescript
+function permute(nums: number[]): number[][] {
+    const result: number[][] = [];
 
-    function backtrack(currentPerm, remaining) {
+    function backtrack(currentPerm: number[], remaining: number[]): void {
         if (remaining.length === 0) {
             result.push([...currentPerm]);
             return;
@@ -845,7 +833,7 @@ function permute(nums) {
 
         for (let i = 0; i < remaining.length; i++) {
             currentPerm.push(remaining[i]);  // CHOOSE
-            backtrack(currentPerm, ...);      // EXPLORE
+            backtrack(currentPerm, remaining);  // EXPLORE
             // BUG: Forgot to UNCHOOSE!
         }
     }
@@ -858,10 +846,10 @@ function permute(nums) {
 **Problem:** Without `pop()`, `currentPerm` keeps growing and never explores other branches correctly!
 
 **RIGHT:**
-```javascript
+```typescript
 currentPerm.push(remaining[i]);  // CHOOSE
-backtrack(...);                   // EXPLORE
-currentPerm.pop();                // UNCHOOSE ← Critical!
+backtrack(currentPerm, newRemaining);  // EXPLORE
+currentPerm.pop();                // UNCHOOSE - Critical!
 ```
 
 ---
@@ -869,7 +857,7 @@ currentPerm.pop();                // UNCHOOSE ← Critical!
 ### 3. Modifying Loop Variable During Iteration
 
 **WRONG:**
-```javascript
+```typescript
 for (let i = start; i < nums.length; i++) {
     currentSubset.push(nums[i]);
     backtrack(i, currentSubset);  // BUG: Should be i+1!
@@ -880,7 +868,7 @@ for (let i = start; i < nums.length; i++) {
 **Problem:** Using `i` instead of `i+1` causes infinite recursion! Same index gets processed repeatedly.
 
 **RIGHT:**
-```javascript
+```typescript
 backtrack(i + 1, currentSubset);  // Move to NEXT index
 ```
 
@@ -889,11 +877,11 @@ backtrack(i + 1, currentSubset);  // Move to NEXT index
 ### 4. Not Handling Duplicates Correctly
 
 **WRONG (for arrays with duplicates):**
-```javascript
-function subsetsWithDup(nums) {
-    const result = [];
+```typescript
+function subsetsWithDup(nums: number[]): number[][] {
+    const result: number[][] = [];
 
-    function backtrack(start, currentSubset) {
+    function backtrack(start: number, currentSubset: number[]): void {
         result.push([...currentSubset]);
 
         for (let i = start; i < nums.length; i++) {
@@ -914,12 +902,12 @@ function subsetsWithDup(nums) {
 ```
 
 **RIGHT:**
-```javascript
-function subsetsWithDup(nums) {
-    nums.sort();  // Sort first!
-    const result = [];
+```typescript
+function subsetsWithDup(nums: number[]): number[][] {
+    nums.sort((a, b) => a - b);  // Sort first!
+    const result: number[][] = [];
 
-    function backtrack(start, currentSubset) {
+    function backtrack(start: number, currentSubset: number[]): void {
         result.push([...currentSubset]);
 
         for (let i = start; i < nums.length; i++) {
@@ -944,11 +932,11 @@ function subsetsWithDup(nums) {
 ### 5. Incorrect Base Case
 
 **WRONG:**
-```javascript
-function generateParenthesis(n) {
-    const result = [];
+```typescript
+function generateParenthesis(n: number): string[] {
+    const result: string[] = [];
 
-    function backtrack(current, open, close) {
+    function backtrack(current: string, open: number, close: number): void {
         // BUG: Wrong base case!
         if (open === n && close === n) {
             result.push(current);
@@ -967,7 +955,7 @@ function generateParenthesis(n) {
 **Problem:** Base case `open === n && close === n` is correct, but better to use `current.length === 2*n` for clarity.
 
 **BETTER:**
-```javascript
+```typescript
 if (current.length === 2 * n) {  // Clearer: we've used all parentheses
     result.push(current);
     return;
@@ -988,26 +976,30 @@ if (current.length === 2 * n) {  // Clearer: we've used all parentheses
 
 **Key difference:** Backtracking **actively makes and undoes choices**
 
-```javascript
+```typescript
+interface TreeNode {
+    children: TreeNode[];
+}
+
 // Pure DFS (just explore)
-function dfs(node) {
+function dfs(node: TreeNode): void {
     visit(node);
-    for (child of node.children) {
+    for (const child of node.children) {
         dfs(child);
     }
 }
 
 // Backtracking (make choices + undo)
-function backtrack(state, choices) {
-    if (is_solution(state)) {
-        save_solution(state);
+function backtrack<T>(state: T[], choices: T[]): void {
+    if (isSolution(state)) {
+        saveSolution(state);
         return;
     }
 
-    for (choice of choices) {
-        make_choice(choice);      // ← CHOOSE
-        backtrack(new_state);     // ← EXPLORE (DFS-style)
-        undo_choice(choice);      // ← UNCHOOSE (Backtrack)
+    for (const choice of choices) {
+        makeChoice(choice);       // CHOOSE
+        backtrack(newState, remainingChoices);  // EXPLORE (DFS-style)
+        undoChoice(choice);       // UNCHOOSE (Backtrack)
     }
 }
 ```
@@ -1052,7 +1044,7 @@ DP: "Find subset with maximum sum"
 
 **Answer:**
 
-```javascript
+```typescript
 for (let i = start; i < nums.length; i++) {
     currentSubset.push(nums[i]);
     backtrack(i + 1, currentSubset);  // Why i+1?
@@ -1092,11 +1084,12 @@ If we use i+1:
 **Step 1: Sort the array** (groups duplicates together)
 **Step 2: Skip duplicates at the same recursion level**
 
-```javascript
-function subsetsWithDup(nums) {
-    nums.sort();  // CRITICAL: Sort first!
+```typescript
+function subsetsWithDup(nums: number[]): number[][] {
+    nums.sort((a, b) => a - b);  // CRITICAL: Sort first!
+    const result: number[][] = [];
 
-    function backtrack(start, currentSubset) {
+    function backtrack(start: number, currentSubset: number[]): void {
         result.push([...currentSubset]);
 
         for (let i = start; i < nums.length; i++) {
@@ -1110,6 +1103,9 @@ function subsetsWithDup(nums) {
             currentSubset.pop();
         }
     }
+
+    backtrack(0, []);
+    return result;
 }
 ```
 
@@ -1156,8 +1152,8 @@ This visualizes all branches you'll explore!
 
 **Technique 2: Add print statements**
 
-```javascript
-function backtrack(start, currentSubset) {
+```typescript
+function backtrack(start: number, currentSubset: number[]): void {
     console.log(`Level ${start}: currentSubset = [${currentSubset}]`);  // LOG
 
     result.push([...currentSubset]);
@@ -1216,14 +1212,14 @@ If you copy the result (which is O(n)), multiply by n:
 - Multiple elements can be the same value (track by index, not value)
 - Grid problems (track (row, col) pairs)
 
-```javascript
-const visited = new Set();
+```typescript
+const visited: Set<number> = new Set();
 
 for (let i = 0; i < nums.length; i++) {
     if (visited.has(i)) continue;
 
     visited.add(i);        // Mark
-    backtrack(...);
+    backtrack(currentState, remainingChoices);
     visited.delete(i);     // Unmark
 }
 ```
@@ -1233,9 +1229,9 @@ for (let i = 0; i < nums.length; i++) {
 - Space is not a concern
 - Want clearer code
 
-```javascript
+```typescript
 for (let i = 0; i < remaining.length; i++) {
-    const newRemaining = [...remaining.slice(0, i), ...remaining.slice(i+1)];
+    const newRemaining: number[] = [...remaining.slice(0, i), ...remaining.slice(i + 1)];
     backtrack(currentPerm, newRemaining);
 }
 ```
@@ -1315,7 +1311,7 @@ Shows optimization thinking!
 
 As you code:
 
-```javascript
+```typescript
 for (let i = start; i < nums.length; i++) {
     // You say: "CHOOSE: Add nums[i] to current subset"
     currentSubset.push(nums[i]);
@@ -1457,27 +1453,27 @@ Solution: Backtracking with row/col/box constraints
 
 ### Backtracking Template
 
-```javascript
-function backtrack(state, choices) {
+```typescript
+function backtrack<T>(state: T[], choices: T[]): void {
     // BASE CASE: Found complete solution?
-    if (is_solution(state)) {
+    if (isSolution(state)) {
         result.push([...state]);  // Deep copy!
         return;
     }
 
     // RECURSIVE CASE: Try each choice
-    for (choice of choices) {
+    for (const choice of choices) {
         // Optional: Check if choice is valid
-        if (!is_valid(choice)) continue;
+        if (!isValid(choice)) continue;
 
         // STEP 1: CHOOSE (make the choice)
-        make_choice(choice);
+        makeChoice(choice);
 
         // STEP 2: EXPLORE (recurse with choice)
-        backtrack(new_state, remaining_choices);
+        backtrack(newState, remainingChoices);
 
         // STEP 3: UNCHOOSE (undo the choice)
-        undo_choice(choice);
+        undoChoice(choice);
     }
 }
 ```

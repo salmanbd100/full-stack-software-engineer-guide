@@ -169,7 +169,7 @@ For n=1000: ~1,000 comparisons!
 
 ---
 
-## Example 1: Two Sum II - Sorted Array (JavaScript)
+## Example 1: Two Sum II - Sorted Array (TypeScript)
 
 ### Problem
 Given a **1-indexed** array of integers `numbers` that is already sorted in non-decreasing order, find two numbers such that they add up to a specific `target` number. Return the indices of the two numbers (1-indexed).
@@ -178,20 +178,20 @@ Given a **1-indexed** array of integers `numbers` that is already sorted in non-
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Find two numbers that add up to target using two pointers
- * @param {number[]} numbers - Sorted array of integers
- * @param {number} target - Target sum
- * @return {number[]} - 1-indexed positions of the two numbers
+ * @param numbers - Sorted array of integers
+ * @param target - Target sum
+ * @returns 1-indexed positions of the two numbers
  */
-function twoSum(numbers, target) {
+function twoSum(numbers: number[], target: number): number[] {
     // Initialize two pointers
-    let left = 0;                    // Start pointer at beginning
-    let right = numbers.length - 1;  // End pointer at end
+    let left: number = 0;                    // Start pointer at beginning
+    let right: number = numbers.length - 1;  // End pointer at end
 
     while (left < right) {
-        const currentSum = numbers[left] + numbers[right];
+        const currentSum: number = numbers[left] + numbers[right];
 
         if (currentSum === target) {
             // Found the pair! Return 1-indexed positions
@@ -223,9 +223,9 @@ console.log(twoSum([-1, 0], -1));           // Output: [1, 2]
 ### 🔍 Detailed Line-by-Line Explanation
 
 #### Initialization
-```javascript
-let left = 0;                    // Start pointer at beginning
-let right = numbers.length - 1;  // End pointer at end
+```typescript
+let left: number = 0;                    // Start pointer at beginning
+let right: number = numbers.length - 1;  // End pointer at end
 ```
 
 **Why start at opposite ends?**
@@ -246,7 +246,7 @@ Initial state:
 ```
 
 #### The Main Loop
-```javascript
+```typescript
 while (left < right) {
 ```
 
@@ -256,8 +256,8 @@ while (left < right) {
 - When `left > right`, they've crossed (already checked everything)
 
 #### Calculating Current Sum
-```javascript
-const currentSum = numbers[left] + numbers[right];
+```typescript
+const currentSum: number = numbers[left] + numbers[right];
 ```
 
 **Example step-by-step:**
@@ -269,14 +269,14 @@ currentSum = 2 + 15 = 17
 ```
 
 #### Decision Logic (The Smart Part!)
-```javascript
+```typescript
 if (currentSum === target) {
     return [left + 1, right + 1];
 ```
 
 **If we found it:** Return indices as 1-indexed (add 1 to each)
 
-```javascript
+```typescript
 } else if (currentSum < target) {
     left++;
 ```
@@ -298,7 +298,7 @@ Next:    7 + 11 = 18 ✓
         left   right
 ```
 
-```javascript
+```typescript
 } else {
     right--;
 ```
@@ -373,7 +373,7 @@ Return [1, 2] (1-indexed)
 
 ---
 
-## Example 2: Container With Most Water (Python)
+## Example 2: Container With Most Water (TypeScript)
 
 ### Problem
 Given `n` non-negative integers `height` where each represents a point at coordinate `(i, height[i])`, find two lines that together with the x-axis form a container that holds the most water.
@@ -382,74 +382,69 @@ Given `n` non-negative integers `height` where each represents a point at coordi
 
 ### Solution
 
-```python
-from typing import List
+```typescript
+/**
+ * Find maximum water area using two pointers
+ * @param height - Array of non-negative integers representing heights
+ * @returns Maximum area of water that can be contained
+ */
+function maxArea(height: number[]): number {
+    // Initialize pointers at both ends
+    let left: number = 0;
+    let right: number = height.length - 1;
+    let maxAreaValue: number = 0;
 
-class Solution:
-    def maxArea(self, height: List[int]) -> int:
-        """
-        Find maximum water area using two pointers
+    while (left < right) {
+        // Calculate width between pointers
+        const width: number = right - left;
 
-        Args:
-            height: List of non-negative integers representing heights
+        // Area is limited by the shorter line
+        // Area = width × min(height[left], height[right])
+        const currentArea: number = width * Math.min(height[left], height[right]);
 
-        Returns:
-            Maximum area of water that can be contained
-        """
-        # Initialize pointers at both ends
-        left = 0
-        right = len(height) - 1
-        max_area = 0
+        // Update maximum area
+        maxAreaValue = Math.max(maxAreaValue, currentArea);
 
-        while left < right:
-            # Calculate width between pointers
-            width = right - left
+        // Move the pointer pointing to shorter line
+        // This is the key insight: moving the shorter line might find a taller one
+        // Moving the taller line will only decrease area (width decreases, height can't increase)
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
 
-            # Area is limited by the shorter line
-            # Area = width × min(height[left], height[right])
-            current_area = width * min(height[left], height[right])
+    return maxAreaValue;
+}
 
-            # Update maximum area
-            max_area = max(max_area, current_area)
+// Example usage
 
-            # Move the pointer pointing to shorter line
-            # This is the key insight: moving the shorter line might find a taller one
-            # Moving the taller line will only decrease area (width decreases, height can't increase)
-            if height[left] < height[right]:
-                left += 1
-            else:
-                right -= 1
+// Example 1
+const height1: number[] = [1, 8, 6, 2, 5, 4, 8, 3, 7];
+console.log(maxArea(height1));  // Output: 49
+// Explanation: Lines at index 1 (height=8) and index 8 (height=7)
+// Area = 7 × min(8, 7) = 49
 
-        return max_area
+// Example 2
+const height2: number[] = [1, 1];
+console.log(maxArea(height2));  // Output: 1
+// Explanation: Only two lines, area = 1 × min(1, 1) = 1
 
-# Example usage
-solution = Solution()
-
-# Example 1
-height1 = [1, 8, 6, 2, 5, 4, 8, 3, 7]
-print(solution.maxArea(height1))  # Output: 49
-# Explanation: Lines at index 1 (height=8) and index 8 (height=7)
-# Area = 7 × min(8, 7) = 49
-
-# Example 2
-height2 = [1, 1]
-print(solution.maxArea(height2))  # Output: 1
-# Explanation: Only two lines, area = 1 × min(1, 1) = 1
-
-# Example 3
-height3 = [4, 3, 2, 1, 4]
-print(solution.maxArea(height3))  # Output: 16
-# Explanation: Lines at index 0 and 4 (both height=4)
-# Area = 4 × min(4, 4) = 16
+// Example 3
+const height3: number[] = [4, 3, 2, 1, 4];
+console.log(maxArea(height3));  // Output: 16
+// Explanation: Lines at index 0 and 4 (both height=4)
+// Area = 4 × min(4, 4) = 16
 ```
 
 ### 🔍 Detailed Line-by-Line Explanation
 
 #### Initialization
-```python
-left = 0
-right = len(height) - 1
-max_area = 0
+```typescript
+let left: number = 0;
+let right: number = height.length - 1;
+let maxAreaValue: number = 0;
 ```
 
 **Setup:**
@@ -463,16 +458,16 @@ max_area = 0
 - We need to find taller lines to compensate for lost width
 
 #### The Main Loop
-```python
-while left < right:
+```typescript
+while (left < right) {
 ```
 
 Same as before - we need two different lines to form a container
 
 #### Area Calculation
-```python
-width = right - left
-current_area = width * min(height[left], height[right])
+```typescript
+const width: number = right - left;
+const currentArea: number = width * Math.min(height[left], height[right]);
 ```
 
 **The Water Container Physics:**
@@ -525,18 +520,19 @@ current_area = 8 × 1 = 8
 ```
 
 #### Update Maximum Area
-```python
-max_area = max(max_area, current_area)
+```typescript
+maxAreaValue = Math.max(maxAreaValue, currentArea);
 ```
 
 Simple - keep track of the best (largest) area we've found so far
 
 #### The Greedy Decision (Most Important Part!)
-```python
-if height[left] < height[right]:
-    left += 1
-else:
-    right -= 1
+```typescript
+if (height[left] < height[right]) {
+    left++;
+} else {
+    right--;
+}
 ```
 
 **The Strategy:**
@@ -748,12 +744,12 @@ Final max_area = 49
 
 ### 1. Using Two Pointers on Unsorted Arrays (When It Requires Sorted)
 
-```javascript
+```typescript
 // ❌ WRONG - Two Sum with two pointers on UNSORTED array
-function twoSum(nums, target) {
-    let left = 0, right = nums.length - 1;
+function twoSum(nums: number[], target: number): number[] {
+    let left: number = 0, right: number = nums.length - 1;
     while (left < right) {
-        const sum = nums[left] + nums[right];
+        const sum: number = nums[left] + nums[right];
         if (sum === target) return [left, right];
         else if (sum < target) left++;
         else right--;
@@ -766,11 +762,11 @@ function twoSum(nums, target) {
 // Will MISS the answer [2, 4] at indices 1 and 2!
 
 // ✓ CORRECT - Either sort first OR use a different approach
-function twoSumUnsorted(nums, target) {
-    const map = new Map();
-    for (let i = 0; i < nums.length; i++) {
+function twoSumUnsorted(nums: number[], target: number): number[] {
+    const map: Map<number, number> = new Map();
+    for (let i: number = 0; i < nums.length; i++) {
         if (map.has(target - nums[i])) {
-            return [map.get(target - nums[i]), i];
+            return [map.get(target - nums[i])!, i];
         }
         map.set(nums[i], i);
     }
@@ -780,35 +776,41 @@ function twoSumUnsorted(nums, target) {
 
 ### 2. Not Checking Pointer Boundaries
 
-```python
-# ❌ WRONG - Infinite loop possible
-def isPalindrome(s):
-    left, right = 0, len(s) - 1
-    while True:  # No exit condition!
-        if s[left] != s[right]:
-            return False
-        left += 1
-        right -= 1
-    return True
+```typescript
+// ❌ WRONG - Infinite loop possible
+function isPalindrome(s: string): boolean {
+    let left: number = 0, right: number = s.length - 1;
+    while (true) {  // No exit condition!
+        if (s[left] !== s[right]) {
+            return false;
+        }
+        left++;
+        right--;
+    }
+    return true;
+}
 
-# ✓ CORRECT - Always check boundaries
-def isPalindrome(s):
-    left, right = 0, len(s) - 1
-    while left < right:  # Proper termination
-        if s[left] != s[right]:
-            return False
-        left += 1
-        right -= 1
-    return True
+// ✓ CORRECT - Always check boundaries
+function isPalindromeCorrect(s: string): boolean {
+    let left: number = 0, right: number = s.length - 1;
+    while (left < right) {  // Proper termination
+        if (s[left] !== s[right]) {
+            return false;
+        }
+        left++;
+        right--;
+    }
+    return true;
+}
 ```
 
 ### 3. Moving Both Pointers When You Should Move One
 
-```javascript
+```typescript
 // ❌ WRONG - Container With Most Water
-function maxArea(height) {
-    let left = 0, right = height.length - 1;
-    let max = 0;
+function maxAreaWrong(height: number[]): number {
+    let left: number = 0, right: number = height.length - 1;
+    let max: number = 0;
 
     while (left < right) {
         max = Math.max(max, (right - left) * Math.min(height[left], height[right]));
@@ -821,9 +823,9 @@ function maxArea(height) {
 // This skips many potential solutions!
 
 // ✓ CORRECT - Move only the shorter line
-function maxArea(height) {
-    let left = 0, right = height.length - 1;
-    let max = 0;
+function maxAreaCorrect(height: number[]): number {
+    let left: number = 0, right: number = height.length - 1;
+    let max: number = 0;
 
     while (left < right) {
         max = Math.max(max, (right - left) * Math.min(height[left], height[right]));
@@ -840,64 +842,75 @@ function maxArea(height) {
 
 ### 4. Forgetting to Handle Duplicates
 
-```python
-# ❌ WRONG - 3Sum with duplicates
-def threeSum(nums):
-    nums.sort()
-    result = []
+```typescript
+// ❌ WRONG - 3Sum with duplicates
+function threeSumWrong(nums: number[]): number[][] {
+    nums.sort((a, b) => a - b);
+    const result: number[][] = [];
 
-    for i in range(len(nums)):
-        left, right = i + 1, len(nums) - 1
-        while left < right:
-            total = nums[i] + nums[left] + nums[right]
-            if total == 0:
-                result.append([nums[i], nums[left], nums[right]])
-                left += 1  # This will create duplicate triplets!
-                right -= 1
-            elif total < 0:
-                left += 1
-            else:
-                right -= 1
-    return result
+    for (let i: number = 0; i < nums.length; i++) {
+        let left: number = i + 1, right: number = nums.length - 1;
+        while (left < right) {
+            const total: number = nums[i] + nums[left] + nums[right];
+            if (total === 0) {
+                result.push([nums[i], nums[left], nums[right]]);
+                left++;  // This will create duplicate triplets!
+                right--;
+            } else if (total < 0) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+    }
+    return result;
+}
 
-# ✓ CORRECT - Skip duplicates
-def threeSum(nums):
-    nums.sort()
-    result = []
+// ✓ CORRECT - Skip duplicates
+function threeSumCorrect(nums: number[]): number[][] {
+    nums.sort((a, b) => a - b);
+    const result: number[][] = [];
 
-    for i in range(len(nums)):
-        # Skip duplicate i values
-        if i > 0 and nums[i] == nums[i-1]:
-            continue
+    for (let i: number = 0; i < nums.length; i++) {
+        // Skip duplicate i values
+        if (i > 0 && nums[i] === nums[i - 1]) {
+            continue;
+        }
 
-        left, right = i + 1, len(nums) - 1
-        while left < right:
-            total = nums[i] + nums[left] + nums[right]
-            if total == 0:
-                result.append([nums[i], nums[left], nums[right]])
-                # Skip duplicate left values
-                while left < right and nums[left] == nums[left+1]:
-                    left += 1
-                # Skip duplicate right values
-                while left < right and nums[right] == nums[right-1]:
-                    right -= 1
-                left += 1
-                right -= 1
-            elif total < 0:
-                left += 1
-            else:
-                right -= 1
-    return result
+        let left: number = i + 1, right: number = nums.length - 1;
+        while (left < right) {
+            const total: number = nums[i] + nums[left] + nums[right];
+            if (total === 0) {
+                result.push([nums[i], nums[left], nums[right]]);
+                // Skip duplicate left values
+                while (left < right && nums[left] === nums[left + 1]) {
+                    left++;
+                }
+                // Skip duplicate right values
+                while (left < right && nums[right] === nums[right - 1]) {
+                    right--;
+                }
+                left++;
+                right--;
+            } else if (total < 0) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+    }
+    return result;
+}
 ```
 
 ### 5. Using Wrong Pointer Type for the Problem
 
-```javascript
+```typescript
 // Problem: Remove duplicates from sorted array IN-PLACE
 
 // ❌ WRONG - Using opposite-direction pointers
-function removeDuplicates(nums) {
-    let left = 0, right = nums.length - 1;
+function removeDuplicatesWrong(nums: number[]): void {
+    let left: number = 0, right: number = nums.length - 1;
     while (left < right) {
         // This doesn't work - we need same-direction pointers!
         if (nums[left] === nums[right]) {
@@ -908,11 +921,11 @@ function removeDuplicates(nums) {
 }
 
 // ✓ CORRECT - Same-direction (slow-fast) pointers
-function removeDuplicates(nums) {
+function removeDuplicatesCorrect(nums: number[]): number {
     if (nums.length === 0) return 0;
 
-    let slow = 0;  // Position of last unique element
-    for (let fast = 1; fast < nums.length; fast++) {
+    let slow: number = 0;  // Position of last unique element
+    for (let fast: number = 1; fast < nums.length; fast++) {
         if (nums[fast] !== nums[slow]) {
             slow++;
             nums[slow] = nums[fast];
@@ -924,35 +937,42 @@ function removeDuplicates(nums) {
 
 ### 6. Off-by-One Errors in Same-Direction Pointers
 
-```python
-# ❌ WRONG - Starting fast pointer at wrong position
-def removeDuplicates(nums):
-    slow = 0
-    fast = 0  # WRONG! Both at same position initially
+```typescript
+// ❌ WRONG - Starting fast pointer at wrong position
+function removeDuplicatesOffByOne(nums: number[]): number {
+    let slow: number = 0;
+    let fast: number = 0;  // WRONG! Both at same position initially
 
-    while fast < len(nums):
-        if nums[fast] != nums[slow]:
-            slow += 1
-            nums[slow] = nums[fast]
-        fast += 1
-    return slow + 1
+    while (fast < nums.length) {
+        if (nums[fast] !== nums[slow]) {
+            slow++;
+            nums[slow] = nums[fast];
+        }
+        fast++;
+    }
+    return slow + 1;
+}
 
-# This creates off-by-one errors
+// This creates off-by-one errors
 
-# ✓ CORRECT - Start fast one ahead
-def removeDuplicates(nums):
-    if not nums:
-        return 0
+// ✓ CORRECT - Start fast one ahead
+function removeDuplicatesFixed(nums: number[]): number {
+    if (nums.length === 0) {
+        return 0;
+    }
 
-    slow = 0
-    fast = 1  # Start fast one ahead of slow
+    let slow: number = 0;
+    let fast: number = 1;  // Start fast one ahead of slow
 
-    while fast < len(nums):
-        if nums[fast] != nums[slow]:
-            slow += 1
-            nums[slow] = nums[fast]
-        fast += 1
-    return slow + 1
+    while (fast < nums.length) {
+        if (nums[fast] !== nums[slow]) {
+            slow++;
+            nums[slow] = nums[fast];
+        }
+        fast++;
+    }
+    return slow + 1;
+}
 ```
 
 ---
@@ -988,11 +1008,11 @@ Is the array sorted?
 - **In-place operations**: Remove duplicates, move zeros, partition
 - **Same-direction pointers**: Don't rely on sorted order
 - **Example:**
-  ```javascript
+  ```typescript
   // Move all zeros to end (unsorted array is fine!)
-  function moveZeros(nums) {
-      let slow = 0;  // Position for next non-zero
-      for (let fast = 0; fast < nums.length; fast++) {
+  function moveZeros(nums: number[]): void {
+      let slow: number = 0;  // Position for next non-zero
+      for (let fast: number = 0; fast < nums.length; fast++) {
           if (nums[fast] !== 0) {
               [nums[slow], nums[fast]] = [nums[fast], nums[slow]];
               slow++;
@@ -1018,12 +1038,12 @@ Is the array sorted?
 | **Problems** | Two Sum, Palindrome | Longest substring, max sum subarray |
 
 **Example showing the difference:**
-```javascript
+```typescript
 // TWO POINTERS - Two Sum (finding pair)
-function twoSum(nums, target) {
-    let left = 0, right = nums.length - 1;
+function twoSumPointers(nums: number[], target: number): number[] | undefined {
+    let left: number = 0, right: number = nums.length - 1;
     while (left < right) {
-        const sum = nums[left] + nums[right];
+        const sum: number = nums[left] + nums[right];
         if (sum === target) return [left, right];
         else if (sum < target) left++;
         else right--;
@@ -1031,21 +1051,21 @@ function twoSum(nums, target) {
 }
 
 // SLIDING WINDOW - Max sum of k consecutive elements
-function maxSum(nums, k) {
-    let windowSum = 0, maxSum = 0;
+function maxSumWindow(nums: number[], k: number): number {
+    let windowSum: number = 0, maxSumValue: number = 0;
 
     // Build initial window
-    for (let i = 0; i < k; i++) {
+    for (let i: number = 0; i < k; i++) {
         windowSum += nums[i];
     }
-    maxSum = windowSum;
+    maxSumValue = windowSum;
 
     // Slide the window
-    for (let i = k; i < nums.length; i++) {
+    for (let i: number = k; i < nums.length; i++) {
         windowSum += nums[i] - nums[i - k];  // Slide: add new, remove old
-        maxSum = Math.max(maxSum, windowSum);
+        maxSumValue = Math.max(maxSumValue, windowSum);
     }
-    return maxSum;
+    return maxSumValue;
 }
 ```
 
@@ -1104,8 +1124,8 @@ So moving the shorter line (R) is correct!
 
 **A:** Check these common edge cases:
 
-```javascript
-function twoPointerTemplate(arr, target) {
+```typescript
+function twoPointerTemplate(arr: number[], target: number): number[] {
     // Edge case 1: Empty array
     if (arr.length === 0) return [];
 
@@ -1115,13 +1135,13 @@ function twoPointerTemplate(arr, target) {
         return arr[0] === target ? [0] : [];
     }
 
-    let left = 0, right = arr.length - 1;
+    let left: number = 0, right: number = arr.length - 1;
 
     while (left < right) {
         // Edge case 3: Check boundaries before accessing
         if (left >= arr.length || right < 0) break;
 
-        const current = arr[left] + arr[right];
+        const current: number = arr[left] + arr[right];
 
         if (current === target) {
             return [left, right];
@@ -1162,15 +1182,15 @@ function twoPointerTemplate(arr, target) {
 - ✓ Working with indices (sorting would lose original indices)
 
 **Example comparison:**
-```javascript
+```typescript
 // Array: [3, 2, 4], target = 6
 
 // HashMap approach - Works with unsorted, returns original indices
-function twoSumHashMap(nums, target) {
-    const map = new Map();
-    for (let i = 0; i < nums.length; i++) {
+function twoSumHashMap(nums: number[], target: number): number[] {
+    const map: Map<number, number> = new Map();
+    for (let i: number = 0; i < nums.length; i++) {
         if (map.has(target - nums[i])) {
-            return [map.get(target - nums[i]), i];  // Original indices
+            return [map.get(target - nums[i])!, i];  // Original indices
         }
         map.set(nums[i], i);
     }
@@ -1180,11 +1200,11 @@ function twoSumHashMap(nums, target) {
 // Time: O(n), Space: O(n)
 
 // Two Pointers - Requires sorting, loses original indices
-function twoSumPointers(nums, target) {
+function twoSumWithSort(nums: number[], target: number): number[] {
     nums.sort((a, b) => a - b);  // [2, 3, 4]
-    let left = 0, right = nums.length - 1;
+    let left: number = 0, right: number = nums.length - 1;
     while (left < right) {
-        const sum = nums[left] + nums[right];
+        const sum: number = nums[left] + nums[right];
         if (sum === target) return [left, right];  // NEW indices after sort
         else if (sum < target) left++;
         else right--;

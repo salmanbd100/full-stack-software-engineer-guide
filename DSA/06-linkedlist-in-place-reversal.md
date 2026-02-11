@@ -192,7 +192,7 @@ After:   null ← 1 ← 2 ← 3 ← 4 ← 5
 
 ---
 
-## Example 1: Reverse Linked List (JavaScript)
+## Example 1: Reverse Linked List (TypeScript)
 
 ### Problem
 Given the head of a singly linked list, reverse the list and return the reversed list.
@@ -201,12 +201,15 @@ Given the head of a singly linked list, reverse the list and return the reversed
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Definition for singly-linked list node
  */
 class ListNode {
-    constructor(val, next = null) {
+    val: number;
+    next: ListNode | null;
+
+    constructor(val: number, next: ListNode | null = null) {
         this.val = val;
         this.next = next;
     }
@@ -214,17 +217,17 @@ class ListNode {
 
 /**
  * Reverse a linked list in-place (iterative approach)
- * @param {ListNode} head - Head of the linked list
- * @return {ListNode} - Head of the reversed linked list
+ * @param head - Head of the linked list
+ * @returns Head of the reversed linked list
  */
-function reverseList(head) {
+function reverseList(head: ListNode | null): ListNode | null {
     // prev will eventually become the new head
-    let prev = null;
-    let current = head;
+    let prev: ListNode | null = null;
+    let current: ListNode | null = head;
 
     while (current !== null) {
         // Store next node before changing the link
-        const nextTemp = current.next;
+        const nextTemp: ListNode | null = current.next;
 
         // Reverse the link: current node points to previous node
         current.next = prev;
@@ -240,17 +243,17 @@ function reverseList(head) {
 
 /**
  * Reverse a linked list using recursion
- * @param {ListNode} head
- * @return {ListNode}
+ * @param head - Head of the linked list
+ * @returns Head of the reversed linked list
  */
-function reverseListRecursive(head) {
+function reverseListRecursive(head: ListNode | null): ListNode | null {
     // Base case: empty list or single node
     if (head === null || head.next === null) {
         return head;
     }
 
     // Recursively reverse the rest of the list
-    const newHead = reverseListRecursive(head.next);
+    const newHead: ListNode | null = reverseListRecursive(head.next);
 
     // Reverse the link between current and next node
     head.next.next = head;
@@ -260,11 +263,11 @@ function reverseListRecursive(head) {
 }
 
 // Helper function to create linked list from array
-function createLinkedList(arr) {
+function createLinkedList(arr: number[]): ListNode | null {
     if (arr.length === 0) return null;
 
-    const head = new ListNode(arr[0]);
-    let current = head;
+    const head: ListNode = new ListNode(arr[0]);
+    let current: ListNode = head;
 
     for (let i = 1; i < arr.length; i++) {
         current.next = new ListNode(arr[i]);
@@ -275,9 +278,9 @@ function createLinkedList(arr) {
 }
 
 // Helper function to print linked list
-function printList(head) {
-    const result = [];
-    let current = head;
+function printList(head: ListNode | null): number[] {
+    const result: number[] = [];
+    let current: ListNode | null = head;
 
     while (current !== null) {
         result.push(current.val);
@@ -288,23 +291,23 @@ function printList(head) {
 }
 
 // Example usage
-const head1 = createLinkedList([1, 2, 3, 4, 5]);
+const head1: ListNode | null = createLinkedList([1, 2, 3, 4, 5]);
 console.log("Original:", printList(head1));        // [1, 2, 3, 4, 5]
 
-const reversed1 = reverseList(head1);
+const reversed1: ListNode | null = reverseList(head1);
 console.log("Reversed:", printList(reversed1));    // [5, 4, 3, 2, 1]
 
-const head2 = createLinkedList([1, 2]);
-const reversed2 = reverseListRecursive(head2);
+const head2: ListNode | null = createLinkedList([1, 2]);
+const reversed2: ListNode | null = reverseListRecursive(head2);
 console.log("Reversed:", printList(reversed2));    // [2, 1]
 ```
 
 ### 🔍 Detailed Line-by-Line Explanation (Iterative)
 
 #### Initialization
-```javascript
-let prev = null;
-let current = head;
+```typescript
+let prev: ListNode | null = null;
+let current: ListNode | null = head;
 ```
 
 **Why start with these values?**
@@ -324,7 +327,7 @@ prev = null,  current = [1]
 ```
 
 #### The Main Loop
-```javascript
+```typescript
 while (current !== null) {
 ```
 
@@ -334,8 +337,8 @@ while (current !== null) {
 - All nodes have been reversed
 
 #### Inside the Loop - Step 1: Save the Next Node
-```javascript
-const nextTemp = current.next;
+```typescript
+const nextTemp: ListNode | null = current.next;
 ```
 
 **CRITICAL:** This is the most important line!
@@ -363,7 +366,7 @@ nextTemp = [3] → [4] → null  (saved the chain!)
 ```
 
 #### Inside the Loop - Step 2: Reverse the Link
-```javascript
+```typescript
 current.next = prev;
 ```
 
@@ -406,7 +409,7 @@ Result: [3] → [2] → [1] → null
 ```
 
 #### Inside the Loop - Step 3: Move Pointers Forward
-```javascript
+```typescript
 prev = current;
 current = nextTemp;
 ```
@@ -506,7 +509,7 @@ LOOP ENDS (current === null)
 ```
 
 #### Return Statement
-```javascript
+```typescript
 return prev;
 ```
 
@@ -562,7 +565,7 @@ Final: Return prev (which is 3)
 
 ---
 
-## Example 2: Reverse Linked List II (Python)
+## Example 2: Reverse Linked List II (TypeScript)
 
 ### Problem
 Given the head of a singly linked list and two integers `left` and `right` where `left <= right`, reverse the nodes of the list from position `left` to position `right`, and return the reversed list.
@@ -571,109 +574,118 @@ Given the head of a singly linked list and two integers `left` and `right` where
 
 ### Solution
 
-```python
-from typing import Optional
+```typescript
+/**
+ * Definition for singly-linked list node
+ */
+class ListNode {
+    val: number;
+    next: ListNode | null;
 
-class ListNode:
-    """Definition for singly-linked list node"""
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+    constructor(val: number = 0, next: ListNode | null = null) {
+        this.val = val;
+        this.next = next;
+    }
+}
 
-class Solution:
-    def reverseBetween(self, head: Optional[ListNode], left: int, right: int) -> Optional[ListNode]:
-        """
-        Reverse nodes from position left to right (1-indexed)
+class Solution {
+    /**
+     * Reverse nodes from position left to right (1-indexed)
+     * @param head - Head of the linked list
+     * @param left - Starting position (1-indexed)
+     * @param right - Ending position (1-indexed)
+     * @returns Head of the modified linked list
+     */
+    reverseBetween(head: ListNode | null, left: number, right: number): ListNode | null {
+        // Edge case: if left == right, no reversal needed
+        if (!head || left === right) {
+            return head;
+        }
 
-        Args:
-            head: Head of the linked list
-            left: Starting position (1-indexed)
-            right: Ending position (1-indexed)
+        // Create a dummy node to handle edge case where left = 1
+        const dummy: ListNode = new ListNode(0);
+        dummy.next = head;
 
-        Returns:
-            Head of the modified linked list
-        """
-        # Edge case: if left == right, no reversal needed
-        if not head or left == right:
-            return head
+        // Step 1: Move to the node just before the reversal point
+        let prev: ListNode = dummy;
+        for (let i = 0; i < left - 1; i++) {
+            prev = prev.next!;
+        }
 
-        # Create a dummy node to handle edge case where left = 1
-        dummy = ListNode(0)
-        dummy.next = head
+        // Step 2: Reverse the sublist from left to right
+        // prev is now the node before position 'left'
+        // current is the first node to be reversed
+        const current: ListNode = prev.next!;
 
-        # Step 1: Move to the node just before the reversal point
-        prev = dummy
-        for _ in range(left - 1):
-            prev = prev.next
+        // Reverse the sublist
+        for (let i = 0; i < right - left; i++) {
+            // Save the next node
+            const nextNode: ListNode = current.next!;
 
-        # Step 2: Reverse the sublist from left to right
-        # prev is now the node before position 'left'
-        # current is the first node to be reversed
-        current = prev.next
+            // Remove nextNode from its current position
+            current.next = nextNode.next;
 
-        # Reverse the sublist
-        for _ in range(right - left):
-            # Save the next node
-            next_node = current.next
+            // Insert nextNode at the beginning of the reversed portion
+            nextNode.next = prev.next;
+            prev.next = nextNode;
+        }
 
-            # Remove next_node from its current position
-            current.next = next_node.next
+        return dummy.next;
+    }
+}
 
-            # Insert next_node at the beginning of the reversed portion
-            next_node.next = prev.next
-            prev.next = next_node
+// Helper functions
+function createLinkedList(values: number[]): ListNode | null {
+    if (values.length === 0) {
+        return null;
+    }
 
-        return dummy.next
+    const head: ListNode = new ListNode(values[0]);
+    let current: ListNode = head;
 
-# Helper functions
-def create_linked_list(values):
-    """Create linked list from list of values"""
-    if not values:
-        return None
+    for (let i = 1; i < values.length; i++) {
+        current.next = new ListNode(values[i]);
+        current = current.next;
+    }
 
-    head = ListNode(values[0])
-    current = head
+    return head;
+}
 
-    for val in values[1:]:
-        current.next = ListNode(val)
-        current = current.next
+function listToArray(head: ListNode | null): number[] {
+    const result: number[] = [];
+    let current: ListNode | null = head;
 
-    return head
+    while (current) {
+        result.push(current.val);
+        current = current.next;
+    }
 
-def list_to_array(head):
-    """Convert linked list to array for easy viewing"""
-    result = []
-    current = head
+    return result;
+}
 
-    while current:
-        result.append(current.val)
-        current = current.next
+// Example usage
+const solution: Solution = new Solution();
 
-    return result
+// Example 1: Reverse from position 2 to 4
+const head1: ListNode | null = createLinkedList([1, 2, 3, 4, 5]);
+const result1: ListNode | null = solution.reverseBetween(head1, 2, 4);
+console.log(listToArray(result1));  // Output: [1, 4, 3, 2, 5]
+// Explanation: Reversed portion [2,3,4] becomes [4,3,2]
 
-# Example usage
-solution = Solution()
+// Example 2: Reverse single node
+const head2: ListNode | null = createLinkedList([5]);
+const result2: ListNode | null = solution.reverseBetween(head2, 1, 1);
+console.log(listToArray(result2));  // Output: [5]
 
-# Example 1: Reverse from position 2 to 4
-head1 = create_linked_list([1, 2, 3, 4, 5])
-result1 = solution.reverseBetween(head1, 2, 4)
-print(list_to_array(result1))  # Output: [1, 4, 3, 2, 5]
-# Explanation: Reversed portion [2,3,4] becomes [4,3,2]
+// Example 3: Reverse from beginning
+const head3: ListNode | null = createLinkedList([3, 5, 7, 9, 11]);
+const result3: ListNode | null = solution.reverseBetween(head3, 1, 3);
+console.log(listToArray(result3));  // Output: [7, 5, 3, 9, 11]
 
-# Example 2: Reverse single node
-head2 = create_linked_list([5])
-result2 = solution.reverseBetween(head2, 1, 1)
-print(list_to_array(result2))  # Output: [5]
-
-# Example 3: Reverse from beginning
-head3 = create_linked_list([3, 5, 7, 9, 11])
-result3 = solution.reverseBetween(head3, 1, 3)
-print(list_to_array(result3))  # Output: [7, 5, 3, 9, 11]
-
-# Example 4: Reverse to end
-head4 = create_linked_list([1, 2, 3, 4, 5])
-result4 = solution.reverseBetween(head4, 3, 5)
-print(list_to_array(result4))  # Output: [1, 2, 5, 4, 3]
+// Example 4: Reverse to end
+const head4: ListNode | null = createLinkedList([1, 2, 3, 4, 5]);
+const result4: ListNode | null = solution.reverseBetween(head4, 3, 5);
+console.log(listToArray(result4));  // Output: [1, 2, 5, 4, 3]
 ```
 
 ### Explanation

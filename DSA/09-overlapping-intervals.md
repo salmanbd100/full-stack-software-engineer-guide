@@ -154,7 +154,7 @@ Result: Keep both [1, 2] and [4, 5] (gap from 2-4)
 
 ---
 
-## Example 1: Merge Intervals (JavaScript)
+## Example 1: Merge Intervals (TypeScript)
 
 ### Problem
 Given an array of `intervals` where `intervals[i] = [start_i, end_i]`, merge all overlapping intervals and return an array of the non-overlapping intervals.
@@ -163,28 +163,30 @@ Given an array of `intervals` where `intervals[i] = [start_i, end_i]`, merge all
 
 ### Solution
 
-```javascript
+```typescript
+type Interval = [number, number];
+
 /**
  * Merge overlapping intervals
- * @param {number[][]} intervals - Array of intervals [start, end]
- * @return {number[][]} - Merged non-overlapping intervals
+ * @param intervals - Array of intervals [start, end]
+ * @returns Merged non-overlapping intervals
  */
-function merge(intervals) {
+function merge(intervals: Interval[]): Interval[] {
     // Edge case: empty or single interval
     if (intervals.length <= 1) {
         return intervals;
     }
 
     // Step 1: Sort intervals by start time
-    intervals.sort((a, b) => a[0] - b[0]);
+    intervals.sort((a: Interval, b: Interval) => a[0] - b[0]);
 
     // Step 2: Initialize result with first interval
-    const merged = [intervals[0]];
+    const merged: Interval[] = [intervals[0]];
 
     // Step 3: Iterate through remaining intervals
-    for (let i = 1; i < intervals.length; i++) {
-        const currentInterval = intervals[i];
-        const lastMerged = merged[merged.length - 1];
+    for (let i: number = 1; i < intervals.length; i++) {
+        const currentInterval: Interval = intervals[i];
+        const lastMerged: Interval = merged[merged.length - 1];
 
         // Check if current interval overlaps with last merged interval
         if (currentInterval[0] <= lastMerged[1]) {
@@ -356,7 +358,7 @@ Result: [[1,4]]
 
 ---
 
-## Example 2: Meeting Rooms II (Python)
+## Example 2: Meeting Rooms II (TypeScript)
 
 ### Problem
 Given an array of meeting time intervals consisting of start and end times `[[s1,e1],[s2,e2],...]`, find the minimum number of conference rooms required.
@@ -365,107 +367,173 @@ Given an array of meeting time intervals consisting of start and end times `[[s1
 
 ### Solution
 
-```python
-from typing import List
-import heapq
+```typescript
+type Interval = [number, number];
 
-class Solution:
-    def minMeetingRooms(self, intervals: List[List[int]]) -> int:
-        """
-        Find minimum number of meeting rooms required using heap
+/**
+ * MinHeap implementation for tracking end times
+ */
+class MinHeap {
+    private heap: number[];
 
-        Args:
-            intervals: List of meeting intervals [start, end]
+    constructor() {
+        this.heap = [];
+    }
 
-        Returns:
-            Minimum number of meeting rooms needed
-        """
-        # Edge case
-        if not intervals:
-            return 0
+    get size(): number {
+        return this.heap.length;
+    }
 
-        # Step 1: Sort meetings by start time
-        intervals.sort(key=lambda x: x[0])
+    peek(): number | undefined {
+        return this.heap[0];
+    }
 
-        # Step 2: Use min-heap to track end times of ongoing meetings
-        # Heap stores end times of meetings currently in progress
-        meeting_rooms = []
+    push(val: number): void {
+        this.heap.push(val);
+        this.bubbleUp(this.heap.length - 1);
+    }
 
-        # Step 3: Process each meeting
-        for interval in intervals:
-            start, end = interval
+    pop(): number | undefined {
+        if (this.heap.length === 0) return undefined;
+        const min: number = this.heap[0];
+        const last: number | undefined = this.heap.pop();
+        if (this.heap.length > 0 && last !== undefined) {
+            this.heap[0] = last;
+            this.bubbleDown(0);
+        }
+        return min;
+    }
 
-            # If earliest ending meeting finishes before current starts,
-            # we can reuse that room
-            if meeting_rooms and meeting_rooms[0] <= start:
-                heapq.heappop(meeting_rooms)  # Remove finished meeting
+    private bubbleUp(index: number): void {
+        while (index > 0) {
+            const parentIndex: number = Math.floor((index - 1) / 2);
+            if (this.heap[parentIndex] <= this.heap[index]) break;
+            [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
+            index = parentIndex;
+        }
+    }
 
-            # Add current meeting's end time to heap
-            heapq.heappush(meeting_rooms, end)
+    private bubbleDown(index: number): void {
+        const length: number = this.heap.length;
+        while (true) {
+            const leftChild: number = 2 * index + 1;
+            const rightChild: number = 2 * index + 2;
+            let smallest: number = index;
 
-        # Number of rooms needed = size of heap (concurrent meetings)
-        return len(meeting_rooms)
+            if (leftChild < length && this.heap[leftChild] < this.heap[smallest]) {
+                smallest = leftChild;
+            }
+            if (rightChild < length && this.heap[rightChild] < this.heap[smallest]) {
+                smallest = rightChild;
+            }
+            if (smallest === index) break;
+            [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
+            index = smallest;
+        }
+    }
+}
 
-    def minMeetingRoomsAlternative(self, intervals: List[List[int]]) -> int:
-        """
-        Alternative solution using separate start/end arrays
+/**
+ * Find minimum number of meeting rooms required using heap
+ * @param intervals - Array of meeting intervals [start, end]
+ * @returns Minimum number of meeting rooms needed
+ */
+function minMeetingRooms(intervals: Interval[]): number {
+    // Edge case
+    if (intervals.length === 0) {
+        return 0;
+    }
 
-        Time: O(n log n), Space: O(n)
-        """
-        if not intervals:
-            return 0
+    // Step 1: Sort meetings by start time
+    intervals.sort((a: Interval, b: Interval) => a[0] - b[0]);
 
-        # Separate start and end times
-        start_times = sorted([i[0] for i in intervals])
-        end_times = sorted([i[1] for i in intervals])
+    // Step 2: Use min-heap to track end times of ongoing meetings
+    // Heap stores end times of meetings currently in progress
+    const meetingRooms: MinHeap = new MinHeap();
 
-        rooms_needed = 0
-        max_rooms = 0
-        start_ptr = 0
-        end_ptr = 0
+    // Step 3: Process each meeting
+    for (const interval of intervals) {
+        const [start, end]: [number, number] = interval;
 
-        # Process all start times
-        while start_ptr < len(start_times):
-            # If a meeting starts before earliest one ends
-            if start_times[start_ptr] < end_times[end_ptr]:
-                rooms_needed += 1
-                max_rooms = max(max_rooms, rooms_needed)
-                start_ptr += 1
-            else:
-                # A meeting ended, free up a room
-                rooms_needed -= 1
-                end_ptr += 1
+        // If earliest ending meeting finishes before current starts,
+        // we can reuse that room
+        const earliestEnd: number | undefined = meetingRooms.peek();
+        if (earliestEnd !== undefined && earliestEnd <= start) {
+            meetingRooms.pop();  // Remove finished meeting
+        }
 
-        return max_rooms
+        // Add current meeting's end time to heap
+        meetingRooms.push(end);
+    }
 
-# Example usage
-solution = Solution()
+    // Number of rooms needed = size of heap (concurrent meetings)
+    return meetingRooms.size;
+}
 
-# Example 1
-intervals1 = [[0, 30], [5, 10], [15, 20]]
-print(solution.minMeetingRooms(intervals1))  # Output: 2
-# Explanation:
-# Meeting 1: 0-30
-# Meeting 2: 5-10 (overlaps with 1, need room 2)
-# Meeting 3: 15-20 (still overlaps with 1, can reuse room 2)
-# Max concurrent meetings: 2
+/**
+ * Alternative solution using separate start/end arrays
+ * Time: O(n log n), Space: O(n)
+ * @param intervals - Array of meeting intervals [start, end]
+ * @returns Minimum number of meeting rooms needed
+ */
+function minMeetingRoomsAlternative(intervals: Interval[]): number {
+    if (intervals.length === 0) {
+        return 0;
+    }
 
-# Example 2
-intervals2 = [[7, 10], [2, 4]]
-print(solution.minMeetingRooms(intervals2))  # Output: 1
-# Explanation: Meetings don't overlap, can use same room
+    // Separate start and end times
+    const startTimes: number[] = intervals.map((i: Interval) => i[0]).sort((a, b) => a - b);
+    const endTimes: number[] = intervals.map((i: Interval) => i[1]).sort((a, b) => a - b);
 
-# Example 3
-intervals3 = [[1, 5], [2, 3], [4, 6], [5, 7]]
-print(solution.minMeetingRooms(intervals3))  # Output: 3
-# Explanation:
-# Time 2-3: [1,5], [2,3] overlap → 2 rooms
-# Time 4-5: [1,5], [4,6] overlap → 2 rooms
-# Time 5-6: [1,5], [4,6], [5,7] overlap → 3 rooms needed
+    let roomsNeeded: number = 0;
+    let maxRooms: number = 0;
+    let startPtr: number = 0;
+    let endPtr: number = 0;
 
-# Example 4
-intervals4 = [[0, 30], [5, 10], [15, 20]]
-print(solution.minMeetingRoomsAlternative(intervals4))  # Output: 2
+    // Process all start times
+    while (startPtr < startTimes.length) {
+        // If a meeting starts before earliest one ends
+        if (startTimes[startPtr] < endTimes[endPtr]) {
+            roomsNeeded += 1;
+            maxRooms = Math.max(maxRooms, roomsNeeded);
+            startPtr += 1;
+        } else {
+            // A meeting ended, free up a room
+            roomsNeeded -= 1;
+            endPtr += 1;
+        }
+    }
+
+    return maxRooms;
+}
+
+// Example usage
+
+// Example 1
+const intervals1: Interval[] = [[0, 30], [5, 10], [15, 20]];
+console.log(minMeetingRooms(intervals1));  // Output: 2
+// Explanation:
+// Meeting 1: 0-30
+// Meeting 2: 5-10 (overlaps with 1, need room 2)
+// Meeting 3: 15-20 (still overlaps with 1, can reuse room 2)
+// Max concurrent meetings: 2
+
+// Example 2
+const intervals2: Interval[] = [[7, 10], [2, 4]];
+console.log(minMeetingRooms(intervals2));  // Output: 1
+// Explanation: Meetings don't overlap, can use same room
+
+// Example 3
+const intervals3: Interval[] = [[1, 5], [2, 3], [4, 6], [5, 7]];
+console.log(minMeetingRooms(intervals3));  // Output: 3
+// Explanation:
+// Time 2-3: [1,5], [2,3] overlap → 2 rooms
+// Time 4-5: [1,5], [4,6] overlap → 2 rooms
+// Time 5-6: [1,5], [4,6], [5,7] overlap → 3 rooms needed
+
+// Example 4
+const intervals4: Interval[] = [[0, 30], [5, 10], [15, 20]];
+console.log(minMeetingRoomsAlternative(intervals4));  // Output: 2
 ```
 
 ### Explanation

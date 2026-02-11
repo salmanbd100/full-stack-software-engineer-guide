@@ -218,7 +218,7 @@ Order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 ---
 
-## Example 1: Path Sum (JavaScript)
+## Example 1: Path Sum (TypeScript)
 
 ### Problem
 Given the root of a binary tree and an integer `targetSum`, return `true` if the tree has a root-to-leaf path such that adding up all the values along the path equals `targetSum`.
@@ -227,12 +227,16 @@ Given the root of a binary tree and an integer `targetSum`, return `true` if the
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Definition for a binary tree node
  */
 class TreeNode {
-    constructor(val, left = null, right = null) {
+    val: number;
+    left: TreeNode | null;
+    right: TreeNode | null;
+
+    constructor(val: number, left: TreeNode | null = null, right: TreeNode | null = null) {
         this.val = val;
         this.left = left;
         this.right = right;
@@ -241,11 +245,11 @@ class TreeNode {
 
 /**
  * Check if tree has path with given sum using DFS
- * @param {TreeNode} root - Root of binary tree
- * @param {number} targetSum - Target sum to find
- * @return {boolean} - True if path exists
+ * @param root - Root of binary tree
+ * @param targetSum - Target sum to find
+ * @returns True if path exists
  */
-function hasPathSum(root, targetSum) {
+function hasPathSum(root: TreeNode | null, targetSum: number): boolean {
     // Base case: empty tree
     if (root === null) {
         return false;
@@ -259,7 +263,7 @@ function hasPathSum(root, targetSum) {
 
     // Recursive case: explore left and right subtrees
     // Subtract current value from target for children
-    const remainingSum = targetSum - root.val;
+    const remainingSum: number = targetSum - root.val;
 
     return hasPathSum(root.left, remainingSum) ||
            hasPathSum(root.right, remainingSum);
@@ -267,18 +271,18 @@ function hasPathSum(root, targetSum) {
 
 /**
  * Iterative DFS approach using stack
- * @param {TreeNode} root
- * @param {number} targetSum
- * @return {boolean}
+ * @param root - Root of binary tree
+ * @param targetSum - Target sum to find
+ * @returns True if path exists
  */
-function hasPathSumIterative(root, targetSum) {
+function hasPathSumIterative(root: TreeNode | null, targetSum: number): boolean {
     if (root === null) return false;
 
     // Stack stores [node, currentSum] pairs
-    const stack = [[root, root.val]];
+    const stack: Array<[TreeNode, number]> = [[root, root.val]];
 
     while (stack.length > 0) {
-        const [node, currentSum] = stack.pop();
+        const [node, currentSum] = stack.pop()!;
 
         // Check if it's a leaf node with target sum
         if (node.left === null && node.right === null && currentSum === targetSum) {
@@ -300,24 +304,24 @@ function hasPathSumIterative(root, targetSum) {
 }
 
 // Helper function to create tree
-function createTree(values) {
+function createTree(values: Array<number | null>): TreeNode | null {
     if (!values || values.length === 0) return null;
 
-    const root = new TreeNode(values[0]);
-    const queue = [root];
-    let i = 1;
+    const root = new TreeNode(values[0] as number);
+    const queue: TreeNode[] = [root];
+    let i: number = 1;
 
     while (queue.length && i < values.length) {
-        const node = queue.shift();
+        const node = queue.shift()!;
 
         if (i < values.length && values[i] !== null) {
-            node.left = new TreeNode(values[i]);
+            node.left = new TreeNode(values[i] as number);
             queue.push(node.left);
         }
         i++;
 
         if (i < values.length && values[i] !== null) {
-            node.right = new TreeNode(values[i]);
+            node.right = new TreeNode(values[i] as number);
             queue.push(node.right);
         }
         i++;
@@ -334,17 +338,17 @@ function createTree(values) {
 //   11  13  4
 //  /  \      \
 // 7    2      1
-const root1 = createTree([5, 4, 8, 11, null, 13, 4, 7, 2, null, null, null, 1]);
+const root1: TreeNode | null = createTree([5, 4, 8, 11, null, 13, 4, 7, 2, null, null, null, 1]);
 console.log(hasPathSum(root1, 22));  // Output: true
 // Path: 5 → 4 → 11 → 2 = 22
 
 console.log(hasPathSum(root1, 26));  // Output: true
 // Path: 5 → 8 → 13 = 26
 
-const root2 = createTree([1, 2, 3]);
+const root2: TreeNode | null = createTree([1, 2, 3]);
 console.log(hasPathSum(root2, 5));   // Output: false
 
-const root3 = createTree([]);
+const root3: TreeNode | null = createTree([]);
 console.log(hasPathSum(root3, 0));   // Output: false
 ```
 
@@ -352,8 +356,8 @@ console.log(hasPathSum(root3, 0));   // Output: false
 
 Let's trace through the recursive solution step-by-step:
 
-```javascript
-function hasPathSum(root, targetSum) {
+```typescript
+function hasPathSum(root: TreeNode | null, targetSum: number): boolean {
     // STEP 1: Base case - empty node
     if (root === null) {
         return false;
@@ -368,7 +372,7 @@ function hasPathSum(root, targetSum) {
     // This is our "destination check"
 
     // STEP 3: Recursive case - go deeper!
-    const remainingSum = targetSum - root.val;
+    const remainingSum: number = targetSum - root.val;
     // Subtract current node's value from target
     // Pass the remainder to children
 
@@ -425,16 +429,16 @@ Path found: 5 → 4 → 11 → 2 = 22
 
 The iterative version uses an explicit stack:
 
-```javascript
-function hasPathSumIterative(root, targetSum) {
+```typescript
+function hasPathSumIterative(root: TreeNode | null, targetSum: number): boolean {
     if (root === null) return false;
 
     // Stack stores [node, currentSum] pairs
-    const stack = [[root, root.val]];
+    const stack: Array<[TreeNode, number]> = [[root, root.val]];
     // Initial state: root node with its value as the current sum
 
     while (stack.length > 0) {
-        const [node, currentSum] = stack.pop();
+        const [node, currentSum] = stack.pop()!;
         // Pop from stack (LIFO - Last In, First Out)
         // This gives us the "deepest" unexplored node
 
@@ -504,7 +508,7 @@ Path found: 5 → 4 → 11 = 20
 
 ---
 
-## Example 2: Number of Islands (Python)
+## Example 2: Number of Islands (TypeScript)
 
 ### Problem
 Given an `m x n` 2D binary grid which represents a map of '1's (land) and '0's (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically.
@@ -513,163 +517,180 @@ Given an `m x n` 2D binary grid which represents a map of '1's (land) and '0's (
 
 ### Solution
 
-```python
-from typing import List
+```typescript
+/**
+ * Count number of islands using DFS
+ * @param grid - 2D grid of '1' (land) and '0' (water)
+ * @returns Number of islands
+ */
+function numIslands(grid: string[][]): number {
+    if (!grid || grid.length === 0 || grid[0].length === 0) {
+        return 0;
+    }
 
-class Solution:
-    def numIslands(self, grid: List[List[str]]) -> int:
-        """
-        Count number of islands using DFS
+    const rows: number = grid.length;
+    const cols: number = grid[0].length;
+    let islands: number = 0;
 
-        Args:
-            grid: 2D grid of '1' (land) and '0' (water)
+    /**
+     * Mark all connected land cells as visited
+     */
+    function dfs(r: number, c: number): void {
+        // Base cases: out of bounds or water or already visited
+        if (r < 0 || r >= rows || c < 0 || c >= cols || grid[r][c] === '0') {
+            return;
+        }
 
-        Returns:
-            Number of islands
-        """
-        if not grid or not grid[0]:
-            return 0
+        // Mark current cell as visited (change to '0')
+        grid[r][c] = '0';
 
-        rows, cols = len(grid), len(grid[0])
-        islands = 0
+        // Explore all 4 directions (up, down, left, right)
+        dfs(r - 1, c);  // up
+        dfs(r + 1, c);  // down
+        dfs(r, c - 1);  // left
+        dfs(r, c + 1);  // right
+    }
 
-        def dfs(r, c):
-            """Mark all connected land cells as visited"""
-            # Base cases: out of bounds or water or already visited
-            if (r < 0 or r >= rows or
-                c < 0 or c >= cols or
-                grid[r][c] == '0'):
-                return
+    // Iterate through each cell in the grid
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === '1') {
+                islands += 1;      // Found new island
+                dfs(r, c);         // Mark entire island as visited
+            }
+        }
+    }
 
-            # Mark current cell as visited (change to '0')
-            grid[r][c] = '0'
+    return islands;
+}
 
-            # Explore all 4 directions (up, down, left, right)
-            dfs(r - 1, c)  # up
-            dfs(r + 1, c)  # down
-            dfs(r, c - 1)  # left
-            dfs(r, c + 1)  # right
+/**
+ * Alternative: Iterative DFS using stack
+ */
+function numIslandsIterative(grid: string[][]): number {
+    if (!grid || grid.length === 0 || grid[0].length === 0) {
+        return 0;
+    }
 
-        # Iterate through each cell in the grid
-        for r in range(rows):
-            for c in range(cols):
-                if grid[r][c] == '1':
-                    islands += 1      # Found new island
-                    dfs(r, c)         # Mark entire island as visited
+    const rows: number = grid.length;
+    const cols: number = grid[0].length;
+    let islands: number = 0;
 
-        return islands
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === '1') {
+                islands += 1;
 
-    def numIslandsIterative(self, grid: List[List[str]]) -> int:
-        """
-        Alternative: Iterative DFS using stack
-        """
-        if not grid or not grid[0]:
-            return 0
+                // Use stack for iterative DFS
+                const stack: Array<[number, number]> = [[r, c]];
 
-        rows, cols = len(grid), len(grid[0])
-        islands = 0
+                while (stack.length > 0) {
+                    const [currR, currC] = stack.pop()!;
 
-        for r in range(rows):
-            for c in range(cols):
-                if grid[r][c] == '1':
-                    islands += 1
+                    // Skip if out of bounds or water
+                    if (currR < 0 || currR >= rows ||
+                        currC < 0 || currC >= cols ||
+                        grid[currR][currC] === '0') {
+                        continue;
+                    }
 
-                    # Use stack for iterative DFS
-                    stack = [(r, c)]
+                    // Mark as visited
+                    grid[currR][currC] = '0';
 
-                    while stack:
-                        curr_r, curr_c = stack.pop()
+                    // Add all 4 neighbors to stack
+                    stack.push([currR - 1, currC]);  // up
+                    stack.push([currR + 1, currC]);  // down
+                    stack.push([currR, currC - 1]);  // left
+                    stack.push([currR, currC + 1]);  // right
+                }
+            }
+        }
+    }
 
-                        # Skip if out of bounds or water
-                        if (curr_r < 0 or curr_r >= rows or
-                            curr_c < 0 or curr_c >= cols or
-                            grid[curr_r][curr_c] == '0'):
-                            continue
+    return islands;
+}
 
-                        # Mark as visited
-                        grid[curr_r][curr_c] = '0'
+// Example usage
 
-                        # Add all 4 neighbors to stack
-                        stack.append((curr_r - 1, curr_c))  # up
-                        stack.append((curr_r + 1, curr_c))  # down
-                        stack.append((curr_r, curr_c - 1))  # left
-                        stack.append((curr_r, curr_c + 1))  # right
-
-        return islands
-
-# Example usage
-solution = Solution()
-
-# Example 1
-grid1 = [
+// Example 1
+const grid1: string[][] = [
     ["1","1","1","1","0"],
     ["1","1","0","1","0"],
     ["1","1","0","0","0"],
     ["0","0","0","0","0"]
-]
-print(solution.numIslands(grid1))  # Output: 1
-# One connected island
+];
+console.log(numIslands(grid1));  // Output: 1
+// One connected island
 
-# Example 2
-grid2 = [
+// Example 2
+const grid2: string[][] = [
     ["1","1","0","0","0"],
     ["1","1","0","0","0"],
     ["0","0","1","0","0"],
     ["0","0","0","1","1"]
-]
-print(solution.numIslands(grid2))  # Output: 3
-# Three separate islands
+];
+console.log(numIslands(grid2));  // Output: 3
+// Three separate islands
 
-# Example 3 - Using iterative approach
-grid3 = [
+// Example 3 - Using iterative approach
+const grid3: string[][] = [
     ["1","0","1"],
     ["0","1","0"],
     ["1","0","1"]
-]
-print(solution.numIslandsIterative(grid3))  # Output: 5
-# Five separate islands (each '1' is isolated)
+];
+console.log(numIslandsIterative(grid3));  // Output: 5
+// Five separate islands (each '1' is isolated)
 ```
 
 ### Detailed Explanation: How Island Counting Works
 
-```python
-def numIslands(self, grid: List[List[str]]) -> int:
-    # PHASE 1: Setup
-    if not grid or not grid[0]:
-        return 0
+```typescript
+function numIslands(grid: string[][]): number {
+    // PHASE 1: Setup
+    if (!grid || grid.length === 0 || grid[0].length === 0) {
+        return 0;
+    }
 
-    rows, cols = len(grid), len(grid[0])
-    islands = 0
+    const rows: number = grid.length;
+    const cols: number = grid[0].length;
+    let islands: number = 0;
 
-    def dfs(r, c):
-        """This function 'floods' an entire island, marking it as visited"""
+    /**
+     * This function 'floods' an entire island, marking it as visited
+     */
+    function dfs(r: number, c: number): void {
+        // BOUNDARY CHECK: Are we out of bounds or in water?
+        if (r < 0 || r >= rows || c < 0 || c >= cols || grid[r][c] === '0') {
+            return;  // Hit boundary or water, stop exploring this direction
+        }
 
-        # BOUNDARY CHECK: Are we out of bounds or in water?
-        if (r < 0 or r >= rows or c < 0 or c >= cols or grid[r][c] == '0'):
-            return  # Hit boundary or water, stop exploring this direction
+        // MARK AS VISITED: Change '1' to '0'
+        grid[r][c] = '0';
+        // Why? To avoid counting the same island cell twice
+        // We "sink" the land as we visit it
 
-        # MARK AS VISITED: Change '1' to '0'
-        grid[r][c] = '0'
-        # Why? To avoid counting the same island cell twice
-        # We "sink" the land as we visit it
+        // EXPLORE 4 DIRECTIONS: Go deep in each direction!
+        dfs(r - 1, c);  // North (up)
+        dfs(r + 1, c);  // South (down)
+        dfs(r, c - 1);  // West (left)
+        dfs(r, c + 1);  // East (right)
+        // Each call goes as deep as possible in that direction
+    }
 
-        # EXPLORE 4 DIRECTIONS: Go deep in each direction!
-        dfs(r - 1, c)  # North (up)
-        dfs(r + 1, c)  # South (down)
-        dfs(r, c - 1)  # West (left)
-        dfs(r, c + 1)  # East (right)
-        # Each call goes as deep as possible in that direction
+    // PHASE 2: Scan the entire grid
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === '1') {
+                // Found unvisited land! Start of a new island
+                islands += 1;
+                dfs(r, c);  // "Flood fill" the entire island
+                // After this call, the whole island is marked '0'
+            }
+        }
+    }
 
-    # PHASE 2: Scan the entire grid
-    for r in range(rows):
-        for c in range(cols):
-            if grid[r][c] == '1':
-                # Found unvisited land! Start of a new island
-                islands += 1
-                dfs(r, c)  # "Flood fill" the entire island
-                # After this call, the whole island is marked '0'
-
-    return islands
+    return islands;
+}
 ```
 
 ### Visual Trace: Island Counting
@@ -817,32 +838,36 @@ Final: islands = 3
 ### 1. Forgetting to Mark Visited in Graphs
 
 **WRONG:**
-```python
-def dfs(r, c):
-    if r < 0 or r >= rows or c >= cols or grid[r][c] == '0':
-        return
+```typescript
+function dfs(r: number, c: number): void {
+    if (r < 0 || r >= rows || c >= cols || grid[r][c] === '0') {
+        return;
+    }
 
-    # BUG: Forgot to mark as visited!
-    # This will cause infinite recursion!
+    // BUG: Forgot to mark as visited!
+    // This will cause infinite recursion!
 
-    dfs(r-1, c)
-    dfs(r+1, c)
-    dfs(r, c-1)
-    dfs(r, c+1)
+    dfs(r - 1, c);
+    dfs(r + 1, c);
+    dfs(r, c - 1);
+    dfs(r, c + 1);
+}
 ```
 
 **RIGHT:**
-```python
-def dfs(r, c):
-    if r < 0 or r >= rows or c >= cols or grid[r][c] == '0':
-        return
+```typescript
+function dfs(r: number, c: number): void {
+    if (r < 0 || r >= rows || c >= cols || grid[r][c] === '0') {
+        return;
+    }
 
-    grid[r][c] = '0'  # MARK AS VISITED FIRST!
+    grid[r][c] = '0';  // MARK AS VISITED FIRST!
 
-    dfs(r-1, c)
-    dfs(r+1, c)
-    dfs(r, c-1)
-    dfs(r, c+1)
+    dfs(r - 1, c);
+    dfs(r + 1, c);
+    dfs(r, c - 1);
+    dfs(r, c + 1);
+}
 ```
 
 **Why it's wrong:** Without marking visited, you'll revisit the same cell infinitely:
@@ -855,26 +880,30 @@ def dfs(r, c):
 ### 2. Checking Visited After Recursive Calls
 
 **WRONG:**
-```python
-def dfs(r, c):
-    # BUG: Check bounds AFTER exploring
-    dfs(r-1, c)  # Might go out of bounds!
-    dfs(r+1, c)
+```typescript
+function dfs(r: number, c: number): void {
+    // BUG: Check bounds AFTER exploring
+    dfs(r - 1, c);  // Might go out of bounds!
+    dfs(r + 1, c);
 
-    if r < 0 or r >= rows:
-        return
+    if (r < 0 || r >= rows) {
+        return;
+    }
+}
 ```
 
 **RIGHT:**
-```python
-def dfs(r, c):
-    # Check bounds BEFORE exploring
-    if r < 0 or r >= rows or c < 0 or c >= cols or grid[r][c] == '0':
-        return
+```typescript
+function dfs(r: number, c: number): void {
+    // Check bounds BEFORE exploring
+    if (r < 0 || r >= rows || c < 0 || c >= cols || grid[r][c] === '0') {
+        return;
+    }
 
-    grid[r][c] = '0'
-    dfs(r-1, c)
-    dfs(r+1, c)
+    grid[r][c] = '0';
+    dfs(r - 1, c);
+    dfs(r + 1, c);
+}
 ```
 
 ---
@@ -882,8 +911,8 @@ def dfs(r, c):
 ### 3. Not Handling Leaf Nodes Correctly in Path Sum
 
 **WRONG:**
-```javascript
-function hasPathSum(root, targetSum) {
+```typescript
+function hasPathSum(root: TreeNode | null, targetSum: number): boolean {
     if (root === null) return false;
 
     // BUG: Checking sum at ANY node, not just leaves!
@@ -891,7 +920,7 @@ function hasPathSum(root, targetSum) {
         return true;
     }
 
-    const remaining = targetSum - root.val;
+    const remaining: number = targetSum - root.val;
     return hasPathSum(root.left, remaining) || hasPathSum(root.right, remaining);
 }
 ```
@@ -899,8 +928,8 @@ function hasPathSum(root, targetSum) {
 **Problem:** This returns true for internal nodes, not just root-to-leaf paths!
 
 **RIGHT:**
-```javascript
-function hasPathSum(root, targetSum) {
+```typescript
+function hasPathSum(root: TreeNode | null, targetSum: number): boolean {
     if (root === null) return false;
 
     // Check sum ONLY at leaf nodes
@@ -908,7 +937,7 @@ function hasPathSum(root, targetSum) {
         return root.val === targetSum;
     }
 
-    const remaining = targetSum - root.val;
+    const remaining: number = targetSum - root.val;
     return hasPathSum(root.left, remaining) || hasPathSum(root.right, remaining);
 }
 ```
@@ -918,43 +947,56 @@ function hasPathSum(root, targetSum) {
 ### 4. Modifying Grid Without Restoring (When You Need Original)
 
 **WRONG (if you need the grid later):**
-```python
-def numIslands(grid):
-    islands = 0
-    for r in range(len(grid)):
-        for c in range(len(grid[0])):
-            if grid[r][c] == '1':
-                islands += 1
-                dfs(r, c)  # Modifies grid permanently!
+```typescript
+function numIslands(grid: string[][]): number {
+    let islands: number = 0;
+    for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < grid[0].length; c++) {
+            if (grid[r][c] === '1') {
+                islands += 1;
+                dfs(r, c);  // Modifies grid permanently!
+            }
+        }
+    }
 
-    # BUG: grid is now all '0's, can't use it again!
-    return islands
+    // BUG: grid is now all '0's, can't use it again!
+    return islands;
+}
 ```
 
 **RIGHT (if you need to preserve grid):**
-```python
-def numIslands(grid):
-    islands = 0
-    visited = set()
+```typescript
+function numIslands(grid: string[][]): number {
+    let islands: number = 0;
+    const visited: Set<string> = new Set();
 
-    def dfs(r, c):
-        if (r, c) in visited or r < 0 or r >= len(grid) or c < 0 or c >= len(grid[0]) or grid[r][c] == '0':
-            return
+    function dfs(r: number, c: number): void {
+        const key: string = `${r},${c}`;
+        if (visited.has(key) || r < 0 || r >= grid.length ||
+            c < 0 || c >= grid[0].length || grid[r][c] === '0') {
+            return;
+        }
 
-        visited.add((r, c))  # Track in separate set
-        dfs(r-1, c)
-        dfs(r+1, c)
-        dfs(r, c-1)
-        dfs(r, c+1)
+        visited.add(key);  // Track in separate set
+        dfs(r - 1, c);
+        dfs(r + 1, c);
+        dfs(r, c - 1);
+        dfs(r, c + 1);
+    }
 
-    for r in range(len(grid)):
-        for c in range(len(grid[0])):
-            if grid[r][c] == '1' and (r, c) not in visited:
-                islands += 1
-                dfs(r, c)
+    for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < grid[0].length; c++) {
+            const key: string = `${r},${c}`;
+            if (grid[r][c] === '1' && !visited.has(key)) {
+                islands += 1;
+                dfs(r, c);
+            }
+        }
+    }
 
-    # Grid is still intact!
-    return islands
+    // Grid is still intact!
+    return islands;
+}
 ```
 
 ---
@@ -993,12 +1035,13 @@ Find SHORTEST path from A to B? → BFS (guaranteed shortest)
 **Answer:**
 
 **Option 1:** Use iterative DFS with explicit stack
-```javascript
-function dfsIterative(root) {
-    const stack = [root];
+```typescript
+function dfsIterative(root: TreeNode | null): void {
+    if (!root) return;
+    const stack: TreeNode[] = [root];
 
     while (stack.length > 0) {
-        const node = stack.pop();
+        const node: TreeNode = stack.pop()!;
         // Process node
 
         if (node.right) stack.push(node.right);
@@ -1050,8 +1093,8 @@ For shortest path in graphs, use:
 **Answer:**
 
 **Approach 1: Pass path as parameter**
-```javascript
-function findPath(root, target, path = []) {
+```typescript
+function findPath(root: TreeNode | null, target: number, path: number[] = []): number[] | null {
     if (!root) return null;
 
     path.push(root.val);  // Add current node to path
@@ -1060,10 +1103,10 @@ function findPath(root, target, path = []) {
         return [...path];  // Return copy of path
     }
 
-    const leftPath = findPath(root.left, target, path);
+    const leftPath: number[] | null = findPath(root.left, target, path);
     if (leftPath) return leftPath;
 
-    const rightPath = findPath(root.right, target, path);
+    const rightPath: number[] | null = findPath(root.right, target, path);
     if (rightPath) return rightPath;
 
     path.pop();  // Backtrack - remove current node
@@ -1072,20 +1115,20 @@ function findPath(root, target, path = []) {
 ```
 
 **Approach 2: Build path on return**
-```javascript
-function findPath(root, target) {
+```typescript
+function findPath(root: TreeNode | null, target: number): number[] | null {
     if (!root) return null;
 
     if (root.val === target) {
         return [root.val];
     }
 
-    const leftPath = findPath(root.left, target);
+    const leftPath: number[] | null = findPath(root.left, target);
     if (leftPath) {
         return [root.val, ...leftPath];
     }
 
-    const rightPath = findPath(root.right, target);
+    const rightPath: number[] | null = findPath(root.right, target);
     if (rightPath) {
         return [root.val, ...rightPath];
     }
@@ -1110,25 +1153,26 @@ function findPath(root, target) {
 - Backtracking: Makes choices, explores consequences, undoes bad choices
 
 **Example:**
-```javascript
+```typescript
 // Pure DFS (just explore)
-function dfs(node) {
+function dfs(node: TreeNode | null): void {
+    if (!node) return;
     visit(node);
     dfs(node.left);
     dfs(node.right);
 }
 
 // Backtracking (make choices)
-function backtrack(state, choices) {
-    if (is_solution(state)) {
-        add_to_results(state);
+function backtrack<T>(state: T, choices: T[]): void {
+    if (isSolution(state)) {
+        addToResults(state);
         return;
     }
 
-    for (choice of choices) {
-        make_choice(choice);      // Make a choice
-        backtrack(new_state);     // Explore DFS-style
-        undo_choice(choice);      // Backtrack - undo the choice
+    for (const choice of choices) {
+        makeChoice(choice);       // Make a choice
+        backtrack(newState);      // Explore DFS-style
+        undoChoice(choice);       // Backtrack - undo the choice
     }
 }
 ```
@@ -1144,37 +1188,45 @@ Backtracking = DFS + Decision making + Undoing decisions
 Use a **visited set** or **mark visited nodes**:
 
 **Approach 1: Visited Set**
-```python
-def dfs(node, visited=set()):
-    if node in visited:
-        return  # Already visited, skip
+```typescript
+function dfs(node: string, visited: Set<string> = new Set()): void {
+    if (visited.has(node)) {
+        return;  // Already visited, skip
+    }
 
-    visited.add(node)
+    visited.add(node);
 
-    for neighbor in graph[node]:
-        dfs(neighbor, visited)
+    for (const neighbor of graph[node]) {
+        dfs(neighbor, visited);
+    }
+}
 ```
 
 **Approach 2: Three States (for cycle detection)**
-```python
-# 0 = unvisited, 1 = visiting, 2 = visited
-state = [0] * n
+```typescript
+// 0 = unvisited, 1 = visiting, 2 = visited
+const state: number[] = new Array(n).fill(0);
 
-def has_cycle(node):
-    if state[node] == 1:
-        return True  # Back edge found - cycle!
+function hasCycle(node: number): boolean {
+    if (state[node] === 1) {
+        return true;  // Back edge found - cycle!
+    }
 
-    if state[node] == 2:
-        return False  # Already processed
+    if (state[node] === 2) {
+        return false;  // Already processed
+    }
 
-    state[node] = 1  # Mark as visiting
+    state[node] = 1;  // Mark as visiting
 
-    for neighbor in graph[node]:
-        if has_cycle(neighbor):
-            return True
+    for (const neighbor of graph[node]) {
+        if (hasCycle(neighbor)) {
+            return true;
+        }
+    }
 
-    state[node] = 2  # Mark as visited
-    return False
+    state[node] = 2;  // Mark as visited
+    return false;
+}
 ```
 
 ---
@@ -1184,15 +1236,15 @@ def has_cycle(node):
 **Answer:** Yes! Same concept, different representation.
 
 **Adjacency List DFS:**
-```javascript
-const graph = {
+```typescript
+const graph: Record<string, string[]> = {
     'A': ['B', 'C'],
     'B': ['D'],
     'C': ['D'],
     'D': []
 };
 
-function dfs(node, visited = new Set()) {
+function dfs(node: string, visited: Set<string> = new Set()): void {
     visited.add(node);
     console.log(node);
 
@@ -1205,15 +1257,15 @@ function dfs(node, visited = new Set()) {
 ```
 
 **Adjacency Matrix DFS:**
-```javascript
-const matrix = [
+```typescript
+const matrix: number[][] = [
     [0, 1, 1, 0],  // A connects to B, C
     [0, 0, 0, 1],  // B connects to D
     [0, 0, 0, 1],  // C connects to D
     [0, 0, 0, 0]   // D connects to nothing
 ];
 
-function dfs(node, visited = new Set()) {
+function dfs(node: number, visited: Set<number> = new Set()): void {
     visited.add(node);
     console.log(node);
 
@@ -1287,8 +1339,8 @@ Let me handle these in my code..."
 
 When writing recursive DFS:
 
-```javascript
-function dfs(node) {
+```typescript
+function dfs(node: TreeNode | null): void {
     // You say: "Base case - if node is null, there's nothing to explore"
     if (node === null) return;
 
@@ -1432,45 +1484,47 @@ Solution: DFS with backtracking
 ### DFS Template (Recursive)
 
 **For Trees:**
-```javascript
-function dfs(node) {
+```typescript
+function dfsTree(node: TreeNode | null): void {
     if (!node) return;  // Base case
 
     // Process node
     console.log(node.val);
 
     // Explore children
-    dfs(node.left);
-    dfs(node.right);
+    dfsTree(node.left);
+    dfsTree(node.right);
 }
 ```
 
 **For Graphs (with visited tracking):**
-```javascript
-function dfs(node, visited = new Set()) {
+```typescript
+function dfsGraph(node: number, visited: Set<number> = new Set()): void {
     if (visited.has(node)) return;
 
     visited.add(node);
     console.log(node);
 
     for (const neighbor of graph[node]) {
-        dfs(neighbor, visited);
+        dfsGraph(neighbor, visited);
     }
 }
 ```
 
 **For Grids (like islands):**
-```python
-def dfs(r, c):
-    if r < 0 or r >= rows or c < 0 or c >= cols or grid[r][c] == '0':
-        return
+```typescript
+function dfsGrid(r: number, c: number): void {
+    if (r < 0 || r >= rows || c < 0 || c >= cols || grid[r][c] === '0') {
+        return;
+    }
 
-    grid[r][c] = '0'  # Mark visited
+    grid[r][c] = '0';  // Mark visited
 
-    dfs(r-1, c)  # Up
-    dfs(r+1, c)  # Down
-    dfs(r, c-1)  # Left
-    dfs(r, c+1)  # Right
+    dfsGrid(r - 1, c);  // Up
+    dfsGrid(r + 1, c);  // Down
+    dfsGrid(r, c - 1);  // Left
+    dfsGrid(r, c + 1);  // Right
+}
 ```
 
 ### Mental Model (Simple!)

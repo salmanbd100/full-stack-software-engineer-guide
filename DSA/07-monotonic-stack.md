@@ -216,7 +216,7 @@ Use: Find NEXT SMALLER element
 
 ---
 
-## Example 1: Daily Temperatures (JavaScript)
+## Example 1: Daily Temperatures (TypeScript)
 
 ### Problem
 Given an array of integers `temperatures` representing daily temperatures, return an array `answer` such that `answer[i]` is the number of days you have to wait after the `i`-th day to get a warmer temperature. If there is no future day for which this is possible, keep `answer[i] == 0` instead.
@@ -225,23 +225,23 @@ Given an array of integers `temperatures` representing daily temperatures, retur
 
 ### Solution
 
-```javascript
+```typescript
 /**
  * Find number of days until warmer temperature using monotonic stack
- * @param {number[]} temperatures - Array of daily temperatures
- * @return {number[]} - Days to wait for warmer temperature
+ * @param temperatures - Array of daily temperatures
+ * @returns Days to wait for warmer temperature
  */
-function dailyTemperatures(temperatures) {
-    const n = temperatures.length;
-    const answer = new Array(n).fill(0);  // Initialize with 0s
-    const stack = [];  // Monotonic decreasing stack (stores indices)
+function dailyTemperatures(temperatures: number[]): number[] {
+    const n: number = temperatures.length;
+    const answer: number[] = new Array(n).fill(0);  // Initialize with 0s
+    const stack: number[] = [];  // Monotonic decreasing stack (stores indices)
 
     // Traverse through each day
-    for (let i = 0; i < n; i++) {
+    for (let i: number = 0; i < n; i++) {
         // While current temperature is warmer than temperature at stack top
         // We found the answer for the day at stack top
         while (stack.length > 0 && temperatures[i] > temperatures[stack[stack.length - 1]]) {
-            const prevIndex = stack.pop();
+            const prevIndex: number = stack.pop()!;
             answer[prevIndex] = i - prevIndex;  // Calculate days difference
         }
 
@@ -455,7 +455,7 @@ Explanation:
 
 ---
 
-## Example 2: Next Greater Element I (Python)
+## Example 2: Next Greater Element I (TypeScript)
 
 ### Problem
 The next greater element of some element `x` in an array is the first greater element to its right. Given two arrays `nums1` and `nums2` where `nums1` is a subset of `nums2`, find all the next greater elements for `nums1`'s elements in `nums2`.
@@ -464,74 +464,71 @@ The next greater element of some element `x` in an array is the first greater el
 
 ### Solution
 
-```python
-from typing import List
+```typescript
+/**
+ * Find next greater element using monotonic stack
+ * @param nums1 - Query array (subset of nums2)
+ * @param nums2 - Main array
+ * @returns Array where each element is the next greater element from nums2
+ */
+function nextGreaterElement(nums1: number[], nums2: number[]): number[] {
+    // HashMap to store next greater element for each number
+    const nextGreater: Map<number, number> = new Map();
 
-class Solution:
-    def nextGreaterElement(self, nums1: List[int], nums2: List[int]) -> List[int]:
-        """
-        Find next greater element using monotonic stack
+    // Monotonic decreasing stack
+    const stack: number[] = [];
 
-        Args:
-            nums1: Query array (subset of nums2)
-            nums2: Main array
+    // Process nums2 to find next greater element for each number
+    for (const num of nums2) {
+        // While stack is not empty and current num is greater than stack top
+        while (stack.length > 0 && num > stack[stack.length - 1]) {
+            // Current num is the next greater element for stack top
+            const smaller: number = stack.pop()!;
+            nextGreater.set(smaller, num);
+        }
 
-        Returns:
-            Array where each element is the next greater element from nums2
-        """
-        # HashMap to store next greater element for each number
-        next_greater = {}
+        // Push current number to stack
+        stack.push(num);
+    }
 
-        # Monotonic decreasing stack
-        stack = []
+    // Remaining elements in stack have no next greater element
+    while (stack.length > 0) {
+        nextGreater.set(stack.pop()!, -1);
+    }
 
-        # Process nums2 to find next greater element for each number
-        for num in nums2:
-            # While stack is not empty and current num is greater than stack top
-            while stack and num > stack[-1]:
-                # Current num is the next greater element for stack top
-                smaller = stack.pop()
-                next_greater[smaller] = num
+    // Build result array for nums1
+    const result: number[] = [];
+    for (const num of nums1) {
+        result.push(nextGreater.get(num)!);
+    }
 
-            # Push current number to stack
-            stack.append(num)
+    return result;
+}
 
-        # Remaining elements in stack have no next greater element
-        while stack:
-            next_greater[stack.pop()] = -1
+// Example usage
 
-        # Build result array for nums1
-        result = []
-        for num in nums1:
-            result.append(next_greater[num])
+// Example 1
+const nums1a: number[] = [4, 1, 2];
+const nums2a: number[] = [1, 3, 4, 2];
+console.log(nextGreaterElement(nums1a, nums2a));  // Output: [-1, 3, -1]
+// Explanation:
+// For 4: No greater element → -1
+// For 1: Next greater is 3
+// For 2: No greater element → -1
 
-        return result
+// Example 2
+const nums1b: number[] = [2, 4];
+const nums2b: number[] = [1, 2, 3, 4];
+console.log(nextGreaterElement(nums1b, nums2b));  // Output: [3, -1]
+// Explanation:
+// For 2: Next greater is 3
+// For 4: No greater element → -1
 
-# Example usage
-solution = Solution()
-
-# Example 1
-nums1 = [4, 1, 2]
-nums2 = [1, 3, 4, 2]
-print(solution.nextGreaterElement(nums1, nums2))  # Output: [-1, 3, -1]
-# Explanation:
-# For 4: No greater element → -1
-# For 1: Next greater is 3
-# For 2: No greater element → -1
-
-# Example 2
-nums1 = [2, 4]
-nums2 = [1, 2, 3, 4]
-print(solution.nextGreaterElement(nums1, nums2))  # Output: [3, -1]
-# Explanation:
-# For 2: Next greater is 3
-# For 4: No greater element → -1
-
-# Example 3
-nums1 = [1, 3, 5, 2, 4]
-nums2 = [6, 5, 4, 3, 2, 1, 7]
-print(solution.nextGreaterElement(nums1, nums2))  # Output: [7, 7, 7, 7, 7]
-# Explanation: For all numbers, 7 is the next greater element
+// Example 3
+const nums1c: number[] = [1, 3, 5, 2, 4];
+const nums2c: number[] = [6, 5, 4, 3, 2, 1, 7];
+console.log(nextGreaterElement(nums1c, nums2c));  // Output: [7, 7, 7, 7, 7]
+// Explanation: For all numbers, 7 is the next greater element
 ```
 
 ### Explanation

@@ -194,7 +194,7 @@ Example:
 
 ---
 
-## Example 1: Kth Largest Element in an Array (JavaScript)
+## Example 1: Kth Largest Element in an Array (TypeScript)
 
 ### Problem
 Given an integer array `nums` and an integer `k`, return the `k`th largest element in the array. Note that it is the `k`th largest element in sorted order, not the `k`th distinct element.
@@ -203,78 +203,82 @@ Given an integer array `nums` and an integer `k`, return the `k`th largest eleme
 
 ### Solution
 
-```javascript
+```typescript
 /**
- * Find kth largest element using Min-Heap
- * @param {number[]} nums - Array of integers
- * @param {number} k - Position of largest element to find
- * @return {number} - Kth largest element
+ * Min-Heap implementation using array
+ * TypeScript doesn't have built-in heap, so we'll implement one
  */
-function findKthLargest(nums, k) {
-    // Min-Heap implementation using array
-    // JavaScript doesn't have built-in heap, so we'll implement one
-    class MinHeap {
-        constructor() {
-            this.heap = [];
-        }
+class MinHeap {
+    private heap: number[];
 
-        size() {
-            return this.heap.length;
-        }
+    constructor() {
+        this.heap = [];
+    }
 
-        peek() {
-            return this.heap[0];
-        }
+    size(): number {
+        return this.heap.length;
+    }
 
-        push(val) {
-            this.heap.push(val);
-            this.bubbleUp(this.heap.length - 1);
-        }
+    peek(): number | undefined {
+        return this.heap[0];
+    }
 
-        pop() {
-            if (this.size() === 0) return null;
-            if (this.size() === 1) return this.heap.pop();
+    push(val: number): void {
+        this.heap.push(val);
+        this.bubbleUp(this.heap.length - 1);
+    }
 
-            const min = this.heap[0];
-            this.heap[0] = this.heap.pop();
-            this.bubbleDown(0);
-            return min;
-        }
+    pop(): number | null {
+        if (this.size() === 0) return null;
+        if (this.size() === 1) return this.heap.pop()!;
 
-        bubbleUp(index) {
-            while (index > 0) {
-                const parentIndex = Math.floor((index - 1) / 2);
-                if (this.heap[parentIndex] <= this.heap[index]) break;
+        const min: number = this.heap[0];
+        this.heap[0] = this.heap.pop()!;
+        this.bubbleDown(0);
+        return min;
+    }
 
-                [this.heap[parentIndex], this.heap[index]] =
-                    [this.heap[index], this.heap[parentIndex]];
-                index = parentIndex;
-            }
-        }
+    private bubbleUp(index: number): void {
+        while (index > 0) {
+            const parentIndex: number = Math.floor((index - 1) / 2);
+            if (this.heap[parentIndex] <= this.heap[index]) break;
 
-        bubbleDown(index) {
-            while (true) {
-                let smallest = index;
-                const left = 2 * index + 1;
-                const right = 2 * index + 2;
-
-                if (left < this.size() && this.heap[left] < this.heap[smallest]) {
-                    smallest = left;
-                }
-                if (right < this.size() && this.heap[right] < this.heap[smallest]) {
-                    smallest = right;
-                }
-                if (smallest === index) break;
-
-                [this.heap[index], this.heap[smallest]] =
-                    [this.heap[smallest], this.heap[index]];
-                index = smallest;
-            }
+            [this.heap[parentIndex], this.heap[index]] =
+                [this.heap[index], this.heap[parentIndex]];
+            index = parentIndex;
         }
     }
 
+    private bubbleDown(index: number): void {
+        while (true) {
+            let smallest: number = index;
+            const left: number = 2 * index + 1;
+            const right: number = 2 * index + 2;
+
+            if (left < this.size() && this.heap[left] < this.heap[smallest]) {
+                smallest = left;
+            }
+            if (right < this.size() && this.heap[right] < this.heap[smallest]) {
+                smallest = right;
+            }
+            if (smallest === index) break;
+
+            [this.heap[index], this.heap[smallest]] =
+                [this.heap[smallest], this.heap[index]];
+            index = smallest;
+        }
+    }
+}
+
+/**
+ * Find kth largest element using Min-Heap
+ * @param nums - Array of integers
+ * @param k - Position of largest element to find
+ * @returns Kth largest element
+ */
+function findKthLargest(nums: number[], k: number): number {
     // Use min-heap of size k to find k largest elements
-    const minHeap = new MinHeap();
+    const minHeap: MinHeap = new MinHeap();
 
     for (const num of nums) {
         minHeap.push(num);
@@ -286,12 +290,12 @@ function findKthLargest(nums, k) {
     }
 
     // Root of min-heap is the kth largest element
-    return minHeap.peek();
+    return minHeap.peek()!;
 }
 
 // Alternative solution using built-in sort (simpler but less efficient)
-function findKthLargestSort(nums, k) {
-    nums.sort((a, b) => b - a);  // Sort descending
+function findKthLargestSort(nums: number[], k: number): number {
+    nums.sort((a: number, b: number) => b - a);  // Sort descending
     return nums[k - 1];
 }
 
@@ -313,8 +317,10 @@ Let's break down the heap implementation for complete beginners:
 
 #### Understanding the MinHeap Class
 
-```javascript
+```typescript
 class MinHeap {
+    private heap: number[];
+
     constructor() {
         this.heap = [];  // We store the heap as an array
     }
@@ -323,10 +329,10 @@ class MinHeap {
 
 #### The bubbleUp Function (Adding Elements)
 
-```javascript
-bubbleUp(index) {
+```typescript
+private bubbleUp(index: number): void {
     while (index > 0) {
-        const parentIndex = Math.floor((index - 1) / 2);
+        const parentIndex: number = Math.floor((index - 1) / 2);
 
         // If parent is smaller, we're done (min-heap property satisfied)
         if (this.heap[parentIndex] <= this.heap[index]) break;
@@ -378,12 +384,12 @@ Done! 0 is at the root (smallest element)
 
 #### The bubbleDown Function (Removing Elements)
 
-```javascript
-bubbleDown(index) {
+```typescript
+private bubbleDown(index: number): void {
     while (true) {
-        let smallest = index;
-        const left = 2 * index + 1;   // Left child
-        const right = 2 * index + 2;  // Right child
+        let smallest: number = index;
+        const left: number = 2 * index + 1;   // Left child
+        const right: number = 2 * index + 2;  // Right child
 
         // Find the smallest among: current, left child, right child
         if (left < this.size() && this.heap[left] < this.heap[smallest]) {
@@ -438,8 +444,8 @@ Step 4: After swap
 
 #### The Main Algorithm
 
-```javascript
-const minHeap = new MinHeap();
+```typescript
+const minHeap: MinHeap = new MinHeap();
 
 for (const num of nums) {
     minHeap.push(num);      // Add element to heap
@@ -449,7 +455,7 @@ for (const num of nums) {
     }
 }
 
-return minHeap.peek();      // Return root (kth largest)
+return minHeap.peek()!;     // Return root (kth largest)
 ```
 
 **Why this works:**
@@ -498,97 +504,149 @@ Given an integer array `nums` and an integer `k`, return the `k` most frequent e
 
 ### Solution
 
-```python
-from typing import List
-from collections import Counter
-import heapq
+```typescript
+/**
+ * MinHeap implementation for Top K Frequent Elements
+ */
+class MinHeap {
+    private heap: [number, number][] = [];
 
-class Solution:
-    def topKFrequent(self, nums: List[int], k: int) -> List[int]:
-        """
-        Find k most frequent elements using Min-Heap
+    push(val: [number, number]): void {
+        this.heap.push(val);
+        this.bubbleUp(this.heap.length - 1);
+    }
 
-        Args:
-            nums: Array of integers
-            k: Number of most frequent elements to return
+    pop(): [number, number] | undefined {
+        if (this.heap.length === 0) return undefined;
+        const top = this.heap[0];
+        const last = this.heap.pop()!;
+        if (this.heap.length > 0) {
+            this.heap[0] = last;
+            this.bubbleDown(0);
+        }
+        return top;
+    }
 
-        Returns:
-            List of k most frequent elements
-        """
-        # Step 1: Count frequency of each element
-        freq_map = Counter(nums)
+    size(): number {
+        return this.heap.length;
+    }
 
-        # Step 2: Use min-heap to keep track of k most frequent elements
-        # Heap stores tuples: (frequency, number)
-        min_heap = []
+    private bubbleUp(idx: number): void {
+        while (idx > 0) {
+            const parent = Math.floor((idx - 1) / 2);
+            if (this.heap[parent][0] <= this.heap[idx][0]) break;
+            [this.heap[parent], this.heap[idx]] = [this.heap[idx], this.heap[parent]];
+            idx = parent;
+        }
+    }
 
-        for num, freq in freq_map.items():
-            heapq.heappush(min_heap, (freq, num))
+    private bubbleDown(idx: number): void {
+        while (true) {
+            const left = 2 * idx + 1;
+            const right = 2 * idx + 2;
+            let smallest = idx;
+            if (left < this.heap.length && this.heap[left][0] < this.heap[smallest][0]) {
+                smallest = left;
+            }
+            if (right < this.heap.length && this.heap[right][0] < this.heap[smallest][0]) {
+                smallest = right;
+            }
+            if (smallest === idx) break;
+            [this.heap[smallest], this.heap[idx]] = [this.heap[idx], this.heap[smallest]];
+            idx = smallest;
+        }
+    }
 
-            # Keep heap size at k
-            if len(min_heap) > k:
-                heapq.heappop(min_heap)  # Remove least frequent
+    toArray(): [number, number][] {
+        return [...this.heap];
+    }
+}
 
-        # Step 3: Extract elements from heap
-        result = [num for freq, num in min_heap]
+/**
+ * Find k most frequent elements using Min-Heap
+ * @param nums - Array of integers
+ * @param k - Number of most frequent elements to return
+ * @returns List of k most frequent elements
+ */
+function topKFrequent(nums: number[], k: number): number[] {
+    // Step 1: Count frequency of each element
+    const freqMap: Map<number, number> = new Map();
+    for (const num of nums) {
+        freqMap.set(num, (freqMap.get(num) || 0) + 1);
+    }
 
-        return result
+    // Step 2: Use min-heap to keep track of k most frequent elements
+    const minHeap = new MinHeap();
 
-    def topKFrequentBucketSort(self, nums: List[int], k: int) -> List[int]:
-        """
-        Alternative solution using bucket sort - O(n) time
+    for (const [num, freq] of freqMap.entries()) {
+        minHeap.push([freq, num]);
 
-        Args:
-            nums: Array of integers
-            k: Number of most frequent elements to return
+        // Keep heap size at k
+        if (minHeap.size() > k) {
+            minHeap.pop();  // Remove least frequent
+        }
+    }
 
-        Returns:
-            List of k most frequent elements
-        """
-        # Count frequencies
-        freq_map = Counter(nums)
+    // Step 3: Extract elements from heap
+    return minHeap.toArray().map(([freq, num]) => num);
+}
 
-        # Create buckets where index represents frequency
-        # bucket[i] contains all numbers with frequency i
-        buckets = [[] for _ in range(len(nums) + 1)]
+/**
+ * Alternative solution using bucket sort - O(n) time
+ * @param nums - Array of integers
+ * @param k - Number of most frequent elements to return
+ * @returns List of k most frequent elements
+ */
+function topKFrequentBucketSort(nums: number[], k: number): number[] {
+    // Count frequencies
+    const freqMap: Map<number, number> = new Map();
+    for (const num of nums) {
+        freqMap.set(num, (freqMap.get(num) || 0) + 1);
+    }
 
-        for num, freq in freq_map.items():
-            buckets[freq].append(num)
+    // Create buckets where index represents frequency
+    const buckets: number[][] = Array.from({ length: nums.length + 1 }, () => []);
 
-        # Collect k most frequent elements from buckets (right to left)
-        result = []
-        for i in range(len(buckets) - 1, 0, -1):
-            for num in buckets[i]:
-                result.append(num)
-                if len(result) == k:
-                    return result
+    for (const [num, freq] of freqMap.entries()) {
+        buckets[freq].push(num);
+    }
 
-        return result
+    // Collect k most frequent elements from buckets (right to left)
+    const result: number[] = [];
+    for (let i = buckets.length - 1; i > 0; i--) {
+        for (const num of buckets[i]) {
+            result.push(num);
+            if (result.length === k) {
+                return result;
+            }
+        }
+    }
 
-# Example usage
-solution = Solution()
+    return result;
+}
 
-# Example 1
-nums1 = [1, 1, 1, 2, 2, 3]
-k1 = 2
-print(solution.topKFrequent(nums1, k1))  # Output: [1, 2]
-# Explanation: 1 appears 3 times, 2 appears 2 times (most frequent)
+// Example usage
+// Example 1
+const nums1: number[] = [1, 1, 1, 2, 2, 3];
+const k1: number = 2;
+console.log(topKFrequent(nums1, k1));  // Output: [1, 2]
+// Explanation: 1 appears 3 times, 2 appears 2 times (most frequent)
 
-# Example 2
-nums2 = [1]
-k2 = 1
-print(solution.topKFrequent(nums2, k2))  # Output: [1]
+// Example 2
+const nums2: number[] = [1];
+const k2: number = 1;
+console.log(topKFrequent(nums2, k2));  // Output: [1]
 
-# Example 3
-nums3 = [4, 1, -1, 2, -1, 2, 3]
-k3 = 2
-print(solution.topKFrequent(nums3, k3))  # Output: [-1, 2] (or [2, -1])
-# Explanation: -1 appears 2 times, 2 appears 2 times
+// Example 3
+const nums3: number[] = [4, 1, -1, 2, -1, 2, 3];
+const k3: number = 2;
+console.log(topKFrequent(nums3, k3));  // Output: [-1, 2] (or [2, -1])
+// Explanation: -1 appears 2 times, 2 appears 2 times
 
-# Example 4 - Using bucket sort
-nums4 = [1, 1, 1, 2, 2, 3]
-k4 = 2
-print(solution.topKFrequentBucketSort(nums4, k4))  # Output: [1, 2]
+// Example 4 - Using bucket sort
+const nums4: number[] = [1, 1, 1, 2, 2, 3];
+const k4: number = 2;
+console.log(topKFrequentBucketSort(nums4, k4));  // Output: [1, 2]
 ```
 
 ### Explanation
