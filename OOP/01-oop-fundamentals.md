@@ -25,17 +25,17 @@
 Think of a **class** as an architect's blueprint and an **object** as an actual house built from it.
 
 ```
-  Blueprint (Class)                    Houses (Objects)
-  ┌──────────────────┐        ┌──────────────────┐
-  │  House            │        │  house1           │
-  │  ─────────────    │──new──▶│  color: "blue"    │
-  │  color: string    │        │  rooms: 3         │
-  │  rooms: number    │        └──────────────────┘
-  │                   │        ┌──────────────────┐
-  │  paint()          │──new──▶│  house2           │
-  │  addRoom()        │        │  color: "red"     │
-  └──────────────────┘        │  rooms: 5         │
-                               └──────────────────┘
+  Blueprint (Class)                 Houses (Objects)
+  +--------------------+        +--------------------+
+  |  House             |        |  house1            |
+  |  -------------     |--new-->|  color: "blue"     |
+  |  color: string     |        |  rooms: 3          |
+  |  rooms: number     |        +--------------------+
+  |                    |        +--------------------+
+  |  paint()           |--new-->|  house2            |
+  |  addRoom()         |        |  color: "red"      |
+  +--------------------+        |  rooms: 5          |
+                                +--------------------+
 ```
 
 **Key Insight:**
@@ -90,20 +90,20 @@ bmw.accelerate();   // "BMW is now going 10 km/h"
 
 ```
   class Car { ... }
-        │
-        ▼
+        |
+        v
   new Car("Tesla", 0)
-        │
-        ▼
-  ┌─────────────────────┐
-  │ 1. Allocate memory   │
-  │ 2. Run constructor() │
-  │ 3. Bind `this`       │
-  │ 4. Return object     │
-  └─────────────────────┘
-        │
-        ▼
-  tesla ──▶ { brand: "Tesla", speed: 0 }
+        |
+        v
+  +-----------------------+
+  | 1. Allocate memory    |
+  | 2. Run constructor()  |
+  | 3. Bind `this`        |
+  | 4. Return object      |
+  +-----------------------+
+        |
+        v
+  tesla --> { brand: "Tesla", speed: 0 }
 ```
 
 ⚠️ **Common Mistake:** Forgetting `new` — in strict mode this throws an error; without it, `this` may refer to the global object.
@@ -267,14 +267,14 @@ db.connect(); // "Connecting to localhost:5432/myapp..."
 
 ```
   Class: MathHelper
-  ┌──────────────────────────────┐
-  │  static PI = 3.14159         │ ◀── Shared (one copy)
-  │  static square(n) { ... }   │ ◀── Called on class
-  ├──────────────────────────────┤
-  │  instance1     │  instance2  │
-  │  value: 5      │  value: 10  │ ◀── Unique per object
-  │  double()      │  double()   │ ◀── Called on object
-  └──────────────────────────────┘
+  +------------------------------+
+  |  static PI = 3.14159         | <-- Shared (one copy)
+  |  static square(n) { ... }    | <-- Called on class
+  +------------------------------+
+  |  instance1    |  instance2   |
+  |  value: 5     |  value: 10   | <-- Unique per object
+  |  double()     |  double()    | <-- Called on object
+  +------------------------------+
 ```
 
 **Comparison Table:**

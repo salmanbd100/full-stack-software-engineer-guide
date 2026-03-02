@@ -48,12 +48,12 @@ Inheritance establishes an **"is-a" relationship** between classes.
 
 ```
 Parent Class
-├── Properties: shared state
-├── Methods: shared behavior
-│
-└── Child Class (extends Parent)
-    ├── Inherited properties + new properties
-    └── Inherited methods + new/overridden methods
++-- Properties: shared state
++-- Methods: shared behavior
+|
++-- Child Class (extends Parent)
+    +-- Inherited properties + new properties
+    +-- Inherited methods + new/overridden methods
 ```
 
 ---
@@ -170,9 +170,9 @@ A child class can **replace** a parent method by declaring a method with the sam
 **How It Works:**
 
 ```
-Parent.greet() → "Hello from Parent"
-     ↓ child overrides
-Child.greet()  → "Hello from Child"
+Parent.greet() --> "Hello from Parent"
+     | child overrides
+Child.greet()  --> "Hello from Child"
 ```
 
 **Example:**
@@ -225,15 +225,20 @@ When a class hierarchy has multiple levels, constructors flow **top-down** from 
 
 ```
 new ElectricCar("Tesla", 2024, 4, 100)
-    ↓
+    |
+    v
 ElectricCar constructor calls super(make, year, doors)
-    ↓
+    |
+    v
 Car constructor calls super(make, year)
-    ↓
+    |
+    v
 Vehicle constructor sets this.make, this.year
-    ↓
+    |
+    v
 Car constructor sets this.doors
-    ↓
+    |
+    v
 ElectricCar constructor sets this.batteryKWh
 ```
 
@@ -565,13 +570,13 @@ Avoid inheritance when:
 ### The Fragile Base Class Problem
 
 ```
-  BaseService          ← Change something here...
-      ↓
-  AuthService          ← ...breaks this...
-      ↓
-  AdminAuthService     ← ...and this...
-      ↓
-  SuperAdminService    ← ...and this. 💥
+  BaseService          <-- Change something here...
+      |
+  AuthService          <-- ...breaks this...
+      |
+  AdminAuthService     <-- ...and this...
+      |
+  SuperAdminService    <-- ...and this.
 ```
 
 > ⚠️ **Warning:**

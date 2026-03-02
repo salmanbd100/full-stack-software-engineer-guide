@@ -18,34 +18,39 @@ OOP principles are not academic exercises — they form the backbone of how mode
 Most production backend applications follow a layered architecture where each layer is a set of classes with a single, clear responsibility.
 
 ```
-┌─────────────────────────────┐
-│      Controller Layer        │  ← Handles HTTP requests
-│      (Routes + Validation)   │
-├─────────────────────────────┤
-│       Service Layer          │  ← Business logic
-│    (Business Rules + DTOs)   │
-├─────────────────────────────┤
-│     Repository Layer         │  ← Data access
-│   (Database Operations)      │
-├─────────────────────────────┤
-│       Entity Layer           │  ← Data models
-│   (Database Schemas/Models)  │
-└─────────────────────────────┘
++-------------------------------+
+|      Controller Layer         |  <-- Handles HTTP requests
+|      (Routes + Validation)    |
++-------------------------------+
+|       Service Layer           |  <-- Business logic
+|    (Business Rules + DTOs)    |
++-------------------------------+
+|     Repository Layer          |  <-- Data access
+|   (Database Operations)       |
++-------------------------------+
+|       Entity Layer            |  <-- Data models
+|   (Database Schemas/Models)   |
++-------------------------------+
 ```
 
 **How the layers interact:**
 
 ```
 Client Request
-    ↓
-Controller  →  validates input, delegates to service
-    ↓
-Service     →  orchestrates business logic, calls repositories
-    ↓
-Repository  →  reads/writes to database
-    ↓
-Entity      →  represents a database row as an object
-    ↓
+    |
+    v
+Controller  -->  validates input, delegates to service
+    |
+    v
+Service     -->  orchestrates business logic, calls repositories
+    |
+    v
+Repository  -->  reads/writes to database
+    |
+    v
+Entity      -->  represents a database row as an object
+    |
+    v
 Response flows back up through the same layers
 ```
 
@@ -513,10 +518,10 @@ Dependency Injection is the key. When a class receives its dependencies through 
 
 ```
 Production:
-UserService  →  PostgresUserRepository  →  Real Database
+UserService  -->  PostgresUserRepository  -->  Real Database
 
 Testing:
-UserService  →  MockUserRepository      →  In-Memory Data
+UserService  -->  MockUserRepository      -->  In-Memory Data
 ```
 
 ### TypeScript Example — Testing a Service:

@@ -22,25 +22,25 @@ Encapsulation is one of the four pillars of Object-Oriented Programming. It is t
 Think of an **ATM machine**:
 
 ```
-┌─────────────────────────────────────────────┐
-│                  ATM Machine                 │
-│                                              │
-│  ┌──────────────────────────────────────┐    │
-│  │        PUBLIC INTERFACE              │    │
-│  │   [Screen]  [Keypad]  [Card Slot]   │    │
-│  │   [Cash Dispenser]  [Receipt]       │    │
-│  └──────────────────────────────────────┘    │
-│                                              │
-│  ┌──────────────────────────────────────┐    │
-│  │        PRIVATE INTERNALS             │    │
-│  │   🔒 Vault with cash                │    │
-│  │   🔒 Cash counting mechanism        │    │
-│  │   🔒 Security system                │    │
-│  │   🔒 Network connection to bank     │    │
-│  │   🔒 Transaction processing logic   │    │
-│  └──────────────────────────────────────┘    │
-│                                              │
-└─────────────────────────────────────────────┘
++-----------------------------------------------+
+|                  ATM Machine                   |
+|                                                |
+|  +------------------------------------------+  |
+|  |        PUBLIC INTERFACE                   |  |
+|  |   [Screen]  [Keypad]  [Card Slot]        |  |
+|  |   [Cash Dispenser]  [Receipt]            |  |
+|  +------------------------------------------+  |
+|                                                |
+|  +------------------------------------------+  |
+|  |        PRIVATE INTERNALS                  |  |
+|  |   Vault with cash                        |  |
+|  |   Cash counting mechanism                |  |
+|  |   Security system                        |  |
+|  |   Network connection to bank             |  |
+|  |   Transaction processing logic           |  |
+|  +------------------------------------------+  |
+|                                                |
++-----------------------------------------------+
 ```
 
 You interact through **buttons and a screen** (the public interface), but the vault, cash counting, and security systems are **hidden** (private internals). You cannot directly access the cash — you **must** go through the interface.
@@ -75,25 +75,25 @@ TypeScript provides four levels of access control:
 ### Access Modifier Scope Diagram
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  OUTSIDE CODE (other classes, functions, modules)     │
-│                                                       │
-│   Can access: public                                  │
-│   ──────────────────────────────────────────────      │
-│  ┌────────────────────────────────────────────┐       │
-│  │  SUBCLASS (extends the class)              │       │
-│  │                                            │       │
-│  │   Can access: public, protected            │       │
-│  │   ──────────────────────────────────────   │       │
-│  │  ┌──────────────────────────────────────┐  │       │
-│  │  │  CLASS ITSELF                        │  │       │
-│  │  │                                      │  │       │
-│  │  │   Can access: public, protected,     │  │       │
-│  │  │               private, readonly      │  │       │
-│  │  │                                      │  │       │
-│  │  └──────────────────────────────────────┘  │       │
-│  └────────────────────────────────────────────┘       │
-└──────────────────────────────────────────────────────┘
++------------------------------------------------------+
+|  OUTSIDE CODE (other classes, functions, modules)     |
+|                                                       |
+|   Can access: public                                  |
+|   ------------------------------------------------   |
+|  +------------------------------------------------+  |
+|  |  SUBCLASS (extends the class)                   |  |
+|  |                                                 |  |
+|  |   Can access: public, protected                 |  |
+|  |   -------------------------------------------   |  |
+|  |  +-------------------------------------------+  |  |
+|  |  |  CLASS ITSELF                              |  |  |
+|  |  |                                            |  |  |
+|  |  |   Can access: public, protected,           |  |  |
+|  |  |               private, readonly            |  |  |
+|  |  |                                            |  |  |
+|  |  +-------------------------------------------+  |  |
+|  +------------------------------------------------+  |
++------------------------------------------------------+
 ```
 
 ### Comparison Table

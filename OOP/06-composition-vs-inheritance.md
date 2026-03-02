@@ -34,12 +34,12 @@ INHERITANCE (rigid tree):              COMPOSITION (mix and match):
 
        Animal                              Character
       /      \                            has: [abilities]
-    Dog       Cat                    ┌──────────────────────┐
-   /    \                            │  CanSwim             │
-Poodle  Labrador                     │  CanFly              │
-                                     │  CanAttack           │
-Can't make a flying dog              │  CanHeal             │
-without restructuring                └──────────────────────┘
+    Dog       Cat                    +------------------------+
+   /    \                            |  CanSwim               |
+Poodle  Labrador                     |  CanFly                |
+                                     |  CanAttack             |
+Can't make a flying dog              |  CanHeal               |
+without restructuring                +------------------------+
 the entire tree.                     Attach any combo to any character!
 ```
 
@@ -80,12 +80,12 @@ Subclasses are bound to the internal details of their parent.
 
 ```
 ParentClass (changes here)
-    ↓ breaks
+    | breaks
   ChildClass (changes here)
-      ↓ breaks
+      | breaks
     GrandchildClass (changes here)
-        ↓ breaks
-      GreatGrandchildClass  ← 😱
+        | breaks
+      GreatGrandchildClass  <-- !!
 ```
 
 ### 3. **The Gorilla-Banana Problem**
@@ -454,18 +454,18 @@ Use this decision tree to choose the right approach:
 
 ```
 Is there a clear, natural "is-a" relationship?
-│
-├── YES → Is the hierarchy shallow (1-2 levels max)?
-│         │
-│         ├── YES → Do subclasses need the FULL parent implementation?
-│         │         │
-│         │         ├── YES → ✅ Use INHERITANCE
-│         │         │
-│         │         └── NO  → ✅ Use COMPOSITION
-│         │
-│         └── NO  → ✅ Use COMPOSITION (deep hierarchies are fragile)
-│
-└── NO  → ✅ Use COMPOSITION
+|
++-- YES --> Is the hierarchy shallow (1-2 levels max)?
+|           |
+|           +-- YES --> Do subclasses need the FULL parent implementation?
+|           |           |
+|           |           +-- YES --> Use INHERITANCE
+|           |           |
+|           |           +-- NO  --> Use COMPOSITION
+|           |
+|           +-- NO  --> Use COMPOSITION (deep hierarchies are fragile)
+|
++-- NO  --> Use COMPOSITION
 ```
 
 ### Decision Table

@@ -13,15 +13,15 @@
 Think of a USB-A port on your computer:
 
 ```
-        ┌──────────────────────────┐
-        │      USB-A Port          │
-        │   (Same Interface)       │
-        └────────┬─────────────────┘
-                 │
-    ┌────────────┼────────────┬────────────┐
-    ▼            ▼            ▼            ▼
-  Mouse       Keyboard    Flash Drive   Charger
-  (click)     (keypress)  (storage)     (power)
+        +--------------------------+
+        |      USB-A Port          |
+        |   (Same Interface)       |
+        +------------+-------------+
+                     |
+    +--------+-------+--------+-----------+
+    v        v                v           v
+  Mouse    Keyboard     Flash Drive    Charger
+  (click)  (keypress)   (storage)      (power)
 ```
 
 - The computer doesn't need to know **which specific device** is plugged in
@@ -75,13 +75,13 @@ A child class provides its **own implementation** of a method defined in its par
 
 ```
         processPayment(amount)
-              │
-    ┌─────────┼──────────┐
-    ▼         ▼          ▼
-  Stripe    PayPal    Square
-  (API A)   (API B)   (API C)
+              |
+    +---------+-----------+
+    v         v           v
+  Stripe    PayPal     Square
+  (API A)   (API B)    (API C)
 
-Same method call → different implementations
+Same method call --> different implementations
 ```
 
 **Payment Processor Example:**

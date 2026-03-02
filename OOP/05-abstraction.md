@@ -11,15 +11,15 @@
 > **Analogy:** A car's steering wheel. You turn the wheel (simple interface), but behind it there's a complex system of hydraulics, gears, power steering fluid, and electronic sensors. You don't need to understand the internals to drive. Abstraction hides complexity behind a simple interface.
 
 ```
- 🚗  Driver's View              Under the Hood
-┌─────────────────┐      ┌──────────────────────────┐
-│                  │      │  Hydraulic pump           │
-│   🔘 Steering   │ ──── │  Power steering fluid     │
-│      Wheel      │      │  Rack and pinion gears    │
-│                  │      │  Electronic sensors       │
-│  turn(direction) │      │  Torque calculations      │
-└─────────────────┘      └──────────────────────────┘
-  Simple interface         Complex implementation
+  Driver's View                Under the Hood
++-------------------+      +----------------------------+
+|                   |      |  Hydraulic pump            |
+|   Steering        |      |  Power steering fluid      |
+|   Wheel           |------|  Rack and pinion gears     |
+|                   |      |  Electronic sensors        |
+|  turn(direction)  |      |  Torque calculations       |
++-------------------+      +----------------------------+
+  Simple interface           Complex implementation
 ```
 
 ---
@@ -294,14 +294,15 @@ An abstract class defines the **skeleton** of an algorithm, and subclasses fill 
 
 ```
 Abstract Class (DataProcessor)
-┌──────────────────────────────┐
-│  process() ← template method │
-│    1. validate()   ← abstract │
-│    2. transform()  ← abstract │
-│    3. save()       ← abstract │
-│    4. logResult()  ← concrete │
-└──────────────────────────────┘
-        ↓               ↓
++--------------------------------+
+|  process() <-- template method |
+|    1. validate()   <-- abstract|
+|    2. transform()  <-- abstract|
+|    3. save()       <-- abstract|
+|    4. logResult()  <-- concrete|
++--------------------------------+
+        |               |
+        v               v
   CSVProcessor    JSONProcessor
   (fills steps)   (fills steps)
 ```
@@ -380,16 +381,20 @@ Real applications use **multiple layers** of abstraction. Each layer hides the c
 
 ```
 Application Code (BusinessService)
-        ↓
-[StorageService Interface]  ← You code against THIS
-        ↓
-┌───────┼────────┐
-↓       ↓        ↓
-S3     GCS    Azure      ← Implementations hidden
-↓       ↓        ↓
-HTTP   HTTP    HTTP       ← Network layer hidden
-↓       ↓        ↓
-TCP    TCP     TCP        ← Transport layer hidden
+        |
+        v
+[StorageService Interface]  <-- You code against THIS
+        |
+   +----+------+
+   |    |      |
+   v    v      v
+  S3   GCS   Azure     <-- Implementations hidden
+   |    |      |
+   v    v      v
+  HTTP HTTP  HTTP      <-- Network layer hidden
+   |    |      |
+   v    v      v
+  TCP  TCP   TCP       <-- Transport layer hidden
 ```
 
 **Example — Layered Architecture:**
