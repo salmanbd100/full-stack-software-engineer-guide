@@ -26,41 +26,44 @@ This means each class should have only one responsibility or job. If a class has
 
 ### Problem Without SRP
 
-```javascript
+```typescript
 // ❌ Bad: Class has multiple responsibilities
 class User {
-  constructor(name, email) {
+  private name: string;
+  private email: string;
+
+  constructor(name: string, email: string) {
     this.name = name;
     this.email = email;
   }
 
   // Responsibility 1: User data management
-  getName() { return this.name; }
-  getEmail() { return this.email; }
+  getName(): string { return this.name; }
+  getEmail(): string { return this.email; }
 
   // Responsibility 2: Database operations
-  save() {
+  save(): void {
     const sql = `INSERT INTO users (name, email) VALUES ('${this.name}', '${this.email}')`;
     database.execute(sql);
   }
 
   // Responsibility 3: Email operations
-  sendWelcomeEmail() {
+  sendWelcomeEmail(): void {
     emailService.send(this.email, 'Welcome!', 'Welcome to our platform');
   }
 
   // Responsibility 4: Validation
-  validate() {
+  validate(): void {
     if (!this.name) throw new Error('Name required');
     if (!this.email.includes('@')) throw new Error('Invalid email');
   }
 
   // Responsibility 5: Formatting
-  toJSON() {
+  toJSON(): string {
     return JSON.stringify({ name: this.name, email: this.email });
   }
 
-  toCSV() {
+  toCSV(): string {
     return `${this.name},${this.email}`;
   }
 }
@@ -74,24 +77,41 @@ class User {
 
 ### Solution With SRP
 
-```javascript
+```typescript
 // ✅ Good: Each class has a single responsibility
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+interface DatabaseClient {
+  execute(sql: string, params: unknown[]): Promise<unknown>;
+  query(sql: string, params: unknown[]): Promise<unknown[]>;
+}
+
+interface EmailClient {
+  send(to: string, subject: string, body: string): Promise<void>;
+}
 
 // Responsibility: User data model
 class User {
-  constructor(name, email) {
+  private name: string;
+  private email: string;
+
+  constructor(name: string, email: string) {
     this.name = name;
     this.email = email;
   }
 
-  getName() { return this.name; }
-  getEmail() { return this.email; }
+  getName(): string { return this.name; }
+  getEmail(): string { return this.email; }
 }
 
 // Responsibility: User validation
 class UserValidator {
-  validate(user) {
-    const errors = [];
+  validate(user: User): ValidationResult {
+    const errors: string[] = [];
 
     if (!user.getName()) {
       errors.push('Name is required');
@@ -110,16 +130,18 @@ class UserValidator {
 
 // Responsibility: User persistence
 class UserRepository {
-  constructor(database) {
+  private database: DatabaseClient;
+
+  constructor(database: DatabaseClient) {
     this.database = database;
   }
 
-  async save(user) {
+  async save(user: User): Promise<unknown> {
     const sql = `INSERT INTO users (name, email) VALUES ($1, $2)`;
     return this.database.execute(sql, [user.getName(), user.getEmail()]);
   }
 
-  async findByEmail(email) {
+  async findByEmail(email: string): Promise<unknown[]> {
     const sql = `SELECT * FROM users WHERE email = $1`;
     return this.database.query(sql, [email]);
   }
@@ -127,11 +149,13 @@ class UserRepository {
 
 // Responsibility: User notifications
 class UserNotificationService {
-  constructor(emailService) {
+  private emailService: EmailClient;
+
+  constructor(emailService: EmailClient) {
     this.emailService = emailService;
   }
 
-  async sendWelcomeEmail(user) {
+  async sendWelcomeEmail(user: User): Promise<void> {
     await this.emailService.send(
       user.getEmail(),
       'Welcome!',
@@ -142,27 +166,35 @@ class UserNotificationService {
 
 // Responsibility: User formatting/serialization
 class UserFormatter {
-  toJSON(user) {
+  toJSON(user: User): string {
     return JSON.stringify({
       name: user.getName(),
       email: user.getEmail()
     });
   }
 
-  toCSV(user) {
+  toCSV(user: User): string {
     return `${user.getName()},${user.getEmail()}`;
   }
 }
 
 // Usage: Compose classes together
 class UserService {
-  constructor(validator, repository, notificationService) {
+  private validator: UserValidator;
+  private repository: UserRepository;
+  private notificationService: UserNotificationService;
+
+  constructor(
+    validator: UserValidator,
+    repository: UserRepository,
+    notificationService: UserNotificationService
+  ) {
     this.validator = validator;
     this.repository = repository;
     this.notificationService = notificationService;
   }
 
-  async createUser(name, email) {
+  async createUser(name: string, email: string): Promise<User> {
     const user = new User(name, email);
 
     const validation = this.validator.validate(user);
@@ -210,30 +242,38 @@ You should be able to add new functionality without changing existing code. This
 
 ### Problem Without OCP
 
-```javascript
+```typescript
 // ❌ Bad: Must modify existing code to add new payment methods
+type PaymentType = 'creditCard' | 'paypal' | 'bitcoin';
+
+interface Payment {
+  type: PaymentType;
+  amount: number;
+}
+
 class PaymentProcessor {
-  processPayment(payment) {
+  processPayment(payment: Payment): void {
     if (payment.type === 'creditCard') {
       // Credit card logic
       console.log('Processing credit card payment');
-      return this.processCreditCard(payment);
+      this.processCreditCard(payment);
     } else if (payment.type === 'paypal') {
       // PayPal logic
       console.log('Processing PayPal payment');
-      return this.processPayPal(payment);
+      this.processPayPal(payment);
     } else if (payment.type === 'bitcoin') {
       // Bitcoin logic - ADDED LATER (modified existing code!)
       console.log('Processing Bitcoin payment');
-      return this.processBitcoin(payment);
+      this.processBitcoin(payment);
+    } else {
+      // Every new payment method requires modifying this class!
+      throw new Error('Unknown payment type');
     }
-    // Every new payment method requires modifying this class!
-    throw new Error('Unknown payment type');
   }
 
-  processCreditCard(payment) { /* ... */ }
-  processPayPal(payment) { /* ... */ }
-  processBitcoin(payment) { /* ... */ }
+  private processCreditCard(payment: Payment): void { /* ... */ }
+  private processPayPal(payment: Payment): void { /* ... */ }
+  private processBitcoin(payment: Payment): void { /* ... */ }
 }
 ```
 
@@ -416,47 +456,50 @@ If `S` is a subtype of `T`, then objects of type `T` can be replaced with object
 
 ### Problem Without LSP
 
-```javascript
+```typescript
 // ❌ Bad: Rectangle/Square problem - classic LSP violation
 class Rectangle {
-  constructor(width, height) {
+  protected width: number;
+  protected height: number;
+
+  constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
   }
 
-  setWidth(width) {
+  setWidth(width: number): void {
     this.width = width;
   }
 
-  setHeight(height) {
+  setHeight(height: number): void {
     this.height = height;
   }
 
-  getArea() {
+  getArea(): number {
     return this.width * this.height;
   }
 }
 
 class Square extends Rectangle {
-  constructor(side) {
+  constructor(side: number) {
     super(side, side);
   }
 
   // ❌ Violates LSP: changes behavior unexpectedly
-  setWidth(width) {
+  setWidth(width: number): void {
     this.width = width;
     this.height = width;  // Also changes height!
   }
 
-  setHeight(height) {
+  setHeight(height: number): void {
     this.width = height;  // Also changes width!
     this.height = height;
   }
 }
 
 // This function expects Rectangle behavior
-function increaseRectangleWidth(rectangle) {
-  rectangle.setWidth(rectangle.width + 10);
+function increaseRectangleWidth(rectangle: Rectangle): number {
+  rectangle.setWidth(rectangle['width'] + 10);
   // Expects: only width changes, height stays same
   return rectangle.getArea();
 }
@@ -796,27 +839,31 @@ This principle is about decoupling software modules so that high-level modules (
 
 ### Problem Without DIP
 
-```javascript
+```typescript
 // ❌ Bad: High-level module depends on low-level modules
 
 // Low-level modules
 class MySQLDatabase {
-  connect() { console.log('Connecting to MySQL'); }
-  query(sql) { console.log(`MySQL: ${sql}`); return []; }
+  connect(): void { console.log('Connecting to MySQL'); }
+  query(sql: string): unknown[] { console.log(`MySQL: ${sql}`); return []; }
 }
 
 class ConsoleLogger {
-  log(message) { console.log(`[LOG] ${message}`); }
+  log(message: string): void { console.log(`[LOG] ${message}`); }
 }
 
 class SmtpEmailService {
-  send(to, subject, body) {
+  send(to: string, subject: string, body: string): void {
     console.log(`Sending email to ${to}: ${subject}`);
   }
 }
 
 // ❌ High-level module directly depends on low-level modules
 class UserService {
+  private database: MySQLDatabase;
+  private logger: ConsoleLogger;
+  private emailService: SmtpEmailService;
+
   constructor() {
     // Hardcoded dependencies on concrete implementations
     this.database = new MySQLDatabase();
@@ -824,7 +871,7 @@ class UserService {
     this.emailService = new SmtpEmailService();
   }
 
-  async createUser(userData) {
+  async createUser(userData: { name: string; email: string }): Promise<unknown[]> {
     this.logger.log('Creating user...');
     this.database.connect();
     const result = this.database.query(`INSERT INTO users...`);
@@ -1103,14 +1150,41 @@ D - Dependency Inversion
 
 Refactor this code to follow SOLID principles:
 
-```javascript
+```typescript
 // Before: Violates multiple SOLID principles
+interface OrderItem {
+  price: number;
+  quantity: number;
+  category: string;
+}
+
+interface Customer {
+  email: string;
+}
+
+interface RawOrder {
+  id: string;
+  items: OrderItem[];
+  customer: Customer;
+}
+
+interface OrderResult {
+  orderId: string;
+  total: number;
+}
+
+class MySQLConnection {
+  query(sql: string): void { console.log(`Query: ${sql}`); }
+}
+
 class OrderProcessor {
+  private db: MySQLConnection;
+
   constructor() {
     this.db = new MySQLConnection();
   }
 
-  process(order) {
+  process(order: RawOrder): OrderResult {
     // Validate
     if (!order.items.length) throw new Error('No items');
     if (!order.customer.email) throw new Error('No email');
@@ -1127,7 +1201,8 @@ class OrderProcessor {
     // Save to database
     this.db.query(`INSERT INTO orders...`);
 
-    // Send email
+    // Send email (using dynamic require - bad practice shown intentionally)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const nodemailer = require('nodemailer');
     nodemailer.sendMail({
       to: order.customer.email,
@@ -1136,6 +1211,7 @@ class OrderProcessor {
     });
 
     // Generate PDF
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pdfkit = require('pdfkit');
     const doc = new pdfkit();
     doc.text(`Order #${order.id}`);

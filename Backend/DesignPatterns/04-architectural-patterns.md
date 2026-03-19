@@ -447,9 +447,13 @@ Without DI:
 
 **Without DI (Tight Coupling):**
 
-```javascript
+```typescript
 // ❌ Bad: Class creates its own dependencies
 class UserService {
+  private database: PostgreSQLDatabase;
+  private logger: WinstonLogger;
+  private emailService: SendGridEmailService;
+
   constructor() {
     // Hardcoded dependencies
     this.database = new PostgreSQLDatabase();
@@ -457,7 +461,7 @@ class UserService {
     this.emailService = new SendGridEmailService();
   }
 
-  async createUser(data) {
+  async createUser(data: { name: string; email: string }): Promise<{ id: string; email: string }> {
     this.logger.info('Creating user');
     const user = await this.database.insert('users', data);
     await this.emailService.send(user.email, 'Welcome!');
@@ -672,20 +676,26 @@ class UserService {
 | **Testing** | Easy to mock via constructor | Need to configure locator |
 | **Coupling** | Depends on interfaces | Depends on locator |
 
-```javascript
+```typescript
 // DI: Dependencies explicit
-class UserService {
-  constructor(database, logger) {  // Clear what's needed
+class UserServiceDI {
+  private database: Database;
+  private logger: Logger;
+
+  constructor(database: Database, logger: Logger) {  // Clear what's needed
     this.database = database;
     this.logger = logger;
   }
 }
 
 // Service Locator: Dependencies hidden
-class UserService {
+class UserServiceLocator {
+  private database: Database;
+  private logger: Logger;
+
   constructor() {
-    this.database = ServiceLocator.get('database');  // Hidden dependency
-    this.logger = ServiceLocator.get('logger');
+    this.database = ServiceLocator.get<Database>('database');  // Hidden dependency
+    this.logger = ServiceLocator.get<Logger>('logger');
   }
 }
 ```

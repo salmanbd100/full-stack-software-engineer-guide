@@ -60,21 +60,48 @@ Without Adapter:
 
 **Payment Gateway Adapter:**
 
-```javascript
-// Target interface - what our system expects
-class PaymentProcessor {
-  processPayment(amount, currency, cardDetails) {
-    throw new Error('processPayment must be implemented');
-  }
+```typescript
+interface CardDetails {
+  last4: string;
+  expiry?: string;
+  cardNumber?: string;
+}
 
-  refund(transactionId, amount) {
-    throw new Error('refund must be implemented');
-  }
+interface PaymentResponse {
+  success: boolean;
+  transactionId: string;
+  amount: number;
+  provider: string;
+}
+
+interface RefundResponse {
+  success: boolean;
+  refundId: string;
+  amount: number;
+}
+
+// Target interface - what our system expects
+abstract class PaymentProcessor {
+  abstract processPayment(amount: number, currency: string, cardDetails: CardDetails): PaymentResponse;
+  abstract refund(transactionId: string, amount: number): RefundResponse;
 }
 
 // Adaptee 1 - Stripe's actual API (incompatible interface)
+interface StripeChargeResult {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+}
+
+interface StripeRefundResult {
+  id: string;
+  amount: number;
+  status: string;
+}
+
 class StripeAPI {
-  createCharge(amountInCents, currency, source) {
+  createCharge(amountInCents: number, currency: string, source: string): StripeChargeResult {
     console.log(`Stripe: Charging ${amountInCents} cents ${currency}`);
     return {
       id: `ch_${Date.now()}`,
@@ -84,7 +111,7 @@ class StripeAPI {
     };
   }
 
-  createRefund(chargeId, amountInCents) {
+  createRefund(chargeId: string, amountInCents: number): StripeRefundResult {
     console.log(`Stripe: Refunding ${amountInCents} cents for ${chargeId}`);
     return {
       id: `re_${Date.now()}`,
@@ -95,9 +122,25 @@ class StripeAPI {
 }
 
 // Adaptee 2 - PayPal's actual API (different incompatible interface)
+interface PayPalPaymentDetails {
+  amount: { total: number; currency: string };
+  payer: { payment_method: string };
+}
+
+interface PayPalPaymentResult {
+  paymentId: string;
+  state: string;
+  amount: { total: number };
+}
+
+interface PayPalRefundResult {
+  refundId: string;
+  state: string;
+}
+
 class PayPalAPI {
-  executePayment(paymentDetails) {
-    console.log(`PayPal: Processing payment of ${paymentDetails.amount}`);
+  executePayment(paymentDetails: PayPalPaymentDetails): PayPalPaymentResult {
+    console.log(`PayPal: Processing payment of ${paymentDetails.amount.total}`);
     return {
       paymentId: `PAY_${Date.now()}`,
       state: 'approved',
@@ -105,7 +148,7 @@ class PayPalAPI {
     };
   }
 
-  refundPayment(paymentId, refundAmount) {
+  refundPayment(paymentId: string, refundAmount: number): PayPalRefundResult {
     console.log(`PayPal: Refunding ${refundAmount} for ${paymentId}`);
     return {
       refundId: `REF_${Date.now()}`,
@@ -116,12 +159,14 @@ class PayPalAPI {
 
 // Adapter for Stripe
 class StripeAdapter extends PaymentProcessor {
+  private stripe: StripeAPI;
+
   constructor() {
     super();
     this.stripe = new StripeAPI();
   }
 
-  processPayment(amount, currency, cardDetails) {
+  processPayment(amount: number, currency: string, cardDetails: CardDetails): PaymentResponse {
     // Convert dollars to cents (Stripe uses cents)
     const amountInCents = Math.round(amount * 100);
 
@@ -139,7 +184,7 @@ class StripeAdapter extends PaymentProcessor {
     };
   }
 
-  refund(transactionId, amount) {
+  refund(transactionId: string, amount: number): RefundResponse {
     const amountInCents = Math.round(amount * 100);
     const result = this.stripe.createRefund(transactionId, amountInCents);
 
@@ -150,21 +195,23 @@ class StripeAdapter extends PaymentProcessor {
     };
   }
 
-  createStripeSource(cardDetails) {
+  private createStripeSource(cardDetails: CardDetails): string {
     return `tok_${cardDetails.last4}`;
   }
 }
 
 // Adapter for PayPal
 class PayPalAdapter extends PaymentProcessor {
+  private paypal: PayPalAPI;
+
   constructor() {
     super();
     this.paypal = new PayPalAPI();
   }
 
-  processPayment(amount, currency, cardDetails) {
+  processPayment(amount: number, currency: string, cardDetails: CardDetails): PaymentResponse {
     // Convert to PayPal's expected format
-    const paymentDetails = {
+    const paymentDetails: PayPalPaymentDetails = {
       amount: { total: amount, currency },
       payer: { payment_method: 'credit_card' }
     };
@@ -179,7 +226,7 @@ class PayPalAdapter extends PaymentProcessor {
     };
   }
 
-  refund(transactionId, amount) {
+  refund(transactionId: string, amount: number): RefundResponse {
     const result = this.paypal.refundPayment(transactionId, amount);
 
     return {
@@ -191,12 +238,28 @@ class PayPalAdapter extends PaymentProcessor {
 }
 
 // Client code - works with any adapter
+interface CartItem {
+  name: string;
+  price: number;
+}
+
+interface Cart {
+  items: CartItem[];
+}
+
+interface CheckoutResult {
+  orderId: string;
+  payment: PaymentResponse;
+}
+
 class CheckoutService {
-  constructor(paymentProcessor) {
+  private paymentProcessor: PaymentProcessor;
+
+  constructor(paymentProcessor: PaymentProcessor) {
     this.paymentProcessor = paymentProcessor;
   }
 
-  checkout(cart, paymentDetails) {
+  checkout(cart: Cart, paymentDetails: CardDetails): CheckoutResult {
     const total = cart.items.reduce((sum, item) => sum + item.price, 0);
 
     const result = this.paymentProcessor.processPayment(
@@ -218,8 +281,8 @@ class CheckoutService {
 const stripeCheckout = new CheckoutService(new StripeAdapter());
 const paypalCheckout = new CheckoutService(new PayPalAdapter());
 
-const cart = { items: [{ name: 'Product', price: 29.99 }] };
-const cardDetails = { last4: '4242' };
+const cart: Cart = { items: [{ name: 'Product', price: 29.99 }] };
+const cardDetails: CardDetails = { last4: '4242' };
 
 stripeCheckout.checkout(cart, cardDetails);
 // Stripe: Charging 2999 cents USD
@@ -312,7 +375,7 @@ class PinoAdapter implements Logger {
 class UserService {
   constructor(private logger: Logger) {}
 
-  createUser(data: { name: string; email: string }) {
+  createUser(data: { name: string; email: string }): void {
     this.logger.info('Creating user', { email: data.email });
     // ... create user logic
     this.logger.debug('User created successfully', { name: data.name });
@@ -401,10 +464,29 @@ Without Decorator:
 
 **Express-Style Middleware:**
 
-```javascript
-// Base component
+```typescript
+interface RequestUser {
+  id: number;
+  name: string;
+}
+
+interface RequestBody {
+  [key: string]: unknown;
+}
+
+interface RequestHeaders {
+  authorization?: string;
+  'x-client-id'?: string;
+  [key: string]: string | undefined;
+}
+
+// Base component types
 class Request {
-  constructor(body, headers = {}) {
+  public body: RequestBody;
+  public headers: RequestHeaders;
+  public user: RequestUser | null;
+
+  constructor(body: RequestBody, headers: RequestHeaders = {}) {
     this.body = body;
     this.headers = headers;
     this.user = null;
@@ -412,18 +494,16 @@ class Request {
 }
 
 class Response {
-  constructor() {
-    this.statusCode = 200;
-    this.body = null;
-    this.headers = {};
-  }
+  public statusCode: number = 200;
+  public body: unknown = null;
+  public headers: Record<string, string> = {};
 
-  status(code) {
+  status(code: number): this {
     this.statusCode = code;
     return this;
   }
 
-  json(data) {
+  json(data: unknown): this {
     this.body = data;
     this.headers['Content-Type'] = 'application/json';
     return this;
@@ -431,15 +511,13 @@ class Response {
 }
 
 // Base handler
-class RequestHandler {
-  handle(req, res) {
-    throw new Error('handle must be implemented');
-  }
+abstract class RequestHandler {
+  abstract handle(req: Request, res: Response): Response | null;
 }
 
 // Concrete handler
 class UserCreateHandler extends RequestHandler {
-  handle(req, res) {
+  handle(req: Request, res: Response): Response {
     console.log('Creating user:', req.body);
     return res.status(201).json({ id: 1, ...req.body });
   }
@@ -447,19 +525,21 @@ class UserCreateHandler extends RequestHandler {
 
 // Decorator base class
 class HandlerDecorator extends RequestHandler {
-  constructor(handler) {
+  protected handler: RequestHandler;
+
+  constructor(handler: RequestHandler) {
     super();
     this.handler = handler;
   }
 
-  handle(req, res) {
+  handle(req: Request, res: Response): Response | null {
     return this.handler.handle(req, res);
   }
 }
 
 // Concrete decorators
 class LoggingDecorator extends HandlerDecorator {
-  handle(req, res) {
+  handle(req: Request, res: Response): Response | null {
     const start = Date.now();
     console.log(`[${new Date().toISOString()}] Request started`);
 
@@ -471,7 +551,7 @@ class LoggingDecorator extends HandlerDecorator {
 }
 
 class AuthenticationDecorator extends HandlerDecorator {
-  handle(req, res) {
+  handle(req: Request, res: Response): Response | null {
     const token = req.headers['authorization'];
 
     if (!token) {
@@ -486,13 +566,24 @@ class AuthenticationDecorator extends HandlerDecorator {
   }
 }
 
+interface ValidationRule {
+  required?: boolean;
+  type?: string;
+}
+
+interface ValidationSchema {
+  [field: string]: ValidationRule;
+}
+
 class ValidationDecorator extends HandlerDecorator {
-  constructor(handler, schema) {
+  private schema: ValidationSchema;
+
+  constructor(handler: RequestHandler, schema: ValidationSchema) {
     super(handler);
     this.schema = schema;
   }
 
-  handle(req, res) {
+  handle(req: Request, res: Response): Response | null {
     const errors = this.validate(req.body);
 
     if (errors.length > 0) {
@@ -502,8 +593,8 @@ class ValidationDecorator extends HandlerDecorator {
     return super.handle(req, res);
   }
 
-  validate(body) {
-    const errors = [];
+  private validate(body: RequestBody): string[] {
+    const errors: string[] = [];
 
     for (const [field, rules] of Object.entries(this.schema)) {
       if (rules.required && !body[field]) {
@@ -519,13 +610,16 @@ class ValidationDecorator extends HandlerDecorator {
 }
 
 class RateLimitDecorator extends HandlerDecorator {
-  constructor(handler, limit = 100) {
+  private limit: number;
+  private requests: Map<string, number>;
+
+  constructor(handler: RequestHandler, limit: number = 100) {
     super(handler);
     this.limit = limit;
     this.requests = new Map();
   }
 
-  handle(req, res) {
+  handle(req: Request, res: Response): Response | null {
     const clientId = req.headers['x-client-id'] || 'anonymous';
     const count = this.requests.get(clientId) || 0;
 
@@ -539,13 +633,13 @@ class RateLimitDecorator extends HandlerDecorator {
 }
 
 // Usage - compose decorators
-const schema = {
+const schema: ValidationSchema = {
   name: { required: true, type: 'string' },
   email: { required: true, type: 'string' }
 };
 
 // Stack decorators: RateLimit -> Auth -> Validation -> Logging -> Handler
-let handler = new UserCreateHandler();
+let handler: RequestHandler = new UserCreateHandler();
 handler = new LoggingDecorator(handler);
 handler = new ValidationDecorator(handler, schema);
 handler = new AuthenticationDecorator(handler);
@@ -564,42 +658,39 @@ console.log('Response:', res.statusCode, res.body);
 
 **Coffee Shop Example (Classic):**
 
-```javascript
+```typescript
 // Component interface
-class Beverage {
-  getDescription() {
-    return 'Unknown Beverage';
-  }
-
-  cost() {
-    throw new Error('cost must be implemented');
-  }
+abstract class Beverage {
+  abstract getDescription(): string;
+  abstract cost(): number;
 }
 
 // Concrete components
 class Espresso extends Beverage {
-  getDescription() {
+  getDescription(): string {
     return 'Espresso';
   }
 
-  cost() {
+  cost(): number {
     return 1.99;
   }
 }
 
 class HouseBlend extends Beverage {
-  getDescription() {
+  getDescription(): string {
     return 'House Blend Coffee';
   }
 
-  cost() {
+  cost(): number {
     return 0.89;
   }
 }
 
 // Decorator base
-class CondimentDecorator extends Beverage {
-  constructor(beverage) {
+abstract class CondimentDecorator extends Beverage {
+  protected beverage: Beverage;
+
+  constructor(beverage: Beverage) {
     super();
     this.beverage = beverage;
   }
@@ -607,47 +698,47 @@ class CondimentDecorator extends Beverage {
 
 // Concrete decorators
 class Milk extends CondimentDecorator {
-  getDescription() {
+  getDescription(): string {
     return `${this.beverage.getDescription()}, Milk`;
   }
 
-  cost() {
+  cost(): number {
     return this.beverage.cost() + 0.10;
   }
 }
 
 class Mocha extends CondimentDecorator {
-  getDescription() {
+  getDescription(): string {
     return `${this.beverage.getDescription()}, Mocha`;
   }
 
-  cost() {
+  cost(): number {
     return this.beverage.cost() + 0.20;
   }
 }
 
 class Whip extends CondimentDecorator {
-  getDescription() {
+  getDescription(): string {
     return `${this.beverage.getDescription()}, Whip`;
   }
 
-  cost() {
+  cost(): number {
     return this.beverage.cost() + 0.15;
   }
 }
 
 class Soy extends CondimentDecorator {
-  getDescription() {
+  getDescription(): string {
     return `${this.beverage.getDescription()}, Soy`;
   }
 
-  cost() {
+  cost(): number {
     return this.beverage.cost() + 0.25;
   }
 }
 
 // Usage
-let beverage = new Espresso();
+let beverage: Beverage = new Espresso();
 console.log(`${beverage.getDescription()}: $${beverage.cost()}`);
 // Espresso: $1.99
 
@@ -657,7 +748,7 @@ console.log(`${beverage.getDescription()}: $${beverage.cost()}`);
 // Espresso, Mocha, Mocha, Whip: $2.54
 
 // House blend with soy, mocha, and whip
-let houseBlend = new Whip(new Mocha(new Soy(new HouseBlend())));
+let houseBlend: Beverage = new Whip(new Mocha(new Soy(new HouseBlend())));
 console.log(`${houseBlend.getDescription()}: $${houseBlend.cost()}`);
 // House Blend Coffee, Soy, Mocha, Whip: $1.49
 ```
@@ -813,15 +904,14 @@ console.log(stream.read()); // Hello World!
 | **Combinations** | Class explosion | Mix and match |
 | **Adding behavior** | Subclass each combination | Stack decorators |
 
-```javascript
+```typescript
 // Inheritance: need class for each combination
-class MochaEspresso extends Espresso { }
-class WhipMochaEspresso extends MochaEspresso { }
-class DoubleMochaWhipEspresso extends WhipMochaEspresso { }
+class MochaEspresso extends Espresso { getDescription() { return 'Mocha Espresso'; } cost() { return 2.19; } }
+class WhipMochaEspresso extends Mocha { getDescription() { return 'Whip Mocha Espresso'; } cost() { return 2.34; } }
 // ... explosion of classes!
 
 // Decorator: compose at runtime
-let drink = new Espresso();
+let drink: Beverage = new Espresso();
 drink = new Mocha(drink);
 drink = new Mocha(drink);
 drink = new Whip(drink);
@@ -873,76 +963,146 @@ Without Facade:
 
 **Order Processing Facade:**
 
-```javascript
+```typescript
+interface StockCheckResult {
+  available: boolean;
+  quantity: number;
+}
+
+interface ReservationResult {
+  reserved: boolean;
+  reservationId: string;
+}
+
+interface ShippingCost {
+  cost: number;
+  estimatedDays: number;
+}
+
+interface ShipmentResult {
+  trackingNumber: string;
+}
+
+interface CardPaymentDetails {
+  cardNumber: string;
+  expiry: string;
+}
+
+interface TransactionResult {
+  success: boolean;
+  transactionId: string;
+}
+
+interface RefundResult {
+  success: boolean;
+}
+
 // Complex subsystem classes
 class InventoryService {
-  checkStock(productId) {
+  checkStock(productId: string): StockCheckResult {
     console.log(`Checking stock for product ${productId}`);
     return { available: true, quantity: 10 };
   }
 
-  reserveStock(productId, quantity) {
+  reserveStock(productId: string, quantity: number): ReservationResult {
     console.log(`Reserving ${quantity} units of product ${productId}`);
     return { reserved: true, reservationId: `RES_${Date.now()}` };
   }
 
-  releaseStock(reservationId) {
+  releaseStock(reservationId: string): void {
     console.log(`Releasing reservation ${reservationId}`);
   }
 }
 
 class PaymentService {
-  validateCard(cardDetails) {
+  validateCard(cardDetails: CardPaymentDetails): { valid: boolean } {
     console.log('Validating card...');
     return { valid: true };
   }
 
-  processPayment(amount, cardDetails) {
+  processPayment(amount: number, cardDetails: CardPaymentDetails): TransactionResult {
     console.log(`Processing payment of $${amount}`);
     return { success: true, transactionId: `TXN_${Date.now()}` };
   }
 
-  refund(transactionId) {
+  refund(transactionId: string): RefundResult {
     console.log(`Refunding transaction ${transactionId}`);
     return { success: true };
   }
 }
 
 class ShippingService {
-  calculateShipping(address, items) {
+  calculateShipping(address: string, items: OrderItem[]): ShippingCost {
     console.log('Calculating shipping...');
     return { cost: 9.99, estimatedDays: 3 };
   }
 
-  createShipment(orderId, address, items) {
+  createShipment(orderId: string, address: string, items: OrderItem[]): ShipmentResult {
     console.log(`Creating shipment for order ${orderId}`);
     return { trackingNumber: `TRACK_${Date.now()}` };
   }
 }
 
 class NotificationService {
-  sendOrderConfirmation(email, orderDetails) {
+  sendOrderConfirmation(email: string, orderDetails: unknown): void {
     console.log(`Sending order confirmation to ${email}`);
   }
 
-  sendShippingNotification(email, trackingNumber) {
+  sendShippingNotification(email: string, trackingNumber: string): void {
     console.log(`Sending shipping notification to ${email}`);
   }
 }
 
+interface SavedOrder {
+  id: string;
+  customer: Customer;
+  items: OrderItem[];
+  subtotal: number;
+  shippingCost: number;
+  total: number;
+  transactionId: string;
+  status: string;
+  trackingNumber?: string;
+}
+
 class OrderRepository {
-  save(order) {
+  save(order: Omit<SavedOrder, 'id'>): SavedOrder {
     console.log('Saving order to database');
     return { ...order, id: `ORD_${Date.now()}` };
   }
 
-  update(orderId, data) {
+  update(orderId: string, data: Partial<SavedOrder>): void {
     console.log(`Updating order ${orderId}`);
   }
 }
 
+interface Customer {
+  name: string;
+  email: string;
+  address: string;
+}
+
+interface OrderItem {
+  productId: string;
+  quantity: number;
+  price: number;
+}
+
+interface OrderResult {
+  orderId: string;
+  total: number;
+  trackingNumber: string;
+  estimatedDelivery: number;
+}
+
 // Facade - simplifies the complex subsystem
 class OrderFacade {
+  private inventory: InventoryService;
+  private payment: PaymentService;
+  private shipping: ShippingService;
+  private notification: NotificationService;
+  private orderRepo: OrderRepository;
+
   constructor() {
     this.inventory = new InventoryService();
     this.payment = new PaymentService();
@@ -951,7 +1111,7 @@ class OrderFacade {
     this.orderRepo = new OrderRepository();
   }
 
-  async placeOrder(customer, items, paymentDetails) {
+  async placeOrder(customer: Customer, items: OrderItem[], paymentDetails: CardPaymentDetails): Promise<OrderResult> {
     try {
       console.log('\n=== Starting Order Process ===\n');
 
@@ -969,8 +1129,8 @@ class OrderFacade {
 
       // Step 2: Calculate totals
       const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      const shipping = this.shipping.calculateShipping(customer.address, items);
-      const total = subtotal + shipping.cost;
+      const shippingInfo = this.shipping.calculateShipping(customer.address, items);
+      const total = subtotal + shippingInfo.cost;
 
       // Step 3: Process payment
       const cardValidation = this.payment.validateCard(paymentDetails);
@@ -990,7 +1150,7 @@ class OrderFacade {
         customer,
         items,
         subtotal,
-        shippingCost: shipping.cost,
+        shippingCost: shippingInfo.cost,
         total,
         transactionId: paymentResult.transactionId,
         status: 'confirmed'
@@ -1019,22 +1179,22 @@ class OrderFacade {
         orderId: order.id,
         total,
         trackingNumber: shipment.trackingNumber,
-        estimatedDelivery: shipping.estimatedDays
+        estimatedDelivery: shippingInfo.estimatedDays
       };
 
     } catch (error) {
-      console.error('Order failed:', error.message);
+      console.error('Order failed:', (error as Error).message);
       throw error;
     }
   }
 
   // Additional simplified methods
-  async cancelOrder(orderId) {
+  async cancelOrder(orderId: string): Promise<void> {
     // Simplified cancellation logic
     console.log(`Cancelling order ${orderId}`);
   }
 
-  async trackOrder(orderId) {
+  async trackOrder(orderId: string): Promise<void> {
     // Simplified tracking
     console.log(`Tracking order ${orderId}`);
   }
@@ -1195,10 +1355,22 @@ Without Proxy:
 
 **Caching Proxy:**
 
-```javascript
+```typescript
+interface WeatherData {
+  city: string;
+  temperature: number;
+  condition: string;
+  fetchedAt: string;
+}
+
+interface CachedEntry {
+  data: WeatherData;
+  timestamp: number;
+}
+
 // Real subject
 class WeatherAPI {
-  async getWeather(city) {
+  async getWeather(city: string): Promise<WeatherData> {
     console.log(`[API] Fetching weather for ${city}...`);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -1214,13 +1386,17 @@ class WeatherAPI {
 
 // Caching Proxy
 class WeatherAPIProxy {
-  constructor(ttlMs = 60000) {
+  private api: WeatherAPI;
+  private cache: Map<string, CachedEntry>;
+  private ttl: number;
+
+  constructor(ttlMs: number = 60000) {
     this.api = new WeatherAPI();
     this.cache = new Map();
     this.ttl = ttlMs;
   }
 
-  async getWeather(city) {
+  async getWeather(city: string): Promise<WeatherData> {
     const cached = this.cache.get(city);
 
     if (cached && Date.now() - cached.timestamp < this.ttl) {
@@ -1238,7 +1414,7 @@ class WeatherAPIProxy {
     return data;
   }
 
-  clearCache() {
+  clearCache(): void {
     this.cache.clear();
     console.log('[Cache] Cleared');
   }
@@ -1371,78 +1547,80 @@ userService.deleteUser('2'); // ❌ Access denied
 
 **Virtual Proxy (Lazy Loading):**
 
-```javascript
+```typescript
 // Heavy object
 class LargeDocument {
-  constructor(id) {
+  public id: string;
+  private content: string | null = null;
+
+  constructor(id: string) {
     this.id = id;
-    this.content = null;
     this.loadContent();
   }
 
-  loadContent() {
+  private loadContent(): void {
     console.log(`Loading document ${this.id}... (expensive operation)`);
     // Simulate loading large content
     this.content = `Large content for document ${this.id}`.repeat(1000);
     console.log(`Document ${this.id} loaded (${this.content.length} chars)`);
   }
 
-  getContent() {
-    return this.content;
+  getContent(): string {
+    return this.content ?? '';
   }
 
-  getPreview() {
-    return this.content.substring(0, 100);
+  getPreview(): string {
+    return (this.content ?? '').substring(0, 100);
   }
 }
 
 // Virtual Proxy - delays loading until needed
 class DocumentProxy {
-  constructor(id) {
+  private id: string;
+  private document: LargeDocument | null = null;
+
+  constructor(id: string) {
     this.id = id;
-    this.document = null;
   }
 
   // Lazy initialization
-  getDocument() {
+  private getDocument(): LargeDocument {
     if (!this.document) {
       this.document = new LargeDocument(this.id);
     }
     return this.document;
   }
 
-  getContent() {
+  getContent(): string {
     return this.getDocument().getContent();
   }
 
-  getPreview() {
+  getPreview(): string {
     return this.getDocument().getPreview();
   }
 
   // Cheap operation - no loading needed
-  getId() {
+  getId(): string {
     return this.id;
   }
 }
 
 // Document list with proxies
 class DocumentLibrary {
-  constructor() {
-    this.documents = [];
-  }
+  private documents: DocumentProxy[] = [];
 
-  addDocument(id) {
+  addDocument(id: string): void {
     // Create proxy instead of real document
     this.documents.push(new DocumentProxy(id));
   }
 
   // List documents without loading content
-  listDocuments() {
+  listDocuments(): string[] {
     return this.documents.map(doc => doc.getId());
   }
 
   // Only loads the specific document when accessed
-  openDocument(id) {
+  openDocument(id: string): string | null {
     const doc = this.documents.find(d => d.getId() === id);
     if (doc) {
       return doc.getContent(); // Triggers lazy load
@@ -1471,19 +1649,19 @@ library.openDocument('doc1');
 // Document doc1 loaded (35000 chars)
 ```
 
-**JavaScript Proxy Object:**
+**TypeScript Proxy Object:**
 
-```javascript
-// Using JavaScript's built-in Proxy
-const createLoggingProxy = (target, name) => {
+```typescript
+// Using TypeScript's built-in Proxy
+function createLoggingProxy<T extends object>(target: T, name: string): T {
   return new Proxy(target, {
-    get(target, property, receiver) {
+    get(target: T, property: string | symbol, receiver: unknown): unknown {
       const value = Reflect.get(target, property, receiver);
 
       if (typeof value === 'function') {
-        return function (...args) {
+        return function (...args: unknown[]): unknown {
           console.log(`[${name}] Calling ${String(property)} with:`, args);
-          const result = value.apply(target, args);
+          const result = (value as Function).apply(target, args);
           console.log(`[${name}] ${String(property)} returned:`, result);
           return result;
         };
@@ -1493,18 +1671,24 @@ const createLoggingProxy = (target, name) => {
       return value;
     },
 
-    set(target, property, value, receiver) {
+    set(target: T, property: string | symbol, value: unknown, receiver: unknown): boolean {
       console.log(`[${name}] Setting ${String(property)} to:`, value);
       return Reflect.set(target, property, value, receiver);
     }
   });
-};
+}
 
 // Usage
-const user = {
+interface UserObject {
+  name: string;
+  age: number;
+  greet(): string;
+}
+
+const user: UserObject = {
   name: 'John',
   age: 30,
-  greet() {
+  greet(): string {
     return `Hello, I'm ${this.name}`;
   }
 };
@@ -1542,51 +1726,51 @@ Compose objects into **tree structures** to represent part-whole hierarchies. Co
 
 **File System:**
 
-```javascript
+```typescript
 // Component
-class FileSystemItem {
-  constructor(name) {
+abstract class FileSystemItem {
+  protected name: string;
+
+  constructor(name: string) {
     this.name = name;
   }
 
-  getSize() {
-    throw new Error('getSize must be implemented');
-  }
-
-  print(indent = '') {
-    throw new Error('print must be implemented');
-  }
+  abstract getSize(): number;
+  abstract print(indent?: string): void;
 }
 
 // Leaf
 class File extends FileSystemItem {
-  constructor(name, size) {
+  private size: number;
+
+  constructor(name: string, size: number) {
     super(name);
     this.size = size;
   }
 
-  getSize() {
+  getSize(): number {
     return this.size;
   }
 
-  print(indent = '') {
+  print(indent: string = ''): void {
     console.log(`${indent}📄 ${this.name} (${this.size} bytes)`);
   }
 }
 
 // Composite
 class Directory extends FileSystemItem {
-  constructor(name) {
+  private children: FileSystemItem[] = [];
+
+  constructor(name: string) {
     super(name);
-    this.children = [];
   }
 
-  add(item) {
+  add(item: FileSystemItem): this {
     this.children.push(item);
     return this;
   }
 
-  remove(item) {
+  remove(item: FileSystemItem): this {
     const index = this.children.indexOf(item);
     if (index !== -1) {
       this.children.splice(index, 1);
@@ -1594,11 +1778,11 @@ class Directory extends FileSystemItem {
     return this;
   }
 
-  getSize() {
+  getSize(): number {
     return this.children.reduce((total, child) => total + child.getSize(), 0);
   }
 
-  print(indent = '') {
+  print(indent: string = ''): void {
     console.log(`${indent}📁 ${this.name}/ (${this.getSize()} bytes)`);
     this.children.forEach(child => child.print(indent + '  '));
   }

@@ -57,28 +57,39 @@ Without Strategy:
 
 **Payment Processing:**
 
-```javascript
-// Strategy interface
-class PaymentStrategy {
-  pay(amount) {
-    throw new Error('pay must be implemented');
-  }
+```typescript
+interface ValidationResult {
+  valid: boolean;
+  error?: string;
+}
 
-  validate(paymentDetails) {
-    throw new Error('validate must be implemented');
-  }
+interface PaymentResult {
+  success: boolean;
+  transactionId: string;
+  method: string;
+  amount: number;
+  cryptoAmount?: string;
+}
+
+// Strategy interface
+interface PaymentStrategy {
+  pay(amount: number): PaymentResult;
+  validate(): ValidationResult;
 }
 
 // Concrete strategies
-class CreditCardStrategy extends PaymentStrategy {
-  constructor(cardNumber, cvv, expiry) {
-    super();
+class CreditCardStrategy implements PaymentStrategy {
+  private cardNumber: string;
+  private cvv: string;
+  private expiry: string;
+
+  constructor(cardNumber: string, cvv: string, expiry: string) {
     this.cardNumber = cardNumber;
     this.cvv = cvv;
     this.expiry = expiry;
   }
 
-  validate(paymentDetails) {
+  validate(): ValidationResult {
     if (!/^\d{16}$/.test(this.cardNumber)) {
       return { valid: false, error: 'Invalid card number' };
     }
@@ -88,7 +99,7 @@ class CreditCardStrategy extends PaymentStrategy {
     return { valid: true };
   }
 
-  pay(amount) {
+  pay(amount: number): PaymentResult {
     const validation = this.validate();
     if (!validation.valid) {
       throw new Error(validation.error);
@@ -106,20 +117,21 @@ class CreditCardStrategy extends PaymentStrategy {
   }
 }
 
-class PayPalStrategy extends PaymentStrategy {
-  constructor(email) {
-    super();
+class PayPalStrategy implements PaymentStrategy {
+  private email: string;
+
+  constructor(email: string) {
     this.email = email;
   }
 
-  validate() {
+  validate(): ValidationResult {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
       return { valid: false, error: 'Invalid email' };
     }
     return { valid: true };
   }
 
-  pay(amount) {
+  pay(amount: number): PaymentResult {
     const validation = this.validate();
     if (!validation.valid) {
       throw new Error(validation.error);
@@ -137,21 +149,25 @@ class PayPalStrategy extends PaymentStrategy {
   }
 }
 
-class CryptoStrategy extends PaymentStrategy {
-  constructor(walletAddress, currency = 'BTC') {
-    super();
+type CryptoCurrency = 'BTC' | 'ETH';
+
+class CryptoStrategy implements PaymentStrategy {
+  private walletAddress: string;
+  private currency: CryptoCurrency;
+
+  constructor(walletAddress: string, currency: CryptoCurrency = 'BTC') {
     this.walletAddress = walletAddress;
     this.currency = currency;
   }
 
-  validate() {
+  validate(): ValidationResult {
     if (!this.walletAddress || this.walletAddress.length < 26) {
       return { valid: false, error: 'Invalid wallet address' };
     }
     return { valid: true };
   }
 
-  pay(amount) {
+  pay(amount: number): PaymentResult {
     const validation = this.validate();
     if (!validation.valid) {
       throw new Error(validation.error);
@@ -170,23 +186,21 @@ class CryptoStrategy extends PaymentStrategy {
     };
   }
 
-  convertToCrypto(usdAmount) {
-    const rates = { BTC: 0.000024, ETH: 0.00042 };
+  private convertToCrypto(usdAmount: number): string {
+    const rates: Record<CryptoCurrency, number> = { BTC: 0.000024, ETH: 0.00042 };
     return (usdAmount * (rates[this.currency] || 0.001)).toFixed(8);
   }
 }
 
 // Context
 class PaymentProcessor {
-  constructor() {
-    this.strategy = null;
-  }
+  private strategy: PaymentStrategy | null = null;
 
-  setStrategy(strategy) {
+  setStrategy(strategy: PaymentStrategy): void {
     this.strategy = strategy;
   }
 
-  checkout(amount) {
+  checkout(amount: number): PaymentResult {
     if (!this.strategy) {
       throw new Error('Payment strategy not set');
     }
@@ -344,19 +358,21 @@ Use **Strategy** when:
 - New algorithms added frequently
 - Algorithms are complex or need testing independently
 
-```javascript
+```typescript
 // Simple: if-else is fine
-function formatDate(date, format) {
+function formatDate(date: Date, format: 'short' | 'long' | 'iso'): string {
   if (format === 'short') return date.toLocaleDateString();
   if (format === 'long') return date.toDateString();
   return date.toISOString();
 }
 
 // Complex: Strategy is better
-class CompressionStrategy { compress(data) {} }
-class GzipStrategy extends CompressionStrategy { /* complex implementation */ }
-class BrotliStrategy extends CompressionStrategy { /* complex implementation */ }
-class LZ4Strategy extends CompressionStrategy { /* complex implementation */ }
+interface CompressionStrategy {
+  compress(data: Buffer): Buffer;
+}
+class GzipStrategy implements CompressionStrategy { compress(data: Buffer): Buffer { return data; /* complex implementation */ } }
+class BrotliStrategy implements CompressionStrategy { compress(data: Buffer): Buffer { return data; /* complex implementation */ } }
+class LZ4Strategy implements CompressionStrategy { compress(data: Buffer): Buffer { return data; /* complex implementation */ } }
 ```
 
 ---
@@ -398,43 +414,43 @@ Without Observer:
 
 **Event Emitter:**
 
-```javascript
-class EventEmitter {
-  constructor() {
-    this.events = new Map();
-  }
+```typescript
+type EventListener<T = unknown> = (...args: T[]) => void;
 
-  on(event, listener) {
+class EventEmitter {
+  private events: Map<string, EventListener<unknown>[]> = new Map();
+
+  on<T = unknown>(event: string, listener: EventListener<T>): this {
     if (!this.events.has(event)) {
       this.events.set(event, []);
     }
-    this.events.get(event).push(listener);
+    this.events.get(event)!.push(listener as EventListener<unknown>);
     return this; // Allow chaining
   }
 
-  off(event, listener) {
+  off<T = unknown>(event: string, listener: EventListener<T>): this {
     if (!this.events.has(event)) return this;
 
-    const listeners = this.events.get(event);
-    const index = listeners.indexOf(listener);
+    const listeners = this.events.get(event)!;
+    const index = listeners.indexOf(listener as EventListener<unknown>);
     if (index !== -1) {
       listeners.splice(index, 1);
     }
     return this;
   }
 
-  once(event, listener) {
-    const wrapper = (...args) => {
-      listener(...args);
+  once<T = unknown>(event: string, listener: EventListener<T>): this {
+    const wrapper: EventListener<unknown> = (...args: unknown[]) => {
+      (listener as EventListener<unknown>)(...args);
       this.off(event, wrapper);
     };
     return this.on(event, wrapper);
   }
 
-  emit(event, ...args) {
+  emit(event: string, ...args: unknown[]): boolean {
     if (!this.events.has(event)) return false;
 
-    const listeners = this.events.get(event);
+    const listeners = this.events.get(event)!;
     listeners.forEach(listener => {
       try {
         listener(...args);
@@ -445,29 +461,35 @@ class EventEmitter {
     return true;
   }
 
-  listenerCount(event) {
+  listenerCount(event: string): number {
     return this.events.get(event)?.length || 0;
   }
 }
 
 // Usage
+interface UserCreatedPayload {
+  id: number;
+  name: string;
+  email: string;
+}
+
 const emitter = new EventEmitter();
 
 // Subscribe to events
-emitter.on('user:created', (user) => {
+emitter.on<UserCreatedPayload>('user:created', (user) => {
   console.log('Send welcome email to:', user.email);
 });
 
-emitter.on('user:created', (user) => {
+emitter.on<UserCreatedPayload>('user:created', (user) => {
   console.log('Initialize user preferences for:', user.id);
 });
 
-emitter.on('user:created', (user) => {
+emitter.on<UserCreatedPayload>('user:created', (user) => {
   console.log('Add to newsletter:', user.email);
 });
 
 // One-time listener
-emitter.once('user:firstLogin', (user) => {
+emitter.once<UserCreatedPayload>('user:firstLogin', (user) => {
   console.log('Show onboarding tutorial to:', user.name);
 });
 
@@ -480,26 +502,41 @@ emitter.emit('user:created', { id: 1, name: 'John', email: 'john@example.com' })
 
 **Stock Price Observer:**
 
-```javascript
+```typescript
+interface PriceUpdate {
+  symbol: string;
+  price: number;
+  oldPrice: number;
+  change: string;
+  direction: string;
+}
+
+interface StockObserver {
+  name: string;
+  update(data: PriceUpdate): void;
+}
+
 // Subject
 class StockTicker {
-  constructor(symbol) {
+  private symbol: string;
+  private price: number = 0;
+  private observers: Set<StockObserver> = new Set();
+
+  constructor(symbol: string) {
     this.symbol = symbol;
-    this.price = 0;
-    this.observers = new Set();
   }
 
-  subscribe(observer) {
+  subscribe(observer: StockObserver): void {
     this.observers.add(observer);
     console.log(`${observer.name} subscribed to ${this.symbol}`);
   }
 
-  unsubscribe(observer) {
+  unsubscribe(observer: StockObserver): void {
     this.observers.delete(observer);
     console.log(`${observer.name} unsubscribed from ${this.symbol}`);
   }
 
-  setPrice(price) {
+  setPrice(price: number): void {
     const oldPrice = this.price;
     this.price = price;
 
@@ -508,7 +545,7 @@ class StockTicker {
     }
   }
 
-  notify(oldPrice) {
+  private notify(oldPrice: number): void {
     const change = ((this.price - oldPrice) / oldPrice * 100).toFixed(2);
     const direction = this.price > oldPrice ? '📈' : '📉';
 
@@ -525,14 +562,18 @@ class StockTicker {
 }
 
 // Concrete observers
-class PriceAlert {
-  constructor(name, threshold, direction) {
+class PriceAlert implements StockObserver {
+  public name: string;
+  private threshold: number;
+  private direction: 'above' | 'below';
+
+  constructor(name: string, threshold: number, direction: 'above' | 'below') {
     this.name = name;
     this.threshold = threshold;
-    this.direction = direction; // 'above' or 'below'
+    this.direction = direction;
   }
 
-  update(data) {
+  update(data: PriceUpdate): void {
     const shouldAlert =
       (this.direction === 'above' && data.price > this.threshold) ||
       (this.direction === 'below' && data.price < this.threshold);
@@ -543,25 +584,31 @@ class PriceAlert {
   }
 }
 
-class PriceLogger {
-  constructor(name) {
+class PriceLogger implements StockObserver {
+  public name: string;
+
+  constructor(name: string) {
     this.name = name;
   }
 
-  update(data) {
+  update(data: PriceUpdate): void {
     console.log(`[${this.name}] ${data.symbol}: $${data.oldPrice} → $${data.price} (${data.direction} ${data.change})`);
   }
 }
 
-class TradingBot {
-  constructor(name, buyThreshold, sellThreshold) {
+class TradingBot implements StockObserver {
+  public name: string;
+  private buyThreshold: number;
+  private sellThreshold: number;
+  private position: number = 0;
+
+  constructor(name: string, buyThreshold: number, sellThreshold: number) {
     this.name = name;
     this.buyThreshold = buyThreshold;
     this.sellThreshold = sellThreshold;
-    this.position = 0;
   }
 
-  update(data) {
+  update(data: PriceUpdate): void {
     if (data.price < this.buyThreshold && this.position < 100) {
       this.position += 10;
       console.log(`🤖 ${this.name}: Buying 10 shares of ${data.symbol} at $${data.price}. Position: ${this.position}`);
@@ -610,7 +657,7 @@ type Selector<T, R> = (state: T) => R;
 class Store<T extends object> {
   private state: T;
   private listeners: Set<Listener<T>> = new Set();
-  private selectorListeners: Map<Selector<T, any>, Set<Listener<any>>> = new Map();
+  private selectorListeners: Map<Selector<T, unknown>, Set<Listener<unknown>>> = new Map();
 
   constructor(initialState: T) {
     this.state = initialState;
@@ -638,10 +685,10 @@ class Store<T extends object> {
     if (!this.selectorListeners.has(selector)) {
       this.selectorListeners.set(selector, new Set());
     }
-    this.selectorListeners.get(selector)!.add(listener);
+    this.selectorListeners.get(selector)!.add(listener as Listener<unknown>);
 
     return () => {
-      this.selectorListeners.get(selector)?.delete(listener);
+      this.selectorListeners.get(selector)?.delete(listener as Listener<unknown>);
     };
   }
 
@@ -666,9 +713,14 @@ class Store<T extends object> {
 }
 
 // Usage
+interface CartState {
+  items: string[];
+  total: number;
+}
+
 interface AppState {
   user: { name: string; email: string } | null;
-  cart: { items: string[]; total: number };
+  cart: CartState;
   theme: 'light' | 'dark';
 }
 
@@ -726,14 +778,27 @@ store.setState(state => ({
 | **Scalability** | Limited | Better for distributed systems |
 | **Implementation** | Subject maintains list | Separate mediator/broker |
 
-```javascript
+```typescript
 // Observer: Subject knows observers directly
-subject.addObserver(observer);
-subject.notify(); // Subject calls observer.update()
+interface Observer { update(): void; }
+class Subject {
+  private observers: Observer[] = [];
+  addObserver(observer: Observer): void { this.observers.push(observer); }
+  notify(): void { this.observers.forEach(o => o.update()); } // Subject calls observer.update()
+}
 
 // Pub/Sub: Through message broker
-broker.subscribe('channel', handler);
-broker.publish('channel', message); // Broker routes to subscribers
+type Handler = (message: unknown) => void;
+class Broker {
+  private subscribers: Map<string, Handler[]> = new Map();
+  subscribe(channel: string, handler: Handler): void {
+    if (!this.subscribers.has(channel)) this.subscribers.set(channel, []);
+    this.subscribers.get(channel)!.push(handler);
+  }
+  publish(channel: string, message: unknown): void {
+    this.subscribers.get(channel)?.forEach(h => h(message)); // Broker routes to subscribers
+  }
+}
 ```
 
 ---
@@ -778,41 +843,34 @@ Without Command:
 
 **Text Editor with Undo/Redo:**
 
-```javascript
+```typescript
 // Command interface
-class Command {
-  execute() {
-    throw new Error('execute must be implemented');
-  }
-
-  undo() {
-    throw new Error('undo must be implemented');
-  }
+interface Command {
+  execute(): void;
+  undo(): void;
 }
 
 // Receiver
 class TextEditor {
-  constructor() {
-    this.content = '';
-    this.clipboard = '';
-  }
+  private content: string = '';
+  private clipboard: string = '';
 
-  getContent() {
+  getContent(): string {
     return this.content;
   }
 
-  setContent(content) {
+  setContent(content: string): void {
     this.content = content;
   }
 
-  insertText(position, text) {
+  insertText(position: number, text: string): void {
     this.content =
       this.content.slice(0, position) +
       text +
       this.content.slice(position);
   }
 
-  deleteText(position, length) {
+  deleteText(position: number, length: number): string {
     const deleted = this.content.slice(position, position + length);
     this.content =
       this.content.slice(0, position) +
@@ -820,68 +878,78 @@ class TextEditor {
     return deleted;
   }
 
-  copy(start, end) {
+  copy(start: number, end: number): void {
     this.clipboard = this.content.slice(start, end);
   }
 
-  paste(position) {
+  paste(position: number): void {
     this.insertText(position, this.clipboard);
   }
 }
 
 // Concrete commands
-class InsertCommand extends Command {
-  constructor(editor, position, text) {
-    super();
+class InsertCommand implements Command {
+  private editor: TextEditor;
+  private position: number;
+  private text: string;
+
+  constructor(editor: TextEditor, position: number, text: string) {
     this.editor = editor;
     this.position = position;
     this.text = text;
   }
 
-  execute() {
+  execute(): void {
     this.editor.insertText(this.position, this.text);
   }
 
-  undo() {
+  undo(): void {
     this.editor.deleteText(this.position, this.text.length);
   }
 }
 
-class DeleteCommand extends Command {
-  constructor(editor, position, length) {
-    super();
+class DeleteCommand implements Command {
+  private editor: TextEditor;
+  private position: number;
+  private length: number;
+  private deletedText: string = '';
+
+  constructor(editor: TextEditor, position: number, length: number) {
     this.editor = editor;
     this.position = position;
     this.length = length;
-    this.deletedText = '';
   }
 
-  execute() {
+  execute(): void {
     this.deletedText = this.editor.deleteText(this.position, this.length);
   }
 
-  undo() {
+  undo(): void {
     this.editor.insertText(this.position, this.deletedText);
   }
 }
 
-class ReplaceCommand extends Command {
-  constructor(editor, position, length, newText) {
-    super();
+class ReplaceCommand implements Command {
+  private editor: TextEditor;
+  private position: number;
+  private length: number;
+  private newText: string;
+  private oldText: string = '';
+
+  constructor(editor: TextEditor, position: number, length: number, newText: string) {
     this.editor = editor;
     this.position = position;
     this.length = length;
     this.newText = newText;
-    this.oldText = '';
   }
 
-  execute() {
-    this.oldText = this.editor.content.slice(this.position, this.position + this.length);
+  execute(): void {
+    this.oldText = this.editor.getContent().slice(this.position, this.position + this.length);
     this.editor.deleteText(this.position, this.length);
     this.editor.insertText(this.position, this.newText);
   }
 
-  undo() {
+  undo(): void {
     this.editor.deleteText(this.position, this.newText.length);
     this.editor.insertText(this.position, this.oldText);
   }
@@ -889,38 +957,40 @@ class ReplaceCommand extends Command {
 
 // Invoker
 class EditorHistory {
-  constructor(editor) {
+  private editor: TextEditor;
+  private undoStack: Command[] = [];
+  private redoStack: Command[] = [];
+
+  constructor(editor: TextEditor) {
     this.editor = editor;
-    this.undoStack = [];
-    this.redoStack = [];
   }
 
-  execute(command) {
+  execute(command: Command): void {
     command.execute();
     this.undoStack.push(command);
     this.redoStack = []; // Clear redo stack on new action
     console.log(`Executed. Content: "${this.editor.getContent()}"`);
   }
 
-  undo() {
+  undo(): void {
     if (this.undoStack.length === 0) {
       console.log('Nothing to undo');
       return;
     }
 
-    const command = this.undoStack.pop();
+    const command = this.undoStack.pop()!;
     command.undo();
     this.redoStack.push(command);
     console.log(`Undone. Content: "${this.editor.getContent()}"`);
   }
 
-  redo() {
+  redo(): void {
     if (this.redoStack.length === 0) {
       console.log('Nothing to redo');
       return;
     }
 
-    const command = this.redoStack.pop();
+    const command = this.redoStack.pop()!;
     command.execute();
     this.undoStack.push(command);
     console.log(`Redone. Content: "${this.editor.getContent()}"`);
@@ -1011,7 +1081,7 @@ class TaskQueue {
   private concurrency: number;
   private activeCount = 0;
 
-  constructor(concurrency = 2) {
+  constructor(concurrency: number = 2) {
     this.concurrency = concurrency;
   }
 
@@ -1087,162 +1157,131 @@ Without State:
 
 **Order State Machine:**
 
-```javascript
+```typescript
+type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+
 // State interface
-class OrderState {
-  constructor(order) {
-    this.order = order;
+interface OrderState {
+  pay(): void;
+  ship(): void;
+  deliver(): void;
+  cancel(): void;
+  getStatus(): OrderStatus;
+}
+
+// Forward declaration for Order class
+class Order {
+  public id: string;
+  public items: string[];
+  private state: OrderState;
+
+  constructor(id: string, items: string[]) {
+    this.id = id;
+    this.items = items;
+    this.state = new PendingState(this);
   }
 
-  pay() {
-    throw new Error('Cannot pay in current state');
+  setState(state: OrderState): void {
+    console.log(`Order ${this.id}: ${this.state.getStatus()} → ${state.getStatus()}`);
+    this.state = state;
   }
 
-  ship() {
-    throw new Error('Cannot ship in current state');
+  getStatus(): OrderStatus {
+    return this.state.getStatus();
   }
 
-  deliver() {
-    throw new Error('Cannot deliver in current state');
-  }
-
-  cancel() {
-    throw new Error('Cannot cancel in current state');
-  }
-
-  getStatus() {
-    throw new Error('getStatus must be implemented');
-  }
+  // Delegate to current state
+  pay(): void { this.state.pay(); }
+  ship(): void { this.state.ship(); }
+  deliver(): void { this.state.deliver(); }
+  cancel(): void { this.state.cancel(); }
 }
 
 // Concrete states
-class PendingState extends OrderState {
-  getStatus() {
-    return 'pending';
-  }
+class PendingState implements OrderState {
+  constructor(private order: Order) {}
 
-  pay() {
+  getStatus(): OrderStatus { return 'pending'; }
+
+  pay(): void {
     console.log('Processing payment...');
     this.order.setState(new PaidState(this.order));
     console.log('Payment successful. Order is now paid.');
   }
 
-  cancel() {
+  ship(): void { throw new Error('Cannot ship in current state'); }
+  deliver(): void { throw new Error('Cannot deliver in current state'); }
+
+  cancel(): void {
     console.log('Cancelling pending order...');
     this.order.setState(new CancelledState(this.order));
     console.log('Order cancelled.');
   }
 }
 
-class PaidState extends OrderState {
-  getStatus() {
-    return 'paid';
-  }
+class PaidState implements OrderState {
+  constructor(private order: Order) {}
 
-  ship() {
+  getStatus(): OrderStatus { return 'paid'; }
+
+  pay(): void { throw new Error('Cannot pay in current state'); }
+
+  ship(): void {
     console.log('Preparing shipment...');
     this.order.setState(new ShippedState(this.order));
     console.log('Order shipped.');
   }
 
-  cancel() {
+  deliver(): void { throw new Error('Cannot deliver in current state'); }
+
+  cancel(): void {
     console.log('Processing refund...');
     this.order.setState(new CancelledState(this.order));
     console.log('Order cancelled and refunded.');
   }
 }
 
-class ShippedState extends OrderState {
-  getStatus() {
-    return 'shipped';
-  }
+class ShippedState implements OrderState {
+  constructor(private order: Order) {}
 
-  deliver() {
+  getStatus(): OrderStatus { return 'shipped'; }
+
+  pay(): void { throw new Error('Cannot pay in current state'); }
+  ship(): void { throw new Error('Cannot ship in current state'); }
+
+  deliver(): void {
     console.log('Confirming delivery...');
     this.order.setState(new DeliveredState(this.order));
     console.log('Order delivered.');
   }
 
   // Cannot cancel shipped orders
-  cancel() {
+  cancel(): void {
     throw new Error('Cannot cancel shipped orders. Please request a return after delivery.');
   }
 }
 
-class DeliveredState extends OrderState {
-  getStatus() {
-    return 'delivered';
-  }
+class DeliveredState implements OrderState {
+  constructor(private order: Order) {}
+
+  getStatus(): OrderStatus { return 'delivered'; }
 
   // Cannot do anything in delivered state
-  pay() {
-    throw new Error('Order already delivered');
-  }
-
-  ship() {
-    throw new Error('Order already delivered');
-  }
-
-  deliver() {
-    throw new Error('Order already delivered');
-  }
-
-  cancel() {
-    throw new Error('Cannot cancel delivered orders. Please initiate a return.');
-  }
+  pay(): void { throw new Error('Order already delivered'); }
+  ship(): void { throw new Error('Order already delivered'); }
+  deliver(): void { throw new Error('Order already delivered'); }
+  cancel(): void { throw new Error('Cannot cancel delivered orders. Please initiate a return.'); }
 }
 
-class CancelledState extends OrderState {
-  getStatus() {
-    return 'cancelled';
-  }
+class CancelledState implements OrderState {
+  constructor(private order: Order) {}
 
-  pay() {
-    throw new Error('Cannot pay for cancelled order');
-  }
+  getStatus(): OrderStatus { return 'cancelled'; }
 
-  ship() {
-    throw new Error('Cannot ship cancelled order');
-  }
-
-  cancel() {
-    throw new Error('Order already cancelled');
-  }
-}
-
-// Context
-class Order {
-  constructor(id, items) {
-    this.id = id;
-    this.items = items;
-    this.state = new PendingState(this);
-  }
-
-  setState(state) {
-    console.log(`Order ${this.id}: ${this.state.getStatus()} → ${state.getStatus()}`);
-    this.state = state;
-  }
-
-  getStatus() {
-    return this.state.getStatus();
-  }
-
-  // Delegate to current state
-  pay() {
-    this.state.pay();
-  }
-
-  ship() {
-    this.state.ship();
-  }
-
-  deliver() {
-    this.state.deliver();
-  }
-
-  cancel() {
-    this.state.cancel();
-  }
+  pay(): void { throw new Error('Cannot pay for cancelled order'); }
+  ship(): void { throw new Error('Cannot ship cancelled order'); }
+  deliver(): void { throw new Error('Cannot deliver cancelled order'); }
+  cancel(): void { throw new Error('Order already cancelled'); }
 }
 
 // Usage
@@ -1274,7 +1313,7 @@ console.log();
 try {
   order2.cancel(); // After payment, before shipping
 } catch (e) {
-  console.error('Error:', e.message);
+  console.error('Error:', (e as Error).message);
 }
 
 console.log('\n=== Invalid Transition ===\n');
@@ -1283,7 +1322,7 @@ const order3 = new Order('ORD-003', ['Product D']);
 try {
   order3.ship(); // Cannot ship without paying
 } catch (e) {
-  console.error('Error:', e.message);
+  console.error('Error:', (e as Error).message);
 }
 ```
 
@@ -1395,11 +1434,27 @@ Define the **skeleton of an algorithm** in an operation, deferring some steps to
 
 ### Implementation
 
-```javascript
+```typescript
+interface ParsedFile {
+  path: string;
+  type: string;
+  content: string;
+}
+
+interface DataRecord {
+  [key: string]: string | number;
+}
+
+interface AnalysisResult {
+  count: number;
+  data: DataRecord[];
+  averageAge?: number;
+}
+
 // Abstract class with template method
-class DataMiner {
+abstract class DataMiner {
   // Template method - defines the algorithm skeleton
-  mine(path) {
+  mine(path: string): string {
     console.log('\n=== Starting Data Mining ===');
 
     const file = this.openFile(path);
@@ -1417,70 +1472,59 @@ class DataMiner {
   }
 
   // Abstract methods - must be implemented
-  openFile(path) {
-    throw new Error('openFile must be implemented');
-  }
-
-  extractData(file) {
-    throw new Error('extractData must be implemented');
-  }
-
-  parseData(data) {
-    throw new Error('parseData must be implemented');
-  }
-
-  closeFile(file) {
-    throw new Error('closeFile must be implemented');
-  }
+  protected abstract openFile(path: string): ParsedFile;
+  protected abstract extractData(file: ParsedFile): string;
+  protected abstract parseData(data: string): DataRecord[];
+  protected abstract closeFile(file: ParsedFile): void;
 
   // Hook methods - optional override
-  analyzeData(data) {
+  protected analyzeData(data: DataRecord[]): AnalysisResult {
     console.log('Analyzing data...');
     return { count: data.length, data };
   }
 
-  generateReport(analysis) {
+  protected generateReport(analysis: AnalysisResult): string {
     console.log('Generating report...');
     return `Report: ${analysis.count} records processed`;
   }
 
-  sendReport(report) {
+  protected sendReport(report: string): void {
     // Default: do nothing - hook method
   }
 }
 
 // Concrete implementations
 class CSVDataMiner extends DataMiner {
-  openFile(path) {
+  protected openFile(path: string): ParsedFile {
     console.log(`Opening CSV file: ${path}`);
     return { path, type: 'csv', content: 'name,age,city\nJohn,30,NYC\nJane,25,LA' };
   }
 
-  extractData(file) {
+  protected extractData(file: ParsedFile): string {
     console.log('Extracting CSV data...');
     return file.content;
   }
 
-  parseData(data) {
+  protected parseData(data: string): DataRecord[] {
     console.log('Parsing CSV data...');
     const lines = data.split('\n');
     const headers = lines[0].split(',');
     return lines.slice(1).map(line => {
       const values = line.split(',');
-      return headers.reduce((obj, header, i) => {
+      return headers.reduce<DataRecord>((obj, header, i) => {
         obj[header] = values[i];
         return obj;
       }, {});
     });
   }
 
-  closeFile(file) {
+  protected closeFile(file: ParsedFile): void {
     console.log(`Closing CSV file: ${file.path}`);
   }
 }
 
 class JSONDataMiner extends DataMiner {
-  openFile(path) {
+  protected openFile(path: string): ParsedFile {
     console.log(`Opening JSON file: ${path}`);
     return {
       path,
@@ -1489,29 +1533,29 @@ class JSONDataMiner extends DataMiner {
     };
   }
 
-  extractData(file) {
+  protected extractData(file: ParsedFile): string {
     console.log('Extracting JSON data...');
     return file.content;
   }
 
-  parseData(data) {
+  protected parseData(data: string): DataRecord[] {
     console.log('Parsing JSON data...');
-    return JSON.parse(data);
+    return JSON.parse(data) as DataRecord[];
   }
 
-  closeFile(file) {
+  protected closeFile(file: ParsedFile): void {
     console.log(`Closing JSON file: ${file.path}`);
   }
 
   // Override hook to add custom analysis
-  analyzeData(data) {
+  protected analyzeData(data: DataRecord[]): AnalysisResult {
     console.log('Performing advanced JSON analysis...');
-    const avgAge = data.reduce((sum, p) => sum + p.age, 0) / data.length;
+    const avgAge = data.reduce((sum, p) => sum + (p.age as number), 0) / data.length;
     return { count: data.length, averageAge: avgAge, data };
   }
 
   // Override hook to send report
-  sendReport(report) {
+  protected sendReport(report: string): void {
     console.log(`Sending report via email: ${report}`);
   }
 }
@@ -1536,19 +1580,33 @@ Avoid coupling the sender of a request to its receiver by giving more than one o
 
 **HTTP Middleware Chain:**
 
-```javascript
-// Handler interface
-class Middleware {
-  constructor() {
-    this.next = null;
-  }
+```typescript
+interface HttpRequest {
+  method: string;
+  url: string;
+  headers?: Record<string, string>;
+  body?: Record<string, unknown>;
+  ip?: string;
+  user?: { id: number; name: string };
+}
 
-  setNext(middleware) {
+interface HttpResponse {
+  status: number | null;
+  body: unknown;
+}
+
+type RequestHandlerFn = (req: HttpRequest, res: HttpResponse) => HttpResponse;
+
+// Handler interface
+abstract class Middleware {
+  protected next: Middleware | null = null;
+
+  setNext(middleware: Middleware): Middleware {
     this.next = middleware;
     return middleware;
   }
 
-  handle(request, response) {
+  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
     if (this.next) {
       return this.next.handle(request, response);
     }
@@ -1558,7 +1616,7 @@ class Middleware {
 
 // Concrete handlers
 class LoggingMiddleware extends Middleware {
-  handle(request, response) {
+  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
     const start = Date.now();
     console.log(`[${new Date().toISOString()}] ${request.method} ${request.url}`);
 
@@ -1570,7 +1628,7 @@ class LoggingMiddleware extends Middleware {
 }
 
 class AuthMiddleware extends Middleware {
-  handle(request, response) {
+  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
     const token = request.headers?.authorization;
 
     if (!token) {
@@ -1592,19 +1650,22 @@ class AuthMiddleware extends Middleware {
     return super.handle(request, response);
   }
 
-  validateToken(token) {
+  private validateToken(token: string): boolean {
     return token === 'Bearer valid-token';
   }
 }
 
 class RateLimitMiddleware extends Middleware {
-  constructor(limit = 100) {
+  private limit: number;
+  private requests: Map<string, number>;
+
+  constructor(limit: number = 100) {
     super();
     this.limit = limit;
     this.requests = new Map();
   }
 
-  handle(request, response) {
+  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
     const ip = request.ip || 'unknown';
     const count = this.requests.get(ip) || 0;
 
@@ -1622,14 +1683,20 @@ class RateLimitMiddleware extends Middleware {
   }
 }
 
+interface ValidationRule {
+  required?: boolean;
+}
+
 class ValidationMiddleware extends Middleware {
-  constructor(rules) {
+  private rules: Record<string, ValidationRule>;
+
+  constructor(rules: Record<string, ValidationRule>) {
     super();
     this.rules = rules;
   }
 
-  handle(request, response) {
-    const errors = [];
+  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
+    const errors: string[] = [];
 
     for (const [field, rule] of Object.entries(this.rules)) {
       if (rule.required && !request.body?.[field]) {
@@ -1650,18 +1717,20 @@ class ValidationMiddleware extends Middleware {
 }
 
 class FinalHandler extends Middleware {
-  constructor(handler) {
+  private handler: RequestHandlerFn;
+
+  constructor(handler: RequestHandlerFn) {
     super();
     this.handler = handler;
   }
 
-  handle(request, response) {
+  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
     return this.handler(request, response);
   }
 }
 
 // Build chain
-const createChain = (handler) => {
+const createChain = (handler: RequestHandlerFn): Middleware => {
   const logging = new LoggingMiddleware();
   const rateLimit = new RateLimitMiddleware(10);
   const auth = new AuthMiddleware();
@@ -1682,7 +1751,7 @@ const createChain = (handler) => {
 };
 
 // Usage
-const handler = (req, res) => {
+const handler: RequestHandlerFn = (req: HttpRequest, res: HttpResponse): HttpResponse => {
   console.log('Handler: Processing request');
   res.status = 200;
   res.body = { success: true, user: req.user, data: req.body };
@@ -1692,19 +1761,19 @@ const handler = (req, res) => {
 const chain = createChain(handler);
 
 console.log('\n=== Valid Request ===');
-const validRequest = {
+const validRequest: HttpRequest = {
   method: 'POST',
   url: '/api/users',
   headers: { authorization: 'Bearer valid-token' },
   body: { name: 'John', email: 'john@example.com' },
   ip: '192.168.1.1'
 };
-let response = { status: null, body: null };
+let response: HttpResponse = { status: null, body: null };
 chain.handle(validRequest, response);
 console.log('Response:', response);
 
 console.log('\n=== Unauthorized Request ===');
-const noAuthRequest = {
+const noAuthRequest: HttpRequest = {
   method: 'POST',
   url: '/api/users',
   headers: {},
@@ -1716,7 +1785,7 @@ chain.handle(noAuthRequest, response);
 console.log('Response:', response);
 
 console.log('\n=== Validation Failed Request ===');
-const invalidRequest = {
+const invalidRequest: HttpRequest = {
   method: 'POST',
   url: '/api/users',
   headers: { authorization: 'Bearer valid-token' },

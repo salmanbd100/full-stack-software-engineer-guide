@@ -48,32 +48,38 @@ Without Singleton:
 
 ### Implementation
 
-**Basic Singleton (JavaScript):**
+**Basic Singleton (TypeScript):**
 
-```javascript
+```typescript
+interface ConnectionObject {
+  connected: boolean;
+  timestamp: number;
+}
+
 class DatabaseConnection {
-  static #instance = null;
+  private static instance: DatabaseConnection | null = null;
+  private connection: ConnectionObject;
 
   constructor() {
-    if (DatabaseConnection.#instance) {
+    if (DatabaseConnection.instance) {
       throw new Error('Use DatabaseConnection.getInstance() instead');
     }
     this.connection = this.createConnection();
   }
 
-  static getInstance() {
-    if (!DatabaseConnection.#instance) {
-      DatabaseConnection.#instance = new DatabaseConnection();
+  public static getInstance(): DatabaseConnection {
+    if (!DatabaseConnection.instance) {
+      DatabaseConnection.instance = new DatabaseConnection();
     }
-    return DatabaseConnection.#instance;
+    return DatabaseConnection.instance;
   }
 
-  createConnection() {
+  private createConnection(): ConnectionObject {
     console.log('Creating database connection...');
     return { connected: true, timestamp: Date.now() };
   }
 
-  query(sql) {
+  public query(sql: string): string {
     return `Executing: ${sql}`;
   }
 }
@@ -84,35 +90,46 @@ const db2 = DatabaseConnection.getInstance();
 console.log(db1 === db2); // true - same instance
 ```
 
-**Module Pattern Singleton (Preferred in JavaScript):**
+**Module Pattern Singleton (Preferred in TypeScript):**
 
-```javascript
-// logger.js
+```typescript
+// logger.ts
+interface LogEntry {
+  timestamp: Date;
+  message: string;
+}
+
+interface LoggerInstance {
+  log(message: string): void;
+  getLogs(): LogEntry[];
+  clear(): void;
+}
+
 const Logger = (() => {
-  let instance;
+  let instance: LoggerInstance | undefined;
 
-  function createInstance() {
-    const logs = [];
+  function createInstance(): LoggerInstance {
+    const logs: LogEntry[] = [];
 
     return {
-      log(message) {
-        const entry = { timestamp: new Date(), message };
+      log(message: string): void {
+        const entry: LogEntry = { timestamp: new Date(), message };
         logs.push(entry);
         console.log(`[${entry.timestamp.toISOString()}] ${message}`);
       },
 
-      getLogs() {
+      getLogs(): LogEntry[] {
         return [...logs];
       },
 
-      clear() {
+      clear(): void {
         logs.length = 0;
       }
     };
   }
 
   return {
-    getInstance() {
+    getInstance(): LoggerInstance {
       if (!instance) {
         instance = createInstance();
       }
@@ -124,7 +141,7 @@ const Logger = (() => {
 export default Logger;
 
 // Usage
-import Logger from './logger.js';
+import Logger from './logger';
 
 const logger1 = Logger.getInstance();
 const logger2 = Logger.getInstance();
@@ -200,21 +217,27 @@ console.log(config.get('environment')); // 'development'
 **A:** Singletons have several drawbacks:
 
 1. **Testing Difficulty:**
-```javascript
+```typescript
 // ❌ Hard to test - uses global singleton
 class UserService {
-  getUser(id) {
+  getUser(id: string): string {
     return DatabaseConnection.getInstance().query(`SELECT * FROM users WHERE id = ${id}`);
   }
 }
 
 // ✅ Better - inject dependency
+interface Database {
+  query(sql: string): string;
+}
+
 class UserService {
-  constructor(database) {
+  private database: Database;
+
+  constructor(database: Database) {
     this.database = database;
   }
 
-  getUser(id) {
+  getUser(id: string): string {
     return this.database.query(`SELECT * FROM users WHERE id = ${id}`);
   }
 }
@@ -276,9 +299,56 @@ Without Factory:
 
 **Simple Factory (Not a Pattern, but Common):**
 
-```javascript
+```typescript
+type NotificationType = 'email' | 'sms' | 'push';
+
+interface Notification {
+  type: NotificationType;
+  message: string;
+  send(to: string): void;
+}
+
+class EmailNotification implements Notification {
+  public type: NotificationType = 'email';
+  public message: string;
+
+  constructor(message: string) {
+    this.message = message;
+  }
+
+  send(to: string): void {
+    console.log(`Sending email to ${to}: ${this.message}`);
+  }
+}
+
+class SMSNotification implements Notification {
+  public type: NotificationType = 'sms';
+  public message: string;
+
+  constructor(message: string) {
+    this.message = message;
+  }
+
+  send(to: string): void {
+    console.log(`Sending SMS to ${to}: ${this.message}`);
+  }
+}
+
+class PushNotification implements Notification {
+  public type: NotificationType = 'push';
+  public message: string;
+
+  constructor(message: string) {
+    this.message = message;
+  }
+
+  send(to: string): void {
+    console.log(`Sending push to ${to}: ${this.message}`);
+  }
+}
+
 // Simple factory function
-function createNotification(type, message) {
+function createNotification(type: NotificationType, message: string): Notification {
   switch (type) {
     case 'email':
       return new EmailNotification(message);
@@ -291,39 +361,6 @@ function createNotification(type, message) {
   }
 }
 
-class EmailNotification {
-  constructor(message) {
-    this.message = message;
-    this.type = 'email';
-  }
-
-  send(to) {
-    console.log(`Sending email to ${to}: ${this.message}`);
-  }
-}
-
-class SMSNotification {
-  constructor(message) {
-    this.message = message;
-    this.type = 'sms';
-  }
-
-  send(to) {
-    console.log(`Sending SMS to ${to}: ${this.message}`);
-  }
-}
-
-class PushNotification {
-  constructor(message) {
-    this.message = message;
-    this.type = 'push';
-  }
-
-  send(to) {
-    console.log(`Sending push to ${to}: ${this.message}`);
-  }
-}
-
 // Usage
 const notification = createNotification('email', 'Hello!');
 notification.send('user@example.com');
@@ -331,43 +368,45 @@ notification.send('user@example.com');
 
 **Factory Method Pattern:**
 
-```javascript
+```typescript
 // Abstract Creator
-class NotificationCreator {
+abstract class NotificationCreator {
   // Factory method - subclasses override this
-  createNotification(message) {
-    throw new Error('createNotification must be implemented');
-  }
+  abstract createNotification(message: string): Notification;
 
   // Template method using the factory method
-  sendNotification(to, message) {
+  sendNotification(to: string, message: string): Notification {
     const notification = this.createNotification(message);
     notification.send(to);
     this.logSent(notification, to);
     return notification;
   }
 
-  logSent(notification, to) {
+  private logSent(notification: Notification, to: string): void {
     console.log(`${notification.type} notification sent to ${to}`);
   }
 }
 
 // Concrete Creators
 class EmailNotificationCreator extends NotificationCreator {
-  createNotification(message) {
+  createNotification(message: string): Notification {
     return new EmailNotification(message);
   }
 }
 
 class SMSNotificationCreator extends NotificationCreator {
-  createNotification(message) {
+  createNotification(message: string): Notification {
     return new SMSNotification(message);
   }
 }
 
 // Usage
-function notifyUser(user, message, preferredChannel) {
-  let creator;
+interface User {
+  contact: string;
+}
+
+function notifyUser(user: User, message: string, preferredChannel: NotificationType): Notification {
+  let creator: NotificationCreator;
 
   switch (preferredChannel) {
     case 'email':
@@ -460,7 +499,7 @@ class PayPalPaymentService extends PaymentService {
 }
 
 // Usage
-async function processOrder(paymentMethod: 'stripe' | 'paypal', amount: number) {
+async function processOrder(paymentMethod: 'stripe' | 'paypal', amount: number): Promise<PaymentResult> {
   const service = paymentMethod === 'stripe'
     ? new StripePaymentService()
     : new PayPalPaymentService();
@@ -506,26 +545,31 @@ async function processOrder(paymentMethod: 'stripe' | 'paypal', amount: number) 
 | **OCP** | Violates (must modify) | Follows (extend) |
 | **Complexity** | Low | Higher |
 
-```javascript
+```typescript
 // Simple Factory - modify to add new types
-function createShape(type) {
+class Circle { getArea(): number { return 0; } }
+class Square { getArea(): number { return 0; } }
+class Triangle { getArea(): number { return 0; } }
+
+function createShape(type: 'circle' | 'square'): Circle | Square {
   if (type === 'circle') return new Circle();
   if (type === 'square') return new Square();
   // Must modify this function to add new shapes
+  throw new Error('Unknown shape');
 }
 
 // Factory Method - extend to add new types
-class ShapeFactory {
-  createShape() { throw new Error('Override me'); }
+abstract class ShapeFactory {
+  abstract createShape(): Circle | Square | Triangle;
 }
 
 class CircleFactory extends ShapeFactory {
-  createShape() { return new Circle(); }
+  createShape(): Circle { return new Circle(); }
 }
 
 // Add new shape without modifying existing code
 class TriangleFactory extends ShapeFactory {
-  createShape() { return new Triangle(); }
+  createShape(): Triangle { return new Triangle(); }
 }
 ```
 
@@ -570,55 +614,59 @@ Without Abstract Factory:
 
 **Database Abstraction Example:**
 
-```javascript
-// Abstract Products
-class Connection {
-  connect() { throw new Error('Not implemented'); }
-  disconnect() { throw new Error('Not implemented'); }
+```typescript
+interface QueryState {
+  columns: string | string[];
+  table: string;
+  conditions: string[];
 }
 
-class QueryBuilder {
-  select(columns) { throw new Error('Not implemented'); }
-  from(table) { throw new Error('Not implemented'); }
-  where(condition) { throw new Error('Not implemented'); }
-  build() { throw new Error('Not implemented'); }
+// Abstract Products
+abstract class Connection {
+  abstract connect(): { type: string; connected: boolean };
+  abstract disconnect(): void;
+}
+
+abstract class QueryBuilder {
+  abstract select(columns: string | string[]): this;
+  abstract from(table: string): this;
+  abstract where(condition: string): this;
+  abstract build(): string;
 }
 
 // PostgreSQL Family
 class PostgreSQLConnection extends Connection {
-  connect() {
+  connect(): { type: string; connected: boolean } {
     console.log('Connecting to PostgreSQL...');
     return { type: 'postgresql', connected: true };
   }
 
-  disconnect() {
+  disconnect(): void {
     console.log('Disconnecting from PostgreSQL');
   }
 }
 
 class PostgreSQLQueryBuilder extends QueryBuilder {
-  constructor() {
-    super();
-    this.query = { columns: '*', table: '', conditions: [] };
-  }
+  private query: QueryState = { columns: '*', table: '', conditions: [] };
 
-  select(columns) {
+  select(columns: string | string[]): this {
     this.query.columns = columns;
     return this;
   }
 
-  from(table) {
+  from(table: string): this {
     this.query.table = `"${table}"`;  // PostgreSQL uses double quotes
     return this;
   }
 
-  where(condition) {
+  where(condition: string): this {
     this.query.conditions.push(condition);
     return this;
   }
 
-  build() {
-    let sql = `SELECT ${this.query.columns} FROM ${this.query.table}`;
+  build(): string {
+    const cols = Array.isArray(this.query.columns) ? this.query.columns.join(', ') : this.query.columns;
+    let sql = `SELECT ${cols} FROM ${this.query.table}`;
     if (this.query.conditions.length > 0) {
       sql += ` WHERE ${this.query.conditions.join(' AND ')}`;
     }
@@ -628,39 +676,37 @@ class PostgreSQLQueryBuilder extends QueryBuilder {
 
 // MySQL Family
 class MySQLConnection extends Connection {
-  connect() {
+  connect(): { type: string; connected: boolean } {
     console.log('Connecting to MySQL...');
     return { type: 'mysql', connected: true };
   }
 
-  disconnect() {
+  disconnect(): void {
     console.log('Disconnecting from MySQL');
   }
 }
 
 class MySQLQueryBuilder extends QueryBuilder {
-  constructor() {
-    super();
-    this.query = { columns: '*', table: '', conditions: [] };
-  }
+  private query: QueryState = { columns: '*', table: '', conditions: [] };
 
-  select(columns) {
+  select(columns: string | string[]): this {
     this.query.columns = columns;
     return this;
   }
 
-  from(table) {
+  from(table: string): this {
     this.query.table = `\`${table}\``;  // MySQL uses backticks
     return this;
   }
 
-  where(condition) {
+  where(condition: string): this {
     this.query.conditions.push(condition);
     return this;
   }
 
-  build() {
-    let sql = `SELECT ${this.query.columns} FROM ${this.query.table}`;
+  build(): string {
+    const cols = Array.isArray(this.query.columns) ? this.query.columns.join(', ') : this.query.columns;
+    let sql = `SELECT ${cols} FROM ${this.query.table}`;
     if (this.query.conditions.length > 0) {
       sql += ` WHERE ${this.query.conditions.join(' AND ')}`;
     }
@@ -669,40 +715,43 @@ class MySQLQueryBuilder extends QueryBuilder {
 }
 
 // Abstract Factory
-class DatabaseFactory {
-  createConnection() { throw new Error('Not implemented'); }
-  createQueryBuilder() { throw new Error('Not implemented'); }
+abstract class DatabaseFactory {
+  abstract createConnection(): Connection;
+  abstract createQueryBuilder(): QueryBuilder;
 }
 
 // Concrete Factories
 class PostgreSQLFactory extends DatabaseFactory {
-  createConnection() {
+  createConnection(): Connection {
     return new PostgreSQLConnection();
   }
 
-  createQueryBuilder() {
+  createQueryBuilder(): QueryBuilder {
     return new PostgreSQLQueryBuilder();
   }
 }
 
 class MySQLFactory extends DatabaseFactory {
-  createConnection() {
+  createConnection(): Connection {
     return new MySQLConnection();
   }
 
-  createQueryBuilder() {
+  createQueryBuilder(): QueryBuilder {
     return new MySQLQueryBuilder();
   }
 }
 
 // Client code - works with any factory
 class DatabaseClient {
-  constructor(factory) {
+  private connection: Connection;
+  private queryBuilder: QueryBuilder;
+
+  constructor(factory: DatabaseFactory) {
     this.connection = factory.createConnection();
     this.queryBuilder = factory.createQueryBuilder();
   }
 
-  findUsers(status) {
+  findUsers(status: string): void {
     this.connection.connect();
 
     const query = this.queryBuilder
@@ -720,7 +769,7 @@ class DatabaseClient {
 // Usage
 const dbType = process.env.DB_TYPE || 'postgresql';
 
-const factory = dbType === 'mysql'
+const factory: DatabaseFactory = dbType === 'mysql'
   ? new MySQLFactory()
   : new PostgreSQLFactory();
 
@@ -863,11 +912,11 @@ class LoginForm {
 
 // Usage - switch between UI frameworks easily
 const uiFramework = 'material';
-const factory: UIFactory = uiFramework === 'material'
+const uiFactory: UIFactory = uiFramework === 'material'
   ? new MaterialUIFactory()
   : new BootstrapUIFactory();
 
-const loginForm = new LoginForm(factory);
+const loginForm = new LoginForm(uiFactory);
 console.log(loginForm.render());
 ```
 
@@ -897,17 +946,17 @@ console.log(loginForm.render());
 | Products can be used independently | Products must be used together |
 | Simpler hierarchy | Complex product families |
 
-```javascript
+```typescript
 // Factory Method: One product, multiple variants
-class NotificationFactory {
-  createNotification() { /* one product */ }
+abstract class NotificationFactory {
+  abstract createNotification(): Notification; // one product
 }
 
 // Abstract Factory: Multiple related products
-class UIFactory {
-  createButton() { /* product A */ }
-  createInput() { /* product B */ }
-  createModal() { /* product C */ }
+interface UIComponentFactory {
+  createButton(): Button;   // product A
+  createInput(): Input;     // product B
+  createModal(): Modal;     // product C
   // All products are designed to work together
 }
 ```
@@ -954,14 +1003,44 @@ Without Builder:
 
 **Query Builder Example:**
 
-```javascript
+```typescript
+interface JoinClause {
+  table: string;
+  on: string;
+  type: string;
+}
+
+interface WhereClause {
+  condition: string;
+  value?: unknown;
+  type: 'AND' | 'OR';
+}
+
+interface OrderByClause {
+  column: string;
+  direction: string;
+}
+
+interface QueryState {
+  type: string;
+  columns: string[];
+  table: string;
+  joins: JoinClause[];
+  conditions: WhereClause[];
+  orderBy: OrderByClause[];
+  limit: number | null;
+  offset: number | null;
+}
+
 class SQLQueryBuilder {
+  private query: QueryState;
+
   constructor() {
-    this.reset();
+    this.query = this.buildEmptyQuery();
   }
 
-  reset() {
-    this.query = {
+  private buildEmptyQuery(): QueryState {
+    return {
       type: 'SELECT',
       columns: ['*'],
       table: '',
@@ -971,54 +1050,58 @@ class SQLQueryBuilder {
       limit: null,
       offset: null
     };
+  }
+
+  reset(): this {
+    this.query = this.buildEmptyQuery();
     return this;
   }
 
-  select(...columns) {
+  select(...columns: string[]): this {
     this.query.columns = columns.length ? columns : ['*'];
     return this;
   }
 
-  from(table) {
+  from(table: string): this {
     this.query.table = table;
     return this;
   }
 
-  where(condition, value) {
+  where(condition: string, value?: unknown): this {
     this.query.conditions.push({ condition, value, type: 'AND' });
     return this;
   }
 
-  orWhere(condition, value) {
+  orWhere(condition: string, value?: unknown): this {
     this.query.conditions.push({ condition, value, type: 'OR' });
     return this;
   }
 
-  join(table, on, type = 'INNER') {
+  join(table: string, on: string, type: string = 'INNER'): this {
     this.query.joins.push({ table, on, type });
     return this;
   }
 
-  leftJoin(table, on) {
+  leftJoin(table: string, on: string): this {
     return this.join(table, on, 'LEFT');
   }
 
-  orderBy(column, direction = 'ASC') {
+  orderBy(column: string, direction: string = 'ASC'): this {
     this.query.orderBy.push({ column, direction });
     return this;
   }
 
-  limit(count) {
+  limit(count: number): this {
     this.query.limit = count;
     return this;
   }
 
-  offset(count) {
+  offset(count: number): this {
     this.query.offset = count;
     return this;
   }
 
-  build() {
+  build(): string {
     const { columns, table, joins, conditions, orderBy, limit, offset } = this.query;
 
     let sql = `SELECT ${columns.join(', ')} FROM ${table}`;
@@ -1077,14 +1160,33 @@ console.log(query);
 
 **HTTP Request Builder:**
 
-```javascript
+```typescript
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+interface AuthConfig {
+  type: 'bearer' | 'basic';
+  credentials: string;
+}
+
+interface RequestConfig {
+  method: HttpMethod;
+  url: string;
+  headers: Record<string, string>;
+  body: string | null;
+  timeout: number;
+  retries: number;
+  auth: AuthConfig | null;
+}
+
 class HttpRequestBuilder {
+  private request: RequestConfig;
+
   constructor() {
-    this.reset();
+    this.request = this.buildEmptyRequest();
   }
 
-  reset() {
-    this.request = {
+  private buildEmptyRequest(): RequestConfig {
+    return {
       method: 'GET',
       url: '',
       headers: {},
@@ -1093,77 +1195,81 @@ class HttpRequestBuilder {
       retries: 0,
       auth: null
     };
+  }
+
+  reset(): this {
+    this.request = this.buildEmptyRequest();
     return this;
   }
 
-  get(url) {
+  get(url: string): this {
     this.request.method = 'GET';
     this.request.url = url;
     return this;
   }
 
-  post(url) {
+  post(url: string): this {
     this.request.method = 'POST';
     this.request.url = url;
     return this;
   }
 
-  put(url) {
+  put(url: string): this {
     this.request.method = 'PUT';
     this.request.url = url;
     return this;
   }
 
-  delete(url) {
+  delete(url: string): this {
     this.request.method = 'DELETE';
     this.request.url = url;
     return this;
   }
 
-  header(key, value) {
+  header(key: string, value: string): this {
     this.request.headers[key] = value;
     return this;
   }
 
-  contentType(type) {
+  contentType(type: string): this {
     return this.header('Content-Type', type);
   }
 
-  json(data) {
+  json(data: unknown): this {
     this.request.body = JSON.stringify(data);
     return this.contentType('application/json');
   }
 
-  bearer(token) {
+  bearer(token: string): this {
     return this.header('Authorization', `Bearer ${token}`);
   }
 
-  basicAuth(username, password) {
+  basicAuth(username: string, password: string): this {
     const encoded = Buffer.from(`${username}:${password}`).toString('base64');
     return this.header('Authorization', `Basic ${encoded}`);
   }
 
-  timeout(ms) {
+  timeout(ms: number): this {
     this.request.timeout = ms;
     return this;
   }
 
-  retry(count) {
+  retry(count: number): this {
     this.request.retries = count;
     return this;
   }
 
-  async execute() {
+  async execute(): Promise<Response> {
     const { method, url, headers, body, timeout, retries } = this.request;
 
-    const options = {
+    const options: RequestInit = {
       method,
       headers,
       body,
       signal: AbortSignal.timeout(timeout)
     };
 
-    let lastError;
+    let lastError: unknown;
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         const response = await fetch(url, options);
@@ -1180,7 +1286,7 @@ class HttpRequestBuilder {
     throw lastError;
   }
 
-  build() {
+  build(): RequestConfig {
     const result = { ...this.request };
     this.reset();
     return result;
@@ -1209,17 +1315,19 @@ const newUser = await http
 **TypeScript Builder with Director:**
 
 ```typescript
+interface UserSettings {
+  theme: 'light' | 'dark';
+  notifications: boolean;
+  language: string;
+}
+
 interface User {
   id: string;
   name: string;
   email: string;
   role: 'admin' | 'user' | 'guest';
   permissions: string[];
-  settings: {
-    theme: 'light' | 'dark';
-    notifications: boolean;
-    language: string;
-  };
+  settings: UserSettings;
   createdAt: Date;
 }
 
@@ -1251,7 +1359,7 @@ class UserBuilder {
     return this;
   }
 
-  setSettings(settings: User['settings']): this {
+  setSettings(settings: UserSettings): this {
     this.user.settings = settings;
     return this;
   }
@@ -1376,16 +1484,22 @@ const customUser = new UserBuilder()
 | **Return** | Complete object | Object after multiple steps |
 | **Configuration** | Parameters to method | Method chaining |
 
-```javascript
+```typescript
 // Factory - single step, what to create
-const user = UserFactory.create('admin');
+class UserFactory {
+  static create(role: 'admin' | 'user'): User {
+    // returns user in one step
+    return {} as User;
+  }
+}
+const factoryUser = UserFactory.create('admin');
 
 // Builder - multi-step, how to create
-const user = new UserBuilder()
+const builtUser = new UserBuilder()
   .setName('John')
   .setEmail('john@example.com')
   .setRole('admin')
-  .addPermission('delete')
+  .setPermissions(['delete'])
   .build();
 ```
 
@@ -1409,30 +1523,29 @@ Without Prototype:
 
 ### Implementation
 
-**JavaScript (Native Prototype Support):**
+**TypeScript Prototype (Native):**
 
-```javascript
-// Using Object.create (JavaScript's built-in prototype)
-const vehiclePrototype = {
-  init(make, model) {
-    this.make = make;
-    this.model = model;
-    return this;
-  },
+```typescript
+interface VehiclePrototype {
+  make: string;
+  model: string;
+  getInfo(): string;
+  clone(): VehiclePrototype;
+}
 
-  getInfo() {
+const vehiclePrototype: VehiclePrototype = {
+  make: '',
+  model: '',
+  getInfo(): string {
     return `${this.make} ${this.model}`;
   },
-
-  clone() {
-    const clone = Object.create(Object.getPrototypeOf(this));
-    Object.assign(clone, this);
-    return clone;
+  clone(): VehiclePrototype {
+    return { ...this };
   }
 };
 
-const car = Object.create(vehiclePrototype).init('Toyota', 'Camry');
-const carClone = car.clone();
+const car: VehiclePrototype = { ...vehiclePrototype, make: 'Toyota', model: 'Camry' };
+const carClone: VehiclePrototype = car.clone();
 carClone.model = 'Corolla';
 
 console.log(car.getInfo());      // Toyota Camry
@@ -1441,9 +1554,25 @@ console.log(carClone.getInfo()); // Toyota Corolla
 
 **Class-Based Prototype:**
 
-```javascript
+```typescript
+interface DocumentMetadata {
+  createdAt: Date;
+  version: number;
+}
+
+interface DocumentStyles {
+  fontSize: number;
+  fontFamily: string;
+  color: string;
+}
+
 class DocumentTemplate {
-  constructor(title, content, styles) {
+  public title: string;
+  public content: string;
+  public styles: DocumentStyles;
+  public metadata: DocumentMetadata;
+
+  constructor(title: string, content: string, styles: DocumentStyles) {
     this.title = title;
     this.content = content;
     this.styles = styles;
@@ -1454,7 +1583,7 @@ class DocumentTemplate {
   }
 
   // Deep clone method
-  clone() {
+  clone(): DocumentTemplate {
     const clone = new DocumentTemplate(
       this.title,
       this.content,
@@ -1462,19 +1591,19 @@ class DocumentTemplate {
     );
 
     // Deep copy metadata
-    clone.metadata = JSON.parse(JSON.stringify(this.metadata));
+    clone.metadata = JSON.parse(JSON.stringify(this.metadata)) as DocumentMetadata;
     clone.metadata.version++;
     clone.metadata.createdAt = new Date();
 
     return clone;
   }
 
-  setTitle(title) {
+  setTitle(title: string): this {
     this.title = title;
     return this;
   }
 
-  setContent(content) {
+  setContent(content: string): this {
     this.content = content;
     return this;
   }
@@ -1482,15 +1611,13 @@ class DocumentTemplate {
 
 // Prototype Registry
 class DocumentRegistry {
-  constructor() {
-    this.templates = new Map();
-  }
+  private templates: Map<string, DocumentTemplate> = new Map();
 
-  register(name, template) {
+  register(name: string, template: DocumentTemplate): void {
     this.templates.set(name, template);
   }
 
-  create(name) {
+  create(name: string): DocumentTemplate {
     const template = this.templates.get(name);
     if (!template) {
       throw new Error(`Template '${name}' not found`);
@@ -1532,16 +1659,18 @@ interface Cloneable<T> {
   clone(): T;
 }
 
+interface ServerOptions {
+  timeout: number;
+  retries: number;
+  headers: Record<string, string>;
+}
+
 class ServerConfig implements Cloneable<ServerConfig> {
   constructor(
     public host: string,
     public port: number,
     public ssl: boolean,
-    public options: {
-      timeout: number;
-      retries: number;
-      headers: Record<string, string>;
-    }
+    public options: ServerOptions
   ) {}
 
   clone(): ServerConfig {
@@ -1599,11 +1728,16 @@ console.log(stagingConfig.host); // staging.example.com
 
 ### Shallow vs Deep Clone
 
-```javascript
+```typescript
 // ⚠️ Shallow Clone - shares nested object references
-const shallowClone = (obj) => ({ ...obj });
+const shallowClone = <T extends object>(obj: T): T => ({ ...obj });
 
-const original = {
+interface Person {
+  name: string;
+  address: { city: string };
+}
+
+const original: Person = {
   name: 'John',
   address: { city: 'NYC' }
 };
@@ -1613,19 +1747,19 @@ shallow.address.city = 'LA';
 console.log(original.address.city); // 'LA' - original also changed!
 
 // ✅ Deep Clone - creates independent copy
-const deepClone = (obj) => {
+function deepClone<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') return obj;
-  if (obj instanceof Date) return new Date(obj);
-  if (obj instanceof Array) return obj.map(item => deepClone(item));
+  if (obj instanceof Date) return new Date(obj) as unknown as T;
+  if (obj instanceof Array) return obj.map(item => deepClone(item)) as unknown as T;
 
-  const clone = {};
+  const clone: Record<string, unknown> = {};
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      clone[key] = deepClone(obj[key]);
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      clone[key] = deepClone((obj as Record<string, unknown>)[key]);
     }
   }
-  return clone;
-};
+  return clone as T;
+}
 
 // Or use structuredClone (modern browsers/Node 17+)
 const deep = structuredClone(original);
