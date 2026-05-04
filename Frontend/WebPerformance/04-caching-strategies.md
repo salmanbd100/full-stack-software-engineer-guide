@@ -2,9 +2,15 @@
 
 ## Overview
 
-Caching is one of the most effective performance optimization techniques. It stores copies of files/data to serve them faster on subsequent requests. Proper caching can reduce server load, bandwidth usage, and dramatically improve load times.
+Caching means **saving copies of files so they don't need to be downloaded again**. It's like keeping notes from class — you don't ask the teacher to repeat everything every day.
+
+> **Why It's Powerful:**
+> A cached file loads in 0 milliseconds. No network. No waiting. Caching is the single biggest performance win you can get.
+
+---
 
 ## Table of Contents
+- [Why Caching Matters](#why-caching-matters)
 - [Browser Caching](#browser-caching)
 - [Service Workers](#service-workers)
 - [CDN Caching](#cdn-caching)
@@ -12,17 +18,40 @@ Caching is one of the most effective performance optimization techniques. It sto
 - [Application-Level Caching](#application-level-caching)
 - [Interview Questions](#interview-questions)
 
+---
+
+## Why Caching Matters
+
+### 💡 **The Layers of Caching**
+
+```
+User opens your site
+    ↓
+Browser cache (fastest)         ← 1st check
+    ↓ (not found)
+Service Worker cache            ← 2nd check
+    ↓ (not found)
+CDN edge server (close to user) ← 3rd check
+    ↓ (not found)
+Origin server (slowest)         ← Last resort
+```
+
+> **Key Insight:**
+> Each layer is a chance to skip a slow network request. Use all of them when possible.
+
+---
+
 ## Browser Caching
 
-### HTTP Cache Headers
+### 💡 **HTTP Cache Headers**
 
-HTTP caching is one of the most effective performance optimizations available - cached resources load instantly with zero network requests. Cache-Control headers tell browsers (and CDNs) how long to cache resources before checking for updates. The maxAge directive specifies cache duration in seconds, while the immutable flag indicates the resource will never change at this URL (perfect for hash-based filenames). Proper caching reduces server load, bandwidth costs, and dramatically improves repeat visit performance. The challenge is balancing cache duration with the need to deploy updates quickly.
+The server tells the browser how long to cache a file with HTTP headers.
 
 ```javascript
-// Express.js cache headers
+// Express.js example
 app.use('/static', express.static('public', {
-  maxAge: '1y',  // 1 year
-  immutable: true
+  maxAge: '1y',     // Cache for 1 year
+  immutable: true   // File will never change at this URL
 }));
 
 // Custom cache headers
@@ -36,54 +65,74 @@ app.get('/api/data', (req, res) => {
 });
 ```
 
-### Cache-Control Directives
+### 💡 **Cache-Control Directives**
+
+The most important header. Here are the common patterns:
+
+| Use Case | Header | What It Does |
+|----------|--------|--------------|
+| HTML pages | `Cache-Control: no-cache` | Always check for updates |
+| API responses | `Cache-Control: public, max-age=3600` | Cache for 1 hour |
+| Static assets (JS/CSS with hash) | `Cache-Control: public, max-age=31536000, immutable` | Cache for 1 year |
+| User-specific data | `Cache-Control: private, max-age=600` | Only cache in browser |
+| Sensitive data | `Cache-Control: no-store` | Don't cache anywhere |
 
 ```http
-# No caching (HTML pages, dynamic content)
+# Don't cache (HTML pages, dynamic content)
 Cache-Control: no-cache, no-store, must-revalidate
-Pragma: no-cache
-Expires: 0
 
 # Cache for 1 hour (API responses)
 Cache-Control: public, max-age=3600
 
-# Cache for 1 year (static assets with hash)
+# Cache for 1 year (static assets with hash in filename)
 Cache-Control: public, max-age=31536000, immutable
 
-# Private cache (user-specific data)
+# Private cache (user-specific data, only browser)
 Cache-Control: private, max-age=600
-
-# Revalidate (check if fresh before use)
-Cache-Control: public, max-age=3600, must-revalidate
 ```
 
-### ETag and Last-Modified
+### 💡 **Common Directives Explained**
+
+| Directive | Meaning |
+|-----------|---------|
+| `public` | CDN and browser can cache |
+| `private` | Only browser can cache |
+| `max-age=N` | Cache for N seconds |
+| `no-cache` | Cache, but check before using |
+| `no-store` | Don't cache at all |
+| `immutable` | Never check for updates |
+| `must-revalidate` | Check after expiration |
+
+### 💡 **ETag and Last-Modified**
+
+These let the browser ask "did this change?" without downloading the whole file.
+
+**ETag (Hash-Based):**
 
 ```javascript
-// ETag implementation
 const crypto = require('crypto');
 
 function generateETag(content) {
-  return crypto
-    .createHash('md5')
-    .update(content)
-    .digest('hex');
+  return crypto.createHash('md5').update(content).digest('hex');
 }
 
 app.get('/api/data', (req, res) => {
   const data = getData();
   const etag = generateETag(JSON.stringify(data));
 
-  // Check if client has fresh copy
+  // Did the client already have this version?
   if (req.headers['if-none-match'] === etag) {
-    return res.status(304).end(); // Not Modified
+    return res.status(304).end(); // 304 = Not Modified
   }
 
   res.set('ETag', etag);
   res.json(data);
 });
+```
 
-// Last-Modified
+**Last-Modified (Timestamp-Based):**
+
+```javascript
 app.get('/api/resource', (req, res) => {
   const resource = getResource();
   const lastModified = resource.updatedAt;
@@ -97,24 +146,44 @@ app.get('/api/resource', (req, res) => {
 });
 ```
 
-### Cache Busting Strategies
+| ETag | Last-Modified |
+|------|---------------|
+| Hash of content | Timestamp |
+| Stronger validation | Weaker (1-second precision) |
+| Works for any content | Works for static files |
+
+### 💡 **Cache Busting Strategies**
+
+When you update a file, how do you make sure users don't keep using the old cached version?
+
+**❌ Bad (Query Strings):**
+
+```html
+<!-- Some proxies ignore the query string -->
+<link rel="stylesheet" href="styles.css?v=1.0.0" />
+```
+
+**✅ Good (File Hashing):**
+
+```html
+<!-- Different hash = different URL = browser fetches new file -->
+<link rel="stylesheet" href="styles.abc123.css" />
+```
+
+**Webpack Configuration:**
 
 ```javascript
-// 1. Query strings (not recommended - proxy cache issues)
-<link rel="stylesheet" href="styles.css?v=1.0.0" />
-
-// 2. File hashing (recommended)
-<link rel="stylesheet" href="styles.abc123.css" />
-
-// Webpack configuration
 module.exports = {
   output: {
     filename: '[name].[contenthash].js',
     chunkFilename: '[name].[contenthash].chunk.js'
   }
 };
+```
 
-// Vite configuration
+**Vite Configuration:**
+
+```javascript
 export default {
   build: {
     rollupOptions: {
@@ -128,11 +197,25 @@ export default {
 };
 ```
 
+> **Key Insight:**
+> With file hashing, you can cache files for a year because the URL itself changes when the file changes.
+
+---
+
 ## Service Workers
 
-### Basic Service Worker
+### 💡 **What Are Service Workers?**
 
-Service Workers are programmable network proxies that intercept all network requests from your web app. They enable advanced caching strategies, offline functionality, and background sync - capabilities previously limited to native apps. Service Workers operate independently of your web pages, running in a separate thread with a lifecycle distinct from your app. They persist across page loads and can serve cached responses even when offline. The install event is your opportunity to precache critical assets, ensuring instant loads on subsequent visits. Understanding the Service Worker lifecycle is crucial for effective implementation.
+Service Workers are like a programmable proxy between your app and the network. They intercept requests and can serve cached responses, even when offline.
+
+**What They Enable:**
+
+- 📱 Offline functionality
+- ⚡ Custom caching strategies
+- 🔔 Push notifications
+- 🔄 Background sync
+
+### 💡 **Basic Service Worker**
 
 ```javascript
 // sw.js
@@ -144,7 +227,7 @@ const urlsToCache = [
   '/images/logo.png'
 ];
 
-// Install event - cache assets
+// 1. Install: cache initial files
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -152,7 +235,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Fetch event - serve from cache
+// 2. Fetch: serve from cache, fall back to network
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
@@ -160,7 +243,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Activate event - clean old caches
+// 3. Activate: clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
@@ -174,16 +257,27 @@ self.addEventListener('activate', (event) => {
 });
 ```
 
-### Caching Strategies
+### 💡 **Caching Strategies**
 
-Service Worker caching strategies determine how and when to serve cached content versus fetching from the network. Each strategy balances freshness (getting the latest content) with performance (serving cached content instantly). Cache First prioritizes speed by serving cached content immediately, perfect for static assets that rarely change. Network First ensures freshness for dynamic content like API responses while falling back to cache when offline. Stale While Revalidate provides instant responses from cache while fetching fresh content in the background - the best of both worlds for most content.
+There are different ways to decide between cache and network. Pick the right one for each resource type.
+
+| Strategy | Behavior | Best For |
+|----------|----------|----------|
+| **Cache First** | Check cache → fall back to network | Static assets (logos, fonts) |
+| **Network First** | Try network → fall back to cache | Fresh API data, news |
+| **Stale While Revalidate** | Serve cache + update in background | Most content |
+| **Network Only** | Always network | Sensitive data |
+| **Cache Only** | Always cache | Offline-first apps |
+
+**Cache First (Static Assets):**
 
 ```javascript
-// 1. Cache First (Good for static assets)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
+      // Found in cache → return it
       return response || fetch(event.request).then((fetchResponse) => {
+        // Not in cache → fetch + save it
         return caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, fetchResponse.clone());
           return fetchResponse;
@@ -192,39 +286,50 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+```
 
-// 2. Network First (Good for API calls)
+**Network First (API Calls):**
+
+```javascript
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
+        // Got fresh data → save and return
         const responseClone = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseClone);
         });
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request)) // Offline → use cache
   );
 });
+```
 
-// 3. Stale While Revalidate
+**Stale While Revalidate (The Best of Both):**
+
+```javascript
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
+      // Update cache in the background
       const fetchPromise = fetch(event.request).then((networkResponse) => {
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, networkResponse.clone());
         });
         return networkResponse;
       });
+      // Return cache instantly, update will happen async
       return cachedResponse || fetchPromise;
     })
   );
 });
 ```
 
-### Workbox (Modern Service Worker Library)
+### 💡 **Workbox (Easier Way)**
+
+Workbox is Google's library that makes Service Workers much simpler.
 
 ```javascript
 import { precacheAndRoute } from 'workbox-precaching';
@@ -232,10 +337,10 @@ import { registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
-// Precache static assets
+// Precache files defined at build time
 precacheAndRoute(self.__WB_MANIFEST);
 
-// Cache images (Cache First)
+// Cache images with Cache First strategy
 registerRoute(
   ({ request }) => request.destination === 'image',
   new CacheFirst({
@@ -249,20 +354,20 @@ registerRoute(
   })
 );
 
-// Cache API (Network First)
+// Cache API with Network First (5 minute fallback)
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/'),
   new NetworkFirst({
     cacheName: 'api-cache',
     plugins: [
       new ExpirationPlugin({
-        maxAgeSeconds: 5 * 60, // 5 minutes
+        maxAgeSeconds: 5 * 60,
       }),
     ],
   })
 );
 
-// Cache CSS/JS (Stale While Revalidate)
+// CSS/JS: Stale While Revalidate
 registerRoute(
   ({ request }) => request.destination === 'style' || request.destination === 'script',
   new StaleWhileRevalidate({
@@ -271,23 +376,38 @@ registerRoute(
 );
 ```
 
+---
+
 ## CDN Caching
 
-### CDN Configuration
+### 💡 **What is a CDN?**
+
+A CDN (Content Delivery Network) is a global network of servers that cache your files close to users.
+
+```
+User in Tokyo → Tokyo CDN server (50ms)
+User in London → London CDN server (30ms)
+User in New York → NYC CDN server (40ms)
+```
+
+Without a CDN, all users hit your single origin server, which could be far away.
+
+### 💡 **CDN Configuration**
+
+Different cache rules for different file types:
 
 ```javascript
-// Cloudflare cache rules
 app.use((req, res, next) => {
-  // Static assets - cache for 1 year
+  // Static assets → cache for 1 year
   if (req.path.match(/\.(css|js|jpg|png|woff2)$/)) {
     res.set('Cache-Control', 'public, max-age=31536000, immutable');
     res.set('CDN-Cache-Control', 'max-age=31536000');
   }
-  // HTML - no cache
+  // HTML → never cache
   else if (req.path.endsWith('.html')) {
     res.set('Cache-Control', 'no-cache');
   }
-  // API - short cache
+  // API → short cache
   else if (req.path.startsWith('/api/')) {
     res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
   }
@@ -295,10 +415,12 @@ app.use((req, res, next) => {
 });
 ```
 
-### Purging CDN Cache
+### 💡 **Purging the CDN**
+
+When you deploy changes, you need to clear the CDN cache.
 
 ```javascript
-// Cloudflare API purge
+// Cloudflare API example
 async function purgeCDNCache(urls) {
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache`,
@@ -314,16 +436,23 @@ async function purgeCDNCache(urls) {
   return response.json();
 }
 
-// Usage after deployment
+// Run after deployment
 await purgeCDNCache([
   'https://example.com/main.js',
   'https://example.com/styles.css'
 ]);
 ```
 
+---
+
 ## Cache Invalidation
 
-### Versioning Strategy
+> **Famous Quote:**
+> "There are only two hard things in Computer Science: cache invalidation and naming things." — Phil Karlton
+
+### 💡 **Versioning Strategies**
+
+Different ways to give caches a clean break:
 
 ```javascript
 // 1. Semantic versioning
@@ -333,10 +462,10 @@ const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 // 2. Timestamp versioning
 const CACHE_NAME = `app-cache-${Date.now()}`;
 
-// 3. Git commit hash
+// 3. Git commit hash (best for CI/CD)
 const CACHE_NAME = `app-cache-${process.env.GIT_COMMIT}`;
 
-// Clean old caches on activate
+// Clean up old caches when activating
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) =>
@@ -350,10 +479,12 @@ self.addEventListener('activate', (event) => {
 });
 ```
 
-### Time-Based Invalidation
+### 💡 **Time-Based Invalidation**
+
+Sometimes you want to expire cached items after a certain time.
 
 ```javascript
-// Store with timestamp
+// Save with timestamp
 async function cacheWithTimestamp(request, response) {
   const cache = await caches.open(CACHE_NAME);
   const headers = new Headers(response.headers);
@@ -368,7 +499,7 @@ async function cacheWithTimestamp(request, response) {
   await cache.put(request, modifiedResponse);
 }
 
-// Check if stale
+// Check if too old
 async function isStale(cachedResponse, maxAge) {
   const cachedTime = cachedResponse.headers.get('sw-cached-time');
   if (!cachedTime) return true;
@@ -377,7 +508,7 @@ async function isStale(cachedResponse, maxAge) {
   return age > maxAge;
 }
 
-// Fetch with time-based invalidation
+// Use in fetch handler
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then(async (cachedResponse) => {
@@ -392,9 +523,13 @@ self.addEventListener('fetch', (event) => {
 });
 ```
 
+---
+
 ## Application-Level Caching
 
-### In-Memory Cache
+### 💡 **In-Memory Cache**
+
+Simple cache that lives in JavaScript memory. Lost on page reload.
 
 ```javascript
 class MemoryCache {
@@ -406,6 +541,7 @@ class MemoryCache {
     const item = this.cache.get(key);
     if (!item) return null;
 
+    // Check if expired
     if (Date.now() > item.expiry) {
       this.cache.delete(key);
       return null;
@@ -443,7 +579,9 @@ async function fetchUser(id) {
 }
 ```
 
-### LocalStorage Cache
+### 💡 **LocalStorage Cache**
+
+Persists across page reloads. Limited to ~5MB.
 
 ```javascript
 class LocalStorageCache {
@@ -477,8 +615,8 @@ class LocalStorageCache {
   }
 }
 
-// React hook for cached API calls
-function useCachedFetch(url, options = {}) {
+// React hook for cached fetches
+function useCachedFetch(url) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const cache = new LocalStorageCache();
@@ -491,7 +629,7 @@ function useCachedFetch(url, options = {}) {
       return;
     }
 
-    fetch(url, options)
+    fetch(url)
       .then(res => res.json())
       .then(data => {
         cache.set(url, data, 5 * 60 * 1000); // 5 minutes
@@ -504,23 +642,23 @@ function useCachedFetch(url, options = {}) {
 }
 ```
 
-### React Query Caching
+### 💡 **React Query (Best for React)**
+
+React Query handles all the caching complexity for you.
 
 ```jsx
 import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Configure client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
-      refetchOnWindowFocus: false
+      staleTime: 5 * 60 * 1000,    // Data is fresh for 5 minutes
+      cacheTime: 10 * 60 * 1000,   // Keep in memory for 10 minutes
+      refetchOnWindowFocus: false   // Don't refetch on tab focus
     }
   }
 });
 
-// Use in app
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -529,12 +667,11 @@ function App() {
   );
 }
 
-// Component with caching
 function UserProfile() {
   const { data, isLoading } = useQuery({
     queryKey: ['user', userId],
     queryFn: () => fetchUser(userId),
-    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000
   });
 
   if (isLoading) return <Loading />;
@@ -542,57 +679,72 @@ function UserProfile() {
 }
 ```
 
+---
+
 ## Interview Questions
 
 **Q1: What are the main HTTP cache headers?**
-A:
-- **Cache-Control**: Main directive (max-age, no-cache, public/private)
-- **ETag**: Unique identifier for cache validation
-- **Last-Modified**: Timestamp for conditional requests
-- **Expires**: Legacy, absolute expiration time
+
+| Header | Purpose |
+|--------|---------|
+| **Cache-Control** | Main directive (max-age, no-cache, public/private) |
+| **ETag** | Unique identifier for cache validation |
+| **Last-Modified** | Timestamp for conditional requests |
+| **Expires** | Legacy, absolute expiration time |
 
 **Q2: Explain Cache-Control directives**
+
 ```http
 Cache-Control: public, max-age=3600, must-revalidate
-
-public: Can be cached by CDN/proxies
-private: Only browser cache
-max-age=3600: Fresh for 1 hour
-must-revalidate: Check with server after stale
-no-cache: Revalidate before use
-no-store: Don't cache at all
-immutable: Never revalidate (with hash URLs)
 ```
 
+| Directive | Meaning |
+|-----------|---------|
+| `public` | CDN and browsers can cache |
+| `private` | Only browser cache |
+| `max-age=N` | Fresh for N seconds |
+| `must-revalidate` | Check with server when stale |
+| `no-cache` | Revalidate before use |
+| `no-store` | Don't cache at all |
+| `immutable` | Never revalidate (with hash URLs) |
+
 **Q3: What are service worker caching strategies?**
-A:
-1. **Cache First**: Try cache, fallback to network (static assets)
-2. **Network First**: Try network, fallback to cache (API, dynamic)
-3. **Stale While Revalidate**: Serve cache, update in background
-4. **Network Only**: Never cache (sensitive data)
-5. **Cache Only**: Offline-first apps
+
+| Strategy | When to Use |
+|----------|-------------|
+| **Cache First** | Static assets |
+| **Network First** | API, dynamic data |
+| **Stale While Revalidate** | Most content |
+| **Network Only** | Sensitive data |
+| **Cache Only** | Offline-first apps |
 
 **Q4: How do you implement cache busting?**
+
 ```javascript
-// File hashing (best)
+// Best: File hashing
 main.abc123.js  // Hash in filename
 
-// Webpack
+// Webpack config
 output: {
   filename: '[name].[contenthash].js'
 }
 
-// Alternative: Query string (not recommended)
+// Worse: Query string
 main.js?v=1.0.0
 ```
 
-**Q5: What's the difference between ETag and Last-Modified?**
-A:
-- **ETag**: Content hash, stronger validation, works for dynamic content
-- **Last-Modified**: Timestamp, weaker, only second precision
-- Use both for maximum compatibility
+**Q5: ETag vs Last-Modified?**
+
+| Feature | ETag | Last-Modified |
+|---------|------|---------------|
+| Type | Content hash | Timestamp |
+| Strength | Stronger | Weaker (1-second precision) |
+| Works with | Any content | Static files |
+
+Use both for maximum compatibility.
 
 **Q6: How do you invalidate CDN cache?**
+
 ```javascript
 // 1. Cache busting with hashed filenames
 main.[hash].js  // New hash = new URL = CDN fetches new file
@@ -604,9 +756,9 @@ await cdn.purge(['https://example.com/old-file.js']);
 /v2/api/data  // New version bypasses cache
 ```
 
-**Q7: What's Stale-While-Revalidate strategy?**
+**Q7: What's Stale-While-Revalidate?**
+
 ```javascript
-// Serve stale cache immediately, fetch fresh in background
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => {
@@ -614,16 +766,18 @@ self.addEventListener('fetch', (event) => {
         cache.put(event.request, response.clone());
         return response;
       });
-      return cached || fresh; // Return cache if available
+      return cached || fresh; // Return cache instantly
     })
   );
 });
 ```
-Best for balancing performance and freshness.
+
+**Best for**: balancing performance and freshness.
 
 **Q8: How do you cache API responses client-side?**
+
 ```javascript
-// 1. In-memory Map/Object
+// 1. In-memory Map
 const cache = new Map();
 cache.set(url, { data, timestamp });
 
@@ -637,7 +791,6 @@ useQuery(['user', id], fetchUser, { staleTime: 300000 });
 ```
 
 **Q9: What are cache invalidation challenges?**
-A: "There are only two hard things in Computer Science: cache invalidation and naming things."
 
 Challenges:
 - Stale data
@@ -646,12 +799,13 @@ Challenges:
 - Coordinating multiple cache layers
 
 Solutions:
-- TTL (time-based)
-- Event-based invalidation
-- Cache versioning
-- Immutable URLs
+- ✅ TTL (time-based expiration)
+- ✅ Event-based invalidation
+- ✅ Cache versioning
+- ✅ Immutable URLs
 
 **Q10: How do you measure cache effectiveness?**
+
 ```javascript
 // 1. Cache hit rate
 const hitRate = cacheHits / (cacheHits + cacheMisses);
@@ -660,43 +814,50 @@ const hitRate = cacheHits / (cacheHits + cacheMisses);
 // Look for: (from disk cache) or (from memory cache)
 
 // 3. Lighthouse report
-// Checks for proper caching headers
 
 // 4. CDN analytics
-// Hit rate, bandwidth saved
 
 // 5. Service Worker metrics
 self.addEventListener('fetch', (event) => {
   caches.match(event.request).then((response) => {
-    if (response) {
-      analytics.track('cache-hit');
-    } else {
-      analytics.track('cache-miss');
-    }
+    if (response) analytics.track('cache-hit');
+    else analytics.track('cache-miss');
   });
 });
 ```
 
+---
+
 ## Summary
 
-**Caching Layers:**
-1. **Browser Cache**: HTTP headers (Cache-Control, ETag)
-2. **Service Worker**: Offline support, custom strategies
-3. **CDN**: Global edge caching
-4. **Application**: In-memory, LocalStorage, React Query
+### Caching Layers
 
-**Best Practices:**
-- Use content hashing for static assets
-- Implement proper Cache-Control headers
-- Choose right caching strategy per resource type
-- Set up effective cache invalidation
-- Monitor cache hit rates
+| Layer | What It Caches | How to Configure |
+|-------|---------------|------------------|
+| **Browser** | Files | `Cache-Control` headers |
+| **Service Worker** | Anything | JavaScript code |
+| **CDN** | Static files | CDN dashboard |
+| **App** | API data | React Query, etc. |
 
-**Common Patterns:**
-- Static assets: Cache-Control max-age=31536000, immutable
-- HTML: Cache-Control no-cache
-- API: Cache-Control max-age=300, must-revalidate
-- User content: Cache-Control private
+### Common Patterns
+
+| Resource | Cache-Control |
+|----------|--------------|
+| Static assets (with hash) | `public, max-age=31536000, immutable` |
+| HTML | `no-cache` |
+| API responses | `public, max-age=300, must-revalidate` |
+| User data | `private` |
+
+### Best Practices
+
+- ✅ Use content hashing for static assets
+- ✅ Set proper Cache-Control headers
+- ✅ Pick the right strategy per resource
+- ✅ Plan cache invalidation carefully
+- ✅ Monitor cache hit rates
+
+> **Key Insight:**
+> The best cache is one that's used. A 99% cache hit rate = your origin server only handles 1% of traffic.
 
 ---
 
