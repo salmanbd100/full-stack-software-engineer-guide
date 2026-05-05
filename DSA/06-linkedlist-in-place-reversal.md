@@ -1,12 +1,12 @@
 # In-place Reversal of LinkedList Pattern
 
-## 🎓 What is In-Place Reversal? (In Simple Words)
+## What is In-Place Reversal?
 
 Imagine you have a chain of paper clips, each connected to the next one. Now you want to reverse the chain so the last clip becomes first, and the first becomes last. Instead of creating a new chain, you carefully flip each connection one by one. That's exactly what in-place reversal does!
 
 **Simple Definition:** In-place reversal means changing the direction of connections (pointers) in a linked list without creating new nodes. We just flip the arrows that point from one node to the next.
 
-## 🌍 Real-World Analogy
+## Real-World Analogy
 
 Think of a **train with cars connected by couplers**:
 

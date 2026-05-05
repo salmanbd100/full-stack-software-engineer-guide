@@ -1,6 +1,6 @@
 # Sliding Window Pattern
 
-## 🎓 What is Sliding Window? (In Simple Words)
+## What is Sliding Window?
 
 **Simple Definition**: Imagine you're looking through a small window on a train. As the train moves, you see different scenery pass by, but you can only see what's directly in front of your window at any given moment. The Sliding Window pattern works the same way - it looks at a small "window" of elements in an array or string, then "slides" that window forward to examine different sections efficiently.
 
@@ -633,7 +633,7 @@ function maxSumSubarray(nums: number[], k: number): number | null {
 
 ---
 
-## 🤔 FAQ (Frequently Asked Questions)
+## Frequently Asked Questions
 
 ### Q1: When should I use fixed vs dynamic sliding window?
 

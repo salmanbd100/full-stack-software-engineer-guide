@@ -1533,7 +1533,7 @@ function dfsGrid(r: number, c: number): void {
 
 Think of it as:
 - 📚 Reading footnotes immediately when you encounter them (go deep!)
-- 🌳 Climbing a tree to the leaf before climbing another branch
+- Climbing a tree to the leaf before climbing another branch
 - 🗺️ Following one path in a maze until you hit a dead end
 
 ### Common Mistakes Checklist

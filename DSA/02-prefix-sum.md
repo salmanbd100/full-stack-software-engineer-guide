@@ -1,12 +1,12 @@
 # Prefix Sum Pattern
 
-## 🎓 What is Prefix Sum? (In Simple Words)
+## What is Prefix Sum?
 
 Imagine you're keeping a running total of your daily expenses. Instead of adding up all expenses from day 1 to day 10 every time someone asks, you write down the **cumulative total** each day. That's exactly what Prefix Sum does!
 
 **Simple Definition:** A Prefix Sum array stores the **running total** at each position. So if you want the sum between any two positions, you just subtract two numbers instead of adding many numbers.
 
-## 🌍 Real-World Analogy
+## Real-World Analogy
 
 Think of a **bank statement**:
 - Original array = Daily deposits: [100, 50, 200, 150]
@@ -684,7 +684,7 @@ const prefixSumCount: Map<number, number> = new Map([[0, 1]]);
 
 ---
 
-## 🤔 Frequently Asked Questions
+## Frequently Asked Questions
 
 ### Q1: Why do we need the dummy 0 at prefix[0]?
 
@@ -782,7 +782,7 @@ The frequency tells us how many different starting points work!
 
 ---
 
-## 📝 Quick Reference Template
+## Quick Reference Template
 
 ```typescript
 // Building Prefix Sum

@@ -1,12 +1,12 @@
 # Two Pointers Pattern
 
-## 🎓 What is Two Pointers? (In Simple Words)
+## What is Two Pointers?
 
 Imagine you and a friend are searching for a specific pair of books on a shelf. Instead of one person checking every possible combination (which takes forever!), you both start from opposite ends and work your way toward each other. That's exactly what the Two Pointers pattern does!
 
 **Simple Definition:** Two Pointers is a technique where we use two "markers" (pointers) to traverse through an array or list, either moving towards each other or in the same direction. This eliminates the need for nested loops and makes our code faster.
 
-## 🌍 Real-World Analogy
+## Real-World Analogy
 
 Think of a **number guessing game**:
 - You're thinking of a sum: **15**
@@ -977,7 +977,7 @@ function removeDuplicatesFixed(nums: number[]): number {
 
 ---
 
-## 🤔 Frequently Asked Questions
+## Frequently Asked Questions
 
 ### Q1: How do I know which type of two pointers to use?
 

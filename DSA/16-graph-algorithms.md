@@ -1499,7 +1499,7 @@ for (const [u, v] of edges) {
 
 ---
 
-### Tip 2: Draw the Graph! 📝
+### Tip 2: Draw the Graph!
 
 **Always visualize** before coding:
 
@@ -1598,7 +1598,7 @@ function findPath(graph: number[][], start: number, end: number): number[] | nul
 
 ---
 
-### Tip 5: State Your Time and Space Complexity 🎓
+### Tip 5: State Your Time and Space Complexity
 
 **Always analyze** and state complexity:
 
