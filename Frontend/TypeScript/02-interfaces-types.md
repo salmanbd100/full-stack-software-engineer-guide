@@ -1,551 +1,280 @@
 # Interfaces & Types
 
-## Concept
-
-TypeScript provides two main ways to define object shapes: **interfaces** and **type aliases**. While they have significant overlap, each has unique capabilities and use cases.
-
-### Key Points
-- Interfaces can be extended and implemented
-- Type aliases can represent unions, intersections, primitives
-- Interfaces can be merged (declaration merging)
-- Type aliases can use utility types and mapped types
-- Both can describe object shapes
+## Table of Contents
+- [Interfaces](#interfaces)
+- [Type Aliases](#type-aliases)
+- [Interface vs Type](#interface-vs-type)
+- [Extending and Composing](#extending-and-composing)
+- [Real-World Patterns](#real-world-patterns)
+- [Interview Questions](#interview-questions)
 
 ---
 
-## Example 1: Interface Basics
+## Interfaces
 
-**Basic Interface Definition** - Defines contracts for object shapes with properties, including optional and readonly modifiers.
+An interface describes the **shape** of an object. It's a contract — anything that uses the interface must have these properties.
 
 ```typescript
-// Basic interface
 interface User {
-    id: number;
-    name: string;
-    email: string;
-    age?: number; // Optional property
-    readonly createdAt: Date; // Read-only property
+  id: number;
+  name: string;
+  email: string;
+  role: "admin" | "user";
+  avatar?: string;       // optional
+  readonly createdAt: Date; // cannot be changed after creation
 }
 
 const user: User = {
-    id: 1,
-    name: 'Alice',
-    email: 'alice@example.com',
-    createdAt: new Date()
+  id: 1,
+  name: "Alice",
+  email: "alice@dev.com",
+  role: "admin",
+  createdAt: new Date(),
 };
 
-// user.createdAt = new Date(); // Error: readonly property
-
-**Interface with Methods** - Interfaces can define method signatures that implementing objects must provide.
-
-```typescript
-// Interface with methods
-interface Calculator {
-    add(a: number, b: number): number;
-    subtract(a: number, b: number): number;
-}
-
-const calc: Calculator = {
-    add: (a, b) => a + b,
-    subtract: (a, b) => a - b
-};
+user.name = "Bob";       // ✅ OK
+user.createdAt = new Date(); // ❌ Error: readonly
 ```
 
-**Interface with Function Type** - Describes function signatures using call signature syntax.
+### Interface with Methods
 
 ```typescript
-// Interface with function type
-interface SearchFunc {
-    (query: string, limit: number): string[];
+interface Repository<T> {
+  findById(id: number): Promise<T | null>;
+  findAll(): Promise<T[]>;
+  create(data: Omit<T, "id">): Promise<T>;
+  update(id: number, data: Partial<T>): Promise<T>;
+  delete(id: number): Promise<void>;
 }
-
-const searchUsers: SearchFunc = (query, limit) => {
-    // Implementation
-    return [];
-};
 ```
 
-**Interface with Index Signature** - Allows objects to have dynamic properties with specified key and value types.
+### Index Signatures — Dynamic Keys
 
 ```typescript
-// Interface with index signature
-interface StringMap {
-    [key: string]: string;
+interface TranslationMap {
+  [key: string]: string; // any string key → string value
 }
 
-const colors: StringMap = {
-    primary: '#007bff',
-    secondary: '#6c757d'
+const labels: TranslationMap = {
+  submit: "Submit",
+  cancel: "Cancel",
+  loading: "Loading...",
 };
-```
-
-**Extending Interfaces** - Interfaces can extend other interfaces to inherit their properties and add new ones.
-
-```typescript
-// Extending interfaces
-interface Person {
-    name: string;
-    age: number;
-}
-
-interface Employee extends Person {
-    employeeId: string;
-    department: string;
-}
-
-const employee: Employee = {
-    name: 'Bob',
-    age: 30,
-    employeeId: 'E123',
-    department: 'Engineering'
-};
-```
-
-**Multiple Inheritance** - Interfaces can extend multiple interfaces simultaneously using comma-separated list.
-
-```typescript
-// Multiple inheritance
-interface Timestamped {
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-interface Product extends Person, Timestamped {
-    productId: string;
-}
 ```
 
 ---
 
-## Example 2: Type Aliases
+## Type Aliases
 
-**Basic Type Aliases** - Create reusable type definitions using the type keyword for primitives, unions, or complex types.
-
-```typescript
-// Basic type alias
-type UserID = string | number;
-
-type User = {
-    id: UserID;
-    name: string;
-    email: string;
-};
-```
-
-**Union Types** - Allow values to be one of several types using the | operator.
+Type aliases can represent **anything** — primitives, unions, intersections, tuples, or functions.
 
 ```typescript
-// Union types
-type Status = 'pending' | 'approved' | 'rejected';
-
-type Result = Success | Error;
-
-type Success = {
-    success: true;
-    data: any;
-};
-
-type Error = {
-    success: false;
-    error: string;
-};
-```
-
-**Intersection Types** - Combine multiple types using the & operator to create types with all properties.
-
-```typescript
-// Intersection types
-type Timestamped = {
-    createdAt: Date;
-    updatedAt: Date;
-};
-
-type Person = {
-    name: string;
-    age: number;
-};
-
-type TimestampedPerson = Person & Timestamped;
-
-const person: TimestampedPerson = {
-    name: 'Alice',
-    age: 30,
-    createdAt: new Date(),
-    updatedAt: new Date()
-};
-```
-
-**Function Types** - Define function signatures using type aliases for reusable function patterns.
-
-```typescript
-// Function types
-type AddFunction = (a: number, b: number) => number;
-
-const add: AddFunction = (a, b) => a + b;
-```
-
-**Type Aliases for Primitives** - Create descriptive names for primitive types and utility type combinations.
-
-```typescript
-// Type aliases for primitives
-type ID = string;
-type Callback = () => void;
-type Nullable<T> = T | null;
-```
-
-**Tuple Types** - Define fixed-length arrays with specific types for each position.
-
-```typescript
-// Tuple types
-type Point = [number, number];
-type RGB = [number, number, number];
-
-const point: Point = [10, 20];
-const color: RGB = [255, 0, 0];
-```
-
-**Mapped Types** - Transform properties of existing types programmatically using key remapping.
-
-```typescript
-// Mapped types (only with type)
-type Readonly<T> = {
-    readonly [P in keyof T]: T[P];
-};
-
-type ReadonlyUser = Readonly<User>;
-```
-
----
-
-## Example 3: Interface vs Type - When to Use
-
-```typescript
-// ✅ Use INTERFACE for:
-
-// 1. Object shapes that might be extended
-interface Animal {
-    name: string;
-    age: number;
-}
-
-interface Dog extends Animal {
-    breed: string;
-}
-
-// 2. Declaration merging (useful for extending third-party types)
-interface Window {
-    customProperty: string;
-}
-
-interface Window {
-    anotherProperty: number;
-}
-// Both declarations merge into single interface
-
-// 3. When implementing in classes
-interface Drawable {
-    draw(): void;
-}
-
-class Circle implements Drawable {
-    draw() {
-        console.log('Drawing circle');
-    }
-}
-
-// ✅ Use TYPE for:
-
-// 1. Union types
-type Result = Success | Failure;
+// Union type — one of several values
+type Status = "pending" | "active" | "suspended";
 type ID = string | number;
 
-// 2. Intersection types
-type Employee = Person & HasId & Timestamped;
-
-// 3. Tuple types
-type Coordinates = [number, number, number];
-
-// 4. Utility types and mapped types
-type Partial<T> = {
-    [P in keyof T]?: T[P];
+// Object shape (similar to interface)
+type Address = {
+  street: string;
+  city: string;
+  country: string;
 };
 
-type PartialUser = Partial<User>;
+// Intersection — combine multiple types
+type UserWithAddress = User & { address: Address };
 
-// 5. Primitive aliases
-type Email = string;
-type Count = number;
+// Tuple
+type Pagination = [page: number, limit: number];
 
-// 6. Function types
-type AsyncCallback = (error: Error | null, data: any) => Promise<void>;
+// Function signature
+type Middleware = (req: Request, res: Response, next: () => void) => void;
 ```
 
 ---
 
-## Common Pitfalls
+## Interface vs Type
 
-### Pitfall 1: Extending vs Intersection
+| Feature | `interface` | `type` |
+|---------|-------------|--------|
+| Object shapes | ✅ | ✅ |
+| Union types | ❌ | ✅ |
+| Tuple types | ❌ | ✅ |
+| Extend/merge | `extends` keyword | `&` intersection |
+| Declaration merging | ✅ (same name = merge) | ❌ (error on duplicate) |
+| Implements in classes | ✅ | ✅ |
+
+### Declaration Merging — interfaces only
 
 ```typescript
-// With interfaces - error if properties conflict
-interface A {
-    prop: string;
+// Useful for extending third-party types (e.g., Express Request)
+interface Request {
+  user?: User;
 }
 
-interface B extends A {
-    // prop: number; // Error: Types conflict
+interface Request {
+  requestId: string;
 }
-
-// With types - creates never type if properties conflict
-type C = {
-    prop: string;
-};
-
-type D = C & {
-    prop: number; // No error, but prop becomes never type
-};
-
-const d: D = {
-    prop: 'test' as never // prop is effectively unusable
-};
+// Both declarations merge into one Request type
 ```
 
-### Pitfall 2: Index Signatures
+### ✅ Use `interface` for:
+- Object shapes you might extend later
+- Public API contracts
+- Classes that `implement` it
+
+### ✅ Use `type` for:
+- Union types: `type Status = "pending" | "done"`
+- Intersection types: `type Admin = User & { permissions: string[] }`
+- Tuples, function signatures, primitives
+
+---
+
+## Extending and Composing
 
 ```typescript
-// PROBLEM - Can't add specific properties with different types
-interface Config {
-    [key: string]: string; // All properties must be strings
-    // timeout: number; // Error: number not assignable to string
+// Interface extends interface
+interface BaseEntity {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// SOLUTION 1 - Make index signature more permissive
-interface ConfigFixed {
-    [key: string]: string | number;
-    timeout: number; // OK now
+interface Product extends BaseEntity {
+  name: string;
+  price: number;
+  stock: number;
 }
 
-// SOLUTION 2 - Use type with Record
-type ConfigType = Record<string, string> & {
-    timeout: number;
-};
-```
-
-### Pitfall 3: Optional vs Undefined
-
-```typescript
-interface User {
-    name: string;
-    age?: number; // Can be omitted
+// Multiple inheritance
+interface Post extends BaseEntity {
+  title: string;
+  content: string;
+  authorId: number;
 }
 
-type UserType = {
-    name: string;
-    age: number | undefined; // Must be present, can be undefined
-};
-
-const user1: User = {
-    name: 'Alice'
-    // age can be omitted
-};
-
-const user2: UserType = {
-    name: 'Bob',
-    age: undefined // Must explicitly set to undefined
-};
+// Type intersection — same result
+type AuditedProduct = Product & { auditedBy: string };
 ```
 
 ---
 
-## Best Practices
+## Real-World Patterns
 
-### 1. Prefer Interface for Object Shapes
-
-```typescript
-// Good - using interface for objects
-interface Product {
-    id: string;
-    name: string;
-    price: number;
-}
-
-// Good - using type for unions/primitives
-type ProductStatus = 'inStock' | 'outOfStock' | 'discontinued';
-type ProductID = string;
-```
-
-### 2. Use Descriptive Names
+### API Response Types
 
 ```typescript
-// Bad
-interface Data {
-    x: number;
-    y: string;
-}
-
-// Good
-interface UserProfile {
-    userId: number;
-    username: string;
-}
-```
-
-### 3. Composition Over Complex Types
-
-```typescript
-// Less maintainable
-type ComplexUser = {
-    id: string;
-    name: string;
-    email: string;
-    address: {
-        street: string;
-        city: string;
-        country: string;
-    };
-    preferences: {
-        theme: 'light' | 'dark';
-        notifications: boolean;
-    };
-};
-
-// Better - compose from smaller types
-interface Address {
-    street: string;
-    city: string;
-    country: string;
-}
-
-interface UserPreferences {
-    theme: 'light' | 'dark';
-    notifications: boolean;
-}
-
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    address: Address;
-    preferences: UserPreferences;
-}
-```
-
----
-
-## Real-world Scenarios
-
-### Scenario 1: API Response Types
-
-```typescript
-// Base response interface
 interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    error?: string;
-    timestamp: Date;
+  data: T;
+  message: string;
+  success: boolean;
 }
 
-// Specific response types
-interface User {
-    id: string;
-    name: string;
-    email: string;
-}
-
-interface Post {
-    id: string;
-    title: string;
-    content: string;
-    authorId: string;
+interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
 }
 
 // Usage
-type UserResponse = ApiResponse<User>;
-type PostsResponse = ApiResponse<Post[]>;
-
-async function getUser(id: string): Promise<UserResponse> {
-    const response = await fetch(`/api/users/${id}`);
-    return response.json();
+async function getUsers(): Promise<PaginatedResponse<User>> {
+  const res = await fetch("/api/users?page=1&limit=20");
+  return res.json();
 }
 ```
 
-### Scenario 2: Form State Management
+### Form Data Types
 
 ```typescript
-interface FormField<T> {
-    value: T;
-    error?: string;
-    touched: boolean;
-    dirty: boolean;
-}
-
+// Separate form state from the DB model
 interface LoginForm {
-    email: FormField<string>;
-    password: FormField<string>;
-    rememberMe: FormField<boolean>;
+  email: string;
+  password: string;
+  rememberMe: boolean;
 }
 
-const initialForm: LoginForm = {
-    email: { value: '', touched: false, dirty: false },
-    password: { value: '', touched: false, dirty: false },
-    rememberMe: { value: false, touched: false, dirty: false }
+// Create input excludes auto-generated fields
+type CreateUserInput = Omit<User, "id" | "createdAt"> & {
+  password: string;
 };
+
+// Update input makes all fields optional
+type UpdateUserInput = Partial<Omit<User, "id" | "createdAt">>;
 ```
 
-### Scenario 3: Event Handlers
+### Discriminated Union for State
 
 ```typescript
-// React event handler types
-interface ButtonProps {
-    onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    onHover?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}
+type RequestState<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: string };
 
-interface InputProps {
-    value: string;
-    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
-}
-
-// Custom event types
-type UserClickedEvent = {
-    type: 'USER_CLICKED';
-    payload: {
-        userId: string;
-        timestamp: Date;
-    };
-};
-
-type UserLoggedInEvent = {
-    type: 'USER_LOGGED_IN';
-    payload: {
-        userId: string;
-        sessionId: string;
-    };
-};
-
-type AppEvent = UserClickedEvent | UserLoggedInEvent;
-
-function handleEvent(event: AppEvent) {
-    switch (event.type) {
-        case 'USER_CLICKED':
-            console.log(event.payload.userId);
-            break;
-        case 'USER_LOGGED_IN':
-            console.log(event.payload.sessionId);
-            break;
-    }
+// Type-safe state handling
+function renderUser(state: RequestState<User>) {
+  if (state.status === "success") {
+    return state.data.name; // ✅ TypeScript knows data exists here
+  }
+  if (state.status === "error") {
+    return state.error; // ✅ TypeScript knows error exists here
+  }
 }
 ```
 
 ---
 
-## External Resources
+## Common Pitfall: Optional vs Undefined
 
-- [TypeScript Handbook: Interfaces](https://www.typescriptlang.org/docs/handbook/interfaces.html)
-- [TypeScript Handbook: Type Aliases](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#type-aliases)
-- [TypeScript Deep Dive: Interfaces](https://basarat.gitbook.io/typescript/type-system/interfaces)
+```typescript
+// ❌ These look similar but behave differently
+interface A {
+  age?: number; // age can be omitted entirely
+}
+
+interface B {
+  age: number | undefined; // age MUST be present (even if undefined)
+}
+
+const a: A = { name: "Alice" }; // ✅ age omitted — OK
+// const b: B = {}; // ❌ Error: age is missing
+const b: B = { age: undefined }; // ✅ Must explicitly include it
+```
 
 ---
 
-[← Back to TypeScript](./README.md) | [Next: Generics →](./03-generics.md)
+## Interview Questions
+
+### Q: When should you use `interface` vs `type`?
+
+Default to `interface` for object shapes. Use `type` for unions, intersections, and tuples.
+
+```typescript
+interface User { id: number; name: string; } // object shape → interface
+type Status = "active" | "inactive";          // union → type
+type AdminUser = User & { permissions: string[] }; // intersection → type
+```
+
+### Q: What is declaration merging?
+
+Only interfaces support it. If you declare the same interface twice, TypeScript merges them into one. This is useful for extending third-party types like Express's `Request`.
+
+### Q: What is a discriminated union?
+
+A union where each member has a common property with a unique literal value. TypeScript uses that property to narrow the type.
+
+```typescript
+type Shape =
+  | { kind: "circle"; radius: number }
+  | { kind: "square"; side: number };
+
+function area(s: Shape) {
+  if (s.kind === "circle") return Math.PI * s.radius ** 2;
+  return s.side ** 2;
+}
+```
+
+---
+
+[← Basic Types](./01-basic-types.md) | [Next: Generics →](./03-generics.md)
