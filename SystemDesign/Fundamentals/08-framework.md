@@ -1,805 +1,272 @@
 # System Design Interview Framework
 
-## Overview
-A structured framework helps you navigate system design interviews systematically, ensuring you cover all critical aspects while demonstrating strong communication and technical reasoning. This guide provides a step-by-step approach to tackle any system design question.
+### 💡 **Concept**
 
-## Interview Structure
+A system design interview tests how you **structure ambiguity**, not how much trivia you remember. Use a framework so you never drift.
 
-### Typical Timeline (45-60 minutes)
+The **RADIO framework** covers everything an interviewer wants in 45–60 minutes:
 
-```
-Requirements & Scope:           5-10 minutes
-High-Level Design:              10-15 minutes
-Deep Dive:                      15-20 minutes
-Bottlenecks & Trade-offs:       5-10 minutes
-Questions & Wrap-up:            5 minutes
-```
+> **R**equirements → **A**rchitecture → **D**ata model → **I**nterface → **O**ptimizations
 
-**Key Principle:** Spend more time on breadth first, then depth based on interviewer's interest.
+## Time Budget (45–60 min)
 
-## RADIO Framework
+| Phase | Time | Goal |
+| --- | --- | --- |
+| Requirements | 5–10 min | Scope, scale, constraints |
+| Architecture | 10–15 min | High-level boxes and arrows |
+| Data model | 5–10 min | Schema, partitioning |
+| Interface | 5–10 min | Key API endpoints |
+| Optimizations | 10–15 min | Bottlenecks, scale, failure |
+| Wrap-up | 5 min | Tradeoffs, questions |
 
-The RADIO framework provides a structured approach to system design interviews.
+Go broad first. Go deep only where the interviewer leans in.
 
-### R - Requirements
+## R — Requirements
 
-Clarify functional and non-functional requirements before designing.
+Split into **functional** (what it does) and **non-functional** (how well).
 
-**Functional Requirements (What system does):**
-- What features are we building?
-- What are the core use cases?
-- Who are the users?
-- What actions can users perform?
+**Functional:** features in scope. Ask what to skip. Out-of-scope is as important as in-scope.
 
-**Non-Functional Requirements (How system performs):**
-- **Scale:** How many users? Requests per second?
-- **Performance:** Latency requirements?
-- **Availability:** Uptime requirements (99.9%, 99.99%)?
-- **Consistency:** Strong or eventual?
-- **Durability:** Data loss acceptable?
+**Non-functional:** scale, latency, availability, consistency, durability.
 
-**Questions to Ask:**
-```
-"How many daily active users are we expecting?"
-"What's the read-to-write ratio?"
-"Are there any latency requirements?"
-"Do we need to support mobile clients?"
-"What's the expected growth rate?"
-"Any specific compliance requirements (GDPR, HIPAA)?"
-```
+**Questions to ask every time:**
 
-**Example: Design Twitter**
-```
-Functional:
-✓ Users can post tweets (280 chars)
-✓ Users can follow other users
-✓ Users view home timeline
-✓ Users can like/retweet
-✗ Direct messaging (out of scope)
-✗ Trending topics (out of scope)
+- How many DAU? Read/write ratio?
+- Latency target (p95, p99)?
+- Availability SLA (99.9 vs 99.99)?
+- Strong or eventual consistency?
+- Mobile, web, both?
+- Any compliance (GDPR, PCI, HIPAA)?
 
-Non-Functional:
-- 500M daily active users
-- 100:1 read-to-write ratio
-- Timeline latency < 200ms
-- 99.9% availability
-- Eventual consistency OK
-```
+> Write the answers on the board. They become your design contract.
 
-### A - Architecture
+## A — Architecture
 
-Design high-level architecture with major components.
+Draw the high-level diagram. Six to eight boxes is enough.
 
-**Components to Consider:**
-- Client applications (web, mobile)
-- Load balancers
-- Application servers
-- Databases (SQL/NoSQL)
-- Caches (Redis, Memcached)
-- Message queues (Kafka, RabbitMQ)
-- Object storage (S3)
-- CDN
+**Standard components:**
 
-**Drawing the Architecture:**
-```
-┌──────────┐
-│  Client  │
-└────┬─────┘
-     │
-┌────▼──────────┐
-│ Load Balancer │
-└────┬──────────┘
-     │
-     ├────────────────────┐
-     │                    │
-┌────▼─────┐       ┌──────▼────┐
-│ App      │       │ App       │
-│ Server 1 │       │ Server 2  │
-└────┬─────┘       └──────┬────┘
-     │                    │
-     └──────┬─────────────┘
-            │
-     ┌──────▼──────┐
-     │   Cache     │
-     │  (Redis)    │
-     └──────┬──────┘
-            │
-     ┌──────▼──────┐
-     │  Database   │
-     │ (Primary)   │
-     └──────┬──────┘
-            │
-     ┌──────▼──────┐
-     │   Replicas  │
-     └─────────────┘
+- Client (web, mobile)
+- Load balancer
+- API servers (stateless, horizontally scalable)
+- Cache (Redis, Memcached)
+- Primary database + replicas
+- Object storage (S3) for blobs
+- Message queue (Kafka, SQS) for async work
+- CDN for static assets
+
+**Walk the request path out loud.** "Client hits the LB → routed to an API server → check cache → on miss, query DB → write back to cache → return."
+
+If you cannot explain the flow in five sentences, the design is too complex.
+
+## D — Data Model
+
+**Pick SQL or NoSQL with a reason.**
+
+| Use SQL when | Use NoSQL when |
+| --- | --- |
+| Strong relationships, joins | Flexible or evolving schema |
+| ACID transactions required | Massive write throughput |
+| Complex reporting | Horizontal scale needed |
+| Data integrity is critical | Simple key-value access |
+
+**Show partitioning.** "Shard by `user_id` mod N." Mention hot-key risk.
+
+**Schema sketch — Twitter-style tweets table:**
+
+```typescript
+interface User {
+  userId: bigint;          // PK
+  username: string;        // unique, indexed
+  email: string;           // unique
+  createdAt: Date;
+}
+
+interface Tweet {
+  tweetId: bigint;         // PK
+  userId: bigint;          // FK, indexed
+  content: string;         // ≤ 280 chars
+  createdAt: Date;         // index (userId, createdAt DESC)
+  likes: number;
+  retweets: number;
+}
+
+interface Follow {
+  followerId: bigint;      // PK part 1
+  followeeId: bigint;      // PK part 2, indexed
+  createdAt: Date;
+}
 ```
 
-**Talk Through the Flow:**
-```
-1. Client sends request to load balancer
-2. Load balancer routes to available app server
-3. App server checks cache for data
-4. If cache miss, query database
-5. Update cache with result
-6. Return response to client
-```
+For a feed read-heavy workload, also mention a **denormalized timeline table** in Cassandra keyed by `(userId, createdAt)`.
 
-### D - Data Model
+## I — Interface (API)
 
-Design database schema and choose appropriate storage.
+Pick a few key endpoints. Show request and response shape.
 
-**Database Selection:**
-
-**Use SQL when:**
-- Structured data with relationships
-- ACID transactions required
-- Complex queries and joins
-- Data integrity critical
-
-**Use NoSQL when:**
-- Flexible schema needed
-- High write throughput
-- Horizontal scaling required
-- Simple query patterns
-
-**Schema Design Example: Twitter**
-
-**SQL Schema:**
-```sql
--- Users table
-CREATE TABLE users (
-  user_id BIGINT PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
-  created_at TIMESTAMP,
-  INDEX idx_username (username)
-);
-
--- Tweets table
-CREATE TABLE tweets (
-  tweet_id BIGINT PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  content VARCHAR(280),
-  created_at TIMESTAMP,
-  likes_count INT DEFAULT 0,
-  retweets_count INT DEFAULT 0,
-  FOREIGN KEY (user_id) REFERENCES users(user_id),
-  INDEX idx_user_created (user_id, created_at DESC)
-);
-
--- Follows table (adjacency list)
-CREATE TABLE follows (
-  follower_id BIGINT,
-  followee_id BIGINT,
-  created_at TIMESTAMP,
-  PRIMARY KEY (follower_id, followee_id),
-  INDEX idx_followee (followee_id)
-);
-```
-
-**NoSQL Schema (Cassandra):**
-```
--- Timeline table (denormalized)
-CREATE TABLE timeline (
-  user_id BIGINT,
-  tweet_id BIGINT,
-  author_id BIGINT,
-  content TEXT,
-  created_at TIMESTAMP,
-  PRIMARY KEY (user_id, created_at, tweet_id)
-) WITH CLUSTERING ORDER BY (created_at DESC);
-```
-
-**Data Partitioning:**
-```
-Partition by user_id:
-- Shard 0: users 0-999,999
-- Shard 1: users 1M-1,999,999
-- Shard 2: users 2M-2,999,999
-
-Hash-based: shard = hash(user_id) % num_shards
-```
-
-### I - Interface (API Design)
-
-Define API endpoints and contracts.
-
-**REST API Design:**
-
-```javascript
-// User APIs
-POST   /api/v1/users              // Create user
-GET    /api/v1/users/{user_id}    // Get user profile
-PUT    /api/v1/users/{user_id}    // Update user
-DELETE /api/v1/users/{user_id}    // Delete user
-
-// Tweet APIs
-POST   /api/v1/tweets              // Create tweet
-GET    /api/v1/tweets/{tweet_id}  // Get tweet
-DELETE /api/v1/tweets/{tweet_id}  // Delete tweet
-POST   /api/v1/tweets/{tweet_id}/like    // Like tweet
-POST   /api/v1/tweets/{tweet_id}/retweet // Retweet
-
-// Timeline APIs
-GET    /api/v1/timelines/home?limit=20&offset=0  // Home timeline
-GET    /api/v1/timelines/user/{user_id}?limit=20 // User timeline
-
-// Follow APIs
-POST   /api/v1/follows             // Follow user
-DELETE /api/v1/follows/{user_id}   // Unfollow user
-GET    /api/v1/follows/followers/{user_id}  // Get followers
-GET    /api/v1/follows/following/{user_id}  // Get following
-```
-
-**Request/Response Examples:**
-
-```javascript
+```typescript
 // POST /api/v1/tweets
-Request:
-{
-  "content": "Hello World!",
-  "user_id": 12345
+interface CreateTweetRequest {
+  userId: bigint;
+  content: string;
+}
+interface TweetResponse {
+  tweetId: bigint;
+  userId: bigint;
+  content: string;
+  createdAt: string;
+  likes: number;
 }
 
-Response:
-{
-  "tweet_id": 98765,
-  "user_id": 12345,
-  "username": "john_doe",
-  "content": "Hello World!",
-  "created_at": "2024-01-15T10:30:00Z",
-  "likes_count": 0,
-  "retweets_count": 0
-}
-
-// GET /api/v1/timelines/home?limit=20
-Response:
-{
-  "tweets": [
-    {
-      "tweet_id": 98765,
-      "user_id": 12345,
-      "username": "john_doe",
-      "content": "Hello World!",
-      "created_at": "2024-01-15T10:30:00Z",
-      "likes_count": 100,
-      "retweets_count": 20
-    },
-    // ... more tweets
-  ],
-  "next_offset": 20,
-  "has_more": true
+// GET /api/v1/timelines/home?limit=20&cursor=abc
+interface TimelineResponse {
+  tweets: TweetResponse[];
+  nextCursor: string | null;
 }
 ```
 
-### O - Optimizations
-
-Identify bottlenecks and propose optimizations.
-
-**Common Optimizations:**
-
-1. **Caching**
-   ```
-   Problem: Database queries slow
-   Solution: Cache frequently accessed data in Redis
-
-   Cache layers:
-   - Browser cache (static assets)
-   - CDN (images, videos)
-   - Application cache (API responses)
-   - Database query cache
-   ```
-
-2. **Database Optimization**
-   ```
-   Problem: Slow queries
-   Solutions:
-   - Add indexes on frequently queried columns
-   - Use read replicas for read-heavy workloads
-   - Implement database sharding
-   - Denormalize data for faster reads
-   ```
-
-3. **Asynchronous Processing**
-   ```
-   Problem: Slow operations blocking requests
-   Solution: Move to background queue
-
-   Example:
-   - Email notifications → Queue
-   - Image processing → Queue
-   - Analytics aggregation → Queue
-   ```
-
-4. **CDN for Static Assets**
-   ```
-   Problem: High bandwidth costs, slow asset delivery
-   Solution: CloudFront/Cloudflare CDN
-
-   Benefits:
-   - Reduced latency (edge locations)
-   - Lower bandwidth costs
-   - DDoS protection
-   ```
-
-5. **Load Balancing**
-   ```
-   Problem: Uneven traffic distribution
-   Solutions:
-   - Application load balancer (Layer 7)
-   - Geographic load balancing
-   - Weighted round-robin
-   ```
-
-## Alternative Frameworks
-
-### PEDALS Framework
-
-**P - Problem Scoping**
-- Clarify requirements
-- Define success metrics
-
-**E - Estimation**
-- Calculate storage, bandwidth, QPS
-- Determine scale
-
-**D - Design**
-- High-level architecture
-- Component interactions
-
-**A - API Design**
-- Define endpoints
-- Request/response formats
-
-**L - Logic/Algorithms**
-- Core algorithms
-- Data structures
-
-**S - Scalability**
-- Bottlenecks
-- Optimizations
-
-### SNAKE Framework
-
-**S - Scenario**
-- Use cases
-- Constraints
-
-**N - Necessary**
-- Functional requirements
-- Non-functional requirements
-
-**A - Application**
-- High-level design
-- Services
-
-**K - Kilobyte**
-- Data model
-- Storage estimation
-
-**E - Evolve**
-- Bottlenecks
-- Scaling strategies
-
-## Communication Best Practices
-
-### Do's
-
-✅ **Think Out Loud**
-```
-"I'm thinking we need a cache here because..."
-"Let me consider the trade-offs between SQL and NoSQL..."
-"This could be a bottleneck, so we should..."
-```
-
-✅ **Ask Clarifying Questions**
-```
-"Should we prioritize consistency or availability?"
-"What's more important: read latency or write latency?"
-"Are there any constraints on technology stack?"
-```
-
-✅ **State Assumptions**
-```
-"I'm assuming 100M daily active users"
-"Let's say the average tweet is 200 bytes"
-"I'll assume a 100:1 read-to-write ratio"
-```
-
-✅ **Discuss Trade-offs**
-```
-"SQL gives us ACID, but NoSQL scales better horizontally"
-"Strong consistency means higher latency"
-"Caching improves performance but adds complexity"
-```
-
-✅ **Draw Diagrams**
-- Use boxes for components
-- Arrows for data flow
-- Label clearly
-- Keep it simple
-
-✅ **Check for Understanding**
-```
-"Does this approach make sense?"
-"Should I dive deeper into this component?"
-"Would you like me to discuss alternatives?"
-```
-
-### Don'ts
-
-❌ **Jumping to Solution**
-- Don't start designing without requirements
-
-❌ **Over-Engineering**
-- Don't add unnecessary complexity
-- Start simple, then scale
-
-❌ **Ignoring Scale**
-- Don't forget to do calculations
-- Always consider growth
-
-❌ **Silent Thinking**
-- Don't go quiet for long periods
-- Explain your thought process
-
-❌ **Single Solution**
-- Don't present only one option
-- Discuss alternatives and trade-offs
-
-❌ **Forgetting About Failures**
-- Don't ignore failure scenarios
-- Consider fault tolerance
-
-## Handling Different Question Types
-
-### Design a System (Twitter, Uber, YouTube)
-
-**Approach:**
-1. Clarify scope (which features?)
-2. Estimate scale (users, QPS, storage)
-3. High-level design
-4. Database schema
-5. API design
-6. Deep dive into 2-3 components
-7. Bottlenecks and optimizations
-
-**Time Allocation:**
-- Requirements: 7 minutes
-- Design: 15 minutes
-- Deep dive: 20 minutes
-- Optimizations: 8 minutes
-
-### Design a Component (Rate Limiter, Cache, Queue)
-
-**Approach:**
-1. Requirements and use cases
-2. Algorithm/data structure
-3. Implementation details
-4. Distributed considerations
-5. Edge cases
-
-**Example: Rate Limiter**
-```
-1. Requirements:
-   - Limit requests per user
-   - Distributed system
-   - Low latency
-
-2. Algorithm:
-   - Token bucket
-   - Fixed window counter
-   - Sliding window log
-
-3. Implementation:
-   - Redis with INCR and EXPIRE
-   - Distributed rate limiting
-
-4. Distributed:
-   - Sticky sessions
-   - Central Redis
-   - Eventual consistency OK
-
-5. Edge cases:
-   - Clock skew
-   - Redis failure
-   - Burst traffic
-```
-
-### Capacity Estimation
-
-**Approach:**
-1. Understand requirements
-2. Break down into components
-3. Calculate each metric
-4. Show your work
-
-**Example:**
-```
-Storage for 1B photos:
-- Photo size: 2 MB average
-- Total: 1B × 2 MB = 2 PB
-- With compression (50%): 1 PB
-- With replicas (3x): 3 PB
-```
-
-## Common Interview Questions
-
-### Q: How do you handle millions of requests per second?
-
-**Answer Framework:**
-```
-1. Horizontal Scaling:
-   - Add more servers
-   - Load balancing
-   - Auto-scaling
-
-2. Caching:
-   - Redis/Memcached
-   - CDN for static assets
-   - Browser caching
-
-3. Database Optimization:
-   - Read replicas
-   - Sharding
-   - Indexes
-
-4. Async Processing:
-   - Message queues
-   - Background workers
-
-5. Rate Limiting:
-   - Prevent abuse
-   - Protect system
-```
-
-### Q: How do you ensure high availability?
-
-**Answer Framework:**
-```
-1. Redundancy:
-   - Multiple availability zones
-   - Database replicas
-   - No single point of failure
-
-2. Load Balancing:
-   - Health checks
-   - Auto-failover
-
-3. Monitoring:
-   - Metrics and alerts
-   - Automated recovery
-
-4. Graceful Degradation:
-   - Fallback mechanisms
-   - Circuit breakers
-
-5. Regular Testing:
-   - Disaster recovery drills
-   - Chaos engineering
-```
-
-### Q: SQL vs NoSQL?
-
-**Answer Framework:**
-```
-Choose SQL when:
-- Structured data
-- ACID transactions
-- Complex queries/joins
-- Data integrity critical
-- Examples: PostgreSQL, MySQL
-
-Choose NoSQL when:
-- Flexible schema
-- High write throughput
-- Horizontal scaling
-- Simple queries
-- Examples: MongoDB, Cassandra, DynamoDB
-
-Trade-offs:
-SQL: Strong consistency, limited scale
-NoSQL: High scale, eventual consistency
-```
-
-## Example Walkthrough: Design URL Shortener
-
-### Step 1: Requirements (5 min)
-
-**Functional:**
-- Shorten long URL to short URL
-- Redirect short URL to original
-- Custom short URLs (optional)
-- Analytics (optional)
-
-**Non-Functional:**
-- 100M URLs created per month
-- 100:1 read-to-write ratio
-- Low latency (<50ms)
-- High availability (99.9%)
-- 10-year retention
-
-**Scope:**
-✓ URL shortening and redirection
-✗ User accounts (out of scope)
-✗ URL editing (out of scope)
-
-### Step 2: Estimation (3 min)
-
-```
-Write QPS:
-- 100M URLs/month ÷ 30 days ÷ 86,400 sec ≈ 40 writes/sec
-
-Read QPS:
-- 40 × 100 = 4,000 reads/sec
-
-Storage (10 years):
-- Total URLs: 100M × 12 × 10 = 12B URLs
-- Per URL: 500 bytes (short URL + long URL + metadata)
-- Total: 12B × 500 bytes = 6 TB
-
-Short URL length:
-- Base62 (a-z, A-Z, 0-9): 62 characters
-- 62^7 = 3.5 trillion combinations (sufficient)
-```
-
-### Step 3: High-Level Design (10 min)
-
-```
-┌──────────┐
-│  Client  │
-└────┬─────┘
-     │
-┌────▼──────────┐
-│ Load Balancer │
-└────┬──────────┘
-     │
-     ├─────────────────────┐
-     │                     │
-┌────▼─────┐        ┌──────▼────┐
-│   API    │        │    API    │
-│ Server 1 │        │  Server 2 │
-└────┬─────┘        └──────┬────┘
-     │                     │
-     └──────┬──────────────┘
-            │
-     ┌──────▼──────┐
-     │    Cache    │
-     │   (Redis)   │
-     └──────┬──────┘
-            │
-     ┌──────▼──────┐
-     │  Database   │
-     │ (Cassandra) │
-     └─────────────┘
-```
-
-### Step 4: Data Model (5 min)
-
-```sql
--- Cassandra schema
-CREATE TABLE urls (
-  short_url VARCHAR(7) PRIMARY KEY,
-  long_url TEXT,
-  created_at TIMESTAMP,
-  expiry_at TIMESTAMP,
-  click_count BIGINT
-);
-
-CREATE INDEX idx_created ON urls(created_at);
-```
-
-### Step 5: API Design (5 min)
-
-```javascript
-// Create short URL
-POST /api/v1/shorten
-Request:
-{
-  "long_url": "https://example.com/very/long/url",
-  "custom_short": "abc123" // optional
+**Talking points:**
+
+- Use **cursor pagination**, not offset (offset breaks at scale).
+- Version the API (`/v1`).
+- Return only fields the client needs.
+- Idempotency keys for writes.
+
+## O — Optimizations
+
+Cover the standard five. Pick two to go deep based on the interviewer's interest.
+
+| Lever | Problem it solves |
+| --- | --- |
+| **Cache** (Redis, CDN) | Slow database reads |
+| **Read replicas, sharding** | Database is the bottleneck |
+| **Async via queue** | Slow operations block requests |
+| **Rate limiting** | Abuse and traffic spikes |
+| **Graceful degradation** | Partial failures don't kill UX |
+
+**Caching layers, in order:**
+
+1. Browser cache (`Cache-Control`)
+2. CDN edge (images, scripts, redirects)
+3. Application cache (Redis)
+4. Database query cache
+
+**Async pattern:**
+
+```typescript
+// Fast path — accept and queue
+async function publishTweet(t: Tweet): Promise<void> {
+  await db.insert(t);
+  await queue.publish("tweet.created", t);   // fan out async
 }
 
-Response:
-{
-  "short_url": "https://short.ly/Xy3aB9",
-  "long_url": "https://example.com/very/long/url",
-  "created_at": "2024-01-15T10:30:00Z"
+// Slow worker — runs out-of-band
+async function onTweetCreated(t: Tweet): Promise<void> {
+  await pushToFollowerTimelines(t);
+  await indexForSearch(t);
+  await notifySubscribers(t);
 }
-
-// Redirect
-GET /{short_url}
-Response: 301 Redirect to long_url
 ```
 
-### Step 6: Core Algorithm (5 min)
+## Communication: Do and Don't
 
-```javascript
-function generateShortURL(longURL) {
-  // Option 1: Hash-based
-  const hash = md5(longURL);
-  const shortURL = base62Encode(hash.substring(0, 7));
+✅ **Do:**
 
-  // Handle collisions
-  while (exists(shortURL)) {
-    // Append random string and retry
-    shortURL = base62Encode(hash + random());
+- Think out loud. Silence is the worst answer.
+- State every assumption.
+- Discuss tradeoffs for every decision.
+- Sketch diagrams; label boxes.
+- Ask "should I go deeper here?"
+
+❌ **Don't:**
+
+- Jump to a solution without scoping.
+- Over-engineer. Start simple, scale on demand.
+- Forget failure modes — what happens when the cache is cold or a zone dies?
+- Defend one answer. Always offer the alternative and explain the tradeoff.
+
+## Mini Walkthrough: URL Shortener
+
+A compressed example showing RADIO in action.
+
+**R — Requirements**
+- 100 M new URLs/month, 100:1 read:write, p99 < 50 ms, 10-year retention. Custom aliases later.
+
+**A — Architecture**
+- Client → LB → API servers → Redis cache → Cassandra. CDN caches 301 redirects at the edge.
+
+**D — Data Model**
+
+```typescript
+interface UrlRow {
+  shortUrl: string;     // PK, 7 chars base62
+  longUrl: string;
+  createdAt: Date;
+  expiresAt: Date | null;
+  clicks: number;
+}
+```
+
+Partition by `shortUrl` hash. 3 replicas.
+
+**I — Interface**
+
+```typescript
+// POST /api/v1/shorten
+interface ShortenRequest {
+  longUrl: string;
+  customAlias?: string;
+}
+interface ShortenResponse {
+  shortUrl: string;
+  longUrl: string;
+}
+
+// GET /:short → 301 → longUrl
+```
+
+**Short-code generation — counter-based (no collisions):**
+
+```typescript
+const ALPHABET =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function base62(n: bigint): string {
+  let out = "";
+  while (n > 0n) {
+    out = ALPHABET[Number(n % 62n)] + out;
+    n = n / 62n;
   }
-
-  return shortURL;
+  return out.padStart(7, "a");
 }
 
-// Option 2: Counter-based (better)
-function generateShortURL() {
-  const counter = getNextCounter(); // Distributed counter
-  return base62Encode(counter); // Guaranteed unique
-}
-
-function base62Encode(num) {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-
-  while (num > 0) {
-    result = chars[num % 62] + result;
-    num = Math.floor(num / 62);
-  }
-
-  return result.padStart(7, 'a');
+async function makeShortCode(): Promise<string> {
+  const id: bigint = await counterService.next(); // distributed counter
+  return base62(id);
 }
 ```
 
-### Step 7: Optimizations (7 min)
+**O — Optimizations**
+- Cache hot 20% in Redis (≈ 600 GB). TTL 1 hour.
+- CDN caches redirects → most reads never hit origin.
+- Rate-limit 10 creates/IP/min.
+- Click analytics: emit to Kafka, aggregate offline.
 
-**1. Caching:**
-```
-Cache hot URLs in Redis:
-- 20% of URLs get 80% of traffic
-- Cache size: 6 TB × 20% = 1.2 TB
-- TTL: 1 hour
-```
+## Common Mistakes
 
-**2. Database:**
-```
-- Use Cassandra for horizontal scaling
-- Partition by short_url hash
-- Replicate across 3 nodes
-```
+❌ **Skipping requirements.** Designing before scoping wastes 20 minutes and produces the wrong system.
 
-**3. CDN:**
-```
-- Cache 301 redirects at edge
-- Reduced latency
-- Lower origin load
-```
+❌ **Drawing 20 boxes.** A clean six-box diagram beats a busy one. Add detail on the components you discuss deeply.
 
-**4. Rate Limiting:**
-```
-- Prevent abuse
-- Limit: 10 URLs per IP per minute
-```
+❌ **No numbers.** Every design decision should reference scale: "At 200 K QPS we need read replicas."
 
-**5. Analytics (Async):**
-```
-- Track clicks asynchronously
-- Use Kafka for event stream
-- Aggregate in background
-```
+❌ **One solution.** Senior candidates always say: "Option A gives X but costs Y; option B trades it the other way. I'd pick A because..."
 
-## Summary
+❌ **Ignoring failure.** What if Redis goes down? What if a zone fails? Cover degradation before the interviewer asks.
 
-- **Use a framework** (RADIO, PEDALS, SNAKE) for structured approach
-- **Clarify requirements** before designing (5-10 minutes)
-- **Make assumptions** and state them clearly
-- **Do calculations** to show you understand scale
-- **Draw diagrams** to visualize architecture
-- **Think out loud** to show your reasoning
-- **Discuss trade-offs** for every decision
-- **Start simple** then optimize
-- **Consider failures** and edge cases
-- **Manage time** - don't spend too long on one area
-- **Ask questions** throughout the interview
-- **Be flexible** - adapt based on interviewer feedback
-- Practice makes perfect - do mock interviews
+## Key Insight
+
+> The framework is not the goal — clarity is. RADIO gives you scaffolding so you never freeze. But the signal interviewers look for is how you handle tradeoffs out loud. Name the choice, name the cost, pick one.
 
 ---
 [← Back to SystemDesign](../README.md)

@@ -1,694 +1,350 @@
 # Performance Optimization
 
 ## Overview
-Performance measures how fast a system responds to requests and handles load. Good performance directly impacts user satisfaction, conversion rates, and operational costs. Every 100ms delay can reduce conversions by 7%.
 
-## Key Performance Metrics
+Performance is how fast the system answers and how much load it handles. Every 100ms of extra latency can drop conversion by 7%. Performance work is mostly removing waste — wasted queries, wasted bytes, wasted round trips.
 
-### Latency
+## Key Metrics
+
+### 💡 **Latency**
 
 Time between request and response.
 
-**Types:**
-- **Network Latency**: Time for data to travel across network
-- **Processing Latency**: Time for server to process request
-- **Database Latency**: Time for database query
-- **Total Latency**: Sum of all latencies
+**Reference latencies every senior should know:**
 
-**Typical Latencies:**
-```
-L1 Cache:           0.5 ns
-L2 Cache:           7 ns
-RAM:                100 ns
-SSD:                150 µs
-Network (same DC):  0.5 ms
-HDD:                10 ms
-Network (cross-DC): 50-100 ms
-Network (cross-continent): 100-300 ms
-```
+| Operation                  | Time         |
+| -------------------------- | ------------ |
+| L1 cache                   | 0.5 ns       |
+| RAM access                 | 100 ns       |
+| SSD read                   | 150 µs       |
+| Network, same datacenter   | 0.5 ms       |
+| Network, cross-region      | 50–100 ms    |
+| Network, cross-continent   | 100–300 ms   |
 
-**P50, P95, P99:**
-```
-P50 (Median):    50% of requests faster than this
-P95:             95% of requests faster than this
-P99:             99% of requests faster than this
+### 💡 **Percentiles (P50, P95, P99)**
 
-Example:
-P50 = 100ms  → Half of users see < 100ms
-P95 = 500ms  → 5% of users see > 500ms (slow outliers)
-P99 = 2000ms → 1% of users see > 2s (very slow)
-```
+Averages hide outliers. Always look at percentiles.
 
-### Throughput
+| Metric  | Meaning                                |
+| ------- | -------------------------------------- |
+| **P50** | Median — half of users see this or less|
+| **P95** | 95% of users see this or less          |
+| **P99** | 99% of users see this or less          |
 
-Requests processed per unit of time.
+**Key Insight:**
 
-**Measurements:**
-- **QPS (Queries Per Second)**: Database queries
-- **RPS (Requests Per Second)**: API requests
-- **TPS (Transactions Per Second)**: Business transactions
+> Optimise P95 and P99, not the average. The tail is where users abandon.
 
-**Example:**
-```
-Server handles 10,000 requests/second
-Average latency: 50ms
+### 💡 **Throughput**
 
-Concurrent requests = Throughput × Latency
-                    = 10,000 × 0.05
-                    = 500 concurrent requests
-```
-
-### Bandwidth
-
-Amount of data transferred per unit of time.
+Requests handled per second. Tied to latency through Little's Law:
 
 ```
-Bandwidth = Data Size × Number of Requests
-
-Example:
-API response: 100 KB
-1000 requests/second
-Bandwidth = 100 KB × 1000 = 100 MB/s
+Concurrency = Throughput × Latency
 ```
+
+A server doing 10,000 req/s at 50ms latency holds about 500 in-flight requests at once.
 
 ## Database Performance
 
-### Indexing
+### 💡 **Indexing**
 
-Speeds up data retrieval at cost of slower writes.
+An index turns a full table scan (O(n)) into a B-tree lookup (O(log n)).
 
-**Without Index:**
 ```sql
--- Full table scan - O(n)
+-- Full scan over 1M rows
 SELECT * FROM users WHERE email = 'john@example.com';
--- Scans all 1 million rows
-```
 
-**With Index:**
-```sql
--- Index lookup - O(log n)
+-- Add an index — now ~20 row reads
 CREATE INDEX idx_email ON users(email);
-
-SELECT * FROM users WHERE email = 'john@example.com';
--- Uses B-tree index, scans ~20 rows
 ```
 
-**Types of Indexes:**
+**Composite index column order matters:**
 
-1. **Single Column Index**
-   ```sql
-   CREATE INDEX idx_email ON users(email);
-   ```
-
-2. **Composite Index**
-   ```sql
-   CREATE INDEX idx_name_age ON users(last_name, first_name, age);
-
-   -- Fast (uses index)
-   SELECT * FROM users WHERE last_name = 'Smith';
-   SELECT * FROM users WHERE last_name = 'Smith' AND first_name = 'John';
-
-   -- Slow (doesn't use index - wrong order)
-   SELECT * FROM users WHERE first_name = 'John';
-   ```
-
-3. **Unique Index**
-   ```sql
-   CREATE UNIQUE INDEX idx_email ON users(email);
-   ```
-
-4. **Full-Text Index**
-   ```sql
-   CREATE FULLTEXT INDEX idx_content ON posts(content);
-
-   SELECT * FROM posts WHERE MATCH(content) AGAINST('search term');
-   ```
-
-**Index Trade-offs:**
-- ✅ Faster reads
-- ❌ Slower writes
-- ❌ More storage
-- ❌ Index maintenance overhead
-
-### Query Optimization
-
-**Use EXPLAIN to analyze queries:**
 ```sql
-EXPLAIN SELECT * FROM orders WHERE user_id = 123;
+CREATE INDEX idx_name ON users(last_name, first_name);
 
--- Shows:
--- - Whether index is used
--- - Number of rows scanned
--- - Query execution plan
+-- ✅ Uses the index
+SELECT * FROM users WHERE last_name = 'Smith';
+SELECT * FROM users WHERE last_name = 'Smith' AND first_name = 'John';
+
+-- ❌ Cannot use the index — wrong leading column
+SELECT * FROM users WHERE first_name = 'John';
 ```
 
-**Optimization Techniques:**
+**Trade-offs:** indexes speed reads, slow writes, and use disk. Index the columns you filter or join on, not everything.
 
-1. **Select Only Needed Columns**
-   ```sql
-   -- ❌ Bad - retrieves unnecessary data
-   SELECT * FROM users;
+### 💡 **Query Optimization**
 
-   -- ✅ Good - retrieves only what's needed
-   SELECT id, name, email FROM users;
-   ```
+**Common Mistakes:**
 
-2. **Avoid N+1 Queries**
-   ```javascript
-   // ❌ Bad - N+1 queries
-   const users = await db.query('SELECT * FROM users');
-   for (const user of users) {
-     const orders = await db.query(
-       'SELECT * FROM orders WHERE user_id = ?',
-       [user.id]
-     );
-   }
+❌ **Bad:** N+1 queries — one query per parent row.
 
-   // ✅ Good - 2 queries with JOIN
-   const usersWithOrders = await db.query(`
-     SELECT users.*, orders.*
-     FROM users
-     LEFT JOIN orders ON users.id = orders.user_id
-   `);
-   ```
-
-3. **Use Pagination**
-   ```sql
-   -- ❌ Bad - loads all records
-   SELECT * FROM posts ORDER BY created_at DESC;
-
-   -- ✅ Good - loads page at a time
-   SELECT * FROM posts
-   ORDER BY created_at DESC
-   LIMIT 20 OFFSET 0;
-   ```
-
-4. **Avoid Wildcard Prefix**
-   ```sql
-   -- ❌ Bad - can't use index
-   SELECT * FROM users WHERE name LIKE '%john%';
-
-   -- ✅ Good - can use index
-   SELECT * FROM users WHERE name LIKE 'john%';
-   ```
-
-### Connection Pooling
-
-Reuse database connections instead of creating new ones.
-
-```javascript
-// ❌ Bad - creates new connection each time
-async function getUser(id) {
-  const connection = await mysql.createConnection(config);
-  const user = await connection.query('SELECT * FROM users WHERE id = ?', [id]);
-  await connection.end();
-  return user;
+```typescript
+const users = await db.query<User>("SELECT * FROM users");
+for (const user of users) {
+  user.orders = await db.query<Order>(
+    "SELECT * FROM orders WHERE user_id = $1",
+    [user.id],
+  );
 }
+```
 
-// ✅ Good - reuses connections from pool
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  database: 'mydb',
-  connectionLimit: 10  // Max 10 concurrent connections
+✅ **Good:** one join, or a single batched query.
+
+```typescript
+const rows = await db.query<UserWithOrder>(`
+  SELECT u.*, o.*
+  FROM users u
+  LEFT JOIN orders o ON o.user_id = u.id
+`);
+```
+
+Other quick wins:
+
+- Select only needed columns. Avoid `SELECT *`.
+- Paginate large result sets with `LIMIT` and a keyset cursor.
+- Use `EXPLAIN` to see whether the index actually fires.
+- Avoid leading wildcards in `LIKE '%term'` — they cannot use a B-tree index.
+
+### 💡 **Connection Pooling**
+
+Opening a DB connection costs 50–200ms. A pool keeps connections warm and reuses them.
+
+```typescript
+import { Pool } from "pg";
+
+const pool = new Pool({
+  host: "localhost",
+  database: "mydb",
+  max: 10, // cap concurrent connections
 });
 
-async function getUser(id) {
-  const connection = await pool.getConnection();
-  const user = await connection.query('SELECT * FROM users WHERE id = ?', [id]);
-  connection.release();  // Return to pool
-  return user;
+async function getUser(id: string): Promise<User> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query<User>(
+      "SELECT * FROM users WHERE id = $1",
+      [id],
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
 }
 ```
 
-**Benefits:**
-- Avoid connection overhead (100-200ms per connection)
-- Limit concurrent connections to database
-- Better resource utilization
+**Use a pool when** the app makes more than a handful of queries per request.
 
-## Caching Strategies
+## Caching
 
-### Cache Layers
+### 💡 **Cache Layers**
 
-**Multi-level caching:**
-```
-Browser Cache (HTTP Cache-Control)
-    ↓
-CDN Cache (CloudFront, Cloudflare)
-    ↓
-Application Cache (Redis, Memcached)
-    ↓
-Database Query Cache
-    ↓
-Database
-```
-
-### Cache Hit Ratio
-
-Percentage of requests served from cache.
+Caches stack from the browser down to the database. The earlier the cache, the cheaper the request.
 
 ```
-Hit Ratio = Cache Hits / Total Requests × 100%
-
-Example:
-1000 requests
-900 served from cache
-100 from database
-
-Hit Ratio = 900/1000 × 100% = 90%
+Browser cache → CDN → App cache (Redis) → DB query cache → DB
 ```
 
-**Target:** 80%+ hit ratio for most applications
+### 💡 **Hit Ratio**
 
-### Cache Eviction Policies
+```
+Hit Ratio = Cache Hits / Total Requests
+```
 
-**LRU (Least Recently Used):**
-```javascript
-class LRUCache {
-  constructor(capacity) {
-    this.capacity = capacity;
-    this.cache = new Map();
-  }
+Aim for 80%+ in most user-facing applications. Below 50% usually means the TTL is too short or the cache key is too fine-grained.
 
-  get(key) {
-    if (!this.cache.has(key)) return null;
+### 💡 **Eviction Policies**
 
-    // Move to end (most recently used)
+| Policy  | When to Use                              |
+| ------- | ---------------------------------------- |
+| **LRU** | Default — recent data tends to repeat    |
+| **LFU** | Stable hot keys, predictable workload    |
+| **TTL** | Time-bound freshness (sessions, tokens)  |
+
+LRU in TypeScript using `Map` insertion order:
+
+```typescript
+class LRUCache<K, V> {
+  private readonly cache = new Map<K, V>();
+  constructor(private readonly capacity: number) {}
+
+  get(key: K): V | undefined {
     const value = this.cache.get(key);
+    if (value === undefined) return undefined;
     this.cache.delete(key);
-    this.cache.set(key, value);
-
+    this.cache.set(key, value); // move to most-recent
     return value;
   }
 
-  put(key, value) {
-    // Remove if exists
-    if (this.cache.has(key)) {
-      this.cache.delete(key);
-    }
-
-    // Add to end
+  put(key: K, value: V): void {
+    if (this.cache.has(key)) this.cache.delete(key);
     this.cache.set(key, value);
-
-    // Evict oldest if over capacity
     if (this.cache.size > this.capacity) {
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      const oldest = this.cache.keys().next().value as K;
+      this.cache.delete(oldest);
     }
   }
 }
 ```
 
-**Other Policies:**
-- **LFU (Least Frequently Used)**: Remove least accessed
-- **FIFO**: Remove oldest added
-- **Random**: Remove random entry
+### 💡 **Cache Invalidation**
 
-### Cache Invalidation
+| Strategy             | Pros                       | Cons                         |
+| -------------------- | -------------------------- | ---------------------------- |
+| **TTL expiry**       | Simple, self-healing       | Stale window equals TTL      |
+| **Write-through**    | Always fresh               | Writes pay double the cost   |
+| **Delete on write**  | Simple, fresh on next read | Brief miss after update      |
+| **Event-driven**     | Works across services      | More moving parts            |
 
-**Strategies:**
+**Common Mistakes:**
 
-1. **TTL (Time To Live)**
-   ```javascript
-   // Cache for 5 minutes
-   redis.set('user:123', userData, 'EX', 300);
-   ```
+❌ **Bad:** caching mutable data with a long TTL and no invalidation.
+✅ **Good:** delete the cache key in the same transaction that updates the row.
 
-2. **Write-Through (Update on Write)**
-   ```javascript
-   async function updateUser(id, data) {
-     // Update DB
-     await db.query('UPDATE users SET ... WHERE id = ?', [id]);
+## CDN
 
-     // Update cache
-     await redis.set(`user:${id}`, JSON.stringify(data));
-   }
-   ```
+A CDN caches static content near the user. Latency drops from 200ms (cross-continent) to under 30ms.
 
-3. **Cache-Aside with Invalidation**
-   ```javascript
-   async function updateUser(id, data) {
-     // Update DB
-     await db.query('UPDATE users SET ... WHERE id = ?', [id]);
-
-     // Invalidate cache
-     await redis.del(`user:${id}`);
-   }
-   ```
-
-## Content Delivery Network (CDN)
-
-### How CDN Works
-
-```
-User in Tokyo → CDN Tokyo → Origin (US)
-                  ↓
-              Cached Content
-                (fast)
-
-User in London → CDN London → Origin (US)
-                   ↓
-               Cached Content
-                 (fast)
+```typescript
+// Express — cache static assets for a year, fingerprinted filenames
+app.use(
+  "/static",
+  express.static("public", {
+    maxAge: "1y",
+    immutable: true,
+  }),
+);
 ```
 
-**Benefits:**
-- **Reduced Latency**: Serve from nearest location
-- **Reduced Load**: Less traffic to origin
-- **DDoS Protection**: Distributed infrastructure
-- **Cost Savings**: Cheaper bandwidth
+**Cache-Control directives that matter:**
 
-### Cache-Control Headers
+| Directive    | Use For                              |
+| ------------ | ------------------------------------ |
+| `public`     | Cacheable by CDN                     |
+| `private`    | Only the browser may cache           |
+| `max-age=N`  | Cache for N seconds                  |
+| `immutable`  | Hashed asset URLs that never change  |
+| `no-store`   | Sensitive data — never cache         |
 
-```javascript
-// Express.js
-app.use('/static', express.static('public', {
-  maxAge: '1y',  // Cache for 1 year
-  immutable: true
-}));
+## Application-Level Wins
 
-// Response headers
-res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-```
+### 💡 **Lazy Loading**
 
-**Cache-Control Directives:**
-```
-no-cache:   Validate with server before using cache
-no-store:   Never cache
-public:     Can be cached by CDN
-private:    Only cache in browser
-max-age:    Cache for N seconds
-immutable:  Content never changes (versioned files)
-```
+Load components and assets only when the user needs them.
 
-## Application Performance
+```typescript
+// React route-level code splitting
+const Dashboard = React.lazy(() => import("./Dashboard"));
 
-### Lazy Loading
-
-Load resources only when needed.
-
-```javascript
-// Code splitting
-const HeavyComponent = React.lazy(() => import('./HeavyComponent'));
-
-function App() {
+export function App(): JSX.Element {
   return (
     <Suspense fallback={<Loading />}>
-      <HeavyComponent />
+      <Dashboard />
     </Suspense>
   );
 }
-
-// Image lazy loading
-<img src="large-image.jpg" loading="lazy" alt="Lazy loaded" />
 ```
 
-### Compression
+For images, use `loading="lazy"` on `<img>`.
 
-Reduce data size before transmission.
+### 💡 **Compression**
 
-**Gzip/Brotli:**
-```javascript
-// Express.js
-const compression = require('compression');
-app.use(compression());
+Gzip and Brotli shrink text payloads by 70–90%.
 
-// Reduces text files by 70-90%
+```typescript
+import compression from "compression";
+app.use(compression()); // Brotli/Gzip negotiated per request
 ```
 
-**Response Sizes:**
-```
-Original:    500 KB
-Gzip:        100 KB (80% reduction)
-Brotli:      85 KB (83% reduction)
-```
+### 💡 **Bundle Optimization**
 
-### Bundle Optimization
+- **Code splitting** — load only the chunks the current route needs.
+- **Tree shaking** — import named exports, not whole libraries.
 
-**Code Splitting:**
-```javascript
-// Webpack configuration
-module.exports = {
-  optimization: {
-    splitChunks: {
-      chunks: 'all',
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          priority: 10
-        },
-        common: {
-          minChunks: 2,
-          priority: 5
-        }
-      }
-    }
-  }
-};
+```typescript
+// ❌ Bad — pulls in all of lodash
+import _ from "lodash";
+
+// ✅ Good — only the function you use
+import { debounce } from "lodash-es";
 ```
 
-**Tree Shaking:**
-```javascript
-// ❌ Bad - imports entire library
-import _ from 'lodash';
+### 💡 **Async Processing**
 
-// ✅ Good - imports only what's needed
-import { debounce } from 'lodash-es';
-```
+Move slow work off the request path. Return fast, finish later.
 
-### Asynchronous Processing
-
-Move slow tasks to background.
-
-```javascript
-// ❌ Bad - blocks request
-app.post('/register', async (req, res) => {
-  await createUser(req.body);
-  await sendWelcomeEmail(req.body.email);  // Slow!
-  await generateReport(req.body);           // Slow!
+```typescript
+// ❌ Bad — caller waits for email and report
+app.post("/register", async (req, res) => {
+  const user = await createUser(req.body);
+  await sendWelcomeEmail(user.email);
+  await generateReport(user.id);
   res.json({ success: true });
 });
 
-// ✅ Good - responds immediately
-app.post('/register', async (req, res) => {
-  await createUser(req.body);
-
-  // Queue background tasks
-  queue.enqueue('send_email', { email: req.body.email });
-  queue.enqueue('generate_report', { userId: user.id });
-
-  res.json({ success: true });  // Fast response
+// ✅ Good — respond now, queue the slow work
+app.post("/register", async (req, res) => {
+  const user = await createUser(req.body);
+  await queue.enqueue("send_email", { email: user.email });
+  await queue.enqueue("generate_report", { userId: user.id });
+  res.json({ success: true });
 });
 ```
 
-## Load Balancing for Performance
+## Monitoring
 
-### Algorithm Selection
+### 💡 **What to Track**
 
-**Round Robin:**
-- Simple, even distribution
-- Doesn't account for server load
+| Metric              | Why it Matters                       |
+| ------------------- | ------------------------------------ |
+| **Latency (P95/P99)**| Catches tail-latency regressions    |
+| **Throughput**      | Sizes capacity and scaling triggers  |
+| **Error rate (5xx)**| First sign something is broken       |
+| **CPU / memory**    | Spot saturation before it bites      |
 
-**Least Connections:**
-- Routes to server with fewest active connections
-- Better for long-running requests
+Wrap requests in a single middleware to measure latency consistently:
 
-**Weighted Round Robin:**
-- Distribute based on server capacity
-- Use for heterogeneous servers
-
-**Least Response Time:**
-- Routes to fastest responding server
-- Best overall performance
-
-## Monitoring Performance
-
-### Key Metrics to Track
-
-1. **Response Time**
-   - Average, P50, P95, P99
-   - By endpoint
-   - By region
-
-2. **Throughput**
-   - Requests per second
-   - By endpoint
-   - Peak vs average
-
-3. **Error Rate**
-   - 4xx errors (client errors)
-   - 5xx errors (server errors)
-   - By endpoint
-
-4. **Resource Utilization**
-   - CPU usage
-   - Memory usage
-   - Disk I/O
-   - Network bandwidth
-
-### Application Performance Monitoring (APM)
-
-```javascript
-// Track slow queries
-const startTime = Date.now();
-const result = await db.query('SELECT ...');
-const duration = Date.now() - startTime;
-
-if (duration > 1000) {
-  logger.warn('Slow query detected', {
-    query: 'SELECT ...',
-    duration,
-    threshold: 1000
-  });
-}
-
-// Track API latency
+```typescript
 app.use((req, res, next) => {
   const start = Date.now();
-
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-
+  res.on("finish", () => {
     metrics.record({
       endpoint: req.path,
       method: req.method,
       status: res.statusCode,
-      duration
+      duration: Date.now() - start,
     });
   });
-
   next();
 });
 ```
 
-## Interview Questions
+## How to Optimize a Slow Endpoint
 
-**Q: How do you optimize a slow API endpoint?**
+A senior approach is always measure-first:
 
-A: Systematic approach:
+1. **Measure** with APM (Datadog, New Relic, OpenTelemetry). Find the dominant cost.
+2. **Database** — add indexes, fix N+1s, use a pool.
+3. **Cache** — Redis for hot reads, CDN for static.
+4. **Code** — remove waste, parallelize independent calls with `Promise.all`.
+5. **Async** — push slow side effects to a queue.
 
-1. **Measure**: Use APM to identify bottleneck
-   - Database query slow?
-   - External API slow?
-   - CPU-intensive computation?
+**Key Insight:**
 
-2. **Database Optimization**:
-   - Add indexes
-   - Optimize queries
-   - Use connection pooling
+> Do not guess. Profile, fix the biggest bottleneck, measure again. Most "optimisations" without measurement make code worse.
 
-3. **Caching**:
-   - Cache database queries
-   - Cache API responses
-   - Use CDN for static content
+## Common Pitfalls
 
-4. **Code Optimization**:
-   - Remove unnecessary operations
-   - Use efficient algorithms
-   - Parallel processing where possible
+❌ **Bad:** optimising the average latency.
+✅ **Good:** chase P95 and P99 — that is where users feel pain.
 
-5. **Async Processing**:
-   - Move slow tasks to background queue
+❌ **Bad:** adding a cache to fix a slow query.
+✅ **Good:** fix the query first. A cache hides bad queries until traffic doubles.
 
-**Q: What's the difference between latency and throughput?**
-
-A:
-- **Latency**: Time for single request (ms)
-  - Example: API responds in 50ms
-
-- **Throughput**: Requests processed per time (req/s)
-  - Example: Server handles 1000 req/s
-
-**Relationship:**
-```
-Throughput = Concurrency / Latency
-
-Example:
-500 concurrent connections
-50ms average latency
-Throughput = 500 / 0.05 = 10,000 req/s
-```
-
-**Q: How do you handle cache invalidation?**
-
-A: "There are only two hard things in Computer Science: cache invalidation and naming things."
-
-**Strategies:**
-
-1. **TTL**: Expire after time
-   - Simple, eventually consistent
-   - Good for data that changes regularly
-
-2. **Write-Through**: Update on write
-   - Always consistent
-   - Write latency increased
-
-3. **Invalidate on Write**: Delete on write
-   - Simple, next read updates cache
-   - Brief inconsistency window
-
-4. **Event-Based**: Invalidate via pub/sub
-   - Good for distributed systems
-   - More complex
-
-**Q: What causes high database CPU usage?**
-
-A: Common causes:
-
-1. **Missing Indexes**: Full table scans
-2. **Inefficient Queries**: Complex joins, subqueries
-3. **High QPS**: Too many queries
-4. **Lock Contention**: Waiting for locks
-5. **Large Result Sets**: Returning too much data
-
-**Solutions:**
-- Add appropriate indexes
-- Optimize queries (use EXPLAIN)
-- Implement caching
-- Use read replicas
-- Consider sharding
-
-## Best Practices
-
-**Database:**
-✅ Index frequently queried columns
-✅ Use connection pooling
-✅ Implement read replicas for read-heavy workloads
-✅ Cache frequently accessed data
-✅ Monitor slow queries
-
-**Caching:**
-✅ Cache at multiple levels
-✅ Set appropriate TTLs
-✅ Monitor hit ratios
-✅ Implement cache warming
-✅ Handle cache failures gracefully
-
-**Application:**
-✅ Use CDN for static assets
-✅ Compress responses
-✅ Lazy load resources
-✅ Code splitting
-✅ Async processing for slow tasks
-
-**Monitoring:**
-✅ Track P95, P99 latencies (not just averages)
-✅ Set up alerts for anomalies
-✅ Monitor resource utilization
-✅ Regular performance testing
-✅ APM tools (DataDog, New Relic)
-
-## Summary
-
-- **Performance** measured by latency, throughput, and bandwidth
-- **P95/P99** metrics more important than averages (catch outliers)
-- **Database indexing** dramatically improves query performance
-- **Caching** at multiple levels reduces load and latency
-- **CDN** reduces latency for geographically distributed users
-- **Connection pooling** eliminates connection overhead
-- **Async processing** keeps API responses fast
-- **Monitor** key metrics and set alerts for degradation
+❌ **Bad:** running `SELECT *` from a 50-column table to show two fields.
+✅ **Good:** select only the columns you render.
 
 ---
+
 [← Back to SystemDesign](../README.md)

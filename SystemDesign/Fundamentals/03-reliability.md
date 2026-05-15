@@ -1,503 +1,272 @@
 # Reliability and Availability
 
 ## Overview
-Reliability is the ability of a system to function correctly even when failures occur. Availability measures the percentage of time a system is operational. Together, they ensure systems users can depend on.
+
+Reliability is whether the system does the right thing. Availability is whether the system is up when users need it. Both matter — a database that returns wrong data is reliable trouble, even at 100% uptime.
 
 ## Key Metrics
 
-### Availability (Uptime)
+### 💡 **Availability**
 
-Percentage of time system is operational.
-
-**Formula:**
-```
-Availability = (Total Time - Downtime) / Total Time × 100%
-```
-
-**Service Level Objectives (SLOs):**
-```
-99%      → 3.65 days downtime/year   → "Two nines"
-99.9%    → 8.76 hours downtime/year  → "Three nines"
-99.99%   → 52.56 minutes/year        → "Four nines"
-99.999%  → 5.26 minutes/year         → "Five nines"
-99.9999% → 31.5 seconds/year         → "Six nines"
-```
-
-**Cost vs Availability:**
-- 99% → Relatively inexpensive
-- 99.9% → Moderate cost (standard for most apps)
-- 99.99% → Expensive (critical services)
-- 99.999% → Very expensive (financial systems)
-- 99.9999% → Extremely expensive (rarely needed)
-
-### Mean Time Between Failures (MTBF)
-
-Average time between system failures.
+Percent of time the system is operational.
 
 ```
-MTBF = Total Operating Time / Number of Failures
-
-Example:
-1000 hours / 5 failures = 200 hours MTBF
+Availability = (Total Time − Downtime) / Total Time
 ```
 
-### Mean Time To Repair (MTTR)
+**The "nines" cheat sheet:**
 
-Average time to restore service after failure.
+| Availability | Downtime per Year   | Typical Tier            |
+| ------------ | ------------------- | ----------------------- |
+| **99%**      | 3.65 days           | Hobby projects          |
+| **99.9%**    | 8.76 hours          | Standard SaaS           |
+| **99.99%**   | 52.6 minutes        | Critical services       |
+| **99.999%**  | 5.26 minutes        | Financial / telecom     |
 
-```
-MTTR = Total Downtime / Number of Failures
+Each extra nine costs roughly 10× more to engineer. Pick the lowest tier that satisfies the business.
 
-Example:
-10 hours / 5 failures = 2 hours MTTR
-```
+### 💡 **MTBF and MTTR**
 
-**Availability Formula:**
+- **MTBF (Mean Time Between Failures):** average healthy time between failures.
+- **MTTR (Mean Time To Repair):** average time to recover after a failure.
+
 ```
 Availability = MTBF / (MTBF + MTTR)
-
-Example:
-MTBF = 200 hours
-MTTR = 2 hours
-Availability = 200 / (200 + 2) = 99%
 ```
+
+**Key Insight:**
+
+> You raise availability by either failing less (MTBF up) or recovering faster (MTTR down). Faster recovery is usually cheaper.
 
 ## Failure Patterns
 
-### Single Point of Failure (SPOF)
+### 💡 **Single Point of Failure (SPOF)**
 
-Component whose failure causes entire system to fail.
+Any one component whose failure brings the whole system down.
 
-**Examples:**
-- Single database server
-- Single load balancer
-- Single payment gateway
-- Single datacenter
+**Examples:** one database server, one load balancer, one region, one payment gateway.
 
-**Solutions:**
-- Add redundancy
-- Implement failover
-- Use multiple availability zones
-- Geographic distribution
+**Fix:** add redundancy, deploy to multiple availability zones, set up automated failover.
 
-### Cascading Failures
+### 💡 **Cascading Failure**
 
-One failure triggers subsequent failures.
+One failure overloads the next service, which fails and overloads the next, until the whole system is down.
 
-**Example:**
-```
-1. Database overloaded
-2. API servers timeout waiting
-3. Load balancer marks API servers as unhealthy
-4. Traffic redistributed to remaining servers
-5. Remaining servers also overload
-6. Entire system fails
-```
+**Typical chain:**
 
-**Prevention:**
-- Circuit breakers
-- Rate limiting
-- Timeouts
-- Bulkheads (isolation)
-- Graceful degradation
+1. Database slows under load.
+2. API servers pile up waiting on queries.
+3. Load balancer marks API servers unhealthy.
+4. Traffic shifts to fewer servers, which also collapse.
 
-## Redundancy Strategies
+**Prevent it with:** circuit breakers, timeouts, rate limiting, bulkheads, and graceful degradation.
 
-### Active-Passive (Hot Standby)
+## Redundancy
 
-Backup server ready to take over immediately.
+| Pattern             | How it Works                                  | Use When                         |
+| ------------------- | --------------------------------------------- | -------------------------------- |
+| **Active-Passive**  | Standby waits, takes over on failure          | Strong consistency, simple HA    |
+| **Active-Active**   | All nodes serve traffic                       | Read scale, no idle resources    |
+| **Geographic**      | Datacenters in multiple regions               | Disaster recovery, low latency   |
 
-```
-Primary Server (Active)  ─┐
-                          ├─▶ Serves Traffic
-Standby Server (Passive) ─┘   (Waits)
+**Common Mistakes:**
 
-On Failure:
-Standby becomes Active
-```
-
-**Pros:** Fast failover, simple
-**Cons:** Wasted resources (standby idle)
-
-### Active-Active
-
-Multiple servers actively serving traffic.
-
-```
-Server 1 (Active) ─┐
-Server 2 (Active) ─┼─▶ Load Balancer ─▶ Clients
-Server 3 (Active) ─┘
-```
-
-**Pros:** No wasted resources, higher capacity
-**Cons:** Complex synchronization, potential conflicts
-
-### Geographic Redundancy
-
-Servers in multiple datacenters/regions.
-
-```
-US-East    │  US-West    │  EU-West
-───────────┼─────────────┼──────────
-Datacenter │ Datacenter  │ Datacenter
-Active     │ Active      │ Active
-```
-
-**Benefits:**
-- Disaster recovery
-- Low latency (serve from nearest)
-- Compliance (data residency)
+❌ **Bad:** running active-passive but never testing failover.
+✅ **Good:** schedule regular failover drills — assume the untested path is broken.
 
 ## Fault Tolerance Patterns
 
-### Circuit Breaker
+### 💡 **Circuit Breaker**
 
-Prevents repeated attempts to failing service.
+Stop calling a failing dependency. After a cooldown, send a probe to see if it recovered.
 
-```javascript
+```typescript
+type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
+
 class CircuitBreaker {
-  constructor(threshold = 5, timeout = 60000) {
-    this.failureCount = 0;
-    this.threshold = threshold;
-    this.timeout = timeout;
-    this.state = 'CLOSED'; // CLOSED, OPEN, HALF_OPEN
-    this.nextAttempt = Date.now();
-  }
+  private failureCount = 0;
+  private state: CircuitState = "CLOSED";
+  private nextAttempt = Date.now();
 
-  async execute(fn) {
-    if (this.state === 'OPEN') {
+  constructor(
+    private readonly threshold = 5,
+    private readonly timeoutMs = 60_000,
+  ) {}
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.state === "OPEN") {
       if (Date.now() < this.nextAttempt) {
-        throw new Error('Circuit breaker is OPEN');
+        throw new Error("Circuit breaker is OPEN");
       }
-      this.state = 'HALF_OPEN';
+      this.state = "HALF_OPEN";
     }
 
     try {
       const result = await fn();
-
-      if (this.state === 'HALF_OPEN') {
-        this.state = 'CLOSED';
-        this.failureCount = 0;
-      }
-
+      this.state = "CLOSED";
+      this.failureCount = 0;
       return result;
     } catch (error) {
       this.failureCount++;
-
       if (this.failureCount >= this.threshold) {
-        this.state = 'OPEN';
-        this.nextAttempt = Date.now() + this.timeout;
+        this.state = "OPEN";
+        this.nextAttempt = Date.now() + this.timeoutMs;
       }
-
       throw error;
     }
   }
 }
-
-// Usage
-const breaker = new CircuitBreaker();
-
-try {
-  const data = await breaker.execute(() => fetchFromAPI());
-} catch (error) {
-  // Fallback to cache or return error
-  return getCachedData();
-}
 ```
 
-### Retry with Exponential Backoff
+**When to Use:** any call to an external service (payment provider, third-party API, microservice).
 
-Automatically retry failed operations with increasing delays.
+### 💡 **Retry with Exponential Backoff**
 
-```javascript
-async function retryWithBackoff(fn, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
+Retry transient failures with growing delays. Add jitter so retries do not all hit at the same instant.
+
+```typescript
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      if (i === maxRetries - 1) throw error;
-
-      // Exponential backoff: 1s, 2s, 4s, 8s...
-      const delay = Math.min(1000 * Math.pow(2, i), 30000);
-
-      // Add jitter to prevent thundering herd
+      if (attempt === maxRetries - 1) throw error;
+      const delay = Math.min(1000 * 2 ** attempt, 30_000);
       const jitter = Math.random() * 1000;
-
-      await new Promise(resolve =>
-        setTimeout(resolve, delay + jitter)
-      );
+      await new Promise((r) => setTimeout(r, delay + jitter));
     }
   }
+  throw new Error("unreachable");
 }
-
-// Usage
-const data = await retryWithBackoff(() => fetchData());
 ```
 
-### Bulkhead Pattern
+**Common Mistakes:**
 
-Isolate resources to prevent cascade failures.
+❌ **Bad:** retrying without jitter — every client retries at the same moment (thundering herd).
+✅ **Good:** add random jitter and cap the maximum delay.
 
-```javascript
-// Separate thread pools for different services
-const userServicePool = new ThreadPool(10);
-const paymentServicePool = new ThreadPool(5);
-const emailServicePool = new ThreadPool(3);
+### 💡 **Bulkhead**
 
-// If email service fails, doesn't affect others
-```
+Isolate resources per dependency so one failure cannot drain shared capacity. Give each downstream call its own connection pool or thread pool.
 
-### Rate Limiting
+### 💡 **Rate Limiting**
 
-Protect services from overload.
+Cap how many requests a user or service can send. Protects you from abuse and from cascading overload.
 
-```javascript
+```typescript
 class RateLimiter {
-  constructor(maxRequests, windowMs) {
-    this.maxRequests = maxRequests;
-    this.windowMs = windowMs;
-    this.requests = new Map();
-  }
+  private requests = new Map<string, number[]>();
 
-  isAllowed(key) {
+  constructor(
+    private readonly maxRequests: number,
+    private readonly windowMs: number,
+  ) {}
+
+  isAllowed(key: string): boolean {
     const now = Date.now();
     const windowStart = now - this.windowMs;
+    const recent = (this.requests.get(key) ?? []).filter((t) => t > windowStart);
 
-    // Clean old requests
-    const userRequests = this.requests.get(key) || [];
-    const validRequests = userRequests.filter(
-      time => time > windowStart
-    );
-
-    if (validRequests.length >= this.maxRequests) {
-      return false;
-    }
-
-    validRequests.push(now);
-    this.requests.set(key, validRequests);
+    if (recent.length >= this.maxRequests) return false;
+    recent.push(now);
+    this.requests.set(key, recent);
     return true;
   }
 }
-
-// Usage: 100 requests per minute
-const limiter = new RateLimiter(100, 60000);
-
-if (!limiter.isAllowed(userId)) {
-  return res.status(429).json({ error: 'Too many requests' });
-}
 ```
 
-## Health Checks and Monitoring
+## Health Checks
 
-### Health Check Endpoints
+A health endpoint reports whether the service and its dependencies are operational. Load balancers and orchestrators use it to remove bad instances.
 
-Monitor service health.
+```typescript
+interface CheckResult {
+  healthy: boolean;
+  error?: string;
+}
 
-```javascript
-app.get('/health', async (req, res) => {
-  const checks = {
+app.get("/health", async (_req, res) => {
+  const checks: Record<string, CheckResult> = {
     database: await checkDatabase(),
     redis: await checkRedis(),
-    externalAPI: await checkExternalAPI()
   };
-
-  const allHealthy = Object.values(checks).every(c => c.healthy);
-
+  const allHealthy = Object.values(checks).every((c) => c.healthy);
   res.status(allHealthy ? 200 : 503).json({
-    status: allHealthy ? 'healthy' : 'unhealthy',
+    status: allHealthy ? "healthy" : "unhealthy",
     checks,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
-async function checkDatabase() {
+async function checkDatabase(): Promise<CheckResult> {
   try {
-    await db.query('SELECT 1');
+    await db.query("SELECT 1");
     return { healthy: true };
   } catch (error) {
-    return { healthy: false, error: error.message };
+    return { healthy: false, error: (error as Error).message };
   }
 }
-```
-
-### Heartbeat Monitoring
-
-Regular ping to detect failures.
-
-```javascript
-setInterval(async () => {
-  const services = ['api-1', 'api-2', 'api-3'];
-
-  for (const service of services) {
-    try {
-      await fetch(`http://${service}/health`, { timeout: 5000 });
-      markServiceHealthy(service);
-    } catch (error) {
-      markServiceUnhealthy(service);
-      alertOps(`Service ${service} is down!`);
-    }
-  }
-}, 30000); // Every 30 seconds
 ```
 
 ## Backup and Recovery
 
-### Backup Strategies
+### 💡 **RPO and RTO**
 
-1. **Full Backup**
-   - Complete copy of all data
-   - Slowest, most storage
-   - Fastest recovery
+- **RPO (Recovery Point Objective):** how much data you can afford to lose. Drives backup frequency.
+- **RTO (Recovery Time Objective):** how long you can be down. Drives failover strategy.
 
-2. **Incremental Backup**
-   - Only changes since last backup
-   - Faster, less storage
-   - Slower recovery (need all incrementals)
+| Tier             | RTO            | Cost           | When                |
+| ---------------- | -------------- | -------------- | ------------------- |
+| **Cold standby** | Days           | Low            | Internal tools      |
+| **Warm standby** | Hours          | Medium         | Standard SaaS       |
+| **Hot standby**  | Minutes        | High           | Banking, healthcare |
 
-3. **Differential Backup**
-   - Changes since last full backup
-   - Middle ground
+**The 3-2-1 rule:** 3 copies of data, on 2 media types, with 1 offsite.
 
-**3-2-1 Rule:**
-- 3 copies of data
-- 2 different media types
-- 1 offsite backup
-
-### Recovery Point Objective (RPO)
-
-Maximum acceptable data loss.
+### 💡 **Multi-Region Failover**
 
 ```
-RPO = 1 hour
-
-If failure at 3:00 PM, can lose data since 2:00 PM
-Need: Backups every hour or less
+Region A (Primary)        Region B (DR)
+─────────────────         ─────────────
+Load Balancer             Load Balancer
+App Servers (Active)      App Servers (Standby)
+Database (Primary) ──replication──▶ Replica
 ```
 
-### Recovery Time Objective (RTO)
+Failover steps:
 
-Maximum acceptable downtime.
+1. Health check detects primary region down.
+2. Promote replica in Region B to primary.
+3. DNS or global load balancer redirects traffic.
+4. Alert ops and verify before declaring recovery.
 
-```
-RTO = 15 minutes
+## High Availability vs Disaster Recovery
 
-System must be restored within 15 minutes of failure
-Need: Hot standby or fast failover
-```
+| Concept | Goal                              | Scope                          |
+| ------- | --------------------------------- | ------------------------------ |
+| **HA**  | Prevent downtime during normal ops| Within a region — AZ failures  |
+| **DR**  | Recover from catastrophic events  | Across regions — region outage |
 
-## Disaster Recovery
+You usually need both. HA handles the common case. DR handles the rare but severe case.
 
-### Backup Site Strategies
+## Common Pitfalls
 
-1. **Cold Site**
-   - Empty datacenter
-   - RTO: Days to weeks
-   - Cost: Low
+❌ **Bad:** assuming the cloud provider gives you HA for free.
+✅ **Good:** spread instances across availability zones explicitly and test failover.
 
-2. **Warm Site**
-   - Partially equipped
-   - RTO: Hours to days
-   - Cost: Medium
+❌ **Bad:** taking backups but never restoring them.
+✅ **Good:** restore drills on a schedule. An untested backup is a hope, not a backup.
 
-3. **Hot Site**
-   - Fully operational replica
-   - RTO: Minutes
-   - Cost: High
+❌ **Bad:** chasing 99.999% on every service.
+✅ **Good:** match availability targets to business value. Most internal tools are fine at 99.9%.
 
-### Multi-Region Architecture
+## Key Insight
 
-```
-Region 1 (Primary)     Region 2 (DR)
-──────────────────     ─────────────
-Load Balancer          Load Balancer
-App Servers (Active)   App Servers (Standby)
-Database (Master)      Database (Replica)
-         │                     ↑
-         └─────Replication─────┘
-```
-
-**Failover Process:**
-1. Detect primary failure
-2. Promote DR database to master
-3. Redirect traffic to DR region
-4. Monitor and alert
-
-## Interview Questions
-
-**Q: How do you achieve 99.99% availability?**
-
-A: Multiple strategies combined:
-1. **Eliminate SPOFs**: Redundant load balancers, databases, servers
-2. **Multi-AZ Deployment**: Spread across availability zones
-3. **Auto-scaling**: Handle traffic spikes
-4. **Health checks**: Detect and remove unhealthy instances
-5. **Automated failover**: Quick recovery from failures
-6. **Monitoring & Alerts**: Detect issues before users
-7. **Regular testing**: Chaos engineering, disaster recovery drills
-
-**Q: Explain the difference between high availability and disaster recovery.**
-
-A:
-- **High Availability (HA)**: Minimize downtime during normal operations
-  - Redundant components
-  - Auto-failover
-  - Load balancing
-  - Goal: Prevent downtime
-
-- **Disaster Recovery (DR)**: Restore operations after catastrophic failure
-  - Backups
-  - Recovery procedures
-  - Secondary datacenter
-  - Goal: Recover from disasters
-
-**Q: How do you prevent cascading failures?**
-
-A: Defense in depth:
-1. **Circuit breakers**: Stop calling failing services
-2. **Timeouts**: Don't wait indefinitely
-3. **Bulkheads**: Isolate failures
-4. **Rate limiting**: Prevent overload
-5. **Graceful degradation**: Provide limited functionality
-6. **Load shedding**: Drop low-priority requests
-
-## Best Practices
-
-✅ **Design:**
-- Eliminate single points of failure
-- Design for failure (assume everything can fail)
-- Implement retry with backoff
-- Use circuit breakers
-- Set appropriate timeouts
-
-✅ **Operations:**
-- Monitor key metrics (availability, latency, errors)
-- Set up alerts before thresholds
-- Regular backup testing
-- Disaster recovery drills
-- Incident postmortems
-
-✅ **Testing:**
-- Chaos engineering (Netflix's Chaos Monkey)
-- Failure injection testing
-- Load testing
-- Disaster recovery simulation
-
-❌ **Avoid:**
-- Single point of failure
-- No health checks
-- Manual failover processes
-- Untested backups
-- No monitoring/alerting
-
-## Summary
-
-- **Availability** measures uptime percentage (99.9% = 8.76 hours/year downtime)
-- **Reliability** ensures correct operation despite failures
-- **Redundancy** (active-passive, active-active) eliminates single points of failure
-- **Circuit breakers** prevent cascading failures
-- **Backups** with defined RPO/RTO enable disaster recovery
-- **Monitoring** and health checks detect failures quickly
-- Design assuming failures will happen, not if they happen
+> Design for failure, not for success. Every component will fail eventually — the question is whether the system survives the failure or amplifies it.
 
 ---
+
 [← Back to SystemDesign](../README.md)
