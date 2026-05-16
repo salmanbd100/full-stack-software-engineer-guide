@@ -1,671 +1,199 @@
-# State Management at Scale
+# State Management
 
-## Overview
-Managing application state in large-scale frontend applications.
+## 💡 **Concept**
 
-## State Management Patterns
+State management organizes data that changes over time. The right tool depends on how widely state is shared, how often it changes, and how complex the update logic is.
 
-Different approaches to managing application state, each with unique trade-offs for complexity, performance, and scalability.
+**How to answer in an interview:** "I'd start by asking where the state lives. Component-level state stays in useState. Shared UI state (theme, modals) goes into Context. Server data goes into React Query. Global client state — if it exists — goes into Zustand or Redux Toolkit depending on complexity."
 
-**Choosing the Right Solution:**
+---
 
-| Solution | Bundle Size | Complexity | Best For |
-|----------|-------------|------------|----------|
-| **useState** | 0KB (built-in) | Low | Local component state |
-| **Context API** | 0KB (built-in) | Low-Medium | Small to medium apps |
-| **Redux** | 5KB + toolkit | High | Large apps, complex state |
-| **Zustand** | 1KB | Low | Medium apps, simple API |
-| **Recoil** | 14KB | Medium | Granular reactivity needs |
+## Decision Guide
 
-### 💡 **Redux Pattern**
+| Solution | Bundle | Best for |
+|----------|--------|---------|
+| `useState` / `useReducer` | 0 KB | Local component state |
+| Context API | 0 KB | Rarely-changing global values (theme, locale) |
+| **Zustand** | 1 KB | Client-side global state, simple API |
+| **Redux Toolkit** | ~8 KB | Large apps, complex state, time-travel debugging |
+| **React Query / SWR** | ~14 KB | Server state (async data, caching, sync) |
 
-**What is Redux?**
-Redux is a predictable state container that implements the Flux pattern with some refinements. It provides a single source of truth for your entire application state, making state management consistent and debuggable across large applications.
+> **Server state is not client state.** Data fetched from an API (users, products) should live in React Query, not Redux.
 
-**Core Principles:**
-1. **Single Source of Truth**: All state in one store
-2. **State is Read-Only**: Only way to change state is to dispatch an action
-3. **Changes via Pure Functions**: Reducers are pure functions that compute the next state
+---
 
-**Why Use Redux?**
-- Predictability: Same action always produces same result
-- Centralization: All state logic in one place
-- Debuggability: Redux DevTools shows every state change
-- Testing: Pure reducers are easy to test
-- Time-travel debugging: Can replay actions
+## Context API + useReducer
 
-**When to Use Redux:**
+Built into React. Good for infrequently-changing global values.
 
-| Scenario | Use Redux? |
-|----------|-----------|
-| Large app (10+ pages) | ✅ Yes |
-| Complex state logic | ✅ Yes |
-| State shared across many components | ✅ Yes |
-| Need time-travel debugging | ✅ Yes |
-| Small app/prototype | ❌ No - overkill |
-| Simple state | ❌ No - use Context |
-| State in 1-2 components only | ❌ No - use useState |
-
-**Redux Data Flow:**
-1. Component dispatches an action
-2. Reducer receives action and current state
-3. Reducer computes new state
-4. Store updates and notifies subscribers
-5. Component re-renders with new state
-
-**Key Insight:**
-> Redux is predictable because the same action always produces the same state. This makes debugging trivial — you can replay every action to reproduce any bug.
-
-**Implementation Example:**
-
-```javascript
-// Actions
-const INCREMENT = 'INCREMENT';
-const FETCH_USERS_SUCCESS = 'FETCH_USERS_SUCCESS';
-
-const increment = () => ({ type: INCREMENT });
-const fetchUsersSuccess = (users) => ({ 
-  type: FETCH_USERS_SUCCESS, 
-  payload: users 
-});
-
-// Reducer
-const initialState = {
-  count: 0,
-  users: [],
-  loading: false
-};
-
-function rootReducer(state = initialState, action) {
-  switch(action.type) {
-    case INCREMENT:
-      return { ...state, count: state.count + 1 };
-    case FETCH_USERS_SUCCESS:
-      return { ...state, users: action.payload, loading: false };
-    default:
-      return state;
-  }
+```typescript
+interface TodoState {
+  todos: Todo[];
+  filter: "all" | "active" | "completed";
 }
 
-// Store
-import { createStore, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
+type TodoAction =
+  | { type: "ADD"; payload: Todo }
+  | { type: "TOGGLE"; payload: string }
+  | { type: "SET_FILTER"; payload: TodoState["filter"] };
 
-const store = createStore(rootReducer, applyMiddleware(thunk));
-
-// Async action with Redux Thunk
-const fetchUsers = () => async (dispatch) => {
-  dispatch({ type: 'FETCH_USERS_REQUEST' });
-  try {
-    const response = await fetch('/api/users');
-    const users = await response.json();
-    dispatch(fetchUsersSuccess(users));
-  } catch (error) {
-    dispatch({ type: 'FETCH_USERS_FAILURE', error });
-  }
-};
-```
-
-### 💡 **Redux Toolkit (Modern Approach)**
-
-Redux Toolkit (RTK) is the official, recommended way to write Redux code. It provides utilities that simplify common Redux patterns and reduce boilerplate code by 50-70% compared to vanilla Redux.
-
-**Why Redux Toolkit Exists:**
-Classic Redux required too much boilerplate:
-- Lots of action creators and constants
-- Immutable updates were verbose and error-prone
-- Configuring the store required multiple packages
-- Async logic needed middleware like thunk or saga
-
-**What Redux Toolkit Provides:**
-1. **createSlice**: Combines actions, reducers, and constants in one place
-2. **createAsyncThunk**: Handles async logic automatically
-3. **Immer integration**: Write "mutating" code that's actually immutable
-4. **configureStore**: Pre-configured store with good defaults
-
-**Key Benefits:**
-- 50-70% less code than vanilla Redux
-- Built-in best practices (Immer, Redux Thunk, Redux DevTools)
-- TypeScript support out of the box
-- Easier to learn and use
-
-**When to Use RTK:**
-If you're using Redux, always use Redux Toolkit. There's no reason to use vanilla Redux in new projects.
-
-**Key Insight:**
-> If you're using Redux, always use Redux Toolkit. There's no reason to use vanilla Redux in new projects — RTK is simpler, faster, and has built-in best practices.
-
-**Implementation Example:**
-
-```javascript
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-
-// Async thunk
-export const fetchUsers = createAsyncThunk(
-  'users/fetchUsers',
-  async () => {
-    const response = await fetch('/api/users');
-    return response.json();
-  }
-);
-
-// Slice
-const usersSlice = createSlice({
-  name: 'users',
-  initialState: {
-    entities: [],
-    loading: 'idle',
-    error: null
-  },
-  reducers: {
-    userAdded(state, action) {
-      state.entities.push(action.payload);
-    }
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchUsers.pending, (state) => {
-        state.loading = 'pending';
-      })
-      .addCase(fetchUsers.fulfilled, (state, action) => {
-        state.loading = 'idle';
-        state.entities = action.payload;
-      })
-      .addCase(fetchUsers.rejected, (state, action) => {
-        state.loading = 'idle';
-        state.error = action.error.message;
-      });
-  }
-});
-
-// Selectors
-export const selectAllUsers = (state) => state.users.entities;
-export const selectUserById = (state, userId) =>
-  state.users.entities.find(user => user.id === userId);
-```
-
-### 💡 **Context API + useReducer**
-
-**What is Context API?**
-Context provides a way to pass data through the component tree without manually passing props at every level. Combined with useReducer, it becomes a lightweight state management solution built into React.
-
-**Why Use Context + useReducer?**
-- No external dependencies (built into React)
-- Simpler than Redux for medium-sized apps
-- Good for avoiding prop drilling
-- Familiar to React developers
-
-**How It Works:**
-1. **Context** provides a way to share values across the component tree
-2. **useReducer** manages complex state transitions (like Redux reducers)
-3. Combine them to get Redux-like state management without Redux
-
-**When to Use Context API:**
-✅ Medium-sized applications (5-10 pages)
-✅ State shared by a few related components
-✅ Want to avoid prop drilling
-✅ Don't need advanced Redux features
-
-**When NOT to Use:**
-❌ Very large applications (Context can cause performance issues)
-❌ Frequent state updates (causes re-renders of all consumers)
-❌ Need time-travel debugging
-❌ Complex middleware requirements
-
-**Performance Consideration:**
-Every context update re-renders ALL consumers, even if they only use part of the context. Solution: Split contexts or use selector libraries.
-
-**Key Insight:**
-> Context + useReducer is "Redux lite" — good enough for medium apps, but beware of re-render performance issues in large apps. Every context update re-renders ALL consumers.
-
-**Implementation Example:**
-
-```jsx
-// Context with reducer
-const TodoContext = createContext();
-
-const todoReducer = (state, action) => {
-  switch(action.type) {
-    case 'ADD_TODO':
+const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
+  switch (action.type) {
+    case "ADD":
+      return { ...state, todos: [...state.todos, action.payload] };
+    case "TOGGLE":
       return {
         ...state,
-        todos: [...state.todos, action.payload]
+        todos: state.todos.map((t) =>
+          t.id === action.payload ? { ...t, completed: !t.completed } : t
+        ),
       };
-    case 'TOGGLE_TODO':
-      return {
-        ...state,
-        todos: state.todos.map(todo =>
-          todo.id === action.payload
-            ? { ...todo, completed: !todo.completed }
-            : todo
-        )
-      };
+    case "SET_FILTER":
+      return { ...state, filter: action.payload };
     default:
       return state;
   }
 };
 
-function TodoProvider({ children }) {
-  const [state, dispatch] = useReducer(todoReducer, {
-    todos: [],
-    filter: 'all'
-  });
-  
-  return (
-    <TodoContext.Provider value={{ state, dispatch }}>
-      {children}
-    </TodoContext.Provider>
-  );
-}
+const TodoContext = React.createContext<{
+  state: TodoState;
+  dispatch: React.Dispatch<TodoAction>;
+} | null>(null);
 
-// Custom hook
-function useTodos() {
-  const context = useContext(TodoContext);
-  if (!context) throw new Error('useTodos must be used within TodoProvider');
-  return context;
+function TodoProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = React.useReducer(todoReducer, { todos: [], filter: "all" });
+  return <TodoContext.Provider value={{ state, dispatch }}>{children}</TodoContext.Provider>;
 }
 ```
 
-### 💡 **Zustand (Lightweight Alternative)**
+⚠️ **Warning:** Every context update re-renders all consumers. For frequently-updated state, use Zustand or split the context.
 
-**What is Zustand?**
-Zustand is a small, fast state management library that offers Redux-like capabilities with a much simpler API. It's become popular as a lightweight alternative to Redux for applications that find Redux too complex but Context API too limited.
+---
 
-**Why Zustand?**
-- **Tiny**: Only 1KB gzipped (vs Redux 3KB + React-Redux 2KB)
-- **Simple API**: No providers, no reducers, no boilerplate
-- **Fast**: Doesn't wrap app in context providers
-- **Flexible**: Works with React or vanilla JavaScript
+## Zustand
 
-**How It Compares:**
-- Simpler than Redux (no actions, reducers, or dispatch)
-- More performant than Context (selective subscriptions)
-- More features than useState (middleware, persistence)
+Minimal boilerplate. No providers. Selective subscriptions prevent unnecessary re-renders.
 
-**When to Use Zustand:**
-✅ Want Redux features without Redux complexity
-✅ Medium to large applications
-✅ Need global state with good performance
-✅ Want minimal boilerplate
+```typescript
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-**When NOT to Use:**
-❌ Need Redux DevTools time-travel
-❌ Team already knows Redux well
-❌ Very simple state (just use useState)
+interface UserStore {
+  users: User[];
+  loading: boolean;
+  fetchUsers: () => Promise<void>;
+  addUser: (user: User) => void;
+  removeUser: (id: string) => void;
+}
 
-**Key Features:**
-- No providers needed
-- Built-in middleware (persist, devtools)
-- Automatic shallow equality checks
-- TypeScript support
+const useUserStore = create<UserStore>()(
+  persist(
+    (set) => ({
+      users: [],
+      loading: false,
 
-**Key Insight:**
-> Zustand offers the best developer experience for medium apps — no providers, no reducers, no boilerplate. It's Redux's simplicity without Redux's ceremony.
+      fetchUsers: async () => {
+        set({ loading: true });
+        const users = await fetch("/api/users").then((r) => r.json());
+        set({ users, loading: false });
+      },
 
-**Implementation Example:**
+      addUser: (user) => set((state) => ({ users: [...state.users, user] })),
 
-```javascript
-import create from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-
-const useStore = create(
-  devtools(
-    persist(
-      (set, get) => ({
-        users: [],
-        loading: false,
-        
-        fetchUsers: async () => {
-          set({ loading: true });
-          const users = await fetch('/api/users').then(r => r.json());
-          set({ users, loading: false });
-        },
-        
-        addUser: (user) => set((state) => ({
-          users: [...state.users, user]
-        })),
-        
-        removeUser: (id) => set((state) => ({
-          users: state.users.filter(u => u.id !== id)
-        }))
-      }),
-      { name: 'user-storage' }
-    )
+      removeUser: (id) =>
+        set((state) => ({ users: state.users.filter((u) => u.id !== id) })),
+    }),
+    { name: "user-storage" }
   )
 );
 
-// Usage in component
+// Component — only re-renders when `users` changes
 function UserList() {
-  const { users, loading, fetchUsers } = useStore();
-  
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-  
-  if (loading) return <Loading />;
-  return users.map(user => <UserCard key={user.id} user={user} />);
+  const { users, fetchUsers } = useUserStore((state) => ({
+    users: state.users,
+    fetchUsers: state.fetchUsers,
+  }));
+  React.useEffect(() => { fetchUsers(); }, []);
+  return <>{users.map((u) => <UserCard key={u.id} user={u} />)}</>;
 }
 ```
 
-### 💡 **Recoil (Atom-based State)**
+---
 
-**What is Recoil?**
-Recoil is Facebook's experimental state management library that takes a fundamentally different approach from Redux. Instead of a single store, Recoil uses atoms (independent state units) and selectors (derived state) with automatic dependency tracking.
+## Redux Toolkit
 
-**Core Concepts:**
-1. **Atoms**: Independent pieces of state that components can subscribe to
-2. **Selectors**: Derived state that automatically updates when dependencies change
-3. **Automatic Dependency Tracking**: Selectors track their dependencies automatically
+Best for large apps with complex state logic, time-travel debugging, or many async flows.
 
-**How It's Different from Redux:**
-- **Granular Updates**: Only components using changed atoms re-render
-- **Distributed State**: No single store, state is distributed across atoms
-- **Async Built-in**: Selectors can be async without middleware
-- **Graph-based**: State forms a dependency graph
+```typescript
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
-**Why Use Recoil?**
-- Fine-grained reactivity (better performance than Context)
-- Composable state (build complex state from simple atoms)
-- Async support without middleware
-- Time-travel debugging like Redux
-
-**When to Use Recoil:**
-✅ Complex derived state requirements
-✅ Need fine-grained reactivity
-✅ Many independent pieces of state
-✅ Async data dependencies
-
-**When NOT to Use:**
-❌ Still experimental (not production-ready by Facebook)
-❌ Simple applications
-❌ Team prefers battle-tested solutions
-
-**Key Benefits:**
-- Minimal re-renders (only affected components update)
-- Clean async data handling
-- Composable selectors
-- Works great with React Concurrent Mode
-
-**Key Insight:**
-> Recoil's atom-based approach means only components subscribing to a changed atom re-render — solving Context's biggest performance problem. Think of atoms as "distributed useState".
-
-**Implementation Example:**
-
-```javascript
-import { atom, selector, useRecoilState, useRecoilValue } from 'recoil';
-
-// Atoms
-const userListState = atom({
-  key: 'userListState',
-  default: []
-});
-
-const filterState = atom({
-  key: 'filterState',
-  default: 'all'
-});
-
-// Selectors
-const filteredUsersState = selector({
-  key: 'filteredUsersState',
-  get: ({ get }) => {
-    const filter = get(filterState);
-    const users = get(userListState);
-    
-    switch(filter) {
-      case 'active':
-        return users.filter(u => u.active);
-      case 'inactive':
-        return users.filter(u => !u.active);
-      default:
-        return users;
-    }
-  }
-});
-
-// Async selector
-const currentUserState = selector({
-  key: 'currentUserState',
-  get: async () => {
-    const response = await fetch('/api/current-user');
-    return response.json();
-  }
-});
-
-// Component usage
-function UserList() {
-  const [users, setUsers] = useRecoilState(userListState);
-  const filteredUsers = useRecoilValue(filteredUsersState);
-  const currentUser = useRecoilValue(currentUserState);
-  
-  return (
-    <div>
-      <h2>Welcome, {currentUser.name}</h2>
-      {filteredUsers.map(user => <UserCard key={user.id} user={user} />)}
-    </div>
-  );
+interface UsersState {
+  entities: Record<string, User>;
+  ids: string[];
+  status: "idle" | "pending" | "fulfilled" | "rejected";
 }
+
+export const fetchUsers = createAsyncThunk("users/fetchAll", async () => {
+  const res = await fetch("/api/users");
+  return res.json() as Promise<User[]>;
+});
+
+const usersSlice = createSlice({
+  name: "users",
+  initialState: { entities: {}, ids: [], status: "idle" } as UsersState,
+  reducers: {
+    userAdded(state, action: PayloadAction<User>) {
+      state.entities[action.payload.id] = action.payload;
+      state.ids.push(action.payload.id);
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => { state.status = "pending"; })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.status = "fulfilled";
+        action.payload.forEach((u) => { state.entities[u.id] = u; state.ids.push(u.id); });
+      });
+  },
+});
+
+// Typed selector
+export const selectUserById = (id: string) => (state: RootState) =>
+  state.users.entities[id];
 ```
 
-## Interview Questions
-
-Common questions about state management patterns, libraries, and best practices for technical interviews.
-
-**Q: When would you choose Redux over Context API?**
-A: Use Redux when:
-- Large applications with complex state logic
-- Need for time-travel debugging
-- Multiple components need the same state
-- State updates are frequent and complex
-- Need middleware (logging, analytics, async)
-
-Use Context API when:
-- Small to medium applications
-- Simpler state requirements
-- Want to avoid additional dependencies
-- State updates are infrequent
-
-**Q: How do you handle async operations in Redux?**
-A: Multiple approaches:
-1. **Redux Thunk**: Dispatch functions that can perform async operations
-2. **Redux Saga**: Use generator functions for complex async flows
-3. **Redux Toolkit**: Built-in createAsyncThunk for async actions
-
-Example with Redux Saga:
-```javascript
-import { call, put, takeEvery } from 'redux-saga/effects';
-
-function* fetchUserSaga(action) {
-  try {
-    const user = yield call(api.fetchUser, action.payload);
-    yield put({ type: 'FETCH_USER_SUCCESS', user });
-  } catch (error) {
-    yield put({ type: 'FETCH_USER_FAILURE', error });
-  }
-}
-
-function* watchFetchUser() {
-  yield takeEvery('FETCH_USER_REQUEST', fetchUserSaga);
-}
-```
-
-**Q: What is the difference between local and global state?**
-A: 
-- **Local state**: Component-specific, managed with useState/useReducer, not shared
-- **Global state**: Application-wide, accessible by multiple components, managed by Redux/Context
-
-Best practice: Keep state as local as possible, lift to global only when necessary.
-
-**Q: How do you prevent unnecessary re-renders with Context?**
-A: Solutions:
-1. Split contexts by concern
-2. Use useMemo for context values
-3. Implement selector pattern
-4. Use React.memo for consumers
-
-```jsx
-const UserContext = createContext();
-
-function UserProvider({ children }) {
-  const [user, setUser] = useState(null);
-  
-  // Memoize to prevent re-renders
-  const value = useMemo(() => ({ user, setUser }), [user]);
-  
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
-}
-```
+---
 
 ## State Normalization
 
-Structuring nested data in a flat format to improve performance, prevent duplication, and simplify updates.
+For relational data, store it flat — like a database table — to avoid duplication and O(n) updates.
 
-### Normalized State Shape
+```typescript
+// ❌ Nested (causes duplication and complex updates)
+const badState = {
+  posts: [{ id: 1, author: { id: 10, name: "Alice" }, comments: [{ authorId: 10 }] }],
+};
 
-**What is State Normalization?**
-State normalization is the practice of structuring your state in a flat, relational database-like format instead of deeply nested objects. This is crucial for performance and maintainability in applications managing complex, relational data.
-
-**The Problem with Nested State:**
-Deeply nested state causes several issues:
-- **Duplication**: Same data (e.g., user) repeated in multiple places
-- **Update Complexity**: Updating nested data is difficult and error-prone
-- **Performance**: Changing one item can trigger re-renders of unrelated components
-- **Consistency**: Hard to keep duplicate data in sync
-
-**Normalization Solution:**
-Store data in flat lookup tables (like database tables) with IDs as references.
-
-**Structure:**
-```
-{
-  entities: {
-    users: { [id]: user },
-    posts: { [id]: post },
-    comments: { [id]: comment }
-  },
-  ids: {
-    users: [id1, id2],
-    posts: [id1, id2]
-  }
+// ✅ Normalized (single source of truth, O(1) lookups)
+interface NormalizedState {
+  users: Record<string, User>;
+  posts: Record<string, Post>;         // Post.authorId references users
+  comments: Record<string, Comment>;  // Comment.authorId references users
+  postIds: string[];
 }
 ```
 
-**Benefits:**
-1. **Single Source of Truth**: Each entity exists once
-2. **Easy Updates**: Find by ID, update in place
-3. **Better Performance**: Update only what changed
-4. **Simpler Reducers**: No deep nesting logic
+---
 
-**When to Normalize:**
-✅ Relational data (users, posts, comments)
-✅ Data used in multiple places
-✅ Frequent updates to nested data
-✅ Large datasets
+## Common Mistakes
 
-**When NOT to Normalize:**
-❌ Simple, non-relational data
-❌ Data only used in one place
-❌ Very small datasets
+❌ **Putting server data into Redux** — React Query handles caching, revalidation, and background sync  
+❌ **Global state for local concerns** — form state belongs in `useState`, not the store  
+❌ **Context for high-frequency updates** — every update re-renders all consumers; use Zustand
 
-**Key Insight:**
-> Think of normalized state like a relational database — entities in lookup tables, referenced by IDs. This eliminates duplication and makes updates O(1) instead of O(n).
+**Key insight:**
 
-**❌ Before (Nested - Problem):**
-
-```javascript
-// Instead of nested data
-const badState = {
-  posts: [
-    {
-      id: 1,
-      title: 'Post 1',
-      author: { id: 1, name: 'John' },
-      comments: [
-        { id: 1, text: 'Comment 1', author: { id: 2, name: 'Jane' } }
-      ]
-    }
-  ]
-};
-
-// ✅ After (Normalized - Solution)
-const goodState = {
-  entities: {
-    users: {
-      1: { id: 1, name: 'John' },
-      2: { id: 2, name: 'Jane' }
-    },
-    posts: {
-      1: { id: 1, title: 'Post 1', authorId: 1, commentIds: [1] }
-    },
-    comments: {
-      1: { id: 1, text: 'Comment 1', authorId: 2, postId: 1 }
-    }
-  },
-  ids: {
-    users: [1, 2],
-    posts: [1],
-    comments: [1]
-  }
-};
-
-// Using normalizr library
-import { normalize, schema } from 'normalizr';
-
-const user = new schema.Entity('users');
-const comment = new schema.Entity('comments', { author: user });
-const post = new schema.Entity('posts', {
-  author: user,
-  comments: [comment]
-});
-
-const normalizedData = normalize(apiResponse, [post]);
-```
-
-## Best Practices
-
-Guidelines for organizing, optimizing, and maintaining state management in production applications.
-
-✅ **State Organization**
-- Keep state as local as possible
-- Normalize complex nested data
-- Use selectors for derived state
-- Separate UI state from domain data
-
-✅ **Performance**
-- Memoize expensive computations
-- Use shallow equality checks
-- Implement proper selector patterns
-- Avoid deep object nesting
-
-✅ **Maintainability**
-- Use TypeScript for type safety
-- Follow consistent naming conventions
-- Document state shape
-- Write unit tests for reducers
-
-❌ **Common Pitfalls**
-- Don't store derived data in state
-- Avoid mutating state directly
-- Don't over-use global state
-- Avoid storing non-serializable values in Redux
-
-## Summary
-
-**Decision Guide:**
-
-| App Complexity | Recommended Solution | Why |
-|----------------|---------------------|-----|
-| Simple (1-3 components) | `useState` | No overhead |
-| Medium (5-10 pages) | Context + useReducer or Zustand | Built-in or minimal deps |
-| Large (10+ pages, complex state) | Redux Toolkit | Predictable, debuggable |
-| Granular reactivity needed | Recoil | Atom-based, minimal re-renders |
-
-**Key Principles:**
-- ✅ Keep state as local as possible
-- ✅ Normalize complex/relational data
-- ✅ Use selectors for derived state
-- ❌ Don't store derived data in state
-- ❌ Don't over-use global state
+> Most apps only need useState + React Query. Add Zustand when you have real global client state. Add Redux only when you need time-travel debugging or a very large shared state graph.
 
 ---
 [← Back to SystemDesign](../README.md)

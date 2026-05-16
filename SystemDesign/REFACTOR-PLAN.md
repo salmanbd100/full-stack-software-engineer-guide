@@ -326,27 +326,27 @@ Report old vs new line count after each file. Pause for review.
 
 ### Progress Tracker — Day 4
 
-- [ ] `Infrastructure/01-aws-basics.md`
-- [ ] `Infrastructure/02-compute.md`
-- [ ] `Infrastructure/03-storage.md`
-- [ ] `Infrastructure/04-networking.md`
-- [ ] `Infrastructure/05-containers.md`
-- [ ] `Infrastructure/06-ci-cd.md`
-- [ ] `Infrastructure/07-monitoring.md`
-- [ ] `Infrastructure/08-disaster-recovery.md`
-- [ ] `Frontend/00-interview-strategy.md`
-- [ ] `Frontend/01-architecture.md`
-- [ ] `Frontend/02-state-management.md`
-- [ ] `Frontend/03-rendering.md`
-- [ ] `Frontend/04-performance.md`
-- [ ] `Frontend/05-micro-frontends.md`
-- [ ] `Frontend/06-real-time.md`
-- [ ] `Frontend/07-offline-first.md`
-- [ ] `Frontend/08-design-systems.md`
-- [ ] `Frontend/09-assets.md`
-- [ ] `Frontend/10-seo-analytics.md`
-- [ ] `Frontend/11-auth.md`
-- [ ] `Frontend/12-monitoring.md`
+- [x] `Infrastructure/01-aws-basics.md` (57 stub → 165 lines)
+- [x] `Infrastructure/02-compute.md` (57 stub → 170 lines)
+- [x] `Infrastructure/03-storage.md` (57 stub → 170 lines)
+- [x] `Infrastructure/04-networking.md` (57 stub → 158 lines)
+- [x] `Infrastructure/05-containers.md` (57 stub → 183 lines)
+- [x] `Infrastructure/06-ci-cd.md` (57 stub → 191 lines)
+- [x] `Infrastructure/07-monitoring.md` (57 stub → 225 lines)
+- [x] `Infrastructure/08-disaster-recovery.md` (57 stub → 193 lines)
+- [x] `Frontend/00-interview-strategy.md` (1342 → 145 lines)
+- [x] `Frontend/01-architecture.md` (627 → 175 lines)
+- [x] `Frontend/02-state-management.md` (671 → 185 lines)
+- [x] `Frontend/03-rendering.md` (644 → 183 lines)
+- [x] `Frontend/04-performance.md` (972 → 190 lines)
+- [x] `Frontend/05-micro-frontends.md` (754 → 175 lines)
+- [x] `Frontend/06-real-time.md` (989 → 165 lines)
+- [x] `Frontend/07-offline-first.md` (888 → 200 lines)
+- [x] `Frontend/08-design-systems.md` (928 → 205 lines)
+- [x] `Frontend/09-assets.md` (745 → 175 lines)
+- [x] `Frontend/10-seo-analytics.md` (810 → 185 lines)
+- [x] `Frontend/11-auth.md` (874 → 210 lines)
+- [x] `Frontend/12-monitoring.md` (871 → 175 lines)
 
 ---
 

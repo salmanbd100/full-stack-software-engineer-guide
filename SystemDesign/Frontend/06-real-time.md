@@ -1,989 +1,184 @@
 # Real-Time Features
 
-## Overview
-Real-time features enable instant data synchronization between server and client, critical for chat applications, collaborative editing, live dashboards, and notifications. Choosing the right technology depends on requirements, scale, and infrastructure.
+## 💡 **Concept**
 
-## Technologies Comparison
+Real-time features keep the client in sync with the server without the user requesting an update. The right technology depends on whether communication needs to be bidirectional and how frequently data changes.
 
-Comparison of different real-time communication technologies to help choose the right approach based on requirements.
+**How to answer in an interview:** "I'd ask two questions: does the client need to send messages to the server, and how frequently do updates arrive? If bidirectional and frequent — WebSocket. If server-to-client only — SSE. If infrequent (every few minutes) — polling is simpler and sufficient."
 
-### Communication Protocols
+---
 
-| Protocol | Bi-directional | Full-duplex | Browser Support | Use Case |
-|----------|---------------|-------------|-----------------|----------|
-| WebSocket | Yes | Yes | Excellent | Chat, gaming, collaboration |
-| SSE | No (server→client) | No | Good | Notifications, feeds |
-| Long Polling | No | No | Universal | Fallback, simple updates |
-| HTTP/2 Server Push | No | No | Limited | Asset optimization |
+## Technology Comparison
 
-### 💡 **WebSockets**
+| Protocol | Direction | Use Case | Overhead |
+|----------|-----------|---------|---------|
+| **WebSocket** | Bidirectional | Chat, collaboration, gaming | Medium |
+| **SSE** | Server → Client | Notifications, live feeds | Low |
+| **Long Polling** | Server → Client | Fallback, legacy browsers | High |
 
-Full-duplex communication protocol enabling persistent, bidirectional connections for low-latency real-time data exchange.
+---
 
-### Basic Implementation
+## WebSocket
 
-**Why WebSockets?**
-Traditional HTTP is request-response: client asks, server responds. For real-time features, this means constant polling (inefficient) or long-polling (complex). WebSockets establish a persistent, bidirectional connection allowing both client and server to send messages anytime.
+Persistent full-duplex TCP connection. Low latency; both sides send messages freely.
 
-**WebSocket Lifecycle:**
-1. **Handshake**: HTTP upgrade request from client
-2. **Connection**: Established WebSocket connection
-3. **Communication**: Both sides send/receive messages freely
-4. **Close**: Either side can close connection
-
-**When to Use WebSockets:**
-✅ Chat applications (instant messaging)
-✅ Live collaboration (Google Docs-style)
-✅ Real-time gaming
-✅ Live dashboards (stock prices, analytics)
-✅ Notifications requiring instant delivery
-
-**When NOT to Use:**
-❌ Simple one-way updates (use SSE)
-❌ Infrequent updates (use polling)
-❌ RESTful APIs (use HTTP)
-
-**Production Considerations:**
-For production, you need:
-- Automatic reconnection on disconnect
-- Exponential backoff to prevent server overload
-- Heartbeat/ping to detect dead connections
-- Message queuing for offline periods
-- Authentication and authorization
-
-**Key Insight:**
-> Always implement reconnection with exponential backoff in production. Without it, a brief network blip will permanently disconnect users.
-
-**Client-side Implementation:**
-
-```javascript
-// Client-side WebSocket
+```typescript
 class WebSocketClient {
-  constructor(url) {
-    this.url = url;
-    this.ws = null;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 1000;
-    this.listeners = {};
-  }
+  private ws: WebSocket | null = null;
+  private reconnectAttempts = 0;
+  private readonly maxAttempts = 5;
+  private listeners = new Map<string, ((data: unknown) => void)[]>();
 
-  connect() {
-    this.ws = new WebSocket(this.url);
+  connect(url: string): void {
+    this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
-      console.log('WebSocket connected');
       this.reconnectAttempts = 0;
-      this.emit('connected');
+      console.log("WebSocket connected");
     };
 
-    this.ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        this.emit(data.type, data.payload);
-      } catch (error) {
-        console.error('Failed to parse message:', error);
-      }
+    this.ws.onmessage = (event: MessageEvent) => {
+      const { type, payload } = JSON.parse(event.data as string);
+      this.listeners.get(type)?.forEach((cb) => cb(payload));
     };
 
-    this.ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      this.emit('error', error);
-    };
-
-    this.ws.onclose = () => {
-      console.log('WebSocket closed');
-      this.emit('disconnected');
-      this.reconnect();
-    };
+    this.ws.onclose = () => this.reconnect(url);
+    this.ws.onerror = (err) => console.error("WebSocket error", err);
   }
 
-  reconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
-      this.emit('max-reconnect-attempts');
-      return;
-    }
-
+  private reconnect(url: string): void {
+    if (this.reconnectAttempts >= this.maxAttempts) return;
     this.reconnectAttempts++;
-    const delay = Math.min(
-      this.reconnectDelay * Math.pow(2, this.reconnectAttempts),
-      30000
-    );
-
-    console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
-
-    setTimeout(() => {
-      this.connect();
-    }, delay);
+    const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30_000); // exponential backoff
+    setTimeout(() => this.connect(url), delay);
   }
 
-  send(type, payload) {
+  send(type: string, payload: unknown): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type, payload }));
-    } else {
-      console.error('WebSocket not connected');
     }
   }
 
-  on(event, callback) {
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
-    }
-    this.listeners[event].push(callback);
+  on(type: string, callback: (data: unknown) => void): void {
+    if (!this.listeners.has(type)) this.listeners.set(type, []);
+    this.listeners.get(type)!.push(callback);
   }
-
-  off(event, callback) {
-    if (!this.listeners[event]) return;
-    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
-  }
-
-  emit(event, data) {
-    if (!this.listeners[event]) return;
-    this.listeners[event].forEach(callback => callback(data));
-  }
-
-  disconnect() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-  }
-}
-
-// Usage
-const wsClient = new WebSocketClient('ws://localhost:8080');
-wsClient.connect();
-
-wsClient.on('message', (data) => {
-  console.log('New message:', data);
-});
-
-wsClient.send('message', { text: 'Hello!' });
-```
-
-### React WebSocket Hook
-
-```javascript
-import { useEffect, useRef, useCallback } from 'react';
-
-function useWebSocket(url) {
-  const ws = useRef(null);
-  const listenersRef = useRef({});
-
-  useEffect(() => {
-    ws.current = new WebSocket(url);
-
-    ws.current.onopen = () => {
-      console.log('Connected');
-      emit('connected');
-    };
-
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      emit(data.type, data.payload);
-    };
-
-    ws.current.onerror = (error) => {
-      console.error('Error:', error);
-      emit('error', error);
-    };
-
-    ws.current.onclose = () => {
-      console.log('Disconnected');
-      emit('disconnected');
-    };
-
-    return () => {
-      ws.current?.close();
-    };
-  }, [url]);
-
-  const emit = (event, data) => {
-    if (listenersRef.current[event]) {
-      listenersRef.current[event].forEach(cb => cb(data));
-    }
-  };
-
-  const on = useCallback((event, callback) => {
-    if (!listenersRef.current[event]) {
-      listenersRef.current[event] = [];
-    }
-    listenersRef.current[event].push(callback);
-  }, []);
-
-  const send = useCallback((type, payload) => {
-    if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ type, payload }));
-    }
-  }, []);
-
-  return { send, on };
-}
-
-// Usage in component
-function ChatRoom({ roomId }) {
-  const [messages, setMessages] = useState([]);
-  const { send, on } = useWebSocket(`ws://localhost:8080/chat/${roomId}`);
-
-  useEffect(() => {
-    on('message', (message) => {
-      setMessages(prev => [...prev, message]);
-    });
-
-    on('user-joined', (user) => {
-      console.log(`${user.name} joined`);
-    });
-  }, [on]);
-
-  const sendMessage = (text) => {
-    send('message', { text, roomId });
-  };
-
-  return (
-    <div>
-      <MessageList messages={messages} />
-      <MessageInput onSend={sendMessage} />
-    </div>
-  );
 }
 ```
 
-### Server Implementation (Node.js)
-
-```javascript
-// Using ws library
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8080 });
-
-const clients = new Map();
-
-wss.on('connection', (ws, req) => {
-  const clientId = generateId();
-  clients.set(clientId, ws);
-
-  console.log(`Client ${clientId} connected`);
-
-  ws.on('message', (message) => {
-    try {
-      const data = JSON.parse(message);
-      handleMessage(clientId, data);
-    } catch (error) {
-      console.error('Failed to parse message:', error);
-    }
-  });
-
-  ws.on('close', () => {
-    console.log(`Client ${clientId} disconnected`);
-    clients.delete(clientId);
-  });
-
-  ws.on('error', (error) => {
-    console.error(`Client ${clientId} error:`, error);
-  });
-
-  // Send welcome message
-  ws.send(JSON.stringify({
-    type: 'connected',
-    payload: { clientId }
-  }));
-});
-
-function handleMessage(clientId, data) {
-  const { type, payload } = data;
-
-  switch (type) {
-    case 'message':
-      // Broadcast to all clients
-      broadcast({
-        type: 'message',
-        payload: {
-          ...payload,
-          from: clientId,
-          timestamp: Date.now()
-        }
-      });
-      break;
-
-    case 'private-message':
-      // Send to specific client
-      const targetWs = clients.get(payload.to);
-      if (targetWs) {
-        targetWs.send(JSON.stringify({
-          type: 'private-message',
-          payload: {
-            text: payload.text,
-            from: clientId
-          }
-        }));
-      }
-      break;
-  }
-}
-
-function broadcast(data, excludeId = null) {
-  const message = JSON.stringify(data);
-
-  clients.forEach((ws, clientId) => {
-    if (clientId !== excludeId && ws.readyState === WebSocket.OPEN) {
-      ws.send(message);
-    }
-  });
-}
-
-// Heartbeat to detect broken connections
-function heartbeat() {
-  this.isAlive = true;
-}
-
-wss.on('connection', (ws) => {
-  ws.isAlive = true;
-  ws.on('pong', heartbeat);
-});
-
-const interval = setInterval(() => {
-  wss.clients.forEach((ws) => {
-    if (ws.isAlive === false) {
-      return ws.terminate();
-    }
-
-    ws.isAlive = false;
-    ws.ping();
-  });
-}, 30000);
-
-wss.on('close', () => {
-  clearInterval(interval);
-});
-```
-
-### 💡 **Server-Sent Events (SSE)**
-
-Lightweight unidirectional protocol for server-to-client real-time updates using standard HTTP connections.
-
-**When to Use SSE vs WebSockets:**
-
-| Feature | SSE | WebSockets |
-|---------|-----|-----------|
-| **Direction** | Server → Client only | Bidirectional |
-| **Protocol** | HTTP | WS (upgrade from HTTP) |
-| **Reconnection** | Automatic (built-in) | Manual implementation |
-| **Complexity** | Simple | More complex |
-| **Best For** | Notifications, feeds | Chat, gaming |
-
-**Key Insight:**
-> If you only need server-to-client updates, SSE is simpler than WebSockets — automatic reconnection, works through proxies/firewalls, and uses standard HTTP.
-
-### Client Implementation
-
-```javascript
-class SSEClient {
-  constructor(url) {
-    this.url = url;
-    this.eventSource = null;
-    this.listeners = {};
-  }
-
-  connect() {
-    this.eventSource = new EventSource(this.url);
-
-    this.eventSource.onopen = () => {
-      console.log('SSE connected');
-      this.emit('connected');
-    };
-
-    this.eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
-      this.emit('error', error);
-
-      // EventSource automatically reconnects
-    };
-
-    this.eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        this.emit('message', data);
-      } catch (error) {
-        console.error('Failed to parse message:', error);
-      }
-    };
-  }
-
-  on(event, callback) {
-    // Custom event types
-    if (event !== 'message' && event !== 'connected' && event !== 'error') {
-      this.eventSource.addEventListener(event, (e) => {
-        callback(JSON.parse(e.data));
-      });
-      return;
-    }
-
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
-    }
-    this.listeners[event].push(callback);
-  }
-
-  emit(event, data) {
-    if (!this.listeners[event]) return;
-    this.listeners[event].forEach(callback => callback(data));
-  }
-
-  disconnect() {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-  }
-}
-
-// Usage
-const sseClient = new SSEClient('/api/events');
-sseClient.connect();
-
-sseClient.on('notification', (notification) => {
-  console.log('New notification:', notification);
-});
-
-sseClient.on('stock-update', (stock) => {
-  console.log('Stock price:', stock);
-});
-```
-
-### React SSE Hook
-
-```javascript
-import { useEffect, useState } from 'react';
-
-function useSSE(url, eventType = 'message') {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    const eventSource = new EventSource(url);
-
-    eventSource.onopen = () => {
-      setIsConnected(true);
-      setError(null);
-    };
-
-    eventSource.onerror = (err) => {
-      setError(err);
-      setIsConnected(false);
-    };
-
-    const handleEvent = (event) => {
-      try {
-        const parsedData = JSON.parse(event.data);
-        setData(parsedData);
-      } catch (err) {
-        setError(err);
-      }
-    };
-
-    if (eventType === 'message') {
-      eventSource.onmessage = handleEvent;
-    } else {
-      eventSource.addEventListener(eventType, handleEvent);
-    }
-
-    return () => {
-      eventSource.close();
-    };
-  }, [url, eventType]);
-
-  return { data, error, isConnected };
-}
-
-// Usage
-function StockTicker() {
-  const { data, error, isConnected } = useSSE('/api/stock-prices', 'price-update');
-
-  if (error) return <div>Error: {error.message}</div>;
-  if (!isConnected) return <div>Connecting...</div>;
-
-  return (
-    <div>
-      <h3>{data?.symbol}</h3>
-      <p>${data?.price}</p>
-    </div>
-  );
-}
-```
-
-### Server Implementation (Express)
-
-```javascript
-const express = require('express');
-const app = express();
-
-app.get('/api/events', (req, res) => {
-  // Set headers for SSE
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-
-  // Send initial message
-  res.write(`data: ${JSON.stringify({ message: 'Connected' })}\n\n`);
-
-  // Send updates every 5 seconds
-  const interval = setInterval(() => {
-    const data = {
-      timestamp: Date.now(),
-      value: Math.random()
-    };
-
-    res.write(`event: update\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  }, 5000);
-
-  // Clean up on client disconnect
-  req.on('close', () => {
-    clearInterval(interval);
-    res.end();
-  });
-});
-
-// Notification stream
-const subscribers = new Set();
-
-app.get('/api/notifications', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-
-  subscribers.add(res);
-
-  req.on('close', () => {
-    subscribers.delete(res);
-  });
-});
-
-function sendNotification(notification) {
-  const message = `event: notification\ndata: ${JSON.stringify(notification)}\n\n`;
-
-  subscribers.forEach(res => {
-    res.write(message);
-  });
-}
-
-app.listen(3000);
-```
-
-### 💡 **Long Polling**
-
-Fallback technique simulating real-time updates through sequential HTTP requests with server-side waiting.
-
-**How It Works:**
-1. Client sends HTTP request to server
-2. Server holds the connection open until new data is available (or timeout)
-3. Server responds with data
-4. Client immediately sends a new request
-5. Repeat
-
-**When to Use:**
-- ✅ Need widest browser compatibility
-- ✅ As fallback when WebSockets/SSE unavailable
-- ❌ High-frequency updates (too much overhead)
-- ❌ Low latency requirements
-
-```javascript
-class LongPollingClient {
-  constructor(url) {
-    this.url = url;
-    this.isPolling = false;
-    this.abortController = null;
-    this.listeners = {};
-  }
-
-  async startPolling() {
-    this.isPolling = true;
-
-    while (this.isPolling) {
-      try {
-        this.abortController = new AbortController();
-
-        const response = await fetch(this.url, {
-          signal: this.abortController.signal
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          this.emit('data', data);
-        }
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Polling error:', error);
-          this.emit('error', error);
-
-          // Wait before retrying
-          await new Promise(resolve => setTimeout(resolve, 5000));
-        }
-      }
-    }
-  }
-
-  stopPolling() {
-    this.isPolling = false;
-    this.abortController?.abort();
-  }
-
-  on(event, callback) {
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
-    }
-    this.listeners[event].push(callback);
-  }
-
-  emit(event, data) {
-    if (!this.listeners[event]) return;
-    this.listeners[event].forEach(callback => callback(data));
-  }
-}
-
-// Server implementation
-app.get('/api/poll', async (req, res) => {
-  const timeout = 30000; // 30 seconds
-  const startTime = Date.now();
-
-  // Wait for new data or timeout
-  while (Date.now() - startTime < timeout) {
-    const newData = await checkForNewData(req.query.lastId);
-
-    if (newData) {
-      return res.json(newData);
-    }
-
-    // Wait briefly before checking again
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-
-  // Timeout - send empty response
-  res.json({ data: [] });
-});
-```
-
-### 💡 **Socket.IO**
-
-Popular real-time library providing WebSocket-like API with automatic fallbacks and enhanced features like rooms and namespaces.
-
-**Why Socket.IO Over Raw WebSockets:**
-- ✅ Automatic fallback to polling if WebSockets unavailable
-- ✅ Built-in reconnection with configurable strategy
-- ✅ Room/namespace support for grouping connections
-- ✅ Acknowledgements (confirm message received)
-- ❌ Larger bundle size than raw WebSocket
-- ❌ Not a WebSocket — uses custom protocol
-
-```javascript
-// Client
-import io from 'socket.io-client';
-
-const socket = io('http://localhost:3000', {
-  transports: ['websocket', 'polling'],  // Try WebSocket first
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000
-});
-
-socket.on('connect', () => {
-  console.log('Connected:', socket.id);
-});
-
-socket.on('disconnect', () => {
-  console.log('Disconnected');
-});
-
-socket.on('message', (data) => {
-  console.log('Message:', data);
-});
-
-// Emit event
-socket.emit('send-message', { text: 'Hello!' });
-
-// Join room
-socket.emit('join-room', 'room-123');
-
-// Server
-const express = require('express');
-const http = require('http');
-const socketIO = require('socket.io');
-
-const app = express();
-const server = http.createServer(app);
-const io = socketIO(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
-});
-
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-
-  socket.on('join-room', (roomId) => {
-    socket.join(roomId);
-    console.log(`${socket.id} joined room ${roomId}`);
-
-    // Notify room
-    io.to(roomId).emit('user-joined', {
-      userId: socket.id
-    });
-  });
-
-  socket.on('send-message', (data) => {
-    // Broadcast to room
-    socket.to(data.roomId).emit('message', {
-      ...data,
-      from: socket.id,
-      timestamp: Date.now()
-    });
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
-});
-
-server.listen(3000);
-```
-
-## Real-Time Use Cases
-
-### Live Chat
-
-```javascript
-// React chat component
-function ChatRoom({ roomId }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const socketRef = useRef();
-
-  useEffect(() => {
-    socketRef.current = io('http://localhost:3000');
-
-    socketRef.current.emit('join-room', roomId);
-
-    socketRef.current.on('message', (message) => {
-      setMessages(prev => [...prev, message]);
-    });
-
-    socketRef.current.on('user-joined', (user) => {
-      setMessages(prev => [...prev, {
-        type: 'system',
-        text: `${user.name} joined`
-      }]);
-    });
-
-    return () => {
-      socketRef.current.disconnect();
-    };
+**React hook:**
+
+```typescript
+function useChatRoom(roomId: string) {
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const wsRef = React.useRef(new WebSocketClient());
+
+  React.useEffect(() => {
+    const ws = wsRef.current;
+    ws.connect(`wss://api.example.com/chat/${roomId}`);
+    ws.on("message", (msg) =>
+      setMessages((prev) => [...prev, msg as Message])
+    );
+    return () => ws.send("leave", { roomId });
   }, [roomId]);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
+  const sendMessage = (text: string) =>
+    wsRef.current.send("message", { roomId, text });
 
-    socketRef.current.emit('send-message', {
-      roomId,
-      text: input
-    });
-
-    setMessages(prev => [...prev, {
-      text: input,
-      from: 'me',
-      timestamp: Date.now()
-    }]);
-
-    setInput('');
-  };
-
-  return (
-    <div className="chat-room">
-      <div className="messages">
-        {messages.map((msg, i) => (
-          <Message key={i} {...msg} />
-        ))}
-      </div>
-      <input
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        onKeyPress={e => e.key === 'Enter' && sendMessage()}
-      />
-      <button onClick={sendMessage}>Send</button>
-    </div>
-  );
+  return { messages, sendMessage };
 }
 ```
 
-### Live Notifications
+---
 
-```javascript
-function NotificationCenter() {
-  const [notifications, setNotifications] = useState([]);
+## Server-Sent Events (SSE)
 
-  useEffect(() => {
-    const eventSource = new EventSource('/api/notifications');
+Unidirectional server-push over HTTP. Simpler than WebSocket for one-way data.
 
-    eventSource.addEventListener('notification', (e) => {
-      const notification = JSON.parse(e.data);
-      setNotifications(prev => [notification, ...prev]);
+```typescript
+// Server (Node.js/Express)
+import express from "express";
+const app = express();
 
-      // Show browser notification
-      if (Notification.permission === 'granted') {
-        new Notification(notification.title, {
-          body: notification.message,
-          icon: '/icon.png'
-        });
-      }
-    });
+app.get("/api/events", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
 
-    return () => {
-      eventSource.close();
+  const sendEvent = (data: object) =>
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  const interval = setInterval(() => {
+    sendEvent({ type: "heartbeat", timestamp: Date.now() });
+  }, 30_000);
+
+  req.on("close", () => clearInterval(interval));
+});
+
+// Client
+function useLiveFeed() {
+  const [events, setEvents] = React.useState<FeedEvent[]>([]);
+
+  React.useEffect(() => {
+    const source = new EventSource("/api/events");
+    source.onmessage = (event) => {
+      const data = JSON.parse(event.data) as FeedEvent;
+      setEvents((prev) => [data, ...prev].slice(0, 100)); // keep last 100
     };
+    source.onerror = () => source.close();
+    return () => source.close();
   }, []);
 
-  return (
-    <div>
-      {notifications.map(notif => (
-        <div key={notif.id} className="notification">
-          <h4>{notif.title}</h4>
-          <p>{notif.message}</p>
-        </div>
-      ))}
-    </div>
-  );
+  return events;
 }
 ```
 
-### Collaborative Editing
+---
 
-```javascript
-// Operational Transform for collaborative editing
-function CollaborativeEditor({ documentId }) {
-  const [content, setContent] = useState('');
-  const socketRef = useRef();
+## Choosing the Right Protocol
 
-  useEffect(() => {
-    socketRef.current = io('http://localhost:3000');
-
-    socketRef.current.emit('join-document', documentId);
-
-    socketRef.current.on('document-update', (operation) => {
-      // Apply operation to local content
-      const newContent = applyOperation(content, operation);
-      setContent(newContent);
-    });
-
-    socketRef.current.on('initial-content', (initialContent) => {
-      setContent(initialContent);
-    });
-
-    return () => {
-      socketRef.current.disconnect();
-    };
-  }, [documentId]);
-
-  const handleChange = (newContent) => {
-    const operation = generateOperation(content, newContent);
-
-    // Optimistic update
-    setContent(newContent);
-
-    // Send to server
-    socketRef.current.emit('edit', {
-      documentId,
-      operation
-    });
-  };
-
-  return (
-    <textarea
-      value={content}
-      onChange={e => handleChange(e.target.value)}
-    />
-  );
-}
+```
+Need bidirectional? (client sends to server)
+  YES → WebSocket
+  NO  →
+        Updates > every 5 seconds? → SSE
+        Updates < every 5 seconds? → Polling (simpler, stateless)
 ```
 
-## Interview Questions
+| Feature | WebSocket | SSE | Polling |
+|---------|-----------|-----|---------|
+| Bidirectional | ✅ | ❌ | ❌ |
+| Auto-reconnect | Manual | ✅ Built-in | N/A |
+| HTTP/2 support | Separate conn | ✅ Multiplexed | ✅ |
+| Firewall-friendly | ⚠️ | ✅ | ✅ |
 
-**Q: When would you use WebSockets vs SSE?**
+---
 
-A:
-- **WebSockets**: Bidirectional communication needed (chat, gaming, collaboration)
-- **SSE**: Server-to-client only (notifications, live feeds, dashboards)
+## Scaling Considerations
 
-WebSockets have more overhead but support bidirectional messaging. SSE is simpler for one-way communication and automatically reconnects.
+WebSocket connections are stateful — every connection must reach the same server instance.
 
-**Q: How do you handle reconnection in WebSockets?**
+```
+Client A ──┐
+Client B ──┤→ Load Balancer → Server 1 ──┐
+Client C ──┘                              ├→ Redis Pub/Sub → Server 2 → Client D
+                                          └→ Server 3 → Client E
+```
 
-A: Implement exponential backoff:
-1. Track reconnection attempts
-2. Increase delay exponentially (1s, 2s, 4s, 8s...)
-3. Cap maximum delay (e.g., 30s)
-4. Set maximum attempts limit
-5. Resume state after reconnection
+Use Redis Pub/Sub (or a message broker like SQS) so any server can broadcast to any client regardless of which server holds the connection.
 
-**Q: What are the challenges with real-time at scale?**
+---
 
-A:
-- **Connection management**: Thousands of concurrent connections
-- **Message ordering**: Ensure messages arrive in order
-- **State synchronization**: Keep clients in sync
-- **Server resources**: WebSockets keep connections open
-- **Load balancing**: Sticky sessions or pub/sub
+## Common Mistakes
 
-Solutions: Redis pub/sub, horizontal scaling, WebSocket gateways
+❌ **No reconnection logic** — a brief network blip permanently disconnects users  
+❌ **WebSocket for infrequent updates** — polling is simpler and sufficient for < 1 update/minute  
+❌ **No heartbeat** — dead connections aren't detected without a ping/pong mechanism  
+❌ **Stateful WebSocket servers behind a round-robin load balancer** — clients reconnect to different servers; use sticky sessions or Pub/Sub
 
-**Q: How do you optimize real-time performance?**
+**Key insight:**
 
-A:
-1. **Message batching**: Combine multiple updates
-2. **Throttling**: Limit update frequency
-3. **Binary protocols**: Use MessagePack vs JSON
-4. **Compression**: Enable WebSocket compression
-5. **CDN for static**: Reduce server load
-6. **Connection pooling**: Reuse connections
-
-## Best Practices
-
-**Connection Management:**
-- Implement heartbeat/ping-pong
-- Handle reconnection gracefully
-- Clean up on component unmount
-- Manage connection state
-
-**Message Handling:**
-- Validate message format
-- Handle malformed messages
-- Implement message acknowledgment
-- Use unique message IDs
-
-**Performance:**
-- Batch updates when possible
-- Throttle high-frequency events
-- Use binary protocols for large data
-- Implement message compression
-
-**Security:**
-- Authenticate connections
-- Validate message origin
-- Sanitize user input
-- Rate limit messages
-
-## Summary
-
-| Technology | Direction | Best For | Key Feature |
-|-----------|-----------|----------|-------------|
-| **WebSockets** | Bidirectional | Chat, gaming, collaboration | Full-duplex, low latency |
-| **SSE** | Server → Client | Notifications, feeds | Auto-reconnect, simple |
-| **Long Polling** | Client → Server → Client | Fallback | Widest compatibility |
-| **Socket.IO** | Bidirectional | Production apps | Fallbacks, rooms, ACK |
-
-**Key Insight:**
-> Choose the simplest technology that meets your requirements. If you only need server-to-client updates, use SSE. Only reach for WebSockets when you need bidirectional communication.
+> Always implement exponential backoff reconnection. Without it, a brief server restart causes all clients to hammer the server simultaneously — the "thundering herd" problem.
 
 ---
 [← Back to SystemDesign](../README.md)
