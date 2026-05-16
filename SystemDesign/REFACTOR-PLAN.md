@@ -244,25 +244,25 @@ Report old vs new line count after each file. Pause for review.
 
 ### Progress Tracker — Day 3
 
-- [ ] `Database/README.md`
-- [ ] `Database/01-sql-design.md`
-- [ ] `Database/02-nosql-design.md`
-- [ ] `Database/03-sharding.md`
-- [ ] `Database/04-replication.md`
-- [ ] `Database/05-indexing.md`
-- [ ] `Database/06-transactions.md`
-- [ ] `Database/07-cap-theorem.md`
-- [ ] `Database/08-consistency.md`
-- [ ] `Database/09-data-modeling.md`
-- [ ] `Database/10-query-optimization.md`
-- [ ] `Microservices/01-architecture.md`
-- [ ] `Microservices/02-service-discovery.md`
-- [ ] `Microservices/03-api-gateway.md`
-- [ ] `Microservices/04-communication.md`
-- [ ] `Microservices/05-data-management.md`
-- [ ] `Microservices/06-deployment.md`
-- [ ] `Microservices/07-monitoring.md`
-- [ ] `Microservices/08-resilience.md`
+- [x] `Database/README.md` (352 → 71 lines)
+- [x] `Database/01-sql-design.md` (1456 → 247 lines)
+- [x] `Database/02-nosql-design.md` (1517 → 227 lines)
+- [x] `Database/03-sharding.md` (1551 → 218 lines)
+- [x] `Database/04-replication.md` (1357 → 223 lines)
+- [x] `Database/05-indexing.md` (2306 → 234 lines)
+- [x] `Database/06-transactions.md` (2089 → 307 lines)
+- [x] `Database/07-cap-theorem.md` (1070 → 192 lines, data-store focus)
+- [x] `Database/08-consistency.md` (436 → 250 lines, storage-level focus)
+- [x] `Database/09-data-modeling.md` (543 → 293 lines)
+- [x] `Database/10-query-optimization.md` (354 → 276 lines)
+- [x] `Microservices/01-architecture.md` (55 stub → 162 lines)
+- [x] `Microservices/02-service-discovery.md` (55 stub → 204 lines)
+- [x] `Microservices/03-api-gateway.md` (55 stub → 203 lines)
+- [x] `Microservices/04-communication.md` (55 stub → 184 lines)
+- [x] `Microservices/05-data-management.md` (55 stub → 227 lines)
+- [x] `Microservices/06-deployment.md` (55 stub → 212 lines)
+- [x] `Microservices/07-monitoring.md` (55 stub → 236 lines, tracing + service-mesh focus)
+- [x] `Microservices/08-resilience.md` (55 stub → 328 lines)
 
 ---
 

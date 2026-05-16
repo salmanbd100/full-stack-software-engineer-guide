@@ -1,436 +1,250 @@
-# Consistency Models
+# Database Consistency Patterns
 
-## Overview
-
-### 💡 **What are Consistency Models?**
-
-Consistency models define the contract between a distributed system and its clients regarding the visibility and ordering of operations. They specify **when** and **how** updates become visible to readers.
-
-**The Spectrum:**
-
-```
-Strong Consistency ←─────────────────────→ Weak Consistency
-(Expensive, Slow)                         (Cheap, Fast)
-
-Linearizable → Sequential → Causal → Eventual
-```
-
-**Key Insight:**
-> Consistency models are about trade-offs: stronger consistency = simpler programming but slower performance; weaker consistency = complex programming but faster performance.
+> For general distributed consistency theory (linearizability, causal consistency, etc.), see [Fundamentals/06-consistency.md](../Fundamentals/06-consistency.md). This file covers **how storage systems implement consistency** — replication strategies, consistency levels, and session guarantees.
 
 ---
 
-## Strong Consistency Models
+## 💡 The Core Question
 
-### 🔒 **Linearizability (Strongest)**
-
-Operations appear to execute atomically and in real-time order.
-
-**Guarantees:**
-
-- Once a write completes, all subsequent reads return the new value
-- Operations appear instantaneous
-- Total order across all operations
-
-**Example:**
-
-```javascript
-// Client A writes
-await db.write('x', 10);  // Completes at T1
-
-// Client B reads (after T1)
-const value = await db.read('x');
-// MUST return 10 (never stale value)
-```
-
-**Use Cases:**
-- Banking systems
-- Ticket booking
-- Leader election
-- Any system where stale reads are unacceptable
+When a client writes data, which replica becomes the source of truth? When does a read reflect that write? Database consistency patterns answer these two questions.
 
 ---
 
-### 📋 **Sequential Consistency**
+## Replication Architectures
 
-Operations appear in some sequential order, but not necessarily real-time order.
+### Single-Leader (Strong Consistency)
 
-**Difference from Linearizability:**
+One node — the primary or leader — accepts all writes. Other nodes replicate from it.
 
 ```
-Linearizable:
-Time:     T1    T2    T3    T4
-Write(x=1) ─┐
-            └─> Read(x) must see 1
-
-Sequential:
-Write(x=1) and Read(x) may appear in different order
-as long as ALL clients see same order
+Client → Primary (writes)
+         ↓ replicate
+       Replica A, Replica B (reads)
 ```
 
-**Use Cases:**
-- Distributed databases with global ordering
-- Systems where ordering matters but not real-time
+**Synchronous replication** — the primary waits for at least one replica to confirm before acknowledging the write. Strong consistency, but a slow replica blocks writes.
+
+**Asynchronous replication** — the primary confirms immediately and replicates in the background. Fast writes, but a failover can lose recent data.
+
+```sql
+-- PostgreSQL: synchronous replication
+-- Primary blocks COMMIT until standby1 writes to WAL
+ALTER SYSTEM SET synchronous_standby_names = 'standby1';
+ALTER SYSTEM SET synchronous_commit = 'remote_write';  -- or 'on' for full sync
+
+-- Asynchronous (default)
+ALTER SYSTEM SET synchronous_commit = 'off';
+```
+
+> Single-leader replication is what most people mean by "strong consistency" in databases. Every write goes through one node, so there is one ordering of events.
+
+### Multi-Leader (Conflict-Prone)
+
+Multiple nodes accept writes. Conflicts happen when two leaders accept conflicting writes before replicating to each other.
+
+**Use case:** Multi-region writes where cross-region latency makes single-leader impractical.
+
+**Conflict resolution strategies:**
+
+| Strategy | How | Risk |
+|----------|-----|------|
+| Last-write-wins (LWW) | Highest timestamp survives | Clock skew can drop valid writes |
+| Application merge | App defines merge logic | Complex, but data-safe |
+| CRDT | Data structure auto-merges | Only works for specific types |
+
+### Leaderless (Eventual Consistency)
+
+Any node accepts any write. Cassandra and Riak use this model. Consistency is controlled by quorum.
+
+```
+Write → Node A (ack), Node B (ack), Node C (async)
+Read  → reads from Node A + Node C, returns latest
+```
 
 ---
 
-## Weak Consistency Models
+## Quorum Reads and Writes
 
-### 🔄 **Causal Consistency**
+Leaderless systems use **quorum** to trade off consistency vs latency. For a cluster of `N` nodes:
 
-Operations that are causally related are seen in order. Concurrent operations can be seen in any order.
+- `W` — number of nodes that must confirm a write
+- `R` — number of nodes consulted for a read
 
-**How It Works:**
+**Strong consistency condition:** `W + R > N`
 
 ```
-If A → B (A happens before B), then all nodes see A before B
-If A || B (A concurrent with B), nodes can see any order
+N=3 nodes, W=2, R=2 → W+R=4 > 3 → strongly consistent
+N=3 nodes, W=1, R=1 → W+R=2 < 3 → eventual consistency
 ```
 
-**Example:**
+### Cassandra Consistency Levels
 
-```javascript
-// Thread 1
-await db.write('post', 'Hello');  // A
-await db.write('like', '1');       // B (caused by A)
-// A → B (causal relationship)
-// All clients see A before B
+```typescript
+import cassandra from 'cassandra-driver';
 
-// Thread 2 (concurrent)
-await db.write('comment', 'Nice'); // C
-// C || A, C || B (concurrent)
-// Can appear in any order relative to A, B
+const { consistencies } = cassandra.types;
+
+// Eventual consistency — fastest, AP behaviour
+await session.execute(query, params, {
+  consistency: consistencies.one      // write/read from 1 node
+});
+
+// Quorum — strong if W+R > N, slower
+await session.execute(query, params, {
+  consistency: consistencies.quorum   // majority of nodes
+});
+
+// Linearizable — uses Paxos, most expensive
+await session.execute(query, params, {
+  consistency: consistencies.serial   // used for lightweight transactions
+});
 ```
 
-**Use Cases:**
-- Social media (post → like → comment chain)
-- Collaborative editing
-- Chat applications
+**Cassandra LWT (Lightweight Transactions)** uses Paxos to provide compare-and-swap semantics — the only way to get true strong consistency in a leaderless system.
+
+```sql
+-- Only update if the row doesn't already exist (idempotent seat booking)
+INSERT INTO bookings (seat_id, user_id, booked_at)
+VALUES (42, 'user-123', toTimestamp(now()))
+IF NOT EXISTS;
+```
+
+### DynamoDB Consistency Levels
+
+```typescript
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand
+} from '@aws-sdk/client-dynamodb';
+
+const db = new DynamoDBClient({ region: 'us-east-1' });
+
+// Eventual (default) — reads may be up to ~1s stale, half the RCU cost
+await db.send(new GetItemCommand({
+  TableName: 'Products',
+  Key: { productId: { S: 'prod-42' } },
+  ConsistentRead: false
+}));
+
+// Strongly consistent — reads from leader, full RCU cost
+await db.send(new GetItemCommand({
+  TableName: 'Products',
+  Key: { productId: { S: 'prod-42' } },
+  ConsistentRead: true
+}));
+
+// Transactions — ACID across multiple items (uses 2× WCU + 2× RCU)
+import { TransactWriteItemsCommand } from '@aws-sdk/client-dynamodb';
+
+await db.send(new TransactWriteItemsCommand({
+  TransactItems: [
+    {
+      Update: {
+        TableName: 'Inventory',
+        Key: { productId: { S: 'prod-42' } },
+        UpdateExpression: 'SET stock = stock - :qty',
+        ConditionExpression: 'stock >= :qty',
+        ExpressionAttributeValues: { ':qty': { N: '1' } }
+      }
+    },
+    {
+      Put: {
+        TableName: 'Orders',
+        Item: { orderId: { S: 'ord-99' }, productId: { S: 'prod-42' } }
+      }
+    }
+  ]
+}));
+```
 
 ---
 
-### ⏱️ **Eventual Consistency (Weakest)**
+## Session Consistency Guarantees
 
-If no updates occur, all replicas eventually converge to same value.
+Even in eventually consistent systems, clients need predictable behaviour within their own session.
 
-**Guarantees:**
+### Read-Your-Writes
 
-- **Convergence**: Eventually all replicas agree
-- **No ordering**: Concurrent updates may appear in any order
-- **Conflict resolution**: Application must handle conflicts
+A client always sees its own writes, even before they replicate to all nodes.
 
-**Example:**
+```typescript
+// Problem: write goes to Node A, read hits Node B which hasn't replicated yet
+await db.write('preferences', { theme: 'dark' });
+const prefs = await db.read('preferences'); // may still return { theme: 'light' }
 
-```javascript
-// Node A
-await db.write('likes', 100);
+// Solution 1: Sticky sessions — route the client to the same node
+// Solution 2: Read from primary for a brief window after write
+// Solution 3: Return the written value from the write response and cache it client-side
 
-// Node B (concurrent)
-await db.write('likes', 105);
+class SessionConsistentClient {
+  private pending = new Map<string, unknown>();
 
-// Eventually both nodes converge to one value
-// (e.g., 105 via last-write-wins)
-```
-
-**Use Cases:**
-- Shopping carts
-- User profiles
-- News feeds
-- Analytics dashboards
-
----
-
-## Session Consistency
-
-### 👤 **Read Your Writes**
-
-A client always sees its own writes.
-
-**Example:**
-
-```javascript
-// Client writes
-await db.write('preference', 'dark_mode');
-
-// Immediately read (from any replica)
-const pref = await db.read('preference');
-// MUST see 'dark_mode' (own write)
-
-// Other clients may still see old value
-```
-
-**Implementation:**
-
-```javascript
-class SessionConsistency {
-  constructor(clientId) {
-    this.clientId = clientId;
-    this.writeVersion = 0;
+  async write(key: string, value: unknown): Promise<void> {
+    await db.write(key, value);
+    this.pending.set(key, value);    // cache locally
+    setTimeout(() => this.pending.delete(key), 5_000); // clear after replication window
   }
 
-  async write(key, value) {
-    this.writeVersion++;
-    await db.write(key, value, {
-      clientId: this.clientId,
-      version: this.writeVersion
-    });
-  }
-
-  async read(key) {
-    return await db.read(key, {
-      clientId: this.clientId,
-      minVersion: this.writeVersion  // Don't return older than my writes
-    });
+  async read(key: string): Promise<unknown> {
+    return this.pending.has(key) ? this.pending.get(key) : db.read(key);
   }
 }
 ```
 
----
+### Monotonic Reads
 
-### 📖 **Monotonic Reads**
+Once a client reads a value, it never reads an older version. Prevents confusing UX where refreshing a page shows older data.
 
-Once a client reads a value, it never reads an older value.
+**Implementation:** Route the client to the same replica for the duration of the session (sticky routing). If the replica fails, the new replica must be at least as up-to-date.
 
-**Example:**
-
-```javascript
-// T1: Read returns version 5
-const v1 = await db.read('counter'); // 5
-
-// T2: Read must return >= version 5
-const v2 = await db.read('counter'); // 5 or 6 or 7... (never 4)
-```
-
-**Implementation - Sticky Sessions:**
-
-```javascript
-// Always route client to same replica
-const replica = selectReplicaByHash(clientId);
-const value = await replica.read(key);
+```typescript
+// DynamoDB: strongly consistent reads give monotonic reads by nature
+// Cassandra: always route session to same coordinator node
+const coordinator = selectCoordinatorByHash(userId); // consistent hash
+await cassandraSession.execute(query, params, { host: coordinator });
 ```
 
 ---
 
-### ✍️ **Monotonic Writes**
+## Strong vs Eventual — When to Use Each
 
-Writes from a client are applied in order.
-
-**Example:**
-
-```javascript
-// Client writes
-await db.write('counter', 5);   // W1
-await db.write('counter', 10);  // W2
-
-// All replicas see W1 before W2
-// Never W2 = 10, then W1 = 5
-```
+| Scenario | Pattern | Why |
+|----------|---------|-----|
+| Bank balance debit | **Strong** (sync replication or quorum) | Cannot allow stale balance |
+| Product inventory (last units) | **Strong** (LWT or transaction) | Cannot oversell |
+| User preferences | **Eventual** | Stale data causes no real harm |
+| Social media likes/views counter | **Eventual** | Approximate is fine, speed matters |
+| Order history (read) | **Eventual** | Historical data changes rarely |
+| Seat reservation | **Strong** (LWT / serializable) | Must prevent double-booking |
+| Leaderboard / analytics | **Eventual** | Approximate totals acceptable |
 
 ---
 
-## Interview Questions
+## Common Mistakes
 
-### Q1: Explain the difference between linearizability and sequential consistency.
+❌ **Using eventual consistency for financial writes** — two concurrent writes can both succeed on different nodes, creating conflicting balances that are hard to reconcile.
 
-**Answer:**
+❌ **Using strong consistency for every read** — DynamoDB strongly consistent reads cost double and are slower. Reserve them for data where staleness causes real harm.
 
-**Linearizability:**
-- Operations respect **real-time ordering**
-- If operation A completes before operation B starts, all nodes see A before B
-- Strongest consistency model
-
-**Sequential Consistency:**
-- Operations appear in **some** sequential order
-- Does NOT respect real-time ordering
-- All nodes see same order, but not necessarily real-time order
-
-**Example:**
-
-```
-Time:        T1    T2    T3    T4
-Client A:    W(x=1)─┘          R(x)→?
-Client B:          └─W(x=2)
-
-Linearizable:
-- R(x) MUST return 2 (W(x=2) happened before R(x) in real-time)
-
-Sequential:
-- R(x) MAY return 1 or 2
-- As long as all clients see same order
-- E.g., all see: W(x=1), R(x), W(x=2) → R(x)=1 ✅
-```
-
-**Key Difference:**
-
-| Aspect | Linearizability | Sequential |
-|--------|----------------|-----------|
-| **Real-time order** | ✅ Enforced | ❌ Not enforced |
-| **Total order** | ✅ Yes | ✅ Yes |
-| **Performance** | Slower | Faster |
-| **Complexity** | High (needs global clock) | Moderate |
+❌ **Ignoring read-your-writes** — users who submit a form and immediately reload the page expect to see their change. Build session consistency into your client layer even if the DB is eventually consistent.
 
 ---
 
-### Q2: How does eventual consistency handle conflicts?
+## Key Insight
 
-**Answer:**
-
-Eventual consistency uses **conflict resolution strategies**:
-
-**1. Last-Write-Wins (LWW):**
-
-```javascript
-// Conflict: Two concurrent writes
-Node A: write(x=100, timestamp=1000)
-Node B: write(x=200, timestamp=1001)
-
-// Resolution: Higher timestamp wins
-Final value: 200
-```
-
-**Pros:** Simple, deterministic
-**Cons:** May lose data
-
-**2. Vector Clocks:**
-
-```javascript
-// Track causality per node
-Node A: {value: 100, vector: {A:1, B:0}}
-Node B: {value: 200, vector: {A:0, B:1}}
-
-// Concurrent writes detected
-// Application resolves (e.g., merge, prompt user)
-```
-
-**Pros:** Detects all conflicts
-**Cons:** Complex, requires application logic
-
-**3. CRDTs (Conflict-free Replicated Data Types):**
-
-```javascript
-// Counter CRDT
-Node A: increment(5)   → {A:5, B:0}
-Node B: increment(3)   → {A:0, B:3}
-
-// Merge: sum all increments
-Final value: 5 + 3 = 8
-// No conflict!
-```
-
-**Pros:** Automatic merge, no conflicts
-**Cons:** Limited data types
-
-**4. Application-Specific:**
-
-```javascript
-// Shopping cart: merge items
-Cart A: [{item: 'A', qty: 1}]
-Cart B: [{item: 'B', qty: 2}]
-
-// Merge: combine both
-Final: [{item: 'A', qty: 1}, {item: 'B', qty: 2}]
-```
+> Strong consistency is not free. Every synchronous replica acknowledgement adds latency equal to the replica's network round-trip. Pick strong consistency for writes where correctness matters and eventual consistency for reads where speed and availability matter more. Most real systems mix both — strong writes, eventual reads.
 
 ---
 
-### Q3: When would you choose eventual consistency over strong consistency?
+## Interview Answer Template
 
-**Answer:**
-
-Choose **Eventual Consistency** when:
-
-**1. High Availability is Critical:**
-
-```javascript
-// Social media feed - must always load
-async function getFeed(userId) {
-  // Stale data acceptable
-  return await db.query({ userId }, { consistency: 'eventual' });
-}
-```
-
-**Why:** User experience > exact data
-
-**2. Conflicts are Rare/Resolvable:**
-
-```javascript
-// Shopping cart - conflicts easily merged
-async function addToCart(userId, item) {
-  // Concurrent adds are mergeable
-  return await db.append(`cart:${userId}`, item);
-}
-```
-
-**Why:** Conflicts don't cause data loss
-
-**3. Global Distribution:**
-
-```javascript
-// CDN content - low latency critical
-async function getContent(key) {
-  // Read from nearest replica
-  return await cdn.get(key, { nearest: true });
-}
-```
-
-**Why:** Latency matters more than consistency
-
-**4. High Write Throughput:**
-
-```javascript
-// Analytics - millions of events/sec
-async function trackEvent(event) {
-  // Fire-and-forget, eventual consistency fine
-  await analytics.track(event, { async: true });
-}
-```
-
-**Why:** Can't block on synchronous replication
-
-**Choose Strong Consistency when:**
-
-| Scenario | Why |
-|----------|-----|
-| Financial transactions | Money must be accurate |
-| Inventory (last item) | Can't oversell |
-| Leader election | Must have single leader |
-| Access control | Security critical |
+> "Database consistency comes down to replication strategy. Single-leader with synchronous replication gives strong consistency — every committed write is durable on at least two nodes before the client gets a response. Leaderless systems like Cassandra give you a dial: write to one node for speed, or require quorum acknowledgement for stronger guarantees.
+>
+> In practice I use strong consistency for any write where a stale read would cause a business error — inventory, payments, bookings. I use eventual consistency for counters, feeds, and profile data where the cost of a slightly stale read is just a minor UX annoyance.
+>
+> Session guarantees like read-your-writes are often invisible in the DB but need explicit handling in the application layer — I typically cache the written value client-side for a short window after a write, so the user always sees their own changes."
 
 ---
 
-## Summary
-
-### Key Takeaways
-
-1. **Consistency Models Spectrum:**
-   - Linearizable (strongest, slowest)
-   - Sequential
-   - Causal
-   - Eventual (weakest, fastest)
-
-2. **Trade-offs:**
-   - Strong consistency: Simple programming, slow performance
-   - Weak consistency: Complex programming, fast performance
-
-3. **Session Guarantees:**
-   - Read Your Writes
-   - Monotonic Reads
-   - Monotonic Writes
-
-4. **Practical Choice:**
-   - Use strong consistency for critical data
-   - Use eventual consistency for user experience
-   - Most systems use mix of both
-
-### Decision Matrix
-
-| Requirement | Choose |
-|------------|--------|
-| Must see own writes | Read-your-writes consistency |
-| Can tolerate stale reads | Eventual consistency |
-| Ordering matters | Causal or Sequential |
-| Real-time ordering critical | Linearizability |
-| Global low latency | Eventual consistency |
-
----
-[← Back to SystemDesign](../README.md)
+[← Back to Database](./README.md)

@@ -1,543 +1,293 @@
-# Data Modeling Best Practices
-
-## Overview
-
-### 💡 **What is Data Modeling?**
-
-Data modeling is the process of designing how data is stored, organized, and accessed in a database. Good data modeling balances normalization, performance, and scalability.
-
-**Key Principles:**
-
-1. **Model for Access Patterns**: Design based on how data is queried
-2. **Denormalize When Needed**: Trade storage for read performance
-3. **Plan for Scale**: Consider future growth
-4. **Balance Trade-offs**: No perfect model exists
+# Data Modeling
 
 ---
 
-## SQL Data Modeling
+## 💡 The Core Question
 
-### 📐 **Normalization Levels**
+Before writing a single table or document, ask: **what queries must be fast?** Data modeling is query-first design. The best model for a write-heavy OLTP system looks nothing like the best model for an analytics dashboard.
 
-**1NF to 3NF Trade-offs:**
+---
 
-| Form | Pros | Cons | Use When |
-|------|------|------|----------|
-| **1NF** | Simple | Lots of duplicates | Never (baseline) |
-| **2NF** | Less duplication | Still has redundancy | Rare |
-| **3NF** | No redundancy | Many JOINs | OLTP systems |
-| **Denormalized** | Fast reads | Redundancy, update anomalies | Read-heavy, OLAP |
+## Entity Relationships
 
-**Example - E-commerce Orders:**
+Three relationship types drive most modeling decisions.
 
-**3NF (Normalized):**
+| Relationship | SQL pattern | NoSQL pattern |
+|-------------|-------------|---------------|
+| **One-to-one** | Foreign key on either table | Embed the sub-document |
+| **One-to-many** | Foreign key on the "many" side | Embed (small) or reference (large) |
+| **Many-to-many** | Junction table | Array of IDs or duplicate data |
+
+---
+
+## Normalization vs Denormalization
+
+### Normalized (3NF) — SQL default
+
+Each fact lives in exactly one place. Updates are cheap, reads need JOINs.
+
+```typescript
+// TypeScript interfaces for a normalized e-commerce schema
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  priceInCents: number;
+  categoryId: number;
+}
+
+interface Order {
+  id: number;
+  userId: number;       // FK → users
+  createdAt: Date;
+  totalInCents: number;
+}
+
+interface OrderItem {
+  id: number;
+  orderId: number;      // FK → orders
+  productId: number;    // FK → products
+  quantity: number;
+  priceInCents: number; // snapshot of price at purchase time
+}
+```
 
 ```sql
--- Orders table
-CREATE TABLE orders (
-  order_id BIGINT PRIMARY KEY,
-  user_id BIGINT REFERENCES users(user_id),
-  created_at TIMESTAMP
-);
-
--- Order items table
-CREATE TABLE order_items (
-  item_id BIGINT PRIMARY KEY,
-  order_id BIGINT REFERENCES orders(order_id),
-  product_id BIGINT REFERENCES products(product_id),
-  quantity INT,
-  price DECIMAL(10,2)
-);
-
--- Query requires JOIN
-SELECT o.*, oi.*, p.name
+-- Reading an order requires JOINs
+SELECT o.id, u.name, p.name, oi.quantity
 FROM orders o
-JOIN order_items oi ON o.order_id = oi.order_id
-JOIN products p ON oi.product_id = p.product_id
-WHERE o.user_id = 12345;
+JOIN users u         ON u.id = o.user_id
+JOIN order_items oi  ON oi.order_id = o.id
+JOIN products p      ON p.id = oi.product_id
+WHERE o.id = 42;
 ```
 
-**Denormalized (for read performance):**
+✅ No data duplication — updating a product name updates everywhere.
+❌ JOINs are expensive at scale. Four-table JOINs on 50M row tables hurt.
+
+### Denormalized — read-optimized
+
+Duplicate data into one table to avoid JOINs. Writes become more complex; reads become trivial.
+
+```typescript
+// Denormalized: everything for one order in a single document or wide row
+interface OrderFlat {
+  orderId: number;
+  userId: number;
+  userName: string;         // duplicated from users
+  userEmail: string;        // duplicated from users
+  productId: number;
+  productName: string;      // duplicated from products
+  categoryName: string;     // duplicated from categories
+  quantity: number;
+  priceInCents: number;
+  createdAt: Date;
+}
+```
 
 ```sql
--- Single table with all data
-CREATE TABLE orders_denormalized (
-  order_id BIGINT,
-  user_id BIGINT,
-  user_name VARCHAR(100),  -- Denormalized from users
-  product_id BIGINT,
-  product_name VARCHAR(255),  -- Denormalized from products
-  quantity INT,
-  price DECIMAL(10,2),
-  created_at TIMESTAMP
-);
-
--- Fast query, no JOINs
-SELECT * FROM orders_denormalized WHERE user_id = 12345;
+-- No JOINs needed
+SELECT * FROM orders_flat WHERE user_id = 123;
 ```
+
+✅ Fast reads, perfect for dashboards and reporting.
+❌ If `product.name` changes, you must update every row that duplicated it.
+
+### When to Choose Each
+
+| Situation | Choose |
+|-----------|--------|
+| OLTP — frequent small writes | Normalized |
+| OLAP / reporting / analytics | Denormalized |
+| Product name or price must update everywhere instantly | Normalized |
+| Read performance is critical and writes are rare | Denormalized |
+| You don't know the query patterns yet | Normalize first, denormalize later |
+
+> Normalize for correctness. Denormalize for performance. Never denormalize prematurely — measure first.
 
 ---
 
-### 🔑 **Choosing Primary Keys**
+## SQL: Choosing Primary Keys
 
-| Key Type | Pros | Cons | Use When |
-|----------|------|------|----------|
-| **Auto-increment** | Simple, sequential | Predictable, not globally unique | Single database |
-| **UUID** | Globally unique, distributed-friendly | Large (16 bytes), not sequential | Multi-region, microservices |
-| **Snowflake ID** | Sequential + unique, time-ordered | Requires coordination | Distributed systems |
-| **Composite** | Natural grouping | Complex JOINs | Many-to-many relationships |
-
-**Example - UUID vs Auto-increment:**
+| Key type | When to use | Trade-off |
+|----------|-------------|-----------|
+| **Serial / BIGINT** | Single-server OLTP | Sequential, index-friendly, but predictable and non-portable |
+| **UUID v4** | Distributed inserts from multiple services | Globally unique, but random = index fragmentation |
+| **UUID v7 / ULID** | Distributed + time-ordered | Best of both — globally unique and sequential |
+| **Composite** | Many-to-many junction tables | Natural key, no surrogate needed |
 
 ```sql
--- Auto-increment (traditional)
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,  -- 1, 2, 3, ...
-  username VARCHAR(50)
+-- UUID v7 (time-ordered) — recommended for distributed systems
+CREATE TABLE events (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,  -- use a v7 generator in practice
+  user_id BIGINT NOT NULL,
+  payload JSONB,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
--- Pros: Small, fast, sequential
--- Cons: Not globally unique, bottleneck in distributed systems
-
--- UUID (distributed)
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username VARCHAR(50)
-);
--- Pros: Globally unique, no coordination needed
--- Cons: Larger index, not sequential (worse for B-Tree)
 ```
 
 ---
 
-## NoSQL Data Modeling
+## NoSQL: Embedded Documents vs References
 
-### 📄 **Document Databases (MongoDB)**
+The core decision in document databases (MongoDB, Firestore) is whether to **embed** sub-data or store it separately and **reference** it.
 
-**Embedding vs Referencing:**
+### Embed When
 
-**Embed When:**
-- Data is always accessed together
-- One-to-few relationships
-- Data doesn't change frequently
+- Data is always fetched together (one read, no extra query)
+- The sub-data is small and bounded (an address, a handful of tags)
+- The sub-data belongs exclusively to the parent (doesn't need its own lifecycle)
 
-```javascript
-// Embed address in user document
-{
-  _id: ObjectId("..."),
-  name: "John Doe",
-  email: "john@example.com",
-  address: {  // Embedded
-    street: "123 Main St",
-    city: "NYC",
-    zip: "10001"
-  }
+```typescript
+// Embed: user's shipping addresses live inside the user document
+interface UserDocument {
+  _id: string;
+  name: string;
+  email: string;
+  addresses: Array<{          // embedded — always loaded with the user
+    label: string;
+    street: string;
+    city: string;
+    zip: string;
+  }>;
 }
 ```
 
-**Reference When:**
-- Data accessed separately
-- One-to-many or many-to-many
-- Data updated frequently
+### Reference When
 
-```javascript
-// Reference posts in user document
-{
-  _id: ObjectId("..."),
-  name: "John Doe",
-  postIds: [  // Reference
-    ObjectId("post1"),
-    ObjectId("post2")
-  ]
+- The sub-data is large or grows without bound (a user's posts over years)
+- The sub-data is shared across multiple parents
+- You need to query the sub-data independently
+
+```typescript
+// Reference: posts live in their own collection
+interface UserDocument {
+  _id: string;
+  name: string;
+  email: string;
+  // no posts here — query the posts collection by userId
 }
 
-// Separate post documents
-{
-  _id: ObjectId("post1"),
-  userId: ObjectId("..."),
-  title: "My Post",
-  content: "..."
+interface PostDocument {
+  _id: string;
+  userId: string;   // reference back to users
+  content: string;
+  createdAt: Date;
+  likesCount: number;
 }
+```
+
+```typescript
+// Two queries, but posts collection stays manageable
+const user = await db.collection('users').findOne({ _id: userId });
+const posts = await db.collection('posts')
+  .find({ userId })
+  .sort({ createdAt: -1 })
+  .limit(20)
+  .toArray();
 ```
 
 ---
 
-### 🔑 **Key-Value Stores (Redis, DynamoDB)**
+## NoSQL: DynamoDB Key Design
 
-**Design Patterns:**
+DynamoDB requires you to declare your access patterns at design time. The partition key determines which node stores the data. The sort key enables range queries within a partition.
 
-**1. Partition Key + Sort Key:**
+```typescript
+import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 
-```javascript
-// DynamoDB table design
-{
+// Table: Orders
+// PK: userId (partition key)  SK: createdAt (sort key)
+// Access pattern: "get all orders for user X after date Y"
+
+const db = new DynamoDBClient({ region: 'us-east-1' });
+
+const result = await db.send(new QueryCommand({
   TableName: 'Orders',
-  KeySchema: [
-    { AttributeName: 'userId', KeyType: 'HASH' },     // Partition key
-    { AttributeName: 'createdAt', KeyType: 'RANGE' }  // Sort key
-  ]
-}
-
-// Query pattern: Get user's recent orders
-const params = {
-  TableName: 'Orders',
-  KeyConditionExpression: 'userId = :userId AND createdAt > :date',
+  KeyConditionExpression: 'userId = :uid AND createdAt > :since',
   ExpressionAttributeValues: {
-    ':userId': '12345',
-    ':date': '2024-01-01'
-  }
-};
-```
-
-**2. Composite Key Pattern:**
-
-```javascript
-// Combine multiple attributes in key
-const key = `user:${userId}:session:${sessionId}`;
-await redis.set(key, sessionData, 'EX', 3600);
-```
-
----
-
-### 📊 **Column-Family (Cassandra)**
-
-**Design for Queries:**
-
-```sql
--- Anti-pattern: Design like SQL
-CREATE TABLE users (
-  user_id UUID PRIMARY KEY,
-  name TEXT,
-  email TEXT
-);
--- Problem: Can only query by user_id
-
--- Best practice: Design for query patterns
--- Pattern 1: Get user by ID
-CREATE TABLE users_by_id (
-  user_id UUID PRIMARY KEY,
-  name TEXT,
-  email TEXT,
-  created_at TIMESTAMP
-);
-
--- Pattern 2: Get users by email
-CREATE TABLE users_by_email (
-  email TEXT PRIMARY KEY,
-  user_id UUID,
-  name TEXT,
-  created_at TIMESTAMP
-);
-
--- Trade-off: Duplicate data, but optimized queries
-```
-
----
-
-## Common Patterns
-
-### 🔄 **Time-Series Data**
-
-**Pattern:**
-
-```sql
--- Partition by time bucket
-CREATE TABLE metrics (
-  metric_name VARCHAR(100),
-  time_bucket DATE,           -- Partition key
-  timestamp TIMESTAMP,         -- Sort key
-  value DOUBLE,
-  PRIMARY KEY ((metric_name, time_bucket), timestamp)
-) WITH CLUSTERING ORDER BY (timestamp DESC);
-
--- Query recent data efficiently
-SELECT * FROM metrics
-WHERE metric_name = 'cpu_usage'
-  AND time_bucket = '2024-01-15'
-  AND timestamp > '2024-01-15 10:00:00';
-```
-
----
-
-### 👤 **User Activity Feed**
-
-**Fan-out on Write:**
-
-```javascript
-// When user posts
-async function createPost(userId, content) {
-  const post = await db.posts.create({ userId, content });
-
-  // Fan-out to all followers' feeds
-  const followers = await db.followers.find({ following: userId });
-
-  const feedEntries = followers.map(follower => ({
-    userId: follower._id,
-    postId: post._id,
-    createdAt: new Date()
-  }));
-
-  await db.feeds.insertMany(feedEntries);
-}
-
-// Read feed (fast!)
-async function getFeed(userId) {
-  return await db.feeds.find({ userId }).sort({ createdAt: -1 }).limit(50);
-}
-```
-
----
-
-### 🛒 **Shopping Cart**
-
-**Pattern - Append-Only + Aggregation:**
-
-```sql
--- Append-only cart events
-CREATE TABLE cart_events (
-  user_id BIGINT,
-  event_id UUID,
-  event_type VARCHAR(20),  -- 'ADD', 'REMOVE', 'UPDATE'
-  product_id BIGINT,
-  quantity INT,
-  timestamp TIMESTAMP
-);
-
--- Materialize current cart state
-CREATE MATERIALIZED VIEW current_cart AS
-SELECT user_id, product_id, SUM(quantity) as quantity
-FROM cart_events
-GROUP BY user_id, product_id
-HAVING SUM(quantity) > 0;
-```
-
----
-
-## Anti-Patterns
-
-### ❌ **Don't: Over-Normalize for OLAP**
-
-```sql
--- Bad: Too many JOINs for analytics
-SELECT COUNT(*)
-FROM orders o
-JOIN order_items oi ON o.order_id = oi.order_id
-JOIN products p ON oi.product_id = p.product_id
-JOIN categories c ON p.category_id = c.category_id
-WHERE c.name = 'Electronics';
--- 4 JOINs for simple analytics query!
-
--- Good: Denormalized for analytics
-SELECT COUNT(*) FROM orders_flat WHERE category = 'Electronics';
-```
-
----
-
-### ❌ **Don't: Use NoSQL Like SQL**
-
-```javascript
-// Bad: Trying to JOIN in application code
-const users = await db.users.find({});
-const posts = await db.posts.find({});
-
-// Manual JOIN (slow!)
-const results = users.map(user => ({
-  ...user,
-  posts: posts.filter(post => post.userId === user._id)
+    ':uid':   { S: userId },
+    ':since': { S: '2024-01-01T00:00:00Z' }
+  },
+  ScanIndexForward: false   // descending by sort key = newest first
 }));
+```
 
-// Good: Denormalize or use proper references
-const results = await db.users.aggregate([
-  { $lookup: {
-      from: 'posts',
-      localField: '_id',
-      foreignField: 'userId',
-      as: 'posts'
-    }
+**Hot partition problem:** If every write goes to the same partition key (e.g., `date = today`), one node handles all traffic. Add a random suffix or use a composite key to spread load.
+
+---
+
+## Fan-Out Pattern (Social Feeds)
+
+Social feeds require a design choice between two strategies:
+
+| Strategy | Write path | Read path | Best for |
+|----------|-----------|-----------|----------|
+| **Fan-out on write** | Write tweet to every follower's feed | Single DB read | Most users (< 10K followers) |
+| **Fan-out on read** | Write tweet once | Merge celebrity tweets at read time | Celebrity accounts |
+
+```typescript
+async function publishTweet(authorId: string, content: string): Promise<void> {
+  const tweet = await tweetsCol.insertOne({ authorId, content, createdAt: new Date() });
+  const followers = await followersCol.find({ followingId: authorId }).toArray();
+
+  if (followers.length < 10_000) {
+    // Fan-out on write — push to each follower's feed
+    const feedDocs = followers.map(f => ({
+      ownerId: f.followerId,
+      tweetId: tweet.insertedId,
+      authorId,
+      content,                    // denormalized — no extra read at feed time
+      createdAt: new Date()
+    }));
+    await feedsCol.insertMany(feedDocs);
   }
-]);
-```
-
----
-
-### ❌ **Don't: Ignore Access Patterns**
-
-```sql
--- Bad: Generic table design
-CREATE TABLE events (
-  id UUID PRIMARY KEY,
-  user_id UUID,
-  event_type VARCHAR(50),
-  data JSONB,
-  created_at TIMESTAMP
-);
-
--- Query is slow (full table scan)
-SELECT * FROM events WHERE user_id = ? ORDER BY created_at DESC LIMIT 100;
-
--- Good: Design for access pattern
-CREATE TABLE events (
-  user_id UUID,
-  created_at TIMESTAMP,
-  event_type VARCHAR(50),
-  data JSONB,
-  PRIMARY KEY (user_id, created_at)
-) PARTITION BY RANGE (created_at);
-```
-
----
-
-## Interview Question
-
-### Q: How would you model a Twitter-like social media feed?
-
-**Answer:**
-
-**Requirements Analysis:**
-
-- Users post tweets
-- Users follow other users
-- Users see feed of tweets from people they follow
-- High read:write ratio (more reads than writes)
-
-**Approach: Fan-out on Write**
-
-**Schema:**
-
-```javascript
-// Users collection
-{
-  _id: ObjectId,
-  username: String,
-  followersCount: Number,
-  followingCount: Number
+  // For celebrities, the feed read merges the pre-computed feed with a live query
 }
 
-// Tweets collection
-{
-  _id: ObjectId,
-  userId: ObjectId,
-  content: String,
-  createdAt: Date,
-  likesCount: Number,
-  retweetsCount: Number
-}
-
-// Followers collection
-{
-  followerId: ObjectId,
-  followingId: ObjectId,
-  createdAt: Date
-}
-
-// Feed collection (denormalized)
-{
-  userId: ObjectId,  // Whose feed this is
-  tweetId: ObjectId,
-  authorId: ObjectId,
-  authorUsername: String,  // Denormalized
-  content: String,          // Denormalized
-  createdAt: Date
-}
-```
-
-**Write Path (Fan-out on Write):**
-
-```javascript
-async function createTweet(userId, content) {
-  // 1. Create tweet
-  const tweet = await db.tweets.create({
-    userId,
-    content,
-    createdAt: new Date()
-  });
-
-  // 2. Get followers
-  const followers = await db.followers.find({ followingId: userId });
-
-  // 3. Fan-out to followers' feeds
-  const feedEntries = followers.map(follower => ({
-    userId: follower.followerId,  // Feed owner
-    tweetId: tweet._id,
-    authorId: userId,
-    authorUsername: username,     // Denormalized
-    content: content,              // Denormalized
-    createdAt: tweet.createdAt
-  }));
-
-  await db.feeds.insertMany(feedEntries);
-}
-```
-
-**Read Path (Fast):**
-
-```javascript
-async function getFeed(userId, limit = 50) {
-  return await db.feeds
-    .find({ userId })
+async function getFeed(userId: string): Promise<FeedItem[]> {
+  return feedsCol
+    .find({ ownerId: userId })
     .sort({ createdAt: -1 })
-    .limit(limit);
-  // No JOINs needed!
-}
-```
-
-**Trade-offs:**
-
-✅ **Pros:**
-- Fast reads (no JOINs)
-- Scales well for read-heavy workload
-- Real-time feed updates
-
-❌ **Cons:**
-- High write cost (celebrity problem)
-- Storage duplication
-- Eventual consistency
-
-**Optimization for Celebrities:**
-
-```javascript
-// Hybrid approach
-async function createTweet(userId, content) {
-  const user = await db.users.findOne({ _id: userId });
-
-  if (user.followersCount < 10000) {
-    // Fan-out on write (normal users)
-    await fanOutOnWrite(userId, content);
-  } else {
-    // Fan-out on read (celebrities)
-    await db.tweets.create({ userId, content });
-  }
-}
-
-async function getFeed(userId) {
-  // Combine pre-computed feed + celebrity tweets
-  const [precomputedFeed, celebrityTweets] = await Promise.all([
-    db.feeds.find({ userId }).limit(50),
-    getCelebrityTweets(userId)
-  ]);
-
-  return mergeFeedsSorted(precomputedFeed, celebrityTweets);
+    .limit(50)
+    .toArray();
 }
 ```
 
 ---
 
-## Summary
+## Common Mistakes
 
-### Key Takeaways
+❌ **Designing SQL tables without knowing query patterns** — you end up with full table scans and multi-JOIN queries at scale.
 
-1. **Design for Access Patterns**: Model based on how data is queried
-2. **Denormalize for Reads**: Trade storage for performance
-3. **Choose Right Database**: SQL for complex queries, NoSQL for scale
-4. **Plan for Scale**: Partition data, use sharding strategies
+❌ **Embedding unbounded arrays in MongoDB documents** — a user document with 100K embedded comments hits the 16 MB document limit and slows all reads of that document.
 
-### Best Practices
+❌ **Using MongoDB like a relational DB** — doing application-level JOINs in a loop is the NoSQL N+1 problem. Use `$lookup` for occasional joins or denormalize.
 
-| Practice | SQL | NoSQL |
-|----------|-----|-------|
-| **Normalization** | 3NF for OLTP, denormalize for OLAP | Denormalize aggressively |
-| **Primary Keys** | Auto-increment or UUID | Composite keys for query patterns |
-| **Relationships** | Foreign keys, JOINs | Embed or reference based on access |
-| **Indexes** | B-Tree on query columns | Secondary indexes on partition/sort keys |
+❌ **Storing everything in one DynamoDB partition key** — all traffic routes to one node. Model partition keys to distribute load evenly.
 
 ---
-[← Back to SystemDesign](../README.md)
+
+## Key Insight
+
+> There is no universally correct data model. A normalized SQL schema is correct for OLTP and wrong for analytics. An embedded MongoDB document is correct for a user's addresses and wrong for a user's lifetime posts. Model for your dominant access pattern, then add secondary indexes or materialized views for the others.
+
+---
+
+## Interview Answer Template
+
+> "Data modeling starts with access patterns — what queries need to be fast? For OLTP I default to 3NF SQL: no duplication, easy updates, foreign keys enforce integrity. When reads become the bottleneck I denormalize into wider tables or separate read models.
+>
+> For NoSQL I decide embed vs reference based on data size and access frequency. Small, always-co-accessed data goes embedded. Large, independently-queried data goes in its own collection with a reference.
+>
+> For DynamoDB I design partition and sort keys around the queries I need, then add GSIs for secondary access patterns. The fan-out pattern for social feeds is a good example — fan-out on write is fast for reads but expensive for celebrities, so hybrid systems fan out for normal users and do a live merge for high-follower accounts."
+
+---
+
+[← Back to Database](./README.md)
