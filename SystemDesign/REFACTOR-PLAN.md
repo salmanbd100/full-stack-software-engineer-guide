@@ -164,24 +164,24 @@ files.
 
 ### Progress Tracker — Day 2
 
-- [ ] `BuildingBlocks/01-load-balancing.md`
-- [ ] `BuildingBlocks/02-caching.md`
-- [ ] `BuildingBlocks/03-cdn.md`
-- [ ] `BuildingBlocks/04-databases.md`
-- [ ] `BuildingBlocks/05-message-queues.md`
-- [ ] `BuildingBlocks/06-websockets.md`
-- [ ] `BuildingBlocks/07-search.md`
-- [ ] `BuildingBlocks/08-notifications.md`
-- [ ] `BuildingBlocks/09-file-storage.md`
-- [ ] `BuildingBlocks/10-monitoring.md`
-- [ ] `Scalability/01-horizontal-scaling.md`
-- [ ] `Scalability/02-vertical-scaling.md`
-- [ ] `Scalability/03-load-balancing.md`
-- [ ] `Scalability/04-caching-strategies.md`
-- [ ] `Scalability/05-database-scaling.md`
-- [ ] `Scalability/06-cdn.md`
-- [ ] `Scalability/07-async-processing.md`
-- [ ] `Scalability/08-partitioning.md`
+- [x] `BuildingBlocks/01-load-balancing.md` (712 → 183 lines)
+- [x] `BuildingBlocks/02-caching.md` (1534 → 207 lines)
+- [x] `BuildingBlocks/03-cdn.md` (1501 → 203 lines)
+- [x] `BuildingBlocks/04-databases.md` (48 stub → 183 lines)
+- [x] `BuildingBlocks/05-message-queues.md` (1966 → 187 lines)
+- [x] `BuildingBlocks/06-websockets.md` (48 stub → 224 lines)
+- [x] `BuildingBlocks/07-search.md` (48 stub → 231 lines)
+- [x] `BuildingBlocks/08-notifications.md` (48 stub → 205 lines)
+- [x] `BuildingBlocks/09-file-storage.md` (48 stub → 210 lines)
+- [x] `BuildingBlocks/10-monitoring.md` (48 stub → 214 lines)
+- [x] `Scalability/01-horizontal-scaling.md` (55 stub → 193 lines)
+- [x] `Scalability/02-vertical-scaling.md` (55 stub → 134 lines)
+- [x] `Scalability/03-load-balancing.md` (55 stub → 123 lines, scaling-lever summary)
+- [x] `Scalability/04-caching-strategies.md` (55 stub → 166 lines, scaling-lever summary)
+- [x] `Scalability/05-database-scaling.md` (55 stub → 217 lines)
+- [x] `Scalability/06-cdn.md` (55 stub → 161 lines, scaling-lever summary)
+- [x] `Scalability/07-async-processing.md` (55 stub → 255 lines)
+- [x] `Scalability/08-partitioning.md` (55 stub → 250 lines)
 
 ---
 
