@@ -1,154 +1,252 @@
-# Design Typeahead
+# Design Typeahead (Autocomplete)
+
+## How to Open This Answer
+
+"I'll design a typeahead service that returns ranked suggestions within 100ms as the user types. My focus areas are the trie-based prefix index, a top-k cache for hot queries, and the async pipeline that refreshes suggestions from real search logs."
 
 ## Problem Statement
-Design a scalable system that handles [specific requirements].
 
-## Requirements
+Users expect instant suggestions as they type in a search box. The system must return the top-k most relevant completions for any prefix in under 100ms. At Google or Twitter scale this means serving billions of prefix queries per day with stale-tolerant but high-quality ranking.
 
-### Functional Requirements
-- Core features and user flows
-- Expected functionality
-- User interactions
+## R — Requirements
 
-### Non-Functional Requirements
-- Scale: [X] DAU, [Y] requests/sec
-- Performance: Low latency, high throughput
-- Availability: 99.99% uptime
-- Reliability: Data consistency and durability
+### Functional (pick 4-5 that matter most)
 
-## Capacity Estimation
+- Return top 5–10 suggestions for a given prefix string
+- Rank suggestions by query frequency and recency
+- Update suggestion index as new searches are logged
+- Support per-user personalisation (recent searches surfaced first)
+- Debounce client requests — only fire after 200ms of inactivity
 
-### Traffic Estimates
-\`\`\`
-Daily Active Users (DAU): X million
-Requests per day: Y million
-Requests per second: Z thousand
-Peak traffic: 3x average
-\`\`\`
+### Non-Functional (pick 3-4)
 
-### Storage Estimates
-\`\`\`
-Data per user: X KB
-Total storage: Y TB
-Storage growth: Z TB/year
-\`\`\`
+- p99 latency ≤ 100ms end-to-end (including network round-trip)
+- Handle 100k suggestion requests per second at peak
+- Eventual consistency on index updates is acceptable (lag ≤ 10 minutes)
+- 99.99% availability — users must always get *some* suggestions
 
-### Bandwidth Estimates
-\`\`\`
-Average request size: X KB
-Bandwidth: Y GB/sec
-\`\`\`
+## A — Architecture
 
-## High-Level Design
+### High-Level Diagram
 
-### Architecture
-\`\`\`
-┌──────────┐     ┌─────────────┐     ┌──────────┐
-│  Client  │────▶│ Load Balancer│────▶│  Servers │
-└──────────┘     └─────────────┘     └──────────┘
-                                           │
-                                           ▼
-                                     ┌──────────┐
-                                     │ Database │
-                                     └──────────┘
-\`\`\`
+```
+Browser / App
+     │  (debounced keystroke, every 200ms)
+     ▼
+  CDN / Edge Cache  ──── cache hit ──▶  return cached suggestions
+     │ cache miss
+     ▼
+Load Balancer
+     │
+     ▼
+Suggestion Service (stateless, horizontally scaled)
+     │              │
+     ▼              ▼
+ Redis Cache    Trie Service
+ (top-k per     (prefix lookup,
+  prefix)        in-memory trie)
+                    │
+                    ▼
+              Search Log Store  ◀── async pipeline
+              (Kafka → Spark/Flink → periodic trie rebuild)
+```
 
-### Components
-1. **Load Balancer**: Distribute traffic
-2. **Application Servers**: Business logic
-3. **Database**: Data persistence
-4. **Cache**: Performance optimization
-5. **CDN**: Static content delivery
+The Suggestion Service first checks Redis for the prefix key. On a cache miss it queries the Trie Service, stores the result in Redis with a 10-minute TTL, then returns. A separate async pipeline consumes search logs from Kafka, computes top-k per prefix using a stream processor, and rebuilds the trie every 10 minutes. This decouples read latency from write complexity.
 
-## Detailed Design
+### Request Data Flow
 
-### Database Schema
-\`\`\`sql
--- Core tables
--- Relationships
--- Indexes
-\`\`\`
+1. User types "new y" — client waits 200ms debounce timer.
+2. Client sends `GET /v1/suggest?q=new+y` to nearest CDN edge node.
+3. CDN checks its cache — hit returns immediately (sub-10ms).
+4. CDN miss forwards to Load Balancer → Suggestion Service instance.
+5. Suggestion Service looks up `prefix:new y` key in Redis cluster.
+6. Redis hit: returns cached top-k array. Redis miss: query Trie Service.
+7. Trie Service walks trie from root to node at "new y" in O(7) steps.
+8. Returns merged list of up to 10 suggestions sorted by score.
+9. Suggestion Service writes result to Redis with 10-minute TTL.
+10. Response returns to client — total round-trip ≤ 80ms.
 
-### API Design
-\`\`\`
-POST /api/resource
-GET /api/resource/:id
-PUT /api/resource/:id
-DELETE /api/resource/:id
-\`\`\`
+### Index Update Data Flow
 
-### Data Flow
-1. User request → Load balancer
-2. Load balancer → App server
-3. App server → Cache check
-4. Cache miss → Database query
-5. Response → User
+1. User submits search query "new york pizza" — `POST /v1/log` fires.
+2. Suggestion Service writes log event to Kafka topic `search-logs`.
+3. Flink stream processor consumes events, increments frequency counters.
+4. Every 10 minutes: Flink emits updated top-k per prefix to S3 snapshot.
+5. Batch coordinator calls `POST /internal/trie/rebuild` on Trie Service.
+6. Trie Service loads snapshot, builds new trie in background thread.
+7. Atomic pointer swap replaces old trie — zero downtime.
+8. Old trie GC'd after all in-flight requests complete.
 
-## Deep Dives
+## D — Data Model
 
-### Scalability
-- Horizontal scaling of app servers
-- Database sharding strategy
-- Caching layers (Redis, CDN)
-- Async processing (message queues)
+```typescript
+// A node in the in-memory trie
+interface TrieNode {
+  children: Map<string, TrieNode>;
+  // top-k suggestions sorted by score at this node
+  suggestions: Suggestion[];
+  isEndOfWord: boolean;
+}
 
-### Reliability
-- Replication and redundancy
-- Health checks and failover
-- Circuit breakers
-- Data backup and recovery
+interface Suggestion {
+  query: string;
+  score: number;       // composite: frequency * recency_weight
+  lastSeenAt: Date;
+}
 
-### Performance
-- Database indexing
-- Query optimization
-- Caching strategy
-- CDN for static assets
+// Persisted query frequency record (rebuilt by batch pipeline)
+interface QueryFrequency {
+  query: string;
+  count: number;       // rolling 30-day count
+  updatedAt: Date;
+}
 
-### Security
-- Authentication & Authorization
-- HTTPS/TLS encryption
-- Rate limiting
-- Input validation
+// Redis cache entry (serialised as JSON string)
+interface PrefixCacheEntry {
+  prefix: string;
+  suggestions: Suggestion[];
+  cachedAt: Date;      // TTL enforced by Redis EXPIRE
+}
+```
 
-## Trade-offs & Bottlenecks
+## I — Interface (APIs)
 
-### Trade-offs
-- **Consistency vs Availability**: CAP theorem considerations
-- **SQL vs NoSQL**: Data model and query patterns
-- **Sync vs Async**: Latency vs complexity
+```typescript
+// GET /v1/suggest?q=<prefix>&limit=<n>&userId=<id>
+interface SuggestRequest {
+  q: string;           // prefix typed by user, e.g. "new yo"
+  limit?: number;      // default 10, max 20
+  userId?: string;     // optional, enables personalisation
+}
 
-### Bottlenecks
-- Database becomes bottleneck at scale
-- Single point of failure
-- Network latency
-- Cache invalidation
+interface SuggestResponse {
+  prefix: string;
+  suggestions: Array<{
+    query: string;
+    score: number;
+  }>;
+  servedFrom: "cache" | "trie";   // useful for observability
+}
 
-## Interview Discussion Points
+// POST /v1/log  — called after user submits a search
+interface SearchLogRequest {
+  query: string;
+  userId: string;
+  timestamp: string;   // ISO 8601
+}
+interface SearchLogResponse {
+  accepted: boolean;
+}
 
-**Q: How do you handle X million concurrent users?**
-A: Load balancing, horizontal scaling, caching, CDN
+// POST /internal/trie/rebuild  — triggered by batch job
+interface TrieRebuildRequest {
+  snapshotPath: string;   // S3 path to new frequency snapshot
+}
+interface TrieRebuildResponse {
+  nodesLoaded: number;
+  durationMs: number;
+}
 
-**Q: How do you ensure data consistency?**
-A: Transaction management, eventual consistency, ACID properties
+// GET /internal/health
+interface HealthResponse {
+  status: "ok" | "degraded";
+  trieVersion: string;
+  redisPingMs: number;
+}
+```
 
-**Q: What happens if the database fails?**
-A: Primary-replica setup, automatic failover, backup strategies
+## O — Optimizations & Trade-offs
 
-**Q: How do you optimize for low latency?**
-A: Caching, CDN, geographic distribution, database indexing
+### Scaling concerns
 
-## Follow-up Questions
-1. How would you add feature X?
-2. How does the system handle failures?
-3. How do you monitor and debug issues?
-4. What metrics would you track?
-5. How do you ensure security?
+| Concern | Problem | Solution |
+|---|---|---|
+| Hot prefixes | "a", "th", "the" hit millions of times/sec | Pre-warm Redis on startup; short TTL (10 min) still serves stale from cache |
+| Trie memory | Full English trie ~1–2 GB RAM | Keep only top-1M queries; shard trie by first character across nodes |
+| Index freshness | Viral query ("earthquake 2026") not appearing | Run micro-batch every 1 min for high-velocity queries alongside 10-min full rebuild |
+| Personalisation | Per-user trie is infeasible | Merge global top-k with user's recent 10 searches client-side |
+| Cold start | New region has empty Redis | Load trie snapshot from S3; Redis populated lazily on first miss |
 
-## Summary
-- Key architectural decisions
-- Scalability strategies
-- Trade-offs made
-- Areas for further optimization
+### Pitfalls
+
+| Pitfall | Verdict |
+|---|---|
+| Rebuilding trie on every search log write | ❌ Too expensive — use async batch pipeline |
+| Returning exact-match only | ❌ Miss prefix suggestions — walk all trie subtrees |
+| No debounce on client | ❌ Floods service with every keystroke |
+| Caching at CDN with long TTL | ✅ Great for top prefixes; use `Cache-Control: max-age=60` |
+| Separate suggestion score per language/locale | ✅ Shard trie by locale to keep top-k relevant |
+
+> The trie gives O(L) lookup where L is prefix length. The real work is maintaining a ranked top-k list at *every* node — store only top 10 suggestions per node, updated during batch rebuild.
+
+### Ranking algorithm
+
+The score for each suggestion is a composite of frequency and recency:
+
+```typescript
+function computeScore(query: QueryFrequency): number {
+  const now = Date.now();
+  const ageMs = now - query.updatedAt.getTime();
+  const ageDays = ageMs / (1000 * 60 * 60 * 24);
+
+  // Exponential decay: halve weight every 7 days
+  const recencyWeight = Math.pow(0.5, ageDays / 7);
+
+  return query.count * recencyWeight;
+}
+```
+
+A trending query from yesterday outscores an older query with 10x more historical volume. This ensures viral queries surface quickly without polluting long-term suggestions.
+
+See [../Scalability/caching-strategies.md](../Scalability/caching-strategies.md) for Redis TTL patterns and [../BuildingBlocks/message-queues.md](../BuildingBlocks/message-queues.md) for the Kafka log pipeline.
+
+## Common Follow-up Questions
+
+**Q: How do you handle spelling corrections (did you mean…)?**
+A: Run a separate spell-check service using edit-distance (BK-tree). Merge its results with trie suggestions. Only show corrections when trie returns fewer than 3 results.
+
+**Q: How do you prevent offensive or banned queries from surfacing?**
+A: Maintain a blocklist in Redis. Filter suggestions against it before returning. Refresh the blocklist every minute via a pub/sub event.
+
+**Q: What if the trie service crashes mid-rebuild?**
+A: Keep the previous trie in memory until the new one is fully loaded. Use blue/green swap — build new trie in background, atomically replace pointer, then GC old trie.
+
+**Q: How do you scale to multiple languages?**
+A: Partition the trie cluster by locale (`en`, `ar`, `zh`). Route requests to the correct shard based on the `Accept-Language` header.
+
+**Q: Why not use Elasticsearch for prefix search?**
+A: ES prefix queries work but add 10–30ms overhead and require a cluster per region. An in-memory trie with Redis L1 cache is simpler and 5–10x faster for this narrow use case.
+
+**Q: How do you handle multi-word prefixes like "new york p"?**
+A: Index the full query string as a single trie path — the trie already handles spaces as characters. Store top-k completions at the node for "new york p" so lookup is still O(L). Multi-word matching is no different from single-word at the trie level.
+
+### Capacity Estimation (quick numbers to state in the interview)
+
+| Metric | Estimate |
+|---|---|
+| DAU | 500 million |
+| Searches per user per day | 5 |
+| Total search events per day | 2.5 billion |
+| Suggestion requests per search | ~8 keystrokes | 
+| Peak suggestion QPS | ~230k |
+| Average response size | 500 bytes |
+| Peak outbound bandwidth | ~115 MB/s |
+| Unique prefixes to cache | ~10 million (top queries cover 95%+ of traffic) |
+| Redis memory for top prefixes | ~5 GB (10M × 500 bytes) |
+| Trie in-memory size (top-1M queries) | ~1–2 GB per Trie Service node |
+
+State these numbers confidently — they justify the caching and sharding decisions that follow.
+
+### Trie vs Alternative Approaches
+
+| Approach | Latency | Memory | Update Cost | Best For |
+|---|---|---|---|---|
+| In-memory trie | ≤ 2ms | Medium (1–2 GB) | Batch rebuild | General-purpose autocomplete |
+| Redis sorted sets (prefix range) | ≤ 5ms | Medium | Low (streaming) | Simpler systems, fewer prefixes |
+| Elasticsearch prefix query | 10–30ms | High | Real-time indexing | Full-text search, not pure autocomplete |
+| PostgreSQL `LIKE 'prefix%'` | 50–200ms | Low | Immediate | Dev environments only |
+
+The trie wins on read latency. Its weakness is rebuild time — a full English trie with 1M entries takes 30–60 seconds to build. Use incremental updates for high-velocity queries to bridge the gap between full rebuilds.
 
 ---
-[← Back to SystemDesign](../README.md)
+[← Back to InterviewQuestions](../README.md)

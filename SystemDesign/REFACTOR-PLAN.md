@@ -411,26 +411,26 @@ Report old vs new line count after each file. Pause for review.
 
 ### Progress Tracker — Day 5
 
-- [ ] `InterviewQuestions/01-twitter.md`
-- [ ] `InterviewQuestions/02-instagram.md`
-- [ ] `InterviewQuestions/03-facebook-newsfeed.md`
-- [ ] `InterviewQuestions/04-uber.md`
-- [ ] `InterviewQuestions/05-whatsapp.md`
-- [ ] `InterviewQuestions/06-youtube.md`
-- [ ] `InterviewQuestions/07-netflix.md`
-- [ ] `InterviewQuestions/08-amazon.md`
-- [ ] `InterviewQuestions/09-google-search.md`
-- [ ] `InterviewQuestions/10-dropbox.md`
-- [ ] `InterviewQuestions/11-url-shortener.md`
-- [ ] `InterviewQuestions/12-rate-limiter.md`
-- [ ] `InterviewQuestions/13-notification-system.md`
-- [ ] `InterviewQuestions/14-chat-system.md`
-- [ ] `InterviewQuestions/15-web-crawler.md`
-- [ ] `InterviewQuestions/16-typeahead.md`
-- [ ] `InterviewQuestions/17-api-gateway.md`
-- [ ] `InterviewQuestions/18-distributed-cache.md`
-- [ ] `InterviewQuestions/19-parking-lot.md`
-- [ ] `InterviewQuestions/20-ticketmaster.md`
+- [x] `InterviewQuestions/01-twitter.md` (695 → 250 lines)
+- [x] `InterviewQuestions/02-instagram.md` (154 stub → 222 lines)
+- [x] `InterviewQuestions/03-facebook-newsfeed.md` (154 stub → 219 lines)
+- [x] `InterviewQuestions/04-uber.md` (1475 → 263 lines)
+- [x] `InterviewQuestions/05-whatsapp.md` (154 stub → 245 lines)
+- [x] `InterviewQuestions/06-youtube.md` (154 stub → 256 lines)
+- [x] `InterviewQuestions/07-netflix.md` (154 stub → 253 lines)
+- [x] `InterviewQuestions/08-amazon.md` (154 stub → 272 lines)
+- [x] `InterviewQuestions/09-google-search.md` (154 stub → 263 lines)
+- [x] `InterviewQuestions/10-dropbox.md` (1445 → 258 lines)
+- [x] `InterviewQuestions/11-url-shortener.md` (638 → 262 lines)
+- [x] `InterviewQuestions/12-rate-limiter.md` (654 → 307 lines)
+- [x] `InterviewQuestions/13-notification-system.md` (1330 → 222 lines)
+- [x] `InterviewQuestions/14-chat-system.md` (1605 → 208 lines)
+- [x] `InterviewQuestions/15-web-crawler.md` (154 stub → 253 lines)
+- [x] `InterviewQuestions/16-typeahead.md` (154 stub → 252 lines)
+- [x] `InterviewQuestions/17-api-gateway.md` (154 stub → 258 lines)
+- [x] `InterviewQuestions/18-distributed-cache.md` (154 stub → 260 lines)
+- [x] `InterviewQuestions/19-parking-lot.md` (154 stub → 285 lines)
+- [x] `InterviewQuestions/20-ticketmaster.md` (154 stub → 272 lines)
 
 ---
 

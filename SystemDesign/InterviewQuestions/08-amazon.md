@@ -1,154 +1,272 @@
-# Design Amazon
+# Design Amazon (E-Commerce Platform)
+
+## How to Open This Answer
+
+"I'll design Amazon's core e-commerce platform — product catalogue, cart, order processing, inventory, and payment flow. This is a read-heavy system with strict consistency requirements on inventory and payments."
 
 ## Problem Statement
-Design a scalable system that handles [specific requirements].
 
-## Requirements
+Amazon handles 1.6 million orders per day and 300 million product listings. The system must show real-time inventory, process payments atomically, and scale to 10x traffic on Prime Day without degradation.
 
-### Functional Requirements
-- Core features and user flows
-- Expected functionality
-- User interactions
+## R — Requirements
 
-### Non-Functional Requirements
-- Scale: [X] DAU, [Y] requests/sec
-- Performance: Low latency, high throughput
-- Availability: 99.99% uptime
-- Reliability: Data consistency and durability
+### Functional (pick 4-5 that matter most)
 
-## Capacity Estimation
+- Users can browse, search, and view product detail pages
+- Users can add items to a cart and modify quantities
+- Checkout reserves inventory, processes payment, and creates an order
+- Sellers can update product listings and inventory counts
+- Users and admins can track order status through fulfilment
 
-### Traffic Estimates
-\`\`\`
-Daily Active Users (DAU): X million
-Requests per day: Y million
-Requests per second: Z thousand
-Peak traffic: 3x average
-\`\`\`
+### Non-Functional (pick 3-4)
 
-### Storage Estimates
-\`\`\`
-Data per user: X KB
-Total storage: Y TB
-Storage growth: Z TB/year
-\`\`\`
+- Availability: 99.99% — one hour of downtime costs ~$34M in GMV
+- Consistency: inventory reservation must be strongly consistent (no overselling)
+- Latency: product page loads under 100 ms at P99 globally
+- Scale: 10x traffic spikes on Prime Day without manual intervention
 
-### Bandwidth Estimates
-\`\`\`
-Average request size: X KB
-Bandwidth: Y GB/sec
-\`\`\`
+## A — Architecture
 
-## High-Level Design
+### High-Level Diagram
 
-### Architecture
-\`\`\`
-┌──────────┐     ┌─────────────┐     ┌──────────┐
-│  Client  │────▶│ Load Balancer│────▶│  Servers │
-└──────────┘     └─────────────┘     └──────────┘
-                                           │
-                                           ▼
-                                     ┌──────────┐
-                                     │ Database │
-                                     └──────────┘
-\`\`\`
+```
+┌──────────┐      ┌───────────────┐      ┌────────────────────────────────┐
+│  Browser │─────▶│  API Gateway  │─────▶│          Microservices         │
+│  Mobile  │      │  + CDN (edge) │      │                                │
+└──────────┘      └───────────────┘      │  ┌────────────┐ ┌───────────┐ │
+                                         │  │ Product    │ │  Search   │ │
+                                         │  │ Catalogue  │ │  Service  │ │
+                                         │  │ (DynamoDB) │ │ (OpenSrch)│ │
+                                         │  └────────────┘ └───────────┘ │
+                                         │  ┌────────────┐ ┌───────────┐ │
+                                         │  │   Cart     │ │ Inventory │ │
+                                         │  │  Service   │ │  Service  │ │
+                                         │  │  (Redis)   │ │ (Postgres)│ │
+                                         │  └────────────┘ └───────────┘ │
+                                         │  ┌────────────┐ ┌───────────┐ │
+                                         │  │   Order    │ │  Payment  │ │
+                                         │  │  Service   │ │  Service  │ │
+                                         │  │ (Postgres) │ │ (Stripe)  │ │
+                                         │  └────────────┘ └───────────┘ │
+                                         └────────────────────────────────┘
+                                                        │
+                                              ┌─────────▼──────────┐
+                                              │  Message Bus       │
+                                              │  (SQS / Kafka)     │
+                                              │  order events →    │
+                                              │  fulfilment, email │
+                                              └────────────────────┘
+```
 
-### Components
-1. **Load Balancer**: Distribute traffic
-2. **Application Servers**: Business logic
-3. **Database**: Data persistence
-4. **Cache**: Performance optimization
-5. **CDN**: Static content delivery
+Each domain (catalogue, cart, inventory, order, payment) is a separate microservice with its own database. The checkout flow coordinates across services using a Saga pattern — no distributed transactions. See [../BuildingBlocks/](../BuildingBlocks/) for Saga and [../Database/](../Database/) for polyglot persistence.
 
-## Detailed Design
+## D — Data Model
 
-### Database Schema
-\`\`\`sql
--- Core tables
--- Relationships
--- Indexes
-\`\`\`
+```typescript
+interface Product {
+  productId: string;
+  sellerId: string;
+  title: string;
+  description: string;
+  categoryPath: string[];      // e.g. ["Electronics", "Laptops"]
+  brand: string;
+  attributes: Record<string, string>;  // color, size, weight …
+  imageUrls: string[];
+  basePrice: number;
+  currency: string;
+  status: "active" | "inactive" | "deleted";
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-### API Design
-\`\`\`
-POST /api/resource
-GET /api/resource/:id
-PUT /api/resource/:id
-DELETE /api/resource/:id
-\`\`\`
+interface InventoryItem {
+  productId: string;
+  warehouseId: string;
+  quantityOnHand: number;
+  quantityReserved: number;     // held during checkout
+  quantityAvailable: number;    // = onHand - reserved
+  reorderThreshold: number;
+  lastUpdatedAt: Date;
+}
 
-### Data Flow
-1. User request → Load balancer
-2. Load balancer → App server
-3. App server → Cache check
-4. Cache miss → Database query
-5. Response → User
+interface CartItem {
+  userId: string;
+  productId: string;
+  quantity: number;
+  addedAt: Date;
+  savedForLater: boolean;
+}
 
-## Deep Dives
+interface Order {
+  orderId: string;
+  userId: string;
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled" | "refunded";
+  items: Array<{
+    productId: string;
+    quantity: number;
+    unitPriceCents: number;
+    warehouseId: string;
+  }>;
+  shippingAddress: Address;
+  totalAmountCents: number;
+  paymentIntentId: string;    // Stripe reference
+  placedAt: Date;
+  estimatedDeliveryAt: Date | null;
+}
 
-### Scalability
-- Horizontal scaling of app servers
-- Database sharding strategy
-- Caching layers (Redis, CDN)
-- Async processing (message queues)
+interface Address {
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  countryCode: string;
+}
+```
 
-### Reliability
-- Replication and redundancy
-- Health checks and failover
-- Circuit breakers
-- Data backup and recovery
+## I — Interface (APIs)
 
-### Performance
-- Database indexing
-- Query optimization
-- Caching strategy
-- CDN for static assets
+```typescript
+// 1. Search products
+// GET /api/v1/products/search?q=&category=&page=&sort=price_asc
+interface ProductSearchResponse {
+  products: Array<{
+    productId: string;
+    title: string;
+    thumbnailUrl: string;
+    priceCents: number;
+    rating: number;
+    reviewCount: number;
+    prime: boolean;
+    inStock: boolean;
+  }>;
+  totalCount: number;
+  facets: Record<string, Array<{ value: string; count: number }>>;
+  nextPageToken: string | null;
+}
 
-### Security
-- Authentication & Authorization
-- HTTPS/TLS encryption
-- Rate limiting
-- Input validation
+// 2. Get product detail page
+// GET /api/v1/products/:productId
+interface ProductDetailResponse {
+  product: Product;
+  inventory: { available: number; warehouseIds: string[] };
+  pricing: { priceCents: number; wasPrice: number | null; deals: string[] };
+  reviews: { averageRating: number; totalCount: number; topReviews: Review[] };
+  recommendations: Array<{ productId: string; reason: string }>;
+}
 
-## Trade-offs & Bottlenecks
+// 3. Add item to cart
+// POST /api/v1/cart/items
+interface AddToCartRequest {
+  userId: string;
+  productId: string;
+  quantity: number;
+}
+interface AddToCartResponse {
+  cartItemId: string;
+  cart: { itemCount: number; estimatedTotalCents: number };
+}
 
-### Trade-offs
-- **Consistency vs Availability**: CAP theorem considerations
-- **SQL vs NoSQL**: Data model and query patterns
-- **Sync vs Async**: Latency vs complexity
+// 4. Checkout — reserves inventory and creates payment intent
+// POST /api/v1/orders/checkout
+interface CheckoutRequest {
+  userId: string;
+  cartItems: Array<{ productId: string; quantity: number }>;
+  shippingAddressId: string;
+  paymentMethodId: string;   // Stripe payment method
+}
+interface CheckoutResponse {
+  orderId: string;
+  status: "confirmed" | "payment_failed" | "out_of_stock";
+  paymentIntentId: string;
+  estimatedDeliveryAt: Date;
+  totalAmountCents: number;
+}
 
-### Bottlenecks
-- Database becomes bottleneck at scale
-- Single point of failure
-- Network latency
-- Cache invalidation
+// 5. Get order status
+// GET /api/v1/orders/:orderId
+interface OrderStatusResponse {
+  order: Order;
+  trackingEvents: Array<{
+    status: string;
+    location: string;
+    timestamp: Date;
+  }>;
+}
 
-## Interview Discussion Points
+// 6. Update inventory (seller/warehouse system)
+// PUT /api/v1/inventory/:productId/:warehouseId
+interface InventoryUpdateRequest {
+  quantityDelta: number;   // positive = restock, negative = adjustment
+  reason: "restock" | "damage" | "audit" | "return";
+}
+interface InventoryUpdateResponse {
+  productId: string;
+  warehouseId: string;
+  newQuantityOnHand: number;
+  newQuantityAvailable: number;
+}
+```
 
-**Q: How do you handle X million concurrent users?**
-A: Load balancing, horizontal scaling, caching, CDN
+## O — Optimizations & Trade-offs
 
-**Q: How do you ensure data consistency?**
-A: Transaction management, eventual consistency, ACID properties
+### Scaling Concerns
 
-**Q: What happens if the database fails?**
-A: Primary-replica setup, automatic failover, backup strategies
+| Concern | Naive Approach | Production Approach |
+|---|---|---|
+| Inventory overselling | Application-level check | Optimistic locking with DB constraints |
+| Product page latency | DB read per request | Redis cache + CDN for static product data |
+| Search at 300M products | SQL LIKE query | OpenSearch with inverted index + facets |
+| Prime Day traffic spikes | Over-provision always | Auto-scaling + pre-warming CDN/cache |
+| Payment double-charge | Simple charge call | Idempotency key on payment intent |
 
-**Q: How do you optimize for low latency?**
-A: Caching, CDN, geographic distribution, database indexing
+### Checkout Saga — Inventory + Payment Coordination
 
-## Follow-up Questions
-1. How would you add feature X?
-2. How does the system handle failures?
-3. How do you monitor and debug issues?
-4. What metrics would you track?
-5. How do you ensure security?
+> Distributed transactions across inventory and payment databases are avoided. The Saga pattern chains compensating transactions instead.
 
-## Summary
-- Key architectural decisions
-- Scalability strategies
-- Trade-offs made
-- Areas for further optimization
+Checkout saga steps:
+1. Reserve inventory (Inventory Service) — rollback: release reservation
+2. Create payment intent (Payment Service) — rollback: void intent
+3. Confirm payment (Payment Service)
+4. Create order record (Order Service)
+5. Publish `order.confirmed` event → fulfilment queue
+
+- ❌ Two-phase commit across services — coupling, deadlocks, latency
+- ✅ Choreography-based saga with compensating transactions
+
+### Inventory Consistency
+
+- ❌ Read inventory → check → update (three separate DB calls, race condition)
+- ✅ Single atomic `UPDATE inventory SET reserved = reserved + ? WHERE available >= ?` with row-level lock
+
+### Cart Storage
+
+| Option | Trade-off |
+|---|---|
+| Database per user | Durable but slow for high-frequency updates |
+| Redis session store | Fast but volatile — TTL-based expiry |
+| Redis + async DB sync | ✅ Recommended — fast reads, durable on checkout |
+
+### Search Ranking
+
+> Simple full-text search misses intent. Amazon's A9 algorithm weights purchase likelihood, relevance, and seller performance. Personalisation layer re-ranks results per user. See [../BuildingBlocks/](../BuildingBlocks/) for search architecture.
+
+## Common Follow-up Questions
+
+**Q: How do you prevent overselling during flash sales?**
+Use Redis atomic `DECRBY` with a Lua script to decrement and check atomically. Back it with an Inventory Service that uses optimistic locking (`WHERE version = ?`) on write. Queue excess requests behind a virtual waiting room.
+
+**Q: How does payment idempotency work?**
+The client generates a UUID idempotency key before calling checkout. The Payment Service stores `(idempotencyKey, result)` in a KV store. On retry, the stored result is returned without re-charging.
+
+**Q: How do you scale for Prime Day (10x traffic)?**
+Three-phase prep: (1) Pre-scale auto-scaling groups 30 minutes before event. (2) Pre-warm CDN with product images and static assets. (3) Increase Redis cluster size and read replicas. Load-shed non-critical features (recommendations) under sustained overload.
+
+**Q: How is the product catalogue stored?**
+DynamoDB for hot product reads (partition key: `productId`). A separate write path updates DynamoDB and streams changes via DynamoDB Streams → Lambda → OpenSearch for search indexing.
+
+**Q: How do you handle refunds?**
+A `refund.requested` event triggers a compensating saga: update order status → issue Stripe refund → release inventory if not yet shipped → notify user. Each step is idempotent.
 
 ---
-[← Back to SystemDesign](../README.md)
+[← Back to InterviewQuestions](../README.md)
