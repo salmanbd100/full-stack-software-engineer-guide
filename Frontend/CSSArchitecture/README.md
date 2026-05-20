@@ -1,290 +1,98 @@
 # CSS Architecture
 
-Master scalable CSS architecture and design patterns essential for modern frontend development. Strong CSS architecture skills are critical for building maintainable, scalable applications and are heavily tested in senior-level frontend interviews.
+How to scale CSS across enterprise codebases — methodologies, scoping strategies, and design systems. The patterns interviewers actually probe at the senior level.
 
-## 📚 Topics Covered
+## 📚 Topics
 
-### CSS Methodologies
-1. **[CSS Methodologies](./01-css-methodologies.md)**
-   - BEM (Block Element Modifier)
-   - SMACSS (Scalable and Modular CSS)
-   - ITCSS (Inverted Triangle CSS)
-   - OOCSS (Object-Oriented CSS)
-   - Methodology comparison and when to use each
-
-### Architecture Approaches
-2. **[Utility-First vs Component-First](./02-utility-vs-component.md)**
-   - Utility-first approach (Tailwind CSS)
-   - Component-first approach (CSS Modules, Styled Components)
-   - Hybrid approaches
-   - Trade-off analysis
-   - Migration strategies
-
-3. **[CSS-in-JS Solutions](./03-css-in-js.md)**
-   - styled-components
-   - Emotion
-   - Linaria (zero-runtime)
-   - Vanilla Extract
-   - Performance considerations
-   - SSR and bundle size optimization
-
-### Advanced Topics
-4. **[Atomic CSS & Design Systems](./04-atomic-css.md)**
-   - Atomic CSS methodology
-   - Design token systems
-   - Component library architecture
-   - Theming strategies
-   - Scalable design systems
-
-5. **[Design Systems & Scalability](./05-design-systems.md)**
-   - Building design systems
-   - Token management
-   - Component composition
-   - Documentation and governance
-   - Enterprise-scale CSS architecture
+| # | Topic | What you'll learn |
+|---|-------|-------------------|
+| 1 | [CSS Methodologies](./01-css-methodologies.md) | BEM, SMACSS, ITCSS, OOCSS — when each makes sense |
+| 2 | [Utility-First vs Component-First](./02-utility-vs-component.md) | Tailwind vs CSS Modules vs styled-components — tradeoffs |
+| 3 | [CSS-in-JS](./03-css-in-js.md) | styled-components, Emotion, Linaria, Vanilla Extract — runtime vs zero-runtime |
+| 4 | [Atomic CSS](./04-atomic-css.md) | One-class-one-property model, design token integration, bundle size wins |
+| 5 | [Design Systems](./05-design-systems.md) | Tokens, primitives, composition, theming, governance at scale |
 
 ---
 
-## 🎯 Interview Focus Areas
+## 🎯 Interview Focus
 
-### Most Commonly Asked
-1. BEM vs CSS Modules vs Styled Components - which to use when?
-2. Utility-first (Tailwind) vs Component-first approaches trade-offs
-3. How do you scale CSS in large applications?
-4. CSS Specificity and avoiding conflicts
-5. CSS-in-JS runtime overhead and performance concerns
+### Most asked
+1. BEM vs CSS Modules vs styled-components — which when?
+2. Utility-first vs component-first — what are the real tradeoffs?
+3. How do you scale CSS across multiple teams?
+4. CSS-in-JS runtime cost — when is it worth it?
+5. How do you build a design system from scratch?
 
-### Frequently Asked
-6. What is SMACSS and ITCSS?
-7. How do you handle theming and dark mode?
-8. CSS Modules vs BEM - advantages and disadvantages
-9. Scoped CSS solutions and their implications
-10. Migration strategies from legacy CSS to modern architecture
+### Frequently asked
+6. What is ITCSS and what problem does it solve?
+7. How do you handle theming (dark mode, multi-brand)?
+8. Specificity management strategies in large codebases
+9. Zero-runtime CSS-in-JS — why does it matter?
+10. Migrating legacy CSS — what's your strategy?
 
 ---
 
-## 📊 Quick Comparison Matrix
+## 📊 Quick Comparison
 
-### CSS Methodologies
+### Methodologies
 
 | Aspect | BEM | SMACSS | ITCSS | OOCSS |
 |--------|-----|--------|-------|-------|
-| Learning Curve | Easy | Medium | Medium | Easy |
-| Scalability | Good | Excellent | Excellent | Good |
-| Team Adoption | Fast | Medium | Slow | Fast |
-| File Organization | By component | By category | By layer | By object |
-| Naming Convention | Strict | Guidelines | Flexible | Flexible |
-| Best For | Small-medium | Large | Enterprise | Medium |
-| Specificity Control | Good | Excellent | Best | Good |
+| **Learning curve** | Easy | Medium | Hard | Medium |
+| **Specificity control** | Good | Good | Best | Good |
+| **Best for** | Small–medium | Medium–large | Enterprise | Performance-critical |
+| **Naming** | Strict | Prefixed | Layered | Object-based |
 
-### CSS Architecture Approaches
+### Styling approaches
 
-| Aspect | Utility-First | Component-First | CSS-in-JS | BEM |
-|--------|---------------|-----------------|-----------|-----|
-| Development Speed | Fastest | Fast | Medium | Medium |
-| HTML Readability | Lower | Higher | High | High |
-| CSS File Size | Smaller | Medium | Variable | Medium-Large |
-| Learning Curve | Steep | Medium | Medium | Easy |
-| Bundle Size Impact | Low | Medium | Medium-High | Low |
-| Type Safety | Optional | Possible | Native | No |
-| Best For | Rapid development | Design systems | React apps | Static sites |
-| Maintainability | Good | Excellent | Excellent | Good |
+| Aspect | Utility-first | CSS Modules | CSS-in-JS | Atomic |
+|--------|---------------|-------------|-----------|--------|
+| **Bundle size** | Smallest | Medium | Medium–large | Smallest |
+| **Runtime cost** | None | None | Low–high | None |
+| **Dynamic styles** | Limited | Limited | Excellent | Limited |
+| **Type safety** | Optional | Optional | Native (TS) | Optional |
+| **Best for** | Speed + design system | Component libraries | React apps + dynamic theming | High-traffic sites |
 
 ---
 
-## 📝 Quick Reference
-
-### Common Interview Scenarios
-
-**Scenario 1: "Scale CSS for a large enterprise application"**
-- Use ITCSS layering + BEM naming
-- Implement design token system
-- Use CSS Modules or CSS-in-JS for component scoping
-- Strict CSS audit and documentation
-
-**Scenario 2: "Rapid prototyping startup project"**
-- Start with Tailwind CSS (utility-first)
-- Extract components as they emerge
-- Use CSS-in-JS if heavy interactivity needed
-- Prioritize development speed
-
-**Scenario 3: "Design system for multiple products"**
-- Use Atomic CSS for scalability
-- Implement comprehensive token system
-- Use CSS-in-JS for dynamic theming
-- Create component library with clear contracts
-
-**Scenario 4: "Legacy CSS codebase migration"**
-- Gradually introduce CSS Modules
-- Implement BEM naming for new components
-- Consider CSS-in-JS for React components
-- Run parallel systems during transition
-
-### Decision Tree
+## 💡 Decision Rule
 
 ```
-START: Need to style components?
- Is it a new greenfield project?
-   Focus on speed? � Tailwind CSS (Utility-first)
-   Focus on maintainability? � CSS Modules + BEM
- Is it a React-heavy application?
-   Need type safety? � styled-components or Emotion
-   Need minimal runtime? � CSS Modules or Vanilla Extract
- Is it a design system?
-   Multiple themes/tokens? � Atomic CSS + Vanilla Extract
-   Simple, scalable? � ITCSS + CSS Modules
- Is it a migration project?
-    Small app? � Switch to CSS Modules
-    Large app? � Gradual BEM adoption + CSS Modules
+New greenfield React app?
+  ├─ Need speed + token system  → Tailwind + design tokens
+  ├─ Need dynamic theming        → CSS-in-JS (Emotion/Vanilla Extract)
+  └─ Need SSR + perf             → CSS Modules or Vanilla Extract
+
+Enterprise app, multiple teams?
+  ├─ Strict specificity needed   → ITCSS + BEM
+  └─ Multi-product design system → Tokens + Atomic CSS + primitives
+
+Legacy migration?
+  └─ Gradually introduce CSS Modules + BEM for new components
 ```
 
 ---
 
-## 📋 Topics at a Glance
+## 💡 Essential Questions
 
-### When to Use Each Methodology
-
-**BEM (Block Element Modifier)**
-- Small to medium-sized projects
-- Team learning CSS architecture for first time
-- Static or server-rendered sites
-- Simple naming convention needed
-- Example: WordPress themes, static websites
-
-**SMACSS (Scalable and Modular CSS)**
-- Growing projects needing organization
-- Multiple developers sharing code
-- Clear separation of concerns needed
-- Base, Layout, Module, State, Theme layers
-- Example: Medium-sized web applications
-
-**ITCSS (Inverted Triangle CSS)**
-- Large enterprise applications
-- Strict specificity management needed
-- Complex component hierarchies
-- Multiple teams working together
-- Example: Large SaaS platforms
-
-**OOCSS (Object-Oriented CSS)**
-- Projects needing reusable CSS objects
-- Performance-critical applications
-- Small CSS file sizes critical
-- Example: High-traffic websites, mobile apps
-
-**Tailwind CSS (Utility-First)**
-- Rapid development needed
-- Design consistency critical
-- Small bundle size important
-- Team comfortable with HTML-heavy approach
-- Example: Startup products, MVPs, dashboards
-
-**CSS-in-JS (styled-components, Emotion)**
-- React/Vue heavy applications
-- Dynamic styling based on props
-- Type-safe CSS needed (TypeScript)
-- Server-side rendering required
-- Example: Component libraries, design systems
+1. Explain BEM and where it falls short.
+2. Utility-first (Tailwind) vs component-first — when does each win?
+3. Runtime vs zero-runtime CSS-in-JS — what's the tradeoff?
+4. How would you structure a design system for 5 product teams?
+5. What's the difference between a token, a primitive, and a component?
+6. How do you handle theming without runtime overhead?
+7. Why does specificity matter in large codebases?
+8. Migration strategy from a 5-year-old CSS codebase?
 
 ---
 
-## 📅 Study Plan
+## 🔗 References
 
-### Week 1: Fundamentals
-- **Day 1-2**: CSS Methodologies overview and BEM basics
-- **Day 3-4**: SMACSS and ITCSS concepts
-- **Day 5**: OOCSS and methodology comparison
-
-### Week 2: Modern Approaches
-- **Day 1-2**: Utility-first philosophy and Tailwind CSS
-- **Day 3-4**: Component-first and CSS Modules
-- **Day 5**: Hybrid approaches and trade-offs
-
-### Week 3: CSS-in-JS
-- **Day 1-2**: styled-components deep dive
-- **Day 3-4**: Emotion, Linaria, and Vanilla Extract
-- **Day 5**: Performance optimization and SSR considerations
-
-### Week 4: Advanced & Interview Prep
-- **Day 1-2**: Atomic CSS and design systems
-- **Day 3**: Real-world architecture patterns
-- **Day 4**: Interview question practice
-- **Day 5**: Mock interview and peer review
-
-### Estimated Time: 4 weeks (10-12 hours/week)
+- [BEM](https://bem.info/) · [SMACSS](http://smacss.com/) · [ITCSS](https://csswizardry.com/2018/11/itcss-and-skipping-levels/)
+- [Tailwind CSS](https://tailwindcss.com/docs) · [CSS Modules](https://github.com/css-modules/css-modules)
+- [styled-components](https://styled-components.com/) · [Emotion](https://emotion.sh/) · [Vanilla Extract](https://vanilla-extract.style/)
+- [Design Tokens W3C Spec](https://www.designtokens.org/) · [Storybook](https://storybook.js.org/)
 
 ---
 
-## 💡 Essential Interview Questions
-
-1. Explain BEM naming convention and why it's useful
-2. What are the main differences between BEM, SMACSS, and ITCSS?
-3. Utility-first vs Component-first - what are the trade-offs?
-4. How do you handle CSS scoping in a large application?
-5. What are the benefits and drawbacks of CSS-in-JS?
-6. How would you structure CSS for a design system?
-7. What is CSS specificity and how do you manage it?
-8. Compare CSS Modules vs Styled Components
-9. How do you handle theming and dark mode?
-10. Describe a migration strategy from legacy CSS to modern architecture
-
----
-
-## 📑 Table of Contents
-
-| File | Topics | Lines |
-|------|--------|-------|
-| [01-css-methodologies.md](./01-css-methodologies.md) | BEM, SMACSS, ITCSS, OOCSS, comparison, interview Q&A | 800+ |
-| [02-utility-vs-component.md](./02-utility-vs-component.md) | Tailwind, CSS Modules, Styled Components, trade-offs, migration | 800+ |
-| [03-css-in-js.md](./03-css-in-js.md) | styled-components, Emotion, Linaria, Vanilla Extract, performance | 800+ |
-| [04-atomic-css.md](./04-atomic-css.md) | Atomic CSS, design tokens, component libraries, theming | 600+ |
-| [05-design-systems.md](./05-design-systems.md) | Design systems, token management, governance, enterprise scaling | 600+ |
-
----
-
-## 🔗 External Resources
-
-### Official Documentation
-- [BEM - Block Element Modifier](https://bem.info/)
-- [SMACSS - Scalable and Modular Architecture for CSS](http://smacss.com/)
-- [ITCSS - Inverted Triangle CSS](https://www.xfive.co/blog/itcss-scalable-maintainable-css-architecture/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [styled-components Documentation](https://styled-components.com/)
-
-### Learning Resources
-- [CSS Architecture for Design Systems](https://www.smashingmagazine.com/2019/07/css-architecture-for-modern-web-applications/)
-- [A List Apart - CSS Architecture](https://alistapart.com/article/css-architecture/)
-- [MDN - CSS Selectors and Specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/Specificity)
-- [CSS Tricks - CSS Methodologies](https://css-tricks.com/)
-
-### Tools & Frameworks
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- [CSS Modules](https://github.com/css-modules/css-modules)
-- [styled-components](https://styled-components.com/)
-- [Emotion](https://emotion.sh/)
-- [Vanilla Extract](https://vanilla-extract.style/)
-
----
-
-## 💼 Pro Tips for Interviews
-
-1. **Start with the problem**: Always ask what specific issues they're trying to solve
-2. **Show tradeoffs**: Mention pros and cons - no one-size-fits-all solution
-3. **Use real examples**: Reference projects where you've used each approach
-4. **Consider scalability**: Think about how the architecture grows with the team
-5. **Performance matters**: Always mention bundle size and runtime performance
-6. **Be practical**: Prefer solutions that are proven and well-documented
-7. **Know your tools**: Deep knowledge of one approach beats shallow knowledge of many
-8. **Ask clarifying questions**: What's the project size? Team size? Timeline? Budget?
-
----
-
-## 🚀 Next Steps
-
-1. Start with [01-css-methodologies.md](./01-css-methodologies.md) to understand foundational approaches
-2. Explore [02-utility-vs-component.md](./02-utility-vs-component.md) for modern development patterns
-3. Deep dive into [03-css-in-js.md](./03-css-in-js.md) for React and component-driven development
-4. Learn [04-atomic-css.md](./04-atomic-css.md) and [05-design-systems.md](./05-design-systems.md) for enterprise scaling
-
----
-
-[� Back to Frontend](../README.md)
+[← Back to Frontend](../README.md)

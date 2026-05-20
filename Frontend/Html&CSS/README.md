@@ -1,123 +1,75 @@
 # HTML & CSS
 
-Master HTML and CSS fundamentals essential for frontend interviews. Strong HTML/CSS skills demonstrate your understanding of web fundamentals and ability to build accessible, responsive user interfaces.
+Core HTML and CSS topics for senior frontend interviews. Focused on the patterns, tradeoffs, and gotchas that actually come up — not exhaustive reference material.
 
-## 📚 Topics Covered
+## 📚 Topics
 
-### HTML Fundamentals
-1. **[Semantic HTML](./01-semantic-html.md)**
-   - HTML5 semantic elements
-   - Document structure
-   - SEO and accessibility benefits
-
-2. **[Accessibility](./07-accessibility.md)**
-   - ARIA roles and attributes
-   - Keyboard navigation
-   - Screen reader compatibility
-
-### CSS Fundamentals
-2. **[CSS Fundamentals](./02-css-fundamentals.md)**
-   - Selectors and specificity
-   - Box model
-   - Cascade and inheritance
-
-### Layout Systems
-3. **[Flexbox](./03-flexbox.md)**
-   - Flex container and items
-   - Common layout patterns
-   - Alignment and distribution
-
-4. **[Grid](./04-grid.md)**
-   - Grid container and items
-   - Grid template areas
-   - Responsive grid layouts
-
-5. **[Responsive Design](./05-responsive-design.md)**
-   - Media queries
-   - Mobile-first approach
-   - Viewport and units
-
-### Advanced Topics
-6. **[CSS Animations](./06-css-animations.md)**
-   - Transitions
-   - Keyframe animations
-   - Transform and performance
-
-8. **[Advanced CSS](./08-advanced-css.md)**
-   - CSS variables (custom properties)
-   - Pseudo-elements and pseudo-classes
-   - CSS preprocessors (Sass, Less)
+| # | Topic | What you'll learn |
+|---|-------|-------------------|
+| 1 | [Semantic HTML](./01-semantic-html.md) | Landmarks, section vs article, heading order, forms, ARIA basics |
+| 2 | [CSS Fundamentals](./02-css-fundamentals.md) | Box model, specificity, cascade, positioning, units, `@layer` |
+| 3 | [Flexbox](./03-flexbox.md) | Axis model, `flex: 1` gotcha, `min-width: 0` trick, 1D patterns |
+| 4 | [Grid](./04-grid.md) | 2D layout, `minmax(0, 1fr)`, `auto-fit` vs `auto-fill`, subgrid |
+| 5 | [Responsive Design](./05-responsive-design.md) | Mobile-first, `clamp()`, container queries, `srcset` / `<picture>` |
+| 6 | [CSS Animations](./06-css-animations.md) | Transition vs animation, compositor-only properties, `will-change`, reduced motion |
+| 7 | [Accessibility](./07-accessibility.md) | POUR, ARIA rules, focus management, contrast, screen readers |
+| 8 | [Advanced CSS](./08-advanced-css.md) | Custom properties, `oklch()`, `@layer`, `:has()`, logical properties, View Transitions |
 
 ---
 
-## 🎯 Interview Focus Areas
+## 🎯 Interview Focus
 
-### Most Commonly Asked
-1. Box model (content, padding, border, margin)
-2. Flexbox vs Grid
-3. Responsive design and media queries
-4. CSS specificity and cascade
-5. Semantic HTML and accessibility
+### Most asked
+1. Box model + `box-sizing` — why every reset sets `border-box`
+2. Specificity and cascade — the source of most CSS bugs
+3. Flexbox vs Grid — when to reach for each
+4. Responsive design — mobile-first, `clamp()`, container queries
+5. Semantic HTML and accessibility — the senior signal
 
-### Frequently Asked
-6. CSS positioning (static, relative, absolute, fixed, sticky)
-7. CSS animations and transitions
-8. CSS units (px, em, rem, %, vw/vh)
-9. CSS selectors and combinators
-10. Cross-browser compatibility
+### Frequently asked
+6. Positioning + stacking contexts (the `z-index` trap)
+7. Units: `px` vs `rem` vs `em` vs `clamp()`
+8. `auto-fit` vs `auto-fill` in grid
+9. What is `:has()` and why does it matter?
+10. How does the browser paint vs composite an animation?
 
 ---
 
-## 💡 Quick Reference
+## 💡 Essential Patterns
 
-### Common Interview Questions
-1. "Explain the CSS box model"
-2. "When to use Flexbox vs Grid?"
-3. "How does CSS specificity work?"
-4. "What is semantic HTML?"
-5. "How do you make a website responsive?"
-6. "Difference between em and rem?"
-7. "How do CSS animations work?"
-8. "What are ARIA attributes?"
-
-### Essential Patterns
 ```css
-/* Centering with Flexbox */
-.container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Modern centering */
+.center {
+  display: grid;
+  place-items: center;
 }
 
-/* Responsive Grid */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+/* Intrinsic responsive grid (no media queries) */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: clamp(1rem, 2vw, 2rem);
 }
 
-/* Mobile-first Media Query */
-.element {
-    width: 100%;
+/* Fluid typography */
+h1 {
+  font-size: clamp(1.5rem, 4vw, 3rem);
 }
 
-@media (min-width: 768px) {
-    .element {
-        width: 50%;
-    }
+/* Container query */
+@container (min-width: 600px) {
+  .card { display: grid; grid-template-columns: 1fr 2fr; }
 }
 ```
 
 ---
 
-## 🔗 External Resources
+## 🔗 References
 
-- [MDN HTML Reference](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [MDN CSS Reference](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS Tricks](https://css-tricks.com/)
-- [Flexbox Froggy](https://flexboxfroggy.com/) - Learn Flexbox
-- [Grid Garden](https://cssgridgarden.com/) - Learn Grid
-- [Can I Use](https://caniuse.com/) - Browser compatibility
+- [MDN HTML](https://developer.mozilla.org/en-US/docs/Web/HTML) · [MDN CSS](https://developer.mozilla.org/en-US/docs/Web/CSS)
+- [CSS Tricks](https://css-tricks.com/) · [web.dev — Learn CSS](https://web.dev/learn/css/)
+- [Can I Use](https://caniuse.com/) · [WCAG 2.2 Quick Ref](https://www.w3.org/WAI/WCAG22/quickref/)
+- [Flexbox Froggy](https://flexboxfroggy.com/) · [Grid Garden](https://cssgridgarden.com/)
 
 ---
 

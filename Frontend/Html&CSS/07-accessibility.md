@@ -1,563 +1,342 @@
 # Accessibility (a11y)
 
-Web accessibility ensures your website is usable by everyone, including people with disabilities. This is both a legal requirement and ethical responsibility.
+Accessibility means everyone can use your site — including users with disabilities, on assistive tech, or in degraded conditions (sun glare, broken mouse, slow brain day). It is also a legal requirement in most jurisdictions (ADA, EAA, AODA).
 
-## 📚 Core Principles (WCAG)
+---
 
-### 1. Perceivable
+## 💡 **WCAG 2.1 / 2.2 — The POUR Principles**
 
-**Text Alternatives**
-```html
-<!-- Images -->
-<img src="logo.png" alt="Company Logo">
-<img src="decorative.png" alt="" role="presentation"> <!-- Decorative -->
+WCAG defines four principles your site must satisfy.
 
-<!-- Icons with text -->
-<button>
-    <svg aria-hidden="true">...</svg>
-    <span>Delete</span>
-</button>
+| Principle | Meaning | Example |
+|-----------|---------|---------|
+| **P**erceivable | Content can be sensed | Alt text, captions, contrast |
+| **O**perable | UI works with any input | Keyboard navigation, no time traps |
+| **U**nderstandable | Predictable and readable | Clear labels, consistent nav |
+| **R**obust | Works with assistive tech | Valid HTML, correct ARIA |
 
-<!-- Icons without text -->
-<button aria-label="Close dialog">
-    <svg aria-hidden="true"><use href="#close-icon"></use></svg>
-</button>
-```
+**Conformance levels:** A (minimum), **AA (the legal target)**, AAA (rarely required).
 
-**Color Contrast**
-```css
-/* Minimum contrast ratios (WCAG AA) */
-/* Normal text: 4.5:1 */
-/* Large text (18pt+): 3:1 */
-/* UI components: 3:1 */
+**WCAG 2.2 additions (2023):** focus appearance, dragging movements, target size (24×24 CSS px), consistent help, redundant entry.
 
-.good-contrast {
-    background: #ffffff;
-    color: #333333; /* 12.6:1 - Excellent! */
-}
+> **Key Insight:** AA is the contract. AAA is aspirational. Most lawsuits hinge on AA failures — contrast, missing labels, keyboard traps.
 
-.bad-contrast {
-    background: #ffffff;
-    color: #cccccc; /* 1.6:1 - Fail! */
-}
+---
 
-/* Don't rely on color alone */
-.error {
-    color: red; /* Bad */
-    border-left: 3px solid red; /* Better */
-}
+## 💡 **Semantic HTML Is the Foundation**
 
-.error::before {
-    content: "❌ "; /* Even better */
-}
-```
-
-**Responsive Text**
-```css
-/* Allow text resizing up to 200% */
-body {
-    font-size: 16px; /* Use rem, not px */
-}
-
-h1 {
-    font-size: 2rem; /* Scales with user settings */
-}
-
-/* Don't disable zoom */
-/* Bad: <meta name="viewport" content="user-scalable=no"> */
-/* Good: <meta name="viewport" content="width=device-width, initial-scale=1.0"> */
-```
-
-### 2. Operable
-
-**Keyboard Navigation**
-```html
-<!-- All interactive elements must be keyboard accessible -->
-<button>I'm accessible by default</button>
-
-<!-- Don't do this -->
-<div onclick="handleClick()">Not keyboard accessible</div>
-
-<!-- Do this instead -->
-<button onclick="handleClick()">Keyboard accessible</button>
-
-<!-- Custom interactive elements need tabindex -->
-<div role="button" tabindex="0" onclick="..." onkeypress="...">
-    Custom button
-</div>
-```
-
-**Focus Indicators**
-```css
-/* Never remove focus outline without replacement */
-button:focus {
-    outline: none; /* Bad! */
-}
-
-/* Good: Provide alternative */
-button:focus {
-    outline: 2px solid #3498db;
-    outline-offset: 2px;
-}
-
-/* Modern approach */
-button:focus-visible {
-    outline: 2px solid #3498db;
-}
-
-/* Skip to main content */
-.skip-link {
-    position: absolute;
-    top: -40px;
-    left: 0;
-    background: #000;
-    color: #fff;
-    padding: 8px;
-    text-decoration: none;
-}
-
-.skip-link:focus {
-    top: 0;
-}
-```
-
-**Tab Order**
-```html
-<!-- Natural tab order (best) -->
-<form>
-    <input type="text"> <!-- Tab 1 -->
-    <input type="email"> <!-- Tab 2 -->
-    <button>Submit</button> <!-- Tab 3 -->
-</form>
-
-<!-- Override tab order (use sparingly) -->
-<input tabindex="2">
-<input tabindex="1"> <!-- Focused first -->
-<input tabindex="3">
-
-<!-- Remove from tab order -->
-<div tabindex="-1">Not keyboard accessible</div>
-```
-
-**Timing and Limits**
-```html
-<!-- Provide way to extend time limits -->
-<div role="alert">
-    Session expires in 2 minutes.
-    <button>Extend session</button>
-</div>
-
-<!-- Pause auto-playing content -->
-<video controls>...</video>
-
-<!-- Provide way to stop animations -->
-<button onclick="document.body.classList.toggle('reduced-motion')">
-    Toggle animations
-</button>
-```
-
-```css
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-```
-
-### 3. Understandable
-
-**Language**
-```html
-<html lang="en">
-
-<p lang="es">Hola mundo</p>
-
-<abbr title="World Wide Web">WWW</abbr>
-```
-
-**Form Labels and Instructions**
-```html
-<!-- Always associate labels -->
-<label for="email">Email:</label>
-<input type="email" id="email" name="email" required>
-
-<!-- Or wrap -->
-<label>
-    Email:
-    <input type="email" name="email" required>
-</label>
-
-<!-- Provide instructions -->
-<label for="password">Password:</label>
-<input type="password" id="password" aria-describedby="password-help">
-<span id="password-help">Must be at least 8 characters</span>
-
-<!-- Error messages -->
-<input
-    type="email"
-    id="email"
-    aria-invalid="true"
-    aria-describedby="email-error">
-<span id="email-error" role="alert">
-    Please enter a valid email address
-</span>
-```
-
-**Consistent Navigation**
-```html
-<!-- Keep navigation consistent across pages -->
-<nav aria-label="Main navigation">
-    <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/contact">Contact</a></li>
-    </ul>
-</nav>
-```
-
-### 4. Robust
-
-**Semantic HTML**
-```html
-<!-- Good -->
-<header>
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-        </ul>
-    </nav>
-</header>
-
-<main>
-    <article>
-        <h1>Article Title</h1>
-        <p>Content...</p>
-    </article>
-</main>
-
-<footer>
-    <p>&copy; 2024</p>
-</footer>
-
-<!-- Bad -->
-<div class="header">
-    <div class="nav">
-        <div class="link">Home</div>
-    </div>
-</div>
-```
-
-## 🎯 ARIA (Accessible Rich Internet Applications)
-
-### ARIA Roles
+Native elements ship with roles, states, and keyboard behavior for free. See [03-semantic-html.md](./03-semantic-html.md).
 
 ```html
-<!-- Landmark roles -->
-<header role="banner">
-<nav role="navigation">
-<main role="main">
-<aside role="complementary">
-<footer role="contentinfo">
-<form role="search">
+<!-- ❌ Reinvents the wheel, breaks keyboard, breaks SR -->
+<div class="btn" onclick="save()">Save</div>
 
-<!-- Widget roles -->
-<div role="button" tabindex="0">Custom Button</div>
-<div role="checkbox" aria-checked="false" tabindex="0">Option</div>
-<div role="tab" aria-selected="true">Tab 1</div>
-<div role="tabpanel">Tab content</div>
-<div role="dialog" aria-labelledby="dialog-title">
-    <h2 id="dialog-title">Dialog Title</h2>
-</div>
-
-<!-- Live region roles -->
-<div role="alert">Important message</div>
-<div role="status">Status update</div>
-<div aria-live="polite">Updates</div>
-<div aria-live="assertive">Urgent updates</div>
+<!-- ✅ Free focus, Enter/Space, role=button, disabled state -->
+<button type="button" onclick="save()">Save</button>
 ```
 
-### ARIA Attributes
+> **Key Insight:** Every `<div onclick>` is an accessibility bug waiting for a lawsuit.
+
+---
+
+## 💡 **The First Rule of ARIA**
+
+> **"No ARIA is better than bad ARIA."** — W3C ARIA Authoring Practices
+
+Use a native element first. Only reach for ARIA when no HTML primitive exists (e.g. tabs, comboboxes, tree views).
+
+**ARIA has three concepts:**
+
+| Type | Purpose | Examples |
+|------|---------|----------|
+| **Roles** | What it is | `role="dialog"`, `role="tab"` |
+| **States** | Current condition (changes) | `aria-expanded`, `aria-checked`, `aria-hidden` |
+| **Properties** | Static descriptors | `aria-label`, `aria-describedby` |
+
+**Common Mistakes:**
 
 ```html
-<!-- Labels -->
-<button aria-label="Close">×</button>
-<div aria-labelledby="title">
-    <h2 id="title">Section Title</h2>
-</div>
+<!-- ❌ Redundant role, button already IS a button -->
+<button role="button">Save</button>
 
-<!-- Descriptions -->
-<button aria-describedby="help">Submit</button>
-<span id="help">Submits the form</span>
+<!-- ❌ ARIA without behavior — looks expanded, isn't -->
+<div aria-expanded="true">Menu</div>
 
-<!-- States -->
-<button aria-pressed="false">Toggle</button>
-<input aria-invalid="true">
-<div aria-expanded="false">Collapsed</div>
-<div aria-hidden="true">Hidden from screen readers</div>
-<div aria-disabled="true">Disabled</div>
+<!-- ❌ aria-label ignored on non-interactive, non-landmark elements -->
+<span aria-label="Important">⚠️</span>
 
-<!-- Properties -->
-<input aria-required="true">
-<div aria-haspopup="true">Menu</div>
+<!-- ✅ ARIA where HTML can't help -->
 <div role="tablist">
-    <button role="tab" aria-controls="panel1" aria-selected="true">Tab 1</button>
-    <button role="tab" aria-controls="panel2" aria-selected="false">Tab 2</button>
+  <button role="tab" aria-selected="true" aria-controls="panel-1" id="tab-1">One</button>
 </div>
-<div role="tabpanel" id="panel1" aria-labelledby="tab1">...</div>
+<div role="tabpanel" id="panel-1" aria-labelledby="tab-1">...</div>
 ```
 
-### Common Patterns
+---
 
-**Modal Dialog**
-```html
-<div
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="dialog-title"
-    aria-describedby="dialog-desc">
+## 💡 **Focus Management**
 
-    <h2 id="dialog-title">Confirm Action</h2>
-    <p id="dialog-desc">Are you sure?</p>
+Focus is how keyboard and screen reader users navigate. Lose it and they're lost.
 
-    <button>Confirm</button>
-    <button>Cancel</button>
-</div>
+### Visible Focus Indicators
+
+```css
+/* ❌ Never do this. Removes focus globally. */
+*:focus { outline: none; }
+
+/* ✅ Use :focus-visible — shows ring for keyboard, hides for mouse */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 ```
 
-**Accordion**
+**WCAG 2.2 SC 2.4.11:** focus indicator must be at least 2px and have 3:1 contrast against adjacent colors.
+
+### Focus Order
+
+Tab order should match visual order. Avoid `tabindex` values greater than 0 — they break the natural flow.
+
 ```html
-<div class="accordion">
-    <h3>
-        <button
-            aria-expanded="false"
-            aria-controls="section1">
-            Section 1
-        </button>
-    </h3>
-    <div id="section1" hidden>
-        Content...
-    </div>
-</div>
+<!-- ❌ Disrupts natural tab order -->
+<input tabindex="3">
+<input tabindex="1">
+
+<!-- ✅ Only use 0 (focusable) or -1 (programmatic only) -->
+<div tabindex="-1" id="error-region">...</div>
 ```
 
-**Dropdown Menu**
-```html
-<button
-    aria-haspopup="true"
-    aria-expanded="false"
-    aria-controls="menu">
-    Menu
-</button>
+### Focus Trapping (Modals)
 
-<ul id="menu" role="menu" hidden>
-    <li role="menuitem"><a href="#">Item 1</a></li>
-    <li role="menuitem"><a href="#">Item 2</a></li>
-</ul>
+When a modal opens:
+1. Move focus into it (usually the close button or first input).
+2. Trap Tab and Shift+Tab inside.
+3. Close on `Escape`.
+4. Return focus to the trigger when it closes.
+
+```ts
+function trapFocus(modal: HTMLElement): () => void {
+  const focusables = modal.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+
+  function handler(e: KeyboardEvent) {
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey && document.activeElement === first) {
+      last.focus(); e.preventDefault();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      first.focus(); e.preventDefault();
+    }
+  }
+  modal.addEventListener('keydown', handler);
+  return () => modal.removeEventListener('keydown', handler);
+}
 ```
 
-## 💡 Practical Examples
+> **Key Insight:** The HTML `<dialog>` element with `showModal()` handles trapping, inert background, and Esc for you. Use it.
 
-### Example 1: Accessible Form
+---
 
-```html
-<form>
-    <fieldset>
-        <legend>Personal Information</legend>
+## 💡 **Keyboard Navigation**
 
-        <div class="form-group">
-            <label for="name">
-                Full Name
-                <span aria-label="required">*</span>
-            </label>
-            <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                aria-required="true">
-        </div>
+Every interactive element must work without a mouse.
 
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                aria-describedby="email-help">
-            <span id="email-help">We'll never share your email</span>
-        </div>
+| Element | Expected Keys |
+|---------|---------------|
+| Button | Enter, Space |
+| Link | Enter |
+| Checkbox | Space |
+| Radio group | Arrow keys |
+| Select / combobox | Arrow keys, Enter, Esc, type-ahead |
+| Tabs | Arrow keys (left/right), Home, End |
+| Menu | Arrow keys, Esc, type-ahead |
+| Modal | Tab cycle, Esc |
 
-        <div class="form-group">
-            <span id="password-label">Password</span>
-            <input
-                type="password"
-                id="password"
-                aria-labelledby="password-label"
-                aria-describedby="password-requirements">
-            <ul id="password-requirements">
-                <li>At least 8 characters</li>
-                <li>One uppercase letter</li>
-                <li>One number</li>
-            </ul>
-        </div>
-    </fieldset>
+> **Key Insight:** If you build a custom widget, follow [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/) patterns — don't invent your own keyboard model.
 
-    <button type="submit">Submit Form</button>
-</form>
-```
+---
 
-### Example 2: Accessible Navigation
+## 💡 **Screen Reader Patterns**
+
+### aria-label vs aria-labelledby vs aria-describedby
 
 ```html
-<nav aria-label="Main navigation">
-    <ul>
-        <li><a href="/" aria-current="page">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li>
-            <button
-                aria-expanded="false"
-                aria-controls="services-menu">
-                Services
-            </button>
-            <ul id="services-menu" hidden>
-                <li><a href="/web-design">Web Design</a></li>
-                <li><a href="/development">Development</a></li>
-            </ul>
-        </li>
-    </ul>
-</nav>
+<!-- aria-label: string you write yourself (no visible text) -->
+<button aria-label="Close dialog"><svg>×</svg></button>
 
-<!-- Breadcrumb -->
-<nav aria-label="Breadcrumb">
-    <ol>
-        <li><a href="/">Home</a></li>
-        <li><a href="/products">Products</a></li>
-        <li aria-current="page">Laptops</li>
-    </ol>
-</nav>
-```
-
-### Example 3: Accessible Data Table
-
-```html
-<table>
-    <caption>Monthly Sales Report</caption>
-    <thead>
-        <tr>
-            <th scope="col">Month</th>
-            <th scope="col">Revenue</th>
-            <th scope="col">Expenses</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <th scope="row">January</th>
-            <td>$10,000</td>
-            <td>$5,000</td>
-        </tr>
-        <tr>
-            <th scope="row">February</th>
-            <td>$12,000</td>
-            <td>$6,000</td>
-        </tr>
-    </tbody>
-</table>
-```
-
-## 🎯 Common Interview Questions
-
-### Q1: What is ARIA and when should you use it?
-
-**Answer:**
-ARIA (Accessible Rich Internet Applications) provides extra semantics for assistive technologies. Use it when HTML alone isn't sufficient.
-
-**First rule of ARIA: Don't use ARIA**
-- Use semantic HTML when possible
-- Only add ARIA when HTML can't express the pattern
-
-```html
-<!-- Good: No ARIA needed -->
-<button>Click me</button>
-
-<!-- Bad: Unnecessary ARIA -->
-<button role="button">Click me</button>
-
-<!-- Good: ARIA adds missing semantics -->
-<div role="button" tabindex="0">Custom button</div>
-```
-
-### Q2: How do you make a custom dropdown accessible?
-
-**Answer:**
-```html
-<div class="dropdown">
-    <button
-        id="menu-button"
-        aria-haspopup="true"
-        aria-expanded="false"
-        aria-controls="menu-list">
-        Options
-    </button>
-
-    <ul id="menu-list" role="menu" aria-labelledby="menu-button" hidden>
-        <li role="menuitem"><button>Option 1</button></li>
-        <li role="menuitem"><button>Option 2</button></li>
-    </ul>
-</div>
-```
-
-Plus keyboard support:
-- Enter/Space: Open menu
-- Esc: Close menu
-- Arrow keys: Navigate items
-
-### Q3: What's the difference between `aria-label` and `aria-labelledby`?
-
-**Answer:**
-- `aria-label`: Provides string label directly
-- `aria-labelledby`: References another element's text
-
-```html
-<!-- aria-label -->
-<button aria-label="Close dialog">×</button>
-
-<!-- aria-labelledby -->
-<section aria-labelledby="section-title">
-    <h2 id="section-title">Recent Posts</h2>
+<!-- aria-labelledby: references visible text by ID -->
+<section aria-labelledby="sec-title">
+  <h2 id="sec-title">Settings</h2>
 </section>
+
+<!-- aria-describedby: extra context (read after the label) -->
+<input id="pw" aria-describedby="pw-hint">
+<small id="pw-hint">Must be 12+ characters.</small>
 ```
 
-## 🚨 Common Pitfalls
+**Precedence:** `aria-labelledby` > `aria-label` > native label > content.
 
-1. **Removing focus outlines** without replacement
-2. **Using `<div>` for everything** instead of semantic HTML
-3. **Missing alt text** on images
-4. **Poor color contrast**
-5. **Not testing with keyboard**
-6. **Not testing with screen readers**
-7. **Overusing ARIA** when HTML would suffice
+### Live Regions
 
-## 🎓 Best Practices
+Announce dynamic content (toasts, errors, search results) without moving focus.
 
-1. **Use semantic HTML first**, ARIA second
-2. **Test with keyboard** (Tab, Enter, Arrow keys, Esc)
-3. **Test with screen readers** (NVDA, JAWS, VoiceOver)
-4. **Maintain focus order** (logical tab sequence)
-5. **Provide text alternatives** for all non-text content
-6. **Ensure sufficient color contrast**
-7. **Support browser zoom** up to 200%
-8. **Add skip links** for keyboard users
-9. **Test with automated tools** (Lighthouse, axe)
-10. **Include real users with disabilities** in testing
+```html
+<!-- Polite: waits for SR to finish current speech -->
+<div aria-live="polite" id="status"></div>
 
-## 🔗 Related Topics
+<!-- Assertive: interrupts (use sparingly — errors only) -->
+<div aria-live="assertive" role="alert" id="errors"></div>
+```
 
-- [Semantic HTML](./01-semantic-html.md)
-- [Forms](./02-css-fundamentals.md)
+**Gotcha:** the region must exist in the DOM *before* you write to it.
+
+### sr-only (Visually Hidden)
+
+For text that screen readers should read but you don't want visible.
+
+```css
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+```
+
+Do **not** use `display: none` or `visibility: hidden` — those hide from SR too.
+
+---
+
+## 💡 **Color Contrast (WCAG AA)**
+
+| Text Type | Minimum Ratio |
+|-----------|---------------|
+| Normal text (< 18pt or < 14pt bold) | **4.5 : 1** |
+| Large text (≥ 18pt or ≥ 14pt bold) | **3 : 1** |
+| UI components, graphical objects | **3 : 1** |
+| Focus indicator (WCAG 2.2) | **3 : 1** vs adjacent |
+
+```css
+/* ❌ Light gray on white — common designer trap. ~2.8:1 fails AA */
+color: #999; background: #fff;
+
+/* ✅ Passes 4.5:1 */
+color: #595959; background: #fff;
+```
+
+> **Key Insight:** Color alone must never convey meaning. A red "error" border needs an icon or text label too (WCAG 1.4.1).
+
+---
+
+## 💡 **User Preference Media Queries**
+
+```css
+/* Respect users with vestibular disorders */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Boost contrast when user requests it */
+@media (prefers-contrast: more) {
+  :root { --border: #000; --text: #000; }
+}
+
+/* Respect dark mode preference */
+@media (prefers-color-scheme: dark) { ... }
+```
+
+---
+
+## ⚠️ **Common Bugs Interviewers Probe**
+
+| Bug | Why It Fails |
+|-----|--------------|
+| `<div onclick>` instead of `<button>` | No focus, no Enter/Space, no role |
+| Removing `:focus` outline globally | Keyboard users can't see where they are |
+| Icon button with no label | SR reads "button" with no context |
+| Placeholder instead of `<label>` | Disappears on type, low contrast, not announced consistently |
+| Custom select via div + JS | Misses arrow keys, type-ahead, screen reader announcements |
+| Modal with no focus trap | Tab escapes to background page |
+| `aria-hidden="true"` on focusable element | SR skips it but keyboard reaches it — broken state |
+| Color-only error state | Colorblind users miss it |
+| Auto-playing carousel with no pause | WCAG 2.2.2 fail |
+| Skipped heading levels (`h1` → `h4`) | Breaks SR document outline |
+
+---
+
+## 💡 **Testing Workflow**
+
+| Tool | Catches |
+|------|---------|
+| **Keyboard only** (unplug mouse) | Focus traps, missing focus indicators, unreachable controls |
+| **axe DevTools** / Lighthouse | ~30–40% of issues automatically (contrast, missing labels, ARIA misuse) |
+| **NVDA** (Windows) / **VoiceOver** (Mac) | Real screen reader behavior — automation misses this |
+| **Accessibility Tree** (DevTools) | What the browser actually exposes to AT |
+| **WAVE** browser extension | Visual overlay of issues |
+| **Storybook a11y addon** | Per-component checks in dev |
+
+> **Key Insight:** Automation catches around a third of issues. Manual keyboard and SR testing are non-negotiable.
+
+---
+
+## 🎯 **Interview Questions**
+
+### Q1: A designer hands you a custom dropdown menu. Walk through how you'd make it accessible.
+
+**Answer:**
+1. **Reach for `<select>` first** — if requirements allow, native solves everything.
+2. If custom is required, follow the **ARIA APG combobox pattern**:
+   - Trigger: `<button aria-haspopup="listbox" aria-expanded="false" aria-controls="list-id">`
+   - List: `<ul role="listbox" id="list-id">` with `<li role="option" aria-selected="...">`
+3. **Keyboard contract:** ArrowDown/Up to move, Home/End to jump, Enter/Space to select, Esc to close, type-ahead optional.
+4. **Focus:** keep DOM focus on the trigger; track *active descendant* via `aria-activedescendant` on the trigger pointing to the highlighted option's ID. Don't move real focus into the list.
+5. **Click-outside and Esc** close the menu and return focus to the trigger.
+6. **Test:** NVDA + Firefox, VoiceOver + Safari, keyboard-only, axe.
+
+### Q2: What's wrong with this code and how would you fix it?
+
+```html
+<div class="modal" onclick="open()">
+  <span>×</span>
+  <h3>Are you sure?</h3>
+  <div onclick="confirm()">Yes</div>
+</div>
+```
+
+**Answer:**
+- `<div>` triggers aren't focusable, don't respond to Enter/Space, aren't announced as buttons.
+- No `role="dialog"`, no `aria-modal`, no label association.
+- Close button is unlabeled — SR reads literally "×".
+- No focus management — focus doesn't enter the modal or return on close.
+- No Esc handler. No focus trap. Background isn't `inert`.
+
+**Fix:** use native `<dialog>` with `showModal()`. It gives you modal semantics, focus trap, Esc, and inert background for free. Use `<button>` for all triggers with proper `aria-label` on the close button.
+
+### Q3: How do you announce a successful form save without moving focus?
+
+**Answer:** Live region.
+
+```html
+<div role="status" aria-live="polite" id="form-status"></div>
+```
+
+Write the success message into it on save: `statusEl.textContent = 'Saved'`. `role="status"` is implicit `aria-live="polite" aria-atomic="true"`. Use `role="alert"` (assertive) only for errors that need to interrupt.
+
+**Gotchas:**
+- The region must be in the DOM at page load — adding it dynamically and immediately writing to it often fails to announce.
+- Clear the region after a few seconds so repeated identical messages re-announce.
+- Don't put critical info *only* in live regions — they're transient.
 
 ---
 
