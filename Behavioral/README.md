@@ -6,26 +6,20 @@ Structured guide for behavioral interviews at MNCs and senior engineering roles.
 
 ### Core
 1. [STAR Framework](01-star-framework.md) — structured method for any behavioral question
-2. [Interview Tips & Best Practices](02-tips-best-practices.md) — what to do before, during, after
-3. [Preparation Grid](03-preparation-grid.md) — organize 7–10 reusable stories
+2. [Preparation Grid](03-preparation-grid.md) — organize 7–10 reusable stories
 
 ### Question Categories
-4. [Leadership & Teamwork](04-leadership-teamwork.md)
-5. [Problem Solving](05-problem-solving.md)
-6. [Communication Skills](06-communication.md)
-7. [Challenges & Failures](07-challenges-failures.md)
-8. [Time Management](08-time-management.md)
-9. [Adaptability & Learning](09-adaptability-learning.md)
-10. [Career Goals & Motivation](10-career-motivation.md)
-11. [Conflict Resolution](11-conflict-resolution.md)
-12. [Customer & Stakeholder Management](12-customer-stakeholder.md)
-13. [Initiative & Proactivity](13-initiative-proactivity.md)
-14. [Questions to Ask Interviewers](14-questions-to-ask.md)
+3. [Leadership & Teamwork](04-leadership-teamwork.md)
+4. [Problem Solving](05-problem-solving.md)
+5. [Communication Skills](06-communication.md)
+6. [Challenges & Failures](07-challenges-failures.md)
+7. [Conflict Resolution](11-conflict-resolution.md)
+8. [Questions to Ask Interviewers](14-questions-to-ask.md)
 
 ## 🎯 Quick Start
 
 1. **Learn STAR** — read [01](01-star-framework.md). Every answer follows this shape.
-2. **Build your story bank** — use the [Preparation Grid](03-preparation-grid.md) to write 7–10 stories that cover leadership, conflict, failure, technical challenge, and impact. One story usually answers 2–3 questions.
+2. **Build your story bank** — use the [Preparation Grid](03-preparation-grid.md) to write 7–10 stories covering leadership, conflict, failure, technical challenge, and impact. One story usually answers 2–3 questions.
 3. **Drill by category** — pick 2–3 categories per session, practice out loud, time yourself (2–3 minutes per answer).
 4. **Prepare your questions** — see [14](14-questions-to-ask.md).
 
@@ -40,22 +34,19 @@ Structured guide for behavioral interviews at MNCs and senior engineering roles.
 | 2–3 minute length | 5+ minute rambles |
 | Honest about failure | Spinning failures as wins |
 
-## 📊 4-Week Study Plan
+## 📊 3-Week Study Plan
 
 **Week 1 — Foundation**
 - STAR framework, preparation grid
 - Write 7–10 stories from your real work
 
 **Week 2 — Core Categories**
-- Leadership, problem solving, communication
+- Leadership, problem solving, communication, challenges/failures
 
-**Week 3 — Pressure Categories**
-- Conflict, failure, time management, adaptability
-
-**Week 4 — Polish**
-- Career/motivation answers
-- Mock interviews
+**Week 3 — Polish**
+- Conflict resolution
 - Questions to ask
+- Mock interviews
 
 ## 💼 Company-Specific Notes
 
@@ -95,7 +86,7 @@ Structured guide for behavioral interviews at MNCs and senior engineering roles.
 ## 🔗 Navigation
 
 - [← Back to Main](../README.md)
-- [Next: STAR Framework →](01-star-framework.md)
+- [Start: STAR Framework →](01-star-framework.md)
 
 ---
 

@@ -267,4 +267,4 @@ Before your interview, verify your grid:
 4. Practice delivering your stories
 
 ---
-[← Back: Tips & Best Practices](02-tips-best-practices.md) | [Next: Leadership & Teamwork →](04-leadership-teamwork.md)
+[← Back: STAR Framework](01-star-framework.md) | [Next: Leadership & Teamwork →](04-leadership-teamwork.md)

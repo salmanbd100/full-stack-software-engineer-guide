@@ -337,4 +337,4 @@ Create a document with:
 **Remember**: The questions you ask are as important as the answers you give. They demonstrate your critical thinking, priorities, and genuine interest in the role.
 
 ---
-[← Back: Initiative & Proactivity](13-initiative-proactivity.md) | [Back to README](README.md)
+[← Back: Conflict Resolution](11-conflict-resolution.md) | [Back to README](README.md)

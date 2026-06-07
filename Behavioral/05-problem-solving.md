@@ -334,9 +334,8 @@ Quantify your problem-solving impact:
 
 - [STAR Framework](./01-star-framework.md)
 - [Challenges & Failures](./07-challenges-failures.md)
-- [Adaptability & Learning](./09-adaptability-learning.md)
-- [Initiative & Proactivity](./13-initiative-proactivity.md)
+- [Conflict Resolution](./11-conflict-resolution.md)
 
 ---
 
-[← Back to Behavioral](./README.md) | [Next: Communication Skills →](./06-communication.md)
+[← Back: Leadership & Teamwork](./04-leadership-teamwork.md) | [Next: Communication Skills →](./06-communication.md)

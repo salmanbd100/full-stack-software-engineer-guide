@@ -163,8 +163,7 @@ Focus on the **interest behind the position**.
 - [STAR Framework](./01-star-framework.md)
 - [Communication Skills](./06-communication.md)
 - [Leadership & Teamwork](./04-leadership-teamwork.md)
-- [Customer & Stakeholder Management](./12-customer-stakeholder.md)
 
 ---
 
-[← Back to Behavioral](./README.md) | [Next: Customer & Stakeholder Management →](./12-customer-stakeholder.md)
+[← Back: Challenges & Failures](./07-challenges-failures.md) | [Next: Questions to Ask →](./14-questions-to-ask.md)

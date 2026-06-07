@@ -304,9 +304,8 @@ Quantify lessons learned:
 
 - [STAR Framework](./01-star-framework.md)
 - [Problem Solving](./05-problem-solving.md)
-- [Adaptability & Learning](./09-adaptability-learning.md)
-- [Initiative & Proactivity](./13-initiative-proactivity.md)
+- [Conflict Resolution](./11-conflict-resolution.md)
 
 ---
 
-[← Back to Behavioral](./README.md) | [Next: Time Management →](./08-time-management.md)
+[← Back: Communication Skills](./06-communication.md) | [Next: Conflict Resolution →](./11-conflict-resolution.md)

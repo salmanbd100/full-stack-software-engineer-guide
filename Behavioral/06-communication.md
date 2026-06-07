@@ -272,8 +272,7 @@ Quantify communication effectiveness:
 - [STAR Framework](./01-star-framework.md)
 - [Leadership & Teamwork](./04-leadership-teamwork.md)
 - [Conflict Resolution](./11-conflict-resolution.md)
-- [Customer & Stakeholder Management](./12-customer-stakeholder.md)
 
 ---
 
-[← Back to Behavioral](./README.md) | [Next: Challenges & Failures →](./07-challenges-failures.md)
+[← Back: Problem Solving](./05-problem-solving.md) | [Next: Challenges & Failures →](./07-challenges-failures.md)

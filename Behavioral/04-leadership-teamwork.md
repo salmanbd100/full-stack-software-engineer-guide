@@ -274,4 +274,4 @@ When discussing leadership/teamwork, quantify your impact:
 
 ---
 
-[← Back to Behavioral](./README.md) | [Next: Problem Solving →](./05-problem-solving.md)
+[← Back: Preparation Grid](./03-preparation-grid.md) | [Next: Problem Solving →](./05-problem-solving.md)
