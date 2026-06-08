@@ -1,95 +1,46 @@
 # i18n Fundamentals
 
-## Overview
-
-Internationalization (i18n) is the technical foundation for building applications that work across multiple languages and regions. This guide covers core concepts, library selection, and implementation strategies for production applications and technical interviews.
+Internationalization (i18n) is the technical foundation for building apps that work across multiple languages and regions.
 
 ---
 
 ## Table of Contents
 
-- [i18n vs l10n Terminology](#i18n-vs-l10n-terminology)
+- [i18n vs l10n](#i18n-vs-l10n)
 - [Translation File Structure](#translation-file-structure)
-- [Popular i18n Libraries](#popular-i18n-libraries)
+- [Popular Libraries](#popular-libraries)
 - [Language Detection](#language-detection)
 - [Language Switching](#language-switching)
 - [Translation Interpolation](#translation-interpolation)
-- [Setup Guides](#setup-guides)
-- [Best Practices](#best-practices)
-- [Common Patterns](#common-patterns)
+- [TypeScript Integration](#typescript-integration)
 - [Interview Questions](#interview-questions)
 
 ---
 
-## i18n vs l10n Terminology
+## i18n vs l10n
 
-### 💡 **Internationalization (i18n)**
+### 💡 **Key Difference**
 
-The technical infrastructure that enables software to support multiple languages.
+| Aspect | i18n | l10n |
+|--------|------|------|
+| **What** | Technical infrastructure | Content & cultural adaptation |
+| **Responsibility** | Engineers | Translators |
+| **Timing** | Built into architecture | Added per language |
+| **Cost** | One-time setup | Ongoing per language |
 
-**What It Involves:**
+> Think of i18n as the plumbing, l10n as the water.
 
-| Responsibility | Description |
-|----------------|-------------|
-| **String Extraction** | Remove hardcoded strings from code |
-| **Infrastructure** | Translation files, language detection, switching |
-| **Technical Decisions** | Library choice, file format, namespace strategy |
-| **Developer Experience** | Simple API, TypeScript support, hot reload |
+**What l10n handles:**
 
-**Before/After Example:**
-
-```javascript
-// ❌ Before: Hardcoded string
-<Button label="Click me" />
-
-// ✅ After: Extracted for translation
-<Button label={t('button.click')} />
-```
-
----
-
-### 💡 **Localization (l10n)**
-
-The content and cultural adaptation for specific languages and regions.
-
-**What It Involves:**
-
-| Responsibility | Description |
-|----------------|-------------|
-| **Translation** | Converting text to target language |
-| **Cultural Adaptation** | Date formats, number separators, currency |
-| **Content Considerations** | Text length, gender, formality |
-| **Testing** | Verify accuracy and cultural appropriateness |
-
-**Real-World Examples:**
-
-```javascript
-// Date formatting differs by region
+```typescript
+// Date formats differ by region
 'en-US': 'MM/DD/YYYY'  // 12/18/2025
 'de-DE': 'DD.MM.YYYY'  // 18.12.2025
 
 // Number separators vary
 'en-US': '1,234.56'    // Comma thousands, period decimal
 'de-DE': '1.234,56'    // Period thousands, comma decimal
-
-// Currency position changes
-'en-US': '$1,234.56'   // Symbol before
-'de-DE': '1.234,56 €'  // Symbol after
 ```
-
----
-
-### 💡 **Key Differences**
-
-| Aspect | i18n | l10n |
-|--------|------|------|
-| **Scope** | Technical infrastructure | Content & cultural adaptation |
-| **Responsibility** | Engineers/architects | Translators/localization teams |
-| **Timing** | Built into architecture | Added after initial development |
-| **Cost** | One-time setup | Ongoing for each language |
-| **Complexity** | Moderate | High (language-dependent) |
-
-> **Key Insight:** Think of i18n as the plumbing that makes translation possible, while l10n is the actual translation and cultural adaptation work.
 
 ---
 
@@ -97,329 +48,173 @@ The content and cultural adaptation for specific languages and regions.
 
 ### 💡 **JSON Format**
 
-The most common format for translation files.
-
-**Basic Structure:**
-
 ```json
 // en.json
 {
   "greeting": "Hello",
-  "farewell": "Goodbye",
   "buttons": {
     "save": "Save",
     "cancel": "Cancel"
+  },
+  "notifications": {
+    "message_one": "You have {{count}} message",
+    "message_other": "You have {{count}} messages"
   }
 }
 ```
 
-**Usage:**
-
-```javascript
+```typescript
 const { t } = useTranslation();
-t('greeting')        // "Hello"
-t('buttons.save')    // "Save"
+t('greeting')                        // "Hello"
+t('buttons.save')                    // "Save"
+t('notifications.message', { count: 5 })  // "You have 5 messages"
 ```
 
 ---
 
 ### 💡 **Namespace Strategy**
 
-Organize translations into logical groups for manageability.
-
-**Project Structure:**
+Organize translations by feature for large apps.
 
 ```
 locales/
 ├── en/
-│   ├── common.json      # Shared strings (save, cancel, delete)
-│   ├── auth.json        # Authentication screens
-│   ├── dashboard.json   # Dashboard page
-│   └── settings.json    # Settings page
+│   ├── common.json      # Shared: save, cancel, delete
+│   ├── auth.json        # Login, register screens
+│   └── dashboard.json   # Dashboard page
 └── es/
     ├── common.json
-    ├── auth.json
     └── ...
 ```
 
-**Usage with Namespaces:**
-
-```javascript
-// Load specific namespace
+```typescript
 const { t } = useTranslation('auth');
 t('login.title')  // From auth namespace
 
-// Load common namespace
 const { t: tCommon } = useTranslation('common');
 tCommon('button.save')  // From common namespace
 ```
 
----
+| App Size | Strategy |
+|----------|----------|
+| **Small** | Single file per language (`locales/en.json`) |
+| **Medium** | By namespace (`locales/en/common.json`) |
+| **Large** | By feature (`src/features/auth/locales/en.json`) |
 
-### 💡 **Nested Keys with Plural Support**
-
-**Complex Structure Example:**
-
-```json
-// en.json
-{
-  "notifications": {
-    "message_one": "You have {{count}} message",
-    "message_other": "You have {{count}} messages",
-    "newNotification": "You have a new notification from {{name}}"
-  },
-  "errors": {
-    "validation": {
-      "required": "This field is required",
-      "email": "Invalid email format",
-      "minLength": "Minimum length is {{min}} characters"
-    }
-  }
-}
-```
-
-**Usage:**
-
-```javascript
-t('notifications.message', { count: 1 })   // "You have 1 message"
-t('notifications.message', { count: 5 })   // "You have 5 messages"
-t('errors.validation.email')               // "Invalid email format"
-```
+> Start simple. Split into namespaces only when a file exceeds ~500 keys.
 
 ---
 
-### 💡 **File Organization by App Size**
+## Popular Libraries
 
-| App Size | Strategy | Structure |
-|----------|----------|-----------|
-| **Small** | Single file per language | `locales/en.json`, `locales/es.json` |
-| **Medium** | By namespace | `locales/en/common.json`, `locales/en/auth.json` |
-| **Large** | By feature + namespace | `src/features/auth/locales/en.json` |
+### 💡 **Comparison**
 
-> **Key Insight:** Start simple with single files. Split into namespaces only when file size becomes unwieldy (>500 keys).
-
----
-
-## Popular i18n Libraries
-
-### 💡 **Library Comparison**
-
-| Library | Best For | Bundle Size | Strengths |
-|---------|----------|-------------|-----------|
-| **react-i18next** | React apps | ~40KB | Large ecosystem, flexible |
-| **next-i18next** | Next.js apps | ~40KB | SSR support, i18n routing |
-| **FormatJS** | Enterprise | ~25KB | ICU support, comprehensive |
-| **i18next** | Vanilla JS | ~35KB | Framework agnostic |
+| Library | Best For | Bundle Size |
+|---------|----------|-------------|
+| **react-i18next** | React apps | ~40KB |
+| **next-i18next** | Next.js (SSR) | ~40KB |
+| **FormatJS** | Enterprise, ICU | ~25KB |
 
 ---
 
 ### 💡 **react-i18next**
 
-The most popular React i18n library.
-
-**Setup:**
-
-```javascript
-// i18n.js
+```typescript
+// i18n.ts
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: { greeting: 'Hello' } },
-    es: { translation: { greeting: 'Hola' } }
+    en: { translation: { greeting: 'Hello!' } },
+    es: { translation: { greeting: '¡Hola!' } }
   },
   lng: 'en',
   fallbackLng: 'en',
   interpolation: { escapeValue: false }
 });
+
+export default i18n;
 ```
 
-**Usage:**
-
-```javascript
+```typescript
 import { useTranslation } from 'react-i18next';
 
-function Welcome() {
+function Welcome(): JSX.Element {
   const { t, i18n } = useTranslation();
-
   return (
     <div>
       <h1>{t('greeting')}</h1>
-      <button onClick={() => i18n.changeLanguage('es')}>
-        Switch to Spanish
-      </button>
+      <button onClick={() => i18n.changeLanguage('es')}>Switch to Spanish</button>
     </div>
   );
 }
 ```
 
-**Pros & Cons:**
-
-| ✅ Pros | ❌ Cons |
-|---------|---------|
-| Large ecosystem | Larger bundle size (~40KB) |
-| TypeScript support | Steeper learning curve |
-| Lazy loading support | Opinionated structure |
-| Namespace support | — |
-
 ---
 
-### 💡 **next-i18next**
+### 💡 **next-i18next (SSR)**
 
-Built specifically for Next.js with SSR support.
-
-**Configuration:**
-
-```javascript
+```typescript
 // next-i18next.config.js
 module.exports = {
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es', 'de']
-  },
+  i18n: { defaultLocale: 'en', locales: ['en', 'es', 'de'] },
   localePath: './public/locales'
 };
 ```
 
-**Usage with SSR:**
-
-```javascript
+```typescript
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 
-export default function HomePage() {
+export default function HomePage(): JSX.Element {
   const { t } = useTranslation('common');
   return <h1>{t('title')}</h1>;
 }
 
-export async function getStaticProps({ locale }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ['common']))
-    }
-  };
-}
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: { ...(await serverSideTranslations(locale ?? 'en', ['common'])) }
+});
 ```
-
-**Best For:**
-
-- ✅ Next.js applications
-- ✅ Server-side rendering (SSR)
-- ✅ Static site generation (SSG)
-- ✅ International routing (`/en/page`, `/es/page`)
-
----
-
-### 💡 **FormatJS (react-intl)**
-
-Enterprise-focused with comprehensive ICU support.
-
-**Setup:**
-
-```javascript
-import { IntlProvider, FormattedMessage } from 'react-intl';
-
-function App({ locale, messages }) {
-  return (
-    <IntlProvider locale={locale} messages={messages}>
-      <MainApp />
-    </IntlProvider>
-  );
-}
-```
-
-**ICU MessageFormat:**
-
-```json
-{
-  "greeting": "Hello, {name}!",
-  "items": "{count, plural, =0 {no items} one {# item} other {# items}}"
-}
-```
-
-**Best For:**
-
-- ✅ Complex formatting requirements
-- ✅ Enterprise applications
-- ✅ Strong Intl API integration
 
 ---
 
 ## Language Detection
 
-### 💡 **Detection Priority Order**
-
-Always follow this hierarchy:
+### 💡 **Detection Priority**
 
 ```
-1. User preference (localStorage/cookie)  ← Most reliable
+1. User preference (localStorage)   ← Most reliable
        ↓
-2. URL parameter or path (/en/page, ?lang=es)
+2. URL path or parameter (/en/page)
        ↓
 3. Browser language (navigator.language)
        ↓
-4. Default fallback language  ← Last resort
+4. Fallback default                 ← Last resort
 ```
 
 ---
 
 ### 💡 **Implementation**
 
-**Complete Detection Function:**
+```typescript
+const SUPPORTED = ['en', 'es', 'de', 'fr', 'ar'] as const;
+type SupportedLang = typeof SUPPORTED[number];
 
-```javascript
-function detectLanguage() {
-  const supportedLanguages = ['en', 'es', 'de', 'fr', 'ar'];
+function detectLanguage(): SupportedLang {
+  const saved = localStorage.getItem('language') as SupportedLang | null;
+  if (saved && (SUPPORTED as readonly string[]).includes(saved)) return saved;
 
-  // 1. Check localStorage (user preference)
-  const saved = localStorage.getItem('language');
-  if (saved && supportedLanguages.includes(saved)) {
-    return saved;
+  const urlLang = new URLSearchParams(window.location.search).get('lang');
+  if (urlLang && (SUPPORTED as readonly string[]).includes(urlLang)) {
+    return urlLang as SupportedLang;
   }
 
-  // 2. Check URL parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlLang = urlParams.get('lang');
-  if (urlLang && supportedLanguages.includes(urlLang)) {
-    return urlLang;
-  }
+  const browserLang = navigator.language.split('-')[0] as SupportedLang;
+  if ((SUPPORTED as readonly string[]).includes(browserLang)) return browserLang;
 
-  // 3. Check browser language
-  const browserLang = navigator.language.split('-')[0];
-  if (supportedLanguages.includes(browserLang)) {
-    return browserLang;
-  }
-
-  // 4. Fallback to default
   return 'en';
-}
-```
-
----
-
-### 💡 **Browser Language APIs**
-
-| API | Returns | Example |
-|-----|---------|---------|
-| `navigator.language` | Browser UI language | `'en-US'` |
-| `navigator.languages` | All preferred languages | `['en-US', 'en', 'es']` |
-
-**Handling Browser Language:**
-
-```javascript
-function getBrowserLanguage() {
-  const supported = ['en', 'es', 'de', 'fr'];
-
-  // Try each preferred language
-  for (let lang of navigator.languages) {
-    const baseCode = lang.split('-')[0];
-    if (supported.includes(baseCode)) {
-      return baseCode;
-    }
-  }
-
-  return 'en'; // Fallback
 }
 ```
 
@@ -427,21 +222,30 @@ function getBrowserLanguage() {
 
 ## Language Switching
 
-### 💡 **Basic Language Switcher**
+### 💡 **Language Switcher**
 
-```javascript
+```typescript
 import { useTranslation } from 'react-i18next';
 
-function LanguageSwitcher() {
+interface Language {
+  code: string;
+  name: string;
+}
+
+const LANGUAGES: Language[] = [
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'ar', name: 'العربية' }
+];
+
+function isRTL(lang: string): boolean {
+  return ['ar', 'he', 'fa', 'ur'].includes(lang);
+}
+
+function LanguageSwitcher(): JSX.Element {
   const { i18n } = useTranslation();
 
-  const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'es', name: 'Español' },
-    { code: 'ar', name: 'العربية' }
-  ];
-
-  const handleChange = async (code) => {
+  const handleChange = async (code: string): Promise<void> => {
     await i18n.changeLanguage(code);
     localStorage.setItem('language', code);
     document.documentElement.lang = code;
@@ -449,64 +253,20 @@ function LanguageSwitcher() {
   };
 
   return (
-    <select
-      value={i18n.language}
-      onChange={(e) => handleChange(e.target.value)}
-    >
-      {languages.map(lang => (
-        <option key={lang.code} value={lang.code}>
-          {lang.name}
-        </option>
+    <select value={i18n.language} onChange={(e) => handleChange(e.target.value)}>
+      {LANGUAGES.map(({ code, name }) => (
+        <option key={code} value={code}>{name}</option>
       ))}
     </select>
   );
 }
-
-function isRTL(lang) {
-  return ['ar', 'he', 'fa', 'ur'].includes(lang);
-}
-```
-
----
-
-### 💡 **Language Context Provider**
-
-**For complex applications:**
-
-```javascript
-const LanguageContext = createContext();
-
-export function LanguageProvider({ children }) {
-  const { i18n } = useTranslation();
-  const [language, setLanguage] = useState(i18n.language);
-
-  const changeLanguage = useCallback(async (newLang) => {
-    await i18n.changeLanguage(newLang);
-    setLanguage(newLang);
-    localStorage.setItem('language', newLang);
-    document.documentElement.lang = newLang;
-    document.documentElement.dir = isRTL(newLang) ? 'rtl' : 'ltr';
-  }, [i18n]);
-
-  const isRTL = ['ar', 'he', 'fa'].includes(language);
-
-  return (
-    <LanguageContext.Provider value={{ language, changeLanguage, isRTL }}>
-      {children}
-    </LanguageContext.Provider>
-  );
-}
-
-export const useLanguage = () => useContext(LanguageContext);
 ```
 
 ---
 
 ## Translation Interpolation
 
-### 💡 **Simple Variables**
-
-**Translation File:**
+### 💡 **Variable Substitution**
 
 ```json
 {
@@ -515,48 +275,25 @@ export const useLanguage = () => useContext(LanguageContext);
 }
 ```
 
-**Usage:**
-
-```javascript
-t('welcome', { name: 'Alice' })     // "Welcome, Alice!"
-t('itemCount', { count: 42 })       // "You have 42 items"
+```typescript
+t('welcome', { name: 'Alice' })   // "Welcome, Alice!"
+t('itemCount', { count: 42 })     // "You have 42 items"
 ```
 
 ---
 
-### 💡 **Nested Variables**
+### 💡 **Trans Component for JSX**
 
-```javascript
-// Translation
-{ "userProfile": "User: {{user.firstName}} {{user.lastName}}" }
-
-// Usage
-t('userProfile', {
-  user: { firstName: 'John', lastName: 'Doe' }
-})
-// "User: John Doe"
-```
-
----
-
-### 💡 **Trans Component for HTML**
-
-For translations containing JSX/HTML elements:
-
-**Translation File:**
+Use when translation strings contain HTML or React elements:
 
 ```json
-{
-  "termsAccept": "I accept the <1>terms</1> and <3>privacy policy</3>"
-}
+{ "termsAccept": "I accept the <1>terms</1> and <3>privacy policy</3>" }
 ```
 
-**Component:**
-
-```javascript
+```typescript
 import { Trans } from 'react-i18next';
 
-function TermsCheckbox() {
+function TermsCheckbox(): JSX.Element {
   return (
     <Trans i18nKey="termsAccept">
       I accept the <a href="/terms">terms</a> and
@@ -566,151 +303,21 @@ function TermsCheckbox() {
 }
 ```
 
----
-
-### 💡 **When to Use Each**
-
 | Scenario | Use This |
 |----------|----------|
-| Simple text | `t('key')` |
+| Plain text | `t('key')` |
 | Text with variables | `t('key', { name: value })` |
 | Text with HTML/JSX | `<Trans>` component |
 | Pluralization | `t('key', { count: number })` |
 
 ---
 
-## Setup Guides
+## TypeScript Integration
 
-### 💡 **Quick Start: react-i18next**
-
-**Step 1: Install**
-
-```bash
-npm install i18next react-i18next
-```
-
-**Step 2: Create i18n.js**
-
-```javascript
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-
-const resources = {
-  en: { translation: { greeting: 'Hello!' } },
-  es: { translation: { greeting: '¡Hola!' } }
-};
-
-i18n.use(initReactI18next).init({
-  resources,
-  lng: 'en',
-  fallbackLng: 'en',
-  interpolation: { escapeValue: false }
-});
-
-export default i18n;
-```
-
-**Step 3: Import in App**
-
-```javascript
-import './i18n';
-import { useTranslation } from 'react-i18next';
-
-function App() {
-  const { t } = useTranslation();
-  return <h1>{t('greeting')}</h1>;
-}
-```
-
----
-
-### 💡 **Production Setup with Lazy Loading**
-
-```javascript
-import HttpBackend from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
-
-i18n
-  .use(HttpBackend)
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json'
-    },
-    ns: ['common', 'home', 'footer'],
-    defaultNS: 'common',
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage']
-    },
-    fallbackLng: 'en'
-  });
-```
-
----
-
-## Best Practices
-
-### 💡 **String Extraction**
-
-```javascript
-// ❌ Bad: Hardcoded strings
-<button>Save</button>
-<p>Welcome to our app</p>
-
-// ✅ Good: Extracted for translation
-<button>{t('buttons.save')}</button>
-<p>{t('welcome')}</p>
-```
-
----
-
-### 💡 **Key Naming Convention**
-
-```javascript
-// ❌ Bad: Flat, unclear keys
-{
-  "login_title": "Login",
-  "login_email": "Email"
-}
-
-// ✅ Good: Hierarchical, descriptive
-{
-  "auth": {
-    "login": {
-      "title": "Login",
-      "email": "Email"
-    }
-  }
-}
-```
-
----
-
-### 💡 **Missing Translation Handling**
-
-```javascript
-i18n.init({
-  fallbackLng: 'en',
-
-  // Log missing keys in development
-  saveMissing: true,
-  missingKeyHandler: (lngs, ns, key) => {
-    console.warn(`Missing translation: ${ns}.${key}`);
-  }
-});
-
-// In component - provide default
-t('key', { defaultValue: 'Fallback text' })
-```
-
----
-
-### 💡 **TypeScript Integration**
+### 💡 **Type-Safe Translations**
 
 ```typescript
-// Define translation structure
+// types/i18n.d.ts
 interface Translations {
   greeting: string;
   buttons: {
@@ -719,7 +326,6 @@ interface Translations {
   };
 }
 
-// Extend react-i18next types
 declare module 'react-i18next' {
   interface CustomTypeOptions {
     resources: {
@@ -728,52 +334,10 @@ declare module 'react-i18next' {
   }
 }
 
-// Now t() is typed!
+// t() is now fully typed — typos become compile errors
 const { t } = useTranslation();
-t('greeting')  // ✅ OK
-t('invalid')   // ❌ TypeScript error
-```
-
----
-
-## Common Patterns
-
-### 💡 **Lazy Loading Translations**
-
-```javascript
-const loadLanguage = async (lang) => {
-  if (i18n.hasResourceBundle(lang, 'translation')) return;
-
-  const module = await import(`./locales/${lang}.json`);
-  i18n.addResourceBundle(lang, 'translation', module.default);
-};
-
-async function handleLanguageChange(newLang) {
-  await loadLanguage(newLang);
-  await i18n.changeLanguage(newLang);
-}
-```
-
----
-
-### 💡 **Format Dates with Locale**
-
-```javascript
-function useLocalizedDate() {
-  const { i18n } = useTranslation();
-
-  return useCallback((date) => {
-    return new Intl.DateTimeFormat(i18n.language, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
-  }, [i18n.language]);
-}
-
-// Usage
-const formatDate = useLocalizedDate();
-formatDate(new Date()); // "December 18, 2025" or "18. Dezember 2025"
+t('greeting')   // ✅ OK
+t('invalid')    // ❌ TypeScript error
 ```
 
 ---
@@ -782,145 +346,37 @@ formatDate(new Date()); // "December 18, 2025" or "18. Dezember 2025"
 
 ### 1. What's the difference between i18n and l10n?
 
-**Answer:**
+- **i18n**: Technical infrastructure — string extraction, library setup, language detection and switching
+- **l10n**: Content and cultural adaptation — actual translations, date/number formats, cultural considerations
 
-- **i18n (Internationalization)**: Technical infrastructure enabling multiple language support - string extraction, language detection, switching
-- **l10n (Localization)**: Content and cultural adaptation - actual translations, date/number formatting, cultural considerations
+### 2. How does language detection work?
 
-> Think of i18n as plumbing, l10n as the water.
+Priority: localStorage → URL parameter → `navigator.language` → fallback default. Each step is a more reliable signal of user intent than the next.
 
----
-
-### 2. How would you implement language detection?
-
-**Answer:**
-
-Priority order:
-1. User preference (localStorage)
-2. URL parameter/path
-3. Browser language (`navigator.language`)
-4. Default fallback
-
-```javascript
-const detected =
-  localStorage.getItem('language') ||
-  new URLSearchParams(location.search).get('lang') ||
-  navigator.language.split('-')[0] ||
-  'en';
-```
-
----
-
-### 3. What are the pros and cons of react-i18next?
-
-| ✅ Pros | ❌ Cons |
-|---------|---------|
-| Large ecosystem | ~40KB bundle size |
-| TypeScript support | Learning curve |
-| Lazy loading | Opinionated |
-| Namespace support | — |
-
----
-
-### 4. How do you structure translation files?
-
-**Answer:**
-
-Use hierarchical namespaces:
-- Organize by feature/page
-- Keep common strings in shared namespace
-- Use nested JSON for logical grouping
-
----
-
-### 5. What's the difference between `t()` and `Trans`?
+### 3. What's the difference between `t()` and `<Trans>`?
 
 | `t()` | `<Trans>` |
 |-------|-----------|
-| Returns string | Returns JSX |
-| Simple interpolation | HTML/JSX in translations |
-| `t('key', { name })` | `<Trans><a href="...">link</a></Trans>` |
+| Returns a string | Returns JSX |
+| Simple variable interpolation | HTML/React elements in translations |
 
----
+### 4. How do you handle missing translations?
 
-### 6. How do you handle missing translations?
+Set `fallbackLng: 'en'`, use `missingKeyHandler` to log in development, and provide `defaultValue` in components for critical strings.
 
-**Answer:**
+### 5. How do you optimize i18n bundle size?
 
-1. Set `fallbackLng` (usually English)
-2. Provide `defaultValue` in component
-3. Log missing keys in development
-4. Use translation management tools
-
----
-
-### 7. How would you implement language switching with persistence?
-
-```javascript
-async function changeLanguage(lang) {
-  await i18n.changeLanguage(lang);
-  localStorage.setItem('language', lang);
-  document.documentElement.lang = lang;
-}
-```
-
----
-
-### 8. What's interpolation in translations?
-
-**Answer:**
-
-Inserting dynamic values into translation strings:
-
-```json
-{ "welcome": "Welcome, {{name}}!" }
-```
-
-```javascript
-t('welcome', { name: 'Alice' }) // "Welcome, Alice!"
-```
-
----
-
-### 9. Key considerations for RTL language support?
-
-**Answer:**
-
-1. Use CSS logical properties (`margin-inline-start`)
-2. Set HTML `dir` attribute
-3. Mirror directional icons
-4. Test with actual RTL content
-
----
-
-### 10. How would you optimize i18n for performance?
-
-**Answer:**
-
-1. Lazy load translations by language/namespace
-2. Use code splitting
-3. Cache translations in localStorage
-4. Minify translation JSON files
-5. Use HTTP caching headers
+Lazy load translations by namespace using `i18next-http-backend`. Only load translations needed for the current page; load others on demand.
 
 ---
 
 ## Navigation
 
-**Continue Reading:**
-
-- [02 - Pluralization](./02-pluralization.md) - Handle plural forms correctly
-- [03 - Date & Number Formatting](./03-date-number-formatting.md) - Intl APIs
-- [04 - RTL Support](./04-rtl-support.md) - Right-to-left languages
-
-**Related Topics:**
-
-- Frontend/React - Component patterns
-- Frontend/JavaScript - ES6+ modules
-- Frontend/TypeScript - Type safety
+- [02 - Pluralization](./02-pluralization.md)
+- [03 - Date & Number Formatting](./03-date-number-formatting.md)
+- [04 - RTL Support](./04-rtl-support.md)
 
 ---
 
-**Last Updated:** January 2026
+**Last Updated:** June 2026
 **Difficulty:** Intermediate
-**Estimated Time:** 3-4 hours
