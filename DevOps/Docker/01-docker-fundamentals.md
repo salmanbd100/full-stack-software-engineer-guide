@@ -73,7 +73,6 @@ CMD ["node", "server.js"]             # Start command
 ## Docker Compose Basics
 
 ```yaml
-version: '3.8'
 services:
   web:
     build: .
@@ -93,10 +92,10 @@ volumes:
 
 **Compose commands:**
 ```bash
-docker-compose up -d          # Start detached
-docker-compose down           # Stop and remove
-docker-compose logs -f web    # Follow service logs
-docker-compose exec web bash  # Shell into service
+docker compose up -d          # Start detached
+docker compose down           # Stop and remove
+docker compose logs -f web    # Follow service logs
+docker compose exec web bash  # Shell into service
 ```
 
 ## Interview Q&A

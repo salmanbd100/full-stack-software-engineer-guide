@@ -120,6 +120,8 @@ aws ecs update-service \
 
 ## CI/CD with GitHub Actions
 
+Use **OIDC** to authenticate — no long-lived access keys stored in secrets.
+
 ```yaml
 name: Deploy to ECS
 
@@ -127,22 +129,25 @@ on:
   push:
     branches: [main]
 
+permissions:
+  id-token: write   # Required for OIDC
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
           aws-region: us-east-1
 
       - name: Login to ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push image
         env:
@@ -158,6 +163,8 @@ jobs:
             --service myapp-service \
             --force-new-deployment
 ```
+
+> OIDC lets GitHub Actions assume an IAM role directly — no `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` needed. Set up the IAM OIDC provider and trust policy once, then use `role-to-assume` in every workflow.
 
 ## Interview Q&A
 

@@ -3,8 +3,6 @@
 ## Core Structure
 
 ```yaml
-version: '3.8'
-
 services:    # Define containers
   web:
   db:
@@ -122,16 +120,15 @@ services:
 
 ```bash
 # Dev: auto-loads override file
-docker-compose up -d
+docker compose up -d
 
 # Prod: explicit file list
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 ## Full-Stack Production Example
 
 ```yaml
-version: '3.8'
 services:
   nginx:
     image: nginx:alpine
@@ -187,20 +184,20 @@ networks:
 ## Essential Commands
 
 ```bash
-docker-compose up -d            # Start services
-docker-compose up -d --build    # Rebuild and start
-docker-compose down             # Stop and remove containers
-docker-compose down -v          # Also remove volumes
-docker-compose ps               # Service status
-docker-compose logs -f api      # Follow service logs
-docker-compose exec api bash    # Shell into service
-docker-compose restart api      # Restart one service
-docker-compose config           # Validate config
+docker compose up -d            # Start services
+docker compose up -d --build    # Rebuild and start
+docker compose down             # Stop and remove containers
+docker compose down -v          # Also remove volumes
+docker compose ps               # Service status
+docker compose logs -f api      # Follow service logs
+docker compose exec api bash    # Shell into service
+docker compose restart api      # Restart one service
+docker compose config           # Validate config
 ```
 
 ## Interview Q&A
 
-**Q: `docker-compose up` vs `docker-compose start`?**
+**Q: `docker compose up` vs `docker compose start`?**
 - `up` — creates containers, networks, volumes, then starts. Use for first run or after config changes.
 - `start` — only starts existing stopped containers.
 

@@ -91,8 +91,6 @@ stop_grace_period: 30s    # Wait before sending SIGKILL
 ## Production docker-compose Example
 
 ```yaml
-version: '3.8'
-
 services:
   nginx:
     image: nginx:alpine
@@ -159,7 +157,7 @@ networks:
 docker pull myapp:v2
 
 # Update service without downtime
-VERSION=v2 docker-compose up -d --no-deps api
+VERSION=v2 docker compose up -d --no-deps api
 ```
 
 New container starts, passes health checks, then old one stops.
