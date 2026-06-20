@@ -88,14 +88,15 @@
 - [x] 07-performance-monitoring.md - Monitoring tools
 - [x] 08-rendering-optimization.md - Render optimization
 
-### Testing (7/7) - 100% ✅
-- [x] 01-testing-fundamentals.md - Testing concepts
-- [x] 02-jest-basics.md - Jest testing framework
+### Testing (8/8) - 100% ✅
+- [x] 01-testing-fundamentals.md - Testing concepts and all test types
+- [x] 02-vitest-basics.md - Vitest testing framework
 - [x] 03-react-testing-library.md - Testing React components
-- [x] 04-integration-testing.md - Integration test strategies
-- [x] 05-e2e-testing.md - End-to-end testing
+- [x] 04-integration-testing.md - Integration tests with MSW
+- [x] 05-e2e-testing.md - End-to-end testing with Playwright
 - [x] 06-test-driven-development.md - TDD practices
-- [x] 07-best-practices.md - Testing best practices
+- [x] 07-specialized-testing.md - Visual, a11y, performance, contract, mutation
+- [x] 08-best-practices.md - Testing best practices
 
 ### Security (6/6) - 100% ✅
 - [x] 01-xss-prevention.md - Cross-Site Scripting prevention
