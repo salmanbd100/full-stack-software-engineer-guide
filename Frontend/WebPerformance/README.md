@@ -87,11 +87,13 @@ Learn how to make websites load fast and run smoothly. Performance is one of the
 
 Load heavy components only when needed.
 
-```javascript
-// Wait until needed before downloading
-const HeavyComponent = React.lazy(() => import('./HeavyComponent'));
+```tsx
+import { lazy, Suspense } from 'react';
 
-function App() {
+// Wait until needed before downloading
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+
+function App(): JSX.Element {
   return (
     <Suspense fallback={<Loading />}>
       <HeavyComponent />
@@ -105,46 +107,47 @@ function App() {
 The browser does the work for you.
 
 ```html
-<img src="image.jpg" loading="lazy" alt="Description" />
+<img src="image.jpg" loading="lazy" alt="Description" width="800" height="600" />
 ```
 
 ### 💡 **Debounce Function**
 
 Wait for the user to stop typing before searching.
 
-```javascript
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
+```typescript
+function debounce<A extends unknown[]>(
+  fn: (...args: A) => void,
+  wait: number,
+): (...args: A) => void {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: A) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
   };
 }
 ```
 
-### 💡 **Measure Performance**
+### 💡 **Measure Core Web Vitals**
 
-Track real loading times.
+Track real user loading speed.
 
-```javascript
-const observer = new PerformanceObserver((list) => {
-  for (const entry of list.getEntries()) {
-    console.log(entry);
-  }
+```typescript
+import { onLCP, type LCPMetric } from 'web-vitals';
+
+onLCP((metric: LCPMetric) => {
+  console.log('LCP:', metric.value, metric.rating);
 });
-
-observer.observe({ entryTypes: ['largest-contentful-paint'] });
 ```
 
 ### 💡 **Code Splitting with Dynamic Import**
 
 Load code only when the user needs it.
 
-```javascript
-const loadModule = async () => {
-  const module = await import('./heavyModule.js');
+```typescript
+async function loadModule(): Promise<void> {
+  const module = await import('./heavyModule');
   module.doSomething();
-};
+}
 ```
 
 ---

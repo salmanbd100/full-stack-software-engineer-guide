@@ -2,39 +2,35 @@
 
 ## Overview
 
-Core Web Vitals are **3 numbers Google uses to measure user experience** on your website. Think of them as a report card from Google. Good scores help your SEO ranking and keep users happy.
+Core Web Vitals are the **3 numbers Google uses to score real user experience** on your site. Good scores help SEO and keep users happy.
 
 > **Why You Should Care:**
-> Google uses these scores to decide where your site appears in search results. Bad scores = lower ranking = fewer visitors.
+> Google uses these scores to rank pages. Bad scores mean lower ranking and fewer visitors.
 
 ---
 
 ## Table of Contents
-- [What are Core Web Vitals](#what-are-core-web-vitals)
-- [LCP - Largest Contentful Paint](#lcp---largest-contentful-paint)
-- [INP - Interaction to Next Paint](#inp---interaction-to-next-paint)
-- [CLS - Cumulative Layout Shift](#cls---cumulative-layout-shift)
+- [The Three Metrics](#the-three-metrics)
+- [LCP — Largest Contentful Paint](#lcp--largest-contentful-paint)
+- [INP — Interaction to Next Paint](#inp--interaction-to-next-paint)
+- [CLS — Cumulative Layout Shift](#cls--cumulative-layout-shift)
 - [Measuring Core Web Vitals](#measuring-core-web-vitals)
-- [Optimization Strategies](#optimization-strategies)
+- [Optimization Priority](#optimization-priority)
 - [Interview Questions](#interview-questions)
 
 ---
 
-## What are Core Web Vitals
+## The Three Metrics
 
-### 💡 **The Three Pillars**
+Core Web Vitals measure the 3 things users feel most: **how fast it loads**, **how fast it responds**, and **how stable it looks**.
 
-Core Web Vitals measure 3 things users care about most: **how fast it loads**, **how fast it responds**, and **how stable it looks**.
-
-**The 3 Metrics:**
-
-| Metric | Full Name | What It Measures | Simple Meaning |
-|--------|-----------|------------------|----------------|
-| **LCP** | Largest Contentful Paint | Loading speed | "Did the main content show up fast?" |
-| **INP** | Interaction to Next Paint | Responsiveness | "Did the page respond quickly when I clicked?" |
+| Metric | Full Name | Measures | Plain Meaning |
+|--------|-----------|----------|---------------|
+| **LCP** | Largest Contentful Paint | Loading | "Did the main content show up fast?" |
+| **INP** | Interaction to Next Paint | Responsiveness | "Did the page react quickly when I clicked?" |
 | **CLS** | Cumulative Layout Shift | Visual stability | "Did things jump around while loading?" |
 
-**Target Thresholds:**
+**Target Thresholds (memorize these):**
 
 | Metric | ✅ Good | ⚠️ Needs Work | ❌ Poor |
 |--------|---------|----------------|---------|
@@ -42,190 +38,84 @@ Core Web Vitals measure 3 things users care about most: **how fast it loads**, *
 | **INP** | < 200ms | 200ms – 500ms | > 500ms |
 | **CLS** | < 0.1 | 0.1 – 0.25 | > 0.25 |
 
-```javascript
-// Easy way to remember the limits
+```typescript
+// The numbers worth remembering
 const thresholds = {
-  LCP: { good: 2500, poor: 4000 },   // milliseconds
-  INP: { good: 200, poor: 500 },     // milliseconds
-  CLS: { good: 0.1, poor: 0.25 }     // score (lower is better)
-};
+  LCP: { good: 2500, poor: 4000 }, // milliseconds
+  INP: { good: 200, poor: 500 },   // milliseconds
+  CLS: { good: 0.1, poor: 0.25 },  // unitless score (lower is better)
+} as const;
 ```
 
-### 💡 **Why They Matter**
-
-**Business Impact:**
-
-- A 1-second delay = 7% fewer conversions
-- A 0.1-second LCP improvement = 8% more conversions
-- Poor scores = lower Google ranking
-
-**User Experience:**
-
-- ✅ Faster loading → users stay longer
-- ✅ Stable layout → less frustration
-- ✅ Quick response → users feel the site is "good"
-
 > **Key Insight:**
-> Performance is not just about speed. It's about how the site **feels** to use.
+> Google scores you at the **75th percentile** of real users. A metric is "Good" only when 75% of visits hit the target.
 
 ---
 
-## LCP - Largest Contentful Paint
+## LCP — Largest Contentful Paint
 
-### 💡 **What is LCP?**
+LCP measures **when the biggest visible element finishes rendering**. Usually this is a hero image or a large headline.
 
-LCP measures **when the biggest visible thing on your page finishes loading**. Usually this is a hero image or main heading.
+**Common LCP elements:** hero images, large `<h1>` text, video poster images, CSS background images.
 
-**How To Think About It:**
+### 💡 **Find Your LCP Element First**
 
-```
-You open a page
-    ↓
-You wait...
-    ↓
-The big hero image appears  ← This moment is your LCP
-    ↓
-LCP timer stops
-```
+You can't fix LCP until you know which element it is.
 
-**Common LCP Elements:**
+```typescript
+import { onLCP, type LCPMetric } from 'web-vitals/attribution';
 
-- 🖼️ Hero images at the top of the page
-- 📝 Big headlines (h1)
-- 🎬 Video poster images
-- 🎨 Background images set with CSS
-
-### 💡 **Identifying the LCP Element**
-
-Before fixing LCP, you need to find which element is your LCP. Use these tools to detect it.
-
-**Method 1: Performance Observer**
-
-```javascript
-// Find which element is your LCP
-const observer = new PerformanceObserver((list) => {
-  const entries = list.getEntries();
-  const lastEntry = entries[entries.length - 1];
-
-  console.log('LCP Element:', lastEntry.element);
-  console.log('LCP Time:', lastEntry.renderTime || lastEntry.loadTime);
-});
-
-observer.observe({ type: 'largest-contentful-paint', buffered: true });
-```
-
-**Method 2: Web Vitals Library (Easier)**
-
-```javascript
-import { onLCP } from 'web-vitals';
-
-onLCP((metric) => {
-  console.log('LCP:', metric.value);
-  console.log('Element:', metric.entries[metric.entries.length - 1].element);
+onLCP((metric: LCPMetric) => {
+  console.log('LCP value:', metric.value);
+  console.log('LCP element:', metric.attribution.target); // CSS selector
 });
 ```
 
 ### 💡 **Optimizing LCP**
 
-To make LCP fast, fix these things in order:
+Fix these in order of impact:
 
-**1. Optimize Your Images**
-
-Images are usually the LCP element, so this has the biggest impact.
-
-**❌ Before (Bad):**
+**1. Optimize the LCP image** (usually the biggest win)
 
 ```html
+<!-- ❌ Before: heavy, no priority, one size for all -->
 <img src="hero.jpg" alt="Hero" />
-```
 
-**Problems:**
-- Big file size
-- No priority hint
-- Same size for all devices
-
-**✅ After (Good):**
-
-```html
+<!-- ✅ After: modern format, responsive, prioritized -->
 <img
   src="hero.avif"
   srcset="hero-400.avif 400w, hero-800.avif 800w, hero-1200.avif 1200w"
   sizes="(max-width: 600px) 400px, (max-width: 1200px) 800px, 1200px"
   alt="Hero"
-  loading="eager"
   fetchpriority="high"
 />
 ```
 
-**Benefits:**
-- ✅ Modern format (AVIF) is 50% smaller
-- ✅ Right size for each device
-- ✅ Browser knows to load this first
-
-**2. Preload Critical Resources**
-
-Tell the browser "load this important file right away."
+**2. Preload critical resources**
 
 ```html
-<!-- Preload the LCP image -->
 <link rel="preload" as="image" href="hero.avif" fetchpriority="high" />
-
-<!-- Preload important fonts -->
 <link rel="preload" href="font.woff2" as="font" type="font/woff2" crossorigin />
-
-<!-- Connect early to other servers -->
 <link rel="preconnect" href="https://cdn.example.com" />
 ```
 
-**3. Speed Up Your Server**
+**3. Cut render-blocking CSS/JS** — inline only the styles needed for above-the-fold content, defer the rest.
 
-```javascript
-// Use a CDN to serve files from a server near the user
-const imageUrl = 'https://cdn.example.com/optimized/hero.avif';
+**4. Speed up the server** — use a CDN and long cache headers so bytes arrive sooner.
 
-// Add cache headers so files are saved locally
-// Cache-Control: public, max-age=31536000, immutable
-```
+**5. Let the framework help** — Next.js handles most of this:
 
-**4. Remove Render-Blocking CSS/JS**
-
-Files in `<head>` block the page from showing. Inline only the styles you need first.
-
-**❌ Before:**
-
-```html
-<!-- This blocks rendering until styles.css loads -->
-<link rel="stylesheet" href="styles.css" />
-```
-
-**✅ After:**
-
-```html
-<!-- Critical styles inline, rest loads later -->
-<style>
-  /* Only the styles needed for above-the-fold content */
-  .hero { ... }
-</style>
-<link rel="preload" href="styles.css" as="style"
-      onload="this.onload=null;this.rel='stylesheet'" />
-<noscript><link rel="stylesheet" href="styles.css" /></noscript>
-```
-
-**5. Use Framework Tools (Easiest)**
-
-Modern frameworks like Next.js do most of this for you.
-
-```jsx
+```tsx
 import Image from 'next/image';
 
-function Hero() {
+function Hero(): JSX.Element {
   return (
     <Image
       src="/hero.jpg"
       alt="Hero"
       width={1200}
       height={600}
-      priority      // ← This tells Next.js: "this is the LCP"
+      priority // marks this as the LCP image
       quality={90}
     />
   );
@@ -233,461 +123,137 @@ function Hero() {
 ```
 
 > **Key Insight:**
-> Find your LCP element first, then optimize it specifically. Don't waste time on non-LCP elements.
+> Find your LCP element, then optimize that one element. Don't waste time on things below the fold.
 
 ---
 
-## INP - Interaction to Next Paint
+## INP — Interaction to Next Paint
 
-### 💡 **What is INP?**
-
-INP measures **how fast your page responds when you click, tap, or type**. It replaced an older metric called FID in 2024.
-
-**How It Works:**
+INP measures **how fast the page responds to clicks, taps, and key presses**. It replaced FID in March 2024, and FID was fully removed in September 2024.
 
 ```
-You click a button
-    ↓
-JavaScript runs to handle the click
-    ↓
-Browser updates the screen
-    ↓
-INP measures this WHOLE journey
+You click → JS runs → browser paints the result
+            └──────── INP measures this whole journey ────────┘
 ```
 
-### 💡 **INP vs FID (Old vs New)**
-
-| Feature | FID (Old) | INP (New) |
-|---------|-----------|-----------|
-| **What it measures** | Only the FIRST click | ALL clicks |
-| **What it tracks** | Input delay only | Input + processing + rendering |
-| **Accuracy** | Limited view | Full picture |
-
-### 💡 **Measuring INP**
-
-```javascript
-import { onINP } from 'web-vitals';
-
-onINP((metric) => {
-  console.log('INP:', metric.value);
-  console.log('Rating:', metric.rating); // 'good', 'needs-improvement', 'poor'
-
-  sendToAnalytics({
-    metric: 'INP',
-    value: metric.value,
-    rating: metric.rating
-  });
-});
-```
+INP watches **every** interaction (not just the first, like the old FID) and reports the worst.
 
 ### 💡 **Optimizing INP**
 
-Bad INP almost always comes from **JavaScript blocking the main thread**. Fix these things:
+Bad INP almost always means **JavaScript is blocking the main thread**.
 
-**1. Break Up Long JavaScript Tasks**
+**1. Break up long tasks** — any task over 50ms blocks input.
 
-If a function runs for more than 50ms, the browser can't respond to clicks.
+```typescript
+// ❌ Before: one long loop freezes the page
+function processAll(data: number[]): void {
+  for (const item of data) expensiveWork(item);
+}
 
-**❌ Before (Blocks the page):**
-
-```javascript
-function processLargeDataset(data) {
+// ✅ After: yield to the browser between chunks
+async function processAll(data: number[]): Promise<void> {
   for (let i = 0; i < data.length; i++) {
-    expensiveOperation(data[i]); // Blocks main thread
+    expensiveWork(data[i]);
+    // Modern API: give the browser a turn (falls back to setTimeout)
+    if (i % 100 === 0) await scheduler.yield();
   }
 }
 ```
 
-**Problems:**
-- Page freezes during processing
-- Clicks don't register
-- User feels the site is broken
+**2. Debounce and throttle high-frequency events**
 
-**✅ After (Lets browser breathe):**
-
-```javascript
-function processLargeDataset(data) {
-  const chunkSize = 100;
-  let index = 0;
-
-  function processChunk() {
-    const end = Math.min(index + chunkSize, data.length);
-
-    for (let i = index; i < end; i++) {
-      expensiveOperation(data[i]);
-    }
-
-    index = end;
-
-    if (index < data.length) {
-      setTimeout(processChunk, 0); // Let browser handle other work
-    }
-  }
-
-  processChunk();
-}
-```
-
-**Benefits:**
-- ✅ Browser can respond to clicks between chunks
-- ✅ Page feels responsive
-- ✅ Same total work, better experience
-
-**Even Better with Modern API:**
-
-```javascript
-async function processLargeDataset(data) {
-  for (let i = 0; i < data.length; i++) {
-    expensiveOperation(data[i]);
-
-    if (i % 100 === 0) {
-      await scheduler.yield(); // Modern way to give browser a turn
-    }
-  }
-}
-```
-
-**2. Debounce and Throttle Events**
-
-Some events fire many times per second (typing, scrolling). Don't run heavy code every time.
-
-| Pattern | Use This | Why |
-|---------|----------|-----|
-| Search input | `debounce` | Wait until user stops typing |
-| Scroll handler | `throttle` | Run at most once per 100ms |
+| Event | Use | Why |
+|-------|-----|-----|
+| Search input | `debounce` | Wait until typing stops |
+| Scroll handler | `throttle` | Run at most once per interval |
 | Window resize | `debounce` | Wait until resize ends |
 
-```javascript
-// Debounce: Wait for typing to stop
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
+**3. Move heavy work to a Web Worker** so the main thread stays free for input.
 
-const searchHandler = debounce((query) => {
-  fetchSearchResults(query);
-}, 300);
+**4. In React, keep handlers cheap** and memoize expensive work:
 
-input.addEventListener('input', (e) => searchHandler(e.target.value));
-
-// Throttle: At most once per interval
-function throttle(func, limit) {
-  let inThrottle;
-  return function (...args) {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
-    }
-  };
-}
-
-const scrollHandler = throttle(() => {
-  updateScrollPosition();
-}, 100);
-
-window.addEventListener('scroll', scrollHandler);
-```
-
-**3. Use Web Workers for Heavy Work**
-
-Web Workers run JavaScript in a different thread, so they don't block clicks.
-
-```javascript
-// worker.js (runs in separate thread)
-self.addEventListener('message', (e) => {
-  const result = heavyComputation(e.data);
-  self.postMessage(result);
-});
-
-// main.js (main thread stays responsive)
-const worker = new Worker('worker.js');
-
-button.addEventListener('click', () => {
-  worker.postMessage(largeDataset);
-});
-
-worker.addEventListener('message', (e) => {
-  displayResults(e.data);
-});
-```
-
-**4. Optimize React Event Handlers**
-
-**❌ Before (Creates new function every render):**
-
-```jsx
-function App() {
-  return (
-    <button onClick={() => handleClick()}>
-      Click me
-    </button>
-  );
-}
-```
-
-**✅ After (Reuses same function):**
-
-```jsx
-import { useCallback } from 'react';
-
-function App() {
-  const handleClick = useCallback(() => {
-    // Handle click
-  }, []);
-
-  return <button onClick={handleClick}>Click me</button>;
-}
-```
-
-**Memoize Expensive Calculations:**
-
-```jsx
+```tsx
 import { useMemo, useState } from 'react';
 
-function DataTable({ data }) {
-  const [sortColumn, setSortColumn] = useState('name');
+interface Row { id: string; name: string; }
 
-  // Only re-sort when data or sort column changes
-  const sortedData = useMemo(() => {
-    return [...data].sort((a, b) => {
-      return a[sortColumn] > b[sortColumn] ? 1 : -1;
-    });
-  }, [data, sortColumn]);
+function DataTable({ data }: { data: Row[] }): JSX.Element {
+  const [sortKey, setSortKey] = useState<keyof Row>('name');
 
-  return <Table data={sortedData} />;
+  // Re-sort only when inputs change, not on every render
+  const sorted = useMemo<Row[]>(
+    () => [...data].sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : -1)),
+    [data, sortKey],
+  );
+
+  return <Table data={sorted} />;
 }
 ```
 
 > **Key Insight:**
-> Every millisecond you free up on the main thread = better INP. Watch out for tasks longer than 50ms.
+> Every millisecond freed on the main thread improves INP. Hunt for tasks longer than 50ms.
 
 ---
 
-## CLS - Cumulative Layout Shift
+## CLS — Cumulative Layout Shift
 
-### 💡 **What is CLS?**
+CLS measures **how much the page jumps around while loading**. That moment when you go to click a button and an ad pushes it away — that is CLS.
 
-CLS measures **how much the page jumps around while loading**. You know that frustrating moment when you try to click a button and an ad pops up, pushing the button away? That's CLS.
+The root cause is almost always: **the browser doesn't know how big something will be until it loads**.
 
-**The Score:**
-
-```
-CLS = how much things moved × how far they moved
-```
-
-Lower is better. **Good CLS is below 0.1**.
-
-### 💡 **Common Causes of CLS**
-
-The main reason layout shifts happen: **the browser doesn't know how big something will be until it loads**.
-
-**1. Images Without Dimensions**
-
-**❌ Before (Browser doesn't know image size):**
+**1. Always set image dimensions**
 
 ```html
+<!-- ❌ No size → content jumps when the image loads -->
 <img src="image.jpg" alt="Image" />
-<!-- Image loads → suddenly takes space → everything below jumps -->
-```
 
-**✅ After (Browser reserves space):**
-
-```html
+<!-- ✅ Reserve the space up front -->
 <img src="image.jpg" alt="Image" width="800" height="600" />
+
+<!-- ✅ Or with modern CSS -->
+<img src="image.jpg" alt="Image" style="aspect-ratio: 16 / 9; width: 100%;" />
 ```
 
-**Or use aspect-ratio (modern way):**
+**2. Reserve space for dynamic content** (ads, embeds, banners)
 
 ```html
-<img
-  src="image.jpg"
-  alt="Image"
-  style="aspect-ratio: 16/9; width: 100%;"
-/>
+<div id="ad-slot" style="min-height: 250px;"><!-- ad loads here, no jump --></div>
 ```
 
-**2. Dynamic Content Pushes Things Down**
-
-**❌ Before (Ad pushes content down when it loads):**
-
-```html
-<article>
-  <h1>Article Title</h1>
-  <div id="ad-slot"></div>  <!-- Ad loads → pushes paragraph down -->
-  <p>Article content...</p>
-</article>
-```
-
-**✅ After (Space is reserved):**
-
-```html
-<article>
-  <h1>Article Title</h1>
-  <div id="ad-slot" style="min-height: 250px;">
-    <!-- Ad loads into reserved space → no jump -->
-  </div>
-  <p>Article content...</p>
-</article>
-```
-
-**3. Web Fonts Cause Text Reflow**
-
-When custom fonts load, text changes size and pushes things around.
-
-**❌ Before:**
+**3. Stop web fonts from reflowing text**
 
 ```css
 @font-face {
   font-family: 'CustomFont';
-  src: url('font.woff2');
-}
-
-body {
-  font-family: 'CustomFont', sans-serif;
+  src: url('font.woff2') format('woff2');
+  font-display: swap; /* show fallback immediately, swap when ready */
 }
 ```
 
-**✅ After:**
-
-```css
-@font-face {
-  font-family: 'CustomFont';
-  src: url('font.woff2');
-  font-display: swap; /* Show fallback right away */
-}
-```
-
-**Even better — preload the font:**
-
-```html
-<link rel="preload" href="font.woff2" as="font" crossorigin />
-```
-
-### 💡 **Measuring CLS**
-
-```javascript
-import { onCLS } from 'web-vitals';
-
-onCLS((metric) => {
-  console.log('CLS:', metric.value);
-
-  // See which elements are shifting
-  metric.entries.forEach((entry) => {
-    console.log('Shifted element:', entry.sources);
-  });
-});
-```
-
-### 💡 **Optimizing CLS**
-
-**The Golden Rule: Reserve space BEFORE content loads.**
-
-**1. Use Skeleton Screens**
-
-Show a placeholder that looks like the real content.
-
-```jsx
-function ProductCard({ loading, product }) {
-  if (loading) {
-    return (
-      <div className="skeleton">
-        <div className="skeleton-image" style={{ height: '200px' }} />
-        <div className="skeleton-title" style={{ height: '24px' }} />
-        <div className="skeleton-price" style={{ height: '20px' }} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="product-card">
-      <img src={product.image} alt={product.name} />
-      <h3>{product.name}</h3>
-      <p>{product.price}</p>
-    </div>
-  );
-}
-```
-
-**2. Use CSS `aspect-ratio`**
-
-```css
-/* Modern way (preferred) */
-.image-container {
-  aspect-ratio: 16 / 9;
-  width: 100%;
-}
-
-.image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-```
-
-**3. Don't Insert Content Above Existing Content**
-
-**❌ Before (Pushes everything down):**
-
-```javascript
-function showNotification(message) {
-  const notification = createNotificationElement(message);
-  document.body.prepend(notification); // CAUSES CLS!
-}
-```
-
-**✅ After (Floats on top):**
-
-```javascript
-function showNotification(message) {
-  const notification = createNotificationElement(message);
-  notification.style.position = 'fixed';
-  notification.style.top = '20px';
-  notification.style.right = '20px';
-  document.body.append(notification); // No CLS!
-}
-```
+**4. Don't insert content above what the user is reading** — show notifications with `position: fixed` instead of pushing the page down.
 
 > **Key Insight:**
-> If something will appear later, reserve space for it now. Empty space is better than jumping content.
+> If something will appear later, reserve its space now. Empty space beats jumping content.
 
 ---
 
 ## Measuring Core Web Vitals
 
-### 💡 **The web-vitals Library (Recommended)**
+The `web-vitals` library is the easiest and most accurate way to measure all three from real users.
 
-The easiest and most accurate way to measure all 3 metrics from real users.
+```typescript
+import { onCLS, onINP, onLCP, type Metric } from 'web-vitals';
 
-**Install:**
-
-```bash
-npm install web-vitals
-```
-
-**Use:**
-
-```javascript
-import { onCLS, onINP, onLCP } from 'web-vitals';
-
-function sendToAnalytics({ name, value, rating, delta, id }) {
-  // Send to Google Analytics
-  gtag('event', name, {
-    event_category: 'Web Vitals',
-    value: Math.round(name === 'CLS' ? delta * 1000 : delta),
-    event_label: id,
-    non_interaction: true,
+function sendToAnalytics(metric: Metric): void {
+  const body = JSON.stringify({
+    name: metric.name,
+    value: metric.value,
+    rating: metric.rating, // 'good' | 'needs-improvement' | 'poor'
+    id: metric.id,
   });
-
-  // Or send to your own server
-  fetch('/api/vitals', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, value, rating, id })
-  });
+  // `sendBeacon` survives page unload; fetch fallback for older browsers
+  navigator.sendBeacon?.('/api/vitals', body) ??
+    fetch('/api/vitals', { body, method: 'POST', keepalive: true });
 }
 
 onCLS(sendToAnalytics);
@@ -697,115 +263,27 @@ onLCP(sendToAnalytics);
 
 ### 💡 **Field Data vs Lab Data**
 
-| Type | What It Is | When to Use |
-|------|-----------|-------------|
-| **Field Data** | Real user measurements | What Google uses for ranking |
-| **Lab Data** | Tests in controlled setup | For debugging in development |
-
-**Field Data Tools:**
-- web-vitals library
-- Chrome User Experience Report (CrUX)
-
-**Lab Data Tools:**
-- Lighthouse
-- WebPageTest
-- Chrome DevTools
+| Type | What It Is | Use For |
+|------|-----------|---------|
+| **Field** | Real user measurements | What Google ranks on |
+| **Lab** | Controlled test (Lighthouse) | Debugging in development |
 
 > **Key Insight:**
-> Always test with **field data** because real users experience your site differently than your fast dev machine.
+> Always trust **field data**. Real users on mid-range phones and slow networks see a very different site than your fast laptop.
 
 ---
 
-## Optimization Strategies
+## Optimization Priority
 
-### 💡 **Where to Start (Priority Order)**
-
-| Priority | Action | Impact |
-|----------|--------|--------|
-| 🔴 **High** | Optimize the LCP image | Biggest win for LCP |
-| 🔴 **High** | Add image dimensions | Easy CLS fix |
-| 🔴 **High** | Remove render-blocking CSS/JS | Helps LCP |
-| 🔴 **High** | Preload critical fonts | Helps both LCP and CLS |
-| 🟡 **Medium** | Code splitting | Helps INP |
-| 🟡 **Medium** | Debounce/throttle handlers | Helps INP |
-| 🟢 **Low** | Use AVIF format | Marginal LCP gain |
-| 🟢 **Low** | Optimize third-party scripts | Depends on the script |
-
-### 💡 **Complete Example: Optimized Landing Page**
-
-This Next.js page implements all the best practices.
-
-```jsx
-// app/page.jsx
-import Image from 'next/image';
-import { Suspense, lazy } from 'react';
-
-// Below-the-fold components load lazily
-const Reviews = lazy(() => import('./Reviews'));
-const Newsletter = lazy(() => import('./Newsletter'));
-
-export default function LandingPage() {
-  return (
-    <>
-      {/* Critical above-the-fold content */}
-      <Hero />
-
-      {/* Lazy-loaded sections with reserved space */}
-      <Suspense fallback={<div style={{ height: '400px' }} />}>
-        <Reviews />
-      </Suspense>
-
-      <Suspense fallback={<div style={{ height: '200px' }} />}>
-        <Newsletter />
-      </Suspense>
-    </>
-  );
-}
-
-function Hero() {
-  return (
-    <section className="hero">
-      {/* Optimized LCP image */}
-      <Image
-        src="/hero.avif"
-        alt="Hero Image"
-        width={1200}
-        height={600}
-        priority
-        quality={90}
-        placeholder="blur"
-        blurDataURL="data:image/jpeg;base64,..."
-      />
-
-      <h1>Welcome to Our Site</h1>
-      <button onClick={handleClick}>Get Started</button>
-    </section>
-  );
-}
-```
-
-```html
-<!-- index.html head -->
-<head>
-  <!-- Connect early to important origins -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://cdn.example.com" />
-
-  <!-- Preload the LCP image and font -->
-  <link rel="preload" href="/hero.avif" as="image" fetchpriority="high" />
-  <link rel="preload" href="/font.woff2" as="font" type="font/woff2" crossorigin />
-
-  <!-- Critical CSS inline so the page can render -->
-  <style>
-    .hero { min-height: 600px; }
-    /* ... critical styles ... */
-  </style>
-
-  <!-- Non-critical CSS loads asynchronously -->
-  <link rel="preload" href="/styles.css" as="style"
-        onload="this.onload=null;this.rel='stylesheet'" />
-</head>
-```
+| Priority | Action | Helps |
+|----------|--------|-------|
+| 🔴 High | Optimize the LCP image | LCP |
+| 🔴 High | Add width/height to all images | CLS |
+| 🔴 High | Remove render-blocking CSS/JS | LCP |
+| 🔴 High | Preload critical fonts (`font-display: swap`) | LCP + CLS |
+| 🟡 Medium | Break up long tasks, debounce/throttle | INP |
+| 🟡 Medium | Code splitting | INP |
+| 🟢 Low | Switch to AVIF | LCP (small gain) |
 
 ---
 
@@ -813,174 +291,58 @@ function Hero() {
 
 **Q1: What are Core Web Vitals and why do they matter?**
 
-A: Three metrics from Google that measure user experience:
-- **LCP** (Loading): When the main content shows up (< 2.5s)
-- **INP** (Interactivity): How fast clicks respond (< 200ms)
-- **CLS** (Visual Stability): How much things jump around (< 0.1)
-
-**Why they matter**: They affect Google rankings, user happiness, and conversion rates.
+Three field metrics from Google: **LCP** (loading, < 2.5s), **INP** (responsiveness, < 200ms), and **CLS** (visual stability, < 0.1). They affect search ranking, user retention, and conversions. Google scores at the 75th percentile of real users.
 
 **Q2: How would you optimize LCP for a hero image?**
 
-A:
-```jsx
-// 1. Use Next.js Image with priority
-<Image src="/hero.avif" priority quality={90} />
+Use a modern format (AVIF/WebP), serve responsive sizes with `srcset`, add `fetchpriority="high"`, preload it, serve from a CDN, and remove render-blocking resources. In Next.js, the `priority` prop on `<Image>` does most of this.
 
-// 2. Preload it
-<link rel="preload" as="image" href="/hero.avif" />
+**Q3: What replaced FID, and why?**
 
-// 3. Use modern formats (AVIF/WebP)
-// 4. Compress the file
-// 5. Use a CDN
-// 6. Use responsive images
-<img srcset="hero-400.avif 400w, hero-800.avif 800w" />
-```
-
-**Q3: What's the difference between FID and INP?**
-
-A:
-| Feature | FID (Old) | INP (New) |
-|---------|-----------|-----------|
-| Measures | First click only | All clicks |
-| Includes | Input delay only | Delay + processing + rendering |
-
-INP replaced FID in March 2024.
+INP replaced FID in March 2024. FID measured only the delay of the **first** interaction. INP measures the full delay-plus-processing-plus-render time of **all** interactions, giving a truer picture of responsiveness.
 
 **Q4: What causes CLS and how do you fix it?**
 
-A: Common causes and fixes:
-
 | Cause | Fix |
 |-------|-----|
-| Images without dimensions | Add `width` and `height` |
-| Web fonts loading | Use `font-display: swap` |
-| Dynamic content | Reserve space with `min-height` |
-| Ads | Set container size before loading |
+| Images without dimensions | Set `width`/`height` or `aspect-ratio` |
+| Web fonts reflowing text | `font-display: swap` + preload |
+| Dynamic content (ads) | Reserve space with `min-height` |
+| Content inserted above the fold | Use `position: fixed` overlays |
 
-```css
-/* Easy fix with aspect-ratio */
-img { aspect-ratio: 16/9; width: 100%; }
-```
+**Q5: How do you debug a poor INP score?**
 
-**Q5: How do you measure Core Web Vitals?**
-
-A:
-```javascript
-// Production: web-vitals library
-import { onCLS, onINP, onLCP } from 'web-vitals';
-
-onLCP((metric) => sendToAnalytics(metric));
-
-// Development: Chrome DevTools + Lighthouse
-// Field data: Chrome User Experience Report
-// Lab testing: Lighthouse, WebPageTest
-```
-
-**Q6: What's the difference between field and lab data?**
-
-A:
-- **Field Data**: Real users (what Google uses for ranking)
-- **Lab Data**: Controlled tests (good for debugging)
-
-Both are useful — lab for debugging, field for real-world performance.
-
-**Q7: How would you debug a poor INP score?**
-
-A:
-```javascript
-// 1. Find slow interactions
+```typescript
+// Log slow interactions in the field
 const observer = new PerformanceObserver((list) => {
   for (const entry of list.getEntries()) {
-    if (entry.duration > 200) {
-      console.log('Slow interaction:', entry);
-    }
+    if (entry.duration > 200) console.log('Slow interaction:', entry);
   }
 });
-observer.observe({ type: 'event', durationThreshold: 200 });
-
-// 2. Common fixes:
-// - Debounce/throttle event handlers
-// - Break long tasks into chunks
-// - Use Web Workers for heavy work
-// - Use useMemo/useCallback in React
+observer.observe({ type: 'event', durationThreshold: 200 } as PerformanceObserverInit);
 ```
 
-**Q8: What is the critical rendering path?**
+Then break up long tasks, debounce handlers, move work to a Web Worker, or memoize in React.
 
-A: The steps the browser takes to show the page:
+**Q6: Field data vs lab data?**
 
-```
-HTML → DOM
-    ↓
-CSS → CSSOM
-    ↓
-DOM + CSSOM → Render Tree
-    ↓
-Layout → Paint
-```
-
-**Effects on CWV:**
-- Blocking CSS/JS slows LCP
-- Long JavaScript slows INP
-- Bad rendering causes CLS
-
-**Fix**: Inline critical CSS, defer non-critical JS.
-
-**Q9: How do you optimize web fonts to prevent CLS?**
-
-A:
-```html
-<!-- Preload critical fonts -->
-<link rel="preload" href="font.woff2" as="font" crossorigin />
-
-<style>
-  @font-face {
-    font-family: 'MyFont';
-    src: url('font.woff2') format('woff2');
-    font-display: swap; /* Show fallback right away */
-  }
-</style>
-```
-
-**Q10: What tools do you use for performance optimization?**
-
-A:
-- **Lighthouse**: Overall performance score
-- **Chrome DevTools**: Profiling and network analysis
-- **Web Vitals Library**: Real user data
-- **WebPageTest**: Detailed waterfall view
-- **Bundle Analyzer**: Find big JavaScript files
-- **PageSpeed Insights**: Both field and lab data
+Field data is from real users (what Google ranks on); lab data is a controlled test (good for debugging and CI). Use lab to catch regressions early, field to know real-world performance.
 
 ---
 
 ## Summary
 
-### Quick Reference
-
 | Metric | Target | How to Optimize |
 |--------|--------|-----------------|
-| **LCP** | < 2.5s | Optimize images, preload, reduce server time |
-| **INP** | < 200ms | Debounce, break long tasks, use Web Workers |
-| **CLS** | < 0.1 | Set dimensions, reserve space, optimize fonts |
-
-### Optimization Priority
-
-1. ✅ Fix the LCP element (usually a hero image)
-2. ✅ Add dimensions to all images
-3. ✅ Debounce expensive event handlers
-4. ✅ Preload critical resources
-5. ✅ Remove render-blocking resources
-
-### Key Takeaways
+| **LCP** | < 2.5s | Optimize the LCP image, preload, cut blocking resources |
+| **INP** | < 200ms | Break up long tasks, debounce, Web Workers |
+| **CLS** | < 0.1 | Set dimensions, reserve space, `font-display: swap` |
 
 > **Remember:**
-> - Core Web Vitals affect SEO directly
-> - Use **field data** (real users) — not just lab data
-> - Focus on the biggest wins first
-> - Use the `web-vitals` library in production
-> - Test on real devices, not just your fast laptop
+> - Core Web Vitals directly affect SEO.
+> - Trust **field data** (real users), not just lab scores.
+> - Fix the biggest wins first: LCP image and image dimensions.
+> - Measure in production with the `web-vitals` library.
 
 ---
 
