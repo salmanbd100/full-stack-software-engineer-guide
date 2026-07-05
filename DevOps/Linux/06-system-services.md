@@ -1,887 +1,322 @@
-# System Services and Systemd for DevOps
+# System Services and Systemd
 
 ## Overview
 
-System services are the backbone of Linux infrastructure. Understanding systemd, the modern init system and service manager, is essential for managing applications, troubleshooting, and automating DevOps workflows.
+Systemd is the init system and service manager on almost every modern Linux distro. It boots the machine, starts your apps, keeps them alive, and collects their logs.
 
-**Why Services Matter:**
-- Manage application lifecycle (start, stop, restart)
-- Ensure services start on boot
-- Monitor service health
-- View service logs
-- Configure resource limits
-- Handle dependencies
+If you deploy anything on a Linux server, you manage it through systemd.
 
-**Service Management Evolution:**
+> **Key Insight:** Systemd replaced older init systems (SysV, Upstart). It starts services in parallel, tracks dependencies, and gives you one tool for control (`systemctl`) and one for logs (`journalctl`).
 
-| Init System | Used By | Year | Complexity |
-|-------------|---------|------|------------|
-| **SysV init** | Older systems | 1983 | Scripts in /etc/init.d/ |
-| **Upstart** | Ubuntu (old) | 2006 | Event-based |
-| **systemd** | Most modern distros | 2010 | Unit files, parallel startup |
+---
 
 ## Systemd Basics
 
 ### 💡 **What is Systemd?**
 
-Systemd is a system and service manager that runs as PID 1, initializing the system and managing services throughout the system lifecycle.
+The first process the kernel starts. It runs as **PID 1** and manages everything else.
 
-**Key Concepts:**
-- **Units**: Basic objects systemd manages (services, sockets, devices, mounts)
-- **Targets**: Groups of units (like runlevels in SysV)
-- **Dependencies**: Order and requirement relationships
-- **Timers**: Systemd's alternative to cron
+Systemd manages **units** — the objects it knows how to control. A service is the most common unit type.
 
-**Unit Types:**
+**Common unit types:**
 
 | Unit Type | Extension | Purpose |
 |-----------|-----------|---------|
-| **Service** | .service | System services (daemons) |
-| **Socket** | .socket | IPC or network sockets |
-| **Target** | .target | Unit groups (like runlevels) |
-| **Mount** | .mount | Filesystem mount points |
-| **Timer** | .timer | Scheduled tasks |
-| **Path** | .path | Path-based activation |
+| Service | `.service` | Daemons and background apps |
+| Timer | `.timer` | Scheduled tasks (cron replacement) |
+| Socket | `.socket` | Network or IPC sockets |
+| Target | `.target` | Groups of units (like runlevels) |
+| Mount | `.mount` | Filesystem mount points |
 
-### systemctl - Service Control
+---
+
+## systemctl — Controlling Services
+
+`systemctl` is your main tool. It starts, stops, and inspects services.
+
+**Lifecycle control:**
 
 ```bash
-# ========================================
-# Basic Service Management
-# ========================================
-
-# Start service
-sudo systemctl start nginx
-
-# Stop service
-sudo systemctl stop nginx
-
-# Restart service (stop then start)
-sudo systemctl restart nginx
-
-# Reload configuration (without restart)
-sudo systemctl reload nginx
-
-# Restart if running, start if stopped
-sudo systemctl try-restart nginx
-
-# Reload or restart
-sudo systemctl reload-or-restart nginx
-
-# ========================================
-# Service Status
-# ========================================
-
-# Check service status
-systemctl status nginx
-
-# Output example:
-# ● nginx.service - A high performance web server
-#    Loaded: loaded (/lib/systemd/system/nginx.service; enabled)
-#    Active: active (running) since Mon 2026-01-19 10:00:00 UTC
-#      Docs: man:nginx(8)
-#  Main PID: 1234 (nginx)
-#     Tasks: 2 (limit: 4915)
-#    Memory: 5.2M
-#    CGroup: /system.slice/nginx.service
-#            ├─1234 nginx: master process
-#            └─1235 nginx: worker process
-
-# Check if service is active
-systemctl is-active nginx
-
-# Check if service is enabled
-systemctl is-enabled nginx
-
-# Check if service failed
-systemctl is-failed nginx
-
-# ========================================
-# Boot Management
-# ========================================
-
-# Enable service (start on boot)
-sudo systemctl enable nginx
-
-# Disable service (don't start on boot)
-sudo systemctl disable nginx
-
-# Enable and start immediately
-sudo systemctl enable --now nginx
-
-# Disable and stop immediately
-sudo systemctl disable --now nginx
-
-# Check if service is enabled
-systemctl is-enabled nginx
-
-# ========================================
-# Service Listing
-# ========================================
-
-# List all services
-systemctl list-units --type=service
-
-# List all services (including inactive)
-systemctl list-units --type=service --all
-
-# List running services only
-systemctl list-units --type=service --state=running
-
-# List failed services
-systemctl list-units --type=service --state=failed
-
-# List enabled services
-systemctl list-unit-files --type=service --state=enabled
-
-# Show service dependencies
-systemctl list-dependencies nginx
-
-# Show reverse dependencies (what depends on this)
-systemctl list-dependencies --reverse nginx
+sudo systemctl start nginx      # start now
+sudo systemctl stop nginx       # stop now
+sudo systemctl restart nginx    # stop then start
+sudo systemctl reload nginx     # reload config, no downtime
 ```
 
-### Service Logs with journalctl
+> **Restart vs reload:** `restart` kills and restarts the process (brief downtime). `reload` tells the running process to re-read its config (no downtime). Use `reload` when the service supports it.
+
+**Boot behavior:**
 
 ```bash
-# ========================================
-# journalctl - View Systemd Logs
-# ========================================
-
-# View all logs
-sudo journalctl
-
-# View logs for specific service
-sudo journalctl -u nginx
-
-# Follow logs (like tail -f)
-sudo journalctl -u nginx -f
-
-# View logs since boot
-sudo journalctl -b
-
-# View logs from previous boot
-sudo journalctl -b -1
-
-# View logs from specific time
-sudo journalctl --since "2026-01-19 10:00:00"
-sudo journalctl --since "1 hour ago"
-sudo journalctl --since "yesterday"
-
-# Time range
-sudo journalctl --since "2026-01-19" --until "2026-01-20"
-
-# Last N lines
-sudo journalctl -u nginx -n 50
-
-# Show in reverse (newest first)
-sudo journalctl -u nginx -r
-
-# Output format
-sudo journalctl -u nginx -o json-pretty
-sudo journalctl -u nginx -o short-iso
-
-# Filter by priority
-sudo journalctl -p err              # Errors only
-sudo journalctl -p warning          # Warnings and above
-
-# Priority levels:
-# 0: emerg    - Emergency
-# 1: alert    - Alert
-# 2: crit     - Critical
-# 3: err      - Error
-# 4: warning  - Warning
-# 5: notice   - Notice
-# 6: info     - Info
-# 7: debug    - Debug
-
-# Follow logs from multiple services
-sudo journalctl -u nginx -u mysql -f
-
-# Show kernel messages
-sudo journalctl -k
-
-# Show only this boot
-sudo journalctl -b 0
-
-# ========================================
-# Journal Management
-# ========================================
-
-# Check journal disk usage
-sudo journalctl --disk-usage
-
-# Vacuum old logs (keep last 2 days)
-sudo journalctl --vacuum-time=2d
-
-# Vacuum by size (keep last 500M)
-sudo journalctl --vacuum-size=500M
-
-# Verify journal integrity
-sudo journalctl --verify
-
-# Rotate journals
-sudo systemctl kill --kill-who=main --signal=SIGUSR2 systemd-journald.service
-
-# Configuration
-# /etc/systemd/journald.conf
-[Journal]
-SystemMaxUse=500M
-SystemMaxFileSize=50M
-RuntimeMaxUse=100M
-MaxRetentionSec=2week
+sudo systemctl enable nginx        # start on every boot
+sudo systemctl disable nginx       # don't start on boot
+sudo systemctl enable --now nginx  # enable AND start right now
 ```
 
-## Creating Custom Services
+> **Key Insight:** `start` affects the current session only. `enable` affects future boots. They are independent — a service can be running but not enabled, or enabled but not running.
 
-### 💡 **Service Unit Files**
-
-Service unit files define how systemd manages your application. Located in `/etc/systemd/system/` or `/lib/systemd/system/`.
-
-### Simple Service Example
+**Status and checks:**
 
 ```bash
-# ========================================
-# Create Simple Service
-# ========================================
+systemctl status nginx        # health, PID, recent logs
+systemctl is-active nginx     # running? -> active / inactive
+systemctl is-enabled nginx    # starts on boot? -> enabled / disabled
+```
 
-# Example: Node.js application service
-sudo nano /etc/systemd/system/myapp.service
+**Listing services:**
 
+```bash
+systemctl list-units --type=service              # all active services
+systemctl list-units --type=service --all        # include inactive
+systemctl --failed                               # only failed units
+```
+
+---
+
+## journalctl — Reading Logs
+
+Systemd captures each service's stdout and stderr into the **journal**. `journalctl` queries it.
+
+**The commands you actually use:**
+
+```bash
+journalctl -u nginx                  # logs for one service
+journalctl -u nginx -f               # follow live (like tail -f)
+journalctl -u nginx -n 50            # last 50 lines
+journalctl -u nginx --since "1 hour ago"
+journalctl -u nginx -p err           # errors and worse only
+journalctl -b                        # logs since last boot
+```
+
+**Priority levels** for `-p` (0 = worst): `emerg`, `alert`, `crit`, `err`, `warning`, `notice`, `info`, `debug`.
+
+> **Key Insight:** When a service misbehaves, `systemctl status` gives you the headline; `journalctl -u <service> -n 100` gives you the full story.
+
+---
+
+## Creating a Custom Service
+
+### 💡 **Unit Files**
+
+A unit file tells systemd how to run your app. Put custom ones in `/etc/systemd/system/`.
+
+**`/etc/systemd/system/myapp.service`:**
+
+```ini
 [Unit]
 Description=My Node.js Application
-Documentation=https://myapp.com/docs
-After=network.target                    # Start after network is up
+After=network.target          # start after networking is ready
 
 [Service]
-Type=simple                             # Service type
-User=nodeuser                           # Run as this user
-WorkingDirectory=/opt/myapp             # Working directory
-ExecStart=/usr/bin/node /opt/myapp/server.js  # Start command
-Restart=always                          # Always restart on failure
-RestartSec=10                           # Wait 10s before restart
-
-# Environment variables
-Environment="NODE_ENV=production"
-Environment="PORT=3000"
-
-# Standard output/error to journal
-StandardOutput=journal
-StandardError=journal
+Type=simple                   # ExecStart process IS the service
+User=nodeuser                 # drop root; run as a low-priv user
+WorkingDirectory=/opt/myapp
+ExecStart=/usr/bin/node /opt/myapp/server.js
+Restart=always                # revive the app if it crashes
+RestartSec=10                 # wait 10s between restart attempts
+Environment=NODE_ENV=production
 
 [Install]
-WantedBy=multi-user.target              # Enable in multi-user mode
-
-# ========================================
-# Reload and Start Service
-# ========================================
-
-# Reload systemd daemon (after creating/editing unit)
-sudo systemctl daemon-reload
-
-# Start service
-sudo systemctl start myapp
-
-# Enable on boot
-sudo systemctl enable myapp
-
-# Check status
-sudo systemctl status myapp
-
-# View logs
-sudo journalctl -u myapp -f
+WantedBy=multi-user.target    # enable = hook into normal boot
 ```
 
-### Service Types
+**The three sections:**
+
+| Section | Answers | Key directives |
+|---------|---------|----------------|
+| `[Unit]` | What is it, what does it need? | `Description`, `After`, `Requires`, `Wants` |
+| `[Service]` | How do I run it? | `Type`, `ExecStart`, `User`, `Restart` |
+| `[Install]` | What happens on `enable`? | `WantedBy` |
+
+**Load and start it:**
 
 ```bash
-# ========================================
-# Service Type= Options
-# ========================================
+sudo systemctl daemon-reload      # re-read unit files from disk
+sudo systemctl enable --now myapp
+systemctl status myapp
+```
 
-# Type=simple (default)
-# Process specified in ExecStart is the main process
-[Service]
-Type=simple
-ExecStart=/usr/bin/myapp
+> ⚠️ **Always run `daemon-reload` after editing a unit file.** Systemd caches unit files in memory. Without a reload it keeps using the old version and ignores your changes.
 
-# Type=forking
-# Process forks and parent exits (traditional daemon)
-[Service]
-Type=forking
-ExecStart=/usr/sbin/nginx
-PIDFile=/var/run/nginx.pid
+---
 
-# Type=oneshot
-# Process exits after execution (useful for scripts)
+## Service Types
+
+`Type=` tells systemd how to know the service is "started". Getting it wrong causes false failures.
+
+| `Type=` | Meaning | Use for |
+|---------|---------|---------|
+| `simple` | ExecStart process is the service (default) | Most modern apps that stay in foreground |
+| `forking` | Process forks and the parent exits | Traditional daemons (nginx, sshd) |
+| `oneshot` | Runs, does its job, exits | Setup scripts, one-time tasks |
+| `notify` | App signals systemd when truly ready | Apps needing accurate readiness |
+
+> **simple vs forking:** With `simple`, systemd treats the process it launches as the service. With `forking`, systemd expects that process to fork a child and exit; the child is the real service. Pick `forking` for classic daemons that background themselves, and set `PIDFile=` so systemd can track the child.
+
+**oneshot needs one extra flag if the effect should persist:**
+
+```ini
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/setup-script.sh
-RemainAfterExit=yes                     # Consider active even after exit
-
-# Type=notify
-# Service sends notification when ready
-[Service]
-Type=notify
-ExecStart=/usr/bin/myapp
-NotifyAccess=main
-
-# Type=dbus
-# Service is ready when it takes a name on D-Bus
-[Service]
-Type=dbus
-BusName=org.example.myapp
-ExecStart=/usr/bin/myapp
-
-# Type=idle
-# Execution delayed until all jobs finished
-[Service]
-Type=idle
-ExecStart=/usr/bin/myapp
+ExecStart=/usr/local/bin/setup.sh
+RemainAfterExit=yes    # report "active" even after the script exits
 ```
 
-### Advanced Service Configuration
+---
 
-```bash
-# ========================================
-# Advanced Service Features
-# ========================================
+## Dependencies and Ordering
 
-cat > /etc/systemd/system/advanced-app.service << 'EOF'
-[Unit]
-Description=Advanced Application Service
-Documentation=https://example.com/docs
-After=network.target mysql.service      # Start after these units
-Requires=mysql.service                  # Requires mysql (hard dependency)
-Wants=redis.service                     # Wants redis (soft dependency)
+Two separate ideas: **requirement** (do I need this unit?) and **ordering** (when do I start relative to it?).
 
-[Service]
-Type=simple
-User=appuser
-Group=appgroup
-WorkingDirectory=/opt/app
+| Directive | Type | Effect |
+|-----------|------|--------|
+| `Requires=` | Requirement | Hard need. If it fails to start, this unit fails too. |
+| `Wants=` | Requirement | Soft need. This unit starts even if the other fails. |
+| `After=` | Ordering | Start this unit *after* the named units. |
+| `Before=` | Ordering | Start this unit *before* the named units. |
+| `Conflicts=` | Requirement | Cannot run at the same time as the named unit. |
+| `BindsTo=` | Requirement | Like `Requires`, but also stops if the other stops. |
 
-# Start command
-ExecStart=/usr/bin/python3 /opt/app/main.py
+> **Key Insight:** `Requires`/`Wants` control *whether*; `After`/`Before` control *when*. They are independent. `Requires=db.service` without `After=db.service` may start both at once — you usually want both directives together.
 
-# Pre-start setup
-ExecStartPre=/usr/bin/mkdir -p /var/run/app
-ExecStartPre=/usr/bin/chown appuser:appgroup /var/run/app
+**Prefer `Wants` in practice.** `Requires` cascades failures: one dependency dies and your service dies with it. Use `Wants` unless the service is truly useless without the dependency.
 
-# Post-start validation
-ExecStartPost=/usr/bin/curl -f http://localhost:8080/health
+---
 
-# Reload command
-ExecReload=/bin/kill -HUP $MAINPID
-
-# Pre-stop cleanup
-ExecStopPost=/usr/bin/rm -rf /var/run/app
-
-# Restart policy
-Restart=on-failure                      # on-failure, always, on-abnormal
-RestartSec=10                           # Wait before restart
-StartLimitInterval=200                  # Within this interval...
-StartLimitBurst=5                       # ...allow 5 restarts
-
-# Environment
-Environment="APP_ENV=production"
-EnvironmentFile=/etc/app/config         # Load from file
-
-# Security options
-PrivateTmp=true                         # Private /tmp
-NoNewPrivileges=true                    # Can't gain new privileges
-ProtectSystem=full                      # Read-only /usr, /boot, /efi
-ProtectHome=true                        # /home inaccessible
-
-# Resource limits
-LimitNOFILE=65536                       # Max open files
-LimitNPROC=512                          # Max processes
-MemoryLimit=1G                          # Memory limit
-CPUQuota=50%                            # CPU quota
-
-# Logging
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=advanced-app
-
-# Timeout
-TimeoutStartSec=60                      # Max start time
-TimeoutStopSec=30                       # Max stop time
-
-[Install]
-WantedBy=multi-user.target
-Alias=app.service                       # Additional name
-EOF
-
-sudo systemctl daemon-reload
-sudo systemctl start advanced-app
-```
-
-### Multi-Instance Services
-
-```bash
-# ========================================
-# Template Units (@ in filename)
-# ========================================
-
-# Create template
-cat > /etc/systemd/system/worker@.service << 'EOF'
-[Unit]
-Description=Worker Instance %i
-After=network.target
-
-[Service]
-Type=simple
-User=worker
-ExecStart=/usr/bin/worker --instance=%i
-Restart=always
-
-# Instance-specific environment
-Environment="INSTANCE=%i"
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Start multiple instances
-sudo systemctl start worker@1
-sudo systemctl start worker@2
-sudo systemctl start worker@3
-
-# Enable instances
-sudo systemctl enable worker@1
-sudo systemctl enable worker@2
-
-# Check all instances
-systemctl list-units 'worker@*'
-
-# Stop specific instance
-sudo systemctl stop worker@2
-```
-
-## Service Dependencies
-
-### Understanding Dependencies
-
-```bash
-# ========================================
-# Dependency Directives
-# ========================================
-
-# Requires= (hard dependency)
-# If the required unit fails, this unit fails too
-[Unit]
-Requires=mysql.service
-
-# Wants= (soft dependency)
-# If the wanted unit fails, this unit continues
-[Unit]
-Wants=redis.service
-
-# After= (ordering)
-# Start this unit after the specified units
-[Unit]
-After=network.target mysql.service
-
-# Before= (ordering)
-# Start this unit before the specified units
-[Unit]
-Before=nginx.service
-
-# Conflicts=
-# This unit cannot run simultaneously with specified units
-[Unit]
-Conflicts=apache2.service
-
-# BindsTo=
-# Like Requires but also stops if the bound unit stops
-[Unit]
-BindsTo=nginx.service
-
-# PartOf=
-# When specified unit deactivates, this unit deactivates too
-[Unit]
-PartOf=nginx.service
-
-# ========================================
-# Example: Web Application with Dependencies
-# ========================================
-
-# Database service (no dependencies)
-# /etc/systemd/system/myapp-db.service
-[Unit]
-Description=MyApp Database
-After=network.target
-
-[Service]
-Type=forking
-ExecStart=/usr/bin/mongod --fork --config /etc/mongod.conf
-PIDFile=/var/run/mongodb/mongod.pid
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-
-# Backend service (requires database)
-# /etc/systemd/system/myapp-backend.service
-[Unit]
-Description=MyApp Backend API
-After=network.target myapp-db.service
-Requires=myapp-db.service
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/node /opt/myapp/backend/server.js
-Restart=always
-User=appuser
-
-[Install]
-WantedBy=multi-user.target
-
-# Frontend service (requires backend)
-# /etc/systemd/system/myapp-frontend.service
-[Unit]
-Description=MyApp Frontend
-After=myapp-backend.service
-Requires=myapp-backend.service
-
-[Service]
-Type=forking
-ExecStart=/usr/sbin/nginx
-PIDFile=/var/run/nginx.pid
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-
-# Master service to manage all together
-# /etc/systemd/system/myapp.service
-[Unit]
-Description=MyApp Complete Stack
-Requires=myapp-db.service myapp-backend.service myapp-frontend.service
-After=myapp-frontend.service
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/bin/true
-
-[Install]
-WantedBy=multi-user.target
-
-# Now you can:
-sudo systemctl start myapp          # Starts all components
-sudo systemctl stop myapp           # Stops all components
-```
-
-## Systemd Timers
+## Timers (Cron Replacement)
 
 ### 💡 **Timers vs Cron**
 
-Systemd timers are the modern replacement for cron jobs, with better logging, dependencies, and integration.
+Systemd timers schedule tasks like cron, but with real logging (`journalctl`), dependency support, and the ability to catch up on missed runs.
 
-### Creating Timers
+A timer needs **two files**: a `.service` (the work) and a `.timer` (the schedule).
 
-```bash
-# ========================================
-# Timer Example: Backup Service
-# ========================================
+**`backup.service`:**
 
-# Create service unit
-cat > /etc/systemd/system/backup.service << 'EOF'
+```ini
 [Unit]
-Description=Backup Service
-Wants=backup.timer
+Description=Nightly backup
 
 [Service]
 Type=oneshot
-User=backup
 ExecStart=/usr/local/bin/backup.sh
+```
 
-[Install]
-WantedBy=multi-user.target
-EOF
+**`backup.timer`:**
 
-# Create timer unit
-cat > /etc/systemd/system/backup.timer << 'EOF'
+```ini
 [Unit]
-Description=Backup Timer
-Requires=backup.service
+Description=Run backup daily
 
 [Timer]
-OnCalendar=daily                        # Every day at 00:00
-# Alternative schedules:
-# OnCalendar=hourly                     # Every hour
-# OnCalendar=weekly                     # Every Monday 00:00
-# OnCalendar=*-*-* 02:00:00             # Every day at 02:00
-# OnCalendar=Mon,Tue *-*-* 12:00:00     # Mon and Tue at 12:00
-# OnCalendar=*-*-01 00:00:00            # First day of month
-
-# Wait 5 minutes after boot
-OnBootSec=5min
-
-# Randomize by up to 1 hour
-RandomizedDelaySec=1h
-
-# Persistent (run if missed during downtime)
-Persistent=true
+OnCalendar=daily        # every day at 00:00
+Persistent=true         # if machine was off, run at next boot
+RandomizedDelaySec=1h   # spread load: jitter up to 1 hour
 
 [Install]
 WantedBy=timers.target
-EOF
-
-# Enable and start timer
-sudo systemctl daemon-reload
-sudo systemctl enable backup.timer
-sudo systemctl start backup.timer
-
-# Check timer status
-systemctl status backup.timer
-
-# List all timers
-systemctl list-timers
-
-# Show next run time
-systemctl list-timers backup.timer
 ```
 
-### OnCalendar Syntax
+**Enable the timer (not the service):**
 
 ```bash
-# ========================================
-# OnCalendar Format
-# ========================================
-
-# Format: DayOfWeek Year-Month-Day Hour:Minute:Second
-
-# Examples:
-OnCalendar=*-*-* *:00:00                # Every hour
-OnCalendar=*-*-* 00,12:00:00            # Twice daily (00:00 and 12:00)
-OnCalendar=Mon *-*-* 12:00:00           # Every Monday at noon
-OnCalendar=Mon,Fri *-*-* 15:30:00       # Mon and Fri at 15:30
-OnCalendar=*-*-01 00:00:00              # First day of month at midnight
-OnCalendar=Mon..Fri *-*-* 09:00:00      # Weekdays at 09:00
-
-# Test calendar specification
-systemd-analyze calendar "Mon *-*-* 12:00:00"
-systemd-analyze calendar "daily"
-systemd-analyze calendar "*:0/15"       # Every 15 minutes
+sudo systemctl daemon-reload
+sudo systemctl enable --now backup.timer
+systemctl list-timers        # show next run times
 ```
+
+**`OnCalendar` quick reference:**
+
+| Value | Runs |
+|-------|------|
+| `hourly` | Top of every hour |
+| `daily` | Every day at 00:00 |
+| `*-*-* 02:00:00` | Every day at 02:00 |
+| `Mon..Fri *-*-* 09:00:00` | Weekdays at 09:00 |
+| `*:0/15` | Every 15 minutes |
+
+```bash
+systemd-analyze calendar "Mon *-*-* 12:00:00"   # test an expression
+```
+
+---
 
 ## Targets (Runlevels)
 
-### Understanding Targets
+Targets group units to define system states, replacing SysV runlevels.
+
+| Target | Old runlevel | Meaning |
+|--------|--------------|---------|
+| `multi-user.target` | 3 | Full system, no GUI (typical server) |
+| `graphical.target` | 5 | Multi-user with GUI |
+| `rescue.target` | 1 | Single-user, minimal recovery |
+| `reboot.target` | 6 | Reboot |
+| `poweroff.target` | 0 | Shut down |
 
 ```bash
-# ========================================
-# System Targets (like SysV runlevels)
-# ========================================
-
-# View current target
-systemctl get-default
-
-# Common targets:
-# poweroff.target     - Shutdown (runlevel 0)
-# rescue.target       - Single-user mode (runlevel 1)
-# multi-user.target   - Multi-user, no GUI (runlevel 3)
-# graphical.target    - Multi-user with GUI (runlevel 5)
-# reboot.target       - Reboot (runlevel 6)
-
-# Set default target
-sudo systemctl set-default multi-user.target
-
-# Change to target immediately
-sudo systemctl isolate multi-user.target
-
-# List all targets
-systemctl list-units --type=target
-
-# Show what's in a target
-systemctl list-dependencies multi-user.target
+systemctl get-default                        # current default target
+sudo systemctl set-default multi-user.target # change boot target
+sudo systemctl isolate rescue.target         # switch now
 ```
 
-## System Control
+Power commands: `systemctl reboot`, `poweroff`, `suspend`, `hibernate`.
 
-### System State Management
+---
+
+## Multi-Instance Services (brief)
+
+A template unit uses `@` and `%i` so one file serves many instances. Name it `worker@.service`, use `ExecStart=/usr/bin/worker --id=%i`, then run `systemctl start worker@1` and `worker@2`. Useful for identical workers per queue, port, or shard.
+
+---
+
+## Troubleshooting a Failing Service
+
+Work through this checklist when a service won't start:
 
 ```bash
-# ========================================
-# System Power Management
-# ========================================
-
-# Reboot system
-sudo systemctl reboot
-
-# Power off system
-sudo systemctl poweroff
-
-# Halt system
-sudo systemctl halt
-
-# Suspend system
-sudo systemctl suspend
-
-# Hibernate system
-sudo systemctl hibernate
-
-# Hybrid sleep
-sudo systemctl hybrid-sleep
-
-# ========================================
-# Reload Systemd
-# ========================================
-
-# Reload systemd daemon (after unit file changes)
-sudo systemctl daemon-reload
-
-# Reload systemd configuration
-sudo systemctl daemon-reexec
-
-# ========================================
-# Emergency Mode
-# ========================================
-
-# Enter rescue mode
-sudo systemctl rescue
-
-# Enter emergency mode (minimal environment)
-sudo systemctl emergency
+systemctl status myapp -l              # 1. read the headline + error
+journalctl -u myapp -n 100             # 2. read the full logs
+systemd-analyze verify myapp.service   # 3. check unit file syntax
+sudo -u nodeuser /usr/bin/node /opt/myapp/server.js   # 4. run ExecStart by hand
 ```
 
-## Troubleshooting Services
+**Common causes:**
 
-### Debug Service Issues
+| Symptom | Likely cause |
+|---------|--------------|
+| Fails instantly | Bad `ExecStart` path, wrong `User`, missing `WorkingDirectory` |
+| Starts then dies | App crashes — check logs; add `Restart=on-failure` |
+| Enabled but not on boot | A dependency failed — check `systemctl --failed` |
+| Changes ignored | Forgot `daemon-reload` after editing the unit |
 
-```bash
-# ========================================
-# Service Troubleshooting
-# ========================================
-
-# Check service status
-systemctl status nginx
-
-# View full status (no truncation)
-systemctl status nginx -l
-
-# Show service properties
-systemctl show nginx
-
-# Show specific property
-systemctl show nginx -p ExecStart
-
-# Check service dependencies
-systemctl list-dependencies nginx
-
-# Check which units failed
-systemctl --failed
-
-# View recent logs
-sudo journalctl -u nginx -n 100
-
-# Follow logs
-sudo journalctl -u nginx -f
-
-# Check for errors
-sudo journalctl -u nginx -p err
-
-# Verify unit file syntax
-systemd-analyze verify /etc/systemd/system/myapp.service
-
-# Check startup time
-systemd-analyze blame                   # List by time
-systemd-analyze critical-chain          # Show critical path
-
-# Test service start
-sudo systemctl start nginx
-sudo journalctl -u nginx --since "1 minute ago"
-
-# ========================================
-# Common Issues
-# ========================================
-
-# Issue: Service fails to start
-# Debug steps:
-sudo systemctl status service-name -l
-sudo journalctl -u service-name -n 50
-# Check ExecStart command manually:
-sudo -u service-user /path/to/command
-
-# Issue: Service starts but stops immediately
-# Check:
-# - ExecStart command validity
-# - User permissions
-# - Working directory existence
-# - Environment variables
-
-# Issue: Service enabled but doesn't start on boot
-# Check:
-systemctl is-enabled service-name
-systemctl list-dependencies service-name
-# Look for dependency failures:
-systemctl --failed
-```
+---
 
 ## Interview Questions
 
-**Q1: What's the difference between systemctl start and systemctl enable?**
-A: `start` starts the service immediately. `enable` configures the service to start automatically on boot. Use `enable --now` to both enable and start.
+**Q1: What's the difference between `systemctl start` and `systemctl enable`?**
+`start` runs the service now, for this session only. `enable` configures it to start automatically on every boot. They are independent. Use `enable --now` to do both at once.
 
 **Q2: How do you view logs for a specific service?**
-A: `sudo journalctl -u service-name`. Add `-f` to follow, `-n 50` for last 50 lines, `--since "1 hour ago"` for time-based filtering.
+`journalctl -u <service>`. Add `-f` to follow live, `-n 50` for the last 50 lines, `--since "1 hour ago"` to filter by time, and `-p err` to see only errors.
 
-**Q3: Explain service dependencies: Requires vs Wants.**
-A: `Requires=` is a hard dependency—if the required service fails, this service fails. `Wants=` is a soft dependency—this service starts even if the wanted service fails. Use `Wants` for optional dependencies.
+**Q3: `Requires=` vs `Wants=` — what's the difference?**
+`Requires=` is a hard dependency: if the required unit fails, your service fails too. `Wants=` is soft: your service starts even if the wanted unit fails. Prefer `Wants` for optional dependencies to avoid cascading failures.
 
-**Q4: What's the purpose of daemon-reload?**
-A: `systemctl daemon-reload` reloads systemd's configuration after creating or modifying unit files. Required for systemd to recognize changes.
+**Q4: What does `daemon-reload` do and when do you need it?**
+Systemd caches unit files in memory. `systemctl daemon-reload` re-reads them from disk. Run it after creating or editing any unit file, otherwise systemd keeps using the old version.
 
-**Q5: How do you create a service that runs on schedule?**
-A: Create two units: a `.service` file (the task) and a `.timer` file (the schedule). Timer uses `OnCalendar=` for schedule and triggers the service.
+**Q5: `Type=simple` vs `Type=forking`?**
+With `simple`, the process in `ExecStart` is the service itself. With `forking`, systemd expects that process to fork a child and exit; the child is the real daemon. Use `simple` for modern foreground apps, `forking` for classic daemons that background themselves (set `PIDFile=` so systemd can track them).
 
-**Q6: What's the difference between Type=simple and Type=forking?**
-A: `Type=simple` - Process in ExecStart is the main process. `Type=forking` - Process forks and parent exits (traditional daemon). Use `simple` for modern applications, `forking` for legacy daemons.
+---
 
 ## Summary
 
-**Systemd Essentials:**
+> **Control with `systemctl`:** `start`/`stop`/`restart`/`reload` for the running session, `enable`/`disable` for boot. `enable --now` does both. `start` and `enable` are independent.
 
-1. **Service Management:**
-   - ✅ `systemctl start/stop/restart` for control
-   - ✅ `systemctl enable/disable` for boot config
-   - ✅ `systemctl status` for health check
-   - ✅ `systemctl reload` for config refresh
+> **Logs live in the journal:** `journalctl -u <service>` is your first stop when debugging. Combine with `-f`, `-n`, `--since`, and `-p`.
 
-2. **Logs:**
-   - ✅ `journalctl -u service-name` for service logs
-   - ✅ `-f` to follow in real-time
-   - ✅ `--since` for time-based filtering
-   - ✅ `-p` for priority filtering
-
-3. **Unit Files:**
-   - ✅ Located in `/etc/systemd/system/`
-   - ✅ `[Unit]` section: Description, dependencies
-   - ✅ `[Service]` section: ExecStart, restart policy
-   - ✅ `[Install]` section: WantedBy target
-
-4. **Dependencies:**
-   - `Requires=` - Hard dependency
-   - `Wants=` - Soft dependency
-   - `After=` - Ordering (start after)
-   - `Before=` - Ordering (start before)
-
-5. **Best Practices:**
-   - ✅ Always `daemon-reload` after unit changes
-   - ✅ Use `Restart=on-failure` for resilience
-   - ✅ Set resource limits (CPU, memory)
-   - ✅ Use systemd timers instead of cron
-   - ✅ Test services before enabling
-
-**Key Insights:**
-> - Systemd is the modern standard (replace SysV/Upstart)
-> - journalctl provides centralized logging
-> - Unit files are more powerful than init scripts
-> - Timers are better than cron (logging, dependencies)
-> - Understanding dependencies prevents startup issues
+> **Unit files have three sections:** `[Unit]` (dependencies), `[Service]` (how to run), `[Install]` (boot hook). Always `daemon-reload` after editing, prefer `Wants` over `Requires`, and reach for timers instead of cron.
 
 ---
 [← Back: Package Management](./05-package-management.md) | [Next: Security →](./07-security.md)

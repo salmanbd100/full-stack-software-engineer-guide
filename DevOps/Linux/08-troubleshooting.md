@@ -2,889 +2,328 @@
 
 ## Overview
 
-Troubleshooting is a critical DevOps skill. Systematic approaches to identifying and resolving issues minimize downtime and improve system reliability.
+Troubleshooting is one of the most tested DevOps skills. Interviewers want to see a **systematic method**, not lucky guesses. The goal is to reduce mean time to resolution (MTTR) and find root causes, not just symptoms.
 
-**Why Troubleshooting Skills Matter:**
-- Reduce mean time to resolution (MTTR)
-- Minimize production downtime
-- Identify root causes, not symptoms
-- Prevent recurring issues
-- Build reliable systems
-
-**Troubleshooting Methodology:**
+**Troubleshooting methodology:**
 
 | Step | Action | Tools |
 |------|--------|-------|
-| **1. Identify** | Gather symptoms and error messages | logs, monitoring |
-| **2. Reproduce** | Consistently recreate the issue | test scripts |
-| **3. Isolate** | Narrow down possible causes | divide and conquer |
-| **4. Resolve** | Apply fix and verify | implement solution |
-| **5. Document** | Record findings and solution | runbooks, wiki |
-| **6. Prevent** | Implement monitoring/alerts | automation |
+| **1. Identify** | Gather symptoms and errors | logs, monitoring |
+| **2. Reproduce** | Recreate the issue reliably | test scripts |
+| **3. Isolate** | Narrow down the cause | divide and conquer |
+| **4. Resolve** | Apply a fix and verify | the actual change |
+| **5. Document** | Record the finding | runbooks, wiki |
+| **6. Prevent** | Add alerts so it does not recur | automation |
+
+> **Key Insight:** Almost every problem follows a pattern of **symptom → diagnose → fix**. Learn the common patterns and you can solve most incidents fast.
+
+Match the symptom to the right first tool:
+
+| Symptom | Likely area | Start with |
+|---------|-------------|-----------|
+| Slow, high load | CPU / memory / I/O | `top`, `uptime` |
+| Out of memory, killed process | Memory | `free -h`, `dmesg` |
+| Slow reads/writes | Disk I/O | `iostat -x`, `iotop` |
+| Cannot reach a host | Network | `ping`, `dig`, `traceroute` |
+| Service down | systemd unit | `systemctl status`, `journalctl -u` |
+| App keeps crashing | Application | core dump, `strace`, `gdb` |
 
 ## System Won't Boot
 
-### 💡 **Boot Process Issues**
+The boot chain is **BIOS/UEFI → GRUB → kernel → systemd → services**. A failure at any stage stops the next one, so knowing the order tells you where to look.
 
-Understanding the Linux boot process helps diagnose boot failures.
-
-**Boot Sequence:**
-1. BIOS/UEFI → Hardware initialization
-2. Bootloader (GRUB) → Loads kernel
-3. Kernel → Initializes hardware, mounts root
-4. Init system (systemd) → Starts services
-
-### Emergency Boot and Recovery
+**Boot into rescue/emergency mode (via GRUB):**
 
 ```bash
-# ========================================
-# Boot into Emergency/Rescue Mode
-# ========================================
-
-# Method 1: GRUB menu
-# 1. Reboot and press Shift/Esc to show GRUB menu
-# 2. Select kernel entry
-# 3. Press 'e' to edit
-# 4. Find line starting with 'linux'
-# 5. Add to end: systemd.unit=rescue.target
-# 6. Press Ctrl+X to boot
-
-# Method 2: Single user mode
-# Add to kernel line: single
-
-# Method 3: Emergency mode
-# Add to kernel line: systemd.unit=emergency.target
-
-# ========================================
-# Common Boot Issues
-# ========================================
-
-# Issue: GRUB not found
-# Cause: Bootloader corrupted or wrong disk
-# Solution: Reinstall GRUB
-# Boot from live USB
-sudo mount /dev/sda1 /mnt
-sudo mount --bind /dev /mnt/dev
-sudo mount --bind /proc /mnt/proc
-sudo mount --bind /sys /mnt/sys
-sudo chroot /mnt
-grub-install /dev/sda
-update-grub
-exit
-sudo umount /mnt/dev /mnt/proc /mnt/sys /mnt
-sudo reboot
-
-# Issue: Kernel panic
-# Cause: Corrupted kernel, driver issue, filesystem error
-# Solution: Boot with older kernel (from GRUB advanced options)
-# Or boot from live USB and repair filesystem
-
-# Issue: Can't mount root filesystem
-# Cause: Wrong UUID in /etc/fstab, filesystem corruption
-# Solution: Boot to emergency mode
-# Check /etc/fstab
-cat /etc/fstab
-# Fix UUID
-blkid                                  # Find correct UUID
-nano /etc/fstab                        # Update UUID
-# Or run filesystem check
-fsck /dev/sda1
-
-# Issue: Infinite boot loop
-# Cause: Service failing at startup
-# Solution: Check failed services
-systemctl list-units --failed
-systemctl status service-name
-# Disable problematic service
-systemctl disable service-name
-reboot
-
-# ========================================
-# Check Boot Logs
-# ========================================
-
-# View boot messages
-dmesg | less
-dmesg | grep -i error
-dmesg | grep -i fail
-
-# Journal from current boot
-journalctl -b
-
-# Journal from previous boot
-journalctl -b -1
-
-# Kernel messages only
-journalctl -k
+# At the GRUB menu (hold Shift/Esc during boot):
+# 1. Highlight the kernel entry, press 'e' to edit
+# 2. Find the line starting with 'linux'
+# 3. Append ONE of these to the end, then press Ctrl+X:
+systemd.unit=rescue.target      # minimal, root shell + local FS
+systemd.unit=emergency.target   # most minimal, read-only root
+single                          # legacy single-user mode
 ```
 
-## Performance Issues
+**Common boot failures → fixes:**
 
-### 💡 **Systematic Performance Analysis**
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| GRUB not found | Bootloader corrupted | Reinstall GRUB from live USB |
+| Kernel panic | Bad kernel / driver | Boot older kernel (GRUB advanced) |
+| Can't mount root | Wrong UUID in fstab | `blkid` then fix `/etc/fstab` |
+| Boot loop | Service fails at start | Disable the failed unit |
 
-Follow the USE method: Utilization, Saturation, Errors for each resource.
-
-### High CPU Usage
+**Reinstall GRUB from a live USB:**
 
 ```bash
-# ========================================
-# Diagnose High CPU
-# ========================================
-
-# 1. Identify CPU-heavy processes
-top -o %CPU                            # Sort by CPU
-htop                                   # Interactive viewer
-ps aux --sort=-%cpu | head -10         # Top 10 CPU consumers
-
-# 2. Check load average
-uptime
-# Compare to number of cores
-nproc
-
-# 3. Detailed CPU stats
-mpstat -P ALL 2 10                     # Per-CPU stats
-sar -u 2 10                            # CPU utilization
-
-# 4. Find CPU-intensive threads
-ps -eLf | head -1; ps -eLf | sort -k 4 -r | head -10
-
-# 5. Profile running process
-perf top                               # Real-time profiling
-perf record -p PID -g -- sleep 30      # Record for 30 seconds
-perf report                            # Analyze recording
-
-# 6. Check for runaway processes
-# Look for:
-# - Processes at 100% CPU consistently
-# - Many processes in running state
-# - Zombie processes
-
-# ========================================
-# Solutions
-# ========================================
-
-# Temporary: Reduce process priority
-renice +10 -p PID
-
-# Kill runaway process
-kill PID
-kill -9 PID                            # Force kill
-
-# Limit CPU with systemd
-systemctl set-property myapp.service CPUQuota=50%
-
-# Limit CPU with cgroups
-cgcreate -g cpu:/limitcpu
-cgset -r cpu.cfs_quota_us=50000 limitcpu
-cgexec -g cpu:limitcpu command
+sudo mount /dev/sda1 /mnt                     # mount the root partition
+for d in dev proc sys; do sudo mount --bind /$d /mnt/$d; done
+sudo chroot /mnt                              # enter the broken system
+grub-install /dev/sda && update-grub
+exit && sudo reboot
 ```
 
-### High Memory Usage
+**Check boot logs after a failure:**
 
 ```bash
-# ========================================
-# Diagnose High Memory Usage
-# ========================================
+journalctl -b            # logs from the current boot
+journalctl -b -1         # logs from the previous boot (why did it fail?)
+journalctl -k            # kernel messages only
+dmesg | grep -iE 'error|fail'
+```
 
-# 1. Check memory overview
-free -h
-free -h --si                           # Use 1000 instead of 1024
+## Performance: High CPU
 
-# 2. Identify memory-heavy processes
-top -o %MEM
-ps aux --sort=-%mem | head -10
+**Diagnose — find the hog:**
 
-# 3. Detailed memory info
-vmstat 2 10
-cat /proc/meminfo
+```bash
+uptime                                 # load average vs nproc (cores)
+nproc                                  # load > cores means CPU-bound
+top -o %CPU                            # sort live by CPU
+ps aux --sort=-%cpu | head -10         # top 10 consumers
+mpstat -P ALL 2 5                      # per-core; is ONE core pinned?
+```
 
-# 4. Check for memory leaks
-# Monitor process memory over time
-watch -n 5 'ps aux | grep process-name'
+> **Key Insight:** Compare load average to core count. Load of 8 on an 8-core box is fine; on a 2-core box it is badly overloaded.
 
-# 5. Check swap usage
-swapon --show
-cat /proc/swaps
+**Profile a specific process (if the cause is unclear):**
 
-# 6. Check for Out Of Memory (OOM) kills
-grep -i 'out of memory' /var/log/syslog
+```bash
+perf record -p PID -g -- sleep 30      # sample 30s of the process
+perf report                            # see hot functions
+```
+
+**Fix:**
+
+```bash
+renice +10 -p PID                              # de-prioritize, don't kill
+kill PID                                       # graceful stop; kill -9 as last resort
+systemctl set-property myapp.service CPUQuota=50%   # cap it going forward
+```
+
+## Performance: High Memory
+
+**Diagnose:**
+
+```bash
+free -h                                # is available memory near zero?
+top -o %MEM                            # sort live by memory
+ps aux --sort=-%mem | head -10         # top consumers
+vmstat 2 5                             # watch 'si'/'so' — active swapping is bad
+swapon --show                          # swap in use?
+```
+
+**Check for an OOM kill (the kernel killed a process to survive):**
+
+```bash
 dmesg | grep -i 'killed process'
 journalctl -k | grep -i 'oom'
-
-# ========================================
-# Solutions
-# ========================================
-
-# Free memory cache (safe)
-sudo sync
-sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
-
-# Adjust swappiness (lower = less swap)
-cat /proc/sys/vm/swappiness
-sudo sysctl vm.swappiness=10
-# Make permanent in /etc/sysctl.conf
-echo "vm.swappiness=10" | sudo tee -a /etc/sysctl.conf
-
-# Limit process memory with systemd
-systemctl set-property myapp.service MemoryLimit=1G
-systemctl set-property myapp.service MemoryMax=1G
-
-# Limit with ulimit
-ulimit -v 1048576                      # 1GB in KB
-ulimit -m 1048576
-
-# Add more swap (temporary fix)
-sudo dd if=/dev/zero of=/swapfile bs=1G count=2
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
+grep -i 'out of memory' /var/log/syslog
 ```
 
-### Disk I/O Issues
+**Fix:**
 
 ```bash
-# ========================================
-# Diagnose Disk I/O Problems
-# ========================================
+# Adjust swappiness (lower = prefer RAM, avoid swap)
+sudo sysctl vm.swappiness=10
+echo "vm.swappiness=10" | sudo tee -a /etc/sysctl.conf   # make permanent
 
-# 1. Check I/O wait
-top                                    # Look at %wa
-vmstat 2 10                            # Look at wa column
+# Cap a process so it can't starve the box
+systemctl set-property myapp.service MemoryMax=1G
+ulimit -v 1048576                      # per-shell virtual memory cap (KB)
 
-# 2. Disk performance stats
-iostat -x 2 10
-# Look for:
-# - High %util (>80% saturated)
-# - High await (>20ms slow)
-# - High r/s or w/s
+# Add swap as a stopgap (fix the leak or add RAM for real)
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
+sudo mkswap /swapfile && sudo swapon /swapfile
+```
 
-# 3. Which processes doing I/O
-sudo iotop
-sudo iotop -o                          # Only show active
+⚠️ Adding swap masks a memory leak; it does not fix it. Find the growing process.
 
-# 4. Check disk usage
-df -h
-df -i                                  # Check inodes
+## Performance: Disk I/O
 
-# 5. Find large files
-du -ah / | sort -rh | head -20
-find / -type f -size +100M -exec ls -lh {} \;
+**Diagnose:**
 
-# 6. Check for disk errors
-dmesg | grep -i 'I/O error'
-smartctl -a /dev/sda
+```bash
+top                                    # watch %wa (I/O wait) — high means blocked on disk
+iostat -x 2 5                          # %util >80 = saturated; await >20ms = slow
+sudo iotop -o                          # which processes are actually doing I/O
+df -h && df -i                         # out of space? out of inodes?
+dmesg | grep -i 'I/O error'            # failing disk?
+```
 
-# ========================================
-# Solutions
-# ========================================
+**Fix:**
 
-# Identify and stop I/O-heavy process
-sudo iotop -o
-kill PID
-
-# Adjust I/O scheduling
-cat /sys/block/sda/queue/scheduler
-echo 'deadline' | sudo tee /sys/block/sda/queue/scheduler
-
-# Reduce write operations
-sudo sync                              # Flush buffers
-# Increase commit interval
-sudo sysctl -w vm.dirty_writeback_centisecs=3000
-
-# Clear cache to free up space
-journalctl --vacuum-time=7d
-apt clean
-yum clean all
-
-# Find and delete old logs
-find /var/log -type f -name "*.log" -mtime +30 -delete
+```bash
+du -ah / | sort -rh | head -20                 # find the space eaters
+journalctl --vacuum-time=7d                    # trim old journals
+find /var/log -name "*.log" -mtime +30 -delete # clear stale logs
+sudo iotop -o                                  # then throttle or stop the culprit
 ```
 
 ## Network Issues
 
-### 💡 **Network Troubleshooting**
+Work **bottom-up through the layers**: interface → IP → gateway → DNS → the service. Test each rung before climbing to the next.
 
-Use a layered approach: Physical → Data Link → Network → Transport → Application
-
-### Connection Problems
+**Systematic checklist:**
 
 ```bash
-# ========================================
-# Systematic Network Troubleshooting
-# ========================================
-
-# 1. Check interface status
-ip link show
+# 1. Interface up and has an IP?
 ip addr show
 
-# 2. Check IP configuration
-ip addr
-ip route
+# 2. Can we reach the gateway (local network OK)?
+ping -c 4 $(ip route | awk '/default/ {print $3}')
 
-# 3. Test local connectivity
-ping -c 4 127.0.0.1                    # Loopback
-ping -c 4 $(ip route | awk '/default/ {print $3}')  # Gateway
+# 3. Internet reachable by IP (routing OK)?
+ping -c 4 8.8.8.8
 
-# 4. Test external connectivity
-ping -c 4 8.8.8.8                      # Google DNS (IP)
-ping -c 4 google.com                   # Name resolution
-
-# 5. Test DNS
+# 4. Name resolution working (DNS OK)?
+ping -c 4 google.com                   # fails here but #3 works = DNS problem
 dig google.com
-nslookup google.com
-cat /etc/resolv.conf
 
-# 6. Test specific service
-nc -zv google.com 80
+# 5. Is the target service/port open?
+nc -zv google.com 443
 curl -I https://google.com
-telnet google.com 80
 
-# 7. Check routing
+# 6. Where does the path break?
 traceroute google.com
 mtr google.com
-
-# 8. Check firewall
-sudo ufw status
-sudo iptables -L -n
-
-# ========================================
-# Common Issues and Fixes
-# ========================================
-
-# Issue: Interface down
-sudo ip link set eth0 up
-
-# Issue: No IP address
-# DHCP:
-sudo dhclient eth0
-# Static: Check /etc/netplan/ or /etc/network/interfaces
-
-# Issue: Wrong gateway
-sudo ip route add default via 192.168.1.1 dev eth0
-
-# Issue: DNS not working
-# Temporary:
-echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
-# Permanent: Update /etc/netplan/ or /etc/systemd/resolved.conf
-
-# Issue: Can't reach specific IP
-# Check ARP
-ip neigh show
-# Clear ARP cache
-sudo ip neigh flush all
-
-# Issue: Firewall blocking
-sudo ufw status
-sudo ufw allow port/tcp
-# Or
-sudo iptables -L -n
-sudo iptables -I INPUT -p tcp --dport PORT -j ACCEPT
-
-# ========================================
-# Packet Capture for Debug
-# ========================================
-
-# Capture traffic to/from specific host
-sudo tcpdump -i eth0 host 192.168.1.100 -w capture.pcap
-
-# Capture specific port
-sudo tcpdump -i eth0 port 80 -w http.pcap
-
-# Analyze capture
-tcpdump -r capture.pcap | less
 ```
 
-### Slow Network Performance
+> **Key Insight:** If `ping 8.8.8.8` works but `ping google.com` fails, it is DNS — not connectivity. This is the single most common network trap in interviews.
+
+**Common issues → fixes:**
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Interface down | Link not up | `sudo ip link set eth0 up` |
+| No IP | DHCP not run | `sudo dhclient eth0` |
+| DNS fails | Bad resolver | `echo "nameserver 8.8.8.8" \| sudo tee /etc/resolv.conf` |
+| Wrong route | Missing default | `sudo ip route add default via GATEWAY` |
+| Port blocked | Firewall | `sudo ufw allow PORT/tcp` |
+
+**Capture packets when you need proof:**
 
 ```bash
-# ========================================
-# Diagnose Network Performance
-# ========================================
-
-# 1. Check bandwidth usage
-sudo iftop -i eth0
-sudo nethogs eth0
-
-# 2. Check interface statistics
-ip -s link show eth0
-netstat -i
-
-# 3. Test bandwidth
-# Install iperf3
-sudo apt install iperf3
-
-# Server side:
-iperf3 -s
-
-# Client side:
-iperf3 -c server-ip
-
-# 4. Check packet loss
-ping -c 100 server-ip | grep loss
-
-# 5. Check MTU
-ip link show eth0 | grep mtu
-
-# 6. Check TCP connections
-ss -tan | wc -l                        # Total connections
-ss -tan state established | wc -l      # Established
-ss -tan state time-wait | wc -l        # TIME-WAIT
-
-# ========================================
-# Performance Tuning
-# ========================================
-
-# Increase TCP buffer sizes
-sudo sysctl -w net.core.rmem_max=16777216
-sudo sysctl -w net.core.wmem_max=16777216
-sudo sysctl -w net.ipv4.tcp_rmem="4096 87380 16777216"
-sudo sysctl -w net.ipv4.tcp_wmem="4096 65536 16777216"
-
-# Enable TCP window scaling
-sudo sysctl -w net.ipv4.tcp_window_scaling=1
-
-# Reduce TIME-WAIT connections
-sudo sysctl -w net.ipv4.tcp_tw_reuse=1
-
-# Increase connection backlog
-sudo sysctl -w net.core.somaxconn=4096
-sudo sysctl -w net.ipv4.tcp_max_syn_backlog=8096
-
-# Test MTU
-ping -M do -s 1472 google.com          # Should work (1500 MTU)
-ping -M do -s 8972 google.com          # Should work if jumbo frames
-
-# Set MTU
-sudo ip link set eth0 mtu 9000         # Jumbo frames
+sudo tcpdump -i eth0 host 10.0.0.5 -w cap.pcap   # capture traffic to a host
+tcpdump -r cap.pcap | less                       # read it back
 ```
 
-## Service Issues
+## Service Won't Start
 
-### Service Won't Start
+**Checklist — status first, then logs, then config:**
 
 ```bash
-# ========================================
-# Troubleshoot Service Failures
-# ========================================
-
-# 1. Check service status
-systemctl status nginx
-
-# 2. View recent logs
-journalctl -u nginx -n 50
-journalctl -u nginx --since "5 minutes ago"
-
-# 3. Check for errors
-journalctl -u nginx -p err
-
-# 4. Verify configuration
-nginx -t                               # Nginx
-apachectl configtest                   # Apache
-systemctl show nginx | grep ExecStart
-
-# 5. Check dependencies
-systemctl list-dependencies nginx
-systemctl --failed
-
-# 6. Check permissions
-ls -la /var/log/nginx
-ls -la /etc/nginx
-ps aux | grep nginx
-
-# 7. Check port availability
-sudo lsof -i :80
-sudo ss -tlnp | grep :80
-
-# 8. Check disk space
-df -h
-
-# 9. Test manually
-sudo -u www-data /usr/sbin/nginx -t
-
-# ========================================
-# Common Issues
-# ========================================
-
-# Issue: Port already in use
-# Find what's using it
-sudo lsof -i :80
-sudo kill PID
-
-# Issue: Permission denied
-# Check service user
-systemctl show nginx | grep User
-# Fix permissions
-sudo chown -R nginx:nginx /var/log/nginx
-
-# Issue: Configuration error
-# Check config syntax
-nginx -t
-# View exact error
-journalctl -u nginx -n 20
-
-# Issue: Missing dependencies
-# For systemd service
-systemctl status nginx
-systemctl list-dependencies nginx --failed
-
-# Issue: Resource limits
-# Check limits
-systemctl show nginx | grep -i limit
-# Increase limits in service file
-[Service]
-LimitNOFILE=65536
-sudo systemctl daemon-reload
-sudo systemctl restart nginx
-
-# ========================================
-# Debug Service Startup
-# ========================================
-
-# Enable debug logging
-SYSTEMD_LOG_LEVEL=debug systemctl start nginx
-
-# Run service manually
-sudo /usr/sbin/nginx -g 'daemon off;'
-
-# Check service file
-systemctl cat nginx
-# Validate service file
-systemd-analyze verify /etc/systemd/system/myapp.service
+systemctl status nginx                 # 1. is it failed? what's the exit code?
+journalctl -u nginx -n 50              # 2. the actual error is almost always here
+nginx -t                               # 3. validate config syntax (app-specific)
+sudo ss -tlnp | grep :80               # 4. port already taken?
+df -h                                  # 5. out of disk? (a silent killer)
+systemctl list-dependencies nginx --failed   # 6. a dependency down?
 ```
 
-## Application Issues
+**Common issues → fixes:**
 
-### Application Crashes
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Port in use | Another process | `sudo lsof -i :80` then stop it |
+| Permission denied | Wrong owner | `sudo chown -R nginx:nginx /var/log/nginx` |
+| Config error | Bad syntax | `nginx -t`, read `journalctl -u nginx` |
+| Hits resource limit | Low `LimitNOFILE` | Raise it in the unit, `daemon-reload` |
+
+**Debug a stubborn startup:**
 
 ```bash
-# ========================================
-# Debug Application Crashes
-# ========================================
-
-# 1. Check core dumps
-ulimit -c                              # Check if enabled
-ulimit -c unlimited                    # Enable core dumps
-# Core dumps location
-cat /proc/sys/kernel/core_pattern
-
-# 2. Enable core dumps system-wide
-echo '/tmp/core.%e.%p' | sudo tee /proc/sys/kernel/core_pattern
-
-# 3. Analyze core dump
-gdb /path/to/program /tmp/core.program.PID
-# In gdb:
-(gdb) bt                               # Backtrace
-(gdb) info threads                     # Thread info
-(gdb) quit
-
-# 4. Check system logs
-journalctl -xe
-grep -i segfault /var/log/syslog
-dmesg | grep -i "segfault"
-
-# 5. Run with debugging
-strace -f -o trace.log /path/to/program
-ltrace -o ltrace.log /path/to/program
-
-# 6. Check for resource exhaustion
-ulimit -a                              # View all limits
-cat /proc/PID/limits                   # Check process limits
-
-# ========================================
-# Debug Running Process
-# ========================================
-
-# Attach debugger to running process
-gdb -p PID
-
-# System call tracing
-sudo strace -p PID -f
-
-# Library call tracing
-sudo ltrace -p PID
-
-# File access tracing
-sudo inotifywait -m /path/to/watch
-
-# Check open files
-lsof -p PID
-
-# Check process threads
-ps -T -p PID
-top -H -p PID
-
-# Memory map
-pmap -x PID
-cat /proc/PID/maps
+systemctl cat nginx                            # view the effective unit file
+sudo /usr/sbin/nginx -g 'daemon off;'          # run in foreground to see errors
+systemd-analyze verify /etc/systemd/system/myapp.service   # validate a custom unit
 ```
 
-### Container Issues
+## Application Crashes
+
+**Diagnose with core dumps:**
 
 ```bash
-# ========================================
-# Troubleshoot Docker Containers
-# ========================================
-
-# 1. Check container status
-docker ps -a
-docker inspect container-name
-
-# 2. View container logs
-docker logs container-name
-docker logs -f container-name          # Follow
-docker logs --since 10m container-name # Last 10 minutes
-
-# 3. Execute commands in container
-docker exec -it container-name /bin/bash
-docker exec container-name ps aux
-docker exec container-name df -h
-
-# 4. Check resource usage
-docker stats
-docker stats container-name
-
-# 5. Check container events
-docker events --since 1h
-
-# 6. Inspect container details
-docker inspect container-name | jq '.[0].State'
-docker inspect container-name | jq '.[0].NetworkSettings'
-
-# 7. Check container network
-docker network ls
-docker network inspect bridge
-
-# 8. Debug failing container
-docker run --rm -it image-name /bin/bash
-
-# ========================================
-# Common Container Issues
-# ========================================
-
-# Issue: Container exits immediately
-docker logs container-name
-docker start -a container-name         # Start attached
-
-# Issue: Can't connect to container
-docker inspect container-name | grep IPAddress
-docker port container-name
-docker network inspect bridge
-
-# Issue: Permission denied in container
-# Check user in Dockerfile
-docker exec container-name id
-# Run as root temporarily
-docker exec -u 0 -it container-name /bin/bash
-
-# Issue: Out of disk space
-docker system df
-docker system prune -a                 # Clean up
-docker volume prune
+ulimit -c unlimited                            # enable core dumps for this shell
+cat /proc/sys/kernel/core_pattern              # where do cores go?
+gdb /path/to/program /tmp/core.program.PID     # load the dump
+(gdb) bt                                        # backtrace — where it crashed
+(gdb) info threads
 ```
 
-## Common Troubleshooting Patterns
-
-### Systematic Approach
+**Trace a running or starting process:**
 
 ```bash
-# ========================================
-# General Troubleshooting Workflow
-# ========================================
-
-# 1. Gather information
-# - What is the problem?
-# - When did it start?
-# - What changed recently?
-# - Can you reproduce it?
-
-# 2. Check basics
-uptime                                 # System load and uptime
-df -h                                  # Disk space
-free -h                                # Memory
-top                                    # Resource usage
-
-# 3. Check logs
-journalctl -xe                         # Recent system logs
-tail -f /var/log/syslog               # Follow system log
-dmesg | tail                           # Kernel messages
-
-# 4. Check specific service
-systemctl status service-name
-journalctl -u service-name -n 50
-
-# 5. Check network
-ip addr                                # IP configuration
-ip route                               # Routing
-ping gateway                           # Connectivity
-
-# 6. Check for recent changes
-last                                   # Login history
-history                                # Command history
-journalctl --since "1 hour ago"        # Recent events
-
-# 7. Check for errors
-grep -i error /var/log/syslog
-systemctl --failed
-docker ps -a --filter "status=exited"
-
-# 8. Test in isolation
-# Isolate the problem:
-# - Does it happen on other systems?
-# - Does it happen with different data?
-# - Does it happen at specific times?
-
-# 9. Make one change at a time
-# Test and verify after each change
-
-# 10. Document solution
-# Record what fixed it for future reference
+sudo strace -f -p PID                  # system calls — stuck on a file? a socket?
+sudo strace -f -o trace.log ./program  # trace from launch
+lsof -p PID                            # what files/sockets does it hold?
+cat /proc/PID/limits                   # hit an fd or memory limit?
+dmesg | grep -i segfault               # kernel-side crash record
 ```
 
-### Essential Troubleshooting Commands
+> **Key Insight:** `strace` shows the last syscall before a hang or crash. That single line often names the exact file, port, or permission at fault.
+
+## Container Issues
+
+Containers have their own dedicated guide. Start with logs and status:
 
 ```bash
-# ========================================
-# Quick Reference
-# ========================================
+docker ps -a                           # exited? what code?
+docker logs --since 10m container      # the error is usually here
+docker inspect container | jq '.[0].State'
+docker stats container                 # resource pressure
+```
 
-# System overview
-uptime && free -h && df -h
+For the full container playbook (immediate exits, networking, disk, image debugging), see **[Docker Troubleshooting](../Docker/09-docker-troubleshooting.md)**.
 
-# Process overview
-ps auxf | head -30
+## General Workflow and Quick Reference
 
-# Network overview
-ss -tunlp && ip addr && ip route
+**The workflow that works under pressure:**
 
-# Service overview
-systemctl list-units --failed && systemctl list-units --type=service --state=running
+1. **Gather** — what broke, when, what changed recently?
+2. **Check basics** — `uptime`, `free -h`, `df -h`, `top`.
+3. **Read logs** — `journalctl -xe`, `dmesg | tail`.
+4. **Narrow to the service** — `systemctl status`, `journalctl -u`.
+5. **Change one thing at a time** — verify after each.
+6. **Document** — record what fixed it.
 
-# Log overview
-journalctl -p err --since today
+⚠️ Never change several things at once. If it works, you won't know which change did it.
 
-# Disk I/O
-iostat -x 2 3 && iotop -o -b -n 1
+**Full-system health check (one snapshot):**
 
-# Network activity
-iftop -t -s 5
-
-# Full system check
+```bash
 {
-  echo "=== System Info ==="
-  uptime
-  free -h
-  df -h
-  echo ""
-  echo "=== Failed Services ==="
-  systemctl --failed
-  echo ""
-  echo "=== Recent Errors ==="
-  journalctl -p err --since "1 hour ago" | tail -20
-  echo ""
-  echo "=== Network ==="
-  ip addr | grep "inet "
-  ss -tulnp | grep LISTEN
-  echo ""
-  echo "=== Top Processes ==="
-  ps aux --sort=-%cpu | head -10
+  echo "=== System ===";        uptime; free -h; df -h
+  echo "=== Failed Services ==="; systemctl --failed
+  echo "=== Recent Errors ===";   journalctl -p err --since "1 hour ago" | tail -20
+  echo "=== Network ===";         ip addr | grep "inet "; ss -tulnp | grep LISTEN
+  echo "=== Top CPU ===";         ps aux --sort=-%cpu | head -10
 } | tee system-report.txt
 ```
 
 ## Interview Questions
 
-**Q1: How would you troubleshoot a server that's running slow?**
-A: Systematic approach:
-1. Check load average and compare to CPU count
-2. Check memory usage and swap activity
-3. Check disk I/O wait
-4. Identify resource-heavy processes (top/htop)
-5. Check logs for errors
-6. Review recent changes
+**Q1: How would you troubleshoot a server that is running slow?**
+Go by resource. Check load vs core count (`uptime`, `nproc`), then memory and swap (`free -h`, `vmstat`), then I/O wait (`top` %wa, `iostat -x`). Identify the heavy process with `top`/`ps`. Read logs for errors and ask what changed recently. Fix the specific bottleneck, don't guess.
 
-**Q2: What would you do if a service won't start?**
-A:
-1. `systemctl status service-name` - Check status
-2. `journalctl -u service-name` - View logs
-3. Test configuration file syntax
-4. Check dependencies and required services
-5. Verify permissions and ownership
-6. Check port availability
-7. Test manually to isolate issue
+**Q2: A service won't start. What do you do?**
+`systemctl status` for the exit code, then `journalctl -u <svc>` — the real error is almost always there. Validate the config (`nginx -t`). Check the obvious killers: port already in use (`ss -tlnp`), permissions, out of disk (`df -h`), and failed dependencies. As a last step, run it in the foreground to see raw output.
 
 **Q3: How do you troubleshoot high disk I/O?**
-A:
-1. Use `iostat -x` to check disk utilization
-2. Use `iotop` to find I/O-heavy processes
-3. Check for low free disk space
-4. Look for large log files
-5. Check for disk errors in dmesg
-6. Consider filesystem fragmentation
-7. Review application queries/operations
+Confirm it with `top` (%wa) and `iostat -x` (%util near 100, high await). Find the culprit with `iotop -o`. Check for low free space or inodes (`df -h`, `df -i`) and large or runaway logs (`du -ah | sort -rh`). Look for hardware errors in `dmesg`. Then throttle or fix the offending process.
 
-**Q4: Server can reach some websites but not others. How do you troubleshoot?**
-A:
-1. Test with IP address vs hostname (DNS issue?)
-2. `traceroute` to see where connection fails
-3. Check firewall rules
-4. Check routing table
-5. Test from different network (ISP issue?)
-6. Check if specific ports blocked
-7. Review security group rules (if cloud)
+**Q4: A server reaches some sites but not others. How do you debug?**
+Test IP vs hostname first — if `ping 8.8.8.8` works but names fail, it is DNS. Use `traceroute`/`mtr` to see where the path breaks. Check routing (`ip route`), firewall rules, and blocked ports (`nc -zv`). Try from another network to rule out the ISP, and check cloud security groups if applicable.
 
-**Q5: How would you investigate an OOM (Out Of Memory) kill?**
-A:
-1. Check logs: `grep -i 'out of memory' /var/log/syslog`
-2. Check dmesg: `dmesg | grep -i 'killed process'`
-3. Identify killed process and PID
-4. Check memory usage patterns for that process
-5. Review process configuration and limits
-6. Add monitoring to catch memory growth
-7. Consider adding memory or fixing leak
+**Q5: How would you investigate an OOM (out-of-memory) kill?**
+Confirm it in the kernel log: `dmesg | grep -i 'killed process'` or `journalctl -k | grep oom`. Identify which process was killed and why it was the biggest target. Look at its memory trend over time to spot a leak. Fix the root cause (leak, missing limit) and add monitoring; adding swap only masks the problem.
 
 ## Summary
 
-**Troubleshooting Essentials:**
+> **The method beats the tool.** Symptom → diagnose → fix, one change at a time. Interviewers reward a structured approach far more than memorized commands.
 
-1. **Methodology:**
-   - ✅ Systematic approach (don't guess)
-   - ✅ Gather information first
-   - ✅ Check basics (space, memory, CPU)
-   - ✅ Isolate the problem
-   - ✅ Make one change at a time
+> **Logs answer most questions.** `journalctl -u`, `journalctl -xe`, and `dmesg` reveal the root cause before you touch anything else.
 
-2. **Key Tools:**
-   - **System**: top, htop, uptime, free, df
-   - **Logs**: journalctl, dmesg, tail
-   - **Network**: ping, traceroute, ss, tcpdump
-   - **Process**: ps, lsof, strace
-   - **Service**: systemctl, service
-
-3. **Common Issues:**
-   - **Performance**: High CPU/memory/disk I/O
-   - **Network**: Connectivity, DNS, firewall
-   - **Services**: Won't start, crashes, resource limits
-   - **Boot**: GRUB, kernel panic, filesystem
-
-4. **Best Practices:**
-   - ✅ Check logs first
-   - ✅ Understand what changed
-   - ✅ Document solutions
-   - ✅ Implement monitoring
-   - ✅ Create runbooks
-
-5. **Prevention:**
-   - Monitor proactively
-   - Implement alerting
-   - Regular health checks
-   - Capacity planning
-   - Automated testing
-
-**Key Insights:**
-> - Most issues have patterns—learn common ones
-> - Logs are your best friend
-> - Reproduce issues in non-prod first
-> - One change at a time for debugging
-> - Document everything for next time
+> **Prevent the repeat.** Every incident should end with a documented fix and an alert so it never surprises you twice.
 
 ---
 [← Back: Security](./07-security.md) | [Back to DevOps →](../README.md)
