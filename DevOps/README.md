@@ -1350,6 +1350,10 @@ Good luck with your AWS DevOps engineering journey! 🚀
 - [Kubernetes & EKS →](./Kubernetes/README.md)
 - [AWS Deep Dive →](./AWS/README.md)
 - [Terraform & IaC →](./Terraform/README.md)
+- [Monitoring & Observability →](./Monitoring/README.md)
+- [Networking →](./Networking/README.md)
+- [Security & Compliance →](./Security/README.md)
+- [Scripting & Automation →](./Scripting/README.md)
 
 ---
 
