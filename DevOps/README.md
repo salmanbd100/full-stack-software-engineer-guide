@@ -198,7 +198,7 @@ DevOps Stack
 
 ---
 
-### 4. Docker & Containers (8 Topics)
+### 4. Docker & Containers (9 Topics)
 
 **Containerization Expertise**
 - [01. Docker Fundamentals](./Docker/01-docker-fundamentals.md)
@@ -207,47 +207,53 @@ DevOps Stack
   - Dockerfile basics
   - Docker commands
 
-- [02. Dockerfile Best Practices](./Docker/02-dockerfile.md)
+- [02. Dockerfile Best Practices](./Docker/02-dockerfile-best-practices.md)
   - Multi-stage builds
   - Layer optimization
   - Security practices
   - .dockerignore
 
-- [03. Docker Compose](./Docker/03-docker-compose.md)
+- [03. Docker Compose](./Docker/03-docker-compose-advanced.md)
   - docker-compose.yml
   - Multi-container apps
   - Networking
   - Volumes and persistence
 
-- [04. Docker Networking](./Docker/04-networking.md)
+- [04. Docker Networking](./Docker/04-docker-networking-deep-dive.md)
   - Bridge, host, overlay
   - Container communication
   - Port mapping
   - Network troubleshooting
 
-- [05. Docker Volumes](./Docker/05-volumes.md)
+- [05. Docker Volumes & Storage](./Docker/05-docker-volumes-storage.md)
   - Volume types
   - Data persistence
   - Bind mounts
   - EBS volumes with Docker
 
-- [06. Container Security](./Docker/06-security.md)
+- [06. Docker Security](./Docker/06-docker-security.md)
   - Image scanning
   - Runtime security
-  - User namespaces
+  - Non-root users and capabilities
   - AWS ECR scanning
 
-- [07. AWS ECR (Elastic Container Registry)](./Docker/07-ecr.md)
-  - ECR setup
-  - Image lifecycle policies
-  - Cross-account access
-  - Security scanning
-
-- [08. Container Optimization](./Docker/08-optimization.md)
-  - Image size reduction
-  - Build caching
-  - Performance tuning
+- [07. Docker in Production](./Docker/07-docker-in-production.md)
+  - Health checks
   - Resource limits
+  - Logging drivers
+  - Deployment strategies
+
+- [08. Docker with AWS](./Docker/08-docker-with-aws.md)
+  - ECR setup and lifecycle policies
+  - ECS and Fargate
+  - Cross-account access
+  - CI/CD pipelines
+
+- [09. Docker Troubleshooting](./Docker/09-docker-troubleshooting.md)
+  - Exit codes
+  - Debugging containers
+  - Build failures
+  - Common fixes
 
 ---
 
@@ -1338,11 +1344,12 @@ Good luck with your AWS DevOps engineering journey! 🚀
 ---
 
 **Ready to start?** Choose a topic and begin learning!
-- [Linux Fundamentals →](./Linux/)
-- [CI/CD Pipelines →](./CICD/)
-- [Docker & Containers →](./Docker/)
-- [Kubernetes & EKS →](./Kubernetes/)
-- [AWS Deep Dive →](./AWS/)
+- [Linux Fundamentals →](./Linux/README.md)
+- [CI/CD Pipelines →](./CICD/README.md)
+- [Docker & Containers →](./Docker/README.md)
+- [Kubernetes & EKS →](./Kubernetes/README.md)
+- [AWS Deep Dive →](./AWS/README.md)
+- [Terraform & IaC →](./Terraform/README.md)
 
 ---
 
