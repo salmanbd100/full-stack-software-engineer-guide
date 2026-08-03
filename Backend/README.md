@@ -66,14 +66,14 @@ REST, GraphQL, and real-time.
 
 ### [Security/](./Security/)
 
-Authentication, authorization, transport, and input safety.
+Authentication, authorization, transport, and input safety. Start with the [module index](./Security/README.md) for the study path and pre-deploy checklist.
 
 | #   | Topic                                                     |
 | --- | --------------------------------------------------------- |
 | 01  | [JWT Authentication](./Security/01-jwt.md)                |
 | 02  | [OAuth 2.0](./Security/02-oauth.md)                       |
 | 03  | [Password Security](./Security/03-passwords.md)           |
-| 04  | [HTTPS / TLS](./Security/04-https.md)                     |
+| 04  | [HTTPS & TLS](./Security/04-https.md)                     |
 | 05  | [CORS & CSRF](./Security/05-cors-csrf.md)                 |
 | 06  | [Input Validation](./Security/06-validation.md)           |
 | 07  | [SQL Injection Prevention](./Security/07-sql-injection.md)|
