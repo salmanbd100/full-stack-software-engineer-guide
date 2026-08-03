@@ -1,727 +1,236 @@
-# Child Processes
+# Child Processes & Worker Threads
 
-## Overview
+## 💡 Getting Work Off the Main Thread
 
-Node.js can spawn child processes to execute external commands, run CPU-intensive tasks, or leverage multi-core systems. Understanding child processes is essential for building scalable Node.js applications.
+Node runs your JavaScript on one thread. Two escape hatches exist, and picking the wrong one is a common interview stumble.
 
-**Why Child Processes:**
-- Execute external commands (git, ffmpeg, imagemagick)
-- Run CPU-intensive tasks without blocking event loop
-- Utilize multiple CPU cores
-- Isolate potentially crashing code
-- Run untrusted code safely
+| | **Worker Threads** | **Child Processes** |
+| --- | --- | --- |
+| **Runs** | JavaScript, same runtime | Any program |
+| **Memory** | Same process; can **share** buffers | Fully separate |
+| **Startup** | ~1–5 ms | ~30–50 ms |
+| **Messaging** | Fast (structured clone / shared memory) | Slower (serialised IPC) |
+| **A crash kills** | Just the worker | Just the child |
+| **Use for** | CPU work in *your* JS | Running *other programs* |
 
-**Process Types Comparison:**
+> **The rule:** CPU-heavy JavaScript → worker thread. Invoking `ffmpeg`, `git`, or a Python script → child process.
 
-| Method | Use Case | Communication | Shell | Best For |
-|--------|----------|---------------|-------|----------|
-| **spawn()** | Long-running, streams | stdout/stderr | ❌ No | Video processing, large data |
-| **exec()** | Short commands | Buffered output | ✅ Yes | Git commands, small output |
-| **execFile()** | Security-critical | Buffered output | ❌ No | User input, safer than exec |
-| **fork()** | Node.js processes | IPC messages | ❌ No | CPU-intensive JS, worker pools |
+---
 
-## Child Process Types
+## The Four Ways to Spawn
 
-Node.js provides four ways to create child processes:
+| Function     | Shell | Output      | Use for                        |
+| ------------ | ----- | ----------- | ------------------------------ |
+| `spawn`      | ❌ No | Streamed    | Long output, large files       |
+| `execFile`   | ❌ No | Buffered    | Short output, user input       |
+| `exec`       | ✅ **Yes** | Buffered | Trusted, fixed commands only |
+| `fork`       | ❌ No | Streamed + IPC | A Node script you talk to  |
 
-1. **spawn()** - Spawns a child process
-2. **exec()** - Spawns a shell and executes a command
-3. **execFile()** - Similar to exec() but doesn't spawn a shell
-4. **fork()** - Special case of spawn() for Node.js processes
+🔴 **`exec` runs a shell.** Any user-controlled substring can inject a second command with `;` or `|`. See [Security](./06-security.md).
 
-## spawn()
+```typescript
+exec(`convert ${req.query.file} out.png`);          // 🔴 injectable
+execFile("convert", [validated, "out.png"]);        // ✅ no shell
+```
 
-Best for long-running processes or when dealing with large amounts of data.
+⚠️ **`exec` and `execFile` buffer all output in memory** (`maxBuffer`, 1 MB default). Exceed it and the child is killed mid-run. For anything large, use `spawn` and stream.
 
-```javascript
-const { spawn } = require('child_process');
+### `spawn` — the default choice
 
-// Basic usage
-const ls = spawn('ls', ['-lh', '/usr']);
+```typescript
+import { spawn } from "node:child_process";
 
-ls.stdout.on('data', (data) => {
-  console.log(`stdout: ${data}`);
+const child = spawn("ffmpeg", ["-i", input, "-vcodec", "h264", output]);
+
+child.stdout.on("data", (chunk: Buffer) => logger.debug(chunk.toString()));
+child.stderr.on("data", (chunk: Buffer) => logger.warn(chunk.toString()));
+
+child.on("close", (code) => {
+  if (code !== 0) logger.error({ code }, "ffmpeg failed");
 });
+```
 
-ls.stderr.on('data', (data) => {
-  console.error(`stderr: ${data}`);
+⚠️ **`error` and `close` are different events.** `error` fires when the process couldn't start (binary missing); `close` fires when it ran and exited. Handle both, or a missing binary throws an unhandled error and takes the process down.
+
+### Promise-wrapped, with a timeout
+
+```typescript
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+const run = promisify(execFile);
+
+const { stdout } = await run("git", ["rev-parse", "HEAD"], {
+  timeout: 5_000,       // ✅ SIGTERM after 5s — never let a child hang forever
+  maxBuffer: 1024 * 1024,
 });
+```
 
-ls.on('close', (code) => {
-  console.log(`child process exited with code ${code}`);
-});
+---
 
-// Piping data
-const find = spawn('find', ['.', '-name', '*.js']);
-const grep = spawn('grep', ['console']);
+## Worker Threads
 
-find.stdout.pipe(grep.stdin);
+For CPU-bound JavaScript, this is nearly always the right tool.
 
-grep.stdout.on('data', (data) => {
-  console.log(data.toString());
-});
+```typescript
+// worker.ts
+import { parentPort, workerData } from "node:worker_threads";
 
-// Using spawn with options
-const child = spawn('npm', ['install'], {
-  cwd: '/path/to/project',
-  env: { ...process.env, NODE_ENV: 'production' },
-  stdio: 'inherit' // Inherit parent's stdin, stdout, stderr
-});
+interface Job { rows: number[] }
 
-// Real-world example: Video conversion
-function convertVideo(inputPath, outputPath) {
+const total = (workerData as Job).rows.reduce((a, b) => a + b, 0);
+parentPort?.postMessage(total);
+```
+
+```typescript
+// main.ts
+import { Worker } from "node:worker_threads";
+
+function runWorker<T>(file: string, data: unknown, timeoutMs = 30_000): Promise<T> {
   return new Promise((resolve, reject) => {
-    const ffmpeg = spawn('ffmpeg', [
-      '-i', inputPath,
-      '-c:v', 'libx264',
-      '-preset', 'fast',
-      '-c:a', 'aac',
-      outputPath
-    ]);
+    const worker = new Worker(file, { workerData: data });
 
-    let stderr = '';
+    const timer = setTimeout(() => {
+      worker.terminate();
+      reject(new Error("Worker timed out"));
+    }, timeoutMs);
 
-    ffmpeg.stderr.on('data', (data) => {
-      stderr += data;
-      // Parse ffmpeg progress from stderr
-      const progress = parseProgress(data.toString());
-      if (progress) {
-        console.log(`Progress: ${progress}%`);
-      }
-    });
-
-    ffmpeg.on('close', (code) => {
-      if (code === 0) {
-        resolve(outputPath);
-      } else {
-        reject(new Error(`ffmpeg failed: ${stderr}`));
-      }
-    });
-
-    ffmpeg.on('error', (err) => {
-      reject(err);
+    worker.on("message", (value: T) => { clearTimeout(timer); resolve(value); });
+    worker.on("error", (err) => { clearTimeout(timer); reject(err); });
+    worker.on("exit", (code) => {
+      clearTimeout(timer);
+      if (code !== 0) reject(new Error(`Worker exited with ${code}`));
     });
   });
 }
 ```
 
-## exec()
+> Always clear the timer in **every** handler. A dangling timer keeps the event loop alive and delays shutdown.
 
-Best for short-running commands when you need the entire output at once.
+### What crosses the boundary
 
-```javascript
-const { exec } = require('child_process');
+Messages are **structured-cloned**, not shared. Functions, classes, and closures don't survive.
 
-// Basic usage
-exec('ls -lh /usr', (error, stdout, stderr) => {
-  if (error) {
-    console.error(`exec error: ${error}`);
-    return;
-  }
-  console.log(`stdout: ${stdout}`);
-  if (stderr) {
-    console.error(`stderr: ${stderr}`);
-  }
-});
-
-// With options
-exec('git status', {
-  cwd: '/path/to/repo',
-  maxBuffer: 1024 * 500 // 500KB
-}, (error, stdout, stderr) => {
-  if (error) {
-    console.error(error);
-    return;
-  }
-  console.log(stdout);
-});
-
-// Promisified version
-const util = require('util');
-const execPromise = util.promisify(exec);
-
-async function getGitBranch() {
-  try {
-    const { stdout, stderr } = await execPromise('git branch --show-current');
-    return stdout.trim();
-  } catch (error) {
-    console.error('Failed to get git branch:', error);
-    throw error;
-  }
-}
-
-// Real-world example: Run npm commands
-async function runNpmInstall(projectPath) {
-  try {
-    const { stdout, stderr } = await execPromise('npm install', {
-      cwd: projectPath,
-      maxBuffer: 1024 * 1024 * 10 // 10MB
-    });
-
-    console.log('Install output:', stdout);
-
-    if (stderr) {
-      console.warn('Install warnings:', stderr);
-    }
-
-    return true;
-  } catch (error) {
-    console.error('npm install failed:', error.message);
-    throw error;
-  }
-}
-
-// Security note: NEVER use user input directly in exec()
-// BAD - Command injection vulnerability!
-const userInput = req.query.file;
-exec(`cat ${userInput}`, callback); // DANGEROUS!
-
-// GOOD - Use execFile or validate input
-const { execFile } = require('child_process');
-execFile('cat', [userInput], callback);
+```typescript
+worker.postMessage({ fn: () => 1 });   // ❌ DataCloneError
 ```
 
-## execFile()
+**Real sharing** needs `SharedArrayBuffer` — no copy, at any size:
 
-Safer than exec() because it doesn't spawn a shell.
+```typescript
+const shared = new SharedArrayBuffer(1024 * 1024);
+const view = new Int32Array(shared);
 
-```javascript
-const { execFile } = require('child_process');
-
-// Basic usage
-execFile('node', ['--version'], (error, stdout, stderr) => {
-  if (error) {
-    throw error;
-  }
-  console.log(stdout);
-});
-
-// Real-world example: Image optimization
-const util = require('util');
-const execFilePromise = util.promisify(execFile);
-
-async function optimizeImage(inputPath, outputPath) {
-  try {
-    const { stdout, stderr } = await execFilePromise('convert', [
-      inputPath,
-      '-resize', '800x600',
-      '-quality', '85',
-      outputPath
-    ]);
-
-    console.log('Image optimized:', outputPath);
-    return outputPath;
-  } catch (error) {
-    console.error('Image optimization failed:', error);
-    throw error;
-  }
-}
-
-// Batch processing
-async function processImages(imagePaths) {
-  const promises = imagePaths.map(async (path) => {
-    const outputPath = path.replace(/\.(jpg|png)$/, '.optimized.$1');
-    return optimizeImage(path, outputPath);
-  });
-
-  return Promise.all(promises);
-}
+worker.postMessage({ shared });   // both threads see the same memory
+Atomics.add(view, 0, 1);          // use Atomics — plain writes race
 ```
 
-## fork()
+Or **transfer** ownership, which moves a buffer without copying (the sender loses access):
 
-Creates a new Node.js process with IPC (Inter-Process Communication) channel.
+```typescript
+worker.postMessage(buffer, [buffer]);   // zero-copy handoff
+```
 
-```javascript
-const { fork } = require('child_process');
+---
 
-// Parent process (main.js)
-const child = fork('child.js');
+## Pool Your Workers
 
-// Send message to child
-child.send({ type: 'START', data: { foo: 'bar' } });
+🔴 **Never spawn a worker per request.** Startup cost plus unbounded memory under load is a guaranteed outage.
 
-// Receive messages from child
-child.on('message', (message) => {
-  console.log('Message from child:', message);
+```typescript
+import { Piscina } from "piscina";
+
+const pool = new Piscina({
+  filename: new URL("./worker.js", import.meta.url).href,
+  maxThreads: 4,          // roughly your core count, not your request rate
 });
 
-child.on('exit', (code) => {
-  console.log(`Child exited with code ${code}`);
-});
-
-// Child process (child.js)
-process.on('message', (message) => {
-  console.log('Message from parent:', message);
-
-  if (message.type === 'START') {
-    // Do some work
-    const result = processData(message.data);
-
-    // Send result back to parent
-    process.send({ type: 'RESULT', data: result });
-  }
-});
-
-// Real-world example: CPU-intensive task
-// fibonacci-worker.js
-process.on('message', ({ type, number }) => {
-  if (type === 'CALCULATE') {
-    function fibonacci(n) {
-      if (n <= 1) return n;
-      return fibonacci(n - 1) + fibonacci(n - 2);
-    }
-
-    const result = fibonacci(number);
-    process.send({ type: 'RESULT', result });
-  }
-});
-
-// main.js
-const express = require('express');
-const app = express();
-
-app.get('/fibonacci/:n', (req, res) => {
-  const worker = fork('./fibonacci-worker.js');
-
-  worker.send({
-    type: 'CALCULATE',
-    number: parseInt(req.params.n)
-  });
-
-  worker.on('message', ({ type, result }) => {
-    if (type === 'RESULT') {
-      res.json({ result });
-      worker.kill();
-    }
-  });
-
-  worker.on('error', (err) => {
-    res.status(500).json({ error: err.message });
-    worker.kill();
-  });
-
-  // Timeout after 10 seconds
-  setTimeout(() => {
-    worker.kill();
-    res.status(408).json({ error: 'Calculation timeout' });
-  }, 10000);
+app.post("/render", async (req, res) => {
+  res.json(await pool.run(req.body));
 });
 ```
 
-## Worker Threads vs Child Processes
+> Use `piscina` rather than hand-rolling. Queueing, idle timeouts, and worker recycling after a crash are all things you'd otherwise reimplement badly.
 
-Worker Threads (added in Node.js 10.5.0) are often better for CPU-intensive tasks.
+⚠️ **More threads than cores makes things slower.** They compete for the same CPUs and add context-switching overhead.
 
-```javascript
-const { Worker } = require('worker_threads');
+---
 
-// Worker thread example
-// worker.js
-const { parentPort, workerData } = require('worker_threads');
+## `fork` and IPC
 
-function heavyComputation(data) {
-  // CPU-intensive work
-  let result = 0;
-  for (let i = 0; i < data.iterations; i++) {
-    result += Math.sqrt(i);
-  }
-  return result;
-}
+`fork` spawns a **Node** script with a message channel already wired up.
 
-const result = heavyComputation(workerData);
-parentPort.postMessage(result);
+```typescript
+// parent
+import { fork } from "node:child_process";
 
-// main.js
-function runWorker(data) {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker('./worker.js', {
-      workerData: data
-    });
+const child = fork("./jobs/report.js");
+child.send({ type: "start", reportId });
+child.on("message", (msg) => logger.info({ msg }, "child update"));
 
-    worker.on('message', resolve);
-    worker.on('error', reject);
-    worker.on('exit', (code) => {
-      if (code !== 0) {
-        reject(new Error(`Worker stopped with exit code ${code}`));
-      }
-    });
-  });
-}
-
-// Usage
-app.get('/compute', async (req, res) => {
-  try {
-    const result = await runWorker({
-      iterations: 1000000
-    });
-    res.json({ result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// child
+process.on("message", (msg) => {
+  process.send?.({ type: "done", result: run(msg) });
 });
 ```
 
-### Comparison: Worker Threads vs Child Processes
+This is the mechanism behind [clustering](./08-clustering.md).
 
-| Feature | Worker Threads | Child Processes |
-|---------|---------------|-----------------|
-| Memory | Shared memory | Separate memory |
-| Communication | Fast (shared memory) | Slower (IPC) |
-| Startup | Fast | Slower |
-| Use case | CPU-intensive tasks | External commands, isolation |
-| Isolation | Less isolated | Fully isolated |
-| Node.js version | 10.5.0+ | All versions |
+---
 
-## Process Pool
+## Always Clean Up
 
-Managing multiple child processes efficiently:
+An orphaned child keeps running after its parent dies — leaking memory, ports, and CPU.
 
-```javascript
-class ProcessPool {
-  constructor(scriptPath, poolSize = 4) {
-    this.scriptPath = scriptPath;
-    this.poolSize = poolSize;
-    this.workers = [];
-    this.queue = [];
-
-    this.init();
-  }
-
-  init() {
-    for (let i = 0; i < this.poolSize; i++) {
-      this.createWorker();
-    }
-  }
-
-  createWorker() {
-    const worker = fork(this.scriptPath);
-    worker.busy = false;
-
-    worker.on('exit', () => {
-      // Remove dead worker
-      const index = this.workers.indexOf(worker);
-      if (index !== -1) {
-        this.workers.splice(index, 1);
-      }
-
-      // Create replacement
-      if (this.workers.length < this.poolSize) {
-        this.createWorker();
-      }
-    });
-
-    this.workers.push(worker);
-  }
-
-  async execute(data) {
-    return new Promise((resolve, reject) => {
-      const task = { data, resolve, reject };
-
-      // Find available worker
-      const worker = this.workers.find(w => !w.busy);
-
-      if (worker) {
-        this.runTask(worker, task);
-      } else {
-        // Queue task
-        this.queue.push(task);
-      }
-    });
-  }
-
-  runTask(worker, task) {
-    worker.busy = true;
-
-    const messageHandler = (result) => {
-      worker.busy = false;
-      worker.removeListener('message', messageHandler);
-      worker.removeListener('error', errorHandler);
-
-      task.resolve(result);
-
-      // Process queued tasks
-      if (this.queue.length > 0) {
-        const nextTask = this.queue.shift();
-        this.runTask(worker, nextTask);
-      }
-    };
-
-    const errorHandler = (error) => {
-      worker.busy = false;
-      worker.removeListener('message', messageHandler);
-      worker.removeListener('error', errorHandler);
-
-      task.reject(error);
-    };
-
-    worker.on('message', messageHandler);
-    worker.on('error', errorHandler);
-    worker.send(task.data);
-  }
-
-  destroy() {
-    this.workers.forEach(worker => worker.kill());
-    this.workers = [];
-  }
+```typescript
+function shutdown(): void {
+  child.kill("SIGTERM");                 // ask nicely
+  setTimeout(() => child.kill("SIGKILL"), 5_000).unref();  // then insist
 }
 
-// Usage
-const pool = new ProcessPool('./worker.js', 4);
-
-app.post('/process', async (req, res) => {
-  try {
-    const result = await pool.execute(req.body);
-    res.json({ result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+process.on("SIGTERM", shutdown);
+process.on("exit", shutdown);
 ```
 
-## Stream Communication
+| Signal    | Meaning                     |
+| --------- | --------------------------- |
+| `SIGTERM` | Please exit — catchable     |
+| `SIGKILL` | Immediate, cannot be caught |
+| `SIGINT`  | Ctrl-C                      |
 
-Efficiently transferring large amounts of data:
+---
 
-```javascript
-const { spawn } = require('child_process');
-const fs = require('fs');
+## Interview Q&A
 
-// Compress file using gzip
-function compressFile(inputPath, outputPath) {
-  return new Promise((resolve, reject) => {
-    const input = fs.createReadStream(inputPath);
-    const output = fs.createWriteStream(outputPath);
-    const gzip = spawn('gzip', ['-c']);
+**Q: Worker thread or child process?**
+A: Worker threads for CPU-bound JavaScript — they start faster, communicate faster, and can share memory through `SharedArrayBuffer`. Child processes for running a different program, or when you need genuine isolation so a segfault can't take down the parent. Neither helps with I/O-bound work; that's already non-blocking.
 
-    input.pipe(gzip.stdin);
-    gzip.stdout.pipe(output);
+**Q: Does a worker thread give you real parallelism?**
+A: Yes. Each worker has its own V8 isolate and event loop and runs on a separate OS thread, so N workers genuinely use N cores. That's the difference from async I/O, which is concurrency on one thread.
 
-    output.on('finish', () => resolve(outputPath));
-    gzip.on('error', reject);
-    output.on('error', reject);
-  });
-}
+**Q: Why is `exec` dangerous?**
+A: It runs the command through a shell, so shell metacharacters in user input become new commands — `; rm -rf /` appended to a hostname. `execFile` and `spawn` pass an argument array directly to the OS with no shell, so arguments can never be reinterpreted as commands.
 
-// Process large CSV file
-function processLargeCSV(inputPath) {
-  const readline = require('readline');
-  const child = spawn('node', ['csv-processor.js']);
+**Q: How do you stop a runaway child process?**
+A: Set `timeout` on `exec`/`execFile`, or track it yourself and send `SIGTERM`, escalating to `SIGKILL` after a grace period. Register handlers on parent shutdown too, otherwise children survive as orphans.
 
-  const rl = readline.createInterface({
-    input: fs.createReadStream(inputPath),
-    crlfDelay: Infinity
-  });
+**Q: Why does `postMessage` fail on some objects?**
+A: It uses the structured clone algorithm, which handles plain data, `Map`, `Set`, `Date`, and typed arrays — but not functions, class instances with methods, or anything holding a closure. Pass plain data and reconstruct behaviour on the other side.
 
-  rl.on('line', (line) => {
-    child.stdin.write(line + '\n');
-  });
-
-  rl.on('close', () => {
-    child.stdin.end();
-  });
-
-  child.stdout.on('data', (data) => {
-    console.log('Processed:', data.toString());
-  });
-}
-```
-
-## Error Handling & Monitoring
-
-```javascript
-const { spawn } = require('child_process');
-
-function createResilientProcess(command, args, options = {}) {
-  let child = null;
-  let restartCount = 0;
-  const maxRestarts = options.maxRestarts || 3;
-  const restartDelay = options.restartDelay || 1000;
-
-  function start() {
-    child = spawn(command, args, options);
-
-    child.on('error', (err) => {
-      console.error('Process error:', err);
-
-      if (options.onError) {
-        options.onError(err);
-      }
-    });
-
-    child.on('exit', (code, signal) => {
-      console.log(`Process exited with code ${code}, signal ${signal}`);
-
-      if (code !== 0 && restartCount < maxRestarts) {
-        restartCount++;
-        console.log(`Restarting process (attempt ${restartCount}/${maxRestarts})`);
-
-        setTimeout(start, restartDelay);
-      } else if (options.onExit) {
-        options.onExit(code, signal);
-      }
-    });
-
-    if (options.onStart) {
-      options.onStart(child);
-    }
-
-    return child;
-  }
-
-  return start();
-}
-
-// Usage
-const child = createResilientProcess('node', ['long-running-service.js'], {
-  maxRestarts: 5,
-  restartDelay: 2000,
-  onStart: (proc) => {
-    console.log('Process started:', proc.pid);
-  },
-  onError: (err) => {
-    console.error('Process error:', err);
-  },
-  onExit: (code, signal) => {
-    console.log('Process ended permanently');
-  }
-});
-```
-
-## Common Interview Questions
-
-### Q1: When should you use spawn() vs exec()?
-
-**Answer:**
-- **spawn()**: Long-running processes, large data streams, real-time output
-  - Streams data (event-driven)
-  - Better for large output
-  - No shell overhead
-
-- **exec()**: Short commands, small output, need shell features
-  - Buffers entire output
-  - Maximum buffer size limit
-  - Uses a shell
-
-### Q2: What's the difference between fork() and spawn()?
-
-**Answer:**
-- **fork()**: Creates a new Node.js process with IPC channel
-  - Built-in message passing
-  - Runs Node.js code
-  - Easier communication between parent and child
-
-- **spawn()**: Creates any child process
-  - No built-in IPC
-  - Can run any command
-  - Communication via stdin/stdout/stderr
-
-### Q3: How do you handle CPU-intensive tasks in Node.js?
-
-**Answer:**
-1. **Worker Threads** - Best for CPU-intensive JavaScript
-2. **Child Processes** - For external commands or complete isolation
-3. **Clustering** - Utilize multiple CPU cores
-4. **Task Queues** - Offload to background workers
-
-### Q4: How do you prevent command injection vulnerabilities?
-
-**Answer:**
-1. Never use `exec()` with user input
-2. Use `execFile()` instead
-3. Validate and sanitize all input
-4. Use argument arrays instead of string concatenation
-
-```javascript
-// NEVER DO THIS
-exec(`ping ${userInput}`); // VULNERABLE!
-
-// DO THIS
-execFile('ping', [userInput]); // SAFE
-```
+---
 
 ## Best Practices
 
-```javascript
-// 1. Always handle errors
-const child = spawn('command');
+✅ Worker threads for CPU-bound JS; child processes for other programs
+✅ Pool workers with `piscina` — never one per request
+✅ Cap pool size at roughly your core count
+✅ `spawn` for large output; `execFile` when input comes from users
+✅ Handle `error` *and* `close`/`exit` on every child
+✅ Always set a timeout, and kill orphans on shutdown
+❌ Don't pass user input to `exec`
+❌ Don't exceed `maxBuffer` — stream instead
+❌ Don't expect functions to survive `postMessage`
 
-child.on('error', (err) => {
-  console.error('Failed to start child process:', err);
-});
+---
 
-// 2. Set timeouts for long-running processes
-const timeout = setTimeout(() => {
-  child.kill('SIGTERM');
-  console.log('Process killed due to timeout');
-}, 30000);
-
-child.on('exit', () => {
-  clearTimeout(timeout);
-});
-
-// 3. Limit buffer size for exec()
-exec('command', { maxBuffer: 1024 * 500 }, callback);
-
-// 4. Clean up child processes
-process.on('exit', () => {
-  if (child) {
-    child.kill();
-  }
-});
-
-// 5. Use detached processes when needed
-const child = spawn('command', {
-  detached: true,
-  stdio: 'ignore'
-});
-child.unref(); // Allow parent to exit independently
-```
-
-## Summary
-
-**Core Concepts:**
-
-1. **Child Process Methods:**
-   - ✅ `spawn()`: Long-running, streams, no shell
-   - ✅ `exec()`: Short commands, buffered, has shell
-   - ✅ `execFile()`: Like exec but safer (no shell)
-   - ✅ `fork()`: Node.js processes with IPC
-
-2. **When to Use Each:**
-   - **spawn()**: Video processing, large files, real-time output
-   - **exec()**: Git commands, quick shell scripts
-   - **execFile()**: User input, security-critical
-   - **fork()**: CPU-intensive JavaScript, worker pools
-
-3. **vs Worker Threads:**
-   - ✅ Worker Threads: CPU-intensive JS (shared memory)
-   - ✅ Child Processes: External commands, isolation
-
-4. **Security:**
-   - ⚠️ Never use user input in `exec()` (command injection)
-   - ✅ Always use `execFile()` with user input
-   - ✅ Validate input before execution
-   - ✅ Use argument arrays, not string concatenation
-
-5. **Best Practices:**
-   - ✅ Handle errors on every process
-   - ✅ Set timeouts for long-running processes
-   - ✅ Clean up processes on exit
-   - ✅ Use process pools for frequent operations
-   - ✅ Monitor memory usage
-
-**Key Insights:**
-> - Child processes provide isolation - crashes don't affect main app
-> - Worker Threads share memory, Child Processes don't
-> - Always use execFile() with user input to prevent command injection
-> - fork() is perfect for CPU-intensive tasks while keeping event loop free
-
-## Related Topics
-- [Event Loop & Async](./01-event-loop-async.md)
-- [Clustering](./08-clustering.md)
-- [Performance Optimization](./05-performance.md)
-
-## Resources
-- [Node.js Child Process Documentation](https://nodejs.org/api/child_process.html)
-- [Worker Threads Documentation](https://nodejs.org/api/worker_threads.html)
+[← Previous: Security](./06-security.md) | [Next: Clustering →](./08-clustering.md)

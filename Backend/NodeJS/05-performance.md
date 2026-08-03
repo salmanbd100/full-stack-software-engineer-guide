@@ -1,769 +1,253 @@
-# Performance Optimization
+# Performance
 
-## Overview
+## 💡 Measure, Then Fix
 
-Optimizing Node.js applications is essential for handling high traffic, reducing latency, and minimizing resource usage. This guide covers profiling, monitoring, and optimization techniques.
+Most Node "optimization" work targets the wrong thing. Developers micro-tune loops while a missing database index costs 400 ms per request.
 
-**Why This Matters:**
-- Poor performance = lost users and revenue
-- Node.js single-threaded nature requires careful optimization
-- Blocking the event loop kills performance
-- Memory leaks crash production applications
-- Proper profiling identifies real bottlenecks
+The order that actually pays:
 
-**Optimization Priorities:**
+| Priority | Area                          | Typical win     |
+| -------- | ----------------------------- | --------------- |
+| 🔴 **1** | Stop blocking the event loop  | Seconds         |
+| 🔴 **2** | Fix N+1 and missing indexes   | Hundreds of ms  |
+| ⚠️ **3** | Cache what's expensive        | Tens to hundreds of ms |
+| ⚠️ **4** | Parallelise independent I/O   | Tens of ms      |
+| ✅ **5** | V8 and JS micro-tuning        | Microseconds    |
 
-| Priority | Area | Impact | Difficulty |
-|----------|------|--------|------------|
-| **1. Critical** | Don't block event loop | ⚡ High | ⚠️ Medium |
-| **2. High** | Database query optimization | ⚡ High | ✅ Easy |
-| **3. High** | Memory leak prevention | ⚡ High | ⚠️ Hard |
-| **4. Medium** | Caching implementation | ⚡ Medium | ✅ Easy |
-| **5. Medium** | Async optimization | ⚡ Medium | ✅ Easy |
+> Nobody has ever fixed a slow Node service by rewriting a `for` loop. Profile first — the bottleneck is rarely where you assume.
 
-## Profiling & Monitoring
+---
 
-### Built-in Profiler
+## Find the Bottleneck
 
-```javascript
-// Start with --prof flag
-// node --prof app.js
+**Event loop delay** is the first metric to check. If it's high, nothing else matters.
 
-// Generate readable output
-// node --prof-process isolate-0xnnnnnnnnnnnn-v8.log > processed.txt
+```typescript
+import { monitorEventLoopDelay } from "node:perf_hooks";
 
-// Inspect the output for hot functions
+const h = monitorEventLoopDelay({ resolution: 20 });
+h.enable();
 
-// Using inspector
-// node --inspect app.js
-// Open chrome://inspect in Chrome
-```
-
-### Performance Hooks
-
-```javascript
-const { performance, PerformanceObserver } = require('perf_hooks');
-
-// Mark specific points
-performance.mark('start-query');
-await database.query('SELECT * FROM users');
-performance.mark('end-query');
-
-// Measure duration
-performance.measure('query-duration', 'start-query', 'end-query');
-
-// Observe measurements
-const obs = new PerformanceObserver((items) => {
-  items.getEntries().forEach((entry) => {
-    console.log(`${entry.name}: ${entry.duration}ms`);
-  });
-});
-obs.observe({ entryTypes: ['measure'] });
-
-// Event Loop monitoring
 setInterval(() => {
-  const utilization = performance.eventLoopUtilization();
-  console.log('Event loop utilization:', utilization.utilization);
-
-  if (utilization.utilization > 0.9) {
-    console.warn('High event loop utilization!');
-  }
-}, 5000);
+  logger.info({ p99Ms: h.percentile(99) / 1e6, meanMs: h.mean / 1e6 }, "loop delay");
+  h.reset();
+}, 30_000);
 ```
 
-### Memory Profiling
+Single-digit ms is healthy. Sustained triple digits means requests are queueing behind CPU work.
 
-```javascript
-// Check memory usage
-console.log(process.memoryUsage());
-/* Output:
-{
-  rss: 24576000,        // Resident Set Size
-  heapTotal: 6537216,   // V8 heap size
-  heapUsed: 4392568,    // Used heap
-  external: 1025880,    // C++ objects
-  arrayBuffers: 17382   // ArrayBuffer/SharedArrayBuffer
-}
-*/
+**Then get a CPU profile.** The blocking function sits at the top of the flame graph.
 
-// Take heap snapshot
-const v8 = require('v8');
-const fs = require('fs');
+```bash
+node --cpu-prof --cpu-prof-dir=./profiles app.js   # load it in Chrome DevTools
+```
 
-function takeHeapSnapshot() {
-  const snapshot = v8.writeHeapSnapshot();
-  console.log('Heap snapshot written to', snapshot);
-}
+**Time individual operations** with `perf_hooks`:
 
-// Memory leak detection
-const memwatch = require('@airbnb/node-memwatch');
+```typescript
+import { performance } from "node:perf_hooks";
 
-memwatch.on('leak', (info) => {
-  console.error('Memory leak detected:', info);
+const start = performance.now();
+const rows = await db.query(sql);
+logger.info({ ms: performance.now() - start, rows: rows.length }, "query");
+```
+
+> ⚠️ Benchmark against production-shaped data. A query that's fast on 100 rows can be catastrophic on 10 million.
+
+---
+
+## Don't Block the Event Loop
+
+One synchronous CPU burst stalls **every** concurrent request on that process.
+
+```typescript
+// ❌ 200 ms of CPU — every other request waits 200 ms
+app.post("/hash", (req, res) => {
+  const hash = crypto.pbkdf2Sync(req.body.password, salt, 600_000, 32, "sha256");
+  res.json({ hash: hash.toString("hex") });
 });
 
-memwatch.on('stats', (stats) => {
-  console.log('GC stats:', stats);
-});
-```
-
-## CPU Optimization
-
-### Avoid Blocking the Event Loop
-
-```javascript
-// BAD: Blocks event loop
-function fibonacci(n) {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
-app.get('/fib/:n', (req, res) => {
-  const result = fibonacci(req.params.n); // BLOCKS!
-  res.json({ result });
-});
-
-// GOOD: Use worker threads
-const { Worker } = require('worker_threads');
-
-app.get('/fib/:n', (req, res) => {
-  const worker = new Worker('./fibonacci-worker.js', {
-    workerData: parseInt(req.params.n)
-  });
-
-  worker.on('message', (result) => {
-    res.json({ result });
-  });
-
-  worker.on('error', (err) => {
-    res.status(500).json({ error: err.message });
-  });
-});
-
-// fibonacci-worker.js
-const { parentPort, workerData } = require('worker_threads');
-
-function fibonacci(n) {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
-parentPort.postMessage(fibonacci(workerData));
-
-// GOOD: Break work into chunks
-async function processLargeArray(array) {
-  const chunkSize = 1000;
-
-  for (let i = 0; i < array.length; i += chunkSize) {
-    const chunk = array.slice(i, i + chunkSize);
-    await processChunk(chunk);
-
-    // Give event loop a chance
-    await new Promise(resolve => setImmediate(resolve));
-  }
-}
-```
-
-### Caching & Memoization
-
-```javascript
-// Simple memoization
-function memoize(fn) {
-  const cache = new Map();
-
-  return function(...args) {
-    const key = JSON.stringify(args);
-
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
-
-    const result = fn.apply(this, args);
-    cache.set(key, result);
-    return result;
-  };
-}
-
-const expensiveOperation = memoize((n) => {
-  // Expensive calculation
-  return n * n;
-});
-
-// LRU Cache
-class LRUCache {
-  constructor(capacity) {
-    this.capacity = capacity;
-    this.cache = new Map();
-  }
-
-  get(key) {
-    if (!this.cache.has(key)) return null;
-
-    const value = this.cache.get(key);
-    // Move to end (most recent)
-    this.cache.delete(key);
-    this.cache.set(key, value);
-    return value;
-  }
-
-  set(key, value) {
-    if (this.cache.has(key)) {
-      this.cache.delete(key);
-    } else if (this.cache.size >= this.capacity) {
-      // Remove oldest (first item)
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
-    }
-
-    this.cache.set(key, value);
-  }
-}
-
-// Application-level caching
-const cache = new Map();
-const CACHE_TTL = 60000; // 1 minute
-
-async function getUserWithCache(userId) {
-  const cacheKey = `user:${userId}`;
-  const cached = cache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data;
-  }
-
-  const user = await database.getUser(userId);
-
-  cache.set(cacheKey, {
-    data: user,
-    timestamp: Date.now()
-  });
-
-  return user;
-}
-```
-
-### Optimize Regular Expressions
-
-```javascript
-// BAD: Recreates regex on each call
-function validateEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-// GOOD: Reuse compiled regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validateEmail(email) {
-  return EMAIL_REGEX.test(email);
-}
-
-// Avoid catastrophic backtracking
-// BAD: Can cause ReDoS
-const badRegex = /^(a+)+$/;
-
-// GOOD: Linear time
-const goodRegex = /^a+$/;
-```
-
-## Memory Optimization
-
-### Avoid Memory Leaks
-
-```javascript
-// 1. Clear timers
-class BadComponent {
-  constructor() {
-    setInterval(() => {
-      this.doSomething();
-    }, 1000); // LEAK: Never cleared
-  }
-}
-
-class GoodComponent {
-  constructor() {
-    this.interval = setInterval(() => {
-      this.doSomething();
-    }, 1000);
-  }
-
-  destroy() {
-    clearInterval(this.interval); // Clean up
-  }
-}
-
-// 2. Remove event listeners
-const events = require('events');
-const emitter = new events.EventEmitter();
-
-function badListener() {
-  emitter.on('event', () => {}); // LEAK: Never removed
-}
-
-function goodListener() {
-  const handler = () => {};
-  emitter.on('event', handler);
-
-  return () => {
-    emitter.removeListener('event', handler); // Clean up
-  };
-}
-
-// 3. Avoid global variables
-// BAD
-global.cache = new Map(); // LEAK: Never cleared
-
-// GOOD
-class CacheManager {
-  constructor() {
-    this.cache = new Map();
-  }
-
-  clear() {
-    this.cache.clear();
-  }
-}
-
-// 4. Close database connections
-async function badQuery() {
-  const connection = await pool.getConnection();
-  const results = await connection.query('SELECT * FROM users');
-  return results; // LEAK: Connection not returned
-}
-
-async function goodQuery() {
-  const connection = await pool.getConnection();
-  try {
-    const results = await connection.query('SELECT * FROM users');
-    return results;
-  } finally {
-    connection.release(); // Always release
-  }
-}
-```
-
-### Efficient Data Structures
-
-```javascript
-// Use appropriate data structures
-// Array: Ordered list, fast iteration
-// Set: Unique values, fast lookup
-// Map: Key-value pairs, fast lookup
-
-// BAD: Array for lookups
-const userIds = [1, 2, 3, 4, 5, ...]; // 10,000 items
-if (userIds.includes(targetId)) {} // O(n)
-
-// GOOD: Set for lookups
-const userIds = new Set([1, 2, 3, 4, 5, ...]); // 10,000 items
-if (userIds.has(targetId)) {} // O(1)
-
-// BAD: Object for counting
-const count = {};
-array.forEach(item => {
-  count[item] = (count[item] || 0) + 1;
-});
-
-// GOOD: Map for counting
-const count = new Map();
-array.forEach(item => {
-  count.set(item, (count.get(item) || 0) + 1);
-});
-
-// Buffer pooling
-const { Buffer } = require('buffer');
-
-class BufferPool {
-  constructor(bufferSize, poolSize) {
-    this.bufferSize = bufferSize;
-    this.pool = [];
-
-    for (let i = 0; i < poolSize; i++) {
-      this.pool.push(Buffer.allocUnsafe(bufferSize));
-    }
-  }
-
-  acquire() {
-    return this.pool.pop() || Buffer.allocUnsafe(this.bufferSize);
-  }
-
-  release(buffer) {
-    if (this.pool.length < 100) {
-      this.pool.push(buffer);
-    }
-  }
-}
-```
-
-## Database Optimization
-
-### Connection Pooling
-
-```javascript
-const mysql = require('mysql2/promise');
-
-// Without pooling (BAD)
-async function badQuery() {
-  const connection = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    database: 'mydb'
-  }); // New connection each time!
-
-  const results = await connection.query('SELECT * FROM users');
-  await connection.end();
-  return results;
-}
-
-// With pooling (GOOD)
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  database: 'mydb',
-  connectionLimit: 10, // Max concurrent connections
-  waitForConnections: true,
-  queueLimit: 0
-});
-
-async function goodQuery() {
-  const connection = await pool.getConnection();
-  try {
-    const results = await connection.query('SELECT * FROM users');
-    return results;
-  } finally {
-    connection.release();
-  }
-}
-```
-
-### Query Optimization
-
-```javascript
-// BAD: N+1 query problem
-async function getUsersWithPosts() {
-  const users = await User.find();
-
-  for (const user of users) {
-    user.posts = await Post.find({ userId: user.id }); // N queries!
-  }
-
-  return users;
-}
-
-// GOOD: Single query with JOIN
-async function getUsersWithPosts() {
-  return await User.find()
-    .populate('posts'); // Or use SQL JOIN
-}
-
-// BAD: Fetching unnecessary data
-const users = await User.find().select('*'); // Gets all columns
-
-// GOOD: Select only needed fields
-const users = await User.find().select('id name email');
-
-// BAD: No pagination
-const users = await User.find(); // Could return millions!
-
-// GOOD: Paginate results
-const users = await User.find()
-  .limit(20)
-  .skip(page * 20);
-
-// Use indexes
-// CREATE INDEX idx_user_email ON users(email);
-// CREATE INDEX idx_post_user_created ON posts(user_id, created_at DESC);
-```
-
-## Network Optimization
-
-### Compression
-
-```javascript
-const express = require('express');
-const compression = require('compression');
-
-const app = express();
-
-// Compress responses
-app.use(compression({
-  level: 6, // Compression level (0-9)
-  threshold: 1024, // Only compress if > 1KB
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  }
-}));
-
-// Stream large responses
-const fs = require('fs');
-
-app.get('/large-file', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Content-Encoding', 'gzip');
-
-  fs.createReadStream('large-file.json')
-    .pipe(zlib.createGzip())
-    .pipe(res);
+// ✅ Async version runs on libuv's thread pool
+app.post("/hash", async (req, res) => {
+  const hash = await promisify(crypto.pbkdf2)(req.body.password, salt, 600_000, 32, "sha256");
+  res.json({ hash: hash.toString("hex") });
 });
 ```
 
-### HTTP/2 & Keep-Alive
+Common blockers, all easy to miss: `JSON.parse` on multi-MB payloads, `*Sync` file APIs, `sort()` on huge arrays, and backtracking regexes.
 
-```javascript
-const http2 = require('http2');
-const fs = require('fs');
+🔴 **Regex backtracking is a denial-of-service vector.** `/^(a+)+$/` against a crafted string runs for years.
 
-// HTTP/2 server
-const server = http2.createSecureServer({
-  key: fs.readFileSync('server.key'),
-  cert: fs.readFileSync('server.crt')
-});
+```typescript
+// ❌ Nested quantifier — exponential on failure
+const bad = /^(\s*\w+)+$/;
 
-server.on('stream', (stream, headers) => {
-  stream.respond({
-    'content-type': 'text/html',
-    ':status': 200
-  });
-  stream.end('<h1>Hello HTTP/2!</h1>');
-});
-
-// Keep-Alive for HTTP/1.1
-const http = require('http');
-const keepAliveAgent = new http.Agent({
-  keepAlive: true,
-  keepAliveMsecs: 30000,
-  maxSockets: 50
-});
-
-const options = {
-  hostname: 'api.example.com',
-  port: 80,
-  path: '/data',
-  agent: keepAliveAgent
-};
+// ✅ Bound the input, keep the pattern linear
+if (input.length > 256) throw new ValidationError("too long");
 ```
 
-## Async Optimization
+For genuine CPU work, use [worker threads](./01-event-loop-async.md) or [clustering](./08-clustering.md).
 
-### Parallel vs Sequential
+⚠️ **`UV_THREADPOOL_SIZE` defaults to 4.** File I/O, DNS, and `pbkdf2`/`bcrypt` share those four threads. Heavy hashing plus file reads will contend — raise it toward your core count.
 
-```javascript
-// Sequential (slower)
-async function sequential() {
-  const user = await fetchUser();       // 100ms
-  const posts = await fetchPosts();     // 100ms
-  const comments = await fetchComments(); // 100ms
-  // Total: 300ms
-}
+---
 
-// Parallel (faster)
-async function parallel() {
-  const [user, posts, comments] = await Promise.all([
-    fetchUser(),       // \
-    fetchPosts(),      //  } All run in parallel
-    fetchComments()    // /
-  ]);
-  // Total: ~100ms (slowest operation)
-}
+## Database: Where the Time Actually Goes
 
-// Conditional parallel
-async function conditional() {
-  const user = await fetchUser(); // Need this first
+**Always pool connections.** Opening a TCP connection and authenticating per query costs more than the query.
 
-  const [posts, comments] = await Promise.all([
-    fetchPosts(user.id),      // Depends on user
-    fetchComments(user.id)    // Depends on user
-  ]);
-}
-
-// Limit concurrency
-async function limitedConcurrency(items, limit) {
-  const results = [];
-
-  for (let i = 0; i < items.length; i += limit) {
-    const batch = items.slice(i, i + limit);
-    const batchResults = await Promise.all(
-      batch.map(item => processItem(item))
-    );
-    results.push(...batchResults);
-  }
-
-  return results;
-}
-```
-
-## V8 Optimization Tips
-
-### Avoid Deoptimization
-
-```javascript
-// Keep functions monomorphic (same types)
-// BAD: Polymorphic function
-function add(a, b) {
-  return a + b; // Sometimes numbers, sometimes strings
-}
-
-add(1, 2);       // Number addition
-add('a', 'b');   // String concatenation - DEOPTIMIZED!
-
-// GOOD: Monomorphic functions
-function addNumbers(a, b) {
-  return a + b; // Always numbers
-}
-
-function concatenateStrings(a, b) {
-  return a + b; // Always strings
-}
-
-// Keep object shapes consistent
-// BAD: Different shapes
-const obj1 = { a: 1, b: 2 };
-const obj2 = { b: 2, a: 1 }; // Different property order!
-
-// GOOD: Same shape
-const obj1 = { a: 1, b: 2 };
-const obj2 = { a: 3, b: 4 };
-
-// Don't delete properties
-// BAD
-const obj = { a: 1, b: 2 };
-delete obj.b; // DEOPTIMIZES!
-
-// GOOD
-const obj = { a: 1, b: 2 };
-obj.b = undefined; // Better
-
-// Or use Map for dynamic properties
-const map = new Map();
-map.set('a', 1);
-map.delete('a'); // OK with Map
-```
-
-## Benchmarking
-
-```javascript
-// Simple benchmark
-console.time('operation');
-for (let i = 0; i < 1000000; i++) {
-  doOperation();
-}
-console.timeEnd('operation');
-
-// More accurate benchmarking
-const Benchmark = require('benchmark');
-const suite = new Benchmark.Suite();
-
-suite
-  .add('Array#push', () => {
-    const arr = [];
-    arr.push(1);
-  })
-  .add('Array[length]', () => {
-    const arr = [];
-    arr[arr.length] = 1;
-  })
-  .on('cycle', (event) => {
-    console.log(String(event.target));
-  })
-  .on('complete', function() {
-    console.log('Fastest is ' + this.filter('fastest').map('name'));
-  })
-  .run({ async: true });
-```
-
-## Production Monitoring
-
-```javascript
-// Application metrics
-const client = require('prom-client');
-
-const httpRequestDuration = new client.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'status_code']
+```typescript
+const pool = new Pool({
+  max: 20,                       // roughly cores × 2–4, and within the DB's limit
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000, // fail fast rather than queue forever
 });
+```
 
-app.use((req, res, next) => {
-  const start = Date.now();
+⚠️ Pool size is not "bigger is better." Every connection costs memory on the database, and beyond its capacity you just move the queue.
 
-  res.on('finish', () => {
-    const duration = (Date.now() - start) / 1000;
-    httpRequestDuration
-      .labels(req.method, req.route?.path || req.path, res.statusCode)
-      .observe(duration);
-  });
+**Kill N+1 queries** — usually the single biggest win in a CRUD service:
 
+```typescript
+// ❌ 1 + N round trips
+const posts = await db.posts.findAll();
+for (const post of posts) {
+  post.author = await db.users.findById(post.authorId);   // N queries
+}
+
+// ✅ 2 round trips
+const posts = await db.posts.findAll();
+const authors = await db.users.findByIds(posts.map((p) => p.authorId));
+const byId = new Map(authors.map((a) => [a.id, a]));
+posts.forEach((p) => { p.author = byId.get(p.authorId); });
+```
+
+> `Map` lookup is O(1); scanning an array inside the loop would just move the N+1 from the database into your CPU.
+
+Also: select only the columns you need, paginate with a cursor rather than `OFFSET`, and index every column you filter or sort on.
+
+---
+
+## Caching
+
+```
+Request ──▶ in-process Map ──▶ Redis ──▶ Database
+            ~0.001 ms          ~1 ms      ~10-100 ms
+```
+
+**In-process** is fastest but is per-instance and dies on restart. Use it for small, hot, rarely-changing data — and always bound it:
+
+```typescript
+import { LRUCache } from "lru-cache";
+
+const cache = new LRUCache<string, Config>({ max: 1_000, ttl: 60_000 });
+```
+
+🔴 **An unbounded `Map` used as a cache is a memory leak.** It only ever grows.
+
+**Redis** is shared across instances and survives restarts — the right default above a single process. See [Redis](../NoSQL/06-redis.md).
+
+⚠️ **Guard against cache stampede.** When a hot key expires, every concurrent request misses at once and they all hit the database together. De-duplicate in-flight loads:
+
+```typescript
+const inFlight = new Map<string, Promise<User>>();
+
+function loadUser(id: string): Promise<User> {
+  const existing = inFlight.get(id);
+  if (existing) return existing;                       // reuse the pending request
+
+  const p = db.users.findById(id).finally(() => inFlight.delete(id));
+  inFlight.set(id, p);
+  return p;
+}
+```
+
+---
+
+## Memory Leaks
+
+Node's heap grows until the process is OOM-killed. The four usual causes:
+
+| Cause | Fix |
+| --- | --- |
+| Unbounded cache or array | LRU with a `max` |
+| Listeners added per request | `removeListener`, or `once` |
+| Timers never cleared | `clearInterval` on shutdown |
+| Closures holding big objects | Narrow the captured scope |
+
+```typescript
+// ❌ Adds a listener on every request — leaks, then warns at 11
+app.use((req, _res, next) => {
+  emitter.on("event", () => handle(req));
   next();
 });
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  const health = {
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    cpu: process.cpuUsage()
-  };
-
-  res.json(health);
-});
-
-// Metrics endpoint
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', client.register.contentType);
-  res.end(await client.register.metrics());
-});
 ```
 
-## Summary
+> A `MaxListenersExceededWarning` is almost always a real leak, not a limit to raise.
 
-**Core Optimization Strategies:**
+**Confirm before you hunt:** take two heap snapshots under load, minutes apart, and compare in Chrome DevTools. Objects that grew between snapshots and are still retained are your leak.
 
-1. **Event Loop:**
-   - ⚠️ Never block the event loop
-   - ✅ Use Worker Threads for CPU-intensive tasks
-   - ✅ Monitor event loop lag in production
-   - ✅ Break work into chunks for long operations
+```typescript
+import { writeHeapSnapshot } from "node:v8";
+process.on("SIGUSR2", () => writeHeapSnapshot());   // trigger on demand in prod
+```
 
-2. **Memory:**
-   - ✅ Clear timers and event listeners
-   - ✅ Close database connections
-   - ⚠️ Avoid global variables
-   - ✅ Use appropriate data structures (Set/Map over Array/Object)
-   - ✅ Profile with heap snapshots
+---
 
-3. **Database:**
-   - ✅ Use connection pooling
-   - ✅ Optimize queries (indexes, EXPLAIN)
-   - ✅ Avoid N+1 queries
-   - ✅ Paginate results
-   - ✅ Select only needed fields
+## HTTP-Level Wins
 
-4. **Async Operations:**
-   - ✅ Run independent operations in parallel
-   - ✅ Limit concurrency for resource-intensive tasks
-   - ✅ Use Promise.all() for parallel execution
-   - ❌ Don't use sequential await unnecessarily
+```typescript
+import compression from "compression";
+app.use(compression());        // 70-80% smaller JSON responses
+```
 
-5. **V8 Optimization:**
-   - ✅ Keep functions monomorphic (same types)
-   - ✅ Keep object shapes consistent
-   - ❌ Don't delete object properties
-   - ✅ Pre-compile regex patterns
+**Reuse outbound connections** — without keep-alive every call to an internal service pays a fresh TCP and TLS handshake:
 
-**Key Insights:**
-> - Profile first, optimize second - measure, don't guess
-> - 80% of performance issues come from: blocking event loop, bad queries, memory leaks
-> - Caching is the easiest way to improve performance
-> - Parallel execution can provide 10x speedup for independent operations
+```typescript
+import { Agent } from "undici";
+const agent = new Agent({ keepAliveTimeout: 30_000, connections: 128 });
+```
 
-## Related Topics
-- [Event Loop & Async Programming](./01-event-loop-async.md)
-- [Streams & Buffers](./02-streams-buffers.md)
-- [Clustering & Scalability](./08-clustering.md)
+**Always set a timeout on outbound calls.** A dependency that hangs will exhaust your pool and take you down with it:
 
-## Resources
-- [Node.js Performance](https://nodejs.org/en/docs/guides/simple-profiling/)
-- [V8 Optimization Killers](https://github.com/petkaantonov/bluebird/wiki/Optimization-killers)
-- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)
+```typescript
+await fetch(url, { signal: AbortSignal.timeout(3_000) });
+```
+
+---
+
+## Interview Q&A
+
+**Q: How do you find a performance problem in production?**
+A: Start with metrics, not code — event loop delay, p99 latency per route, and memory over time. Loop delay points at CPU blocking, so capture a CPU profile during a stall. Flat loop delay with slow endpoints points at I/O, so trace the downstream calls. The mistake is jumping straight to profiling before you know whether the bottleneck is CPU or I/O.
+
+**Q: Your API is slow only under load. Why?**
+A: Something is serialising. Usual suspects: a connection pool too small, so requests queue for a connection; CPU work blocking the loop, which only shows once concurrency rises; or a downstream service without a timeout, holding connections open. Load-test with the pool and loop delay both instrumented, and it's usually obvious which.
+
+**Q: How do you detect a memory leak?**
+A: Watch heap-used over time — a leak trends up and never recovers after GC, unlike normal sawtooth. Then compare two heap snapshots taken minutes apart under load, and look at the retainers of whatever grew. Caches without eviction and per-request event listeners cover most cases.
+
+**Q: When does clustering help and when doesn't it?**
+A: It helps when you're CPU-bound on a multi-core box — four workers use four cores. It doesn't help when you're I/O-bound waiting on a database, because the bottleneck is the database, and it can hurt by multiplying your connection count. Measure loop delay first: high means CPU-bound and clustering will help.
+
+**Q: Where does caching go wrong?**
+A: Invalidation and stampede. Stale data is worse than slow data for anything users act on, so pick a TTL you can defend. On expiry of a hot key, every request misses simultaneously and hammers the origin — de-duplicate in-flight loads or use a short random TTL jitter.
+
+---
+
+## Best Practices
+
+✅ Profile before optimising — measure the bottleneck, don't guess
+✅ Track event loop delay as a first-class production metric
+✅ Pool database connections; size deliberately
+✅ Batch queries to kill N+1
+✅ Bound every cache with an LRU and a TTL
+✅ Set timeouts on every outbound call
+✅ Raise `UV_THREADPOOL_SIZE` if you do heavy hashing or file I/O
+❌ Don't use `*Sync` APIs on a request path
+❌ Don't use a plain `Map` as an unbounded cache
+❌ Don't micro-optimise JavaScript before fixing I/O and queries
+
+---
+
+[← Previous: Error Handling](./04-error-handling.md) | [Next: Security →](./06-security.md)

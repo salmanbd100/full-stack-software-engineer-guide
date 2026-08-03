@@ -1,746 +1,304 @@
 # MongoDB Fundamentals
 
-## Overview
+## 💡 What MongoDB Actually Is
 
-MongoDB is a document-oriented NoSQL database that stores data in flexible JSON-like documents (BSON format). It's widely used in Node.js applications for its flexibility and scalability.
+MongoDB stores **documents** — self-describing records that look like JSON — instead of rows in fixed tables.
 
-## 🎯 Core Concepts
+The real shift is not "no schema." It is **where the schema lives**. In SQL the database enforces the shape. In MongoDB your application enforces it, and you design that shape around **how you read the data**.
 
-**Document**: JSON-like record stored in BSON format
-```javascript
-{
-  _id: ObjectId("507f1f77bcf86cd799439011"),
-  name: "John Doe",
-  email: "john@example.com",
-  age: 30,
-  address: {
-    street: "123 Main St",
-    city: "NYC",
-    zip: "10001"
-  },
-  hobbies: ["reading", "coding"],
-  createdAt: ISODate("2024-01-01T00:00:00Z")
-}
-```
-
-**Collection**: Group of documents (similar to SQL table)
-**Database**: Container for collections
-**ObjectId**: 12-byte unique identifier for documents
+> The whole model in one line: a document holds what one screen needs, so one read answers one request.
 
 ---
 
-## 💻 CRUD Operations with Mongoose
+## Core Vocabulary
 
-### Setup
+| MongoDB      | SQL equivalent | What it is                                  |
+| ------------ | -------------- | ------------------------------------------- |
+| **Document** | Row            | One record, stored as BSON                  |
+| **Collection** | Table        | A group of documents — no enforced shape    |
+| **Field**    | Column         | A key in a document                         |
+| **`_id`**    | Primary key    | Unique per collection, indexed automatically |
+| **Replica set** | —           | Copies of your data for failover            |
+| **Shard**    | Partition      | A slice of data on its own machine          |
 
-```javascript
-const mongoose = require('mongoose');
+A document:
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/myapp', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-// Define Schema
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 2,
-    maxlength: 50,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-  },
-  age: {
-    type: Number,
-    min: 0,
-    max: 120,
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin', 'moderator'],
-    default: 'user',
-  },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-}, {
-  timestamps: true, // Adds createdAt and updatedAt automatically
-});
-
-// Create Model
-const User = mongoose.model('User', userSchema);
+```typescript
+interface User {
+  _id: ObjectId;          // auto-generated primary key
+  email: string;
+  name: string;
+  address?: {             // nested object — no join needed
+    city: string;
+    country: string;
+  };
+  roles: string[];        // arrays are first-class
+  createdAt: Date;        // a real Date, not a string
+}
 ```
 
-### Create (Insert)
+Two documents in the same collection can have different fields. That is a feature for evolving data and a footgun if nobody enforces a shape — which is why [Mongoose](./05-mongoose.md) exists.
 
-```javascript
-// Insert one document
-const user = new User({
-  name: 'John Doe',
-  email: 'john@example.com',
-  age: 30,
-});
+---
 
-await user.save();
+## BSON and ObjectId
 
-// Or using create()
-const user = await User.create({
-  name: 'John Doe',
-  email: 'john@example.com',
-});
+MongoDB stores **BSON** (Binary JSON), not JSON. Two differences matter in interviews.
 
-// Insert many
-await User.insertMany([
-  { name: 'Alice', email: 'alice@example.com' },
-  { name: 'Bob', email: 'bob@example.com' },
-]);
+**1. Real types.** JSON has strings, numbers, booleans, arrays, objects — that's it. BSON adds `Date`, `ObjectId`, `Decimal128`, `Int32`/`Int64`, and binary data.
+
+```typescript
+// JSON — a date is just text, so you cannot range-query it correctly
+{ createdAt: "2024-12-08T10:00:00Z" }
+
+// BSON — a real Date, so { createdAt: { $gt: someDate } } works
+{ createdAt: new Date("2024-12-08T10:00:00Z") }
 ```
 
-### Read (Find)
+**2. Length prefixes.** Every BSON value records its own size, so the engine can skip a field it doesn't need instead of parsing it.
 
-```javascript
-// Find all
-const users = await User.find();
+### ObjectId
 
-// Find with conditions
-const adults = await User.find({ age: { $gte: 18 } });
+The default `_id` is a 12-byte value, not a random UUID:
 
-// Find one
-const user = await User.findOne({ email: 'john@example.com' });
+```
+4 bytes timestamp | 5 bytes random per-process | 3 bytes counter
+```
 
-// Find by ID
-const user = await User.findById('507f1f77bcf86cd799439011');
+⚠️ **The useful consequence:** ObjectIds are **roughly sortable by creation time**, and you can extract that time.
 
-// With projection (select specific fields)
-const users = await User.find({}, 'name email'); // Only name and email
-const users = await User.find().select('name email -_id'); // Exclude _id
+```typescript
+const id = new ObjectId();
+id.getTimestamp();                      // Date — no createdAt field required
+await Users.find().sort({ _id: -1 });   // newest first, uses the _id index
+```
 
-// With sorting
-const users = await User.find().sort({ age: -1 }); // Descending by age
+> This is why "sort by newest" often needs no extra index — `_id` already gives you one for free.
 
-// With pagination
-const page = 2;
-const limit = 10;
-const users = await User.find()
-  .skip((page - 1) * limit)
-  .limit(limit);
+---
 
-// Chaining
-const users = await User.find({ isActive: true })
-  .select('name email')
+## CRUD
+
+Examples use the official driver so the operators stay visible. [Mongoose](./05-mongoose.md) wraps these with schemas and validation.
+
+```typescript
+import { MongoClient, ObjectId, Collection } from "mongodb";
+
+const client = new MongoClient(process.env.MONGO_URI!);
+await client.connect();
+const users: Collection<User> = client.db("app").collection<User>("users");
+```
+
+### Create
+
+```typescript
+const { insertedId } = await users.insertOne({
+  email: "ana@example.com",
+  name: "Ana",
+  roles: ["user"],
+  createdAt: new Date(),
+});
+
+await users.insertMany([...docs], { ordered: false }); // keep going past a failure
+```
+
+> `ordered: false` matters for bulk imports — one duplicate key won't abandon the remaining documents.
+
+### Read
+
+```typescript
+const one = await users.findOne({ email: "ana@example.com" });
+
+const page = await users
+  .find({ roles: "admin" })          // matches if the array *contains* "admin"
+  .project({ name: 1, email: 1 })    // return less data over the wire
   .sort({ createdAt: -1 })
-  .limit(10);
+  .limit(20)
+  .toArray();
+```
+
+⚠️ **`skip` is not pagination at scale.** `skip(100000)` makes the server walk and discard 100,000 documents. Use a **cursor on the last value seen**:
+
+```typescript
+// ❌ Gets slower the deeper the user pages
+await users.find().skip(page * 20).limit(20).toArray();
+
+// ✅ Constant cost at any depth
+await users.find({ _id: { $lt: lastSeenId } }).sort({ _id: -1 }).limit(20).toArray();
 ```
 
 ### Update
 
-```javascript
-// Update one
-await User.updateOne(
-  { email: 'john@example.com' },
-  { $set: { age: 31 } }
-);
+Updates take **operators**, not replacement values.
 
-// Update many
-await User.updateMany(
-  { role: 'user' },
-  { $set: { isActive: true } }
-);
+```typescript
+await users.updateOne({ _id: id }, { $set: { name: "Ana Silva" } });
+await users.updateMany({ roles: "trial" }, { $addToSet: { roles: "user" } });
 
-// Find and update (returns updated document)
-const user = await User.findByIdAndUpdate(
-  userId,
-  { age: 31 },
-  { new: true, runValidators: true } // Return updated doc & validate
-);
-
-// Find one and update
-const user = await User.findOneAndUpdate(
-  { email: 'john@example.com' },
-  { $inc: { age: 1 } }, // Increment age by 1
-  { new: true }
+// Read-modify-write in one atomic step, returning the new document
+const updated = await users.findOneAndUpdate(
+  { _id: id },
+  { $inc: { loginCount: 1 } },
+  { returnDocument: "after" },
 );
 ```
+
+🔴 **Forgetting `$set` replaces the whole document.**
+
+```typescript
+await users.updateOne({ _id: id }, { name: "Ana" });   // ❌ error in modern drivers
+await users.replaceOne({ _id: id }, { name: "Ana" });  // 🔴 every other field is gone
+```
+
+| Operator     | Does                                  |
+| ------------ | ------------------------------------- |
+| `$set`       | Set a field                           |
+| `$unset`     | Remove a field                        |
+| `$inc`       | Add to a number (atomic)              |
+| `$push`      | Append to an array                    |
+| `$addToSet`  | Append only if not already present    |
+| `$pull`      | Remove matching array elements        |
 
 ### Delete
 
-```javascript
-// Delete one
-await User.deleteOne({ _id: userId });
-
-// Delete many
-await User.deleteMany({ isActive: false });
-
-// Find and delete (returns deleted document)
-const user = await User.findByIdAndDelete(userId);
-const user = await User.findOneAndDelete({ email: 'john@example.com' });
+```typescript
+await users.deleteOne({ _id: id });
+await users.deleteMany({ isActive: false });
 ```
+
+> Prefer a **soft delete** (`deletedAt: Date`) for anything a human might need back.
 
 ---
 
-## 🔍 Query Operators
+## Query Operators Worth Knowing
 
-### Comparison Operators
+```typescript
+// Comparison
+{ age: { $gte: 18, $lt: 65 } }
+{ role: { $in: ["admin", "editor"] } }
 
-```javascript
-// $eq - Equal
-{ age: { $eq: 25 } }
-{ age: 25 } // Shorthand
+// Existence — "field is missing" is different from "field is null"
+{ phone: { $exists: false } }
 
-// $ne - Not equal
-{ age: { $ne: 25 } }
-
-// $gt, $gte - Greater than, Greater than or equal
-{ age: { $gt: 18 } }
-{ age: { $gte: 18 } }
-
-// $lt, $lte - Less than, Less than or equal
-{ age: { $lt: 65 } }
-
-// $in - Match any value in array
-{ role: { $in: ['admin', 'moderator'] } }
-
-// $nin - Not in array
-{ status: { $nin: ['deleted', 'banned'] } }
+// Logical
+{ $or: [{ role: "admin" }, { isOwner: true }] }
 ```
 
-### Logical Operators
+### The array gotcha interviewers use
 
-```javascript
-// $and - All conditions must match
-await User.find({
-  $and: [
-    { age: { $gte: 18 } },
-    { role: 'admin' }
-  ]
-});
+Conditions on an array match if **any element** satisfies **each condition separately**:
 
-// Implicit $and (more common)
-await User.find({ age: { $gte: 18 }, role: 'admin' });
+```typescript
+// Document: { scores: [{ subject: "math", value: 40 }, { subject: "art", value: 90 }] }
 
-// $or - At least one condition must match
-await User.find({
-  $or: [
-    { role: 'admin' },
-    { role: 'moderator' }
-  ]
-});
+// ❌ MATCHES — "math" comes from one element, 80 from a different one
+await results.find({ "scores.subject": "math", "scores.value": { $gt: 80 } });
 
-// $nor - None of the conditions match
-await User.find({
-  $nor: [
-    { isActive: false },
-    { isDeleted: true }
-  ]
-});
-
-// $not - Negation
-await User.find({ age: { $not: { $lt: 18 } } });
-```
-
-### Element Operators
-
-```javascript
-// $exists - Field exists
-await User.find({ phone: { $exists: true } });
-
-// $type - Field type
-await User.find({ age: { $type: 'number' } });
-```
-
-### Array Operators
-
-```javascript
-// Contains element
-await User.find({ hobbies: 'reading' });
-
-// $all - Contains all elements
-await User.find({ hobbies: { $all: ['reading', 'coding'] } });
-
-// $size - Array size
-await User.find({ hobbies: { $size: 3 } });
-
-// $elemMatch - At least one element matches all conditions
-await User.find({
-  orders: {
-    $elemMatch: {
-      status: 'completed',
-      total: { $gt: 100 }
-    }
-  }
+// ✅ Forces both conditions onto the SAME element
+await results.find({
+  scores: { $elemMatch: { subject: "math", value: { $gt: 80 } } },
 });
 ```
 
-### String Operators
-
-```javascript
-// $regex - Regular expression
-await User.find({ name: { $regex: /^John/i } }); // Case-insensitive starts with "John"
-
-// Text search (requires text index)
-await User.find({ $text: { $search: 'john doe' } });
-```
+> `$elemMatch` is the answer whenever you need two conditions to hold on one array element.
 
 ---
 
-## 📊 Aggregation Pipeline
+## Transactions
 
-Aggregation is used for complex data processing and analysis.
+MongoDB has multi-document ACID transactions since 4.0. They require a **replica set** — they don't run on a standalone server.
 
-```javascript
-// Basic aggregation
-const result = await User.aggregate([
-  // Stage 1: Match (filter)
-  { $match: { isActive: true } },
-
-  // Stage 2: Group
-  { $group: {
-      _id: '$role',
-      count: { $sum: 1 },
-      averageAge: { $avg: '$age' }
-    }
-  },
-
-  // Stage 3: Sort
-  { $sort: { count: -1 } }
-]);
-
-// Example result:
-// [
-//   { _id: 'user', count: 150, averageAge: 28.5 },
-//   { _id: 'admin', count: 10, averageAge: 35.2 }
-// ]
-```
-
-### Common Aggregation Stages
-
-```javascript
-// $match - Filter documents
-{ $match: { age: { $gte: 18 } } }
-
-// $group - Group by field and aggregate
-{ $group: {
-    _id: '$department',
-    totalSalary: { $sum: '$salary' },
-    avgSalary: { $avg: '$salary' },
-    minSalary: { $min: '$salary' },
-    maxSalary: { $max: '$salary' },
-    count: { $sum: 1 }
-  }
-}
-
-// $project - Select/transform fields
-{ $project: {
-    name: 1,
-    email: 1,
-    fullName: { $concat: ['$firstName', ' ', '$lastName'] },
-    _id: 0
-  }
-}
-
-// $sort - Sort documents
-{ $sort: { age: -1, name: 1 } }
-
-// $limit - Limit number of documents
-{ $limit: 10 }
-
-// $skip - Skip documents (pagination)
-{ $skip: 20 }
-
-// $lookup - Join with another collection (like SQL JOIN)
-{ $lookup: {
-    from: 'posts',
-    localField: '_id',
-    foreignField: 'authorId',
-    as: 'posts'
-  }
-}
-
-// $unwind - Deconstruct array field
-{ $unwind: '$hobbies' }
-
-// $addFields - Add new fields
-{ $addFields: {
-    fullName: { $concat: ['$firstName', ' ', '$lastName'] }
-  }
-}
-```
-
-### Real-World Example
-
-```javascript
-// Get top 5 users by post count
-const topUsers = await User.aggregate([
-  // Join with posts collection
-  {
-    $lookup: {
-      from: 'posts',
-      localField: '_id',
-      foreignField: 'authorId',
-      as: 'posts'
-    }
-  },
-  // Add post count field
-  {
-    $addFields: {
-      postCount: { $size: '$posts' }
-    }
-  },
-  // Filter active users
-  {
-    $match: { isActive: true }
-  },
-  // Sort by post count descending
-  {
-    $sort: { postCount: -1 }
-  },
-  // Limit to top 5
-  {
-    $limit: 5
-  },
-  // Select only needed fields
-  {
-    $project: {
-      name: 1,
-      email: 1,
-      postCount: 1
-    }
-  }
-]);
-```
-
----
-
-## 🔑 Indexing for Performance
-
-Indexes improve query performance significantly.
-
-```javascript
-// Create index on single field
-userSchema.index({ email: 1 }); // 1 for ascending, -1 for descending
-
-// Compound index (multiple fields)
-userSchema.index({ role: 1, createdAt: -1 });
-
-// Unique index (enforces uniqueness)
-userSchema.index({ email: 1 }, { unique: true });
-
-// Text index (for full-text search)
-userSchema.index({ name: 'text', bio: 'text' });
-
-// TTL index (auto-delete after expiry)
-userSchema.index({ createdAt: 1 }, { expireAfterSeconds: 3600 });
-
-// Sparse index (only index documents that have the field)
-userSchema.index({ phone: 1 }, { sparse: true });
-
-// Check indexes
-await User.collection.getIndexes();
-
-// Explain query (check if index is used)
-await User.find({ email: 'john@example.com' }).explain('executionStats');
-```
-
-**Best Practices:**
-- Index fields used in `find()`, `sort()`, `group by`
-- Limit number of indexes (each index slows down writes)
-- Use compound indexes for multi-field queries
-- Monitor query performance with `.explain()`
-
----
-
-## 🔄 Relationships in MongoDB
-
-### 1. Embedded Documents (Denormalization)
-
-```javascript
-// One-to-Few: User with addresses
-const userSchema = new mongoose.Schema({
-  name: String,
-  addresses: [{
-    street: String,
-    city: String,
-    zip: String
-  }]
-});
-
-// Pros: Fast reads, single query
-// Cons: Document size limit (16MB), data duplication
-```
-
-### 2. References (Normalization)
-
-```javascript
-// One-to-Many: User and Posts
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-});
-
-const postSchema = new mongoose.Schema({
-  title: String,
-  content: String,
-  authorId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }
-});
-
-// Query with populate
-const posts = await Post.find()
-  .populate('authorId', 'name email');
-// Returns posts with full author details
-
-// Pros: No duplication, flexible
-// Cons: Requires multiple queries (or lookup)
-```
-
-### 3. Hybrid Approach
-
-```javascript
-// Store frequently accessed data embedded, reference for full details
-const postSchema = new mongoose.Schema({
-  title: String,
-  author: {
-    id: mongoose.Schema.Types.ObjectId,
-    name: String, // Embedded for quick access
-    email: String
-  }
-});
-
-// Update both when author changes (trade-off for read performance)
-```
-
----
-
-## 🔒 Transactions (ACID)
-
-MongoDB supports multi-document ACID transactions (v4.0+).
-
-```javascript
-const session = await mongoose.startSession();
-session.startTransaction();
+```typescript
+const session = client.startSession();
 
 try {
-  // Transfer money between accounts
-  await Account.updateOne(
-    { _id: fromAccountId },
-    { $inc: { balance: -amount } },
-    { session }
-  );
-
-  await Account.updateOne(
-    { _id: toAccountId },
-    { $inc: { balance: amount } },
-    { session }
-  );
-
-  // Commit transaction
-  await session.commitTransaction();
-} catch (error) {
-  // Rollback on error
-  await session.abortTransaction();
-  throw error;
+  await session.withTransaction(async () => {
+    await accounts.updateOne({ _id: from }, { $inc: { balance: -amount } }, { session });
+    await accounts.updateOne({ _id: to }, { $inc: { balance: amount } }, { session });
+  });
 } finally {
-  session.endSession();
+  await session.endSession();
 }
 ```
 
----
+`withTransaction` commits on success, aborts on a thrown error, and retries transient failures. Prefer it over manual `startTransaction`/`commitTransaction`.
 
-## 📚 Interview Questions
+**When you don't need one:** a single document update is *already* atomic, including nested fields and arrays. Well-modelled documents make most transactions unnecessary — that is the intended design.
 
-### Q1: SQL vs MongoDB - When to use each?
+| Reach for a transaction when            | Skip it when                             |
+| --------------------------------------- | ---------------------------------------- |
+| Two collections must change together    | All the data lives in one document       |
+| Money or inventory moves between records | You can use `$inc` on a single document  |
 
-**Answer:**
-
-**Use SQL (PostgreSQL, MySQL) when:**
-- Complex joins and relationships
-- ACID transactions critical (banking, finance)
-- Structured, predictable schema
-- Mature ecosystem and tools needed
-
-**Use MongoDB when:**
-- Flexible/evolving schema
-- Hierarchical/nested data (JSON-like)
-- Horizontal scaling needed
-- Rapid prototyping
-- Document-based data model fits naturally
-
-**Example:** E-commerce product catalog → MongoDB (flexible attributes per category). Financial transactions → SQL (strict ACID compliance).
+⚠️ Transactions hold locks and have a default 60-second limit. Keep them short.
 
 ---
 
-### Q2: What is BSON and why does MongoDB use it?
+## Replication and Sharding
 
-**Answer:**
+**Replica set — availability.** One primary takes writes; secondaries copy it. If the primary dies, an election promotes a secondary in seconds. Always run one in production.
 
-**BSON (Binary JSON)** is MongoDB's data format.
-
-**Advantages over JSON:**
-1. **More data types:** Date, Binary, ObjectId, Decimal128, Int64
-2. **Efficient:** Binary format, faster to parse and traverse
-3. **Size-friendly:** Stores length prefix for quick skipping
-
-```javascript
-// JSON - Limited types
-{ "date": "2024-12-08T10:00:00Z" } // String, not Date
-
-// BSON - Native types
-{ "date": ISODate("2024-12-08T10:00:00Z") } // Actual Date object
-{ "_id": ObjectId("507f1f77bcf86cd799439011") } // 12-byte ObjectId
 ```
+        writes            replication
+Client ────────▶ Primary ──────────────▶ Secondary
+                    │                 └─▶ Secondary
+                    ▼
+              election on failure
+```
+
+**Sharding — scale beyond one machine.** Data splits across shards by a **shard key**.
+
+Choosing that key is the whole game:
+
+- ✅ **High cardinality + evenly spread** — spreads writes across every shard
+- ❌ **Monotonically increasing** (a timestamp, `_id`) — every new write lands on the same shard, so you bought hardware you can't use
+
+> Interview answer: "Replication is for availability, sharding is for scale. Shard only when one machine genuinely can't hold the working set — it complicates every query that doesn't include the shard key."
 
 ---
 
-### Q3: Explain MongoDB indexing and its importance.
+## Interview Q&A
 
-**Answer:**
+**Q: When would you pick MongoDB over PostgreSQL?**
+A: When the data is naturally hierarchical and read as a unit (product catalogs with per-category attributes, event payloads, CMS content), when the shape varies per record, or when you need horizontal write scaling. Pick SQL when you need cross-entity joins, strict constraints, or reporting queries you can't predict in advance. Honest answer for most CRUD apps: PostgreSQL with a `jsonb` column covers both, and MongoDB wins on document modelling and sharding rather than raw flexibility.
 
-**Indexes** are data structures that improve query performance.
+**Q: Is MongoDB ACID?**
+A: Yes, with a caveat about scope. A single document write has always been fully atomic. Multi-document ACID transactions arrived in 4.0 for replica sets and 4.2 across shards. The design intent is that good document modelling makes multi-document transactions rare.
 
-**Without Index:**
-```javascript
-// Scans all 1,000,000 documents (COLLSCAN)
-db.users.find({ email: 'john@example.com' })
-// Time: ~500ms
-```
+**Q: How do you avoid the N+1 problem?**
+A: Three options in order of preference — embed the data so one read is enough ([design patterns](./02-design-patterns.md)); `$lookup` in an [aggregation](./03-aggregation.md) to join server-side; or batch the second query with `find({ _id: { $in: ids } })`. Never loop and query per item.
 
-**With Index:**
-```javascript
-db.users.createIndex({ email: 1 })
-db.users.find({ email: 'john@example.com' })
-// Time: ~5ms (100x faster!)
-```
+**Q: Why is `skip` bad for pagination?**
+A: The server still scans and discards every skipped document, so page 5,000 costs far more than page 1. Range on an indexed field instead — `{ _id: { $lt: lastSeenId } }` — which stays constant-cost and doesn't skip or repeat rows when data changes mid-paging.
 
-**Types:**
-- **Single Field:** `{ email: 1 }`
-- **Compound:** `{ role: 1, createdAt: -1 }`
-- **Text:** Full-text search
-- **Geospatial:** Location queries
-- **TTL:** Auto-delete old documents
-
-**Trade-offs:**
-- ✅ Faster reads
-- ❌ Slower writes (must update index)
-- ❌ Uses disk space
+**Q: What happens if you pick a bad shard key?**
+A: Two failure modes. A monotonically increasing key sends every write to one shard ("hotspotting"), so you scale hardware without scaling throughput. A low-cardinality key creates jumbo chunks that can't split. Changing the shard key on a live collection is expensive, so this is a decision to get right up front.
 
 ---
 
-### Q4: How do you handle N+1 query problem in MongoDB?
+## Best Practices
 
-**Answer:**
-
-**Problem:**
-```javascript
-// Get users and their posts (N+1 queries)
-const users = await User.find(); // 1 query
-
-for (const user of users) {
-  user.posts = await Post.find({ authorId: user._id }); // N queries
-}
-// Total: 1 + N queries (slow for large N)
-```
-
-**Solution 1: populate() with Mongoose**
-```javascript
-const users = await User.find().populate('posts');
-// 2 queries total (efficient)
-```
-
-**Solution 2: Aggregation $lookup**
-```javascript
-const users = await User.aggregate([
-  {
-    $lookup: {
-      from: 'posts',
-      localField: '_id',
-      foreignField: 'authorId',
-      as: 'posts'
-    }
-  }
-]);
-// Single aggregation query
-```
-
-**Solution 3: Embed data (denormalization)**
-```javascript
-// Store post count in user document
-userSchema.add({ postCount: Number });
-// No additional query needed
-```
+✅ Model around **read patterns**, not entity relationships
+✅ Keep documents well under 16 MB — reference or bucket unbounded arrays
+✅ Project only the fields you need
+✅ Paginate with a range on an indexed field, not `skip`
+✅ Run a replica set in production, even single-region
+✅ Use `$elemMatch` when two conditions must match one array element
+❌ Don't normalize by reflex — you lose MongoDB's main advantage
+❌ Don't rely on schemaless-ness — enforce a shape in the application
+❌ Don't shard until one machine is genuinely the limit
 
 ---
 
-### Q5: Embedded vs Referenced documents - which to choose?
+## Where to Go Next
 
-**Answer:**
-
-**Embedded (Denormalized):**
-```javascript
-// User with embedded addresses
-{
-  name: "John",
-  addresses: [
-    { street: "123 Main", city: "NYC" },
-    { street: "456 Oak", city: "LA" }
-  ]
-}
-```
-
-**When to use:**
-- One-to-few relationships
-- Data accessed together
-- Read performance critical
-- Data doesn't change often
-
-**Referenced (Normalized):**
-```javascript
-// User
-{ _id: 1, name: "John" }
-
-// Posts (separate collection)
-{ title: "Post 1", authorId: 1 }
-{ title: "Post 2", authorId: 1 }
-```
-
-**When to use:**
-- One-to-many/many-to-many
-- Data changes frequently
-- Need to query independently
-- Document size concerns
-
-**Rule of thumb:**
-- Embed if "part of" relationship (address is part of user)
-- Reference if "has a" relationship (user has posts)
+| To learn                            | Read                                    |
+| ----------------------------------- | --------------------------------------- |
+| Embed vs reference, bucket, subset  | [Design Patterns](./02-design-patterns.md) |
+| `$group`, `$lookup`, pipelines      | [Aggregation](./03-aggregation.md)      |
+| Compound indexes, ESR, `explain()`  | [Indexing](./04-indexing.md)            |
+| Schemas, validation, hooks          | [Mongoose](./05-mongoose.md)            |
 
 ---
 
-## ✅ Best Practices
-
-1. **Use indexes** on frequently queried fields
-2. **Limit document size** to 16MB max (usually < 1MB)
-3. **Avoid deep nesting** (max 100 levels, but stay < 5)
-4. **Use projections** to return only needed fields
-5. **Implement pagination** for large result sets
-6. **Use aggregation** for complex queries
-7. **Enable schema validation** for data integrity
-8. **Monitor query performance** with `.explain()`
-9. **Use connection pooling** for better performance
-10. **Handle errors** properly (duplicate keys, validation, etc.)
-
----
-
-[← Back to Backend](../README.md) | [Next: Design Patterns →](./02-design-patterns.md)
+[← Back to NoSQL](./README.md) | [Next: Design Patterns →](./02-design-patterns.md)

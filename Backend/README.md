@@ -10,7 +10,7 @@ Senior-level reference covering the backend topics that show up in MNC and FAANG
 
 ### [NodeJS/](./NodeJS/)
 
-Runtime internals and production patterns.
+Runtime internals and production patterns. Start with the [module index](./NodeJS/README.md) for the study path and interview signals.
 
 | #   | Topic                                                     |
 | --- | --------------------------------------------------------- |
@@ -40,7 +40,7 @@ Relational databases — PostgreSQL focus.
 
 ### [NoSQL/](./NoSQL/)
 
-MongoDB document modeling and Redis.
+MongoDB document modeling and Redis. Start with the [module index](./NoSQL/README.md) for the study path and interview signals.
 
 | #   | Topic                                                     |
 | --- | --------------------------------------------------------- |

@@ -1,782 +1,215 @@
-# Clustering & Scalability
+# Clustering & Scaling
 
-## Overview
+## 💡 One Process Uses One Core
 
-Node.js runs on a single thread, but modern servers have multiple CPU cores. Clustering allows Node.js to utilize all available CPU cores by creating multiple worker processes, dramatically improving application performance and scalability.
+A Node process runs your JavaScript on a single thread. On an 8-core machine, a single process leaves 7 cores idle.
 
-**Why Clustering:**
-- Node.js is single-threaded (uses 1 CPU core by default)
-- Modern servers have 4-32+ CPU cores
-- Clustering uses ALL available cores
-- Improves throughput by 4-8x on typical servers
-- Provides fault tolerance (worker crashes don't kill app)
+**Clustering** forks one worker per core. They all share a listening port, so the OS spreads incoming connections across them.
 
-**Scaling Strategies:**
+```
+                  ┌── worker (core 1)
+Port 3000 ────────┼── worker (core 2)
+  primary         ├── worker (core 3)
+                  └── worker (core 4)
+```
 
-| Strategy | Description | When to Use |
-|----------|-------------|-------------|
-| **Vertical Scaling** | Bigger server (more RAM/CPU) | Quick fix, limited by hardware |
-| **Clustering** | Multiple processes on same server | Utilize multi-core CPU |
-| **Horizontal Scaling** | Multiple servers | Handle massive traffic, redundancy |
-| **PM2** | Production process manager | Production deployments |
+> ⚠️ **Clustering multiplies throughput, not speed.** One slow request is exactly as slow with 8 workers. It buys you *concurrency* across cores, and only helps when you're CPU-bound.
+
+---
 
 ## The Cluster Module
 
-### Basic Clustering
+```typescript
+import cluster from "node:cluster";
+import { availableParallelism } from "node:os";
 
-```javascript
-const cluster = require('cluster');
-const http = require('http');
-const os = require('os');
+if (cluster.isPrimary) {
+  const count = availableParallelism();       // ✅ container-aware, unlike cpus().length
+  for (let i = 0; i < count; i++) cluster.fork();
 
-const numCPUs = os.cpus().length;
-
-if (cluster.isMaster) {
-  console.log(`Master process ${process.pid} is running`);
-
-  // Fork workers (one per CPU core)
-  for (let i = 0; i < numCPUs; i++) {
-    cluster.fork();
-  }
-
-  cluster.on('exit', (worker, code, signal) => {
-    console.log(`Worker ${worker.process.pid} died`);
-    // Replace dead worker
-    cluster.fork();
+  cluster.on("exit", (worker, code, signal) => {
+    logger.warn({ pid: worker.process.pid, code, signal }, "worker died");
+    if (!worker.exitedAfterDisconnect) cluster.fork();   // don't respawn during shutdown
   });
 } else {
-  // Workers share the same server port
-  http.createServer((req, res) => {
-    res.writeHead(200);
-    res.end(`Hello from worker ${process.pid}\n`);
-  }).listen(8000);
-
-  console.log(`Worker ${process.pid} started`);
+  startServer();                               // each worker is a full app instance
 }
 ```
 
-### How Clustering Works
+⚠️ **Use `availableParallelism()`, not `os.cpus().length`.** In a container limited to 2 CPUs, `cpus()` still reports the host's 64 — so you'd fork 64 workers that fight over 2 cores.
 
+⚠️ **The `exitedAfterDisconnect` check matters.** Without it, a deliberate shutdown triggers respawns and the process never exits.
+
+🔴 **A worker that crash-loops respawns forever.** Add a backoff and a circuit breaker, or a bad deploy becomes a fork bomb.
+
+---
+
+## What Breaks When You Fork
+
+Workers are **separate processes**. Nothing in memory is shared. Code that quietly worked with one process now misbehaves.
+
+| Broken | Why | Fix |
+| --- | --- | --- |
+| In-memory sessions | Worker 2 doesn't have worker 1's login | Redis session store |
+| In-memory cache | Each worker has its own copy | Redis |
+| Rate limit counters | Limit becomes N × your limit | Redis store |
+| `setInterval` cron | Runs N times | Elect one worker, or a real scheduler |
+| WebSockets | Broadcast reaches one worker's clients | Redis pub/sub adapter |
+
+```typescript
+// ❌ Every worker runs this — 4 workers means 4 emails per user
+setInterval(sendDigestEmails, 60 * 60_000);
+
+// ✅ Only the first worker
+if (cluster.worker?.id === 1) setInterval(sendDigestEmails, 60 * 60_000);
 ```
-┌─────────────────────────────────┐
-│       Master Process             │
-│         (PID: 1234)              │
-└───────────┬─────────────────────┘
-            │
-            ├─────────┬─────────┬─────────┐
-            │         │         │         │
-      ┌─────▼──┐ ┌───▼────┐ ┌──▼─────┐ ┌─▼──────┐
-      │Worker 1│ │Worker 2│ │Worker 3│ │Worker 4│
-      │PID:1235│ │PID:1236│ │PID:1237│ │PID:1238│
-      └────────┘ └────────┘ └────────┘ └────────┘
-            │         │         │         │
-            └─────────┴─────────┴─────────┘
-                      │
-                 Port 8000
-                (Shared listening)
-```
 
-### Express with Clustering
+> ✨ Better still: move scheduled work out of the web process entirely, into a dedicated job runner.
 
-```javascript
-const cluster = require('cluster');
-const express = require('express');
-const os = require('os');
+---
 
-const numWorkers = process.env.WORKERS || os.cpus().length;
+## Zero-Downtime Restarts
 
-if (cluster.isMaster) {
-  masterProcess();
-} else {
-  workerProcess();
-}
+Restart workers one at a time so the service never fully drops.
 
-function masterProcess() {
-  console.log(`Master ${process.pid} is running`);
-  console.log(`Forking ${numWorkers} workers`);
+```typescript
+async function rollingRestart(): Promise<void> {
+  for (const worker of Object.values(cluster.workers ?? {})) {
+    if (!worker) continue;
 
-  // Create workers
-  for (let i = 0; i < numWorkers; i++) {
-    cluster.fork();
-  }
-
-  // Handle worker events
-  cluster.on('online', (worker) => {
-    console.log(`Worker ${worker.process.pid} is online`);
-  });
-
-  cluster.on('exit', (worker, code, signal) => {
-    console.log(`Worker ${worker.process.pid} died with code ${code}`);
-
-    // Don't restart if shutdown was intentional
-    if (!worker.exitedAfterDisconnect) {
-      console.log('Starting a new worker');
-      cluster.fork();
-    }
-  });
-
-  // Graceful shutdown
-  process.on('SIGTERM', () => {
-    console.log('Master received SIGTERM, shutting down gracefully');
-
-    for (const id in cluster.workers) {
-      cluster.workers[id].send('shutdown');
-      cluster.workers[id].disconnect();
-
-      setTimeout(() => {
-        if (!cluster.workers[id].isDead()) {
-          cluster.workers[id].kill();
-        }
-      }, 10000); // Force kill after 10s
-    }
-  });
-}
-
-function workerProcess() {
-  const app = express();
-  const port = process.env.PORT || 3000;
-
-  // Middleware
-  app.use(express.json());
-
-  // Routes
-  app.get('/', (req, res) => {
-    res.json({
-      message: 'Hello from cluster',
-      pid: process.pid,
-      worker: cluster.worker.id
-    });
-  });
-
-  app.get('/heavy', async (req, res) => {
-    // Simulate CPU-intensive task
-    const result = await heavyComputation();
-    res.json({ result, pid: process.pid });
-  });
-
-  // Start server
-  app.listen(port, () => {
-    console.log(`Worker ${process.pid} listening on port ${port}`);
-  });
-
-  // Handle shutdown message
-  process.on('message', (msg) => {
-    if (msg === 'shutdown') {
-      console.log(`Worker ${process.pid} shutting down`);
-
-      // Close server gracefully
-      server.close(() => {
-        console.log(`Worker ${process.pid} closed all connections`);
-        process.exit(0);
+    await new Promise<void>((resolve) => {
+      worker.disconnect();                      // stop taking new connections
+      worker.once("exit", () => {
+        cluster.fork().once("listening", () => resolve());  // wait for the replacement
       });
-
-      // Force exit after timeout
-      setTimeout(() => {
-        console.error(`Worker ${process.pid} forced shutdown`);
-        process.exit(1);
-      }, 10000);
-    }
-  });
-}
-
-async function heavyComputation() {
-  // Simulate work
-  let result = 0;
-  for (let i = 0; i < 1e9; i++) {
-    result += Math.sqrt(i);
+      setTimeout(() => worker.kill("SIGKILL"), 10_000).unref();
+    });
   }
-  return result;
 }
 ```
 
-## Load Balancing
+Each worker also needs to drain properly:
 
-The cluster module uses round-robin load balancing (default on all platforms except Windows).
-
-```javascript
-// Customize load balancing
-cluster.schedulingPolicy = cluster.SCHED_RR; // Round-robin
-// or
-cluster.schedulingPolicy = cluster.SCHED_NONE; // OS handles it
-
-// Monitor load distribution
-const workerStats = {};
-
-cluster.on('online', (worker) => {
-  workerStats[worker.id] = {
-    requests: 0,
-    errors: 0,
-    startTime: Date.now()
-  };
+```typescript
+process.on("SIGTERM", async () => {
+  server.close();                          // finish in-flight requests
+  await Promise.allSettled([db.close(), redis.quit()]);
+  process.exit(0);
 });
-
-// In worker process
-app.use((req, res, next) => {
-  process.send({ type: 'request', workerId: cluster.worker.id });
-  next();
-});
-
-// In master process
-cluster.on('message', (worker, message) => {
-  if (message.type === 'request') {
-    workerStats[message.workerId].requests++;
-  }
-});
-
-// Display stats
-setInterval(() => {
-  console.log('Worker Stats:', workerStats);
-}, 10000);
 ```
 
-## PM2 - Production Process Manager
+⚠️ Without `server.close()` and a drain step, in-flight requests are severed mid-response on every deploy.
 
-PM2 is the most popular production process manager for Node.js.
+---
 
-### Basic PM2 Usage
+## PM2
 
-```bash
-# Install PM2
-npm install -g pm2
+In practice most teams use PM2 rather than writing the primary process themselves.
 
-# Start application
-pm2 start app.js
+`ecosystem.json`:
 
-# Start with cluster mode
-pm2 start app.js -i max  # max = number of CPUs
-
-# Start with specific number of instances
-pm2 start app.js -i 4
-
-# List running processes
-pm2 list
-
-# Monitor processes
-pm2 monit
-
-# View logs
-pm2 logs
-
-# Restart application
-pm2 restart app
-
-# Stop application
-pm2 stop app
-
-# Delete from PM2
-pm2 delete app
-
-# Reload with zero downtime
-pm2 reload app
-
-# Save process list
-pm2 save
-
-# Startup script (auto-restart on reboot)
-pm2 startup
-
-# Update PM2
-pm2 update
-```
-
-### PM2 Ecosystem File
-
-```javascript
-// ecosystem.config.js
-module.exports = {
-  apps: [
+```json
+{
+  "apps": [
     {
-      name: 'api',
-      script: './app.js',
-      instances: 'max', // Use all CPUs
-      exec_mode: 'cluster',
-      env: {
-        NODE_ENV: 'development',
-        PORT: 3000
-      },
-      env_production: {
-        NODE_ENV: 'production',
-        PORT: 8080
-      },
-      error_file: './logs/err.log',
-      out_file: './logs/out.log',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      merge_logs: true,
-      autorestart: true,
-      max_memory_restart: '1G',
-      watch: false,
-      ignore_watch: ['node_modules', 'logs'],
-      max_restarts: 10,
-      min_uptime: '10s',
-      listen_timeout: 3000,
-      kill_timeout: 5000
-    },
-    {
-      name: 'worker',
-      script: './worker.js',
-      instances: 2,
-      exec_mode: 'cluster',
-      cron_restart: '0 0 * * *', // Restart at midnight
-      env_production: {
-        NODE_ENV: 'production'
-      }
+      "name": "api",
+      "script": "./dist/server.js",
+      "instances": "max",
+      "exec_mode": "cluster",
+      "max_memory_restart": "500M",
+      "kill_timeout": 10000
     }
   ]
-};
-
-// Start with ecosystem file
-// pm2 start ecosystem.config.js
-// pm2 start ecosystem.config.js --env production
-```
-
-### PM2 Advanced Features
-
-```javascript
-// Zero-downtime deployment
-pm2 reload app  // Graceful reload
-
-// Graceful shutdown in app
-process.on('SIGINT', () => {
-  console.log('Graceful shutdown...');
-
-  server.close(() => {
-    console.log('Server closed');
-
-    // Close database connections
-    db.close(() => {
-      console.log('Database closed');
-      process.exit(0);
-    });
-  });
-});
-
-// Memory monitoring
-app.get('/health', (req, res) => {
-  const memUsage = process.memoryUsage();
-  res.json({
-    pid: process.pid,
-    uptime: process.uptime(),
-    memory: {
-      rss: `${Math.round(memUsage.rss / 1024 / 1024)} MB`,
-      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)} MB`,
-      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)} MB`
-    }
-  });
-});
-
-// PM2 Programmatic API
-const pm2 = require('pm2');
-
-pm2.connect((err) => {
-  if (err) {
-    console.error(err);
-    process.exit(2);
-  }
-
-  pm2.start({
-    script: 'app.js',
-    name: 'api',
-    instances: 4,
-    exec_mode: 'cluster'
-  }, (err, apps) => {
-    pm2.disconnect();
-    if (err) throw err;
-  });
-});
-
-// Monitor PM2 metrics
-const pmx = require('@pm2/io');
-
-const counter = pmx.counter({
-  name: 'Request count'
-});
-
-app.use((req, res, next) => {
-  counter.inc();
-  next();
-});
-
-const meter = pmx.meter({
-  name: 'req/min',
-  samples: 60
-});
-
-app.use((req, res, next) => {
-  meter.mark();
-  next();
-});
-```
-
-## Sticky Sessions
-
-For WebSocket or session-based applications:
-
-```javascript
-// Using sticky-session package
-const cluster = require('cluster');
-const sticky = require('sticky-session');
-const express = require('express');
-
-if (cluster.isMaster) {
-  for (let i = 0; i < 4; i++) {
-    cluster.fork();
-  }
-} else {
-  const app = express();
-  const server = require('http').createServer(app);
-
-  // WebSocket setup
-  const io = require('socket.io')(server);
-
-  io.on('connection', (socket) => {
-    console.log(`Client connected to worker ${process.pid}`);
-
-    socket.on('disconnect', () => {
-      console.log('Client disconnected');
-    });
-  });
-
-  if (!sticky.listen(server, 3000)) {
-    server.once('listening', () => {
-      console.log(`Worker ${process.pid} is listening on 3000`);
-    });
-  }
-}
-
-// PM2 with sticky sessions
-// ecosystem.config.js
-module.exports = {
-  apps: [{
-    name: 'app',
-    script: 'app.js',
-    instances: 4,
-    exec_mode: 'cluster',
-    env: {
-      NODE_APP_INSTANCE: 0 // PM2 sets this automatically
-    }
-  }]
-};
-
-// In your app
-const port = process.env.PORT || 3000;
-const instance = process.env.NODE_APP_INSTANCE || 0;
-app.listen(port + parseInt(instance));
-```
-
-## Horizontal Scaling
-
-Scaling across multiple servers:
-
-```javascript
-// Using Redis for shared state
-const Redis = require('ioredis');
-const redis = new Redis({
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT
-});
-
-// Shared session store
-const session = require('express-session');
-const RedisStore = require('connect-redis')(session);
-
-app.use(session({
-  store: new RedisStore({ client: redis }),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false
-}));
-
-// Shared cache
-async function getCachedData(key) {
-  const cached = await redis.get(key);
-
-  if (cached) {
-    return JSON.parse(cached);
-  }
-
-  const data = await fetchFromDatabase(key);
-  await redis.setex(key, 3600, JSON.stringify(data));
-
-  return data;
-}
-
-// Pub/Sub for inter-server communication
-const subscriber = new Redis();
-const publisher = new Redis();
-
-subscriber.subscribe('notifications');
-
-subscriber.on('message', (channel, message) => {
-  console.log(`Received message from ${channel}:`, message);
-  io.emit('notification', JSON.parse(message));
-});
-
-// Publish from any server
-function notifyAllServers(data) {
-  publisher.publish('notifications', JSON.stringify(data));
 }
 ```
 
-## Load Balancers
+| Setting | Why it matters |
+| --- | --- |
+| `instances: "max"` | One worker per core |
+| `exec_mode: "cluster"` | Share the port; `fork` mode doesn't |
+| `max_memory_restart` | Recycles a worker that's leaking |
+| `kill_timeout` | Grace period to drain before `SIGKILL` |
 
-### NGINX Load Balancer
-
-```nginx
-# nginx.conf
-http {
-  upstream backend {
-    least_conn;  # Load balancing method
-
-    server 127.0.0.1:3000;
-    server 127.0.0.1:3001;
-    server 127.0.0.1:3002;
-    server 127.0.0.1:3003;
-  }
-
-  server {
-    listen 80;
-    server_name example.com;
-
-    location / {
-      proxy_pass http://backend;
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection 'upgrade';
-      proxy_set_header Host $host;
-      proxy_cache_bypass $http_upgrade;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-  }
-}
+```bash
+pm2 start ecosystem.json
+pm2 reload api      # ✅ zero-downtime rolling restart
+pm2 restart api     # ❌ kills everything at once
 ```
 
-### AWS Application Load Balancer
+> `reload` and `restart` differ in exactly the way that matters during a deploy.
 
-```javascript
-// Health check endpoint
-app.get('/health', (req, res) => {
-  // Check database connection
-  db.ping((err) => {
-    if (err) {
-      return res.status(503).json({
-        status: 'unhealthy',
-        database: 'disconnected'
-      });
-    }
+---
 
-    res.json({
-      status: 'healthy',
-      uptime: process.uptime(),
-      timestamp: Date.now()
-    });
-  });
-});
+## Cluster or Container Replicas?
 
-// Auto scaling based on metrics
-const cloudwatch = new AWS.CloudWatch();
+If you already run Kubernetes, clustering is often redundant — the orchestrator restarts and load-balances for you.
 
-function reportMetrics() {
-  const memUsage = process.memoryUsage();
+| | **Cluster in one container** | **N single-process containers** |
+| --- | --- | --- |
+| **Restart on crash** | You write it | Orchestrator handles it |
+| **Scaling unit** | Whole machine | One process |
+| **Rollout control** | Manual | Built in |
+| **Memory** | Lower (shared base) | Higher per replica |
+| **Fits** | VMs, bare metal, PM2 | Kubernetes, ECS, Cloud Run |
 
-  cloudwatch.putMetricData({
-    Namespace: 'MyApp',
-    MetricData: [
-      {
-        MetricName: 'MemoryUsage',
-        Value: memUsage.heapUsed / memUsage.heapTotal * 100,
-        Unit: 'Percent',
-        Timestamp: new Date()
-      }
-    ]
-  }, (err) => {
-    if (err) console.error('Failed to report metrics:', err);
-  });
-}
+> **Common answer:** one process per container, sized to one CPU, and scale with replicas. Reach for `cluster` on a big VM where you'd otherwise waste cores.
 
-setInterval(reportMetrics, 60000); // Every minute
+---
+
+## Beyond One Machine
+
+Clustering ends at the machine boundary. Past that you need **stateless** application servers.
+
+```
+        ┌── load balancer ──┐
+        ▼         ▼         ▼
+     server    server    server        ← no local state
+        └─────────┼─────────┘
+              Redis + DB                ← all shared state lives here
 ```
 
-## Performance Monitoring
+**Stateless means:** no in-memory sessions, no local file uploads (use S3), no sticky-session requirement, no local cache assumed authoritative.
 
-```javascript
-const cluster = require('cluster');
+**When you genuinely need sticky sessions** — WebSockets being the main case — prefer a Redis adapter so any node can serve any client:
 
-if (cluster.isMaster) {
-  const workers = new Map();
-
-  cluster.on('online', (worker) => {
-    workers.set(worker.id, {
-      pid: worker.process.pid,
-      requests: 0,
-      errors: 0,
-      memory: 0,
-      cpu: 0
-    });
-  });
-
-  cluster.on('message', (worker, message) => {
-    if (message.type === 'stats') {
-      const stats = workers.get(worker.id);
-      Object.assign(stats, message.data);
-    }
-  });
-
-  // Display stats periodically
-  setInterval(() => {
-    console.log('\n=== Worker Stats ===');
-    for (const [id, stats] of workers) {
-      console.log(`Worker ${id}:`, stats);
-    }
-  }, 10000);
-} else {
-  // Worker reports stats
-  let requestCount = 0;
-  let errorCount = 0;
-
-  app.use((req, res, next) => {
-    requestCount++;
-    next();
-  });
-
-  app.use((err, req, res, next) => {
-    errorCount++;
-    next(err);
-  });
-
-  setInterval(() => {
-    const memUsage = process.memoryUsage();
-
-    process.send({
-      type: 'stats',
-      data: {
-        requests: requestCount,
-        errors: errorCount,
-        memory: Math.round(memUsage.heapUsed / 1024 / 1024)
-      }
-    });
-  }, 5000);
-}
+```typescript
+import { createAdapter } from "@socket.io/redis-adapter";
+io.adapter(createAdapter(pubClient, subClient));   // broadcasts reach every node
 ```
 
-## Common Interview Questions
+---
 
-### Q1: How does clustering improve Node.js performance?
+## Interview Q&A
 
-**Answer:**
-- Node.js is single-threaded, limited to one CPU core
-- Clustering creates multiple worker processes
-- Each worker runs on a different CPU core
-- Load is distributed across workers
-- Utilizes full server capacity
-- Improves throughput and handles more concurrent requests
+**Q: When does clustering not help?**
+A: When you're I/O-bound. If workers spend their time waiting on the database, adding workers just adds database connections — the bottleneck moves, it doesn't shrink. Check event loop delay first: low delay with slow responses means the problem is downstream, and clustering won't touch it.
 
-### Q2: What happens if a worker process crashes?
+**Q: How are connections distributed across workers?**
+A: By default the primary accepts and distributes round-robin (on every platform except Windows). The alternative is letting all workers accept on the shared socket, which the OS balances — faster, but unevenly, because a worker that's already busy can still win the race.
 
-**Answer:**
-The master process can detect the crash and automatically spawn a new worker:
+**Q: What breaks when you move from one process to four?**
+A: Everything relying on shared memory. Sessions, caches, and rate-limit counters silently become per-worker — a 100/min limit becomes 400/min. Scheduled timers fire once per worker. The fix is to externalise state into Redis and pull scheduling out of the web process.
 
-```javascript
-cluster.on('exit', (worker, code, signal) => {
-  console.log(`Worker ${worker.process.pid} died`);
-  cluster.fork(); // Spawn replacement
-});
-```
+**Q: How do you deploy without dropping requests?**
+A: Rolling restart. Take one worker out, wait for its in-flight requests to finish via `server.close()`, start its replacement, wait for it to listen, then move to the next. `pm2 reload` does this; `pm2 restart` does not. A hard kill timeout stops one stuck connection from blocking the rollout.
 
-### Q3: How do you share state across cluster workers?
+**Q: Cluster module or Kubernetes replicas?**
+A: If you have an orchestrator, prefer one process per container — you get restarts, health checks, and rolling deploys for free, and the scaling unit is finer-grained. The cluster module earns its place on a single large VM where replicas aren't an option and you'd otherwise leave cores idle.
 
-**Answer:**
-Workers don't share memory. Use external state management:
-- **Redis** for sessions and cache
-- **Database** for persistent data
-- **Message queues** for task coordination
-- **IPC** for master-worker communication
-
-### Q4: PM2 vs Cluster module - when to use each?
-
-**Answer:**
-- **Cluster module**: Fine-grained control, custom logic, small deployments
-- **PM2**: Production-ready, zero-downtime deploys, monitoring, enterprise features
+---
 
 ## Best Practices
 
-```javascript
-// 1. Match workers to CPU cores
-const numWorkers = os.cpus().length;
+✅ Size the pool with `availableParallelism()`, not `os.cpus().length`
+✅ Respawn dead workers — with backoff to survive crash loops
+✅ Externalise sessions, caches, and rate limits to Redis
+✅ Run scheduled jobs in one place, not in every worker
+✅ Drain with `server.close()` before exit; use `pm2 reload` to deploy
+✅ Prefer one process per container when you have an orchestrator
+❌ Don't cluster to fix I/O-bound slowness
+❌ Don't assume in-memory state is shared
+❌ Don't fork more workers than you have cores
 
-// 2. Implement graceful shutdown
-process.on('SIGTERM', gracefulShutdown);
+---
 
-// 3. Auto-restart crashed workers
-cluster.on('exit', (worker) => {
-  if (!worker.exitedAfterDisconnect) {
-    cluster.fork();
-  }
-});
-
-// 4. Use PM2 in production
-// pm2 start app.js -i max
-
-// 5. Monitor worker health
-setInterval(checkWorkerHealth, 30000);
-
-// 6. Implement health checks
-app.get('/health', healthCheckHandler);
-
-// 7. Use load balancer for multiple servers
-// NGINX, AWS ALB, etc.
-```
-
-## Summary
-
-**Core Concepts:**
-
-1. **Cluster Module:**
-   - ✅ Master process manages workers
-   - ✅ Each worker is independent process
-   - ✅ Automatic load balancing (round-robin)
-   - ✅ Workers share same server port
-   - ✅ Auto-restart crashed workers
-
-2. **PM2 - Production Standard:**
-   - ✅ Zero-downtime deployments (`pm2 reload`)
-   - ✅ Auto-restart on crashes
-   - ✅ Built-in load balancing
-   - ✅ Log management
-   - ✅ Monitoring and metrics
-
-3. **Scaling Approaches:**
-   - **Vertical**: Bigger server (limited by hardware)
-   - **Clustering**: Use all CPU cores (4-8x improvement)
-   - **Horizontal**: Multiple servers (unlimited scaling)
-   - **PM2**: Best of both (easy management)
-
-4. **Shared State:**
-   - ⚠️ Workers don't share memory
-   - ✅ Use Redis for sessions/cache
-   - ✅ Use database for persistent data
-   - ✅ IPC for master-worker communication
-
-5. **Best Practices:**
-   - ✅ Match workers to CPU cores
-   - ✅ Implement graceful shutdown
-   - ✅ Auto-restart crashed workers
-   - ✅ Use PM2 in production
-   - ✅ Monitor worker health
-   - ✅ Health check endpoints
-
-**Key Insights:**
-> - Clustering can improve throughput by 4-8x on typical multi-core servers
-> - PM2 is the industry standard for production Node.js deployments
-> - Workers are isolated - one crash doesn't bring down the app
-> - Use Redis/DB for shared state - workers can't share memory
-
-## Related Topics
-- [Child Processes](./07-child-processes.md)
-- [Performance Optimization](./05-performance.md)
-- [Deployment](../DevOps/09-deployment.md)
-
-## Resources
-- [Node.js Cluster Documentation](https://nodejs.org/api/cluster.html)
-- [PM2 Documentation](https://pm2.keymetrics.io/)
-- [Scaling Node.js Applications](https://nodejs.org/en/docs/guides/scaling-node-apps/)
+[← Previous: Child Processes](./07-child-processes.md) | [Back to NodeJS](./README.md)
