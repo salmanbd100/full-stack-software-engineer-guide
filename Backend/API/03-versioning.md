@@ -2,938 +2,304 @@
 
 ## Overview
 
-API versioning is the practice of managing changes to an API in a backward-compatible way, allowing multiple versions to coexist. This enables you to evolve your API without breaking existing clients.
+Versioning is how you change an API without breaking the clients already using it. The mechanism — a path segment, a header — is the easy part and takes an afternoon.
 
-**Key Principle:** Never break existing clients. When you need to make breaking changes, create a new version.
+The hard part is everything after: running two code paths, knowing who still uses the old one, and actually turning it off.
 
----
-
-## 🎯 Why Version Your API?
+> **The senior framing:** every version you ship is a maintenance contract you cannot cancel unilaterally. So the goal isn't good versioning, it's **needing fewer versions** — design for additive change first, and version only when the change genuinely cannot be additive.
 
-### Breaking vs Non-Breaking Changes
-
-**Non-Breaking Changes (No version bump needed):**
-- Adding new endpoints
-- Adding optional query parameters
-- Adding new fields to responses (clients ignore unknown fields)
-- Making required fields optional
-- Adding new optional request body fields
+## Table of Contents
 
-**Breaking Changes (Require new version):**
-- Removing or renaming endpoints
-- Removing or renaming fields in responses
-- Changing field types (string → number)
-- Making optional fields required
-- Changing authentication mechanisms
-- Changing HTTP methods for endpoints
-- Changing response status codes
-- Modifying error response formats
-
----
-
-## 📐 Versioning Strategies
-
-### 1. URL Path Versioning (Most Common)
-
-**Format:** `/api/v1/resource`, `/api/v2/resource`
-
-**JavaScript (Express):**
-```javascript
-const express = require('express');
-const app = express();
-
-// Version 1
-const v1Router = express.Router();
-
-v1Router.get('/users', (req, res) => {
-  res.json([
-    { id: 1, name: 'John' },
-    { id: 2, name: 'Jane' },
-  ]);
-});
+- [Breaking vs Non-Breaking Changes](#breaking-vs-non-breaking-changes)
+- [Where to Put the Version](#where-to-put-the-version)
+- [Implementing Path Versioning](#implementing-path-versioning)
+- [Avoiding a New Version](#avoiding-a-new-version)
+- [Deprecation and Sunset](#deprecation-and-sunset)
+- [Knowing When It's Safe to Delete](#knowing-when-its-safe-to-delete)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
 
-v1Router.get('/users/:id', (req, res) => {
-  res.json({ id: req.params.id, name: 'John' });
-});
+## Breaking vs Non-Breaking Changes
 
-app.use('/api/v1', v1Router);
+The whole discipline rests on classifying a change correctly.
 
-// Version 2 - Breaking change: added email field
-const v2Router = express.Router();
-
-v2Router.get('/users', (req, res) => {
-  res.json([
-    { id: 1, name: 'John', email: 'john@example.com' },
-    { id: 2, name: 'Jane', email: 'jane@example.com' },
-  ]);
-});
-
-v2Router.get('/users/:id', (req, res) => {
-  res.json({
-    id: req.params.id,
-    name: 'John',
-    email: 'john@example.com',
-  });
-});
-
-app.use('/api/v2', v2Router);
-
-app.listen(3000);
-```
-
-**Python (FastAPI):**
-```python
-from fastapi import FastAPI, APIRouter
-from pydantic import BaseModel
-
-app = FastAPI()
-
-# Version 1 Models
-class UserV1(BaseModel):
-    id: int
-    name: str
-
-# Version 2 Models (with email)
-class UserV2(BaseModel):
-    id: int
-    name: str
-    email: str
-
-# V1 Router
-v1_router = APIRouter(prefix="/api/v1")
-
-@v1_router.get("/users", response_model=list[UserV1])
-async def get_users_v1():
-    return [
-        {"id": 1, "name": "John"},
-        {"id": 2, "name": "Jane"}
-    ]
-
-@v1_router.get("/users/{user_id}", response_model=UserV1)
-async def get_user_v1(user_id: int):
-    return {"id": user_id, "name": "John"}
-
-# V2 Router
-v2_router = APIRouter(prefix="/api/v2")
-
-@v2_router.get("/users", response_model=list[UserV2])
-async def get_users_v2():
-    return [
-        {"id": 1, "name": "John", "email": "john@example.com"},
-        {"id": 2, "name": "Jane", "email": "jane@example.com"}
-    ]
-
-@v2_router.get("/users/{user_id}", response_model=UserV2)
-async def get_user_v2(user_id: int):
-    return {"id": user_id, "name": "John", "email": "john@example.com"}
-
-app.include_router(v1_router)
-app.include_router(v2_router)
-```
-
-**Pros:**
-- ✅ Very clear and explicit
-- ✅ Easy to implement
-- ✅ Visible in URL (easy to debug)
-- ✅ Works with all HTTP methods
-- ✅ Cacheable
-
-**Cons:**
-- ❌ Clutters URLs
-- ❌ Version is coupled to all endpoints
-
-**Use When:** Building public APIs, RESTful services, or when simplicity is key.
-
----
-
-### 2. Header Versioning (API-Version Header)
-
-**Format:** `API-Version: 1` or `API-Version: 2`
-
-**JavaScript:**
-```javascript
-app.use('/api/users', (req, res) => {
-  const version = req.headers['api-version'] || '1';
-
-  if (version === '1') {
-    // V1 logic
-    return res.json([
-      { id: 1, name: 'John' },
-      { id: 2, name: 'Jane' },
-    ]);
-  }
-
-  if (version === '2') {
-    // V2 logic
-    return res.json([
-      { id: 1, name: 'John', email: 'john@example.com' },
-      { id: 2, name: 'Jane', email: 'jane@example.com' },
-    ]);
-  }
-
-  return res.status(400).json({ error: 'Unsupported API version' });
-});
-
-// Or using middleware
-const versionMiddleware = (req, res, next) => {
-  const version = req.headers['api-version'] || '1';
-  req.apiVersion = version;
-  next();
-};
-
-app.use(versionMiddleware);
-
-app.get('/api/users', (req, res) => {
-  if (req.apiVersion === '1') {
-    return res.json(getUsersV1());
-  }
-  if (req.apiVersion === '2') {
-    return res.json(getUsersV2());
-  }
-  res.status(400).json({ error: 'Unsupported version' });
-});
-```
-
-**Python:**
-```python
-from fastapi import FastAPI, Header, HTTPException
-
-app = FastAPI()
-
-@app.get("/api/users")
-async def get_users(api_version: str = Header("1", alias="API-Version")):
-    if api_version == "1":
-        return [
-            {"id": 1, "name": "John"},
-            {"id": 2, "name": "Jane"}
-        ]
-    elif api_version == "2":
-        return [
-            {"id": 1, "name": "John", "email": "john@example.com"},
-            {"id": 2, "name": "Jane", "email": "jane@example.com"}
-        ]
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported API version")
-```
-
-**Pros:**
-- ✅ Clean URLs
-- ✅ Follows HTTP standards
-- ✅ Version not tied to URL
-
-**Cons:**
-- ❌ Less discoverable
-- ❌ Harder to test (need to set headers)
-- ❌ Not visible in browser address bar
-
-**Use When:** Building internal APIs or when URL cleanliness is important.
-
----
-
-### 3. Accept Header Versioning (Content Negotiation)
-
-**Format:** `Accept: application/vnd.myapi.v1+json`
-
-**JavaScript:**
-```javascript
-app.get('/api/users', (req, res) => {
-  const accept = req.headers['accept'] || '';
-
-  if (accept.includes('vnd.myapi.v1+json')) {
-    return res
-      .set('Content-Type', 'application/vnd.myapi.v1+json')
-      .json([
-        { id: 1, name: 'John' },
-        { id: 2, name: 'Jane' },
-      ]);
-  }
-
-  if (accept.includes('vnd.myapi.v2+json')) {
-    return res
-      .set('Content-Type', 'application/vnd.myapi.v2+json')
-      .json([
-        { id: 1, name: 'John', email: 'john@example.com' },
-        { id: 2, name: 'Jane', email: 'jane@example.com' },
-      ]);
-  }
-
-  // Default to v1
-  return res.json([
-    { id: 1, name: 'John' },
-    { id: 2, name: 'Jane' },
-  ]);
-});
-```
-
-**Python:**
-```python
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse
-
-app = FastAPI()
-
-@app.get("/api/users")
-async def get_users(request: Request):
-    accept = request.headers.get("accept", "")
-
-    if "vnd.myapi.v1+json" in accept:
-        return JSONResponse(
-            content=[
-                {"id": 1, "name": "John"},
-                {"id": 2, "name": "Jane"}
-            ],
-            headers={"Content-Type": "application/vnd.myapi.v1+json"}
-        )
-
-    if "vnd.myapi.v2+json" in accept:
-        return JSONResponse(
-            content=[
-                {"id": 1, "name": "John", "email": "john@example.com"},
-                {"id": 2, "name": "Jane", "email": "jane@example.com"}
-            ],
-            headers={"Content-Type": "application/vnd.myapi.v2+json"}
-        )
-
-    # Default to v1
-    return [{"id": 1, "name": "John"}, {"id": 2, "name": "Jane"}]
-```
-
-**Pros:**
-- ✅ RESTful (uses HTTP content negotiation)
-- ✅ Clean URLs
-- ✅ Follows REST principles strictly
-
-**Cons:**
-- ❌ Complex to implement
-- ❌ Not intuitive for developers
-- ❌ Hard to test
-
-**Use When:** Building strict RESTful APIs or when following REST principles is critical.
-
----
-
-### 4. Query Parameter Versioning
-
-**Format:** `/api/users?version=1` or `/api/users?v=1`
-
-**JavaScript:**
-```javascript
-app.get('/api/users', (req, res) => {
-  const version = req.query.version || req.query.v || '1';
-
-  if (version === '1') {
-    return res.json([
-      { id: 1, name: 'John' },
-      { id: 2, name: 'Jane' },
-    ]);
-  }
-
-  if (version === '2') {
-    return res.json([
-      { id: 1, name: 'John', email: 'john@example.com' },
-      { id: 2, name: 'Jane', email: 'jane@example.com' },
-    ]);
-  }
-
-  return res.status(400).json({ error: 'Unsupported version' });
-});
-```
-
-**Python:**
-```python
-@app.get("/api/users")
-async def get_users(version: str = "1", v: str = None):
-    api_version = v or version
-
-    if api_version == "1":
-        return [{"id": 1, "name": "John"}, {"id": 2, "name": "Jane"}]
-    elif api_version == "2":
-        return [
-            {"id": 1, "name": "John", "email": "john@example.com"},
-            {"id": 2, "name": "Jane", "email": "jane@example.com"}
-        ]
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported version")
-```
-
-**Pros:**
-- ✅ Simple to implement
-- ✅ Easy to test
-- ✅ Visible and optional
-
-**Cons:**
-- ❌ Clutters query string
-- ❌ Version mixed with other parameters
-- ❌ Can conflict with caching
-
-**Use When:** Quick prototyping or internal tools.
-
----
-
-## 🏗️ Advanced Versioning Patterns
-
-### 1. Shared Logic with Version-Specific Handlers
-
-**JavaScript:**
-```javascript
-// Shared business logic
-class UserService {
-  async getAllUsers() {
-    return await User.find(); // Returns all fields
-  }
-
-  async getUserById(id) {
-    return await User.findById(id);
-  }
+| Change | Breaking? | Note |
+| ------ | --------- | ---- |
+| Add a new endpoint | ✅ Safe | Nobody calls it yet |
+| Add an optional request field | ✅ Safe | Old clients omit it |
+| Add a response field | ✅ Safe *in theory* | See the warning below |
+| Make a required field optional | ✅ Safe | Loosening never breaks a caller |
+| Add a new enum value | 🔴 **Breaking** | Clients with a `switch` and no default fall through |
+| Rename a field | 🔴 Breaking | Even `name` → `fullName` |
+| Change a type | 🔴 Breaking | `"19.99"` → `19.99` breaks parsers |
+| Remove a field or endpoint | 🔴 Breaking | Obvious |
+| Make an optional field required | 🔴 Breaking | Existing requests start failing |
+| Tighten validation | 🔴 Breaking | Previously accepted input now 400s |
+| Change a status code or error shape | 🔴 Breaking | Client error handling is coupled to it |
+| Change default sort or page size | 🔴 Breaking | Silently changes results — the worst kind |
+
+> ⚠️ **"Adding a field is safe" assumes tolerant clients.** A client with strict schema validation, or one that hashes the whole response, breaks on a new field. Publish tolerant-reader expectations in your docs, and treat additive changes as safe *because you said so up front*.
+
+**The two that catch people out** are new enum values and changed defaults. Both look additive and neither is. Mention either one in an interview and you sound like someone who has broken production before.
+
+## Where to Put the Version
+
+| Strategy | Example | Verdict |
+| -------- | ------- | ------- |
+| **URL path** | `/v2/users` | ✅ Default choice. Visible in logs, trivial to route and cache, easy to `curl` |
+| **Custom header** | `API-Version: 2` | ⚠️ Clean URLs, but invisible in logs and easy for caches to ignore |
+| **Accept header** | `Accept: application/vnd.api.v2+json` | ⚠️ Purest REST, worst ergonomics |
+| **Date header** | `API-Version: 2026-01-15` | ✅ Excellent for large public APIs (Stripe's model) |
+| **Query param** | `/users?v=2` | ❌ Mixes identity with filtering, breaks caches |
+
+**Pick the path unless you have a reason not to.** It is what GitHub, Twilio, and most public APIs do, and "I can see the version in the access log" matters more in an incident than URL aesthetics.
+
+> ✨ **The date-based variant is worth knowing.** Stripe pins each account to the API version current when it signed up, sent as a date. New accounts get the latest; existing ones never break; a single header opts a caller into the new behaviour. It costs a compatibility-transform layer per change, and buys you the ability to ship breaking changes weekly.
+
+🔴 **If you cache behind a CDN and version by header, you must send `Vary: API-Version`.** Otherwise v1 responses get served to v2 clients — a genuinely hard bug to diagnose.
+
+## Implementing Path Versioning
+
+The rule that keeps this maintainable: **version the boundary, never the business logic.** One service, many representations.
+
+```typescript
+import express, { Router } from "express";
+
+// ── Domain layer: no version awareness at all ─────────────────────
+interface OrderRow {
+  id: string;
+  total: number;
+  currency: string;
+  status: "pending" | "shipped" | "cancelled";
+  createdAt: Date;
 }
 
-// Version-specific transformers
-class UserTransformerV1 {
-  static transform(user) {
-    return {
-      id: user._id,
-      name: user.name,
-    };
-  }
-
-  static transformMany(users) {
-    return users.map(this.transform);
-  }
-}
-
-class UserTransformerV2 {
-  static transform(user) {
-    return {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      createdAt: user.createdAt,
-    };
-  }
-
-  static transformMany(users) {
-    return users.map(this.transform);
-  }
-}
-
-// V1 Routes
-const v1Router = express.Router();
-const userService = new UserService();
-
-v1Router.get('/users', async (req, res) => {
-  const users = await userService.getAllUsers();
-  res.json(UserTransformerV1.transformMany(users));
-});
-
-v1Router.get('/users/:id', async (req, res) => {
-  const user = await userService.getUserById(req.params.id);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(UserTransformerV1.transform(user));
-});
-
-// V2 Routes
-const v2Router = express.Router();
-
-v2Router.get('/users', async (req, res) => {
-  const users = await userService.getAllUsers();
-  res.json(UserTransformerV2.transformMany(users));
-});
-
-v2Router.get('/users/:id', async (req, res) => {
-  const user = await userService.getUserById(req.params.id);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(UserTransformerV2.transform(user));
-});
-
-app.use('/api/v1', v1Router);
-app.use('/api/v2', v2Router);
-```
-
-**Benefits:**
-- ✅ DRY (Don't Repeat Yourself) - business logic shared
-- ✅ Easy to add new versions
-- ✅ Testable transformers
-- ✅ Clear separation of concerns
-
----
-
-### 2. Version Middleware Pattern
-
-**JavaScript:**
-```javascript
-// Version extractor middleware
-const extractVersion = (req, res, next) => {
-  // Try multiple sources
-  const pathVersion = req.path.match(/\/v(\d+)\//)?.[1];
-  const headerVersion = req.headers['api-version'];
-  const queryVersion = req.query.version;
-
-  req.apiVersion = pathVersion || headerVersion || queryVersion || '1';
-  next();
-};
-
-// Version validator middleware
-const validateVersion = (supportedVersions) => {
-  return (req, res, next) => {
-    if (!supportedVersions.includes(req.apiVersion)) {
-      return res.status(400).json({
-        error: 'Unsupported API version',
-        supported: supportedVersions,
-        requested: req.apiVersion,
-      });
-    }
-    next();
-  };
-};
-
-// Version-specific route handling
-const versionedHandler = (handlers) => {
-  return (req, res, next) => {
-    const handler = handlers[req.apiVersion] || handlers['default'];
-
-    if (!handler) {
-      return res.status(400).json({ error: 'No handler for this version' });
-    }
-
-    return handler(req, res, next);
-  };
-};
-
-// Usage
-app.use(extractVersion);
-app.use(validateVersion(['1', '2', '3']));
-
-app.get(
-  '/api/users',
-  versionedHandler({
-    '1': async (req, res) => {
-      const users = await User.find().select('id name');
-      res.json(users);
-    },
-    '2': async (req, res) => {
-      const users = await User.find().select('id name email');
-      res.json(users);
-    },
-    '3': async (req, res) => {
-      const users = await User.find().select('id name email phone createdAt');
-      res.json({ users, version: '3' });
-    },
-  })
-);
-```
-
----
-
-### 3. Version Deprecation Strategy
-
-**JavaScript:**
-```javascript
-// Deprecation middleware
-const deprecationWarning = (deprecatedVersion, sunsetDate) => {
-  return (req, res, next) => {
-    if (req.apiVersion === deprecatedVersion) {
-      res.set({
-        'X-API-Warn': `API version ${deprecatedVersion} is deprecated`,
-        'X-API-Deprecation-Date': sunsetDate,
-        'X-API-Deprecation-Info': 'https://api.example.com/docs/migration',
-        'Sunset': sunsetDate, // RFC 8594
-      });
-    }
-    next();
-  };
-};
-
-// Usage
-app.use('/api/v1', deprecationWarning('1', '2025-12-31'));
-app.use('/api/v1', v1Router);
-
-// Example response headers:
-// X-API-Warn: API version 1 is deprecated
-// X-API-Deprecation-Date: 2025-12-31
-// Sunset: Sat, 31 Dec 2025 23:59:59 GMT
-```
-
-**Python:**
-```python
-from datetime import datetime
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse
-import functools
-
-def deprecated(sunset_date: str, info_url: str):
-    def decorator(func):
-        @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            response = await func(*args, **kwargs)
-
-            if isinstance(response, Response):
-                response.headers["X-API-Warn"] = f"This endpoint is deprecated"
-                response.headers["X-API-Deprecation-Date"] = sunset_date
-                response.headers["X-API-Deprecation-Info"] = info_url
-                response.headers["Sunset"] = sunset_date
-
-            return response
-        return wrapper
-    return decorator
-
-@app.get("/api/v1/users")
-@deprecated(
-    sunset_date="2025-12-31",
-    info_url="https://api.example.com/docs/migration"
-)
-async def get_users_v1():
-    return [{"id": 1, "name": "John"}]
-```
-
----
-
-## 📊 Versioning Best Practices
-
-### 1. Start with Versioning from Day One
-
-```javascript
-// ✅ GOOD: Version from the start
-app.use('/api/v1/users', usersRouter);
-
-// ❌ BAD: No version
-app.use('/api/users', usersRouter);
-// Now you're stuck - adding v1 later is a breaking change!
-```
-
-### 2. Major Versions Only
-
-```
-✅ GOOD:
-/api/v1/users
-/api/v2/users
-/api/v3/users
-
-❌ BAD:
-/api/v1.2.3/users
-/api/v1.5/users
-```
-
-**Why:** Minor/patch versions shouldn't break clients. Only major versions indicate breaking changes.
-
-### 3. Support at Least 2 Versions Simultaneously
-
-```javascript
-// Support v1 and v2 concurrently
-app.use('/api/v1', v1Router); // Deprecated
-app.use('/api/v2', v2Router); // Current
-app.use('/api/v3', v3Router); // Beta/Preview
-```
-
-### 4. Document Migration Path
-
-```markdown
-## Migration Guide: V1 → V2
-
-### Breaking Changes
-
-1. **User endpoint response structure changed**
-   - V1: `{ id, name }`
-   - V2: `{ id, fullName, email }`
-
-2. **Field renamed**
-   - `name` → `fullName`
-
-3. **New required field**
-   - `email` is now required
-
-### Migration Steps
-
-1. Update client to use `/api/v2` endpoints
-2. Handle new `fullName` field (previously `name`)
-3. Provide `email` in POST requests
-
-### Code Examples
-
-// V1
-GET /api/v1/users/123
-{ "id": 123, "name": "John Doe" }
-
-// V2
-GET /api/v2/users/123
-{ "id": 123, "fullName": "John Doe", "email": "john@example.com" }
-```
-
-### 5. Deprecation Timeline
-
-```
-Week 0:  Launch V2, announce V1 deprecation
-Week 4:  Add deprecation headers to V1 responses
-Week 12: Send email reminders to V1 API consumers
-Week 20: Final warning - 1 month to sunset
-Week 24: Sunset V1 (stop accepting requests)
-```
-
-### 6. Monitor Version Usage
-
-```javascript
-// Track version usage
-const versionMetrics = require('./metrics');
-
-app.use((req, res, next) => {
-  versionMetrics.increment(`api.version.${req.apiVersion}.requests`);
-  next();
-});
-
-// Alert when V1 usage drops below 5% → safe to deprecate
-```
-
----
-
-## 🎤 Common Interview Questions
-
-### Q1: What versioning strategy would you recommend for a public REST API?
-
-**Answer:**
-
-**URL Path Versioning** (`/api/v1/users`, `/api/v2/users`) is recommended for public APIs because:
-
-1. **Discoverability:** Version is visible in the URL
-2. **Simplicity:** Easy for developers to understand and use
-3. **Testing:** Simple to test different versions (just change URL)
-4. **Documentation:** Clear in API docs
-5. **Caching:** Works well with HTTP caching
-6. **Industry Standard:** Used by Stripe, Twitter, GitHub, etc.
-
-**Implementation Approach:**
-- Use Express Router or FastAPI APIRouter to separate versions
-- Share business logic, version-specific transformers for responses
-- Support 2-3 versions concurrently (deprecated, current, beta)
-- Provide clear migration guides
-
-**Example:**
-```javascript
-// Shared service
 class OrderService {
-  async getOrders() { /* ... */ }
-}
-
-// V1 transformer
-class OrderTransformerV1 {
-  static transform(order) {
-    return { id: order.id, amount: order.total };
+  async findById(id: string): Promise<OrderRow | null> {
+    return db.orders.findOne({ id });
   }
 }
 
-// V2 transformer (breaking change: amount → total with currency)
-class OrderTransformerV2 {
-  static transform(order) {
-    return {
-      id: order.id,
-      total: {
-        amount: order.total,
-        currency: order.currency
-      }
-    };
-  }
+// ── Presentation layer: one serializer per version ────────────────
+interface OrderV1 {
+  id: string;
+  amount: number; // v1 exposed a bare number
+  status: string;
 }
+
+interface OrderV2 {
+  id: string;
+  total: { amount: number; currency: string }; // v2 made money a type
+  status: string;
+  createdAt: string;
+}
+
+const toV1 = (o: OrderRow): OrderV1 => ({ id: o.id, amount: o.total, status: o.status });
+
+const toV2 = (o: OrderRow): OrderV2 => ({
+  id: o.id,
+  total: { amount: o.total, currency: o.currency },
+  status: o.status,
+  createdAt: o.createdAt.toISOString(),
+});
+
+// ── Routing ───────────────────────────────────────────────────────
+const service = new OrderService();
+
+function ordersRouter<T>(serialize: (o: OrderRow) => T): Router {
+  const router = Router();
+  router.get("/orders/:id", async (req, res) => {
+    const order = await service.findById(req.params.id);
+    if (!order) return res.status(404).json({ title: "Not found", status: 404 });
+    res.json(serialize(order));
+  });
+  return router;
+}
+
+const app = express();
+app.use("/v1", ordersRouter(toV1));
+app.use("/v2", ordersRouter(toV2));
 ```
 
-### Q2: How do you handle backward compatibility when changing an API?
+**Why this shape:**
 
-**Answer:**
+- ✅ A bug fix in `OrderService` fixes both versions at once.
+- ✅ Serializers are pure functions — easy to unit test, easy to delete.
+- ✅ Adding v3 is one function and one `app.use`.
 
-**Strategy depends on the type of change:**
+❌ **The anti-pattern** is copying the whole controller into a `v2/` folder. It works for a week, then a fix lands in one copy and not the other, and now v1 and v2 disagree about what an order is.
 
-**1. Non-Breaking Changes (No version bump):**
-```javascript
-// ✅ Adding optional fields
-// V1
-{ "id": 1, "name": "John" }
+> ⚠️ **Version whole APIs, not individual endpoints.** `/v1/users` alongside `/v3/orders` is a matrix nobody can document or reason about. Bump the surface together and keep the mental model simple.
 
-// V1 with new optional field (clients ignore it)
-{ "id": 1, "name": "John", "age": 30 }
+## Avoiding a New Version
 
-// ✅ Adding new endpoints
-GET /api/v1/users/123/preferences  // New endpoint, doesn't break existing
-```
+Most "we need v2" moments don't. Cheaper options, roughly in order:
 
-**2. Breaking Changes (New version required):**
-```javascript
-// ❌ Renaming fields
-// V1: { "name": "John" }
-// V2: { "fullName": "John" }  // Breaking!
+**1. Add alongside, don't replace.** Ship the new field, keep writing the old one, and mark it deprecated in the docs.
 
-// ❌ Changing types
-// V1: { "price": "19.99" }  // string
-// V2: { "price": 19.99 }    // number - Breaking!
-
-// ❌ Removing fields
-// V1: { "id": 1, "name": "John", "age": 30 }
-// V2: { "id": 1, "name": "John" }  // Removed age - Breaking!
-```
-
-**3. Gradual Migration Pattern:**
-```javascript
-// V1: Old structure
-GET /api/v1/users/123
-{ "id": 123, "name": "John" }
-
-// V1.5: Support both fields temporarily
-GET /api/v1/users/123
+```typescript
+// Transitional response — both fields, both correct.
 {
-  "id": 123,
-  "name": "John",        // Deprecated
-  "fullName": "John"     // New field
-}
-
-// V2: Only new structure
-GET /api/v2/users/123
-{ "id": 123, "fullName": "John" }
-```
-
-**4. Use Feature Flags for Gradual Rollout:**
-```javascript
-app.get('/api/v2/users/:id', async (req, res) => {
-  const user = await User.findById(req.params.id);
-
-  // Feature flag for gradual rollout
-  if (req.headers['x-enable-beta-features'] === 'true') {
-    return res.json({
-      ...user,
-      newFeature: computeNewFeature(user)
-    });
-  }
-
-  return res.json(user);
-});
-```
-
-### Q3: When would you NOT version your API?
-
-**Answer:**
-
-**Don't version when:**
-
-1. **Internal microservices communication** (use contracts/schemas instead)
-   - GraphQL or gRPC with schema evolution
-   - Contract testing with Pact
-   - Backward-compatible Protobuf changes
-
-2. **Rapid prototyping** (pre-production)
-   - MVP/alpha phase
-   - No external consumers yet
-
-3. **Real-time APIs** (WebSocket, SSE)
-   - Version handshake at connection time
-   - Not per-message
-
-4. **GraphQL APIs**
-   - Schema evolution instead of versioning
-   - Deprecate fields with `@deprecated` directive
-
-```graphql
-type User {
-  id: ID!
-  name: String @deprecated(reason: "Use fullName instead")
-  fullName: String
+  "name": "Ada Lovelace",      // deprecated, removed in v2
+  "fullName": "Ada Lovelace"   // preferred
 }
 ```
 
-### Q4: How would you sunset an old API version?
+**2. Expand and contract.** The safe way to rename anything, including database columns:
 
-**Answer:**
-
-**6-Step Process:**
-
-**1. Announce Deprecation (Week 0)**
-```javascript
-// Add to docs, blog post, email
-"V1 deprecated on 2024-12-01. Sunset on 2025-06-01."
+```
+1. Write both, read old      ← deploy new code, nothing breaks
+2. Backfill                  ← old records get the new field
+3. Read new, still write old ← the switch, and it's reversible
+4. Stop writing old          ← after clients have migrated
+5. Delete old                ← weeks or months later
 ```
 
-**2. Add Deprecation Headers (Week 4)**
-```javascript
-app.use('/api/v1', (req, res, next) => {
-  res.set({
-    'X-API-Deprecation': 'true',
-    'X-API-Sunset-Date': '2025-06-01',
-    'X-API-Migration-Guide': 'https://api.example.com/docs/v1-to-v2',
-    'Sunset': 'Sat, 01 Jun 2025 00:00:00 GMT'  // RFC 8594
-  });
-  next();
-});
+**3. Opt-in flags for genuinely new behaviour.**
+
+```typescript
+// Client asks for the new shape explicitly; default stays stable.
+const useNewPricing = req.header("X-Features")?.includes("pricing-v2") ?? false;
 ```
 
-**3. Monitor Usage (Ongoing)**
-```javascript
-// Track V1 usage
-const metrics = require('./metrics');
+**4. Deprecate a field instead of an API.** Cheaper than a whole version, and GraphQL formalises this with `@deprecated(reason: "…")`. See [GraphQL](./02-graphql.md).
 
-app.use('/api/v1', (req, res, next) => {
-  metrics.increment('api.v1.requests', {
-    endpoint: req.path,
-    client: req.headers['user-agent']
-  });
-  next();
-});
+## Deprecation and Sunset
 
-// Alert when large consumers still on V1
-```
+Use the standard HTTP headers ([RFC 8594](https://www.rfc-editor.org/rfc/rfc8594.html) and the `Deprecation` header draft) rather than inventing `X-` names. Tooling understands them.
 
-**4. Contact Heavy Users (Week 12)**
-```
-Identify top 10 consumers of V1 API
-Send personalized emails with migration help
-Offer migration support/consultation
-```
+```typescript
+import type { RequestHandler } from "express";
 
-**5. Return 410 Gone for New Requests (Week 20)**
-```javascript
-// 1 month before sunset: reject NEW API keys on V1
-app.use('/api/v1', (req, res, next) => {
-  const apiKey = req.headers['x-api-key'];
-  const keyCreatedAt = await getApiKeyCreatedAt(apiKey);
+/** Marks a version deprecated and advertises when it stops working. */
+function deprecated(sunsetISO: string, guide: string): RequestHandler {
+  const sunset = new Date(sunsetISO).toUTCString();
 
-  if (keyCreatedAt > new Date('2025-05-01')) {
-    return res.status(410).json({
-      error: 'API version 1 is no longer available for new users',
-      message: 'Please use /api/v2',
-      migrationGuide: 'https://api.example.com/docs/v1-to-v2'
+  return (_req, res, next) => {
+    res.set({
+      Deprecation: "true",
+      Sunset: sunset, // RFC 8594 — an HTTP-date, not a bare "2026-06-01"
+      Link: `<${guide}>; rel="deprecation"; type="text/html"`,
     });
-  }
+    next();
+  };
+}
 
-  next();
-});
+app.use("/v1", deprecated("2026-12-31T23:59:59Z", "https://docs.example.com/v1-to-v2"));
 ```
 
-**6. Full Sunset (Week 24)**
-```javascript
-// Return 410 Gone for all V1 requests
-app.use('/api/v1', (req, res) => {
+**A realistic timeline for a public API:**
+
+```
+Month 0   Ship v2. Announce v1 deprecation. Publish the migration guide.
+Month 1   Deprecation + Sunset headers on every v1 response.
+Month 3   Email the top consumers by traffic. Offer help.
+Month 6   Block v1 for newly created API keys. Existing keys unaffected.
+Month 9   Brownouts — return 410 for one hour, twice, announced in advance.
+Month 12  Sunset. 410 Gone, with a link to the guide.
+```
+
+> ✨ **Brownouts are the trick that actually works.** Emails get filtered; a one-hour outage produces a support ticket from the team that never read them, while there's still time to migrate. Announce them, keep them short, and never run one on a Friday.
+
+**Return 410 Gone, not 404.** 410 means "this existed and is intentionally gone" — a client can log it and stop retrying. 404 looks like a typo and gets retried forever.
+
+```typescript
+app.use("/v1", (_req, res) => {
   res.status(410).json({
-    error: 'API version 1 has been sunset',
-    sunsetDate: '2025-06-01',
-    replacement: 'Please use /api/v2',
-    migrationGuide: 'https://api.example.com/docs/v1-to-v2'
+    type: "https://docs.example.com/errors/version-sunset",
+    title: "API v1 has been sunset",
+    status: 410,
+    detail: "v1 was retired on 2026-12-31. Use /v2.",
   });
 });
 ```
 
-**Best Practices:**
-- ✅ Give 6-12 months notice for public APIs
-- ✅ Provide clear migration guides
-- ✅ Monitor and reach out to heavy users
-- ✅ Use standard HTTP headers (Sunset: RFC 8594)
-- ✅ Return 410 Gone (not 404) for sunset endpoints
+## Knowing When It's Safe to Delete
+
+You cannot sunset what you cannot measure. Tag every request with its version and its caller.
+
+```typescript
+app.use((req, _res, next) => {
+  const version = req.path.match(/^\/v(\d+)\//)?.[1] ?? "unversioned";
+
+  metrics.increment("api.request", {
+    version,
+    route: req.route?.path ?? "unknown",
+    clientId: req.apiKeyId ?? "anonymous", // ✅ per-client, or you can't call anyone
+  });
+
+  next();
+});
+```
+
+**What to watch:**
+
+| Signal | Why it matters |
+| ------ | -------------- |
+| Requests per version | The headline number |
+| **Distinct clients** per version | 1000 requests from one dead cron job is not 1000 users |
+| Traffic by client | Tells you who to email first |
+| Which v1 fields are still read | Field-level usage lets you delete pieces early |
+| Last-seen timestamp per client | Finds abandoned integrations |
+
+> 🔴 **Traffic near zero is not the same as zero.** A quarterly batch job shows up as noise for 89 days and a broken customer on the 90th. Check for at least one full business cycle before deleting.
+
+## Interview Questions
+
+**Q1: Which versioning strategy would you choose, and why?**
+
+URL path versioning for a normal public REST API — it's visible in logs and traces, trivial to route in a gateway, and safe with any cache. For a large API that ships breaking changes often, I'd use date-based versions pinned per account, like Stripe: new callers get current behaviour, existing ones never break, and you carry a compatibility-transform layer instead of a fork of the codebase.
+
+**Q2: Which changes need a new version?**
+
+Anything a client can observe and depend on: removing or renaming fields, changing types, tightening validation, changing error shapes or status codes, and changing defaults like page size or sort order. Adding endpoints or optional fields is safe if you've told clients to be tolerant readers. The two people miss are new enum values — a client `switch` with no default falls through — and changed defaults, which break silently.
+
+**Q3: How do you avoid needing v2 at all?**
+
+Additive change plus expand-and-contract. To rename a field I write both and read the old one, backfill, flip reads to the new one, then stop writing the old one once traffic confirms nobody reads it. Every step is independently deployable and reversible. A version is what I reach for when the *shape* of the resource changes, not when a field does.
+
+**Q4: How do you sunset a version?**
+
+Announce it, then serve `Deprecation` and `Sunset` headers with a `Link` to the migration guide on every response. Track usage per client, not just totals, and contact the biggest consumers directly. Block new API keys from the old version, run a couple of announced brownouts, then return `410 Gone`. For a public API the whole thing is 6–12 months.
+
+**Q5: 404 or 410 for a removed version?**
+
+410 Gone. It says the resource existed and was intentionally removed, so a client can log it and stop retrying. A 404 reads like a typo and gets retried indefinitely.
+
+**Q6: How do you avoid duplicated code across versions?**
+
+The domain layer has no idea versions exist. Each version gets a pure serializer function that maps the domain object to that version's response shape, plus a thin router. Bug fixes land once; adding a version is one function. Copying controllers into `v2/` guarantees the two drift apart.
+
+**Q7: Do internal microservices need versioning?**
+
+Not the same way. If you control every caller, you can coordinate a deploy, so schema evolution plus contract tests beats maintaining parallel versions. gRPC/Protobuf gives you additive-by-design field numbering. What you still need is compatibility across a rolling deploy — during a rollout, old and new instances run at once, so each change must be backward-compatible for at least one deploy cycle even with no external clients.
+
+**Q8: Should you version from day one?**
+
+Yes — ship `/v1` even if there's never a v2, because retrofitting a prefix onto a live unversioned API is itself a breaking change. It costs nothing on day one.
+
+## Summary
+
+**Checklist:**
+
+- [ ] `/v1` in the path from the first deploy
+- [ ] Version the whole API surface, not individual endpoints
+- [ ] Major versions only — no `/v1.2`
+- [ ] Domain logic shared; one serializer per version
+- [ ] Additive change and expand-and-contract tried before a version bump
+- [ ] `Deprecation`, `Sunset`, and `Link` headers on deprecated versions
+- [ ] `Vary: API-Version` if versioning by header behind a cache
+- [ ] Usage metrics per version **and per client**
+- [ ] Migration guide published before deprecation is announced
+- [ ] `410 Gone` after sunset, never `404`
+
+**Best practices:**
+
+1. **Fewer versions beats good versioning** — design for additive change.
+2. **Version the edge** — serializers change, the domain doesn't.
+3. **Measure before you delete** — distinct clients, over a full business cycle.
+4. **Brownouts, not just emails** — a short announced outage finds the clients nobody could reach.
 
 ---
 
-## ✅ Key Takeaways
-
-1. **Start versioning from day one** - `/api/v1` not `/api`
-2. **URL path versioning is most common** - clear, simple, industry standard
-3. **Only version on breaking changes** - adding optional fields doesn't need new version
-4. **Support 2-3 versions concurrently** - give users time to migrate
-5. **Use transformers to share logic** - DRY principle, business logic separate from versioning
-6. **Document breaking changes clearly** - provide migration guides
-7. **Deprecate gradually** - headers, monitoring, communication, sunset
-8. **Use 410 Gone for sunset APIs** - not 404 Not Found
-
----
-
-[← Back: GraphQL](./02-graphql.md) | [Next: Rate Limiting →](./04-rate-limiting.md)
+[← GraphQL](./02-graphql.md) | [API Index](./README.md) | [Rate Limiting →](./04-rate-limiting.md)

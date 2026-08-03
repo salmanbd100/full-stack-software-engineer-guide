@@ -1,1942 +1,448 @@
-# Structural Design Patterns
+# Structural Patterns
 
-## 🎯 Overview
+## Overview
 
-Structural patterns **compose objects into larger structures** while keeping those structures flexible and efficient. They explain how to assemble objects and classes into larger structures, while keeping those structures flexible and efficient.
+Structural patterns are about **composition**: how you put objects together so that a change in one place doesn't ripple everywhere else.
 
-### When to Use Structural Patterns
+They all share one move — put something *between* the caller and the thing being called. What changes is why: to translate an interface (Adapter), to add behaviour (Decorator), to simplify (Facade), or to control access (Proxy).
 
-| Scenario | Pattern |
-|----------|---------|
-| Make incompatible interfaces work together | Adapter |
-| Add responsibilities dynamically | Decorator |
-| Provide simplified interface to complex system | Facade |
-| Control access to an object | Proxy |
-| Treat individual and composite objects uniformly | Composite |
-| Separate abstraction from implementation | Bridge |
+> **The distinction interviewers press on:** Adapter, Decorator, Facade, and Proxy have nearly identical structure — an object wrapping another object. They differ only in **intent**. Being able to state the intent difference cleanly is most of the value of knowing them.
 
----
+## Table of Contents
+
+- [Quick Decision Table](#quick-decision-table)
+- [Adapter](#adapter)
+- [Decorator](#decorator)
+- [Facade](#facade)
+- [Proxy](#proxy)
+- [Composite](#composite)
+- [Bridge](#bridge)
+- [Telling the Wrappers Apart](#telling-the-wrappers-apart)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
+
+## Quick Decision Table
+
+| Problem | Pattern |
+| ------- | ------- |
+| Two interfaces don't line up | **Adapter** |
+| Add behaviour without touching the class | **Decorator** |
+| Five subsystems, one simple entry point | **Facade** |
+| Same interface, but control *when* the real call happens | **Proxy** |
+| A tree where leaves and branches behave alike | **Composite** |
+| Two dimensions of variation multiplying into subclasses | **Bridge** |
 
 ## Adapter
 
 ### 💡 **Intent**
 
-Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces.
+Translate one interface into another so code that expects the second can use the first.
 
-### Problem It Solves
-
-```
-Without Adapter:
-├── Can't use third-party library with incompatible interface
-├── Legacy code doesn't match new system's expectations
-├── Multiple similar services with different APIs
-└── Tight coupling to specific implementations
-```
-
-### Structure
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│     Client      │────────▶│     Target      │
-└─────────────────┘         ├─────────────────┤
-                            │ + request()     │
-                            └────────△────────┘
-                                     │
-                            ┌────────┴────────┐
-                            │     Adapter     │
-                            ├─────────────────┤
-                            │ + request()     │───────▶ adaptee.specificRequest()
-                            │ - adaptee       │
-                            └─────────────────┘
-                                     │
-                            ┌────────┴────────┐
-                            │     Adaptee     │
-                            ├─────────────────┤
-                            │ + specificRequest()
-                            └─────────────────┘
-```
-
-### Implementation
-
-**Payment Gateway Adapter:**
+**The classic use case:** you own the interface, a third party owns theirs, and you refuse to let their shape leak into your domain.
 
 ```typescript
-interface CardDetails {
-  last4: string;
-  expiry?: string;
-  cardNumber?: string;
+// ── What our application decided it needs ─────────────────────────
+interface EmailSender {
+  send(message: { to: string; subject: string; html: string }): Promise<{ id: string }>;
 }
 
-interface PaymentResponse {
-  success: boolean;
-  transactionId: string;
-  amount: number;
-  provider: string;
+// ── What a vendor SDK actually offers (different names, different units) ──
+class SendGridClient {
+  async post(payload: {
+    personalizations: { to: { email: string }[] }[];
+    subject: string;
+    content: { type: string; value: string }[];
+  }): Promise<{ messageId: string }> { /* … */ }
 }
 
-interface RefundResponse {
-  success: boolean;
-  refundId: string;
-  amount: number;
-}
+// ── The adapter: the only file that knows SendGrid's shape ────────
+class SendGridAdapter implements EmailSender {
+  constructor(private readonly client: SendGridClient) {}
 
-// Target interface - what our system expects
-abstract class PaymentProcessor {
-  abstract processPayment(amount: number, currency: string, cardDetails: CardDetails): PaymentResponse;
-  abstract refund(transactionId: string, amount: number): RefundResponse;
-}
-
-// Adaptee 1 - Stripe's actual API (incompatible interface)
-interface StripeChargeResult {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-}
-
-interface StripeRefundResult {
-  id: string;
-  amount: number;
-  status: string;
-}
-
-class StripeAPI {
-  createCharge(amountInCents: number, currency: string, source: string): StripeChargeResult {
-    console.log(`Stripe: Charging ${amountInCents} cents ${currency}`);
-    return {
-      id: `ch_${Date.now()}`,
-      amount: amountInCents,
-      currency,
-      status: 'succeeded'
-    };
-  }
-
-  createRefund(chargeId: string, amountInCents: number): StripeRefundResult {
-    console.log(`Stripe: Refunding ${amountInCents} cents for ${chargeId}`);
-    return {
-      id: `re_${Date.now()}`,
-      amount: amountInCents,
-      status: 'succeeded'
-    };
-  }
-}
-
-// Adaptee 2 - PayPal's actual API (different incompatible interface)
-interface PayPalPaymentDetails {
-  amount: { total: number; currency: string };
-  payer: { payment_method: string };
-}
-
-interface PayPalPaymentResult {
-  paymentId: string;
-  state: string;
-  amount: { total: number };
-}
-
-interface PayPalRefundResult {
-  refundId: string;
-  state: string;
-}
-
-class PayPalAPI {
-  executePayment(paymentDetails: PayPalPaymentDetails): PayPalPaymentResult {
-    console.log(`PayPal: Processing payment of ${paymentDetails.amount.total}`);
-    return {
-      paymentId: `PAY_${Date.now()}`,
-      state: 'approved',
-      amount: paymentDetails.amount
-    };
-  }
-
-  refundPayment(paymentId: string, refundAmount: number): PayPalRefundResult {
-    console.log(`PayPal: Refunding ${refundAmount} for ${paymentId}`);
-    return {
-      refundId: `REF_${Date.now()}`,
-      state: 'completed'
-    };
-  }
-}
-
-// Adapter for Stripe
-class StripeAdapter extends PaymentProcessor {
-  private stripe: StripeAPI;
-
-  constructor() {
-    super();
-    this.stripe = new StripeAPI();
-  }
-
-  processPayment(amount: number, currency: string, cardDetails: CardDetails): PaymentResponse {
-    // Convert dollars to cents (Stripe uses cents)
-    const amountInCents = Math.round(amount * 100);
-
-    // Adapt card details to Stripe's source format
-    const source = this.createStripeSource(cardDetails);
-
-    const result = this.stripe.createCharge(amountInCents, currency, source);
-
-    // Normalize response to our system's format
-    return {
-      success: result.status === 'succeeded',
-      transactionId: result.id,
-      amount: result.amount / 100,
-      provider: 'stripe'
-    };
-  }
-
-  refund(transactionId: string, amount: number): RefundResponse {
-    const amountInCents = Math.round(amount * 100);
-    const result = this.stripe.createRefund(transactionId, amountInCents);
-
-    return {
-      success: result.status === 'succeeded',
-      refundId: result.id,
-      amount: result.amount / 100
-    };
-  }
-
-  private createStripeSource(cardDetails: CardDetails): string {
-    return `tok_${cardDetails.last4}`;
-  }
-}
-
-// Adapter for PayPal
-class PayPalAdapter extends PaymentProcessor {
-  private paypal: PayPalAPI;
-
-  constructor() {
-    super();
-    this.paypal = new PayPalAPI();
-  }
-
-  processPayment(amount: number, currency: string, cardDetails: CardDetails): PaymentResponse {
-    // Convert to PayPal's expected format
-    const paymentDetails: PayPalPaymentDetails = {
-      amount: { total: amount, currency },
-      payer: { payment_method: 'credit_card' }
-    };
-
-    const result = this.paypal.executePayment(paymentDetails);
-
-    return {
-      success: result.state === 'approved',
-      transactionId: result.paymentId,
-      amount: result.amount.total,
-      provider: 'paypal'
-    };
-  }
-
-  refund(transactionId: string, amount: number): RefundResponse {
-    const result = this.paypal.refundPayment(transactionId, amount);
-
-    return {
-      success: result.state === 'completed',
-      refundId: result.refundId,
-      amount
-    };
-  }
-}
-
-// Client code - works with any adapter
-interface CartItem {
-  name: string;
-  price: number;
-}
-
-interface Cart {
-  items: CartItem[];
-}
-
-interface CheckoutResult {
-  orderId: string;
-  payment: PaymentResponse;
-}
-
-class CheckoutService {
-  private paymentProcessor: PaymentProcessor;
-
-  constructor(paymentProcessor: PaymentProcessor) {
-    this.paymentProcessor = paymentProcessor;
-  }
-
-  checkout(cart: Cart, paymentDetails: CardDetails): CheckoutResult {
-    const total = cart.items.reduce((sum, item) => sum + item.price, 0);
-
-    const result = this.paymentProcessor.processPayment(
-      total,
-      'USD',
-      paymentDetails
-    );
-
-    if (result.success) {
-      console.log(`Payment successful: ${result.transactionId}`);
-      return { orderId: `ORD_${Date.now()}`, payment: result };
-    }
-
-    throw new Error('Payment failed');
-  }
-}
-
-// Usage - easily swap payment providers
-const stripeCheckout = new CheckoutService(new StripeAdapter());
-const paypalCheckout = new CheckoutService(new PayPalAdapter());
-
-const cart: Cart = { items: [{ name: 'Product', price: 29.99 }] };
-const cardDetails: CardDetails = { last4: '4242' };
-
-stripeCheckout.checkout(cart, cardDetails);
-// Stripe: Charging 2999 cents USD
-// Payment successful: ch_1234567890
-```
-
-**Logger Adapter:**
-
-```typescript
-// Target interface
-interface Logger {
-  debug(message: string, context?: object): void;
-  info(message: string, context?: object): void;
-  warn(message: string, context?: object): void;
-  error(message: string, context?: object): void;
-}
-
-// Adaptee - Winston logger (different interface)
-import winston from 'winston';
-
-class WinstonLogger {
-  private logger: winston.Logger;
-
-  constructor() {
-    this.logger = winston.createLogger({
-      level: 'debug',
-      format: winston.format.json(),
-      transports: [new winston.transports.Console()]
+  async send(message: { to: string; subject: string; html: string }) {
+    const result = await this.client.post({
+      personalizations: [{ to: [{ email: message.to }] }],
+      subject: message.subject,
+      content: [{ type: "text/html", value: message.html }],
     });
-  }
-
-  log(level: string, message: string, meta?: object): void {
-    this.logger.log(level, message, meta);
+    return { id: result.messageId }; // translate the response too
   }
 }
-
-// Adapter
-class WinstonAdapter implements Logger {
-  private winston: WinstonLogger;
-
-  constructor() {
-    this.winston = new WinstonLogger();
-  }
-
-  debug(message: string, context?: object): void {
-    this.winston.log('debug', message, context);
-  }
-
-  info(message: string, context?: object): void {
-    this.winston.log('info', message, context);
-  }
-
-  warn(message: string, context?: object): void {
-    this.winston.log('warn', message, context);
-  }
-
-  error(message: string, context?: object): void {
-    this.winston.log('error', message, context);
-  }
-}
-
-// Adapter for Pino (another logging library)
-import pino from 'pino';
-
-class PinoAdapter implements Logger {
-  private pino: pino.Logger;
-
-  constructor() {
-    this.pino = pino();
-  }
-
-  debug(message: string, context?: object): void {
-    this.pino.debug(context || {}, message);
-  }
-
-  info(message: string, context?: object): void {
-    this.pino.info(context || {}, message);
-  }
-
-  warn(message: string, context?: object): void {
-    this.pino.warn(context || {}, message);
-  }
-
-  error(message: string, context?: object): void {
-    this.pino.error(context || {}, message);
-  }
-}
-
-// Client code - works with any logger
-class UserService {
-  constructor(private logger: Logger) {}
-
-  createUser(data: { name: string; email: string }): void {
-    this.logger.info('Creating user', { email: data.email });
-    // ... create user logic
-    this.logger.debug('User created successfully', { name: data.name });
-  }
-}
-
-// Easy to switch logging implementations
-const service = new UserService(new WinstonAdapter());
-// or
-const serviceWithPino = new UserService(new PinoAdapter());
 ```
 
-### Pros and Cons
+Swapping to Postmark means writing `PostmarkAdapter` and changing one line of wiring. Nothing in your domain moves.
 
-**Pros:**
-- ✅ Single Responsibility (separate conversion logic)
-- ✅ Open/Closed (add new adapters without changing client)
-- ✅ Work with incompatible third-party code
-- ✅ Reuse existing classes
+> ✨ **Adapter is how you keep vendors out of your domain model.** Without it, `personalizations[0].to[0].email` ends up in a business service, and the vendor is now unremovable. Interviewers read this as maturity — it's the difference between using a library and depending on one.
 
-**Cons:**
-- ❌ Overall complexity increases
-- ❌ Sometimes simpler to change the service class
-- ❌ Extra layer of indirection
-
-### Interview Questions
-
-**Q: What's the difference between Adapter and Facade?**
-
-**A:**
-
-| Aspect | Adapter | Facade |
-|--------|---------|--------|
-| **Purpose** | Make interfaces compatible | Simplify complex interface |
-| **Scope** | Single class adaptation | Multiple classes simplified |
-| **Direction** | Wraps one interface | Wraps entire subsystem |
-| **Interface** | Implements target interface | Defines new simple interface |
-
----
+**Two-way adapters** exist too: wrapping your own legacy API to satisfy a new interface while old callers keep working is the standard migration technique.
 
 ## Decorator
 
 ### 💡 **Intent**
 
-Attach additional responsibilities to an object dynamically. Decorators provide a flexible alternative to subclassing for extending functionality.
+Add behaviour to an object without changing its class, and let those additions stack.
 
-### Problem It Solves
-
-```
-Without Decorator:
-├── Class explosion with every combination of features
-├── Cannot add behavior at runtime
-├── Inheritance is static and inflexible
-└── Violates Single Responsibility Principle
-```
-
-### Structure
-
-```
-┌─────────────────┐
-│   Component     │
-├─────────────────┤
-│ + operation()   │
-└────────△────────┘
-         │
-    ┌────┴────────────────────┐
-    │                         │
-┌───┴────────────┐    ┌───────┴──────────┐
-│ConcreteComponent│    │    Decorator     │
-├────────────────┤    ├──────────────────┤
-│ + operation()  │    │ - component      │
-└────────────────┘    │ + operation()    │
-                      └────────△─────────┘
-                               │
-              ┌────────────────┴────────────────┐
-              │                                 │
-     ┌────────┴────────┐              ┌────────┴────────┐
-     │ConcreteDecoratorA│              │ConcreteDecoratorB│
-     ├─────────────────┤              ├─────────────────┤
-     │ + operation()   │              │ + operation()   │
-     │ + addedBehavior()│              │ + addedState   │
-     └─────────────────┘              └─────────────────┘
-```
-
-### Implementation
-
-**Express-Style Middleware:**
+**Same interface in, same interface out.** That's what makes decorators composable — each wrapper is invisible to the next.
 
 ```typescript
-interface RequestUser {
-  id: number;
-  name: string;
+interface UserRepository {
+  findById(id: string): Promise<User | null>;
 }
 
-interface RequestBody {
-  [key: string]: unknown;
+class SqlUserRepository implements UserRepository {
+  async findById(id: string): Promise<User | null> { /* hits the database */ }
 }
 
-interface RequestHeaders {
-  authorization?: string;
-  'x-client-id'?: string;
-  [key: string]: string | undefined;
-}
+// ── Decorator 1: caching ──────────────────────────────────────────
+class CachedUserRepository implements UserRepository {
+  constructor(
+    private readonly inner: UserRepository, // ✅ wraps the same interface
+    private readonly cache: Map<string, User> = new Map(),
+  ) {}
 
-// Base component types
-class Request {
-  public body: RequestBody;
-  public headers: RequestHeaders;
-  public user: RequestUser | null;
+  async findById(id: string): Promise<User | null> {
+    const hit = this.cache.get(id);
+    if (hit) return hit;
 
-  constructor(body: RequestBody, headers: RequestHeaders = {}) {
-    this.body = body;
-    this.headers = headers;
-    this.user = null;
+    const user = await this.inner.findById(id);
+    if (user) this.cache.set(id, user);
+    return user;
   }
 }
 
-class Response {
-  public statusCode: number = 200;
-  public body: unknown = null;
-  public headers: Record<string, string> = {};
+// ── Decorator 2: instrumentation ──────────────────────────────────
+class TimedUserRepository implements UserRepository {
+  constructor(
+    private readonly inner: UserRepository,
+    private readonly metrics: Metrics,
+  ) {}
 
-  status(code: number): this {
-    this.statusCode = code;
-    return this;
-  }
-
-  json(data: unknown): this {
-    this.body = data;
-    this.headers['Content-Type'] = 'application/json';
-    return this;
-  }
-}
-
-// Base handler
-abstract class RequestHandler {
-  abstract handle(req: Request, res: Response): Response | null;
-}
-
-// Concrete handler
-class UserCreateHandler extends RequestHandler {
-  handle(req: Request, res: Response): Response {
-    console.log('Creating user:', req.body);
-    return res.status(201).json({ id: 1, ...req.body });
-  }
-}
-
-// Decorator base class
-class HandlerDecorator extends RequestHandler {
-  protected handler: RequestHandler;
-
-  constructor(handler: RequestHandler) {
-    super();
-    this.handler = handler;
-  }
-
-  handle(req: Request, res: Response): Response | null {
-    return this.handler.handle(req, res);
-  }
-}
-
-// Concrete decorators
-class LoggingDecorator extends HandlerDecorator {
-  handle(req: Request, res: Response): Response | null {
-    const start = Date.now();
-    console.log(`[${new Date().toISOString()}] Request started`);
-
-    const result = super.handle(req, res);
-
-    console.log(`[${new Date().toISOString()}] Request completed in ${Date.now() - start}ms`);
-    return result;
-  }
-}
-
-class AuthenticationDecorator extends HandlerDecorator {
-  handle(req: Request, res: Response): Response | null {
-    const token = req.headers['authorization'];
-
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
+  async findById(id: string): Promise<User | null> {
+    const start = performance.now();
+    try {
+      return await this.inner.findById(id);
+    } finally {
+      this.metrics.observe("user.findById", performance.now() - start);
     }
-
-    // Simulate token verification
-    req.user = { id: 1, name: 'John' };
-    console.log('User authenticated:', req.user.name);
-
-    return super.handle(req, res);
   }
 }
 
-interface ValidationRule {
-  required?: boolean;
-  type?: string;
-}
-
-interface ValidationSchema {
-  [field: string]: ValidationRule;
-}
-
-class ValidationDecorator extends HandlerDecorator {
-  private schema: ValidationSchema;
-
-  constructor(handler: RequestHandler, schema: ValidationSchema) {
-    super(handler);
-    this.schema = schema;
-  }
-
-  handle(req: Request, res: Response): Response | null {
-    const errors = this.validate(req.body);
-
-    if (errors.length > 0) {
-      return res.status(400).json({ errors });
-    }
-
-    return super.handle(req, res);
-  }
-
-  private validate(body: RequestBody): string[] {
-    const errors: string[] = [];
-
-    for (const [field, rules] of Object.entries(this.schema)) {
-      if (rules.required && !body[field]) {
-        errors.push(`${field} is required`);
-      }
-      if (rules.type && typeof body[field] !== rules.type) {
-        errors.push(`${field} must be a ${rules.type}`);
-      }
-    }
-
-    return errors;
-  }
-}
-
-class RateLimitDecorator extends HandlerDecorator {
-  private limit: number;
-  private requests: Map<string, number>;
-
-  constructor(handler: RequestHandler, limit: number = 100) {
-    super(handler);
-    this.limit = limit;
-    this.requests = new Map();
-  }
-
-  handle(req: Request, res: Response): Response | null {
-    const clientId = req.headers['x-client-id'] || 'anonymous';
-    const count = this.requests.get(clientId) || 0;
-
-    if (count >= this.limit) {
-      return res.status(429).json({ error: 'Too many requests' });
-    }
-
-    this.requests.set(clientId, count + 1);
-    return super.handle(req, res);
-  }
-}
-
-// Usage - compose decorators
-const schema: ValidationSchema = {
-  name: { required: true, type: 'string' },
-  email: { required: true, type: 'string' }
-};
-
-// Stack decorators: RateLimit -> Auth -> Validation -> Logging -> Handler
-let handler: RequestHandler = new UserCreateHandler();
-handler = new LoggingDecorator(handler);
-handler = new ValidationDecorator(handler, schema);
-handler = new AuthenticationDecorator(handler);
-handler = new RateLimitDecorator(handler, 10);
-
-// Test
-const req = new Request(
-  { name: 'John', email: 'john@example.com' },
-  { authorization: 'Bearer token123', 'x-client-id': 'client1' }
+// ── Compose — order matters ───────────────────────────────────────
+const repo: UserRepository = new TimedUserRepository(
+  new CachedUserRepository(new SqlUserRepository()),
+  metrics,
 );
-const res = new Response();
-
-handler.handle(req, res);
-console.log('Response:', res.statusCode, res.body);
 ```
 
-**Coffee Shop Example (Classic):**
+🔴 **Order is a design decision, not an accident.** In the composition above, timing wraps caching, so the metric measures the *cached* latency — which is what you want if you're reporting what users experience. Invert it and you're measuring only real database calls. Interviewers who know the pattern will ask which you meant.
+
+**Where you already use this:**
+
+| Real example | What's being decorated |
+| ------------ | ---------------------- |
+| Express middleware chain | The request handler |
+| `fetch` wrapped with retry, auth, logging | The HTTP call |
+| Node streams via `pipeline()` | The data flow |
+| Higher-order React components | A component |
+
+> ⚠️ **TypeScript's `@decorator` syntax is a different thing.** Those are language annotations applied at class-definition time — NestJS uses them heavily. The Decorator *pattern* is runtime composition of objects. Same word, unrelated mechanisms; conflating them is a common slip.
+
+**In TypeScript, a function wrapper is often the lighter answer:**
 
 ```typescript
-// Component interface
-abstract class Beverage {
-  abstract getDescription(): string;
-  abstract cost(): number;
+// Higher-order function: same idea, no class needed.
+function withRetry<A extends unknown[], R>(
+  fn: (...args: A) => Promise<R>,
+  attempts = 3,
+): (...args: A) => Promise<R> {
+  return async (...args: A): Promise<R> => {
+    let lastError: unknown;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        return await fn(...args);
+      } catch (err) {
+        lastError = err;
+        await new Promise((r) => setTimeout(r, 2 ** i * 100)); // exponential backoff
+      }
+    }
+    throw lastError;
+  };
 }
-
-// Concrete components
-class Espresso extends Beverage {
-  getDescription(): string {
-    return 'Espresso';
-  }
-
-  cost(): number {
-    return 1.99;
-  }
-}
-
-class HouseBlend extends Beverage {
-  getDescription(): string {
-    return 'House Blend Coffee';
-  }
-
-  cost(): number {
-    return 0.89;
-  }
-}
-
-// Decorator base
-abstract class CondimentDecorator extends Beverage {
-  protected beverage: Beverage;
-
-  constructor(beverage: Beverage) {
-    super();
-    this.beverage = beverage;
-  }
-}
-
-// Concrete decorators
-class Milk extends CondimentDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Milk`;
-  }
-
-  cost(): number {
-    return this.beverage.cost() + 0.10;
-  }
-}
-
-class Mocha extends CondimentDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Mocha`;
-  }
-
-  cost(): number {
-    return this.beverage.cost() + 0.20;
-  }
-}
-
-class Whip extends CondimentDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Whip`;
-  }
-
-  cost(): number {
-    return this.beverage.cost() + 0.15;
-  }
-}
-
-class Soy extends CondimentDecorator {
-  getDescription(): string {
-    return `${this.beverage.getDescription()}, Soy`;
-  }
-
-  cost(): number {
-    return this.beverage.cost() + 0.25;
-  }
-}
-
-// Usage
-let beverage: Beverage = new Espresso();
-console.log(`${beverage.getDescription()}: $${beverage.cost()}`);
-// Espresso: $1.99
-
-// Double mocha with whip
-beverage = new Whip(new Mocha(new Mocha(beverage)));
-console.log(`${beverage.getDescription()}: $${beverage.cost()}`);
-// Espresso, Mocha, Mocha, Whip: $2.54
-
-// House blend with soy, mocha, and whip
-let houseBlend: Beverage = new Whip(new Mocha(new Soy(new HouseBlend())));
-console.log(`${houseBlend.getDescription()}: $${houseBlend.cost()}`);
-// House Blend Coffee, Soy, Mocha, Whip: $1.49
 ```
-
-**TypeScript Stream Decorator:**
-
-```typescript
-interface DataStream {
-  write(data: string): string;
-  read(): string;
-}
-
-class FileStream implements DataStream {
-  private content = '';
-
-  write(data: string): string {
-    this.content = data;
-    return data;
-  }
-
-  read(): string {
-    return this.content;
-  }
-}
-
-abstract class StreamDecorator implements DataStream {
-  protected stream: DataStream;
-
-  constructor(stream: DataStream) {
-    this.stream = stream;
-  }
-
-  write(data: string): string {
-    return this.stream.write(data);
-  }
-
-  read(): string {
-    return this.stream.read();
-  }
-}
-
-class EncryptionDecorator extends StreamDecorator {
-  private key: string;
-
-  constructor(stream: DataStream, key: string) {
-    super(stream);
-    this.key = key;
-  }
-
-  write(data: string): string {
-    const encrypted = this.encrypt(data);
-    return super.write(encrypted);
-  }
-
-  read(): string {
-    const data = super.read();
-    return this.decrypt(data);
-  }
-
-  private encrypt(data: string): string {
-    // Simple XOR encryption for demo
-    return data.split('').map((char, i) =>
-      String.fromCharCode(char.charCodeAt(0) ^ this.key.charCodeAt(i % this.key.length))
-    ).join('');
-  }
-
-  private decrypt(data: string): string {
-    return this.encrypt(data); // XOR is symmetric
-  }
-}
-
-class CompressionDecorator extends StreamDecorator {
-  write(data: string): string {
-    const compressed = this.compress(data);
-    return super.write(compressed);
-  }
-
-  read(): string {
-    const data = super.read();
-    return this.decompress(data);
-  }
-
-  private compress(data: string): string {
-    // Simple run-length encoding for demo
-    return data.replace(/(.)\1+/g, (match, char) => `${match.length}${char}`);
-  }
-
-  private decompress(data: string): string {
-    return data.replace(/(\d+)(.)/g, (_, count, char) => char.repeat(parseInt(count)));
-  }
-}
-
-class LoggingDecorator extends StreamDecorator {
-  write(data: string): string {
-    console.log(`Writing ${data.length} characters`);
-    const result = super.write(data);
-    console.log('Write complete');
-    return result;
-  }
-
-  read(): string {
-    console.log('Reading data...');
-    const data = super.read();
-    console.log(`Read ${data.length} characters`);
-    return data;
-  }
-}
-
-// Usage - stack decorators
-let stream: DataStream = new FileStream();
-stream = new CompressionDecorator(stream);
-stream = new EncryptionDecorator(stream, 'secretkey');
-stream = new LoggingDecorator(stream);
-
-stream.write('Hello World!');
-console.log(stream.read()); // Hello World!
-```
-
-### Real-World Examples
-
-| Library/Framework | Decorator Usage |
-|-------------------|-----------------|
-| **Express** | Middleware chain |
-| **NestJS** | `@UseGuards()`, `@UseInterceptors()` |
-| **TypeScript** | Decorators (`@Injectable`, `@Controller`) |
-| **Java I/O** | InputStream decorators |
-| **Python** | Function decorators |
-
-### Pros and Cons
-
-**Pros:**
-- ✅ Extend behavior without modifying original class
-- ✅ Add/remove responsibilities at runtime
-- ✅ Combine behaviors by stacking decorators
-- ✅ Single Responsibility (each decorator one concern)
-
-**Cons:**
-- ❌ Many small objects can be hard to debug
-- ❌ Order of decorators matters
-- ❌ Initial configuration can be complex
-- ❌ Hard to remove specific decorator from middle of stack
-
-### Interview Questions
-
-**Q: What's the difference between Decorator and Inheritance?**
-
-**A:**
-
-| Aspect | Inheritance | Decorator |
-|--------|-------------|-----------|
-| **Binding** | Compile-time (static) | Runtime (dynamic) |
-| **Flexibility** | Fixed hierarchy | Composable |
-| **Combinations** | Class explosion | Mix and match |
-| **Adding behavior** | Subclass each combination | Stack decorators |
-
-```typescript
-// Inheritance: need class for each combination
-class MochaEspresso extends Espresso { getDescription() { return 'Mocha Espresso'; } cost() { return 2.19; } }
-class WhipMochaEspresso extends Mocha { getDescription() { return 'Whip Mocha Espresso'; } cost() { return 2.34; } }
-// ... explosion of classes!
-
-// Decorator: compose at runtime
-let drink: Beverage = new Espresso();
-drink = new Mocha(drink);
-drink = new Mocha(drink);
-drink = new Whip(drink);
-// Single hierarchy, infinite combinations
-```
-
----
 
 ## Facade
 
 ### 💡 **Intent**
 
-Provide a **unified interface** to a set of interfaces in a subsystem. Facade defines a higher-level interface that makes the subsystem easier to use.
+Put one simple interface in front of several complicated subsystems.
 
-### Problem It Solves
-
-```
-Without Facade:
-├── Client code coupled to many subsystem classes
-├── Complex initialization sequences
-├── Hard to understand how to use the subsystem
-└── Changes in subsystem ripple through client code
-```
-
-### Structure
-
-```
-┌─────────────────┐
-│     Client      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│     Facade      │
-├─────────────────┤
-│ + operation()   │
-└────────┬────────┘
-         │
-   ┌─────┴─────┬─────────────┐
-   │           │             │
-   ▼           ▼             ▼
-┌──────┐   ┌──────┐     ┌──────┐
-│ClassA│   │ClassB│     │ClassC│
-└──────┘   └──────┘     └──────┘
-     Subsystem classes
-```
-
-### Implementation
-
-**Order Processing Facade:**
+Facade **reduces** the surface area. It doesn't add behaviour (Decorator) or translate a mismatch (Adapter) — it hides how many moving parts there really are.
 
 ```typescript
-interface StockCheckResult {
-  available: boolean;
-  quantity: number;
-}
-
-interface ReservationResult {
-  reserved: boolean;
-  reservationId: string;
-}
-
-interface ShippingCost {
-  cost: number;
-  estimatedDays: number;
-}
-
-interface ShipmentResult {
-  trackingNumber: string;
-}
-
-interface CardPaymentDetails {
-  cardNumber: string;
-  expiry: string;
-}
-
-interface TransactionResult {
-  success: boolean;
-  transactionId: string;
-}
-
-interface RefundResult {
-  success: boolean;
-}
-
-// Complex subsystem classes
-class InventoryService {
-  checkStock(productId: string): StockCheckResult {
-    console.log(`Checking stock for product ${productId}`);
-    return { available: true, quantity: 10 };
-  }
-
-  reserveStock(productId: string, quantity: number): ReservationResult {
-    console.log(`Reserving ${quantity} units of product ${productId}`);
-    return { reserved: true, reservationId: `RES_${Date.now()}` };
-  }
-
-  releaseStock(reservationId: string): void {
-    console.log(`Releasing reservation ${reservationId}`);
-  }
-}
-
-class PaymentService {
-  validateCard(cardDetails: CardPaymentDetails): { valid: boolean } {
-    console.log('Validating card...');
-    return { valid: true };
-  }
-
-  processPayment(amount: number, cardDetails: CardPaymentDetails): TransactionResult {
-    console.log(`Processing payment of $${amount}`);
-    return { success: true, transactionId: `TXN_${Date.now()}` };
-  }
-
-  refund(transactionId: string): RefundResult {
-    console.log(`Refunding transaction ${transactionId}`);
-    return { success: true };
-  }
-}
-
-class ShippingService {
-  calculateShipping(address: string, items: OrderItem[]): ShippingCost {
-    console.log('Calculating shipping...');
-    return { cost: 9.99, estimatedDays: 3 };
-  }
-
-  createShipment(orderId: string, address: string, items: OrderItem[]): ShipmentResult {
-    console.log(`Creating shipment for order ${orderId}`);
-    return { trackingNumber: `TRACK_${Date.now()}` };
-  }
-}
-
-class NotificationService {
-  sendOrderConfirmation(email: string, orderDetails: unknown): void {
-    console.log(`Sending order confirmation to ${email}`);
-  }
-
-  sendShippingNotification(email: string, trackingNumber: string): void {
-    console.log(`Sending shipping notification to ${email}`);
-  }
-}
-
-interface SavedOrder {
-  id: string;
-  customer: Customer;
-  items: OrderItem[];
-  subtotal: number;
-  shippingCost: number;
-  total: number;
-  transactionId: string;
-  status: string;
-  trackingNumber?: string;
-}
-
-class OrderRepository {
-  save(order: Omit<SavedOrder, 'id'>): SavedOrder {
-    console.log('Saving order to database');
-    return { ...order, id: `ORD_${Date.now()}` };
-  }
-
-  update(orderId: string, data: Partial<SavedOrder>): void {
-    console.log(`Updating order ${orderId}`);
-  }
-}
-
-interface Customer {
-  name: string;
-  email: string;
-  address: string;
-}
-
-interface OrderItem {
-  productId: string;
-  quantity: number;
-  price: number;
-}
-
-interface OrderResult {
-  orderId: string;
-  total: number;
-  trackingNumber: string;
-  estimatedDelivery: number;
-}
-
-// Facade - simplifies the complex subsystem
+// Four subsystems the caller shouldn't have to orchestrate.
 class OrderFacade {
-  private inventory: InventoryService;
-  private payment: PaymentService;
-  private shipping: ShippingService;
-  private notification: NotificationService;
-  private orderRepo: OrderRepository;
+  constructor(
+    private readonly inventory: InventoryService,
+    private readonly payments: PaymentService,
+    private readonly shipping: ShippingService,
+    private readonly notifications: NotificationService,
+  ) {}
 
-  constructor() {
-    this.inventory = new InventoryService();
-    this.payment = new PaymentService();
-    this.shipping = new ShippingService();
-    this.notification = new NotificationService();
-    this.orderRepo = new OrderRepository();
-  }
+  /** One call for the whole "place an order" workflow. */
+  async placeOrder(input: PlaceOrderInput): Promise<Order> {
+    const reservation = await this.inventory.reserve(input.items);
 
-  async placeOrder(customer: Customer, items: OrderItem[], paymentDetails: CardPaymentDetails): Promise<OrderResult> {
     try {
-      console.log('\n=== Starting Order Process ===\n');
-
-      // Step 1: Check and reserve inventory
-      for (const item of items) {
-        const stock = this.inventory.checkStock(item.productId);
-        if (!stock.available || stock.quantity < item.quantity) {
-          throw new Error(`Insufficient stock for product ${item.productId}`);
-        }
-      }
-
-      const reservations = items.map(item =>
-        this.inventory.reserveStock(item.productId, item.quantity)
-      );
-
-      // Step 2: Calculate totals
-      const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      const shippingInfo = this.shipping.calculateShipping(customer.address, items);
-      const total = subtotal + shippingInfo.cost;
-
-      // Step 3: Process payment
-      const cardValidation = this.payment.validateCard(paymentDetails);
-      if (!cardValidation.valid) {
-        reservations.forEach(r => this.inventory.releaseStock(r.reservationId));
-        throw new Error('Invalid payment details');
-      }
-
-      const paymentResult = this.payment.processPayment(total, paymentDetails);
-      if (!paymentResult.success) {
-        reservations.forEach(r => this.inventory.releaseStock(r.reservationId));
-        throw new Error('Payment failed');
-      }
-
-      // Step 4: Create order
-      const order = this.orderRepo.save({
-        customer,
-        items,
-        subtotal,
-        shippingCost: shippingInfo.cost,
-        total,
-        transactionId: paymentResult.transactionId,
-        status: 'confirmed'
-      });
-
-      // Step 5: Create shipment
-      const shipment = this.shipping.createShipment(
-        order.id,
-        customer.address,
-        items
-      );
-
-      // Step 6: Update order with tracking
-      this.orderRepo.update(order.id, {
-        trackingNumber: shipment.trackingNumber,
-        status: 'shipped'
-      });
-
-      // Step 7: Send notifications
-      this.notification.sendOrderConfirmation(customer.email, order);
-      this.notification.sendShippingNotification(customer.email, shipment.trackingNumber);
-
-      console.log('\n=== Order Complete ===\n');
-
-      return {
-        orderId: order.id,
-        total,
-        trackingNumber: shipment.trackingNumber,
-        estimatedDelivery: shippingInfo.estimatedDays
-      };
-
-    } catch (error) {
-      console.error('Order failed:', (error as Error).message);
-      throw error;
+      const charge = await this.payments.charge(input.paymentToken, input.totalCents);
+      const shipment = await this.shipping.schedule(reservation.id, input.address);
+      // Fire and forget — a failed email must not fail the order.
+      void this.notifications.orderConfirmed(input.userId, shipment.trackingId);
+      return { id: reservation.id, chargeId: charge.id, status: "confirmed" };
+    } catch (err) {
+      await this.inventory.release(reservation.id); // ⚠️ compensate on failure
+      throw err;
     }
   }
-
-  // Additional simplified methods
-  async cancelOrder(orderId: string): Promise<void> {
-    // Simplified cancellation logic
-    console.log(`Cancelling order ${orderId}`);
-  }
-
-  async trackOrder(orderId: string): Promise<void> {
-    // Simplified tracking
-    console.log(`Tracking order ${orderId}`);
-  }
 }
-
-// Client code - simple interface
-const orderFacade = new OrderFacade();
-
-const result = await orderFacade.placeOrder(
-  {
-    name: 'John Doe',
-    email: 'john@example.com',
-    address: '123 Main St, NYC'
-  },
-  [
-    { productId: 'PROD_1', quantity: 2, price: 29.99 },
-    { productId: 'PROD_2', quantity: 1, price: 49.99 }
-  ],
-  { cardNumber: '4242424242424242', expiry: '12/25' }
-);
-
-console.log('Order result:', result);
 ```
 
-**Video Conversion Facade:**
+The controller calls `placeOrder`. It doesn't know reservations exist.
 
-```typescript
-// Complex subsystem
-class VideoFile {
-  constructor(public filename: string) {}
-}
+| Pros | Cons |
+| ---- | ---- |
+| ✅ Callers depend on one small interface | ❌ Can grow into a god object |
+| ✅ Subsystems can be refactored freely behind it | ❌ Hides cost — one call, four network hops |
+| ✅ A natural transaction/compensation boundary | ❌ Tempting to add "just one more method" |
 
-class CodecFactory {
-  extract(file: VideoFile): string {
-    const extension = file.filename.split('.').pop();
-    console.log(`Extracting ${extension} codec`);
-    return extension || 'unknown';
-  }
-}
-
-class BitrateReader {
-  read(filename: string, codec: string): string {
-    console.log(`Reading bitrate for ${filename} using ${codec}`);
-    return 'bitrate_data';
-  }
-
-  convert(buffer: string, codec: string): string {
-    console.log(`Converting buffer with ${codec}`);
-    return 'converted_data';
-  }
-}
-
-class AudioMixer {
-  fix(result: string): string {
-    console.log('Fixing audio...');
-    return result + '_audio_fixed';
-  }
-}
-
-class VideoConverter {
-  convert(buffer: string, format: string): string {
-    console.log(`Converting to ${format} format`);
-    return `${buffer}_${format}`;
-  }
-}
-
-class FileWriter {
-  write(data: string, filename: string): void {
-    console.log(`Writing to ${filename}`);
-  }
-}
-
-// Facade
-class VideoConversionFacade {
-  private codecFactory = new CodecFactory();
-  private bitrateReader = new BitrateReader();
-  private audioMixer = new AudioMixer();
-  private videoConverter = new VideoConverter();
-  private fileWriter = new FileWriter();
-
-  convertVideo(filename: string, format: string): string {
-    console.log(`\nStarting conversion of ${filename} to ${format}...\n`);
-
-    const file = new VideoFile(filename);
-    const sourceCodec = this.codecFactory.extract(file);
-
-    let buffer = this.bitrateReader.read(filename, sourceCodec);
-    buffer = this.bitrateReader.convert(buffer, format);
-    buffer = this.audioMixer.fix(buffer);
-
-    const result = this.videoConverter.convert(buffer, format);
-
-    const outputFilename = filename.replace(/\.[^/.]+$/, `.${format}`);
-    this.fileWriter.write(result, outputFilename);
-
-    console.log(`\nConversion complete: ${outputFilename}\n`);
-
-    return outputFilename;
-  }
-}
-
-// Client code - one simple call
-const converter = new VideoConversionFacade();
-converter.convertVideo('movie.ogg', 'mp4');
-```
-
-### Real-World Examples
-
-| Library/Framework | Facade Usage |
-|-------------------|--------------|
-| **jQuery** | `$()` - DOM manipulation facade |
-| **Mongoose** | `Model.find()` - MongoDB query facade |
-| **Express** | `app.listen()` - HTTP server facade |
-| **AWS SDK** | High-level clients for services |
-
-### Pros and Cons
-
-**Pros:**
-- ✅ Isolates clients from subsystem complexity
-- ✅ Promotes weak coupling
-- ✅ Doesn't prevent direct subsystem access if needed
-- ✅ Single entry point for common operations
-
-**Cons:**
-- ❌ Can become a "god object" if not careful
-- ❌ May hide useful subsystem features
-- ❌ Additional layer of abstraction
-
----
+**Facade vs Service Layer:** they're closely related, and in a typical backend the service layer *is* a facade over repositories and external clients. See [Service Layer](./04-architectural-patterns.md#service-layer).
 
 ## Proxy
 
 ### 💡 **Intent**
 
-Provide a **surrogate or placeholder** for another object to control access to it.
+Stand in for another object with the **same interface**, controlling access to it.
 
-### Problem It Solves
+The difference from Decorator is what you do with the call: a decorator always forwards and adds something; a proxy may delay it, block it, or serve it from somewhere else entirely.
 
-```
-Without Proxy:
-├── No access control to objects
-├── No lazy initialization for expensive objects
-├── No caching for repeated operations
-├── No logging/auditing of object access
-```
-
-### Types of Proxies
-
-| Type | Purpose | Example |
-|------|---------|---------|
-| **Virtual Proxy** | Lazy initialization | Load image on demand |
-| **Protection Proxy** | Access control | Check permissions |
-| **Caching Proxy** | Cache results | Memoize API calls |
-| **Logging Proxy** | Audit access | Log method calls |
-| **Remote Proxy** | Access remote object | RPC calls |
-
-### Implementation
-
-**Caching Proxy:**
+| Proxy type | Purpose |
+| ---------- | ------- |
+| **Virtual** | Defer expensive creation until first use |
+| **Protection** | Check permissions before forwarding |
+| **Remote** | Make a network call look like a local one (gRPC stubs, RPC clients) |
+| **Caching** | Return a stored result instead of calling through |
 
 ```typescript
-interface WeatherData {
-  city: string;
-  temperature: number;
-  condition: string;
-  fetchedAt: string;
+interface ReportService {
+  generate(range: DateRange): Promise<Buffer>;
 }
 
-interface CachedEntry {
-  data: WeatherData;
-  timestamp: number;
-}
+/** Virtual proxy — the heavy engine isn't constructed until someone needs a report. */
+class LazyReportService implements ReportService {
+  private real: ReportService | null = null;
 
-// Real subject
-class WeatherAPI {
-  async getWeather(city: string): Promise<WeatherData> {
-    console.log(`[API] Fetching weather for ${city}...`);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    return {
-      city,
-      temperature: Math.round(Math.random() * 30),
-      condition: ['Sunny', 'Cloudy', 'Rainy'][Math.floor(Math.random() * 3)],
-      fetchedAt: new Date().toISOString()
-    };
+  generate(range: DateRange): Promise<Buffer> {
+    this.real ??= new HeavyReportEngine(); // loads templates, fonts, a headless browser
+    return this.real.generate(range);
   }
 }
 
-// Caching Proxy
-class WeatherAPIProxy {
-  private api: WeatherAPI;
-  private cache: Map<string, CachedEntry>;
-  private ttl: number;
+/** Protection proxy — the real service never sees an unauthorized call. */
+class AuthorizedReportService implements ReportService {
+  constructor(
+    private readonly inner: ReportService,
+    private readonly user: { permissions: string[] },
+  ) {}
 
-  constructor(ttlMs: number = 60000) {
-    this.api = new WeatherAPI();
-    this.cache = new Map();
-    this.ttl = ttlMs;
-  }
-
-  async getWeather(city: string): Promise<WeatherData> {
-    const cached = this.cache.get(city);
-
-    if (cached && Date.now() - cached.timestamp < this.ttl) {
-      console.log(`[Cache] Returning cached weather for ${city}`);
-      return cached.data;
+  generate(range: DateRange): Promise<Buffer> {
+    if (!this.user.permissions.includes("report:read")) {
+      throw new Error("FORBIDDEN"); // ← doesn't forward; a decorator always would
     }
-
-    const data = await this.api.getWeather(city);
-
-    this.cache.set(city, {
-      data,
-      timestamp: Date.now()
-    });
-
-    return data;
-  }
-
-  clearCache(): void {
-    this.cache.clear();
-    console.log('[Cache] Cleared');
+    return this.inner.generate(range);
   }
 }
-
-// Usage
-const weatherService = new WeatherAPIProxy(30000); // 30 second TTL
-
-// First call - hits API
-console.log(await weatherService.getWeather('London'));
-// [API] Fetching weather for London...
-// { city: 'London', temperature: 22, ... }
-
-// Second call - returns cached
-console.log(await weatherService.getWeather('London'));
-// [Cache] Returning cached weather for London
-// { city: 'London', temperature: 22, ... }
 ```
 
-**Protection Proxy:**
+**JavaScript has the pattern built into the language:**
 
 ```typescript
-interface UserService {
-  getUser(id: string): User | null;
-  updateUser(id: string, data: Partial<User>): User;
-  deleteUser(id: string): void;
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'user';
-}
-
-interface RequestContext {
-  user: User;
-}
-
-// Real service
-class RealUserService implements UserService {
-  private users = new Map<string, User>();
-
-  constructor() {
-    // Seed data
-    this.users.set('1', { id: '1', name: 'John', email: 'john@example.com', role: 'user' });
-    this.users.set('2', { id: '2', name: 'Admin', email: 'admin@example.com', role: 'admin' });
-  }
-
-  getUser(id: string): User | null {
-    return this.users.get(id) || null;
-  }
-
-  updateUser(id: string, data: Partial<User>): User {
-    const user = this.users.get(id);
-    if (!user) throw new Error('User not found');
-
-    const updated = { ...user, ...data };
-    this.users.set(id, updated);
-    return updated;
-  }
-
-  deleteUser(id: string): void {
-    this.users.delete(id);
-  }
-}
-
-// Protection Proxy
-class UserServiceProxy implements UserService {
-  private service: RealUserService;
-  private context: RequestContext;
-
-  constructor(context: RequestContext) {
-    this.service = new RealUserService();
-    this.context = context;
-  }
-
-  getUser(id: string): User | null {
-    // Anyone can read
-    return this.service.getUser(id);
-  }
-
-  updateUser(id: string, data: Partial<User>): User {
-    // Users can only update themselves, admins can update anyone
-    if (this.context.user.role !== 'admin' && this.context.user.id !== id) {
-      throw new Error('Access denied: Cannot update other users');
-    }
-
-    // Only admins can change roles
-    if (data.role && this.context.user.role !== 'admin') {
-      throw new Error('Access denied: Cannot change user role');
-    }
-
-    console.log(`[Audit] User ${this.context.user.id} updating user ${id}`);
-    return this.service.updateUser(id, data);
-  }
-
-  deleteUser(id: string): void {
-    // Only admins can delete
-    if (this.context.user.role !== 'admin') {
-      throw new Error('Access denied: Admin required');
-    }
-
-    console.log(`[Audit] Admin ${this.context.user.id} deleting user ${id}`);
-    this.service.deleteUser(id);
-  }
-}
-
-// Usage
-const adminContext: RequestContext = {
-  user: { id: '2', name: 'Admin', email: 'admin@example.com', role: 'admin' }
-};
-
-const userContext: RequestContext = {
-  user: { id: '1', name: 'John', email: 'john@example.com', role: 'user' }
-};
-
-const adminService = new UserServiceProxy(adminContext);
-const userService = new UserServiceProxy(userContext);
-
-// Admin can do anything
-adminService.updateUser('1', { name: 'John Doe' }); // ✅ Works
-adminService.deleteUser('1'); // ✅ Works
-
-// User has restrictions
-userService.updateUser('1', { name: 'Johnny' }); // ✅ Works (own profile)
-userService.updateUser('2', { name: 'Hacked' }); // ❌ Access denied
-userService.deleteUser('2'); // ❌ Access denied
-```
-
-**Virtual Proxy (Lazy Loading):**
-
-```typescript
-// Heavy object
-class LargeDocument {
-  public id: string;
-  private content: string | null = null;
-
-  constructor(id: string) {
-    this.id = id;
-    this.loadContent();
-  }
-
-  private loadContent(): void {
-    console.log(`Loading document ${this.id}... (expensive operation)`);
-    // Simulate loading large content
-    this.content = `Large content for document ${this.id}`.repeat(1000);
-    console.log(`Document ${this.id} loaded (${this.content.length} chars)`);
-  }
-
-  getContent(): string {
-    return this.content ?? '';
-  }
-
-  getPreview(): string {
-    return (this.content ?? '').substring(0, 100);
-  }
-}
-
-// Virtual Proxy - delays loading until needed
-class DocumentProxy {
-  private id: string;
-  private document: LargeDocument | null = null;
-
-  constructor(id: string) {
-    this.id = id;
-  }
-
-  // Lazy initialization
-  private getDocument(): LargeDocument {
-    if (!this.document) {
-      this.document = new LargeDocument(this.id);
-    }
-    return this.document;
-  }
-
-  getContent(): string {
-    return this.getDocument().getContent();
-  }
-
-  getPreview(): string {
-    return this.getDocument().getPreview();
-  }
-
-  // Cheap operation - no loading needed
-  getId(): string {
-    return this.id;
-  }
-}
-
-// Document list with proxies
-class DocumentLibrary {
-  private documents: DocumentProxy[] = [];
-
-  addDocument(id: string): void {
-    // Create proxy instead of real document
-    this.documents.push(new DocumentProxy(id));
-  }
-
-  // List documents without loading content
-  listDocuments(): string[] {
-    return this.documents.map(doc => doc.getId());
-  }
-
-  // Only loads the specific document when accessed
-  openDocument(id: string): string | null {
-    const doc = this.documents.find(d => d.getId() === id);
-    if (doc) {
-      return doc.getContent(); // Triggers lazy load
-    }
-    return null;
-  }
-}
-
-// Usage
-const library = new DocumentLibrary();
-
-// Adding documents doesn't load them
-library.addDocument('doc1');
-library.addDocument('doc2');
-library.addDocument('doc3');
-console.log('Documents added (not loaded yet)');
-
-// Listing is cheap
-console.log('Library:', library.listDocuments());
-// Library: ['doc1', 'doc2', 'doc3']
-
-// Only doc1 gets loaded when opened
-console.log('\nOpening doc1:');
-library.openDocument('doc1');
-// Loading document doc1... (expensive operation)
-// Document doc1 loaded (35000 chars)
-```
-
-**TypeScript Proxy Object:**
-
-```typescript
-// Using TypeScript's built-in Proxy
-function createLoggingProxy<T extends object>(target: T, name: string): T {
-  return new Proxy(target, {
-    get(target: T, property: string | symbol, receiver: unknown): unknown {
-      const value = Reflect.get(target, property, receiver);
-
-      if (typeof value === 'function') {
-        return function (...args: unknown[]): unknown {
-          console.log(`[${name}] Calling ${String(property)} with:`, args);
-          const result = (value as Function).apply(target, args);
-          console.log(`[${name}] ${String(property)} returned:`, result);
-          return result;
-        };
-      }
-
-      console.log(`[${name}] Getting ${String(property)}:`, value);
-      return value;
+// A Proxy object intercepts property access itself — no interface to reimplement.
+const strictConfig = new Proxy<Record<string, string>>(
+  { port: "3000" },
+  {
+    get(target, prop: string) {
+      if (!(prop in target)) throw new Error(`Missing config: ${prop}`);
+      return target[prop];
     },
+  },
+);
 
-    set(target: T, property: string | symbol, value: unknown, receiver: unknown): boolean {
-      console.log(`[${name}] Setting ${String(property)} to:`, value);
-      return Reflect.set(target, property, value, receiver);
-    }
-  });
-}
-
-// Usage
-interface UserObject {
-  name: string;
-  age: number;
-  greet(): string;
-}
-
-const user: UserObject = {
-  name: 'John',
-  age: 30,
-  greet(): string {
-    return `Hello, I'm ${this.name}`;
-  }
-};
-
-const proxiedUser = createLoggingProxy(user, 'User');
-
-proxiedUser.name;          // [User] Getting name: John
-proxiedUser.age = 31;      // [User] Setting age to: 31
-proxiedUser.greet();       // [User] Calling greet with: []
-                           // [User] greet returned: Hello, I'm John
+strictConfig.port;    // "3000"
+// strictConfig.host; // throws instead of returning undefined
 ```
 
-### Pros and Cons
-
-**Pros:**
-- ✅ Control access without changing real object
-- ✅ Manage lifecycle of heavy objects
-- ✅ Works even if real object isn't ready
-- ✅ Open/Closed Principle
-
-**Cons:**
-- ❌ Response may be delayed
-- ❌ Code complexity increases
-- ❌ Can hide the real object's interface
-
----
+> ✨ **This is how modern frameworks feel magical.** Vue's reactivity, Prisma's client, and most mocking libraries use `Proxy` to intercept access at runtime. Being able to say "that's a `Proxy` trap, not code generation" is a strong signal.
 
 ## Composite
 
 ### 💡 **Intent**
 
-Compose objects into **tree structures** to represent part-whole hierarchies. Composite lets clients treat individual objects and compositions uniformly.
+Let a single object and a group of objects be used through the same interface, so callers stop caring which they hold.
 
-### Implementation
-
-**File System:**
+The test for whether you need it: **your data is a tree, and you're writing `if (isLeaf)` everywhere.**
 
 ```typescript
-// Component
-abstract class FileSystemItem {
-  protected name: string;
-
-  constructor(name: string) {
-    this.name = name;
-  }
-
-  abstract getSize(): number;
-  abstract print(indent?: string): void;
+interface FsNode {
+  readonly name: string;
+  size(): number; // both leaves and branches answer this
 }
 
-// Leaf
-class File extends FileSystemItem {
-  private size: number;
-
-  constructor(name: string, size: number) {
-    super(name);
-    this.size = size;
-  }
-
-  getSize(): number {
-    return this.size;
-  }
-
-  print(indent: string = ''): void {
-    console.log(`${indent}📄 ${this.name} (${this.size} bytes)`);
+class FileNode implements FsNode {
+  constructor(readonly name: string, private readonly bytes: number) {}
+  size(): number {
+    return this.bytes;
   }
 }
 
-// Composite
-class Directory extends FileSystemItem {
-  private children: FileSystemItem[] = [];
+class DirectoryNode implements FsNode {
+  private readonly children: FsNode[] = [];
 
-  constructor(name: string) {
-    super(name);
-  }
+  constructor(readonly name: string) {}
 
-  add(item: FileSystemItem): this {
-    this.children.push(item);
+  add(child: FsNode): this {
+    this.children.push(child);
     return this;
   }
 
-  remove(item: FileSystemItem): this {
-    const index = this.children.indexOf(item);
-    if (index !== -1) {
-      this.children.splice(index, 1);
-    }
-    return this;
-  }
-
-  getSize(): number {
-    return this.children.reduce((total, child) => total + child.getSize(), 0);
-  }
-
-  print(indent: string = ''): void {
-    console.log(`${indent}📁 ${this.name}/ (${this.getSize()} bytes)`);
-    this.children.forEach(child => child.print(indent + '  '));
+  // Recursion is the whole pattern — a directory doesn't know child types.
+  size(): number {
+    return this.children.reduce((total, child) => total + child.size(), 0);
   }
 }
 
-// Usage
-const root = new Directory('root')
-  .add(new File('readme.md', 1024))
-  .add(new File('.gitignore', 256))
-  .add(
-    new Directory('src')
-      .add(new File('index.js', 2048))
-      .add(new File('app.js', 4096))
-      .add(
-        new Directory('components')
-          .add(new File('Button.js', 512))
-          .add(new File('Input.js', 768))
-      )
-  )
-  .add(
-    new Directory('tests')
-      .add(new File('app.test.js', 1536))
-  );
+const root = new DirectoryNode("src")
+  .add(new FileNode("index.ts", 1_200))
+  .add(new DirectoryNode("api").add(new FileNode("users.ts", 3_400)));
 
-root.print();
-// 📁 root/ (10240 bytes)
-//   📄 readme.md (1024 bytes)
-//   📄 .gitignore (256 bytes)
-//   📁 src/ (7424 bytes)
-//     📄 index.js (2048 bytes)
-//     📄 app.js (4096 bytes)
-//     📁 components/ (1280 bytes)
-//       📄 Button.js (512 bytes)
-//       📄 Input.js (768 bytes)
-//   📁 tests/ (1536 bytes)
-//     📄 app.test.js (1536 bytes)
-
-console.log('Total size:', root.getSize(), 'bytes');
+root.size(); // 4600 — the caller never checks whether a node is a file
 ```
 
----
+**Real examples:** the DOM, React element trees, file systems, org charts, nested permission groups, and a query AST where `AND`/`OR` nodes contain other conditions.
+
+> ⚠️ **Watch recursion depth and cycles.** A deep tree can overflow the stack, and a graph that isn't actually acyclic will loop forever. For untrusted input, cap the depth or track visited nodes.
 
 ## Bridge
 
 ### 💡 **Intent**
 
-Decouple an **abstraction from its implementation** so that the two can vary independently.
+Split an abstraction from its implementation so the two can vary independently.
 
-### Implementation
+**The problem it solves is a class explosion.** Two dimensions of variation multiply:
+
+```
+❌ Inheritance:  EmailAlert, EmailReport, SmsAlert, SmsReport,
+                 SlackAlert, SlackReport …           (3 × 2 = 6 classes)
+
+✅ Bridge:       Alert, Report          (abstraction — what to say)
+                 × Email, Sms, Slack    (implementation — how to send)
+                                        (3 + 2 = 5, and adding either is +1)
+```
 
 ```typescript
-// Implementation interface
-interface MessageSender {
-  send(message: string, recipient: string): void;
+// Implementation side — the "how".
+interface Channel {
+  deliver(to: string, body: string): Promise<void>;
 }
 
-// Concrete implementations
-class EmailSender implements MessageSender {
-  send(message: string, recipient: string): void {
-    console.log(`Email to ${recipient}: ${message}`);
+class EmailChannel implements Channel { /* … */ }
+class SlackChannel implements Channel { /* … */ }
+
+// Abstraction side — the "what". Holds a Channel; doesn't extend one.
+abstract class Message {
+  constructor(protected readonly channel: Channel) {}
+  abstract send(to: string, data: Record<string, unknown>): Promise<void>;
+}
+
+class AlertMessage extends Message {
+  async send(to: string, data: Record<string, unknown>): Promise<void> {
+    await this.channel.deliver(to, `🚨 ALERT: ${data.summary}`);
   }
 }
 
-class SMSSender implements MessageSender {
-  send(message: string, recipient: string): void {
-    console.log(`SMS to ${recipient}: ${message}`);
+class WeeklyReportMessage extends Message {
+  async send(to: string, data: Record<string, unknown>): Promise<void> {
+    await this.channel.deliver(to, renderReport(data));
   }
 }
 
-class SlackSender implements MessageSender {
-  send(message: string, recipient: string): void {
-    console.log(`Slack to ${recipient}: ${message}`);
-  }
-}
-
-// Abstraction
-abstract class Notification {
-  constructor(protected sender: MessageSender) {}
-
-  abstract notify(recipient: string): void;
-}
-
-// Refined abstractions
-class AlertNotification extends Notification {
-  constructor(sender: MessageSender, private alertMessage: string) {
-    super(sender);
-  }
-
-  notify(recipient: string): void {
-    this.sender.send(`🚨 ALERT: ${this.alertMessage}`, recipient);
-  }
-}
-
-class ReminderNotification extends Notification {
-  constructor(sender: MessageSender, private reminderMessage: string) {
-    super(sender);
-  }
-
-  notify(recipient: string): void {
-    this.sender.send(`⏰ Reminder: ${this.reminderMessage}`, recipient);
-  }
-}
-
-// Usage - combine any abstraction with any implementation
-const emailAlert = new AlertNotification(new EmailSender(), 'Server is down!');
-const smsReminder = new ReminderNotification(new SMSSender(), 'Meeting at 3 PM');
-const slackAlert = new AlertNotification(new SlackSender(), 'Deployment failed');
-
-emailAlert.notify('admin@example.com');    // Email to admin@example.com: 🚨 ALERT: Server is down!
-smsReminder.notify('+1234567890');          // SMS to +1234567890: ⏰ Reminder: Meeting at 3 PM
-slackAlert.notify('@devops-team');          // Slack to @devops-team: 🚨 ALERT: Deployment failed
+// Mix freely at runtime.
+new AlertMessage(new SlackChannel()).send("#ops", { summary: "Disk 95% full" });
 ```
+
+**Bridge vs Adapter:** Bridge is planned up front, when you know both sides will vary. Adapter is retrofitted, when two things you didn't design together must now cooperate. Same shape, opposite timing.
+
+## Telling the Wrappers Apart
+
+The table interviewers are fishing for:
+
+| Pattern | Interface | Intent | Signature move |
+| ------- | --------- | ------ | -------------- |
+| **Adapter** | **Changes** it | Make incompatible things fit | Renames and reshapes calls |
+| **Decorator** | **Keeps** it | Add behaviour, stackably | Always forwards, plus extra |
+| **Facade** | **Simplifies** it | Hide subsystem complexity | One method → many calls |
+| **Proxy** | **Keeps** it | Control access | May *not* forward |
+
+Two quick tests: **does the interface change?** If yes, it's an Adapter. **Does the call always go through?** If no, it's a Proxy.
+
+## Interview Questions
+
+**Q1: Decorator vs Proxy — they look identical.**
+
+Structurally they are: both wrap an object with the same interface. The intent differs. A decorator always forwards the call and adds something around it — caching, logging, retry — and is designed to stack. A proxy controls whether the call happens at all: it might refuse it on permissions, defer construction until first use, or answer from a cache without touching the real object. Decorator enhances; proxy gates.
+
+**Q2: Adapter vs Facade?**
+
+An adapter converts one interface into another because a caller expects a shape the callee doesn't have. A facade invents a simpler interface over several subsystems that were never trying to match anything. Adapter is about mismatch, facade is about volume — and a facade typically fans out to multiple objects while an adapter wraps exactly one.
+
+**Q3: Where do you use Decorator in a Node backend?**
+
+Repository wrappers are the cleanest example — the same `UserRepository` interface implemented by a SQL version, a caching wrapper, and a metrics wrapper, composed at wiring time. Express middleware is the same idea in function form, and so is wrapping `fetch` with retry and auth. In TypeScript the higher-order-function version is often better than a class: less ceremony, same composition.
+
+**Q4: When does Composite pay for itself?**
+
+When the data is genuinely a tree *and* callers keep branching on node type. A file system, a rendered UI tree, or a query AST where `AND` nodes contain other conditions. It's the wrong tool for flat collections, and for untrusted input you need a depth cap so a deeply nested payload can't overflow the stack.
+
+**Q5: Adapter or Bridge?**
+
+Timing. Bridge is deliberate: you know upfront that both the abstraction and its implementation will vary, so you separate them and avoid the class explosion. Adapter is remedial: two existing things need to cooperate and you weren't there when either was designed.
+
+**Q6: How does JavaScript's `Proxy` relate to the pattern?**
+
+It's the pattern as a language primitive. Instead of reimplementing an interface, you install traps — `get`, `set`, `has` — that intercept operations on the target. It's what makes Vue's reactivity and Prisma's fluent client work, and it's ideal for validation or lazy loading with no boilerplate. The cost is that a `Proxy` isn't free at runtime and adds a layer that stack traces and debuggers have to see through.
+
+**Q7: What's the risk with these patterns?**
+
+Depth. Each wrapper is another frame in the stack trace and another indirection to hold in your head, and none of them are visible at the call site — you see `repo.findById(id)` and can't tell whether four layers just ran. That's why I keep composition explicit at a single wiring point rather than scattered, so the layering is readable in one file.
+
+## Summary
+
+**Checklist:**
+
+- [ ] Vendor SDK shapes stay behind an adapter, never inside domain code
+- [ ] Decorators implement the same interface and always forward
+- [ ] Decorator composition order is deliberate, and documented where it isn't obvious
+- [ ] Facades hide subsystems without accumulating unrelated methods
+- [ ] Proxies used for access control, laziness, or remoting — not for adding behaviour
+- [ ] Composite has a depth guard for untrusted input
+- [ ] Bridge chosen only when two dimensions really do vary
+- [ ] All wrapping happens at one wiring point, so the stack is readable
+
+**Best practices:**
+
+1. **Same structure, different intent** — say the intent out loud when you choose.
+2. **Prefer functions to classes** in TypeScript when the wrapper has no state.
+3. **Compose in one place** — the composition root, not scattered through the app.
+4. **Don't stack for its own sake** — every layer is a frame someone will debug.
 
 ---
 
-## Summary: Choosing the Right Structural Pattern
-
-| Need | Pattern | Key Idea |
-|------|---------|----------|
-| Make interfaces compatible | **Adapter** | Wrap incompatible interface |
-| Add behavior dynamically | **Decorator** | Wrap and enhance |
-| Simplify complex subsystem | **Facade** | Unified simple interface |
-| Control object access | **Proxy** | Surrogate with same interface |
-| Tree structures | **Composite** | Uniform leaf/composite treatment |
-| Separate abstraction/implementation | **Bridge** | Two hierarchies |
-
-### Quick Decision Guide
-
-```
-"I need to..."
-
-├── Use a class with incompatible interface
-│   └── Adapter
-│
-├── Add features without changing class
-│   └── Decorator
-│
-├── Simplify a complex API
-│   └── Facade
-│
-├── Control access (lazy load, cache, auth)
-│   └── Proxy
-│
-├── Work with tree-like structures
-│   └── Composite
-│
-└── Allow abstraction and implementation to vary
-    └── Bridge
-```
-
----
-
-**Next:** [Behavioral Patterns →](./03-behavioral-patterns.md)
-
----
-
-[← Creational Patterns](./01-creational-patterns.md) | [Back to Design Patterns](./README.md)
+[← Creational Patterns](./01-creational-patterns.md) | [Design Patterns Index](./README.md) | [Behavioral Patterns →](./03-behavioral-patterns.md)

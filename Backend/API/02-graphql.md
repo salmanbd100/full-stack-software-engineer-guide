@@ -2,1250 +2,288 @@
 
 ## Overview
 
-GraphQL is a query language and runtime for APIs that provides a more efficient, powerful alternative to REST. Developed by Facebook in 2012 and open-sourced in 2015.
+GraphQL replaces many fixed endpoints with one endpoint and a typed schema. The client sends the exact shape of data it wants; the server resolves it field by field.
 
-**Key Advantage:** Clients can request exactly the data they need, nothing more, nothing less.
+That solves two real REST problems — **over-fetching** (the endpoint returns 40 fields, the screen needs 4) and **under-fetching** (the screen needs four round trips before it can render).
 
-## 🎯 Core Concepts
+> **The trade you are making:** you move complexity from the client to the server. The client stops stitching endpoints together; you take on N+1 queries, query-cost limits, and the loss of plain HTTP caching. Interviewers care much more that you can name this trade than that you can recite SDL.
 
-### 1. Schema Definition Language (SDL)
+## Table of Contents
 
-The GraphQL schema defines the API contract using a type system.
+- [Schema and Type System](#schema-and-type-system)
+- [Resolvers and the Resolver Chain](#resolvers-and-the-resolver-chain)
+- [Server Setup](#server-setup)
+- [The N+1 Problem and DataLoader](#the-n1-problem-and-dataloader)
+- [Auth: Context and Field-Level Checks](#auth-context-and-field-level-checks)
+- [Errors](#errors)
+- [Pagination (Relay Connections)](#pagination-relay-connections)
+- [Protecting the Endpoint](#protecting-the-endpoint)
+- [GraphQL vs REST](#graphql-vs-rest)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
+
+## Schema and Type System
+
+The schema is the contract. It is checked at query time, so an invalid query never reaches a resolver.
 
 ```graphql
-# Define types
 type User {
   id: ID!
   name: String!
-  email: String!
-  posts: [Post!]!
-  createdAt: DateTime!
+  email: String!          # sensitive — see field-level auth below
+  posts(first: Int): [Post!]!
 }
 
 type Post {
   id: ID!
   title: String!
-  content: String!
-  published: Boolean!
   author: User!
-  comments: [Comment!]!
 }
 
-type Comment {
-  id: ID!
-  content: String!
-  author: User!
-  post: Post!
-}
-
-# Root types
-type Query {
-  user(id: ID!): User
-  users(limit: Int, offset: Int): [User!]!
-  post(id: ID!): Post
-  posts(published: Boolean): [Post!]!
-}
-
-type Mutation {
-  createUser(name: String!, email: String!): User!
-  updateUser(id: ID!, name: String, email: String): User!
-  deleteUser(id: ID!): Boolean!
-  createPost(title: String!, content: String!, authorId: ID!): Post!
-  publishPost(id: ID!): Post!
-}
-
-type Subscription {
-  postCreated: Post!
-  commentAdded(postId: ID!): Comment!
-}
-```
-
-**Type Modifiers:**
-- `String!` - Non-null (required)
-- `[String]` - Array of strings (can be null)
-- `[String!]!` - Non-null array of non-null strings
-
----
-
-### 2. Queries
-
-Request specific data from the server.
-
-```graphql
-# Simple query
-query {
-  user(id: "1") {
-    id
-    name
-    email
-  }
-}
-
-# Response
-{
-  "data": {
-    "user": {
-      "id": "1",
-      "name": "John Doe",
-      "email": "john@example.com"
-    }
-  }
-}
-```
-
-**Nested Queries:**
-```graphql
-query {
-  user(id: "1") {
-    id
-    name
-    posts {
-      id
-      title
-      comments {
-        id
-        content
-        author {
-          name
-        }
-      }
-    }
-  }
-}
-```
-
-**With Variables:**
-```graphql
-query GetUser($userId: ID!) {
-  user(id: $userId) {
-    id
-    name
-    email
-  }
-}
-
-# Variables
-{
-  "userId": "1"
-}
-```
-
----
-
-### 3. Mutations
-
-Modify server-side data.
-
-```graphql
-mutation {
-  createUser(name: "Jane Doe", email: "jane@example.com") {
-    id
-    name
-    email
-    createdAt
-  }
-}
-
-# Response
-{
-  "data": {
-    "createUser": {
-      "id": "2",
-      "name": "Jane Doe",
-      "email": "jane@example.com",
-      "createdAt": "2024-12-08T10:00:00Z"
-    }
-  }
-}
-```
-
-**Multiple Mutations:**
-```graphql
-mutation {
-  user1: createUser(name: "Alice", email: "alice@example.com") {
-    id
-    name
-  }
-  user2: createUser(name: "Bob", email: "bob@example.com") {
-    id
-    name
-  }
-}
-```
-
----
-
-### 4. Subscriptions
-
-Real-time updates via WebSocket.
-
-```graphql
-subscription {
-  postCreated {
-    id
-    title
-    author {
-      name
-    }
-  }
-}
-
-# Client receives real-time updates when posts are created
-```
-
----
-
-## 💻 Implementation (Node.js + Apollo Server)
-
-### Setup
-
-```bash
-npm install apollo-server graphql
-```
-
-### Basic Server
-
-```javascript
-const { ApolloServer, gql } = require('apollo-server');
-
-// 1. Define schema
-const typeDefs = gql`
-  type User {
-    id: ID!
-    name: String!
-    email: String!
-  }
-
-  type Query {
-    users: [User!]!
-    user(id: ID!): User
-  }
-
-  type Mutation {
-    createUser(name: String!, email: String!): User!
-  }
-`;
-
-// 2. In-memory data (replace with database)
-let users = [
-  { id: '1', name: 'John Doe', email: 'john@example.com' },
-  { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
-];
-
-// 3. Define resolvers
-const resolvers = {
-  Query: {
-    users: () => users,
-    user: (parent, args) => {
-      return users.find(user => user.id === args.id);
-    },
-  },
-  Mutation: {
-    createUser: (parent, args) => {
-      const newUser = {
-        id: String(users.length + 1),
-        name: args.name,
-        email: args.email,
-      };
-      users.push(newUser);
-      return newUser;
-    },
-  },
-};
-
-// 4. Create server
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-});
-
-// 5. Start server
-server.listen().then(({ url }) => {
-  console.log(`🚀 Server ready at ${url}`);
-});
-```
-
----
-
-### With Database (MongoDB + Mongoose)
-
-```javascript
-const { ApolloServer, gql } = require('apollo-server');
-const mongoose = require('mongoose');
-
-// Mongoose models
-const User = mongoose.model('User', {
-  name: String,
-  email: String,
-});
-
-const Post = mongoose.model('Post', {
-  title: String,
-  content: String,
-  published: Boolean,
-  authorId: mongoose.Schema.Types.ObjectId,
-});
-
-const typeDefs = gql`
-  type User {
-    id: ID!
-    name: String!
-    email: String!
-    posts: [Post!]!
-  }
-
-  type Post {
-    id: ID!
-    title: String!
-    content: String!
-    published: Boolean!
-    author: User!
-  }
-
-  type Query {
-    users: [User!]!
-    user(id: ID!): User
-    posts: [Post!]!
-    post(id: ID!): Post
-  }
-
-  type Mutation {
-    createUser(name: String!, email: String!): User!
-    createPost(
-      title: String!
-      content: String!
-      authorId: ID!
-    ): Post!
-  }
-`;
-
-const resolvers = {
-  Query: {
-    users: async () => await User.find(),
-    user: async (parent, { id }) => await User.findById(id),
-    posts: async () => await Post.find(),
-    post: async (parent, { id }) => await Post.findById(id),
-  },
-
-  Mutation: {
-    createUser: async (parent, { name, email }) => {
-      const user = new User({ name, email });
-      await user.save();
-      return user;
-    },
-    createPost: async (parent, { title, content, authorId }) => {
-      const post = new Post({
-        title,
-        content,
-        published: false,
-        authorId,
-      });
-      await post.save();
-      return post;
-    },
-  },
-
-  // Field resolvers
-  User: {
-    posts: async (parent) => {
-      return await Post.find({ authorId: parent.id });
-    },
-  },
-
-  Post: {
-    author: async (parent) => {
-      return await User.findById(parent.authorId);
-    },
-  },
-};
-
-// Connect to MongoDB and start server
-mongoose.connect('mongodb://localhost:27017/graphql-demo')
-  .then(() => {
-    const server = new ApolloServer({ typeDefs, resolvers });
-    return server.listen();
-  })
-  .then(({ url }) => {
-    console.log(`🚀 Server ready at ${url}`);
-  });
-```
-
----
-
-## 🔍 Advanced Patterns
-
-### 1. DataLoader (N+1 Problem Solution)
-
-**Problem:** Without DataLoader, nested queries cause multiple database calls.
-
-```javascript
-// ❌ BAD: N+1 queries
-Post: {
-  author: async (parent) => {
-    // Called once for EACH post - N+1 problem!
-    return await User.findById(parent.authorId);
-  }
-}
-
-// For 100 posts, makes 100+ database queries!
-```
-
-**Solution:** Use DataLoader to batch and cache requests.
-
-```javascript
-const DataLoader = require('dataloader');
-
-// Batch function
-async function batchUsers(ids) {
-  const users = await User.find({ _id: { $in: ids } });
-  // Return users in same order as ids
-  return ids.map(id => users.find(user => user.id.equals(id)));
-}
-
-// Create loader
-const userLoader = new DataLoader(batchUsers);
-
-// Use in resolver
-Post: {
-  author: async (parent) => {
-    return await userLoader.load(parent.authorId);
-  }
-}
-
-// For 100 posts, makes only 1 database query!
-```
-
----
-
-### 2. Context & Authentication
-
-```javascript
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  context: ({ req }) => {
-    // Get token from header
-    const token = req.headers.authorization || '';
-
-    // Verify token and get user
-    const user = verifyToken(token);
-
-    // Add to context
-    return { user, userLoader };
-  },
-});
-
-// Use in resolvers
-const resolvers = {
-  Query: {
-    me: (parent, args, context) => {
-      if (!context.user) {
-        throw new Error('Not authenticated');
-      }
-      return context.user;
-    },
-  },
-
-  Mutation: {
-    createPost: (parent, args, context) => {
-      if (!context.user) {
-        throw new Error('Not authenticated');
-      }
-
-      const post = new Post({
-        ...args,
-        authorId: context.user.id,
-      });
-
-      return post.save();
-    },
-  },
-};
-```
-
----
-
-### 3. Error Handling
-
-```javascript
-const { ApolloError, UserInputError, AuthenticationError } = require('apollo-server');
-
-const resolvers = {
-  Query: {
-    user: async (parent, { id }) => {
-      const user = await User.findById(id);
-
-      if (!user) {
-        throw new UserInputError('User not found', {
-          invalidArgs: { id },
-        });
-      }
-
-      return user;
-    },
-  },
-
-  Mutation: {
-    createUser: async (parent, { email, name }, context) => {
-      // Check auth
-      if (!context.user) {
-        throw new AuthenticationError('Must be logged in');
-      }
-
-      // Validate input
-      if (!email.includes('@')) {
-        throw new UserInputError('Invalid email format', {
-          invalidArgs: { email },
-        });
-      }
-
-      // Check duplicates
-      const existing = await User.findOne({ email });
-      if (existing) {
-        throw new ApolloError('Email already exists', 'DUPLICATE_EMAIL');
-      }
-
-      const user = new User({ email, name });
-      await user.save();
-      return user;
-    },
-  },
-};
-```
-
----
-
-### 4. Pagination
-
-**Offset-based:**
-```graphql
-type Query {
-  posts(limit: Int, offset: Int): PostConnection!
-}
-
-type PostConnection {
-  posts: [Post!]!
-  totalCount: Int!
-  hasMore: Boolean!
-}
-```
-
-```javascript
-Query: {
-  posts: async (parent, { limit = 10, offset = 0 }) => {
-    const posts = await Post.find()
-      .skip(offset)
-      .limit(limit);
-
-    const totalCount = await Post.countDocuments();
-
-    return {
-      posts,
-      totalCount,
-      hasMore: offset + limit < totalCount,
-    };
-  },
-}
-```
-
-**Cursor-based (Relay-style):**
-```graphql
-type Query {
-  posts(first: Int, after: String): PostConnection!
-}
-
-type PostConnection {
-  edges: [PostEdge!]!
-  pageInfo: PageInfo!
-}
-
-type PostEdge {
-  node: Post!
-  cursor: String!
-}
-
-type PageInfo {
-  hasNextPage: Boolean!
-  endCursor: String
-}
-```
-
----
-
-### 5. Subscriptions with WebSocket
-
-```javascript
-const { ApolloServer, gql, PubSub } = require('apollo-server');
-
-const pubsub = new PubSub();
-const POST_CREATED = 'POST_CREATED';
-
-const resolvers = {
-  Mutation: {
-    createPost: async (parent, args) => {
-      const post = new Post(args);
-      await post.save();
-
-      // Publish event
-      pubsub.publish(POST_CREATED, { postCreated: post });
-
-      return post;
-    },
-  },
-
-  Subscription: {
-    postCreated: {
-      subscribe: () => pubsub.asyncIterator([POST_CREATED]),
-    },
-  },
-};
-
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  subscriptions: {
-    path: '/subscriptions',
-    onConnect: (connectionParams) => {
-      // Authenticate WebSocket connection
-      const token = connectionParams.authorization;
-      const user = verifyToken(token);
-      return { user };
-    },
-  },
-});
-```
-
----
-
-## 🆚 GraphQL vs REST
-
-| Feature | GraphQL | REST |
-|---------|---------|------|
-| **Data Fetching** | Single request for all data | Multiple endpoints |
-| **Over-fetching** | Request only needed fields | Returns all fields |
-| **Under-fetching** | Get related data in one query | Multiple requests needed |
-| **Versioning** | No versioning needed | /v1/, /v2/ |
-| **Type System** | Strong typing with schema | No built-in typing |
-| **Tooling** | GraphQL Playground, introspection | Swagger, Postman |
-| **Caching** | More complex (need libs) | HTTP caching built-in |
-| **Learning Curve** | Steeper | Gentler |
-| **Best For** | Complex, related data | Simple CRUD, public APIs |
-
----
-
-## 🎯 GraphQL Best Practices
-
-### 1. Schema Design
-
-```graphql
-# ✅ GOOD: Descriptive, specific types
-type Product {
-  id: ID!
-  name: String!
-  price: Money!  # Custom scalar
-  category: Category!
-  reviews(limit: Int): [Review!]!
-}
-
-type Money {
-  amount: Float!
-  currency: String!
-}
-
-# ❌ BAD: Generic, unclear types
-type Product {
-  id: ID!
-  name: String!
-  price: Float!  # What currency?
-  cat: String!   # Unclear abbreviation
-}
-```
-
-### 2. Naming Conventions
-
-```graphql
-# ✅ GOOD: Clear, consistent naming
-type Query {
-  user(id: ID!): User          # Singular for single item
-  users(limit: Int): [User!]!  # Plural for lists
-  searchUsers(query: String!): [User!]!
-}
-
-type Mutation {
-  createUser(input: CreateUserInput!): User!
-  updateUser(id: ID!, input: UpdateUserInput!): User!
-  deleteUser(id: ID!): Boolean!
-}
-
-input CreateUserInput {
-  name: String!
-  email: String!
-}
-```
-
-### 3. Input Types for Mutations
-
-```graphql
-# ✅ GOOD: Use input types
-input CreatePostInput {
+input CreatePostInput {   # inputs are their own types, never reuse output types
   title: String!
-  content: String!
-  tags: [String!]
-  published: Boolean
+  body: String!
+  tags: [String!] = []
+}
+
+type Query {
+  me: User
+  post(id: ID!): Post
+  posts(first: Int = 20, after: String): PostConnection!
 }
 
 type Mutation {
   createPost(input: CreatePostInput!): Post!
 }
+```
 
-# ❌ BAD: Many individual arguments
-type Mutation {
-  createPost(
-    title: String!
-    content: String!
-    tags: [String!]
-    published: Boolean
-  ): Post!
+**Reading the `!` and `[]`:**
+
+| Notation    | Meaning                                        |
+| ----------- | ---------------------------------------------- |
+| `String`    | Nullable string                                |
+| `String!`   | Never null                                     |
+| `[String]`  | Nullable list of nullable strings              |
+| `[String!]!` | Never-null list, no null members              |
+
+> ⚠️ **Non-null propagates failure upward.** If a resolver for a `String!` field throws, GraphQL cannot return null there, so it nulls the *parent* — and keeps climbing until it finds a nullable field. One broken leaf can blank out a whole response. Mark a field non-null only when it truly cannot fail.
+
+**Schema design rules worth stating in an interview:**
+
+- ✅ Use `input` types for mutation arguments — one argument, easy to evolve.
+- ✅ Return the mutated object, not a boolean, so clients can update their cache.
+- ✅ Name mutations `verbNoun`: `createPost`, `publishPost`.
+- ✅ Model domain concepts as types (`Money { amount, currency }`), not loose scalars.
+- ❌ Don't mirror your database tables — the schema is a product API, not an ORM dump.
+
+## Resolvers and the Resolver Chain
+
+A resolver receives four arguments. Knowing them cold is table stakes.
+
+```typescript
+type Resolver<Parent, Args, Result> = (
+  parent: Parent,   // the value returned by the parent field's resolver
+  args: Args,       // arguments passed to this field
+  context: Context, // per-request: auth, loaders, db handles
+  info: GraphQLResolveInfo, // the query AST — which fields were requested
+) => Promise<Result> | Result;
+```
+
+GraphQL resolves **one field at a time, top down**. `posts` runs first, then `author` runs *once per post*. That execution model is exactly where N+1 comes from.
+
+```typescript
+interface Context {
+  userId: string | null;
+  loaders: Loaders;
+}
+
+const resolvers = {
+  Query: {
+    post: (_parent: unknown, { id }: { id: string }, ctx: Context) =>
+      ctx.loaders.post.load(id),
+  },
+
+  // Field resolver: only runs if the client asked for `Post.author`.
+  Post: {
+    author: (post: PostRow, _args: unknown, ctx: Context) =>
+      ctx.loaders.user.load(post.authorId),
+  },
+};
+```
+
+> ✨ **Sibling fields resolve in parallel; nested fields resolve in sequence.** That's why a deep query is far more expensive than a wide one, and why depth limits matter.
+
+## Server Setup
+
+Apollo Server 5 with Express. Note that the old `apollo-server` package is dead — the current packages are `@apollo/server` plus an integration.
+
+```typescript
+// npm i @apollo/server @as-integrations/express5 express graphql cors
+import { ApolloServer } from "@apollo/server";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { expressMiddleware } from "@as-integrations/express5";
+import express from "express";
+import http from "node:http";
+import cors from "cors";
+import { typeDefs, resolvers } from "./schema";
+
+const app = express();
+const httpServer = http.createServer(app);
+
+const server = new ApolloServer<Context>({
+  typeDefs,
+  resolvers,
+  // Lets in-flight operations finish on SIGTERM instead of being cut off.
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  introspection: process.env.NODE_ENV !== "production",
+});
+
+await server.start();
+
+app.use(
+  "/graphql",
+  cors<cors.CorsRequest>({ origin: ["https://app.example.com"], credentials: true }),
+  express.json({ limit: "100kb" }), // 🔴 default 50mb is an easy DoS
+  expressMiddleware(server, {
+    // Runs once per request — build auth and fresh loaders here.
+    context: async ({ req }): Promise<Context> => ({
+      userId: verifyBearer(req.headers.authorization),
+      loaders: createLoaders(), // ✅ new loaders per request, never global
+    }),
+  }),
+);
+
+await new Promise<void>((resolve) => httpServer.listen({ port: 4000 }, resolve));
+```
+
+## The N+1 Problem and DataLoader
+
+This is the single most likely GraphQL question you will get.
+
+```graphql
+query {
+  posts(first: 100) {   # 1 query
+    title
+    author { name }     # 100 more queries — one per post
+  }
 }
 ```
 
-### 4. Error Handling
+**DataLoader** collects every `.load(id)` call made in the same tick of the event loop, then calls your batch function once with all the keys.
 
-```javascript
-// ✅ GOOD: Detailed error responses
+```typescript
+import DataLoader from "dataloader";
+
+function createLoaders() {
+  return {
+    user: new DataLoader<string, UserRow | null>(async (ids) => {
+      const rows = await db.users.find({ id: { $in: [...ids] } }).toArray();
+      const byId = new Map(rows.map((r) => [r.id, r]));
+      // 🔴 The contract: return one entry per key, in the same order.
+      return ids.map((id) => byId.get(id) ?? null);
+    }),
+
+    // One-to-many needs grouping, not a Map lookup.
+    postsByAuthor: new DataLoader<string, PostRow[]>(async (authorIds) => {
+      const rows = await db.posts.find({ authorId: { $in: [...authorIds] } }).toArray();
+      const grouped = new Map<string, PostRow[]>();
+      for (const row of rows) {
+        const bucket = grouped.get(row.authorId) ?? [];
+        bucket.push(row);
+        grouped.set(row.authorId, bucket);
+      }
+      return authorIds.map((id) => grouped.get(id) ?? []);
+    }),
+  };
+}
+
+export type Loaders = ReturnType<typeof createLoaders>;
+```
+
+100 queries become 2 — one for posts, one batched `WHERE id IN (…)` for authors.
+
+> 🔴 **Create loaders per request.** A loader caches by key for its lifetime. A module-level loader is a cache that never expires and leaks one user's data into another user's response.
+
+**The alternative:** resolve joins at the top level (`JOIN` or `$lookup`) using `info` to see which fields were requested. Faster, but the resolver has to understand the whole subtree — which is why DataLoader is the default answer.
+
+## Auth: Context and Field-Level Checks
+
+**Authentication once per request, authorization per field.**
+
+```typescript
+import { GraphQLError } from "graphql";
+
+const unauthenticated = () =>
+  new GraphQLError("Not authenticated", { extensions: { code: "UNAUTHENTICATED", http: { status: 401 } } });
+
+const forbidden = () =>
+  new GraphQLError("Forbidden", { extensions: { code: "FORBIDDEN", http: { status: 403 } } });
+
+const resolvers = {
+  Query: {
+    me: (_p: unknown, _a: unknown, ctx: Context) => {
+      if (!ctx.userId) throw unauthenticated();
+      return ctx.loaders.user.load(ctx.userId);
+    },
+  },
+
+  User: {
+    // Field-level check: any path that reaches a User must still gate `email`.
+    email: (user: UserRow, _a: unknown, ctx: Context) => {
+      if (ctx.userId !== user.id) throw forbidden();
+      return user.email;
+    },
+  },
+};
+```
+
+> ⚠️ **Route-level auth doesn't work in GraphQL.** There is one route. A `User` can be reached through `me`, `post.author`, or `comment.author`, so the check has to live on the *type*, not the entry point. This is the answer that separates people who have run GraphQL in production from people who have read about it.
+
+For anything beyond a few fields, put the rule in the schema with a directive or a library like `graphql-shield`, so the policy is reviewable in one place.
+
+## Errors
+
+GraphQL returns HTTP 200 with an `errors` array. That surprises people, and it's a deliberate part of the design: a partial result is still a result.
+
+```json
 {
+  "data": { "post": { "title": "Hello", "author": null } },
   "errors": [
     {
-      "message": "User not found",
-      "extensions": {
-        "code": "USER_NOT_FOUND",
-        "userId": "123"
-      }
+      "message": "Forbidden",
+      "path": ["post", "author", "email"],
+      "extensions": { "code": "FORBIDDEN" }
     }
   ]
 }
-
-// Use custom error classes
-class UserNotFoundError extends ApolloError {
-  constructor(userId) {
-    super('User not found', 'USER_NOT_FOUND', { userId });
-  }
-}
 ```
 
----
+**Two kinds of failure, handled differently:**
 
-## 📊 Performance Optimization
+| Failure | Where it goes | Example |
+| ------- | ------------- | ------- |
+| **Unexpected / system** | `errors` array | Database down, bug, auth failure |
+| **Expected / business** | The schema itself | "Email already taken", "Card declined" |
 
-### 1. Query Complexity Analysis
+Modelling expected failures as types makes them type-safe and impossible for a client to ignore:
 
-```javascript
-const { createComplexityLimitRule } = require('graphql-validation-complexity');
-
-const server = new ApolloServer({
-  validationRules: [
-    createComplexityLimitRule(1000, {
-      onCost: (cost) => console.log('Query cost:', cost),
-    }),
-  ],
-});
-```
-
-### 2. Query Depth Limiting
-
-```javascript
-const depthLimit = require('graphql-depth-limit');
-
-const server = new ApolloServer({
-  validationRules: [depthLimit(5)],  // Max depth of 5
-});
-```
-
-### 3. Batch Resolvers
-
-```javascript
-// Use DataLoader for all one-to-many relationships
-const loaders = {
-  user: new DataLoader(ids => batchGetUsers(ids)),
-  post: new DataLoader(ids => batchGetPosts(ids)),
-  comment: new DataLoader(ids => batchGetComments(ids)),
-};
-
-// Add to context
-context: () => ({ loaders })
-```
-
----
-
-## 🔒 Security
-
-### 1. Disable Introspection in Production
-
-```javascript
-const server = new ApolloServer({
-  introspection: process.env.NODE_ENV !== 'production',
-  playground: process.env.NODE_ENV !== 'production',
-});
-```
-
-### 2. Rate Limiting
-
-```javascript
-const { RateLimitDirective } = require('graphql-rate-limit-directive');
-
-const typeDefs = gql`
-  directive @rateLimit(
-    limit: Int!
-    duration: Int!
-  ) on FIELD_DEFINITION
-
-  type Query {
-    users: [User!]! @rateLimit(limit: 100, duration: 60)
-    user(id: ID!): User @rateLimit(limit: 1000, duration: 60)
-  }
-`;
-```
-
-### 3. Validate Input
-
-```javascript
-const Joi = require('joi');
-
-const createUserSchema = Joi.object({
-  name: Joi.string().min(2).max(50).required(),
-  email: Joi.string().email().required(),
-});
-
-Mutation: {
-  createUser: async (parent, { input }) => {
-    const { error } = createUserSchema.validate(input);
-    if (error) {
-      throw new UserInputError(error.message);
-    }
-    // Proceed with creation
-  }
-}
-```
-
----
-
-## 📚 Common Interview Questions
-
-### Q1: Explain the N+1 problem in GraphQL and how to solve it.
-
-**Answer:**
-
-The N+1 problem occurs when fetching related data results in 1 query to fetch parent records + N queries to fetch related child records.
-
-**Example:**
 ```graphql
-query {
-  posts {          # 1 query to get 100 posts
-    title
-    author {       # 100 queries (one per post) = N+1 problem!
-      name
-    }
-  }
-}
+union CreateUserResult = CreateUserSuccess | EmailTakenError
+
+type CreateUserSuccess { user: User! }
+type EmailTakenError { message: String!, suggestedEmail: String! }
 ```
 
-**Without DataLoader:**
-```javascript
-// ❌ BAD: Causes N+1 queries
-Post: {
-  author: async (parent) => {
-    // Called 100 times for 100 posts!
-    return await User.findById(parent.authorId); // 100 DB queries
-  }
-}
-```
+> 🔴 **Mask internal errors in production.** Apollo returns `INTERNAL_SERVER_ERROR` for unexpected throws, but a stack trace leaking through a custom formatter is a real incident. Log the cause with a request id; return the code.
 
-**Solutions:**
+## Pagination (Relay Connections)
 
-**1. DataLoader (Primary Solution):**
-```javascript
-const DataLoader = require('dataloader');
+The Relay Connection spec is the convention, and clients like Apollo Client and Relay have caching built around it.
 
-// Batch function - receives array of IDs
-async function batchGetUsers(userIds) {
-  console.log('Fetching users:', userIds); // Called ONCE for all IDs
-
-  // Single database query for all users
-  const users = await User.find({ _id: { $in: userIds } });
-
-  // Return in same order as input IDs
-  return userIds.map(id =>
-    users.find(user => user._id.toString() === id.toString())
-  );
-}
-
-// Create loader in context
-const userLoader = new DataLoader(batchGetUsers);
-
-// Use in resolver
-Post: {
-  author: (post, args, { userLoader }) => {
-    return userLoader.load(post.authorId); // Batched automatically!
-  }
-}
-
-// Result: 1 query to get posts + 1 batched query to get all authors = 2 queries total!
-```
-
-**2. Field Selection (GraphQL Specific):**
-```javascript
-// Only query author if requested
-const resolveFieldList = (info) => {
-  return info.fieldNodes[0].selectionSet.selections.map(s => s.name.value);
-};
-
-Query: {
-  posts: (parent, args, context, info) => {
-    const fields = resolveFieldList(info);
-    if (fields.includes('author')) {
-      // Fetch with author join
-      return Post.find().populate('author');
-    }
-    return Post.find(); // Without author
-  }
-}
-```
-
-**3. Query Optimization (Database Level):**
-```javascript
-// Use database joins/aggregations
-Query: {
-  posts: async () => {
-    return await Post.aggregate([
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'authorId',
-          foreignField: '_id',
-          as: 'author'
-        }
-      },
-      { $unwind: '$author' }
-    ]);
-  }
-}
-```
-
-**Interview Tip:** Always mention DataLoader as the standard solution. Explain that it batches requests within a single event loop tick and caches results for the duration of the request.
-
----
-
-### Q2: When would you choose GraphQL over REST?
-
-**Answer:**
-
-| Scenario | GraphQL | REST |
-|----------|---------|------|
-| **Mobile apps** (bandwidth limited) | ✅ Perfect - fetch only needed fields | ❌ Over-fetching wastes bandwidth |
-| **Complex UIs** (many data relationships) | ✅ Single query for nested data | ❌ Multiple round trips needed |
-| **Rapid frontend changes** | ✅ No backend changes needed | ❌ Need new endpoints |
-| **Microservices** (aggregate data) | ✅ GraphQL as API gateway | ❌ Client calls multiple services |
-| **Public APIs** | ❌ Less familiar, harder to cache | ✅ Standard, well-understood |
-| **File uploads** | ❌ Complex, needs special handling | ✅ Simple multipart/form-data |
-| **Simple CRUD** | ❌ Overkill | ✅ Straightforward |
-
-**Real-World Examples:**
-
-**GraphQL Perfect For:**
 ```graphql
-# E-commerce: User + Orders + Products in ONE request
-query {
-  user(id: "123") {
-    name
-    email
-    orders(limit: 5) {
-      id
-      total
-      items {
-        product {
-          name
-          price
-          images(size: THUMBNAIL)
-        }
-        quantity
-      }
-    }
-    recommendedProducts(limit: 10) {
-      name
-      price
-    }
-  }
-}
-
-# REST would need: /users/123, /users/123/orders, /orders/*/items, /products/*, etc.
-```
-
-**REST Perfect For:**
-```
-GET /health              // Simple status check
-POST /auth/login         // Standard authentication
-GET /download/file.pdf   // File downloads
-POST /upload             // File uploads
-GET /products?page=1     // Simple list with caching
-```
-
-**Interview Tip:** Mention that many companies use both - GraphQL for complex client-facing APIs, REST for simple microservice communication.
-
----
-
-### Q3: How do you handle authentication and authorization in GraphQL?
-
-**Answer:**
-
-**Authentication (Who are you?):**
-
-**JavaScript:**
-```javascript
-const { ApolloServer, AuthenticationError } = require('apollo-server');
-const jwt = require('jsonwebtoken');
-
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  context: ({ req }) => {
-    // 1. Extract token from Authorization header
-    const token = req.headers.authorization?.replace('Bearer ', '');
-
-    // 2. Verify and decode token
-    let user = null;
-    if (token) {
-      try {
-        user = jwt.verify(token, process.env.JWT_SECRET);
-      } catch (error) {
-        // Token invalid/expired - return null user
-        console.error('Invalid token:', error.message);
-      }
-    }
-
-    // 3. Return context with user
-    return {
-      user,
-      req,
-      // Add DataLoaders here
-      userLoader: createUserLoader(),
-    };
-  },
-});
-
-// Use in resolvers
-const resolvers = {
-  Query: {
-    me: (parent, args, { user }) => {
-      if (!user) {
-        throw new AuthenticationError('You must be logged in');
-      }
-      return User.findById(user.id);
-    },
-  },
-};
-```
-
-**Python:**
-```python
-from ariadne import make_executable_schema, QueryType
-from jose import jwt, JWTError
-
-def get_context_value(request):
-    auth_header = request.headers.get("Authorization", "")
-    token = auth_header.replace("Bearer ", "")
-
-    user = None
-    if token:
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            user = payload
-        except JWTError:
-            pass
-
-    return {"user": user, "request": request}
-
-# Use in resolvers
-@query.field("me")
-def resolve_me(obj, info):
-    user = info.context["user"]
-    if not user:
-        raise Exception("Not authenticated")
-    return get_user_by_id(user["id"])
-```
-
----
-
-**Authorization (What can you do?):**
-
-**1. Field-Level Authorization:**
-```javascript
-const resolvers = {
-  User: {
-    email: (parent, args, { user }) => {
-      // Only owner or admin can see email
-      if (!user || (user.id !== parent.id && user.role !== 'admin')) {
-        return null; // or throw error
-      }
-      return parent.email;
-    },
-    ssn: (parent, args, { user }) => {
-      // Only admins can see SSN
-      if (!user || user.role !== 'admin') {
-        throw new ForbiddenError('Insufficient permissions');
-      }
-      return parent.ssn;
-    },
-  },
-};
-```
-
-**2. Directive-Based Authorization:**
-```graphql
-directive @auth(requires: Role = USER) on OBJECT | FIELD_DEFINITION
-
-enum Role {
-  ADMIN
-  USER
-  GUEST
-}
-
-type Query {
-  users: [User!]! @auth(requires: ADMIN)
-  me: User @auth(requires: USER)
-  publicPosts: [Post!]!
-}
-
-type Mutation {
-  deleteUser(id: ID!): Boolean! @auth(requires: ADMIN)
-  updateProfile(input: ProfileInput!): User! @auth(requires: USER)
-}
-```
-
-**Implementation:**
-```javascript
-const { SchemaDirectiveVisitor } = require('graphql-tools');
-const { ForbiddenError } = require('apollo-server');
-
-class AuthDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field) {
-    const { resolve = defaultFieldResolver } = field;
-    const requiredRole = this.args.requires;
-
-    field.resolve = async function(...args) {
-      const context = args[2];
-      const user = context.user;
-
-      if (!user) {
-        throw new AuthenticationError('Not authenticated');
-      }
-
-      if (user.role !== requiredRole) {
-        throw new ForbiddenError(`Requires ${requiredRole} role`);
-      }
-
-      return resolve.apply(this, args);
-    };
-  }
-}
-```
-
-**3. Resolver-Level Guards:**
-```javascript
-// Guard middleware
-const requireAuth = (next) => (parent, args, context, info) => {
-  if (!context.user) {
-    throw new AuthenticationError('Not authenticated');
-  }
-  return next(parent, args, context, info);
-};
-
-const requireRole = (...roles) => (next) => (parent, args, context, info) => {
-  if (!context.user || !roles.includes(context.user.role)) {
-    throw new ForbiddenError('Insufficient permissions');
-  }
-  return next(parent, args, context, info);
-};
-
-// Apply to resolvers
-const resolvers = {
-  Query: {
-    users: requireAuth(requireRole('admin')(async () => {
-      return await User.find();
-    })),
-  },
-  Mutation: {
-    deleteUser: requireAuth(requireRole('admin', 'moderator')(
-      async (parent, { id }) => {
-        await User.findByIdAndDelete(id);
-        return true;
-      }
-    )),
-  },
-};
-```
-
-**Interview Tip:** Mention that authentication happens in the context function (once per request), while authorization happens in resolvers (per field). Also mention field-level authorization for sensitive data.
-
----
-
-### Q4: How do you implement pagination in GraphQL?
-
-**Answer:**
-
-**Three Approaches:**
-
-**1. Offset-Based (Simple but Limited):**
-```graphql
-type Query {
-  posts(limit: Int, offset: Int): PostConnection!
-}
-
-type PostConnection {
-  posts: [Post!]!
-  totalCount: Int!
-  hasMore: Boolean!
-}
-```
-
-```javascript
-Query: {
-  posts: async (parent, { limit = 20, offset = 0 }) => {
-    const posts = await Post.find().skip(offset).limit(limit);
-    const totalCount = await Post.countDocuments();
-
-    return {
-      posts,
-      totalCount,
-      hasMore: offset + limit < totalCount,
-    };
-  }
-}
-
-// Usage
-query {
-  posts(limit: 20, offset: 40) {
-    posts { id title }
-    totalCount
-    hasMore
-  }
-}
-```
-
-**Pros:** Simple, can jump to any page
-**Cons:** Slow for large offsets, inconsistent if data changes
-
----
-
-**2. Cursor-Based (Relay-Style - Recommended):**
-```graphql
-type Query {
-  posts(first: Int, after: String, last: Int, before: String): PostConnection!
-}
-
 type PostConnection {
   edges: [PostEdge!]!
   pageInfo: PageInfo!
-  totalCount: Int
 }
 
 type PostEdge {
@@ -1261,359 +299,134 @@ type PageInfo {
 }
 ```
 
-```javascript
-Query: {
-  posts: async (parent, { first = 20, after }) => {
-    let query = Post.find().sort({ _id: -1 });
-
-    // Apply cursor filter
-    if (after) {
-      const decodedCursor = Buffer.from(after, 'base64').toString();
-      query = query.where('_id').lt(decodedCursor);
-    }
-
-    // Fetch one extra to check if there's more
-    const posts = await query.limit(first + 1).exec();
-    const hasMore = posts.length > first;
-
-    if (hasMore) {
-      posts.pop(); // Remove extra
-    }
-
-    // Generate edges with cursors
-    const edges = posts.map(post => ({
-      cursor: Buffer.from(post._id.toString()).toString('base64'),
-      node: post,
-    }));
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage: hasMore,
-        hasPreviousPage: !!after,
-        startCursor: edges[0]?.cursor,
-        endCursor: edges[edges.length - 1]?.cursor,
-      },
-      totalCount: await Post.countDocuments(),
-    };
-  }
+```typescript
+interface PostsArgs {
+  first?: number;
+  after?: string;
 }
 
-// Usage
-query {
-  posts(first: 20, after: "Y3Vyc29yMTIz") {
-    edges {
-      cursor
-      node {
-        id
-        title
-      }
-    }
-    pageInfo {
-      hasNextPage
-      endCursor
-    }
-  }
-}
-```
+const MAX_PAGE = 100;
 
-**Pros:** Fast, consistent, standard (Relay spec)
-**Cons:** More complex, can't jump to specific page
+const postsResolver = async (_p: unknown, { first = 20, after }: PostsArgs) => {
+  const limit = Math.min(first, MAX_PAGE); // ✅ never trust `first`
+  const rows = await fetchPostsAfter(after, limit + 1); // +1 to detect a next page
 
----
+  const nodes = rows.slice(0, limit);
+  const edges = nodes.map((node) => ({ cursor: encodeCursor(node), node }));
 
-**3. Hybrid Approach (Page + Cursor):**
-```graphql
-type Query {
-  posts(page: Int, pageSize: Int, cursor: String): PostConnection!
-}
-```
-
-**Comparison Table:**
-
-| Feature | Offset | Cursor | Hybrid |
-|---------|--------|--------|--------|
-| **Complexity** | Low | High | Medium |
-| **Performance** | Slow (large offset) | Fast | Fast |
-| **Jump to page** | ✅ Yes | ❌ No | ✅ Yes |
-| **Real-time data** | ❌ Inconsistent | ✅ Consistent | ⚠️ Partial |
-| **Use Case** | Admin panels | Infinite scroll | Hybrid UIs |
-
-**Interview Tip:** Mention that for public-facing apps with infinite scroll (Twitter, Instagram), cursor-based is standard. For admin dashboards with page numbers, offset-based is acceptable.
-
----
-
-### Q5: What are the main performance challenges with GraphQL and how do you solve them?
-
-**Answer:**
-
-**1. N+1 Problem → DataLoader**
-```javascript
-// Problem: 1 + N queries
-// Solution: DataLoader batches into 1 + 1 queries
-const userLoader = new DataLoader(batchGetUsers);
-```
-
-**2. Deep/Complex Queries → Query Depth/Complexity Limiting**
-```javascript
-const depthLimit = require('graphql-depth-limit');
-const { createComplexityLimitRule } = require('graphql-validation-complexity');
-
-const server = new ApolloServer({
-  validationRules: [
-    depthLimit(5), // Max depth: 5 levels
-    createComplexityLimitRule(1000), // Max cost: 1000 points
-  ],
-});
-
-// Prevent: query { user { posts { comments { user { posts... }}}}}
-```
-
-**3. Over-fetching from Database → Field-Level Resolvers**
-```javascript
-// ❌ BAD: Fetch all fields even if not requested
-Query: {
-  user: (parent, { id }) => User.findById(id)
-}
-
-// ✅ GOOD: Only fetch requested fields
-const getRequestedFields = (info) => {
-  const fields = {};
-  info.fieldNodes[0].selectionSet.selections.forEach(field => {
-    fields[field.name.value] = 1;
-  });
-  return fields;
-};
-
-Query: {
-  user: (parent, { id }, context, info) => {
-    const projection = getRequestedFields(info);
-    return User.findById(id).select(projection);
-  }
-}
-```
-
-**4. Slow Queries → Query Caching**
-```javascript
-// Response caching (Apollo)
-const { ApolloServer } = require('apollo-server');
-const { InMemoryLRUCache } = require('apollo-server-caching');
-
-const server = new ApolloServer({
-  cache: new InMemoryLRUCache({
-    maxSize: Math.pow(2, 20) * 100, // 100MB
-    ttl: 300, // 5 minutes
-  }),
-  resolvers: {
-    Query: {
-      posts: async () => {
-        // Results cached automatically
-        return await Post.find();
-      },
+  return {
+    edges,
+    pageInfo: {
+      hasNextPage: rows.length > limit,
+      hasPreviousPage: Boolean(after),
+      startCursor: edges[0]?.cursor ?? null,
+      endCursor: edges.at(-1)?.cursor ?? null,
     },
-  },
-});
-
-// Or use Redis for distributed caching
-const RedisCache = require('apollo-server-cache-redis').default;
-const cache = new RedisCache({
-  host: 'redis-server',
-  ttl: 600,
-});
-```
-
-**5. Large Payloads → Pagination + Field Limiting**
-```javascript
-// Force pagination
-posts: (parent, { limit = 20, offset = 0 }) => {
-  const maxLimit = 100;
-  const safeLimit = Math.min(limit, maxLimit);
-  return Post.find().skip(offset).limit(safeLimit);
-}
-```
-
-**Interview Tip:** Explain that GraphQL gives clients power, but you must protect your API with query complexity analysis, depth limiting, and pagination.
-
----
-
-### Q6: How would you handle file uploads in GraphQL?
-
-**Answer:**
-
-**Option 1: GraphQL Upload (multipart/form-data)**
-
-```javascript
-const { GraphQLUpload } = require('graphql-upload');
-const { createWriteStream } = require('fs');
-const { finished } = require('stream/promises');
-const path = require('path');
-
-const typeDefs = gql`
-  scalar Upload
-
-  type File {
-    filename: String!
-    mimetype: String!
-    encoding: String!
-    url: String!
-  }
-
-  type Mutation {
-    uploadFile(file: Upload!): File!
-    uploadMultiple(files: [Upload!]!): [File!]!
-  }
-`;
-
-const resolvers = {
-  Upload: GraphQLUpload,
-
-  Mutation: {
-    uploadFile: async (parent, { file }) => {
-      const { createReadStream, filename, mimetype, encoding } = await file;
-
-      // Save to local filesystem
-      const stream = createReadStream();
-      const filePath = path.join(__dirname, 'uploads', filename);
-      const writeStream = createWriteStream(filePath);
-
-      stream.pipe(writeStream);
-      await finished(writeStream);
-
-      // Or upload to S3
-      // await s3.upload({ Body: stream, Key: filename }).promise();
-
-      return {
-        filename,
-        mimetype,
-        encoding,
-        url: `/uploads/${filename}`,
-      };
-    },
-
-    uploadMultiple: async (parent, { files }) => {
-      return Promise.all(files.map(file => resolvers.Mutation.uploadFile(null, { file })));
-    },
-  },
-};
-```
-
-**Client Usage:**
-```javascript
-// React + Apollo Client
-import { gql, useMutation } from '@apollo/client';
-
-const UPLOAD_FILE = gql`
-  mutation UploadFile($file: Upload!) {
-    uploadFile(file: $file) {
-      filename
-      url
-    }
-  }
-`;
-
-function FileUpload() {
-  const [uploadFile] = useMutation(UPLOAD_FILE);
-
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      const { data } = await uploadFile({ variables: { file } });
-      console.log('Uploaded:', data.uploadFile.url);
-    } catch (error) {
-      console.error('Upload failed:', error);
-    }
   };
-
-  return <input type="file" onChange={handleFileChange} />;
-}
-```
-
----
-
-**Option 2: Signed URL Approach (Recommended for Production)**
-
-```graphql
-type Mutation {
-  getUploadUrl(filename: String!, contentType: String!): UploadUrl!
-}
-
-type UploadUrl {
-  uploadUrl: String!
-  fileUrl: String!
-}
-```
-
-```javascript
-const AWS = require('aws-sdk');
-const s3 = new AWS.S3();
-
-const resolvers = {
-  Mutation: {
-    getUploadUrl: async (parent, { filename, contentType }) => {
-      const key = `uploads/${Date.now()}_${filename}`;
-
-      // Generate presigned URL for upload
-      const uploadUrl = await s3.getSignedUrlPromise('putObject', {
-        Bucket: process.env.S3_BUCKET,
-        Key: key,
-        ContentType: contentType,
-        Expires: 300, // 5 minutes
-      });
-
-      const fileUrl = `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${key}`;
-
-      return { uploadUrl, fileUrl };
-    },
-  },
 };
 ```
 
-**Client Usage:**
-```javascript
-// 1. Get signed URL from GraphQL
-const { data } = await getUploadUrl({
-  variables: {
-    filename: file.name,
-    contentType: file.type,
-  },
-});
+The mechanics of keyset cursors are the same as REST — see [Pagination](./01-rest-best-practices.md#pagination). The GraphQL-specific part is that **every list field needs its own limit**, because `posts(first: 100) { comments(first: 100) }` multiplies.
 
-// 2. Upload directly to S3
-await fetch(data.getUploadUrl.uploadUrl, {
-  method: 'PUT',
-  headers: { 'Content-Type': file.type },
-  body: file,
-});
+## Protecting the Endpoint
 
-// 3. File now available at data.getUploadUrl.fileUrl
+One endpoint that accepts arbitrary nested queries is an open invitation. Four defences, in order of importance:
+
+```typescript
+import depthLimit from "graphql-depth-limit";
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  validationRules: [depthLimit(7)], // 1. reject absurdly nested queries
+  introspection: process.env.NODE_ENV !== "production", // 3. hide the schema map
+});
 ```
 
-**Comparison:**
+| Defence | Why |
+| ------- | --- |
+| **Depth limit** | Blocks `user { posts { author { posts { … } } } }` recursion bombs |
+| **Cost analysis** | Assign a cost per field; reject over a budget. Depth alone misses wide queries |
+| **Persisted queries** | Clients send a hash of a pre-approved query — ad-hoc queries become impossible |
+| **Rate limit by cost, not requests** | One GraphQL request can be 1000× another. See [Rate Limiting](./04-rate-limiting.md) |
 
-| Method | Pros | Cons | Use Case |
-|--------|------|------|----------|
-| **GraphQL Upload** | Simple, all in one request | Large files block GraphQL | Small files, simple apps |
-| **Signed URL** | Scalable, doesn't block API | Two-step process | Production, large files |
+> ✨ **Persisted queries are the strongest answer.** For a first-party app you already know every query at build time, so registering them removes the entire class of hostile-query attacks and shrinks request payloads.
 
-**Interview Tip:** Mention that for production apps with large files, signed URLs are preferred because they don't route files through your API server, reducing load and allowing parallel uploads.
+**Disabling introspection is defence in depth, not security.** Your schema is discoverable by guessing field names, and error messages leak type info. Treat it as removing a convenience for attackers, not as protection.
+
+## GraphQL vs REST
+
+| Dimension | GraphQL | REST |
+| --------- | ------- | ---- |
+| **Fetching** | One request, exact fields | Multiple endpoints, fixed shapes |
+| **Versioning** | Add fields, deprecate old ones | New `/v2` path |
+| **HTTP caching** | ❌ `POST` to one URL defeats it | ✅ Free, at every layer |
+| **Client caching** | ✅ Strong — normalized by type + id | Manual |
+| **File upload** | ❌ Awkward — use signed URLs | ✅ Native multipart |
+| **Observability** | Harder — one route, many operations | Per-endpoint metrics for free |
+| **Client complexity** | Low | High for relational screens |
+| **Server complexity** | High | Low |
+
+**Reach for GraphQL when** many different clients need different shapes of the same relational data — mobile plus web plus partner integrations, or a BFF aggregating several services.
+
+**Stay with REST when** the API is simple CRUD, is public, needs CDN caching, or handles file transfer. Plenty of good architectures use REST for service-to-service traffic and GraphQL only at the client edge.
+
+## Interview Questions
+
+**Q1: What is the N+1 problem and how do you fix it?**
+
+GraphQL resolves fields individually, so a list of 100 posts each asking for `author` triggers 100 author lookups after the 1 posts query. DataLoader fixes it by collecting all `.load()` calls in one event-loop tick and issuing a single batched query, then mapping results back to keys in order. Loaders must be created per request — a shared loader is an unbounded cache that leaks data between users.
+
+**Q2: Why does GraphQL return 200 on errors?**
+
+Because a response can be partially successful. Some fields resolve, others fail, and the `errors` array reports the failures alongside the data that worked, with a `path` pointing at each failed field. Apollo can still map an error to a status code via `extensions.http` for things like auth failures.
+
+**Q3: How do you do authorization in GraphQL?**
+
+Authenticate once in the context function and put the caller's identity there. Then authorize on the *type or field*, not the route — a `User` can be reached from many paths, so the check has to live where the data lives. For a real codebase I'd express those rules as schema directives or a policy layer so they're auditable rather than scattered across resolvers.
+
+**Q4: How do you stop a client from crashing your server with one query?**
+
+Layered: a depth limit for recursion, cost analysis for wide queries, and rate limiting by query cost rather than request count. For a first-party client I'd go further and use persisted queries, so only pre-registered operations execute at all.
+
+**Q5: Does GraphQL need versioning?**
+
+Not in the REST sense. You add fields freely, since clients only receive what they asked for, and you mark old ones `@deprecated(reason: "…")`. The hard part is removal: you need per-field usage analytics to know when the last client stopped asking. Breaking changes are still breaking — the schema just gives you tools to make them rare.
+
+**Q6: What are the caching implications?**
+
+You lose HTTP caching almost entirely, because everything is a `POST` to one URL. You gain strong normalized client caching — Apollo Client and Relay dedupe by `__typename` and `id`, so a user fetched in one query updates everywhere. Server-side you add response caching by operation hash plus DataLoader for per-request dedupe. If free CDN caching is the main requirement, that's an argument for REST.
+
+**Q7: How do you handle file uploads?**
+
+Not through GraphQL, in production. The `multipart` upload spec routes bytes through the API server, which blocks resolvers and burns memory. Instead, a mutation returns a pre-signed S3 URL, the client `PUT`s the file directly to storage, then sends the resulting key back in a normal mutation.
+
+**Q8: Subscriptions or polling?**
+
+Subscriptions run over WebSockets (`graphql-ws`) and are right for genuinely live data — chat, presence, collaborative editing. They cost you stateful connections, which complicates scaling and deployment. For "updates within a few seconds", polling or SSE is far cheaper to operate. Same tradeoff as [WebSockets](./06-websockets.md).
+
+## Summary
+
+**Checklist:**
+
+- [ ] Inputs are `input` types; mutations return the changed object
+- [ ] DataLoader for every relationship, created fresh per request
+- [ ] Auth on types and fields, not on the route
+- [ ] Expected failures modelled in the schema; unexpected ones masked
+- [ ] Every list field paginated with a server-enforced max
+- [ ] Depth limit plus cost analysis enabled
+- [ ] Introspection off in production; persisted queries for first-party clients
+- [ ] `express.json` body limit lowered from the default
+- [ ] Non-null (`!`) used deliberately — it propagates failure upward
+- [ ] Per-operation metrics and slow-resolver tracing in place
+
+**Best practices:**
+
+1. **Design the schema for the product**, not for your tables.
+2. **Assume every relationship is an N+1** until a loader proves otherwise.
+3. **Budget queries, don't count them** — one request is not one unit of work.
+4. **Deprecate, don't version** — then use field-usage data to finish the job.
 
 ---
 
-## ✅ Key Takeaways
-
-1. **GraphQL solves over/under-fetching** by allowing clients to request exactly what they need
-2. **N+1 problem** is the most common performance issue - use DataLoader to batch requests
-3. **Schema-first development** with strong typing catches errors early and improves tooling
-4. **Authentication via context** - verify JWT in context function, check permissions in resolvers
-5. **Pagination: cursor-based > offset-based** for large datasets and real-time data
-6. **Query complexity limits** are essential to prevent malicious queries
-7. **Disable introspection and playground** in production for security
-8. **GraphQL complements REST** - doesn't always replace it (use REST for file operations)
-9. **Field-level authorization** provides fine-grained security control
-10. **Caching is more complex** than REST - requires careful planning with tools like DataLoader
-
----
-
-[← Back to Backend](../README.md) | [Next: API Versioning →](./03-versioning.md)
+[← REST Best Practices](./01-rest-best-practices.md) | [API Index](./README.md) | [Versioning →](./03-versioning.md)

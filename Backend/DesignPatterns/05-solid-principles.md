@@ -1,1229 +1,357 @@
 # SOLID Principles
 
-## 🎯 Overview
+## Overview
 
-SOLID is an acronym for five design principles intended to make software designs more **understandable, flexible, and maintainable**. These principles were introduced by Robert C. Martin (Uncle Bob) and are fundamental to object-oriented design.
+SOLID is five design principles from Robert C. Martin, aimed at code that can be changed without fear. They're the most-asked design topic in interviews — usually badly, because reciting the acronym is easy and applying it is not.
 
-### The SOLID Acronym
+The five aren't equally useful. **Dependency Inversion and Single Responsibility change how you write code every day.** Liskov and Interface Segregation are narrower but come up in tricky questions. Open/Closed is the most misquoted of the set.
 
-| Letter | Principle | One-Liner |
-|--------|-----------|-----------|
-| **S** | Single Responsibility | One class, one reason to change |
-| **O** | Open/Closed | Open for extension, closed for modification |
-| **L** | Liskov Substitution | Subtypes must be substitutable for base types |
-| **I** | Interface Segregation | Many specific interfaces over one general |
-| **D** | Dependency Inversion | Depend on abstractions, not concretions |
+> **What separates a strong answer:** give the smell, then the fix, then the cost. Every one of these principles can be over-applied into an unreadable maze of one-method interfaces, and saying so is a senior signal.
 
----
+## Table of Contents
 
-## Single Responsibility Principle (SRP)
+- [The Five, in One Table](#the-five-in-one-table)
+- [Single Responsibility (SRP)](#single-responsibility-srp)
+- [Open/Closed (OCP)](#openclosed-ocp)
+- [Liskov Substitution (LSP)](#liskov-substitution-lsp)
+- [Interface Segregation (ISP)](#interface-segregation-isp)
+- [Dependency Inversion (DIP)](#dependency-inversion-dip)
+- [When SOLID Goes Wrong](#when-solid-goes-wrong)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
 
-### 💡 **Definition**
+## The Five, in One Table
 
-> A class should have **one, and only one, reason to change**.
+| | Principle | One line | The smell it names |
+| --- | --- | --- | --- |
+| **S** | Single Responsibility | One reason to change | A class two different teams both edit |
+| **O** | Open/Closed | Extend without editing | A `switch` that grows every quarter |
+| **L** | Liskov Substitution | Subtypes must honour the contract | A subclass that throws where the parent didn't |
+| **I** | Interface Segregation | No client forced to depend on what it doesn't use | `throw new Error("not supported")` |
+| **D** | Dependency Inversion | Depend on abstractions | `new StripeClient()` inside a business class |
 
-This means each class should have only one responsibility or job. If a class has multiple responsibilities, changes to one responsibility may affect the other.
+## Single Responsibility (SRP)
 
-### Problem Without SRP
+> A class should have one, and only one, reason to change.
+
+**"One responsibility" is vague; "one reason to change" is testable.** The sharper phrasing is Martin's own: a module should be answerable to one *actor* — one group of people who can request a change.
 
 ```typescript
-// ❌ Bad: Class has multiple responsibilities
-class User {
-  private name: string;
-  private email: string;
-
-  constructor(name: string, email: string) {
-    this.name = name;
-    this.email = email;
-  }
-
-  // Responsibility 1: User data management
-  getName(): string { return this.name; }
-  getEmail(): string { return this.email; }
-
-  // Responsibility 2: Database operations
-  save(): void {
-    const sql = `INSERT INTO users (name, email) VALUES ('${this.name}', '${this.email}')`;
-    database.execute(sql);
-  }
-
-  // Responsibility 3: Email operations
-  sendWelcomeEmail(): void {
-    emailService.send(this.email, 'Welcome!', 'Welcome to our platform');
-  }
-
-  // Responsibility 4: Validation
-  validate(): void {
-    if (!this.name) throw new Error('Name required');
-    if (!this.email.includes('@')) throw new Error('Invalid email');
-  }
-
-  // Responsibility 5: Formatting
-  toJSON(): string {
-    return JSON.stringify({ name: this.name, email: this.email });
-  }
-
-  toCSV(): string {
-    return `${this.name},${this.email}`;
+// ❌ Three actors, three reasons to change, one class.
+class UserService {
+  async register(email: string, password: string): Promise<void> {
+    if (!email.includes("@")) throw new Error("bad email");      // ← product rules
+    const hash = await bcrypt.hash(password, 12);
+    await this.db.query("INSERT INTO users …", [email, hash]);    // ← DBA / schema
+    await sendgrid.send({ to: email, template: "welcome" });      // ← marketing
+    console.log(`registered ${email}`);                           // ← ops
   }
 }
-
-// Problems:
-// - Changes to email logic require modifying User class
-// - Changes to database schema require modifying User class
-// - Changes to validation rules require modifying User class
-// - Hard to test each responsibility in isolation
 ```
 
-### Solution With SRP
+A change to the email template forces a redeploy of the code that hashes passwords. Worse, you cannot test the validation rule without a database and an email provider.
 
 ```typescript
-// ✅ Good: Each class has a single responsibility
-
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-}
-
-interface DatabaseClient {
-  execute(sql: string, params: unknown[]): Promise<unknown>;
-  query(sql: string, params: unknown[]): Promise<unknown[]>;
-}
-
-interface EmailClient {
-  send(to: string, subject: string, body: string): Promise<void>;
-}
-
-// Responsibility: User data model
-class User {
-  private name: string;
-  private email: string;
-
-  constructor(name: string, email: string) {
-    this.name = name;
-    this.email = email;
-  }
-
-  getName(): string { return this.name; }
-  getEmail(): string { return this.email; }
-}
-
-// Responsibility: User validation
-class UserValidator {
-  validate(user: User): ValidationResult {
-    const errors: string[] = [];
-
-    if (!user.getName()) {
-      errors.push('Name is required');
-    }
-
-    if (!user.getEmail()?.includes('@')) {
-      errors.push('Invalid email format');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-}
-
-// Responsibility: User persistence
-class UserRepository {
-  private database: DatabaseClient;
-
-  constructor(database: DatabaseClient) {
-    this.database = database;
-  }
-
-  async save(user: User): Promise<unknown> {
-    const sql = `INSERT INTO users (name, email) VALUES ($1, $2)`;
-    return this.database.execute(sql, [user.getName(), user.getEmail()]);
-  }
-
-  async findByEmail(email: string): Promise<unknown[]> {
-    const sql = `SELECT * FROM users WHERE email = $1`;
-    return this.database.query(sql, [email]);
-  }
-}
-
-// Responsibility: User notifications
-class UserNotificationService {
-  private emailService: EmailClient;
-
-  constructor(emailService: EmailClient) {
-    this.emailService = emailService;
-  }
-
-  async sendWelcomeEmail(user: User): Promise<void> {
-    await this.emailService.send(
-      user.getEmail(),
-      'Welcome!',
-      `Hello ${user.getName()}, welcome to our platform!`
-    );
-  }
-}
-
-// Responsibility: User formatting/serialization
-class UserFormatter {
-  toJSON(user: User): string {
-    return JSON.stringify({
-      name: user.getName(),
-      email: user.getEmail()
-    });
-  }
-
-  toCSV(user: User): string {
-    return `${user.getName()},${user.getEmail()}`;
-  }
-}
-
-// Usage: Compose classes together
-class UserService {
-  private validator: UserValidator;
-  private repository: UserRepository;
-  private notificationService: UserNotificationService;
-
+// ✅ Each collaborator has one reason to change; the service composes them.
+class UserRegistration {
   constructor(
-    validator: UserValidator,
-    repository: UserRepository,
-    notificationService: UserNotificationService
-  ) {
-    this.validator = validator;
-    this.repository = repository;
-    this.notificationService = notificationService;
-  }
+    private readonly users: UserRepository,   // persistence changes here
+    private readonly hasher: PasswordHasher,  // crypto policy changes here
+    private readonly mailer: EmailSender,     // messaging changes here
+  ) {}
 
-  async createUser(name: string, email: string): Promise<User> {
-    const user = new User(name, email);
-
-    const validation = this.validator.validate(user);
-    if (!validation.isValid) {
-      throw new Error(validation.errors.join(', '));
-    }
-
-    await this.repository.save(user);
-    await this.notificationService.sendWelcomeEmail(user);
-
+  async register(input: RegisterInput): Promise<User> {
+    const email = Email.parse(input.email);   // the rule owns its own validation
+    const user = await this.users.create({
+      email,
+      passwordHash: await this.hasher.hash(input.password),
+    });
+    await this.mailer.sendWelcome(user);      // ← swap provider, this class untouched
     return user;
   }
 }
 ```
 
-### Benefits of SRP
+⚠️ **The failure mode is the opposite extreme.** `UserEmailValidator`, `UserEmailNormalizer`, `UserEmailComparer` — three classes to handle one string. SRP is about *reasons to change*, not about line count. If two things always change together, they belong together.
 
-| Benefit | Description |
-|---------|-------------|
-| **Easier Testing** | Test each responsibility in isolation |
-| **Lower Coupling** | Changes are localized to specific classes |
-| **Better Readability** | Classes are smaller and focused |
-| **Easier Maintenance** | Find and fix bugs faster |
-| **Reusability** | Reuse classes in different contexts |
+## Open/Closed (OCP)
 
-### Interview Questions
+> Open for extension, closed for modification.
 
-**Q: How do you identify if a class violates SRP?**
-
-**A:** Look for these signs:
-1. **Multiple reasons to change** - Does the class change for database changes AND UI changes AND business rule changes?
-2. **And/or in class description** - "This class manages users AND sends emails AND validates data"
-3. **Many dependencies** - Class requires many unrelated dependencies
-4. **Hard to name** - If you can't give a clear, specific name, it probably does too much
-
----
-
-## Open/Closed Principle (OCP)
-
-### 💡 **Definition**
-
-> Software entities should be **open for extension, but closed for modification**.
-
-You should be able to add new functionality without changing existing code. This is typically achieved through abstraction and polymorphism.
-
-### Problem Without OCP
+**The point isn't "never edit a file".** It's that adding a *new case* shouldn't require editing code that already works and is already tested.
 
 ```typescript
-// ❌ Bad: Must modify existing code to add new payment methods
-type PaymentType = 'creditCard' | 'paypal' | 'bitcoin';
-
-interface Payment {
-  type: PaymentType;
-  amount: number;
-}
-
-class PaymentProcessor {
-  processPayment(payment: Payment): void {
-    if (payment.type === 'creditCard') {
-      // Credit card logic
-      console.log('Processing credit card payment');
-      this.processCreditCard(payment);
-    } else if (payment.type === 'paypal') {
-      // PayPal logic
-      console.log('Processing PayPal payment');
-      this.processPayPal(payment);
-    } else if (payment.type === 'bitcoin') {
-      // Bitcoin logic - ADDED LATER (modified existing code!)
-      console.log('Processing Bitcoin payment');
-      this.processBitcoin(payment);
-    } else {
-      // Every new payment method requires modifying this class!
-      throw new Error('Unknown payment type');
-    }
-  }
-
-  private processCreditCard(payment: Payment): void { /* ... */ }
-  private processPayPal(payment: Payment): void { /* ... */ }
-  private processBitcoin(payment: Payment): void { /* ... */ }
+// ❌ Every new format edits a function that already works.
+function export(data: Row[], format: string): string {
+  if (format === "csv") return toCsv(data);
+  if (format === "json") return JSON.stringify(data);
+  if (format === "xml") return toXml(data);      // added last month
+  throw new Error("unsupported");                // and every edit risks the others
 }
 ```
 
-### Solution With OCP
-
 ```typescript
-// ✅ Good: Extend functionality without modifying existing code
-
-// Abstract payment strategy
-interface PaymentStrategy {
-  process(amount: number): Promise<PaymentResult>;
-  validate(): boolean;
-  getName(): string;
+// ✅ New formats are added, never edited in.
+interface Exporter {
+  readonly format: string;
+  readonly contentType: string;
+  export(data: Row[]): string;
 }
 
-interface PaymentResult {
-  success: boolean;
-  transactionId: string;
-  message: string;
-}
+const csvExporter: Exporter = {
+  format: "csv",
+  contentType: "text/csv",
+  export: (data) => data.map((r) => Object.values(r).join(",")).join("\n"),
+};
 
-// Concrete implementations - each can be added without modifying existing code
-class CreditCardPayment implements PaymentStrategy {
-  constructor(
-    private cardNumber: string,
-    private cvv: string,
-    private expiry: string
-  ) {}
+class ExportRegistry {
+  private readonly exporters = new Map<string, Exporter>();
 
-  validate(): boolean {
-    return this.cardNumber.length === 16 && this.cvv.length >= 3;
+  register(exporter: Exporter): void {
+    this.exporters.set(exporter.format, exporter);
   }
 
-  async process(amount: number): Promise<PaymentResult> {
-    console.log(`Processing $${amount} via Credit Card`);
-    return {
-      success: true,
-      transactionId: `CC_${Date.now()}`,
-      message: 'Payment processed'
-    };
-  }
-
-  getName(): string {
-    return 'Credit Card';
+  export(data: Row[], format: string): string {
+    const exporter = this.exporters.get(format);
+    if (!exporter) throw new UnsupportedFormatError(format);
+    return exporter.export(data);
   }
 }
 
-class PayPalPayment implements PaymentStrategy {
-  constructor(private email: string) {}
-
-  validate(): boolean {
-    return this.email.includes('@');
-  }
-
-  async process(amount: number): Promise<PaymentResult> {
-    console.log(`Processing $${amount} via PayPal`);
-    return {
-      success: true,
-      transactionId: `PP_${Date.now()}`,
-      message: 'Payment processed'
-    };
-  }
-
-  getName(): string {
-    return 'PayPal';
-  }
-}
-
-// NEW: Add Apple Pay without modifying existing code!
-class ApplePayPayment implements PaymentStrategy {
-  constructor(private deviceToken: string) {}
-
-  validate(): boolean {
-    return this.deviceToken.length > 0;
-  }
-
-  async process(amount: number): Promise<PaymentResult> {
-    console.log(`Processing $${amount} via Apple Pay`);
-    return {
-      success: true,
-      transactionId: `AP_${Date.now()}`,
-      message: 'Payment processed'
-    };
-  }
-
-  getName(): string {
-    return 'Apple Pay';
-  }
-}
-
-// Payment processor - CLOSED for modification, OPEN for extension
-class PaymentProcessor {
-  async processPayment(strategy: PaymentStrategy, amount: number): Promise<PaymentResult> {
-    if (!strategy.validate()) {
-      return {
-        success: false,
-        transactionId: '',
-        message: `Invalid ${strategy.getName()} payment details`
-      };
-    }
-
-    console.log(`Using ${strategy.getName()} payment method`);
-    return strategy.process(amount);
-  }
-}
-
-// Usage
-const processor = new PaymentProcessor();
-
-// Process different payment types without modifying PaymentProcessor
-await processor.processPayment(new CreditCardPayment('4242424242424242', '123', '12/25'), 100);
-await processor.processPayment(new PayPalPayment('user@example.com'), 50);
-await processor.processPayment(new ApplePayPayment('device_token_123'), 75);
+// Adding PDF: write one object, register it. Nothing existing is touched.
 ```
 
-### OCP with Decorators
+> ✨ **This is Strategy, viewed from the principle side.** OCP is the goal; Strategy, Factory, and Decorator are the mechanisms. Making that link explicit is a good interview move. See [Strategy](./03-behavioral-patterns.md#strategy).
+
+🔴 **A `switch` is not automatically a violation.** If the set of cases is genuinely fixed — the seven HTTP methods, four log levels — a `switch` with an exhaustiveness check is *better* than a registry: the compiler verifies you handled everything. OCP applies to axes that actually vary.
+
+## Liskov Substitution (LSP)
+
+> A subtype must be usable anywhere its base type is expected, without the caller noticing.
+
+This is about **behaviour, not just signatures**. TypeScript checks the types; only you can check the contract.
+
+**The textbook violation:**
 
 ```typescript
-// Base logger - closed for modification
-interface Logger {
-  log(message: string): void;
-}
-
-class ConsoleLogger implements Logger {
-  log(message: string): void {
-    console.log(message);
-  }
-}
-
-// Extend with decorators - open for extension
-class TimestampLogger implements Logger {
-  constructor(private logger: Logger) {}
-
-  log(message: string): void {
-    this.logger.log(`[${new Date().toISOString()}] ${message}`);
-  }
-}
-
-class PrefixLogger implements Logger {
-  constructor(private logger: Logger, private prefix: string) {}
-
-  log(message: string): void {
-    this.logger.log(`${this.prefix}: ${message}`);
-  }
-}
-
-class FilterLogger implements Logger {
-  constructor(private logger: Logger, private minLevel: string) {}
-
-  log(message: string): void {
-    if (this.shouldLog(message)) {
-      this.logger.log(message);
-    }
-  }
-
-  private shouldLog(message: string): boolean {
-    // Filtering logic
-    return true;
-  }
-}
-
-// Compose loggers without modifying any existing class
-let logger: Logger = new ConsoleLogger();
-logger = new TimestampLogger(logger);
-logger = new PrefixLogger(logger, 'APP');
-
-logger.log('Application started');
-// Output: APP: [2024-01-15T10:30:00.000Z] Application started
-```
-
----
-
-## Liskov Substitution Principle (LSP)
-
-### 💡 **Definition**
-
-> Objects of a superclass should be **replaceable with objects of its subclasses** without affecting the correctness of the program.
-
-If `S` is a subtype of `T`, then objects of type `T` can be replaced with objects of type `S` without altering any of the desirable properties of the program.
-
-### Problem Without LSP
-
-```typescript
-// ❌ Bad: Rectangle/Square problem - classic LSP violation
 class Rectangle {
-  protected width: number;
-  protected height: number;
-
-  constructor(width: number, height: number) {
-    this.width = width;
-    this.height = height;
-  }
-
-  setWidth(width: number): void {
-    this.width = width;
-  }
-
-  setHeight(height: number): void {
-    this.height = height;
-  }
-
-  getArea(): number {
-    return this.width * this.height;
-  }
+  constructor(protected width: number, protected height: number) {}
+  setWidth(w: number): void { this.width = w; }
+  setHeight(h: number): void { this.height = h; }
+  area(): number { return this.width * this.height; }
 }
 
+// ❌ A square "is a" rectangle in geometry, not in code.
 class Square extends Rectangle {
-  constructor(side: number) {
-    super(side, side);
-  }
-
-  // ❌ Violates LSP: changes behavior unexpectedly
-  setWidth(width: number): void {
-    this.width = width;
-    this.height = width;  // Also changes height!
-  }
-
-  setHeight(height: number): void {
-    this.width = height;  // Also changes width!
-    this.height = height;
-  }
+  setWidth(w: number): void { this.width = w; this.height = w; }  // side effect!
+  setHeight(h: number): void { this.width = h; this.height = h; }
 }
 
-// This function expects Rectangle behavior
-function increaseRectangleWidth(rectangle: Rectangle): number {
-  rectangle.setWidth(rectangle['width'] + 10);
-  // Expects: only width changes, height stays same
-  return rectangle.getArea();
+// Code that was correct for Rectangle is now wrong.
+function stretch(r: Rectangle): void {
+  r.setWidth(5);
+  r.setHeight(4);
+  console.assert(r.area() === 20); // ✅ Rectangle → 20   🔴 Square → 16
 }
-
-const rect = new Rectangle(5, 10);
-console.log(increaseRectangleWidth(rect)); // 150 (15 * 10) ✓
-
-const square = new Square(5);
-console.log(increaseRectangleWidth(square)); // 225 (15 * 15) ✗ - unexpected!
-// Square cannot substitute for Rectangle without breaking expectations
 ```
 
-### Solution With LSP
+**The realistic version you'll actually hit:**
 
 ```typescript
-// ✅ Good: Design with LSP in mind
-
-// Common interface for shapes
-interface Shape {
-  getArea(): number;
+interface Storage {
+  write(key: string, data: Buffer): Promise<void>;
+  delete(key: string): Promise<void>;
 }
 
-// Rectangle doesn't inherit from Square or vice versa
-class Rectangle implements Shape {
-  constructor(
-    private width: number,
-    private height: number
-  ) {}
-
-  getWidth(): number { return this.width; }
-  getHeight(): number { return this.height; }
-
-  setWidth(width: number): void {
-    this.width = width;
+// ❌ Narrows the contract — callers that worked now break.
+class ReadOnlyArchiveStorage implements Storage {
+  async write(): Promise<void> {
+    throw new Error("Archive is read-only"); // the base type promised this works
   }
-
-  setHeight(height: number): void {
-    this.height = height;
-  }
-
-  getArea(): number {
-    return this.width * this.height;
-  }
-}
-
-class Square implements Shape {
-  constructor(private side: number) {}
-
-  getSide(): number { return this.side; }
-
-  setSide(side: number): void {
-    this.side = side;
-  }
-
-  getArea(): number {
-    return this.side * this.side;
-  }
-}
-
-// Functions work with the Shape interface
-function printArea(shape: Shape): void {
-  console.log(`Area: ${shape.getArea()}`);
-}
-
-// Both can be used wherever Shape is expected
-printArea(new Rectangle(5, 10)); // Area: 50
-printArea(new Square(5));         // Area: 25
-```
-
-### Another LSP Example
-
-```typescript
-// ✅ Good: Bird hierarchy respecting LSP
-
-interface Bird {
-  eat(): void;
-  sleep(): void;
-}
-
-interface FlyingBird extends Bird {
-  fly(): void;
-}
-
-interface SwimmingBird extends Bird {
-  swim(): void;
-}
-
-// Can fly
-class Eagle implements FlyingBird {
-  eat(): void { console.log('Eagle eating'); }
-  sleep(): void { console.log('Eagle sleeping'); }
-  fly(): void { console.log('Eagle flying high'); }
-}
-
-class Sparrow implements FlyingBird {
-  eat(): void { console.log('Sparrow eating seeds'); }
-  sleep(): void { console.log('Sparrow sleeping'); }
-  fly(): void { console.log('Sparrow flying'); }
-}
-
-// Can swim but not fly
-class Penguin implements SwimmingBird {
-  eat(): void { console.log('Penguin eating fish'); }
-  sleep(): void { console.log('Penguin sleeping'); }
-  swim(): void { console.log('Penguin swimming'); }
-}
-
-// Functions expecting specific capabilities
-function makeFly(bird: FlyingBird): void {
-  bird.fly(); // All FlyingBirds can fly - LSP satisfied
-}
-
-function makeSwim(bird: SwimmingBird): void {
-  bird.swim(); // All SwimmingBirds can swim - LSP satisfied
-}
-
-makeFly(new Eagle());   // ✓ Works
-makeFly(new Sparrow()); // ✓ Works
-// makeFly(new Penguin()); // ✗ Type error - Penguin can't fly
-
-makeSwim(new Penguin()); // ✓ Works
-```
-
-### LSP Checklist
-
-To verify LSP compliance, check that subclasses:
-
-| Check | Description |
-|-------|-------------|
-| **Preconditions** | Cannot strengthen preconditions (require more) |
-| **Postconditions** | Cannot weaken postconditions (promise less) |
-| **Invariants** | Must preserve parent class invariants |
-| **Exceptions** | Cannot throw new exception types |
-| **History** | Cannot change parent's state in unexpected ways |
-
----
-
-## Interface Segregation Principle (ISP)
-
-### 💡 **Definition**
-
-> No client should be forced to depend on methods it does not use.
-
-Create smaller, more specific interfaces rather than one large, general-purpose interface. Clients should only know about methods that are relevant to them.
-
-### Problem Without ISP
-
-```typescript
-// ❌ Bad: Fat interface forces implementation of unused methods
-interface Worker {
-  work(): void;
-  eat(): void;
-  sleep(): void;
-  attendMeeting(): void;
-  writeReport(): void;
-  supervise(): void;
-  approveTimeOff(): void;
-}
-
-class Developer implements Worker {
-  work(): void { console.log('Writing code'); }
-  eat(): void { console.log('Eating lunch'); }
-  sleep(): void { console.log('Sleeping'); }
-  attendMeeting(): void { console.log('Attending standup'); }
-  writeReport(): void { console.log('Writing sprint report'); }
-
-  // ❌ Developer doesn't supervise - forced to implement
-  supervise(): void {
-    throw new Error('Developers do not supervise');
-  }
-
-  // ❌ Developer doesn't approve time off - forced to implement
-  approveTimeOff(): void {
-    throw new Error('Developers cannot approve time off');
-  }
-}
-
-class Manager implements Worker {
-  work(): void { console.log('Managing team'); }
-  eat(): void { console.log('Eating lunch'); }
-  sleep(): void { console.log('Sleeping'); }
-  attendMeeting(): void { console.log('Leading meeting'); }
-  supervise(): void { console.log('Supervising team'); }
-  approveTimeOff(): void { console.log('Approving time off'); }
-
-  // ❌ Manager doesn't write reports - forced to implement
-  writeReport(): void {
-    throw new Error('Managers delegate report writing');
+  async delete(): Promise<void> {
+    throw new Error("Archive is read-only");
   }
 }
 ```
 
-### Solution With ISP
+The fix is not a better error message — it's a better interface. Split reading from writing (that's ISP) so an archive simply isn't a `WritableStorage`.
+
+**The rules a subtype must respect:**
+
+| Rule | Meaning |
+| ---- | ------- |
+| **Preconditions may not be strengthened** | Don't reject inputs the parent accepted |
+| **Postconditions may not be weakened** | Don't return less, or leave invariants broken |
+| **Invariants must be preserved** | A `SortedList` subclass may not become unsorted |
+| **No new exceptions** | Callers can't handle what they don't know about |
+
+> ⚠️ **The practical takeaway:** most LSP violations are inheritance being used for code reuse rather than for substitutability. When "is-a" holds vocabulary-wise but not behaviour-wise, use composition.
+
+## Interface Segregation (ISP)
+
+> No client should be forced to depend on methods it doesn't use.
 
 ```typescript
-// ✅ Good: Segregated interfaces
-
-interface Workable {
-  work(): void;
-}
-
-interface Eatable {
-  eat(): void;
-}
-
-interface Sleepable {
-  sleep(): void;
-}
-
-interface MeetingAttendee {
-  attendMeeting(): void;
-}
-
-interface ReportWriter {
-  writeReport(): void;
-}
-
-interface Supervisor {
-  supervise(): void;
-  approveTimeOff(): void;
-}
-
-// Developer only implements what it needs
-class Developer implements Workable, Eatable, Sleepable, MeetingAttendee, ReportWriter {
-  work(): void { console.log('Writing code'); }
-  eat(): void { console.log('Eating lunch'); }
-  sleep(): void { console.log('Sleeping'); }
-  attendMeeting(): void { console.log('Attending standup'); }
-  writeReport(): void { console.log('Writing sprint report'); }
-}
-
-// Manager implements different interfaces
-class Manager implements Workable, Eatable, Sleepable, MeetingAttendee, Supervisor {
-  work(): void { console.log('Managing team'); }
-  eat(): void { console.log('Eating lunch'); }
-  sleep(): void { console.log('Sleeping'); }
-  attendMeeting(): void { console.log('Leading meeting'); }
-  supervise(): void { console.log('Supervising team'); }
-  approveTimeOff(): void { console.log('Approving time off'); }
-}
-
-// Robot worker - doesn't eat or sleep
-class Robot implements Workable {
-  work(): void { console.log('Processing tasks'); }
-  // Doesn't need to implement eat() or sleep()
-}
-
-// Functions only require what they need
-function conductMeeting(attendees: MeetingAttendee[]): void {
-  attendees.forEach(a => a.attendMeeting());
-}
-
-function generateReports(writers: ReportWriter[]): void {
-  writers.forEach(w => w.writeReport());
-}
-```
-
-### Real-World ISP Example
-
-```typescript
-// ❌ Bad: One interface for all CRUD operations
+// ❌ One fat interface; every implementer must fake what it can't do.
 interface Repository<T> {
-  findAll(): Promise<T[]>;
   findById(id: string): Promise<T | null>;
-  create(data: T): Promise<T>;
-  update(id: string, data: Partial<T>): Promise<T>;
-  delete(id: string): Promise<boolean>;
-  bulkCreate(data: T[]): Promise<T[]>;
-  bulkDelete(ids: string[]): Promise<number>;
-  findByQuery(query: object): Promise<T[]>;
-  count(): Promise<number>;
-  exists(id: string): Promise<boolean>;
-  // ... 20 more methods
-}
-
-// ✅ Good: Segregated repository interfaces
-interface ReadRepository<T> {
   findAll(): Promise<T[]>;
-  findById(id: string): Promise<T | null>;
-  findByQuery(query: object): Promise<T[]>;
-  count(): Promise<number>;
-  exists(id: string): Promise<boolean>;
+  save(entity: T): Promise<void>;
+  delete(id: string): Promise<void>;
+  bulkImport(rows: T[]): Promise<void>;
+  streamAll(): AsyncIterable<T>;
 }
 
-interface WriteRepository<T> {
-  create(data: Omit<T, 'id'>): Promise<T>;
-  update(id: string, data: Partial<T>): Promise<T>;
-  delete(id: string): Promise<boolean>;
-}
-
-interface BulkRepository<T> {
-  bulkCreate(data: T[]): Promise<T[]>;
-  bulkDelete(ids: string[]): Promise<number>;
-}
-
-// Combine interfaces as needed
-interface FullRepository<T> extends ReadRepository<T>, WriteRepository<T> {}
-
-// Read-only service only needs ReadRepository
-class ReportService {
-  constructor(private userRepo: ReadRepository<User>) {}
-
-  async generateUserReport(): Promise<Report> {
-    const users = await this.userRepo.findAll();
-    const count = await this.userRepo.count();
-    // Generate report...
-    return { users, count };
+class AuditLogRepository implements Repository<AuditEntry> {
+  async delete(): Promise<void> {
+    throw new Error("Audit entries are immutable"); // 🔴 also an LSP violation
   }
-}
-
-// Admin service needs full access
-class AdminService {
-  constructor(private userRepo: FullRepository<User>) {}
-
-  async deleteInactiveUsers(): Promise<number> {
-    const inactive = await this.userRepo.findByQuery({ status: 'inactive' });
-    let deleted = 0;
-    for (const user of inactive) {
-      await this.userRepo.delete(user.id);
-      deleted++;
-    }
-    return deleted;
-  }
+  // …and four more methods this class has no business having
 }
 ```
+
+```typescript
+// ✅ Small interfaces, composed to fit each need.
+interface Readable<T> { findById(id: string): Promise<T | null>; }
+interface Writable<T> { save(entity: T): Promise<void>; }
+interface Deletable { delete(id: string): Promise<void>; }
+interface Streamable<T> { streamAll(): AsyncIterable<T>; }
+
+// An audit log is append-only, and now the type says so.
+class AuditLogRepository implements Readable<AuditEntry>, Writable<AuditEntry> {}
+
+// Consumers depend only on what they use.
+class ReportBuilder {
+  constructor(private readonly source: Streamable<AuditEntry>) {} // nothing else
+}
+```
+
+**Why this matters beyond tidiness:** a consumer that depends on a six-method interface must be updated when any of those six changes, and its tests must stub all six. Narrow interfaces mean narrow test doubles and narrow blast radius.
+
+⚠️ **Don't take it to one method per interface.** Cohesive groups are the goal — an interface that describes a role, not a single call.
+
+## Dependency Inversion (DIP)
+
+> High-level modules should not depend on low-level modules. Both should depend on abstractions.
+
+**This is the one that changes your code the most**, and it's usually explained backwards. The inversion is about *who owns the interface*.
+
+```
+❌ Conventional:  OrderService ──▶ StripeGateway
+                  (policy depends on detail — swap the vendor, edit the policy)
+
+✅ Inverted:      OrderService ──▶ PaymentGateway ◀── StripeGateway
+                  (both depend on the abstraction, and the domain owns it)
+```
+
+```typescript
+// The interface is defined by the consumer, in domain language.
+interface PaymentGateway {
+  charge(amountCents: number, token: string): Promise<{ id: string }>;
+}
+
+// ✅ High-level policy, no vendor anywhere in sight.
+class OrderService {
+  constructor(private readonly payments: PaymentGateway) {}
+
+  async checkout(order: Order, token: string): Promise<void> {
+    const charge = await this.payments.charge(order.totalCents, token);
+    order.markPaid(charge.id);
+  }
+}
+
+// The low-level detail conforms to the domain's interface, not the reverse.
+class StripeGateway implements PaymentGateway {
+  async charge(amountCents: number, token: string) { /* SDK calls here */ }
+}
+```
+
+**The detail people miss:** `PaymentGateway` lives with `OrderService`, not with the Stripe adapter. That's what makes it an *inversion* — the domain dictates the shape, and vendors adapt. Put the interface in the infrastructure layer and you've just added a file.
+
+**What it buys you:**
+
+- ✅ Unit tests with a plain object, no mocking framework, no network.
+- ✅ Vendor swaps touch one adapter and one line of wiring.
+- ✅ The domain stays portable across frameworks and runtimes.
+
+> **DIP vs Dependency Injection:** DIP is the principle — depend on an abstraction you own. DI is the delivery mechanism — pass it in. You can inject a concrete class and satisfy DI while completely violating DIP. See [Dependency Injection](./04-architectural-patterns.md#dependency-injection).
+
+## When SOLID Goes Wrong
+
+Every principle has an over-applied form, and interviewers notice when you can name them:
+
+| Over-applied as | Result |
+| --------------- | ------ |
+| SRP → one class per method | Twelve files to follow one request |
+| OCP → an abstraction for every axis | Plugin architecture for two cases that never changed |
+| LSP → no inheritance ever | Duplication where a base class was correct |
+| ISP → one method per interface | Ten interfaces describing one collaborator |
+| DIP → an interface per class | Indirection with exactly one implementation, forever |
+
+```typescript
+// 🔴 An interface with one implementation and no plan for a second
+//    is a file you maintain for nothing.
+interface UserIdGenerator { generate(): string; }
+class UuidUserIdGenerator implements UserIdGenerator { generate() { return randomUUID(); } }
+```
+
+**The rule that keeps this honest:** apply a principle when you can name the change it makes cheaper. "We'll need a second payment provider next quarter" is a reason. "It's more SOLID" is not.
+
+## Interview Questions
+
+**Q1: Explain SRP with a real example.**
+
+One reason to change — better framed as one *actor*. A registration method that validates input, hashes a password, writes to the database, and sends a welcome email answers to product, security, the DBA, and marketing, so any of four groups can force a change to it. Splitting it into a repository, a hasher, and a mailer means an email-template change can't break password hashing, and I can test the validation rule with no database.
+
+**Q2: Does OCP mean never modifying code?**
+
+No — it means adding a new *case* shouldn't require editing already-working code. A `switch` over export formats that grows quarterly is the smell; a registry of exporters is the fix. But if the set is genuinely fixed, like HTTP methods, a `switch` with an exhaustiveness check is better than a registry, because the compiler proves you handled every case.
+
+**Q3: Give a Liskov violation you've actually seen.**
+
+A read-only storage implementation whose `write` and `delete` throw. It satisfies the interface, compiles fine, and breaks every caller written against the base contract. The real problem was the interface: reading and writing should have been separate, so a read-only backend simply isn't a writable one. Most LSP violations turn out to be inheritance used for reuse rather than substitutability.
+
+**Q4: How does ISP relate to LSP?**
+
+They're often the same bug seen from two sides. A fat interface forces implementers to stub methods they can't support, and those stubs throw — which is the LSP violation. Splitting the interface removes the need to lie, so both problems disappear at once.
+
+**Q5: What exactly is "inverted" in DIP?**
+
+Ownership of the interface. Normally the high-level module depends on the low-level one, so the vendor's shape dictates your code. Inverted, the domain defines `PaymentGateway` in its own language and the Stripe adapter conforms to it. The abstraction has to live with the consumer — if it sits next to the adapter, you've added a file without inverting anything.
+
+**Q6: DIP or Dependency Injection?**
+
+DIP is the principle, DI is the technique. Injecting a concrete `StripeGateway` through a constructor is DI without DIP — the class still depends on a detail. Depending on an interface you own is DIP; how it arrives is a separate decision, and constructor injection is just the most common answer.
+
+**Q7: Which of the five matters most?**
+
+DIP, because it's what makes code testable and portable, and SRP, because it's what keeps modules small enough to reason about. In day-to-day work those two do most of the load-bearing. ISP and LSP mostly surface as interface-design mistakes, and OCP is best treated as an outcome of the others rather than a target.
+
+**Q8: When would you deliberately ignore SOLID?**
+
+When the change it protects against isn't coming. An interface with one implementation and no second in sight is maintenance cost for an option nobody will exercise, and one class per method turns a single request into a scavenger hunt. I apply a principle when I can name the change it makes cheaper — and if I can't name it, I write the simpler code and refactor when the second case actually arrives.
+
+## Summary
+
+**Checklist:**
+
+- [ ] Each class has one group of people who can request a change to it
+- [ ] Business rules testable without a database or network
+- [ ] Growing `switch` statements replaced by a registry; fixed ones keep exhaustiveness checks
+- [ ] No implementation throws "not supported" for an interface method
+- [ ] Interfaces describe a role, not a whole subsystem
+- [ ] Domain code imports no vendor SDK
+- [ ] Abstractions live with their consumer, not their implementation
+- [ ] Constructor injection against interfaces
+- [ ] No interface exists solely because "abstractions are good"
+
+**Best practices:**
+
+1. **Name the change** each abstraction makes cheaper — or don't add it.
+2. **DIP and SRP first** — they carry most of the practical value.
+3. **Contracts over signatures** — the compiler can't check LSP for you.
+4. **Refactor toward SOLID, don't start there** — the second case tells you where the seam belongs.
 
 ---
 
-## Dependency Inversion Principle (DIP)
-
-### 💡 **Definition**
-
-> 1. High-level modules should not depend on low-level modules. Both should depend on abstractions.
-> 2. Abstractions should not depend on details. Details should depend on abstractions.
-
-This principle is about decoupling software modules so that high-level modules (business logic) don't depend on low-level modules (implementation details).
-
-### Problem Without DIP
-
-```typescript
-// ❌ Bad: High-level module depends on low-level modules
-
-// Low-level modules
-class MySQLDatabase {
-  connect(): void { console.log('Connecting to MySQL'); }
-  query(sql: string): unknown[] { console.log(`MySQL: ${sql}`); return []; }
-}
-
-class ConsoleLogger {
-  log(message: string): void { console.log(`[LOG] ${message}`); }
-}
-
-class SmtpEmailService {
-  send(to: string, subject: string, body: string): void {
-    console.log(`Sending email to ${to}: ${subject}`);
-  }
-}
-
-// ❌ High-level module directly depends on low-level modules
-class UserService {
-  private database: MySQLDatabase;
-  private logger: ConsoleLogger;
-  private emailService: SmtpEmailService;
-
-  constructor() {
-    // Hardcoded dependencies on concrete implementations
-    this.database = new MySQLDatabase();
-    this.logger = new ConsoleLogger();
-    this.emailService = new SmtpEmailService();
-  }
-
-  async createUser(userData: { name: string; email: string }): Promise<unknown[]> {
-    this.logger.log('Creating user...');
-    this.database.connect();
-    const result = this.database.query(`INSERT INTO users...`);
-    this.emailService.send(userData.email, 'Welcome', 'Welcome!');
-    return result;
-  }
-}
-
-// Problems:
-// 1. Cannot switch database without changing UserService
-// 2. Cannot test without real MySQL, console, SMTP
-// 3. UserService knows too much about implementation details
-```
-
-### Solution With DIP
-
-```typescript
-// ✅ Good: Both high-level and low-level depend on abstractions
-
-// Abstractions (interfaces)
-interface Database {
-  connect(): Promise<void>;
-  query<T>(sql: string, params?: any[]): Promise<T[]>;
-  disconnect(): Promise<void>;
-}
-
-interface Logger {
-  info(message: string): void;
-  error(message: string, error?: Error): void;
-  debug(message: string): void;
-}
-
-interface EmailService {
-  send(to: string, subject: string, body: string): Promise<void>;
-}
-
-// Low-level modules implement abstractions
-class MySQLDatabase implements Database {
-  async connect(): Promise<void> {
-    console.log('Connecting to MySQL');
-  }
-
-  async query<T>(sql: string, params?: any[]): Promise<T[]> {
-    console.log(`MySQL: ${sql}`);
-    return [];
-  }
-
-  async disconnect(): Promise<void> {
-    console.log('Disconnecting from MySQL');
-  }
-}
-
-class PostgreSQLDatabase implements Database {
-  async connect(): Promise<void> {
-    console.log('Connecting to PostgreSQL');
-  }
-
-  async query<T>(sql: string, params?: any[]): Promise<T[]> {
-    console.log(`PostgreSQL: ${sql}`);
-    return [];
-  }
-
-  async disconnect(): Promise<void> {
-    console.log('Disconnecting from PostgreSQL');
-  }
-}
-
-class WinstonLogger implements Logger {
-  info(message: string): void { console.log(`[INFO] ${message}`); }
-  error(message: string, error?: Error): void { console.error(`[ERROR] ${message}`, error); }
-  debug(message: string): void { console.log(`[DEBUG] ${message}`); }
-}
-
-class SendGridEmailService implements EmailService {
-  async send(to: string, subject: string, body: string): Promise<void> {
-    console.log(`SendGrid: Sending to ${to}`);
-  }
-}
-
-// High-level module depends on abstractions
-class UserService {
-  constructor(
-    private database: Database,      // Abstraction
-    private logger: Logger,          // Abstraction
-    private emailService: EmailService  // Abstraction
-  ) {}
-
-  async createUser(userData: { name: string; email: string }): Promise<void> {
-    this.logger.info('Creating user...');
-
-    try {
-      await this.database.connect();
-      await this.database.query(
-        'INSERT INTO users (name, email) VALUES ($1, $2)',
-        [userData.name, userData.email]
-      );
-      await this.emailService.send(userData.email, 'Welcome', 'Welcome!');
-      this.logger.info('User created successfully');
-    } catch (error) {
-      this.logger.error('Failed to create user', error as Error);
-      throw error;
-    } finally {
-      await this.database.disconnect();
-    }
-  }
-}
-
-// Dependency injection at composition root
-function createProductionUserService(): UserService {
-  return new UserService(
-    new PostgreSQLDatabase(),
-    new WinstonLogger(),
-    new SendGridEmailService()
-  );
-}
-
-// Easy to create test version with mocks
-function createTestUserService(): UserService {
-  const mockDatabase: Database = {
-    connect: async () => {},
-    query: async () => [],
-    disconnect: async () => {}
-  };
-
-  const mockLogger: Logger = {
-    info: () => {},
-    error: () => {},
-    debug: () => {}
-  };
-
-  const mockEmailService: EmailService = {
-    send: async () => {}
-  };
-
-  return new UserService(mockDatabase, mockLogger, mockEmailService);
-}
-```
-
-### DIP with Dependency Injection Container
-
-```typescript
-// Container manages dependency creation and injection
-class Container {
-  private bindings = new Map<string, () => any>();
-
-  bind<T>(token: string, factory: () => T): void {
-    this.bindings.set(token, factory);
-  }
-
-  resolve<T>(token: string): T {
-    const factory = this.bindings.get(token);
-    if (!factory) {
-      throw new Error(`No binding for ${token}`);
-    }
-    return factory();
-  }
-}
-
-// Setup
-const container = new Container();
-
-// Bind abstractions to implementations
-container.bind<Database>('Database', () => new PostgreSQLDatabase());
-container.bind<Logger>('Logger', () => new WinstonLogger());
-container.bind<EmailService>('EmailService', () => new SendGridEmailService());
-
-container.bind<UserService>('UserService', () => new UserService(
-  container.resolve('Database'),
-  container.resolve('Logger'),
-  container.resolve('EmailService')
-));
-
-// Usage
-const userService = container.resolve<UserService>('UserService');
-```
-
-### Dependency Inversion vs Dependency Injection
-
-| Aspect | Dependency Inversion | Dependency Injection |
-|--------|---------------------|---------------------|
-| **What** | Design principle | Implementation technique |
-| **Focus** | Depend on abstractions | How to provide dependencies |
-| **Scope** | Architecture level | Object creation level |
-| **Relationship** | DIP is the goal | DI is one way to achieve DIP |
-
----
-
-## SOLID Summary
-
-### Quick Reference
-
-```
-S - Single Responsibility
-    → One class, one job
-    → "A class should have one reason to change"
-
-O - Open/Closed
-    → Extend behavior without modifying code
-    → "Open for extension, closed for modification"
-
-L - Liskov Substitution
-    → Subtypes must be substitutable
-    → "If it looks like a duck but needs batteries, you have the wrong abstraction"
-
-I - Interface Segregation
-    → Small, specific interfaces
-    → "No client should be forced to depend on methods it doesn't use"
-
-D - Dependency Inversion
-    → Depend on abstractions
-    → "High-level modules should not depend on low-level modules"
-```
-
-### Principles Working Together
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     SOLID Principles                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  SRP    "Each class does one thing"                        │
-│    │                                                        │
-│    └──► Classes are small and focused                      │
-│                                                             │
-│  OCP    "Add features without changing code"               │
-│    │                                                        │
-│    └──► Use Strategy, Decorator, Factory patterns          │
-│                                                             │
-│  LSP    "Subclasses behave like base classes"              │
-│    │                                                        │
-│    └──► Proper inheritance hierarchies                     │
-│                                                             │
-│  ISP    "Small, client-specific interfaces"                │
-│    │                                                        │
-│    └──► Clients only know what they need                   │
-│                                                             │
-│  DIP    "Depend on abstractions"                           │
-│    │                                                        │
-│    └──► Flexible, testable architecture                    │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Interview Questions
-
-**Q: Which SOLID principle is most important?**
-
-**A:** All are important, but **Single Responsibility** is foundational. If you get SRP right, many other principles naturally follow. Small, focused classes are easier to extend (OCP), substitute (LSP), and compose with specific interfaces (ISP, DIP).
-
-**Q: How do SOLID principles relate to design patterns?**
-
-**A:**
-
-| Pattern | Related Principles |
-|---------|-------------------|
-| **Strategy** | OCP, DIP |
-| **Decorator** | OCP, SRP |
-| **Factory** | DIP, OCP |
-| **Adapter** | DIP, ISP |
-| **Observer** | OCP, DIP |
-| **Repository** | SRP, DIP |
-
-**Q: When should you NOT strictly follow SOLID?**
-
-**A:**
-- **Prototypes/MVPs** - Speed matters more
-- **Simple scripts** - Over-engineering adds complexity
-- **Performance-critical code** - Abstractions have overhead
-- **Small projects** - Architecture overhead not justified
-
-> **Key Insight:** SOLID principles are guidelines, not laws. Apply them judiciously based on context. The goal is maintainable code, not perfect adherence to principles.
-
----
-
-## Practice Exercise
-
-Refactor this code to follow SOLID principles:
-
-```typescript
-// Before: Violates multiple SOLID principles
-interface OrderItem {
-  price: number;
-  quantity: number;
-  category: string;
-}
-
-interface Customer {
-  email: string;
-}
-
-interface RawOrder {
-  id: string;
-  items: OrderItem[];
-  customer: Customer;
-}
-
-interface OrderResult {
-  orderId: string;
-  total: number;
-}
-
-class MySQLConnection {
-  query(sql: string): void { console.log(`Query: ${sql}`); }
-}
-
-class OrderProcessor {
-  private db: MySQLConnection;
-
-  constructor() {
-    this.db = new MySQLConnection();
-  }
-
-  process(order: RawOrder): OrderResult {
-    // Validate
-    if (!order.items.length) throw new Error('No items');
-    if (!order.customer.email) throw new Error('No email');
-
-    // Calculate
-    let total = 0;
-    for (const item of order.items) {
-      total += item.price * item.quantity;
-      if (item.category === 'electronics') {
-        total += total * 0.1; // Electronics tax
-      }
-    }
-
-    // Save to database
-    this.db.query(`INSERT INTO orders...`);
-
-    // Send email (using dynamic require - bad practice shown intentionally)
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const nodemailer = require('nodemailer');
-    nodemailer.sendMail({
-      to: order.customer.email,
-      subject: 'Order Confirmation',
-      text: `Your order total: ${total}`
-    });
-
-    // Generate PDF
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const pdfkit = require('pdfkit');
-    const doc = new pdfkit();
-    doc.text(`Order #${order.id}`);
-    // ... PDF generation
-
-    return { orderId: order.id, total };
-  }
-}
-```
-
-Think about how you would split this into classes following SRP, use abstractions for DIP, and make it extensible for OCP.
-
----
-
-[← Architectural Patterns](./04-architectural-patterns.md) | [Back to Design Patterns](./README.md)
+[← Architectural Patterns](./04-architectural-patterns.md) | [Design Patterns Index](./README.md)

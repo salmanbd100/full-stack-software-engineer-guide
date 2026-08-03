@@ -2,1109 +2,414 @@
 
 ## Overview
 
-Rate limiting is a technique to control the amount of incoming requests to an API within a specific time window. It prevents abuse, ensures fair resource allocation, and protects against DoS attacks.
+Rate limiting caps how much work one caller can ask of you in a window of time. It protects capacity, contains abuse, keeps third-party bills predictable, and enforces pricing tiers.
 
-**Key Principle:** Limit the number of requests a client can make to protect server resources and ensure service availability for all users.
+Interviewers like this topic because it touches algorithms, distributed state, and failure modes in one question — and because the naive answer (a counter in a `Map`) breaks the moment you run two instances.
 
----
+> **The framing that scores:** rate limiting is not about blocking bad actors, it's about **fairness under contention**. A limit that keeps one buggy client from starving everyone else is doing its job even when nobody is attacking you.
 
-## 🎯 Why Rate Limit?
+## Table of Contents
 
-### 1. Prevent Abuse & DoS Attacks
-```javascript
-// Without rate limiting:
-// Attacker sends 10,000 requests/second → Server crashes
+- [Choosing an Algorithm](#choosing-an-algorithm)
+- [Fixed Window and Its Boundary Problem](#fixed-window-and-its-boundary-problem)
+- [Sliding Window](#sliding-window)
+- [Token Bucket](#token-bucket)
+- [Distributed Rate Limiting with Redis](#distributed-rate-limiting-with-redis)
+- [What to Key On](#what-to-key-on)
+- [Response Headers](#response-headers)
+- [Production Concerns](#production-concerns)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
 
-// With rate limiting:
-// Attacker limited to 100 requests/minute → Attack ineffective
-```
+## Choosing an Algorithm
 
-### 2. Fair Resource Allocation
-- Ensure all users get fair access
-- Prevent one user from consuming all resources
-- Support tiered pricing (free vs premium users)
+| Algorithm | Memory | Accuracy | Bursts | Use when |
+| --------- | ------ | -------- | ------ | -------- |
+| **Fixed window** | O(1) per key | Poor | 2× at boundaries | Simple internal APIs |
+| **Sliding window log** | O(requests) | Exact | None | Low volume, strict fairness |
+| **Sliding window counter** | O(1) | Good | Slight | ✅ Sensible production default |
+| **Token bucket** | O(1) | Good | Controlled | ✅ Public APIs, variable request cost |
+| **Leaky bucket (queue)** | O(queue) | Exact | None — smooths output | Protecting a fragile downstream |
 
-### 3. Cost Control
-- Reduce infrastructure costs
-- Control third-party API usage costs
-- Predictable resource consumption
+**Short answer for most APIs: token bucket.** It allows a genuine burst (which is what real clients look like — a page load fires eight requests at once) while holding the long-run average, and it extends naturally to "this endpoint costs 10, that one costs 1".
 
-### 4. Business Model Enforcement
-```javascript
-// Free tier: 100 requests/hour
-// Pro tier: 10,000 requests/hour
-// Enterprise: Unlimited
-```
+## Fixed Window and Its Boundary Problem
 
----
+Count requests per calendar window and reset at the boundary.
 
-## 📐 Rate Limiting Algorithms
-
-### 1. Fixed Window Counter
-
-**How it works:** Count requests in fixed time windows (e.g., per minute). Reset counter at window boundary.
-
-**JavaScript (In-Memory):**
-```javascript
-class FixedWindowRateLimiter {
-  constructor(maxRequests, windowMs) {
-    this.maxRequests = maxRequests;
-    this.windowMs = windowMs;
-    this.clients = new Map(); // clientId -> { count, resetTime }
-  }
-
-  isAllowed(clientId) {
-    const now = Date.now();
-    const client = this.clients.get(clientId);
-
-    // No record or window expired
-    if (!client || now > client.resetTime) {
-      this.clients.set(clientId, {
-        count: 1,
-        resetTime: now + this.windowMs,
-      });
-      return true;
-    }
-
-    // Within window, check count
-    if (client.count < this.maxRequests) {
-      client.count++;
-      return true;
-    }
-
-    // Rate limit exceeded
-    return false;
-  }
-
-  reset(clientId) {
-    this.clients.delete(clientId);
-  }
+```typescript
+interface Window {
+  count: number;
+  resetAt: number;
 }
 
-// Usage
-const limiter = new FixedWindowRateLimiter(100, 60000); // 100 req/min
+class FixedWindow {
+  private readonly keys = new Map<string, Window>();
 
-app.use((req, res, next) => {
-  const clientId = req.ip;
+  constructor(
+    private readonly limit: number,
+    private readonly windowMs: number,
+  ) {}
 
-  if (!limiter.isAllowed(clientId)) {
-    return res.status(429).json({
-      error: 'Too many requests',
-      retryAfter: Math.ceil((limiter.clients.get(clientId).resetTime - Date.now()) / 1000),
-    });
-  }
-
-  next();
-});
-```
-
-**Python (FastAPI):**
-```python
-from fastapi import FastAPI, Request, HTTPException
-from datetime import datetime, timedelta
-from collections import defaultdict
-
-app = FastAPI()
-
-class FixedWindowRateLimiter:
-    def __init__(self, max_requests: int, window_seconds: int):
-        self.max_requests = max_requests
-        self.window_seconds = window_seconds
-        self.clients = {}  # client_id -> {count, reset_time}
-
-    def is_allowed(self, client_id: str) -> tuple[bool, int]:
-        now = datetime.now()
-
-        if client_id not in self.clients or now > self.clients[client_id]['reset_time']:
-            self.clients[client_id] = {
-                'count': 1,
-                'reset_time': now + timedelta(seconds=self.window_seconds)
-            }
-            return True, 0
-
-        client = self.clients[client_id]
-        if client['count'] < self.max_requests:
-            client['count'] += 1
-            return True, 0
-
-        retry_after = int((client['reset_time'] - now).total_seconds())
-        return False, retry_after
-
-limiter = FixedWindowRateLimiter(100, 60)  # 100 req/min
-
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    client_id = request.client.host
-    allowed, retry_after = limiter.is_allowed(client_id)
-
-    if not allowed:
-        raise HTTPException(
-            status_code=429,
-            detail="Too many requests",
-            headers={"Retry-After": str(retry_after)}
-        )
-
-    response = await call_next(request)
-    return response
-```
-
-**Pros:**
-- ✅ Simple to implement
-- ✅ Memory efficient
-- ✅ Fast lookups
-
-**Cons:**
-- ❌ Burst at window boundaries (spike at reset)
-- ❌ Unfair: User who waits gets same limit as user who spammed
-
-**Time Complexity:** O(1)
-**Space Complexity:** O(n) where n = number of unique clients
-
-**Example Problem:**
-```
-Window: 00:00 - 00:59 (100 requests allowed)
-
-User sends:
-- 99 requests at 00:59:50
-- 100 requests at 01:00:01
-= 199 requests in 11 seconds! (Burst at boundary)
-```
-
----
-
-### 2. Sliding Window Log
-
-**How it works:** Store timestamp of each request. Count requests in the last N seconds by checking timestamps.
-
-**JavaScript:**
-```javascript
-class SlidingWindowLogRateLimiter {
-  constructor(maxRequests, windowMs) {
-    this.maxRequests = maxRequests;
-    this.windowMs = windowMs;
-    this.clients = new Map(); // clientId -> [timestamps]
-  }
-
-  isAllowed(clientId) {
+  check(key: string): { allowed: boolean; remaining: number; resetAt: number } {
     const now = Date.now();
-    const timestamps = this.clients.get(clientId) || [];
+    const window = this.keys.get(key);
 
-    // Remove timestamps outside the window
-    const validTimestamps = timestamps.filter(ts => now - ts < this.windowMs);
-
-    if (validTimestamps.length < this.maxRequests) {
-      validTimestamps.push(now);
-      this.clients.set(clientId, validTimestamps);
-      return true;
+    if (!window || now >= window.resetAt) {
+      const fresh: Window = { count: 1, resetAt: now + this.windowMs };
+      this.keys.set(key, fresh);
+      return { allowed: true, remaining: this.limit - 1, resetAt: fresh.resetAt };
     }
 
-    return false;
-  }
-
-  getRetryAfter(clientId) {
-    const timestamps = this.clients.get(clientId) || [];
-    if (timestamps.length === 0) return 0;
-
-    const oldestTimestamp = Math.min(...timestamps);
-    return Math.ceil((this.windowMs - (Date.now() - oldestTimestamp)) / 1000);
-  }
-}
-
-// Usage
-const limiter = new SlidingWindowLogRateLimiter(100, 60000); // 100 req/min
-
-app.use((req, res, next) => {
-  const clientId = req.ip;
-
-  if (!limiter.isAllowed(clientId)) {
-    return res.status(429).json({
-      error: 'Too many requests',
-      retryAfter: limiter.getRetryAfter(clientId),
-    });
-  }
-
-  next();
-});
-```
-
-**Python:**
-```python
-from datetime import datetime, timedelta
-from collections import defaultdict
-
-class SlidingWindowLogRateLimiter:
-    def __init__(self, max_requests: int, window_seconds: int):
-        self.max_requests = max_requests
-        self.window_seconds = window_seconds
-        self.clients = defaultdict(list)  # client_id -> [timestamps]
-
-    def is_allowed(self, client_id: str) -> tuple[bool, int]:
-        now = datetime.now()
-        window_start = now - timedelta(seconds=self.window_seconds)
-
-        # Remove timestamps outside window
-        self.clients[client_id] = [
-            ts for ts in self.clients[client_id]
-            if ts > window_start
-        ]
-
-        if len(self.clients[client_id]) < self.max_requests:
-            self.clients[client_id].append(now)
-            return True, 0
-
-        # Calculate retry after
-        oldest_ts = min(self.clients[client_id])
-        retry_after = int((self.window_seconds - (now - oldest_ts).total_seconds()))
-        return False, retry_after
-```
-
-**Pros:**
-- ✅ Accurate rate limiting
-- ✅ No burst at boundaries
-- ✅ Fair distribution
-
-**Cons:**
-- ❌ Memory intensive (stores all timestamps)
-- ❌ Slower (need to filter old timestamps)
-
-**Time Complexity:** O(n) where n = requests in window
-**Space Complexity:** O(n × m) where n = clients, m = requests per client
-
----
-
-### 3. Sliding Window Counter (Hybrid)
-
-**How it works:** Combine fixed window counters with weighted calculation based on time elapsed in current window.
-
-**JavaScript:**
-```javascript
-class SlidingWindowCounterRateLimiter {
-  constructor(maxRequests, windowMs) {
-    this.maxRequests = maxRequests;
-    this.windowMs = windowMs;
-    this.clients = new Map(); // clientId -> { prevCount, prevTime, currCount, currTime }
-  }
-
-  isAllowed(clientId) {
-    const now = Date.now();
-    const client = this.clients.get(clientId) || {
-      prevCount: 0,
-      prevTime: now - this.windowMs,
-      currCount: 0,
-      currTime: now,
+    window.count += 1;
+    return {
+      allowed: window.count <= this.limit,
+      remaining: Math.max(0, this.limit - window.count),
+      resetAt: window.resetAt,
     };
-
-    // Check if we need to rotate windows
-    if (now - client.currTime >= this.windowMs) {
-      client.prevCount = client.currCount;
-      client.prevTime = client.currTime;
-      client.currCount = 0;
-      client.currTime = now;
-    }
-
-    // Calculate weighted count
-    const timeInCurrentWindow = now - client.currTime;
-    const timeInPreviousWindow = this.windowMs - timeInCurrentWindow;
-    const previousWindowWeight = timeInPreviousWindow / this.windowMs;
-
-    const estimatedCount =
-      client.prevCount * previousWindowWeight + client.currCount;
-
-    if (estimatedCount < this.maxRequests) {
-      client.currCount++;
-      this.clients.set(clientId, client);
-      return true;
-    }
-
-    return false;
   }
 }
-
-// Usage
-const limiter = new SlidingWindowCounterRateLimiter(100, 60000);
-
-app.use((req, res, next) => {
-  const clientId = req.ip;
-
-  if (!limiter.isAllowed(clientId)) {
-    return res.status(429).json({ error: 'Too many requests' });
-  }
-
-  next();
-});
 ```
 
-**Pros:**
-- ✅ Memory efficient (only 2 counters)
-- ✅ Smooth rate limiting
-- ✅ Fast O(1) lookups
+🔴 **The flaw, and you should be able to draw it:**
 
-**Cons:**
-- ❌ Approximate (not 100% accurate)
-- ❌ Can allow slightly more than limit in edge cases
+```
+limit = 100 per minute
 
-**Time Complexity:** O(1)
-**Space Complexity:** O(n) where n = number of unique clients
+12:00:59  ████████████████ 100 requests   ← fills window 1
+12:01:00  ████████████████ 100 requests   ← window resets, fills window 2
+          200 requests in ~1 second
+```
 
----
+A client gets 2× the limit across any boundary. For a limit that exists to protect capacity, that's the exact moment it fails.
 
-### 4. Token Bucket
+> ⚠️ **The in-memory version is also wrong on more than one instance.** Four pods with a local `Map` means the effective limit is 4× what you configured — and it drifts as pods scale.
 
-**How it works:** Bucket holds tokens. Each request consumes a token. Tokens refill at a constant rate. If bucket is empty, request is denied.
+## Sliding Window
 
-**JavaScript:**
-```javascript
-class TokenBucketRateLimiter {
-  constructor(capacity, refillRate, refillIntervalMs) {
-    this.capacity = capacity; // Max tokens
-    this.refillRate = refillRate; // Tokens added per interval
-    this.refillIntervalMs = refillIntervalMs;
-    this.clients = new Map(); // clientId -> { tokens, lastRefill }
-  }
+**Sliding window log** stores a timestamp per request and counts what falls inside the trailing window. Exact, and memory grows with traffic — a client at 10k requests/minute costs 10k timestamps.
 
-  isAllowed(clientId, cost = 1) {
+**Sliding window counter** is the practical compromise: keep the current window's count plus the previous window's, and weight the previous one by how much of it still overlaps.
+
+```typescript
+class SlidingWindowCounter {
+  private readonly keys = new Map<string, { prev: number; curr: number; startedAt: number }>();
+
+  constructor(
+    private readonly limit: number,
+    private readonly windowMs: number,
+  ) {}
+
+  check(key: string): boolean {
     const now = Date.now();
-    const client = this.clients.get(clientId) || {
-      tokens: this.capacity,
-      lastRefill: now,
-    };
+    const state = this.keys.get(key) ?? { prev: 0, curr: 0, startedAt: now };
 
-    // Refill tokens based on time elapsed
-    const timePassed = now - client.lastRefill;
-    const refillCount = Math.floor(timePassed / this.refillIntervalMs) * this.refillRate;
-
-    client.tokens = Math.min(this.capacity, client.tokens + refillCount);
-    client.lastRefill = now;
-
-    // Try to consume tokens
-    if (client.tokens >= cost) {
-      client.tokens -= cost;
-      this.clients.set(clientId, client);
-      return true;
+    // Roll the window forward if we've crossed a boundary.
+    const elapsed = now - state.startedAt;
+    if (elapsed >= this.windowMs) {
+      state.prev = elapsed < this.windowMs * 2 ? state.curr : 0; // gap → previous is stale
+      state.curr = 0;
+      state.startedAt = now - (elapsed % this.windowMs);
     }
 
-    this.clients.set(clientId, client);
-    return false;
-  }
+    // Weight the previous window by the fraction still inside our lookback.
+    const overlap = 1 - (now - state.startedAt) / this.windowMs;
+    const estimate = state.prev * overlap + state.curr;
 
-  getRetryAfter(clientId, cost = 1) {
-    const client = this.clients.get(clientId);
-    if (!client) return 0;
+    if (estimate >= this.limit) {
+      this.keys.set(key, state);
+      return false;
+    }
 
-    const tokensNeeded = cost - client.tokens;
-    const intervalsNeeded = Math.ceil(tokensNeeded / this.refillRate);
-    return Math.ceil((intervalsNeeded * this.refillIntervalMs) / 1000);
+    state.curr += 1;
+    this.keys.set(key, state);
+    return true;
   }
 }
-
-// Usage: 100 tokens, refill 10 tokens every 1 second
-const limiter = new TokenBucketRateLimiter(100, 10, 1000);
-
-app.use((req, res, next) => {
-  const clientId = req.ip;
-
-  // Different endpoints can have different costs
-  const cost = req.path.includes('/expensive') ? 10 : 1;
-
-  if (!limiter.isAllowed(clientId, cost)) {
-    return res.status(429).json({
-      error: 'Too many requests',
-      retryAfter: limiter.getRetryAfter(clientId, cost),
-    });
-  }
-
-  next();
-});
 ```
 
-**Python:**
-```python
-from datetime import datetime, timedelta
-import math
+Two counters per key, O(1), and no 2× boundary burst. It can be off by a few percent when traffic is uneven inside a window — an acceptable trade that Cloudflare made for the same reason.
 
-class TokenBucketRateLimiter:
-    def __init__(self, capacity: int, refill_rate: int, refill_interval_seconds: int):
-        self.capacity = capacity
-        self.refill_rate = refill_rate
-        self.refill_interval_seconds = refill_interval_seconds
-        self.clients = {}  # client_id -> {tokens, last_refill}
+## Token Bucket
 
-    def is_allowed(self, client_id: str, cost: int = 1) -> tuple[bool, int]:
-        now = datetime.now()
+A bucket holds up to `capacity` tokens and refills at `refillPerSec`. Each request spends tokens equal to its cost; an empty bucket means rejection.
 
-        if client_id not in self.clients:
-            self.clients[client_id] = {
-                'tokens': self.capacity,
-                'last_refill': now
-            }
+```typescript
+interface Bucket {
+  tokens: number;
+  lastRefillMs: number;
+}
 
-        client = self.clients[client_id]
+class TokenBucket {
+  private readonly buckets = new Map<string, Bucket>();
 
-        # Refill tokens
-        time_passed = (now - client['last_refill']).total_seconds()
-        refill_count = int(time_passed / self.refill_interval_seconds) * self.refill_rate
-        client['tokens'] = min(self.capacity, client['tokens'] + refill_count)
-        client['last_refill'] = now
+  constructor(
+    private readonly capacity: number,     // burst size
+    private readonly refillPerSec: number, // sustained rate
+  ) {}
 
-        # Try to consume tokens
-        if client['tokens'] >= cost:
-            client['tokens'] -= cost
-            return True, 0
-
-        # Calculate retry after
-        tokens_needed = cost - client['tokens']
-        intervals_needed = math.ceil(tokens_needed / self.refill_rate)
-        retry_after = intervals_needed * self.refill_interval_seconds
-        return False, retry_after
-
-# Usage
-limiter = TokenBucketRateLimiter(capacity=100, refill_rate=10, refill_interval_seconds=1)
-```
-
-**Pros:**
-- ✅ Allows bursts (up to capacity)
-- ✅ Smooth refill
-- ✅ Different costs for different operations
-- ✅ Memory efficient
-
-**Cons:**
-- ❌ More complex to implement
-- ❌ Need to tune capacity and refill rate
-
-**Time Complexity:** O(1)
-**Space Complexity:** O(n)
-
-**Use Case:** APIs where some operations are more expensive than others (e.g., search costs 10 tokens, get user costs 1 token).
-
----
-
-### 5. Leaky Bucket
-
-**How it works:** Requests enter a bucket (queue). Requests are processed at a constant rate. If bucket is full, new requests are rejected.
-
-**JavaScript:**
-```javascript
-class LeakyBucketRateLimiter {
-  constructor(capacity, leakRate) {
-    this.capacity = capacity; // Max queue size
-    this.leakRate = leakRate; // Requests processed per second
-    this.clients = new Map(); // clientId -> { queue, lastLeak }
-  }
-
-  isAllowed(clientId) {
+  /** `cost` lets an expensive endpoint consume more of the budget. */
+  consume(key: string, cost = 1): { allowed: boolean; retryAfterSec: number } {
     const now = Date.now();
-    const client = this.clients.get(clientId) || {
-      queue: [],
-      lastLeak: now,
-    };
+    const bucket = this.buckets.get(key) ?? { tokens: this.capacity, lastRefillMs: now };
 
-    // Leak (process) requests
-    const timePassed = (now - client.lastLeak) / 1000; // seconds
-    const requestsToLeak = Math.floor(timePassed * this.leakRate);
+    // Continuous refill — fractional tokens matter, don't floor this.
+    const elapsedSec = (now - bucket.lastRefillMs) / 1000;
+    bucket.tokens = Math.min(this.capacity, bucket.tokens + elapsedSec * this.refillPerSec);
+    bucket.lastRefillMs = now;
 
-    if (requestsToLeak > 0) {
-      client.queue.splice(0, requestsToLeak);
-      client.lastLeak = now;
+    if (bucket.tokens >= cost) {
+      bucket.tokens -= cost;
+      this.buckets.set(key, bucket);
+      return { allowed: true, retryAfterSec: 0 };
     }
 
-    // Try to add new request
-    if (client.queue.length < this.capacity) {
-      client.queue.push(now);
-      this.clients.set(clientId, client);
-      return true;
-    }
-
-    this.clients.set(clientId, client);
-    return false;
-  }
-
-  getRetryAfter(clientId) {
-    const client = this.clients.get(clientId);
-    if (!client || client.queue.length === 0) return 0;
-
-    // Time until one slot frees up
-    return Math.ceil(1 / this.leakRate);
+    this.buckets.set(key, bucket);
+    return { allowed: false, retryAfterSec: Math.ceil((cost - bucket.tokens) / this.refillPerSec) };
   }
 }
-
-// Usage: Capacity 100, leak 10 requests/second
-const limiter = new LeakyBucketRateLimiter(100, 10);
-
-app.use((req, res, next) => {
-  const clientId = req.ip;
-
-  if (!limiter.isAllowed(clientId)) {
-    return res.status(429).json({
-      error: 'Too many requests',
-      retryAfter: limiter.getRetryAfter(clientId),
-    });
-  }
-
-  next();
-});
 ```
 
-**Pros:**
-- ✅ Smooth request processing
-- ✅ Predictable output rate
-- ✅ Protects downstream services
+**Two dials, two meanings** — this is the part interviewers probe:
 
-**Cons:**
-- ❌ Doesn't allow bursts
-- ❌ Requests queued (not rejected immediately)
-- ❌ More complex
+| Dial | Controls | Example |
+| ---- | -------- | ------- |
+| `capacity` | How large a burst you tolerate | 100 → a page firing 100 calls succeeds |
+| `refillPerSec` | The sustained rate | 10/s → 600/minute long-run |
 
-**Time Complexity:** O(1) for add, O(n) for leak
-**Space Complexity:** O(n × m)
+> ✨ **Cost-based limiting is the senior move.** `GET /users/me` and `POST /reports/export` are not the same request. Charge tokens by real cost — for GraphQL, by query complexity — so one endpoint can't be used to bypass a limit tuned for another. See [GraphQL](./02-graphql.md#protecting-the-endpoint).
 
-**Use Case:** Rate limiting API calls to external services with strict rate limits.
+**Leaky bucket** is the queue-shaped sibling: requests wait and drain at a fixed rate instead of being rejected. Use it when a downstream system has a hard rate cap you must not exceed — you're smoothing your own output, not policing a caller.
 
----
+## Distributed Rate Limiting with Redis
 
-## 🔥 Algorithm Comparison
+Multiple instances need one shared counter, and the check must be **atomic** — read, refill, and write in one step, or two concurrent requests both see the last token.
 
-| Algorithm | Memory | Accuracy | Allows Bursts | Complexity | Best For |
-|-----------|--------|----------|---------------|------------|----------|
-| **Fixed Window** | Low | Poor | Yes (at edges) | Simple | Simple apps |
-| **Sliding Window Log** | High | Perfect | No | Complex | High accuracy needs |
-| **Sliding Window Counter** | Low | Good | Minimal | Medium | Production apps |
-| **Token Bucket** | Low | Good | Yes (controlled) | Medium | Variable request costs |
-| **Leaky Bucket** | Medium | Perfect | No | Complex | Smooth output required |
+```typescript
+// Redis Lua runs atomically: no other command interleaves.
+const TOKEN_BUCKET = `
+  local tokens_key = KEYS[1]
+  local capacity     = tonumber(ARGV[1])
+  local refill_rate  = tonumber(ARGV[2])   -- tokens per second
+  local now          = tonumber(ARGV[3])   -- milliseconds
+  local cost         = tonumber(ARGV[4])
 
----
+  local state = redis.call('HMGET', tokens_key, 'tokens', 'ts')
+  local tokens = tonumber(state[1]) or capacity
+  local last   = tonumber(state[2]) or now
 
-## 🌐 Distributed Rate Limiting with Redis
+  local elapsed = math.max(0, now - last) / 1000
+  tokens = math.min(capacity, tokens + elapsed * refill_rate)
 
-For multi-server deployments, use Redis for shared state.
-
-**JavaScript (with Redis):**
-```javascript
-const redis = require('redis');
-const client = redis.createClient();
-
-class RedisFixedWindowRateLimiter {
-  constructor(maxRequests, windowSeconds) {
-    this.maxRequests = maxRequests;
-    this.windowSeconds = windowSeconds;
-  }
-
-  async isAllowed(clientId) {
-    const key = `rate_limit:${clientId}`;
-    const now = Math.floor(Date.now() / 1000);
-    const window = Math.floor(now / this.windowSeconds);
-    const windowKey = `${key}:${window}`;
-
-    // Increment counter
-    const count = await client.incr(windowKey);
-
-    // Set expiration on first request
-    if (count === 1) {
-      await client.expire(windowKey, this.windowSeconds * 2);
-    }
-
-    return count <= this.maxRequests;
-  }
-
-  async getRemainingRequests(clientId) {
-    const key = `rate_limit:${clientId}`;
-    const now = Math.floor(Date.now() / 1000);
-    const window = Math.floor(now / this.windowSeconds);
-    const windowKey = `${key}:${window}`;
-
-    const count = await client.get(windowKey) || 0;
-    return Math.max(0, this.maxRequests - count);
-  }
-}
-
-// Middleware
-const limiter = new RedisFixedWindowRateLimiter(100, 60);
-
-app.use(async (req, res, next) => {
-  const clientId = req.ip;
-
-  const allowed = await limiter.isAllowed(clientId);
-  const remaining = await limiter.getRemainingRequests(clientId);
-
-  // Add rate limit headers
-  res.set({
-    'X-RateLimit-Limit': '100',
-    'X-RateLimit-Remaining': remaining.toString(),
-    'X-RateLimit-Reset': Math.ceil(Date.now() / 1000 / 60) * 60,
-  });
-
-  if (!allowed) {
-    return res.status(429).json({ error: 'Too many requests' });
-  }
-
-  next();
-});
-```
-
-**Redis Token Bucket (Lua Script for Atomicity):**
-```javascript
-const refillTokensScript = `
-  local key = KEYS[1]
-  local capacity = tonumber(ARGV[1])
-  local refill_rate = tonumber(ARGV[2])
-  local refill_interval = tonumber(ARGV[3])
-  local cost = tonumber(ARGV[4])
-  local now = tonumber(ARGV[5])
-
-  local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
-  local tokens = tonumber(bucket[1]) or capacity
-  local last_refill = tonumber(bucket[2]) or now
-
-  -- Refill tokens
-  local time_passed = now - last_refill
-  local refill_count = math.floor(time_passed / refill_interval) * refill_rate
-  tokens = math.min(capacity, tokens + refill_count)
-
-  -- Try to consume
+  local allowed = 0
   if tokens >= cost then
     tokens = tokens - cost
-    redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
-    redis.call('EXPIRE', key, 3600)
-    return 1
-  else
-    redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
-    redis.call('EXPIRE', key, 3600)
-    return 0
+    allowed = 1
   end
+
+  redis.call('HMSET', tokens_key, 'tokens', tokens, 'ts', now)
+  -- TTL = time to refill a full bucket, so idle keys expire themselves.
+  redis.call('PEXPIRE', tokens_key, math.ceil(capacity / refill_rate * 1000))
+
+  return { allowed, math.floor(tokens) }
 `;
 
-async function isAllowedTokenBucket(clientId, cost = 1) {
-  const key = `rate_limit:token_bucket:${clientId}`;
-  const now = Date.now();
+interface Decision {
+  allowed: boolean;
+  remaining: number;
+}
 
-  const allowed = await client.eval(
-    refillTokensScript,
-    1,
-    key,
-    100,   // capacity
-    10,    // refill_rate
-    1000,  // refill_interval (ms)
-    cost,
-    now
-  );
+async function consume(key: string, cost = 1): Promise<Decision> {
+  const [allowed, remaining] = (await redis.eval(TOKEN_BUCKET, {
+    keys: [`rl:${key}`],
+    arguments: ["100", "10", String(Date.now()), String(cost)],
+  })) as [number, number];
 
-  return allowed === 1;
+  return { allowed: allowed === 1, remaining };
 }
 ```
 
-**Python (with Redis):**
-```python
-import redis
-import time
-from fastapi import FastAPI, Request, HTTPException
+**Why Lua and not `INCR` plus `EXPIRE`:** those are two round trips. If the process dies between them you get a key with no TTL that blocks the caller forever. Lua makes the whole decision one atomic operation.
 
-app = FastAPI()
-redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+> ⚠️ **Every request now costs a Redis round trip.** At high volume, add a local pre-check: keep a small per-instance allowance and only consult Redis when it's exhausted. You trade exactness for latency — usually the right call, but say it out loud rather than pretending Redis is free.
 
-class RedisFixedWindowRateLimiter:
-    def __init__(self, max_requests: int, window_seconds: int):
-        self.max_requests = max_requests
-        self.window_seconds = window_seconds
+**In practice, use the library.** `express-rate-limit` with a Redis store is battle-tested:
 
-    def is_allowed(self, client_id: str) -> tuple[bool, int]:
-        key = f"rate_limit:{client_id}"
-        now = int(time.time())
-        window = now // self.window_seconds
-        window_key = f"{key}:{window}"
+```typescript
+import { rateLimit, MINUTE } from "express-rate-limit";
+import { RedisStore } from "rate-limit-redis";
 
-        # Increment counter
-        count = redis_client.incr(window_key)
-
-        # Set expiration on first request
-        if count == 1:
-            redis_client.expire(window_key, self.window_seconds * 2)
-
-        remaining = max(0, self.max_requests - count)
-        return count <= self.max_requests, remaining
-
-limiter = RedisFixedWindowRateLimiter(100, 60)
-
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    client_id = request.client.host
-    allowed, remaining = limiter.is_allowed(client_id)
-
-    response = await call_next(request) if allowed else None
-
-    if not allowed:
-        raise HTTPException(
-            status_code=429,
-            detail="Too many requests",
-            headers={
-                "X-RateLimit-Limit": "100",
-                "X-RateLimit-Remaining": "0",
-                "Retry-After": "60"
-            }
-        )
-
-    response.headers["X-RateLimit-Limit"] = "100"
-    response.headers["X-RateLimit-Remaining"] = str(remaining)
-    return response
-```
-
----
-
-## 📊 Rate Limiting Best Practices
-
-### 1. Return Proper Headers
-
-```javascript
-app.use(async (req, res, next) => {
-  const clientId = req.ip;
-  const limit = 100;
-  const remaining = await getRemainingRequests(clientId);
-  const resetTime = getWindowResetTime();
-
-  // Standard rate limit headers
-  res.set({
-    'X-RateLimit-Limit': limit.toString(),
-    'X-RateLimit-Remaining': remaining.toString(),
-    'X-RateLimit-Reset': resetTime.toString(), // Unix timestamp
-  });
-
-  if (remaining <= 0) {
-    const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
-
-    return res.status(429)
-      .set('Retry-After', retryAfter.toString())
-      .json({
-        error: 'Too many requests',
-        message: `Rate limit exceeded. Try again in ${retryAfter} seconds.`,
-        limit,
-        retryAfter,
-      });
-  }
-
-  next();
+const limiter = rateLimit({
+  windowMs: 15 * MINUTE,
+  limit: 100,
+  standardHeaders: "draft-8", // combined `RateLimit` header (RFC draft)
+  legacyHeaders: false,       // drop X-RateLimit-*
+  ipv6Subnet: 56,             // one IPv6 /56 = one client, not 2^72 keys
+  store: new RedisStore({ sendCommand: (...args: string[]) => redis.sendCommand(args) }),
+  keyGenerator: (req) => req.apiKeyId ?? req.ip!, // see below
 });
+
+app.use("/api", limiter);
 ```
 
-### 2. Different Limits for Different Tiers
+## What to Key On
 
-```javascript
-const RATE_LIMITS = {
-  free: { requests: 100, window: 3600 },      // 100/hour
-  basic: { requests: 1000, window: 3600 },    // 1000/hour
-  pro: { requests: 10000, window: 3600 },     // 10000/hour
-  enterprise: { requests: 100000, window: 3600 }, // 100k/hour
-};
+The limit is only as good as the identity behind it.
 
-app.use(async (req, res, next) => {
-  const user = req.user; // From auth middleware
-  const tier = user?.tier || 'free';
-  const limits = RATE_LIMITS[tier];
-
-  const limiter = new RateLimiter(limits.requests, limits.window * 1000);
-
-  if (!await limiter.isAllowed(user.id)) {
-    return res.status(429).json({
-      error: 'Rate limit exceeded',
-      tier,
-      limit: limits.requests,
-      upgrade: tier === 'free' ? '/pricing' : null,
-    });
-  }
-
-  next();
-});
-```
-
-### 3. Different Limits for Different Endpoints
-
-```javascript
-const endpointLimits = {
-  '/api/search': { requests: 10, window: 60 },     // Expensive: 10/min
-  '/api/users': { requests: 100, window: 60 },     // Normal: 100/min
-  '/api/auth/login': { requests: 5, window: 300 }, // Sensitive: 5/5min
-};
-
-app.use((req, res, next) => {
-  const limits = endpointLimits[req.path] || { requests: 60, window: 60 };
-  const limiter = new RateLimiter(limits.requests, limits.window * 1000);
-
-  if (!limiter.isAllowed(req.ip)) {
-    return res.status(429).json({ error: 'Too many requests' });
-  }
-
-  next();
-});
-```
-
-### 4. Identify Clients Properly
-
-```javascript
-function getClientId(req) {
-  // Priority: API Key > User ID > IP Address
-  if (req.headers['x-api-key']) {
-    return `api_key:${req.headers['x-api-key']}`;
-  }
-
-  if (req.user?.id) {
-    return `user:${req.user.id}`;
-  }
-
-  // Handle proxies - get real IP
-  const forwarded = req.headers['x-forwarded-for'];
-  const ip = forwarded ? forwarded.split(',')[0].trim() : req.ip;
-
-  return `ip:${ip}`;
+```typescript
+function rateLimitKey(req: Request): string {
+  if (req.apiKeyId) return `key:${req.apiKeyId}`; // most specific, most trustworthy
+  if (req.userId) return `user:${req.userId}`;    // survives IP changes on mobile
+  return `ip:${req.ip}`;                          // last resort
 }
-
-app.use((req, res, next) => {
-  const clientId = getClientId(req);
-  // Use clientId for rate limiting
-});
 ```
 
-### 5. Graceful Degradation
+| Key | Strength | Weakness |
+| --- | -------- | -------- |
+| **API key / client id** | Exact, ties to a billing tier | Only for authenticated traffic |
+| **User id** | Follows the user across networks | Attacker can register more accounts |
+| **IP** | Always available | Shared by NAT/corporate/mobile carriers; trivially rotated with IPv6 |
 
-```javascript
-app.use(async (req, res, next) => {
-  try {
-    const allowed = await limiter.isAllowed(req.ip);
+🔴 **`X-Forwarded-For` is client-controlled unless a proxy you trust rewrote it.** Blindly reading the first value lets anyone forge a fresh identity per request. Set Express's `trust proxy` to the number of proxies you actually run, and never more.
 
-    if (!allowed) {
-      return res.status(429).json({ error: 'Too many requests' });
-    }
-
-    next();
-  } catch (error) {
-    // If rate limiter fails (Redis down), allow request but log error
-    console.error('Rate limiter error:', error);
-    next(); // Fail open - allow request
-  }
-});
+```typescript
+app.set("trust proxy", 1); // exactly one trusted proxy in front of us
 ```
 
----
+**Rate limit by identity, layered:**
 
-## 🎤 Common Interview Questions
+- **Per user or key** — the fairness limit, tuned to the pricing tier.
+- **Per IP** — a coarse backstop for unauthenticated traffic.
+- **Global** — a load-shedding ceiling protecting the service itself.
+- **Per sensitive endpoint** — login, password reset, and OTP need their own strict limits, or the general limit becomes a credential-stuffing budget.
 
-### Q1: Explain the difference between token bucket and leaky bucket algorithms.
+## Response Headers
 
-**Answer:**
+Tell the client exactly what happened so it can back off intelligently instead of hammering you.
 
-| Aspect | Token Bucket | Leaky Bucket |
-|--------|--------------|--------------|
-| **Metaphor** | Bucket holds tokens; requests consume tokens; tokens refill at constant rate | Bucket is a queue; requests enter bucket; leak (process) at constant rate |
-| **Bursts** | Allows bursts up to bucket capacity | No bursts - smooth output |
-| **Processing** | Immediate (if tokens available) | Queued and processed at fixed rate |
-| **Rejection** | When bucket empty | When bucket (queue) full |
-| **Use Case** | API rate limiting | Protecting downstream services |
-
-**Token Bucket Example:**
-```javascript
-// 100 token capacity, refill 10/second
-// Can handle burst of 100 requests instantly
-// Then limited to 10 requests/second
-```
-
-**Leaky Bucket Example:**
-```javascript
-// Queue capacity 100, leak 10/second
-// Requests queued, processed at exactly 10/second
-// No bursts - smooth output
-```
-
-**Interview Tip:** Token bucket is more common for APIs because it allows bursts (good UX) while maintaining average rate. Leaky bucket is better for protecting downstream services that can't handle bursts.
-
----
-
-### Q2: How would you implement distributed rate limiting across multiple servers?
-
-**Answer:**
-
-**Use Redis as shared state:**
-
-**Approach 1: Simple Counter (Fixed Window)**
-```javascript
-// Pros: Simple, fast
-// Cons: Boundary burst problem
-const key = `rate_limit:${clientId}:${Math.floor(Date.now() / 60000)}`;
-const count = await redis.incr(key);
-await redis.expire(key, 120); // 2 minutes TTL
-return count <= maxRequests;
-```
-
-**Approach 2: Sorted Sets (Sliding Window Log)**
-```javascript
-// Pros: Accurate
-// Cons: Memory intensive
-const key = `rate_limit:${clientId}`;
-const now = Date.now();
-const windowStart = now - windowMs;
-
-// Remove old entries
-await redis.zremrangebyscore(key, 0, windowStart);
-
-// Count entries in window
-const count = await redis.zcard(key);
-
-if (count < maxRequests) {
-  await redis.zadd(key, now, `${now}-${Math.random()}`);
-  await redis.expire(key, Math.ceil(windowMs / 1000) * 2);
-  return true;
-}
-
-return false;
-```
-
-**Approach 3: Lua Script for Atomicity (Token Bucket)**
-```lua
--- Token bucket in Lua for atomic operations
-local tokens = redis.call('GET', KEYS[1])
-if not tokens then
-  tokens = capacity
-end
-
--- Refill logic...
--- Consume logic...
-
-redis.call('SET', KEYS[1], tokens)
-return tokens >= cost and 1 or 0
-```
-
-**Considerations:**
-- ✅ Use Redis pipeline/transaction for atomicity
-- ✅ Set appropriate TTL to avoid memory leaks
-- ✅ Handle Redis failures gracefully (fail open)
-- ✅ Use Redis cluster for high availability
-- ❌ Don't use local caching (defeats distributed purpose)
-
-**Interview Tip:** Mention that distributed rate limiting trades simplicity for scalability. For single-server apps, in-memory is faster. For multi-server, Redis is standard.
-
----
-
-### Q3: How do you rate limit authenticated vs unauthenticated users?
-
-**Answer:**
-
-**Strategy:**
-
-```javascript
-function getRateLimitConfig(req) {
-  // Authenticated users: by user ID
-  if (req.user) {
-    return {
-      clientId: `user:${req.user.id}`,
-      limits: {
-        free: { requests: 1000, window: 3600 },
-        pro: { requests: 10000, window: 3600 },
-      }[req.user.tier],
-    };
-  }
-
-  // Unauthenticated: by IP (stricter limits)
-  return {
-    clientId: `ip:${req.ip}`,
-    limits: { requests: 100, window: 3600 },
-  };
-}
-
-app.use(async (req, res, next) => {
-  const config = getRateLimitConfig(req);
-  const limiter = new RateLimiter(config.limits.requests, config.limits.window * 1000);
-
-  if (!await limiter.isAllowed(config.clientId)) {
-    return res.status(429).json({
-      error: 'Rate limit exceeded',
-      message: req.user
-        ? 'Upgrade your plan for higher limits'
-        : 'Sign up for higher rate limits',
-      upgrade: !req.user ? '/signup' : null,
-    });
-  }
-
-  next();
-});
-```
-
-**Best Practices:**
-- ✅ **Unauthenticated (IP-based)**: Strict limits (e.g., 100/hour)
-- ✅ **Authenticated**: Higher limits (e.g., 1000/hour)
-- ✅ **Premium users**: Even higher limits (e.g., 10000/hour)
-- ✅ **Sensitive endpoints** (login, signup): Very strict (e.g., 5/15min)
-
-**IP-Based Challenges:**
-- Multiple users behind NAT/proxy share same IP
-- Solution: Use `X-Forwarded-For` header carefully, combine with other signals
-
----
-
-### Q4: What HTTP status code and headers should you return when rate limiting?
-
-**Answer:**
-
-**Status Code:** `429 Too Many Requests`
-
-**Required Headers:**
-```javascript
+```typescript
 res.status(429).set({
-  // How many requests allowed
-  'X-RateLimit-Limit': '100',
-
-  // How many requests remaining
-  'X-RateLimit-Remaining': '0',
-
-  // When the limit resets (Unix timestamp)
-  'X-RateLimit-Reset': '1704067200',
-
-  // How many seconds to wait before retry
-  'Retry-After': '60',
+  "Retry-After": "42",                     // seconds — the one every client understands
+  "RateLimit-Policy": '100;w=60',           // 100 requests per 60s window
+  "RateLimit": 'limit=100, remaining=0, reset=42',
 }).json({
-  error: 'Too many requests',
-  message: 'You have exceeded the rate limit. Please try again in 60 seconds.',
+  type: "https://docs.example.com/errors/rate-limit",
+  title: "Too Many Requests",
+  status: 429,
+  detail: "Limit of 100 requests per minute exceeded. Retry in 42 seconds.",
 });
 ```
 
-**Standard Headers:**
-- `X-RateLimit-Limit`: Maximum requests allowed
-- `X-RateLimit-Remaining`: Requests remaining in current window
-- `X-RateLimit-Reset`: Unix timestamp when limit resets
-- `Retry-After`: Seconds to wait before retry (HTTP standard)
+| Header | Meaning |
+| ------ | ------- |
+| `Retry-After` | Seconds (or an HTTP date) to wait. Send this always |
+| `RateLimit` | Current draft standard: `limit`, `remaining`, `reset` in one header |
+| `X-RateLimit-*` | The legacy trio. Still widely consumed — keep it only for existing clients |
 
-**Example Response:**
-```json
-{
-  "error": "Too many requests",
-  "message": "Rate limit exceeded. Try again in 60 seconds.",
-  "limit": 100,
-  "remaining": 0,
-  "reset": 1704067200,
-  "retryAfter": 60
-}
+> ✨ **Send the headers on successful responses too.** A client that can see `remaining=3` can slow itself down. A client that only learns about the limit at 429 cannot.
+
+**429 vs 503:** 429 means *you* sent too much — a well-behaved client retries later. 503 means the *service* is in trouble. Don't return 429 for a capacity problem you caused.
+
+## Production Concerns
+
+**Fail open or fail closed?** When Redis is down:
+
+| Choice | Consequence |
+| ------ | ----------- |
+| **Fail open** (allow) | Availability preserved; the limiter is gone exactly when load may be highest |
+| **Fail closed** (reject) | One Redis outage becomes a full API outage |
+
+```typescript
+export const limit: RequestHandler = async (req, res, next) => {
+  try {
+    const { allowed, remaining } = await consume(rateLimitKey(req));
+    res.set("RateLimit", `limit=100, remaining=${remaining}`);
+    if (!allowed) return res.status(429).set("Retry-After", "60").json({ title: "Too Many Requests" });
+    return next();
+  } catch (err) {
+    // ✅ Fail open, but make the failure loud — a silent dead limiter is the real risk.
+    req.log.error({ err }, "rate limiter unavailable, allowing request");
+    metrics.increment("ratelimit.unavailable");
+    return next();
+  }
+};
 ```
 
-**Interview Tip:** Mention that these headers help clients implement intelligent retry logic (exponential backoff).
+**Default to fail open with an alert**, and keep a cheap in-process limiter as a fallback so you degrade to approximate limiting rather than none.
+
+**Where to enforce it:**
+
+```
+CDN / WAF        ← volumetric floods; blocks traffic before it costs you anything
+   ↓
+API gateway      ← per-key quotas, global ceilings, one place to configure
+   ↓
+Application      ← business rules: per-tier, per-endpoint cost, per-account quotas
+```
+
+Push crude limits as far out as you can — a request rejected at the edge costs nothing. Keep rules that need business context (which plan, which account, how expensive this query is) in the app, where that context exists.
+
+> 🔴 **Rate limiting is not DDoS protection.** A volumetric attack saturates your bandwidth before your middleware runs. That's a CDN and WAF job. Be clear about the distinction — conflating them is a common interview stumble.
+
+**Roll limits out in monitor mode first.** Log what *would* have been blocked for a week. Real traffic is burstier than anyone predicts, and the first limit you pick is usually too tight for one legitimate integration.
+
+## Interview Questions
+
+**Q1: Token bucket or leaky bucket?**
+
+Token bucket for API rate limiting: tokens accumulate while a client is idle, so a real burst — a page load firing ten requests — succeeds, while the average holds at the refill rate. Leaky bucket queues requests and drains at a fixed rate, so output is perfectly smooth but no burst is allowed. I'd use leaky bucket when I'm the client protecting a downstream system with a hard cap, and token bucket when I'm the server policing callers.
+
+**Q2: What's wrong with fixed window?**
+
+Boundary bursts. A client can send the full limit at 12:00:59 and the full limit again at 12:01:00, so it gets 2× the intended rate in about a second. Sliding window counter fixes it with two counters and a weighted overlap — still O(1) memory, no boundary spike.
+
+**Q3: How do you rate limit across many servers?**
+
+Shared state in Redis, with the whole decision in a Lua script so read-refill-write is atomic. `INCR` plus `EXPIRE` as separate calls can leave a key without a TTL if the process dies in between. At high volume I'd add a per-instance local allowance to cut round trips and accept slight over-admission, and set the key's TTL to the bucket's full-refill time so idle keys clean themselves up.
+
+**Q4: Redis is down — allow or reject?**
+
+Fail open, loudly. Rejecting everything turns a limiter outage into an API outage, which is a worse failure than temporarily unlimited traffic. I'd alert on it, keep an in-process limiter as a degraded fallback, and only fail closed for endpoints where abuse is more expensive than downtime — payments or SMS sending, for example.
+
+**Q5: What do you key on?**
+
+API key or user id when the caller is authenticated, IP only as a fallback. IP is unreliable: an office behind NAT shares one, mobile carriers rotate them, and an IPv6 client has effectively unlimited addresses — which is why you key on a /56 subnet rather than a single address. And `X-Forwarded-For` is forgeable unless a proxy you control rewrote it, so `trust proxy` must be set to the real hop count.
+
+**Q6: Which headers, and which status?**
+
+429 with `Retry-After`. Plus the standard `RateLimit` header carrying limit, remaining, and reset — on successful responses too, so clients can self-throttle before they hit the wall rather than discovering it on a rejection.
+
+**Q7: All endpoints, same limit?**
+
+No. A limit tuned for `GET /me` is far too generous for a report export, and far too strict for a dashboard that legitimately fires twenty calls. I use cost-based token consumption so expensive work spends more budget, plus separate tight limits on auth endpoints, since a general 100/minute limit is a perfectly good credential-stuffing budget.
+
+**Q8: Is rate limiting DDoS protection?**
+
+No. Your middleware only runs after the request reaches your server, so a volumetric flood exhausts bandwidth and connections first. DDoS is handled upstream by a CDN or WAF with anycast capacity. Rate limiting handles application-layer abuse and fairness — a different problem at a different layer.
+
+## Summary
+
+**Checklist:**
+
+- [ ] Token bucket (or sliding window counter) — not fixed window
+- [ ] Shared state in Redis, decision atomic in Lua
+- [ ] Keyed on API key or user id; IP only as fallback
+- [ ] `trust proxy` set to the real number of proxies
+- [ ] IPv6 keyed by subnet, not single address
+- [ ] Cost-weighted limits for expensive endpoints
+- [ ] Strict separate limits on login, reset, and OTP endpoints
+- [ ] `429` with `Retry-After` and `RateLimit` headers, on every response
+- [ ] Fail open, with an alert and a local fallback limiter
+- [ ] Rolled out in monitor mode before enforcing
+- [ ] A global ceiling for load shedding, separate from per-client limits
+
+**Best practices:**
+
+1. **Limit by cost, not by count** — one request is not one unit of work.
+2. **Identity beats address** — key on who the caller is whenever you know.
+3. **Make the limit visible** — headers on success, not just on rejection.
+4. **Enforce at the edge, decide in the app** — cheap blocks outside, business rules inside.
 
 ---
 
-## ✅ Key Takeaways
-
-1. **Choose algorithm based on requirements:**
-   - Fixed window: Simplest, but allows boundary bursts
-   - Sliding window counter: Good balance (production default)
-   - Token bucket: Allows controlled bursts, variable costs
-   - Leaky bucket: Smooth output, queue-based
-
-2. **Use Redis for distributed systems** - Shared state across servers
-
-3. **Return proper headers** - `X-RateLimit-*` and `Retry-After`
-
-4. **Different limits for different users/endpoints** - Tiered pricing, sensitive endpoints
-
-5. **Identify clients properly** - API key > User ID > IP address
-
-6. **Fail gracefully** - If rate limiter fails, fail open (allow request)
-
-7. **Monitor and adjust** - Track rate limit hits, adjust limits based on usage
-
-8. **Time Complexity:** Most algorithms are O(1) except sliding window log O(n)
-
----
-
-[← Back: API Versioning](./03-versioning.md) | [Next: API Documentation →](./05-documentation.md)
+[← Versioning](./03-versioning.md) | [API Index](./README.md) | [Documentation →](./05-documentation.md)

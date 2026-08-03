@@ -2,877 +2,320 @@
 
 ## Overview
 
-API documentation is the technical content that describes how to use and integrate with an API. Good documentation is essential for API adoption, reduces support burden, and improves developer experience.
+Documentation is part of the API, not a chore that follows it. If the contract isn't written down, every consumer reverse-engineers it from responses — and then depends on behaviour you never promised.
 
-**Key Principle:** Documentation should be accurate, complete, easy to understand, and always up-to-date.
+The only documentation question that matters in an interview is **how do you stop it drifting from the code?** Everyone has read good docs. Fewer people have kept them true for two years.
 
----
-
-## 🎯 Why Document Your API?
-
-### 1. Developer Experience
-- Reduces time to first API call
-- Fewer support tickets
-- Higher adoption rates
-- Better developer satisfaction
-
-### 2. Discoverability
-- Helps developers find the right endpoints
-- Shows capabilities and limitations
-- Examples speed up integration
-
-### 3. Maintenance
-- Onboarding new team members
-- Understanding legacy code
-- Planning API changes
-
----
-
-## 📐 Documentation Tools & Standards
-
-### 1. OpenAPI/Swagger (Industry Standard)
-
-**OpenAPI Specification (OAS)** is a standard for describing REST APIs in a machine-readable format.
-
-**JavaScript (Express + Swagger):**
-```javascript
-const express = require('express');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
-
-const app = express();
-
-// Swagger definition
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'User API',
-      version: '1.0.0',
-      description: 'A simple Express User API',
-      contact: {
-        name: 'API Support',
-        email: 'support@example.com',
-      },
-    },
-    servers: [
-      {
-        url: 'http://localhost:3000/api/v1',
-        description: 'Development server',
-      },
-      {
-        url: 'https://api.example.com/v1',
-        description: 'Production server',
-      },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-    },
-    security: [{
-      bearerAuth: [],
-    }],
-  },
-  apis: ['./routes/*.js'], // Path to the API docs
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
-// Routes with JSDoc comments
-/**
- * @swagger
- * /users:
- *   get:
- *     summary: Get all users
- *     description: Retrieve a list of all users
- *     tags: [Users]
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 20
- *         description: Number of users per page
- *     responses:
- *       200:
- *         description: List of users
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/User'
- *                 meta:
- *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                     limit:
- *                       type: integer
- *                     total:
- *                       type: integer
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
-app.get('/api/v1/users', async (req, res) => {
-  const { page = 1, limit = 20 } = req.query;
-  const users = await User.find().skip((page - 1) * limit).limit(limit);
-  const total = await User.countDocuments();
-
-  res.json({
-    data: users,
-    meta: { page: parseInt(page), limit: parseInt(limit), total },
-  });
-});
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     User:
- *       type: object
- *       required:
- *         - email
- *         - name
- *       properties:
- *         id:
- *           type: string
- *           description: Auto-generated user ID
- *         name:
- *           type: string
- *           description: User's full name
- *         email:
- *           type: string
- *           format: email
- *           description: User's email address
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: Account creation timestamp
- *       example:
- *         id: 507f1f77bcf86cd799439011
- *         name: John Doe
- *         email: john@example.com
- *         createdAt: 2024-01-01T00:00:00.000Z
- */
-
-/**
- * @swagger
- * /users/{id}:
- *   get:
- *     summary: Get user by ID
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
- *     responses:
- *       200:
- *         description: User found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       404:
- *         description: User not found
- */
-app.get('/api/v1/users/:id', async (req, res) => {
-  const user = await User.findById(req.params.id);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(user);
-});
-
-app.listen(3000);
-```
-
-**Python (FastAPI - Built-in Documentation):**
-```python
-from fastapi import FastAPI, Query, HTTPException
-from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional
-from datetime import datetime
-
-app = FastAPI(
-    title="User API",
-    description="A simple User API",
-    version="1.0.0",
-    contact={
-        "name": "API Support",
-        "email": "support@example.com",
-    },
-    servers=[
-        {"url": "http://localhost:8000", "description": "Development"},
-        {"url": "https://api.example.com", "description": "Production"},
-    ]
-)
-
-# Models automatically generate schema
-class User(BaseModel):
-    id: str = Field(..., description="Auto-generated user ID")
-    name: str = Field(..., min_length=2, max_length=50, description="User's full name")
-    email: EmailStr = Field(..., description="User's email address")
-    createdAt: datetime = Field(..., description="Account creation timestamp")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "507f1f77bcf86cd799439011",
-                "name": "John Doe",
-                "email": "john@example.com",
-                "createdAt": "2024-01-01T00:00:00.000Z"
-            }
-        }
-
-class UserListResponse(BaseModel):
-    data: List[User]
-    meta: dict
-
-@app.get(
-    "/api/v1/users",
-    response_model=UserListResponse,
-    summary="Get all users",
-    description="Retrieve a paginated list of all users",
-    tags=["Users"],
-    responses={
-        200: {"description": "List of users"},
-        401: {"description": "Unauthorized"},
-        500: {"description": "Server error"},
-    }
-)
-async def get_users(
-    page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(20, ge=1, le=100, description="Items per page")
-):
-    """
-    Get all users with pagination.
-
-    - **page**: Page number (default: 1)
-    - **limit**: Number of users per page (default: 20, max: 100)
-    """
-    # Implementation
-    users = await fetch_users(page, limit)
-    total = await count_users()
-
-    return {
-        "data": users,
-        "meta": {"page": page, "limit": limit, "total": total}
-    }
-
-@app.get(
-    "/api/v1/users/{user_id}",
-    response_model=User,
-    summary="Get user by ID",
-    tags=["Users"],
-    responses={
-        200: {"description": "User found"},
-        404: {"description": "User not found"},
-    }
-)
-async def get_user(user_id: str):
-    """Get a specific user by ID"""
-    user = await fetch_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
-# Auto-generated interactive docs at:
-# - /docs (Swagger UI)
-# - /redoc (ReDoc)
-```
-
-**Benefits of OpenAPI:**
-- ✅ Interactive documentation (Swagger UI)
-- ✅ Auto-generate client SDKs
-- ✅ API testing directly from docs
-- ✅ Industry standard
-- ✅ Machine-readable
-
----
-
-### 2. README-Driven Documentation
-
-**Structure:**
-```markdown
-# API Name
-
-Brief description of what the API does.
+> **The answer, in one line:** one machine-readable schema, checked in CI, that both validates requests and generates the docs. Prose that a human maintains separately is prose that will be wrong by next quarter.
 
 ## Table of Contents
-- [Authentication](#authentication)
-- [Rate Limiting](#rate-limiting)
-- [Endpoints](#endpoints)
-- [Error Handling](#error-handling)
-- [Examples](#examples)
 
-## Base URL
+- [What Documentation Must Contain](#what-documentation-must-contain)
+- [OpenAPI: The Standard](#openapi-the-standard)
+- [Code-First vs Spec-First](#code-first-vs-spec-first)
+- [One Source of Truth](#one-source-of-truth)
+- [Serving the Docs](#serving-the-docs)
+- [Preventing Drift in CI](#preventing-drift-in-ci)
+- [Documenting Change](#documenting-change)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
+
+## What Documentation Must Contain
+
+Ranked by how often its absence causes a support ticket:
+
+| Section | Why it matters |
+| ------- | -------------- |
+| **Auth** — how to get a credential, how to send it, how it expires | Blocks the very first call |
+| **A working example per endpoint** — real request, real response | What developers actually read |
+| **Errors** — every status, the error shape, what each code means | Half of integration work is failure handling |
+| **Pagination, filtering, sorting** | Nobody guesses your cursor format |
+| **Rate limits** — the numbers, the headers, the retry advice | Discovered at 429, which is too late |
+| **Field semantics** — units, timezone, currency, nullability | `amount: 1000` — cents or dollars? |
+| **Changelog and deprecations** | The only way a consumer plans work |
+| **A quickstart** — first successful call in under five minutes | Drives adoption more than anything else |
+
+❌ **Useless:**
+
 ```
-Production: https://api.example.com/v1
-Development: http://localhost:3000/api/v1
-```
-
-## Authentication
-
-All requests require authentication via JWT token:
-
-```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://api.example.com/v1/users
-```
-
-## Rate Limiting
-
-- **Free tier**: 100 requests/hour
-- **Pro tier**: 10,000 requests/hour
-
-Rate limit headers:
-- `X-RateLimit-Limit`: Max requests
-- `X-RateLimit-Remaining`: Remaining requests
-- `X-RateLimit-Reset`: Reset timestamp
-
-## Endpoints
-
-### Get All Users
-
-```http
-GET /users?page=1&limit=20
+GET /users — returns users.
 ```
 
-**Query Parameters:**
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| page | integer | No | Page number (default: 1) |
-| limit | integer | No | Items per page (default: 20) |
+✅ **Useful:** the request with headers, the exact response body, the failure cases, and the meaning of every field that isn't self-evident.
 
-**Response (200 OK):**
-```json
-{
-  "data": [
-    {
-      "id": "507f1f77bcf86cd799439011",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    }
-  ],
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 150
-  }
-}
+> ✨ **Document the things a schema can't express.** Types tell a reader `expiresAt` is a string. Only prose tells them it's UTC, that it's exclusive, and that a null means "never expires". That's where handwritten docs earn their keep — not in re-listing fields.
+
+## OpenAPI: The Standard
+
+[OpenAPI](https://spec.openapis.org/oas/latest.html) (formerly Swagger) describes a REST API as a machine-readable document. That machine-readability is the whole point:
+
+- ✅ Interactive docs — Swagger UI, Redoc, Scalar
+- ✅ Generated client SDKs in many languages
+- ✅ Generated server stubs and mock servers
+- ✅ Contract tests that assert responses match the spec
+- ✅ Linting for consistency (Spectral)
+
+**3.1 is the version to use.** It aligns with JSON Schema 2020-12, which means the same schema can drive validation *and* documentation. Naming that in an interview shows you've looked at the spec this decade.
+
+```yaml
+openapi: 3.1.0
+info:
+  title: Orders API
+  version: 1.4.0
+paths:
+  /orders/{id}:
+    get:
+      summary: Fetch a single order
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+        "404":
+          description: No order with that id
 ```
 
-### Create User
+Writing that by hand for 60 endpoints is exactly how docs rot. Generate it.
 
-```http
-POST /users
-```
+## Code-First vs Spec-First
 
-**Request Body:**
-```json
-{
-  "name": "Jane Doe",
-  "email": "jane@example.com"
-}
-```
+| | **Code-first** (generate spec from code) | **Spec-first** (write spec, generate types) |
+| --- | --- | --- |
+| Source of truth | The implementation | The contract document |
+| Drift risk | ✅ Low — spec follows the code | ⚠️ Real — code can ignore the spec |
+| Design quality | ⚠️ API shape leaks implementation details | ✅ Forces you to design before building |
+| Parallel work | ❌ Clients wait for the server | ✅ Clients mock from the spec on day one |
+| Best for | Internal services, one team | Public APIs, multiple teams, mobile clients |
 
-**Response (201 Created):**
-```json
-{
-  "id": "507f1f77bcf86cd799439012",
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "createdAt": "2024-01-02T00:00:00.000Z"
-}
-```
+**Recommendation:** spec-first when the API crosses a team boundary, code-first inside a single service. And whichever you pick, the runtime must validate against the same schema — otherwise "the spec" is just a document, and documents lie.
 
-## Error Handling
+## One Source of Truth
 
-All errors follow this format:
+The strongest setup in TypeScript: define each schema once with Zod, use it for runtime validation, static types, *and* the OpenAPI document.
 
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Validation failed",
-    "details": [
-      {
-        "field": "email",
-        "message": "Email is already taken"
-      }
-    ]
-  }
-}
-```
+```typescript
+import { z } from "zod";
+import {
+  extendZodWithOpenApi,
+  OpenAPIRegistry,
+  OpenApiGeneratorV31,
+} from "@asteasolutions/zod-to-openapi";
 
-**Error Codes:**
-- `VALIDATION_ERROR` (422): Invalid input
-- `UNAUTHORIZED` (401): Missing or invalid token
-- `FORBIDDEN` (403): Insufficient permissions
-- `NOT_FOUND` (404): Resource not found
-- `RATE_LIMIT_EXCEEDED` (429): Too many requests
+extendZodWithOpenApi(z); // adds .openapi() metadata to Zod schemas
 
-## Examples
+const registry = new OpenAPIRegistry();
 
-### JavaScript (Fetch)
+// ── The one definition ────────────────────────────────────────────
+const OrderSchema = z
+  .object({
+    id: z.string().uuid().openapi({ example: "7c9e6679-7425-40de-944b-e07fc1f90ae7" }),
+    // ✅ Put the ambiguous bits in the description — a type can't carry them.
+    total: z.number().int().openapi({
+      description: "Order total in the smallest currency unit (cents).",
+      example: 4999,
+    }),
+    currency: z.string().length(3).openapi({ example: "GBP" }),
+    status: z.enum(["pending", "shipped", "cancelled"]),
+    createdAt: z.string().datetime().openapi({ description: "UTC, ISO 8601." }),
+  })
+  .openapi("Order"); // becomes #/components/schemas/Order
 
-```javascript
-const response = await fetch('https://api.example.com/v1/users', {
-  headers: {
-    'Authorization': 'Bearer YOUR_TOKEN',
-    'Content-Type': 'application/json',
+export type Order = z.infer<typeof OrderSchema>; // static type, free
+
+registry.registerPath({
+  method: "get",
+  path: "/orders/{id}",
+  summary: "Fetch a single order",
+  tags: ["Orders"],
+  request: { params: z.object({ id: z.string().uuid() }) },
+  responses: {
+    200: {
+      description: "The order.",
+      content: { "application/json": { schema: OrderSchema } },
+    },
+    404: { description: "No order with that id." },
   },
 });
 
-const data = await response.json();
-console.log(data);
-```
-
-### Python (Requests)
-
-```python
-import requests
-
-headers = {
-    'Authorization': 'Bearer YOUR_TOKEN',
-    'Content-Type': 'application/json',
-}
-
-response = requests.get('https://api.example.com/v1/users', headers=headers)
-data = response.json()
-print(data)
-```
-
-### cURL
-
-```bash
-curl -X GET https://api.example.com/v1/users \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json"
-```
-```
-
----
-
-## 📊 Documentation Best Practices
-
-### 1. Always Include Examples
-
-**❌ BAD:**
-```
-GET /users
-Returns list of users
-```
-
-**✅ GOOD:**
-```http
-GET /users?page=1&limit=20
-Authorization: Bearer YOUR_TOKEN
-
-Response (200 OK):
-{
-  "data": [
-    { "id": 1, "name": "John", "email": "john@example.com" }
-  ],
-  "meta": { "page": 1, "limit": 20, "total": 100 }
+// ── The generated document ────────────────────────────────────────
+export function buildOpenApiDocument() {
+  return new OpenApiGeneratorV31(registry.definitions).generateDocument({
+    openapi: "3.1.0",
+    info: { title: "Orders API", version: "1.4.0" },
+    servers: [{ url: "https://api.example.com/v1" }],
+  });
 }
 ```
 
-### 2. Document All Parameters
+Now use the *same* schema in the handler:
 
-```markdown
-### Query Parameters
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| page | integer | No | 1 | Page number for pagination |
-| limit | integer | No | 20 | Items per page (max: 100) |
-| sort | string | No | -createdAt | Sort field. Prefix with `-` for desc |
-| filter | string | No | - | Filter by status: active, inactive |
-```
-
-### 3. Document Error Responses
-
-```markdown
-### Responses
-
-**200 OK**
-```json
-{ "data": [...] }
-```
-
-**400 Bad Request**
-```json
-{
-  "error": {
-    "code": "INVALID_INPUT",
-    "message": "Invalid query parameter: limit must be between 1 and 100"
-  }
-}
-```
-
-**401 Unauthorized**
-```json
-{
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Missing or invalid authentication token"
-  }
-}
-```
-
-**404 Not Found**
-```json
-{
-  "error": {
-    "code": "NOT_FOUND",
-    "message": "User with ID 123 not found"
-  }
-}
-```
-```
-
-### 4. Provide Code Examples in Multiple Languages
-
-```markdown
-## Examples
-
-### JavaScript
-```javascript
-const user = await fetch('/users/123').then(r => r.json());
-```
-
-### Python
-```python
-response = requests.get('/users/123')
-user = response.json()
-```
-
-### cURL
-```bash
-curl https://api.example.com/v1/users/123
-```
-```
-
-### 5. Document Authentication
-
-```markdown
-## Authentication
-
-This API uses JWT bearer tokens for authentication.
-
-### Getting a Token
-
-```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-```
-
-Response:
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expiresIn": 86400
-}
-```
-
-### Using the Token
-
-Include the token in the Authorization header:
-
-```http
-GET /users
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-```
-
-### 6. Keep Documentation Up-to-Date
-
-**Strategies:**
-- ✅ Auto-generate from code (OpenAPI, JSDoc)
-- ✅ Version docs alongside code
-- ✅ Include docs in code review
-- ✅ CI/CD checks for doc updates
-- ✅ Use type definitions (TypeScript, Pydantic)
-
----
-
-## 🎤 Common Interview Questions
-
-### Q1: What information should API documentation include?
-
-**Answer:**
-
-**Essential Information:**
-
-1. **Overview & Introduction**
-   - What the API does
-   - Base URL
-   - Version
-
-2. **Authentication**
-   - How to get credentials/tokens
-   - How to authenticate requests
-   - Token expiration and refresh
-
-3. **Endpoints**
-   - HTTP method and path
-   - Description
-   - Parameters (path, query, headers, body)
-   - Request examples
-   - Response examples (success and error)
-   - Status codes
-
-4. **Rate Limiting**
-   - Limits per tier
-   - Headers returned
-   - How to handle rate limits
-
-5. **Error Handling**
-   - Error response format
-   - Error codes and meanings
-   - How to debug errors
-
-6. **Examples**
-   - Code samples in multiple languages
-   - Common use cases
-   - Complete workflows
-
-7. **SDKs & Libraries**
-   - Official client libraries
-   - Community SDKs
-   - Installation instructions
-
-8. **Versioning**
-   - Current version
-   - Deprecation timeline
-   - Migration guides
-
-9. **Changelog**
-   - What changed in each version
-   - Breaking changes
-   - New features
-
-10. **Support**
-    - How to get help
-    - Community forums
-    - Issue tracker
-
----
-
-### Q2: How do you keep API documentation synchronized with code?
-
-**Answer:**
-
-**Strategies:**
-
-**1. Generate from Code (Best)**
-```javascript
-// Use annotations/decorators
-/**
- * @swagger
- * /users:
- *   get:
- *     description: Get all users
- */
-app.get('/users', handler);
-
-// Or use framework features (FastAPI auto-generates docs)
-@app.get("/users", response_model=List[User])
-async def get_users():
-    pass
-```
-
-**2. Type Definitions as Source of Truth**
 ```typescript
-// Define types
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-// Generate OpenAPI schema from types
-// Documentation always matches code
-```
-
-**3. CI/CD Validation**
-```yaml
-# .github/workflows/docs.yml
-- name: Validate OpenAPI spec
-  run: |
-    npm run generate-openapi
-    git diff --exit-code openapi.yaml
-    # Fails if spec changed but not committed
-```
-
-**4. Documentation Tests**
-```javascript
-// Test that endpoints match documentation
-it('should match OpenAPI spec', async () => {
-  const response = await request(app).get('/users');
-  expect(response).toMatchSchema(openApiSpec.paths['/users'].get);
+// The validator and the docs cannot disagree — they're the same object.
+app.get("/orders/:id", async (req, res) => {
+  const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+  const order = await service.findById(id);
+  if (!order) return res.status(404).json({ title: "Not found", status: 404 });
+  res.json(OrderSchema.parse(order)); // ⚠️ in dev/test — see below
 });
 ```
 
-**5. Include in Code Review**
-- Require docs update with code changes
-- Use PR templates: "Did you update docs?"
+> ⚠️ **Parsing responses catches drift immediately** but costs CPU on every request and can turn a serialization bug into a 500. Run it in development and tests, and in production either sample it or log the mismatch instead of throwing.
 
-**Interview Tip:** Emphasize that auto-generation from code is best because documentation can't drift from implementation.
+## Serving the Docs
 
----
+```typescript
+import swaggerUi from "swagger-ui-express";
 
-### Q3: What are the pros and cons of OpenAPI/Swagger?
+const document = buildOpenApiDocument();
 
-**Answer:**
+// Machine-readable — SDK generators and contract tests consume this.
+app.get("/openapi.json", (_req, res) => res.json(document));
 
-| Aspect | Pros | Cons |
-|--------|------|------|
-| **Adoption** | ✅ Industry standard | ❌ Learning curve |
-| **Tooling** | ✅ Excellent (Swagger UI, ReDoc, code gen) | ❌ Some tools have limitations |
-| **Accuracy** | ✅ Machine-readable, can validate | ❌ Manual YAML can drift |
-| **Developer Experience** | ✅ Interactive testing | ❌ Verbose for simple APIs |
-| **Client SDKs** | ✅ Auto-generate in many languages | ❌ Generated code may not be idiomatic |
-| **Maintenance** | ✅ Code annotations keep it synced | ❌ Requires discipline |
-
-**When to Use:**
-- ✅ Public APIs
-- ✅ Large APIs (many endpoints)
-- ✅ Need to generate client SDKs
-- ✅ Multiple consumers
-
-**When to Skip:**
-- ❌ Internal APIs (simple README sufficient)
-- ❌ Very simple APIs (< 5 endpoints)
-- ❌ GraphQL APIs (use built-in introspection)
-
-**Interview Tip:** Mention that FastAPI has OpenAPI built-in, making it zero-effort. Express requires more setup.
-
----
-
-### Q4: How would you document a breaking change in your API?
-
-**Answer:**
-
-**5-Step Process:**
-
-**1. Announce in Changelog**
-```markdown
-## Version 2.0.0 (2024-06-01)
-
-### ⚠️ BREAKING CHANGES
-
-- **User endpoint response structure changed**
-  - Old: `{ id, name }`
-  - New: `{ id, fullName, email }`
-  - Migration: Replace `name` with `fullName`
-
-- **Authentication now requires API key**
-  - Old: No authentication
-  - New: `X-API-Key` header required
-  - Migration: [Get API key here](/dashboard/api-keys)
+// Human-readable.
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(document));
 ```
 
-**2. Add Deprecation Warnings to Docs**
-```markdown
-## GET /users (v1) - DEPRECATED
+| Renderer | Strength |
+| -------- | -------- |
+| **Swagger UI** | Try-it-out console; the familiar default |
+| **Redoc** | Best reading experience for a large API |
+| **Scalar** | Modern UI, generates client snippets |
 
-⚠️ **This endpoint is deprecated and will be removed on 2024-12-31.**
+> 🔴 **Interactive docs on a production endpoint need a decision, not a default.** For a public API, publish freely — the endpoints are public anyway. For an internal one, put `/docs` behind auth. And never let the try-it-out console point at production data with a pre-filled admin token.
 
-Use [`GET /api/v2/users`](#get-users-v2) instead.
+## Preventing Drift in CI
 
-### Migration Guide
-1. Update base URL from `/api/v1` to `/api/v2`
-2. Response field `name` renamed to `fullName`
-3. Add `X-API-Key` header
-```
+Three checks, each cheap, that together make stale docs a build failure.
 
-**3. Provide Side-by-Side Comparison**
-```markdown
-### V1 (Deprecated)
-```http
-GET /api/v1/users/123
-
-Response:
-{ "id": 123, "name": "John" }
-```
-
-### V2 (Current)
-```http
-GET /api/v2/users/123
-X-API-Key: your_key_here
-
-Response:
-{ "id": 123, "fullName": "John", "email": "john@example.com" }
-```
-```
-
-**4. Add Migration Script/Tool**
-```markdown
-### Automated Migration
-
-We provide a CLI tool to help migrate:
+**1. The committed spec must match the code.**
 
 ```bash
-npm install -g api-migration-tool
-api-migration-tool migrate-v1-to-v2 ./src
-```
+# Regenerate and diff. Fails if someone changed a route without regenerating.
+npm run generate:openapi
+git diff --exit-code openapi.json
 ```
 
-**5. Document Timeline**
+**2. The spec must be valid and consistent.** [Spectral](https://stoplight.io/open-source/spectral) lints style rules — every operation has a summary, every error response is documented, naming is consistent.
+
+```bash
+npx @stoplight/spectral-cli lint openapi.json --fail-severity warn
+```
+
+**3. Real responses must match the spec.** This is the check that catches genuine lies.
+
+```typescript
+import { buildOpenApiDocument } from "../src/openapi";
+import request from "supertest";
+
+const document = buildOpenApiDocument();
+
+it("GET /orders/:id matches its documented 200 schema", async () => {
+  const res = await request(app).get(`/orders/${seeded.id}`).set("Authorization", token);
+
+  expect(res.status).toBe(200);
+  // Validate the live payload against the schema in the spec.
+  expect(res.body).toMatchSchema(
+    document.paths!["/orders/{id}"].get!.responses["200"].content["application/json"].schema,
+  );
+});
+```
+
+> ✨ **Breaking-change detection is the highest-value check.** Tools like `oasdiff` compare the spec on your branch against the released one and fail the build on a removed field or a tightened type. It turns "is this breaking?" from a judgement call in review into a machine answer. Pairs directly with [Versioning](./03-versioning.md).
+
+## Documenting Change
+
+A changelog aimed at consumers, not a git log.
+
 ```markdown
-## Deprecation Timeline
+## 2026-08-01 — v2.3.0
 
-- **2024-06-01**: V2 released
-- **2024-08-01**: V1 marked deprecated (still works)
-- **2024-10-01**: Email reminder to V1 users
-- **2024-12-01**: Final warning
-- **2024-12-31**: V1 sunset (returns 410 Gone)
+### Added
+- `GET /orders` accepts `status` filter.
+- `Order.refundedAt` (nullable) on all order responses.
+
+### Deprecated
+- `Order.amount` — use `Order.total` (an object with `amount` and `currency`).
+  Removal: 2027-02-01. See the migration guide.
+
+### Fixed
+- `GET /orders` returned 500 instead of 400 for an invalid cursor.
 ```
 
-**Interview Tip:** Mention that breaking changes should be rare, and the migration path should be as smooth as possible.
+**Rules that make a changelog usable:**
+
+- ✅ Dated, newest first, grouped Added / Changed / Deprecated / Removed / Fixed.
+- ✅ Every deprecation names its replacement **and** its removal date.
+- ✅ Behaviour changes count as changes — a new default sort belongs here.
+- ❌ No commit hashes, no internal refactors, no ticket numbers without context.
+
+**Mark deprecation in the spec too**, so tooling and generated SDKs surface it:
+
+```yaml
+Order:
+  properties:
+    amount:
+      type: integer
+      deprecated: true
+      description: "Deprecated — use `total`. Removed after 2027-02-01."
+```
+
+## Interview Questions
+
+**Q1: How do you keep documentation in sync with the code?**
+
+Generate it from the same schema the code validates against. I define request and response schemas once — Zod in a TypeScript service — derive both the runtime validator and the OpenAPI document from it, then enforce three CI checks: the committed spec matches a fresh generation, the spec lints clean, and live responses validate against the documented schemas. Docs that are hand-maintained alongside code always drift; the fix is structural, not disciplinary.
+
+**Q2: Code-first or spec-first?**
+
+Spec-first when the API crosses a team boundary — it forces design before implementation and lets client teams mock from the spec instead of waiting. Code-first inside a single service, where the drift risk of writing a document nobody enforces is the bigger problem. Either way the runtime must validate against the same schema, or the spec is just a wish.
+
+**Q3: What does good documentation include beyond endpoint listings?**
+
+The parts a schema can't express: authentication end to end, error semantics for every status, pagination mechanics, rate limits with their headers, and field semantics — units, timezone, nullability, whether a range is inclusive. Plus a quickstart that gets someone to a successful call in five minutes, and a changelog they can plan against. A generated field list without those is a type definition, not documentation.
+
+**Q4: OpenAPI's downsides?**
+
+It's verbose, so hand-writing it invites drift; generation is essentially mandatory. Generated SDKs are often unidiomatic. It models request/response REST well and streaming, webhooks, and long-running jobs awkwardly — 3.1 added webhook support, which helps. And it says nothing about semantics: a spec can be perfectly valid and still not tell you the timezone.
+
+**Q5: Do GraphQL APIs need this?**
+
+The schema *is* the machine-readable contract, and introspection gives you the type explorer for free — so you skip OpenAPI. What you still owe consumers is everything introspection can't carry: which queries are expensive, the cost limits, deprecation timelines with `@deprecated`, and auth semantics per field. Introspection is usually disabled in production, so you also need a published schema artifact.
+
+**Q6: How do you document a breaking change?**
+
+Announce it in the changelog with the old and new shapes side by side and a dated removal timeline. Mark the old field `deprecated` in the spec so generated SDKs warn. Publish a migration guide with concrete before/after examples, and link to it from the `Deprecation` and `Sunset` response headers. Then verify with usage metrics that people actually migrated before removing anything.
+
+**Q7: Should docs be versioned?**
+
+Yes — docs ship with the code that implements them, and every supported version needs its docs live simultaneously. A consumer still on v1 needs v1's docs while v2's exist. I keep the spec in the repo, tag it with releases, and publish one docs site per supported version.
+
+## Summary
+
+**Checklist:**
+
+- [ ] One schema drives validation, static types, and the spec
+- [ ] OpenAPI 3.1, generated — never hand-maintained
+- [ ] `/openapi.json` served for tooling; a rendered UI for humans
+- [ ] CI fails if the committed spec differs from a fresh generation
+- [ ] CI lints the spec (every operation summarised, errors documented)
+- [ ] Contract tests validate live responses against documented schemas
+- [ ] Breaking-change diff against the released spec in CI
+- [ ] Auth, errors, pagination, and rate limits documented in prose
+- [ ] Units, timezones, and nullability spelled out per field
+- [ ] Changelog with dated deprecations and removal dates
+- [ ] Docs versioned and published per supported API version
+
+**Best practices:**
+
+1. **Generate what a machine can, write what only a human can** — types from schema, semantics from prose.
+2. **Make drift a build failure** — good intentions don't survive a deadline.
+3. **Lead with a working example** — nobody reads a field table first.
+4. **Version docs with code** — every supported version stays published.
 
 ---
 
-## ✅ Key Takeaways
-
-1. **OpenAPI/Swagger is industry standard** for REST APIs
-2. **FastAPI auto-generates docs** from code - zero effort
-3. **Express requires manual setup** but swagger-jsdoc helps
-4. **Include examples in multiple languages** - JavaScript, Python, cURL
-5. **Document errors comprehensively** - all status codes and error formats
-6. **Auto-generate from code** when possible to keep docs in sync
-7. **Version docs alongside code** - include in CI/CD
-8. **Provide interactive documentation** - Swagger UI for testing
-9. **Document breaking changes clearly** with migration guides
-10. **Keep docs simple** - README may be enough for internal APIs
-
----
-
-[← Back: Rate Limiting](./04-rate-limiting.md) | [Next: WebSockets →](./06-websockets.md)
+[← Rate Limiting](./04-rate-limiting.md) | [API Index](./README.md) | [WebSockets →](./06-websockets.md)

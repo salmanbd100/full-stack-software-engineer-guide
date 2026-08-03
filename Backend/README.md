@@ -53,7 +53,7 @@ MongoDB document modeling and Redis. Start with the [module index](./NoSQL/READM
 
 ### [API/](./API/)
 
-REST, GraphQL, and real-time.
+REST, GraphQL, and real-time. Start with the [module index](./API/README.md) for the study path and pre-ship checklist.
 
 | #   | Topic                                                     |
 | --- | --------------------------------------------------------- |
@@ -81,7 +81,7 @@ Authentication, authorization, transport, and input safety. Start with the [modu
 
 ### [DesignPatterns/](./DesignPatterns/)
 
-Gang of Four patterns and SOLID principles in TypeScript.
+Gang of Four patterns and SOLID principles in TypeScript. Start with the [module index](./DesignPatterns/README.md) for the study path and interview frequency table.
 
 | #   | Topic                                                                 |
 | --- | --------------------------------------------------------------------- |

@@ -1,1830 +1,433 @@
-# Creational Design Patterns
+# Creational Patterns
 
-## 🎯 Overview
+## Overview
 
-Creational patterns **abstract the object instantiation process**, making a system independent of how its objects are created, composed, and represented. They help make a system independent of how its objects are created.
+Creational patterns answer one question: **who decides which class gets instantiated, and when?** Every one of them exists to move a `new` call away from the code that depends on the result.
 
-### When to Use Creational Patterns
+In TypeScript most of them are smaller than the Gang of Four descriptions suggest. Functions are first class, objects are literals, and modules are singletons already — so the pattern is often three lines, not a class hierarchy.
 
-| Scenario | Pattern |
-|----------|---------|
-| Need exactly one instance | Singleton |
-| Hide concrete class from client | Factory Method |
-| Create families of related objects | Abstract Factory |
-| Complex object construction | Builder |
-| Clone existing objects | Prototype |
+> **What interviewers are really checking:** can you name the coupling problem the pattern removes? "Factory hides the concrete class from the caller" is an answer. Reciting the UML diagram is not.
 
----
+## Table of Contents
+
+- [Quick Decision Table](#quick-decision-table)
+- [Singleton](#singleton)
+- [Factory](#factory)
+- [Abstract Factory](#abstract-factory)
+- [Builder](#builder)
+- [Prototype](#prototype)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
+
+## Quick Decision Table
+
+| You need | Pattern | In TypeScript, usually |
+| -------- | ------- | ---------------------- |
+| Exactly one shared instance | **Singleton** | A module-level export |
+| To hide which class the caller gets | **Factory** | A function returning an interface |
+| Families of objects that must match | **Abstract Factory** | An object of factory functions |
+| To build one complex object in steps | **Builder** | Chained methods, or just an options object |
+| Copies of an expensive object | **Prototype** | `structuredClone` or a `clone()` method |
 
 ## Singleton
 
 ### 💡 **Intent**
 
-Ensure a class has only **one instance** and provide a **global point of access** to it.
+Guarantee one instance of something and give the whole app a way to reach it.
 
-### Problem It Solves
+**The real use case is a resource you must not duplicate:** a database connection pool, a Redis client, a metrics registry. Two pools means twice the connections your database budgeted for.
 
-```
-Without Singleton:
-├── Multiple database connections created unnecessarily
-├── Inconsistent configuration across the application
-├── Resource wastage (memory, connections)
-└── Race conditions in initialization
-```
-
-### Structure
-
-```
-┌─────────────────────────────────┐
-│           Singleton             │
-├─────────────────────────────────┤
-│ - instance: Singleton           │
-├─────────────────────────────────┤
-│ - constructor()                 │
-│ + getInstance(): Singleton      │
-│ + businessMethod()              │
-└─────────────────────────────────┘
-```
-
-### Implementation
-
-**Basic Singleton (TypeScript):**
+**In TypeScript, a module is already a singleton.** ES modules are evaluated once and cached, so this is the whole pattern:
 
 ```typescript
-interface ConnectionObject {
-  connected: boolean;
-  timestamp: number;
-}
+// db.ts — evaluated once, no matter how many files import it.
+import { Pool } from "pg";
 
-class DatabaseConnection {
-  private static instance: DatabaseConnection | null = null;
-  private connection: ConnectionObject;
-
-  constructor() {
-    if (DatabaseConnection.instance) {
-      throw new Error('Use DatabaseConnection.getInstance() instead');
-    }
-    this.connection = this.createConnection();
-  }
-
-  public static getInstance(): DatabaseConnection {
-    if (!DatabaseConnection.instance) {
-      DatabaseConnection.instance = new DatabaseConnection();
-    }
-    return DatabaseConnection.instance;
-  }
-
-  private createConnection(): ConnectionObject {
-    console.log('Creating database connection...');
-    return { connected: true, timestamp: Date.now() };
-  }
-
-  public query(sql: string): string {
-    return `Executing: ${sql}`;
-  }
-}
-
-// Usage
-const db1 = DatabaseConnection.getInstance();
-const db2 = DatabaseConnection.getInstance();
-console.log(db1 === db2); // true - same instance
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+});
 ```
 
-**Module Pattern Singleton (Preferred in TypeScript):**
+**The classic class form** still shows up in interviews, so know it — and know why lazy initialization matters when construction is expensive:
 
 ```typescript
-// logger.ts
-interface LogEntry {
-  timestamp: Date;
-  message: string;
-}
+class MetricsRegistry {
+  private static instance: MetricsRegistry | null = null;
+  private readonly counters = new Map<string, number>();
 
-interface LoggerInstance {
-  log(message: string): void;
-  getLogs(): LogEntry[];
-  clear(): void;
-}
+  // Private constructor blocks `new MetricsRegistry()`.
+  private constructor() {}
 
-const Logger = (() => {
-  let instance: LoggerInstance | undefined;
-
-  function createInstance(): LoggerInstance {
-    const logs: LogEntry[] = [];
-
-    return {
-      log(message: string): void {
-        const entry: LogEntry = { timestamp: new Date(), message };
-        logs.push(entry);
-        console.log(`[${entry.timestamp.toISOString()}] ${message}`);
-      },
-
-      getLogs(): LogEntry[] {
-        return [...logs];
-      },
-
-      clear(): void {
-        logs.length = 0;
-      }
-    };
+  static getInstance(): MetricsRegistry {
+    // Lazy: nothing is built until someone actually asks.
+    MetricsRegistry.instance ??= new MetricsRegistry();
+    return MetricsRegistry.instance;
   }
 
-  return {
-    getInstance(): LoggerInstance {
-      if (!instance) {
-        instance = createInstance();
-      }
-      return instance;
-    }
-  };
-})();
-
-export default Logger;
-
-// Usage
-import Logger from './logger';
-
-const logger1 = Logger.getInstance();
-const logger2 = Logger.getInstance();
-logger1.log('Application started');
-console.log(logger1 === logger2); // true
+  increment(name: string): void {
+    this.counters.set(name, (this.counters.get(name) ?? 0) + 1);
+  }
+}
 ```
 
-**TypeScript Singleton:**
+> ⚠️ **Thread safety is a non-issue in Node.** Single-threaded JavaScript means no double-checked locking, no `volatile`. But say *why*: if the constructor does async work, two callers can still both start it, so you cache the **promise**, not the instance.
 
 ```typescript
-class ConfigManager {
-  private static instance: ConfigManager;
-  private config: Map<string, string> = new Map();
+let connecting: Promise<Client> | null = null;
 
-  private constructor() {
-    this.loadDefaults();
-  }
-
-  public static getInstance(): ConfigManager {
-    if (!ConfigManager.instance) {
-      ConfigManager.instance = new ConfigManager();
-    }
-    return ConfigManager.instance;
-  }
-
-  private loadDefaults(): void {
-    this.config.set('environment', process.env.NODE_ENV || 'development');
-    this.config.set('port', process.env.PORT || '3000');
-  }
-
-  public get(key: string): string | undefined {
-    return this.config.get(key);
-  }
-
-  public set(key: string, value: string): void {
-    this.config.set(key, value);
-  }
+// ✅ Cache the promise so concurrent callers await the same connection.
+export function getClient(): Promise<Client> {
+  connecting ??= createClient().connect();
+  return connecting;
 }
-
-// Usage
-const config = ConfigManager.getInstance();
-console.log(config.get('environment')); // 'development'
 ```
 
-### Real-World Examples
+**Why it has a bad reputation:**
 
-| Library/Framework | Singleton Usage |
-|-------------------|-----------------|
-| **Express** | `app` instance |
-| **Mongoose** | Default connection |
-| **Winston** | Default logger |
-| **Redux** | Store instance |
-| **NestJS** | Default scope providers |
+| Problem | Consequence |
+| ------- | ----------- |
+| Global mutable state | One test mutates it; the next test fails for no visible reason |
+| Hidden dependency | The signature says `getUser(id)`; it secretly needs a database |
+| Untestable | You can't substitute a fake without monkey-patching a module |
 
-### Pros and Cons
-
-**Pros:**
-- ✅ Guarantees single instance
-- ✅ Global access point
-- ✅ Lazy initialization (created when needed)
-- ✅ Resource efficiency
-
-**Cons:**
-- ❌ Violates Single Responsibility Principle
-- ❌ Difficult to unit test (global state)
-- ❌ Can hide dependencies
-- ❌ Thread safety concerns (less relevant in JS)
-
-### Interview Questions
-
-**Q: What are the problems with Singleton pattern?**
-
-**A:** Singletons have several drawbacks:
-
-1. **Testing Difficulty:**
 ```typescript
-// ❌ Hard to test - uses global singleton
+// ❌ The dependency is invisible and unswappable.
 class UserService {
-  getUser(id: string): string {
-    return DatabaseConnection.getInstance().query(`SELECT * FROM users WHERE id = ${id}`);
+  find(id: string) {
+    return Database.getInstance().query("SELECT …", [id]);
   }
 }
 
-// ✅ Better - inject dependency
-interface Database {
-  query(sql: string): string;
-}
-
+// ✅ Same single instance, injected. Honest signature, trivially faked in tests.
 class UserService {
-  private database: Database;
-
-  constructor(database: Database) {
-    this.database = database;
-  }
-
-  getUser(id: string): string {
-    return this.database.query(`SELECT * FROM users WHERE id = ${id}`);
+  constructor(private readonly db: Database) {}
+  find(id: string) {
+    return this.db.query("SELECT …", [id]);
   }
 }
 ```
 
-2. **Hidden Dependencies:**
-   - Code using singletons doesn't explicitly declare dependencies
-   - Makes code harder to understand and maintain
+> **The senior answer:** "one instance" is a lifecycle decision; "globally reachable" is a coupling decision. Keep the first, drop the second — create it once at startup and inject it. That's exactly what a DI container does. See [Dependency Injection](./04-architectural-patterns.md#dependency-injection).
 
-3. **Global State:**
-   - Changes in one part of the application affect others
-   - Can lead to unexpected bugs
-
-**Q: When is Singleton appropriate?**
-
-**A:** Singleton is appropriate when:
-- Resource is expensive to create (database connection)
-- Only one instance makes logical sense (configuration manager)
-- Global access is genuinely needed (logging service)
-- The object is stateless or manages shared state intentionally
-
----
-
-## Factory Method
+## Factory
 
 ### 💡 **Intent**
 
-Define an interface for creating an object, but let **subclasses decide** which class to instantiate. Factory Method lets a class defer instantiation to subclasses.
+Let the caller ask for *what it wants* without naming *which class* provides it.
 
-### Problem It Solves
-
-```
-Without Factory:
-├── Client code coupled to concrete classes
-├── Hard to extend with new types
-├── Complex conditional logic for object creation
-└── Difficult to test (can't mock creation)
-```
-
-### Structure
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│    Creator      │         │    Product      │
-├─────────────────┤         ├─────────────────┤
-│ + factoryMethod()│◄───────│ + operation()   │
-│ + someOperation()│         └────────┬────────┘
-└────────┬────────┘                   │
-         │                            │
-         │                   ┌────────┴────────┐
-┌────────┴────────┐          │                 │
-│ ConcreteCreatorA│    ┌─────┴─────┐    ┌─────┴─────┐
-├─────────────────┤    │ ProductA  │    │ ProductB  │
-│ + factoryMethod()│    └───────────┘    └───────────┘
-└─────────────────┘
-```
-
-### Implementation
-
-**Simple Factory (Not a Pattern, but Common):**
+**GoF splits this into Factory Method (subclasses override a creation method) and Simple Factory (one function with a switch).** In TypeScript the function is almost always the right shape — the class hierarchy adds ceremony without adding capability.
 
 ```typescript
-type NotificationType = 'email' | 'sms' | 'push';
-
-interface Notification {
-  type: NotificationType;
-  message: string;
-  send(to: string): void;
+interface PaymentGateway {
+  charge(amountCents: number, token: string): Promise<{ id: string }>;
+  refund(chargeId: string): Promise<void>;
 }
 
-class EmailNotification implements Notification {
-  public type: NotificationType = 'email';
-  public message: string;
+class StripeGateway implements PaymentGateway { /* … */ }
+class AdyenGateway implements PaymentGateway { /* … */ }
+class FakeGateway implements PaymentGateway { /* … */ } // used in tests
 
-  constructor(message: string) {
-    this.message = message;
-  }
+type GatewayName = "stripe" | "adyen" | "fake";
 
-  send(to: string): void {
-    console.log(`Sending email to ${to}: ${this.message}`);
-  }
-}
-
-class SMSNotification implements Notification {
-  public type: NotificationType = 'sms';
-  public message: string;
-
-  constructor(message: string) {
-    this.message = message;
-  }
-
-  send(to: string): void {
-    console.log(`Sending SMS to ${to}: ${this.message}`);
+// The factory is the only place that knows the concrete classes exist.
+export function createGateway(name: GatewayName): PaymentGateway {
+  switch (name) {
+    case "stripe": return new StripeGateway(process.env.STRIPE_KEY!);
+    case "adyen":  return new AdyenGateway(process.env.ADYEN_KEY!);
+    case "fake":   return new FakeGateway();
+    // ✅ `never` makes TS fail the build if a new GatewayName is unhandled.
+    default: { const exhaustive: never = name; throw new Error(exhaustive); }
   }
 }
-
-class PushNotification implements Notification {
-  public type: NotificationType = 'push';
-  public message: string;
-
-  constructor(message: string) {
-    this.message = message;
-  }
-
-  send(to: string): void {
-    console.log(`Sending push to ${to}: ${this.message}`);
-  }
-}
-
-// Simple factory function
-function createNotification(type: NotificationType, message: string): Notification {
-  switch (type) {
-    case 'email':
-      return new EmailNotification(message);
-    case 'sms':
-      return new SMSNotification(message);
-    case 'push':
-      return new PushNotification(message);
-    default:
-      throw new Error(`Unknown notification type: ${type}`);
-  }
-}
-
-// Usage
-const notification = createNotification('email', 'Hello!');
-notification.send('user@example.com');
 ```
 
-**Factory Method Pattern:**
+Callers depend on `PaymentGateway` only. Swapping providers touches one file.
+
+**The registry variant** is what you reach for when the set of types grows or must be extended by plugins:
 
 ```typescript
-// Abstract Creator
-abstract class NotificationCreator {
-  // Factory method - subclasses override this
-  abstract createNotification(message: string): Notification;
+type Factory = () => PaymentGateway;
 
-  // Template method using the factory method
-  sendNotification(to: string, message: string): Notification {
-    const notification = this.createNotification(message);
-    notification.send(to);
-    this.logSent(notification, to);
-    return notification;
-  }
+const registry = new Map<string, Factory>();
 
-  private logSent(notification: Notification, to: string): void {
-    console.log(`${notification.type} notification sent to ${to}`);
-  }
-}
+export const register = (name: string, make: Factory): void => void registry.set(name, make);
 
-// Concrete Creators
-class EmailNotificationCreator extends NotificationCreator {
-  createNotification(message: string): Notification {
-    return new EmailNotification(message);
-  }
-}
-
-class SMSNotificationCreator extends NotificationCreator {
-  createNotification(message: string): Notification {
-    return new SMSNotification(message);
-  }
-}
-
-// Usage
-interface User {
-  contact: string;
-}
-
-function notifyUser(user: User, message: string, preferredChannel: NotificationType): Notification {
-  let creator: NotificationCreator;
-
-  switch (preferredChannel) {
-    case 'email':
-      creator = new EmailNotificationCreator();
-      break;
-    case 'sms':
-      creator = new SMSNotificationCreator();
-      break;
-    default:
-      creator = new EmailNotificationCreator();
-  }
-
-  return creator.sendNotification(user.contact, message);
-}
-
-notifyUser({ contact: 'user@example.com' }, 'Welcome!', 'email');
-```
-
-**TypeScript Factory Method:**
-
-```typescript
-// Product interface
-interface PaymentProcessor {
-  processPayment(amount: number): Promise<PaymentResult>;
-  refund(transactionId: string): Promise<RefundResult>;
-}
-
-interface PaymentResult {
-  success: boolean;
-  transactionId: string;
-}
-
-interface RefundResult {
-  success: boolean;
-  refundId: string;
-}
-
-// Concrete Products
-class StripeProcessor implements PaymentProcessor {
-  async processPayment(amount: number): Promise<PaymentResult> {
-    console.log(`Processing $${amount} via Stripe`);
-    return { success: true, transactionId: `stripe_${Date.now()}` };
-  }
-
-  async refund(transactionId: string): Promise<RefundResult> {
-    console.log(`Refunding ${transactionId} via Stripe`);
-    return { success: true, refundId: `refund_${Date.now()}` };
-  }
-}
-
-class PayPalProcessor implements PaymentProcessor {
-  async processPayment(amount: number): Promise<PaymentResult> {
-    console.log(`Processing $${amount} via PayPal`);
-    return { success: true, transactionId: `paypal_${Date.now()}` };
-  }
-
-  async refund(transactionId: string): Promise<RefundResult> {
-    console.log(`Refunding ${transactionId} via PayPal`);
-    return { success: true, refundId: `refund_${Date.now()}` };
-  }
-}
-
-// Creator with Factory Method
-abstract class PaymentService {
-  protected abstract createProcessor(): PaymentProcessor;
-
-  async checkout(amount: number): Promise<PaymentResult> {
-    const processor = this.createProcessor();
-    const result = await processor.processPayment(amount);
-    await this.sendReceipt(result.transactionId, amount);
-    return result;
-  }
-
-  private async sendReceipt(transactionId: string, amount: number): Promise<void> {
-    console.log(`Receipt sent for ${transactionId}: $${amount}`);
-  }
-}
-
-// Concrete Creators
-class StripePaymentService extends PaymentService {
-  protected createProcessor(): PaymentProcessor {
-    return new StripeProcessor();
-  }
-}
-
-class PayPalPaymentService extends PaymentService {
-  protected createProcessor(): PaymentProcessor {
-    return new PayPalProcessor();
-  }
-}
-
-// Usage
-async function processOrder(paymentMethod: 'stripe' | 'paypal', amount: number): Promise<PaymentResult> {
-  const service = paymentMethod === 'stripe'
-    ? new StripePaymentService()
-    : new PayPalPaymentService();
-
-  return service.checkout(amount);
+export function create(name: string): PaymentGateway {
+  const make = registry.get(name);
+  if (!make) throw new Error(`Unknown gateway: ${name}`);
+  return make();
 }
 ```
 
-### Real-World Examples
-
-| Library/Framework | Factory Usage |
-|-------------------|---------------|
-| **React** | `React.createElement()` |
-| **Mongoose** | `mongoose.model()` |
-| **Express** | `express.Router()` |
-| **Winston** | `winston.createLogger()` |
-| **Knex** | `knex.schema.createTable()` |
-
-### Pros and Cons
-
-**Pros:**
-- ✅ Decouples client from concrete classes
-- ✅ Follows Open/Closed Principle (easy to add new types)
-- ✅ Single Responsibility (creation logic centralized)
-- ✅ Easier testing (can mock factories)
-
-**Cons:**
-- ❌ Code may become more complicated
-- ❌ Requires parallel class hierarchies
-- ❌ Over-engineering for simple cases
-
-### Interview Questions
-
-**Q: What's the difference between Simple Factory and Factory Method?**
-
-**A:**
-
-| Aspect | Simple Factory | Factory Method |
-|--------|----------------|----------------|
-| **Type** | Not a pattern (idiom) | GoF Design Pattern |
-| **Structure** | Single function/class | Class hierarchy |
-| **Extension** | Modify factory code | Add new creator subclass |
-| **OCP** | Violates (must modify) | Follows (extend) |
-| **Complexity** | Low | Higher |
-
-```typescript
-// Simple Factory - modify to add new types
-class Circle { getArea(): number { return 0; } }
-class Square { getArea(): number { return 0; } }
-class Triangle { getArea(): number { return 0; } }
-
-function createShape(type: 'circle' | 'square'): Circle | Square {
-  if (type === 'circle') return new Circle();
-  if (type === 'square') return new Square();
-  // Must modify this function to add new shapes
-  throw new Error('Unknown shape');
-}
-
-// Factory Method - extend to add new types
-abstract class ShapeFactory {
-  abstract createShape(): Circle | Square | Triangle;
-}
-
-class CircleFactory extends ShapeFactory {
-  createShape(): Circle { return new Circle(); }
-}
-
-// Add new shape without modifying existing code
-class TriangleFactory extends ShapeFactory {
-  createShape(): Triangle { return new Triangle(); }
-}
-```
-
----
+**When *not* to use a factory:** if there's exactly one implementation and no plan for another, `new StripeGateway()` is clearer. A factory over a single class is indirection with no payoff.
 
 ## Abstract Factory
 
 ### 💡 **Intent**
 
-Provide an interface for creating **families of related or dependent objects** without specifying their concrete classes.
+Create **families of objects that have to be used together**, so a caller can't accidentally mix incompatible ones.
 
-### Problem It Solves
-
-```
-Without Abstract Factory:
-├── Client knows about all concrete classes
-├── Mixing incompatible objects (e.g., Windows button with Mac checkbox)
-├── Hard to switch between product families
-└── Scattered creation logic
-```
-
-### Structure
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     AbstractFactory                          │
-├─────────────────────────────────────────────────────────────┤
-│ + createProductA(): AbstractProductA                         │
-│ + createProductB(): AbstractProductB                         │
-└─────────────────────────────────────────────────────────────┘
-                            △
-            ┌───────────────┴───────────────┐
-   ┌────────┴────────┐            ┌────────┴────────┐
-   │ ConcreteFactory1│            │ ConcreteFactory2│
-   ├─────────────────┤            ├─────────────────┤
-   │ + createProductA│            │ + createProductA│
-   │ + createProductB│            │ + createProductB│
-   └─────────────────┘            └─────────────────┘
-```
-
-### Implementation
-
-**Database Abstraction Example:**
+The distinction from a plain factory is the word *family*. A factory makes one kind of thing. An abstract factory makes a matched set.
 
 ```typescript
-interface QueryState {
-  columns: string | string[];
-  table: string;
-  conditions: string[];
+// A Postgres connection and a MySQL query builder must never meet.
+interface Connection { query<T>(sql: string, params: unknown[]): Promise<T[]>; }
+interface QueryBuilder { quoteIdentifier(name: string): string; limit(n: number, offset: number): string; }
+interface Migrator { up(name: string): Promise<void>; }
+
+interface DatabaseFactory {
+  createConnection(): Connection;
+  createQueryBuilder(): QueryBuilder;
+  createMigrator(): Migrator;
 }
 
-// Abstract Products
-abstract class Connection {
-  abstract connect(): { type: string; connected: boolean };
-  abstract disconnect(): void;
-}
+const postgres: DatabaseFactory = {
+  createConnection: () => new PgConnection(),
+  createQueryBuilder: () => new PgQueryBuilder(),  // "table"
+  createMigrator: () => new PgMigrator(),
+};
 
-abstract class QueryBuilder {
-  abstract select(columns: string | string[]): this;
-  abstract from(table: string): this;
-  abstract where(condition: string): this;
-  abstract build(): string;
-}
+const mysql: DatabaseFactory = {
+  createConnection: () => new MySqlConnection(),
+  createQueryBuilder: () => new MySqlQueryBuilder(), // `table`
+  createMigrator: () => new MySqlMigrator(),
+};
 
-// PostgreSQL Family
-class PostgreSQLConnection extends Connection {
-  connect(): { type: string; connected: boolean } {
-    console.log('Connecting to PostgreSQL...');
-    return { type: 'postgresql', connected: true };
-  }
-
-  disconnect(): void {
-    console.log('Disconnecting from PostgreSQL');
-  }
-}
-
-class PostgreSQLQueryBuilder extends QueryBuilder {
-  private query: QueryState = { columns: '*', table: '', conditions: [] };
-
-  select(columns: string | string[]): this {
-    this.query.columns = columns;
-    return this;
-  }
-
-  from(table: string): this {
-    this.query.table = `"${table}"`;  // PostgreSQL uses double quotes
-    return this;
-  }
-
-  where(condition: string): this {
-    this.query.conditions.push(condition);
-    return this;
-  }
-
-  build(): string {
-    const cols = Array.isArray(this.query.columns) ? this.query.columns.join(', ') : this.query.columns;
-    let sql = `SELECT ${cols} FROM ${this.query.table}`;
-    if (this.query.conditions.length > 0) {
-      sql += ` WHERE ${this.query.conditions.join(' AND ')}`;
-    }
-    return sql;
-  }
-}
-
-// MySQL Family
-class MySQLConnection extends Connection {
-  connect(): { type: string; connected: boolean } {
-    console.log('Connecting to MySQL...');
-    return { type: 'mysql', connected: true };
-  }
-
-  disconnect(): void {
-    console.log('Disconnecting from MySQL');
-  }
-}
-
-class MySQLQueryBuilder extends QueryBuilder {
-  private query: QueryState = { columns: '*', table: '', conditions: [] };
-
-  select(columns: string | string[]): this {
-    this.query.columns = columns;
-    return this;
-  }
-
-  from(table: string): this {
-    this.query.table = `\`${table}\``;  // MySQL uses backticks
-    return this;
-  }
-
-  where(condition: string): this {
-    this.query.conditions.push(condition);
-    return this;
-  }
-
-  build(): string {
-    const cols = Array.isArray(this.query.columns) ? this.query.columns.join(', ') : this.query.columns;
-    let sql = `SELECT ${cols} FROM ${this.query.table}`;
-    if (this.query.conditions.length > 0) {
-      sql += ` WHERE ${this.query.conditions.join(' AND ')}`;
-    }
-    return sql;
-  }
-}
-
-// Abstract Factory
-abstract class DatabaseFactory {
-  abstract createConnection(): Connection;
-  abstract createQueryBuilder(): QueryBuilder;
-}
-
-// Concrete Factories
-class PostgreSQLFactory extends DatabaseFactory {
-  createConnection(): Connection {
-    return new PostgreSQLConnection();
-  }
-
-  createQueryBuilder(): QueryBuilder {
-    return new PostgreSQLQueryBuilder();
-  }
-}
-
-class MySQLFactory extends DatabaseFactory {
-  createConnection(): Connection {
-    return new MySQLConnection();
-  }
-
-  createQueryBuilder(): QueryBuilder {
-    return new MySQLQueryBuilder();
-  }
-}
-
-// Client code - works with any factory
-class DatabaseClient {
-  private connection: Connection;
-  private queryBuilder: QueryBuilder;
+// Client code is written once against the interfaces.
+class Repository {
+  private readonly conn: Connection;
+  private readonly qb: QueryBuilder;
 
   constructor(factory: DatabaseFactory) {
-    this.connection = factory.createConnection();
-    this.queryBuilder = factory.createQueryBuilder();
-  }
-
-  findUsers(status: string): void {
-    this.connection.connect();
-
-    const query = this.queryBuilder
-      .select('id, name, email')
-      .from('users')
-      .where(`status = '${status}'`)
-      .build();
-
-    console.log('Executing:', query);
-
-    this.connection.disconnect();
+    this.conn = factory.createConnection();
+    this.qb = factory.createQueryBuilder(); // ✅ guaranteed to match the connection
   }
 }
 
-// Usage
-const dbType = process.env.DB_TYPE || 'postgresql';
-
-const factory: DatabaseFactory = dbType === 'mysql'
-  ? new MySQLFactory()
-  : new PostgreSQLFactory();
-
-const client = new DatabaseClient(factory);
-client.findUsers('active');
-
-// Output for PostgreSQL:
-// Connecting to PostgreSQL...
-// Executing: SELECT id, name, email FROM "users" WHERE status = 'active'
-// Disconnecting from PostgreSQL
+const factory = process.env.DB === "mysql" ? mysql : postgres;
 ```
 
-**TypeScript UI Component Factory:**
+**Where you meet it in real life:** database drivers, cloud SDK clients per provider, and themed UI kits — anywhere a whole set of pieces must come from the same vendor.
 
-```typescript
-// Abstract Products
-interface Button {
-  render(): string;
-  onClick(handler: () => void): void;
-}
+| Pros | Cons |
+| ---- | ---- |
+| ✅ Impossible to mix families | ❌ Adding a new *product* means changing every factory |
+| ✅ Swap the whole set in one line | ❌ Heavy if you only ever ship one family |
 
-interface Input {
-  render(): string;
-  getValue(): string;
-  setValue(value: string): void;
-}
-
-interface Modal {
-  render(): string;
-  open(): void;
-  close(): void;
-}
-
-// Material Design Family
-class MaterialButton implements Button {
-  private handler?: () => void;
-
-  render(): string {
-    return '<button class="mdc-button mdc-button--raised">Click me</button>';
-  }
-
-  onClick(handler: () => void): void {
-    this.handler = handler;
-  }
-}
-
-class MaterialInput implements Input {
-  private value = '';
-
-  render(): string {
-    return '<div class="mdc-text-field"><input class="mdc-text-field__input" /></div>';
-  }
-
-  getValue(): string { return this.value; }
-  setValue(value: string): void { this.value = value; }
-}
-
-class MaterialModal implements Modal {
-  render(): string {
-    return '<div class="mdc-dialog">...</div>';
-  }
-  open(): void { console.log('Opening Material modal'); }
-  close(): void { console.log('Closing Material modal'); }
-}
-
-// Bootstrap Family
-class BootstrapButton implements Button {
-  private handler?: () => void;
-
-  render(): string {
-    return '<button class="btn btn-primary">Click me</button>';
-  }
-
-  onClick(handler: () => void): void {
-    this.handler = handler;
-  }
-}
-
-class BootstrapInput implements Input {
-  private value = '';
-
-  render(): string {
-    return '<input class="form-control" />';
-  }
-
-  getValue(): string { return this.value; }
-  setValue(value: string): void { this.value = value; }
-}
-
-class BootstrapModal implements Modal {
-  render(): string {
-    return '<div class="modal">...</div>';
-  }
-  open(): void { console.log('Opening Bootstrap modal'); }
-  close(): void { console.log('Closing Bootstrap modal'); }
-}
-
-// Abstract Factory
-interface UIFactory {
-  createButton(): Button;
-  createInput(): Input;
-  createModal(): Modal;
-}
-
-// Concrete Factories
-class MaterialUIFactory implements UIFactory {
-  createButton(): Button { return new MaterialButton(); }
-  createInput(): Input { return new MaterialInput(); }
-  createModal(): Modal { return new MaterialModal(); }
-}
-
-class BootstrapUIFactory implements UIFactory {
-  createButton(): Button { return new BootstrapButton(); }
-  createInput(): Input { return new BootstrapInput(); }
-  createModal(): Modal { return new BootstrapModal(); }
-}
-
-// Client code
-class LoginForm {
-  private button: Button;
-  private usernameInput: Input;
-  private passwordInput: Input;
-
-  constructor(factory: UIFactory) {
-    this.button = factory.createButton();
-    this.usernameInput = factory.createInput();
-    this.passwordInput = factory.createInput();
-  }
-
-  render(): string {
-    return `
-      <form>
-        ${this.usernameInput.render()}
-        ${this.passwordInput.render()}
-        ${this.button.render()}
-      </form>
-    `;
-  }
-}
-
-// Usage - switch between UI frameworks easily
-const uiFramework = 'material';
-const uiFactory: UIFactory = uiFramework === 'material'
-  ? new MaterialUIFactory()
-  : new BootstrapUIFactory();
-
-const loginForm = new LoginForm(uiFactory);
-console.log(loginForm.render());
-```
-
-### Pros and Cons
-
-**Pros:**
-- ✅ Guarantees compatibility between products
-- ✅ Loose coupling between client and concrete products
-- ✅ Single Responsibility (creation in one place)
-- ✅ Open/Closed (add new families easily)
-
-**Cons:**
-- ❌ Complexity increases with more products
-- ❌ All products must be implemented by each factory
-- ❌ Adding new product types requires changing all factories
-
-### Interview Questions
-
-**Q: When would you use Abstract Factory over Factory Method?**
-
-**A:**
-
-| Use Factory Method When | Use Abstract Factory When |
-|-------------------------|---------------------------|
-| Creating one product type | Creating families of related products |
-| Single variation point | Multiple related variation points |
-| Products can be used independently | Products must be used together |
-| Simpler hierarchy | Complex product families |
-
-```typescript
-// Factory Method: One product, multiple variants
-abstract class NotificationFactory {
-  abstract createNotification(): Notification; // one product
-}
-
-// Abstract Factory: Multiple related products
-interface UIComponentFactory {
-  createButton(): Button;   // product A
-  createInput(): Input;     // product B
-  createModal(): Modal;     // product C
-  // All products are designed to work together
-}
-```
-
----
+> ⚠️ **This is the most over-applied creational pattern.** It pays off when a second family genuinely exists. If you're building the abstraction "in case we switch database", you're paying full price for an option you'll probably never exercise.
 
 ## Builder
 
 ### 💡 **Intent**
 
-Separate the construction of a complex object from its representation, allowing the **same construction process** to create different representations.
+Construct one complex object step by step, so the construction code stays readable and invalid states are impossible.
 
-### Problem It Solves
-
-```
-Without Builder:
-├── Constructor with many parameters (telescoping constructor)
-├── Hard to read construction code
-├── No way to create partial/incomplete objects
-└── Complex objects require multiple creation steps
-```
-
-### Structure
-
-```
-┌─────────────────────┐     ┌─────────────────────┐
-│      Director       │────▶│      Builder        │
-├─────────────────────┤     ├─────────────────────┤
-│ + construct()       │     │ + buildPartA()      │
-└─────────────────────┘     │ + buildPartB()      │
-                            │ + getResult()       │
-                            └──────────△──────────┘
-                                       │
-                            ┌──────────┴──────────┐
-                            │   ConcreteBuilder   │
-                            ├─────────────────────┤
-                            │ + buildPartA()      │
-                            │ + buildPartB()      │
-                            │ + getResult()       │
-                            └─────────────────────┘
-```
-
-### Implementation
-
-**Query Builder Example:**
+**The problem it fixes** is the telescoping constructor:
 
 ```typescript
-interface JoinClause {
-  table: string;
-  on: string;
-  type: string;
+// ❌ What is `true, false, true`? Nobody knows without opening the file.
+new HttpClient("https://api.x.com", 5000, 3, true, false, true, null);
+```
+
+**In TypeScript, an options object solves 90% of this** and needs no pattern at all:
+
+```typescript
+// ✅ Self-documenting, order-independent, optional fields are explicit.
+interface HttpClientOptions {
+  baseUrl: string;
+  timeoutMs?: number;
+  retries?: number;
+  keepAlive?: boolean;
 }
 
-interface WhereClause {
-  condition: string;
-  value?: unknown;
-  type: 'AND' | 'OR';
+new HttpClient({ baseUrl: "https://api.x.com", timeoutMs: 5000, retries: 3 });
+```
+
+**Reach for a real builder when construction is genuinely incremental** — you're accumulating parts across several calls, order matters, or you want a fluent DSL:
+
+```typescript
+interface Query {
+  sql: string;
+  params: unknown[];
 }
 
-interface OrderByClause {
-  column: string;
-  direction: string;
-}
-
-interface QueryState {
-  type: string;
-  columns: string[];
-  table: string;
-  joins: JoinClause[];
-  conditions: WhereClause[];
-  orderBy: OrderByClause[];
-  limit: number | null;
-  offset: number | null;
-}
-
-class SQLQueryBuilder {
-  private query: QueryState;
-
-  constructor() {
-    this.query = this.buildEmptyQuery();
-  }
-
-  private buildEmptyQuery(): QueryState {
-    return {
-      type: 'SELECT',
-      columns: ['*'],
-      table: '',
-      joins: [],
-      conditions: [],
-      orderBy: [],
-      limit: null,
-      offset: null
-    };
-  }
-
-  reset(): this {
-    this.query = this.buildEmptyQuery();
-    return this;
-  }
+class SelectQueryBuilder {
+  private columns: string[] = ["*"];
+  private table = "";
+  private readonly wheres: string[] = [];
+  private readonly params: unknown[] = [];
+  private limitValue?: number;
 
   select(...columns: string[]): this {
-    this.query.columns = columns.length ? columns : ['*'];
-    return this;
+    this.columns = columns;
+    return this; // returning `this` is what makes chaining work
   }
 
   from(table: string): this {
-    this.query.table = table;
+    this.table = table;
     return this;
   }
 
-  where(condition: string, value?: unknown): this {
-    this.query.conditions.push({ condition, value, type: 'AND' });
+  where(clause: string, value: unknown): this {
+    // ✅ Placeholders, never interpolation — the builder enforces safety for every caller.
+    this.wheres.push(clause);
+    this.params.push(value);
     return this;
   }
 
-  orWhere(condition: string, value?: unknown): this {
-    this.query.conditions.push({ condition, value, type: 'OR' });
+  limit(n: number): this {
+    this.limitValue = n;
     return this;
   }
 
-  join(table: string, on: string, type: string = 'INNER'): this {
-    this.query.joins.push({ table, on, type });
-    return this;
-  }
-
-  leftJoin(table: string, on: string): this {
-    return this.join(table, on, 'LEFT');
-  }
-
-  orderBy(column: string, direction: string = 'ASC'): this {
-    this.query.orderBy.push({ column, direction });
-    return this;
-  }
-
-  limit(count: number): this {
-    this.query.limit = count;
-    return this;
-  }
-
-  offset(count: number): this {
-    this.query.offset = count;
-    return this;
-  }
-
-  build(): string {
-    const { columns, table, joins, conditions, orderBy, limit, offset } = this.query;
-
-    let sql = `SELECT ${columns.join(', ')} FROM ${table}`;
-
-    // Add joins
-    for (const join of joins) {
-      sql += ` ${join.type} JOIN ${join.table} ON ${join.on}`;
-    }
-
-    // Add conditions
-    if (conditions.length > 0) {
-      const whereClause = conditions
-        .map((c, i) => i === 0 ? c.condition : `${c.type} ${c.condition}`)
-        .join(' ');
-      sql += ` WHERE ${whereClause}`;
-    }
-
-    // Add order by
-    if (orderBy.length > 0) {
-      const orderClause = orderBy.map(o => `${o.column} ${o.direction}`).join(', ');
-      sql += ` ORDER BY ${orderClause}`;
-    }
-
-    // Add limit and offset
-    if (limit !== null) {
-      sql += ` LIMIT ${limit}`;
-    }
-    if (offset !== null) {
-      sql += ` OFFSET ${offset}`;
-    }
-
-    const result = sql;
-    this.reset();  // Reset for next query
-    return result;
+  build(): Query {
+    if (!this.table) throw new Error("from() is required"); // validate at build time
+    let sql = `SELECT ${this.columns.join(", ")} FROM ${this.table}`;
+    if (this.wheres.length) sql += ` WHERE ${this.wheres.join(" AND ")}`;
+    if (this.limitValue !== undefined) sql += ` LIMIT ${this.limitValue}`;
+    return { sql, params: this.params };
   }
 }
 
-// Usage - fluent interface
-const query = new SQLQueryBuilder()
-  .select('users.id', 'users.name', 'orders.total')
-  .from('users')
-  .leftJoin('orders', 'users.id = orders.user_id')
-  .where('users.status = ?', 'active')
-  .where('orders.total > ?', 100)
-  .orderBy('orders.total', 'DESC')
-  .limit(10)
-  .offset(20)
-  .build();
-
-console.log(query);
-// SELECT users.id, users.name, orders.total FROM users
-// LEFT JOIN orders ON users.id = orders.user_id
-// WHERE users.status = ? AND orders.total > ?
-// ORDER BY orders.total DESC LIMIT 10 OFFSET 20
-```
-
-**HTTP Request Builder:**
-
-```typescript
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
-
-interface AuthConfig {
-  type: 'bearer' | 'basic';
-  credentials: string;
-}
-
-interface RequestConfig {
-  method: HttpMethod;
-  url: string;
-  headers: Record<string, string>;
-  body: string | null;
-  timeout: number;
-  retries: number;
-  auth: AuthConfig | null;
-}
-
-class HttpRequestBuilder {
-  private request: RequestConfig;
-
-  constructor() {
-    this.request = this.buildEmptyRequest();
-  }
-
-  private buildEmptyRequest(): RequestConfig {
-    return {
-      method: 'GET',
-      url: '',
-      headers: {},
-      body: null,
-      timeout: 30000,
-      retries: 0,
-      auth: null
-    };
-  }
-
-  reset(): this {
-    this.request = this.buildEmptyRequest();
-    return this;
-  }
-
-  get(url: string): this {
-    this.request.method = 'GET';
-    this.request.url = url;
-    return this;
-  }
-
-  post(url: string): this {
-    this.request.method = 'POST';
-    this.request.url = url;
-    return this;
-  }
-
-  put(url: string): this {
-    this.request.method = 'PUT';
-    this.request.url = url;
-    return this;
-  }
-
-  delete(url: string): this {
-    this.request.method = 'DELETE';
-    this.request.url = url;
-    return this;
-  }
-
-  header(key: string, value: string): this {
-    this.request.headers[key] = value;
-    return this;
-  }
-
-  contentType(type: string): this {
-    return this.header('Content-Type', type);
-  }
-
-  json(data: unknown): this {
-    this.request.body = JSON.stringify(data);
-    return this.contentType('application/json');
-  }
-
-  bearer(token: string): this {
-    return this.header('Authorization', `Bearer ${token}`);
-  }
-
-  basicAuth(username: string, password: string): this {
-    const encoded = Buffer.from(`${username}:${password}`).toString('base64');
-    return this.header('Authorization', `Basic ${encoded}`);
-  }
-
-  timeout(ms: number): this {
-    this.request.timeout = ms;
-    return this;
-  }
-
-  retry(count: number): this {
-    this.request.retries = count;
-    return this;
-  }
-
-  async execute(): Promise<Response> {
-    const { method, url, headers, body, timeout, retries } = this.request;
-
-    const options: RequestInit = {
-      method,
-      headers,
-      body,
-      signal: AbortSignal.timeout(timeout)
-    };
-
-    let lastError: unknown;
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const response = await fetch(url, options);
-        this.reset();
-        return response;
-      } catch (error) {
-        lastError = error;
-        if (attempt < retries) {
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-        }
-      }
-    }
-
-    throw lastError;
-  }
-
-  build(): RequestConfig {
-    const result = { ...this.request };
-    this.reset();
-    return result;
-  }
-}
-
-// Usage
-const http = new HttpRequestBuilder();
-
-// Simple GET request
-const users = await http
-  .get('https://api.example.com/users')
-  .bearer('my-token')
-  .timeout(5000)
-  .execute();
-
-// POST with JSON body
-const newUser = await http
-  .post('https://api.example.com/users')
-  .bearer('my-token')
-  .json({ name: 'John', email: 'john@example.com' })
-  .retry(3)
-  .execute();
-```
-
-**TypeScript Builder with Director:**
-
-```typescript
-interface UserSettings {
-  theme: 'light' | 'dark';
-  notifications: boolean;
-  language: string;
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'user' | 'guest';
-  permissions: string[];
-  settings: UserSettings;
-  createdAt: Date;
-}
-
-class UserBuilder {
-  private user: Partial<User> = {};
-
-  setId(id: string): this {
-    this.user.id = id;
-    return this;
-  }
-
-  setName(name: string): this {
-    this.user.name = name;
-    return this;
-  }
-
-  setEmail(email: string): this {
-    this.user.email = email;
-    return this;
-  }
-
-  setRole(role: 'admin' | 'user' | 'guest'): this {
-    this.user.role = role;
-    return this;
-  }
-
-  setPermissions(permissions: string[]): this {
-    this.user.permissions = permissions;
-    return this;
-  }
-
-  setSettings(settings: UserSettings): this {
-    this.user.settings = settings;
-    return this;
-  }
-
-  setCreatedAt(date: Date): this {
-    this.user.createdAt = date;
-    return this;
-  }
-
-  build(): User {
-    // Validate required fields
-    if (!this.user.id || !this.user.name || !this.user.email) {
-      throw new Error('Missing required fields: id, name, email');
-    }
-
-    // Set defaults
-    const user: User = {
-      id: this.user.id,
-      name: this.user.name,
-      email: this.user.email,
-      role: this.user.role ?? 'user',
-      permissions: this.user.permissions ?? [],
-      settings: this.user.settings ?? {
-        theme: 'light',
-        notifications: true,
-        language: 'en'
-      },
-      createdAt: this.user.createdAt ?? new Date()
-    };
-
-    // Reset for next build
-    this.user = {};
-
-    return user;
-  }
-}
-
-// Director - knows how to build specific user types
-class UserDirector {
-  private builder: UserBuilder;
-
-  constructor(builder: UserBuilder) {
-    this.builder = builder;
-  }
-
-  createAdmin(id: string, name: string, email: string): User {
-    return this.builder
-      .setId(id)
-      .setName(name)
-      .setEmail(email)
-      .setRole('admin')
-      .setPermissions(['read', 'write', 'delete', 'admin'])
-      .setSettings({ theme: 'dark', notifications: true, language: 'en' })
-      .build();
-  }
-
-  createGuest(id: string): User {
-    return this.builder
-      .setId(id)
-      .setName('Guest')
-      .setEmail('guest@example.com')
-      .setRole('guest')
-      .setPermissions(['read'])
-      .setSettings({ theme: 'light', notifications: false, language: 'en' })
-      .build();
-  }
-
-  createBasicUser(id: string, name: string, email: string): User {
-    return this.builder
-      .setId(id)
-      .setName(name)
-      .setEmail(email)
-      .setRole('user')
-      .setPermissions(['read', 'write'])
-      .build();
-  }
-}
-
-// Usage
-const builder = new UserBuilder();
-const director = new UserDirector(builder);
-
-const admin = director.createAdmin('1', 'Admin User', 'admin@example.com');
-const guest = director.createGuest('2');
-const user = director.createBasicUser('3', 'John Doe', 'john@example.com');
-
-// Or use builder directly for custom configuration
-const customUser = new UserBuilder()
-  .setId('4')
-  .setName('Custom User')
-  .setEmail('custom@example.com')
-  .setRole('user')
-  .setPermissions(['read', 'write', 'export'])
-  .setSettings({ theme: 'dark', notifications: true, language: 'es' })
+const { sql, params } = new SelectQueryBuilder()
+  .select("id", "email")
+  .from("users")
+  .where("status = $1", "active")
+  .limit(20)
   .build();
 ```
 
-### Pros and Cons
+You've used this pattern already: `knex`, Prisma's fluent API, and `SELECT`-style query builders are all builders.
 
-**Pros:**
-- ✅ Construct objects step by step
-- ✅ Reuse construction code for different representations
-- ✅ Single Responsibility (isolate complex construction)
-- ✅ Fluent interface improves readability
+> 🔴 **Don't reuse a builder instance across builds.** Accumulated state leaks into the next object. Either `reset()` inside `build()` or — better — treat the builder as single-use and construct a new one each time.
 
-**Cons:**
-- ❌ Overall complexity increases
-- ❌ Requires creating multiple classes
-- ❌ Client must know about director and builder
-
-### Interview Questions
-
-**Q: What's the difference between Builder and Factory?**
-
-**A:**
-
-| Aspect | Factory | Builder |
-|--------|---------|---------|
-| **Focus** | What to create | How to create |
-| **Construction** | Single step | Multi-step |
-| **Object complexity** | Simple to medium | Complex objects |
-| **Return** | Complete object | Object after multiple steps |
-| **Configuration** | Parameters to method | Method chaining |
+**A type-level upgrade worth mentioning:** you can make the compiler enforce required steps.
 
 ```typescript
-// Factory - single step, what to create
-class UserFactory {
-  static create(role: 'admin' | 'user'): User {
-    // returns user in one step
-    return {} as User;
+// `build()` only exists on Ready, so it's unreachable until `from()` is called.
+class Start {
+  from(table: string): Ready {
+    return new Ready(table);
   }
 }
-const factoryUser = UserFactory.create('admin');
 
-// Builder - multi-step, how to create
-const builtUser = new UserBuilder()
-  .setName('John')
-  .setEmail('john@example.com')
-  .setRole('admin')
-  .setPermissions(['delete'])
-  .build();
+class Ready {
+  constructor(private readonly table: string) {}
+  where(clause: string): Ready { /* … */ return this; }
+  build(): Query { /* … */ return { sql: "", params: [] }; }
+}
+
+new Start().from("users").build(); // ✅ compiles
+// new Start().build();            // ❌ Property 'build' does not exist on type 'Start'
 ```
-
----
 
 ## Prototype
 
 ### 💡 **Intent**
 
-Specify the kinds of objects to create using a prototypical instance, and create new objects by **copying this prototype**.
+Create a new object by copying an existing one, instead of constructing it from scratch.
 
-### Problem It Solves
-
-```
-Without Prototype:
-├── Expensive object creation (complex initialization)
-├── Need to create similar objects with slight variations
-├── Don't know concrete class at compile time
-└── Want to avoid subclass explosion for variants
-```
-
-### Implementation
-
-**TypeScript Prototype (Native):**
+**Use it when construction is expensive or the source object's exact class is unknown** — a configured template, a parsed document, a fully-built config you want to vary slightly.
 
 ```typescript
-interface VehiclePrototype {
-  make: string;
-  model: string;
-  getInfo(): string;
-  clone(): VehiclePrototype;
-}
-
-const vehiclePrototype: VehiclePrototype = {
-  make: '',
-  model: '',
-  getInfo(): string {
-    return `${this.make} ${this.model}`;
-  },
-  clone(): VehiclePrototype {
-    return { ...this };
-  }
-};
-
-const car: VehiclePrototype = { ...vehiclePrototype, make: 'Toyota', model: 'Camry' };
-const carClone: VehiclePrototype = car.clone();
-carClone.model = 'Corolla';
-
-console.log(car.getInfo());      // Toyota Camry
-console.log(carClone.getInfo()); // Toyota Corolla
-```
-
-**Class-Based Prototype:**
-
-```typescript
-interface DocumentMetadata {
-  createdAt: Date;
-  version: number;
-}
-
-interface DocumentStyles {
-  fontSize: number;
-  fontFamily: string;
-  color: string;
-}
-
-class DocumentTemplate {
-  public title: string;
-  public content: string;
-  public styles: DocumentStyles;
-  public metadata: DocumentMetadata;
-
-  constructor(title: string, content: string, styles: DocumentStyles) {
-    this.title = title;
-    this.content = content;
-    this.styles = styles;
-    this.metadata = {
-      createdAt: new Date(),
-      version: 1
-    };
-  }
-
-  // Deep clone method
-  clone(): DocumentTemplate {
-    const clone = new DocumentTemplate(
-      this.title,
-      this.content,
-      { ...this.styles }  // Shallow copy of styles
-    );
-
-    // Deep copy metadata
-    clone.metadata = JSON.parse(JSON.stringify(this.metadata)) as DocumentMetadata;
-    clone.metadata.version++;
-    clone.metadata.createdAt = new Date();
-
-    return clone;
-  }
-
-  setTitle(title: string): this {
-    this.title = title;
-    return this;
-  }
-
-  setContent(content: string): this {
-    this.content = content;
-    return this;
-  }
-}
-
-// Prototype Registry
-class DocumentRegistry {
-  private templates: Map<string, DocumentTemplate> = new Map();
-
-  register(name: string, template: DocumentTemplate): void {
-    this.templates.set(name, template);
-  }
-
-  create(name: string): DocumentTemplate {
-    const template = this.templates.get(name);
-    if (!template) {
-      throw new Error(`Template '${name}' not found`);
-    }
-    return template.clone();
-  }
-}
-
-// Usage
-const registry = new DocumentRegistry();
-
-// Register templates
-registry.register('report', new DocumentTemplate(
-  'Monthly Report',
-  'Report content here...',
-  { fontSize: 12, fontFamily: 'Arial', color: '#333' }
-));
-
-registry.register('invoice', new DocumentTemplate(
-  'Invoice',
-  'Invoice details...',
-  { fontSize: 10, fontFamily: 'Courier', color: '#000' }
-));
-
-// Create documents from templates
-const report1 = registry.create('report').setTitle('January Report');
-const report2 = registry.create('report').setTitle('February Report');
-const invoice = registry.create('invoice').setContent('Invoice #123');
-
-console.log(report1.title);  // January Report
-console.log(report2.title);  // February Report
-console.log(report1 === report2);  // false (different instances)
-```
-
-**TypeScript with Deep Clone:**
-
-```typescript
-interface Cloneable<T> {
-  clone(): T;
-}
-
-interface ServerOptions {
-  timeout: number;
-  retries: number;
+interface RequestConfig {
+  baseUrl: string;
   headers: Record<string, string>;
+  retry: { attempts: number; backoffMs: number };
 }
 
-class ServerConfig implements Cloneable<ServerConfig> {
-  constructor(
-    public host: string,
-    public port: number,
-    public ssl: boolean,
-    public options: ServerOptions
-  ) {}
+class ApiConfig {
+  constructor(readonly config: RequestConfig) {}
 
-  clone(): ServerConfig {
-    return new ServerConfig(
-      this.host,
-      this.port,
-      this.ssl,
-      {
-        timeout: this.options.timeout,
-        retries: this.options.retries,
-        headers: { ...this.options.headers }
-      }
-    );
+  // Each `with*` returns a copy — the original is never mutated.
+  with(patch: Partial<RequestConfig>): ApiConfig {
+    return new ApiConfig({ ...this.config, ...patch });
   }
 
-  withHost(host: string): ServerConfig {
-    const clone = this.clone();
-    clone.host = host;
-    return clone;
-  }
-
-  withPort(port: number): ServerConfig {
-    const clone = this.clone();
-    clone.port = port;
-    return clone;
-  }
-
-  withSSL(ssl: boolean): ServerConfig {
-    const clone = this.clone();
-    clone.ssl = ssl;
-    return clone;
+  clone(): ApiConfig {
+    // structuredClone handles nesting, Dates, Maps, and cycles.
+    return new ApiConfig(structuredClone(this.config));
   }
 }
 
-// Base configuration
-const baseConfig = new ServerConfig('localhost', 3000, false, {
-  timeout: 5000,
-  retries: 3,
-  headers: { 'Content-Type': 'application/json' }
+const base = new ApiConfig({
+  baseUrl: "https://api.example.com",
+  headers: { "Content-Type": "application/json" },
+  retry: { attempts: 3, backoffMs: 200 },
 });
 
-// Create variations
-const devConfig = baseConfig.clone();
-const prodConfig = baseConfig
-  .withHost('api.example.com')
-  .withPort(443)
-  .withSSL(true);
-
-const stagingConfig = prodConfig.withHost('staging.example.com');
-
-console.log(devConfig.host);     // localhost
-console.log(prodConfig.host);    // api.example.com
-console.log(stagingConfig.host); // staging.example.com
+const staging = base.with({ baseUrl: "https://staging.example.com" });
 ```
 
-### Shallow vs Deep Clone
+**Shallow vs deep is the whole interview question here:**
 
 ```typescript
-// ⚠️ Shallow Clone - shares nested object references
-const shallowClone = <T extends object>(obj: T): T => ({ ...obj });
-
-interface Person {
-  name: string;
-  address: { city: string };
-}
-
-const original: Person = {
-  name: 'John',
-  address: { city: 'NYC' }
-};
-
-const shallow = shallowClone(original);
-shallow.address.city = 'LA';
-console.log(original.address.city); // 'LA' - original also changed!
-
-// ✅ Deep Clone - creates independent copy
-function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') return obj;
-  if (obj instanceof Date) return new Date(obj) as unknown as T;
-  if (obj instanceof Array) return obj.map(item => deepClone(item)) as unknown as T;
-
-  const clone: Record<string, unknown> = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      clone[key] = deepClone((obj as Record<string, unknown>)[key]);
-    }
-  }
-  return clone as T;
-}
-
-// Or use structuredClone (modern browsers/Node 17+)
-const deep = structuredClone(original);
-deep.address.city = 'LA';
-console.log(original.address.city); // 'NYC' - original unchanged
+const shallow = { ...base.config };
+shallow.retry.attempts = 99;        // 🔴 base.config.retry mutated too — same object
+const deep = structuredClone(base.config);
+deep.retry.attempts = 99;           // ✅ base untouched
 ```
 
-### Pros and Cons
+| Method | Depth | Watch out for |
+| ------ | ----- | ------------- |
+| `{ ...obj }` / `Object.assign` | Shallow | Nested objects are shared references |
+| `structuredClone(obj)` | Deep | ✅ Handles cycles, `Date`, `Map`, `Set`. Throws on functions and class instances lose their prototype |
+| `JSON.parse(JSON.stringify(obj))` | Deep | ❌ Destroys `Date`, `undefined`, `Map`; throws on cycles |
+| A hand-written `clone()` | Deep, controlled | Most work, but you decide what's shared vs copied |
 
-**Pros:**
-- ✅ Clone objects without coupling to concrete classes
-- ✅ Remove repeated initialization code
-- ✅ Produce complex objects more conveniently
-- ✅ Alternative to inheritance for presets
+> ✨ **The React/immutability connection is worth naming.** Every `{ ...state, count: state.count + 1 }` is Prototype: copy-then-modify instead of mutate. That's why the pattern feels invisible in modern TypeScript — it's the default style, not a special technique.
 
-**Cons:**
-- ❌ Cloning objects with circular references is tricky
-- ❌ Deep cloning can be complex
-- ❌ Need to implement clone for each class
+## Interview Questions
+
+**Q1: How do you implement a singleton in TypeScript, and should you?**
+
+A module-level export — ES modules are evaluated once and cached, so `export const pool = new Pool(…)` *is* a singleton. Whether you should is the more interesting half: "one instance" is a valid lifecycle requirement, but reaching it through a global makes dependencies invisible and tests order-dependent. I create it once at startup and inject it, which keeps the single instance and drops the global coupling.
+
+**Q2: Is singleton thread-safe in Node?**
+
+The instantiation is, because JavaScript runs on one thread — no locking needed. The real hazard is asynchronous construction: two callers can both trigger `connect()` before either finishes. You fix it by caching the promise rather than the resolved instance. Worker threads are separate isolates, so each gets its own copy, which surprises people expecting shared state.
+
+**Q3: Factory vs Abstract Factory?**
+
+A factory produces one kind of product — `createGateway()` returns a `PaymentGateway`. An abstract factory produces a *matched family* — connection, query builder, and migrator that must all come from the same database vendor. Use the second only when mixing families is a real bug you need the type system to prevent; otherwise it's ceremony.
+
+**Q4: Factory or Builder?**
+
+Factory answers "which class", Builder answers "with what configuration". Factory is one call returning a finished object; Builder accumulates state across calls and validates at `build()`. If the object has many optional fields but arrives in one shot, TypeScript's answer is neither — use an options object with defaults.
+
+**Q5: When is Builder actually worth it over an options object?**
+
+When construction is incremental or conditional — you're adding `where` clauses in a loop, or the ergonomics of a chained DSL matter, as in a query builder. An options object is better whenever all inputs are available at once, because it's less code and the compiler already checks required fields.
+
+**Q6: Shallow or deep clone?**
+
+Shallow copies top-level properties and shares every nested reference, so mutating a nested field affects the original. `structuredClone` is the modern deep clone — it handles cycles, `Date`, `Map`, and `Set`, though it throws on functions and drops class prototypes. `JSON.parse(JSON.stringify(…))` is the old trick and it silently destroys `Date`, `undefined`, and `Map`.
+
+**Q7: Which of these patterns are less relevant in TypeScript, and why?**
+
+Singleton, because modules already provide it. Factory Method's class hierarchy, because a function returning an interface does the same job. Prototype as an explicit pattern, because spread-and-override is idiomatic already. What survives unchanged is Builder for fluent construction and Abstract Factory for genuine multi-family swaps — and being able to say *which* patterns the language absorbed is a better signal than being able to implement all five.
+
+## Summary
+
+**Checklist:**
+
+- [ ] Singletons exist for lifecycle reasons, and are injected rather than reached globally
+- [ ] Async singletons cache the promise, not the instance
+- [ ] Factories return an interface; concrete classes are named in one file
+- [ ] Factory `switch` statements end in a `never` exhaustiveness check
+- [ ] Abstract Factory used only where a second family really exists
+- [ ] Options objects preferred over builders unless construction is incremental
+- [ ] Builders validate in `build()` and are not reused across builds
+- [ ] Deep copies use `structuredClone`, not `JSON.parse(JSON.stringify(…))`
+
+**Best practices:**
+
+1. **Name the coupling you're removing** — if you can't, you don't need the pattern.
+2. **Prefer the language feature** — module, function, options object, spread.
+3. **One instance, injected** — the useful half of Singleton without the harmful half.
+4. **Don't build for a second implementation that doesn't exist.**
 
 ---
 
-## Summary: Choosing the Right Creational Pattern
-
-| Need | Pattern | Example |
-|------|---------|---------|
-| Single global instance | **Singleton** | Logger, Config |
-| Hide concrete class | **Factory Method** | Notification types |
-| Create related objects | **Abstract Factory** | UI themes, DB drivers |
-| Complex construction | **Builder** | Query builder, Request builder |
-| Clone existing objects | **Prototype** | Document templates, Configs |
-
-### Decision Flowchart
-
-```
-Start
-  │
-  ▼
-Need only ONE instance? ──Yes──► Singleton
-  │
-  No
-  ▼
-Creating families of related objects? ──Yes──► Abstract Factory
-  │
-  No
-  ▼
-Complex multi-step construction? ──Yes──► Builder
-  │
-  No
-  ▼
-Need to clone existing objects? ──Yes──► Prototype
-  │
-  No
-  ▼
-Hide instantiation details? ──Yes──► Factory Method
-  │
-  No
-  ▼
-Use simple constructor or consider if pattern needed
-```
-
----
-
-**Next:** [Structural Patterns →](./02-structural-patterns.md)
-
----
-
-[← Back to Design Patterns](./README.md) | [Back to Backend Guide](../README.md)
+[Design Patterns Index](./README.md) | [Structural Patterns →](./02-structural-patterns.md)

@@ -1,1843 +1,463 @@
-# Behavioral Design Patterns
+# Behavioral Patterns
 
-## 🎯 Overview
+## Overview
 
-Behavioral patterns are concerned with **algorithms and the assignment of responsibilities** between objects. They describe not just patterns of objects or classes but also the patterns of communication between them.
+Behavioral patterns are about **who decides what, and how objects talk to each other**. Creational patterns handle construction, structural patterns handle composition — these handle the flow of control.
 
-### When to Use Behavioral Patterns
+They're the patterns you actually reach for most often in backend code, because the recurring problems are behavioural: a growing `switch`, an object that means five different things depending on a status column, a workflow that needs undo.
 
-| Scenario | Pattern |
-|----------|---------|
-| Swap algorithms at runtime | Strategy |
-| Notify objects of state changes | Observer |
-| Encapsulate requests as objects | Command |
-| Change behavior based on internal state | State |
-| Define algorithm skeleton, defer steps | Template Method |
-| Traverse collections | Iterator |
-| Pass requests along a chain | Chain of Responsibility |
+> **The one heuristic:** most behavioural patterns replace a conditional with polymorphism. If you're staring at a `switch` that grows every quarter, one of these is probably the fix — and if it never grows, none of them are.
 
----
+## Table of Contents
+
+- [Quick Decision Table](#quick-decision-table)
+- [Strategy](#strategy)
+- [Observer](#observer)
+- [Command](#command)
+- [State](#state)
+- [Chain of Responsibility](#chain-of-responsibility)
+- [Template Method](#template-method)
+- [Interview Questions](#interview-questions)
+- [Summary](#summary)
+
+## Quick Decision Table
+
+| Problem | Pattern |
+| ------- | ------- |
+| Several interchangeable algorithms | **Strategy** |
+| Many things must react to one event | **Observer** |
+| An action needs to be queued, retried, or undone | **Command** |
+| Behaviour changes with an object's status | **State** |
+| A request passes through optional handlers | **Chain of Responsibility** |
+| Same steps every time, different details | **Template Method** |
 
 ## Strategy
 
 ### 💡 **Intent**
 
-Define a **family of algorithms**, encapsulate each one, and make them **interchangeable**. Strategy lets the algorithm vary independently from clients that use it.
+Wrap each algorithm in its own object so the caller can swap them at runtime.
 
-### Problem It Solves
-
-```
-Without Strategy:
-├── Giant if-else or switch statements
-├── Algorithm changes require modifying existing code
-├── Cannot change algorithm at runtime
-├── Hard to test individual algorithms
-└── Code duplication across similar algorithms
-```
-
-### Structure
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│     Context     │────────▶│    Strategy     │
-├─────────────────┤         ├─────────────────┤
-│ - strategy      │         │ + execute()     │
-│ + setStrategy() │         └────────△────────┘
-│ + doSomething() │                  │
-└─────────────────┘         ┌────────┴────────┐
-                            │                 │
-                   ┌────────┴──────┐  ┌───────┴───────┐
-                   │ConcreteStrategyA│  │ConcreteStrategyB│
-                   ├───────────────┤  ├───────────────┤
-                   │ + execute()   │  │ + execute()   │
-                   └───────────────┘  └───────────────┘
-```
-
-### Implementation
-
-**Payment Processing:**
+**The smell it fixes:**
 
 ```typescript
-interface ValidationResult {
-  valid: boolean;
-  error?: string;
+// ❌ Every new shipping option edits this function. Every edit risks the others.
+function shippingCost(order: Order, method: string): number {
+  if (method === "standard") return order.weightKg * 2;
+  if (method === "express") return order.weightKg * 5 + 10;
+  if (method === "freight") return Math.max(50, order.weightKg * 1.2);
+  throw new Error("Unknown method");
 }
-
-interface PaymentResult {
-  success: boolean;
-  transactionId: string;
-  method: string;
-  amount: number;
-  cryptoAmount?: string;
-}
-
-// Strategy interface
-interface PaymentStrategy {
-  pay(amount: number): PaymentResult;
-  validate(): ValidationResult;
-}
-
-// Concrete strategies
-class CreditCardStrategy implements PaymentStrategy {
-  private cardNumber: string;
-  private cvv: string;
-  private expiry: string;
-
-  constructor(cardNumber: string, cvv: string, expiry: string) {
-    this.cardNumber = cardNumber;
-    this.cvv = cvv;
-    this.expiry = expiry;
-  }
-
-  validate(): ValidationResult {
-    if (!/^\d{16}$/.test(this.cardNumber)) {
-      return { valid: false, error: 'Invalid card number' };
-    }
-    if (!/^\d{3,4}$/.test(this.cvv)) {
-      return { valid: false, error: 'Invalid CVV' };
-    }
-    return { valid: true };
-  }
-
-  pay(amount: number): PaymentResult {
-    const validation = this.validate();
-    if (!validation.valid) {
-      throw new Error(validation.error);
-    }
-
-    console.log(`Processing credit card payment of $${amount}`);
-    console.log(`Card: **** **** **** ${this.cardNumber.slice(-4)}`);
-
-    return {
-      success: true,
-      transactionId: `CC_${Date.now()}`,
-      method: 'credit_card',
-      amount
-    };
-  }
-}
-
-class PayPalStrategy implements PaymentStrategy {
-  private email: string;
-
-  constructor(email: string) {
-    this.email = email;
-  }
-
-  validate(): ValidationResult {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) {
-      return { valid: false, error: 'Invalid email' };
-    }
-    return { valid: true };
-  }
-
-  pay(amount: number): PaymentResult {
-    const validation = this.validate();
-    if (!validation.valid) {
-      throw new Error(validation.error);
-    }
-
-    console.log(`Processing PayPal payment of $${amount}`);
-    console.log(`Account: ${this.email}`);
-
-    return {
-      success: true,
-      transactionId: `PP_${Date.now()}`,
-      method: 'paypal',
-      amount
-    };
-  }
-}
-
-type CryptoCurrency = 'BTC' | 'ETH';
-
-class CryptoStrategy implements PaymentStrategy {
-  private walletAddress: string;
-  private currency: CryptoCurrency;
-
-  constructor(walletAddress: string, currency: CryptoCurrency = 'BTC') {
-    this.walletAddress = walletAddress;
-    this.currency = currency;
-  }
-
-  validate(): ValidationResult {
-    if (!this.walletAddress || this.walletAddress.length < 26) {
-      return { valid: false, error: 'Invalid wallet address' };
-    }
-    return { valid: true };
-  }
-
-  pay(amount: number): PaymentResult {
-    const validation = this.validate();
-    if (!validation.valid) {
-      throw new Error(validation.error);
-    }
-
-    const cryptoAmount = this.convertToCrypto(amount);
-    console.log(`Processing ${this.currency} payment of ${cryptoAmount} ${this.currency}`);
-    console.log(`Wallet: ${this.walletAddress.slice(0, 10)}...`);
-
-    return {
-      success: true,
-      transactionId: `CRYPTO_${Date.now()}`,
-      method: this.currency.toLowerCase(),
-      amount,
-      cryptoAmount
-    };
-  }
-
-  private convertToCrypto(usdAmount: number): string {
-    const rates: Record<CryptoCurrency, number> = { BTC: 0.000024, ETH: 0.00042 };
-    return (usdAmount * (rates[this.currency] || 0.001)).toFixed(8);
-  }
-}
-
-// Context
-class PaymentProcessor {
-  private strategy: PaymentStrategy | null = null;
-
-  setStrategy(strategy: PaymentStrategy): void {
-    this.strategy = strategy;
-  }
-
-  checkout(amount: number): PaymentResult {
-    if (!this.strategy) {
-      throw new Error('Payment strategy not set');
-    }
-
-    console.log(`\n--- Processing $${amount} payment ---`);
-    const result = this.strategy.pay(amount);
-    console.log('Payment result:', result);
-    return result;
-  }
-}
-
-// Usage
-const processor = new PaymentProcessor();
-
-// Pay with credit card
-processor.setStrategy(new CreditCardStrategy('4242424242424242', '123', '12/25'));
-processor.checkout(99.99);
-
-// Switch to PayPal
-processor.setStrategy(new PayPalStrategy('user@example.com'));
-processor.checkout(49.99);
-
-// Switch to crypto
-processor.setStrategy(new CryptoStrategy('1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', 'BTC'));
-processor.checkout(199.99);
 ```
-
-**Sorting Strategies:**
 
 ```typescript
-interface SortStrategy<T> {
-  sort(data: T[]): T[];
+// ✅ Strategy: one algorithm per unit, added without touching the others.
+interface ShippingStrategy {
+  readonly code: string;
+  cost(order: Order): number;
 }
 
-class QuickSort<T> implements SortStrategy<T> {
-  sort(data: T[]): T[] {
-    console.log('Using QuickSort');
-    if (data.length <= 1) return data;
+const standard: ShippingStrategy = {
+  code: "standard",
+  cost: (order) => order.weightKg * 2,
+};
 
-    const pivot = data[Math.floor(data.length / 2)];
-    const left = data.filter(x => x < pivot);
-    const middle = data.filter(x => x === pivot);
-    const right = data.filter(x => x > pivot);
+const express: ShippingStrategy = {
+  code: "express",
+  cost: (order) => order.weightKg * 5 + 10,
+};
 
-    return [...this.sort(left), ...middle, ...this.sort(right)];
+class ShippingCalculator {
+  constructor(private strategy: ShippingStrategy) {}
+
+  use(strategy: ShippingStrategy): void {
+    this.strategy = strategy; // swappable at runtime — the point of the pattern
+  }
+
+  quote(order: Order): number {
+    return this.strategy.cost(order);
   }
 }
-
-class MergeSort<T> implements SortStrategy<T> {
-  sort(data: T[]): T[] {
-    console.log('Using MergeSort');
-    if (data.length <= 1) return data;
-
-    const mid = Math.floor(data.length / 2);
-    const left = this.sort(data.slice(0, mid));
-    const right = this.sort(data.slice(mid));
-
-    return this.merge(left, right);
-  }
-
-  private merge(left: T[], right: T[]): T[] {
-    const result: T[] = [];
-    let i = 0, j = 0;
-
-    while (i < left.length && j < right.length) {
-      if (left[i] <= right[j]) {
-        result.push(left[i++]);
-      } else {
-        result.push(right[j++]);
-      }
-    }
-
-    return [...result, ...left.slice(i), ...right.slice(j)];
-  }
-}
-
-class BubbleSort<T> implements SortStrategy<T> {
-  sort(data: T[]): T[] {
-    console.log('Using BubbleSort');
-    const arr = [...data];
-
-    for (let i = 0; i < arr.length; i++) {
-      for (let j = 0; j < arr.length - i - 1; j++) {
-        if (arr[j] > arr[j + 1]) {
-          [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-        }
-      }
-    }
-
-    return arr;
-  }
-}
-
-// Context with automatic strategy selection
-class Sorter<T> {
-  private strategy: SortStrategy<T>;
-
-  constructor(strategy?: SortStrategy<T>) {
-    this.strategy = strategy || new QuickSort<T>();
-  }
-
-  setStrategy(strategy: SortStrategy<T>): void {
-    this.strategy = strategy;
-  }
-
-  // Auto-select based on data size
-  sort(data: T[]): T[] {
-    // Small arrays: use simple algorithm
-    if (data.length < 10) {
-      this.strategy = new BubbleSort<T>();
-    }
-    // Medium: QuickSort
-    else if (data.length < 1000) {
-      this.strategy = new QuickSort<T>();
-    }
-    // Large: MergeSort (stable, predictable)
-    else {
-      this.strategy = new MergeSort<T>();
-    }
-
-    return this.strategy.sort(data);
-  }
-}
-
-// Usage
-const sorter = new Sorter<number>();
-
-console.log(sorter.sort([3, 1, 4, 1, 5]));           // BubbleSort
-console.log(sorter.sort(Array.from({length: 100}, () => Math.random()))); // QuickSort
 ```
 
-### Real-World Examples
-
-| Library/Framework | Strategy Usage |
-|-------------------|----------------|
-| **Passport.js** | Authentication strategies |
-| **Winston** | Transport strategies |
-| **Compression** | Compression algorithms |
-| **Axios** | Request interceptors |
-
-### Interview Questions
-
-**Q: When would you use Strategy vs simple if-else?**
-
-**A:**
-
-Use **if-else/switch** when:
-- Few options that won't change
-- Simple selection logic
-- No need to add new algorithms
-
-Use **Strategy** when:
-- Multiple algorithms with same interface
-- Algorithm needs to be selected at runtime
-- New algorithms added frequently
-- Algorithms are complex or need testing independently
+**In TypeScript a strategy is usually just a function**, and that's fine — the pattern is the substitutability, not the class:
 
 ```typescript
-// Simple: if-else is fine
-function formatDate(date: Date, format: 'short' | 'long' | 'iso'): string {
-  if (format === 'short') return date.toLocaleDateString();
-  if (format === 'long') return date.toDateString();
-  return date.toISOString();
-}
+type ShippingRate = (order: Order) => number;
 
-// Complex: Strategy is better
-interface CompressionStrategy {
-  compress(data: Buffer): Buffer;
-}
-class GzipStrategy implements CompressionStrategy { compress(data: Buffer): Buffer { return data; /* complex implementation */ } }
-class BrotliStrategy implements CompressionStrategy { compress(data: Buffer): Buffer { return data; /* complex implementation */ } }
-class LZ4Strategy implements CompressionStrategy { compress(data: Buffer): Buffer { return data; /* complex implementation */ } }
+const rates: Record<string, ShippingRate> = {
+  standard: (o) => o.weightKg * 2,
+  express: (o) => o.weightKg * 5 + 10,
+};
+
+const quote = rates[method]?.(order) ?? rates.standard(order);
 ```
 
----
+**When it's worth it:** the set of algorithms grows, they're independently testable, or the choice comes from configuration. **When it isn't:** two branches that never change — the `if` is clearer than three files.
+
+> ✨ **Strategy is the cleanest illustration of Open/Closed.** Adding a shipping method means adding a file, not editing a working one. That connection is worth making explicitly in an interview. See [SOLID](./05-solid-principles.md#openclosed-ocp).
 
 ## Observer
 
 ### 💡 **Intent**
 
-Define a **one-to-many dependency** between objects so that when one object changes state, all its dependents are notified and updated automatically.
-
-### Problem It Solves
-
-```
-Without Observer:
-├── Tight coupling between objects
-├── Manual notification to all interested parties
-├── Hard to add new subscribers
-├── Polling for changes (inefficient)
-└── Difficult to maintain as system grows
-```
-
-### Structure
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│    Subject      │◄────────│    Observer     │
-├─────────────────┤         ├─────────────────┤
-│ - observers     │         │ + update()      │
-│ + attach()      │         └────────△────────┘
-│ + detach()      │                  │
-│ + notify()      │         ┌────────┴────────┐
-└─────────────────┘         │                 │
-                   ┌────────┴──────┐  ┌───────┴───────┐
-                   │ConcreteObserverA│ │ConcreteObserverB│
-                   └───────────────┘  └───────────────┘
-```
-
-### Implementation
-
-**Event Emitter:**
+Let many objects react to something happening, without the source knowing who they are.
 
 ```typescript
-type EventListener<T = unknown> = (...args: T[]) => void;
+type Listener<T> = (payload: T) => void | Promise<void>;
 
-class EventEmitter {
-  private events: Map<string, EventListener<unknown>[]> = new Map();
+class EventBus<Events extends Record<string, unknown>> {
+  private readonly listeners = new Map<keyof Events, Set<Listener<never>>>();
 
-  on<T = unknown>(event: string, listener: EventListener<T>): this {
-    if (!this.events.has(event)) {
-      this.events.set(event, []);
-    }
-    this.events.get(event)!.push(listener as EventListener<unknown>);
-    return this; // Allow chaining
+  on<K extends keyof Events>(event: K, listener: Listener<Events[K]>): () => void {
+    const set = this.listeners.get(event) ?? new Set();
+    set.add(listener as Listener<never>);
+    this.listeners.set(event, set);
+    // ✅ Return an unsubscribe function — forgetting to remove listeners is the classic leak.
+    return () => set.delete(listener as Listener<never>);
   }
 
-  off<T = unknown>(event: string, listener: EventListener<T>): this {
-    if (!this.events.has(event)) return this;
+  async emit<K extends keyof Events>(event: K, payload: Events[K]): Promise<void> {
+    const set = this.listeners.get(event);
+    if (!set) return;
 
-    const listeners = this.events.get(event)!;
-    const index = listeners.indexOf(listener as EventListener<unknown>);
-    if (index !== -1) {
-      listeners.splice(index, 1);
-    }
-    return this;
-  }
-
-  once<T = unknown>(event: string, listener: EventListener<T>): this {
-    const wrapper: EventListener<unknown> = (...args: unknown[]) => {
-      (listener as EventListener<unknown>)(...args);
-      this.off(event, wrapper);
-    };
-    return this.on(event, wrapper);
-  }
-
-  emit(event: string, ...args: unknown[]): boolean {
-    if (!this.events.has(event)) return false;
-
-    const listeners = this.events.get(event)!;
-    listeners.forEach(listener => {
-      try {
-        listener(...args);
-      } catch (error) {
-        console.error(`Error in ${event} listener:`, error);
-      }
-    });
-    return true;
-  }
-
-  listenerCount(event: string): number {
-    return this.events.get(event)?.length || 0;
+    // 🔴 One throwing listener must not stop the others, or cancel the emit.
+    const results = await Promise.allSettled([...set].map((fn) => (fn as Listener<Events[K]>)(payload)));
+    for (const r of results) if (r.status === "rejected") logger.error({ err: r.reason, event });
   }
 }
 
-// Usage
-interface UserCreatedPayload {
-  id: number;
-  name: string;
-  email: string;
+// Typed event map — the compiler checks payloads at both ends.
+interface AppEvents {
+  "order.placed": { orderId: string; userId: string };
+  "user.deleted": { userId: string };
 }
 
-const emitter = new EventEmitter();
+const bus = new EventBus<AppEvents>();
 
-// Subscribe to events
-emitter.on<UserCreatedPayload>('user:created', (user) => {
-  console.log('Send welcome email to:', user.email);
-});
-
-emitter.on<UserCreatedPayload>('user:created', (user) => {
-  console.log('Initialize user preferences for:', user.id);
-});
-
-emitter.on<UserCreatedPayload>('user:created', (user) => {
-  console.log('Add to newsletter:', user.email);
-});
-
-// One-time listener
-emitter.once<UserCreatedPayload>('user:firstLogin', (user) => {
-  console.log('Show onboarding tutorial to:', user.name);
-});
-
-// Emit events
-emitter.emit('user:created', { id: 1, name: 'John', email: 'john@example.com' });
-// Send welcome email to: john@example.com
-// Initialize user preferences for: 1
-// Add to newsletter: john@example.com
+const off = bus.on("order.placed", async ({ orderId }) => sendReceipt(orderId));
+await bus.emit("order.placed", { orderId: "o_1", userId: "u_1" });
+off(); // unsubscribe
 ```
 
-**Stock Price Observer:**
+**Node has this built in** — `EventEmitter` is Observer, and so is every `stream.on("data")` call. Reach for the standard class before writing your own.
 
-```typescript
-interface PriceUpdate {
-  symbol: string;
-  price: number;
-  oldPrice: number;
-  change: string;
-  direction: string;
-}
+| Pros | Cons |
+| ---- | ---- |
+| ✅ Publisher doesn't know subscribers | ❌ Flow becomes hard to trace — who handled this? |
+| ✅ New reactions need no change to the publisher | ❌ Listener leaks if you never unsubscribe |
+| ✅ Natural fit for cross-cutting side effects | ❌ Errors and ordering are easy to get wrong |
 
-interface StockObserver {
-  name: string;
-  update(data: PriceUpdate): void;
-}
-
-// Subject
-class StockTicker {
-  private symbol: string;
-  private price: number = 0;
-  private observers: Set<StockObserver> = new Set();
-
-  constructor(symbol: string) {
-    this.symbol = symbol;
-  }
-
-  subscribe(observer: StockObserver): void {
-    this.observers.add(observer);
-    console.log(`${observer.name} subscribed to ${this.symbol}`);
-  }
-
-  unsubscribe(observer: StockObserver): void {
-    this.observers.delete(observer);
-    console.log(`${observer.name} unsubscribed from ${this.symbol}`);
-  }
-
-  setPrice(price: number): void {
-    const oldPrice = this.price;
-    this.price = price;
-
-    if (oldPrice !== price) {
-      this.notify(oldPrice);
-    }
-  }
-
-  private notify(oldPrice: number): void {
-    const change = ((this.price - oldPrice) / oldPrice * 100).toFixed(2);
-    const direction = this.price > oldPrice ? '📈' : '📉';
-
-    this.observers.forEach(observer => {
-      observer.update({
-        symbol: this.symbol,
-        price: this.price,
-        oldPrice,
-        change: `${change}%`,
-        direction
-      });
-    });
-  }
-}
-
-// Concrete observers
-class PriceAlert implements StockObserver {
-  public name: string;
-  private threshold: number;
-  private direction: 'above' | 'below';
-
-  constructor(name: string, threshold: number, direction: 'above' | 'below') {
-    this.name = name;
-    this.threshold = threshold;
-    this.direction = direction;
-  }
-
-  update(data: PriceUpdate): void {
-    const shouldAlert =
-      (this.direction === 'above' && data.price > this.threshold) ||
-      (this.direction === 'below' && data.price < this.threshold);
-
-    if (shouldAlert) {
-      console.log(`🚨 ${this.name}: ${data.symbol} is ${this.direction} $${this.threshold}! Current: $${data.price}`);
-    }
-  }
-}
-
-class PriceLogger implements StockObserver {
-  public name: string;
-
-  constructor(name: string) {
-    this.name = name;
-  }
-
-  update(data: PriceUpdate): void {
-    console.log(`[${this.name}] ${data.symbol}: $${data.oldPrice} → $${data.price} (${data.direction} ${data.change})`);
-  }
-}
-
-class TradingBot implements StockObserver {
-  public name: string;
-  private buyThreshold: number;
-  private sellThreshold: number;
-  private position: number = 0;
-
-  constructor(name: string, buyThreshold: number, sellThreshold: number) {
-    this.name = name;
-    this.buyThreshold = buyThreshold;
-    this.sellThreshold = sellThreshold;
-  }
-
-  update(data: PriceUpdate): void {
-    if (data.price < this.buyThreshold && this.position < 100) {
-      this.position += 10;
-      console.log(`🤖 ${this.name}: Buying 10 shares of ${data.symbol} at $${data.price}. Position: ${this.position}`);
-    } else if (data.price > this.sellThreshold && this.position > 0) {
-      const sellAmount = Math.min(10, this.position);
-      this.position -= sellAmount;
-      console.log(`🤖 ${this.name}: Selling ${sellAmount} shares of ${data.symbol} at $${data.price}. Position: ${this.position}`);
-    }
-  }
-}
-
-// Usage
-const appleStock = new StockTicker('AAPL');
-
-// Create observers
-const logger = new PriceLogger('Console Logger');
-const highAlert = new PriceAlert('High Alert', 200, 'above');
-const lowAlert = new PriceAlert('Low Alert', 150, 'below');
-const bot = new TradingBot('AutoTrader', 155, 195);
-
-// Subscribe observers
-appleStock.subscribe(logger);
-appleStock.subscribe(highAlert);
-appleStock.subscribe(lowAlert);
-appleStock.subscribe(bot);
-
-// Simulate price changes
-console.log('\n--- Price Updates ---');
-appleStock.setPrice(175);
-appleStock.setPrice(180);
-appleStock.setPrice(152);
-appleStock.setPrice(148);
-appleStock.setPrice(205);
-
-// Unsubscribe
-appleStock.unsubscribe(lowAlert);
-appleStock.setPrice(145); // Low alert won't trigger
-```
-
-**TypeScript Reactive Store:**
-
-```typescript
-type Listener<T> = (state: T, prevState: T) => void;
-type Selector<T, R> = (state: T) => R;
-
-class Store<T extends object> {
-  private state: T;
-  private listeners: Set<Listener<T>> = new Set();
-  private selectorListeners: Map<Selector<T, unknown>, Set<Listener<unknown>>> = new Map();
-
-  constructor(initialState: T) {
-    this.state = initialState;
-  }
-
-  getState(): T {
-    return this.state;
-  }
-
-  setState(partial: Partial<T> | ((state: T) => Partial<T>)): void {
-    const prevState = this.state;
-    const changes = typeof partial === 'function' ? partial(this.state) : partial;
-
-    this.state = { ...this.state, ...changes };
-    this.notify(prevState);
-  }
-
-  subscribe(listener: Listener<T>): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  // Subscribe to specific part of state
-  subscribeToSelector<R>(selector: Selector<T, R>, listener: Listener<R>): () => void {
-    if (!this.selectorListeners.has(selector)) {
-      this.selectorListeners.set(selector, new Set());
-    }
-    this.selectorListeners.get(selector)!.add(listener as Listener<unknown>);
-
-    return () => {
-      this.selectorListeners.get(selector)?.delete(listener as Listener<unknown>);
-    };
-  }
-
-  private notify(prevState: T): void {
-    // Notify general listeners
-    this.listeners.forEach(listener => {
-      listener(this.state, prevState);
-    });
-
-    // Notify selector listeners only if selected value changed
-    this.selectorListeners.forEach((listeners, selector) => {
-      const prevValue = selector(prevState);
-      const newValue = selector(this.state);
-
-      if (prevValue !== newValue) {
-        listeners.forEach(listener => {
-          listener(newValue, prevValue);
-        });
-      }
-    });
-  }
-}
-
-// Usage
-interface CartState {
-  items: string[];
-  total: number;
-}
-
-interface AppState {
-  user: { name: string; email: string } | null;
-  cart: CartState;
-  theme: 'light' | 'dark';
-}
-
-const store = new Store<AppState>({
-  user: null,
-  cart: { items: [], total: 0 },
-  theme: 'light'
-});
-
-// Subscribe to all changes
-const unsubscribeAll = store.subscribe((state, prev) => {
-  console.log('State changed:', state);
-});
-
-// Subscribe to specific slice
-const selectUser = (state: AppState) => state.user;
-const selectCartTotal = (state: AppState) => state.cart.total;
-
-store.subscribeToSelector(selectUser, (user, prevUser) => {
-  console.log('User changed:', prevUser, '→', user);
-});
-
-store.subscribeToSelector(selectCartTotal, (total, prevTotal) => {
-  console.log('Cart total changed:', prevTotal, '→', total);
-});
-
-// Update state
-store.setState({ user: { name: 'John', email: 'john@example.com' } });
-store.setState({ theme: 'dark' }); // Cart listener won't fire
-store.setState(state => ({
-  cart: { items: [...state.cart.items, 'Product'], total: state.cart.total + 29.99 }
-}));
-```
-
-### Real-World Examples
-
-| Library/Framework | Observer Usage |
-|-------------------|----------------|
-| **Node.js** | EventEmitter |
-| **React** | useState, Redux |
-| **Vue.js** | Reactivity system |
-| **RxJS** | Observables |
-| **DOM** | addEventListener |
-
-### Interview Questions
-
-**Q: What's the difference between Observer and Pub/Sub?**
-
-**A:**
-
-| Aspect | Observer | Pub/Sub |
-|--------|----------|---------|
-| **Coupling** | Subject knows observers | Decoupled via message broker |
-| **Communication** | Direct | Through channel/topic |
-| **Scalability** | Limited | Better for distributed systems |
-| **Implementation** | Subject maintains list | Separate mediator/broker |
-
-```typescript
-// Observer: Subject knows observers directly
-interface Observer { update(): void; }
-class Subject {
-  private observers: Observer[] = [];
-  addObserver(observer: Observer): void { this.observers.push(observer); }
-  notify(): void { this.observers.forEach(o => o.update()); } // Subject calls observer.update()
-}
-
-// Pub/Sub: Through message broker
-type Handler = (message: unknown) => void;
-class Broker {
-  private subscribers: Map<string, Handler[]> = new Map();
-  subscribe(channel: string, handler: Handler): void {
-    if (!this.subscribers.has(channel)) this.subscribers.set(channel, []);
-    this.subscribers.get(channel)!.push(handler);
-  }
-  publish(channel: string, message: unknown): void {
-    this.subscribers.get(channel)?.forEach(h => h(message)); // Broker routes to subscribers
-  }
-}
-```
-
----
+🔴 **In-process events are not a message queue.** They vanish on crash, don't retry, and don't cross processes. If the reaction *must* happen — charging a card, sending an invoice — persist it and process it from a real queue. Getting this distinction wrong is how "the email sometimes doesn't send" bugs are born.
 
 ## Command
 
 ### 💡 **Intent**
 
-Encapsulate a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations.
+Turn an action into an object, so it can be stored, passed around, queued, retried, or undone.
 
-### Problem It Solves
-
-```
-Without Command:
-├── Cannot undo/redo operations
-├── Cannot queue or schedule operations
-├── Hard to implement transaction logging
-├── Tight coupling between invoker and receiver
-└── Cannot parameterize objects with operations
-```
-
-### Structure
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│     Invoker     │────────▶│    Command      │
-├─────────────────┤         ├─────────────────┤
-│ + setCommand()  │         │ + execute()     │
-│ + executeCommand│         │ + undo()        │
-└─────────────────┘         └────────△────────┘
-                                     │
-                            ┌────────┴────────┐
-                            │ConcreteCommand  │
-                            ├─────────────────┤
-                            │ - receiver      │
-                            │ + execute()     │───▶ receiver.action()
-                            │ + undo()        │
-                            └─────────────────┘
-```
-
-### Implementation
-
-**Text Editor with Undo/Redo:**
+**The payoff is not encapsulation for its own sake** — it's that an action you can hold as data is an action you can put in a queue or an undo stack.
 
 ```typescript
-// Command interface
 interface Command {
-  execute(): void;
-  undo(): void;
-}
-
-// Receiver
-class TextEditor {
-  private content: string = '';
-  private clipboard: string = '';
-
-  getContent(): string {
-    return this.content;
-  }
-
-  setContent(content: string): void {
-    this.content = content;
-  }
-
-  insertText(position: number, text: string): void {
-    this.content =
-      this.content.slice(0, position) +
-      text +
-      this.content.slice(position);
-  }
-
-  deleteText(position: number, length: number): string {
-    const deleted = this.content.slice(position, position + length);
-    this.content =
-      this.content.slice(0, position) +
-      this.content.slice(position + length);
-    return deleted;
-  }
-
-  copy(start: number, end: number): void {
-    this.clipboard = this.content.slice(start, end);
-  }
-
-  paste(position: number): void {
-    this.insertText(position, this.clipboard);
-  }
-}
-
-// Concrete commands
-class InsertCommand implements Command {
-  private editor: TextEditor;
-  private position: number;
-  private text: string;
-
-  constructor(editor: TextEditor, position: number, text: string) {
-    this.editor = editor;
-    this.position = position;
-    this.text = text;
-  }
-
-  execute(): void {
-    this.editor.insertText(this.position, this.text);
-  }
-
-  undo(): void {
-    this.editor.deleteText(this.position, this.text.length);
-  }
-}
-
-class DeleteCommand implements Command {
-  private editor: TextEditor;
-  private position: number;
-  private length: number;
-  private deletedText: string = '';
-
-  constructor(editor: TextEditor, position: number, length: number) {
-    this.editor = editor;
-    this.position = position;
-    this.length = length;
-  }
-
-  execute(): void {
-    this.deletedText = this.editor.deleteText(this.position, this.length);
-  }
-
-  undo(): void {
-    this.editor.insertText(this.position, this.deletedText);
-  }
-}
-
-class ReplaceCommand implements Command {
-  private editor: TextEditor;
-  private position: number;
-  private length: number;
-  private newText: string;
-  private oldText: string = '';
-
-  constructor(editor: TextEditor, position: number, length: number, newText: string) {
-    this.editor = editor;
-    this.position = position;
-    this.length = length;
-    this.newText = newText;
-  }
-
-  execute(): void {
-    this.oldText = this.editor.getContent().slice(this.position, this.position + this.length);
-    this.editor.deleteText(this.position, this.length);
-    this.editor.insertText(this.position, this.newText);
-  }
-
-  undo(): void {
-    this.editor.deleteText(this.position, this.newText.length);
-    this.editor.insertText(this.position, this.oldText);
-  }
-}
-
-// Invoker
-class EditorHistory {
-  private editor: TextEditor;
-  private undoStack: Command[] = [];
-  private redoStack: Command[] = [];
-
-  constructor(editor: TextEditor) {
-    this.editor = editor;
-  }
-
-  execute(command: Command): void {
-    command.execute();
-    this.undoStack.push(command);
-    this.redoStack = []; // Clear redo stack on new action
-    console.log(`Executed. Content: "${this.editor.getContent()}"`);
-  }
-
-  undo(): void {
-    if (this.undoStack.length === 0) {
-      console.log('Nothing to undo');
-      return;
-    }
-
-    const command = this.undoStack.pop()!;
-    command.undo();
-    this.redoStack.push(command);
-    console.log(`Undone. Content: "${this.editor.getContent()}"`);
-  }
-
-  redo(): void {
-    if (this.redoStack.length === 0) {
-      console.log('Nothing to redo');
-      return;
-    }
-
-    const command = this.redoStack.pop()!;
-    command.execute();
-    this.undoStack.push(command);
-    console.log(`Redone. Content: "${this.editor.getContent()}"`);
-  }
-}
-
-// Usage
-const editor = new TextEditor();
-const history = new EditorHistory(editor);
-
-history.execute(new InsertCommand(editor, 0, 'Hello'));
-// Executed. Content: "Hello"
-
-history.execute(new InsertCommand(editor, 5, ' World'));
-// Executed. Content: "Hello World"
-
-history.execute(new DeleteCommand(editor, 5, 6));
-// Executed. Content: "Hello"
-
-history.undo();
-// Undone. Content: "Hello World"
-
-history.undo();
-// Undone. Content: "Hello"
-
-history.redo();
-// Redone. Content: "Hello World"
-
-history.execute(new ReplaceCommand(editor, 6, 5, 'JavaScript'));
-// Executed. Content: "Hello JavaScript"
-```
-
-**Task Queue:**
-
-```typescript
-interface Task {
+  readonly name: string;
   execute(): Promise<void>;
-  getName(): string;
+  undo(): Promise<void>;
 }
 
-class SendEmailTask implements Task {
-  constructor(private to: string, private subject: string, private body: string) {}
+class RenameDocumentCommand implements Command {
+  readonly name = "document.rename";
+  private previousTitle?: string; // state needed to reverse the change
+
+  constructor(
+    private readonly docs: DocumentRepository,
+    private readonly id: string,
+    private readonly newTitle: string,
+  ) {}
 
   async execute(): Promise<void> {
-    console.log(`Sending email to ${this.to}: ${this.subject}`);
-    // Simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 100));
-    console.log(`Email sent to ${this.to}`);
+    const doc = await this.docs.findById(this.id);
+    if (!doc) throw new Error("Not found");
+    this.previousTitle = doc.title; // capture before mutating
+    await this.docs.update(this.id, { title: this.newTitle });
   }
 
-  getName(): string {
-    return `SendEmail(${this.to})`;
-  }
-}
-
-class ProcessPaymentTask implements Task {
-  constructor(private orderId: string, private amount: number) {}
-
-  async execute(): Promise<void> {
-    console.log(`Processing payment for order ${this.orderId}: $${this.amount}`);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    console.log(`Payment processed for order ${this.orderId}`);
-  }
-
-  getName(): string {
-    return `ProcessPayment(${this.orderId})`;
+  async undo(): Promise<void> {
+    if (this.previousTitle === undefined) return; // never executed
+    await this.docs.update(this.id, { title: this.previousTitle });
   }
 }
 
-class GenerateReportTask implements Task {
-  constructor(private reportType: string) {}
+/** The invoker owns history; it knows nothing about what any command does. */
+class CommandBus {
+  private readonly history: Command[] = [];
 
-  async execute(): Promise<void> {
-    console.log(`Generating ${this.reportType} report...`);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    console.log(`${this.reportType} report generated`);
+  async run(command: Command): Promise<void> {
+    await command.execute();
+    this.history.push(command);
   }
 
-  getName(): string {
-    return `GenerateReport(${this.reportType})`;
-  }
-}
-
-// Command queue processor
-class TaskQueue {
-  private queue: Task[] = [];
-  private processing = false;
-  private concurrency: number;
-  private activeCount = 0;
-
-  constructor(concurrency: number = 2) {
-    this.concurrency = concurrency;
-  }
-
-  add(task: Task): void {
-    this.queue.push(task);
-    console.log(`Task added: ${task.getName()}. Queue size: ${this.queue.length}`);
-    this.process();
-  }
-
-  private async process(): Promise<void> {
-    while (this.queue.length > 0 && this.activeCount < this.concurrency) {
-      const task = this.queue.shift()!;
-      this.activeCount++;
-
-      console.log(`Starting: ${task.getName()}`);
-
-      task.execute()
-        .then(() => {
-          console.log(`Completed: ${task.getName()}`);
-        })
-        .catch(err => {
-          console.error(`Failed: ${task.getName()}`, err);
-        })
-        .finally(() => {
-          this.activeCount--;
-          this.process(); // Process next
-        });
-    }
+  async undoLast(): Promise<void> {
+    await this.history.pop()?.undo();
   }
 }
-
-// Usage
-const queue = new TaskQueue(2);
-
-queue.add(new SendEmailTask('user@example.com', 'Welcome', 'Welcome to our platform!'));
-queue.add(new ProcessPaymentTask('ORD-001', 99.99));
-queue.add(new GenerateReportTask('Monthly Sales'));
-queue.add(new SendEmailTask('admin@example.com', 'Report Ready', 'Monthly report is ready'));
 ```
 
-### Pros and Cons
+**Where this earns its keep:**
 
-**Pros:**
-- ✅ Decouple invoker from receiver
-- ✅ Implement undo/redo
-- ✅ Implement deferred execution
-- ✅ Assemble commands into composite commands
+- **Undo/redo** — the history stack is the pattern's original motivation.
+- **Job queues** — a serialized command *is* a queue message.
+- **CQRS** — commands (write intent) modelled separately from queries.
+- **Audit logs** — a command log is a record of intent, not just of resulting state.
 
-**Cons:**
-- ❌ Increases complexity with many command classes
-- ❌ Can be overkill for simple operations
-
----
+> ⚠️ **Undo is harder than it looks.** Reversing a database write is fine; reversing a charged card or a sent email is not. For irreversible effects the honest answer is a *compensating* command — issue a refund, send a correction — not an undo.
 
 ## State
 
 ### 💡 **Intent**
 
-Allow an object to **alter its behavior when its internal state changes**. The object will appear to change its class.
+Give an object different behaviour depending on its current state, by making each state its own object.
 
-### Problem It Solves
-
-```
-Without State:
-├── Large switch/if-else for state-dependent behavior
-├── State transitions scattered throughout code
-├── Hard to add new states
-├── Difficult to understand state machine
-└── Code duplication across states
-```
-
-### Implementation
-
-**Order State Machine:**
+**The smell:** the same `switch (status)` appearing in five methods.
 
 ```typescript
-type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
-
-// State interface
-interface OrderState {
-  pay(): void;
-  ship(): void;
-  deliver(): void;
-  cancel(): void;
-  getStatus(): OrderStatus;
-}
-
-// Forward declaration for Order class
+// ❌ Every method re-derives what's legal in each status.
 class Order {
-  public id: string;
-  public items: string[];
-  private state: OrderState;
+  status: "draft" | "paid" | "shipped" | "cancelled" = "draft";
 
-  constructor(id: string, items: string[]) {
-    this.id = id;
-    this.items = items;
-    this.state = new PendingState(this);
+  cancel(): void {
+    if (this.status === "draft") { this.status = "cancelled"; return; }
+    if (this.status === "paid") { this.refund(); this.status = "cancelled"; return; }
+    if (this.status === "shipped") throw new Error("Too late to cancel");
+    throw new Error("Already cancelled");
   }
+  // …and pay(), ship(), refund() each repeat the same shape
+}
+```
 
-  setState(state: OrderState): void {
-    console.log(`Order ${this.id}: ${this.state.getStatus()} → ${state.getStatus()}`);
-    this.state = state;
-  }
-
-  getStatus(): OrderStatus {
-    return this.state.getStatus();
-  }
-
-  // Delegate to current state
-  pay(): void { this.state.pay(); }
-  ship(): void { this.state.ship(); }
-  deliver(): void { this.state.deliver(); }
-  cancel(): void { this.state.cancel(); }
+```typescript
+// ✅ State: each state knows only its own legal transitions.
+interface OrderState {
+  readonly name: string;
+  pay(order: Order): OrderState;
+  ship(order: Order): OrderState;
+  cancel(order: Order): OrderState;
 }
 
-// Concrete states
-class PendingState implements OrderState {
-  constructor(private order: Order) {}
+const illegal = (action: string, state: string): never => {
+  throw new Error(`Cannot ${action} an order that is ${state}`);
+};
 
-  getStatus(): OrderStatus { return 'pending'; }
+const draft: OrderState = {
+  name: "draft",
+  pay: () => paid,
+  ship: () => illegal("ship", "draft"),
+  cancel: () => cancelled,
+};
+
+const paid: OrderState = {
+  name: "paid",
+  pay: () => illegal("pay", "paid"),
+  ship: () => shipped,
+  cancel: (order) => {
+    order.refund(); // ✅ transition side effect lives with the state that owns it
+    return cancelled;
+  },
+};
+
+// Terminal states: every transition is illegal, except an idempotent re-cancel.
+const shipped: OrderState = {
+  name: "shipped",
+  pay: () => illegal("pay", "shipped"),
+  ship: () => illegal("ship", "shipped"),
+  cancel: () => illegal("cancel", "shipped"),
+};
+
+const cancelled: OrderState = {
+  name: "cancelled",
+  pay: () => illegal("pay", "cancelled"),
+  ship: () => illegal("ship", "cancelled"),
+  cancel: () => cancelled,
+};
+
+class Order {
+  private state: OrderState = draft;
 
   pay(): void {
-    console.log('Processing payment...');
-    this.order.setState(new PaidState(this.order));
-    console.log('Payment successful. Order is now paid.');
+    this.state = this.state.pay(this);
   }
 
-  ship(): void { throw new Error('Cannot ship in current state'); }
-  deliver(): void { throw new Error('Cannot deliver in current state'); }
-
-  cancel(): void {
-    console.log('Cancelling pending order...');
-    this.order.setState(new CancelledState(this.order));
-    console.log('Order cancelled.');
-  }
-}
-
-class PaidState implements OrderState {
-  constructor(private order: Order) {}
-
-  getStatus(): OrderStatus { return 'paid'; }
-
-  pay(): void { throw new Error('Cannot pay in current state'); }
-
-  ship(): void {
-    console.log('Preparing shipment...');
-    this.order.setState(new ShippedState(this.order));
-    console.log('Order shipped.');
+  get status(): string {
+    return this.state.name;
   }
 
-  deliver(): void { throw new Error('Cannot deliver in current state'); }
-
-  cancel(): void {
-    console.log('Processing refund...');
-    this.order.setState(new CancelledState(this.order));
-    console.log('Order cancelled and refunded.');
-  }
-}
-
-class ShippedState implements OrderState {
-  constructor(private order: Order) {}
-
-  getStatus(): OrderStatus { return 'shipped'; }
-
-  pay(): void { throw new Error('Cannot pay in current state'); }
-  ship(): void { throw new Error('Cannot ship in current state'); }
-
-  deliver(): void {
-    console.log('Confirming delivery...');
-    this.order.setState(new DeliveredState(this.order));
-    console.log('Order delivered.');
-  }
-
-  // Cannot cancel shipped orders
-  cancel(): void {
-    throw new Error('Cannot cancel shipped orders. Please request a return after delivery.');
-  }
-}
-
-class DeliveredState implements OrderState {
-  constructor(private order: Order) {}
-
-  getStatus(): OrderStatus { return 'delivered'; }
-
-  // Cannot do anything in delivered state
-  pay(): void { throw new Error('Order already delivered'); }
-  ship(): void { throw new Error('Order already delivered'); }
-  deliver(): void { throw new Error('Order already delivered'); }
-  cancel(): void { throw new Error('Cannot cancel delivered orders. Please initiate a return.'); }
-}
-
-class CancelledState implements OrderState {
-  constructor(private order: Order) {}
-
-  getStatus(): OrderStatus { return 'cancelled'; }
-
-  pay(): void { throw new Error('Cannot pay for cancelled order'); }
-  ship(): void { throw new Error('Cannot ship cancelled order'); }
-  deliver(): void { throw new Error('Cannot deliver cancelled order'); }
-  cancel(): void { throw new Error('Order already cancelled'); }
-}
-
-// Usage
-console.log('=== Order Lifecycle ===\n');
-
-const order1 = new Order('ORD-001', ['Product A', 'Product B']);
-console.log(`Initial status: ${order1.getStatus()}\n`);
-
-order1.pay();
-// Order ORD-001: pending → paid
-// Payment successful.
-
-console.log();
-order1.ship();
-// Order ORD-001: paid → shipped
-// Order shipped.
-
-console.log();
-order1.deliver();
-// Order ORD-001: shipped → delivered
-// Order delivered.
-
-console.log('\n=== Cancelled Order ===\n');
-
-const order2 = new Order('ORD-002', ['Product C']);
-order2.pay();
-console.log();
-
-try {
-  order2.cancel(); // After payment, before shipping
-} catch (e) {
-  console.error('Error:', (e as Error).message);
-}
-
-console.log('\n=== Invalid Transition ===\n');
-
-const order3 = new Order('ORD-003', ['Product D']);
-try {
-  order3.ship(); // Cannot ship without paying
-} catch (e) {
-  console.error('Error:', (e as Error).message);
+  refund(): void { /* … */ }
 }
 ```
 
-**TypeScript Traffic Light:**
+**The win is that illegal transitions become impossible rather than merely guarded.** Adding a `refunded` state means writing one object; the compiler then tells you every place that must handle it.
 
-```typescript
-interface TrafficLightState {
-  display(): string;
-  next(light: TrafficLight): void;
-  canGo(): boolean;
-}
+**State vs Strategy** — identical structure, different reason:
 
-class RedState implements TrafficLightState {
-  display(): string {
-    return '🔴 RED - STOP';
-  }
-
-  next(light: TrafficLight): void {
-    light.setState(new GreenState());
-  }
-
-  canGo(): boolean {
-    return false;
-  }
-}
-
-class GreenState implements TrafficLightState {
-  display(): string {
-    return '🟢 GREEN - GO';
-  }
-
-  next(light: TrafficLight): void {
-    light.setState(new YellowState());
-  }
-
-  canGo(): boolean {
-    return true;
-  }
-}
-
-class YellowState implements TrafficLightState {
-  display(): string {
-    return '🟡 YELLOW - CAUTION';
-  }
-
-  next(light: TrafficLight): void {
-    light.setState(new RedState());
-  }
-
-  canGo(): boolean {
-    return false; // Should stop if possible
-  }
-}
-
-class TrafficLight {
-  private state: TrafficLightState;
-
-  constructor() {
-    this.state = new RedState();
-  }
-
-  setState(state: TrafficLightState): void {
-    this.state = state;
-  }
-
-  display(): string {
-    return this.state.display();
-  }
-
-  next(): void {
-    this.state.next(this);
-  }
-
-  canGo(): boolean {
-    return this.state.canGo();
-  }
-}
-
-// Usage
-const light = new TrafficLight();
-
-for (let i = 0; i < 6; i++) {
-  console.log(light.display(), `- Can go: ${light.canGo()}`);
-  light.next();
-}
-```
-
-### Interview Questions
-
-**Q: What's the difference between State and Strategy?**
-
-**A:**
-
-| Aspect | State | Strategy |
-|--------|-------|----------|
-| **Purpose** | Manage state transitions | Swap algorithms |
-| **Who decides** | States decide next state | Client sets strategy |
-| **Awareness** | States know about each other | Strategies independent |
-| **Change frequency** | Changes automatically | Changed by client |
-| **Represents** | Lifecycle/workflow | Algorithm choice |
-
----
-
-## Template Method
-
-### 💡 **Intent**
-
-Define the **skeleton of an algorithm** in an operation, deferring some steps to subclasses. Template Method lets subclasses redefine certain steps of an algorithm without changing its structure.
-
-### Implementation
-
-```typescript
-interface ParsedFile {
-  path: string;
-  type: string;
-  content: string;
-}
-
-interface DataRecord {
-  [key: string]: string | number;
-}
-
-interface AnalysisResult {
-  count: number;
-  data: DataRecord[];
-  averageAge?: number;
-}
-
-// Abstract class with template method
-abstract class DataMiner {
-  // Template method - defines the algorithm skeleton
-  mine(path: string): string {
-    console.log('\n=== Starting Data Mining ===');
-
-    const file = this.openFile(path);
-    const rawData = this.extractData(file);
-    const data = this.parseData(rawData);
-
-    const analysis = this.analyzeData(data); // Hook - can be overridden
-    const report = this.generateReport(analysis);
-
-    this.sendReport(report); // Hook - optional step
-    this.closeFile(file);
-
-    console.log('=== Data Mining Complete ===\n');
-    return report;
-  }
-
-  // Abstract methods - must be implemented
-  protected abstract openFile(path: string): ParsedFile;
-  protected abstract extractData(file: ParsedFile): string;
-  protected abstract parseData(data: string): DataRecord[];
-  protected abstract closeFile(file: ParsedFile): void;
-
-  // Hook methods - optional override
-  protected analyzeData(data: DataRecord[]): AnalysisResult {
-    console.log('Analyzing data...');
-    return { count: data.length, data };
-  }
-
-  protected generateReport(analysis: AnalysisResult): string {
-    console.log('Generating report...');
-    return `Report: ${analysis.count} records processed`;
-  }
-
-  protected sendReport(report: string): void {
-    // Default: do nothing - hook method
-  }
-}
-
-// Concrete implementations
-class CSVDataMiner extends DataMiner {
-  protected openFile(path: string): ParsedFile {
-    console.log(`Opening CSV file: ${path}`);
-    return { path, type: 'csv', content: 'name,age,city\nJohn,30,NYC\nJane,25,LA' };
-  }
-
-  protected extractData(file: ParsedFile): string {
-    console.log('Extracting CSV data...');
-    return file.content;
-  }
-
-  protected parseData(data: string): DataRecord[] {
-    console.log('Parsing CSV data...');
-    const lines = data.split('\n');
-    const headers = lines[0].split(',');
-    return lines.slice(1).map(line => {
-      const values = line.split(',');
-      return headers.reduce<DataRecord>((obj, header, i) => {
-        obj[header] = values[i];
-        return obj;
-      }, {});
-    });
-  }
-
-  protected closeFile(file: ParsedFile): void {
-    console.log(`Closing CSV file: ${file.path}`);
-  }
-}
-
-class JSONDataMiner extends DataMiner {
-  protected openFile(path: string): ParsedFile {
-    console.log(`Opening JSON file: ${path}`);
-    return {
-      path,
-      type: 'json',
-      content: '[{"name":"John","age":30},{"name":"Jane","age":25}]'
-    };
-  }
-
-  protected extractData(file: ParsedFile): string {
-    console.log('Extracting JSON data...');
-    return file.content;
-  }
-
-  protected parseData(data: string): DataRecord[] {
-    console.log('Parsing JSON data...');
-    return JSON.parse(data) as DataRecord[];
-  }
-
-  protected closeFile(file: ParsedFile): void {
-    console.log(`Closing JSON file: ${file.path}`);
-  }
-
-  // Override hook to add custom analysis
-  protected analyzeData(data: DataRecord[]): AnalysisResult {
-    console.log('Performing advanced JSON analysis...');
-    const avgAge = data.reduce((sum, p) => sum + (p.age as number), 0) / data.length;
-    return { count: data.length, averageAge: avgAge, data };
-  }
-
-  // Override hook to send report
-  protected sendReport(report: string): void {
-    console.log(`Sending report via email: ${report}`);
-  }
-}
-
-// Usage
-const csvMiner = new CSVDataMiner();
-csvMiner.mine('data.csv');
-
-const jsonMiner = new JSONDataMiner();
-jsonMiner.mine('data.json');
-```
-
----
+| | **Strategy** | **State** |
+| --- | --- | --- |
+| Who chooses | The caller, from outside | The object itself, by transitioning |
+| Do the options know each other? | No, independent | Yes — each returns the next state |
+| Changes over an object's life | Usually once | Constantly |
 
 ## Chain of Responsibility
 
 ### 💡 **Intent**
 
-Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it.
+Pass a request along a line of handlers until one deals with it — or let each contribute and hand it on.
 
-### Implementation
-
-**HTTP Middleware Chain:**
+**You use this every day:** Express middleware is exactly this pattern.
 
 ```typescript
-interface HttpRequest {
-  method: string;
-  url: string;
-  headers?: Record<string, string>;
-  body?: Record<string, unknown>;
-  ip?: string;
-  user?: { id: number; name: string };
+type Context = { request: Request; response: Response };
+type Next = () => Promise<void>;
+type Middleware = (ctx: Context, next: Next) => Promise<void>;
+
+/** Composes handlers into a single chain, Koa-style. */
+function chain(middlewares: Middleware[]): (ctx: Context) => Promise<void> {
+  return function run(ctx: Context, index = 0): Promise<void> {
+    const current = middlewares[index];
+    if (!current) return Promise.resolve();
+    // Each handler decides whether the rest of the chain runs at all.
+    return current(ctx, () => run(ctx, index + 1));
+  };
 }
 
-interface HttpResponse {
-  status: number | null;
-  body: unknown;
-}
-
-type RequestHandlerFn = (req: HttpRequest, res: HttpResponse) => HttpResponse;
-
-// Handler interface
-abstract class Middleware {
-  protected next: Middleware | null = null;
-
-  setNext(middleware: Middleware): Middleware {
-    this.next = middleware;
-    return middleware;
+const authenticate: Middleware = async (ctx, next) => {
+  const user = await verify(ctx.request.headers.authorization);
+  if (!user) {
+    ctx.response.status = 401; // ✅ short-circuit — next() is never called
+    return;
   }
+  ctx.request.user = user;
+  await next();
+};
 
-  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
-    if (this.next) {
-      return this.next.handle(request, response);
-    }
-    return null;
-  }
-}
+const timing: Middleware = async (ctx, next) => {
+  const start = performance.now();
+  await next();                       // everything downstream runs inside here
+  metrics.observe("request", performance.now() - start);
+};
 
-// Concrete handlers
-class LoggingMiddleware extends Middleware {
-  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
-    const start = Date.now();
-    console.log(`[${new Date().toISOString()}] ${request.method} ${request.url}`);
+const handle = chain([timing, authenticate, routeHandler]);
+```
 
-    const result = super.handle(request, response);
+> ✨ **The key detail is who controls `next()`.** Because each handler wraps the rest of the chain, it can run code before *and* after — which is how timing, transactions, and error boundaries work as middleware. That's the difference between a chain and a plain list of callbacks.
 
-    console.log(`[${new Date().toISOString()}] Completed in ${Date.now() - start}ms`);
-    return result;
-  }
-}
+**Other real uses:** validation pipelines, approval workflows where the required approver depends on amount, and log processors that each enrich a record.
 
-class AuthMiddleware extends Middleware {
-  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
-    const token = request.headers?.authorization;
+⚠️ **The cost is that order is invisible and load-bearing.** Auth after the route handler is a security hole with no compile error. Keep registration in one file and comment why the order is what it is.
 
-    if (!token) {
-      console.log('Auth: No token provided');
-      response.status = 401;
-      response.body = { error: 'Unauthorized' };
-      return response; // Stop chain
-    }
+## Template Method
 
-    if (!this.validateToken(token)) {
-      console.log('Auth: Invalid token');
-      response.status = 403;
-      response.body = { error: 'Forbidden' };
-      return response; // Stop chain
-    }
+### 💡 **Intent**
 
-    console.log('Auth: Token valid');
-    request.user = { id: 1, name: 'John' };
-    return super.handle(request, response);
-  }
+Put the fixed sequence of steps in a base class, and let subclasses fill in the parts that differ.
 
-  private validateToken(token: string): boolean {
-    return token === 'Bearer valid-token';
-  }
-}
+```typescript
+/** The algorithm is written once; only the hooks vary. */
+abstract class ImportJob<Row> {
+  /** The template — subclasses can't reorder these steps. */
+  async run(file: string): Promise<{ imported: number; failed: number }> {
+    const rows = await this.parse(file);
+    let imported = 0;
+    let failed = 0;
 
-class RateLimitMiddleware extends Middleware {
-  private limit: number;
-  private requests: Map<string, number>;
-
-  constructor(limit: number = 100) {
-    super();
-    this.limit = limit;
-    this.requests = new Map();
-  }
-
-  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
-    const ip = request.ip || 'unknown';
-    const count = this.requests.get(ip) || 0;
-
-    if (count >= this.limit) {
-      console.log(`RateLimit: Too many requests from ${ip}`);
-      response.status = 429;
-      response.body = { error: 'Too many requests' };
-      return response;
-    }
-
-    this.requests.set(ip, count + 1);
-    console.log(`RateLimit: ${count + 1}/${this.limit} requests from ${ip}`);
-
-    return super.handle(request, response);
-  }
-}
-
-interface ValidationRule {
-  required?: boolean;
-}
-
-class ValidationMiddleware extends Middleware {
-  private rules: Record<string, ValidationRule>;
-
-  constructor(rules: Record<string, ValidationRule>) {
-    super();
-    this.rules = rules;
-  }
-
-  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
-    const errors: string[] = [];
-
-    for (const [field, rule] of Object.entries(this.rules)) {
-      if (rule.required && !request.body?.[field]) {
-        errors.push(`${field} is required`);
+    for (const row of rows) {
+      try {
+        if (!this.validate(row)) { failed++; continue; }
+        await this.persist(row);
+        imported++;
+      } catch (err) {
+        failed++;
+        this.onError(row, err); // hook with a default — override only if you care
       }
     }
 
-    if (errors.length > 0) {
-      console.log('Validation: Failed -', errors);
-      response.status = 400;
-      response.body = { errors };
-      return response;
-    }
-
-    console.log('Validation: Passed');
-    return super.handle(request, response);
+    await this.afterImport(imported, failed);
+    return { imported, failed };
   }
+
+  protected abstract parse(file: string): Promise<Row[]>;
+  protected abstract validate(row: Row): boolean;
+  protected abstract persist(row: Row): Promise<void>;
+
+  // Hooks: optional, with sensible defaults.
+  protected onError(_row: Row, err: unknown): void {
+    logger.warn({ err }, "row failed");
+  }
+  protected async afterImport(_imported: number, _failed: number): Promise<void> {}
 }
 
-class FinalHandler extends Middleware {
-  private handler: RequestHandlerFn;
-
-  constructor(handler: RequestHandlerFn) {
-    super();
-    this.handler = handler;
+class CsvCustomerImport extends ImportJob<CustomerRow> {
+  protected async parse(file: string): Promise<CustomerRow[]> { /* … */ }
+  protected validate(row: CustomerRow): boolean {
+    return Boolean(row.email);
   }
-
-  handle(request: HttpRequest, response: HttpResponse): HttpResponse | null {
-    return this.handler(request, response);
-  }
+  protected async persist(row: CustomerRow): Promise<void> { /* … */ }
 }
-
-// Build chain
-const createChain = (handler: RequestHandlerFn): Middleware => {
-  const logging = new LoggingMiddleware();
-  const rateLimit = new RateLimitMiddleware(10);
-  const auth = new AuthMiddleware();
-  const validation = new ValidationMiddleware({
-    name: { required: true },
-    email: { required: true }
-  });
-  const final = new FinalHandler(handler);
-
-  // Chain: logging -> rateLimit -> auth -> validation -> handler
-  logging
-    .setNext(rateLimit)
-    .setNext(auth)
-    .setNext(validation)
-    .setNext(final);
-
-  return logging;
-};
-
-// Usage
-const handler: RequestHandlerFn = (req: HttpRequest, res: HttpResponse): HttpResponse => {
-  console.log('Handler: Processing request');
-  res.status = 200;
-  res.body = { success: true, user: req.user, data: req.body };
-  return res;
-};
-
-const chain = createChain(handler);
-
-console.log('\n=== Valid Request ===');
-const validRequest: HttpRequest = {
-  method: 'POST',
-  url: '/api/users',
-  headers: { authorization: 'Bearer valid-token' },
-  body: { name: 'John', email: 'john@example.com' },
-  ip: '192.168.1.1'
-};
-let response: HttpResponse = { status: null, body: null };
-chain.handle(validRequest, response);
-console.log('Response:', response);
-
-console.log('\n=== Unauthorized Request ===');
-const noAuthRequest: HttpRequest = {
-  method: 'POST',
-  url: '/api/users',
-  headers: {},
-  body: { name: 'John' },
-  ip: '192.168.1.2'
-};
-response = { status: null, body: null };
-chain.handle(noAuthRequest, response);
-console.log('Response:', response);
-
-console.log('\n=== Validation Failed Request ===');
-const invalidRequest: HttpRequest = {
-  method: 'POST',
-  url: '/api/users',
-  headers: { authorization: 'Bearer valid-token' },
-  body: { name: 'John' }, // Missing email
-  ip: '192.168.1.3'
-};
-response = { status: null, body: null };
-chain.handle(invalidRequest, response);
-console.log('Response:', response);
 ```
+
+**Template Method vs Strategy:** Template Method uses inheritance and fixes the *order* of steps at compile time. Strategy uses composition and swaps a whole algorithm at runtime. Template Method is the right call when the sequence genuinely must not change — the "don't forget to call `super`" class of bug disappears.
+
+⚠️ **Inheritance is the cost.** A subclass can only extend one template, and a change to a protected method breaks every subclass. If you find yourself wanting two templates, that's the signal to switch to composition.
+
+## Interview Questions
+
+**Q1: Strategy vs State?**
+
+Same structure — an object delegating to a swappable collaborator — but the control differs. With Strategy the *caller* picks the algorithm and the options don't know about each other. With State the *object* transitions itself, and each state knows which states can follow it. If your states return the next state, you have State; if a caller injects the behaviour, you have Strategy.
+
+**Q2: When would you not use Strategy?**
+
+When the set of options is stable and small. Two branches that haven't changed in two years are clearer as an `if` than as an interface plus two files plus a registry. The pattern earns its keep when new algorithms arrive regularly or the choice is configuration-driven.
+
+**Q3: Observer's downsides?**
+
+Traceability and lifetime. You emit an event and can't tell from the call site what runs, in what order, or whether anything failed — so you need `Promise.allSettled` and per-listener error logging, or one throwing listener breaks the rest. And every subscription is a potential leak, which is why `on()` should return an unsubscribe function.
+
+**Q4: In-process events or a message queue?**
+
+Events are fine for optional side effects inside one process — cache invalidation, metrics, a nice-to-have notification. Anything that must survive a crash needs a queue: persistence, retries, dead-lettering, and delivery across processes. The test I use is "if the process dies right here, is losing this acceptable?" If not, it isn't an event.
+
+**Q5: Why bother with Command?**
+
+Because an action represented as data can be stored, moved, and replayed. That's what makes undo/redo, job queues, audit logs of *intent* rather than outcome, and CQRS possible. A plain method call is gone the moment it returns. The caveat is that undo only works for reversible effects — for a charged card you need a compensating command, not an undo.
+
+**Q6: Where does Chain of Responsibility show up in Node?**
+
+Express and Koa middleware. Each handler receives the context and a `next` function, and because it *awaits* `next()` it can run logic on the way in and on the way out — that's how timing, transactions, and error handling work. It also means any handler can short-circuit by simply not calling `next`, which is how auth rejects a request.
+
+**Q7: Template Method or Strategy?**
+
+Template Method when the sequence of steps is fixed and only the details vary — an import pipeline that must always parse, validate, persist, then report. Strategy when the whole algorithm is interchangeable at runtime. Template Method buys you the guarantee that nobody reorders the steps; it costs you the flexibility of inheritance, since a subclass gets exactly one parent.
+
+## Summary
+
+**Checklist:**
+
+- [ ] Growing `switch` statements replaced with Strategy or State, not extended
+- [ ] Strategies are functions unless they need state
+- [ ] `on()` returns an unsubscribe function
+- [ ] Event emission uses `allSettled` and logs per-listener failures
+- [ ] Must-happen side effects go through a queue, not an in-process event
+- [ ] State objects return the next state; illegal transitions throw in one place
+- [ ] Commands capture the data needed to undo, before mutating
+- [ ] Irreversible actions get compensating commands, not `undo()`
+- [ ] Middleware order registered in one file, with the reasoning written down
+- [ ] Template Method used only where step order genuinely must be fixed
+
+**Best practices:**
+
+1. **Replace conditionals with polymorphism** — but only conditionals that keep growing.
+2. **Prefer composition to inheritance** — Strategy over Template Method by default.
+3. **Events for optional, queues for required.**
+4. **Make illegal states unrepresentable** — that's the real win of State.
 
 ---
 
-## Summary: Choosing the Right Behavioral Pattern
-
-| Need | Pattern | Key Idea |
-|------|---------|----------|
-| Swap algorithms | **Strategy** | Encapsulate algorithm family |
-| React to state changes | **Observer** | Publish/subscribe |
-| Undo/redo operations | **Command** | Encapsulate requests |
-| State-dependent behavior | **State** | Delegate to state objects |
-| Algorithm skeleton | **Template Method** | Abstract steps in superclass |
-| Process handlers | **Chain of Responsibility** | Pass along handler chain |
-
-### Quick Decision Guide
-
-```
-"I need to..."
-
-├── Allow switching between algorithms
-│   └── Strategy
-│
-├── Notify multiple objects of changes
-│   └── Observer
-│
-├── Queue, log, or undo operations
-│   └── Command
-│
-├── Handle different states differently
-│   └── State
-│
-├── Define algorithm with customizable steps
-│   └── Template Method
-│
-└── Process request through multiple handlers
-    └── Chain of Responsibility
-```
-
----
-
-**Next:** [Architectural Patterns →](./04-architectural-patterns.md)
-
----
-
-[← Structural Patterns](./02-structural-patterns.md) | [Back to Design Patterns](./README.md)
+[← Structural Patterns](./02-structural-patterns.md) | [Design Patterns Index](./README.md) | [Architectural Patterns →](./04-architectural-patterns.md)

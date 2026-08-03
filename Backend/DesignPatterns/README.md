@@ -1,302 +1,124 @@
-# Design Patterns - Interview Preparation Guide
+# Design Patterns
 
-## 🎯 Introduction
+## Overview
 
-Design patterns are **reusable solutions to common software design problems**. They represent best practices evolved over time by experienced software developers. Understanding design patterns is essential for backend engineering interviews at top tech companies.
+Design patterns are names for solutions that keep reappearing. Their real value in an interview isn't the implementation — it's the shared vocabulary: "wrap the repository in a caching decorator" replaces five minutes of explanation.
 
-### Why Design Patterns Matter
+This module covers the patterns that actually show up in backend TypeScript, plus the SOLID principles that explain *why* they help.
 
-| Benefit | Description |
-|---------|-------------|
-| **Common Vocabulary** | Communicate complex ideas with simple pattern names |
-| **Proven Solutions** | Battle-tested approaches to recurring problems |
-| **Code Quality** | Promote maintainable, flexible, and reusable code |
-| **Interview Essential** | Frequently asked in system design and coding interviews |
+**What you'll cover:**
 
----
+- Creational — who decides which class gets instantiated
+- Structural — how objects wrap and compose each other
+- Behavioral — who decides what, and how objects communicate
+- Architectural — how a whole service is layered
+- SOLID — the principles the patterns are serving
 
-## 📚 Pattern Categories
+> **The one idea that ties it together:** every pattern buys flexibility along one axis and charges indirection for it. Applying one you can't justify is worse than applying none. The strongest answer always names the change the pattern makes cheaper — and admits when that change isn't coming.
 
-### 💡 **Gang of Four (GoF) Classification**
+## Topics
 
-Design patterns are traditionally divided into three categories based on their purpose:
+| #   | Topic                                                        | Core idea                                                    |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 01  | [Creational Patterns](./01-creational-patterns.md)            | Singleton, Factory, Abstract Factory, Builder, Prototype      |
+| 02  | [Structural Patterns](./02-structural-patterns.md)            | Adapter, Decorator, Facade, Proxy, Composite, Bridge          |
+| 03  | [Behavioral Patterns](./03-behavioral-patterns.md)            | Strategy, Observer, Command, State, Chain, Template Method     |
+| 04  | [Architectural Patterns](./04-architectural-patterns.md)      | Repository, Service Layer, DI, Unit of Work, layering          |
+| 05  | [SOLID Principles](./05-solid-principles.md)                  | The five principles, and where each over-applies              |
 
-```
-Design Patterns
-├── Creational Patterns    → Object creation mechanisms
-├── Structural Patterns    → Object composition and relationships
-└── Behavioral Patterns    → Object communication and responsibility
-```
+## Interview Frequency
 
----
+Study in this order — the top group is asked far more than the rest.
 
-## 🗂️ Topics Covered
+| Pattern | Frequency | Why they ask |
+| ------- | --------- | ------------ |
+| **Dependency Injection / DIP** | ★★★★★ | Reveals whether you can write testable code |
+| **Strategy** | ★★★★★ | The cleanest example of replacing a `switch` |
+| **Singleton** | ★★★★★ | A trap question — the good answer criticises it |
+| **Factory** | ★★★★☆ | Everyone uses one; few can define the variants |
+| **Observer** | ★★★★☆ | Leads naturally into events vs queues |
+| **Decorator** | ★★★★☆ | Middleware and repository wrappers |
+| **Repository / Service Layer** | ★★★★☆ | "How would you structure this service?" |
+| **Adapter, Builder, Command** | ★★★☆☆ | Usually as "how does this differ from…" |
+| **State, Proxy, Chain** | ★★★☆☆ | State pairs with Strategy; Chain with middleware |
+| **Composite, Bridge, Prototype, Template Method** | ★★☆☆☆ | Recognition-level knowledge is enough |
 
-### 1. Creational Patterns
+## The Distinctions Interviewers Test
 
-**Purpose:** Control object creation, hiding the creation logic.
+These pairs look alike and are the most common follow-up questions:
 
-| Pattern | Intent | Common Use Case |
-|---------|--------|-----------------|
-| [Singleton](./01-creational-patterns.md#singleton) | Ensure single instance | Database connections, Loggers |
-| [Factory Method](./01-creational-patterns.md#factory-method) | Create objects without specifying class | Plugin systems, UI elements |
-| [Abstract Factory](./01-creational-patterns.md#abstract-factory) | Create families of related objects | Cross-platform UI |
-| [Builder](./01-creational-patterns.md#builder) | Construct complex objects step by step | Query builders, Config objects |
-| [Prototype](./01-creational-patterns.md#prototype) | Clone existing objects | Object caching, Templates |
+| Pair | The difference in one line |
+| ---- | -------------------------- |
+| **Adapter vs Decorator** | Adapter changes the interface; Decorator keeps it and adds behaviour |
+| **Decorator vs Proxy** | Decorator always forwards; Proxy may refuse or defer |
+| **Adapter vs Facade** | Adapter fixes a mismatch; Facade hides volume |
+| **Factory vs Abstract Factory** | One product vs a matched family |
+| **Factory vs Builder** | Which class vs with what configuration |
+| **Strategy vs State** | The caller chooses vs the object transitions itself |
+| **Strategy vs Template Method** | Composition, swappable at runtime vs inheritance, fixed step order |
+| **DIP vs DI** | Depend on an abstraction you own vs how it gets passed in |
+| **Bridge vs Adapter** | Planned upfront vs retrofitted |
 
-**[→ View Creational Patterns](./01-creational-patterns.md)**
+## What TypeScript Changes
 
----
+Several GoF patterns exist to work around limitations TypeScript doesn't have.
 
-### 2. Structural Patterns
+| Pattern | Classic form | Idiomatic TypeScript |
+| ------- | ------------ | -------------------- |
+| **Singleton** | Static instance + private constructor | A module-level `export const` |
+| **Factory Method** | Abstract creator + subclasses | A function returning an interface |
+| **Strategy** | Strategy class hierarchy | A function, or a `Record` of functions |
+| **Decorator** | Wrapper class | A higher-order function |
+| **Prototype** | `clone()` on every class | Spread, or `structuredClone` |
+| **Iterator** | Explicit iterator class | `Symbol.iterator` / generators |
 
-**Purpose:** Compose objects into larger structures while keeping them flexible.
+**What survives unchanged:** Builder for fluent construction, Abstract Factory for genuine multi-family swaps, State for real state machines, and everything in the architectural chapter.
 
-| Pattern | Intent | Common Use Case |
-|---------|--------|-----------------|
-| [Adapter](./02-structural-patterns.md#adapter) | Make incompatible interfaces work together | Third-party library integration |
-| [Decorator](./02-structural-patterns.md#decorator) | Add behavior dynamically | Middleware, Logging |
-| [Facade](./02-structural-patterns.md#facade) | Provide simplified interface | Complex subsystem access |
-| [Proxy](./02-structural-patterns.md#proxy) | Control access to another object | Caching, Lazy loading |
-| [Composite](./02-structural-patterns.md#composite) | Treat individual and composite objects uniformly | File systems, UI trees |
-| [Bridge](./02-structural-patterns.md#bridge) | Separate abstraction from implementation | Cross-platform support |
+> ✨ **Saying which patterns the language absorbed is a stronger signal than implementing all of them.** It shows you've read the code you write, not just the book.
 
-**[→ View Structural Patterns](./02-structural-patterns.md)**
+## Suggested Study Path
 
----
+**Day 1 — Principles first.** Read 05. SOLID explains what the patterns are for, so learning it first makes everything else make sense. Focus on DIP and SRP.
 
-### 3. Behavioral Patterns
+**Day 2 — The daily patterns.** Read the Strategy, Observer, and Decorator sections (02, 03). Be able to write each from memory in under five minutes.
 
-**Purpose:** Define how objects communicate and distribute responsibility.
+**Day 3 — Creation.** Read 01. Practise the Singleton critique out loud — the question is a trap, and "one instance, injected" is the answer.
 
-| Pattern | Intent | Common Use Case |
-|---------|--------|-----------------|
-| [Strategy](./03-behavioral-patterns.md#strategy) | Define interchangeable algorithms | Payment processors, Sorting |
-| [Observer](./03-behavioral-patterns.md#observer) | Notify multiple objects of state changes | Event systems, Pub/Sub |
-| [Command](./03-behavioral-patterns.md#command) | Encapsulate requests as objects | Undo/Redo, Task queues |
-| [State](./03-behavioral-patterns.md#state) | Alter behavior when state changes | Order status, Game states |
-| [Template Method](./03-behavioral-patterns.md#template-method) | Define algorithm skeleton | Frameworks, Hooks |
-| [Iterator](./03-behavioral-patterns.md#iterator) | Traverse collections | Custom collections |
-| [Chain of Responsibility](./03-behavioral-patterns.md#chain-of-responsibility) | Pass requests along a chain | Middleware, Logging |
+**Day 4 — The wrappers.** Read 02 fully. Drill the four-way Adapter / Decorator / Facade / Proxy distinction until it's automatic.
 
-**[→ View Behavioral Patterns](./03-behavioral-patterns.md)**
+**Day 5 — Architecture.** Read 04. Be ready to whiteboard controller → service → repository and say exactly what belongs in each layer, plus what an anaemic service looks like.
 
----
+## Anti-Patterns to Name
 
-### 4. Architectural Patterns
+Knowing the failure mode is as valuable as knowing the pattern:
 
-**Purpose:** High-level structural organization of entire applications.
+| Anti-pattern | What it looks like | Fix |
+| ------------ | ------------------ | --- |
+| **God object** | One service class doing everything | SRP — split by reason to change |
+| **Anaemic service layer** | Every method is a one-line passthrough | Move the rules in, or delete the layer |
+| **Service locator** | Injecting the DI container itself | Inject the dependency, not the container |
+| **Speculative abstraction** | An interface with one implementation, forever | Delete it; add it when the second arrives |
+| **Pattern soup** | Four wrappers between the call and the work | Compose at one wiring point; flatten the rest |
+| **Leaky repository** | Methods taking SQL fragments | Express the interface in domain terms |
 
-| Pattern | Intent | Common Use Case |
-|---------|--------|-----------------|
-| [Repository](./04-architectural-patterns.md#repository) | Abstract data access | Database operations |
-| [Dependency Injection](./04-architectural-patterns.md#dependency-injection) | Invert object dependencies | Testing, Modularity |
-| [MVC](./04-architectural-patterns.md#mvc) | Separate concerns | Web applications |
-| [Service Layer](./04-architectural-patterns.md#service-layer) | Define application boundary | Business logic |
-| [Unit of Work](./04-architectural-patterns.md#unit-of-work) | Track changes to objects | Transaction management |
+## Resources
 
-**[→ View Architectural Patterns](./04-architectural-patterns.md)**
+- [Refactoring Guru](https://refactoring.guru/design-patterns) — the clearest explanations, with diagrams
+- [patterns.dev](https://www.patterns.dev/) — patterns in modern JavaScript and React
+- **Design Patterns** — Gamma, Helm, Johnson, Vlissides (the original GoF)
+- **Clean Architecture** — Robert C. Martin (the layering rules in chapter 04)
+- **Refactoring** — Martin Fowler (the smells the patterns answer)
+- **Patterns of Enterprise Application Architecture** — Fowler (Repository, Unit of Work, Service Layer)
 
----
+## Related Topics
 
-### 5. SOLID Principles
-
-**Purpose:** Five principles for writing maintainable object-oriented code.
-
-| Principle | Name | Key Idea |
-|-----------|------|----------|
-| **S** | Single Responsibility | One class, one reason to change |
-| **O** | Open/Closed | Open for extension, closed for modification |
-| **L** | Liskov Substitution | Subtypes must be substitutable |
-| **I** | Interface Segregation | Many specific interfaces over one general |
-| **D** | Dependency Inversion | Depend on abstractions, not concretions |
-
-**[→ View SOLID Principles](./05-solid-principles.md)**
-
----
-
-## 🎓 Interview Focus
-
-### Most Frequently Asked Patterns
-
-Based on interview frequency at top tech companies:
-
-```
-High Frequency
-├── Singleton         ★★★★★
-├── Factory           ★★★★★
-├── Strategy          ★★★★★
-├── Observer          ★★★★☆
-├── Decorator         ★★★★☆
-└── Dependency Injection ★★★★★
-
-Medium Frequency
-├── Builder           ★★★☆☆
-├── Adapter           ★★★☆☆
-├── Facade            ★★★☆☆
-├── Command           ★★★☆☆
-└── Repository        ★★★☆☆
-
-Lower Frequency (but still important)
-├── Prototype         ★★☆☆☆
-├── Bridge            ★★☆☆☆
-├── Composite         ★★☆☆☆
-├── Chain of Responsibility ★★☆☆☆
-└── State             ★★☆☆☆
-```
-
-### Common Interview Questions
-
-**Conceptual Questions:**
-1. What is the difference between Factory and Abstract Factory?
-2. When would you use Strategy vs State pattern?
-3. How does Decorator differ from Adapter?
-4. Explain Dependency Injection and its benefits
-5. What problems does Singleton pattern solve and create?
-
-**Coding Questions:**
-1. Implement a Logger using Singleton pattern
-2. Design a payment system using Strategy pattern
-3. Create a notification system using Observer pattern
-4. Build a query builder using Builder pattern
-5. Implement middleware using Chain of Responsibility
+- **[NodeJS](../NodeJS/README.md)** — `EventEmitter` is Observer; streams are Decorator
+- **[API](../API/README.md)** — middleware is Chain of Responsibility
+- **[Testing](../Testing/)** — DI is what makes unit tests possible
+- **[OOP](../../OOP/)** — inheritance, composition, and encapsulation fundamentals
 
 ---
 
-## 📊 Pattern Selection Guide
+**Difficulty:** Intermediate → Advanced · **Interview frequency:** High
 
-### 💡 **Decision Tree**
-
-```
-Need to create objects?
-├── Single instance needed? → Singleton
-├── Hide concrete class? → Factory Method
-├── Family of related objects? → Abstract Factory
-├── Complex construction? → Builder
-└── Clone existing object? → Prototype
-
-Need to structure objects?
-├── Incompatible interfaces? → Adapter
-├── Add behavior dynamically? → Decorator
-├── Simplify complex system? → Facade
-├── Control access? → Proxy
-└── Tree structure? → Composite
-
-Need to manage behavior?
-├── Interchangeable algorithms? → Strategy
-├── Notify on changes? → Observer
-├── Encapsulate requests? → Command
-├── State-dependent behavior? → State
-└── Algorithm skeleton? → Template Method
-```
-
----
-
-## 🛠️ Language Considerations
-
-### JavaScript/TypeScript Specifics
-
-Design patterns in JavaScript differ from classical OOP languages:
-
-| Aspect | Classical OOP | JavaScript |
-|--------|---------------|------------|
-| **Classes** | Required | Optional (functions/objects) |
-| **Interfaces** | Built-in | TypeScript only |
-| **Access Modifiers** | private, protected | # (private), closures |
-| **Singleton** | Static instance | Module pattern, closures |
-| **Factory** | Factory classes | Factory functions |
-
-**Key Insight:**
-> JavaScript's flexibility allows implementing patterns with functions and closures instead of classes. TypeScript adds type safety and interface support for cleaner pattern implementations.
-
----
-
-## 📋 Study Plan
-
-### Week 1: Foundational Patterns
-
-| Day | Topic | Focus |
-|-----|-------|-------|
-| 1-2 | Singleton, Factory | Creational basics |
-| 3-4 | Strategy, Observer | Core behavioral |
-| 5-6 | Decorator, Adapter | Essential structural |
-| 7 | Review & Practice | Code implementations |
-
-### Week 2: Advanced Patterns & SOLID
-
-| Day | Topic | Focus |
-|-----|-------|-------|
-| 1-2 | Builder, Command | Complex patterns |
-| 3-4 | Repository, DI | Architectural patterns |
-| 5-6 | SOLID Principles | Design principles |
-| 7 | Mock Interview | Pattern discussions |
-
----
-
-## 🎯 Learning Approach
-
-### For Each Pattern, Understand:
-
-1. **Problem** - What issue does this pattern solve?
-2. **Solution** - How does it solve the problem?
-3. **Structure** - What are the participants and relationships?
-4. **Implementation** - How to code it in JavaScript/TypeScript?
-5. **Trade-offs** - What are the pros and cons?
-6. **Real-world** - Where is it used in popular libraries?
-
-### Practice Strategy
-
-1. **Read the pattern** - Understand the concept
-2. **Study examples** - See real implementations
-3. **Code from scratch** - Implement without reference
-4. **Refactor existing code** - Apply patterns to improve code
-5. **Explain verbally** - Practice for interviews
-
----
-
-## 📚 Additional Resources
-
-### Books
-- "Design Patterns: Elements of Reusable Object-Oriented Software" - GoF
-- "Head First Design Patterns" - Freeman & Robson
-- "JavaScript Design Patterns" - Addy Osmani
-- "Learning JavaScript Design Patterns" - Addy Osmani
-
-### Online Resources
-- [Refactoring Guru](https://refactoring.guru/design-patterns)
-- [Source Making](https://sourcemaking.com/design_patterns)
-- [JavaScript Design Patterns (patterns.dev)](https://www.patterns.dev/)
-
----
-
-## 🚀 Quick Reference
-
-### Pattern Relationships
-
-```
-Creational → How objects are created
-    ↓
-Structural → How objects are composed
-    ↓
-Behavioral → How objects communicate
-    ↓
-Architectural → How system is organized
-```
-
-### Anti-Patterns to Avoid
-
-| Anti-Pattern | Problem | Solution |
-|--------------|---------|----------|
-| **God Object** | One class does everything | Single Responsibility |
-| **Spaghetti Code** | No clear structure | Appropriate patterns |
-| **Copy-Paste** | Duplicated code | Template Method, Strategy |
-| **Tight Coupling** | Hard dependencies | Dependency Injection |
-| **Premature Abstraction** | Over-engineering | YAGNI principle |
-
----
-
-**Next Steps:** Start with [Creational Patterns →](./01-creational-patterns.md)
-
----
-
-[← Back to Backend Guide](../README.md)
+Start with [05-solid-principles.md](./05-solid-principles.md) — the principles make the patterns make sense.
