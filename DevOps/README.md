@@ -1344,16 +1344,34 @@ Good luck with your AWS DevOps engineering journey! 🚀
 ---
 
 **Ready to start?** Choose a topic and begin learning!
+
+**Foundations**
 - [Linux Fundamentals →](./Linux/README.md)
+- [Version Control & Git →](./Git/README.md)
+- [Scripting & Automation →](./Scripting/README.md)
+
+**Delivery**
 - [CI/CD Pipelines →](./CICD/README.md)
 - [Docker & Containers →](./Docker/README.md)
 - [Kubernetes & EKS →](./Kubernetes/README.md)
+
+**Cloud & Infrastructure**
 - [AWS Deep Dive →](./AWS/README.md)
-- [Terraform & IaC →](./Terraform/README.md)
-- [Monitoring & Observability →](./Monitoring/README.md)
+- [Terraform →](./Terraform/README.md)
+- [Alternative IaC & GitOps →](./IaC/README.md)
 - [Networking →](./Networking/README.md)
+
+**Operations**
+- [Monitoring & Observability →](./Monitoring/README.md)
+- [Cost Optimization & Performance →](./CostOptimization/README.md)
+
+**Security**
 - [Security & Compliance →](./Security/README.md)
-- [Scripting & Automation →](./Scripting/README.md)
+- [DevSecOps →](./DevSecOps/README.md)
+
+**Modern Practice**
+- [Generative AI for DevOps →](./GenAI/README.md)
+- [Agile & DevOps Culture →](./Agile/README.md)
 
 ---
 
