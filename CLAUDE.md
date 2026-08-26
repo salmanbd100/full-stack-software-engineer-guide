@@ -2,56 +2,86 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Repository Overview
+## What This Repository Is
 
-A **comprehensive interview preparation repository** for software engineering roles at multinational companies. Organized into major domains, each with detailed markdown documentation covering essential topics and concepts.
+The manuscript for **The Senior Full Stack Handbook** — a 2027 book for senior/staff, frontend-heavy full
+stack roles. It began as a personal interview-prep collection and is being restructured into a book.
+
+Two files govern the work. Read them before any substantial change:
+
+| File                    | Role                                                                                                                   |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **`BOOK-SPEC.md`**      | The locked contract — nine parts, line budgets, out-of-scope list, twelve non-negotiables. **The authority.** If a request contradicts it, say so |
+| **`IMPROVEMENT-PLAN.md`** | 78 numbered items, done one at a time. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop |
+
+## Writing or Editing Documentation
+
+**Invoke the `write-topic-docs` skill first** — always, for any markdown in this repo. It carries the
+mandatory **Book Chapter Standard** (the six blocks, cross-reference syntax, callout vocabulary, diagram
+rule) and `CHAPTER-TEMPLATE.md` to copy from. Never write topic content from default style.
+
+Rules it enforces, worth knowing up front:
+
+- **TypeScript only** in code fences
+- **150–400 lines** per chapter, target ~220
+- Cross-references are `[Chapter N — Title](#ch-slug)`, **never relative file paths** — those break in PDF and EPUB
+- Callouts limited to 💡 🔑 ⚠️ ✅ ❌
+
+Most existing files predate this standard. Editing one means bringing it up to standard, not patching around it.
+
+## Before Writing a New Chapter
+
+Check `BOOK-SPEC.md` § 6. If the topic is out of scope — Terraform, Linux administration, shell or Python
+scripting, Kubernetes operations, deep AWS, FinOps, model training, mobile, Vue or Angular — **say so and
+stop.** Those are archived deliberately, not missing.
 
 ## Repository Structure
 
 ```
-interview-preparation/
-├── Frontend/          # JavaScript, React, Next.js, TypeScript, HTML/CSS, Testing, WebPerformance
-├── Backend/           # Node.js, Express, NestJS, databases, API design, security
-├── DSA/               # Data Structures & Algorithms (15 LeetCode patterns)
-├── SystemDesign/      # System design interview prep (90+ topics)
-├── DevOps/            # AWS, Docker, Kubernetes, Terraform, CI/CD, DevSecOps
-├── OOP/               # Object-oriented programming concepts
-├── Behavioral/        # Behavioral interview prep
-├── Communication/     # Communication skills
-└── Salman Rahman Resume.pdf
+├── BOOK-SPEC.md         # the contract — read first
+├── IMPROVEMENT-PLAN.md  # the 78-item route from repo to manuscript
+├── Frontend/            # JavaScript, TypeScript, HTML/CSS, BrowserAPIs, PWA, i18n,
+│                        #   CSSArchitecture, Security, Testing, WebPerformance
+├── Backend/             # Node.js, SQL, NoSQL, API, Security, DesignPatterns, Testing
+├── DSA/                 # 16 LeetCode patterns (appendix / companion volume)
+├── SystemDesign/        # fundamentals, building blocks, frontend SD, 20 case studies
+├── DevOps/              # → becomes ShipAndOperate/ at item #20; ~80% archived
+├── OOP/                 # → merges into Backend/DesignPatterns at item #26
+├── Behavioral/  Communication/
+└── scripts/             # book tooling
 ```
 
-## Key Characteristics
+## What Does Not Exist Yet
 
-- **Documentation-only** — pure markdown; no executable code, tests, or build processes
-- **Target audience** — mid-to-senior engineers (2–7 years) prepping for FAANG/MNC interviews
-- **Code examples** — **TypeScript only** for all code samples (enforced by the `write-topic-docs` skill)
-- **Progressive difficulty** — beginner → intermediate → advanced tracks
+The biggest gap: **there is no React, Next.js, Svelte or AI content at all.** `Frontend/README.md` links
+to `./React/README.md` and `./NextJs/README.md` — both 404. `Backend/README.md` promises Express and
+NestJS; neither exists.
 
-## Writing or Editing Documentation
+Planned: `Frontend/ModernStack/` (items #32–43) and `AI/` (items #44–53). Do not assume a directory
+exists because a README references it.
 
-When the user asks to write, add, edit, or restructure topic documentation, **invoke the `write-topic-docs` skill**. It contains the full style guide: typography rules, section structure, visual elements, code-example conventions, and the quality checklist that all topic files must follow.
+## Scripts
 
-Do not write topic content from default style — always go through that skill so output matches the established format.
+`scripts/` holds Node TypeScript that runs with no build step:
 
-## Searching the Repository
+```bash
+node --experimental-strip-types scripts/<name>.ts    # Node 22.6+; flag unneeded on 23.6+
+```
 
-1. **Check README files first** — they provide comprehensive indexes
-2. **Look for pattern keywords** — "Two Pointers", "Sliding Window", "Microservices", etc.
-3. **Cross-reference domains** — Frontend/Backend/DevOps concepts often overlap
-4. **Use topic numbers** — files are numbered sequentially (`01-`, `02-`, …)
+There is **no `package.json`, no test suite and no CI.** There is nothing to "run the tests" with — say
+that plainly rather than implying a check passed.
 
 ## Library / Framework Lookups
 
-For any topic involving a specific library, framework, SDK, or cloud service (React, Next.js, AWS SDK, Tailwind, Express, etc.), use the **Context7 MCP** to fetch current docs before writing or answering. Training data may be stale.
+Use the **Context7 MCP** (`mcp__context7__resolve-library-id`, then `mcp__context7__query-docs`) before
+writing about any library, framework, SDK, or cloud service. **Mandatory** for `Frontend/ModernStack/`
+and `AI/` — the two fastest-moving parts of the book.
 
-Skip Context7 for general programming concepts (closures, recursion, algorithm patterns).
+Skip it for general programming concepts (closures, recursion, algorithm patterns).
 
-## Planned but Not Yet Created
+## Searching the Repository
 
-Per the README files, these are roadmapped:
-- Most Backend/ content (Node.js, Express, NestJS, databases, testing)
-- Most SystemDesign/ content (90+ topics referenced in README)
-- Most DevOps/ content (15 sections × 6–12 topics each)
-
-When creating new content, follow the established patterns from Frontend/ and DSA/ via the `write-topic-docs` skill.
+1. **READMEs are the domain indexes** — 10 directories still lack one (item #13)
+2. **Files are numbered sequentially** (`01-`, `02-`)
+3. **Expect duplication until Phase 2 lands** — security is documented in five places, load balancing and
+   caching in three each. Check whether a topic already exists elsewhere before writing it

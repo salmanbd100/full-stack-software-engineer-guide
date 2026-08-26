@@ -3,15 +3,88 @@
 > **Purpose:** turn this repository from a personal interview-prep dump into the manuscript for
 > **_The Senior Full Stack Handbook — Frontend-Heavy, 2027 Edition_**.
 >
-> **How to use this file:** every improvement has a number. Do them one at a time, in order where
-> possible. When one is finished, change `- [ ]` to `- [x]` and add the date. Tell Claude
-> _"do improvement #23"_ and it has everything it needs in that item.
->
 > **This file is not part of the book.** It lives in the repo and is excluded from the book build.
+
+---
+
+## ▶️ How to Resume — read this first, every session
+
+Attach this file and say **"continue"**. That is the whole instruction. On receiving it, Claude must:
+
+| # | Step | Detail |
+| - | ---- | ------ |
+| 1 | **Find the first unchecked item** | Scan top to bottom for the first `- [ ]`. That is the next job — not a later item that looks easier or more interesting |
+| 2 | **Check the ordering notes** | Some items carry a 🔴 ordering constraint (see #3 → before #20). Honour it. If the next unchecked item is blocked, say which one must go first and stop |
+| 3 | **Read the item in full** | Every item has a **"Done when"** line. That is the acceptance test, not a suggestion |
+| 4 | **Do exactly that one item** | Not the next one too. Not a related tidy-up. One item per session unless told otherwise |
+| 5 | **Verify against "Done when"** | Run the check. If there is nothing runnable, say so plainly rather than implying it passed |
+| 6 | **Mark it complete** | `- [ ]` → `- [x]`, append ` — ✅ **done YYYY-MM-DD**` to the heading, and add a short **Delivered:** block listing what actually shipped and anything deliberately left |
+| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 78` in the header |
+| 8 | **Report** | What was done, what was verified, and what was left. Then stop |
+
+**Marking an item done is part of the item.** An item is not finished until steps 6 and 7 are done —
+otherwise the next session starts from the wrong place.
+
+If an item turns out to be wrong, blocked, or already handled, **say so and amend the item** rather than
+silently skipping it or doing something adjacent. Corrections to this plan are expected — two have already
+happened (the budget arithmetic in #1, the frontend-share rule).
+
+> **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
+> Both override the first-unchecked rule.
 
 **Last updated:** 2026-08-26 · **Progress:** 2 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
+
+---
+
+## 🔌 Tooling — what is installed, what is needed, when
+
+**No new MCP server is needed for this book.** Adding servers costs context on every turn and buys
+almost nothing for a markdown manuscript. The one that matters is already configured.
+
+| Tool | Status | Used for |
+| ---- | ------ | -------- |
+| **Context7 MCP** | ✅ configured (`.mcp.json`) | Current library docs. **Mandatory** for Parts III and VII — training data on React, Next.js and AI SDKs goes stale fast |
+| **`write-topic-docs` skill** | ✅ in repo | The Book Chapter Standard. Invoke before writing any markdown |
+| **`continue-plan` skill** | ✅ in repo | Runs the resume protocol above. Say _"continue"_ |
+| **Vercel plugin skills** | ✅ installed, ✅ **wired in** | Bound to their destination directories inside `write-topic-docs` |
+| **Node 22.22** | ✅ | Runs `scripts/*.ts` directly via `--experimental-strip-types` |
+
+### Repo scripts
+
+| Script | Does |
+| ------ | ---- |
+| `scripts/plan-status.ts` | `--next` prints the next unchecked item, its "Done when" and its ordering constraints. `--check` verifies the three counters still agree with the checkboxes |
+| `scripts/add-frontmatter.ts` | Item #3 — stamps front matter on every content file |
+
+### Vercel plugin skills — now bound by directory
+
+`write-topic-docs` maps each of these to the directory that needs it, so a session writing a Next.js
+chapter pulls the right one automatically. Use them **alongside** Context7 — they carry platform
+judgement the reference docs do not — but lead with the concept and strip the vendor register
+(`BOOK-SPEC.md` non-negotiables #4 and #9):
+
+| Skill | Items it serves |
+| ----- | --------------- |
+| `vercel:nextjs` · `vercel:next-cache-components` | #36–37 — App Router, caching, PPR |
+| `vercel:ai-sdk` · `vercel:ai-gateway` | #46 — streaming, tool calling, MCP, multi-provider |
+| `vercel:react-best-practices` | #33–35, #65 |
+| `vercel:turbopack` | #41 — bundlers |
+| `vercel:microfrontends` | #55 — micro-frontend architecture |
+| `vercel:vercel-functions` · `vercel:cdn-caching` | #39 — edge vs origin rendering |
+
+### Needed later — system installs, not MCP
+
+Nothing below is needed yet. Install at **item #5**, not before — it is ~250 MB and three items away.
+
+```bash
+brew install pandoc tectonic          # PDF/EPUB build; tectonic beats MacTeX (250MB vs 4GB, no config)
+pnpm add -g @mermaid-js/mermaid-cli   # renders Mermaid to images for print (item #74)
+```
+
+`@types/node` is also worth adding once a `package.json` exists (#5) — the scripts run correctly today
+but do not typecheck, since nothing provides Node's types.
 
 ---
 
@@ -184,6 +257,53 @@ Write a script (`scripts/add-frontmatter.ts`) that adds the block with sensible 
 `part` / `chapter` / `level`. `in_book: false` is how content stays in the repo but out of the manuscript.
 
 **Done when:** every `.md` outside `Archive/` and `.claude/` has valid front matter.
+
+> ✅ **The script is written and committed** (`29933ad`). Item #3 is the act of *running* it.
+> It was run once and the 418 resulting edits were discarded; the script itself was kept.
+
+**To run it** — from the repo root, Node 22.6+ (this machine has v22.22.0):
+
+```bash
+node --experimental-strip-types scripts/add-frontmatter.ts --dry-run   # review, writes nothing
+node --experimental-strip-types scripts/add-frontmatter.ts             # apply
+```
+
+Add `--list` to print the full per-file table. `--force` re-derives every key, discarding
+hand-corrections — only needed after editing the script's mapping tables. Without it, re-running
+preserves anything you edited by hand.
+
+**Then verify** — these three checks are the whole review surface, since the diff is purely mechanical:
+
+| Check | Command | Pass |
+| --- | --- | --- |
+| No content lost | `git diff --numstat \| awk '{s+=$2} END {print s+0}'` | `0` deletions |
+| Newline fix works | `git diff --stat \| tail -1` | `5016` insertions (12/file). `5434` means it did not |
+| Idempotent | run the script a second time | `changed: 0` |
+
+`git checkout -- .` reverts cleanly if any check fails.
+
+> ⚠️ **Unverified:** the script's idempotency fix (`scripts/add-frontmatter.ts:318`) is on disk but
+> was never executed — an earlier version stripped one leading newline while re-adding two, so every
+> re-run grew the gap by a line. The three checks above prove it either way.
+
+**🔴 Ordering — run this _before_ #20:**
+
+The script hardcodes **143 file paths** as they exist today, encoding the keep-or-archive decisions
+from `BOOK-SPEC.md` § 6 and items #20–#31. Item #20 renames `DevOps/` → `ShipAndOperate/` and moves
+files into `Archive/`. Run #3 *after* that and every path misses, so all 143 files silently default
+to `in_book: true` and the decisions are lost.
+
+Run #3 first and #20 becomes "move the files the metadata already marked" — easier, and checkable.
+
+| Sequence | Why |
+| --- | --- |
+| **#8** → **#3** → **#6** → **#20** | #8 first is tidiness (4 fewer files to stamp), not a dependency. #6 and #70 need front matter to exist. #11 can run either side — both directory spellings normalise to the same slug |
+
+**Two deviations to note when ticking this off:**
+
+- `CLAUDE.md`, `BOOK-SPEC.md` and `IMPROVEMENT-PLAN.md` are excluded — repo tooling, not manuscript.
+  The "done when" above says *every* `.md`; these three are the exception.
+- `chapter:` is left at `0` for every file. Item #70 assigns the real numbers.
 
 ---
 
