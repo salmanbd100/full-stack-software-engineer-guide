@@ -22,9 +22,14 @@ is marked finished.**
 node --experimental-strip-types scripts/plan-status.ts --next
 ```
 
-This prints the first unchecked item, its line number, its **Done when** line, and any ordering
-constraints attached to it. Trust it over scanning by eye — the file is ~1,400 lines and the first
-`- [ ]` is easy to miss.
+This prints the first unchecked item, its line number, the **model and effort to use**, its
+**Done when** line, and any ordering constraints. Trust it over scanning by eye — the file is
+~1,400 lines and the first `- [ ]` is easy to miss.
+
+If the recommended model is not the one running, **say so before starting.** Roughly a third of the
+items are mechanical sweeps across hundreds of files where Sonnet 5 at low effort does the same job
+for 2.5× less — #10, #12, #71 and #74 between them touch more files than the rest of the plan
+combined. The mapping lives in the plan's "Model per item" table; edit that, not the script.
 
 If the user named an item (`do #23`) or said to skip one, that overrides the first-unchecked rule.
 

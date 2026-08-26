@@ -74,6 +74,29 @@ judgement the reference docs do not — but lead with the concept and strip the 
 | `vercel:microfrontends` | #55 — micro-frontend architecture |
 | `vercel:vercel-functions` · `vercel:cdn-caching` | #39 — edge vs origin rendering |
 
+### Model per item
+
+Two models, split by whether the item needs judgement or just careful repetition. Sonnet 5 is $2/$10
+per Mtok against Opus 5's $5/$25 — **2.5× cheaper on both** — with the same 1M context, so the sweeps
+that touch hundreds of files are where the saving actually lands.
+
+| Items | Model | Effort | Why |
+| ----- | ----- | ------ | --- |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31–65, 69, 72–73, 76, 78 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, everything with a voice |
+| 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 77 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
+
+**The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
+every file), #71 (every cross-reference), #74 (ASCII → Mermaid). Between them they touch more files
+than the rest of the plan combined. Running those on Opus is the largest avoidable spend here.
+
+**Effort is the bigger lever than model.** Claude Code defaults to `xhigh`; the mechanical items have
+nothing to reason about, so `/effort low` cuts spend with no quality loss. Keep `xhigh` for #32–65
+and #76, where the output is what a reader actually pays for.
+
+**Not worth it for this work:** Fable 5 ($10/$50 — its edge is long-horizon autonomous work, not book
+prose), Haiku 4.5 (200K context is too small to hold enough of this repo safely), and fast mode
+(`/fast`, Opus 5 only — buys wall-clock at premium price, the wrong trade on a usage-limited plan).
+
 ### Needed later — system installs, not MCP
 
 Nothing below is needed yet. Install at **item #5**, not before — it is ~250 MB and three items away.
@@ -152,18 +175,21 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 
 ## 🗺️ Phase Map
 
-| Phase | Theme                         | Items   | Rough effort |
-| ----- | ----------------------------- | ------- | ------------ |
-| **0** | Decide & set the rails        | 1–7     | 3–4 sessions |
-| **1** | Hygiene & consistency         | 8–19    | 6–8 sessions |
-| **2** | Restructure & prune           | 20–31   | 8–10 sessions|
-| **3** | 🆕 `Frontend/ModernStack/`    | 32–43   | 12–16 sessions|
-| **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions|
-| **5** | Fill the remaining gaps       | 54–63   | 8–12 sessions|
-| **6** | 2027-proofing                 | 64–69   | 4–6 sessions |
-| **7** | Book assembly & publish       | 70–78   | 6–8 sessions |
+| Phase | Theme                         | Items   | Rough effort   | Model |
+| ----- | ----------------------------- | ------- | -------------- | ----- |
+| **0** | Decide & set the rails        | 1–7     | 3–4 sessions   | mixed — see per-item table |
+| **1** | Hygiene & consistency         | 8–19    | 6–8 sessions   | **Sonnet 5** (Opus for 13, 17–18) |
+| **2** | Restructure & prune           | 20–31   | 8–10 sessions  | **Opus 5** (Sonnet for 21, 25, 30) |
+| **3** | 🆕 `Frontend/ModernStack/`    | 32–43   | 12–16 sessions | **Opus 5** throughout |
+| **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions | **Opus 5** throughout |
+| **5** | Fill the remaining gaps       | 54–63   | 8–12 sessions  | **Opus 5** throughout |
+| **6** | 2027-proofing                 | 64–69   | 4–6 sessions   | mixed — Sonnet for 66–68 |
+| **7** | Book assembly & publish       | 70–78   | 6–8 sessions   | mixed — Sonnet for the sweeps |
 
 **Effort key:** `S` = one short session · `M` = one full session · `L` = split across 2–4 sessions.
+
+**Model:** the authoritative per-item mapping is in [Tooling → Model per item](#model-per-item).
+`scripts/plan-status.ts --next` reads it and tells you which model and effort to switch to.
 
 ---
 

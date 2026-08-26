@@ -26,6 +26,13 @@ interface Item {
   body: string;
 }
 
+interface ModelRule {
+  items: Set<number>;
+  model: string;
+  id: string;
+  effort: string;
+}
+
 const raw: string = readFileSync(PLAN, "utf8");
 const lines: string[] = raw.split("\n");
 
@@ -49,6 +56,36 @@ const doneCount: number = items.filter((i: Item) => i.done).length;
 const next: Item | undefined = items.find((i: Item) => !i.done);
 
 // ---------------------------------------------------------------------------
+// Model recommendation, read from the "Model per item" table so the plan stays
+// the single source of truth — edit the table, not this script.
+// ---------------------------------------------------------------------------
+
+/** Expands "3, 6–12, 14–16" into a set. Handles both en-dash and hyphen ranges. */
+function expandRanges(spec: string): Set<number> {
+  const out = new Set<number>();
+  for (const part of spec.split(",")) {
+    const m = part.trim().match(/^(\d+)\s*[–-]\s*(\d+)$/);
+    if (m) {
+      for (let i = Number(m[1]); i <= Number(m[2]); i++) out.add(i);
+    } else if (/^\d+$/.test(part.trim())) {
+      out.add(Number(part.trim()));
+    }
+  }
+  return out;
+}
+
+const modelRules: ModelRule[] = [];
+for (const l of lines) {
+  // | 3, 6–12, ... | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | why |
+  const m = l.match(/^\|\s*([\d,–\s-]+?)\s*\|\s*\*\*([^*]+)\*\*\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|/);
+  if (m) modelRules.push({ items: expandRanges(m[1]), model: m[2].trim(), id: m[3].trim(), effort: m[4].trim() });
+}
+
+function modelFor(n: number): ModelRule | undefined {
+  return modelRules.find((r: ModelRule) => r.items.has(n));
+}
+
+// ---------------------------------------------------------------------------
 // --next
 // ---------------------------------------------------------------------------
 
@@ -58,6 +95,10 @@ if (want("--next")) {
   } else {
     console.log(`\n▶ NEXT ITEM — #${next.n}: ${next.title}`);
     console.log(`  IMPROVEMENT-PLAN.md:${next.line}\n`);
+
+    const rec = modelFor(next.n);
+    if (rec) console.log(`  🧠 Use ${rec.model} (${rec.id}) at effort ${rec.effort}\n`);
+    else console.log(`  ⚠️  no model mapping for #${next.n} — add it to the "Model per item" table\n`);
 
     const doneWhen = next.body.match(/\*\*Done when:\*\*\s*([\s\S]*?)(?:\n\n|$)/);
     console.log(`  Done when: ${doneWhen ? doneWhen[1].replace(/\s+/g, " ").trim() : "⚠️  no 'Done when' line — add one"}`);
@@ -99,8 +140,12 @@ if (want("--check")) {
   }
   const phaseSum: number = rows.reduce((a, r) => a + r.done, 0);
 
+  const unmapped: number[] = items.filter((i: Item) => !modelFor(i.n)).map((i: Item) => i.n);
+
   const checks: [string, boolean, string][] = [
     ["checkboxes ticked", true, `${doneCount} / ${total}`],
+    ["model mapping", unmapped.length === 0,
+      unmapped.length ? `unmapped: ${unmapped.join(", ")}` : `all ${total} items mapped`],
     ["header counter", !!header && Number(header[1]) === doneCount && Number(header[2]) === total,
       header ? `${header[1]} / ${header[2]}` : "NOT FOUND"],
     ["progress tracker", !!tracker && Number(tracker[2]) === doneCount && Number(tracker[1]) === total,
