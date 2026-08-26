@@ -612,6 +612,31 @@ When a topic involves a specific library, SDK, or cloud service (React, Next.js,
 
 Skip Context7 for general programming concepts (closures, recursion, algorithm patterns).
 
+### Companion skills by destination directory
+
+Context7 gives you current API docs. These plugin skills give you current *platform judgement* —
+the tradeoffs and gotchas the reference docs do not spell out. Invoke the matching one **alongside**
+Context7 before writing in these directories, not instead of it.
+
+| Writing in…                                   | Also invoke                                      | Serves      |
+| --------------------------------------------- | ------------------------------------------------ | ----------- |
+| `Frontend/ModernStack/NextJS/`                | `vercel:nextjs`, `vercel:next-cache-components`   | #36–37      |
+| `Frontend/ModernStack/React/`                 | `vercel:react-best-practices`                     | #33–35, #65 |
+| `Frontend/ModernStack/Rendering/`             | `vercel:vercel-functions`, `vercel:cdn-caching`   | #39         |
+| `Frontend/ModernStack/Tooling/`               | `vercel:turbopack`                                | #41         |
+| `Frontend/Architecture/` (micro-frontends)    | `vercel:microfrontends`                           | #55         |
+| `AI/Integration/`                             | `vercel:ai-sdk`, `vercel:ai-gateway`              | #46         |
+
+Two cautions, because these skills are written by a platform vendor and this is a vendor-neutral book:
+
+- **Lead with the concept, name the platform second.** `BOOK-SPEC.md` requires it. Partial
+  Prerendering is a rendering strategy that happens to have shipped on Vercel first — write it that way.
+- **Strip the marketing register.** Take the mechanics and the tradeoffs; leave "seamless", "blazing",
+  and anything that reads as a pitch. Non-negotiable #9 forbids that tone.
+
+Where a platform-specific detail genuinely matters — cold starts, regional execution, pricing shape —
+say which platform it applies to rather than implying it is universal.
+
 ## Quality Checklist
 
 Before finalizing:
