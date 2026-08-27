@@ -62,6 +62,7 @@ const EXCLUDED_FILES: readonly string[] = [
   "CLAUDE.md", // agent instructions
   "BOOK-SPEC.md", // the spec itself
   "IMPROVEMENT-PLAN.md", // the plan itself
+  "REFERENCE-CHAPTER.md", // pointer at the exemplar chapter, not a chapter itself
 ];
 
 // ---------------------------------------------------------------------------

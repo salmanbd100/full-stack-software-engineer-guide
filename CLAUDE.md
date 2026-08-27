@@ -62,14 +62,25 @@ exists because a README references it.
 
 ## Scripts
 
-`scripts/` holds Node TypeScript that runs with no build step:
+`scripts/` holds Node TypeScript that runs with no build step. Use the `pnpm` scripts:
 
 ```bash
-node --experimental-strip-types scripts/<name>.ts    # Node 22.6+; flag unneeded on 23.6+
+pnpm lint:docs        # the Book Chapter Standard, all six rules — run this before calling a file done
+pnpm lint:docs --rule=broken-link   # every occurrence of one rule
+pnpm book:build       # PDF + EPUB into build/  (needs: brew install pandoc tectonic)
+pnpm plan:next        # the next unchecked plan item, its "Done when", its model
+pnpm plan:check       # verify the plan's three counters still agree
 ```
 
-There is **no `package.json`, no test suite and no CI.** There is nothing to "run the tests" with — say
-that plainly rather than implying a check passed.
+`scripts/lib/book.ts` is the shared model of what counts as a chapter — the build and the lint both
+import it, so they cannot disagree. Anything new that walks the manuscript should import it too.
+
+**There is still no test suite**, and no `check:code-samples` until item #75. Code fences are not
+compiled by anything today — do not imply otherwise. CI (`.github/workflows/lint-docs.yml`) runs
+`lint:docs`, `plan:check` and `book:collect`, nothing else.
+
+`lint:docs` gates on **`.lint-baseline.json`, not zero** — most of the repo predates the standard. A
+count that goes up fails; a count that goes down should be committed as the new baseline.
 
 ## Library / Framework Lookups
 

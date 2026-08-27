@@ -1,201 +1,197 @@
-# Software Engineering Mastery - Complete Guide
+# The Senior Full Stack Handbook
 
-A comprehensive knowledge base for software engineering excellence at multinational companies. This repository covers technical skills, algorithms, system design, and professional communication to help you advance your career and succeed in technical evaluations.
+**Frontend-Heavy — Fundamentals, Modern Stack, System Design and AI Engineering for 2027**
 
-## 📚 Repository Structure
+This repository is the **manuscript** for a book. It began as a personal interview-prep collection and is
+being restructured, chapter by chapter, into something that can be bound and printed.
 
-### 🎨 [Frontend Development](./Frontend/README.md)
+It is still useful as a knowledge base while that happens — but treat every directory as work in progress,
+not as a finished reference.
 
-Master frontend technologies for modern web development roles.
-
-**Coverage:**
-
-- **Core:** JavaScript, HTML & CSS, TypeScript
-- **Frameworks:** React, Next.js
-- **Advanced:** Web Performance, Testing
-
-**Target Roles:** Frontend Developer, Senior Frontend Engineer, Frontend Architect
-
----
-
-### 🔧 [Backend Development](./Backend/README.md)
-
-Backend engineering fundamentals and advanced concepts.
-
-**Coverage:**
-
-- Node.js, Express.js, NestJS
-- SQL/NoSQL databases
-- API design, microservices
-- Security and system design
-
-**Target Roles:** Backend Developer, Full-Stack Engineer, Backend Architect
+| | |
+| --- | --- |
+| **Progress** | 6 of 78 improvements · [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md) |
+| **Scope** | Locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md) — nine parts, line budgets, twelve non-negotiables |
+| **Current size** | 417 files · ~134,000 lines · builds to a 3,694-page PDF |
+| **Target** | ~55,000 lines in-book. Everything else moves to [`Archive/`](./Archive/README.md) |
+| **Reader** | 3–8 years' experience, targeting senior or staff frontend / full stack roles |
 
 ---
 
-### 💻 [Data Structures & Algorithms](./DSA/README.md)
+## Getting Started
 
-15 essential LeetCode patterns for technical assessments and competitive programming.
+### Prerequisites
 
-**Coverage:**
+| Tool | Version | Needed for |
+| ---- | ------- | ---------- |
+| **Node** | `>=22.6.0` | Every script. They are TypeScript and run unbuilt via `--experimental-strip-types` |
+| **pnpm** | `9.15.0` | The package manager. Do not switch it |
+| **pandoc** + **tectonic** | any recent | PDF and EPUB only. `brew install pandoc tectonic` (~250 MB) |
 
-- Array/String patterns (Prefix Sum, Two Pointers, Sliding Window)
-- Linked List patterns (Fast/Slow Pointers, Reversal)
-- Tree/Graph patterns (DFS, BFS, Traversal)
-- Advanced patterns (Backtracking, DP, Graph Algorithms)
+```bash
+pnpm install
+```
 
-**Target Roles:** All technical roles (essential for top-tier companies)
+The only dependency is `@types/node`, so `scripts/*.ts` typecheck. There is no framework here and nothing
+to build — this repository is markdown and tooling.
 
----
+### Commands
 
-### 🏗️ [System Design](./SystemDesign/README.md)
+Every script in [`package.json`](./package.json):
 
-Comprehensive system design mastery for building scalable applications.
+| Command | What it does |
+| ------- | ------------ |
+| `pnpm lint:docs` | Checks all 417 files against the Book Chapter Standard — front matter, broken links, code fences, chapter length, missing READMEs, heading jumps. **Run this before calling any file done** |
+| `pnpm lint:docs --rule=<id>` | Every occurrence of one rule, e.g. `--rule=broken-link` |
+| `pnpm lint:docs --strict` | Fail on any violation at all, rather than on a regression |
+| `pnpm book:build` | The full book — PDF and EPUB into `build/` |
+| `pnpm book:pdf` | PDF only. The faster one while iterating |
+| `pnpm book:epub` | EPUB only |
+| `pnpm book:collect` | Assembles `build/book.md` without typesetting it. Catches ordering and front-matter breakage cheaply |
+| `pnpm plan:next` | The next unchecked plan item, its "Done when", and which model to use |
+| `pnpm plan:check` | Verifies the plan's three progress counters still agree |
+| `pnpm frontmatter` | Stamps YAML front matter across the manuscript (improvement #3) |
 
-**Coverage:**
+> **`lint:docs` gates on `.lint-baseline.json`, not zero.** Most of this repository predates the standard,
+> so a hard zero would sit red for months and train everyone to ignore it. A count that goes **up** fails
+> the build; a count that goes down should be committed as the new, lower ceiling.
 
-- Fundamentals (Scalability, CAP theorem, Load balancing)
-- Frontend system design (Micro-frontends, State management)
-- Backend system design (Databases, Microservices, APIs)
-- Infrastructure (AWS, Monitoring, Security)
-- 20 real-world case studies (Twitter, YouTube, Uber, etc.)
+### How the build works
 
-**Target Roles:** Senior+ Engineers, System Architects, Tech Leads
+`scripts/lib/book.ts` is the single model of what counts as a chapter — exclusions, the part mapping, the
+front-matter reader, reading order. The build and the linter both import it, so they cannot disagree.
+Anything new that walks the manuscript should import it too.
 
----
+Reading order comes from front matter `part` + `chapter`, falling back to the directory prefix for files
+that have not been stamped yet. [`Archive/`](./Archive/README.md) is skipped by everything.
 
-### 🚀 [DevOps Engineering](./DevOps/README.md)
-
-DevOps practices and cloud infrastructure.
-
-**Coverage:**
-
-- Linux, Git, CI/CD pipelines
-- Docker, Kubernetes, AWS EKS
-- Terraform (Infrastructure as Code)
-- Monitoring, security, DevSecOps
-- AI tools for DevOps
-
-**Target Roles:** DevOps Engineer, Platform Engineer, SRE
-
----
-
-### 🎭 [Behavioral Interview Skills](./Behavioral/README.md)
-
-Master the art of behavioral assessments with structured storytelling.
-
-**Coverage:**
-
-- STAR framework mastery
-- Leadership and team management scenarios
-- Problem-solving and decision-making examples
-- Communication and conflict resolution
-- Handling challenges and failures
-- Time management and prioritization
-- Adaptability and continuous learning
-- Career motivation and company-specific preparation
-
-**Target Roles:** All roles (essential for mid to senior-level positions)
+CI ([`.github/workflows/lint-docs.yml`](./.github/workflows/lint-docs.yml)) runs `lint:docs`,
+`plan:check` and `book:collect` on every push and pull request.
 
 ---
 
-### 🗣️ [Communication Skills](./Communication/README.md)
+## Repository Structure
 
-English and communication mastery for international technical assessments and professional growth.
+### [Frontend](./Frontend/README.md)
 
-**Coverage:**
+JavaScript, TypeScript, HTML/CSS, Browser APIs, PWA, i18n, CSS architecture, security, testing,
+web performance.
 
-- Technical communication and presentations
-- English fluency and vocabulary building
-- System design and problem-solving articulation
-- Cross-cultural communication
-- Written communication and documentation
-- Active listening and professional etiquette
-- Professional presentation skills
+> ⚠️ **There is no React, Next.js or Svelte content yet.** `Frontend/README.md` links to `./React/` and
+> `./NextJs/`; both 404. `Frontend/ModernStack/` is planned as improvements #32–43 and is the biggest gap
+> in the book.
 
-## 🏆 Complete Career Readiness Checklist
+### [Backend](./Backend/README.md)
 
-### Technical Mastery
+Node.js internals, API design (REST, GraphQL, versioning, rate limiting, WebSockets), SQL and NoSQL,
+auth and security, design patterns, testing.
+
+> ⚠️ `Backend/README.md` promises Express and NestJS sections. Neither exists yet.
+
+[`Backend/API/01-rest-best-practices.md`](./Backend/API/01-rest-best-practices.md) is the **reference
+chapter** — the only file currently passing the standard with zero violations. See
+[`REFERENCE-CHAPTER.md`](./REFERENCE-CHAPTER.md).
+
+### [Data Structures & Algorithms](./DSA/README.md)
+
+16 LeetCode patterns plus a complexity primer. Ships as a **companion volume**, not inside the main book.
+
+Array and string patterns (prefix sum, two pointers, sliding window) · linked list patterns (fast/slow
+pointers, reversal) · tree and graph traversal (DFS, BFS) · backtracking, dynamic programming, graph
+algorithms.
+
+### [System Design](./SystemDesign/README.md)
+
+Fundamentals (scalability, CAP, load balancing), building blocks, frontend system design, and 20
+real-world case studies.
+
+### [DevOps](./DevOps/README.md) → becoming `ShipAndOperate/`
+
+Currently 30% of the repository and around 8% of the book's value. Improvement #20 cuts it from 147 files
+to roughly 25 — Git, Docker, CI/CD, observability, deployment. Terraform, Linux administration,
+Kubernetes operations and deep AWS move to `Archive/`, not the bin.
+
+### [OOP](./OOP/README.md)
+
+SOLID and design patterns. Merges into `Backend/DesignPatterns/` at improvement #26.
+
+### [Behavioral](./Behavioral/README.md) · [Communication](./Communication/README.md)
+
+STAR-framework stories, leadership and conflict scenarios, technical communication, and written
+documentation. Become Part IX, *The Human Layer*.
+
+### Not yet written
+
+`AI/` does not exist. For a 2027 book this is the second-biggest gap after the modern frontend stack —
+building *with* models, not training them. Planned as improvements #44–53.
+
+---
+
+## Contributing to the Manuscript
+
+1. **Read [`BOOK-SPEC.md`](./BOOK-SPEC.md) first.** If a topic is on the out-of-scope list, it is archived
+   deliberately, not missing
+2. **Start from `.claude/skills/write-topic-docs/CHAPTER-TEMPLATE.md`**, not from a blank file. The Book
+   Chapter Standard — six blocks, TypeScript-only fences, 150–400 lines, `#ch-slug` cross-references — is
+   mandatory
+3. **Use [`REFERENCE-CHAPTER.md`](./REFERENCE-CHAPTER.md)** as the worked example when the written
+   standard and your instinct disagree
+4. **Run `pnpm lint:docs`** before you call anything done
+
+Say _"continue"_ with [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md) attached to pick up the next item.
+
+---
+
+## Career Readiness Checklist
+
+### Technical
 
 - [ ] Complete 100+ LeetCode problems across all patterns
 - [ ] Master your primary stack (React/Next.js or Node.js/NestJS)
 - [ ] Design 10+ systems from scratch
-- [ ] Build 3-5 portfolio projects showcasing skills
-- [ ] Understand production deployment (DevOps basics)
+- [ ] Build 3–5 portfolio projects showcasing skills
+- [ ] Understand production deployment
 
-### Behavioral Excellence
+### Behavioural
 
-- [ ] Develop 15+ STAR method stories (leadership, challenges, conflicts, etc.)
-- [ ] Prepare company-specific examples (Amazon LP, Google innovation, etc.)
-- [ ] Practice 2-3 minute story delivery
-- [ ] Record and review behavioral responses
+- [ ] Develop 15+ STAR stories (leadership, challenges, conflicts)
+- [ ] Prepare company-specific examples
+- [ ] Practise 2–3 minute story delivery
+- [ ] Record and review responses
 - [ ] Prepare questions to ask interviewers
 
-### Communication Excellence
+### Communication
 
-- [ ] Practice technical explanations (record yourself)
-- [ ] Achieve B2-C1 English proficiency (if non-native speaker)
+- [ ] Practise technical explanations, recorded
+- [ ] Achieve B2–C1 English proficiency
 - [ ] Complete 10+ practice sessions
-- [ ] Master whiteboard/virtual presentation
-- [ ] Develop clear and concise speaking style
+- [ ] Master whiteboard and virtual presentation
+- [ ] Develop a clear, concise speaking style
 
-### Professional Readiness
+### Professional
 
-- [ ] Update resume (tailored to target companies)
+- [ ] Update CV, tailored to target companies
 - [ ] Polish LinkedIn profile
-- [ ] Update portfolio website ([salmanrahman.com](https://salmanrahman.com))
-- [ ] Prepare 5+ questions for conversations
+- [ ] Update portfolio site ([salmanrahman.com](https://www.salmanrahman.com/))
 - [ ] Research target companies thoroughly
-
-### Setup & Logistics
-
-- [ ] Test video/audio setup
-- [ ] Prepare quiet professional space
-- [ ] Set up digital whiteboard tools
-- [ ] Practice with common evaluation tools (CoderPad, etc.)
-- [ ] Prepare professional attire (if on-site)
+- [ ] Test video and audio setup, and prepare a quiet space
 
 ---
 
-## 📖 Recommended Learning Resources
+## Resources
 
-### Online Platforms
+**Practice:** LeetCode · Frontend Mentor · Pramp / Interviewing.io · iTalki / Cambly
 
-- **LeetCode:** Algorithm practice
-- **Frontend Mentor:** Frontend projects
-- **Educative.io:** System design courses
-- **Pramp/Interviewing.io:** Technical practice sessions
-- **iTalki/Cambly:** English speaking practice
+**Watch:** Gaurav Sen (system design) · Web Dev Simplified (frontend) · Clément Mihailescu (career)
 
-### YouTube Channels
+**Listen:** Syntax.fm · JavaScript Jabber · Software Engineering Daily · The Changelog
 
-- **Clément Mihailescu:** Career advancement strategies
-- **Gaurav Sen:** System design
-- **Web Dev Simplified:** Frontend tutorials
-- **Tech Interview Pro:** Professional development
-
-### Podcasts (for English + Tech)
-
-- Syntax.fm (Frontend)
-- JavaScript Jabber
-- Software Engineering Daily
-- The Changelog
+**Read:** [System Design Primer](https://github.com/donnemartin/system-design-primer) ·
+[Frontend Interview Handbook](https://www.frontendinterviewhandbook.com/)
 
 ---
 
-## 🔗 External Links
+**Salman Rahman** — [www.salmanrahman.com](https://www.salmanrahman.com/)
 
-- **Portfolio:** [salmanrahman.com](https://salmanrahman.com)
-- **LeetCode:** [leetcode.com](https://leetcode.com)
-- **System Design Primer:** [GitHub](https://github.com/donnemartin/system-design-primer)
-- **Frontend Handbook:** [frontendinterviewhandbook.com](https://www.frontendinterviewhandbook.com/)
-
----
-
-**Author:** Salman Rahman ([salmanrahman.com](https://salmanrahman.com))
-
----
-
-Good luck with your software engineering mastery journey! Remember: **consistency beats intensity**. 🚀
-
-_"The only way to do great work is to love what you do."_ - Steve Jobs
+© Salman Rahman. All rights reserved. The manuscript in this repository is not licensed for
+redistribution.

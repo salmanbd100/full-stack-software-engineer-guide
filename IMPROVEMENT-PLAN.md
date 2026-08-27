@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-26 · **Progress:** 2 / 78
+**Last updated:** 2026-08-27 · **Progress:** 6 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -333,7 +333,7 @@ Run #3 first and #20 becomes "move the files the metadata already marked" — ea
 
 ---
 
-### - [ ] 4. Build the reference chapter `M`
+### - [x] 4. Build the reference chapter `M` — ✅ **done 2026-08-27**
 
 Pick **one** existing strong file — `Backend/API/01-rest-best-practices.md` is the best-written file in the
 repo — and rewrite it to the finished book standard from item 2. This becomes the template every other
@@ -342,9 +342,33 @@ chapter is measured against.
 **Done when:** the file passes the item-2 standard end to end, and is linked from the skill as
 `REFERENCE-CHAPTER.md`.
 
+**Delivered:**
+
+- [`Backend/API/01-rest-best-practices.md`](./Backend/API/01-rest-best-practices.md) rewritten to the six
+  blocks. It is currently **the only file in the repo with zero lint violations** (verified with the
+  script from #6)
+- Front matter stamped by hand (`part: 5`, `chapter: 0`, `slug: rest-best-practices`), H1 carries
+  `{#ch-rest-best-practices}` and matches `title`
+- **Added:** `## 💡 The Core Idea`, `## When to Use It` (a REST vs GraphQL vs gRPC vs WebSocket decision
+  table that names the alternative honestly), `## Common Mistakes`, `## 🔑 Key Takeaways`,
+  `## What to Read Next`, and one Mermaid `flowchart` with a caption
+- **Removed:** the hand-written Table of Contents, the `[API Index] | [GraphQL →]` back-link footer, the
+  `## Summary` checklist (non-negotiable #11), and a retired ✨ and 🔴 callout
+- **Cross-references converted:** `./03-versioning.md` and `../Security/README.md` were the only two
+  relative links; both are now `#ch-<slug>` anchors. Interview questions cut 8 → 5, with the
+  judgement-call question ("when would you not build a REST API?") written fresh
+- 🆕 [`REFERENCE-CHAPTER.md`](./REFERENCE-CHAPTER.md) at the repo root — resolves the link item #2 left
+  dangling. It is a **pointer with a "what to copy from it" table**, not a copy: a duplicated exemplar
+  drifts, and then two files claim to be the standard
+- Added `REFERENCE-CHAPTER.md` to `EXCLUDED_FILES` in `add-frontmatter.ts` so #3 does not stamp it
+
+> **Deliberately left:** the chapter is **350 lines against the ~220 target** — inside the 150–400 hard
+> limit, but REST has the widest surface area in Part V. `REFERENCE-CHAPTER.md` says explicitly that it is
+> not a length model, so it cannot be cited as licence to write 350-line chapters.
+
 ---
 
-### - [ ] 5. Set up the book build pipeline `M`
+### - [x] 5. Set up the book build pipeline `M` — ✅ **done 2026-08-27**
 
 Choose one and wire it up:
 
@@ -359,9 +383,47 @@ web companion that markets the book. Order comes from front matter `part` + `cha
 
 **Done when:** `pnpm book:build` produces a PDF with a working table of contents from current content.
 
+**Delivered — verified, not assumed:**
+
+```
+417 files · 134,298 lines → build/book.md
+build/handbook.pdf   3,692 pages, A4, 7.9 MB, linked TOC to depth 2
+build/handbook.epub  3.0 MB
+```
+
+- 🆕 `package.json` — `pnpm` scripts `book:build` · `book:pdf` · `book:epub` · `book:collect` ·
+  `lint:docs` · `plan:next` · `plan:check` · `frontmatter`. `@types/node` added, so `scripts/*.ts`
+  typecheck for the first time
+- 🆕 `scripts/lib/book.ts` — the shared model of *what is in the book*: exclusions, the part mapping,
+  the front-matter reader, reading order. #5 and #6 both import it, so the build and the lint can never
+  disagree about what counts as a chapter
+- 🆕 `scripts/collect-chapters.ts` — assembles `build/book.md`. Strips each file's front matter (pandoc
+  would otherwise read it as book metadata and the last `title` would win) and pushes every heading down
+  one level, freeing level 1 for the part dividers it inserts
+- 🆕 `scripts/build-book.sh` (`pdf` · `epub` · `all`), `scripts/book-meta.yaml`, `scripts/book-header.tex`
+- **Installed:** `pandoc 3.10.2` + `tectonic 0.17.0` via Homebrew, as this item's tooling note specified
+- **Ordering degrades gracefully.** Reading order is front matter `part` + `chapter`, falling back to the
+  directory prefix — so the book builds correctly *today*, before #3 has stamped anything
+
+Three things that were not obvious and are worth writing down:
+
+- **The reader had to be `markdown`, not `gfm`.** GFM cannot parse `{#ch-slug}` header attributes, which
+  every cross-reference in the book targets. `raw_tex` and the maths extensions are switched off so a `$`
+  or a backslash in prose stays literal
+- **`yaml_metadata_block` had to be switched off.** Chapters use `---` as a horizontal rule; pandoc read
+  the prose after one as metadata and the build died. Book metadata comes from `--metadata-file` instead
+- **Emoji rendered as tofu.** Tectonic's fonts have no emoji, so the entire callout vocabulary printed as
+  boxes. `book-header.tex` maps the sanctioned set via `newunicodechar` — ✅/❌ become real dingbats, ⚠️
+  becomes a bold bang, 💡/🔑 are dropped because their headings already say what they mean
+
+> **Left for #77:** retired emoji (🗺️ 📚 🚀 and friends) and the box-drawing characters in ASCII diagrams
+> still print as tofu — #12 and #74 delete those files' contents anyway. Table overflow and long code
+> lines run into the margin; `\emergencystretch` softens it, but the real typesetting pass is #77.
+> VitePress is **not** set up — this item recommended it "later", and nothing depends on it yet.
+
 ---
 
-### - [ ] 6. Add a lint script for the standard `M`
+### - [x] 6. Add a lint script for the standard `M` — ✅ **done 2026-08-27**
 
 `scripts/lint-docs.ts` fails CI on:
 
@@ -374,14 +436,79 @@ web companion that markets the book. Order comes from front matter `part` + `cha
 
 **Done when:** `pnpm lint:docs` runs, reports the current violation count, and is wired into a GitHub Action.
 
+**Delivered — `pnpm lint:docs` across 417 files, 2,227 violations:**
+
+| Rule | Count | Cleared by |
+| ---- | ----- | ---------- |
+| Missing or invalid front matter | **416** | #3 |
+| Broken relative link | **32** | #9 |
+| Code fence outside the allow-list | **1,704** | #10, #20 |
+| File over 400 lines with `in_book: true` | **61** | #17, #18, #23 |
+| Content directory with no README.md | **10** | #13 |
+| Heading level jump | **4** | #12 |
+
+**Three of those numbers independently confirm the audit at the top of this file** — #9 predicted 32
+broken links, #13 predicted 10 missing READMEs, and #10 predicted 415 JavaScript fences against a
+measured 417. The linter and the audit were derived separately, so they corroborate each other.
+
+- 🆕 `scripts/lint-docs.ts` — all six rules, plus front-matter checks the item did not ask for and the
+  standard needs: **globally unique slugs**, and **H1 text matching front matter `title`** (the build
+  trusts one of them, so a mismatch is unresolvable)
+- 🆕 `.github/workflows/lint-docs.yml` — runs `lint:docs`, `plan:check`, and `book:collect` on push and PR
+- 🆕 `.lint-baseline.json` — **the gate is the baseline, not zero.** A hard zero would leave CI red until
+  #19 and train everyone to ignore it. A count that goes **up** fails the build; a count that goes down is
+  committed as the new ceiling. Each rule becomes a hard gate on its own the moment it reaches 0.
+  Verified by adding a stray ` ```python ` fence: `1705 (baseline 1704 — REGRESSED)`, exit 1
+- Flags: `--strict` (fail on any violation), `--rule=<id>` (every occurrence of one rule),
+  `--update-baseline`. Advisory line for files under 150 lines — a merge prompt, not a failure
+
+Two corrections to this item as written:
+
+- **The allow-list here omitted `tsx`**, which `BOOK-SPEC.md` non-negotiable #1 includes. The spec wins;
+  the linter allows `tsx`. This item's list is the stale one
+- **"Non-TypeScript code fences" needed widening to unlabelled ones.** 1,019 of the 1,704 fence violations
+  are fences with *no* language at all, which typeset without highlighting and are invisible to #10's
+  sweep if the rule only looks for ` ```javascript `
+
+> **Worth knowing before #10:** the fence backlog is not 1,704 files' worth of work. 174 are `hcl`
+> (Terraform) and most of the rest sit in `DevOps/`, which #20 archives. Re-run the linter after #20 and
+> the real number will be far smaller.
+
 ---
 
-### - [ ] 7. Create `Archive/` and the exclusion rule `S`
+### - [x] 7. Create `Archive/` and the exclusion rule `S` — ✅ **done 2026-08-27**
 
 Make `Archive/` at the repo root with a `README.md` explaining it holds content that is useful reference but
 out of the book. The build script skips it. Nothing is deleted in this plan — it is **moved**.
 
 **Done when:** `Archive/README.md` exists and `scripts/build-book.sh` ignores the directory.
+
+**Delivered:**
+
+- 🆕 [`Archive/README.md`](./Archive/README.md) — why the directory exists (deleting makes the
+  keep-or-archive judgement unrecoverable), the out-of-scope categories lifted from
+  `BOOK-SPEC.md` § 6, the planned layout (`planning/` from #8, `devops/` from #20), and the
+  **move-in / move-back procedures**
+- **The exclusion was already live** — `EXCLUDED_DIRS` in `scripts/lib/book.ts` (built in #5) lists
+  `Archive`, and both the build and the lint import it. This item confirmed it rather than adding it
+- `build-book.sh` now names that list in its header comment, so the next reader finds the exclusion
+  from the build script instead of guessing
+
+**Verified empirically, not by reading the code.** Dropped a probe file at
+`Archive/planning/__exclusion-probe.md` containing a ` ```python ` fence and a broken relative link —
+two guaranteed violations — then re-ran everything:
+
+| Check | Result |
+| ----- | ------ |
+| `pnpm book:collect` | 417 files, unchanged. `--list \| grep Archive` → **0** |
+| `build/book.md` | Probe content **absent** |
+| `pnpm lint:docs` | **2,227 violations, unchanged.** No rule regressed |
+
+Probe removed afterwards. `Archive/README.md` is itself excluded — it is repo documentation, not a
+chapter, so it gets no front matter and #3 will not stamp it.
+
+> **One rule worth keeping:** archiving should make the `.lint-baseline.json` counts **fall**. Commit
+> the lower numbers each time, so the gate ratchets down as #20–#31 run and can never drift back up.
 
 ---
 
@@ -1316,7 +1443,7 @@ the site markets the book and the book funds the site.
 
 | Phase | Items   | Done | Status         |
 | ----- | ------- | ---- | -------------- |
-| 0     | 1–7     | 2/7  | 🟡 In progress |
+| 0     | 1–7     | 6/7  | 🟡 In progress |
 | 1     | 8–19    | 0/12 | ⬜ Not started |
 | 2     | 20–31   | 0/12 | ⬜ Not started |
 | 3     | 32–43   | 0/12 | ⬜ Not started |
@@ -1324,7 +1451,7 @@ the site markets the book and the book funds the site.
 | 5     | 54–63   | 0/10 | ⬜ Not started |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **2/78** | **3%**   |
+| **Total** | **78** | **6/78** | **8%**   |
 
 ---
 

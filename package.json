@@ -1,0 +1,26 @@
+{
+  "name": "senior-full-stack-handbook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Manuscript for The Senior Full Stack Handbook — Frontend-Heavy, 2027 Edition",
+  "author": "Salman Rahman",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "book:build": "./scripts/build-book.sh",
+    "book:pdf": "./scripts/build-book.sh pdf",
+    "book:epub": "./scripts/build-book.sh epub",
+    "book:collect": "node --experimental-strip-types scripts/collect-chapters.ts",
+    "lint:docs": "node --experimental-strip-types scripts/lint-docs.ts",
+    "plan:next": "node --experimental-strip-types scripts/plan-status.ts --next",
+    "plan:check": "node --experimental-strip-types scripts/plan-status.ts --check",
+    "frontmatter": "node --experimental-strip-types scripts/add-frontmatter.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2"
+  }
+}

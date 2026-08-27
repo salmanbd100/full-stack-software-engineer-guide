@@ -1,0 +1,9 @@
+# Book metadata for the pandoc build (improvement #5).
+# Kept out of the manuscript so no single chapter's front matter can claim the title.
+title: "The Senior Full Stack Handbook"
+subtitle: "Frontend-Heavy — Fundamentals, Modern Stack, System Design and AI Engineering for 2027"
+author: "Salman Rahman"
+date: "2027 Edition"
+lang: en-GB
+rights: "© Salman Rahman. All rights reserved. https://www.salmanrahman.com/"
+toc-title: "Contents"

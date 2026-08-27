@@ -24,7 +24,7 @@ Trigger this skill when the user asks to:
 > did not read the chapter before it.
 >
 > - **Canonical example:** [`REFERENCE-CHAPTER.md`](../../../REFERENCE-CHAPTER.md) — when this standard and
->   your instinct disagree, open that file and copy what it does. _(Created by improvement #4.)_
+>   your instinct disagree, open that file and copy what it does.
 > - **Copy-paste starting point:** [`CHAPTER-TEMPLATE.md`](./CHAPTER-TEMPLATE.md) — start every new chapter
 >   by copying this file.
 

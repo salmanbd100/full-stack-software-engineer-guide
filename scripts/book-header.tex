@@ -1,0 +1,95 @@
+% book-header.tex — improvement #5, PDF only.
+%
+% Tectonic's default fonts have no emoji glyphs, so the book's callout vocabulary
+% (BOOK-SPEC.md § 7 and the write-topic-docs skill) prints as tofu boxes without this.
+% Each of the six sanctioned marks is mapped to a typographic equivalent that carries
+% the same meaning in print. EPUB and HTML keep the real emoji — they render fine there.
+%
+% Full typesetting review, including tables and code wrapping, is improvement #77.
+
+\usepackage{newunicodechar}
+\usepackage{pifont}
+
+% ✅ / ❌ — these two carry meaning inside tables and before/after pairs, so they
+% become real dingbats rather than words.
+\newunicodechar{✅}{\ding{51}}
+\newunicodechar{❌}{\ding{55}}
+
+% ⚠️ — a gotcha. The bold bang reads as a warning at body size.
+\newunicodechar{⚠}{\textbf{!}}
+
+% 💡 and 🔑 only ever appear in the two fixed headings, where the heading text already
+% says what they mean. Drop them rather than substitute something weaker.
+\newunicodechar{💡}{}
+\newunicodechar{🔑}{}
+
+% U+FE0F, the variation selector that trails ⚠️ and friends in the source.
+\newunicodechar{️}{}
+
+% Long code lines and wide table cells currently run into the margin. Let TeX break
+% them rather than silently overflow the page — #77 does the real pass.
+\setlength{\emergencystretch}{3em}
+
+% ---------------------------------------------------------------------------
+% Running page footer — copyright and the author's site on every page.
+%
+% Note this is a *running footer*, not chapter content: BOOK-SPEC.md non-negotiable
+% #11 bans personal URLs from chapter bodies, and that still holds.
+%
+% EPUB gets the same line as `rights` metadata in scripts/book-meta.yaml. It is a
+% reflowable format with no pages, so it has no footer to put this in.
+% ---------------------------------------------------------------------------
+
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+
+\definecolor{footerrule}{gray}{0.45}
+
+% One command, used by both page styles below, so the two can never drift apart.
+\newcommand{\bookfooter}{%
+  \footnotesize\color{footerrule}%
+  \textcopyright{} Salman Rahman \quad\textperiodcentered\quad
+  \href{https://www.salmanrahman.com/}{\textcolor{footerrule}{www.salmanrahman.com}}%
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+% Twoside: page number and running title on the outer edge, so they stay outer
+% whichever side the sheet is read from.
+\fancyhead[LE,RO]{\footnotesize\thepage}
+\fancyhead[RE]{\footnotesize\color{footerrule}\nouppercase{\leftmark}}
+\fancyhead[LO]{\footnotesize\color{footerrule}\nouppercase{\rightmark}}
+\fancyfoot[C]{\bookfooter}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% The book class forces \thispagestyle{plain} on the first page of every chapter and
+% part. Without this, those pages would be the only ones with no copyright line.
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\bookfooter}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0.4pt}%
+}
+
+% Room for the footer rule, and a little more head height for the running title.
+\setlength{\headheight}{14pt}
+\setlength{\footskip}{28pt}
+
+% The title page uses the `titlepage` environment, which sets \thispagestyle{empty}.
+% AtBeginEnvironment fires after that, so this wins. No rule here — a hairline under
+% a title page reads as a mistake.
+\usepackage{etoolbox}
+\fancypagestyle{booktitle}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\bookfooter}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+\AtBeginEnvironment{titlepage}{\thispagestyle{booktitle}}
+
+% The blank verso pages the book class inserts after each \part divider keep the
+% `empty` style deliberately. A copyright line alone on an otherwise blank page reads
+% as a printing error, not as a notice.

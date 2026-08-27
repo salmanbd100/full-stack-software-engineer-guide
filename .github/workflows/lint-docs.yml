@@ -1,0 +1,46 @@
+name: lint:docs
+
+# The Book Chapter Standard, enforced. Improvement #6.
+#
+# The gate is `.lint-baseline.json`, not zero. Most of this manuscript predates the
+# standard, so a hard zero would leave this workflow red until improvement #19 and
+# train everyone to ignore it. A count that goes up fails the build; a count that goes
+# down is committed as the new baseline. Each rule becomes a hard gate on its own the
+# moment its baseline reaches 0.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Book Chapter Standard
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint documentation
+        run: pnpm lint:docs
+
+      - name: Check the plan's counters agree
+        run: pnpm plan:check
+
+      - name: Assemble the manuscript
+        # Catches an ordering or front-matter change that breaks collection, without
+        # paying for a full LaTeX toolchain on every push. The PDF build is #77.
+        run: pnpm book:collect
