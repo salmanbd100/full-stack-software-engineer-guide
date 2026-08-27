@@ -1,6 +1,6 @@
 ---
 name: write-topic-docs
-description: Run this skill BEFORE writing or editing ANY document in this repo — topic files, READMEs, or any markdown under Frontend/, Backend/, DSA/, SystemDesign/, DevOps/, OOP/, Behavioral/, or Communication/. Use when the user asks to "write docs", "add a topic", "edit a file", "create a new pattern doc", "document X", or "add a markdown for Y".
+description: Run this skill BEFORE writing or editing ANY document in this repo — chapters, READMEs, or any markdown under Frontend/, Backend/, DSA/, SystemDesign/, DevOps/, OOP/, Behavioral/, or Communication/. This repo is a book manuscript; the Book Chapter Standard in this skill is mandatory. Use when the user asks to "write docs", "add a topic", "add a chapter", "edit a file", "create a new pattern doc", "document X", or "add a markdown for Y".
 ---
 
 # Write Topic Documentation
@@ -16,6 +16,244 @@ Trigger this skill when the user asks to:
 - Write a README index for a domain/subdirectory
 - Convert dense notes into structured documentation
 - Bring a file up to the repo's style standard
+
+## 📖 The Book Chapter Standard (MANDATORY)
+
+> This repository is the manuscript for **The Senior Full Stack Handbook** — see [`BOOK-SPEC.md`](../../../BOOK-SPEC.md).
+> Every topic file is a **book chapter**, not a note. It gets bound, printed, and read cold by someone who
+> did not read the chapter before it.
+>
+> - **Canonical example:** [`REFERENCE-CHAPTER.md`](../../../REFERENCE-CHAPTER.md) — when this standard and
+>   your instinct disagree, open that file and copy what it does. _(Created by improvement #4.)_
+> - **Copy-paste starting point:** [`CHAPTER-TEMPLATE.md`](./CHAPTER-TEMPLATE.md) — start every new chapter
+>   by copying this file.
+
+### The Six Blocks
+
+Every chapter has these six blocks, in this order. No reordering, nothing extra between them.
+
+| #   | Block               | Purpose                                             |
+| --- | ------------------- | --------------------------------------------------- |
+| 1   | Front matter        | Machine-readable ordering and metadata for the build |
+| 2   | Opening             | Title, one-sentence promise, what is in the chapter  |
+| 3   | Body                | The teaching                                         |
+| 4   | Key Takeaways       | 3–5 lines the reader keeps                           |
+| 5   | Interview Questions | 3–6 questions with answer shapes                     |
+| 6   | What to Read Next   | 2–3 cross-references                                 |
+
+---
+
+#### Block 1 — Front matter
+
+```yaml
+---
+title: React Server Components
+part: 3
+chapter: 14
+slug: react-server-components
+level: advanced # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-09-01
+tags: [react, rsc, rendering, nextjs]
+in_book: true
+---
+```
+
+- `slug` is lowercase-hyphen and **globally unique** — cross-references depend on it
+- `in_book: false` keeps a file in the repo but out of the manuscript
+- Do not know the chapter number yet? Use `chapter: 0`. Improvement #70 assigns the real ones
+
+---
+
+#### Block 2 — Opening
+
+```markdown
+# React Server Components {#ch-react-server-components}
+
+> Render on the server, ship no JavaScript for it, and know exactly where the boundary sits.
+
+**In this chapter:** the server/client split · what can cross the boundary · `'use client'` · the mistakes that get caught in review
+```
+
+| Rule                                                                          | Why                                          |
+| ----------------------------------------------------------------------------- | -------------------------------------------- |
+| H1 text matches front matter `title` **exactly**                              | The build trusts one of them; keep them equal |
+| H1 carries `{#ch-<slug>}`                                                     | Every cross-reference in the book targets it  |
+| The promise is **one sentence**, in a blockquote, saying what the reader can _do_ | It is the chapter's contract               |
+| **In this chapter:** is 3–5 items joined by ` · `, no full stop                | Scannable; sets expectations in one line      |
+| ❌ **No hand-written Table of Contents**                                       | The build generates it. Delete existing ones  |
+| ❌ **No back-links** like `[← Back to README]`                                 | The build handles navigation                  |
+
+---
+
+#### Block 3 — Body
+
+Standard flow. Add topic-specific sections after `When to Use It`, never before.
+
+```markdown
+## 💡 The Core Idea
+
+One paragraph. The mental model, in plain words, before any API name.
+
+## How It Works
+
+The mechanism. Tables and diagrams over prose.
+
+## When to Use It
+
+A decision table — scenario, choice, reason.
+
+## Common Mistakes
+
+❌ / ✅ pairs. The mistake first, the fix second, and why it matters.
+```
+
+- **Heading levels `##` and `###` only.** Never `####` — it does not survive typesetting
+- Never two headings in a row with no text between them
+- Every code block gets a bold label line above it
+
+---
+
+#### Block 4 — Key Takeaways
+
+```markdown
+## 🔑 Key Takeaways
+
+- Server Components run once, on the server, and never re-render.
+- Only serialisable values cross the boundary — functions and class instances do not.
+- `'use client'` marks an entry point, not a file-by-file switch.
+```
+
+3–5 bullets. Each is a **complete sentence** that stands alone out of context. No sub-bullets.
+
+---
+
+#### Block 5 — Interview Questions
+
+```markdown
+## Interview Questions
+
+**Q: Why can't you pass a function as a prop from a Server Component to a Client Component?**
+
+Props are serialised into the RSC payload and sent over the wire. A function has no serialised form, so
+React throws at render. The fix is to pass data down and define the handler inside the Client Component,
+or to pass a Server Action, which React serialises as a reference rather than as code.
+```
+
+- 3–6 questions
+- The answer is the **shape of a good answer in 2–4 sentences**, not a script to memorise
+- At least one question must be a judgement call — _"when would you not use this?"_
+
+---
+
+#### Block 6 — What to Read Next
+
+```markdown
+## What to Read Next
+
+- [Chapter 15 — Suspense and Streaming](#ch-suspense-and-streaming) — how the payload arrives progressively
+- [Chapter 22 — Rendering Strategies](#ch-rendering-strategies) — where RSC sits on the spectrum
+```
+
+2–3 links, each with a short reason. This is what makes the book navigable rather than a pile of files.
+
+---
+
+### Cross-References
+
+Relative file paths break in PDF and EPUB. **Chapter bodies never contain one.**
+
+| Need                     | Write                                                             | Never                                              |
+| ------------------------ | ----------------------------------------------------------------- | -------------------------------------------------- |
+| Point at another chapter | `[Chapter 14 — React Server Components](#ch-react-server-components)` | `[RSC](../ModernStack/React/05-server-components.md)` |
+| Chapter number unknown   | `[Chapter ?? — Title](#ch-slug)`                                  | Guessing a number                                   |
+| Point at an external doc | A normal absolute URL                                             | —                                                   |
+
+The anchor resolves to a link on the web and to _"see page N"_ in print. It works because every H1 carries
+`{#ch-<slug>}`.
+
+---
+
+### Callout Vocabulary (fixed set — nothing else)
+
+| Icon    | Means         | Where                                         | Budget per chapter |
+| ------- | ------------- | --------------------------------------------- | ------------------ |
+| **💡**  | The core idea | The `## 💡 The Core Idea` heading only         | Exactly 1          |
+| **🔑**  | Key takeaway  | The `## 🔑 Key Takeaways` heading only         | Exactly 1          |
+| **⚠️**  | Gotcha        | Inline blockquote warnings                     | Max 3              |
+| **✅ ❌** | Right / wrong | Tables and before/after pairs — always paired | Unlimited          |
+
+**Retired:** 🔴 ✨ 🎯 📚 🚀 🎨 🔧 💻 🏗️ 🎭 🗣️ 📊 and every other decorative emoji. They typeset badly and
+carry no meaning. **No emoji in `##` or `###` headings** except the two fixed ones above.
+
+> Part-opener READMEs may keep a restrained set of section emoji — they are navigation pages, not chapters.
+
+---
+
+### The Moving-Target Callout
+
+Required in any chapter about a tool that ships breaking changes yearly (Next.js caching, the React
+Compiler, AI SDKs, bundlers):
+
+```markdown
+> ⚠️ **Moving target:** Next.js caching semantics changed in 15 and again in 16. The durable principle is
+> that caching is opt-in per request and revalidation needs an explicit key. The API names will move.
+```
+
+Always name the **durable principle** underneath. That sentence is what keeps the chapter useful in 2028.
+
+---
+
+### Diagrams
+
+| Shape                                       | Use                                              | Why                                     |
+| ------------------------------------------- | ------------------------------------------------ | --------------------------------------- |
+| More than 3 nodes, or any branch or cycle   | ` ```mermaid `                                    | ASCII loses alignment when typeset      |
+| Linear, 3 steps or fewer                    | ASCII with `↓`                                   | Cheap and prints fine                   |
+| Screenshots, images, hand-drawn art         | ❌ Do not                                         | Cannot be maintained or version-controlled |
+
+Stick to `flowchart`, `sequenceDiagram`, and `stateDiagram-v2` — those three render reliably in the PDF
+pipeline. Every diagram gets a bold caption line underneath saying what it shows.
+
+---
+
+### Length and Voice
+
+| Rule                | Value                                                                       |
+| ------------------- | --------------------------------------------------------------------------- |
+| **Chapter length**  | 150–400 lines, **target ~220** (the book budget divides to 221 lines/chapter) |
+| **Over 400**        | Split it or cut it. No exceptions                                            |
+| **Under 150**       | Merge it — it is a section, not a chapter                                    |
+| **Person**          | Second person for instructions, third for mechanism. Never "we"              |
+| **Tense**           | Present                                                                      |
+| **Voice model**     | `Backend/API/01-rest-best-practices.md` — the strongest voice in the repo    |
+
+---
+
+### Part-Opener READMEs
+
+A different standard. 60–150 lines, front matter with `chapter: 0`.
+
+1. `# Part N — Name`
+2. One paragraph: why this part exists and what the reader can do at the end of it
+3. Chapter table: `#` · Chapter · What it answers
+4. `## What Interviewers Probe For` — lift the **senior signal** for this part from `BOOK-SPEC.md`
+5. `## Reading Order` — including which chapters the interview-sprint path can skip
+
+---
+
+### Before You Finish a Chapter
+
+- [ ] Six blocks present, in order
+- [ ] Front matter valid, `slug` unique, H1 carries `{#ch-<slug>}`
+- [ ] 150–400 lines
+- [ ] TypeScript-only code, every sample would compile
+- [ ] No hand-written TOC, no back-link, no `####`
+- [ ] Only 💡 🔑 ⚠️ ✅ ❌ used, within budget
+- [ ] Zero relative file links in the body
+- [ ] Version-stamped: "React 19", never "modern React"
+- [ ] Moving-target callout present if the topic moves yearly
+- [ ] Reads correctly **cold**, without the previous chapter
 
 ## Author Profile
 
@@ -59,10 +297,14 @@ Trigger this skill when the user asks to:
 
 Before writing, confirm or infer:
 
-1. **Domain** — Frontend, Backend, DSA, SystemDesign, DevOps, OOP, Behavioral, Communication
-2. **Topic** — the concept being documented
-3. **File path** — sequential numbering (`01-topic.md`), lowercase-hyphen names
-4. **Language** — **TypeScript only** for all code examples
+1. **Book part** — which of the nine parts in `BOOK-SPEC.md` this belongs to
+2. **Domain** — Frontend (incl. ModernStack), **AI**, Backend, SystemDesign, ShipAndOperate, Behavioral,
+   Communication, DSA
+3. **Topic** — the concept being documented
+4. **File path** — sequential numbering (`01-topic.md`), lowercase-hyphen names
+5. **Language** — **TypeScript only** for all code examples
+
+> If the topic is on the out-of-scope list in `BOOK-SPEC.md` § 6, **say so and stop.** Do not write it.
 
 ## Code Language Rule (MANDATORY)
 
@@ -143,33 +385,29 @@ to use it, common pitfalls, and best practices all in one paragraph...
 ### ✅ USE: Structured Style
 
 ```markdown
-### 💡 **Concept Name**
+## How It Works
 
-Brief one-line summary.
-
-**How It Works:**
 Clear explanation in digestible chunks.
 
-**When to Use:**
+**When to use it:**
 
-- ✅ Good scenario
-- ❌ Bad scenario
+| Scenario         | Choose       | Why                   |
+| ---------------- | ------------ | --------------------- |
+| Good scenario    | This option  | The one-line reason   |
+| Wrong scenario   | Other option | The deciding tradeoff |
 
-**Key Insight:**
-
-> Important takeaway
+> The line worth remembering.
 ```
+
+> Heading text above is illustrative. The **chapter-level** headings are fixed by The Six Blocks —
+> do not invent new `##` headings before `## When to Use It`.
 
 ## Visual Elements
 
 ### Status Icons
 
-- **💡** — Key concept or insight header
-- **✅** — Correct approach, good practice, benefit
-- **❌** — Wrong approach, bad practice, problem
-- **⚠️** — Warning, gotcha, important note
-- **🔴** — Critical issue, danger
-- **✨** — Tip, enhancement, pro tip
+> See **Callout Vocabulary** in the Book Chapter Standard above. The fixed set is **💡 🔑 ⚠️ ✅ ❌** and
+> nothing else. 🔴 and ✨ are retired.
 
 ### Comparison Tables
 
@@ -195,7 +433,7 @@ Help readers choose:
 
 ### Flow Diagrams
 
-Use ASCII art for short processes only:
+ASCII is allowed **only** for a linear process of 3 steps or fewer:
 
 ```
 Step 1: Initial state
@@ -204,6 +442,9 @@ Step 2: Process
     ↓
 Step 3: Result
 ```
+
+Anything with a branch, a cycle, or more than 3 nodes must be Mermaid — see **Diagrams** in the Book
+Chapter Standard above.
 
 ## Explanation Structure
 
@@ -237,28 +478,10 @@ const doubled: number[] = items.map((item: number) => item * 2);
 
 ## Standard Section Flow
 
-```markdown
-### Topic Name
-
-### 💡 **One-Sentence Summary**
-
-Brief context paragraph.
-
-**How It Works:**
-[Explanation with visual aids]
-
-**When to Use:**
-[Decision guide]
-
-**Common Mistakes:**
-
-❌ **Bad:** [example]
-✅ **Good:** [example]
-
-**Key Insight:**
-
-> Important takeaway
-```
+> **Superseded.** Chapter structure is now fixed by **The Six Blocks** in the Book Chapter Standard above.
+> Use that, not this. The pattern below survives only as the shape of **Block 3 (Body)**:
+>
+> `## 💡 The Core Idea` → `## How It Works` → `## When to Use It` → `## Common Mistakes`
 
 ## Code Examples
 
@@ -296,10 +519,11 @@ Inline comments for DSA/algorithms:
 
 ### Headers
 
-- **Main title**: `# Topic Name`
+- **Chapter title**: `# Chapter Title {#ch-slug}` — one per file, matching front matter `title`
 - **Major sections**: `## Section Name`
 - **Subsections**: `### Subsection Name`
-- **Concept intro**: `### 💡 **Concept Name**`
+- ❌ **Never `####`** — it does not survive typesetting. Split the chapter instead
+- ❌ **No emoji in headings** except `## 💡 The Core Idea` and `## 🔑 Key Takeaways`
 
 ### Emphasis
 
@@ -312,16 +536,34 @@ Inline comments for DSA/algorithms:
 
 - **Sequential numbering**: `01-topic.md`, `02-topic.md`
 - **Lowercase with hyphens**: `fast-slow-pointers.md`
-- **README.md** for directory indexes (concise TOC + study plan)
+- **No `&` or spaces** in directory names — they break URLs and shell globs
+- **README.md** in every content directory — it is the **part opener**, not a TOC (see the Book Chapter
+  Standard above)
+- The filename number sets reading order **within** a directory; front matter `part` and `chapter` set it
+  **within the book**. Keep the two consistent
 
 ## Domain-Specific Notes
 
 ### Frontend/
 
 - Lead with the JS/TS concept, not the framework
-- React, Angular, Svelte, Vue are examples — not the only answer
-- Core Web Vitals and WCAG are first-class topics
+- Core Web Vitals (**INP**, not FID) and WCAG 2.2 are first-class topics
 - Cover browser internals where they actually appear in interviews (event loop, rendering)
+
+### Frontend/ModernStack/
+
+- **Three frameworks only:** React, Next.js, Svelte. Vue and Angular appear in comparisons, never as chapters
+- The `Rendering/`, `StateManagement/` and `Tooling/` sections are **framework-agnostic by design** —
+  they must still read correctly after the next major release of anything
+- Always **Context7 MCP first**. This is the fastest-moving content in the book and training data goes stale
+
+### AI/
+
+- For engineers who **build with** models, not who train them. No CUDA, no PyTorch, no maths beyond
+  what cosine similarity needs
+- TypeScript throughout, like every other part
+- Every chapter names what it would **measure** — evals are the through-line of the whole part
+- Context7 MCP first for any SDK
 
 ### Backend/
 
@@ -340,11 +582,13 @@ Inline comments for DSA/algorithms:
 - **RADIO framework**: Requirements → Architecture → Data model → Interface → Optimizations
 - Real-world examples: Twitter, Uber, Netflix, Google Docs
 
-### DevOps/
+### DevOps/ → ShipAndOperate/
 
 - Lead with the concept (immutability, declarative config, observability)
-- Docker and CI/CD are daily-use — prioritize these
-- AWS is the primary cloud example
+- **Scope is what a frontend-heavy full stack engineer owns:** Git, Docker, CI/CD, observability, deployment
+- Terraform, Linux administration, shell/Python scripting, and Kubernetes operations are **out of scope**
+  per `BOOK-SPEC.md` — they live in `Archive/`. Do not write new chapters on them
+- AWS is the primary cloud example, but state the principle cloud-free first
 
 ### OOP/
 
@@ -362,30 +606,74 @@ Inline comments for DSA/algorithms:
 
 ## Library/Framework Lookups
 
-When a topic involves a specific library, SDK, or cloud service (React, Next.js, Express, Tailwind, AWS SDK), use the **Context7 MCP** (`mcp__plugin_context7_context7__resolve-library-id` then `mcp__plugin_context7_context7__query-docs`) before writing. Training data may be stale.
+When a topic involves a specific library, SDK, or cloud service (React, Next.js, Svelte, Express, Tailwind, an AI SDK), use the **Context7 MCP** (`mcp__context7__resolve-library-id`, then `mcp__context7__query-docs`) before writing. Training data may be stale.
+
+**Mandatory** for every chapter in `Frontend/ModernStack/` and `AI/` — those are the two fastest-moving parts of the book.
 
 Skip Context7 for general programming concepts (closures, recursion, algorithm patterns).
+
+### Companion skills by destination directory
+
+Context7 gives you current API docs. These plugin skills give you current *platform judgement* —
+the tradeoffs and gotchas the reference docs do not spell out. Invoke the matching one **alongside**
+Context7 before writing in these directories, not instead of it.
+
+| Writing in…                                   | Also invoke                                      | Serves      |
+| --------------------------------------------- | ------------------------------------------------ | ----------- |
+| `Frontend/ModernStack/NextJS/`                | `vercel:nextjs`, `vercel:next-cache-components`   | #36–37      |
+| `Frontend/ModernStack/React/`                 | `vercel:react-best-practices`                     | #33–35, #65 |
+| `Frontend/ModernStack/Rendering/`             | `vercel:vercel-functions`, `vercel:cdn-caching`   | #39         |
+| `Frontend/ModernStack/Tooling/`               | `vercel:turbopack`                                | #41         |
+| `Frontend/Architecture/` (micro-frontends)    | `vercel:microfrontends`                           | #55         |
+| `AI/Integration/`                             | `vercel:ai-sdk`, `vercel:ai-gateway`              | #46         |
+
+Two cautions, because these skills are written by a platform vendor and this is a vendor-neutral book:
+
+- **Lead with the concept, name the platform second.** `BOOK-SPEC.md` requires it. Partial
+  Prerendering is a rendering strategy that happens to have shipped on Vercel first — write it that way.
+- **Strip the marketing register.** Take the mechanics and the tradeoffs; leave "seamless", "blazing",
+  and anything that reads as a pitch. Non-negotiable #9 forbids that tone.
+
+Where a platform-specific detail genuinely matters — cold starts, regional execution, pricing shape —
+say which platform it applies to rather than implying it is universal.
 
 ## Quality Checklist
 
 Before finalizing:
 
+**Book standard (blocking — the build or the lint script rejects these):**
+
+- [ ] Six blocks present, in order
+- [ ] Front matter valid; `slug` globally unique; H1 carries `{#ch-<slug>}` and matches `title`
+- [ ] 150–400 lines
+- [ ] TypeScript-only code fences (allow-list: `bash`, `json`, `yaml`, `css`, `html`, `sql`, `mermaid`, `text`, `tsx`)
+- [ ] No hand-written TOC, no back-link, no `####`
+- [ ] Only 💡 🔑 ⚠️ ✅ ❌, within budget; no emoji in headings beyond the two fixed ones
+- [ ] Zero relative file links in the body — cross-references use `#ch-<slug>`
+- [ ] Version-stamped: "React 19", never "modern React"
+- [ ] Moving-target callout present if the topic moves yearly
+
+**Craft:**
+
 - [ ] **Scope is focused** — only common, frequently-used topics covered
-- [ ] **File is concise** — 150–400 lines, no filler
 - [ ] **Language is simple** — short sentences, everyday words, active voice
 - [ ] No paragraph exceeds 3–4 lines without a break
 - [ ] Complex concepts have visual aids (tables, diagrams, lists)
-- [ ] Code examples have clear headers and inline comments
-- [ ] Comparisons use ❌/✅ indicators
-- [ ] Key insights in blockquotes
-- [ ] Tables used for comparisons and decisions
+- [ ] Code examples have a bold label line and inline comments explaining _why_
+- [ ] Comparisons use ❌/✅ indicators; decisions use tables
 - [ ] Time/space complexity noted (DSA/SystemDesign)
-- [ ] File name follows `NN-lowercase-hyphen.md`
-- [ ] Parent README.md updated if a new topic was added
+- [ ] Parent README (part opener) updated if a chapter was added
+- [ ] **Reads correctly cold**, without the chapter before it
 
 ## When Editing Existing Files
 
-1. **Preserve structure** — keep the TOC and section organization
-2. **Trim, don't grow** — if content is exhaustive, cut to the common cases
-3. **Update related READMEs** if cross-referenced
-4. **TypeScript only** — convert any JS/Python examples
+Most files in this repo predate the Book Chapter Standard. Editing one means **bringing it up to standard**,
+not patching around it.
+
+1. **Restructure to the six blocks** — this usually means deleting a hand-written TOC and adding
+   Key Takeaways / Interview Questions / What to Read Next
+2. **Trim, don't grow** — if content is exhaustive, cut to the common cases. Target ~220 lines
+3. **Convert cross-references** from relative paths to `#ch-<slug>` anchors
+4. **Strip retired emoji** and heading decoration
+5. **TypeScript only** — convert any JS/Python examples
+6. **Update the part-opener README** if the chapter's title or order changed
