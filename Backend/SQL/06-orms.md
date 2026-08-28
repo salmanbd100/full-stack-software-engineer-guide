@@ -1,4 +1,8 @@
-# ORMs
+# ORMs {#ch-orms}
+
+> Get the productivity without losing sight of the SQL, and know where the abstraction stops paying.
+
+**In this chapter:** the three big Node ORMs · defining entities · common query patterns · the N+1 problem · migrations · when to drop to raw SQL
 
 ## 💡 **What Is an ORM**
 

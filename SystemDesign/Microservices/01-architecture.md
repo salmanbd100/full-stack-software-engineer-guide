@@ -1,4 +1,8 @@
-# Microservices Architecture
+# Microservices Architecture {#ch-microservices-architecture}
+
+> Argue both sides of the split, and give the answer that is usually right: not yet.
+
+**In this chapter:** monolith vs microservices · finding service boundaries · Conway's law · when to split · the common mistakes
 
 ## 💡 **A microservice is a service that one team owns end-to-end.**
 
@@ -26,7 +30,7 @@ A **monolith** packages all features into one deployable unit. A **microservices
 
 Services communicate over the network — usually HTTP/REST or gRPC. Each service owns its own data store. No shared databases. No shared libraries that couple release cycles.
 
-```
+```text
 Client Request
     ↓
 API Gateway
@@ -82,7 +86,7 @@ This law predicts your architecture. If three teams build a checkout flow togeth
 
 **The inverse is powerful.** Design your teams first, then your services. Each team should own exactly one service — its API contract, its database, its deployment pipeline.
 
-```
+```text
 ❌ Conway trap — two teams sharing one service
 Team A ──┐
          ├── Checkout Service  ← conflicting ownership, slow deploys
@@ -135,13 +139,13 @@ const orders = await orderServiceClient.getOrdersByUser(userId);
 
 **❌ Splitting by technical layer**
 
-```
+```text
 ❌ UserController Service + UserModel Service + UserValidator Service
 ```
 
 This creates chatty, coupled services. Split by **business capability** instead.
 
-```
+```text
 ✅ User Service (auth, profile, preferences — owns everything about a user)
 ```
 

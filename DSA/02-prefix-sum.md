@@ -1,4 +1,8 @@
-# Prefix Sum Pattern
+# Prefix Sum {#ch-prefix-sum}
+
+> Answer any range-sum query in constant time after one pass over the array.
+
+**In this chapter:** recognising the pattern · building the prefix array · range queries · subarray sum equals K · complexity · the variations
 
 ## What is Prefix Sum?
 
@@ -56,13 +60,13 @@ Look for this pattern when you see:
 ### Building the Prefix Sum Array
 
 **Original Array:**
-```
+```text
 Index:  0   1   2   3   4   5
 Array: [3,  1,  4,  2,  5,  1]
 ```
 
 **Prefix Sum Array (Running Total):**
-```
+```text
 Index:     0   1   2   3   4    5
 Prefix:   [3,  4,  8,  10, 15,  16]
            ↑   ↑   ↑   ↑   ↑    ↑
@@ -81,7 +85,7 @@ prefix[3] = 3+1+4+2 = 10 (sum from index 0 to 3)
 **Question:** What's the sum from index 2 to 4?
 
 **Without Prefix Sum (Slow Way):**
-```
+```text
 Sum = arr[2] + arr[3] + arr[4]
     = 4 + 2 + 5
     = 11
@@ -89,7 +93,7 @@ Time: O(n) - need to loop through elements
 ```
 
 **With Prefix Sum (Fast Way):**
-```
+```text
 Sum from index 2 to 4 = prefix[4] - prefix[1]
                        = 15 - 4
                        = 11
@@ -102,7 +106,7 @@ Subtract:  4+2+5 = 11      (sum from 2 to 4)
 ```
 
 **Visual Representation:**
-```
+```text
 Index:  0   1 | 2   3   4 | 5
 Array: [3,  1,| 4,  2,  5,| 1]
         ^^^^^ |  ^^^^^^^  |
@@ -178,7 +182,7 @@ this.prefix = new Array<number>(nums.length + 1).fill(0);
 - Example: If nums has 6 elements, prefix has 7 elements
 
 **Visual Example:**
-```
+```text
 nums:    [-2,  0,  3, -5,  2, -1]  (length = 6)
          ↓    ↓   ↓   ↓   ↓   ↓
 prefix: [0,  -2, -2,  1, -4, -2, -3]  (length = 7)
@@ -193,7 +197,7 @@ for (let i = 0; i < nums.length; i++) {
 }
 ```
 **Step-by-step construction:**
-```
+```text
 Initial: prefix = [0, 0, 0, 0, 0, 0, 0]
 
 i=0: prefix[1] = prefix[0] + nums[0] = 0 + (-2) = -2
@@ -227,7 +231,7 @@ sumRange(left: number, right: number): number {
 
 **Example Query: sumRange(2, 5)**
 
-```
+```text
 We want: nums[2] + nums[3] + nums[4] + nums[5]
        = 3 + (-5) + 2 + (-1)
        = -1
@@ -245,7 +249,7 @@ Difference = sum of nums[2→5] = 3+(-5)+2+(-1) = -1
 ```
 
 **Visual Representation:**
-```
+```text
 Index:     0    1    2    3    4    5
 nums:    [-2,   0,   3,  -5,   2,  -1]
                      ↑                ↑
@@ -375,7 +379,7 @@ This problem is **TRICKY** for beginners! Let's break it down very carefully.
 #### The Core Idea (In Simple Words)
 
 Imagine you're tracking your daily steps:
-```
+```text
 Day:   1    2    3    4    5
 Steps: 100  50  150  100  50
 
@@ -396,7 +400,7 @@ Day 5: 400 + 50 = 450
 - Day 3-4: 150 + 100 = 250 ❌
 
 **The Math Trick:**
-```
+```text
 If we're at Day 4 (cumulative = 400)
 And we want a range that sums to 200
 We need to find: Was there a day when cumulative was 200?
@@ -443,7 +447,7 @@ This is exactly what the algorithm does!
 
 **Let's trace through step-by-step:**
 
-```
+```text
 Initial state:
 prefix_sum_count = {0: 1}  ← Why 0? Empty subarray has sum 0
 current_sum = 0
@@ -691,7 +695,7 @@ const prefixSumCount: Map<number, number> = new Map([[0, 1]]);
 **A:** It eliminates edge cases and makes the formula work for all ranges.
 
 **Example:**
-```
+```text
 nums = [1, 2, 3]
 prefix = [0, 1, 3, 6]
           ↑  dummy
@@ -723,7 +727,7 @@ prefix[2] - prefix[???]  ← What do we subtract? Need special case!
 **A:** Yes! It's called "2D Prefix Sum" or "Summed Area Table."
 
 **Example:**
-```
+```text
 Original Matrix:       2D Prefix Sum:
 1  2  3               1  3  6
 4  5  6      →        5  12 21
@@ -737,7 +741,7 @@ Each cell contains sum of all cells from (0,0) to (i,j)
 **A:** HashMap stores how many times each prefix sum has appeared.
 
 **Why this matters:**
-```
+```text
 nums = [1, 1, 1], k = 2
 
 prefix sums as we go: 0 → 1 → 2 → 3

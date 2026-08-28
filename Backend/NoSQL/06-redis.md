@@ -1,4 +1,8 @@
-# Redis
+# Redis {#ch-redis}
+
+> Use the right data structure for the job, and always give the entry an expiry.
+
+**In this chapter:** the structures you will actually use · cache-aside and write-through · TTL · rate limiting · sessions · pub/sub and streams
 
 ## 💡 What Is Redis?
 

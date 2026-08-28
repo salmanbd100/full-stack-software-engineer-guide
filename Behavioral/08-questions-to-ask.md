@@ -1,4 +1,8 @@
-# Questions to Ask Interviewers
+# Questions to Ask {#ch-questions-to-ask}
+
+> Ask questions that tell you what you need to know and signal seniority at the same time.
+
+**In this chapter:** why this is scored · the categories · which question suits which stage · red flags to listen for · what not to ask
 
 ## Overview
 Asking thoughtful questions shows genuine interest, helps you evaluate the opportunity, and demonstrates your professionalism. Always prepare 5-10 questions and ask 3-5 during the interview.

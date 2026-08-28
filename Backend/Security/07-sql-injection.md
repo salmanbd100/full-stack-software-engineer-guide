@@ -1,4 +1,8 @@
-# SQL Injection Prevention
+# SQL Injection Prevention {#ch-sql-injection-prevention}
+
+> Parameterise everything, and handle the two cases where you cannot.
+
+**In this chapter:** how the attack works · the kinds of injection · parameterised queries · ORMs and query builders · identifiers and `ORDER BY` · least privilege
 
 ## Overview
 
@@ -107,7 +111,7 @@ export async function findUserByEmail(email: string) {
 
 **What the attacker's input becomes:**
 
-```
+```text
 Input:  admin@site.com' --
 Bound:  the literal string "admin@site.com' --"
 Result: zero rows. Nothing is executed.

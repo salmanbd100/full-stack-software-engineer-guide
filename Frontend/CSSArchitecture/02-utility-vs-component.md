@@ -1,13 +1,8 @@
-# Utility-First vs Component-First CSS
+# Utility-First vs Component-First CSS {#ch-utility-first-vs-component-first-css}
 
-Two ways to author styles in a modern app:
+> Argue both sides of the Tailwind question with the actual tradeoff, not a preference.
 
-- **Utility-first** — compose styles from tiny single-purpose classes in the markup (`p-4 flex gap-2`). Tailwind is the canonical example.
-- **Component-first** — write semantic classes scoped to a component (`.card`, `.button--primary`). CSS Modules and styled-components are the canonical examples.
-
-The interesting question isn't "which is better" — both work. It's **when** each one pays off and what they cost.
-
----
+**In this chapter:** the core tradeoff · utility-first · component-first · the hybrid most teams land on · the decision rule
 
 ## The Core Tradeoff
 

@@ -1,4 +1,8 @@
-# Migrations & Seeds
+# Migrations and Seeds {#ch-migrations-and-seeds}
+
+> Change a live schema without downtime, and be able to go back.
+
+**In this chapter:** up and down · the expand–contract pattern · seeds vs fixtures · running migrations in CI · the changes that cannot be reversed
 
 ## Migrations
 

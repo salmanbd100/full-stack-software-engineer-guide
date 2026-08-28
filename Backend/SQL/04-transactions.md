@@ -1,4 +1,8 @@
-# Transactions & ACID
+# Transactions and ACID {#ch-transactions-and-acid}
+
+> Choose an isolation level knowing exactly which anomaly it still permits.
+
+**In this chapter:** the ACID properties · the four isolation levels · lost updates · optimistic vs pessimistic locking · deadlocks · savepoints
 
 ## 💡 **What Is a Transaction**
 

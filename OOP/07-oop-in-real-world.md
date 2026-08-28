@@ -1,8 +1,8 @@
-[← README](./README.md) | [← 06 Composition vs Inheritance](./06-composition-vs-inheritance.md)
+# OOP in Practice {#ch-oop-in-practice}
 
----
+> Connect the four principles to code you would actually ship in a service.
 
-# 07 — OOP in the Real World
+**In this chapter:** layered architecture · the patterns that recur · OOP across frameworks · testing object-oriented code · what interviewers ask
 
 ## 💡 **Connecting Theory to Practice**
 
@@ -17,7 +17,7 @@ OOP principles are not academic exercises — they form the backbone of how mode
 
 Most production backend applications follow a layered architecture where each layer is a set of classes with a single, clear responsibility.
 
-```
+```text
 +-------------------------------+
 |      Controller Layer         |  <-- Handles HTTP requests
 |      (Routes + Validation)    |
@@ -35,7 +35,7 @@ Most production backend applications follow a layered architecture where each la
 
 **How the layers interact:**
 
-```
+```text
 Client Request
     |
     v
@@ -516,7 +516,7 @@ class Counter extends React.Component<{}, { count: number }> {
 
 Dependency Injection is the key. When a class receives its dependencies through the constructor, you can replace real implementations with test doubles.
 
-```
+```text
 Production:
 UserService  -->  PostgresUserRepository  -->  Real Database
 

@@ -1,8 +1,8 @@
-# OOP Fundamentals
+# OOP Fundamentals {#ch-oop-fundamentals}
 
-[← Back to OOP README](./README.md)
+> Model a thing as a class and know what `new` actually does when you call it.
 
----
+**In this chapter:** classes and objects · properties and methods · constructors · static vs instance members · `this` inside a class
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@
 
 Think of a **class** as an architect's blueprint and an **object** as an actual house built from it.
 
-```
+```text
   Blueprint (Class)                 Houses (Objects)
   +--------------------+        +--------------------+
   |  House             |        |  house1            |
@@ -88,7 +88,7 @@ bmw.accelerate();   // "BMW is now going 10 km/h"
 
 **Instantiation Flow:**
 
-```
+```text
   class Car { ... }
         |
         v
@@ -265,7 +265,7 @@ db.connect(); // "Connecting to localhost:5432/myapp..."
 
 **Instance members** are unique per object. **Static members** are shared across all instances and accessed on the class itself.
 
-```
+```text
   Class: MathHelper
   +------------------------------+
   |  static PI = 3.14159         | <-- Shared (one copy)

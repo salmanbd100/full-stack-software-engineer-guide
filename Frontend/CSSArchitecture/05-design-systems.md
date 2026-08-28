@@ -1,8 +1,8 @@
-# Design Systems
+# Design Systems {#ch-design-systems}
 
-> A shared visual language plus the code that enforces it. Tokens, components, docs, and governance — together.
+> Ship a component library that forty teams can adopt without forking it.
 
----
+**In this chapter:** what a design system actually is · design tokens · primitives and composition · theming · governance and versioning
 
 ## 💡 **What a Design System Actually Is**
 
@@ -167,7 +167,7 @@ Tokens compile to CSS custom properties. Switching themes is a class flip on `<h
 
 Generate platform-specific files from one JSON source.
 
-```
+```text
 tokens.json
   ↓ Style Dictionary
   ├─ tokens.css  (CSS vars for web)

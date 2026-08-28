@@ -1,4 +1,8 @@
-# React with TypeScript
+# React with TypeScript {#ch-react-with-typescript}
+
+> Type a component, its props and its hooks so the compiler catches what a test would not.
+
+**In this chapter:** typing components and children · event handlers · `useState` and `useReducer` · custom hooks · typed context
 
 ## Table of Contents
 - [Function Components](#function-components)

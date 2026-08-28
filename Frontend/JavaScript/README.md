@@ -111,23 +111,23 @@ Master core JavaScript concepts essential for frontend interviews at multination
 8. "How does prototypal inheritance work?"
 
 ### Code Patterns to Master
-```javascript
+```typescript
 // Closure
-function createCounter() {
-    let count = 0;
-    return () => ++count;
+function createCounter(): () => number {
+  let count = 0;
+  return (): number => ++count;
 }
 
 // Promise chaining
 fetch(url)
-    .then(res => res.json())
-    .then(data => console.log(data))
-    .catch(err => console.error(err));
+  .then((res: Response): Promise<unknown> => res.json())
+  .then((data: unknown): void => console.log(data))
+  .catch((err: unknown): void => console.error(err));
 
 // Array methods
-const numbers = [1, 2, 3, 4, 5];
-const doubled = numbers.map(n => n * 2);
-const sum = numbers.reduce((acc, n) => acc + n, 0);
+const numbers: number[] = [1, 2, 3, 4, 5];
+const doubled: number[] = numbers.map((n: number): number => n * 2);
+const sum: number = numbers.reduce((acc: number, n: number): number => acc + n, 0);
 ```
 
 ---

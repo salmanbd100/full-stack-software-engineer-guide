@@ -1,4 +1,8 @@
-# Input Validation & Sanitization
+# Backend Input Validation {#ch-backend-input-validation}
+
+> Validate at the boundary with an allowlist, so nothing untrusted reaches your business logic.
+
+**In this chapter:** validation vs sanitisation · allowlist over blocklist · schema validation · reusable middleware · sanitising HTML · file uploads
 
 ## Overview
 

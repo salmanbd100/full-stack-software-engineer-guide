@@ -1,4 +1,8 @@
-# Design YouTube
+# Design YouTube {#ch-design-youtube}
+
+> Move the hard work to upload time — transcoding — so playback is only ever a CDN read.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ YouTube serves 2 billion logged-in users per month. Users upload 500 hours of vi
 
 ### High-Level Diagram
 
-```
+```text
 ┌─────────┐   upload    ┌──────────────┐   enqueue   ┌──────────────────┐
 │ Client  │────────────▶│ Upload API   │────────────▶│  Transcoding     │
 └─────────┘             │ (chunked)    │             │  Queue (Kafka)   │

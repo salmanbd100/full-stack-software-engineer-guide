@@ -1,4 +1,8 @@
-# Design Chat System
+# Design a Chat System {#ch-design-chat-system}
+
+> Hold a million connections, route a message to the right one, and keep the ordering sane.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -30,7 +34,7 @@ Build a real-time messaging system that supports 1-1 and group chats with messag
 
 ### High-Level Diagram
 
-```
+```text
 Client (mobile/web)
         │  WebSocket (persistent)
         ▼

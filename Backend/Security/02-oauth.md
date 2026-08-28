@@ -1,4 +1,8 @@
-# OAuth 2.0
+# OAuth 2.0 {#ch-oauth-2}
+
+> Walk through the authorisation code flow with PKCE and explain what each redirect is protecting.
+
+**In this chapter:** the four roles · authorisation code with PKCE · the grant types worth knowing · OAuth vs OIDC vs JWT · state and redirect validation
 
 ## Overview
 
@@ -33,7 +37,7 @@ The authorization server and resource server often belong to the same company, b
 
 This is **the** flow to know. It's the recommended default for web apps, SPAs, and mobile apps.
 
-```
+```text
 1. User clicks "Sign in with Google"
         │
         ▼
@@ -61,7 +65,7 @@ This is **the** flow to know. It's the recommended default for web apps, SPAs, a
 
 **PKCE** (Proof Key for Code Exchange, said "pixie") stops a stolen authorization code from being redeemed by someone else.
 
-```
+```text
 Before redirect:   verifier  = random string
                    challenge = SHA256(verifier)    → sent in step 2
 

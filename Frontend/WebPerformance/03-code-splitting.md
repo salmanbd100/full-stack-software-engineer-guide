@@ -1,4 +1,8 @@
-# Code Splitting
+# Code Splitting {#ch-code-splitting}
+
+> Ship the code this route needs and nothing else, then bring the rest in before it is asked for.
+
+**In this chapter:** dynamic `import()` · route-based splitting · vendor chunks · prefetch vs preload · the waterfall it can create
 
 ## Overview
 
@@ -23,13 +27,13 @@ Code splitting means **breaking one big JavaScript bundle into smaller chunks**.
 
 Without splitting, all code lives in one file. The user waits for the whole thing before the page works.
 
-```
+```text
 One 2 MB bundle  →  slow download  →  parse + execute  →  finally interactive
 ```
 
 With splitting:
 
-```
+```text
 200 KB main bundle  →  interactive fast  →  other chunks load on demand
 ```
 

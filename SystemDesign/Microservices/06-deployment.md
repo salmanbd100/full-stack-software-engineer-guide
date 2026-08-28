@@ -1,4 +1,8 @@
-# Deployment Strategies
+# Deployment Strategies {#ch-deployment-strategies}
+
+> Pick a release strategy by how much risk it carries, and always know the way back.
+
+**In this chapter:** blue-green · canary · rolling · configuring them · rollback · the common mistakes
 
 ## 💡 **The deployment strategy you choose determines how much risk each release carries.**
 
@@ -20,7 +24,7 @@ Microservices let you deploy one service without touching others. But "independe
 
 Two identical environments run in parallel. **Blue** is production. **Green** is the new version.
 
-```
+```text
 Load Balancer
     |
     ├── Blue (v1)  ← currently serving 100% of traffic
@@ -44,7 +48,7 @@ When you're ready, the load balancer switches all traffic from Blue to Green. If
 
 Route a small percentage of real traffic to the new version. Watch metrics. Gradually increase traffic if healthy.
 
-```
+```text
 Load Balancer
     ├── v1 instances (95% of traffic) ← stable
     └── v2 instances (5% of traffic)  ← canary
@@ -85,7 +89,7 @@ function shouldRouteToCanary(config: CanaryConfig): boolean {
 
 Replace old instances one at a time. No parallel environment needed.
 
-```
+```text
 Start:     [v1] [v1] [v1] [v1]
 Step 1:    [v2] [v1] [v1] [v1]
 Step 2:    [v2] [v2] [v1] [v1]

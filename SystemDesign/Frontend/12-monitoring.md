@@ -1,4 +1,8 @@
-# Frontend Monitoring and Observability
+# Frontend Monitoring {#ch-frontend-monitoring}
+
+> Find out it is broken for users before they tell you.
+
+**In this chapter:** real user monitoring · error tracking · React error boundaries · custom business metrics · alerting and SLOs
 
 ## 💡 **Concept**
 

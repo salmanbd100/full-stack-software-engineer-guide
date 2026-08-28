@@ -1,4 +1,8 @@
-# Node.js Security
+# Node.js Security {#ch-node-security}
+
+> Close the injection paths specific to a Node service, including the ones JavaScript invents.
+
+**In this chapter:** NoSQL injection · command injection · path traversal · prototype pollution · supply chain · secrets handling
 
 ## 💡 Scope of This Topic
 

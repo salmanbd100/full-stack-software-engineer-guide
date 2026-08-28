@@ -70,7 +70,7 @@ The browser builds an **accessibility tree** from these tags. Screen reader user
 
 This is the most-asked semantic HTML interview question.
 
-```
+```text
 Could this content stand alone, syndicated to another site (RSS, share card)?
   ├── Yes → <article>
   └── No → Does it have a clear heading and represent a distinct theme?

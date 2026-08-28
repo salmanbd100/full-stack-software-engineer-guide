@@ -1,4 +1,8 @@
-# Horizontal Scaling
+# Horizontal Scaling {#ch-horizontal-scaling}
+
+> Add machines instead of a bigger one, and make the service stateless enough to allow it.
+
+**In this chapter:** horizontal vs vertical · the stateless requirement · auto-scaling · rolling deploys · consistent hashing
 
 ## 💡 **Concept**
 
@@ -114,7 +118,7 @@ const apiScalingPolicy: AutoScalingPolicy = {
 
 ## Rolling Deploys with Horizontal Scaling
 
-```
+```text
 Deploy v2:
   [v1] [v1] [v1] [v1]      ← initial state
 

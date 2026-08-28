@@ -1,4 +1,8 @@
-# Depth-First Search (DFS) Pattern
+# Depth-First Search {#ch-depth-first-search}
+
+> Explore a tree or grid to its depth, and know exactly what the call stack costs you.
+
+**In this chapter:** DFS vs BFS · recursive and iterative forms · path sum · flood fill on a grid · complexity
 
 ## What is DFS? (In Simple Words)
 
@@ -18,7 +22,7 @@ Think of it like this: You're in a cave with multiple tunnels. Instead of checki
 
 You're reading a book that has footnotes, and those footnotes have their own footnotes:
 
-```
+```text
 Page 1: "See footnote 1"
   └─ Footnote 1: "For more details, see footnote 2"
       └─ Footnote 2: "This references footnote 3"
@@ -41,7 +45,7 @@ This is DFS - you follow each reference to its deepest point before coming back!
 
 You're looking for a file in your computer's folders:
 
-```
+```text
 DFS Approach:
 Documents/
   ├─ Work/
@@ -95,7 +99,7 @@ Look for this pattern when you see:
 
 ### Visual Example: Exploring a Tree
 
-```
+```text
 Tree:       1
           /   \
          2     3
@@ -166,7 +170,7 @@ Final DFS order: 1 → 2 → 4 → 5 → 3 → 6
 
 ### The Stack Concept (How DFS Remembers Where to Backtrack)
 
-```
+```text
 DFS uses a stack to remember where to return:
 
 Visit 1:  Stack: [1]         → "Remember to come back to 1"
@@ -189,7 +193,7 @@ Go to 6:  Stack: [1, 3, 6]
 
 ### Visual Comparison
 
-```
+```text
 Tree:       1
           /   \
          2     3
@@ -386,7 +390,7 @@ function hasPathSum(root: TreeNode | null, targetSum: number): boolean {
 
 **Call Stack Visualization:**
 
-```
+```text
 Tree:      5
          /   \
         4     8
@@ -469,7 +473,7 @@ function hasPathSumIterative(root: TreeNode | null, targetSum: number): boolean 
 
 **Stack Evolution Example:**
 
-```
+```text
 Tree:      5
          /   \
         4     8
@@ -695,7 +699,7 @@ function numIslands(grid: string[][]): number {
 
 ### Visual Trace: Island Counting
 
-```
+```text
 Initial Grid:
 1 1 0 0
 1 0 0 1
@@ -871,7 +875,7 @@ function dfs(r: number, c: number): void {
 ```
 
 **Why it's wrong:** Without marking visited, you'll revisit the same cell infinitely:
-```
+```text
 (0,0) → (0,1) → (0,0) → (0,1) → ... INFINITE LOOP!
 ```
 
@@ -1023,7 +1027,7 @@ function numIslands(grid: string[][]): number {
 - Finding minimum moves/steps
 
 **Example:**
-```
+```text
 Find ANY path from A to B? → DFS (faster, less memory)
 Find SHORTEST path from A to B? → BFS (guaranteed shortest)
 ```
@@ -1070,7 +1074,7 @@ function dfsIterative(root: TreeNode | null): void {
 **In Graphs:** DFS does NOT guarantee shortest path!
 
 **Example:**
-```
+```text
 Graph:  A -- B
         |    |
         C -- D
@@ -1285,7 +1289,7 @@ function dfs(node: number, visited: Set<number> = new Set()): void {
 
 When asked about graph traversal:
 
-```
+```text
 Interviewer: "How would you solve this?"
 
 You: "I can use DFS or BFS. Let me think about the trade-offs:
@@ -1303,7 +1307,7 @@ This shows deep understanding!
 
 Always sketch the recursion on the whiteboard:
 
-```
+```text
 "Let me draw how DFS explores this tree..."
 
         1
@@ -1323,7 +1327,7 @@ Visualizing helps you AND the interviewer follow your logic!
 
 ### Tip 3: Handle Edge Cases Out Loud
 
-```
+```text
 You: "Before I code, let me think about edge cases:
 - Empty input? Return 0 or false
 - Single node? Check if it satisfies condition
@@ -1361,7 +1365,7 @@ Narrate your logic step-by-step!
 
 After implementing recursive DFS:
 
-```
+```text
 You: "I implemented the recursive version for clarity, but I can
 also do iterative DFS using an explicit stack if you'd like.
 That would avoid potential stack overflow for very deep trees."
@@ -1375,7 +1379,7 @@ This shows you know multiple approaches!
 
 Have this table memorized:
 
-```
+```text
              DFS              BFS
 Use Case:    All paths        Shortest path
 Data Struct: Stack (LIFO)     Queue (FIFO)
@@ -1387,7 +1391,7 @@ Order:       Deep first       Level by level
 
 ### Tip 7: Explain the "Why" Behind Visited Tracking
 
-```
+```text
 You: "I'm marking cells as '0' after visiting them. This serves
 two purposes:
 1. Prevents infinite loops in the recursion
@@ -1420,25 +1424,25 @@ It's like leaving breadcrumbs so we know where we've been."
 #### Problem Patterns:
 
 **Pattern 1: Path Finding**
-```
+```text
 Problem: "Find if path exists with sum X"
 Solution: DFS, tracking sum as you go
 ```
 
 **Pattern 2: Island/Region Counting**
-```
+```text
 Problem: "Count number of regions"
 Solution: DFS to "flood fill" each region
 ```
 
 **Pattern 3: Tree Property Validation**
-```
+```text
 Problem: "Is this a valid BST?"
 Solution: DFS with constraints
 ```
 
 **Pattern 4: All Combinations**
-```
+```text
 Problem: "Generate all valid combinations"
 Solution: DFS with backtracking
 ```

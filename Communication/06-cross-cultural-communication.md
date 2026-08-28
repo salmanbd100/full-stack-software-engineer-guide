@@ -1,6 +1,8 @@
-# Cross-Cultural Communication
+# Cross-Cultural Communication {#ch-cross-cultural-communication}
 
-Adapt your communication style for international technical interviews and remote work.
+> Adjust register and directness for the room, whether it is American, European or Asian.
+
+**In this chapter:** the regional styles · American companies · European companies · Asian companies · email etiquette · video call norms
 
 ## Regional Styles at a Glance
 
@@ -77,7 +79,7 @@ Adapt your communication style for international technical interviews and remote
 ## Email Etiquette by Culture
 
 **American style (casual, direct):**
-```
+```text
 Subject: Question about the Frontend Role
 
 Hi Sarah,
@@ -90,7 +92,7 @@ Salman
 ```
 
 **European style (formal, structured):**
-```
+```text
 Subject: Follow-up: Senior Frontend Engineer Interview
 
 Dear Ms. Johnson,
@@ -130,7 +132,7 @@ finishes before speaking to avoid talking over each other.
 
 ### When You Don't Understand
 
-```
+```text
 ✅ "I'm sorry, could you please repeat that? I want to make sure I
    understand correctly."
 
@@ -144,7 +146,7 @@ finishes before speaking to avoid talking over each other.
 
 ### When You Need Time to Think
 
-```
+```text
 "That's an interesting question. Let me think for a moment..."
 "Give me a second to organize my thoughts..."
 "I'd like to approach this systematically..."
@@ -152,7 +154,7 @@ finishes before speaking to avoid talking over each other.
 
 ### Paraphrasing to Confirm
 
-```
+```text
 Interviewer: "Tell me about migrating a complex React codebase."
 
 You: "Just to make sure I'm addressing the right thing — you'd like to
@@ -168,7 +170,7 @@ managing risk, or team coordination?"
 **State your full question in one message — don't "ping" then wait:**
 
 **❌ Wrong:**
-```
+```text
 "hey"
 [waits]
 "do you have a sec?"
@@ -177,7 +179,7 @@ managing risk, or team coordination?"
 ```
 
 **✅ Right:**
-```
+```text
 "Hi @john! Quick question on PR #123 — should the error handler return
 null or throw an exception? I'm leaning toward throwing since it's
 an unexpected state, but wanted your input before merging."

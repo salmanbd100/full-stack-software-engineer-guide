@@ -6,7 +6,7 @@ Internationalization (i18n) is the process of designing software to work across 
 
 ## Topics Covered
 
-```
+```text
 Internationalization/
 ├── README.md                    # This file
 ├── 01-i18n-fundamentals.md      # Core concepts, libraries, detection, switching

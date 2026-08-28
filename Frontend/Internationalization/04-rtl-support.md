@@ -1,8 +1,8 @@
-# RTL Support
+# Right-to-Left Support {#ch-rtl-support}
 
-Right-to-left languages — Arabic, Hebrew, Persian, Urdu — are used by over 1 billion people. Proper RTL support requires more than flipping text: CSS logical properties, layout adaptation, and icon mirroring.
+> Mirror a layout for Arabic or Hebrew by writing direction-agnostic CSS from the start.
 
----
+**In this chapter:** the RTL languages · `dir` and `lang` · CSS logical properties · flexbox and grid under RTL · which icons mirror and which must not
 
 ## Table of Contents
 

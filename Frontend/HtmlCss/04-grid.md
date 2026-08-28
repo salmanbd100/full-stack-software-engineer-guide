@@ -95,7 +95,7 @@ Both `auto-fit` and `auto-fill` create as many columns as will fit. The differen
 | `auto-fill` | **Kept** as empty columns | Items stay at min size, gaps fill the row |
 | `auto-fit` | **Collapsed** to zero | Items stretch to fill the whole row |
 
-```
+```text
 Container: 1000px, minmax(250px, 1fr), 2 items
 
 auto-fill: [250px][250px][empty][empty]    items stay narrow

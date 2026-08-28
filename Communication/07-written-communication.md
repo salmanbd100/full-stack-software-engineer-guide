@@ -1,12 +1,14 @@
-# Written Communication
+# Written Communication {#ch-written-communication}
 
-Master professional writing for pull requests, code reviews, emails, and design documents.
+> Write a PR description, a review comment and an RFC that people actually read.
+
+**In this chapter:** PR descriptions · review comments that land · professional email · the RFC template · writing for an async team
 
 ## Pull Request Descriptions
 
 ### PR Template
 
-```markdown
+```text
 ## Summary
 [One-line description of what this PR does]
 Closes #[issue number]
@@ -61,7 +63,7 @@ Trade-off: [what we gave up].
 
 Structure every comment with severity, the issue, and a suggestion.
 
-```markdown
+```text
 **Blocking:** SQL injection risk
 
 User input is interpolated directly into the query string.
@@ -70,10 +72,10 @@ This allows arbitrary SQL execution.
 Suggestion — use parameterized queries:
 ```typescript
 await db.query('SELECT * FROM users WHERE id = $1', [userId]);
-```
+```text
 ```
 
-```markdown
+```text
 **Non-blocking:** Consider useMemo for performance
 
 This filter runs on every render. For lists > 500 items, it could
@@ -85,18 +87,18 @@ const filtered = useMemo(
   () => items.filter(item => item.active),
   [items]
 );
-```
+```text
 Not blocking since current performance is fine — worth tracking as list grows.
 ```
 
-```markdown
+```text
 **Nit:** Typo on line 45: "recieve" → "receive"
 ```
 
 ### Receiving Feedback
 
 **✅ Constructive responses:**
-```
+```text
 "Great catch! Updated to use parameterized queries."
 
 "Good point on useMemo. Added it — measured 30% fewer renders for large lists."
@@ -106,14 +108,14 @@ on a quick call if you'd like to discuss the trade-off."
 ```
 
 **❌ Avoid:**
-```
+```text
 "This works fine."
 "I don't think this is a problem."
 "Whatever."
 ```
 
 **When you disagree:**
-```
+```text
 "I appreciate the feedback. My reasoning for the current approach:
 1. [Reason 1]
 2. [Reason 2]
@@ -139,7 +141,7 @@ because [justification]. Happy to discuss if you see it differently."
 
 ### Thank You After Interview
 
-```
+```text
 Subject: Thank you — Senior Frontend Engineer Interview
 
 Hi Sarah,
@@ -159,7 +161,7 @@ Salman Rahman
 
 ### Following Up
 
-```
+```text
 Subject: Following up — Senior Frontend Role Application
 
 Hi Sarah,
@@ -183,7 +185,7 @@ Salman Rahman
 ### State the Full Question in One Message
 
 **❌ Bad:**
-```
+```text
 "hey"
 [pause]
 "are you free?"
@@ -192,7 +194,7 @@ Salman Rahman
 ```
 
 **✅ Good:**
-```
+```text
 "Hi @john — quick question on PR #123. Should the validation throw an
 exception or return an error object? I'm leaning toward throwing since
 it's an unexpected state. Thoughts?"
@@ -201,12 +203,12 @@ it's an unexpected state. Thoughts?"
 ### Asking for Help
 
 **❌ Bad:**
-```
+```text
 "My code doesn't work. Help!"
 ```
 
 **✅ Good:**
-```
+```text
 "Debugging a 'token expired' error on fresh tokens in the auth flow.
 
 What I've tried:
@@ -255,7 +257,7 @@ function findEventByTime(events: Event[], targetTime: number): Event | null {
 
 Use this structure for architecture proposals:
 
-```markdown
+```text
 # RFC: [Feature Name]
 Author: [Name] | Date: [Date] | Status: [Draft / In Review / Approved]
 

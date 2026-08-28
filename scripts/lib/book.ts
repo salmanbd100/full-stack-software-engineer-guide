@@ -35,19 +35,40 @@ export const EXCLUDED_FILES: readonly string[] = [
   "README.md", // the repo landing page, not the book's opening — only at root
 ];
 
-/** Fences that may hold something other than TypeScript. BOOK-SPEC.md non-negotiable #1. */
+/**
+ * Fences that may hold something other than TypeScript. BOOK-SPEC.md non-negotiable #1.
+ *
+ * Two groups, and the distinction matters. The first is TypeScript itself. The second is
+ * declarative schema and configuration languages that have **no TypeScript form at all** —
+ * you cannot write a Dockerfile or a GraphQL schema in TypeScript, so requiring it would
+ * mean deleting the example rather than translating it. `sql`, `yaml` and `css` were
+ * already on that footing; `graphql`, `dockerfile`, `nginx`, `prisma` and `http` are the
+ * same category and were added by decision #10.
+ *
+ * A general-purpose language never belongs here. `javascript`, `python` and the rest opt
+ * out one fence at a time, with a stated reason — see FENCE_EXEMPTION in lint-docs.ts.
+ */
 export const ALLOWED_FENCES: readonly string[] = [
+  // TypeScript
   "typescript",
   "ts",
   "tsx",
-  "bash",
+  // Markup, style and data
+  "html",
+  "css",
   "json",
   "yaml",
-  "css",
-  "html",
-  "sql",
-  "mermaid",
   "text",
+  "mermaid",
+  // Schema and configuration languages with no TypeScript equivalent
+  "sql",
+  "graphql",
+  "prisma",
+  "dockerfile",
+  "nginx",
+  "http",
+  // Shell
+  "bash",
 ];
 
 // ---------------------------------------------------------------------------

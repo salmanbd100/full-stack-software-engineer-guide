@@ -1,4 +1,8 @@
-# Design URL Shortener
+# Design a URL Shortener {#ch-design-url-shortener}
+
+> Generate a short unique key without a coordination bottleneck, then serve reads from cache.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ A URL shortener converts long URLs into short 7-character codes and redirects us
 
 ### High-Level Diagram
 
-```
+```text
 Browser / Client
       │
    CDN Edge

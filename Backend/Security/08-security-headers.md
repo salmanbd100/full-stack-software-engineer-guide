@@ -1,4 +1,8 @@
-# Security Headers
+# Backend Security Headers {#ch-backend-security-headers}
+
+> Set the response headers that harden every page, from one place in the server.
+
+**In this chapter:** CSP · HSTS · frame protection and MIME sniffing · `Referrer-Policy` and `Permissions-Policy` · helmet
 
 ## Overview
 
@@ -37,7 +41,7 @@ Everything else you'll see in older blog posts (`X-XSS-Protection`, `Expect-CT`,
 
 CSP tells the browser which sources of script, style, image, and connection are allowed. Anything else is blocked, even if an attacker got it onto the page.
 
-```
+```text
 Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none'
 ```
 
@@ -53,7 +57,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none
 
 ### Why `'unsafe-inline'` defeats the point
 
-```
+```text
 script-src 'self' 'unsafe-inline'    ← 🔴 injected <script> now runs
 ```
 
@@ -100,7 +104,7 @@ An attacker who injects `<script>` cannot guess the nonce, so the browser refuse
 
 **Helmet's default CSP** is a reasonable starting point:
 
-```
+```text
 default-src 'self'; base-uri 'self'; font-src 'self' https: data:;
 form-action 'self'; frame-ancestors 'self'; img-src 'self' data:;
 object-src 'none'; script-src 'self'; script-src-attr 'none';
@@ -147,7 +151,7 @@ Without HSTS, the very first request to `http://example.com` travels in the clea
 
 **MIME sniffing** is the browser second-guessing your `Content-Type`. If a user uploads a "image" that's really HTML, sniffing can execute it as a page on your origin.
 
-```
+```text
 X-Content-Type-Options: nosniff
 ```
 
@@ -157,7 +161,7 @@ One header, no configuration, no downside. Always send it.
 
 **Referrer-Policy** controls how much of the current URL is sent when a user clicks a link out.
 
-```
+```text
 Referrer-Policy: strict-origin-when-cross-origin
 ```
 

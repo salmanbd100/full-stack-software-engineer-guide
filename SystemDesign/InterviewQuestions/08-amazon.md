@@ -1,4 +1,8 @@
-# Design Amazon (E-Commerce Platform)
+# Design an E-Commerce Platform {#ch-design-amazon}
+
+> Keep inventory correct under contention, which is the only genuinely hard part.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Amazon handles 1.6 million orders per day and 300 million product listings. The 
 
 ### High-Level Diagram
 
-```
+```text
 ┌──────────┐      ┌───────────────┐      ┌────────────────────────────────┐
 │  Browser │─────▶│  API Gateway  │─────▶│          Microservices         │
 │  Mobile  │      │  + CDN (edge) │      │                                │

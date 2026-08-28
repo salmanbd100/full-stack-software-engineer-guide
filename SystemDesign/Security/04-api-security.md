@@ -1,6 +1,8 @@
-# API Security
+# API Security {#ch-api-security}
 
-APIs are the front door to your system. A single weak endpoint can leak data, drain accounts, or take the service down. This file covers the controls every public or internal API must have in production.
+> Harden an API at its edge, before any of it reaches your business logic.
+
+**In this chapter:** TLS · authentication · rate limiting · CORS · input validation · request signing
 
 ## Table of Contents
 

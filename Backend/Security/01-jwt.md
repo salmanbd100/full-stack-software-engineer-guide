@@ -1,4 +1,8 @@
-# JWT Authentication
+# JWT Authentication {#ch-jwt-authentication}
+
+> Issue and verify a token safely, and say honestly when a session cookie would be better.
+
+**In this chapter:** the three parts of a JWT · signing and verifying · access and refresh tokens · auth middleware · where to store a token · JWT vs sessions
 
 ## Overview
 
@@ -23,7 +27,7 @@ That single property is the whole tradeoff:
 
 Three base64url parts joined by dots: `header.payload.signature`.
 
-```
+```text
 eyJhbGciOiJIUzI1NiJ9 . eyJzdWIiOiIxMjMifQ . SflKxwRJSMeKKF2QT4f...
       header                 payload              signature
 ```
@@ -91,7 +95,7 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
 
 One token can't be both short-lived and convenient. So use two.
 
-```
+```text
 Login ──▶ access token  (15 min, sent on every request)
       └─▶ refresh token (7 days, stored in DB, HttpOnly cookie)
 

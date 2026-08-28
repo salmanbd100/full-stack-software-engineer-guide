@@ -1,4 +1,8 @@
-# Leadership & Teamwork
+# Leadership and Teamwork {#ch-leadership-and-teamwork}
+
+> Show influence without authority, which is what the question is really testing at senior level.
+
+**In this chapter:** the questions that come up · worked STAR answers · the themes to demonstrate · the red flags · likely follow-ups
 
 ## Overview
 Leadership and teamwork questions assess your ability to work effectively with others, lead projects, motivate team members, and navigate team dynamics. These questions are crucial for senior and mid-level positions.

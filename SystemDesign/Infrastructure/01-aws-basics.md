@@ -1,4 +1,8 @@
-# AWS Basics for System Design
+# AWS Basics {#ch-aws-basics}
+
+> Know the handful of AWS primitives that appear in almost every design round.
+
+**In this chapter:** the eight that come up · EC2 vs Lambda · S3 · RDS vs DynamoDB · SQS · CloudFront
 
 ## 💡 **Why AWS Matters in Interviews**
 
@@ -154,7 +158,7 @@ Route 53 provides DNS + health checks + traffic routing.
 
 ## Common Architecture Pattern
 
-```
+```text
 User → Route 53 → CloudFront → ALB → EC2 ASG → RDS (Multi-AZ)
                                         ↓
                                       SQS → Lambda → S3

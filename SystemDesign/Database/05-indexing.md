@@ -1,4 +1,8 @@
-# Database Indexing
+# Database Indexing {#ch-database-indexing}
+
+> Know which index structure answers which query, and what each one costs on write.
+
+**In this chapter:** B-tree vs hash · composite indexes and column order · covering indexes · when to add one · the common mistakes
 
 ## 💡 What an Index Does
 
@@ -22,7 +26,7 @@ Without an index, finding one row in a million-row table requires reading all on
 
 B-tree (balanced tree) is the default index type in PostgreSQL, MySQL, and most SQL databases. It keeps keys sorted in a tree structure. All leaf nodes sit at the same depth, so every lookup takes the same number of steps.
 
-```
+```text
                  [50]
                 /    \
           [25, 35]   [75, 85]
@@ -68,7 +72,7 @@ SELECT * FROM users WHERE username LIKE '%john'; -- full scan
 
 A hash index applies a hash function to the key and stores the result in a hash table. Lookup is O(1) for exact equality.
 
-```
+```text
 Key: "john@example.com"
        ↓
 Hash function

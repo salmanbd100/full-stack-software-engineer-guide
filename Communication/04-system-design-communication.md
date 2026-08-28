@@ -1,6 +1,8 @@
-# System Design Communication
+# System Design Communication {#ch-system-design-communication}
 
-Articulate system design decisions, trade-offs, and architectures in senior-level interviews.
+> Narrate a design round so the interviewer can follow and score what you are doing.
+
+**In this chapter:** the RADIO framework · requirements · architecture · data model · API · optimisation · the techniques that keep it clear
 
 ## The RADIO Framework
 
@@ -34,7 +36,7 @@ Never start designing without clarifying requirements. It shows maturity.
 - "What's the uptime target — 99.9% or 99.99%?"
 
 **Summarize before proceeding:**
-```
+```text
 "Let me confirm what we're building:
 - 300M daily active users
 - ~700 writes per second
@@ -59,7 +61,7 @@ Is that correct?"
 4. Justify major decisions
 
 **High-level opener:**
-```
+```text
 "At a high level, I need:
 1. A client layer (web + mobile)
 2. An API gateway for routing, auth, and rate limiting
@@ -71,7 +73,7 @@ Let me draw this out and walk through the components..."
 ```
 
 **Walking through a request flow:**
-```
+```text
 "For posting a tweet:
 1. Client → API Gateway (auth check, rate limit)
 2. → Tweet Service (validates, writes to Cassandra)
@@ -87,7 +89,7 @@ For reading the home timeline:
 ```
 
 **Justifying decisions:**
-```
+```text
 "I chose Cassandra for tweets because:
 ✅ Write-optimized — handles 700 writes/sec easily
 ✅ Horizontally scalable — add nodes as traffic grows
@@ -102,7 +104,7 @@ Verdict: worth it at this scale."
 
 Keep it focused on the 2–3 core entities. Explain partition keys for NoSQL.
 
-```
+```text
 "Three main entities: Users, Tweets, Relationships.
 
 Users → PostgreSQL (strong consistency needed, small data size)
@@ -127,7 +129,7 @@ Timeline cache → Redis
 
 Define the 3–4 most critical endpoints. Show pagination and error handling.
 
-```
+```text
 POST /api/v1/tweets
 - Body: { content, media_urls }
 - Response: 201 with tweet object
@@ -160,7 +162,7 @@ Error format:
 | DB bottleneck | Read replicas + connection pooling |
 
 **Back-of-envelope estimates:**
-```
+```text
 "300M DAU, 10% post daily, 2 posts each → 60M tweets/day
 60M / 86,400 sec ≈ 700 tweets/second at peak
 Read-heavy at 100:1 ratio → 70,000 reads/second
@@ -177,7 +179,7 @@ This confirms we need aggressive caching on the read path."
 [Silent for 2 minutes while thinking]
 
 **✅ Right:**
-```
+```text
 "I'm thinking about the database choice. We need high write throughput
 and horizontal scalability, so I'm leaning toward Cassandra over
 PostgreSQL... Let me explain why."
@@ -185,14 +187,14 @@ PostgreSQL... Let me explain why."
 
 ### Use Signposting
 
-```
+```text
 "I'll break this into five parts: requirements first, then architecture,
 data model, API design, and finally scaling considerations."
 ```
 
 ### Engage the Interviewer
 
-```
+```text
 "Does this approach make sense? Should I dive deeper into the caching
 strategy, or shall I move on to the API design?"
 ```
@@ -204,7 +206,7 @@ strategy, or shall I move on to the API design?"
 
 ### Reference Real Systems
 
-```
+```text
 "This is the hybrid fan-out approach Twitter uses — push for regular
 users, pull for celebrities. It balances write cost with read speed."
 ```

@@ -1,4 +1,8 @@
-# Binary Tree Traversal Pattern
+# Binary Tree Traversal {#ch-binary-tree-traversal}
+
+> Choose the traversal order the problem needs, and write it both recursively and iteratively.
+
+**In this chapter:** preorder, inorder, postorder and level order · when each one is the right choice · the iterative forms · complexity
 
 ## What is Binary Tree Traversal? (In Simple Words)
 
@@ -15,7 +19,7 @@ Imagine you're a **tour guide** leading a group through a **family tree museum**
 
 Think of a tree structure like a **table of contents** in a book:
 
-```
+```text
 Book: "Programming Guide"
 │
 ├── Chapter 1: Basics
@@ -78,7 +82,7 @@ Look for this pattern when you see:
 
 ### The Sample Tree We'll Use
 
-```
+```text
         4
       /   \
      2     6
@@ -90,7 +94,7 @@ Look for this pattern when you see:
 
 **Think of it as:** Reading a book from left to right, smallest to largest
 
-```
+```text
 Process Order:
 Step 1: Go all the way LEFT first
         4
@@ -140,7 +144,7 @@ FINAL: [1, 2, 3, 4, 5, 6, 7] ← Notice it's SORTED!
 
 **Think of it as:** Processing the root BEFORE exploring children (like copying a tree structure)
 
-```
+```text
 Process Order:
         4  ← START: Process root FIRST
       /   \
@@ -178,7 +182,7 @@ FINAL: [4, 2, 1, 3, 6, 5, 7]
 
 **Think of it as:** Process children BEFORE parent (like calculating folder sizes - need file sizes first)
 
-```
+```text
 Process Order:
 Step 1: Go all the way LEFT to 1 (it's a leaf, process it)
         4
@@ -230,7 +234,7 @@ FINAL: [1, 3, 2, 5, 7, 6, 4]
 
 **Think of it as:** Reading a family tree generation by generation
 
-```
+```text
 Tree:     4
         /   \
        2     6
@@ -425,7 +429,7 @@ function inorderTraversal(root: TreeNode | null): number[] {
 
 **Call Stack Visualization for tree [1, null, 2, 3]:**
 
-```
+```text
 Tree:     1
            \
             2
@@ -485,7 +489,7 @@ function inorderTraversalIterative(root: TreeNode | null): number[] {
 
 **Step-by-Step for tree [4, 2, 6, 1, 3, 5, 7]:**
 
-```
+```text
         4
       /   \
      2     6
@@ -908,7 +912,7 @@ function levelOrder(root: TreeNode | null): number[][] {
 
 **Visual Trace for tree [3, 9, 20, None, None, 15, 7]:**
 
-```
+```text
 Tree:     3
         /   \
        9    20
@@ -1250,7 +1254,7 @@ So we visit:
 This naturally produces sorted order!
 
 **Example:**
-```
+```text
 BST:    4
       /   \
      2     6
@@ -1326,7 +1330,7 @@ if (node.left) stack.push(node.left);    // Left
 - **DFS:** Finding paths, checking tree properties, when tree is wide
 - **BFS:** Shortest path, level-wise operations, when tree is deep
 
-```
+```text
         1
       /   \
      2     3
@@ -1458,7 +1462,7 @@ function rightSideView(root: TreeNode | null): number[] {
 ### Tip 1: Always Ask About Edge Cases
 
 Before coding, clarify:
-```
+```text
 Interviewer: "Implement inorder traversal"
 
 You: "Great! A few quick questions:
@@ -1476,7 +1480,7 @@ This shows thoughtfulness and prevents bugs!
 
 **Always visualize** before coding:
 
-```
+```text
 "Let me trace through an example first..."
 
     4
@@ -1516,7 +1520,7 @@ This prevents mixing up the orders!
 
 Be ready to discuss:
 
-```
+```text
 Interviewer: "What's the space complexity?"
 
 You: "For recursive inorder, it's O(h) where h is the height,
@@ -1534,7 +1538,7 @@ For level order, it's O(w) where w is max width.
 
 For inorder traversal:
 
-```
+```text
 Interviewer: "Why use inorder?"
 
 You: "One key property: inorder traversal of a BST
@@ -1550,7 +1554,7 @@ gives us the values in sorted order. This is useful for:
 
 Strong candidates offer both:
 
-```
+```text
 You: "I'll implement the recursive solution first since
 it's cleaner, then show the iterative version if you'd like."
 
@@ -1608,28 +1612,28 @@ Look for these keywords:
 #### Problem Patterns:
 
 **Pattern 1: Getting Values in Specific Order**
-```
+```text
 Problem: "Return values of BST in ascending order"
 Solution: Inorder traversal
 Why: Inorder of BST = sorted
 ```
 
 **Pattern 2: Processing Levels**
-```
+```text
 Problem: "Find average at each level"
 Solution: Level order traversal
 Why: Need to group nodes by level
 ```
 
 **Pattern 3: Tree Structure Operations**
-```
+```text
 Problem: "Clone a tree"
 Solution: Preorder traversal
 Why: Create root before children
 ```
 
 **Pattern 4: Bottom-Up Calculations**
-```
+```text
 Problem: "Calculate height of each subtree"
 Solution: Postorder traversal
 Why: Need children's heights before parent
@@ -1639,7 +1643,7 @@ Why: Need children's heights before parent
 
 ### Decision Tree: Which Traversal?
 
-```
+```text
 Start: Need to traverse binary tree?
 │
 ├─ Need sorted values from BST?

@@ -1,4 +1,8 @@
-# Notifications
+# Notifications {#ch-notifications}
+
+> Fan out to millions across several channels without sending anything twice.
+
+**In this chapter:** the channels · the architecture · fan-out patterns · deduplication · user preferences and quiet hours
 
 ## 💡 **Concept**
 
@@ -22,7 +26,7 @@ A notification system delivers alerts, updates, and messages to users across mul
 
 ## Architecture
 
-```
+```text
 Event Source (order placed, @mention, new follower)
   │
   ▼
@@ -110,7 +114,7 @@ class NotificationService {
 - Service enqueues a single "broadcast" job.
 - A fan-out worker batches recipients (1000 at a time) and enqueues individual jobs.
 
-```
+```text
 Broadcast event
   │
   ▼

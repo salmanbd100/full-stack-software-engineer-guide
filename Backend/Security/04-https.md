@@ -1,4 +1,8 @@
-# HTTPS & TLS
+# HTTPS and TLS {#ch-https-and-tls}
+
+> Explain what the handshake establishes, and where in your stack TLS actually terminates.
+
+**In this chapter:** the handshake · certificates and the chain of trust · TLS 1.3 · terminating at the edge vs the origin · HSTS
 
 ## Overview
 
@@ -26,7 +30,7 @@ Encryption alone isn't enough. Without the certificate proving identity, you cou
 
 ## The TLS Handshake
 
-```
+```text
 Client                                          Server
   │                                                │
   │  1. ClientHello                                │
@@ -62,7 +66,7 @@ With **ECDHE** key exchange, both sides derive a fresh session key that is never
 
 A certificate binds a **domain name** to a **public key**, signed by someone the browser already trusts.
 
-```
+```text
 Root CA (in the OS/browser trust store)
     │  signs
     ▼
@@ -128,7 +132,7 @@ add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" alway
 
 In real deployments, your Node.js process usually does **not** handle TLS.
 
-```
+```text
 Internet ──TLS──▶ Load balancer / CDN ──plain HTTP──▶ Node.js app
                   (certificate lives here)              (private network)
 ```

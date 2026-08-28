@@ -53,7 +53,7 @@
 
 **Block-Scoped Variable Declarations** - ES6's let and const modernized JavaScript's variable system, fixing var's problematic behavior. let is block-scoped (respects curly braces), has temporal dead zone (no hoisting), and prevents accidental redeclaration. const works like let but prevents reassignment - crucial for preventing accidental mutation of references. However, const doesn't make objects/arrays immutable - it only prevents reassigning the variable to a different reference. Modern best practice: use const by default (signals intent that value won't change), let when reassignment is needed, never use var (it's kept only for backwards compatibility). This simple rule prevents many scoping bugs.
 
-```javascript
+```typescript
 // var: function-scoped, hoisted, can redeclare
 var x = 1;
 var x = 2; // OK
@@ -84,39 +84,38 @@ arr.push(4); // OK
 
 **Concise Function Syntax** - Arrow functions provide shorter syntax and lexical 'this' binding, perfect for callbacks but unsuitable as methods or constructors.
 
-```javascript
+```typescript
 // Traditional
-const add = function(a, b) {
-    return a + b;
+const add = function (a: number, b: number): number {
+  return a + b;
 };
 
 // Arrow
-const addArrow = (a, b) => a + b;
+const addArrow = (a: number, b: number): number => a + b;
 
-// Single parameter
-const double = n => n * 2;
+// Single parameter — TypeScript needs the parentheses to hold the annotation
+const double = (n: number): number => n * 2;
 
 // No parameters
-const getRandom = () => Math.random();
+const getRandom = (): number => Math.random();
 
-// Multiple statements
-const greet = name => {
-    const message = `Hello, ${name}!`;
-    return message;
+// Multiple statements need braces and a return
+const greet = (name: string): string => {
+  const message = `Hello, ${name}!`;
+  return message;
 };
 
-// Returning object (wrap in parentheses)
-const makePerson = (name, age) => ({ name, age });
+// Returning an object literal — wrap it, or the braces read as a body
+const makePerson = (name: string, age: number): { name: string; age: number } => ({ name, age });
 
-// Key difference: No own 'this'
+// The difference that matters: an arrow has no `this` of its own
 const obj = {
-    value: 42,
-    getValue: function() {
-        // Arrow function inherits 'this'
-        setTimeout(() => {
-            console.log(this.value); // 42
-        }, 100);
-    }
+  value: 42,
+  getValue: function (): void {
+    setTimeout((): void => {
+      console.log(this.value); // 42 — inherited from getValue
+    }, 100);
+  },
 };
 ```
 
@@ -133,27 +132,25 @@ Template literals (backticks) revolutionized string handling in JavaScript.
 - Replaces ugly concatenation
 - Evaluates any JavaScript expression
 
-```javascript
-// Old Way (concatenation)
-const message = 'Hello, ' + name + '! You are ' + age + ' years old.';
+```typescript
+// ❌ Concatenation
+const messageOld: string = 'Hello, ' + name + '! You are ' + age + ' years old.';
 
-// New Way (template literal ✅)
-const message = `Hello, ${name}! You are ${age} years old.`;
+// ✅ Template literal
+const message: string = `Hello, ${name}! You are ${age} years old.`;
 ```
 
 **2. Multiline Strings:**
 - Natural line breaks (no `\n` needed)
 - Perfect for HTML, SQL, or formatted text
 
-```javascript
-// Old Way (ugly)
-const html = '<div>\n' +
-             '  <h1>' + title + '</h1>\n' +
-             '  <p>' + content + '</p>\n' +
-             '</div>';
+```typescript
+// ❌ Manual newlines and concatenation
+const htmlOld: string =
+  '<div>\n' + '  <h1>' + title + '</h1>\n' + '  <p>' + content + '</p>\n' + '</div>';
 
-// New Way (readable ✅)
-const html = `
+// ✅ A template literal keeps its own line breaks
+const html: string = `
     <div>
         <h1>${title}</h1>
         <p>${content}</p>
@@ -165,16 +162,17 @@ const html = `
 
 Any JavaScript expression works inside `${}`:
 
-```javascript
-const price = 19.99;
-const quantity = 3;
+```typescript
+const price: number = 19.99;
+const quantity: number = 3;
 
-const total = `Total: $${(price * quantity).toFixed(2)}`;
+// Any expression goes inside ${}, not just a variable
+const total: string = `Total: $${(price * quantity).toFixed(2)}`;
 // "Total: $59.97"
 
-const status = `User is ${age >= 18 ? 'adult' : 'minor'}`;
+const status: string = `User is ${age >= 18 ? 'adult' : 'minor'}`;
 
-const items = `Cart has ${cart.length} item${cart.length !== 1 ? 's' : ''}`;
+const items: string = `Cart has ${cart.length} item${cart.length !== 1 ? 's' : ''}`;
 ```
 
 **4. Tagged Templates (Advanced):**
@@ -183,55 +181,59 @@ Functions that process template literals with full control.
 
 **How Tagged Templates Work:**
 
-```javascript
-function tag(strings, ...values) {
-    // strings: array of string parts
-    // values: array of interpolated values
-    return processedString;
+```typescript
+// A tag function receives the literal parts and the interpolated values
+// separately, which is what makes escaping and translation possible
+function tag(strings: TemplateStringsArray, ...values: unknown[]): string {
+  return processedString;
 }
 
-const result = tag`Hello ${name}, you are ${age}`;
+const result: string = tag`Hello ${name}, you are ${age}`;
 ```
 
 **Practical Examples:**
 
 **HTML Escaping:**
-```javascript
-function safeHTML(strings, ...values) {
-    const escape = (str) => String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+```typescript
+// The interpolated values are escaped; the literal parts are not. That split
+// is the whole reason tagged templates can be safe
+function safeHTML(strings: TemplateStringsArray, ...values: unknown[]): string {
+  const escape = (str: unknown): string =>
+    String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    return strings.reduce((result, str, i) => {
-        const value = values[i] ? escape(values[i]) : '';
-        return result + str + value;
-    }, '');
+  return strings.reduce(
+    (result: string, str: string, i: number): string =>
+      result + str + (values[i] !== undefined ? escape(values[i]) : ''),
+    '',
+  );
 }
 
 const userInput = '<script>alert("xss")</script>';
-const safe = safeHTML`User said: ${userInput}`;
-// "User said: &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"
+const safe: string = safeHTML`User said: ${userInput}`;
 ```
 
 **Styled-Components (CSS-in-JS):**
-```javascript
-const Button = styled.button`
-    background: ${props => props.primary ? 'blue' : 'gray'};
-    color: white;
-    padding: 10px;
+```typescript
+interface ButtonProps {
+  primary?: boolean;
+}
+
+const Button = styled.button<ButtonProps>`
+  background: ${(props: ButtonProps): string => (props.primary ? 'blue' : 'gray')};
+  color: white;
+  padding: 10px;
 `;
 ```
 
 **Localization:**
-```javascript
-function i18n(strings, ...values) {
-    // Lookup translation, replace placeholders
-    const key = strings.join('{}');
-    return translate(key, values);
+```typescript
+function i18n(strings: TemplateStringsArray, ...values: unknown[]): string {
+  // The literal parts form a stable lookup key; the values fill the gaps
+  const key: string = strings.join('{}');
+  return translate(key, values);
 }
 
-const greeting = i18n`Hello ${userName}, you have ${count} messages`;
+const greeting: string = i18n`Hello ${userName}, you have ${count} messages`;
 ```
 
 **When to Use Template Literals:**
@@ -259,8 +261,14 @@ const greeting = i18n`Hello ${userName}, you have ${count} messages`;
 **Common Use Cases:**
 
 **1. Dynamic HTML:**
-```javascript
-const renderCard = (user) => `
+```typescript
+interface CardUser {
+  name: string;
+  bio: string;
+  joinDate: string;
+}
+
+const renderCard = (user: CardUser): string => `
     <div class="card">
         <h2>${user.name}</h2>
         <p>${user.bio}</p>
@@ -270,59 +278,62 @@ const renderCard = (user) => `
 ```
 
 **2. SQL Queries:**
-```javascript
-const query = `
+```typescript
+// ⚠️ Interpolating values straight into SQL is an injection hole. Keep the
+// template for the shape and pass the values as parameters
+const query: string = `
     SELECT *
     FROM users
-    WHERE age > ${minAge}
-    AND status = '${status}'
-    LIMIT ${limit}
+    WHERE age > $1
+    AND status = $2
+    LIMIT $3
 `;
 ```
 
 **3. Logging:**
-```javascript
+```typescript
 console.log(`[${timestamp}] ${level}: ${message}`);
 ```
 
 **4. URLs:**
-```javascript
-const apiUrl = `${baseUrl}/api/users/${userId}/posts?page=${page}`;
+```typescript
+const apiUrl: string = `${baseUrl}/api/users/${userId}/posts?page=${page}`;
 ```
 
 **Key Insight:**
 > Tagged templates enable **domain-specific languages (DSLs)** embedded in JavaScript. Libraries like styled-components, GraphQL, and i18n use tagged templates to create powerful, type-safe APIs that feel native to JavaScript.
 
-```javascript
-const name = 'Alice';
-const age = 25;
+```typescript
+const name: string = 'Alice';
+const age: number = 25;
 
-// Old way
-const message1 = 'Hello, ' + name + '! You are ' + age + ' years old.';
+// ❌ Old way
+const message1: string = 'Hello, ' + name + '! You are ' + age + ' years old.';
 
-// Template literal
-const message2 = `Hello, ${name}! You are ${age} years old.`;
+// ✅ Template literal
+const message2: string = `Hello, ${name}! You are ${age} years old.`;
 
-// Expressions
-const total = `Total: ${10 + 20}`;
+// Expressions, not just variables
+const total: string = `Total: ${10 + 20}`;
 
-// Multiline strings
-const html = `
+// Multiline
+const html: string = `
     <div>
         <h1>${name}</h1>
         <p>Age: ${age}</p>
     </div>
 `;
 
-// Tagged templates (advanced)
-function highlight(strings, ...values) {
-    return strings.reduce((result, str, i) => {
-        const value = values[i] ? `<strong>${values[i]}</strong>` : '';
-        return result + str + value;
-    }, '');
+// Tagged template
+function highlight(strings: TemplateStringsArray, ...values: unknown[]): string {
+  return strings.reduce(
+    (result: string, str: string, i: number): string =>
+      result + str + (values[i] !== undefined ? `<strong>${String(values[i])}</strong>` : ''),
+    '',
+  );
 }
 
-const highlighted = highlight`Name: ${name}, Age: ${age}`;
+const highlighted: string = highlight`Name: ${name}, Age: ${age}`;
 // "Name: <strong>Alice</strong>, Age: <strong>25</strong>"
 ```
 
@@ -336,7 +347,7 @@ Destructuring extracts values from arrays into variables based on position.
 
 **Basic Pattern:**
 
-```javascript
+```typescript
 const [first, second, third] = array;
 // Unpacks by position
 ```
@@ -344,62 +355,65 @@ const [first, second, third] = array;
 **Key Features:**
 
 **1. Position-Based Extraction:**
-```javascript
-const numbers = [1, 2, 3, 4, 5];
+```typescript
+const numbers: number[] = [1, 2, 3, 4, 5];
 
-// Old way
-const first = numbers[0];
-const second = numbers[1];
+// ❌ Old way
+const firstOld: number = numbers[0];
+const secondOld: number = numbers[1];
 
-// Destructuring way ✅
+// ✅ Destructuring
 const [first, second] = numbers;
 ```
 
 **2. Skipping Elements:**
-```javascript
+```typescript
 const [first, , third] = [1, 2, 3, 4, 5];
 // first = 1, third = 3
 // Leave empty slot to skip
 ```
 
 **3. Rest Pattern (Gather Remaining):**
-```javascript
+```typescript
 const [head, ...tail] = [1, 2, 3, 4, 5];
 // head = 1
 // tail = [2, 3, 4, 5]
 ```
 
 **4. Default Values:**
-```javascript
+```typescript
 const [a, b, c = 0] = [1, 2];
 // a = 1, b = 2, c = 0 (default)
 ```
 
 **5. Variable Swapping:**
-```javascript
-let x = 1, y = 2;
-[x, y] = [y, x]; // Swap without temp variable
+```typescript
+let x: number = 1;
+let y: number = 2;
+[x, y] = [y, x]; // Swap with no temporary
 // x = 2, y = 1
 ```
 
 **Perfect Use Cases:**
 
 **React Hooks:**
-```javascript
-const [count, setCount] = useState(0);
-const [user, setUser] = useState(null);
+```typescript
+const [count, setCount] = useState<number>(0);
+const [user, setUser] = useState<User | null>(null);
 ```
 
 **Function Returns:**
-```javascript
-function getCoordinates() {
-    return [10, 20];
+```typescript
+// The tuple return type is what makes the destructuring typed — without it
+// TypeScript infers number[] and both bindings become number | undefined
+function getCoordinates(): [number, number] {
+  return [10, 20];
 }
 const [x, y] = getCoordinates();
 ```
 
 **Iterables:**
-```javascript
+```typescript
 const [first, second] = new Set([1, 2, 3]);
 const [char1, char2] = 'hello';
 ```
@@ -417,68 +431,71 @@ const [char1, char2] = 'hello';
 **Advanced Patterns:**
 
 **Nested Destructuring:**
-```javascript
-const matrix = [[1, 2], [3, 4]];
+```typescript
+const matrix: number[][] = [
+  [1, 2],
+  [3, 4],
+];
 const [[a, b], [c, d]] = matrix;
 // a=1, b=2, c=3, d=4
 ```
 
 **With Default + Rest:**
-```javascript
-const [first = 0, ...rest] = [];
-// first = 0 (default)
-// rest = []
+```typescript
+const [first = 0, ...rest]: number[] = [];
+// first = 0, rest = []
 ```
 
 **Common Patterns:**
 
 **1. Tuple Returns:**
-```javascript
-function getMinMax(arr) {
-    return [Math.min(...arr), Math.max(...arr)];
+```typescript
+function getMinMax(arr: readonly number[]): [number, number] {
+  return [Math.min(...arr), Math.max(...arr)];
 }
 const [min, max] = getMinMax([1, 5, 3]);
 ```
 
 **2. Splitting Strings:**
-```javascript
+```typescript
 const [firstName, lastName] = 'John Doe'.split(' ');
 ```
 
 **3. Pagination:**
-```javascript
+```typescript
 const [first, second, ...remaining] = items;
 ```
 
 **Key Insight:**
 > Array destructuring is **position-based** - order matters. This makes it perfect for tuple-like data (coordinates, ranges) and function returns where order is meaningful.
 
-```javascript
-const numbers = [1, 2, 3, 4, 5];
+```typescript
+const numbers: number[] = [1, 2, 3, 4, 5];
 
 // Traditional
-const first = numbers[0];
-const second = numbers[1];
+const firstIndexed: number = numbers[0];
+const secondIndexed: number = numbers[1];
 
 // Destructuring
 const [a, b, c] = numbers;
 console.log(a, b, c); // 1 2 3
 
-// Skip elements
+// Skip
 const [x, , z] = numbers;
 console.log(x, z); // 1 3
 
-// Rest pattern
+// Rest
 const [head, ...tail] = numbers;
 console.log(head); // 1
 console.log(tail); // [2, 3, 4, 5]
 
-// Default values
+// Defaults
 const [p, q, r = 0] = [1, 2];
 console.log(r); // 0
 
-// Swapping
-let m = 1, n = 2;
+// Swap
+let m: number = 1;
+let n: number = 2;
 [m, n] = [n, m];
 console.log(m, n); // 2 1
 ```
@@ -487,43 +504,55 @@ console.log(m, n); // 2 1
 
 **Object Pattern Matching** - Extracts properties from objects with support for renaming, default values, nested destructuring, and function parameter destructuring.
 
-```javascript
-const user = {
-    name: 'Alice',
-    age: 25,
-    email: 'alice@example.com',
-    address: {
-        city: 'New York',
-        country: 'USA'
-    }
+```typescript
+interface Address {
+  city: string;
+  country: string;
+}
+
+interface Profile {
+  name: string;
+  age: number;
+  email: string;
+  address: Address;
+  role?: string;
+}
+
+const user: Profile = {
+  name: 'Alice',
+  age: 25,
+  email: 'alice@example.com',
+  address: { city: 'New York', country: 'USA' },
 };
 
 // Basic
 const { name, age } = user;
 console.log(name, age); // "Alice" 25
 
-// Rename variables
+// Rename
 const { name: userName, age: userAge } = user;
 console.log(userName, userAge); // "Alice" 25
 
-// Default values
-const { name, role = 'user' } = user;
+// Default — fires only when the property is `undefined`
+const { role = 'user' } = user;
 console.log(role); // "user"
 
-// Nested destructuring
-const { address: { city, country } } = user;
+// Nested. Note this binds `city` and `country`, not `address`
+const {
+  address: { city, country },
+} = user;
 console.log(city, country); // "New York" "USA"
 
 // Rest properties
-const { name: n, ...rest } = user;
-console.log(rest); // { age: 25, email: "alice@example.com", address: {...} }
+const { name: justName, ...rest } = user;
+console.log(rest); // { age, email, address }
 
-// Function parameters
-function greet({ name, age }) {
-    console.log(`Hello ${name}, you are ${age}`);
+// In a parameter list — the annotation goes on the whole pattern
+function greetProfile({ name, age }: Pick<Profile, 'name' | 'age'>): void {
+  console.log(`Hello ${name}, you are ${age}`);
 }
 
-greet(user); // "Hello Alice, you are 25"
+greetProfile(user); // "Hello Alice, you are 25"
 ```
 
 ### 5. Spread and Rest Operators
@@ -532,58 +561,55 @@ greet(user); // "Hello Alice, you are 25"
 
 **Expanding Iterables** - Spreads array/object elements for concatenation, copying, merging objects, and passing multiple arguments to functions.
 
-```javascript
-// Arrays
-const arr1 = [1, 2, 3];
-const arr2 = [4, 5, 6];
+```typescript
+const arr1: number[] = [1, 2, 3];
+const arr2: number[] = [4, 5, 6];
 
 // Concatenate
-const combined = [...arr1, ...arr2];
+const combined: number[] = [...arr1, ...arr2];
 console.log(combined); // [1, 2, 3, 4, 5, 6]
 
-// Copy array
-const copy = [...arr1];
+// Copy — shallow. Nested objects are still shared
+const copy: number[] = [...arr1];
 
-// Add elements
-const extended = [0, ...arr1, 4];
+// Insert
+const extended: number[] = [0, ...arr1, 4];
 console.log(extended); // [0, 1, 2, 3, 4]
 
-// Objects
 const obj1 = { a: 1, b: 2 };
 const obj2 = { c: 3, d: 4 };
 
-// Merge objects
+// Merge
 const merged = { ...obj1, ...obj2 };
 console.log(merged); // { a: 1, b: 2, c: 3, d: 4 }
 
-// Override properties
+// Later keys win, which is how you "update" immutably
 const updated = { ...obj1, b: 99 };
 console.log(updated); // { a: 1, b: 99 }
 
-// Function calls
-const numbers = [1, 2, 3];
-console.log(Math.max(...numbers)); // 3
+// Spreading into a call
+const spreadNumbers: number[] = [1, 2, 3];
+console.log(Math.max(...spreadNumbers)); // 3
 ```
 
 **Rest Parameters**
 
 **Gathering Remaining Arguments** - Collects remaining function arguments into an array, replacing the need for the arguments object with clearer syntax.
 
-```javascript
-// Gather remaining arguments
-function sum(...numbers) {
-    return numbers.reduce((total, num) => total + num, 0);
+```typescript
+// Rest gathers; spread scatters. Same `...`, opposite directions
+function sum(...numbers: number[]): number {
+  return numbers.reduce((total: number, num: number): number => total + num, 0);
 }
 
 console.log(sum(1, 2, 3)); // 6
 console.log(sum(1, 2, 3, 4, 5)); // 15
 
-// Mixed parameters
-function greet(greeting, ...names) {
-    return `${greeting} ${names.join(' and ')}!`;
+function greetAll(greeting: string, ...names: string[]): string {
+  return `${greeting} ${names.join(' and ')}!`;
 }
 
-console.log(greet('Hello', 'Alice', 'Bob', 'Charlie'));
+console.log(greetAll('Hello', 'Alice', 'Bob', 'Charlie'));
 // "Hello Alice and Bob and Charlie!"
 ```
 
@@ -591,29 +617,29 @@ console.log(greet('Hello', 'Alice', 'Bob', 'Charlie'));
 
 **Function Parameter Defaults** - Sets default values for function parameters including expressions and references to other parameters, eliminating manual checks.
 
-```javascript
-// Old way
-function greetOld(name) {
-    name = name || 'Guest';
-    return `Hello, ${name}`;
+```typescript
+// ❌ `||` also replaces '' and 0. A default does not
+function greetOld(name: string): string {
+  name = name || 'Guest';
+  return `Hello, ${name}`;
 }
 
-// ES6
-function greet(name = 'Guest') {
-    return `Hello, ${name}`;
+// ✅ A default fires only on `undefined`
+function greetDefault(name = 'Guest'): string {
+  return `Hello, ${name}`;
 }
 
-console.log(greet()); // "Hello, Guest"
-console.log(greet('Alice')); // "Hello, Alice"
+console.log(greetDefault()); // "Hello, Guest"
+console.log(greetDefault('Alice')); // "Hello, Alice"
 
-// Expressions as defaults
-function createUser(name, id = Date.now()) {
-    return { name, id };
+// Defaults are expressions, evaluated per call
+function createUser(name: string, id: number = Date.now()): { name: string; id: number } {
+  return { name, id };
 }
 
-// Use previous parameters
-function greetFull(name, greeting = `Hello ${name}`) {
-    return greeting;
+// A default can read parameters to its left, but not to its right
+function greetFull(name: string, greeting: string = `Hello ${name}`): string {
+  return greeting;
 }
 
 console.log(greetFull('Alice')); // "Hello Alice"
@@ -623,35 +649,36 @@ console.log(greetFull('Alice')); // "Hello Alice"
 
 **Enhanced Object Syntax** - Property shorthand, method shorthand, and computed property names make object creation more concise and dynamic.
 
-```javascript
-const name = 'Alice';
-const age = 25;
+```typescript
+const personName: string = 'Alice';
+const personAge: number = 25;
 
 // Property shorthand
-const user = {
-    name,  // same as name: name
-    age    // same as age: age
+const shorthandUser = {
+  name: personName,
+  age: personAge,
 };
 
 // Method shorthand
 const calculator = {
-    // Old way
-    add: function(a, b) {
-        return a + b;
-    },
+  // Old way
+  add: function (a: number, b: number): number {
+    return a + b;
+  },
 
-    // New way
-    subtract(a, b) {
-        return a - b;
-    }
+  // Shorthand
+  subtract(a: number, b: number): number {
+    return a - b;
+  },
 };
 
-// Computed property names
-const prop = 'email';
+// Computed keys. `as const` keeps the literal type, so `person` gets real
+// `email` and `emailVerified` properties rather than an index signature
+const prop = 'email' as const;
 const person = {
-    name: 'Bob',
-    [prop]: 'bob@example.com',      // email: 'bob@example.com'
-    [`${prop}Verified`]: true       // emailVerified: true
+  name: 'Bob',
+  [prop]: 'bob@example.com',
+  [`${prop}Verified`]: true,
 };
 ```
 
@@ -659,54 +686,59 @@ const person = {
 
 **Class Syntax** - Modern class syntax with constructors, instance methods, getters/setters, static methods, and inheritance through extends/super keywords.
 
-```javascript
+```typescript
 class Person {
-    constructor(name, age) {
-        this.name = name;
-        this.age = age;
-    }
+  name: string;
+  age: number;
 
-    // Instance method
-    greet() {
-        return `Hello, I'm ${this.name}`;
-    }
+  constructor(name: string, age: number) {
+    this.name = name;
+    this.age = age;
+  }
 
-    // Getter
-    get info() {
-        return `${this.name}, ${this.age} years old`;
-    }
+  // Instance method — lives on the prototype, shared by every instance
+  greet(): string {
+    return `Hello, I'm ${this.name}`;
+  }
 
-    // Setter
-    set birthYear(year) {
-        this.age = new Date().getFullYear() - year;
-    }
+  // Getter — read as a property, recomputed on each access
+  get info(): string {
+    return `${this.name}, ${this.age} years old`;
+  }
 
-    // Static method
-    static species() {
-        return 'Homo sapiens';
-    }
+  // Setter — assigned as a property
+  set birthYear(year: number) {
+    this.age = new Date().getFullYear() - year;
+  }
+
+  // Static — on the class itself, not on instances
+  static species(): string {
+    return 'Homo sapiens';
+  }
 }
 
 const alice = new Person('Alice', 25);
 console.log(alice.greet()); // "Hello, I'm Alice"
-console.log(alice.info); // "Alice, 25 years old"
+console.log(alice.info); // "Alice, 25 years old" — no parentheses
 console.log(Person.species()); // "Homo sapiens"
 
 // Inheritance
 class Student extends Person {
-    constructor(name, age, grade) {
-        super(name, age);
-        this.grade = grade;
-    }
+  grade: string;
 
-    study() {
-        return `${this.name} is studying`;
-    }
+  constructor(name: string, age: number, grade: string) {
+    super(name, age); // Must run before any use of `this`
+    this.grade = grade;
+  }
+
+  study(): string {
+    return `${this.name} is studying`;
+  }
 }
 
 const bob = new Student('Bob', 20, 'A');
-console.log(bob.greet()); // Inherited method
-console.log(bob.study()); // Own method
+console.log(bob.greet()); // Inherited
+console.log(bob.study()); // Its own
 ```
 
 ### 9. Modules
@@ -715,24 +747,25 @@ console.log(bob.study()); // Own method
 
 **ES6 Module Exports** - Named exports for multiple values and default export for primary value, enabling modular code organization.
 
-```javascript
-// math.js
+```typescript
+// math.ts
 
 // Named exports
 export const PI = 3.14159;
-export function add(a, b) {
-    return a + b;
+export function add(a: number, b: number): number {
+  return a + b;
 }
 
-// Or export later
-const subtract = (a, b) => a - b;
-const multiply = (a, b) => a * b;
+// Or declare first and export in one statement
+const subtract = (a: number, b: number): number => a - b;
+const multiply = (a: number, b: number): number => a * b;
 
 export { subtract, multiply };
 
-// Default export (one per file)
+// One default export per module. A named export renames loudly across a
+// codebase; a default renames silently at every import site
 export default class Calculator {
-    // ...
+  // ...
 }
 ```
 
@@ -740,121 +773,116 @@ export default class Calculator {
 
 **ES6 Module Imports** - Import named exports, default exports, rename imports, or import all exports with various import syntax options.
 
-```javascript
-// app.js
+```typescript
+// app.ts
 
-// Named imports
+// Named imports — these are what a bundler can tree-shake
 import { PI, add, subtract } from './math.js';
 
-// Rename imports
+// Rename on import
 import { PI as pi, add as sum } from './math.js';
 
-// Import all
-import * as Math from './math.js';
-console.log(Math.PI);
-console.log(Math.add(1, 2));
+// Namespace import. Convenient, but usually defeats tree-shaking
+import * as MathUtils from './math.js';
+console.log(MathUtils.PI);
+console.log(MathUtils.add(1, 2));
 
-// Default import
+// Default import — the local name is yours to choose
 import Calculator from './math.js';
 
-// Mixed
-import Calculator, { PI, add } from './math.js';
+// Both at once
+import CalculatorClass, { PI as piValue, add as addFn } from './math.js';
 ```
 
 ### 10. Promises
 
 **Promise-Based Async** - Handles asynchronous operations with promises using then/catch/finally, Promise.all, and Promise.race for multiple operations.
 
-```javascript
-// Creating a promise
-const fetchData = () => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const success = true;
-            if (success) {
-                resolve({ data: 'Hello' });
-            } else {
-                reject(new Error('Failed'));
-            }
-        }, 1000);
-    });
-};
+```typescript
+interface Payload {
+  data: string;
+}
 
-// Using promise
+const fetchData = (): Promise<Payload> =>
+  new Promise<Payload>((resolve, reject): void => {
+    setTimeout((): void => {
+      const success = true;
+      if (success) {
+        resolve({ data: 'Hello' });
+      } else {
+        reject(new Error('Failed'));
+      }
+    }, 1000);
+  });
+
 fetchData()
-    .then(result => console.log(result))
-    .catch(error => console.error(error))
-    .finally(() => console.log('Done'));
+  .then((result: Payload): void => console.log(result))
+  .catch((error: unknown): void => console.error(error))
+  .finally((): void => console.log('Done'));
 
-// Promise.all - wait for all
-Promise.all([
-    fetch('/api/user'),
-    fetch('/api/posts'),
-    fetch('/api/comments')
-])
-.then(([user, posts, comments]) => {
-    // All resolved
-})
-.catch(error => {
+// Promise.all — all must succeed, and the tuple type is preserved
+void Promise.all([fetch('/api/user'), fetch('/api/posts'), fetch('/api/comments')])
+  .then(([user, posts, comments]): void => {
+    // Every one resolved
+  })
+  .catch((error: unknown): void => {
     // Any one rejected
-});
+  });
 
-// Promise.race - first to resolve
-Promise.race([
-    fetchData(),
-    fetchDataFromCache()
-])
-.then(result => console.log('Fastest:', result));
+// Promise.race — first to settle, which includes first to reject
+void Promise.race([fetchData(), fetchDataFromCache()]).then((result: Payload): void =>
+  console.log('Fastest:', result),
+);
 ```
 
 ### 11. Async/Await
 
 **Synchronous-Looking Async Code** - Async/await syntax makes promise-based code look synchronous with try/catch error handling, improving readability.
 
-```javascript
-// Traditional promise chain
-function getUserData() {
-    return fetch('/api/user')
-        .then(response => response.json())
-        .then(user => fetch(`/api/posts/${user.id}`))
-        .then(response => response.json())
-        .then(posts => console.log(posts))
-        .catch(error => console.error(error));
+```typescript
+interface ApiUser {
+  id: number;
 }
 
-// Async/await (cleaner!)
-async function getUserDataAsync() {
-    try {
-        const response = await fetch('/api/user');
-        const user = await response.json();
-
-        const postsResponse = await fetch(`/api/posts/${user.id}`);
-        const posts = await postsResponse.json();
-
-        console.log(posts);
-    } catch (error) {
-        console.error(error);
-    }
+// Promise chain
+function getUserData(): Promise<void> {
+  return fetch('/api/user')
+    .then((response: Response) => response.json() as Promise<ApiUser>)
+    .then((user: ApiUser) => fetch(`/api/posts/${user.id}`))
+    .then((response: Response) => response.json())
+    .then((posts: unknown): void => console.log(posts))
+    .catch((error: unknown): void => console.error(error));
 }
 
-// Parallel async operations
-async function fetchMultiple() {
-    try {
-        // Sequential (slow)
-        const user = await fetch('/api/user');
-        const posts = await fetch('/api/posts'); // Waits for user
+// ✅ Same thing, linear
+async function getUserDataAsync(): Promise<void> {
+  try {
+    const response: Response = await fetch('/api/user');
+    const user = (await response.json()) as ApiUser;
 
-        // Parallel (fast)
-        const [userRes, postsRes] = await Promise.all([
-            fetch('/api/user'),
-            fetch('/api/posts')
-        ]);
+    const postsResponse: Response = await fetch(`/api/posts/${user.id}`);
+    const posts: unknown = await postsResponse.json();
 
-        const userData = await userRes.json();
-        const postsData = await postsRes.json();
-    } catch (error) {
-        console.error(error);
-    }
+    console.log(posts);
+  } catch (error: unknown) {
+    console.error(error);
+  }
+}
+
+async function fetchMultiple(): Promise<void> {
+  try {
+    // ❌ Sequential — the second request waits on the first for no reason
+    const user: Response = await fetch('/api/user');
+    const posts: Response = await fetch('/api/posts');
+
+    // ✅ Parallel — both start before either is awaited
+    const [userRes, postsRes] = await Promise.all([fetch('/api/user'), fetch('/api/posts')]);
+
+    const userData: unknown = await userRes.json();
+    const postsData: unknown = await postsRes.json();
+  } catch (error: unknown) {
+    console.error(error);
+  }
 }
 ```
 
@@ -862,28 +890,29 @@ async function fetchMultiple() {
 
 **Unique Identifiers** - Symbols create unique, non-enumerable property keys, useful for meta-programming and avoiding property name collisions.
 
-```javascript
-// Create unique identifiers
-const id1 = Symbol('id');
-const id2 = Symbol('id');
+```typescript
+// Every Symbol() call returns a value equal to nothing but itself. The string
+// is a description for debugging, not an identity
+const id1: symbol = Symbol('id');
+const id2: symbol = Symbol('id');
 
-console.log(id1 === id2); // false (unique!)
+console.log(id1 === id2); // false
 
-// Use as object keys
-const user = {
-    name: 'Alice',
-    [id1]: 123
+// As a key — a symbol key cannot collide with anyone else's
+const symbolUser = {
+  name: 'Alice',
+  [id1]: 123,
 };
 
-console.log(user[id1]); // 123
-console.log(user.name); // 'Alice'
+console.log(symbolUser[id1]); // 123
+console.log(symbolUser.name); // 'Alice'
 
-// Symbols are not enumerable
-console.log(Object.keys(user)); // ['name'] (no symbol!)
+// Symbol keys are skipped by Object.keys, JSON.stringify and for…in
+console.log(Object.keys(symbolUser)); // ['name']
 
-// Built-in symbols
-const arr = [1, 2, 3];
-const iterator = arr[Symbol.iterator]();
+// Well-known symbols hook into language behaviour
+const symbolArr: number[] = [1, 2, 3];
+const iterator: Iterator<number> = symbolArr[Symbol.iterator]();
 console.log(iterator.next()); // { value: 1, done: false }
 ```
 
@@ -893,30 +922,27 @@ console.log(iterator.next()); // { value: 1, done: false }
 
 **Custom Iteration Protocol** - Implements the iterator protocol with Symbol.iterator and next() method for custom iterable objects.
 
-```javascript
-// Custom iterator
-const range = {
-    from: 1,
-    to: 5,
+```typescript
+// Implementing Symbol.iterator is what makes an object work with for…of,
+// spread and array destructuring
+function makeRange(from: number, to: number): Iterable<number> {
+  return {
+    [Symbol.iterator](): Iterator<number> {
+      let current: number = from;
 
-    [Symbol.iterator]() {
-        return {
-            current: this.from,
-            last: this.to,
+      return {
+        next(): IteratorResult<number> {
+          return current <= to
+            ? { value: current++, done: false }
+            : { value: undefined, done: true };
+        },
+      };
+    },
+  };
+}
 
-            next() {
-                if (this.current <= this.last) {
-                    return { value: this.current++, done: false };
-                } else {
-                    return { done: true };
-                }
-            }
-        };
-    }
-};
-
-for (let num of range) {
-    console.log(num); // 1, 2, 3, 4, 5
+for (const num of makeRange(1, 5)) {
+  console.log(num); // 1, 2, 3, 4, 5
 }
 ```
 
@@ -924,44 +950,43 @@ for (let num of range) {
 
 **Generator Functions** - Functions that can pause and resume execution using yield, creating iterators more easily than manual iterator protocol.
 
-```javascript
-// Generator function (easier than iterators)
-function* numberGenerator() {
-    yield 1;
-    yield 2;
-    yield 3;
+```typescript
+// A generator writes the same iterator in a fraction of the code
+function* numberGenerator(): Generator<number, void, undefined> {
+  yield 1;
+  yield 2;
+  yield 3;
 }
 
 const gen = numberGenerator();
 console.log(gen.next()); // { value: 1, done: false }
 console.log(gen.next()); // { value: 2, done: false }
 console.log(gen.next()); // { value: 3, done: false }
-console.log(gen.next()); // { done: true }
+console.log(gen.next()); // { value: undefined, done: true }
 
-// Infinite generator
-function* idGenerator() {
-    let id = 1;
-    while (true) {
-        yield id++;
-    }
+// Infinite is fine — nothing is computed until it is asked for
+function* idGenerator(): Generator<number, never, undefined> {
+  let id: number = 1;
+  while (true) {
+    yield id++;
+  }
 }
 
 const ids = idGenerator();
 console.log(ids.next().value); // 1
 console.log(ids.next().value); // 2
 
-// Practical example
-function* fibonacci() {
-    let [a, b] = [0, 1];
-    while (true) {
-        yield a;
-        [a, b] = [b, a + b];
-    }
+function* fibonacci(): Generator<number, never, undefined> {
+  let [a, b]: [number, number] = [0, 1];
+  while (true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
 }
 
 const fib = fibonacci();
 for (let i = 0; i < 10; i++) {
-    console.log(fib.next().value);
+  console.log(fib.next().value);
 }
 // 0, 1, 1, 2, 3, 5, 8, 13, 21, 34
 ```
@@ -972,32 +997,32 @@ for (let i = 0; i < 10; i++) {
 
 **Key-Value Collections** - Map provides a proper key-value data structure accepting any type as key, with size property and iteration methods.
 
-```javascript
-// Better than objects for key-value pairs
-const map = new Map();
+```typescript
+// Map beats a plain object for three reasons: any value can be a key,
+// insertion order is guaranteed, and `size` is O(1)
+const map = new Map<unknown, unknown>();
 
 map.set('name', 'Alice');
 map.set('age', 25);
-map.set(1, 'one'); // Any type as key!
+map.set(1, 'one'); // A number key stays a number, not '1'
 
 console.log(map.get('name')); // 'Alice'
 console.log(map.size); // 3
 console.log(map.has('age')); // true
 
-// Objects as keys
-const obj = { id: 1 };
-map.set(obj, 'value');
-console.log(map.get(obj)); // 'value'
+// Object identity as a key — impossible with a plain object
+const keyObj = { id: 1 };
+map.set(keyObj, 'value');
+console.log(map.get(keyObj)); // 'value'
 
-// Iteration
-for (let [key, value] of map) {
-    console.log(`${key}: ${value}`);
+for (const [key, value] of map) {
+  console.log(`${String(key)}: ${String(value)}`);
 }
 
-// Conversion
-const mapFromArray = new Map([
-    ['a', 1],
-    ['b', 2]
+// Constructing from entries
+const mapFromArray = new Map<string, number>([
+  ['a', 1],
+  ['b', 2],
 ]);
 ```
 
@@ -1005,26 +1030,26 @@ const mapFromArray = new Map([
 
 **Unique Value Collections** - Set stores unique values of any type, perfect for removing duplicates and membership testing.
 
-```javascript
-// Unique values only
-const set = new Set();
+```typescript
+// A Set holds each value once, compared by SameValueZero — so objects are
+// deduplicated by identity, not by shape
+const set = new Set<number>();
 
 set.add(1);
 set.add(2);
-set.add(2); // Duplicate, ignored
+set.add(2); // Ignored
 set.add(3);
 
 console.log(set.size); // 3
-console.log(set.has(2)); // true
+console.log(set.has(2)); // true — O(1), unlike Array.includes
 
-// Array to Set (remove duplicates)
-const numbers = [1, 2, 2, 3, 3, 4];
-const unique = [...new Set(numbers)];
+// The idiomatic deduplication
+const dupNumbers: number[] = [1, 2, 2, 3, 3, 4];
+const unique: number[] = [...new Set(dupNumbers)];
 console.log(unique); // [1, 2, 3, 4]
 
-// Iteration
-for (let value of set) {
-    console.log(value);
+for (const value of set) {
+  console.log(value);
 }
 ```
 

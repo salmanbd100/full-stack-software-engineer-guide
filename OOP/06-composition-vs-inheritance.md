@@ -1,8 +1,8 @@
-[← README](./README.md) | [← 05 Abstraction](./05-abstraction.md) | [Next: 07 OOP in the Real World →](./07-oop-in-real-world.md)
+# Composition vs Inheritance {#ch-composition-vs-inheritance}
 
----
+> Prefer composition, and be able to say precisely why inheritance goes wrong when it does.
 
-# 06 — Composition vs Inheritance
+**In this chapter:** the problem with deep hierarchies · composing behaviour · dependency injection · a worked refactor · when inheritance is still right
 
 ## 💡 **"Favor Composition Over Inheritance" — The Most Important OOP Principle**
 
@@ -29,7 +29,7 @@ The Gang of Four (GoF) *Design Patterns* book established this as a core guideli
 
 ## 📐 ASCII Diagram
 
-```
+```text
 INHERITANCE (rigid tree):              COMPOSITION (mix and match):
 
        Animal                              Character
@@ -78,7 +78,7 @@ class UserRepository extends BaseRepository {
 
 Subclasses are bound to the internal details of their parent.
 
-```
+```text
 ParentClass (changes here)
     | breaks
   ChildClass (changes here)
@@ -452,7 +452,7 @@ const pipeline = compose(logging, auth, rateLimit);
 
 Use this decision tree to choose the right approach:
 
-```
+```text
 Is there a clear, natural "is-a" relationship?
 |
 +-- YES --> Is the hierarchy shallow (1-2 levels max)?

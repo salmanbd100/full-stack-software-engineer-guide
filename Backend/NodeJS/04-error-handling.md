@@ -1,4 +1,8 @@
-# Error Handling
+# Node.js Error Handling {#ch-node-error-handling}
+
+> Separate an operational failure from a programmer bug, and treat each one differently.
+
+**In this chapter:** operational vs programmer errors · a typed error base · preserving `cause` · narrowing `unknown` · one Express handler · process-level handlers
 
 ## 💡 The Distinction Everything Hangs On
 

@@ -1,4 +1,8 @@
-# Data Management
+# Microservice Data Management {#ch-microservice-data-management}
+
+> Split the database, which is the hard half, and keep it consistent without a distributed transaction.
+
+**In this chapter:** database per service · the distributed transaction problem · the saga pattern · event sourcing · the outbox
 
 ## 💡 **Each service owns its data. No service reads another service's database directly.**
 
@@ -10,7 +14,7 @@ This is the hardest rule to enforce — and the most important. Shared databases
 
 Every service has its own dedicated data store. Other services access data only through the owning service's API.
 
-```
+```text
 Order Service     → orders_db (PostgreSQL)
 User Service      → users_db (PostgreSQL)
 Product Service   → products_db (MongoDB — document model suits catalogue data)
@@ -36,7 +40,7 @@ In a monolith, you wrap multiple operations in a database transaction. They all 
 
 In microservices, a single business action spans multiple services, each with their own database. You cannot use a single transaction.
 
-```
+```text
 Place Order:
 1. Charge payment    (Payment Service  → payments_db)
 2. Reserve stock     (Inventory Service → inventory_db)
@@ -58,7 +62,7 @@ A saga breaks a distributed transaction into a sequence of local transactions. E
 
 No central coordinator. Services react to events and publish their own.
 
-```
+```text
 ORDER_PLACED
     ↓
 Payment Service → charges card → publishes PAYMENT_CHARGED

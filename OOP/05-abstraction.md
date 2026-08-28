@@ -1,8 +1,8 @@
-[← README](./README.md) | [← 04 Polymorphism](./04-polymorphism.md)
+# Abstraction {#ch-abstraction}
 
----
+> Expose what a thing does and hide how, and choose correctly between an abstract class and an interface.
 
-# 05 - Abstraction
+**In this chapter:** abstract classes · interfaces · the comparison that decides it · the template method pattern · layering
 
 ## 🎯 The Big Picture
 
@@ -10,7 +10,7 @@
 
 > **Analogy:** A car's steering wheel. You turn the wheel (simple interface), but behind it there's a complex system of hydraulics, gears, power steering fluid, and electronic sensors. You don't need to understand the internals to drive. Abstraction hides complexity behind a simple interface.
 
-```
+```text
   Driver's View                Under the Hood
 +-------------------+      +----------------------------+
 |                   |      |  Hydraulic pump            |
@@ -292,7 +292,7 @@ class ConsoleLogger extends BaseLogger {
 
 An abstract class defines the **skeleton** of an algorithm, and subclasses fill in the specific steps.
 
-```
+```text
 Abstract Class (DataProcessor)
 +--------------------------------+
 |  process() <-- template method |
@@ -379,7 +379,7 @@ class JSONProcessor extends DataProcessor<Record<string, unknown>> {
 
 Real applications use **multiple layers** of abstraction. Each layer hides the complexity of the layer below it.
 
-```
+```text
 Application Code (BusinessService)
         |
         v

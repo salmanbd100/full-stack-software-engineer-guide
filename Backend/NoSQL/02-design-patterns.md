@@ -1,4 +1,8 @@
-# Document Design Patterns
+# Document Design Patterns {#ch-document-design-patterns}
+
+> Decide what to embed and what to reference, because that choice is your schema.
+
+**In this chapter:** embed vs reference · the 16 MB limit · bucket, subset and computed patterns · schema smells · the decision rule
 
 ## 💡 Why Schema Design Matters in MongoDB
 

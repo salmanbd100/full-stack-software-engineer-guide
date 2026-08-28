@@ -1,4 +1,8 @@
-# Streams & Buffers
+# Streams and Buffers {#ch-streams-and-buffers}
+
+> Process a file larger than your memory, and handle backpressure instead of ignoring it.
+
+**In this chapter:** buffers · the four stream types · why `pipe()` is the wrong default · backpressure · transform streams
 
 ## 💡 Process Data You Can't Hold in Memory
 
@@ -98,7 +102,7 @@ await pipeline(
 
 A fast reader plus a slow writer means chunks pile up in memory — the exact problem streams were meant to solve.
 
-```
+```text
 read 100 MB/s  ──▶  [ buffer grows ]  ──▶  write 10 MB/s   🔴 memory climbs
 ```
 

@@ -1,4 +1,8 @@
-# API Gateway Pattern
+# The API Gateway Pattern {#ch-api-gateway-pattern}
+
+> Decide what belongs at the edge, and keep everything else out of it.
+
+**In this chapter:** what a gateway does · gateway vs load balancer · routing · the backend-for-frontend pattern · keeping it thin
 
 ## 💡 **An API gateway is the single entry point for all client traffic.**
 
@@ -44,7 +48,7 @@ Use a **load balancer** inside your cluster to spread traffic across instances o
 
 The gateway inspects the request path (and sometimes headers) to pick the upstream service.
 
-```
+```text
 Client: GET /api/orders/123
     ↓
 Gateway: path matches /api/orders/* → forward to order-service
@@ -124,7 +128,7 @@ A single gateway serving a web app, mobile app, and third-party API partners cre
 
 **BFF** creates one gateway per client type.
 
-```
+```text
 Web Browser      → Web BFF        → internal services
 Mobile App       → Mobile BFF     → internal services
 Partner API      → Partner BFF    → internal services

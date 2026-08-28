@@ -1,4 +1,8 @@
-# Design Facebook Newsfeed
+# Design a News Feed {#ch-design-facebook-newsfeed}
+
+> Rank a feed at read time on a candidate set, rather than sorting everything a user could see.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -30,7 +34,7 @@ Build the Newsfeed system that aggregates posts from a user's friends and pages,
 
 ### High-Level Diagram
 
-```
+```text
 User posts content
         │
         ▼
@@ -169,7 +173,7 @@ interface HideFeedEntryResponse {
 
 ### Ranking: EdgeRank Simplified
 
-```
+```text
 score = affinity × timeDecay × postTypeWeight
 
 affinity:      how often viewer interacts with this author (0–1)

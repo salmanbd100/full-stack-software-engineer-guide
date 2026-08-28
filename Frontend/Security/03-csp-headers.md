@@ -1,4 +1,8 @@
-# Content Security Policy (CSP)
+# Content Security Policy {#ch-content-security-policy}
+
+> Write a policy that survives a successful injection, and roll it out without breaking the site.
+
+**In this chapter:** how CSP works · the directives that matter · nonces for inline scripts · strict-dynamic · report-only rollout
 
 ## Overview
 
@@ -29,7 +33,7 @@ The server sends a `Content-Security-Policy` header. The browser enforces it on 
 
 A policy is a list of **directives**, each with a **source list**, separated by semicolons:
 
-```
+```text
 Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.example.com
 ```
 
@@ -144,7 +148,7 @@ const html = `
 
 Allowlisting domains is fragile — CDNs host many libraries, and one weak entry can be abused. Google's recommended approach is a **nonce + `'strict-dynamic'`** policy. You trust your top-level scripts by nonce; they're then trusted to load their own dependencies.
 
-```
+```text
 Content-Security-Policy:
   script-src 'nonce-{random}' 'strict-dynamic' https: 'unsafe-inline';
   object-src 'none';
@@ -191,7 +195,7 @@ app.post(
 
 **Rollout in three steps:**
 
-```
+```text
 1. Report-Only → watch violations, fix legit ones
         ↓
 2. Enforce on a few low-risk pages

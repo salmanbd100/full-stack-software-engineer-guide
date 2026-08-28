@@ -1,4 +1,8 @@
-# Performance Optimization
+# Frontend Performance at Scale {#ch-frontend-performance-at-scale}
+
+> Diagnose which Core Web Vital is failing, and apply the fix that actually moves it.
+
+**In this chapter:** LCP · INP, which replaced FID · CLS · code splitting · image optimisation
 
 ## 💡 **Concept**
 

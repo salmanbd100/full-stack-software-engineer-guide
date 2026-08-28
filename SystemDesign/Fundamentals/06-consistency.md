@@ -1,10 +1,8 @@
-# Consistency Models
+# Consistency Models {#ch-consistency-models}
 
-### 💡 **Concept**
+> Name the exact guarantee a system offers, and pick the weakest one that works.
 
-Consistency defines **when and how** a write becomes visible across a distributed system. Stronger models give correctness. Weaker models give speed and availability.
-
-You pick a model per operation, not per database.
+**In this chapter:** the spectrum · strong consistency · eventual · read-your-writes · causal · quorums · how consensus achieves strong
 
 ## The Spectrum
 
@@ -19,7 +17,7 @@ You pick a model per operation, not per database.
 
 Every read returns the most recent committed write. All clients see updates in the same order (linearizability).
 
-```
+```text
 Client A: write X = 1   ─▶  all nodes
 Client B: read X        ─▶  always returns 1
 ```
@@ -32,7 +30,7 @@ Client B: read X        ─▶  always returns 1
 
 Updates spread asynchronously. Replicas may briefly disagree, then converge.
 
-```
+```text
 Write X=1 to Node A  →  Node B: X=0 (stale)
                         Node C: X=0 (stale)
 ... after seconds ...   all nodes: X=1
@@ -72,7 +70,7 @@ class SessionConsistency {
 
 If A causes B (a reply to a comment), every node sees A before B. Independent events can appear in any order.
 
-```
+```text
 Comment posted    →  always seen first
 Reply to comment  →  always seen after
 Unrelated like    →  can appear anywhere
@@ -117,7 +115,7 @@ You can dial consistency on a per-request basis using quorum math.
 
 > **R + W > N** guarantees that reads see the latest write.
 
-```
+```text
 N = total replicas
 W = nodes that must ack a write
 R = nodes that must ack a read

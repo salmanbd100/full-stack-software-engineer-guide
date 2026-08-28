@@ -1,4 +1,8 @@
-# NoSQL Database Design
+# NoSQL Database Design {#ch-nosql-database-design}
+
+> Match the NoSQL family to the access pattern, instead of treating them as one thing.
+
+**In this chapter:** why NoSQL exists · document, key-value, column-family and graph · what each is good at · the comparison table
 
 ## 💡 Why NoSQL Exists
 
@@ -19,7 +23,7 @@ Pick NoSQL when you have high write volume, unpredictable schema, or simple acce
 
 **Quick decision flow:**
 
-```
+```text
 Traversing complex relationships? → Graph DB
 Flexible nested documents, rich queries? → Document DB
 Simple key lookups, sub-ms latency? → Key-Value Store

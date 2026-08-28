@@ -1,4 +1,8 @@
-# Security Headers
+# Security Headers {#ch-security-headers}
+
+> Set the six headers that close a whole class of attack, and say what each one prevents.
+
+**In this chapter:** HSTS · `nosniff` · `frame-ancestors` and clickjacking · `Referrer-Policy` · `Permissions-Policy` · helmet
 
 ## Overview
 

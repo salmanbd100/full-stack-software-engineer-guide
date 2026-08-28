@@ -1,4 +1,8 @@
-# Vertical Scaling
+# Vertical Scaling {#ch-vertical-scaling}
+
+> Recognise the cases where a bigger box is the correct, boring answer.
+
+**In this chapter:** when vertical beats horizontal · the hard limits · the cost curve · right-sizing first · when to stop
 
 ## 💡 **Concept**
 
@@ -38,7 +42,7 @@ In practice, cost becomes prohibitive long before you hit the technical limit.
 
 Doubling instance size roughly doubles cost — but doubling CPU does not double throughput for every workload. IO-bound services (most web apps) don't benefit from more CPUs past a saturation point.
 
-```
+```text
 Vertical scaling cost vs benefit:
   Small → Medium: strong throughput gain, reasonable cost
   Medium → Large: moderate gain, steep cost
@@ -83,7 +87,7 @@ function identifyBottleneck(metrics: InstanceMetrics): string {
 
 Databases are the most common use case for vertical scaling because write operations are hard to distribute.
 
-```
+```text
 Phase 1: db.t3.medium (2 vCPU, 4 GB)   → handles 0–5k req/day
 Phase 2: db.r6g.xlarge (4 vCPU, 32 GB) → handles 5k–50k req/day
 Phase 3: db.r6g.4xlarge (16 vCPU, 128 GB) → handles 50k–500k req/day

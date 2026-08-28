@@ -1,4 +1,8 @@
-# Module System
+# The Node.js Module System {#ch-node-module-system}
+
+> Work in a codebase where CommonJS and ES modules meet, without guessing which rules apply.
+
+**In this chapter:** the core difference · live bindings vs copies · the module cache · circular dependencies · interop · dynamic import
 
 ## 💡 Two Module Systems, One Runtime
 

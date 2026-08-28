@@ -1,4 +1,8 @@
-# Design Notification System
+# Design a Notification System {#ch-design-notification-system}
+
+> Fan out across push, email and SMS without sending anything twice.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -31,7 +35,7 @@ Build a system that delivers notifications across push (APNs/FCM), email, and SM
 
 ### High-Level Diagram
 
-```
+```text
 Producers (services)
         │
         ▼
@@ -192,7 +196,7 @@ Workers check the `notificationId` against Redis before sending. If found, skip 
 
 ### Provider Fallback
 
-```
+```text
 Push fails (APNs down)
     → retry on FCM (Android) or in-app (web socket)
 Email fails (primary SMTP)

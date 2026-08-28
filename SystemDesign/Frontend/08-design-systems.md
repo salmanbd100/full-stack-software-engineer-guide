@@ -1,4 +1,8 @@
-# Design Systems
+# Design Systems at Scale {#ch-design-systems-at-scale}
+
+> Ship components forty teams can adopt without freezing the design.
+
+**In this chapter:** the three layers · design tokens · the component library · atomic design · theming · versioning
 
 ## 💡 **Concept**
 
@@ -10,7 +14,7 @@ A design system is a single source of truth for UI: tokens (values) + components
 
 ## The Three Layers
 
-```
+```text
 Design Tokens       → raw values (color, spacing, typography)
     ↓
 Component Library   → React components built with tokens
@@ -227,7 +231,7 @@ export const useTheme = () => React.useContext(ThemeContext);
 
 Package the design system as an npm module. Follow semantic versioning strictly.
 
-```
+```text
 Patch (1.0.0 → 1.0.1)  — bug fixes, no API change
 Minor (1.0.0 → 1.1.0)  — new component, backward-compatible
 Major (1.0.0 → 2.0.0)  — breaking API change (rename prop, remove component)

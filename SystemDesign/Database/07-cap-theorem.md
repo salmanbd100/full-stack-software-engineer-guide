@@ -1,8 +1,8 @@
-# CAP Theorem — Database Perspective
+# CAP in Practice {#ch-cap-in-practice}
 
-> For the theoretical proof and general distributed systems context, see [Fundamentals/05-cap-theorem.md](../Fundamentals/05-cap-theorem.md). This file focuses on **which databases make which CAP trade-off and why**.
+> Place a real database on the CP/AP map and defend the placement.
 
----
+**In this chapter:** the practical summary · which databases are CP and which AP · choosing between them · the PACELC extension
 
 ## 💡 The Practical Summary
 
@@ -147,7 +147,7 @@ const strongRead = await db.send(new GetItemCommand({
 
 CAP only describes partition behavior. **PACELC** also captures the normal-operation trade-off:
 
-```
+```text
 If Partition → choose A or C
 Else          → choose L (latency) or C (consistency)
 ```

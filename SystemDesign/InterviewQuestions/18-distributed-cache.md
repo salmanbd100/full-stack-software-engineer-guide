@@ -1,4 +1,8 @@
-# Design Distributed Cache
+# Design a Distributed Cache {#ch-design-distributed-cache}
+
+> Route a key to a node with consistent hashing, and detect a dead node fast enough to matter.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Databases become bottlenecks under heavy read traffic. A distributed cache sits 
 
 ### High-Level Diagram
 
-```
+```text
 Application Servers (cache clients)
         │
         │  consistent-hash(key) → node ID

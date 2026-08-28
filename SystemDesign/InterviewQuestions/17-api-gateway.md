@@ -1,4 +1,8 @@
-# Design API Gateway
+# Design an API Gateway {#ch-design-api-gateway}
+
+> Put auth, routing and rate limiting at the edge, and keep everything else out of it.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Microservice architectures expose dozens of internal services. Clients should no
 
 ### High-Level Diagram
 
-```
+```text
 Clients (mobile, browser, third-party)
         │  HTTPS
         ▼
@@ -59,7 +63,7 @@ Each gateway instance is stateless. Auth validation uses a shared JWT public key
 
 Every request passes through these middleware stages in order:
 
-```
+```text
 1. TLS Termination      → decrypt HTTPS, forward plain HTTP internally
 2. Auth Middleware      → verify JWT signature using cached public key
 3. Rate Limiter         → check Redis sliding window counter

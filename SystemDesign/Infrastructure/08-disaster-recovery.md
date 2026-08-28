@@ -1,4 +1,8 @@
-# Disaster Recovery
+# Disaster Recovery {#ch-disaster-recovery}
+
+> Put numbers on RTO and RPO, then buy the strategy those numbers justify.
+
+**In this chapter:** RTO and RPO · the four DR strategies · choosing one · backup practices · chaos engineering
 
 ## 💡 **Concept**
 
@@ -21,7 +25,7 @@ Lower RTO/RPO = higher cost and complexity.
 
 ## The Four DR Strategies
 
-```
+```text
 Cost and complexity →
 Backup & Restore → Pilot Light → Warm Standby → Active-Active
 ←  Higher RTO/RPO                               Lower RTO/RPO →
@@ -65,7 +69,7 @@ const backupStrategy: BackupConfig = {
 
 Core infrastructure runs in DR region at minimum capacity. Data replicates continuously. Scale up on failover.
 
-```
+```text
 Primary region:        DR region (pilot light):
 Full EC2 ASG           0 running instances (but AMI ready)
 RDS primary       →    RDS read replica (will be promoted)
@@ -107,7 +111,7 @@ const warmStandby: WarmStandbyConfig = {
 
 Both regions serve production traffic simultaneously. Route 53 latency routing splits traffic. Each region has its own primary DB; data replicates bidirectionally.
 
-```
+```text
 Route 53 (latency routing)
 ├── us-east-1 ALB → ECS → Aurora Global Primary
 └── eu-west-1 ALB → ECS → Aurora Global Secondary

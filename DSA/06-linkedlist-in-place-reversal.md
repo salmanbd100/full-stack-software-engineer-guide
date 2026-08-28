@@ -1,4 +1,8 @@
-# In-place Reversal of LinkedList Pattern
+# In-Place Linked List Reversal {#ch-in-place-linked-list-reversal}
+
+> Reverse a list or a section of one by rewiring pointers, without allocating anything.
+
+**In this chapter:** the three-pointer dance · reversing a whole list · reversing a sublist · reversing in groups of k · complexity
 
 ## What is In-Place Reversal?
 
@@ -10,7 +14,7 @@ Imagine you have a chain of paper clips, each connected to the next one. Now you
 
 Think of a **train with cars connected by couplers**:
 
-```
+```text
 Original Train (going East →):
 [Engine] → [Car-A] → [Car-B] → [Car-C] → [Caboose] → null
 
@@ -63,14 +67,14 @@ Look for this pattern when you see:
 ### Understanding the Pointer Manipulation
 
 **Original Linked List:**
-```
+```text
 Node:     [1]  →  [2]  →  [3]  →  [4]  →  null
            ↑       ↑       ↑       ↑
          head    next    next    next
 ```
 
 **What we want (Reversed):**
-```
+```text
 Node:   null  ←  [1]  ←  [2]  ←  [3]  ←  [4]
                                           ↑
                                        new head
@@ -87,7 +91,7 @@ Node:   null  ←  [1]  ←  [2]  ←  [3]  ←  [4]
 ### ASCII Step-by-Step for [1 → 2 → 3 → null]
 
 **Initial State:**
-```
+```text
 prev = null,  current = 1
                 ↓
       null     [1] → [2] → [3] → null
@@ -96,7 +100,7 @@ prev = null,  current = 1
 ```
 
 **Step 1: Processing node 1**
-```
+```text
 Action 1: Save next node
 nextTemp = current.next = [2] → [3] → null
 
@@ -115,7 +119,7 @@ Diagram:
 ```
 
 **Step 2: Processing node 2**
-```
+```text
 Action 1: Save next node
 nextTemp = current.next = [3] → null
 
@@ -134,7 +138,7 @@ Diagram:
 ```
 
 **Step 3: Processing node 3**
-```
+```text
 Action 1: Save next node
 nextTemp = current.next = null
 
@@ -153,7 +157,7 @@ Diagram:
 ```
 
 **Final State:**
-```
+```text
 current = null (loop ends)
 prev = [3] (this is the new head!)
 
@@ -167,7 +171,7 @@ null ← [1] ← [2] ← [3]
 
 ### Visual Summary of the Algorithm
 
-```
+```text
 Before:  1 → 2 → 3 → 4 → 5 → null
          ↑
        head
@@ -315,7 +319,7 @@ let current: ListNode | null = head;
 - `current = head`: Start processing from the first node
 
 **Visualization:**
-```
+```text
 Input: [1] → [2] → [3] → null
 
 Initial setup:
@@ -344,7 +348,7 @@ const nextTemp: ListNode | null = current.next;
 **CRITICAL:** This is the most important line!
 
 **Why save it?**
-```
+```text
 If we don't save it:
 current = [2] → [3] → null
           ↓
@@ -356,7 +360,7 @@ nextTemp = [3] → null  ✓ (safe!)
 ```
 
 **Example:**
-```
+```text
 Before saving:
 current = [2] → [3] → [4] → null
 
@@ -378,7 +382,7 @@ current.next = prev;
 - Node now points to the previous node instead of the next node
 
 **Visual:**
-```
+```text
 Before:  prev ← [1]     [2] → [3] → null
                          ↑
                       current
@@ -391,7 +395,7 @@ After:   prev ← [1] ← [2]     [3] → null
 ```
 
 **Step-by-step for each iteration:**
-```
+```text
 Iteration 1:
 prev = null, current = [1]
 current.next = null  (1 now points to null)
@@ -419,7 +423,7 @@ current = nextTemp;
 2. `current = nextTemp`: Move to the next node to process
 
 **Visual:**
-```
+```text
 Before moving:
       null ← [1] ← [2]     [3] → [4] → null
                     ↑       ↑
@@ -436,7 +440,7 @@ After moving (prev = current; current = nextTemp):
 
 **Input:** `[1, 2, 3]`
 
-```
+```text
 ═══════════════════════════════════════════════════════════
 ITERATION 1:
 ───────────────────────────────────────────────────────────
@@ -519,7 +523,7 @@ return prev;
 - The last node we processed is now the FIRST node (new head!)
 
 **Final state:**
-```
+```text
 current = null (can't return this!)
 prev = [3] ← This is the new head!
 
@@ -533,7 +537,7 @@ null ← [1] ← [2] ← [3]
 
 **Visual Step-by-Step** for list `1 → 2 → 3 → null`:
 
-```
+```text
 Initial:    prev = null, current = 1 → 2 → 3 → null
 
 Step 1:
@@ -692,7 +696,7 @@ console.log(listToArray(result4));  // Output: [1, 2, 5, 4, 3]
 
 **Visual Step-by-Step** for reversing positions 2-4 in `1 → 2 → 3 → 4 → 5`:
 
-```
+```text
 Initial: 1 → 2 → 3 → 4 → 5
          ^
         prev (after moving left-1 times)

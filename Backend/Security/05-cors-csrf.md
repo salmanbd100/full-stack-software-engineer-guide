@@ -1,4 +1,8 @@
-# CORS & CSRF
+# CORS and CSRF {#ch-cors-and-csrf}
+
+> Configure CORS without opening a hole, and know why it is not a CSRF defence.
+
+**In this chapter:** the same-origin policy · preflight requests · configuring CORS safely · how CSRF works · `SameSite` and tokens
 
 ## Overview
 
@@ -26,7 +30,7 @@ These two get confused in almost every interview. They are not related, and one 
 
 An **origin** is the triple: scheme + host + port. All three must match.
 
-```
+```text
 https://app.example.com/dashboard   ← the page
 
 https://app.example.com/api/users   ✅ same origin
@@ -47,7 +51,7 @@ A request stays "simple" only with `GET`, `HEAD`, or `POST`, a basic `Content-Ty
 
 **Everything else triggers a preflight:**
 
-```
+```text
 Browser                                    Server (api.example.com)
    │                                              │
    │  OPTIONS /users                              │
@@ -197,7 +201,7 @@ app.post("/transfer", doubleCsrfProtection, handleTransfer);
 
 ### The double-submit pattern, by hand
 
-```
+```text
 Server → sets cookie:  csrfToken=abc123
 Client → reads cookie, sends header:  X-CSRF-Token: abc123
 Server → cookie === header ?   ✅ allow    ❌ reject
@@ -234,7 +238,7 @@ export function checkCsrf(req: Request, res: Response, next: NextFunction): void
 
 This is the question interviewers use to separate memorization from understanding.
 
-```
+```text
 CSRF attack:  evil.com  ──POST /transfer (with cookies)──▶  bank.com
                                                               │
                                             money already moved ✅ for attacker

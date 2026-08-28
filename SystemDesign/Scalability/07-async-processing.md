@@ -1,4 +1,8 @@
-# Asynchronous Processing
+# Asynchronous Processing {#ch-asynchronous-processing}
+
+> Take work out of the request path so the user is not waiting on it.
+
+**In this chapter:** sync vs async · task queue architecture · idempotent workers · sagas · backpressure · rate-limiting workers
 
 ## 💡 **Concept**
 
@@ -23,7 +27,7 @@ Async processing moves slow or non-critical work out of the user-facing request 
 
 ## Task Queue Architecture
 
-```
+```text
 User Request
   │
   ▼

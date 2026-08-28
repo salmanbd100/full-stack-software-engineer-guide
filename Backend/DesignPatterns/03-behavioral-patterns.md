@@ -1,4 +1,8 @@
-# Behavioral Patterns
+# Behavioural Patterns {#ch-behavioural-patterns}
+
+> Move branching logic out of a growing conditional and into something you can extend.
+
+**In this chapter:** strategy · observer · command · state · chain of responsibility
 
 ## Overview
 

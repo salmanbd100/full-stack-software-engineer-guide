@@ -1,4 +1,8 @@
-# Design Parking Lot System
+# Design a Parking Lot {#ch-design-parking-lot}
+
+> Model the domain in classes with single responsibilities — this is an OOP round wearing a system design hat.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ A parking lot must track available spots across multiple floors, assign the near
 
 ### High-Level Diagram
 
-```
+```text
 Entry Gate Kiosk          Exit Gate Kiosk
       │                         │
       ▼                         ▼

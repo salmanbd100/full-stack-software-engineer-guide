@@ -1,4 +1,8 @@
-# Clustering & Scaling
+# Clustering and Scaling {#ch-clustering-and-scaling}
+
+> Use every core on the box, and know what breaks the moment there is more than one process.
+
+**In this chapter:** the cluster module · what forking breaks — sessions, caches, timers · zero-downtime restarts · PM2 · cluster vs container replicas
 
 ## 💡 One Process Uses One Core
 
@@ -6,7 +10,7 @@ A Node process runs your JavaScript on a single thread. On an 8-core machine, a 
 
 **Clustering** forks one worker per core. They all share a listening port, so the OS spreads incoming connections across them.
 
-```
+```text
                   ┌── worker (core 1)
 Port 3000 ────────┼── worker (core 2)
   primary         ├── worker (core 3)
@@ -160,7 +164,7 @@ If you already run Kubernetes, clustering is often redundant — the orchestrato
 
 Clustering ends at the machine boundary. Past that you need **stateless** application servers.
 
-```
+```text
         ┌── load balancer ──┐
         ▼         ▼         ▼
      server    server    server        ← no local state

@@ -1,4 +1,8 @@
-# Design Uber
+# Design Uber {#ch-design-uber}
+
+> Index drivers geospatially and match a rider in under a second at city scale.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Uber connects riders with nearby drivers in real-time. The system must track mil
 
 ### High-Level Diagram
 
-```
+```text
 Driver App              Rider App
     │  WebSocket              │  WebSocket / HTTP
     │                         │

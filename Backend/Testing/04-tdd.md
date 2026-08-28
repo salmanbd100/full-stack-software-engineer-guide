@@ -1,4 +1,8 @@
-# Test-Driven Development (TDD)
+# TDD in Practice {#ch-tdd-in-practice}
+
+> Use red–green–refactor where it pays, and recognise the work where it does not.
+
+**In this chapter:** the cycle · a worked example · why it works · the common mistakes · where it fits and where it does not · TDD for a bug fix
 
 ## 💡 What Is TDD?
 
@@ -10,7 +14,7 @@ Test-Driven Development is a workflow: **write the test before the code**. You w
 
 ## The Red-Green-Refactor Cycle
 
-```
+```text
    ┌──────────┐
    │   RED    │ Write a failing test
    └────┬─────┘

@@ -1,8 +1,8 @@
-# Database Consistency Patterns
+# Consistency Patterns {#ch-consistency-patterns}
 
-> For general distributed consistency theory (linearizability, causal consistency, etc.), see [Fundamentals/06-consistency.md](../Fundamentals/06-consistency.md). This file covers **how storage systems implement consistency** — replication strategies, consistency levels, and session guarantees.
+> Pick the weakest guarantee the feature can live with, and name it precisely.
 
----
+**In this chapter:** replication architectures · quorum reads and writes · session guarantees · strong vs eventual · the common mistakes
 
 ## 💡 The Core Question
 
@@ -16,7 +16,7 @@ When a client writes data, which replica becomes the source of truth? When does 
 
 One node — the primary or leader — accepts all writes. Other nodes replicate from it.
 
-```
+```text
 Client → Primary (writes)
          ↓ replicate
        Replica A, Replica B (reads)
@@ -56,7 +56,7 @@ Multiple nodes accept writes. Conflicts happen when two leaders accept conflicti
 
 Any node accepts any write. Cassandra and Riak use this model. Consistency is controlled by quorum.
 
-```
+```text
 Write → Node A (ack), Node B (ack), Node C (async)
 Read  → reads from Node A + Node C, returns latest
 ```
@@ -72,7 +72,7 @@ Leaderless systems use **quorum** to trade off consistency vs latency. For a clu
 
 **Strong consistency condition:** `W + R > N`
 
-```
+```text
 N=3 nodes, W=2, R=2 → W+R=4 > 3 → strongly consistent
 N=3 nodes, W=1, R=1 → W+R=2 < 3 → eventual consistency
 ```

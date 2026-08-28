@@ -1,8 +1,8 @@
-# Encapsulation
+# Encapsulation {#ch-encapsulation}
 
-[← README](./README.md) | [← 01 OOP Fundamentals](./01-oop-fundamentals.md)
+> Hide state behind an interface so a caller cannot put the object into an invalid state.
 
----
+**In this chapter:** what encapsulation buys you · `public`, `private` and `protected` · `#private` fields · getters and setters · a worked before and after
 
 ## Understanding Encapsulation
 
@@ -21,7 +21,7 @@ Encapsulation is one of the four pillars of Object-Oriented Programming. It is t
 
 Think of an **ATM machine**:
 
-```
+```text
 +-----------------------------------------------+
 |                  ATM Machine                   |
 |                                                |
@@ -74,7 +74,7 @@ TypeScript provides four levels of access control:
 
 ### Access Modifier Scope Diagram
 
-```
+```text
 +------------------------------------------------------+
 |  OUTSIDE CODE (other classes, functions, modules)     |
 |                                                       |
@@ -191,7 +191,7 @@ Getters and setters let you define **computed properties** and **validation logi
 
 **How They Work:**
 
-```
+```text
 obj.property        →  calls the getter (get property())
 obj.property = val  →  calls the setter (set property(val))
 ```

@@ -1,4 +1,8 @@
-# Rendering Strategies
+# Rendering Strategies {#ch-rendering-strategies}
+
+> Choose a rendering strategy per route and defend it on TTFB, SEO and cost.
+
+**In this chapter:** CSR · SSR · SSG · ISR · the decision matrix · what each costs the server
 
 ## 💡 **Concept**
 
@@ -105,7 +109,7 @@ export async function getStaticProps() {
 ```
 
 **How ISR works:**
-```
+```text
 1. First request → serve stale static page
 2. Background → server re-generates the page with fresh data
 3. Next request → serve the updated page
@@ -116,7 +120,7 @@ export async function getStaticProps() {
 
 ## Decision Matrix
 
-```
+```text
 Page type                | Strategy     | Why
 -------------------------|--------------|-----------------------------
 Marketing / landing      | SSG          | Static, best perf + SEO

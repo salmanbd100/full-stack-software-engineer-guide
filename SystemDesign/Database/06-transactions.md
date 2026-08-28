@@ -1,8 +1,8 @@
-# Database Transactions
+# Database Transactions {#ch-database-transactions}
 
-> For distributed systems theory, see Fundamentals/. This file covers ACID, isolation levels, and 2PC for database design interviews.
+> Pick an isolation level knowing which anomaly it still allows, and what distributed changes.
 
----
+**In this chapter:** the ACID properties · the isolation levels · two-phase commit · the decision guide · an answer template for the round
 
 ## 💡 What is a Transaction?
 
@@ -10,7 +10,7 @@ A transaction groups multiple operations into one atomic unit. Either all operat
 
 **Classic example — bank transfer:**
 
-```
+```text
 BEGIN
   Deduct $100 from Alice
   Add $100 to Bob
@@ -201,7 +201,7 @@ async function serializableWithRetry<T>(
 
 2PC coordinates a transaction across multiple databases or services.
 
-```
+```text
 Phase 1 — Prepare:
   Coordinator → Participant A: "Can you commit?"
   Coordinator → Participant B: "Can you commit?"

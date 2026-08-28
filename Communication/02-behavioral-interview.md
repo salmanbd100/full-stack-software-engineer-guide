@@ -1,6 +1,8 @@
-# Behavioral Interview
+# Behavioural Answer Delivery {#ch-behavioural-answer-delivery}
 
-Master the STAR method and behavioral storytelling for senior frontend engineering interviews.
+> Deliver a STAR answer in two to three minutes without narrating the whole quarter.
+
+**In this chapter:** the method · worked story examples · questions by category · a story-bank template · delivery rules · the common mistakes
 
 ## The STAR Method
 
@@ -19,7 +21,7 @@ Master the STAR method and behavioral storytelling for senior frontend engineeri
 
 **Question:** "Tell me about a time you led a project."
 
-```
+```text
 SITUATION: Our dashboard had 4–5 second load times, causing a 30% bounce
 rate. Customer complaints increased 50% over two months.
 
@@ -47,7 +49,7 @@ I created a performance playbook that became the standard for all projects.
 
 **Question:** "Tell me about a time you failed."
 
-```
+```text
 SITUATION: I pushed a React component update to production that broke the
 checkout flow on Safari. We lost ~$15K in revenue over three hours.
 
@@ -78,7 +80,7 @@ be automated, not assumed — failures are systems problems, not just bugs.
 
 **Question:** "Tell me about a time you disagreed with a teammate."
 
-```
+```text
 SITUATION: Our backend engineer wanted to keep existing REST endpoints with
 multiple round trips. I proposed a single GraphQL endpoint to reduce network
 requests and improve mobile performance.
@@ -139,7 +141,7 @@ empathy, and compromise — not authority.
 
 Prepare 12–15 stories using this format:
 
-```markdown
+```text
 ## Story: [Title]
 Tags: [Leadership / Technical / Conflict / Failure / Innovation]
 

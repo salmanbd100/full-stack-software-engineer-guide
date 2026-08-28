@@ -1,4 +1,8 @@
-# Offline-First Architecture
+# Offline-First Architecture {#ch-offline-first-architecture}
+
+> Design for the train tunnel, and reconcile the writes when the connection returns.
+
+**In this chapter:** service workers · caching strategies · IndexedDB for data · background sync · conflict resolution
 
 ## 💡 **Concept**
 

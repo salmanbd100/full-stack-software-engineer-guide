@@ -1,8 +1,8 @@
-# Encryption
+# Encryption {#ch-encryption}
 
-Encryption protects data from people who shouldn't see it — even if they get the raw bytes. This doc covers the parts that come up in senior interviews: symmetric vs asymmetric, TLS, AES-GCM at rest, KMS and envelope encryption, hashing vs encryption, certificates, and key rotation.
+> Encrypt in transit and at rest, and manage the keys as carefully as the data.
 
----
+**In this chapter:** symmetric vs asymmetric · TLS · AES-GCM at rest · KMS and envelope encryption · hashing vs encryption · key rotation
 
 ## 1. Symmetric vs Asymmetric
 
@@ -25,7 +25,7 @@ Encryption protects data from people who shouldn't see it — even if they get t
 
 TLS and most systems use _both_. Asymmetric crypto exchanges a one-time symmetric key. Then symmetric encryption handles the actual data.
 
-```
+```text
 1. Alice and Bob exchange a session key using RSA/ECDH (slow, one-time)
 2. They encrypt the conversation with AES-GCM (fast, bulk)
 ```
@@ -42,7 +42,7 @@ Every request between browser, mobile app, and server should go over TLS. Withou
 
 **How a TLS handshake works:**
 
-```
+```text
 Client → Server: ClientHello (supported ciphers)
 Server → Client: ServerHello + certificate (signed public key)
 Client: verifies certificate against trusted CAs
@@ -142,7 +142,7 @@ The hardest part of encryption is not the algorithm — it's **key management**.
 
 **Envelope encryption pattern:**
 
-```
+```text
 1. App asks KMS for a Data Encryption Key (DEK)
 2. KMS returns:
    - plaintext DEK (use to encrypt the data)
@@ -279,7 +279,7 @@ When your browser connects to `bank.com`, the server sends a certificate. The ce
 
 **Chain of trust:**
 
-```
+```text
 Root CA (in browser/OS trust store)
   └─ Intermediate CA (signed by root)
        └─ Server cert for bank.com (signed by intermediate)

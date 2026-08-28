@@ -1,4 +1,8 @@
-# Service Communication
+# Service Communication {#ch-service-communication}
+
+> Choose synchronous or event-driven per call, on what the caller actually needs back.
+
+**In this chapter:** synchronous calls · asynchronous events · the decision table · choreography vs orchestration
 
 ## 💡 **Sync communication waits for a response. Async communication does not.**
 
@@ -92,7 +96,7 @@ Both handle multi-step workflows across services. They differ in **who controls 
 
 Each service reacts to events. Services are fully decoupled. No single service knows the full workflow.
 
-```
+```text
 Checkout publishes ORDER_CONFIRMED
     ↓ (async)
 Inventory reacts → decrements stock → publishes STOCK_RESERVED
@@ -154,7 +158,7 @@ class OrderWorkflow {
 
 **❌ Long synchronous call chains**
 
-```
+```text
 API → Order Svc → Inventory Svc → Warehouse Svc → Shipping Svc
 ```
 

@@ -1,4 +1,8 @@
-# Frontend System Design Interview Strategy
+# Frontend System Design Strategy {#ch-frontend-system-design-strategy}
+
+> Drive a frontend design round, which is scored differently from the backend one.
+
+**In this chapter:** the 60-minute framework · what to ask first · the five mistakes that fail the round · the problems that come up
 
 ## 💡 **Concept**
 
@@ -10,7 +14,7 @@ Frontend system design interviews test architectural thinking at scale — not f
 
 ## The 60-Minute Framework
 
-```
+```text
 1. Requirements (10 min)   — ask before drawing anything
 2. High-Level Architecture (15 min) — rendering, state, API strategy
 3. Component Design (10 min) — hierarchy, data flow, reuse

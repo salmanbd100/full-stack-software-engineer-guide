@@ -1,4 +1,8 @@
-# Mocking & Stubbing
+# Mocking and Stubbing {#ch-mocking-and-stubbing}
+
+> Replace a dependency without writing a test that only proves your mock works.
+
+**In this chapter:** the test-double vocabulary · mocks in practice · why injection beats mocking · mocking time and HTTP · when not to mock at all
 
 ## 💡 Why Replace Real Dependencies?
 

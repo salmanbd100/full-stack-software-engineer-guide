@@ -1,6 +1,8 @@
-# Load Balancing as a Scaling Lever
+# Load Balancing as a Scaling Lever {#ch-load-balancing-as-a-scaling-lever}
 
-> For algorithm deep dive, health check configuration, and Layer 4 vs Layer 7 details, see [BuildingBlocks: Load Balancing](../BuildingBlocks/01-load-balancing.md).
+> Use the balancer as part of the scaling story, not just as a traffic splitter.
+
+**In this chapter:** how it enables scale · the algorithm cheat sheet · auto-scaling integration · global load balancing
 
 ## 💡 **Concept**
 
@@ -12,7 +14,7 @@ A load balancer is what makes horizontal scaling work. It distributes incoming t
 
 ## How LB Enables Scale
 
-```
+```text
 Without LB:              With LB:
                               Client
 Client → Server 1              │
@@ -46,7 +48,7 @@ The load balancer:
 
 The load balancer and auto-scaler work together:
 
-```
+```text
 Auto-scaler launches new instance
   │
   ▼
@@ -77,7 +79,7 @@ Instance terminates after drain completes
 
 For multi-region scale, a global load balancer sits in front of regional load balancers:
 
-```
+```text
 User (APAC)
   │
   ▼

@@ -1,8 +1,8 @@
-[← README](./README.md) | [← 02 Encapsulation](./02-encapsulation.md) | [Next: 04 Polymorphism →](./04-polymorphism.md)
+# Inheritance {#ch-inheritance}
 
----
+> Extend a class without creating a hierarchy nobody can change later.
 
-# 03 - Inheritance
+**In this chapter:** `extends` · `super` · overriding a method · constructor chaining · when the hierarchy has gone too deep
 
 ## 🎯 Overview
 
@@ -14,7 +14,7 @@ Inheritance is the OOP mechanism that lets a class **derive from another class**
 
 Think of vehicles:
 
-```
+```text
         Vehicle
         (wheels, engine, move())
        /                \
@@ -46,7 +46,7 @@ Inheritance establishes an **"is-a" relationship** between classes.
 
 **How It Works:**
 
-```
+```text
 Parent Class
 +-- Properties: shared state
 +-- Methods: shared behavior
@@ -169,7 +169,7 @@ A child class can **replace** a parent method by declaring a method with the sam
 
 **How It Works:**
 
-```
+```text
 Parent.greet() --> "Hello from Parent"
      | child overrides
 Child.greet()  --> "Hello from Child"
@@ -223,7 +223,7 @@ When a class hierarchy has multiple levels, constructors flow **top-down** from 
 
 **Flow:**
 
-```
+```text
 new ElectricCar("Tesla", 2024, 4, 100)
     |
     v
@@ -298,7 +298,7 @@ tesla.describe();
 
 ## 💡 **Inheritance Tree Diagram**
 
-```
+```text
             Animal
            /      \
          Dog      Cat
@@ -569,7 +569,7 @@ Avoid inheritance when:
 
 ### The Fragile Base Class Problem
 
-```
+```text
   BaseService          <-- Change something here...
       |
   AuthService          <-- ...breaks this...

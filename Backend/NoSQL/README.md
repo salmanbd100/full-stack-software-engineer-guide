@@ -30,7 +30,7 @@ That inversion is the whole module. Schema design, indexing, and aggregation all
 
 ## How the Pieces Fit
 
-```
+```text
    How will this be read?          ← start here, always
              │
              ▼

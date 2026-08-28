@@ -1,4 +1,8 @@
-# Authentication and Authorization
+# Frontend Authentication {#ch-frontend-authentication}
+
+> Decide where the token lives, and what the client may safely be told.
+
+**In this chapter:** JWT vs session cookies · the auth flow · silent refresh · auth context · route guards · role-based access
 
 ## 💡 **Concept**
 

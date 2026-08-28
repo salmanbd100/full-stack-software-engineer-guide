@@ -1,4 +1,8 @@
-# Event Loop & Async Programming
+# The Node.js Event Loop {#ch-node-event-loop}
+
+> Explain how one thread serves thousands of connections, and what stalls it.
+
+**In this chapter:** the phases of the loop · microtasks vs macrotasks · `setImmediate` vs `setTimeout` · what blocking looks like in production
 
 ## 💡 One Thread, Thousands of Connections
 
@@ -14,7 +18,7 @@ When you read a file or query a database, Node hands the work to the operating s
 
 Each turn of the loop runs six phases in order. Each phase has its own queue of callbacks.
 
-```
+```text
    ┌─────────────▶ timers            setTimeout, setInterval
    │                 │
    │                 ▼

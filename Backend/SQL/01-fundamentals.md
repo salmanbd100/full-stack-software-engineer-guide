@@ -1,4 +1,8 @@
-# SQL Fundamentals
+# SQL Fundamentals {#ch-sql-fundamentals}
+
+> Pick the right join and know what the engine does with a `GROUP BY` before you write it.
+
+**In this chapter:** CRUD · the joins · `GROUP BY` and `HAVING` · subqueries vs CTEs · `EXISTS` vs `IN` · window functions
 
 ## 💡 **What Is SQL**
 
@@ -104,7 +108,7 @@ LEFT JOIN orders o ON o.user_id = u.id AND o.status = 'paid';
 
 **Logical execution order:**
 
-```
+```text
 FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT
 ```
 

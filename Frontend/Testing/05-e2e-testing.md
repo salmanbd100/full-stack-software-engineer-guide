@@ -1,4 +1,8 @@
-# End-to-End (E2E) Testing
+# End-to-End Testing {#ch-end-to-end-testing}
+
+> Write the handful of browser tests worth their runtime, and keep them from going flaky.
+
+**In this chapter:** when E2E earns its cost · Playwright vs Cypress · a user flow · selector strategy · reusing auth state · running in CI
 
 ## Overview
 

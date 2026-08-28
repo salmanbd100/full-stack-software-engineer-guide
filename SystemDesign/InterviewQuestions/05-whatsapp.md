@@ -1,4 +1,8 @@
-# Design WhatsApp
+# Design WhatsApp {#ch-design-whatsapp}
+
+> Deliver a message exactly once to a device that may be offline, and prove it was delivered.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -30,7 +34,7 @@ Build a messaging system that delivers text and media messages with end-to-end e
 
 ### High-Level Diagram
 
-```
+```text
 Client A (mobile)                Client B (mobile)
     │                                    │
     │  WebSocket (persistent)            │ WebSocket
@@ -180,7 +184,7 @@ interface MessageHistoryResponse {
 
 ### Offline Message Delivery
 
-```
+```text
 Recipient offline?
     │
     ├── Store message in Offline Queue (Redis, TTL 30 days)

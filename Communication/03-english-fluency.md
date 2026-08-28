@@ -1,6 +1,8 @@
-# English Fluency for Technical Interviews
+# English Fluency for Interviews {#ch-english-fluency}
 
-Build the English fluency needed for senior-level technical interviews at international companies.
+> Fix the handful of grammar and fluency habits that most affect how a technical answer lands.
+
+**In this chapter:** the grammar mistakes that recur · speaking fluency · technical vocabulary · professional phrasing · daily practice
 
 ## Grammar: Most Common Interview Mistakes
 
@@ -39,7 +41,7 @@ Use these when comparing approaches or discussing alternatives.
 > "If I had known about this pattern, I would have used it from the start."
 
 **Interview application:**
-```
+```text
 "If we chose Approach A, we would get better performance, but if we
 chose Approach B, we would have simpler code and faster delivery."
 ```
@@ -143,14 +145,14 @@ Practice sentences:
 
 ### Handling Questions You Don't Know
 
-```
+```text
 "I'm not deeply familiar with [X], but based on what I know, I'd say [reasoning].
 I'd want to confirm that by [checking docs / testing / researching]."
 ```
 
 ### Buying Time to Think
 
-```
+```text
 "That's a good question. Let me think about that for a moment..."
 "Let me approach this systematically..."
 "Give me a second to organize my thoughts..."
@@ -158,7 +160,7 @@ I'd want to confirm that by [checking docs / testing / researching]."
 
 ### Asking for Clarification
 
-```
+```text
 "Just to make sure I understand — you're asking about [paraphrase]?"
 "Could you elaborate on [specific part]?"
 "When you say [term], do you mean [interpretation A] or [interpretation B]?"
@@ -166,7 +168,7 @@ I'd want to confirm that by [checking docs / testing / researching]."
 
 ### Correcting Yourself
 
-```
+```text
 "Actually, let me rephrase that..."
 "To be more precise..."
 "I should clarify — what I meant was..."

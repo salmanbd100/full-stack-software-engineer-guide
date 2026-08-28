@@ -1,4 +1,8 @@
-# Real-Time Features
+# Frontend Real-Time Features {#ch-frontend-real-time-features}
+
+> Decide what "live" actually means for a feature before reaching for a socket.
+
+**In this chapter:** WebSocket vs SSE vs polling · choosing the protocol · scaling considerations · reconnection and missed messages
 
 ## 💡 **Concept**
 
@@ -137,7 +141,7 @@ function useLiveFeed() {
 
 ## Choosing the Right Protocol
 
-```
+```text
 Need bidirectional? (client sends to server)
   YES → WebSocket
   NO  →
@@ -158,7 +162,7 @@ Need bidirectional? (client sends to server)
 
 WebSocket connections are stateful — every connection must reach the same server instance.
 
-```
+```text
 Client A ──┐
 Client B ──┤→ Load Balancer → Server 1 ──┐
 Client C ──┘                              ├→ Redis Pub/Sub → Server 2 → Client D

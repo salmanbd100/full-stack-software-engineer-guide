@@ -1,4 +1,8 @@
-# API Documentation
+# API Documentation {#ch-api-documentation}
+
+> Keep the docs true by generating them from the thing that is already the contract.
+
+**In this chapter:** what documentation must contain · OpenAPI · code-first vs spec-first · one source of truth · catching drift in CI
 
 ## Overview
 
@@ -37,7 +41,7 @@ Ranked by how often its absence causes a support ticket:
 
 ❌ **Useless:**
 
-```
+```text
 GET /users — returns users.
 ```
 
@@ -230,7 +234,7 @@ it("GET /orders/:id matches its documented 200 schema", async () => {
 
 A changelog aimed at consumers, not a git log.
 
-```markdown
+```text
 ## 2026-08-01 — v2.3.0
 
 ### Added

@@ -1,6 +1,8 @@
-# Query Optimization
+# Database Query Optimisation {#ch-database-query-optimisation}
 
----
+> Take a slow query and find the reason, rather than adding an index and hoping.
+
+**In this chapter:** the optimisation loop · reading `EXPLAIN ANALYZE` · indexes · the N+1 problem · connection pooling · query rewrites
 
 ## 💡 The Optimization Loop
 

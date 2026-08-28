@@ -1,4 +1,8 @@
-# Performance
+# Node.js Performance {#ch-node-performance}
+
+> Find the actual bottleneck before changing anything, because it is rarely where you expect.
+
+**In this chapter:** profiling and flame graphs · blocking the loop · the database, where the time usually is · caching · memory leaks · HTTP-level wins
 
 ## 💡 Measure, Then Fix
 
@@ -130,7 +134,7 @@ Also: select only the columns you need, paginate with a cursor rather than `OFFS
 
 ## Caching
 
-```
+```text
 Request ──▶ in-process Map ──▶ Redis ──▶ Database
             ~0.001 ms          ~1 ms      ~10-100 ms
 ```

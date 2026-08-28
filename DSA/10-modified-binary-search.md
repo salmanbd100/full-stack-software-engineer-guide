@@ -1,4 +1,8 @@
-# Modified Binary Search Pattern
+# Modified Binary Search {#ch-modified-binary-search}
+
+> Apply binary search where the array is rotated, or where you are searching an answer space rather than an array.
+
+**In this chapter:** the invariant that makes it work · search in a rotated array · finding the minimum · searching an answer space · complexity
 
 ## What is Modified Binary Search? (In Simple Words)
 
@@ -21,7 +25,7 @@ Real-world analogy: Think of looking for a book in a library where:
 
 ### Visual Concept: The Search Space
 
-```
+```text
 Classic Binary Search (sorted array):
 [1, 2, 3, 4, 5, 6, 7, 8, 9]
           ^
@@ -88,7 +92,7 @@ Ask yourself these questions when you see a problem:
 
 ### Visual Pattern Recognition
 
-```
+```text
 Recognize the pattern:
 
 CLASSIC SORTED           ROTATED SORTED          2D MATRIX (sorted)
@@ -237,7 +241,7 @@ function search(nums: number[], target: number): number {
 
 **Example**: `nums = [4,5,6,7,0,1,2], target = 0`
 
-```
+```text
 Initial State:
 ┌─────────────────────────────────────┐
 │ 4   5   6   7   0   1   2           │  Array
@@ -248,7 +252,7 @@ Target = 0
 ```
 
 **Iteration 1:**
-```
+```text
 Array: [4, 5, 6, 7, 0, 1, 2]
         L           M       R
         0           3       6
@@ -273,7 +277,7 @@ Search Space After:
 ```
 
 **Iteration 2:**
-```
+```text
 Array: [4, 5, 6, 7, 0, 1, 2]
                     L   M   R
                     4   5   6
@@ -299,7 +303,7 @@ Search Space After:
 ```
 
 **Iteration 3:**
-```
+```text
 Array: [4, 5, 6, 7, 0, 1, 2]
                     ↑
                    L/M/R
@@ -324,7 +328,7 @@ Is nums[mid] == target? YES!
 4. If target is NOT in sorted half → must be in the other half
 
 **Visual Aid**: Think of it like a broken escalator
-```
+```text
 Normal Escalator (sorted):      Broken Escalator (rotated):
      7                               4 ← rotation point
      6                               5
@@ -500,7 +504,7 @@ function findMinAlternative(nums: number[]): number {
 
 **Example**: `nums = [4,5,6,7,0,1,2]`
 
-```
+```text
 Initial State - Where is the minimum?
 ┌─────────────────────────────────────┐
 │ 4   5   6   7   0   1   2           │
@@ -515,7 +519,7 @@ Rotated 4 times: [4,5,6,7,0,1,2]
 ```
 
 **Iteration 1:**
-```
+```text
 Array: [4, 5, 6, 7, 0, 1, 2]
         L           M       R
         0           3       6
@@ -538,7 +542,7 @@ Search Space After:
 ```
 
 **Iteration 2:**
-```
+```text
 Array: [4, 5, 6, 7, 0, 1, 2]
                     L   M   R
                     4   5   6
@@ -559,7 +563,7 @@ Search Space After:
 ```
 
 **Iteration 3:**
-```
+```text
 Array: [4, 5, 6, 7, 0, 1, 2]
                     L/M R
                     4   5
@@ -585,7 +589,7 @@ Return nums[4] = 0
 ### Key Insight Explained Simply
 
 **The Inflection Point**: The minimum is where the array "breaks"
-```
+```text
 Sorted:  [0, 1, 2, 4, 5, 6, 7]  ← smooth increase
 
 Rotated: [4, 5, 6, 7, 0, 1, 2]  ← breaks here!
@@ -608,7 +612,7 @@ Visual Pattern:
 - If mid <= right → this section is sorted → search left (minimum is earlier)
 
 **Why compare with `right` not `left`?**
-```
+```text
 Example: [4,5,6,7,0,1,2]
           L     M     R
 
@@ -690,7 +694,7 @@ If we compare mid with right:
 4. **Avoid infinite loops**: Ensure left/right pointers always make progress
 5. **Edge cases**: Single element, two elements, not rotated
 6. **Template**:
-   ```
+   ```text
    while left < right:
        mid = (left + right) // 2
        if condition_to_go_right:

@@ -29,7 +29,7 @@ Testing is a core skill for senior frontend roles. Interviewers want proof you c
 
 **Functional levels** (what the code does):
 
-```
+```text
 Unit  →  Component  →  Integration  →  E2E
 fast, isolated                       slow, full app
 ```

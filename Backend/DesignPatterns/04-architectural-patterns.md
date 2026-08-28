@@ -1,4 +1,8 @@
-# Architectural Patterns
+# Architectural Patterns {#ch-architectural-patterns}
+
+> Draw the layers of a service so a change lands in one place rather than five.
+
+**In this chapter:** the standard layering · repository · service layer · dependency injection · unit of work · MVC and its backend variants
 
 ## Overview
 
@@ -21,7 +25,7 @@ For a backend interview these matter more than the classic patterns, because "ho
 
 ## The Standard Layering
 
-```
+```text
 HTTP request
      │
      ▼
@@ -298,7 +302,7 @@ Prisma's `$transaction` and TypeORM's `EntityManager` implement this for you; kn
 
 Classic MVC came from desktop UIs, where the view observes the model directly. A JSON API has no view in that sense, so what you actually build is:
 
-```
+```text
 Request → Controller → Service → Repository → Model/Entity
                           │
                           ▼

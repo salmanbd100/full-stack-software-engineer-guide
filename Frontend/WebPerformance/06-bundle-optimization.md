@@ -1,4 +1,8 @@
-# Bundle Optimization
+# Bundle Optimisation {#ch-bundle-optimisation}
+
+> Find out what is actually in your bundle, then remove it.
+
+**In this chapter:** tree shaking and what defeats it · minification · Brotli and gzip · reading a bundle analysis · budgets in CI
 
 ## Overview
 
@@ -22,7 +26,7 @@ The JavaScript bundle is the file users download to run your app. **The bigger i
 
 Tree shaking removes code you import but never use. The name comes from shaking dead leaves off a tree.
 
-```
+```text
 Library exports: add, subtract, multiply, divide
 You import: only `add`
    ↓ tree shaking
@@ -107,7 +111,7 @@ Webpack uses Terser by default; you only configure it for extras like dropping `
 
 After minifying, the server compresses files before sending. The browser decompresses on arrival.
 
-```
+```text
 1000 KB  →  minify  →  700 KB  →  Brotli  →  ~180 KB sent over the wire
 ```
 

@@ -1,4 +1,8 @@
-# Load Balancing
+# Load Balancing {#ch-load-balancing}
+
+> Choose L4 or L7 and an algorithm to match the traffic, and say what happens when a node dies.
+
+**In this chapter:** how it works · layer 4 vs layer 7 · routing algorithms · health checks · load balancer vs API gateway
 
 ## 💡 **Concept**
 
@@ -10,7 +14,7 @@ A load balancer distributes incoming traffic across multiple backend servers. It
 
 ## How It Works
 
-```
+```text
 Client
   │
   ▼

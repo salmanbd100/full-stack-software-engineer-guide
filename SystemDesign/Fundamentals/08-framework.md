@@ -1,12 +1,8 @@
-# System Design Interview Framework
+# The RADIO Framework {#ch-the-radio-framework}
 
-### 💡 **Concept**
+> Drive forty-five minutes without rambling, and spend the time where the marks are.
 
-A system design interview tests how you **structure ambiguity**, not how much trivia you remember. Use a framework so you never drift.
-
-The **RADIO framework** covers everything an interviewer wants in 45–60 minutes:
-
-> **R**equirements → **A**rchitecture → **D**ata model → **I**nterface → **O**ptimizations
+**In this chapter:** the time budget · requirements · architecture · data model · interface · optimisations · what to say and what not to
 
 ## Time Budget (45–60 min)
 

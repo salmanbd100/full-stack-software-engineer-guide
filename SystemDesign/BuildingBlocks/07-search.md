@@ -1,4 +1,8 @@
-# Search
+# Search {#ch-search}
+
+> Explain what an inverted index does, and when a `LIKE` query stops being enough.
+
+**In this chapter:** the inverted index · ranking · Elasticsearch architecture · autocomplete · when a database is still fine
 
 ## 💡 **Concept**
 
@@ -10,7 +14,7 @@ Full-text search finds documents containing words or phrases across millions of 
 
 ## How Inverted Index Works
 
-```
+```text
 Documents:
   Doc1: "fast food delivery app"
   Doc2: "food truck festival"
@@ -122,7 +126,7 @@ function buildQuery(query: SearchQuery): object {
 
 ## Elasticsearch Architecture
 
-```
+```text
 Client
   │
   ▼

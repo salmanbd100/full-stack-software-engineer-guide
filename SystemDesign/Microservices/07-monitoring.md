@@ -1,4 +1,8 @@
-# Monitoring & Observability in Microservices
+# Distributed Observability {#ch-distributed-observability}
+
+> Trace one user's request across nine services, because logs alone will not do it.
+
+**In this chapter:** the three pillars in a distributed system · distributed tracing · OpenTelemetry · correlation IDs · service mesh telemetry
 
 ## 💡 **In a distributed system, a single request touches 10 services. You need traces, not just logs.**
 
@@ -22,7 +26,7 @@ In a monolith, a stack trace pins a bug to a file and line. In microservices, a 
 
 A **trace** represents one end-to-end request. It is made of **spans**. Each service adds a span when it receives and processes the request.
 
-```
+```text
 Trace ID: abc-123
 │
 ├── Span: API Gateway (12 ms)
@@ -184,7 +188,7 @@ The `traceId` field links a log line to its full distributed trace in Jaeger. On
 
 A **service mesh** (Istio, Linkerd) injects a **sidecar proxy** (Envoy) next to every service pod. The proxy intercepts all network traffic and reports telemetry automatically.
 
-```
+```text
 Pod
 ├── order-service container
 └── envoy sidecar proxy ← intercepts all in/out traffic

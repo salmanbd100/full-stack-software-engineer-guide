@@ -1,4 +1,8 @@
-# Child Processes & Worker Threads
+# Child Processes and Worker Threads {#ch-child-processes-and-worker-threads}
+
+> Move CPU-bound work off the main thread, and choose the right mechanism for it.
+
+**In this chapter:** the four ways to spawn · worker threads · pooling workers · `fork` and IPC · cleaning up so you do not leak processes
 
 ## 💡 Getting Work Off the Main Thread
 

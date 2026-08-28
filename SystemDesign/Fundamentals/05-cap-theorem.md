@@ -1,10 +1,8 @@
-# CAP Theorem
+# The CAP Theorem {#ch-cap-theorem}
 
-### 💡 **Concept**
+> Apply CAP to the system on the whiteboard rather than reciting the definition.
 
-A distributed system can guarantee only **two of three** properties: Consistency, Availability, and Partition tolerance.
-
-In practice, network partitions will happen. So the real choice is **CP** (consistent) or **AP** (available).
+**In this chapter:** the three properties · why P is not optional · CP vs AP in practice · PACELC · the common mistakes
 
 ## The Three Properties
 
@@ -20,7 +18,7 @@ In practice, network partitions will happen. So the real choice is **CP** (consi
 
 When the network splits, two healthy nodes cannot talk to each other:
 
-```
+```text
 Client → Node A   ─X─   Node B ← Client
          (write)         (read)
 ```

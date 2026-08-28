@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-28 · **Progress:** 16 / 78
+**Last updated:** 2026-08-28 · **Progress:** 17 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -583,7 +583,7 @@ The `Frontend/README.md` ones resolve themselves in Phase 3. Fix the rest now.
 
 ---
 
-### - [ ] 10. Convert the remaining 415 JavaScript fences to TypeScript `L`
+### - [x] 10. Convert the remaining 415 JavaScript fences to TypeScript `L` — ✅ **done 2026-08-28**
 
 Against a TypeScript-only rule. Distribution:
 
@@ -596,9 +596,61 @@ Against a TypeScript-only rule. Distribution:
 Also normalise the 3 stray `​```ts`, 1 `​```jsx`, and 19 `​```tsx` fences (tsx is fine — keep it, add it to the
 allow-list).
 
-**Done when:** the lint script's fence check passes with a documented allow-list.
+**Done when:** the fence check passes outside `DevOps/`, with a documented allow-list.
 
-> ⚠️ **Partially delivered 2026-08-28 — box deliberately left unticked.** This is an `L` item and the
+> **Amended 2026-08-28.** The original "the fence check passes" could not be met by this item, because
+> 614 of the violations live in `DevOps/`, which **#20** archives ~80% of. Converting them would be
+> work thrown away, and the plan already said so in #6's note. Everything outside `DevOps/` is now
+> **zero**; re-run the count after #20 and finish whatever survives there.
+
+**Delivered:**
+
+- **All 415 `javascript` fences resolved: 378 converted, 37 exempted.** Not relabelled — retyped.
+  Real interfaces, `ServiceWorkerGlobalScope` declarations, `FetchEvent`/`ExtendableEvent` parameters,
+  generics on `memoize`, `partial`, `asyncHandler` and `batchFetch`, `satisfies` on message contracts,
+  discriminated unions in place of `{ success: boolean }` result objects, and `catch (error: unknown)`
+  with narrowing throughout — which is the correct 2027 pattern and the one the old code got wrong
+- **632 unlabelled fences labelled `text`** across 175 files, in one scripted pass driven by the
+  linter's own output. Every one was an ASCII diagram, a directory tree, an interview transcript or a
+  worked-example trace — no code was hiding among them. **#74** converts the diagrams that warrant
+  Mermaid; this item only had to stop them typesetting as unhighlighted mystery blocks
+- **The allow-list mechanism**, in `scripts/lint-docs.ts` (`FENCE_EXEMPTION` / `fenceExemption`):
+
+  ```markdown
+  <!-- lint-allow-fence: javascript — why this fence has to stay untyped -->
+  ```
+
+  The reason after the em dash is required, and a marker naming a different language than the fence
+  below it is reported as its own violation — so a marker cannot silently cover a fence that later
+  changes language. Markers are HTML comments: invisible in the rendered book, visible in source
+- **The 37 exemptions are all in `Frontend/JavaScript/01`–`05`**, and each states its own reason.
+  They are the cases where TypeScript refuses to compile the exact thing the fence teaches: implicit
+  coercion and `[] == ![]`, `arguments` inside an arrow, `this` inside an object-literal arrow, an
+  undeclared assignment creating an implicit global, constructor functions assigning to `this`, and
+  prototype-chain manipulation. `04-this-keyword.md` and `05-prototypes-inheritance.md` hold 30 of
+  them, which is exactly what those two chapters are about
+- Where a fence *could* carry an explicit `this:` parameter it was converted rather than exempted —
+  `call`, `apply`, `bind` and method borrowing now teach how TypeScript models `this`, which is more
+  useful than the untyped original
+- Two fences were pseudo-syntax rather than code (`() => expression`, `obj.method() → this = obj`)
+  and became ` ```text `; two React fences became ` ```tsx `
+- **`BOOK-SPEC.md` amended to v1.1**, decision log rows **#10** and **#11**. Non-negotiable #1's
+  allow-list gains `graphql`, `prisma`, `dockerfile`, `nginx` and `http`. This **completes** the list
+  rather than relaxing the rule: these are declarative schema and configuration languages with no
+  TypeScript form at all, on exactly the same footing as `sql`, `yaml` and `css`, which were already
+  allowed. § 10's "relaxing the TypeScript-only rule" bar is not engaged — general-purpose languages
+  still have to opt out one fence at a time. `ALLOWED_FENCES` in `scripts/lib/book.ts` regrouped and
+  commented to make that distinction explicit
+- Six ` ```markdown ` fences (PR, RFC and STAR templates) became ` ```text `. Nesting a markdown
+  fence inside a markdown book invites confusion, and `text` already covers "copy this verbatim"
+- `pnpm lint:docs`: `fence-language` **1701 → 614**, and every one of the 614 is in `DevOps/`
+
+**Left for after #20:** the `DevOps/` remainder — 385 unlabelled and 229 labelled, of which 174 are
+`hcl` (Terraform, out of scope per `BOOK-SPEC.md` § 6 and archived wholesale).
+
+<!-- superseded partial note follows; kept so the amendment above has context -->
+
+> ⚠️ **Superseded — this was the partial state before the item was finished.** This is an `L` item and the
 > plan's own model table puts it on **Sonnet 5 at `low` effort**. The judgement half is finished; what
 > remains is a mechanical sweep across 7 files. Do not redo the decisions below — apply them.
 
@@ -695,9 +747,12 @@ Split this across sessions by domain: Frontend → Backend → SystemDesign → 
 
 **Done when:** every in-book file opens with the same three blocks.
 
-> ⚠️ **Partially delivered 2026-08-28 — box deliberately left unticked.** `L`, and the plan's model
-> table puts it on **Sonnet 5 at `low`–`medium`**. The canonical opening is now fixed and demonstrated
-> on two complete directories; the rest is the same edit repeated.
+> ⚠️ **Box still unticked — one directory left.** `L`, and the plan's model table puts it on
+> **Sonnet 5 at `low`–`medium`**. **All 244 in-book chapters outside `DevOps/` now carry the opening.**
+> What remains is `DevOps/` (130 chapters) and a decision about part-opener READMEs — both below.
+>
+> **Session stopped here on 2026-08-28 at the user's request.** Nothing is half-applied: the script
+> writes one file at a time and every directory attempted was finished.
 
 **The canonical opening, now settled.** Three blocks, nothing between them, no `---` rule after:
 
@@ -730,10 +785,44 @@ Rules learned while applying it:
   Variables" (non-negotiable #8 forbids a version-less "modern"; an ampersand in a title fights the
   same URL problem #11 just fixed)
 
-**Remaining, in the plan's own order:** the rest of `Frontend/` (TypeScript, BrowserAPIs, PWA, i18n,
-CSSArchitecture, Security, Testing, WebPerformance) → `Backend/` → `SystemDesign/` → `DSA/`,
-`Behavioral/`, `Communication/`, `OOP/`. **Skip `DevOps/` entirely** — #20 archives ~80% of it, so
-openings written now would mostly be thrown away. Do `DevOps/` → `ShipAndOperate/` after #20.
+**Done — 244 chapters, every part except VIII:**
+
+| Directory | Chapters |
+| --------- | -------- |
+| `Frontend/` — HtmlCss, JavaScript, TypeScript, BrowserAPIs, Internationalization, CSSArchitecture, PWA, Security, Testing, WebPerformance | 76 |
+| `Backend/` — API, DesignPatterns, NoSQL, NodeJS, SQL, Security, Testing | 46 |
+| `SystemDesign/` — BuildingBlocks, Database, Frontend, Fundamentals, Infrastructure, Microservices, Scalability, Security | 71 |
+| `SystemDesign/InterviewQuestions/` — the 20 case studies | 20 |
+| `DSA/` | 16 |
+| `OOP/` · `Behavioral/` · `Communication/` | 22 |
+
+**How it was applied.** `scripts/`-adjacent helper, kept in the session scratchpad rather than
+committed: find the H1, find the first `## ` below it, replace everything between. That removes the
+hand-written table of contents, the `[← Back to …]` back-link and the stray `---` rule in the same
+pass, which is why `heading-jump` fell to **0** as a side effect — those files opened `# Title` →
+`### Something`. Front matter, where present, is preserved.
+
+**Two things this exposed, worth knowing before finishing:**
+
+- **A chapter's slug is decided here and nowhere else.** #3 must derive the same `slug`, and #71
+  points every cross-reference at it. Renaming one later breaks both. Two titles were corrected in
+  passing for this reason — "ES6+ Features" → "ES2015 and Later Features" (non-negotiable #5 forbids
+  a version-less label) and "Data Types & Variables" → "Data Types and Variables" (an ampersand in a
+  title fights the same URL problem #11 just fixed).
+- **The promise has to say what the reader can *do*.** "Predict the exact order a piece of
+  asynchronous code will log" is a promise; "an overview of the event loop" is a table of contents
+  entry. Roughly a third of the first drafts had to be rewritten on that test alone.
+
+**Still to do:**
+
+1. **`DevOps/` — 130 chapters.** Deliberately skipped: **#20** archives ~80% of the directory and
+   renames the rest to `ShipAndOperate/`, so openings written now would mostly be thrown away, and
+   the slugs would be wrong the moment the files move. **Do this after #20, not before.**
+2. **The 33 part-opener READMEs.** These follow a *different* standard — `write-topic-docs` §
+   "Part-Opener READMEs": 60–150 lines, `chapter: 0`, no `{#ch-}` anchor, a chapter table and a
+   **What Interviewers Probe For** section. The ten written at **#13** are the model. The other 23
+   predate it and mostly still open with a `## 📚 Topics Covered` list. Decide whether that is this
+   item's job or a new one — the "Done when" says *every in-book file*, which would include them.
 
 ---
 
@@ -1695,14 +1784,14 @@ the site markets the book and the book funds the site.
 | Phase | Items   | Done | Status         |
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 6/7  | 🟡 In progress |
-| 1     | 8–19    | 10/12 | 🟡 In progress  |
+| 1     | 8–19    | 11/12 | 🟡 In progress  |
 | 2     | 20–31   | 0/12 | ⬜ Not started  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **16/78** | **21%**   |
+| **Total** | **78** | **17/78** | **22%**   |
 
 ---
 

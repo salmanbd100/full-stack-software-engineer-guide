@@ -1,4 +1,8 @@
-# Password Security
+# Password Security {#ch-password-security}
+
+> Store a password so that a database leak is not an account leak.
+
+**In this chapter:** argon2 and bcrypt · salting and why it is automatic · register and login · the rules that actually help · reset flows · brute-force protection
 
 ## Overview
 
@@ -75,7 +79,7 @@ export async function verifyPassword(hash: string, plain: string): Promise<boole
 
 A **salt** is random data mixed into each password before hashing. It is stored alongside the hash — it is not a secret.
 
-```
+```text
 Without salt:  hash("password123") → same hash for every user
                                      → one rainbow table cracks them all
 
@@ -85,7 +89,7 @@ With salt:     hash("password123" + "a9f3...") → unique per user
 
 Both bcrypt and Argon2 generate and embed the salt for you:
 
-```
+```text
 $argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHQ$hashvalue...
  ^algo     ^ver ^parameters      ^salt        ^hash
 ```
@@ -206,7 +210,7 @@ export function checkPasswordStrength(password: string): string | null {
 
 The reset link is a temporary credential. Treat it like one.
 
-```
+```text
 1. POST /forgot  { email }
         │
         ▼

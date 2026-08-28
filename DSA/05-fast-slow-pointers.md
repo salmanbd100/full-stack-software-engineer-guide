@@ -1,4 +1,8 @@
-# Fast & Slow Pointers Pattern
+# Fast and Slow Pointers {#ch-fast-and-slow-pointers}
+
+> Detect a cycle or find a midpoint in one pass with constant extra space.
+
+**In this chapter:** why the fast pointer catches the slow one · cycle detection · finding the middle · finding the cycle start · complexity
 
 ## What is Fast & Slow Pointers? (In Simple Words)
 
@@ -57,7 +61,7 @@ Look for this pattern when you see:
 
 ### Scenario 1: Detecting a Cycle
 
-```
+```text
 Initial State:
 List: 1 → 2 → 3 → 4 → 5
             ↑         ↓
@@ -107,7 +111,7 @@ CYCLE DETECTED! Pointers meet at node 2
 
 ### Scenario 2: Finding Middle (No Cycle)
 
-```
+```text
 Odd-length list: 1 → 2 → 3 → 4 → 5 → null
 
 Step 0:
@@ -130,7 +134,7 @@ Fast.next = null, STOP!
 S = 3 is the MIDDLE node
 ```
 
-```
+```text
 Even-length list: 1 → 2 → 3 → 4 → 5 → 6 → null
 
 Step 0:
@@ -160,7 +164,7 @@ STOP! S = 4 is the SECOND MIDDLE node
 ### Why Fast Always Catches Slow in a Cycle
 
 Think of it mathematically:
-```
+```text
 In a cycle of length C:
 - Distance between pointers reduces by 1 each step
 - Slow moves forward 1, Fast moves forward 2
@@ -332,7 +336,7 @@ function hasCycle(head: ListNode | null): boolean {
 - When D = 0, they meet!
 
 **Example with numbers:**
-```
+```text
 Cycle length = 5 nodes
 Initial gap = 3 nodes
 
@@ -413,7 +417,7 @@ function detectCycle(head: ListNode | null): ListNode | null {
 
 **Why This Works (The Mathematical Proof):**
 
-```
+```text
 Let:
 - L = distance from head to cycle start
 - C = cycle length
@@ -439,7 +443,7 @@ So if we:
 ```
 
 **Visual Example:**
-```
+```text
 List: 1 → 2 → 3 → 4 → 5 → 6
                ↑           ↓
                ← ← ← ← ← ←
@@ -604,7 +608,7 @@ function middleNode(head: ListNode | null): ListNode | null {
 - Slow is at position n/2 = middle!
 
 **Odd length list** (e.g., 1→2→3→4→5):
-```
+```text
 Length = 5, Middle = position 3
 
 Initial: slow=1, fast=1
@@ -616,7 +620,7 @@ Slow moved 2 times = 5/2 = middle position
 ```
 
 **Even length list** (e.g., 1→2→3→4→5→6):
-```
+```text
 Length = 6, Middle = position 3 or 4 (we return 4)
 
 Initial: slow=1, fast=1
@@ -1026,7 +1030,7 @@ hasCycle(1→2→3→4→5→null) // → false
 ### Tip 7: Draw Diagrams
 
 During interviews, sketch the pointers moving:
-```
+```text
 Step 0: [S,F]→2→3→4→5→3 (S=slow, F=fast)
 Step 1: 1→[S]→3→[F]→5→3
 Step 2: 1→2→[S]→4→[F,wrap]→3
@@ -1059,31 +1063,31 @@ Look for these keywords in the problem:
 #### Problem Patterns:
 
 **Pattern 1: Pure Cycle Detection**
-```
+```text
 Problem: Does linked list have a cycle?
 Solution: Basic fast & slow, check if they meet
 ```
 
 **Pattern 2: Cycle Start**
-```
+```text
 Problem: Where does the cycle begin?
 Solution: Meet → reset slow → move both 1 step → meet at start
 ```
 
 **Pattern 3: Middle Finding**
-```
+```text
 Problem: Find middle node
 Solution: When fast reaches end, slow is at middle
 ```
 
 **Pattern 4: Palindrome Check**
-```
+```text
 Problem: Is linked list a palindrome?
 Solution: Find middle → reverse second half → compare
 ```
 
 **Pattern 5: K-th From End**
-```
+```text
 Problem: Find k-th node from end
 Solution: Fast starts k nodes ahead → move together → when fast ends, slow is at k-th from end
 ```
@@ -1094,7 +1098,7 @@ Solution: Fast starts k nodes ahead → move together → when fast ends, slow i
 
 Use this mental checklist:
 
-```
+```text
 Does the problem involve:
 ☐ Linked list? (+2 points)
 ☐ Detecting something cyclic? (+3 points)

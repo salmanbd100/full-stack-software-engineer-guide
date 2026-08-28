@@ -1,10 +1,8 @@
-# CSS Methodologies
+# CSS Methodologies {#ch-css-methodologies}
 
-A CSS methodology is a convention for **naming, scoping, and organizing styles** so a codebase stays predictable as it grows. The real problems it solves: avoiding specificity wars, preventing global name clashes, and making styles safe to delete.
+> Name and organise styles so a stranger can add a rule without breaking three others.
 
-You rarely need every rule from a methodology. You need the parts that stop your CSS from turning into `!important` soup at 50k lines.
-
----
+**In this chapter:** why methodologies exist · BEM · SMACSS · ITCSS · OOCSS · which to pick and when it stops mattering
 
 ## Why Methodologies Exist
 
@@ -115,7 +113,7 @@ A way to **order your stylesheet** so specificity climbs gradually instead of zi
 
 ### The Seven Layers
 
-```
+```text
 ┌─────────────────────────┐
 │ 1. Settings  (variables) │  ← low specificity, wide reach
 │ 2. Tools     (mixins)    │

@@ -1,4 +1,8 @@
-# MongoDB Fundamentals
+# MongoDB Fundamentals {#ch-mongodb-fundamentals}
+
+> Work with documents rather than rows, and know what the database guarantees you.
+
+**In this chapter:** documents, collections and BSON · CRUD · the query operators worth memorising · transactions · replication and sharding
 
 ## 💡 What MongoDB Actually Is
 
@@ -61,7 +65,7 @@ MongoDB stores **BSON** (Binary JSON), not JSON. Two differences matter in inter
 
 The default `_id` is a 12-byte value, not a random UUID:
 
-```
+```text
 4 bytes timestamp | 5 bytes random per-process | 3 bytes counter
 ```
 
@@ -238,7 +242,7 @@ try {
 
 **Replica set — availability.** One primary takes writes; secondaries copy it. If the primary dies, an election promotes a secondary in seconds. Always run one in production.
 
-```
+```text
         writes            replication
 Client ────────▶ Primary ──────────────▶ Secondary
                     │                 └─▶ Secondary

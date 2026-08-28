@@ -1,4 +1,8 @@
-# Web App Manifest
+# Web App Manifest {#ch-web-app-manifest}
+
+> Make an app installable, and control what the user sees before your JavaScript runs.
+
+**In this chapter:** linking the manifest · the properties that matter · display modes · icons and maskable icons · install criteria · `beforeinstallprompt`
 
 ## Overview
 
@@ -178,7 +182,7 @@ app.get('/manifest.json', (req: Request, res: Response): void => {
 
 **Flow:**
 
-```
+```text
 User taps icon
     ↓
 Splash screen (background_color)

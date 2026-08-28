@@ -1,6 +1,8 @@
-# Active Listening
+# Active Listening {#ch-active-listening}
 
-Listen to understand, then respond — not the other way around.
+> Understand what is actually being asked before you start answering it.
+
+**In this chapter:** why it is scored · paraphrasing and clarifying · acting on a hint · reading tone · the common mistakes
 
 ## Why It Matters
 
@@ -14,7 +16,7 @@ wrong question. It also shows professionalism and helps you catch hints.
 ### 1. Listen Fully Before Responding
 
 **❌ Wrong:**
-```
+```text
 Interviewer: "Tell me about a time you—"
 You: [Interrupts] "I optimized our database queries!"
 Interviewer: "—faced a failure."
@@ -34,7 +36,7 @@ Before answering a complex or ambiguous question, confirm you understood it.
 **Framework:** "Just to make sure I understand — you're asking about [paraphrase]. Is that right?"
 
 **Example:**
-```
+```text
 Interviewer: "Tell me about migrating a complex React codebase."
 
 You: "Just to confirm — you'd like to hear about upgrading or restructuring
@@ -60,7 +62,7 @@ Ask before coding or designing. It shows maturity.
 **When:** Question is ambiguous, multiple interpretations exist, scale or constraints are missing.
 
 **How:**
-```
+```text
 ❌ "I don't understand."
 ❌ "What do you mean?"
 
@@ -70,7 +72,7 @@ Ask before coding or designing. It shows maturity.
 ```
 
 **Coding problem example:**
-```
+```text
 "Before I start, a few clarifying questions:
 - Can the same element be used twice?
 - Should I return indices or values?
@@ -78,7 +80,7 @@ Ask before coding or designing. It shows maturity.
 ```
 
 **System design example:**
-```
+```text
 "To make sure I design the right system:
 - What's the expected scale — thousands or millions of users?
 - Is this read-heavy or write-heavy?
@@ -91,7 +93,7 @@ Ask before coding or designing. It shows maturity.
 
 For system design and coding problems, write down numbers and constraints.
 
-```
+```text
 Notes for "Design Twitter":
 - 300M DAU
 - 700 tweets/sec
@@ -102,7 +104,7 @@ Notes for "Design Twitter":
 ```
 
 Then reference them in your answer:
-```
+```text
 "Based on the 100:1 read-to-write ratio you mentioned, a caching-heavy
 architecture makes the most sense here..."
 ```
@@ -119,7 +121,7 @@ Interviewers give hints when you're off track. Catch them and adapt.
 - "That works, but consider the worst case..."
 
 **How to respond:**
-```
+```text
 Interviewer: "Think about a more efficient approach for large datasets..."
 
 You: "Right — my current approach is O(n²). You're pointing me toward
@@ -153,7 +155,7 @@ Is that more along the lines of what you were thinking?"
 ### Nodding Without Understanding
 
 **Fix:** If you don't know a term the interviewer used, say so:
-```
+```text
 "I'm not familiar with CQRS specifically. Could you briefly explain how
 you're using it? That way I can give you a more relevant answer."
 ```
@@ -165,7 +167,7 @@ will be more relevant than one you half-prepared while missing the end of the qu
 
 ### Not Asking Follow-Up Questions at the End
 
-```
+```text
 Interviewer: "Do you have any questions for me?"
 
 ❌ "No, I'm good."

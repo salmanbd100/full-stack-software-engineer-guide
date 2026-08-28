@@ -1,4 +1,8 @@
-# Database Sharding
+# Sharding {#ch-sharding}
+
+> Split data across machines, and pick a shard key you will not regret in a year.
+
+**In this chapter:** the sharding strategies · choosing a shard key · hot partitions · cross-shard queries · re-sharding
 
 ## 💡 What Sharding Is
 
@@ -6,7 +10,7 @@ Sharding splits one large database into multiple smaller databases called shards
 
 A single database server has limits — CPU, memory, storage, and network bandwidth. Sharding spreads the load across many servers. This is horizontal scaling.
 
-```
+```text
 Before sharding:
   App → Single DB (10M rows, overloaded)
 
@@ -35,7 +39,7 @@ After sharding:
 
 Divide data by contiguous ranges of the shard key.
 
-```
+```text
 Shard 1: user_id 1 – 1,000,000
 Shard 2: user_id 1,000,001 – 2,000,000
 Shard 3: user_id 2,000,001 – 3,000,000
@@ -187,7 +191,7 @@ async function readHotUser(userId: string, buckets: number): Promise<Row[]> {
 
 Some queries must touch multiple shards. This is called scatter-gather.
 
-```
+```text
 Query: "Get all orders over $500 across all users"
 
 Router broadcasts to all shards

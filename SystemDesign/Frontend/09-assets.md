@@ -1,4 +1,8 @@
-# Asset Management
+# Asset Management {#ch-asset-management}
+
+> Control what ships and when, across images, fonts, CSS and icons.
+
+**In this chapter:** images · font loading and FOUT · CSS delivery · CDN and caching · icon strategy
 
 ## 💡 **Concept**
 
@@ -155,7 +159,7 @@ const cacheHeaders: Record<string, string> = {
 };
 ```
 
-```
+```text
 CloudFront origin → S3 bucket (static assets)
                  ↓
 User ←──────── Edge location (cache hit: <20ms, no origin request)

@@ -1,4 +1,8 @@
-# Integration Testing
+# Frontend Integration Testing {#ch-frontend-integration-testing}
+
+> Test a whole flow against a fake network, which is where the real bugs actually are.
+
+**In this chapter:** unit vs integration · Mock Service Worker · a data-fetching flow · a form end to end · loading and error states
 
 ## Overview
 

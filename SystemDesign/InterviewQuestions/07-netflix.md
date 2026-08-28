@@ -1,4 +1,8 @@
-# Design Netflix
+# Design Netflix {#ch-design-netflix}
+
+> Push content to the edge before anyone asks for it, and adapt the bitrate when they do.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Netflix streams to 200 million subscribers across 190 countries. Peak traffic re
 
 ### High-Level Diagram
 
-```
+```text
 ┌──────────┐         ┌───────────────────┐
 │  Client  │         │   API Gateway     │
 │ (Smart   │────────▶│   (AWS us-east-1) │

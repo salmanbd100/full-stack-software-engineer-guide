@@ -1,4 +1,8 @@
-# Top 'K' Elements Pattern
+# Top K Elements {#ch-top-k-elements}
+
+> Get the k largest or most frequent items without sorting the whole input.
+
+**In this chapter:** why a heap beats a sort here · min-heap vs max-heap · kth largest · top k frequent · complexity
 
 ## What is Top K Elements? (In Simple Words)
 
@@ -74,7 +78,7 @@ A **heap** is like a **smart priority line** where the most important item is al
 
 ### Min-Heap Structure (Visual)
 
-```
+```text
         1         <- Root (smallest value)
        / \
       3   2       <- Children (larger than parent)
@@ -89,7 +93,7 @@ Rules:
 
 ### Max-Heap Structure (Visual)
 
-```
+```text
         7         <- Root (largest value)
        / \
       5   6       <- Children (smaller than parent)
@@ -113,7 +117,7 @@ This is the **most confusing part** for beginners! Let's break it down:
 
 #### Step-by-Step Visualization
 
-```
+```text
 Array: [1, 5, 2, 9, 3, 7, 6], K = 3
 
 Step 1: Add 1
@@ -154,7 +158,7 @@ Final Result: [6, 7, 9] - The 3 largest elements!
 
 #### The Golden Rule
 
-```
+```text
 ┌────────────────────────────────────────────────────┐
 │  Want K LARGEST?  → Use MIN-HEAP (remove smallest) │
 │  Want K SMALLEST? → Use MAX-HEAP (remove largest)  │
@@ -169,7 +173,7 @@ Final Result: [6, 7, 9] - The 3 largest elements!
 
 Heaps are stored in arrays! This is how the tree structure maps to an array:
 
-```
+```text
 Tree form:
         1
        / \
@@ -346,7 +350,7 @@ private bubbleUp(index: number): void {
 ```
 
 **Visual Example of bubbleUp:**
-```
+```text
 Initial heap: [1, 3, 2, 5]
 Add 0 to the end: [1, 3, 2, 5, 0]
 
@@ -411,7 +415,7 @@ private bubbleDown(index: number): void {
 ```
 
 **Visual Example of bubbleDown:**
-```
+```text
 Remove root (pop operation):
 Step 1: Remove root and move last element to root
         1              9
@@ -482,7 +486,7 @@ return minHeap.peek()!;     // Return root (kth largest)
 
 **Visual Example** for `nums = [3, 2, 1, 5, 6, 4], k = 2`:
 
-```
+```text
 Process 3: heap = [3]
 Process 2: heap = [2, 3]
 Process 1: heap = [2, 3], size > k, remove 1, heap = [2, 3]
@@ -660,7 +664,7 @@ console.log(topKFrequentBucketSort(nums4, k4));  // Output: [1, 2]
 
 **Visual Example** for `nums = [1,1,1,2,2,3], k = 2`:
 
-```
+```text
 Frequency map: {1: 3, 2: 2, 3: 1}
 
 Process (3, 1): heap = [(3, 1)]
@@ -674,7 +678,7 @@ Result: [2, 1] (extract elements from heap)
 
 **Bucket Sort Approach** (More efficient for this problem):
 
-```
+```text
 Frequency map: {1: 3, 2: 2, 3: 1}
 
 Buckets:

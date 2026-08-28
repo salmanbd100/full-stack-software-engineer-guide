@@ -1,4 +1,8 @@
-# Service Workers
+# Service Workers {#ch-service-workers}
+
+> Put a programmable proxy between your app and the network, and update it without stranding a tab.
+
+**In this chapter:** the lifecycle · registration and scope · intercepting `fetch` · caching strategies · `skipWaiting` and `clients.claim` · messaging
 
 ## Overview
 
@@ -83,7 +87,7 @@ Service Workers are event-driven scripts that run in a separate thread from the 
 
 ### 💡 **Lifecycle Flow**
 
-```
+```text
 Register SW
     ↓
 Install Event (cache assets)
@@ -749,7 +753,7 @@ A Service Worker is a JavaScript file that:
 
 **Flow:**
 
-```
+```text
 Register → Install → [Wait] → Activate → Fetch
                 ↑
          skipWaiting() skips

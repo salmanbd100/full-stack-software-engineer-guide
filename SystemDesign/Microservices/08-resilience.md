@@ -1,4 +1,8 @@
-# Resilience Patterns
+# Resilience Patterns {#ch-resilience-patterns}
+
+> Stop one slow dependency from taking the whole system with it.
+
+**In this chapter:** cascade failure · circuit breakers · retry with backoff and jitter · bulkheads · timeouts · comparing them
 
 ## 💡 **In a distributed system, failures are not exceptional — they are expected. Design for them.**
 
@@ -10,7 +14,7 @@ A service that handles 99.9% uptime still fails once every ~8.7 hours. When you 
 
 When Service A calls Service B and B is slow, A's threads pile up waiting. A runs out of threads. A stops responding. Service C, which calls A, now piles up threads. C stops responding. The failure spreads upstream through every caller.
 
-```
+```text
 Payment Service (slow)
     ↑ threads pile up
 Order Service (degraded)
@@ -39,7 +43,7 @@ Resilience patterns break this cascade.
 
 A circuit breaker wraps a service call. It tracks failure rates. When failures exceed a threshold, it **opens** — calls fail immediately without hitting the downstream service. After a wait period, it allows a test call through. If it succeeds, it closes again.
 
-```
+```text
 CLOSED → tracks errors → error threshold exceeded → OPEN
 OPEN → fail immediately (no downstream call) → wait → HALF-OPEN
 HALF-OPEN → test one call → success → CLOSED / failure → OPEN

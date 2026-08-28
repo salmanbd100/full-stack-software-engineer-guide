@@ -1,8 +1,8 @@
-[← README](./README.md) | [← 03 Inheritance](./03-inheritance.md) | [Next: 05 Abstraction →](./05-abstraction.md)
+# Polymorphism {#ch-polymorphism}
 
----
+> Call the same method on different types and get the behaviour each one defines.
 
-# Polymorphism
+**In this chapter:** runtime polymorphism through overriding · interfaces as contracts · generics as parametric polymorphism · structural typing
 
 ## "Many Forms" — Same Interface, Different Behavior
 
@@ -12,7 +12,7 @@
 
 Think of a USB-A port on your computer:
 
-```
+```text
         +--------------------------+
         |      USB-A Port          |
         |   (Same Interface)       |
@@ -73,7 +73,7 @@ A child class provides its **own implementation** of a method defined in its par
 
 **How It Works:**
 
-```
+```text
         processPayment(amount)
               |
     +---------+-----------+

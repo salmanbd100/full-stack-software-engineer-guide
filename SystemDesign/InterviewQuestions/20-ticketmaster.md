@@ -1,4 +1,8 @@
-# Design Ticketmaster
+# Design Ticketmaster {#ch-design-ticketmaster}
+
+> Sell a finite number of seats to a million simultaneous buyers without overselling one.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Ticketmaster serves two very different traffic patterns: casual event browsing (
 
 ### High-Level Diagram
 
-```
+```text
 Users (browser / app)
       │
       ▼

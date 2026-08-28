@@ -65,7 +65,7 @@
 
 **How map() Works:**
 
-```javascript
+```text
 array.map(callback(element, index, array))
 → Returns: New array with transformed elements
 → Original array: Unchanged (immutable)
@@ -79,7 +79,7 @@ array.map(callback(element, index, array))
 - Original array untouched (immutable)
 
 **2. Callback Parameters:**
-```javascript
+```text
 array.map((element, index, fullArray) => {
     // element: current item
     // index: current position
@@ -95,29 +95,35 @@ array.map((element, index, fullArray) => {
 **Perfect Use Cases:**
 
 ✅ **Extract properties from objects:**
-```javascript
-const users = [{name: 'Alice'}, {name: 'Bob'}];
-const names = users.map(u => u.name); // ['Alice', 'Bob']
+```typescript
+const users: { name: string }[] = [{ name: 'Alice' }, { name: 'Bob' }];
+const names: string[] = users.map((u): string => u.name); // ['Alice', 'Bob']
 ```
 
 ✅ **Convert types:**
-```javascript
-const strings = ['1', '2', '3'];
-const numbers = strings.map(Number); // [1, 2, 3]
+```typescript
+const strings: string[] = ['1', '2', '3'];
+const numbers: number[] = strings.map(Number); // [1, 2, 3]
 ```
 
 ✅ **Reformat data:**
-```javascript
-const prices = [10, 20, 30];
-const formatted = prices.map(p => `$${p}`); // ['$10', '$20', '$30']
+```typescript
+const prices: number[] = [10, 20, 30];
+const formatted: string[] = prices.map((p: number): string => `$${p}`); // ['$10', '$20', '$30']
 ```
 
 ✅ **Add computed properties:**
-```javascript
-const products = [{price: 10}, {price: 20}];
-const withTax = products.map(p => ({
-    ...p,
-    priceWithTax: p.price * 1.1
+```typescript
+interface Product {
+  price: number;
+}
+
+const products: Product[] = [{ price: 10 }, { price: 20 }];
+// The parentheses around the object are required — without them the braces
+// read as a function body
+const withTax = products.map((p: Product) => ({
+  ...p,
+  priceWithTax: p.price * 1.1,
 }));
 ```
 
@@ -133,57 +139,70 @@ const withTax = products.map(p => ({
 **Common Mistakes:**
 
 ❌ **Using forEach for transformation:**
-```javascript
-// Wrong!
-const doubled = [];
-numbers.forEach(n => doubled.push(n * 2)); // ❌ Imperative
+```typescript
+// ❌ Imperative — a mutable accumulator and a side effect
+const doubled: number[] = [];
+numbers.forEach((n: number): void => {
+  doubled.push(n * 2);
+});
 ```
 
 ✅ **Use map instead:**
-```javascript
-// Right!
-const doubled = numbers.map(n => n * 2); // ✅ Declarative
+```typescript
+// ✅ Declarative — one expression, and the result is a value
+const doubled: number[] = numbers.map((n: number): number => n * 2);
 ```
 
 **Why map() Matters:**
 
 **For React/Vue:**
-```javascript
-// Rendering lists
-{users.map(user => <UserCard key={user.id} user={user} />)}
+```tsx
+// Rendering lists — `key` is what lets React match elements between renders
+{users.map((user: User) => (
+  <UserCard key={user.id} user={user} />
+))}
 ```
 
 **For Data Processing:**
-```javascript
-// API response transformation
-const simplified = apiResponse.map(item => ({
-    id: item.id,
-    name: item.attributes.name
+```typescript
+interface ApiItem {
+  id: number;
+  attributes: { name: string };
+}
+
+// Flattening an API shape at the boundary keeps the rest of the app clean
+const simplified = apiResponse.map((item: ApiItem) => ({
+  id: item.id,
+  name: item.attributes.name,
 }));
 ```
 
 **Performance Note:**
 > Built-in methods like `map()` are optimized by JavaScript engines. They're often faster than hand-written loops and always more readable.
 
-```javascript
-const numbers = [1, 2, 3, 4, 5];
+```typescript
+interface Person {
+  name: string;
+  age: number;
+}
 
-// Double each number
-const doubled = numbers.map(n => n * 2);
+const numbers: number[] = [1, 2, 3, 4, 5];
+
+// Transform each element. The original array is untouched
+const doubled: number[] = numbers.map((n: number): number => n * 2);
 console.log(doubled); // [2, 4, 6, 8, 10]
 
-// Extract property from objects
-const users = [
-    { name: 'Alice', age: 25 },
-    { name: 'Bob', age: 30 },
-    { name: 'Charlie', age: 35 }
+const people: Person[] = [
+  { name: 'Alice', age: 25 },
+  { name: 'Bob', age: 30 },
+  { name: 'Charlie', age: 35 },
 ];
 
-const names = users.map(user => user.name);
+const names: string[] = people.map((person: Person): string => person.name);
 console.log(names); // ['Alice', 'Bob', 'Charlie']
 
-// With index
-const withIndex = numbers.map((num, index) => `${index}: ${num}`);
+// The second parameter is the index
+const withIndex: string[] = numbers.map((num: number, index: number): string => `${index}: ${num}`);
 console.log(withIndex); // ['0: 1', '1: 2', '2: 3', '3: 4', '4: 5']
 ```
 
@@ -191,22 +210,28 @@ console.log(withIndex); // ['0: 1', '1: 2', '2: 3', '3: 4', '4: 5']
 
 **Array Filtering** - Creates a new array with elements that pass a test condition, perfect for data filtering and search.
 
-```javascript
-const numbers = [1, 2, 3, 4, 5, 6];
+```typescript
+interface ActivePerson {
+  name: string;
+  age: number;
+  active: boolean;
+}
 
-// Even numbers only
-const evens = numbers.filter(n => n % 2 === 0);
+const numbers: number[] = [1, 2, 3, 4, 5, 6];
+
+// filter keeps elements whose predicate is truthy; the length can change,
+// the element type cannot
+const evens: number[] = numbers.filter((n: number): boolean => n % 2 === 0);
 console.log(evens); // [2, 4, 6]
 
-// Filter objects
-const users = [
-    { name: 'Alice', age: 25, active: true },
-    { name: 'Bob', age: 30, active: false },
-    { name: 'Charlie', age: 35, active: true }
+const people: ActivePerson[] = [
+  { name: 'Alice', age: 25, active: true },
+  { name: 'Bob', age: 30, active: false },
+  { name: 'Charlie', age: 35, active: true },
 ];
 
-const activeUsers = users.filter(user => user.active);
-const adults = users.filter(user => user.age >= 30);
+const activeUsers: ActivePerson[] = people.filter((person: ActivePerson): boolean => person.active);
+const adults: ActivePerson[] = people.filter((person: ActivePerson): boolean => person.age >= 30);
 ```
 
 **reduce() - Reduce to Single Value**
@@ -217,14 +242,14 @@ const adults = users.filter(user => user.age >= 30);
 
 **How reduce() Works:**
 
-```javascript
+```text
 array.reduce(callback(accumulator, currentValue, index, array), initialValue)
 → Returns: Single value (any type)
 ```
 
 **The Accumulator Pattern:**
 
-```
+```text
                     ┌─────────────┐
 Initial Value  →   │ Accumulator  │
                     └──────┬───────┘
@@ -245,7 +270,7 @@ Initial Value  →   │ Accumulator  │
 - Initialized by `initialValue`
 
 **2. Parameters:**
-```javascript
+```text
 array.reduce((accumulator, currentValue, index, array) => {
     // accumulator: running total/result
     // currentValue: current element
@@ -256,57 +281,61 @@ array.reduce((accumulator, currentValue, index, array) => {
 ```
 
 **3. Initial Value:**
-```javascript
-// With initial value
-[1,2,3].reduce((sum, n) => sum + n, 0); // Start at 0 ✅
+```typescript
+// ✅ With an initial value — also the only form that survives an empty array
+[1, 2, 3].reduce((sum: number, n: number): number => sum + n, 0);
 
-// Without initial value
-[1,2,3].reduce((sum, n) => sum + n);    // Starts at 1 ⚠️
+// ⚠️ Without one, the first element becomes the accumulator and the callback
+// runs one fewer time. On an empty array this throws
+[1, 2, 3].reduce((sum: number, n: number): number => sum + n);
 ```
 
 **Common Patterns:**
 
 **Pattern 1: Sum/Product**
-```javascript
-const sum = numbers.reduce((total, n) => total + n, 0);
-const product = numbers.reduce((total, n) => total * n, 1);
+```typescript
+const sum: number = numbers.reduce((total: number, n: number): number => total + n, 0);
+const product: number = numbers.reduce((total: number, n: number): number => total * n, 1);
 ```
 
 **Pattern 2: Group by Property**
-```javascript
-const grouped = users.reduce((acc, user) => {
-    const role = user.role;
-    acc[role] = acc[role] || [];
-    acc[role].push(user);
-    return acc;
+```typescript
+// The initial value's type is the accumulator's type, so annotate it there
+const grouped = users.reduce<Record<string, User[]>>((acc, user: User) => {
+  const role: string = user.role;
+  acc[role] ??= [];
+  acc[role].push(user);
+  return acc;
 }, {});
-// Result: { admin: [...], user: [...] }
+// { admin: [...], user: [...] }
 ```
 
 **Pattern 3: Create Lookup Object**
-```javascript
-const lookup = users.reduce((acc, user) => {
-    acc[user.id] = user;
-    return acc;
+```typescript
+// Turning a list into a lookup is the reduce that earns its keep — it turns
+// an O(n) find into an O(1) read
+const lookup = users.reduce<Record<number, User>>((acc, user: User) => {
+  acc[user.id] = user;
+  return acc;
 }, {});
-// Result: { 1: {user1}, 2: {user2}, ... }
 ```
 
 **Pattern 4: Flatten Array**
-```javascript
-const flattened = [[1,2], [3,4]].reduce((acc, arr) => {
-    return acc.concat(arr);
-}, []);
-// Result: [1, 2, 3, 4]
+```typescript
+const flattened: number[] = [
+  [1, 2],
+  [3, 4],
+].reduce<number[]>((acc, arr: number[]) => acc.concat(arr), []);
+// [1, 2, 3, 4] — though `.flat()` says this more directly
 ```
 
 **Pattern 5: Count Occurrences**
-```javascript
-const counts = items.reduce((acc, item) => {
-    acc[item] = (acc[item] || 0) + 1;
-    return acc;
+```typescript
+const counts = items.reduce<Record<string, number>>((acc, item: string) => {
+  acc[item] = (acc[item] ?? 0) + 1;
+  return acc;
 }, {});
-// Result: { apple: 3, banana: 2, ... }
+// { apple: 3, banana: 2, … }
 ```
 
 **Why reduce() is Powerful:**
@@ -321,29 +350,31 @@ const counts = items.reduce((acc, item) => {
 **Common Mistakes:**
 
 ❌ **Forgetting initial value:**
-```javascript
-// Dangerous! Uses first element as initial
-['a','b','c'].reduce((acc, char) => acc + char.toUpperCase());
-// 'a' doesn't have .toUpperCase() on primitive
+```typescript
+// ⚠️ Without an initial value the first element *is* the accumulator, so 'a'
+// is never uppercased — the result is 'aBC', not 'ABC'
+['a', 'b', 'c'].reduce((acc: string, char: string): string => acc + char.toUpperCase());
 ```
 
 ✅ **Always provide initial value:**
-```javascript
-['a','b','c'].reduce((acc, char) => acc + char.toUpperCase(), '');
-// Safe! Starts with empty string
+```typescript
+// ✅ Starting from '' means every element goes through the callback: 'ABC'
+['a', 'b', 'c'].reduce((acc: string, char: string): string => acc + char.toUpperCase(), '');
 ```
 
 ❌ **Forgetting to return:**
-```javascript
-const sum = numbers.reduce((total, n) => {
-    total + n; // ❌ Not returned!
+```typescript
+// ❌ The block computes and discards. The accumulator becomes undefined
+const sum = numbers.reduce((total: number, n: number): number => {
+  total + n;
 }, 0);
 ```
 
 ✅ **Always return accumulator:**
-```javascript
-const sum = numbers.reduce((total, n) => {
-    return total + n; // ✅ Or: total + n (implicit return)
+```typescript
+// ✅ Return it — or drop the braces for an implicit return
+const sum: number = numbers.reduce((total: number, n: number): number => {
+  return total + n;
 }, 0);
 ```
 
@@ -360,59 +391,59 @@ const sum = numbers.reduce((total, n) => {
 **Pro Tip:**
 > While `reduce()` can do anything, prefer `map()`/`filter()` when they're clearer. Use `reduce()` for true aggregation and data structure transformation.
 
-```javascript
-const numbers = [1, 2, 3, 4, 5];
+```typescript
+interface RoledUser {
+  name: string;
+  role: string;
+}
 
-// Sum
-const sum = numbers.reduce((total, num) => total + num, 0);
+const numbers: number[] = [1, 2, 3, 4, 5];
+
+const sum: number = numbers.reduce((total: number, num: number): number => total + num, 0);
 console.log(sum); // 15
 
-// Product
-const product = numbers.reduce((result, num) => result * num, 1);
+const product: number = numbers.reduce((result: number, num: number): number => result * num, 1);
 console.log(product); // 120
 
-// Max value
-const max = numbers.reduce((max, num) => num > max ? num : max);
+// No initial value, which is fine here — but it throws on an empty array
+const max: number = numbers.reduce((acc: number, num: number): number => (num > acc ? num : acc));
 console.log(max); // 5
 
-// Count occurrences
-const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];
-const count = fruits.reduce((acc, fruit) => {
-    acc[fruit] = (acc[fruit] || 0) + 1;
-    return acc;
+const fruits: string[] = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];
+const count = fruits.reduce<Record<string, number>>((acc, fruit: string) => {
+  acc[fruit] = (acc[fruit] ?? 0) + 1;
+  return acc;
 }, {});
 console.log(count); // { apple: 3, banana: 2, orange: 1 }
 
-// Group by property
-const users = [
-    { name: 'Alice', role: 'admin' },
-    { name: 'Bob', role: 'user' },
-    { name: 'Charlie', role: 'admin' }
+const roledUsers: RoledUser[] = [
+  { name: 'Alice', role: 'admin' },
+  { name: 'Bob', role: 'user' },
+  { name: 'Charlie', role: 'admin' },
 ];
 
-const grouped = users.reduce((acc, user) => {
-    const role = user.role;
-    if (!acc[role]) acc[role] = [];
-    acc[role].push(user);
-    return acc;
+const grouped = roledUsers.reduce<Record<string, RoledUser[]>>((acc, user: RoledUser) => {
+  acc[user.role] ??= [];
+  acc[user.role].push(user);
+  return acc;
 }, {});
-// { admin: [{Alice}, {Charlie}], user: [{Bob}] }
+// { admin: [Alice, Charlie], user: [Bob] }
 ```
 
 **flatMap() - Map and Flatten**
 
 **Map and Flatten Combined** - Maps each element and flattens the result one level, combining map() and flat() in a single operation.
 
-```javascript
-const sentences = ['Hello world', 'How are you'];
+```typescript
+// flatMap is map followed by flat(1). Returning [] from the callback is also
+// how you filter and map in one pass
+const sentences: string[] = ['Hello world', 'How are you'];
 
-// Get all words
-const words = sentences.flatMap(sentence => sentence.split(' '));
+const words: string[] = sentences.flatMap((sentence: string): string[] => sentence.split(' '));
 console.log(words); // ['Hello', 'world', 'How', 'are', 'you']
 
-// Duplicate and flatten
-const numbers = [1, 2, 3];
-const duplicated = numbers.flatMap(n => [n, n]);
+const flatNumbers: number[] = [1, 2, 3];
+const duplicated: number[] = flatNumbers.flatMap((n: number): number[] => [n, n]);
 console.log(duplicated); // [1, 1, 2, 2, 3, 3]
 ```
 
@@ -422,76 +453,86 @@ console.log(duplicated); // [1, 1, 2, 2, 3, 3]
 
 **Finding Single Element** - Returns the first element that satisfies a condition or undefined, ideal for finding specific items.
 
-```javascript
-const users = [
-    { id: 1, name: 'Alice' },
-    { id: 2, name: 'Bob' },
-    { id: 3, name: 'Charlie' }
+```typescript
+interface IdName {
+  id: number;
+  name: string;
+}
+
+const users: IdName[] = [
+  { id: 1, name: 'Alice' },
+  { id: 2, name: 'Bob' },
+  { id: 3, name: 'Charlie' },
 ];
 
-const user = users.find(u => u.id === 2);
+// The return type is `IdName | undefined`, so TypeScript forces you to handle
+// the miss — which is the whole advantage over filter()[0]
+const user: IdName | undefined = users.find((u: IdName): boolean => u.id === 2);
 console.log(user); // { id: 2, name: 'Bob' }
 
-const notFound = users.find(u => u.id === 999);
+const notFound: IdName | undefined = users.find((u: IdName): boolean => u.id === 999);
 console.log(notFound); // undefined
 ```
 
 **findIndex() - Index of First Match**
-```javascript
-const numbers = [10, 20, 30, 40];
+```typescript
+const numbers: number[] = [10, 20, 30, 40];
 
-const index = numbers.findIndex(n => n > 25);
-console.log(index); // 2 (30 is at index 2)
+const index: number = numbers.findIndex((n: number): boolean => n > 25);
+console.log(index); // 2
 
-const notFound = numbers.findIndex(n => n > 100);
+// -1, not undefined. Check with `=== -1`, never with a truthiness test —
+// index 0 is falsy
+const notFound: number = numbers.findIndex((n: number): boolean => n > 100);
 console.log(notFound); // -1
 ```
 
 **includes() - Check if Element Exists**
-```javascript
-const fruits = ['apple', 'banana', 'orange'];
+```typescript
+const fruits: string[] = ['apple', 'banana', 'orange'];
 
 console.log(fruits.includes('banana')); // true
 console.log(fruits.includes('grape')); // false
 
-// From index
-console.log(fruits.includes('apple', 1)); // false (starts from index 1)
+// Optional start index
+console.log(fruits.includes('apple', 1)); // false
 
-// NaN handling (unlike indexOf)
-const values = [1, 2, NaN, 4];
+// includes uses SameValueZero, indexOf uses strict equality — which is why
+// only one of them can find NaN
+const values: number[] = [1, 2, NaN, 4];
 console.log(values.includes(NaN)); // true
-console.log(values.indexOf(NaN));  // -1
+console.log(values.indexOf(NaN)); // -1
 ```
 
 **indexOf() / lastIndexOf()**
-```javascript
-const numbers = [1, 2, 3, 2, 1];
+```typescript
+const numbers: number[] = [1, 2, 3, 2, 1];
 
-console.log(numbers.indexOf(2));     // 1 (first occurrence)
-console.log(numbers.lastIndexOf(2)); // 3 (last occurrence)
-console.log(numbers.indexOf(99));    // -1 (not found)
+console.log(numbers.indexOf(2)); // 1 — first occurrence
+console.log(numbers.lastIndexOf(2)); // 3 — last occurrence
+console.log(numbers.indexOf(99)); // -1 — not found
 ```
 
 **some() - Test if Any Match**
 
 **Existence Check** - Returns true if at least one element passes the test, useful for checking if any condition is met.
 
-```javascript
-const numbers = [1, 2, 3, 4, 5];
+```typescript
+const numbers: number[] = [1, 2, 3, 4, 5];
 
-const hasEven = numbers.some(n => n % 2 === 0);
+// some short-circuits on the first true
+const hasEven: boolean = numbers.some((n: number): boolean => n % 2 === 0);
 console.log(hasEven); // true
 
-const hasLarge = numbers.some(n => n > 100);
+const hasLarge: boolean = numbers.some((n: number): boolean => n > 100);
 console.log(hasLarge); // false
 
-// Check if any user is admin
-const users = [
-    { name: 'Alice', role: 'user' },
-    { name: 'Bob', role: 'admin' }
+const roleUsers: RoledUser[] = [
+  { name: 'Alice', role: 'user' },
+  { name: 'Bob', role: 'admin' },
 ];
 
-const hasAdmin = users.some(u => u.role === 'admin');
+const hasAdmin: boolean = roleUsers.some((u: RoledUser): boolean => u.role === 'admin');
 console.log(hasAdmin); // true
 ```
 
@@ -499,80 +540,83 @@ console.log(hasAdmin); // true
 
 **Universal Check** - Returns true only if all elements pass the test, useful for validation and condition checking.
 
-```javascript
-const numbers = [2, 4, 6, 8];
+```typescript
+const numbers: number[] = [2, 4, 6, 8];
 
-const allEven = numbers.every(n => n % 2 === 0);
+// every short-circuits on the first false, and returns true for an empty array
+const allEven: boolean = numbers.every((n: number): boolean => n % 2 === 0);
 console.log(allEven); // true
 
-const allPositive = numbers.every(n => n > 0);
+const allPositive: boolean = numbers.every((n: number): boolean => n > 0);
 console.log(allPositive); // true
 
-const allLarge = numbers.every(n => n > 5);
+const allLarge: boolean = numbers.every((n: number): boolean => n > 5);
 console.log(allLarge); // false
 ```
 
 ### 3. Array Manipulation
 
 **slice() - Extract Portion (Doesn't Modify)**
-```javascript
-const fruits = ['apple', 'banana', 'orange', 'grape', 'melon'];
+```typescript
+// slice does not mutate. splice does. The names are one letter apart and the
+// behaviour is opposite, which is why this trips people up
+const fruits: string[] = ['apple', 'banana', 'orange', 'grape', 'melon'];
 
-const some = fruits.slice(1, 3);
-console.log(some); // ['banana', 'orange']
+const someOf: string[] = fruits.slice(1, 3); // end is exclusive
+console.log(someOf); // ['banana', 'orange']
 
-const fromIndex = fruits.slice(2);
+const fromIndex: string[] = fruits.slice(2);
 console.log(fromIndex); // ['orange', 'grape', 'melon']
 
-const copy = fruits.slice();
-console.log(copy); // Full shallow copy
+const copy: string[] = fruits.slice(); // Shallow copy
+console.log(copy);
 
-// Negative indices
-const last = fruits.slice(-2);
+// Negative counts back from the end
+const last: string[] = fruits.slice(-2);
 console.log(last); // ['grape', 'melon']
 ```
 
 **splice() - Add/Remove Elements (Modifies Original)**
-```javascript
-const fruits = ['apple', 'banana', 'orange'];
+```typescript
+// ⚠️ splice mutates in place and returns what it removed
+const fruits: string[] = ['apple', 'banana', 'orange'];
 
-// Remove 1 element at index 1
-const removed = fruits.splice(1, 1);
-console.log(fruits);  // ['apple', 'orange']
+const removed: string[] = fruits.splice(1, 1);
+console.log(fruits); // ['apple', 'orange'] — the original changed
 console.log(removed); // ['banana']
 
-// Add elements
+// Insert without removing: deleteCount of 0
 fruits.splice(1, 0, 'grape', 'melon');
 console.log(fruits); // ['apple', 'grape', 'melon', 'orange']
 
-// Replace elements
+// Remove and insert in one call
 fruits.splice(1, 2, 'kiwi');
 console.log(fruits); // ['apple', 'kiwi', 'orange']
 ```
 
 **concat() - Merge Arrays**
-```javascript
-const arr1 = [1, 2];
-const arr2 = [3, 4];
-const arr3 = [5, 6];
+```typescript
+const arr1: number[] = [1, 2];
+const arr2: number[] = [3, 4];
+const arr3: number[] = [5, 6];
 
-const merged = arr1.concat(arr2, arr3);
+const merged: number[] = arr1.concat(arr2, arr3);
 console.log(merged); // [1, 2, 3, 4, 5, 6]
 
-// ES6 spread (preferred)
-const merged2 = [...arr1, ...arr2, ...arr3];
+// ✅ Spread says the same thing more directly
+const merged2: number[] = [...arr1, ...arr2, ...arr3];
 ```
 
 **flat() - Flatten Nested Arrays**
-```javascript
-const nested = [1, [2, 3], [4, [5, 6]]];
+```typescript
+const nested: (number | (number | number[])[])[] = [1, [2, 3], [4, [5, 6]]];
 
-console.log(nested.flat());    // [1, 2, 3, 4, [5, 6]] (default depth: 1)
-console.log(nested.flat(2));   // [1, 2, 3, 4, 5, 6]
+console.log(nested.flat()); // depth 1 by default
+console.log(nested.flat(2)); // [1, 2, 3, 4, 5, 6]
 console.log(nested.flat(Infinity)); // Fully flattened
 
-// Remove empty slots
-const sparse = [1, , 3, , 5];
+// flat also drops holes in a sparse array
+const sparse: number[] = [1, , 3, , 5];
 console.log(sparse.flat()); // [1, 3, 5]
 ```
 
@@ -582,44 +626,43 @@ console.log(sparse.flat()); // [1, 3, 5]
 
 **Array Sorting** - Sorts array in place using comparator function, crucial for numerical and custom sorting beyond alphabetical.
 
-```javascript
-// Alphabetical (default)
-const fruits = ['banana', 'apple', 'orange'];
+```typescript
+// ⚠️ sort mutates. Use `[...arr].sort()` or `arr.toSorted()` to keep the original
+const fruits: string[] = ['banana', 'apple', 'orange'];
 fruits.sort();
 console.log(fruits); // ['apple', 'banana', 'orange']
 
-// Numbers (need comparator!)
-const numbers = [10, 5, 40, 25, 1000, 1];
+const numbers: number[] = [10, 5, 40, 25, 1000, 1];
 
-// Wrong!
+// ❌ The default comparator converts to string first
 numbers.sort();
-console.log(numbers); // [1, 10, 1000, 25, 40, 5] (alphabetical)
+console.log(numbers); // [1, 10, 1000, 25, 40, 5]
 
-// Correct!
-numbers.sort((a, b) => a - b);
+// ✅ A numeric comparator
+numbers.sort((a: number, b: number): number => a - b);
 console.log(numbers); // [1, 5, 10, 25, 40, 1000]
 
 // Descending
-numbers.sort((a, b) => b - a);
+numbers.sort((a: number, b: number): number => b - a);
 console.log(numbers); // [1000, 40, 25, 10, 5, 1]
 
-// Sort objects
-const users = [
-    { name: 'Charlie', age: 35 },
-    { name: 'Alice', age: 25 },
-    { name: 'Bob', age: 30 }
+const people: Person[] = [
+  { name: 'Charlie', age: 35 },
+  { name: 'Alice', age: 25 },
+  { name: 'Bob', age: 30 },
 ];
 
-users.sort((a, b) => a.age - b.age);
-// Sorted by age: Alice(25), Bob(30), Charlie(35)
+people.sort((a: Person, b: Person): number => a.age - b.age);
+// Alice (25), Bob (30), Charlie (35)
 
-users.sort((a, b) => a.name.localeCompare(b.name));
-// Sorted by name: Alice, Bob, Charlie
+// localeCompare, not `<` — `<` gets accents and case wrong
+people.sort((a: Person, b: Person): number => a.name.localeCompare(b.name));
 ```
 
 **reverse() - Reverse Array (Modifies Original)**
-```javascript
-const numbers = [1, 2, 3, 4, 5];
+```typescript
+// ⚠️ Also mutates. `toReversed()` is the non-mutating version
+const numbers: number[] = [1, 2, 3, 4, 5];
 numbers.reverse();
 console.log(numbers); // [5, 4, 3, 2, 1]
 ```
@@ -627,26 +670,28 @@ console.log(numbers); // [5, 4, 3, 2, 1]
 ### 5. Iteration Methods
 
 **forEach() - Execute Function for Each**
-```javascript
-const fruits = ['apple', 'banana', 'orange'];
+```typescript
+const fruits: string[] = ['apple', 'banana', 'orange'];
 
-fruits.forEach((fruit, index) => {
-    console.log(`${index}: ${fruit}`);
+fruits.forEach((fruit: string, index: number): void => {
+  console.log(`${index}: ${fruit}`);
 });
 // 0: apple
 // 1: banana
 // 2: orange
 
-// Cannot break or return (use for...of if needed)
+// `break` is not available, and `return` only exits the callback. Use for…of
+// when you need to stop early, and note that `await` inside forEach is not
+// awaited by the loop
 ```
 
 **for...of - Iterate Values**
-```javascript
-const fruits = ['apple', 'banana', 'orange'];
+```typescript
+const fruits: string[] = ['apple', 'banana', 'orange'];
 
 for (const fruit of fruits) {
-    console.log(fruit);
-    if (fruit === 'banana') break; // Can break!
+  console.log(fruit);
+  if (fruit === 'banana') break; // Works, unlike inside forEach
 }
 ```
 
@@ -656,46 +701,46 @@ for (const fruit of fruits) {
 
 **Creating Arrays** - Creates arrays from array-like objects, iterables, with optional mapping function for transformation during creation.
 
-```javascript
-// String to array
-const str = 'hello';
-const chars = Array.from(str);
+```typescript
+// Array.from takes anything iterable *or* array-like. Spread only takes iterables
+const str: string = 'hello';
+const chars: string[] = Array.from(str);
 console.log(chars); // ['h', 'e', 'l', 'l', 'o']
 
-// Set to array
-const set = new Set([1, 2, 3]);
-const arr = Array.from(set);
+const set = new Set<number>([1, 2, 3]);
+const arr: number[] = Array.from(set);
 
-// Array-like to array
-const arrayLike = { 0: 'a', 1: 'b', 2: 'c', length: 3 };
-const array = Array.from(arrayLike);
+// Array-like — has `length` and numeric keys, but no Symbol.iterator
+const arrayLike: ArrayLike<string> = { 0: 'a', 1: 'b', 2: 'c', length: 3 };
+const array: string[] = Array.from(arrayLike);
 console.log(array); // ['a', 'b', 'c']
 
-// With mapping
-const numbers = Array.from([1, 2, 3], n => n * 2);
+// The second argument maps as it builds, avoiding an intermediate array
+const numbers: number[] = Array.from([1, 2, 3], (n: number): number => n * 2);
 console.log(numbers); // [2, 4, 6]
 
-// Generate range
-const range = Array.from({ length: 5 }, (_, i) => i + 1);
+// The idiomatic range
+const range: number[] = Array.from({ length: 5 }, (_, i: number): number => i + 1);
 console.log(range); // [1, 2, 3, 4, 5]
 ```
 
 **Array.of() - Create from Arguments**
-```javascript
-const arr1 = Array.of(1, 2, 3);
+```typescript
+const arr1: number[] = Array.of(1, 2, 3);
 console.log(arr1); // [1, 2, 3]
 
-// Difference from Array constructor
-const arr2 = Array(3);    // [empty × 3]
-const arr3 = Array.of(3); // [3]
+// Array(3) means "length 3", Array.of(3) means "containing 3". Array.of exists
+// only to remove that ambiguity
+const arr2: number[] = Array(3); // [empty × 3]
+const arr3: number[] = Array.of(3); // [3]
 ```
 
 **join() - Array to String**
-```javascript
-const fruits = ['apple', 'banana', 'orange'];
+```typescript
+const fruits: string[] = ['apple', 'banana', 'orange'];
 
-console.log(fruits.join());      // 'apple,banana,orange'
-console.log(fruits.join(' '));   // 'apple banana orange'
+console.log(fruits.join()); // 'apple,banana,orange' — comma by default
+console.log(fruits.join(' ')); // 'apple banana orange'
 console.log(fruits.join(' - ')); // 'apple - banana - orange'
 ```
 
@@ -705,29 +750,26 @@ console.log(fruits.join(' - ')); // 'apple - banana - orange'
 
 **Object Iteration Methods** - Extract keys, values, or key-value pairs from objects for iteration and transformation.
 
-```javascript
+```typescript
 const user = {
-    name: 'Alice',
-    age: 25,
-    email: 'alice@example.com'
+  name: 'Alice',
+  age: 25,
+  email: 'alice@example.com',
 };
 
-// Get keys
-const keys = Object.keys(user);
+// All three skip inherited and symbol-keyed properties
+const keys: string[] = Object.keys(user);
 console.log(keys); // ['name', 'age', 'email']
 
-// Get values
-const values = Object.values(user);
+const values: (string | number)[] = Object.values(user);
 console.log(values); // ['Alice', 25, 'alice@example.com']
 
-// Get entries (key-value pairs)
-const entries = Object.entries(user);
+const entries: [string, string | number][] = Object.entries(user);
 console.log(entries);
 // [['name', 'Alice'], ['age', 25], ['email', 'alice@example.com']]
 
-// Iterate
 for (const [key, value] of Object.entries(user)) {
-    console.log(`${key}: ${value}`);
+  console.log(`${key}: ${String(value)}`);
 }
 ```
 
@@ -735,132 +777,115 @@ for (const [key, value] of Object.entries(user)) {
 
 **Object Merging** - Copies properties from source objects to target, useful for merging and shallow cloning (spread operator preferred).
 
-```javascript
-// Merge objects
+```typescript
+// ⚠️ Object.assign mutates its first argument
 const target = { a: 1, b: 2 };
 const source = { b: 3, c: 4 };
 
 const result = Object.assign(target, source);
 console.log(result); // { a: 1, b: 3, c: 4 }
-console.log(target); // Modified! { a: 1, b: 3, c: 4 }
+console.log(target); // Also { a: 1, b: 3, c: 4 } — the original changed
 
-// Shallow copy (prefer spread operator)
+// Passing {} first avoids that
 const copy = Object.assign({}, user);
 
-// ES6 spread (better)
+// ✅ Spread does the same thing and reads better
 const copy2 = { ...user };
 
-// Merge multiple
-const merged = Object.assign({}, obj1, obj2, obj3);
+const merged = { ...obj1, ...obj2, ...obj3 };
 ```
 
 ### 3. Object.freeze() / seal()
 
 **Object Immutability** - freeze() makes objects completely immutable, seal() prevents additions/deletions but allows modifications.
 
-```javascript
-const user = {
-    name: 'Alice',
-    age: 25
-};
+```typescript
+// Both are shallow, and both fail silently outside strict mode. In a module —
+// which is always strict — these assignments throw instead
+const frozenUser: { name: string; age: number } = { name: 'Alice', age: 25 };
 
-// freeze - Cannot add, delete, or modify
-Object.freeze(user);
-user.age = 30;           // Ignored
-user.email = 'a@b.com';  // Ignored
-delete user.name;        // Ignored
-console.log(user);       // { name: 'Alice', age: 25 }
+Object.freeze(frozenUser); // No adding, deleting or modifying
+frozenUser.age = 30; // Throws in strict mode
+console.log(frozenUser); // { name: 'Alice', age: 25 }
 
-// seal - Cannot add or delete, but can modify
-const product = {
-    name: 'Phone',
-    price: 500
-};
+const product: { name: string; price: number } = { name: 'Phone', price: 500 };
 
-Object.seal(product);
-product.price = 600;     // OK
-product.color = 'black'; // Ignored
-delete product.name;     // Ignored
-console.log(product);    // { name: 'Phone', price: 600 }
+Object.seal(product); // No adding or deleting, but modifying is fine
+product.price = 600; // OK
+console.log(product); // { name: 'Phone', price: 600 }
 
-// Check if frozen/sealed
-console.log(Object.isFrozen(user));  // true
+console.log(Object.isFrozen(frozenUser)); // true
 console.log(Object.isSealed(product)); // true
 ```
 
 ### 4. Object.create()
 
-```javascript
+```typescript
+interface Greeter {
+  name: string;
+  greet(): void;
+}
+
 const personPrototype = {
-    greet() {
-        console.log(`Hello, I'm ${this.name}`);
-    }
+  greet(this: Greeter): void {
+    console.log(`Hello, I'm ${this.name}`);
+  },
 };
 
-const alice = Object.create(personPrototype);
+const alice = Object.create(personPrototype) as Greeter;
 alice.name = 'Alice';
 alice.greet(); // "Hello, I'm Alice"
 
-// With properties
+// The second argument takes property descriptors, not plain values
 const bob = Object.create(personPrototype, {
-    name: {
-        value: 'Bob',
-        writable: true,
-        enumerable: true
-    }
-});
+  name: { value: 'Bob', writable: true, enumerable: true },
+}) as Greeter;
 ```
 
 ### 5. Object.hasOwnProperty() / in
 
-```javascript
-const user = {
-    name: 'Alice'
-};
+```typescript
+const ownUser = { name: 'Alice' };
 
-// Own property
-console.log(user.hasOwnProperty('name'));     // true
-console.log(user.hasOwnProperty('toString')); // false
+// Own properties only. `Object.hasOwn(obj, key)` is the modern form and is
+// safe on objects created with a null prototype
+console.log(Object.hasOwn(ownUser, 'name')); // true
+console.log(Object.hasOwn(ownUser, 'toString')); // false
 
-// in operator (own + inherited)
-console.log('name' in user);     // true
-console.log('toString' in user); // true (inherited from Object.prototype)
+// `in` walks the prototype chain
+console.log('name' in ownUser); // true
+console.log('toString' in ownUser); // true — from Object.prototype
 ```
 
 ### 6. Object.fromEntries()
 
 **Creating Objects from Entries** - Converts key-value pair arrays or Maps into objects, inverse of Object.entries(), useful for transformations.
 
-```javascript
-// Entries to object
-const entries = [
-    ['name', 'Alice'],
-    ['age', 25],
-    ['email', 'alice@example.com']
+```typescript
+// fromEntries is the inverse of entries, which is what makes the
+// entries → transform → fromEntries round trip work on objects
+const entryList: [string, string | number][] = [
+  ['name', 'Alice'],
+  ['age', 25],
+  ['email', 'alice@example.com'],
 ];
 
-const user = Object.fromEntries(entries);
-console.log(user);
-// { name: 'Alice', age: 25, email: 'alice@example.com' }
+const fromEntriesUser = Object.fromEntries(entryList);
+console.log(fromEntriesUser);
 
-// Convert Map to object
-const map = new Map([
-    ['a', 1],
-    ['b', 2]
+const map = new Map<string, number>([
+  ['a', 1],
+  ['b', 2],
 ]);
 
-const obj = Object.fromEntries(map);
+const obj: Record<string, number> = Object.fromEntries(map);
 console.log(obj); // { a: 1, b: 2 }
 
-// Filter object properties
-const user2 = {
-    name: 'Bob',
-    age: 30,
-    password: 'secret'
-};
+// Removing a key without mutating
+const user2 = { name: 'Bob', age: 30, password: 'secret' };
 
 const filtered = Object.fromEntries(
-    Object.entries(user2).filter(([key]) => key !== 'password')
+  Object.entries(user2).filter(([key]: [string, unknown]): boolean => key !== 'password'),
 );
 console.log(filtered); // { name: 'Bob', age: 30 }
 ```
@@ -873,15 +898,14 @@ console.log(filtered); // { name: 'Bob', age: 30 }
 
 **map vs forEach** - map() returns new array with transformed values, forEach() only iterates with no return value.
 
-```javascript
-const numbers = [1, 2, 3];
+```typescript
+const numbers: number[] = [1, 2, 3];
 
-// forEach - no return value, just iterates
-const result1 = numbers.forEach(n => n * 2);
+// forEach returns undefined. If you are assigning its result, you wanted map
+const result1: void = numbers.forEach((n: number): number => n * 2);
 console.log(result1); // undefined
 
-// map - returns new array
-const result2 = numbers.map(n => n * 2);
+const result2: number[] = numbers.map((n: number): number => n * 2);
 console.log(result2); // [2, 4, 6]
 ```
 
@@ -891,18 +915,19 @@ console.log(result2); // [2, 4, 6]
 
 **Deduplication Techniques** - Three approaches using Set (best), filter with indexOf, or reduce with includes.
 
-```javascript
-const numbers = [1, 2, 2, 3, 3, 4];
+```typescript
+const numbers: number[] = [1, 2, 2, 3, 3, 4];
 
-// 1. Set (best)
-const unique1 = [...new Set(numbers)];
+// ✅ O(n), and says what it means
+const unique1: number[] = [...new Set(numbers)];
 
-// 2. filter
-const unique2 = numbers.filter((n, i) => numbers.indexOf(n) === i);
+// O(n²) — indexOf scans the array on every element
+const unique2: number[] = numbers.filter((n: number, i: number): boolean => numbers.indexOf(n) === i);
 
-// 3. reduce
-const unique3 = numbers.reduce((acc, n) =>
-    acc.includes(n) ? acc : [...acc, n], []
+// O(n²) and allocates a new array per element. Correct, but do not ship it
+const unique3: number[] = numbers.reduce<number[]>(
+  (acc, n: number) => (acc.includes(n) ? acc : [...acc, n]),
+  [],
 );
 ```
 
@@ -912,22 +937,21 @@ const unique3 = numbers.reduce((acc, n) =>
 
 **Grouping with reduce** - Uses reduce to group objects into categories based on a property value.
 
-```javascript
-const users = [
-    { name: 'Alice', role: 'admin' },
-    { name: 'Bob', role: 'user' },
-    { name: 'Charlie', role: 'admin' }
+```typescript
+const groupUsers: RoledUser[] = [
+  { name: 'Alice', role: 'admin' },
+  { name: 'Bob', role: 'user' },
+  { name: 'Charlie', role: 'admin' },
 ];
 
-const grouped = users.reduce((acc, user) => {
-    const role = user.role;
-    acc[role] = acc[role] || [];
-    acc[role].push(user);
-    return acc;
+const grouped = groupUsers.reduce<Record<string, RoledUser[]>>((acc, user: RoledUser) => {
+  acc[user.role] ??= [];
+  acc[user.role].push(user);
+  return acc;
 }, {});
 
 console.log(grouped);
-// { admin: [{Alice}, {Charlie}], user: [{Bob}] }
+// { admin: [Alice, Charlie], user: [Bob] }
 ```
 
 ## 💡 Practical Examples
@@ -936,19 +960,27 @@ console.log(grouped);
 
 **Method Chaining** - Chains multiple array methods (filter, map) to create data processing pipelines.
 
-```javascript
-const users = [
-    { name: 'Alice', age: 25, active: true, score: 85 },
-    { name: 'Bob', age: 17, active: false, score: 92 },
-    { name: 'Charlie', age: 30, active: true, score: 78 }
+```typescript
+interface Candidate {
+  name: string;
+  age: number;
+  active: boolean;
+  score: number;
+}
+
+const candidates: Candidate[] = [
+  { name: 'Alice', age: 25, active: true, score: 85 },
+  { name: 'Bob', age: 17, active: false, score: 92 },
+  { name: 'Charlie', age: 30, active: true, score: 78 },
 ];
 
-// Get names of active adult users with score > 80
-const result = users
-    .filter(u => u.active)
-    .filter(u => u.age >= 18)
-    .filter(u => u.score > 80)
-    .map(u => u.name);
+// Three filters read better than one compound predicate, and cost three passes.
+// At this size that is free; at a million elements, combine them
+const result: string[] = candidates
+  .filter((u: Candidate): boolean => u.active)
+  .filter((u: Candidate): boolean => u.age >= 18)
+  .filter((u: Candidate): boolean => u.score > 80)
+  .map((u: Candidate): string => u.name);
 
 console.log(result); // ['Alice']
 ```
@@ -957,16 +989,28 @@ console.log(result); // ['Alice']
 
 **Aggregation with reduce** - Uses reduce to calculate multiple statistics (sum, count, min, max, average) in one pass.
 
-```javascript
-const scores = [85, 92, 78, 95, 88];
+```typescript
+interface Stats {
+  sum: number;
+  count: number;
+  min: number;
+  max: number;
+  average?: number;
+}
 
-const stats = scores.reduce((acc, score) => {
+const scores: number[] = [85, 92, 78, 95, 88];
+
+// One pass for four statistics — this is where reduce beats four separate calls
+const stats: Stats = scores.reduce<Stats>(
+  (acc, score: number) => {
     acc.sum += score;
     acc.count++;
     acc.min = Math.min(acc.min, score);
     acc.max = Math.max(acc.max, score);
     return acc;
-}, { sum: 0, count: 0, min: Infinity, max: -Infinity });
+  },
+  { sum: 0, count: 0, min: Infinity, max: -Infinity },
+);
 
 stats.average = stats.sum / stats.count;
 console.log(stats);
@@ -977,23 +1021,27 @@ console.log(stats);
 
 **Deep vs Shallow Cloning** - Compares shallow cloning with spread operator versus deep cloning with JSON or structuredClone.
 
-```javascript
-// Shallow clone (nested objects are references)
-const user = {
-    name: 'Alice',
-    address: { city: 'NYC' }
+```typescript
+interface WithAddress {
+  name: string;
+  address: { city: string };
+}
+
+// Shallow clone — the nested object is still shared
+const cloneUser: WithAddress = {
+  name: 'Alice',
+  address: { city: 'NYC' },
 };
 
-const shallow = { ...user };
+const shallow: WithAddress = { ...cloneUser };
 shallow.address.city = 'LA';
-console.log(user.address.city); // 'LA' (modified!)
+console.log(cloneUser.address.city); // 'LA' — the original changed
 
-// Deep clone
-const deep = JSON.parse(JSON.stringify(user));
+// ✅ structuredClone handles Date, Map, Set and cycles. The JSON round trip
+// silently drops functions and undefined, and turns Dates into strings
+const deep: WithAddress = structuredClone(cloneUser);
 deep.address.city = 'Chicago';
-console.log(user.address.city); // 'LA' (not modified)
-
-// Note: JSON method has limitations (no functions, dates, etc.)
+console.log(cloneUser.address.city); // 'LA' — unchanged
 ```
 
 ## 🔗 Related Topics

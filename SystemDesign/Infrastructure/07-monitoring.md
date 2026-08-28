@@ -1,4 +1,8 @@
-# Infrastructure Monitoring
+# Infrastructure Monitoring {#ch-infrastructure-monitoring}
+
+> Wire up metrics, logs and traces so an alert points at a cause.
+
+**In this chapter:** the three pillars · metrics and alarms · structured logging · distributed tracing · dashboards and SLOs
 
 ## 💡 **Concept**
 
@@ -133,7 +137,7 @@ log({
 ```
 
 **CloudWatch Logs Insights query:**
-```
+```text
 fields @timestamp, userId, message, metadata.orderId
 | filter level = "ERROR" and metadata.errorCode = "INSUFFICIENT_FUNDS"
 | sort @timestamp desc

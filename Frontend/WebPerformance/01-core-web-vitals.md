@@ -1,4 +1,8 @@
-# Core Web Vitals
+# Core Web Vitals {#ch-core-web-vitals}
+
+> Read the three metrics Google actually ranks on, and know which fix moves which one.
+
+**In this chapter:** LCP · INP, which replaced FID · CLS · lab data vs field data · the order to optimise in
 
 ## Overview
 
@@ -131,7 +135,7 @@ function Hero(): JSX.Element {
 
 INP measures **how fast the page responds to clicks, taps, and key presses**. It replaced FID in March 2024, and FID was fully removed in September 2024.
 
-```
+```text
 You click → JS runs → browser paints the result
             └──────── INP measures this whole journey ────────┘
 ```

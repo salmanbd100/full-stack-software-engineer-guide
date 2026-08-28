@@ -1,4 +1,8 @@
-# Vitest Basics
+# Vitest Basics {#ch-vitest-basics}
+
+> Write, run and debug a test suite, and mock a module without leaking state into the next test.
+
+**In this chapter:** config · writing tests and matchers · setup and teardown · mocking functions and modules · fake timers
 
 ## Overview
 

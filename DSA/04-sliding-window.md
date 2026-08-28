@@ -1,4 +1,8 @@
-# Sliding Window Pattern
+# Sliding Window {#ch-sliding-window}
+
+> Keep a running window over an array and update it in O(1) instead of recomputing.
+
+**In this chapter:** fixed vs variable window · recognising the pattern · maximum sum subarray · longest substring without repeats · complexity
 
 ## What is Sliding Window?
 
@@ -49,7 +53,7 @@ Look for this pattern when you see:
 
 Imagine finding the maximum sum of any 3 consecutive numbers in the array `[2, 1, 5, 1, 3, 2]`:
 
-```
+```text
 Step 1: Initial window (sum = 8)
 ┌─────────┐
 │ 2  1  5 │ 1  3  2
@@ -83,7 +87,7 @@ Sum: 9 - 5 + 2 = 6
 
 For "longest substring without repeating characters" in string `"abcabcbb"`:
 
-```
+```text
 Step 1: Start with empty window
 │
 a  b  c  a  b  c  b  b
@@ -144,7 +148,7 @@ You should think "Sliding Window" when you see these keywords:
 | **"Consecutive elements"** | Elements must be next to each other |
 
 **Decision Tree**:
-```
+```text
 Is the problem about consecutive elements?
     ├─ No → Not sliding window
     └─ Yes → Is there a size constraint (k) or optimization goal?
@@ -277,7 +281,7 @@ maxSum = Math.max(9, 6);  // = 9, No update
 ```
 
 **Visual trace**:
-```
+```text
 [2, 1, 5, 1, 3, 2]
  └──────┘           Window 1: sum=8
     └──────┘        Window 2: sum=7 (remove 2, add 1)
@@ -430,7 +434,7 @@ maxLength = 3;  // Window: "b"
 ```
 
 ### Visual Example
-```
+```text
 String: "abcabcbb"
 Index:   01234567
 

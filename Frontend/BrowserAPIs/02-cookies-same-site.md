@@ -1,4 +1,8 @@
-# Cookies & SameSite
+# Cookies and SameSite {#ch-cookies-and-samesite}
+
+> Set a cookie an attacker cannot read or replay, and explain each attribute you chose.
+
+**In this chapter:** cookie attributes · `SameSite` Strict, Lax and None · how SameSite blunts CSRF · cookies vs localStorage for auth
 
 ## Table of Contents
 - [What Cookies Are](#what-cookies-are)
@@ -17,7 +21,7 @@
 
 A **cookie** is a small piece of data the server tells the browser to store. The browser then sends it back **automatically** with every matching request.
 
-```
+```text
 # Server response
 Set-Cookie: sessionId=abc123; Path=/; HttpOnly; Secure; SameSite=Strict
 

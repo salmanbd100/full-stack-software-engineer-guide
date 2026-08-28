@@ -20,7 +20,7 @@
 
 ## Error Handling Strategy Pyramid
 
-```
+```text
 ┌────────────────────────────────┐
 │   Prevent (Validation)         │ ← Best: Stop errors before they happen
 ├────────────────────────────────┤
@@ -54,13 +54,14 @@ JavaScript's structured exception handling mechanism for graceful error recovery
 
 **The Three Blocks:**
 
-```javascript
+```typescript
 try {
-    // Code that might throw errors
-} catch (error) {
-    // Handle the error
+  // Code that might throw
+} catch (error: unknown) {
+  // Handle it. Since TypeScript 4.4 the sane annotation is `unknown`,
+  // because anything can be thrown — not just an Error
 } finally {
-    // Cleanup (always runs)
+  // Cleanup — always runs
 }
 ```
 
@@ -84,7 +85,7 @@ try {
 
 **Execution Flow:**
 
-```
+```text
 try {
     statement1; ✅ Executes
     statement2; ✅ Executes
@@ -103,95 +104,102 @@ finally {
 
 **Error Object Properties:**
 
-```javascript
+```typescript
 try {
-    throw new Error('Something went wrong');
-} catch (error) {
-    console.log(error.name);    // "Error"
+  throw new Error('Something went wrong');
+} catch (error: unknown) {
+  // Narrow before reading any property — this is the whole discipline
+  if (error instanceof Error) {
+    console.log(error.name); // "Error"
     console.log(error.message); // "Something went wrong"
-    console.log(error.stack);   // Full stack trace
+    console.log(error.stack); // Full stack trace
+  }
 }
 ```
 
 **Finally Block Guarantees:**
 
 **Scenario 1: Success**
-```javascript
+```typescript
 try {
-    return 'success';
+  return 'success';
 } finally {
-    console.log('Cleanup'); // Still runs before return!
+  console.log('Cleanup'); // Runs before the value is returned
 }
-// Output: "Cleanup", then returns "success"
+// Logs "Cleanup", then returns "success"
 ```
 
 **Scenario 2: Error**
-```javascript
+```typescript
 try {
-    throw new Error('fail');
-} catch (e) {
-    return 'handled';
+  throw new Error('fail');
+} catch (e: unknown) {
+  return 'handled';
 } finally {
-    console.log('Cleanup'); // Still runs!
+  console.log('Cleanup'); // Runs on the catch path too
 }
 ```
 
 **Scenario 3: Early Return**
-```javascript
+```typescript
 try {
-    if (condition) return early;
-    doWork();
+  if (condition) return early;
+  doWork();
 } finally {
-    cleanup(); // Runs even with early return!
+  cleanup(); // Runs on the early return as well
 }
 ```
 
 **Common Use Cases:**
 
 **1. Resource Cleanup:**
-```javascript
-function readFile(filename) {
-    let file;
-    try {
-        file = openFile(filename);
-        return file.read();
-    } catch (error) {
-        console.error('Read failed:', error);
-        return null;
-    } finally {
-        if (file) file.close(); // Always close file
-    }
+```typescript
+function readFile(filename: string): string | null {
+  let file: FileHandle | undefined;
+  try {
+    file = openFile(filename);
+    return file.read();
+  } catch (error: unknown) {
+    console.error('Read failed:', error);
+    return null;
+  } finally {
+    // `finally` is where resource release belongs — the catch above returns,
+    // and a return does not skip it
+    file?.close();
+  }
 }
 ```
 
 **2. Database Connections:**
-```javascript
-async function queryDatabase() {
-    let connection;
-    try {
-        connection = await db.connect();
-        return await connection.query('SELECT * FROM users');
-    } catch (error) {
-        console.error('Query failed:', error);
-        throw error;
-    } finally {
-        if (connection) await connection.close(); // Always close
-    }
+```typescript
+async function queryDatabase(): Promise<User[]> {
+  let connection: Connection | undefined;
+  try {
+    connection = await db.connect();
+    return await connection.query('SELECT * FROM users');
+  } catch (error: unknown) {
+    console.error('Query failed:', error);
+    throw error;
+  } finally {
+    // Leaking a connection per failed query exhausts the pool within minutes
+    await connection?.close();
+  }
 }
 ```
 
 **3. Loading States:**
-```javascript
-async function fetchData() {
-    setLoading(true);
-    try {
-        const data = await api.fetch();
-        setData(data);
-    } catch (error) {
-        setError(error);
-    } finally {
-        setLoading(false); // Always reset loading state
-    }
+```typescript
+async function fetchData(): Promise<void> {
+  setLoading(true);
+  try {
+    const data: unknown = await api.fetch();
+    setData(data);
+  } catch (error: unknown) {
+    setError(error);
+  } finally {
+    // Without `finally`, a thrown error leaves the spinner running forever
+    setLoading(false);
+  }
 }
 ```
 
@@ -208,35 +216,32 @@ async function fetchData() {
 **The Transformation:**
 
 **From Crashes:**
-```javascript
-const data = JSON.parse(invalidJSON); // 💥 Crash!
+```typescript
+const data: unknown = JSON.parse(invalidJSON); // Throws on bad input
 ```
 
 **To Handled Errors:**
-```javascript
+```typescript
 try {
-    const data = JSON.parse(invalidJSON);
-    processData(data);
-} catch (error) {
-    console.error('Parse failed:', error.message);
-    return { error: 'Invalid JSON' }; // Graceful degradation
+  const data: unknown = JSON.parse(invalidJSON);
+  processData(data);
+} catch (error: unknown) {
+  console.error('Parse failed:', error instanceof Error ? error.message : error);
+  return { error: 'Invalid JSON' }; // Degrade rather than crash
 }
 ```
 
 **Key Insight:**
 > The `finally` block is the **only** guaranteed cleanup mechanism in JavaScript. It executes even if `try` or `catch` contains `return`, `throw`, or `break` statements - making it perfect for releasing resources.
 
-```javascript
+```typescript
 try {
-    // Code that might throw an error
-    const result = riskyOperation();
-    console.log(result);
-} catch (error) {
-    // Handle the error
-    console.error('Something went wrong:', error.message);
+  const result: unknown = riskyOperation();
+  console.log(result);
+} catch (error: unknown) {
+  console.error('Something went wrong:', error instanceof Error ? error.message : error);
 } finally {
-    // Always executes (optional)
-    console.log('Cleanup code here');
+  console.log('Cleanup code here');
 }
 ```
 
@@ -244,44 +249,43 @@ try {
 
 **Safe JSON Parsing** - Wraps risky operations like JSON.parse in try/catch, returning structured success/error objects instead of throwing.
 
-```javascript
-function parseJSON(jsonString) {
-    try {
-        const data = JSON.parse(jsonString);
-        return { success: true, data };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+```typescript
+// A discriminated union makes the caller check before reading `data` —
+// a `success` boolean with two optional fields does not
+type ParseResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+function parseJSON<T>(jsonString: string): ParseResult<T> {
+  try {
+    return { ok: true, data: JSON.parse(jsonString) as T };
+  } catch (error: unknown) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
 }
 
-const result1 = parseJSON('{"name": "Alice"}');
-console.log(result1); // { success: true, data: { name: 'Alice' } }
+const result1 = parseJSON<{ name: string }>('{"name": "Alice"}');
+if (result1.ok) console.log(result1.data.name); // Only reachable on success
 
 const result2 = parseJSON('invalid json');
-console.log(result2); // { success: false, error: '...' }
+console.log(result2); // { ok: false, error: '…' }
 ```
 
 **Finally Block**
 
 **Resource Cleanup** - Finally block ensures cleanup code (like closing files) always executes, regardless of success or error.
 
-```javascript
-function readFile(filename) {
-    let file;
+```typescript
+function readFileSafely(filename: string): string | null {
+  let file: FileHandle | undefined;
 
-    try {
-        file = openFile(filename);
-        const data = file.read();
-        return data;
-    } catch (error) {
-        console.error('Error reading file:', error);
-        return null;
-    } finally {
-        // Always close file, even if error occurred
-        if (file) {
-            file.close();
-        }
-    }
+  try {
+    file = openFile(filename);
+    return file.read();
+  } catch (error: unknown) {
+    console.error('Error reading file:', error);
+    return null;
+  } finally {
+    file?.close();
+  }
 }
 ```
 
@@ -296,12 +300,12 @@ How to signal exceptional conditions that callers should handle.
 **The Basics:**
 
 **Syntax:**
-```javascript
+```typescript
 throw new Error('Error message');
 ```
 
 **What Happens:**
-```
+```text
 throw statement
     ↓
 Execution stops immediately
@@ -317,9 +321,11 @@ Not found? → Program crashes
 **Always Throw Error Objects:**
 
 **❌ Bad (Primitives):**
-```javascript
-throw 'Error!';           // String
-throw 404;                // Number
+```typescript
+// ❌ All three are legal and all three are wrong. None carries a stack trace,
+// and `error instanceof Error` is false for every one of them
+throw 'Error!'; // String
+throw 404; // Number
 throw { message: 'Bad' }; // Plain object
 ```
 
@@ -329,7 +335,8 @@ throw { message: 'Bad' }; // Plain object
 - Can't determine error type
 
 **✅ Good (Error Objects):**
-```javascript
+```typescript
+// ✅ Throw an Error, or a subclass of one
 throw new Error('Something went wrong');
 throw new TypeError('Expected string');
 throw new RangeError('Value out of bounds');
@@ -344,14 +351,16 @@ throw new RangeError('Value out of bounds');
 **Error Message Best Practices:**
 
 **❌ Vague:**
-```javascript
-throw new Error('Error'); // What error?
-throw new Error('Bad input'); // Which input? What's wrong?
+```typescript
+// ❌ Neither message helps whoever reads the log at 3am
+throw new Error('Error');
+throw new Error('Bad input');
 ```
 
 **✅ Specific and Actionable:**
-```javascript
-throw new Error('User ID must be a positive integer, got: ' + userId);
+```typescript
+// ✅ Say what was expected and what arrived
+throw new Error(`User ID must be a positive integer, got: ${userId}`);
 throw new Error('Email format invalid: missing @ symbol');
 throw new TypeError(`Expected array, got ${typeof value}`);
 ```
@@ -376,121 +385,115 @@ throw new TypeError(`Expected array, got ${typeof value}`);
 **Examples:**
 
 **Throw for Exceptional Conditions:**
-```javascript
-function divide(a, b) {
-    if (typeof a !== 'number' || typeof b !== 'number') {
-        throw new TypeError('Arguments must be numbers');
-    }
-    if (b === 0) {
-        throw new Error('Division by zero');
-    }
-    return a / b;
+```typescript
+// The typeof guard is for values arriving from outside the type system —
+// JSON, form input, a third-party callback. Inside typed code it is dead weight
+function divide(a: number, b: number): number {
+  if (b === 0) {
+    throw new Error('Division by zero');
+  }
+  return a / b;
 }
 ```
 
 **Return for Expected Failures:**
-```javascript
-function findUser(id) {
-    const user = database.find(id);
-    if (!user) {
-        return null; // Expected - user might not exist
-    }
-    return user;
+```typescript
+// "Not found" is an expected outcome, so it is a return value, not a throw.
+// The `| null` in the signature makes the caller handle it
+function findUser(id: number): User | null {
+  return database.find(id) ?? null;
 }
 ```
 
 **API Design Pattern:**
 
-```javascript
-// ❌ Poor API - throws for expected case
-function getConfig(key) {
-    if (!config[key]) {
-        throw new Error('Config not found'); // Expected case!
-    }
-    return config[key];
+```typescript
+// ❌ Throwing for a case the caller expects turns normal flow into exceptions
+function getConfigBad(key: string): string {
+  if (!config[key]) {
+    throw new Error('Config not found');
+  }
+  return config[key];
 }
 
-// ✅ Better API - return for expected, throw for exceptional
-function getConfig(key) {
-    if (typeof key !== 'string') {
-        throw new TypeError('Key must be string'); // Exceptional
-    }
-    return config[key] || null; // Expected
+// ✅ Return for the expected, throw for the exceptional
+function getConfig(key: string): string | null {
+  return config[key] ?? null;
 }
 ```
 
 **Error Propagation:**
 
 **Stack Unwinding:**
-```javascript
-function level3() {
-    throw new Error('Error at level 3');
+```typescript
+function level3(): never {
+  throw new Error('Error at level 3');
 }
 
-function level2() {
-    level3(); // Error propagates up
+function level2(): void {
+  level3(); // Nothing to do — the error walks up on its own
 }
 
-function level1() {
-    try {
-        level2();
-    } catch (error) {
-        console.error('Caught:', error.message);
-        // Stack trace shows: level3 → level2 → level1
+function level1(): void {
+  try {
+    level2();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Caught:', error.message);
+      // The stack still shows level3 → level2 → level1
     }
+  }
 }
 ```
 
 **Re-throwing:**
-```javascript
-function processData(data) {
-    try {
-        return riskyOperation(data);
-    } catch (error) {
-        console.error('Operation failed:', error);
-        throw error; // Re-throw for caller to handle
-    }
+```typescript
+function processData(data: unknown): unknown {
+  try {
+    return riskyOperation(data);
+  } catch (error: unknown) {
+    // Log here for context, then re-throw. Catching to log and *not*
+    // re-throwing is how a failure becomes a silent wrong answer
+    console.error('Operation failed:', error);
+    throw error;
+  }
 }
 ```
 
 **Creating Informative Errors:**
 
-```javascript
-function validateAge(age) {
-    if (typeof age !== 'number') {
-        throw new TypeError(
-            `Age must be a number, got ${typeof age}`
-        );
-    }
-    if (age < 0) {
-        throw new RangeError(
-            `Age cannot be negative, got ${age}`
-        );
-    }
-    if (age < 18) {
-        throw new Error(
-            `Must be 18 or older, got ${age}`
-        );
-    }
-    return true;
+```typescript
+// The right built-in makes `instanceof` useful to the caller: a RangeError is
+// bad data, a TypeError is a bug in the calling code
+function validateAge(age: unknown): boolean {
+  if (typeof age !== 'number') {
+    throw new TypeError(`Age must be a number, got ${typeof age}`);
+  }
+  if (age < 0) {
+    throw new RangeError(`Age cannot be negative, got ${age}`);
+  }
+  if (age < 18) {
+    throw new Error(`Must be 18 or older, got ${age}`);
+  }
+  return true;
 }
 ```
 
 **Key Insight:**
 > Use `throw` for **exceptional conditions** (contract violations, impossible states) and `return` for **expected failures** (not found, validation). This creates clearer APIs where errors truly mean something went wrong, not just "this is an alternative path."
 
-```javascript
-function divide(a, b) {
-    if (b === 0) {
-        throw new Error('Division by zero');
-    }
-    return a / b;
+```typescript
+function divideChecked(a: number, b: number): number {
+  if (b === 0) {
+    throw new Error('Division by zero');
+  }
+  return a / b;
 }
 
 try {
-    const result = divide(10, 0);
-} catch (error) {
-    console.error(error.message); // "Division by zero"
+  const result: number = divideChecked(10, 0);
+} catch (error: unknown) {
+  if (error instanceof Error) console.error(error.message); // "Division by zero"
 }
 ```
 
@@ -498,28 +501,27 @@ try {
 
 **Specific Error Types** - Uses built-in error types (TypeError, RangeError) for specific error conditions, making errors more descriptive.
 
-```javascript
-function validateAge(age) {
-    if (typeof age !== 'number') {
-        throw new TypeError('Age must be a number');
-    }
-
-    if (age < 0) {
-        throw new RangeError('Age cannot be negative');
-    }
-
-    if (age < 18) {
-        throw new Error('Must be 18 or older');
-    }
-
-    return true;
+```typescript
+function checkAge(age: unknown): boolean {
+  if (typeof age !== 'number') {
+    throw new TypeError('Age must be a number');
+  }
+  if (age < 0) {
+    throw new RangeError('Age cannot be negative');
+  }
+  if (age < 18) {
+    throw new Error('Must be 18 or older');
+  }
+  return true;
 }
 
 try {
-    validateAge('25');
-} catch (error) {
-    console.error(error.name);    // "TypeError"
+  checkAge('25'); // A string, not a number
+} catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error(error.name); // "TypeError"
     console.error(error.message); // "Age must be a number"
+  }
 }
 ```
 
@@ -529,39 +531,43 @@ try {
 
 **JavaScript Error Hierarchy** - JavaScript provides specific error types for different failure categories, making errors more descriptive than generic Error. TypeError indicates wrong types (calling non-function, accessing null properties), ReferenceError means undefined variables, RangeError signals out-of-bounds values, SyntaxError catches parsing errors, and URIError handles malformed URIs. Using specific error types helps callers distinguish error categories and handle them appropriately - you might retry RangeErrors but not TypeErrors. Creating custom error classes (extending Error) enables application-specific error hierarchies, allowing fine-grained error handling based on error type.
 
-```javascript
-// Error - Generic error
+```typescript
+// Error — the generic base
 throw new Error('Something went wrong');
 
-// SyntaxError - Invalid syntax
-// eval('const x ='); // SyntaxError
-
-// ReferenceError - Invalid reference
+// SyntaxError — invalid syntax, thrown by JSON.parse and eval
 try {
-    console.log(undefinedVariable);
-} catch (error) {
-    console.log(error instanceof ReferenceError); // true
+  JSON.parse('{');
+} catch (error: unknown) {
+  console.log(error instanceof SyntaxError); // true
 }
 
-// TypeError - Wrong type
+// ReferenceError — a name that does not exist
 try {
-    null.toString();
-} catch (error) {
-    console.log(error instanceof TypeError); // true
+  console.log(undefinedVariable);
+} catch (error: unknown) {
+  console.log(error instanceof ReferenceError); // true
 }
 
-// RangeError - Number out of range
+// TypeError — a value of the wrong type, the most common by far
 try {
-    const arr = new Array(-1);
-} catch (error) {
-    console.log(error instanceof RangeError); // true
+  (null as unknown as string).toString();
+} catch (error: unknown) {
+  console.log(error instanceof TypeError); // true
 }
 
-// URIError - URI handling error
+// RangeError — a number outside its allowed range
 try {
-    decodeURIComponent('%');
-} catch (error) {
-    console.log(error instanceof URIError); // true
+  const arr = new Array(-1);
+} catch (error: unknown) {
+  console.log(error instanceof RangeError); // true
+}
+
+// URIError — malformed URI handling
+try {
+  decodeURIComponent('%');
+} catch (error: unknown) {
+  console.log(error instanceof URIError); // true
 }
 ```
 
@@ -569,44 +575,43 @@ try {
 
 **Creating Custom Errors** - Extends Error class to create domain-specific error types with custom properties and methods.
 
-```javascript
-// Custom error class
+```typescript
+// A custom class is what lets a caller distinguish "the input was wrong" from
+// "the network was down" without string-matching the message
 class ValidationError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'ValidationError';
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+    // Needed when targeting ES5: extending a built-in breaks the prototype chain
+    Object.setPrototypeOf(this, ValidationError.prototype);
+  }
 }
 
 class NetworkError extends Error {
-    constructor(message, statusCode) {
-        super(message);
-        this.name = 'NetworkError';
-        this.statusCode = statusCode;
-    }
+  readonly statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.name = 'NetworkError';
+    this.statusCode = statusCode;
+    Object.setPrototypeOf(this, NetworkError.prototype);
+  }
 }
 
-// Usage
-function validateUser(user) {
-    if (!user.name) {
-        throw new ValidationError('Name is required');
-    }
-
-    if (!user.email) {
-        throw new ValidationError('Email is required');
-    }
-
-    return true;
+function validateUser(user: { name?: string; email?: string }): boolean {
+  if (!user.name) throw new ValidationError('Name is required');
+  if (!user.email) throw new ValidationError('Email is required');
+  return true;
 }
 
 try {
-    validateUser({ name: 'Alice' });
-} catch (error) {
-    if (error instanceof ValidationError) {
-        console.error('Validation failed:', error.message);
-    } else {
-        console.error('Unknown error:', error);
-    }
+  validateUser({ name: 'Alice' });
+} catch (error: unknown) {
+  if (error instanceof ValidationError) {
+    console.error('Validation failed:', error.message);
+  } else {
+    console.error('Unknown error:', error);
+  }
 }
 ```
 
@@ -614,47 +619,58 @@ try {
 
 **Rich Error Objects** - Custom error classes with additional context (statusCode, endpoint, timestamp) and serialization methods.
 
-```javascript
-class APIError extends Error {
-    constructor(message, statusCode, endpoint) {
-        super(message);
-        this.name = 'APIError';
-        this.statusCode = statusCode;
-        this.endpoint = endpoint;
-        this.timestamp = new Date();
-    }
-
-    toJSON() {
-        return {
-            name: this.name,
-            message: this.message,
-            statusCode: this.statusCode,
-            endpoint: this.endpoint,
-            timestamp: this.timestamp
-        };
-    }
+```typescript
+interface APIErrorJSON {
+  name: string;
+  message: string;
+  statusCode: number;
+  endpoint: string;
+  timestamp: string;
 }
 
-async function fetchUser(id) {
-    const response = await fetch(`/api/users/${id}`);
+class APIError extends Error {
+  readonly statusCode: number;
+  readonly endpoint: string;
+  readonly timestamp: Date;
 
-    if (!response.ok) {
-        throw new APIError(
-            'Failed to fetch user',
-            response.status,
-            `/api/users/${id}`
-        );
-    }
+  constructor(message: string, statusCode: number, endpoint: string) {
+    super(message);
+    this.name = 'APIError';
+    this.statusCode = statusCode;
+    this.endpoint = endpoint;
+    this.timestamp = new Date();
+    Object.setPrototypeOf(this, APIError.prototype);
+  }
 
-    return response.json();
+  // An Error does not serialise usefully by default — JSON.stringify(new
+  // Error('x')) is '{}'. Define toJSON so the log gets the context
+  toJSON(): APIErrorJSON {
+    return {
+      name: this.name,
+      message: this.message,
+      statusCode: this.statusCode,
+      endpoint: this.endpoint,
+      timestamp: this.timestamp.toISOString(),
+    };
+  }
+}
+
+async function fetchUser(id: number): Promise<unknown> {
+  const response: Response = await fetch(`/api/users/${id}`);
+
+  if (!response.ok) {
+    throw new APIError('Failed to fetch user', response.status, `/api/users/${id}`);
+  }
+
+  return response.json();
 }
 
 try {
-    const user = await fetchUser(123);
-} catch (error) {
-    if (error instanceof APIError) {
-        console.error(error.toJSON());
-    }
+  const user: unknown = await fetchUser(123);
+} catch (error: unknown) {
+  if (error instanceof APIError) {
+    console.error(error.toJSON());
+  }
 }
 ```
 
@@ -664,23 +680,25 @@ try {
 
 **Promise Error Handling** - Handles promise rejections with catch() method, throwing errors for HTTP failures and re-throwing when needed.
 
-```javascript
-function fetchData() {
-    return fetch('/api/data')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data);
-            return data;
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            throw error; // Re-throw if needed
-        });
+```typescript
+function fetchDataChained(): Promise<unknown> {
+  return fetch('/api/data')
+    .then((response: Response) => {
+      // fetch only rejects on a network failure, so a 500 arrives here as a
+      // resolved response. Check `ok` or the error path never runs
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data: unknown): unknown => {
+      console.log(data);
+      return data;
+    })
+    .catch((error: unknown): never => {
+      console.error('Error fetching data:', error);
+      throw error;
+    });
 }
 ```
 
@@ -688,41 +706,39 @@ function fetchData() {
 
 **Async Error Handling with Try/Catch** - Uses try/catch blocks with async/await for cleaner error handling than promise chains.
 
-```javascript
-async function fetchUser(id) {
-    try {
-        const response = await fetch(`/api/users/${id}`);
+```typescript
+async function fetchUserOrNull(id: number): Promise<unknown | null> {
+  try {
+    const response: Response = await fetch(`/api/users/${id}`);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-        }
-
-        const user = await response.json();
-        return user;
-
-    } catch (error) {
-        console.error('Error fetching user:', error);
-
-        // Return default or re-throw
-        return null;
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
     }
+
+    return await response.json();
+  } catch (error: unknown) {
+    console.error('Error fetching user:', error);
+    // Swallowing here is a deliberate choice — the `| null` in the return
+    // type is what tells the caller it happened
+    return null;
+  }
 }
 
-// Multiple async operations
-async function loadDashboard() {
-    try {
-        const [user, posts, comments] = await Promise.all([
-            fetchUser(1),
-            fetchPosts(),
-            fetchComments()
-        ]);
+// Multiple async operations. Promise.all rejects on the first failure, so
+// one bad request loses the other two results
+async function loadDashboard(): Promise<{ user: unknown; posts: unknown; comments: unknown }> {
+  try {
+    const [user, posts, comments] = await Promise.all([
+      fetchUserOrNull(1),
+      fetchPosts(),
+      fetchComments(),
+    ]);
 
-        return { user, posts, comments };
-
-    } catch (error) {
-        console.error('Error loading dashboard:', error);
-        throw error;
-    }
+    return { user, posts, comments };
+  } catch (error: unknown) {
+    console.error('Error loading dashboard:', error);
+    throw error;
+  }
 }
 ```
 
@@ -730,21 +746,23 @@ async function loadDashboard() {
 
 **Resilient Parallel Operations** - Promise.allSettled waits for all promises to settle (resolve or reject), handling mixed success/failure gracefully.
 
-```javascript
-async function fetchMultipleUsers(ids) {
-    const promises = ids.map(id => fetchUser(id));
+```typescript
+// allSettled, not all — one failed user should not lose the other two.
+// The type predicate is what lets `.value` and `.reason` narrow correctly
+async function fetchMultipleUsers(
+  ids: readonly number[],
+): Promise<{ successful: unknown[]; failed: unknown[] }> {
+  const results = await Promise.allSettled(ids.map((id: number) => fetchUser(id)));
 
-    const results = await Promise.allSettled(promises);
+  const successful: unknown[] = results
+    .filter((r): r is PromiseFulfilledResult<unknown> => r.status === 'fulfilled')
+    .map((r) => r.value);
 
-    const successful = results
-        .filter(r => r.status === 'fulfilled')
-        .map(r => r.value);
+  const failed: unknown[] = results
+    .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+    .map((r) => r.reason);
 
-    const failed = results
-        .filter(r => r.status === 'rejected')
-        .map(r => r.reason);
-
-    return { successful, failed };
+  return { successful, failed };
 }
 
 const { successful, failed } = await fetchMultipleUsers([1, 2, 3]);
@@ -756,46 +774,55 @@ console.log(`Failed to load ${failed.length} users`);
 
 **React Error Boundaries** - React component that catches JavaScript errors in child component tree, displaying fallback UI and logging errors.
 
-```javascript
-// React Error Boundary Component
-class ErrorBoundary extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { hasError: false, error: null };
-    }
-
-    static getDerivedStateFromError(error) {
-        return { hasError: true, error };
-    }
-
-    componentDidCatch(error, errorInfo) {
-        console.error('Error caught by boundary:', error, errorInfo);
-        // Log to error reporting service
-        logErrorToService(error, errorInfo);
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return (
-                <div>
-                    <h1>Something went wrong</h1>
-                    <p>{this.state.error.message}</p>
-                </div>
-            );
-        }
-
-        return this.props.children;
-    }
+```tsx
+// React 19. Error boundaries are still the one thing that has no hooks
+// equivalent — a class component is required
+interface BoundaryProps {
+  children: React.ReactNode;
 }
 
-// Usage
-function App() {
-    return (
-        <ErrorBoundary>
-            <UserProfile />
-            <PostsList />
-        </ErrorBoundary>
-    );
+interface BoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<BoundaryProps, BoundaryState> {
+  constructor(props: BoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  // Runs during render — return the next state, do no side effects here
+  static getDerivedStateFromError(error: Error): BoundaryState {
+    return { hasError: true, error };
+  }
+
+  // Runs after commit — this is where logging belongs
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    logErrorToService(error, errorInfo);
+  }
+
+  render(): React.ReactNode {
+    if (this.state.hasError) {
+      return (
+        <div>
+          <h1>Something went wrong</h1>
+          <p>{this.state.error?.message}</p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+function App(): JSX.Element {
+  return (
+    <ErrorBoundary>
+      <UserProfile />
+      <PostsList />
+    </ErrorBoundary>
+  );
 }
 ```
 
@@ -807,32 +834,31 @@ function App() {
 
 **throw vs return** - return for normal values (caller checks), throw for exceptional cases (interrupts flow, must be caught).
 
-```javascript
-// return - normal flow control
-function divide1(a, b) {
-    if (b === 0) {
-        return null; // Caller needs to check
-    }
-    return a / b;
+```typescript
+// return — the failure is expected, and the type says so
+function divide1(a: number, b: number): number | null {
+  if (b === 0) return null;
+  return a / b;
 }
 
-const result1 = divide1(10, 0);
+const result1: number | null = divide1(10, 0);
 if (result1 === null) {
-    console.log('Error');
+  console.log('Error');
 }
 
-// throw - exceptional flow control
-function divide2(a, b) {
-    if (b === 0) {
-        throw new Error('Division by zero');
-    }
-    return a / b;
+// throw — the failure is exceptional, and the caller may reasonably not
+// handle it at this level
+function divide2(a: number, b: number): number {
+  if (b === 0) {
+    throw new Error('Division by zero');
+  }
+  return a / b;
 }
 
 try {
-    const result2 = divide2(10, 0);
-} catch (error) {
-    console.error(error.message);
+  const result2: number = divide2(10, 0);
+} catch (error: unknown) {
+  if (error instanceof Error) console.error(error.message);
 }
 ```
 
@@ -842,39 +868,39 @@ try {
 
 **Async Error Handling Patterns** - Three ways to handle async errors: catch() with promises, try/catch with async/await, or wrapper functions.
 
-```javascript
-// 1. .catch() with promises
+```typescript
+// 1. .catch() on the chain
 fetch('/api/data')
-    .then(res => res.json())
-    .catch(error => console.error(error));
+  .then((res: Response) => res.json())
+  .catch((error: unknown): void => console.error(error));
 
-// 2. try/catch with async/await
-async function fetchData() {
-    try {
-        const res = await fetch('/api/data');
-        const data = await res.json();
-        return data;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+// 2. try/catch around await
+async function fetchDataAwaited(): Promise<unknown> {
+  try {
+    const res: Response = await fetch('/api/data');
+    return await res.json();
+  } catch (error: unknown) {
+    console.error(error);
+    return null;
+  }
 }
 
-// 3. Higher-order function wrapper
-const asyncHandler = (fn) => {
-    return async (...args) => {
-        try {
-            return await fn(...args);
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
-    };
-};
+// 3. A wrapper, so the try/catch is written once. `Args extends unknown[]`
+// preserves the wrapped function's own signature
+const asyncHandler =
+  <Args extends unknown[], R>(fn: (...args: Args) => Promise<R>) =>
+  async (...args: Args): Promise<R> => {
+    try {
+      return await fn(...args);
+    } catch (error: unknown) {
+      console.error(error);
+      throw error;
+    }
+  };
 
-const fetchUser = asyncHandler(async (id) => {
-    const res = await fetch(`/api/users/${id}`);
-    return res.json();
+const fetchUserWrapped = asyncHandler(async (id: number): Promise<unknown> => {
+  const res: Response = await fetch(`/api/users/${id}`);
+  return res.json();
 });
 ```
 
@@ -884,30 +910,27 @@ const fetchUser = asyncHandler(async (id) => {
 
 **Unhandled Errors** - Uncaught errors crash programs; uncaught promise rejections can be caught with global handlers.
 
-```javascript
-// Uncaught error crashes the program
-function riskyOperation() {
-    throw new Error('Oops!');
+```typescript
+function riskyOperation(): never {
+  throw new Error('Oops!');
 }
 
-// This will crash
-// riskyOperation();
-
-// In async code, uncaught promise rejections
-async function asyncRisky() {
-    throw new Error('Async error');
+async function asyncRisky(): Promise<void> {
+  throw new Error('Async error');
 }
 
-// Without await/catch, this creates unhandled rejection
+// ❌ Calling it without awaiting or catching leaves the rejection unhandled.
+// Node has crashed the process on this since v15
 asyncRisky();
 
-// Global handlers
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection:', reason);
+// Last-resort handlers. These are for reporting, not for recovery —
+// treat every one that fires as a bug to fix at its source
+process.on('unhandledRejection', (reason: unknown): void => {
+  console.error('Unhandled Rejection:', reason);
 });
 
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled rejection:', event.reason);
+window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent): void => {
+  console.error('Unhandled rejection:', event.reason);
 });
 ```
 
@@ -917,40 +940,38 @@ window.addEventListener('unhandledrejection', (event) => {
 
 **Automatic Retry with Backoff** - Retries failed operations with exponential backoff delays, handling transient failures gracefully.
 
-```javascript
-async function fetchWithRetry(url, maxRetries = 3) {
-    let lastError;
+```typescript
+async function fetchWithRetry<T>(url: string, maxRetries = 3): Promise<T> {
+  let lastError: unknown;
 
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            const response = await fetch(url);
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response: Response = await fetch(url);
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
 
-            return await response.json();
+      return (await response.json()) as T;
+    } catch (error: unknown) {
+      lastError = error;
 
-        } catch (error) {
-            lastError = error;
-            console.log(`Attempt ${i + 1} failed, retrying...`);
-
-            // Wait before retry (exponential backoff)
-            await new Promise(resolve =>
-                setTimeout(resolve, 1000 * Math.pow(2, i))
-            );
-        }
+      // Exponential backoff — 1s, 2s, 4s. Retrying flat-out just adds load
+      await new Promise<void>((resolve): void => {
+        setTimeout(resolve, 1000 * 2 ** i);
+      });
     }
+  }
 
-    throw new Error(`Failed after ${maxRetries} attempts: ${lastError.message}`);
+  // `cause` links the wrapper to the original, so the stack is not lost
+  throw new Error(`Failed after ${maxRetries} attempts`, { cause: lastError });
 }
 
-// Usage
 try {
-    const data = await fetchWithRetry('/api/data');
-    console.log(data);
-} catch (error) {
-    console.error('All retries failed:', error);
+  const data = await fetchWithRetry<unknown>('/api/data');
+  console.log(data);
+} catch (error: unknown) {
+  console.error('All retries failed:', error);
 }
 ```
 
@@ -958,58 +979,52 @@ try {
 
 **Validation with Custom Errors** - Uses custom ValidationError for input validation, providing clear error messages for each validation rule.
 
-```javascript
+```typescript
 class Validator {
-    static validateEmail(email) {
-        if (!email) {
-            throw new ValidationError('Email is required');
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            throw new ValidationError('Invalid email format');
-        }
-
-        return true;
+  static validateEmail(email: string): boolean {
+    if (!email) {
+      throw new ValidationError('Email is required');
     }
 
-    static validatePassword(password) {
-        if (!password) {
-            throw new ValidationError('Password is required');
-        }
-
-        if (password.length < 8) {
-            throw new ValidationError('Password must be at least 8 characters');
-        }
-
-        if (!/[A-Z]/.test(password)) {
-            throw new ValidationError('Password must contain uppercase letter');
-        }
-
-        if (!/[0-9]/.test(password)) {
-            throw new ValidationError('Password must contain number');
-        }
-
-        return true;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new ValidationError('Invalid email format');
     }
+
+    return true;
+  }
+
+  static validatePassword(password: string): boolean {
+    if (!password) {
+      throw new ValidationError('Password is required');
+    }
+    if (password.length < 8) {
+      throw new ValidationError('Password must be at least 8 characters');
+    }
+    if (!/[A-Z]/.test(password)) {
+      throw new ValidationError('Password must contain an uppercase letter');
+    }
+    if (!/[0-9]/.test(password)) {
+      throw new ValidationError('Password must contain a number');
+    }
+
+    return true;
+  }
 }
 
-// Usage
-function registerUser(email, password) {
-    try {
-        Validator.validateEmail(email);
-        Validator.validatePassword(password);
-
-        // Proceed with registration
-        console.log('Validation passed');
-
-    } catch (error) {
-        if (error instanceof ValidationError) {
-            console.error('Validation error:', error.message);
-            return { success: false, error: error.message };
-        }
-        throw error;
+function registerUser(email: string, password: string): { ok: boolean; error?: string } {
+  try {
+    Validator.validateEmail(email);
+    Validator.validatePassword(password);
+    return { ok: true };
+  } catch (error: unknown) {
+    // Handle what you understand; re-throw what you do not. Catching
+    // everything here would swallow a genuine bug
+    if (error instanceof ValidationError) {
+      return { ok: false, error: error.message };
     }
+    throw error;
+  }
 }
 ```
 
@@ -1017,46 +1032,48 @@ function registerUser(email, password) {
 
 **Fallback Strategy** - Implements fallback chain (API → Cache → Default) for resilient data fetching with graceful degradation.
 
-```javascript
+```typescript
+interface Data {
+  message: string;
+}
+
+// Graceful degradation: network → cache → a default that always works.
+// The signature never widens to `| null`, so no caller has to handle a miss
 class DataService {
-    async getData() {
-        try {
-            // Try primary source
-            return await this.fetchFromAPI();
-        } catch (apiError) {
-            console.warn('API failed, trying cache:', apiError.message);
+  async getData(): Promise<Data> {
+    try {
+      return await this.fetchFromAPI();
+    } catch (apiError: unknown) {
+      console.warn('API failed, trying cache');
 
-            try {
-                // Fallback to cache
-                return await this.fetchFromCache();
-            } catch (cacheError) {
-                console.warn('Cache failed, using default:', cacheError.message);
-
-                // Final fallback
-                return this.getDefaultData();
-            }
-        }
+      try {
+        return await this.fetchFromCache();
+      } catch (cacheError: unknown) {
+        console.warn('Cache failed, using default');
+        return this.getDefaultData();
+      }
     }
+  }
 
-    async fetchFromAPI() {
-        const response = await fetch('/api/data');
-        if (!response.ok) throw new Error('API error');
-        return response.json();
-    }
+  async fetchFromAPI(): Promise<Data> {
+    const response: Response = await fetch('/api/data');
+    if (!response.ok) throw new Error('API error');
+    return (await response.json()) as Data;
+  }
 
-    async fetchFromCache() {
-        const cached = localStorage.getItem('data');
-        if (!cached) throw new Error('No cache');
-        return JSON.parse(cached);
-    }
+  async fetchFromCache(): Promise<Data> {
+    const cached: string | null = localStorage.getItem('data');
+    if (cached === null) throw new Error('No cache');
+    return JSON.parse(cached) as Data;
+  }
 
-    getDefaultData() {
-        return { message: 'Default data' };
-    }
+  getDefaultData(): Data {
+    return { message: 'Default data' };
+  }
 }
 
 const service = new DataService();
-const data = await service.getData();
+const data: Data = await service.getData();
 console.log(data);
 ```
 
@@ -1066,20 +1083,19 @@ console.log(data);
 
 **Silent Failures** - Empty catch blocks hide errors; always log or handle errors appropriately to maintain visibility.
 
-```javascript
-// Bad: Silent failure
+```typescript
+// ❌ An empty catch turns a failure into a wrong answer with no trace
 try {
-    riskyOperation();
-} catch (error) {
-    // Empty catch - error is lost!
+  riskyOperation();
+} catch (error: unknown) {
+  // Nothing. The bug is now invisible
 }
 
-// Good: Log or handle
+// ✅ At minimum, log it
 try {
-    riskyOperation();
-} catch (error) {
-    console.error('Error:', error);
-    // Or send to logging service
+  riskyOperation();
+} catch (error: unknown) {
+  console.error('Error:', error);
 }
 ```
 
@@ -1087,27 +1103,25 @@ try {
 
 **Error Propagation** - Log errors locally but re-throw when callers need to handle them, maintaining error flow through the call stack.
 
-```javascript
-// Bad: Error not propagated
-async function processData() {
-    try {
-        const data = await fetchData();
-        return data;
-    } catch (error) {
-        console.error(error);
-        // Caller thinks everything is fine!
-    }
+```typescript
+// ❌ The catch swallows the failure and returns undefined, so the caller
+// carries on as though it worked
+async function processDataBad(): Promise<unknown> {
+  try {
+    return await fetchData();
+  } catch (error: unknown) {
+    console.error(error);
+  }
 }
 
-// Good: Re-throw after logging
-async function processDataCorrect() {
-    try {
-        const data = await fetchData();
-        return data;
-    } catch (error) {
-        console.error('Error in processData:', error);
-        throw error; // Let caller handle
-    }
+// ✅ Log for context, then re-throw
+async function processDataCorrect(): Promise<unknown> {
+  try {
+    return await fetchData();
+  } catch (error: unknown) {
+    console.error('Error in processData:', error);
+    throw error;
+  }
 }
 ```
 
@@ -1115,24 +1129,24 @@ async function processDataCorrect() {
 
 **Unhandled Promise Rejections** - Always handle async function rejections with catch() or try/catch to prevent unhandled rejection warnings.
 
-```javascript
-// Bad: Unhandled promise rejection
-async function badAsync() {
-    throw new Error('Oops');
+```typescript
+async function badAsync(): Promise<void> {
+  throw new Error('Oops');
 }
 
-badAsync(); // Unhandled rejection!
+// ❌ Calling and ignoring the promise. Node exits non-zero on this
+badAsync();
 
-// Good: Handle it
-badAsync().catch(error => console.error(error));
+// ✅ Attach a handler
+void badAsync().catch((error: unknown): void => console.error(error));
 
-// Or with try/catch
-(async () => {
-    try {
-        await badAsync();
-    } catch (error) {
-        console.error(error);
-    }
+// ✅ Or await inside a try/catch
+void (async (): Promise<void> => {
+  try {
+    await badAsync();
+  } catch (error: unknown) {
+    console.error(error);
+  }
 })();
 ```
 

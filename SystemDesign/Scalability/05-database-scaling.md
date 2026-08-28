@@ -1,4 +1,8 @@
-# Database Scaling
+# Database Scaling {#ch-database-scaling}
+
+> Scale reads and writes separately, and leave sharding until last.
+
+**In this chapter:** read vs write scaling · read replicas · connection pooling · CQRS · sharding as the last resort
 
 ## 💡 **Concept**
 
@@ -25,7 +29,7 @@ Most applications are read-heavy (80–95% reads). Separate read and write scali
 
 Add one or more read-only replicas that receive a stream of writes from the primary. Route all reads to replicas; writes go to primary.
 
-```
+```text
 Write (INSERT/UPDATE/DELETE)
   → Primary DB
 
@@ -79,7 +83,7 @@ Databases have a hard limit on open connections (PostgreSQL default: 100). Each 
 
 **Solution:** a connection pooler (PgBouncer, RDS Proxy) sits between app servers and the DB, multiplexing many app connections onto fewer DB connections.
 
-```
+```text
 App servers (100 instances × 10 connections = 1000)
   │
   ▼
@@ -157,7 +161,7 @@ The write model updates the primary DB. An event handler projects the changes in
 
 Sharding splits data across multiple database instances. Each shard holds a partition of the data.
 
-```
+```text
 Shard 0: user_ids 0–999,999
 Shard 1: user_ids 1,000,000–1,999,999
 Shard 2: user_ids 2,000,000–2,999,999

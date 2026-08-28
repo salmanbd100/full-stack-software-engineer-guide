@@ -1,4 +1,8 @@
-# Conflict Resolution
+# Conflict Resolution {#ch-conflict-resolution}
+
+> Describe a disagreement in a way that makes you sound like someone worth disagreeing with.
+
+**In this chapter:** the questions that come up · worked STAR answers · the themes to demonstrate · useful frameworks · the red flags
 
 ## Overview
 

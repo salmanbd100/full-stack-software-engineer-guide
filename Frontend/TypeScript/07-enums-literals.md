@@ -1,4 +1,8 @@
-# Enums & Literal Types
+# Enums and Literal Types {#ch-enums-and-literal-types}
+
+> Model a fixed set of values without shipping a runtime object nobody asked for.
+
+**In this chapter:** string literal unions · string enums · `as const` objects · what enums emit · when a numeric enum is still right
 
 ## Table of Contents
 - [String Literal Types](#string-literal-types)
@@ -135,7 +139,7 @@ updateStatus("ord_123", "lost");              // ❌ Error: not a valid status
 
 ### Decision guide
 
-```
+```text
 Do you need to iterate or loop over all values?
 ├── Yes → use as const object or enum
 └── No → use literal types

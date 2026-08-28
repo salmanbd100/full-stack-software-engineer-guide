@@ -1,4 +1,8 @@
-# Interfaces & Types
+# Interfaces and Type Aliases {#ch-interfaces-and-type-aliases}
+
+> Pick between `interface` and `type` on the two grounds that actually differ, not on preference.
+
+**In this chapter:** declaration merging · unions and primitives · extending vs intersecting · optional vs `undefined`
 
 ## Table of Contents
 - [Interfaces](#interfaces)

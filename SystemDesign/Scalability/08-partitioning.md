@@ -1,4 +1,8 @@
-# Data Partitioning (Sharding)
+# Data Partitioning {#ch-data-partitioning}
+
+> Split a dataset across nodes without creating a hot shard.
+
+**In this chapter:** the partition types · hash partitioning · consistent hashing · the hot key problem · cross-shard queries · re-sharding
 
 ## 💡 **Concept**
 

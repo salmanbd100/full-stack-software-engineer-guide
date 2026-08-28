@@ -1,4 +1,8 @@
-# Overlapping Intervals Pattern
+# Overlapping Intervals {#ch-overlapping-intervals}
+
+> Sort by start, then sweep — which solves almost every interval problem you will be asked.
+
+**In this chapter:** the kinds of overlap · merging intervals · inserting an interval · meeting rooms · complexity
 
 ## What is Overlapping Intervals? (In Simple Words)
 
@@ -20,7 +24,7 @@ These are exactly the types of problems the Overlapping Intervals pattern solves
 
 ### Visual Timeline Example
 
-```
+```text
 Timeline: 0 -------- 5 -------- 10 ------- 15 ------- 20 ------- 25 ------- 30
 
 Meeting A: |===============================|  [0, 30]
@@ -101,7 +105,7 @@ You should think "Overlapping Intervals" when you see:
 ## Visual Understanding: Types of Interval Overlaps
 
 ### Case 1: Complete Overlap (One inside the other)
-```
+```text
 Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
 
 Interval A: |===================|  [1, 5]
@@ -114,7 +118,7 @@ Result: Merge to [1, 5] (B is completely inside A)
 ```
 
 ### Case 2: Partial Overlap
-```
+```text
 Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
 
 Interval A: |===============|       [1, 4]
@@ -127,7 +131,7 @@ Result: Merge to [1, 6] (they overlap from 3-4)
 ```
 
 ### Case 3: Touching at Boundary
-```
+```text
 Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
 
 Interval A: |===========|           [1, 3]
@@ -140,7 +144,7 @@ Result: Merge to [1, 5] (touching at point 3)
 ```
 
 ### Case 4: No Overlap (Gap between)
-```
+```text
 Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
 
 Interval A: |=======|               [1, 2]
@@ -230,7 +234,7 @@ console.log(merge([[1, 4], [2, 3]]));
 Let's trace through: `[[1,3], [2,6], [8,10], [15,18]]`
 
 **Step 0: Initial State (Before Sorting)**
-```
+```text
 Input: [[1,3], [2,6], [8,10], [15,18]]
 
 Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6 --- 7 --- 8 --- 9 --- 10 --- ... --- 15 --- ... --- 18
@@ -249,7 +253,7 @@ Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6 --- 7 --- 8 --- 9 --- 10 --- ...
 ```
 
 **Step 1: Sort by start time**
-```
+```text
 After sorting: [[1,3], [2,6], [8,10], [15,18]]
 (Already sorted in this example)
 
@@ -257,7 +261,7 @@ Initialize merged = [[1,3]]  ← Start with first interval
 ```
 
 **Step 2: Process [2,6]**
-```
+```text
 Current: [2,6]
 Last merged: [1,3]
 
@@ -277,7 +281,7 @@ merged = [[1,6]]
 ```
 
 **Step 3: Process [8,10]**
-```
+```text
 Current: [8,10]
 Last merged: [1,6]
 
@@ -296,7 +300,7 @@ merged = [[1,6], [8,10]]
 ```
 
 **Step 4: Process [15,18]**
-```
+```text
 Current: [15,18]
 Last merged: [8,10]
 
@@ -315,7 +319,7 @@ merged = [[1,6], [8,10], [15,18]]
 ```
 
 **Final Result:**
-```
+```text
 Timeline: 0 --- 1 --- ... --- 6 --- 7 --- 8 --- ... --- 10 --- ... --- 15 --- ... --- 18
 
 Result:  |=============|              |=========|              |===============|
@@ -329,7 +333,7 @@ Output: [[1,6], [8,10], [15,18]]
 Let's trace: `[[1,4], [2,3]]`
 
 **Visual Timeline:**
-```
+```text
 Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5
 
          [1,4]:  |===============|
@@ -340,7 +344,7 @@ Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5
 ```
 
 **Step-by-step:**
-```
+```text
 1. Sort: [[1,4], [2,3]] (already sorted)
 2. merged = [[1,4]]
 3. Process [2,3]:
@@ -553,7 +557,7 @@ console.log(minMeetingRoomsAlternative(intervals4));  // Output: 2
 Let's trace: `[[0,30], [5,10], [15,20]]`
 
 **Visual Timeline of All Meetings:**
-```
+```text
 Timeline: 0 -------- 5 -------- 10 ------- 15 ------- 20 ------- 25 ------- 30
 
 Meeting A: |===============================================================| [0, 30]
@@ -571,7 +575,7 @@ Maximum rooms needed: 2
 ```
 
 **Step 1: Sort by start time**
-```
+```text
 After sorting: [[0,30], [5,10], [15,20]]
 (Already sorted)
 
@@ -580,7 +584,7 @@ rooms_used = 0
 ```
 
 **Step 2: Process Meeting [0,30]**
-```
+```text
 Meeting: [0, 30]
 heap = []  ← Empty, so no rooms are free
 
@@ -594,7 +598,7 @@ rooms_used = 1
 ```
 
 **Step 3: Process Meeting [5,10]**
-```
+```text
 Meeting: [5, 10]
 heap = [30]  ← Room 1 ends at 30
 
@@ -615,7 +619,7 @@ rooms_used = 2  ← Maximum so far
 ```
 
 **Step 4: Process Meeting [15,20]**
-```
+```text
 Meeting: [15, 20]
 heap = [10, 30]  ← Room 2 ends at 10, Room 1 ends at 30
 
@@ -641,7 +645,7 @@ rooms_used = 2  ← Still 2 (we reused a room)
 ```
 
 **Final Result:**
-```
+```text
 Timeline: 0 -------- 5 -------- 10 ------- 15 ------- 20 ------- 30
 
 Room 1:   |========================================================|
@@ -659,7 +663,7 @@ Answer: 2 rooms needed
 Let's trace: `[[1,5], [2,3], [4,6], [5,7]]`
 
 **Visual Timeline:**
-```
+```text
 Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6 --- 7
 
 Meeting A:      |===============|               [1, 5]
@@ -679,7 +683,7 @@ At time 5-6: A, C, D all running → 3 ROOMS NEEDED!
 ```
 
 **Processing:**
-```
+```text
 1. Sort: [[1,5], [2,3], [4,6], [5,7]]
 
 2. [1,5]:  heap = [5], rooms = 1

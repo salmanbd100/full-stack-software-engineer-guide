@@ -30,7 +30,7 @@ This module covers the six areas that come up in almost every senior backend int
 
 ## How the Pieces Fit
 
-```
+```text
         Design the contract          (01 REST or 02 GraphQL)
                   │
                   ▼

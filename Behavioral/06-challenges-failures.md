@@ -1,4 +1,8 @@
-# Handling Challenges & Failures
+# Challenges and Failures {#ch-challenges-and-failures}
+
+> Tell a real failure honestly, and land the learning without spinning it into a win.
+
+**In this chapter:** the questions that come up · worked STAR answers · frameworks for discussing failure · the red flags · framing without spinning
 
 ## Overview
 Failure and challenge questions assess your resilience, learning mindset, ability to take risks, and how you handle pressure. These questions reveal your self-awareness and growth potential—critical qualities for any role.

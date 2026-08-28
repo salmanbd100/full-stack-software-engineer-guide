@@ -1,4 +1,8 @@
-# Design Rate Limiter
+# Design a Rate Limiter {#ch-design-rate-limiter}
+
+> Pick an algorithm for the traffic shape and make the counter correct across every instance.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ A rate limiter sits in front of your API and blocks requests that exceed a confi
 
 ### High-Level Diagram
 
-```
+```text
 Client Request
       │
 API Gateway / Middleware

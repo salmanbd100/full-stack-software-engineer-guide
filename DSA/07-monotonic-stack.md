@@ -1,4 +1,8 @@
-# Monotonic Stack Pattern
+# Monotonic Stack {#ch-monotonic-stack}
+
+> Find the next greater or smaller element for every position in a single pass.
+
+**In this chapter:** what makes a stack monotonic · increasing vs decreasing · daily temperatures · next greater element · complexity
 
 ## What is Monotonic Stack? (In Simple Words)
 
@@ -13,7 +17,7 @@ A **Monotonic Stack** is like organizing this line in a special way where:
 
 Think of standing on buildings of different heights and looking right. You can only see the first building taller than yours - that's your "next greater element!"
 
-```
+```text
 Buildings:  [3, 7, 2, 5, 8, 1]
              ↓  ↓  ↓  ↓  ↓  ↓
 Standing on 3 → Can see 7 (next taller)
@@ -85,7 +89,7 @@ Let's visualize how a monotonic decreasing stack works with a simple example:
 
 **Example**: Find next greater element for `[2, 1, 4, 3]`
 
-```
+```text
 Step-by-step visualization:
 ═══════════════════════════════════════════════════════════════
 
@@ -173,7 +177,7 @@ Final Answer: [4, 4, -1, -1]
 
 **Visual Comparison:**
 
-```
+```text
 MONOTONIC DECREASING STACK (for "Next Greater Element")
 ═══════════════════════════════════════════════════════
 
@@ -277,7 +281,7 @@ console.log(dailyTemperatures([30, 60, 90]));
 
 **How the monotonic stack works**:
 
-```
+```text
 temperatures = [73, 74, 75, 71, 69, 72, 76, 73]
 stack = [] (stores indices)
 
@@ -333,7 +337,7 @@ Final: answer = [1, 1, 4, 2, 1, 1, 0, 0]
 
 Let's walk through a smaller example step-by-step: `temperatures = [73, 74, 75, 71]`
 
-```
+```text
 Initial State:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 temperatures: [73, 74, 75, 71]
@@ -541,7 +545,7 @@ console.log(nextGreaterElement(nums1c, nums2c));  // Output: [7, 7, 7, 7, 7]
 
 **Visual Example** for `nums2 = [1, 3, 4, 2]`:
 
-```
+```text
 num=1: stack = [] → push 1
   stack = [1]
 
@@ -637,7 +641,7 @@ HashMap: {1: 3, 3: 4, 4: -1, 2: -1}
    - **Decreasing stack**: Find next greater element
    - **Increasing stack**: Find next smaller element
 5. **Pattern template**:
-   ```
+   ```text
    while stack not empty and current violates monotonic property:
        pop and process
    push current

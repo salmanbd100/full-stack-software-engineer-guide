@@ -1,4 +1,8 @@
-# SOLID Principles
+# SOLID Principles {#ch-solid-principles}
+
+> Apply the five principles where they help, and name the cost when they do not.
+
+**In this chapter:** single responsibility · open/closed · Liskov substitution · interface segregation · dependency inversion
 
 ## Overview
 
@@ -236,7 +240,7 @@ class ReportBuilder {
 
 **This is the one that changes your code the most**, and it's usually explained backwards. The inversion is about *who owns the interface*.
 
-```
+```text
 ❌ Conventional:  OrderService ──▶ StripeGateway
                   (policy depends on detail — swap the vendor, edit the policy)
 

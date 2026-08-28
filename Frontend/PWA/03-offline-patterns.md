@@ -1,4 +1,8 @@
-# Offline Patterns & Caching Strategies
+# Offline Patterns and Caching Strategies {#ch-offline-patterns}
+
+> Pick a caching strategy per request type, and know what each one serves when the network is gone.
+
+**In this chapter:** cache first · network first · stale-while-revalidate · cache only and network only · the offline page · IndexedDB for data · Workbox
 
 ## Overview
 
@@ -48,7 +52,7 @@ Offline support is what makes PWAs truly special. This guide covers caching stra
 
 **Decision Flowchart:**
 
-```
+```text
 Is this a static asset?
 ├── YES → Cache First
 └── NO → Does user need fresh data?
@@ -71,7 +75,7 @@ Check cache first, only fetch from network if not cached.
 
 **How It Works:**
 
-```
+```text
 Request → Check Cache
           ├── Found → Return cached response
           └── Not Found → Fetch from network
@@ -196,7 +200,7 @@ Try network first, fall back to cache if network fails.
 
 **How It Works:**
 
-```
+```text
 Request → Try Network
           ├── Success → Cache & return
           └── Fail → Check Cache
@@ -298,7 +302,7 @@ Return cached content immediately, then update cache in background.
 
 **How It Works:**
 
-```
+```text
 Request → Check Cache
           ├── Found → Return cached (immediately)
           │           └── Fetch in background → Update cache
@@ -416,7 +420,7 @@ Only serve from cache, never fetch from network.
 
 **How It Works:**
 
-```
+```text
 Request → Check Cache
           ├── Found → Return cached
           └── Not Found → Return error (404)
@@ -477,7 +481,7 @@ Always fetch from network, never use cache.
 
 **How It Works:**
 
-```
+```text
 Request → Fetch from network
           ├── Success → Return response
           └── Fail → Return error
@@ -525,7 +529,7 @@ Display a custom offline page when network fails and content isn't cached.
 
 **How It Works:**
 
-```
+```text
 Navigation Request → Try network
                      ├── Success → Cache page & return
                      └── Fail → Try cache

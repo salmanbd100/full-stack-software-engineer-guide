@@ -1,4 +1,8 @@
-# File Storage
+# File Storage {#ch-file-storage}
+
+> Keep large files out of your application path, and out of your database.
+
+**In this chapter:** object vs block vs file storage · how object storage works · pre-signed URLs · multipart upload · storage tiers
 
 ## 💡 **Concept**
 
@@ -27,7 +31,7 @@ File storage handles the challenge of storing, retrieving, and serving large bin
 
 Objects use a flat key namespace (not a real filesystem):
 
-```
+```text
 Bucket: my-app-uploads
   "users/u123/profile.jpg"          ← key
   "reports/2024/q4-report.pdf"      ← key

@@ -1,4 +1,8 @@
-# Input Validation and Sanitization
+# Input Validation and Sanitisation {#ch-input-validation-and-sanitisation}
+
+> Validate on the server because the client is UX, and parameterise everything that reaches a query.
+
+**In this chapter:** why client-side validation is not security · schema validation · validation vs sanitisation · SQL and command injection · file uploads
 
 ## Overview
 

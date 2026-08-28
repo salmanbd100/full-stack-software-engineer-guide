@@ -1,4 +1,8 @@
-# IndexedDB
+# IndexedDB {#ch-indexeddb}
+
+> Store structured data past the 5MB wall, and survive a schema change without losing it.
+
+**In this chapter:** when it beats Web Storage · object stores and transactions · versioning and migrations · indexes and queries · the `idb` wrapper
 
 ## Table of Contents
 - [What It Is](#what-it-is)

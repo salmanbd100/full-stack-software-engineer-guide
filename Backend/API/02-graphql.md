@@ -1,4 +1,8 @@
-# GraphQL
+# GraphQL {#ch-graphql}
+
+> Design a schema the frontend can query well, and stop the resolver chain melting your database.
+
+**In this chapter:** the schema and type system · resolvers · the N+1 problem and DataLoader · field-level auth · errors · when REST is still the better call
 
 ## Overview
 

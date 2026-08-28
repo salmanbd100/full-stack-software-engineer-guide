@@ -1,4 +1,8 @@
-# CI/CD
+# CI/CD Pipelines {#ch-ci-cd-pipelines}
+
+> Build a pipeline that can ship on a Friday, including the way back.
+
+**In this chapter:** the pipeline stages · a worked pipeline · blue-green, canary and rolling · infrastructure as code
 
 ## 💡 **Concept**
 
@@ -10,7 +14,7 @@ CI/CD automates the path from code commit to production. **Continuous Integratio
 
 ## The Pipeline Stages
 
-```
+```text
 Code push
     ↓
 CI — lint → unit tests → integration tests → build image → security scan

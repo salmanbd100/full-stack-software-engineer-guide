@@ -42,7 +42,7 @@ Every object has a hidden internal property `[[Prototype]]` that references anot
 
 **How Prototype Lookup Works:**
 
-```
+```text
 Access obj.property
     ↓
 1. Check obj itself → Found? Return it
@@ -69,6 +69,7 @@ Access obj.property
 - Property lookup traverses the chain
 
 **3. Accessing Prototypes:**
+<!-- lint-allow-fence: javascript — `__proto__` is a deprecated accessor that TypeScript does not put on the object type; the fence exists to compare it with `Object.getPrototypeOf` -->
 ```javascript
 const obj = {};
 
@@ -108,6 +109,7 @@ obj.constructor.prototype
 **The Hidden Truth:**
 > Every object in JavaScript (except `null`) has a prototype. Even ES6 classes use prototypes under the hood - `class` syntax is just a cleaner way to work with the prototype system.
 
+<!-- lint-allow-fence: javascript — same `__proto__` accessor — reads or rewrites the prototype chain at runtime, which the static type does not follow; TypeScript reports the inherited property as missing -->
 ```javascript
 const obj = {};
 
@@ -129,6 +131,7 @@ When you access a property, JavaScript searches:
 
 **Prototype Chain Lookup** - Demonstrates how JavaScript traverses the prototype chain to find properties, inheriting from ancestors.
 
+<!-- lint-allow-fence: javascript — `Object.setPrototypeOf` builds the chain at runtime, so `child.age` and `child.surname` — reads or rewrites the prototype chain at runtime, which the static type does not follow; TypeScript reports the inherited property as missing -->
 ```javascript
 const grandparent = {
     surname: 'Smith'
@@ -173,6 +176,7 @@ Constructor functions are the traditional way to create object templates in Java
 **Why Use Prototypes for Methods:**
 
 **❌ Without Prototype (Inefficient):**
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Person(name) {
     this.name = name;
@@ -195,6 +199,7 @@ console.log(p1.greet === p2.greet); // false ❌
 - Wastes memory
 
 **✅ With Prototype (Efficient):**
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Person(name) {
     this.name = name; // Instance property
@@ -228,7 +233,7 @@ console.log(p1.greet === p2.greet); // true ✅
 
 **Memory Comparison:**
 
-```
+```text
 Without Prototype:
 Person Instance 1: { name: 'Alice', greet: function() {...} }
 Person Instance 2: { name: 'Bob',   greet: function() {...} }
@@ -246,24 +251,27 @@ Person Instance 3: { name: 'Carol' } ──┘
 
 This exact pattern is what ES6 `class` syntax uses under the hood:
 
-```javascript
+```typescript
 class Person {
-    constructor(name) {
-        this.name = name; // Instance property
-    }
+  name: string;
 
-    greet() {
-        // Goes on Person.prototype automatically!
-        console.log(`Hi, I'm ${this.name}`);
-    }
+  constructor(name: string) {
+    this.name = name; // Instance property — lives on the object
+  }
+
+  greet(): void {
+    // Methods land on Person.prototype automatically, shared by every instance
+    console.log(`Hi, I'm ${this.name}`);
+  }
 }
 
-// Equivalent to constructor function + prototype pattern
+// Exactly the constructor-function-plus-prototype pattern above, with syntax
 ```
 
 **Key Insight:**
 > The prototype pattern isn't just a legacy feature - it's the efficient, scalable way to create objects with shared behavior. ES6 classes are syntactic sugar that make this pattern cleaner to write.
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Person(name, age) {
     // Instance properties
@@ -296,6 +304,7 @@ console.log(alice.greet === bob.greet); // true (same function)
 
 **'new' Operator Mechanics** - Breaks down what happens when 'new' is used: object creation, prototype linking, 'this' binding, and return.
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Person(name) {
     // 1. Creates new empty object: const this = {}
@@ -318,31 +327,34 @@ function createPerson(name) {
 
 **ES6 Class Syntax** - Modern class syntax that compiles to prototype-based code, offering cleaner syntax for inheritance and methods.
 
-```javascript
+```typescript
 class Person {
-    constructor(name, age) {
-        this.name = name;
-        this.age = age;
-    }
+  name: string;
+  age: number;
 
-    // Methods automatically go on prototype
-    greet() {
-        console.log(`Hello, I'm ${this.name}`);
-    }
+  constructor(name: string, age: number) {
+    this.name = name;
+    this.age = age;
+  }
 
-    // Static methods (on class itself, not prototype)
-    static species() {
-        return 'Homo sapiens';
-    }
+  // Goes on Person.prototype
+  greet(): void {
+    console.log(`Hello, I'm ${this.name}`);
+  }
+
+  // Static — on the constructor itself, not the prototype
+  static species(): string {
+    return 'Homo sapiens';
+  }
 }
 
 const alice = new Person('Alice', 25);
 alice.greet(); // "Hello, I'm Alice"
 console.log(Person.species()); // "Homo sapiens"
 
-// Under the hood, it's still prototype-based
+// `class` is syntax. Underneath it is still a function and a prototype
 console.log(typeof Person); // "function"
-console.log(alice.__proto__ === Person.prototype); // true
+console.log(Object.getPrototypeOf(alice) === Person.prototype); // true
 ```
 
 ### 5. Inheritance with Prototypes
@@ -351,6 +363,7 @@ console.log(alice.__proto__ === Person.prototype); // true
 
 **Classical Inheritance Pattern** - Shows pre-ES6 inheritance using constructor functions, Object.create(), and fixing constructor references.
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 // Parent constructor
 function Animal(name) {
@@ -387,32 +400,36 @@ console.log(buddy instanceof Animal); // true
 
 **extends and super Keywords** - Modern inheritance using 'extends' for subclassing and 'super' for calling parent constructors and methods.
 
-```javascript
+```typescript
 class Animal {
-    constructor(name) {
-        this.name = name;
-    }
+  name: string;
 
-    eat() {
-        console.log(`${this.name} is eating`);
-    }
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  eat(): void {
+    console.log(`${this.name} is eating`);
+  }
 }
 
 class Dog extends Animal {
-    constructor(name, breed) {
-        super(name); // Call parent constructor
-        this.breed = breed;
-    }
+  breed: string;
 
-    bark() {
-        console.log(`${this.name} says woof!`);
-    }
+  constructor(name: string, breed: string) {
+    super(name); // Must run before any use of `this`
+    this.breed = breed;
+  }
 
-    // Override parent method
-    eat() {
-        super.eat(); // Call parent method
-        console.log(`${this.name} is a good dog!`);
-    }
+  bark(): void {
+    console.log(`${this.name} says woof!`);
+  }
+
+  // Overriding replaces the prototype method; `super` reaches the original
+  override eat(): void {
+    super.eat();
+    console.log(`${this.name} is a good dog!`);
+  }
 }
 
 const buddy = new Dog('Buddy', 'Golden Retriever');
@@ -428,32 +445,40 @@ Create objects with specific prototype without constructor functions.
 
 **Object.create() for Prototypal Inheritance** - Creates objects directly with specified prototypes, offering simpler inheritance without constructors.
 
-```javascript
+```typescript
+interface PersonLike {
+  name: string;
+  greet(): void;
+}
+
 const personPrototype = {
-    greet() {
-        console.log(`Hello, I'm ${this.name}`);
-    }
+  greet(this: PersonLike): void {
+    console.log(`Hello, I'm ${this.name}`);
+  },
 };
 
-const alice = Object.create(personPrototype);
+// Object.create is the direct way to say "this object delegates to that one".
+// No constructor, no `new`, no class
+const alice = Object.create(personPrototype) as PersonLike;
 alice.name = 'Alice';
 alice.greet(); // "Hello, I'm Alice"
 
-// With properties
+// The second argument takes property descriptors, not plain values
 const bob = Object.create(personPrototype, {
-    name: {
-        value: 'Bob',
-        writable: true,
-        enumerable: true,
-        configurable: true
-    }
-});
+  name: {
+    value: 'Bob',
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  },
+}) as PersonLike;
 ```
 
 ### 7. Checking Prototypes and Properties
 
 **Property and Prototype Checking** - Methods to distinguish own properties from inherited ones, check prototype chain, and verify instances.
 
+<!-- lint-allow-fence: javascript — mixes own-vs-inherited property checks with a constructor function; reads or rewrites the prototype chain at runtime, which the static type does not follow; TypeScript reports the inherited property as missing -->
 ```javascript
 const obj = { own: 'property' };
 
@@ -490,6 +515,7 @@ console.log(Object.prototype.isPrototypeOf(alice)); // true
 
 **__proto__ vs prototype** - Clarifies that 'prototype' is a property of constructor functions while '__proto__' is the actual prototype reference of objects.
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Person(name) {
     this.name = name;
@@ -514,6 +540,7 @@ console.log(alice.__proto__ === Person.prototype); // true
 
 **Prototypal Inheritance Mechanism** - Explains property lookup through the prototype chain and how adding to prototypes affects all instances.
 
+<!-- lint-allow-fence: javascript — reading `obj.b` where `b` does not exist is the lookup being traced; TypeScript refuses to compile the access -->
 ```javascript
 // When you access a property:
 const obj = {
@@ -552,6 +579,7 @@ bob.greet();   // Works too!
 
 **Pre-ES6 Inheritance Setup** - Manual inheritance using constructor functions with Object.create() to establish prototype chain.
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Animal(name) {
     this.name = name;
@@ -574,21 +602,26 @@ Dog.prototype.constructor = Dog;
 
 **Modern Class-Based Inheritance** - Clean ES6 syntax for inheritance using extends and super, replacing manual prototype manipulation.
 
-```javascript
+```typescript
 class Animal {
-    constructor(name) {
-        this.name = name;
-    }
-    eat() {
-        console.log('eating');
-    }
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  eat(): void {
+    console.log('eating');
+  }
 }
 
 class Dog extends Animal {
-    constructor(name, breed) {
-        super(name);
-        this.breed = breed;
-    }
+  breed: string;
+
+  constructor(name: string, breed: string) {
+    super(name);
+    this.breed = breed;
+  }
 }
 ```
 
@@ -596,16 +629,25 @@ class Dog extends Animal {
 
 **Prototypal Inheritance Without Constructors** - Simple object-based inheritance creating new objects with existing objects as prototypes.
 
-```javascript
-const animal = {
-    eat() {
-        console.log('eating');
-    }
+```typescript
+interface Animalish {
+  eat(): void;
+}
+
+interface Dogish extends Animalish {
+  bark(): void;
+}
+
+const animal: Animalish = {
+  eat(): void {
+    console.log('eating');
+  },
 };
 
-const dog = Object.create(animal);
-dog.bark = function() {
-    console.log('woof');
+// Objects delegating to objects — no constructor in sight
+const dog = Object.create(animal) as Dogish;
+dog.bark = function (): void {
+  console.log('woof');
 };
 ```
 
@@ -615,6 +657,7 @@ dog.bark = function() {
 
 **Prototype vs Instance Methods** - Compares memory usage of instance methods versus shared prototype methods, highlighting efficiency benefits.
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 // Bad: Each instance gets its own copy
 function PersonBad(name) {
@@ -646,6 +689,7 @@ console.log(p3.greet === p4.greet); // true (efficient!)
 
 **Modifying Built-in Prototypes** - Shows how to extend native objects (discouraged) and why utility functions are safer alternatives.
 
+<!-- lint-allow-fence: javascript — extending a built-in prototype needs a `declare global` interface merge in TypeScript, which is a different lesson from the one here — and the fence's own advice is not to do this -->
 ```javascript
 // Generally not recommended, but shows prototype power
 
@@ -668,6 +712,7 @@ function first(arr) {
 
 **Multiple Inheritance with Mixins** - Uses Object.assign() to copy properties from multiple sources, achieving mixin-style multiple inheritance.
 
+<!-- lint-allow-fence: javascript — `Object.assign(Duck.prototype, …)` adds methods the class type does not know about, so every call site errors; TypeScript's mixin pattern uses class expressions instead -->
 ```javascript
 // Multiple inheritance via mixins
 const canEat = {
@@ -708,6 +753,7 @@ duck.swim(); // "swimming"
 
 **Privacy Through Closures** - Creates private variables using closures in constructors, trading memory efficiency for data privacy.
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Counter() {
     let count = 0; // Private variable
@@ -734,31 +780,39 @@ console.log(counter.count); // undefined (private!)
 
 ### 1. Forgetting to Call Parent Constructor
 
-```javascript
+```typescript
 class Animal {
-    constructor(name) {
-        this.name = name;
-    }
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
 }
 
+// ❌ TypeScript reports this at compile time; plain JavaScript waits until
+// the constructor runs and throws a ReferenceError
 class Dog extends Animal {
-    constructor(name, breed) {
-        // Forgot super(name)!
-        this.breed = breed; // ReferenceError: Must call super first
-    }
+  breed: string;
+
+  constructor(name: string, breed: string) {
+    this.breed = breed; // Error — `super` must be called first
+  }
 }
 
-// Fix:
+// ✅ Fixed
 class DogFixed extends Animal {
-    constructor(name, breed) {
-        super(name); // Must call first!
-        this.breed = breed;
-    }
+  breed: string;
+
+  constructor(name: string, breed: string) {
+    super(name);
+    this.breed = breed;
+  }
 }
 ```
 
 ### 2. Modifying Prototype Directly
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Person(name) {
     this.name = name;
@@ -784,6 +838,7 @@ Person.prototype.greet = function() {
 
 ### 3. Shadowing Properties
 
+<!-- lint-allow-fence: javascript — a constructor function assigning to `this` and hanging methods off `.prototype` has no TypeScript form — `class` is the TypeScript form, and using it here would hide the mechanism the chapter exists to explain -->
 ```javascript
 function Person(name) {
     this.name = name;
@@ -812,27 +867,27 @@ console.log(alice.age); // 0 (back to prototype)
 
 ## 📊 Prototype Chain Visualization
 
-```javascript
+```typescript
 class Animal {
-    eat() {}
+  eat(): void {}
 }
 
 class Dog extends Animal {
-    bark() {}
+  bark(): void {}
 }
 
 const buddy = new Dog();
 
-// Prototype chain:
+// The chain a property lookup walks, in order:
 // buddy
-//   ↓ __proto__
+//   ↓
 // Dog.prototype { bark, constructor }
-//   ↓ __proto__
+//   ↓
 // Animal.prototype { eat, constructor }
-//   ↓ __proto__
-// Object.prototype { toString, hasOwnProperty, ... }
-//   ↓ __proto__
-// null
+//   ↓
+// Object.prototype { toString, hasOwnProperty, … }
+//   ↓
+// null — lookup ends, the result is undefined
 ```
 
 ## 🔗 Related Topics

@@ -1,4 +1,8 @@
-# Problem Solving
+# Problem-Solving Stories {#ch-problem-solving-stories}
+
+> Tell a debugging or decision story that shows method rather than heroics.
+
+**In this chapter:** the questions that come up · worked STAR answers · frameworks worth naming · the red flags · the metrics to include
 
 ## Overview
 Problem-solving questions evaluate your analytical thinking, technical troubleshooting abilities, and approach to complex challenges. These questions are especially important for technical roles and demonstrate your engineering mindset.

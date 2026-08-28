@@ -1,4 +1,8 @@
-# Design Dropbox
+# Design Dropbox {#ch-design-dropbox}
+
+> Sync a file by its chunks rather than its bytes, and resolve the conflict when two clients disagree.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Dropbox lets users store files in the cloud and sync them across multiple device
 
 ### High-Level Diagram
 
-```
+```text
 Desktop / Mobile Clients
         │
    Load Balancer

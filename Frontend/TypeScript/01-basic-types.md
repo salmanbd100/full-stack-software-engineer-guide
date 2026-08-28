@@ -1,4 +1,8 @@
-# TypeScript Basic Types
+# TypeScript Basic Types {#ch-typescript-basic-types}
+
+> Annotate only where inference cannot reach, and know what `any`, `unknown` and `never` each cost you.
+
+**In this chapter:** primitives · annotation vs inference · `any` vs `unknown` vs `never` · arrays and tuples · typing functions
 
 ## Table of Contents
 - [Why TypeScript?](#why-typescript)

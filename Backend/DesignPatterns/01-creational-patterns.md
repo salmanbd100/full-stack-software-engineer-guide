@@ -1,4 +1,8 @@
-# Creational Patterns
+# Creational Patterns {#ch-creational-patterns}
+
+> Control how an object gets built when a constructor call is no longer enough.
+
+**In this chapter:** singleton and why it is usually a smell · factory · abstract factory · builder · prototype
 
 ## Overview
 

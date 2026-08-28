@@ -33,7 +33,7 @@ Almost every senior question traces back to that. Why the event loop stalls, why
 
 ## How the Pieces Fit
 
-```
+```text
         Single thread, single core          (01)
                     │
       ┌─────────────┴─────────────┐

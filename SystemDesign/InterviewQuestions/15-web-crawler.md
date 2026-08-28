@@ -1,4 +1,8 @@
-# Design Web Crawler
+# Design a Web Crawler {#ch-design-web-crawler}
+
+> Crawl politely and without loops, which is harder than crawling quickly.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ A production-grade web crawler must discover, fetch, and store billions of web p
 
 ### High-Level Diagram
 
-```
+```text
   SEED INPUT
   ┌──────────────────┐
   │  Seed URL List   │

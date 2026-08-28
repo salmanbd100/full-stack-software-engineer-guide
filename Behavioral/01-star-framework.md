@@ -1,4 +1,8 @@
-# STAR Framework
+# The STAR Framework {#ch-star-framework}
+
+> Structure any behavioural answer so the interviewer hears the action and the result, not the setup.
+
+**In this chapter:** what STAR is · each component in depth · a complete worked answer · the time to spend on each part · the common mistakes
 
 ## Overview
 The STAR framework is the gold standard for answering behavioral interview questions. It provides a structured approach that keeps your answers focused, clear, and compelling.
@@ -153,7 +157,7 @@ The STAR framework is the gold standard for answering behavioral interview quest
 
 Use this template to prepare your stories:
 
-```
+```text
 SITUATION:
 Where: [Company, team, context]
 When: [Timeframe]

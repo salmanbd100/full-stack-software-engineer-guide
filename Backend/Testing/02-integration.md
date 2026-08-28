@@ -1,4 +1,8 @@
-# Integration Testing
+# Integration Testing {#ch-integration-testing}
+
+> Test against a real database and a real router, where most service bugs actually live.
+
+**In this chapter:** when integration beats unit · API testing with Supertest · testing against a real database · test data setup · cross-test pollution
 
 ## 💡 What Is an Integration Test?
 

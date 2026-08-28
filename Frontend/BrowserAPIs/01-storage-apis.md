@@ -1,4 +1,8 @@
-# Storage APIs: localStorage & sessionStorage
+# Web Storage APIs {#ch-web-storage-apis}
+
+> Choose between localStorage and sessionStorage deliberately, and know why neither should hold a token.
+
+**In this chapter:** localStorage vs sessionStorage · serialising objects · cross-tab `storage` events · quota errors · why not for auth
 
 ## Table of Contents
 - [What They Are](#what-they-are)

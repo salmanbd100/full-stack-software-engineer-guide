@@ -1,4 +1,8 @@
-# React Testing Library
+# React Testing Library {#ch-react-testing-library}
+
+> Query the way a user would, so a refactor does not turn into a hundred failing tests.
+
+**In this chapter:** `render` and `screen` · the query priority · `userEvent` over `fireEvent` · `findBy` and async · testing custom hooks
 
 ## Overview
 

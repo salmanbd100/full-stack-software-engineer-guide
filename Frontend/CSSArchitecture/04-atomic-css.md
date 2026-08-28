@@ -1,8 +1,8 @@
-# Atomic CSS
+# Atomic CSS {#ch-atomic-css}
 
-> One class, one CSS property. Compose utilities in markup instead of writing custom styles.
+> Explain why a stylesheet stops growing once every class does exactly one thing.
 
----
+**In this chapter:** the atomic idea · Tailwind · design tokens in an atomic system · what it costs in readability · when to reach for it
 
 ## 💡 **What Atomic CSS Is**
 

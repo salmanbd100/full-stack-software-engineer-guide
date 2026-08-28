@@ -1,10 +1,14 @@
-# Aggregation Pipeline
+# Aggregation Pipeline {#ch-aggregation-pipeline}
+
+> Push work into the database instead of pulling documents into the application to loop over.
+
+**In this chapter:** the core stages · a worked pipeline · `$lookup` · the operators worth knowing · stage order and performance · `explain()`
 
 ## 💡 What Is the Aggregation Pipeline?
 
 A pipeline is a sequence of **stages**, each transforming documents and passing the result to the next stage. Think of it as Unix pipes for MongoDB.
 
-```
+```text
 Collection ──▶ [$match] ──▶ [$group] ──▶ [$sort] ──▶ [$limit] ──▶ Result
 ```
 

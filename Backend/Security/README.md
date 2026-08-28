@@ -32,7 +32,7 @@ This module covers the eight areas that come up in almost every senior backend i
 
 ## How the Pieces Fit
 
-```
+```text
 Request ──▶ TLS (04)              encrypted + server identity proven
               │
               ▼

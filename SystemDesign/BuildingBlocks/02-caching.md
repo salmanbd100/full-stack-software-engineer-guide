@@ -1,4 +1,8 @@
-# Caching
+# Caching {#ch-caching}
+
+> Put a cache in the right layer and have an answer for how each entry becomes wrong.
+
+**In this chapter:** cache-aside, write-through and write-behind · eviction policies · Redis vs Memcached · the stampede · hit ratio
 
 ## 💡 **Concept**
 
@@ -148,7 +152,7 @@ async function getWithPER(
 
 ## Cache Hit Ratio
 
-```
+```text
 Hit ratio = cache hits / (cache hits + cache misses)
 
 Target: > 80% for read-heavy workloads

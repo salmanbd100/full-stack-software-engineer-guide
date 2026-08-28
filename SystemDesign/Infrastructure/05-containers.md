@@ -1,4 +1,8 @@
-# Containers and Orchestration
+# Containers and Orchestration {#ch-containers-and-orchestration}
+
+> Containerise a service, then say what an orchestrator adds and what it costs.
+
+**In this chapter:** the container runtime · the core orchestration concepts · registries · managed vs self-run · the decision
 
 ## 💡 **Concept**
 

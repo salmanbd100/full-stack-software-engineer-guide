@@ -1,6 +1,8 @@
-# CDN as a Scaling Lever
+# CDN as a Scaling Lever {#ch-cdn-as-a-scaling-lever}
 
-> For CDN architecture, caching strategies, cache-control headers, and provider comparison, see [BuildingBlocks: CDN](../BuildingBlocks/03-cdn.md).
+> Move traffic off your origin entirely, which is the cheapest scaling there is.
+
+**In this chapter:** what a CDN offloads · the hit-ratio arithmetic · what to put on it · purging on deploy · geographic scale
 
 ## 💡 **Concept**
 
@@ -12,7 +14,7 @@ A CDN reduces load on your origin servers by serving cached content from edge lo
 
 ## What CDN Offloads
 
-```
+```text
 Without CDN:
   1M users → 1M requests → Origin servers (overwhelmed)
 
@@ -115,7 +117,7 @@ async function purgeOnDeploy(
 
 CDN is how you serve a global user base without deploying to multiple regions:
 
-```
+```text
 User in Tokyo           User in Frankfurt
   │                        │
   ▼                        ▼

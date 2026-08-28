@@ -1,6 +1,8 @@
-# Problem-Solving Communication
+# Thinking Aloud {#ch-thinking-aloud}
 
-Master "thinking out loud" during coding interviews to show how you approach problems.
+> Say what you are doing while you code, so silence never gets read as being stuck.
+
+**In this chapter:** the think-aloud framework · before, during and after · handling a hint · the phrases that buy you time · stating complexity
 
 ## Core Principle
 
@@ -14,14 +16,14 @@ O(n²) explanation beats a silent O(n) solution every time.
 ### Phase 1: Before Writing Code (5 min)
 
 **Step 1 — Understand the problem**
-```
+```text
 "Let me make sure I understand. We're given a sorted array of integers
 and need to find two numbers that sum to a target. Should I return
 indices or the values?"
 ```
 
 **Step 2 — Work through an example**
-```
+```text
 "Input: [2, 7, 11, 15], target = 9
 Output: [0, 1] because 2 + 7 = 9
 
@@ -32,7 +34,7 @@ Edge cases I'm thinking about:
 ```
 
 **Step 3 — Compare approaches out loud**
-```
+```text
 "Two main approaches:
 
 Brute force: nested loops, check every pair
@@ -48,7 +50,7 @@ Does that sound good?"
 ```
 
 **Step 4 — Outline the algorithm**
-```
+```text
 "My plan:
 1. Create an empty hash map
 2. For each number, calculate complement = target - num
@@ -91,7 +93,7 @@ function twoSum(nums: number[], target: number): number[] | null {
 ```
 
 **What to say while writing:**
-```
+```text
 "I'm creating a Map to store values we've already seen.
 For each number I calculate the complement — that's what we need
 to pair with it to reach the target.
@@ -100,7 +102,7 @@ Otherwise I store this number for future lookups."
 ```
 
 **When uncertain about syntax:**
-```
+```text
 "I'm not sure if it's map.has() or map.contains() in TypeScript.
 I believe it's has() — I'll go with that.
 [continues writing]
@@ -113,14 +115,14 @@ as the current number. Let me double-check the constraint..."
 ### Phase 3: After Coding — Test and Analyze
 
 **Trace through the example:**
-```
+```text
 "Let me verify with [2, 7, 11, 15], target = 9:
 - i=0, num=2: complement=7, map={}, add 2→0
 - i=1, num=7: complement=2, found in map → return [0, 1] ✓"
 ```
 
 **Test edge cases:**
-```
+```text
 "Edge cases:
 - Empty array []: loop never runs → return null ✓
 - No solution [1, 2, 3], target=10: returns null ✓
@@ -128,7 +130,7 @@ as the current number. Let me double-check the constraint..."
 ```
 
 **State complexity:**
-```
+```text
 "Time: O(n) — one pass, each map operation is O(1)
 Space: O(n) — worst case, store all n elements in the map
 This is optimal — we must check each element at least once."
@@ -143,7 +145,7 @@ This is optimal — we must check each element at least once."
 **❌ Wrong:** Silence for 5 minutes
 
 **✅ Right:**
-```
+```text
 "I'm stuck on this edge case. Let me think through a few options:
 Option 1: Add a special check at the start — handles it but adds logic
 Option 2: Incorporate it into the main loop — cleaner but trickier
@@ -154,7 +156,7 @@ because Y. I can fix this by..."
 ```
 
 **When truly stuck — ask for help:**
-```
+```text
 "I'm considering a few approaches but I'm not sure which direction to
 take. Could you give me a hint about whether I should focus on
 optimizing time or space here?"
@@ -162,7 +164,7 @@ optimizing time or space here?"
 
 ### When the Interviewer Gives a Hint
 
-```
+```text
 Interviewer: "Think about whether there's a more efficient approach
 for large datasets..."
 

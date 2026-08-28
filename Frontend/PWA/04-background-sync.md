@@ -1,4 +1,8 @@
-# Background Sync API
+# Background Sync {#ch-background-sync}
+
+> Accept a write while offline and let the browser deliver it once the connection returns.
+
+**In this chapter:** one-time sync · periodic sync · registering a tag · retry and backoff · classifying failures · what Safari does not support
 
 ## Overview
 
@@ -30,7 +34,7 @@ Background Sync allows Service Workers to schedule background synchronization ta
 
 **How It Works:**
 
-```
+```text
 User Action (offline)
     ↓
 Save to IndexedDB
@@ -82,7 +86,7 @@ Registers a single synchronization task that fires once when connectivity is res
 
 **Flow:**
 
-```
+```text
 1. User performs action (submit form)
 2. Network fails
 3. Save data to IndexedDB
@@ -1077,7 +1081,7 @@ await fetch('/api/sync', {
 
 ### 💡 **Offline-First Pattern**
 
-```
+```text
 User Action
     ↓
 Save to IndexedDB

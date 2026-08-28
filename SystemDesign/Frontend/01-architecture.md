@@ -1,4 +1,8 @@
-# Frontend Architecture Patterns
+# Frontend Architecture Patterns {#ch-frontend-architecture-patterns}
+
+> Put boundaries in a large client app so a change lands in one place.
+
+**In this chapter:** component-based · layered · micro-frontend · clean architecture · comparing them · the common mistakes
 
 ## 💡 **Concept**
 
@@ -85,7 +89,7 @@ const UserCardContainer: React.FC<{ userId: string }> = ({ userId }) => {
 
 Separates the application into layers with a strict dependency direction: UI → Business Logic → Data Access. Each layer is independently testable.
 
-```
+```text
 ┌─────────────────────────────────┐
 │   Presentation (React pages)    │
 └────────────────┬────────────────┘

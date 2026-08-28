@@ -1,4 +1,8 @@
-# Structural Patterns
+# Structural Patterns {#ch-structural-patterns}
+
+> Fit together classes you do not control, and add behaviour without rewriting them.
+
+**In this chapter:** adapter · decorator · facade · proxy · composite · which one the problem is actually asking for
 
 ## Overview
 
@@ -338,7 +342,7 @@ Split an abstraction from its implementation so the two can vary independently.
 
 **The problem it solves is a class explosion.** Two dimensions of variation multiply:
 
-```
+```text
 ❌ Inheritance:  EmailAlert, EmailReport, SmsAlert, SmsReport,
                  SlackAlert, SlackReport …           (3 × 2 = 6 classes)
 

@@ -57,7 +57,7 @@ How to scale CSS across enterprise codebases — methodologies, scoping strategi
 
 ## 💡 Decision Rule
 
-```
+```text
 New greenfield React app?
   ├─ Need speed + token system  → Tailwind + design tokens
   ├─ Need dynamic theming        → CSS-in-JS (Emotion/Vanilla Extract)

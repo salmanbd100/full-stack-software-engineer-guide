@@ -1,4 +1,8 @@
-# Rate Limiting
+# Rate Limiting {#ch-rate-limiting}
+
+> Pick an algorithm that matches your traffic shape, and make it work across every instance.
+
+**In this chapter:** fixed window and its boundary burst · sliding window · token bucket · distributed counting in Redis · what to key on
 
 ## Overview
 
@@ -73,7 +77,7 @@ class FixedWindow {
 
 🔴 **The flaw, and you should be able to draw it:**
 
-```
+```text
 limit = 100 per minute
 
 12:00:59  ████████████████ 100 requests   ← fills window 1
@@ -339,7 +343,7 @@ export const limit: RequestHandler = async (req, res, next) => {
 
 **Where to enforce it:**
 
-```
+```text
 CDN / WAF        ← volumetric floods; blocks traffic before it costs you anything
    ↓
 API gateway      ← per-key quotas, global ceilings, one place to configure

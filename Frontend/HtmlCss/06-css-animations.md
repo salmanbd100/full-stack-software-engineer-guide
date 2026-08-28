@@ -107,7 +107,7 @@ transition-timing-function: steps(4, end);   /* discrete steps (sprite animation
 
 Each frame can go through:
 
-```
+```text
 Style → Layout → Paint → Composite
 ```
 

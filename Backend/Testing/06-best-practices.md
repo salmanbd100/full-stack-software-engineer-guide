@@ -1,8 +1,8 @@
-# Testing Best Practices
+# Backend Testing Best Practices {#ch-backend-testing-best-practices}
 
-A cheat sheet of practices that distinguish junior-level tests from senior-level ones.
+> Keep a suite readable and fast enough that it still runs a year from now.
 
----
+**In this chapter:** naming and organisation · one concept per test · data factories · no logic in tests · CI strategy · coverage as a floor
 
 ## Naming Tests
 
@@ -131,7 +131,7 @@ Tests should be **dumb and obvious**.
 
 ## The Test Pyramid
 
-```
+```text
         E2E          ← Few (5–15)
       Integration    ← Some (50–200)
         Unit         ← Many (hundreds–thousands)

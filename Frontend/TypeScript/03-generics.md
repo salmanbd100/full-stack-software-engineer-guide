@@ -1,4 +1,8 @@
-# TypeScript Generics
+# TypeScript Generics {#ch-typescript-generics}
+
+> Write a function once and keep the caller's exact type all the way through it.
+
+**In this chapter:** generic functions · generic interfaces · constraints with `extends` · inference · when a generic is overkill
 
 ## Table of Contents
 - [What are Generics?](#what-are-generics)

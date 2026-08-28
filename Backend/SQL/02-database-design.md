@@ -1,4 +1,8 @@
-# Database Design
+# Database Design {#ch-database-design}
+
+> Design a schema that will not need rescuing, and know when normalising is the wrong call.
+
+**In this chapter:** normalisation and when to stop · entity relationships · choosing data types · constraints · worked schemas
 
 ## 💡 **Overview**
 

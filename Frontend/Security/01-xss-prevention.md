@@ -1,4 +1,8 @@
-# XSS Prevention
+# XSS Prevention {#ch-xss-prevention}
+
+> Encode for the context you are writing into, and know exactly where your framework stops protecting you.
+
+**In this chapter:** the three kinds of XSS · context-aware encoding · dangerous DOM sinks · sanitising rich HTML · where React's escaping ends · CSP as a backstop
 
 ## Overview
 

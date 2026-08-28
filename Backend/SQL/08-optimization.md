@@ -1,4 +1,8 @@
-# Query Optimization
+# Query Optimisation {#ch-query-optimisation}
+
+> Take a slow query and find out why, rather than guessing at an index.
+
+**In this chapter:** the N+1 problem · reading a query plan · batching writes · connection pooling · caching · what to measure
 
 ## N+1 Problem
 

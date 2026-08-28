@@ -1,4 +1,8 @@
-# Lazy Loading
+# Lazy Loading {#ch-lazy-loading}
+
+> Defer what is off screen without pushing your largest paint further out.
+
+**In this chapter:** native image lazy loading · lazy components and Suspense · IntersectionObserver · `content-visibility` · what never to lazy-load
 
 ## Overview
 

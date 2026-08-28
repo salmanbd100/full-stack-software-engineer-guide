@@ -1,4 +1,8 @@
-# Content Delivery Network (CDN)
+# Content Delivery Network {#ch-cdn}
+
+> Serve bytes from near the user, and invalidate them without waiting for a TTL.
+
+**In this chapter:** how routing to an edge works · `Cache-Control` · what belongs at the edge · invalidation and purge · video streaming
 
 ## 💡 **Concept**
 
@@ -12,7 +16,7 @@ Typical impact: 150–250ms cross-continental latency → 5–50ms from edge; 70
 
 ## How CDN Routing Works
 
-```
+```text
 User (Tokyo)
   │
   │ 1. DNS resolves cdn.example.com → Tokyo edge IP (Anycast)
@@ -107,7 +111,7 @@ Two approaches when content changes before TTL expires:
 
 **1. URL-based busting (preferred):** embed content hash in filename. Old URL is never purged — it just stops being referenced.
 
-```
+```text
 /assets/main.abc123.js   ← v1
 /assets/main.def456.js   ← v2 (new deploy, new hash)
 ```
@@ -140,7 +144,7 @@ Video streaming requires special CDN features:
 - **Range request support:** players request specific byte ranges. CDN must support partial content (206 responses).
 - **Origin shielding:** a single "shield" PoP fetches from origin; other edges fetch from the shield. Reduces origin load.
 
-```
+```text
 User ──▶ Edge (Tokyo) ──▶ Shield (Singapore) ──▶ Origin (NY)
                                  ↑
                          Edge (Sydney) ──▶ Shield (Singapore) (already cached)

@@ -1,10 +1,8 @@
-# Authentication
+# Authentication at System Level {#ch-system-authentication}
 
-Authentication answers one question: **who is this user?** It is the front door of every system. Get it wrong and everything behind it breaks.
+> Choose an authentication mechanism and defend it against the attacks it invites.
 
-This doc covers the patterns that come up in senior interviews: password storage, sessions vs JWT, OAuth/OIDC, MFA, SSO, magic links, and password reset.
-
----
+**In this chapter:** passwords · sessions vs JWT · OAuth 2.0 and OIDC · multi-factor · SSO and magic links · reset flows
 
 ## 1. Password Authentication
 
@@ -163,7 +161,7 @@ OAuth 2.0 lets users grant a third-party app access to their data without sharin
 
 **How It Works (Authorization Code flow with PKCE):**
 
-```
+```text
 User → Client app: clicks "Sign in with Google"
 Client → Auth server: redirects with code_challenge
 Auth server → User: login + consent
@@ -263,7 +261,7 @@ function verifyTotp(userSecret: string, token: string): boolean {
 
 One login works across many apps. Standards: **SAML 2.0** (legacy enterprise) and **OIDC** (modern). Identity Provider (IdP) — Okta, Azure AD, Auth0 — holds the user directory. Apps trust the IdP.
 
-```
+```text
 User → App A: redirect to IdP
 IdP: authenticate (once)
 IdP → App A: signed assertion / id_token

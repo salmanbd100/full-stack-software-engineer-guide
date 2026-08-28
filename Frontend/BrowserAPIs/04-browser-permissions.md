@@ -1,4 +1,8 @@
-# Browser Permissions
+# Browser Permissions {#ch-browser-permissions}
+
+> Ask for a permission at a moment the user understands, because a denial is usually permanent.
+
+**In this chapter:** the Permissions API · the three states · geolocation · notifications · camera and microphone · asking at the right time
 
 ## Table of Contents
 - [What Permissions Are](#what-permissions-are)

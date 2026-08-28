@@ -1,4 +1,8 @@
-# Backtracking Pattern
+# Backtracking {#ch-backtracking}
+
+> Build a candidate, abandon it the moment it cannot work, and undo cleanly.
+
+**In this chapter:** choose–explore–unchoose · subsets · generating parentheses · permutations · pruning · complexity
 
 ## What is Backtracking? (In Simple Words)
 
@@ -16,7 +20,7 @@ Imagine you're in a **corn maze** trying to find the exit. You have a strategy:
 
 You're getting ready for a party and need to pick an outfit:
 
-```
+```text
 Wardrobe:
 Shirts: [Red, Blue]
 Pants: [Jeans, Khakis]
@@ -45,7 +49,7 @@ Backtracking Approach:
 
 When solving Sudoku:
 
-```
+```text
 You fill in a number:
   "Let's try 5 here..."
 
@@ -99,7 +103,7 @@ Look for this pattern when you see:
 
 Every backtracking problem follows this template:
 
-```
+```text
 BACKTRACKING TEMPLATE:
 
 1. CHOOSE (make a decision)
@@ -117,7 +121,7 @@ BACKTRACKING TEMPLATE:
 
 ### Visual Example: Finding All Subsets of [1, 2]
 
-```
+```text
 Decision Tree:
 
                     []
@@ -148,7 +152,7 @@ At each node:
 
 ### Maze Exploration Example
 
-```
+```text
 Maze:
 S . . #
 # . # .
@@ -278,7 +282,7 @@ function backtrack(start: number, currentSubset: number[]): void {
 
 **Complete Execution Trace:**
 
-```
+```text
 Initial call: backtrack(0, [])
 
 Call Stack Evolution:
@@ -353,7 +357,7 @@ FINAL result = [[], [1], [1,2], [1,2,3], [1,3], [2], [2,3], [3]]
 
 **Visual Decision Tree:**
 
-```
+```text
                     []
                     ↓ (add to result)
         +-----------+-----------+
@@ -470,7 +474,7 @@ function backtrack(current: string, openCount: number, closeCount: number): void
 
 **Why these constraints work:**
 
-```
+```text
 VALID:   (())
 - Open '(' first (open=1, close=0)
 - Open another '(' (open=2, close=0)
@@ -487,7 +491,7 @@ The constraint `close_count < open_count` prevents this!
 
 ### Visual Trace for n=2
 
-```
+```text
 Call Stack Evolution:
 
 backtrack("", 0, 0)
@@ -532,7 +536,7 @@ FINAL result = ["(())", "()()"]
 
 **Decision Tree:**
 
-```
+```text
                     ""
                     |
                    "("
@@ -642,7 +646,7 @@ console.log(permute([0, 1]));
 
 ### Visual Trace: Permutations of [1, 2, 3]
 
-```
+```text
 Decision Tree (Choosing positions):
 
                         []
@@ -663,7 +667,7 @@ Total: 3! = 6 permutations
 
 **Step-by-Step Execution:**
 
-```
+```text
 backtrack([], [1,2,3])
   remaining.length=3, not done
 
@@ -1030,7 +1034,7 @@ function backtrack<T>(state: T[], choices: T[]): void {
 - "Find the **longest** substring"
 
 **Example:**
-```
+```text
 Backtracking: "Generate all subsets of [1,2,3]"
 → Need ALL subsets: [], [1], [2], [3], [1,2], etc.
 
@@ -1055,7 +1059,7 @@ for (let i = start; i < nums.length; i++) {
 **Reason:** To avoid using the same element multiple times!
 
 **Visual:**
-```
+```text
 nums = [1, 2, 3]
 
 If we use i instead of i+1:
@@ -1111,7 +1115,7 @@ function subsetsWithDup(nums: number[]): number[][] {
 
 **Why `i > start`?**
 
-```
+```text
 nums = [1, 2, 2]
 
 At level 0 (start=0):
@@ -1137,7 +1141,7 @@ No duplicates! ✓
 
 **Technique 1: Draw the decision tree**
 
-```
+```text
 Problem: Subsets of [1,2]
 
 Draw tree:
@@ -1170,7 +1174,7 @@ function backtrack(start: number, currentSubset: number[]): void {
 
 **Technique 3: Check the three steps**
 
-```
+```text
 For each recursive call, verify:
 1. CHOOSE: Am I modifying state correctly?
 2. EXPLORE: Am I making the recursive call with updated state?
@@ -1244,7 +1248,7 @@ for (let i = 0; i < remaining.length; i++) {
 
 ### Tip 1: Always Start with the Template
 
-```
+```text
 Interviewer: "Generate all combinations..."
 
 You: "This is a backtracking problem. Let me start with the standard template:
@@ -1273,7 +1277,7 @@ This shows you have a systematic approach!
 
 ### Tip 2: Draw the Decision Tree
 
-```
+```text
 You: "Let me draw the decision tree for a small example..."
 
 [Draw on whiteboard]
@@ -1294,7 +1298,7 @@ Interviewers love visual thinking!
 
 ### Tip 3: Mention Pruning
 
-```
+```text
 You: "For efficiency, I'll add pruning conditions to avoid
 exploring invalid branches early.
 
@@ -1330,7 +1334,7 @@ Narrating the template helps you and the interviewer!
 
 ### Tip 5: Clarify "All" vs "Optimal"
 
-```
+```text
 Interviewer: "Find the subsets..."
 
 You: "Just to clarify - do you want ALL subsets, or
@@ -1344,7 +1348,7 @@ If optimal, dynamic programming might be more appropriate."
 
 ### Tip 6: Don't Forget the Deep Copy
 
-```
+```text
 You: "Important note - when adding currentSubset to result,
 I need to make a deep copy since we're modifying it throughout:
 
@@ -1359,7 +1363,7 @@ Shows attention to detail!
 
 ### Tip 7: Mention Time Complexity Upfront
 
-```
+```text
 You: "Before I start, let me note that backtracking problems
 are typically exponential. For subsets, we'll have O(2^n)
 branches to explore, since each element can be included or excluded.
@@ -1390,25 +1394,25 @@ because we can prune invalid branches early."
 #### Problem Patterns:
 
 **Pattern 1: All Combinations/Subsets**
-```
+```text
 Problem: "Find all subsets of array"
 Solution: Backtracking with include/exclude choices
 ```
 
 **Pattern 2: Constraint Satisfaction**
-```
+```text
 Problem: "Generate all valid parentheses"
 Solution: Backtracking with constraint checking
 ```
 
 **Pattern 3: Search with Constraints**
-```
+```text
 Problem: "Find word in grid (can't reuse cells)"
 Solution: Backtracking with visited tracking
 ```
 
 **Pattern 4: Puzzle Solving**
-```
+```text
 Problem: "Solve Sudoku"
 Solution: Backtracking with row/col/box constraints
 ```

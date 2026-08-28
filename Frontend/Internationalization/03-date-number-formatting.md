@@ -1,8 +1,8 @@
-# Date & Number Formatting
+# Date and Number Formatting {#ch-date-and-number-formatting}
 
-The Intl API is the native browser standard for locale-aware formatting. No library required for displaying dates, numbers, and currency.
+> Format dates, numbers and currency for any locale using the platform, not a library.
 
----
+**In this chapter:** the `Intl` family · `DateTimeFormat` · `NumberFormat` and currency · `RelativeTimeFormat` · time zones · when a library still earns its bytes
 
 ## Table of Contents
 

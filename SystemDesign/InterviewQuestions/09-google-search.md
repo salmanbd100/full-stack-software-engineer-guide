@@ -1,4 +1,8 @@
-# Design Google Search
+# Design a Search Engine {#ch-design-google-search}
+
+> Separate crawling, indexing and serving, and give each one a different scaling story.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Google Search must crawl the entire web continuously, maintain a fresh inverted 
 
 ### High-Level Diagram
 
-```
+```text
   CRAWL PIPELINE
   ┌──────────────────────────────────────────────────────────┐
   │                                                          │

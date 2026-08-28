@@ -1,4 +1,8 @@
-# Progressive Web Apps (PWA) - Introduction
+# Progressive Web Apps {#ch-progressive-web-apps}
+
+> Say what a PWA actually buys a user, and when a native app is still the right answer.
+
+**In this chapter:** the three requirements · PWA vs native · PWA vs a normal web app · the tradeoffs · when to choose one
 
 ## Overview
 
@@ -197,7 +201,7 @@ const installCriteria: InstallCriteria = {
 
 **Traditional Web App:**
 
-```
+```text
 User Request → Server → HTML Response → Render
      ↑                                    ↓
      └──────── Every page load ──────────┘
@@ -205,7 +209,7 @@ User Request → Server → HTML Response → Render
 
 **PWA:**
 
-```
+```text
 User Request → Service Worker → Cache Check
                     ↓
               Found in cache? ──Yes──→ Return cached
@@ -487,7 +491,7 @@ A PWA is a web application that uses modern web capabilities to deliver app-like
 
 **Flow:**
 
-```
+```text
 Request → Service Worker → Check Cache
                 ↓
           Cache Hit? → Return cached response

@@ -1,4 +1,8 @@
-# Networking
+# Cloud Networking {#ch-cloud-networking}
+
+> Draw the network boundary around a service and say what may cross it.
+
+**In this chapter:** the VPC · security groups vs NACLs · load balancers · DNS and traffic routing · connectivity patterns
 
 ## 💡 **Concept**
 
@@ -14,7 +18,7 @@ A VPC is your private network in AWS. You control the IP range, subnets, and rou
 
 ### Standard 3-tier layout
 
-```
+```text
 VPC: 10.0.0.0/16
 │
 ├── Public Subnet (10.0.1.0/24, 10.0.2.0/24)   ← ALB, NAT Gateway
@@ -122,7 +126,7 @@ Route 53 provides DNS with built-in health checks and routing policies.
 | **Geolocation** | Route by user country (compliance, localization) |
 
 **Failover pattern:**
-```
+```text
 Route 53 health check → ALB us-east-1 (primary)
                       → ALB eu-west-1 (secondary, activated if primary fails)
 ```

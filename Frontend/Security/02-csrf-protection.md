@@ -1,4 +1,8 @@
-# CSRF Protection
+# CSRF Protection {#ch-csrf-protection}
+
+> Stop another origin from spending your user's session, and explain why `SameSite` alone is not enough.
+
+**In this chapter:** how the attack works · `SameSite` as the baseline · anti-CSRF tokens · the double-submit cookie · SPA integration
 
 ## Overview
 
@@ -97,7 +101,7 @@ app.post("/transfer", doubleCsrfProtection, (req, res) => {
 
 This is the pattern `csrf-csrf` implements, and it's worth understanding directly. The token lives in **two places** — a cookie and a request header — and the server checks they match.
 
-```
+```text
 Server  → sets cookie: csrfToken=abc123
 Client  → reads cookie, sends header: X-CSRF-Token: abc123
 Server  → cookie value === header value?  ✅ allow   ❌ reject

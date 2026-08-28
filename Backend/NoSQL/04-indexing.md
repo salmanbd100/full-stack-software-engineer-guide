@@ -1,4 +1,8 @@
-# MongoDB Indexing & Performance
+# MongoDB Indexing {#ch-mongodb-indexing}
+
+> Build the index the query planner will actually use, and prove it did.
+
+**In this chapter:** compound indexes and the ESR rule · covered queries · reading `explain()` · what to index · index size against RAM · finding unused indexes
 
 ## 💡 Why Indexes Matter
 

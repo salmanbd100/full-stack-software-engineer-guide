@@ -1,8 +1,8 @@
-# Pluralization
+# Pluralisation {#ch-pluralisation}
 
-Pluralization is complex because languages have different rules. English has 2 forms, Russian has 4, Arabic has 6. Getting this wrong shows up immediately for non-English users.
+> Handle languages with six plural forms without hard-coding a single `if (count === 1)`.
 
----
+**In this chapter:** why plural rules differ · the CLDR categories · ICU MessageFormat · `Intl.PluralRules` · the mistakes English hides
 
 ## Table of Contents
 
@@ -106,7 +106,7 @@ new Intl.PluralRules('ar').resolvedOptions().pluralCategories;
 
 ### 💡 **Syntax**
 
-```
+```text
 {variable, plural, category1 {text} category2 {text} other {text}}
 ```
 

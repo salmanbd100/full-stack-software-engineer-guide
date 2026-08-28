@@ -1,4 +1,8 @@
-# WebSockets
+# WebSockets {#ch-websockets}
+
+> Choose between a socket, SSE and polling on the requirement, then scale it past one process.
+
+**In this chapter:** WebSockets vs SSE vs polling · the handshake · a typed server · authenticating a socket · rooms and broadcast · scaling with a Redis adapter
 
 ## Overview
 
@@ -196,7 +200,7 @@ io.to(`user:${userId}`).emit("presence", p);        // all of one user's tabs
 
 One instance holds its own sockets and knows nothing about the others. Client A on pod 1 emits to a room; pod 2 has half the room's members and never hears about it.
 
-```
+```text
        ┌── pod 1 (A, B)  ← A emits here
 LB ────┼── pod 2 (C, D)  ← C and D never receive it
        └── pod 3 (E)

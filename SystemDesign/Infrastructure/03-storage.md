@@ -1,4 +1,8 @@
-# Storage
+# Storage Types {#ch-storage-types}
+
+> Tell object, block and file storage apart, and stop putting files in the database.
+
+**In this chapter:** the three types · object storage · block storage · shared file storage · the decision tree
 
 ## 💡 **Concept**
 
@@ -98,7 +102,7 @@ EFS is a shared NFS file system that multiple EC2 instances mount simultaneously
 
 ## Decision Tree
 
-```
+```text
 What are you storing?
 ├── User uploads / static assets → S3
 ├── Database data files / OS disk → EBS gp3 (or io2 for high IOPS)

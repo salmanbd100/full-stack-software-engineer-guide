@@ -1,6 +1,8 @@
-# Common Attacks and Prevention
+# Common Attacks {#ch-common-attacks}
 
-The OWASP Top 10 covers the attacks that put real systems in the news. Every senior engineer should know each class, recognize it in a code review, and know the standard fix. This file is the interview-grade short version.
+> Recognise the attacks that actually appear in a design round, and the fix for each.
+
+**In this chapter:** SQL injection · XSS · CSRF · SSRF · broken authentication · broken access control
 
 ## Table of Contents
 

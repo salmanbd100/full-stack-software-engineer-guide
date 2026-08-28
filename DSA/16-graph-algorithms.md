@@ -1,4 +1,8 @@
-# Graph Algorithms Pattern
+# Graph Algorithms {#ch-graph-algorithms}
+
+> Represent a graph, then reach for the algorithm the problem is actually describing.
+
+**In this chapter:** adjacency list vs matrix · topological sort · Dijkstra · union-find · the templates worth memorising
 
 ## What are Graph Algorithms? (In Simple Words)
 
@@ -20,7 +24,7 @@ Think of **Google Maps** finding the fastest route to work:
 - **Your route** = path through the graph
 - **Fastest route** = shortest path algorithm (Dijkstra's)
 
-```
+```text
 Your House --15min--> Coffee Shop --10min--> Office
      |                                          ↑
      +-------------25min-----------------------+
@@ -38,7 +42,7 @@ Think of **college courses** where some require others first:
 - **Can you graduate?** = no cycles in the graph
 - **Order to take courses** = topological sort
 
-```
+```text
 Math 101 → Math 201 → Math 301
    ↓
 Physics 101 → Physics 201
@@ -54,7 +58,7 @@ Think of **Facebook friend connections**:
 - **Friend groups** = connected components
 - **Degrees of separation** = shortest path between people
 
-```
+```text
 Alice --- Bob --- Charlie
   |               |
   +--- David -----+
@@ -306,7 +310,7 @@ console.log(canFinishBFS(4, [[1, 0], [2, 0], [3, 1], [3, 2]]));  // Output: true
 
 Let's trace through `canFinish(4, [[1,0], [2,0], [3,1], [3,2]])`:
 
-```
+```text
 Graph visualization:
     0 → 1 → 3
     ↓       ↑
@@ -353,7 +357,7 @@ Result: No cycles found, return true!
 
 **Why Three States?**
 
-```
+```text
 WHITE (0) = Haven't visited yet
 GRAY (1)  = Currently exploring (in recursion stack)
 BLACK (2) = Done exploring
@@ -366,7 +370,7 @@ If we encounter a GRAY node → CYCLE!
 
 Let's trace through `canFinishBFS(4, [[1,0], [2,0], [3,1], [3,2]])`:
 
-```
+```text
 Prerequisites: [[1,0], [2,0], [3,1], [3,2]]
 
 Build graph and indegree:
@@ -431,7 +435,7 @@ Valid order: 0 → 1 → 2 → 3 (or 0 → 2 → 1 → 3)
 ### Explanation
 
 **DFS Cycle Detection**:
-```
+```text
 Three states for each node:
 0 (white) = unvisited
 1 (gray) = currently visiting (in recursion stack)
@@ -441,7 +445,7 @@ If we encounter a gray node, we found a cycle!
 ```
 
 **Visual Example**:
-```
+```text
 Graph: 0 → 1 → 2
        ↓
        3
@@ -592,7 +596,7 @@ console.log(networkDelayTimeBellmanFord(times4, n4, k4));  // Output: 2
 
 Let's trace through `networkDelayTime([[2,1,1], [2,3,1], [3,4,1]], 4, 2)`:
 
-```
+```text
 Graph visualization:
   2 --1--> 1
   |
@@ -684,7 +688,7 @@ Return max_time = 2
 
 **Why Use a Min-Heap?**
 
-```
+```text
 Without min-heap (wrong):
   Process in any order → might not find shortest path
 
@@ -707,7 +711,7 @@ Example:
 4. Return max time when all nodes visited
 
 **Visual Example**:
-```
+```text
 Graph (k=2):
   2 --1--> 1
   |
@@ -872,7 +876,7 @@ console.log(findRedundantConnection([[1,2], [2,3], [3,4], [1,4], [1,5]]));
 
 Let's trace `findRedundantConnection([[1,2], [1,3], [2,3]])`:
 
-```
+```text
 Initial state (3 nodes):
 parent = [0, 1, 2, 3]
          ^  ^  ^  ^
@@ -937,7 +941,7 @@ Return [2, 3] ✓
 
 **Why Path Compression?**
 
-```
+```text
 Before path compression:
   1 → 2 → 3 → 4 → 5
   To find 5's root: traverse 4 nodes
@@ -1174,7 +1178,7 @@ function hasCycleDirected(
 - Package dependency resolution
 
 **Example**:
-```
+```text
 Courses: A → B → D
          A → C → D
 
@@ -1215,7 +1219,7 @@ Must take B and C before D
 
 **Key idea**: Always expand the closest unvisited node
 
-```
+```text
 Graph:    A --5--> B
           |        |
           2        3
@@ -1402,7 +1406,7 @@ function countComponents(graph: number[][]): number {
 ```
 
 **Example**:
-```
+```text
 Graph: 0 - 1    2 - 3    4
        (component 1) (component 2) (component 3)
 
@@ -1432,7 +1436,7 @@ function hasCycle(graph: number[][], node: number, visited: Set<number>): boolea
 ```
 
 **Why wrong**:
-```
+```text
 Graph: A - B
 
 Starting from A:
@@ -1503,7 +1507,7 @@ for (const [u, v] of edges) {
 
 **Always visualize** before coding:
 
-```
+```text
 Input: [[1,2], [1,3], [2,4]]
 
 Draw it:
@@ -1671,7 +1675,7 @@ function bfs(graph: number[][], start: number): number[] {
 
 Quick decision tree:
 
-```
+```text
 Question: "Find shortest path"
     ↓
 Weighted graph?
@@ -1874,7 +1878,7 @@ Use Topological Sort:
 
 ### When to Use Each Algorithm
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ Problem Type          │ Algorithm         │ Complexity      │
 ├───────────────────────┼───────────────────┼─────────────────┤

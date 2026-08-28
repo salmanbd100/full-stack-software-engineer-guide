@@ -1,6 +1,8 @@
-# Compliance and Data Governance
+# Compliance and Data Governance {#ch-compliance-and-data-governance}
 
-Compliance is engineering work. Encryption, access logs, retention policies, and breach response all show up in code. This file covers the frameworks a senior engineer at an enterprise will be asked about: GDPR, HIPAA, PCI-DSS, and SOC 2, plus the cross-cutting concerns (audit logs, retention, residency) that they all share.
+> Know which regime applies to your data and what it obliges you to build.
+
+**In this chapter:** GDPR · HIPAA · PCI-DSS · SOC 2 · audit logging · data retention and deletion
 
 ## Table of Contents
 

@@ -1,4 +1,8 @@
-# Performance Monitoring
+# Performance Monitoring {#ch-performance-monitoring}
+
+> Measure what real users experience, not what your laptop does on a fast connection.
+
+**In this chapter:** lab vs field data · Lighthouse and Lighthouse CI · the `web-vitals` library · `PerformanceObserver` · real user monitoring
 
 ## Overview
 
@@ -156,7 +160,7 @@ const ttfb = nav.responseStart - nav.requestStart; // good < 600ms
 
 RUM collects performance data from actual users in production.
 
-```
+```text
 Real user loads the site
    ↓ JS collects metrics + errors
    ↓ sent to your analytics endpoint

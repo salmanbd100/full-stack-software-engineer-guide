@@ -21,7 +21,7 @@ Closures are unique because they:
 
 Think of closures as a backpack:
 
-```
+```text
 When a function is created → It packs a "backpack" with references to variables in its scope
 When the function is called → It can still access variables from that "backpack"
 Even if called elsewhere → The backpack travels with the function
@@ -47,13 +47,13 @@ Closures are one of JavaScript's most powerful and misunderstood features.
 **How Closures Work:**
 
 **1. Function Creation Phase:**
-```
+```text
 When a function is created → Captures references to variables in lexical scope
                            (where it was defined, not where it's called)
 ```
 
 **2. Function Execution:**
-```
+```text
 Outer function completes → Execution context removed from call stack
                         ↓
 Inner function retains → Access to outer variables via closure
@@ -284,7 +284,7 @@ for (var i = 0; i < 3; i++) {
 **Step-by-Step Breakdown:**
 
 1. **Loop Runs:**
-   ```
+   ```text
    i = 0 → Create setTimeout with closure
    i = 1 → Create setTimeout with closure
    i = 2 → Create setTimeout with closure
@@ -303,7 +303,7 @@ for (var i = 0; i < 3; i++) {
    - Result: 3, 3, 3
 
 **Visualization:**
-```
+```text
 Closure 1 ──┐
 Closure 2 ──┼──> Same 'i' variable → Final value: 3
 Closure 3 ──┘

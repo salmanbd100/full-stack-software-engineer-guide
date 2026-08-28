@@ -1,4 +1,8 @@
-# WebSockets & Real-Time Communication
+# Real-Time Communication {#ch-realtime-communication}
+
+> Decide between a socket, SSE and long polling, then keep the connections alive at scale.
+
+**In this chapter:** WebSocket vs SSE vs long polling · the handshake · scaling across instances · heartbeats and reconnection
 
 ## 💡 **Concept**
 
@@ -25,7 +29,7 @@ WebSocket is a full-duplex, persistent TCP connection between client and server.
 
 ## How WebSockets Work
 
-```
+```text
 Client                              Server
   │                                    │
   │── HTTP GET /chat (Upgrade: ws) ──▶│
@@ -125,7 +129,7 @@ function createReconnectingWebSocket(url: string): WebSocket {
 
 **Solution: pub/sub broker for cross-server broadcast**
 
-```
+```text
 Client A ──── Server 1 ─┐
 Client B ──── Server 1  │
                          ├── Redis Pub/Sub ──► all servers receive ──► correct client

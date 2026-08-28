@@ -1,10 +1,8 @@
-# Authorization
+# Authorisation {#ch-authorisation}
 
-Authorization answers: **what is this user allowed to do?** Authentication proves _who_; authorization decides _what_.
+> Decide who may do what, and enforce it somewhere the client cannot reach.
 
-This doc covers RBAC, ABAC, ACLs, policy engines (OPA), multi-tenancy, OAuth scopes, and the rule that ties them all together — **always enforce on the server**.
-
----
+**In this chapter:** RBAC · ABAC · access control lists · policy engines · multi-tenancy · OAuth scopes · server-side enforcement
 
 ## 1. RBAC — Role-Based Access Control
 
@@ -14,7 +12,7 @@ RBAC is the most common model in enterprise apps. Users get roles like `admin`, 
 
 **How It Works:**
 
-```
+```text
 User → Roles → Permissions → Resources
 ```
 
@@ -172,7 +170,7 @@ Your app sends a query (`Can user X do Y on resource Z?`) to OPA. OPA evaluates 
 
 **Rego policy:**
 
-```
+```text
 package app.authz
 
 default allow := false
@@ -266,7 +264,7 @@ When a third-party app calls your API on behalf of a user, you don't want it to 
 
 **Example:**
 
-```
+```text
 read:reports      → can list and read reports
 write:reports     → can create and edit reports
 admin:users       → can manage users

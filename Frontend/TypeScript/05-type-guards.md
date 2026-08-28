@@ -1,4 +1,8 @@
-# TypeScript Type Guards
+# TypeScript Type Guards {#ch-typescript-type-guards}
+
+> Narrow a wide type safely, and get a compile error when you forget a case.
+
+**In this chapter:** `typeof` and `instanceof` · the `in` operator · `value is T` predicates · discriminated unions · exhaustiveness with `never`
 
 ## Table of Contents
 - [What are Type Guards?](#what-are-type-guards)

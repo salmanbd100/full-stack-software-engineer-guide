@@ -1,4 +1,8 @@
-# Design Twitter
+# Design Twitter {#ch-design-twitter}
+
+> Work the fan-out-on-write versus fan-out-on-read decision, and handle the celebrity problem it creates.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Twitter serves 400M+ users who post 500M tweets per day. The system is extremely
 
 ### High-Level Diagram
 
-```
+```text
 Clients (Web / Mobile)
         │
    Load Balancer

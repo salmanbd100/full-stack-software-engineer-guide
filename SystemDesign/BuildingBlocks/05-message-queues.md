@@ -1,4 +1,8 @@
-# Message Queues & Event Streaming
+# Message Queues and Event Streaming {#ch-message-queues}
+
+> Tell a queue from a log, and pick the delivery guarantee the feature actually needs.
+
+**In this chapter:** queue vs pub/sub vs streaming · delivery guarantees · consumer groups · backpressure · Kafka, SQS and RabbitMQ
 
 ## 💡 **Concept**
 
@@ -23,7 +27,7 @@ A message queue decouples producers from consumers. Producers enqueue messages a
 
 ## How It Works
 
-```
+```text
 Producer (API)          Queue                Consumer (Worker)
      │                    │                        │
      │── enqueue ─────────▶│                        │

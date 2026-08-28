@@ -1,8 +1,8 @@
-# i18n Fundamentals
+# Internationalisation Fundamentals {#ch-i18n-fundamentals}
 
-Internationalization (i18n) is the technical foundation for building apps that work across multiple languages and regions.
+> Build a UI that can ship in another language without a rewrite, and know what belongs in a translation file.
 
----
+**In this chapter:** i18n vs l10n · translation file structure · language detection and switching · interpolation · typed translation keys
 
 ## Table of Contents
 
@@ -76,7 +76,7 @@ t('notifications.message', { count: 5 })  // "You have 5 messages"
 
 Organize translations by feature for large apps.
 
-```
+```text
 locales/
 ├── en/
 │   ├── common.json      # Shared: save, cancel, delete
@@ -184,7 +184,7 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => ({
 
 ### 💡 **Detection Priority**
 
-```
+```text
 1. User preference (localStorage)   ← Most reliable
        ↓
 2. URL path or parameter (/en/page)

@@ -1,6 +1,8 @@
-# Caching as a Scaling Lever
+# Caching as a Scaling Lever {#ch-caching-as-a-scaling-lever}
 
-> For pattern deep dive (cache-aside, write-through, write-behind, eviction policies, Redis vs Memcached), see [BuildingBlocks: Caching](../BuildingBlocks/02-caching.md).
+> Work out what a hit ratio is actually worth before adding a cache.
+
+**In this chapter:** hit-ratio arithmetic · the strategy cheat sheet · what to cache · warm-up on deploy · TTL jitter
 
 ## 💡 **Concept**
 
@@ -12,7 +14,7 @@ Caching is the highest-leverage scaling technique available. A well-placed cache
 
 ## Cache Hit Ratio Math
 
-```
+```text
 Hit ratio = cache hits / (cache hits + cache misses)
 
 Without caching:

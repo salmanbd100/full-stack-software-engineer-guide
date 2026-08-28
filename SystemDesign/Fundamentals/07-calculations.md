@@ -1,10 +1,8 @@
-# Back-of-Envelope Calculations
+# Back-of-Envelope Calculations {#ch-back-of-envelope-calculations}
 
-### 💡 **Concept**
+> Size a system out loud in two minutes, showing the arithmetic rather than a number.
 
-Quick math during interviews proves you can reason about scale. The goal is not precision — it is showing you can estimate **QPS, storage, bandwidth, and memory** in your head.
-
-> State your assumptions. Round aggressively. Sanity-check the answer.
+**In this chapter:** the numbers worth memorising · the four formulas · how to approach one · three worked examples · read-to-write ratios
 
 ## Numbers Worth Memorizing
 
@@ -20,7 +18,7 @@ Quick math during interviews proves you can reason about scale. The goal is not 
 
 **Time shortcuts:**
 
-```
+```text
 1 day  ≈ 100,000 seconds   (actual 86,400 — round up for easy math)
 1 month ≈ 2.5 M seconds
 1 year ≈ 30 M seconds
@@ -41,7 +39,7 @@ Quick math during interviews proves you can reason about scale. The goal is not 
 
 ## The Four Formulas
 
-```
+```text
 QPS        = Daily requests / 100,000
 Storage    = Items × Size × Retention
 Bandwidth  = QPS × Payload size
@@ -95,7 +93,7 @@ const fiveYearTotal: number = yearlyMedia * 5;          // ~73 PB
 
 **QPS:**
 
-```
+```text
 Writes/day = 100M / 30 ≈ 3.3M
 Write QPS  = 3.3M / 100K ≈ 33 → round to 40 writes/sec
 Read QPS   = 40 × 100 = 4,000 reads/sec
@@ -104,14 +102,14 @@ Peak read  = 8,000 reads/sec
 
 **Storage:**
 
-```
+```text
 URLs in 10 years = 100M × 12 × 10 = 12B rows
 Total            = 12B × 260 bytes ≈ 3 TB
 ```
 
 **Cache (Pareto — hot 20%):**
 
-```
+```text
 Cache size = 3 TB × 20% = 600 GB
 ```
 
@@ -166,14 +164,14 @@ Design for **peak**, not average. Add 20–50% redundancy for failover.
 
 **Cache the hot 20% (Pareto):**
 
-```
+```text
 Hot data = total × 0.2
 Target hit rate ≥ 80%
 ```
 
 **Server count:**
 
-```
+```text
 Servers = ceil(peak_qps / qps_per_server)
 Add N+1 redundancy (10–20% standby)
 ```

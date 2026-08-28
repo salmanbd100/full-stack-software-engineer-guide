@@ -1,4 +1,8 @@
-# Testing Fundamentals
+# Testing Fundamentals {#ch-testing-fundamentals}
+
+> Decide what to test and at which layer, before arguing about a framework.
+
+**In this chapter:** the kinds of test · pyramid vs trophy · arrange–act–assert · mocks, stubs, spies and fakes · what coverage does not tell you
 
 ## Overview
 
@@ -63,7 +67,7 @@ There are many test types. You won't write all of them, but a senior engineer sh
 
 **How to choose:**
 
-```
+```text
 Is it pure logic / a calculation?        → Unit test
 Is it one component's behavior?          → Component test
 Do several parts work together?          → Integration test
@@ -76,7 +80,7 @@ Both balance test types. They just disagree on the mix.
 
 ### The Pyramid
 
-```
+```text
         /\
        /E2E\        few   (slow, brittle)
       /------\
@@ -90,7 +94,7 @@ Many fast unit tests, few slow E2E tests. Best for **logic-heavy** apps (pricing
 
 ### The Trophy (Kent C. Dodds)
 
-```
+```text
    [   E2E   ]        ~10%
    [Integration]      ~50%  ⭐ most value
    [   Unit   ]       ~30%

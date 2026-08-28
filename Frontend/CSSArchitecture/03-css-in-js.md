@@ -1,8 +1,8 @@
-# CSS-in-JS
+# CSS-in-JS {#ch-css-in-js}
 
-> Write CSS inside JavaScript. Styles get scoped, dynamic, and co-located with components.
+> Weigh runtime CSS-in-JS against the zero-runtime alternatives, and know what each costs at hydration.
 
----
+**In this chapter:** what CSS-in-JS solves · styled-components and Emotion · zero-runtime compilers · SSR and the flash of unstyled content · bundle cost
 
 ## 💡 **What CSS-in-JS Is**
 

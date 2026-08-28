@@ -1,4 +1,8 @@
-# Reliability and Availability
+# Reliability and Availability {#ch-reliability-and-availability}
+
+> Price a nine, and design so that one failure does not become an outage.
+
+**In this chapter:** the metrics · the failure patterns · redundancy · circuit breakers and bulkheads · health checks · backup and recovery
 
 ## Overview
 
@@ -10,7 +14,7 @@ Reliability is whether the system does the right thing. Availability is whether 
 
 Percent of time the system is operational.
 
-```
+```text
 Availability = (Total Time − Downtime) / Total Time
 ```
 
@@ -30,7 +34,7 @@ Each extra nine costs roughly 10× more to engineer. Pick the lowest tier that s
 - **MTBF (Mean Time Between Failures):** average healthy time between failures.
 - **MTTR (Mean Time To Repair):** average time to recover after a failure.
 
-```
+```text
 Availability = MTBF / (MTBF + MTTR)
 ```
 
@@ -228,7 +232,7 @@ async function checkDatabase(): Promise<CheckResult> {
 
 ### 💡 **Multi-Region Failover**
 
-```
+```text
 Region A (Primary)        Region B (DR)
 ─────────────────         ─────────────
 Load Balancer             Load Balancer

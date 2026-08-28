@@ -1,4 +1,8 @@
-# Unit Testing
+# Unit Testing {#ch-unit-testing}
+
+> Decide what the unit is, and test its behaviour rather than the way it happens to be written.
+
+**In this chapter:** what counts as a unit · arrange–act–assert · what to test and what to skip · async tests · what coverage does not prove
 
 ## 💡 What Is a Unit Test?
 
@@ -17,7 +21,7 @@ A unit test checks one small piece of code — usually a single function or meth
 
 ## The Test Pyramid
 
-```
+```text
         /\
        /E2E\        Few, slow, brittle
       /------\

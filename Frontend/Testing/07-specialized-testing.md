@@ -1,4 +1,8 @@
-# Specialized Testing
+# Specialised Testing {#ch-specialised-testing}
+
+> Reach past unit tests for the failures they cannot see — visual, accessibility and contract.
+
+**In this chapter:** snapshot testing and its trap · visual regression · automated a11y checks · performance budgets in CI · contract testing
 
 ## Overview
 

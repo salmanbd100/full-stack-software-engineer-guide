@@ -1,4 +1,8 @@
-# Rendering Optimization
+# Rendering Optimisation {#ch-rendering-optimisation}
+
+> Keep the main thread free so interactions land inside the frame budget.
+
+**In this chapter:** avoiding needless re-renders · debounce vs throttle · `requestAnimationFrame` · CSS containment · virtual scrolling
 
 ## Overview
 
@@ -83,7 +87,7 @@ Some events fire constantly: scroll (~60/s), mousemove (60+/s), typing (~10/s). 
 | **Debounce** | Wait until events stop, then run once | Search input |
 | **Throttle** | Run at most once per interval | Scroll / resize handler |
 
-```
+```text
 Events:    X X X X X X X X X
 Debounce:                    X   ← runs after the pause
 Throttle:  X      X      X       ← runs on a fixed interval
@@ -197,7 +201,7 @@ window.addEventListener('scroll', () => {
 
 Rendering 10,000 list items creates 10,000 DOM nodes and grinds the browser down. Virtual scrolling renders only the ~12 items currently visible and fakes the rest with spacer height.
 
-```
+```text
 10,000 items → render ~12 visible → DOM stays small → smooth
 ```
 

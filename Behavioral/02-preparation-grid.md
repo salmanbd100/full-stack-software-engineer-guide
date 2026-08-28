@@ -1,4 +1,8 @@
-# Behavioral Interview Preparation Grid
+# The Preparation Grid {#ch-preparation-grid}
+
+> Build seven to ten stories that between them answer almost every question you will be asked.
+
+**In this chapter:** how the grid works · the categories · a filled example · mapping one story to several questions · how to fill your own
 
 ## Overview
 The Preparation Grid is a systematic approach to organizing your stories and examples before interviews. This method, popularized by "Cracking the Coding Interview," helps ensure you have relevant examples for all common question types.
@@ -167,7 +171,7 @@ Identify 5-7 significant projects or experiences. Include:
 ### Step 3: Write STAR Stories
 For each cell in your grid, prepare a STAR-format story:
 
-```
+```text
 Project: [Project Name]
 Category: [Leadership/Challenges/etc.]
 

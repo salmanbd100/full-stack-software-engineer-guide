@@ -1,4 +1,8 @@
-# System Design Basics
+# System Design Basics {#ch-system-design-basics}
+
+> Name the moving parts of a system and say what each one is for.
+
+**In this chapter:** functional and non-functional requirements · the core components · communication patterns · API styles · how the round runs
 
 ## Overview
 
@@ -42,7 +46,7 @@ How the system must behave — the quality bar.
 
 The base of every web system. Client sends a request, server returns a response.
 
-```
+```text
 Client ──HTTP request──▶ Server
        ◀──JSON response──
 ```
@@ -53,7 +57,7 @@ Client ──HTTP request──▶ Server
 
 Split the system into presentation, business, and data layers.
 
-```
+```text
 [ UI / React ]  ←→  [ API / Node.js ]  ←→  [ DB / Postgres ]
 ```
 
@@ -114,7 +118,7 @@ async function getUser(id: string): Promise<User> {
 
 Lets services talk asynchronously. The producer drops a job, the consumer processes it later.
 
-```
+```text
 Producer ──▶ Queue ──▶ Consumer
 ```
 

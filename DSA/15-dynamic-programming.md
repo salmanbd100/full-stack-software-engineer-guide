@@ -1,10 +1,14 @@
-# Dynamic Programming Pattern
+# Dynamic Programming {#ch-dynamic-programming}
+
+> Spot overlapping subproblems, define the state, and convert a recursion into a table.
+
+**In this chapter:** memoisation vs tabulation · defining the state and transition · climbing stairs · coin change · the decision framework
 
 ## What is Dynamic Programming? (In Simple Words)
 
 Imagine you're **calculating Fibonacci numbers** the hard way:
 
-```
+```text
 fib(5) = fib(4) + fib(3)
        = (fib(3) + fib(2)) + (fib(2) + fib(1))
        = ((fib(2) + fib(1)) + fib(2)) + (fib(2) + fib(1))
@@ -17,7 +21,7 @@ Notice: You're calculating fib(2) MULTIPLE times!
 ### Real-World Analogy: Remembering vs Recalculating
 
 **Without DP (Wasteful):**
-```
+```text
 You: "What's 7 + 5?"
 Friend: *counts on fingers* "12"
 
@@ -28,7 +32,7 @@ You're recalculating 7+5 every time!
 ```
 
 **With DP (Smart):**
-```
+```text
 You: "What's 7 + 5?"
 Friend: *counts on fingers* "12" *writes it down*
 
@@ -43,7 +47,7 @@ You saved work by remembering!
 **Problem:** You're cooking 3 dishes that all need boiled water.
 
 **Naive Approach:**
-```
+```text
 Dish 1: Boil water (10 min) → Cook
 Dish 2: Boil water (10 min) → Cook  ← Wasteful!
 Dish 3: Boil water (10 min) → Cook  ← Wasteful!
@@ -52,7 +56,7 @@ Total: 30 minutes of boiling
 ```
 
 **DP Approach (Memoization):**
-```
+```text
 Step 1: Boil water ONCE (10 min) → Store in pot
 Step 2: Use stored water for Dish 1
 Step 3: Use stored water for Dish 2
@@ -288,7 +292,7 @@ function climbStairs(n: number): number {
 
 **Execution Trace for n=5:**
 
-```
+```text
 Call dp(5):
   i=5, not in memo
   Compute: dp(4) + dp(3)
@@ -352,7 +356,7 @@ function climbStairsBottomUp(n: number): number {
 
 **DP Table for n=5:**
 
-```
+```text
 i:       1   2   3   4   5
 dp[i]:   1   2   3   5   8
 
@@ -365,7 +369,7 @@ Result: 8
 
 **Visual Representation:**
 
-```
+```text
 Ways to reach step 5:
 
 From step 4 (5 ways):          From step 3 (3 ways):
@@ -509,7 +513,7 @@ coinChange(coins: number[], amount: number): number {
 
 **DP Table Evolution for coins=[1,2,5], amount=11:**
 
-```
+```text
 Initial: dp = [0, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞, ∞]
 
 For i=1:
@@ -545,7 +549,7 @@ Final: dp[11] = 3 (11 = 5 + 5 + 1)
 
 **Visual Explanation:**
 
-```
+```text
 Target: 11
 Coins: [1, 2, 5]
 

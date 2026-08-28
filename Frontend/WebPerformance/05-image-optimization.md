@@ -1,4 +1,8 @@
-# Image Optimization
+# Image Optimisation {#ch-image-optimisation}
+
+> Serve the smallest image that still looks right, at the size the layout actually needs.
+
+**In this chapter:** AVIF and WebP · compression · `srcset` and `sizes` · reserving space to avoid CLS · image CDNs
 
 ## Overview
 

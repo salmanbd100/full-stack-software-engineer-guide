@@ -1,4 +1,8 @@
-# Database Replication
+# Replication {#ch-replication}
+
+> Trade durability against latency deliberately, and know what replication lag does to your reads.
+
+**In this chapter:** primary-replica · synchronous vs asynchronous · replication lag and read-your-writes · failover · scaling reads
 
 ## 💡 What Replication Is
 
@@ -14,7 +18,7 @@ Replication solves two problems:
 
 One server (the primary) accepts all writes. One or more replicas receive those writes and serve read queries.
 
-```
+```text
          Application
            ↙      ↘
       Writes       Reads
@@ -65,7 +69,7 @@ This is the core tradeoff in replication.
 
 The primary waits for the replica to confirm the write before returning success to the client.
 
-```
+```text
 Client → Primary (write)
              ↓ wait
          Replica (write confirmed)
@@ -85,7 +89,7 @@ Primary → Client (success)
 
 The primary acknowledges the write immediately. The replica catches up in the background.
 
-```
+```text
 Client → Primary (write)
 Primary → Client (success immediately)
              ↓ later

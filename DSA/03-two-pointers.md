@@ -1,4 +1,8 @@
-# Two Pointers Pattern
+# Two Pointers {#ch-two-pointers}
+
+> Replace a nested loop with two indices moving through a sorted array in one pass.
+
+**In this chapter:** recognising the pattern · converging pointers · two sum on a sorted array · container with most water · complexity
 
 ## What is Two Pointers?
 
@@ -59,7 +63,7 @@ Look for this pattern when you see:
 
 **Scenario:** Find two numbers that sum to 9 in a sorted array
 
-```
+```text
 Array: [2, 7, 11, 15]
 Target: 9
 
@@ -101,7 +105,7 @@ Answer: indices [0, 1] (or [1, 2] if 1-indexed)
 
 **Scenario:** Remove duplicates from sorted array [1, 1, 2, 2, 3]
 
-```
+```text
 Step 1: Both start at beginning
         S  F
 Array: [1, 1, 2, 2, 3]
@@ -146,7 +150,7 @@ Return slow + 1 = 3 (length of unique portion)
 ### Why Two Pointers is Fast
 
 **Without Two Pointers (Brute Force - O(n²)):**
-```
+```text
 For each element (i):
     For each other element (j):
         Check if arr[i] + arr[j] = target
@@ -156,7 +160,7 @@ For n=1000: ~500,000 comparisons!
 ```
 
 **With Two Pointers (O(n)):**
-```
+```text
 Start at both ends
 Move pointers based on sum
 Each element checked at most once
@@ -235,7 +239,7 @@ let right: number = numbers.length - 1;  // End pointer at end
 - By starting at extremes, we can intelligently adjust the sum
 
 **Example:**
-```
+```text
 numbers = [2, 7, 11, 15], target = 9
 
 Initial state:
@@ -261,7 +265,7 @@ const currentSum: number = numbers[left] + numbers[right];
 ```
 
 **Example step-by-step:**
-```
+```text
 Iteration 1:
 left = 0, right = 3
 numbers[0] = 2, numbers[3] = 15
@@ -287,7 +291,7 @@ if (currentSum === target) {
 - Example: [2, 7, 11, 15], if sum is too small, use 7 instead of 2
 
 **Visual:**
-```
+```text
 Current: 2 + 11 = 13 (too small, target = 18)
          ↑       ↑
         left   right
@@ -309,7 +313,7 @@ Next:    7 + 11 = 18 ✓
 - Example: [2, 7, 11, 15], if sum is too big, use 11 instead of 15
 
 **Visual:**
-```
+```text
 Current: 7 + 15 = 22 (too big, target = 18)
          ↑       ↑
         left   right
@@ -324,7 +328,7 @@ Next:    7 + 11 = 18 ✓
 
 **Input:** `numbers = [2, 7, 11, 15]`, `target = 9`
 
-```
+```text
 Step 1:
         L               R
        [2,  7,  11,  15]
@@ -473,7 +477,7 @@ const currentArea: number = width * Math.min(height[left], height[right]);
 **The Water Container Physics:**
 
 Think of it like a real container:
-```
+```text
 height[left] = 8        height[right] = 7
 
       8                       7
@@ -496,7 +500,7 @@ Area = 7 × width
 Water would spill over the shorter side! You can't fill higher than the shorter line.
 
 **Example:**
-```
+```text
 height = [1, 8, 6, 2, 5, 4, 8, 3, 7]
          ↑                          ↑
        left=0                    right=8
@@ -544,7 +548,7 @@ if (height[left] < height[right]) {
 Let's think about both options:
 
 **Option 1: Move the TALLER line**
-```
+```text
 Current:
       8           7
       █           █
@@ -567,7 +571,7 @@ Result: Area can ONLY decrease or stay same!
 ```
 
 **Option 2: Move the SHORTER line**
-```
+```text
 Current:
       8           7
       █           █
@@ -592,7 +596,7 @@ Result: There's HOPE for improvement!
 ```
 
 **Concrete Example:**
-```
+```text
 height = [1, 8, 6, 2, 5, 4, 8, 3, 7]
            ↑                       ↑
          left=0                right=8
@@ -618,7 +622,7 @@ WOW! Area increased from 8 to 49! ✓
 
 **Input:** `height = [1, 8, 6, 2, 5, 4, 8, 3, 7]`
 
-```
+```text
 Step 1: L=0, R=8
       8           8   7
       █           █   █
@@ -990,7 +994,7 @@ function removeDuplicatesFixed(nums: number[]): number {
 | **Three Pointers** | One fixed + two moving | Finding triplets, Dutch National Flag |
 
 **Quick decision tree:**
-```
+```text
 Is the array sorted?
 ├─ Yes → Likely opposite-direction pointers
 │  └─ Finding pairs? → Opposite direction
@@ -1077,7 +1081,7 @@ function maxSumWindow(nums: number[], k: number): number {
 
 When we move the shorter line, we're guaranteed not to miss the optimal solution. Here's why:
 
-```
+```text
 Consider any configuration:
         H               h
         █               █
@@ -1102,7 +1106,7 @@ Where H > h (left is taller than right)
 5. If we moved the taller line, we'd be constrained by the shorter one anyway
 
 **Visual Proof:**
-```
+```text
 height = [8, 5, 6, 7]
 
 Current: L=0(h=8), R=3(h=7)
@@ -1220,14 +1224,14 @@ function twoSumWithSort(nums: number[], target: number): number[] {
 ## 💡 Pro Tips for Interviews
 
 ### 1. **State Your Assumptions Early**
-```
+```text
 "I see this is a sorted array, so I'm thinking two pointers would be optimal here.
 This will give us O(n) time complexity instead of O(n²) with nested loops."
 ```
 
 ### 2. **Draw the Pointer Movement**
 Always visualize on the whiteboard:
-```
+```text
 Initial:  L               R
          [2,  7,  11,  15]
           ↑               ↑
@@ -1241,7 +1245,7 @@ Step 1:  L           R
 
 ### 3. **Explain the Greedy Choice**
 For Container With Most Water:
-```
+```text
 "I'm moving the shorter line because:
 1. Width always decreases as pointers move inward
 2. Moving the taller line can't help (still limited by shorter line)
@@ -1249,14 +1253,14 @@ For Container With Most Water:
 ```
 
 ### 4. **Mention Time-Space Tradeoff**
-```
+```text
 "Two pointers gives us O(n) time and O(1) space.
 Alternatively, we could use a hash map for O(n) time but O(n) space.
 Since the array is sorted, two pointers is more space-efficient."
 ```
 
 ### 5. **Test with Edge Cases Out Loud**
-```
+```text
 "Let me verify this works with edge cases:
 - Empty array: Returns immediately ✓
 - Single element: Can't form pair ✓
@@ -1265,7 +1269,7 @@ Since the array is sorted, two pointers is more space-efficient."
 ```
 
 ### 6. **Know When NOT to Use Two Pointers**
-```
+```text
 "If the array wasn't sorted and we needed to preserve original indices,
 I'd use a hash map instead. But since it's sorted and we only need
 the values, two pointers is optimal."
@@ -1309,38 +1313,38 @@ the values, two pointers is optimal."
 ### Examples:
 
 **Strong YES for Two Pointers:**
-```
+```text
 Problem: "Given a SORTED array, find two numbers that sum to target"
 Indicators: ✓ Sorted ✓ Two numbers ✓ Pair
 Solution: Opposite-direction two pointers
 ```
 
-```
+```text
 Problem: "Remove duplicates from sorted array IN-PLACE"
 Indicators: ✓ Sorted ✓ In-place ✓ Linear scan
 Solution: Same-direction two pointers (slow/fast)
 ```
 
-```
+```text
 Problem: "Check if string is palindrome"
 Indicators: ✓ Compare from both ends ✓ Symmetric check
 Solution: Opposite-direction two pointers
 ```
 
 **Maybe/No for Two Pointers:**
-```
+```text
 Problem: "Find two numbers that sum to target in UNSORTED array"
 Indicator: ✗ Unsorted
 Solution: Hash map is better (preserves original indices)
 ```
 
-```
+```text
 Problem: "Find maximum sum of subarray"
 Indicator: ✗ Not about pairs, about range
 Solution: Sliding window or Kadane's algorithm
 ```
 
-```
+```text
 Problem: "Find duplicate in array"
 Indicator: ✗ No pair relationship
 Solution: Hash set or cycle detection (fast/slow pointers for linked list)
@@ -1348,7 +1352,7 @@ Solution: Hash set or cycle detection (fast/slow pointers for linked list)
 
 ### Decision Flow:
 
-```
+```text
 Is array/string sorted?
 ├─ YES
 │  ├─ Finding pairs/triplets? → Opposite-direction two pointers

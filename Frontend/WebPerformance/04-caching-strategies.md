@@ -1,4 +1,8 @@
-# Caching Strategies
+# Frontend Caching Strategies {#ch-frontend-caching-strategies}
+
+> Cache at the right layer, and have an answer for how each entry becomes wrong.
+
+**In this chapter:** the caching layers · `Cache-Control` and `ETag` · immutable assets and cache busting · service worker caches · client-side data caching
 
 ## Overview
 
@@ -21,7 +25,7 @@ Caching means **saving copies of files so they don't get downloaded again**. A c
 
 ## The Caching Layers
 
-```
+```text
 Browser cache         ← fastest, checked first
    ↓ (miss)
 Service Worker cache  ← programmable, works offline

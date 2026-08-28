@@ -1,4 +1,8 @@
-# Communication Skills
+# Communication Stories {#ch-communication-stories}
+
+> Show that you can carry a technical argument to people who do not share your context.
+
+**In this chapter:** the questions that come up · worked STAR answers · the principles behind them · the red flags · the metrics to include
 
 ## Overview
 Communication questions assess your ability to convey ideas clearly, listen actively, collaborate across teams, and handle difficult conversations. Strong communication is essential for all technical roles, especially as you advance in your career.

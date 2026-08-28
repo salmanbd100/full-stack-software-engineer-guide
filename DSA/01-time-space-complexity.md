@@ -1,4 +1,8 @@
-# Time & Space Complexity Analysis
+# Time and Space Complexity {#ch-time-and-space-complexity}
+
+> Derive the complexity of code you are looking at, and say what it means for the input size in the question.
+
+**In this chapter:** the common complexities · analysing a loop nest · space including the call stack · comparing growth rates · what interviewers probe
 
 ## Pattern Overview
 
@@ -794,7 +798,7 @@ function maxSumSubarray(arr: number[], k: number): number {
 4. **Total**: O(n) work × O(log n) levels = O(n log n)
 
 **Visual Tree (Merge Sort):**
-```
+```text
               [8,3,5,1,9,2,7,4]           Level 0: n work
               /              \
         [8,3,5,1]          [9,2,7,4]      Level 1: n work
@@ -872,7 +876,7 @@ function fibonacciDP(n: number): number {
 
 ### ⚡ Optimization Decision Tree
 
-```
+```text
 ┌─ Need to find/search? ────────────────────┐
 │                                            │
 │  Sorted?                                   │
@@ -922,7 +926,7 @@ function fibonacciDP(n: number): number {
 ### ❌ Bad Interview Responses
 
 **Example 1: No Complexity Mentioned**
-```
+```text
 Interviewer: "Find if array has duplicates"
 Candidate: "I'll loop through and check each element. Done!"
 ```
@@ -932,7 +936,7 @@ Candidate: "I'll loop through and check each element. Done!"
 - Doesn't show optimization thinking
 
 **Example 2: Vague Complexity**
-```
+```text
 Interviewer: "What's the complexity?"
 Candidate: "It's fast, like O(n) or something."
 ```
@@ -946,7 +950,7 @@ Candidate: "It's fast, like O(n) or something."
 ### ✅ Good Interview Responses
 
 **Example 1: Complete Analysis**
-```
+```text
 Interviewer: "Find if array has duplicates"
 
 Candidate: "I can think of three approaches:
@@ -979,7 +983,7 @@ the hash set. This scales well to millions of elements."
 - Confirmed complexity at end
 
 **Example 2: Optimization Discussion**
-```
+```text
 Interviewer: "How would you optimize this O(n²) solution?"
 
 Candidate: "The bottleneck is the nested loop where we check if target - nums[i]
@@ -1004,7 +1008,7 @@ This improves from O(n²) to O(n), which is 1000x faster for n=1000."
 - Acknowledged space trade-off
 
 **Example 3: Considering Constraints**
-```
+```text
 Interviewer: "Find duplicates in an array"
 
 Candidate: "Before choosing an approach, can I ask a few questions?
@@ -1089,12 +1093,12 @@ function solutionCorrect(arr: number[]): void {
 #### Mistake 2: Confusing Average and Worst Case
 
 **❌ Wrong Statement:**
-```
+```text
 "Hash map lookup is O(1), so my solution is O(n)"
 ```
 
 **✅ Correct Statement:**
-```
+```text
 "Hash map lookup is O(1) average case, O(n) worst case with collisions.
 For interview purposes, we assume average case: O(1).
 My solution is O(n) average, O(n²) worst case."
@@ -1253,7 +1257,7 @@ for (let i = 0; i < n; i++) {
 ### Complexity Patterns by Problem Type
 
 **Array/String Problems:**
-```
+```text
 Brute Force → Hash Map/Set
 O(n²) → O(n)
 
@@ -1261,7 +1265,7 @@ Examples: Two Sum, Contains Duplicate, Valid Anagram
 ```
 
 **Pair/Triplet Problems:**
-```
+```text
 Nested Loops → Sort + Two Pointers
 O(n³) → O(n²) or O(n²) → O(n)
 
@@ -1269,7 +1273,7 @@ Examples: 3Sum, Container With Most Water
 ```
 
 **Subarray/Substring:**
-```
+```text
 Recalculation → Sliding Window
 O(n×k) → O(n)
 
@@ -1277,7 +1281,7 @@ Examples: Max Sum Subarray, Longest Substring
 ```
 
 **Recursive Problems:**
-```
+```text
 Naive Recursion → Memoization/DP
 O(2ⁿ) → O(n) or O(n²)
 
@@ -1285,7 +1289,7 @@ Examples: Fibonacci, Climbing Stairs, Edit Distance
 ```
 
 **Search Problems:**
-```
+```text
 Linear Search → Binary Search
 O(n) → O(log n)
 
@@ -1298,7 +1302,7 @@ Examples: Search in Rotated Array, Find Peak
 
 ### Time Complexity Hierarchy (Fastest to Slowest)
 
-```
+```text
 O(1) < O(log n) < O(√n) < O(n) < O(n log n) < O(n²) < O(n³) < O(2ⁿ) < O(n!)
 ```
 
@@ -1407,7 +1411,7 @@ O(1) < O(log n) < O(√n) < O(n) < O(n log n) < O(n²) < O(n³) < O(2ⁿ) < O(n!
 | Master theorem | T(n) = aT(n/b) + O(nᵏ) | Varies | See master theorem |
 
 **Master Theorem Quick Reference:**
-```
+```text
 T(n) = aT(n/b) + O(nᵏ)
 
 If k < log_b(a): O(n^log_b(a))
@@ -1581,7 +1585,7 @@ for (let i = 0; i < n; i++) {           // O(n)
 > Master these fundamentals, and you'll excel at algorithm interviews!
 
 **Common Interview Progression:**
-```
+```text
 1. Brute Force → State O(n²) or O(2ⁿ)
 2. Interviewer: "Can you do better?"
 3. Optimized Solution → O(n) or O(n log n)

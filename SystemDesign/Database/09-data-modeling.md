@@ -1,6 +1,8 @@
-# Data Modeling
+# Data Modelling {#ch-data-modelling}
 
----
+> Shape the data around the reads, because that is what you will do a thousand times more often.
+
+**In this chapter:** entity relationships · normalising vs denormalising · choosing primary keys · embedded vs referenced · DynamoDB key design · fan-out
 
 ## 💡 The Core Question
 

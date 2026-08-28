@@ -1,4 +1,8 @@
-# Indexes & Optimization
+# SQL Indexes {#ch-sql-indexes}
+
+> Build the index a query will use, and account for what every index costs on write.
+
+**In this chapter:** how an index works · the index types · leftmost-prefix and column order · covering indexes · when an index is ignored · maintenance
 
 ## Overview
 

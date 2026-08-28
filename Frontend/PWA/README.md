@@ -117,7 +117,7 @@ Progressive Web Apps (PWAs) combine the best of web and mobile applications. The
 
 ### 💡 **File Structure**
 
-```
+```text
 PWA/
 ├── README.md                    # This file
 ├── 00-pwa-introduction.md       # What is PWA, pros/cons, vs native

@@ -1,4 +1,8 @@
-# TypeScript Advanced Types
+# TypeScript Advanced Types {#ch-typescript-advanced-types}
+
+> Compute types from other types, and know when that power stops paying for itself.
+
+**In this chapter:** unions and intersections · template literal types · conditional types and `infer` · mapped types · `as const`
 
 ## Table of Contents
 - [Union Types](#union-types)

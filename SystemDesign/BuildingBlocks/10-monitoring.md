@@ -1,4 +1,8 @@
-# Monitoring & Observability
+# Monitoring and Observability {#ch-monitoring-and-observability}
+
+> Instrument a system before the incident, so the incident has an answer.
+
+**In this chapter:** metrics, logs and traces · the RED method · SLI, SLO and SLA · structured logging · distributed tracing · alerting
 
 ## 💡 **Concept**
 

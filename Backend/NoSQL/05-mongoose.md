@@ -1,4 +1,8 @@
-# Mongoose ODM
+# Mongoose {#ch-mongoose}
+
+> Get a schema and validation over a schemaless database without paying for hydration you do not need.
+
+**In this chapter:** schema and model · CRUD · `.lean()` and when it matters · validation · middleware hooks · population · transactions
 
 ## 💡 What Is Mongoose?
 

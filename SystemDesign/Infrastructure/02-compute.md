@@ -1,4 +1,8 @@
-# Compute
+# Compute Models {#ch-compute-models}
+
+> Pick between a VM, a container and a function on workload shape, not fashion.
+
+**In this chapter:** the three models · virtual machines · containers · serverless functions · cold starts · the decision guide
 
 ## 💡 **Concept**
 
@@ -139,7 +143,7 @@ const imageResizer: LambdaConfig = {
 
 ## Decision Guide
 
-```
+```text
 Workload shape?
 ├── Spiky / event-driven / < 15 min  → Lambda
 ├── Long-running / stateful

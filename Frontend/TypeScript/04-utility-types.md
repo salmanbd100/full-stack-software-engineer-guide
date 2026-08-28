@@ -1,4 +1,8 @@
-# TypeScript Utility Types
+# TypeScript Utility Types {#ch-typescript-utility-types}
+
+> Derive a type from an existing one instead of maintaining two that drift apart.
+
+**In this chapter:** `Partial`, `Required`, `Readonly` · `Pick` and `Omit` · `Record` · `ReturnType` and `Parameters` · `Exclude` and `Extract`
 
 ## Table of Contents
 - [Property Modifiers](#property-modifiers)

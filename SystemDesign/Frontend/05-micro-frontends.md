@@ -1,4 +1,8 @@
-# Micro-Frontends
+# Micro-Frontends {#ch-micro-frontends}
+
+> Say when independent deploys are worth the coordination cost, and when they are not.
+
+**In this chapter:** when to use and when not to · the implementation approaches · Module Federation · cross-app communication · shared dependencies
 
 ## 💡 **Concept**
 
@@ -142,7 +146,7 @@ shared: {
 
 ## Deployment Architecture
 
-```
+```text
 CDN / Edge
 ├── host.example.com      → Shell app (routes, nav, auth)
 │     remoteEntry.js      → Module Federation manifest

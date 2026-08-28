@@ -1,4 +1,8 @@
-# PostgreSQL
+# PostgreSQL {#ch-postgresql}
+
+> Use what Postgres gives you beyond the standard, from `node-postgres` and without an ORM in the way.
+
+**In this chapter:** connecting with `pg` · parameterised queries · transactions on a pooled client · JSONB · arrays · full-text search · `EXPLAIN ANALYZE`
 
 ## 💡 **What Makes PostgreSQL Distinctive**
 

@@ -1,4 +1,8 @@
-# Push Notifications API
+# Push Notifications {#ch-push-notifications}
+
+> Send a notification to a closed tab, and ask for the permission in a way that does not get you blocked.
+
+**In this chapter:** the Push and Notification APIs · VAPID keys · subscribing · handling `push` in the worker · actions and clicks · expired subscriptions
 
 ## Overview
 
@@ -38,7 +42,7 @@ Push notifications involve three main components.
 
 ### 💡 **Push Flow**
 
-```
+```text
 1. Client requests permission
     ↓
 2. Client subscribes to Push Service

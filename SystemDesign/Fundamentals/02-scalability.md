@@ -1,4 +1,8 @@
-# Scalability
+# Scalability {#ch-scalability}
+
+> Say what scaling actually costs, and which lever to pull before sharding.
+
+**In this chapter:** vertical vs horizontal · stateless services · replication · sharding · caching · load balancing
 
 ## Overview
 
@@ -109,7 +113,7 @@ class ShardManager {
 
 Copy data from a primary to one or more replicas. Reads spread across replicas. Writes go to the primary.
 
-```
+```text
        ┌──────────┐
 Writes │ Primary  │ ───────┐
 ─────▶ │          │        │

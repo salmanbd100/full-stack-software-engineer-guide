@@ -4,7 +4,7 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.0 · **Date:** 2026-08-26
+> **Status:** Locked · **Version:** 1.1 · **Date:** 2026-08-28
 > **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 78-item route from repo to manuscript.
 
 ---
@@ -347,7 +347,7 @@ These hold for every chapter, with no exceptions and no per-chapter debate.
 
 | # | Rule                                                                                          |
 | - | --------------------------------------------------------------------------------------------- |
-| 1 | **TypeScript only** for code examples. Allowed non-code fences: `bash`, `json`, `yaml`, `css`, `html`, `sql`, `mermaid`, `text`, `tsx` |
+| 1 | **TypeScript only** for code examples. Allowed non-code fences: `bash`, `json`, `yaml`, `css`, `html`, `text`, `mermaid`, `tsx`, and the schema/config languages `sql`, `graphql`, `prisma`, `dockerfile`, `nginx`, `http`. A general-purpose language opts out one fence at a time, with a stated reason — see the marker in `scripts/lint-docs.ts` |
 | 2 | **150–400 lines per chapter.** Over 400 means split it or cut it                                |
 | 3 | **Short sentences, everyday words, active voice** — the `write-topic-docs` rule                 |
 | 4 | **Concept before tool.** Name the idea, then the library that implements it                     |
@@ -426,6 +426,8 @@ bump the version, and update any improvement-plan items the change affects.
 | 7 | 2026-08-26 | `AIUX/` included in Part VII                                             | The differentiator no competing AI book can write as well                  |
 | 8 | 2026-08-26 | AWS chosen as the single cloud for examples                              | Existing content is AWS-based; principles stated cloud-free first          |
 | 9 | 2026-08-26 | Nothing deleted — everything cut moves to `Archive/`                     | Preserves optionality for a second volume at zero cost                     |
+| 10| 2026-08-28 | Non-negotiable #1's fence allow-list **completed**, not relaxed: added `graphql`, `prisma`, `dockerfile`, `nginx`, `http` | These are declarative schema and configuration languages with **no TypeScript form** — a Dockerfile cannot be written in TypeScript, so the rule as drafted meant deleting the example rather than translating it. `sql`, `yaml` and `css` were already allowed on exactly this footing; the original list was simply incomplete. The TypeScript-only rule for *general-purpose* languages is untouched, and § 10's "relaxing the TypeScript-only rule" bar is not engaged |
+| 11| 2026-08-28 | A single fence may opt out of #1 via `<!-- lint-allow-fence: <lang> — reason -->`, with a required reason | Improvement #10. Some chapters teach untyped JavaScript semantics — implicit coercion, dynamic `this`, prototype manipulation — where TypeScript refuses to compile the very thing being shown. 37 fences use it; every one is in `Frontend/JavaScript/01`–`05`. The marker's language must match the fence, so it cannot silently cover a fence that later changes |
 
 ---
 

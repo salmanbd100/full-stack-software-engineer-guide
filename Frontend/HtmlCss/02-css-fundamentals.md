@@ -8,7 +8,7 @@
 
 Every element is a rectangle made of four layers: **content → padding → border → margin**.
 
-```
+```text
 ┌─────────────────────── margin ───────────────────────┐
 │   ┌─────────────────── border ───────────────────┐   │
 │   │   ┌─────────────── padding ───────────────┐  │   │

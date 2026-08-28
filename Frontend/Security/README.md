@@ -26,7 +26,7 @@ Frontend security is about one thing: **never trusting input you don't control**
 
 ## How the Pieces Fit
 
-```
+```text
 User input ──▶ Validate / encode  (XSS, injection blocked at entry)
                      │
                      ▼

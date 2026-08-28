@@ -1,4 +1,8 @@
-# Design Typeahead (Autocomplete)
+# Design Typeahead {#ch-design-typeahead}
+
+> Return suggestions inside a 100ms budget, which rules out touching a database on the path.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -29,7 +33,7 @@ Users expect instant suggestions as they type in a search box. The system must r
 
 ### High-Level Diagram
 
-```
+```text
 Browser / App
      │  (debounced keystroke, every 200ms)
      ▼

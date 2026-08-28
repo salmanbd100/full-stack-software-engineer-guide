@@ -24,7 +24,7 @@ The **Event Loop** is the mechanism that allows JavaScript to perform non-blocki
 
 ### The Core Architecture
 
-```
+```text
 ┌───────────────────────────┐
 │      Call Stack           │ ← Executes synchronous code
 │  (LIFO - Last In First Out)│
@@ -64,7 +64,7 @@ Understanding the event loop's execution priority is crucial for predicting asyn
 
 **The Execution Order (Priority):**
 
-```
+```text
 1. ⚡ Synchronous Code     (Highest Priority)
    ↓
 2. 🔹 ALL Microtasks      (High Priority)
@@ -104,24 +104,24 @@ Understanding the event loop's execution priority is crucial for predicting asyn
 **Why This Order Matters:**
 
 **Example:**
-```javascript
-console.log('1. Script start');          // Sync
+```typescript
+console.log('1. Script start'); // Synchronous
 
-setTimeout(() => {
-    console.log('2. setTimeout');        // Macrotask
+setTimeout((): void => {
+  console.log('2. setTimeout'); // Task (macrotask)
 }, 0);
 
-Promise.resolve().then(() => {
-    console.log('3. Promise');           // Microtask
+void Promise.resolve().then((): void => {
+  console.log('3. Promise'); // Microtask
 });
 
-console.log('4. Script end');            // Sync
+console.log('4. Script end'); // Synchronous
 
 // Output:
-// 1. Script start    ← Sync first
-// 4. Script end      ← Sync first
-// 3. Promise         ← Microtask second
-// 2. setTimeout      ← Macrotask last
+// 1. Script start    ← all synchronous code first
+// 4. Script end
+// 3. Promise         ← then the whole microtask queue
+// 2. setTimeout      ← then one task
 ```
 
 **Step-by-Step Execution:**
@@ -142,12 +142,12 @@ console.log('4. Script end');            // Sync
 
 **Common Gotcha:**
 
-```javascript
-setTimeout(() => console.log('timeout'), 0);
-Promise.resolve().then(() => console.log('promise'));
+```typescript
+setTimeout((): void => console.log('timeout'), 0);
+void Promise.resolve().then((): void => console.log('promise'));
 
-// Always: promise, then timeout
-// Even though setTimeout has 0ms delay!
+// Always: promise, then timeout — the 0ms is irrelevant. The microtask queue
+// is drained completely before the next task is picked up
 ```
 
 **Why setTimeout(0) Isn't Immediate:**
@@ -169,15 +169,15 @@ Promise.resolve().then(() => console.log('promise'));
 **Key Insight:**
 > Microtasks **always** run before macrotasks, even if a macrotask was scheduled first. This is why Promise callbacks execute before setTimeout, regardless of delay.
 
-```javascript
+```typescript
 console.log('1. Script start');
 
-setTimeout(() => {
-    console.log('2. setTimeout');
+setTimeout((): void => {
+  console.log('2. setTimeout');
 }, 0);
 
-Promise.resolve().then(() => {
-    console.log('3. Promise');
+void Promise.resolve().then((): void => {
+  console.log('3. Promise');
 });
 
 console.log('4. Script end');
@@ -200,20 +200,19 @@ console.log('4. Script end');
 
 **Call Stack Visualization** - Shows how the call stack processes synchronous code, then the event loop moves tasks from queues to the stack.
 
-```javascript
-function first() {
-    console.log('First');
-    second();
-    console.log('First again');
+```typescript
+function first(): void {
+  console.log('First');
+  second();
+  console.log('First again');
 }
 
-function second() {
-    console.log('Second');
+function second(): void {
+  console.log('Second');
 }
 
-setTimeout(() => console.log('Timeout'), 0);
-
-Promise.resolve().then(() => console.log('Promise'));
+setTimeout((): void => console.log('Timeout'), 0);
+void Promise.resolve().then((): void => console.log('Promise'));
 
 first();
 
@@ -224,18 +223,18 @@ first();
 // Promise
 // Timeout
 
-// Call Stack visualization:
-// 1. first() pushed
-// 2. console.log('First')
-// 3. second() pushed
-// 4. console.log('Second')
-// 5. second() popped
-// 6. console.log('First again')
-// 7. first() popped
-// 8. Stack empty - check microtask queue
-// 9. Execute Promise callback
-// 10. Check macrotask queue
-// 11. Execute setTimeout callback
+// What the stack does, step by step:
+//  1. first() pushed
+//  2. console.log('First')
+//  3. second() pushed
+//  4. console.log('Second')
+//  5. second() popped
+//  6. console.log('First again')
+//  7. first() popped
+//  8. stack empty → drain the microtask queue
+//  9. run the Promise callback
+// 10. take one task from the task queue
+// 11. run the setTimeout callback
 ```
 
 ---
@@ -244,25 +243,26 @@ first();
 
 **Task Queue Priority** - The distinction between microtasks and macrotasks is fundamental to understanding JavaScript's async behavior. Microtasks (promises, queueMicrotask, MutationObserver) get priority over macrotasks (setTimeout, setInterval, I/O, UI rendering). After each macrotask, the event loop processes ALL pending microtasks before moving to the next macrotask. This means a flood of promises can actually starve setTimeout callbacks, preventing them from running. Understanding this priority system explains seemingly strange async behavior and is a common interview topic. The key insight: microtasks run between macrotasks, ensuring promise chains complete before timers execute.
 
-```javascript
-// Macrotasks (Task Queue)
-setTimeout(() => console.log('setTimeout 1'), 0);
-setInterval(() => console.log('setInterval'), 1000);
-// setImmediate (Node.js only)
+```typescript
+// Tasks — one per tick of the loop
+setTimeout((): void => console.log('setTimeout 1'), 0);
+setInterval((): void => console.log('setInterval'), 1000);
+// setImmediate is Node.js only
 
-// Microtasks (Microtask Queue)
-Promise.resolve().then(() => console.log('Promise 1'));
-queueMicrotask(() => console.log('queueMicrotask'));
+// Microtasks — the entire queue drains between tasks
+void Promise.resolve().then((): void => console.log('Promise 1'));
+queueMicrotask((): void => console.log('queueMicrotask'));
 
-// Microtasks always run before macrotasks
-Promise.resolve().then(() => {
-    console.log('Promise 2');
-    setTimeout(() => console.log('setTimeout 2'), 0);
+// A microtask that schedules a task
+void Promise.resolve().then((): void => {
+  console.log('Promise 2');
+  setTimeout((): void => console.log('setTimeout 2'), 0);
 });
 
-setTimeout(() => {
-    console.log('setTimeout 3');
-    Promise.resolve().then(() => console.log('Promise 3'));
+// A task that schedules a microtask — the microtask runs before the next task
+setTimeout((): void => {
+  console.log('setTimeout 3');
+  void Promise.resolve().then((): void => console.log('Promise 3'));
 }, 0);
 
 // Output:
@@ -271,7 +271,7 @@ setTimeout(() => {
 // Promise 2
 // setTimeout 1
 // setTimeout 3
-// Promise 3
+// Promise 3      ← queued by a task, drained before the next one
 // setTimeout 2
 ```
 
@@ -283,47 +283,48 @@ setTimeout(() => {
 
 **setTimeout Zero Delay Myth** - Shows that setTimeout(fn, 0) doesn't execute immediately - it's queued as a macrotask after all microtasks complete.
 
-```javascript
+```typescript
 console.log('Start');
 
-setTimeout(() => {
-    console.log('Timeout');
-}, 0); // Not immediate! Goes to macrotask queue
+// `0` means "as soon as possible", not "now". It joins the task queue
+setTimeout((): void => {
+  console.log('Timeout');
+}, 0);
 
-Promise.resolve().then(() => {
-    console.log('Promise');
+void Promise.resolve().then((): void => {
+  console.log('Promise');
 });
 
 console.log('End');
 
 // Output: Start, End, Promise, Timeout
-// setTimeout is delayed until after microtasks
 ```
 
 ### Pitfall 2: Blocking the Event Loop
 
 **Blocking vs Non-blocking Code** - Demonstrates how synchronous blocking operations freeze the UI, and how to break work into async chunks to keep the event loop responsive.
 
-```javascript
-// BAD - Blocks event loop
-function blockingOperation() {
-    const start = Date.now();
-    while (Date.now() - start < 3000) {
-        // Blocks for 3 seconds
-    }
-    console.log('Done');
+```typescript
+// ❌ Blocks the loop. Nothing else runs — no rendering, no input, no timers
+function blockingOperation(): void {
+  const start: number = Date.now();
+  while (Date.now() - start < 3000) {
+    // Three seconds of a frozen tab
+  }
+  console.log('Done');
 }
 
-// UI freezes, no other code can run
 blockingOperation();
 
-// GOOD - Non-blocking with async
-async function nonBlockingOperation() {
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    console.log('Done');
+// ✅ Yields. The loop is free for three seconds
+async function nonBlockingOperation(): Promise<void> {
+  await new Promise<void>((resolve): void => {
+    setTimeout(resolve, 3000);
+  });
+  console.log('Done');
 }
 
-nonBlockingOperation(); // Doesn't block
+void nonBlockingOperation();
 ```
 
 ---
@@ -334,15 +335,15 @@ nonBlockingOperation(); // Doesn't block
 
 **Task Priority Strategy** - Use microtasks (queueMicrotask/Promises) for high-priority work that should run before rendering, macrotasks for lower priority.
 
-```javascript
-// High priority - use Promise/queueMicrotask
-queueMicrotask(() => {
-    updateUI(); // Runs before next render
+```typescript
+// High priority — a microtask runs before the browser gets a chance to paint
+queueMicrotask((): void => {
+  updateUI();
 });
 
-// Lower priority - use setTimeout
-setTimeout(() => {
-    analytics.track(); // Can wait
+// Lower priority — a task yields first, so a paint can happen in between
+setTimeout((): void => {
+  analytics.track();
 }, 0);
 ```
 
@@ -350,25 +351,31 @@ setTimeout(() => {
 
 **Chunking Large Operations** - Breaks expensive operations into smaller chunks with async breaks, preventing UI freezing and maintaining responsiveness.
 
-```javascript
-// BAD
-function processLargeArray(arr) {
-    return arr.map(item => expensiveOperation(item));
+```typescript
+// ❌ One long task. At 100,000 items this is a dropped frame budget
+function processLargeArray<T, R>(arr: readonly T[], expensiveOperation: (item: T) => R): R[] {
+  return arr.map(expensiveOperation);
 }
 
-// GOOD - Split into chunks
-async function processLargeArrayAsync(arr, chunkSize = 100) {
-    const results = [];
+// ✅ Chunked, yielding between chunks so input and rendering get a turn
+async function processLargeArrayAsync<T, R>(
+  arr: readonly T[],
+  expensiveOperation: (item: T) => R,
+  chunkSize = 100,
+): Promise<R[]> {
+  const results: R[] = [];
 
-    for (let i = 0; i < arr.length; i += chunkSize) {
-        const chunk = arr.slice(i, i + chunkSize);
-        results.push(...chunk.map(expensiveOperation));
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    const chunk: readonly T[] = arr.slice(i, i + chunkSize);
+    results.push(...chunk.map(expensiveOperation));
 
-        // Yield to event loop
-        await new Promise(resolve => setTimeout(resolve, 0));
-    }
+    // Yield. A microtask would not do — it has to be a task
+    await new Promise<void>((resolve): void => {
+      setTimeout(resolve, 0);
+    });
+  }
 
-    return results;
+  return results;
 }
 ```
 
@@ -380,35 +387,38 @@ async function processLargeArrayAsync(arr, chunkSize = 100) {
 
 **React State Update Timing** - Shows how React batches state updates and when values are available in different phases of the event loop.
 
-```javascript
-function Component() {
-    const [count, setCount] = useState(0);
+```tsx
+// React 19. `count` is a const captured by this render's closure, so nothing
+// inside the handler can ever see the new value — including the callbacks,
+// which close over the same binding
+function Component(): JSX.Element {
+  const [count, setCount] = useState<number>(0);
 
-    const handleClick = () => {
-        console.log('1. Click handler start');
+  const handleClick = (): void => {
+    console.log('1. Click handler start');
 
-        setCount(count + 1); // Batched, not immediate
+    setCount(count + 1); // Schedules a re-render; does not assign
 
-        console.log('2. Count:', count); // Still old value!
+    console.log('2. Count:', count); // Still this render's value
 
-        setTimeout(() => {
-            console.log('3. Timeout count:', count); // Updated value
-        }, 0);
+    setTimeout((): void => {
+      console.log('3. Timeout count:', count); // Still this render's value
+    }, 0);
 
-        Promise.resolve().then(() => {
-            console.log('4. Promise count:', count); // Still old value
-        });
+    void Promise.resolve().then((): void => {
+      console.log('4. Promise count:', count); // Still this render's value
+    });
 
-        console.log('5. Click handler end');
-    };
+    console.log('5. Click handler end');
+  };
 
-    // Output when clicked:
-    // 1. Click handler start
-    // 2. Count: 0 (old value)
-    // 5. Click handler end
-    // 4. Promise count: 0 (old value - microtask)
-    // (React re-renders)
-    // 3. Timeout count: 1 (new value - macrotask)
+  // 1. Click handler start
+  // 2. Count: 0
+  // 5. Click handler end
+  // 4. Promise count: 0   ← microtask
+  // (React re-renders with count = 1)
+  // 3. Timeout count: 0   ← task, but the same stale closure
+  return <button onClick={handleClick}>{count}</button>;
 }
 ```
 

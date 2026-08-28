@@ -1,4 +1,8 @@
-# Performance Optimization
+# System Performance {#ch-system-performance}
+
+> Decide whether you are optimising latency or throughput, because the fixes differ.
+
+**In this chapter:** the metrics · database performance · caching · CDN · application-level wins · what to monitor
 
 ## Overview
 
@@ -39,7 +43,7 @@ Averages hide outliers. Always look at percentiles.
 
 Requests handled per second. Tied to latency through Little's Law:
 
-```
+```text
 Concurrency = Throughput × Latency
 ```
 
@@ -142,13 +146,13 @@ async function getUser(id: string): Promise<User> {
 
 Caches stack from the browser down to the database. The earlier the cache, the cheaper the request.
 
-```
+```text
 Browser cache → CDN → App cache (Redis) → DB query cache → DB
 ```
 
 ### 💡 **Hit Ratio**
 
-```
+```text
 Hit Ratio = Cache Hits / Total Requests
 ```
 

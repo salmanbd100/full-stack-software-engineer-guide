@@ -1,6 +1,8 @@
-# Technical Communication
+# Technical Communication {#ch-technical-communication}
 
-Explain code, architecture decisions, and trade-offs clearly in senior technical interviews.
+> Explain code, an architecture and a trade-off out loud, in the order a listener needs them.
+
+**In this chapter:** the core rule · explaining code · discussing architecture · justifying a technology · framing a trade-off · explaining performance
 
 ## 💡 The Core Rule
 
@@ -13,12 +15,12 @@ Every technical explanation answers three questions: **What** are you doing? **W
 ### Explain WHY, Not What
 
 **❌ Weak:**
-```
+```text
 "I use map to transform the array."
 ```
 
 **✅ Strong:**
-```
+```text
 "I'm using map() instead of forEach() because it returns a new array —
 functional, immutable, easier to test. O(n) time — acceptable since we
 need to process every element anyway."
@@ -48,7 +50,7 @@ need to process every element anyway."
 5. Trade-offs considered
 
 **Example — Large React app:**
-```
+```text
 "I'd organize by feature, not by type — features/auth, features/dashboard.
 Scales better as the codebase grows. For state: Context for auth/theme,
 React Query for server state. Code splitting at route level using
@@ -60,13 +62,13 @@ React.lazy() — critical for users on slower connections."
 ## Technology Justification
 
 **Template:**
-```
+```text
 "I chose [X] for [primary reason]. The key benefit is [specific metric
 or outcome]. The trade-off is [downside] — acceptable because [reason]."
 ```
 
 **Example — Next.js vs Vite:**
-```
+```text
 "I chose Next.js because marketing pages need SSR for SEO. Auto code
 splitting improved LCP from 3.2s to 1.8s. Trade-off: framework lock-in,
 but the performance and DX gains outweigh that for our use case."
@@ -97,7 +99,7 @@ Use metrics at every step.
 
 **Framework:**
 
-```
+```text
 Problem:       [metric showing the issue]
 Investigation: [tools used and what you found]
 Solution:      [what you changed and why it works]
@@ -105,7 +107,7 @@ Impact:        [before/after metrics]
 ```
 
 **Example:**
-```
+```text
 "Dashboard TTI was 4s — causing a 30% bounce rate.
 
 Investigation: Chrome DevTools showed two issues:
@@ -125,13 +127,13 @@ Impact: TTI 4s → 1.6s. Bounce rate 30% → 12%. Lighthouse score 45 → 92."
 
 ### ❌ Starting with details, not the big picture
 
-```
+```text
 "So I import useState, initialize an empty array, then forEach over items..."
 ```
 
 ### ✅ State purpose first, then drill down
 
-```
+```text
 "Building a filterable list. useState for local filter state,
 useMemo to avoid re-filtering on every render. Let me show the key parts..."
 ```
@@ -140,13 +142,13 @@ useMemo to avoid re-filtering on every render. Let me show the key parts..."
 
 ### ❌ Jargon without explanation
 
-```
+```text
 "We use SSR with ISR and configure OST on the CDN."
 ```
 
 ### ✅ Define acronyms on first use
 
-```
+```text
 "We use Server-Side Rendering (SSR) with Incremental Static Regeneration (ISR)
 — Next.js's feature for updating static pages without a full rebuild.
 For caching, we configure Stale-While-Revalidate on the CDN."
@@ -156,13 +158,13 @@ For caching, we configure Stale-While-Revalidate on the CDN."
 
 ### ❌ Monologuing without checking in
 
-```
+```text
 [5 minutes of talking without pause]
 ```
 
 ### ✅ Check in every 2–3 minutes
 
-```
+```text
 "Does this make sense? Should I dive deeper into the caching strategy,
 or move on to the API design?"
 ```
@@ -171,13 +173,13 @@ or move on to the API design?"
 
 ### ❌ Pretending to know something you don't
 
-```
+```text
 "GraphQL uses... uh... some kind of protocol... for queries..."
 ```
 
 ### ✅ Be honest, then pivot to what you know
 
-```
+```text
 "I haven't worked with GraphQL internals deeply, but I understand it uses
 a schema to validate and resolve queries. I can tell you how I've used it
 to reduce over-fetching in production APIs."
@@ -188,20 +190,20 @@ to reduce over-fetching in production APIs."
 ## Whiteboard / Coding Session
 
 **Before writing code:**
-```
+```text
 "My approach: two pointers since the array is sorted.
 O(n) time vs O(n²) brute force. Let me write that out..."
 ```
 
 **While writing code:**
-```
+```text
 "I'm initializing left at 0, right at n-1...
 Moving them inward until they meet...
 Edge case: if no pair exists, I'll return null."
 ```
 
 **After writing:**
-```
+```text
 "To recap: two-pointer, O(n) time, O(1) space.
 Let me trace through the example to verify..."
 ```

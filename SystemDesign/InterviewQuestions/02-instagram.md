@@ -1,4 +1,8 @@
-# Design Instagram
+# Design Instagram {#ch-design-instagram}
+
+> Design a media pipeline and a feed together, where the expensive part is the images, not the posts.
+
+**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
 
 ## How to Open This Answer
 
@@ -30,7 +34,7 @@ Build a photo-sharing platform where users upload images, follow other users, an
 
 ### High-Level Diagram
 
-```
+```text
 Client
   │
   ├── Media upload ──► Upload Service ──► Object Store (S3)
@@ -170,7 +174,7 @@ interface LikeResponse {
 
 ### Media Pipeline
 
-```
+```text
 Upload (S3)
     │
     ▼

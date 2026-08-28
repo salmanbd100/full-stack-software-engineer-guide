@@ -1,4 +1,8 @@
-# API Versioning
+# API Versioning {#ch-api-versioning}
+
+> Tell a breaking change from a safe one, and avoid cutting a new version at all.
+
+**In this chapter:** breaking vs non-breaking · where the version goes · additive change instead of a new version · deprecation and sunset · when it is safe to delete
 
 ## Overview
 
@@ -147,7 +151,7 @@ Most "we need v2" moments don't. Cheaper options, roughly in order:
 
 **2. Expand and contract.** The safe way to rename anything, including database columns:
 
-```
+```text
 1. Write both, read old      ← deploy new code, nothing breaks
 2. Backfill                  ← old records get the new field
 3. Read new, still write old ← the switch, and it's reversible
@@ -190,7 +194,7 @@ app.use("/v1", deprecated("2026-12-31T23:59:59Z", "https://docs.example.com/v1-t
 
 **A realistic timeline for a public API:**
 
-```
+```text
 Month 0   Ship v2. Announce v1 deprecation. Publish the migration guide.
 Month 1   Deprecation + Sunset headers on every v1 response.
 Month 3   Email the top consumers by traffic. Offer help.

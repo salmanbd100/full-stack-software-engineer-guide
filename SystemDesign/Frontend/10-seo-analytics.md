@@ -1,4 +1,8 @@
-# SEO and Analytics
+# SEO and Analytics {#ch-seo-and-analytics}
+
+> Know what the crawler sees, and what you are allowed to measure about the user.
+
+**In this chapter:** SEO fundamentals · how rendering strategy affects indexing · GA4 · privacy and GDPR
 
 ## 💡 **Concept**
 

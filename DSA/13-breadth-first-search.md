@@ -1,4 +1,8 @@
-# Breadth-First Search (BFS) Pattern
+# Breadth-First Search {#ch-breadth-first-search}
+
+> Use a queue to get the shortest path in an unweighted graph, which DFS cannot give you.
+
+**In this chapter:** BFS vs DFS · level-by-level processing · right side view · multi-source BFS · shortest path · complexity
 
 ## What is BFS? (In Simple Words)
 
@@ -17,7 +21,7 @@ Think of it like **ripples in water** when you throw a stone:
 
 Imagine a **forest fire** starting from a single tree:
 
-```
+```text
 Initial state (minute 0):
 . . . . .
 . . F . .    F = Fire
@@ -46,7 +50,7 @@ F F F F F
 
 You're at an airport trying to find the nearest coffee shop:
 
-```
+```text
 You → Gate A → Gate B → Gate C
       ↓        ↓
     Shop1?   Shop2?   Shop3?
@@ -100,7 +104,7 @@ Look for this pattern when you see:
 
 ### Visual Example: Exploring a Tree Level by Level
 
-```
+```text
 Tree:       1
           /   \
          2     3
@@ -149,7 +153,7 @@ Level 2: [4, 5, 6, 7]
 
 ### The Queue Concept (FIFO - First In, First Out)
 
-```
+```text
 Think of a queue as a LINE at a coffee shop:
 - First person in line is served first
 - New customers join the back of the line
@@ -180,7 +184,7 @@ Serve 5, 6, 7...
 
 ### Visual Comparison
 
-```
+```text
 Tree:       1
           /   \
          2     3
@@ -219,7 +223,7 @@ backtrack and try another"
 
 ### Memory Comparison
 
-```
+```text
 Tree:           1
             /       \
            2         3
@@ -417,7 +421,7 @@ function rightSideView(root: TreeNode | null): number[] {
 
 **Visual Trace:**
 
-```
+```text
 Tree:      1
          /   \
         2     3
@@ -577,7 +581,7 @@ console.log(orangesRotting(grid3)); // Output: 0
 
 Instead of starting BFS from ONE source, we start from MULTIPLE sources simultaneously!
 
-```
+```text
 Think of it like multiple forest fires starting at the same time:
 
 Fire 1:    Fire 2:
@@ -644,7 +648,7 @@ function orangesRottingExplained(grid: number[][]): number {
 
 ### Visual Trace: Multi-Source BFS
 
-```
+```text
 Initial Grid:
 2 1 1
 1 1 0
@@ -725,7 +729,7 @@ Return: 4
 
 Find the shortest path from 'S' (start) to 'E' (end) in a maze:
 
-```
+```text
 Grid:
 S . . #
 # . # .
@@ -736,7 +740,7 @@ S = Start, E = End, . = Open, # = Wall
 
 ### Why BFS is Perfect for This
 
-```
+```text
 BFS explores distance by distance:
 
 Distance 0: [S]
@@ -749,7 +753,7 @@ As soon as we reach E, we KNOW it's the shortest path!
 
 ### Visual Trace
 
-```
+```text
 Initial:
 S . . #
 # . # .
@@ -1059,7 +1063,7 @@ while (queue.length > 0) {
 
 BFS explores nodes in order of increasing distance from the source:
 
-```
+```text
 Distance 0: [Start]
 Distance 1: [All nodes 1 step away]
 Distance 2: [All nodes 2 steps away]
@@ -1070,7 +1074,7 @@ When we first reach the target, we KNOW it's at the minimum distance!
 ```
 
 **Example:**
-```
+```text
 Graph:  S → A → B → T
         ↓       ↓
         C ------→ D → T
@@ -1237,7 +1241,7 @@ const multiQueue: T[] = [source1, source2, source3]; // Add ALL sources at start
 ```
 
 **Visual:**
-```
+```text
 Multi-source BFS:
   S1  .  S2    ← Two sources
   .   .  .
@@ -1382,7 +1386,7 @@ while (queue.length > 0) {
 
 ### Tip 1: Mention the Shortest Path Guarantee
 
-```
+```text
 Interviewer: "Find the path from A to B"
 
 You: "Do we need the SHORTEST path, or just ANY path?
@@ -1432,7 +1436,7 @@ while (queue.length > 0) {
 
 Draw on the whiteboard:
 
-```
+```text
 "Let me trace through a simple example..."
 
 Tree:   1
@@ -1454,7 +1458,7 @@ Interviewers love seeing you visualize!
 
 ### Tip 5: Mention Multi-Source BFS for Grid Problems
 
-```
+```text
 You: "This is a multi-source BFS problem since we have multiple
 starting points (rotten oranges). I'll add ALL rotten oranges
 to the queue initially, so they spread simultaneously."
@@ -1464,7 +1468,7 @@ to the queue initially, so they spread simultaneously."
 
 ### Tip 6: Explain Visited Tracking
 
-```
+```text
 You: "For grids, I'll use a visited set to avoid revisiting cells.
 I'll mark cells as visited WHEN I ADD them to the queue, not when
 I process them, to avoid adding duplicates."
@@ -1476,7 +1480,7 @@ I process them, to avoid adding duplicates."
 
 Be ready to discuss:
 
-```
+```text
 Interviewer: "What's the space complexity?"
 
 You: "BFS uses O(w) space where w is the maximum width.
@@ -1511,25 +1515,25 @@ for wide graphs but worse for deep graphs."
 #### Problem Patterns:
 
 **Pattern 1: Shortest Path**
-```
+```text
 Problem: "Find shortest path in unweighted graph"
 Solution: Standard BFS
 ```
 
 **Pattern 2: Level-Wise Processing**
-```
+```text
 Problem: "Find rightmost node at each level"
 Solution: BFS, track level size
 ```
 
 **Pattern 3: Multi-Source Spreading**
-```
+```text
 Problem: "Multiple fires spreading simultaneously"
 Solution: Multi-source BFS (add all sources to queue first)
 ```
 
 **Pattern 4: Minimum Distance**
-```
+```text
 Problem: "Find minimum steps to reach target"
 Solution: BFS with distance tracking
 ```

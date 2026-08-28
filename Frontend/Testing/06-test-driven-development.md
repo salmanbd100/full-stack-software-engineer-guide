@@ -1,4 +1,8 @@
-# Test-Driven Development (TDD)
+# Test-Driven Development {#ch-test-driven-development}
+
+> Say when writing the test first genuinely pays, rather than defending it as a doctrine.
+
+**In this chapter:** red–green–refactor · a worked example · TDD on a component · where it helps and where it does not · BDD
 
 ## Overview
 
@@ -15,7 +19,7 @@ TDD means writing the test **before** the code. You write a failing test, write 
 
 ## The Red-Green-Refactor Cycle
 
-```
+```text
   ┌─────────────────────────────────┐
   │                                 │
   ▼                                 │

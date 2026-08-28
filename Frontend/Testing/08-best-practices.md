@@ -1,4 +1,8 @@
-# Testing Best Practices
+# Testing Best Practices {#ch-testing-best-practices}
+
+> Keep a suite fast, isolated and honest, so people still run it a year from now.
+
+**In this chapter:** organisation and naming · isolation and shared state · behaviour over implementation · chasing down flakes · coverage done right
 
 ## Overview
 
@@ -19,7 +23,7 @@ Good tests give confidence without becoming a maintenance burden. The difference
 
 Co-locate tests with the code they cover. It keeps related files together and makes imports short.
 
-```
+```text
 src/
 ├── components/
 │   └── LoginForm/

@@ -1,4 +1,8 @@
-# Service Discovery
+# Service Discovery {#ch-service-discovery}
+
+> Let services find each other when addresses change every deploy.
+
+**In this chapter:** the core problem · client-side vs server-side discovery · the service registry · health and deregistration
 
 ## 💡 **Service discovery lets services find each other without hardcoded addresses.**
 
@@ -31,7 +35,7 @@ These are the two architectural patterns. They differ in **who does the lookup**
 
 ## How Client-Side Discovery Works
 
-```
+```text
 Service A wants to call Service B
 
 1. Service A → Service Registry: "Where is order-service?"
@@ -46,7 +50,7 @@ The client holds discovery logic. This makes the client more complex but removes
 
 ## How Server-Side Discovery Works
 
-```
+```text
 Service A wants to call Service B
 
 1. Service A → Load Balancer: "order-service/api/orders"
@@ -160,7 +164,7 @@ class ServiceClient {
 
 In Kubernetes, server-side discovery is automatic. Every `Service` object gets a DNS name.
 
-```
+```text
 order-service.default.svc.cluster.local
      ↑              ↑         ↑
   service name   namespace  cluster domain

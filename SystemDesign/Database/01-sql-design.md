@@ -1,4 +1,8 @@
-# SQL Database Design
+# SQL Database Design {#ch-sql-database-design}
+
+> Model entities and relationships so the queries you need stay cheap.
+
+**In this chapter:** normalisation · the join types · indexing basics · when to reach for NoSQL instead · the common design mistakes
 
 ## 💡 What SQL Is For
 

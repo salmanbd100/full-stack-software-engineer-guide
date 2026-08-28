@@ -1,4 +1,8 @@
-# Databases
+# Choosing a Database {#ch-choosing-a-database}
+
+> Let the access pattern pick the database, rather than the other way round.
+
+**In this chapter:** the SQL vs NoSQL decision · ACID vs BASE · comparing the families · polyglot persistence
 
 ## 💡 **Concept**
 
@@ -142,7 +146,7 @@ class DynamoUserRepository implements UserRepository {
 
 Large systems use multiple databases for different purposes:
 
-```
+```text
 User accounts    → PostgreSQL  (ACID, relationships)
 Product catalog  → MongoDB     (flexible schema, fast reads)
 Shopping cart    → Redis       (fast reads/writes, ephemeral)
