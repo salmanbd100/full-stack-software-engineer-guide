@@ -10,7 +10,11 @@ tags: [devops, docker, troubleshooting]
 in_book: true
 ---
 
-# Docker Troubleshooting
+# Docker Troubleshooting {#ch-docker-troubleshooting}
+
+> Read an exit code and a log line and know whether to blame the container, the image, the network or the volume.
+
+**In this chapter:** exit codes · containers that will not start · network and DNS checks · volume permissions · image size and build cache
 
 ## Exit Codes
 

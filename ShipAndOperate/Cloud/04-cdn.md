@@ -10,9 +10,11 @@ tags: [devops, aws, cloudfront]
 in_book: true
 ---
 
-# Content Delivery Networks
+# Content Delivery Networks {#ch-content-delivery-networks}
 
-CloudFront is AWS's global CDN. It caches content at 400+ edge locations so users get responses from a server close to them — not from your origin in us-east-1.
+> Put a CDN in front of an origin and control what is cached, for how long, and how it is purged.
+
+**In this chapter:** edge caching · origins · cache behaviours and keys · invalidation · edge functions
 
 ## How CloudFront Works
 

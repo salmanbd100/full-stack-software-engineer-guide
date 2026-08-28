@@ -10,9 +10,11 @@ tags: [devops, kubernetes, pods, deployments]
 in_book: true
 ---
 
-# Pods and Deployments
+# Pods and Deployments {#ch-pods-and-deployments}
 
-Pods are disposable. Controllers keep the right number of them running. Everything in this topic is about that relationship.
+> Keep a service available through a rollout, a node failure and a shutdown, using the object that controls each.
+
+**In this chapter:** pod lifecycle · health probes · requests and limits · rollouts and rollbacks · graceful shutdown and disruption budgets
 
 ## Pod Lifecycle
 

@@ -10,7 +10,11 @@ tags: [devops, git, branching, strategies]
 in_book: true
 ---
 
-# Git Branching Strategies
+# Git Branching Strategies {#ch-branching-strategies}
+
+> Pick a branching model for a real team and defend the choice on deploy frequency, not on fashion.
+
+**In this chapter:** GitHub Flow · GitFlow · trunk-based development · how to choose
 
 ## Overview
 

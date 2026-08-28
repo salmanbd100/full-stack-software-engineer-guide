@@ -10,7 +10,11 @@ tags: [devops, docker, fundamentals]
 in_book: true
 ---
 
-# Docker Fundamentals
+# Docker Fundamentals {#ch-docker-fundamentals}
+
+> Explain what a container really is, then run, inspect and stop one without reaching for a cheat sheet.
+
+**In this chapter:** containers versus virtual machines · images, layers and registries · the daily commands · a first Dockerfile · Compose in one file
 
 ## Overview
 

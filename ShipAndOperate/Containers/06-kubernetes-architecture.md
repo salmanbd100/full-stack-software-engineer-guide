@@ -10,9 +10,11 @@ tags: [devops, kubernetes, architecture]
 in_book: true
 ---
 
-# Kubernetes Architecture
+# Kubernetes Architecture {#ch-kubernetes-architecture}
 
-Kubernetes is a control loop system. You declare the desired state; controllers work continuously to make reality match it.
+> Explain what happens between `kubectl apply` and a running pod, and why the system is a loop rather than a script.
+
+**In this chapter:** reconciliation loops · control plane and node components · the object hierarchy · why pods exist · the networking model
 
 ## The Core Idea: Reconciliation Loops
 

@@ -10,9 +10,11 @@ tags: [devops, monitoring, prometheus]
 in_book: true
 ---
 
-# Prometheus
+# Prometheus {#ch-prometheus}
 
-Prometheus is the de facto standard for metrics in container environments. This file covers the architecture, PromQL, and the operational limits you will be asked about.
+> Write PromQL that answers a real incident question, and know where Prometheus stops scaling.
+
+**In this chapter:** the pull architecture · the exposition format · metric types · PromQL · recording and alerting rules
 
 ## Architecture
 
@@ -381,4 +383,4 @@ It alerts on how fast you are consuming your error budget, evaluated over two ti
 
 ---
 
-[← Monitoring & Observability Fundamentals](./01-fundamentals.md) | [Observability Index](./README.md) | [Grafana →](./03-grafana.md)
+[← Monitoring and Observability Fundamentals](./01-fundamentals.md) | [Observability Index](./README.md) | [Grafana →](./03-grafana.md)

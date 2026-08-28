@@ -10,9 +10,11 @@ tags: [devops, aws, s3]
 in_book: true
 ---
 
-# Object Storage
+# Object Storage {#ch-object-storage}
 
-Object storage for any amount of data. Not a filesystem — organized by bucket and key, with no real folder hierarchy.
+> Store, tier and lock down a bucket of assets without treating it as a filesystem.
+
+**In this chapter:** buckets, keys and objects · storage classes · versioning and lifecycle rules · access control · encryption
 
 ## Core Concepts
 

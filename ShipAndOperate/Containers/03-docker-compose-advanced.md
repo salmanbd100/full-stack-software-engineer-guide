@@ -10,7 +10,11 @@ tags: [devops, docker, compose, advanced]
 in_book: true
 ---
 
-# Docker Compose
+# Docker Compose {#ch-docker-compose-advanced}
+
+> Describe a whole local stack in one file, and keep its development and production versions apart.
+
+**In this chapter:** services, networks and volumes · startup ordering · environment files · override files · a production example
 
 ## Core Structure
 

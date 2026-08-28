@@ -10,9 +10,11 @@ tags: [devops, cicd, github, actions]
 in_book: true
 ---
 
-# GitHub Actions
+# GitHub Actions {#ch-github-actions}
 
-GitHub Actions runs workflows in response to repository events. It is the default CI/CD choice for most teams on GitHub.
+> Write a workflow that tests, builds and deploys with no long-lived cloud credentials in it.
+
+**In this chapter:** workflows, jobs and steps · a complete CI workflow · OIDC deploys · reusable workflows · caching and hardening
 
 ## Core Concepts
 

@@ -10,9 +10,11 @@ tags: [devops, aws, fundamentals]
 in_book: true
 ---
 
-# Cloud Fundamentals
+# Cloud Fundamentals {#ch-cloud-fundamentals}
 
-AWS is the leading cloud platform. Before diving into individual services, understand the concepts that apply across everything: global infrastructure, the CLI, the shared responsibility model, and the Well-Architected Framework.
+> Place a workload in the right region and account, and say exactly which half of security is yours.
+
+**In this chapter:** service categories · regions, zones and edge locations · the shared responsibility model · multi-account structure · the Well-Architected Framework
 
 ## Core Service Categories
 

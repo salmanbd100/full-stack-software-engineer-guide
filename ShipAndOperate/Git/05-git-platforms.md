@@ -10,7 +10,11 @@ tags: [devops, git, platforms]
 in_book: true
 ---
 
-# Git Platforms
+# Git Platforms {#ch-git-platforms}
+
+> Choose between GitHub, GitLab and CodeCommit on the features a team actually depends on.
+
+**In this chapter:** GitHub · GitLab · AWS CodeCommit · what to compare when choosing
 
 ## Overview
 

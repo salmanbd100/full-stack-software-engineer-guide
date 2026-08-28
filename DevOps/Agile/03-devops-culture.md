@@ -10,9 +10,11 @@ tags: [devops, agile, culture]
 in_book: true
 ---
 
-# DevOps Culture
+# DevOps Culture {#ch-devops-culture}
 
-Culture is the part of DevOps that tooling cannot deliver. Two teams with identical pipelines can have completely different outcomes, and the difference is how they handle ownership, failure, and disagreement.
+> Describe the ownership and failure habits that make two teams with identical pipelines perform differently.
+
+**In this chapter:** the wall of confusion · CALMS · you build it, you run it · blameless postmortems · psychological safety
 
 ## The Problem DevOps Culture Solves
 

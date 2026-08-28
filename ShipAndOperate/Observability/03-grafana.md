@@ -10,9 +10,11 @@ tags: [devops, monitoring, grafana]
 in_book: true
 ---
 
-# Grafana
+# Grafana {#ch-grafana}
 
-Grafana is the visualisation layer. It stores no metrics of its own — it queries other systems and draws the result.
+> Build a dashboard someone reaches for during an incident, and keep it in version control.
+
+**In this chapter:** what Grafana does and does not store · data sources as code · dashboards as code · template variables · dashboard design
 
 ## What Grafana Is and Is Not
 
@@ -256,4 +258,4 @@ AMG by default on AWS. The authentication integration is the strongest argument:
 
 ---
 
-[← Prometheus](./02-prometheus.md) | [Observability Index](./README.md) | [Alerting & On-Call →](./04-alerting.md)
+[← Prometheus](./02-prometheus.md) | [Observability Index](./README.md) | [Alerting and On-Call →](./04-alerting.md)

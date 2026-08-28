@@ -10,9 +10,11 @@ tags: [devops, cicd, testing]
 in_book: true
 ---
 
-# Testing in CI/CD
+# Testing in CI/CD {#ch-cicd-testing}
 
-The pipeline's job is to answer one question fast: **is this commit safe to deploy?** Test strategy is what makes that answer both trustworthy and quick.
+> Order a pipeline's tests so the failure a commit deserves arrives in minutes, not an hour.
+
+**In this chapter:** the test pyramid in CI · fail-fast ordering · integration tests against real dependencies · quality gates · flaky tests
 
 ## The Test Pyramid
 

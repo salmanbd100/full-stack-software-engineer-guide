@@ -10,9 +10,11 @@ tags: [devops, cicd, deployment, strategies]
 in_book: true
 ---
 
-# Deployment Strategies
+# Deployment Strategies {#ch-deployment-strategies}
 
-A deployment strategy answers one question: **how do you replace running version N with version N+1 without breaking users?**
+> Choose between rolling, blue/green and canary for a given service, and say what each one costs.
+
+**In this chapter:** the five strategies · blue/green and canary in practice · database migrations · choosing one and rolling back
 
 ## The Five Strategies
 

@@ -1,5 +1,5 @@
 ---
-title: Monitoring & Observability Fundamentals
+title: Monitoring and Observability Fundamentals
 part: 8
 chapter: 0
 slug: monitoring-fundamentals
@@ -10,9 +10,11 @@ tags: [devops, monitoring, fundamentals]
 in_book: true
 ---
 
-# Monitoring & Observability Fundamentals
+# Monitoring and Observability Fundamentals {#ch-monitoring-fundamentals}
 
-Monitoring tells you **that** something is wrong. Observability lets you work out **why**, for a failure you did not predict.
+> Tell monitoring and observability apart with an example, and set an SLO that has an error budget behind it.
+
+**In this chapter:** monitoring versus observability · metrics, logs and traces · the golden signals · percentiles · SLIs, SLOs and error budgets
 
 ## Monitoring vs Observability
 

@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-28 · **Progress:** 18 / 78
+**Last updated:** 2026-08-28 · **Progress:** 19 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -764,7 +764,7 @@ The `&` breaks URLs, shell globs, and some static-site generators. Update all in
 
 ---
 
-### - [ ] 12. Unify chapter openings across all files `L`
+### - [x] 12. Unify chapter openings across all files `L` — ✅ **done 2026-08-28**
 
 Six competing conventions exist today:
 
@@ -793,18 +793,13 @@ Split this across sessions by domain: Frontend → Backend → SystemDesign → 
 
 **Done when:** every in-book file opens with the same three blocks.
 
-> ⚠️ **Box still unticked — `DevOps/` is the only thing left, and it is blocked.** `L`, and the plan's
-> model table puts it on **Sonnet 5 at `low`–`medium`** (that mapping was set for the mechanical
-> 244-chapter sweep, which is finished; the README work in run #2 was prose and was done on Opus 5).
+> ✅ **Finished in run #3.** The block that was here said `DevOps/` was blocked behind #20. It no
+> longer is: #20 runs #1 and #2 archived ~80% of the directory, renamed the rest to `ShipAndOperate/`
+> and settled every surviving slug, which was the whole reason to wait. Run #3 closed the remaining
+> 29 files.
 >
-> **Everything outside `DevOps/` is done** — 244 chapter openings in run #1, and all 28 in-book
-> part-opener READMEs in run #2. What remains is `DevOps/`: 130 chapters and 16 READMEs, **all of
-> which must wait for #20**, which archives ~80% of the directory and renames the rest to
-> `ShipAndOperate/`. Openings written now would mostly be thrown away and the slugs would be wrong
-> the moment the files move.
->
-> Nothing is half-applied in either run: work proceeds one file at a time and every directory
-> attempted was finished.
+> Nothing is half-applied in any of the three runs: work proceeds one file at a time and every
+> directory attempted was finished.
 
 **The canonical opening, now settled.** Three blocks, nothing between them, no `---` rule after:
 
@@ -898,6 +893,71 @@ and a line saying no part-opener is written for a part that is being dissolved.
 - `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0, no rule
   regressed. `too-long` **49 → 48** — `Frontend/PWA/README.md` was 517 lines and is now 65.
   `.lint-baseline.json` committed at the lower number
+
+**Delivered — run #3, 2026-08-28: Part VIII, and the item closes.**
+
+**29 files, and the last competing convention is gone.** The blocker this item carried for two runs
+was #20, and #20's structural half discharged it: the archive is done, `ShipAndOperate/` exists, and
+every surviving slug is fixed. Nothing here had to guess at a path that might move.
+
+| Where | Files | What they were opening with |
+| ----- | ----- | --------------------------- |
+| `ShipAndOperate/Git/` | 6 | `# Title` → `## Overview`, or straight into `## Commit Messages` |
+| `ShipAndOperate/Containers/` | 7 | five with `## Overview`, two with a bare paragraph |
+| `ShipAndOperate/CICD/` | 5 | bare paragraph, no promise, no anchor |
+| `ShipAndOperate/Observability/` | 4 | bare paragraph, no promise, no anchor |
+| `ShipAndOperate/Cloud/` | 4 | bare paragraph, no promise, no anchor |
+| `DevOps/Agile/` | 3 | bare paragraph — the three chapters #3 marks `in_book: true` |
+
+`ShipAndOperate/Deployment/`'s four chapters already complied (written to standard at #20 run #2), and
+all six `ShipAndOperate/` section READMEs were written to the part-opener standard in the same item.
+
+**The audit that decides this, not a spot check.** A scratchpad script walks `loadBook()` and asserts,
+for every in-book non-README file, that the H1 carries `{#ch-…}`, that line H1+2 is a `> ` promise and
+that line H1+4 is an **In this chapter:** line — the exact three blocks, in the exact positions.
+It reports **244 chapters ok, 0 failing.** A second pass over the 34 in-book READMEs confirms every
+one opens `# Part N — Name` (`DSA/README.md` opens `# Appendix — DSA Patterns`, correct by design).
+
+**Three identity corrections, made here because this is the item that owns chapter identity:**
+
+- **`ShipAndOperate/Git/04-best-practices.md`: slug `devops-git-best-practices` → `git-best-practices`.**
+  The `devops-` prefix was a depth-2 qualification from when the file lived under `DevOps/Git/`; the
+  brand it names no longer exists. `git-best-practices` was free, and `add-frontmatter.ts` confirms all
+  **332 slugs unique** after the change. It was the only in-book `ShipAndOperate/` slug still carrying
+  the dead prefix, and #71 has not bound to it yet.
+- **Two ampersand titles fixed**, on the same rule that corrected "Data Types & Variables" in run #1:
+  "Monitoring & Observability Fundamentals" → "Monitoring and Observability Fundamentals", and
+  "Alerting & On-Call" → "Alerting and On-Call". `DevOps/Agile/07`'s "Metrics & KPIs" → "Metrics and
+  KPIs" for the same reason. Slugs are derived from the **filename**, not the title, so none moved.
+  Two stale nav-footer labels inside `Observability/` were updated to match.
+
+**`DevOps/Agile/README.md` became a transitional index**, exactly as `OOP/README.md` did in run #2 and
+for the same reason: it was the last file in the book still opening `# … - Interview Preparation` →
+`## Table of Contents`, and **#25** dissolves the directory into two Part IX chapters. Writing a real
+`# Part IX — …` opener for a section that stops existing would be work created for a later item to
+delete. It is now `in_book: false`, with a per-chapter destination table pointing at #25 and a line
+saying no part-opener is written for a section being dissolved. That drops Part IX from 22 in-book
+files to 21 and the book from 279 files to 278.
+
+**What a promise had to earn.** The same test as run #1 — say what the reader can *do*. "Explain what
+happens between `kubectl apply` and a running pod, and why the system is a loop rather than a script"
+survives it; "an overview of Kubernetes architecture" does not. The `Cloud/` promises were also written
+**cloud-neutral** even though the bodies are still AWS-only, because #20's remaining trim has to make
+those bodies neutral and the opening should not have to be rewritten twice.
+
+**Verified:**
+
+- Opening audit: **244 chapters pass all three blocks, 0 fail**; all 34 in-book READMEs are part openers
+- `pnpm lint:docs`: 278 files — `front-matter` **0**, `broken-link` **0**, `missing-readme` **0**,
+  `heading-jump` **0**. `fence-language` **91** and `too-long` **47**, both unchanged at baseline —
+  **no rule regressed**, and no new baseline commit was needed
+- `scripts/add-frontmatter.ts`: **332 slugs, all unique**, every in-book file has a part, and
+  **idempotent on the second pass** (`changed: 0`) — the hand-set titles and the renamed slug survive it
+- `pnpm book:collect`: **278 files, 95,745 lines**, no unmapped files
+- `git status`: **30 files modified, none added or deleted**
+
+**One thing deliberately left undone.** `DevOps/GenAI/` (9 files) got no openings — every file there is
+`in_book: false`, so it is outside this item's "every in-book file", and **#21** archives the directory.
 - `pnpm book:collect`: 276 files, 96,505 lines, no unmapped files
 - All 28 in-book non-DevOps READMEs check out mechanically: `chapter: 0`, a chapter or section table,
   a **What Interviewers Probe For** section, a **Reading Order**, and **zero `{#ch-}` anchors**
@@ -2039,14 +2099,14 @@ the site markets the book and the book funds the site.
 | Phase | Items   | Done | Status         |
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
-| 1     | 8–19    | 11/12 | 🟡 In progress  |
+| 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31   | 0/12 | ⬜ Not started  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **18/78** | **23%**   |
+| **Total** | **78** | **19/78** | **24%**   |
 
 ---
 

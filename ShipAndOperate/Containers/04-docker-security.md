@@ -10,7 +10,11 @@ tags: [devops, docker, security]
 in_book: true
 ---
 
-# Docker Security
+# Docker Security {#ch-docker-security}
+
+> Harden an image and its runtime against the five mistakes that appear in almost every audit.
+
+**In this chapter:** non-root users · minimal base images · build-time secrets · runtime capabilities · image scanning
 
 ## Top 5 Security Rules
 

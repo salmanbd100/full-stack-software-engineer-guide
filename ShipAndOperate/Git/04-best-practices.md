@@ -2,7 +2,7 @@
 title: Git Best Practices
 part: 8
 chapter: 0
-slug: devops-git-best-practices
+slug: git-best-practices
 level: intermediate # beginner | intermediate | advanced
 reading_time: 7
 updated: 2026-08-28
@@ -10,7 +10,11 @@ tags: [devops, git]
 in_book: true
 ---
 
-# Git Best Practices
+# Git Best Practices {#ch-git-best-practices}
+
+> Leave a history a reviewer can read a year later, and keep secrets out of it.
+
+**In this chapter:** conventional commits · branch naming · pull request size · secrets and `.gitignore` · repository hygiene
 
 ## Commit Messages
 

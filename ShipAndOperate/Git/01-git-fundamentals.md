@@ -10,7 +10,11 @@ tags: [devops, git, fundamentals]
 in_book: true
 ---
 
-# Git Fundamentals
+# Git Fundamentals {#ch-git-fundamentals}
+
+> Move work through Git's four stages with intent, and undo any of them without losing history.
+
+**In this chapter:** the four-stage model · branching and merge conflicts · remotes · undoing changes safely · stashing and tags
 
 ## Overview
 

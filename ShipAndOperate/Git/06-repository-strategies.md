@@ -10,7 +10,11 @@ tags: [devops, git, repository, strategies]
 in_book: true
 ---
 
-# Repository Strategies: Monorepo vs Polyrepo
+# Repository Strategies: Monorepo vs Polyrepo {#ch-repository-strategies}
+
+> Argue the monorepo-versus-polyrepo trade-off from CI cost, code sharing and team autonomy rather than preference.
+
+**In this chapter:** what a monorepo buys · what it costs · polyrepo and published packages · a decision framework
 
 ## Overview
 

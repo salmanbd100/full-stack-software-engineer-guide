@@ -10,7 +10,11 @@ tags: [devops, docker, dockerfile]
 in_book: true
 ---
 
-# Dockerfile Best Practices
+# Dockerfile Best Practices {#ch-dockerfile-best-practices}
+
+> Write a Dockerfile that builds fast, ships small, and does not run as root.
+
+**In this chapter:** base image choice · layer caching order · non-root users · `ENTRYPOINT` versus `CMD` · multi-stage builds
 
 ## Choose the Right Base Image
 

@@ -10,9 +10,11 @@ tags: [devops, agile, fundamentals]
 in_book: true
 ---
 
-# Agile Fundamentals
+# Agile Fundamentals {#ch-agile-fundamentals}
 
-Agile is a set of principles for delivering software in small increments with fast feedback. For a DevOps engineer, the connection is direct: **Agile creates the demand for frequent delivery, and DevOps makes it possible.**
+> Explain why small batches beat big ones, and name the anti-pattern a team is actually suffering from.
+
+**In this chapter:** the four values · Scrum versus Kanban · WIP limits · estimation · where Agile meets delivery
 
 ## The Core Idea
 

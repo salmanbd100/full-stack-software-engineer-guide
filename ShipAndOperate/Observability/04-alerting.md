@@ -1,5 +1,5 @@
 ---
-title: Alerting & On-Call
+title: Alerting and On-Call
 part: 8
 chapter: 0
 slug: alerting
@@ -10,9 +10,11 @@ tags: [devops, monitoring, alerting]
 in_book: true
 ---
 
-# Alerting & On-Call
+# Alerting and On-Call {#ch-alerting}
 
-Most monitoring failures are not missing data — they are alerts nobody trusts. This file is about designing alerts humans will actually act on.
+> Write alerts a tired engineer can act on at 3am, and delete the ones nobody trusts.
+
+**In this chapter:** urgent, actionable, real · symptoms over causes · burn-rate alerting · reducing noise · sustainable on-call
 
 ## The Only Rule That Matters
 

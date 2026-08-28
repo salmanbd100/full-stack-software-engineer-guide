@@ -10,9 +10,11 @@ tags: [devops, cicd, security]
 in_book: true
 ---
 
-# Pipeline Security
+# Pipeline Security {#ch-cicd-security}
 
-The pipeline is the most privileged system you own. It can read every repository and deploy to production. Attackers target it for exactly that reason.
+> Treat the pipeline as production infrastructure and close the paths an attacker uses to reach it.
+
+**In this chapter:** why pipelines are targeted · secrets management · supply chain and SBOMs · hardening the runner · audit and traceability
 
 ## Why the Pipeline Is a Prime Target
 

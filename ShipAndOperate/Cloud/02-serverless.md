@@ -10,9 +10,11 @@ tags: [devops, aws, lambda]
 in_book: true
 ---
 
-# Serverless Functions
+# Serverless Functions {#ch-serverless-functions}
 
-Run code without managing servers. Pay only for what you use — per invocation and per millisecond of execution.
+> Decide when a function beats a long-running server, and size one so cold starts never reach users.
+
+**In this chapter:** how a managed function runs · invocation types and triggers · cold starts · memory, timeout and cost · execution roles and secrets
 
 ## How Lambda Works
 

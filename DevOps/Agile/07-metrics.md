@@ -1,5 +1,5 @@
 ---
-title: Metrics & KPIs
+title: Metrics and KPIs
 part: 9
 chapter: 0
 slug: metrics
@@ -10,9 +10,11 @@ tags: [devops, agile, metrics]
 in_book: true
 ---
 
-# Metrics & KPIs
+# Metrics and KPIs {#ch-metrics}
 
-DORA metrics are the industry standard for measuring delivery performance, and they appear in almost every senior DevOps interview. The important part is knowing what they measure, what they miss, and how they get abused.
+> Read the four DORA metrics together, and spot the moment one of them is being gamed.
+
+**In this chapter:** the four DORA metrics · reading them together · measuring honestly · how they get misused · improving a bad score
 
 ## The Four DORA Metrics
 

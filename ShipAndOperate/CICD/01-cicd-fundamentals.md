@@ -10,9 +10,11 @@ tags: [devops, cicd, fundamentals]
 in_book: true
 ---
 
-# CI/CD Fundamentals
+# CI/CD Fundamentals {#ch-cicd-fundamentals}
 
-CI/CD is the practice of automating everything between "code is written" and "code is running in production".
+> Separate integration, delivery and deployment in one sentence, then describe a pipeline that builds its artefact once.
+
+**In this chapter:** the three terms · pipeline stages · build once, promote many · artefacts and versioning · DORA metrics
 
 ## The Three Terms
 

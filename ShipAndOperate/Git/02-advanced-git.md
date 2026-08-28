@@ -10,7 +10,11 @@ tags: [devops, git, advanced]
 in_book: true
 ---
 
-# Advanced Git
+# Advanced Git {#ch-advanced-git}
+
+> Recover commits you thought were gone, and find the one that broke production in a handful of steps.
+
+**In this chapter:** reflog · bisect · worktrees · interactive rebase · removing secrets from history
 
 ## Overview
 
