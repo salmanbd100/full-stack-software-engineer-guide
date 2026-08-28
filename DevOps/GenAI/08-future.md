@@ -5,7 +5,7 @@ chapter: 0
 slug: future
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-04
+updated: 2026-08-28
 tags: [devops, genai, future]
 in_book: false
 ---

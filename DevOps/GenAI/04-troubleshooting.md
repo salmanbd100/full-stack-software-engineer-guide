@@ -5,7 +5,7 @@ chapter: 0
 slug: genai-troubleshooting
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-08-04
+updated: 2026-08-28
 tags: [devops, genai, troubleshooting]
 in_book: false
 ---

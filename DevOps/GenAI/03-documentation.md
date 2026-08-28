@@ -5,7 +5,7 @@ chapter: 0
 slug: genai-documentation
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-04
+updated: 2026-08-28
 tags: [devops, genai, documentation]
 in_book: false
 ---

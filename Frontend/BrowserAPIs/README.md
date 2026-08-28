@@ -4,7 +4,7 @@ part: 2
 chapter: 0
 slug: frontend-browser-apis-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 2
+reading_time: 3
 updated: 2026-08-28
 tags: [storage, cookies, indexeddb, permissions, browser]
 in_book: true

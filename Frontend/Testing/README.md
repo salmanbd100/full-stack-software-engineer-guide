@@ -4,7 +4,7 @@ part: 4
 chapter: 0
 slug: frontend-testing-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 3
+reading_time: 2
 updated: 2026-08-28
 tags: [testing, vitest, react-testing-library, e2e, tdd]
 in_book: true

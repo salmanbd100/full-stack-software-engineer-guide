@@ -5,7 +5,7 @@ chapter: 0
 slug: devops-agile-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 5
-updated: 2026-08-04
+updated: 2026-08-28
 tags: [devops, agile]
 in_book: true
 ---
@@ -122,13 +122,8 @@ The non-technical half of a DevOps interview. These questions separate engineers
 
 ## Related Topics
 
-- [CI/CD Fundamentals](../CICD/01-cicd-fundamentals.md) — build once, trunk-based development, DORA
-- [Deployment Strategies](../CICD/06-deployment-strategies.md) — canary, blue/green, progressive delivery
-- [Monitoring Fundamentals](../Monitoring/01-fundamentals.md) — SLI, SLO, error budgets in depth
-- [Monitoring: Alerting & On-Call](../Monitoring/07-alerting.md) — alert design and noise reduction
-- [Monitoring: Incident Response](../Monitoring/08-incident-response.md) — incident command, postmortems
-- [DevSecOps Fundamentals](../DevSecOps/01-fundamentals.md) — guardrails vs gates, paved roads
+- [CI/CD Fundamentals](../../ShipAndOperate/CICD/01-cicd-fundamentals.md) — build once, trunk-based development, DORA
+- [Deployment Strategies](../../ShipAndOperate/CICD/03-deployment-strategies.md) — canary, blue/green, progressive delivery
+- [Observability Fundamentals](../../ShipAndOperate/Observability/01-fundamentals.md) — SLI, SLO, error budgets in depth
+- [Alerting and On-Call](../../ShipAndOperate/Observability/04-alerting.md) — alert design and noise reduction
 - [AI for Documentation](../GenAI/03-documentation.md) — drafting runbooks and postmortems safely
-
----
-[← DevOps](../README.md)

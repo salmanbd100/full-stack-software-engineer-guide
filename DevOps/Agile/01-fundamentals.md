@@ -5,7 +5,7 @@ chapter: 0
 slug: agile-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-04
+updated: 2026-08-28
 tags: [devops, agile, fundamentals]
 in_book: true
 ---

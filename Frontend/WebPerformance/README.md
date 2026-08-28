@@ -4,7 +4,7 @@ part: 4
 chapter: 0
 slug: frontend-web-performance-index
 level: advanced # beginner | intermediate | advanced
-reading_time: 3
+reading_time: 2
 updated: 2026-08-28
 tags: [performance, core-web-vitals, inp, bundles, caching]
 in_book: true

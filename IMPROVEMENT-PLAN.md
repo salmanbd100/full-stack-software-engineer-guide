@@ -924,12 +924,26 @@ and a line saying no part-opener is written for a part that is being dissolved.
 > pass, and neither trims length. Either a new item is needed or #76's scope has to grow. The
 > `Frontend/PWA/README.md` callout records this so it is not lost.
 
-**Still to do — `DevOps/`, and only after #20:**
+**Still to do — Part VIII. Updated after #20 run #1, 2026-08-28.**
 
-**130 chapters and 16 READMEs.** `DevOps/README.md` alone is 1,378 lines and has its own item (#30).
-**#20** archives ~80% of the directory and renames the rest to `ShipAndOperate/`, so openings written
-now would mostly be thrown away and the slugs — which this item is the sole authority on, per the
-rules above — would be wrong the moment the files move. **Do this after #20, not before.**
+The old estimate said *130 chapters and 16 READMEs*. #20 has now archived 98 of those files and moved
+the survivors, so what is actually left is much smaller:
+
+| Where | Chapters | READMEs | Note |
+| ----- | -------- | ------- | ---- |
+| `ShipAndOperate/` | 26 | **0** | #20 run #1 wrote all five section READMEs to the part-opener standard |
+| `ShipAndOperate/README.md` | — | 1 | Does not exist yet. **#30** writes it |
+| `DevOps/Agile/` | 8 | 1 | **#25** condenses these into two Part IX chapters — do not open them here |
+| `DevOps/GenAI/` | 8 | 1 | **#21** salvages two files into `AI/`; the rest archives |
+
+**So this item's remaining work is 26 chapter openings in `ShipAndOperate/`**, and nothing else — the
+Agile and GenAI files are about to be rewritten or archived by #21 and #25. Those 26 still carry their
+old `# Title` → `## Overview` shape and a relative-link nav footer at the bottom; #20 regenerated the
+footers so they resolve, but they are still relative paths for **#71** to convert.
+
+⚠️ **Wait for #20 to finish before writing these openings.** Run #1 moved the files; the trim runs still
+have to cut Part VIII from 7,070 lines to its 3,500-line budget, and `Cloud/` still merges 4 chapters
+into 3. An opening written for a chapter that is about to be merged is thrown away.
 
 ---
 
@@ -1151,6 +1165,89 @@ most of `Kubernetes/` (8 of 10), `DevSecOps/` (10 — see item 24), `Agile/` (8 
 
 **Done when:** `ShipAndOperate/` has ~25 files and the rest is under `Archive/devops/`.
 
+**Delivered — run #1, 2026-08-28: the structural move. Box stays unticked; the trim half is not done.**
+
+`DevOps/` had **147 files**. They are now **31 in `ShipAndOperate/`**, **98 in `Archive/devops/`**, and
+**18 still in `DevOps/`** — `Agile/` (9, belongs to **#25**) and `GenAI/` (9, belongs to **#21**). 147
+accounted for, nothing deleted, every move a `git mv` so history follows the file.
+
+**#3 did the deciding, exactly as its ordering note promised.** Every keep-or-archive call was already
+in the front matter as `in_book: true` / `false`, so this run was "move the files the metadata already
+marked" rather than 147 fresh judgement calls. Running #3 first was worth what the note claimed.
+
+| `ShipAndOperate/` section | Chapters | From                                        |
+| ------------------------- | -------- | ------------------------------------------- |
+| `Git/`                    | 6        | `DevOps/Git/` — all of it, unchanged         |
+| `Containers/`             | 7        | `Docker/` 5 of 9 + `Kubernetes/` 2 of 10     |
+| `CICD/`                   | 5        | `CICD/` 5 of 8 — the vendor pipelines go     |
+| `Observability/`          | 4        | `Monitoring/` 4 of 8                         |
+| `Cloud/`                  | 4        | `AWS/` 4 of 15                               |
+| `Deployment/`             | **0**    | **not written — 4 new chapters, run #2**     |
+
+**Four decisions this run had to make, because the item did not:**
+
+- **Kubernetes has no section in the item's keep table, but #3 marks two of its chapters `in_book: true`.**
+  They are now `Containers/06-kubernetes-architecture.md` and `07-pods-and-deployments.md`, sitting under
+  Docker in a renamed `Containers/` section. A two-chapter `Kubernetes/` section with its own README would
+  have been thin, and "my service runs in a pod somewhere" — the scope `BOOK-SPEC.md` § 6 allows — is
+  container literacy, not a section of its own.
+- **Chapters were renumbered to close the gaps.** `Docker/01,02,03,06,09` became `Containers/01–05`, and
+  the same for `CICD`, `Observability` and `Cloud`. `slug:` is derived from the title, not the filename,
+  so no slug moved and **#71** is unaffected.
+- **`Cloud/` chapters were retitled off their AWS branding** — `AWS Fundamentals` → `Cloud Fundamentals`,
+  `AWS Lambda (Serverless)` → `Serverless Functions`, `S3` → `Object Storage`, `CloudFront (CDN)` →
+  `Content Delivery Networks`. ⚠️ **The bodies are still AWS-only.** Retitling fixed the chapter identity
+  now, before **#12** and **#71** bind to it; making the prose cloud-neutral is run #2's job.
+- **`DevOps/README.md` went to `Archive/devops/README.md`.** It was a 1,378-line index of content that is
+  now 80% archived, and every one of its ~250 links pointed at a moved file. `ShipAndOperate/` currently
+  has **no part opener** — that is **#30**, which the plan already schedules for after this item. The lint
+  is quiet about it because `missing-readme` only fires on a directory holding loose `.md` files, and
+  `ShipAndOperate/` holds only sub-directories.
+
+**The five section READMEs were rewritten, not patched.** `Git`, `Containers`, `CICD`, `Observability`
+and `Cloud` each got a part-opener README to the `write-topic-docs` standard — 55–61 lines, `chapter: 0`,
+no `{#ch-}` anchor, a chapter table with a *what it answers* column, **What Interviewers Probe For** built
+on Part VIII's senior signal (*owns the change all the way to production, including the way back*), and a
+**Reading Order** with an interview-sprint path. Pruning the old "Interview Preparation" indexes link by
+link would have left them describing chapters that no longer exist; only this item knows what each section
+now is. **This closes five of the sixteen READMEs #12 was waiting on.**
+
+**Links.** 95 broken links appeared the moment the files moved; all 95 are fixed. The 26 chapter nav
+footers were regenerated against the new sequence, `DevOps/Agile/` was repointed at
+`../../ShipAndOperate/…` for the four targets that survived, and the pointer in `02-prometheus.md` at
+the archived `Kubernetes/09-monitoring.md` was removed.
+
+**Verified:**
+
+- `pnpm lint:docs`: `broken-link` **0** (95 → 0), `front-matter` 0, `missing-readme` 0, `heading-jump` 0.
+  `fence-language` **97 → 91** and `too-long` **48 → 47** as the archived files left the in-book set;
+  `.lint-baseline.json` committed at the lower numbers
+- `scripts/add-frontmatter.ts` re-run and **idempotent on the second pass** (`changed: 0`, 327 files,
+  all slugs unique). Part VIII now reports **31** in-book files, down from 33
+- `pnpm book:collect`: **274 files, 94,868 lines**, no unmapped files — down from 276 / 96,505
+- `147 = 31 + 98 + 18`, and `git status` shows **no deletions**
+
+**Two corrections the run forced:**
+
+- **The item's own arithmetic does not close.** Its keep table sums to **27 chapters** — 6 + 5 + 5 + 4 + 4
+  + 3 — but the "Done when" says **~25 files**, which would have to include the READMEs too.
+  `BOOK-SPEC.md` § 4 says something different again: **~18 chapters** in 3,500 lines. Part VIII today is
+  **7,070 lines across 26 chapters**, before `Deployment/` adds four more. Whichever target is real,
+  roughly half the surviving prose still has to go. The trim runs decide which; nobody has yet.
+- **`scripts/add-frontmatter.ts` was cleaned of dead paths.** Eight `OUT_OF_BOOK_DIRS` entries and 30
+  `OUT_OF_BOOK_FILES` entries named `DevOps/` paths that are now under `Archive/`, which `findMarkdown()`
+  already skips. They were harmless but misleading. `DevOps/GenAI` and the `DevOps/Agile/*` entries stay,
+  because #21 and #25 have not run.
+
+**Still to do before this box can be ticked:**
+
+| # | Work | Why it was not done now |
+| - | ---- | ----------------------- |
+| 1 | `ShipAndOperate/Deployment/` — 4 new chapters: edge and platform deploys, preview environments, rollback, feature flags | New book prose. Needs Context7 and the Vercel companion skills, and is a session on its own |
+| 2 | `Cloud/` 4 → 3: merge object storage and CDN, and make all four bodies cloud-neutral rather than AWS-only | Prose rewrite, not a move |
+| 3 | `Observability/` — fold the useful half of the archived `kubernetes/09-monitoring.md` in, and add frontend RUM | The item asks for both; neither is a file move |
+| 4 | The trim to budget — 7,070 lines against 3,500 | See the arithmetic correction above |
+
 ---
 
 ### - [ ] 21. Replace `DevOps/GenAI/` with the real `AI/` directory `S`
@@ -1291,6 +1388,12 @@ It is a full curriculum index for content that is about to be 80% archived. Rewr
 `ShipAndOperate/README.md` part opener after item 20 lands.
 
 **Done when:** the part opener matches the surviving content.
+
+> **Updated after #20 run #1, 2026-08-28.** The 1,378-line file is now at `Archive/devops/README.md`
+> and `ShipAndOperate/` has **no README at all** — the lint stays quiet because `missing-readme` only
+> fires on a directory holding loose `.md` files. This item now writes a new file rather than trimming
+> an old one. The five section READMEs beneath it (`Git`, `Containers`, `CICD`, `Observability`,
+> `Cloud`) already exist and are the model to match; a sixth is due when `Deployment/` is written.
 
 ---
 

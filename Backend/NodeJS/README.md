@@ -4,7 +4,7 @@ part: 5
 chapter: 0
 slug: backend-nodejs-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 3
+reading_time: 2
 updated: 2026-08-28
 tags: [nodejs, event-loop, streams, modules, performance]
 in_book: true

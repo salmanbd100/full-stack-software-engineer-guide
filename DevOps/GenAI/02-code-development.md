@@ -5,7 +5,7 @@ chapter: 0
 slug: code-development
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-08-04
+updated: 2026-08-28
 tags: [devops, genai, code, development]
 in_book: false
 ---

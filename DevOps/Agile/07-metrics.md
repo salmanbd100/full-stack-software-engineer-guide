@@ -5,7 +5,7 @@ chapter: 0
 slug: metrics
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-08-04
+updated: 2026-08-28
 tags: [devops, agile, metrics]
 in_book: true
 ---
@@ -100,7 +100,7 @@ Coverage: 91% ✅   Actual defect detection: unchanged
 
 ## SLIs, SLOs, and Error Budgets
 
-The operational counterpart to DORA. See [Monitoring Fundamentals](../Monitoring/01-fundamentals.md) for depth.
+The operational counterpart to DORA. See [Observability Fundamentals](../../ShipAndOperate/Observability/01-fundamentals.md) for depth.
 
 | Term | Definition |
 |------|-----------|

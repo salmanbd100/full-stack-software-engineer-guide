@@ -46,10 +46,27 @@ Sub-directories mirror where the content came from, so a file's origin stays obv
 
 ```text
 Archive/
-├── README.md      ← this file
-├── planning/      ← #8:  superseded plans and marketing assets
-└── devops/        ← #20: the ~120 files DevOps/ sheds, including genai/
+├── README.md            ← this file
+├── planning/            ← #8:  superseded plans and marketing assets
+└── devops/              ← #20: the 98 files DevOps/ shed
+    ├── README.md            the old 1,378-line DevOps curriculum index
+    ├── aws/                 11 of 15 — Cloud/ keeps fundamentals, serverless, storage, CDN
+    ├── cicd/                3 of 8 — the vendor-specific pipelines
+    ├── cost-optimization/   all 7 — FinOps is its own field
+    ├── devsecops/           all 11 — #24 folds the unique parts into pipeline security
+    ├── docker/              4 of 9 — Containers/ keeps 5
+    ├── iac/                 all 3
+    ├── kubernetes/          9 of 11 — Containers/ keeps architecture and pods
+    ├── linux/               all 9
+    ├── monitoring/          4 of 8 — Observability/ keeps 4
+    ├── networking/          all 9
+    ├── scripting/           all 7 — Python and bash break the TypeScript-only rule
+    ├── security/            all 9 — #24 decides what returns
+    └── terraform/           all 11
 ```
+
+Still in `DevOps/` and not archived yet: `Agile/` belongs to **#25**, which condenses it into two
+Part IX chapters, and `GenAI/` belongs to **#21**, which salvages two files into `AI/`.
 
 Directories appear as the items that fill them run. An empty one is not missing — it is not due yet.
 

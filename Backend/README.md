@@ -4,7 +4,7 @@ part: 5
 chapter: 0
 slug: backend-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 3
+reading_time: 2
 updated: 2026-08-28
 tags: [backend, nodejs, api, sql, nosql, security]
 in_book: true

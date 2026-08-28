@@ -96,7 +96,7 @@ part that does not exist in the repository yet.
 | **V — Backend for Frontend Engineers** | Node internals · API design · SQL and NoSQL · Auth | 6,500 | [`Backend`](./Backend/README.md) |
 | **VI — System Design** | Fundamentals · Building blocks · Frontend SD · Case studies | 6,500 | [`SystemDesign`](./SystemDesign/README.md) |
 | **VII — AI Engineering** 🆕 | LLM foundations · Integration · RAG · Agents · Evals · AI UX | 7,500 | **Nothing yet.** Planned as `AI/` |
-| **VIII — Ship and Operate** | Git · Docker · CI/CD · Observability · Deployment | 3,500 | [`DevOps`](./DevOps/README.md), becoming `ShipAndOperate/` |
+| **VIII — Ship and Operate** | Git · Containers · CI/CD · Observability · Cloud · Deployment | 3,500 | [`ShipAndOperate`](./ShipAndOperate/) — `Deployment/` still to be written |
 | **IX — The Human Layer** | Behavioural · Communication · Ways of working · The AI-era loop | 2,500 | [`Behavioral`](./Behavioral/README.md), [`Communication`](./Communication/README.md) |
 | *Appendix — DSA* | 16 LeetCode patterns | *5,600* | [`DSA`](./DSA/README.md) — ships as a companion volume |
 
@@ -154,7 +154,8 @@ the two before it, and why cross-references are anchors rather than "as we saw e
 ├── Frontend/            Parts I, II and IV
 ├── Backend/             Part V
 ├── SystemDesign/        Part VI
-├── DevOps/              Part VIII — ~80% of it archives at #20
+├── ShipAndOperate/      Part VIII — what survived the #20 cut
+├── DevOps/              only Agile/ (→ #25) and GenAI/ (→ #21) are left
 ├── OOP/                 merges into Backend/DesignPatterns at #26
 ├── Behavioral/          Part IX
 ├── Communication/       Part IX

@@ -5,7 +5,7 @@ chapter: 0
 slug: rest-best-practices
 level: intermediate # beginner | intermediate | advanced
 reading_time: 13
-updated: 2026-08-27
+updated: 2026-08-28
 tags: [api, rest, http, backend, idempotency]
 in_book: true
 ---

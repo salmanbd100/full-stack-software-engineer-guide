@@ -148,16 +148,7 @@ const PART_OVERRIDES: Readonly<Record<string, number>> = {
 
 /** Whole directories that leave the book. */
 const OUT_OF_BOOK_DIRS: readonly string[] = [
-  // Spec § 6 — platform-engineering scope
-  "DevOps/Terraform",
-  "DevOps/Linux",
-  "DevOps/Scripting",
-  "DevOps/Networking",
-  "DevOps/CostOptimization",
-  "DevOps/IaC",
   // #24 — security consolidates into Frontend/ and Backend/
-  "DevOps/DevSecOps",
-  "DevOps/Security",
   "SystemDesign/Security",
   // #21 — replaced by the real AI/ part
   "DevOps/GenAI",
@@ -165,6 +156,11 @@ const OUT_OF_BOOK_DIRS: readonly string[] = [
   "SystemDesign/Scalability",
   "SystemDesign/Infrastructure",
 ];
+
+// #20 physically moved everything it archived under Archive/devops/, which findMarkdown()
+// already skips — so Terraform, Linux, Scripting, Networking, CostOptimization, IaC,
+// DevSecOps and DevOps/Security no longer need an entry here. Only DevOps/GenAI is left,
+// because #21 has not run yet.
 
 /** Individual files that leave the book, keyed by repo-relative path. */
 const OUT_OF_BOOK_FILES: readonly string[] = [
@@ -176,48 +172,9 @@ const OUT_OF_BOOK_FILES: readonly string[] = [
   "README.md",
   "Frontend/README.md",
 
-  // #20 — incident response is documented three times (here, DevOps/Security/08,
-  // DevOps/DevSecOps/10); Observability keeps 4 chapters
-  "DevOps/Monitoring/08-incident-response.md",
-
-  // #20 — Docker keeps 5 of 9
-  "DevOps/Docker/04-docker-networking-deep-dive.md",
-  "DevOps/Docker/05-docker-volumes-storage.md",
-  "DevOps/Docker/07-docker-in-production.md",
-  "DevOps/Docker/08-docker-with-aws.md",
-
-  // #20 — CI/CD keeps 5 of 8; the vendor-specific pipelines go
-  "DevOps/CICD/02-aws-codepipeline.md",
-  "DevOps/CICD/04-gitlab-ci.md",
-  "DevOps/CICD/05-jenkins.md",
-
-  // #20 — Observability keeps 4; the AWS-specific tooling goes
-  "DevOps/Monitoring/02-cloudwatch.md",
-  "DevOps/Monitoring/05-xray.md",
-  "DevOps/Monitoring/06-elk-aws.md",
-
-  // #20 — AWS condenses to 4: fundamentals, serverless, storage, CDN
-  "DevOps/AWS/02-iam.md",
-  "DevOps/AWS/03-vpc.md",
-  "DevOps/AWS/04-ec2.md",
-  "DevOps/AWS/05-ecs.md",
-  "DevOps/AWS/08-storage.md",
-  "DevOps/AWS/09-rds.md",
-  "DevOps/AWS/10-dynamodb.md",
-  "DevOps/AWS/11-route53.md",
-  "DevOps/AWS/13-load-balancers.md",
-  "DevOps/AWS/14-cloudwatch.md",
-  "DevOps/AWS/15-security.md",
-
-  // #20 — Kubernetes condenses to 2: "my service runs in a pod somewhere"
-  "DevOps/Kubernetes/02-eks.md",
-  "DevOps/Kubernetes/04-services-networking.md",
-  "DevOps/Kubernetes/05-configmaps-secrets.md",
-  "DevOps/Kubernetes/06-storage.md",
-  "DevOps/Kubernetes/07-rbac-security.md",
-  "DevOps/Kubernetes/08-helm.md",
-  "DevOps/Kubernetes/09-monitoring.md",
-  "DevOps/Kubernetes/10-autoscaling.md",
+  // #20 — the individual files Docker, CI/CD, Observability, Cloud and Kubernetes shed are
+  // now under Archive/devops/, which findMarkdown() skips. The Agile entries below stay, because
+  // #25 has not run yet and DevOps/Agile/ is still in the tree.
 
   // #25 — Agile condenses to 2 chapters in Part IX
   "DevOps/Agile/02-scrum.md",
