@@ -4,7 +4,7 @@ Interview communication guide for senior engineers targeting FAANG and MNC roles
 
 ## Topics
 
-### Core Interview Skills
+Listed in file order. For a route through them, see **Study Priority** below.
 
 1. **[Technical Communication](./01-technical-communication.md)**
    Explain code, architecture decisions, and trade-offs clearly.
@@ -14,38 +14,36 @@ Interview communication guide for senior engineers targeting FAANG and MNC roles
    STAR method with full story examples for senior roles.
    Covers: STAR framework, 3 complete story examples, common question bank, delivery rules.
 
-3. **[Problem-Solving Communication](./05-problem-solving-communication.md)**
-   Think out loud during coding interviews.
-   Covers: before/during/after framework, handling hints, complexity analysis, key phrases.
+3. **[English Fluency](./03-english-fluency.md)**
+   Grammar, vocabulary, and fluency habits for non-native speakers.
+   Covers: present perfect vs past simple, conditionals for trade-offs, technical vocabulary, filler words.
 
 4. **[System Design Communication](./04-system-design-communication.md)**
    Articulate architecture and trade-offs in system design rounds.
    Covers: RADIO framework, requirements phase, walking through data flows, optimization discussion.
 
-### Supporting Skills
+5. **[Problem-Solving Communication](./05-problem-solving-communication.md)**
+   Think out loud during coding interviews.
+   Covers: before/during/after framework, handling hints, complexity analysis, key phrases.
 
-5. **[Active Listening](./09-active-listening.md)**
-   Understand what's actually being asked before you answer.
-   Covers: paraphrasing, clarifying questions, acting on hints, reading body language.
-
-6. **[English Fluency](./03-english-fluency.md)**
-   Grammar, vocabulary, and fluency habits for non-native speakers.
-   Covers: present perfect vs past simple, conditionals for trade-offs, technical vocabulary, filler words.
-
-7. **[Cross-Cultural Communication](./06-cross-cultural-communication.md)**
+6. **[Cross-Cultural Communication](./06-cross-cultural-communication.md)**
    Adapt your style for American, European, and Asian company cultures.
    Covers: regional styles, email etiquette, video call norms, language barriers.
 
-8. **[Written Communication](./08-written-communication.md)**
+7. **[Written Communication](./07-written-communication.md)**
    PRs, code reviews, emails, and design documents.
    Covers: PR template, review comment structure, professional emails, RFC template.
+
+8. **[Active Listening](./08-active-listening.md)**
+   Understand what's actually being asked before you answer.
+   Covers: paraphrasing, clarifying questions, acting on hints, reading body language.
 
 ---
 
 ## Study Priority
 
-**For coding rounds:** 05 → 01 → 09
-**For behavioral rounds:** 02 → 01 → 09
+**For coding rounds:** 05 → 01 → 08
+**For behavioral rounds:** 02 → 01 → 08
 **For system design rounds:** 04 → 01 → 05
 **For non-native English speakers:** 03 → then all others
 **For international companies:** 06 → then all others

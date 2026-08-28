@@ -1,8 +1,8 @@
-# CSS Grid
+# CSS Grid {#ch-css-grid}
 
-Two-dimensional layout system. You define rows **and** columns, then place items at specific intersections. Built for page-level structure.
+> Place items at exact intersections of rows and columns, and build page structure that survives content you did not plan for.
 
----
+**In this chapter:** tracks, lines and cells · the `fr` unit and `minmax()` · `auto-fit` vs `auto-fill` · item placement · `subgrid` · grid vs flexbox
 
 ## 💡 **Mental Model: Tracks, Lines, and Cells**
 

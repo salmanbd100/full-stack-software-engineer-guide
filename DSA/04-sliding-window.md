@@ -885,4 +885,6 @@ This handles tricky cases like "abba" automatically!
 5. **From O(n²) to O(n)**: Eliminates nested loops for many substring/subarray problems
 6. **Watch window bounds**: Carefully manage start and end pointers to avoid off-by-one errors
 
-[← Previous: Two Pointers](./02-two-pointers.md) | [Back to Index](./README.md) | [Next: Fast & Slow Pointers →](./04-fast-slow-pointers.md)
+---
+
+[← Previous: Two Pointers](./03-two-pointers.md) | [Back to Index](./README.md) | [Next: Fast & Slow Pointers →](./05-fast-slow-pointers.md)

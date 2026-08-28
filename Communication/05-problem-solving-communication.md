@@ -247,4 +247,4 @@ Is that more along the lines of what you were thinking?"
 
 ---
 
-**Related:** [Technical Communication](./01-technical-communication.md) | [Active Listening](./09-active-listening.md) | [System Design Communication](./04-system-design-communication.md)
+**Related:** [Technical Communication](./01-technical-communication.md) | [Active Listening](./08-active-listening.md) | [System Design Communication](./04-system-design-communication.md)

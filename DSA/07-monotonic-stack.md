@@ -644,4 +644,6 @@ HashMap: {1: 3, 3: 4, 4: -1, 2: -1}
    ```
 6. **Common use cases**: Next/previous greater/smaller, histogram problems, span problems
 
-[← Previous: In-place Reversal](./05-linkedlist-in-place-reversal.md) | [Back to Index](./README.md) | [Next: Top K Elements →](./07-top-k-elements.md)
+---
+
+[← Previous: In-place Reversal of LinkedList](./06-linkedlist-in-place-reversal.md) | [Back to Index](./README.md) | [Next: Top 'K' Elements →](./08-top-k-elements.md)

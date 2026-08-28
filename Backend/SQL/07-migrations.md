@@ -88,30 +88,31 @@ npx sequelize-cli db:migrate
 npx sequelize-cli db:migrate:undo
 ```
 
-```javascript
-module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('users', {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-      },
-      email: {
-        type: Sequelize.STRING,
-        unique: true,
-        allowNull: false
-      },
-      name: Sequelize.STRING,
-      createdAt: Sequelize.DATE,
-      updatedAt: Sequelize.DATE
-    });
-  },
+```typescript
+import { DataTypes, type QueryInterface } from 'sequelize';
 
-  down: async (queryInterface) => {
-    await queryInterface.dropTable('users');
-  }
-};
+export async function up(queryInterface: QueryInterface): Promise<void> {
+  await queryInterface.createTable('users', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
+    },
+    name: DataTypes.STRING,
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE,
+  });
+}
+
+// Every up() needs a down() that undoes exactly what it did — nothing more.
+export async function down(queryInterface: QueryInterface): Promise<void> {
+  await queryInterface.dropTable('users');
+}
 ```
 
 ## Seeds
@@ -144,19 +145,28 @@ npx sequelize-cli db:seed:all
 npx sequelize-cli db:seed --seed 20231201-demo-users.js
 ```
 
-```javascript
-module.exports = {
-  up: async (queryInterface) => {
-    await queryInterface.bulkInsert('users', [
-      { name: 'John', email: 'john@example.com', createdAt: new Date(), updatedAt: new Date() },
-      { name: 'Jane', email: 'jane@example.com', createdAt: new Date(), updatedAt: new Date() }
-    ]);
-  },
+```typescript
+import type { QueryInterface } from 'sequelize';
 
-  down: async (queryInterface) => {
-    await queryInterface.bulkDelete('users', null, {});
-  }
-};
+interface SeedUser {
+  name: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function up(queryInterface: QueryInterface): Promise<void> {
+  const now: Date = new Date();
+  const rows: SeedUser[] = [
+    { name: 'John', email: 'john@example.com', createdAt: now, updatedAt: now },
+    { name: 'Jane', email: 'jane@example.com', createdAt: now, updatedAt: now },
+  ];
+  await queryInterface.bulkInsert('users', rows);
+}
+
+export async function down(queryInterface: QueryInterface): Promise<void> {
+  await queryInterface.bulkDelete('users', {}, {});
+}
 ```
 
 ## Interview Questions

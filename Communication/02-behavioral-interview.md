@@ -209,4 +209,4 @@ Use signposting:
 
 ---
 
-**Related:** [Technical Communication](./01-technical-communication.md) | [Active Listening](./09-active-listening.md)
+**Related:** [Technical Communication](./01-technical-communication.md) | [Active Listening](./08-active-listening.md)

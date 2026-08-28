@@ -1256,4 +1256,4 @@ Happy coding!
 
 ---
 
-[← Previous: Sliding Window](./03-sliding-window.md) | [Back to Index](./README.md) | [Next: In-place Reversal →](./05-linkedlist-in-place-reversal.md)
+[← Previous: Sliding Window](./04-sliding-window.md) | [Back to Index](./README.md) | [Next: In-place Reversal of LinkedList →](./06-linkedlist-in-place-reversal.md)

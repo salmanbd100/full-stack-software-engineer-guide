@@ -1,6 +1,8 @@
-# Error Handling
+# Error Handling {#ch-error-handling}
 
-Proper error handling separates production-ready code from prototypes. It's the difference between applications that crash mysteriously and those that gracefully recover, log issues, and provide helpful feedback. Understanding error handling demonstrates mature software engineering practices.
+> Fail in a way that is recoverable, loggable and honest — instead of swallowing the problem.
+
+**In this chapter:** `throw` and custom error classes · `try`/`catch`/`finally` · errors across `async` boundaries · unhandled rejections · what to log and what to show
 
 ## Why Error Handling Matters
 

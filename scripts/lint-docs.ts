@@ -123,6 +123,33 @@ function checkFrontMatter(doc: Doc, slugsSeen: Map<string, string>): void {
  * Walk a file line by line, tracking fence state, and apply every rule that needs to
  * know whether it is inside a code block.
  */
+/**
+ * The fence allow-list escape hatch — improvement #10.
+ *
+ * `BOOK-SPEC.md` non-negotiable #1 is TypeScript-only, and it is right for almost every
+ * chapter. It is wrong for the handful of samples whose *subject* is untyped JavaScript:
+ * a chapter on `this` binding or on type coercion has to show code TypeScript would
+ * reject, or it is not teaching the thing it claims to teach.
+ *
+ * Rather than widen the allow-list globally, a single fence opts out by carrying a marker
+ * on the line directly above it:
+ *
+ * ```markdown
+ * <!-- lint-allow-fence: javascript — `this` binding is a runtime rule; annotating it hides the point -->
+ * ```javascript
+ * ```
+ *
+ * The reason after the em dash is required and is read by humans, not by this script. The
+ * language in the marker must match the fence, so a marker cannot silently cover a fence
+ * that later changes language.
+ */
+const FENCE_EXEMPTION = /^\s*<!--\s*lint-allow-fence:\s*([a-z0-9+-]+)\s+—\s+\S.*-->\s*$/;
+
+function fenceExemption(previousLine: string): string | null {
+  const m = FENCE_EXEMPTION.exec(previousLine);
+  return m === null ? null : m[1].toLowerCase();
+}
+
 function checkBody(doc: Doc): void {
   const lines: string[] = doc.body.split("\n");
   const offset: number = bodyOffset(doc);
@@ -141,7 +168,19 @@ function checkBody(doc: Doc): void {
         inFence = true;
         fenceChar = fence[1][0];
         const lang: string = fence[2].toLowerCase().replace(/^\{\.?/, "").replace(/\}$/, "");
-        if (lang === "") {
+        // A fence may opt out of the TypeScript rule if the line above it carries an
+        // exemption marker with a stated reason. See FENCE_EXEMPTION below.
+        const exempt: string | null = fenceExemption(lines[i - 1] ?? "");
+        if (exempt !== null && exempt !== lang) {
+          report(
+            "fence-language",
+            doc.rel,
+            lineNo,
+            `exemption marker says \`${exempt}\` but the fence is \`${lang || "unlabelled"}\``,
+          );
+        } else if (exempt === lang) {
+          // Deliberate, documented exception. Nothing to report.
+        } else if (lang === "") {
           report("fence-language", doc.rel, lineNo, "unlabelled code fence");
         } else if (!ALLOWED_FENCES.includes(lang)) {
           report("fence-language", doc.rel, lineNo, `\`${lang}\` — allowed: ${ALLOWED_FENCES.join(", ")}`);

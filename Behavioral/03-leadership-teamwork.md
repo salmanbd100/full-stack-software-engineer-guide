@@ -268,10 +268,10 @@ When discussing leadership/teamwork, quantify your impact:
 ## 🔗 Related Topics
 
 - [STAR Framework](./01-star-framework.md)
-- [Communication Skills](./06-communication.md)
-- [Conflict Resolution](./11-conflict-resolution.md)
-- [Questions to Ask](./14-questions-to-ask.md)
+- [Communication Skills](./05-communication.md)
+- [Conflict Resolution](./07-conflict-resolution.md)
+- [Questions to Ask](./08-questions-to-ask.md)
 
 ---
 
-[← Back: Preparation Grid](./03-preparation-grid.md) | [Next: Problem Solving →](./05-problem-solving.md)
+[← Back: Preparation Grid](./02-preparation-grid.md) | [Next: Problem Solving →](./04-problem-solving.md)

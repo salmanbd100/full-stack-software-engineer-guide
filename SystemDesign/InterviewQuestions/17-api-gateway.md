@@ -214,7 +214,7 @@ interface GatewayHealthResponse {
 
 > The gateway is not a microservice. It is infrastructure. Keep it thin — authentication, routing, rate limiting. Any logic beyond that belongs in a dedicated service.
 
-See [../BuildingBlocks/load-balancers.md](../BuildingBlocks/load-balancers.md) for L4 vs L7 trade-offs and [../Scalability/rate-limiting.md](../Scalability/rate-limiting.md) for sliding-window algorithm details.
+See [../BuildingBlocks/01-load-balancing.md](../BuildingBlocks/01-load-balancing.md) for L4 vs L7 trade-offs and [12-rate-limiter.md](./12-rate-limiter.md) for sliding-window algorithm details.
 
 ## Common Follow-up Questions
 

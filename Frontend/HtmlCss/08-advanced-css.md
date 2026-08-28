@@ -1,8 +1,8 @@
-# Advanced CSS
+# Advanced CSS {#ch-advanced-css}
 
-Modern CSS features that ship in every evergreen browser. These are what separates senior frontend engineers from "I know flexbox" — and they show up constantly in Staff-level interviews.
+> Use the CSS that shipped in every evergreen browser since 2023, and explain in an interview what each one replaced.
 
----
+**In this chapter:** custom properties · modern colour functions · `@layer` · `:has()` · container queries · logical properties · native nesting · view transitions
 
 ## 💡 **Custom Properties (CSS Variables)**
 
@@ -139,7 +139,7 @@ h2:has(+ p) { margin-bottom: 0.5rem; }
 
 ## 💡 **Container Queries**
 
-Style based on a container's size, not the viewport. Full coverage in [05-responsive.md](./05-responsive.md).
+Style based on a container's size, not the viewport. Full coverage in [05-responsive-design.md](./05-responsive-design.md).
 
 ```css
 .sidebar { container-type: inline-size; container-name: sidebar; }

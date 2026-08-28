@@ -799,4 +799,6 @@ The heap approach gives us max heap size = 3
 
 6. **Heap for scheduling**: Min-heap of end times tracks active intervals
 
-[← Previous: Top K Elements](./07-top-k-elements.md) | [Back to Index](./README.md) | [Next: Modified Binary Search →](./09-modified-binary-search.md)
+---
+
+[← Previous: Top 'K' Elements](./08-top-k-elements.md) | [Back to Index](./README.md) | [Next: Modified Binary Search →](./10-modified-binary-search.md)

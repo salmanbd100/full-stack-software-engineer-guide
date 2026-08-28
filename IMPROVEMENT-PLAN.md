@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-27 · **Progress:** 6 / 78
+**Last updated:** 2026-08-28 · **Progress:** 16 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -514,7 +514,7 @@ chapter, so it gets no front matter and #3 will not stamp it.
 
 # Phase 1 — Hygiene & Consistency
 
-### - [ ] 8. Remove planning artefacts from the content tree `S`
+### - [x] 8. Remove planning artefacts from the content tree `S` — ✅ **done 2026-08-28**
 
 Move to `Archive/planning/`:
 
@@ -525,9 +525,24 @@ Move to `Archive/planning/`:
 
 **Done when:** no planning or marketing file sits inside a content directory.
 
+**Delivered:**
+
+- All four `git mv`'d into `Archive/planning/`, renamed to source-prefixed lowercase names so their
+  origin stays readable: `frontend-content-plan.md`, `frontend-progress.md`,
+  `systemdesign-refactor-plan.md`, `webperformance-linkedin-carousel.md`
+- `scripts/add-frontmatter.ts` — the four entries in `OUT_OF_BOOK_FILES` removed. They are under
+  `Archive/` now, which `EXCLUDED_DIRS` already skips, so listing them again would be dead config
+- `.claude/skills/linkedin-carousel/SKILL.md` — retargeted at `Archive/planning/`. It previously told
+  Claude to write carousels "in the same directory as the source material", which would have
+  recreated this exact violation on the next run. Small fix, outside the item's literal scope, but it
+  guards the Done-when
+- `pnpm lint:docs`: **2,227 → 2,218**. `front-matter` 416→412, `fence-language` 1704→1701,
+  `too-long` 61→59. `.lint-baseline.json` committed at the lower numbers
+- Nothing deleted; `git mv` throughout, so history follows each file
+
 ---
 
-### - [ ] 9. Fix all 32 broken internal links `M`
+### - [x] 9. Fix all 32 broken internal links `M` — ✅ **done 2026-08-28**
 
 Confirmed broken (run the checker again before starting — the list moves):
 
@@ -541,7 +556,30 @@ Confirmed broken (run the checker again before starting — the list moves):
 
 The `Frontend/README.md` ones resolve themselves in Phase 3. Fix the rest now.
 
-**Done when:** the link checker reports zero broken relative links.
+**Done when:** the link checker reports zero broken relative links, once #13 and #18 have run.
+
+> **Amended 2026-08-28.** The original "zero, now" was not reachable inside this item. Four of the 32
+> are owned by later Phase 1 items: two point at `SystemDesign/Microservices/README.md`, which **#13**
+> creates, and two at `Frontend/README.md`'s React/NextJs entries, which **#18** removes. Every link
+> this item could fix is fixed; the count is 32 → 4.
+
+**Delivered:**
+
+- `Frontend/Html&CSS/07`, `08` — `03-semantic-html.md` → `01-semantic-html.md`,
+  `05-responsive.md` → `05-responsive-design.md`
+- `SystemDesign/InterviewQuestions/03` — the `RankingAndRecommendations.md` cross-reference **removed**,
+  not repointed. No ranking chapter exists anywhere in the repo, and `BOOK-SPEC.md` does not plan one
+- `SystemDesign/InterviewQuestions/16`–`20` — 11 links repointed at the numbered filenames that
+  actually exist. Three targets had no equivalent and were rehomed by meaning rather than by name:
+  `Scalability/rate-limiting.md` → `InterviewQuestions/12-rate-limiter.md` (used twice),
+  `Scalability/consistent-hashing.md` → `Scalability/08-partitioning.md`,
+  `../OOP/…` → `../../OOP/01-oop-fundamentals.md` (OOP sits at the repo root, so the old path was one
+  level short as well as wrong)
+- `DSA/04`–`10` — the seven off-by-one prev/next footers corrected. Link **text** was already right;
+  only the filenames lagged the renumbering. `DSA/01` still has no footer at all — that is **#16**
+- Links were repaired as relative paths, not converted to `#ch-<slug>` anchors. Anchors need front
+  matter slugs, and **#3** has not run yet; **#71** does the conversion sweep
+- `pnpm lint:docs --rule=broken-link`: **32 → 4**. Baseline committed at 4
 
 ---
 
@@ -560,13 +598,71 @@ allow-list).
 
 **Done when:** the lint script's fence check passes with a documented allow-list.
 
+> ⚠️ **Partially delivered 2026-08-28 — box deliberately left unticked.** This is an `L` item and the
+> plan's own model table puts it on **Sonnet 5 at `low` effort**. The judgement half is finished; what
+> remains is a mechanical sweep across 7 files. Do not redo the decisions below — apply them.
+
+**Delivered so far:**
+
+- **The allow-list mechanism now exists**, in `scripts/lint-docs.ts` (`FENCE_EXEMPTION` /
+  `fenceExemption`). A single fence opts out of the TypeScript rule by carrying a marker on the line
+  directly above it:
+
+  ```markdown
+  <!-- lint-allow-fence: javascript — why this fence has to stay untyped -->
+  ```
+
+  The language in the marker must match the fence, and the reason after the em dash is required.
+  A marker that names a different language than the fence below it is reported as its own violation,
+  so a marker cannot silently cover a fence that later changes. Markers are HTML comments: invisible
+  in the rendered book, visible in source.
+- **Converted in full:** `Backend/SQL/07`, `08` (7 fences), `DevOps/Networking/06-cloudfront.md` (1),
+  all of `Frontend/PWA/` (107 across 7 files), and `Frontend/JavaScript/01`, `02`, `03` (62).
+  Not relabelled — retyped: real interfaces, `ServiceWorkerGlobalScope` declarations, `FetchEvent` /
+  `ExtendableEvent` parameters, generics on `memoize` and `partial`, `satisfies` on message contracts.
+- **Six fences exempted**, each with its own reason — all in `Frontend/JavaScript/01`–`03`, all cases
+  where TypeScript refuses to compile the very thing the fence teaches: implicit coercion,
+  `[] == ![]`, `arguments` inside an arrow, `this` inside an object-literal arrow, an undeclared
+  assignment creating an implicit global.
+- One fence in `02-functions-scope.md` was pseudo-syntax, not code (`() => expression`). It became a
+  ` ```text ` fence rather than being typed.
+- `pnpm lint:docs`: `fence-language` **1701 → 1524**. Baseline committed at 1524.
+
+**The decision to apply to the remaining 7 files** — this is the item's real content, now settled:
+
+| File | Fences | Call |
+| ---- | ------ | ---- |
+| `04-this-keyword.md` | 35 | **Mostly exempt.** The chapter's subject is dynamic `this`; most fences demonstrate bindings TypeScript rejects under `noImplicitThis`. Convert only those not turning on `this`: the `bind(null, …)` partial application, the `class` field arrow, and the pseudo-syntax line (→ ` ```text `). Where a fence *can* carry an explicit `this:` parameter, prefer that over exempting — it teaches how TypeScript models `this` |
+| `05-prototypes-inheritance.md` | 26 | **Mixed.** Prototype-chain manipulation (`Object.create`, `__proto__`, `Constructor.prototype.method = …`) stays JavaScript; anything expressible as a `class` converts |
+| `06-promises-async.md` | 27 | **Convert all.** `Promise<T>` is where types earn their keep |
+| `07-event-loop.md` | 10 | **Convert all.** Scheduling order does not depend on typing |
+| `08-es6-features.md` | 44 | **Convert all** |
+| `09-array-object-methods.md` | 55 | **Convert all.** Generic signatures on `map` / `filter` / `reduce` are the point |
+| `10-error-handling.md` | 42 | **Convert all**, using `catch (error: unknown)` and narrowing — the correct 2027 pattern |
+| `README.md` | 1 | Convert |
+
+**Still out of scope for this item:** the 1,017 unlabelled fences. They are a separate backlog the
+plan already noted mostly lives in `DevOps/`, which **#20** archives. Re-count after #20 rather than
+burning a session on files that are about to leave the book.
+
 ---
 
-### - [ ] 11. Rename `Frontend/Html&CSS/` → `Frontend/HtmlCss/` `S`
+### - [x] 11. Rename `Frontend/Html&CSS/` → `Frontend/HtmlCss/` `S` — ✅ **done 2026-08-28**
 
 The `&` breaks URLs, shell globs, and some static-site generators. Update all inbound links.
 
 **Done when:** directory renamed, no link references the old path.
+
+**Delivered:**
+
+- `git mv "Frontend/Html&CSS" Frontend/HtmlCss` — all 9 files moved with history intact
+- Three inbound references updated: `Frontend/README.md` (the index link),
+  `scripts/lib/book.ts` (`PART_DIRS`) and `scripts/add-frontmatter.ts` (its own copy of the
+  part mapping). Missing either script would have put these 8 chapters in the wrong book part
+- `grep` across every content directory and `scripts/` returns no remaining `Html&CSS`. The two
+  surviving mentions are in `Archive/planning/frontend-progress.md` and this plan file, where they
+  are historical record rather than live links
+- `pnpm lint:docs`: no rule regressed
 
 ---
 
@@ -599,9 +695,49 @@ Split this across sessions by domain: Frontend → Backend → SystemDesign → 
 
 **Done when:** every in-book file opens with the same three blocks.
 
+> ⚠️ **Partially delivered 2026-08-28 — box deliberately left unticked.** `L`, and the plan's model
+> table puts it on **Sonnet 5 at `low`–`medium`**. The canonical opening is now fixed and demonstrated
+> on two complete directories; the rest is the same edit repeated.
+
+**The canonical opening, now settled.** Three blocks, nothing between them, no `---` rule after:
+
+```markdown
+# Chapter Title {#ch-chapter-slug}
+
+> One sentence saying what the reader can *do* after this chapter.
+
+**In this chapter:** item · item · item · item
+```
+
+Rules learned while applying it:
+
+- The H1 slug is the chapter's identity — **#3** must derive the same `slug`, and **#71** points every
+  cross-reference at it. Pick it here, once, and do not change it later
+- The old opening runs from the H1 down to the **first `## ` heading**. That whole block gets replaced,
+  which removes the hand-written tables of contents, the `[← Back to …]` back-links and the stray `---`
+  rules in one pass
+- The promise is one sentence and says what the reader can *do* — not what the topic *is*.
+  "Predict the exact order a piece of asynchronous code will log" beats "an overview of the event loop"
+- **In this chapter:** is 4–6 items joined by ` · `, no full stop
+
+**Delivered:**
+
+- `Frontend/HtmlCss/` — all 8 chapters. Four already had a blockquote promise and four had a bare
+  paragraph; all eight now match, and all eight gained `{#ch-…}` anchors and an **In this chapter:** line
+- `Frontend/JavaScript/` — all 10 chapters. These were the worst offenders: `# Title` →
+  `## Understanding …` with no promise at all. Two titles were also corrected in passing —
+  "ES6+ Features" → "ES2015 and Later Features" and "Data Types & Variables" → "Data Types and
+  Variables" (non-negotiable #8 forbids a version-less "modern"; an ampersand in a title fights the
+  same URL problem #11 just fixed)
+
+**Remaining, in the plan's own order:** the rest of `Frontend/` (TypeScript, BrowserAPIs, PWA, i18n,
+CSSArchitecture, Security, Testing, WebPerformance) → `Backend/` → `SystemDesign/` → `DSA/`,
+`Behavioral/`, `Communication/`, `OOP/`. **Skip `DevOps/` entirely** — #20 archives ~80% of it, so
+openings written now would mostly be thrown away. Do `DevOps/` → `ShipAndOperate/` after #20.
+
 ---
 
-### - [ ] 13. Add the 10 missing directory READMEs `M`
+### - [x] 13. Add the 10 missing directory READMEs `M` — ✅ **done 2026-08-28**
 
 Missing in: `Backend/Testing`, `Backend/SQL`, `SystemDesign/Microservices`, `SystemDesign/Fundamentals`,
 `SystemDesign/InterviewQuestions`, `SystemDesign/Frontend`, `SystemDesign/Security`,
@@ -612,9 +748,37 @@ and what an interviewer is actually probing for.
 
 **Done when:** every content directory has a README and it reads as a part/chapter opener.
 
+**Delivered:**
+
+- `pnpm lint:docs --rule=missing-readme` is **0**, down from 10. That rule now hard-fails on its own.
+- **Seven full part-openers**, to the standard in `write-topic-docs` (title, why the part exists,
+  chapter table with "what it answers", **What Interviewers Probe For** lifted from the matching
+  senior signal in `BOOK-SPEC.md`, and a reading order with an interview-sprint path):
+  `Backend/SQL`, `Backend/Testing`, `SystemDesign/Fundamentals`, `SystemDesign/BuildingBlocks`,
+  `SystemDesign/Frontend`, `SystemDesign/Microservices`, `SystemDesign/InterviewQuestions`
+- **Three deliberately short transitional indexes** for directories that later items dissolve:
+  `SystemDesign/Security` (#24 merges it into `Frontend/Security/` and `Backend/Security/`),
+  `SystemDesign/Scalability` and `SystemDesign/Infrastructure` (#23 folds and archives them).
+  Each says plainly that it is transitional and gives a per-chapter destination, which is more useful
+  to the next session than a part-opener for a part that is about to stop existing. All three carry
+  `in_book: false` so the build never collects them.
+- All ten got front matter in the same pass. Without it `front-matter` would have gone **412 → 422**
+  and failed CI; part-openers use `chapter: 0` per the standard.
+- The `InterviewQuestions` opener marks which ten of the twenty case studies **#28** keeps, so that
+  item arrives with the decision already visible.
+- `.lint-baseline.json`: `missing-readme` 10 → **0**, `broken-link` 4 → **2**.
+
+> 🔴 **Gap this item exposed — `SystemDesign/Microservices/` is unaccounted for.** #23's "Done when"
+> lists the five directories `SystemDesign/` should end with — `Fundamentals/`, `BuildingBlocks/`,
+> `Database/`, `Frontend/`, `CaseStudies/` — and Microservices is not one of them. But no item moves,
+> merges or archives it, and its 8 chapters (1,756 lines) are not in any budget. #23 needs a decision
+> added: fold the useful chapters into `BuildingBlocks/` and `Backend/`, or keep the directory and
+> correct #23's list. A full part-opener was written for it in the meantime, on the assumption the
+> content survives somewhere.
+
 ---
 
-### - [ ] 14. Fix the Behavioral numbering gaps `S`
+### - [x] 14. Fix the Behavioral numbering gaps `S` — ✅ **done 2026-08-28**
 
 Present: `01, 03, 04, 05, 06, 07, 11, 14`. Missing: `02, 08, 09, 10, 12, 13`.
 Either write the missing topics (item 61) or renumber to a contiguous `01`–`08`. **Recommendation:**
@@ -622,26 +786,62 @@ renumber now, add new topics at the end later.
 
 **Done when:** `Behavioral/` is contiguously numbered and the README index matches.
 
+**Delivered:**
+
+- Renumbered to a contiguous `01`–`08` by `git mv`, taking the plan's recommendation (renumber now,
+  write the missing topics at #61 rather than leave six holes in the meantime):
+  `03`→`02`, `04`→`03`, `05`→`04`, `06`→`05`, `07`→`06`, `11`→`07`, `14`→`08`
+- Every inbound link rewritten — both the `./NN-name.md` form and the bare `NN-name.md` form the
+  README uses. The bare form is easy to miss: a first pass that only handled `./` left two broken
+  links that `lint:docs` caught
+- Two link labels in `Behavioral/README.md` were bare numbers (`see [14](…)`, `read [01](…)`) and
+  would have gone stale silently. Replaced with the chapter titles, which cannot drift
+- `pnpm lint:docs --rule=broken-link` clean for `Behavioral/`
+
 ---
 
-### - [ ] 15. Fix the Communication numbering gap `S`
+### - [x] 15. Fix the Communication numbering gap `S` — ✅ **done 2026-08-28**
 
 Present: `01–06, 08, 09`. Missing: `07`. Renumber contiguous.
 
 **Done when:** `Communication/` is `01`–`08` with a matching README.
 
+**Delivered:**
+
+- `08-written-communication`→`07`, `09-active-listening`→`08`. Now contiguous `01`–`08`
+- **The README did not actually match, and the gap was not the only reason.** Its numbered list was in
+  *reading-priority* order (01, 02, 05, 04, 09, 03, 06, 07), so its ordinals disagreed with the
+  filenames regardless of the missing `07`. Rewritten in file order, with a one-line pointer to the
+  existing **Study Priority** section for the route through them — the two orderings are both useful,
+  they just cannot share one list
+- The Study Priority routes still referenced `09`; updated to `08`
+- `Communication/03-english-fluency.md` keeps its number, so `scripts/add-frontmatter.ts:238` needed
+  no change. Worth checking after any renumber — that path is hardcoded there
+
 ---
 
-### - [ ] 16. Fix the DSA prev/next chain `S`
+### - [x] 16. Fix the DSA prev/next chain `S` — ✅ **done 2026-08-28**
 
 Files `04`–`10` link to filenames from an older numbering scheme (`./02-two-pointers.md` when the file is
 `03-two-pointers.md`). Regenerate the prev/next footer for all 16 files from the README order.
 
 **Done when:** every DSA file's prev/next links resolve.
 
+**Delivered:**
+
+- All 16 footers **regenerated from `DSA/README.md`'s order**, not patched. The README's numbered list
+  is parsed for `(title, filename)` pairs and the footer is derived — so the chain cannot drift from
+  the index again, and the same script re-runs cheaply after any renumber
+- `01-time-space-complexity.md` had **no footer at all**; it now opens the chain. That one was outside
+  #9's scope, which only saw the seven files whose links were broken rather than missing
+- Titles in the footers now come from the README too, so "In-place Reversal of LinkedList" and
+  "Top 'K' Elements" match the index exactly instead of the abbreviated forms that were there
+- `pnpm lint:docs --rule=broken-link` reports nothing in `DSA/`. The only two left in the repo are
+  `Frontend/README.md`'s React and NextJs entries, which **#18** removes
+
 ---
 
-### - [ ] 17. Rewrite the root `README.md` `M`
+### - [x] 17. Rewrite the root `README.md` `M` — ✅ **done 2026-08-28**
 
 Current problems: advertises React and Next.js coverage that does not exist; lists a 2024-era resource
 section (Clément Mihailescu, "JavaScript: The Good Parts"); mixes a personal checklist with a repository index;
@@ -652,9 +852,25 @@ status table. Move the personal checklist to `Behavioral/` or `Archive/`.
 
 **Done when:** the root README is a book front door, not a personal to-do list.
 
+**Delivered:**
+
+- Restructured to the item's shape: what the book is → **the nine parts, as a table** with each part's
+  budget and the directory it currently lives in → the two holes in the hull → who it is for → how to
+  read it (the three reading paths from `BOOK-SPEC.md` § 8) → repository layout → how to contribute
+- The **Career Readiness Checklist** and the 2024 **Resources** list moved to
+  `Archive/planning/personal-readiness-checklist.md`, not deleted. That file also carries the note
+  that #73 writes the book's Further Reading from scratch rather than salvaging it
+- `salmanrahman.com` is gone from the root README — the last remaining personal URL there
+- Status table corrected: progress 6 → 13, file count 417 → 423. The "builds to a 3,694-page PDF"
+  claim was dropped rather than updated; nothing in this session re-ran `book:pdf`, so it would have
+  been an unverified number
+- **Two of the item's stated problems were already fixed** and are recorded here so the next session
+  does not go looking: the Steve Jobs quote and the React/Next.js *advertising* in the root README had
+  both gone in an earlier pass. What remained was the checklist, the resource list and the personal URL
+
 ---
 
-### - [ ] 18. Rewrite `Frontend/README.md` `M`
+### - [x] 18. Rewrite `Frontend/README.md` `M` — ✅ **done 2026-08-28**
 
 Same problems, plus dead links and `**Last Updated**: November 2024`. Rebuild it around the new
 Part II + Part III + Part IV structure.
@@ -662,15 +878,50 @@ Part II + Part III + Part IV structure.
 **Done when:** `Frontend/README.md` indexes only directories that exist, with no date stamp in the body
 (front matter carries `updated`).
 
+**Delivered:**
+
+- Rebuilt around the part structure. The correction worth knowing: the item says "Part II + Part III +
+  Part IV", but `Frontend/` actually carries **Parts I, II and IV** — `JavaScript/` and `TypeScript/`
+  map to Part I in `scripts/lib/book.ts`, not Part II. Part III is the empty `ModernStack/`. The new
+  README opens with a table making that three-way split explicit, because "Frontend = one part" is the
+  misreading the old file encouraged
+- Dead `./React/README.md` and `./NextJs/README.md` links removed, with a line saying plainly that
+  those directories never existed. **`broken-link` is now 0** across the whole repository — which also
+  completes **#9**'s original "Done when", as that item predicted
+- Gone: `**Last Updated**: November 2024`, `salmanrahman.com`, the three study tracks, the personal
+  interview checklist, the FAANG-vs-startup section, the 2024 book list (including
+  *JavaScript: The Good Parts*, which #17 flags), and the closing "Good luck! 🎉"
+- Each part now carries its **senior signal** from `BOOK-SPEC.md`, and there is a reading order with
+  an interview-sprint path — the same shape as the part-openers written at #13
+- Fixed a duplicate `["Frontend/HtmlCss", 2]` entry in `scripts/lib/book.ts`. #11's rename had
+  rewritten both the original line and the "post-rename" placeholder beneath it into the same value
+- `.lint-baseline.json`: `broken-link` 2 → **0**. That rule now hard-fails on its own
+
 ---
 
-### - [ ] 19. Purge personal identity from in-book content `S`
+### - [x] 19. Purge personal identity from in-book content `S` — ✅ **done 2026-08-28**
 
 `salmanrahman.com` appears in at least 6 files, alongside a personal interview checklist and an author-specific
 resource list. In a published book these belong in **About the Author** and **Further Reading**, once each,
 not sprinkled through chapters.
 
 **Done when:** no chapter body contains a personal URL; a single `About-the-Author.md` exists for the back matter.
+
+**Delivered:**
+
+- `grep -rn salmanrahman` across every content directory returns **nothing**. Three of the six
+  occurrences had already gone with #17 and #18 (root README, `Frontend/README.md`); this item removed
+  the last live one, in `DSA/README.md`'s resource list. The only surviving mentions are in
+  `Archive/planning/` and in this plan file, neither of which is in the book
+- `About-the-Author.md` written at the repo root, to the Book Chapter Standard, with `part: 9` and
+  `chapter: 99` so it sorts into the back matter. It carries the two things that actually explain the
+  book's shape rather than a biography: **why it is frontend-heavy** and **why Svelte is one of the
+  three frameworks** — both of which `BOOK-SPEC.md` § 4 asserts without ever saying who is asserting it
+- Also removed `Good luck with your AWS DevOps engineering journey! 🚀` from `DevOps/README.md` — the
+  same class of personal-note sign-off, caught by the same sweep
+- The two cross-references in `About-the-Author.md` point at `#ch-preface` and `#ch-further-reading`,
+  which **#72** and **#73** create. Anchors, not file paths, so the link checker stays green
+- `pnpm book:collect` places it correctly and reports no unmapped files
 
 ---
 
@@ -1444,14 +1695,14 @@ the site markets the book and the book funds the site.
 | Phase | Items   | Done | Status         |
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 6/7  | 🟡 In progress |
-| 1     | 8–19    | 0/12 | ⬜ Not started |
-| 2     | 20–31   | 0/12 | ⬜ Not started |
-| 3     | 32–43   | 0/12 | ⬜ Not started |
-| 4     | 44–53   | 0/10 | ⬜ Not started |
-| 5     | 54–63   | 0/10 | ⬜ Not started |
+| 1     | 8–19    | 10/12 | 🟡 In progress  |
+| 2     | 20–31   | 0/12 | ⬜ Not started  |
+| 3     | 32–43   | 0/12 | ⬜ Not started  |
+| 4     | 44–53   | 0/10 | ⬜ Not started  |
+| 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **6/78** | **8%**   |
+| **Total** | **78** | **16/78** | **21%**   |
 
 ---
 

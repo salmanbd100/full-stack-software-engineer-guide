@@ -333,9 +333,9 @@ Quantify your problem-solving impact:
 ## 🔗 Related Topics
 
 - [STAR Framework](./01-star-framework.md)
-- [Challenges & Failures](./07-challenges-failures.md)
-- [Conflict Resolution](./11-conflict-resolution.md)
+- [Challenges & Failures](./06-challenges-failures.md)
+- [Conflict Resolution](./07-conflict-resolution.md)
 
 ---
 
-[← Back: Leadership & Teamwork](./04-leadership-teamwork.md) | [Next: Communication Skills →](./06-communication.md)
+[← Back: Leadership & Teamwork](./03-leadership-teamwork.md) | [Next: Communication Skills →](./05-communication.md)

@@ -1,6 +1,8 @@
-# The 'this' Keyword
+# The `this` Keyword {#ch-the-this-keyword}
 
-Understanding `this` is crucial for JavaScript mastery and interviews. Unlike most languages where `this` always refers to the instance, JavaScript's `this` is determined by **how a function is called**, not where it's defined. This dynamic behavior is both powerful and confusing.
+> Work out what `this` will be from the call site alone, and fix it when it is wrong.
+
+**In this chapter:** the four binding rules · losing an implicit binding · `call`, `apply` and `bind` · why arrows have no `this` · the mistakes interviewers probe
 
 ## Why 'this' Matters
 

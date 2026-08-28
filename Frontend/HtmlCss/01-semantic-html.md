@@ -1,8 +1,8 @@
-# Semantic HTML
+# Semantic HTML {#ch-semantic-html}
 
-> Markup that describes **meaning**, not appearance. The foundation of accessibility, SEO, and maintainable frontends.
+> Choose the element that describes what a thing *is*, and get accessibility, SEO and keyboard behaviour without writing any of them.
 
----
+**In this chapter:** document landmarks · `<section>` vs `<article>` vs `<div>` · heading hierarchy · form semantics · when to reach for ARIA
 
 ## Why Seniors Should Care
 

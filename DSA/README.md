@@ -98,7 +98,6 @@ A comprehensive guide covering essential algorithm concepts and 15 LeetCode patt
 
 - [LeetCode](https://leetcode.com/)
 - [AlgoMaster Blog](https://blog.algomaster.io/)
-- Personal Portfolio: [salmanrahman.com](https://salmanrahman.com)
 
 ---
 

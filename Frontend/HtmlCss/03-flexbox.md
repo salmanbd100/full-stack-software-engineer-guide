@@ -1,8 +1,8 @@
-# Flexbox
+# Flexbox {#ch-flexbox}
 
-One-dimensional layout for arranging items in a row or column. Built for component-level layouts where content size drives spacing.
+> Lay out a row or a column and know exactly which axis every property is talking about.
 
----
+**In this chapter:** main axis vs cross axis · container properties · the `flex` shorthand · the `min-width: 0` trap · flexbox vs grid
 
 ## 💡 **Mental Model: Main Axis vs Cross Axis**
 

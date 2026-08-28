@@ -789,4 +789,6 @@ Final: 1 → 4 → 3 → 2 → 5
 6. **Iterative vs Recursive**: Iterative uses O(1) space, recursive uses O(n) space
 7. **Common pattern**: Many linked list problems use partial reversal as a sub-step
 
-[← Previous: Fast & Slow Pointers](./04-fast-slow-pointers.md) | [Back to Index](./README.md) | [Next: Monotonic Stack →](./06-monotonic-stack.md)
+---
+
+[← Previous: Fast & Slow Pointers](./05-fast-slow-pointers.md) | [Back to Index](./README.md) | [Next: Monotonic Stack →](./07-monotonic-stack.md)

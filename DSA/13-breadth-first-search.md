@@ -1673,4 +1673,4 @@ Happy coding!
 
 ---
 
-[← Previous: Depth-First Search](./12-depth-first-search.md) | [Back to Index](./README.md) | [Next: Backtracking →](./14-backtracking.md)
+[← Previous: Depth-First Search (DFS)](./12-depth-first-search.md) | [Back to Index](./README.md) | [Next: Backtracking →](./14-backtracking.md)

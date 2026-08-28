@@ -95,33 +95,33 @@ Request → Check Cache
 
 ### 💡 **Basic Implementation**
 
-```javascript
-self.addEventListener('fetch', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Return cached version if found
-        if (response) {
-          return response;
-        }
+    caches
+      .match(event.request)
+      .then(async (cached: Response | undefined): Promise<Response> => {
+        // Return the cached version if there is one
+        if (cached !== undefined) return cached;
 
-        // Fetch from network
-        return fetch(event.request).then(response => {
-          // Don't cache error responses
-          if (!response || response.status !== 200) {
-            return response;
-          }
+        const response: Response = await fetch(event.request);
 
-          // Clone and cache successful response
-          const responseToCache = response.clone();
-          caches.open('static-v1').then(cache => {
-            cache.put(event.request, responseToCache);
-          });
+        // Never cache an error response — it would poison the cache
+        if (response.status !== 200) return response;
 
-          return response;
-        });
+        // Clone before returning: a body can only be read once
+        const copy: Response = response.clone();
+        const cache: Cache = await caches.open('static-v1');
+        void cache.put(event.request, copy);
+
+        return response;
       })
-      .catch(() => caches.match('/offline.html'))
+      .catch(
+        async (): Promise<Response> =>
+          (await caches.match('/offline.html')) ?? new Response('Offline', { status: 503 }),
+      ),
   );
 });
 ```
@@ -130,66 +130,59 @@ self.addEventListener('fetch', event => {
 
 ### 💡 **Production Pattern**
 
-```javascript
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
 const CACHE_NAME = 'static-v1';
-const PRECACHE_URLS = [
+const PRECACHE_URLS: readonly string[] = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/images/logo.png'
+  '/images/logo.png',
 ];
 
 // Precache during install
-self.addEventListener('install', event => {
+self.addEventListener('install', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(PRECACHE_URLS);
-    })
+    caches.open(CACHE_NAME).then((cache: Cache): Promise<void> => cache.addAll([...PRECACHE_URLS])),
   );
-  self.skipWaiting();
+  void self.skipWaiting();
 });
 
 // Clean old caches on activate
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((names: string[]): Promise<boolean[]> =>
+        Promise.all(names.filter((name: string): boolean => name !== CACHE_NAME).map((name: string) => caches.delete(name))),
+      )
+      .then((): Promise<void> => self.clients.claim()),
   );
-  return self.clients.claim();
 });
 
-// Cache First for specific asset types
-self.addEventListener('fetch', event => {
+// Cache First for static asset types
+const STATIC_DESTINATIONS: readonly RequestDestination[] = ['style', 'script', 'image'];
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
   const { destination } = event.request;
   const url = new URL(event.request.url);
+  const isStatic: boolean = STATIC_DESTINATIONS.includes(destination) || url.pathname.endsWith('.woff2');
+  if (!isStatic) return;
 
-  // Apply Cache First for static assets
-  if (destination === 'style' ||
-      destination === 'script' ||
-      destination === 'image' ||
-      url.pathname.endsWith('.woff2')) {
+  event.respondWith(
+    caches.match(event.request).then(async (cached: Response | undefined): Promise<Response> => {
+      if (cached !== undefined) return cached;
 
-    event.respondWith(
-      caches.match(event.request).then(response => {
-        return response || fetch(event.request)
-          .then(fetchResponse => {
-            if (fetchResponse.ok) {
-              const cache = caches.open(CACHE_NAME);
-              cache.then(c => c.put(event.request, fetchResponse.clone()));
-            }
-            return fetchResponse;
-          });
-      })
-    );
-  }
+      const fetched: Response = await fetch(event.request);
+      if (fetched.ok) {
+        const cache: Cache = await caches.open(CACHE_NAME);
+        void cache.put(event.request, fetched.clone());
+      }
+      return fetched;
+    }),
+  );
 });
 ```
 
@@ -227,30 +220,27 @@ Request → Try Network
 
 ### 💡 **Basic Implementation**
 
-```javascript
-self.addEventListener('fetch', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
   event.respondWith(
     fetch(event.request)
-      .then(response => {
-        if (!response || response.status !== 200) {
-          return response;
-        }
+      .then(async (response: Response): Promise<Response> => {
+        if (response.status !== 200) return response;
 
-        // Cache successful response
-        const responseToCache = response.clone();
-        caches.open('api-v1').then(cache => {
-          cache.put(event.request, responseToCache);
-        });
+        // Cache the successful response for the next offline read
+        const copy: Response = response.clone();
+        const cache: Cache = await caches.open('api-v1');
+        void cache.put(event.request, copy);
 
         return response;
       })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request)
-          .then(response => {
-            return response || new Response('Offline', { status: 503 });
-          });
-      })
+      .catch(
+        // Network failed — fall back to whatever the cache still holds
+        async (): Promise<Response> =>
+          (await caches.match(event.request)) ?? new Response('Offline', { status: 503 }),
+      ),
   );
 });
 ```
@@ -261,39 +251,37 @@ self.addEventListener('fetch', event => {
 
 Prevents long waits on slow networks.
 
-```javascript
-async function fetchWithTimeout(request, timeout = 3000) {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+// "Offline" and "on a train with one bar" are different failures. Only a
+// timeout catches the second one
+async function fetchWithTimeout(request: Request, timeout = 3000): Promise<Response> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const timeoutId = setTimeout((): void => controller.abort(), timeout);
 
   try {
-    const response = await fetch(request, {
-      signal: controller.signal
-    });
+    return await fetch(request, { signal: controller.signal });
+  } finally {
     clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
   }
 }
 
-self.addEventListener('fetch', event => {
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetchWithTimeout(event.request, 3000)
-        .then(response => {
-          caches.open('api-v1').then(cache => {
-            cache.put(event.request, response.clone());
-          });
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request)
-            .then(response => response || new Response('Offline', { status: 503 }));
-        })
-    );
-  }
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  if (!event.request.url.includes('/api/')) return;
+
+  event.respondWith(
+    fetchWithTimeout(event.request, 3000)
+      .then(async (response: Response): Promise<Response> => {
+        const cache: Cache = await caches.open('api-v1');
+        void cache.put(event.request, response.clone());
+        return response;
+      })
+      .catch(
+        async (): Promise<Response> =>
+          (await caches.match(event.request)) ?? new Response('Offline', { status: 503 }),
+      ),
+  );
 });
 ```
 
@@ -341,24 +329,26 @@ Request → Check Cache
 
 ### 💡 **Basic Implementation**
 
-```javascript
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      // Start fetching in background
-      const fetchPromise = fetch(event.request).then(response => {
-        if (response && response.status === 200) {
-          const responseToCache = response.clone();
-          caches.open('swr-cache').then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return response;
-      });
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
-      // Return cached immediately, or wait for fetch
-      return cachedResponse || fetchPromise;
-    })
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  event.respondWith(
+    caches.match(event.request).then((cached: Response | undefined): Response | Promise<Response> => {
+      // Start the refresh, but do not block on it
+      const fetchPromise: Promise<Response> = fetch(event.request).then(
+        async (response: Response): Promise<Response> => {
+          if (response.status === 200) {
+            const cache: Cache = await caches.open('swr-cache');
+            void cache.put(event.request, response.clone());
+          }
+          return response;
+        },
+      );
+
+      // Cached answer now; the network result lands in the cache for next time
+      return cached ?? fetchPromise;
+    }),
   );
 });
 ```
@@ -369,50 +359,49 @@ self.addEventListener('fetch', event => {
 
 Notify clients when content is updated.
 
-```javascript
-self.addEventListener('fetch', event => {
-  if (event.request.destination === 'image') {
-    event.respondWith(
-      caches.match(event.request).then(cachedResponse => {
-        const fetchPromise = fetch(event.request)
-          .then(response => {
-            if (!response || response.status !== 200) {
-              return response;
-            }
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
-            const responseToCache = response.clone();
-            caches.open('images-v1').then(cache => {
-              cache.put(event.request, responseToCache);
+interface CacheUpdated {
+  type: 'CACHE_UPDATED';
+  url: string;
+}
 
-              // Notify client of update
-              self.clients.matchAll().then(clients => {
-                clients.forEach(client => {
-                  client.postMessage({
-                    type: 'CACHE_UPDATED',
-                    url: event.request.url
-                  });
-                });
-              });
-            });
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  if (event.request.destination !== 'image') return;
 
-            return response;
-          })
-          .catch(() => cachedResponse);
+  event.respondWith(
+    caches.match(event.request).then((cached: Response | undefined): Response | Promise<Response> => {
+      const fetchPromise: Promise<Response> = fetch(event.request)
+        .then(async (response: Response): Promise<Response> => {
+          if (response.status !== 200) return response;
 
-        return cachedResponse || fetchPromise;
-      })
-    );
-  }
+          const cache: Cache = await caches.open('images-v1');
+          await cache.put(event.request, response.clone());
+
+          // Tell every open page the cached copy has moved on
+          const clients: readonly Client[] = await self.clients.matchAll();
+          for (const client of clients) {
+            client.postMessage({ type: 'CACHE_UPDATED', url: event.request.url } satisfies CacheUpdated);
+          }
+
+          return response;
+        })
+        .catch((): Response => cached ?? new Response('Offline', { status: 503 }));
+
+      return cached ?? fetchPromise;
+    }),
+  );
 });
 ```
 
 **Client-Side Handler:**
 
-```javascript
-navigator.serviceWorker.addEventListener('message', event => {
+```typescript
+navigator.serviceWorker.addEventListener('message', (event: MessageEvent<CacheUpdated>): void => {
   if (event.data.type === 'CACHE_UPDATED') {
     console.log('Updated:', event.data.url);
-    // Could refresh the image in DOM
+    // The page can now swap the stale image for the fresh one
   }
 });
 ```
@@ -448,34 +437,30 @@ Request → Check Cache
 
 ### 💡 **Implementation**
 
-```javascript
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
 // Precache during install
-self.addEventListener('install', event => {
+self.addEventListener('install', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.open('static-v1').then(cache => {
-      return cache.addAll([
-        '/static-v1/app.js',
-        '/static-v1/style.css',
-        '/static-v1/icon.png'
-      ]);
-    })
+    caches
+      .open('static-v1')
+      .then((cache: Cache): Promise<void> =>
+        cache.addAll(['/static-v1/app.js', '/static-v1/style.css', '/static-v1/icon.png']),
+      ),
   );
 });
 
-// Cache Only for versioned assets
-self.addEventListener('fetch', event => {
-  if (event.request.url.includes('/static-v1/')) {
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => {
-          if (response) {
-            return response;
-          }
-          // Not cached - this is an error for cache-only
-          return new Response('Not in cache', { status: 404 });
-        })
-    );
-  }
+// Cache Only — safe because the URL itself carries the version, so a hit can
+// never be stale and a miss is a genuine build error
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  if (!event.request.url.includes('/static-v1/')) return;
+
+  event.respondWith(
+    caches
+      .match(event.request)
+      .then((cached: Response | undefined): Response => cached ?? new Response('Not in cache', { status: 404 })),
+  );
 });
 ```
 
@@ -514,16 +499,19 @@ Request → Fetch from network
 
 ### 💡 **Implementation**
 
-```javascript
-self.addEventListener('fetch', event => {
-  // Real-time APIs - Network Only
-  if (event.request.url.includes('/api/real-time/') ||
-      event.request.url.includes('/api/auth/')) {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => new Response('Offline', { status: 503 }))
-    );
-  }
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+const NEVER_CACHE: readonly string[] = ['/api/real-time/', '/api/auth/'];
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  // Network Only — a stale auth response is worse than no response
+  const isLive: boolean = NEVER_CACHE.some((path: string): boolean => event.request.url.includes(path));
+  if (!isLive) return;
+
+  event.respondWith(
+    fetch(event.request).catch((): Response => new Response('Offline', { status: 503 })),
+  );
 });
 ```
 
@@ -631,34 +619,32 @@ Navigation Request → Try network
 
 ### 💡 **Service Worker Integration**
 
-```javascript
-// Cache offline page during install
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open('pages-v1').then(cache => {
-      return cache.add('/offline.html');
-    })
-  );
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+// Cache the offline page during install
+self.addEventListener('install', (event: ExtendableEvent): void => {
+  event.waitUntil(caches.open('pages-v1').then((cache: Cache): Promise<void> => cache.add('/offline.html')));
 });
 
-// Serve offline page for failed navigation
-self.addEventListener('fetch', event => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // Cache successful pages
-          if (response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open('pages-v1').then(cache => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        })
-        .catch(() => caches.match('/offline.html'))
-    );
-  }
+// Serve it when a navigation fails
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  if (event.request.mode !== 'navigate') return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then(async (response: Response): Promise<Response> => {
+        if (response.status === 200) {
+          const cache: Cache = await caches.open('pages-v1');
+          void cache.put(event.request, response.clone());
+        }
+        return response;
+      })
+      .catch(
+        async (): Promise<Response> =>
+          (await caches.match('/offline.html')) ?? new Response('Offline', { status: 503 }),
+      ),
+  );
 });
 ```
 
@@ -695,62 +681,53 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/latest/workbo
 
 ### 💡 **Precaching with Workbox**
 
-```javascript
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/latest/workbox-sw.js');
+```typescript
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 
-// Precache manifest (injected by build process)
-workbox.precaching.precacheAndRoute([
+// Precache manifest — the build injects the real revisions
+precacheAndRoute([
   { url: '/index.html', revision: 'abc123' },
   { url: '/styles.css', revision: 'def456' },
-  { url: '/app.js', revision: 'ghi789' }
+  { url: '/app.js', revision: 'ghi789' },
 ]);
 
-// Clean up old caches automatically
-workbox.precaching.cleanupOutdatedCaches();
+// Drop precaches from earlier builds
+cleanupOutdatedCaches();
 ```
 
 ---
 
 ### 💡 **Runtime Caching Strategies**
 
-```javascript
-// Images - Cache First with expiration
-workbox.routing.registerRoute(
-  ({ request }) => request.destination === 'image',
-  new workbox.strategies.CacheFirst({
+```typescript
+import { registerRoute, type RouteMatchCallbackOptions } from 'workbox-routing';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+
+// Images — Cache First with expiry
+registerRoute(
+  ({ request }: RouteMatchCallbackOptions): boolean => request.destination === 'image',
+  new CacheFirst({
     cacheName: 'images',
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 60,
-        maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
-      })
-    ]
-  })
+    plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 })],
+  }),
 );
 
-// API calls - Network First with timeout
-workbox.routing.registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/'),
-  new workbox.strategies.NetworkFirst({
+// API calls — Network First with a timeout
+registerRoute(
+  ({ url }: RouteMatchCallbackOptions): boolean => url.pathname.startsWith('/api/'),
+  new NetworkFirst({
     cacheName: 'api',
     networkTimeoutSeconds: 3,
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 5 * 60 // 5 minutes
-      })
-    ]
-  })
+    plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 5 * 60 })],
+  }),
 );
 
-// CSS/JS - Stale-While-Revalidate
-workbox.routing.registerRoute(
-  ({ request }) =>
-    request.destination === 'style' ||
-    request.destination === 'script',
-  new workbox.strategies.StaleWhileRevalidate({
-    cacheName: 'static'
-  })
+// CSS and JS — Stale-While-Revalidate
+registerRoute(
+  ({ request }: RouteMatchCallbackOptions): boolean =>
+    request.destination === 'style' || request.destination === 'script',
+  new StaleWhileRevalidate({ cacheName: 'static' }),
 );
 ```
 
@@ -760,37 +737,39 @@ workbox.routing.registerRoute(
 
 **❌ Without Workbox (verbose):**
 
-```javascript
-self.addEventListener('install', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.open('v1').then(cache => {
-      return cache.addAll(['/index.html', '/app.js', '/style.css']);
-    })
+    caches.open('v1').then((cache: Cache): Promise<void> => cache.addAll(['/index.html', '/app.js', '/style.css'])),
   );
 });
 
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event: FetchEvent): void => {
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    caches
+      .match(event.request)
+      .then((cached: Response | undefined): Response | Promise<Response> => cached ?? fetch(event.request)),
   );
 });
 ```
 
 **✅ With Workbox (concise):**
 
-```javascript
-importScripts('workbox-sw.js');
+```typescript
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute, type RouteMatchCallbackOptions } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
 
-workbox.precaching.precacheAndRoute([
+precacheAndRoute([
   { url: '/index.html', revision: 'abc123' },
-  { url: '/app.js', revision: 'def456' }
+  { url: '/app.js', revision: 'def456' },
 ]);
 
-workbox.routing.registerRoute(
-  ({ request }) => request.destination === 'image',
-  new workbox.strategies.CacheFirst()
+registerRoute(
+  ({ request }: RouteMatchCallbackOptions): boolean => request.destination === 'image',
+  new CacheFirst(),
 );
 ```
 
@@ -798,21 +777,26 @@ workbox.routing.registerRoute(
 
 ### 💡 **Webpack Integration**
 
-```javascript
-// webpack.config.js
-const WorkboxPlugin = require('workbox-webpack-plugin');
+```typescript
+// webpack.config.ts
+import { InjectManifest } from 'workbox-webpack-plugin';
+import type { Configuration } from 'webpack';
 
-module.exports = {
+const config: Configuration = {
   plugins: [
-    new WorkboxPlugin.InjectManifest({
-      swSrc: './src/sw.js',
+    new InjectManifest({
+      swSrc: './src/sw.ts',
       swDest: 'sw.js',
       globDirectory: 'dist',
       globPatterns: ['**/*.{js,css,html,png}'],
-      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 // 5MB
-    })
-  ]
+      // Anything larger is served from the network. Precaching a 10 MB bundle
+      // costs the user that download before the app is usable
+      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+    }),
+  ],
 };
+
+export default config;
 ```
 
 ---
@@ -844,82 +828,68 @@ module.exports = {
 
 ### 💡 **Basic IndexedDB Pattern**
 
-```javascript
-// Initialize database
-function initDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('myapp-db', 1);
+```typescript
+interface Todo {
+  id?: number;
+  title: string;
+  done: boolean;
+}
 
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
+interface User {
+  id: string;
+  email: string;
+}
 
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-
-      // Create object stores
-      if (!db.objectStoreNames.contains('todos')) {
-        db.createObjectStore('todos', { keyPath: 'id', autoIncrement: true });
-      }
-
-      if (!db.objectStoreNames.contains('users')) {
-        const userStore = db.createObjectStore('users', { keyPath: 'id' });
-        userStore.createIndex('email', 'email', { unique: true });
-      }
-    };
+// IndexedDB is event-based. One promisify helper removes most of the noise
+function promisify<T>(request: IDBRequest<T>): Promise<T> {
+  return new Promise<T>((resolve, reject): void => {
+    request.onsuccess = (): void => resolve(request.result);
+    request.onerror = (): void => reject(request.error);
   });
 }
 
-// Add data
-async function addTodo(todo) {
-  const db = await initDB();
-  const tx = db.transaction('todos', 'readwrite');
-  const store = tx.objectStore('todos');
+function initDB(): Promise<IDBDatabase> {
+  const request: IDBOpenDBRequest = indexedDB.open('myapp-db', 1);
 
-  return new Promise((resolve, reject) => {
-    const request = store.add(todo);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+  // Schema changes only ever happen here, and only on a version bump
+  request.onupgradeneeded = (): void => {
+    const db: IDBDatabase = request.result;
+
+    if (!db.objectStoreNames.contains('todos')) {
+      db.createObjectStore('todos', { keyPath: 'id', autoIncrement: true });
+    }
+
+    if (!db.objectStoreNames.contains('users')) {
+      const userStore: IDBObjectStore = db.createObjectStore('users', { keyPath: 'id' });
+      userStore.createIndex('email', 'email', { unique: true });
+    }
+  };
+
+  return promisify(request);
 }
 
-// Get all data
-async function getAllTodos() {
-  const db = await initDB();
-  const tx = db.transaction('todos', 'readonly');
-  const store = tx.objectStore('todos');
-
-  return new Promise((resolve, reject) => {
-    const request = store.getAll();
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+async function addTodo(todo: Todo): Promise<IDBValidKey> {
+  const db: IDBDatabase = await initDB();
+  const store: IDBObjectStore = db.transaction('todos', 'readwrite').objectStore('todos');
+  return promisify(store.add(todo));
 }
 
-// Query by index
-async function getUserByEmail(email) {
-  const db = await initDB();
-  const tx = db.transaction('users', 'readonly');
-  const store = tx.objectStore('users');
-  const index = store.index('email');
-
-  return new Promise((resolve, reject) => {
-    const request = index.get(email);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+async function getAllTodos(): Promise<Todo[]> {
+  const db: IDBDatabase = await initDB();
+  const store: IDBObjectStore = db.transaction('todos', 'readonly').objectStore('todos');
+  return promisify<Todo[]>(store.getAll());
 }
 
-// Delete data
-async function deleteTodo(id) {
-  const db = await initDB();
-  const tx = db.transaction('todos', 'readwrite');
-  const store = tx.objectStore('todos');
+async function getUserByEmail(email: string): Promise<User | undefined> {
+  const db: IDBDatabase = await initDB();
+  const store: IDBObjectStore = db.transaction('users', 'readonly').objectStore('users');
+  return promisify<User | undefined>(store.index('email').get(email));
+}
 
-  return new Promise((resolve, reject) => {
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
+async function deleteTodo(id: number): Promise<void> {
+  const db: IDBDatabase = await initDB();
+  const store: IDBObjectStore = db.transaction('todos', 'readwrite').objectStore('todos');
+  await promisify(store.delete(id));
 }
 ```
 
@@ -934,34 +904,36 @@ async function deleteTodo(id) {
 
 Retry failed requests with increasing delays.
 
-```javascript
-async function fetchWithRetry(request, maxRetries = 3, initialDelay = 1000) {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+async function fetchWithRetry(request: Request, maxRetries = 3, initialDelay = 1000): Promise<Response> {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fetch(request);
-    } catch (error) {
-      if (i === maxRetries - 1) {
-        throw error; // Final attempt failed
-      }
+    } catch (error: unknown) {
+      if (i === maxRetries - 1) throw error; // Final attempt failed
 
-      // Wait with exponential backoff
-      const delay = initialDelay * Math.pow(2, i);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // Exponential backoff — 1s, 2s, 4s. Retrying flat-out just adds load
+      const delay: number = initialDelay * 2 ** i;
+      await new Promise<void>((resolve): void => {
+        setTimeout(resolve, delay);
+      });
     }
   }
+  throw new Error('unreachable');
 }
 
-// Usage in Service Worker
-self.addEventListener('fetch', event => {
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetchWithRetry(event.request, 3, 1000)
-        .catch(() => {
-          return caches.match(event.request)
-            .then(response => response || new Response('Failed', { status: 503 }));
-        })
-    );
-  }
+// Usage in the worker
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  if (!event.request.url.includes('/api/')) return;
+
+  event.respondWith(
+    fetchWithRetry(event.request, 3, 1000).catch(
+      async (): Promise<Response> =>
+        (await caches.match(event.request)) ?? new Response('Failed', { status: 503 }),
+    ),
+  );
 });
 ```
 
@@ -980,54 +952,57 @@ self.addEventListener('fetch', event => {
 
 Queue requests when offline, retry when online.
 
-```javascript
+```typescript
+interface QueuedMeta {
+  queued: string;
+  url: string;
+  method: string;
+}
+
 class RequestQueue {
+  private readonly cacheName: string;
+
   constructor(cacheName = 'request-queue') {
     this.cacheName = cacheName;
   }
 
-  async enqueue(request) {
-    const cache = await caches.open(this.cacheName);
-    const response = new Response(
-      JSON.stringify({
-        queued: new Date().toISOString(),
-        url: request.url,
-        method: request.method
-      })
-    );
-    await cache.put(request, response);
+  async enqueue(request: Request): Promise<void> {
+    const cache: Cache = await caches.open(this.cacheName);
+    const meta: QueuedMeta = {
+      queued: new Date().toISOString(),
+      url: request.url,
+      method: request.method,
+    };
+    await cache.put(request, new Response(JSON.stringify(meta)));
   }
 
-  async dequeue() {
-    const cache = await caches.open(this.cacheName);
-    const keys = await cache.keys();
+  async dequeue(): Promise<void> {
+    const cache: Cache = await caches.open(this.cacheName);
+    const keys: readonly Request[] = await cache.keys();
 
     for (const request of keys) {
       try {
-        const response = await fetch(request);
-        if (response.ok) {
-          await cache.delete(request);
-        }
-      } catch (error) {
-        // Still offline, stop retrying
+        const response: Response = await fetch(request);
+        if (response.ok) await cache.delete(request);
+      } catch {
+        // Still offline. Stop, or the rest of the queue burns retries too
         break;
       }
     }
   }
 
-  async flush() {
-    const cache = await caches.open(this.cacheName);
-    const keys = await cache.keys();
-    await Promise.all(keys.map(key => cache.delete(key)));
+  async flush(): Promise<void> {
+    const cache: Cache = await caches.open(this.cacheName);
+    const keys: readonly Request[] = await cache.keys();
+    await Promise.all(keys.map((key: Request): Promise<boolean> => cache.delete(key)));
   }
 }
 
-// Usage
 const queue = new RequestQueue();
 
-// Retry when online
-window.addEventListener('online', () => {
-  queue.dequeue();
+// Retry when the connection returns
+window.addEventListener('online', (): void => {
+  void queue.dequeue();
 });
 ```
 
@@ -1062,15 +1037,15 @@ window.addEventListener('online', () => {
 | 4 | Cache new response when received |
 | 5 | If not cached, wait for network |
 
-```javascript
+```typescript
 event.respondWith(
-  caches.match(request).then(cached => {
-    const fetchPromise = fetch(request).then(response => {
-      cache.put(request, response.clone());
+  caches.match(request).then((cached: Response | undefined): Response | Promise<Response> => {
+    const fetchPromise: Promise<Response> = fetch(request).then((response: Response): Response => {
+      void cache.put(request, response.clone());
       return response;
     });
-    return cached || fetchPromise;
-  })
+    return cached ?? fetchPromise;
+  }),
 );
 ```
 
@@ -1100,18 +1075,25 @@ event.respondWith(
 | 5 | Show user feedback |
 | 6 | When online, process queue |
 
-```javascript
-// On failure
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+// SyncManager is not in the DOM lib — declare what you use
+interface SyncEvent extends ExtendableEvent {
+  readonly tag: string;
+}
+
+// On failure, in the page
 await storeInQueue(requestData);
 await registration.sync.register('sync-queue');
 showMessage('Will sync when online');
 
-// Service Worker sync event
-self.addEventListener('sync', event => {
+// In the worker — the browser fires this when it decides connectivity is back
+self.addEventListener('sync', ((event: SyncEvent): void => {
   if (event.tag === 'sync-queue') {
     event.waitUntil(processQueue());
   }
-});
+}) as EventListener);
 ```
 
 ---
@@ -1167,17 +1149,15 @@ self.addEventListener('sync', event => {
 | **Lighthouse** | Run PWA audit |
 | **Programmatic** | Mock fetch failures in tests |
 
-```javascript
+```typescript
 // Test pattern
-test('works offline', async () => {
-  // Load page (gets cached)
+test('works offline', async (): Promise<void> => {
+  // First load populates the cache
   await fetch('/');
 
-  // Simulate offline
-  // Use DevTools or mock fetch
-
-  // Should still work
-  const response = await fetch('/');
+  // Then simulate offline — DevTools' throttling, or a mocked fetch
+  // Should still resolve, from the cache
+  const response: Response = await fetch('/');
   expect(response.ok).toBe(true);
 });
 ```
@@ -1193,13 +1173,15 @@ test('works offline', async () => {
 | **Stale permissions** | Re-validate on sync |
 | **Logout cleanup** | Clear all caches and IndexedDB |
 
-```javascript
-function logout() {
+```typescript
+// Offline storage survives logout unless you clear it. On a shared device that
+// is a data leak, not a convenience
+async function logout(): Promise<void> {
   localStorage.clear();
   indexedDB.deleteDatabase('app-db');
-  caches.keys().then(names => {
-    names.forEach(name => caches.delete(name));
-  });
+
+  const names: string[] = await caches.keys();
+  await Promise.all(names.map((name: string): Promise<boolean> => caches.delete(name)));
 }
 ```
 

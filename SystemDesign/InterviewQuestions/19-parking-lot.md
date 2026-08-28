@@ -262,7 +262,7 @@ interface UpdateSpotResponse {
 
 > The key insight for OOP design: `ParkingLot` does not assign spots. `SpotManager` does. `ParkingLot` orchestrates — it calls `SpotManager.findNearest()`, creates a `Ticket`, then calls `PaymentService.calculateFee()`. Each class has a single responsibility.
 
-See [../OOP/solid-principles.md](../OOP/solid-principles.md) for Single Responsibility and Open/Closed patterns used here, and [../Database/sql-transactions.md](../Database/sql-transactions.md) for the `SELECT FOR UPDATE` locking pattern.
+See [../../OOP/01-oop-fundamentals.md](../../OOP/01-oop-fundamentals.md) for Single Responsibility and Open/Closed patterns used here, and [../Database/06-transactions.md](../Database/06-transactions.md) for the `SELECT FOR UPDATE` locking pattern.
 
 ## Common Follow-up Questions
 

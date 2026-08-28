@@ -67,9 +67,12 @@ A JSON file that tells the browser how to display and behave when your PWA is in
 
 ### 💡 **CORS and MIME Type**
 
-```javascript
-// Server configuration (Express)
-app.get('/manifest.json', (req, res) => {
+```typescript
+import type { Request, Response } from 'express';
+
+// Serve the manifest with its own media type. Browsers accept application/json,
+// but the correct type is what keeps auditing tools quiet
+app.get('/manifest.json', (req: Request, res: Response): void => {
   res.setHeader('Content-Type', 'application/manifest+json');
   res.sendFile('manifest.json');
 });
@@ -336,17 +339,40 @@ Maskable icons have a "safe zone" (center 40%) where important content must fit.
 
 ### 💡 **Checking Installability**
 
-```javascript
-// Check if installable
-async function checkInstallability() {
-  const manifestLink = document.querySelector('link[rel="manifest"]');
-  const manifest = await fetch(manifestLink.href).then(r => r.json());
-  const swReg = await navigator.serviceWorker.getRegistration();
+```typescript
+interface ManifestIcon {
+  src: string;
+  sizes?: string;
+  type?: string;
+  purpose?: string;
+}
 
-  console.log('Has manifest:', !!manifestLink);
-  console.log('Has name:', !!manifest.name);
-  console.log('Has icons:', !!manifest.icons?.length);
-  console.log('Has SW:', !!swReg);
+interface WebAppManifest {
+  name?: string;
+  short_name?: string;
+  start_url?: string;
+  display?: string;
+  theme_color?: string;
+  background_color?: string;
+  icons?: ManifestIcon[];
+}
+
+// Check if installable
+async function checkInstallability(): Promise<void> {
+  const manifestLink = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+  if (manifestLink === null) {
+    console.error('No manifest link');
+    return;
+  }
+
+  const manifest: WebAppManifest = await fetch(manifestLink.href).then(
+    (r: Response): Promise<WebAppManifest> => r.json() as Promise<WebAppManifest>,
+  );
+  const swReg: ServiceWorkerRegistration | undefined = await navigator.serviceWorker.getRegistration();
+
+  console.log('Has name:', Boolean(manifest.name));
+  console.log('Has icons:', Boolean(manifest.icons?.length));
+  console.log('Has SW:', Boolean(swReg));
   console.log('Is HTTPS:', location.protocol === 'https:');
 }
 ```
@@ -355,29 +381,35 @@ async function checkInstallability() {
 
 ### 💡 **Handling Install Prompt**
 
-```javascript
-let deferredPrompt;
+```typescript
+// `beforeinstallprompt` is not in the DOM lib — declare the shape you rely on
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
 
-// Capture the prompt
-window.addEventListener('beforeinstallprompt', e => {
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
+
+// Capture the prompt. Without preventDefault the browser shows its own banner
+window.addEventListener('beforeinstallprompt', (e: Event): void => {
   e.preventDefault();
-  deferredPrompt = e;
+  deferredPrompt = e as BeforeInstallPromptEvent;
   showInstallButton();
 });
 
 // Trigger installation
-async function installApp() {
-  if (!deferredPrompt) return;
+async function installApp(): Promise<void> {
+  if (deferredPrompt === null) return;
 
-  deferredPrompt.prompt();
+  await deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
   console.log('Install outcome:', outcome);
+  // The event is single-use. Holding it and calling prompt() twice throws
   deferredPrompt = null;
 }
 
 // Detect installation
-window.addEventListener('appinstalled', () => {
-  console.log('PWA installed!');
+window.addEventListener('appinstalled', (): void => {
   hideInstallButton();
 });
 ```
@@ -474,22 +506,27 @@ window.addEventListener('appinstalled', () => {
 
 ### 💡 **Validation Script**
 
-```javascript
-async function validateManifest() {
-  const link = document.querySelector('link[rel="manifest"]');
-  if (!link) return console.error('No manifest link');
+```typescript
+async function validateManifest(): Promise<void> {
+  const link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+  if (link === null) {
+    console.error('No manifest link');
+    return;
+  }
 
-  const manifest = await fetch(link.href).then(r => r.json());
+  const manifest: WebAppManifest = await fetch(link.href).then(
+    (r: Response): Promise<WebAppManifest> => r.json() as Promise<WebAppManifest>,
+  );
 
-  const checks = {
-    name: !!manifest.name,
-    short_name: !!manifest.short_name,
-    start_url: !!manifest.start_url,
-    display: !!manifest.display,
-    icon_192: manifest.icons?.some(i => i.sizes?.includes('192')),
-    icon_512: manifest.icons?.some(i => i.sizes?.includes('512')),
-    theme_color: !!manifest.theme_color,
-    background_color: !!manifest.background_color
+  const checks: Record<string, boolean> = {
+    name: Boolean(manifest.name),
+    short_name: Boolean(manifest.short_name),
+    start_url: Boolean(manifest.start_url),
+    display: Boolean(manifest.display),
+    icon_192: manifest.icons?.some((i: ManifestIcon): boolean => i.sizes?.includes('192') ?? false) ?? false,
+    icon_512: manifest.icons?.some((i: ManifestIcon): boolean => i.sizes?.includes('512') ?? false) ?? false,
+    theme_color: Boolean(manifest.theme_color),
+    background_color: Boolean(manifest.background_color),
   };
 
   console.table(checks);
@@ -660,11 +697,13 @@ URLs outside scope open in regular browser.
 
 **Manual check:**
 
-```javascript
-const manifest = await fetch('/manifest.json').then(r => r.json());
-console.log('name:', !!manifest.name);
-console.log('icons:', !!manifest.icons?.length);
-console.log('start_url:', !!manifest.start_url);
+```typescript
+const manifest: WebAppManifest = await fetch('/manifest.json').then(
+  (r: Response): Promise<WebAppManifest> => r.json() as Promise<WebAppManifest>,
+);
+console.log('name:', Boolean(manifest.name));
+console.log('icons:', Boolean(manifest.icons?.length));
+console.log('start_url:', Boolean(manifest.start_url));
 ```
 
 ---
@@ -673,25 +712,26 @@ console.log('start_url:', !!manifest.start_url);
 
 **Answer:**
 
-```javascript
-let deferredPrompt;
+```typescript
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
 
 // Capture prompt
-window.addEventListener('beforeinstallprompt', e => {
+window.addEventListener('beforeinstallprompt', (e: Event): void => {
   e.preventDefault();
-  deferredPrompt = e;
+  deferredPrompt = e as BeforeInstallPromptEvent;
   showInstallButton();
 });
 
 // Show prompt on button click
-installButton.addEventListener('click', async () => {
-  deferredPrompt.prompt();
+installButton.addEventListener('click', async (): Promise<void> => {
+  if (deferredPrompt === null) return;
+  await deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
   deferredPrompt = null;
 });
 
 // Detect installation
-window.addEventListener('appinstalled', () => {
+window.addEventListener('appinstalled', (): void => {
   hideInstallButton();
 });
 ```

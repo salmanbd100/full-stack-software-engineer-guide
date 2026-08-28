@@ -1,8 +1,8 @@
-# Accessibility (a11y)
+# Accessibility {#ch-accessibility}
 
-Accessibility means everyone can use your site — including users with disabilities, on assistive tech, or in degraded conditions (sun glare, broken mouse, slow brain day). It is also a legal requirement in most jurisdictions (ADA, EAA, AODA).
+> Ship interfaces that work with a keyboard, a screen reader and a legal audit — starting from markup rather than from ARIA.
 
----
+**In this chapter:** the POUR principles · why semantics come first · the first rule of ARIA · focus management · keyboard navigation · colour contrast · how to test
 
 ## 💡 **WCAG 2.1 / 2.2 — The POUR Principles**
 
@@ -25,7 +25,7 @@ WCAG defines four principles your site must satisfy.
 
 ## 💡 **Semantic HTML Is the Foundation**
 
-Native elements ship with roles, states, and keyboard behavior for free. See [03-semantic-html.md](./03-semantic-html.md).
+Native elements ship with roles, states, and keyboard behavior for free. See [01-semantic-html.md](./01-semantic-html.md).
 
 ```html
 <!-- ❌ Reinvents the wheel, breaks keyboard, breaks SR -->

@@ -6,22 +6,22 @@ Structured guide for behavioral interviews at MNCs and senior engineering roles.
 
 ### Core
 1. [STAR Framework](01-star-framework.md) — structured method for any behavioral question
-2. [Preparation Grid](03-preparation-grid.md) — organize 7–10 reusable stories
+2. [Preparation Grid](02-preparation-grid.md) — organize 7–10 reusable stories
 
 ### Question Categories
-3. [Leadership & Teamwork](04-leadership-teamwork.md)
-4. [Problem Solving](05-problem-solving.md)
-5. [Communication Skills](06-communication.md)
-6. [Challenges & Failures](07-challenges-failures.md)
-7. [Conflict Resolution](11-conflict-resolution.md)
-8. [Questions to Ask Interviewers](14-questions-to-ask.md)
+3. [Leadership & Teamwork](03-leadership-teamwork.md)
+4. [Problem Solving](04-problem-solving.md)
+5. [Communication Skills](05-communication.md)
+6. [Challenges & Failures](06-challenges-failures.md)
+7. [Conflict Resolution](07-conflict-resolution.md)
+8. [Questions to Ask Interviewers](08-questions-to-ask.md)
 
 ## 🎯 Quick Start
 
-1. **Learn STAR** — read [01](01-star-framework.md). Every answer follows this shape.
-2. **Build your story bank** — use the [Preparation Grid](03-preparation-grid.md) to write 7–10 stories covering leadership, conflict, failure, technical challenge, and impact. One story usually answers 2–3 questions.
+1. **Learn STAR** — read [STAR Framework](01-star-framework.md). Every answer follows this shape.
+2. **Build your story bank** — use the [Preparation Grid](02-preparation-grid.md) to write 7–10 stories covering leadership, conflict, failure, technical challenge, and impact. One story usually answers 2–3 questions.
 3. **Drill by category** — pick 2–3 categories per session, practice out loud, time yourself (2–3 minutes per answer).
-4. **Prepare your questions** — see [14](14-questions-to-ask.md).
+4. **Prepare your questions** — see [Questions to Ask](08-questions-to-ask.md).
 
 ## 🌟 What Strong Answers Have
 

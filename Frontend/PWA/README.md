@@ -281,16 +281,17 @@ Real-time notifications even when app is closed.
 
 ### 💡 **Service Worker Registration**
 
-```javascript
+```typescript
 // Register with update checking
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(reg => {
-      console.log('SW registered');
-      // Check for updates every hour
-      setInterval(() => reg.update(), 60 * 60 * 1000);
+  navigator.serviceWorker
+    .register('/sw.js')
+    .then((reg: ServiceWorkerRegistration): void => {
+      // The browser only checks for a new sw.js on navigation, which a
+      // long-lived tab may never do. Poll so an open tab still updates
+      setInterval((): Promise<void> => reg.update(), 60 * 60 * 1000);
     })
-    .catch(err => console.error('SW failed:', err));
+    .catch((err: unknown): void => console.error('SW failed:', err));
 }
 ```
 
@@ -298,13 +299,16 @@ if ('serviceWorker' in navigator) {
 
 ### 💡 **Basic Cache Strategy**
 
-```javascript
-// sw.js - Cache First with network fallback
-self.addEventListener('fetch', event => {
+```typescript
+// sw.js — cache first, network fallback
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request))
-      .catch(() => caches.match('/offline.html'))
+    caches
+      .match(event.request)
+      .then((cached: Response | undefined): Response | Promise<Response> => cached ?? fetch(event.request))
+      .catch((): Promise<Response | undefined> => caches.match('/offline.html')) as Promise<Response>,
   );
 });
 ```

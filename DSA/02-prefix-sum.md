@@ -840,4 +840,6 @@ If you see these keywords, think prefix sum:
 - ✓ "cumulative sum"
 - ✓ "contiguous subarray"
 
-[← Back to Index](./README.md) | [Next: Two Pointers →](./03-two-pointers.md)
+---
+
+[← Previous: Time & Space Complexity](./01-time-space-complexity.md) | [Back to Index](./README.md) | [Next: Two Pointers →](./03-two-pointers.md)

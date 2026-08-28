@@ -1806,4 +1806,4 @@ Happy coding!
 
 ---
 
-[← Previous: Modified Binary Search](./10-modified-binary-search.md) | [Back to Index](./README.md) | [Next: Depth-First Search →](./12-depth-first-search.md)
+[← Previous: Modified Binary Search](./10-modified-binary-search.md) | [Back to Index](./README.md) | [Next: Depth-First Search (DFS) →](./12-depth-first-search.md)

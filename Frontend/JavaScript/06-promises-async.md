@@ -1,4 +1,8 @@
-# Promises & Async/Await
+# Promises and Async/Await {#ch-promises-and-async-await}
+
+> Compose asynchronous work without nesting it, and handle the failure path as deliberately as the success path.
+
+**In this chapter:** the three promise states · chaining and flattening · `async`/`await` · `all`, `allSettled`, `race` and `any` · the errors that get swallowed
 
 ## Understanding Asynchronous JavaScript
 

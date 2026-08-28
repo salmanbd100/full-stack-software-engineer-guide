@@ -161,9 +161,9 @@ Focus on the **interest behind the position**.
 ## 🔗 Related Topics
 
 - [STAR Framework](./01-star-framework.md)
-- [Communication Skills](./06-communication.md)
-- [Leadership & Teamwork](./04-leadership-teamwork.md)
+- [Communication Skills](./05-communication.md)
+- [Leadership & Teamwork](./03-leadership-teamwork.md)
 
 ---
 
-[← Back: Challenges & Failures](./07-challenges-failures.md) | [Next: Questions to Ask →](./14-questions-to-ask.md)
+[← Back: Challenges & Failures](./06-challenges-failures.md) | [Next: Questions to Ask →](./08-questions-to-ask.md)

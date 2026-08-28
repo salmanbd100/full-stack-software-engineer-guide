@@ -699,4 +699,6 @@ If we compare mid with right:
            right = mid
    ```
 
-[← Previous: Overlapping Intervals](./08-overlapping-intervals.md) | [Back to Index](./README.md) | [Next: Binary Tree Traversal →](./10-binary-tree-traversal.md)
+---
+
+[← Previous: Overlapping Intervals](./09-overlapping-intervals.md) | [Back to Index](./README.md) | [Next: Binary Tree Traversal →](./11-binary-tree-traversal.md)

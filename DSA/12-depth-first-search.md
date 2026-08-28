@@ -1564,4 +1564,4 @@ Happy coding!
 
 ---
 
-[← Previous: Binary Tree Traversal](./11-binary-tree-traversal.md) | [Back to Index](./README.md) | [Next: Breadth-First Search →](./13-breadth-first-search.md)
+[← Previous: Binary Tree Traversal](./11-binary-tree-traversal.md) | [Back to Index](./README.md) | [Next: Breadth-First Search (BFS) →](./13-breadth-first-search.md)

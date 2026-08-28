@@ -1,8 +1,8 @@
-# CSS Fundamentals
+# CSS Fundamentals {#ch-css-fundamentals}
 
-> The model, the cascade, and the units. Master these and 80% of CSS bugs disappear.
+> Read any stylesheet and predict which rule wins, why a box is the size it is, and which unit belongs where.
 
----
+**In this chapter:** the box model · specificity and the cascade · inheritance and reset keywords · positioning and stacking contexts · units · `@layer`
 
 ## The Box Model
 

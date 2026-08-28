@@ -1,6 +1,8 @@
-# Array & Object Methods
+# Array and Object Methods {#ch-array-and-object-methods}
 
-Mastering array and object methods is essential for efficient JavaScript programming and one of the most practical skills tested in interviews. These methods enable functional programming patterns, reduce code complexity, and are the foundation of modern JavaScript development.
+> Pick the method that says what you mean, and know which ones mutate the thing you passed in.
+
+**In this chapter:** `map`, `filter`, `reduce` · finding and testing · flattening · which methods mutate · `Object.entries`, `keys` and `values`
 
 ## Why Array & Object Methods Matter
 

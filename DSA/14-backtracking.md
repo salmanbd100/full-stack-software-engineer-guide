@@ -1525,4 +1525,4 @@ Happy coding!
 
 ---
 
-[← Previous: Breadth-First Search](./13-breadth-first-search.md) | [Back to Index](./README.md) | [Next: Dynamic Programming →](./15-dynamic-programming.md)
+[← Previous: Breadth-First Search (BFS)](./13-breadth-first-search.md) | [Back to Index](./README.md) | [Next: Dynamic Programming →](./15-dynamic-programming.md)

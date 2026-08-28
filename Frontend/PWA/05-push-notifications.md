@@ -93,19 +93,26 @@ Push notifications involve three main components.
 
 ### 💡 **Basic Notification**
 
-```javascript
-// From Service Worker
-self.registration.showNotification('New Message', {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+interface MessageData {
+  userId: number;
+  messageId: number;
+}
+
+void self.registration.showNotification('New Message', {
   body: 'You have a new message from Alice',
   icon: '/images/icon.png',
   badge: '/images/badge.png',
+  // Same tag replaces the previous notification instead of stacking a second one
   tag: 'message',
   requireInteraction: true,
   actions: [
     { action: 'open', title: 'Open' },
-    { action: 'close', title: 'Close' }
+    { action: 'close', title: 'Close' },
   ],
-  data: { userId: 123, messageId: 456 }
+  data: { userId: 123, messageId: 456 } satisfies MessageData,
 });
 ```
 
@@ -119,21 +126,22 @@ self.registration.showNotification('New Message', {
 | `notificationclick` | User clicks notification | Navigate to content |
 | `notificationclose` | User dismisses | Track dismissals |
 
-```javascript
-// Handle notification clicks
-self.addEventListener('notificationclick', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('notificationclick', (event: NotificationEvent): void => {
   event.notification.close();
 
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then(clientList => {
-      // Focus existing window or open new
-      for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client) {
-          return client.focus();
+    self.clients
+      .matchAll({ type: 'window' })
+      .then((clientList: readonly WindowClient[]): Promise<WindowClient | null> => {
+        // Focus an existing tab rather than opening a duplicate
+        for (const client of clientList) {
+          if (client.url === '/') return client.focus();
         }
-      }
-      return clients.openWindow('/');
-    })
+        return self.clients.openWindow('/');
+      }),
   );
 });
 ```
@@ -163,12 +171,14 @@ Voluntary Application Server Identification keys authenticate your server with P
 npx web-push generate-vapid-keys
 ```
 
-```javascript
-// Or programmatically (Node.js)
-const webpush = require('web-push');
-const vapidKeys = webpush.generateVAPIDKeys();
+```typescript
+// Or programmatically, on the server
+import webpush, { type VapidKeys } from 'web-push';
+
+const vapidKeys: VapidKeys = webpush.generateVAPIDKeys();
 
 console.log('Public:', vapidKeys.publicKey);
+// The private key never leaves the server and never enters version control
 console.log('Private:', vapidKeys.privateKey);
 ```
 
@@ -176,14 +186,14 @@ console.log('Private:', vapidKeys.privateKey);
 
 ### 💡 **Server Configuration**
 
-```javascript
-// server.js
-const webpush = require('web-push');
+```typescript
+// server.ts
+import webpush from 'web-push';
 
 webpush.setVapidDetails(
   'mailto:admin@example.com',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
+  process.env.VAPID_PUBLIC_KEY as string,
+  process.env.VAPID_PRIVATE_KEY as string,
 );
 ```
 
@@ -191,35 +201,29 @@ webpush.setVapidDetails(
 
 ### 💡 **Client Usage**
 
-```javascript
-// Get public key and subscribe
-async function subscribeToPush() {
-  const registration = await navigator.serviceWorker.ready;
+```typescript
+async function subscribeToPush(): Promise<PushSubscription> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
 
-  // Get public key from server
-  const response = await fetch('/api/vapid-public-key');
-  const { publicKey } = await response.json();
+  const response: Response = await fetch('/api/vapid-public-key');
+  const { publicKey } = (await response.json()) as { publicKey: string };
 
-  // Subscribe
-  const subscription = await registration.pushManager.subscribe({
+  return registration.pushManager.subscribe({
+    // Chrome requires this to be true. A push that shows nothing is not allowed
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicKey)
+    applicationServerKey: urlBase64ToUint8Array(publicKey),
   });
-
-  return subscription;
 }
 
-// Helper: Convert base64 to Uint8Array
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
+// The key arrives as URL-safe base64; subscribe() wants raw bytes
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding: string = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64: string = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
-  const rawData = window.atob(base64);
+  const rawData: string = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
 
-  for (let i = 0; i < rawData.length; ++i) {
+  for (let i = 0; i < rawData.length; i++) {
     outputArray[i] = rawData.charCodeAt(i);
   }
 
@@ -246,17 +250,15 @@ function urlBase64ToUint8Array(base64String) {
 
 ### 💡 **Step 1: Request Permission**
 
-```javascript
-async function requestNotificationPermission() {
-  if (Notification.permission === 'granted') {
-    return true;
-  }
+```typescript
+async function requestNotificationPermission(): Promise<boolean> {
+  if (Notification.permission === 'granted') return true;
 
-  if (Notification.permission === 'denied') {
-    return false;
-  }
+  // 'denied' is terminal. Asking again does nothing but the browser
+  // remembers you tried, and some browsers penalise the origin for it
+  if (Notification.permission === 'denied') return false;
 
-  const permission = await Notification.requestPermission();
+  const permission: NotificationPermission = await Notification.requestPermission();
   return permission === 'granted';
 }
 ```
@@ -265,24 +267,21 @@ async function requestNotificationPermission() {
 
 ### 💡 **Step 2: Subscribe**
 
-```javascript
-async function subscribeToPush() {
-  const registration = await navigator.serviceWorker.ready;
+```typescript
+async function subscribeToPush(): Promise<PushSubscription> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
 
-  // Check if already subscribed
-  let subscription = await registration.pushManager.getSubscription();
+  // Reuse the existing subscription — resubscribing invalidates the old endpoint
+  const existing: PushSubscription | null = await registration.pushManager.getSubscription();
+  if (existing !== null) return existing;
 
-  if (!subscription) {
-    const response = await fetch('/api/vapid-public-key');
-    const { publicKey } = await response.json();
+  const response: Response = await fetch('/api/vapid-public-key');
+  const { publicKey } = (await response.json()) as { publicKey: string };
 
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey)
-    });
-  }
-
-  return subscription;
+  return registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(publicKey),
+  });
 }
 ```
 
@@ -290,12 +289,12 @@ async function subscribeToPush() {
 
 ### 💡 **Step 3: Send to Server**
 
-```javascript
-async function sendSubscriptionToServer(subscription) {
+```typescript
+async function sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
   await fetch('/api/notifications/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ subscription: subscription.toJSON() })
+    body: JSON.stringify({ subscription: subscription.toJSON() }),
   });
 }
 ```
@@ -304,17 +303,15 @@ async function sendSubscriptionToServer(subscription) {
 
 ### 💡 **Complete Setup**
 
-```javascript
-async function setupPushNotifications() {
+```typescript
+async function setupPushNotifications(): Promise<void> {
   try {
-    const hasPermission = await requestNotificationPermission();
+    const hasPermission: boolean = await requestNotificationPermission();
     if (!hasPermission) return;
 
-    const subscription = await subscribeToPush();
+    const subscription: PushSubscription = await subscribeToPush();
     await sendSubscriptionToServer(subscription);
-
-    console.log('Push notifications ready');
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Setup failed:', error);
   }
 }
@@ -326,29 +323,39 @@ async function setupPushNotifications() {
 
 ### 💡 **Handling Push Events**
 
-```javascript
-self.addEventListener('push', event => {
-  let data = {};
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
-  if (event.data) {
+interface PushPayload {
+  title?: string;
+  body?: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  data?: Record<string, unknown>;
+}
+
+self.addEventListener('push', (event: PushEvent): void => {
+  let data: PushPayload = {};
+
+  if (event.data !== null) {
     try {
-      data = event.data.json();
+      data = event.data.json() as PushPayload;
     } catch {
+      // A push server may send plain text. Degrade rather than throw
       data = { body: event.data.text() };
     }
   }
 
-  const options = {
-    body: data.body || 'New notification',
-    icon: data.icon || '/icon.png',
-    badge: data.badge || '/badge.png',
-    tag: data.tag || 'notification',
-    data: data.data || {}
+  const options: NotificationOptions = {
+    body: data.body ?? 'New notification',
+    icon: data.icon ?? '/icon.png',
+    badge: data.badge ?? '/badge.png',
+    tag: data.tag ?? 'notification',
+    data: data.data ?? {},
   };
 
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'App', options)
-  );
+  event.waitUntil(self.registration.showNotification(data.title ?? 'App', options));
 });
 ```
 
@@ -356,28 +363,41 @@ self.addEventListener('push', event => {
 
 ### 💡 **Routing by Message Type**
 
-```javascript
-self.addEventListener('push', event => {
-  if (!event.data) return;
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
-  const data = event.data.json();
+interface ChatPush {
+  type: 'chat';
+  senderId: string;
+  senderName: string;
+  senderPhoto: string;
+  message: string;
+}
 
-  const handlers = {
-    chat: handleChatNotification,
-    alert: handleAlertNotification,
-    update: handleUpdateNotification
-  };
+type TypedPush = ChatPush | { type: 'alert' | 'update'; [key: string]: unknown };
+type PushHandler = (data: never) => Promise<void>;
 
-  const handler = handlers[data.type] || handleDefaultNotification;
-  event.waitUntil(handler(data));
+const handlers: Partial<Record<TypedPush['type'], PushHandler>> = {
+  chat: handleChatNotification as PushHandler,
+  alert: handleAlertNotification as PushHandler,
+  update: handleUpdateNotification as PushHandler,
+};
+
+self.addEventListener('push', (event: PushEvent): void => {
+  if (event.data === null) return;
+
+  const data = event.data.json() as TypedPush;
+  const handler: PushHandler = handlers[data.type] ?? (handleDefaultNotification as PushHandler);
+  event.waitUntil(handler(data as never));
 });
 
-async function handleChatNotification(data) {
-  return self.registration.showNotification(`Message from ${data.senderName}`, {
+async function handleChatNotification(data: ChatPush): Promise<void> {
+  // Tagging per sender collapses a burst of messages into one notification
+  await self.registration.showNotification(`Message from ${data.senderName}`, {
     body: data.message,
     icon: data.senderPhoto,
     tag: `chat-${data.senderId}`,
-    requireInteraction: true
+    requireInteraction: true,
   });
 }
 ```
@@ -388,14 +408,15 @@ async function handleChatNotification(data) {
 
 ### 💡 **Defining Actions**
 
-```javascript
-const options = {
+```typescript
+const options: NotificationOptions = {
   body: 'New message from Alice',
+  // Most platforms show at most two actions. Order them by likely use
   actions: [
     { action: 'reply', title: 'Reply' },
-    { action: 'dismiss', title: 'Dismiss' }
+    { action: 'dismiss', title: 'Dismiss' },
   ],
-  data: { conversationId: 123 }
+  data: { conversationId: 123 },
 };
 ```
 
@@ -403,26 +424,26 @@ const options = {
 
 ### 💡 **Handling Actions**
 
-```javascript
-self.addEventListener('notificationclick', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('notificationclick', (event: NotificationEvent): void => {
   event.notification.close();
 
-  const data = event.notification.data;
+  const data = event.notification.data as { conversationId: number };
 
   switch (event.action) {
     case 'reply':
-      event.waitUntil(
-        clients.openWindow(`/chat/${data.conversationId}?reply=true`)
-      );
+      event.waitUntil(self.clients.openWindow(`/chat/${data.conversationId}?reply=true`));
       break;
 
     case 'dismiss':
-      // Just close (already done above)
+      // Closing above is the whole action
       break;
 
     default:
-      // Click on notification body
-      event.waitUntil(clients.openWindow('/'));
+      // Empty action means the body itself was clicked
+      event.waitUntil(self.clients.openWindow('/'));
   }
 });
 ```
@@ -454,26 +475,24 @@ self.addEventListener('notificationclick', event => {
 
 ### 💡 **Contextual Permission Request**
 
-```javascript
-async function requestPermissionContextually() {
+```typescript
+// Ask your own question first. A "Not Now" here is recoverable; a browser-level
+// "Block" is not
+async function requestPermissionContextually(): Promise<boolean> {
   if (Notification.permission !== 'default') {
     return Notification.permission === 'granted';
   }
 
-  // Show explanation first
-  const userWants = await showExplanationDialog();
+  const userWants: boolean = await showExplanationDialog();
+  if (!userWants) return false;
 
-  if (userWants) {
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
-  }
-
-  return false;
+  const permission: NotificationPermission = await Notification.requestPermission();
+  return permission === 'granted';
 }
 
-function showExplanationDialog() {
-  return new Promise(resolve => {
-    const dialog = document.createElement('div');
+function showExplanationDialog(): Promise<boolean> {
+  return new Promise<boolean>((resolve): void => {
+    const dialog: HTMLDivElement = document.createElement('div');
     dialog.className = 'permission-dialog';
     dialog.innerHTML = `
       <h2>Stay Connected</h2>
@@ -482,14 +501,14 @@ function showExplanationDialog() {
       <button class="skip">Not Now</button>
     `;
 
-    dialog.querySelector('.allow').onclick = () => {
+    dialog.querySelector<HTMLButtonElement>('.allow')?.addEventListener('click', (): void => {
       dialog.remove();
       resolve(true);
-    };
-    dialog.querySelector('.skip').onclick = () => {
+    });
+    dialog.querySelector<HTMLButtonElement>('.skip')?.addEventListener('click', (): void => {
       dialog.remove();
       resolve(false);
-    };
+    });
 
     document.body.appendChild(dialog);
   });
@@ -502,56 +521,58 @@ function showExplanationDialog() {
 
 ### 💡 **Node.js with web-push**
 
-```javascript
-const express = require('express');
-const webpush = require('web-push');
-require('dotenv').config();
+```typescript
+import express, { type Request, type Response } from 'express';
+import webpush, { type PushSubscription, type WebPushError } from 'web-push';
+import 'dotenv/config';
 
 const app = express();
 app.use(express.json());
 
-// Configure VAPID
 webpush.setVapidDetails(
   'mailto:admin@example.com',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
+  process.env.VAPID_PUBLIC_KEY as string,
+  process.env.VAPID_PRIVATE_KEY as string,
 );
 
-// Store subscriptions (use real DB in production)
-const subscriptions = new Map();
+// In-memory for the example. Production stores these against a user id
+const subscriptions = new Map<string, PushSubscription>();
 
-// Get VAPID public key
-app.get('/api/vapid-public-key', (req, res) => {
+interface SendResult {
+  id: string;
+  status: 'sent' | 'removed' | 'failed';
+}
+
+app.get('/api/vapid-public-key', (req: Request, res: Response): void => {
   res.json({ publicKey: process.env.VAPID_PUBLIC_KEY });
 });
 
-// Subscribe
-app.post('/api/notifications/subscribe', (req, res) => {
-  const { subscription } = req.body;
+app.post('/api/notifications/subscribe', (req: Request, res: Response): void => {
+  const { subscription } = req.body as { subscription: PushSubscription };
   const id = `sub-${Date.now()}`;
   subscriptions.set(id, subscription);
   res.json({ success: true, id });
 });
 
-// Send notification
-app.post('/api/notifications/send', async (req, res) => {
-  const { message } = req.body;
+app.post('/api/notifications/send', async (req: Request, res: Response): Promise<void> => {
+  const { message } = req.body as { message: { title: string; body: string; icon?: string } };
 
-  const payload = JSON.stringify({
+  const payload: string = JSON.stringify({
     title: message.title,
     body: message.body,
-    icon: message.icon || '/icon.png'
+    icon: message.icon ?? '/icon.png',
   });
 
-  const results = [];
+  const results: SendResult[] = [];
 
   for (const [id, subscription] of subscriptions) {
     try {
       await webpush.sendNotification(subscription, payload);
       results.push({ id, status: 'sent' });
-    } catch (error) {
-      if (error.statusCode === 410) {
-        // Subscription expired
+    } catch (error: unknown) {
+      // 410 Gone is the push service telling you the endpoint is dead. Delete
+      // it — retrying a 410 forever is how subscription tables rot
+      if ((error as WebPushError).statusCode === 410) {
         subscriptions.delete(id);
         results.push({ id, status: 'removed' });
       } else {
@@ -577,12 +598,12 @@ app.listen(3000);
 | 429 | Rate limited | Backoff and retry |
 | 500+ | Server error | Retry later |
 
-```javascript
-async function sendWithExpiry(subscription, payload) {
+```typescript
+async function sendWithExpiry(subscription: PushSubscription, payload: string): Promise<void> {
   try {
     await webpush.sendNotification(subscription, payload);
-  } catch (error) {
-    if (error.statusCode === 410) {
+  } catch (error: unknown) {
+    if ((error as WebPushError).statusCode === 410) {
       await removeSubscription(subscription.endpoint);
     }
     throw error;
@@ -609,20 +630,20 @@ async function sendWithExpiry(subscription, payload) {
 
 ### 💡 **DevTools Testing**
 
-```javascript
+```typescript
 // Check subscription status
-async function debugSubscription() {
-  const registration = await navigator.serviceWorker.ready;
-  const subscription = await registration.pushManager.getSubscription();
-  console.log('Subscription:', subscription);
+async function debugSubscription(): Promise<void> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
+  const subscription: PushSubscription | null = await registration.pushManager.getSubscription();
+  console.log('Subscription:', subscription?.endpoint ?? 'none');
 }
 
-// Test notification display
-async function testNotification() {
-  const registration = await navigator.serviceWorker.ready;
-  registration.showNotification('Test', {
+// Test notification display, without involving a push server
+async function testNotification(): Promise<void> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
+  await registration.showNotification('Test', {
     body: 'This is a test notification',
-    tag: 'test'
+    tag: 'test',
   });
 }
 ```
@@ -645,12 +666,9 @@ async function testNotification() {
 
 ### 💡 **Feature Detection**
 
-```javascript
-const pushSupported = () => {
-  return 'serviceWorker' in navigator &&
-         'PushManager' in window &&
-         'Notification' in window;
-};
+```typescript
+const pushSupported = (): boolean =>
+  'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 ```
 
 ---

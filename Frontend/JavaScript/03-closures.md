@@ -1,4 +1,8 @@
-# Closures
+# Closures {#ch-closures}
+
+> Use a function's captured scope on purpose — for privacy, for factories, and without leaking memory.
+
+**In this chapter:** what a closure captures · private state · function factories · the loop-variable trap · memoisation and partial application
 
 ## Understanding Closures - JavaScript's Superpower
 
@@ -84,22 +88,22 @@ Variables stay alive → As long as closure exists
 **The Key Insight:**
 > Even after the outer function has finished executing and returned, the inner function maintains a "live connection" to the outer scope's variables.
 
-```javascript
-function outerFunction() {
-    const outerVariable = 'I am from outer scope';
+```typescript
+function outerFunction(): () => void {
+  const outerVariable: string = 'I am from outer scope';
 
-    function innerFunction() {
-        console.log(outerVariable); // Can access outer variable
-    }
+  function innerFunction(): void {
+    console.log(outerVariable);
+  }
 
-    return innerFunction;
+  return innerFunction;
 }
 
-const closure = outerFunction();
-closure(); // Output: "I am from outer scope"
+const closure: () => void = outerFunction();
+closure(); // "I am from outer scope"
 
-// Even though outerFunction has finished executing,
-// innerFunction still has access to outerVariable
+// outerFunction has already returned, but innerFunction still holds
+// its scope alive
 ```
 
 ### How it works:
@@ -120,15 +124,19 @@ Before ES6 classes and private fields, closures were JavaScript's **primary mech
 **How Privacy Works:**
 
 **The Pattern:**
-```javascript
-function createCounter() {
-    let count = 0;  // ← Private variable (function scope)
+```typescript
+interface Counter {
+  increment(): number;
+  getCount(): number;
+}
 
-    return {
-        // Public methods (closures) that access private state
-        increment: () => ++count,
-        getCount: () => count
-    };
+function createCounter(): Counter {
+  let count: number = 0; // Private — the returned type does not expose it
+
+  return {
+    increment: (): number => ++count,
+    getCount: (): number => count,
+  };
 }
 ```
 
@@ -145,10 +153,10 @@ function createCounter() {
    - Act as controlled interface
 
 3. **True Encapsulation:**
-   ```javascript
-   const counter = createCounter();
-   counter.increment(); // ✅ Works - uses public method
-   counter.count;       // ❌ undefined - truly private!
+   ```typescript
+   const counter: Counter = createCounter();
+   counter.increment(); // ✅ Works — the public method
+   counter.count; // ❌ Not on the type, and not on the object
    ```
 
 **Comparison with Object Properties:**
@@ -167,13 +175,13 @@ Each call to `createCounter()` creates:
 - New private `count` variable
 - Independent state
 
-```javascript
-const counter1 = createCounter();
-const counter2 = createCounter();
+```typescript
+const counter1: Counter = createCounter();
+const counter2: Counter = createCounter();
 
 counter1.increment(); // counter1: 1
 counter2.increment(); // counter2: 1
-// Completely separate!
+// Each call to createCounter made its own `count`
 ```
 
 **Why Still Relevant:**
@@ -184,38 +192,42 @@ Even with modern features (ES6 classes, `#private` fields):
 - ✅ No `this` binding issues
 - ✅ Fundamental to understanding module patterns
 
-```javascript
-function createCounter() {
-    let count = 0; // Private variable
-
-    return {
-        increment: function() {
-            count++;
-            return count;
-        },
-        decrement: function() {
-            count--;
-            return count;
-        },
-        getCount: function() {
-            return count;
-        }
-    };
+```typescript
+interface FullCounter {
+  increment(): number;
+  decrement(): number;
+  getCount(): number;
 }
 
-const counter = createCounter();
+function createCounter(): FullCounter {
+  let count: number = 0; // Private
+
+  return {
+    increment: function (): number {
+      count++;
+      return count;
+    },
+    decrement: function (): number {
+      count--;
+      return count;
+    },
+    getCount: function (): number {
+      return count;
+    },
+  };
+}
+
+const counter: FullCounter = createCounter();
 
 console.log(counter.increment()); // 1
 console.log(counter.increment()); // 2
 console.log(counter.decrement()); // 1
-console.log(counter.getCount());  // 1
+console.log(counter.getCount()); // 1
 
-// Cannot directly access or modify count
-console.log(counter.count); // undefined
-
-// Each counter instance has its own private count
-const counter2 = createCounter();
-console.log(counter2.increment()); // 1 (independent from counter)
+// `count` is not reachable — there is no property to read
+// Each call gets its own
+const counter2: FullCounter = createCounter();
+console.log(counter2.increment()); // 1, independent of `counter`
 ```
 
 ### Real-world Use Case:
@@ -227,20 +239,22 @@ Data encapsulation - `count` is private and can only be modified through defined
 
 **Function Factory with Closures** - Function factories leverage closures to generate customized functions programmatically. The factory function takes configuration parameters and returns a function that "remembers" those parameters via closure. Each generated function gets its own closure capturing its specific parameters, enabling the creation of many specialized variations from a single factory. This pattern is powerful for creating configurable utilities, partial application, currying, and dependency injection. It's the basis for many functional programming patterns and makes code highly reusable - one factory creates infinite specialized functions without code duplication.
 
-```javascript
-function createMultiplier(multiplier) {
-    return function(number) {
-        return number * multiplier;
-    };
+```typescript
+type UnaryNumberFn = (n: number) => number;
+
+function createMultiplier(multiplier: number): UnaryNumberFn {
+  return function (n: number): number {
+    return n * multiplier;
+  };
 }
 
-const double = createMultiplier(2);
-const triple = createMultiplier(3);
+const double: UnaryNumberFn = createMultiplier(2);
+const triple: UnaryNumberFn = createMultiplier(3);
 
-console.log(double(5));  // 10
-console.log(triple(5));  // 15
+console.log(double(5)); // 10
+console.log(triple(5)); // 15
 
-// Each function "remembers" its own multiplier value
+// Each returned function remembers its own `multiplier`
 ```
 
 ### Real-world Use Case:
@@ -258,11 +272,11 @@ This is JavaScript's **most infamous closure gotcha** and a classic interview qu
 
 **The Problem:**
 
-```javascript
+```typescript
 for (var i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+  setTimeout((): void => console.log(i), 100);
 }
-// Output: 3, 3, 3 ❌ (Not 0, 1, 2!)
+// Output: 3, 3, 3 ❌ — not 0, 1, 2
 ```
 
 **Why This Happens:**
@@ -298,9 +312,9 @@ Closure 3 ──┘
 **Solutions:**
 
 **Solution 1: Use `let` (Modern, Best):**
-```javascript
+```typescript
 for (let i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+  setTimeout((): void => console.log(i), 100);
 }
 // Output: 0, 1, 2 ✅
 ```
@@ -309,13 +323,13 @@ for (let i = 0; i < 3; i++) {
 - Each closure captures its own `i`
 
 **Solution 2: IIFE (Pre-ES6):**
-```javascript
+```typescript
 for (var i = 0; i < 3; i++) {
-    (function(j) {
-        setTimeout(() => console.log(j), 100);
-    })(i);
+  (function (j: number): void {
+    setTimeout((): void => console.log(j), 100);
+  })(i);
 }
-// Output: 0, 1, 2 ✅
+// Output: 0, 1, 2 ✅ — the IIFE copies `i` into a fresh scope
 ```
 - Creates new function scope per iteration
 - `j` parameter captures current `i` value
@@ -332,31 +346,31 @@ for (var i = 0; i < 3; i++) {
 **Interview Tip:**
 > Understanding this demonstrates deep knowledge of closures, scoping, and the difference between capturing references vs values. Always use `let` in loops with closures!
 
-```javascript
-// WRONG - Common mistake
+```typescript
+// ❌ The classic mistake
 for (var i = 0; i < 3; i++) {
-    setTimeout(function() {
-        console.log(i); // Prints: 3, 3, 3
-    }, 1000);
+  setTimeout(function (): void {
+    console.log(i); // Prints 3, 3, 3
+  }, 1000);
 }
 
-// Why? Because var is function-scoped, all callbacks share
-// the same 'i' variable, which is 3 after the loop ends
+// `var` is function-scoped, so all three callbacks close over the same `i`,
+// and they read it after the loop has finished
 
-// SOLUTION 1: Use let (block-scoped)
+// ✅ Solution 1 — `let` is block-scoped
 for (let i = 0; i < 3; i++) {
-    setTimeout(function() {
-        console.log(i); // Prints: 0, 1, 2
-    }, 1000);
+  setTimeout(function (): void {
+    console.log(i); // Prints 0, 1, 2
+  }, 1000);
 }
 
-// SOLUTION 2: Use IIFE to create new scope
-for (var i = 0; i < 3; i++) {
-    (function(j) {
-        setTimeout(function() {
-            console.log(j); // Prints: 0, 1, 2
-        }, 1000);
-    })(i);
+// ✅ Solution 2 — an IIFE makes a new scope per iteration
+for (var j = 0; j < 3; j++) {
+  (function (index: number): void {
+    setTimeout(function (): void {
+      console.log(index); // Prints 0, 1, 2
+    }, 1000);
+  })(j);
 }
 ```
 
@@ -369,20 +383,19 @@ Closures can inadvertently create memory leaks by keeping references to large da
 **The Problem:**
 
 **How Closures Hold Memory:**
-```javascript
-function createHugeArray() {
-    const hugeArray = new Array(1000000).fill('data'); // 🔴 Large data
+```typescript
+function createHugeArray(): () => void {
+  const hugeArray: string[] = new Array<string>(1_000_000).fill('data');
 
-    return function() {
-        console.log('Function created');
-        // Closure exists → hugeArray stays in memory
-        // Even though we don't use it!
-    };
+  return function (): void {
+    console.log('Function created');
+    // The closure keeps the whole scope alive, including hugeArray,
+    // even though nothing here reads it
+  };
 }
 
-const func = createHugeArray();
-// ⚠️ hugeArray cannot be garbage collected
-// Closure keeps entire scope alive
+const func: () => void = createHugeArray();
+// hugeArray cannot be collected while `func` is reachable
 ```
 
 **Why This Happens:**
@@ -406,57 +419,64 @@ const func = createHugeArray();
 
 **Problematic Patterns:**
 
-```javascript
-// ❌ Bad: Keeps entire DOM tree in memory
-element.addEventListener('click', function() {
-    // Even if element is removed, event handler keeps it alive
+```typescript
+interface CacheItem {
+  id: string;
+}
+
+// ❌ The handler holds the element, so removing it from the DOM is not enough
+element.addEventListener('click', function (): void {
+  // ...
 });
 
-// ❌ Bad: Keeps large cache in memory
-function processData(largeCache) {
-    return function(id) {
-        // Closure keeps entire largeCache alive
-        return largeCache.find(item => item.id === id);
-    };
+// ❌ The returned function pins the whole cache in memory
+function processData(largeCache: CacheItem[]): (id: string) => CacheItem | undefined {
+  return function (id: string): CacheItem | undefined {
+    return largeCache.find((item: CacheItem): boolean => item.id === id);
+  };
 }
 ```
 
 **Solutions:**
 
 **Solution 1: Extract Only What You Need:**
-```javascript
-function createOptimized() {
-    const hugeArray = new Array(1000000).fill('data');
-    const needed = hugeArray[0]; // ✅ Extract specific value
+```typescript
+function createOptimized(): () => void {
+  const hugeArray: string[] = new Array<string>(1_000_000).fill('data');
+  const needed: string = hugeArray[0]; // ✅ Take only the value you want
 
-    // hugeArray can now be garbage collected
-    return function() {
-        console.log(needed); // Only 'needed' stays in memory
-    };
+  // Nothing in the returned function references hugeArray, so it can go
+  return function (): void {
+    console.log(needed);
+  };
 }
 ```
 
 **Solution 2: Nullify References:**
-```javascript
-function createWithCleanup() {
-    let hugeArray = new Array(1000000).fill('data');
-    const result = processArray(hugeArray);
+```typescript
+function createWithCleanup(): () => ProcessedResult {
+  let hugeArray: string[] | null = new Array<string>(1_000_000).fill('data');
+  const result: ProcessedResult = processArray(hugeArray);
 
-    hugeArray = null; // ✅ Help GC by clearing reference
+  hugeArray = null; // ✅ Drop the reference explicitly
 
-    return function() {
-        return result;
-    };
+  return function (): ProcessedResult {
+    return result;
+  };
 }
 ```
 
 **Solution 3: Remove Event Listeners:**
-```javascript
-const handler = function() { /* ... */ };
+```typescript
+// Keep the reference — removeEventListener matches by identity, so an
+// inline arrow can never be removed
+const handler = function (): void {
+  /* ... */
+};
 element.addEventListener('click', handler);
 
-// Later, when element is removed:
-element.removeEventListener('click', handler); // ✅ Allow GC
+// Later, when the element goes away
+element.removeEventListener('click', handler);
 ```
 
 **Best Practices:**
@@ -475,28 +495,27 @@ element.removeEventListener('click', handler); // ✅ Allow GC
 - Large datasets in closures
 - Frequently created/destroyed components
 
-```javascript
-// Potential memory leak
-function createHugeArray() {
-    const hugeArray = new Array(1000000).fill('data');
+```typescript
+// ❌ Potential memory leak
+function createHugeArray(): () => void {
+  const hugeArray: string[] = new Array<string>(1_000_000).fill('data');
 
-    return function() {
-        console.log('Function created');
-        // The closure keeps reference to hugeArray even if not used
-    };
+  return function (): void {
+    console.log('Function created');
+    // The closure holds hugeArray whether or not it is read
+  };
 }
 
-const func = createHugeArray(); // hugeArray stays in memory
+const func: () => void = createHugeArray(); // hugeArray stays in memory
 
-// SOLUTION: Only close over what you need
-function createOptimized() {
-    const hugeArray = new Array(1000000).fill('data');
-    const needed = hugeArray[0]; // Extract only what's needed
+// ✅ Close over the value, not the container
+function createOptimized(): () => void {
+  const hugeArray: string[] = new Array<string>(1_000_000).fill('data');
+  const needed: string = hugeArray[0];
 
-    return function() {
-        console.log(needed); // Only 'needed' is in closure
-        // hugeArray can be garbage collected
-    };
+  return function (): void {
+    console.log(needed);
+  };
 }
 ```
 
@@ -504,6 +523,7 @@ function createOptimized() {
 
 **'this' Binding in Closures** - Shows how arrow functions capture 'this' from outer scope while regular functions have their own 'this' binding.
 
+<!-- lint-allow-fence: javascript — the contrast depends on a `function` expression having its own undefined `this`; under `noImplicitThis` TypeScript rejects the second half, which is the half the reader needs to see fail -->
 ```javascript
 const obj = {
     value: 42,
@@ -534,104 +554,118 @@ obj.getValue();
 
 **Private State Management** - Implements a bank account with private balance using closures, demonstrating secure state management with controlled access.
 
-```javascript
-// Good: Encapsulated state
-function createBankAccount(initialBalance) {
-    let balance = initialBalance;
-
-    return {
-        deposit: (amount) => {
-            if (amount > 0) {
-                balance += amount;
-                return balance;
-            }
-        },
-        withdraw: (amount) => {
-            if (amount > 0 && amount <= balance) {
-                balance -= amount;
-                return balance;
-            }
-            return 'Insufficient funds';
-        },
-        getBalance: () => balance
-    };
+```typescript
+interface BankAccount {
+  deposit(amount: number): number | undefined;
+  withdraw(amount: number): number | string;
+  getBalance(): number;
 }
 
-const account = createBankAccount(1000);
-console.log(account.deposit(500));    // 1500
-console.log(account.withdraw(200));   // 1300
-console.log(account.getBalance());    // 1300
+// The balance is unreachable from outside — no convention, no underscore,
+// no way in at all
+function createBankAccount(initialBalance: number): BankAccount {
+  let balance: number = initialBalance;
+
+  return {
+    deposit: (amount: number): number | undefined => {
+      if (amount > 0) {
+        balance += amount;
+        return balance;
+      }
+      return undefined;
+    },
+    withdraw: (amount: number): number | string => {
+      if (amount > 0 && amount <= balance) {
+        balance -= amount;
+        return balance;
+      }
+      return 'Insufficient funds';
+    },
+    getBalance: (): number => balance,
+  };
+}
+
+const account: BankAccount = createBankAccount(1000);
+console.log(account.deposit(500)); // 1500
+console.log(account.withdraw(200)); // 1300
+console.log(account.getBalance()); // 1300
 ```
 
 ### 2. Module Pattern
 
 **Module Pattern with IIFE** - Uses immediately-invoked function expression with closures to create modules with private variables and public API.
 
-```javascript
-const calculator = (function() {
-    // Private variables and functions
-    let result = 0;
+```typescript
+interface Calculator {
+  add(a: number, b: number): number;
+  multiply(a: number, b: number): number;
+  getResult(): number;
+}
 
-    function log(message) {
-        console.log(`Calculator: ${message}`);
-    }
+const calculator: Calculator = (function (): Calculator {
+  // Private state and helpers
+  let result: number = 0;
 
-    // Public API
-    return {
-        add: function(a, b) {
-            result = a + b;
-            log(`${a} + ${b} = ${result}`);
-            return result;
-        },
-        multiply: function(a, b) {
-            result = a * b;
-            log(`${a} * ${b} = ${result}`);
-            return result;
-        },
-        getResult: function() {
-            return result;
-        }
-    };
+  function log(message: string): void {
+    console.log(`Calculator: ${message}`);
+  }
+
+  // Public API — the interface is the whole contract
+  return {
+    add: function (a: number, b: number): number {
+      result = a + b;
+      log(`${a} + ${b} = ${result}`);
+      return result;
+    },
+    multiply: function (a: number, b: number): number {
+      result = a * b;
+      log(`${a} * ${b} = ${result}`);
+      return result;
+    },
+    getResult: function (): number {
+      return result;
+    },
+  };
 })();
 
-calculator.add(5, 3);      // Calculator: 5 + 3 = 8
+calculator.add(5, 3); // Calculator: 5 + 3 = 8
 calculator.multiply(4, 2); // Calculator: 4 * 2 = 8
-console.log(calculator.result); // undefined (private)
+// calculator.result — not on the type; the module pattern hid it
 ```
 
 ### 3. Memoization with Closures
 
 **Caching Function Results** - Creates a memoization wrapper using closures to cache expensive function results, improving performance through result reuse.
 
-```javascript
-function memoize(fn) {
-    const cache = {};
+```typescript
+// The cache lives in the closure, so it is per-wrapped-function and cannot
+// be inspected or corrupted from outside
+function memoize<Args extends unknown[], R>(fn: (...args: Args) => R): (...args: Args) => R {
+  const cache = new Map<string, R>();
 
-    return function(...args) {
-        const key = JSON.stringify(args);
+  return function (...args: Args): R {
+    const key: string = JSON.stringify(args);
 
-        if (cache[key]) {
-            console.log('Returning from cache');
-            return cache[key];
-        }
+    // Map.has, not a truthiness check — a cached `0` or `false` is still a hit
+    if (cache.has(key)) {
+      return cache.get(key) as R;
+    }
 
-        console.log('Calculating...');
-        const result = fn.apply(this, args);
-        cache[key] = result;
-        return result;
-    };
+    const result: R = fn(...args);
+    cache.set(key, result);
+    return result;
+  };
 }
 
-// Example: Expensive fibonacci calculation
-function fibonacci(n) {
-    if (n <= 1) return n;
-    return fibonacci(n - 1) + fibonacci(n - 2);
+function fibonacci(n: number): number {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-const memoizedFib = memoize(fibonacci);
+const memoizedFib: (n: number) => number = memoize(fibonacci);
 
-console.log(memoizedFib(10)); // Calculating... 55
-console.log(memoizedFib(10)); // Returning from cache 55
+console.log(memoizedFib(10)); // Calculated: 55
+console.log(memoizedFib(10)); // From cache: 55
 ```
 
 ---
@@ -642,19 +676,18 @@ console.log(memoizedFib(10)); // Returning from cache 55
 
 **Dynamic Event Handlers** - Creates event handlers that capture specific data through closures, enabling unique behavior for each handler instance.
 
-```javascript
-function createButtonHandler(buttonId, message) {
-    return function() {
-        console.log(`Button ${buttonId} clicked: ${message}`);
-        // Can access buttonId and message even after setup
-    };
+```typescript
+function createButtonHandler(buttonId: string, message: string): () => void {
+  return function (): void {
+    // Both values are still here long after setup finished
+    console.log(`Button ${buttonId} clicked: ${message}`);
+  };
 }
 
-// Setup multiple buttons
-const buttons = ['btn1', 'btn2', 'btn3'];
-buttons.forEach((id, index) => {
-    const handler = createButtonHandler(id, `Message ${index}`);
-    // In real code: document.getElementById(id).addEventListener('click', handler);
+const buttons: readonly string[] = ['btn1', 'btn2', 'btn3'];
+buttons.forEach((id: string, index: number): void => {
+  const handler: () => void = createButtonHandler(id, `Message ${index}`);
+  document.getElementById(id)?.addEventListener('click', handler);
 });
 ```
 
@@ -662,55 +695,58 @@ buttons.forEach((id, index) => {
 
 **Partial Function Application** - Uses closures to pre-fill function arguments, creating specialized versions of generic functions for reusability.
 
-```javascript
-function partial(fn, ...fixedArgs) {
-    return function(...remainingArgs) {
-        return fn.apply(this, [...fixedArgs, ...remainingArgs]);
-    };
+```typescript
+// The fixed arguments live in the closure, not in a wrapper object
+function partial<Fixed extends unknown[], Rest extends unknown[], R>(
+  fn: (...args: [...Fixed, ...Rest]) => R,
+  ...fixedArgs: Fixed
+): (...rest: Rest) => R {
+  return function (...remainingArgs: Rest): R {
+    return fn(...fixedArgs, ...remainingArgs);
+  };
 }
 
-function greet(greeting, name) {
-    return `${greeting}, ${name}!`;
+function greet(greeting: string, name: string): string {
+  return `${greeting}, ${name}!`;
 }
 
 const sayHello = partial(greet, 'Hello');
 const sayHi = partial(greet, 'Hi');
 
 console.log(sayHello('Alice')); // Hello, Alice!
-console.log(sayHi('Bob'));      // Hi, Bob!
+console.log(sayHi('Bob')); // Hi, Bob!
 ```
 
 ### Scenario 3: React Hooks Pattern
 
 **useState Implementation Concept** - Simplified version showing how React's useState uses closures to maintain state between function calls.
 
-```javascript
-// Simplified version of how useState works internally
-function createUseState() {
-    let state = null;
+```typescript
+// A stripped-down model of how React 19's useState holds state between
+// renders. The real one keys state by hook position on the fiber; the
+// closure is the part worth understanding
+function createUseState<T>(): (initialValue?: T) => [T, (newValue: T) => void] {
+  let state: T | null = null;
 
-    function useState(initialValue) {
-        if (state === null) {
-            state = initialValue;
-        }
-
-        function setState(newValue) {
-            state = newValue;
-            // In React, this would trigger re-render
-        }
-
-        return [state, setState];
+  return function useState(initialValue?: T): [T, (newValue: T) => void] {
+    if (state === null && initialValue !== undefined) {
+      state = initialValue;
     }
 
-    return useState;
+    function setState(newValue: T): void {
+      state = newValue;
+      // In React this schedules a re-render
+    }
+
+    return [state as T, setState];
+  };
 }
 
-// Usage
-const useState = createUseState();
+const useState = createUseState<number>();
 const [count, setCount] = useState(0);
 console.log(count); // 0
 setCount(5);
-const [newCount] = useState(); // Gets current state
+const [newCount] = useState(); // Reads the current state
 console.log(newCount); // 5
 ```
 

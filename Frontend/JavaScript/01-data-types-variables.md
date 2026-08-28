@@ -1,4 +1,8 @@
-# Data Types & Variables
+# Data Types and Variables {#ch-data-types-and-variables}
+
+> Predict what a value will do before you run it — which types copy, which share, and which comparisons lie.
+
+**In this chapter:** primitives vs references · type coercion · `var`, `let` and `const` · shallow vs deep copies · narrowing `unknown`
 
 ## Understanding JavaScript Type System
 
@@ -56,12 +60,12 @@ Understanding the fundamental difference between these types is crucial for avoi
 **Common Bug Source:**
 This is one of JavaScript's most frequent sources of bugs - accidentally mutating shared objects when you intended to create independent copies.
 
-```javascript
+```typescript
 // PRIMITIVE TYPES (stored by value)
 // string, number, boolean, undefined, null, symbol, bigint
 
-let a = 10;
-let b = a;  // Copy value
+let a: number = 10;
+let b: number = a; // Copies the value
 b = 20;
 console.log(a); // 10 (unchanged)
 console.log(b); // 20
@@ -69,15 +73,19 @@ console.log(b); // 20
 // REFERENCE TYPES (stored by reference)
 // objects, arrays, functions
 
-let obj1 = { name: 'Alice' };
-let obj2 = obj1;  // Copy reference, not value
+interface Person {
+  name: string;
+}
+
+let obj1: Person = { name: 'Alice' };
+let obj2: Person = obj1; // Copies the reference, not the object
 obj2.name = 'Bob';
 console.log(obj1.name); // 'Bob' (changed!)
 console.log(obj2.name); // 'Bob'
 
-// Arrays are objects
-let arr1 = [1, 2, 3];
-let arr2 = arr1;
+// Arrays are objects, so the same rule applies
+let arr1: number[] = [1, 2, 3];
+let arr2: number[] = arr1;
 arr2.push(4);
 console.log(arr1); // [1, 2, 3, 4] (changed!)
 console.log(arr2); // [1, 2, 3, 4]
@@ -131,6 +139,7 @@ When operators encounter mixed types, JavaScript attempts to convert them to com
 **Truthy (everything else):**
 - `'0'`, `'false'`, `[]`, `{}`, any non-zero number, any function
 
+<!-- lint-allow-fence: javascript — the subject is implicit coercion; TypeScript rejects `'5' - 3` and `5 == '5'`, which is exactly what this fence has to show -->
 ```javascript
 // Implicit type coercion
 console.log('5' + 3);      // '53' (number to string)
@@ -192,14 +201,14 @@ The evolution from `var` to `let`/`const` represents a major improvement in Java
 - **Mutation**: ✅ Objects/arrays CAN be mutated
 - **Initialization**: Must be initialized at declaration
 - **Key Point**:
-  ```javascript
-  const obj = { a: 1 };
-  obj.a = 2;        // ✅ OK - mutating property
-  obj = {};         // ❌ Error - reassigning variable
+  ```typescript
+  const obj: { a: number } = { a: 1 };
+  obj.a = 2; // ✅ OK — mutating a property
+  obj = {}; // ❌ Error — reassigning the binding
 
-  const arr = [1, 2];
-  arr.push(3);      // ✅ OK - mutating array
-  arr = [];         // ❌ Error - reassigning variable
+  const arr: number[] = [1, 2];
+  arr.push(3); // ✅ OK — mutating the array
+  arr = []; // ❌ Error — reassigning the binding
   ```
 
 **✅ Modern Best Practice:**
@@ -210,43 +219,48 @@ The evolution from `var` to `let`/`const` represents a major improvement in Java
 
 This simple rule prevents many scoping bugs and signals your intent clearly.
 
-```javascript
-// VAR (function-scoped, hoisted)
-function varExample() {
-    console.log(x); // undefined (hoisted)
-    var x = 10;
+```typescript
+// VAR — function-scoped, hoisted
+function varExample(): void {
+  console.log(x); // undefined — the declaration hoists, the assignment does not
+  var x: number = 10;
 
-    if (true) {
-        var x = 20; // Same variable!
-    }
-    console.log(x); // 20
+  if (true) {
+    var x = 20; // The same variable, not a new one
+  }
+  console.log(x); // 20
 }
 
-// LET (block-scoped)
-function letExample() {
-    // console.log(y); // ReferenceError (temporal dead zone)
-    let y = 10;
+// LET — block-scoped
+function letExample(): void {
+  // console.log(y); // ReferenceError — temporal dead zone
+  let y: number = 10;
 
-    if (true) {
-        let y = 20; // Different variable
-        console.log(y); // 20
-    }
-    console.log(y); // 10
+  if (true) {
+    let y: number = 20; // A different variable
+    console.log(y); // 20
+  }
+  console.log(y); // 10
 }
 
-// CONST (block-scoped, cannot reassign)
-const PI = 3.14159;
-// PI = 3.14; // TypeError
+// CONST — block-scoped, cannot be reassigned
+const PI: number = 3.14159;
+// PI = 3.14; // Error
 
-// But can mutate objects/arrays
-const person = { name: 'Alice' };
+// The binding is constant; the object it points at is not
+interface Person {
+  name: string;
+  age?: number;
+}
+
+const person: Person = { name: 'Alice' };
 person.name = 'Bob'; // OK
-person.age = 30;     // OK
-// person = {};      // TypeError
+person.age = 30; // OK
+// person = {};      // Error
 
-const arr = [1, 2, 3];
-arr.push(4);  // OK
-// arr = [];  // TypeError
+const arr: number[] = [1, 2, 3];
+arr.push(4); // OK
+// arr = [];  // Error
 ```
 
 ---
@@ -257,6 +271,7 @@ arr.push(4);  // OK
 
 **Type Coercion Edge Cases** - Demonstrates unexpected results from implicit type conversion, especially with arrays and objects, highlighting why strict equality is essential.
 
+<!-- lint-allow-fence: javascript — every line here is a coercion TypeScript refuses to compile; annotating them would delete the lesson -->
 ```javascript
 // Array to string coercion
 console.log([1, 2] + [3, 4]); // '1,23,4'
@@ -280,25 +295,25 @@ console.log('' === 0);     // false
 
 **Unintended Mutations** - Shows how modifying objects or arrays passed to functions affects the original, and how to create copies to avoid this.
 
-```javascript
-// Unexpected mutation
-function addItem(arr, item) {
-    arr.push(item);
-    return arr;
+```typescript
+// ❌ Unexpected mutation — the caller's array is changed
+function addItem<T>(arr: T[], item: T): T[] {
+  arr.push(item);
+  return arr;
 }
 
-const original = [1, 2, 3];
-const modified = addItem(original, 4);
-console.log(original); // [1, 2, 3, 4] - Mutated!
+const original: number[] = [1, 2, 3];
+const modified: number[] = addItem(original, 4);
+console.log(original); // [1, 2, 3, 4] — mutated!
 
-// SOLUTION: Create copy
-function addItemSafe(arr, item) {
-    return [...arr, item]; // Spread operator
+// ✅ Return a copy. `readonly T[]` makes the intent enforceable
+function addItemSafe<T>(arr: readonly T[], item: T): T[] {
+  return [...arr, item];
 }
 
-const original2 = [1, 2, 3];
-const modified2 = addItemSafe(original2, 4);
-console.log(original2); // [1, 2, 3] - Unchanged
+const original2: number[] = [1, 2, 3];
+const modified2: number[] = addItemSafe(original2, 4);
+console.log(original2); // [1, 2, 3] — unchanged
 console.log(modified2); // [1, 2, 3, 4]
 ```
 
@@ -306,18 +321,18 @@ console.log(modified2); // [1, 2, 3, 4]
 
 **var Scope Problems in Loops** - Illustrates the classic closure problem with var in loops and why let is the solution for block-scoped variables.
 
-```javascript
-// Problem with var in loops
+```typescript
+// ❌ One `i` shared by all three callbacks
 for (var i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+  setTimeout((): void => console.log(i), 100);
 }
-// Prints: 3, 3, 3 (var is function-scoped)
+// Prints: 3, 3, 3 — var is function-scoped
 
-// SOLUTION: Use let
+// ✅ `let` gives each iteration its own binding
 for (let i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+  setTimeout((): void => console.log(i), 100);
 }
-// Prints: 0, 1, 2 (let is block-scoped)
+// Prints: 0, 1, 2
 ```
 
 ---
@@ -328,49 +343,54 @@ for (let i = 0; i < 3; i++) {
 
 **Modern Variable Declaration** - Demonstrates the recommended approach of using const for immutable bindings and let for reassignable values.
 
-```javascript
-// Good
-const MAX_SIZE = 100;
-const user = { name: 'Alice' };
+```typescript
+// ✅ Good
+const MAX_SIZE: number = 100;
+const user: Person = { name: 'Alice' };
 
-let counter = 0;
+let counter: number = 0;
 counter++;
 
-// Avoid
-var x = 10; // Don't use var in modern JavaScript
+// ❌ Avoid — `var` has no block scope and hoists
+var x: number = 10;
 ```
 
 ### 2. Always use strict equality (===)
 
 **Strict vs Loose Equality** - Shows why strict equality (===) prevents unexpected type coercion bugs compared to loose equality (==).
 
-```javascript
-// Good
-if (value === 0) { }
-if (user !== null) { }
+```typescript
+// ✅ Good
+if (value === 0) {
+}
+if (user !== null) {
+}
 
-// Avoid
-if (value == 0) { }
-if (user != null) { }
+// ❌ Avoid — loose equality coerces before comparing
+if (value == 0) {
+}
+if (user != null) {
+}
 
-// Exception: checking for null or undefined
-if (value == null) { } // Checks both null and undefined
+// The one defensible use: `== null` catches null and undefined together
+if (value == null) {
+}
 ```
 
 ### 3. Be explicit with type conversions
 
 **Explicit Type Conversion** - Demonstrates clear, readable type conversions using built-in constructors instead of relying on implicit coercion.
 
-```javascript
-// Good - explicit conversion
-const num = Number(str);
-const str2 = String(num);
-const bool = Boolean(value);
+```typescript
+// ✅ Explicit conversion — the reader sees the intent and the type
+const num: number = Number(str);
+const str2: string = String(num);
+const bool: boolean = Boolean(value);
 
-// Avoid - implicit coercion
-const num2 = +str;
-const str3 = num + '';
-const bool2 = !!value;
+// ❌ Implicit coercion — same result, no signal
+const num2: number = +str;
+const str3: string = num + '';
+const bool2: boolean = !!value;
 ```
 
 ---
@@ -381,32 +401,34 @@ const bool2 = !!value;
 
 **Deep vs Shallow Copying** - Compares different techniques for cloning objects, from shallow spread operators to deep cloning with JSON or recursive functions.
 
-```javascript
-// Shallow copy (only top level)
-const original = { a: 1, b: { c: 2 } };
-const shallow = { ...original };
+```typescript
+interface Nested {
+  a: number;
+  b: { c: number };
+}
+
+// Shallow copy — top level only
+const original: Nested = { a: 1, b: { c: 2 } };
+const shallow: Nested = { ...original };
 shallow.b.c = 3;
-console.log(original.b.c); // 3 (nested object still shared!)
+console.log(original.b.c); // 3 — the nested object is still shared
 
-// Deep copy solutions
-// 1. JSON method (limited)
-const deep1 = JSON.parse(JSON.stringify(original));
+// 1. JSON round trip. Loses Date, Map, Set, undefined and functions
+const deep1: Nested = JSON.parse(JSON.stringify(original)) as Nested;
 
-// 2. structuredClone (modern browsers)
-const deep2 = structuredClone(original);
+// 2. structuredClone — handles Date, Map and Set; throws on functions
+const deep2: Nested = structuredClone(original);
 
-// 3. Recursive function
-function deepClone(obj) {
-    if (obj === null || typeof obj !== 'object') return obj;
-    if (Array.isArray(obj)) return obj.map(deepClone);
+// 3. By hand, when you need control over what is cloned
+function deepClone<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(deepClone) as T;
 
-    const cloned = {};
-    for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            cloned[key] = deepClone(obj[key]);
-        }
-    }
-    return cloned;
+  const cloned: Record<string, unknown> = {};
+  for (const key of Object.keys(obj)) {
+    cloned[key] = deepClone((obj as Record<string, unknown>)[key]);
+  }
+  return cloned as T;
 }
 ```
 
@@ -414,33 +436,34 @@ function deepClone(obj) {
 
 **Runtime Type Checking** - Shows how to properly check types using typeof, Array.isArray, and strict equality for null, avoiding common typeof quirks.
 
-```javascript
-function processValue(value) {
-    // Check primitive types
-    if (typeof value === 'string') {
-        return value.toUpperCase();
-    }
-    if (typeof value === 'number') {
-        return value * 2;
-    }
-    if (typeof value === 'boolean') {
-        return !value;
-    }
+```typescript
+// TypeScript narrows `unknown` on each check, so `value` has the right
+// methods inside each branch with no casting
+function processValue(value: unknown): string | number | boolean | undefined {
+  if (typeof value === 'string') {
+    return value.toUpperCase();
+  }
+  if (typeof value === 'number') {
+    return value * 2;
+  }
+  if (typeof value === 'boolean') {
+    return !value;
+  }
 
-    // Check for null (typeof null === 'object')
-    if (value === null) {
-        return 'Value is null';
-    }
+  // typeof null === 'object', so null must be checked before objects
+  if (value === null) {
+    return 'Value is null';
+  }
 
-    // Check for array
-    if (Array.isArray(value)) {
-        return value.length;
-    }
+  if (Array.isArray(value)) {
+    return value.length;
+  }
 
-    // Check for object
-    if (typeof value === 'object') {
-        return Object.keys(value).length;
-    }
+  if (typeof value === 'object') {
+    return Object.keys(value).length;
+  }
+
+  return undefined;
 }
 ```
 
@@ -448,33 +471,31 @@ function processValue(value) {
 
 **Immutable Data Patterns** - Demonstrates techniques for updating nested objects and arrays without mutation, essential for state management in React and Redux.
 
-```javascript
-// State update pattern (React-style)
-const state = {
-    user: { name: 'Alice', age: 30 },
-    settings: { theme: 'dark' }
+```typescript
+interface AppState {
+  user: { name: string; age: number };
+  settings: { theme: 'light' | 'dark' };
+}
+
+const state: AppState = {
+  user: { name: 'Alice', age: 30 },
+  settings: { theme: 'dark' },
 };
 
-// Update nested property immutably
-const newState = {
-    ...state,
-    user: {
-        ...state.user,
-        age: 31
-    }
+// Spread is shallow — every level you change needs its own spread
+const newState: AppState = {
+  ...state,
+  user: {
+    ...state.user,
+    age: 31,
+  },
 };
 
-// Array immutable operations
-const numbers = [1, 2, 3, 4, 5];
+const numbers: readonly number[] = [1, 2, 3, 4, 5];
 
-// Add item
-const added = [...numbers, 6];
-
-// Remove item
-const removed = numbers.filter(n => n !== 3);
-
-// Update item
-const updated = numbers.map(n => n === 3 ? 30 : n);
+const added: number[] = [...numbers, 6];
+const removed: number[] = numbers.filter((n: number): boolean => n !== 3);
+const updated: number[] = numbers.map((n: number): number => (n === 3 ? 30 : n));
 ```
 
 ---

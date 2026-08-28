@@ -4,16 +4,16 @@
 
 The N+1 problem occurs when you make 1 query to fetch N items, then N additional queries to fetch related data.
 
-```javascript
-// ❌ N+1 Problem: 1 + N queries
-const users = await User.findAll();  // 1 query
+```typescript
+// ❌ N+1 problem — 1 query for the list, then N more inside the loop
+const users: User[] = await User.findAll();
 for (const user of users) {
-  const posts = await Post.findAll({ where: { userId: user.id } });  // N queries
+  const posts: Post[] = await Post.findAll({ where: { userId: user.id } });
 }
 
-// ✅ Solution: Eager loading
-const users = await User.findAll({
-  include: [Post]  // 1 query with JOIN
+// ✅ Eager loading — the database does the join, so it stays one round trip
+const usersWithPosts: User[] = await User.findAll({
+  include: [Post],
 });
 ```
 
@@ -72,44 +72,52 @@ SELECT * FROM users WHERE EXISTS (SELECT 1 FROM orders WHERE user_id = users.id)
 
 ### 6. Batch Operations
 
-```javascript
-// ❌ Multiple queries
+```typescript
+import { Op } from 'sequelize';
+
+// ❌ One UPDATE per row — N round trips
 for (const user of users) {
   await User.update({ status: 'active' }, { where: { id: user.id } });
 }
 
-// ✅ Single query
+// ✅ One UPDATE for the whole set
+const userIds: number[] = users.map((user: User): number => user.id);
 await User.update({ status: 'active' }, { where: { id: { [Op.in]: userIds } } });
 ```
 
 ## Connection Pooling
 
-```javascript
-// TypeORM
-{
+```typescript
+import { DataSource, type DataSourceOptions } from 'typeorm';
+
+const options: DataSourceOptions = {
   type: 'postgres',
   host: 'localhost',
   port: 5432,
   username: 'user',
-  password: 'password',
+  password: process.env.DB_PASSWORD,
   database: 'mydb',
   extra: {
-    max: 10,  // Maximum connections
-    min: 2,   // Minimum connections
-    idleTimeoutMillis: 30000
-  }
-}
+    max: 10, // Ceiling. Size it to the database's connection limit, not the app's
+    min: 2, // Floor. Keeps a warm connection so the first request is not slow
+    idleTimeoutMillis: 30_000,
+  },
+};
+
+const dataSource = new DataSource(options);
 ```
 
 ## Caching Strategies
 
 ### 1. Query Result Caching
 
-```javascript
-// Cache frequently accessed data
-const users = await cache.wrap('all_users', async () => {
-  return await User.findAll();
-}, { ttl: 300 });  // 5 minutes
+```typescript
+// Cache-aside: the cache answers if it can, the database only on a miss
+const users: User[] = await cache.wrap<User[]>(
+  'all_users',
+  async (): Promise<User[]> => User.findAll(),
+  { ttl: 300 }, // seconds — short enough that stale data self-corrects
+);
 ```
 
 ### 2. Database Query Cache
@@ -121,15 +129,18 @@ SET SESSION query_cache_type = ON;
 
 ### 3. Application-Level Caching
 
-```javascript
-const Redis = require('redis');
-const client = Redis.createClient();
+```typescript
+import { createClient, type RedisClientType } from 'redis';
 
-// Cache user
-await client.set(`user:${id}`, JSON.stringify(user), 'EX', 3600);
+const client: RedisClientType = createClient();
+await client.connect();
 
-// Get cached user
-const cached = await client.get(`user:${id}`);
+// Write through, with an expiry. A cache entry with no TTL is a memory leak
+await client.set(`user:${id}`, JSON.stringify(user), { EX: 3600 });
+
+// Read back. `null` means a miss, so the caller must fall through to the database
+const cached: string | null = await client.get(`user:${id}`);
+const user: User | null = cached === null ? null : (JSON.parse(cached) as User);
 ```
 
 ## Database Optimization

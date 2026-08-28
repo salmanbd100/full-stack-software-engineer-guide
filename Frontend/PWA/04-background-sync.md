@@ -111,34 +111,35 @@ Registers a single synchronization task that fires once when connectivity is res
 
 **Client-Side (main.js):**
 
-```javascript
-async function submitFormOffline(formData) {
+```typescript
+interface PendingForm {
+  id: number;
+  data: FormPayload;
+  timestamp: string;
+}
+
+async function submitFormOffline(formData: FormPayload): Promise<unknown> {
   try {
     // Try to send immediately
-    const response = await fetch('/api/submit', {
+    const response: Response = await fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
     });
 
-    if (response.ok) {
-      return response.json();
-    }
-  } catch (error) {
-    // Network error - save for background sync
-    console.log('Offline - queuing for sync');
-
-    // Save to IndexedDB
+    if (response.ok) return response.json();
+  } catch {
+    // Network error — save for background sync
     const db = await openDB('app-db', 1);
     await db.add('pending-forms', {
       id: Date.now(),
       data: formData,
-      timestamp: new Date().toISOString()
-    });
+      timestamp: new Date().toISOString(),
+    } satisfies PendingForm);
 
-    // Register sync tag
+    // Register the tag. The browser decides when to fire it
     if ('SyncManager' in window) {
-      const registration = await navigator.serviceWorker.ready;
+      const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
       await registration.sync.register('sync-forms');
       return { queued: true, message: 'Will send when online' };
     }
@@ -148,35 +149,38 @@ async function submitFormOffline(formData) {
 
 **Service Worker (sw.js):**
 
-```javascript
-self.addEventListener('sync', event => {
-  console.log('Sync event:', event.tag);
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
+// SyncEvent is not in the DOM lib yet — declare the shape you depend on
+interface SyncEvent extends ExtendableEvent {
+  readonly tag: string;
+  readonly lastChance: boolean;
+}
+
+self.addEventListener('sync', ((event: SyncEvent): void => {
   if (event.tag === 'sync-forms') {
     event.waitUntil(syncPendingForms());
   }
-});
+}) as EventListener);
 
-async function syncPendingForms() {
+async function syncPendingForms(): Promise<void> {
   const db = await openDB('app-db', 1);
-  const forms = await db.getAll('pending-forms');
+  const forms: PendingForm[] = await db.getAll('pending-forms');
 
   for (const form of forms) {
     try {
-      const response = await fetch('/api/submit', {
+      const response: Response = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form.data)
+        body: JSON.stringify(form.data),
       });
 
-      if (response.ok) {
-        // Remove from queue
-        await db.delete('pending-forms', form.id);
-        console.log('Synced:', form.id);
-      }
-    } catch (error) {
-      console.error('Sync failed, will retry:', error);
-      throw error; // Rethrow to trigger retry
+      if (response.ok) await db.delete('pending-forms', form.id);
+    } catch (error: unknown) {
+      // Rethrowing is the signal to the browser to retry this tag later.
+      // Swallowing the error tells it the sync succeeded
+      throw error;
     }
   }
 }
@@ -215,28 +219,35 @@ Allows tasks to run periodically (e.g., every 24 hours) even when the app is not
 
 **Client-Side:**
 
-```javascript
-async function enablePeriodicSync() {
+```typescript
+interface PeriodicSyncManager {
+  register(tag: string, options?: { minInterval: number }): Promise<void>;
+  getTags(): Promise<string[]>;
+}
+
+async function enablePeriodicSync(): Promise<void> {
   if (!('periodicSync' in ServiceWorkerRegistration.prototype)) {
     console.warn('Periodic sync not supported');
     return;
   }
 
   try {
-    const registration = await navigator.serviceWorker.ready;
+    const registration = (await navigator.serviceWorker.ready) as ServiceWorkerRegistration & {
+      periodicSync: PeriodicSyncManager;
+    };
 
-    // Request permission first
-    const status = await navigator.permissions.query({
-      name: 'periodic-background-sync'
+    const status: PermissionStatus = await navigator.permissions.query({
+      name: 'periodic-background-sync' as PermissionName,
     });
 
     if (status.state === 'granted') {
+      // minInterval is a floor, not a promise. The browser fires it based on
+      // engagement and battery, and may never fire it at all
       await registration.periodicSync.register('daily-sync', {
-        minInterval: 24 * 60 * 60 * 1000 // 24 hours
+        minInterval: 24 * 60 * 60 * 1000,
       });
-      console.log('Periodic sync registered');
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to register periodic sync:', error);
   }
 }
@@ -244,26 +255,26 @@ async function enablePeriodicSync() {
 
 **Service Worker:**
 
-```javascript
-self.addEventListener('periodicsync', event => {
-  console.log('Periodic sync:', event.tag);
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
+self.addEventListener('periodicsync', ((event: SyncEvent): void => {
   if (event.tag === 'daily-sync') {
     event.waitUntil(performDailySync());
   }
-});
+}) as EventListener);
 
-async function performDailySync() {
-  // Update cache
-  const cache = await caches.open('app-cache');
+async function performDailySync(): Promise<void> {
+  // Refresh cached config
+  const cache: Cache = await caches.open('app-cache');
   await cache.add('/api/config');
 
-  // Send analytics
-  const analytics = await getStoredAnalytics();
+  // Flush queued analytics in one batch
+  const analytics: AnalyticsEvent[] = await getStoredAnalytics();
   if (analytics.length > 0) {
     await fetch('/api/analytics/batch', {
       method: 'POST',
-      body: JSON.stringify({ events: analytics })
+      body: JSON.stringify({ events: analytics }),
     });
     await clearStoredAnalytics();
   }
@@ -286,17 +297,22 @@ async function performDailySync() {
 | 6 | Sync event fires |
 | 7 | Send and clear queue |
 
-```javascript
+```typescript
+interface SubmitResult {
+  queued: boolean;
+}
+
 class FormManager {
-  async submitForm(formData) {
+  // Save first, send second. If the tab dies mid-request the data survives
+  async submitForm(formData: FormPayload): Promise<SubmitResult | unknown> {
     await this.saveLocal(formData);
 
     try {
-      const response = await this.sendToServer(formData);
+      const response: unknown = await this.sendToServer(formData);
       await this.removeLocal(formData.id);
       return response;
-    } catch (error) {
-      const registration = await navigator.serviceWorker.ready;
+    } catch {
+      const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
       await registration.sync.register('sync-forms');
       return { queued: true };
     }
@@ -314,32 +330,38 @@ class FormManager {
 | `sent` | Delivered to server |
 | `failed` | Permanent failure |
 
-```javascript
+```typescript
+interface ChatMessage {
+  id: number;
+  conversationId: string;
+  text: string;
+  timestamp: string;
+  status: 'pending' | 'sent' | 'failed';
+}
+
 class ChatManager {
-  async sendMessage(conversationId, text) {
-    const message = {
+  async sendMessage(conversationId: string, text: string): Promise<void> {
+    const message: ChatMessage = {
       id: Date.now(),
       conversationId,
       text,
       timestamp: new Date().toISOString(),
-      status: 'pending'
+      status: 'pending',
     };
 
-    // Save and display immediately
+    // Save and render immediately — the user should never wait on the network
     await this.saveMessage(message);
     this.displayMessage(message);
 
     try {
       await fetch('/api/messages', {
         method: 'POST',
-        body: JSON.stringify(message)
+        body: JSON.stringify(message),
       });
 
-      message.status = 'sent';
-      await this.updateMessage(message);
-    } catch (error) {
-      // Queue for sync
-      const registration = await navigator.serviceWorker.ready;
+      await this.updateMessage({ ...message, status: 'sent' });
+    } catch {
+      const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
       await registration.sync.register('sync-messages');
     }
   }
@@ -352,33 +374,39 @@ class ChatManager {
 
 Queue analytics offline, batch sync when online.
 
-```javascript
+```typescript
+interface AnalyticsEvent {
+  id: number;
+  name: string;
+  data: Record<string, unknown>;
+  timestamp: string;
+}
+
 class AnalyticsManager {
-  async trackEvent(eventName, data) {
-    const event = {
+  async trackEvent(eventName: string, data: Record<string, unknown>): Promise<void> {
+    const event: AnalyticsEvent = {
+      id: Date.now(),
       name: eventName,
       data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    // Always queue first
+    // Queue first, always. The send is best-effort
     await this.queueEvent(event);
-
-    // Try non-blocking send
-    this.sendBatch().catch(() => {});
+    void this.sendBatch().catch((): void => {});
   }
 
-  async sendBatch() {
-    const events = await this.getQueuedEvents();
+  async sendBatch(): Promise<void> {
+    const events: AnalyticsEvent[] = await this.getQueuedEvents();
     if (events.length === 0) return;
 
-    const response = await fetch('/api/analytics', {
+    const response: Response = await fetch('/api/analytics', {
       method: 'POST',
-      body: JSON.stringify({ events })
+      body: JSON.stringify({ events }),
     });
 
     if (response.ok) {
-      await this.clearEvents(events.map(e => e.id));
+      await this.clearEvents(events.map((e: AnalyticsEvent): number => e.id));
     }
   }
 }
@@ -390,83 +418,96 @@ class AnalyticsManager {
 
 ### 💡 **Step 1: Register Service Worker**
 
-```javascript
-// app.js
-async function registerServiceWorker() {
+```typescript
+// app.ts
+async function registerServiceWorker(): Promise<ServiceWorkerRegistration | undefined> {
   if (!('serviceWorker' in navigator)) {
     console.warn('Service Workers not supported');
-    return;
+    return undefined;
   }
 
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('Service Worker registered');
-    return registration;
-  } catch (error) {
+    return await navigator.serviceWorker.register('/sw.js');
+  } catch (error: unknown) {
     console.error('Registration failed:', error);
+    return undefined;
   }
 }
 
-document.addEventListener('DOMContentLoaded', registerServiceWorker);
+document.addEventListener('DOMContentLoaded', (): void => {
+  void registerServiceWorker();
+});
 ```
 
 ---
 
 ### 💡 **Step 2: Set Up Sync Handlers**
 
-```javascript
-// sw.js
-self.addEventListener('sync', event => {
-  const handlers = {
-    'sync-forms': syncForms,
-    'sync-messages': syncMessages,
-    'sync-data': syncData
-  };
+```typescript
+// sw.ts
+declare const self: ServiceWorkerGlobalScope;
 
-  if (event.tag in handlers) {
-    event.waitUntil(handlers[event.tag]());
-  }
-});
+type SyncHandler = () => Promise<void>;
 
-async function syncForms() { /* ... */ }
-async function syncMessages() { /* ... */ }
-async function syncData() { /* ... */ }
+const handlers: Record<string, SyncHandler> = {
+  'sync-forms': syncForms,
+  'sync-messages': syncMessages,
+  'sync-data': syncData,
+};
+
+self.addEventListener('sync', ((event: SyncEvent): void => {
+  const handler: SyncHandler | undefined = handlers[event.tag];
+  if (handler !== undefined) event.waitUntil(handler());
+}) as EventListener);
+
+async function syncForms(): Promise<void> {
+  /* ... */
+}
+async function syncMessages(): Promise<void> {
+  /* ... */
+}
+async function syncData(): Promise<void> {
+  /* ... */
+}
 ```
 
 ---
 
 ### 💡 **Step 3: Handle Online/Offline Events**
 
-```javascript
+```typescript
 class OfflineHandler {
+  private online: boolean;
+
   constructor() {
+    // navigator.onLine only proves a network interface exists, not that the
+    // internet is reachable. Treat it as a hint, not a fact
     this.online = navigator.onLine;
-    window.addEventListener('online', () => this.handleOnline());
-    window.addEventListener('offline', () => this.handleOffline());
+    window.addEventListener('online', (): void => void this.handleOnline());
+    window.addEventListener('offline', (): void => this.handleOffline());
   }
 
-  handleOffline() {
+  handleOffline(): void {
     this.online = false;
     this.showBanner('You are offline. Changes will sync when online.');
   }
 
-  async handleOnline() {
+  async handleOnline(): Promise<void> {
     this.online = true;
     this.hideBanner();
 
-    // Trigger manual sync
-    const registration = await navigator.serviceWorker.ready;
+    const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
     await registration.sync.register('sync-all');
   }
 
-  showBanner(message) {
-    const banner = document.createElement('div');
+  showBanner(message: string): void {
+    const banner: HTMLDivElement = document.createElement('div');
     banner.className = 'offline-banner';
     banner.textContent = message;
     document.body.appendChild(banner);
   }
 
-  hideBanner() {
+  hideBanner(): void {
     document.querySelector('.offline-banner')?.remove();
   }
 }
@@ -491,39 +532,41 @@ Use descriptive tags for different sync tasks.
 
 ### 💡 **Implementation**
 
-```javascript
-// Constants
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+// `as const` makes SyncTag a union of the four literals, so a typo is a
+// compile error rather than a sync that silently never fires
 const SYNC_TAGS = {
   FORMS: 'sync-forms',
   MESSAGES: 'sync-messages',
   PHOTOS: 'sync-photos',
-  ANALYTICS: 'sync-analytics'
-};
+  ANALYTICS: 'sync-analytics',
+} as const;
 
-// Register specific tag
-async function registerSync(tag) {
-  const registration = await navigator.serviceWorker.ready;
+type SyncTag = (typeof SYNC_TAGS)[keyof typeof SYNC_TAGS];
+
+async function registerSync(tag: SyncTag): Promise<void> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
   await registration.sync.register(tag);
 }
 
-// Service Worker: Handle all tags
-self.addEventListener('sync', event => {
-  const handlers = {
-    [SYNC_TAGS.FORMS]: syncForms,
-    [SYNC_TAGS.MESSAGES]: syncMessages,
-    [SYNC_TAGS.PHOTOS]: syncPhotos,
-    [SYNC_TAGS.ANALYTICS]: syncAnalytics
-  };
+// In the worker — one handler per tag
+const handlers: Record<SyncTag, SyncHandler> = {
+  [SYNC_TAGS.FORMS]: syncForms,
+  [SYNC_TAGS.MESSAGES]: syncMessages,
+  [SYNC_TAGS.PHOTOS]: syncPhotos,
+  [SYNC_TAGS.ANALYTICS]: syncAnalytics,
+};
 
-  if (event.tag in handlers) {
-    event.waitUntil(handlers[event.tag]());
-  }
-});
+self.addEventListener('sync', ((event: SyncEvent): void => {
+  const handler: SyncHandler | undefined = handlers[event.tag as SyncTag];
+  if (handler !== undefined) event.waitUntil(handler());
+}) as EventListener);
 
-// Check pending tags
-async function getPendingTags() {
-  const registration = await navigator.serviceWorker.ready;
-  return await registration.sync.getTags();
+async function getPendingTags(): Promise<string[]> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
+  return registration.sync.getTags();
 }
 ```
 
@@ -547,19 +590,18 @@ async function getPendingTags() {
 
 ### 💡 **DevTools Testing**
 
-```javascript
+```typescript
 // Check pending sync tags
-async function debugSyncTags() {
-  const registration = await navigator.serviceWorker.ready;
-  const tags = await registration.sync.getTags();
+async function debugSyncTags(): Promise<void> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
+  const tags: string[] = await registration.sync.getTags();
   console.log('Pending sync tags:', tags);
 }
 
 // Manually trigger sync
-async function triggerSync(tag) {
-  const registration = await navigator.serviceWorker.ready;
+async function triggerSync(tag: string): Promise<void> {
+  const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
   await registration.sync.register(tag);
-  console.log(`Sync triggered: ${tag}`);
 }
 ```
 
@@ -567,40 +609,31 @@ async function triggerSync(tag) {
 
 ### 💡 **Automated Testing**
 
-```javascript
-describe('Background Sync', () => {
-  test('queues data when offline', async () => {
-    // Mock fetch to fail
+```typescript
+describe('Background Sync', (): void => {
+  test('queues data when offline', async (): Promise<void> => {
     global.fetch = jest.fn().mockRejectedValue(new Error('Network'));
 
-    // Mock sync registration
     const mockRegister = jest.fn();
-    navigator.serviceWorker = {
-      ready: Promise.resolve({
-        sync: { register: mockRegister }
-      })
-    };
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { ready: Promise.resolve({ sync: { register: mockRegister } }) },
+      configurable: true,
+    });
 
-    // Submit form
     await submitForm({ name: 'test' });
 
-    // Verify sync registered
     expect(mockRegister).toHaveBeenCalledWith('sync-forms');
   });
 
-  test('syncs queued data', async () => {
-    // Setup pending data
+  test('syncs queued data', async (): Promise<void> => {
     const db = await openDB('app-db', 1);
     await db.add('pending-forms', { id: 1, data: { name: 'test' } });
 
-    // Mock successful fetch
-    global.fetch = jest.fn().mockResolvedValue({ ok: true });
+    global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response);
 
-    // Trigger sync
     await syncPendingForms();
 
-    // Verify data cleared
-    const pending = await db.getAll('pending-forms');
+    const pending: PendingForm[] = await db.getAll('pending-forms');
     expect(pending).toHaveLength(0);
   });
 });
@@ -624,21 +657,16 @@ describe('Background Sync', () => {
 
 ### 💡 **Feature Detection**
 
-```javascript
-const backgroundSyncSupported = () => {
-  return 'serviceWorker' in navigator && 'SyncManager' in window;
-};
+```typescript
+const backgroundSyncSupported = (): boolean =>
+  'serviceWorker' in navigator && 'SyncManager' in window;
 
-const periodicSyncSupported = () => {
-  return 'periodicSync' in ServiceWorkerRegistration.prototype;
-};
+const periodicSyncSupported = (): boolean =>
+  'periodicSync' in ServiceWorkerRegistration.prototype;
 
-// Graceful degradation
-async function initializeSync() {
-  if (backgroundSyncSupported()) {
-    console.log('Background sync supported');
-  } else {
-    console.log('Using fallback: polling');
+// Safari supports neither, so the fallback is not an edge case
+function initializeSync(): void {
+  if (!backgroundSyncSupported()) {
     startPollingFallback();
   }
 }
@@ -648,27 +676,25 @@ async function initializeSync() {
 
 ### 💡 **Fallback Strategy**
 
-```javascript
-class SyncManager {
-  async queueAction(action) {
+```typescript
+class ActionSyncManager {
+  async queueAction(action: QueuedAction): Promise<void> {
     await this.saveLocal(action);
 
     if (backgroundSyncSupported()) {
-      // Use Background Sync
-      const registration = await navigator.serviceWorker.ready;
+      const registration: ServiceWorkerRegistration = await navigator.serviceWorker.ready;
       await registration.sync.register('sync-actions');
-    } else {
-      // Fallback: check online status and retry
-      this.startPolling();
+      return;
     }
+
+    // Fallback — only runs while a tab is open, which is the whole limitation
+    this.startPolling();
   }
 
-  startPolling() {
-    setInterval(async () => {
-      if (navigator.onLine) {
-        await this.syncAll();
-      }
-    }, 30000); // Every 30 seconds
+  startPolling(): void {
+    setInterval((): void => {
+      if (navigator.onLine) void this.syncAll();
+    }, 30_000);
   }
 }
 ```
@@ -690,33 +716,27 @@ class SyncManager {
 
 ### 💡 **Basic Workbox Setup**
 
-```javascript
+```typescript
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
-import { registerRoute } from 'workbox-routing';
+import { registerRoute, type RouteMatchCallbackOptions } from 'workbox-routing';
 import { NetworkFirst } from 'workbox-strategies';
 
 // Create sync queue
 const bgSyncPlugin = new BackgroundSyncPlugin('api-queue', {
-  maxRetentionTime: 24 * 60 // 24 hours in minutes
+  maxRetentionTime: 24 * 60, // minutes — a day-old form submission is usually noise
 });
 
 // Apply to routes
 registerRoute(
-  ({ url }) => url.pathname === '/api/forms',
-  new NetworkFirst({
-    cacheName: 'forms-cache',
-    plugins: [bgSyncPlugin]
-  }),
-  'POST'
+  ({ url }: RouteMatchCallbackOptions): boolean => url.pathname === '/api/forms',
+  new NetworkFirst({ cacheName: 'forms-cache', plugins: [bgSyncPlugin] }),
+  'POST',
 );
 
 registerRoute(
-  ({ url }) => url.pathname === '/api/messages',
-  new NetworkFirst({
-    cacheName: 'messages-cache',
-    plugins: [bgSyncPlugin]
-  }),
-  'POST'
+  ({ url }: RouteMatchCallbackOptions): boolean => url.pathname === '/api/messages',
+  new NetworkFirst({ cacheName: 'messages-cache', plugins: [bgSyncPlugin] }),
+  'POST',
 );
 ```
 
@@ -724,38 +744,43 @@ registerRoute(
 
 ### 💡 **Workbox with Next.js**
 
-```javascript
-// next.config.js
-const withPWA = require('next-pwa')({
+```typescript
+// next.config.ts
+import withPWAInit from 'next-pwa';
+import type { NextConfig } from 'next';
+
+const withPWA = withPWAInit({
   dest: 'public',
   register: true,
-  skipWaiting: true
+  skipWaiting: true,
 });
 
-module.exports = withPWA({
+const config: NextConfig = {
   // Next.js config
-});
+};
+
+export default withPWA(config);
 ```
 
-```javascript
-// sw.js (custom service worker)
-import { precacheAndRoute } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+```typescript
+// sw.ts (custom service worker)
+import { precacheAndRoute, type PrecacheEntry } from 'workbox-precaching';
+import { registerRoute, type RouteMatchCallbackOptions } from 'workbox-routing';
 import { NetworkFirst } from 'workbox-strategies';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
 
-precacheAndRoute(self.__WB_MANIFEST || []);
+declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: (string | PrecacheEntry)[] };
+
+precacheAndRoute(self.__WB_MANIFEST ?? []);
 
 const bgSyncPlugin = new BackgroundSyncPlugin('sync-queue', {
-  maxRetentionTime: 24 * 60
+  maxRetentionTime: 24 * 60,
 });
 
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/'),
-  new NetworkFirst({
-    plugins: [bgSyncPlugin]
-  }),
-  'POST'
+  ({ url }: RouteMatchCallbackOptions): boolean => url.pathname.startsWith('/api/'),
+  new NetworkFirst({ plugins: [bgSyncPlugin] }),
+  'POST',
 );
 ```
 
@@ -767,22 +792,23 @@ registerRoute(
 
 Retry with increasing delays: 1s → 2s → 4s → 8s.
 
-```javascript
-async function syncWithRetry(task, maxRetries = 5) {
+```typescript
+async function syncWithRetry(task: () => Promise<void>, maxRetries = 5): Promise<void> {
   let delay = 1000;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       await task();
-      return; // Success
-    } catch (error) {
+      return;
+    } catch {
       if (attempt >= maxRetries) {
         throw new Error(`Failed after ${maxRetries} attempts`);
       }
 
-      console.log(`Attempt ${attempt} failed, waiting ${delay}ms`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      delay *= 2; // Double delay
+      await new Promise<void>((resolve): void => {
+        setTimeout(resolve, delay);
+      });
+      delay *= 2; // 1s, 2s, 4s, 8s
     }
   }
 }
@@ -800,8 +826,16 @@ async function syncWithRetry(task, maxRetries = 5) {
 | 500 Server Error | ✅ Yes | Retry |
 | 401 Unauthorized | ❌ No | Re-authenticate |
 
-```javascript
-function classifyError(error) {
+```typescript
+type ErrorClass = 'RETRY' | 'BACKOFF' | 'PERMANENT' | 'AUTH' | 'UNKNOWN';
+
+interface ClassifiableError {
+  name?: string;
+  status?: number;
+}
+
+// Retrying a 400 forever is the classic background-sync bug. Classify first
+function classifyError(error: ClassifiableError): ErrorClass {
   if (error.name === 'NetworkError') return 'RETRY';
   if (error.status === 429) return 'BACKOFF';
   if (error.status === 400) return 'PERMANENT';
@@ -815,37 +849,39 @@ function classifyError(error) {
 
 ### 💡 **Complete Retry Handler**
 
-```javascript
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-forms') {
-    event.waitUntil(
-      syncWithRetry(async () => {
-        const db = await openDB('app-db', 1);
-        const forms = await db.getAll('pending-forms');
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
-        for (const form of forms) {
-          const response = await fetch('/api/submit', {
-            method: 'POST',
-            body: JSON.stringify(form.data)
-          });
+self.addEventListener('sync', ((event: SyncEvent): void => {
+  if (event.tag !== 'sync-forms') return;
 
-          const errorType = classifyError(response);
+  event.waitUntil(
+    syncWithRetry(async (): Promise<void> => {
+      const db = await openDB('app-db', 1);
+      const forms: PendingForm[] = await db.getAll('pending-forms');
 
-          if (response.ok) {
-            await db.delete('pending-forms', form.id);
-          } else if (errorType === 'PERMANENT') {
-            // Remove permanently failed items
-            await db.delete('pending-forms', form.id);
-            console.error('Permanent failure:', form.id);
-          } else {
-            // Will retry on next sync
-            throw new Error(`HTTP ${response.status}`);
-          }
+      for (const form of forms) {
+        const response: Response = await fetch('/api/submit', {
+          method: 'POST',
+          body: JSON.stringify(form.data),
+        });
+
+        if (response.ok) {
+          await db.delete('pending-forms', form.id);
+          continue;
         }
-      }, 3)
-    );
-  }
-});
+
+        if (classifyError(response) === 'PERMANENT') {
+          // A 400 will still be a 400 tomorrow. Drop it rather than retry forever
+          await db.delete('pending-forms', form.id);
+          continue;
+        }
+
+        throw new Error(`HTTP ${response.status}`); // Retry on the next sync
+      }
+    }, 3),
+  );
+}) as EventListener);
 ```
 
 ---
@@ -895,14 +931,14 @@ self.addEventListener('sync', event => {
 | 7 | Update local state on success |
 
 **Key Pattern:**
-```javascript
-async function addItem(item) {
-  await saveLocal(item);        // Step 1
-  renderItem(item);             // Step 2
+```typescript
+async function addItem(item: Item): Promise<void> {
+  await saveLocal(item); // 1 — durable before anything else
+  renderItem(item); // 2 — optimistic UI
   try {
     await fetch('/api/items', { method: 'POST', body: JSON.stringify(item) });
   } catch {
-    await registration.sync.register('sync-items');  // Step 4
+    await registration.sync.register('sync-items'); // 3 — hand it to the browser
   }
 }
 ```
@@ -952,9 +988,15 @@ async function addItem(item) {
 | `synced` | Checkmark |
 | `failed` | Warning icon + retry button |
 
-```javascript
-// Listen for status updates from Service Worker
-navigator.serviceWorker.addEventListener('message', event => {
+```typescript
+interface SyncStatusMessage {
+  type: 'SYNC_STATUS';
+  tag: string;
+  status: 'pending' | 'synced' | 'failed';
+}
+
+// Listen for status updates from the worker
+navigator.serviceWorker.addEventListener('message', (event: MessageEvent<SyncStatusMessage>): void => {
   if (event.data.type === 'SYNC_STATUS') {
     updateStatusUI(event.data.tag, event.data.status);
   }
@@ -985,14 +1027,14 @@ navigator.serviceWorker.addEventListener('message', event => {
 | **Conflict resolution** | Last-write-wins or merge |
 | **Optimistic locking** | Detect concurrent changes |
 
-```javascript
-// Idempotency header
+```typescript
+// A retried sync can arrive twice. The key lets the server discard the duplicate
 await fetch('/api/sync', {
   method: 'POST',
   headers: {
-    'X-Idempotency-Key': `${item.id}-${item.version}`
+    'X-Idempotency-Key': `${item.id}-${item.version}`,
   },
-  body: JSON.stringify(item)
+  body: JSON.stringify(item),
 });
 ```
 

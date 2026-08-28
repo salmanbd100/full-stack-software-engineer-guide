@@ -205,4 +205,4 @@ an unexpected state, but wanted your input before merging."
 
 ---
 
-**Related:** [English Fluency](./03-english-fluency.md) | [Written Communication](./08-written-communication.md) | [Active Listening](./09-active-listening.md)
+**Related:** [English Fluency](./03-english-fluency.md) | [Written Communication](./07-written-communication.md) | [Active Listening](./08-active-listening.md)

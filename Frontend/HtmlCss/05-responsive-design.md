@@ -1,8 +1,8 @@
-# Responsive Design
+# Responsive Design {#ch-responsive-design}
 
-> Designing interfaces that adapt to any screen, input mode, and user preference — not just three breakpoints.
+> Build one interface that adapts to any screen, input mode and user preference, without a breakpoint for every device.
 
----
+**In this chapter:** mobile-first and `min-width` · fluid units · media queries beyond width · container queries · responsive images · breakpoint strategy
 
 ## 1. Mobile-First Philosophy
 

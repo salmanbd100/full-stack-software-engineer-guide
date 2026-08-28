@@ -249,7 +249,7 @@ interface CancelBookingResponse {
 
 > The virtual queue is the architectural difference that separates Ticketmaster-scale systems from naive ones. Without it, 1M simultaneous users all reach the database and either crash it or starve each other out. The queue converts chaos into a controlled, metered flow.
 
-See [../Database/sql-transactions.md](../Database/sql-transactions.md) for optimistic locking patterns, [../Scalability/rate-limiting.md](../Scalability/rate-limiting.md) for token bucket algorithms, and [../BuildingBlocks/message-queues.md](../BuildingBlocks/message-queues.md) for the Kafka confirmation event pipeline.
+See [../Database/06-transactions.md](../Database/06-transactions.md) for optimistic locking patterns, [12-rate-limiter.md](./12-rate-limiter.md) for token bucket algorithms, and [../BuildingBlocks/05-message-queues.md](../BuildingBlocks/05-message-queues.md) for the Kafka confirmation event pipeline.
 
 ## Common Follow-up Questions
 

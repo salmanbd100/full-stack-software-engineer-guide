@@ -1,6 +1,8 @@
-# Prototypes & Inheritance
+# Prototypes and Inheritance {#ch-prototypes-and-inheritance}
 
-JavaScript uses **prototypal inheritance**, fundamentally different from classical inheritance in languages like Java, C++, or Python. Instead of classes creating instances, JavaScript objects inherit directly from other objects through prototype links. This delegation-based model is more flexible but requires a different mental model.
+> Follow a property lookup up the prototype chain and explain what `class` is actually doing underneath.
+
+**In this chapter:** delegation vs classical inheritance · the prototype chain · `Object.create` · constructor functions · what `class` compiles to
 
 ## Why Prototypes Matter
 

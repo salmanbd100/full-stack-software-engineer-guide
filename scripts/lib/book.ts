@@ -73,8 +73,7 @@ const PART_BY_PREFIX: readonly [string, number][] = [
   ["OOP", 1],
   ["Backend/DesignPatterns", 1],
 
-  ["Frontend/Html&CSS", 2],
-  ["Frontend/HtmlCss", 2], // post-rename (#11)
+  ["Frontend/HtmlCss", 2], // renamed from Html&CSS at #11
   ["Frontend/BrowserAPIs", 2],
   ["Frontend/Internationalization", 2],
   ["Frontend/PWA", 2],

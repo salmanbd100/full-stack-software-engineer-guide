@@ -1375,4 +1375,6 @@ Is array/string sorted?
 5. **Space efficiency**: Usually O(1) space, making it very efficient
 6. **From O(n²) to O(n)**: Eliminates need for nested loops in many scenarios
 
+---
+
 [← Previous: Prefix Sum](./02-prefix-sum.md) | [Back to Index](./README.md) | [Next: Sliding Window →](./04-sliding-window.md)

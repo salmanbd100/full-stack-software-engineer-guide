@@ -1,6 +1,8 @@
-# Functions & Scope
+# Functions and Scope {#ch-functions-and-scope}
 
-Understanding functions and scope is fundamental to JavaScript mastery. Functions are first-class citizens in JavaScript - they can be assigned to variables, passed as arguments, returned from other functions, and have properties and methods. Scope determines variable accessibility and lifetime, forming the foundation for closures, modules, and encapsulation.
+> Know where every variable lives, how long it lives, and which of the three declaration forms to reach for.
+
+**In this chapter:** declarations vs expressions · arrow functions and what they lack · block vs function scope · hoisting and the temporal dead zone · default and rest parameters
 
 ## Why Functions and Scope Matter
 
@@ -47,10 +49,10 @@ Function declarations are the traditional way to define functions in JavaScript.
 - Hoisting can be confusing for some developers
 - Less flexible than expressions
 
-```javascript
-// Hoisted to top of scope
-function greet(name) {
-    return `Hello, ${name}!`;
+```typescript
+// Hoisted to the top of the scope
+function greet(name: string): string {
+  return `Hello, ${name}!`;
 }
 
 console.log(greet('Alice')); // "Hello, Alice!"
@@ -60,10 +62,10 @@ console.log(greet('Alice')); // "Hello, Alice!"
 
 **Non-Hoisted Function Expression** - Function expressions are not hoisted and must be defined before use, assigned to variables like any other value.
 
-```javascript
-// Not hoisted, assigned to variable
-const greet = function(name) {
-    return `Hello, ${name}!`;
+```typescript
+// Not hoisted — the binding exists only from this line down
+const greet = function (name: string): string {
+  return `Hello, ${name}!`;
 };
 
 console.log(greet('Bob')); // "Hello, Bob!"
@@ -73,10 +75,11 @@ console.log(greet('Bob')); // "Hello, Bob!"
 
 **Self-Referencing Function** - Named function expressions allow the function to reference itself by name, useful for recursion while keeping the name scoped internally.
 
-```javascript
-const factorial = function fact(n) {
-    if (n <= 1) return 1;
-    return n * fact(n - 1); // Can call itself by name
+```typescript
+// The inner name `fact` is visible only inside the function body
+const factorial = function fact(n: number): number {
+  if (n <= 1) return 1;
+  return n * fact(n - 1);
 };
 
 console.log(factorial(5)); // 120
@@ -92,7 +95,7 @@ Arrow functions (ES6) provide concise syntax, especially useful for short functi
 
 **Syntax Variations:**
 
-```javascript
+```text
 // 0 parameters
 () => expression
 
@@ -131,25 +134,29 @@ x => {
 **Readability Trade-off:**
 > Conciseness is great for simple operations, but use regular functions for non-trivial logic or when you need clear function names in stack traces.
 
-```javascript
+```typescript
+interface User {
+  name: string;
+}
+
 // Traditional function
-const add = function(a, b) {
-    return a + b;
+const add = function (a: number, b: number): number {
+  return a + b;
 };
 
 // Arrow function
-const addArrow = (a, b) => a + b;
+const addArrow = (a: number, b: number): number => a + b;
 
-// Single parameter (no parentheses needed)
-const double = n => n * 2;
+// Single parameter — TypeScript needs the parentheses to hold the annotation
+const double = (n: number): number => n * 2;
 
 // No parameters
-const getRandom = () => Math.random();
+const getRandom = (): number => Math.random();
 
-// Multiple statements (need curly braces and return)
-const processUser = (user) => {
-    const name = user.name.toUpperCase();
-    return `User: ${name}`;
+// Multiple statements need braces and an explicit return
+const processUser = (user: User): string => {
+  const name: string = user.name.toUpperCase();
+  return `User: ${name}`;
 };
 ```
 
@@ -194,6 +201,7 @@ Arrow functions sacrifice flexibility for conciseness. Here's what they **don't*
 | Need `arguments` | Regular ✅ |
 | Generators | Regular ✅ |
 
+<!-- lint-allow-fence: javascript — the point is that arrows have no own `this` and no `arguments`; TypeScript rejects `this.value` in an object-literal arrow and `arguments` in an arrow, so the errors would replace the lesson -->
 ```javascript
 // 1. No 'this' binding
 const obj = {
@@ -236,14 +244,14 @@ arrowWithRest(1, 2, 3);
 
 **Global Variables** - Variables declared outside any function are globally scoped and accessible everywhere in the code.
 
-```javascript
-// Variables accessible everywhere
-var globalVar = 'I am global';
-let globalLet = 'Also global';
-const globalConst = 'Global constant';
+```typescript
+// Accessible everywhere in this module
+var globalVar: string = 'I am global';
+let globalLet: string = 'Also global';
+const globalConst: string = 'Global constant';
 
-function showGlobal() {
-    console.log(globalVar); // Accessible
+function showGlobal(): void {
+  console.log(globalVar); // Accessible
 }
 ```
 
@@ -251,18 +259,18 @@ function showGlobal() {
 
 **Function-Scoped Variables** - Variables declared with var are scoped to their containing function, accessible throughout the entire function regardless of block.
 
-```javascript
-function outer() {
-    var functionScoped = 'Only in function';
+```typescript
+function outer(): void {
+  var functionScoped: string = 'Only in function';
 
-    if (true) {
-        var stillFunctionScoped = 'Still accessible';
-    }
+  if (true) {
+    var stillFunctionScoped: string = 'Still accessible';
+  }
 
-    console.log(stillFunctionScoped); // Works! var is function-scoped
+  console.log(stillFunctionScoped); // Works — var is function-scoped
 }
 
-// console.log(functionScoped); // ReferenceError
+// console.log(functionScoped); // Error — not in scope here
 ```
 
 **Block Scope (let & const)**
@@ -281,32 +289,32 @@ Block scoping (enabled by `let` and `const`) treats any curly braces `{ }` as a 
 **Key Benefits:**
 
 **1. Prevents Variable Leaking:**
-```javascript
+```typescript
 if (true) {
-    let x = 10;
-    const y = 20;
+  let x: number = 10;
+  const y: number = 20;
 }
-console.log(x); // ❌ ReferenceError - x doesn't leak out
+console.log(x); // ❌ Error — `x` does not leak out of the block
 ```
 
 **2. Loop Variables - The Classic Example:**
 
 **With `var` (Broken):**
-```javascript
+```typescript
 for (var i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+  setTimeout((): void => console.log(i), 100);
 }
 // Output: 3, 3, 3 ❌
-// All closures share the same 'i' (final value)
+// All three closures capture the same `i`, and read it after the loop ends
 ```
 
 **With `let` (Fixed):**
-```javascript
+```typescript
 for (let i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+  setTimeout((): void => console.log(i), 100);
 }
 // Output: 0, 1, 2 ✅
-// Each iteration gets its own 'i'
+// `let` creates a fresh binding per iteration
 ```
 
 **Why This Happens:**
@@ -329,45 +337,45 @@ Makes JavaScript's scoping model similar to other languages (Java, C, C++):
 | **Loop closures** | ❌ Broken | ✅ Works correctly |
 | **Intuitive** | ❌ Confusing | ✅ Predictable |
 
-```javascript
+```typescript
 {
-    let blockScoped = 'In block';
-    const alsoBlockScoped = 'Also in block';
-    var notBlockScoped = 'Function scoped';
+  let blockScoped: string = 'In block';
+  const alsoBlockScoped: string = 'Also in block';
+  var notBlockScoped: string = 'Function scoped';
 }
 
-// console.log(blockScoped); // ReferenceError
-// console.log(alsoBlockScoped); // ReferenceError
-console.log(notBlockScoped); // Works!
+// console.log(blockScoped); // Error
+// console.log(alsoBlockScoped); // Error
+console.log(notBlockScoped); // Works — var ignores the block
 
-// Common use case: for loops
+// Where it bites: loops
 for (let i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+  setTimeout((): void => console.log(i), 100);
 }
-// Prints: 0, 1, 2 (each closure gets own 'i')
+// Prints: 0, 1, 2 — each closure has its own `i`
 
 for (var j = 0; j < 3; j++) {
-    setTimeout(() => console.log(j), 100);
+  setTimeout((): void => console.log(j), 100);
 }
-// Prints: 3, 3, 3 (all closures share same 'j')
+// Prints: 3, 3, 3 — all three share one `j`
 ```
 
 **Lexical Scope**
 
 **Scope Chain** - Inner functions can access variables from outer functions through lexical scoping, but not vice versa.
 
-```javascript
-function outer() {
-    const outerVar = 'outer';
+```typescript
+function outer(): void {
+  const outerVar: string = 'outer';
 
-    function inner() {
-        const innerVar = 'inner';
-        console.log(outerVar); // Can access outer variable
-        console.log(innerVar); // Can access own variable
-    }
+  function inner(): void {
+    const innerVar: string = 'inner';
+    console.log(outerVar); // Reaches out to the parent scope
+    console.log(innerVar); // Its own
+  }
 
-    inner();
-    // console.log(innerVar); // ReferenceError: Can't access inner variable
+  inner();
+  // console.log(innerVar); // Error — scope only looks outward, never inward
 }
 
 outer();
@@ -379,19 +387,19 @@ outer();
 
 **Function vs Expression Hoisting** - Function declarations are fully hoisted and can be called before definition, unlike function expressions which behave like variables.
 
-```javascript
-// Function declarations are hoisted
-greet('Alice'); // Works! "Hello, Alice!"
+```typescript
+// Function declarations are hoisted, body and all
+greet('Alice'); // Works — "Hello, Alice!"
 
-function greet(name) {
-    return `Hello, ${name}!`;
+function greet(name: string): string {
+  return `Hello, ${name}!`;
 }
 
-// Function expressions are NOT hoisted
-// sayHi('Bob'); // ReferenceError
+// Function expressions are not
+// sayHi('Bob'); // Error — used before assignment
 
-const sayHi = function(name) {
-    return `Hi, ${name}!`;
+const sayHi = function (name: string): string {
+  return `Hi, ${name}!`;
 };
 ```
 
@@ -399,45 +407,45 @@ const sayHi = function(name) {
 
 **Temporal Dead Zone** - var declarations are hoisted but initialized as undefined, while let/const are hoisted but remain in temporal dead zone until declaration.
 
-```javascript
-console.log(x); // undefined (declaration hoisted, not initialization)
-var x = 5;
+```typescript
+console.log(x); // undefined — the declaration hoists, the assignment does not
+var x: number = 5;
 
 // Equivalent to:
 // var x;
 // console.log(x);
 // x = 5;
 
-// let and const are hoisted but in "temporal dead zone"
-// console.log(y); // ReferenceError
-let y = 10;
+// let and const hoist too, but into the temporal dead zone
+// console.log(y); // Error
+let y: number = 10;
 
-// console.log(z); // ReferenceError
-const z = 15;
+// console.log(z); // Error
+const z: number = 15;
 ```
 
 ### 5. Default Parameters
 
 **Default Parameter Values** - ES6 allows setting default values for function parameters, including expressions and references to previous parameters.
 
-```javascript
-// ES6 default parameters
-function greet(name = 'Guest', greeting = 'Hello') {
-    return `${greeting}, ${name}!`;
+```typescript
+// A default makes the parameter optional; the type is inferred from it
+function greet(name = 'Guest', greeting = 'Hello'): string {
+  return `${greeting}, ${name}!`;
 }
 
 console.log(greet()); // "Hello, Guest!"
 console.log(greet('Alice')); // "Hello, Alice!"
 console.log(greet('Bob', 'Hi')); // "Hi, Bob!"
 
-// Default can be expressions
-function createUser(name, id = Date.now()) {
-    return { name, id };
+// Defaults are expressions, evaluated on every call
+function createUser(name: string, id: number = Date.now()): { name: string; id: number } {
+  return { name, id };
 }
 
-// Previous parameters can be used
-function greetWithTime(name, greeting = `Hello ${name}`) {
-    return greeting;
+// A default can read parameters declared before it, but not after
+function greetWithTime(name: string, greeting: string = `Hello ${name}`): string {
+  return greeting;
 }
 ```
 
@@ -445,18 +453,19 @@ function greetWithTime(name, greeting = `Hello ${name}`) {
 
 **Rest Parameters** - Collects multiple arguments into an array using the spread operator, replacing the need for the arguments object.
 
-```javascript
-function sum(...numbers) {
-    return numbers.reduce((total, num) => total + num, 0);
+```typescript
+// A rest parameter is typed as an array
+function sum(...numbers: number[]): number {
+  return numbers.reduce((total: number, num: number): number => total + num, 0);
 }
 
 console.log(sum(1, 2, 3)); // 6
 console.log(sum(1, 2, 3, 4, 5)); // 15
 
-// Rest must be last parameter
-function logInfo(action, ...details) {
-    console.log(`Action: ${action}`);
-    console.log('Details:', details);
+// Rest must be last — anything after it could never be filled
+function logInfo(action: string, ...details: string[]): void {
+  console.log(`Action: ${action}`);
+  console.log('Details:', details);
 }
 
 logInfo('update', 'user', 'profile', 'email');
@@ -472,23 +481,19 @@ logInfo('update', 'user', 'profile', 'email');
 
 **Declaration vs Expression Comparison** - Shows the key difference in hoisting behavior between function declarations and expressions.
 
-```javascript
-// Function Declaration
-// - Hoisted to top
-// - Can be called before definition
-sayHello(); // Works!
+```typescript
+// Function declaration — hoisted, callable before its definition
+sayHello(); // Works
 
-function sayHello() {
-    console.log('Hello!');
+function sayHello(): void {
+  console.log('Hello!');
 }
 
-// Function Expression
-// - Not hoisted
-// - Must be defined before use
-// sayGoodbye(); // ReferenceError
+// Function expression — not hoisted, must be defined before use
+// sayGoodbye(); // Error
 
-const sayGoodbye = function() {
-    console.log('Goodbye!');
+const sayGoodbye = function (): void {
+  console.log('Goodbye!');
 };
 ```
 
@@ -498,29 +503,29 @@ const sayGoodbye = function() {
 
 **Scope Chain Demonstration** - Illustrates how JavaScript searches for variables through nested scopes from inner to outer until found or reaching global scope.
 
-```javascript
-const global = 'global';
+```typescript
+const outermost: string = 'global';
 
-function outer() {
-    const outerVar = 'outer';
+function outer(): void {
+  const outerVar: string = 'outer';
 
-    function middle() {
-        const middleVar = 'middle';
+  function middle(): void {
+    const middleVar: string = 'middle';
 
-        function inner() {
-            const innerVar = 'inner';
+    function inner(): void {
+      const innerVar: string = 'inner';
 
-            // Scope chain: inner -> middle -> outer -> global
-            console.log(innerVar);   // 'inner' (own scope)
-            console.log(middleVar);  // 'middle' (parent scope)
-            console.log(outerVar);   // 'outer' (grandparent scope)
-            console.log(global);     // 'global' (global scope)
-        }
-
-        inner();
+      // Scope chain: inner → middle → outer → module
+      console.log(innerVar); // 'inner' (own scope)
+      console.log(middleVar); // 'middle' (parent)
+      console.log(outerVar); // 'outer' (grandparent)
+      console.log(outermost); // 'global' (module scope)
     }
 
-    middle();
+    inner();
+  }
+
+  middle();
 }
 
 outer();
@@ -532,26 +537,25 @@ outer();
 
 **Temporal Dead Zone Example** - Shows the period between entering scope and variable initialization where let/const variables exist but cannot be accessed.
 
-```javascript
-// Temporal Dead Zone (TDZ)
-// Period between entering scope and variable initialization
+```typescript
+// Temporal dead zone — the gap between entering a scope and initialising
 
 {
-    // TDZ starts
-    // console.log(x); // ReferenceError: Cannot access before initialization
-    // console.log(y); // ReferenceError
+  // TDZ starts here
+  // console.log(x); // Error — cannot access before initialisation
+  // console.log(y); // Error
 
-    let x = 5; // TDZ ends for x
-    const y = 10; // TDZ ends for y
+  let x: number = 5; // TDZ ends for x
+  const y: number = 10; // TDZ ends for y
 
-    console.log(x); // 5
-    console.log(y); // 10
+  console.log(x); // 5
+  console.log(y); // 10
 }
 
-// var has no TDZ
+// var has no TDZ — it is initialised to undefined on entry
 {
-    console.log(z); // undefined (not ReferenceError)
-    var z = 15;
+  console.log(z); // undefined, not an error
+  var z: number = 15;
 }
 ```
 
@@ -561,38 +565,44 @@ outer();
 
 **Private Variables with Closures** - Uses function scope to create truly private variables that can only be accessed through returned methods, demonstrating encapsulation.
 
-```javascript
-function createCounter() {
-    let count = 0; // Private variable (function scope)
-
-    return {
-        increment: () => ++count,
-        decrement: () => --count,
-        getCount: () => count
-    };
+```typescript
+interface Counter {
+  increment(): number;
+  decrement(): number;
+  getCount(): number;
 }
 
-const counter = createCounter();
+function createCounter(): Counter {
+  let count: number = 0; // Private — nothing outside can reach it
+
+  return {
+    increment: (): number => ++count,
+    decrement: (): number => --count,
+    getCount: (): number => count,
+  };
+}
+
+const counter: Counter = createCounter();
 console.log(counter.increment()); // 1
 console.log(counter.increment()); // 2
 console.log(counter.decrement()); // 1
-console.log(counter.getCount());  // 1
-// console.log(counter.count); // undefined (truly private)
+console.log(counter.getCount()); // 1
+// counter.count — not on the type, and not on the object either
 ```
 
 ### Example 2: Function Factory
 
 **Function Factory Pattern** - Creates specialized functions by capturing parameters in closure, enabling function customization and reusability.
 
-```javascript
-function createMultiplier(multiplier) {
-    return function(number) {
-        return number * multiplier;
-    };
+```typescript
+function createMultiplier(multiplier: number): (n: number) => number {
+  return function (n: number): number {
+    return n * multiplier;
+  };
 }
 
-const double = createMultiplier(2);
-const triple = createMultiplier(3);
+const double: (n: number) => number = createMultiplier(2);
+const triple: (n: number) => number = createMultiplier(3);
 
 console.log(double(5)); // 10
 console.log(triple(5)); // 15
@@ -602,6 +612,7 @@ console.log(triple(5)); // 15
 
 **Arrow Functions Preserve 'this'** - Demonstrates how arrow functions inherit 'this' from their enclosing scope, solving common callback context issues.
 
+<!-- lint-allow-fence: javascript — the wrong half of this ❌/✅ pair relies on `this` being undefined inside a `function` callback — TypeScript's `noImplicitThis` flags it, which is the behaviour the fence exists to demonstrate -->
 ```javascript
 const user = {
     name: 'Alice',
@@ -635,6 +646,7 @@ user.printHobbies();
 
 **Implicit Global Variables** - Shows how forgetting var/let/const accidentally creates global variables, polluting the global namespace.
 
+<!-- lint-allow-fence: javascript — the mistake is an undeclared assignment creating an implicit global; TypeScript refuses to compile it, so the fence has to stay untyped to show it -->
 ```javascript
 function createUser() {
     // Missing var/let/const - creates global variable!
@@ -654,39 +666,44 @@ function createUserCorrect() {
 
 **Classic var Loop Bug** - Illustrates the famous closure-in-loop problem with var and two solutions: let for block scope or IIFE to create new scope.
 
-```javascript
-// Problem
-var funcs = [];
+```typescript
+type Logger = () => void;
+
+// ❌ Problem — one `i`, captured three times
+const funcs: Logger[] = [];
 for (var i = 0; i < 3; i++) {
-    funcs.push(function() {
-        console.log(i);
-    });
+  funcs.push(function (): void {
+    console.log(i);
+  });
 }
 
-funcs[0](); // 3 (not 0!)
-funcs[1](); // 3 (not 1!)
-funcs[2](); // 3 (not 2!)
+funcs[0](); // 3, not 0
+funcs[1](); // 3, not 1
+funcs[2](); // 3, not 2
 
-// Solution 1: Use let
-var funcsFixed = [];
+// ✅ Solution 1 — `let` scopes `i` to the iteration
+const funcsFixed: Logger[] = [];
 for (let i = 0; i < 3; i++) {
-    funcsFixed.push(function() {
-        console.log(i);
-    });
+  funcsFixed.push(function (): void {
+    console.log(i);
+  });
 }
 
 funcsFixed[0](); // 0
 funcsFixed[1](); // 1
 funcsFixed[2](); // 2
 
-// Solution 2: IIFE
-var funcsIIFE = [];
-for (var i = 0; i < 3; i++) {
-    funcsIIFE.push((function(index) {
-        return function() {
-            console.log(index);
-        };
-    })(i));
+// ✅ Solution 2 — an IIFE copies the value into a new scope. This is what
+// everyone did before `let` existed
+const funcsIIFE: Logger[] = [];
+for (var j = 0; j < 3; j++) {
+  funcsIIFE.push(
+    (function (index: number): Logger {
+      return function (): void {
+        console.log(index);
+      };
+    })(j),
+  );
 }
 ```
 
@@ -694,6 +711,7 @@ for (var i = 0; i < 3; i++) {
 
 **Arrow Functions as Methods** - Shows why arrow functions shouldn't be used as object methods since they don't bind their own 'this' context.
 
+<!-- lint-allow-fence: javascript — an object-literal arrow reading `this.text` is the mistake being shown; TypeScript types that `this` as the module scope and errors, hiding the runtime behaviour -->
 ```javascript
 const button = {
     text: 'Click me',

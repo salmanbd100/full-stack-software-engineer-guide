@@ -101,57 +101,60 @@ Controlling (handle fetch events)
 
 **Registration (main.js):**
 
-```javascript
+```typescript
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(reg => console.log('SW registered:', reg))
-    .catch(err => console.error('SW failed:', err));
+  navigator.serviceWorker
+    .register('/sw.js')
+    .then((reg: ServiceWorkerRegistration): void => console.log('SW registered:', reg.scope))
+    .catch((err: unknown): void => console.error('SW failed:', err));
 }
 ```
 
 **Install Event (sw.js):**
 
-```javascript
-self.addEventListener('install', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.open('v1').then(cache => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/style.css',
-        '/app.js'
-      ]);
-    })
+    caches.open('v1').then((cache: Cache): Promise<void> =>
+      cache.addAll(['/', '/index.html', '/style.css', '/app.js']),
+    ),
   );
-  self.skipWaiting(); // Activate immediately
+  void self.skipWaiting(); // Activate immediately, without waiting for old tabs
 });
 ```
 
 **Activate Event (sw.js):**
 
-```javascript
-self.addEventListener('activate', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('activate', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.keys().then(names => {
-      return Promise.all(
-        names.map(name => {
-          if (name !== 'v1') return caches.delete(name);
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((names: string[]): Promise<boolean[]> =>
+        Promise.all(names.filter((name: string): boolean => name !== 'v1').map((name: string) => caches.delete(name))),
+      )
+      // claim() belongs inside waitUntil, not after it — the worker can be
+      // killed the moment the handler returns
+      .then((): Promise<void> => self.clients.claim()),
   );
-  return self.clients.claim(); // Control all pages
 });
 ```
 
 **Fetch Event (sw.js):**
 
-```javascript
-self.addEventListener('fetch', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request))
-      .catch(() => caches.match('/offline.html'))
+    caches
+      .match(event.request)
+      .then((cached: Response | undefined): Response | Promise<Response> => cached ?? fetch(event.request))
+      .catch((): Promise<Response | undefined> => caches.match('/offline.html')) as Promise<Response>,
   );
 });
 ```
@@ -162,9 +165,9 @@ self.addEventListener('fetch', event => {
 
 ### 💡 **Basic Registration**
 
-```javascript
+```typescript
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
+  void navigator.serviceWorker.register('/sw.js');
 }
 ```
 
@@ -172,55 +175,55 @@ if ('serviceWorker' in navigator) {
 
 ### 💡 **Production Registration**
 
-```javascript
-async function registerSW() {
+```typescript
+async function registerSW(): Promise<void> {
   if (!('serviceWorker' in navigator)) {
     console.log('Service Workers not supported');
     return;
   }
 
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js');
-    console.log('SW registered:', reg);
+    const reg: ServiceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
+    console.log('SW registered:', reg.scope);
 
     // Check for updates every hour
-    setInterval(() => reg.update(), 60 * 60 * 1000);
-  } catch (error) {
+    setInterval((): Promise<void> => reg.update(), 60 * 60 * 1000);
+  } catch (error: unknown) {
     console.error('SW registration failed:', error);
   }
 }
 
-registerSW();
+void registerSW();
 ```
 
 ---
 
 ### 💡 **Registration with Scope**
 
-```javascript
+```typescript
 // Only control pages under /app/
-navigator.serviceWorker.register('/sw.js', {
-  scope: '/app/'
-});
+void navigator.serviceWorker.register('/sw.js', {
+  scope: '/app/',
+} satisfies RegistrationOptions);
 
-// Multiple SWs for different sections
-navigator.serviceWorker.register('/sw-checkout.js', { scope: '/checkout/' });
-navigator.serviceWorker.register('/sw-admin.js', { scope: '/admin/' });
+// Multiple workers for different sections
+void navigator.serviceWorker.register('/sw-checkout.js', { scope: '/checkout/' });
+void navigator.serviceWorker.register('/sw-admin.js', { scope: '/admin/' });
 ```
 
 ---
 
 ### 💡 **Check Registration State**
 
-```javascript
-async function checkSW() {
-  const reg = await navigator.serviceWorker.getRegistration();
+```typescript
+async function checkSW(): Promise<void> {
+  const reg: ServiceWorkerRegistration | undefined = await navigator.serviceWorker.getRegistration();
+  if (reg === undefined) return;
 
-  if (reg) {
-    console.log('Installing:', reg.installing);
-    console.log('Waiting:', reg.waiting);
-    console.log('Active:', reg.active);
-  }
+  // The three slots are mutually exclusive per worker version
+  console.log('Installing:', reg.installing?.state);
+  console.log('Waiting:', reg.waiting?.state);
+  console.log('Active:', reg.active?.state);
 }
 ```
 
@@ -243,10 +246,11 @@ async function checkSW() {
 
 ### 💡 **Scope Override**
 
-```javascript
-// SW at /app/sw.js controlling entire site
-navigator.serviceWorker.register('/app/sw.js', {
-  scope: '/' // Requires server configuration
+```typescript
+// A worker at /app/sw.js controlling the whole site. The default maximum scope
+// is the worker's own directory, so this needs a Service-Worker-Allowed header
+void navigator.serviceWorker.register('/app/sw.js', {
+  scope: '/',
 });
 ```
 
@@ -256,8 +260,10 @@ navigator.serviceWorker.register('/app/sw.js', {
 
 ### 💡 **Intercepting Requests**
 
-```javascript
-self.addEventListener('fetch', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
   const url = new URL(event.request.url);
 
   // Route by request type
@@ -286,17 +292,20 @@ self.addEventListener('fetch', event => {
 
 ### 💡 **Filtering Requests**
 
-```javascript
-self.addEventListener('fetch', event => {
-  // Only handle GET requests
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  // Only handle GET. Caching a POST response is almost always a bug
   if (event.request.method !== 'GET') return;
 
   // Only handle same-origin
   if (new URL(event.request.url).origin !== self.location.origin) return;
 
-  // Skip certain paths
+  // Skip paths that must never be served stale
   if (event.request.url.includes('/api/real-time')) return;
 
+  // Returning without calling respondWith lets the browser do its normal fetch
   event.respondWith(handleRequest(event.request));
 });
 ```
@@ -321,15 +330,16 @@ self.addEventListener('fetch', event => {
 
 Check cache first, fallback to network.
 
-```javascript
-async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
+```typescript
+async function cacheFirst(request: Request): Promise<Response> {
+  const cached: Response | undefined = await caches.match(request);
+  if (cached !== undefined) return cached;
 
   try {
-    const response = await fetch(request);
-    const cache = await caches.open('v1');
-    cache.put(request, response.clone());
+    const response: Response = await fetch(request);
+    const cache: Cache = await caches.open('v1');
+    // clone() first — a Response body can only be read once
+    void cache.put(request, response.clone());
     return response;
   } catch {
     return new Response('Offline', { status: 503 });
@@ -345,16 +355,16 @@ async function cacheFirst(request) {
 
 Try network first, fallback to cache.
 
-```javascript
-async function networkFirst(request) {
+```typescript
+async function networkFirst(request: Request): Promise<Response> {
   try {
-    const response = await fetch(request);
-    const cache = await caches.open('v1');
-    cache.put(request, response.clone());
+    const response: Response = await fetch(request);
+    const cache: Cache = await caches.open('v1');
+    void cache.put(request, response.clone());
     return response;
   } catch {
-    const cached = await caches.match(request);
-    return cached || new Response('Offline', { status: 503 });
+    const cached: Response | undefined = await caches.match(request);
+    return cached ?? new Response('Offline', { status: 503 });
   }
 }
 ```
@@ -367,17 +377,18 @@ async function networkFirst(request) {
 
 Serve cache immediately, update in background.
 
-```javascript
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open('v1');
-  const cached = await cache.match(request);
+```typescript
+async function staleWhileRevalidate(request: Request): Promise<Response> {
+  const cache: Cache = await caches.open('v1');
+  const cached: Response | undefined = await cache.match(request);
 
-  const fetchPromise = fetch(request).then(response => {
-    cache.put(request, response.clone());
+  // Start the refresh but do not await it — that is the whole point
+  const fetchPromise: Promise<Response> = fetch(request).then((response: Response): Response => {
+    void cache.put(request, response.clone());
     return response;
   });
 
-  return cached || fetchPromise;
+  return cached ?? fetchPromise;
 }
 ```
 
@@ -422,18 +433,20 @@ async function staleWhileRevalidate(request) {
 
 ### 💡 **Immediate Update Pattern**
 
-```javascript
-// sw.js
-self.addEventListener('install', event => {
-  self.skipWaiting();
+```typescript
+// sw.ts
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (): void => {
+  void self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  return self.clients.claim();
+self.addEventListener('activate', (event: ExtendableEvent): void => {
+  event.waitUntil(self.clients.claim());
 });
 
-// main.js
-navigator.serviceWorker.addEventListener('controllerchange', () => {
+// main.ts
+navigator.serviceWorker.addEventListener('controllerchange', (): void => {
   window.location.reload();
 });
 ```
@@ -442,22 +455,28 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 
 ### 💡 **User-Initiated Update Pattern**
 
-```javascript
-// main.js
-navigator.serviceWorker.addEventListener('message', event => {
+```typescript
+// A shared message contract keeps both sides honest
+type SWMessage = { type: 'UPDATE_AVAILABLE' } | { type: 'SKIP_WAITING' };
+
+// main.ts
+navigator.serviceWorker.addEventListener('message', (event: MessageEvent<SWMessage>): void => {
   if (event.data.type === 'UPDATE_AVAILABLE') {
     showUpdateButton();
   }
 });
 
-function triggerUpdate() {
-  navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+function triggerUpdate(): void {
+  // controller is null until a worker is actually controlling this page
+  navigator.serviceWorker.controller?.postMessage({ type: 'SKIP_WAITING' } satisfies SWMessage);
 }
 
-// sw.js
-self.addEventListener('message', event => {
-  if (event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+// sw.ts
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('message', (event: ExtendableMessageEvent): void => {
+  if ((event.data as SWMessage).type === 'SKIP_WAITING') {
+    void self.skipWaiting();
   }
 });
 ```
@@ -474,9 +493,11 @@ self.addEventListener('message', event => {
 | Old SW serves until tabs close | Old SW replaced instantly |
 | Safe but slow updates | Fast but may cause inconsistencies |
 
-```javascript
-self.addEventListener('install', event => {
-  self.skipWaiting(); // Don't wait for old SW
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (): void => {
+  void self.skipWaiting(); // Do not wait for the old worker to be released
 });
 ```
 
@@ -490,8 +511,10 @@ self.addEventListener('install', event => {
 | Old pages keep old SW | Old pages switch to new SW |
 | Pages must reload | Immediate takeover |
 
-```javascript
-self.addEventListener('activate', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('activate', (event: ExtendableEvent): void => {
   event.waitUntil(self.clients.claim());
 });
 ```
@@ -500,20 +523,26 @@ self.addEventListener('activate', event => {
 
 ### 💡 **Combined Pattern**
 
-```javascript
-self.addEventListener('install', event => {
-  self.skipWaiting();
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+const CACHE_VERSION = 'v2';
+
+self.addEventListener('install', (): void => {
+  void self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.keys().then(names => {
-      return Promise.all(
-        names.filter(n => n !== 'v2').map(n => caches.delete(n))
-      );
-    })
+    caches
+      .keys()
+      .then((names: string[]): Promise<boolean[]> =>
+        Promise.all(
+          names.filter((n: string): boolean => n !== CACHE_VERSION).map((n: string) => caches.delete(n)),
+        ),
+      )
+      .then((): Promise<void> => self.clients.claim()),
   );
-  return self.clients.claim();
 });
 ```
 
@@ -536,20 +565,20 @@ self.addEventListener('activate', event => {
 
 ### 💡 **Page to Service Worker**
 
-```javascript
-// main.js
-function sendToSW(message) {
-  if (navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage(message);
-  }
+```typescript
+// main.ts
+function sendToSW(message: SWMessage): void {
+  navigator.serviceWorker.controller?.postMessage(message);
 }
 
 sendToSW({ type: 'SKIP_WAITING' });
 
-// sw.js
-self.addEventListener('message', event => {
-  if (event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+// sw.ts
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('message', (event: ExtendableMessageEvent): void => {
+  if ((event.data as SWMessage).type === 'SKIP_WAITING') {
+    void self.skipWaiting();
   }
 });
 ```
@@ -558,20 +587,27 @@ self.addEventListener('message', event => {
 
 ### 💡 **Service Worker to Page**
 
-```javascript
-// sw.js
-self.addEventListener('activate', event => {
+```typescript
+interface SWUpdated {
+  type: 'SW_UPDATED';
+  version: string;
+}
+
+// sw.ts
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('activate', (event: ExtendableEvent): void => {
   event.waitUntil(
-    self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({ type: 'SW_UPDATED', version: '2.0' });
-      });
-    })
+    self.clients.matchAll().then((clients: readonly Client[]): void => {
+      for (const client of clients) {
+        client.postMessage({ type: 'SW_UPDATED', version: '2.0' } satisfies SWUpdated);
+      }
+    }),
   );
 });
 
-// main.js
-navigator.serviceWorker.addEventListener('message', event => {
+// main.ts
+navigator.serviceWorker.addEventListener('message', (event: MessageEvent<SWUpdated>): void => {
   if (event.data.type === 'SW_UPDATED') {
     showUpdateNotification(event.data.version);
   }
@@ -582,29 +618,37 @@ navigator.serviceWorker.addEventListener('message', event => {
 
 ### 💡 **Two-Way with MessageChannel**
 
-```javascript
-// main.js
-async function askSW(message) {
+```typescript
+interface CacheSizeReply {
+  size: number;
+}
+
+// main.ts — a MessageChannel turns fire-and-forget messaging into request/response
+async function askSW<T>(message: unknown): Promise<T> {
   const channel = new MessageChannel();
+  navigator.serviceWorker.controller?.postMessage(message, [channel.port2]);
 
-  navigator.serviceWorker.controller.postMessage(message, [channel.port2]);
-
-  return new Promise(resolve => {
-    channel.port1.onmessage = event => resolve(event.data);
+  return new Promise<T>((resolve): void => {
+    channel.port1.onmessage = (event: MessageEvent<T>): void => resolve(event.data);
   });
 }
 
-const cacheSize = await askSW({ type: 'GET_CACHE_SIZE' });
+const cacheSize: CacheSizeReply = await askSW<CacheSizeReply>({ type: 'GET_CACHE_SIZE' });
 
-// sw.js
-self.addEventListener('message', event => {
-  if (event.data.type === 'GET_CACHE_SIZE') {
-    caches.open('v1').then(cache => {
-      cache.keys().then(requests => {
-        event.ports[0].postMessage({ size: requests.length });
-      });
-    });
-  }
+// sw.ts
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('message', (event: ExtendableMessageEvent): void => {
+  if ((event.data as { type: string }).type !== 'GET_CACHE_SIZE') return;
+
+  event.waitUntil(
+    caches
+      .open('v1')
+      .then((cache: Cache): Promise<readonly Request[]> => cache.keys())
+      .then((requests: readonly Request[]): void => {
+        event.ports[0]?.postMessage({ size: requests.length } satisfies CacheSizeReply);
+      }),
+  );
 });
 ```
 
@@ -625,27 +669,33 @@ self.addEventListener('message', event => {
 
 ### 💡 **Debugging Techniques**
 
-```javascript
+```typescript
 // Check registration state
-navigator.serviceWorker.getRegistration().then(reg => {
-  console.log('Active:', reg?.active);
-  console.log('Waiting:', reg?.waiting);
-  console.log('Installing:', reg?.installing);
-});
+void navigator.serviceWorker
+  .getRegistration()
+  .then((reg: ServiceWorkerRegistration | undefined): void => {
+    console.log('Active:', reg?.active?.state);
+    console.log('Waiting:', reg?.waiting?.state);
+    console.log('Installing:', reg?.installing?.state);
+  });
 
 // Check if controlled
-console.log('Controlled:', !!navigator.serviceWorker.controller);
+console.log('Controlled:', navigator.serviceWorker.controller !== null);
 
 // Listen for errors
-navigator.serviceWorker.addEventListener('error', e => {
+navigator.serviceWorker.addEventListener('error', (e: Event): void => {
   console.error('SW error:', e);
 });
 
-// Log cache operations
-self.addEventListener('fetch', event => {
-  caches.match(event.request).then(hit => {
-    console.log(hit ? 'Cache HIT:' : 'Cache MISS:', event.request.url);
-  });
+// Log cache hits and misses, in sw.ts
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  event.waitUntil(
+    caches.match(event.request).then((hit: Response | undefined): void => {
+      console.log(hit !== undefined ? 'Cache HIT:' : 'Cache MISS:', event.request.url);
+    }),
+  );
 });
 ```
 
@@ -743,22 +793,24 @@ Register → Install → [Wait] → Activate → Fetch
 
 **Immediate Update:**
 
-```javascript
-// sw.js
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', () => self.clients.claim());
+```typescript
+// sw.ts
+declare const self: ServiceWorkerGlobalScope;
 
-// main.js
-navigator.serviceWorker.addEventListener('controllerchange', () => {
+self.addEventListener('install', (): void => void self.skipWaiting());
+self.addEventListener('activate', (event: ExtendableEvent): void => event.waitUntil(self.clients.claim()));
+
+// main.ts
+navigator.serviceWorker.addEventListener('controllerchange', (): void => {
   window.location.reload();
 });
 ```
 
 **User-Initiated:**
 
-```javascript
-// Show update button, user clicks to update
-navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+```typescript
+// Show an update button; the user clicks it when they are ready to reload
+navigator.serviceWorker.controller?.postMessage({ type: 'SKIP_WAITING' } satisfies SWMessage);
 ```
 
 ---
@@ -776,17 +828,18 @@ navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
 
 **Prevention:**
 
-```javascript
-self.addEventListener('install', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.open('v1').then(cache => {
-      // Critical assets must succeed
-      return cache.addAll(['/index.html'])
-        .then(() => {
-          // Optional assets can fail
-          cache.addAll(['/images/logo.png']).catch(() => {});
-        });
-    })
+    caches.open('v1').then((cache: Cache): Promise<void> =>
+      // addAll is all-or-nothing: one 404 fails the whole install. Split the
+      // list so a missing optional asset cannot block the worker
+      cache.addAll(['/index.html']).then((): void => {
+        void cache.addAll(['/images/logo.png']).catch((): void => {});
+      }),
+    ),
   );
 });
 ```
@@ -805,12 +858,23 @@ self.addEventListener('install', event => {
 | **Cache Validation** | Don't cache sensitive data |
 | **Message Validation** | Verify message origin |
 
-```javascript
-// Validate messages
-self.addEventListener('message', event => {
-  // Only handle known message types
-  const validTypes = ['SKIP_WAITING', 'GET_CACHE'];
-  if (!validTypes.includes(event.data.type)) return;
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+// Any page on the origin can post to the worker. Validate before acting
+const VALID_TYPES = ['SKIP_WAITING', 'GET_CACHE'] as const;
+type ValidType = (typeof VALID_TYPES)[number];
+
+function isValid(data: unknown): data is { type: ValidType } {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    VALID_TYPES.includes((data as { type: ValidType }).type)
+  );
+}
+
+self.addEventListener('message', (event: ExtendableMessageEvent): void => {
+  if (!isValid(event.data)) return;
 
   // Handle message
 });
@@ -822,22 +886,24 @@ self.addEventListener('message', event => {
 
 **Answer:**
 
-```javascript
-// Install: Cache offline page
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open('v1').then(cache => cache.add('/offline.html'))
-  );
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+// Install — cache the offline page
+self.addEventListener('install', (event: ExtendableEvent): void => {
+  event.waitUntil(caches.open('v1').then((cache: Cache): Promise<void> => cache.add('/offline.html')));
 });
 
-// Fetch: Serve offline page for failed navigations
-self.addEventListener('fetch', event => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => caches.match('/offline.html'))
-    );
-  }
+// Fetch — serve it when a navigation fails
+self.addEventListener('fetch', (event: FetchEvent): void => {
+  if (event.request.mode !== 'navigate') return;
+
+  event.respondWith(
+    fetch(event.request).catch(
+      async (): Promise<Response> =>
+        (await caches.match('/offline.html')) ?? new Response('Offline', { status: 503 }),
+    ),
+  );
 });
 ```
 
@@ -854,13 +920,15 @@ self.addEventListener('fetch', event => {
 | DevTools → Network | See cached responses |
 | `console.log` in SW | Debugging output |
 
-```javascript
+```typescript
 // Check current state
-navigator.serviceWorker.getRegistration().then(reg => {
-  console.log('Active:', !!reg?.active);
-  console.log('Waiting:', !!reg?.waiting);
-  console.log('Controlled:', !!navigator.serviceWorker.controller);
-});
+void navigator.serviceWorker
+  .getRegistration()
+  .then((reg: ServiceWorkerRegistration | undefined): void => {
+    console.log('Active:', reg?.active != null);
+    console.log('Waiting:', reg?.waiting != null);
+    console.log('Controlled:', navigator.serviceWorker.controller !== null);
+  });
 ```
 
 ---
@@ -869,25 +937,31 @@ navigator.serviceWorker.getRegistration().then(reg => {
 
 **Answer:**
 
-```javascript
-// Page → SW
-navigator.serviceWorker.controller.postMessage({ type: 'PING' });
+```typescript
+declare const self: ServiceWorkerGlobalScope;
 
-// SW receives
-self.addEventListener('message', event => {
-  if (event.data.type === 'PING') {
-    // Reply via port or broadcast
-    event.ports[0]?.postMessage({ type: 'PONG' });
+interface Ping {
+  type: 'PING' | 'PONG' | 'UPDATE';
+}
+
+// Page → worker
+navigator.serviceWorker.controller?.postMessage({ type: 'PING' } satisfies Ping);
+
+// Worker receives
+self.addEventListener('message', (event: ExtendableMessageEvent): void => {
+  if ((event.data as Ping).type === 'PING') {
+    // Reply down the port the page opened, or broadcast to every client
+    event.ports[0]?.postMessage({ type: 'PONG' } satisfies Ping);
   }
 });
 
-// SW → Page (broadcast)
-self.clients.matchAll().then(clients => {
-  clients.forEach(c => c.postMessage({ type: 'UPDATE' }));
+// Worker → pages (broadcast)
+void self.clients.matchAll().then((clients: readonly Client[]): void => {
+  for (const c of clients) c.postMessage({ type: 'UPDATE' } satisfies Ping);
 });
 
 // Page receives
-navigator.serviceWorker.addEventListener('message', event => {
+navigator.serviceWorker.addEventListener('message', (event: MessageEvent<Ping>): void => {
   console.log('From SW:', event.data);
 });
 ```

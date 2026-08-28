@@ -1,8 +1,8 @@
-# CSS Animations
+# CSS Animations {#ch-css-animations}
 
-> Motion that respects performance budgets, accessibility, and the rendering pipeline — not just `transition: all`.
+> Animate on the compositor, respect `prefers-reduced-motion`, and know why `transition: all` costs you frames.
 
----
+**In this chapter:** transition vs animation · `@keyframes` · timing functions · the compositor and what is cheap to animate · `will-change` · reduced motion
 
 ## 1. Transition vs Animation
 

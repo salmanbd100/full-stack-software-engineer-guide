@@ -1339,7 +1339,7 @@ AWS DevOps is about:
 - Optimize costs
 - Embrace continuous learning
 
-Good luck with your AWS DevOps engineering journey! 🚀
+
 
 ---
 

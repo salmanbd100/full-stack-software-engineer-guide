@@ -235,4 +235,4 @@ Can answer:
 - Always show learning and growth
 
 ---
-[← Back to README](README.md) | [Next: Preparation Grid →](03-preparation-grid.md)
+[← Back to README](README.md) | [Next: Preparation Grid →](02-preparation-grid.md)

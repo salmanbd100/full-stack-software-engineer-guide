@@ -59,7 +59,7 @@ Every carousel must have these 3 zones:
 
 ## Output Format
 
-Write a **single markdown file** named `LINKEDIN-CAROUSEL-<topic>.md` (kebab-case topic) in the same directory as the source material, OR in the project root if the source is a topic without a clear location.
+Write a **single markdown file** named `LINKEDIN-CAROUSEL-<topic>.md` (kebab-case topic) in **`Archive/planning/`**. Carousels are marketing assets, not chapters — improvement #8 keeps them out of the content tree so the book build never collects one.
 
 The file MUST contain these sections in order:
 
@@ -182,7 +182,7 @@ Before finalizing, verify:
 ## Example Reference
 
 For a gold-standard example of the output format, see:
-`Frontend/WebPerformance/LINKEDIN-CAROUSEL.md`
+`Archive/planning/webperformance-linkedin-carousel.md`
 
 That file shows exactly how the slides should look — headlines, bullets, tables, design hints, and the closing caption.
 

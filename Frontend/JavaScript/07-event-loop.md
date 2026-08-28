@@ -1,4 +1,8 @@
-# Event Loop
+# The Event Loop {#ch-the-event-loop}
+
+> Predict the exact order a piece of asynchronous code will log, and say why.
+
+**In this chapter:** the call stack · the task and microtask queues · why microtasks starve tasks · `setTimeout(fn, 0)` · rendering and the frame budget
 
 ## Understanding JavaScript's Concurrency Model
 

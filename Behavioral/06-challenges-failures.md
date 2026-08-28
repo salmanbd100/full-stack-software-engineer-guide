@@ -303,9 +303,9 @@ Quantify lessons learned:
 ## 🔗 Related Topics
 
 - [STAR Framework](./01-star-framework.md)
-- [Problem Solving](./05-problem-solving.md)
-- [Conflict Resolution](./11-conflict-resolution.md)
+- [Problem Solving](./04-problem-solving.md)
+- [Conflict Resolution](./07-conflict-resolution.md)
 
 ---
 
-[← Back: Communication Skills](./06-communication.md) | [Next: Conflict Resolution →](./11-conflict-resolution.md)
+[← Back: Communication Skills](./05-communication.md) | [Next: Conflict Resolution →](./07-conflict-resolution.md)

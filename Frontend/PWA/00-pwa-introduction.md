@@ -61,11 +61,11 @@ PWAs work for every user, regardless of browser choice.
 
 **How It Works:**
 
-```javascript
-// Feature detection - works even if Service Worker unavailable
+```typescript
+// Feature detection — the page still works if Service Worker is unavailable
 if ('serviceWorker' in navigator) {
   // Enhanced experience with offline support
-  navigator.serviceWorker.register('/sw.js');
+  void navigator.serviceWorker.register('/sw.js');
 } else {
   // Basic web experience still works
   console.log('Service Worker not supported');
@@ -89,13 +89,20 @@ Users can add PWAs to their home screen without app stores.
 
 **Installation Criteria (Chrome):**
 
-```javascript
-// Minimum requirements for install prompt
-const installCriteria = {
+```typescript
+// Minimum requirements for the install prompt
+interface InstallCriteria {
+  https: string;
+  manifest: string;
+  serviceWorker: string;
+  engagement: string;
+}
+
+const installCriteria: InstallCriteria = {
   https: 'Served over HTTPS',
   manifest: 'Valid web app manifest with required fields',
   serviceWorker: 'Registered service worker with fetch handler',
-  engagement: 'User has interacted with the site'
+  engagement: 'User has interacted with the site',
 };
 ```
 
@@ -368,36 +375,35 @@ User Request → Service Worker → Cache Check
 
 ### 💡 **Service Worker Basics**
 
-```javascript
+```typescript
 // Register Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(registration => {
-      console.log('SW registered:', registration);
+  navigator.serviceWorker
+    .register('/sw.js')
+    .then((registration: ServiceWorkerRegistration): void => {
+      console.log('SW registered:', registration.scope);
     })
-    .catch(error => {
+    .catch((error: unknown): void => {
       console.log('SW registration failed:', error);
     });
 }
 
-// sw.js - Basic caching
-self.addEventListener('install', event => {
+// sw.js — basic caching
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (event: ExtendableEvent): void => {
   event.waitUntil(
-    caches.open('v1').then(cache => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/styles.css',
-        '/app.js'
-      ]);
-    })
+    caches.open('v1').then((cache: Cache): Promise<void> =>
+      cache.addAll(['/', '/index.html', '/styles.css', '/app.js']),
+    ),
   );
 });
 
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event: FetchEvent): void => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+    caches
+      .match(event.request)
+      .then((response: Response | undefined): Response | Promise<Response> => response ?? fetch(event.request)),
   );
 });
 ```
@@ -584,19 +590,21 @@ Request → Service Worker → Check Cache
 | **Activation** | `activate` event fires, clean up old caches |
 | **Controlling** | SW controls pages, handles fetch events |
 
-```javascript
-// install - cache assets
-self.addEventListener('install', event => {
+```typescript
+declare const self: ServiceWorkerGlobalScope;
+
+// install — cache assets
+self.addEventListener('install', (event: ExtendableEvent): void => {
   event.waitUntil(cacheAssets());
 });
 
-// activate - clean old caches
-self.addEventListener('activate', event => {
+// activate — clean old caches
+self.addEventListener('activate', (event: ExtendableEvent): void => {
   event.waitUntil(cleanOldCaches());
 });
 
-// fetch - handle requests
-self.addEventListener('fetch', event => {
+// fetch — handle requests
+self.addEventListener('fetch', (event: FetchEvent): void => {
   event.respondWith(handleFetch(event));
 });
 ```
@@ -619,14 +627,17 @@ self.addEventListener('fetch', event => {
 
 **Skip Waiting Pattern:**
 
-```javascript
-// New SW takes over immediately
-self.addEventListener('install', event => {
-  self.skipWaiting();
+```typescript
+// In the worker: take over without waiting for every tab to close
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (): void => {
+  void self.skipWaiting();
 });
 
-// Notify users of update
-self.addEventListener('controllerchange', () => {
+// In the page: `controllerchange` fires on `navigator.serviceWorker`, not on
+// the worker. Reload once so the new worker is the one serving this document
+navigator.serviceWorker.addEventListener('controllerchange', (): void => {
   window.location.reload();
 });
 ```

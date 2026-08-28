@@ -177,7 +177,7 @@ timeDecay:     e^(-age_hours × 0.1)  — older posts rank lower
 postTypeWeight: video=1.5, image=1.2, link=1.0, text=0.9
 ```
 
-ML models replace this formula in production, but this is the right mental model for interviews. Ranking runs at read time on the top ~1000 candidate posts from the feed cache. See [../SystemDesign/RankingAndRecommendations.md](../SystemDesign/).
+ML models replace this formula in production, but this is the right mental model for interviews. Ranking runs at read time on the top ~1000 candidate posts from the feed cache.
 
 ### Feed Cache Sizing
 

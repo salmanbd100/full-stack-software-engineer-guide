@@ -270,9 +270,9 @@ Quantify communication effectiveness:
 ## 🔗 Related Topics
 
 - [STAR Framework](./01-star-framework.md)
-- [Leadership & Teamwork](./04-leadership-teamwork.md)
-- [Conflict Resolution](./11-conflict-resolution.md)
+- [Leadership & Teamwork](./03-leadership-teamwork.md)
+- [Conflict Resolution](./07-conflict-resolution.md)
 
 ---
 
-[← Back: Problem Solving](./05-problem-solving.md) | [Next: Challenges & Failures →](./07-challenges-failures.md)
+[← Back: Problem Solving](./04-problem-solving.md) | [Next: Challenges & Failures →](./06-challenges-failures.md)

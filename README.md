@@ -10,9 +10,9 @@ not as a finished reference.
 
 | | |
 | --- | --- |
-| **Progress** | 6 of 78 improvements · [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md) |
+| **Progress** | 16 of 78 improvements · [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md) |
 | **Scope** | Locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md) — nine parts, line budgets, twelve non-negotiables |
-| **Current size** | 417 files · ~134,000 lines · builds to a 3,694-page PDF |
+| **Current size** | 423 files · ~134,000 lines |
 | **Target** | ~55,000 lines in-book. Everything else moves to [`Archive/`](./Archive/README.md) |
 | **Reader** | 3–8 years' experience, targeting senior or staff frontend / full stack roles |
 
@@ -41,7 +41,7 @@ Every script in [`package.json`](./package.json):
 
 | Command | What it does |
 | ------- | ------------ |
-| `pnpm lint:docs` | Checks all 417 files against the Book Chapter Standard — front matter, broken links, code fences, chapter length, missing READMEs, heading jumps. **Run this before calling any file done** |
+| `pnpm lint:docs` | Checks every manuscript file against the Book Chapter Standard — front matter, broken links, code fences, chapter length, missing READMEs, heading jumps. **Run this before calling any file done** |
 | `pnpm lint:docs --rule=<id>` | Every occurrence of one rule, e.g. `--rule=broken-link` |
 | `pnpm lint:docs --strict` | Fail on any violation at all, rather than on a regression |
 | `pnpm book:build` | The full book — PDF and EPUB into `build/` |
@@ -70,128 +70,106 @@ CI ([`.github/workflows/lint-docs.yml`](./.github/workflows/lint-docs.yml)) runs
 
 ---
 
-## Repository Structure
+## The Nine Parts
 
-### [Frontend](./Frontend/README.md)
+Scope, reason and line budget for each are locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md) § 4. 🆕 marks a
+part that does not exist in the repository yet.
 
-JavaScript, TypeScript, HTML/CSS, Browser APIs, PWA, i18n, CSS architecture, security, testing,
-web performance.
+| Part | Covers | Budget | Where it lives today |
+| ---- | ------ | ------ | -------------------- |
+| **I — Foundations** | JavaScript semantics · TypeScript · OOP and design patterns | 5,000 | [`Frontend/JavaScript`](./Frontend/JavaScript/), [`Frontend/TypeScript`](./Frontend/TypeScript/), [`OOP`](./OOP/README.md) |
+| **II — The Browser Platform** | HTML and CSS · Browser APIs · Accessibility · i18n · PWA | 6,000 | [`Frontend/HtmlCss`](./Frontend/HtmlCss/README.md), [`Frontend/BrowserAPIs`](./Frontend/BrowserAPIs/), [`Frontend/PWA`](./Frontend/PWA/README.md) |
+| **III — The Modern Frontend Stack** 🆕 | React · Next.js · Svelte · Rendering · State · Tooling | **12,000** | **Nothing yet.** Planned as `Frontend/ModernStack/` |
+| **IV — Frontend at Scale** | Architecture · Web performance · Frontend security · Testing | 5,500 | [`Frontend/WebPerformance`](./Frontend/WebPerformance/), [`Frontend/Security`](./Frontend/Security/), [`Frontend/Testing`](./Frontend/Testing/) |
+| **V — Backend for Frontend Engineers** | Node internals · API design · SQL and NoSQL · Auth | 6,500 | [`Backend`](./Backend/README.md) |
+| **VI — System Design** | Fundamentals · Building blocks · Frontend SD · Case studies | 6,500 | [`SystemDesign`](./SystemDesign/README.md) |
+| **VII — AI Engineering** 🆕 | LLM foundations · Integration · RAG · Agents · Evals · AI UX | 7,500 | **Nothing yet.** Planned as `AI/` |
+| **VIII — Ship and Operate** | Git · Docker · CI/CD · Observability · Deployment | 3,500 | [`DevOps`](./DevOps/README.md), becoming `ShipAndOperate/` |
+| **IX — The Human Layer** | Behavioural · Communication · Ways of working · The AI-era loop | 2,500 | [`Behavioral`](./Behavioral/README.md), [`Communication`](./Communication/README.md) |
+| *Appendix — DSA* | 16 LeetCode patterns | *5,600* | [`DSA`](./DSA/README.md) — ships as a companion volume |
 
-> ⚠️ **There is no React, Next.js or Svelte content yet.** `Frontend/README.md` links to `./React/` and
-> `./NextJs/`; both 404. `Frontend/ModernStack/` is planned as improvements #32–43 and is the biggest gap
-> in the book.
+**Total: ~249 chapters, 55,000 lines.** Budgets are ceilings, not allocations — a part that comes in
+under does not hand its surplus to another.
 
-### [Backend](./Backend/README.md)
+### The two holes in the hull
 
-Node.js internals, API design (REST, GraphQL, versioning, rate limiting, WebSockets), SQL and NoSQL,
-auth and security, design patterns, testing.
+These are the reason the book is worth writing, and they are both empty:
 
-> ⚠️ `Backend/README.md` promises Express and NestJS sections. Neither exists yet.
+- **There is no React, Next.js or Svelte content.** Part III is the largest part in the book at 22% of
+  the budget, and the part most readers are buying it for. Planned as improvements #32–43.
+- **There is no AI content.** `DevOps/GenAI/` is about *using* AI tools for DevOps chores, not about
+  *building* AI features, which is what a 2027 senior loop asks about. Planned as #44–53.
+
+`Frontend/README.md` links to `./React/` and `./NextJs/`; both 404. `Backend/README.md` promises
+Express and NestJS; neither exists. Do not assume a directory exists because a README references it.
+
+---
+
+## Who It Is For
+
+A developer with **3–8 years' experience** targeting a senior or staff **frontend-heavy full stack**
+role — someone who owns the frontend end to end and is expected to be credible on the backend, the
+system design round, and now the AI feature, without pretending to be a specialist in any of them.
+
+It assumes you can already write JavaScript and use a framework. It does not stop to explain what a
+hook is. What it explains is the layer underneath the definition — because an assistant can answer the
+surface version of every one of these questions instantly, and that is precisely why the interview bar
+moved.
+
+---
+
+## How to Read It
+
+The book has to work three ways. The front matter written at improvement #72 makes these explicit.
+
+| Path | Route | For |
+| ---- | ----- | --- |
+| **Interview sprint** (6 weeks) | Part I → III → VI → IX, then the Appendix | A loop starting in a month |
+| **Working reference** | Any chapter, cold, via the index | Tuesday afternoon |
+| **Cover to cover** | I → IX in order | Levelling up deliberately |
+
+The working-reference path is the demanding one. It is why every chapter has to stand alone without
+the two before it, and why cross-references are anchors rather than "as we saw earlier".
+
+---
+
+## Repository Layout
+
+```text
+├── BOOK-SPEC.md         the contract — nine parts, budgets, twelve non-negotiables
+├── IMPROVEMENT-PLAN.md  the 78-item route from repository to manuscript
+├── REFERENCE-CHAPTER.md pointer at the worked example of the standard
+├── Frontend/            Parts I, II and IV
+├── Backend/             Part V
+├── SystemDesign/        Part VI
+├── DevOps/              Part VIII — ~80% of it archives at #20
+├── OOP/                 merges into Backend/DesignPatterns at #26
+├── Behavioral/          Part IX
+├── Communication/       Part IX
+├── DSA/                 the companion volume
+├── Archive/             out of scope, never deleted
+└── scripts/             the build, the linter, the plan tooling
+```
 
 [`Backend/API/01-rest-best-practices.md`](./Backend/API/01-rest-best-practices.md) is the **reference
-chapter** — the only file currently passing the standard with zero violations. See
-[`REFERENCE-CHAPTER.md`](./REFERENCE-CHAPTER.md).
-
-### [Data Structures & Algorithms](./DSA/README.md)
-
-16 LeetCode patterns plus a complexity primer. Ships as a **companion volume**, not inside the main book.
-
-Array and string patterns (prefix sum, two pointers, sliding window) · linked list patterns (fast/slow
-pointers, reversal) · tree and graph traversal (DFS, BFS) · backtracking, dynamic programming, graph
-algorithms.
-
-### [System Design](./SystemDesign/README.md)
-
-Fundamentals (scalability, CAP, load balancing), building blocks, frontend system design, and 20
-real-world case studies.
-
-### [DevOps](./DevOps/README.md) → becoming `ShipAndOperate/`
-
-Currently 30% of the repository and around 8% of the book's value. Improvement #20 cuts it from 147 files
-to roughly 25 — Git, Docker, CI/CD, observability, deployment. Terraform, Linux administration,
-Kubernetes operations and deep AWS move to `Archive/`, not the bin.
-
-### [OOP](./OOP/README.md)
-
-SOLID and design patterns. Merges into `Backend/DesignPatterns/` at improvement #26.
-
-### [Behavioral](./Behavioral/README.md) · [Communication](./Communication/README.md)
-
-STAR-framework stories, leadership and conflict scenarios, technical communication, and written
-documentation. Become Part IX, *The Human Layer*.
-
-### Not yet written
-
-`AI/` does not exist. For a 2027 book this is the second-biggest gap after the modern frontend stack —
-building *with* models, not training them. Planned as improvements #44–53.
+chapter** — currently the only file passing the standard with zero violations.
 
 ---
 
 ## Contributing to the Manuscript
 
-1. **Read [`BOOK-SPEC.md`](./BOOK-SPEC.md) first.** If a topic is on the out-of-scope list, it is archived
-   deliberately, not missing
-2. **Start from `.claude/skills/write-topic-docs/CHAPTER-TEMPLATE.md`**, not from a blank file. The Book
-   Chapter Standard — six blocks, TypeScript-only fences, 150–400 lines, `#ch-slug` cross-references — is
-   mandatory
+1. **Read [`BOOK-SPEC.md`](./BOOK-SPEC.md) first.** If a topic is on the out-of-scope list, it was
+   archived deliberately. It is not missing.
+2. **Start from `.claude/skills/write-topic-docs/CHAPTER-TEMPLATE.md`**, not from a blank file. The
+   Book Chapter Standard — six blocks, TypeScript-only fences, 150–400 lines, `#ch-slug`
+   cross-references — is mandatory.
 3. **Use [`REFERENCE-CHAPTER.md`](./REFERENCE-CHAPTER.md)** as the worked example when the written
-   standard and your instinct disagree
-4. **Run `pnpm lint:docs`** before you call anything done
+   standard and your instinct disagree.
+4. **Run `pnpm lint:docs`** before you call anything done.
 
 Say _"continue"_ with [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md) attached to pick up the next item.
 
 ---
-
-## Career Readiness Checklist
-
-### Technical
-
-- [ ] Complete 100+ LeetCode problems across all patterns
-- [ ] Master your primary stack (React/Next.js or Node.js/NestJS)
-- [ ] Design 10+ systems from scratch
-- [ ] Build 3–5 portfolio projects showcasing skills
-- [ ] Understand production deployment
-
-### Behavioural
-
-- [ ] Develop 15+ STAR stories (leadership, challenges, conflicts)
-- [ ] Prepare company-specific examples
-- [ ] Practise 2–3 minute story delivery
-- [ ] Record and review responses
-- [ ] Prepare questions to ask interviewers
-
-### Communication
-
-- [ ] Practise technical explanations, recorded
-- [ ] Achieve B2–C1 English proficiency
-- [ ] Complete 10+ practice sessions
-- [ ] Master whiteboard and virtual presentation
-- [ ] Develop a clear, concise speaking style
-
-### Professional
-
-- [ ] Update CV, tailored to target companies
-- [ ] Polish LinkedIn profile
-- [ ] Update portfolio site ([salmanrahman.com](https://www.salmanrahman.com/))
-- [ ] Research target companies thoroughly
-- [ ] Test video and audio setup, and prepare a quiet space
-
----
-
-## Resources
-
-**Practice:** LeetCode · Frontend Mentor · Pramp / Interviewing.io · iTalki / Cambly
-
-**Watch:** Gaurav Sen (system design) · Web Dev Simplified (frontend) · Clément Mihailescu (career)
-
-**Listen:** Syntax.fm · JavaScript Jabber · Software Engineering Daily · The Changelog
-
-**Read:** [System Design Primer](https://github.com/donnemartin/system-design-primer) ·
-[Frontend Interview Handbook](https://www.frontendinterviewhandbook.com/)
-
----
-
-**Salman Rahman** — [www.salmanrahman.com](https://www.salmanrahman.com/)
 
 © Salman Rahman. All rights reserved. The manuscript in this repository is not licensed for
 redistribution.

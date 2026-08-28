@@ -77,7 +77,7 @@ const PART_BY_PREFIX: readonly [string, number][] = [
   ["Backend/DesignPatterns", 1],
 
   // Part II — The Browser Platform
-  ["Frontend/Html&CSS", 2],
+  ["Frontend/HtmlCss", 2],
   ["Frontend/HtmlCss", 2], // post-rename (#11)
   ["Frontend/BrowserAPIs", 2],
   ["Frontend/Internationalization", 2],
@@ -164,11 +164,8 @@ const OUT_OF_BOOK_DIRS: readonly string[] = [
 
 /** Individual files that leave the book, keyed by repo-relative path. */
 const OUT_OF_BOOK_FILES: readonly string[] = [
-  // #8 — planning and marketing artefacts
-  "Frontend/CONTENT_PLAN.md",
-  "Frontend/PROGRESS.md",
-  "Frontend/WebPerformance/LINKEDIN-CAROUSEL.md",
-  "SystemDesign/REFACTOR-PLAN.md",
+  // #8 — planning and marketing artefacts moved to Archive/planning/, which
+  // EXCLUDED_DIRS already skips. No entry needed here.
 
   // Repo navigation, not manuscript. The book's own front matter (#72) replaces these.
   // Frontend/ is the one domain index that maps to no single part — it spans II, III and IV.

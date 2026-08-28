@@ -217,13 +217,28 @@ function createSignedUrl({ path, expiresInSeconds }: SignedUrlOptions): string {
 | **Cost** | ✅ ~1/6th of Lambda@Edge | Higher |
 | **Triggers** | Viewer request/response | All four events |
 
-```javascript
-// CloudFront Function — header manipulation, redirects, URL rewriting
-function handler(event) {
-  var response = event.response;
+```typescript
+// CloudFront Function — header manipulation, redirects, URL rewriting.
+// Author in TypeScript and compile down: the runtime itself is an ES5.1 sandbox
+// with no network access, no filesystem, and a 1 ms CPU budget.
+interface CloudFrontHeaderValue {
+  value: string;
+}
+
+interface CloudFrontResponse {
+  statusCode: number;
+  headers: Record<string, CloudFrontHeaderValue>;
+}
+
+interface CloudFrontEvent {
+  response: CloudFrontResponse;
+}
+
+function handler(event: CloudFrontEvent): CloudFrontResponse {
+  const response: CloudFrontResponse = event.response;
 
   response.headers['strict-transport-security'] = {
-    value: 'max-age=31536000; includeSubDomains'
+    value: 'max-age=31536000; includeSubDomains',
   };
   response.headers['x-content-type-options'] = { value: 'nosniff' };
   response.headers['x-frame-options'] = { value: 'DENY' };

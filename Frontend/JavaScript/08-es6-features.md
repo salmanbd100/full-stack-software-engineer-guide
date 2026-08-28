@@ -1,6 +1,8 @@
-# ES6+ Features
+# ES2015 and Later Features {#ch-es2015-and-later-features}
 
-ES6 (ECMAScript 2015) and later versions introduced many features that fundamentally modernized JavaScript, transforming it from a "toy language" into a robust, modern programming language suitable for large-scale applications. These features are now considered essential knowledge for any JavaScript developer.
+> Reach for the modern form of each pattern, and say what it replaced and why that matters.
+
+**In this chapter:** destructuring · spread and rest · template literals · modules · `Map`, `Set` and `Symbol` · optional chaining and nullish coalescing
 
 ## Why ES6+ Features Matter
 

@@ -1606,3 +1606,7 @@ for (let i = 0; i < n; i++) {           // O(n)
 - First pass: 2-3 hours
 - Practice problems: 10-15 hours
 - Mastery: 30+ hours with varied problems
+
+---
+
+[← Back to Index](./README.md) | [Next: Prefix Sum →](./02-prefix-sum.md)

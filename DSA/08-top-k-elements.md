@@ -763,4 +763,6 @@ Result: [1, 2]
 
 6. **Streaming data**: Particularly useful when data arrives in streams
 
-[← Previous: Monotonic Stack](./06-monotonic-stack.md) | [Back to Index](./README.md) | [Next: Overlapping Intervals →](./08-overlapping-intervals.md)
+---
+
+[← Previous: Monotonic Stack](./07-monotonic-stack.md) | [Back to Index](./README.md) | [Next: Overlapping Intervals →](./09-overlapping-intervals.md)
