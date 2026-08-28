@@ -1,164 +1,64 @@
 ---
-title: TypeScript
+title: Part I — TypeScript
 part: 1
 chapter: 0
 slug: frontend-typescript-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2025-11-30
-tags: [frontend, typescript]
+updated: 2026-08-28
+tags: [typescript, generics, narrowing, utility-types, react]
 in_book: true
 ---
 
-# TypeScript
+# Part I — TypeScript
 
-Master TypeScript for modern frontend development. TypeScript is increasingly required at major companies and improves code quality, maintainability, and developer experience.
+TypeScript is where a senior candidate separates from a mid-level one fastest, because the mid-level
+answer is "I add types" and the senior answer is "I add the type that makes the wrong state
+unrepresentable, and I let inference do the rest." This section covers the type system as a design
+tool: what to model, what to derive, and where the cleverness stops paying for itself.
 
-## 📚 Topics Covered
+Chapters 01–04 are the everyday type system — annotate, model, reuse. Chapters 05–07 are narrowing
+and exhaustiveness, which is where types start catching real bugs. Chapter 08 applies all of it to
+React, which is where most readers use TypeScript in anger.
 
-### Fundamentals
-1. **[Basic Types](./01-basic-types.md)**
-   - Primitives (string, number, boolean)
-   - Arrays and tuples
-   - any, unknown, never
-   - Type inference
+## Chapters
 
-2. **[Interfaces & Types](./02-interfaces-types.md)**
-   - Interface declaration
-   - Type aliases
-   - Interface vs Type
-   - Extending and implementing
+| #  | Chapter                                                        | What it answers                                              |
+| -- | -------------------------------------------------------------- | ------------------------------------------------------------ |
+| 01 | [TypeScript Basic Types](./01-basic-types.md)                  | What do `any`, `unknown` and `never` each cost you?          |
+| 02 | [Interfaces and Type Aliases](./02-interfaces-types.md)        | On what two grounds do they actually differ?                 |
+| 03 | [TypeScript Generics](./03-generics.md)                        | How do you keep the caller's exact type all the way through? |
+| 04 | [TypeScript Utility Types](./04-utility-types.md)              | How do you derive a type instead of maintaining two?         |
+| 05 | [TypeScript Type Guards](./05-type-guards.md)                  | How do you get a compile error when you forget a case?       |
+| 06 | [TypeScript Advanced Types](./06-advanced-types.md)            | When does computing types from types stop being worth it?    |
+| 07 | [Enums and Literal Types](./07-enums-literals.md)              | How do you model a fixed set without a runtime object?       |
+| 08 | [React with TypeScript](./08-react-typescript.md)              | How do you type props and hooks so the compiler earns its keep? |
 
-### Advanced Types
-3. **[Generics](./03-generics.md)**
-   - Generic functions
-   - Generic interfaces
-   - Constraints
-   - Default type parameters
+## What Interviewers Probe For
 
-4. **[Utility Types](./04-utility-types.md)**
-   - Partial, Required, Readonly
-   - Pick, Omit, Record
-   - ReturnType, Parameters
-   - Conditional types
+The senior signal for this part is the same as for the rest of Part I — **can reason about the
+runtime, not just recite the API** — with a compile-time twist. What that looks like in practice:
 
-5. **[Type Guards](./05-type-guards.md)**
-   - typeof guards
-   - instanceof guards
-   - Custom type guards
-   - Discriminated unions
+- **Do you know where types stop?** TypeScript erases at runtime. A candidate who validates an API
+  response with an `as` cast and calls it type-safe has answered the question badly. The follow-up is
+  always "what happens when the server sends something else?"
+- **Can you narrow properly?** Discriminated unions plus an exhaustive `switch` with a `never` default
+  is the pattern interviewers are listening for. It converts a future bug into a build failure.
+- **Do you reach for generics for the right reason?** A generic that appears once in the signature is
+  usually an `any` with extra steps. A generic that links an argument to a return type is doing work.
+- **Do you know when to stop?** Conditional and mapped types can express almost anything, and a type
+  nobody on the team can read is a liability. Naming the cost is the senior part of the answer.
+- **`unknown` or `any`?** `any` switches the checker off and spreads silently through every value it
+  touches. `unknown` forces a narrowing step at the boundary, which is exactly where you want one.
+  Reaching for `unknown` by default on external data is a small, reliable seniority marker.
+- **What does `strict` actually turn on?** `strictNullChecks` is the one that matters, and a codebase
+  without it has types that quietly lie about every optional value. Knowing that migration is
+  incremental — file by file — is the follow-up.
 
-### Advanced Concepts
-6. **[Advanced Types](./06-advanced-types.md)**
-   - Union types
-   - Intersection types
-   - Conditional types
-   - Mapped types
-   - Template literal types
+## Reading Order
 
-7. **[Enums & Literals](./07-enums-literals.md)**
-   - Numeric enums
-   - String enums
-   - Literal types
-   - Const assertions
+Straight through, but 02 and 07 are short and can be skimmed if you already write TypeScript daily.
+Chapter 05 is the one to slow down on — narrowing is what makes the rest useful.
 
-### React Integration
-8. **[React TypeScript](./08-react-typescript.md)**
-   - Typing components
-   - Props and state
-   - Hooks with TypeScript
-   - Event handlers
-   - Common patterns
-
----
-
-## 🎯 Interview Focus Areas
-
-### Must Know
-1. Basic types and type inference
-2. Interfaces vs Types
-3. Generics
-4. Type guards
-5. Utility types
-
-### Very Important
-6. React component typing
-7. Union and intersection types
-8. Type narrowing
-9. Enums and literals
-10. Conditional types
-
-### Good to Know
-11. Advanced mapped types
-12. Template literal types
-13. Module declaration
-14. Decorators
-
----
-
-## 💡 Quick Reference
-
-### Common Interview Questions
-1. "Difference between interface and type?"
-2. "What are generics? When to use them?"
-3. "Explain utility types in TypeScript"
-4. "How to type React components?"
-5. "What is type narrowing?"
-6. "Difference between any and unknown?"
-7. "How to create custom type guards?"
-8. "What are union types?"
-
-### Essential Patterns
-```typescript
-// Generic Function
-function identity<T>(arg: T): T {
-    return arg;
-}
-
-// Interface with Generics
-interface ApiResponse<T> {
-    data: T;
-    status: number;
-    message: string;
-}
-
-// Type Guard
-function isString(value: unknown): value is string {
-    return typeof value === 'string';
-}
-
-// React Component Props
-interface ButtonProps {
-    label: string;
-    onClick: () => void;
-    disabled?: boolean;
-}
-
-const Button: React.FC<ButtonProps> = ({ label, onClick, disabled }) => {
-    return <button onClick={onClick} disabled={disabled}>{label}</button>;
-};
-
-// Utility Types
-type User = {
-    id: number;
-    name: string;
-    email: string;
-};
-
-type PartialUser = Partial<User>; // All properties optional
-type UserWithoutEmail = Omit<User, 'email'>; // Exclude 'email'
-```
-
----
-
-## 🔗 External Resources
-
-- [TypeScript Official Docs](https://www.typescriptlang.org/docs/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
-- [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/)
-- [React TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
-- [Type Challenges](https://github.com/type-challenges/type-challenges)
-
----
-
-[← Back to Frontend](../README.md)
+**Interview sprint:** 03 → 05 → 04 → 08. Generics, narrowing, derived types, and typing a component
+between them cover almost every TypeScript question a frontend-heavy loop asks.

@@ -1,93 +1,61 @@
 ---
-title: Node.js
+title: Part V — Node.js
 part: 5
 chapter: 0
 slug: backend-nodejs-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
 updated: 2026-08-28
-tags: [backend, nodejs]
+tags: [nodejs, event-loop, streams, modules, performance]
 in_book: true
 ---
 
-# Node.js
+# Part V — Node.js
 
-## Overview
+One thread runs your JavaScript. Everything in this section follows from that. How thousands of
+connections are served by it, what stalls it, how to move work off it, and how to run more than one
+of it — those are the four questions, and they are also most of what a senior Node interview asks.
 
-Node.js interviews rarely ask you to recite APIs. They probe one thing: **do you understand that your code shares a single thread with every other request?**
+The section deliberately teaches the runtime rather than a framework. Express appears in examples
+because it is the most common answer, but nothing here depends on it. A candidate who knows what
+`libuv` is doing underneath can pick up any framework in an afternoon; the reverse is not true.
 
-Almost every senior question traces back to that. Why the event loop stalls, why streams exist, why you fork workers, why an uncaught exception should crash the process — all the same constraint viewed from different angles.
+## Chapters
 
-**What you'll cover:**
+| #  | Chapter                                                            | What it answers                                                 |
+| -- | ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| 01 | [The Node.js Event Loop](./01-event-loop-async.md)                 | How does one thread serve thousands of connections?             |
+| 02 | [Streams and Buffers](./02-streams-buffers.md)                     | How do you process a file larger than your memory?              |
+| 03 | [The Node.js Module System](./03-module-system.md)                 | Which rules apply where CommonJS and ES modules meet?           |
+| 04 | [Node.js Error Handling](./04-error-handling.md)                   | Which failures are recoverable, and which should crash?         |
+| 05 | [Node.js Performance](./05-performance.md)                         | Where is the bottleneck actually?                               |
+| 06 | [Node.js Security](./06-security.md)                               | Which injection paths does a Node service invent?               |
+| 07 | [Child Processes and Worker Threads](./07-child-processes.md)      | How do you move CPU-bound work off the main thread?             |
+| 08 | [Clustering and Scaling](./08-clustering.md)                       | What breaks the moment there is more than one process?          |
 
-- How the event loop schedules work, and what starves it
-- Streams and buffers for data too large to hold in memory
-- CommonJS vs ES Modules, and the seams between them
-- Errors: which to handle, which to crash on
-- Finding real bottlenecks instead of guessing
-- Node-specific security: injection paths, supply chain, secrets
-- Escaping the single thread with workers, child processes, and clustering
+## What Interviewers Probe For
 
-> **The idea that ties it together:** waiting is free, thinking is not. Node scales to thousands of connections because they're all idle. The moment a request needs real CPU, every other request on that process waits behind it.
+The senior signal for this part is **designs an API the frontend can actually consume well, and knows
+why the query is slow.** For Node specifically, the runtime half:
 
-## Topics
+- **Can you explain the phases?** Timers, pending callbacks, poll, check, close — and where
+  `process.nextTick` and promise microtasks sit relative to all of them. This is asked constantly and
+  answered vaguely.
+- **What blocks the loop?** Synchronous crypto, a large `JSON.parse`, a regular expression with
+  catastrophic backtracking, or a tight loop over a big array. Being able to name a real one you hit
+  is worth more than the list.
+- **When would you reach for a worker thread instead of a child process?** Shared memory and no
+  serialisation cost against full isolation. If the answer is "they are basically the same", the
+  candidate has used neither.
+- **What state cannot survive clustering?** In-memory sessions, in-memory rate limits, in-memory
+  caches, and any `setInterval` that assumes it is the only one. This is the question that reveals
+  whether someone has actually scaled a Node service horizontally.
 
-| #   | Topic                                                    | Core idea                                              |
-| --- | -------------------------------------------------------- | ------------------------------------------------------ |
-| 01  | [Event Loop & Async](./01-event-loop-async.md)            | Phases, microtasks, and what blocks the loop            |
-| 02  | [Streams & Buffers](./02-streams-buffers.md)              | Constant memory via chunks; always `pipeline()`         |
-| 03  | [Module System](./03-module-system.md)                    | CJS vs ESM, live bindings, caching, `exports`           |
-| 04  | [Error Handling](./04-error-handling.md)                  | Operational → handle; programmer → crash                |
-| 05  | [Performance](./05-performance.md)                        | Measure first; loop delay, N+1, caching                 |
-| 06  | [Security](./06-security.md)                              | NoSQL/command injection, prototype pollution, npm       |
-| 07  | [Child Processes](./07-child-processes.md)                | Worker threads for CPU, child processes for programs    |
-| 08  | [Clustering](./08-clustering.md)                          | One process per core; externalise all shared state      |
+## Reading Order
 
-## How the Pieces Fit
+01 first and properly — it is the chapter the other seven refer back to. Then 02 and 04, which are
+the two that most affect code you write daily. 07 and 08 are a pair about doing more than one thing
+at once, and read best together.
 
-```text
-        Single thread, single core          (01)
-                    │
-      ┌─────────────┴─────────────┐
-      ▼                           ▼
-  Don't block it              Escape it
-  ├─ stream, don't buffer (02)  ├─ worker threads   (07)
-  ├─ profile the real cost (05) ├─ child processes  (07)
-  └─ crash on bugs, fast   (04) └─ cluster the cores(08)
-                    │
-                    ▼
-        Everything shared moves out
-        to Redis / the database      (08)
-```
-
-## Suggested Study Path
-
-**Day 1 — The constraint.** Read 01. You should be able to order `setTimeout`, `setImmediate`, `process.nextTick`, and a promise from memory, and explain *why* that order holds. This underpins every other topic.
-
-**Day 2 — Data and modules.** Read 02 and 03. Know why `pipeline()` beats `pipe()`, and what breaks when a chunk splits a record. For modules, know why ESM gives live bindings and CommonJS gives a copy.
-
-**Day 3 — Failure.** Read 04. Practise stating the operational-vs-programmer distinction in one sentence, then defending "let it crash" against the obvious pushback.
-
-**Day 4 — Production.** Read 05 and 06. Be ready to walk through diagnosing a slow endpoint from metrics down to a CPU profile.
-
-**Day 5 — Scale.** Read 07 and 08. Know when clustering does nothing (I/O-bound work) and what silently breaks when one process becomes four.
-
-## Interview Signals
-
-| They ask | They're checking |
-| --- | --- |
-| "Explain the event loop" | Whether you know phases *and* microtask priority |
-| "Is Node single-threaded?" | That you distinguish your JS from libuv's pool |
-| "Why is this endpoint slow?" | Whether you measure or guess |
-| "Should you catch this error?" | Judgment, not reflexive `try/catch` |
-| "How do you use all 8 cores?" | Cluster vs worker vs replica — and the tradeoffs |
-
-## Related Modules
-
-- [Security](../Security/README.md) — JWT, OAuth, CORS/CSRF, headers, validation
-- [NoSQL](../NoSQL/README.md) — MongoDB modeling and Redis
-- [API](../API/) — REST, GraphQL, rate limiting, WebSockets
-
----
-
-[← Back to Backend](../README.md)
+**Interview sprint:** 01 → 04 → 08. The event loop, error strategy and what breaks under clustering
+are the three Node questions a senior full stack loop reliably asks.

@@ -1,110 +1,65 @@
 ---
-title: CSS Architecture
+title: Part II — CSS Architecture
 part: 2
 chapter: 0
 slug: frontend-cssarchitecture-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 3
+reading_time: 2
 updated: 2026-08-28
-tags: [frontend, cssarchitecture]
+tags: [css, tailwind, css-in-js, design-systems, methodologies]
 in_book: true
 ---
 
-# CSS Architecture
+# Part II — CSS Architecture
 
-How to scale CSS across enterprise codebases — methodologies, scoping strategies, and design systems. The patterns interviewers actually probe at the senior level.
+CSS is the only part of a frontend codebase where every file shares one global namespace, and this
+section is about what teams do to survive that. It is a short section with one large question behind
+it: how do you let forty people add styles without any of them breaking each other's work?
 
-## 📚 Topics
+Every answer here is a trade of one cost against another. Scoping buys safety and spends readability.
+Utilities buy consistency and spend markup. Runtime CSS-in-JS buys expressiveness and spends
+hydration time. The chapters are structured around naming those trades rather than picking a winner,
+because the interview question is never "which is best" — it is "why did your team choose that?"
 
-| # | Topic | What you'll learn |
-|---|-------|-------------------|
-| 1 | [CSS Methodologies](./01-css-methodologies.md) | BEM, SMACSS, ITCSS, OOCSS — when each makes sense |
-| 2 | [Utility-First vs Component-First](./02-utility-vs-component.md) | Tailwind vs CSS Modules vs styled-components — tradeoffs |
-| 3 | [CSS-in-JS](./03-css-in-js.md) | styled-components, Emotion, Linaria, Vanilla Extract — runtime vs zero-runtime |
-| 4 | [Atomic CSS](./04-atomic-css.md) | One-class-one-property model, design token integration, bundle size wins |
-| 5 | [Design Systems](./05-design-systems.md) | Tokens, primitives, composition, theming, governance at scale |
+## Chapters
 
----
+| #  | Chapter                                                          | What it answers                                                  |
+| -- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 01 | [CSS Methodologies](./01-css-methodologies.md)                   | How do you name things so a stranger can add a rule safely?      |
+| 02 | [Utility-First vs Component-First](./02-utility-vs-component.md) | What is the actual Tailwind trade-off, stripped of preference?   |
+| 03 | [CSS-in-JS](./03-css-in-js.md)                                   | What does runtime CSS-in-JS cost at hydration?                   |
+| 04 | [Atomic CSS](./04-atomic-css.md)                                 | Why does a stylesheet stop growing once classes do one thing?    |
+| 05 | [Design Systems](./05-design-systems.md)                         | How do forty teams adopt a component library without forking it? |
 
-## 🎯 Interview Focus
+## What Interviewers Probe For
 
-### Most asked
-1. BEM vs CSS Modules vs styled-components — which when?
-2. Utility-first vs component-first — what are the real tradeoffs?
-3. How do you scale CSS across multiple teams?
-4. CSS-in-JS runtime cost — when is it worth it?
-5. How do you build a design system from scratch?
+The senior signal for this part is **reaches for the platform before reaching for a library** — and
+for architecture specifically, *can defend a styling decision at team scale*.
 
-### Frequently asked
-6. What is ITCSS and what problem does it solve?
-7. How do you handle theming (dark mode, multi-brand)?
-8. Specificity management strategies in large codebases
-9. Zero-runtime CSS-in-JS — why does it matter?
-10. Migrating legacy CSS — what's your strategy?
+- **Can you argue both sides of Tailwind?** The answer that scores names the real trade: utilities
+  make the styles local and the markup noisy, and they only pay off with a shared token scale. An
+  answer that is purely taste, in either direction, reads as junior.
+- **Do you know what runtime CSS-in-JS costs?** Serialising styles during render is measurable, and
+  it interacts badly with Server Components. Knowing why zero-runtime alternatives exist is the point
+  of the question, not knowing the library names.
+- **How do you delete CSS?** Every large codebase has dead styles. Whether you can describe a method
+  for finding and removing them tells the interviewer how long you have lived with a real stylesheet.
+- **What is in a design token?** Not the colours — the constraint. A senior answer covers versioning,
+  the deprecation path, and what happens when a team needs a value the system does not have.
+- **How do you scope styles without a build step?** Cascade layers and `:where()` control specificity
+  natively now, and native nesting shipped across evergreen browsers in 2023. A candidate still
+  reaching for a preprocessor to solve specificity has not looked at the platform recently.
+- **What is your theming mechanism?** Custom properties that cascade, against a build-time swap. The
+  first supports runtime switching and user preference; the second is faster and cannot. Naming which
+  one the requirement needs is the answer.
 
----
+## Reading Order
 
-## 📊 Quick Comparison
+Chapter 01 first; it sets the vocabulary the rest use. Chapters 02 and 04 are closely related and
+read well together. Chapter 05 is the one that matters most for a senior or staff-level conversation.
 
-### Methodologies
+**Interview sprint:** 02 → 05. The utility-versus-component question and the design-system question
+are the two that come up; 01, 03 and 04 are background for answering them well.
 
-| Aspect | BEM | SMACSS | ITCSS | OOCSS |
-|--------|-----|--------|-------|-------|
-| **Learning curve** | Easy | Medium | Hard | Medium |
-| **Specificity control** | Good | Good | Best | Good |
-| **Best for** | Small–medium | Medium–large | Enterprise | Performance-critical |
-| **Naming** | Strict | Prefixed | Layered | Object-based |
-
-### Styling approaches
-
-| Aspect | Utility-first | CSS Modules | CSS-in-JS | Atomic |
-|--------|---------------|-------------|-----------|--------|
-| **Bundle size** | Smallest | Medium | Medium–large | Smallest |
-| **Runtime cost** | None | None | Low–high | None |
-| **Dynamic styles** | Limited | Limited | Excellent | Limited |
-| **Type safety** | Optional | Optional | Native (TS) | Optional |
-| **Best for** | Speed + design system | Component libraries | React apps + dynamic theming | High-traffic sites |
-
----
-
-## 💡 Decision Rule
-
-```text
-New greenfield React app?
-  ├─ Need speed + token system  → Tailwind + design tokens
-  ├─ Need dynamic theming        → CSS-in-JS (Emotion/Vanilla Extract)
-  └─ Need SSR + perf             → CSS Modules or Vanilla Extract
-
-Enterprise app, multiple teams?
-  ├─ Strict specificity needed   → ITCSS + BEM
-  └─ Multi-product design system → Tokens + Atomic CSS + primitives
-
-Legacy migration?
-  └─ Gradually introduce CSS Modules + BEM for new components
-```
-
----
-
-## 💡 Essential Questions
-
-1. Explain BEM and where it falls short.
-2. Utility-first (Tailwind) vs component-first — when does each win?
-3. Runtime vs zero-runtime CSS-in-JS — what's the tradeoff?
-4. How would you structure a design system for 5 product teams?
-5. What's the difference between a token, a primitive, and a component?
-6. How do you handle theming without runtime overhead?
-7. Why does specificity matter in large codebases?
-8. Migration strategy from a 5-year-old CSS codebase?
-
----
-
-## 🔗 References
-
-- [BEM](https://bem.info/) · [SMACSS](http://smacss.com/) · [ITCSS](https://csswizardry.com/2018/11/itcss-and-skipping-levels/)
-- [Tailwind CSS](https://tailwindcss.com/docs) · [CSS Modules](https://github.com/css-modules/css-modules)
-- [styled-components](https://styled-components.com/) · [Emotion](https://emotion.sh/) · [Vanilla Extract](https://vanilla-extract.style/)
-- [Design Tokens W3C Spec](https://www.designtokens.org/) · [Storybook](https://storybook.js.org/)
-
----
-
-[← Back to Frontend](../README.md)
+> ⚠️ Design systems appear here and in Part IV's architecture material. This chapter is the styling
+> half — tokens, theming, distribution. The governance and migration half belongs to Part IV.

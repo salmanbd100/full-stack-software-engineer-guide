@@ -1,135 +1,64 @@
 ---
-title: Backend Security
+title: Part V — Backend Security
 part: 5
 chapter: 0
 slug: backend-security-index
-level: intermediate # beginner | intermediate | advanced
-reading_time: 4
+level: advanced # beginner | intermediate | advanced
+reading_time: 3
 updated: 2026-08-28
-tags: [backend, security]
+tags: [security, jwt, oauth, tls, cors, injection]
 in_book: true
 ---
 
-# Backend Security
+# Part V — Backend Security
 
-## Overview
+The server half of the security spine. Who the caller is, what they are allowed to do, what crosses
+the wire, and what reaches a query — those are the four questions this section answers. The browser
+half — cross-site scripting, Content Security Policy, the headers that harden a page — lives in
+[`Frontend/Security/`](../../Frontend/Security/README.md).
 
-Backend security answers two questions on every request: **who is this?** (authentication) and **can they do this?** (authorization) — then makes sure the data they send can't change the meaning of your code.
+The two halves are not independent, and the chapters that straddle them say so. CORS is configured on
+the server and only has effects in the browser. A `SameSite` cookie is set by the server and enforced
+by the browser. Where an answer needs both sides, the chapter gives both sides.
 
-This module covers the eight areas that come up in almost every senior backend interview.
+## Chapters
 
-**What you'll cover:**
+| #  | Chapter                                                        | What it answers                                                    |
+| -- | -------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 01 | [JWT Authentication](./01-jwt.md)                              | When would a session cookie be the better choice?                  |
+| 02 | [OAuth 2.0](./02-oauth.md)                                     | What is each redirect in the authorisation code flow protecting?   |
+| 03 | [Password Security](./03-passwords.md)                         | How do you make a database leak stop short of an account leak?     |
+| 04 | [HTTPS and TLS](./04-https.md)                                 | What does the handshake establish, and where does TLS terminate?   |
+| 05 | [CORS and CSRF](./05-cors-csrf.md)                             | Why is CORS not a CSRF defence?                                    |
+| 06 | [Backend Input Validation](./06-validation.md)                 | How does nothing untrusted reach your business logic?              |
+| 07 | [SQL Injection Prevention](./07-sql-injection.md)              | What do you do in the two cases you cannot parameterise?           |
+| 08 | [Backend Security Headers](./08-security-headers.md)           | Which headers harden every response, set from one place?           |
 
-- Token-based auth with JWT, and when sessions beat it
-- Delegated access with OAuth 2.0 and PKCE
-- Password storage that survives a database leak
-- HTTPS/TLS — what the handshake actually protects
-- CORS and CSRF — two things people constantly confuse
-- Input validation, SQL injection, and security headers
+## What Interviewers Probe For
 
-> **The one idea that ties it together:** never trust input, and never rely on a single layer. Validate at the edge → parameterize at the database → set headers so a mistake can't be exploited → store secrets so a breach isn't fatal.
+The senior signal for this part is **designs an API the frontend can actually consume well, and knows
+why the query is slow** — and for security, *can name what each mechanism does not protect against*.
 
-## Topics
+- **JWT or session?** The most reliably asked auth question in a full stack loop. The real trade is
+  revocation: a session can be deleted, a signed token is valid until it expires. Short access tokens
+  plus a refresh token with a server-side revocation list is the answer that shows you have shipped it.
+- **Can you walk the authorisation code flow?** With PKCE, and saying what the code exchange stops —
+  interception of the redirect. Implicit flow is deprecated, and knowing why is the follow-up.
+- **How are passwords stored?** Argon2id or bcrypt, per-user salt, a work factor that is tuned rather
+  than default. Anyone who says SHA-256 has answered the whole question.
+- **Where does validation live?** At the boundary, allowlist-first, before anything touches business
+  logic. Client-side validation is UX and provides no security at all — being clear about that is the
+  point.
+- **What does CORS actually do?** It controls whether script may *read* a cross-origin response. It
+  does not stop the request being sent, which is why it is not a CSRF defence.
 
-| #   | Topic                                                       | Core idea                                            |
-| --- | ----------------------------------------------------------- | ---------------------------------------------------- |
-| 01  | [JWT Authentication](./01-jwt.md)                            | Signed, stateless tokens — and their revocation cost  |
-| 02  | [OAuth 2.0](./02-oauth.md)                                   | Delegated access; authorization code + PKCE           |
-| 03  | [Password Security](./03-passwords.md)                       | Slow hashes (Argon2id / bcrypt), never encryption     |
-| 04  | [HTTPS & TLS](./04-https.md)                                 | Encryption + identity; terminate TLS, force HSTS      |
-| 05  | [CORS & CSRF](./05-cors-csrf.md)                             | CORS relaxes reading; CSRF abuses automatic cookies   |
-| 06  | [Input Validation](./06-validation.md)                       | Allowlist at the boundary; parse, don't just check    |
-| 07  | [SQL Injection Prevention](./07-sql-injection.md)            | Parameterized queries — data never becomes code       |
-| 08  | [Security Headers](./08-security-headers.md)                 | Cheap, high-leverage defense via `helmet`             |
+## Reading Order
 
-## How the Pieces Fit
+01 and 02 first — identity is what everything else assumes. 03 and 04 next. 05 to 08 are the
+hardening layer and can be read in any order.
 
-```text
-Request ──▶ TLS (04)              encrypted + server identity proven
-              │
-              ▼
-        Headers + CORS (05, 08)   browser rules limit what's allowed
-              │
-              ▼
-        AuthN: JWT / OAuth (01,02)   who is this?
-              │
-              ▼
-        Validation (06)           input becomes a known, typed shape
-              │
-              ▼
-        Parameterized queries (07)   data never parsed as code
-              │
-              ▼
-        Hashed secrets at rest (03)  a leak isn't a catastrophe
-```
+**Interview sprint:** 01 → 05 → 07. Token strategy, the CORS-versus-CSRF confusion, and injection are
+the three that come up in nearly every loop.
 
-Each layer assumes the one above it may fail. That's the point.
-
-## Suggested Study Path
-
-**Day 1 — Authentication.** Read 01 and 03. Be able to explain the JWT tradeoff (stateless speed vs. hard revocation) and why you hash passwords with a slow, salted algorithm.
-
-**Day 2 — Delegated auth.** Read 02. Know the authorization code flow with PKCE end to end, and why the implicit flow is dead.
-
-**Day 3 — Transport and browser rules.** Read 04 and 05. Focus on what TLS does and doesn't protect, and the CORS vs. CSRF distinction — this question is asked constantly.
-
-**Day 4 — Input handling.** Read 06 and 07. Practice writing a Zod schema and a parameterized query from memory.
-
-**Day 5 — Hardening and review.** Read 08. Then walk through the OWASP Top 10 out loud, mapping each risk to a topic in this module.
-
-## Interview Focus
-
-The highest-value answers, in rough order of how often they're asked:
-
-1. **JWT vs. sessions** — "Which would you pick, and how do you log someone out?"
-2. **Password storage** — "Why bcrypt or Argon2 instead of SHA-256?"
-3. **CORS vs. CSRF** — "Does CORS protect against CSRF?" (No. Know why.)
-4. **SQL injection** — "How do parameterized queries actually stop it?"
-5. **OAuth** — "Walk me through the authorization code flow. What does PKCE add?"
-6. **Validation** — "Where do you validate, and why isn't the client enough?"
-
-**Interview tip:** describe the **attack** first, then the defense. It proves you understand why the fix works instead of naming a library.
-
-## Pre-Deploy Security Checklist
-
-**Authentication:**
-
-- [ ] Passwords hashed with Argon2id or bcrypt (cost ≥ 12) — never encrypted or plain SHA
-- [ ] Short-lived access tokens (5–15 min) + rotating refresh tokens
-- [ ] `algorithms` pinned on every `jwt.verify` call — never trust the token's `alg`
-- [ ] Rate limiting on login, register, and password reset
-
-**Transport & headers:**
-
-- [ ] HTTPS everywhere, HTTP redirected, HSTS with a long `max-age`
-- [ ] `helmet()` enabled; CSP without `'unsafe-inline'` in `script-src`
-- [ ] Cookies: `HttpOnly`, `Secure`, `SameSite=Lax` or `Strict`
-
-**Input & data:**
-
-- [ ] Every request body, query, and param validated against a schema
-- [ ] Parameterized queries or an ORM — zero string-concatenated SQL
-- [ ] CORS origins from an explicit allowlist — never `*` with credentials
-- [ ] Secrets in environment variables or a secret manager, never in git
-
-## Resources
-
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) — the canonical risk list
-- [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/) — practical, per-topic guidance
-- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/) — requirements checklist
-- [PortSwigger Web Security Academy](https://portswigger.net/web-security) — free hands-on labs
-- [jwt.io](https://jwt.io/) — decode and inspect tokens
-- [SSL Labs Server Test](https://www.ssllabs.com/ssltest/) — grade your TLS setup
-- [securityheaders.com](https://securityheaders.com/) — grade your response headers
-
-## Related Topics
-
-- **[Frontend Security](../../Frontend/Security/)** — XSS, CSP, client-side input handling
-- **[API Design](../API/)** — authentication and rate limiting at the API layer
-- **DevOps** — secrets management, container hardening, dependency scanning
-
----
-
-**Difficulty:** Intermediate → Advanced · **Interview frequency:** Very High
-
-Start with [01-jwt.md](./01-jwt.md).
+> ⚠️ Security is currently documented in five places across this repository. Improvement #24
+> consolidates it into two — this directory and `Frontend/Security/`. Expect overlap until it lands.

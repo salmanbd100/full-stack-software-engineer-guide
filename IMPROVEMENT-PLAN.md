@@ -793,12 +793,18 @@ Split this across sessions by domain: Frontend → Backend → SystemDesign → 
 
 **Done when:** every in-book file opens with the same three blocks.
 
-> ⚠️ **Box still unticked — one directory left.** `L`, and the plan's model table puts it on
-> **Sonnet 5 at `low`–`medium`**. **All 244 in-book chapters outside `DevOps/` now carry the opening.**
-> What remains is `DevOps/` (130 chapters) and a decision about part-opener READMEs — both below.
+> ⚠️ **Box still unticked — `DevOps/` is the only thing left, and it is blocked.** `L`, and the plan's
+> model table puts it on **Sonnet 5 at `low`–`medium`** (that mapping was set for the mechanical
+> 244-chapter sweep, which is finished; the README work in run #2 was prose and was done on Opus 5).
 >
-> **Session stopped here on 2026-08-28 at the user's request.** Nothing is half-applied: the script
-> writes one file at a time and every directory attempted was finished.
+> **Everything outside `DevOps/` is done** — 244 chapter openings in run #1, and all 28 in-book
+> part-opener READMEs in run #2. What remains is `DevOps/`: 130 chapters and 16 READMEs, **all of
+> which must wait for #20**, which archives ~80% of the directory and renames the rest to
+> `ShipAndOperate/`. Openings written now would mostly be thrown away and the slugs would be wrong
+> the moment the files move.
+>
+> Nothing is half-applied in either run: work proceeds one file at a time and every directory
+> attempted was finished.
 
 **The canonical opening, now settled.** Three blocks, nothing between them, no `---` rule after:
 
@@ -859,16 +865,71 @@ pass, which is why `heading-jump` fell to **0** as a side effect — those files
   asynchronous code will log" is a promise; "an overview of the event loop" is a table of contents
   entry. Roughly a third of the first drafts had to be rewritten on that test alone.
 
-**Still to do:**
+**Delivered — run #2, 2026-08-28: the part-opener READMEs.**
 
-1. **`DevOps/` — 130 chapters.** Deliberately skipped: **#20** archives ~80% of the directory and
-   renames the rest to `ShipAndOperate/`, so openings written now would mostly be thrown away, and
-   the slugs would be wrong the moment the files move. **Do this after #20, not before.**
-2. **The 33 part-opener READMEs.** These follow a *different* standard — `write-topic-docs` §
-   "Part-Opener READMEs": 60–150 lines, `chapter: 0`, no `{#ch-}` anchor, a chapter table and a
-   **What Interviewers Probe For** section. The ten written at **#13** are the model. The other 23
-   predate it and mostly still open with a `## 📚 Topics Covered` list. Decide whether that is this
-   item's job or a new one — the "Done when" says *every in-book file*, which would include them.
+**The decision the previous session left open: yes, the READMEs are this item's job.** The "Done
+when" says *every in-book file*, and a README that still opened with `## 📚 Topics Covered` was the
+last surviving competing convention. They follow the *other* standard — `write-topic-docs` §
+"Part-Opener READMEs": 60–150 lines, `chapter: 0`, **no `{#ch-}` anchor**, a chapter table and a
+**What Interviewers Probe For** section — so "the same three blocks" means the part-opener three, not
+the chapter three. The ten written at **#13** were the model.
+
+**22 READMEs rewritten.** Every in-book README outside `DevOps/` now carries: `# Part N — Name`, one
+or two paragraphs on why the section exists, a chapter table with a *what it answers* column, **What
+Interviewers Probe For** built on the part's senior signal from `BOOK-SPEC.md` § 4, and a **Reading
+Order** with an interview-sprint path.
+
+| Part | READMEs |
+| ---- | ------- |
+| I | `Frontend/JavaScript` · `Frontend/TypeScript` · `Backend/DesignPatterns` |
+| II | `Frontend/HtmlCss` · `Frontend/BrowserAPIs` · `Frontend/CSSArchitecture` · `Frontend/Internationalization` · `Frontend/PWA` |
+| IV | `Frontend/Security` · `Frontend/Testing` · `Frontend/WebPerformance` |
+| V | `Backend` (part opener) · `Backend/API` · `Backend/NodeJS` · `Backend/NoSQL` · `Backend/Security` |
+| VI | `SystemDesign` (part opener) · `SystemDesign/Database` |
+| IX | `Behavioral` · `Communication` |
+| Appendix | `DSA` |
+
+Plus `OOP/README.md` as a **transitional index** (`in_book: false`), matching the three written at
+**#13** for directories that later items dissolve: a per-chapter destination table pointing at #26,
+and a line saying no part-opener is written for a part that is being dissolved.
+
+**Verified:**
+
+- `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0, no rule
+  regressed. `too-long` **49 → 48** — `Frontend/PWA/README.md` was 517 lines and is now 65.
+  `.lint-baseline.json` committed at the lower number
+- `pnpm book:collect`: 276 files, 96,505 lines, no unmapped files
+- All 28 in-book non-DevOps READMEs check out mechanically: `chapter: 0`, a chapter or section table,
+  a **What Interviewers Probe For** section, a **Reading Order**, and **zero `{#ch-}` anchors**
+- Every file is 59–77 lines, inside the 60–150 budget bar `Backend/NoSQL` and `Frontend/BrowserAPIs`
+  landing a line or two either side of the floor. `OOP/` is 38, matching the #13 transitional shape
+- Retired emoji (`📚 🎯 🚀 📁 📋 ✨ 🔴 …`) are gone from all 22; the only callout used is `⚠️`
+
+**Three corrections this run forced:**
+
+- **`Backend/README.md` and `SystemDesign/README.md` are real part openers, not domain indexes.**
+  Both map entirely to one part (V and VI), so both were rewritten as `# Part N —` openers listing
+  *sections* rather than chapters. `Frontend/README.md` cannot be one — it spans Parts I, II, III and
+  IV — which is why **#18** correctly left it `in_book: false`
+- **`OOP/` has no SOLID chapter.** The first draft of its transitional index claimed SOLID was
+  duplicated between `OOP/` and `Backend/DesignPatterns/`. It is not — `grep` returns nothing.
+  SOLID exists once, in `Backend/DesignPatterns/05-solid-principles.md`
+- **Chapter counts in the two section tables were wrong on first pass** — `Backend/Testing` is 6 not
+  5, `SystemDesign/Frontend` is 13 not 12. Both corrected against `ls`
+
+> 🔴 **Gap this run exposed — nobody owns the PWA trim.** `Frontend/PWA/` is **6,002 lines** across
+> six chapters, every one over the 400-line limit and three over 1,000. The budget table at the
+> bottom of this plan counts a **6,200-line "browser platform trimmed (PWA is 6,002 lines today)"**
+> cut, but **no numbered item performs it** — #74 is Mermaid diagrams, #76 is the editorial voice
+> pass, and neither trims length. Either a new item is needed or #76's scope has to grow. The
+> `Frontend/PWA/README.md` callout records this so it is not lost.
+
+**Still to do — `DevOps/`, and only after #20:**
+
+**130 chapters and 16 READMEs.** `DevOps/README.md` alone is 1,378 lines and has its own item (#30).
+**#20** archives ~80% of the directory and renames the rest to `ShipAndOperate/`, so openings written
+now would mostly be thrown away and the slugs — which this item is the sole authority on, per the
+rules above — would be wrong the moment the files move. **Do this after #20, not before.**
 
 ---
 

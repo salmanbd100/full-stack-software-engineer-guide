@@ -1,105 +1,63 @@
 ---
-title: Behavioral Interview Preparation
+title: Part IX — Behavioural Interviewing
 part: 9
 chapter: 0
 slug: behavioral-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 2
+reading_time: 3
 updated: 2026-08-28
-tags: [behavioral]
+tags: [behavioral, star, leadership, conflict, interviews]
 in_book: true
 ---
 
-# Behavioral Interview Preparation
+# Part IX — Behavioural Interviewing
 
-Structured guide for behavioral interviews at MNCs and senior engineering roles. Built around the STAR framework, curated question categories, and tight sample answers.
+Senior offers are lost here more often than on the whiteboard. Not because candidates lack the
+stories — nine years of work produces plenty — but because the stories arrive as three minutes of
+background followed by twenty seconds of what they actually did.
 
-## 📋 Table of Contents
+This section fixes that in two moves. First, a structure that puts the action and the result where
+the interviewer can hear them. Second, a preparation grid: seven to ten stories, chosen so that
+between them they answer almost any question you will be asked. Preparing per question does not
+scale. Preparing per story does.
 
-### Core
-1. [STAR Framework](01-star-framework.md) — structured method for any behavioral question
-2. [Preparation Grid](02-preparation-grid.md) — organize 7–10 reusable stories
+## Chapters
 
-### Question Categories
-3. [Leadership & Teamwork](03-leadership-teamwork.md)
-4. [Problem Solving](04-problem-solving.md)
-5. [Communication Skills](05-communication.md)
-6. [Challenges & Failures](06-challenges-failures.md)
-7. [Conflict Resolution](07-conflict-resolution.md)
-8. [Questions to Ask Interviewers](08-questions-to-ask.md)
+| #  | Chapter                                                    | What it answers                                                    |
+| -- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| 01 | [The STAR Framework](./01-star-framework.md)               | How do you keep the setup from eating the answer?                  |
+| 02 | [The Preparation Grid](./02-preparation-grid.md)           | Which seven to ten stories cover almost every question?            |
+| 03 | [Leadership and Teamwork](./03-leadership-teamwork.md)     | How do you show influence without authority?                       |
+| 04 | [Problem-Solving Stories](./04-problem-solving.md)         | How do you show method rather than heroics?                        |
+| 05 | [Communication Stories](./05-communication.md)             | How do you carry an argument to people without your context?       |
+| 06 | [Challenges and Failures](./06-challenges-failures.md)     | How do you tell a real failure without spinning it into a win?     |
+| 07 | [Conflict Resolution](./07-conflict-resolution.md)         | How do you sound like someone worth disagreeing with?              |
+| 08 | [Questions to Ask](./08-questions-to-ask.md)               | Which questions tell you what you need and signal seniority?       |
 
-## 🎯 Quick Start
+## What Interviewers Probe For
 
-1. **Learn STAR** — read [STAR Framework](01-star-framework.md). Every answer follows this shape.
-2. **Build your story bank** — use the [Preparation Grid](02-preparation-grid.md) to write 7–10 stories covering leadership, conflict, failure, technical challenge, and impact. One story usually answers 2–3 questions.
-3. **Drill by category** — pick 2–3 categories per session, practice out loud, time yourself (2–3 minutes per answer).
-4. **Prepare your questions** — see [Questions to Ask](08-questions-to-ask.md).
+The senior signal for this part is **owns the design and uses the tool, rather than the other way
+round** — which in a behavioural round means owning the decision, including the bad ones.
 
-## 🌟 What Strong Answers Have
+- **Did you decide, or were you told?** The most common failure at senior level is a story where the
+  candidate executed well on someone else's call. The interviewer is listening for the moment you
+  chose, and what you weighed.
+- **Is the result a number?** "It improved performance" is not a result. "We took p95 from 4.2
+  seconds to 900 milliseconds, and the checkout drop-off fell by a fifth" is. Vague results read as
+  stories that did not happen.
+- **Can you own a failure without either spinning or grovelling?** The strongest answer states what
+  went wrong plainly, says what you would do differently, and shows the change stuck. Choosing a
+  failure that is secretly a strength is transparent and scores badly.
+- **Did you influence without authority?** At senior level the question behind most leadership
+  prompts is whether you can get a team to a decision you do not have the power to impose.
+- **Do your questions show you understood the role?** The final five minutes are still scored. A
+  question about how the team decides what not to build is worth ten about the tech stack.
 
-| ✅ Do | ❌ Avoid |
-| --- | --- |
-| Specific, real scenario | Vague hypotheticals |
-| "I did X" — your contribution | "We did X" — hide behind the team |
-| Quantified outcome (%, $, time) | "It got better" |
-| One concrete learning | No reflection |
-| 2–3 minute length | 5+ minute rambles |
-| Honest about failure | Spinning failures as wins |
+## Reading Order
 
-## 📊 3-Week Study Plan
+01 and 02 first, in that order and before anything else — the framework and the grid are what make
+the rest usable. Then 03 to 07 as the story categories to fill the grid with. 08 last, and reread it
+the morning of the interview.
 
-**Week 1 — Foundation**
-- STAR framework, preparation grid
-- Write 7–10 stories from your real work
-
-**Week 2 — Core Categories**
-- Leadership, problem solving, communication, challenges/failures
-
-**Week 3 — Polish**
-- Conflict resolution
-- Questions to ask
-- Mock interviews
-
-## 💼 Company-Specific Notes
-
-- **Amazon:** map every story to a Leadership Principle. Expect "Tell me about a time you disagreed and committed", "Dive Deep", "Ownership".
-- **Google:** focus on impact, technical excellence, and "Googleyness" (humility, collaboration).
-- **Meta:** speed, scope, autonomy. Stories should show high agency.
-- **Microsoft / Apple:** craft, growth mindset, cross-functional collaboration.
-- **Startups:** wearing many hats, initiative under ambiguity, scrappy delivery.
-
-## 📈 Metrics Worth Including
-
-- **Performance:** "Cut p95 latency 60% (1.2s → 480ms)."
-- **Cost:** "Saved $50K/year on infra spend."
-- **Team:** "Mentored 3 engineers; 2 promoted within a year."
-- **User:** "Engagement up 25% on the new flow."
-- **Timeline:** "Shipped 2 weeks ahead of plan."
-
-## ⚡ Interview-Day Checklist
-
-**Before:**
-- [ ] 7–10 stories rehearsed
-- [ ] Researched the company (3 specific things)
-- [ ] Resume reviewed end-to-end
-- [ ] 5–8 questions prepared for the interviewer
-
-**During:**
-- [ ] Listen to the full question; pause to think
-- [ ] Ask clarifying questions if needed
-- [ ] Structure with STAR; emphasize Action and Result
-- [ ] Specific numbers; honest tone
-
-**After:**
-- [ ] Thank-you note within 24 hours
-- [ ] Note what worked / what didn't
-- [ ] Update story bank with anything new you said well
-
-## 🔗 Navigation
-
-- [← Back to Main](../README.md)
-- [Start: STAR Framework →](01-star-framework.md)
-
----
-
-> Behavioral interviews measure how you actually work — judgment, ownership, collaboration. Bring real examples, be specific, and show what you learned.
+**Interview sprint:** 01 → 02 → 06. Structure, the grid, and the failure story, which is the one
+candidates most reliably get wrong.

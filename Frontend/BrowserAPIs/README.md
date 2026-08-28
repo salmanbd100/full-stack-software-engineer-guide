@@ -1,93 +1,62 @@
 ---
-title: Browser APIs
+title: Part II — Browser APIs
 part: 2
 chapter: 0
 slug: frontend-browser-apis-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-05-20
-tags: [frontend, browser, apis]
+updated: 2026-08-28
+tags: [storage, cookies, indexeddb, permissions, browser]
 in_book: true
 ---
 
-# Browser APIs
+# Part II — Browser APIs
 
-Client-side storage, cookies, and permissions — the parts of the browser that every senior frontend engineer is expected to know cold.
+Four chapters on the browser's own storage and permission model — the part of the platform that
+frameworks deliberately do not abstract, because the security consequences belong to you. Every one
+of these APIs has a version of the question "where do I put the token?", and every one has a wrong
+answer that ships to production regularly.
 
-## What's Inside
+The through-line is that browser storage is not a database with a smaller quota. Each store has a
+different lifetime, a different origin model, a different exposure to script, and a different answer
+when the user clears site data. Choosing between them is a threat-modelling exercise.
 
-| # | Topic | Why It Matters |
-|---|-------|----------------|
-| [01](./01-storage-apis.md) | **Storage APIs** — `localStorage` & `sessionStorage` | Synchronous key-value store; the default for small prefs. Comes up in every frontend interview. |
-| [02](./02-cookies-same-site.md) | **Cookies & SameSite** | The right place for auth. Understanding `HttpOnly`, `SameSite`, and CSRF is non-negotiable for senior roles. |
-| [03](./03-indexeddb.md) | **IndexedDB** | Large, async, transactional storage. Powers offline-first apps and PWAs. |
-| [04](./04-browser-permissions.md) | **Browser Permissions** | Geolocation, notifications, camera/mic, clipboard — and the UX of asking for them. |
+## Chapters
 
----
+| #  | Chapter                                                    | What it answers                                                  |
+| -- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
+| 01 | [Web Storage APIs](./01-storage-apis.md)                   | localStorage or sessionStorage — and why neither holds a token?  |
+| 02 | [Cookies and SameSite](./02-cookies-same-site.md)          | Which attributes stop a cookie being read or replayed?           |
+| 03 | [IndexedDB](./03-indexeddb.md)                             | How do you store structured data past the 5MB wall?              |
+| 04 | [Browser Permissions](./04-browser-permissions.md)         | How do you ask, given that a denial is usually permanent?        |
 
-## Choosing Storage
+## What Interviewers Probe For
 
-A common interview prompt: _"Where would you put X?"_
+The senior signal for this part is **reaches for the platform before reaching for a library.** For
+these APIs specifically:
 
-| Data | Pick | Why |
-|------|------|-----|
-| Theme, language, last-viewed tab | `localStorage` | Small, persistent, synchronous access is fine |
-| Multi-step wizard state | `sessionStorage` | Per-tab, cleared on close — exactly the lifetime you want |
-| Auth / refresh tokens | **HttpOnly cookie** | JavaScript can't read it; survives XSS |
-| Offline records, drafts, queues | **IndexedDB** | Large, async, indexed, transactional |
-| Cached HTTP responses (PWA) | **Cache API** (in a Service Worker) | Built for `Request`/`Response` pairs |
-| In-flight UI state, derived data | React / store / memory | No persistence needed |
+- **Where does the access token go?** This is the most common browser-storage question in a senior
+  loop and it has a real answer: an `HttpOnly` cookie, because anything JavaScript can read, an XSS
+  can read. A candidate who says `localStorage` without naming that trade-off has failed the follow-up.
+- **Do you know what `SameSite=Lax` actually blocks?** It stops cross-site POSTs, not cross-site GETs
+  from top-level navigation. Treating it as a complete CSRF defence is a common and expensive mistake.
+- **Can you justify IndexedDB over something simpler?** It is asynchronous, versioned and awkward.
+  The reason to pay that cost is size, structure, or offline writes — not preference.
+- **Do you handle a permanent denial?** The interface still has to work when the user says no. That
+  answer separates people who have shipped a permission prompt from people who have read about one.
+- **What is the origin boundary?** Storage is partitioned by scheme, host and port, so `http://` and
+  `https://` on the same domain see different data, and a subdomain does not share with its parent
+  unless a cookie's `Domain` attribute says so. Most "the data disappeared" bugs are this.
+- **What happens when the quota runs out?** Every one of these APIs can fail on a write, and browsers
+  evict without warning under storage pressure. Treating any of them as durable is a design error.
 
----
+## Reading Order
 
-## Security Cheat Sheet
+Chapters 01 and 02 first and together — they are the two halves of "where does state live in the
+browser". Chapters 03 and 04 are independent and can be read in either order.
 
-| Risk | Defense |
-|------|---------|
-| **XSS reading tokens** | Never store credentials in `localStorage`/`sessionStorage`. Use `HttpOnly` cookies. |
-| **CSRF** | `SameSite=Lax` (or `Strict`) + a CSRF token on state-changing requests. |
-| **Man-in-the-middle** | Always set `Secure` on cookies. HTTPS everywhere. |
-| **Stale tokens** | Short-lived access tokens in memory; long-lived refresh in `HttpOnly` cookie. |
-| **Permission abuse** | Ask on user gesture only; explain in UI before triggering the native prompt. |
+**Interview sprint:** 01 → 02. The storage-and-token question and the cookie-attributes question are
+the two that actually get asked; 03 and 04 come up mainly when the role is offline-first.
 
----
-
-## Study Plan
-
-**Weekend 1 — Storage fundamentals**
-- Read 01-storage-apis.md and 03-indexeddb.md
-- Build a notes app: drafts in `sessionStorage`, saved notes in IndexedDB
-
-**Weekend 2 — Auth & cookies**
-- Read 02-cookies-same-site.md
-- Implement the split-token pattern (HttpOnly refresh cookie + in-memory access token)
-- Explain SameSite=Lax vs Strict vs None out loud — that's the question
-
-**Weekend 3 — Permissions UX**
-- Read 04-browser-permissions.md
-- Build a "find places near me" button with full permission states + fallback
-
----
-
-## Quick Reference
-
-```typescript
-// localStorage
-localStorage.setItem("k", JSON.stringify(value));
-const value = JSON.parse(localStorage.getItem("k") ?? "null");
-
-// Cookie (HttpOnly is server-only)
-document.cookie = "theme=dark; Path=/; Max-Age=31536000; SameSite=Lax";
-
-// IndexedDB (with idb library)
-const db = await openDB("app", 1, { upgrade(db) { db.createObjectStore("notes", { keyPath: "id", autoIncrement: true }); } });
-await db.add("notes", { title, body });
-
-// Permissions
-const status = await navigator.permissions.query({ name: "geolocation" });
-if (status.state !== "denied") navigator.geolocation.getCurrentPosition(onOk, onErr);
-```
-
----
-
-[← Frontend](../README.md)
+> ⚠️ Service workers and the Cache API are the browser's other storage layer, and they live in
+> [PWA](../PWA/README.md) rather than here, because their lifecycle is what makes them difficult.

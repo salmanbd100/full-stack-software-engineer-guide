@@ -1,144 +1,64 @@
 ---
-title: Backend Engineering — Interview Prep
+title: Part V — Backend for Frontend Engineers
 part: 5
 chapter: 0
 slug: backend-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-03
-tags: [backend]
+updated: 2026-08-28
+tags: [backend, nodejs, api, sql, nosql, security]
 in_book: true
 ---
 
-# Backend Engineering — Interview Prep
+# Part V — Backend for Frontend Engineers
 
-Senior-level reference covering the backend topics that show up in MNC and FAANG interviews: Node.js internals, SQL and NoSQL databases, API design, security, design patterns, and testing.
+This book is frontend-heavy, not frontend-only. Part V is scoped by a single question: **what does a
+frontend-heavy full stack engineer actually get asked, and actually build?** That is Node's event
+loop, REST and GraphQL and typed contracts, enough SQL to design a schema and read a query plan, JWT
+versus sessions, and streaming endpoints — which matter far more now than they did in 2023, because
+the AI features in Part VII stream by default.
 
-> Target audience: Senior / Staff engineers (5+ years). Focus is **depth on common topics**, not exhaustive reference.
+It is not a backend career in a box and does not pretend to be. There is no message-broker section,
+no distributed-transaction chapter, no service mesh. Those belong to a different reader. What is here
+is the surface a frontend engineer owns or negotiates with, at the depth a senior interview probes.
 
----
+## Sections
 
-## 📁 Sections
+| Section                                                        | Chapters | What it covers                                                       |
+| -------------------------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| [Node.js](./NodeJS/README.md)                                  | 8        | The event loop, streams, modules, errors, performance, scaling       |
+| [API Design](./API/README.md)                                  | 6        | REST, GraphQL, versioning, rate limiting, docs, WebSockets           |
+| [SQL and Relational Data](./SQL/README.md)                     | 8        | Schema design, indexes, transactions, ORMs, query plans              |
+| [NoSQL](./NoSQL/README.md)                                     | 6        | MongoDB modelling, aggregation, indexing, Mongoose, Redis            |
+| [Security](./Security/README.md)                               | 8        | JWT, OAuth, passwords, TLS, CORS, validation, injection, headers     |
+| [Testing](./Testing/README.md)                                 | 6        | What to test on a server, and where the boundaries go                |
 
-### [NodeJS/](./NodeJS/)
+`Backend/DesignPatterns/` also lives in this tree, but it belongs to **Part I** — patterns are
+language material, not backend material, and `scripts/lib/book.ts` maps it accordingly.
 
-Runtime internals and production patterns. Start with the [module index](./NodeJS/README.md) for the study path and interview signals.
+## What Interviewers Probe For
 
-| #   | Topic                                                     |
-| --- | --------------------------------------------------------- |
-| 01  | [Event Loop & Async Programming](./NodeJS/01-event-loop-async.md) |
-| 02  | [Streams & Buffers](./NodeJS/02-streams-buffers.md)       |
-| 03  | [Module System](./NodeJS/03-module-system.md)             |
-| 04  | [Error Handling](./NodeJS/04-error-handling.md)           |
-| 05  | [Performance](./NodeJS/05-performance.md)                 |
-| 06  | [Security](./NodeJS/06-security.md)                       |
-| 07  | [Child Processes](./NodeJS/07-child-processes.md)         |
-| 08  | [Clustering](./NodeJS/08-clustering.md)                   |
+The senior signal for this part is **designs an API the frontend can actually consume well, and knows
+why the query is slow.** Both halves matter, and candidates usually have only one:
 
-### [SQL/](./SQL/)
+- **Can you design an endpoint the client will not have to work around?** Over-fetching, chatty
+  round-trips, and pagination that breaks when a row is inserted are all API design failures that
+  land on the frontend. Having been on the receiving end is an advantage here — use it.
+- **Do you understand the event loop as a constraint?** One thread. A synchronous JSON parse of a
+  large body blocks every other request on the process. This is the Node question that separates
+  people who have run a service from people who have written one.
+- **Can you read a query plan?** Not optimise from memory — read one, and point at the line that is
+  the problem. Reaching for `EXPLAIN ANALYZE` before guessing answers most of this.
+- **Where does the token live and why?** Sessions versus JWTs is the most reliably asked auth
+  question, and the correct answer is a trade-off — revocation and statefulness against scale — not a
+  preference.
 
-Relational databases — PostgreSQL focus.
+## Reading Order
 
-| #   | Topic                                                     |
-| --- | --------------------------------------------------------- |
-| 01  | [Fundamentals](./SQL/01-fundamentals.md)                  |
-| 02  | [Database Design](./SQL/02-database-design.md)            |
-| 03  | [Indexes](./SQL/03-indexes.md)                            |
-| 04  | [Transactions & ACID](./SQL/04-transactions.md)           |
-| 05  | [PostgreSQL](./SQL/05-postgresql.md)                      |
-| 06  | [ORMs](./SQL/06-orms.md)                                  |
-| 07  | [Migrations](./SQL/07-migrations.md)                      |
-| 08  | [Query Optimization](./SQL/08-optimization.md)            |
+`NodeJS/` → `API/` → `SQL/` → `Security/`. That is the order the material builds in, and it is also
+roughly the order a full stack loop asks about it. `NoSQL/` and `Testing/` are self-contained and can
+be read whenever they are relevant.
 
-### [NoSQL/](./NoSQL/)
-
-MongoDB document modeling and Redis. Start with the [module index](./NoSQL/README.md) for the study path and interview signals.
-
-| #   | Topic                                                     |
-| --- | --------------------------------------------------------- |
-| 01  | [MongoDB Fundamentals](./NoSQL/01-mongodb.md)             |
-| 02  | [Document Design Patterns](./NoSQL/02-design-patterns.md) |
-| 03  | [Aggregation Pipeline](./NoSQL/03-aggregation.md)         |
-| 04  | [Indexing & Performance](./NoSQL/04-indexing.md)          |
-| 05  | [Mongoose ODM](./NoSQL/05-mongoose.md)                    |
-| 06  | [Redis](./NoSQL/06-redis.md)                              |
-
-### [API/](./API/)
-
-REST, GraphQL, and real-time. Start with the [module index](./API/README.md) for the study path and pre-ship checklist.
-
-| #   | Topic                                                     |
-| --- | --------------------------------------------------------- |
-| 01  | [REST Best Practices](./API/01-rest-best-practices.md)    |
-| 02  | [GraphQL](./API/02-graphql.md)                            |
-| 03  | [Versioning](./API/03-versioning.md)                      |
-| 04  | [Rate Limiting](./API/04-rate-limiting.md)                |
-| 05  | [Documentation](./API/05-documentation.md)                |
-| 06  | [WebSockets](./API/06-websockets.md)                      |
-
-### [Security/](./Security/)
-
-Authentication, authorization, transport, and input safety. Start with the [module index](./Security/README.md) for the study path and pre-deploy checklist.
-
-| #   | Topic                                                     |
-| --- | --------------------------------------------------------- |
-| 01  | [JWT Authentication](./Security/01-jwt.md)                |
-| 02  | [OAuth 2.0](./Security/02-oauth.md)                       |
-| 03  | [Password Security](./Security/03-passwords.md)           |
-| 04  | [HTTPS & TLS](./Security/04-https.md)                     |
-| 05  | [CORS & CSRF](./Security/05-cors-csrf.md)                 |
-| 06  | [Input Validation](./Security/06-validation.md)           |
-| 07  | [SQL Injection Prevention](./Security/07-sql-injection.md)|
-| 08  | [Security Headers](./Security/08-security-headers.md)     |
-
-### [DesignPatterns/](./DesignPatterns/)
-
-Gang of Four patterns and SOLID principles in TypeScript. Start with the [module index](./DesignPatterns/README.md) for the study path and interview frequency table.
-
-| #   | Topic                                                                 |
-| --- | --------------------------------------------------------------------- |
-| 01  | [Creational Patterns](./DesignPatterns/01-creational-patterns.md)     |
-| 02  | [Structural Patterns](./DesignPatterns/02-structural-patterns.md)     |
-| 03  | [Behavioral Patterns](./DesignPatterns/03-behavioral-patterns.md)     |
-| 04  | [Architectural Patterns](./DesignPatterns/04-architectural-patterns.md)|
-| 05  | [SOLID Principles](./DesignPatterns/05-solid-principles.md)           |
-
-### [Testing/](./Testing/)
-
-Unit → integration → E2E, TDD, and mocking.
-
-| #   | Topic                                                     |
-| --- | --------------------------------------------------------- |
-| 01  | [Unit Testing](./Testing/01-unit-testing.md)              |
-| 02  | [Integration Testing](./Testing/02-integration.md)        |
-| 03  | [E2E Testing](./Testing/03-e2e.md)                        |
-| 04  | [Test-Driven Development](./Testing/04-tdd.md)            |
-| 05  | [Mocking & Stubbing](./Testing/05-mocking.md)             |
-| 06  | [Testing Best Practices](./Testing/06-best-practices.md)  |
-
----
-
-## 🎯 What Interviewers Probe For
-
-| Theme                  | Senior-level signal                                                |
-| ---------------------- | ------------------------------------------------------------------ |
-| **Node.js internals**  | Event loop phases, microtasks vs macrotasks, worker threads        |
-| **Database design**    | Indexing strategy, transactions, N+1, denormalization tradeoffs    |
-| **API design**         | REST conventions, idempotency, pagination, versioning              |
-| **Security**           | OWASP top 10, JWT tradeoffs, password hashing, CSRF vs CORS        |
-| **Scalability**        | Caching layers, queue patterns, horizontal scaling, statelessness  |
-| **Testing**            | Pyramid, dependency injection, flake hunting, what *not* to mock   |
-
----
-
-## 📚 Recommended Resources
-
-- **Designing Data-Intensive Applications** — Martin Kleppmann
-- **Node.js Design Patterns** — Mario Casciaro
-- **System Design Interview** — Alex Xu (Vol 1 & 2)
-- **PostgreSQL docs** — go straight to the source
-- **MongoDB University** — free courses on modeling and aggregation
-
----
-
-[← Back to root](../README.md)
+**Interview sprint:** `NodeJS/01` (the event loop), `API/01` (REST) and `API/02` (GraphQL),
+`SQL/03` (indexes), `Security/01` (JWT). Those five carry most of what a frontend-heavy full stack
+interview asks on the backend.

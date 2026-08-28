@@ -1,79 +1,61 @@
 ---
-title: Frontend Testing — Interview Prep
+title: Part IV — Frontend Testing
 part: 4
 chapter: 0
 slug: frontend-testing-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 2
+reading_time: 3
 updated: 2026-08-28
-tags: [frontend, testing]
+tags: [testing, vitest, react-testing-library, e2e, tdd]
 in_book: true
 ---
 
-# Frontend Testing — Interview Prep
+# Part IV — Frontend Testing
 
-Testing is a core skill for senior frontend roles. Interviewers want proof you can write reliable, maintainable code and reason about quality. This guide covers every test type you'll be asked about, with **TypeScript** examples and **Vitest** as the runner.
+Nobody is hired for knowing the Vitest API. What gets tested in an interview is judgement: what is
+worth testing, at which layer, and what a test is allowed to know about the implementation. This
+section is organised around that question, and the framework material is deliberately thin — it is
+the vocabulary you need to have the real conversation.
 
-> **Why Vitest, not Jest?** Vitest is the modern default for Vite/React/Vue/Svelte projects — faster, native TypeScript and ESM, and Jest-compatible API. Mocking uses `vi` instead of `jest`. Everything you know from Jest transfers.
+The through-line is coupling. A test that knows about internal state breaks on every refactor and
+teaches the team to distrust the suite. A test that drives the interface the way a user does survives
+rewrites of everything underneath it. Almost every recommendation here follows from that one idea.
 
-## 🎯 What Interviewers Look For
+## Chapters
 
-- ✅ Knowing **which test type** fits which problem
-- ✅ Testing **behavior**, not implementation details
-- ✅ Writing **isolated, non-flaky** tests
-- ✅ Mocking the **network**, not your own code
-- ✅ Understanding coverage limits and real quality signals
+| #  | Chapter                                                          | What it answers                                                 |
+| -- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
+| 01 | [Testing Fundamentals](./01-testing-fundamentals.md)             | What do you test, and at which layer?                           |
+| 02 | [Vitest Basics](./02-vitest-basics.md)                           | How do you mock a module without leaking into the next test?    |
+| 03 | [React Testing Library](./03-react-testing-library.md)           | Which query, so a refactor does not break a hundred tests?      |
+| 04 | [Frontend Integration Testing](./04-integration-testing.md)      | How do you test a whole flow against a fake network?            |
+| 05 | [End-to-End Testing](./05-e2e-testing.md)                        | Which browser tests are worth their runtime?                    |
+| 06 | [Test-Driven Development](./06-test-driven-development.md)       | When does writing the test first genuinely pay?                 |
+| 07 | [Specialised Testing](./07-specialized-testing.md)               | What do visual, accessibility and contract tests catch?         |
+| 08 | [Testing Best Practices](./08-best-practices.md)                 | How does a suite stay fast enough that people still run it?     |
 
-## 📚 Topics
+## What Interviewers Probe For
 
-| #   | File                                                       | Focus |
-| --- | ---------------------------------------------------------- | ----- |
-| 01  | [Testing Fundamentals](./01-testing-fundamentals.md)       | All test types, pyramid vs trophy, AAA, test doubles, coverage |
-| 02  | [Vitest Basics](./02-vitest-basics.md)                     | Config, matchers, mocking (`vi`), fake timers, snapshots |
-| 03  | [React Testing Library](./03-react-testing-library.md)     | Queries, `userEvent`, async, hooks, custom render |
-| 04  | [Integration Testing](./04-integration-testing.md)         | Component + state + network with MSW |
-| 05  | [E2E Testing](./05-e2e-testing.md)                          | Playwright, Page Object Model, auth state, CI |
-| 06  | [Test-Driven Development](./06-test-driven-development.md)  | Red-Green-Refactor, BDD |
-| 07  | [Specialized Testing](./07-specialized-testing.md)         | Snapshot, visual regression, a11y, performance, contract, mutation |
-| 08  | [Best Practices](./08-best-practices.md)                    | Organization, isolation, flaky tests, anti-patterns |
+The senior signal for this part is **thinks in budgets, boundaries and migration paths rather than
+features.** A test suite is a budget — of runtime, of maintenance, and of trust.
 
-## 🧭 The Types of Testing at a Glance
+- **Where do you draw the test boundary?** The strongest answer names the network as the mock point
+  and tests everything above it together. Mocking a child component is usually a sign the boundary is
+  in the wrong place.
+- **How do you handle a flaky test?** Quarantine and fix, not retry and forget. A candidate who
+  reaches straight for a retry count has told you what their suite looks like.
+- **What is your coverage number for?** The honest senior answer is that coverage finds untested
+  files, not untested behaviour, and that a target above roughly 80% starts buying tests written to
+  satisfy the number.
+- **When do you not write the test first?** TDD is a tool, not a creed. Exploratory work, spike code
+  and UI layout are the standard honest exceptions, and saying so reads as experience rather than
+  laziness.
 
-**Functional levels** (what the code does):
+## Reading Order
 
-```text
-Unit  →  Component  →  Integration  →  E2E
-fast, isolated                       slow, full app
-```
+01 first — it sets the layers everything else refers to. Then 03 and 04, which are where most
+frontend testing actually happens. 02 is reference material you can dip into. 06 to 08 are the
+judgement chapters and read well in one sitting.
 
-**Specialized types** (a specific quality): snapshot, visual regression, accessibility, performance, contract, mutation, smoke, regression. See [01](./01-testing-fundamentals.md#the-types-of-testing) and [07](./07-specialized-testing.md).
-
-## 🛠️ The Modern Stack
-
-| Job                    | Tool |
-| ---------------------- | ---- |
-| Test runner            | **Vitest** |
-| Component testing       | **React Testing Library** + `@testing-library/user-event` |
-| DOM matchers           | `@testing-library/jest-dom` |
-| Network mocking        | **MSW** (Mock Service Worker) |
-| E2E                    | **Playwright** (or Cypress) |
-| Visual regression      | Playwright screenshots, Percy, Chromatic |
-| Accessibility          | `axe` |
-| Performance            | Lighthouse CI |
-| Mutation testing       | Stryker |
-
-## 🗺️ Suggested Order
-
-1. **Fundamentals** (01) — the vocabulary every other file builds on
-2. **Vitest** (02) — the runner and its API
-3. **RTL** (03) → **Integration** (04) — the day-to-day of frontend testing
-4. **E2E** (05) — critical user journeys
-5. **TDD** (06), **Specialized** (07), **Best Practices** (08) — depth and polish
-
-## 💡 The One Rule to Remember
-
-> "The more your tests resemble the way your software is used, the more confidence they can give you." — Testing Library
-
----
-
-[← Back to Frontend](../README.md)
+**Interview sprint:** 01 → 03 → 05. The layering question, the query-priority question, and knowing
+which end-to-end tests earn their place cover most of what gets asked.

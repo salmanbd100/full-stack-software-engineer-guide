@@ -1,202 +1,63 @@
 ---
-title: Web Performance
+title: Part IV — Web Performance
 part: 4
 chapter: 0
 slug: frontend-web-performance-index
-level: intermediate # beginner | intermediate | advanced
-reading_time: 5
-updated: 2026-06-23
-tags: [frontend, web, performance]
+level: advanced # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-28
+tags: [performance, core-web-vitals, inp, bundles, caching]
 in_book: true
 ---
 
-# Web Performance
+# Part IV — Web Performance
 
-Learn how to make websites load fast and run smoothly. Performance is one of the most important topics in frontend interviews because **slow websites lose users and money**.
+Performance is the clearest example of what Part IV is about: it is not a feature, it is a budget
+somebody is held to. This section covers the three metrics that get measured in public, the loading
+strategies that move them, and — the part most material skips — how to know whether a change helped
+real users rather than your laptop.
 
-> **Quick Truth:**
-> A 1-second delay in page load can drop sales by 7%. Performance is not optional.
+One correction up front, because a lot of published material still has it wrong. **INP replaced FID**
+as a Core Web Vital in March 2024. FID measured the delay before the first interaction was handled
+and almost every site passed it. INP measures the full latency of every interaction, to the next
+paint, and takes the worst. Sites that comfortably passed FID routinely fail INP. If a candidate
+still says FID in 2026, that dates them.
 
----
+## Chapters
 
-## 📚 What You Will Learn
+| #  | Chapter                                                              | What it answers                                                |
+| -- | -------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 01 | [Core Web Vitals](./01-core-web-vitals.md)                           | Which fix moves which metric?                                  |
+| 02 | [Lazy Loading](./02-lazy-loading.md)                                 | How do you defer without pushing your largest paint out?       |
+| 03 | [Code Splitting](./03-code-splitting.md)                             | How do you ship this route's code and nothing else?            |
+| 04 | [Frontend Caching Strategies](./04-caching-strategies.md)            | At which layer, and how does each entry become wrong?          |
+| 05 | [Image Optimisation](./05-image-optimization.md)                     | What is the smallest image that still looks right?             |
+| 06 | [Bundle Optimisation](./06-bundle-optimization.md)                   | What is actually in your bundle?                               |
+| 07 | [Performance Monitoring](./07-performance-monitoring.md)             | What are real users experiencing, not your dev machine?        |
+| 08 | [Rendering Optimisation](./08-rendering-optimization.md)             | How do you keep interactions inside the frame budget?          |
 
-### 🎯 Performance Metrics
+## What Interviewers Probe For
 
-| File | Topic | What You Learn |
-|------|-------|----------------|
-| [01](./01-core-web-vitals.md) | **Core Web Vitals** | The 3 numbers Google uses to score your site |
+The senior signal for this part is **thinks in budgets, boundaries and migration paths rather than
+features.** Performance is where that is measured literally:
 
-### ⚡ Loading Optimization
+- **Do you measure before you change anything?** The strongest answers start with field data and a
+  profile, not with a list of optimisations. "I would code-split" as an opening move is a guess.
+- **Can you name what moves LCP?** It is usually the hero image or a render-blocking request, and it
+  is almost never JavaScript execution. Candidates who reach for bundle size first have not debugged
+  a real LCP problem.
+- **Do you know why INP is harder than FID?** Because it measures every interaction all the way to
+  paint, so a long task anywhere in the session can fail you. This is the current version of the
+  question and it filters well.
+- **Lab or field?** Lighthouse gives you a repeatable score on one synthetic device. The Chrome User
+  Experience Report tells you what your users actually got. A senior answer uses both and says which
+  question each one answers.
 
-| File | Topic | What You Learn |
-|------|-------|----------------|
-| [02](./02-lazy-loading.md) | **Lazy Loading** | Load things only when needed |
-| [03](./03-code-splitting.md) | **Code Splitting** | Break your JavaScript into smaller pieces |
-| [06](./06-bundle-optimization.md) | **Bundle Optimization** | Make your JavaScript file smaller |
+## Reading Order
 
-### 🖼️ Resource Optimization
+01 first, always — it defines the metrics the other seven chapters are trying to move. Then 02, 03
+and 05, which are the highest-leverage loading fixes. 07 is the chapter that makes the rest
+verifiable; do not leave it out.
 
-| File | Topic | What You Learn |
-|------|-------|----------------|
-| [05](./05-image-optimization.md) | **Image Optimization** | Make images load faster |
-| [04](./04-caching-strategies.md) | **Caching Strategies** | Save files so they don't reload |
-
-### 📊 Monitoring & Rendering
-
-| File | Topic | What You Learn |
-|------|-------|----------------|
-| [07](./07-performance-monitoring.md) | **Performance Monitoring** | Measure how fast your site is |
-| [08](./08-rendering-optimization.md) | **Rendering Optimization** | Make your UI feel smooth |
-
----
-
-## 🎯 Interview Focus Areas
-
-### 🔴 **Most Important (Must Know)**
-
-1. **Core Web Vitals** - LCP, INP, CLS
-2. **Lazy loading** - Images and components
-3. **Code splitting** - Smaller JavaScript bundles
-4. **Bundle optimization** - Tree shaking, minification
-5. **Image optimization** - Modern formats, responsive
-
-### 🟡 **Very Important**
-
-6. Caching strategies
-7. Performance measurement tools
-8. Rendering optimization
-9. Network optimization
-10. Critical rendering path
-
-### 🟢 **Good to Know**
-
-11. Service workers
-12. HTTP/2 and HTTP/3
-13. Resource hints (preload, prefetch)
-14. Performance budgets
-
----
-
-## 💡 Common Interview Questions
-
-| Question | Where to Look |
-|----------|---------------|
-| "What are Core Web Vitals?" | [01-core-web-vitals.md](./01-core-web-vitals.md) |
-| "How do you optimize images?" | [05-image-optimization.md](./05-image-optimization.md) |
-| "Explain code splitting and lazy loading" | [02](./02-lazy-loading.md), [03](./03-code-splitting.md) |
-| "What caching strategies do you use?" | [04-caching-strategies.md](./04-caching-strategies.md) |
-| "How do you measure performance?" | [07-performance-monitoring.md](./07-performance-monitoring.md) |
-| "What is the critical rendering path?" | [01-core-web-vitals.md](./01-core-web-vitals.md) |
-| "Difference between debounce and throttle?" | [08-rendering-optimization.md](./08-rendering-optimization.md) |
-| "How to reduce bundle size?" | [06-bundle-optimization.md](./06-bundle-optimization.md) |
-
----
-
-## ✨ Essential Code Patterns
-
-### 💡 **Lazy Loading a React Component**
-
-Load heavy components only when needed.
-
-```tsx
-import { lazy, Suspense } from 'react';
-
-// Wait until needed before downloading
-const HeavyComponent = lazy(() => import('./HeavyComponent'));
-
-function App(): JSX.Element {
-  return (
-    <Suspense fallback={<Loading />}>
-      <HeavyComponent />
-    </Suspense>
-  );
-}
-```
-
-### 💡 **Lazy Loading an Image**
-
-The browser does the work for you.
-
-```html
-<img src="image.jpg" loading="lazy" alt="Description" width="800" height="600" />
-```
-
-### 💡 **Debounce Function**
-
-Wait for the user to stop typing before searching.
-
-```typescript
-function debounce<A extends unknown[]>(
-  fn: (...args: A) => void,
-  wait: number,
-): (...args: A) => void {
-  let timer: ReturnType<typeof setTimeout>;
-  return (...args: A) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), wait);
-  };
-}
-```
-
-### 💡 **Measure Core Web Vitals**
-
-Track real user loading speed.
-
-```typescript
-import { onLCP, type LCPMetric } from 'web-vitals';
-
-onLCP((metric: LCPMetric) => {
-  console.log('LCP:', metric.value, metric.rating);
-});
-```
-
-### 💡 **Code Splitting with Dynamic Import**
-
-Load code only when the user needs it.
-
-```typescript
-async function loadModule(): Promise<void> {
-  const module = await import('./heavyModule');
-  module.doSomething();
-}
-```
-
----
-
-## 📊 Performance Targets (Memorize These!)
-
-### Core Web Vitals Thresholds
-
-| Metric | ✅ Good | ⚠️ Needs Work | ❌ Poor |
-|--------|---------|----------------|---------|
-| **LCP** (Loading) | < 2.5s | 2.5s – 4s | > 4s |
-| **INP** (Interactive) | < 200ms | 200ms – 500ms | > 500ms |
-| **CLS** (Stable) | < 0.1 | 0.1 – 0.25 | > 0.25 |
-
-### Other Important Metrics
-
-| Metric | Target | What It Means |
-|--------|--------|---------------|
-| **FCP** (First Contentful Paint) | < 1.8s | When you first see something |
-| **TTI** (Time to Interactive) | < 3.8s | When the page can be used |
-| **TBT** (Total Blocking Time) | < 200ms | Time the page is frozen |
-| **Bundle size** | < 200KB | Initial JavaScript download |
-
-> **Key Insight:**
-> If you only remember 3 numbers, remember **2.5s**, **200ms**, and **0.1** — the targets for the three Core Web Vitals.
-
----
-
-## 🔗 External Resources
-
-- [Web.dev Performance](https://web.dev/performance/) - Google's official guide
-- [MDN Performance](https://developer.mozilla.org/en-US/docs/Web/Performance) - Browser API docs
-- [Chrome DevTools Performance](https://developer.chrome.com/docs/devtools/performance/) - Built-in browser tool
-- [Lighthouse](https://developers.google.com/web/tools/lighthouse) - Free performance auditing
-- [WebPageTest](https://www.webpagetest.org/) - Detailed performance analysis
-- [Bundle Analyzer](https://www.npmjs.com/package/webpack-bundle-analyzer) - See what's in your bundle
-
----
-
-[← Back to Frontend](../README.md)
+**Interview sprint:** 01 → 03 → 08 → 07. The metrics, the loading lever, the interaction lever, and
+how you prove any of it worked.

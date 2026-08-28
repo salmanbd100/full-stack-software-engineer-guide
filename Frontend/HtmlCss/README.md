@@ -1,88 +1,63 @@
 ---
-title: HTML & CSS
+title: Part II — HTML and CSS
 part: 2
 chapter: 0
 slug: frontend-html-css-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 2
+reading_time: 3
 updated: 2026-08-28
-tags: [frontend, html, css]
+tags: [html, css, layout, accessibility, responsive]
 in_book: true
 ---
 
-# HTML & CSS
+# Part II — HTML and CSS
 
-Core HTML and CSS topics for senior frontend interviews. Focused on the patterns, tradeoffs, and gotchas that actually come up — not exhaustive reference material.
+The platform layer that every framework sits on top of. Engineers who skipped it hit a ceiling that
+shows up in interviews as soon as the question stops being about state and starts being about the
+document — why the focus ring vanished, why the modal traps a screen reader, why the layout collapses
+at 320 pixels. This section covers markup and styling as engineering decisions with consequences, not
+as syntax.
 
-## 📚 Topics
+Two chapters here punch well above their weight. **Accessibility** has been a legal requirement across
+the EU since the European Accessibility Act became enforceable in June 2025, and it is one of the two
+topics that most reliably separate a senior candidate from a mid-level one in a frontend round.
+**Responsive design** is the other, because the answer everyone gives is "media queries" and the
+answer that scores is about intrinsic sizing.
 
-| # | Topic | What you'll learn |
-|---|-------|-------------------|
-| 1 | [Semantic HTML](./01-semantic-html.md) | Landmarks, section vs article, heading order, forms, ARIA basics |
-| 2 | [CSS Fundamentals](./02-css-fundamentals.md) | Box model, specificity, cascade, positioning, units, `@layer` |
-| 3 | [Flexbox](./03-flexbox.md) | Axis model, `flex: 1` gotcha, `min-width: 0` trick, 1D patterns |
-| 4 | [Grid](./04-grid.md) | 2D layout, `minmax(0, 1fr)`, `auto-fit` vs `auto-fill`, subgrid |
-| 5 | [Responsive Design](./05-responsive-design.md) | Mobile-first, `clamp()`, container queries, `srcset` / `<picture>` |
-| 6 | [CSS Animations](./06-css-animations.md) | Transition vs animation, compositor-only properties, `will-change`, reduced motion |
-| 7 | [Accessibility](./07-accessibility.md) | POUR, ARIA rules, focus management, contrast, screen readers |
-| 8 | [Advanced CSS](./08-advanced-css.md) | Custom properties, `oklch()`, `@layer`, `:has()`, logical properties, View Transitions |
+## Chapters
 
----
+| #  | Chapter                                                | What it answers                                                        |
+| -- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| 01 | [Semantic HTML](./01-semantic-html.md)                 | Which element, and what do you get free by choosing it?                |
+| 02 | [CSS Fundamentals](./02-css-fundamentals.md)           | Which rule wins, and why is the box that size?                         |
+| 03 | [Flexbox](./03-flexbox.md)                             | Which axis is each property actually talking about?                    |
+| 04 | [CSS Grid](./04-grid.md)                               | How do you build structure that survives unplanned content?            |
+| 05 | [Responsive Design](./05-responsive-design.md)         | How do you adapt without a breakpoint per device?                      |
+| 06 | [CSS Animations](./06-css-animations.md)               | Why does `transition: all` cost you frames?                            |
+| 07 | [Accessibility](./07-accessibility.md)                 | How do you pass a keyboard, a screen reader and a legal audit?         |
+| 08 | [Advanced CSS](./08-advanced-css.md)                   | What shipped since 2023, and what did each feature replace?            |
 
-## 🎯 Interview Focus
+## What Interviewers Probe For
 
-### Most asked
-1. Box model + `box-sizing` — why every reset sets `border-box`
-2. Specificity and cascade — the source of most CSS bugs
-3. Flexbox vs Grid — when to reach for each
-4. Responsive design — mobile-first, `clamp()`, container queries
-5. Semantic HTML and accessibility — the senior signal
+The senior signal for this part is **reaches for the platform before reaching for a library.** In a
+round, that shows up as:
 
-### Frequently asked
-6. Positioning + stacking contexts (the `z-index` trap)
-7. Units: `px` vs `rem` vs `em` vs `clamp()`
-8. `auto-fit` vs `auto-fill` in grid
-9. What is `:has()` and why does it matter?
-10. How does the browser paint vs composite an animation?
+- **Do you know the cascade well enough to debug it?** Specificity, inheritance, the cascade layers,
+  and why `!important` on a utility class is a design decision rather than a hack. The test is a
+  screenshot of something styled wrongly and the question "why?"
+- **Is accessibility structural or bolted on?** A candidate who reaches for `role` and `aria-label`
+  first has answered badly. The right first move is picking the element that already has the
+  semantics. ARIA is what you use when no element fits.
+- **Can you lay something out without guessing?** Flexbox versus Grid is a one-line answer — content-
+  driven in one dimension against structure-driven in two — and interviewers ask it to see whether
+  you have a rule or a habit.
+- **Do you understand what triggers layout?** Animating `width` and animating `transform` look the
+  same and cost completely different amounts. This is where Part IV's performance material starts.
 
----
+## Reading Order
 
-## 💡 Essential Patterns
+Straight through. Chapters 03 and 04 are a pair and read best together. Chapter 07 is the one to read
+twice — it is the highest-leverage chapter in the section for a senior interview.
 
-```css
-/* Modern centering */
-.center {
-  display: grid;
-  place-items: center;
-}
-
-/* Intrinsic responsive grid (no media queries) */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
-  gap: clamp(1rem, 2vw, 2rem);
-}
-
-/* Fluid typography */
-h1 {
-  font-size: clamp(1.5rem, 4vw, 3rem);
-}
-
-/* Container query */
-@container (min-width: 600px) {
-  .card { display: grid; grid-template-columns: 1fr 2fr; }
-}
-```
-
----
-
-## 🔗 References
-
-- [MDN HTML](https://developer.mozilla.org/en-US/docs/Web/HTML) · [MDN CSS](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS Tricks](https://css-tricks.com/) · [web.dev — Learn CSS](https://web.dev/learn/css/)
-- [Can I Use](https://caniuse.com/) · [WCAG 2.2 Quick Ref](https://www.w3.org/WAI/WCAG22/quickref/)
-- [Flexbox Froggy](https://flexboxfroggy.com/) · [Grid Garden](https://cssgridgarden.com/)
-
----
-
-[← Back to Frontend](../README.md)
+**Interview sprint:** 01 → 02 → 07 → 05. Semantics, the cascade, accessibility and responsive
+strategy cover most of what a frontend loop asks before it moves on to frameworks.

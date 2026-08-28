@@ -1,92 +1,67 @@
 ---
-title: Communication Skills
+title: Part IX — Communication
 part: 9
 chapter: 0
 slug: communication-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 2
+reading_time: 3
 updated: 2026-08-28
-tags: [communication]
+tags: [communication, writing, thinking-aloud, cross-cultural, listening]
 in_book: true
 ---
 
-# Communication Skills
+# Part IX — Communication
 
-Interview communication guide for senior engineers targeting FAANG and MNC roles.
+Every other part of this book is about knowing something. This one is about the interviewer finding
+out that you know it. In a senior loop those are separate problems, and the second is the one
+candidates neglect — a correct design explained in the wrong order scores worse than a simpler design
+explained well.
 
-## Topics
+The section covers the three rooms where delivery decides the outcome: the design round, where you
+narrate a diagram as you build it; the coding round, where silence gets read as being stuck; and the
+written channels — pull requests, review comments, RFCs — where most senior influence actually
+happens and which no interview prep material covers.
 
-Listed in file order. For a route through them, see **Study Priority** below.
+## Chapters
 
-1. **[Technical Communication](./01-technical-communication.md)**
-   Explain code, architecture decisions, and trade-offs clearly.
-   Covers: code explanation, technology justification, performance metrics, common mistakes.
+| #  | Chapter                                                                    | What it answers                                                |
+| -- | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 01 | [Technical Communication](./01-technical-communication.md)                 | In what order does a listener need the pieces?                 |
+| 02 | [Behavioural Answer Delivery](./02-behavioral-interview.md)                | How do you land a STAR answer in two to three minutes?         |
+| 03 | [English Fluency for Interviews](./03-english-fluency.md)                  | Which habits most affect how a technical answer lands?         |
+| 04 | [System Design Communication](./04-system-design-communication.md)         | How do you narrate a design round so it can be scored?         |
+| 05 | [Thinking Aloud](./05-problem-solving-communication.md)                    | How do you keep silence from being read as stuck?              |
+| 06 | [Cross-Cultural Communication](./06-cross-cultural-communication.md)       | How much directness does this room expect?                     |
+| 07 | [Written Communication](./07-written-communication.md)                     | How do you write a PR or RFC people actually read?             |
+| 08 | [Active Listening](./08-active-listening.md)                                | Do you understand the question before you start answering?     |
 
-2. **[Behavioral Interview](./02-behavioral-interview.md)**
-   STAR method with full story examples for senior roles.
-   Covers: STAR framework, 3 complete story examples, common question bank, delivery rules.
+## What Interviewers Probe For
 
-3. **[English Fluency](./03-english-fluency.md)**
-   Grammar, vocabulary, and fluency habits for non-native speakers.
-   Covers: present perfect vs past simple, conditionals for trade-offs, technical vocabulary, filler words.
+The senior signal for this part is **owns the design and uses the tool, rather than the other way
+round.** Communication is how that ownership becomes visible to someone else.
 
-4. **[System Design Communication](./04-system-design-communication.md)**
-   Articulate architecture and trade-offs in system design rounds.
-   Covers: RADIO framework, requirements phase, walking through data flows, optimization discussion.
+- **Do you lead with the answer?** Senior communication is conclusion first, then the reasoning.
+  Building up to a recommendation over four minutes leaves the interviewer guessing whether you have
+  one.
+- **Can you pitch the explanation at the listener?** The same architecture explained to a product
+  manager, a staff engineer and a new joiner is three different explanations. Adapting without being
+  asked is the signal.
+- **Do you check the question?** Restating a design prompt in one sentence before starting costs ten
+  seconds and prevents solving the wrong problem for forty minutes.
+- **Can you disagree well?** Naming the trade-off rather than the preference, conceding the parts
+  that are right, and making it about the decision rather than the person. This is what chapter 07's
+  review-comment material is really teaching.
+- **Do you narrate or just do?** In a coding round, saying what you are about to try and why converts
+  a wrong turn from a failure into a demonstration of method.
 
-5. **[Problem-Solving Communication](./05-problem-solving-communication.md)**
-   Think out loud during coding interviews.
-   Covers: before/during/after framework, handling hints, complexity analysis, key phrases.
+## Reading Order
 
-6. **[Cross-Cultural Communication](./06-cross-cultural-communication.md)**
-   Adapt your style for American, European, and Asian company cultures.
-   Covers: regional styles, email etiquette, video call norms, language barriers.
+01 first — it sets the order-of-explanation idea the rest apply in specific rooms. 04 and 05 next if
+you have interviews booked; they are the two highest-leverage chapters here. 07 is the one worth
+returning to on the job rather than before an interview.
 
-7. **[Written Communication](./07-written-communication.md)**
-   PRs, code reviews, emails, and design documents.
-   Covers: PR template, review comment structure, professional emails, RFC template.
+**Interview sprint:** 01 → 04 → 05. Structure, the design round, and thinking aloud.
 
-8. **[Active Listening](./08-active-listening.md)**
-   Understand what's actually being asked before you answer.
-   Covers: paraphrasing, clarifying questions, acting on hints, reading body language.
-
----
-
-## Study Priority
-
-**For coding rounds:** 05 → 01 → 08
-**For behavioral rounds:** 02 → 01 → 08
-**For system design rounds:** 04 → 01 → 05
-**For non-native English speakers:** 03 → then all others
-**For international companies:** 06 → then all others
-
----
-
-## Interview Day Quick Reference
-
-**When you don't understand:**
-> "Could you please repeat that? I want to make sure I understand correctly."
-
-**When you need time:**
-> "That's an interesting question. Let me think for a moment..."
-
-**When you're stuck:**
-> "I'm considering a few options — could you give me a hint about which direction to explore?"
-
-**When correcting yourself:**
-> "Actually, let me rephrase that..."
-
-**STAR time allocation:**
-- Situation: 20–30 sec
-- Task: 15–20 sec
-- Action: 90–120 sec ← most of the story
-- Result: 30–40 sec
-
----
-
-## Related Guides
-
-- [Frontend Development](../Frontend/README.md)
-- [Data Structures & Algorithms](../DSA/README.md)
-- [System Design](../SystemDesign/README.md)
-- [Backend Development](../Backend/README.md)
+> ⚠️ This section overlaps `Behavioral/`. Chapter 02 duplicates STAR material and moves there under
+> improvement #29, which also archives chapter 03 as personal practice rather than book content.
+> Expect the section to end at five or six chapters.

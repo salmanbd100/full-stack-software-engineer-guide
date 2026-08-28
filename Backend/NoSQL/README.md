@@ -1,91 +1,65 @@
 ---
-title: NoSQL — MongoDB & Redis
+title: Part V — NoSQL
 part: 5
 chapter: 0
 slug: backend-nosql-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 3
+reading_time: 2
 updated: 2026-08-28
-tags: [backend, nosql]
+tags: [nosql, mongodb, redis, aggregation, mongoose]
 in_book: true
 ---
 
-# NoSQL — MongoDB & Redis
+# Part V — NoSQL
 
-## Overview
+Two databases, chosen because they are the two a frontend-heavy full stack engineer actually meets:
+MongoDB, which is where the document model shows up in practice, and Redis, which is where almost
+every cache, session store, rate limiter and queue eventually lands.
 
-Relational databases ask "how does this data relate?" MongoDB asks a different question: **"how will you read this?"**
+The framing that matters is that "schemaless" is a claim about the database, not about your data.
+Your documents have a shape; the only question is whether it is written down and enforced somewhere.
+Deciding what to embed and what to reference **is** your schema design, and getting it wrong is
+expensive in exactly the same way as getting a relational schema wrong.
 
-That inversion is the whole module. Schema design, indexing, and aggregation all follow from your access patterns rather than from normal forms. Redis then sits in front as the layer that makes hot reads effectively free.
+## Chapters
 
-**What you'll cover:**
+| #  | Chapter                                                    | What it answers                                                  |
+| -- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
+| 01 | [MongoDB Fundamentals](./01-mongodb.md)                    | What does a document database actually guarantee you?            |
+| 02 | [Document Design Patterns](./02-design-patterns.md)        | What do you embed, and what do you reference?                    |
+| 03 | [Aggregation Pipeline](./03-aggregation.md)                | How do you push work into the database instead of looping?       |
+| 04 | [MongoDB Indexing](./04-indexing.md)                       | Will the planner actually use this index — and can you prove it? |
+| 05 | [Mongoose](./05-mongoose.md)                               | Where does the ODM stop paying for itself?                       |
+| 06 | [Redis](./06-redis.md)                                     | Which data structure, and what is its expiry?                    |
 
-- The document model, BSON, and what "schemaless" actually costs
-- Embed vs reference — the decision every MongoDB design turns on
-- Aggregation pipelines for work the query language can't express
-- Indexes, compound key ordering, and reading `explain()`
-- Mongoose for schemas, validation, and lifecycle hooks
-- Redis as a cache, and its data structures beyond `GET`/`SET`
+## What Interviewers Probe For
 
-> **The one idea that ties it together:** in SQL you normalize and join at read time. In MongoDB you shape documents at write time so reads need no joins at all. Every pattern here is a variation on that tradeoff.
+The senior signal for this part is **designs an API the frontend can actually consume well, and knows
+why the query is slow.** For document stores the "why is it slow" answer is usually modelling:
 
-## Topics
+- **Embed or reference?** The rule is about access pattern and growth: embed what you always read
+  together and that is bounded, reference what grows without limit or is read on its own. A candidate
+  who answers by preference has not designed one.
+- **Do you know MongoDB's actual consistency guarantees?** Single-document operations are atomic;
+  multi-document transactions exist but cost. Read and write concerns are the knobs, and knowing they
+  exist is the question.
+- **Can you make an index prove itself?** `explain()` and the `IXSCAN` versus `COLLSCAN` distinction.
+  Compound index prefix order matters and is the most common mistake in this area.
+- **What is Redis for, here?** Cache, session store, rate limiter, lock, queue — each with a
+  different data structure and a different failure mode. "It is fast" is not an answer, and every key
+  needs an expiry policy or you have built a memory leak with a network interface.
+- **What is your cache invalidation story?** Time-to-live is the default and is usually right.
+  Explicit invalidation on write is correct and hard. The wrong answer is having neither and
+  discovering the staleness in production.
+- **When would you not reach for MongoDB?** Anything with real relational integrity requirements,
+  or joins across three or more collections in the hot path. Being willing to say that makes the rest
+  of the answer credible.
 
-| #   | Topic                                            | Core idea                                            |
-| --- | ------------------------------------------------ | ---------------------------------------------------- |
-| 01  | [MongoDB Fundamentals](./01-mongodb.md)          | Documents, BSON, CRUD, transactions, sharding         |
-| 02  | [Design Patterns](./02-design-patterns.md)       | Embed vs reference; subset, bucket, computed          |
-| 03  | [Aggregation](./03-aggregation.md)               | `$match` → `$group` → `$lookup` pipelines             |
-| 04  | [Indexing](./04-indexing.md)                     | Compound order (ESR), covered queries, `explain()`    |
-| 05  | [Mongoose](./05-mongoose.md)                     | Schemas, validation, hooks, populate                  |
-| 06  | [Redis](./06-redis.md)                           | Caching, TTLs, data structures, pub/sub               |
+## Reading Order
 
-## How the Pieces Fit
+01 → 02 → 04 is the spine: the model, the modelling decision, and making queries fast. 03 and 05 are
+practical and can wait until you need them. 06 is independent of the rest and can be read first if
+Redis is what your team runs.
 
-```text
-   How will this be read?          ← start here, always
-             │
-             ▼
-   Shape the document       (01, 02)   embed what's read together
-             │
-             ▼
-   Index the access path    (04)       filter + sort fields, right order
-             │
-             ▼
-   Aggregate what's left    (03)       grouping, joins, analytics
-             │
-             ▼
-   Cache the hot results    (06)       Redis, with a TTL you can defend
-```
-
-Get the first step wrong and no amount of indexing rescues it.
-
-## Suggested Study Path
-
-**Day 1 — The model.** Read 01 and 02. The interview centrepiece is embed vs reference: know the decision rule, the 16 MB limit that forces your hand, and why unbounded arrays are the classic failure.
-
-**Day 2 — Reading efficiently.** Read 04, then 03. Indexing first is deliberate — most "slow aggregation" problems are really a missing index on the leading `$match`. Be able to read `explain()` and spot a `COLLSCAN`.
-
-**Day 3 — Application layer.** Read 05. Know what Mongoose adds over the raw driver, and when that overhead isn't worth it.
-
-**Day 4 — Caching.** Read 06. Be ready to discuss invalidation, TTL choice, and cache stampede — the parts people skip.
-
-## Interview Signals
-
-| They ask | They're checking |
-| --- | --- |
-| "MongoDB or PostgreSQL?" | Whether you can argue *against* your preference |
-| "Embed or reference?" | That you answer with read patterns, not entity diagrams |
-| "This query is slow" | Index literacy — ESR, covered queries, `explain()` |
-| "Is MongoDB ACID?" | Precision about scope: document vs multi-document |
-| "How would you cache this?" | Invalidation strategy, not just "add Redis" |
-
-## Related Modules
-
-- [SQL](../SQL/) — the relational counterpart; know when to prefer it
-- [NodeJS](../NodeJS/README.md) — connection pooling, N+1, performance
-- [Security](../Security/README.md) — NoSQL injection and input validation
-
----
-
-[← Back to Backend](../README.md)
+**Interview sprint:** 02 → 04 → 06. The embed-or-reference question, the index question, and the
+"what would you use Redis for" question cover most of it.
