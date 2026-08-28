@@ -7,7 +7,7 @@ level: intermediate # beginner | intermediate | advanced
 reading_time: 12
 updated: 2026-08-28
 tags: [devops, monitoring, grafana]
-in_book: true
+in_book: false
 ---
 
 # Grafana {#ch-grafana}
@@ -258,4 +258,4 @@ AMG by default on AWS. The authentication integration is the strongest argument:
 
 ---
 
-[← Prometheus](./02-prometheus.md) | [Observability Index](./README.md) | [Alerting and On-Call →](./04-alerting.md)
+[Monitoring Index](./README.md) | [← Prometheus on AWS](./03-prometheus.md) | [AWS X-Ray →](./05-xray.md)

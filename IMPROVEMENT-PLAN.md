@@ -1342,8 +1342,8 @@ purpose: it is the question the pipeline round asks, and it reads differently fr
 | # | Work | Why it was not done now |
 | - | ---- | ----------------------- |
 | 1 | ~~`Cloud/` 4 → 3: merge object storage and CDN, and make all four bodies cloud-neutral rather than AWS-only~~ | **Done in run #3** |
-| 2 | `Observability/` — fold the useful half of the archived `kubernetes/09-monitoring.md` in, and add frontend RUM | The item asks for both; neither is a file move |
-| 3 | The trim to budget — **7,992 lines across 30 chapters** against `BOOK-SPEC.md`'s 3,500 across ~18 | The largest remaining piece of this item. See the arithmetic correction above |
+| 2 | ~~`Observability/` — fold the useful half of the archived `kubernetes/09-monitoring.md` in, and add frontend RUM~~ | **Done in run #4** — the RUM half became a cross-reference, not a chapter. See the correction there |
+| 3 | The trim to budget — **7,007 lines across 28 chapters** against `BOOK-SPEC.md`'s 3,500 across ~18 | The only remaining piece of this item. `Git/`, `Containers/` and `CICD/` are untouched |
 
 > ⚠️ **Run #2 made the budget gap wider, knowingly.** Part VIII went from 7,070 to 7,992 lines because
 > the item's own keep table requires a `Deployment/` section and it had none. The trim run now has to
@@ -1422,6 +1422,103 @@ That lands at **21–22 chapters and ~4,300 lines**. Reaching a literal 18 / 3,5
 `Git/` to two and `Containers/` to three, which fails the item's own *"all 6 — daily use, high interview
 frequency"* line for Git. **Whoever runs the final trim has to pick one**: amend `BOOK-SPEC.md` § 4's
 Part VIII budget up to ~4,300 / ~21, or amend #20's keep table down. They cannot both stand.
+
+
+**Delivered — run #4, 2026-08-28: `Observability/` 4 → 3, and the last non-trim piece of this item.**
+
+`Observability/` is now **3 chapters, 865 lines**, down from 4 chapters and 1,276. All three were
+rewritten to the Book Chapter Standard rather than patched — none of the four had Key Takeaways, a
+What to Read Next, or a `## Interview Questions` heading, and all four carried retired `🔴` and `✨`
+callouts and a relative-path nav footer.
+
+| File | Lines | What changed |
+| ---- | ----- | ------------ |
+| `01-fundamentals.md` | 271 | Rewritten. Pillars, cardinality, structured logs, traces and sampling, golden signals, percentiles, SLO/error budget. Gained the container log rule and a **Where the Frontend Fits** section; lost the push/pull table to `02-` and the symptom/cause table to `03-` |
+| `02-metrics-and-dashboards.md` | 299 | **`02-prometheus.md` + `03-grafana.md` merged**, as the target table asked. Scraping and service discovery, exposition format, the four queries that matter, recording rules, dashboards as code, dashboard design |
+| `03-alerting-and-on-call.md` | 295 | From `04-alerting.md`. Same spine, restructured to the six blocks, and the Terraform block replaced by the principle it was demonstrating |
+| `README.md` | 59 | Chapter table rebuilt for three; reading order now explains *why* 02 precedes 03 |
+
+**The archived Kubernetes monitoring chapter contributed three things, not a section.** From
+`Archive/devops/kubernetes/09-monitoring.md`: the *why ephemeral infrastructure changes monitoring*
+argument, which is now the reason `02-` teaches service discovery at all; the **stdout/stderr, never a
+file inside the container** log rule in `01-`; and three container queries in `02-` — memory against
+the limit as an out-of-memory predictor, CPU throttling as latency with no errors, and restart count.
+The Prometheus Operator, EKS, Fluent Bit and `kubectl` material stayed archived, per `BOOK-SPEC.md` § 6.
+
+**Frontend RUM is a cross-reference, not a chapter — this corrects the item's keep table.** The keep
+table asks for "frontend RUM" in Part VIII. It already exists in Part IV, **twice**:
+`Frontend/WebPerformance/07-performance-monitoring.md` (`performance-monitoring`) and
+`SystemDesign/Frontend/12-monitoring.md` (`frontend-monitoring`), both `part: 4`, both covering RUM,
+`web-vitals`, `PerformanceObserver` and field-versus-lab data. Writing a third would breach
+**non-negotiable #7** — one canonical home, cross-references everywhere else. So `01-` gets a 12-line
+**Where the Frontend Fits** section making the transfer explicit (Core Web Vitals are SLIs, a p75 INP
+target is an SLO, and a URL with an ID in it is as dangerous a label in a RUM tool as in a metrics
+backend) and points at `#ch-performance-monitoring` for the mechanics. The section README says the same.
+
+> ⚠️ **A duplicate pair for a later dedup item.** `performance-monitoring` and `frontend-monitoring`
+> are ~80% the same chapter in two different directories, and **no plan item currently covers them** —
+> #31 handles WebSockets, rate limiting and API gateway; #24 handles security. Whoever next touches
+> Part IV should fold `frontend-monitoring` into `performance-monitoring` or give it a distinct scope.
+
+**Four other decisions this run made:**
+
+- **`03-grafana.md` went back to the Archive, not to a delete.** `git mv` to
+  `Archive/devops/monitoring/04-grafana.md` — its original path — with `in_book: false` and its nav
+  footer repointed at archive siblings. As a side effect `05-xray.md`'s `← Grafana` link, broken since
+  run #1, resolves again. `02-metrics-and-dashboards.md` is a `git mv` from `02-prometheus.md`, the
+  larger source, so history follows the file.
+- **Slugs `prometheus` and `grafana` are retired; `metrics-and-dashboards` replaces them.** Both had
+  **zero inbound references** anywhere in the book, so nothing needed repointing. `monitoring-fundamentals`
+  and `alerting` are kept unchanged — they have four inbound references between them, from
+  `DevOps/Agile/README.md`, `Deployment/03-rollback.md` and `Cloud/02-serverless.md`.
+- **The `hcl` fence is gone.** `04-alerting.md` carried a 45-line Terraform block defining an SNS topic
+  and a CloudWatch alarm. Terraform is out of scope per § 6, and the block's actual teaching — that
+  missing data must count as a breach, and that you should notify on recovery — is now a prose section
+  (*Silence Has to Mean Broken*) that applies to any alerting system. That was the repo's only `hcl` fence.
+- **PromQL is fenced as `text`.** `promql` is not on non-negotiable #1's allow-list and the nine PromQL
+  fences were counting as violations. `text` is what run #2 used for the same problem. ⚠️ **There is a
+  case for adding `promql` on the same footing as `sql` and `graphql`** — a query language with no
+  TypeScript form, which is exactly the reasoning behind Decision #10. That is a spec amendment, so it
+  was flagged rather than taken unilaterally.
+
+**Verified:**
+
+- `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0, `too-long`
+  47 (unchanged). `fence-language` **81 → 53** — all 28 Observability violations cleared;
+  `.lint-baseline.json` committed at 53
+- `scripts/add-frontmatter.ts`: 330 files, **idempotent on the second pass** (`changed: 0`), all slugs
+  unique, every in-book file has a part. Part VIII is **34** in-book files, down from 35
+- `pnpm book:collect`: **276 files, 95,036 lines** — down from 277 / 95,444
+- Six blocks present in all three, H1 anchors correct, zero relative links in bodies, zero `####`, zero
+  retired emoji, `⚠️` at 3/3/2 against the standard's budget of 3
+- No dangling references to `02-prometheus.md`, `03-grafana.md`, `04-alerting.md`, `#ch-prometheus` or
+  `#ch-grafana` outside `Archive/` and this plan's own prose
+
+**Length was cut twice and still missed the ~650 target — this is worth recording rather than glossing.**
+First drafts came to 957 chapter lines. Two trim passes took out interview-answer padding, then genuine
+cross-chapter duplication, landing at **865** — an average of 288 per chapter against the standard's
+~220. The residual is structural: the mandatory closing blocks cost ~55 lines a chapter, and `02-`
+carries two former chapters' worth of teaching. Cutting to 220 each would mean dropping either the
+query material or the dashboard material from `02-`, which are its two reasons to exist. **The ~650
+figure in run #3's target table was estimated from heading outlines and was too tight by about 200.**
+
+**Part VIII now stands at 7,007 lines across 28 chapters** (7,359 with the six section READMEs). Run #4
+removed 411 lines and one chapter. Against `BOOK-SPEC.md`'s 3,500 / ~18 the gap is still ~3,500 lines.
+
+| Section | Now | Target | Status |
+| ------- | --- | ------ | ------ |
+| `Git/` | 6 / 1,633 | 3–4 / ~750 | Untouched — the largest remaining cut |
+| `Containers/` | 7 / 1,481 | 4 / ~750 | Untouched |
+| `CICD/` | 5 / 1,480 | 4 / ~800 | Untouched |
+| `Observability/` | **3 / 865** | 3 / ~900 | ✅ done, run #4 — target revised up from ~650 |
+| `Cloud/` | 3 / 681 | 3 / ~680 | ✅ done, run #3 |
+| `Deployment/` | 4 / 867 | 4 / 867 | ✅ already to standard |
+
+With the revised Observability figure the target shape lands at **21–22 chapters and ~4,550 lines**.
+The choice run #3 identified is unchanged and still open: **amend `BOOK-SPEC.md` § 4's Part VIII budget
+up to ~4,550 / ~21, or amend #20's keep table down.** Three of the six sections are now done, so the
+remaining three carry the whole decision — and `Git/` at six chapters is the one the item's own
+*"all 6 — daily use, high interview frequency"* line protects.
 
 
 ---
