@@ -931,7 +931,7 @@ the survivors, so what is actually left is much smaller:
 
 | Where | Chapters | READMEs | Note |
 | ----- | -------- | ------- | ---- |
-| `ShipAndOperate/` | 26 | **0** | #20 run #1 wrote all five section READMEs to the part-opener standard |
+| `ShipAndOperate/` | 26 | **0** | #20 run #1 wrote five section READMEs; run #2 added `Deployment/` — its 4 chapters and README **already comply**, so they are not counted here |
 | `ShipAndOperate/README.md` | — | 1 | Does not exist yet. **#30** writes it |
 | `DevOps/Agile/` | 8 | 1 | **#25** condenses these into two Part IX chapters — do not open them here |
 | `DevOps/GenAI/` | 8 | 1 | **#21** salvages two files into `AI/`; the rest archives |
@@ -1239,14 +1239,59 @@ the archived `Kubernetes/09-monitoring.md` was removed.
   already skips. They were harmless but misleading. `DevOps/GenAI` and the `DevOps/Agile/*` entries stay,
   because #21 and #25 have not run.
 
+**Delivered — run #2, 2026-08-28: `ShipAndOperate/Deployment/`, the section that did not exist.**
+
+The keep table promised four new chapters and run #1 wrote none of them, because they are new book
+prose rather than a file move. They exist now — 867 lines across four chapters and a section README,
+every one written to the Book Chapter Standard from the start rather than inherited and patched.
+
+| File | Lines | What it owns |
+| ---- | ----- | ------------ |
+| `01-platform-deploys.md` | 220 | The immutable artefact, atomic promotion, edge versus regional execution, version skew |
+| `02-preview-environments.md` | 218 | Per-branch deployments, the database problem, protecting a preview, when not to make one |
+| `03-rollback.md` | 207 | One-way doors, roll back versus fix forward, automating the trigger |
+| `04-feature-flags.md` | 223 | Deploy versus release, the four kinds of flag, where to evaluate, flag debt |
+| `README.md` | 64 | Section opener, to the same standard as the other five |
+
+**These are the first files in Part VIII that already satisfy #12.** Each has the six blocks, an H1
+carrying `{#ch-<slug>}`, a one-sentence promise, an **In this chapter:** line, Key Takeaways, Interview
+Questions and What to Read Next. Deliberately **no relative-path nav footer** — the other 26 chapters
+have one and #71 has to strip them; adding four more would have been work created for a later item.
+So #12's remaining Part VIII scope is **26 openings, not 30.**
+
+**Context7 was used** (`/websites/vercel`) for promotion, instant rollback, immutable deployment URLs,
+skew protection, per-branch preview environment variables and protection bypass. Platform specifics are
+named as platform specifics; the chapters lead with the concept, per non-negotiable #9.
+
+**One de-duplication this forced.** `CICD/03-deployment-strategies.md` carried a 27-line "Feature Flags"
+section and a rollback section that the new chapters now own properly. Both are cut to a short table
+plus a cross-reference — 293 → 284 lines. The canary-versus-flag comparison stays in both places on
+purpose: it is the question the pipeline round asks, and it reads differently from each side.
+
+**Verified:**
+
+- `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0.
+  `fence-language` and `too-long` both unchanged at baseline (91 / 47) — **no rule regressed.**
+  One unlabelled fence in the new `01-` was caught by the lint and labelled `text`
+- `scripts/add-frontmatter.ts`: 332 files, **all slugs unique**, every in-book file has a part.
+  Part VIII is now **36** in-book files, up from 31
+- `pnpm book:collect`: 279 files, 95,795 lines, no unmapped files
+
 **Still to do before this box can be ticked:**
 
 | # | Work | Why it was not done now |
 | - | ---- | ----------------------- |
-| 1 | `ShipAndOperate/Deployment/` — 4 new chapters: edge and platform deploys, preview environments, rollback, feature flags | New book prose. Needs Context7 and the Vercel companion skills, and is a session on its own |
-| 2 | `Cloud/` 4 → 3: merge object storage and CDN, and make all four bodies cloud-neutral rather than AWS-only | Prose rewrite, not a move |
-| 3 | `Observability/` — fold the useful half of the archived `kubernetes/09-monitoring.md` in, and add frontend RUM | The item asks for both; neither is a file move |
-| 4 | The trim to budget — 7,070 lines against 3,500 | See the arithmetic correction above |
+| 1 | `Cloud/` 4 → 3: merge object storage and CDN, and make all four bodies cloud-neutral rather than AWS-only | Prose rewrite, not a move |
+| 2 | `Observability/` — fold the useful half of the archived `kubernetes/09-monitoring.md` in, and add frontend RUM | The item asks for both; neither is a file move |
+| 3 | The trim to budget — **7,992 lines across 30 chapters** against `BOOK-SPEC.md`'s 3,500 across ~18 | The largest remaining piece of this item. See the arithmetic correction above |
+
+> ⚠️ **Run #2 made the budget gap wider, knowingly.** Part VIII went from 7,070 to 7,992 lines because
+> the item's own keep table requires a `Deployment/` section and it had none. The trim run now has to
+> cut roughly 4,500 lines rather than 3,500. That is the right order: `Deployment/` is the only content
+> in Part VIII written to the current standard, so it sets the shape the trim cuts *towards* rather than
+> being another thing to cut. The obvious candidates are `Git/` at 1,609 chapter lines across six and
+> `Containers/` at 1,457 across seven (1,665 and 1,518 with their READMEs) — the two largest sections, and the two furthest from the
+> "what a frontend-heavy full stack engineer is asked about" test.
 
 ---
 

@@ -184,30 +184,19 @@ spec:
 
 ## Feature Flags — Decoupling Deploy from Release
 
-The strategies above move **code**. Feature flags control **behaviour**.
-
-```typescript
-interface FlagClient {
-  isEnabled(flag: string, context: { userId: string }): Promise<boolean>;
-}
-
-async function getCheckout(client: FlagClient, userId: string) {
-  // Deployed to 100% of servers, enabled for 5% of users
-  const useNewFlow: boolean = await client.isEnabled("new-checkout", { userId });
-  return useNewFlow ? newCheckoutFlow() : legacyCheckoutFlow();
-}
-```
+The strategies above move **code**. Feature flags control **behaviour**, per user rather than per
+instance, and they are the fastest rollback available because turning one off is a configuration
+change rather than a deployment.
 
 | | Canary Deploy | Feature Flag |
 |-|--------------|-------------|
 | **Unit of control** | Server / instance | User / request |
 | **Rollback** | Redeploy or shift traffic | Config change (seconds) |
 | **Targeting** | Random traffic share | Specific users, regions, plans |
-| **Cost** | Infrastructure | Flag service + code complexity |
 
-✅ Use both. Canary validates the **build**; flags validate the **feature**.
-
-⚠️ Flags are technical debt. Every flag doubles the code paths you must test. Delete them once the feature is fully rolled out.
+✅ Use both. Canary validates the **build**; flags validate the **feature**. The full treatment —
+flag kinds, where to evaluate, and how to stop them accumulating — is in
+[Chapter ?? — Feature Flags](#ch-feature-flags).
 
 ## Database Migrations — The Real Hard Part
 
@@ -262,9 +251,11 @@ A strategy is only as good as its rollback path.
 | Rolling | Deploy previous image | Minutes |
 | Recreate | Redeploy | Minutes + downtime |
 
-✅ **Automate the rollback trigger.** Wire CloudWatch alarms on error rate and p99 latency to abort the deployment — CodeDeploy and Argo Rollouts both support this natively.
+✅ **Automate the rollback trigger.** Wire alarms on error rate and p99 latency to abort the
+deployment — CodeDeploy and Argo Rollouts both support this natively.
 
-⚠️ Test your rollback. Teams discover the previous artifact is gone, or the migration is irreversible, at exactly the wrong moment.
+⚠️ Test your rollback. What a rollback does *not* undo — applied migrations, consumed messages, sent
+email — is the subject of [Chapter ?? — Rollback and Recovery](#ch-rollback-and-recovery).
 
 ## Interview Q&A
 
