@@ -18,19 +18,17 @@ work. The senior version is different: you know what a commit *is*, so you can r
 `rebase`, `cherry-pick` and `reset --hard` will do before you type them, and you know how to get
 back when they do something else.
 
-These six chapters build that model first, then apply it to the decisions a team actually argues
+These four chapters build that model first, then apply it to the decisions a team actually argues
 about — trunk-based or GitFlow, squash or merge, one repository or twenty.
 
 ## Chapters
 
-| #  | Chapter                                                                | What it answers                                                  |
-| -- | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [Git Fundamentals](./01-git-fundamentals.md)                           | What is a commit, and what do the three trees actually hold?     |
-| 02 | [Advanced Git](./02-advanced-git.md)                                   | How do you rewrite history without losing work?                  |
-| 03 | [Git Branching Strategies](./03-branching-strategies.md)               | Trunk-based or GitFlow — which one fits this team?               |
-| 04 | [Git Best Practices](./04-best-practices.md)                           | What makes a commit and a pull request reviewable?               |
-| 05 | [Git Platforms](./05-git-platforms.md)                                 | What do GitHub and GitLab add on top of Git itself?              |
-| 06 | [Repository Strategies](./06-repository-strategies.md)                 | Monorepo or polyrepo, and what does each cost you?               |
+| #  | Chapter                                                                              | What it answers                                                |
+| -- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| 01 | [Git Fundamentals](./01-git-fundamentals.md)                                         | What is a commit, and what do the three trees actually hold?   |
+| 02 | [Advanced Git](./02-advanced-git.md)                                                 | How do you get back work you thought you had lost?             |
+| 03 | [Branching and Review Workflow](./03-branching-and-review-workflow.md)               | Which branching model, and what makes a change reviewable?      |
+| 04 | [Repository Strategies](./04-repository-strategies.md)                                | Monorepo or polyrepo, and what does each one cost you?          |
 
 ## What Interviewers Probe For
 
@@ -49,8 +47,10 @@ back.** For Git, that shows up in three places:
 
 ## Reading Order
 
-Straight through, but 01 and 02 are the pair that matters — everything else assumes you can picture
-the object graph. Chapter 06 is the only one you can safely read out of order.
+Straight through. Chapters 01 and 02 are the pair that matters — 03 assumes you can picture the object
+graph, because "squash or rebase merge" is a question about what happens to commits. Chapter 04 is the
+only one you can safely read out of order.
 
-**Interview sprint:** 01 → 03 → 04. The object model, the branching argument, and what makes a
-reviewable change cover most of what gets asked.
+**Interview sprint:** 01 → 03. The object model and the branching-and-review argument cover most of
+what gets asked. Read 02's reflog and `bisect` sections if you have ten minutes more — the recovery
+question comes up often.

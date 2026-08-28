@@ -4,7 +4,7 @@ part: 8
 chapter: 0
 slug: git-fundamentals
 level: beginner # beginner | intermediate | advanced
-reading_time: 8
+reading_time: 9
 updated: 2026-08-28
 tags: [devops, git, fundamentals]
 in_book: true
@@ -12,314 +12,240 @@ in_book: true
 
 # Git Fundamentals {#ch-git-fundamentals}
 
-> Move work through Git's four stages with intent, and undo any of them without losing history.
+> Predict what a Git command will do to your history before you run it, and undo any of them without losing work.
 
-**In this chapter:** the four-stage model · branching and merge conflicts · remotes · undoing changes safely · stashing and tags
+**In this chapter:** commits as snapshots · the three trees · merge versus rebase · remotes · the four ways to undo
 
-## Overview
+## 💡 The Core Idea
 
-### 💡 **What is Git?**
+A commit is a **snapshot of the whole project**, plus a pointer to the commit that came before it. It is
+not a diff. Git shows you diffs because they are easier to read, but it stores complete trees of files
+and works out the difference on demand. Chain those snapshots by their parent pointers and you have a
+graph. Every Git command you will ever run is a way of adding to that graph, moving a label around it,
+or reading it back.
 
-Git is a distributed version control system. Every developer has a complete copy of the project history. You can work offline, and every clone is a backup.
+A branch is one of those labels — a file containing forty hex characters. That is the whole
+implementation. Creating a branch is cheap because there is nothing to copy, and deleting one throws
+away a name rather than any work.
 
-**Why Git matters in DevOps:**
+> Git almost never deletes a commit. It moves the labels that point at commits. Internalise that and
+> recovery stops being frightening.
 
-| Area | How Git helps |
-|------|--------------|
-| **CI/CD** | Commits trigger automated pipelines |
-| **GitOps** | Git is the single source of truth |
-| **Rollback** | Revert to any previous state instantly |
-| **Collaboration** | Pull requests enable code review |
+## How It Works
 
----
+Three places hold a version of your files at any moment. Git calls them the **three trees**.
 
-## Git's Four-Stage Architecture
+| Tree                | Also called      | What it holds                                    |
+| ------------------- | ---------------- | ------------------------------------------------ |
+| **Working tree**    | working directory | The files you are editing, right now             |
+| **Index**           | staging area     | The exact content your next commit will contain  |
+| **HEAD**            | current commit   | The snapshot at the tip of your current branch   |
 
-### 💡 **How Git stores your work**
-
+```text
+Working tree  ──git add──▶  Index  ──git commit──▶  HEAD  ──git push──▶  remote
 ```
-Working Directory  →  Staging Area  →  Local Repository  →  Remote Repository
-    (edit files)       (git add)         (git commit)           (git push)
-```
 
-- **Working Directory** — your actual files, not yet tracked
-- **Staging Area** — changes you have selected to commit
-- **Local Repository** — committed history inside `.git/`
-- **Remote Repository** — shared copy on GitHub, GitLab, etc.
+The index is the part most people skip, and it is the part that makes Git worth learning. It lets you
+commit a subset of what you changed, so one commit means one logical change even when your afternoon
+did not.
 
-> The staging area is what makes Git unique. It lets you craft precise commits by choosing exactly which changes to include.
-
----
-
-## Setup
-
-**Initial config:**
+**Stage by intent, not by directory:**
 
 ```bash
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"
-git config --global init.defaultBranch main
+git add -p                    # Walk each hunk; choose what belongs in this commit
+git diff                      # What is still unstaged
+git diff --staged             # Exactly what the next commit will contain
+git restore --staged file.ts  # Take something back out of the index
 ```
 
-**Useful aliases:**
+⚠️ `git commit --amend` rewrites the last commit. Safe before you push, a history rewrite for everyone
+else afterwards.
+
+### Merge and Rebase Do Different Things to the Graph
+
+Both integrate one branch into another. They differ in what the graph looks like when they finish.
+
+```mermaid
+flowchart LR
+  subgraph Merge
+    A1[main] --> M[merge commit]
+    B1[feature] --> M
+  end
+  subgraph Rebase
+    A2[main] --> C1[feature commit 1']
+    C1 --> C2[feature commit 2']
+  end
+```
+
+**Merge joins two lines of history; rebase replays your commits on top of a new base.**
+
+| Aspect                  | Merge                          | Rebase                                  |
+| ----------------------- | ------------------------------ | --------------------------------------- |
+| **Commits created**     | One extra merge commit         | New copies of every commit replayed     |
+| **Original commits**    | Kept exactly as they were      | Replaced — new hashes, new parents      |
+| **History shape**       | Branching, shows what happened | Linear, shows a tidy story              |
+| **Safe on shared work** | ✅ Yes                         | ❌ No — the old commits vanish for others |
+
+Rebase is a rewrite. That is fine on a branch only you have, and destructive on a branch a colleague
+has already pulled, because their copy of those commits no longer exists upstream.
+
+> Rebase your own branch onto `main` as often as you like. Never rebase `main` itself.
+
+**Resolving a conflict:**
 
 ```bash
-git config --global alias.st status
-git config --global alias.lg "log --oneline --graph --all"
-git config --global alias.undo "reset --soft HEAD~1"
+git merge feature-xyz         # Git stops and marks the conflicting files
+git diff                      # Only conflicted hunks are shown
+# Edit the file: keep what belongs, delete the <<<<<<< ======= >>>>>>> markers
+git add resolved-file.ts      # Staging the file is how you say "resolved"
+git commit                    # Or: git merge --abort to get back to before
 ```
 
----
+A conflict is not an error. It is Git saying two commits changed the same lines and it will not guess.
 
-## Basic Workflow
+### Remotes
 
-### 💡 **The daily cycle: add → commit → push**
+A remote-tracking branch such as `origin/main` is a local label recording where the remote was the last
+time you spoke to it. It moves on `fetch`, never on its own.
 
-**Staging files:**
+| Command                    | What it does                                 | When to reach for it              |
+| -------------------------- | -------------------------------------------- | --------------------------------- |
+| `git fetch`                | Updates `origin/*`, touches nothing else     | You want to look before you leap  |
+| `git pull`                 | `fetch` then `merge` into your branch         | You trust what is coming          |
+| `git pull --rebase`        | `fetch` then replay your commits on top       | You want no merge commits         |
+| `git push --force-with-lease` | Overwrites the remote **only if** it matches what you last fetched | Rewriting your own pushed branch |
+
+⚠️ `--force-with-lease` refuses the push if someone else has pushed since your last fetch. Plain
+`--force` does not check, which is how colleagues lose commits. Never use either on a shared branch.
+
+## When to Use It
+
+Four tools undo four different things. Picking the wrong one is how work disappears.
+
+| You want to                          | Use                        | Rewrites history? |
+| ------------------------------------ | -------------------------- | ----------------- |
+| Throw away edits to a file           | `git restore file.ts`      | No                |
+| Take a file back out of the index    | `git restore --staged file.ts` | No            |
+| Undo commits nobody has pulled       | `git reset`                | ⚠️ Yes            |
+| Undo a commit that is already pushed | `git revert`               | No — adds a commit |
+
+**The three reset modes, which differ only in how far the reset reaches:**
+
+| Mode               | Moves HEAD | Index     | Working tree | Use it to                        |
+| ------------------ | ---------- | --------- | ------------ | -------------------------------- |
+| `--soft`           | Yes        | Untouched | Untouched    | Recommit the same work differently |
+| `--mixed` (default) | Yes       | Reset     | Untouched    | Unstage everything, keep the code |
+| `--hard`           | Yes        | Reset     | Reset        | Discard the code as well          |
+
+`git reset --hard` is the only one of the three that destroys uncommitted work, and uncommitted work is
+the one thing Git cannot get back for you.
 
 ```bash
-git add file.txt          # Stage one file
-git add .                 # Stage everything in current directory
-git add -p                # Stage interactively (choose hunks)
-git restore --staged file # Unstage a file
+git reset --soft HEAD~1       # Last commit's changes are staged again
+git revert HEAD               # A new commit that is the inverse of the last one
 ```
 
-**Committing:**
+**Stashing, for the interruption you did not plan:**
 
 ```bash
-git commit -m "feat: add login endpoint"
-git commit --amend --no-edit   # Add forgotten file to last commit
+git stash                     # Park working tree and index changes
+git switch hotfix && git switch -   # Deal with the fire, come back
+git stash pop                 # Reapply and drop the stash
 ```
 
-⚠️ Only amend commits that have NOT been pushed.
-
-**Viewing changes:**
+**Annotated tags, for releases:**
 
 ```bash
-git diff              # Unstaged changes
-git diff --staged     # Staged changes
-git log --oneline     # Compact history
-git log --oneline --graph --all   # Visual branch history
+git tag -a v1.2.0 -m "Release 1.2.0"   # Records author, date and message
+git push origin v1.2.0
 ```
 
----
+A lightweight tag (`git tag v1.2.0`) is just a label. Use annotated tags for anything a pipeline or a
+release note will refer to later, so the tag itself says who cut it and when.
 
-## Branches
+## Common Mistakes
 
-### 💡 **Branches are cheap — use them for everything**
-
-A branch is just a lightweight pointer to a commit. Creating one takes milliseconds.
-
-**Common commands:**
+**❌ Wrong — reaching for `reset` on pushed commits:**
 
 ```bash
-git switch -c feature-xyz        # Create and switch (modern)
-git switch main                  # Switch branches
-git branch -d feature-xyz        # Delete merged branch
-git branch -D feature-xyz        # Force delete
-git push origin --delete feature # Delete remote branch
+git reset --hard HEAD~2
+git push --force              # Everyone who pulled now has commits that no longer exist upstream
 ```
 
-### Merge vs Rebase
-
-| Aspect | Merge | Rebase |
-|--------|-------|--------|
-| **History** | Preserves branch history | Creates linear history |
-| **Merge commit** | Yes | No |
-| **Safe for shared branches** | ✅ Yes | ❌ No |
-| **Use case** | Feature → main | Clean up private branch |
+**✅ Right — undo forwards, not backwards:**
 
 ```bash
-git merge feature-xyz           # Merge (adds merge commit)
-git merge --no-ff feature-xyz   # Force merge commit
-git rebase main                 # Rebase onto main (private only!)
-git rebase --abort              # Abort if needed
+git revert HEAD~1..HEAD       # Two new commits that reverse the two bad ones
+git push                      # No force, nobody's clone breaks
 ```
 
-> **Golden rule:** Never rebase commits that have been pushed to a shared branch.
+Rewriting shared history moves the cost onto every other clone. Reverting keeps the mistake visible,
+which is honest and costs nothing.
 
-### Merge Conflicts
+**❌ Wrong — one commit per work session:**
 
 ```bash
-# Git marks conflicts like this:
-<<<<<<< HEAD
-your version
-=======
-incoming version
->>>>>>> feature-xyz
-
-# Resolve: edit the file, then:
-git add resolved-file.txt
-git commit
-# Or abort:
-git merge --abort
+git add .
+git commit -m "fixed login and added tests and updated docs"
 ```
 
----
-
-## Remote Repositories
-
-**Fetch vs pull:**
-
-| Command | What it does | When to use |
-|---------|-------------|-------------|
-| `git fetch` | Downloads changes, does NOT merge | Review before merging |
-| `git pull` | Downloads + merges automatically | When you trust changes |
+**✅ Right — one commit per logical change:**
 
 ```bash
-git fetch origin           # Safe: review first
-git log origin/main        # See what changed
-git merge origin/main      # Merge when ready
-
-git pull --rebase          # Pull + rebase (cleaner history)
+git add -p                    # Stage only the login fix
+git commit -m "fix(auth): stop redirect loop on expired session"
+git add src/auth/login.test.ts
+git commit -m "test(auth): cover expired session redirect"
 ```
 
-**Push:**
+The second version can be reverted, cherry-picked, and found by `git bisect` on its own. The first
+cannot, because it is four changes wearing one hash.
 
-```bash
-git push -u origin feature-xyz   # First push (sets upstream)
-git push                         # Subsequent pushes
-git push --force-with-lease      # Safer force push (private branches only)
-```
+## 🔑 Key Takeaways
 
-⚠️ Never force push to `main` or any shared branch.
+- A commit is a full snapshot plus a parent pointer; a branch is a file holding one commit hash.
+- The index exists so that one commit can mean one logical change — `git add -p` is how you use it.
+- Merge preserves the commits it integrates; rebase replaces them with new ones, which is why it is
+  unsafe on anything shared.
+- `reset` for history nobody has seen, `revert` for history that has been pushed.
+- `git reset --hard` is the one command that can destroy work Git cannot recover, because uncommitted
+  changes were never in the object database.
 
----
+## Interview Questions
 
-## Undoing Changes
+**Q: What is the difference between `git fetch` and `git pull`?**
 
-### 💡 **Choose the right undo tool**
+`fetch` updates your remote-tracking branches and stops there, so nothing in your working tree changes.
+`pull` is `fetch` followed by a merge — or a rebase with `--rebase` — into the branch you are on. Fetch
+first when you want to read `git log origin/main` before deciding how to integrate.
 
-| Situation | Command | Safe? |
-|-----------|---------|-------|
-| Discard working directory changes | `git restore file` | ✅ Yes |
-| Unstage a file | `git restore --staged file` | ✅ Yes |
-| Undo commits (private branch) | `git reset` | ⚠️ Rewrites history |
-| Undo commits (public branch) | `git revert` | ✅ Yes |
+**Q: Someone force-pushed over your branch. What do you do?**
 
-**Git reset modes:**
+Nothing is gone yet. The commits are still in the local object database and the reflog still points at
+them, so recover the tip from `git reflog` and push it back. Then talk about `--force-with-lease`, which
+would have refused the push because the remote no longer matched what they last fetched.
 
-| Mode | HEAD | Staging | Working Dir | Use case |
-|------|------|---------|-------------|---------|
-| `--soft` | Moves | Unchanged | Unchanged | Re-commit with more changes |
-| `--mixed` (default) | Moves | Reset | Unchanged | Unstage, keep changes |
-| `--hard` | Moves | Reset | Reset | **Discard everything — DANGER** |
+**Q: What do the three `git reset` modes actually change?**
 
-```bash
-git reset --soft HEAD~1    # Keep changes staged
-git reset HEAD~1           # Keep changes unstaged
-git reset --hard HEAD~1    # Discard all changes (permanent!)
+All three move the branch label. `--soft` stops there, so the work stays staged; `--mixed` also clears
+the index, so the work is unstaged but still in your files; `--hard` also overwrites the working tree,
+which is the only destructive one.
 
-git revert HEAD            # Create undo commit (safe for public)
-```
+**Q: When would you not use rebase?**
 
-> If you pushed, use `git revert`. If you didn't push, use `git reset`.
+On any branch someone else has pulled, and on `main` always. Rebase creates new commits with new hashes,
+so anyone holding the originals gets a divergent history and a painful reconciliation. The tidy linear
+log is not worth that.
 
----
+**Q: Why is a merge conflict not a failure?**
 
-## Stashing
+Because it means two commits changed the same lines and Git refuses to invent an answer. The failure
+mode to worry about is the opposite one — a clean automatic merge of two changes that are semantically
+incompatible, which no version control system can detect for you.
 
-### 💡 **Save work temporarily to switch context**
+## What to Read Next
 
-```bash
-git stash                  # Save uncommitted changes
-git stash pop              # Apply latest stash and remove it
-git stash list             # See all stashes
-git stash apply stash@{1}  # Apply specific stash
-git stash drop             # Delete latest stash
-```
-
-**Common scenario:**
-
-```bash
-# Working on feature, urgent bug comes in
-git stash
-git switch hotfix-branch
-# ... fix bug, commit, push ...
-git switch feature-branch
-git stash pop
-```
-
----
-
-## Tags
-
-### 💡 **Mark release points in history**
-
-| Type | Command | Use case |
-|------|---------|---------|
-| Lightweight | `git tag v1.0.0` | Quick local marks |
-| Annotated | `git tag -a v1.0.0 -m "msg"` | **Production releases** |
-
-```bash
-git tag -a v1.0.0 -m "Release 1.0.0"   # Create annotated tag
-git push origin v1.0.0                  # Push tag
-git push origin --tags                  # Push all tags
-git tag -d v1.0.0                       # Delete local tag
-```
-
-Always use annotated tags for releases — they include author, date, and message.
-
----
-
-## .gitignore
-
-**What to ignore:**
-
-| Category | Examples |
-|----------|---------|
-| Secrets | `.env`, `*.pem`, `credentials.json` |
-| Dependencies | `node_modules/`, `vendor/` |
-| Build output | `dist/`, `build/` |
-| IDE files | `.vscode/`, `.idea/` |
-| OS files | `.DS_Store`, `Thumbs.db` |
-| Logs | `*.log`, `logs/` |
-
-```bash
-# Check if a file is ignored
-git check-ignore -v file.txt
-```
-
-> Never commit secrets. If you do, assume they are compromised — rotate them immediately.
-
----
-
-## Interview Q&A
-
-**Q: What's the difference between `git fetch` and `git pull`?**
-
-`fetch` downloads remote changes into remote-tracking branches but does not touch your working directory. `pull` is `fetch` + `merge`. Use `fetch` when you want to review changes before merging.
-
----
-
-**Q: When to use `merge` vs `rebase`?**
-
-Use `merge` for public/shared branches — it preserves history. Use `rebase` only on private branches to create a clean, linear history before merging.
-
----
-
-**Q: How do you undo a commit that's already pushed?**
-
-```bash
-git revert HEAD    # Creates a new "undo" commit — safe for shared branches
-```
-
-Never use `git reset` on pushed commits. It rewrites history and breaks everyone's work.
-
----
-
-**Q: What do the three `git reset` modes do?**
-
-`--soft` moves HEAD but keeps changes staged. `--mixed` (default) unstages changes but keeps them in your files. `--hard` deletes changes permanently.
-
----
-
-**Q: How do you resolve a merge conflict?**
-
-1. Git marks conflicts with `<<<<<<<`, `=======`, `>>>>>>>`
-2. Edit the file to choose what to keep
-3. Run `git add <file>` then `git commit`
-
----
-
-[Git Index](./README.md) | [Advanced Git →](./02-advanced-git.md)
+- [Chapter ?? — Advanced Git](#ch-advanced-git) — the reflog, `bisect` and the recovery tools that make
+  the object graph work for you
+- [Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow) — how these commands
+  turn into a policy a team can follow

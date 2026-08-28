@@ -1343,7 +1343,8 @@ purpose: it is the question the pipeline round asks, and it reads differently fr
 | - | ---- | ----------------------- |
 | 1 | ~~`Cloud/` 4 → 3: merge object storage and CDN, and make all four bodies cloud-neutral rather than AWS-only~~ | **Done in run #3** |
 | 2 | ~~`Observability/` — fold the useful half of the archived `kubernetes/09-monitoring.md` in, and add frontend RUM~~ | **Done in run #4** — the RUM half became a cross-reference, not a chapter. See the correction there |
-| 3 | The trim to budget — **7,007 lines across 28 chapters** against `BOOK-SPEC.md`'s 3,500 across ~18 | The only remaining piece of this item. `Git/`, `Containers/` and `CICD/` are untouched |
+| 3 | ~~`Git/` 6 → 4: archive `05-git-platforms.md`, fold `04-best-practices.md` into `03-`~~ | **Done in run #5** — targets revised up; see the callout there |
+| 4 | The trim to budget — **6,402 lines across 26 chapters** against `BOOK-SPEC.md`'s 3,500 across ~18 | The only remaining piece of this item. `Containers/` (7 → 4) and `CICD/` (5 → 4) are untouched, and run #5's callout says the budget itself has to be amended first |
 
 > ⚠️ **Run #2 made the budget gap wider, knowingly.** Part VIII went from 7,070 to 7,992 lines because
 > the item's own keep table requires a `Deployment/` section and it had none. The trim run now has to
@@ -1522,6 +1523,107 @@ The choice run #3 identified is unchanged and still open: **amend `BOOK-SPEC.md`
 up to ~4,550 / ~21, or amend #20's keep table down.** Three of the six sections are now done, so the
 remaining three carry the whole decision — and `Git/` at six chapters is the one the item's own
 *"all 6 — daily use, high interview frequency"* line protects.
+
+**Delivered — run #5, 2026-08-28: `Git/` 6 → 4, the first of the three trim sections.**
+
+Run #4 named `Git/` as the largest remaining cut and run #3 wrote the target: archive
+`05-git-platforms.md`, fold `04-best-practices.md` into `03-`. Both done. `Git/` is now **4 chapters,
+1,026 lines**, down from 6 and 1,633. All four were rewritten to the Book Chapter Standard rather than
+patched — none of the six had Key Takeaways or a What to Read Next, all six opened with `## Overview`
+instead of `## 💡 The Core Idea`, all six used `### 💡 **Bold heading**` sub-headings that breach the
+one-💡-per-chapter budget, and all six ended in a relative-path nav footer.
+
+| File | Lines | What changed |
+| ---- | ----- | ------------ |
+| `01-git-fundamentals.md` | 251 | Rewritten around **a commit is a snapshot plus a parent pointer, and a branch is a file holding one hash**. Three trees, merge-versus-rebase as two different graph operations, remotes, the four-way undo table. The `git config` and alias section is gone, and so is the `.gitignore` inventory |
+| `02-advanced-git.md` | 254 | Rewritten around **commits become unreachable, not deleted** — every tool in the chapter is then the same trick. Reflog, `bisect`, worktrees, interactive rebase, secret removal. Gained the `bisect run` **exit-code 125** rule and a stash-versus-worktree decision table |
+| `03-branching-and-review-workflow.md` | 300 | **`03-branching-strategies.md` + the useful half of `04-best-practices.md`**, as the target table asked. Reframed around **branch lifetime as the deciding variable**; the three models, then conventional commits, branch naming, pull request size, merge method and branch protection |
+| `04-repository-strategies.md` | 221 | From `06-`, renumbered. Reframed around **a repository boundary is a coordination boundary**. Lerna dropped for pnpm workspaces and Changesets; affected-only CI is now stated as the entry fee rather than a tip |
+| `README.md` | 56 | Chapter table rebuilt for four; reading order and the interview sprint updated (01 → 03, with 02's reflog and `bisect` sections as the ten-minute extra) |
+
+**Two files archived, nothing deleted.** `04-best-practices.md` and `05-git-platforms.md` `git mv`'d to
+a new `Archive/devops/git/` with `in_book: false`, their nav footers repointed at each other, and the two
+matching links in `Archive/devops/README.md` repointed from `./Git/` to `./git/` so they resolve again.
+The other four links in that README still point at files now under `ShipAndOperate/` — broken since run
+#1, and a general Archive README cleanup rather than this item's business.
+
+**Four decisions this run made:**
+
+- **`05-git-platforms.md` archives whole, and none of it was rescued.** Its three unique assets were a
+  GitHub Actions workflow, a GitLab CI workflow, and a branch-protection checklist. `CICD/02-github-actions.md`
+  already owns Actions properly — OIDC, environments, reusable workflows, caching — so the chapter's
+  Actions YAML was a worse second copy. GitLab CI is vendor tooling this book does not teach. The branch
+  protection checklist is the one thing worth keeping, and it is now five lines in `03-` where the
+  workflow that needs it lives. CodeCommit is closed to new customers, which settles the rest.
+- **`04-best-practices.md` split three ways rather than folding whole.** Commit messages, branch naming,
+  pull request size, merge method and branch protection went into `03-`. The secret-removal recipe was
+  already in `02-` and stayed there, now with the rotate-first ordering made explicit. The `.gitignore`
+  inventory — `node_modules/`, `dist/`, `.DS_Store` — was cut outright: it is not senior content, and it
+  duplicated a table in the old `01-`. Prevention is now one line in `02-`'s recovery sequence pointing
+  at `#ch-cicd-security`, which owns secret scanning.
+- **The merged chapter is `branching-and-review-workflow`, not `branching-strategies`.** `git mv` from
+  `03-branching-strategies.md` because that is the chapter's spine, even though `04-` was the larger
+  file. ⚠️ **Neither in-book rename survives rename detection** — not even at `-M10%`, because both
+  files were rewritten end to end — so `git log --follow` on `03-branching-and-review-workflow.md` or
+  `04-repository-strategies.md` starts at run #5's commit. Use
+  `git log --diff-filter=D -- ShipAndOperate/Git/03-branching-strategies.md` to reach the old file.
+  The two Archive moves score `R097` and keep their history. The slug `branching-strategies` is retired and `git-best-practices` and `git-platforms` go with
+  it to the Archive. **All three had zero inbound references** — in fact the entire `Git/` section had
+  zero inbound cross-references from anywhere in the book, so nothing needed repointing. Worth knowing:
+  Part VIII's most-read section is currently a cul-de-sac. The new chapters point outward at
+  `#ch-cicd-fundamentals`, `#ch-cicd-security` and `#ch-feature-flags`, and `CICD/01-cicd-fundamentals.md`
+  now points back at `#ch-branching-and-review-workflow` from its Trunk-Based Development section, which
+  is the one place the two chapters genuinely overlapped.
+- **Bash stays the primary fence language here, deliberately.** Git chapters are about commands; `bash`
+  is on non-negotiable #1's allow-list and converting `git rebase -i` into TypeScript would be theatre.
+  Two TypeScript fences earn their place — a `bisect run` check script that demonstrates exit codes
+  0/1/125, and the feature-flag component that makes trunk-based development possible. Four ASCII and
+  sample-output fences were labelled `text`.
+
+**Verified:**
+
+- `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0, `too-long`
+  47 (unchanged). `fence-language` **53 → 39** — all 14 `Git/` violations cleared;
+  `.lint-baseline.json` committed at 39
+- `scripts/add-frontmatter.ts`: 328 files, **idempotent on the second pass** (`changed: 0`), all slugs
+  unique, every in-book file has a part. Part VIII is **32** in-book files, down from 34
+- `pnpm book:collect`: **274 files, 94,429 lines** — down from 276 / 95,036
+- Six blocks present in all four, H1 anchors correct, zero relative links in bodies, zero `####`, zero
+  retired emoji, 💡 and 🔑 at exactly 1 each and ⚠️ at 3/3/2/1 against the standard's budget of 3
+- No dangling references to `03-branching-strategies.md`, `06-repository-strategies.md`,
+  `#ch-branching-strategies`, `#ch-git-best-practices` or `#ch-git-platforms` outside `Archive/` and
+  this plan's own prose
+
+**1,026 lines against a ~750 target — the same miss run #4 recorded, and for the same reason.** Four
+chapters averaging 257 lines against the standard's ~220. The closing blocks cost ~55 lines each before
+any teaching happens, and `03-` carries two former chapters at 300 lines. The honest read is that
+run #3's per-section line targets were estimated from heading outlines and run **~30% low across the
+board**; the chapter *counts* in that table have held up exactly, the line figures have not.
+
+**Part VIII now stands at 6,402 lines across 26 chapters** (6,754 with the six section READMEs). Run #5
+removed 605 lines and two chapters.
+
+| Section | Now | Target | Status |
+| ------- | --- | ------ | ------ |
+| `Git/` | **4 / 1,026** | 4 / ~1,030 | ✅ done, run #5 — target revised up from ~750 |
+| `Containers/` | 7 / 1,481 | 4 / ~1,000 | Untouched — now the largest remaining cut |
+| `CICD/` | 5 / 1,482 | 4 / ~1,000 | Untouched |
+| `Observability/` | 3 / 865 | 3 / ~900 | ✅ done, run #4 |
+| `Cloud/` | 3 / 681 | 3 / ~680 | ✅ done, run #3 |
+| `Deployment/` | 4 / 867 | 4 / 867 | ✅ already to standard |
+
+Two sections are left, needing 7 → 4 and 5 → 4. With the line targets corrected for what four
+standard-compliant chapters actually cost, the end state is **22 chapters and ~5,440 lines**.
+
+> ⚠️ **The budget decision cannot be deferred past the next two runs.** `BOOK-SPEC.md` § 4 says Part VIII
+> is 3,500 lines across ~18 chapters. Four of the six sections are now finished to the standard and they
+> total **3,439 lines across 14 chapters** — 98% of the part's entire line budget, with twelve chapters of
+> Docker, Kubernetes literacy and CI/CD still to trim. Even cutting those twelve to eight leaves 61 lines
+> to share between them. That is not a chapter; it is a paragraph. **Either § 4's Part VIII budget rises
+> to ~5,450 / ~22, or the keep table loses whole sections** — and the keep table is this item's own
+> contract, so raising the budget is the honest correction. Whoever runs `Containers/` should make that
+> amendment first, with a Revision History entry, rather than trimming towards a number four finished
+> sections already disprove.
 
 
 ---

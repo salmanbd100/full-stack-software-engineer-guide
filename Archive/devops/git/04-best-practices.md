@@ -7,7 +7,7 @@ level: intermediate # beginner | intermediate | advanced
 reading_time: 7
 updated: 2026-08-28
 tags: [devops, git]
-in_book: true
+in_book: false
 ---
 
 # Git Best Practices {#ch-git-best-practices}
@@ -274,4 +274,4 @@ Secrets, build artifacts, dependencies, IDE files, OS files, logs, and anything 
 
 ---
 
-[← Git Branching Strategies](./03-branching-strategies.md) | [Git Index](./README.md) | [Git Platforms →](./05-git-platforms.md)
+[Git Platforms →](./05-git-platforms.md)

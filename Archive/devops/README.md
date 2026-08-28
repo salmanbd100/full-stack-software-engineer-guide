@@ -137,13 +137,13 @@ DevOps Stack
   - Trunk-based development
   - Release management
 
-- [04. Git Best Practices](./Git/04-best-practices.md)
+- [04. Git Best Practices](./git/04-best-practices.md)
   - Commit messages
   - Code review
   - Pull request workflow
   - Repository structure
 
-- [05. GitHub/GitLab/CodeCommit](./Git/05-git-platforms.md)
+- [05. GitHub/GitLab/CodeCommit](./git/05-git-platforms.md)
   - Pull requests
   - Issues and projects
   - GitHub Actions

@@ -190,6 +190,8 @@ main ──●─────────────────●──
 
 > Feature flags decouple **deploy** (moving code) from **release** (exposing behaviour). This is what lets teams deploy 20 times a day.
 
+The choice between trunk-based, GitHub Flow and GitFlow — and what each one demands of a pipeline — is argued out in [Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow).
+
 ## DORA Metrics
 
 The four industry-standard measures of delivery performance. Expect at least one question on these.

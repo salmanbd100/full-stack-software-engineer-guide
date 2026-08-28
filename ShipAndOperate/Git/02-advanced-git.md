@@ -4,225 +4,251 @@ part: 8
 chapter: 0
 slug: advanced-git
 level: advanced # beginner | intermediate | advanced
-reading_time: 6
+reading_time: 9
 updated: 2026-08-28
-tags: [devops, git, advanced]
+tags: [devops, git, advanced, recovery]
 in_book: true
 ---
 
 # Advanced Git {#ch-advanced-git}
 
-> Recover commits you thought were gone, and find the one that broke production in a handful of steps.
+> Get back any commit you thought you had lost, and find the one that broke production in a handful of steps.
 
-**In this chapter:** reflog · bisect · worktrees · interactive rebase · removing secrets from history
+**In this chapter:** the reflog · `bisect` · worktrees · interactive rebase · getting a secret out of history
 
-## Overview
+## 💡 The Core Idea
 
-These tools go beyond daily Git usage. They help you recover mistakes, debug production issues, and work on multiple branches at the same time.
+Git writes a commit object once and then leaves it alone. Labels — branches, tags, `HEAD` — move around
+those objects, and a commit stops being visible when no label points at it any more. It is not deleted.
+It sits in the object database until garbage collection runs, which by default is not for ninety days.
 
----
+Every recovery tool in this chapter is the same trick: find the hash of a commit nothing points at any
+more, and point something at it again. The tools differ only in how they help you find the hash.
 
-## Git Reflog — Your Safety Net
+> "I lost my work" almost always means "I lost the name of my work." The reflog remembers the names.
 
-### 💡 **What is reflog?**
+## How It Works
 
-Reflog records every movement of `HEAD` and branch pointers. It keeps ~90 days of history — even for commits that look "lost" after a hard reset or branch delete.
+### The Reflog Is a Local Undo Log
 
-```bash
-git reflog                    # Show all HEAD movements
-git reflog show main          # Show main branch movements
-```
-
-**Example output:**
-
-```
-abc1234 HEAD@{0}: commit: Add feature X
-def5678 HEAD@{1}: reset: moving to HEAD~1
-ghi9012 HEAD@{2}: commit: Bad commit
-```
-
-### Recovering lost commits
+Git records every movement of `HEAD` and of each branch label in a reflog. Reset, rebase, checkout,
+merge, branch deletion — all of them leave an entry with the hash from before the move.
 
 ```bash
-# Accidentally reset and lost commits
-git reset --hard HEAD~3       # Oops!
-
-# Recover using reflog
-git reflog                    # Find the hash before the reset
-git reset --hard HEAD@{1}     # Restore to that point
-
-# Recover a deleted branch
-git reflog | grep feature-xyz
-git checkout -b feature-xyz abc1234
+git reflog                    # Every position HEAD has held, newest first
+git reflog show main          # Just the main label's movements
 ```
 
-⚠️ Reflog is local only. It does not travel with `git clone`.
+**Sample output, reading a bad reset:**
 
----
+```text
+abc1234 HEAD@{0}: reset: moving to HEAD~3
+9f3e0a1 HEAD@{1}: commit: feat(billing): add proration
+5c7b221 HEAD@{2}: commit: test(billing): cover mid-cycle upgrade
+```
 
-## Git Bisect — Binary Search for Bugs
+`HEAD@{1}` is where you were before the reset, so `git reset --hard HEAD@{1}` puts the three commits
+back. A deleted branch works the same way — find its last commit in the reflog and recreate the label:
 
-### 💡 **Find exactly which commit broke something**
+```bash
+git reflog | grep feature-billing
+git switch -c feature-billing 9f3e0a1
+```
 
-Bisect uses binary search to check commits between a known-good and known-bad state. It finds the culprit in O(log n) steps instead of checking one-by-one.
+⚠️ The reflog is per-clone and never pushed. A commit that only ever existed on a machine you no longer
+have is genuinely gone.
 
-**Manual workflow:**
+### Bisect Finds the Breaking Commit in O(log n)
+
+You know the feature worked in `v2.4.0` and is broken on `main`. There are 300 commits between them.
+Bisect checks out the midpoint, you say good or bad, and it halves the range — about nine steps instead
+of 300.
 
 ```bash
 git bisect start
-git bisect bad                  # Current version has the bug
-git bisect good v1.0.0          # This version was fine
-
-# Git checks out the middle commit
-# Test the code, then:
-git bisect good    # No bug here
-git bisect bad     # Bug exists here
-
-# Repeat until Git prints: "abc1234 is the first bad commit"
-
-git bisect reset   # Return to original HEAD
+git bisect bad                # HEAD is broken
+git bisect good v2.4.0        # This tag was fine
+# Git checks out the midpoint. Test it, then: git bisect good | git bisect bad
+# Repeat until Git prints "<hash> is the first bad commit"
+git bisect reset              # Back to where you started
 ```
 
-**Automated workflow:**
+The version worth knowing in an interview is the automated one, because it turns a twenty-minute manual
+loop into one command:
 
 ```bash
-# Run a test script automatically on each commit
-git bisect start HEAD v1.0.0
-git bisect run npm test         # Exit 0 = good, non-zero = bad
-
+git bisect start HEAD v2.4.0
+git bisect run pnpm vitest run src/billing   # exit 0 = good, non-zero = bad
 git bisect reset
 ```
 
-**When to use bisect:**
-- ✅ A bug appeared between two known versions
-- ✅ You have a test that reliably reproduces the bug
-- ✅ There are many commits between good and bad states
+**A check script that reports the exit codes `bisect run` expects:**
 
----
+```typescript
+// scripts/check-proration.ts — run by `git bisect run node --experimental-strip-types`
+import { prorate } from '../src/billing/prorate.ts';
 
-## Git Worktrees — Parallel Branches Without Stashing
+// Exit 0 marks the commit good, 1 marks it bad, 125 marks it untestable —
+// 125 matters, because a commit that cannot build should be skipped, not blamed.
+try {
+  const result: number = prorate({ days: 15, cycle: 30, amount: 1000 });
+  process.exit(result === 500 ? 0 : 1);
+} catch {
+  process.exit(125);
+}
+```
 
-### 💡 **Work on two branches at the same time**
+Exit code 125 is the one people miss. Without it, a commit that fails to compile is recorded as "bad"
+and bisect blames the wrong change.
 
-Worktrees create a second working directory linked to the same Git repository. You don't need to stash or switch branches to handle an emergency.
+### Worktrees Give You Two Branches at Once
 
-**Creating a worktree:**
+A worktree is a second working directory backed by the same `.git` object database. No stashing, no
+switching, and no second clone to keep in sync.
 
 ```bash
-# You're on feature-auth. Urgent hotfix needed!
-git worktree add ../project-hotfix main
-
-# Work on the hotfix in a separate directory
-cd ../project-hotfix
-git checkout -b hotfix/security-patch
-# ... fix, commit, push ...
-
-# Back to your feature — nothing was interrupted
-cd ~/project
-
-# Clean up when done
-git worktree remove ../project-hotfix
+git worktree add ../app-hotfix -b hotfix/session-leak main
+cd ../app-hotfix              # Full checkout of main, your feature branch untouched
+# fix, commit, push
+git worktree remove ../app-hotfix
 ```
 
-**Common commands:**
+| Situation                                       | Stash and switch | Worktree |
+| ----------------------------------------------- | ---------------- | -------- |
+| Two-minute one-line fix                         | ✅ Simpler       | Overkill |
+| Hotfix that needs a full install and test run   | ❌ Reinstalls twice | ✅ Keeps both `node_modules` |
+| Reviewing a colleague's PR while mid-feature    | ❌ Loses your build state | ✅ Side by side |
+| Running the same suite against two branches     | ❌ Impossible    | ✅ Two terminals |
+
+### Interactive Rebase Cleans Up Before Review
+
+Nine "wip" commits are honest but unreadable. Interactive rebase turns them into the two or three commits
+that describe what you actually did.
 
 ```bash
-git worktree add ../dir branch-name       # Create worktree on existing branch
-git worktree add -b new-branch ../dir main # Create worktree with new branch
-git worktree list                          # See all active worktrees
-git worktree remove ../dir                 # Remove worktree
-git worktree prune                         # Clean up stale entries
+git rebase -i HEAD~5
 ```
 
-**When to use worktrees:**
-- ✅ Emergency hotfix while a feature is in progress
-- ✅ Reviewing a PR without stashing current work
-- ✅ Running tests on two branches at the same time
+| Command  | Effect                                        |
+| -------- | --------------------------------------------- |
+| `pick`   | Keep the commit unchanged                     |
+| `reword` | Keep the commit, edit its message             |
+| `squash` | Fold into the previous commit, merge messages |
+| `fixup`  | Fold into the previous commit, discard message |
+| `drop`   | Remove the commit entirely                    |
 
----
+```text
+pick   a1b2c3d feat(auth): add OAuth callback route
+fixup  d4e5f6a wip
+fixup  b7c8d9e typo
+reword f0a1b2c test(auth): add callback tests
+drop   c3d4e5f debug logging
+```
 
-## Interactive Rebase
+⚠️ Rebasing rewrites every commit from the edit point onwards. Do it before you open the pull request,
+or after, only on a branch that is unquestionably yours.
 
-### 💡 **Clean up your commit history before merging**
+## When to Use It
 
-Use interactive rebase on private branches to squash, reorder, or edit commits before sharing them.
+| Symptom                                      | Reach for              | Why                                          |
+| -------------------------------------------- | ---------------------- | -------------------------------------------- |
+| "My commits are gone after a reset"          | `git reflog`           | The old tip is still recorded locally         |
+| "This worked last release, broken now"       | `git bisect run`       | Binary search beats reading 300 diffs        |
+| "Urgent fix, and my branch is mid-build"     | `git worktree add`     | Two checkouts, one object database            |
+| "My branch is nine wip commits"              | `git rebase -i`        | Reviewers read commits, not just the diff     |
+| "A key got committed three months ago"       | `git filter-repo`      | Only a history rewrite removes the blob       |
+
+### Getting a Secret Out of History
+
+Deleting the file in a new commit does nothing — the blob is still reachable from the commit that added
+it, and anyone can `git show` it. The history has to be rewritten.
 
 ```bash
-git rebase -i HEAD~4    # Edit last 4 commits
+# git-filter-repo is the maintained tool; git filter-branch is deprecated
+git filter-repo --path config/prod.env --invert-paths
+git push --force --all        # Every branch and tag hash downstream of the file changes
 ```
 
-**Available commands in the editor:**
+Then, in this order, because the order is the whole answer:
 
-| Command | What it does |
-|---------|-------------|
-| `pick` | Keep commit as-is |
-| `reword` | Keep commit, edit its message |
-| `squash` | Combine with the previous commit |
-| `fixup` | Combine with previous, discard this message |
-| `drop` | Remove the commit entirely |
+1. **Rotate the credential first.** Assume it was read. Rewriting history proves nothing about who
+   cloned the repository yesterday.
+2. Rewrite history and force-push all branches and tags.
+3. Tell every collaborator to re-clone. Their old clone still contains the secret and will push it back.
+4. Add the path to `.gitignore` and a secret scanner to the pipeline so it cannot recur.
 
-**Example:**
+> ⚠️ On a hosted platform, forks and cached pull request views can outlive the rewrite. Rotation is the
+> only step that is guaranteed to work.
 
-```
-pick abc123 Add login form
-squash def456 WIP
-fixup ghi789 fix typo
-reword jkl012 Add tests
-```
+## Common Mistakes
 
-⚠️ Only use interactive rebase on branches that haven't been pushed — or haven't been shared with anyone.
-
----
-
-## Removing Sensitive Data from History
-
-### 💡 **If you accidentally committed a secret**
+**❌ Wrong — treating the removal as the fix:**
 
 ```bash
-# Install git-filter-repo (modern, fast)
-pip install git-filter-repo
-
-# Remove a file from all history
-git filter-repo --path secrets.txt --invert-paths
-
-# Force push to remote after rewriting
-git push --force-with-lease
+git rm config/prod.env
+git commit -m "chore: remove leaked env file"   # The blob is still in every clone
 ```
 
-**After removing the file:**
-1. Rotate the compromised secret immediately — it was exposed
-2. Add the file to `.gitignore`
-3. Set up a pre-commit hook to catch secrets going forward
-
----
-
-## Interview Q&A
-
-**Q: How do you recover a deleted branch?**
+**✅ Right — rotate, then rewrite:**
 
 ```bash
-git reflog                              # Find the last commit hash
-git checkout -b recovered-branch <hash>
+# 1. Rotate the key in the provider console — the only step that actually helps
+# 2. Then remove the blob from every commit that ever contained it
+git filter-repo --path config/prod.env --invert-paths
 ```
 
----
+**❌ Wrong — bisecting without a reliable test:**
 
-**Q: What is git bisect and when would you use it?**
+```bash
+git bisect run pnpm test      # Suite is flaky, so "bad" sometimes means "unlucky"
+```
 
-Bisect performs binary search through commit history to find when a bug was introduced. Use it when you know a feature worked before, have many commits to check, and can reproduce the bug with a test.
+**✅ Right — bisect one deterministic check:**
 
----
+```bash
+git bisect run pnpm vitest run src/billing/prorate.test.ts
+```
 
-**Q: What are git worktrees and why are they useful?**
+Bisect is a binary search, so one wrong answer sends it down the wrong half and it reports a confidently
+wrong commit. Narrow the check until it is deterministic before you start.
 
-Worktrees create multiple working directories from one repository. They let you work on two branches simultaneously without stashing. Perfect for emergency hotfixes when you are mid-way through a feature.
+## 🔑 Key Takeaways
 
----
+- Commits become unreachable, not deleted; recovery is finding the hash and pointing a label at it again.
+- The reflog is local and unpushed, so it can rescue your own mistakes and nobody else's.
+- `git bisect run` needs a deterministic check and should exit 125 for commits that cannot be tested.
+- A worktree earns its keep when the second branch needs its own install or build, not for a one-line fix.
+- Removing a committed secret starts with rotating it — the history rewrite is the second step, not the fix.
 
-**Q: How do you safely remove sensitive data from Git history?**
+## Interview Questions
 
-Use `git filter-repo --path <file> --invert-paths` to rewrite history. Then force push and immediately rotate the exposed secret — assume it is compromised.
+**Q: How do you recover a branch you deleted by accident?**
 
----
+Find its last commit in the reflog, then recreate the label with `git switch -c <name> <hash>`. The
+commit objects were never removed — deleting a branch only removed the name pointing at them, and
+garbage collection leaves unreachable objects alone for about ninety days.
 
-[← Git Fundamentals](./01-git-fundamentals.md) | [Git Index](./README.md) | [Git Branching Strategies →](./03-branching-strategies.md)
+**Q: Walk me through finding which commit introduced a regression.**
+
+Mark a known-good tag and the broken `HEAD`, then let `git bisect run` drive a single deterministic test
+across the midpoints. It takes roughly log₂(n) steps, so 300 commits resolve in about nine. The
+precondition is a check that fails for exactly this bug and nothing else.
+
+**Q: A secret was committed six months ago. What is your sequence?**
+
+Rotate the credential first, because the repository has been cloned since and the rewrite cannot reach
+those copies. Then rewrite history with `git filter-repo`, force-push every branch and tag, have
+collaborators re-clone, and add secret scanning to the pipeline so the next one is caught before merge.
+
+**Q: When would you not use interactive rebase?**
+
+On a branch other people are committing to, and on anything already merged. It replaces every commit
+from the edit point onwards with new hashes, so collaborators end up with two copies of the same work.
+If the branch is shared and the history is messy, squash it at merge time instead.
+
+## What to Read Next
+
+- [Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow) — the commit and pull
+  request habits that mean you need these tools less often
+- [Chapter ?? — Pipeline Security](#ch-cicd-security) — secret scanning that catches a leak before it
+  reaches history

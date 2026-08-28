@@ -7,7 +7,7 @@ level: intermediate # beginner | intermediate | advanced
 reading_time: 9
 updated: 2026-08-28
 tags: [devops, git, platforms]
-in_book: true
+in_book: false
 ---
 
 # Git Platforms {#ch-git-platforms}
@@ -302,4 +302,4 @@ Branch protection, required code review, required CI status checks, secret scann
 
 ---
 
-[← Git Best Practices](./04-best-practices.md) | [Git Index](./README.md) | [Repository Strategies: Monorepo vs Polyrepo →](./06-repository-strategies.md)
+[← Git Best Practices](./04-best-practices.md)
