@@ -1,16 +1,16 @@
 ---
-title: Content Delivery Networks
+title: CloudFront (CDN)
 part: 8
 chapter: 0
-slug: content-delivery-networks
+slug: aws-cloudfront
 level: intermediate # beginner | intermediate | advanced
 reading_time: 7
 updated: 2026-08-28
 tags: [devops, aws, cloudfront]
-in_book: true
+in_book: false
 ---
 
-# Content Delivery Networks {#ch-content-delivery-networks}
+# CloudFront (CDN) {#ch-aws-cloudfront}
 
 > Put a CDN in front of an origin and control what is cached, for how long, and how it is purged.
 
@@ -228,4 +228,4 @@ Use path-based cache behaviors. Route `/api/*` to an ALB or API Gateway origin w
 
 ---
 
-[← Object Storage](./03-object-storage.md) | [Cloud Index](./README.md)
+[Archive index](../README.md)

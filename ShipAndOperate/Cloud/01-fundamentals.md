@@ -4,174 +4,201 @@ part: 8
 chapter: 0
 slug: cloud-fundamentals
 level: beginner # beginner | intermediate | advanced
-reading_time: 6
+reading_time: 8
 updated: 2026-08-28
-tags: [devops, aws, fundamentals]
+tags: [cloud, aws, regions, shared-responsibility, managed-services]
 in_book: true
 ---
 
 # Cloud Fundamentals {#ch-cloud-fundamentals}
 
-> Place a workload in the right region and account, and say exactly which half of security is yours.
+> Read any provider's 300-item menu as four primitives, and say exactly which half of running them is yours.
 
-**In this chapter:** service categories · regions, zones and edge locations · the shared responsibility model · multi-account structure · the Well-Architected Framework
+**In this chapter:** the four primitives · regions, zones and edge locations · the managed-service ladder · the shared responsibility line · choosing where a workload lives
 
-## Core Service Categories
+## 💡 The Core Idea
 
-| Category | Key Services | Use Case |
-|----------|-------------|----------|
-| **Compute** | EC2, Lambda, ECS, EKS | Run applications |
-| **Storage** | S3, EBS, EFS | Store data |
-| **Database** | RDS, DynamoDB, Aurora, ElastiCache | Manage data |
-| **Networking** | VPC, Route 53, CloudFront, ALB/NLB | Connect and route |
-| **Security** | IAM, KMS, Secrets Manager, WAF | Control access |
-| **DevOps** | CodePipeline, CodeBuild, CodeDeploy | CI/CD |
-| **Monitoring** | CloudWatch, X-Ray, CloudTrail | Observe and audit |
+A cloud provider rents you four things: somewhere to run code, somewhere to keep bytes, a network
+between them, and a way to say who may do what. Every service in the console is one of those four,
+sold at a different level of _how much of the operating is yours_. The product names differ between
+providers. The primitives do not.
 
-## Global Infrastructure
+This matters in an interview more than the names do. "How would you serve user uploads?" wants object
+storage, a signed URL and a cache in front of it. An answer that opens with a bucket setting has
+skipped the design.
 
-```
-AWS Global Infrastructure
-├── Regions (30+)              — Geographic locations
-│   ├── us-east-1 (N. Virginia)  ← largest, most services, lowest cost
-│   ├── us-west-2 (Oregon)
-│   ├── eu-west-1 (Ireland)
-│   └── ap-northeast-1 (Tokyo)
-│
-├── Availability Zones (3–6 per region)
-│   ├── us-east-1a
-│   ├── us-east-1b
-│   └── us-east-1c              ← physically separate, shared region
-│
-└── Edge Locations (400+)       — CloudFront CDN endpoints
-```
+## How It Works
 
-**Region** — a geographic location with multiple isolated data centers.
+### The four primitives
 
-**Availability Zone (AZ)** — one or more physically separate data centers within a region. An AZ failure doesn't bring down other AZs in the same region.
+| Primitive    | What you rent                        | Called, roughly                                                  |
+| ------------ | ------------------------------------ | ---------------------------------------------------------------- |
+| **Compute**  | Someone else's CPU, by the second     | EC2 · Lambda · Cloud Run · Azure Functions · Vercel Functions      |
+| **Storage**  | Durable bytes behind an HTTP API      | S3 · Cloud Storage · Azure Blob · R2 · Vercel Blob                 |
+| **Network**  | Routing, load balancing, edge caching | CloudFront · Cloud CDN · Front Door · Cloudflare                   |
+| **Identity** | Who may call what, and with which key | IAM · Cloud IAM · Entra ID                                         |
 
-**Edge Location** — CDN endpoint. CloudFront serves cached content from the edge closest to the user.
+Databases, queues and search are compute and storage sold together with the operating included. That
+is a pricing decision, not a fifth primitive.
 
-### How to Choose a Region
+### Geography: region, zone, edge
 
-1. **Latency** — closest to your users
-2. **Compliance** — data residency laws (GDPR, HIPAA, local sovereignty)
-3. **Service availability** — not every service is in every region
-4. **Cost** — prices vary (us-east-1 is often cheapest)
-
-## AWS CLI Setup
-
-```bash
-# Install AWS CLI v2 (Mac)
-brew install awscli
-
-# Configure default profile
-aws configure
-# Enter: Access Key ID, Secret Access Key, region, output format
-
-# Multiple profiles (dev vs prod)
-aws configure --profile prod
-aws s3 ls --profile prod
-export AWS_PROFILE=prod       # Set for the full shell session
-
-# Verify who you're authenticated as
-aws sts get-caller-identity
+```mermaid
+flowchart TD
+  U["User in Sydney"] --> E["Edge location<br/>~400 worldwide"]
+  E -->|cache miss| R["Region: eu-west-1<br/>a geographic area"]
+  R --> A1["Zone A<br/>separate power, network, cooling"]
+  R --> A2["Zone B"]
+  R --> A3["Zone C"]
+  A1 --- D[("Replicated data")]
+  A2 --- D
 ```
 
-> ⚠️ Never use root account credentials for daily work. Create an IAM user with least-privilege permissions.
+**How a request reaches your data: the edge serves it, or the region does.**
 
-```bash
-# Useful CLI patterns
-aws ec2 describe-instances \
-  --filters "Name=instance-state-name,Values=running" \
-  --query 'Reservations[*].Instances[*].[InstanceId,PublicIpAddress]' \
-  --output table
+| Level    | Failure it survives              | What you do about it                                  |
+| -------- | -------------------------------- | ----------------------------------------------------- |
+| **Zone** | One data centre losing power      | Run in two or more zones — usually a checkbox          |
+| **Region** | A whole geographic area failing | A second region, replicated data, and a real DR plan   |
+| **Edge** | Nothing — it is a cache          | Nothing. It is for latency, not availability           |
 
-# Output formats: json (default), table, text, yaml
-aws s3 ls --output table
+Most teams need multi-zone and do not need multi-region. Multi-region doubles the cost and makes every
+write a distributed-systems problem, so it is a decision about the money and the data, not a default.
+
+### The managed-service ladder
+
+The same application can run at five heights. Climbing one rung hands the provider more of the
+operating and takes away more of your control.
+
+| Rung                  | You operate                          | Provider operates              | You pay for      |
+| --------------------- | ------------------------------------ | ------------------------------ | ---------------- |
+| **Virtual machine**   | OS, patches, runtime, app, scaling    | Hardware, hypervisor           | Uptime           |
+| **Container service** | Image, scaling policy, app            | OS, host, orchestration        | Uptime           |
+| **Managed runtime**   | App and its config                    | OS, runtime, scaling           | Uptime           |
+| **Function**          | The handler and its dependencies      | Everything else                | Invocations      |
+| **Managed product**   | Configuration only                    | The whole service              | Usage            |
+
+> ⚠️ The rung changes _who fixes it_, never _who is accountable_. A managed database that runs out of
+> connections is still your outage, your pager, and your customer.
+
+### The shared responsibility line
+
+The provider secures **the cloud**: buildings, hardware, hypervisor, the internals of its managed
+services. You secure **what you put in it**: your data, your access control, your application code,
+and any operating system you chose to keep.
+
+Two things stay yours on every rung of the ladder, and they are where nearly all real breaches happen:
+
+- **Your data** — what you classify, encrypt, retain and delete
+- **Your access control** — who holds which key, and how narrow it is
+
+## When to Use It
+
+**Choosing a region:**
+
+| Question                              | If the answer is…                           | Then                                             |
+| ------------------------------------- | ------------------------------------------- | ------------------------------------------------ |
+| Where are the users?                  | Concentrated in one continent               | Pick that continent and cache the rest at the edge |
+| Is the data personal or regulated?    | Yes, under GDPR or a residency rule          | Residency wins — it is not negotiable for latency  |
+| Does the workload need a niche service? | Yes                                        | Check availability first; not every region has it |
+| Is the workload cost-dominated?       | Yes, and latency-tolerant (batch, archives)  | The cheapest region is a legitimate answer         |
+
+**Choosing a rung:** start at the highest rung that does the job, and climb down only when something
+concrete stops you — a runtime the platform does not offer, a process that must outlive a request, a
+compliance rule that demands a machine you can point at.
+
+> Multiple accounts, projects or subscriptions are the cheapest blast-radius control there is.
+> Production in its own account means a mistake in development cannot reach it, and the bill splits by
+> team without a tagging convention nobody maintains.
+
+**Pinning compute next to its data:**
+
+```typescript
+// Region belongs in typed config, not scattered through the code.
+// Compute and its primary database in the same region; everything else is cached at the edge.
+type Region = "eu-west-1" | "us-east-1" | "ap-southeast-2";
+
+interface DeploymentConfig {
+  readonly computeRegion: Region;
+  readonly databaseRegion: Region;
+  readonly replicaRegions: readonly Region[]; // read-only, for latency
+}
+
+export const production: DeploymentConfig = {
+  computeRegion: "eu-west-1",
+  databaseRegion: "eu-west-1", // same region — a cross-region query costs ~100 ms per round trip
+  replicaRegions: ["us-east-1"],
+};
 ```
 
-## Shared Responsibility Model
+## Common Mistakes
 
-### 💡 **One of the most common interview topics**
+❌ **Deploying into one availability zone.** The cost of a second zone is close to nothing and it is
+the single largest availability win available. ✅ Run in at least two.
 
-AWS and the customer share security responsibilities. The split depends on the service type.
+❌ **Choosing a region out of habit.** `us-east-1` is the default in most tutorials and the wrong
+answer for a European product with a residency obligation. ✅ Choose on users, law, then price.
 
-```
-AWS is responsible for:           Customer is responsible for:
-────────────────────────          ────────────────────────────
-Physical security                 Data (encryption, classification)
-Hardware and networking           IAM users, roles, and policies
-AWS managed infra                 Application security
-Managed service internals         OS patches (EC2)
-                                  Network config (VPC, SGs, NACLs)
-```
+❌ **Reading "serverless" as "no operations".** Concurrency limits, cold starts, timeouts and retry
+semantics are all still yours. ✅ Treat a higher rung as _different_ operational work, not less.
 
-| Service | AWS Manages | You Manage |
-|---------|------------|------------|
-| **EC2** | Hardware, hypervisor | OS, patches, app, IAM |
-| **RDS** | DB engine updates, hardware | DB data, users, SGs |
-| **S3** | Durability, infra | Bucket policy, encryption |
-| **Lambda** | Runtime, scaling, infra | Function code, IAM role |
-| **EKS** | Control plane | Worker nodes, pods, apps |
+❌ **Using the root or owner account for daily work.** It cannot be constrained by policy and it is the
+first credential an attacker looks for. ✅ Day-to-day access goes through a scoped role with an
+expiring session.
 
-**Memory aid:** AWS secures the cloud **infrastructure**, you secure what you put **in** the cloud.
+❌ **Answering an architecture question with product names.** "I'd use S3 and CloudFront" is a
+half-answer. ✅ Say the shape — object storage, signed URL, CDN in front, origin locked to the CDN —
+and name the products second.
 
-## AWS Organizations
+## 🔑 Key Takeaways
 
-Manage multiple AWS accounts under one umbrella.
+- Every cloud service is compute, storage, network or identity, packaged at some level of managed.
+- A zone survives a data-centre failure; a region survives a geographic one; the edge survives nothing.
+- Climbing the managed-service ladder moves who fixes it, never who is accountable for it.
+- Your data and your access control are yours on every rung — that is where breaches actually happen.
+- Say the primitive first and the product second. It is the difference between design and recall.
 
-```
-Root (Management Account)
-├── Production OU
-│   ├── Prod-App Account
-│   └── Prod-DB Account
-├── Development OU
-│   └── Dev Account
-└── Shared Services OU
-    ├── Logging Account
-    └── Security Account
-```
+## Interview Questions
 
-**Why use separate accounts?**
-- Billing isolation (charge-back by team)
-- Blast radius reduction (dev mistake can't affect prod)
-- Separate IAM namespaces
-- Compliance and audit boundaries
+**Q: What is the difference between a region and an availability zone?**
 
-**Service Control Policies (SCPs)** — enforce guardrails across all accounts. For example: block EC2 in unapproved regions, require encryption on all S3 buckets, prevent disabling CloudTrail.
+A region is a geographic area — a country or part of one. An availability zone is one or more data
+centres inside that region with independent power, cooling and network, close enough for
+single-digit-millisecond replication. Spreading across zones protects against a data centre failing
+and usually costs nothing extra. Spreading across regions protects against a whole area failing, and
+costs a second copy of everything plus the consistency problem that comes with it.
 
-## Well-Architected Framework
+**Q: Explain the shared responsibility model without naming a provider.**
 
-Five pillars that define production-ready AWS workloads:
+The provider is responsible for the infrastructure it runs — buildings, hardware, network, and the
+internals of any managed service. You are responsible for what you put on it: your data, your identity
+and access configuration, your application code, and the operating system if you kept one. The line
+moves depending on how managed the service is, but data and access control never cross it.
 
-| Pillar | Core Practice |
-|--------|--------------|
-| **Operational Excellence** | IaC, runbooks, observability, CI/CD |
-| **Security** | Least privilege, encryption everywhere, audit logs |
-| **Reliability** | Multi-AZ, auto-scaling, health checks, backups |
-| **Performance Efficiency** | Right-sizing, caching, CDN, serverless where appropriate |
-| **Cost Optimization** | Reserved instances, right-sizing, S3 lifecycle policies |
+**Q: When would you not use a managed service?**
 
-> In interviews, reference the Well-Architected Framework when asked to "design a resilient system" or "reduce AWS costs."
+When the managed version cannot do the thing you need — an unsupported runtime, a process that has to
+outlive a request, a compliance rule that requires isolation you can demonstrate. Cost is a weaker
+reason than it sounds: the managed price usually beats the loaded cost of an engineer operating the
+self-hosted version, unless the workload is large, steady and predictable.
 
-## Interview Q&A
+**Q: A product serves users across Europe and Australia from one region. How do you improve latency?**
 
-**Q: What's the difference between Region and Availability Zone?**
-A Region is a geographic location (us-east-1). An AZ is one or more physically separate data centers inside that region (us-east-1a, us-east-1b). Deploy across at least 2 AZs for high availability — one AZ going down won't take you offline.
+First separate reads from writes. Static assets and cacheable responses go to a CDN, which fixes most
+of the perceived latency without touching the architecture. Then look at what is left: if the
+Australian users are doing dynamic reads, a read replica plus regional compute close to them helps. A
+second write region is the last resort, because it turns every write into a conflict-resolution
+problem.
 
-**Q: Explain the Shared Responsibility Model.**
-AWS secures the cloud infrastructure — physical hardware, global network, and managed service internals. You secure what's in the cloud — your data, IAM configuration, application code, OS patches on EC2, and network settings like VPC and Security Groups.
+**Q: Why do teams split workloads across multiple accounts?**
 
-**Q: How would you design for high availability on AWS?**
-Deploy across 2+ AZs. Use an ALB to distribute traffic. Put compute in an Auto Scaling Group so it recovers from failures. Use RDS Multi-AZ for databases. Enable health checks on all layers. Use Route 53 failover for cross-region DR.
+Blast radius and billing. A separate production account means a misconfigured policy in development
+cannot reach production data, and organisation-level guardrails can forbid whole categories of action
+in each account. The bill also splits along real boundaries without depending on a tagging convention
+that people forget to apply.
 
-**Q: What are SCPs and when would you use them?**
-Service Control Policies are permission boundaries applied to AWS accounts within Organizations. They don't grant permissions — they restrict the maximum permissions any IAM entity in that account can have. Use them to enforce compliance: block regions you don't use, prevent deleting audit logs, require encryption tags.
+## What to Read Next
 
-**Q: What's the AWS Well-Architected Framework?**
-Five pillars: Operational Excellence, Security, Reliability, Performance Efficiency, and Cost Optimization. It's a structured way to evaluate architecture decisions. AWS offers a Well-Architected Tool to review workloads against these pillars and get improvement recommendations.
-
----
-
-[Cloud Index](./README.md) | [Serverless Functions →](./02-serverless.md)
+- [Chapter ?? — Serverless Functions](#ch-serverless-functions) — the rung most frontend-heavy teams live on
+- [Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery) — the storage and network primitives, in practice
+- [Chapter ?? — Platform and Edge Deployments](#ch-platform-deploys) — how a build becomes a running deployment

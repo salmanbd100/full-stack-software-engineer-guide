@@ -1341,7 +1341,7 @@ purpose: it is the question the pipeline round asks, and it reads differently fr
 
 | # | Work | Why it was not done now |
 | - | ---- | ----------------------- |
-| 1 | `Cloud/` 4 → 3: merge object storage and CDN, and make all four bodies cloud-neutral rather than AWS-only | Prose rewrite, not a move |
+| 1 | ~~`Cloud/` 4 → 3: merge object storage and CDN, and make all four bodies cloud-neutral rather than AWS-only~~ | **Done in run #3** |
 | 2 | `Observability/` — fold the useful half of the archived `kubernetes/09-monitoring.md` in, and add frontend RUM | The item asks for both; neither is a file move |
 | 3 | The trim to budget — **7,992 lines across 30 chapters** against `BOOK-SPEC.md`'s 3,500 across ~18 | The largest remaining piece of this item. See the arithmetic correction above |
 
@@ -1352,6 +1352,77 @@ purpose: it is the question the pipeline round asks, and it reads differently fr
 > being another thing to cut. The obvious candidates are `Git/` at 1,609 chapter lines across six and
 > `Containers/` at 1,457 across seven (1,665 and 1,518 with their READMEs) — the two largest sections, and the two furthest from the
 > "what a frontend-heavy full stack engineer is asked about" test.
+
+
+**Delivered — run #3, 2026-08-28: `Cloud/` 4 → 3, and the AWS branding taken out of the prose.**
+
+Run #1 retitled these four chapters off their AWS names and flagged the bodies as still AWS-only; run #2
+did `Deployment/` instead. This run closes that debt. `Cloud/` is now **3 chapters, 681 lines**, down
+from 4 chapters and 980, and all three are written to the Book Chapter Standard rather than patched
+towards it.
+
+| File | Lines | What changed |
+| ---- | ----- | ------------ |
+| `01-fundamentals.md` | 204 | Rewritten. Four primitives, region/zone/edge, the managed-service ladder, the responsibility line. The AWS CLI setup, AWS Organizations and Well-Architected sections are gone |
+| `02-serverless.md` | 227 | Rewritten around the **instance lifecycle** — one init, many handler calls — plus invocation shapes, cold-start anatomy and concurrency. Lambda CLI recipes, layers and SQS config blocks are gone |
+| `03-storage-and-delivery.md` | 250 | **`03-object-storage.md` + `04-cdn.md` merged**, as the item's keep table asked for (*"storage + CDN"*). Presigned upload path, origin lock-down, cache keys, `max-age` vs `s-maxage`, why invalidation is a smell |
+| `README.md` | 57 | Chapter table rebuilt for three, reading order and sprint path updated |
+
+**Four decisions this run made:**
+
+- **The merge target is `03-storage-and-delivery.md`, not a new file.** `git mv` from
+  `03-object-storage.md` (originally `DevOps/AWS/07-s3.md`) so history follows the larger source.
+  `04-cdn.md` went back to `Archive/devops/aws/12-cloudfront.md` — its original name — with
+  `in_book: false`, a restored `aws-cloudfront` slug and its nav footer repointed. Nothing deleted.
+  As a side effect the archived `11-route53.md` and `13-load-balancers.md` nav links to
+  `./12-cloudfront.md`, broken since run #1, now resolve again.
+- **Slug `content-delivery-networks` is retired.** Its one inbound reference — the What to Read Next
+  in `Deployment/01-platform-deploys.md` — is repointed at `#ch-object-storage-and-delivery`. That was
+  the only one in the book.
+- **Vendor-neutral means principle first, product second — not product-free.** Each chapter names AWS,
+  Vercel and Cloudflare where the shape genuinely differs, and says which platform a number belongs to.
+  `02-` carries the required moving-target callout, because every published serverless limit moves.
+- **Code is TypeScript now, not shell.** The old chapters were ~15 `bash` and `json` fences of CLI
+  recipes. The replacements carry six `typescript` fences that teach something — module-scope client
+  reuse, partial batch failure, presigned upload issuance, cache-header pairs — plus three mermaid
+  diagrams. That is where the `fence-language` drop below comes from.
+
+**Context7 was used** (`/websites/vercel`, `/websites/developers_cloudflare_workers`) for per-route
+`maxDuration`/`memory` configuration, fluid compute, and the Workers CPU-time model (30 s default,
+5 min on paid, billed on CPU rather than wall time). Exact ceilings are deliberately not stated as
+durable facts — the moving-target callout says to check the current limit instead.
+
+**Verified:**
+
+- `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0, `too-long`
+  47 (unchanged). `fence-language` **91 → 81**; `.lint-baseline.json` committed at 81
+- `scripts/add-frontmatter.ts`: 331 files, all slugs unique, every in-book file has a part.
+  Part VIII is **35** in-book files, down from 36
+- `pnpm book:collect`: 277 files, 95,444 lines — down from 279 / 95,795
+- No dangling references to `04-cdn.md`, `03-object-storage.md` or `#ch-content-delivery-networks`
+  anywhere outside `Archive/`
+
+**Part VIII now stands at 7,418 lines across 29 chapters** (7,766 with the six section READMEs), against
+`BOOK-SPEC.md`'s 3,500 across ~18. Run #3 removed 300 lines and one chapter. The gap is still roughly
+3,900 lines.
+
+**A target shape for the remaining trim**, so the next run is not re-deciding it from scratch. Derived
+from reading every chapter's heading outline; the per-section calls are still the trim runs' to make:
+
+| Section | Now | Target | The cut |
+| ------- | --- | ------ | ------- |
+| `Git/` | 6 / 1,633 | 3–4 / ~750 | `05-git-platforms.md` archives — a GitHub-vs-GitLab-vs-CodeCommit tour, and CodeCommit is closed to new customers. `04-best-practices.md` folds its commit-message and PR halves into `03-` |
+| `Containers/` | 7 / 1,481 | 4 / ~750 | `04-docker-security.md` merges into `02-` (they already share "non-root" and "minimal base image"). `06-` + `07-` become one Kubernetes-literacy chapter; StatefulSets, DaemonSets and scheduling controls are operator scope per § 6 |
+| `CICD/` | 5 / 1,480 | 4 / ~800 | `04-testing.md` + `05-security.md` overlap `Frontend/Testing`, `Backend/Security` and #24 — cut to what is pipeline-specific |
+| `Observability/` | 4 / 1,276 | 3 / ~650 | `02-prometheus.md` + `03-grafana.md` become one metrics-and-dashboards chapter; PromQL depth, Alertmanager and the managed-AWS sections go. Item 2 above lands here |
+| `Cloud/` | **3 / 681** | 3 / ~680 | ✅ done, run #3 |
+| `Deployment/` | 4 / 867 | 4 / 867 | ✅ already to standard — the shape everything else cuts towards |
+
+That lands at **21–22 chapters and ~4,300 lines**. Reaching a literal 18 / 3,500 would mean cutting
+`Git/` to two and `Containers/` to three, which fails the item's own *"all 6 — daily use, high interview
+frequency"* line for Git. **Whoever runs the final trim has to pick one**: amend `BOOK-SPEC.md` § 4's
+Part VIII budget up to ~4,300 / ~21, or amend #20's keep table down. They cannot both stand.
+
 
 ---
 

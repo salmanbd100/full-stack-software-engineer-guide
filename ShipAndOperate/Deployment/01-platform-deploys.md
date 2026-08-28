@@ -216,4 +216,4 @@ the guarantee is gone.
 
 - [Chapter ?? — Preview Environments](#ch-preview-environments) — the same artefact model, one copy per pull request
 - [Chapter ?? — Rollback and Recovery](#ch-rollback-and-recovery) — moving the pointer back, and the changes where you cannot
-- [Chapter ?? — Content Delivery Networks](#ch-content-delivery-networks) — what the CDN caches in front of all of this
+- [Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery) — what the CDN caches in front of all of this

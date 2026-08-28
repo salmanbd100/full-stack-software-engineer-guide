@@ -4,256 +4,224 @@ part: 8
 chapter: 0
 slug: serverless-functions
 level: intermediate # beginner | intermediate | advanced
-reading_time: 9
+reading_time: 10
 updated: 2026-08-28
-tags: [devops, aws, lambda]
+tags: [cloud, serverless, lambda, cold-starts, concurrency]
 in_book: true
 ---
 
 # Serverless Functions {#ch-serverless-functions}
 
-> Decide when a function beats a long-running server, and size one so cold starts never reach users.
+> Know what the platform does between your deploy and your handler, and size a function so cold starts never reach a user.
 
-**In this chapter:** how a managed function runs · invocation types and triggers · cold starts · memory, timeout and cost · execution roles and secrets
+**In this chapter:** the instance lifecycle · the three invocation shapes · cold starts and what actually causes them · concurrency and the bill · the mistakes that only appear under load
 
-## How Lambda Works
+## 💡 The Core Idea
 
-```
-Event Source → Lambda Service → Function runs in managed container → Response
-```
+You hand the platform a handler and a trigger. It owns everything else: when a process starts, how
+many run, when they are killed. That single trade buys you scaling you never configure and a bill that
+goes to zero when nobody calls you.
 
-Lambda manages the compute. You only write the function code and configure triggers.
+It also takes away the thing a long-running server gives for free — a process that is _already
+running_. Every serverless failure mode in this chapter comes from that one loss.
 
-**Key facts:**
-- Supports Node.js, Python, Java, Go, .NET, Ruby, and custom runtimes
-- Max timeout: **15 minutes**
-- Memory: **128 MB to 10 GB** (CPU and network scale with memory)
-- Max package size: 50 MB zipped (250 MB unzipped), or 10 GB via container image
+## How It Works
 
-## Invocation Types
+### The instance lifecycle
 
-| Type | Trigger Examples | Behavior | Retries on Error |
-|------|-----------------|----------|-----------------|
-| **Synchronous** | API Gateway, SDK call, ALB | Caller waits for response | No automatic retry |
-| **Asynchronous** | S3, SNS, EventBridge | Lambda queues the event | 2 retries automatically |
-| **Event source mapping** | SQS, DynamoDB Streams, Kinesis | Lambda polls the source | Depends on source config |
+A function instance is not created per request. It is created, used for many requests, and eventually
+killed. Where your code sits relative to that boundary decides almost everything about its
+performance.
 
-> ⚠️ Asynchronous invocations retry twice on failure. Use a **dead-letter queue (DLQ)** to capture failed events.
-
-## Common Triggers
-
-| Trigger | Invocation Type | Typical Use Case |
-|---------|----------------|-----------------|
-| **API Gateway** | Synchronous | REST or HTTP API backend |
-| **S3** | Asynchronous | Process uploads (resize image, parse CSV) |
-| **SQS** | Event source mapping | Reliable message processing |
-| **EventBridge** | Asynchronous | Scheduled jobs, cross-service events |
-| **DynamoDB Streams** | Event source mapping | React to table changes |
-| **SNS** | Asynchronous | Fan-out notifications |
-
-## Cold Starts
-
-A **cold start** happens when Lambda must initialize a new container before running your function. This adds latency — usually 100 ms to 1+ second depending on runtime and package size.
-
-**Why cold starts happen:**
-- No warm container available (first invocation or after idle period)
-- Scaling up beyond existing warm containers
-- Deploying a new version
-
-**How to reduce cold starts:**
-
-| Strategy | How | Impact |
-|----------|-----|--------|
-| **Provisioned concurrency** | Pre-warm N containers at all times | Eliminates cold starts, costs more |
-| **Smaller packages** | Tree-shake, remove unused deps | Shorter init time |
-| **arm64 architecture** | Set `Architectures: [arm64]` | ~20% faster init, cheaper |
-| **Avoid VPC if not needed** | VPC adds ENI attachment time | Significant reduction |
-| **Use lighter runtimes** | Node.js/Python over Java/.NET | Faster JVM-less startup |
-
-> ✅ Use **provisioned concurrency** for latency-sensitive APIs. Set it on the function alias, not `$LATEST`.
-
-## Memory and Timeout
-
-Memory setting controls CPU and network bandwidth too. A 1 GB function gets roughly 2x the CPU of a 512 MB function.
-
-**Right-sizing tip:** Use AWS Lambda Power Tuning (open-source Step Functions workflow) to find the sweet spot between cost and speed.
-
-```bash
-# Set memory and timeout when creating
-aws lambda create-function \
-  --function-name image-processor \
-  --runtime nodejs20.x \
-  --memory-size 512 \
-  --timeout 30 \
-  --role arn:aws:iam::123456789012:role/lambda-exec-role \
-  --handler index.handler \
-  --zip-file fileb://function.zip
+```mermaid
+stateDiagram-v2
+  [*] --> Init: no warm instance
+  Init --> Handler: module scope runs ONCE
+  Handler --> Handler: reused for later requests
+  Handler --> Frozen: idle
+  Frozen --> Handler: next request (warm)
+  Frozen --> [*]: reclaimed after idle
 ```
 
-✅ Start at 512 MB. Increase if slow, decrease if CPU-idle.
-❌ Don't default to 128 MB — it's often too slow and barely cheaper.
+**One init, many handler calls — module scope is the only place a warm instance can keep anything.**
 
-## Lambda Layers
+**Put expensive setup in module scope, not in the handler:**
 
-A **layer** is a ZIP archive with shared code or dependencies. Multiple functions can reference the same layer.
+```typescript
+import { S3Client } from "@aws-sdk/client-s3";
 
-```
-my-function (your code)
-    ↓ uses
-Layer: shared-utils   ← common business logic
-Layer: node-modules   ← heavy npm dependencies (e.g. aws-sdk, lodash)
-```
+// Module scope: runs once per instance, during init. Reused by every later request.
+const s3 = new S3Client({ region: process.env.AWS_REGION });
+let cachedApiKey: string | null = null;
 
-**When to use layers:**
-- ✅ Share utility code across 3+ functions
-- ✅ Keep deployment packages small (layer counts toward the 250 MB limit separately)
-- ❌ Don't use layers to hide complexity — prefer small focused functions
-
-```bash
-# Publish a layer
-aws lambda publish-layer-version \
-  --layer-name shared-utils \
-  --zip-file fileb://layer.zip \
-  --compatible-runtimes nodejs20.x
-
-# Attach layer to a function
-aws lambda update-function-configuration \
-  --function-name my-function \
-  --layers arn:aws:lambda:us-east-1:123456789012:layer:shared-utils:3
+export async function handler(event: { key: string }): Promise<Response> {
+  // Handler scope: runs on every request. Keep it to the work only.
+  cachedApiKey ??= await loadSecret("payments/api-key"); // fetched once, not per call
+  const object = await s3.send(getObject(event.key));
+  return Response.json({ ok: true, size: object.ContentLength });
+}
 ```
 
-## Environment Variables and Secrets
+> ⚠️ Module scope is a **cache, not storage**. The instance can be killed at any moment and a second
+> instance never sees the first one's variables. Cache a client or a secret there; never a counter, a
+> session, or anything you would be sad to lose.
 
-Use environment variables for configuration. Never hardcode secrets.
+### The three invocation shapes
 
-```bash
-# Set environment variables
-aws lambda update-function-configuration \
-  --function-name my-function \
-  --environment "Variables={DB_HOST=mydb.cluster.rds.amazonaws.com,ENV=production}"
-```
+The trigger decides who retries, and how many times. Getting this wrong is how events go missing.
 
-**For secrets, use Secrets Manager — not plain env vars:**
+| Shape                | Triggered by                       | Caller waits? | Retries                                | You must handle             |
+| -------------------- | ---------------------------------- | ------------- | -------------------------------------- | --------------------------- |
+| **Synchronous**      | HTTP request, direct SDK call       | Yes           | None — the error goes back to the caller | The error response          |
+| **Asynchronous**     | Object upload, pub/sub, schedule    | No            | Automatic, usually twice, then dropped  | Idempotency and a dead-letter queue |
+| **Queue-polled**     | A queue or change stream            | No            | Until acknowledged or the queue gives up | Partial batch failure       |
 
-```bash
-# In your function, fetch the secret at runtime
-aws secretsmanager get-secret-value \
-  --secret-id prod/db/password \
-  --query SecretString \
-  --output text
-```
+Asynchronous is the shape that surprises people. The platform retries your handler without telling the
+original caller, so a handler that charges a card twice will charge a card twice.
 
-> ⚠️ Plain env vars are visible in the Lambda console. Use SSM Parameter Store (SecureString) or Secrets Manager for passwords and API keys.
+**Report only the failed messages in a batch, not the whole batch:**
 
-## Lambda Execution Role
+```typescript
+interface QueueRecord { messageId: string; body: string }
+interface BatchResponse { batchItemFailures: { itemIdentifier: string }[] }
 
-Every Lambda function needs an **IAM execution role**. This controls what AWS services the function can call.
+export async function handler(event: { Records: QueueRecord[] }): Promise<BatchResponse> {
+  const failures: { itemIdentifier: string }[] = [];
 
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:*:*:*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": ["s3:GetObject"],
-      "Resource": "arn:aws:s3:::my-bucket/*"
+  for (const record of event.Records) {
+    try {
+      await process(JSON.parse(record.body));
+    } catch {
+      // Without this, one bad message re-delivers all ten and the good nine run twice.
+      failures.push({ itemIdentifier: record.messageId });
     }
-  ]
+  }
+  return { batchItemFailures: failures };
 }
 ```
 
-✅ Grant least privilege — only the permissions the function actually needs.
-❌ Never attach `AdministratorAccess` to a Lambda role.
+### Cold starts
 
-## SQS Event Source Mapping
+A cold start is the init step above happening while a user waits. It is not one number — it is a sum,
+and only some of it is yours.
 
-When Lambda reads from SQS, it processes messages in **batches**. Partial failures need special handling.
+| Part of the cold start        | Typical cost      | Can you change it?                              |
+| ----------------------------- | ----------------- | ----------------------------------------------- |
+| Platform provisions a sandbox  | 50–200 ms         | No — pre-warming avoids it, nothing shrinks it   |
+| Runtime boots                  | 5 ms–1 s          | Yes: a lighter runtime, or an isolate-based one  |
+| Your bundle is loaded          | Proportional to size | Yes: bundle, tree-shake, drop the heavy SDK   |
+| Your module scope runs         | Whatever you wrote  | Yes: this is the part people forget            |
+| Private network attachment     | Can dominate      | Yes: do not attach one unless you need it       |
 
-```json
-{
-  "BatchSize": 10,
-  "FunctionResponseTypes": ["ReportBatchItemFailures"],
-  "MaximumBatchingWindowInSeconds": 5
-}
-```
+**What actually helps, roughly in order of effect:**
 
-> ✅ Enable `ReportBatchItemFailures` so Lambda only retries failed messages in a batch — not the whole batch.
+- **Bundle the function.** A 40 MB `node_modules` tree costs more to load than the handler costs to run.
+- **Do less in module scope.** Fetching three secrets serially at init adds that time to every cold start.
+- **Do not put the function on a private network** unless it must reach something inside one.
+- **Pre-warm instances** for a latency-sensitive path. It works, and you pay for idle capacity.
 
-## Best Practices
+> ✅ Measure before you tune. Send the same request several times and compare the first with the rest —
+> the gap is your cold start, and it is often smaller than the database query next to it.
 
-| Practice | Why |
-|----------|-----|
-| Keep functions **stateless** | Containers are recycled — don't rely on in-memory state between calls |
-| Set **tight timeouts** | Fail fast; don't let hanging functions run for 15 minutes |
-| **Log structured JSON** | CloudWatch Logs Insights can query JSON fields |
-| Use **function aliases** | Blue/green deployments and provisioned concurrency targets |
-| Handle **idempotency** | Async invocations can retry — your function must be safe to call twice |
+### Concurrency and the bill
 
-## Common CLI Commands
+The classic model gives **one instance one request at a time**. Ten simultaneous requests means ten
+instances, which means ten cold starts on the first spike and ten database connections.
 
-```bash
-# Create function
-aws lambda create-function \
-  --function-name my-function \
-  --runtime nodejs20.x \
-  --role arn:aws:iam::123456789012:role/lambda-exec-role \
-  --handler index.handler \
-  --zip-file fileb://function.zip
+Newer models change that. Isolate-based runtimes and the "fluid" style of function reuse an instance
+across concurrent requests, so a handler that spends its time waiting on I/O costs far less. The
+consequence is that in-flight work now overlaps, and module-scope state is shared between requests
+that are running at the same time.
 
-# Invoke synchronously (test)
-aws lambda invoke \
-  --function-name my-function \
-  --payload '{"key": "value"}' \
-  output.json
+> ⚠️ **Moving target:** every published limit here moves — durations, memory ceilings, concurrency
+> models and pricing units all changed within the last two years, and vendors disagree on all of them.
+> AWS Lambda caps at 15 minutes and 10 GB; Vercel Functions set duration and memory per route in
+> `vercel.json`; Cloudflare Workers bill CPU time, not wall time, and default to 30 seconds of it. The
+> durable principle: **check the current limit for your platform before designing around one, and never
+> design a request path that needs a number close to the ceiling.**
 
-# Deploy new code
-aws lambda update-function-code \
-  --function-name my-function \
-  --zip-file fileb://function.zip
+## When to Use It
 
-# List functions
-aws lambda list-functions --query 'Functions[*].FunctionName'
-```
+| Workload                                     | Serverless function? | Why                                                     |
+| -------------------------------------------- | -------------------- | ------------------------------------------------------- |
+| Spiky or low-volume HTTP API                  | ✅ Yes                | You pay nothing at idle and never size a fleet           |
+| Reacting to an event — upload, webhook, cron  | ✅ Yes                | The trigger is the whole design                          |
+| Steady, high, predictable traffic             | ⚠️ Compare           | A reserved server is often cheaper past a crossover point |
+| Long jobs — video encoding, large reports     | ❌ No                 | It will hit the duration ceiling; use a job runner        |
+| Persistent connections at scale — WebSockets  | ❌ No                 | The model assumes a request ends                          |
+| Anything needing a warm local cache           | ❌ No                 | Instances die without warning; use a shared cache         |
 
-## Interview Q&A
+## Common Mistakes
 
-**Q: What is the difference between synchronous and asynchronous Lambda invocation?**
+❌ **Opening a database connection inside the handler.** A hundred concurrent instances open a hundred
+connections and exhaust the database's pool. ✅ Create the client in module scope, and put a connection
+pooler between the functions and the database.
 
-Synchronous (RequestResponse): the caller waits for the function to finish and gets the response directly. API Gateway uses this. If the function errors, the caller sees the error. Asynchronous (Event): Lambda queues the event and returns immediately. The caller doesn't wait. Lambda retries twice on failure. S3 and SNS use this. You should attach a DLQ to capture events that fail all retries.
+❌ **Assuming an event arrives once.** Asynchronous and queue triggers retry, so at-least-once is the
+guarantee. ✅ Make handlers idempotent — key the work on an event ID and ignore a repeat.
 
----
+❌ **Leaving the timeout at the maximum.** A hung upstream call then bills for fifteen minutes and holds
+concurrency the whole time. ✅ Set the timeout just above the realistic worst case, and set a shorter
+one on the HTTP client inside it.
 
-**Q: What causes a Lambda cold start and how do you fix it?**
+❌ **Storing secrets in plain environment variables.** They are readable by anyone with console access
+and they end up in logs. ✅ Fetch from a secret store at init and cache in module scope.
 
-A cold start happens when Lambda has no warm container ready. It must create a new container, load the runtime, and run your init code before handling the request. This adds latency. Fixes: use provisioned concurrency (pre-warms containers), reduce package size, avoid VPC if not needed, use arm64 architecture, and use lighter runtimes like Node.js over Java.
+❌ **Attaching the widest available role because the narrow one failed once.** ✅ Grant the specific
+actions on the specific resources; a function that reads one bucket prefix should say so.
 
----
+❌ **Logging plain strings.** Nothing can query them later. ✅ Log structured JSON with a request ID, so
+one slow request can be traced across every function it touched.
 
-**Q: When would you use Lambda instead of EC2 or ECS?**
+## 🔑 Key Takeaways
 
-Use Lambda for event-driven, short-lived tasks: image processing on S3 upload, API backends with unpredictable traffic, cron jobs, and fan-out pipelines. Use EC2 or ECS for long-running processes, workloads that need more than 15 minutes, or services that need persistent connections (like WebSockets at scale). Lambda shines when you have spiky or low-volume traffic — you pay nothing when idle.
+- An instance runs its module scope once and its handler many times; that boundary is the whole performance model.
+- The trigger decides the retry semantics, so it decides whether your handler must be idempotent.
+- A cold start is a sum of platform time and your bundle — only the second half is yours to fix.
+- One instance per concurrent request is what exhausts database connections; pool outside the function.
+- Serverless removes server management, not operational thinking — timeouts, concurrency and retries are still yours.
 
----
+## Interview Questions
 
-**Q: How do you pass secrets to a Lambda function securely?**
+**Q: What actually happens on a cold start, and which parts can you influence?**
 
-Don't store secrets in plain environment variables — they show in the console. Instead, store secrets in AWS Secrets Manager or SSM Parameter Store (SecureString). Grant the Lambda execution role `secretsmanager:GetSecretValue` permission. Fetch the secret inside the function at startup, and cache it in memory to avoid calling Secrets Manager on every invocation.
+The platform provisions a sandbox, starts the runtime, loads your bundle, and runs your module-scope
+code before the handler is called. The first two are the platform's and only pre-warming avoids them.
+The last two are yours: bundle size drives load time, and anything you do at module scope — fetching
+secrets, building clients, reading config — is added to every cold start. Attaching a private network
+often costs more than all of it together.
 
----
+**Q: Why do serverless functions break databases, and what do you do about it?**
 
-**Q: How does Lambda handle partial failures when reading from SQS?**
+The classic model runs one request per instance, so concurrency and connection count rise together. A
+spike to a few hundred instances opens a few hundred connections and the database refuses new ones.
+The fixes stack: create the client in module scope so it is reused across requests, put a connection
+pooler in front of the database, cap the function's concurrency, and prefer an HTTP-based data API
+where the workload is bursty.
 
-By default, if any message in a batch fails, the entire batch is retried. Enable `ReportBatchItemFailures` in the event source mapping. Your function then returns a list of failed message IDs. Lambda only retries those specific messages — not the successful ones. This prevents duplicate processing of messages that already succeeded.
+**Q: A function fires on file upload and sometimes processes the same file twice. Why?**
 
----
+Asynchronous triggers retry on failure, and the delivery guarantee is at-least-once — a handler that
+succeeded but timed out on the response still gets re-invoked. The fix is idempotency, not more
+retries: derive a key from the event, record it before doing the work, and make a repeat a no-op.
+Add a dead-letter queue so events that fail every retry are visible rather than silently dropped.
 
-[← Cloud Fundamentals](./01-fundamentals.md) | [Cloud Index](./README.md) | [Object Storage →](./03-object-storage.md)
+**Q: When would you choose a long-running server over functions?**
+
+When the request does not end — WebSockets, server-sent events, a streaming session — or when the work
+outlives a request, like video encoding or a large export. Also when traffic is steady and high enough
+that reserved capacity beats per-invocation pricing, or when the process genuinely benefits from a warm
+in-memory cache that survives between requests.
+
+**Q: How do you keep secrets out of a function's environment variables?**
+
+Store them in a managed secret store and grant the function's role permission to read only the specific
+secret it needs. Fetch it once during init and hold it in module scope so it is not re-fetched per
+request. Rotation then happens in the store rather than in a redeploy, and the value never appears in
+the deployment configuration, the console, or a log line.
+
+## What to Read Next
+
+- [Chapter ?? — Cloud Fundamentals](#ch-cloud-fundamentals) — where functions sit on the managed-service ladder
+- [Chapter ?? — Platform and Edge Deployments](#ch-platform-deploys) — choosing between edge and regional execution
+- [Chapter ?? — Observability Fundamentals](#ch-monitoring-fundamentals) — what to log and measure when there is no server to inspect
