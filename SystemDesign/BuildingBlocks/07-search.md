@@ -1,3 +1,15 @@
+---
+title: Search
+part: 6
+chapter: 0
+slug: search
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, building, blocks, search]
+in_book: true
+---
+
 # Search {#ch-search}
 
 > Explain what an inverted index does, and when a `LIKE` query stops being enough.

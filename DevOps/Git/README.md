@@ -1,3 +1,15 @@
+---
+title: Version Control & Git - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-git-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-04
+tags: [devops, git]
+in_book: true
+---
+
 # Version Control & Git - Interview Preparation
 
 Git questions are usually a filter rather than a differentiator — but the recovery questions ("I force-pushed over main") and the branching strategy questions genuinely separate candidates.

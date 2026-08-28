@@ -1,3 +1,15 @@
+---
+title: Docker Compose
+part: 8
+chapter: 0
+slug: docker-compose-advanced
+level: advanced # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-06-08
+tags: [devops, docker, compose, advanced]
+in_book: true
+---
+
 # Docker Compose
 
 ## Core Structure

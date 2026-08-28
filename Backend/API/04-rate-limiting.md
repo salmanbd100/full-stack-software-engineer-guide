@@ -1,3 +1,15 @@
+---
+title: Rate Limiting
+part: 5
+chapter: 0
+slug: rate-limiting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-28
+tags: [backend, api, rate, limiting]
+in_book: true
+---
+
 # Rate Limiting {#ch-rate-limiting}
 
 > Pick an algorithm that matches your traffic shape, and make it work across every instance.

@@ -1,3 +1,15 @@
+---
+title: Consistency Patterns
+part: 6
+chapter: 0
+slug: database-consistency
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, database, consistency]
+in_book: true
+---
+
 # Consistency Patterns {#ch-consistency-patterns}
 
 > Pick the weakest guarantee the feature can live with, and name it precisely.

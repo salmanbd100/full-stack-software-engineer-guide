@@ -1,3 +1,15 @@
+---
+title: Terraform State Management
+part: 8
+chapter: 0
+slug: terraform-state-management
+level: intermediate # beginner | intermediate | advanced
+reading_time: 15
+updated: 2026-08-03
+tags: [devops, terraform, state, management]
+in_book: false
+---
+
 # Terraform State Management
 
 State is the most operationally dangerous part of Terraform. It is also the topic interviewers use to find out whether you have really run Terraform in production.

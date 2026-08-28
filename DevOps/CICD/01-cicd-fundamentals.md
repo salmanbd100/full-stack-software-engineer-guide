@@ -1,3 +1,15 @@
+---
+title: CI/CD Fundamentals
+part: 8
+chapter: 0
+slug: cicd-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-03
+tags: [devops, cicd, fundamentals]
+in_book: true
+---
+
 # CI/CD Fundamentals
 
 CI/CD is the practice of automating everything between "code is written" and "code is running in production".

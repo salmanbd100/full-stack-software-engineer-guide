@@ -1,3 +1,15 @@
+---
+title: Service Communication
+part: 6
+chapter: 0
+slug: microservices-communication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, microservices, communication]
+in_book: true
+---
+
 # Service Communication {#ch-service-communication}
 
 > Choose synchronous or event-driven per call, on what the caller actually needs back.

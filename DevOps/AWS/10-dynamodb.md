@@ -1,3 +1,15 @@
+---
+title: DynamoDB
+part: 8
+chapter: 0
+slug: dynamodb
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-06-08
+tags: [devops, aws, dynamodb]
+in_book: false
+---
+
 # DynamoDB
 
 AWS fully managed NoSQL database — single-digit millisecond latency at any scale, zero infrastructure to manage.

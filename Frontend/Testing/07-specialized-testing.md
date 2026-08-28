@@ -1,3 +1,15 @@
+---
+title: Specialised Testing
+part: 4
+chapter: 0
+slug: specialized-testing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, testing, specialized]
+in_book: true
+---
+
 # Specialised Testing {#ch-specialised-testing}
 
 > Reach past unit tests for the failures they cannot see — visual, accessibility and contract.

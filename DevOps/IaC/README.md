@@ -1,3 +1,15 @@
+---
+title: Alternative IaC & GitOps - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-iac-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-04
+tags: [devops, iac]
+in_book: false
+---
+
 # Alternative IaC & GitOps - Interview Preparation
 
 Terraform is the primary IaC tool in this guide. This section covers the two things you still get asked about: **CloudFormation/CDK**, because AWS-native shops use them, and **GitOps**, because it is how Kubernetes deployment now works.

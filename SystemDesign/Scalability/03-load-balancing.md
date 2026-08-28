@@ -1,3 +1,15 @@
+---
+title: Load Balancing as a Scaling Lever
+part: 6
+chapter: 0
+slug: scalability-load-balancing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-28
+tags: [system, design, scalability, load, balancing]
+in_book: false
+---
+
 # Load Balancing as a Scaling Lever {#ch-load-balancing-as-a-scaling-lever}
 
 > Use the balancer as part of the scaling story, not just as a traffic splitter.

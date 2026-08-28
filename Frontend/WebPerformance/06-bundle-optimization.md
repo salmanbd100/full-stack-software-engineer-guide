@@ -1,3 +1,15 @@
+---
+title: Bundle Optimisation
+part: 4
+chapter: 0
+slug: bundle-optimization
+level: advanced # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [frontend, web, performance, bundle, optimization]
+in_book: true
+---
+
 # Bundle Optimisation {#ch-bundle-optimisation}
 
 > Find out what is actually in your bundle, then remove it.

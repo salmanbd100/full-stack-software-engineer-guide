@@ -1,3 +1,15 @@
+---
+title: Lazy Loading
+part: 4
+chapter: 0
+slug: lazy-loading
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [frontend, web, performance, lazy, loading]
+in_book: true
+---
+
 # Lazy Loading {#ch-lazy-loading}
 
 > Defer what is off screen without pushing your largest paint further out.

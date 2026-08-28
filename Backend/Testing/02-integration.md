@@ -1,3 +1,15 @@
+---
+title: Integration Testing
+part: 5
+chapter: 0
+slug: integration
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [backend, testing, integration]
+in_book: true
+---
+
 # Integration Testing {#ch-integration-testing}
 
 > Test against a real database and a real router, where most service bugs actually live.

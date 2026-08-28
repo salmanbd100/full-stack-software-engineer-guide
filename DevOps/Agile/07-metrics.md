@@ -1,3 +1,15 @@
+---
+title: Metrics & KPIs
+part: 9
+chapter: 0
+slug: metrics
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, agile, metrics]
+in_book: true
+---
+
 # Metrics & KPIs
 
 DORA metrics are the industry standard for measuring delivery performance, and they appear in almost every senior DevOps interview. The important part is knowing what they measure, what they miss, and how they get abused.

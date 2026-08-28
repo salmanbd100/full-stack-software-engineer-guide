@@ -1,3 +1,15 @@
+---
+title: Communication Skills
+part: 9
+chapter: 0
+slug: communication-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
+updated: 2026-08-28
+tags: [communication]
+in_book: true
+---
+
 # Communication Skills
 
 Interview communication guide for senior engineers targeting FAANG and MNC roles.

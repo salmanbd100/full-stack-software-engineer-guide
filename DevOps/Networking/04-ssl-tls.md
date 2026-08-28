@@ -1,3 +1,15 @@
+---
+title: SSL/TLS & Certificate Management
+part: 8
+chapter: 0
+slug: ssl-tls
+level: intermediate # beginner | intermediate | advanced
+reading_time: 15
+updated: 2026-08-03
+tags: [devops, networking, ssl, tls]
+in_book: false
+---
+
 # SSL/TLS & Certificate Management
 
 Expired certificates cause outages with dull regularity. This file covers how TLS works, how ACM removes most of the risk, and what to do when ACM cannot help.

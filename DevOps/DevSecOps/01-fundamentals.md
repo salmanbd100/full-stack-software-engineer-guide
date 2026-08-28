@@ -1,3 +1,15 @@
+---
+title: DevSecOps Fundamentals
+part: 8
+chapter: 0
+slug: devsecops-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-04
+tags: [devops, devsecops, fundamentals]
+in_book: false
+---
+
 # DevSecOps Fundamentals
 
 DevSecOps means security is a **property of the pipeline**, not a review meeting before release. The goal is to make the secure path the easy path.

@@ -1,3 +1,15 @@
+---
+title: CSS Grid
+part: 2
+chapter: 0
+slug: grid
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, html, css, grid]
+in_book: true
+---
+
 # CSS Grid {#ch-css-grid}
 
 > Place items at exact intersections of rows and columns, and build page structure that survives content you did not plan for.

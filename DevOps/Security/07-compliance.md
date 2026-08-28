@@ -1,3 +1,15 @@
+---
+title: Compliance & Auditing
+part: 8
+chapter: 0
+slug: devops-security-compliance
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, security, compliance]
+in_book: false
+---
+
 # Compliance & Auditing
 
 Compliance interviews are not about memorising control numbers. They are about whether you can produce **continuous, automated evidence** instead of screenshots.

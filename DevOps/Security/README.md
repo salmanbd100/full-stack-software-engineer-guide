@@ -1,3 +1,15 @@
+---
+title: Security & Compliance - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-security-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-03
+tags: [devops, security]
+in_book: false
+---
+
 # Security & Compliance - Interview Preparation
 
 Security questions test whether you think in terms of **blast radius** rather than checklists. This guide covers securing AWS infrastructure — identity, encryption, workloads, and the account itself.

@@ -1,3 +1,15 @@
+---
+title: SQL Fundamentals
+part: 5
+chapter: 0
+slug: sql-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [backend, sql, fundamentals]
+in_book: true
+---
+
 # SQL Fundamentals {#ch-sql-fundamentals}
 
 > Pick the right join and know what the engine does with a `GROUP BY` before you write it.

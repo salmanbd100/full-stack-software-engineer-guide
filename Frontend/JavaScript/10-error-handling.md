@@ -1,3 +1,15 @@
+---
+title: Error Handling
+part: 1
+chapter: 0
+slug: javascript-error-handling
+level: intermediate # beginner | intermediate | advanced
+reading_time: 40
+updated: 2026-08-28
+tags: [frontend, javascript, error, handling]
+in_book: true
+---
+
 # Error Handling {#ch-error-handling}
 
 > Fail in a way that is recoverable, loggable and honest — instead of swallowing the problem.

@@ -1,3 +1,15 @@
+---
+title: AWS Well-Architected Framework
+part: 8
+chapter: 0
+slug: well-architected
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-04
+tags: [devops, cost, optimization, well, architected]
+in_book: false
+---
+
 # AWS Well-Architected Framework
 
 The Well-Architected Framework is AWS's checklist for reviewing a system across six areas. In interviews it is useful as a **structure for answering design questions** — not as trivia.

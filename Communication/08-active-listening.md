@@ -1,3 +1,15 @@
+---
+title: Active Listening
+part: 9
+chapter: 0
+slug: active-listening
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [communication, active, listening]
+in_book: true
+---
+
 # Active Listening {#ch-active-listening}
 
 > Understand what is actually being asked before you start answering it.

@@ -1,3 +1,15 @@
+---
+title: Docker - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-docker-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 1
+updated: 2026-06-08
+tags: [devops, docker]
+in_book: true
+---
+
 # Docker - Interview Preparation
 
 Docker is the industry standard for containerization. This guide covers fundamentals through production deployment, focused on senior DevOps interview preparation.

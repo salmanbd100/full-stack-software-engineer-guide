@@ -1,3 +1,15 @@
+---
+title: Shell Scripting for DevOps
+part: 8
+chapter: 0
+slug: shell-scripting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-07-05
+tags: [devops, linux, shell, scripting]
+in_book: false
+---
+
 # Shell Scripting for DevOps
 
 ## Overview

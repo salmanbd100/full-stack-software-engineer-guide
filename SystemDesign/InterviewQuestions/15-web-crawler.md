@@ -1,3 +1,15 @@
+---
+title: Design a Web Crawler
+part: 6
+chapter: 0
+slug: web-crawler
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, web]
+in_book: false
+---
+
 # Design a Web Crawler {#ch-design-web-crawler}
 
 > Crawl politely and without loops, which is harder than crawling quickly.

@@ -1,3 +1,15 @@
+---
+title: RBAC & Security
+part: 8
+chapter: 0
+slug: rbac-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-03
+tags: [devops, kubernetes, rbac, security]
+in_book: false
+---
+
 # RBAC & Security
 
 Kubernetes security has two halves: controlling **who can call the API** (RBAC) and controlling **what a running pod can do** (workload security).

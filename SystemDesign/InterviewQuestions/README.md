@@ -3,8 +3,8 @@ title: Part VI — Case Studies
 part: 6
 chapter: 0
 slug: part-case-studies
-level: advanced
-reading_time: 4
+level: advanced # beginner | intermediate | advanced
+reading_time: 3
 updated: 2026-08-28
 tags: [system-design, case-studies, interviews]
 in_book: true

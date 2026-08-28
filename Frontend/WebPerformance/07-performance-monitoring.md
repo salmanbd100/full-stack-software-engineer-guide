@@ -1,3 +1,15 @@
+---
+title: Performance Monitoring
+part: 4
+chapter: 0
+slug: performance-monitoring
+level: advanced # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, web, performance, monitoring]
+in_book: true
+---
+
 # Performance Monitoring {#ch-performance-monitoring}
 
 > Measure what real users experience, not what your laptop does on a fast connection.

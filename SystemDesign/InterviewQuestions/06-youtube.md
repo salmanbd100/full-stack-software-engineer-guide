@@ -1,3 +1,15 @@
+---
+title: Design YouTube
+part: 6
+chapter: 0
+slug: youtube
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, youtube]
+in_book: false
+---
+
 # Design YouTube {#ch-design-youtube}
 
 > Move the hard work to upload time — transcoding — so playback is only ever a CDN read.

@@ -1,3 +1,15 @@
+---
+title: Back-of-Envelope Calculations
+part: 6
+chapter: 0
+slug: calculations
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [system, design, fundamentals, calculations]
+in_book: true
+---
+
 # Back-of-Envelope Calculations {#ch-back-of-envelope-calculations}
 
 > Size a system out loud in two minutes, showing the arithmetic rather than a number.

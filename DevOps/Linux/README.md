@@ -1,3 +1,15 @@
+---
+title: Linux - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-linux-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 1
+updated: 2026-07-05
+tags: [devops, linux]
+in_book: false
+---
+
 # Linux - Interview Preparation
 
 Linux runs almost every production server, container, and cloud workload. This guide covers the fundamentals through real troubleshooting, focused on senior DevOps interview preparation.

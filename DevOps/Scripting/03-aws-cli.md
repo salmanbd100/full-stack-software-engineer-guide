@@ -1,3 +1,15 @@
+---
+title: AWS CLI Mastery
+part: 8
+chapter: 0
+slug: aws-cli
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-03
+tags: [devops, scripting, aws, cli]
+in_book: false
+---
+
 # AWS CLI Mastery
 
 The CLI is the fastest way to inspect and change AWS. Two features separate fluent users from everyone else: `--query` and profiles.

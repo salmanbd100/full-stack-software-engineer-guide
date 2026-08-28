@@ -1,3 +1,15 @@
+---
+title: Collaboration & Knowledge Sharing
+part: 8
+chapter: 0
+slug: collaboration
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, agile, collaboration]
+in_book: false
+---
+
 # Collaboration & Knowledge Sharing
 
 Collaboration tooling is not the interesting part. The interesting part is **where knowledge lives and whether it survives people leaving**.

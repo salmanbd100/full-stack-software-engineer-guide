@@ -1,3 +1,15 @@
+---
+title: Python for AWS (Boto3)
+part: 8
+chapter: 0
+slug: python-aws
+level: intermediate # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-03
+tags: [devops, scripting, python, aws]
+in_book: false
+---
+
 # Python for AWS (Boto3)
 
 Boto3 is the AWS SDK for Python and the default choice for automation that is too complex for bash — anything with real data structures, error handling, or retry logic.

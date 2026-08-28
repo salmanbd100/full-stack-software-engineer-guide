@@ -3,7 +3,7 @@ title: About the Author
 part: 9
 chapter: 99
 slug: about-the-author
-level: beginner
+level: beginner # beginner | intermediate | advanced
 reading_time: 2
 updated: 2026-08-28
 tags: [back-matter]

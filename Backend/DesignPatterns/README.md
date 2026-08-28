@@ -1,3 +1,15 @@
+---
+title: Design Patterns
+part: 1
+chapter: 0
+slug: backend-design-patterns-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-03
+tags: [backend, design, patterns]
+in_book: true
+---
+
 # Design Patterns
 
 ## Overview

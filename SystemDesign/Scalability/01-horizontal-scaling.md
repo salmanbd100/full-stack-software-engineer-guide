@@ -1,3 +1,15 @@
+---
+title: Horizontal Scaling
+part: 6
+chapter: 0
+slug: horizontal-scaling
+level: advanced # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, scalability, horizontal, scaling]
+in_book: false
+---
+
 # Horizontal Scaling {#ch-horizontal-scaling}
 
 > Add machines instead of a bigger one, and make the service stateless enough to allow it.

@@ -1,3 +1,15 @@
+---
+title: Terraform & Infrastructure as Code - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-terraform-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-03
+tags: [devops, terraform]
+in_book: false
+---
+
 # Terraform & Infrastructure as Code - Interview Preparation
 
 Terraform is the highest-weight infrastructure topic in AWS DevOps interviews after Kubernetes. This guide covers the language, the operational risks around state, and the production patterns interviewers use to tell whether you have really run it.

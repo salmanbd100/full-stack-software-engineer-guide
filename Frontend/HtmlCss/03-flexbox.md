@@ -1,3 +1,15 @@
+---
+title: Flexbox
+part: 2
+chapter: 0
+slug: flexbox
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, html, css, flexbox]
+in_book: true
+---
+
 # Flexbox {#ch-flexbox}
 
 > Lay out a row or a column and know exactly which axis every property is talking about.

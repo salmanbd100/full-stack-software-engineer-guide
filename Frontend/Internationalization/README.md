@@ -1,3 +1,15 @@
+---
+title: Frontend Internationalization (i18n)
+part: 2
+chapter: 0
+slug: frontend-internationalization-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-28
+tags: [frontend, internationalization]
+in_book: true
+---
+
 # Frontend Internationalization (i18n)
 
 Internationalization (i18n) is the process of designing software to work across different languages, regions, and cultures.

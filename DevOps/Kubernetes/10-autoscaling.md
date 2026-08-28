@@ -1,3 +1,15 @@
+---
+title: Auto-scaling
+part: 8
+chapter: 0
+slug: autoscaling
+level: advanced # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, kubernetes, autoscaling]
+in_book: false
+---
+
 # Auto-scaling
 
 Kubernetes scales on two axes: **pods** (more replicas or bigger replicas) and **nodes** (more capacity to put them on). Both must work together or neither works.

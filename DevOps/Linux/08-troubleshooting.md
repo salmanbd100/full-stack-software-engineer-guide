@@ -1,3 +1,15 @@
+---
+title: Linux Troubleshooting for DevOps
+part: 8
+chapter: 0
+slug: linux-troubleshooting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-07-05
+tags: [devops, linux, troubleshooting]
+in_book: false
+---
+
 # Linux Troubleshooting for DevOps
 
 ## Overview

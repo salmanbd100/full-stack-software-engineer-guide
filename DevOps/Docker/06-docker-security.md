@@ -1,3 +1,15 @@
+---
+title: Docker Security
+part: 8
+chapter: 0
+slug: docker-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-05-05
+tags: [devops, docker, security]
+in_book: true
+---
+
 # Docker Security
 
 ## Top 5 Security Rules

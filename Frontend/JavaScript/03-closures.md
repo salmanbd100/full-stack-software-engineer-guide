@@ -1,3 +1,15 @@
+---
+title: Closures
+part: 1
+chapter: 0
+slug: closures
+level: intermediate # beginner | intermediate | advanced
+reading_time: 24
+updated: 2026-08-28
+tags: [frontend, javascript, closures]
+in_book: true
+---
+
 # Closures {#ch-closures}
 
 > Use a function's captured scope on purpose — for privacy, for factories, and without leaking memory.

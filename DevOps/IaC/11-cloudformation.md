@@ -1,3 +1,15 @@
+---
+title: AWS CloudFormation
+part: 8
+chapter: 0
+slug: cloudformation
+level: intermediate # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-03
+tags: [devops, iac, cloudformation]
+in_book: false
+---
+
 # AWS CloudFormation
 
 CloudFormation is AWS's own IaC service. You will meet it in interviews mainly as the comparison against Terraform — and because it is what CDK, SAM, and Serverless Framework compile down to.

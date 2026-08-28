@@ -1,3 +1,15 @@
+---
+title: EBS & EFS (Block and File Storage)
+part: 8
+chapter: 0
+slug: aws-storage
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-06-08
+tags: [devops, aws, storage]
+in_book: false
+---
+
 # EBS & EFS (Block and File Storage)
 
 EBS is a hard disk for your EC2 instance. EFS is a shared network drive that many instances can use at once.

@@ -1,3 +1,15 @@
+---
+title: API Documentation
+part: 5
+chapter: 0
+slug: api-documentation
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-28
+tags: [backend, api, documentation]
+in_book: true
+---
+
 # API Documentation {#ch-api-documentation}
 
 > Keep the docs true by generating them from the thing that is already the contract.

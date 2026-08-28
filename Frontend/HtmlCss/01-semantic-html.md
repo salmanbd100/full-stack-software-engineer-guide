@@ -1,3 +1,15 @@
+---
+title: Semantic HTML
+part: 2
+chapter: 0
+slug: semantic-html
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, html, css, semantic]
+in_book: true
+---
+
 # Semantic HTML {#ch-semantic-html}
 
 > Choose the element that describes what a thing *is*, and get accessibility, SEO and keyboard behaviour without writing any of them.

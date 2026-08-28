@@ -1,3 +1,15 @@
+---
+title: SQL Database Design
+part: 6
+chapter: 0
+slug: sql-design
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, database, sql]
+in_book: true
+---
+
 # SQL Database Design {#ch-sql-database-design}
 
 > Model entities and relationships so the queries you need stay cheap.

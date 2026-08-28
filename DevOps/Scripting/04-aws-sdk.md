@@ -1,3 +1,15 @@
+---
+title: AWS SDK for TypeScript (v3)
+part: 8
+chapter: 0
+slug: aws-sdk
+level: intermediate # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-03
+tags: [devops, scripting, aws, sdk]
+in_book: false
+---
+
 # AWS SDK for TypeScript (v3)
 
 The SDK is what you use when automation becomes an application: Lambda functions, internal tooling, and anything needing tests.

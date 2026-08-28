@@ -1,3 +1,15 @@
+---
+title: Design a Distributed Cache
+part: 6
+chapter: 0
+slug: distributed-cache
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [system, design, interview, questions, distributed]
+in_book: true
+---
+
 # Design a Distributed Cache {#ch-design-distributed-cache}
 
 > Route a key to a node with consistent hashing, and detect a dead node fast enough to matter.

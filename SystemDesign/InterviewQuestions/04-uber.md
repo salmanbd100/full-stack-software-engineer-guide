@@ -1,3 +1,15 @@
+---
+title: Design Uber
+part: 6
+chapter: 0
+slug: uber
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, uber]
+in_book: false
+---
+
 # Design Uber {#ch-design-uber}
 
 > Index drivers geospatially and match a rider in under a second at city scale.

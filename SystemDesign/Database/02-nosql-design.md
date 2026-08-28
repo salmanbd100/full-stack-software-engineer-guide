@@ -1,3 +1,15 @@
+---
+title: NoSQL Database Design
+part: 6
+chapter: 0
+slug: nosql-design
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, database, nosql]
+in_book: true
+---
+
 # NoSQL Database Design {#ch-nosql-database-design}
 
 > Match the NoSQL family to the access pattern, instead of treating them as one thing.

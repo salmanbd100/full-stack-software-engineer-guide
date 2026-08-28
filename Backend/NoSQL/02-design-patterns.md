@@ -1,3 +1,15 @@
+---
+title: Document Design Patterns
+part: 5
+chapter: 0
+slug: design-patterns
+level: advanced # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [backend, nosql, design, patterns]
+in_book: true
+---
+
 # Document Design Patterns {#ch-document-design-patterns}
 
 > Decide what to embed and what to reference, because that choice is your schema.

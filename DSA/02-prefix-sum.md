@@ -1,3 +1,15 @@
+---
+title: Prefix Sum
+part: 10
+chapter: 0
+slug: prefix-sum
+level: intermediate # beginner | intermediate | advanced
+reading_time: 28
+updated: 2026-08-28
+tags: [dsa, prefix, sum]
+in_book: true
+---
+
 # Prefix Sum {#ch-prefix-sum}
 
 > Answer any range-sum query in constant time after one pass over the array.

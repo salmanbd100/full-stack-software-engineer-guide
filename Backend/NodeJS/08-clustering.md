@@ -1,3 +1,15 @@
+---
+title: Clustering and Scaling
+part: 5
+chapter: 0
+slug: clustering
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [backend, nodejs, clustering]
+in_book: true
+---
+
 # Clustering and Scaling {#ch-clustering-and-scaling}
 
 > Use every core on the box, and know what breaks the moment there is more than one process.

@@ -1,3 +1,15 @@
+---
+title: Database — System Design
+part: 6
+chapter: 0
+slug: system-design-database-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
+updated: 2026-05-16
+tags: [system, design, database]
+in_book: true
+---
+
 # Database — System Design
 
 Core database topics for senior engineering interviews. Focus on tradeoffs, scaling decisions, and the ability to justify your choices.

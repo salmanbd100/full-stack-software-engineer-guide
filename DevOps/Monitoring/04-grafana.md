@@ -1,3 +1,15 @@
+---
+title: Grafana
+part: 8
+chapter: 0
+slug: grafana
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-03
+tags: [devops, monitoring, grafana]
+in_book: true
+---
+
 # Grafana
 
 Grafana is the visualisation layer. It stores no metrics of its own — it queries other systems and draws the result.

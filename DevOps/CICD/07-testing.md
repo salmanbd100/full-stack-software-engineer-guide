@@ -1,3 +1,15 @@
+---
+title: Testing in CI/CD
+part: 8
+chapter: 0
+slug: cicd-testing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-03
+tags: [devops, cicd, testing]
+in_book: true
+---
+
 # Testing in CI/CD
 
 The pipeline's job is to answer one question fast: **is this commit safe to deploy?** Test strategy is what makes that answer both trustworthy and quick.

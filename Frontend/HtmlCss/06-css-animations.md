@@ -1,3 +1,15 @@
+---
+title: CSS Animations
+part: 2
+chapter: 0
+slug: css-animations
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, html, css, animations]
+in_book: true
+---
+
 # CSS Animations {#ch-css-animations}
 
 > Animate on the compositor, respect `prefers-reduced-motion`, and know why `transition: all` costs you frames.

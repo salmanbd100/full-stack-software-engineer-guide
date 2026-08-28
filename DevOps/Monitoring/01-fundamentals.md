@@ -1,3 +1,15 @@
+---
+title: Monitoring & Observability Fundamentals
+part: 8
+chapter: 0
+slug: monitoring-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, monitoring, fundamentals]
+in_book: true
+---
+
 # Monitoring & Observability Fundamentals
 
 Monitoring tells you **that** something is wrong. Observability lets you work out **why**, for a failure you did not predict.

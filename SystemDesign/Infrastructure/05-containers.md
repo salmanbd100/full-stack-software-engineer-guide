@@ -1,3 +1,15 @@
+---
+title: Containers and Orchestration
+part: 6
+chapter: 0
+slug: containers
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, infrastructure, containers]
+in_book: false
+---
+
 # Containers and Orchestration {#ch-containers-and-orchestration}
 
 > Containerise a service, then say what an orchestrator adds and what it costs.

@@ -1,3 +1,15 @@
+---
+title: Utility-First vs Component-First CSS
+part: 2
+chapter: 0
+slug: utility-vs-component
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [frontend, cssarchitecture, utility, component]
+in_book: true
+---
+
 # Utility-First vs Component-First CSS {#ch-utility-first-vs-component-first-css}
 
 > Argue both sides of the Tailwind question with the actual tradeoff, not a preference.

@@ -1,3 +1,15 @@
+---
+title: Vitest Basics
+part: 4
+chapter: 0
+slug: vitest-basics
+level: beginner # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [frontend, testing, vitest, basics]
+in_book: true
+---
+
 # Vitest Basics {#ch-vitest-basics}
 
 > Write, run and debug a test suite, and mock a module without leaking state into the next test.

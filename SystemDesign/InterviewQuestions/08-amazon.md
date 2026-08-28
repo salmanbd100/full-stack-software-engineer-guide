@@ -1,3 +1,15 @@
+---
+title: Design an E-Commerce Platform
+part: 6
+chapter: 0
+slug: amazon
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, amazon]
+in_book: false
+---
+
 # Design an E-Commerce Platform {#ch-design-amazon}
 
 > Keep inventory correct under contention, which is the only genuinely hard part.

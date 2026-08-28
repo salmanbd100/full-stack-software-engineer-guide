@@ -1,3 +1,15 @@
+---
+title: Networking - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-networking-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-03
+tags: [devops, networking]
+in_book: false
+---
+
 # Networking - Interview Preparation
 
 Networking is where most DevOps debugging ends up, and where scenario questions concentrate. This guide covers the fundamentals, AWS connectivity options, and a repeatable troubleshooting method.

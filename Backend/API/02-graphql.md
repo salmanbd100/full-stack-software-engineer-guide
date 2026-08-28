@@ -1,3 +1,15 @@
+---
+title: GraphQL
+part: 5
+chapter: 0
+slug: graphql
+level: intermediate # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-28
+tags: [backend, api, graphql]
+in_book: true
+---
+
 # GraphQL {#ch-graphql}
 
 > Design a schema the frontend can query well, and stop the resolver chain melting your database.

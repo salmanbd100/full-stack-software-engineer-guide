@@ -1,3 +1,15 @@
+---
+title: Kubernetes & AWS EKS - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-kubernetes-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-03
+tags: [devops, kubernetes]
+in_book: true
+---
+
 # Kubernetes & AWS EKS - Interview Preparation
 
 Kubernetes is the highest-weight topic in most DevOps interviews. This guide covers the architecture, the AWS-managed specifics of EKS, and the production concerns interviewers use to separate mid from senior candidates.

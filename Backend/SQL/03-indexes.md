@@ -1,3 +1,15 @@
+---
+title: SQL Indexes
+part: 5
+chapter: 0
+slug: indexes
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [backend, sql, indexes]
+in_book: true
+---
+
 # SQL Indexes {#ch-sql-indexes}
 
 > Build the index a query will use, and account for what every index costs on write.

@@ -1,3 +1,15 @@
+---
+title: TypeScript Basic Types
+part: 1
+chapter: 0
+slug: basic-types
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, typescript, basic, types]
+in_book: true
+---
+
 # TypeScript Basic Types {#ch-typescript-basic-types}
 
 > Annotate only where inference cannot reach, and know what `any`, `unknown` and `never` each cost you.

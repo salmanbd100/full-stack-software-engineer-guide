@@ -1,3 +1,15 @@
+---
+title: Services & Networking
+part: 8
+chapter: 0
+slug: services-networking
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, kubernetes, services, networking]
+in_book: false
+---
+
 # Services & Networking
 
 Pod IPs change constantly. A Service is a stable address in front of a changing set of pods.

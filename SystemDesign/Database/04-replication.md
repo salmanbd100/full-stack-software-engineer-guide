@@ -1,3 +1,15 @@
+---
+title: Replication
+part: 6
+chapter: 0
+slug: replication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, database, replication]
+in_book: true
+---
+
 # Replication {#ch-replication}
 
 > Trade durability against latency deliberately, and know what replication lag does to your reads.

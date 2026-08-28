@@ -1,3 +1,15 @@
+---
+title: Monitoring & Logging
+part: 8
+chapter: 0
+slug: kubernetes-monitoring
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, kubernetes, monitoring]
+in_book: false
+---
+
 # Monitoring & Logging
 
 You cannot debug what you cannot see. In Kubernetes, pods are ephemeral — so observability must live outside them.

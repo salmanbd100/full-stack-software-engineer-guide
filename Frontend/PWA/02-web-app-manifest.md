@@ -1,3 +1,15 @@
+---
+title: Web App Manifest
+part: 2
+chapter: 0
+slug: web-app-manifest
+level: intermediate # beginner | intermediate | advanced
+reading_time: 20
+updated: 2026-08-28
+tags: [frontend, pwa, web, app, manifest]
+in_book: true
+---
+
 # Web App Manifest {#ch-web-app-manifest}
 
 > Make an app installable, and control what the user sees before your JavaScript runs.

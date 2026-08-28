@@ -1,3 +1,15 @@
+---
+title: Microservice Data Management
+part: 6
+chapter: 0
+slug: data-management
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, microservices, data, management]
+in_book: true
+---
+
 # Microservice Data Management {#ch-microservice-data-management}
 
 > Split the database, which is the hard half, and keep it consistent without a distributed transaction.

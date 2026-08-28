@@ -1,3 +1,15 @@
+---
+title: Jenkins
+part: 8
+chapter: 0
+slug: jenkins
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-03
+tags: [devops, cicd, jenkins]
+in_book: false
+---
+
 # Jenkins
 
 Jenkins is the oldest and most widely deployed CI server. You will meet it in enterprises with existing pipelines, so interviews focus on **maintaining and modernizing** Jenkins rather than choosing it for a greenfield project.

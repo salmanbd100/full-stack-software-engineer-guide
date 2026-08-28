@@ -1,3 +1,15 @@
+---
+title: React with TypeScript
+part: 1
+chapter: 0
+slug: react-typescript
+level: intermediate # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-28
+tags: [frontend, typescript, react]
+in_book: true
+---
+
 # React with TypeScript {#ch-react-with-typescript}
 
 > Type a component, its props and its hooks so the compiler catches what a test would not.

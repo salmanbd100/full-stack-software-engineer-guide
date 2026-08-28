@@ -1,3 +1,15 @@
+---
+title: GitLab CI
+part: 8
+chapter: 0
+slug: gitlab-ci
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, cicd, gitlab, ci]
+in_book: false
+---
+
 # GitLab CI
 
 GitLab CI is defined by a single `.gitlab-ci.yml` file at the repository root. Jobs run on **runners** — agents that pick up work from GitLab.

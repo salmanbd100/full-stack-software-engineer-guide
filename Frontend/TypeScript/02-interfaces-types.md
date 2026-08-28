@@ -1,3 +1,15 @@
+---
+title: Interfaces and Type Aliases
+part: 1
+chapter: 0
+slug: interfaces-types
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, typescript, interfaces, types]
+in_book: true
+---
+
 # Interfaces and Type Aliases {#ch-interfaces-and-type-aliases}
 
 > Pick between `interface` and `type` on the two grounds that actually differ, not on preference.

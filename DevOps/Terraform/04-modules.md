@@ -1,3 +1,15 @@
+---
+title: Terraform Modules
+part: 8
+chapter: 0
+slug: modules
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, terraform, modules]
+in_book: false
+---
+
 # Terraform Modules
 
 A module is a folder of `.tf` files with defined inputs and outputs. It is Terraform's only unit of reuse.

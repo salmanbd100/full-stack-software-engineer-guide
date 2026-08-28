@@ -1,3 +1,15 @@
+---
+title: The Node.js Event Loop
+part: 5
+chapter: 0
+slug: event-loop-async
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [backend, nodejs, event, loop, async]
+in_book: true
+---
+
 # The Node.js Event Loop {#ch-node-event-loop}
 
 > Explain how one thread serves thousands of connections, and what stalls it.

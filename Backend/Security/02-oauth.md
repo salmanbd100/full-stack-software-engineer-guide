@@ -1,3 +1,15 @@
+---
+title: OAuth 2.0
+part: 5
+chapter: 0
+slug: oauth
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [backend, security, oauth]
+in_book: true
+---
+
 # OAuth 2.0 {#ch-oauth-2}
 
 > Walk through the authorisation code flow with PKCE and explain what each redirect is protecting.

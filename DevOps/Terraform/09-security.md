@@ -1,3 +1,15 @@
+---
+title: Terraform Security
+part: 8
+chapter: 0
+slug: terraform-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-03
+tags: [devops, terraform, security]
+in_book: false
+---
+
 # Terraform Security
 
 Terraform holds the keys to your entire cloud estate. This file covers the four things interviewers probe: secrets, state, credentials, and scanning.

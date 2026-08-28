@@ -1,3 +1,15 @@
+---
+title: Lambda for Automation
+part: 8
+chapter: 0
+slug: lambda-automation
+level: intermediate # beginner | intermediate | advanced
+reading_time: 19
+updated: 2026-08-03
+tags: [devops, scripting, lambda, automation]
+in_book: false
+---
+
 # Lambda for Automation
 
 Lambda is the standard place to put operational automation on AWS: event-driven responses, scheduled jobs, and remediation that has to happen in seconds.

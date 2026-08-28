@@ -1,3 +1,15 @@
+---
+title: Offline Patterns and Caching Strategies
+part: 2
+chapter: 0
+slug: offline-patterns
+level: advanced # beginner | intermediate | advanced
+reading_time: 38
+updated: 2026-08-28
+tags: [frontend, pwa, offline, patterns]
+in_book: true
+---
+
 # Offline Patterns and Caching Strategies {#ch-offline-patterns}
 
 > Pick a caching strategy per request type, and know what each one serves when the network is gone.

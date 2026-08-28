@@ -1,3 +1,15 @@
+---
+title: Composition vs Inheritance
+part: 1
+chapter: 0
+slug: composition-vs-inheritance
+level: intermediate # beginner | intermediate | advanced
+reading_time: 20
+updated: 2026-08-28
+tags: [oop, composition, inheritance]
+in_book: true
+---
+
 # Composition vs Inheritance {#ch-composition-vs-inheritance}
 
 > Prefer composition, and be able to say precisely why inheritance goes wrong when it does.

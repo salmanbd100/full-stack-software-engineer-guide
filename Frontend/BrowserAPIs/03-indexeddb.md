@@ -1,3 +1,15 @@
+---
+title: IndexedDB
+part: 2
+chapter: 0
+slug: indexeddb
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, browser, apis, indexeddb]
+in_book: true
+---
+
 # IndexedDB {#ch-indexeddb}
 
 > Store structured data past the 5MB wall, and survive a schema change without losing it.

@@ -1,3 +1,15 @@
+---
+title: Accessibility
+part: 2
+chapter: 0
+slug: accessibility
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [frontend, html, css, accessibility]
+in_book: true
+---
+
 # Accessibility {#ch-accessibility}
 
 > Ship interfaces that work with a keyboard, a screen reader and a legal audit — starting from markup rather than from ARIA.

@@ -1,3 +1,15 @@
+---
+title: XSS Prevention
+part: 4
+chapter: 0
+slug: xss-prevention
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [frontend, security, xss, prevention]
+in_book: true
+---
+
 # XSS Prevention {#ch-xss-prevention}
 
 > Encode for the context you are writing into, and know exactly where your framework stops protecting you.

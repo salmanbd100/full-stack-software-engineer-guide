@@ -1,3 +1,15 @@
+---
+title: Infrastructure Security Scanning
+part: 8
+chapter: 0
+slug: infrastructure-scanning
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-04
+tags: [devops, devsecops, infrastructure, scanning]
+in_book: false
+---
+
 # Infrastructure Security Scanning
 
 Infrastructure-as-code scanning catches misconfiguration **before it exists in the cloud**. This is the cheapest security control available, because the fix is editing a file rather than remediating a live resource.

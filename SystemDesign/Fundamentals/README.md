@@ -3,8 +3,8 @@ title: Part VI — System Design Fundamentals
 part: 6
 chapter: 0
 slug: part-system-design-fundamentals
-level: intermediate
-reading_time: 4
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
 updated: 2026-08-28
 tags: [system-design, scalability, cap, consistency, estimation]
 in_book: true

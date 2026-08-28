@@ -3,8 +3,8 @@ title: Part VI — Microservices
 part: 6
 chapter: 0
 slug: part-microservices
-level: advanced
-reading_time: 4
+level: advanced # beginner | intermediate | advanced
+reading_time: 2
 updated: 2026-08-28
 tags: [system-design, microservices, resilience, observability]
 in_book: true

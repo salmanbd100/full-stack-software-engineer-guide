@@ -1,3 +1,15 @@
+---
+title: ECS & Fargate (Elastic Container Service)
+part: 8
+chapter: 0
+slug: ecs
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-06-08
+tags: [devops, aws, ecs]
+in_book: false
+---
+
 # ECS & Fargate (Elastic Container Service)
 
 ECS is AWS's managed container orchestration service. It runs Docker containers so you don't have to manage Kubernetes.

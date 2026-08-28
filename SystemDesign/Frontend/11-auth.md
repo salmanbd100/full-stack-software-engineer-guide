@@ -1,3 +1,15 @@
+---
+title: Frontend Authentication
+part: 6
+chapter: 0
+slug: auth
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, frontend, auth]
+in_book: true
+---
+
 # Frontend Authentication {#ch-frontend-authentication}
 
 > Decide where the token lives, and what the client may safely be told.

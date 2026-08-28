@@ -1,3 +1,15 @@
+---
+title: TypeScript Utility Types
+part: 1
+chapter: 0
+slug: utility-types
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [frontend, typescript, utility, types]
+in_book: true
+---
+
 # TypeScript Utility Types {#ch-typescript-utility-types}
 
 > Derive a type from an existing one instead of maintaining two that drift apart.

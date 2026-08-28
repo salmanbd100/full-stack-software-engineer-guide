@@ -1,3 +1,15 @@
+---
+title: Asset Management
+part: 4
+chapter: 0
+slug: assets
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, frontend, assets]
+in_book: true
+---
+
 # Asset Management {#ch-asset-management}
 
 > Control what ships and when, across images, fonts, CSS and icons.

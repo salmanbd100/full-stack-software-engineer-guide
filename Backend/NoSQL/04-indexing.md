@@ -1,3 +1,15 @@
+---
+title: MongoDB Indexing
+part: 5
+chapter: 0
+slug: nosql-indexing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [backend, nosql, indexing]
+in_book: true
+---
+
 # MongoDB Indexing {#ch-mongodb-indexing}
 
 > Build the index the query planner will actually use, and prove it did.

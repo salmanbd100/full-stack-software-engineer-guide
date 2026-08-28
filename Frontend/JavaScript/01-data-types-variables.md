@@ -1,3 +1,15 @@
+---
+title: Data Types and Variables
+part: 1
+chapter: 0
+slug: data-types-variables
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-28
+tags: [frontend, javascript, data, types, variables]
+in_book: true
+---
+
 # Data Types and Variables {#ch-data-types-and-variables}
 
 > Predict what a value will do before you run it — which types copy, which share, and which comparisons lie.

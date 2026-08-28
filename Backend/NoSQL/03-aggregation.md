@@ -1,3 +1,15 @@
+---
+title: Aggregation Pipeline
+part: 5
+chapter: 0
+slug: aggregation
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [backend, nosql, aggregation]
+in_book: true
+---
+
 # Aggregation Pipeline {#ch-aggregation-pipeline}
 
 > Push work into the database instead of pulling documents into the application to loop over.

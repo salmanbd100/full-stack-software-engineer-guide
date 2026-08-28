@@ -1,3 +1,15 @@
+---
+title: Persistent Volumes (EBS & EFS)
+part: 8
+chapter: 0
+slug: kubernetes-storage
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-03
+tags: [devops, kubernetes, storage]
+in_book: false
+---
+
 # Persistent Volumes (EBS & EFS)
 
 Containers have ephemeral filesystems. When a pod is replaced, everything written inside it is gone. Persistent storage is how state survives.

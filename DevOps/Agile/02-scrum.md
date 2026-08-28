@@ -1,3 +1,15 @@
+---
+title: Scrum for DevOps
+part: 8
+chapter: 0
+slug: scrum
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-04
+tags: [devops, agile, scrum]
+in_book: false
+---
+
 # Scrum for DevOps
 
 Scrum is the most widely used Agile framework, so you will be asked about it. The DevOps-specific challenge is that Scrum assumes predictable work, and operational work is not.

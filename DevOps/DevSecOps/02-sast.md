@@ -1,3 +1,15 @@
+---
+title: SAST — Static Application Security Testing
+part: 8
+chapter: 0
+slug: sast
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-04
+tags: [devops, devsecops, sast]
+in_book: false
+---
+
 # SAST — Static Application Security Testing
 
 SAST analyses **source code without running it**, looking for patterns that lead to vulnerabilities. It is the earliest place you can catch a security bug in your own code.

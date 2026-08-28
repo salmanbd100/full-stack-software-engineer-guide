@@ -1,3 +1,15 @@
+---
+title: Docker Fundamentals
+part: 8
+chapter: 0
+slug: docker-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-06-08
+tags: [devops, docker, fundamentals]
+in_book: true
+---
+
 # Docker Fundamentals
 
 ## Overview

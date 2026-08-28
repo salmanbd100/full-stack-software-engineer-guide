@@ -1,3 +1,15 @@
+---
+title: Graph Algorithms
+part: 10
+chapter: 0
+slug: graph-algorithms
+level: intermediate # beginner | intermediate | advanced
+reading_time: 66
+updated: 2026-08-28
+tags: [dsa, graph, algorithms]
+in_book: true
+---
+
 # Graph Algorithms {#ch-graph-algorithms}
 
 > Represent a graph, then reach for the algorithm the problem is actually describing.

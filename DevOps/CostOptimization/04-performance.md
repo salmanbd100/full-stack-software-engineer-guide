@@ -1,3 +1,15 @@
+---
+title: Performance Tuning
+part: 8
+chapter: 0
+slug: cost-optimization-performance
+level: advanced # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, cost, optimization, performance]
+in_book: false
+---
+
 # Performance Tuning
 
 Performance and cost are the same conversation. A faster system needs fewer resources, and most "we need bigger instances" requests are really unmeasured bottlenecks.

@@ -1,3 +1,15 @@
+---
+title: Redis
+part: 5
+chapter: 0
+slug: redis
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [backend, nosql, redis]
+in_book: true
+---
+
 # Redis {#ch-redis}
 
 > Use the right data structure for the job, and always give the entry an expiry.

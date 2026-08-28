@@ -3,8 +3,8 @@ title: System Design — Infrastructure
 part: 6
 chapter: 0
 slug: systemdesign-infrastructure-index
-level: intermediate
-reading_time: 4
+level: intermediate # beginner | intermediate | advanced
+reading_time: 1
 updated: 2026-08-28
 tags: [infrastructure, transitional]
 in_book: false

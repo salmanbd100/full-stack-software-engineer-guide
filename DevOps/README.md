@@ -1,3 +1,15 @@
+---
+title: DevOps Engineering - Interview Preparation Guide
+part: 8
+chapter: 0
+slug: devops-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 26
+updated: 2026-08-28
+tags: [devops]
+in_book: true
+---
+
 # DevOps Engineering - Interview Preparation Guide
 
 ## 🎯 Introduction

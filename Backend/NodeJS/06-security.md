@@ -1,3 +1,15 @@
+---
+title: Node.js Security
+part: 5
+chapter: 0
+slug: nodejs-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [backend, nodejs, security]
+in_book: true
+---
+
 # Node.js Security {#ch-node-security}
 
 > Close the injection paths specific to a Node service, including the ones JavaScript invents.

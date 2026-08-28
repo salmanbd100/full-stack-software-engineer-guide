@@ -1,3 +1,15 @@
+---
+title: End-to-End Testing
+part: 4
+chapter: 0
+slug: e2e-testing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, testing, e2e]
+in_book: true
+---
+
 # End-to-End Testing {#ch-end-to-end-testing}
 
 > Write the handful of browser tests worth their runtime, and keep them from going flaky.

@@ -1,3 +1,15 @@
+---
+title: TypeScript Advanced Types
+part: 1
+chapter: 0
+slug: advanced-types
+level: advanced # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, typescript, advanced, types]
+in_book: true
+---
+
 # TypeScript Advanced Types {#ch-typescript-advanced-types}
 
 > Compute types from other types, and know when that power stops paying for itself.

@@ -1,3 +1,15 @@
+---
+title: Linux Fundamentals for DevOps
+part: 8
+chapter: 0
+slug: linux-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-07-05
+tags: [devops, linux, fundamentals]
+in_book: false
+---
+
 # Linux Fundamentals for DevOps
 
 ## Overview

@@ -1,3 +1,15 @@
+---
+title: Node.js
+part: 5
+chapter: 0
+slug: backend-nodejs-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-28
+tags: [backend, nodejs]
+in_book: true
+---
+
 # Node.js
 
 ## Overview

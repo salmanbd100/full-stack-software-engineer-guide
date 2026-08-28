@@ -1,3 +1,15 @@
+---
+title: AWS CodePipeline
+part: 8
+chapter: 0
+slug: aws-codepipeline
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-03
+tags: [devops, cicd, aws, codepipeline]
+in_book: false
+---
+
 # AWS CodePipeline
 
 CodePipeline is AWS's managed CI/CD orchestrator. It does not build or deploy anything itself — it wires together other services in stages.

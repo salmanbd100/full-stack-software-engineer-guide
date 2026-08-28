@@ -1,3 +1,15 @@
+---
+title: Data Modelling
+part: 6
+chapter: 0
+slug: data-modeling
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, database, data, modeling]
+in_book: true
+---
+
 # Data Modelling {#ch-data-modelling}
 
 > Shape the data around the reads, because that is what you will do a thousand times more often.

@@ -1,3 +1,15 @@
+---
+title: Test-Driven Development
+part: 4
+chapter: 0
+slug: test-driven-development
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [frontend, testing, test, driven, development]
+in_book: true
+---
+
 # Test-Driven Development {#ch-test-driven-development}
 
 > Say when writing the test first genuinely pays, rather than defending it as a doctrine.

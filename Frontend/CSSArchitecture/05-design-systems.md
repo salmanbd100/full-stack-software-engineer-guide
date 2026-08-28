@@ -1,3 +1,15 @@
+---
+title: Design Systems
+part: 2
+chapter: 0
+slug: cssarchitecture-design-systems
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, cssarchitecture, design, systems]
+in_book: true
+---
+
 # Design Systems {#ch-design-systems}
 
 > Ship a component library that forty teams can adopt without forking it.

@@ -1,3 +1,15 @@
+---
+title: Data Partitioning
+part: 6
+chapter: 0
+slug: partitioning
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, scalability, partitioning]
+in_book: false
+---
+
 # Data Partitioning {#ch-data-partitioning}
 
 > Split a dataset across nodes without creating a hot shard.

@@ -1,3 +1,15 @@
+---
+title: Design Systems at Scale
+part: 4
+chapter: 0
+slug: frontend-design-systems
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, frontend, systems]
+in_book: true
+---
+
 # Design Systems at Scale {#ch-design-systems-at-scale}
 
 > Ship components forty teams can adopt without freezing the design.

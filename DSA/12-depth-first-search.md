@@ -1,3 +1,15 @@
+---
+title: Depth-First Search
+part: 10
+chapter: 0
+slug: depth-first-search
+level: intermediate # beginner | intermediate | advanced
+reading_time: 51
+updated: 2026-08-28
+tags: [dsa, depth, first, search]
+in_book: true
+---
+
 # Depth-First Search {#ch-depth-first-search}
 
 > Explore a tree or grid to its depth, and know exactly what the call stack costs you.

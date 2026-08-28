@@ -1,3 +1,15 @@
+---
+title: Monitoring and Observability
+part: 6
+chapter: 0
+slug: building-blocks-monitoring
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, building, blocks, monitoring]
+in_book: true
+---
+
 # Monitoring and Observability {#ch-monitoring-and-observability}
 
 > Instrument a system before the incident, so the incident has an answer.

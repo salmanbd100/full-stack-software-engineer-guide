@@ -1,3 +1,15 @@
+---
+title: Design a News Feed
+part: 6
+chapter: 0
+slug: facebook-newsfeed
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, interview, questions, facebook]
+in_book: true
+---
+
 # Design a News Feed {#ch-design-facebook-newsfeed}
 
 > Rank a feed at read time on a candidate set, rather than sorting everything a user could see.

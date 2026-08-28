@@ -1,3 +1,15 @@
+---
+title: Written Communication
+part: 9
+chapter: 0
+slug: written-communication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [communication, written]
+in_book: true
+---
+
 # Written Communication {#ch-written-communication}
 
 > Write a PR description, a review comment and an RFC that people actually read.

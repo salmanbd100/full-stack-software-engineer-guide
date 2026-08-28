@@ -1,3 +1,15 @@
+---
+title: Design Twitter
+part: 6
+chapter: 0
+slug: twitter
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, twitter]
+in_book: false
+---
+
 # Design Twitter {#ch-design-twitter}
 
 > Work the fan-out-on-write versus fan-out-on-read decision, and handle the celebrity problem it creates.

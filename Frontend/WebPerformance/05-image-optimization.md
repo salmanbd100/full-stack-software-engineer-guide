@@ -1,3 +1,15 @@
+---
+title: Image Optimisation
+part: 4
+chapter: 0
+slug: image-optimization
+level: advanced # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [frontend, web, performance, image, optimization]
+in_book: true
+---
+
 # Image Optimisation {#ch-image-optimisation}
 
 > Serve the smallest image that still looks right, at the size the layout actually needs.

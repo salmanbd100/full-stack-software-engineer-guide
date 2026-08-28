@@ -1,3 +1,15 @@
+---
+title: Infrastructure as Code Fundamentals
+part: 8
+chapter: 0
+slug: iac-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-03
+tags: [devops, terraform, iac, fundamentals]
+in_book: false
+---
+
 # Infrastructure as Code Fundamentals
 
 Infrastructure as Code (IaC) means your servers, networks, and databases are defined in files you commit to Git — not clicked together in a web console.

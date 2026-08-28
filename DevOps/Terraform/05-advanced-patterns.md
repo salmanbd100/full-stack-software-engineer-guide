@@ -1,3 +1,15 @@
+---
+title: Terraform Advanced Patterns
+part: 8
+chapter: 0
+slug: advanced-patterns
+level: advanced # beginner | intermediate | advanced
+reading_time: 21
+updated: 2026-08-03
+tags: [devops, terraform, advanced, patterns]
+in_book: false
+---
+
 # Terraform Advanced Patterns
 
 The patterns in this file are where Terraform interviews get technical. Most of them exist to answer one question: *how do I avoid Terraform destroying something I did not want destroyed?*

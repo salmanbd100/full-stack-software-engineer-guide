@@ -1,3 +1,15 @@
+---
+title: Monotonic Stack
+part: 10
+chapter: 0
+slug: monotonic-stack
+level: intermediate # beginner | intermediate | advanced
+reading_time: 22
+updated: 2026-08-28
+tags: [dsa, monotonic, stack]
+in_book: true
+---
+
 # Monotonic Stack {#ch-monotonic-stack}
 
 > Find the next greater or smaller element for every position in a single pass.

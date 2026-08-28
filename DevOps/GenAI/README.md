@@ -1,3 +1,15 @@
+---
+title: Generative AI for DevOps - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-genai-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-04
+tags: [devops, genai]
+in_book: false
+---
+
 # Generative AI for DevOps - Interview Preparation
 
 AI tooling is now an expected part of a DevOps engineer's practice. Interviewers are checking two things: that you use it effectively, and that you understand where it fails.

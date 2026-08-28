@@ -1,3 +1,15 @@
+---
+title: CSS Architecture
+part: 2
+chapter: 0
+slug: frontend-cssarchitecture-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-28
+tags: [frontend, cssarchitecture]
+in_book: true
+---
+
 # CSS Architecture
 
 How to scale CSS across enterprise codebases — methodologies, scoping strategies, and design systems. The patterns interviewers actually probe at the senior level.

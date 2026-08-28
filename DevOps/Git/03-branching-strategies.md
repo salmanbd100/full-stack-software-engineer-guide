@@ -1,3 +1,15 @@
+---
+title: Git Branching Strategies
+part: 8
+chapter: 0
+slug: branching-strategies
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-05-05
+tags: [devops, git, branching, strategies]
+in_book: true
+---
+
 # Git Branching Strategies
 
 ## Overview

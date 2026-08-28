@@ -1,3 +1,15 @@
+---
+title: Cookies and SameSite
+part: 2
+chapter: 0
+slug: cookies-same-site
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, browser, apis, cookies, same]
+in_book: true
+---
+
 # Cookies and SameSite {#ch-cookies-and-samesite}
 
 > Set a cookie an attacker cannot read or replay, and explain each attribute you chose.

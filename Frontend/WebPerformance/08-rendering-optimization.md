@@ -1,3 +1,15 @@
+---
+title: Rendering Optimisation
+part: 4
+chapter: 0
+slug: rendering-optimization
+level: advanced # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, web, performance, rendering, optimization]
+in_book: true
+---
+
 # Rendering Optimisation {#ch-rendering-optimisation}
 
 > Keep the main thread free so interactions land inside the frame budget.

@@ -1,3 +1,15 @@
+---
+title: Backend Engineering — Interview Prep
+part: 5
+chapter: 0
+slug: backend-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-03
+tags: [backend]
+in_book: true
+---
+
 # Backend Engineering — Interview Prep
 
 Senior-level reference covering the backend topics that show up in MNC and FAANG interviews: Node.js internals, SQL and NoSQL databases, API design, security, design patterns, and testing.

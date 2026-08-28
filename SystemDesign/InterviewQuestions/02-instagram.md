@@ -1,3 +1,15 @@
+---
+title: Design Instagram
+part: 6
+chapter: 0
+slug: instagram
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, interview, questions, instagram]
+in_book: true
+---
+
 # Design Instagram {#ch-design-instagram}
 
 > Design a media pipeline and a feed together, where the expensive part is the images, not the posts.

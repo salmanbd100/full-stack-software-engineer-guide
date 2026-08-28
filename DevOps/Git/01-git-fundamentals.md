@@ -1,3 +1,15 @@
+---
+title: Git Fundamentals
+part: 8
+chapter: 0
+slug: git-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-05-05
+tags: [devops, git, fundamentals]
+in_book: true
+---
+
 # Git Fundamentals
 
 ## Overview

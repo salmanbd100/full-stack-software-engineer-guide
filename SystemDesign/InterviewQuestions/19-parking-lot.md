@@ -1,3 +1,15 @@
+---
+title: Design a Parking Lot
+part: 6
+chapter: 0
+slug: parking-lot
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [system, design, interview, questions, parking]
+in_book: false
+---
+
 # Design a Parking Lot {#ch-design-parking-lot}
 
 > Model the domain in classes with single responsibilities — this is an OOP round wearing a system design hat.

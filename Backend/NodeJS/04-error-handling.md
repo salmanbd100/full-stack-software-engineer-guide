@@ -1,3 +1,15 @@
+---
+title: Node.js Error Handling
+part: 5
+chapter: 0
+slug: nodejs-error-handling
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [backend, nodejs, error, handling]
+in_book: true
+---
+
 # Node.js Error Handling {#ch-node-error-handling}
 
 > Separate an operational failure from a programmer bug, and treat each one differently.

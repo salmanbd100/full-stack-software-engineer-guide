@@ -1,3 +1,15 @@
+---
+title: Progressive Web Apps (PWA)
+part: 2
+chapter: 0
+slug: frontend-pwa-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [frontend, pwa]
+in_book: true
+---
+
 # Progressive Web Apps (PWA)
 
 ## Overview

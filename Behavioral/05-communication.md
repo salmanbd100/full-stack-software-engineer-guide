@@ -1,3 +1,15 @@
+---
+title: Communication Stories
+part: 9
+chapter: 0
+slug: behavioral-communication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [behavioral, communication]
+in_book: true
+---
+
 # Communication Stories {#ch-communication-stories}
 
 > Show that you can carry a technical argument to people who do not share your context.

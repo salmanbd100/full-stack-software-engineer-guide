@@ -1,3 +1,15 @@
+---
+title: Design Netflix
+part: 6
+chapter: 0
+slug: netflix
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, netflix]
+in_book: false
+---
+
 # Design Netflix {#ch-design-netflix}
 
 > Push content to the edge before anyone asks for it, and adapt the bitrate when they do.

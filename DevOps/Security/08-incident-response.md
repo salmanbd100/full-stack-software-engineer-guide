@@ -1,3 +1,15 @@
+---
+title: Security Incident Response
+part: 8
+chapter: 0
+slug: security-incident-response
+level: intermediate # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-03
+tags: [devops, security, incident, response]
+in_book: false
+---
+
 # Security Incident Response
 
 A security incident differs from an outage in one critical way: **the adversary is still active, and evidence matters.** That changes what you do first.

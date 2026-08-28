@@ -1,3 +1,15 @@
+---
+title: IAM (Identity & Access Management)
+part: 8
+chapter: 0
+slug: iam
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-06-08
+tags: [devops, aws, iam]
+in_book: false
+---
+
 # IAM (Identity & Access Management)
 
 IAM controls **who** can do **what** on **which** AWS resources. Every API call in AWS goes through IAM first. Get this wrong and you get breaches or broken deployments.

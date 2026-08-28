@@ -1,3 +1,15 @@
+---
+title: Message Queues and Event Streaming
+part: 6
+chapter: 0
+slug: message-queues
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, building, blocks, message]
+in_book: true
+---
+
 # Message Queues and Event Streaming {#ch-message-queues}
 
 > Tell a queue from a log, and pick the delivery guarantee the feature actually needs.

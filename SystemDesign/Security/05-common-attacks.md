@@ -1,3 +1,15 @@
+---
+title: Common Attacks
+part: 6
+chapter: 0
+slug: common-attacks
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [system, design, security, common, attacks]
+in_book: false
+---
+
 # Common Attacks {#ch-common-attacks}
 
 > Recognise the attacks that actually appear in a design round, and the fix for each.

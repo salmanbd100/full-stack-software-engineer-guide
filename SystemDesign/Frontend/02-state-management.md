@@ -1,3 +1,15 @@
+---
+title: Frontend State Management
+part: 6
+chapter: 0
+slug: frontend-state-management
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, frontend, state, management]
+in_book: true
+---
+
 # Frontend State Management {#ch-frontend-state-management}
 
 > Separate server state from client state, which settles most of the library argument.

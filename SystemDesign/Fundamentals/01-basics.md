@@ -1,3 +1,15 @@
+---
+title: System Design Basics
+part: 6
+chapter: 0
+slug: basics
+level: beginner # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [system, design, fundamentals, basics]
+in_book: true
+---
+
 # System Design Basics {#ch-system-design-basics}
 
 > Name the moving parts of a system and say what each one is for.

@@ -1,3 +1,15 @@
+---
+title: CI/CD in Agile
+part: 8
+chapter: 0
+slug: cicd-agile
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-04
+tags: [devops, agile, cicd]
+in_book: false
+---
+
 # CI/CD in Agile
 
 Agile promises frequent delivery. CI/CD is what makes the promise real. The link between them is the concept that separates modern delivery from release-train thinking: **deploy is not release**.

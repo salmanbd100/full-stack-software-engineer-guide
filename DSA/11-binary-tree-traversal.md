@@ -1,3 +1,15 @@
+---
+title: Binary Tree Traversal
+part: 10
+chapter: 0
+slug: binary-tree-traversal
+level: intermediate # beginner | intermediate | advanced
+reading_time: 61
+updated: 2026-08-28
+tags: [dsa, binary, tree, traversal]
+in_book: true
+---
+
 # Binary Tree Traversal {#ch-binary-tree-traversal}
 
 > Choose the traversal order the problem needs, and write it both recursively and iteratively.

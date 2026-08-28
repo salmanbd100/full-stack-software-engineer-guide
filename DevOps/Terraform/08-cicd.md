@@ -1,3 +1,15 @@
+---
+title: Terraform in CI/CD
+part: 8
+chapter: 0
+slug: cicd
+level: intermediate # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-03
+tags: [devops, terraform, cicd]
+in_book: false
+---
+
 # Terraform in CI/CD
 
 Running Terraform from a laptop does not scale and does not audit. This file covers the pipeline that replaces it.

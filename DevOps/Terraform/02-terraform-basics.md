@@ -1,3 +1,15 @@
+---
+title: Terraform Basics for DevOps
+part: 8
+chapter: 0
+slug: terraform-basics
+level: beginner # beginner | intermediate | advanced
+reading_time: 34
+updated: 2026-01-14
+tags: [devops, terraform, basics]
+in_book: false
+---
+
 # Terraform Basics for DevOps
 
 ## Overview

@@ -1,3 +1,15 @@
+---
+title: Creational Patterns
+part: 1
+chapter: 0
+slug: creational-patterns
+level: advanced # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-28
+tags: [backend, design, patterns, creational]
+in_book: true
+---
+
 # Creational Patterns {#ch-creational-patterns}
 
 > Control how an object gets built when a constructor call is no longer enough.

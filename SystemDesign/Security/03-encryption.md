@@ -1,3 +1,15 @@
+---
+title: Encryption
+part: 6
+chapter: 0
+slug: system-design-security-encryption
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [system, design, security, encryption]
+in_book: false
+---
+
 # Encryption {#ch-encryption}
 
 > Encrypt in transit and at rest, and manage the keys as carefully as the data.

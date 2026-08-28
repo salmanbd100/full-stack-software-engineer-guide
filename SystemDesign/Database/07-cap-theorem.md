@@ -1,3 +1,15 @@
+---
+title: CAP in Practice
+part: 6
+chapter: 0
+slug: database-cap-theorem
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, database, cap, theorem]
+in_book: true
+---
+
 # CAP in Practice {#ch-cap-in-practice}
 
 > Place a real database on the CP/AP map and defend the placement.

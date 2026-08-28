@@ -1,3 +1,15 @@
+---
+title: CloudWatch Deep Dive
+part: 8
+chapter: 0
+slug: monitoring-cloudwatch
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, monitoring, cloudwatch]
+in_book: false
+---
+
 # CloudWatch Deep Dive
 
 CloudWatch is the AWS-native answer to all three pillars. This file covers the parts that separate someone who has clicked around the console from someone who has run it in production.

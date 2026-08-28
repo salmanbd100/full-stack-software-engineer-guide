@@ -1,3 +1,15 @@
+---
+title: Authentication at System Level
+part: 6
+chapter: 0
+slug: authentication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [system, design, security, authentication]
+in_book: false
+---
+
 # Authentication at System Level {#ch-system-authentication}
 
 > Choose an authentication mechanism and defend it against the attacks it invites.

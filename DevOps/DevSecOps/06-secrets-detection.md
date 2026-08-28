@@ -1,3 +1,15 @@
+---
+title: Secrets Detection
+part: 8
+chapter: 0
+slug: secrets-detection
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, devsecops, secrets, detection]
+in_book: false
+---
+
 # Secrets Detection
 
 A leaked credential is the fastest path from "code repository" to "compromised AWS account". Secrets detection finds credentials in code, history, and pipelines — before or after they leak.

@@ -1,3 +1,15 @@
+---
+title: Enums and Literal Types
+part: 1
+chapter: 0
+slug: enums-literals
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, typescript, enums, literals]
+in_book: true
+---
+
 # Enums and Literal Types {#ch-enums-and-literal-types}
 
 > Model a fixed set of values without shipping a runtime object nobody asked for.

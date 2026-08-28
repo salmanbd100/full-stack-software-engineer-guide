@@ -1,3 +1,15 @@
+---
+title: In-Place Linked List Reversal
+part: 10
+chapter: 0
+slug: linkedlist-in-place-reversal
+level: intermediate # beginner | intermediate | advanced
+reading_time: 27
+updated: 2026-08-28
+tags: [dsa, linkedlist, place, reversal]
+in_book: true
+---
+
 # In-Place Linked List Reversal {#ch-in-place-linked-list-reversal}
 
 > Reverse a list or a section of one by rewiring pointers, without allocating anything.

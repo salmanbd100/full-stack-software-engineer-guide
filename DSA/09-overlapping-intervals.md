@@ -1,3 +1,15 @@
+---
+title: Overlapping Intervals
+part: 10
+chapter: 0
+slug: overlapping-intervals
+level: intermediate # beginner | intermediate | advanced
+reading_time: 27
+updated: 2026-08-28
+tags: [dsa, overlapping, intervals]
+in_book: true
+---
+
 # Overlapping Intervals {#ch-overlapping-intervals}
 
 > Sort by start, then sweep — which solves almost every interval problem you will be asked.

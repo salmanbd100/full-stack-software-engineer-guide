@@ -1,3 +1,15 @@
+---
+title: Data Structures & Algorithms - Interview Preparation Guide
+part: 10
+chapter: 0
+slug: dsa-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
+updated: 2026-08-28
+tags: [dsa]
+in_book: true
+---
+
 # Data Structures & Algorithms - Interview Preparation Guide
 
 A comprehensive guide covering essential algorithm concepts and 15 LeetCode patterns for technical interviews. Each topic includes detailed explanations, TypeScript implementations, complexity analysis, and practice problems.

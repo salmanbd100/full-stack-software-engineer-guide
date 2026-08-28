@@ -1,3 +1,15 @@
+---
+title: Git Best Practices
+part: 8
+chapter: 0
+slug: devops-git-best-practices
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-05-05
+tags: [devops, git]
+in_book: true
+---
+
 # Git Best Practices
 
 ## Commit Messages

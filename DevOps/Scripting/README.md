@@ -1,3 +1,15 @@
+---
+title: Scripting & Automation - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-scripting-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-03
+tags: [devops, scripting]
+in_book: false
+---
+
 # Scripting & Automation - Interview Preparation
 
 Automation questions test judgement as much as syntax: which tool for which job, and how you make a script safe to run against production.

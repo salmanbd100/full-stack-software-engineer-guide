@@ -1,3 +1,15 @@
+---
+title: Cost Optimization Strategies
+part: 8
+chapter: 0
+slug: cost-optimization-optimization
+level: advanced # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, cost, optimization]
+in_book: false
+---
+
 # Cost Optimization Strategies
 
 Once spend is visible, optimization is two separate jobs: **use less** and **pay less for what you use**. Do them in that order.

@@ -1,3 +1,15 @@
+---
+title: Alerting & On-Call
+part: 8
+chapter: 0
+slug: alerting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, monitoring, alerting]
+in_book: true
+---
+
 # Alerting & On-Call
 
 Most monitoring failures are not missing data — they are alerts nobody trusts. This file is about designing alerts humans will actually act on.

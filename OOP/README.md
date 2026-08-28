@@ -1,3 +1,15 @@
+---
+title: Object-Oriented Programming (OOP)
+part: 1
+chapter: 0
+slug: oop-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-03-02
+tags: [oop]
+in_book: true
+---
+
 # Object-Oriented Programming (OOP)
 
 ## 🎯 Why OOP Matters for Full-Stack Engineers

@@ -1,3 +1,15 @@
+---
+title: Incident Response
+part: 8
+chapter: 0
+slug: monitoring-incident-response
+level: intermediate # beginner | intermediate | advanced
+reading_time: 15
+updated: 2026-08-03
+tags: [devops, monitoring, incident, response]
+in_book: false
+---
+
 # Incident Response
 
 Incidents are inevitable. What distinguishes a good team is that the response is a practised process, not improvisation under stress.

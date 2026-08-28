@@ -1,3 +1,15 @@
+---
+title: React Testing Library
+part: 4
+chapter: 0
+slug: react-testing-library
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, testing, react, library]
+in_book: true
+---
+
 # React Testing Library {#ch-react-testing-library}
 
 > Query the way a user would, so a refactor does not turn into a hundred failing tests.

@@ -1,3 +1,15 @@
+---
+title: CSS Fundamentals
+part: 2
+chapter: 0
+slug: css-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [frontend, html, css, fundamentals]
+in_book: true
+---
+
 # CSS Fundamentals {#ch-css-fundamentals}
 
 > Read any stylesheet and predict which rule wins, why a box is the size it is, and which unit belongs where.

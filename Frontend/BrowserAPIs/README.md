@@ -1,3 +1,15 @@
+---
+title: Browser APIs
+part: 2
+chapter: 0
+slug: frontend-browser-apis-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
+updated: 2026-05-20
+tags: [frontend, browser, apis]
+in_book: true
+---
+
 # Browser APIs
 
 Client-side storage, cookies, and permissions — the parts of the browser that every senior frontend engineer is expected to know cold.

@@ -1,3 +1,15 @@
+---
+title: Terraform Best Practices
+part: 8
+chapter: 0
+slug: devops-terraform-best-practices
+level: intermediate # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-03
+tags: [devops, terraform]
+in_book: false
+---
+
 # Terraform Best Practices
 
 Everything in this file is a decision you will be asked to defend: how the repository is laid out, how environments are separated, and what you refuse to do.

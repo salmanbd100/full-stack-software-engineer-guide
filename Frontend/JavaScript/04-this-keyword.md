@@ -1,3 +1,15 @@
+---
+title: The `this` Keyword
+part: 1
+chapter: 0
+slug: this-keyword
+level: intermediate # beginner | intermediate | advanced
+reading_time: 29
+updated: 2026-08-28
+tags: [frontend, javascript, this, keyword]
+in_book: true
+---
+
 # The `this` Keyword {#ch-the-this-keyword}
 
 > Work out what `this` will be from the call site alone, and fix it when it is wrong.

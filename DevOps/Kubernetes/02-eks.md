@@ -1,3 +1,15 @@
+---
+title: AWS EKS
+part: 8
+chapter: 0
+slug: eks
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-03
+tags: [devops, kubernetes, eks]
+in_book: false
+---
+
 # AWS EKS
 
 EKS is managed Kubernetes. AWS runs the control plane across three availability zones; you own the worker nodes, add-ons, and workloads.

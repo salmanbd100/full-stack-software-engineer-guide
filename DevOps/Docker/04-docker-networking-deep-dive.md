@@ -1,3 +1,15 @@
+---
+title: Docker Networking
+part: 8
+chapter: 0
+slug: docker-networking-deep-dive
+level: advanced # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-05-05
+tags: [devops, docker, networking]
+in_book: false
+---
+
 # Docker Networking
 
 ## Network Drivers

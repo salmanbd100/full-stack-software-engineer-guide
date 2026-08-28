@@ -1,3 +1,15 @@
+---
+title: Top K Elements
+part: 10
+chapter: 0
+slug: top-k-elements
+level: intermediate # beginner | intermediate | advanced
+reading_time: 27
+updated: 2026-08-28
+tags: [dsa, top, elements]
+in_book: true
+---
+
 # Top K Elements {#ch-top-k-elements}
 
 > Get the k largest or most frequent items without sorting the whole input.

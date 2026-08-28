@@ -1,3 +1,15 @@
+---
+title: AWS X-Ray & Distributed Tracing
+part: 8
+chapter: 0
+slug: xray
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-03
+tags: [devops, monitoring, xray]
+in_book: false
+---
+
 # AWS X-Ray & Distributed Tracing
 
 Tracing answers the question metrics cannot: in a request that touched eight services, **where did the time go?**

@@ -1,3 +1,15 @@
+---
+title: System Monitoring for DevOps
+part: 8
+chapter: 0
+slug: system-monitoring
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-07-05
+tags: [devops, linux, system, monitoring]
+in_book: false
+---
+
 # System Monitoring for DevOps
 
 ## Overview

@@ -1,3 +1,15 @@
+---
+title: Design Ticketmaster
+part: 6
+chapter: 0
+slug: ticketmaster
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [system, design, interview, questions, ticketmaster]
+in_book: true
+---
+
 # Design Ticketmaster {#ch-design-ticketmaster}
 
 > Sell a finite number of seats to a million simultaneous buyers without overselling one.

@@ -1,3 +1,15 @@
+---
+title: Design Dropbox
+part: 6
+chapter: 0
+slug: dropbox
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, dropbox]
+in_book: false
+---
+
 # Design Dropbox {#ch-design-dropbox}
 
 > Sync a file by its chunks rather than its bytes, and resolve the conflict when two clients disagree.

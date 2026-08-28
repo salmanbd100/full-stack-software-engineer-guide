@@ -1,3 +1,15 @@
+---
+title: Caching as a Scaling Lever
+part: 6
+chapter: 0
+slug: scalability-caching-strategies
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, scalability, caching, strategies]
+in_book: false
+---
+
 # Caching as a Scaling Lever {#ch-caching-as-a-scaling-lever}
 
 > Work out what a hit ratio is actually worth before adding a cache.

@@ -1,3 +1,15 @@
+---
+title: Technical Communication
+part: 9
+chapter: 0
+slug: technical-communication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [communication, technical]
+in_book: true
+---
+
 # Technical Communication {#ch-technical-communication}
 
 > Explain code, an architecture and a trade-off out loud, in the order a listener needs them.

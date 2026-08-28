@@ -1,3 +1,15 @@
+---
+title: Backtracking
+part: 10
+chapter: 0
+slug: backtracking
+level: intermediate # beginner | intermediate | advanced
+reading_time: 48
+updated: 2026-08-28
+tags: [dsa, backtracking]
+in_book: true
+---
+
 # Backtracking {#ch-backtracking}
 
 > Build a candidate, abandon it the moment it cannot work, and undo cleanly.

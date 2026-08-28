@@ -1,3 +1,15 @@
+---
+title: GitOps
+part: 8
+chapter: 0
+slug: gitops
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, iac, gitops]
+in_book: false
+---
+
 # GitOps
 
 GitOps is a deployment model where Git is the single source of truth, and an agent running **inside** the cluster continuously pulls and applies it.

@@ -1,3 +1,15 @@
+---
+title: CI/CD - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-cicd-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-03
+tags: [devops, cicd]
+in_book: true
+---
+
 # CI/CD - Interview Preparation
 
 CI/CD is the core of a DevOps role. Interviews test whether you understand the principles, not just one tool's YAML syntax. This guide covers fundamentals, the four major platforms, and the production concerns that separate mid from senior answers.

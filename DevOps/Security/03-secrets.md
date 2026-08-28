@@ -1,3 +1,15 @@
+---
+title: Secrets Management
+part: 8
+chapter: 0
+slug: secrets
+level: intermediate # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-03
+tags: [devops, security, secrets]
+in_book: false
+---
+
 # Secrets Management
 
 A secret is anything that grants access: database passwords, API keys, private keys, tokens. The goal is that no human ever sees one and no system stores one it does not need.

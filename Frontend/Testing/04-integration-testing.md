@@ -1,3 +1,15 @@
+---
+title: Frontend Integration Testing
+part: 4
+chapter: 0
+slug: integration-testing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, testing, integration]
+in_book: true
+---
+
 # Frontend Integration Testing {#ch-frontend-integration-testing}
 
 > Test a whole flow against a fake network, which is where the real bugs actually are.

@@ -1,3 +1,15 @@
+---
+title: ConfigMaps & Secrets
+part: 8
+chapter: 0
+slug: configmaps-secrets
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-03
+tags: [devops, kubernetes, configmaps, secrets]
+in_book: false
+---
+
 # ConfigMaps & Secrets
 
 Configuration belongs outside the image. The same image should run in dev, staging, and production with only its config changing.

@@ -3,8 +3,8 @@ title: System Design — Security
 part: 6
 chapter: 0
 slug: systemdesign-security-index
-level: advanced
-reading_time: 4
+level: advanced # beginner | intermediate | advanced
+reading_time: 1
 updated: 2026-08-28
 tags: [security, transitional]
 in_book: false

@@ -1,3 +1,15 @@
+---
+title: Database Query Optimisation
+part: 6
+chapter: 0
+slug: query-optimization
+level: advanced # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, database, query, optimization]
+in_book: true
+---
+
 # Database Query Optimisation {#ch-database-query-optimisation}
 
 > Take a slow query and find the reason, rather than adding an index and hoping.

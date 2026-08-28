@@ -1,3 +1,15 @@
+---
+title: SQL Injection Prevention
+part: 5
+chapter: 0
+slug: sql-injection
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [backend, security, sql, injection]
+in_book: true
+---
+
 # SQL Injection Prevention {#ch-sql-injection-prevention}
 
 > Parameterise everything, and handle the two cases where you cannot.

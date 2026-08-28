@@ -1,3 +1,15 @@
+---
+title: Challenges and Failures
+part: 9
+chapter: 0
+slug: challenges-failures
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [behavioral, challenges, failures]
+in_book: true
+---
+
 # Challenges and Failures {#ch-challenges-and-failures}
 
 > Tell a real failure honestly, and land the learning without spinning it into a win.

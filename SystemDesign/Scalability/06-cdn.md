@@ -1,3 +1,15 @@
+---
+title: CDN as a Scaling Lever
+part: 6
+chapter: 0
+slug: scalability-cdn
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [system, design, scalability, cdn]
+in_book: false
+---
+
 # CDN as a Scaling Lever {#ch-cdn-as-a-scaling-lever}
 
 > Move traffic off your origin entirely, which is the cheapest scaling there is.

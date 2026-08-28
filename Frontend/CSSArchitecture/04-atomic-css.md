@@ -1,3 +1,15 @@
+---
+title: Atomic CSS
+part: 2
+chapter: 0
+slug: atomic-css
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, cssarchitecture, atomic, css]
+in_book: true
+---
+
 # Atomic CSS {#ch-atomic-css}
 
 > Explain why a stylesheet stops growing once every class does exactly one thing.

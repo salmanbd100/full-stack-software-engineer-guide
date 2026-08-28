@@ -1,3 +1,15 @@
+---
+title: Transactions and ACID
+part: 5
+chapter: 0
+slug: sql-transactions
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [backend, sql, transactions]
+in_book: true
+---
+
 # Transactions and ACID {#ch-transactions-and-acid}
 
 > Choose an isolation level knowing exactly which anomaly it still permits.

@@ -1,3 +1,15 @@
+---
+title: Deployment Strategies
+part: 6
+chapter: 0
+slug: deployment
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, microservices, deployment]
+in_book: true
+---
+
 # Deployment Strategies {#ch-deployment-strategies}
 
 > Pick a release strategy by how much risk it carries, and always know the way back.

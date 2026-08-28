@@ -1,3 +1,15 @@
+---
+title: Abstraction
+part: 1
+chapter: 0
+slug: abstraction
+level: intermediate # beginner | intermediate | advanced
+reading_time: 22
+updated: 2026-08-28
+tags: [oop, abstraction]
+in_book: true
+---
+
 # Abstraction {#ch-abstraction}
 
 > Expose what a thing does and hide how, and choose correctly between an abstract class and an interface.

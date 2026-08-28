@@ -1,3 +1,15 @@
+---
+title: AWS Fundamentals
+part: 8
+chapter: 0
+slug: aws-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-06-08
+tags: [devops, aws, fundamentals]
+in_book: true
+---
+
 # AWS Fundamentals
 
 AWS is the leading cloud platform. Before diving into individual services, understand the concepts that apply across everything: global infrastructure, the CLI, the shared responsibility model, and the Well-Architected Framework.

@@ -1,3 +1,15 @@
+---
+title: System Design
+part: 6
+chapter: 0
+slug: system-design-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-05-15
+tags: [system, design]
+in_book: true
+---
+
 # System Design
 
 Interview prep for **senior frontend** and **mid-to-senior backend** engineers. Covers fundamentals, building blocks, scaling patterns, security, and 20 classic interview questions.

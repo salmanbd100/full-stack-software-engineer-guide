@@ -1,3 +1,15 @@
+---
+title: Consistency Models
+part: 6
+chapter: 0
+slug: fundamentals-consistency
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, fundamentals, consistency]
+in_book: true
+---
+
 # Consistency Models {#ch-consistency-models}
 
 > Name the exact guarantee a system offers, and pick the weakest one that works.

@@ -1,3 +1,15 @@
+---
+title: Agile Fundamentals
+part: 9
+chapter: 0
+slug: agile-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-04
+tags: [devops, agile, fundamentals]
+in_book: true
+---
+
 # Agile Fundamentals
 
 Agile is a set of principles for delivering software in small increments with fast feedback. For a DevOps engineer, the connection is direct: **Agile creates the demand for frequent delivery, and DevOps makes it possible.**

@@ -1,3 +1,15 @@
+---
+title: Polymorphism
+part: 1
+chapter: 0
+slug: polymorphism
+level: intermediate # beginner | intermediate | advanced
+reading_time: 20
+updated: 2026-08-28
+tags: [oop, polymorphism]
+in_book: true
+---
+
 # Polymorphism {#ch-polymorphism}
 
 > Call the same method on different types and get the behaviour each one defines.

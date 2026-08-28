@@ -3,8 +3,8 @@ title: Part VI — System Design Building Blocks
 part: 6
 chapter: 0
 slug: part-system-design-building-blocks
-level: intermediate
-reading_time: 4
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
 updated: 2026-08-28
 tags: [system-design, caching, load-balancing, queues, cdn]
 in_book: true

@@ -1,3 +1,15 @@
+---
+title: Breadth-First Search
+part: 10
+chapter: 0
+slug: breadth-first-search
+level: intermediate # beginner | intermediate | advanced
+reading_time: 55
+updated: 2026-08-28
+tags: [dsa, breadth, first, search]
+in_book: true
+---
+
 # Breadth-First Search {#ch-breadth-first-search}
 
 > Use a queue to get the shortest path in an unweighted graph, which DFS cannot give you.

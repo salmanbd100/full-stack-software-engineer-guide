@@ -1,3 +1,15 @@
+---
+title: Internationalisation Fundamentals
+part: 2
+chapter: 0
+slug: i18n-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [frontend, internationalization, i18n, fundamentals]
+in_book: true
+---
+
 # Internationalisation Fundamentals {#ch-i18n-fundamentals}
 
 > Build a UI that can ship in another language without a rewrite, and know what belongs in a translation file.

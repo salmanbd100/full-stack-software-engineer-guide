@@ -1,3 +1,15 @@
+---
+title: ORMs
+part: 5
+chapter: 0
+slug: orms
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [backend, sql, orms]
+in_book: true
+---
+
 # ORMs {#ch-orms}
 
 > Get the productivity without losing sight of the SQL, and know where the abstraction stops paying.

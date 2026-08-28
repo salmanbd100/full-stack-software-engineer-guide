@@ -1,3 +1,15 @@
+---
+title: Node.js Performance
+part: 5
+chapter: 0
+slug: nodejs-performance
+level: advanced # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [backend, nodejs, performance]
+in_book: true
+---
+
 # Node.js Performance {#ch-node-performance}
 
 > Find the actual bottleneck before changing anything, because it is rarely where you expect.

@@ -1,3 +1,15 @@
+---
+title: TypeScript
+part: 1
+chapter: 0
+slug: frontend-typescript-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2025-11-30
+tags: [frontend, typescript]
+in_book: true
+---
+
 # TypeScript
 
 Master TypeScript for modern frontend development. TypeScript is increasingly required at major companies and improves code quality, maintainability, and developer experience.

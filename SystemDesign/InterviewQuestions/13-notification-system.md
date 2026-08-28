@@ -1,3 +1,15 @@
+---
+title: Design a Notification System
+part: 6
+chapter: 0
+slug: notification-system
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, interview, questions, notification]
+in_book: true
+---
+
 # Design a Notification System {#ch-design-notification-system}
 
 > Fan out across push, email and SMS without sending anything twice.

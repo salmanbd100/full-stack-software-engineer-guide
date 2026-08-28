@@ -1,3 +1,15 @@
+---
+title: HTML & CSS
+part: 2
+chapter: 0
+slug: frontend-html-css-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
+updated: 2026-08-28
+tags: [frontend, html, css]
+in_book: true
+---
+
 # HTML & CSS
 
 Core HTML and CSS topics for senior frontend interviews. Focused on the patterns, tradeoffs, and gotchas that actually come up — not exhaustive reference material.

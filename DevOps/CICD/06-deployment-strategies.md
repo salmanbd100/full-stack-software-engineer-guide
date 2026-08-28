@@ -1,3 +1,15 @@
+---
+title: Deployment Strategies
+part: 8
+chapter: 0
+slug: deployment-strategies
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-03
+tags: [devops, cicd, deployment, strategies]
+in_book: true
+---
+
 # Deployment Strategies
 
 A deployment strategy answers one question: **how do you replace running version N with version N+1 without breaking users?**

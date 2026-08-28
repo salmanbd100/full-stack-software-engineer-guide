@@ -1,3 +1,15 @@
+---
+title: AWS Lambda (Serverless)
+part: 8
+chapter: 0
+slug: lambda
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-06-08
+tags: [devops, aws, lambda]
+in_book: true
+---
+
 # AWS Lambda (Serverless)
 
 Run code without managing servers. Pay only for what you use — per invocation and per millisecond of execution.

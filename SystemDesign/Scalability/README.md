@@ -3,8 +3,8 @@ title: System Design — Scalability
 part: 6
 chapter: 0
 slug: systemdesign-scalability-index
-level: intermediate
-reading_time: 4
+level: intermediate # beginner | intermediate | advanced
+reading_time: 1
 updated: 2026-08-28
 tags: [scalability, transitional]
 in_book: false

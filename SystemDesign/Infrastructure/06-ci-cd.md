@@ -1,3 +1,15 @@
+---
+title: CI/CD Pipelines
+part: 6
+chapter: 0
+slug: ci-cd
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, infrastructure, ci, cd]
+in_book: false
+---
+
 # CI/CD Pipelines {#ch-ci-cd-pipelines}
 
 > Build a pipeline that can ship on a Friday, including the way back.

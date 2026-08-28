@@ -1,3 +1,15 @@
+---
+title: Advanced Git
+part: 8
+chapter: 0
+slug: advanced-git
+level: advanced # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-05-05
+tags: [devops, git, advanced]
+in_book: true
+---
+
 # Advanced Git
 
 ## Overview

@@ -1,3 +1,15 @@
+---
+title: Design a Search Engine
+part: 6
+chapter: 0
+slug: google-search
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [system, design, interview, questions, google]
+in_book: false
+---
+
 # Design a Search Engine {#ch-design-google-search}
 
 > Separate crawling, indexing and serving, and give each one a different scaling story.

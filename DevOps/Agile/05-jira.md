@@ -1,3 +1,15 @@
+---
+title: Jira & Workflow Management
+part: 8
+chapter: 0
+slug: jira
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, agile, jira]
+in_book: false
+---
+
 # Jira & Workflow Management
 
 Jira is the default work tracker in enterprise environments. The DevOps-relevant skill is not clicking through the UI — it is **designing a workflow that reflects reality** and wiring it to your pipeline.

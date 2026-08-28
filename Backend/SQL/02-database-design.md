@@ -1,3 +1,15 @@
+---
+title: Database Design
+part: 5
+chapter: 0
+slug: database-design
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-28
+tags: [backend, sql, database, design]
+in_book: true
+---
+
 # Database Design {#ch-database-design}
 
 > Design a schema that will not need rescuing, and know when normalising is the wrong call.

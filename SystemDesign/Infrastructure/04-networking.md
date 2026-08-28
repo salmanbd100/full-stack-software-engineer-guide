@@ -1,3 +1,15 @@
+---
+title: Cloud Networking
+part: 6
+chapter: 0
+slug: infrastructure-networking
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [system, design, infrastructure, networking]
+in_book: false
+---
+
 # Cloud Networking {#ch-cloud-networking}
 
 > Draw the network boundary around a service and say what may cross it.

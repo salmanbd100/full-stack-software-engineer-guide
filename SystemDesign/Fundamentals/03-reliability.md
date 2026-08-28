@@ -1,3 +1,15 @@
+---
+title: Reliability and Availability
+part: 6
+chapter: 0
+slug: reliability
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, fundamentals, reliability]
+in_book: true
+---
+
 # Reliability and Availability {#ch-reliability-and-availability}
 
 > Price a nine, and design so that one failure does not become an outage.

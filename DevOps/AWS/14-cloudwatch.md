@@ -1,3 +1,15 @@
+---
+title: CloudWatch (Monitoring & Observability)
+part: 8
+chapter: 0
+slug: aws-cloudwatch
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-06-08
+tags: [devops, aws, cloudwatch]
+in_book: false
+---
+
 # CloudWatch (Monitoring & Observability)
 
 AWS's native monitoring service — metrics, logs, alarms, and dashboards in one place.

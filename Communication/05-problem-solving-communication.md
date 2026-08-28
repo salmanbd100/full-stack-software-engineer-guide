@@ -1,3 +1,15 @@
+---
+title: Thinking Aloud
+part: 9
+chapter: 0
+slug: problem-solving-communication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [communication, problem, solving]
+in_book: true
+---
+
 # Thinking Aloud {#ch-thinking-aloud}
 
 > Say what you are doing while you code, so silence never gets read as being stuck.

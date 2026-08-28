@@ -1,3 +1,15 @@
+---
+title: CSS Methodologies
+part: 2
+chapter: 0
+slug: css-methodologies
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, cssarchitecture, css, methodologies]
+in_book: true
+---
+
 # CSS Methodologies {#ch-css-methodologies}
 
 > Name and organise styles so a stranger can add a rule without breaking three others.

@@ -1,3 +1,15 @@
+---
+title: TDD in Practice
+part: 5
+chapter: 0
+slug: tdd
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [backend, testing, tdd]
+in_book: true
+---
+
 # TDD in Practice {#ch-tdd-in-practice}
 
 > Use red–green–refactor where it pays, and recognise the work where it does not.

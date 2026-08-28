@@ -1,3 +1,15 @@
+---
+title: OOP in Practice
+part: 1
+chapter: 0
+slug: oop-in-real-world
+level: intermediate # beginner | intermediate | advanced
+reading_time: 28
+updated: 2026-08-28
+tags: [oop, real, world]
+in_book: true
+---
+
 # OOP in Practice {#ch-oop-in-practice}
 
 > Connect the four principles to code you would actually ship in a service.

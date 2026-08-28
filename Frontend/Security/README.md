@@ -1,3 +1,15 @@
+---
+title: Web Security
+part: 4
+chapter: 0
+slug: frontend-security-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-28
+tags: [frontend, security]
+in_book: true
+---
+
 # Web Security
 
 ## Overview

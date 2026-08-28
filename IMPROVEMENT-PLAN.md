@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-28 · **Progress:** 17 / 78
+**Last updated:** 2026-08-28 · **Progress:** 18 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -261,7 +261,7 @@ one reference chapter is linked as the canonical example.
 
 ---
 
-### - [ ] 3. Add YAML front matter to every topic file `M`
+### - [x] 3. Add YAML front matter to every topic file `M` — ✅ **done 2026-08-28**
 
 The book build needs machine-readable ordering and metadata. Standard block:
 
@@ -302,15 +302,20 @@ preserves anything you edited by hand.
 
 | Check | Command | Pass |
 | --- | --- | --- |
-| No content lost | `git diff --numstat \| awk '{s+=$2} END {print s+0}'` | `0` deletions |
-| Newline fix works | `git diff --stat \| tail -1` | `5016` insertions (12/file). `5434` means it did not |
+| No content lost | `git diff --numstat \| awk '$2>0'` | deletions only on files that already had front matter |
+| Newline fix works | `git diff --numstat \| awk '{s+=$1} END {print s}'` | ~12 insertions per newly-stamped file |
 | Idempotent | run the script a second time | `changed: 0` |
 
 `git checkout -- .` reverts cleanly if any check fails.
 
-> ⚠️ **Unverified:** the script's idempotency fix (`scripts/add-frontmatter.ts:318`) is on disk but
-> was never executed — an earlier version stripped one leading newline while re-adding two, so every
-> re-run grew the gap by a line. The three checks above prove it either way.
+> **Numbers corrected on completion.** The original table said `0` deletions and `5016` insertions
+> (12 × 418 files). Both were stale: item #13 added 10 READMEs and #19 added `About-the-Author.md`, so
+> the tree is now **425** files, and **13 of them already carried hand-written front matter** — those
+> re-serialise rather than gain a block, producing 25 unavoidable deletions. Actual: **425 files,
+> 4,969 insertions, 25 deletions**, every deletion inside those 13 files.
+
+> ✅ **Idempotency now verified.** The fix at `scripts/add-frontmatter.ts:318` was previously on disk
+> but never executed. A second run reports `changed: 0` with an unchanged diff.
 
 **🔴 Ordering — run this _before_ #20:**
 
@@ -330,6 +335,47 @@ Run #3 first and #20 becomes "move the files the metadata already marked" — ea
 - `CLAUDE.md`, `BOOK-SPEC.md` and `IMPROVEMENT-PLAN.md` are excluded — repo tooling, not manuscript.
   The "done when" above says *every* `.md`; these three are the exception.
 - `chapter:` is left at `0` for every file. Item #70 assigns the real numbers.
+
+**Delivered:**
+
+- Ran `scripts/add-frontmatter.ts` across the tree. **425 files stamped**, `+4,969 / −25`. Every one of
+  the 25 deletions is inside the 13 files that already had front matter — 12 `level:` lines gaining the
+  inline `# beginner | intermediate | advanced` comment, plus 12 recomputed `reading_time` values and one
+  in `About-the-Author.md`. **No prose was touched in any file**
+- **Idempotent, verified:** a second run reports `changed: 0` and leaves the diff byte-identical. This
+  closes the ⚠️ that stood on `add-frontmatter.ts:318` since the script was written
+- `pnpm lint:docs` — **"Missing or invalid front matter" went 411 → 0**. No other rule regressed against
+  `.lint-baseline.json`. Front matter is now the first rule in the repo at zero
+- **`.lint-baseline.json` tightened** to the new counts: `front-matter` 411 → **0** (so it now hard-fails
+  on any regression), `fence-language` 614 → 97, `too-long` 59 → 49. The last two dropped mainly because
+  the lint only walks in-book files, and 148 files just left that set — not because they improved
+- **The archive decisions now bite.** `pnpm book:collect` went from 417 files / 134,298 lines to
+  **277 files / 98,278 lines** — 148 files carry `in_book: false`. That 40k-line drop is #3's whole point:
+  #20–#31 now have machine-readable instructions instead of prose ones
+- All **69 hardcoded paths** in the script's mapping tables re-verified as still resolving — the renames
+  from #11 and the numbering fixes in #14–#16 did not break any of them
+- Chapters by part, as stamped: **I** 34 · **II** 32 · **IV** 30 · **V** 49 · **VI** 60 · **VIII** 33 ·
+  **IX** 22 · **Appendix** 17. Parts III and VII are empty, as expected — items #32–43 and #44–53 create them
+
+**Four fixes the run forced on `scripts/add-frontmatter.ts`:**
+
+| Fix | Why it mattered |
+| --- | --- |
+| `build` added to `EXCLUDED_DIRS` | The script walked `build/book.md` — the generated manuscript from #5 — and stamped front matter into it. `scripts/lib/book.ts` already excluded `build`; this script predated it |
+| `SystemDesign/Security` added to `OUT_OF_BOOK_DIRS` | Item #24 archives it, and #13 had already hand-marked its README `in_book: false`, but the script's dir list omitted it — so its 6 chapters would have defaulted to `in_book: true` and survived into the manuscript |
+| `"About-the-Author.md": 9` added to `PART_OVERRIDES` | Root-level, so no prefix mapping could reach it. Its hand-set `part: 9` was being preserved by luck; `--force` would have silently reset it to `0` |
+| `deriveTitle` no longer strips backticks | `Frontend/JavaScript/04-this-keyword.md` derived `title: The this Keyword` against an H1 of ``The `this` Keyword`` — the one front-matter lint violation left after the run. Backticks are ordinary characters in a YAML plain scalar |
+
+> **Also amended:** the verification table above. Its expected numbers were written before #13 and #19
+> existed and could not have passed.
+
+> **Known limitation, not fixed here:** derived `tags` come from splitting the path on word boundaries,
+> so `SystemDesign/Frontend/05-micro-frontends.md` gets `[system, design, frontend, micro, frontends]`.
+> Valid, machine-readable, and not what a human would write. Tags are cosmetic until something consumes
+> them; worth a pass when one does.
+
+> **Still deliberately open:** `chapter: 0` on all 425 files. Item **#70** assigns real numbers, and
+> nothing reads `chapter` until then.
 
 ---
 
@@ -1783,7 +1829,7 @@ the site markets the book and the book funds the site.
 
 | Phase | Items   | Done | Status         |
 | ----- | ------- | ---- | -------------- |
-| 0     | 1–7     | 6/7  | 🟡 In progress |
+| 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 11/12 | 🟡 In progress  |
 | 2     | 20–31   | 0/12 | ⬜ Not started  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
@@ -1791,7 +1837,7 @@ the site markets the book and the book funds the site.
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **17/78** | **22%**   |
+| **Total** | **78** | **18/78** | **23%**   |
 
 ---
 

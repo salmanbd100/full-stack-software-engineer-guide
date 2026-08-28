@@ -1,3 +1,15 @@
+---
+title: Browser Permissions
+part: 2
+chapter: 0
+slug: browser-permissions
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, browser, apis, permissions]
+in_book: true
+---
+
 # Browser Permissions {#ch-browser-permissions}
 
 > Ask for a permission at a moment the user understands, because a denial is usually permanent.

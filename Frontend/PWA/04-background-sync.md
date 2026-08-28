@@ -1,3 +1,15 @@
+---
+title: Background Sync
+part: 2
+chapter: 0
+slug: background-sync
+level: intermediate # beginner | intermediate | advanced
+reading_time: 34
+updated: 2026-08-28
+tags: [frontend, pwa, background, sync]
+in_book: true
+---
+
 # Background Sync {#ch-background-sync}
 
 > Accept a write while offline and let the browser deliver it once the connection returns.

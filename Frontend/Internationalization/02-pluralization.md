@@ -1,3 +1,15 @@
+---
+title: Pluralisation
+part: 2
+chapter: 0
+slug: pluralization
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, internationalization, pluralization]
+in_book: true
+---
+
 # Pluralisation {#ch-pluralisation}
 
 > Handle languages with six plural forms without hard-coding a single `if (count === 1)`.

@@ -1,3 +1,15 @@
+---
+title: Storage Cost Optimization
+part: 8
+chapter: 0
+slug: storage-costs
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, cost, optimization, storage, costs]
+in_book: false
+---
+
 # Storage Cost Optimization
 
 Storage looks cheap per gigabyte, so it is rarely reviewed. It becomes expensive because **nothing ever deletes itself** and because the real cost is often data transfer, not storage.

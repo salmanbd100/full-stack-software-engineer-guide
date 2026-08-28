@@ -1,3 +1,15 @@
+---
+title: CloudFront (CDN)
+part: 8
+chapter: 0
+slug: aws-cloudfront
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-06-08
+tags: [devops, aws, cloudfront]
+in_book: true
+---
+
 # CloudFront (CDN)
 
 CloudFront is AWS's global CDN. It caches content at 400+ edge locations so users get responses from a server close to them — not from your origin in us-east-1.

@@ -1,3 +1,15 @@
+---
+title: Backend Security Headers
+part: 5
+chapter: 0
+slug: security-headers
+level: advanced # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [backend, security, headers]
+in_book: true
+---
+
 # Backend Security Headers {#ch-backend-security-headers}
 
 > Set the response headers that harden every page, from one place in the server.

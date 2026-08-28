@@ -1,3 +1,15 @@
+---
+title: Capacity Planning
+part: 8
+chapter: 0
+slug: capacity-planning
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-04
+tags: [devops, cost, optimization, capacity, planning]
+in_book: false
+---
+
 # Capacity Planning
 
 Capacity planning is deciding how much infrastructure you need **before** you need it. Autoscaling handles minutes; capacity planning handles quarters.

@@ -1,3 +1,15 @@
+---
+title: Inheritance
+part: 1
+chapter: 0
+slug: inheritance
+level: intermediate # beginner | intermediate | advanced
+reading_time: 24
+updated: 2026-08-28
+tags: [oop, inheritance]
+in_book: true
+---
+
 # Inheritance {#ch-inheritance}
 
 > Extend a class without creating a hierarchy nobody can change later.

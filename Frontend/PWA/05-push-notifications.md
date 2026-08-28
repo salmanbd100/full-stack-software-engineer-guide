@@ -1,3 +1,15 @@
+---
+title: Push Notifications
+part: 2
+chapter: 0
+slug: push-notifications
+level: intermediate # beginner | intermediate | advanced
+reading_time: 24
+updated: 2026-08-28
+tags: [frontend, pwa, push, notifications]
+in_book: true
+---
+
 # Push Notifications {#ch-push-notifications}
 
 > Send a notification to a closed tab, and ask for the permission in a way that does not get you blocked.

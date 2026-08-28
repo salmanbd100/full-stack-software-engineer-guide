@@ -1,3 +1,15 @@
+---
+title: API Versioning
+part: 5
+chapter: 0
+slug: versioning
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-28
+tags: [backend, api, versioning]
+in_book: true
+---
+
 # API Versioning {#ch-api-versioning}
 
 > Tell a breaking change from a safe one, and avoid cutting a new version at all.

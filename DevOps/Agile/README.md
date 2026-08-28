@@ -1,3 +1,15 @@
+---
+title: Agile & DevOps Culture - Interview Preparation
+part: 9
+chapter: 0
+slug: devops-agile-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-04
+tags: [devops, agile]
+in_book: true
+---
+
 # Agile & DevOps Culture - Interview Preparation
 
 The non-technical half of a DevOps interview. These questions separate engineers who have worked in effective teams from those who can only recite frameworks.

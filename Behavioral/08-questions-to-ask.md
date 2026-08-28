@@ -1,3 +1,15 @@
+---
+title: Questions to Ask
+part: 9
+chapter: 0
+slug: questions-to-ask
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [behavioral, questions, ask]
+in_book: true
+---
+
 # Questions to Ask {#ch-questions-to-ask}
 
 > Ask questions that tell you what you need to know and signal seniority at the same time.

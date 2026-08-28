@@ -1,3 +1,15 @@
+---
+title: Storage Types
+part: 6
+chapter: 0
+slug: infrastructure-storage
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-28
+tags: [system, design, infrastructure, storage]
+in_book: false
+---
+
 # Storage Types {#ch-storage-types}
 
 > Tell object, block and file storage apart, and stop putting files in the database.

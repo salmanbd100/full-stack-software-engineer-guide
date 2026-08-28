@@ -1,3 +1,15 @@
+---
+title: Prometheus
+part: 8
+chapter: 0
+slug: prometheus
+level: intermediate # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-03
+tags: [devops, monitoring, prometheus]
+in_book: true
+---
+
 # Prometheus
 
 Prometheus is the de facto standard for metrics in container environments. This file covers the architecture, PromQL, and the operational limits you will be asked about.

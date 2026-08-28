@@ -1,3 +1,15 @@
+---
+title: Design a Chat System
+part: 6
+chapter: 0
+slug: chat-system
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, interview, questions, chat]
+in_book: true
+---
+
 # Design a Chat System {#ch-design-chat-system}
 
 > Hold a million connections, route a message to the right one, and keep the ordering sane.

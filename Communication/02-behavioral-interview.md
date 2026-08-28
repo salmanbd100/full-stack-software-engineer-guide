@@ -1,3 +1,15 @@
+---
+title: Behavioural Answer Delivery
+part: 9
+chapter: 0
+slug: behavioral-interview
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [communication, behavioral, interview]
+in_book: true
+---
+
 # Behavioural Answer Delivery {#ch-behavioural-answer-delivery}
 
 > Deliver a STAR answer in two to three minutes without narrating the whole quarter.

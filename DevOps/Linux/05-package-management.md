@@ -1,3 +1,15 @@
+---
+title: Package Management for DevOps
+part: 8
+chapter: 0
+slug: package-management
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-07-05
+tags: [devops, linux, package, management]
+in_book: false
+---
+
 # Package Management for DevOps
 
 ## Overview

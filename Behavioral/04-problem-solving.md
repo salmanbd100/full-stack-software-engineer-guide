@@ -1,3 +1,15 @@
+---
+title: Problem-Solving Stories
+part: 9
+chapter: 0
+slug: problem-solving
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-28
+tags: [behavioral, problem, solving]
+in_book: true
+---
+
 # Problem-Solving Stories {#ch-problem-solving-stories}
 
 > Tell a debugging or decision story that shows method rather than heroics.

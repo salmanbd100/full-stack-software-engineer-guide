@@ -1,3 +1,15 @@
+---
+title: Core Web Vitals
+part: 4
+chapter: 0
+slug: core-web-vitals
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [frontend, web, performance, core, vitals]
+in_book: true
+---
+
 # Core Web Vitals {#ch-core-web-vitals}
 
 > Read the three metrics Google actually ranks on, and know which fix moves which one.

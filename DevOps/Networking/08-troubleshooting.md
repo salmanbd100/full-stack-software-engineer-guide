@@ -1,3 +1,15 @@
+---
+title: Network Troubleshooting
+part: 8
+chapter: 0
+slug: networking-troubleshooting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 15
+updated: 2026-08-03
+tags: [devops, networking, troubleshooting]
+in_book: false
+---
+
 # Network Troubleshooting
 
 Network debugging questions are scenario-based. What interviewers want is a **method** — a repeatable order of elimination, not a list of tools.

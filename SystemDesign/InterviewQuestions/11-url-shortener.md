@@ -1,3 +1,15 @@
+---
+title: Design a URL Shortener
+part: 6
+chapter: 0
+slug: url-shortener
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, url]
+in_book: true
+---
+
 # Design a URL Shortener {#ch-design-url-shortener}
 
 > Generate a short unique key without a coordination bottleneck, then serve reads from cache.

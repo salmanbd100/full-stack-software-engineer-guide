@@ -1,3 +1,15 @@
+---
+title: Mongoose
+part: 5
+chapter: 0
+slug: mongoose
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [backend, nosql, mongoose]
+in_book: true
+---
+
 # Mongoose {#ch-mongoose}
 
 > Get a schema and validation over a schemaless database without paying for hydration you do not need.

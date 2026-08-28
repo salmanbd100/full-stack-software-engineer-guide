@@ -1,3 +1,15 @@
+---
+title: Pipeline Security
+part: 8
+chapter: 0
+slug: cicd-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-03
+tags: [devops, cicd, security]
+in_book: true
+---
+
 # Pipeline Security
 
 The pipeline is the most privileged system you own. It can read every repository and deploy to production. Attackers target it for exactly that reason.

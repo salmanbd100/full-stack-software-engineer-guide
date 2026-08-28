@@ -1,3 +1,15 @@
+---
+title: Security Services (CloudTrail, GuardDuty, Config, KMS)
+part: 8
+chapter: 0
+slug: aws-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-06-08
+tags: [devops, aws, security]
+in_book: false
+---
+
 # Security Services (CloudTrail, GuardDuty, Config, KMS)
 
 AWS provides four core security services — each answers a different question about your environment.

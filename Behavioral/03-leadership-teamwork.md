@@ -1,3 +1,15 @@
+---
+title: Leadership and Teamwork
+part: 9
+chapter: 0
+slug: leadership-teamwork
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [behavioral, leadership, teamwork]
+in_book: true
+---
+
 # Leadership and Teamwork {#ch-leadership-and-teamwork}
 
 > Show influence without authority, which is what the question is really testing at senior level.

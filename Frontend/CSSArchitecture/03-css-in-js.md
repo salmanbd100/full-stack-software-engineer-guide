@@ -1,3 +1,15 @@
+---
+title: CSS-in-JS
+part: 2
+chapter: 0
+slug: css-in-js
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, cssarchitecture, css, js]
+in_book: true
+---
+
 # CSS-in-JS {#ch-css-in-js}
 
 > Weigh runtime CSS-in-JS against the zero-runtime alternatives, and know what each costs at hydration.

@@ -1,3 +1,15 @@
+---
+title: AWS Systems Manager
+part: 8
+chapter: 0
+slug: systems-manager
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, scripting, systems, manager]
+in_book: false
+---
+
 # AWS Systems Manager
 
 Systems Manager is how you operate fleets of instances without SSH, bastion hosts, or configuration management agents you have to run yourself.

@@ -1,3 +1,15 @@
+---
+title: Sliding Window
+part: 10
+chapter: 0
+slug: sliding-window
+level: intermediate # beginner | intermediate | advanced
+reading_time: 29
+updated: 2026-08-28
+tags: [dsa, sliding, window]
+in_book: true
+---
+
 # Sliding Window {#ch-sliding-window}
 
 > Keep a running window over an array and update it in O(1) instead of recomputing.

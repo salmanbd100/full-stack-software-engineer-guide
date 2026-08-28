@@ -1,3 +1,15 @@
+---
+title: The Preparation Grid
+part: 9
+chapter: 0
+slug: preparation-grid
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [behavioral, preparation, grid]
+in_book: true
+---
+
 # The Preparation Grid {#ch-preparation-grid}
 
 > Build seven to ten stories that between them answer almost every question you will be asked.

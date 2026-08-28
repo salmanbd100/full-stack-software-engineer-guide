@@ -1,3 +1,15 @@
+---
+title: Mocking and Stubbing
+part: 5
+chapter: 0
+slug: mocking
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [backend, testing, mocking]
+in_book: true
+---
+
 # Mocking and Stubbing {#ch-mocking-and-stubbing}
 
 > Replace a dependency without writing a test that only proves your mock works.

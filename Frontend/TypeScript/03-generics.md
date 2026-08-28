@@ -1,3 +1,15 @@
+---
+title: TypeScript Generics
+part: 1
+chapter: 0
+slug: generics
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [frontend, typescript, generics]
+in_book: true
+---
+
 # TypeScript Generics {#ch-typescript-generics}
 
 > Write a function once and keep the caller's exact type all the way through it.

@@ -1,3 +1,15 @@
+---
+title: File Storage
+part: 6
+chapter: 0
+slug: file-storage
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, building, blocks, file]
+in_book: true
+---
+
 # File Storage {#ch-file-storage}
 
 > Keep large files out of your application path, and out of your database.

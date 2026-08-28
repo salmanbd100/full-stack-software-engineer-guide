@@ -1,3 +1,15 @@
+---
+title: Responsive Design
+part: 2
+chapter: 0
+slug: responsive-design
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [frontend, html, css, responsive, design]
+in_book: true
+---
+
 # Responsive Design {#ch-responsive-design}
 
 > Build one interface that adapts to any screen, input mode and user preference, without a breakpoint for every device.

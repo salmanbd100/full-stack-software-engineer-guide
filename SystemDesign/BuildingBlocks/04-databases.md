@@ -1,3 +1,15 @@
+---
+title: Choosing a Database
+part: 6
+chapter: 0
+slug: databases
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, building, blocks, databases]
+in_book: true
+---
+
 # Choosing a Database {#ch-choosing-a-database}
 
 > Let the access pattern pick the database, rather than the other way round.

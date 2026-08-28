@@ -3,8 +3,8 @@ title: Part V — Backend Testing
 part: 5
 chapter: 0
 slug: part-backend-testing
-level: intermediate
-reading_time: 4
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
 updated: 2026-08-28
 tags: [testing, tdd, mocking, integration, e2e]
 in_book: true

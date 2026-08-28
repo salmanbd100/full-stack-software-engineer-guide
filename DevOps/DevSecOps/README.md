@@ -1,3 +1,15 @@
+---
+title: DevSecOps - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-devsecops-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-04
+tags: [devops, devsecops]
+in_book: false
+---
+
 # DevSecOps - Interview Preparation
 
 DevSecOps questions test whether you can make security a property of the pipeline rather than a review meeting. This section covers the tooling, the gate design, and the culture.

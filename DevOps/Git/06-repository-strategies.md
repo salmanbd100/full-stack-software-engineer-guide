@@ -1,3 +1,15 @@
+---
+title: "Repository Strategies: Monorepo vs Polyrepo"
+part: 8
+chapter: 0
+slug: repository-strategies
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-05-05
+tags: [devops, git, repository, strategies]
+in_book: true
+---
+
 # Repository Strategies: Monorepo vs Polyrepo
 
 ## Overview

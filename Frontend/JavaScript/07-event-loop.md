@@ -1,3 +1,15 @@
+---
+title: The Event Loop
+part: 1
+chapter: 0
+slug: event-loop
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-28
+tags: [frontend, javascript, event, loop]
+in_book: true
+---
+
 # The Event Loop {#ch-the-event-loop}
 
 > Predict the exact order a piece of asynchronous code will log, and say why.

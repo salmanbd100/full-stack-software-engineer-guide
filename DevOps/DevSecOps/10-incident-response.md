@@ -1,3 +1,15 @@
+---
+title: Detection & Automated Response
+part: 8
+chapter: 0
+slug: devsecops-incident-response
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-04
+tags: [devops, devsecops, incident, response]
+in_book: false
+---
+
 # Detection & Automated Response
 
 This topic covers **detection engineering and automated response** — building the signals that find an attacker and the automation that contains them.

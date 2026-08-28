@@ -1,3 +1,15 @@
+---
+title: Frontend Performance at Scale
+part: 4
+chapter: 0
+slug: frontend-performance
+level: advanced # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, frontend, performance]
+in_book: true
+---
+
 # Frontend Performance at Scale {#ch-frontend-performance-at-scale}
 
 > Diagnose which Core Web Vital is failing, and apply the fix that actually moves it.

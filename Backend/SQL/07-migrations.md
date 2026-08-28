@@ -1,3 +1,15 @@
+---
+title: Migrations and Seeds
+part: 5
+chapter: 0
+slug: migrations
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [backend, sql, migrations]
+in_book: true
+---
+
 # Migrations and Seeds {#ch-migrations-and-seeds}
 
 > Change a live schema without downtime, and be able to go back.

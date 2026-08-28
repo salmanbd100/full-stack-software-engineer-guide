@@ -1,3 +1,15 @@
+---
+title: Advanced Bash Scripting
+part: 8
+chapter: 0
+slug: bash-advanced
+level: advanced # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, scripting, bash, advanced]
+in_book: false
+---
+
 # Advanced Bash Scripting
 
 Bash is the language your automation actually runs in. This file covers the patterns that make a script safe to run in production and the pitfalls that cause outages.

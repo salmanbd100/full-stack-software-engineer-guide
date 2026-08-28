@@ -1,3 +1,15 @@
+---
+title: Behavioural Patterns
+part: 1
+chapter: 0
+slug: behavioral-patterns
+level: advanced # beginner | intermediate | advanced
+reading_time: 19
+updated: 2026-08-28
+tags: [backend, design, patterns, behavioral]
+in_book: true
+---
+
 # Behavioural Patterns {#ch-behavioural-patterns}
 
 > Move branching logic out of a growing conditional and into something you can extend.

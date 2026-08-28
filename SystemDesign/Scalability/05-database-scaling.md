@@ -1,3 +1,15 @@
+---
+title: Database Scaling
+part: 6
+chapter: 0
+slug: database-scaling
+level: advanced # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, scalability, database, scaling]
+in_book: false
+---
+
 # Database Scaling {#ch-database-scaling}
 
 > Scale reads and writes separately, and leave sharding until last.

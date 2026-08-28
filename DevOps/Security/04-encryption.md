@@ -1,3 +1,15 @@
+---
+title: Encryption & KMS
+part: 8
+chapter: 0
+slug: devops-security-encryption
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, security, encryption]
+in_book: false
+---
+
 # Encryption & KMS
 
 Encryption is the layer that assumes every other control failed. This file covers KMS mechanics, which is where the interview questions live.

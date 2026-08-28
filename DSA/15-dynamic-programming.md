@@ -1,3 +1,15 @@
+---
+title: Dynamic Programming
+part: 10
+chapter: 0
+slug: dynamic-programming
+level: intermediate # beginner | intermediate | advanced
+reading_time: 23
+updated: 2026-08-28
+tags: [dsa, dynamic, programming]
+in_book: true
+---
+
 # Dynamic Programming {#ch-dynamic-programming}
 
 > Spot overlapping subproblems, define the state, and convert a recursion into a table.

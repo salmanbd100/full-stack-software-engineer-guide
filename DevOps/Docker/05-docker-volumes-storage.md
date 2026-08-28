@@ -1,3 +1,15 @@
+---
+title: Docker Volumes & Storage
+part: 8
+chapter: 0
+slug: docker-volumes-storage
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-05-05
+tags: [devops, docker, volumes, storage]
+in_book: false
+---
+
 # Docker Volumes & Storage
 
 ## Volume Types

@@ -1,3 +1,15 @@
+---
+title: Array and Object Methods
+part: 1
+chapter: 0
+slug: array-object-methods
+level: intermediate # beginner | intermediate | advanced
+reading_time: 35
+updated: 2026-08-28
+tags: [frontend, javascript, array, object, methods]
+in_book: true
+---
+
 # Array and Object Methods {#ch-array-and-object-methods}
 
 > Pick the method that says what you mean, and know which ones mutate the thing you passed in.

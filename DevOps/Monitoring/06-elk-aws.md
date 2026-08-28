@@ -1,3 +1,15 @@
+---
+title: Log Aggregation on AWS (OpenSearch & ELK)
+part: 8
+chapter: 0
+slug: elk-aws
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, monitoring, elk, aws]
+in_book: false
+---
+
 # Log Aggregation on AWS (OpenSearch & ELK)
 
 Centralised logging is where large amounts of money get spent quietly. This file covers the pipeline design and the cost decisions.

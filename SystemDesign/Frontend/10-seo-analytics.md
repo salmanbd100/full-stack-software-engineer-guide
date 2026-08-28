@@ -1,3 +1,15 @@
+---
+title: SEO and Analytics
+part: 6
+chapter: 0
+slug: seo-analytics
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, frontend, seo, analytics]
+in_book: true
+---
+
 # SEO and Analytics {#ch-seo-and-analytics}
 
 > Know what the crawler sees, and what you are allowed to measure about the user.

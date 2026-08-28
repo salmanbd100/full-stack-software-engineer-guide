@@ -1,3 +1,15 @@
+---
+title: Cost Optimization & Performance - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-cost-optimization-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-04
+tags: [devops, cost, optimization]
+in_book: false
+---
+
 # Cost Optimization & Performance - Interview Preparation
 
 Cost questions reveal whether you have owned a production AWS account or only built in one. This section covers making spend visible, reducing it, and planning capacity before you need it.

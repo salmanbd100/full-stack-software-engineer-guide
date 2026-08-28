@@ -1,3 +1,15 @@
+---
+title: Unit Testing
+part: 5
+chapter: 0
+slug: unit-testing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [backend, testing, unit]
+in_book: true
+---
+
 # Unit Testing {#ch-unit-testing}
 
 > Decide what the unit is, and test its behaviour rather than the way it happens to be written.

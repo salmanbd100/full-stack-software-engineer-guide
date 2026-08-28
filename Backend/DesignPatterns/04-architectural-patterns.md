@@ -1,3 +1,15 @@
+---
+title: Architectural Patterns
+part: 1
+chapter: 0
+slug: architectural-patterns
+level: advanced # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-28
+tags: [backend, design, patterns, architectural]
+in_book: true
+---
+
 # Architectural Patterns {#ch-architectural-patterns}
 
 > Draw the layers of a service so a change lands in one place rather than five.

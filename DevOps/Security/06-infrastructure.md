@@ -1,3 +1,15 @@
+---
+title: Infrastructure Security
+part: 8
+chapter: 0
+slug: infrastructure
+level: intermediate # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-03
+tags: [devops, security, infrastructure]
+in_book: false
+---
+
 # Infrastructure Security
 
 Protecting the perimeter and the account itself: WAF, Shield, account-level guardrails, and the controls that stop the misconfigurations that cause real breaches.

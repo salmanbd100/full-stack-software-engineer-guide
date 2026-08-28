@@ -1,3 +1,15 @@
+---
+title: Design an API Gateway
+part: 6
+chapter: 0
+slug: interview-questions-api-gateway
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [system, design, interview, questions, api]
+in_book: true
+---
+
 # Design an API Gateway {#ch-design-api-gateway}
 
 > Put auth, routing and rate limiting at the edge, and keep everything else out of it.

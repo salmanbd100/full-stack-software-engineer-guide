@@ -1,3 +1,15 @@
+---
+title: Microservices Architecture
+part: 6
+chapter: 0
+slug: microservices-architecture
+level: advanced # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [system, design, microservices, architecture]
+in_book: true
+---
+
 # Microservices Architecture {#ch-microservices-architecture}
 
 > Argue both sides of the split, and give the answer that is usually right: not yet.

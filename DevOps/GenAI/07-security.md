@@ -1,3 +1,15 @@
+---
+title: AI Security Considerations
+part: 8
+chapter: 0
+slug: genai-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-04
+tags: [devops, genai, security]
+in_book: false
+---
+
 # AI Security Considerations
 
 Using AI tools creates three distinct risks: **what you send out**, **what comes back**, and **what an agent is allowed to do**. Treat them separately.

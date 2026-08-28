@@ -1,3 +1,15 @@
+---
+title: Container Security Scanning
+part: 8
+chapter: 0
+slug: devsecops-container-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-04
+tags: [devops, devsecops, container, security]
+in_book: false
+---
+
 # Container Security Scanning
 
 This topic covers **scanning containers inside the pipeline** — choosing tools, setting thresholds, and reducing findings at the source.

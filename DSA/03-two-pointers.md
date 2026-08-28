@@ -1,3 +1,15 @@
+---
+title: Two Pointers
+part: 10
+chapter: 0
+slug: two-pointers
+level: intermediate # beginner | intermediate | advanced
+reading_time: 47
+updated: 2026-08-28
+tags: [dsa, two, pointers]
+in_book: true
+---
+
 # Two Pointers {#ch-two-pointers}
 
 > Replace a nested loop with two indices moving through a sorted array in one pass.

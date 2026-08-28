@@ -1,3 +1,15 @@
+---
+title: Micro-Frontends
+part: 4
+chapter: 0
+slug: micro-frontends
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, frontend, micro, frontends]
+in_book: true
+---
+
 # Micro-Frontends {#ch-micro-frontends}
 
 > Say when independent deploys are worth the coordination cost, and when they are not.

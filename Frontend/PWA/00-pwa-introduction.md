@@ -1,3 +1,15 @@
+---
+title: Progressive Web Apps
+part: 2
+chapter: 0
+slug: pwa-introduction
+level: beginner # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-28
+tags: [frontend, pwa, introduction]
+in_book: true
+---
+
 # Progressive Web Apps {#ch-progressive-web-apps}
 
 > Say what a PWA actually buys a user, and when a native app is still the right answer.

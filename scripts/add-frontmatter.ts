@@ -56,7 +56,7 @@ const FIELD_ORDER: readonly (keyof FrontMatter)[] = [
 // Exclusions — repo tooling, not manuscript. These get no front matter at all.
 // ---------------------------------------------------------------------------
 
-const EXCLUDED_DIRS: readonly string[] = [".git", ".claude", "node_modules", "Archive", "scripts"];
+const EXCLUDED_DIRS: readonly string[] = [".git", ".claude", "node_modules", "Archive", "scripts", "build"];
 
 const EXCLUDED_FILES: readonly string[] = [
   "CLAUDE.md", // agent instructions
@@ -129,6 +129,9 @@ const PART_OVERRIDES: Readonly<Record<string, number>> = {
   "SystemDesign/Frontend/09-assets.md": 4,
   "SystemDesign/Frontend/12-monitoring.md": 4,
 
+  // Back matter (#19) — root-level, so no prefix can reach it
+  "About-the-Author.md": 9,
+
   // #25 — ways of working is the human layer, not DevOps
   "DevOps/Agile/01-fundamentals.md": 9,
   "DevOps/Agile/03-devops-culture.md": 9,
@@ -155,6 +158,7 @@ const OUT_OF_BOOK_DIRS: readonly string[] = [
   // #24 — security consolidates into Frontend/ and Backend/
   "DevOps/DevSecOps",
   "DevOps/Security",
+  "SystemDesign/Security",
   // #21 — replaced by the real AI/ part
   "DevOps/GenAI",
   // #23 — dissolved into Fundamentals/ and BuildingBlocks/
@@ -318,7 +322,10 @@ function splitFrontMatter(raw: string): { existing: Record<string, string> | nul
 
 function deriveTitle(body: string, file: string): string {
   const h1 = body.match(/^#\s+(.+?)(?:\s*\{#.*\})?\s*$/m);
-  if (h1) return h1[1].replace(/[*_`]/g, "").trim();
+  // Backticks are kept: the lint requires `title` to match the H1 verbatim, and a code-span
+  // heading like "The `this` Keyword" fails that check if they are stripped. YAML treats them
+  // as ordinary characters in a plain scalar.
+  if (h1) return h1[1].replace(/[*_]/g, "").trim();
   const name: string = basename(file, ".md").replace(/^\d+-/, "");
   return name.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
@@ -501,6 +508,7 @@ let skipped = 0;
 const report: string[] = [];
 const outOfBook: string[] = [];
 const noPart: string[] = [];
+const inBookParts: number[] = [];
 
 for (const rel of files) {
   const raw: string = readFileSync(rel, "utf8");
@@ -539,6 +547,7 @@ for (const rel of files) {
   }
 
   if (!fm.in_book) outOfBook.push(rel);
+  else inBookParts.push(fm.part);
   // part: 0 is only a problem for a file that is actually in the book.
   if (fm.part === 0 && fm.in_book) noPart.push(rel);
   report.push(`P${fm.part} ${fm.in_book ? "  " : "✗ "} ${fm.slug.padEnd(42)} ${rel}`);
@@ -555,12 +564,10 @@ console.log(`  already correct : ${skipped}`);
 console.log(`  in_book: true   : ${files.length - outOfBook.length}`);
 console.log(`  in_book: false  : ${outOfBook.length}`);
 
+// Counted from the values actually written, not re-derived — a hand-corrected `part`
+// used to be reported under its derived value, so the table disagreed with the files.
 const byPart = new Map<number, number>();
-for (const rel of files) {
-  if (!deriveInBook(rel)) continue;
-  const p: number = derivePart(rel);
-  byPart.set(p, (byPart.get(p) ?? 0) + 1);
-}
+for (const p of inBookParts) byPart.set(p, (byPart.get(p) ?? 0) + 1);
 console.log(`\n  In-book chapters by part:`);
 for (const p of [...byPart.keys()].sort((a, b) => a - b)) {
   console.log(`    Part ${String(p).padStart(2)} : ${byPart.get(p)}`);

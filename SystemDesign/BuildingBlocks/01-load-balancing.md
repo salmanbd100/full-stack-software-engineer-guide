@@ -1,3 +1,15 @@
+---
+title: Load Balancing
+part: 6
+chapter: 0
+slug: building-blocks-load-balancing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, building, blocks, load]
+in_book: true
+---
+
 # Load Balancing {#ch-load-balancing}
 
 > Choose L4 or L7 and an algorithm to match the traffic, and say what happens when a node dies.

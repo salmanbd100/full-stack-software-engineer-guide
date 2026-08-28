@@ -1,3 +1,15 @@
+---
+title: DAST — Dynamic Application Security Testing
+part: 8
+chapter: 0
+slug: dast
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-04
+tags: [devops, devsecops, dast]
+in_book: false
+---
+
 # DAST — Dynamic Application Security Testing
 
 DAST attacks a **running** application from the outside. It has no access to source code, so it finds what is actually exploitable over the network.

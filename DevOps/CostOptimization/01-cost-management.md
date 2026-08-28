@@ -1,3 +1,15 @@
+---
+title: Cost Management
+part: 8
+chapter: 0
+slug: cost-management
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, cost, optimization, management]
+in_book: false
+---
+
 # Cost Management
 
 Cost management is the practice of making AWS spend **visible and attributable** before you try to reduce it. You cannot optimize a bill you cannot read.

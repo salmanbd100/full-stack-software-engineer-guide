@@ -1,3 +1,15 @@
+---
+title: Design WhatsApp
+part: 6
+chapter: 0
+slug: whatsapp
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, whatsapp]
+in_book: false
+---
+
 # Design WhatsApp {#ch-design-whatsapp}
 
 > Deliver a message exactly once to a device that may be offline, and prove it was delivered.

@@ -1,3 +1,15 @@
+---
+title: Container Security
+part: 8
+chapter: 0
+slug: security-container-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 19
+updated: 2026-08-03
+tags: [devops, security, container]
+in_book: false
+---
+
 # Container Security
 
 Container security spans four distinct stages, and interviewers want to hear that you cover all of them rather than just image scanning.

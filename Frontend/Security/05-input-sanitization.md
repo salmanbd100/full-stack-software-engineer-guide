@@ -1,3 +1,15 @@
+---
+title: Input Validation and Sanitisation
+part: 4
+chapter: 0
+slug: input-sanitization
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [frontend, security, input, sanitization]
+in_book: true
+---
+
 # Input Validation and Sanitisation {#ch-input-validation-and-sanitisation}
 
 > Validate on the server because the client is UX, and parameterise everything that reaches a query.

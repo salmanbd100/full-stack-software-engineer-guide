@@ -1,3 +1,15 @@
+---
+title: RDS (Relational Database Service)
+part: 8
+chapter: 0
+slug: rds
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-06-08
+tags: [devops, aws, rds]
+in_book: false
+---
+
 # RDS (Relational Database Service)
 
 RDS is a managed relational database. AWS handles patching, backups, hardware, and failover — you focus on your schema and queries.

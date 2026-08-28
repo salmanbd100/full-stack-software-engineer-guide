@@ -1,3 +1,15 @@
+---
+title: OOP Fundamentals
+part: 1
+chapter: 0
+slug: oop-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 21
+updated: 2026-08-28
+tags: [oop, fundamentals]
+in_book: true
+---
+
 # OOP Fundamentals {#ch-oop-fundamentals}
 
 > Model a thing as a class and know what `new` actually does when you call it.

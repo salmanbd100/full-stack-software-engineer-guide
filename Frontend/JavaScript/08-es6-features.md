@@ -1,3 +1,15 @@
+---
+title: ES2015 and Later Features
+part: 1
+chapter: 0
+slug: es6-features
+level: intermediate # beginner | intermediate | advanced
+reading_time: 37
+updated: 2026-08-28
+tags: [frontend, javascript, es6, features]
+in_book: true
+---
+
 # ES2015 and Later Features {#ch-es2015-and-later-features}
 
 > Reach for the modern form of each pattern, and say what it replaced and why that matters.

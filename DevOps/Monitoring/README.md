@@ -1,3 +1,15 @@
+---
+title: Monitoring & Observability - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-monitoring-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-03
+tags: [devops, monitoring]
+in_book: true
+---
+
 # Monitoring & Observability - Interview Preparation
 
 Observability questions separate engineers who have operated production systems from those who have only built them. This guide covers the theory, the AWS tooling, and the human process around incidents.

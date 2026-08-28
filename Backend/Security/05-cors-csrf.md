@@ -1,3 +1,15 @@
+---
+title: CORS and CSRF
+part: 5
+chapter: 0
+slug: cors-csrf
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [backend, security, cors, csrf]
+in_book: true
+---
+
 # CORS and CSRF {#ch-cors-and-csrf}
 
 > Configure CORS without opening a hole, and know why it is not a CSRF defence.

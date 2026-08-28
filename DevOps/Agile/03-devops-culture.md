@@ -1,3 +1,15 @@
+---
+title: DevOps Culture
+part: 9
+chapter: 0
+slug: devops-culture
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, agile, culture]
+in_book: true
+---
+
 # DevOps Culture
 
 Culture is the part of DevOps that tooling cannot deliver. Two teams with identical pipelines can have completely different outcomes, and the difference is how they handle ownership, failure, and disagreement.

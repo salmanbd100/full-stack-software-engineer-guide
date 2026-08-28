@@ -1,3 +1,15 @@
+---
+title: Load Balancing on AWS
+part: 8
+chapter: 0
+slug: networking-load-balancing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, networking, load, balancing]
+in_book: false
+---
+
 # Load Balancing on AWS
 
 Choosing between ALB and NLB, and knowing the failure modes of each, is standard interview material.

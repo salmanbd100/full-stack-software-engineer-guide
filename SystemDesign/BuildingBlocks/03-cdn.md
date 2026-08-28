@@ -1,3 +1,15 @@
+---
+title: Content Delivery Network
+part: 6
+chapter: 0
+slug: building-blocks-cdn
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, building, blocks, cdn]
+in_book: true
+---
+
 # Content Delivery Network {#ch-cdn}
 
 > Serve bytes from near the user, and invalidate them without waiting for a TTL.

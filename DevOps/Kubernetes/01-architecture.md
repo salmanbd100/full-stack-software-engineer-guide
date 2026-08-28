@@ -1,3 +1,15 @@
+---
+title: Kubernetes Architecture
+part: 8
+chapter: 0
+slug: kubernetes-architecture
+level: advanced # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-03
+tags: [devops, kubernetes, architecture]
+in_book: true
+---
+
 # Kubernetes Architecture
 
 Kubernetes is a control loop system. You declare the desired state; controllers work continuously to make reality match it.

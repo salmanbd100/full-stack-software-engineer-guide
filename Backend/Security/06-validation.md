@@ -1,3 +1,15 @@
+---
+title: Backend Input Validation
+part: 5
+chapter: 0
+slug: validation
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [backend, security, validation]
+in_book: true
+---
+
 # Backend Input Validation {#ch-backend-input-validation}
 
 > Validate at the boundary with an allowlist, so nothing untrusted reaches your business logic.

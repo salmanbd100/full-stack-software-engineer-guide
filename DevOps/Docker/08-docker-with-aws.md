@@ -1,3 +1,15 @@
+---
+title: Docker with AWS
+part: 8
+chapter: 0
+slug: docker-with-aws
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-06-08
+tags: [devops, docker, aws]
+in_book: false
+---
+
 # Docker with AWS
 
 ## Amazon ECR (Container Registry)

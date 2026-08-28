@@ -1,3 +1,15 @@
+---
+title: Frontend Architecture Patterns
+part: 4
+chapter: 0
+slug: frontend-architecture
+level: advanced # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, frontend, architecture]
+in_book: true
+---
+
 # Frontend Architecture Patterns {#ch-frontend-architecture-patterns}
 
 > Put boundaries in a large client app so a change lands in one place.

@@ -1,3 +1,15 @@
+---
+title: Vertical Scaling
+part: 6
+chapter: 0
+slug: vertical-scaling
+level: advanced # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-28
+tags: [system, design, scalability, vertical, scaling]
+in_book: false
+---
+
 # Vertical Scaling {#ch-vertical-scaling}
 
 > Recognise the cases where a bigger box is the correct, boring answer.

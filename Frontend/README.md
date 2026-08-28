@@ -3,8 +3,8 @@ title: Frontend
 part: 2
 chapter: 0
 slug: frontend-domain-index
-level: intermediate
-reading_time: 4
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
 updated: 2026-08-28
 tags: [frontend, index]
 in_book: false

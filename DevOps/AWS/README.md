@@ -1,3 +1,15 @@
+---
+title: AWS - Interview Preparation
+part: 8
+chapter: 0
+slug: devops-aws-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 1
+updated: 2026-06-08
+tags: [devops, aws]
+in_book: true
+---
+
 # AWS - Interview Preparation
 
 AWS fundamentals for DevOps engineers. Covers the services that appear most in senior-level interviews.

@@ -1,3 +1,15 @@
+---
+title: AI for Monitoring & AIOps
+part: 8
+chapter: 0
+slug: genai-monitoring
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-04
+tags: [devops, genai, monitoring]
+in_book: false
+---
+
 # AI for Monitoring & AIOps
 
 AIOps means applying machine learning to operational data. The genuinely useful applications are narrow: **anomaly detection, correlation, and noise reduction**. The rest is mostly marketing.

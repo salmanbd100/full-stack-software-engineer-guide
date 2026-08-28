@@ -1,3 +1,15 @@
+---
+title: Frontend Caching Strategies
+part: 4
+chapter: 0
+slug: web-performance-caching-strategies
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, web, performance, caching, strategies]
+in_book: true
+---
+
 # Frontend Caching Strategies {#ch-frontend-caching-strategies}
 
 > Cache at the right layer, and have an answer for how each entry becomes wrong.

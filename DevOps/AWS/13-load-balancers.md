@@ -1,3 +1,15 @@
+---
+title: Load Balancers (ALB & NLB)
+part: 8
+chapter: 0
+slug: load-balancers
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-06-08
+tags: [devops, aws, load, balancers]
+in_book: false
+---
+
 # Load Balancers (ALB & NLB)
 
 AWS Elastic Load Balancing spreads incoming traffic across multiple targets. This removes single points of failure and lets you scale horizontally.

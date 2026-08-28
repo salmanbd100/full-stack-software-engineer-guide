@@ -1,3 +1,15 @@
+---
+title: Resilience Patterns
+part: 6
+chapter: 0
+slug: resilience
+level: advanced # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [system, design, microservices, resilience]
+in_book: true
+---
+
 # Resilience Patterns {#ch-resilience-patterns}
 
 > Stop one slow dependency from taking the whole system with it.

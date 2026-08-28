@@ -1,3 +1,15 @@
+---
+title: Behavioral Interview Preparation
+part: 9
+chapter: 0
+slug: behavioral-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
+updated: 2026-08-28
+tags: [behavioral]
+in_book: true
+---
+
 # Behavioral Interview Preparation
 
 Structured guide for behavioral interviews at MNCs and senior engineering roles. Built around the STAR framework, curated question categories, and tight sample answers.

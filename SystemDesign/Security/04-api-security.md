@@ -1,3 +1,15 @@
+---
+title: API Security
+part: 6
+chapter: 0
+slug: api-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-28
+tags: [system, design, security, api]
+in_book: false
+---
+
 # API Security {#ch-api-security}
 
 > Harden an API at its edge, before any of it reaches your business logic.

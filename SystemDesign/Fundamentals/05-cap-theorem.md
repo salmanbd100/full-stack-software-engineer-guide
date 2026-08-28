@@ -1,3 +1,15 @@
+---
+title: The CAP Theorem
+part: 6
+chapter: 0
+slug: fundamentals-cap-theorem
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-28
+tags: [system, design, fundamentals, cap, theorem]
+in_book: true
+---
+
 # The CAP Theorem {#ch-cap-theorem}
 
 > Apply CAP to the system on the whiteboard rather than reciting the definition.

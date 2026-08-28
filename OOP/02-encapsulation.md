@@ -1,3 +1,15 @@
+---
+title: Encapsulation
+part: 1
+chapter: 0
+slug: encapsulation
+level: intermediate # beginner | intermediate | advanced
+reading_time: 21
+updated: 2026-08-28
+tags: [oop, encapsulation]
+in_book: true
+---
+
 # Encapsulation {#ch-encapsulation}
 
 > Hide state behind an interface so a caller cannot put the object into an invalid state.

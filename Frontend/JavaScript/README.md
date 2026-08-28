@@ -1,3 +1,15 @@
+---
+title: JavaScript Fundamentals
+part: 1
+chapter: 0
+slug: frontend-javascript-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-28
+tags: [frontend, javascript]
+in_book: true
+---
+
 # JavaScript Fundamentals
 
 Master core JavaScript concepts essential for frontend interviews at multinational companies. JavaScript is the foundation of modern web development and is tested extensively in technical interviews.

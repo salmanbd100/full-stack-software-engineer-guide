@@ -1,3 +1,15 @@
+---
+title: Frontend Monitoring
+part: 4
+chapter: 0
+slug: frontend-monitoring
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, frontend, monitoring]
+in_book: true
+---
+
 # Frontend Monitoring {#ch-frontend-monitoring}
 
 > Find out it is broken for users before they tell you.

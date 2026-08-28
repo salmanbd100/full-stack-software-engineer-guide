@@ -1,3 +1,15 @@
+---
+title: GitHub Actions
+part: 8
+chapter: 0
+slug: github-actions
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-03
+tags: [devops, cicd, github, actions]
+in_book: true
+---
+
 # GitHub Actions
 
 GitHub Actions runs workflows in response to repository events. It is the default CI/CD choice for most teams on GitHub.

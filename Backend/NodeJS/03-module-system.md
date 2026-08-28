@@ -1,3 +1,15 @@
+---
+title: The Node.js Module System
+part: 5
+chapter: 0
+slug: module-system
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [backend, nodejs, module, system]
+in_book: true
+---
+
 # The Node.js Module System {#ch-node-module-system}
 
 > Work in a codebase where CommonJS and ES modules meet, without guessing which rules apply.

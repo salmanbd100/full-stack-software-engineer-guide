@@ -1,3 +1,15 @@
+---
+title: Git Platforms
+part: 8
+chapter: 0
+slug: git-platforms
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-05-05
+tags: [devops, git, platforms]
+in_book: true
+---
+
 # Git Platforms
 
 ## Overview

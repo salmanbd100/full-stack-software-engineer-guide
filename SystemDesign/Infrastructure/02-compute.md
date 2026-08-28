@@ -1,3 +1,15 @@
+---
+title: Compute Models
+part: 6
+chapter: 0
+slug: compute
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [system, design, infrastructure, compute]
+in_book: false
+---
+
 # Compute Models {#ch-compute-models}
 
 > Pick between a VM, a container and a function on workload shape, not fashion.

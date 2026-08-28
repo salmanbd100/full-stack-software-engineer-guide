@@ -1,3 +1,15 @@
+---
+title: Child Processes and Worker Threads
+part: 5
+chapter: 0
+slug: child-processes
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [backend, nodejs, child, processes]
+in_book: true
+---
+
 # Child Processes and Worker Threads {#ch-child-processes-and-worker-threads}
 
 > Move CPU-bound work off the main thread, and choose the right mechanism for it.

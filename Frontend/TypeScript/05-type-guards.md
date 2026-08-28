@@ -1,3 +1,15 @@
+---
+title: TypeScript Type Guards
+part: 1
+chapter: 0
+slug: type-guards
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [frontend, typescript, type, guards]
+in_book: true
+---
+
 # TypeScript Type Guards {#ch-typescript-type-guards}
 
 > Narrow a wide type safely, and get a compile error when you forget a case.

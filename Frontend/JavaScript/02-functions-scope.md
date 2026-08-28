@@ -1,3 +1,15 @@
+---
+title: Functions and Scope
+part: 1
+chapter: 0
+slug: functions-scope
+level: intermediate # beginner | intermediate | advanced
+reading_time: 25
+updated: 2026-08-28
+tags: [frontend, javascript, functions, scope]
+in_book: true
+---
+
 # Functions and Scope {#ch-functions-and-scope}
 
 > Know where every variable lives, how long it lives, and which of the three declaration forms to reach for.

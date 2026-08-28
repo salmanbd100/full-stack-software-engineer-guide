@@ -1,3 +1,15 @@
+---
+title: Design a Rate Limiter
+part: 6
+chapter: 0
+slug: rate-limiter
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [system, design, interview, questions, rate]
+in_book: true
+---
+
 # Design a Rate Limiter {#ch-design-rate-limiter}
 
 > Pick an algorithm for the traffic shape and make the counter correct across every instance.

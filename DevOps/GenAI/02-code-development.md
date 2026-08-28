@@ -1,3 +1,15 @@
+---
+title: AI-Assisted Code Development
+part: 8
+chapter: 0
+slug: code-development
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, genai, code, development]
+in_book: false
+---
+
 # AI-Assisted Code Development
 
 The value of AI in DevOps work is concentrated in code that is **verbose, highly patterned, and cheap to verify** — which describes most infrastructure code.

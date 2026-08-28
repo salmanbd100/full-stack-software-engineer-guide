@@ -1,3 +1,15 @@
+---
+title: WebSockets
+part: 5
+chapter: 0
+slug: api-websockets
+level: intermediate # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-08-28
+tags: [backend, api, websockets]
+in_book: true
+---
+
 # WebSockets {#ch-websockets}
 
 > Choose between a socket, SSE and polling on the requirement, then scale it past one process.

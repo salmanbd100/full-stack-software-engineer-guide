@@ -1,3 +1,15 @@
+---
+title: Design Typeahead
+part: 6
+chapter: 0
+slug: typeahead
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, interview, questions, typeahead]
+in_book: true
+---
+
 # Design Typeahead {#ch-design-typeahead}
 
 > Return suggestions inside a 100ms budget, which rules out touching a database on the path.

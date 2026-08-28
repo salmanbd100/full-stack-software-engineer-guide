@@ -1,3 +1,15 @@
+---
+title: Backend Security
+part: 5
+chapter: 0
+slug: backend-security-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-28
+tags: [backend, security]
+in_book: true
+---
+
 # Backend Security
 
 ## Overview

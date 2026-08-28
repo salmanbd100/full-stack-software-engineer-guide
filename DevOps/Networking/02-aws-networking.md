@@ -1,3 +1,15 @@
+---
+title: AWS Networking Advanced
+part: 8
+chapter: 0
+slug: aws-networking
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, networking, aws]
+in_book: false
+---
+
 # AWS Networking Advanced
 
 Beyond a single VPC: how to connect many VPCs, many accounts, and on-premises networks — and what each option costs.

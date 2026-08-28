@@ -1,3 +1,15 @@
+---
+title: Backend Testing Best Practices
+part: 5
+chapter: 0
+slug: backend-testing-best-practices
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [backend, testing]
+in_book: true
+---
+
 # Backend Testing Best Practices {#ch-backend-testing-best-practices}
 
 > Keep a suite readable and fast enough that it still runs a year from now.

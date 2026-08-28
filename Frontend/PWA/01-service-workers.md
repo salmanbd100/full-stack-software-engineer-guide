@@ -1,3 +1,15 @@
+---
+title: Service Workers
+part: 2
+chapter: 0
+slug: service-workers
+level: intermediate # beginner | intermediate | advanced
+reading_time: 28
+updated: 2026-08-28
+tags: [frontend, pwa, service, workers]
+in_book: true
+---
+
 # Service Workers {#ch-service-workers}
 
 > Put a programmable proxy between your app and the network, and update it without stranding a tab.

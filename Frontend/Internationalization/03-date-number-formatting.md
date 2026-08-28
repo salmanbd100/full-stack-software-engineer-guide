@@ -1,3 +1,15 @@
+---
+title: Date and Number Formatting
+part: 2
+chapter: 0
+slug: date-number-formatting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [frontend, internationalization, date, number, formatting]
+in_book: true
+---
+
 # Date and Number Formatting {#ch-date-and-number-formatting}
 
 > Format dates, numbers and currency for any locale using the platform, not a library.

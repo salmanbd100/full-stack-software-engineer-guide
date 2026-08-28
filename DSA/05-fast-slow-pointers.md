@@ -1,3 +1,15 @@
+---
+title: Fast and Slow Pointers
+part: 10
+chapter: 0
+slug: fast-slow-pointers
+level: intermediate # beginner | intermediate | advanced
+reading_time: 39
+updated: 2026-08-28
+tags: [dsa, fast, slow, pointers]
+in_book: true
+---
+
 # Fast and Slow Pointers {#ch-fast-and-slow-pointers}
 
 > Detect a cycle or find a midpoint in one pass with constant extra space.

@@ -1,3 +1,15 @@
+---
+title: CloudFront & CDN
+part: 8
+chapter: 0
+slug: networking-cloudfront
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-28
+tags: [devops, networking, cloudfront]
+in_book: false
+---
+
 # CloudFront & CDN
 
 A CDN is not just "make it faster" — it is a caching, security, and cost-reduction layer. This file covers cache strategy, which is where the real decisions are.

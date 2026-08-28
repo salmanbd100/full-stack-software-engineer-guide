@@ -1,3 +1,15 @@
+---
+title: CSRF Protection
+part: 4
+chapter: 0
+slug: csrf-protection
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, security, csrf, protection]
+in_book: true
+---
+
 # CSRF Protection {#ch-csrf-protection}
 
 > Stop another origin from spending your user's session, and explain why `SameSite` alone is not enough.

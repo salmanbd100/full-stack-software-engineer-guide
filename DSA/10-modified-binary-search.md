@@ -1,3 +1,15 @@
+---
+title: Modified Binary Search
+part: 10
+chapter: 0
+slug: modified-binary-search
+level: intermediate # beginner | intermediate | advanced
+reading_time: 24
+updated: 2026-08-28
+tags: [dsa, modified, binary, search]
+in_book: true
+---
+
 # Modified Binary Search {#ch-modified-binary-search}
 
 > Apply binary search where the array is rotated, or where you are searching an answer space rather than an array.

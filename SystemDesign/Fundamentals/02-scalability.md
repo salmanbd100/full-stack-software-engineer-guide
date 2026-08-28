@@ -1,3 +1,15 @@
+---
+title: Scalability
+part: 6
+chapter: 0
+slug: scalability
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, fundamentals, scalability]
+in_book: true
+---
+
 # Scalability {#ch-scalability}
 
 > Say what scaling actually costs, and which lever to pull before sharding.

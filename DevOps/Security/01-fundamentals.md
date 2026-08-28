@@ -1,3 +1,15 @@
+---
+title: Security Fundamentals
+part: 8
+chapter: 0
+slug: security-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, security, fundamentals]
+in_book: false
+---
+
 # Security Fundamentals
 
 Security interviews test whether you think in terms of **blast radius** rather than checklists. This file covers the models that produce that thinking.

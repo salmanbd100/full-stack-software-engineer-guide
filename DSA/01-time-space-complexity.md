@@ -1,3 +1,15 @@
+---
+title: Time and Space Complexity
+part: 10
+chapter: 0
+slug: time-space-complexity
+level: intermediate # beginner | intermediate | advanced
+reading_time: 51
+updated: 2026-08-28
+tags: [dsa, time, space, complexity]
+in_book: true
+---
+
 # Time and Space Complexity {#ch-time-and-space-complexity}
 
 > Derive the complexity of code you are looking at, and say what it means for the input size in the question.

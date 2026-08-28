@@ -1,3 +1,15 @@
+---
+title: Dependency Scanning (SCA)
+part: 8
+chapter: 0
+slug: dependency-scanning
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, devsecops, dependency, scanning]
+in_book: false
+---
+
 # Dependency Scanning (SCA)
 
 Software Composition Analysis finds known vulnerabilities in the third-party code you depend on. In a typical Node.js service, **90%+ of shipped lines come from dependencies** — so this is where most of your vulnerable code lives.

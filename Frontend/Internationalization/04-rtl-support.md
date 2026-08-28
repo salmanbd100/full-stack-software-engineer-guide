@@ -1,3 +1,15 @@
+---
+title: Right-to-Left Support
+part: 2
+chapter: 0
+slug: rtl-support
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [frontend, internationalization, rtl, support]
+in_book: true
+---
+
 # Right-to-Left Support {#ch-rtl-support}
 
 > Mirror a layout for Arabic or Hebrew by writing direction-agnostic CSS from the start.

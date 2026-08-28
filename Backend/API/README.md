@@ -1,3 +1,15 @@
+---
+title: API Design
+part: 5
+chapter: 0
+slug: backend-api-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [backend, api]
+in_book: true
+---
+
 # API Design
 
 ## Overview

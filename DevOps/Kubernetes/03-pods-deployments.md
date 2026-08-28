@@ -1,3 +1,15 @@
+---
+title: Pods & Deployments
+part: 8
+chapter: 0
+slug: pods-deployments
+level: intermediate # beginner | intermediate | advanced
+reading_time: 15
+updated: 2026-08-03
+tags: [devops, kubernetes, pods, deployments]
+in_book: true
+---
+
 # Pods & Deployments
 
 Pods are disposable. Controllers keep the right number of them running. Everything in this topic is about that relationship.

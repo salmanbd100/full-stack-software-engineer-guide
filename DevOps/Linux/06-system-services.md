@@ -1,3 +1,15 @@
+---
+title: System Services and Systemd
+part: 8
+chapter: 0
+slug: system-services
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-07-05
+tags: [devops, linux, system, services]
+in_book: false
+---
+
 # System Services and Systemd
 
 ## Overview

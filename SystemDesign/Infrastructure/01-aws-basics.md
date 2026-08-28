@@ -1,3 +1,15 @@
+---
+title: AWS Basics
+part: 6
+chapter: 0
+slug: aws-basics
+level: beginner # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [system, design, infrastructure, aws, basics]
+in_book: false
+---
+
 # AWS Basics {#ch-aws-basics}
 
 > Know the handful of AWS primitives that appear in almost every design round.

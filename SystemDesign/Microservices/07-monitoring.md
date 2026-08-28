@@ -1,3 +1,15 @@
+---
+title: Distributed Observability
+part: 6
+chapter: 0
+slug: microservices-monitoring
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, microservices, monitoring]
+in_book: true
+---
+
 # Distributed Observability {#ch-distributed-observability}
 
 > Trace one user's request across nine services, because logs alone will not do it.

@@ -1,3 +1,15 @@
+---
+title: Service Discovery
+part: 6
+chapter: 0
+slug: service-discovery
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, microservices, service, discovery]
+in_book: true
+---
+
 # Service Discovery {#ch-service-discovery}
 
 > Let services find each other when addresses change every deploy.

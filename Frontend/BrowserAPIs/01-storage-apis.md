@@ -1,3 +1,15 @@
+---
+title: Web Storage APIs
+part: 2
+chapter: 0
+slug: storage-apis
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, browser, apis, storage]
+in_book: true
+---
+
 # Web Storage APIs {#ch-web-storage-apis}
 
 > Choose between localStorage and sessionStorage deliberately, and know why neither should hold a token.

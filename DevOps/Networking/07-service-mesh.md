@@ -1,3 +1,15 @@
+---
+title: Service Mesh
+part: 8
+chapter: 0
+slug: service-mesh
+level: intermediate # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, networking, service, mesh]
+in_book: false
+---
+
 # Service Mesh
 
 A service mesh moves retries, timeouts, mTLS, and traffic routing out of your application and into infrastructure. The most important interview skill here is knowing when **not** to use one.

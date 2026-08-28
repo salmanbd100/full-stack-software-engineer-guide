@@ -1,3 +1,15 @@
+---
+title: Promises and Async/Await
+part: 1
+chapter: 0
+slug: promises-async
+level: intermediate # beginner | intermediate | advanced
+reading_time: 31
+updated: 2026-08-28
+tags: [frontend, javascript, promises, async]
+in_book: true
+---
+
 # Promises and Async/Await {#ch-promises-and-async-await}
 
 > Compose asynchronous work without nesting it, and handle the failure path as deliberately as the success path.

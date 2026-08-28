@@ -1,3 +1,15 @@
+---
+title: Security in Pipelines
+part: 8
+chapter: 0
+slug: pipeline-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-04
+tags: [devops, devsecops, pipeline, security]
+in_book: false
+---
+
 # Security in Pipelines
 
 This topic is about **designing the security stages** of a pipeline: what runs where, what blocks, and how findings reach an owner.

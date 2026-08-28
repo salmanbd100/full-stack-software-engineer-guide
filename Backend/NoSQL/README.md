@@ -1,3 +1,15 @@
+---
+title: NoSQL — MongoDB & Redis
+part: 5
+chapter: 0
+slug: backend-nosql-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 3
+updated: 2026-08-28
+tags: [backend, nosql]
+in_book: true
+---
+
 # NoSQL — MongoDB & Redis
 
 ## Overview

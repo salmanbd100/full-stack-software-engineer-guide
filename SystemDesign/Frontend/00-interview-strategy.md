@@ -1,3 +1,15 @@
+---
+title: Frontend System Design Strategy
+part: 6
+chapter: 0
+slug: interview-strategy
+level: intermediate # beginner | intermediate | advanced
+reading_time: 4
+updated: 2026-08-28
+tags: [system, design, frontend, interview, strategy]
+in_book: true
+---
+
 # Frontend System Design Strategy {#ch-frontend-system-design-strategy}
 
 > Drive a frontend design round, which is scored differently from the backend one.

@@ -1,3 +1,15 @@
+---
+title: Structural Patterns
+part: 1
+chapter: 0
+slug: structural-patterns
+level: advanced # beginner | intermediate | advanced
+reading_time: 18
+updated: 2026-08-28
+tags: [backend, design, patterns, structural]
+in_book: true
+---
+
 # Structural Patterns {#ch-structural-patterns}
 
 > Fit together classes you do not control, and add behaviour without rewriting them.

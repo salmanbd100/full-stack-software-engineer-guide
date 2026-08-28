@@ -1,3 +1,15 @@
+---
+title: System Performance
+part: 6
+chapter: 0
+slug: fundamentals-performance
+level: advanced # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, fundamentals, performance]
+in_book: true
+---
+
 # System Performance {#ch-system-performance}
 
 > Decide whether you are optimising latency or throughput, because the fixes differ.

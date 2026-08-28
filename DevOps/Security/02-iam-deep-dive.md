@@ -1,3 +1,15 @@
+---
+title: IAM Deep Dive
+part: 8
+chapter: 0
+slug: iam-deep-dive
+level: advanced # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, security, iam]
+in_book: false
+---
+
 # IAM Deep Dive
 
 IAM is the foundation of everything on AWS, and policy evaluation logic is where interviews get precise.

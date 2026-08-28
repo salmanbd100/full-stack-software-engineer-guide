@@ -1,3 +1,15 @@
+---
+title: Conflict Resolution
+part: 9
+chapter: 0
+slug: conflict-resolution
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [behavioral, conflict, resolution]
+in_book: true
+---
+
 # Conflict Resolution {#ch-conflict-resolution}
 
 > Describe a disagreement in a way that makes you sound like someone worth disagreeing with.

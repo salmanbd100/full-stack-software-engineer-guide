@@ -1,3 +1,15 @@
+---
+title: Security Groups & Network ACLs
+part: 8
+chapter: 0
+slug: security-groups
+level: advanced # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, networking, security, groups]
+in_book: false
+---
+
 # Security Groups & Network ACLs
 
 The stateful versus stateless distinction is one of the most reliably asked AWS networking questions, and the source of most "why can't these two things talk?" tickets.

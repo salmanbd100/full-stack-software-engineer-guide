@@ -1,3 +1,15 @@
+---
+title: Password Security
+part: 5
+chapter: 0
+slug: passwords
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-28
+tags: [backend, security, passwords]
+in_book: true
+---
+
 # Password Security {#ch-password-security}
 
 > Store a password so that a database leak is not an account leak.

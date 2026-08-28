@@ -1,3 +1,15 @@
+---
+title: Testing Best Practices
+part: 4
+chapter: 0
+slug: frontend-testing-best-practices
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [frontend, testing]
+in_book: true
+---
+
 # Testing Best Practices {#ch-testing-best-practices}
 
 > Keep a suite fast, isolated and honest, so people still run it a year from now.

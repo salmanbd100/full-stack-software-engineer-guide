@@ -1,3 +1,15 @@
+---
+title: Real-Time Communication
+part: 6
+chapter: 0
+slug: building-blocks-websockets
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, building, blocks, websockets]
+in_book: true
+---
+
 # Real-Time Communication {#ch-realtime-communication}
 
 > Decide between a socket, SSE and long polling, then keep the connections alive at scale.

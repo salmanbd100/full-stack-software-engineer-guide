@@ -1,3 +1,15 @@
+---
+title: MongoDB Fundamentals
+part: 5
+chapter: 0
+slug: mongodb
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [backend, nosql, mongodb]
+in_book: true
+---
+
 # MongoDB Fundamentals {#ch-mongodb-fundamentals}
 
 > Work with documents rather than rows, and know what the database guarantees you.

@@ -1,3 +1,15 @@
+---
+title: Asynchronous Processing
+part: 6
+chapter: 0
+slug: async-processing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [system, design, scalability, async, processing]
+in_book: false
+---
+
 # Asynchronous Processing {#ch-asynchronous-processing}
 
 > Take work out of the request path so the user is not waiting on it.

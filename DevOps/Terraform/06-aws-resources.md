@@ -1,3 +1,15 @@
+---
+title: Terraform for AWS Resources
+part: 8
+chapter: 0
+slug: aws-resources
+level: intermediate # beginner | intermediate | advanced
+reading_time: 20
+updated: 2026-08-03
+tags: [devops, terraform, aws, resources]
+in_book: false
+---
+
 # Terraform for AWS Resources
 
 The building blocks you will be asked to write on a whiteboard: a VPC, compute, a database, and an EKS cluster. This file covers the patterns and the traps, not every argument.

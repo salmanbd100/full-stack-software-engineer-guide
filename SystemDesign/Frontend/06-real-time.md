@@ -1,3 +1,15 @@
+---
+title: Frontend Real-Time Features
+part: 6
+chapter: 0
+slug: real-time
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, frontend, real, time]
+in_book: true
+---
+
 # Frontend Real-Time Features {#ch-frontend-real-time-features}
 
 > Decide what "live" actually means for a feature before reaching for a socket.

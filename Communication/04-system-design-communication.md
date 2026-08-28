@@ -1,3 +1,15 @@
+---
+title: System Design Communication
+part: 9
+chapter: 0
+slug: system-design-communication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [communication, system, design]
+in_book: true
+---
+
 # System Design Communication {#ch-system-design-communication}
 
 > Narrate a design round so the interviewer can follow and score what you are doing.

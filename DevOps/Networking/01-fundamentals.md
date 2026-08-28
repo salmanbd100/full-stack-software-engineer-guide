@@ -1,3 +1,15 @@
+---
+title: Networking Fundamentals
+part: 8
+chapter: 0
+slug: networking-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 14
+updated: 2026-08-03
+tags: [devops, networking, fundamentals]
+in_book: false
+---
+
 # Networking Fundamentals
 
 Networking is where most DevOps debugging ends up. This file covers the layers, protocols, and mental models you need before any cloud-specific networking makes sense.

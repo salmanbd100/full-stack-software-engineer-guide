@@ -1,3 +1,15 @@
+---
+title: Testing Terraform
+part: 8
+chapter: 0
+slug: terraform-testing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 17
+updated: 2026-08-03
+tags: [devops, terraform, testing]
+in_book: false
+---
+
 # Testing Terraform
 
 "How do you test infrastructure code?" is a senior-level question. The answer is a layered pyramid, because each layer catches different failures at very different speeds and costs.

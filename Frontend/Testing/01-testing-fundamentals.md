@@ -1,3 +1,15 @@
+---
+title: Testing Fundamentals
+part: 4
+chapter: 0
+slug: testing-fundamentals
+level: beginner # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [frontend, testing, fundamentals]
+in_book: true
+---
+
 # Testing Fundamentals {#ch-testing-fundamentals}
 
 > Decide what to test and at which layer, before arguing about a framework.

@@ -1,3 +1,15 @@
+---
+title: Offline-First Architecture
+part: 6
+chapter: 0
+slug: offline-first
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, frontend, offline, first]
+in_book: true
+---
+
 # Offline-First Architecture {#ch-offline-first-architecture}
 
 > Design for the train tunnel, and reconcile the writes when the connection returns.

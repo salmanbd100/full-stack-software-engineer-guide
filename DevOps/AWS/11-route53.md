@@ -1,3 +1,15 @@
+---
+title: Route 53 (DNS)
+part: 8
+chapter: 0
+slug: route53
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-06-08
+tags: [devops, aws, route53]
+in_book: false
+---
+
 # Route 53 (DNS)
 
 AWS's scalable DNS service and domain registrar — routes internet traffic to your AWS resources.

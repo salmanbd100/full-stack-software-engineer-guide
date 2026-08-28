@@ -1,3 +1,15 @@
+---
+title: Authorisation
+part: 6
+chapter: 0
+slug: authorization
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [system, design, security, authorization]
+in_book: false
+---
+
 # Authorisation {#ch-authorisation}
 
 > Decide who may do what, and enforce it somewhere the client cannot reach.

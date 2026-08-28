@@ -1,3 +1,15 @@
+---
+title: The API Gateway Pattern
+part: 6
+chapter: 0
+slug: microservices-api-gateway
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, microservices, api, gateway]
+in_book: true
+---
+
 # The API Gateway Pattern {#ch-api-gateway-pattern}
 
 > Decide what belongs at the edge, and keep everything else out of it.

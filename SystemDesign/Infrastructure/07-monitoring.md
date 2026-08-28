@@ -1,3 +1,15 @@
+---
+title: Infrastructure Monitoring
+part: 6
+chapter: 0
+slug: infrastructure-monitoring
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, infrastructure, monitoring]
+in_book: false
+---
+
 # Infrastructure Monitoring {#ch-infrastructure-monitoring}
 
 > Wire up metrics, logs and traces so an alert points at a cause.

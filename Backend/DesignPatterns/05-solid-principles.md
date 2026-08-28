@@ -1,3 +1,15 @@
+---
+title: SOLID Principles
+part: 1
+chapter: 0
+slug: solid-principles
+level: intermediate # beginner | intermediate | advanced
+reading_time: 15
+updated: 2026-08-28
+tags: [backend, design, patterns, solid, principles]
+in_book: true
+---
+
 # SOLID Principles {#ch-solid-principles}
 
 > Apply the five principles where they help, and name the cost when they do not.

@@ -3,8 +3,8 @@ title: Part VI — Frontend System Design
 part: 6
 chapter: 0
 slug: part-frontend-system-design
-level: advanced
-reading_time: 4
+level: advanced # beginner | intermediate | advanced
+reading_time: 3
 updated: 2026-08-28
 tags: [system-design, frontend, rendering, state, performance]
 in_book: true

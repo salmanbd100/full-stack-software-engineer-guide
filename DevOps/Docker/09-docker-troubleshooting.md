@@ -1,3 +1,15 @@
+---
+title: Docker Troubleshooting
+part: 8
+chapter: 0
+slug: docker-troubleshooting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-05-05
+tags: [devops, docker, troubleshooting]
+in_book: true
+---
+
 # Docker Troubleshooting
 
 ## Exit Codes

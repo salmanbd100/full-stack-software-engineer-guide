@@ -1,3 +1,15 @@
+---
+title: Linux Security for DevOps
+part: 8
+chapter: 0
+slug: linux-security
+level: advanced # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-07-05
+tags: [devops, linux, security]
+in_book: false
+---
+
 # Linux Security for DevOps
 
 ## Overview

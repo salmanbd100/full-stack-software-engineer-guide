@@ -1,3 +1,15 @@
+---
+title: Database Indexing
+part: 6
+chapter: 0
+slug: database-indexing
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, database, indexing]
+in_book: true
+---
+
 # Database Indexing {#ch-database-indexing}
 
 > Know which index structure answers which query, and what each one costs on write.

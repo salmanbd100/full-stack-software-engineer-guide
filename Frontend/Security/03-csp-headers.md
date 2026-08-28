@@ -1,3 +1,15 @@
+---
+title: Content Security Policy
+part: 4
+chapter: 0
+slug: csp-headers
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [frontend, security, csp, headers]
+in_book: true
+---
+
 # Content Security Policy {#ch-content-security-policy}
 
 > Write a policy that survives a successful injection, and roll it out without breaking the site.

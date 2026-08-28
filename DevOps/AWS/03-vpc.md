@@ -1,3 +1,15 @@
+---
+title: VPC (Virtual Private Cloud)
+part: 8
+chapter: 0
+slug: vpc
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-06-08
+tags: [devops, aws, vpc]
+in_book: false
+---
+
 # VPC (Virtual Private Cloud)
 
 A VPC is your own isolated network inside AWS. Think of it as a private data centre you control. Every resource you launch — EC2, RDS, Lambda in a VPC — lives inside one.

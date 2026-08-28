@@ -3,8 +3,8 @@ title: REST API Best Practices
 part: 5
 chapter: 0
 slug: rest-best-practices
-level: intermediate
-reading_time: 12
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
 updated: 2026-08-27
 tags: [api, rest, http, backend, idempotency]
 in_book: true

@@ -1,3 +1,15 @@
+---
+title: Helm Charts
+part: 8
+chapter: 0
+slug: helm
+level: intermediate # beginner | intermediate | advanced
+reading_time: 13
+updated: 2026-08-03
+tags: [devops, kubernetes, helm]
+in_book: false
+---
+
 # Helm Charts
 
 Raw Kubernetes YAML does not scale across environments. Helm packages, templates, and versions your manifests.

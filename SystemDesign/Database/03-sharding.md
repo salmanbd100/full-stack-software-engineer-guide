@@ -1,3 +1,15 @@
+---
+title: Sharding
+part: 6
+chapter: 0
+slug: sharding
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, database, sharding]
+in_book: true
+---
+
 # Sharding {#ch-sharding}
 
 > Split data across machines, and pick a shard key you will not regret in a year.

@@ -1,3 +1,15 @@
+---
+title: Database Transactions
+part: 6
+chapter: 0
+slug: database-transactions
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-28
+tags: [system, design, database, transactions]
+in_book: true
+---
+
 # Database Transactions {#ch-database-transactions}
 
 > Pick an isolation level knowing which anomaly it still allows, and what distributed changes.

@@ -1,3 +1,15 @@
+---
+title: The STAR Framework
+part: 9
+chapter: 0
+slug: star-framework
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [behavioral, star, framework]
+in_book: true
+---
+
 # The STAR Framework {#ch-star-framework}
 
 > Structure any behavioural answer so the interviewer hears the action and the result, not the setup.

@@ -1,3 +1,15 @@
+---
+title: Notifications
+part: 6
+chapter: 0
+slug: notifications
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, building, blocks, notifications]
+in_book: true
+---
+
 # Notifications {#ch-notifications}
 
 > Fan out to millions across several channels without sending anything twice.

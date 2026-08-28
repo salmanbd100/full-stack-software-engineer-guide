@@ -1,3 +1,15 @@
+---
+title: The RADIO Framework
+part: 6
+chapter: 0
+slug: framework
+level: intermediate # beginner | intermediate | advanced
+reading_time: 8
+updated: 2026-08-28
+tags: [system, design, fundamentals, framework]
+in_book: true
+---
+
 # The RADIO Framework {#ch-the-radio-framework}
 
 > Drive forty-five minutes without rambling, and spend the time where the marks are.

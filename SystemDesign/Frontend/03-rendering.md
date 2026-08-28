@@ -1,3 +1,15 @@
+---
+title: Rendering Strategies
+part: 6
+chapter: 0
+slug: rendering
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, frontend, rendering]
+in_book: true
+---
+
 # Rendering Strategies {#ch-rendering-strategies}
 
 > Choose a rendering strategy per route and defend it on TTFB, SEO and cost.

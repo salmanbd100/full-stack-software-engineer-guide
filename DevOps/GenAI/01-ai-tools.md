@@ -1,3 +1,15 @@
+---
+title: AI Tools for DevOps
+part: 8
+chapter: 0
+slug: ai-tools
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, genai, ai, tools]
+in_book: false
+---
+
 # AI Tools for DevOps
 
 AI coding tools have moved from autocomplete to agents that read a repository, run commands, and open pull requests. Knowing where each fits — and where they fail — is now an expected engineering skill.

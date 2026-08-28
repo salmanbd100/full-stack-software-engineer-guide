@@ -1,3 +1,15 @@
+---
+title: Query Optimisation
+part: 5
+chapter: 0
+slug: sql-optimization
+level: advanced # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [backend, sql, optimization]
+in_book: true
+---
+
 # Query Optimisation {#ch-query-optimisation}
 
 > Take a slow query and find out why, rather than guessing at an index.

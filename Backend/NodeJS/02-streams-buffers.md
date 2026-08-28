@@ -1,3 +1,15 @@
+---
+title: Streams and Buffers
+part: 5
+chapter: 0
+slug: streams-buffers
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-28
+tags: [backend, nodejs, streams, buffers]
+in_book: true
+---
+
 # Streams and Buffers {#ch-streams-and-buffers}
 
 > Process a file larger than your memory, and handle backpressure instead of ignoring it.

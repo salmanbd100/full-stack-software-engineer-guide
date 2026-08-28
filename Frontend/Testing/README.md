@@ -1,3 +1,15 @@
+---
+title: Frontend Testing — Interview Prep
+part: 4
+chapter: 0
+slug: frontend-testing-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
+updated: 2026-08-28
+tags: [frontend, testing]
+in_book: true
+---
+
 # Frontend Testing — Interview Prep
 
 Testing is a core skill for senior frontend roles. Interviewers want proof you can write reliable, maintainable code and reason about quality. This guide covers every test type you'll be asked about, with **TypeScript** examples and **Vitest** as the runner.

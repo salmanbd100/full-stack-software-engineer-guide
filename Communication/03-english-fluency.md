@@ -1,3 +1,15 @@
+---
+title: English Fluency for Interviews
+part: 9
+chapter: 0
+slug: english-fluency
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [communication, english, fluency]
+in_book: false
+---
+
 # English Fluency for Interviews {#ch-english-fluency}
 
 > Fix the handful of grammar and fluency habits that most affect how a technical answer lands.

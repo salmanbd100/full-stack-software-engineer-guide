@@ -1,3 +1,15 @@
+---
+title: Future of AI in DevOps
+part: 8
+chapter: 0
+slug: future
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-08-04
+tags: [devops, genai, future]
+in_book: false
+---
+
 # Future of AI in DevOps
 
 This topic is about having a **grounded, defensible opinion** — not predictions. Interviewers use it to check whether you distinguish real capability from marketing.

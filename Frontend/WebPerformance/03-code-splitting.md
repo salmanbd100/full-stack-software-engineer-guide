@@ -1,3 +1,15 @@
+---
+title: Code Splitting
+part: 4
+chapter: 0
+slug: code-splitting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [frontend, web, performance, code, splitting]
+in_book: true
+---
+
 # Code Splitting {#ch-code-splitting}
 
 > Ship the code this route needs and nothing else, then bring the rest in before it is asked for.

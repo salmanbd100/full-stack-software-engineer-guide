@@ -3,8 +3,8 @@ title: Part V — SQL and Relational Data
 part: 5
 chapter: 0
 slug: part-sql-and-relational-data
-level: intermediate
-reading_time: 4
+level: intermediate # beginner | intermediate | advanced
+reading_time: 2
 updated: 2026-08-28
 tags: [sql, postgresql, databases, indexes, transactions]
 in_book: true

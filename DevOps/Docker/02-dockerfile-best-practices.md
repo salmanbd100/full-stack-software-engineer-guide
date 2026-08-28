@@ -1,3 +1,15 @@
+---
+title: Dockerfile Best Practices
+part: 8
+chapter: 0
+slug: dockerfile-best-practices
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-05-05
+tags: [devops, docker, dockerfile]
+in_book: true
+---
+
 # Dockerfile Best Practices
 
 ## Choose the Right Base Image

@@ -1,3 +1,15 @@
+---
+title: Docker in Production
+part: 8
+chapter: 0
+slug: docker-in-production
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-06-08
+tags: [devops, docker, production]
+in_book: false
+---
+
 # Docker in Production
 
 ## Health Checks

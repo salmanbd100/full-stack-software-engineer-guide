@@ -1,3 +1,15 @@
+---
+title: Compliance as Code
+part: 8
+chapter: 0
+slug: devops-devsecops-compliance
+level: intermediate # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-04
+tags: [devops, devsecops, compliance]
+in_book: false
+---
+
 # Compliance as Code
 
 Compliance as code means controls are **defined, enforced, and evidenced automatically** rather than assembled by hand before an audit.

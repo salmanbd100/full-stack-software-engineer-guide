@@ -1,3 +1,15 @@
+---
+title: Advanced CSS
+part: 2
+chapter: 0
+slug: advanced-css
+level: advanced # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-28
+tags: [frontend, html, css, advanced]
+in_book: true
+---
+
 # Advanced CSS {#ch-advanced-css}
 
 > Use the CSS that shipped in every evergreen browser since 2023, and explain in an interview what each one replaced.

@@ -1,3 +1,15 @@
+---
+title: Compliance and Data Governance
+part: 6
+chapter: 0
+slug: system-design-security-compliance
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [system, design, security, compliance]
+in_book: false
+---
+
 # Compliance and Data Governance {#ch-compliance-and-data-governance}
 
 > Know which regime applies to your data and what it obliges you to build.

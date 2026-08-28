@@ -1,3 +1,15 @@
+---
+title: AI-Powered Troubleshooting
+part: 8
+chapter: 0
+slug: genai-troubleshooting
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-04
+tags: [devops, genai, troubleshooting]
+in_book: false
+---
+
 # AI-Powered Troubleshooting
 
 Debugging is pattern matching across noisy text, which is what language models are good at. It is also risk assessment under uncertainty, which they are bad at. Knowing the split is the skill.

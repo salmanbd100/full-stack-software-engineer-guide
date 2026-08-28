@@ -1,3 +1,15 @@
+---
+title: Web Performance
+part: 4
+chapter: 0
+slug: frontend-web-performance-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-06-23
+tags: [frontend, web, performance]
+in_book: true
+---
+
 # Web Performance
 
 Learn how to make websites load fast and run smoothly. Performance is one of the most important topics in frontend interviews because **slow websites lose users and money**.

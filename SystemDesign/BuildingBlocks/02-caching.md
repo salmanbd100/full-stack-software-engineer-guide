@@ -1,3 +1,15 @@
+---
+title: Caching
+part: 6
+chapter: 0
+slug: caching
+level: intermediate # beginner | intermediate | advanced
+reading_time: 7
+updated: 2026-08-28
+tags: [system, design, building, blocks, caching]
+in_book: true
+---
+
 # Caching {#ch-caching}
 
 > Put a cache in the right layer and have an answer for how each entry becomes wrong.

@@ -1,3 +1,15 @@
+---
+title: Cross-Cultural Communication
+part: 9
+chapter: 0
+slug: cross-cultural-communication
+level: intermediate # beginner | intermediate | advanced
+reading_time: 5
+updated: 2026-08-28
+tags: [communication, cross, cultural]
+in_book: true
+---
+
 # Cross-Cultural Communication {#ch-cross-cultural-communication}
 
 > Adjust register and directness for the room, whether it is American, European or Asian.

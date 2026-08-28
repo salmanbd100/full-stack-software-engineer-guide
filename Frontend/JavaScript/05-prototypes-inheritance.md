@@ -1,3 +1,15 @@
+---
+title: Prototypes and Inheritance
+part: 1
+chapter: 0
+slug: prototypes-inheritance
+level: intermediate # beginner | intermediate | advanced
+reading_time: 33
+updated: 2026-08-28
+tags: [frontend, javascript, prototypes, inheritance]
+in_book: true
+---
+
 # Prototypes and Inheritance {#ch-prototypes-and-inheritance}
 
 > Follow a property lookup up the prototype chain and explain what `class` is actually doing underneath.

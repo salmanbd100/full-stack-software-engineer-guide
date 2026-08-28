@@ -1,3 +1,15 @@
+---
+title: Prompt Engineering for DevOps
+part: 8
+chapter: 0
+slug: prompt-engineering
+level: intermediate # beginner | intermediate | advanced
+reading_time: 10
+updated: 2026-08-04
+tags: [devops, genai, prompt, engineering]
+in_book: false
+---
+
 # Prompt Engineering for DevOps
 
 Prompt quality determines output quality more than model choice does. For infrastructure work the goal is **specific, constrained, verifiable** output.

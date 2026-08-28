@@ -1,3 +1,15 @@
+---
+title: JWT Authentication
+part: 5
+chapter: 0
+slug: jwt
+level: intermediate # beginner | intermediate | advanced
+reading_time: 12
+updated: 2026-08-28
+tags: [backend, security, jwt]
+in_book: true
+---
+
 # JWT Authentication {#ch-jwt-authentication}
 
 > Issue and verify a token safely, and say honestly when a session cookie would be better.

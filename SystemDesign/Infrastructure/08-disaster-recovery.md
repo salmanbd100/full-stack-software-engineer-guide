@@ -1,3 +1,15 @@
+---
+title: Disaster Recovery
+part: 6
+chapter: 0
+slug: disaster-recovery
+level: intermediate # beginner | intermediate | advanced
+reading_time: 6
+updated: 2026-08-28
+tags: [system, design, infrastructure, disaster, recovery]
+in_book: false
+---
+
 # Disaster Recovery {#ch-disaster-recovery}
 
 > Put numbers on RTO and RPO, then buy the strategy those numbers justify.
