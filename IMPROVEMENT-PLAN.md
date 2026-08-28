@@ -1465,8 +1465,11 @@ backend) and points at `#ch-performance-monitoring` for the mechanics. The secti
 - **`03-grafana.md` went back to the Archive, not to a delete.** `git mv` to
   `Archive/devops/monitoring/04-grafana.md` — its original path — with `in_book: false` and its nav
   footer repointed at archive siblings. As a side effect `05-xray.md`'s `← Grafana` link, broken since
-  run #1, resolves again. `02-metrics-and-dashboards.md` is a `git mv` from `02-prometheus.md`, the
-  larger source, so history follows the file.
+  run #1, resolves again. It is the only one of the three moves whose history git still traces —
+  `02-metrics-and-dashboards.md` and `03-alerting-and-on-call.md` were both `git mv`'d (from
+  `02-prometheus.md` and `04-alerting.md`), but the rewrites were extensive enough that rename
+  detection no longer scores them, so `git log --follow` on either starts at run #4's commit. Use
+  `git log --diff-filter=D -- ShipAndOperate/Observability/02-prometheus.md` to reach the old file.
 - **Slugs `prometheus` and `grafana` are retired; `metrics-and-dashboards` replaces them.** Both had
   **zero inbound references** anywhere in the book, so nothing needed repointing. `monitoring-fundamentals`
   and `alerting` are kept unchanged — they have four inbound references between them, from
