@@ -8,10 +8,14 @@ name: lint:docs
 # down is committed as the new baseline. Each rule becomes a hard gate on its own the
 # moment its baseline reaches 0.
 
+# Disabled 2026-08-29: automatic runs turned off while the manuscript is still being
+# restructured, so a red build stops mailing on every push. Run it by hand from the
+# Actions tab, or with `gh workflow run lint:docs`. Restore the `push` and
+# `pull_request` triggers below to re-enable.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  # push:
+  #   branches: [main]
+  # pull_request:
   workflow_dispatch:
 
 jobs:
