@@ -7,7 +7,7 @@ level: advanced # beginner | intermediate | advanced
 reading_time: 10
 updated: 2026-08-28
 tags: [devops, kubernetes, architecture]
-in_book: true
+in_book: false
 ---
 
 # Kubernetes Architecture {#ch-kubernetes-architecture}
@@ -228,4 +228,4 @@ It answers one question: which node should this pod run on? It works in two phas
 
 ---
 
-[← Docker Troubleshooting](./05-docker-troubleshooting.md) | [Containers Index](./README.md) | [Pods and Deployments →](./07-pods-and-deployments.md)
+[Kubernetes Index](./README.md) | [EKS →](./02-eks.md)

@@ -296,4 +296,4 @@ having none, because thirty unread dashboards imply coverage while quietly loadi
 
 - [Chapter ?? — Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals) — the vocabulary these queries are built on
 - [Chapter ?? — Alerting and On-Call](#ch-alerting) — turning these expressions into pages worth waking someone for
-- [Chapter ?? — Kubernetes Architecture](#ch-kubernetes-architecture) — where the container metrics in this chapter come from
+- [Chapter ?? — Kubernetes Essentials](#ch-kubernetes-essentials) — where the container metrics in this chapter come from

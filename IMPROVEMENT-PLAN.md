@@ -1223,7 +1223,12 @@ most of `Kubernetes/` (8 of 10), `DevSecOps/` (10 — see item 24), `Agile/` (8 
 
 **Split across sessions:** one section per session.
 
-**Done when:** `ShipAndOperate/` has ~25 files and the rest is under `Archive/devops/`.
+**Done when:** `ShipAndOperate/` holds **22 chapters across six sections** — 28 files with the section
+READMEs — and everything cut is under `Archive/devops/`.
+
+> ⚠️ **Amended by run #6 (2026-08-29).** The original line said *~25 files*, which never reconciled with
+> the keep table's own 27 chapters or `BOOK-SPEC.md`'s ~18. `BOOK-SPEC.md` decision #12 settles it at
+> **22 chapters / 5,500 lines**; this line now matches the spec rather than contradicting it.
 
 **Delivered — run #1, 2026-08-28: the structural move. Box stays unticked; the trim half is not done.**
 
@@ -1624,6 +1629,137 @@ standard-compliant chapters actually cost, the end state is **22 chapters and ~5
 > contract, so raising the budget is the honest correction. Whoever runs `Containers/` should make that
 > amendment first, with a Revision History entry, rather than trimming towards a number four finished
 > sections already disprove.
+
+
+**Delivered — run #6, 2026-08-29: `Containers/` 7 → 4, and the budget amendment run #5 said could not wait.**
+
+Two things happened this run: `BOOK-SPEC.md` § 4's Part VIII budget was amended, and `Containers/` was cut
+from 7 chapters to 4. The amendment came first because run #5's callout was right — trimming towards 3,500
+lines is trimming towards a number that five finished sections disprove.
+
+**The amendment: Part VIII is now 5,500 lines · ~22 chapters** (`BOOK-SPEC.md` v1.1 → **v1.2**, decision
+log entry **#12**). The reasoning, and the constraint it creates, are both worth carrying forward:
+
+- Five sections were finished at the time of the amendment — Git, Containers, Observability, Cloud,
+  Deployment — at **4,556 lines across 18 chapters**, or 130% of the old 3,500 budget with CI/CD untouched.
+- 22 chapters is the structural floor consistent with the keep table. At the book's own average of 221
+  lines that is 4,862; the finished sections average **253**, because the six mandatory closing blocks cost
+  ~55 lines before any teaching happens.
+- **5,500 is not an estimate — it is the arithmetic maximum the frontend-spine rule permits.** Non-negotiable
+  #3 requires Parts I–IV ≥ 50% of the book. At 5,500 the total is 57,000 and the spine is 28,500 = **exactly
+  50.0%**, down from 51.8%. One more line into any Part V–IX budget breaks the spec. That constraint is now
+  recorded as a ⚠️ under § 5's sums table, because the next amendment will otherwise walk straight into it.
+- Everything downstream of the total was recalculated: § 1's length, all nine share percentages, the
+  253-chapter count, the 225-line average, the ~62,600 bound-in-DSA figure, and the page estimate
+  (950–1,050). § 4's *Covers* line also gained `Cloud`, which it had been missing since run #1 created the
+  section.
+- This item's **Done when** was amended to match — it said *~25 files*, which agreed with neither the keep
+  table's 27 chapters nor the spec's ~18.
+
+**The one number the amendment does not close:** Part VIII's projected end state is ~5,550 chapter lines
+plus ~350 of section READMEs, so roughly **400 lines over the new ceiling** even after CI/CD is trimmed.
+That residual is a ~25-line-per-chapter trim across 22 chapters, which is **#76's editorial pass**, not a
+structural cut. Recorded rather than hidden.
+
+> ⚠️ **Worth knowing before any other part is trimmed:** Part VIII is the *least* over-budget part in the
+> book. Measured now, in-book lines against § 5 budgets: Part I is at 17,929 against 5,000, Part II 12,146
+> against 6,000, Part V 12,889 against 6,500, Part VI 13,397 against 6,500, the DSA appendix 19,370 against
+> 5,600 — and Part VIII 6,422 against its new 5,500. The book totals **94,057 lines against 57,000**. No
+> plan item owns the trim for Parts I, II, V or VI; #27 covers DSA and #29 covers Communication. Run #5's
+> framing of a "Part VIII budget gap" was true but local — the gap is book-wide, and Part VIII is simply
+> the part far enough along to have hit it first.
+
+**`Containers/` is now 4 chapters, 1,117 lines**, down from 7 and 1,481. All four were rewritten to the
+Book Chapter Standard rather than patched — not one of the seven had Key Takeaways, a What to Read Next or
+a `## 💡 The Core Idea`, all seven ended in `## Interview Q&A` with compressed answers rather than the
+standard's answer shapes, and all seven closed with a relative-path nav footer.
+
+| File | Lines | What changed |
+| ---- | ----- | ------------ |
+| `01-docker-fundamentals.md` | 233 | Rewritten around **a container is a process with a restricted view of the machine** — namespaces, cgroups, a layered filesystem, no guest OS. Gained the exit-code table and the four-step debugging order from the old `05-`, plus the SIGTERM/PID 1 contract. Lost the Compose section (it duplicated `03-`) and the command inventory |
+| `02-building-and-hardening-images.md` | 274 | **`02-dockerfile-best-practices.md` + `04-docker-security.md` merged**, as the target table asked. Reframed around *every instruction is a cache key and a shipped layer*. Gained BuildKit secret mounts, `read_only`/`cap_drop`/`no-new-privileges`, SBOMs and scheduled scanning, and the image-size tools from the old `05-` |
+| `03-docker-compose.md` | 281 | Reframed around **Compose is a development environment as code, not an orchestrator**. Gained `develop: watch`, the `depends_on` condition table, file-based secrets, and the service-to-service debugging sequence from the old `05-`. Lost the 60-line "full-stack production example", which taught nothing the smaller examples do not |
+| `04-kubernetes-essentials.md` | 329 | **`06-kubernetes-architecture.md` + `07-pods-and-deployments.md` merged.** Reconciliation loop, the apply walkthrough, why a pod, probes, requests and limits, rollout and rollback, the shutdown race. StatefulSets, DaemonSets, Jobs, CronJobs, scheduling controls and control-plane HA are gone — operator scope per § 6 |
+| `README.md` | 60 | Chapter table rebuilt for four; reading order now explains why 04 is worth reading even off Kubernetes |
+
+**Five decisions this run had to make:**
+
+- **The target table's own cut list does not reach four chapters — it reaches five.** It named two merges
+  (`04-` into `02-`, and `06-` + `07-` into one) against a 7 → 4 target, which leaves `05-docker-troubleshooting.md`
+  unaccounted for. It **split three ways** instead, the same treatment run #5 gave `04-git-best-practices.md`:
+  exit codes and the debugging order into `01-`, image size and build cache into `02-`, network and DNS
+  checks into `03-`. `docker system prune`, `docker system df` and `dive` were cut outright — disk
+  housekeeping is not senior interview content. The section README's old interview sprint pointed at that
+  chapter, so the sprint now points at `01-` → `02-` plus `04-`'s probe and shutdown sections.
+- **Three chapters were renamed, and only the Archive moves keep their history.** `02-building-and-hardening-images.md`
+  (from `02-dockerfile-best-practices.md`), `03-docker-compose.md` (from `03-docker-compose-advanced.md`,
+  which also fixes a filename that said *advanced* under a title that did not) and `04-kubernetes-essentials.md`
+  (from `07-pods-and-deployments.md`, the larger of the two merged sources). ⚠️ **None of the three scores as
+  a rename even at `-M10%`**, because each was rewritten end to end, so `git log --follow` on them starts at
+  run #6's commit. Use `git log --diff-filter=D -- ShipAndOperate/Containers/02-dockerfile-best-practices.md`
+  to reach the old file. The three Archive moves score **R096/R096/R098** and keep their history.
+- **Six slugs retired, three created, and exactly one inbound reference existed.** Out:
+  `dockerfile-best-practices`, `docker-compose-advanced`, `docker-security`, `docker-troubleshooting`,
+  `kubernetes-architecture`, `pods-and-deployments`. In: `building-and-hardening-images`, `docker-compose`,
+  `kubernetes-essentials`. The only inbound cross-reference in the whole book was
+  `Observability/02-metrics-and-dashboards.md` → `#ch-kubernetes-architecture`, repointed at
+  `#ch-kubernetes-essentials`. Like `Git/` before it, `Containers/` was almost a cul-de-sac; the new
+  chapters point outward at `#ch-github-actions`, `#ch-cicd-security`, `#ch-rollback-and-recovery` and
+  `#ch-monitoring-fundamentals`.
+- **Kubernetes keeps only what a pod spec makes you decide.** Probes, requests and limits, rollout strategy,
+  `preStop` and graceful shutdown, and one paragraph each on PodDisruptionBudgets and why a namespace is not
+  a security boundary. Everything an operator owns — node pools, taints and affinity, topology spreading,
+  StatefulSets, DaemonSets, autoscaling, etcd quorum — went with the archived chapter. The `When to Use It`
+  block is now a two-column table of *what you own* against *what the platform owns*, which is the actual
+  interview question.
+- **Three archived files, three nav footers repointed, and two long-broken links fixed as a side effect.**
+  `06-docker-security.md` and `09-docker-troubleshooting.md` returned to `Archive/devops/docker/` and
+  `01-architecture.md` to `Archive/devops/kubernetes/`, all three under their original names with
+  `in_book: false`. `Archive/devops/kubernetes/02-eks.md` and `04-services-networking.md` pointed at
+  `03-pods-deployments.md`, which has been in-book since run #1 and is now `04-kubernetes-essentials.md`;
+  both are repointed at `../../ShipAndOperate/…`, the same treatment run #1 gave `DevOps/Agile/`. The two
+  `Docker/` links in `Archive/devops/README.md` are still broken, still that README's own cleanup.
+
+**Context7 was used** (`/docker/docs`) for the BuildKit secret mount's `env=` option and its matching
+`--secret id=…,env=…` CLI form, Compose's `develop: watch` actions, and confirmation that the top-level
+`version:` key is obsolete in Compose V2. Version-stamped throughout: Node 24 (Active LTS), `postgres:17`,
+`nginx:1.27`, and sidecars as init containers with `restartPolicy: Always` since Kubernetes 1.29. `04-`
+carries the required moving-target callout, because Kubernetes deprecates APIs on a three-releases-a-year
+schedule.
+
+**Verified:**
+
+- `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0, `too-long` 47
+  (unchanged). `fence-language` **39 → 30** — all 9 unlabelled `Containers/` fences cleared, seven of them
+  the ASCII diagrams in the two Kubernetes chapters, which are now two Mermaid diagrams and two `text`
+  fences; `.lint-baseline.json` committed at 30
+- `scripts/add-frontmatter.ts`: 325 files, **idempotent on the second pass** (`changed: 0`), all slugs
+  unique, every in-book file has a part. Part VIII is **29** in-book files, down from 32
+- `pnpm book:collect`: **271 files, 94,061 lines** — down from 274 / 94,429
+- Six blocks present in all four, in order; H1 anchors match `slug`; zero relative links in bodies; zero
+  `####`; zero retired emoji; 💡 and 🔑 at exactly 1 each and ⚠️ at 1/2/2/3 against the standard's budget of 3
+- No dangling references to any of the six retired slugs or the five old filenames outside `Archive/` and
+  this plan's own prose
+
+**Part VIII now stands at 6,038 lines across 23 chapters** (6,389 with the six section READMEs). Run #6
+removed 364 lines and three chapters.
+
+| Section | Now | Target | Status |
+| ------- | --- | ------ | ------ |
+| `Git/` | 4 / 1,026 | 4 / ~1,030 | ✅ done, run #5 |
+| `Containers/` | **4 / 1,117** | 4 / ~1,100 | ✅ done, run #6 — target revised up from ~1,000 |
+| `CICD/` | 5 / 1,482 | 4 / ~1,000 | **Untouched — the only section left** |
+| `Observability/` | 3 / 865 | 3 / ~900 | ✅ done, run #4 |
+| `Cloud/` | 3 / 681 | 3 / ~680 | ✅ done, run #3 |
+| `Deployment/` | 4 / 867 | 4 / 867 | ✅ already to standard |
+
+**One section left, and then this box ticks.** `CICD/` 5 → 4: the target table's cut is `04-testing.md` +
+`05-security.md` down to what is genuinely pipeline-specific, since both overlap `Frontend/Testing`,
+`Backend/Security` and item #24. Two things the next run should know. First, `CICD/01-cicd-fundamentals.md`
+and its siblings hold **18 of the 30 remaining `fence-language` violations** — the whole rest of the
+baseline is `DevOps/Agile/`, which belongs to item #25 — so the number should drop again sharply. Second, the budget
+ceiling is now fixed at 5,500 and `CICD/` has ~940 lines of room in it; landing at ~1,000 is fine and
+leaves the ~400-line residual to #76, but growing the section is not.
 
 
 ---

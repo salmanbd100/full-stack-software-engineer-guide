@@ -4,7 +4,7 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.1 · **Date:** 2026-08-28
+> **Status:** Locked · **Version:** 1.2 · **Date:** 2026-08-29
 > **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 78-item route from repo to manuscript.
 
 ---
@@ -17,7 +17,7 @@
 | **Subtitle**  | Frontend-heavy engineering for 2027 — fundamentals, the modern stack, system design, and AI     |
 | **Author**    | Salman Rahman                                                                                  |
 | **Edition**   | First (2027)                                                                                   |
-| **Length**    | ~55,000 lines of markdown ≈ 800–1,000 print pages (a handbook, not a primer)                   |
+| **Length**    | ~57,000 lines of markdown ≈ 850–1,050 print pages (a handbook, not a primer)                   |
 | **Language**  | British English (`colour`, `behaviour`, `organise`, `optimise`)                                |
 | **Code**      | TypeScript only                                                                                |
 | **Formats**   | PDF · EPUB · free web companion                                                                |
@@ -229,10 +229,10 @@ not as bad luck.
 
 ### Part VIII — Ship and Operate
 
-**Covers:** Git · Docker · CI/CD · Observability · Deployment
-**Budget:** 3,500 lines · ~18 chapters
+**Covers:** Git · Containers · CI/CD · Observability · Cloud · Deployment
+**Budget:** 5,500 lines · ~22 chapters
 
-Down from 39,703 lines, which is the single largest cut in the plan — a **91% reduction**. The existing DevOps material is good
+Down from 39,703 lines, which is the single largest cut in the plan — an **86% reduction**. The existing DevOps material is good
 and almost entirely aimed at a different reader — Terraform across eleven files, Linux administration,
 Python automation scripting, Kubernetes operations. A frontend-heavy full stack engineer needs to branch
 and rebase without fear, containerise a service, own a pipeline, read a trace, and ship safely with a
@@ -279,36 +279,42 @@ two worked examples, complexity, and a curated problem table.
 | ----------------------------- | -------- | ----------- | -------- |
 | I — Foundations               | ~22      | 5,000       | 9%       |
 | II — Browser Platform         | ~26      | 6,000       | 11%      |
-| **III — Modern Stack** 🆕     | ~46      | **12,000**  | **22%**  |
+| **III — Modern Stack** 🆕     | ~46      | **12,000**  | **21%**  |
 | IV — Frontend at Scale        | ~24      | 5,500       | 10%      |
-| V — Backend                   | ~30      | 6,500       | 12%      |
-| VI — System Design            | ~34      | 6,500       | 12%      |
-| **VII — AI Engineering** 🆕   | ~31      | 7,500       | 14%      |
-| VIII — Ship and Operate       | ~18      | 3,500       | 6%       |
-| IX — Human Layer              | ~18      | 2,500       | 5%       |
-| **Total (the book)**          | **~249** | **55,000**  | **100%** |
+| V — Backend                   | ~30      | 6,500       | 11%      |
+| VI — System Design            | ~34      | 6,500       | 11%      |
+| **VII — AI Engineering** 🆕   | ~31      | 7,500       | 13%      |
+| VIII — Ship and Operate       | ~22      | 5,500       | 10%      |
+| IX — Human Layer              | ~18      | 2,500       | 4%       |
+| **Total (the book)**          | **~253** | **57,000**  | **100%** |
 | Appendix — DSA (companion)    | 16       | 5,600       | separate |
 
 Budgets are **ceilings, not allocations**. A part that comes in under does not hand its surplus to another
-part — the book just gets shorter, which is always a win. The DSA appendix sits outside the 55,000 because
-it ships as a companion (see item #27); if it is bound in, the total becomes ~60,600.
+part — the book just gets shorter, which is always a win. The DSA appendix sits outside the 57,000 because
+it ships as a companion (see item #27); if it is bound in, the total becomes ~62,600.
 
 **The sums that have to hold:**
 
 | Check                          | Value                                                    | Rule            |
 | ------------------------------ | -------------------------------------------------------- | --------------- |
-| Parts I–IX total               | 55,000                                                    | ≤ 60,000        |
-| **Frontend spine (I–IV)**      | 28,500 of 55,000 = **51.8%**                              | **≥ 50%**       |
-| Part III as a share            | 12,000 = **22%**                                          | Largest part    |
-| Average chapter length         | 55,000 ÷ 249 = **221 lines**                              | Within 150–400  |
+| Parts I–IX total               | 57,000                                                    | ≤ 60,000        |
+| **Frontend spine (I–IV)**      | 28,500 of 57,000 = **50.0%**                              | **≥ 50%**       |
+| Part III as a share            | 12,000 = **21%**                                          | Largest part    |
+| Average chapter length         | 57,000 ÷ 253 = **225 lines**                              | Within 150–400  |
 
 > **What "frontend-heavy" means, quantified:** Parts I–IV — language foundations, the browser platform,
-> the modern stack, and frontend at scale — are **more than half the book**, and Part III alone is larger
+> the modern stack, and frontend at scale — are **half the book**, and Part III alone is larger
 > than any other single part. Backend, system design, AI, and operations together take the rest.
 > Any restructuring that breaks either rule breaks the spec.
 
-**Reality check on the page count:** at roughly 55 markdown lines per typeset page, 55,000 lines is
-**900–1,000 pages**. That is a handbook, and the title says so. If the page count has to come down later,
+⚠️ **The spine is now exactly at its floor, and that is a hard constraint on every later amendment.**
+Decision #12 raised Part VIII to 5,500 and took Parts I–IV from 51.8% to 50.0% of the book. There is no
+headroom left: **any future increase to a Part V–IX budget has to be paid for by an equal decrease
+elsewhere outside Parts I–IV**, or the spine drops below 50% and breaks non-negotiable #3. 5,500 is
+therefore not a negotiating position for Part VIII — it is the arithmetic maximum that rule allows.
+
+**Reality check on the page count:** at roughly 55 markdown lines per typeset page, 57,000 lines is
+**950–1,050 pages**. That is a handbook, and the title says so. If the page count has to come down later,
 the order of cuts is fixed: Part VIII first, then Part IX, then Part VI case studies — never Parts III or VII.
 
 ---
@@ -428,6 +434,7 @@ bump the version, and update any improvement-plan items the change affects.
 | 9 | 2026-08-26 | Nothing deleted — everything cut moves to `Archive/`                     | Preserves optionality for a second volume at zero cost                     |
 | 10| 2026-08-28 | Non-negotiable #1's fence allow-list **completed**, not relaxed: added `graphql`, `prisma`, `dockerfile`, `nginx`, `http` | These are declarative schema and configuration languages with **no TypeScript form** — a Dockerfile cannot be written in TypeScript, so the rule as drafted meant deleting the example rather than translating it. `sql`, `yaml` and `css` were already allowed on exactly this footing; the original list was simply incomplete. The TypeScript-only rule for *general-purpose* languages is untouched, and § 10's "relaxing the TypeScript-only rule" bar is not engaged |
 | 11| 2026-08-28 | A single fence may opt out of #1 via `<!-- lint-allow-fence: <lang> — reason -->`, with a required reason | Improvement #10. Some chapters teach untyped JavaScript semantics — implicit coercion, dynamic `this`, prototype manipulation — where TypeScript refuses to compile the very thing being shown. 37 fences use it; every one is in `Frontend/JavaScript/01`–`05`. The marker's language must match the fence, so it cannot silently cover a fence that later changes |
+| 12| 2026-08-29 | **Part VIII's budget raised from 3,500 / ~18 chapters to 5,500 / ~22** | Item #20's own keep table is this book's contract for what Part VIII contains, and six finished sections cannot fit 3,500 lines. Five were complete at the time of the amendment — Git, Containers, Observability, Cloud, Deployment — at **4,556 lines across 18 chapters**, i.e. 130% of the old budget with CI/CD still to trim. The structural floor consistent with the keep table is 22 chapters; at the book's own average of 221 lines that is 4,862, and the finished sections average 253 because the six mandatory closing blocks cost ~55 lines before any teaching. 5,500 is chosen as the **maximum the frontend-spine rule permits** — 28,500 of 57,000 is exactly 50.0% — not as an estimate of what the part will weigh. The residual ~400 lines belong to the editorial pass (#76), which is where a 25-line-per-chapter trim belongs. Alternative considered and rejected: cutting whole sections from the keep table, which would mean a Part VIII with no Git or no CI/CD |
 
 ---
 

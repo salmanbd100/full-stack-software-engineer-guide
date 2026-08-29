@@ -7,7 +7,7 @@ level: intermediate # beginner | intermediate | advanced
 reading_time: 5
 updated: 2026-08-28
 tags: [devops, docker, troubleshooting]
-in_book: true
+in_book: false
 ---
 
 # Docker Troubleshooting {#ch-docker-troubleshooting}
@@ -167,4 +167,4 @@ Override the entrypoint: `docker run -it --entrypoint /bin/sh myimage`. This ski
 
 ---
 
-[← Docker Security](./04-docker-security.md) | [Containers Index](./README.md) | [Kubernetes Architecture →](./06-kubernetes-architecture.md)
+[← Docker with AWS](./08-docker-with-aws.md)

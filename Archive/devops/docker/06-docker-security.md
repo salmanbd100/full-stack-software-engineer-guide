@@ -7,7 +7,7 @@ level: advanced # beginner | intermediate | advanced
 reading_time: 5
 updated: 2026-08-28
 tags: [devops, docker, security]
-in_book: true
+in_book: false
 ---
 
 # Docker Security {#ch-docker-security}
@@ -161,4 +161,4 @@ Prevents container processes from gaining extra privileges via setuid/setgid bin
 
 ---
 
-[← Docker Compose](./03-docker-compose-advanced.md) | [Containers Index](./README.md) | [Docker Troubleshooting →](./05-docker-troubleshooting.md)
+[← Volumes and Storage](./05-docker-volumes-storage.md) | [Docker in Production →](./07-docker-in-production.md)

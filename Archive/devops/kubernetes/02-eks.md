@@ -296,4 +296,4 @@ Authentication is IAM and authorization is Kubernetes RBAC, with a mapping betwe
 
 ---
 
-[← Kubernetes Architecture](./01-architecture.md) | [Pods & Deployments →](./03-pods-deployments.md)
+[← Kubernetes Architecture](./01-architecture.md) | [Kubernetes Essentials →](../../ShipAndOperate/Containers/04-kubernetes-essentials.md)

@@ -331,4 +331,4 @@ I check outward from the pod. First, are the pods actually `Ready` — a running
 
 ---
 
-[← Pods & Deployments](./03-pods-deployments.md) | [ConfigMaps & Secrets →](./05-configmaps-secrets.md)
+[← Kubernetes Essentials](../../ShipAndOperate/Containers/04-kubernetes-essentials.md) | [ConfigMaps & Secrets →](./05-configmaps-secrets.md)
