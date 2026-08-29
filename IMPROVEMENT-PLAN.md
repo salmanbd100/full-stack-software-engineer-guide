@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-29 · **Progress:** 23 / 78
+**Last updated:** 2026-08-29 · **Progress:** 26 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2051,7 +2051,7 @@ moved.
 
 ---
 
-### - [ ] 24. Consolidate security into one coherent spine `L`
+### - [x] 24. Consolidate security into one coherent spine `L` — ✅ **done 2026-08-29**
 
 Security currently lives in **five** places with real overlap:
 
@@ -2073,9 +2073,79 @@ merging unique content.
 
 **Done when:** no security topic is documented twice, and each has an obvious home.
 
+**Delivered:**
+
+Security is now **two** directories plus one pipeline chapter, down from five directories and 37 files
+to 12 chapters and one pipeline chapter. The five-place table above was already stale when this item
+ran: `DevOps/Security/` and `DevOps/DevSecOps/` went to `Archive/devops/` at #20, and #20 also wrote
+`ShipAndOperate/CICD/04-pipeline-security.md`, which is the chapter this item planned to add. It covers
+the secrets hierarchy, OIDC over stored credentials, secret scanning, SCA/SAST/DAST/container scanning,
+SBOM and provenance — everything the two archived directories contributed. **Nothing new was written for
+Part VIII.** The item's `ShipAndOperate/pipeline-security.md` path is amended to the file that exists.
+
+**`Frontend/Security/` — 5 chapters → 4, browser-side:**
+
+| Was                          | Now                                | Change                                              |
+| ---------------------------- | ---------------------------------- | --------------------------------------------------- |
+| `01-xss-prevention.md`       | `01-xss-prevention.md`             | Six-block close; TOC and back-link removed          |
+| `02-csrf-protection.md`      | — deleted                          | CSRF is a server-enforced defence; canonical in `Backend/Security/05` |
+| `03-csp-headers.md`          | `02-content-security-policy.md`    | Renumbered                                          |
+| `04-secure-headers.md`       | `03-security-headers.md`           | Renumbered; canonical for the whole header set      |
+| `05-input-sanitization.md`   | `04-client-side-input-handling.md` | Rewritten — see below                               |
+
+`04-client-side-input-handling.md` is a new chapter on the same file path. The old one duplicated
+`Backend/Security/06` (server validation, Zod middleware) and `Backend/Security/07` (SQL and command
+injection) almost line for line. What it now teaches is the part only the browser can do: sharing one Zod
+schema across the boundary so the two sides cannot drift, browser-side upload checks and why they are UX,
+`postMessage` origin and payload validation, and open redirects. Those last two were undocumented
+anywhere in the repository.
+
+**`Backend/Security/` — 8 chapters → 8, server-side:**
+
+| #  | Chapter                                     | Change                                                    |
+| -- | ------------------------------------------- | --------------------------------------------------------- |
+| 02 | `02-oauth.md`                               | Gained SSO (SAML vs OIDC) and magic links from `SystemDesign/Security/01` |
+| 03 | `03-passwords.md` → *Passwords and MFA*     | Gained TOTP, WebAuthn, recovery codes; slug now matches its anchor |
+| 04 | `04-https.md` → `04-encryption.md`          | Retitled *Encryption in Transit and at Rest*; gained AES-GCM at rest, KMS envelope encryption, key rotation |
+| 05 | `05-cors-csrf.md`                           | Canonical CSRF; gained the SPA token-wrapper section from the deleted frontend chapter |
+| 06 | `06-validation.md`                          | Gained SSRF as a URL-validation problem, from `SystemDesign/Security/05` |
+| 08 | `08-security-headers.md` → deleted          | Fully duplicated `Frontend/Security/02` and `03`, helmet setup included |
+| 08 | `08-authorisation.md` — **new**             | RBAC, ABAC, ACLs, policy engines, tenant isolation, scopes, IDOR — from `SystemDesign/Security/02` |
+
+Authorisation was the largest genuine gap the audit found. `SystemDesign/Security/02` was the only place
+it existed, the directory was already marked `in_book: false`, so the manuscript had no chapter on the
+vulnerability class that has topped the OWASP Top 10 since 2021.
+
+**`SystemDesign/Security/` — archived whole** to `Archive/systemdesign/security/` (6 chapters + README)
+after the merges above. Two chapters were archived without merging, deliberately:
+
+- **`04-api-security.md`** — HTTPS, JWT, OAuth, CORS and input validation were all duplicates. Rate
+  limiting is `Backend/API/04`. Secrets management is the pipeline chapter. **Request signing and
+  idempotency keys are API-design topics with no home yet** — flagged for **#56**, not lost.
+- **`06-compliance.md`** — GDPR, HIPAA, PCI-DSS, SOC 2, audit logging, data retention and residency.
+  Genuinely unique and genuinely out of scope: `BOOK-SPEC.md` § 4 gives no part that covers governance,
+  and the frontend-relevant slice of it (the European Accessibility Act) is already Part II's.
+
+**Also fixed along the way:** all four `Frontend/Security/` chapters ended with a stray `</content>`
+and `</invoke>` pair — an authoring artefact that had been in the tree since the files were written and
+would have been typeset verbatim. Every hand-written Table of Contents and `[← Back]` navigation footer
+in both directories is gone, the two retired emoji in use (🔴 and ✨) are replaced, and the four relative
+`./NN-file.md` cross-references in chapter bodies are now `#ch-` anchors — a small down payment on **#71**.
+
+`OUT_OF_BOOK_DIRS` in `scripts/add-frontmatter.ts` is now **empty**, and the comment says it should stay
+that way: every archived directory is physically under `Archive/`, which `findMarkdown()` already skips.
+Archiving by moving beats archiving by flag.
+
+**Left undone:** the surviving 12 chapters are not all at the six-block standard. The eight this item
+materially edited are; `Backend/Security/01-jwt.md` and `07-sql-injection.md` keep an `## Overview` and a
+checklist-shaped tail that **#76**'s editorial pass should finish. Said plainly rather than implied.
+
+`pnpm lint:docs`: 270 files, 59 violations, **no rule regressed**; 0 broken links, 0 missing READMEs.
+`.lint-baseline.json` unchanged.
+
 ---
 
-### - [ ] 25. Move Agile into the human layer `S`
+### - [x] 25. Move Agile into the human layer `S` — ✅ **done 2026-08-29**
 
 `DevOps/Agile/` (8 topics + README, 1,650 lines) is about Scrum, Jira, and team metrics — that is Part IX, not DevOps,
 and 8 files is too many. Condense to **two**: `Behavioral/ways-of-working.md` (Agile, Scrum, sprint rituals,
@@ -2083,9 +2153,52 @@ DORA metrics) and fold collaboration content into the existing communication cha
 
 **Done when:** `DevOps/Agile/` is gone, two condensed chapters exist in Part IX.
 
+**Delivered:**
+
+`DevOps/Agile/` is at `Archive/devops/agile/`, and **`DevOps/` no longer exists** — this item removed
+the last directory in it. 1,650 lines across 8 chapters became **456 lines across 2**, plus about 90
+lines folded into an existing communication chapter.
+
+| New chapter | Lines | Built from |
+| ----------- | ----- | ---------- |
+| `Behavioral/09-ways-of-working.md` | 217 | `01-fundamentals`, `02-scrum`, `04-cicd-agile`, `07-metrics` |
+| `Behavioral/10-engineering-culture.md` | 239 | `03-devops-culture`, `08-team-practices` |
+
+The split is deliberate. **09** is how a team delivers — Scrum against Kanban, work in progress,
+deploy versus release, feature flags, the four DORA metrics with their performance bands, honest
+measurement, and error budgets. **10** is how a team behaves — you build it you run it, blameless
+post-mortems, psychological safety, code review, sustainable on-call, and planning to 80% of capacity.
+Both are written for a behavioural round rather than as process reference: every section ends in
+something a candidate can say out loud, and each chapter's interview questions are scenario-shaped.
+
+**`06-collaboration.md` folded into `Communication/07-written-communication.md`** as the item asked —
+choosing the right home for a document, architecture decision records with a worked example, runbooks
+and the "last tested" date, and the async decision request with an explicit deadline and default.
+That chapter was 322 lines and the limit is 400, so paying for the addition meant cutting something:
+the two full interview email templates went, condensed to a short paragraph. They were thin,
+duplicated the behavioural material, and carried the author's name in a chapter body, which
+non-negotiable #11 does not allow. **#29** would have cut them anyway.
+
+**Archived without merging:** `05-jira.md` — tool-specific and the fastest-dating file in the
+directory — and the ceremony detail from `02-scrum.md`. `BOOK-SPEC.md` § 6 lists "Agile ceremonies in
+depth" as out of scope, and eight files was the thing it was describing.
+
+**`Behavioral/` is now "Part IX — Behaviour and Ways of Working"**, ten chapters rather than eight. The
+retitle is honest: 09 and 10 are not interview technique, they are the raw material several of the
+STAR stories come out of, and the README says so.
+
+**Also updated:** `scripts/add-frontmatter.ts` lost its four `PART_OVERRIDES` entries and its five
+`OUT_OF_BOOK_FILES` entries for `DevOps/Agile/*`, and both scripts lost the `["DevOps", 8]` prefix
+mapping — the directory is gone, so the mapping was dead. `Archive/README.md`, the root `README.md`
+layout block and `CLAUDE.md` no longer list `DevOps/`.
+
+`pnpm lint:docs`: 269 files, 47 violations. **`fence-language` went 12 → 0** — every one of the twelve
+remaining unlabelled fences in the repository was in `DevOps/Agile/`, exactly as #20's note predicted.
+`.lint-baseline.json` updated to 0 for that rule.
+
 ---
 
-### - [ ] 26. Merge `OOP/` into `Backend/DesignPatterns/` `M`
+### - [x] 26. Merge `OOP/` into `Backend/DesignPatterns/` `M` — ✅ **done 2026-08-29**
 
 `OOP/` is 8 files / 4,662 lines. `Backend/DesignPatterns/` is 6 files / 2,210 lines including its own
 SOLID chapter. In a frontend-heavy book, four chapters on encapsulation/inheritance/polymorphism/abstraction
@@ -2096,6 +2209,55 @@ merged from the current four), composition vs inheritance, SOLID, GoF patterns y
 (factory, observer, strategy, adapter, decorator), architectural patterns.
 
 **Done when:** OOP content is 5 chapters, SOLID exists once, and `OOP/` no longer exists as a top-level directory.
+
+**Delivered:**
+
+`OOP/` (7 chapters + README, 4,662 lines) and `Backend/DesignPatterns/` (5 chapters, 2,210 lines) are
+now **one five-chapter section of 1,492 lines** — 12 chapters to 5, and 6,872 lines to 1,492, a 78%
+cut. `OOP/` no longer exists as a top-level directory.
+
+| #  | Chapter | Lines | Built from |
+| -- | ------- | ----- | ---------- |
+| 01 | `01-oop-core-concepts.md` | 261 | `OOP/01`–`05` — four pillars in one chapter |
+| 02 | `02-composition-over-inheritance.md` | 242 | `OOP/06` |
+| 03 | `03-solid-principles.md` | 350 | the existing SOLID chapter, renumbered from 05 |
+| 04 | `04-patterns-in-typescript.md` | 303 | the creational, structural and behavioural chapters, condensed |
+| 05 | `05-architectural-patterns.md` | 336 | the existing chapter, renumbered from 04 |
+
+**The amendment this item needed.** Its **Target** line said `Foundations/oop-and-patterns/`, but its
+own title and its "Done when" both say `Backend/DesignPatterns/`, and so do the two transitional
+READMEs #13 wrote — `OOP/README.md` and `DesignPatterns/README.md` — which had already committed to
+the merge target in print. Creating a new top-level `Foundations/` for one section would have left
+Part I scattered across **three** trees instead of two, and no other item creates or populates it.
+Merged into `Backend/DesignPatterns/`, which both scripts already map to Part I. The README now says
+plainly why a Part I section lives under `Backend/`.
+
+**What the writing had to decide.** Four chapters on encapsulation, inheritance, polymorphism and
+abstraction collapse into one, and the way to make 261 lines carry 3,249 is to drop the definitions
+and keep what a senior interview probes: that TypeScript's `private` is erased at compile time while
+`#field` is enforced by the runtime, that structural typing means `implements` is an annotation rather
+than a condition, and that an abstraction with one implementation is indirection. Chapter 04 does the
+same to the Gang of Four — six patterns with code, and a table mapping the rest to the TypeScript form
+that replaces them, because a singleton is a module and a decorator is a higher-order function here.
+
+**Dependency injection moved.** It was a full section in the architectural-patterns chapter and it is
+now taught in 02, where composition is the subject. What 05 keeps is the composition root — the one
+module that names concrete classes — which is the architectural half of the idea. That trade is what
+brought 05 from 402 lines to 336.
+
+**Archived, not deleted:** `Archive/foundations/`, new, with `oop/` (all 7 + README) and `patterns/`
+(the three merged chapters). Nine patterns lost their worked examples — abstract factory, prototype,
+proxy, composite, bridge, command, state, chain of responsibility, template method — and the archive
+README names all nine, so the decision is reviewable rather than silent.
+
+**Also fixed:** `SystemDesign/InterviewQuestions/19-parking-lot.md` pointed at `../../OOP/01-…md`,
+which this item would have broken; it is now a `#ch-` anchor. Both scripts lost the `["OOP", 1]`
+prefix mapping. The retired `🔴` and `✨` callouts in the two surviving chapters are replaced, the
+`### 💡 **Intent**` headings are gone, and both chapters now close with Key Takeaways → Interview
+Questions → What to Read Next.
+
+`pnpm lint:docs`: 262 files, 36 violations. **`too-long` went 47 → 36** — all eleven files this item
+removed from the manuscript were over 400 lines. `.lint-baseline.json` updated to 36.
 
 ---
 
@@ -2754,13 +2916,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31   | 4/12 | 🔄 In progress  |
+| 2     | 20–31   | 7/12 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **23/78** | **29%**   |
+| **Total** | **78** | **26/78** | **33%**   |
 
 ---
 

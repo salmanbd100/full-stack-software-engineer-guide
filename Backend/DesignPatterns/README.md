@@ -1,36 +1,40 @@
 ---
-title: Part I — Design Patterns in TypeScript
+title: Part I — OOP and Design Patterns
 part: 1
 chapter: 0
 slug: backend-design-patterns-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [design-patterns, solid, architecture, typescript, gof]
 in_book: true
 ---
 
-# Part I — Design Patterns in TypeScript
+# Part I — OOP and Design Patterns
 
-Patterns are not a vocabulary test. Nobody senior is asked to recite the Gang of Four. What gets
-asked is the underlying question a pattern answers — *this conditional keeps growing, what do I do
-about it* — and whether you can name the cost of the structure you propose. This section covers the
-handful of patterns that genuinely appear in TypeScript codebases, plus the principles that explain
-why they work.
+Object orientation is not a vocabulary test, and neither are patterns. Nobody senior is asked to
+define encapsulation or recite the Gang of Four. What gets asked is the underlying question — *this
+conditional keeps growing, what do I do about it*, *why did that hierarchy become unmaintainable* —
+and whether you can name the cost of the structure you propose.
 
-A warning that runs through the whole section: TypeScript is not Java. Several classic patterns
-collapse into a function, a closure or a union type here. Where that is true, the chapter says so
-rather than dressing a one-liner in a class hierarchy.
+A warning that runs through the whole section: **TypeScript is not Java.** Several classic patterns
+collapse into a function, a module or a union type here, and structural typing changes what
+polymorphism costs. Where that is true, the chapter says so rather than dressing a one-liner in a
+class hierarchy.
+
+This section sits in Part I rather than Part V. Patterns are language material, not backend material;
+it lives under `Backend/` only because that is where the files already were, and `scripts/lib/book.ts`
+maps it to Part I.
 
 ## Chapters
 
-| #  | Chapter                                                          | What it answers                                              |
-| -- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [Creational Patterns](./01-creational-patterns.md)               | What do you do when a constructor call is no longer enough?  |
-| 02 | [Structural Patterns](./02-structural-patterns.md)               | How do you add behaviour to code you do not control?         |
-| 03 | [Behavioural Patterns](./03-behavioral-patterns.md)              | How do you get branching logic out of a growing conditional? |
-| 04 | [Architectural Patterns](./04-architectural-patterns.md)         | Where do the layers of a service go, so a change lands once? |
-| 05 | [SOLID Principles](./05-solid-principles.md)                     | Where do the five principles help, and what do they cost?    |
+| #  | Chapter                                                              | What it answers                                                  |
+| -- | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 01 | [OOP Core Concepts in TypeScript](./01-oop-core-concepts.md)         | Which pillar does the compiler enforce, and which the runtime?   |
+| 02 | [Composition over Inheritance](./02-composition-over-inheritance.md) | Why does the hierarchy break at the fourth level?                |
+| 03 | [SOLID Principles](./03-solid-principles.md)                         | Where do the five principles help, and what do they cost?        |
+| 04 | [Design Patterns in TypeScript](./04-patterns-in-typescript.md)      | Which patterns survive a language that has closures and modules? |
+| 05 | [Architectural Patterns](./05-architectural-patterns.md)             | Where do the layers of a service go, so a change lands once?     |
 
 ## What Interviewers Probe For
 
@@ -40,6 +44,9 @@ patterns specifically, it is *can justify a structure rather than apply one by r
 - **Can you name the problem before the pattern?** "I would use a strategy here" is a weaker answer
   than "this switch will gain a branch every time we add a payment provider, and each branch touches
   the same function." The pattern is the second half of the answer, not the first.
+- **Do you know what `private` actually does?** TypeScript's `private` is erased at compile time and a
+  cast reaches straight through it; `#field` is enforced by the JavaScript runtime. Candidates who
+  know the difference have usually debugged something real.
 - **Do you know the TypeScript-native form?** A strategy is often a `Record<Kind, Handler>`. A
   singleton is usually a module. An observer is frequently an `EventTarget`. Reaching for a class
   hierarchy when the language already has the mechanism is a mid-level tell.
@@ -51,12 +58,9 @@ patterns specifically, it is *can justify a structure rather than apply one by r
 
 ## Reading Order
 
-Read 05 first if you have never had SOLID explained as anything other than an acronym; it reframes
-the four chapters before it. Otherwise straight through — 01 to 03 are the GoF material, 04 is the
-service-shaped version of the same ideas.
+Straight through. 01 and 02 are the object model and its limits, 03 turns those limits into rules, and
+04 and 05 are the recurring shapes those rules produce at two different scales.
 
-**Interview sprint:** 05 → 03 → 04. SOLID gets asked by name, behavioural patterns are the ones that
-appear in real code, and architectural layering is what a design round expects you to draw.
-
-> ⚠️ **This section is a merge target.** Improvement #26 folds `OOP/` into it, producing a single
-> five-chapter section on OOP and patterns. The SOLID chapter here is the one that survives.
+**Interview sprint:** 03 → 02 → 05. SOLID gets asked by name, composition versus inheritance is the
+question behind most "how would you refactor this" prompts, and architectural layering is what a
+design round expects you to draw.

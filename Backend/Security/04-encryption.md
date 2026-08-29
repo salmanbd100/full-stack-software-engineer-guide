@@ -1,22 +1,22 @@
 ---
-title: HTTPS and TLS
+title: Encryption in Transit and at Rest
 part: 5
 chapter: 0
-slug: https
+slug: encryption-in-transit-and-at-rest
 level: intermediate # beginner | intermediate | advanced
-reading_time: 10
-updated: 2026-08-28
-tags: [backend, security, https]
+reading_time: 13
+updated: 2026-08-29
+tags: [backend, security, https, tls, encryption, kms]
 in_book: true
 ---
 
-# HTTPS and TLS {#ch-https-and-tls}
+# Encryption in Transit and at Rest {#ch-encryption-in-transit-and-at-rest}
 
-> Explain what the handshake establishes, and where in your stack TLS actually terminates.
+> Explain what the TLS handshake establishes, where it terminates, and who holds the keys to the data you store.
 
-**In this chapter:** the handshake · certificates and the chain of trust · TLS 1.3 · terminating at the edge vs the origin · HSTS
+**In this chapter:** the handshake · certificates and the chain of trust · where TLS terminates · HSTS · AES-GCM at rest · KMS and key rotation
 
-## Overview
+## 💡 The Core Idea
 
 **HTTPS is HTTP inside a TLS tunnel.** TLS does three jobs at once:
 
@@ -29,16 +29,6 @@ in_book: true
 Encryption alone isn't enough. Without the certificate proving identity, you could be encrypting perfectly — to an attacker.
 
 > **What HTTPS does not hide:** the domain you're visiting (via DNS and SNI), the size and timing of requests, and your IP address.
-
-## Table of Contents
-
-- [The TLS Handshake](#the-tls-handshake)
-- [Certificates and the Chain of Trust](#certificates-and-the-chain-of-trust)
-- [TLS Versions and Configuration](#tls-versions-and-configuration)
-- [Where TLS Terminates](#where-tls-terminates)
-- [HTTPS in Node.js](#https-in-nodejs)
-- [HSTS: Forcing HTTPS](#hsts-forcing-https)
-- [Interview Questions](#interview-questions)
 
 ## The TLS Handshake
 
@@ -228,7 +218,124 @@ app.use(
 
 After the first successful HTTPS visit, the browser upgrades every later request itself — no redirect, no exposed hop.
 
-> 🔴 **HSTS is hard to undo.** With `includeSubDomains`, every subdomain must serve valid HTTPS. Adding your domain to the browser preload list is close to permanent. Start with a short `max-age`, confirm everything works, then raise it.
+> ⚠️ **HSTS is hard to undo.** With `includeSubDomains`, every subdomain must serve valid HTTPS. Adding your domain to the browser preload list is close to permanent. Start with a short `max-age`, confirm everything works, then raise it.
+
+## Encryption at Rest
+
+TLS protects a row while it travels. It does nothing once the row is sitting in a database, a backup, or
+an S3 bucket. Most of that is handled for you — managed databases and object stores encrypt their volumes
+by default — and for most fields that is the right answer, because whole-disk encryption costs nothing and
+protects against a stolen disk.
+
+Field-level encryption is for the columns that would be a breach on their own: national insurance numbers,
+health records, bank details. Encrypt those individually, so a leaked database dump is still unreadable.
+
+**AES-256-GCM is the default choice.** GCM is an *authenticated* cipher — it encrypts and detects
+tampering, so a flipped bit fails decryption rather than producing plausible garbage.
+
+```typescript
+import crypto from "node:crypto";
+
+const ALGORITHM = "aes-256-gcm";
+
+interface Encrypted {
+  iv: string; // base64 — not secret
+  ciphertext: string;
+  tag: string; // authentication tag
+}
+
+function encrypt(plaintext: string, key: Buffer): Encrypted {
+  const iv: Buffer = crypto.randomBytes(12); // 96-bit nonce, fresh every time
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+  const ciphertext: Buffer = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  return {
+    iv: iv.toString("base64"),
+    ciphertext: ciphertext.toString("base64"),
+    tag: cipher.getAuthTag().toString("base64"),
+  };
+}
+
+function decrypt(payload: Encrypted, key: Buffer): string {
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, Buffer.from(payload.iv, "base64"));
+  decipher.setAuthTag(Buffer.from(payload.tag, "base64"));
+  return Buffer.concat([
+    decipher.update(Buffer.from(payload.ciphertext, "base64")),
+    decipher.final(),
+  ]).toString("utf8");
+}
+```
+
+> ⚠️ **Never reuse an IV with the same key.** With GCM, two messages sharing a nonce leak the plaintext
+> difference and can let an attacker forge the authentication tag. Generate it fresh per encryption and
+> store it beside the ciphertext — it does not need to be secret.
+
+Encryption is reversible by design, which is why it is the wrong tool for passwords. A password store must
+be one-way; see [Chapter ?? — Password Security](#ch-password-security).
+
+## Key Management and Envelope Encryption
+
+The algorithm is the easy part. The hard part is that a key in your environment variables is a key in your
+deploy logs, your process listing, and every developer's laptop that ever ran production config.
+
+A **key management service** — AWS KMS, GCP KMS, Azure Key Vault — holds a master key in hardware and
+never hands it out. You send it data to wrap and unwrap instead.
+
+**Envelope encryption** is the pattern that makes this fast:
+
+```text
+KMS master key → encrypts a per-record data key → encrypts the record
+```
+
+1. Ask the KMS for a data key. It returns the key twice: in plaintext, and encrypted under the master key.
+2. Encrypt the record locally with the plaintext data key, then discard it from memory.
+3. Store the *encrypted* data key alongside the ciphertext.
+4. To read, send the encrypted data key back to the KMS to unwrap.
+
+Bulk encryption stays local and fast; the only secret that ever leaves is a wrapped key that is useless
+without the KMS. Rotating the master key then re-wraps data keys rather than re-encrypting every row.
+
+## Rotating Keys
+
+A key used for four years is one breach away from four years of exposure. Rotation limits the blast radius,
+and it only works if the system was built expecting more than one key to be valid at a time.
+
+| Key                | Cadence                | Mechanism                                    |
+| ------------------ | ---------------------- | -------------------------------------------- |
+| **TLS certificate**| 90 days                | ACME automation — already automatic          |
+| **JWT signing key**| 6–12 months            | Publish several public keys via JWKS, sign with the newest |
+| **KMS data keys**  | Managed                | Enable automatic rotation on the master key  |
+| **API keys**       | On demand              | Version each key, allow an overlap window    |
+
+The JWT case is the one that shows up in interviews, because it is where rotation is usually forgotten.
+The token carries a `kid` in its header naming which key signed it, so a verifier can accept the old key
+and the new key at once:
+
+```typescript
+const keys: Record<string, { privateKey: string; publicKey: string }> = {
+  "2026-q1": { privateKey: "…", publicKey: "…" },
+  "2026-q2": { privateKey: "…", publicKey: "…" },
+};
+
+const ACTIVE_KID = "2026-q2";
+
+function signToken(payload: object): string {
+  return jwt.sign(payload, keys[ACTIVE_KID].privateKey, {
+    algorithm: "RS256",
+    keyid: ACTIVE_KID, // verifiers use this to pick the public key
+  });
+}
+```
+
+Rotate immediately, rather than on schedule, when a key may have leaked: a stolen laptop, a secret pushed
+to a repository, an engineer with access leaving, or a disclosed flaw in the library that generated it.
+
+## 🔑 Key Takeaways
+
+- TLS gives confidentiality, integrity and server identity at once; without the certificate, encryption only guarantees you reached *someone* privately.
+- Terminate TLS at the edge for certificate management and handshake cost, then configure `trust proxy` deliberately so forwarded headers are only believed behind a real proxy.
+- HSTS closes the plain-HTTP window that a redirect leaves open, and it is close to irreversible — raise `max-age` gradually.
+- Use AES-256-GCM for data at rest, with a fresh IV per encryption, and reserve field-level encryption for the columns that would be a breach on their own.
+- Keep master keys in a KMS and use envelope encryption, so rotation re-wraps data keys instead of re-encrypting every row.
 
 ## Interview Questions
 
@@ -260,28 +367,8 @@ A response header telling the browser to use HTTPS for this domain for a set dur
 
 Usually at a load balancer or CDN. That centralizes certificate management, offloads handshake cost, and keeps app code simple. The app then needs `trust proxy` set so it reads the real protocol and client IP from forwarded headers — and only when it truly is behind a trusted proxy.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-- [ ] TLS 1.2 minimum; TLS 1.3 enabled
-- [ ] Certificate auto-renewed (ACME/Certbot), monitored for expiry
-- [ ] Full chain served, not just the leaf certificate
-- [ ] ECDHE key exchange + AEAD ciphers (AES-GCM / ChaCha20)
-- [ ] HTTP redirects to HTTPS with a 301
-- [ ] HSTS with a long `max-age`, after verifying subdomains
-- [ ] OCSP stapling enabled
-- [ ] `Secure` flag on every cookie
-- [ ] No mixed content — all assets over HTTPS
-- [ ] Configuration graded on SSL Labs (aim for A/A+)
-
-**Best practices:**
-
-1. **Automate renewal** — expired certificates cause more outages than attacks.
-2. **Terminate at the edge**, then trust proxy headers deliberately.
-3. **HSTS gradually** — it's a one-way door.
-4. **Encryption without identity is worthless** — the certificate is the point.
-
----
-
-[← Password Security](./03-passwords.md) | [Next: CORS & CSRF →](./05-cors-csrf.md)
+- [Chapter ?? — Security Headers](#ch-security-headers) — HSTS in context with the rest of the header set
+- [Chapter ?? — Password Security](#ch-password-security) — why passwords are hashed rather than encrypted
+- [Chapter ?? — Pipeline Security](#ch-cicd-security) — where the keys this chapter assumes actually come from

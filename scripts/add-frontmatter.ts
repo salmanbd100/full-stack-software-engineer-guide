@@ -73,7 +73,6 @@ const PART_BY_PREFIX: readonly [string, number][] = [
   // Part I — Foundations
   ["Frontend/JavaScript", 1],
   ["Frontend/TypeScript", 1],
-  ["OOP", 1],
   ["Backend/DesignPatterns", 1],
 
   // Part II — The Browser Platform
@@ -105,7 +104,6 @@ const PART_BY_PREFIX: readonly [string, number][] = [
 
   // Part VIII — Ship and Operate
   ["ShipAndOperate", 8], // post-rename (#20)
-  ["DevOps", 8],
 
   // Part IX — The Human Layer
   ["Behavioral", 9],
@@ -117,8 +115,7 @@ const PART_BY_PREFIX: readonly [string, number][] = [
 
 /**
  * Files whose destination part is not their current directory.
- * Improvement #42 moves the architecture half of SystemDesign/Frontend into Part IV;
- * #25 moves Agile into Part IX.
+ * Improvement #42 moves the architecture half of SystemDesign/Frontend into Part IV.
  */
 const PART_OVERRIDES: Readonly<Record<string, number>> = {
   // #42 — the architecture half of frontend system design belongs beside the stack chapters
@@ -131,12 +128,6 @@ const PART_OVERRIDES: Readonly<Record<string, number>> = {
 
   // Back matter (#19) — root-level, so no prefix can reach it
   "About-the-Author.md": 9,
-
-  // #25 — ways of working is the human layer, not DevOps
-  "DevOps/Agile/01-fundamentals.md": 9,
-  "DevOps/Agile/03-devops-culture.md": 9,
-  "DevOps/Agile/07-metrics.md": 9,
-  "DevOps/Agile/README.md": 9,
 };
 
 // ---------------------------------------------------------------------------
@@ -147,16 +138,14 @@ const PART_OVERRIDES: Readonly<Record<string, number>> = {
 // ---------------------------------------------------------------------------
 
 /** Whole directories that leave the book. */
-const OUT_OF_BOOK_DIRS: readonly string[] = [
-  // #24 — security consolidates into Frontend/ and Backend/
-  "SystemDesign/Security",
-];
+const OUT_OF_BOOK_DIRS: readonly string[] = [];
 
-// #20 physically moved everything it archived under Archive/devops/, which findMarkdown()
-// already skips — so Terraform, Linux, Scripting, Networking, CostOptimization, IaC,
-// DevSecOps and DevOps/Security no longer need an entry here. #21 did the same for
-// DevOps/GenAI, and #23 for SystemDesign/Infrastructure (archived) and SystemDesign/Scalability
-// (merged away entirely). SystemDesign/Security is the last entry standing, waiting on #24.
+// This list is now empty, and should stay that way. Every archived directory was physically
+// moved under Archive/, which findMarkdown() already skips: #20 for Terraform, Linux, Scripting,
+// Networking, CostOptimization, IaC, DevSecOps and DevOps/Security; #21 for DevOps/GenAI; #23 for
+// SystemDesign/Infrastructure; and #24 for SystemDesign/Security, whose unique content — authorisation,
+// encryption at rest, SSRF, MFA and SSO — moved into Backend/Security/ first. Archiving by moving
+// beats archiving by flag: the tree tells the truth without a lookup table.
 
 /** Individual files that leave the book, keyed by repo-relative path. */
 const OUT_OF_BOOK_FILES: readonly string[] = [
@@ -168,16 +157,8 @@ const OUT_OF_BOOK_FILES: readonly string[] = [
   "README.md",
   "Frontend/README.md",
 
-  // #20 — the individual files Docker, CI/CD, Observability, Cloud and Kubernetes shed are
-  // now under Archive/devops/, which findMarkdown() skips. The Agile entries below stay, because
-  // #25 has not run yet and DevOps/Agile/ is still in the tree.
-
-  // #25 — Agile condenses to 2 chapters in Part IX
-  "DevOps/Agile/02-scrum.md",
-  "DevOps/Agile/04-cicd-agile.md",
-  "DevOps/Agile/05-jira.md",
-  "DevOps/Agile/06-collaboration.md",
-  "DevOps/Agile/08-team-practices.md",
+  // #20 and #25 — the individual files Docker, CI/CD, Observability, Cloud, Kubernetes and Agile
+  // shed are now under Archive/devops/, which findMarkdown() skips. No entries needed.
 
   // #28 — case studies keep 10 of 20; these are the backend-heaviest
   "SystemDesign/InterviewQuestions/01-twitter.md",

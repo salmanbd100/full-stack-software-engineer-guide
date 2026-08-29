@@ -30,7 +30,7 @@ is the surface a frontend engineer owns or negotiates with, at the depth a senio
 | [API Design](./API/README.md)                                  | 6        | REST, GraphQL, versioning, rate limiting, docs, WebSockets           |
 | [SQL and Relational Data](./SQL/README.md)                     | 8        | Schema design, indexes, transactions, ORMs, query plans              |
 | [NoSQL](./NoSQL/README.md)                                     | 6        | MongoDB modelling, aggregation, indexing, Mongoose, Redis            |
-| [Security](./Security/README.md)                               | 8        | JWT, OAuth, passwords, TLS, CORS, validation, injection, headers     |
+| [Security](./Security/README.md)                               | 8        | JWT, OAuth, passwords and MFA, encryption, CORS/CSRF, validation, injection, authorisation |
 | [Testing](./Testing/README.md)                                 | 6        | What to test on a server, and where the boundaries go                |
 
 `Backend/DesignPatterns/` also lives in this tree, but it belongs to **Part I** — patterns are

@@ -4,9 +4,9 @@ part: 5
 chapter: 0
 slug: oauth
 level: intermediate # beginner | intermediate | advanced
-reading_time: 12
-updated: 2026-08-28
-tags: [backend, security, oauth]
+reading_time: 13
+updated: 2026-08-29
+tags: [backend, security, oauth, oidc, sso]
 in_book: true
 ---
 
@@ -14,25 +14,15 @@ in_book: true
 
 > Walk through the authorisation code flow with PKCE and explain what each redirect is protecting.
 
-**In this chapter:** the four roles · authorisation code with PKCE · the grant types worth knowing · OAuth vs OIDC vs JWT · state and redirect validation
+**In this chapter:** the four roles · authorisation code with PKCE · the grant types worth knowing · OAuth vs OIDC vs JWT · state and redirect validation · SSO and magic links
 
-## Overview
+## 💡 The Core Idea
 
 **OAuth 2.0** lets a user give one app limited access to their data on another service — without sharing their password.
 
 "Sign in with Google" is the everyday example. Your app never sees the Google password. It receives a token that works only for the scopes the user approved.
 
 > **OAuth is authorization, not authentication.** It answers "what may this app do?" **OpenID Connect (OIDC)** is the thin layer on top that answers "who is this user?"
-
-## Table of Contents
-
-- [The Four Roles](#the-four-roles)
-- [Authorization Code Flow with PKCE](#authorization-code-flow-with-pkce)
-- [Server Implementation](#server-implementation)
-- [Grant Types: Which to Use](#grant-types-which-to-use)
-- [OAuth vs OIDC vs JWT](#oauth-vs-oidc-vs-jwt)
-- [Security Essentials](#security-essentials)
-- [Interview Questions](#interview-questions)
 
 ## The Four Roles
 
@@ -268,6 +258,56 @@ const ALLOWED_REDIRECTS = new Set(["https://app.example.com/auth/callback"]);
 
 **✅ Store provider tokens encrypted, server-side.** Treat a refresh token like a password.
 
+## SSO and Magic Links
+
+Two adjacent patterns get confused with OAuth in interviews, and both are worth being able to place.
+
+**Single sign-on** means one login works across many applications. An identity provider — Okta, Entra ID,
+Auth0, your own — holds the user directory, and each application trusts an assertion it signs.
+
+```text
+User → App A: redirected to the identity provider
+IdP: authenticates the user once, sets its own session
+IdP → App A: signed assertion (SAML) or id_token (OIDC)
+User → App B: IdP session already exists, so no second login
+```
+
+SAML 2.0 is XML-based and still the default in older enterprise procurement. OIDC is the same idea over
+the flow described above, and is what you should choose for anything new. The mechanics are identical to
+"sign in with Google"; the only difference is that the provider is the customer's, not a consumer brand.
+
+**Magic links** remove the password instead of federating it. The user types an email address, the server
+mails a one-time signed URL, and clicking it starts the session.
+
+```typescript
+import crypto from "node:crypto";
+
+async function sendMagicLink(email: string): Promise<void> {
+  const token: string = crypto.randomBytes(32).toString("hex");
+  const expiresAt: Date = new Date(Date.now() + 15 * 60 * 1000);
+
+  // Store only the hash — the mailbox holds the only copy of the raw token.
+  await db.magicLinks.insert({ email, tokenHash: sha256(token), expiresAt });
+  await mailer.send(email, `https://app.example.com/auth?t=${token}`);
+}
+```
+
+| Pattern         | Reach for it when                                      | Do not, when                                     |
+| --------------- | ------------------------------------------------------ | ------------------------------------------------ |
+| **SSO (OIDC)**  | Enterprise buyers, internal tools, multi-product suites | A consumer product with no directory behind it   |
+| **Magic links** | Low-friction consumer sign-up, invite flows             | High-value accounts — the mailbox becomes the credential |
+
+> ⚠️ **A magic link is a bearer credential in an inbox.** Treat it like a password reset token: single
+> use, short expiry, hashed at rest, and never a second factor on its own.
+
+## 🔑 Key Takeaways
+
+- OAuth answers "what may this application do?"; OpenID Connect adds the `id_token` that answers "who is this user?".
+- Use the authorisation code flow with PKCE everywhere, including confidential clients — the implicit flow is deprecated.
+- `state` protects the callback against CSRF; PKCE protects the code against interception. They are different jobs.
+- Match redirect URIs exactly against an allowlist; prefix matching is how accounts get taken over.
+- Provider tokens stay on the server, encrypted, tied to your own session — the browser never holds a refresh token.
+
 ## Interview Questions
 
 **Q1: What problem does OAuth 2.0 solve?**
@@ -298,26 +338,8 @@ CSRF protection for the OAuth flow itself. The client generates a random value, 
 
 Server-side, encrypted, tied to my own session. The browser only ever gets my session cookie or short-lived JWT — never the provider's tokens. A refresh token is as sensitive as a password.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-- [ ] Authorization code + PKCE for every user-facing flow
-- [ ] `state` generated per request and validated on callback
-- [ ] Redirect URIs matched exactly against an allowlist
-- [ ] Client secret only ever on the server
-- [ ] Minimum scopes requested
-- [ ] `id_token` signature and claims validated against the provider's JWKS
-- [ ] Provider tokens stored encrypted, server-side
-- [ ] HTTPS on every endpoint in the flow
-
-**Best practices:**
-
-1. **Use a library** — `openid-client` or your provider's SDK. Hand-rolled OAuth is where bugs live.
-2. **Least privilege scopes** — smaller ask, smaller blast radius.
-3. **OIDC for login**, plain OAuth for API access.
-4. **Never trust the browser** with provider tokens.
-
----
-
-[← JWT Authentication](./01-jwt.md) | [Next: Password Security →](./03-passwords.md)
+- [Chapter ?? — JWT Authentication](#ch-jwt-authentication) — validating the `id_token` you get back
+- [Chapter ?? — Authorisation](#ch-authorisation) — what scopes do and do not decide once the user is in
+- [Chapter ?? — Passwords and Multi-Factor Authentication](#ch-password-security) — the flow you are delegating away

@@ -50,14 +50,20 @@ Archive/
 ├── planning/            ← #8:  superseded plans and marketing assets
 ├── salvage/             ← staged for a later part, not out of scope — see salvage/README.md
 │   └── ai/                  2 files inbound to Part VII at #45 and #49
-├── systemdesign/        ← #23: what Part VI shed that Part VIII already covers
-│   └── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
-└── devops/              ← #20: the 98 files DevOps/ shed, plus genai/ from #21
+├── foundations/         ← #26: what Part I shed when OOP/ and DesignPatterns/ merged
+│   ├── oop/                 all 7 + README — condensed into two chapters
+│   └── patterns/            3 of 5 — the GoF catalogue, condensed into one chapter
+├── systemdesign/        ← #23–24: what Part VI shed to Parts V and VIII
+│   ├── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
+│   └── security/            all 6 + README — #24; authz, encryption, SSRF, MFA and SSO
+│                                moved into Backend/Security/ first
+└── devops/              ← #20: the 98 files DevOps/ shed, plus genai/ (#21) and agile/ (#25)
     ├── README.md            the old 1,378-line DevOps curriculum index
+    ├── agile/               all 8 + README — #25; two Part IX chapters were written from it first
     ├── aws/                 11 of 15 — Cloud/ keeps fundamentals, serverless, storage, CDN
     ├── cicd/                3 of 8 — the vendor-specific pipelines
     ├── cost-optimization/   all 7 — FinOps is its own field
-    ├── devsecops/           all 11 — #24 folds the unique parts into pipeline security
+    ├── devsecops/           all 11 — the unique parts are in ShipAndOperate/CICD/04
     ├── docker/              4 of 9 — Containers/ keeps 5
     ├── genai/               6 of 8 + README — #21; the other 2 are staged under salvage/ai/
     ├── iac/                 all 3
@@ -66,13 +72,13 @@ Archive/
     ├── monitoring/          4 of 8 — Observability/ keeps 4
     ├── networking/          all 9
     ├── scripting/           all 7 — Python and bash break the TypeScript-only rule
-    ├── security/            all 9 — #24 decides what returns
+    ├── security/            all 9 — #24 decided: nothing returns; Backend/Security/ covers it
     └── terraform/           all 11
 ```
 
-Still in `DevOps/` and not archived yet: only `Agile/`, which belongs to **#25** — it condenses into two
-Part IX chapters. `GenAI/` is gone: **#21** archived six chapters and its index here, and staged the two
-that Part VII actually wants under `salvage/ai/`.
+**`DevOps/` no longer exists.** #20 took 98 of its files here and renamed the rest `ShipAndOperate/`;
+#21 took `GenAI/`, staging the two chapters Part VII wants under `salvage/ai/`; and #25 took `Agile/`,
+the last directory standing, after writing two Part IX chapters from it.
 
 Directories appear as the items that fill them run. An empty one is not missing — it is not due yet.
 

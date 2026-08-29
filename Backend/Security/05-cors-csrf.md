@@ -14,9 +14,9 @@ in_book: true
 
 > Configure CORS without opening a hole, and know why it is not a CSRF defence.
 
-**In this chapter:** the same-origin policy · preflight requests · configuring CORS safely · how CSRF works · `SameSite` and tokens
+**In this chapter:** the same-origin policy · preflight requests · configuring CORS safely · how CSRF works · `SameSite` and tokens · sending the token from a single-page app
 
-## Overview
+## 💡 The Core Idea
 
 These two get confused in almost every interview. They are not related, and one does **not** protect against the other.
 
@@ -26,17 +26,6 @@ These two get confused in almost every interview. They are not related, and one 
 | **CSRF** | An **attack** that abuses automatically-sent cookies | — it's the attack, not a defense |
 
 > **The one-liner:** CORS controls who may **read** your response. CSRF is about who may **trigger** a request. A forged `POST` still reaches your server even when CORS blocks the attacker from reading the reply — the damage is already done.
-
-## Table of Contents
-
-- [Same-Origin Policy](#same-origin-policy)
-- [How CORS Works](#how-cors-works)
-- [Configuring CORS Safely](#configuring-cors-safely)
-- [How CSRF Works](#how-csrf-works)
-- [CSRF Defense 1: SameSite Cookies](#csrf-defense-1-samesite-cookies)
-- [CSRF Defense 2: Tokens](#csrf-defense-2-tokens)
-- [Why CORS Doesn't Stop CSRF](#why-cors-doesnt-stop-csrf)
-- [Interview Questions](#interview-questions)
 
 ## Same-Origin Policy
 
@@ -244,7 +233,41 @@ export function checkCsrf(req: Request, res: Response, next: NextFunction): void
 }
 ```
 
-> ✨ The `__Host-` cookie prefix forces `Secure`, host-only, path `/`. It stops a compromised subdomain from overwriting your CSRF cookie.
+> ⚠️ The `__Host-` cookie prefix forces `Secure`, host-only, path `/`. It stops a compromised subdomain from overwriting your CSRF cookie.
+
+## Sending the Token from a Single-Page App
+
+The token only helps if every state-changing request carries it. Fetch it once after login, then route
+mutations through one wrapper rather than trusting each call site to remember.
+
+```typescript
+async function getCsrfToken(): Promise<string> {
+  const res = await fetch("/csrf-token", { credentials: "same-origin" });
+  const { token } = (await res.json()) as { token: string };
+  return token;
+}
+
+async function mutate(url: string, token: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...options,
+    credentials: "same-origin", // the session cookie still has to be sent
+    headers: {
+      ...options.headers,
+      "Content-Type": "application/json",
+      "X-CSRF-Token": token,
+    },
+  });
+}
+```
+
+Two browser rules are doing the work here, and they are worth being able to state:
+
+- **The same-origin policy** stops `evil.com` reading the cookie or the response from your origin.
+- **A cross-site form or `<img>` cannot set a custom header.** Only a same-origin `fetch` or `XHR` can add
+  `X-CSRF-Token`, which is precisely what the attacker does not have.
+
+The protection therefore comes from the header the attacker cannot forge, not from where the token is
+kept — so holding it in memory or in `localStorage` is fine, while the session cookie stays `HttpOnly`.
 
 ## Why CORS Doesn't Stop CSRF
 
@@ -266,6 +289,14 @@ CSRF attack:  evil.com  ──POST /transfer (with cookies)──▶  bank.com
 3. **Simple requests skip preflight.** A `POST` with `Content-Type: application/x-www-form-urlencoded` goes straight to your handler.
 
 > **Say this in an interview:** "CORS is about confidentiality of the response. CSRF is about integrity of the request. Different problems, different fixes."
+
+## 🔑 Key Takeaways
+
+- CORS relaxes the same-origin policy for reading a response; it is not access control, and non-browser clients ignore it entirely.
+- Never reflect an arbitrary `Origin` back with `credentials: true` — keep an explicit allowlist.
+- CSRF only applies to credentials the browser attaches automatically, which means cookie sessions rather than an `Authorization` header your code sets.
+- Layer `SameSite=Lax` with an anti-CSRF token: `SameSite` fails open on legacy browsers and `SameSite=None` cookies, and tokens cover the gap.
+- Fix XSS first — script running on your origin defeats every CSRF defence in this chapter.
 
 ## Interview Questions
 
@@ -297,34 +328,8 @@ No. CORS decides who may read a response; the forged request still executes. Cro
 
 Not for classic CSRF. A cross-site form can't set an `Authorization` header, and the browser won't add one automatically. But if you store that JWT in a cookie that's sent automatically, you're back to cookie-based auth and CSRF applies again.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-**CORS:**
-
-- [ ] Explicit origin allowlist — never reflect arbitrary origins with credentials
-- [ ] `credentials: true` only when cookies are genuinely needed
-- [ ] Allowed methods and headers kept minimal
-- [ ] `maxAge` set to cache preflights
-- [ ] Remember: CORS is browser-only, not access control
-
-**CSRF:**
-
-- [ ] `SameSite=Lax` (or `Strict`) + `HttpOnly` + `Secure` on session cookies
-- [ ] Anti-CSRF token on every state-changing route
-- [ ] `csrf-csrf` or a custom double-submit check — not the deprecated `csurf`
-- [ ] Constant-time token comparison
-- [ ] `GET` never changes state
-- [ ] Re-authenticate for high-risk actions (password change, payouts)
-
-**Best practices:**
-
-1. **Know the difference cold** — reading vs. triggering.
-2. **Allowlist, never reflect** — an origin check that always says yes is no check.
-3. **Layer `SameSite` and tokens** — neither is complete alone.
-4. **Fix XSS first** — it bypasses every CSRF defense you have.
-
----
-
-[← HTTPS & TLS](./04-https.md) | [Next: Input Validation →](./06-validation.md)
+- [Chapter ?? — XSS Prevention](#ch-xss-prevention) — the attack that bypasses every defence here
+- [Chapter ?? — JWT Authentication](#ch-jwt-authentication) — why header-based tokens change the CSRF picture
+- [Chapter ?? — Security Headers](#ch-security-headers) — the browser-enforced half of the same story

@@ -5,7 +5,7 @@ chapter: 0
 slug: solid-principles
 level: intermediate # beginner | intermediate | advanced
 reading_time: 15
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [backend, design, patterns, solid, principles]
 in_book: true
 ---
@@ -16,25 +16,13 @@ in_book: true
 
 **In this chapter:** single responsibility · open/closed · Liskov substitution · interface segregation · dependency inversion
 
-## Overview
+## 💡 The Core Idea
 
 SOLID is five design principles from Robert C. Martin, aimed at code that can be changed without fear. They're the most-asked design topic in interviews — usually badly, because reciting the acronym is easy and applying it is not.
 
 The five aren't equally useful. **Dependency Inversion and Single Responsibility change how you write code every day.** Liskov and Interface Segregation are narrower but come up in tricky questions. Open/Closed is the most misquoted of the set.
 
 > **What separates a strong answer:** give the smell, then the fix, then the cost. Every one of these principles can be over-applied into an unreadable maze of one-method interfaces, and saying so is a senior signal.
-
-## Table of Contents
-
-- [The Five, in One Table](#the-five-in-one-table)
-- [Single Responsibility (SRP)](#single-responsibility-srp)
-- [Open/Closed (OCP)](#openclosed-ocp)
-- [Liskov Substitution (LSP)](#liskov-substitution-lsp)
-- [Interface Segregation (ISP)](#interface-segregation-isp)
-- [Dependency Inversion (DIP)](#dependency-inversion-dip)
-- [When SOLID Goes Wrong](#when-solid-goes-wrong)
-- [Interview Questions](#interview-questions)
-- [Summary](#summary)
 
 ## The Five, in One Table
 
@@ -137,9 +125,9 @@ class ExportRegistry {
 // Adding PDF: write one object, register it. Nothing existing is touched.
 ```
 
-> ✨ **This is Strategy, viewed from the principle side.** OCP is the goal; Strategy, Factory, and Decorator are the mechanisms. Making that link explicit is a good interview move. See [Strategy](./03-behavioral-patterns.md#strategy).
+> ⚠️ **This is Strategy, viewed from the principle side.** OCP is the goal; strategy, factory and decorator are the mechanisms. Making that link explicit is a good interview move — see [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript).
 
-🔴 **A `switch` is not automatically a violation.** If the set of cases is genuinely fixed — the seven HTTP methods, four log levels — a `switch` with an exhaustiveness check is *better* than a registry: the compiler verifies you handled everything. OCP applies to axes that actually vary.
+⚠️ **A `switch` is not automatically a violation.** If the set of cases is genuinely fixed — the seven HTTP methods, four log levels — a `switch` with an exhaustiveness check is *better* than a registry: the compiler verifies you handled everything. OCP applies to axes that actually vary.
 
 ## Liskov Substitution (LSP)
 
@@ -167,7 +155,7 @@ class Square extends Rectangle {
 function stretch(r: Rectangle): void {
   r.setWidth(5);
   r.setHeight(4);
-  console.assert(r.area() === 20); // ✅ Rectangle → 20   🔴 Square → 16
+  console.assert(r.area() === 20); // ✅ Rectangle → 20   ❌ Square → 16
 }
 ```
 
@@ -220,7 +208,7 @@ interface Repository<T> {
 
 class AuditLogRepository implements Repository<AuditEntry> {
   async delete(): Promise<void> {
-    throw new Error("Audit entries are immutable"); // 🔴 also an LSP violation
+    throw new Error("Audit entries are immutable"); // ❌ also an LSP violation
   }
   // …and four more methods this class has no business having
 }
@@ -290,7 +278,7 @@ class StripeGateway implements PaymentGateway {
 - ✅ Vendor swaps touch one adapter and one line of wiring.
 - ✅ The domain stays portable across frameworks and runtimes.
 
-> **DIP vs Dependency Injection:** DIP is the principle — depend on an abstraction you own. DI is the delivery mechanism — pass it in. You can inject a concrete class and satisfy DI while completely violating DIP. See [Dependency Injection](./04-architectural-patterns.md#dependency-injection).
+> **DIP vs Dependency Injection:** DIP is the principle — depend on an abstraction you own. DI is the delivery mechanism — pass it in. You can inject a concrete class and satisfy DI while completely violating DIP. See [Chapter ?? — Composition over Inheritance](#ch-composition-over-inheritance).
 
 ## When SOLID Goes Wrong
 
@@ -305,13 +293,21 @@ Every principle has an over-applied form, and interviewers notice when you can n
 | DIP → an interface per class | Indirection with exactly one implementation, forever |
 
 ```typescript
-// 🔴 An interface with one implementation and no plan for a second
+// ❌ An interface with one implementation and no plan for a second
 //    is a file you maintain for nothing.
 interface UserIdGenerator { generate(): string; }
 class UuidUserIdGenerator implements UserIdGenerator { generate() { return randomUUID(); } }
 ```
 
 **The rule that keeps this honest:** apply a principle when you can name the change it makes cheaper. "We'll need a second payment provider next quarter" is a reason. "It's more SOLID" is not.
+
+## 🔑 Key Takeaways
+
+- Dependency inversion and single responsibility carry most of the day-to-day value; the other three are narrower.
+- Single responsibility is about who can request a change, not about how many methods a class has.
+- Open/closed is a goal; strategy, factory and decorator are the mechanisms that reach it — a fixed `switch` with an exhaustiveness check is not a violation.
+- Liskov is a statement about behaviour, not signatures, so the compiler cannot check it for you.
+- Refactor toward these principles at the second case; starting there produces one-method interfaces nobody reads.
 
 ## Interview Questions
 
@@ -347,27 +343,8 @@ DIP, because it's what makes code testable and portable, and SRP, because it's w
 
 When the change it protects against isn't coming. An interface with one implementation and no second in sight is maintenance cost for an option nobody will exercise, and one class per method turns a single request into a scavenger hunt. I apply a principle when I can name the change it makes cheaper — and if I can't name it, I write the simpler code and refactor when the second case actually arrives.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-- [ ] Each class has one group of people who can request a change to it
-- [ ] Business rules testable without a database or network
-- [ ] Growing `switch` statements replaced by a registry; fixed ones keep exhaustiveness checks
-- [ ] No implementation throws "not supported" for an interface method
-- [ ] Interfaces describe a role, not a whole subsystem
-- [ ] Domain code imports no vendor SDK
-- [ ] Abstractions live with their consumer, not their implementation
-- [ ] Constructor injection against interfaces
-- [ ] No interface exists solely because "abstractions are good"
-
-**Best practices:**
-
-1. **Name the change** each abstraction makes cheaper — or don't add it.
-2. **DIP and SRP first** — they carry most of the practical value.
-3. **Contracts over signatures** — the compiler can't check LSP for you.
-4. **Refactor toward SOLID, don't start there** — the second case tells you where the seam belongs.
-
----
-
-[← Architectural Patterns](./04-architectural-patterns.md) | [Design Patterns Index](./README.md)
+- [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript) — the mechanisms that implement these principles
+- [Chapter ?? — Architectural Patterns](#ch-architectural-patterns) — dependency inversion applied to a whole service
+- [Chapter ?? — Composition over Inheritance](#ch-composition-over-inheritance) — where Liskov violations actually come from

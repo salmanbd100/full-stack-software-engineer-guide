@@ -16,22 +16,11 @@ in_book: true
 
 **In this chapter:** HSTS · `nosniff` · `frame-ancestors` and clickjacking · `Referrer-Policy` · `Permissions-Policy` · helmet
 
-## Overview
+## 💡 The Core Idea
 
 **Security headers** are HTTP response headers that switch on extra browser protections. Each one is a small, cheap line of defense against a specific attack — clickjacking, MIME-sniffing, protocol downgrade, referrer leaks.
 
 You don't set these one by one in production. You use **helmet**, which applies sensible defaults. But you should know what each header does and why.
-
-## Table of Contents
-
-- [The Headers That Matter](#the-headers-that-matter)
-- [Strict-Transport-Security (HSTS)](#strict-transport-security-hsts)
-- [X-Content-Type-Options: nosniff](#x-content-type-options-nosniff)
-- [Clickjacking: frame-ancestors](#clickjacking-frame-ancestors)
-- [Referrer-Policy](#referrer-policy)
-- [Permissions-Policy](#permissions-policy)
-- [helmet: One Line of Setup](#helmet-one-line-of-setup)
-- [Interview Questions](#interview-questions)
 
 ## The Headers That Matter
 
@@ -39,7 +28,7 @@ You don't set these one by one in production. You use **helmet**, which applies 
 | ----------------------------- | ------------------------------ | ------------------------------------------ |
 | `Strict-Transport-Security`   | Protocol downgrade / SSL strip | `max-age=63072000; includeSubDomains`      |
 | `X-Content-Type-Options`      | MIME sniffing                  | `nosniff`                                   |
-| `Content-Security-Policy`     | XSS, clickjacking              | see [03-csp-headers.md](./03-csp-headers.md) |
+| `Content-Security-Policy`     | XSS, clickjacking              | see [Chapter ?? — Content Security Policy](#ch-content-security-policy) |
 | `Referrer-Policy`             | URL leaks via `Referer`        | `strict-origin-when-cross-origin`          |
 | `Permissions-Policy`          | Unwanted camera/mic/geo access | deny what you don't use                    |
 
@@ -192,6 +181,14 @@ describe("security headers", () => {
 
 Also scan a live site with **securityheaders.com** or **Mozilla Observatory** for a quick grade.
 
+## 🔑 Key Takeaways
+
+- Six headers cover most of the ground: HSTS, `nosniff`, CSP, `frame-ancestors`, `Referrer-Policy` and `Permissions-Policy`.
+- HSTS is close to a one-way door — every subdomain must serve valid HTTPS before you raise `max-age` or preload.
+- `frame-ancestors` supersedes `X-Frame-Options`, and `X-XSS-Protection` should be set to `0` rather than enabled.
+- `helmet()` sets a sane default suite in one line; customise the parts you need instead of hand-rolling the set.
+- Assert on headers in an integration test, because a middleware reorder removes them silently.
+
 ## Interview Questions
 
 **Q1: Which security headers should every site send?**
@@ -218,26 +215,8 @@ It stops the browser from guessing a response's content type from its bytes. Wit
 
 It denies powerful features (camera, mic, geolocation) you don't use — for your page *and* embedded third-party scripts. So a compromised ad or widget can't silently request the camera. Least privilege at the browser-feature level.
 
-## Summary
+## What to Read Next
 
-**Headers checklist:**
-
-- [ ] `Strict-Transport-Security` with a long `max-age`
-- [ ] `X-Content-Type-Options: nosniff`
-- [ ] `Content-Security-Policy` (see CSP doc)
-- [ ] `frame-ancestors 'none'` / `X-Frame-Options: DENY`
-- [ ] `Referrer-Policy: strict-origin-when-cross-origin`
-- [ ] `Permissions-Policy` denying unused features
-- [ ] `X-XSS-Protection: 0` and remove `X-Powered-By`
-
-**Best practices:**
-
-1. **Use helmet** — don't hand-roll the suite.
-2. **HSTS is sticky** — start small, raise gradually, preload last.
-3. **Prefer CSP** over the legacy `X-Frame-Options` / `X-XSS-Protection`.
-4. **Test it** — automated header tests + securityheaders.com.
-
----
-
-[← CSP Headers](./03-csp-headers.md) | [Next: Input Sanitization →](./05-input-sanitization.md)
-</content>
+- [Chapter ?? — Content Security Policy](#ch-content-security-policy) — the one header big enough for its own chapter
+- [Chapter ?? — Encryption in Transit and at Rest](#ch-encryption-in-transit-and-at-rest) — what HSTS is protecting
+- [Chapter ?? — CORS and CSRF](#ch-cors-and-csrf) — the headers that decide who may read the response

@@ -72,6 +72,7 @@ the case studies, out loud, against a timer.
 **Interview sprint:** `Fundamentals/08` (RADIO), `Fundamentals/07` (estimation),
 `BuildingBlocks/01`–`03` (load balancing, caching, CDN), then three case studies end to end.
 
-> ⚠️ `Security/` is a transitional directory, marked `in_book: false` — improvement #24 folds it into
-> `Frontend/` and `Backend/`. `Scalability/` and `Infrastructure/` are gone: #22 and #23 merged what
-> was worth keeping into `Fundamentals/`, `BuildingBlocks/` and `Database/`, and archived the rest.
+> ⚠️ Three directories are gone. `Scalability/` and `Infrastructure/` went at #22 and #23, which
+> merged what was worth keeping into `Fundamentals/`, `BuildingBlocks/` and `Database/` and archived
+> the rest. `Security/` went at #24: authorisation, encryption at rest and SSRF moved into
+> `Backend/Security/`, and the directory is now `Archive/systemdesign/security/`.

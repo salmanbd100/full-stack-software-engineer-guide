@@ -5,8 +5,8 @@ chapter: 0
 slug: backend-security-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
-tags: [security, jwt, oauth, tls, cors, injection]
+updated: 2026-08-29
+tags: [security, jwt, oauth, tls, cors, injection, authorization]
 in_book: true
 ---
 
@@ -15,7 +15,8 @@ in_book: true
 The server half of the security spine. Who the caller is, what they are allowed to do, what crosses
 the wire, and what reaches a query — those are the four questions this section answers. The browser
 half — cross-site scripting, Content Security Policy, the headers that harden a page — lives in
-[`Frontend/Security/`](../../Frontend/Security/README.md).
+[`Frontend/Security/`](../../Frontend/Security/README.md), and the pipeline that builds and deploys
+the service is hardened in [Chapter ?? — Pipeline Security](#ch-cicd-security).
 
 The two halves are not independent, and the chapters that straddle them say so. CORS is configured on
 the server and only has effects in the browser. A `SameSite` cookie is set by the server and enforced
@@ -23,16 +24,16 @@ by the browser. Where an answer needs both sides, the chapter gives both sides.
 
 ## Chapters
 
-| #  | Chapter                                                        | What it answers                                                    |
-| -- | -------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 01 | [JWT Authentication](./01-jwt.md)                              | When would a session cookie be the better choice?                  |
-| 02 | [OAuth 2.0](./02-oauth.md)                                     | What is each redirect in the authorisation code flow protecting?   |
-| 03 | [Password Security](./03-passwords.md)                         | How do you make a database leak stop short of an account leak?     |
-| 04 | [HTTPS and TLS](./04-https.md)                                 | What does the handshake establish, and where does TLS terminate?   |
-| 05 | [CORS and CSRF](./05-cors-csrf.md)                             | Why is CORS not a CSRF defence?                                    |
-| 06 | [Backend Input Validation](./06-validation.md)                 | How does nothing untrusted reach your business logic?              |
-| 07 | [SQL Injection Prevention](./07-sql-injection.md)              | What do you do in the two cases you cannot parameterise?           |
-| 08 | [Backend Security Headers](./08-security-headers.md)           | Which headers harden every response, set from one place?           |
+| #  | Chapter                                                        | What it answers                                                  |
+| -- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 01 | [JWT Authentication](./01-jwt.md)                              | When would a session cookie be the better choice?                |
+| 02 | [OAuth 2.0](./02-oauth.md)                                     | What is each redirect in the authorisation code flow protecting? |
+| 03 | [Passwords and Multi-Factor Authentication](./03-passwords.md) | How do you make a database leak stop short of an account leak?   |
+| 04 | [Encryption in Transit and at Rest](./04-encryption.md)        | What does the handshake establish, and who holds the keys?       |
+| 05 | [CORS and CSRF](./05-cors-csrf.md)                             | Why is CORS not a CSRF defence?                                  |
+| 06 | [Backend Input Validation](./06-validation.md)                 | How does nothing untrusted reach your business logic?            |
+| 07 | [SQL Injection Prevention](./07-sql-injection.md)              | What do you do in the two cases you cannot parameterise?         |
+| 08 | [Authorisation](./08-authorisation.md)                         | Authenticated is not authorised — where is that enforced?        |
 
 ## What Interviewers Probe For
 
@@ -51,14 +52,14 @@ why the query is slow** — and for security, *can name what each mechanism does
   point.
 - **What does CORS actually do?** It controls whether script may *read* a cross-origin response. It
   does not stop the request being sent, which is why it is not a CSRF defence.
+- **Authenticated, or authorised?** Broken access control is the most common serious finding in real
+  systems, because the request carries a valid session and looks legitimate in every log. Naming
+  insecure direct object references and tenant isolation unprompted is the senior signal.
 
 ## Reading Order
 
-01 and 02 first — identity is what everything else assumes. 03 and 04 next. 05 to 08 are the
-hardening layer and can be read in any order.
+01 to 03 first — identity is what everything else assumes. 08 follows naturally, because authorisation
+is what identity is for. 04 to 07 are the hardening layer and can be read in any order.
 
-**Interview sprint:** 01 → 05 → 07. Token strategy, the CORS-versus-CSRF confusion, and injection are
-the three that come up in nearly every loop.
-
-> ⚠️ Security is currently documented in five places across this repository. Improvement #24
-> consolidates it into two — this directory and `Frontend/Security/`. Expect overlap until it lands.
+**Interview sprint:** 01 → 08 → 05 → 07. Token strategy, access control, the CORS-versus-CSRF
+confusion, and injection are the four that come up in nearly every loop.

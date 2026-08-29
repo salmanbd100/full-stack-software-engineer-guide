@@ -91,7 +91,6 @@ export const PART_NAMES: Readonly<Record<number, string>> = {
 const PART_BY_PREFIX: readonly [string, number][] = [
   ["Frontend/JavaScript", 1],
   ["Frontend/TypeScript", 1],
-  ["OOP", 1],
   ["Backend/DesignPatterns", 1],
 
   ["Frontend/HtmlCss", 2], // renamed from Html&CSS at #11
@@ -113,7 +112,6 @@ const PART_BY_PREFIX: readonly [string, number][] = [
   ["AI", 7], // created by #44–53
 
   ["ShipAndOperate", 8], // post-rename (#20)
-  ["DevOps", 8],
 
   ["Behavioral", 9],
   ["Communication", 9],

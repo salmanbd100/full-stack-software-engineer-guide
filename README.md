@@ -89,7 +89,7 @@ part that does not exist in the repository yet.
 
 | Part | Covers | Budget | Where it lives today |
 | ---- | ------ | ------ | -------------------- |
-| **I — Foundations** | JavaScript semantics · TypeScript · OOP and design patterns | 5,000 | [`Frontend/JavaScript`](./Frontend/JavaScript/), [`Frontend/TypeScript`](./Frontend/TypeScript/), [`OOP`](./OOP/README.md) |
+| **I — Foundations** | JavaScript semantics · TypeScript · OOP and design patterns | 5,000 | [`Frontend/JavaScript`](./Frontend/JavaScript/), [`Frontend/TypeScript`](./Frontend/TypeScript/), [`Backend/DesignPatterns`](./Backend/DesignPatterns/) |
 | **II — The Browser Platform** | HTML and CSS · Browser APIs · Accessibility · i18n · PWA | 6,000 | [`Frontend/HtmlCss`](./Frontend/HtmlCss/README.md), [`Frontend/BrowserAPIs`](./Frontend/BrowserAPIs/), [`Frontend/PWA`](./Frontend/PWA/README.md) |
 | **III — The Modern Frontend Stack** 🆕 | React · Next.js · Svelte · Rendering · State · Tooling | **12,000** | **Nothing yet.** Planned as `Frontend/ModernStack/` |
 | **IV — Frontend at Scale** | Architecture · Web performance · Frontend security · Testing | 5,500 | [`Frontend/WebPerformance`](./Frontend/WebPerformance/), [`Frontend/Security`](./Frontend/Security/), [`Frontend/Testing`](./Frontend/Testing/) |
@@ -156,8 +156,6 @@ the two before it, and why cross-references are anchors rather than "as we saw e
 ├── Backend/             Part V
 ├── SystemDesign/        Part VI
 ├── ShipAndOperate/      Part VIII — what survived the #20 cut
-├── DevOps/              only Agile/ (→ #25) is left
-├── OOP/                 merges into Backend/DesignPatterns at #26
 ├── Behavioral/          Part IX
 ├── Communication/       Part IX
 ├── DSA/                 the companion volume

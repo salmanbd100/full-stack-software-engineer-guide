@@ -16,21 +16,11 @@ in_book: true
 
 **In this chapter:** the three kinds of XSS · context-aware encoding · dangerous DOM sinks · sanitising rich HTML · where React's escaping ends · CSP as a backstop
 
-## Overview
+## 💡 The Core Idea
 
 **Cross-Site Scripting (XSS)** lets an attacker run their JavaScript in another user's browser. That script runs with the victim's session. It can steal cookies, read the page, make requests as the user, or change what they see.
 
 The root cause is always the same: **untrusted data ends up in a place the browser treats as code.** Prevention is also one idea: keep data as data — never let it become markup or script.
-
-## Table of Contents
-
-- [The Three Types of XSS](#the-three-types-of-xss)
-- [The Core Rule: Context-Aware Output Encoding](#the-core-rule-context-aware-output-encoding)
-- [DOM-based XSS and Dangerous Sinks](#dom-based-xss-and-dangerous-sinks)
-- [Sanitizing Rich HTML with DOMPurify](#sanitizing-rich-html-with-dompurify)
-- [How React Protects You (and Where It Doesn't)](#how-react-protects-you-and-where-it-doesnt)
-- [Defense in Depth: CSP, Trusted Types, HttpOnly](#defense-in-depth-csp-trusted-types-httponly)
-- [Interview Questions](#interview-questions)
 
 ## The Three Types of XSS
 
@@ -210,7 +200,7 @@ function SafeLink({ url, children }: { url: string; children: React.ReactNode })
 
 Encoding and sanitization are your first line. These add backup layers so a single mistake isn't fatal.
 
-**Content Security Policy** — blocks injected scripts from running at all. See [03-csp-headers.md](./03-csp-headers.md).
+**Content Security Policy** — blocks injected scripts from running at all. See [Chapter ?? — Content Security Policy](#ch-content-security-policy).
 
 ```typescript
 res.setHeader(
@@ -245,6 +235,14 @@ res.cookie("sessionId", token, {
 
 > **Layered thinking:** Encode/sanitize so injection can't happen → CSP so injected code can't run → HttpOnly so a successful script can't grab the session.
 
+## 🔑 Key Takeaways
+
+- XSS is a failure to keep data as data: the fix is context-aware encoding at the point of output, not filtering at the point of input.
+- `textContent` is safe, `innerHTML` is not, and the dangerous sinks are a short, learnable list.
+- React escapes interpolated values, but `dangerouslySetInnerHTML`, `href`/`src` and injected `<script>` JSON are all outside that guarantee.
+- Sanitise unavoidable HTML with DOMPurify at render time, never with a hand-written regex.
+- CSP, `HttpOnly` cookies and Trusted Types are the layer that limits the damage when encoding is missed once.
+
 ## Interview Questions
 
 **Q1: What are the three types of XSS?**
@@ -272,27 +270,8 @@ No. CSP is a **second** layer. Encoding stops injection; CSP stops injected code
 
 It hides the cookie from JavaScript. XSS can still run code, but `document.cookie` won't return the session token, so the attacker can't exfiltrate it. It limits the blast radius — it doesn't prevent the XSS itself.
 
-## Summary
+## What to Read Next
 
-**Prevention checklist:**
-
-- [ ] Encode output for its exact context (HTML, attribute, JS, URL)
-- [ ] Prefer `textContent` over `innerHTML`
-- [ ] Sanitize unavoidable HTML with DOMPurify, at render time
-- [ ] Never misuse `dangerouslySetInnerHTML`; validate `href`/`src` URLs
-- [ ] Escape JSON embedded in inline `<script>` (SSR)
-- [ ] Add CSP, and Trusted Types where supported
-- [ ] Set `HttpOnly`, `Secure`, `SameSite` on session cookies
-
-**Core principles:**
-
-1. **Keep data as data** — never let input become markup or code.
-2. **Encode for context** — the right escaping depends on where the value lands.
-3. **Defense in depth** — encoding → CSP → HttpOnly, so one slip isn't game over.
-4. **Use proven libraries** — DOMPurify, not hand-rolled regex.
-
----
-
-[Back to README](./README.md) | [Next: CSRF Protection →](./02-csrf-protection.md)
-</content>
-</invoke>
+- [Chapter ?? — Content Security Policy](#ch-content-security-policy) — the layer that limits a successful injection
+- [Chapter ?? — Client-Side Input Handling](#ch-client-side-input-handling) — the other browser-side trust boundaries
+- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — where the stored variant is actually stopped

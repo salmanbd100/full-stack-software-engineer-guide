@@ -5,7 +5,7 @@ chapter: 0
 slug: written-communication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [communication, written]
 in_book: true
 ---
@@ -151,44 +151,12 @@ because [justification]. Happy to discuss if you see it differently."
 - "Thank you: Interview with Sarah on Dec 7"
 - "Question about Senior Frontend Role Start Date"
 
-### Thank You After Interview
+### Interview Follow-Ups
 
-```text
-Subject: Thank you — Senior Frontend Engineer Interview
-
-Hi Sarah,
-
-Thank you for taking the time to interview me today. I enjoyed learning
-about the team's work on the React platform and the performance challenges
-you're tackling.
-
-I'm excited about the opportunity to contribute — the problems align well
-with my experience improving load times by 60% at my current company.
-
-Please let me know if you need anything else. I look forward to next steps.
-
-Best regards,
-Salman Rahman
-```
-
-### Following Up
-
-```text
-Subject: Following up — Senior Frontend Role Application
-
-Hi Sarah,
-
-I hope this finds you well. I wanted to follow up on my interview for the
-Senior Frontend Engineer role on December 1st.
-
-I remain very interested in the opportunity. Is there an update on the
-timeline for next steps?
-
-Thank you for your time.
-
-Best regards,
-Salman Rahman
-```
+A thank-you note and a follow-up are the same three sentences: what you discussed that you found
+interesting, one concrete reason you are a fit, and a specific question about next steps. Anything
+longer reads as anxiety. Send the thank-you within a day, and follow up once, about a week after the
+stated timeline passes.
 
 ---
 
@@ -265,6 +233,107 @@ function findEventByTime(events: Event[], targetTime: number): Event | null {
 
 ---
 
+## Where a Document Lives
+
+Mismatching the medium to the content is the most common documentation failure — more common than
+writing badly.
+
+| Content | Right home | ❌ Wrong home |
+| --- | --- | --- |
+| How to deploy | Runbook in the repository | A wiki page from 2022 |
+| Why we chose this database | Decision record in the repository | Someone's memory |
+| An incident timeline | The post-mortem document | A chat thread |
+| API contract | The OpenAPI spec | A table in a wiki |
+| Team norms and on-call process | Team handbook | Verbal tradition |
+
+**The rule: technical documentation lives with the code it describes.** A page in a separate system
+drifts, because updating it is a separate action nobody remembers to take.
+
+> ⚠️ **Answers given in chat are invisible to everyone who was not there.** When the same question
+> arrives a second time, the answer belongs in a document and the chat reply should be a link to it.
+
+## Architecture Decision Records
+
+The highest-value document type on a long-lived codebase, and the most neglected. An ADR is short, it
+is written once, and it is never edited — a decision that changes gets a new record that supersedes it.
+
+```text
+# ADR-014: Server-side rendering for the reporting dashboard
+
+Status: Accepted — 2026-08-14
+Deciders: platform team
+
+## Context
+Reports take 4–11s to render client-side because the dataset is large and the
+filters are combinatorial. Time to first meaningful paint is the complaint in
+every user interview.
+
+## Decision
+Render report pages on the server and stream the result.
+
+## Consequences
+Positive: first paint no longer waits for the dataset. Filter state is
+shareable as a URL.
+Negative: the reporting service now needs enough capacity for render load.
+Accepted risk: streaming makes error handling harder; we accept a full-page
+error for now and will revisit if it shows up in support volume.
+
+## Alternatives considered
+Client-side with a worker — rejected, does not fix first paint.
+Precomputed reports — rejected, filters are user-defined.
+```
+
+The value is not the decision. It is the *context* and the *alternatives*: two years later, the
+question is always "did they know about X?", and an ADR answers it in thirty seconds.
+
+## Runbooks
+
+The document that matters most at 3am, judged by different criteria from everything else you write.
+
+| Requirement | Why |
+| --- | --- |
+| Exact, copy-pasteable commands | Nobody should improvise under pressure |
+| A verification step after each action | "How do I know it worked?" |
+| A rollback for each action | Every step has to be reversible |
+| A "last tested" date | Separates a real runbook from a theoretical one |
+| What it does **not** cover | Prevents misapplication to the wrong incident |
+| Linked from the alert itself | Found in seconds, not searched for |
+
+```yaml
+annotations:
+  summary: "Checkout API p99 latency above SLO"
+  description: "p99 is {{ $value }}s, SLO is 0.8s"
+  runbook_url: "https://github.com/acme/platform/blob/main/runbooks/checkout-latency.md"
+```
+
+> ⚠️ **An untested runbook is worse than no runbook,** because it is trusted. Exercise them
+> deliberately and put the date at the top.
+
+## Writing for a Distributed Team
+
+Most enterprise teams span time zones, which makes writing quality a delivery constraint rather than a
+soft skill. The pattern that keeps asynchronous decisions from stalling for a week is an explicit
+deadline with a stated default.
+
+```text
+Decision needed by Thursday 17:00 UTC: cache layer for the reporting replica
+
+Context: reporting queries are causing p99 spikes on the primary.
+
+Options
+  A) Read replica, ~£380/mo — handles current load with headroom
+  B) Smaller replica, ~£190/mo — about 70% utilised at current peak
+  C) Serverless tier — variable cost, better for spiky load
+
+Recommendation: B. Reporting load is predictable and we can resize online.
+
+Objections by Thursday 17:00 UTC, otherwise I proceed with B.
+```
+
+Lead with the conclusion, name the decision and the deadline, and include the context the reader
+lacks. Default to a public channel over a direct message: the same answer helps one person once in a
+direct message, and everyone who searches for it afterwards in a channel.
+
 ## Design Documents (RFCs)
 
 Use this structure for architecture proposals:
@@ -317,6 +386,8 @@ Before sending anything:
 - [ ] Structured with headers/bullets — no walls of text
 - [ ] Clear next action or request
 
----
+## What to Read Next
 
-**Related:** [Technical Communication](./01-technical-communication.md) | [Cross-Cultural Communication](./06-cross-cultural-communication.md)
+- [Chapter ?? — Technical Communication](#ch-technical-communication) — the spoken counterpart of the same skill
+- [Chapter ?? — Engineering Culture](#ch-engineering-culture) — the review and on-call practices these documents serve
+- [Chapter ?? — Cross-Cultural Communication](#ch-cross-cultural-communication) — writing for readers who do not share your defaults

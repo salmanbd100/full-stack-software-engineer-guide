@@ -5,7 +5,7 @@ chapter: 0
 slug: validation
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [backend, security, validation]
 in_book: true
 ---
@@ -14,26 +14,15 @@ in_book: true
 
 > Validate at the boundary with an allowlist, so nothing untrusted reaches your business logic.
 
-**In this chapter:** validation vs sanitisation · allowlist over blocklist · schema validation · reusable middleware · sanitising HTML · file uploads
+**In this chapter:** validation vs sanitisation · allowlist over blocklist · schema validation · reusable middleware · sanitising HTML · file uploads · validating URLs against SSRF
 
-## Overview
+## 💡 The Core Idea
 
 Most serious vulnerabilities start the same way: data from outside the system was treated as if it came from inside.
 
 Validation is the boundary where that stops.
 
 > **The rule:** validate on the **server**, at the **edge**, against an **allowlist**, and turn the result into a **typed value**. Client-side validation is a user-experience feature, not security — anyone can send a request with `curl`.
-
-## Table of Contents
-
-- [Validation vs Sanitization](#validation-vs-sanitization)
-- [Allowlist, Not Blocklist](#allowlist-not-blocklist)
-- [Schema Validation with Zod](#schema-validation-with-zod)
-- [Reusable Validation Middleware](#reusable-validation-middleware)
-- [Sanitizing HTML](#sanitizing-html)
-- [File Upload Validation](#file-upload-validation)
-- [Common Injection Points](#common-injection-points)
-- [Interview Questions](#interview-questions)
 
 ## Validation vs Sanitization
 
@@ -112,7 +101,7 @@ if (!result.success) {
 await createUser(result.data);
 ```
 
-> 🔴 **Mass assignment:** `z.object()` strips unknown keys by default, which is exactly what you want. If a client sends `{ email, password, role: "admin" }` and `role` isn't in your schema — or is limited to safe values — the privilege escalation never happens. Use `.strict()` if you'd rather reject the request than silently drop fields.
+> ⚠️ **Mass assignment:** `z.object()` strips unknown keys by default, which is exactly what you want. If a client sends `{ email, password, role: "admin" }` and `role` isn't in your schema — or is limited to safe values — the privilege escalation never happens. Use `.strict()` if you'd rather reject the request than silently drop fields.
 
 **Coercion for query strings**, where everything arrives as text:
 
@@ -249,14 +238,14 @@ Validation is context-specific. The same string is harmless in one place and dan
 
 | Context             | The real fix                                     |
 | ------------------- | ------------------------------------------------ |
-| **SQL**             | Parameterized queries — see [07](./07-sql-injection.md) |
+| **SQL**             | Parameterized queries — see [Chapter ?? — SQL Injection Prevention](#ch-sql-injection-prevention) |
 | **NoSQL (MongoDB)** | Reject object-typed values where a string is expected |
 | **Shell commands**  | `execFile` with an argument array, never `exec` with a string |
 | **File paths**      | Resolve, then confirm the result stays inside the base directory |
 | **HTML output**     | Context-aware escaping by the template engine     |
 
 ```typescript
-// 🔴 NoSQL injection: { "email": { "$ne": null } } matches any user
+// ❌ NoSQL injection: { "email": { "$ne": null } } matches any user
 const user = await db.users.findOne({ email: req.body.email });
 
 // ✅ Zod guarantees a string, so the operator object never reaches the driver
@@ -276,6 +265,63 @@ const base = "/var/app/uploads";
 const target = path.resolve(base, userSuppliedName);
 if (!target.startsWith(base + path.sep)) throw new Error("Invalid path");
 ```
+
+## Validating URLs: Server-Side Request Forgery
+
+One input type deserves its own treatment, because the usual schema check passes it and the damage is
+still total. If your server fetches a URL the user supplied — a webhook target, an avatar to import, a
+link preview, a PDF render — then the user is choosing what your server connects to.
+
+From inside your network, that reaches things no external attacker can: cloud metadata endpoints holding
+instance credentials, internal admin panels, databases bound to a private interface.
+
+```typescript
+// ❌ z.url() proves it parses. It does not prove it points outside your network.
+const { target } = z.object({ target: z.url() }).parse(req.body);
+await fetch(target);
+```
+
+The fix is the same allowlist principle applied to the destination, not the string:
+
+```typescript
+import dns from "node:dns/promises";
+import net from "node:net";
+
+const ALLOWED_PROTOCOLS = new Set(["https:"]);
+
+async function assertSafeUrl(raw: string): Promise<URL> {
+  const url = new URL(raw);
+  if (!ALLOWED_PROTOCOLS.has(url.protocol)) throw new Error("Protocol not allowed");
+
+  // Resolve first: the hostname is attacker-controlled, the address is what matters.
+  const { address } = await dns.lookup(url.hostname);
+  const blocked =
+    net.isIP(address) === 0 ||
+    address.startsWith("127.") ||
+    address.startsWith("10.") ||
+    address.startsWith("192.168.") ||
+    address.startsWith("169.254."); // cloud metadata lives here
+
+  if (blocked) throw new Error("Destination not allowed");
+  return url;
+}
+```
+
+> ⚠️ **Checking the hostname is not enough.** DNS can resolve an attacker's domain to `127.0.0.1`, and it
+> can answer differently between your check and your fetch. Where the destination set is knowable — a list
+> of approved webhook hosts — allowlist those instead, and send outbound calls through a proxy that
+> enforces the rule in one place.
+
+Whichever route you take, disable redirect-following or re-validate every hop: a permitted URL that
+redirects to `169.254.169.254` defeats a check that ran only once.
+
+## 🔑 Key Takeaways
+
+- Parse rather than validate: turn `unknown` into a typed value at the edge, and let the rest of the code trust its types.
+- Allowlists fail closed, blocklists fail open — accept the shape you know, reject everything else.
+- Validation and sanitisation are different jobs: reject what is wrong first, then clean only what you must keep.
+- SQL identifiers, sort columns and table names cannot be parameterised, so an allowlist is the only safe way to accept them.
+- A URL the user supplies chooses what your server connects to — resolve it, check the address, and re-check on every redirect.
 
 ## Interview Questions
 
@@ -307,27 +353,8 @@ At the boundary — a middleware or controller layer that turns untrusted input 
 
 You can't parameterize identifiers in SQL, so I map the input against a hard-coded allowlist of permitted column names and use the matched constant. Never interpolate the raw value, even after "cleaning" it.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-- [ ] Every endpoint validates body, query, params, and relevant headers
-- [ ] Schema-based validation (Zod) with types inferred from the schema
-- [ ] Unknown fields stripped or rejected — no mass assignment
-- [ ] Allowlists for enums, sort fields, and file types
-- [ ] Pagination `limit` capped
-- [ ] User HTML sanitized with DOMPurify and a strict tag allowlist
-- [ ] Uploads checked by size, magic bytes, and stored with a generated name
-- [ ] `execFile` with an argument array instead of shell string interpolation
-- [ ] Errors return field-level messages without leaking internals
-
-**Best practices:**
-
-1. **Parse, don't validate** — convert `unknown` into a typed value at the edge.
-2. **Allowlist by default** — anything unexpected should fail.
-3. **Validate on input, escape on output** — two different jobs.
-4. **Trust nothing from outside** — including headers, cookies, and other services.
-
----
-
-[← CORS & CSRF](./05-cors-csrf.md) | [Next: SQL Injection Prevention →](./07-sql-injection.md)
+- [Chapter ?? — SQL Injection Prevention](#ch-sql-injection-prevention) — the injection class this chapter only points at
+- [Chapter ?? — Authorisation](#ch-authorisation) — validating the request is not the same as permitting it
+- [Chapter ?? — Client-Side Input Handling](#ch-client-side-input-handling) — the other end of the same boundary

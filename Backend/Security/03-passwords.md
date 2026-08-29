@@ -1,38 +1,28 @@
 ---
-title: Password Security
+title: Passwords and Multi-Factor Authentication
 part: 5
 chapter: 0
-slug: passwords
+slug: password-security
 level: intermediate # beginner | intermediate | advanced
-reading_time: 13
-updated: 2026-08-28
-tags: [backend, security, passwords]
+reading_time: 14
+updated: 2026-08-29
+tags: [backend, security, passwords, mfa, webauthn]
 in_book: true
 ---
 
-# Password Security {#ch-password-security}
+# Passwords and Multi-Factor Authentication {#ch-password-security}
 
-> Store a password so that a database leak is not an account leak.
+> Store a password so that a database leak is not an account leak, and add the second factor that makes the first one matter less.
 
-**In this chapter:** argon2 and bcrypt · salting and why it is automatic · register and login · the rules that actually help · reset flows · brute-force protection
+**In this chapter:** argon2 and bcrypt · salting · register and login · the rules that actually help · reset flows · brute force · TOTP and WebAuthn
 
-## Overview
+## 💡 The Core Idea
 
 Assume your database will leak one day. **Password security is about making that leak survivable.**
 
 You never store the password. You store a slow, salted hash of it. When the user logs in, you hash what they typed and compare.
 
 > **Hashing is not encryption.** Encryption is reversible by design — if you can decrypt a password, so can an attacker with your key. Hashing is one-way.
-
-## Table of Contents
-
-- [Choosing a Hashing Algorithm](#choosing-a-hashing-algorithm)
-- [Salt and Why It Matters](#salt-and-why-it-matters)
-- [Register and Login](#register-and-login)
-- [Password Rules That Actually Help](#password-rules-that-actually-help)
-- [Password Reset Flow](#password-reset-flow)
-- [Brute Force Protection](#brute-force-protection)
-- [Interview Questions](#interview-questions)
 
 ## Choosing a Hashing Algorithm
 
@@ -299,6 +289,48 @@ app.post("/auth/login", loginLimiter, login);
 
 > ⚠️ **Exponential backoff beats hard lockout.** Locking an account for 30 minutes lets an attacker lock out your users on purpose. Increasing delays slow the attacker without a permanent block.
 
+## Adding a Second Factor
+
+Every control so far protects the password. None of them help when the user reuses it and the other site
+leaks first. A second factor changes the failure mode: a stolen password is no longer a stolen account.
+
+| Factor                | Strength  | Trade-off                                                |
+| --------------------- | --------- | -------------------------------------------------------- |
+| **SMS code**          | Weak      | SIM-swap attacks, but still far better than nothing       |
+| **TOTP** (authenticator app) | Strong | Phishable — a fake site can relay the code in real time |
+| **Push approval**     | Strong    | Fatigue: users approve prompts they did not trigger       |
+| **WebAuthn / passkey**| Strongest | Phishing-resistant; the credential is bound to the origin |
+
+TOTP is the common baseline: a shared secret plus the current time produces a six-digit code, so no
+network round trip is needed.
+
+```typescript
+import { authenticator } from "otplib";
+
+// Enrolment: generate once, store against the user, show as a QR code.
+const secret: string = authenticator.generateSecret();
+
+function verifyTotp(userSecret: string, token: string): boolean {
+  return authenticator.verify({ token, secret: userSecret });
+}
+```
+
+WebAuthn is the one worth arguing for on anything sensitive. The credential is scoped to your origin, so a
+convincing phishing page cannot use it — the browser simply will not release a credential registered for
+`bank.com` to `bank-secure.com`. That property is what TOTP lacks.
+
+> ⚠️ **Design the recovery path before you launch the feature.** Users lose phones. Issue single-use
+> recovery codes at enrolment, require re-authentication before a factor can be removed, and treat "reset
+> my MFA" as an identity-proofing problem rather than a support ticket.
+
+## 🔑 Key Takeaways
+
+- Store a slow, salted hash — Argon2id by preference, bcrypt at cost 12 or above — and tune it so one hash takes 250–500 ms on production hardware.
+- Length beats character-class rules: allow long passphrases, drop the symbol requirements, and check new passwords against breached lists.
+- Never reveal whether an account exists, on login or on reset; keep the message and the timing identical.
+- Reset tokens are credentials: random, hashed at rest, short-lived, single-use, and they invalidate every existing session on use.
+- A second factor is what makes password reuse survivable, and WebAuthn is the only common one that resists phishing.
+
 ## Interview Questions
 
 **Q1: How do you store passwords?**
@@ -329,27 +361,8 @@ Generate a cryptographically random token, store only its hash with a short expi
 
 No — NIST dropped that recommendation. Forced rotation leads to predictable variations like `Summer2024` → `Summer2025`. Force a change only when there's evidence of compromise, and instead check new passwords against known-breached lists and offer MFA.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-- [ ] Argon2id (or bcrypt cost 12+) — never a fast hash
-- [ ] Cost tuned so a single hash takes 250–500 ms in production
-- [ ] Salt generated by the library, embedded in the hash
-- [ ] Generic error message and constant-ish timing on login
-- [ ] Rate limiting plus exponential backoff on login and reset
-- [ ] Reset tokens random, hashed at rest, short-lived, single-use
-- [ ] All sessions invalidated after a password change
-- [ ] New passwords checked against breached-password lists
-- [ ] MFA offered for sensitive accounts
-
-**Best practices:**
-
-1. **Assume the database leaks** — that's what slow hashing is for.
-2. **Length over complexity** — allow long passphrases, drop symbol rules.
-3. **Never reveal whether an account exists.**
-4. **Re-hash on login** when you raise the cost factor.
-
----
-
-[← OAuth 2.0](./02-oauth.md) | [Next: HTTPS & TLS →](./04-https.md)
+- [Chapter ?? — JWT Authentication](#ch-jwt-authentication) — what the server issues once the password check passes
+- [Chapter ?? — OAuth 2.0](#ch-oauth-2) — delegating the password problem to an identity provider
+- [Chapter ?? — Encryption in Transit and at Rest](#ch-encryption-in-transit-and-at-rest) — why passwords are hashed rather than encrypted

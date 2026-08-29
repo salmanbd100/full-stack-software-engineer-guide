@@ -5,7 +5,7 @@ chapter: 0
 slug: architectural-patterns
 level: advanced # beginner | intermediate | advanced
 reading_time: 16
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [backend, design, patterns, architectural]
 in_book: true
 ---
@@ -14,26 +14,15 @@ in_book: true
 
 > Draw the layers of a service so a change lands in one place rather than five.
 
-**In this chapter:** the standard layering · repository · service layer · dependency injection · unit of work · MVC and its backend variants
+**In this chapter:** the standard layering · repository · service layer · the composition root · unit of work · MVC and its backend variants
 
-## Overview
+## 💡 The Core Idea
 
 GoF patterns organise a few classes. Architectural patterns organise a whole application: where the business rules live, what may import what, and how a request travels from HTTP to the database and back.
 
 For a backend interview these matter more than the classic patterns, because "how would you structure this service?" is a question you will actually be asked.
 
 > **The single idea underneath all of them:** dependencies point inward. Controllers know about services, services know about repositories, and the domain knows about nothing. When a rule sits at the centre with no framework or driver imports, it stays testable and portable for years.
-
-## Table of Contents
-
-- [The Standard Layering](#the-standard-layering)
-- [Repository](#repository)
-- [Service Layer](#service-layer)
-- [Dependency Injection](#dependency-injection)
-- [Unit of Work](#unit-of-work)
-- [MVC and Its Backend Variants](#mvc-and-its-backend-variants)
-- [Interview Questions](#interview-questions)
-- [Summary](#summary)
 
 ## The Standard Layering
 
@@ -66,11 +55,9 @@ HTTP request
 | **Repository** | Queries and mapping rows to entities | Decide *whether* an action is allowed |
 | **Domain** | Invariants and calculations | Import a framework or a driver |
 
-🔴 **The most common failure is the anaemic service** — a service whose methods are one-line passthroughs to a repository. If every service method is `return this.repo.findAll()`, the layer is pure ceremony. Either the business rules belong there and are currently in the controller, or you don't need the layer.
+⚠️ **The most common failure is the anaemic service** — a service whose methods are one-line passthroughs to a repository. If every service method is `return this.repo.findAll()`, the layer is pure ceremony. Either the business rules belong there and are currently in the controller, or you don't need the layer.
 
 ## Repository
-
-### 💡 **Intent**
 
 Give the rest of the application a collection-like interface for stored objects, so no business code contains a query.
 
@@ -123,8 +110,6 @@ class SqlOrderRepository implements OrderRepository {
 **The honest counter-argument:** an ORM like Prisma or TypeORM already *is* a repository — typed, mapped, testable. Wrapping it in another repository can be pure duplication. The case for wrapping anyway: complex query logic gets a name and a home, and your services stay free of ORM types. Being able to argue both sides is the senior answer.
 
 ## Service Layer
-
-### 💡 **Intent**
 
 Hold the use cases — the operations your application actually offers, independent of how they're triggered.
 
@@ -185,69 +170,32 @@ app.post("/orders", async (req, res, next) => {
 | Contains | Rules, orchestration, transactions | Queries and mapping |
 | Granularity | One method per use case | One class per aggregate |
 
-## Dependency Injection
+## The Composition Root
 
-### 💡 **Intent**
-
-Give an object its collaborators from outside instead of letting it construct them.
-
-```typescript
-// ❌ Constructs its own dependencies: untestable, unswappable.
-class OrderService {
-  private readonly orders = new SqlOrderRepository(globalPool);
-  private readonly payments = new StripeGateway(process.env.STRIPE_KEY!);
-}
-
-// ✅ Receives them: honest signature, trivially faked.
-class OrderService {
-  constructor(
-    private readonly orders: OrderRepository, // an interface, not a class
-    private readonly payments: PaymentGateway,
-  ) {}
-}
-```
-
-**The point isn't the container.** It's that the class declares what it needs and depends on an *interface* — which is Dependency Inversion from [SOLID](./05-solid-principles.md#dependency-inversion-dip).
+Every layer above depends on interfaces, which leaves one question: who constructs the concrete
+classes? The answer should be exactly one place — the composition root — and it should be the only
+file that knows a repository is backed by Postgres.
 
 ```typescript
-// Testing becomes ordinary code, with no mocking framework.
-const fakeOrders: OrderRepository = {
-  findById: async () => null,
-  findPendingOlderThan: async () => [],
-  save: async () => {},
-  delete: async () => {},
-};
-
-const service = new OrderService(fakeOrders, fakePayments);
-```
-
-**Manual wiring at a composition root is enough for most services:**
-
-```typescript
-// container.ts — the one place that knows every concrete class.
+// container.ts — the one module that names concrete classes.
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const orders = new SqlOrderRepository(pool);
 const payments = new StripeGateway(process.env.STRIPE_KEY!);
 
-export const orderService = new OrderService(orders, payments, events);
+export const orderService = new OrderService(orders, payments);
 ```
 
-> ✨ **Manual wiring is underrated.** No decorators, no reflection, no framework magic — and the compiler catches a missing dependency. Reach for a container (NestJS, tsyringe, Awilix) when you have dozens of services with lifetimes to manage: singleton, per-request, transient.
+Manual wiring like this is underrated. There are no decorators, no reflection and no framework magic,
+and the compiler catches a missing dependency at the call site. Reach for a container — NestJS,
+tsyringe, Awilix — when there are dozens of services with lifetimes to manage: singleton, per-request,
+transient. The mechanics of injection itself are in
+[Chapter ?? — Composition over Inheritance](#ch-composition-over-inheritance).
 
-**Three forms, and when each fits:**
-
-| Form | Use when |
-| ---- | -------- |
-| **Constructor** | ✅ The default. The object cannot exist half-configured |
-| **Method / parameter** | The dependency varies per call — a request-scoped logger |
-| **Property setter** | Rarely. Allows a partially-constructed object; avoid |
-
-⚠️ **DI is not a service locator.** Passing a container into a class so it can pull dependencies out reintroduces exactly the hidden coupling DI removes. Inject the dependency, never the container.
+> ⚠️ **Injecting the container is not dependency injection.** A class that calls `container.get("db")`
+> has hidden its dependencies again, and the constructor no longer tells you what it needs.
 
 ## Unit of Work
-
-### 💡 **Intent**
 
 Treat a set of changes as one atomic transaction, so several repository calls commit or roll back together.
 
@@ -291,7 +239,7 @@ class PostgresUnitOfWork implements UnitOfWork {
       await client.query("ROLLBACK");
       throw err;
     } finally {
-      client.release(); // 🔴 never skip this — leaked clients exhaust the pool
+      client.release(); // never skip this — leaked clients exhaust the pool
     }
   }
 }
@@ -343,6 +291,14 @@ const OrderPresenter = {
 };
 ```
 
+## 🔑 Key Takeaways
+
+- Dependencies point inward: controllers know services, services know repositories, and the domain imports no framework.
+- A repository speaks in domain terms; the moment its interface leaks query fragments, the layer has stopped protecting anything.
+- A service whose methods are one-line passthroughs is ceremony — either the rules belong there and are currently in the controller, or the layer should go.
+- One composition root names the concrete classes, and nothing else does.
+- Never serialise an entity straight to the client; an explicit presenter is what stops a new column becoming a new public field.
+
 ## Interview Questions
 
 **Q1: Why use a Repository if you already have an ORM?**
@@ -367,35 +323,14 @@ Unit of Work: open one transaction, construct repositories over that same connec
 
 **Q6: Should a controller return the entity?**
 
-No. An explicit presenter or DTO decides the response shape, so adding a database column doesn't silently expose a field — which is how internal notes and password hashes end up in public APIs. It also lets the API stay stable while the schema changes underneath, which is what makes additive [versioning](../API/03-versioning.md) possible.
+No. An explicit presenter or DTO decides the response shape, so adding a database column doesn't silently expose a field — which is how internal notes and password hashes end up in public APIs. It also lets the API stay stable while the schema changes underneath, which is what makes additive [API versioning](#ch-api-versioning) possible.
 
 **Q7: Is this layering overkill for a small service?**
 
 Sometimes. For a genuinely small CRUD service, controller plus repository with no service layer is honest, and adding empty layers is worse than having none. What I keep regardless of size: no SQL in controllers, a DTO on the way out, and dependencies injected — because those three are what make the code testable, and they cost almost nothing to start with.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-- [ ] Dependencies point inward; the domain imports no framework
-- [ ] Controllers only validate, delegate, and serialize
-- [ ] Services own authorization, orchestration, and transaction boundaries
-- [ ] Services are callable from a queue worker with no HTTP objects
-- [ ] Repository interfaces are expressed in domain terms, never query fragments
-- [ ] Entities own their invariants — services don't re-implement them
-- [ ] Constructor injection against interfaces; container injected nowhere
-- [ ] One composition root that knows the concrete classes
-- [ ] Multi-write operations share one transaction via Unit of Work
-- [ ] Cross-service consistency handled with compensating actions, not transactions
-- [ ] Responses shaped by an explicit presenter, never a raw entity
-
-**Best practices:**
-
-1. **Dependencies point inward** — the one rule that survives every framework change.
-2. **A layer with no logic is not a layer** — delete it or move the rules into it.
-3. **Wire manually until it hurts** — then reach for a container.
-4. **Never serialize an entity** — the response shape is a deliberate decision.
-
----
-
-[← Behavioral Patterns](./03-behavioral-patterns.md) | [Design Patterns Index](./README.md) | [SOLID Principles →](./05-solid-principles.md)
+- [Chapter ?? — SOLID Principles](#ch-solid-principles) — the principle behind "dependencies point inward"
+- [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript) — the smaller shapes these layers are built from
+- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — what the controller layer is actually for

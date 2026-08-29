@@ -70,8 +70,9 @@ a performance budget.
 
 - **[Web Performance](./WebPerformance/)** — Core Web Vitals including **INP**, which replaced FID and
   which a lot of published material still gets wrong; loading strategy, bundles, caching
-- **[Security](./Security/)** — XSS, CSRF, CSP, headers, sanitisation. The browser-side half of the
-  security spine; the server-side half lives in [`Backend/Security/`](../Backend/Security/)
+- **[Security](./Security/)** — XSS, Content Security Policy, headers, and the browser-only inputs.
+  The browser-side half of the security spine; the server-side half — tokens, authorisation, CSRF
+  defence, injection — lives in [`Backend/Security/`](../Backend/Security/)
 - **[Testing](./Testing/)** — unit, component and end-to-end, and what each layer is actually for
 
 **Senior signal:** thinks in budgets, boundaries and migration paths rather than features.

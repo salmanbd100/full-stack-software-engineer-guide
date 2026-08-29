@@ -16,24 +16,13 @@ in_book: true
 
 **In this chapter:** how the attack works · the kinds of injection · parameterised queries · ORMs and query builders · identifiers and `ORDER BY` · least privilege
 
-## Overview
+## 💡 The Core Idea
 
 SQL injection happens when user input stops being **data** and becomes part of the **command**.
 
 It has been in the OWASP Top 10 for over twenty years, and it's still found in production systems — because the vulnerable version of the code is the one that's easier to type.
 
 > **The fix is not "escape the input." The fix is to never build a query by concatenating strings.** Parameterized queries send the SQL and the data over separate channels, so the data can never change the query's meaning.
-
-## Table of Contents
-
-- [How the Attack Works](#how-the-attack-works)
-- [Types of SQL Injection](#types-of-sql-injection)
-- [Fix 1: Parameterized Queries](#fix-1-parameterized-queries)
-- [Fix 2: ORMs and Query Builders](#fix-2-orms-and-query-builders)
-- [The Cases You Cannot Parameterize](#the-cases-you-cannot-parameterize)
-- [Defense in Depth](#defense-in-depth)
-- [NoSQL Injection](#nosql-injection)
-- [Interview Questions](#interview-questions)
 
 ## How the Attack Works
 
@@ -300,6 +289,14 @@ const ok = user ? await verifyPassword(user.passwordHash, password) : false;
 
 > ⚠️ Also avoid `$where` and `mapReduce` with user input — those evaluate JavaScript on the server.
 
+## 🔑 Key Takeaways
+
+- Parameterised queries are the fix, and they work because the query plan is fixed before the value ever arrives.
+- String escaping is not a defence: encodings, numeric contexts and second-order injection all get past it.
+- Identifiers — table names, column names, sort direction — cannot be parameterised, so they need an allowlist.
+- An ORM removes the common case, not the risk: raw fragments, `$queryRaw` and dynamic `where` builders are still yours to get right.
+- NoSQL injection is the same bug with a different syntax — reject object-typed values where a string is expected.
+
 ## Interview Questions
 
 **Q1: What is SQL injection?**
@@ -330,27 +327,8 @@ Injection where the response contains no data or errors, so the attacker infers 
 
 Least-privilege database accounts, multi-statement execution disabled, generic error responses, input validation at the edge, and monitoring for unusual query patterns. Then code review and static analysis focused on raw-query escape hatches.
 
-## Summary
+## What to Read Next
 
-**Checklist:**
-
-- [ ] Zero string-concatenated SQL — every value is a bound parameter
-- [ ] `execute()` (real prepared statements) preferred in `mysql2`
-- [ ] Identifiers and sort columns resolved through an allowlist
-- [ ] ORM raw-query escape hatches audited and justified
-- [ ] Database user has no DDL or superuser rights
-- [ ] `multipleStatements` disabled
-- [ ] Database errors logged, never returned to the client
-- [ ] Input validated by schema before it reaches the data layer
-- [ ] Static analysis or a lint rule flagging raw query builders
-
-**Best practices:**
-
-1. **Separate code from data** — that's the entire fix.
-2. **You write the SQL structure; the user supplies only values.**
-3. **Allowlist identifiers** — there is no parameterized alternative.
-4. **Assume one query is vulnerable** and make sure that account can't drop a table.
-
----
-
-[← Input Validation](./06-validation.md) | [Next: Security Headers →](./08-security-headers.md)
+- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — the boundary that stops most of this earlier
+- [Chapter ?? — Authorisation](#ch-authorisation) — the other way a valid query returns the wrong rows
+- [Chapter ?? — SQL Indexes](#ch-sql-indexes) — why the parameterised plan is also the faster one

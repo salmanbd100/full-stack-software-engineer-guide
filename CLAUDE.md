@@ -42,11 +42,10 @@ stop.** Those are archived deliberately, not missing.
 ├── IMPROVEMENT-PLAN.md  # the 78-item route from repo to manuscript
 ├── Frontend/            # JavaScript, TypeScript, HTML/CSS, BrowserAPIs, PWA, i18n,
 │                        #   CSSArchitecture, Security, Testing, WebPerformance
-├── Backend/             # Node.js, SQL, NoSQL, API, Security, DesignPatterns, Testing
+├── Backend/             # Node.js, SQL, NoSQL, API, Security, Testing — plus DesignPatterns (Part I)
 ├── DSA/                 # 16 LeetCode patterns (appendix / companion volume)
 ├── SystemDesign/        # fundamentals, building blocks, frontend SD, 20 case studies
-├── DevOps/              # → becomes ShipAndOperate/ at item #20; ~80% archived
-├── OOP/                 # → merges into Backend/DesignPatterns at item #26
+├── ShipAndOperate/      # Part VIII — Git, Containers, CI/CD, Observability, Cloud, Deployment
 ├── Behavioral/  Communication/
 └── scripts/             # book tooling
 ```

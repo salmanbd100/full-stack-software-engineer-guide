@@ -5,16 +5,16 @@ chapter: 0
 slug: frontend-security-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-08-28
-tags: [security, xss, csrf, csp, headers]
+updated: 2026-08-29
+tags: [security, xss, csp, headers, validation]
 in_book: true
 ---
 
 # Part IV — Frontend Security
 
-The browser half of the security spine. Five chapters on the attacks that are executed in a user's
+The browser half of the security spine. Four chapters on the attacks that are executed in a user's
 browser against your origin, and the platform features that stop them. The server half — tokens,
-sessions, transport, injection into a database — lives in
+sessions, authorisation, transport, injection into a database — lives in
 [`Backend/Security/`](../../Backend/Security/README.md).
 
 The organising idea is that browser security is defence in depth with a specific ordering. Output
@@ -24,13 +24,12 @@ who names only one layer has described a single point of failure.
 
 ## Chapters
 
-| #  | Chapter                                                          | What it answers                                                    |
-| -- | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 01 | [XSS Prevention](./01-xss-prevention.md)                         | Where exactly does your framework stop protecting you?             |
-| 02 | [CSRF Protection](./02-csrf-protection.md)                       | Why is `SameSite` on its own not enough?                           |
-| 03 | [Content Security Policy](./03-csp-headers.md)                   | How do you write a policy that survives a successful injection?    |
-| 04 | [Security Headers](./04-secure-headers.md)                       | Which six headers, and what does each one prevent?                 |
-| 05 | [Input Validation and Sanitisation](./05-input-sanitization.md)  | Why is client-side validation only ever UX?                        |
+| #  | Chapter                                                          | What it answers                                                        |
+| -- | ---------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 01 | [XSS Prevention](./01-xss-prevention.md)                         | Where exactly does your framework stop protecting you?                 |
+| 02 | [Content Security Policy](./02-content-security-policy.md)       | How do you write a policy that survives a successful injection?        |
+| 03 | [Security Headers](./03-security-headers.md)                     | Which six headers, and what does each one prevent?                     |
+| 04 | [Client-Side Input Handling](./04-client-side-input-handling.md) | Which inputs never reach the server, so the browser is the only check? |
 
 ## What Interviewers Probe For
 
@@ -45,18 +44,15 @@ features.** For security the boundary language is literal — every question is 
   those unprompted is a strong signal.
 - **Can you roll out a CSP without breaking the site?** `Content-Security-Policy-Report-Only` first,
   collect violations, then enforce. A candidate who has actually shipped one always mentions this.
-- **CSRF or CORS?** They get confused constantly. CORS controls whether script can *read* a
-  cross-origin response; it does nothing to stop the request being *sent*. Knowing the difference is
-  the question behind chapter 02.
+- **Which inputs never reach your server?** A `postMessage` payload, a value read from
+  `location.hash`, a `?next=` redirect target. There is no server handler to review, so the browser is
+  the only place the check can exist. Chapter 04 is built around that distinction.
 
 ## Reading Order
 
-01 and 05 are a pair — the attack and the input-side defence. 02 is independent. 03 and 04 are the
-header layer and read best last, once you know what they are mitigating.
+01 and 04 are a pair — the attack and the input side of the trust boundary. 02 and 03 are the header
+layer and read best after them, once you know what they are mitigating.
 
-**Interview sprint:** 01 → 02 → 03. Cross-site scripting, cross-site request forgery and CSP are the
-three that get asked by name in almost every senior frontend loop.
-
-> ⚠️ Security is currently documented in five places across this repository. Improvement #24
-> consolidates it into two — this directory and `Backend/Security/` — with everything else archived
-> or folded in. Expect some overlap until that lands.
+**Interview sprint:** 01 → 02 → 03. Cross-site scripting, CSP and the header set are the three that
+get asked by name in almost every senior frontend loop. CSRF is asked just as often; it is answered in
+[Chapter ?? — CORS and CSRF](#ch-cors-and-csrf), because the defence is configured on the server.

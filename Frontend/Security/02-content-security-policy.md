@@ -16,21 +16,11 @@ in_book: true
 
 **In this chapter:** how CSP works · the directives that matter · nonces for inline scripts · strict-dynamic · report-only rollout
 
-## Overview
+## 💡 The Core Idea
 
 **Content Security Policy (CSP)** is an HTTP header that tells the browser which sources it may load scripts, styles, and other content from. Anything not on the allowlist is blocked.
 
 CSP is **defense in depth for XSS.** Even if an attacker injects `<script>`, a good CSP stops it from running. It's a backup layer — not a replacement for output encoding.
-
-## Table of Contents
-
-- [How CSP Works](#how-csp-works)
-- [Key Directives and Source Values](#key-directives-and-source-values)
-- [A Sensible Starter Policy](#a-sensible-starter-policy)
-- [Nonce-Based CSP (for inline scripts)](#nonce-based-csp-for-inline-scripts)
-- [Strict CSP: the Modern Recommendation](#strict-csp-the-modern-recommendation)
-- [Rolling It Out Safely with Reporting](#rolling-it-out-safely-with-reporting)
-- [Interview Questions](#interview-questions)
 
 ## How CSP Works
 
@@ -215,6 +205,14 @@ app.post(
 3. Enforce everywhere
 ```
 
+## 🔑 Key Takeaways
+
+- CSP is the second line: it assumes an injection succeeded and stops the injected script from running.
+- `'unsafe-inline'` defeats the entire policy — a nonce or a hash is the whole point of the header.
+- A per-request random nonce plus `'strict-dynamic'` scales better than a growing domain allowlist.
+- `object-src 'none'`, `base-uri 'none'` and `frame-ancestors` close the bypasses that a script policy alone leaves open.
+- Roll out in `Report-Only` with a reporting endpoint, fix what fires, then enforce.
+
 ## Interview Questions
 
 **Q1: What problem does CSP solve?**
@@ -241,25 +239,8 @@ CSP controls what **your page** is allowed to load (an inbound-to-the-page guard
 
 Start with `Content-Security-Policy-Report-Only` and a reporting endpoint. Watch real violations, fix the legitimate ones (add nonces, move inline scripts out), then switch to the enforcing header — ideally page-by-page first.
 
-## Summary
+## What to Read Next
 
-**CSP checklist:**
-
-- [ ] Start in `Report-Only` mode with a reporting endpoint
-- [ ] Avoid `'unsafe-inline'` and `'unsafe-eval'`
-- [ ] Use nonces + `'strict-dynamic'` over long domain allowlists
-- [ ] Set `object-src 'none'` and `base-uri 'none'`
-- [ ] Set `frame-ancestors 'none'` (or `'self'`) for clickjacking
-- [ ] Use a fresh random nonce per request
-- [ ] Enforce gradually, fixing violations as you go
-
-**Why it matters:**
-
-- Blocks injected scripts even when encoding is missed
-- Prevents clickjacking via `frame-ancestors`
-- No runtime cost — just a header (a few hundred bytes)
-
----
-
-[← CSRF Protection](./02-csrf-protection.md) | [Next: Security Headers →](./04-secure-headers.md)
-</content>
+- [Chapter ?? — XSS Prevention](#ch-xss-prevention) — the first line CSP is backing up
+- [Chapter ?? — Security Headers](#ch-security-headers) — the rest of the header set, and helmet
+- [Chapter ?? — Pipeline Security](#ch-cicd-security) — where the nonce-generating build step lives
