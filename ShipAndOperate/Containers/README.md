@@ -5,7 +5,7 @@ chapter: 0
 slug: ship-containers-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [docker, containers, dockerfile, kubernetes, deployment]
 in_book: true
 ---

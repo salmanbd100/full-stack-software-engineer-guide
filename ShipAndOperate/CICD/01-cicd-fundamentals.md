@@ -4,239 +4,255 @@ part: 8
 chapter: 0
 slug: cicd-fundamentals
 level: beginner # beginner | intermediate | advanced
-reading_time: 9
+reading_time: 10
 updated: 2026-08-28
-tags: [devops, cicd, fundamentals]
+tags: [devops, cicd, fundamentals, testing, dora]
 in_book: true
 ---
 
 # CI/CD Fundamentals {#ch-cicd-fundamentals}
 
-> Separate integration, delivery and deployment in one sentence, then describe a pipeline that builds its artefact once.
+> Separate integration, delivery and deployment in one sentence, then design a pipeline that builds its artefact once and tells you within ten minutes whether it is safe.
 
-**In this chapter:** the three terms · pipeline stages · build once, promote many · artefacts and versioning · DORA metrics
+**In this chapter:** the three terms · build once, promote many · ordering stages so failures come cheap · quality gates · DORA metrics
 
-## The Three Terms
+## 💡 The Core Idea
 
-Interviewers ask this to check if you know the difference. Most candidates blur them together.
+A pipeline is a machine that turns a commit into one promotable artefact, then spends the rest of its
+time trying to prove that artefact is unsafe. Both halves matter. If it builds a different artefact
+for each environment, the thing you tested is not the thing you shipped. If it takes forty minutes to
+tell you the answer, developers batch their commits and stop reading the result — which is the same
+as having no pipeline, only more expensive.
 
-| Term | What It Automates | Where It Stops |
-|------|------------------|----------------|
-| **Continuous Integration** | Build + test on every commit | Produces a tested artifact |
-| **Continuous Delivery** | Everything up to deploy | Deploy to production is a **manual approval** |
+## How It Works
+
+Interviewers open with the three terms to check you do not blur them together.
+
+| Term | What it automates | Where it stops |
+| ---- | ----------------- | -------------- |
+| **Continuous Integration** | Build and test on every commit | Produces a tested artefact |
+| **Continuous Delivery** | Everything up to deploy | Production deploy is a **manual approval** |
 | **Continuous Deployment** | Deploy included | Every green build reaches production automatically |
 
-```
-Commit → Build → Test → Artifact          = Continuous Integration
-                            ↓
-                    Deploy to staging      = Continuous Delivery
-                            ↓
-                    [manual approval]
-                            ↓
-                    Deploy to production
-                            ↓
-        (remove the approval gate)          = Continuous Deployment
+```mermaid
+flowchart LR
+  C[Commit] --> B[Build] --> T[Test] --> A[Artefact]
+  A --> S[Deploy to staging]
+  S --> G{Manual approval}
+  G -->|kept| P[Deploy to production]
+  G -->|removed| P
+  A -.->|CI ends here| A
 ```
 
-> **Continuous Delivery** means you *can* deploy at any time. **Continuous Deployment** means you *do*, on every merge.
+**The three terms are one pipeline with the approval gate in different places.**
 
-✅ Most enterprise teams run Continuous Delivery — automated everything, with a human gate before production.
+> **Continuous Delivery** means you _can_ deploy at any time. **Continuous Deployment** means you _do_,
+> on every merge. Most enterprise teams run Continuous Delivery: automated everything, human gate
+> before production.
 
-## What Problem CI Actually Solves
+### The CI Contract
 
-Before CI, teams merged large branches after weeks of work. Conflicts were painful and bugs surfaced late. This was called "integration hell".
+Before CI, teams merged weeks of work at once and called the result integration hell. CI replaces that
+with one rule — integrate small changes often, and prove they work automatically.
 
-CI fixes it with one rule: **integrate small changes into the main branch often, and prove they work automatically.**
+- Every commit triggers a build.
+- The build runs the same way on every machine.
+- A red build blocks the merge.
+- The main branch is always releasable.
 
-**The core CI contract:**
-
-- Every commit triggers a build
-- The build runs the same way on every machine
-- A red build blocks the merge
-- The main branch is always releasable
-
-❌ **Not CI:** a nightly build that runs tests and emails a report nobody reads.
-✅ **CI:** every pull request runs tests, and a failure blocks merging.
-
-## Pipeline Stages
-
-A typical pipeline for a Node.js service deployed to AWS:
-
-```
-1. Source     → webhook on push / PR
-2. Build      → install deps, compile TypeScript, build Docker image
-3. Test       → unit → integration → contract
-4. Scan       → SAST, dependency audit, image scan, IaC scan
-5. Publish    → push image to ECR with an immutable tag
-6. Deploy dev → apply to dev environment, run smoke tests
-7. Approve    → manual gate
-8. Deploy prod→ blue/green or canary, watch metrics, auto-rollback
-```
-
-**Rules that make this pipeline good:**
-
-| Rule | Why |
-|------|-----|
-| **Fail fast** | Put the cheapest, fastest checks first (lint, unit tests) |
-| **Build once** | Compile and package one artifact; promote it through environments |
-| **Immutable artifacts** | Tag by commit SHA, never by `latest` |
-| **Same pipeline, all environments** | Only config differs between dev and prod |
-| **Under 10 minutes to feedback** | Slow pipelines get bypassed |
+❌ A nightly build that emails a report nobody reads.
+✅ Every pull request runs the tests, and a failure blocks merging.
 
 ## Build Once, Promote Many
 
-This is the single most important CI/CD principle, and a very common interview question.
+This is the most important principle in the chapter and the most common interview question in it.
 
-❌ **Bad — rebuild per environment:**
+❌ **Rebuilt per environment — different bytes each time:**
 
 ```yaml
 deploy-staging:
   script:
     - docker build -t app:staging .   # build #1
-    - deploy staging
-
 deploy-prod:
   script:
-    - docker build -t app:prod .      # build #2 — DIFFERENT bytes
-    - deploy prod
+    - docker build -t app:prod .      # build #2 — a different image
 ```
 
-The image you tested in staging is not the image running in production. Dependency versions may have shifted between builds.
+Transitive dependencies, base images and build tools all move between two builds. The image you
+validated in staging is not the image serving users.
 
-✅ **Good — one artifact, promoted:**
+✅ **Built once, promoted:**
 
 ```yaml
 build:
   script:
-    - docker build -t $ECR/app:$GIT_SHA .
-    - docker push $ECR/app:$GIT_SHA     # built exactly once
-
+    - docker build -t $REGISTRY/app:$GIT_SHA .
+    - docker push $REGISTRY/app:$GIT_SHA     # built exactly once
 deploy-staging:
-  script:
-    - deploy $ECR/app:$GIT_SHA          # same bytes
-
+  script: [deploy $REGISTRY/app:$GIT_SHA]    # same bytes
 deploy-prod:
-  script:
-    - deploy $ECR/app:$GIT_SHA          # same bytes, already tested
+  script: [deploy $REGISTRY/app:$GIT_SHA]    # same bytes, already tested
 ```
 
-> If you cannot point to the exact artifact running in production and trace it to a commit, you do not have a reliable pipeline.
+An **artefact** is the packaged output of the build — a container image, a zipped function bundle, a
+compiled front-end. Tag it by commit SHA, add a human-readable release tag that points at the same
+digest, and never deploy `latest`.
 
-## Environments
+> If you cannot point at what is running in production and trace it to a commit, you do not have a
+> pipeline. You have a build script.
 
-| Environment | Purpose | Data |
-|-------------|---------|------|
-| **Dev** | Fast feedback, may be broken | Synthetic |
-| **Staging** | Production-like validation | Anonymized copy of prod |
-| **Production** | Real users | Real |
+⚠️ Turn on **tag immutability** in the registry. Without it, a tag you deployed last week can be
+repointed at a different image today and nothing in your audit trail will show it.
 
-⚠️ Staging is only useful if it mirrors production — same infrastructure shape, same config mechanism. A staging environment on a single small instance tells you nothing about production behaviour under load.
+## Ordering Stages So Failures Come Cheap
 
-## Artifacts and Versioning
+Order stages by cost ascending. The cheapest check that can fail should fail first.
 
-An **artifact** is the packaged output of your build: a Docker image, a `.zip` for Lambda, a compiled bundle.
+| Order | Stage | Typical | Catches |
+| ----- | ----- | ------- | ------- |
+| 1 | Lint and type-check | ~20s | Typos, unused code, type errors |
+| 2 | Unit tests | ~90s | Logic errors |
+| 3 | Build the artefact | ~2m | Compile and packaging errors |
+| 4 | Integration tests | ~4m | Wiring, SQL, serialisation |
+| 5 | Security scans | ~2m | CVEs, leaked secrets, misconfiguration |
+| 6 | Deploy to staging | ~2m | Config and infrastructure drift |
+| 7 | Smoke tests | ~5m | Broken critical flows |
 
-**Tagging strategy:**
+Stages 4 and 5 are independent, so they run in parallel. **The target is under ten minutes of
+feedback on a pull request** — past that, developers batch changes and route around the pipeline.
 
-```bash
-# ✅ Immutable, traceable — always deploy this
-app:a3f9c21
+**Which tier runs where is a pipeline decision, not a testing decision:**
 
-# ✅ Human-readable release pointer (also points at a SHA)
-app:v2.4.0
+| Tier | Count | Runs on |
+| ---- | ----- | ------- |
+| Unit | Hundreds to thousands | Every commit |
+| Integration | Tens to hundreds | Every commit |
+| End-to-end | 10–30 critical flows | Merge to `main`, against a deployed environment |
 
-# ❌ Mutable — you can never reproduce what ran
-app:latest
-```
+The full argument for what belongs in each tier is [Chapter ?? — Testing Fundamentals](#ch-testing-fundamentals).
+What the pipeline adds is the ordering and the placement.
 
-✅ Enable **tag immutability** in ECR so a tag can never be overwritten.
+⚠️ The inverted pyramid — mostly end-to-end tests — is slow, flaky, and its failures say *"checkout
+broke"* rather than naming the function. Push coverage down the tiers and the same bug costs seconds
+to diagnose instead of an hour.
 
-## Pipeline as Code
+## Quality Gates
 
-Pipeline definitions live in the repository, next to the code they build.
+A gate fails the build when a measurable threshold is not met. Pick ones with no room to argue.
 
-**Why it matters:**
+| Gate | Reasonable threshold |
+| ---- | -------------------- |
+| Coverage on **changed** lines | 80% — measure the diff, not the repository |
+| Total coverage | Must not decrease |
+| High or critical vulnerabilities | Zero new ones |
+| Type errors | Zero |
+| Performance budget | Bundle size or p99 within limit |
 
-- Pipeline changes go through code review
-- The pipeline is versioned with the code — an old commit builds the old way
-- Recreating a broken CI server is a `git clone`
+⚠️ **Coverage is a floor, not a goal.** A team chasing 100% writes tests that assert implementation
+details and break on every refactor. Measuring the diff catches untested new code without forcing
+tests onto legacy files nobody is changing.
 
-| Tool | File |
-|------|------|
-| GitHub Actions | `.github/workflows/*.yml` |
-| GitLab CI | `.gitlab-ci.yml` |
-| Jenkins | `Jenkinsfile` |
-| AWS CodePipeline | `buildspec.yml` + Terraform/CDK for the pipeline itself |
+## When to Use It
 
-❌ Never configure a pipeline by clicking through a UI. It is invisible, unreviewable, and impossible to restore.
+| Situation | Choose | Why |
+| --------- | ------ | --- |
+| Regulated domain, release windows | Continuous Delivery | The gate is the audit record |
+| Strong tests, fast rollback, good metrics | Continuous Deployment | The gate adds latency, not safety |
+| Unfinished work you still want merged | Feature flag, deploy disabled | Keeps the branch short |
+| A pipeline nobody trusts | Fix the flakes first | New gates on a red pipeline get ignored |
 
-## Trunk-Based Development
+## Common Mistakes
 
-CI works best with short-lived branches merged into `main` daily.
+❌ **Treating a flaky test as a cost of doing business.** A test that passes and fails on identical
+code is worse than no test, because it teaches the team to re-run red builds without reading them.
+✅ Track pass and fail history per test, quarantine the flaky one into a non-blocking suite with a
+ticket and a deadline, and delete it if nobody claims it. Common causes are timezone dependence, test
+order dependence, real network calls and racing on asynchronous UI.
 
-```
-Trunk-based (works with CI):
-main ──●──●──●──●──●──●──●──
-        \ /  \ /  \ /
-     1-day branches
+❌ **Blanket retries.** `retry: 3` on assertion failures hides the race condition that will surface
+in production instead.
+✅ Retry only infrastructure failures — a runner dying, a registry timing out. Most CI platforms let
+you name the failure classes that qualify.
 
-Long-lived branches (fights CI):
-main ──●─────────────────●──
-        \               /
-         ●──●──●──●──●──   (3 weeks — merge is a project)
-```
+❌ **Configuring the pipeline by clicking through a UI.** It is invisible, unreviewable, and
+unrecoverable when the CI server dies.
+✅ Pipeline as code, in the repository next to what it builds. Changes go through review, and an old
+commit still builds the old way.
 
-✅ Use **feature flags** to merge incomplete work safely. The code ships disabled; you turn it on separately from the deploy.
-
-> Feature flags decouple **deploy** (moving code) from **release** (exposing behaviour). This is what lets teams deploy 20 times a day.
-
-The choice between trunk-based, GitHub Flow and GitFlow — and what each one demands of a pipeline — is argued out in [Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow).
+❌ **A staging environment that shares nothing with production.** One small instance behind a
+different load balancer tells you nothing about behaviour under load.
+✅ Same infrastructure shape and same config mechanism; only the values and the data differ.
 
 ## DORA Metrics
 
-The four industry-standard measures of delivery performance. Expect at least one question on these.
+The four industry-standard measures of delivery performance. Expect at least one question.
 
-| Metric | What It Measures | Elite Performance |
-|--------|-----------------|-------------------|
-| **Deployment frequency** | How often you ship to prod | On demand (multiple/day) |
-| **Lead time for changes** | Commit → running in prod | Under 1 hour |
-| **Change failure rate** | % of deploys causing incidents | Under 15% |
-| **Time to restore** | How fast you recover | Under 1 hour |
+| Metric | What it measures | Elite |
+| ------ | ---------------- | ----- |
+| **Deployment frequency** | How often you ship to production | On demand, multiple times a day |
+| **Lead time for changes** | Commit to running in production | Under one hour |
+| **Change failure rate** | Share of deploys causing incidents | Under 15% |
+| **Time to restore** | How fast you recover | Under one hour |
 
-> Speed and stability are not a tradeoff. Teams that deploy more often also fail less — small changes are easier to test, review, and roll back.
+> Speed and stability are not a trade-off. Teams that deploy more often also fail less, because small
+> changes are easier to review, test and roll back.
 
-## Common Anti-Patterns
+CI works best with short-lived branches merged daily, and feature flags are what make that possible
+when the work is not finished. Which branching model demands what from a pipeline is argued out in
+[Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow).
 
-| Anti-Pattern | Why It Hurts | Fix |
-|--------------|-------------|-----|
-| Flaky tests | Team learns to ignore red builds | Quarantine and fix, or delete |
-| 45-minute pipeline | Developers batch commits | Parallelize, cache, split test tiers |
-| Secrets in pipeline files | Leaked on every clone | Secrets Manager / OIDC |
-| Manual deploy steps | Not reproducible under pressure | Script everything |
-| Shared mutable dev environment | Blocks the whole team | Ephemeral per-PR environments |
+## 🔑 Key Takeaways
 
-## Interview Q&A
+- Continuous Delivery means you can deploy on demand; Continuous Deployment means every green build does.
+- Build the artefact once, tag it by commit SHA, and promote the same bytes through every environment.
+- Order stages cheapest-first and keep pull request feedback under ten minutes, or the pipeline gets bypassed.
+- Gate on the diff — coverage on changed lines, no new high-severity findings, zero type errors.
+- A flaky test is a pipeline defect. Quarantine it with a deadline rather than retrying past it.
+
+## Interview Questions
 
 **Q: What is the difference between Continuous Delivery and Continuous Deployment?**
 
-Both automate the full pipeline through to a deployable state. In Continuous Delivery, deploying to production requires a manual approval — the team decides when to release, but the process itself is fully automated and could run at any moment. In Continuous Deployment, that approval gate is removed, so every commit that passes all stages goes to production automatically. Continuous Deployment requires much stronger automated testing, monitoring, and automatic rollback, because there is no human checkpoint. Most enterprise teams, especially in regulated domains, choose Continuous Delivery.
+Both automate the pipeline through to a deployable state. In Continuous Delivery the production
+deploy needs a manual approval, so the team chooses when to release even though the process is fully
+automated. Continuous Deployment removes that gate, so every commit passing all stages ships. The
+second needs much stronger automated testing, monitoring and automatic rollback, because no human
+sees the change before users do. Most enterprise and regulated teams choose Continuous Delivery.
 
-**Q: Why should you build an artifact only once?**
+**Q: Why should an artefact be built only once?**
 
-Because rebuilding per environment produces different bytes. Transitive dependencies, base images, and build tools can change between builds, so the artifact you validated in staging is not the one running in production. Building once and promoting the same immutable artifact — tagged by commit SHA — means your tests actually apply to what ships. It is also faster, and it gives you a clean audit trail from a running container back to a specific commit.
+Because rebuilding per environment produces different bytes. Transitive dependencies, base images and
+build tools shift between two builds, so the artefact validated in staging is not the one in
+production. Building once and promoting an immutable artefact tagged by commit SHA means the tests
+actually apply to what ships, and it gives a clean trail from a running container back to a commit.
+It is also faster, since you pay for the build once rather than per environment.
 
-**Q: How do you keep a CI pipeline fast?**
+**Q: How do you keep a CI pipeline fast without deleting tests?**
 
-Order stages cheapest-first so failures surface early: lint and type-check, then unit tests, then integration tests, then slower end-to-end tests. Run independent jobs in parallel and shard large test suites across runners. Cache dependencies and Docker layers between runs. Only run expensive suites where they add value — full end-to-end on merge to main rather than on every commit to a branch. The target is under ten minutes for pull request feedback; beyond that, developers start working around the pipeline.
+Order stages cheapest-first so failures surface early, and run independent jobs in parallel rather
+than in sequence. Cache dependencies and build layers keyed on the lockfile. Shard large suites
+across runners. Move genuinely expensive suites off the pull request path — full end-to-end on merge
+to `main` rather than on every push. Cancel superseded runs on the same branch. The number to defend
+is ten minutes to pull request feedback; beyond that the pipeline stops changing behaviour.
 
-**Q: How do you deploy an unfinished feature safely?**
+**Q: Is code coverage a useful quality gate?**
 
-Merge it behind a feature flag. The code is deployed but disabled, so it stays integrated with `main` and keeps getting tested, without being exposed to users. Enabling it becomes a runtime configuration change instead of a deployment, which means you can turn it on for internal users first, then a percentage of traffic, and turn it off instantly if metrics degrade. This separates deploy from release and avoids long-lived feature branches that break continuous integration.
+Useful as a floor, misleading as a target. High coverage proves lines executed, not that behaviour
+was verified, and teams pushed toward 100% write tests coupled to implementation details that break
+on every refactor. The version worth having is coverage on the diff: changed lines meet a threshold
+such as 80% and total coverage must not decrease. Pair it with gates that have no ambiguity — zero
+type errors, no new high-severity vulnerabilities, a bundle size budget.
 
-**Q: What are the DORA metrics and why do they matter?**
+**Q: When would you not add another gate to the pipeline?**
 
-Deployment frequency, lead time for changes, change failure rate, and time to restore service. The first two measure speed; the last two measure stability. They matter because they are outcome-based — they measure whether the pipeline actually delivers value, unlike vanity metrics such as test count or code coverage. The key research finding is that speed and stability correlate positively: teams shipping small changes frequently also have lower failure rates, because small changes are easier to review, test, and roll back.
+When the pipeline is already flaky. Gates only work if a red build means something, and adding a
+sixth check to a pipeline people re-run without reading makes the signal worse, not better. The
+sequence is: make failures trustworthy, get feedback under ten minutes, then add the gate. The same
+applies to a gate nobody can act on — a low-severity vulnerability report that cannot be fixed
+because the fix is upstream trains the team to click past the whole category.
 
----
+## What to Read Next
 
-[CI/CD Index](./README.md) | [GitHub Actions →](./02-github-actions.md)
+- [Chapter ?? — GitHub Actions](#ch-github-actions) — the same principles expressed in the tool most teams use
+- [Chapter ?? — Deployment Strategies](#ch-deployment-strategies) — what stage 8 actually does with the artefact
+- [Chapter ?? — Pipeline Security](#ch-cicd-security) — how the credentials reach the pipeline without being stored in it

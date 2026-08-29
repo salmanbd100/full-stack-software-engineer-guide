@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-28 · **Progress:** 19 / 78
+**Last updated:** 2026-08-29 · **Progress:** 20 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -1199,7 +1199,7 @@ not sprinkled through chapters.
 
 > This phase is where the book stops being 1,800 pages. Nothing is deleted — it moves to `Archive/`.
 
-### - [ ] 20. Cut DevOps from 147 files to ~25 `L`
+### - [x] 20. Cut DevOps from 147 files to ~25 `L` — ✅ **done 2026-08-29**
 
 This is the single highest-leverage change in the plan. Target `DevOps/` → renamed **`ShipAndOperate/`**
 (Part VIII), containing only what a frontend-heavy full stack engineer is actually asked about:
@@ -1761,6 +1761,114 @@ baseline is `DevOps/Agile/`, which belongs to item #25 — so the number should 
 ceiling is now fixed at 5,500 and `CICD/` has ~940 lines of room in it; landing at ~1,000 is fine and
 leaves the ~400-line residual to #76, but growing the section is not.
 
+
+
+**Delivered — run #7, 2026-08-29: `CICD/` 5 → 4, and the box ticks. Item complete.**
+
+The last section. `CICD/` is now **4 chapters, 1,108 lines**, down from 5 and 1,482. All four were
+rewritten to the Book Chapter Standard rather than patched — not one of the five had a `## 💡 The Core
+Idea`, Key Takeaways or a What to Read Next, all five closed with `## Interview Q&A` rather than the
+standard's heading, and all five ended in a relative-path nav footer.
+
+| File | Lines | What changed |
+| ---- | ----- | ------------ |
+| `01-cicd-fundamentals.md` | 258 | Rewritten around **a pipeline turns a commit into one promotable artefact, then tries to prove it unsafe**. Gained the fail-fast stage table, the which-tier-runs-where table and quality gates from the archived `04-testing.md`, plus flaky tests and blanket retries as Common Mistakes. Lost the pipeline-as-code tool inventory and the artefact tagging code fence |
+| `02-github-actions.md` | 305 | Reframed around **every job gets a clean machine** — the fact that explains artefacts, caches and `needs:`. Gained service containers with the health-check race, and test sharding in the matrix. Lost the standalone Environments section (now four lines), the self-hosted runner section (now one interview question) and the pipeline-speed question that `01-` answers better |
+| `03-deployment-strategies.md` | 252 | Reframed around **how many users see the new version before you find out it is broken**. Shadow deployment dropped — it appeared once in a table and was never explained. Expand/contract kept in full; it is the part candidates get wrong |
+| `04-pipeline-security.md` | 293 | From `05-security.md`, renumbered. Reframed around **the pipeline holds more privilege than any developer**, with a *paths in* table that makes the chapter answerable as a list. Gained build provenance attestations alongside `cosign`. Lost the Terraform/`checkov` IaC blocks, the shift-left cost diagram and the AWS-specific runtime-detection stack |
+| `README.md` | 60 | Chapter table rebuilt for four; sprint path now 01 → 03 → 04, and a closing note saying where testing strategy actually lives |
+
+**Four decisions this run made:**
+
+- **`04-testing.md` archives and splits three ways — the same treatment run #5 gave `04-git-best-practices.md`
+  and run #6 gave `05-docker-troubleshooting.md`.** It was largely a third copy: the test pyramid is in
+  `Backend/Testing/01` and `06`, contract testing in `Frontend/Testing/07` and `Backend/Testing/03`,
+  flaky tests in five files across the two directories, and Testcontainers in `Backend/Testing/02`. What
+  is genuinely pipeline-specific moved: stage ordering by cost, which tier runs where, and quality gates
+  into `01-`; service containers with health checks and matrix sharding into `02-`. The Terraform testing
+  section was cut outright, out of scope per § 6. `01-` now cross-references
+  `#ch-testing-fundamentals` for the tier argument itself, per non-negotiable #7.
+- **Security stayed a chapter, because #24 requires it to.** The target table in run #3 named `04-testing.md`
+  *and* `05-security.md` as the cut, but #24's own target line says *"add one `ShipAndOperate/pipeline-security.md`
+  (Part VIII)"*. Merging security into another chapter would have pre-broken the item that has to land on
+  it. It is renamed `04-pipeline-security.md` to match both its title and #24's naming, and **the slug
+  `cicd-security` is unchanged** — it has three inbound references, from `Deployment/02-preview-environments.md`,
+  `Git/02-advanced-git.md` and `Containers/02-building-and-hardening-images.md`.
+- **One slug retired, none created, zero inbound references.** `cicd-testing` goes to the Archive with its
+  file. `cicd-fundamentals`, `github-actions`, `deployment-strategies` and `cicd-security` all keep their
+  slugs, so **every existing cross-reference into Part VIII still resolves.** ⚠️ `04-pipeline-security.md`
+  was `git mv`'d from `05-security.md` but the rewrite is extensive enough that rename detection no longer
+  scores it; use `git log --diff-filter=D -- ShipAndOperate/CICD/05-security.md` to reach the old file.
+  The archive move scores a clean rename and keeps its history.
+- **`04-testing.md` went back as `Archive/devops/cicd/07-testing.md` — its original name** — with
+  `in_book: false` and its nav footer repointed at `05-jenkins.md`, its archive sibling. Nothing deleted;
+  `git status` shows no deletions anywhere.
+
+**Context7 was used** (`/websites/github_en_actions`) and it caught a stale version: the workflows said
+`actions/setup-node@v5`, and the current major is **v7**. `actions/checkout@v6` and `actions/cache@v4`
+were confirmed correct. Node matrix moved from `[20, 22]` to `[22, 24]`, `postgres:17` kept. `02-` carries
+the required moving-target callout, because action majors move roughly yearly — with the durable principle
+named underneath: a version tag is mutable, a commit SHA is not.
+
+**Verified:**
+
+- `pnpm lint:docs`: `front-matter` 0, `broken-link` 0, `missing-readme` 0, `heading-jump` 0, `too-long` 47
+  (unchanged). `fence-language` **30 → 12** — all 18 `CICD/` violations cleared; the entire remaining
+  baseline is now `DevOps/Agile/`, which belongs to **#25**. `.lint-baseline.json` committed at 12
+- `scripts/add-frontmatter.ts`: 324 files, **idempotent on the second pass** (`changed: 0`), all slugs
+  unique, every in-book file has a part. Part VIII is **28** in-book files, down from 29
+- `pnpm book:collect`: **270 files, 93,689 lines** — down from 271 / 94,061
+- Six blocks present in all four, in order; H1 anchors match `slug`; zero relative links in bodies; zero
+  `####`; zero retired emoji; 💡 and 🔑 at exactly 1 each and ⚠️ at 3/3/2/3 against the standard's budget of 3
+- No dangling references to `04-testing.md`, `05-security.md` or `#ch-cicd-testing` outside `Archive/`
+  and this plan's own prose
+
+**The "Done when" is met, measured rather than asserted:**
+
+| Claim | Measured |
+| ----- | -------- |
+| 22 chapters across six sections | **22** — Git 4, Containers 4, CICD 4, Observability 3, Cloud 3, Deployment 4 |
+| 28 files with the section READMEs | **28** — `find ShipAndOperate -name '*.md' \| wc -l` |
+| Everything cut is under `Archive/devops/` | **106** archived files, **0** deletions in `git status` |
+
+`147 = 28 + 106 + 18 − 5`: the 18 still in `DevOps/` are `Agile/` (9, **#25**) and `GenAI/` (9, **#21**),
+and the 5 are `Deployment/`, written new in run #2. Every original file is accounted for.
+
+**Part VIII closes at 5,664 chapter lines across 22 chapters** (6,018 with the six section READMEs),
+against the amended `BOOK-SPEC.md` § 4 budget of **5,500 / ~22**. The chapter count is exact. The line
+count is **518 over** — a ~24-line-per-chapter editorial trim, which is **#76**, not a structural cut.
+Run #6 projected ~400 and the real figure is 518; the difference is that `CICD/` landed at 1,108 rather
+than the ~1,000 run #6 hoped for, for the reason every trim run has now recorded: **the six mandatory
+closing blocks cost ~55 lines before any teaching happens**, so four standard-compliant chapters do not
+fit in 1,000 lines. Every per-section line target in run #3's table was ~30% low; every chapter *count*
+in it was exact.
+
+| Section | Final | Run #3's target | Done in |
+| ------- | ----- | --------------- | ------- |
+| `Git/` | 4 / 1,026 | 3–4 / ~750 | run #5 |
+| `Containers/` | 4 / 1,117 | 4 / ~750 | run #6 |
+| `CICD/` | **4 / 1,108** | 4 / ~800 | **run #7** |
+| `Observability/` | 3 / 865 | 3 / ~650 | run #4 |
+| `Cloud/` | 3 / 681 | 3 / ~680 | run #3 |
+| `Deployment/` | 4 / 867 | — | run #2, written new |
+
+> ⚠️ **A duplicate anchor this run found and did not fix, because no item owns it.**
+> `SystemDesign/Microservices/06-deployment.md` has `slug: deployment` in its front matter but carries
+> `{#ch-deployment-strategies}` on its H1 — the same anchor as `ShipAndOperate/CICD/03-deployment-strategies.md`.
+> `lint:docs` cannot see it: `front-matter` checks slug uniqueness, not anchor uniqueness, and
+> `broken-link` only checks relative paths. So **five inbound cross-references to `#ch-deployment-strategies`
+> are currently ambiguous**, and the two chapters overlap by roughly half — 228 lines of blue/green, canary
+> and rolling in Part VI against 252 in Part VIII. #22 and #23 cover the SystemDesign scalability
+> triplicate but not this pair. Two things worth doing: **make the anchor match its own slug** as a
+> one-line fix, and **decide which part owns deployment strategy** per non-negotiable #7. Whoever runs
+> #22 is the natural owner. ⚠️ It is also worth adding an **anchor-uniqueness rule to `lint:docs`** —
+> #71 rewrites cross-references and will bind to whichever anchor it finds first.
+
+> ⚠️ **`updated:` in front matter lags by one commit.** `scripts/add-frontmatter.ts` derives `updated`
+> from the file's last *git commit* date, not the filesystem, so it rewrote this run's hand-set
+> `2026-08-29` back to `2026-08-28`. Re-running the script after committing sets it correctly. This is
+> the script's design, not a bug, but it means the date is only right on files that are already
+> committed — worth knowing for **#70** and **#71**, which both touch front matter.
 
 ---
 
@@ -2509,13 +2617,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31   | 0/12 | ⬜ Not started  |
+| 2     | 20–31   | 1/12 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **19/78** | **24%**   |
+| **Total** | **78** | **20/78** | **26%**   |
 
 ---
 

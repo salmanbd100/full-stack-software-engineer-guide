@@ -5,7 +5,7 @@ chapter: 0
 slug: metrics-and-dashboards
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [observability, metrics, prometheus, promql, grafana, dashboards]
 in_book: true
 ---

@@ -7,7 +7,7 @@ level: intermediate # beginner | intermediate | advanced
 reading_time: 12
 updated: 2026-08-28
 tags: [devops, cicd, testing]
-in_book: true
+in_book: false
 ---
 
 # Testing in CI/CD {#ch-cicd-testing}
@@ -301,4 +301,4 @@ Use contract testing. The consumer declares the requests it makes and the respon
 
 ---
 
-[← Deployment Strategies](./03-deployment-strategies.md) | [CI/CD Index](./README.md) | [Pipeline Security →](./05-security.md)
+[← Jenkins](./05-jenkins.md) | [Archive Index](../README.md)

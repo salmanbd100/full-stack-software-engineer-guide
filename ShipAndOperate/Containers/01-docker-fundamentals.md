@@ -5,7 +5,7 @@ chapter: 0
 slug: docker-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
+updated: 2026-08-29
 tags: [devops, docker, containers, fundamentals]
 in_book: true
 ---
