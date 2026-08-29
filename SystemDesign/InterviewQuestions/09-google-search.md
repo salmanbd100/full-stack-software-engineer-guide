@@ -256,7 +256,7 @@ interface CachedQueryResponse {
 - ❌ Crawl every site as fast as possible — sites block the crawler, legal risk
 - ✅ Per-domain crawl budget: rate limit by `Crawl-Delay` in `robots.txt`; prioritise sitemaps
 
-See [../Scalability/](../Scalability/) for distributed queue patterns and [../BuildingBlocks/](../BuildingBlocks/) for inverted index deep-dives.
+See [Chapter ?? — Asynchronous Processing](#ch-asynchronous-processing) for distributed queue patterns and [Chapter ?? — Search](#ch-search) for inverted index deep-dives.
 
 ## Common Follow-up Questions
 

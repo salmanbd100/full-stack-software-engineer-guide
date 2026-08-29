@@ -223,7 +223,7 @@ The follow graph is a separate service backed by a graph DB or wide-column store
 ## Common Follow-up Questions
 
 **Q: How do you handle a user with 10 M followers uploading a post?**
-A: Skip fan-out on write for accounts above a follower threshold (for example, 500 K). Their posts are fetched and merged into the feed at read time using a "celebrity post injection" layer. See [../Scalability/fan-out.md](../Scalability/).
+A: Skip fan-out on write for accounts above a follower threshold (for example, 500 K). Their posts are fetched and merged into the feed at read time using a "celebrity post injection" layer.
 
 **Q: How do you make the feed feel fast on first load?**
 A: Pre-compute the feed for active users. When a user opens the app, serve from the Redis sorted set instantly. Background-refresh the cache as new posts arrive via Kafka fan-out.

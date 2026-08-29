@@ -253,7 +253,7 @@ interface ClusterNodesResponse {
 
 > Consistent hashing solves the "which node?" problem elegantly. But the hard operational problem is detecting node failure quickly enough (under 1 second) so clients stop routing to it. Use Gossip protocol with a suspicion timer rather than a central coordinator.
 
-See [../Scalability/08-partitioning.md](../Scalability/08-partitioning.md) for ring implementation details and [../BuildingBlocks/02-caching.md](../BuildingBlocks/02-caching.md) for cache-aside vs write-through patterns.
+See [Chapter ?? — Sharding](#ch-sharding) for the consistent hashing ring and [Chapter ?? — Caching](#ch-caching) for cache-aside vs write-through patterns.
 
 ## Common Follow-up Questions
 

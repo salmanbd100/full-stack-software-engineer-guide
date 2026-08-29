@@ -214,7 +214,7 @@ function computeScore(query: QueryFrequency): number {
 
 A trending query from yesterday outscores an older query with 10x more historical volume. This ensures viral queries surface quickly without polluting long-term suggestions.
 
-See [../Scalability/04-caching-strategies.md](../Scalability/04-caching-strategies.md) for Redis TTL patterns and [../BuildingBlocks/05-message-queues.md](../BuildingBlocks/05-message-queues.md) for the Kafka log pipeline.
+See [Chapter ?? — Caching](#ch-caching) for the TTL and stampede patterns, and [Chapter ?? — Message Queues and Event Streaming](#ch-message-queues) for the log pipeline.
 
 ## Common Follow-up Questions
 

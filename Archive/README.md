@@ -48,13 +48,18 @@ Sub-directories mirror where the content came from, so a file's origin stays obv
 Archive/
 ├── README.md            ← this file
 ├── planning/            ← #8:  superseded plans and marketing assets
-└── devops/              ← #20: the 98 files DevOps/ shed
+├── salvage/             ← staged for a later part, not out of scope — see salvage/README.md
+│   └── ai/                  2 files inbound to Part VII at #45 and #49
+├── systemdesign/        ← #23: what Part VI shed that Part VIII already covers
+│   └── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
+└── devops/              ← #20: the 98 files DevOps/ shed, plus genai/ from #21
     ├── README.md            the old 1,378-line DevOps curriculum index
     ├── aws/                 11 of 15 — Cloud/ keeps fundamentals, serverless, storage, CDN
     ├── cicd/                3 of 8 — the vendor-specific pipelines
     ├── cost-optimization/   all 7 — FinOps is its own field
     ├── devsecops/           all 11 — #24 folds the unique parts into pipeline security
     ├── docker/              4 of 9 — Containers/ keeps 5
+    ├── genai/               6 of 8 + README — #21; the other 2 are staged under salvage/ai/
     ├── iac/                 all 3
     ├── kubernetes/          9 of 11 — Containers/ keeps architecture and pods
     ├── linux/               all 9
@@ -65,10 +70,16 @@ Archive/
     └── terraform/           all 11
 ```
 
-Still in `DevOps/` and not archived yet: `Agile/` belongs to **#25**, which condenses it into two
-Part IX chapters, and `GenAI/` belongs to **#21**, which salvages two files into `AI/`.
+Still in `DevOps/` and not archived yet: only `Agile/`, which belongs to **#25** — it condenses into two
+Part IX chapters. `GenAI/` is gone: **#21** archived six chapters and its index here, and staged the two
+that Part VII actually wants under `salvage/ai/`.
 
 Directories appear as the items that fill them run. An empty one is not missing — it is not due yet.
+
+`salvage/` is the one sub-tree that is **not** out of scope. It holds material waiting for a part that has
+not been written, and each file there names the item that will absorb it. Read
+[`salvage/README.md`](./salvage/README.md) before adding to it — anything without a named destination is
+archived, not staged.
 
 ## How the exclusion actually works
 

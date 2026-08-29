@@ -192,7 +192,7 @@ A social platform uses PostgreSQL for user accounts and followers (complex relat
 
 > Start with PostgreSQL. It handles more than most engineers expect. Add a specialized database only when you have a measured, concrete bottleneck it would solve.
 
-**Related:** [Database Scaling](../Scalability/05-database-scaling.md) · [SQL Design](../Database/01-sql-design.md)
+**Related:** [Chapter ?? — Scalability](#ch-scalability) · [Chapter ?? — SQL Database Design](#ch-sql-database-design)
 
 ---
 

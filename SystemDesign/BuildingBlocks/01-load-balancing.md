@@ -2,73 +2,71 @@
 title: Load Balancing
 part: 6
 chapter: 0
-slug: building-blocks-load-balancing
+slug: load-balancing
 level: intermediate # beginner | intermediate | advanced
-reading_time: 6
-updated: 2026-08-28
-tags: [system, design, building, blocks, load]
+reading_time: 9
+updated: 2026-08-29
+tags: [system-design, load-balancing, health-checks, scaling, availability]
 in_book: true
 ---
 
 # Load Balancing {#ch-load-balancing}
 
-> Choose L4 or L7 and an algorithm to match the traffic, and say what happens when a node dies.
+> Choose a layer and an algorithm to match the traffic, and be able to say exactly what happens when a node dies.
 
-**In this chapter:** how it works · layer 4 vs layer 7 · routing algorithms · health checks · load balancer vs API gateway
+**In this chapter:** layer 4 vs layer 7 · routing algorithms · the health check that causes outages · draining and auto-scaling · going multi-region
 
-## 💡 **Concept**
+## 💡 The Core Idea
 
-A load balancer distributes incoming traffic across multiple backend servers. It removes single points of failure and enables horizontal scaling beyond what one machine can handle.
+A load balancer turns a set of servers into one logical service. Clients address a single name; the
+balancer decides which machine answers. That indirection is what makes every other scaling move
+possible — you cannot add a second server usefully until something is willing to send traffic to it.
 
-**Use load balancing when:** traffic exceeds ~10k req/sec on a single server, or you need 99.9%+ availability.
-
----
+The interesting part is not the distribution. It is the failure handling. A balancer that spreads
+traffic evenly but takes ninety seconds to notice a dead node has not bought you availability, it has
+bought you a slower outage. Most of the design work is in the health check.
 
 ## How It Works
 
-```text
-Client
-  │
-  ▼
-┌──────────────────┐
-│   Load Balancer  │  ← health checks every 5–30s
-└────────┬─────────┘
-         │
-   ┌─────┼─────┐
-   ▼     ▼     ▼
-Server1 Server2 Server3 (failed → removed from pool)
+The balancer accepts every request on one public address, picks a healthy backend, and forwards it.
+In parallel it probes each backend on a fixed interval and removes the ones that stop answering.
+
+```mermaid
+flowchart TD
+    C[Client] --> LB[Load balancer<br/>single public address]
+    LB -->|routing algorithm| S1[Server 1]
+    LB --> S2[Server 2]
+    LB -.->|failed probe<br/>removed from pool| S3[Server 3]
+    LB -->|probe every 10-30s| S1
 ```
 
-**Request flow:**
-1. Client hits load balancer's public IP.
-2. LB picks a healthy server using the routing algorithm.
-3. Request is forwarded; response returns through LB (or direct via DSR).
-4. If server fails health check, LB stops sending it traffic.
+**One address in front, a pool behind it, and a probe deciding who is in the pool.**
 
----
+### Layer 4 vs layer 7
 
-## Layer 4 vs Layer 7
+The layer decides how much of the request the balancer is allowed to read.
 
-| Feature | Layer 4 (Transport) | Layer 7 (Application) |
-|---|---|---|
-| **Operates on** | TCP/UDP packets | HTTP headers, URL, cookies |
-| **Routing logic** | IP + port only | Path, hostname, content |
-| **Latency** | Lower (~0.5ms) | Slightly higher (~1–2ms) |
-| **SSL termination** | No | Yes |
-| **Use case** | Raw TCP, low-latency | HTTP APIs, microservices |
-| **Example** | AWS NLB | AWS ALB, Nginx |
+| | Layer 4 (transport) | Layer 7 (application) |
+| --- | --- | --- |
+| **Sees** | IP and port | Path, host, headers, cookies |
+| **Routes on** | Connection tuple | Anything in the request |
+| **Added latency** | Under a millisecond | One to two milliseconds |
+| **TLS termination** | No — the bytes pass through | Yes |
+| **Reach for it when** | Raw TCP, latency budgets in microseconds | HTTP services, path-based routing to microservices |
 
----
+Layer 7 is the default for web work. You give up a millisecond and gain the ability to send `/api/*`
+to one service and `/images/*` to another without the client knowing there are two.
 
-## Routing Algorithms
+### Routing algorithms
 
-| Algorithm | How it works | Best for |
-|---|---|---|
-| **Round-robin** | Next server in rotation | Equal capacity, stateless APIs |
-| **Weighted round-robin** | More requests to higher-weight servers | Mixed instance sizes |
-| **Least connections** | Route to server with fewest active connections | Variable request duration |
-| **IP hash** | Same client IP → same server | Stateful apps (soft sessions) |
-| **Random** | Random server selection | Simple, equal capacity |
+| Algorithm | Sends the request to | Best for |
+| --- | --- | --- |
+| **Round-robin** | The next server in rotation | Equal machines, stateless requests of similar cost |
+| **Weighted round-robin** | Higher-weight servers, proportionally | Mixed instance sizes, or shifting traffic during a rolling deploy |
+| **Least connections** | The server holding the fewest open connections | Requests of wildly different duration — uploads, WebSockets |
+| **IP hash** | The server that client IP maps to | Soft session affinity, when nothing better is available |
+
+**The two that cover almost every case:**
 
 ```typescript
 interface Server {
@@ -79,121 +77,179 @@ interface Server {
 }
 
 function weightedRoundRobin(servers: Server[]): Server | null {
-  const healthy = servers.filter(s => s.healthy);
+  const healthy = servers.filter((s) => s.healthy);
   if (healthy.length === 0) return null;
-
-  // Build weighted pool
-  const pool: Server[] = healthy.flatMap(s =>
-    Array(s.weight).fill(s)
-  );
-
+  // Expanding by weight is O(sum of weights); fine for a pool, not for a hot path.
+  const pool = healthy.flatMap((s) => Array<Server>(s.weight).fill(s));
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function leastConnections(servers: Server[]): Server | null {
-  const healthy = servers.filter(s => s.healthy);
+  const healthy = servers.filter((s) => s.healthy);
   if (healthy.length === 0) return null;
-
   return healthy.reduce((min, s) =>
-    s.activeConnections < min.activeConnections ? s : min
+    s.activeConnections < min.activeConnections ? s : min,
   );
 }
 ```
 
----
+IP hash deserves a warning. Mobile clients move between WiFi and cellular and change IP mid-session,
+so affinity built on the client address breaks exactly when a user is walking out of a building. If
+you need session state, put it in Redis and keep every server interchangeable.
 
-## Health Checks
+### The health check that causes outages
 
-A health check periodically probes each server. A server is removed from rotation when it fails N consecutive checks and re-added after M successes.
+A health check that tests shared dependencies will eventually take your whole fleet down at once.
 
-```typescript
-interface HealthCheckConfig {
-  path: string;           // e.g. "/health"
-  intervalMs: number;     // e.g. 10000 (10s)
-  timeoutMs: number;      // e.g. 2000
-  unhealthyThreshold: number; // consecutive failures before removal
-  healthyThreshold: number;   // consecutive successes before re-add
-}
-
-async function checkServer(
-  server: Server,
-  config: HealthCheckConfig
-): Promise<boolean> {
-  try {
-    const res = await fetch(`${server.url}${config.path}`, {
-      signal: AbortSignal.timeout(config.timeoutMs),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-```
-
-**Health endpoint should check dependencies:**
+**❌ One endpoint, checking everything:**
 
 ```typescript
-// app.get("/health") — check DB + cache, not just HTTP 200
-async function healthHandler(): Promise<{ status: string }> {
+// Every instance depends on the same database. When it blips, every instance
+// fails the check in the same second and the balancer empties the pool.
+app.get("/health", async (_req, res) => {
   await db.query("SELECT 1");
-  await cache.ping();
-  return { status: "ok" };
-}
+  await redis.ping();
+  res.sendStatus(200);
+});
 ```
 
----
+**✅ Two endpoints, answering two different questions:**
 
-## Load Balancer vs API Gateway
+```typescript
+// Liveness: is this process alive? Nothing external, so a dependency blip
+// can degrade the service without deleting the fleet.
+app.get("/health", (_req, res) => res.sendStatus(200));
 
-| | Load Balancer | API Gateway |
-|---|---|---|
-| **Primary job** | Traffic distribution | API management |
-| **Features** | Health checks, SSL termination | Auth, rate limiting, request transforms |
-| **Latency overhead** | < 1ms | 10–50ms |
-| **Use for** | Internal service-to-service | External client-facing APIs |
+// Readiness: can this instance serve traffic right now? Short timeout, so a
+// slow dependency cannot hang the probe itself.
+app.get("/ready", async (_req, res) => {
+  const ok = await checkDbPool({ timeoutMs: 1000 });
+  res.sendStatus(ok ? 200 : 503);
+});
+```
 
-> Use a load balancer for microservice-to-microservice traffic. Put an API gateway in front of client-facing endpoints.
+The thresholds are arithmetic, and worth doing out loud:
 
----
+```text
+Time to remove a dead server = interval x unhealthy threshold  = 15s x 3 = 45s
+Time to return a recovered one = interval x healthy threshold  = 15s x 2 = 30s
+```
 
-## When to Use
+> ⚠️ Tightening to a 5-second interval with a threshold of 2 detects failure in ten seconds — and
+> also evicts healthy servers during a garbage-collection pause. Detection speed trades directly
+> against flapping.
 
-| Scenario | Recommendation |
-|---|---|
-| > 10k req/sec on one server | Add LB + second server immediately |
-| Need 99.9%+ uptime | LB removes failed servers automatically |
-| Zero-downtime deploys | Rolling update: drain old, add new |
-| Long-lived connections (WebSocket) | Least-connections algorithm |
-| Stateful session required | IP hash or move sessions to Redis |
+### Draining and auto-scaling
 
----
+The balancer and the auto-scaler share the instance lifecycle between them.
+
+```mermaid
+flowchart LR
+    A[Auto-scaler<br/>launches instance] --> B[Instance passes<br/>readiness probe]
+    B --> C[Balancer adds it<br/>to the pool]
+    D[Auto-scaler marks<br/>instance for removal] --> E[Balancer stops sending<br/>new requests]
+    E --> F[Drain: 30-60s for<br/>in-flight requests]
+    F --> G[Instance terminates]
+```
+
+**Scale-out waits for a probe; scale-in waits for a drain.**
+
+**Connection draining is the step people skip.** Without it, terminating an instance kills whatever
+requests it was still serving — and those failures land on real users during what the dashboard
+reports as a successful scale-in. Thirty to sixty seconds covers almost any HTTP request; long-lived
+WebSocket connections need an application-level "reconnect now" nudge instead.
+
+### Going multi-region
+
+Once you run in more than one region, a global balancer sits in front of the regional ones. It
+announces a single address from every location and routes on network distance and regional health.
+
+| Layer | Decides | Failure it handles |
+| --- | --- | --- |
+| **Global balancer** | Which region | A whole region going dark |
+| **Regional balancer** | Which server | A single instance dying |
+| **Cross-zone balancing** | Which availability zone within a region | One zone becoming unbalanced or unhealthy |
+
+The failover story is what interviewers ask for: if the Singapore region fails its health checks, the
+global balancer stops answering with Singapore addresses and traffic lands in the next-nearest healthy
+region within a minute or so. Latency gets worse; the service stays up.
+
+## When to Use It
+
+| Scenario | What to do |
+| --- | --- |
+| One server is saturated | Add a balancer and a second server — in that order |
+| You need better than 99.9% uptime | The balancer removing failed servers is the mechanism that buys it |
+| Zero-downtime deploys | Rolling update behind the balancer: drain old, add new, weight the shift |
+| Long-lived connections | Least connections, and plan for reconnects on scale-in |
+| Sessions must survive | Move them to Redis rather than pinning users to servers |
 
 ## Common Mistakes
 
-❌ **Storing sessions on app servers** — When LB routes the next request to a different server, session is lost. Use Redis or JWT instead.
+❌ **Sessions on the app server.** The next request lands on a different machine and the user is
+logged out. ✅ Keep session state in Redis or a signed token, so every server is interchangeable.
 
-❌ **IP hash for mobile users** — Mobile IPs change frequently (WiFi ↔ cellular). Use Redis-backed sessions instead.
+❌ **A health check that tests the shared database.** One blip fails every instance simultaneously and
+the pool empties. ✅ Split liveness from readiness, and never probe a shared dependency in the check
+that controls fleet membership.
 
-❌ **Round-robin for WebSockets** — Long-lived connections create uneven load. Use least-connections.
+❌ **Round-robin for WebSockets.** Connections are long-lived and unequal, so an even share of new
+connections becomes a wildly uneven share of load. ✅ Least connections.
 
-❌ **Health check only verifies HTTP 200** — A server can return 200 while the database is down. Check critical dependencies.
+❌ **No connection draining.** In-flight requests die on every scale-in and every deploy. ✅ Configure a
+drain window and make the deploy wait for it.
 
-✅ **Enable connection draining** — Give in-flight requests 30s to complete before removing a server.
+❌ **One balancer, no redundancy.** The thing you added to remove a single point of failure becomes
+one. ✅ Managed balancers run redundant nodes across zones by default — use that rather than a single
+self-hosted instance.
 
----
+## 🔑 Key Takeaways
 
-## Real-World Example
+- A load balancer's value is failure detection, not distribution — the routing algorithm is the easy half.
+- Layer 7 costs about a millisecond and buys routing on path, host and header; it is the default for HTTP.
+- Liveness and readiness are different questions, and merging them turns a dependency blip into an outage.
+- Detection time is interval times threshold, and tightening it trades flapping for speed.
+- Draining is what separates a clean scale-in from a burst of user-visible errors.
 
-An e-commerce checkout service runs 5 Node.js instances behind an ALB. During a flash sale, traffic spikes from 5k to 80k req/sec. Auto-scaling adds 15 more instances; the LB detects them via health checks and starts routing within 30 seconds. One instance crashes mid-sale — LB marks it unhealthy after 3 failed checks and reroutes its traffic. Zero customer impact.
+## Interview Questions
 
----
+**Q: Layer 4 or layer 7 for an HTTP API, and why?**
 
-## Key Insight
+Layer 7, unless there is a specific reason not to. It can route on path and host, terminate TLS in one
+place, and give per-route metrics. The cost is a millisecond or two of added latency and the balancer
+seeing plaintext. Layer 4 wins when the protocol is not HTTP, or when the latency budget is tight
+enough that a millisecond matters.
 
-> The load balancer is only as resilient as your health check. A shallow check (HTTP 200) that misses a broken database gives you false confidence. A deep check adds 10ms per interval — worth it.
+**Q: Your health check hits the database. What is wrong with that?**
 
-**Related:** [Horizontal Scaling](../Scalability/01-horizontal-scaling.md) · [API Gateway](../Microservices/03-api-gateway.md)
+Every instance shares that database, so a brief database problem fails every check at once. The
+balancer then removes every server and returns 503 with an empty pool — an outage strictly worse than
+the original blip. Liveness should test only the process. Readiness may test a dependency, but with a
+short timeout and with the understanding that a shared dependency will fail it fleet-wide.
 
----
+**Q: How long after a server dies does traffic stop reaching it?**
 
-[← Back to SystemDesign](../README.md)
+Interval times unhealthy threshold — with a 15-second interval and a threshold of three, about
+45 seconds. During that window a share of requests still lands on the dead server. Shortening the
+interval reduces the window but increases false evictions during GC pauses and CPU spikes, so the
+number is a deliberate trade rather than a default to minimise.
+
+**Q: When would you not put a load balancer in front of a service?**
+
+When there is exactly one instance and no plan for a second, the balancer adds a hop, a cost and
+another thing to configure without buying availability. Internal single-instance tools and
+cost-sensitive background workers reached only by a queue are the usual cases. The moment uptime
+matters or a second instance appears, the calculation flips.
+
+**Q: How does the balancer participate in a zero-downtime deploy?**
+
+New instances join only after passing readiness, so nothing receives traffic before it can serve it.
+Old instances leave in two steps — stop receiving new requests, then drain the in-flight ones — so
+nothing is killed mid-request. Weighted routing lets you shift a small share of traffic to the new
+version first and roll back by changing a weight rather than by deploying again.
+
+## What to Read Next
+
+- [Chapter ?? — Scalability](#ch-scalability) — where balancing sits among the scaling levers
+- [Chapter ?? — The API Gateway Pattern](#ch-api-gateway-pattern) — the layer above, doing auth and rate limiting rather than distribution
+- [Chapter ?? — Reliability and Availability](#ch-reliability-and-availability) — what the nines actually cost

@@ -246,7 +246,7 @@ interface SearchResponse {
 - ❌ Active-passive with manual failover — 20+ minutes of downtime
 - ✅ Active-active across 3 AWS regions with Chaos Engineering — failures are routine drills
 
-See [../Scalability/](../Scalability/) for multi-region replication patterns and [../BuildingBlocks/](../BuildingBlocks/) for CDN design.
+See [Chapter ?? — Replication](#ch-replication) for multi-region replication patterns and [Chapter ?? — Content Delivery Network](#ch-cdn) for CDN design.
 
 ## Common Follow-up Questions
 

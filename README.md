@@ -109,8 +109,9 @@ These are the reason the book is worth writing, and they are both empty:
 
 - **There is no React, Next.js or Svelte content.** Part III is the largest part in the book at 22% of
   the budget, and the part most readers are buying it for. Planned as improvements #32–43.
-- **There is no AI content.** `DevOps/GenAI/` is about *using* AI tools for DevOps chores, not about
-  *building* AI features, which is what a 2027 senior loop asks about. Planned as #44–53.
+- **There is no AI content.** The old `DevOps/GenAI/` was about *using* AI tools for DevOps chores, not
+  about *building* AI features, which is what a 2027 senior loop asks about. #21 archived it. Part VII is
+  planned as #44–53.
 
 `Frontend/README.md` links to `./React/` and `./NextJs/`; both 404. `Backend/README.md` promises
 Express and NestJS; neither exists. Do not assume a directory exists because a README references it.
@@ -155,7 +156,7 @@ the two before it, and why cross-references are anchors rather than "as we saw e
 ├── Backend/             Part V
 ├── SystemDesign/        Part VI
 ├── ShipAndOperate/      Part VIII — what survived the #20 cut
-├── DevOps/              only Agile/ (→ #25) and GenAI/ (→ #21) are left
+├── DevOps/              only Agile/ (→ #25) is left
 ├── OOP/                 merges into Backend/DesignPatterns at #26
 ├── Behavioral/          Part IX
 ├── Communication/       Part IX

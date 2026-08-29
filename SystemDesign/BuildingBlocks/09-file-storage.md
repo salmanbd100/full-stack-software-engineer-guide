@@ -219,7 +219,7 @@ An enterprise dashboard lets users upload financial reports (PDFs, Excel, up to 
 
 > Object storage is infinitely scalable, 11-nines durable, and cheaper than block storage per GB. The design rule is simple: the application server stores only the key. All file bytes move directly between the client and the storage layer.
 
-**Related:** [CDN](./03-cdn.md) · [Infrastructure: Storage](../Infrastructure/03-storage.md)
+**Related:** [Chapter ?? — Content Delivery Network](#ch-cdn) · [Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery)
 
 ---
 

@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-29 · **Progress:** 20 / 78
+**Last updated:** 2026-08-29 · **Progress:** 23 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -1045,6 +1045,9 @@ and what an interviewer is actually probing for.
 > added: fold the useful chapters into `BuildingBlocks/` and `Backend/`, or keep the directory and
 > correct #23's list. A full part-opener was written for it in the meantime, on the assumption the
 > content survives somewhere.
+>
+> ✅ **Resolved by #23 (2026-08-29): the directory stays, and #23's list was corrected.** The trim it
+> still needs — roughly 8 chapters down to 5 — is flagged in #23's Delivered block and starts with #31.
 
 ---
 
@@ -1872,7 +1875,7 @@ in it was exact.
 
 ---
 
-### - [ ] 21. Replace `DevOps/GenAI/` with the real `AI/` directory `S`
+### - [x] 21. Replace `DevOps/GenAI/` with the real `AI/` directory `S` — ✅ **done 2026-08-29**
 
 `DevOps/GenAI/` (8 topics + README, 1,853 lines) covers "AI tools for DevOps" — using Copilot for scripts, AI for
 runbooks. It is thin and it is not what the 2027 reader needs. Two files are worth salvaging into Part VII:
@@ -1881,9 +1884,44 @@ runbooks. It is thin and it is not what the 2027 reader needs. Two files are wor
 **Done when:** the two salvageable files are staged for Phase 4, the rest is in `Archive/devops/genai/`,
 and the directory is gone from the content tree.
 
+**Delivered — 2026-08-29.**
+
+All 9 files moved by `git mv`, so history follows each one. `DevOps/GenAI/` no longer exists; `DevOps/`
+now holds only `Agile/`, which belongs to **#25**.
+
+| Where | Files | Which |
+| ----- | ----- | ----- |
+| `Archive/devops/genai/` | 7 | `01-ai-tools`, `02-code-development`, `03-documentation`, `04-troubleshooting`, `05-monitoring`, `08-future`, and the section `README.md` |
+| `Archive/salvage/ai/` | 2 | `06-prompt-engineering.md` → **#45**, `07-security.md` → **#49** |
+
+**"Staged for Phase 4" needed somewhere to mean.** There was no holding area for in-scope material whose
+part has not been written, and the two obvious options were both wrong: leaving the files in the content
+tree puts unwritten-part material in front of `lint:docs` and the book build, while dropping them into
+`Archive/devops/genai/` loses the distinction the done-when line draws between *the two* and *the rest*.
+So this run added **`Archive/salvage/`** — under `Archive/` because that is the one tree the build and the
+lint already skip, but explicitly not out of scope. A file qualifies only if the item that will absorb it is
+named with a chapter number; anything vaguer is archived, not staged. `Archive/salvage/README.md` states
+the rule and the absorb procedure, and `Archive/salvage/ai/README.md` records what is worth lifting from
+each of the two. **The goal state is an empty `Archive/salvage/`** — #45 and #49 delete their file once
+its content has a chapter.
+
+Also fixed: the dangling `../GenAI/03-documentation.md` link in `DevOps/Agile/06-collaboration.md` (the
+runbook sentence now stands without it), the two `GenAI/` lines in the root `README.md`, the layout block
+and the "still in `DevOps/`" paragraph in `Archive/README.md`, and the now-dead `"DevOps/GenAI"` entry in
+`OUT_OF_BOOK_DIRS` in `scripts/add-frontmatter.ts` — the directory is physically archived, so the
+metadata override is redundant.
+
+**Left deliberately:** `Archive/devops/README.md` still links to `./GenAI/…` in old capitalised paths. It
+links that way to every archived section — `./Linux/`, `./Docker/`, 144 links in all — because it is the
+preserved 1,378-line curriculum index, a historical artefact rather than a maintained page. `Archive/` is
+not linted, so nothing breaks. **#30** splits it and is the place to decide its fate.
+
+`pnpm lint:docs`: 270 files, 59 violations, **no rule regressed** — the two counts still on baseline
+(12 fence, 47 too-long) were unmoved by this item, so `.lint-baseline.json` needed no change.
+
 ---
 
-### - [ ] 22. Merge the SystemDesign scalability triplicate `M`
+### - [x] 22. Merge the SystemDesign scalability triplicate `M` — ✅ **done 2026-08-29**
 
 Load balancing, caching, and CDN each appear in **three** directories:
 
@@ -1898,9 +1936,53 @@ material from the others, and delete the duplicates.
 
 **Done when:** each of the three topics exists in exactly one place, with the best content from all copies.
 
+**Delivered — 2026-08-29.**
+
+`SystemDesign/Scalability/03`, `04` and `06` are deleted. The three `BuildingBlocks/` chapters absorbed
+what was unique in them and were rewritten to the Book Chapter Standard — they had the opening block
+from #12 but none of the closing three, so this was a bring-up-to-standard edit, not a paste.
+
+| Canonical chapter | Lines | Folded in from the duplicates |
+| ----------------- | ----- | ----------------------------- |
+| `01-load-balancing.md` | 255 | Auto-scaling ↔ balancer lifecycle, connection draining, multi-region and cross-zone routing, the single-balancer SPOF |
+| `02-caching.md` | 265 | Hit-ratio-as-capacity arithmetic, the cache/do-not-cache decision table, warm-up on deploy, TTL jitter |
+| `03-cdn.md` | 207 | Origin-offload framing, achievable hit ratio by content type, geographic latency, purge-on-deploy narrowed to entry points |
+
+**The `DevOps/Networking/` column of the table above was already archived by #20** — but one thing in it
+was worth rescuing anyway. `Archive/devops/networking/03-load-balancing.md` argues that a health check
+testing shared dependencies fails every instance at once and empties the pool, which is an outage
+strictly worse than the blip that triggered it. The canonical chapter said the opposite ("health
+endpoint should check dependencies"). That is now corrected to a liveness/readiness split with the
+detection-time arithmetic — the best single paragraph the merge recovered, and it came from an archived
+file, so "the best content from all copies" meant reading the archived ones too.
+
+⚠️ **A fourth copy of CDN exists, and #22's table predates it.** `ShipAndOperate/Cloud/03-storage-and-delivery.md`
+(#20 run #4) covers cache keys, `Cache-Control` and invalidation from Part VIII's side. Per
+non-negotiable #7 this run drew the line rather than leaving it ambiguous: **Part VI owns the
+architecture** — what a CDN offloads, the hit-ratio arithmetic, anycast, origin shielding, what may not
+go to an edge — and **Part VIII owns the operation** — bucket wiring, origin access control, cache-key
+configuration, storage tiers, the header mechanics. The Part VI chapter now keeps a four-row policy
+table and cross-references `#ch-object-storage-and-delivery` for the directive semantics instead of
+restating them. Cut on the way through, as vendor detail that ages badly: the three-provider comparison
+table and the load-balancer-vs-API-gateway table (**#31** owns API gateway deduplication).
+
+**Two slugs changed**, now that nothing competes for them: `building-blocks-load-balancing` → `load-balancing`
+and `building-blocks-cdn` → `cdn`. Both files already carried `{#ch-load-balancing}` and `{#ch-cdn}` as
+their H1 anchors, so this closes the slug/anchor mismatch the #20 notes flagged rather than widening it.
+`caching` was already consistent. Nothing referenced the old slugs.
+
+**Also updated:** `SystemDesign/InterviewQuestions/16-typeahead.md` pointed at the deleted
+`Scalability/04` — retargeted to `#ch-caching` as a chapter cross-reference, not a relative path.
+`SystemDesign/Scalability/README.md` lost its three duplicate rows. `SystemDesign/README.md` needed
+nothing: its section table was already written for the post-#23 shape.
+
+`pnpm lint:docs`: 270 files, 59 violations, **no rule regressed**. The file count is unchanged because
+the deleted duplicates were `in_book: false` and `loadBook()` filters those out before counting —
+`.lint-baseline.json` is untouched for the same reason.
+
 ---
 
-### - [ ] 23. Dissolve `SystemDesign/Scalability/` and `SystemDesign/Infrastructure/` `M`
+### - [x] 23. Dissolve `SystemDesign/Scalability/` and `SystemDesign/Infrastructure/` `M` — ✅ **done 2026-08-29**
 
 After item 22, `Scalability/` has ~4 unique files (horizontal/vertical scaling, database scaling, async
 processing, partitioning) and `Infrastructure/` has ~8 that overlap `ShipAndOperate/` and `SystemDesign/Fundamentals/`.
@@ -1909,8 +1991,63 @@ processing, partitioning) and `Infrastructure/` has ~8 that overlap `ShipAndOper
 - Fold `01-horizontal-scaling.md` + `02-vertical-scaling.md` + `05-database-scaling.md` → `Fundamentals/02-scalability.md`
 - Archive `Infrastructure/` entirely — Part VIII covers it better
 
-**Done when:** `SystemDesign/` has 5 directories: `Fundamentals/`, `BuildingBlocks/`, `Database/`,
-`Frontend/`, `CaseStudies/`.
+**Done when:** ~~`SystemDesign/` has 5 directories~~ — **amended, see below.** `SystemDesign/` no longer
+contains `Scalability/` or `Infrastructure/`, and every chapter that was in them is either merged into a
+surviving chapter or archived.
+
+**Delivered — 2026-08-29.**
+
+`SystemDesign/Scalability/` and `SystemDesign/Infrastructure/` are both gone. Four chapters were
+rewritten to the Book Chapter Standard in the process, because folding content into a chapter that had
+only the #12 opening block meant finishing it:
+
+| File | Lines | What happened |
+| ---- | ----- | ------------- |
+| `Fundamentals/02-scalability.md` | 243 | Rewritten as the ladder of levers. Absorbed horizontal, vertical and database scaling; **shed** the caching, load balancing, async and microservices sections it used to restate |
+| `BuildingBlocks/11-async-processing.md` | 246 | Moved from `Scalability/07`, rewritten, `in_book: false` → `true` |
+| `Database/03-sharding.md` | 291 | Absorbed the unique half of `Scalability/08-partitioning.md` |
+| `BuildingBlocks/01`–`03` | — | Already done by #22 |
+
+`Archive/systemdesign/infrastructure/` holds all 9 Infrastructure files, with a new
+`Archive/systemdesign/README.md` explaining why. The `Scalability/` files were **merged, not archived** —
+they were duplicates or fold-ins, git history holds the originals, and an archive copy would just be a
+third version of text that now lives in one place.
+
+⚠️ **Amendment 1 — partitioning did not go to `BuildingBlocks/`.** `Database/03-sharding.md` already
+owned range/hash/directory strategies, shard-key selection, the hotspot problem and cross-shard queries.
+Moving `Scalability/08-partitioning.md` next to it would have manufactured exactly the duplicate #22 and
+#23 exist to remove. Instead its genuinely unique material went into the sharding chapter: **consistent
+hashing with virtual nodes**, and the **re-sharding procedure**. Both were gaps the chapter had promised
+and not delivered — its "In this chapter" line advertised re-sharding with no section behind it, and its
+interview template recommended consistent hashing without ever explaining it.
+
+⚠️ **Amendment 2 — the five-directory "Done when" was never reachable by this item.** It describes the
+state after **#24** (which dissolves `Security/`) and **#28** (which renames `InterviewQuestions/` to
+`CaseStudies/`), neither of which #23 may touch under the one-item rule. The line is now scoped to what
+this item can actually verify. `SystemDesign/` today: `Fundamentals/`, `BuildingBlocks/`, `Database/`,
+`Frontend/`, `Microservices/`, `InterviewQuestions/`, `Security/`.
+
+🔴 **The `Microservices/` gap #13 flagged is now decided: keep it.** #13 left #23 two options — fold its
+8 chapters into `BuildingBlocks/` and `Backend/`, or keep the directory and correct this list. Keeping
+it, for three reasons: service boundaries, resilience and distributed data are asked directly in senior
+system design rounds; redistributing 8 chapters is an item's worth of work, not a sub-task of this one;
+and #13 already wrote it a full part-opener. **But it is not free.** Part VI's budget is ~34 chapters and
+Part VI currently holds 8 + 11 + 10 + 13 + 8 + 20 + 6 = **76**, so the part is over budget with or
+without it — #24, #28 and #31 all cut into that number and none of them is enough alone. A later item
+should trim `Microservices/` to about 5 chapters; **#31** already removes its API gateway duplication and
+is the natural place to start.
+
+**Also updated:** eight dangling cross-references — `InterviewQuestions/02`, `07`, `09`, `18` and
+`BuildingBlocks/04`, `05`, `09`, `10` all pointed into the dissolved directories, and are now
+`#ch-` anchors rather than the relative paths they were. `SystemDesign/README.md` (transitional-directory
+callout, Building Blocks count 10 → 11), `SystemDesign/BuildingBlocks/README.md` (chapter 11 row),
+`Archive/README.md` (layout block), and `OUT_OF_BOOK_DIRS` in `scripts/add-frontmatter.ts`, which is now
+down to its last entry — `SystemDesign/Security`, waiting on #24.
+
+`pnpm lint:docs`: 271 files, 59 violations, **no rule regressed**; 0 broken links, 0 missing READMEs.
+The file count rose by one because `11-async-processing.md` became `in_book: true` while the merged-away
+files were already `in_book: false`. `.lint-baseline.json` unchanged — neither of the two non-zero rules
+moved.
 
 ---
 
@@ -2617,13 +2754,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31   | 1/12 | 🔄 In progress  |
+| 2     | 20–31   | 4/12 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **20/78** | **26%**   |
+| **Total** | **78** | **23/78** | **29%**   |
 
 ---
 

@@ -33,6 +33,7 @@ the shelf, and what matters is that you can say why that one and not the neighbo
 | 08 | [Notifications](./08-notifications.md)                           | How do you fan out to millions without melting anything?      |
 | 09 | [File Storage](./09-file-storage.md)                             | Where do the bytes live, and who is allowed to fetch them?    |
 | 10 | [Monitoring and Observability](./10-monitoring.md)               | What do you instrument before the incident, not after?        |
+| 11 | [Asynchronous Processing](./11-async-processing.md)              | What comes off the request path, and how does the user find out? |
 
 ## What Interviewers Probe For
 

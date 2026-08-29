@@ -109,7 +109,7 @@ Use Amazon EKS with managed node groups and Karpenter.
 
 ## Runbooks
 
-The document that matters most at 3am. See [AI for Documentation](../GenAI/03-documentation.md) for drafting them.
+The document that matters most at 3am.
 
 | Requirement | Why |
 |------------|-----|

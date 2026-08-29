@@ -196,7 +196,7 @@ An e-commerce platform receives 500 orders/minute during a flash sale. The order
 
 > The queue is not just an async buffer — it is your system's shock absorber. It lets you scale consumers independently, survive downstream failures, and replay events without touching the producer.
 
-**Related:** [Async Processing](../Scalability/07-async-processing.md) · [Notifications](./08-notifications.md)
+**Related:** [Chapter ?? — Asynchronous Processing](#ch-asynchronous-processing) · [Chapter ?? — Notifications](#ch-notifications)
 
 ---
 

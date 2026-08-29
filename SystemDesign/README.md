@@ -27,7 +27,7 @@ client, optimistic updates, conflict resolution — and `Frontend/` is where it 
 | Section                                                              | Chapters | What it covers                                                    |
 | --------------------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
 | [Fundamentals](./Fundamentals/README.md)                             | 8        | The vocabulary, the trade-offs, and the RADIO framework           |
-| [Building Blocks](./BuildingBlocks/README.md)                        | 10       | Load balancers, caches, queues, CDNs — the components             |
+| [Building Blocks](./BuildingBlocks/README.md)                        | 11       | Load balancers, caches, queues, CDNs — the components             |
 | [Database](./Database/README.md)                                     | 10       | Sharding, replication, isolation, consistency, modelling          |
 | [Frontend System Design](./Frontend/README.md)                       | 13       | The rounds this reader is most likely to face and least ready for |
 | [Microservices](./Microservices/README.md)                           | 8        | Boundaries, resilience, observability across services             |
@@ -72,6 +72,6 @@ the case studies, out loud, against a timer.
 **Interview sprint:** `Fundamentals/08` (RADIO), `Fundamentals/07` (estimation),
 `BuildingBlocks/01`–`03` (load balancing, caching, CDN), then three case studies end to end.
 
-> ⚠️ `Scalability/`, `Infrastructure/` and `Security/` are transitional directories, already marked
-> `in_book: false`. Improvements #22, #23 and #24 dissolve them; their READMEs give per-chapter
-> destinations.
+> ⚠️ `Security/` is a transitional directory, marked `in_book: false` — improvement #24 folds it into
+> `Frontend/` and `Backend/`. `Scalability/` and `Infrastructure/` are gone: #22 and #23 merged what
+> was worth keeping into `Fundamentals/`, `BuildingBlocks/` and `Database/`, and archived the rest.

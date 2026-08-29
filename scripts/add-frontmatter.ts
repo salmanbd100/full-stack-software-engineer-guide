@@ -150,17 +150,13 @@ const PART_OVERRIDES: Readonly<Record<string, number>> = {
 const OUT_OF_BOOK_DIRS: readonly string[] = [
   // #24 — security consolidates into Frontend/ and Backend/
   "SystemDesign/Security",
-  // #21 — replaced by the real AI/ part
-  "DevOps/GenAI",
-  // #23 — dissolved into Fundamentals/ and BuildingBlocks/
-  "SystemDesign/Scalability",
-  "SystemDesign/Infrastructure",
 ];
 
 // #20 physically moved everything it archived under Archive/devops/, which findMarkdown()
 // already skips — so Terraform, Linux, Scripting, Networking, CostOptimization, IaC,
-// DevSecOps and DevOps/Security no longer need an entry here. Only DevOps/GenAI is left,
-// because #21 has not run yet.
+// DevSecOps and DevOps/Security no longer need an entry here. #21 did the same for
+// DevOps/GenAI, and #23 for SystemDesign/Infrastructure (archived) and SystemDesign/Scalability
+// (merged away entirely). SystemDesign/Security is the last entry standing, waiting on #24.
 
 /** Individual files that leave the book, keyed by repo-relative path. */
 const OUT_OF_BOOK_FILES: readonly string[] = [

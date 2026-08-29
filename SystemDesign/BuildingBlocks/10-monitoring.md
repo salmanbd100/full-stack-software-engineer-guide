@@ -223,7 +223,7 @@ A microservices platform with 20 services uses Prometheus + Grafana for metrics,
 
 > Observability is not a feature — it is infrastructure. Logs tell you what happened. Metrics tell you how often. Traces tell you where. You need all three to debug a distributed system.
 
-**Related:** [Microservices: Monitoring](../Microservices/07-monitoring.md) · [Infrastructure: Monitoring](../Infrastructure/07-monitoring.md)
+**Related:** [Chapter ?? — Distributed Observability](#ch-distributed-observability) · [Chapter ?? — Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals)
 
 ---
 

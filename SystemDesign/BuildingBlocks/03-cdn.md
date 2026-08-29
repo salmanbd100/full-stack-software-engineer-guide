@@ -2,218 +2,206 @@
 title: Content Delivery Network
 part: 6
 chapter: 0
-slug: building-blocks-cdn
+slug: cdn
 level: intermediate # beginner | intermediate | advanced
-reading_time: 7
-updated: 2026-08-28
-tags: [system, design, building, blocks, cdn]
+reading_time: 9
+updated: 2026-08-29
+tags: [system-design, cdn, edge, caching, origin-offload]
 in_book: true
 ---
 
 # Content Delivery Network {#ch-cdn}
 
-> Serve bytes from near the user, and invalidate them without waiting for a TTL.
+> Serve bytes from near the user, count how many never reach your origin, and change the URL rather than waiting for a TTL.
 
-**In this chapter:** how routing to an edge works · `Cache-Control` · what belongs at the edge · invalidation and purge · video streaming
+**In this chapter:** what a CDN actually offloads · anycast and edge routing · what belongs at the edge · origin shielding · invalidation without purging
 
-## 💡 **Concept**
+## 💡 The Core Idea
 
-A CDN is a global network of edge servers that cache and serve content from locations physically close to users. Instead of every request travelling to your origin server, cached content is served from a nearby edge node.
+A CDN is a cache with a map. It keeps copies of your responses in hundreds of locations and answers
+each user from the nearest one. Two things follow, and only one of them is the famous one.
 
-**Use a CDN when:** you serve static assets, media files, or API responses to geographically distributed users and latency or origin bandwidth is a concern.
+The famous one is latency: a request that would have crossed an ocean is answered a few milliseconds
+away. The more valuable one is offload. Every response served at the edge is a request your servers
+never see, which makes a CDN the cheapest capacity you can buy — you are not scaling the origin, you
+are removing traffic from it.
 
-Typical impact: 150–250ms cross-continental latency → 5–50ms from edge; 70–90% reduction in origin bandwidth.
+## How It Works
 
----
+### Anycast and the edge
 
-## How CDN Routing Works
+The same address is announced from every edge location, and internet routing delivers the request to
+whichever one is nearest. That edge either has the response or fetches it once and keeps it.
 
-```text
-User (Tokyo)
-  │
-  │ 1. DNS resolves cdn.example.com → Tokyo edge IP (Anycast)
-  ▼
-┌─────────────────────┐
-│  Edge Node (Tokyo)  │  ← serves 95% of requests
-│  Cache: HIT         │
-└─────────────────────┘
-         │  cache MISS (first request or expired)
-         ▼
-┌─────────────────────┐
-│  Origin Server (NY) │  ← only 5% reach here
-│  Returns content    │
-│  + Cache-Control    │
-└─────────────────────┘
-         │
-         │ Edge stores response, serves all future
-         │ requests from Tokyo locally
-         ▼
-┌─────────────────────┐
-│  Edge Node (Tokyo)  │  cache HIT on next request
-└─────────────────────┘
+```mermaid
+flowchart TD
+    U1[User in Tokyo] --> E1[Tokyo edge]
+    U2[User in Frankfurt] --> E2[Frankfurt edge]
+    E1 -->|hit: ~10ms| U1
+    E2 -->|miss, first request only| SH[Shield PoP]
+    SH --> O[Origin, single region]
+    O -->|response + cache directives| SH
+    SH --> E2
 ```
 
-**Anycast routing:** the same IP address is announced from multiple edge locations. DNS and BGP route the request to the nearest node automatically.
+**A miss costs the origin one request; every later user in that region is answered locally.**
 
----
+Without a CDN, that Tokyo user pays a 150-millisecond round trip to a US origin on every asset. With
+one, they pay ten to the local edge. The origin's location stops being a product decision.
 
-## Cache-Control Headers
+### The offload arithmetic
 
-The CDN respects HTTP cache headers set by the origin. This is how you control what gets cached and for how long.
+Origin load is total traffic times the miss rate, which makes the hit ratio the number to argue about:
 
 ```typescript
-import { ServerResponse } from "http";
-
-interface CacheDirectives {
-  maxAge: number;           // browser cache seconds
-  sMaxAge?: number;         // CDN edge cache seconds (overrides maxAge for CDN)
-  staleWhileRevalidate?: number; // serve stale while fetching fresh
-  noCache?: boolean;        // always revalidate before serving
-  noStore?: boolean;        // never cache (sensitive data)
+function originRps(totalRps: number, hitRatio: number): number {
+  return Math.round(totalRps * (1 - hitRatio));
 }
 
-function setCacheHeaders(res: ServerResponse, directives: CacheDirectives): void {
-  const parts: string[] = [`max-age=${directives.maxAge}`];
-
-  if (directives.sMaxAge !== undefined) {
-    parts.push(`s-maxage=${directives.sMaxAge}`);
-  }
-  if (directives.staleWhileRevalidate !== undefined) {
-    parts.push(`stale-while-revalidate=${directives.staleWhileRevalidate}`);
-  }
-  if (directives.noCache) parts.push("no-cache");
-  if (directives.noStore) parts.push("no-store");
-
-  res.setHeader("Cache-Control", parts.join(", "));
-}
-
-// Static assets (images, JS bundles with content hash)
-setCacheHeaders(res, { maxAge: 31_536_000, sMaxAge: 31_536_000 }); // 1 year
-
-// API response cached at CDN, short TTL
-setCacheHeaders(res, { maxAge: 0, sMaxAge: 60, staleWhileRevalidate: 30 });
-
-// User-specific — never cache at CDN
-setCacheHeaders(res, { maxAge: 0, noStore: true });
+originRps(50_000, 0.8); // 10,000 req/s reach the origin
+originRps(50_000, 0.9); //  5,000 req/s — the same ten points, again halving it
 ```
 
----
+What hit ratio you can reach depends entirely on what you are serving:
 
-## Caching Strategies
+| Content | Achievable hit ratio | Why |
+| --- | --- | --- |
+| Content-hashed assets — JS, CSS, images | 95–99% | The URL changes when the bytes do, so it can be cached for a year |
+| Media segments | 95%+ | Immutable once published, and requested by everyone watching |
+| Public HTML with a short TTL | 60–80% | Shared across users, but expires often |
+| Public JSON APIs | 70–90% | Cacheable if the response does not depend on who asked |
+| Anything personalised | 0% | Every response is different, and a shared cache would leak it |
 
-| Content type | Cache-Control | TTL | Notes |
-|---|---|---|---|
-| Static assets (hashed filename) | `max-age=31536000, immutable` | 1 year | Content hash changes on update |
-| Images, fonts | `s-maxage=86400` | 1 day | Revalidate daily |
-| HTML pages | `s-maxage=300, stale-while-revalidate=60` | 5 min | Short TTL, SWR for freshness |
-| JSON API (read-only) | `s-maxage=60` | 1 min | Public, non-user-specific |
-| User-specific data | `no-store` | — | Never cache at CDN |
+> ⚠️ A hit ratio below 70% on assets usually means the cache key has something in it that varies per
+> user — a cookie or a tracking query parameter. The fix is in the cache key, not in the TTL.
 
-**Vary header:** tell CDN to cache separate copies per request variation:
+### What belongs at the edge
+
+| Path | Directive | Reasoning |
+| --- | --- | --- |
+| `/assets/app.7f3c9a.js` | `max-age=31536000, immutable` | Hashed filename; a new build is a new URL |
+| `/` and other public HTML | `s-maxage=300, stale-while-revalidate=60` | Shared, but must reflect a deploy quickly |
+| `/api/products` | `s-maxage=60, stale-while-revalidate=30` | Public list; a minute of lag is invisible |
+| `/api/me`, anything behind a login | `private, no-store` | A shared cache holding this is a data leak |
+
+`max-age` speaks to the browser, `s-maxage` to the shared cache, and `stale-while-revalidate` is what
+removes the latency spike at expiry — the edge answers instantly from the stale copy and refreshes
+behind the request. The full mechanics of those directives belong to
+[Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery).
+
+### Origin shielding
+
+Edges do not share caches. A cold object requested worldwide means every edge missing at once, and the
+origin taking hundreds of identical requests for one file. A shield is a designated PoP that every
+edge fetches through, so a global miss costs the origin exactly one request.
+
+This matters most for large, popular, immutable objects — a video segment, a launch-day bundle — where
+the fan-out is widest and the object is expensive to serve.
+
+### Invalidation, and why hashing beats purging
+
+Purging paths is slow, usually metered, and eventually consistent. Worse, "purge everything" after a
+deploy throws away the cache you spent all day filling and hands the next few minutes of traffic
+straight to the origin.
+
+The alternative is to make the URL change instead. Content-hashed filenames mean a new build produces
+URLs the edge has never seen, so old objects are simply never requested again — no purge, no window of
+staleness. The only thing left to invalidate is the small HTML entry point that references them, and
+that is one path, not a wildcard.
 
 ```typescript
-res.setHeader("Vary", "Accept-Encoding, Accept-Language");
-```
-
----
-
-## Cache Invalidation
-
-Two approaches when content changes before TTL expires:
-
-**1. URL-based busting (preferred):** embed content hash in filename. Old URL is never purged — it just stops being referenced.
-
-```text
-/assets/main.abc123.js   ← v1
-/assets/main.def456.js   ← v2 (new deploy, new hash)
-```
-
-**2. Purge API:** call CDN provider API to invalidate specific paths.
-
-```typescript
-async function purgeCDNPaths(paths: string[]): Promise<void> {
-  // CloudFront example — post-deploy invalidation
-  await cloudfront.createInvalidation({
-    DistributionId: process.env.CF_DISTRIBUTION_ID!,
-    InvalidationBatch: {
-      CallerReference: Date.now().toString(),
-      Paths: { Quantity: paths.length, Items: paths },
-    },
-  });
+// The only purge a healthy deploy needs: the entry points, by exact path.
+async function purgeEntryPoints(cdn: CdnClient, distributionId: string): Promise<void> {
+  await cdn.purge({ distributionId, paths: ["/", "/index.html", "/sitemap.xml"] });
 }
-
-// Call after every deployment for non-hashed HTML pages
-await purgeCDNPaths(["/", "/index.html", "/sitemap.xml"]);
 ```
 
----
+### Media and range requests
 
-## CDN for Video Streaming
+Streaming splits a video into segments of a few seconds each, so the edge caches each segment
+independently and a viewer who skips ahead pulls only what they watch. Players also issue byte-range
+requests, which the edge must answer with partial content rather than the whole object. Both are the
+default on any serious CDN — worth naming in an interview because they explain how a platform serves
+millions of concurrent viewers from one origin.
 
-Video streaming requires special CDN features:
+## When to Use It
 
-- **Chunked delivery:** HLS/DASH splits video into 2–10s segments. CDN caches each segment independently.
-- **Range request support:** players request specific byte ranges. CDN must support partial content (206 responses).
-- **Origin shielding:** a single "shield" PoP fetches from origin; other edges fetch from the shield. Reduces origin load.
+| Scenario | What the CDN buys |
+| --- | --- |
+| Static assets of any kind | Near-total offload, at the lowest effort of anything on this list |
+| Users across more than one continent | Three to ten times lower latency without a second region |
+| A launch or a traffic spike | The edge absorbs it; the origin sees the miss rate, not the spike |
+| Large media files | Bandwidth savings, plus segment and range handling you would otherwise build |
+| Hostile traffic | Attack volume terminates at the edge, far from your servers |
 
-```text
-User ──▶ Edge (Tokyo) ──▶ Shield (Singapore) ──▶ Origin (NY)
-                                 ↑
-                         Edge (Sydney) ──▶ Shield (Singapore) (already cached)
-```
-
----
-
-## CDN Providers Comparison
-
-| | Cloudflare | AWS CloudFront | Akamai |
-|---|---|---|---|
-| **Edge locations** | 300+ | 450+ | 4,000+ |
-| **Pricing model** | Flat rate (free tier) | Per GB + request | Enterprise contract |
-| **DDoS protection** | Built-in | Shield add-on | Built-in |
-| **Best for** | Startups, APIs, security | AWS-native workloads | Enterprise, media |
-| **Config complexity** | Low | Medium | High |
-
----
-
-## When to Use
-
-| Scenario | Benefit |
-|---|---|
-| Static assets (JS, CSS, images) | Serve from edge, reduce server load |
-| Global user base (> 2 continents) | Cut latency 3–10× |
-| Traffic spikes (product launch, viral) | CDN absorbs spike; origin stays healthy |
-| Video / large file downloads | Bandwidth savings + parallel chunk delivery |
-| DDoS protection | Edge absorbs attack traffic |
-
-**Do NOT use CDN for:** authenticated per-user responses (unless using edge auth), highly dynamic data (< 1s TTL makes caching pointless), write requests.
-
----
+**Do not reach for it** when responses are personalised, when the data changes faster than a useful
+TTL, or for writes — a POST has nothing to cache and gains only a hop.
 
 ## Common Mistakes
 
-❌ **Caching pages with `Set-Cookie`** — CDN will serve the same cookie to all users. Add `Vary: Cookie` or use `no-store` for authenticated responses.
+❌ **Caching a response that carries `Set-Cookie`.** The edge stores one user's session and hands it to
+the next. ✅ `private, no-store` on anything authenticated, and check the cache key never includes a
+session cookie.
 
-❌ **No content hash on static assets** — if filename is static (`main.js`), a cached CDN version may persist long after a deploy. Use build-tool generated hashes.
+❌ **Static filenames.** `main.js` cached for a year is a deploy that never reaches users. ✅ Let the
+build hash the content into the filename.
 
-❌ **Forgetting to purge on deploy** — HTML pages with short TTL still serve the old version during the TTL window. Post-deploy invalidation is essential for `/index.html`.
+❌ **Purging the world on every deploy.** The cache is emptied, the origin absorbs the refill, and the
+deploy looks like an incident. ✅ Purge the entry points by exact path; let hashed URLs handle the rest.
 
-✅ **Use origin shielding** — without it, a cache miss in 20 edge locations means 20 simultaneous origin requests for the same file.
+❌ **No shield on a globally popular object.** One cold object becomes hundreds of simultaneous origin
+requests. ✅ Turn shielding on for large immutable assets.
 
----
+❌ **A publicly readable origin behind the CDN.** Users find the direct URL, skip the cache, and your
+hit ratio and access rules both stop meaning anything. ✅ Restrict the origin to the CDN's identity.
 
-## Real-World Example
+## 🔑 Key Takeaways
 
-A video platform serves 50M daily users. Video segments (HLS chunks) are cached at 300 edge locations with a 24-hour TTL. Origin shielding means only 1 request per cache miss reaches the origin, not 300. The web app's `index.html` uses `s-maxage=300` with post-deploy CDN invalidation. Result: origin servers handle 5% of the total traffic; the CDN handles the rest. Monthly bandwidth bill drops 85%.
+- The offload matters more than the latency: a response served at the edge is one your origin never sees.
+- Origin load is traffic times miss rate, so ten points of hit ratio halves it every time.
+- What you can cache is decided by whether the response is the same for everyone, not by its size.
+- Content-hashed URLs replace invalidation; purging is a fallback for entry points, not a deploy step.
+- Origin shielding is what stops a global cache miss becoming a global origin stampede.
 
----
+## Interview Questions
 
-## Key Insight
+**Q: Why is a CDN a scaling tool and not just a performance one?**
 
-> A CDN is not just a cache — it is a globally distributed layer that moves content closer to users. The most impactful thing you can do for performance and scale is keep as much traffic as possible at the edge.
+Because it changes how much traffic your origin sees. At a 90% hit ratio, nine of every ten requests
+are answered without touching your infrastructure, so the same servers absorb ten times the traffic.
+Adding origin capacity costs servers and operational surface; raising the hit ratio costs a change to
+cache headers. That is why the caching question comes before the capacity question.
 
-**Related:** [CDN as Scaling Lever](../Scalability/06-cdn.md) · [Caching](./02-caching.md)
+**Q: After a deploy, users still get the old JavaScript. What went wrong?**
 
----
+Either the asset filenames did not change, so the edge is still serving bytes it correctly believes are
+current, or the HTML referencing them is itself cached too long. The structural fix is content hashing
+on assets with a one-year TTL, and a short `s-maxage` on the HTML entry point, which becomes the only
+thing ever purged.
 
-[← Back to SystemDesign](../README.md)
+**Q: What is origin shielding and when do you need it?**
+
+A designated intermediate PoP that all edges fetch through, so a cache miss at fifty locations becomes
+one origin request rather than fifty. You need it when objects are large, globally popular and
+frequently cold — media segments, a launch bundle. For small, warm assets in a single-region audience
+it adds a hop for little gain.
+
+**Q: When is a CDN the wrong answer?**
+
+When responses are personalised. A shared cache holding a logged-in user's dashboard is a data leak,
+not a performance win, and marking it cacheable is one of the few CDN mistakes that is a security
+incident rather than a stale page. The move is to cache the shared parts and leave the personalised
+part to the origin, near its data.
+
+**Q: How would you diagnose a hit ratio of 40% on static assets?**
+
+Look at the cache key before anything else. A cookie, a per-user query parameter or a `Vary` header on
+something that varies per request will fragment one object into thousands of near-identical copies,
+each cold. After that, check that the TTL is long enough for a second request to arrive, and that the
+filenames are stable enough to be requested twice at all.
+
+## What to Read Next
+
+- [Chapter ?? — Caching](#ch-caching) — the same idea one layer in, where the data is not public
+- [Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery) — configuring the edge and its origin in practice
+- [Chapter ?? — Load Balancing](#ch-load-balancing) — what handles the traffic that does reach you
