@@ -2276,6 +2276,51 @@ Target: 16 files × ~350 lines = ~5,600 lines (down from 19,115).
 
 **Done when:** every DSA file is under 400 lines and the solved-solution bulk lives in a linked repo or appendix.
 
+**Progress — run #1, 2026-08-30. Chapters 01–04 done, 12 remain. Box stays unticked.**
+
+**Where the bulk went.** There is no linked repo, so the originals were `git mv`d to
+**`Archive/dsa-solutions/`** — the repository's existing answer to "useful, but not in the book", and
+the same treatment #26 gave `Archive/foundations/`. Each archived file keeps the name its trimmed
+successor now uses in `DSA/`, so the pairing is obvious. `Archive/dsa-solutions/README.md` names what
+each chapter dropped, so the cuts are reviewable rather than silent, and `Archive/README.md`'s layout
+tree and prose both mention it — it is the one sub-tree whose originals were **replaced** rather than
+removed.
+
+**This run:**
+
+| File                          | Was   | Now | Kept                                                     |
+| ----------------------------- | ----- | --- | -------------------------------------------------------- |
+| `01-time-space-complexity.md` | 1,629 | 273 | Growth table, a new **constraint → target complexity** table, loop and recurrence rules, space including the call stack, five mistakes, two reference tables |
+| `02-prefix-sum.md`            | 862   | 218 | The leading-zero build, the range formula, the running-sum + frequency-map variant and the rearrangement behind it |
+| `03-two-pointers.md`          | 1,397 | 243 | Converging and read/write shapes, both correctness arguments, the 3Sum duplicate guard, one Mermaid decision diagram |
+| `04-sliding-window.md`        | 907   | 239 | Fixed and dynamic templates, why the inner `while` is still `O(n)`, a table of what "state" means per question type |
+
+4,795 lines → 973. Every chapter carries the six blocks, an 8-row curated problem table, Key
+Takeaways, Interview Questions and `#ch-` cross-references.
+
+**What the trim actually preserved.** The cut was not proportional. What survived is the material a
+reader cannot reconstruct from the problem statement — the *argument* for why a pattern is correct:
+why moving the shorter wall in Container With Most Water is safe, why a nested `while` inside a `for`
+is still linear, why `sum(i…j) = k` becomes a hash-map lookup. What went is repetition — the same
+idea as prose, then ASCII art, then a numbered trace, then an FAQ entry.
+
+**#16's prev/next footers are being dissolved.** The Book Chapter Standard forbids back-links, so
+each trimmed chapter drops its footer and ends on `What to Read Next` instead. The remaining 12 keep
+theirs and still resolve, because the files they point at are all still in `DSA/`. Once this item
+completes, nothing in `DSA/` has a footer and the chain lives only inside `Archive/dsa-solutions/`.
+**#16 is not being reopened** — it fixed a real breakage at the time, and this supersedes it.
+
+**Verified:** `pnpm lint:docs` — `too-long` **36 → 32**, all four files removed from the violation
+list, every other rule still 0. `.lint-baseline.json` updated to 32. `pnpm book:collect` collects 262
+files. All 29 TypeScript fences in the four new chapters were extracted and compiled with
+`tsc --strict --target es2022`: **zero errors**. Every `#ch-` anchor used resolves to exactly one H1
+(`#ch-fast-slow-pointers` was wrong on first write and is corrected to `#ch-fast-and-slow-pointers`).
+
+**Next run:** 05–08 (`fast-slow-pointers`, `linkedlist-in-place-reversal`, `monotonic-stack`,
+`top-k-elements`), then 09–12, then 13–16. Each run: `git mv` the originals into
+`Archive/dsa-solutions/`, write the trimmed chapters, extend that README's table, update the
+`DSA/README.md` ⚠️ callout's "chapters NN–NN are done" line, and drop the baseline by four.
+
 ---
 
 ### - [ ] 28. Rename `SystemDesign/InterviewQuestions/` → `CaseStudies/` and rebalance `M`

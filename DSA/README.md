@@ -66,7 +66,8 @@ harder. Do not skip 03 and 04; they underpin more questions than any other pair 
 **Interview sprint:** 01 → 03 → 04 → 13 → 15. Complexity, two pointers, sliding window, BFS and
 dynamic programming between them cover the majority of what gets asked.
 
-> ⚠️ **This appendix ships as a companion volume, not bound into the book.** It is also the most
-> over-length material in the repository — chapters run from 666 to 2,023 lines against a 400-line
-> limit, because they currently include full solution sets. Improvement #27 trims each to
-> pattern recognition, one template, two worked examples and a linked problem table.
+> ⚠️ **This appendix ships as a companion volume, not bound into the book.** Improvement #27 is
+> trimming each chapter to pattern recognition, one template, two worked examples, complexity and a
+> curated problem table. **Chapters 01–04 are done** and run 218–262 lines; 05–16 still carry their
+> full solution sets and run from 666 to 2,023 lines against a 400-line limit. The originals live in
+> [`Archive/dsa-solutions/`](../Archive/dsa-solutions/README.md) — nothing was deleted.

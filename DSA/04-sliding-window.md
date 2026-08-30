@@ -4,903 +4,236 @@ part: 10
 chapter: 0
 slug: sliding-window
 level: intermediate # beginner | intermediate | advanced
-reading_time: 29
-updated: 2026-08-28
+reading_time: 10
+updated: 2026-08-30
 tags: [dsa, sliding, window]
 in_book: true
 ---
 
 # Sliding Window {#ch-sliding-window}
 
-> Keep a running window over an array and update it in O(1) instead of recomputing.
+> Keep a contiguous span and its running state, so each element is added once and removed once.
 
-**In this chapter:** fixed vs variable window · recognising the pattern · maximum sum subarray · longest substring without repeats · complexity
+**In this chapter:** the fixed window · the expand-and-shrink template · why the total work is still `O(n)` · the state that lives inside the window · the questions that look like a window and are not
 
-## What is Sliding Window?
+## 💡 The Core Idea
 
-**Simple Definition**: Imagine you're looking through a small window on a train. As the train moves, you see different scenery pass by, but you can only see what's directly in front of your window at any given moment. The Sliding Window pattern works the same way - it looks at a small "window" of elements in an array or string, then "slides" that window forward to examine different sections efficiently.
+A brute force over subarrays recomputes overlapping work. Windows of size 3 over `[a, b, c, d]` are
+`abc` then `bcd`, and the middle two elements get summed twice. A sliding window keeps the state of
+the current span and edits it: subtract what left, add what arrived.
 
-**Real-World Analogy**:
-Think of checking your phone's screen time for the "last 7 days." Instead of recalculating all 7 days every time a new day arrives, you simply:
-1. Remove the oldest day (8 days ago)
-2. Add the newest day (today)
-3. Calculate the total
+Phone screen-time reporting is the everyday version. Nobody re-adds seven days to show a rolling
+weekly total — they drop the day that fell out of range and add today.
 
-This is exactly what the sliding window does - it reuses previous calculations to save time!
+> Each index enters the window once and leaves at most once, so the two pointers make at most `2n`
+> moves in total. That is why a loop that visibly contains another loop is still `O(n)`.
 
-**Why is it useful?**
-Without sliding window, checking every possible subarray of size 7 in a 365-day year would require doing 365 × 7 = 2,555 calculations. With sliding window, you do just 365 calculations - one per day!
+## How It Works
 
----
+### Fixed window
 
-## Pattern Overview
-
-The **Sliding Window** pattern is used to perform operations on a specific window size of an array or string. The window "slides" through the data structure by adding new elements on one side and removing elements from the other side, maintaining a contiguous sequence.
-
-### When to Use
-- Finding longest/shortest substring with specific conditions
-- Finding maximum/minimum sum of subarrays of size k
-- Problems involving contiguous sequences
-- Optimization problems on strings or arrays
-
-### Key Characteristics
-- Maintains a window (contiguous subset) of elements
-- Window size can be fixed or dynamic
-- Eliminates redundant calculations by reusing previous window data
-- Reduces O(n×k) or O(n²) solutions to O(n)
-
-### Pattern Identification
-Look for this pattern when you see:
-- "Find the longest substring..."
-- "Find the maximum sum subarray of size k"
-- "Minimum window substring"
-- "Find all anagrams in a string"
-- Problems involving contiguous elements with constraints
-
----
-
-## 📚 How It Works (Visual Explanation)
-
-### Fixed Window Sliding (Window size = 3)
-
-Imagine finding the maximum sum of any 3 consecutive numbers in the array `[2, 1, 5, 1, 3, 2]`:
-
-```text
-Step 1: Initial window (sum = 8)
-┌─────────┐
-│ 2  1  5 │ 1  3  2
-└─────────┘
-Sum: 2 + 1 + 5 = 8
-
-Step 2: Slide right (remove 2, add 1)
-   ┌─────────┐
- 2 │ 1  5  1 │ 3  2
-   └─────────┘
-Sum: 8 - 2 + 1 = 7
-
-Step 3: Slide right (remove 1, add 3)
-      ┌─────────┐
- 2  1 │ 5  1  3 │ 2
-      └─────────┘
-Sum: 7 - 1 + 3 = 9  ← Maximum!
-
-Step 4: Slide right (remove 5, add 2)
-         ┌─────────┐
- 2  1  5 │ 1  3  2 │
-         └─────────┘
-Sum: 9 - 5 + 2 = 6
-```
-
-**Key Insight**: Instead of recalculating the sum for each window (2+1+5, then 1+5+1, then 5+1+3...), we just subtract the element leaving and add the element entering!
-
----
-
-### Dynamic Window Expanding/Shrinking
-
-For "longest substring without repeating characters" in string `"abcabcbb"`:
-
-```text
-Step 1: Start with empty window
-│
-a  b  c  a  b  c  b  b
-start
-end
-Current: "" → Length: 0
-
-Step 2: Expand window (add 'a')
-┌──┐
-│a │ b  c  a  b  c  b  b
-└──┘
-Current: "a" → Length: 1, No duplicates ✓
-
-Step 3: Expand window (add 'b')
-┌─────┐
-│a  b │ c  a  b  c  b  b
-└─────┘
-Current: "ab" → Length: 2, No duplicates ✓
-
-Step 4: Expand window (add 'c')
-┌────────┐
-│a  b  c │ a  b  c  b  b
-└────────┘
-Current: "abc" → Length: 3, No duplicates ✓
-
-Step 5: Expand window (add 'a') - DUPLICATE FOUND!
-┌───────────┐
-│a  b  c  a │ b  c  b  b
-└───────────┘
-Duplicate 'a' detected! Must shrink from left.
-
-Step 6: Shrink window (remove first 'a')
-   ┌────────┐
-a  │b  c  a │ b  c  b  b
-   └────────┘
-Current: "bca" → Length: 3, No duplicates ✓
-
-... continues sliding and checking
-```
-
-**Key Insight**: The window grows when it's valid (no duplicates), and shrinks when it violates the condition (duplicate found). We track the maximum window size we've seen!
-
----
-
-## 🎯 How to Recognize Sliding Window Problems
-
-You should think "Sliding Window" when you see these keywords:
-
-| Keyword/Phrase | Why it's Sliding Window |
-|----------------|------------------------|
-| **"Contiguous subarray/substring"** | Window must be continuous elements |
-| **"Of size k"** or **"exactly k"** | Fixed window size |
-| **"At most k"** or **"at least k"** | Dynamic window with constraints |
-| **"Longest/shortest substring"** | Need to track window size |
-| **"Maximum/minimum sum"** | Window optimization problem |
-| **"All anagrams/permutations"** | Check patterns in windows |
-| **"Without repeating"** | Track unique elements in window |
-| **"Consecutive elements"** | Elements must be next to each other |
-
-**Decision Tree**:
-```text
-Is the problem about consecutive elements?
-    ├─ No → Not sliding window
-    └─ Yes → Is there a size constraint (k) or optimization goal?
-              ├─ Fixed size k → Use FIXED sliding window
-              └─ Find longest/shortest → Use DYNAMIC sliding window
-```
-
----
-
-## Example 1: Maximum Sum Subarray of Size K (TypeScript)
-
-### Problem
-Given an array of integers and a number k, find the maximum sum of any contiguous subarray of size k.
-
-**Similar to**: [643. Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/)
-
-### Solution
+When the question gives you the size, build the first window, then edit it once per step.
 
 ```typescript
-/**
- * Find maximum sum of subarray of size k using sliding window
- * @param nums - Array of integers
- * @param k - Subarray size
- * @returns Maximum sum of subarray of size k, or null if array is too small
- */
+// Largest sum of any k consecutive elements
 function maxSumSubarray(nums: number[], k: number): number | null {
-    // Edge case: if array is smaller than k
-    if (nums.length < k) {
-        return null;
-    }
+  if (nums.length < k) return null;
 
-    // Calculate sum of first window
-    let windowSum: number = 0;
-    for (let i: number = 0; i < k; i++) {
-        windowSum += nums[i];
-    }
+  let windowSum = 0;
+  for (let i = 0; i < k; i++) windowSum += nums[i];   // the first window, built once
 
-    let maxSum: number = windowSum;
-
-    // Slide the window through the array
-    // Add new element from right, remove old element from left
-    for (let i: number = k; i < nums.length; i++) {
-        // Slide window: add new element, remove leftmost element
-        windowSum = windowSum + nums[i] - nums[i - k];
-
-        // Update maximum sum
-        maxSum = Math.max(maxSum, windowSum);
-    }
-
-    return maxSum;
+  let best = windowSum;
+  for (let end = k; end < nums.length; end++) {
+    windowSum += nums[end] - nums[end - k];           // one in, one out — O(1) per step
+    best = Math.max(best, windowSum);
+  }
+  return best;
 }
-
-// Example usage
-console.log(maxSumSubarray([2, 1, 5, 1, 3, 2], 3));  // Output: 9
-// Explanation: Subarray [5, 1, 3] has maximum sum 9
-
-console.log(maxSumSubarray([2, 3, 4, 1, 5], 2));     // Output: 7
-// Explanation: Subarray [3, 4] has maximum sum 7
-
-console.log(maxSumSubarray([1, 4, 2, 10, 23, 3, 1, 0, 20], 4));  // Output: 39
-// Explanation: Subarray [4, 2, 10, 23] has maximum sum 39
-
-// Alternative solution with average
-function findMaxAverage(nums: number[], k: number): number {
-    let sum: number = 0;
-
-    // Calculate first window sum
-    for (let i: number = 0; i < k; i++) {
-        sum += nums[i];
-    }
-
-    let maxSum: number = sum;
-
-    // Slide window
-    for (let i: number = k; i < nums.length; i++) {
-        sum = sum + nums[i] - nums[i - k];
-        maxSum = Math.max(maxSum, sum);
-    }
-
-    return maxSum / k;
-}
-
-console.log(findMaxAverage([1, 12, -5, -6, 50, 3], 4));  // Output: 12.75
+// Time: O(n), Space: O(1)  — the naive version is O(n × k)
 ```
 
-### Explanation
-1. **Fixed window size**: Window always contains exactly k elements
-2. **Initial window**: Calculate sum of first k elements
-3. **Sliding**:
-   - Add new element entering the window (right side)
-   - Subtract element leaving the window (left side)
-   - This avoids recalculating the entire sum
-4. **Time saved**: Instead of recalculating sum for each window (O(n×k)), we slide in O(n)
+### Dynamic window
 
-### Step-by-Step Code Walkthrough
-
-Let's trace through `maxSumSubarray([2, 1, 5, 1, 3, 2], 3)`:
+When the size is whatever the constraint allows, the window grows on every iteration and shrinks only
+while it is invalid. This template covers most of the family:
 
 ```typescript
-// Initial state
-const nums: number[] = [2, 1, 5, 1, 3, 2];
-const k: number = 3;
+function longestValidWindow(s: string): number {
+  const state = new Map<string, number>();          // whatever "valid" needs to be decided
+  let start = 0;
+  let best = 0;
 
-// Step 1: Calculate first window sum (indices 0, 1, 2)
-let windowSum: number = 0;
-for (let i: number = 0; i < 3; i++) {
-    windowSum += nums[i];
+  for (let end = 0; end < s.length; end++) {
+    state.set(s[end], (state.get(s[end]) ?? 0) + 1);  // 1. expand
+
+    while (/* the window is invalid */ state.size > 2) {   // 2. shrink until it is valid again
+      const leaving = s[start];
+      const next = state.get(leaving)! - 1;
+      next === 0 ? state.delete(leaving) : state.set(leaving, next);
+      start++;
+    }
+
+    best = Math.max(best, end - start + 1);          // 3. record, only while valid
+  }
+  return best;
 }
-// i=0: windowSum = 0 + 2 = 2
-// i=1: windowSum = 2 + 1 = 3
-// i=2: windowSum = 3 + 5 = 8
-// After loop: windowSum = 8
-
-let maxSum: number = 8;  // Initialize with first window
-
-// Step 2: Start sliding from index 3
-// i=3: nums[i]=1, nums[i-k]=nums[0]=2
-windowSum = 8 + 1 - 2;  // = 7
-maxSum = Math.max(8, 7);  // = 8, No update
-
-// i=4: nums[i]=3, nums[i-k]=nums[1]=1
-windowSum = 7 + 3 - 1;  // = 9
-maxSum = Math.max(8, 9);  // = 9, Update! New maximum
-
-// i=5: nums[i]=2, nums[i-k]=nums[2]=5
-windowSum = 9 + 2 - 5;  // = 6
-maxSum = Math.max(9, 6);  // = 9, No update
-
-// Return maxSum = 9
+// Time: O(n), Space: O(k) where k is the number of distinct values held
 ```
 
-**Visual trace**:
-```text
-[2, 1, 5, 1, 3, 2]
- └──────┘           Window 1: sum=8
-    └──────┘        Window 2: sum=7 (remove 2, add 1)
-       └──────┘     Window 3: sum=9 (remove 1, add 3) ← MAX
-          └──────┘  Window 4: sum=6 (remove 5, add 2)
-```
+The `while` is not a nested loop in the complexity sense. `start` never moves backwards and never
+passes `end`, so across the whole run it advances at most `n` times.
 
----
-
-## Example 2: Longest Substring Without Repeating Characters (TypeScript)
-
-### Problem
-Given a string `s`, find the length of the longest substring without repeating characters.
-
-**LeetCode**: [3. Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
-
-### Solution
+**The canonical instance — longest substring with no repeated character:**
 
 ```typescript
-/**
- * Find length of longest substring without repeating characters
- * using dynamic sliding window
- *
- * @param s - Input string
- * @returns Length of longest substring without repeating characters
- */
 function lengthOfLongestSubstring(s: string): number {
-    // HashMap to store character and its most recent index
-    const charIndex: Map<string, number> = new Map();
+  const lastSeen = new Map<string, number>();   // character → the index it last appeared at
+  let start = 0;
+  let best = 0;
 
-    let maxLength: number = 0;
-    let windowStart: number = 0;
+  for (let end = 0; end < s.length; end++) {
+    const ch = s[end];
+    const previous = lastSeen.get(ch);
+    // Only jump forward. A stale index from before the window must not drag start back.
+    if (previous !== undefined) start = Math.max(start, previous + 1);
 
-    // Expand window by moving windowEnd
-    for (let windowEnd: number = 0; windowEnd < s.length; windowEnd++) {
-        const currentChar: string = s[windowEnd];
-
-        // If character is already in window, shrink window from left
-        if (charIndex.has(currentChar)) {
-            // Move windowStart to position after the duplicate
-            // But only if it's within current window
-            windowStart = Math.max(windowStart, charIndex.get(currentChar)! + 1);
-        }
-
-        // Update character's index
-        charIndex.set(currentChar, windowEnd);
-
-        // Calculate current window size and update max
-        const currentLength: number = windowEnd - windowStart + 1;
-        maxLength = Math.max(maxLength, currentLength);
-    }
-
-    return maxLength;
+    lastSeen.set(ch, end);
+    best = Math.max(best, end - start + 1);
+  }
+  return best;
 }
-
-// Example usage
-// Example 1
-console.log(lengthOfLongestSubstring("abcabcbb"));  // Output: 3
-// Explanation: "abc" is the longest substring without repeating characters
-
-// Example 2
-console.log(lengthOfLongestSubstring("bbbbb"));     // Output: 1
-// Explanation: "b" is the longest substring
-
-// Example 3
-console.log(lengthOfLongestSubstring("pwwkew"));    // Output: 3
-// Explanation: "wke" is the longest substring
-
-// Example 4
-console.log(lengthOfLongestSubstring(""));          // Output: 0
-// Explanation: Empty string
-
-// Example 5
-console.log(lengthOfLongestSubstring("abba"));      // Output: 2
-// Explanation: "ab" or "ba" is the longest substring
+// Time: O(n), Space: O(min(n, alphabet))
 ```
 
-### Explanation
-1. **Dynamic window**: Window size changes based on constraints (no repeating characters)
-2. **HashMap**: Track each character's most recent position
-3. **Expand window**: Move `window_end` to include new characters
-4. **Shrink window**: When duplicate found, move `window_start` past the previous occurrence
-5. **Key insight**: Use `max(window_start, char_index[current_char] + 1)` to ensure we don't move `window_start` backward
-6. **Update**: Always update character's index and check for new maximum length
+⚠️ `Math.max(start, previous + 1)` is the line this problem is really testing. On `"abba"`, when the
+second `a` arrives the map still holds `a → 0`, and without the guard `start` jumps back to 1 and the
+answer becomes 3 instead of 2.
 
-### Step-by-Step Code Walkthrough
+### What "state" means
 
-Let's trace through `lengthOfLongestSubstring("abcabcbb")`:
+The window is not the point; the state you keep about it is. Choosing it is most of the work.
+
+| Question asks for                       | Keep                                       | Valid when                  |
+| --------------------------------------- | ------------------------------------------ | --------------------------- |
+| Max sum of `k` elements                 | A running sum                              | Always — the size is fixed  |
+| Longest run with no repeats             | `char → last index`                        | No duplicate inside         |
+| At most `k` distinct characters         | `char → count`, plus `map.size`            | `size ≤ k`                  |
+| Contains all of another string          | `need` counts plus a `missing` counter     | `missing === 0`             |
+| Longest run after `k` replacements      | `char → count` plus the max count seen     | `length − maxCount ≤ k`     |
+
+## When to Use It
+
+| Signal                                                   | Reach for      | Why                                        |
+| -------------------------------------------------------- | -------------- | ------------------------------------------ |
+| "Longest" or "shortest" **contiguous** span              | Sliding window | The span is the answer                     |
+| "Subarray of size `k`"                                   | Fixed window   | Size is given, state is `O(1)`             |
+| "Contains" or "permutation of" over a substring          | Dynamic window | Validity is a counter comparison           |
+| Values can be **negative** and the target is a sum       | Prefix sum     | Shrinking no longer lowers the sum         |
+| Order does not matter — subsequence, not subarray        | Sorting or DP  | A window is contiguous by definition       |
+| Pair from opposite ends of a sorted array                | Two pointers   | Nothing between the pointers is being kept |
+
+The negatives row is the one that catches people. Growing a window of positive numbers only ever
+raises the sum, which is what makes "shrink when too big" a valid move. Allow negatives and that
+monotonicity is gone — see [Chapter ?? — Prefix Sum](#ch-prefix-sum).
+
+## Common Mistakes
+
+**Getting the width wrong:**
 
 ```typescript
-const s: string = "abcabcbb";
-const charIndex: Map<string, number> = new Map();  // Stores: {character: last_seen_index}
-let maxLength: number = 0;
-let windowStart: number = 0;
-
-// windowEnd = 0, currentChar = 'a'
-charIndex.set('a', 0);  // Map { 'a' => 0 }
-windowStart = 0;  // 'a' not in map, no change
-let currentLength: number = 0 - 0 + 1;  // = 1
-maxLength = 1;
-
-// windowEnd = 1, currentChar = 'b'
-charIndex.set('b', 1);  // Map { 'a' => 0, 'b' => 1 }
-windowStart = 0;  // 'b' not in map, no change
-currentLength = 1 - 0 + 1;  // = 2
-maxLength = 2;
-
-// windowEnd = 2, currentChar = 'c'
-charIndex.set('c', 2);  // Map { 'a' => 0, 'b' => 1, 'c' => 2 }
-windowStart = 0;  // 'c' not in map, no change
-currentLength = 2 - 0 + 1;  // = 3
-maxLength = 3;  // Window: "abc"
-
-// windowEnd = 3, currentChar = 'a'
-// 'a' IS in map at index 0!
-windowStart = Math.max(0, 0 + 1);  // = 1, Jump past first 'a'
-charIndex.set('a', 3);  // Map { 'a' => 3, 'b' => 1, 'c' => 2 }
-currentLength = 3 - 1 + 1;  // = 3
-maxLength = 3;  // Window: "bca"
-
-// windowEnd = 4, currentChar = 'b'
-// 'b' IS in map at index 1!
-windowStart = Math.max(1, 1 + 1);  // = 2, Jump past first 'b'
-charIndex.set('b', 4);  // Map { 'a' => 3, 'b' => 4, 'c' => 2 }
-currentLength = 4 - 2 + 1;  // = 3
-maxLength = 3;  // Window: "cab"
-
-// windowEnd = 5, currentChar = 'c'
-// 'c' IS in map at index 2!
-windowStart = Math.max(2, 2 + 1);  // = 3, Jump past first 'c'
-charIndex.set('c', 5);  // Map { 'a' => 3, 'b' => 4, 'c' => 5 }
-currentLength = 5 - 3 + 1;  // = 3
-maxLength = 3;  // Window: "abc"
-
-// windowEnd = 6, currentChar = 'b'
-// 'b' IS in map at index 4!
-windowStart = Math.max(3, 4 + 1);  // = 5, Jump past previous 'b'
-charIndex.set('b', 6);  // Map { 'a' => 3, 'b' => 6, 'c' => 5 }
-currentLength = 6 - 5 + 1;  // = 2
-maxLength = 3;  // Window: "cb"
-
-// windowEnd = 7, currentChar = 'b'
-// 'b' IS in map at index 6!
-windowStart = Math.max(5, 6 + 1);  // = 7, Jump past previous 'b'
-charIndex.set('b', 7);  // Map { 'a' => 3, 'b' => 7, 'c' => 5 }
-currentLength = 7 - 7 + 1;  // = 1
-maxLength = 3;  // Window: "b"
-
-// Return maxLength = 3
+// ❌ const width = end - start;        // off by one on every window
+// ✅ const width = end - start + 1;    // inclusive on both ends
 ```
 
-### Visual Example
-```text
-String: "abcabcbb"
-Index:   01234567
-
-Step-by-step windows:
-window_start=0, window_end=0: "a" → length=1
-window_start=0, window_end=1: "ab" → length=2
-window_start=0, window_end=2: "abc" → length=3 ← MAX
-window_start=1, window_end=3: "bca" → length=3 (found duplicate 'a')
-window_start=2, window_end=4: "cab" → length=3 (found duplicate 'b')
-window_start=3, window_end=5: "abc" → length=3 (found duplicate 'c')
-window_start=5, window_end=6: "cb" → length=2 (found duplicate 'b')
-window_start=7, window_end=7: "b" → length=1 (found duplicate 'b')
-```
-
-**Key Detail**: Why `max(window_start, char_index[current_char] + 1)`?
-- If we find 'a' at index 5, but window_start is already at 7, we don't move backward!
-- Example: In "abba", when we hit the second 'b', we've already moved past the first 'a'
-
----
-
-## Time & Space Complexity
-
-### Example 1: Maximum Sum Subarray
-- **Time Complexity**: O(n) - Single pass through array
-- **Space Complexity**: O(1) - Only storing sum variables
-
-### Example 2: Longest Substring
-- **Time Complexity**: O(n) - Each character visited at most twice (once by window_end, once by window_start)
-- **Space Complexity**: O(min(n, m)) - HashMap stores at most n characters or m (charset size)
-
----
-
-## Common Variations
-
-1. **Fixed Window Size**
-   - Window size remains constant
-   - Used in: Max sum subarray of size k, Max average subarray
-   - LeetCode: [643. Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/)
-
-2. **Dynamic Window Size**
-   - Window grows and shrinks based on constraints
-   - Used in: Longest substring without repeating, Minimum window substring
-   - LeetCode: [3. Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
-
-3. **Substring with K Distinct Characters**
-   - Find longest substring with at most k distinct characters
-   - LeetCode: [340. Longest Substring with At Most K Distinct Characters](https://leetcode.com/problems/longest-substring-with-at-most-k-distinct-characters/)
-
-4. **Minimum Window**
-   - Find smallest window containing all required elements
-   - LeetCode: [76. Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/)
-
-5. **String Anagrams**
-   - Find all anagrams in a string
-   - LeetCode: [438. Find All Anagrams in a String](https://leetcode.com/problems/find-all-anagrams-in-a-string/)
-
----
-
-## Practice Problems
-
-### Easy
-1. [643. Maximum Average Subarray I](https://leetcode.com/problems/maximum-average-subarray-i/)
-2. [1456. Maximum Number of Vowels in a Substring of Given Length](https://leetcode.com/problems/maximum-number-of-vowels-in-a-substring-of-given-length/)
-
-### Medium
-3. [3. Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
-4. [438. Find All Anagrams in a String](https://leetcode.com/problems/find-all-anagrams-in-a-string/)
-5. [424. Longest Repeating Character Replacement](https://leetcode.com/problems/longest-repeating-character-replacement/)
-6. [567. Permutation in String](https://leetcode.com/problems/permutation-in-string/)
-7. [1004. Max Consecutive Ones III](https://leetcode.com/problems/max-consecutive-ones-iii/)
-
-### Hard
-8. [76. Minimum Window Substring](https://leetcode.com/problems/minimum-window-substring/)
-9. [239. Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/)
-
----
-
-## ⚠️ Common Pitfalls
-
-### 1. Off-by-One Errors with Window Size
-**Problem**: Incorrectly calculating window size as `window_end - window_start` instead of `window_end - window_start + 1`
+**Letting the left pointer move backwards:**
 
 ```typescript
-// ❌ WRONG
-let windowSize: number = window_end - window_start;  // Missing +1!
-
-// ✅ CORRECT
-let windowSize: number = window_end - window_start + 1;
+// ❌ start = lastSeen.get(ch)! + 1;
+// ✅ start = Math.max(start, lastSeen.get(ch)! + 1);
 ```
 
-**Why?** If start=2 and end=4, the window contains indices [2,3,4] = 3 elements, not 2!
-
----
-
-### 2. Forgetting to Update the HashMap
-**Problem**: Not updating character positions in dynamic window problems
+**Recording the answer while the window is invalid:**
 
 ```typescript
-// ❌ WRONG
-if (charIndex.has(currentChar)) {
-    windowStart = charIndex.get(currentChar)! + 1;
-}
-// Forgot to update charIndex!
-
-// ✅ CORRECT
-if (charIndex.has(currentChar)) {
-    windowStart = Math.max(windowStart, charIndex.get(currentChar)! + 1);
-}
-charIndex.set(currentChar, windowEnd);  // Always update!
+// ❌ best = Math.max(best, end - start + 1);   // written before the shrink loop
+// ✅ shrink first, then record — a "longest valid" answer must come from a valid window
 ```
 
----
+For a **minimum** window the order flips: shrink while the window is still valid, and record inside
+the shrink loop, because the smallest valid window is the one just before it breaks.
 
-### 3. Moving Window Start Backward
-**Problem**: Not using `max()` when updating window_start
+**Removing from the state without deleting the key:**
 
 ```typescript
-// ❌ WRONG - Can move backward!
-windowStart = charIndex.get(currentChar)! + 1;
-
-// ✅ CORRECT - Never move backward
-windowStart = Math.max(windowStart, charIndex.get(currentChar)! + 1);
+// ❌ counts.set(leaving, counts.get(leaving)! - 1);   // leaves a 0, so map.size stays wrong
+// ✅ delete the key when the count hits 0, if size is what validity is measured on
 ```
 
-**Example**: In string "abba", when you hit the second 'a', you've already moved past it!
-
----
-
-### 4. Not Initializing the First Window Correctly
-**Problem**: Starting to slide before calculating the first window
+**Reaching for a window when the elements are not contiguous:**
 
 ```typescript
-// ❌ WRONG
-let windowSum: number = 0;
-for (let i: number = 0; i < nums.length; i++) {
-    windowSum += nums[i];
-    if (i >= k) windowSum -= nums[i - k];
-    maxSum = Math.max(maxSum, windowSum);
-}
-
-// ✅ CORRECT
-let windowSum: number = 0;
-// First, build initial window
-for (let i: number = 0; i < k; i++) {
-    windowSum += nums[i];
-}
-let maxSum: number = windowSum;
-// Then start sliding
-for (let i: number = k; i < nums.length; i++) {
-    windowSum = windowSum + nums[i] - nums[i - k];
-    maxSum = Math.max(maxSum, windowSum);
-}
+// ❌ "Longest increasing subsequence" is not a window problem — a subsequence has gaps
 ```
 
----
+## Problems to Practise
 
-### 5. Confusing Fixed vs Dynamic Windows
-**Problem**: Using fixed window logic for dynamic window problems (or vice versa)
+| #    | Problem                                          | Difficulty | What it drills                      |
+| ---- | ------------------------------------------------ | ---------- | ----------------------------------- |
+| 643  | Maximum Average Subarray I                       | Easy       | The fixed-window edit               |
+| 1456 | Maximum Number of Vowels in a Substring          | Easy       | Fixed window with a counter         |
+| 3    | Longest Substring Without Repeating Characters   | Medium     | The last-index jump                 |
+| 1004 | Max Consecutive Ones III                         | Medium     | Validity as a budget                |
+| 424  | Longest Repeating Character Replacement          | Medium     | `length − maxCount ≤ k`             |
+| 567  | Permutation in String                            | Medium     | Fixed window plus counter matching  |
+| 438  | Find All Anagrams in a String                    | Medium     | The same shape, collecting results  |
+| 76   | Minimum Window Substring                         | Hard       | Shrink-while-valid, and a `missing` counter |
 
-```typescript
-// Fixed window: Window size is ALWAYS k
-for (let i: number = k; i < nums.length; i++) {
-    // Add one, remove one - size stays k
-}
+Write 3 and 76 in the same sitting. One maximises and records after shrinking, the other minimises
+and records during — that contrast is the whole template.
 
-// Dynamic window: Window size changes based on conditions
-while (windowEnd < s.length) {
-    // Add to window
-    windowEnd++;
+## 🔑 Key Takeaways
 
-    // Shrink while invalid
-    while (isInvalid) {
-        windowStart++;
-    }
-}
-```
+- A sliding window turns `O(n × k)` or `O(n²)` subarray scans into `O(n)` by editing state instead of rebuilding it.
+- The inner `while` does not make it quadratic, because the left pointer only moves forward and only `n` times.
+- Window width is `end - start + 1`; forgetting the `+ 1` is the most common bug in the pattern.
+- Maximum problems record after shrinking back to valid; minimum problems record while still valid.
+- The pattern needs contiguity, and a sum-based window needs non-negative values.
 
----
+## Interview Questions
 
-### 6. Not Handling Edge Cases
-**Problem**: Forgetting to check if array/string is too small
+**Q: There is a `while` loop inside the `for` loop. Why is this `O(n)` and not `O(n²)`?**
 
-```typescript
-// ❌ WRONG - Will crash if nums.length < k
-function maxSumSubarray(nums: number[], k: number): number {
-    let windowSum: number = 0;
-    for (let i: number = 0; i < k; i++) {
-        windowSum += nums[i];  // Error if i >= nums.length!
-    }
-    return windowSum;
-}
+Because the two pointers only move forward and neither exceeds `n`. `end` advances exactly `n` times
+and `start` at most `n` times across the entire run, so the total work is bounded by `2n`. This is
+amortised analysis — one iteration can shrink a lot, but the sum over all iterations cannot.
 
-// ✅ CORRECT
-function maxSumSubarray(nums: number[], k: number): number | null {
-    if (nums.length < k) return null;  // or -Infinity, or throw error
-    // ... rest of code
-    return 0;
-}
-```
+**Q: How do you decide what to store for the window?**
 
----
+Ask what makes the window invalid, then store the smallest thing that answers it in `O(1)`. "No
+repeats" needs last-seen indices; "at most `k` distinct" needs counts and a size; "contains all of
+`t`" needs the required counts plus a single counter of how many are still missing. If checking
+validity costs `O(n)`, the state is wrong.
 
-## Frequently Asked Questions
+**Q: Why does a sliding window fail on an array with negative numbers?**
 
-### Q1: When should I use fixed vs dynamic sliding window?
+The pattern relies on the sum rising as the window grows and falling as it shrinks. Negative values
+break that, so "the sum is too big, drop from the left" is no longer sound — dropping could raise it.
+Those questions want a prefix sum with a hash map instead.
 
-**A:** Use the problem's question to decide:
-- **Fixed window**: "Find max sum of subarray of size k", "Average of k elements"
-  - The window size is given explicitly
-- **Dynamic window**: "Longest substring without repeating", "Smallest window containing..."
-  - You need to find the optimal window size
+**Q: When is a fixed window the wrong choice even though the problem names a size?**
 
----
+When the size describes a constraint rather than the answer — "the longest substring with at most `k`
+distinct characters" mentions `k` but the window is dynamic. The test is whether every valid answer
+has the same length.
 
-### Q2: How do I know when to shrink the window?
+**Q: How does Minimum Window Substring differ from the usual template?**
 
-**A:** Shrink when the window becomes **invalid** according to the problem's constraints:
-- Too many distinct characters: `while (distinct_count > k) { shrink... }`
-- Has duplicates: `while (hasDuplicate) { shrink... }`
-- Sum too large: `while (sum > target) { shrink... }`
+It inverts the loop. You expand until the window is valid, then shrink while it stays valid,
+recording the best length inside the shrink loop. A `missing` counter that drops to zero keeps the
+validity check `O(1)` rather than comparing two maps on every step.
 
-Think: "What makes this window invalid?"
+## What to Read Next
 
----
-
-### Q3: Should I use a HashMap, Set, or Array for tracking?
-
-**A:** Depends on what you're tracking:
-- **HashMap/Object**: When you need positions or counts
-  - Example: `{char: last_index}` or `{char: frequency}`
-- **Set**: When you only need to know if something exists
-  - Example: Checking for duplicates
-- **Array**: When dealing with limited character set (like lowercase letters)
-  - Example: `frequency[26]` for 'a'-'z'
-
----
-
-### Q4: Why use `window_end - window_start + 1` and not just track a `size` variable?
-
-**A:** Both work! But using indices is more flexible:
-
-```typescript
-// Method 1: Calculate size from indices
-let length: number = windowEnd - windowStart + 1;
-
-// Method 2: Track size explicitly
-let size: number = 0;
-// Add element: size++
-// Remove element: size--
-```
-
-Method 1 is less error-prone because you can't forget to increment/decrement.
-
----
-
-### Q5: Can sliding window solve non-contiguous problems?
-
-**A:** No! Sliding window ONLY works for **contiguous** subarrays/substrings.
-
-```typescript
-// ✅ Sliding window works
-// "Find max sum of 3 consecutive elements"
-
-// ❌ Sliding window DOESN'T work
-// "Find max sum of any 3 elements" (can skip elements)
-```
-
-For non-contiguous, use other patterns (dynamic programming, greedy, etc.)
-
----
-
-### Q6: What if I need to track multiple conditions?
-
-**A:** Use multiple data structures! Common pattern:
-
-```typescript
-const charCount: Map<string, number> = new Map();  // Track character frequencies
-let distinctChars: number = 0;   // Track count of distinct characters
-let maxLength: number = 0;       // Track result
-
-// Expand window
-charCount.set(char, (charCount.get(char) || 0) + 1);
-if (charCount.get(char) === 1) distinctChars++;
-
-// Shrink when needed
-while (distinctChars > k) {
-    charCount.set(leftChar, charCount.get(leftChar)! - 1);
-    if (charCount.get(leftChar) === 0) distinctChars--;
-    windowStart++;
-}
-```
-
----
-
-### Q7: How do I debug my sliding window code?
-
-**A:** Add console logs to visualize the window:
-
-```typescript
-console.log(`Window: [${windowStart}, ${windowEnd}]`);
-console.log(`Current substring: "${s.substring(windowStart, windowEnd + 1)}"`);
-console.log(`Window data:`, charCount);
-console.log('---');
-```
-
-This helps you see exactly what's in the window at each step!
-
----
-
-## 💡 Pro Tips
-
-### Tip 1: Use a Template for Dynamic Windows
-
-Most dynamic window problems follow this structure:
-
-```typescript
-function slidingWindowTemplate(s: string, condition: (data: Map<string, number>) => boolean): number {
-    let windowStart: number = 0;
-    let result: number = 0;  // or Infinity for minimum
-    const windowData: Map<string, number> = new Map();  // HashMap/Set/etc for tracking
-
-    for (let windowEnd: number = 0; windowEnd < s.length; windowEnd++) {
-        // 1. Add element to window
-        const rightChar: string = s[windowEnd];
-        // Update windowData
-
-        // 2. Shrink window while invalid
-        while (/* window is invalid */ !condition(windowData)) {
-            const leftChar: string = s[windowStart];
-            // Update windowData
-            windowStart++;
-        }
-
-        // 3. Update result
-        result = Math.max(result, windowEnd - windowStart + 1);
-    }
-
-    return result;
-}
-```
-
-**Customize** the three sections for your specific problem!
-
----
-
-### Tip 2: Draw It Out First
-
-Before coding, draw the first few steps:
-1. What's in the initial window?
-2. What happens when you add an element?
-3. What triggers shrinking?
-4. When do you update the result?
-
-Visualizing prevents logic errors!
-
----
-
-### Tip 3: Start with Brute Force, Then Optimize
-
-```typescript
-// Step 1: Brute force (works but slow)
-for (let i: number = 0; i < n; i++) {
-    for (let j: number = i; j < n; j++) {
-        // Check subarray [i...j]
-    }
-}
-// Time: O(n²) or O(n³)
-
-// Step 2: Recognize it's contiguous → Sliding window!
-// Step 3: Convert to O(n) sliding window solution
-```
-
-Understanding the brute force helps you see why sliding window is better.
-
----
-
-### Tip 4: Handle Edge Cases First
-
-Add these checks at the start:
-```typescript
-// Empty input
-if (!s || s.length === 0) return 0;
-
-// k larger than input
-if (k > s.length) return -1;
-
-// k is 0 or negative
-if (k <= 0) return 0;
-```
-
----
-
-### Tip 5: Use Meaningful Variable Names
-
-```typescript
-// ❌ Avoid single letters (hard to debug)
-let l: number = 0, r: number = 0, m: number = 0;
-
-// ✅ Use descriptive names
-let windowStart: number = 0;
-let windowEnd: number = 0;
-let maxLength: number = 0;
-```
-
-Your future self will thank you!
-
----
-
-### Tip 6: Remember the "Expand-Shrink-Update" Mantra
-
-For dynamic windows, always follow this order:
-1. **Expand**: Add new element to window
-2. **Shrink**: Remove elements until window is valid
-3. **Update**: Check if this is the best window so far
-
-Don't update result before shrinking - you might record an invalid window!
-
----
-
-### Tip 7: Practice Window Size Calculation
-
-Master this formula:
-```typescript
-// Window spans from index i to j (inclusive)
-let windowSize: number = j - i + 1;
-
-// Why +1? Because indices are zero-based!
-// Example: indices 2 to 4 → elements at [2, 3, 4] → 3 elements
-```
-
----
-
-### Tip 8: Use `max(windowStart, newStart)` for Safety
-
-When updating windowStart, always use max to prevent moving backward:
-
-```typescript
-// Prevents windowStart from ever decreasing
-windowStart = Math.max(windowStart, charIndex.get(char)! + 1);
-```
-
-This handles tricky cases like "abba" automatically!
-
----
-
-## Key Takeaways
-
-1. **Two types**: Fixed window (constant size) and dynamic window (variable size)
-2. **Efficiency**: Avoids redundant recalculation by maintaining running state
-3. **HashMap helper**: Often used with hash structures to track elements in window
-4. **Template approach**: Expand window → Check constraints → Shrink if needed → Update result
-5. **From O(n²) to O(n)**: Eliminates nested loops for many substring/subarray problems
-6. **Watch window bounds**: Carefully manage start and end pointers to avoid off-by-one errors
-
----
-
-[← Previous: Two Pointers](./03-two-pointers.md) | [Back to Index](./README.md) | [Next: Fast & Slow Pointers →](./05-fast-slow-pointers.md)
+- [Chapter ?? — Two Pointers](#ch-two-pointers) — the same two indices when the span between them carries no state
+- [Chapter ?? — Prefix Sum](#ch-prefix-sum) — the tool for the same questions once negative values appear
+- [Chapter ?? — Monotonic Stack](#ch-monotonic-stack) — what "sliding window maximum" actually needs

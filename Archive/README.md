@@ -8,6 +8,9 @@ searchable. It is simply invisible to the book build.
 
 Created by improvement #7. Filled by improvements #8 and #20–#31.
 
+`dsa-solutions/` is the one sub-tree whose originals were **replaced rather than removed** — each
+archived file has a trimmed successor at the same name under `DSA/`.
+
 ---
 
 ## Why this exists rather than `git rm`
@@ -53,6 +56,7 @@ Archive/
 ├── foundations/         ← #26: what Part I shed when OOP/ and DesignPatterns/ merged
 │   ├── oop/                 all 7 + README — condensed into two chapters
 │   └── patterns/            3 of 5 — the GoF catalogue, condensed into one chapter
+├── dsa-solutions/       ← #27: the full solution sets, 4 of 16 so far — see its README
 ├── systemdesign/        ← #23–24: what Part VI shed to Parts V and VIII
 │   ├── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
 │   └── security/            all 6 + README — #24; authz, encryption, SSRF, MFA and SSO
