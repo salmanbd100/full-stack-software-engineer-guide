@@ -19,20 +19,24 @@ Attach this file and say **"continue"**. That is the whole instruction. On recei
 | 4 | **Do exactly that one item** | Not the next one too. Not a related tidy-up. One item per session unless told otherwise |
 | 5 | **Verify against "Done when"** | Run the check. If there is nothing runnable, say so plainly rather than implying it passed |
 | 6 | **Mark it complete** | `- [ ]` → `- [x]`, append ` — ✅ **done YYYY-MM-DD**` to the heading, and add a short **Delivered:** block listing what actually shipped and anything deliberately left |
-| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 78` in the header |
+| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 83` in the header |
 | 8 | **Report** | What was done, what was verified, and what was left. Then stop |
 
 **Marking an item done is part of the item.** An item is not finished until steps 6 and 7 are done —
 otherwise the next session starts from the wrong place.
 
 If an item turns out to be wrong, blocked, or already handled, **say so and amend the item** rather than
-silently skipping it or doing something adjacent. Corrections to this plan are expected — two have already
-happened (the budget arithmetic in #1, the frontend-share rule).
+silently skipping it or doing something adjacent. Corrections to this plan are expected — three have already
+happened: the budget arithmetic in #1, the frontend-share rule, and the line-budget attribution that added
+**#31a–#31e** on 2026-08-30.
+
+> **Item ids can carry a letter.** #31a–#31e are Phase 2 items added after the plan was numbered.
+> `scripts/plan-status.ts` sorts `31a` between `31` and `32`, so step 1 finds them in the right place.
 
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-30 · **Progress:** 27 / 78
+**Last updated:** 2026-08-30 · **Progress:** 29 / 83
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -82,7 +86,7 @@ that touch hundreds of files are where the saving actually lands.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31–65, 69, 72–73, 76, 78 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, everything with a voice |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31e, 31–65, 69, 72–73, 76, 78 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31e), everything with a voice |
 | 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 77 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
 
 **The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
@@ -179,7 +183,7 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 | ----- | ----------------------------- | ------- | -------------- | ----- |
 | **0** | Decide & set the rails        | 1–7     | 3–4 sessions   | mixed — see per-item table |
 | **1** | Hygiene & consistency         | 8–19    | 6–8 sessions   | **Sonnet 5** (Opus for 13, 17–18) |
-| **2** | Restructure & prune           | 20–31   | 8–10 sessions  | **Opus 5** (Sonnet for 21, 25, 30) |
+| **2** | Restructure & prune           | 20–31 · 31a–31e | 12–16 sessions | **Opus 5** (Sonnet for 21, 25, 30) |
 | **3** | 🆕 `Frontend/ModernStack/`    | 32–43   | 12–16 sessions | **Opus 5** throughout |
 | **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions | **Opus 5** throughout |
 | **5** | Fill the remaining gaps       | 54–63   | 8–12 sessions  | **Opus 5** throughout |
@@ -2443,7 +2447,7 @@ rule would be a cheap addition to #70.
 
 ---
 
-### - [ ] 28. Rename `SystemDesign/InterviewQuestions/` → `CaseStudies/` and rebalance `M`
+### - [x] 28. Rename `SystemDesign/InterviewQuestions/` → `CaseStudies/` and rebalance `M` — ✅ **done 2026-08-30**
 
 20 case studies, all backend/distributed-systems shaped (Twitter, Uber, YouTube, parking lot). For a
 **frontend-heavy** book this is the wrong balance.
@@ -2456,15 +2460,130 @@ rule would be a cheap addition to #70.
 
 **Done when:** `CaseStudies/` holds 10 backend studies, ready for frontend studies to join them.
 
+**Delivered:**
+
+- `SystemDesign/InterviewQuestions/` is now `SystemDesign/CaseStudies/`, holding **10 chapters**
+  renumbered `01`–`10` in reading order — url-shortener, rate-limiter, typeahead, chat-system,
+  notification-system, news-feed, instagram, api-gateway, distributed-cache, ticketmaster. The
+  numbering now *is* the difficulty ramp the old README described in prose.
+- The other 10 moved to **`Archive/systemdesign/case-studies/`** by `git mv` — Twitter, Uber,
+  WhatsApp, YouTube, Netflix, Amazon, Google Search, Dropbox, web crawler, parking lot.
+- **Correction to this item's own keep/archive list.** It said keep "news feed" and archive
+  "Facebook newsfeed (duplicates news feed)" — but there was never a separate news-feed file. The
+  duplicate pair was `01-twitter.md` and `03-facebook-newsfeed.md`, both fan-out-on-write designs.
+  The README's own `Keep` column and `scripts/add-frontmatter.ts` had already settled it the same
+  way and agreed with each other: **Twitter goes, Facebook Newsfeed stays as the news-feed study.**
+  Its title was already *Design a News Feed*, so it is now `06-news-feed.md`, slug `news-feed`,
+  anchor `#ch-design-news-feed`. Ten in, ten out, exactly as budgeted.
+- **Part-opener README rewritten** — 71 lines, ten-row table, a `What Is Not Here` section naming
+  the archived ten and where they went, and the frontend-studies promise pointed at **#43** rather
+  than the #41 this item's body said (#41 is Tooling; #43 is the frontend case studies).
+- **Cross-references brought to the standard.** All 10 chapters carried a forbidden
+  `[← Back to InterviewQuestions](../README.md)` footer — removed. Nine relative file links in
+  chapter bodies became `#ch-` anchors (`#ch-caching`, `#ch-sharding`, `#ch-realtime-communication`,
+  `#ch-load-balancing`, `#ch-message-queues`, `#ch-database-transactions`,
+  `#ch-design-rate-limiter`). Three pointed at chapters that do not exist — Snowflake internals,
+  pagination, idempotency — and those sentences now stand without a dangling promise.
+- **Two stale slugs fixed:** `interview-questions-api-gateway` → `case-studies-api-gateway` (it was
+  named for a directory that no longer exists; the collision it avoids is with
+  `microservices-api-gateway`, which still holds), and `facebook-newsfeed` → `news-feed`.
+- **Inbound references updated:** `SystemDesign/README.md`'s section table (20 → 10, new path),
+  and `BuildingBlocks/07-search.md` + `08-notifications.md`, whose `**Related:**` lines linked the
+  old paths and now use anchors.
+- **Tags rewritten** on all ten. Every one read `[system, design, interview, questions, <noun>]` —
+  tokenised from the old directory name. Now `[system-design, case-study, <topic>, <topic>]`.
+- **`scripts/add-frontmatter.ts`:** the ten `OUT_OF_BOOK_FILES` entries are gone, replaced by the
+  comment the file already uses for archived-by-move content. Nothing in `scripts/` or CI names
+  `InterviewQuestions` any more.
+- **`Archive/README.md`** tree and **`Archive/systemdesign/README.md`** updated. The latter was also
+  missing its `security/` row from **#24**; added, since the top-level archive index already
+  documented it and the sub-README contradicted it.
+- **Plan corrected:** **#31**'s file list pointed at `CaseStudies/12-rate-limiter.md` and
+  `CaseStudies/17-api-gateway.md`. Repointed at `02-` and `08-` with current line counts.
+
+**Verified:** `pnpm lint:docs` — **262 files** (was 272), every rule still at baseline, `too-long`
+unchanged at 20, `broken-link` and `missing-readme` still **0**. `.lint-baseline.json` needed no
+change; none of the twenty case studies was ever over 400 lines. `book:collect` builds 262 files into
+`build/book.md`, and a scan of the assembled book finds **89 `#ch-` references against 261 unique
+anchors with zero dangling references from `CaseStudies/`**. All ten kept chapters sit between 222
+and 320 lines, inside the 150–400 budget.
+
+**Not done, and not this item's:** the ten chapters use the RADIO section flow (`R — Requirements`,
+`A — Architecture`, …) rather than the Six Blocks, so they have no `## 🔑 Key Takeaways` or
+`## What to Read Next`. That is the whole directory's shape and predates the standard; converting it
+is a rewrite of ten chapters, not a rename. Owner is **#70**.
+
+**Still open, and not this item's:** four dangling anchors book-wide — `ch-preface` and
+`ch-further-reading` (`About-the-Author.md`, waiting on the front matter #72 writes),
+`ch-versioning` (`Backend/API/01`), and `ch-web-performance-caching-strategies`
+(`ShipAndOperate/Cloud/03`). Plus the `ch-deployment-strategies` duplicate anchor logged at #27.
+Owner for all five is **#31** or **#70**; a `duplicate-anchor` and `dangling-anchor` lint rule would
+catch every one of them and is a cheap addition to **#70**.
+
 ---
 
-### - [ ] 29. Trim `Communication/` to book-relevant chapters `S`
+### - [x] 29. Trim `Communication/` to book-relevant chapters `S` — ✅ **done 2026-08-30**
 
 `03-english-fluency.md` (195 lines) is personal ESL practice, not book content — archive it.
 `06-cross-cultural-communication.md` and `09-active-listening.md` are worth keeping but thin.
 Merge `02-behavioral-interview.md` into `Behavioral/` where it belongs (it duplicates STAR material).
 
 **Done when:** `Communication/` is 5–6 focused chapters with no duplication against `Behavioral/`.
+
+**Delivered:**
+
+- `Communication/` is **six chapters**, renumbered `01`–`06`: technical-communication,
+  active-listening, system-design-communication, thinking-aloud, cross-cultural-communication,
+  written-communication. 2,086 lines → **1,659**.
+- **`03-english-fluency.md` archived** to `Archive/communication/` — personal ESL practice, out of
+  scope per `BOOK-SPEC.md` § 6.
+- **`02-behavioral-interview.md` merged into `Behavioral/01-star-framework.md`, then archived.** This
+  was a real merge, not a move: both files taught the four STAR components, a worked example, a
+  story-bank template and a mistakes table. `01-star-framework.md` was rewritten from both — 254
+  lines of pre-standard material (an `## Overview`, a `## Summary`, a back-link footer, American
+  spellings) becomes **192 lines to the Six Blocks**, keeping the percentage time budget and the
+  systemic-fix failure story from the Communication file and the component depth from the Behavioral
+  one. The category question list and the story-bank grid were dropped rather than merged:
+  `Behavioral/02-preparation-grid.md` already owns both at more depth, and duplicating them is what
+  this item exists to stop.
+- **Reading order changed while renumbering.** Active listening moved from last to `02` — it is the
+  habit that stops you answering a question nobody asked, so it belongs beside chapter 01 rather than
+  after the two interview-room chapters. Written communication moved to last, matching the README's
+  own note that it is the chapter to return to on the job rather than before an interview.
+- **`05-problem-solving-communication.md` → `04-thinking-aloud.md`.** Its title and anchor were
+  already *Thinking Aloud*; only the filename and slug still carried the old name. Slug
+  `problem-solving-communication` → `thinking-aloud`.
+- **Five broken `**Related:**` footers rewritten** as `## What to Read Next` blocks with `#ch-`
+  anchors. Every one pointed at relative paths this item renumbered or archived, so they had to
+  change; the standard says what they should change into. `06-written-communication.md` already had
+  a correct block and was left alone.
+- **README rewritten** — six rows, a line pointing behavioural answers at `Behavioral/`, and a
+  reading order that matches the new numbering. The old `⚠️` note announcing this item is gone.
+- `Archive/README.md` tree, a new `Archive/communication/README.md` explaining both files, and
+  `scripts/add-frontmatter.ts` — the `Communication/03-english-fluency.md` entry in
+  `OUT_OF_BOOK_FILES` is replaced by the archived-by-move comment the file uses elsewhere.
+
+**Correction to this item's text:** it named `09-active-listening.md`. Item **#15** renumbered that
+file to `08-` back on 2026-08-28, so the reference was already stale when this item was written.
+
+**Verified:** `pnpm lint:docs` — **261 files** (was 262), every rule at baseline, `broken-link` and
+`missing-readme` still **0**, `too-long` unchanged at 20. `book:collect` assembles 261 files; scanning
+`build/book.md` finds **95 `#ch-` references against 260 unique anchors, with zero dangling references
+from `Communication/` or `Behavioral/`** — the same four pre-existing dangling anchors and one
+duplicate as at #28, none of them touched here. All six chapters are 220–393 lines and the rewritten
+STAR chapter is 192, all inside the 150–400 budget.
+
+**Not done, and not this item's:** the five surviving chapters that were not rewritten still lack
+`## 🔑 Key Takeaways` and `## Interview Questions`. Adding them is the editorial pass at **#76**, and
+doing it here would push Part IX further over a budget it is already well past.
+
+⚠️ **A gap in the plan itself.** `BOOK-SPEC.md` § 5 budgets Part IX at **2,500 lines**, and this
+plan's own line-budget table (§ Where the Line Budget Goes) records a required **−3,400**. Part IX is
+now **4,479 lines** across `Behavioral/` (10 chapters) and `Communication/` (6) — still **1,979 over**
+after this item's 489-line cut. **No item in the plan burns it down**, and two items add to it: #61
+writes six new Behavioural chapters and #64 adds the AI-era interview chapter. `BOOK-SPEC.md` § 6 even
+fixes the order of cuts — Part VIII, then Part IX, then the Part VI case studies — so the cut is
+specified but unowned. This needs either a new Phase 2 item or an explicit widening of #76's remit.
 
 ---
 
@@ -2489,13 +2608,175 @@ Smaller triplicates found:
 
 - **WebSockets:** `Backend/API/06-websockets.md` (365) + `SystemDesign/BuildingBlocks/06-websockets.md` (224)
   + `SystemDesign/Frontend/06-real-time.md` (184)
-- **Rate limiting:** `Backend/API/04-rate-limiting.md` (415) + `SystemDesign/CaseStudies/12-rate-limiter.md` (307)
-- **API gateway:** `SystemDesign/Microservices/03-api-gateway.md` (203) + `CaseStudies/17-api-gateway.md` (258)
+- **Rate limiting:** `Backend/API/04-rate-limiting.md` (415) + `SystemDesign/CaseStudies/02-rate-limiter.md` (323)
+- **API gateway:** `SystemDesign/Microservices/03-api-gateway.md` (203) + `SystemDesign/CaseStudies/08-api-gateway.md` (272)
 
 Keep the implementation chapter in Backend, the design chapter in SystemDesign, and make each explicitly
 cross-reference the other instead of repeating it.
 
 **Done when:** each pair has a clear division of labour and a cross-reference.
+
+---
+
+## The budget items — #31a–#31e
+
+> **Why these exist, and why they are lettered.** Added 2026-08-30, after **#29**.
+>
+> The budget table at the bottom of this plan attributes 92,900 lines of cutting to numbered items.
+> None of those items carries a **line target** in its *Done when* — they say "the directory is
+> gone", "5–6 focused chapters", "each pair has a cross-reference". So each one lands, ticks its
+> box, and under-delivers against a number nobody measures. **#13** caught this for `Frontend/PWA/`
+> on 2026-08-28 and logged it; **#29** caught it again for Part IX. Measuring the whole tree found
+> the real size of it:
+>
+> | Part | Now | Budget | Over | Assigned cutting items | Status |
+> | ---- | --- | ------ | ---- | ---------------------- | ------ |
+> | I — Foundations | 12,601 | 5,000 | **+7,601** | #26 | ✅ all done |
+> | II — Browser Platform | 12,146 | 6,000 | **+6,146** | **none** | 🔴 never assigned |
+> | IV — Frontend at Scale | 6,649 | 5,500 | +1,149 | #42, #57, #58 | pending |
+> | V — Backend | 13,010 | 6,500 | **+6,510** | #24 ✅, #31 `S` | #31 is worth ~600 |
+> | VI — System Design | 13,736 | 6,500 | **+7,236** | #22, #23, #28 | ✅ all done |
+> | VIII — Ship and Operate | 6,046 | 5,500 | +546 | #20, #25 | ✅ all done |
+> | IX — Human Layer | 4,553 | 2,500 | **+2,053** | #25, #29 | ✅ all done |
+> | Appendix — DSA | 4,610 | 5,600 | −990 ✅ | #27 | ✅ done |
+>
+> **31,241 lines over, and 23,582 of it with no remaining owner.** Parts III and VII then add 19,500
+> lines that have not been written yet, so the book as planned lands near **88,000 against a 57,000
+> budget and a 60,000 hard ceiling**.
+>
+> These five items own the cut. They are lettered rather than numbered 32–36 because inserting them
+> would renumber forty-seven items and every `#N` reference between them; numbering them 79–83 would
+> put Phase 2 work at the far end of Phase 7. `scripts/plan-status.ts` understands the suffix and
+> sorts `31a` between `31` and `32`.
+>
+> **They come before Phase 3 deliberately.** Writing 19,500 new lines on top of an already
+> over-budget book is how the cut stops being possible at all.
+
+**The check is now machine-run.** `pnpm lint:docs` has a `budget` rule reading the ceilings straight
+out of [BOOK-SPEC.md § 5](./BOOK-SPEC.md) and measuring the tree against them. It is counted in
+**lines, not occurrences** — the summed overage across every part — so a part cannot grow without the
+number moving. Baseline: **31,241**. Like every other rule it ratchets down; commit the lower number.
+
+---
+
+### - [ ] 31a. Trim Part I — Foundations — to its 5,000-line budget `L`
+
+**+7,601 over.** `#26` merged `OOP/` into `Backend/DesignPatterns/` and was the only cutting item
+assigned to this part. It did what it said and the part is still 2.5× its ceiling.
+
+| Directory | Files | Lines | Note |
+| --------- | ----- | ----- | ---- |
+| `Frontend/JavaScript` | 11 | **8,558** | The whole overage lives here. `01` is 525, `02` is 761, `03` is 776 — nine of the eleven are over the 400-line chapter limit |
+| `Frontend/TypeScript` | 9 | 2,479 | Roughly at budget already |
+| `Backend/DesignPatterns` | 6 | 1,564 | Post-#26, already condensed |
+
+BOOK-SPEC § 5 budgets this part at **~22 chapters**; it holds 26. The work is almost entirely
+`Frontend/JavaScript` — the same trim `#27` did to DSA, applied to the language chapters: keep the
+mechanism and the interview-relevant depth, cut the exhaustive API tours.
+
+**Done when:** `pnpm lint:docs` reports Part 1 at or under its BOOK-SPEC § 5 budget.
+
+---
+
+### - [ ] 31b. Trim Part II — Browser Platform — to its 6,000-line budget `L`
+
+**+6,146 over, and never assigned to anyone.** The budget table counts a 6,200-line "browser platform
+trimmed (PWA is 6,002 lines today)" cut with no item behind it. `#13` flagged this on 2026-08-28;
+this item is the answer.
+
+| Directory | Files | Lines | Note |
+| --------- | ----- | ----- | ---- |
+| `Frontend/PWA` | 7 | **5,836** | The entire overage. Every chapter over 400 lines, three over 1,000 |
+| `Frontend/HtmlCss` | 9 | 2,394 | Fine |
+| `Frontend/Internationalization` | 5 | 1,483 | Fine |
+| `Frontend/CSSArchitecture` | 6 | 1,277 | Fine |
+| `Frontend/BrowserAPIs` | 5 | 1,156 | Fine |
+
+⚠️ **Ask the scope question first.** PWA at 5,836 lines is larger than Part IX entire. A senior
+frontend loop asks about service workers, caching strategy and offline UX — it does not ask for a
+full PWA manual. Consider whether this is six chapters trimmed to ~220 each, or **three chapters**
+plus an archive, the way `#20` treated DevOps.
+
+**Done when:** `pnpm lint:docs` reports Part 2 at or under its BOOK-SPEC § 5 budget.
+
+---
+
+### - [ ] 31c. Trim Part V — Backend — to its 6,500-line budget `L`
+
+**+6,510 over.** `#24` consolidated security and is done. `#31` dedups three topic pairs and is worth
+roughly 600 lines — a tenth of what is needed.
+
+| Directory | Files | Lines |
+| --------- | ----- | ----- |
+| `Backend/Security` | 9 | 2,836 |
+| `Backend/SQL` | 9 | 2,389 |
+| `Backend/API` | 7 | 2,336 |
+| `Backend/NodeJS` | 9 | 2,185 |
+| `Backend/Testing` | 7 | 1,602 |
+| `Backend/NoSQL` | 7 | 1,597 |
+
+BOOK-SPEC § 5 budgets **~30 chapters**; there are 49. No single directory is the problem — the part is
+uniformly about twice the size it should be, which makes this a chapter-count decision rather than a
+line-trimming one. `Backend/Security` at 2,836 lines is the first place to look, since `#24` moved
+content *into* it.
+
+🔴 **Ordering: run after #31.** #31 moves rate limiting and API gateway material between Part V and
+Part VI. Trimming first means trimming lines that are about to move anyway.
+
+**Done when:** `pnpm lint:docs` reports Part 5 at or under its BOOK-SPEC § 5 budget.
+
+---
+
+### - [ ] 31d. Trim Part VI — System Design — to its 6,500-line budget `L`
+
+**+7,236 over, with every assigned item already complete** — `#22`, `#23` and `#28` between them
+delivered 6,464 of the 13,700 lines the budget table credits them with.
+
+| Directory | Files | Lines |
+| --------- | ----- | ----- |
+| `SystemDesign/Database` | 11 | 2,750 |
+| `SystemDesign/CaseStudies` | 11 | 2,702 |
+| `SystemDesign/BuildingBlocks` | 12 | 2,608 |
+| `SystemDesign/Fundamentals` | 9 | 2,050 |
+| `SystemDesign/Microservices` | 9 | 1,946 |
+| `SystemDesign/Frontend` | 8 | 1,601 |
+
+BOOK-SPEC § 5 budgets **~34 chapters**; there are 61. Six sections at roughly 2,000–2,700 lines each
+is the shape of the problem: no section is individually wrong, and the part is 2.1× its ceiling.
+
+⚠️ `SystemDesign/Frontend` is the one section to **protect** — it is the part of Part VI this book's
+reader is most likely to be examined on, and `#42` moves half of it to Part IV anyway.
+
+**Done when:** `pnpm lint:docs` reports Part 6 at or under its BOOK-SPEC § 5 budget.
+
+---
+
+### - [ ] 31e. Trim Parts IV, VIII and IX to their budgets `M`
+
+The three small overages, together because none is a session on its own. **+3,748 total.**
+
+| Part | Now | Budget | Over | Chapters now | § 5 says |
+| ---- | --- | ------ | ---- | ------------ | -------- |
+| IV — Frontend at Scale | 6,649 | 5,500 | +1,149 | 29 | ~24 |
+| VIII — Ship and Operate | 6,046 | 5,500 | +546 | 28 | ~22 |
+| IX — Human Layer | 4,553 | 2,500 | **+2,053** | 19 | ~18 |
+
+**Part IX is a chapter-count problem, not a length problem** — and that distinction is the whole item.
+All 19 of its chapters are already inside the 150–400 line standard; the longest is 394. Hitting 2,500
+lines means roughly **eleven** chapters, not nineteen. `Behavioral/` (10) and `Communication/` (6)
+overlap by subject — communication stories, conflict, cross-cultural work — and the merge candidates
+are obvious once the two indexes are read side by side.
+
+⚠️ **#61 and #64 both add to Part IX.** #61 writes six new Behavioural chapters and #64 adds the
+AI-era interview chapter. Either this item leaves headroom for seven more chapters, or #61's list gets
+cut to fit. Decide it here rather than discovering it at #64.
+
+Parts IV and VIII are ordinary trims: IV is `Frontend/WebPerformance` (2,300) and `Frontend/Testing`
+(1,947); VIII is evenly spread across six sections at 741–1,182 lines each.
+
+🔴 **Ordering: run after #42, #57 and #58** for Part IV — all three move content into or out of it.
+
+**Done when:** `pnpm lint:docs` reports Parts 4, 8 and 9 at or under their BOOK-SPEC § 5 budgets.
 
 ---
 
@@ -3081,13 +3362,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31   | 8/12 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 10/17 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **27/78** | **35%**   |
+| **Total** | **83** | **29/83** | **35%**   |
 
 ---
 
@@ -3137,6 +3418,28 @@ current tree; content is mapped to its destination part, so `DevOps/Agile` count
 | **Total added**                                         | **19,500**  |
 
 **92,900 out, 19,500 in, net −73,400.**
+
+> 🔴 **This table was aspirational, and it went unchecked for nine items.** Corrected 2026-08-30,
+> after **#29**.
+>
+> Every row above credits a set of items with a line total, but **no item's *Done when* contains a
+> line target** — they are worded as structural outcomes ("the directory is gone", "5–6 focused
+> chapters"). An item can therefore be finished, correct, and still deliver a fraction of the cut
+> attributed to it, with nothing to notice. Measured against the tree on 2026-08-30:
+>
+> | Row | Credited | Actually delivered | Items | Owner of the rest |
+> | --- | -------- | ------------------ | ----- | ----------------- |
+> | DevOps archived | 34,600 | ~34,050 | #20, #25 ✅ | **#31e** (+546) |
+> | SystemDesign deduped | 13,700 | ~6,464 | #22, #23, #28 ✅ | **#31d** (+7,236) |
+> | DSA trimmed | 13,500 | 14,490 ✅ **over-delivered** | #27 ✅ | — |
+> | Foundations consolidated | 12,500 | ~4,899 | #26 ✅ | **#31a** (+7,601) |
+> | Browser platform trimmed | 6,200 | 54 | **no item existed** | **#31b** (+6,146) |
+> | Backend deduped | 5,800 | ~0 so far | #24 ✅, #31 pending | **#31c** (+6,510) |
+> | Human layer condensed | 3,400 | 1,683 | #25, #29 ✅ | **#31e** (+2,053) |
+> | Frontend-at-scale net trim | 1,300 | 0 so far | #42, #57, #58 pending | **#31e** (+1,149) |
+>
+> The `budget` rule in `pnpm lint:docs` now measures this every run, so the gap cannot reopen
+> silently. **#31a–#31e** own the 31,241 lines still outstanding.
 
 > The book gets **shorter and far more valuable**. Roughly 62% of the cutting is DevOps and DSA bulk, and
 > **a third of the final book (Parts III and VII) is content that does not exist yet.**

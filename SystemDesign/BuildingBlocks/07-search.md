@@ -240,7 +240,7 @@ An enterprise document portal indexes 10M PDFs and Word documents. Extracted tex
 
 > Search is a read-optimized, eventually consistent projection of your data. Never force your primary database to serve full-text search at scale. Design search as a separate write target from day one.
 
-**Related:** [Message Queues](./05-message-queues.md) · [Interview: Typeahead](../InterviewQuestions/16-typeahead.md)
+**Related:** [Message Queues](./05-message-queues.md) · [Chapter ?? — Design Typeahead](#ch-design-typeahead)
 
 ---
 

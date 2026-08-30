@@ -5,8 +5,8 @@ chapter: 0
 slug: url-shortener
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-08-28
-tags: [system, design, interview, questions, url]
+updated: 2026-08-30
+tags: [system-design, case-study, url-shortener, caching]
 in_book: true
 ---
 
@@ -183,7 +183,7 @@ function encodeBase62(num: bigint): string {
 | Random string | Simple | Collision check needed, not sortable |
 | Base62(Snowflake ID) | No collisions, sortable, compact | Requires ID service |
 
-✅ Use Base62-encoded Snowflake ID. Snowflake gives unique IDs across distributed servers without coordination at query time. See [../BuildingBlocks/](../BuildingBlocks/) for Snowflake internals.
+✅ Use Base62-encoded Snowflake ID. Snowflake gives unique IDs across distributed servers without coordination at query time.
 
 ### 2. Redirect Type — 301 vs 302
 
@@ -271,8 +271,5 @@ Each API server runs its own Snowflake generator with a unique machine ID (assig
 
 **Q: What if Redis goes down? Does the whole redirect system fail?**
 
-No — fall through to Cassandra. Redirect latency spikes from ~5ms to ~50ms, but the system stays available. This is a planned degradation path. See [../BuildingBlocks/](../BuildingBlocks/) for cache fallback patterns.
+No — fall through to Cassandra. Redirect latency spikes from ~5ms to ~50ms, but the system stays available. This is a planned degradation path — see [Chapter ?? — Caching](#ch-caching) for the fallback patterns.
 
----
-
-[← Back to InterviewQuestions](../README.md)

@@ -2,7 +2,7 @@
 title: Thinking Aloud
 part: 9
 chapter: 0
-slug: problem-solving-communication
+slug: thinking-aloud
 level: intermediate # beginner | intermediate | advanced
 reading_time: 7
 updated: 2026-08-28
@@ -259,6 +259,8 @@ Is that more along the lines of what you were thinking?"
 
 > **Remember:** "Think every single step out loud" is not optional — it's the whole point of a coding interview.
 
----
+## What to Read Next
 
-**Related:** [Technical Communication](./01-technical-communication.md) | [Active Listening](./08-active-listening.md) | [System Design Communication](./04-system-design-communication.md)
+- [Chapter ?? — Active Listening](#ch-active-listening) — understanding the problem before you narrate a solution to it
+- [Chapter ?? — Technical Communication](#ch-technical-communication) — the vocabulary that makes the narration land
+- [Chapter ?? — System Design Communication](#ch-system-design-communication) — the same habit at a larger scale

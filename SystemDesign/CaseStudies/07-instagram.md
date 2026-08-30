@@ -5,8 +5,8 @@ chapter: 0
 slug: instagram
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
-tags: [system, design, interview, questions, instagram]
+updated: 2026-08-30
+tags: [system-design, case-study, instagram, media]
 in_book: true
 ---
 
@@ -229,10 +229,8 @@ A: Skip fan-out on write for accounts above a follower threshold (for example, 5
 A: Pre-compute the feed for active users. When a user opens the app, serve from the Redis sorted set instantly. Background-refresh the cache as new posts arrive via Kafka fan-out.
 
 **Q: How do you shard the Posts DB?**
-A: Shard by `authorId`. All posts from the same user land on the same shard — profile pages read from one shard. Feed reads scatter across shards but are mediated by the cache. See [../Database/sharding.md](../Database/).
+A: Shard by `authorId`. All posts from the same user land on the same shard — profile pages read from one shard. Feed reads scatter across shards but are mediated by the cache. See [Chapter ?? — Sharding](#ch-sharding).
 
 **Q: How do you handle image deduplication?**
 A: Hash the image bytes (SHA-256) before upload. If the hash already exists in S3, return the existing CDN URL. This saves storage for re-shared memes and screenshots.
 
----
-[← Back to InterviewQuestions](../README.md)

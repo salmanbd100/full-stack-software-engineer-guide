@@ -5,8 +5,8 @@ chapter: 0
 slug: distributed-cache
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-28
-tags: [system, design, interview, questions, distributed]
+updated: 2026-08-30
+tags: [system-design, case-study, caching, consistent-hashing]
 in_book: true
 ---
 
@@ -272,5 +272,3 @@ A: Memcached is simpler — pure key-value, multi-threaded, lower memory overhea
 **Q: How do you size the cache cluster?**
 A: Target 20% of working-set data in cache (Pareto principle). Measure hit rate — if below 80%, add memory. If above 95%, you can reduce. Start with `(peak RPS × p99 object size) × replication_factor` as initial sizing.
 
----
-[← Back to InterviewQuestions](../README.md)

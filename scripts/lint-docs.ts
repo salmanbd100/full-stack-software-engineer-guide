@@ -22,7 +22,14 @@
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { ALLOWED_FENCES, EXCLUDED_DIRS, loadBook, type Doc } from "./lib/book.ts";
+import {
+  ALLOWED_FENCES,
+  EXCLUDED_DIRS,
+  PART_NAMES,
+  loadBook,
+  partBudgets,
+  type Doc,
+} from "./lib/book.ts";
 
 const ROOT: string = process.cwd();
 const BASELINE_FILE: string = join(ROOT, ".lint-baseline.json");
@@ -52,7 +59,8 @@ type RuleId =
   | "fence-language"
   | "too-long"
   | "missing-readme"
-  | "heading-jump";
+  | "heading-jump"
+  | "budget";
 
 const RULE_TITLES: Readonly<Record<RuleId, string>> = {
   "front-matter": "Missing or invalid front matter",
@@ -61,7 +69,22 @@ const RULE_TITLES: Readonly<Record<RuleId, string>> = {
   "too-long": `File over ${MAX_LINES} lines with in_book: true`,
   "missing-readme": "Content directory with no README.md",
   "heading-jump": "Heading level jump",
+  budget: "Lines over the BOOK-SPEC § 5 part budget",
 };
+
+/**
+ * `budget` is counted in **lines, not occurrences** — improvement #29.
+ *
+ * Every other rule counts violations, and one violation is one thing to fix. A part being
+ * over budget is not one thing to fix; it is a number that has to come down. Counting
+ * over-budget parts instead would let Part I grow by five thousand lines without the count
+ * moving — which is precisely the failure this rule exists to catch. Six items ticked their
+ * boxes while the book drifted past its ceiling, and nothing measured it.
+ *
+ * So the tally here is the summed overage. The baseline ratchets it down exactly like the
+ * others: cutting lowers it, growth fails CI.
+ */
+const COUNTED_IN_LINES: ReadonlySet<RuleId> = new Set<RuleId>(["budget"]);
 
 interface Violation {
   rule: RuleId;
@@ -237,6 +260,42 @@ function checkLength(doc: Doc): void {
 }
 
 // ---------------------------------------------------------------------------
+// Whole-book rule — part line budgets
+// ---------------------------------------------------------------------------
+
+/**
+ * Measure each part against its `BOOK-SPEC.md` § 5 ceiling.
+ *
+ * Parts III and VII are empty until #32–43 and #44–53 write them, so they sit far *under*
+ * budget and report nothing. That is correct: this rule guards the ceiling, not the floor.
+ */
+function checkBudgets(docs: Doc[]): number {
+  const budgets: Map<number, number> = partBudgets(ROOT);
+  const actual = new Map<number, number>();
+
+  for (const doc of docs) {
+    if (doc.part === 0) continue;
+    actual.set(doc.part, (actual.get(doc.part) ?? 0) + doc.lines);
+  }
+
+  let overage = 0;
+  for (const [part, budget] of [...budgets].sort((a, b) => a[0] - b[0])) {
+    const lines: number = actual.get(part) ?? 0;
+    if (lines <= budget) continue;
+    const over: number = lines - budget;
+    overage += over;
+    report(
+      "budget",
+      `Part ${part} — ${PART_NAMES[part]}`,
+      1,
+      `${lines.toLocaleString()} lines against a ${budget.toLocaleString()} budget (+${over.toLocaleString()})`,
+    );
+  }
+
+  return overage;
+}
+
+// ---------------------------------------------------------------------------
 // Directory rule
 // ---------------------------------------------------------------------------
 
@@ -274,10 +333,13 @@ for (const doc of docs) {
   checkLength(doc);
 }
 checkReadmes();
+const budgetOverage: number = checkBudgets(docs);
 
 const counts: Record<string, number> = {};
 for (const rule of Object.keys(RULE_TITLES)) counts[rule] = 0;
 for (const v of violations) counts[v.rule]++;
+// See COUNTED_IN_LINES — this rule's tally is the summed overage, not the row count.
+counts["budget"] = budgetOverage;
 
 const baseline: Record<string, number> = existsSync(BASELINE_FILE)
   ? (JSON.parse(readFileSync(BASELINE_FILE, "utf8")) as Record<string, number>)
@@ -309,14 +371,21 @@ for (const rule of Object.keys(RULE_TITLES) as RuleId[]) {
   if (over) regressed = true;
 
   const mark: string = count === 0 ? "✅" : over ? "❌" : "•";
-  const budget: string = count === 0 ? "" : over ? `  (baseline ${limit} — REGRESSED)` : `  (baseline ${limit})`;
-  console.log(`  ${mark} ${String(count).padStart(4)}  ${RULE_TITLES[rule]}${budget}`);
+  const unit: string = COUNTED_IN_LINES.has(rule) ? " lines" : "";
+  const budget: string =
+    count === 0 ? "" : over ? `  (baseline ${limit}${unit} — REGRESSED)` : `  (baseline ${limit}${unit})`;
+  console.log(`  ${mark} ${String(count).padStart(6)}  ${RULE_TITLES[rule]}${budget}`);
 
   // Three examples per rule keeps the report readable; --rule=<id> prints them all.
-  for (const v of violations.filter((x: Violation) => x.rule === rule).slice(0, 3)) {
+  // `budget` is the exception: it has one row per part, so the whole list is the report.
+  const rows: Violation[] = violations.filter((x: Violation) => x.rule === rule);
+  const shownRows: Violation[] = COUNTED_IN_LINES.has(rule) ? rows : rows.slice(0, 3);
+  for (const v of shownRows) {
     console.log(`         ${v.file}:${v.line}  ${v.message}`);
   }
-  if (count > 3) console.log(`         … ${count - 3} more — pnpm lint:docs --rule=${rule}`);
+  if (rows.length > shownRows.length) {
+    console.log(`         … ${rows.length - shownRows.length} more — pnpm lint:docs --rule=${rule}`);
+  }
 }
 
 // Advisory, not a rule: the standard's lower bound is a merge prompt, not a failure.

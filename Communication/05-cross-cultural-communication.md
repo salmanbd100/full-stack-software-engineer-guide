@@ -217,6 +217,8 @@ an unexpected state, but wanted your input before merging."
 - Health, personal relationships
 - Controversial current events
 
----
+## What to Read Next
 
-**Related:** [English Fluency](./03-english-fluency.md) | [Written Communication](./07-written-communication.md) | [Active Listening](./08-active-listening.md)
+- [Chapter ?? — Active Listening](#ch-active-listening) — hearing an objection that was phrased as agreement
+- [Chapter ?? — Written Communication](#ch-written-communication) — writing for readers who do not share your defaults
+- [Chapter ?? — Ways of Working](#ch-ways-of-working) — the rituals a distributed team uses to close the same gap

@@ -2,11 +2,11 @@
 title: Design an API Gateway
 part: 6
 chapter: 0
-slug: interview-questions-api-gateway
+slug: case-studies-api-gateway
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-28
-tags: [system, design, interview, questions, api]
+updated: 2026-08-30
+tags: [system-design, case-study, api-gateway, edge]
 in_book: true
 ---
 
@@ -230,7 +230,7 @@ interface GatewayHealthResponse {
 
 > The gateway is not a microservice. It is infrastructure. Keep it thin — authentication, routing, rate limiting. Any logic beyond that belongs in a dedicated service.
 
-See [../BuildingBlocks/01-load-balancing.md](../BuildingBlocks/01-load-balancing.md) for L4 vs L7 trade-offs and [12-rate-limiter.md](./12-rate-limiter.md) for sliding-window algorithm details.
+See [Chapter ?? — Load Balancing](#ch-load-balancing) for L4 vs L7 trade-offs and [Chapter ?? — Design a Rate Limiter](#ch-design-rate-limiter) for sliding-window algorithm details.
 
 ## Common Follow-up Questions
 
@@ -270,5 +270,3 @@ A: Two options. First, an Aggregation Gateway pattern: a thin service behind the
 
 State these numbers to show you understand the gateway is a thin, high-throughput layer — not a compute-heavy service. The bottleneck is almost always Redis or network, not CPU.
 
----
-[← Back to InterviewQuestions](../README.md)

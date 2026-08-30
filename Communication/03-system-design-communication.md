@@ -235,6 +235,8 @@ users, pull for celebrities. It balances write cost with read speed."
 | Monologue for 15 minutes | Pause every 5 min: "Does this make sense?" |
 | Vague performance claims | Back everything with numbers |
 
----
+## What to Read Next
 
-**Related:** [Technical Communication](./01-technical-communication.md) | [Problem-Solving Communication](./05-problem-solving-communication.md)
+- [Chapter ?? — Technical Communication](#ch-technical-communication) — the order a listener needs the pieces in
+- [Chapter ?? — Thinking Aloud](#ch-thinking-aloud) — the coding-round equivalent of narrating a diagram
+- [Chapter ?? — Active Listening](#ch-active-listening) — scoping the prompt before you draw anything

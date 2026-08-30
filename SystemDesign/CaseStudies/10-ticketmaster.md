@@ -5,8 +5,8 @@ chapter: 0
 slug: ticketmaster
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-08-28
-tags: [system, design, interview, questions, ticketmaster]
+updated: 2026-08-30
+tags: [system-design, case-study, ticketing, concurrency]
 in_book: true
 ---
 
@@ -265,7 +265,7 @@ interface CancelBookingResponse {
 
 > The virtual queue is the architectural difference that separates Ticketmaster-scale systems from naive ones. Without it, 1M simultaneous users all reach the database and either crash it or starve each other out. The queue converts chaos into a controlled, metered flow.
 
-See [../Database/06-transactions.md](../Database/06-transactions.md) for optimistic locking patterns, [12-rate-limiter.md](./12-rate-limiter.md) for token bucket algorithms, and [../BuildingBlocks/05-message-queues.md](../BuildingBlocks/05-message-queues.md) for the Kafka confirmation event pipeline.
+See [Chapter ?? — Database Transactions](#ch-database-transactions) for optimistic locking patterns, [Chapter ?? — Design a Rate Limiter](#ch-design-rate-limiter) for token bucket algorithms, and [Chapter ?? — Message Queues and Event Streaming](#ch-message-queues) for the Kafka confirmation event pipeline.
 
 ## Common Follow-up Questions
 
@@ -284,5 +284,3 @@ A: Booking status moves to "refunded". Stripe refund is initiated via API. Seats
 **Q: How do you scale the queue service globally?**
 A: Each event has its own queue, sharded by `eventId`. Use Redis Sorted Sets (score = join timestamp) for O(log n) position tracking. Each region runs its own queue instance, but token issuance is coordinated through a global Redis cluster to maintain global position fairness.
 
----
-[← Back to InterviewQuestions](../README.md)

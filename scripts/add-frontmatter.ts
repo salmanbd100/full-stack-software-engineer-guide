@@ -160,20 +160,11 @@ const OUT_OF_BOOK_FILES: readonly string[] = [
   // #20 and #25 — the individual files Docker, CI/CD, Observability, Cloud, Kubernetes and Agile
   // shed are now under Archive/devops/, which findMarkdown() skips. No entries needed.
 
-  // #28 — case studies keep 10 of 20; these are the backend-heaviest
-  "SystemDesign/InterviewQuestions/01-twitter.md",
-  "SystemDesign/InterviewQuestions/04-uber.md",
-  "SystemDesign/InterviewQuestions/05-whatsapp.md",
-  "SystemDesign/InterviewQuestions/06-youtube.md",
-  "SystemDesign/InterviewQuestions/07-netflix.md",
-  "SystemDesign/InterviewQuestions/08-amazon.md",
-  "SystemDesign/InterviewQuestions/09-google-search.md",
-  "SystemDesign/InterviewQuestions/10-dropbox.md",
-  "SystemDesign/InterviewQuestions/15-web-crawler.md",
-  "SystemDesign/InterviewQuestions/19-parking-lot.md",
+  // #28 — the 10 case studies CaseStudies/ shed are now under Archive/systemdesign/case-studies/,
+  // which findMarkdown() skips. No entries needed. InterviewQuestions/ is now CaseStudies/.
 
-  // #29 — personal ESL practice, not book content
-  "Communication/03-english-fluency.md",
+  // #29 — the two files Communication/ shed are now under Archive/communication/, which
+  // findMarkdown() skips. No entries needed.
 ];
 
 // ---------------------------------------------------------------------------

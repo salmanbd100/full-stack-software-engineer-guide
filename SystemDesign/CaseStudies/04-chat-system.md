@@ -5,8 +5,8 @@ chapter: 0
 slug: chat-system
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
-updated: 2026-08-28
-tags: [system, design, interview, questions, chat]
+updated: 2026-08-30
+tags: [system-design, case-study, chat, websockets]
 in_book: true
 ---
 
@@ -197,7 +197,7 @@ Use **ULIDs** (Universally Unique Lexicographically Sortable IDs) as `messageId`
 
 ### Storage Tiers
 
-Messages are write-heavy. Cassandra partitions by `chatId` and sorts by `messageId`. Hot chats (last 7 days) stay in SSD tier. Messages older than 90 days move to S3 (cold storage). See [../Database/cassandra.md](../Database/) for partitioning strategy.
+Messages are write-heavy. Cassandra partitions by `chatId` and sorts by `messageId`. Hot chats (last 7 days) stay in SSD tier. Messages older than 90 days move to S3 (cold storage). See [Chapter ?? — Sharding](#ch-sharding) for the partitioning strategy.
 
 ### Presence at Scale
 
@@ -209,7 +209,7 @@ Redis pub/sub handles presence updates. Each WebSocket gateway publishes a heart
 A: The ULID in `messageId` encodes the server-assigned timestamp. Clients sort their local message list by `messageId`. The server is the source of truth — client-generated `clientSeqId` is only for dedup, not ordering.
 
 **Q: How do you handle the WebSocket gateway going down?**
-A: The `userId → gatewayNode` mapping lives in Redis. When a gateway crashes, clients reconnect automatically. The new gateway registers itself in Redis. In-flight messages are replayed from Kafka (retain 24 h). See [../BuildingBlocks/websockets.md](../BuildingBlocks/).
+A: The `userId → gatewayNode` mapping lives in Redis. When a gateway crashes, clients reconnect automatically. The new gateway registers itself in Redis. In-flight messages are replayed from Kafka (retain 24 h). See [Chapter ?? — Real-Time Communication](#ch-realtime-communication).
 
 **Q: How do you store messages efficiently for 500 M users?**
 A: Cassandra shards by `chatId`. A single chat's messages stay on the same partition for sequential reads. Cold messages move to S3 after 90 days. Estimate: 300 K msg/s × 1 KB avg = 300 MB/s write throughput — manageable with a 20-node Cassandra cluster.
@@ -220,5 +220,3 @@ A: Each message has a `DeliveryReceipt` row per recipient. The sender's client a
 **Q: How do you handle typing indicators without overloading the server?**
 A: The client sends a `typing_start` WebSocket event and then throttles — no more than one event per 3 s. The server broadcasts via Redis pub/sub to other chat members. The indicator auto-hides after 5 s with no new event.
 
----
-[← Back to InterviewQuestions](../README.md)

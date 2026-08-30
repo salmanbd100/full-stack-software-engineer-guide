@@ -31,7 +31,7 @@ client, optimistic updates, conflict resolution — and `Frontend/` is where it 
 | [Database](./Database/README.md)                                     | 10       | Sharding, replication, isolation, consistency, modelling          |
 | [Frontend System Design](./Frontend/README.md)                       | 13       | The rounds this reader is most likely to face and least ready for |
 | [Microservices](./Microservices/README.md)                           | 8        | Boundaries, resilience, observability across services             |
-| [Case Studies](./InterviewQuestions/README.md)                       | 20       | Worked answers, cut to ten by improvement #28                     |
+| [Case Studies](./CaseStudies/README.md)                              | 10       | Worked answers — backend today, frontend studies join at #43      |
 
 ## The RADIO Framework
 

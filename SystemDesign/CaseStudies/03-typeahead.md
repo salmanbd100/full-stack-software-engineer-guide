@@ -5,8 +5,8 @@ chapter: 0
 slug: typeahead
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-08-28
-tags: [system, design, interview, questions, typeahead]
+updated: 2026-08-30
+tags: [system-design, case-study, typeahead, latency]
 in_book: true
 ---
 
@@ -264,5 +264,3 @@ State these numbers confidently — they justify the caching and sharding decisi
 
 The trie wins on read latency. Its weakness is rebuild time — a full English trie with 1M entries takes 30–60 seconds to build. Use incremental updates for high-velocity queries to bridge the gap between full rebuilds.
 
----
-[← Back to InterviewQuestions](../README.md)

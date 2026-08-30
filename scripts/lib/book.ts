@@ -119,6 +119,62 @@ const PART_BY_PREFIX: readonly [string, number][] = [
   ["DSA", 10],
 ];
 
+// ---------------------------------------------------------------------------
+// Line budgets — BOOK-SPEC.md § 5
+// ---------------------------------------------------------------------------
+
+const ROMAN: Readonly<Record<string, number>> = {
+  I: 1,
+  II: 2,
+  III: 3,
+  IV: 4,
+  V: 5,
+  VI: 6,
+  VII: 7,
+  VIII: 8,
+  IX: 9,
+};
+
+/** A budget-summary row: `| **III — Modern Stack** 🆕 | ~46 | **12,000** | **21%** |` */
+const BUDGET_ROW =
+  /^\|\s*\**\s*(I{1,3}|IV|VI{0,3}|IX|Appendix)\s*—[^|]*\|[^|]*\|\s*\**\s*([\d,]+)\s*\**\s*\|/;
+
+/**
+ * Per-part line ceilings, **read from `BOOK-SPEC.md` § 5** rather than copied here.
+ *
+ * The spec is the contract. A second copy of these numbers inside a script is a second
+ * thing to forget to update, and improvement #29 found exactly that failure: the plan's
+ * budget table claimed cuts that six completed items had not delivered, and nothing
+ * compared either number to the tree. Edit § 5; this follows.
+ *
+ * Throws rather than guessing if § 5 stops being parseable — a budget check that silently
+ * measures against nothing is worse than no budget check.
+ */
+export function partBudgets(root: string): Map<number, number> {
+  const spec: string = readFileSync(join(root, "BOOK-SPEC.md"), "utf8");
+  const budgets = new Map<number, number>();
+
+  for (const line of spec.split("\n")) {
+    const m = BUDGET_ROW.exec(line);
+    if (!m) continue;
+    const part: number = m[1] === "Appendix" ? 10 : ROMAN[m[1]];
+    if (part === undefined) continue;
+    budgets.set(part, Number(m[2].replace(/,/g, "")));
+  }
+
+  const missing: number[] = Object.keys(PART_NAMES)
+    .map(Number)
+    .filter((p: number) => !budgets.has(p));
+  if (missing.length > 0) {
+    throw new Error(
+      `BOOK-SPEC.md § 5: no budget row found for part(s) ${missing.join(", ")}. ` +
+        `The budget summary table has changed shape — update BUDGET_ROW in scripts/lib/book.ts.`,
+    );
+  }
+
+  return budgets;
+}
+
 /** Files whose destination part is not their current directory (#25, #42). */
 const PART_OVERRIDES: Readonly<Record<string, number>> = {
   "SystemDesign/Frontend/01-architecture.md": 4,

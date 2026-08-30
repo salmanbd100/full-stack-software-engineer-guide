@@ -5,8 +5,8 @@ chapter: 0
 slug: rate-limiter
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-08-28
-tags: [system, design, interview, questions, rate]
+updated: 2026-08-30
+tags: [system-design, case-study, rate-limiting, algorithms]
 in_book: true
 ---
 
@@ -318,6 +318,3 @@ Store the tier in the JWT or look it up from a user service (cached in Redis for
 
 Use Redis Cluster with sharding by key prefix. Rate limit keys already shard well — `rl:user:{userId}` distributes uniformly. Add a local in-process cache with a 100ms TTL as a first layer. Under steady traffic, the local cache absorbs 80%+ of checks; Redis only sees bursts and first-requests.
 
----
-
-[← Back to InterviewQuestions](../README.md)

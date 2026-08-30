@@ -57,10 +57,12 @@ Archive/
 │   ├── oop/                 all 7 + README — condensed into two chapters
 │   └── patterns/            3 of 5 — the GoF catalogue, condensed into one chapter
 ├── dsa-solutions/       ← #27: the full solution sets, 4 of 16 so far — see its README
-├── systemdesign/        ← #23–24: what Part VI shed to Parts V and VIII
+├── communication/       ← #29: 2 of 8 + README — the STAR duplicate and the ESL practice
+├── systemdesign/        ← #23–24, #28: what Part VI shed to Parts V and VIII, and to balance
 │   ├── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
-│   └── security/            all 6 + README — #24; authz, encryption, SSRF, MFA and SSO
-│                                moved into Backend/Security/ first
+│   ├── security/            all 6 + README — #24; authz, encryption, SSRF, MFA and SSO
+│   │                            moved into Backend/Security/ first
+│   └── case-studies/        10 of 20 — #28; the backend-heaviest, CaseStudies/ keeps 10
 └── devops/              ← #20: the 98 files DevOps/ shed, plus genai/ (#21) and agile/ (#25)
     ├── README.md            the old 1,378-line DevOps curriculum index
     ├── agile/               all 8 + README — #25; two Part IX chapters were written from it first

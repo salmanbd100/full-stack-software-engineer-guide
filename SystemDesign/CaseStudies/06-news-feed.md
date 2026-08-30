@@ -2,15 +2,15 @@
 title: Design a News Feed
 part: 6
 chapter: 0
-slug: facebook-newsfeed
+slug: news-feed
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
-tags: [system, design, interview, questions, facebook]
+updated: 2026-08-30
+tags: [system-design, case-study, news-feed, ranking]
 in_book: true
 ---
 
-# Design a News Feed {#ch-design-facebook-newsfeed}
+# Design a News Feed {#ch-design-news-feed}
 
 > Rank a feed at read time on a candidate set, rather than sorting everything a user could see.
 
@@ -223,7 +223,7 @@ A: EdgeRank (affinity × time decay × content weight) is the baseline. Producti
 A: A user with 5000 friends can receive ~500 posts/hour during peak times. The feed cache stores the top 1500 scored entries. Fan-out workers batch-insert and trim the sorted set atomically. Feed reads always hit the cache — no DB query needed for active users.
 
 **Q: How do you keep the feed consistent across devices?**
-A: The cursor-based pagination uses the score as the cursor. The same cursor on any device returns the same slice of the feed. New posts above the cursor appear in the "new posts" banner. See [../BuildingBlocks/pagination.md](../BuildingBlocks/).
+A: The cursor-based pagination uses the score as the cursor. The same cursor on any device returns the same slice of the feed. New posts above the cursor appear in the "new posts" banner.
 
 **Q: What happens when a user unfriends someone?**
 A: The fan-out service stops sending new posts. Existing posts from that person remain in the feed cache until they age out or the cache is rebuilt. For immediate removal, a background job scans and prunes the feed cache — this is eventually consistent, which is acceptable.
@@ -231,5 +231,3 @@ A: The fan-out service stops sending new posts. Existing posts from that person 
 **Q: How would you add Stories (24-hour expiry content)?**
 A: Stories are a separate data model with a hard TTL. Fan-out works the same way, but the feed cache entry has a TTL equal to the story expiry. A background sweeper removes expired story IDs from feed caches.
 
----
-[← Back to InterviewQuestions](../README.md)

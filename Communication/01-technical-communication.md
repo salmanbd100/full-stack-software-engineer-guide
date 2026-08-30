@@ -242,6 +242,8 @@ Let me trace through the example to verify..."
 
 > **Key insight:** Interviewers evaluate *how you think*, not just what you produce. Narrate every decision.
 
----
+## What to Read Next
 
-**Related:** [Behavioral Interview](./02-behavioral-interview.md) | [System Design Communication](./04-system-design-communication.md) | [Problem-Solving Communication](./05-problem-solving-communication.md)
+- [Chapter ?? — System Design Communication](#ch-system-design-communication) — the same ordering rule applied to a whiteboard
+- [Chapter ?? — Thinking Aloud](#ch-thinking-aloud) — what to say in a coding round when you are still deciding
+- [Chapter ?? — The STAR Framework](#ch-star-framework) — the ordering rule for a story rather than a design

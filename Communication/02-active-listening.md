@@ -213,6 +213,8 @@ Interviewer: "Do you have any questions for me?"
 > **Key insight:** Most interview answers fail not because of missing knowledge,
 > but because of misunderstanding the question. Listening is the highest-leverage skill.
 
----
+## What to Read Next
 
-**Related:** [Technical Communication](./01-technical-communication.md) | [Problem-Solving Communication](./05-problem-solving-communication.md) | [Cross-Cultural Communication](./06-cross-cultural-communication.md)
+- [Chapter ?? — Technical Communication](#ch-technical-communication) — what to do with the question once you have understood it
+- [Chapter ?? — Thinking Aloud](#ch-thinking-aloud) — clarifying out loud without stalling
+- [Chapter ?? — Cross-Cultural Communication](#ch-cross-cultural-communication) — when a room signals disagreement in ways you are not used to hearing

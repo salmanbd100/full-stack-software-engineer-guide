@@ -5,8 +5,8 @@ chapter: 0
 slug: notification-system
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
-updated: 2026-08-28
-tags: [system, design, interview, questions, notification]
+updated: 2026-08-30
+tags: [system-design, case-study, notifications, fan-out]
 in_book: true
 ---
 
@@ -220,7 +220,7 @@ Email fails (primary SMTP)
 ## Common Follow-up Questions
 
 **Q: How do you prevent duplicate notifications on retry?**
-A: Every notification has a UUID idempotency key. Workers write a "processing" record to Redis before calling the provider. On retry, the key is already present — skip the send. See [../BuildingBlocks/idempotency.md](../BuildingBlocks/) for the pattern.
+A: Every notification has a UUID idempotency key. Workers write a "processing" record to Redis before calling the provider. On retry, the key is already present — skip the send.
 
 **Q: How do you handle a celebrity / high-fan-out event?**
 A: Batch fan-out into chunks of 10 K recipients. Each chunk is a separate Kafka message consumed by a worker pool. This avoids a single huge job blocking the queue.
@@ -234,5 +234,3 @@ A: Push requires an installed app and device token. In-app uses a WebSocket and 
 **Q: How do you track open rates?**
 A: Embed a 1×1 tracking pixel (email) or a deep-link callback (push). On click/load, the client calls `POST /v1/notifications/:id/event` with `type: "opened"`.
 
----
-[← Back to InterviewQuestions](../README.md)
