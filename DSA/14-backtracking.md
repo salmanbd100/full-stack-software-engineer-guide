@@ -3,1542 +3,319 @@ title: Backtracking
 part: 10
 chapter: 0
 slug: backtracking
-level: intermediate # beginner | intermediate | advanced
-reading_time: 48
-updated: 2026-08-28
-tags: [dsa, backtracking]
+level: advanced # beginner | intermediate | advanced
+reading_time: 11
+updated: 2026-08-30
+tags: [dsa, backtracking, recursion, combinatorics]
 in_book: true
 ---
 
 # Backtracking {#ch-backtracking}
 
-> Build a candidate, abandon it the moment it cannot work, and undo cleanly.
+> Choose, recurse, un-choose — and prune the branches that cannot possibly work before you walk them.
 
-**In this chapter:** choose–explore–unchoose · subsets · generating parentheses · permutations · pruning · complexity
+**In this chapter:** the three-step template · why the result must be a copy · the `i + 1` that separates subsets from permutations · handling duplicates by sorting and skipping · pruning, which is the only thing that makes it tractable · the complexities you must state up front
 
-## What is Backtracking? (In Simple Words)
+## 💡 The Core Idea
 
-Imagine you're in a **corn maze** trying to find the exit. You have a strategy:
+Backtracking is depth-first search over a space of *candidate answers* rather than a fixed graph. At each
+step you make one choice, explore everything that follows from it, then undo the choice and try the next.
 
-**Backtracking Strategy:**
-1. Walk down a path
-2. If you hit a dead end → **Turn around** (backtrack!)
-3. Try a different path
-4. Keep exploring until you find the exit
+Trying on outfits is the everyday version: put on a shirt, try every pair of trousers with it, take the
+shirt off, try the next one. The undo is what makes it backtracking rather than plain recursion — the
+state is shared, so it has to be returned to how you found it.
 
-**The key insight:** When you realize a path won't work, you **don't start over from the beginning** - you just go back to the last decision point and try something different!
-
-### Real-World Analogy: Choosing Your Outfit
-
-You're getting ready for a party and need to pick an outfit:
+Three lines carry every problem in the family:
 
 ```text
-Wardrobe:
-Shirts: [Red, Blue]
-Pants: [Jeans, Khakis]
-Shoes: [Sneakers, Boots]
-
-Backtracking Approach:
-1. Try: Red shirt + Jeans + Sneakers
-   → "Hmm, sneakers with red don't match"
-   → BACKTRACK! (Remove sneakers)
-
-2. Try: Red shirt + Jeans + Boots
-   → "Perfect! This works!"
-   → Add to "Valid Outfits" list
-
-3. BACKTRACK to remove Jeans, try:
-   Red shirt + Khakis + Sneakers
-   → "This looks good too!"
-   → Add to list
-
-4. Keep exploring ALL combinations...
+choose    → push the option onto the current partial answer
+explore   → recurse
+un-choose → pop it back off
 ```
 
-**This is backtracking:** Try choices, if they don't work, **undo** and try something else!
+> The difference between backtracking and brute force is **pruning**. N-Queens on an 8×8 board has
+> 4,426,165,368 possible placements and 92 solutions. Rejecting a partial board the moment two queens
+> attack each other is what turns an impossible search into an instant one.
 
-### Another Analogy: Sudoku Puzzle
+## How It Works
 
-When solving Sudoku:
-
-```text
-You fill in a number:
-  "Let's try 5 here..."
-
-A few moves later:
-  "Wait, this creates a conflict! 5 can't work."
-
-BACKTRACK:
-  - Erase the 5
-  - Try 6 instead
-  - Continue from there
-
-You're EXPLORING all possibilities but UNDOING bad choices!
-```
-
----
-
-## Pattern Overview
-
-**Backtracking** is an algorithmic technique that explores all possible solutions by incrementally building candidates and abandoning ("backtracking") those that fail to satisfy constraints. It's essentially a refined brute force approach with pruning.
-
-### When to Use
-- Finding all permutations or combinations
-- Solving constraint satisfaction problems
-- Generating all valid solutions
-- N-Queens, Sudoku solver
-- Subset problems
-- Path finding with constraints
-
-### Key Characteristics
-- Explores all possibilities systematically
-- Abandons invalid paths early (pruning)
-- Uses recursion with state management
-- Builds solution incrementally
-- Backtracks when constraint violated
-
-### Pattern Identification
-Look for this pattern when you see:
-- "Find **all** permutations"
-- "Generate **all** combinations"
-- "Find **all valid** solutions"
-- "N-Queens problem"
-- "Sudoku solver"
-- "Generate parentheses"
-- "Word search"
-- "Subset sum"
-- "Partition problems"
-
----
-
-## Understanding Backtracking: The Three Steps
-
-Every backtracking problem follows this template:
-
-```text
-BACKTRACKING TEMPLATE:
-
-1. CHOOSE (make a decision)
-   - Pick an option from available choices
-   - Add it to current solution
-
-2. EXPLORE (recurse with the choice)
-   - Recursively explore what happens with this choice
-   - See if it leads to a valid solution
-
-3. UNCHOOSE (backtrack)
-   - Remove the choice you just made
-   - This "undoes" the choice, letting you try another option
-```
-
-### Visual Example: Finding All Subsets of [1, 2]
-
-```text
-Decision Tree:
-
-                    []
-                    |
-        +-----------+-----------+
-        |                       |
-     Choose 1              Don't choose 1
-        |                       |
-      [1]                      []
-        |                       |
-    +---+---+               +---+---+
-    |       |               |       |
-Choose 2  Don't         Choose 2  Don't
-    |       |               |       |
-  [1,2]   [1]             [2]      []
-
-All subsets: [], [1], [2], [1,2]
-
-At each node:
-1. CHOOSE: Add an element (or don't)
-2. EXPLORE: Recurse to next element
-3. UNCHOOSE: Remove element to try other options
-```
-
----
-
-## The Backtracking Pattern Visualized
-
-### Maze Exploration Example
-
-```text
-Maze:
-S . . #
-# . # .
-. . . E
-
-S = Start, E = Exit, # = Wall, . = Open
-
-Backtracking exploration:
-
-Step 1: Try going RIGHT
-  S → . . #
-
-Step 2: Keep going RIGHT
-  S → → . #
-
-Step 3: Hit wall! BACKTRACK
-  S → . ← #
-        ↑
-     (went back)
-
-Step 4: Try going DOWN
-  S → .
-  ↓
-  .
-
-Step 5: Continue exploring...
-  Eventually find path to E!
-
-KEY: When you hit a wall (constraint violated),
-you DON'T start over - you just go back one step!
-```
-
----
-
-## Example 1: Subsets (TypeScript)
-
-### Problem
-Given an integer array `nums` of unique elements, return all possible subsets (the power set). The solution set must not contain duplicate subsets.
-
-**LeetCode**: [78. Subsets](https://leetcode.com/problems/subsets/)
-
-### Solution
+### Subsets — the template
 
 ```typescript
-/**
- * Generate all subsets using backtracking
- */
 function subsets(nums: number[]): number[][] {
-    const result: number[][] = [];
+  const results: number[][] = [];
+  const current: number[] = [];
 
-    function backtrack(start: number, currentSubset: number[]): void {
-        // Add current subset to result (deep copy)
-        result.push([...currentSubset]);
+  const explore = (start: number): void => {
+    results.push([...current]);   // every node in the tree is a valid subset — copy it
 
-        // Try adding each remaining number
-        for (let i = start; i < nums.length; i++) {
-            // CHOOSE: Add nums[i] to current subset
-            currentSubset.push(nums[i]);
-
-            // EXPLORE: Recurse with next index
-            backtrack(i + 1, currentSubset);
-
-            // UNCHOOSE: Remove nums[i] (backtrack)
-            currentSubset.pop();
-        }
-    }
-
-    backtrack(0, []);
-    return result;
-}
-
-/**
- * Alternative: Iterative approach
- */
-function subsetsIterative(nums: number[]): number[][] {
-    const result: number[][] = [[]];  // Start with empty subset
-
-    for (const num of nums) {
-        const size: number = result.length;
-        // For each existing subset, create new subset by adding current num
-        for (let i = 0; i < size; i++) {
-            result.push([...result[i], num]);
-        }
-    }
-
-    return result;
-}
-
-// Example usage
-console.log(subsets([1, 2, 3]));
-// Output: [[], [1], [2], [1,2], [3], [1,3], [2,3], [1,2,3]]
-
-console.log(subsets([0]));
-// Output: [[], [0]]
-
-console.log(subsetsIterative([1, 2, 3]));
-// Output: [[], [1], [2], [1,2], [3], [1,3], [2,3], [1,2,3]]
-```
-
-### Detailed Code Walkthrough: Backtracking Subsets
-
-Let's trace through `subsets([1, 2, 3])` step by step:
-
-```typescript
-function backtrack(start: number, currentSubset: number[]): void {
-    // STEP 1: Add current state to result
-    result.push([...currentSubset]);
-    // Why? Every state is a valid subset!
-    // Even the empty set []
-
-    // STEP 2: Try adding each remaining element
     for (let i = start; i < nums.length; i++) {
-        // STEP 3: CHOOSE - Add element
-        currentSubset.push(nums[i]);
-        // Modify the state: "Let's include this element"
-
-        // STEP 4: EXPLORE - Recurse
-        backtrack(i + 1, currentSubset);
-        // See where this choice leads us
-
-        // STEP 5: UNCHOOSE - Backtrack
-        currentSubset.pop();
-        // Undo the choice: "Let's try without this element"
+      current.push(nums[i]);      // choose
+      explore(i + 1);             // explore — i + 1 forbids reuse and fixes the order
+      current.pop();              // un-choose
     }
+  };
+
+  explore(0);
+  return results;
 }
+// Time: O(n × 2ⁿ) — 2ⁿ subsets, each costing O(n) to copy. Space: O(n) excluding the output
 ```
 
-**Complete Execution Trace:**
+Two lines deserve attention.
 
-```text
-Initial call: backtrack(0, [])
+`results.push([...current])` must be a copy. Pushing `current` itself stores a reference to an array that
+`pop()` is about to mutate, so every entry in `results` ends up as the same empty array. This is the most
+common backtracking bug and it is silent — the code runs, the answer is wrong.
 
-Call Stack Evolution:
-
-backtrack(0, [])
-  result = [[]]  ← Add empty set
-
-  i=0: CHOOSE 1
-    currentSubset = [1]
-
-    backtrack(1, [1])
-      result = [[], [1]]  ← Add [1]
-
-      i=1: CHOOSE 2
-        currentSubset = [1, 2]
-
-        backtrack(2, [1,2])
-          result = [[], [1], [1,2]]  ← Add [1,2]
-
-          i=2: CHOOSE 3
-            currentSubset = [1, 2, 3]
-
-            backtrack(3, [1,2,3])
-              result = [[], [1], [1,2], [1,2,3]]  ← Add [1,2,3]
-              Loop ends (start=3, nums.length=3)
-
-            UNCHOOSE 3: currentSubset = [1, 2]
-
-          Loop ends
-
-        UNCHOOSE 2: currentSubset = [1]
-
-      i=2: CHOOSE 3
-        currentSubset = [1, 3]
-
-        backtrack(3, [1,3])
-          result = [[], [1], [1,2], [1,2,3], [1,3]]  ← Add [1,3]
-          Loop ends
-
-        UNCHOOSE 3: currentSubset = [1]
-
-      Loop ends
-
-    UNCHOOSE 1: currentSubset = []
-
-  i=1: CHOOSE 2
-    currentSubset = [2]
-
-    backtrack(2, [2])
-      result = [..., [2]]  ← Add [2]
-
-      i=2: CHOOSE 3
-        currentSubset = [2, 3]
-
-        backtrack(3, [2,3])
-          result = [..., [2,3]]  ← Add [2,3]
-
-        UNCHOOSE 3: currentSubset = [2]
-
-    UNCHOOSE 2: currentSubset = []
-
-  i=2: CHOOSE 3
-    currentSubset = [3]
-
-    backtrack(3, [3])
-      result = [..., [3]]  ← Add [3]
-
-    UNCHOOSE 3: currentSubset = []
-
-FINAL result = [[], [1], [1,2], [1,2,3], [1,3], [2], [2,3], [3]]
-```
-
-**Visual Decision Tree:**
-
-```text
-                    []
-                    ↓ (add to result)
-        +-----------+-----------+
-        |           |           |
-      [1]          [2]         [3]
-        ↓           ↓           ↓
-   +----+----+   +--+--+
-   |         |   |     |
- [1,2]     [1,3] [2,3]
-   ↓
-[1,2,3]
-
-Each node is added to result!
-Arrows represent "CHOOSE" decisions
-Coming back up is "UNCHOOSE" (backtracking)
-```
-
----
-
-## Example 2: Generate Parentheses (TypeScript)
-
-### Problem
-Given `n` pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
-
-**LeetCode**: [22. Generate Parentheses](https://leetcode.com/problems/generate-parentheses/)
-
-### Solution
+`explore(i + 1)` is where subsets and permutations diverge. Passing `i + 1` means each element is
+considered once and only in increasing index order, so `[1, 2]` is generated and `[2, 1]` is not.
+Permutations need every unused element available at every position, which is a different loop:
 
 ```typescript
-/**
- * Generate all valid parentheses combinations using backtracking
- */
+function permute(nums: number[]): number[][] {
+  const results: number[][] = [];
+  const current: number[] = [];
+  const used: boolean[] = new Array(nums.length).fill(false);
+
+  const explore = (): void => {
+    if (current.length === nums.length) {
+      results.push([...current]);   // only complete arrangements count
+      return;
+    }
+    for (let i = 0; i < nums.length; i++) {   // from 0 every time, not from `start`
+      if (used[i]) continue;
+      used[i] = true;
+      current.push(nums[i]);
+      explore();
+      current.pop();
+      used[i] = false;              // undo *both* pieces of state
+    }
+  };
+
+  explore();
+  return results;
+}
+// Time: O(n × n!), Space: O(n) excluding the output
+```
+
+| Question type    | Loop starts at | Recurse with  | Result recorded            |
+| ---------------- | -------------- | ------------- | -------------------------- |
+| Subsets          | `start`        | `i + 1`       | At every node               |
+| Combinations     | `start`        | `i + 1`       | When the size reaches `k`   |
+| Permutations     | `0`            | no index, `used[]` instead | When the length reaches `n` |
+| Combination Sum (reuse allowed) | `start` | `i`      | When the remainder hits 0   |
+
+That table is the whole family. Getting the wrong row is what makes an answer contain duplicates or miss
+arrangements.
+
+### Pruning
+
+Pruning is a `return` placed as early as the constraint allows. Generate Parentheses is the clearest case
+— rather than generating all `2ⁿ` strings and filtering the valid ones, it only ever builds valid
+prefixes:
+
+```typescript
 function generateParenthesis(n: number): string[] {
-    const result: string[] = [];
+  const results: string[] = [];
 
-    /**
-     * Build valid parentheses strings
-     * @param current - Current string being built
-     * @param openCount - Number of '(' added so far
-     * @param closeCount - Number of ')' added so far
-     */
-    function backtrack(current: string, openCount: number, closeCount: number): void {
-        // Base case: if we've used all parentheses
-        if (current.length === 2 * n) {
-            result.push(current);
-            return;
-        }
-
-        // Choice 1: Add '(' if we haven't used all opening brackets
-        if (openCount < n) {
-            // CHOOSE '('
-            // EXPLORE
-            backtrack(current + '(', openCount + 1, closeCount);
-            // UNCHOOSE (automatic - string is immutable)
-        }
-
-        // Choice 2: Add ')' if it doesn't exceed opening brackets
-        if (closeCount < openCount) {
-            // CHOOSE ')'
-            // EXPLORE
-            backtrack(current + ')', openCount, closeCount + 1);
-            // UNCHOOSE (automatic)
-        }
-    }
-
-    backtrack('', 0, 0);
-    return result;
-}
-
-// Example usage
-// Example 1
-console.log(generateParenthesis(3));
-// Output: ["((()))", "(()())", "(())()", "()(())", "()()()"]
-
-// Example 2
-console.log(generateParenthesis(1));
-// Output: ["()"]
-
-// Example 3
-console.log(generateParenthesis(2));
-// Output: ["(())", "()()"]
-```
-
-### Detailed Explanation: Generate Parentheses
-
-**The Constraints (Pruning Rules):**
-
-1. **Can add '('** → Only if we haven't used all `n` opening brackets
-2. **Can add ')'** → Only if it doesn't exceed the number of '(' used
-
-These constraints PRUNE invalid paths early!
-
-```typescript
-function backtrack(current: string, openCount: number, closeCount: number): void {
-    // BASE CASE: Complete string
+  const explore = (current: string, open: number, close: number): void => {
     if (current.length === 2 * n) {
-        result.push(current);  // Found a valid combination!
-        return;
+      results.push(current);
+      return;
     }
+    // Two prunes: never exceed n opens, never close more than is open
+    if (open < n) explore(current + '(', open + 1, close);
+    if (close < open) explore(current + ')', open, close + 1);
+  };
 
-    // CONSTRAINT 1: Can we add '('?
-    if (openCount < n) {
-        // Yes! We haven't used all opening brackets
-        backtrack(current + '(', openCount + 1, closeCount);
-    }
-
-    // CONSTRAINT 2: Can we add ')'?
-    if (closeCount < openCount) {
-        // Yes! We have more '(' than ')', so adding ')' is valid
-        backtrack(current + ')', openCount, closeCount + 1);
-    }
+  explore('', 0, 0);
+  return results;
 }
+// Time: O(4ⁿ / √n) — the nth Catalan number. Space: O(n) of recursion depth
 ```
 
-**Why these constraints work:**
+`close < open` is the prune. Without it the recursion explores `")("` and every dead branch below it.
+With it, no invalid string is ever built, so the work is proportional to the number of *answers* rather
+than the number of candidates.
 
-```text
-VALID:   (())
-- Open '(' first (open=1, close=0)
-- Open another '(' (open=2, close=0)
-- Close ')' (open=2, close=1) ← close < open, OK!
-- Close ')' (open=2, close=2) ← close < open, OK!
+⚠️ Strings are immutable in JavaScript, so `current + '('` allocates a new string each call. That is fine
+at these sizes and keeps the code short, but for a long build use an array with push/pop as in the
+subsets template.
 
-INVALID: ())(
-- Open '(' (open=1, close=0)
-- Close ')' (open=1, close=1)
-- Close ')' (open=1, close=2) ← close > open, INVALID!
+### Duplicates
 
-The constraint `close_count < open_count` prevents this!
-```
-
-### Visual Trace for n=2
-
-```text
-Call Stack Evolution:
-
-backtrack("", 0, 0)
-  len(0) != 4, not done
-  open(0) < 2? YES → Add '('
-
-  backtrack("(", 1, 0)
-    len(1) != 4, not done
-    open(1) < 2? YES → Add '('
-
-    backtrack("((", 2, 0)
-      len(2) != 4, not done
-      open(2) < 2? NO → Can't add '('
-      close(0) < 2? YES → Add ')'
-
-      backtrack("(()", 2, 1)
-        len(3) != 4, not done
-        open(2) < 2? NO
-        close(1) < 2? YES → Add ')'
-
-        backtrack("(())", 2, 2)
-          len(4) == 4 → Add "(())" to result! ✓
-          return
-
-    close(0) < 1? YES → Add ')'
-
-    backtrack("()", 1, 1)
-      len(2) != 4, not done
-      open(1) < 2? YES → Add '('
-
-      backtrack("()(", 2, 1)
-        len(3) != 4, not done
-        open(2) < 2? NO
-        close(1) < 2? YES → Add ')'
-
-        backtrack("()()", 2, 2)
-          len(4) == 4 → Add "()()" to result! ✓
-          return
-
-FINAL result = ["(())", "()()"]
-```
-
-**Decision Tree:**
-
-```text
-                    ""
-                    |
-                   "("
-                   / \
-                 /     \
-               "(("     "()"
-               |         |
-             "(()"     "()("
-               |         |
-            "(())"    "()()"
-               ✓         ✓
-
-Key:
-- Left branch: Add '('
-- Right branch: Add ')'
-- ✓ = Valid complete solution
-- Constraints prevent invalid branches!
-```
-
----
-
-## Example 3: Permutations (TypeScript)
-
-### Problem
-Given an array `nums` of distinct integers, return all possible permutations.
-
-**LeetCode**: [46. Permutations](https://leetcode.com/problems/permutations/)
-
-### Solution
-
-```typescript
-/**
- * Generate all permutations using backtracking
- */
-function permute(nums: number[]): number[][] {
-    const result: number[][] = [];
-
-    function backtrack(currentPerm: number[], remaining: number[]): void {
-        // Base case: no more elements to add
-        if (remaining.length === 0) {
-            result.push([...currentPerm]);
-            return;
-        }
-
-        // Try each remaining element in current position
-        for (let i = 0; i < remaining.length; i++) {
-            // CHOOSE: Pick remaining[i]
-            currentPerm.push(remaining[i]);
-
-            // Create new remaining array without chosen element
-            const newRemaining: number[] = [...remaining.slice(0, i), ...remaining.slice(i + 1)];
-
-            // EXPLORE: Recurse with chosen element removed
-            backtrack(currentPerm, newRemaining);
-
-            // UNCHOOSE: Remove chosen element
-            currentPerm.pop();
-        }
-    }
-
-    backtrack([], nums);
-    return result;
-}
-
-/**
- * Alternative: Using visited tracking
- */
-function permuteWithVisited(nums: number[]): number[][] {
-    const result: number[][] = [];
-    const visited: Set<number> = new Set();
-
-    function backtrack(currentPerm: number[]): void {
-        // Base case: permutation is complete
-        if (currentPerm.length === nums.length) {
-            result.push([...currentPerm]);
-            return;
-        }
-
-        // Try adding each unvisited number
-        for (let i = 0; i < nums.length; i++) {
-            if (visited.has(i)) continue;  // Skip if already used
-
-            // CHOOSE
-            currentPerm.push(nums[i]);
-            visited.add(i);
-
-            // EXPLORE
-            backtrack(currentPerm);
-
-            // UNCHOOSE
-            currentPerm.pop();
-            visited.delete(i);
-        }
-    }
-
-    backtrack([]);
-    return result;
-}
-
-// Example usage
-console.log(permute([1, 2, 3]));
-// Output: [[1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1]]
-
-console.log(permute([0, 1]));
-// Output: [[0,1], [1,0]]
-```
-
-### Visual Trace: Permutations of [1, 2, 3]
-
-```text
-Decision Tree (Choosing positions):
-
-                        []
-          /             |             \
-        [1]            [2]            [3]
-       /   \          /   \          /   \
-    [1,2] [1,3]    [2,1] [2,3]    [3,1] [3,2]
-      |     |        |     |        |     |
-   [1,2,3] [1,3,2] [2,1,3] [2,3,1] [3,1,2] [3,2,1]
-      ✓     ✓        ✓      ✓       ✓      ✓
-
-Level 0: Choose first element (3 choices)
-Level 1: Choose second element (2 choices)
-Level 2: Choose third element (1 choice)
-
-Total: 3! = 6 permutations
-```
-
-**Step-by-Step Execution:**
-
-```text
-backtrack([], [1,2,3])
-  remaining.length=3, not done
-
-  i=0: CHOOSE 1
-    currentPerm = [1]
-    newRemaining = [2, 3]
-
-    backtrack([1], [2,3])
-      remaining.length=2, not done
-
-      i=0: CHOOSE 2
-        currentPerm = [1, 2]
-        newRemaining = [3]
-
-        backtrack([1,2], [3])
-          remaining.length=1, not done
-
-          i=0: CHOOSE 3
-            currentPerm = [1, 2, 3]
-            newRemaining = []
-
-            backtrack([1,2,3], [])
-              remaining.length=0 → Add [1,2,3] to result! ✓
-
-            UNCHOOSE 3: currentPerm = [1, 2]
-
-      i=1: CHOOSE 3
-        currentPerm = [1, 3]
-        newRemaining = [2]
-
-        backtrack([1,3], [2])
-          ... eventually adds [1,3,2] ✓
-
-        UNCHOOSE 3: currentPerm = [1]
-
-    UNCHOOSE 1: currentPerm = []
-
-  i=1: CHOOSE 2
-    ... (continues for [2,1,3] and [2,3,1])
-
-  i=2: CHOOSE 3
-    ... (continues for [3,1,2] and [3,2,1])
-
-FINAL: 6 permutations
-```
-
----
-
-## Time & Space Complexity
-
-### Example 1: Subsets
-- **Time Complexity**: O(n × 2^n)
-  - 2^n subsets (each element: include or exclude)
-  - O(n) to copy each subset
-- **Space Complexity**: O(n) - Recursion depth
-
-### Example 2: Generate Parentheses
-- **Time Complexity**: O(4^n / √n) - Catalan number
-- **Space Complexity**: O(n) - Recursion depth
-
-### Example 3: Permutations
-- **Time Complexity**: O(n × n!)
-  - n! permutations
-  - O(n) to copy each permutation
-- **Space Complexity**: O(n) - Recursion depth
-
----
-
-## Common Variations
-
-1. **Subsets and Combinations**
-   - LeetCode: [78. Subsets](https://leetcode.com/problems/subsets/)
-   - LeetCode: [90. Subsets II](https://leetcode.com/problems/subsets-ii/) (with duplicates)
-   - LeetCode: [77. Combinations](https://leetcode.com/problems/combinations/)
-   - LeetCode: [39. Combination Sum](https://leetcode.com/problems/combination-sum/)
-
-2. **Permutations**
-   - LeetCode: [46. Permutations](https://leetcode.com/problems/permutations/)
-   - LeetCode: [47. Permutations II](https://leetcode.com/problems/permutations-ii/) (with duplicates)
-   - LeetCode: [31. Next Permutation](https://leetcode.com/problems/next-permutation/)
-
-3. **Constraint Satisfaction**
-   - LeetCode: [22. Generate Parentheses](https://leetcode.com/problems/generate-parentheses/)
-   - LeetCode: [51. N-Queens](https://leetcode.com/problems/n-queens/)
-   - LeetCode: [37. Sudoku Solver](https://leetcode.com/problems/sudoku-solver/)
-
-4. **String/Array Search**
-   - LeetCode: [79. Word Search](https://leetcode.com/problems/word-search/)
-   - LeetCode: [212. Word Search II](https://leetcode.com/problems/word-search-ii/)
-
-5. **Partition Problems**
-   - LeetCode: [131. Palindrome Partitioning](https://leetcode.com/problems/palindrome-partitioning/)
-   - LeetCode: [698. Partition to K Equal Sum Subsets](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/)
-
----
-
-## Practice Problems
-
-### Easy
-1. [78. Subsets](https://leetcode.com/problems/subsets/)
-2. [77. Combinations](https://leetcode.com/problems/combinations/)
-
-### Medium
-3. [46. Permutations](https://leetcode.com/problems/permutations/)
-4. [22. Generate Parentheses](https://leetcode.com/problems/generate-parentheses/)
-5. [39. Combination Sum](https://leetcode.com/problems/combination-sum/)
-6. [40. Combination Sum II](https://leetcode.com/problems/combination-sum-ii/)
-7. [79. Word Search](https://leetcode.com/problems/word-search/)
-8. [131. Palindrome Partitioning](https://leetcode.com/problems/palindrome-partitioning/)
-9. [17. Letter Combinations of a Phone Number](https://leetcode.com/problems/letter-combinations-of-a-phone-number/)
-10. [93. Restore IP Addresses](https://leetcode.com/problems/restore-ip-addresses/)
-
-### Hard
-11. [51. N-Queens](https://leetcode.com/problems/n-queens/)
-12. [37. Sudoku Solver](https://leetcode.com/problems/sudoku-solver/)
-13. [52. N-Queens II](https://leetcode.com/problems/n-queens-ii/)
-
----
-
-## Common Pitfalls (Mistakes to Avoid)
-
-### 1. Forgetting to Make a Copy When Adding to Result
-
-**WRONG:**
-```typescript
-function subsets(nums: number[]): number[][] {
-    const result: number[][] = [];
-
-    function backtrack(start: number, currentSubset: number[]): void {
-        result.push(currentSubset);  // BUG: Adds reference!
-
-        for (let i = start; i < nums.length; i++) {
-            currentSubset.push(nums[i]);
-            backtrack(i + 1, currentSubset);
-            currentSubset.pop();
-        }
-    }
-
-    backtrack(0, []);
-    return result;
-}
-```
-
-**Problem:** `currentSubset` is modified throughout, so all references in `result` point to the same array!
-
-**Output:** `[[], [], [], [], [], [], [], []]` - all empty!
-
-**RIGHT:**
-```typescript
-result.push([...currentSubset]);  // Make a COPY!
-```
-
----
-
-### 2. Not Backtracking (Forgetting to Undo)
-
-**WRONG:**
-```typescript
-function permute(nums: number[]): number[][] {
-    const result: number[][] = [];
-
-    function backtrack(currentPerm: number[], remaining: number[]): void {
-        if (remaining.length === 0) {
-            result.push([...currentPerm]);
-            return;
-        }
-
-        for (let i = 0; i < remaining.length; i++) {
-            currentPerm.push(remaining[i]);  // CHOOSE
-            backtrack(currentPerm, remaining);  // EXPLORE
-            // BUG: Forgot to UNCHOOSE!
-        }
-    }
-
-    backtrack([], nums);
-    return result;
-}
-```
-
-**Problem:** Without `pop()`, `currentPerm` keeps growing and never explores other branches correctly!
-
-**RIGHT:**
-```typescript
-currentPerm.push(remaining[i]);  // CHOOSE
-backtrack(currentPerm, newRemaining);  // EXPLORE
-currentPerm.pop();                // UNCHOOSE - Critical!
-```
-
----
-
-### 3. Modifying Loop Variable During Iteration
-
-**WRONG:**
-```typescript
-for (let i = start; i < nums.length; i++) {
-    currentSubset.push(nums[i]);
-    backtrack(i, currentSubset);  // BUG: Should be i+1!
-    currentSubset.pop();
-}
-```
-
-**Problem:** Using `i` instead of `i+1` causes infinite recursion! Same index gets processed repeatedly.
-
-**RIGHT:**
-```typescript
-backtrack(i + 1, currentSubset);  // Move to NEXT index
-```
-
----
-
-### 4. Not Handling Duplicates Correctly
-
-**WRONG (for arrays with duplicates):**
-```typescript
-function subsetsWithDup(nums: number[]): number[][] {
-    const result: number[][] = [];
-
-    function backtrack(start: number, currentSubset: number[]): void {
-        result.push([...currentSubset]);
-
-        for (let i = start; i < nums.length; i++) {
-            // BUG: No duplicate check!
-            currentSubset.push(nums[i]);
-            backtrack(i + 1, currentSubset);
-            currentSubset.pop();
-        }
-    }
-
-    backtrack(0, []);
-    return result;
-}
-
-// Input: [1, 2, 2]
-// Wrong output: [[], [1], [1,2], [1,2,2], [1,2], [2], [2,2], [2]]
-//                                       ^^^^^ duplicate!
-```
-
-**RIGHT:**
-```typescript
-function subsetsWithDup(nums: number[]): number[][] {
-    nums.sort((a, b) => a - b);  // Sort first!
-    const result: number[][] = [];
-
-    function backtrack(start: number, currentSubset: number[]): void {
-        result.push([...currentSubset]);
-
-        for (let i = start; i < nums.length; i++) {
-            // Skip duplicates at same level
-            if (i > start && nums[i] === nums[i - 1]) continue;
-
-            currentSubset.push(nums[i]);
-            backtrack(i + 1, currentSubset);
-            currentSubset.pop();
-        }
-    }
-
-    backtrack(0, []);
-    return result;
-}
-```
-
-**Key:** `i > start` ensures we skip duplicates only at the same recursion level, not across different levels.
-
----
-
-### 5. Incorrect Base Case
-
-**WRONG:**
-```typescript
-function generateParenthesis(n: number): string[] {
-    const result: string[] = [];
-
-    function backtrack(current: string, open: number, close: number): void {
-        // BUG: Wrong base case!
-        if (open === n && close === n) {
-            result.push(current);
-            return;
-        }
-
-        if (open < n) backtrack(current + '(', open + 1, close);
-        if (close < open) backtrack(current + ')', open, close + 1);
-    }
-
-    backtrack('', 0, 0);
-    return result;
-}
-```
-
-**Problem:** Base case `open === n && close === n` is correct, but better to use `current.length === 2*n` for clarity.
-
-**BETTER:**
-```typescript
-if (current.length === 2 * n) {  // Clearer: we've used all parentheses
-    result.push(current);
-    return;
-}
-```
-
----
-
-## Frequently Asked Questions (FAQ)
-
-### Q1: What's the difference between backtracking and DFS?
-
-**Answer:**
-
-**DFS** is a traversal technique: "Explore deep first, then backtrack when stuck"
-
-**Backtracking** is a problem-solving technique that uses DFS: "Try a choice, explore, if it doesn't work, **undo the choice** and try another"
-
-**Key difference:** Backtracking **actively makes and undoes choices**
-
-```typescript
-interface TreeNode {
-    children: TreeNode[];
-}
-
-// Pure DFS (just explore)
-function dfs(node: TreeNode): void {
-    visit(node);
-    for (const child of node.children) {
-        dfs(child);
-    }
-}
-
-// Backtracking (make choices + undo)
-function backtrack<T>(state: T[], choices: T[]): void {
-    if (isSolution(state)) {
-        saveSolution(state);
-        return;
-    }
-
-    for (const choice of choices) {
-        makeChoice(choice);       // CHOOSE
-        backtrack(newState, remainingChoices);  // EXPLORE (DFS-style)
-        undoChoice(choice);       // UNCHOOSE (Backtrack)
-    }
-}
-```
-
-**Think of it as:** Backtracking = DFS + Choice Making + Undoing Choices
-
----
-
-### Q2: How do I know when to use backtracking vs dynamic programming?
-
-**Answer:**
-
-| Criteria | Backtracking | Dynamic Programming |
-|----------|--------------|---------------------|
-| **Goal** | Find ALL solutions | Find OPTIMAL solution |
-| **Keyword** | "All", "Generate" | "Maximum", "Minimum", "Optimal" |
-| **Approach** | Explore all paths | Remember subproblems |
-| **Example** | All permutations | Longest path |
-
-**Use Backtracking when:**
-- "Find **all** permutations"
-- "Generate **all** combinations"
-- "Find **all valid** solutions"
-
-**Use Dynamic Programming when:**
-- "Find the **maximum** sum"
-- "Find the **minimum** cost"
-- "Find the **longest** substring"
-
-**Example:**
-```text
-Backtracking: "Generate all subsets of [1,2,3]"
-→ Need ALL subsets: [], [1], [2], [3], [1,2], etc.
-
-DP: "Find subset with maximum sum"
-→ Need ONE optimal answer: [1,2,3] (sum = 6)
-```
-
----
-
-### Q3: Why do we pass `i+1` in the recursive call for subsets?
-
-**Answer:**
-
-```typescript
-for (let i = start; i < nums.length; i++) {
-    currentSubset.push(nums[i]);
-    backtrack(i + 1, currentSubset);  // Why i+1?
-    currentSubset.pop();
-}
-```
-
-**Reason:** To avoid using the same element multiple times!
-
-**Visual:**
-```text
-nums = [1, 2, 3]
-
-If we use i instead of i+1:
-  backtrack(0, [])
-    i=0: Choose 1
-      backtrack(0, [1])  ← BUG: Can choose 1 again!
-        i=0: Choose 1 again
-          backtrack(0, [1,1])  ← Invalid!
-
-If we use i+1:
-  backtrack(0, [])
-    i=0: Choose 1
-      backtrack(1, [1])  ← Can only choose from [2, 3] onward
-        i=1: Choose 2
-          backtrack(2, [1,2])  ← Can only choose [3]
-```
-
-**i+1 ensures we only look forward, never backward!**
-
----
-
-### Q4: How do I handle duplicates in backtracking?
-
-**Answer:**
-
-**Step 1: Sort the array** (groups duplicates together)
-**Step 2: Skip duplicates at the same recursion level**
+When the input can contain repeats, the standard fix is: **sort first, then skip a value equal to its
+predecessor at the same level.**
 
 ```typescript
 function subsetsWithDup(nums: number[]): number[][] {
-    nums.sort((a, b) => a - b);  // CRITICAL: Sort first!
-    const result: number[][] = [];
+  const sorted = [...nums].sort((a, b) => a - b);   // equal values become adjacent
+  const results: number[][] = [];
+  const current: number[] = [];
 
-    function backtrack(start: number, currentSubset: number[]): void {
-        result.push([...currentSubset]);
-
-        for (let i = start; i < nums.length; i++) {
-            // Skip duplicates at SAME level
-            if (i > start && nums[i] === nums[i - 1]) {
-                continue;  // Skip this duplicate
-            }
-
-            currentSubset.push(nums[i]);
-            backtrack(i + 1, currentSubset);
-            currentSubset.pop();
-        }
+  const explore = (start: number): void => {
+    results.push([...current]);
+    for (let i = start; i < sorted.length; i++) {
+      // Skip a repeat only when it is a *sibling*, not when it is the first choice at this level
+      if (i > start && sorted[i] === sorted[i - 1]) continue;
+      current.push(sorted[i]);
+      explore(i + 1);
+      current.pop();
     }
+  };
 
-    backtrack(0, []);
-    return result;
+  explore(0);
+  return results;
 }
+// Time: O(n × 2ⁿ), Space: O(n) excluding the output
 ```
 
-**Why `i > start`?**
+`i > start` is the load-bearing condition. Skipping every repeat outright would also drop `[2, 2]`, which
+is a legitimate subset; the rule is that a duplicate value must not be the *starting* choice of two
+sibling branches, because those branches would generate identical trees.
 
-```text
-nums = [1, 2, 2]
+## When to Use It
 
-At level 0 (start=0):
-  i=0: nums[0]=1 → OK, process [1]
-  i=1: nums[1]=2 → OK, process [2]
-  i=2: nums[2]=2 → i > start (2 > 0) AND nums[2] == nums[1]
-       → SKIP! (would create duplicate subset)
+| Signal in the question                                    | Reach for            | Why                                       |
+| --------------------------------------------------------- | -------------------- | ----------------------------------------- |
+| "All possible", "every combination", "enumerate"          | Backtracking         | The defining case                          |
+| "Generate valid…" with a constraint to check              | Backtracking + pruning | The constraint is the prune             |
+| A puzzle to fill in — Sudoku, N-Queens, word grids        | Backtracking         | Place, validate, undo                      |
+| **Count** the ways, or the **best** way                   | Dynamic programming  | Enumerating exponentially many answers to count them is waste |
+| "Does any solution exist"                                 | Backtracking, returning early | Stop at the first success           |
+| The input is large and the output is one number           | Dynamic programming or greedy | Exponential output means exponential time |
 
-At level 1 inside [2] branch (start=1):
-  i=1: nums[1]=2 → i == start, PROCESS (first 2 at this level)
-  i=2: nums[2]=2 → i > start (2 > 1) AND nums[2] == nums[1]
-       → SKIP!
+The dynamic-programming row is the important one. If the question wants *how many* or *the cheapest*
+rather than the list itself, backtracking is the wrong tool — overlapping subproblems get recomputed
+instead of memoised. See [Chapter ?? — Dynamic Programming](#ch-dynamic-programming).
 
-Result: [[], [1], [1,2], [1,2,2], [2], [2,2]]
-No duplicates! ✓
-```
+State the complexity before writing code. These problems are exponential by nature — `O(2ⁿ)` for subsets,
+`O(n!)` for permutations — and saying so up front shows you know the output size is the bound, not the
+algorithm being sloppy.
 
----
+## Common Mistakes
 
-### Q5: How do I debug backtracking problems?
-
-**Answer:**
-
-**Technique 1: Draw the decision tree**
-
-```text
-Problem: Subsets of [1,2]
-
-Draw tree:
-                []
-              /    \
-            [1]    [2]
-             |
-           [1,2]
-
-This visualizes all branches you'll explore!
-```
-
-**Technique 2: Add print statements**
+**Storing a reference instead of a copy:**
 
 ```typescript
-function backtrack(start: number, currentSubset: number[]): void {
-    console.log(`Level ${start}: currentSubset = [${currentSubset}]`);  // LOG
-
-    result.push([...currentSubset]);
-
-    for (let i = start; i < nums.length; i++) {
-        console.log(`  Choosing ${nums[i]}`);  // LOG
-        currentSubset.push(nums[i]);
-        backtrack(i + 1, currentSubset);
-        currentSubset.pop();
-        console.log(`  Unchoosing ${nums[i]}`);  // LOG
-    }
-}
+// ❌ results.push(current);       // every entry aliases one array that pop() empties
+// ✅ results.push([...current]);
 ```
 
-**Technique 3: Check the three steps**
-
-```text
-For each recursive call, verify:
-1. CHOOSE: Am I modifying state correctly?
-2. EXPLORE: Am I making the recursive call with updated state?
-3. UNCHOOSE: Am I undoing the modification?
-```
-
----
-
-### Q6: What's the time complexity of backtracking problems?
-
-**Answer:**
-
-**General formula:** O(branching_factor ^ depth)
-
-**Common complexities:**
-
-| Problem | Complexity | Reason |
-|---------|------------|--------|
-| Subsets | O(2^n) | Each element: include or exclude (2 choices) |
-| Permutations | O(n!) | n choices for first, n-1 for second, etc. |
-| Combinations (choose k from n) | O(C(n,k)) | Binomial coefficient |
-| Generate Parentheses | O(4^n / √n) | Catalan number |
-| N-Queens | O(n!) | Place queen in row 1 (n choices), row 2 (≤n choices), etc. |
-
-**Why multiplied by n sometimes?**
-
-If you copy the result (which is O(n)), multiply by n:
-- Subsets: O(n × 2^n)
-- Permutations: O(n × n!)
-
----
-
-### Q7: When should I use a visited set vs modifying the array?
-
-**Answer:**
-
-**Use Visited Set when:**
-- You need to preserve the original array
-- Multiple elements can be the same value (track by index, not value)
-- Grid problems (track (row, col) pairs)
+**Forgetting to undo:**
 
 ```typescript
-const visited: Set<number> = new Set();
-
-for (let i = 0; i < nums.length; i++) {
-    if (visited.has(i)) continue;
-
-    visited.add(i);        // Mark
-    backtrack(currentState, remainingChoices);
-    visited.delete(i);     // Unmark
-}
+// ❌ current.push(nums[i]); explore(i + 1);   // the next sibling inherits a dirty state
+// ✅ ...explore(i + 1); current.pop();
 ```
 
-**Modify Array when:**
-- You're building a "remaining" array
-- Space is not a concern
-- Want clearer code
+**Undoing only half the state:**
 
 ```typescript
-for (let i = 0; i < remaining.length; i++) {
-    const newRemaining: number[] = [...remaining.slice(0, i), ...remaining.slice(i + 1)];
-    backtrack(currentPerm, newRemaining);
-}
+// ❌ current.pop();                 // but used[i] is left true, so the element never returns
+// ✅ current.pop(); used[i] = false;
 ```
 
-**Trade-off:** Visited set = O(n) extra space, Remaining array = O(n^2) time for slicing
-
----
-
-## Pro Tips for Interviews
-
-### Tip 1: Always Start with the Template
-
-```text
-Interviewer: "Generate all combinations..."
-
-You: "This is a backtracking problem. Let me start with the standard template:
-
-function backtrack(state, choices) {
-    if (is_solution(state)) {
-        add to result
-        return
-    }
-
-    for (choice in choices) {
-        if (is_valid(choice)) {
-            make_choice
-            backtrack(new_state)
-            undo_choice
-        }
-    }
-}
-
-Now let me adapt it to this specific problem..."
-```
-
-This shows you have a systematic approach!
-
----
-
-### Tip 2: Draw the Decision Tree
-
-```text
-You: "Let me draw the decision tree for a small example..."
-
-[Draw on whiteboard]
-
-                []
-              /    \
-            [1]    [2]
-             |
-           [1,2]
-
-You: "At each node, we have choices to make. We explore all
-branches depth-first, backtracking when we've explored a branch."
-```
-
-Interviewers love visual thinking!
-
----
-
-### Tip 3: Mention Pruning
-
-```text
-You: "For efficiency, I'll add pruning conditions to avoid
-exploring invalid branches early.
-
-For example, in generating parentheses, if we already have
-more ')' than '(', we can stop exploring that branch since
-it can never be valid."
-```
-
-Shows optimization thinking!
-
----
-
-### Tip 4: Explain the Three Steps
-
-As you code:
+**Passing `i` when you meant `i + 1`:**
 
 ```typescript
-for (let i = start; i < nums.length; i++) {
-    // You say: "CHOOSE: Add nums[i] to current subset"
-    currentSubset.push(nums[i]);
-
-    // You say: "EXPLORE: Recursively explore with this choice"
-    backtrack(i + 1, currentSubset);
-
-    // You say: "UNCHOOSE: Backtrack by removing nums[i]"
-    currentSubset.pop();
-}
+// ❌ explore(i);       // allows reuse — correct for Combination Sum, wrong for Subsets
+// ✅ explore(i + 1);   // each element considered once
 ```
 
-Narrating the template helps you and the interviewer!
-
----
-
-### Tip 5: Clarify "All" vs "Optimal"
-
-```text
-Interviewer: "Find the subsets..."
-
-You: "Just to clarify - do you want ALL subsets, or
-the optimal subset based on some criteria?
-
-If ALL, I'll use backtracking to explore all possibilities.
-If optimal, dynamic programming might be more appropriate."
-```
-
----
-
-### Tip 6: Don't Forget the Deep Copy
-
-```text
-You: "Important note - when adding currentSubset to result,
-I need to make a deep copy since we're modifying it throughout:
-
-result.push([...currentSubset]);  // NOT result.push(currentSubset)
-
-Otherwise all results will reference the same array."
-```
-
-Shows attention to detail!
-
----
-
-### Tip 7: Mention Time Complexity Upfront
-
-```text
-You: "Before I start, let me note that backtracking problems
-are typically exponential. For subsets, we'll have O(2^n)
-branches to explore, since each element can be included or excluded.
-
-This is still better than generating all 2^n subsets blindly,
-because we can prune invalid branches early."
-```
-
----
-
-## Pattern Recognition Guide
-
-### When to Think "Backtracking"?
-
-#### Definite Signals:
-1. "Find **all** ..." → 95% Backtracking
-2. "Generate **all** ..." → Backtracking
-3. "How many **valid** ..." → Backtracking (with counting)
-4. "Solve puzzle: Sudoku/N-Queens" → Backtracking
-
-#### Strong Hints:
-1. "Permutations" → Backtracking
-2. "Combinations" → Backtracking
-3. "Subsets" → Backtracking
-4. "Partition" → Backtracking
-5. "Word search" → Backtracking
-
-#### Problem Patterns:
-
-**Pattern 1: All Combinations/Subsets**
-```text
-Problem: "Find all subsets of array"
-Solution: Backtracking with include/exclude choices
-```
-
-**Pattern 2: Constraint Satisfaction**
-```text
-Problem: "Generate all valid parentheses"
-Solution: Backtracking with constraint checking
-```
-
-**Pattern 3: Search with Constraints**
-```text
-Problem: "Find word in grid (can't reuse cells)"
-Solution: Backtracking with visited tracking
-```
-
-**Pattern 4: Puzzle Solving**
-```text
-Problem: "Solve Sudoku"
-Solution: Backtracking with row/col/box constraints
-```
-
----
-
-## Key Takeaways
-
-### Core Concepts
-1. **Three steps**: CHOOSE → EXPLORE → UNCHOOSE
-2. **Explores all possibilities**: Systematically tries all options
-3. **Pruning**: Abandons invalid paths early for efficiency
-4. **Builds incrementally**: Constructs solution piece by piece
-
-### Implementation Essentials
-5. **Deep copy when adding to result**: `result.push([...current])`
-6. **Backtrack by undoing**: Always undo after recursion
-7. **Base case**: Define when to save solution
-8. **Loop through choices**: Try each available option
-
-### Common Applications
-9. **Generate all subsets**: Include/exclude each element
-10. **Generate all permutations**: Try each element in each position
-11. **Constraint satisfaction**: Prune when constraints violated
-12. **Grid search**: Explore paths with visited tracking
-
-### Optimization
-13. **Add pruning conditions**: Check validity before recursing
-14. **Skip duplicates**: Sort + skip same values at same level
-15. **Use visited set**: For tracking used elements/positions
-16. **Early termination**: Return as soon as constraint fails
-
-### Complexity
-17. **Typically exponential**: O(2^n), O(n!), O(C(n,k))
-18. **Space = recursion depth**: O(n) for call stack
-19. **Better than brute force**: Pruning reduces actual work
-20. **Accept the complexity**: Some problems are inherently hard!
-
----
-
-## Beginner's Quick Reference
-
-### Backtracking Template
+**Skipping duplicates unconditionally:**
 
 ```typescript
-function backtrack<T>(state: T[], choices: T[]): void {
-    // BASE CASE: Found complete solution?
-    if (isSolution(state)) {
-        result.push([...state]);  // Deep copy!
-        return;
-    }
-
-    // RECURSIVE CASE: Try each choice
-    for (const choice of choices) {
-        // Optional: Check if choice is valid
-        if (!isValid(choice)) continue;
-
-        // STEP 1: CHOOSE (make the choice)
-        makeChoice(choice);
-
-        // STEP 2: EXPLORE (recurse with choice)
-        backtrack(newState, remainingChoices);
-
-        // STEP 3: UNCHOOSE (undo the choice)
-        undoChoice(choice);
-    }
-}
+// ❌ if (sorted[i] === sorted[i - 1]) continue;          // loses legitimate results like [2,2]
+// ✅ if (i > start && sorted[i] === sorted[i - 1]) continue;
 ```
 
-### Mental Model (Simple!)
+**Not sorting before the duplicate skip:**
 
-**Backtracking = Maze Exploration**
+```typescript
+// ❌ the skip compares against the previous *index*, which only works if equals are adjacent
+// ✅ sort first
+```
 
-Think of it as:
-- 🌽 Walking through a corn maze - try a path, hit dead end, turn back, try another
-- 👔 Trying outfit combinations - try shirt+pants, doesn't work, change pants, try again
-- 🧩 Solving a puzzle - place piece, doesn't fit, remove it, try another spot
-- 📋 Making decisions - choose option A, see consequences, undo if bad, try option B
+**Filtering instead of pruning:**
 
-### Common Mistakes Checklist
+```typescript
+// ❌ generate all 2ⁿ candidates, then keep the valid ones
+// ✅ refuse to extend a prefix that already violates the constraint
+```
 
-Before submitting backtracking solution:
-- [ ] Deep copy when adding to result: `[...currentState]`
-- [ ] UNCHOOSE step: Undo the choice after recursion
-- [ ] Correct base case: Know when solution is complete
-- [ ] Pruning conditions: Check validity before recursing
-- [ ] Handle duplicates: Sort + skip duplicates if needed
-- [ ] Pass correct index: Use `i+1` to avoid reusing elements
+## Problems to Practise
 
----
+| #   | Problem                                     | Difficulty | What it drills                                  |
+| --- | ------------------------------------------- | ---------- | ----------------------------------------------- |
+| 78  | Subsets                                     | Medium     | The template, and the copy                       |
+| 77  | Combinations                                | Medium     | Recording at a fixed size instead of every node   |
+| 46  | Permutations                                | Medium     | `used[]` instead of a start index                 |
+| 22  | Generate Parentheses                        | Medium     | Pruning that removes every invalid branch         |
+| 39  | Combination Sum                             | Medium     | `explore(i)` for reuse, and pruning on remainder  |
+| 90  | Subsets II                                  | Medium     | Sort, then the `i > start` skip                   |
+| 79  | Word Search                                 | Medium     | Backtracking on a grid, marking and restoring     |
+| 51  | N-Queens                                    | Hard       | Constraint sets that make validation `O(1)`        |
 
-## Final Thoughts for Beginners
+Do 78 then 90 — the second is the first plus the duplicate rule. Then 46 and 39 together: one forbids
+reuse, the other requires it, and the difference is a single argument.
 
-Backtracking is like being a chess player who thinks ahead: "If I move here, then you'll move there, then I'll move back..." You explore possibilities, and when you see a path won't work, you **back up** and try something else!
+## 🔑 Key Takeaways
 
-**Start here:**
-1. Master the three-step template (CHOOSE, EXPLORE, UNCHOOSE)
-2. Practice subsets (simplest backtracking problem)
-3. Move to permutations
-4. Tackle constraint satisfaction (parentheses, N-Queens)
-5. Learn to prune early for optimization
+- Choose, explore, un-choose — the undo is what distinguishes backtracking from plain recursion.
+- Always copy the partial answer when recording a result; storing the reference is a silent wrong answer.
+- `explore(i + 1)` forbids reuse, `explore(i)` allows it, and permutations need `used[]` instead of an index.
+- Handle duplicates by sorting, then skipping a repeat only when `i > start`.
+- Pruning is the difference between exponential-in-candidates and exponential-in-answers; state the complexity up front.
 
-**Remember:** The key to backtracking is the **UNCHOOSE** step. You're not just exploring forward - you're actively undoing choices to explore other branches. If you forget to undo, you'll get wrong results!
+## Interview Questions
 
-The pattern is always the same:
-1. Make a choice
-2. Explore where it leads
-3. Undo the choice
-4. Try the next option
+**Q: What is the difference between backtracking and DFS?**
 
-Once you see this pattern, all backtracking problems become variations of the same theme!
+Backtracking is DFS over a tree of partial candidate solutions rather than an existing graph, with two
+additions: shared state is undone as the recursion unwinds, and branches are abandoned as soon as they
+cannot lead to a valid answer. Plain DFS on a graph has nothing to undo, because the graph is not being
+modified by the traversal.
 
-Happy coding!
+**Q: Why must you copy the current path when recording a result?**
 
----
+Because `current` is one array reused across the whole search — `pop()` is about to mutate it. Pushing the
+reference stores a pointer, so every result in the output ends up reflecting whatever state `current`
+finished in, which is empty. Spreading into a new array snapshots the values at that moment.
 
-[← Previous: Breadth-First Search (BFS)](./13-breadth-first-search.md) | [Back to Index](./README.md) | [Next: Dynamic Programming →](./15-dynamic-programming.md)
+**Q: Why does `explore(i + 1)` give subsets and `explore(0)` give permutations?**
+
+`i + 1` means each recursive level may only consider elements after the one just chosen, so every subset
+is generated exactly once and always in increasing index order — no rearrangements. Permutations need
+every unused element available at every position, so the loop restarts at 0 and a `used` array replaces
+the start index. Ordering matters for permutations and does not for subsets, and that is exactly what the
+two forms encode.
+
+**Q: How do you handle duplicates in the input?**
+
+Sort so equal values are adjacent, then within a level skip any element equal to its predecessor unless
+it is the first choice at that level — the `i > start` condition. That prevents two sibling branches from
+starting with the same value and generating identical subtrees, while still allowing a value to be used
+twice down a single branch, which is legitimate.
+
+**Q: When would you use dynamic programming instead?**
+
+When the question asks for a count or an optimum rather than the enumeration itself. Backtracking
+recomputes overlapping subproblems from scratch, so "how many ways to make 11 from these coins" is
+exponential by backtracking and `O(amount × coins)` by DP. The tell is that the output is a single number
+rather than a list of answers.
+
+**Q: What is the time complexity of a backtracking solution, and how do you justify it?**
+
+It is the size of the explored tree, which is usually the number of candidate answers times the cost of
+recording each: `O(n × 2ⁿ)` for subsets, `O(n × n!)` for permutations, `O(4ⁿ / √n)` for Generate
+Parentheses because that is the Catalan number. Pruning cannot change the asymptotic bound when the output
+itself is exponential — it changes how close you get to that lower bound, which in practice is the whole
+difference.
+
+## What to Read Next
+
+- [Chapter ?? — Depth-First Search](#ch-depth-first-search) — the traversal this pattern is built on
+- [Chapter ?? — Dynamic Programming](#ch-dynamic-programming) — where to go when the question counts rather than enumerates
+- [Chapter ?? — Time and Space Complexity](#ch-time-and-space-complexity) — how to state an exponential bound without sounding apologetic

@@ -4,817 +4,260 @@ part: 10
 chapter: 0
 slug: overlapping-intervals
 level: intermediate # beginner | intermediate | advanced
-reading_time: 27
-updated: 2026-08-28
-tags: [dsa, overlapping, intervals]
+reading_time: 10
+updated: 2026-08-30
+tags: [dsa, intervals, sorting, greedy]
 in_book: true
 ---
 
 # Overlapping Intervals {#ch-overlapping-intervals}
 
-> Sort by start, then sweep — which solves almost every interval problem you will be asked.
+> Sort the intervals first, and every question about overlap becomes a comparison between two numbers.
 
-**In this chapter:** the kinds of overlap · merging intervals · inserting an interval · meeting rooms · complexity
+**In this chapter:** the four overlap shapes and the one test that covers them all · merging · the sweep line for "how many at once" · sorting by start versus by end · the inclusive/exclusive trap
 
-## What is Overlapping Intervals? (In Simple Words)
+## 💡 The Core Idea
 
-Imagine you're managing a calendar or scheduling meeting rooms. You have several appointments or meetings, each with a start time and end time. Some meetings might overlap (happen at the same time), while others don't. The **Overlapping Intervals** pattern is all about solving problems related to these time ranges.
+An interval is a start and an end: a meeting, a booking, a version range, a maintenance window. Every
+question in this family — merge them, count the concurrent ones, insert one, remove the fewest — is
+answered by the same first move.
 
-### Real-World Analogy: Your Daily Calendar
+**Sort, then compare each interval only against its neighbour.** Unsorted, interval `i` can overlap
+anything, so you check all pairs at `O(n²)`. Sorted by start, an interval can only overlap what came
+just before it, so one pass is enough.
 
-Think about your daily schedule:
-- Meeting 1: 9:00 AM - 10:30 AM
-- Meeting 2: 10:00 AM - 11:00 AM (overlaps with Meeting 1!)
-- Meeting 3: 2:00 PM - 3:00 PM (no overlap)
+A calendar is the everyday version. You do not scan the whole week to see whether two meetings clash;
+you read down the day in order and notice when one row starts before the row above it ends.
 
-**Questions you might ask:**
-- Can I attend all meetings? (Do any overlap?)
-- How many meeting rooms do I need? (How many meetings happen at the same time?)
-- Can I merge back-to-back meetings? (Combine 9-10 AM and 10-11 AM into 9-11 AM)
+> Two intervals `[a, b]` and `[c, d]`, sorted so `a ≤ c`, overlap when `c ≤ b`. That single comparison
+> covers containment, partial overlap and touching endpoints. You never need the four cases separately.
 
-These are exactly the types of problems the Overlapping Intervals pattern solves!
+## How It Works
 
-### Visual Timeline Example
-
-```text
-Timeline: 0 -------- 5 -------- 10 ------- 15 ------- 20 ------- 25 ------- 30
-
-Meeting A: |===============================|  [0, 30]
-              0                            30
-
-Meeting B:      |=====|                       [5, 10]
-                5    10
-
-Meeting C:                |=====|             [15, 20]
-                         15    20
-```
-
-**What do we notice?**
-- Meeting B happens DURING Meeting A (5-10 is inside 0-30) → They overlap!
-- Meeting C also happens DURING Meeting A (15-20 is inside 0-30) → They overlap!
-- Meetings B and C don't overlap with each other
-- We need 2 rooms maximum (when A and B run simultaneously)
-
----
-
-## Pattern Overview
-
-The **Overlapping Intervals** pattern deals with problems involving intervals (ranges) that may overlap with each other. This pattern typically involves sorting intervals and then merging, inserting, or finding overlaps.
-
-### When to Use
-- Merging overlapping intervals
-- Finding free time slots or conflicts
-- Scheduling problems (meeting rooms)
-- Inserting new intervals
-- Checking if intervals overlap
-
-### Key Characteristics
-- Usually requires sorting intervals first (by start time)
-- Compares current interval with previous/next interval
-- Often involves merging or counting overlaps
-- Time complexity: O(n log n) for sorting + O(n) for processing
-
-### Pattern Identification
-Look for this pattern when you see:
-- "Merge overlapping intervals"
-- "Meeting rooms" or scheduling problems
-- "Insert interval"
-- "Find free time"
-- "Check if intervals conflict"
-- Problems involving time ranges, appointments, or schedules
-
----
-
-## How to Recognize This Pattern (Beginner's Checklist)
-
-You should think "Overlapping Intervals" when you see:
-
-1. **Keywords in the problem:**
-   - "Intervals", "ranges", "time slots"
-   - "Overlapping", "merging", "conflicts"
-   - "Meeting rooms", "calendar", "scheduling"
-   - "Start time" and "end time"
-
-2. **Input format:**
-   - Array of pairs/arrays: `[[1,3], [2,6], [8,10]]`
-   - Each element has a start and end: `[start, end]`
-
-3. **Questions being asked:**
-   - "Merge overlapping..."
-   - "How many rooms/resources needed?"
-   - "Can you attend all meetings?"
-   - "Find free time between..."
-   - "Minimum removals to make non-overlapping"
-
-4. **Real-world scenarios:**
-   - Calendar scheduling
-   - Resource allocation (meeting rooms, servers)
-   - Time range queries
-   - Event planning with time conflicts
-
----
-
-## Visual Understanding: Types of Interval Overlaps
-
-### Case 1: Complete Overlap (One inside the other)
-```text
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
-
-Interval A: |===================|  [1, 5]
-            1                   5
-
-Interval B:     |=======|           [2, 4]
-                2       4
-
-Result: Merge to [1, 5] (B is completely inside A)
-```
-
-### Case 2: Partial Overlap
-```text
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
-
-Interval A: |===============|       [1, 4]
-            1               4
-
-Interval B:         |===============|  [3, 6]
-                    3               6
-
-Result: Merge to [1, 6] (they overlap from 3-4)
-```
-
-### Case 3: Touching at Boundary
-```text
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
-
-Interval A: |===========|           [1, 3]
-            1           3
-
-Interval B:             |===========| [3, 5]
-                        3           5
-
-Result: Merge to [1, 5] (touching at point 3)
-```
-
-### Case 4: No Overlap (Gap between)
-```text
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
-
-Interval A: |=======|               [1, 2]
-            1       2
-
-Interval B:                 |=======| [4, 5]
-                            4       5
-
-Result: Keep both [1, 2] and [4, 5] (gap from 2-4)
-```
-
----
-
-## Example 1: Merge Intervals (TypeScript)
-
-### Problem
-Given an array of `intervals` where `intervals[i] = [start_i, end_i]`, merge all overlapping intervals and return an array of the non-overlapping intervals.
-
-**LeetCode**: [56. Merge Intervals](https://leetcode.com/problems/merge-intervals/)
-
-### Solution
+### Merging
 
 ```typescript
-type Interval = [number, number];
+type Interval = [start: number, end: number];
 
-/**
- * Merge overlapping intervals
- * @param intervals - Array of intervals [start, end]
- * @returns Merged non-overlapping intervals
- */
 function merge(intervals: Interval[]): Interval[] {
-    // Edge case: empty or single interval
-    if (intervals.length <= 1) {
-        return intervals;
+  if (intervals.length === 0) return [];
+
+  // Sort by start. Everything below relies on it.
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
+  const merged: Interval[] = [sorted[0]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    const [start, end] = sorted[i];
+
+    if (start <= last[1]) {
+      // Overlap — extend. Math.max matters: the current interval may sit entirely inside the last one
+      last[1] = Math.max(last[1], end);
+    } else {
+      merged.push([start, end]);
     }
-
-    // Step 1: Sort intervals by start time
-    intervals.sort((a: Interval, b: Interval) => a[0] - b[0]);
-
-    // Step 2: Initialize result with first interval
-    const merged: Interval[] = [intervals[0]];
-
-    // Step 3: Iterate through remaining intervals
-    for (let i: number = 1; i < intervals.length; i++) {
-        const currentInterval: Interval = intervals[i];
-        const lastMerged: Interval = merged[merged.length - 1];
-
-        // Check if current interval overlaps with last merged interval
-        if (currentInterval[0] <= lastMerged[1]) {
-            // Overlaps - merge by extending end time
-            lastMerged[1] = Math.max(lastMerged[1], currentInterval[1]);
-        } else {
-            // No overlap - add current interval as new interval
-            merged.push(currentInterval);
-        }
-    }
-
-    return merged;
+  }
+  return merged;
 }
-
-// Example usage
-console.log(merge([[1, 3], [2, 6], [8, 10], [15, 18]]));
-// Output: [[1, 6], [8, 10], [15, 18]]
-// Explanation: [1,3] and [2,6] overlap → merged to [1,6]
-
-console.log(merge([[1, 4], [4, 5]]));
-// Output: [[1, 5]]
-// Explanation: [1,4] and [4,5] overlap at 4 → merged to [1,5]
-
-console.log(merge([[1, 4], [0, 4]]));
-// Output: [[0, 4]]
-// Explanation: After sorting → [[0,4], [1,4]] → merged to [0,4]
-
-console.log(merge([[1, 4], [2, 3]]));
-// Output: [[1, 4]]
-// Explanation: [2,3] is completely inside [1,4] → merged to [1,4]
+// Time: O(n log n) for the sort, O(n) for the pass. Space: O(n) for the output
 ```
 
-### Explanation
+`Math.max(last[1], end)` is the line that handles containment. On `[[1, 10], [2, 3]]` a plain
+`last[1] = end` shrinks the merged interval to `[1, 3]` and silently loses coverage.
 
-**How to check overlap**:
-- Two intervals `[a, b]` and `[c, d]` overlap if `c <= b` (assuming sorted by start)
-- When overlapping, merge to `[a, max(b, d)]`
+The sort dominates the cost, so `O(n log n)` is the floor for this pattern unless the input arrives
+sorted — which is worth asking about, because it drops the answer to `O(n)`.
 
-### Step-by-Step Walkthrough with Timeline Visualization
+### Counting concurrency — the sweep line
 
-Let's trace through: `[[1,3], [2,6], [8,10], [15,18]]`
+"How many meeting rooms are needed" is not a merge. Merging tells you *where* meetings happen; this asks
+*how many at once*, which is a different question and needs a different decomposition.
 
-**Step 0: Initial State (Before Sorting)**
-```text
-Input: [[1,3], [2,6], [8,10], [15,18]]
-
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6 --- 7 --- 8 --- 9 --- 10 --- ... --- 15 --- ... --- 18
-
-         [1,3]:  |=======|
-                 1       3
-
-         [2,6]:      |===============|
-                     2               6
-
-        [8,10]:                              |=======|
-                                             8       10
-
-       [15,18]:                                              |===============|
-                                                            15              18
-```
-
-**Step 1: Sort by start time**
-```text
-After sorting: [[1,3], [2,6], [8,10], [15,18]]
-(Already sorted in this example)
-
-Initialize merged = [[1,3]]  ← Start with first interval
-```
-
-**Step 2: Process [2,6]**
-```text
-Current: [2,6]
-Last merged: [1,3]
-
-Question: Does [2,6] overlap with [1,3]?
-Check: Is 2 <= 3? YES! → They overlap!
-
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6
-         [1,3]:  |=======|
-                 1       3
-         [2,6]:      |===============|
-                     2               6
-         MERGED: |===================|  ← Combine them!
-                 1                   6
-
-Merge: [1, max(3, 6)] = [1, 6]
-merged = [[1,6]]
-```
-
-**Step 3: Process [8,10]**
-```text
-Current: [8,10]
-Last merged: [1,6]
-
-Question: Does [8,10] overlap with [1,6]?
-Check: Is 8 <= 6? NO! → No overlap, there's a gap!
-
-Timeline: 0 --- 1 --- ... --- 6 --- 7 --- 8 --- 9 --- 10
-         [1,6]:  |=============|
-                 1             6
-                                   GAP
-        [8,10]:                        |=======|
-                                       8       10
-
-Action: Add [8,10] as a new separate interval
-merged = [[1,6], [8,10]]
-```
-
-**Step 4: Process [15,18]**
-```text
-Current: [15,18]
-Last merged: [8,10]
-
-Question: Does [15,18] overlap with [8,10]?
-Check: Is 15 <= 10? NO! → No overlap, there's a gap!
-
-Timeline: 8 --- 9 --- 10 --- 11 --- ... --- 15 --- ... --- 18
-        [8,10]: |=======|
-                8       10
-                            GAP
-      [15,18]:                          |===============|
-                                       15              18
-
-Action: Add [15,18] as a new separate interval
-merged = [[1,6], [8,10], [15,18]]
-```
-
-**Final Result:**
-```text
-Timeline: 0 --- 1 --- ... --- 6 --- 7 --- 8 --- ... --- 10 --- ... --- 15 --- ... --- 18
-
-Result:  |=============|              |=========|              |===============|
-         1             6              8         10            15              18
-
-Output: [[1,6], [8,10], [15,18]]
-```
-
-### Another Example: Completely Contained Intervals
-
-Let's trace: `[[1,4], [2,3]]`
-
-**Visual Timeline:**
-```text
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5
-
-         [1,4]:  |===============|
-                 1               4
-
-         [2,3]:      |=======|     ← Completely inside [1,4]!
-                     2       3
-```
-
-**Step-by-step:**
-```text
-1. Sort: [[1,4], [2,3]] (already sorted)
-2. merged = [[1,4]]
-3. Process [2,3]:
-   - Check: Is 2 <= 4? YES! → Overlap!
-   - Merge: [1, max(4, 3)] = [1, 4]
-   - merged = [[1,4]]  ← Result stays [1,4] because [2,3] was inside it!
-
-Result: [[1,4]]
-```
-
-**Edge Cases**:
-1. Completely contained: `[1,4]` contains `[2,3]` → merge to `[1,4]`
-2. Touching at boundary: `[1,4]` and `[4,5]` → merge to `[1,5]`
-3. No overlap: `[1,3]` and `[4,6]` → keep both
-
----
-
-## Example 2: Meeting Rooms II (TypeScript)
-
-### Problem
-Given an array of meeting time intervals consisting of start and end times `[[s1,e1],[s2,e2],...]`, find the minimum number of conference rooms required.
-
-**LeetCode**: [253. Meeting Rooms II](https://leetcode.com/problems/meeting-rooms-ii/) (Premium)
-
-### Solution
+Split each interval into two events and process them in time order. A start adds one, an end removes
+one, and the answer is the highest the counter ever reaches.
 
 ```typescript
-type Interval = [number, number];
-
-/**
- * MinHeap implementation for tracking end times
- */
-class MinHeap {
-    private heap: number[];
-
-    constructor() {
-        this.heap = [];
-    }
-
-    get size(): number {
-        return this.heap.length;
-    }
-
-    peek(): number | undefined {
-        return this.heap[0];
-    }
-
-    push(val: number): void {
-        this.heap.push(val);
-        this.bubbleUp(this.heap.length - 1);
-    }
-
-    pop(): number | undefined {
-        if (this.heap.length === 0) return undefined;
-        const min: number = this.heap[0];
-        const last: number | undefined = this.heap.pop();
-        if (this.heap.length > 0 && last !== undefined) {
-            this.heap[0] = last;
-            this.bubbleDown(0);
-        }
-        return min;
-    }
-
-    private bubbleUp(index: number): void {
-        while (index > 0) {
-            const parentIndex: number = Math.floor((index - 1) / 2);
-            if (this.heap[parentIndex] <= this.heap[index]) break;
-            [this.heap[parentIndex], this.heap[index]] = [this.heap[index], this.heap[parentIndex]];
-            index = parentIndex;
-        }
-    }
-
-    private bubbleDown(index: number): void {
-        const length: number = this.heap.length;
-        while (true) {
-            const leftChild: number = 2 * index + 1;
-            const rightChild: number = 2 * index + 2;
-            let smallest: number = index;
-
-            if (leftChild < length && this.heap[leftChild] < this.heap[smallest]) {
-                smallest = leftChild;
-            }
-            if (rightChild < length && this.heap[rightChild] < this.heap[smallest]) {
-                smallest = rightChild;
-            }
-            if (smallest === index) break;
-            [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
-            index = smallest;
-        }
-    }
-}
-
-/**
- * Find minimum number of meeting rooms required using heap
- * @param intervals - Array of meeting intervals [start, end]
- * @returns Minimum number of meeting rooms needed
- */
 function minMeetingRooms(intervals: Interval[]): number {
-    // Edge case
-    if (intervals.length === 0) {
-        return 0;
+  const starts = intervals.map(([s]) => s).sort((a, b) => a - b);
+  const ends = intervals.map(([, e]) => e).sort((a, b) => a - b);
+
+  let rooms = 0;
+  let peak = 0;
+  let endIndex = 0;
+
+  for (const start of starts) {
+    // Free every room whose meeting finished at or before this start
+    while (endIndex < ends.length && ends[endIndex] <= start) {
+      rooms--;
+      endIndex++;
     }
-
-    // Step 1: Sort meetings by start time
-    intervals.sort((a: Interval, b: Interval) => a[0] - b[0]);
-
-    // Step 2: Use min-heap to track end times of ongoing meetings
-    // Heap stores end times of meetings currently in progress
-    const meetingRooms: MinHeap = new MinHeap();
-
-    // Step 3: Process each meeting
-    for (const interval of intervals) {
-        const [start, end]: [number, number] = interval;
-
-        // If earliest ending meeting finishes before current starts,
-        // we can reuse that room
-        const earliestEnd: number | undefined = meetingRooms.peek();
-        if (earliestEnd !== undefined && earliestEnd <= start) {
-            meetingRooms.pop();  // Remove finished meeting
-        }
-
-        // Add current meeting's end time to heap
-        meetingRooms.push(end);
-    }
-
-    // Number of rooms needed = size of heap (concurrent meetings)
-    return meetingRooms.size;
+    rooms++;
+    peak = Math.max(peak, rooms);
+  }
+  return peak;
 }
-
-/**
- * Alternative solution using separate start/end arrays
- * Time: O(n log n), Space: O(n)
- * @param intervals - Array of meeting intervals [start, end]
- * @returns Minimum number of meeting rooms needed
- */
-function minMeetingRoomsAlternative(intervals: Interval[]): number {
-    if (intervals.length === 0) {
-        return 0;
-    }
-
-    // Separate start and end times
-    const startTimes: number[] = intervals.map((i: Interval) => i[0]).sort((a, b) => a - b);
-    const endTimes: number[] = intervals.map((i: Interval) => i[1]).sort((a, b) => a - b);
-
-    let roomsNeeded: number = 0;
-    let maxRooms: number = 0;
-    let startPtr: number = 0;
-    let endPtr: number = 0;
-
-    // Process all start times
-    while (startPtr < startTimes.length) {
-        // If a meeting starts before earliest one ends
-        if (startTimes[startPtr] < endTimes[endPtr]) {
-            roomsNeeded += 1;
-            maxRooms = Math.max(maxRooms, roomsNeeded);
-            startPtr += 1;
-        } else {
-            // A meeting ended, free up a room
-            roomsNeeded -= 1;
-            endPtr += 1;
-        }
-    }
-
-    return maxRooms;
-}
-
-// Example usage
-
-// Example 1
-const intervals1: Interval[] = [[0, 30], [5, 10], [15, 20]];
-console.log(minMeetingRooms(intervals1));  // Output: 2
-// Explanation:
-// Meeting 1: 0-30
-// Meeting 2: 5-10 (overlaps with 1, need room 2)
-// Meeting 3: 15-20 (still overlaps with 1, can reuse room 2)
-// Max concurrent meetings: 2
-
-// Example 2
-const intervals2: Interval[] = [[7, 10], [2, 4]];
-console.log(minMeetingRooms(intervals2));  // Output: 1
-// Explanation: Meetings don't overlap, can use same room
-
-// Example 3
-const intervals3: Interval[] = [[1, 5], [2, 3], [4, 6], [5, 7]];
-console.log(minMeetingRooms(intervals3));  // Output: 3
-// Explanation:
-// Time 2-3: [1,5], [2,3] overlap → 2 rooms
-// Time 4-5: [1,5], [4,6] overlap → 2 rooms
-// Time 5-6: [1,5], [4,6], [5,7] overlap → 3 rooms needed
-
-// Example 4
-const intervals4: Interval[] = [[0, 30], [5, 10], [15, 20]];
-console.log(minMeetingRoomsAlternative(intervals4));  // Output: 2
+// Time: O(n log n), Space: O(n)
 ```
 
-### Explanation
+Decoupling the starts from the ends is the trick worth remembering: the two arrays are sorted
+independently, because which meeting a freed room belonged to does not matter — only that one is free.
 
-**Heap-based Approach**:
-
-1. **Sort by start time**: Process meetings in chronological order
-2. **Min-heap of end times**: Track when current meetings will end
-3. **For each meeting**:
-   - Check if earliest ending meeting finishes before current starts
-   - If yes, reuse that room (pop from heap)
-   - Add current meeting's end time to heap
-4. **Result**: Heap size = number of concurrent meetings = rooms needed
-
-### Step-by-Step Walkthrough with Timeline Visualization
-
-Let's trace: `[[0,30], [5,10], [15,20]]`
-
-**Visual Timeline of All Meetings:**
-```text
-Timeline: 0 -------- 5 -------- 10 ------- 15 ------- 20 ------- 25 ------- 30
-
-Meeting A: |===============================================================| [0, 30]
-           0                                                              30
-
-Meeting B:          |===========|                                          [5, 10]
-                    5          10
-
-Meeting C:                              |===========|                      [15, 20]
-                                       15          20
-
-At time 5-10: Both A and B are running → Need 2 rooms!
-At time 15-20: Both A and C are running → Need 2 rooms!
-Maximum rooms needed: 2
+```mermaid
+flowchart LR
+    A["sort starts"] --> C["walk starts in order"]
+    B["sort ends"] --> C
+    C --> D{"ends[j] ≤ start?"}
+    D -->|yes| E["rooms−−, j++"]
+    E --> D
+    D -->|no| F["rooms++, record peak"]
+    F --> C
 ```
 
-**Step 1: Sort by start time**
-```text
-After sorting: [[0,30], [5,10], [15,20]]
-(Already sorted)
+**Every start claims a room; every end that has already passed releases one. The peak is the answer.**
 
-heap = []  ← Min-heap to track when meetings end
-rooms_used = 0
+A min-heap of end times solves the same problem at the same complexity, and is the version to reach for
+when you also need to know *which* room each meeting got — see
+[Chapter ?? — Top K Elements](#ch-top-k-elements).
+
+### Which key to sort by
+
+The sort key is the actual decision in this pattern, and it is not always the start.
+
+| Question                                        | Sort by | Then                                              |
+| ----------------------------------------------- | ------- | ------------------------------------------------- |
+| Merge overlapping intervals                     | Start   | Extend the last merged interval, or push a new one |
+| Insert one interval into a sorted list          | Start   | Merge only the run that overlaps the new one       |
+| Can one person attend all meetings?             | Start   | Any `start < previousEnd` is a clash               |
+| Minimum rooms / maximum concurrency             | Both, separately | Sweep starts against ends            |
+| **Maximum** non-overlapping intervals to keep   | **End** | Greedily keep each interval that starts after the last kept one ends |
+| Fewest arrows to burst all balloons             | **End** | Same greedy — shoot at each kept interval's end     |
+
+The last two rows are the ones that separate a memorised solution from an understood one. Sorting by
+**end** works because finishing earliest leaves the most room for everything after it, which is the
+standard exchange argument for interval scheduling. Sorting by start and greedily keeping the earliest
+start is provably wrong: one very long interval starting at zero blocks everything.
+
+## When to Use It
+
+| Signal in the question                                       | Reach for              | Why                                    |
+| ------------------------------------------------------------ | ---------------------- | -------------------------------------- |
+| The input is a list of `[start, end]` pairs                  | Sort, then one pass    | The defining shape                      |
+| "Merge", "overlap", "conflict", "clash"                      | Sort by start          | Neighbour comparison is enough          |
+| "Minimum rooms", "maximum concurrent", "busiest moment"      | Sweep line or heap     | You need a count, not a span            |
+| "Maximum number of non-overlapping…" or "fewest to remove"   | Sort by end, greedy    | The earliest finish leaves the most room |
+| Intervals arrive one at a time and must be queried live      | An interval tree or an ordered map | Re-sorting per insert is `O(n log n)` each time |
+| Many queries against a fixed set of intervals                | Prefix sums over a timeline | Sorting once per query wastes work |
+
+⚠️ Check whether the endpoints are **inclusive**. If `[1, 2]` and `[2, 3]` count as overlapping the test
+is `start <= last.end`; if touching is allowed it is `start < last.end`. Meeting Rooms treats touching
+as fine — one meeting ending at 2 does not clash with one starting at 2 — while Merge Intervals treats
+`[1, 4]` and `[4, 5]` as mergeable. Ask, or state your assumption out loud.
+
+## Common Mistakes
+
+**Not sorting:**
+
+```typescript
+// ❌ iterating the input as given — neighbour comparison is only valid on sorted input
+// ✅ sort by start (or end) first, and say the O(n log n) cost out loud
 ```
 
-**Step 2: Process Meeting [0,30]**
-```text
-Meeting: [0, 30]
-heap = []  ← Empty, so no rooms are free
+**Overwriting the end instead of taking the maximum:**
 
-Timeline: 0 -------- ... -------- 30
-Room 1:   |====================| [0, 30] ONGOING
-           0                    30
-
-Action: Allocate a new room (Room 1)
-heap = [30]  ← Room 1 will be free at time 30
-rooms_used = 1
+```typescript
+// ❌ last[1] = end;                        // [[1,10],[2,3]] merges to [1,3]
+// ✅ last[1] = Math.max(last[1], end);
 ```
 
-**Step 3: Process Meeting [5,10]**
-```text
-Meeting: [5, 10]
-heap = [30]  ← Room 1 ends at 30
+**Sorting the input array in place:**
 
-Question: Can we reuse Room 1?
-Check: Does any room end before time 5?
-Earliest end time: 30
-Is 30 <= 5? NO! → Room 1 is still busy
-
-Timeline: 0 -------- 5 -------- 10 ------- ... ------- 30
-Room 1:   |=======================================| [0, 30] ONGOING
-           0                                      30
-Room 2:              |===========|                   [5, 10] ONGOING
-                     5          10
-
-Action: Allocate a new room (Room 2)
-heap = [10, 30]  ← Room 2 ends at 10, Room 1 ends at 30
-rooms_used = 2  ← Maximum so far
+```typescript
+// ❌ intervals.sort(...)                   // mutates the caller's array
+// ✅ [...intervals].sort(...)              // unless the problem says in-place is fine
 ```
 
-**Step 4: Process Meeting [15,20]**
-```text
-Meeting: [15, 20]
-heap = [10, 30]  ← Room 2 ends at 10, Room 1 ends at 30
+**Using the default comparator on numbers:**
 
-Question: Can we reuse any room?
-Check: Does any room end before time 15?
-Earliest end time: 10 (Room 2)
-Is 10 <= 15? YES! → Room 2 is now free!
-
-Timeline: 0 -------- 5 -------- 10 ------- 15 ------- 20 ------- 30
-Room 1:   |========================================================| [0, 30] ONGOING
-           0                                                      30
-Room 2:              |===========|                                  [5, 10] FINISHED
-                     5          10
-Room 2:                                    |===========|            [15, 20] REUSED!
-                                          15          20
-
-Action: Reuse Room 2
-Remove 10 from heap (Room 2 is now free)
-heap = [30]
-Add 20 to heap (Room 2 now ends at 20)
-heap = [20, 30]
-rooms_used = 2  ← Still 2 (we reused a room)
+```typescript
+// ❌ starts.sort();                        // lexicographic — [10, 9] stays [10, 9]
+// ✅ starts.sort((a, b) => a - b);
 ```
 
-**Final Result:**
-```text
-Timeline: 0 -------- 5 -------- 10 ------- 15 ------- 20 ------- 30
+**Solving Meeting Rooms II by merging:**
 
-Room 1:   |========================================================|
-           0                                                      30
-
-Room 2:              |===========|       |===========|
-                     5          10      15          20
-
-Maximum concurrent meetings: 2 (happened from time 5-10 and 15-20)
-Answer: 2 rooms needed
+```typescript
+// ❌ merge, then count the merged intervals — this counts busy blocks, not concurrency
+// ✅ sweep starts against ends, or use a min-heap of end times
 ```
 
-### Another Example: Three Concurrent Meetings
+**Sorting by start for the "keep the most intervals" greedy:**
 
-Let's trace: `[[1,5], [2,3], [4,6], [5,7]]`
-
-**Visual Timeline:**
-```text
-Timeline: 0 --- 1 --- 2 --- 3 --- 4 --- 5 --- 6 --- 7
-
-Meeting A:      |===============|               [1, 5]
-                1               5
-
-Meeting B:          |=======|                   [2, 3]
-                    2       3
-
-Meeting C:                  |===========|       [4, 6]
-                            4           6
-
-Meeting D:                      |===========|   [5, 7]
-                                5           7
-
-At time 4-5: A, C running → 2 rooms
-At time 5-6: A, C, D all running → 3 ROOMS NEEDED!
+```typescript
+// ❌ sort by start and keep greedily — one long interval starting at 0 blocks everything after it
+// ✅ sort by end; earliest finish leaves the most room
 ```
 
-**Processing:**
-```text
-1. Sort: [[1,5], [2,3], [4,6], [5,7]]
+## Problems to Practise
 
-2. [1,5]:  heap = [5], rooms = 1
-   Room 1: [1,5]
+| #   | Problem                                       | Difficulty | What it drills                                    |
+| --- | --------------------------------------------- | ---------- | ------------------------------------------------- |
+| 252 | Meeting Rooms                                 | Easy       | The overlap test, and inclusive endpoints          |
+| 56  | Merge Intervals                               | Medium     | The `Math.max` extension                           |
+| 57  | Insert Interval                               | Medium     | Merging one run without re-sorting                 |
+| 253 | Meeting Rooms II                              | Medium     | Sweep line, or a heap of end times                 |
+| 435 | Non-overlapping Intervals                     | Medium     | The sort-by-end greedy, and why it is optimal       |
+| 452 | Minimum Number of Arrows to Burst Balloons    | Medium     | The same greedy wearing a costume                  |
+| 986 | Interval List Intersections                   | Medium     | Two sorted lists, and intersection instead of union |
+| 759 | Employee Free Time                            | Hard       | Merge across `k` lists, then read the gaps          |
 
-3. [2,3]:  Can reuse? 5 > 2 → NO
-   heap = [3, 5], rooms = 2
-   Room 1: [1,5]
-   Room 2: [2,3]
+Do 56 and 253 back to back — same input shape, different decomposition — then 435 and 452, which are
+the same problem with different wording.
 
-4. [4,6]:  Can reuse? Earliest end = 3
-   3 <= 4? YES! → Reuse Room 2
-   Remove 3, add 6
-   heap = [5, 6], rooms = 2
-   Room 1: [1,5]
-   Room 2: [4,6]
+## 🔑 Key Takeaways
 
-5. [5,7]:  Can reuse? Earliest end = 5
-   5 <= 5? YES! → Reuse Room 1
-   Remove 5, add 7
-   heap = [6, 7], rooms = 2
-   Room 1: [5,7]
-   Room 2: [4,6]
+- Sorting first is the pattern; it turns an all-pairs `O(n²)` check into a single `O(n)` neighbour pass.
+- Sorted so `a ≤ c`, intervals `[a, b]` and `[c, d]` overlap when `c ≤ b` — one test, all four shapes.
+- Extend a merged interval with `Math.max`, or a contained interval silently shrinks it.
+- Merging answers "where", a sweep line answers "how many at once"; they are different questions.
+- "Keep the most non-overlapping intervals" sorts by **end**, because finishing earliest leaves the most room.
 
-Wait... this seems wrong!
+## Interview Questions
 
-Let me recalculate...
-Actually at time 5-6, we have:
-- [1,5] ends at 5
-- [4,6] ongoing (4 to 6)
-- [5,7] starts at 5
+**Q: Why is sorting the first move, and what does it cost you?**
 
-At exactly time 5, [1,5] ends and [5,7] starts.
-Since start = end counts as overlap, we need 3 rooms!
+Unsorted, any interval could overlap any other, so correctness needs all `n²` pairs checked. Sorted by
+start, an interval can only overlap one that began earlier, so comparing against the previous merged
+interval is sufficient. It costs `O(n log n)`, which then dominates the whole solution — so it is worth
+asking whether the input is already sorted, because that drops it to `O(n)`.
 
-The heap approach gives us max heap size = 3
-```
+**Q: Give the overlap condition, and say why the four diagram cases are unnecessary.**
 
----
+With `a ≤ c` guaranteed by the sort, `[a, b]` and `[c, d]` overlap exactly when `c ≤ b`. Containment,
+partial overlap and touching all satisfy it, and a gap is the only way to fail it. The four-case
+enumeration is a teaching device, not something to write in code.
 
-## Time & Space Complexity
+**Q: Why can't you solve Meeting Rooms II by merging the intervals?**
 
-### Example 1: Merge Intervals
-- **Time Complexity**: O(n log n) - Sorting dominates
-- **Space Complexity**: O(n) - Result array (or O(log n) for sorting)
+Merging collapses overlapping intervals into busy blocks, so it tells you when at least one meeting is
+running. It throws away the information you need — the depth of overlap. Three meetings all from 9 to 10
+merge into a single interval identical to one meeting from 9 to 10, but need three rooms rather than one.
 
-### Example 2: Meeting Rooms II
-- **Heap approach**:
-  - Time Complexity: O(n log n) - Sorting + n heap operations
-  - Space Complexity: O(n) - Heap can contain all meetings
-- **Two arrays approach**:
-  - Time Complexity: O(n log n) - Sorting
-  - Space Complexity: O(n) - Two arrays
+**Q: Why does the "keep the maximum number of non-overlapping intervals" greedy sort by end time?**
 
----
+Choosing the interval that finishes earliest leaves the largest possible remaining timeline for
+everything after it, and an exchange argument shows any optimal solution can be rewritten to start with
+that choice without getting worse. Sorting by start fails on a counterexample as small as
+`[[0, 10], [1, 2], [3, 4]]` — the earliest start blocks two intervals that would both have fitted.
 
-## Common Variations
+**Q: How would you handle intervals that arrive continuously and must be queried live?**
 
-1. **Merge Intervals**
-   - Basic merging of overlapping intervals
-   - LeetCode: [56. Merge Intervals](https://leetcode.com/problems/merge-intervals/)
+Re-sorting per insertion is `O(n log n)` each time, so the shape changes: keep the intervals in a
+structure ordered by start — a balanced tree or an ordered map — and on insert look up the neighbour on
+each side to decide whether to merge. That makes insertion `O(log n)`. An interval tree is the
+specialised version when the queries are "everything overlapping this range".
 
-2. **Insert Interval**
-   - Insert new interval and merge if necessary
-   - LeetCode: [57. Insert Interval](https://leetcode.com/problems/insert-interval/)
+## What to Read Next
 
-3. **Meeting Rooms**
-   - Check if person can attend all meetings
-   - LeetCode: [252. Meeting Rooms](https://leetcode.com/problems/meeting-rooms/)
-
-4. **Meeting Rooms II**
-   - Find minimum conference rooms needed
-   - LeetCode: [253. Meeting Rooms II](https://leetcode.com/problems/meeting-rooms-ii/)
-
-5. **Non-overlapping Intervals**
-   - Find minimum intervals to remove to make non-overlapping
-   - LeetCode: [435. Non-overlapping Intervals](https://leetcode.com/problems/non-overlapping-intervals/)
-
-6. **Employee Free Time**
-   - Find free time intervals for all employees
-   - LeetCode: [759. Employee Free Time](https://leetcode.com/problems/employee-free-time/)
-
----
-
-## Practice Problems
-
-### Easy
-1. [252. Meeting Rooms](https://leetcode.com/problems/meeting-rooms/)
-
-### Medium
-2. [56. Merge Intervals](https://leetcode.com/problems/merge-intervals/)
-3. [57. Insert Interval](https://leetcode.com/problems/insert-interval/)
-4. [253. Meeting Rooms II](https://leetcode.com/problems/meeting-rooms-ii/)
-5. [435. Non-overlapping Intervals](https://leetcode.com/problems/non-overlapping-intervals/)
-6. [452. Minimum Number of Arrows to Burst Balloons](https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/)
-7. [986. Interval List Intersections](https://leetcode.com/problems/interval-list-intersections/)
-
-### Hard
-8. [759. Employee Free Time](https://leetcode.com/problems/employee-free-time/)
-
----
-
-## Key Takeaways
-
-1. **Always sort first**: Sort by start time (or end time depending on problem)
-
-2. **Overlap condition**: Two intervals `[a,b]` and `[c,d]` overlap if `c <= b` (when sorted by start)
-
-3. **Merge formula**: When merging `[a,b]` and `[c,d]`, result is `[a, max(b,d)]`
-
-4. **Common patterns**:
-   - Merging: Track last merged interval
-   - Counting overlaps: Use heap or sweep line algorithm
-   - Finding gaps: Look for spaces between merged intervals
-
-5. **Edge cases**: Touching intervals `[1,2]` and `[2,3]`, contained intervals `[1,5]` and `[2,3]`
-
-6. **Heap for scheduling**: Min-heap of end times tracks active intervals
-
----
-
-[← Previous: Top 'K' Elements](./08-top-k-elements.md) | [Back to Index](./README.md) | [Next: Modified Binary Search →](./10-modified-binary-search.md)
+- [Chapter ?? — Top K Elements](#ch-top-k-elements) — the min-heap alternative to the sweep line
+- [Chapter ?? — Prefix Sum](#ch-prefix-sum) — the tool for many range queries over one fixed timeline
+- [Chapter ?? — Modified Binary Search](#ch-modified-binary-search) — how Insert Interval finds its position in `O(log n)`

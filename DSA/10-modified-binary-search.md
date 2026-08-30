@@ -4,717 +4,309 @@ part: 10
 chapter: 0
 slug: modified-binary-search
 level: intermediate # beginner | intermediate | advanced
-reading_time: 24
-updated: 2026-08-28
-tags: [dsa, modified, binary, search]
+reading_time: 11
+updated: 2026-08-30
+tags: [dsa, binary-search, sorted, rotated]
 in_book: true
 ---
 
 # Modified Binary Search {#ch-modified-binary-search}
 
-> Apply binary search where the array is rotated, or where you are searching an answer space rather than an array.
+> Halve the search space on every step — not just in a sorted array, but anywhere a yes/no test flips exactly once.
 
-**In this chapter:** the invariant that makes it work · search in a rotated array · finding the minimum · searching an answer space · complexity
+**In this chapter:** the template that never goes out by one · rotated arrays and the sorted-half test · finding a boundary rather than a value · binary search over an answer space · the invariant that makes all of them the same code
 
-## What is Modified Binary Search? (In Simple Words)
+## 💡 The Core Idea
 
-Imagine you're looking for a word in a physical dictionary. Instead of starting from page 1 and checking every page, you:
-1. Open the dictionary roughly in the middle
-2. Check if your word comes before or after the words on that page
-3. Throw away half the dictionary (the half that definitely doesn't contain your word)
-4. Repeat until you find your word
+Classic binary search needs a sorted array. That is a special case of something more general: binary
+search works whenever you can ask a yes/no question of a midpoint and know which half to discard.
 
-That's binary search! You're cutting your search space in half with every guess.
+Formally, the array must be **monotonic with respect to the predicate** — every element before some
+boundary answers "no", every element from there on answers "yes". Finding that boundary takes
+`O(log n)` steps whether the underlying data is sorted, rotated, or not an array at all.
 
-**Modified Binary Search** is like using this same "divide and conquer" strategy, but in trickier situations:
-- What if someone shuffled parts of the dictionary but kept sections sorted?
-- What if you're looking for the first page where a word appears (not just any page)?
-- What if the dictionary is arranged in a 2D grid instead of linear pages?
+That reframing is what "modified" means. The three variations that matter in interviews:
 
-Real-world analogy: Think of looking for a book in a library where:
-- **Classic Binary Search**: Books are perfectly arranged A-Z on one shelf
-- **Modified Binary Search**: Books got rotated (like a circular shelf that spun), but they're still in alphabetical order, just starting from a different point
+| Variation                  | What is monotonic                                     |
+| -------------------------- | ----------------------------------------------------- |
+| Rotated sorted array       | One of the two halves is always properly sorted        |
+| First or last occurrence   | "Is this element `≥ target`?" flips exactly once        |
+| Search on the answer space | "Is a capacity of `x` enough?" — feasibility is monotonic |
 
-### Visual Concept: The Search Space
+> The array is not the search space. The **decision** is. Once you see that, "minimum capacity to ship
+> packages in `d` days" becomes a binary search even though there is no sorted input anywhere.
 
-```text
-Classic Binary Search (sorted array):
-[1, 2, 3, 4, 5, 6, 7, 8, 9]
-          ^
-    Always cut in middle
+## How It Works
 
-Modified Binary Search (rotated array):
-[6, 7, 8, 9, 1, 2, 3, 4, 5]
-          ^
-    Cut in middle, but need to figure out which half is sorted!
-```
+### The template
 
-## Pattern Overview
-
-**Modified Binary Search** adapts the classic binary search algorithm to solve problems beyond finding elements in sorted arrays. It works on sorted or partially sorted data and reduces search space by half in each iteration.
-
-### When to Use
-- Searching in rotated sorted arrays
-- Finding peak elements
-- Searching in 2D matrices
-- Finding first/last occurrence
-- Finding minimum in rotated sorted array
-- Search space reduction problems
-
-### Key Characteristics
-- Works on sorted or partially sorted data
-- Divides search space in half each iteration
-- Time complexity: O(log n)
-- Requires identifying how to eliminate half the search space
-
-### Pattern Identification
-Look for this pattern when you see:
-- "Find in rotated sorted array"
-- "Find peak element"
-- "Search in 2D matrix"
-- "Find first/last occurrence"
-- "Find minimum/maximum in rotated array"
-- Problems with sorted data or search space
-
-### How to Recognize This Pattern (Beginner Guide)
-
-Ask yourself these questions when you see a problem:
-
-1. **Is the data sorted or partially sorted?**
-   - "Sorted array", "rotated sorted array", "ascending/descending"
-   - Even if shuffled, is there ORDER somewhere?
-
-2. **Do you need to search efficiently?**
-   - Can't afford O(n) time? Need O(log n)?
-   - Large dataset where linear search is too slow?
-
-3. **Can you eliminate half the possibilities each step?**
-   - Can you look at one element and rule out half the array?
-   - Is there a clear "go left" or "go right" decision?
-
-**Red Flags (Don't use binary search if):**
-- Data is completely random/unsorted
-- You need to examine every element
-- Problem requires multiple passes through all elements
-
-**Green Flags (Use modified binary search if):**
-- See keywords: "sorted", "rotated", "log n time", "efficiently"
-- Answer lies in a sorted or semi-sorted space
-- You can make decisions that cut search space
-
-### Visual Pattern Recognition
-
-```text
-Recognize the pattern:
-
-CLASSIC SORTED           ROTATED SORTED          2D MATRIX (sorted)
-[1,2,3,4,5,6,7]         [5,6,7,1,2,3,4]         [1,  4,  7, 11]
-                                                  [2,  5,  8, 12]
-                                                  [3,  6,  9, 16]
-                                                  [10, 13, 14, 17]
-
-All of these can use BINARY SEARCH concepts!
-```
-
----
-
-## Example 1: Search in Rotated Sorted Array (TypeScript)
-
-### Problem
-Given a rotated sorted array `nums` (rotated at an unknown pivot) and a target value, return the index of the target if it exists, otherwise return -1. You must write an algorithm with O(log n) runtime complexity.
-
-**LeetCode**: [33. Search in Rotated Sorted Array](https://leetcode.com/problems/search-in-rotated-sorted-array/)
-
-### Solution
+Write it this way every time and the off-by-one errors stop happening:
 
 ```typescript
-/**
- * Search in rotated sorted array using modified binary search
- * @param nums - Rotated sorted array
- * @param target - Target value to find
- * @returns Index of target, or -1 if not found
- */
-function search(nums: number[], target: number): number {
-    let left: number = 0;
-    let right: number = nums.length - 1;
+function binarySearch(nums: number[], target: number): number {
+  let low = 0;
+  let high = nums.length - 1;   // inclusive on both ends
 
-    while (left <= right) {
-        const mid: number = Math.floor((left + right) / 2);
+  while (low <= high) {         // <= because low === high is still one unchecked element
+    const mid = low + Math.floor((high - low) / 2);   // no overflow, and no bias
 
-        // Found target
-        if (nums[mid] === target) {
-            return mid;
-        }
-
-        // Determine which half is sorted
-        // Left half is sorted
-        if (nums[left] <= nums[mid]) {
-            // Check if target is in sorted left half
-            if (nums[left] <= target && target < nums[mid]) {
-                right = mid - 1;  // Search left half
-            } else {
-                left = mid + 1;   // Search right half
-            }
-        }
-        // Right half is sorted
-        else {
-            // Check if target is in sorted right half
-            if (nums[mid] < target && target <= nums[right]) {
-                left = mid + 1;   // Search right half
-            } else {
-                right = mid - 1;  // Search left half
-            }
-        }
-    }
-
-    return -1;  // Target not found
+    if (nums[mid] === target) return mid;
+    if (nums[mid] < target) low = mid + 1;            // discard mid — it has been checked
+    else high = mid - 1;
+  }
+  return -1;   // low is now the insertion point, which LC 35 asks for
 }
-
-// Example usage
-console.log(search([4, 5, 6, 7, 0, 1, 2], 0));     // Output: 4
-// Explanation: 0 is at index 4
-
-console.log(search([4, 5, 6, 7, 0, 1, 2], 3));     // Output: -1
-// Explanation: 3 is not in array
-
-console.log(search([1], 0));                        // Output: -1
-
-console.log(search([1, 3], 3));                     // Output: 1
-
-console.log(search([3, 1], 1));                     // Output: 1
+// Time: O(log n), Space: O(1)
 ```
 
-### Step-by-Step Code Walkthrough
+Two details carry the correctness. `low <= high` with inclusive bounds means the loop only exits when
+the range is genuinely empty. And `mid + 1` / `mid - 1` guarantee progress — `low = mid` on a
+two-element range loops forever.
 
-Let's break down the code line by line for beginners:
+### Rotated sorted array
+
+Rotation breaks sortedness globally but not locally. Split at any midpoint and **at least one half is
+still properly sorted** — identify which, and you can decide whether the target lies in it.
 
 ```typescript
-function search(nums: number[], target: number): number {
-    let left: number = 0;                    // Start of search range
-    let right: number = nums.length - 1;     // End of search range
+function searchRotated(nums: number[], target: number): number {
+  let low = 0;
+  let high = nums.length - 1;
 
-    while (left <= right) {          // Keep searching while range is valid
-        const mid: number = Math.floor((left + right) / 2);  // Middle point
+  while (low <= high) {
+    const mid = low + Math.floor((high - low) / 2);
+    if (nums[mid] === target) return mid;
+
+    if (nums[low] <= nums[mid]) {
+      // Left half [low..mid] is sorted
+      if (nums[low] <= target && target < nums[mid]) high = mid - 1;
+      else low = mid + 1;
+    } else {
+      // Right half [mid..high] is sorted
+      if (nums[mid] < target && target <= nums[high]) low = mid + 1;
+      else high = mid - 1;
+    }
+  }
+  return -1;
+}
+// Time: O(log n), Space: O(1)
 ```
 
-**Why `Math.floor((left + right) / 2)`?**
-- This finds the middle index
-- `Math.floor` rounds down (so for indices 0-6, mid is 3)
-- Alternative: `left + Math.floor((right - left) / 2)` (avoids overflow in some languages)
+`nums[low] <= nums[mid]` is the test, and the `<=` is not cosmetic: on a two-element range `low` and
+`mid` are the same index, and a strict `<` would misclassify the half.
+
+**Finding the minimum** is the same idea with the target removed. Compare the midpoint against the
+right end — anything greater means the rotation point is to the right.
 
 ```typescript
-        if (nums[mid] === target) {
-            return mid;              // Lucky! Found it right away
-        }
-```
-
-**First Check**: Did we get lucky and hit the target on our first guess?
-
-```typescript
-        if (nums[left] <= nums[mid]) {
-            // Left half is sorted: [left...mid]
-```
-
-**Critical Insight**: In a rotated array, AT LEAST ONE HALF is always sorted!
-- If `nums[left] <= nums[mid]`, the left portion goes up smoothly (sorted)
-- Example: `[4,5,6,7,0,1,2]` - left half `[4,5,6,7]` is sorted
-
-```typescript
-            if (nums[left] <= target && target < nums[mid]) {
-                right = mid - 1;     // Target is in sorted left half
-            } else {
-                left = mid + 1;      // Target must be in right half
-            }
-        }
-```
-
-**Decision for sorted left half**:
-- Is target in the range `[nums[left], nums[mid])`?
-- If YES: search left (set `right = mid - 1`)
-- If NO: search right (set `left = mid + 1`)
-
-```typescript
-        else {
-            // Right half is sorted: [mid...right]
-            if (nums[mid] < target && target <= nums[right]) {
-                left = mid + 1;      // Target is in sorted right half
-            } else {
-                right = mid - 1;     // Target must be in left half
-            }
-        }
-```
-
-**Decision for sorted right half**:
-- Is target in the range `(nums[mid], nums[right]]`?
-- If YES: search right (set `left = mid + 1`)
-- If NO: search left (set `right = mid - 1`)
-
-### Visual Explanation with Search Space Diagrams
-
-**Example**: `nums = [4,5,6,7,0,1,2], target = 0`
-
-```text
-Initial State:
-┌─────────────────────────────────────┐
-│ 4   5   6   7   0   1   2           │  Array
-│ ↑           ↑           ↑           │
-│ L           M           R           │  L=left, M=mid, R=right
-└─────────────────────────────────────┘
-Target = 0
-```
-
-**Iteration 1:**
-```text
-Array: [4, 5, 6, 7, 0, 1, 2]
-        L           M       R
-        0           3       6
-
-nums[mid] = 7, target = 0
-Is nums[mid] == target? NO
-
-Which half is sorted?
-  nums[left]=4 <= nums[mid]=7 → LEFT HALF is sorted [4,5,6,7]
-
-Is target in sorted left half [4,7]?
-  Is 4 <= 0 < 7? NO
-
-→ Eliminate left half, search right half
-
-Search Space After:
-┌─────────────────────────────────────┐
-│ 4   5   6   7 │ 0   1   2           │
-│ ╳   ╳   ╳   ╳ │ ↑       ↑           │
-│  (eliminated) │ L       R           │
-└─────────────────────────────────────┘
-```
-
-**Iteration 2:**
-```text
-Array: [4, 5, 6, 7, 0, 1, 2]
-                    L   M   R
-                    4   5   6
-
-nums[mid] = 1, target = 0
-Is nums[mid] == target? NO
-
-Which half is sorted?
-  nums[left]=0 <= nums[mid]=1? NO (0 > 1 is FALSE, so right is sorted)
-  → RIGHT HALF is sorted [1,2]
-
-Is target in sorted right half [1,2]?
-  Is 1 < 0 <= 2? NO
-
-→ Eliminate right half, search left half
-
-Search Space After:
-┌─────────────────────────────────────┐
-│ 4   5   6   7 │ 0 │ 1   2           │
-│ ╳   ╳   ╳   ╳ │ ↑ │ ╳   ╳           │
-│  (eliminated) │L/R│(eliminated)     │
-└─────────────────────────────────────┘
-```
-
-**Iteration 3:**
-```text
-Array: [4, 5, 6, 7, 0, 1, 2]
-                    ↑
-                   L/M/R
-                    4
-
-nums[mid] = 0, target = 0
-Is nums[mid] == target? YES!
-
-→ Return index 4
-```
-
-### Key Insight Explained Simply
-
-**The Golden Rule**: In a rotated sorted array, when you pick a middle element:
-- **At least ONE half will be properly sorted** (increasing order)
-- **The other half contains the rotation point** (the break where big numbers become small)
-
-**How to use this:**
-1. Check which half is sorted (easy to verify: `left <= mid` or `mid <= right`)
-2. Check if your target is in the sorted half (easy to verify: range check)
-3. If target is in sorted half → search there
-4. If target is NOT in sorted half → must be in the other half
-
-**Visual Aid**: Think of it like a broken escalator
-```text
-Normal Escalator (sorted):      Broken Escalator (rotated):
-     7                               4 ← rotation point
-     6                               5
-     5                               6
-     4                               7
-     3                               0
-     2                               1
-     1                               2
-     0                               3
-     ↑                               ↑
-  Bottom                          Bottom
-
-At least one section still goes "up" smoothly!
-```
-
----
-
-## Example 2: Find Minimum in Rotated Sorted Array (TypeScript)
-
-### Problem
-Suppose an array of length `n` sorted in ascending order is rotated between 1 and `n` times. Find the minimum element.
-
-**LeetCode**: [153. Find Minimum in Rotated Sorted Array](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/)
-
-### Solution
-
-```typescript
-/**
- * Find minimum element in rotated sorted array
- * @param nums - Rotated sorted array with unique elements
- * @returns Minimum element in the array
- */
 function findMin(nums: number[]): number {
-    let left: number = 0;
-    let right: number = nums.length - 1;
+  let low = 0;
+  let high = nums.length - 1;
 
-    // If array is not rotated (already sorted)
-    if (nums[left] < nums[right]) {
-        return nums[left];
-    }
+  while (low < high) {          // < not <=: converge on a single surviving index
+    const mid = low + Math.floor((high - low) / 2);
+    if (nums[mid] > nums[high]) low = mid + 1;   // mid cannot be the minimum
+    else high = mid;                             // mid might be the minimum — keep it
+  }
+  return nums[low];
+}
+// Time: O(log n), Space: O(1)
+```
 
-    while (left < right) {
-        const mid: number = Math.floor((left + right) / 2);
+⚠️ Note the loop condition changed to `low < high` and `high = mid` rather than `mid - 1`. That is the
+**boundary-finding** form, and it is a different template from the value-finding one above. Mixing the
+two — `low <= high` with `high = mid` — is an infinite loop.
 
-        // Check if mid+1 is the minimum
-        // (mid is greater than its next element)
-        if (mid < nums.length - 1 && nums[mid] > nums[mid + 1]) {
-            return nums[mid + 1];
-        }
+### Finding a boundary
 
-        // Check if mid is the minimum
-        // (mid is smaller than its previous element)
-        if (mid > 0 && nums[mid] < nums[mid - 1]) {
-            return nums[mid];
-        }
+"First position where…" and "last position where…" are boundary searches. Do not try to shortcut with an
+equality check and then a linear scan sideways; on `[2, 2, 2, 2]` that degrades to `O(n)`.
 
-        // Decide which half to search
-        // If left half is sorted, minimum is in right half
-        if (nums[left] <= nums[mid]) {
-            left = mid + 1;
-        }
-        // Right half is sorted, minimum is in left half
-        else {
-            right = mid;
-        }
-    }
+```typescript
+// Smallest index with nums[i] >= target — the lower bound
+function lowerBound(nums: number[], target: number): number {
+  let low = 0;
+  let high = nums.length;   // exclusive: the answer may be "past the end"
 
-    return nums[left];
+  while (low < high) {
+    const mid = low + Math.floor((high - low) / 2);
+    if (nums[mid] < target) low = mid + 1;   // mid answers "no", discard it
+    else high = mid;                         // mid answers "yes", it is still a candidate
+  }
+  return low;   // === nums.length when every element is smaller
 }
 
-/**
- * Alternative cleaner approach to find minimum
- * @param nums - Rotated sorted array with unique elements
- * @returns Minimum element in the array
- */
-function findMinAlternative(nums: number[]): number {
-    let left: number = 0;
-    let right: number = nums.length - 1;
-
-    while (left < right) {
-        const mid: number = Math.floor((left + right) / 2);
-
-        // If mid element is greater than right element,
-        // minimum must be in right half
-        if (nums[mid] > nums[right]) {
-            left = mid + 1;
-        }
-        // Otherwise, minimum is in left half (including mid)
-        else {
-            right = mid;
-        }
-    }
-
-    return nums[left];
+// LC 34 falls straight out of it
+function searchRange(nums: number[], target: number): [number, number] {
+  const first = lowerBound(nums, target);
+  if (first === nums.length || nums[first] !== target) return [-1, -1];
+  return [first, lowerBound(nums, target + 1) - 1];
 }
-
-// Example usage
-// Example 1
-const nums1: number[] = [3, 4, 5, 1, 2];
-console.log(findMin(nums1));  // Output: 1
-// Explanation: Original array was [1,2,3,4,5] rotated 3 times
-
-// Example 2
-const nums2: number[] = [4, 5, 6, 7, 0, 1, 2];
-console.log(findMin(nums2));  // Output: 0
-// Explanation: Original array was [0,1,2,4,5,6,7] rotated 4 times
-
-// Example 3
-const nums3: number[] = [11, 13, 15, 17];
-console.log(findMin(nums3));  // Output: 11
-// Explanation: Array is not rotated (or rotated 0 times)
-
-// Example 4
-const nums4: number[] = [2, 1];
-console.log(findMin(nums4));  // Output: 1
-
-// Example 5 - Using alternative approach
-const nums5: number[] = [3, 4, 5, 1, 2];
-console.log(findMinAlternative(nums5));  // Output: 1
+// Time: O(log n), Space: O(1)
 ```
 
-### Step-by-Step Code Walkthrough (Alternative Approach)
+The invariant to say out loud: **everything below `low` answers no, everything from `high` up answers
+yes.** When they meet, that index is the boundary. Every boundary problem is this function with a
+different predicate.
 
-The cleaner approach (`findMinAlternative`) is easier to understand:
+### Binary search on the answer space
+
+When the question asks for a minimum or maximum value and checking a candidate is cheap, search the
+values rather than an array.
 
 ```typescript
-function findMinAlternative(nums: number[]): number {
-    let left: number = 0;
-    let right: number = nums.length - 1;
+// LC 875 — the slowest eating speed that finishes all piles within h hours
+function minEatingSpeed(piles: number[], h: number): number {
+  const hoursNeeded = (speed: number): number =>
+    piles.reduce((total, pile) => total + Math.ceil(pile / speed), 0);
 
-    while (left < right) {  // Note: left < right (not <=)
+  let low = 1;                      // the smallest conceivable answer
+  let high = Math.max(...piles);    // the largest useful answer
+
+  while (low < high) {
+    const mid = low + Math.floor((high - low) / 2);
+    if (hoursNeeded(mid) <= h) high = mid;   // feasible — try slower
+    else low = mid + 1;                      // too slow — must go faster
+  }
+  return low;
+}
+// Time: O(n log(max pile)), Space: O(1)
 ```
 
-**Why `left < right` instead of `left <= right`?**
-- We're finding minimum, not searching for a target
-- When `left == right`, we've narrowed down to one element (the answer!)
-- No need to check equality because we're shrinking the range
+The predicate "is speed `x` fast enough" is monotonic: if `x` works, so does every larger speed. That
+monotonicity is the only precondition — the piles never need sorting.
+
+## When to Use It
+
+| Signal in the question                                      | Reach for                | Why                                     |
+| ----------------------------------------------------------- | ------------------------ | --------------------------------------- |
+| A sorted array and a target                                 | Classic template         | The base case                            |
+| "Sorted but rotated"                                        | Sorted-half test         | One half is always properly sorted       |
+| "First", "last", "insertion point", "smallest index where…" | `lowerBound` form        | Boundary, not equality                   |
+| "Minimum X such that…" with a cheap feasibility check       | Search the answer space  | The predicate is monotonic, not the data |
+| A sorted matrix                                             | Treat it as one flat array, or walk from a corner | Both are `O(log n)` or `O(m + n)` |
+| Unsorted array, single query                                | Linear scan              | Sorting to search once costs more        |
+| Unsorted array, many queries                                | Sort once, then binary search each | The sort amortises          |
+| Duplicates and a rotated array                              | Binary search degrading to `O(n)` | `[2,2,2,0,2]` gives no information at the midpoint |
+
+The last row is worth knowing as a limit. LC 81 has a genuine `O(n)` worst case, and the correct answer
+in an interview is to name that rather than claim `O(log n)`.
+
+## Common Mistakes
+
+**Computing the midpoint by addition:**
 
 ```typescript
-        const mid: number = Math.floor((left + right) / 2);
+// ❌ const mid = Math.floor((low + high) / 2);   // overflows in fixed-width languages
+// ✅ const mid = low + Math.floor((high - low) / 2);
 ```
 
-**Middle calculation**: Find the midpoint to split the search space
+JavaScript numbers make this safe in practice, but interviewers read it as a tell. Write the safe form.
+
+**Mixing the two loop shapes:**
 
 ```typescript
-        if (nums[mid] > nums[right]) {
-            // Minimum MUST be in right half
-            left = mid + 1;
-        }
+// ❌ while (low <= high) { ... high = mid; }   // infinite when low === high
+// ✅ value search: while (low <= high), high = mid - 1
+// ✅ boundary search: while (low < high),  high = mid
 ```
 
-**Case 1: `nums[mid] > nums[right]`**
-- Example: `[4,5,6,7,0,1,2]`, mid=7, right=2
-- If middle is BIGGER than right, there's a "break" (rotation) between mid and right
-- The minimum is definitely in the right half (where the break is)
-- We can skip mid because it's definitely not the minimum
+**Not discarding the midpoint:**
 
 ```typescript
-        else {
-            // nums[mid] <= nums[right]
-            // Minimum could be mid OR in left half
-            right = mid;
-        }
+// ❌ low = mid;      // on a two-element range, mid === low and nothing progresses
+// ✅ low = mid + 1;  // mid has been checked
 ```
 
-**Case 2: `nums[mid] <= nums[right]`**
-- Example: `[0,1,2]` or `[6,7,0,1,2]` with mid=1, right=2
-- Middle to right is sorted (no break here)
-- Minimum must be in left half OR could be mid itself
-- Keep mid in range (set `right = mid`, not `mid - 1`)
+**Strict comparison in the sorted-half test:**
 
-### Visual Explanation with Search Space
-
-**Example**: `nums = [4,5,6,7,0,1,2]`
-
-```text
-Initial State - Where is the minimum?
-┌─────────────────────────────────────┐
-│ 4   5   6   7   0   1   2           │
-│ ↑           ↑       *   ↑           │  * = minimum we're looking for
-│ L           M           R           │
-└─────────────────────────────────────┘
-
-Original sorted: [0,1,2,4,5,6,7]
-Rotated 4 times: [4,5,6,7,0,1,2]
-                          ↑
-                    Inflection point (minimum)
+```typescript
+// ❌ if (nums[low] < nums[mid])    // fails when low === mid on a two-element range
+// ✅ if (nums[low] <= nums[mid])
 ```
 
-**Iteration 1:**
-```text
-Array: [4, 5, 6, 7, 0, 1, 2]
-        L           M       R
-        0           3       6
+**Scanning sideways after finding an equal element:**
 
-nums[mid] = 7, nums[right] = 2
-
-Is 7 > 2? YES
-→ There's a rotation/break between mid and right
-→ Minimum is in right half
-
-Why? Because if array was sorted, mid would be <= right.
-Since mid > right, there's a "drop" somewhere to the right.
-
-Search Space After:
-┌─────────────────────────────────────┐
-│ 4   5   6   7 │ 0   1   2           │
-│ ╳   ╳   ╳   ╳ │ ↑       ↑           │
-│  (eliminated) │ L       R           │
-└─────────────────────────────────────┘
+```typescript
+// ❌ find target, then walk left to the first occurrence — O(n) on [2,2,2,2]
+// ✅ two lowerBound calls, both O(log n)
 ```
 
-**Iteration 2:**
-```text
-Array: [4, 5, 6, 7, 0, 1, 2]
-                    L   M   R
-                    4   5   6
+**Choosing the wrong bounds for an answer-space search:**
 
-nums[mid] = 1, nums[right] = 2
-
-Is 1 > 2? NO
-→ From mid to right is sorted [1,2]
-→ Minimum could be mid or to the left of mid
-→ Keep mid in search range
-
-Search Space After:
-┌─────────────────────────────────────┐
-│ 4   5   6   7 │ 0   1 │ 2           │
-│ ╳   ╳   ╳   ╳ │ ↑   ↑ │ ╳           │
-│  (eliminated) │ L   R │(eliminated) │
-└─────────────────────────────────────┘
+```typescript
+// ❌ low = 0    // speed 0 makes hoursNeeded infinite
+// ✅ low = 1, high = the largest value that could ever be needed
 ```
 
-**Iteration 3:**
-```text
-Array: [4, 5, 6, 7, 0, 1, 2]
-                    L/M R
-                    4   5
+## Problems to Practise
 
-nums[mid] = 0, nums[right] = 1
+| #   | Problem                                                   | Difficulty | What it drills                                |
+| --- | --------------------------------------------------------- | ---------- | --------------------------------------------- |
+| 704 | Binary Search                                             | Easy       | The template, written until it is automatic    |
+| 35  | Search Insert Position                                    | Easy       | Why the failed search returns `low`            |
+| 33  | Search in Rotated Sorted Array                            | Medium     | The sorted-half test                           |
+| 153 | Find Minimum in Rotated Sorted Array                      | Medium     | The boundary loop shape                        |
+| 34  | Find First and Last Position of Element in Sorted Array    | Medium     | `lowerBound`, twice                            |
+| 162 | Find Peak Element                                         | Medium     | Binary search with no sorted input at all      |
+| 875 | Koko Eating Bananas                                       | Medium     | Searching the answer space                     |
+| 4   | Median of Two Sorted Arrays                               | Hard       | Binary searching a partition, not an index     |
 
-Is 0 > 1? NO
-→ From mid to right is sorted [0,1]
-→ Minimum could be mid
-→ Keep mid in search range
+Write 704 and 34 until the two loop shapes are distinct in your head. 162 and 875 are the ones that
+prove the pattern is about the predicate, not the array.
 
-Search Space After:
-┌─────────────────────────────────────┐
-│ 4   5   6   7 │ 0 │ 1   2           │
-│ ╳   ╳   ╳   ╳ │L/R│ ╳   ╳           │
-│  (eliminated) │   │(eliminated)     │
-└─────────────────────────────────────┘
+## 🔑 Key Takeaways
 
-left == right → STOP
-Return nums[4] = 0
-```
+- Binary search needs a monotonic predicate, not a sorted array — that is what makes it "modified".
+- Use `low + Math.floor((high - low) / 2)` and always discard the checked midpoint with `mid ± 1`.
+- Value search is `while (low <= high)` with `high = mid - 1`; boundary search is `while (low < high)` with `high = mid`. Do not mix them.
+- In a rotated array at least one half is properly sorted; find it with `nums[low] <= nums[mid]`.
+- "Minimum X such that…" with a cheap feasibility check is a binary search over the answer space.
 
-### Key Insight Explained Simply
+## Interview Questions
 
-**The Inflection Point**: The minimum is where the array "breaks"
-```text
-Sorted:  [0, 1, 2, 4, 5, 6, 7]  ← smooth increase
+**Q: State the invariant your loop maintains.**
 
-Rotated: [4, 5, 6, 7, 0, 1, 2]  ← breaks here!
-                      ↑
-                   minimum
+For a value search with inclusive bounds: the target, if it exists, is always inside `[low, high]`. Every
+branch removes only elements that cannot be the target, and the loop ends when the range is empty. For a
+boundary search: everything below `low` fails the predicate and everything from `high` up satisfies it,
+so when they meet that index is the boundary. Being able to state this is what separates a derived
+solution from a memorised one.
 
-Visual Pattern:
-     7 ←───┐        Going up...
-     6     │
-     5     │        Then DROPS!
-     4 ←─────rotation point
-     2
-     1
-     0 ← minimum
-```
+**Q: Why does `while (low <= high)` with `high = mid` loop forever?**
 
-**The Trick**:
-- Compare middle with right boundary (not left!)
-- If mid > right → rotation is to the right → search right
-- If mid <= right → this section is sorted → search left (minimum is earlier)
+When `low === high`, `mid` equals both. Setting `high = mid` changes nothing, the condition stays true,
+and the loop spins. The inclusive-bounds form must shrink the range with `mid - 1` or `mid + 1`; the
+`high = mid` form needs the exclusive condition `low < high`, which exits as soon as they meet.
 
-**Why compare with `right` not `left`?**
-```text
-Example: [4,5,6,7,0,1,2]
-          L     M     R
+**Q: How do you search a rotated sorted array without finding the rotation point first?**
 
-If we compare mid with left:
-  nums[mid]=7, nums[left]=4
-  7 > 4 (true for both sorted AND rotated!)
-  Can't tell which way to go!
+At each step, compare `nums[low]` against `nums[mid]` to identify which half is properly sorted. Then
+check whether the target falls inside that half's known range: if it does, search there; if not, search
+the other half. Finding the pivot first also works and costs another `O(log n)` pass, but it is not
+needed.
 
-If we compare mid with right:
-  nums[mid]=7, nums[right]=2
-  7 > 2 → CLEARLY rotated to the right!
-  Perfect signal!
-```
+**Q: What breaks when the rotated array has duplicates?**
 
----
+The sorted-half test stops being decisive. On `[2, 2, 2, 0, 2]` with `low`, `mid` and `high` all reading
+2, neither half can be ruled out, so the only correct move is to shrink one end by one — which makes the
+worst case `O(n)`. Say that explicitly rather than presenting the `O(log n)` claim.
 
-## Time & Space Complexity
+**Q: How do you recognise a problem that wants a binary search over the answer space?**
 
-### Example 1: Search in Rotated Array
-- **Time Complexity**: O(log n) - Binary search
-- **Space Complexity**: O(1) - Constant space
+Two signals together: the question asks for a minimum or maximum value rather than a position, and
+checking "does value `x` work?" is much cheaper than finding the optimum directly. Then confirm the
+predicate is monotonic — if `x` works, every larger (or smaller) value works too. Koko Eating Bananas,
+Split Array Largest Sum, and Capacity To Ship Packages are all the same shape.
 
-### Example 2: Find Minimum
-- **Time Complexity**: O(log n) - Binary search
-- **Space Complexity**: O(1) - Constant space
+**Q: When is binary search the wrong answer even on a sorted array?**
 
----
+When you need every matching element rather than one, and the matches are dense — finding the boundary
+is `O(log n)` but reading `k` results is still `O(k)`. Also when the data is on disk or behind a network
+call, where `log n` random accesses can cost more than one sequential scan.
 
-## Common Variations
+## What to Read Next
 
-1. **Search in Rotated Sorted Array**
-   - Find target in rotated array
-   - LeetCode: [33. Search in Rotated Sorted Array](https://leetcode.com/problems/search-in-rotated-sorted-array/)
-   - LeetCode: [81. Search in Rotated Sorted Array II](https://leetcode.com/problems/search-in-rotated-sorted-array-ii/) (with duplicates)
-
-2. **Find Minimum in Rotated Array**
-   - LeetCode: [153. Find Minimum in Rotated Sorted Array](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/)
-   - LeetCode: [154. Find Minimum in Rotated Sorted Array II](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array-ii/) (with duplicates)
-
-3. **First and Last Position**
-   - Find first and last occurrence of element
-   - LeetCode: [34. Find First and Last Position of Element in Sorted Array](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
-
-4. **Peak Element**
-   - Find peak element in array
-   - LeetCode: [162. Find Peak Element](https://leetcode.com/problems/find-peak-element/)
-
-5. **Search 2D Matrix**
-   - Search in row and column sorted matrix
-   - LeetCode: [74. Search a 2D Matrix](https://leetcode.com/problems/search-a-2d-matrix/)
-   - LeetCode: [240. Search a 2D Matrix II](https://leetcode.com/problems/search-a-2d-matrix-ii/)
-
----
-
-## Practice Problems
-
-### Easy
-1. [704. Binary Search](https://leetcode.com/problems/binary-search/)
-2. [35. Search Insert Position](https://leetcode.com/problems/search-insert-position/)
-
-### Medium
-3. [33. Search in Rotated Sorted Array](https://leetcode.com/problems/search-in-rotated-sorted-array/)
-4. [153. Find Minimum in Rotated Sorted Array](https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/)
-5. [34. Find First and Last Position of Element in Sorted Array](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
-6. [162. Find Peak Element](https://leetcode.com/problems/find-peak-element/)
-7. [74. Search a 2D Matrix](https://leetcode.com/problems/search-a-2d-matrix/)
-8. [240. Search a 2D Matrix II](https://leetcode.com/problems/search-a-2d-matrix-ii/)
-
-### Hard
-9. [4. Median of Two Sorted Arrays](https://leetcode.com/problems/median-of-two-sorted-arrays/)
-
----
-
-## Key Takeaways
-
-1. **Classic binary search**: Foundation for all variations
-2. **Identify sorted half**: Key insight for rotated array problems
-3. **Invariant**: Maintain property that answer is always in search range
-4. **Avoid infinite loops**: Ensure left/right pointers always make progress
-5. **Edge cases**: Single element, two elements, not rotated
-6. **Template**:
-   ```text
-   while left < right:
-       mid = (left + right) // 2
-       if condition_to_go_right:
-           left = mid + 1
-       else:
-           right = mid
-   ```
-
----
-
-[← Previous: Overlapping Intervals](./09-overlapping-intervals.md) | [Back to Index](./README.md) | [Next: Binary Tree Traversal →](./11-binary-tree-traversal.md)
+- [Chapter ?? — Two Pointers](#ch-two-pointers) — the other way to exploit a sorted array, in `O(n)`
+- [Chapter ?? — Overlapping Intervals](#ch-overlapping-intervals) — where the sorted position found here is the first step
+- [Chapter ?? — Time and Space Complexity](#ch-time-and-space-complexity) — why `O(log n)` is worth restructuring a problem for

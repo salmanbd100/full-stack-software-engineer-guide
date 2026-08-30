@@ -32,7 +32,7 @@ happened (the budget arithmetic in #1, the frontend-share rule).
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-29 · **Progress:** 26 / 78
+**Last updated:** 2026-08-30 · **Progress:** 27 / 78
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2261,7 +2261,7 @@ removed from the manuscript were over 400 lines. `.lint-baseline.json` updated t
 
 ---
 
-### - [ ] 27. Trim the DSA chapters to book length `L`
+### - [x] 27. Trim the DSA chapters to book length `L` — ✅ **done 2026-08-30**
 
 DSA is 19,115 lines across 16 files — files run 647 to 2,006 lines against the repo's own 150–400 rule.
 `16-graph-algorithms.md` alone is 2,006 lines; `11-binary-tree-traversal.md` is 1,809.
@@ -2276,7 +2276,33 @@ Target: 16 files × ~350 lines = ~5,600 lines (down from 19,115).
 
 **Done when:** every DSA file is under 400 lines and the solved-solution bulk lives in a linked repo or appendix.
 
-**Progress — run #1, 2026-08-30. Chapters 01–04 done, 12 remain. Box stays unticked.**
+**Delivered:**
+
+- All **sixteen** DSA chapters trimmed to the Book Chapter Standard across four runs in one day:
+  **19,281 lines → 4,520**, every chapter between **218 and 363** lines against the 400-line limit and
+  the ~220 target. The appendix budget is 5,600, so it lands under.
+- Each chapter carries the six blocks, a curated 8-row LeetCode table instead of solved solutions,
+  Key Takeaways, Interview Questions, `#ch-` cross-references only, and TypeScript-only fences.
+- The solved-solution bulk went to **`Archive/dsa-solutions/`** — a `git mv`, not a delete. There is no
+  linked repository yet, so this directory is it. Its README records what every chapter dropped and what
+  each one kept, so the cuts are reviewable.
+- `.lint-baseline.json` `too-long` dropped **47 → 20** over the item's four runs. All 16 DSA files are
+  off the violation list.
+- **#16's prev/next footers are dissolved inside `DSA/`** — the standard forbids back-links. `grep` over
+  `DSA/` returns none. The chain survives intact inside `Archive/dsa-solutions/`, where all sixteen
+  originals now sit, so it resolves end to end there. #16 is not reopened; it fixed a real breakage at
+  the time and this supersedes it.
+
+**Deliberately not done:** no separate linked repository was created. `BOOK-SPEC.md` asks for "a linked
+repository" and `Archive/` is the repo's existing answer to "useful, but not in the book" — the same
+treatment #26 gave `Archive/foundations/`. If a standalone solutions repo is ever published, the sixteen
+files move wholesale and the READMEs' pointers change; nothing else does.
+
+**A correction this item forced on the plan.** The item's own header said DSA was "19,115 lines across 16
+files". Measured from the archived originals it is **19,281**. The target arithmetic — 16 × ~350 = ~5,600 —
+held; the starting figure was 166 lines low.
+
+**Progress — runs #1–4, 2026-08-30. All sixteen chapters done.**
 
 **Where the bulk went.** There is no linked repo, so the originals were `git mv`d to
 **`Archive/dsa-solutions/`** — the repository's existing answer to "useful, but not in the book", and
@@ -2286,7 +2312,7 @@ each chapter dropped, so the cuts are reviewable rather than silent, and `Archiv
 tree and prose both mention it — it is the one sub-tree whose originals were **replaced** rather than
 removed.
 
-**This run:**
+**Run #1:**
 
 | File                          | Was   | Now | Kept                                                     |
 | ----------------------------- | ----- | --- | -------------------------------------------------------- |
@@ -2316,10 +2342,104 @@ files. All 29 TypeScript fences in the four new chapters were extracted and comp
 `tsc --strict --target es2022`: **zero errors**. Every `#ch-` anchor used resolves to exactly one H1
 (`#ch-fast-slow-pointers` was wrong on first write and is corrected to `#ch-fast-and-slow-pointers`).
 
-**Next run:** 05–08 (`fast-slow-pointers`, `linkedlist-in-place-reversal`, `monotonic-stack`,
-`top-k-elements`), then 09–12, then 13–16. Each run: `git mv` the originals into
-`Archive/dsa-solutions/`, write the trimmed chapters, extend that README's table, update the
-`DSA/README.md` ⚠️ callout's "chapters NN–NN are done" line, and drop the baseline by four.
+---
+
+**Run #2, 2026-08-30 — chapters 05–08.**
+
+| File                                 | Was   | Now | Kept                                                                                    |
+| ------------------------------------ | ----- | --- | --------------------------------------------------------------------------------------- |
+| `05-fast-slow-pointers.md`           | 1,275 | 272 | The gap-closes-by-one argument, cycle detection, both midpoint offsets, the full `a = (k − 1)(b + c) + c` derivation as a Mermaid diagram plus four lines of algebra, Happy Number as a cycle with no list |
+| `06-linkedlist-in-place-reversal.md` | 810   | 240 | The three-pointer loop with a table of what breaks if the three lines are reordered, the dummy-node head-insertion sublist reversal, the `O(n)` stack cost of the recursive version |
+| `07-monotonic-stack.md`              | 665   | 260 | The discard rule, the template, a four-row increasing/decreasing table with the pop-versus-push distinction, the amortised `O(n)` argument, the circular `2n` pass, a Mermaid diagram of the histogram measure step |
+| `08-top-k-elements.md`               | 784   | 304 | Why `k` largest needs a **min**-heap, a compact 25-line generic `Heap<T>`, top-k by frequency, and a six-row table of when quickselect or bucket sort beats a heap — with the linear bucket-sort solution written out |
+
+3,534 lines → 1,076.
+
+**Two things this run had to fix, not just trim.** `08-top-k-elements.md` contained a **Python**
+solution for Top K Frequent Elements, against the repo's TypeScript-only rule — rewritten in
+TypeScript, and the Python-specific `heapq` takeaway ("Python's heapq is a min-heap by default")
+replaced with the fact that actually matters in an interview: **JavaScript ships no heap at all**, so
+the chapter now carries a compact one. `06-linkedlist-in-place-reversal.md` used `####` headings,
+which the standard forbids; the whole four-level breakdown is gone rather than re-levelled.
+
+**Verified:** `pnpm lint:docs` — `too-long` **32 → 28**, all four files removed from the violation
+list, every other rule still 0. `.lint-baseline.json` updated to 28. All **35** TypeScript fences in
+the four new chapters were extracted, concatenated per chapter, and compiled with
+`tsc --strict --target es2022`: **zero errors**. Every `#ch-` anchor referenced resolves to exactly one
+H1 within the manuscript, checked through `loadBook()` rather than by grep so `Archive/` is excluded
+the way the build excludes it.
+
+**One pre-existing defect found, not fixed** — it belongs to another item. `ch-deployment-strategies`
+is a **duplicate anchor** across two in-book files: `SystemDesign/Microservices/06-deployment.md` and
+`ShipAndOperate/CICD/03-deployment-strategies.md`. Nothing in the lint checks anchor uniqueness, so it
+is silent today, and any cross-reference to it in print will resolve to whichever comes first.
+Closest owner is **#31** (deduplicate the smaller triplicates) or **#70** (assign chapter numbers).
+
+---
+
+**Run #3, 2026-08-30 — chapters 09–12.**
+
+| File                            | Was   | Now | Kept                                                                                              |
+| ------------------------------- | ----- | --- | ------------------------------------------------------------------------------------------------- |
+| `09-overlapping-intervals.md`   | 820   | 263 | The single overlap test that replaces the four-case gallery, merging with the `Math.max` extension, the decoupled sweep line as a Mermaid diagram, a six-row sort-key table, and the exchange argument for sorting by **end** |
+| `10-modified-binary-search.md`  | 720   | 312 | The reframe that the search space is the *predicate*, the two distinct loop shapes stated as separate templates, the rotated sorted-half test, `lowerBound` with LC 34 falling out of it, and answer-space search via Koko Eating Bananas |
+| `11-binary-tree-traversal.md`   | 1,825 | 284 | The four orders as one table, why inorder on a BST is sorted, the iterative inorder as the only one worth memorising, level order with the `levelSize` trick and the `shift()` warning, `O(h)` versus `O(w)` space |
+| `12-depth-first-search.md`      | 1,583 | 327 | Mark-on-entry as the defining rule, grids as implicit graphs with a single top guard, path tracking with push/pop and the copy, the explicit-stack version and its pop-side visited check, two-state directed-cycle detection |
+
+4,948 lines → 1,186.
+
+**A division of labour had to be drawn, not just a trim.** Chapters 11–14 and 16 all covered the same
+ground in the originals — 11 and 12 both taught level-order BFS, 12 duplicated 14's backtracking and
+16's topological sort. The trimmed set splits it: **11** owns the traversal *orders* and what each one is
+for, **12** owns DFS as a strategy on graphs and grids (visited sets, marking, path tracking), and both
+cross-reference 13, 14 and 16 rather than restating them. That is the same call #26 and #31 make about
+duplication, applied inside the appendix.
+
+**Verified:** `pnpm lint:docs` — `too-long` **28 → 24**, all four files off the violation list, every
+other rule still 0. `.lint-baseline.json` updated to 24. All **40** TypeScript fences compiled with
+`tsc --strict --target es2022`: **zero errors**. All 11 `#ch-` anchors referenced by the new chapters
+resolve to exactly one in-book H1, checked through `loadBook()`. `ch-graph-algorithms`,
+`ch-backtracking` and `ch-breadth-first-search` resolve against the still-untrimmed 13, 14 and 16, so
+the forward references are live rather than dangling.
+
+**The `ch-deployment-strategies` duplicate anchor logged in run #2 is still open.** It is unrelated to
+this item; owner is #31 or #70.
+
+---
+
+**Run #4, 2026-08-30 — chapters 13–16. Item complete.**
+
+| File                          | Was   | Now | Kept                                                                                            |
+| ----------------------------- | ----- | --- | ----------------------------------------------------------------------------------------------- |
+| `13-breadth-first-search.md`  | 1,692 | 307 | Why first arrival is shortest arrival, the ring-swap template that avoids `shift()`, mark-on-enqueue, multi-source seeding as a Mermaid diagram, and the `O(w)` versus `O(h)` cost that makes BFS the wrong default |
+| `14-backtracking.md`          | 1,544 | 321 | Choose/explore/un-choose, the copy rule, a four-row table separating subsets from combinations from permutations from reuse, `close < open` as the canonical prune, the `i > start` duplicate skip, and the exponential bounds stated plainly |
+| `15-dynamic-programming.md`   | 750   | 294 | The two preconditions as a table, the five questions, both directions of Coin Change, rolling to `O(1)` space, the four state shapes, and the `[1, 3, 4]` greedy counterexample |
+| `16-graph-algorithms.md`      | 2,022 | 363 | The four properties to clarify first, a representation table, Kahn's with its free cycle check, Dijkstra with the stale-entry skip standing in for decrease-key, Union-Find with both optimisations, and a nine-row algorithm-selection table |
+
+6,008 lines → 1,285.
+
+**15 did not need expanding after all.** Run #3 flagged it as a possible under-400 file needing growth
+rather than a cut; at 294 lines it sits comfortably above the 150 floor and near the ~220 target. It was
+the only chapter in the appendix whose original was already close to book length, and the trim was mostly
+removing the duplicated top-down/bottom-up explanations rather than solution bulk.
+
+**16 was the largest file in the appendix and had the most duplication to shed.** Four of its sections
+were DFS and BFS templates copied wholesale from chapters 12 and 13. Those are gone; the chapter now
+opens by handing traversal to those two chapters and covers only what is built on top — topological sort,
+Dijkstra, Union-Find, and the selection table.
+
+**Verified:** `pnpm lint:docs` — `too-long` **24 → 20**, all four files off the list, every other rule
+still 0. `.lint-baseline.json` updated to 20. All **42** TypeScript fences compiled with
+`tsc --strict --target es2022`: **zero errors** (Dijkstra's fence uses a `declare class Heap<T>` to name
+the heap from chapter 08 rather than restating it). All **16** distinct `#ch-` anchors referenced from
+`DSA/` resolve to exactly one in-book H1, and **every** DSA chapter's own anchor is referenced by at
+least one other DSA chapter — the appendix is fully navigable with no orphans. `grep` confirms no
+prev/next footer survives in `DSA/`.
+
+**Still open, and not this item's:** `ch-deployment-strategies` is a duplicate anchor across
+`SystemDesign/Microservices/06-deployment.md` and `ShipAndOperate/CICD/03-deployment-strategies.md`.
+Nothing lints anchor uniqueness, so it is silent. Owner is **#31** or **#70**. A `duplicate-anchor` lint
+rule would be a cheap addition to #70.
 
 ---
 
@@ -2961,13 +3081,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31   | 7/12 | 🔄 In progress  |
+| 2     | 20–31   | 8/12 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **78** | **26/78** | **33%**   |
+| **Total** | **78** | **27/78** | **35%**   |
 
 ---
 

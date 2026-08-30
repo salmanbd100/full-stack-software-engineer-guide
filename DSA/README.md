@@ -5,7 +5,7 @@ chapter: 0
 slug: dsa-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
+updated: 2026-08-30
 tags: [dsa, algorithms, patterns, leetcode, complexity]
 in_book: true
 ---
@@ -66,8 +66,8 @@ harder. Do not skip 03 and 04; they underpin more questions than any other pair 
 **Interview sprint:** 01 → 03 → 04 → 13 → 15. Complexity, two pointers, sliding window, BFS and
 dynamic programming between them cover the majority of what gets asked.
 
-> ⚠️ **This appendix ships as a companion volume, not bound into the book.** Improvement #27 is
-> trimming each chapter to pattern recognition, one template, two worked examples, complexity and a
-> curated problem table. **Chapters 01–04 are done** and run 218–262 lines; 05–16 still carry their
-> full solution sets and run from 666 to 2,023 lines against a 400-line limit. The originals live in
+> ⚠️ **This appendix ships as a companion volume, not bound into the book.** Improvement #27 trimmed
+> all sixteen chapters to pattern recognition, one template, two worked examples, complexity and a
+> curated problem table — 19,281 lines down to 4,520, each chapter between 218 and 363. The full
+> teaching versions, with every solution worked line by line, live in
 > [`Archive/dsa-solutions/`](../Archive/dsa-solutions/README.md) — nothing was deleted.

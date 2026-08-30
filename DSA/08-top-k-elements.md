@@ -4,781 +4,301 @@ part: 10
 chapter: 0
 slug: top-k-elements
 level: intermediate # beginner | intermediate | advanced
-reading_time: 27
-updated: 2026-08-28
-tags: [dsa, top, elements]
+reading_time: 11
+updated: 2026-08-30
+tags: [dsa, heap, priority-queue, top-k]
 in_book: true
 ---
 
 # Top K Elements {#ch-top-k-elements}
 
-> Get the k largest or most frequent items without sorting the whole input.
+> Keep only `k` candidates in a heap, so the cost drops from `O(n log n)` to `O(n log k)` and streaming input works.
 
-**In this chapter:** why a heap beats a sort here · min-heap vs max-heap · kth largest · top k frequent · complexity
+**In this chapter:** why a **min**-heap gives you the `k` **largest** · a heap in TypeScript, since the language has none · top-k by frequency · when quickselect or bucket sort beats a heap · the streaming case that only a heap handles
 
-## What is Top K Elements? (In Simple Words)
+## 💡 The Core Idea
 
-Imagine you're organizing a **video game leaderboard** with millions of players, but you only want to display the **top 10 scores**. You don't need to sort all millions of scores - you just need to keep track of the best 10!
+The obvious answer to "the 5 largest of a million numbers" is to sort and take five. That does
+`O(n log n)` work to produce five values, and it needs the whole input in memory at once.
 
-This is exactly what the Top K Elements pattern does. Instead of sorting everything (which is slow), we use a smart data structure called a **heap** (think of it as a "smart priority list") that efficiently keeps track of only the K items we care about.
+A heap of size `k` does better. Hold the best `k` seen so far; for each new element, compare it against
+the **worst** of those `k` and swap if it wins. The rest of the input is never ordered at all.
 
-**Real-world examples:**
-- Trending topics on Twitter (top 10 hashtags)
-- YouTube's "Most Popular Videos" (top 50 videos)
-- E-commerce: "Top Rated Products" (top 20 products)
-- Music streaming: "Your Top 5 Artists This Year"
-- News sites: "Most Read Articles" (top 10 articles)
+The counterintuitive part is the heap's direction. For the `k` **largest**, use a **min**-heap. The
+smallest of your `k` keepers sits at the root, which is exactly the element a newcomer has to beat — and
+exactly the one to evict. A max-heap would put your best element where you need your worst.
 
-**The key insight:** Why sort 1 million items when you only need the top 10? Just maintain a collection of your best 10 and keep updating it as you see new items!
+> **The rule:** `k` largest → min-heap. `k` smallest → max-heap. The heap root is always the candidate
+> most at risk of eviction.
 
----
+## How It Works
 
-## Pattern Overview
+### A heap, because TypeScript has none
 
-The **Top 'K' Elements** pattern finds the k largest, smallest, or most frequent elements in a dataset. This pattern typically uses heaps (priority queues) to efficiently maintain and retrieve the top k elements.
-
-### When to Use
-- Finding k largest or smallest elements
-- Finding k most/least frequent elements
-- Finding k closest points to origin
-- Streaming data where you need to maintain top k
-- Sorting only the first k elements
-
-### Key Characteristics
-- Uses Min-Heap for k largest elements (or Max-Heap for k smallest)
-- Heap size is maintained at k
-- More efficient than full sorting when k << n
-- Time complexity: O(n log k) vs O(n log n) for full sort
-- Space complexity: O(k) for the heap
-
-### Pattern Identification
-Look for this pattern when you see:
-- "Find the k largest/smallest elements"
-- "K most frequent elements"
-- "K closest points"
-- "Kth largest element"
-- "Top k frequent words"
-
----
-
-## How to Recognize This Pattern
-
-**Ask yourself these questions:**
-1. Do I need only K items (not all items)?
-2. Are those K items the "best" by some criteria (largest, smallest, most frequent)?
-3. Do I care about ranking or selection, not complete sorting?
-
-If YES to all three - use Top K Elements pattern!
-
-**Example questions:**
-- "Find the **3 largest** numbers" - Yes! (K=3, criteria=largest)
-- "Find the **5 most frequent** words" - Yes! (K=5, criteria=frequency)
-- "**Sort** all elements" - No! (needs all elements, not just K)
-- "Find **all** elements greater than X" - No! (needs all, not just K)
-
----
-
-## Heap Visualizations: Understanding the Magic
-
-### What is a Heap?
-
-A **heap** is like a **smart priority line** where the most important item is always at the front. In a Min-Heap, the smallest value is at the top. In a Max-Heap, the largest value is at the top.
-
-**Think of it like this:**
-- **Min-Heap**: Like a "shortest person first" line - the shortest person is always at the front
-- **Max-Heap**: Like a "tallest person first" line - the tallest person is always at the front
-
-### Min-Heap Structure (Visual)
-
-```text
-        1         <- Root (smallest value)
-       / \
-      3   2       <- Children (larger than parent)
-     / \ / \
-    5  4 6  7     <- Grandchildren (even larger)
-
-Rules:
-- Parent is always ≤ children
-- Complete binary tree (fill left to right)
-- Root = minimum value
-```
-
-### Max-Heap Structure (Visual)
-
-```text
-        7         <- Root (largest value)
-       / \
-      5   6       <- Children (smaller than parent)
-     / \ / \
-    3  1 4  2     <- Grandchildren (even smaller)
-
-Rules:
-- Parent is always ≥ children
-- Complete binary tree (fill left to right)
-- Root = maximum value
-```
-
-### Why Use Min-Heap for K Largest? (The Counterintuitive Trick!)
-
-This is the **most confusing part** for beginners! Let's break it down:
-
-**Problem:** Find the 3 largest numbers in `[1, 5, 2, 9, 3, 7, 6]`
-
-**Wrong thinking:** "I want largest, so I use Max-Heap!"
-**Right thinking:** "I want to REMOVE smallest of my K items, so I use Min-Heap!"
-
-#### Step-by-Step Visualization
-
-```text
-Array: [1, 5, 2, 9, 3, 7, 6], K = 3
-
-Step 1: Add 1
-MinHeap: [1]
-Size: 1 (< K, so keep it)
-
-Step 2: Add 5
-MinHeap: [1, 5]
-Size: 2 (< K, so keep it)
-
-Step 3: Add 2
-MinHeap: [1, 5, 2]
-Size: 3 (= K, perfect!)
-
-Step 4: Add 9
-MinHeap: [1, 5, 2, 9]
-Size: 4 (> K, TOO BIG!)
-Remove minimum (1) → MinHeap: [2, 5, 9]
-Think: "9 is bigger than 1, so 1 can't be in top 3"
-
-Step 5: Add 3
-MinHeap: [2, 5, 9, 3]
-Size: 4 (> K)
-Remove minimum (2) → MinHeap: [3, 5, 9]
-
-Step 6: Add 7
-MinHeap: [3, 5, 9, 7]
-Size: 4 (> K)
-Remove minimum (3) → MinHeap: [5, 9, 7]
-
-Step 7: Add 6
-MinHeap: [5, 9, 7, 6]
-Size: 4 (> K)
-Remove minimum (5) → MinHeap: [6, 9, 7]
-
-Final Result: [6, 7, 9] - The 3 largest elements!
-```
-
-#### The Golden Rule
-
-```text
-┌────────────────────────────────────────────────────┐
-│  Want K LARGEST?  → Use MIN-HEAP (remove smallest) │
-│  Want K SMALLEST? → Use MAX-HEAP (remove largest)  │
-└────────────────────────────────────────────────────┘
-```
-
-**Why?** Because we want to **kick out** the items that don't belong in our top K:
-- For top K largest: kick out the smallest
-- For top K smallest: kick out the largest
-
-### Array Representation of Heap
-
-Heaps are stored in arrays! This is how the tree structure maps to an array:
-
-```text
-Tree form:
-        1
-       / \
-      3   2
-     / \
-    5   4
-
-Array form: [1, 3, 2, 5, 4]
-Index:       0  1  2  3  4
-
-Formulas (for index i):
-- Parent: Math.floor((i - 1) / 2)
-- Left child: 2 * i + 1
-- Right child: 2 * i + 2
-
-Example:
-- Element at index 1 (value 3):
-  - Parent: (1-1)/2 = 0 → value 1 ✓
-  - Left child: 2*1+1 = 3 → value 5 ✓
-  - Right child: 2*1+2 = 4 → value 4 ✓
-```
-
----
-
-## Example 1: Kth Largest Element in an Array (TypeScript)
-
-### Problem
-Given an integer array `nums` and an integer `k`, return the `k`th largest element in the array. Note that it is the `k`th largest element in sorted order, not the `k`th distinct element.
-
-**LeetCode**: [215. Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)
-
-### Solution
+JavaScript ships no priority queue. Interviewers usually let you assume one, but say so out loud rather
+than silently using an API that does not exist. A comparator-driven binary heap is about twenty-five
+lines:
 
 ```typescript
-/**
- * Min-Heap implementation using array
- * TypeScript doesn't have built-in heap, so we'll implement one
- */
-class MinHeap {
-    private heap: number[];
+class Heap<T> {
+  private items: T[] = [];
 
-    constructor() {
-        this.heap = [];
+  // Returns negative when `a` should sit above `b`
+  constructor(private readonly compare: (a: T, b: T) => number) {}
+
+  get size(): number {
+    return this.items.length;
+  }
+
+  peek(): T | undefined {
+    return this.items[0];
+  }
+
+  push(value: T): void {
+    this.items.push(value);
+    let i = this.items.length - 1;
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (this.compare(this.items[i], this.items[parent]) >= 0) break;
+      [this.items[i], this.items[parent]] = [this.items[parent], this.items[i]];
+      i = parent;
     }
+  }
 
-    size(): number {
-        return this.heap.length;
+  pop(): T | undefined {
+    if (this.items.length === 0) return undefined;
+    const top = this.items[0];
+    const last = this.items.pop()!;
+    if (this.items.length > 0) {
+      this.items[0] = last;                 // move the last leaf to the root, then sink it
+      let i = 0;
+      for (;;) {
+        const left = 2 * i + 1;
+        const right = left + 1;
+        let smallest = i;
+        if (left < this.items.length && this.compare(this.items[left], this.items[smallest]) < 0) smallest = left;
+        if (right < this.items.length && this.compare(this.items[right], this.items[smallest]) < 0) smallest = right;
+        if (smallest === i) break;
+        [this.items[i], this.items[smallest]] = [this.items[smallest], this.items[i]];
+        i = smallest;
+      }
     }
-
-    peek(): number | undefined {
-        return this.heap[0];
-    }
-
-    push(val: number): void {
-        this.heap.push(val);
-        this.bubbleUp(this.heap.length - 1);
-    }
-
-    pop(): number | null {
-        if (this.size() === 0) return null;
-        if (this.size() === 1) return this.heap.pop()!;
-
-        const min: number = this.heap[0];
-        this.heap[0] = this.heap.pop()!;
-        this.bubbleDown(0);
-        return min;
-    }
-
-    private bubbleUp(index: number): void {
-        while (index > 0) {
-            const parentIndex: number = Math.floor((index - 1) / 2);
-            if (this.heap[parentIndex] <= this.heap[index]) break;
-
-            [this.heap[parentIndex], this.heap[index]] =
-                [this.heap[index], this.heap[parentIndex]];
-            index = parentIndex;
-        }
-    }
-
-    private bubbleDown(index: number): void {
-        while (true) {
-            let smallest: number = index;
-            const left: number = 2 * index + 1;
-            const right: number = 2 * index + 2;
-
-            if (left < this.size() && this.heap[left] < this.heap[smallest]) {
-                smallest = left;
-            }
-            if (right < this.size() && this.heap[right] < this.heap[smallest]) {
-                smallest = right;
-            }
-            if (smallest === index) break;
-
-            [this.heap[index], this.heap[smallest]] =
-                [this.heap[smallest], this.heap[index]];
-            index = smallest;
-        }
-    }
+    return top;
+  }
 }
+// push: O(log n), pop: O(log n), peek: O(1)
+```
 
-/**
- * Find kth largest element using Min-Heap
- * @param nums - Array of integers
- * @param k - Position of largest element to find
- * @returns Kth largest element
- */
+The array-as-tree trick is worth knowing: for index `i`, children live at `2i + 1` and `2i + 2`, and the
+parent at `(i - 1) >> 1`. No node objects, no pointers.
+
+### The `k` largest
+
+```typescript
 function findKthLargest(nums: number[], k: number): number {
-    // Use min-heap of size k to find k largest elements
-    const minHeap: MinHeap = new MinHeap();
+  const heap = new Heap<number>((a, b) => a - b);   // min-heap: smallest at the root
 
-    for (const num of nums) {
-        minHeap.push(num);
-
-        // Keep heap size at k
-        if (minHeap.size() > k) {
-            minHeap.pop();  // Remove smallest
-        }
-    }
-
-    // Root of min-heap is the kth largest element
-    return minHeap.peek()!;
+  for (const value of nums) {
+    heap.push(value);
+    if (heap.size > k) heap.pop();   // evict the smallest keeper, never the largest
+  }
+  return heap.peek()!;   // the root of a k-sized min-heap is the kth largest
 }
-
-// Alternative solution using built-in sort (simpler but less efficient)
-function findKthLargestSort(nums: number[], k: number): number {
-    nums.sort((a: number, b: number) => b - a);  // Sort descending
-    return nums[k - 1];
-}
-
-// Example usage
-console.log(findKthLargest([3, 2, 1, 5, 6, 4], 2));     // Output: 5
-// Explanation: Sorted array is [6, 5, 4, 3, 2, 1], 2nd largest is 5
-
-console.log(findKthLargest([3, 2, 3, 1, 2, 4, 5, 5, 6], 4));  // Output: 4
-// Explanation: Sorted array is [6, 5, 5, 4, 3, 3, 2, 2, 1], 4th largest is 4
-
-console.log(findKthLargest([1], 1));                    // Output: 1
-
-console.log(findKthLargest([7, 6, 5, 4, 3, 2, 1], 5));  // Output: 3
+// Time: O(n log k), Space: O(k)  — sorting is O(n log n) and O(n)
 ```
 
-### Detailed Code Explanation (Line by Line)
+Two properties fall out of the size cap. The root is the `k`th largest by definition, because exactly
+`k − 1` elements sit above it. And memory is `O(k)`, not `O(n)`, so the input never has to be held at
+all — which is the whole reason this pattern exists.
 
-Let's break down the heap implementation for complete beginners:
+### Top `k` by frequency
 
-#### Understanding the MinHeap Class
+Two steps: count, then run the same heap over the counts.
 
 ```typescript
-class MinHeap {
-    private heap: number[];
-
-    constructor() {
-        this.heap = [];  // We store the heap as an array
-    }
-```
-**What's happening:** We create an empty array to store our heap. Remember, heaps are trees but we store them as arrays!
-
-#### The bubbleUp Function (Adding Elements)
-
-```typescript
-private bubbleUp(index: number): void {
-    while (index > 0) {
-        const parentIndex: number = Math.floor((index - 1) / 2);
-
-        // If parent is smaller, we're done (min-heap property satisfied)
-        if (this.heap[parentIndex] <= this.heap[index]) break;
-
-        // Otherwise, swap with parent and continue
-        [this.heap[parentIndex], this.heap[index]] =
-            [this.heap[index], this.heap[parentIndex]];
-        index = parentIndex;
-    }
-}
-```
-
-**Visual Example of bubbleUp:**
-```text
-Initial heap: [1, 3, 2, 5]
-Add 0 to the end: [1, 3, 2, 5, 0]
-
-bubbleUp from index 4 (value 0):
-
-Step 1: Compare with parent
-        1
-       / \
-      3   2
-     / \
-    5   0  <- Start here (index 4)
-
-Parent index: (4-1)/2 = 1 (value 3)
-3 > 0, so swap!
-
-Step 2: After swap
-        1
-       / \
-      0   2  <- Now at index 1
-     / \
-    5   3
-
-Parent index: (1-1)/2 = 0 (value 1)
-1 > 0, so swap!
-
-Step 3: After swap
-        0  <- Final position (index 0)
-       / \
-      1   2
-     / \
-    5   3
-
-Done! 0 is at the root (smallest element)
-```
-
-#### The bubbleDown Function (Removing Elements)
-
-```typescript
-private bubbleDown(index: number): void {
-    while (true) {
-        let smallest: number = index;
-        const left: number = 2 * index + 1;   // Left child
-        const right: number = 2 * index + 2;  // Right child
-
-        // Find the smallest among: current, left child, right child
-        if (left < this.size() && this.heap[left] < this.heap[smallest]) {
-            smallest = left;
-        }
-        if (right < this.size() && this.heap[right] < this.heap[smallest]) {
-            smallest = right;
-        }
-
-        // If current is smallest, we're done
-        if (smallest === index) break;
-
-        // Otherwise, swap and continue
-        [this.heap[index], this.heap[smallest]] =
-            [this.heap[smallest], this.heap[index]];
-        index = smallest;
-    }
-}
-```
-
-**Visual Example of bubbleDown:**
-```text
-Remove root (pop operation):
-Step 1: Remove root and move last element to root
-        1              9
-       / \            / \
-      3   2    →     3   2
-     / \            /
-    5   9          5
-
-Step 2: bubbleDown from index 0 (value 9)
-        9  <- Too big! Swap with smallest child (2)
-       / \
-      3   2
-     /
-    5
-
-Step 3: After swap
-        2
-       / \
-      3   9  <- Still too big! Swap with 5
-     /
-    5
-
-Step 4: After swap
-        2
-       / \
-      3   5
-     /
-    9    <- Done! All parents ≤ children
-```
-
-#### The Main Algorithm
-
-```typescript
-const minHeap: MinHeap = new MinHeap();
-
-for (const num of nums) {
-    minHeap.push(num);      // Add element to heap
-
-    if (minHeap.size() > k) {
-        minHeap.pop();       // Remove smallest if size exceeds k
-    }
-}
-
-return minHeap.peek()!;     // Return root (kth largest)
-```
-
-**Why this works:**
-1. We add each element to the heap
-2. If heap gets too big (> k elements), we remove the smallest
-3. After processing all elements, heap contains exactly k largest elements
-4. The root (smallest in heap) is the kth largest overall!
-
-**Think of it like this:**
-- Heap = "VIP section" with only k seats
-- New person arrives → add them to VIP
-- Too many people? → kick out the "least VIP" person (smallest score)
-- After everyone's been checked, the "least VIP" in VIP section = kth best overall!
-
-### Original Explanation
-
-**Why Min-Heap for k largest?**
-
-- We want to keep track of the k largest elements
-- Min-heap keeps smallest element at root
-- If heap size > k, we remove the smallest (which is not in top k)
-- After processing all elements, heap contains k largest elements
-- Root of min-heap is the smallest among k largest = kth largest overall
-
-**Visual Example** for `nums = [3, 2, 1, 5, 6, 4], k = 2`:
-
-```text
-Process 3: heap = [3]
-Process 2: heap = [2, 3]
-Process 1: heap = [2, 3], size > k, remove 1, heap = [2, 3]
-Process 5: heap = [2, 3, 5], size > k, remove 2, heap = [3, 5]
-Process 6: heap = [3, 5, 6], size > k, remove 3, heap = [5, 6]
-Process 4: heap = [4, 6, 5], size > k, remove 4, heap = [5, 6]
-
-Final heap = [5, 6] → kth largest (k=2) = 5
-```
-
----
-
-## Example 2: Top K Frequent Elements (Python)
-
-### Problem
-Given an integer array `nums` and an integer `k`, return the `k` most frequent elements. You may return the answer in any order.
-
-**LeetCode**: [347. Top K Frequent Elements](https://leetcode.com/problems/top-k-frequent-elements/)
-
-### Solution
-
-```typescript
-/**
- * MinHeap implementation for Top K Frequent Elements
- */
-class MinHeap {
-    private heap: [number, number][] = [];
-
-    push(val: [number, number]): void {
-        this.heap.push(val);
-        this.bubbleUp(this.heap.length - 1);
-    }
-
-    pop(): [number, number] | undefined {
-        if (this.heap.length === 0) return undefined;
-        const top = this.heap[0];
-        const last = this.heap.pop()!;
-        if (this.heap.length > 0) {
-            this.heap[0] = last;
-            this.bubbleDown(0);
-        }
-        return top;
-    }
-
-    size(): number {
-        return this.heap.length;
-    }
-
-    private bubbleUp(idx: number): void {
-        while (idx > 0) {
-            const parent = Math.floor((idx - 1) / 2);
-            if (this.heap[parent][0] <= this.heap[idx][0]) break;
-            [this.heap[parent], this.heap[idx]] = [this.heap[idx], this.heap[parent]];
-            idx = parent;
-        }
-    }
-
-    private bubbleDown(idx: number): void {
-        while (true) {
-            const left = 2 * idx + 1;
-            const right = 2 * idx + 2;
-            let smallest = idx;
-            if (left < this.heap.length && this.heap[left][0] < this.heap[smallest][0]) {
-                smallest = left;
-            }
-            if (right < this.heap.length && this.heap[right][0] < this.heap[smallest][0]) {
-                smallest = right;
-            }
-            if (smallest === idx) break;
-            [this.heap[smallest], this.heap[idx]] = [this.heap[idx], this.heap[smallest]];
-            idx = smallest;
-        }
-    }
-
-    toArray(): [number, number][] {
-        return [...this.heap];
-    }
-}
-
-/**
- * Find k most frequent elements using Min-Heap
- * @param nums - Array of integers
- * @param k - Number of most frequent elements to return
- * @returns List of k most frequent elements
- */
 function topKFrequent(nums: number[], k: number): number[] {
-    // Step 1: Count frequency of each element
-    const freqMap: Map<number, number> = new Map();
-    for (const num of nums) {
-        freqMap.set(num, (freqMap.get(num) || 0) + 1);
-    }
+  const counts = new Map<number, number>();
+  for (const n of nums) counts.set(n, (counts.get(n) ?? 0) + 1);
 
-    // Step 2: Use min-heap to keep track of k most frequent elements
-    const minHeap = new MinHeap();
+  // Compare on frequency, so the least frequent keeper sits at the root
+  const heap = new Heap<[number, number]>((a, b) => a[1] - b[1]);
 
-    for (const [num, freq] of freqMap.entries()) {
-        minHeap.push([freq, num]);
+  for (const entry of counts) {
+    heap.push(entry);
+    if (heap.size > k) heap.pop();
+  }
 
-        // Keep heap size at k
-        if (minHeap.size() > k) {
-            minHeap.pop();  // Remove least frequent
-        }
-    }
-
-    // Step 3: Extract elements from heap
-    return minHeap.toArray().map(([freq, num]) => num);
+  const result: number[] = [];
+  while (heap.size > 0) result.unshift(heap.pop()![0]);   // pop gives ascending, so prepend
+  return result;
 }
+// Time: O(n + m log k) where m is the number of distinct values, Space: O(m)
+```
 
-/**
- * Alternative solution using bucket sort - O(n) time
- * @param nums - Array of integers
- * @param k - Number of most frequent elements to return
- * @returns List of k most frequent elements
- */
-function topKFrequentBucketSort(nums: number[], k: number): number[] {
-    // Count frequencies
-    const freqMap: Map<number, number> = new Map();
-    for (const num of nums) {
-        freqMap.set(num, (freqMap.get(num) || 0) + 1);
+Note the complexity honestly: the map is `O(m)` space whatever you do, so the heap's `O(k)` saving
+applies to the second phase only. The `O(n)` count is unavoidable.
+
+### When a heap is not the fastest answer
+
+| Situation                                        | Better tool        | Cost                              |
+| ------------------------------------------------ | ------------------ | --------------------------------- |
+| One-off `k`th largest, whole array in memory      | Quickselect        | `O(n)` average, `O(n²)` worst      |
+| Top `k` by frequency, counts bounded by `n`       | Bucket sort        | `O(n)` guaranteed                  |
+| Input arrives as a stream, or `n` does not fit    | Heap of size `k`   | `O(n log k)`, `O(k)` space         |
+| `k` is close to `n`                               | Just sort          | `O(n log n)` and simpler to read   |
+| `k = 1`                                           | A single scan      | `O(n)`, `O(1)`                     |
+| Repeated queries as data changes                  | Heap, kept live    | `O(log k)` per update              |
+
+Bucket sort is the answer interviewers are fishing for on Top K Frequent Elements. A frequency can
+never exceed `n`, so index an array of `n + 1` buckets by count and read it from the top:
+
+```typescript
+function topKFrequentBuckets(nums: number[], k: number): number[] {
+  const counts = new Map<number, number>();
+  for (const n of nums) counts.set(n, (counts.get(n) ?? 0) + 1);
+
+  const buckets: number[][] = Array.from({ length: nums.length + 1 }, () => []);
+  for (const [value, count] of counts) buckets[count].push(value);
+
+  const result: number[] = [];
+  for (let count = buckets.length - 1; count >= 0 && result.length < k; count--) {
+    for (const value of buckets[count]) {
+      result.push(value);
+      if (result.length === k) return result;
     }
-
-    // Create buckets where index represents frequency
-    const buckets: number[][] = Array.from({ length: nums.length + 1 }, () => []);
-
-    for (const [num, freq] of freqMap.entries()) {
-        buckets[freq].push(num);
-    }
-
-    // Collect k most frequent elements from buckets (right to left)
-    const result: number[] = [];
-    for (let i = buckets.length - 1; i > 0; i--) {
-        for (const num of buckets[i]) {
-            result.push(num);
-            if (result.length === k) {
-                return result;
-            }
-        }
-    }
-
-    return result;
+  }
+  return result;
 }
-
-// Example usage
-// Example 1
-const nums1: number[] = [1, 1, 1, 2, 2, 3];
-const k1: number = 2;
-console.log(topKFrequent(nums1, k1));  // Output: [1, 2]
-// Explanation: 1 appears 3 times, 2 appears 2 times (most frequent)
-
-// Example 2
-const nums2: number[] = [1];
-const k2: number = 1;
-console.log(topKFrequent(nums2, k2));  // Output: [1]
-
-// Example 3
-const nums3: number[] = [4, 1, -1, 2, -1, 2, 3];
-const k3: number = 2;
-console.log(topKFrequent(nums3, k3));  // Output: [-1, 2] (or [2, -1])
-// Explanation: -1 appears 2 times, 2 appears 2 times
-
-// Example 4 - Using bucket sort
-const nums4: number[] = [1, 1, 1, 2, 2, 3];
-const k4: number = 2;
-console.log(topKFrequentBucketSort(nums4, k4));  // Output: [1, 2]
+// Time: O(n), Space: O(n)
 ```
 
-### Explanation
+⚠️ Quickselect's `O(n)` is an average, not a guarantee, and its worst case is `O(n²)` on adversarial
+input. It also reorders the array. Name both costs before offering it as the optimal solution.
 
-**Heap-based Approach**:
+## When to Use It
 
-1. **Count frequencies**: Use hashmap to count occurrences
-2. **Build min-heap**: Store (frequency, element) pairs
-3. **Maintain size k**: If heap exceeds k, remove least frequent
-4. **Extract result**: Elements in heap are k most frequent
+| Signal in the question                                | Reach for            | Why                                       |
+| ----------------------------------------------------- | -------------------- | ----------------------------------------- |
+| "`k` largest", "`k` most frequent", "`k` closest"      | Heap of size `k`     | The defining case                          |
+| "…from a stream" or "as elements arrive"              | Heap, kept live      | Nothing else handles unbounded input       |
+| "Median of a stream"                                  | **Two** heaps        | A max-heap for the low half, min for the high |
+| "Merge `k` sorted lists"                              | Heap of `k` heads    | The next output is always one of `k`        |
+| The `k`th **smallest** element                        | Max-heap of size `k` | Mirror the rule                            |
+| The full sorted order is needed anyway                | Sort                 | The heap saves nothing                     |
 
-**Visual Example** for `nums = [1,1,1,2,2,3], k = 2`:
+Find Median from Data Stream is the variation worth practising, because the two-heap answer is not
+obvious and it comes up often. Keep the smaller half in a max-heap and the larger half in a min-heap,
+rebalance so the sizes differ by at most one, and the median is one or both roots.
 
-```text
-Frequency map: {1: 3, 2: 2, 3: 1}
+## Common Mistakes
 
-Process (3, 1): heap = [(3, 1)]
-Process (2, 2): heap = [(2, 2), (3, 1)]
-Process (1, 3): heap = [(1, 3), (3, 1), (2, 2)]
-                size > k, remove (1, 3)
-                heap = [(2, 2), (3, 1)]
+**Using a max-heap for the `k` largest:**
 
-Result: [2, 1] (extract elements from heap)
+```typescript
+// ❌ max-heap, then pop k times — O(n) to build plus O(k log n), and O(n) space
+// ✅ min-heap capped at k — O(n log k) and O(k) space
 ```
 
-**Bucket Sort Approach** (More efficient for this problem):
+Both are correct. Only one of them still works when the input is a stream.
 
-```text
-Frequency map: {1: 3, 2: 2, 3: 1}
+**Letting the heap grow past `k`:**
 
-Buckets:
-  bucket[0] = []
-  bucket[1] = [3]     (3 appears 1 time)
-  bucket[2] = [2]     (2 appears 2 times)
-  bucket[3] = [1]     (1 appears 3 times)
-
-Iterate from right: [1] → [2] → k elements collected
-Result: [1, 2]
+```typescript
+// ❌ push everything, then pop until size === k
+// ✅ if (heap.size > k) heap.pop();   // inside the loop — this is where the log k comes from
 ```
 
----
+**Comparing the wrong field:**
 
-## Time & Space Complexity
+```typescript
+// ❌ new Heap<[number, number]>((a, b) => a[0] - b[0]);   // orders by value, not frequency
+// ✅ (a, b) => a[1] - b[1];
+```
 
-### Example 1: Kth Largest Element
-- **Heap approach**:
-  - Time Complexity: O(n log k) - Process n elements, each heap operation is O(log k)
-  - Space Complexity: O(k) - Heap size
-- **Sort approach**:
-  - Time Complexity: O(n log n)
-  - Space Complexity: O(1) or O(n) depending on sort implementation
+**Reading `pop()` order as the answer order:**
 
-### Example 2: Top K Frequent
-- **Heap approach**:
-  - Time Complexity: O(n log k) - n for counting, n log k for heap operations
-  - Space Complexity: O(n) - HashMap + O(k) heap
-- **Bucket sort approach**:
-  - Time Complexity: O(n)
-  - Space Complexity: O(n)
+```typescript
+// ❌ while (heap.size) result.push(heap.pop()![0]);   // ascending — reversed from what was asked
+// ✅ unshift, or push then reverse
+```
 
----
+**Not handling `k` larger than the input:**
 
-## Common Variations
+```typescript
+// ❌ heap.peek()! after fewer than k pushes returns the minimum, silently wrong
+// ✅ clamp k, or return early — check the constraints for whether it is guaranteed
+```
 
-1. **Kth Largest/Smallest Element**
-   - LeetCode: [215. Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)
-   - LeetCode: [703. Kth Largest Element in a Stream](https://leetcode.com/problems/kth-largest-element-in-a-stream/)
+**Claiming `O(n log k)` beats `O(n log n)` when `k ≈ n`:**
 
-2. **Top K Frequent Elements**
-   - LeetCode: [347. Top K Frequent Elements](https://leetcode.com/problems/top-k-frequent-elements/)
-   - LeetCode: [692. Top K Frequent Words](https://leetcode.com/problems/top-k-frequent-words/)
+```typescript
+// ❌ "the heap is always faster"
+// ✅ it is faster when k is much smaller than n; at k = n they are the same, and sorting is simpler
+```
 
-3. **K Closest Points**
-   - LeetCode: [973. K Closest Points to Origin](https://leetcode.com/problems/k-closest-points-to-origin/)
+## Problems to Practise
 
-4. **K Pairs with Smallest Sums**
-   - LeetCode: [373. Find K Pairs with Smallest Sums](https://leetcode.com/problems/find-k-pairs-with-smallest-sums/)
+| #   | Problem                          | Difficulty | What it drills                                   |
+| --- | -------------------------------- | ---------- | ------------------------------------------------ |
+| 703 | Kth Largest Element in a Stream  | Easy       | Why the size cap is the whole pattern             |
+| 215 | Kth Largest Element in an Array  | Medium     | Min-heap of size `k`, then quickselect            |
+| 347 | Top K Frequent Elements          | Medium     | Count then heap, and the bucket-sort alternative  |
+| 973 | K Closest Points to Origin       | Medium     | A comparator on a derived key                     |
+| 658 | Find K Closest Elements          | Medium     | Binary search beats the heap here                 |
+| 692 | Top K Frequent Words             | Medium     | Tie-breaking inside the comparator                |
+| 23  | Merge k Sorted Lists             | Hard       | A heap of `k` list heads                          |
+| 295 | Find Median from Data Stream     | Hard       | Two heaps, and the rebalancing invariant          |
 
----
+Solve 215 twice — once with a heap and once with quickselect — then 347 twice, heap and buckets. Being
+able to give two solutions with honest complexities is what the question is actually testing.
 
-## Practice Problems
+## 🔑 Key Takeaways
 
-### Easy
-1. [703. Kth Largest Element in a Stream](https://leetcode.com/problems/kth-largest-element-in-a-stream/)
+- A heap capped at `k` costs `O(n log k)` time and `O(k)` space, against `O(n log n)` and `O(n)` for sorting.
+- Use a **min**-heap for the `k` largest: the root is the weakest keeper, which is what you compare and evict.
+- The size cap is the pattern — pop inside the loop, not after it.
+- JavaScript has no built-in heap, so know the array-as-tree layout: children at `2i + 1` and `2i + 2`.
+- Quickselect is faster on average for a one-off query; only a heap handles a stream.
 
-### Medium
-2. [215. Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/)
-3. [347. Top K Frequent Elements](https://leetcode.com/problems/top-k-frequent-elements/)
-4. [692. Top K Frequent Words](https://leetcode.com/problems/top-k-frequent-words/)
-5. [973. K Closest Points to Origin](https://leetcode.com/problems/k-closest-points-to-origin/)
-6. [658. Find K Closest Elements](https://leetcode.com/problems/find-k-closest-elements/)
-7. [767. Reorganize String](https://leetcode.com/problems/reorganize-string/)
+## Interview Questions
 
-### Hard
-8. [295. Find Median from Data Stream](https://leetcode.com/problems/find-median-from-data-stream/)
-9. [502. IPO](https://leetcode.com/problems/ipo/)
+**Q: Why a min-heap for the `k` largest? It sounds backwards.**
 
----
+Because the element you keep checking is the *worst* of your current keepers. A min-heap puts that at
+the root, so comparing a newcomer and evicting the loser are both `O(1)` to reach and `O(log k)` to fix.
+With a max-heap the root is your best element, and finding the smallest keeper would cost `O(k)` every
+step.
 
-## Key Takeaways
+**Q: What is the actual saving over sorting?**
 
-1. **Heap choice**:
-   - Min-heap for k largest elements (keep largest k, remove smallest)
-   - Max-heap for k smallest elements (keep smallest k, remove largest)
+Time drops from `O(n log n)` to `O(n log k)`, which matters when `k` is much smaller than `n` — the five
+largest of a million. The bigger win is space: `O(k)` instead of `O(n)`, which means the input never has
+to be held in memory, so the same code works on a stream. At `k ≈ n` the two are equivalent and sorting
+is the clearer code.
 
-2. **Efficiency**: O(n log k) vs O(n log n) - significant when k << n
+**Q: When would you use quickselect instead?**
 
-3. **Heap size**: Always maintain heap at size k
+For a single `k`th-largest query on an array that is already in memory and may be reordered. It is
+`O(n)` on average by partitioning around a pivot and recursing into one side only. The costs to state
+are the `O(n²)` worst case on adversarial input, which random pivot selection makes unlikely but not
+impossible, and the fact that it mutates the input.
 
-4. **Python heapq**: Python's heapq is a min-heap by default
-   - For max-heap, negate values or use custom comparator
+**Q: How do you find the median of a stream?**
 
-5. **Alternative approaches**: Quickselect (O(n) average), Bucket sort (for frequency problems)
+Two heaps: a max-heap for the lower half and a min-heap for the upper half, kept within one element of
+the same size. Each insert goes to one side and then rebalances by moving a root across, so the median
+is the larger heap's root, or the average of both roots when sizes are equal. Insert is `O(log n)` and
+reading the median is `O(1)`.
 
-6. **Streaming data**: Particularly useful when data arrives in streams
+**Q: Top K Frequent Elements in guaranteed linear time — how?**
 
----
+Bucket sort. A frequency cannot exceed `n`, so allocate `n + 1` buckets, put each distinct value in the
+bucket matching its count, then read buckets from the highest down until you have `k` values. That is
+`O(n)` time and `O(n)` space, with no comparisons at all — it works because the key range is bounded by
+the input size.
 
-[← Previous: Monotonic Stack](./07-monotonic-stack.md) | [Back to Index](./README.md) | [Next: Overlapping Intervals →](./09-overlapping-intervals.md)
+## What to Read Next
+
+- [Chapter ?? — Monotonic Stack](#ch-monotonic-stack) — the other way to answer "largest so far" in one pass
+- [Chapter ?? — Modified Binary Search](#ch-modified-binary-search) — why Find K Closest Elements does not want a heap
+- [Chapter ?? — Time and Space Complexity](#ch-time-and-space-complexity) — where `O(n log k)` sits against `O(n log n)` in practice
