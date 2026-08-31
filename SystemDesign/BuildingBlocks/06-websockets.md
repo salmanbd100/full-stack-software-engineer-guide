@@ -4,237 +4,160 @@ part: 6
 chapter: 0
 slug: building-blocks-websockets
 level: intermediate # beginner | intermediate | advanced
-reading_time: 8
-updated: 2026-08-28
-tags: [system, design, building, blocks, websockets]
+reading_time: 9
+updated: 2026-08-31
+tags: [system-design, building-blocks, websockets, sse, realtime]
 in_book: true
 ---
 
 # Real-Time Communication {#ch-realtime-communication}
 
-> Decide between a socket, SSE and long polling, then keep the connections alive at scale.
+> Choose between a socket, SSE and polling on the requirement, then reason about what holding those connections costs.
 
-**In this chapter:** WebSocket vs SSE vs long polling · the handshake · scaling across instances · heartbeats and reconnection
+**In this chapter:** the three transports compared · the handshake · the stateful connection problem · fan-out topology · capacity and cost
 
-## 💡 **Concept**
+## 💡 The Core Idea
 
-WebSocket is a full-duplex, persistent TCP connection between client and server. Either side can push data at any time without the other side requesting it.
+"Real-time" is not one technology. It is a requirement — the server needs to tell the client something without being asked — and three transports satisfy it at very different prices.
 
-**Use WebSockets when:** you need low-latency, bidirectional, server-initiated messages — live chat, collaborative editing, real-time dashboards.
+The question that decides between them is narrow: **does the client also need to send frequent messages?** If yes, you need a bidirectional socket and you accept stateful infrastructure. If no, you are pushing one way, and plain HTTP already does that.
 
----
+This chapter owns the choice and the topology. The server code lives in [Chapter ?? — WebSockets](#ch-websockets); the browser code lives in [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features).
 
-## WebSocket vs SSE vs Long Polling
+## How It Works
 
-| | WebSocket | Server-Sent Events (SSE) | Long Polling |
-|---|---|---|---|
-| **Direction** | Bidirectional | Server → Client only | Server → Client (simulated) |
-| **Protocol** | WS/WSS (upgraded TCP) | HTTP | HTTP |
-| **Connection** | Persistent | Persistent | Re-established per message |
-| **Latency** | < 50ms | < 100ms | 200–2000ms |
-| **Overhead** | Low (2–10 byte frames) | Low | High (full HTTP headers) |
-| **Browser support** | Universal | Universal (no IE) | Universal |
-| **Firewall friendly** | Sometimes blocked | Yes | Yes |
-| **Best for** | Chat, games, collaborative | Notifications, feeds | Simple push (fallback) |
+A WebSocket begins as an HTTP request carrying `Upgrade: websocket`. After a `101 Switching Protocols` the TCP connection stops speaking HTTP and carries framed messages in both directions.
 
----
-
-## How WebSockets Work
-
-```text
-Client                              Server
-  │                                    │
-  │── HTTP GET /chat (Upgrade: ws) ──▶│
-  │                                    │
-  │◀─ 101 Switching Protocols ─────────│
-  │                                    │
-  │◀══════ persistent TCP tunnel ══════│
-  │                                    │
-  │── send frame ─────────────────────▶│  (client → server)
-  │◀─ push frame ──────────────────────│  (server → client, any time)
-  │── ping ───────────────────────────▶│
-  │◀─ pong ────────────────────────────│  (keepalive)
-  │                                    │
-  │── close frame ────────────────────▶│
-  │◀─ close frame ─────────────────────│
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    C->>S: GET /chat (Upgrade: websocket)
+    S-->>C: 101 Switching Protocols
+    Note over C,S: connection is now a persistent frame tunnel
+    C->>S: send frame
+    S-->>C: push frame (unprompted, any time)
+    C->>S: ping
+    S-->>C: pong (keepalive)
+    C->>S: close frame
+    S-->>C: close frame
 ```
 
-**Handshake upgrades HTTP → WebSocket.** After that, frames (not HTTP requests) flow in both directions with minimal overhead.
+**The upgrade handshake, and the frame traffic that follows it.** The `101` is the last HTTP message on that connection.
 
----
+SSE never leaves HTTP. It is one response that stays open, with events written as `data:` lines. Polling is ordinary requests on a timer. That difference in *protocol* is what drives the difference in *cost* — every proxy, CDN and load balancer already understands the second two.
 
-## TypeScript Implementation
+### The Three Transports
 
-```typescript
-interface Room {
-  id: string;
-  clients: Set<WebSocket>;
-}
+| | **WebSocket** | **SSE** | **Polling** |
+| --- | --- | --- | --- |
+| Direction | Bidirectional | Server → client | Client asks |
+| Protocol | Own protocol after upgrade | Plain HTTP | Plain HTTP |
+| Latency | < 50 ms | < 100 ms | Half the interval, on average |
+| Framing overhead | 2–10 bytes per message | Small | Full headers every request |
+| Reconnect | You build it, or a library does | ✅ Automatic, with `Last-Event-ID` replay | N/A |
+| Through proxies and CDNs | ⚠️ Often needs config | ✅ It is just HTTP | ✅ |
+| Compression, caching, HTTP/2 | ❌ Mostly lost | ✅ Kept | ✅ Kept |
+| Server cost | One held connection per client | One held connection per client | Spiky, but stateless |
+| Complexity | High | Low | Lowest |
 
-interface IncomingMessage {
-  type: 'join' | 'leave' | 'message';
-  roomId: string;
-  payload?: string;
-}
+**SSE is the most under-used of the three.** Browsers reconnect automatically and replay from `Last-Event-ID`, and every intermediary already understands the response. If the feature is "the server tells the client something happened", SSE gets you there with a fraction of the operational burden.
 
-interface OutgoingMessage {
-  type: 'message' | 'user_joined' | 'user_left';
-  roomId: string;
-  payload: string;
-  timestamp: number;
-}
+> ⚠️ **The HTTP/1.1 caveat worth knowing:** SSE under HTTP/1.1 is limited by the roughly six-connections-per-origin cap, so several tabs starve each other. Over HTTP/2 they share one connection and the problem disappears.
 
-// Server-side room-based broadcast (Node.js ws library pattern)
-class RoomManager {
-  private rooms = new Map<string, Room>();
+## When to Use It
 
-  join(roomId: string, ws: WebSocket): void {
-    if (!this.rooms.has(roomId)) {
-      this.rooms.set(roomId, { id: roomId, clients: new Set() });
-    }
-    this.rooms.get(roomId)!.clients.add(ws);
-  }
+| Need | Use | Why |
+| ---- | --- | --- |
+| Client sends frequent messages — chat, cursors, gameplay | **WebSocket** | Genuinely bidirectional; nothing cheaper works |
+| Collaborative editing with per-keystroke sync | **WebSocket** | Latency and volume both matter |
+| Server pushes, client only listens — notifications, live prices, job progress, token streams | **SSE** | One-directional, and proxies already handle it |
+| "Fresh within ~30 seconds" is acceptable | **Polling** | Stateless, cacheable, trivial to operate |
+| Rare updates, client may be offline | **Webhook or push notification** | No connection to hold at all |
 
-  leave(roomId: string, ws: WebSocket): void {
-    this.rooms.get(roomId)?.clients.delete(ws);
-  }
+## The Stateful Connection Problem
 
-  broadcast(roomId: string, msg: OutgoingMessage, exclude?: WebSocket): void {
-    const room = this.rooms.get(roomId);
-    if (!room) return;
+A held connection belongs to exactly one process. That single fact causes every scaling difficulty in this chapter.
 
-    const data = JSON.stringify(msg);
-    for (const client of room.clients) {
-      if (client !== exclude && client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-    }
-  }
-}
+```mermaid
+flowchart LR
+    A[Client A] --> P1[Pod 1]
+    B[Client B] --> P1
+    C[Client C] --> P2[Pod 2]
+    D[Client D] --> P2
+    P1 -. broadcast lost .-> X(("Clients C and D<br/>never receive it"))
 ```
 
-**Client-side reconnection:**
+**Client A emits to a room. Pod 2 holds half the room and never hears about it.** Broadcast is correct only within one process.
 
-```typescript
-function createReconnectingWebSocket(url: string): WebSocket {
-  let ws = new WebSocket(url);
-  let reconnectDelay = 1000;
+**The fix is a broker every pod subscribes to.** Each pod publishes outbound messages to a shared channel and delivers what it receives to its own sockets. Redis Pub/Sub is the usual choice; Kafka or NATS when you also want retention.
 
-  ws.onclose = () => {
-    setTimeout(() => {
-      ws = createReconnectingWebSocket(url);
-      reconnectDelay = Math.min(reconnectDelay * 2, 30_000); // exponential backoff
-    }, reconnectDelay);
-  };
+| Concern | What it means at scale |
+| ------- | ---------------------- |
+| **Fan-out cost** | Every message goes to every pod, whether or not it holds a relevant socket. Beyond a few dozen pods, shard the channel by room or move to a purpose-built service |
+| **No durability** | Redis Pub/Sub is fire-and-forget. A briefly disconnected pod loses those messages, so the database — not the broker — is the source of truth |
+| **Sticky sessions** | Needed only if you allow an HTTP long-polling fallback, since those separate requests must reach the same pod. A pure socket is one TCP stream and needs none |
+| **Deploys are outages** | Rolling a deploy disconnects every socket on each pod at once. Drain deliberately: stop accepting new connections, tell clients to reconnect, then exit on a stagger |
 
-  ws.onopen = () => { reconnectDelay = 1000; }; // reset on successful connect
+## Capacity and Cost
 
-  return ws;
-}
-```
+The numbers to have ready, because interviewers ask for them:
 
----
+| Quantity | Rough figure |
+| -------- | ------------ |
+| Concurrent sockets one Node.js process holds comfortably | ~50k, memory-bound before CPU-bound |
+| Memory per idle connection | Tens of kilobytes, including the outbound buffer |
+| Heartbeat interval that reaps dead connections without wasting traffic | 30 s ping, 10 s to answer |
+| Point at which building this stops paying | Tens of thousands of concurrent connections on a small team |
 
-## Scaling WebSockets
-
-**The problem:** WebSocket connections are stateful — a client connected to Server A cannot receive a message pushed by Server B.
-
-**Solution: pub/sub broker for cross-server broadcast**
-
-```text
-Client A ──── Server 1 ─┐
-Client B ──── Server 1  │
-                         ├── Redis Pub/Sub ──► all servers receive ──► correct client
-Client C ──── Server 2 ─┘
-Client D ──── Server 2
-```
-
-```typescript
-// Each server subscribes to a shared Redis channel
-// When Server 1 wants to message Client D (on Server 2):
-// Server 1 → publishes to Redis → Server 2 receives → pushes to Client D
-
-interface BroadcastEvent {
-  roomId: string;
-  message: OutgoingMessage;
-}
-
-async function publishToRoom(
-  redisPublisher: RedisClient,
-  event: BroadcastEvent
-): Promise<void> {
-  await redisPublisher.publish('ws:rooms', JSON.stringify(event));
-}
-```
-
-**Sticky sessions:** An alternative is routing the same client always to the same server (IP hash or cookie). Simpler to implement but creates uneven load and complicates deploys.
-
----
-
-## Heartbeat / Ping-Pong
-
-```typescript
-const HEARTBEAT_INTERVAL = 30_000; // 30s
-const HEARTBEAT_TIMEOUT = 10_000;  // 10s to respond
-
-function attachHeartbeat(ws: WebSocket): void {
-  let alive = true;
-
-  const interval = setInterval(() => {
-    if (!alive) {
-      ws.terminate(); // no pong received — close dead connection
-      clearInterval(interval);
-      return;
-    }
-    alive = false;
-    ws.ping();
-  }, HEARTBEAT_INTERVAL);
-
-  ws.on('pong', () => { alive = true; });
-  ws.on('close', () => clearInterval(interval));
-}
-```
-
----
-
-## When to Use
-
-| Scenario | Use |
-|---|---|
-| Live chat / messaging | WebSocket |
-| Real-time dashboard (read-only) | SSE (simpler) |
-| Collaborative editing (Google Docs) | WebSocket |
-| Push notifications only | SSE or push API |
-| Simple event polling (updates every 30s) | Regular HTTP polling |
-
----
+**Know when to buy instead of build.** A managed service (Ably, Pusher, AWS API Gateway WebSockets) removes connection scaling, fan-out sharding and deploy draining from your remit. "I would buy this rather than run it" is a legitimate senior answer, provided you can state the tradeoff: per-connection cost, and a vendor in the hot path of your most latency-sensitive feature.
 
 ## Common Mistakes
 
-❌ **No reconnection logic** — network blips will drop connections. Implement exponential backoff reconnect.
+❌ **Reaching for a socket because the feature is called "live".** Most live features push one way.
+✅ Ask whether the client sends anything. If not, SSE.
 
-❌ **Broadcasting on a single server** — works locally but breaks when you scale to multiple servers. Use Redis pub/sub.
+❌ **Designing broadcast on a single instance.** It works in development and fails on the second pod.
+✅ Assume more than one process from the first design sketch.
 
-❌ **No heartbeat** — TCP connections can appear open while the client is gone (NAT timeout). Detect dead connections with ping/pong.
+❌ **Treating the broker as durable storage.** Pub/Sub drops what a disconnected subscriber missed.
+✅ Persist events; let the transport carry latency, not guarantees.
 
-❌ **Sending large payloads** — WebSocket frames are not designed for large transfers. Use a pre-signed URL for binary files; send the URL over WebSocket.
+❌ **Sending large payloads over the socket.** Frames are not built for bulk transfer.
+✅ Send a pre-signed URL and let the client fetch the object over HTTP.
 
-✅ **Limit connections per server** — a single Node.js process can hold ~50k WebSocket connections before memory becomes a concern.
+## 🔑 Key Takeaways
 
----
+- The deciding question is whether the client sends frequent messages; if it does not, SSE or polling is almost always the right answer.
+- WebSockets leave HTTP behind, which is why they lose compression, caching and easy proxying, and why they need their own reconnection story.
+- A held connection belongs to one process, so cross-instance broadcast needs a pub/sub broker and still needs the database for durability.
+- Fan-out to every pod is fine at ten pods and wasteful at a hundred; sharding or a managed service is the next step.
+- Every deploy disconnects every client, so draining and staggered reconnection are part of the design, not an operational detail.
 
-## Real-World Example
+## Interview Questions
 
-An enterprise system monitoring dashboard shows live CPU, memory, and error rates across 50 microservices. Each frontend client opens a WebSocket connection. The backend subscribes to a Prometheus stream, formats metric deltas, and pushes updates every 2 seconds to subscribed clients. Three backend WebSocket servers share a Redis pub/sub channel so any server can push to any client. Heartbeats detect and close 200ms stale connections automatically.
+**Q: WebSocket or SSE?**
 
----
+SSE unless the client needs to send frequent messages. SSE is plain HTTP, so proxies, compression and HTTP/2 multiplexing all work, and browsers reconnect automatically with `Last-Event-ID` replay. WebSockets earn their complexity when traffic is genuinely bidirectional — chat, collaborative cursors, gameplay. Notifications, progress bars and token streams are one-directional and belong on SSE.
 
-## Key Insight
+**Q: How does a WebSocket differ from HTTP, and why does it matter architecturally?**
 
-> WebSocket gives you a phone call instead of sending letters. It's powerful — but managing thousands of persistent connections is stateful infrastructure. Design for reconnection and cross-server broadcast from day one.
+It begins as an HTTP request with `Upgrade: websocket`; after a `101` the connection carries framed messages both ways with a couple of bytes of overhead each. HTTP is one client-initiated request per response, and stateless. The architectural consequence is statefulness: a connection belongs to one process, so load balancing, broadcast, deploys and autoscaling all become harder than they are for a stateless API.
 
-**Related:** [Notifications](./08-notifications.md) · [Real-Time Frontend](../Frontend/06-real-time.md)
+**Q: How do you scale real-time connections across many servers?**
 
----
+Every server subscribes to a shared pub/sub channel and delivers received messages to its own sockets. That makes broadcast correct but leaves two gaps: the broker is fire-and-forget, so durability comes from the database, and every message reaches every server regardless of relevance, which stops scaling in the low dozens of nodes. Past that I would shard the channel by room, or move to a managed service.
 
-[← Back to SystemDesign](../README.md)
+**Q: Roughly how many connections fit on one node, and what runs out first?**
+
+Around fifty thousand per Node.js process, and memory goes before CPU — each connection carries socket state and an outbound buffer. That figure is what turns a connection count into a node count, and it is also why a slow consumer matters: an unbounded outbound buffer is how a single client takes down a node holding fifty thousand others.
+
+**Q: When would you not use any of this?**
+
+When updates are rare or the client is often offline. Holding a connection open to deliver three messages a day is pure cost; a webhook or a mobile push notification delivers the same thing with no connection at all. I would also avoid a socket when the update is genuinely user-triggered — that is a request, not a push.
+
+## What to Read Next
+
+- [Chapter ?? — WebSockets](#ch-websockets) — the server implementation: typed events, authentication, rooms, backpressure
+- [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features) — the client: reconnection, jitter, and recovering missed messages
+- [Chapter ?? — Design a Notification System](#ch-design-notification-system) — where this building block sits inside a full design

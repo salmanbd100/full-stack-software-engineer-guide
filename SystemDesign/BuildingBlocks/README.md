@@ -28,7 +28,7 @@ the shelf, and what matters is that you can say why that one and not the neighbo
 | 03 | [Content Delivery Network](./03-cdn.md)                          | What belongs at the edge, and what must not?                  |
 | 04 | [Databases](./04-databases.md)                                   | Relational or not — and what does the access pattern say?     |
 | 05 | [Message Queues and Event Streaming](./05-message-queues.md)     | Queue or log? At-least-once or exactly-once?                  |
-| 06 | [WebSockets and Real-Time](./06-websockets.md)                   | Polling, SSE or a socket — what does this feature need?       |
+| 06 | [Real-Time Communication](./06-websockets.md)                    | Polling, SSE or a socket — what does this feature need?       |
 | 07 | [Search](./07-search.md)                                         | When does a `LIKE` query stop being enough?                   |
 | 08 | [Notifications](./08-notifications.md)                           | How do you fan out to millions without melting anything?      |
 | 09 | [File Storage](./09-file-storage.md)                             | Where do the bytes live, and who is allowed to fetch them?    |

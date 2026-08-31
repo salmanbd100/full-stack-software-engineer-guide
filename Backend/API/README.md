@@ -30,7 +30,7 @@ across instances, documentation that cannot drift, and the real-time transports.
 | 03 | [API Versioning](./03-versioning.md)                       | Is this change breaking, and can you avoid a new version entirely? |
 | 04 | [Rate Limiting](./04-rate-limiting.md)                     | Which algorithm, and how does it work across every instance?       |
 | 05 | [API Documentation](./05-documentation.md)                 | How do you keep docs true without maintaining them?                |
-| 06 | [WebSockets](./06-websockets.md)                           | Socket, SSE or polling — and how does it scale past one process?   |
+| 06 | [WebSockets](./06-websockets.md)                           | How do you authenticate, authorise and scale a socket server?      |
 
 ## What Interviewers Probe For
 

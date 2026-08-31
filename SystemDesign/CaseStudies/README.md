@@ -29,7 +29,7 @@ likely to face and less likely to have rehearsed.
 | #   | Case Study                                            | Core problem                        |
 | --- | ----------------------------------------------------- | ----------------------------------- |
 | 01  | [URL Shortener](./01-url-shortener.md)                | ID generation and read scaling      |
-| 02  | [Rate Limiter](./02-rate-limiter.md)                  | Token bucket and sliding window     |
+| 02  | [Rate Limiter](./02-rate-limiter.md)                  | Where to enforce, tiers, capacity   |
 | 03  | [Typeahead](./03-typeahead.md)                        | Latency budget and trie caching     |
 | 04  | [Chat System](./04-chat-system.md)                    | Connection state and ordering       |
 | 05  | [Notification System](./05-notification-system.md)    | Fan-out and delivery channels       |

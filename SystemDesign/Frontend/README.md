@@ -31,7 +31,7 @@ backend framework in [Fundamentals](../Fundamentals/08-framework.md).
 | 03 | [Rendering Strategies](./03-rendering.md)                         | SSG, ISR, SSR or CSR, and why per route?                      |
 | 04 | [Performance Optimization](./04-performance.md)                  | Which metric is failing, and what actually moves it?          |
 | 05 | [Micro-Frontends](./05-micro-frontends.md)                       | When is the coordination cost worth paying?                   |
-| 06 | [Real-Time Features](./06-real-time.md)                          | What does live actually mean for this feature?                |
+| 06 | [Real-Time Features](./06-real-time.md)                          | What happens to the client when the connection drops?         |
 | 07 | [Offline-First Architecture](./07-offline-first.md)              | What happens on a train, and how does it reconcile?           |
 | 08 | [Design Systems](./08-design-systems.md)                         | How do forty teams share components without freezing?         |
 | 09 | [Asset Management](./09-assets.md)                               | Images, fonts and bundles — what ships, and when?             |

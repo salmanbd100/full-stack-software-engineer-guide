@@ -36,7 +36,7 @@ happened: the budget arithmetic in #1, the frontend-share rule, and the line-bud
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-31 · **Progress:** 30 / 83
+**Last updated:** 2026-08-31 · **Progress:** 31 / 83
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2626,7 +2626,7 @@ It is a full curriculum index for content that is about to be 80% archived. Rewr
 
 ---
 
-### - [ ] 31. Deduplicate WebSockets, rate limiting, and API gateway `S`
+### - [x] 31. Deduplicate WebSockets, rate limiting, and API gateway `S` — ✅ **done 2026-08-31**
 
 Smaller triplicates found:
 
@@ -2639,6 +2639,55 @@ Keep the implementation chapter in Backend, the design chapter in SystemDesign, 
 cross-reference the other instead of repeating it.
 
 **Done when:** each pair has a clear division of labour and a cross-reference.
+
+**Delivered:**
+
+- **Division of labour, written into each chapter's opening.** Every one of the seven files now names
+  what it owns and points at its counterpart by anchor, in the first 25 lines:
+
+  | Chapter | Owns | Gave up |
+  | ------- | ---- | ------- |
+  | `Backend/API/06-websockets.md` (381 → **288**) | The **server**: what the upgrade skips, typed event contracts, handshake auth and revalidation, rooms, the Redis adapter wiring, backpressure, heartbeats | The WebSocket/SSE/polling comparison and the client reconnection code |
+  | `SystemDesign/BuildingBlocks/06-websockets.md` (240 → **163**) | The **choice and the topology**: the three transports compared, the handshake, the stateful-connection problem, fan-out cost, capacity numbers, buy-vs-build | The room-manager and heartbeat implementations, the client reconnect snippet |
+  | `SystemDesign/Frontend/06-real-time.md` (200 → **197**) | The **client**: `WebSocket` vs `EventSource`, backoff with jitter, gap recovery by last-event-id, a bounded live-feed hook, what the UI owes the user | The comparison tables and the scaling topology |
+  | `Backend/API/04-rate-limiting.md` (432 → **383**) | The **implementation**: all five algorithms in code, the boundary-burst proof, the atomic Lua script, keying and `trust proxy`, headers, fail-open middleware | The CDN → gateway → application enforcement stack |
+  | `SystemDesign/CaseStudies/02-rate-limiter.md` (320 → **241**) | The **design**: where enforcement belongs, the hot path, rules and tiers, monitor mode, the management API, multi-dimension checks, Redis Cluster sharding, capacity at 1M rps | Both algorithm implementations and the algorithm comparison table |
+  | `SystemDesign/Microservices/03-api-gateway.md` (219 → **177**) | The **pattern**: what a gateway centralises, gateway vs load balancer, gateway vs service mesh, BFF, keeping it thin | The 62-line route-matching implementation |
+  | `SystemDesign/CaseStudies/08-api-gateway.md` (272 → **225**) | The **design**: the nine-stage pipeline and why order is a cost decision, route config and hot reload, per-route timeouts, the control-plane API, SPOF and capacity | Its own rate-limiting snippet, and the gateway-vs-mesh answer |
+
+- **2,064 lines became 1,674 — a 390-line cut.** `pnpm lint:docs` `budget` falls from **31,241 to
+  30,852**: Part V 13,010 → 12,869, Part VI 13,736 → 13,488. `too-long` falls from **20 to 19** —
+  `Backend/API/04-rate-limiting.md` was 432 and is now 383. `.lint-baseline.json` committed with both
+  lower numbers.
+- **Five chapters brought to the Six Blocks** while they were open — the two Backend chapters, the two
+  SystemDesign building-block/frontend chapters, and the Microservices pattern chapter. That meant
+  deleting two hand-written TOCs and five `[← Back]` footers, replacing `## Summary` checklists with
+  `## 🔑 Key Takeaways`, adding `## What to Read Next` to all five, and stripping every retired ✨ and
+  🔴 callout. The two **CaseStudies** chapters keep the RADIO section flow — that directory's
+  conversion is **#70**'s, as recorded at #28.
+- **Cross-references are anchors, not paths.** Four relative links in chapter bodies converted:
+  `02-graphql.md` × 2, `BuildingBlocks/08-notifications.md` × 1, plus the `04-rate-limiting.md`
+  reference inside the WebSockets chapter. Four part-opener README descriptions rewritten where the
+  division of labour changed them (`Backend/API`, `SystemDesign/Frontend`, `SystemDesign/CaseStudies`,
+  and `BuildingBlocks`, whose row said "WebSockets and Real-Time" for a chapter titled *Real-Time
+  Communication*).
+- **Three ASCII diagrams became Mermaid** where they had branches or more than three nodes — the
+  handshake sequence, the split-pod broadcast failure, and both case-study architecture diagrams. All
+  node labels are quoted, since several contain colons and `<br/>`.
+
+**Correction to the budget table above.** It attributes **~600 lines** of Part V cutting to this item.
+That was never reachable: the two Part V files in scope held **813 lines between them**, so a 600-line
+cut would leave 213 lines across two chapters — below the 150-line floor for even one. The realistic
+figure was ~250 and the item delivered **141** in Part V (plus 249 in Part VI, which the table credits
+to no one). **#31a–#31e are now carrying ~250 lines more than the table says.**
+
+**Verified:** `pnpm lint:docs` — 262 files, `front-matter`, `broken-link`, `fence-language`,
+`missing-readme` and `heading-jump` all still **0**; `too-long` 19 (was 20); `budget` 30,852 (was
+31,241); no rule regressed. `pnpm book:collect` builds 262 files / 72,962 lines. A scan of the
+assembled book finds **293 `#ch-` references against 261 anchors with zero new dangling references** —
+the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-versioning`,
+`ch-web-performance-caching-strategies`) and the one pre-existing duplicate anchor
+(`ch-deployment-strategies`) logged at #27 and #28. All seven chapters sit inside the 150–400 budget.
 
 ---
 
@@ -3386,13 +3435,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 11/17 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 12/17 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **83** | **30/83** | **36%**   |
+| **Total** | **83** | **31/83** | **37%**   |
 
 ---
 

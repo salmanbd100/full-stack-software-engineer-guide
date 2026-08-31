@@ -364,7 +364,7 @@ const server = new ApolloServer({
 | **Depth limit** | Blocks `user { posts { author { posts { … } } } }` recursion bombs |
 | **Cost analysis** | Assign a cost per field; reject over a budget. Depth alone misses wide queries |
 | **Persisted queries** | Clients send a hash of a pre-approved query — ad-hoc queries become impossible |
-| **Rate limit by cost, not requests** | One GraphQL request can be 1000× another. See [Rate Limiting](./04-rate-limiting.md) |
+| **Rate limit by cost, not requests** | One GraphQL request can be 1000× another. See [Chapter ?? — Rate Limiting](#ch-rate-limiting) |
 
 > ✨ **Persisted queries are the strongest answer.** For a first-party app you already know every query at build time, so registering them removes the entire class of hostile-query attacks and shrinks request payloads.
 
@@ -419,7 +419,7 @@ Not through GraphQL, in production. The `multipart` upload spec routes bytes thr
 
 **Q8: Subscriptions or polling?**
 
-Subscriptions run over WebSockets (`graphql-ws`) and are right for genuinely live data — chat, presence, collaborative editing. They cost you stateful connections, which complicates scaling and deployment. For "updates within a few seconds", polling or SSE is far cheaper to operate. Same tradeoff as [WebSockets](./06-websockets.md).
+Subscriptions run over WebSockets (`graphql-ws`) and are right for genuinely live data — chat, presence, collaborative editing. They cost you stateful connections, which complicates scaling and deployment. For "updates within a few seconds", polling or SSE is far cheaper to operate. Same tradeoff as [Chapter ?? — WebSockets](#ch-websockets).
 
 ## Summary
 

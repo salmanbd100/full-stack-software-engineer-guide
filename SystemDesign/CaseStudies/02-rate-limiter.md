@@ -4,118 +4,126 @@ part: 6
 chapter: 0
 slug: rate-limiter
 level: intermediate # beginner | intermediate | advanced
-reading_time: 12
-updated: 2026-08-30
-tags: [system-design, case-study, rate-limiting, algorithms]
+reading_time: 11
+updated: 2026-08-31
+tags: [system-design, case-study, rate-limiting, edge]
 in_book: true
 ---
 
 # Design a Rate Limiter {#ch-design-rate-limiter}
 
-> Pick an algorithm for the traffic shape and make the counter correct across every instance.
+> Place the limiter where it is cheapest to enforce, then make it hold at a million requests a second.
 
-**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
+**In this chapter:** requirements · where enforcement belongs · rules and tiers · management API · capacity and failure modes
 
 ## How to Open This Answer
 
-"I'll design a distributed rate limiter that protects APIs from abuse. The core decisions are which algorithm to use — token bucket vs sliding window — where to enforce limits, and how to keep state consistent across many API servers using Redis."
+"I'll design a distributed rate limiter for a multi-tenant API. The interesting decisions are where enforcement sits, how per-tier rules reach every node without a database call on the hot path, and how the counter stays correct across dozens of servers without becoming the bottleneck."
+
+> The algorithms themselves — fixed window, sliding window counter, token bucket, and the Redis Lua script that makes the decision atomic — are implemented in [Chapter ?? — Rate Limiting](#ch-rate-limiting). This chapter assumes them and designs the system around them.
 
 ## Problem Statement
 
-A rate limiter sits in front of your API and blocks requests that exceed a configured quota. It must add < 5ms of overhead, work correctly across dozens of load-balanced servers, and fail safely when its state store is unavailable. Different users, tiers, and endpoints need different limits.
+A rate limiter sits in front of your API and blocks requests that exceed a configured quota. It must add under 5 ms of overhead, work correctly across dozens of load-balanced servers, and fail safely when its state store is unavailable. Different users, tiers and endpoints need different limits, and those limits change without a deploy.
 
 ## R — Requirements
 
 ### Functional (pick 4-5 that matter most)
 
-- Block requests when a user exceeds their quota; return HTTP 429
-- Support limits per user ID, IP address, and API key
-- Configurable rules — different limits per endpoint and user tier (free/paid/enterprise)
-- Return standard rate limit headers (`X-RateLimit-Remaining`, `Retry-After`)
-- Support multiple time windows simultaneously (per-minute and per-hour)
+- Block requests over quota; return HTTP 429 with `Retry-After`
+- Support limits keyed by user id, IP address and API key
+- Configurable rules per endpoint and per user tier (free / paid / enterprise)
+- Multiple time windows enforced at once — per minute and per day
+- Operators can inspect and change limits live, without a deploy
 
 ### Non-Functional (pick 3-4)
 
-- Overhead < 5ms per request — the rate check must not slow down the API
-- Works distributed — limits enforced across all API servers, not per-server
-- Fail-open — if the rate limiter's state store is down, allow requests rather than blocking everyone
-- 1M requests/second throughput at peak
+- Overhead under 5 ms per request at the median
+- Limits enforced globally, not per server
+- Fail open — a limiter outage must not become an API outage
+- 1M requests per second at peak
 
 ## A — Architecture
 
-### High-Level Diagram
+### Where Enforcement Belongs
+
+This is the first decision, and the one candidates skip.
 
 ```text
-Client Request
-      │
-API Gateway / Middleware
-      │
- Rate Limiter
-      │
-  ┌───┴──────────────────┐
-  │                      │
-Redis Cluster          Rules DB
-(counters,             (PostgreSQL)
- sliding windows)      (limit configs
-      │                  per tier/endpoint)
-      │
-  ┌───┴──────────────────┐
-  │                      │
-Allow (2xx)           Reject (429)
-pass to API           Return headers +
-service               Retry-After
+CDN / WAF        ← volumetric floods; blocks traffic before it costs you anything
+   ↓
+API gateway      ← per-key quotas, global ceilings, one place to configure
+   ↓
+Application      ← business rules: per-tier, per-endpoint cost, per-account quotas
 ```
 
-The rate limiter runs as middleware in the API Gateway (e.g., Kong plugin, Nginx module, or an Express middleware). On each request, it reads the applicable rule from a local in-memory config cache (refreshed every 60 seconds from PostgreSQL), then checks and increments counters in Redis using an atomic Lua script. The result is returned in < 5ms. If Redis is unreachable, the middleware fails open.
+**Push crude limits as far out as you can** — a request rejected at the edge costs nothing. Keep rules that need business context (which plan, which account, how expensive this query is) in the application, where that context exists. The gateway is the primary enforcement point because it cannot be bypassed by internal service-to-service calls and avoids duplicating Redis logic across twenty services.
 
-> Place the rate limiter at the API Gateway, not inside individual microservices. Centralizing enforcement prevents limits from being bypassed by internal service-to-service calls and avoids duplicating Redis logic everywhere.
+> Rate limiting is not DDoS protection. A volumetric attack saturates bandwidth before your middleware runs, which is why the CDN and WAF row exists above the gateway rather than being folded into it.
+
+### High-Level Diagram
+
+```mermaid
+flowchart TB
+    C[Client] --> W[CDN / WAF]
+    W --> G["API Gateway<br/>limiter middleware"]
+    G -->|counter check| R[("Redis Cluster<br/>counters")]
+    G -->|rules, cached 60s| P[("PostgreSQL<br/>rule config")]
+    G -->|allowed| S[Upstream services]
+    G -->|over quota| E[429 + Retry-After]
+```
+
+**The rule store is off the hot path; only the counter is on it.** Each node caches the rule table in memory with a 60-second TTL, so a limit check is one Redis round trip and no database call.
+
+### The Hot Path, Step by Step
+
+```text
+1. Resolve identity   → API key, else user id, else IP (/56 subnet for IPv6)
+2. Resolve rule       → in-memory rule cache, keyed by (endpoint, tier)
+3. Check counters     → one Lua call per window, pipelined
+4. Decide             → deny if any window is exhausted
+5. Annotate           → RateLimit headers on the response, allowed or not
+```
+
+Steps 1 and 2 are local. Step 3 is the only network hop, and it is what the 5 ms budget is spent on.
 
 ## D — Data Model
 
 ```typescript
 interface RateLimitRule {
   ruleId: string;
-  endpoint: string;          // e.g. '/api/search' or '*' for global
+  endpoint: string;          // '/api/search' or '*' for a global default
   tier: 'free' | 'paid' | 'enterprise' | 'anonymous';
   limitPerMinute: number;
   limitPerHour: number;
   limitPerDay: number;
-}
-
-interface RateLimitState {
-  key: string;               // e.g. 'rl:user:abc:2024011012' (window key)
-  count: number;
-  windowStartMs: number;
-  expiresAt: number;         // Unix ms — Redis TTL mirrors this
+  costPerRequest: number;    // expensive endpoints spend more of the budget
 }
 
 interface RateLimitDecision {
   allowed: boolean;
   limit: number;
   remaining: number;
-  resetAt: number;           // Unix timestamp when window resets
+  resetAt: number;            // Unix seconds when the window resets
   retryAfterSeconds?: number; // present only when allowed = false
-}
-
-interface RateLimitHeaders {
-  'X-RateLimit-Limit': number;
-  'X-RateLimit-Remaining': number;
-  'X-RateLimit-Reset': number;   // Unix timestamp
-  'Retry-After'?: number;        // seconds, only on 429
+  hitDimension?: 'user' | 'ip' | 'endpoint' | 'global'; // which limit denied it
 }
 ```
 
-Storage notes (plain text):
-- rate_limit_rules: PostgreSQL — read rarely, cached in-memory on each API server with 60s TTL
-- Redis key schema for sliding window: `rl:{dimension}:{id}:{windowBucket}` where `windowBucket = Math.floor(Date.now() / windowMs)`
-- Redis key schema for token bucket: `rl:tb:{id}` — a Hash with fields `tokens` and `last_refill`
-- All Redis keys have TTL set to 2× the window duration so expired windows self-clean
+Storage notes:
+
+- `rate_limit_rules` in PostgreSQL — read rarely, cached in memory on every node with a 60-second TTL
+- Redis key for a window counter: `rl:{dimension}:{id}:{windowBucket}`, where `windowBucket = Math.floor(Date.now() / windowMs)`
+- Redis key for a token bucket: `rl:tb:{id}` — a Hash with fields `tokens` and `last_refill`
+- Every key carries a TTL of 2× its window, so expired windows clean themselves up
+
+**Tiering needs no extra keys.** The tier is read from the JWT (or cached from a user service for five minutes), used to select a rule, and the same counter key is compared against a different limit value.
 
 ## I — Interface (APIs)
 
-```typescript
-// This is middleware — not a REST API. TypeScript interface for the core check function:
+The limiter is middleware, not a public API. What *is* an API is its control plane:
 
+```typescript
 interface RateLimiter {
   check(request: IncomingRequest): Promise<RateLimitDecision>;
 }
@@ -128,20 +136,22 @@ interface IncomingRequest {
   userTier: RateLimitRule['tier'];
 }
 
-// Admin API: GET /admin/rate-limit/rules — list all rules
+// GET /admin/rate-limit/rules — list active rules and the config version
 interface ListRulesResponse {
   rules: RateLimitRule[];
+  version: string;
 }
 
-// Admin API: POST /admin/rate-limit/rules — create or update a rule
+// POST /admin/rate-limit/rules — create or update a rule; live, no deploy
 interface UpsertRuleRequest {
   endpoint: string;
   tier: RateLimitRule['tier'];
   limitPerMinute: number;
   limitPerHour: number;
+  enforce: boolean;           // false = monitor mode, log what would have been blocked
 }
 
-// Admin API: GET /admin/rate-limit/status/:userId — inspect current usage
+// GET /admin/rate-limit/status/:userId — support answering "why was I throttled?"
 interface UserRateLimitStatus {
   userId: string;
   tier: string;
@@ -154,167 +164,78 @@ interface UserRateLimitStatus {
 }
 ```
 
+The `enforce: false` flag matters more than it looks. **Roll every new limit out in monitor mode first** and log what would have been blocked for a week — real traffic is burstier than anyone predicts, and the first limit you pick is usually too tight for one legitimate integration.
+
 ## O — Optimizations & Trade-offs
 
-### 1. Algorithm Comparison
+### Keeping Redis Off the Critical Path
 
-| Algorithm | Accuracy | Memory | Burst Handling | Best For |
-|---|---|---|---|---|
-| Fixed Window Counter | Low — 2× burst at boundary | O(1) | Allows 2× burst at window edges | Simple internal tools |
-| Sliding Window Log | High — exact | O(requests) | No burst | Strict audit use cases |
-| Token Bucket | Medium | O(1) | Allows controlled burst | APIs with legitimate burst traffic |
-| Sliding Window Counter | High — ~99% | O(1) | Smoothed, no hard boundary | Production APIs |
+| Concern | Problem | Approach |
+| ------- | ------- | -------- |
+| Round-trip latency | 2–5 ms per check at p50, worse at p99 | Co-locate Redis in the same AZ; pipeline the per-window checks into one call |
+| Throughput at 1M rps | A single node saturates | Redis Cluster sharded by key prefix — `rl:user:{id}` distributes uniformly |
+| Redundant checks | Most requests are nowhere near their limit | Local L1 counter with a 100 ms TTL absorbs 80%+ of checks; Redis sees bursts and first-requests |
+| Hot tenant | One enterprise key concentrates on one shard | Split that key's counter into N sub-keys and sum, or give it a dedicated shard |
 
-✅ Use Sliding Window Counter for production. It approximates accuracy with O(1) memory.
+The L1 cache is the significant trade: it admits a few percent over the limit in exchange for most of the latency. Say that out loud rather than presenting shared Redis as free.
 
-### 2. Sliding Window Counter Implementation
+### Enforcing Several Dimensions at Once
 
-```typescript
-async function checkSlidingWindow(
-  key: string, limit: number, windowMs: number
-): Promise<RateLimitDecision> {
-  const now = Date.now();
-  const currentBucket = Math.floor(now / windowMs);
-  const previousBucket = currentBucket - 1;
-  const elapsedInWindow = now % windowMs;
-
-  const currentKey = `rl:${key}:${currentBucket}`;
-  const previousKey = `rl:${key}:${previousBucket}`;
-
-  // Atomic: increment current, read previous
-  const [prevCount, currCount] = await redis.pipeline()
-    .get(previousKey)
-    .incr(currentKey)
-    .exec()
-    .then(results => [Number(results[0][1] ?? 0), Number(results[1][1])]);
-
-  // Set TTL on first request in this window
-  if (currCount === 1) {
-    await redis.pexpire(currentKey, windowMs * 2);
-  }
-
-  // Weight previous window by how much of it overlaps current window
-  const previousWeight = 1 - elapsedInWindow / windowMs;
-  const weightedTotal = currCount + prevCount * previousWeight;
-
-  const allowed = weightedTotal <= limit;
-  return {
-    allowed,
-    limit,
-    remaining: Math.max(0, Math.floor(limit - weightedTotal)),
-    resetAt: Math.floor((currentBucket + 1) * windowMs / 1000),
-    retryAfterSeconds: allowed ? undefined : Math.ceil((windowMs - elapsedInWindow) / 1000),
-  };
-}
-```
-
-### 3. Token Bucket — Atomic Lua Script
-
-Token bucket in Redis must be atomic. Use a Lua script — Redis executes it as a single transaction.
+Check every applicable dimension concurrently and deny if any one fails:
 
 ```typescript
-const TOKEN_BUCKET_SCRIPT = `
-local key = KEYS[1]
-local capacity = tonumber(ARGV[1])
-local refillPerMs = tonumber(ARGV[2])
-local now = tonumber(ARGV[3])
+const [byUser, byIp, byEndpoint] = await Promise.all([
+  check(`user:${userId}`, rule.limitPerMinute),
+  check(`ip:${ipSubnet}`, ANONYMOUS_CEILING),
+  check(`endpoint:${endpoint}`, rule.limitPerMinute * 10),
+]);
 
-local data = redis.call('HMGET', key, 'tokens', 'last_refill')
-local tokens = tonumber(data[1]) or capacity
-local lastRefill = tonumber(data[2]) or now
-
-local elapsed = now - lastRefill
-tokens = math.min(capacity, tokens + elapsed * refillPerMs)
-
-if tokens >= 1 then
-  tokens = tokens - 1
-  redis.call('HMSET', key, 'tokens', tokens, 'last_refill', now)
-  redis.call('EXPIRE', key, 3600)
-  return {1, math.floor(tokens)}
-else
-  return {0, 0}
-end
-`;
-
-async function checkTokenBucket(
-  userId: string, capacity: number, refillPerSecond: number
-): Promise<RateLimitDecision> {
-  const refillPerMs = refillPerSecond / 1000;
-  const [allowed, remaining] = await redis.eval(
-    TOKEN_BUCKET_SCRIPT, 1, `rl:tb:${userId}`,
-    capacity, refillPerMs, Date.now()
-  ) as [number, number];
-
-  return { allowed: allowed === 1, limit: capacity, remaining, resetAt: 0 };
-}
+const denied = [byUser, byIp, byEndpoint].find((d) => !d.allowed);
 ```
 
-### 4. Distributed Rate Limiting — Shared Redis vs Local Counter
+Report **which** dimension denied the request in the response body. A client throttled by a global ceiling and a client over its own quota need different remedies, and "429" alone tells them nothing.
 
-| Approach | Accuracy | Latency | Complexity |
-|---|---|---|---|
-| Each server has local counter | Low — N servers = N× limit | 0ms overhead | Simple |
-| Shared Redis (centralized) | High — exact within ~1ms race | 2–5ms per request | Moderate |
-| Redis + local approximation | Medium — ~5% overage OK | 0.5ms avg | Moderate |
+### Failure Modes
 
-✅ Use shared Redis for correctness. The 2–5ms overhead is acceptable since rate limiting is done before business logic.
+| Failure | Fail open | Fail closed |
+| ------- | --------- | ----------- |
+| Behaviour when Redis is down | Allow all requests | Block all requests |
+| Impact | Some abuse slips through | Every user is blocked |
+| Preferred for | Public APIs, user-facing products | Payments, SMS sending, anything where abuse costs more than downtime |
 
-❌ Don't use local counters — a user can make N × limit requests by hitting each server exactly `limit` times.
+✅ **Fail open, loudly** — alert on it, and keep an in-process limiter as a degraded fallback so you fall back to approximate limiting rather than none.
 
-### 5. Failure Handling and Response Headers
+### Capacity Estimation
 
-```typescript
-async function rateLimitMiddleware(req: Request, res: Response, next: NextFunction) {
-  let decision: RateLimitDecision;
+| Metric | Estimate |
+| ------ | -------- |
+| Peak request rate | 1M rps |
+| Redis ops per request (3 dimensions, pipelined) | 1 round trip, 3 Lua calls |
+| Effective Redis ops after the 100 ms L1 cache | ~200k rps |
+| Redis Cluster shards needed (at ~100k ops/s each) | 3–4, plus replicas |
+| Rule table size | ~200 rules, a few KB in memory per node |
+| Rule cache refresh | Every 60 s per node |
 
-  try {
-    const rule = getRuleForRequest(req);  // from in-memory config cache
-    decision = await checkSlidingWindow(`user:${req.userId}`, rule.limitPerMinute, 60_000);
-  } catch (err) {
-    // Redis is down — fail open to preserve availability
-    console.error('Rate limiter Redis error:', err);
-    return next(); // allow request
-  }
-
-  res.setHeader('X-RateLimit-Limit', decision.limit);
-  res.setHeader('X-RateLimit-Remaining', decision.remaining);
-  res.setHeader('X-RateLimit-Reset', decision.resetAt);
-
-  if (!decision.allowed) {
-    res.setHeader('Retry-After', decision.retryAfterSeconds!);
-    return res.status(429).json({
-      error: 'Too Many Requests',
-      message: `Rate limit exceeded. Retry in ${decision.retryAfterSeconds}s.`,
-    });
-  }
-
-  next();
-}
-```
-
-| Failure Mode | Fail Open | Fail Closed |
-|---|---|---|
-| Behavior when Redis is down | Allow all requests | Block all requests |
-| Impact | Some abuse slips through | All users are blocked |
-| Preferred for | Public APIs, user-facing products | Internal billing / security systems |
-
-✅ Fail open for user-facing APIs. Prefer availability over perfect enforcement.
+State these to show the limiter is a thin, high-throughput layer. The bottleneck is Redis round trips or network, never CPU.
 
 ## Common Follow-up Questions
 
-**Q: What's the boundary burst problem in fixed window counters?**
+**Q: How do you enforce limits across several dimensions at once?**
 
-If the limit is 100/minute, a user can send 100 requests at 10:00:59 and 100 more at 10:01:00 — 200 requests in 2 seconds, all within their "per-minute" limits. Sliding window counter eliminates this by weighting the previous window's count proportionally.
+Check them concurrently and deny if any fails — user quota, IP backstop, per-endpoint ceiling, global load-shedding limit. All four are independent keys, so they pipeline into one Redis round trip. The response says which dimension was hit, because that determines whether the caller should slow down or ask for a higher tier.
 
-**Q: How do you enforce limits across multiple dimensions simultaneously?**
+**Q: How would you implement tiered limits without extra state?**
 
-Check all dimensions in parallel and deny if any fails. For example: check `rl:ip:{ip}` (IP limit), `rl:user:{id}` (user limit), and `rl:endpoint:{path}` (endpoint limit) concurrently with `Promise.all`. Return 429 if any check fails. Include which limit was hit in the response body.
+The tier comes from the JWT, or from a user service cached for five minutes. It selects a `RateLimitRule` from the in-memory rule cache, and the same counter key is compared against that rule's limit. No extra Redis keys — a free and an enterprise user on the same endpoint share the key shape and differ only in the number they are measured against.
 
-**Q: How would you implement tiered rate limits (free vs paid)?**
+**Q: How do you prevent Redis from becoming the bottleneck at 1M rps?**
 
-Store the tier in the JWT or look it up from a user service (cached in Redis for 5 minutes). Load the matching `RateLimitRule` from the in-memory config cache. Apply that rule's limits. No additional Redis keys needed — just different limit values for the same counter key.
+Redis Cluster sharded by key prefix, which distributes cleanly because rate-limit keys are high-cardinality by construction. Then a local in-process counter with a 100 ms TTL in front of it, which absorbs most checks under steady traffic so Redis only sees bursts and first-requests. That trades a few percent of over-admission for roughly an 80% cut in round trips.
 
-**Q: How do you prevent Redis from becoming a bottleneck at 1M req/s?**
+**Q: Where would you not put the limiter?**
 
-Use Redis Cluster with sharding by key prefix. Rate limit keys already shard well — `rl:user:{userId}` distributes uniformly. Add a local in-process cache with a 100ms TTL as a first layer. Under steady traffic, the local cache absorbs 80%+ of checks; Redis only sees bursts and first-requests.
+Inside each microservice as the only enforcement point. Limits then get bypassed by service-to-service calls, the Redis logic is duplicated twenty times, and every team tunes their own numbers. In-service limits are worth having as defence in depth, but the authoritative limit belongs at the gateway, where all external traffic is guaranteed to pass.
 
+**Q: A large customer complains they are being throttled unfairly. How do you answer?**
+
+With the status endpoint: their tier, their used-versus-limit for each window, and which dimension denied them. That usually shows one of three things — a retry storm in their client, a shared IP being counted as one caller, or an endpoint whose cost weighting is wrong. Without per-dimension reporting the conversation has no evidence in it, which is why the management API is part of the design rather than an afterthought.

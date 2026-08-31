@@ -214,7 +214,7 @@ A SaaS platform sends notifications when someone is @mentioned. The mention trig
 
 > A notification is a contract with the user. Deliver it reliably, respect preferences, and never send duplicates. The queue and deduplication layer are not optional — they are what make the system trustworthy at scale.
 
-**Related:** [Message Queues](./05-message-queues.md) · [WebSockets](./06-websockets.md) · [Chapter ?? — Design a Notification System](#ch-design-notification-system)
+**Related:** [Message Queues](./05-message-queues.md) · [Chapter ?? — Real-Time Communication](#ch-realtime-communication) · [Chapter ?? — Design a Notification System](#ch-design-notification-system)
 
 ---
 

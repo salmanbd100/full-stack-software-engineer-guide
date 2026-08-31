@@ -5,124 +5,107 @@ chapter: 0
 slug: case-studies-api-gateway
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-30
+updated: 2026-08-31
 tags: [system-design, case-study, api-gateway, edge]
 in_book: true
 ---
 
 # Design an API Gateway {#ch-design-api-gateway}
 
-> Put auth, routing and rate limiting at the edge, and keep everything else out of it.
+> Build an edge that adds five milliseconds, scales to half a million requests a second, and never becomes the reason the platform is down.
 
-**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
+**In this chapter:** requirements · the middleware pipeline · route config and hot reload · management API · scaling, failure and capacity
 
 ## How to Open This Answer
 
-"I'll design an API Gateway that acts as the single entry point for all client traffic, handling auth, rate limiting, and routing before any request reaches a microservice. The key challenges are low-latency request processing and fault isolation when downstream services degrade."
+"I'll design a stateless API Gateway cluster that authenticates, rate-limits and routes every external request before it reaches a microservice. The hard parts are keeping per-request overhead under 5 ms, hot-reloading route config without dropping connections, and making sure a single slow upstream cannot take the whole edge down."
+
+> Why a gateway at all, what belongs in it, gateway versus load balancer versus service mesh, and the BFF variant are the pattern, covered in [Chapter ?? — The API Gateway Pattern](#ch-api-gateway-pattern). The rate-limiting algorithms the pipeline calls into are in [Chapter ?? — Rate Limiting](#ch-rate-limiting). This chapter designs the system.
 
 ## Problem Statement
 
-Microservice architectures expose dozens of internal services. Clients should not call services directly. An API Gateway centralises cross-cutting concerns — authentication, SSL termination, rate limiting, and routing — so each microservice stays focused on business logic. At scale the gateway itself must not become a bottleneck or single point of failure.
+A microservice estate exposes dozens of internal services that clients must not call directly. The gateway centralises authentication, TLS termination, rate limiting and routing so each service stays focused on its domain. At scale the gateway itself must not become the bottleneck or the single point of failure — every external request passes through it, so its availability is the platform's availability.
 
 ## R — Requirements
 
 ### Functional (pick 4-5 that matter most)
 
-- Route incoming requests to the correct upstream microservice
-- Authenticate every request (JWT validation / API key check)
-- Enforce per-client rate limits (requests per second / per day)
-- Terminate TLS and forward plain HTTP internally
-- Transform requests and responses (add/strip headers, protocol translation)
+- Route requests to the correct upstream by path and method
+- Authenticate every request — JWT signature or API key
+- Enforce per-client rate limits, per second and per day
+- Terminate TLS; forward plain HTTP internally
+- Transform requests and responses — add, strip and normalise headers
 
 ### Non-Functional (pick 3-4)
 
-- Add ≤ 5ms median latency overhead per request
-- Handle 500k requests per second at peak
-- 99.999% availability — the gateway failing means the whole platform is down
-- Support horizontal scaling with no shared state between gateway instances
+- Add ≤ 5 ms median latency per request
+- 500k requests per second at peak
+- 99.999% availability — the gateway failing means the platform is down
+- Horizontally scalable with no shared state between instances
 
 ## A — Architecture
 
 ### High-Level Diagram
 
-```text
-Clients (mobile, browser, third-party)
-        │  HTTPS
-        ▼
-  Load Balancer (L4/L7, e.g. AWS NLB)
-        │
-        ▼
-  ┌─────────────────────────────────┐
-  │          API Gateway Cluster     │
-  │  ┌──────────┐  ┌─────────────┐  │
-  │  │  Auth    │  │ Rate Limiter│  │
-  │  │ Middleware│  │ (Redis/     │  │
-  │  └──────────┘  │  sliding    │  │
-  │  ┌──────────┐  │  window)    │  │
-  │  │ Router / │  └─────────────┘  │
-  │  │ Proxy    │                   │
-  │  └──────────┘                   │
-  └─────────────────────────────────┘
-        │  HTTP (internal)
-        ├──────────────────┬──────────────────┐
-        ▼                  ▼                  ▼
-  User Service       Order Service      Payment Service
+```mermaid
+flowchart TB
+    C["Clients: mobile, browser, partners"] -->|HTTPS| LB["L4 Load Balancer<br/>multi-AZ"]
+    LB --> GW["API Gateway cluster<br/>stateless, N nodes"]
+    GW -->|counters| R[("Redis Cluster")]
+    GW -->|route config, watched| E[("etcd / Consul")]
+    GW -->|audit events, async| K[("Kafka")]
+    GW --> S1[User Service]
+    GW --> S2[Order Service]
+    GW --> S3[Payment Service]
 ```
 
-Each gateway instance is stateless. Auth validation uses a shared JWT public key (no DB call). Rate-limit counters live in a Redis cluster, accessed via a sliding-window Lua script for atomicity. The router uses a config-driven route table (loaded from a config store on startup, hot-reloaded). Circuit breakers sit between the gateway and each upstream to stop cascading failures.
+**Nothing on the request path requires coordination between gateway nodes.** JWT validation uses a cached public key, so there is no auth-service call. Route config is watched from etcd and held in memory. Only the rate-limit counter is genuinely shared, and that is one Redis round trip.
 
-### Request Processing Pipeline
+### The Middleware Pipeline
 
-Every request passes through these middleware stages in order:
+Every request passes through composable stages, in order. A failed stage short-circuits with a status code and the rest never run.
 
 ```text
-1. TLS Termination      → decrypt HTTPS, forward plain HTTP internally
-2. Auth Middleware      → verify JWT signature using cached public key
-3. Rate Limiter         → check Redis sliding window counter
-4. Request Transformer  → strip/add headers, normalise path
+1. TLS termination      → decrypt, forward plain HTTP internally
+2. Auth                 → verify JWT signature with the cached public key      → 401
+3. Rate limiter         → shared counter check                                  → 429
+4. Request transformer  → strip client headers, inject verified identity
 5. Router               → match path pattern → upstream URL
-6. Circuit Breaker      → check upstream health state
-7. Proxy                → forward to upstream with timeout
-8. Response Transformer → add CORS headers, strip internal headers
-9. Logger               → write async audit log to Kafka
+6. Circuit breaker      → per-upstream health state                             → 503
+7. Proxy                → forward with an aggressive timeout                    → 504
+8. Response transformer → add CORS, strip internal headers
+9. Logger               → async audit event to Kafka
 ```
 
-Each stage is a composable middleware function. Failed stages short-circuit and return an appropriate HTTP error code (401, 429, 503). This pipeline pattern allows adding new middleware without touching existing stages.
+Two properties matter more than the list itself. **Order is a cost decision** — auth before rate limiting means an unauthenticated flood still costs a signature verification, so a cheap IP-keyed pre-check often sits ahead of stage 2. And **stage 9 is asynchronous**: an audit log write must never be on the latency path or in the failure path of a request.
 
-### Rate Limiting — Sliding Window Algorithm
+### Route Config and Hot Reload
 
-```typescript
-// Lua script executed atomically in Redis
-// Key pattern: rl:{clientId}:{windowSecond}
-async function checkRateLimit(
-  clientId: string,
-  limitPerSecond: number
-): Promise<{ allowed: boolean; remaining: number }> {
-  const now = Date.now();
-  const windowKey = `rl:${clientId}:${Math.floor(now / 1000)}`;
+The route table is the gateway's only state, and it must change without a deploy.
 
-  // Increment counter for current second window
-  const count = await redis.incr(windowKey);
-  if (count === 1) await redis.expire(windowKey, 2); // 2s TTL — covers window overlap
-
-  const allowed = count <= limitPerSecond;
-  return { allowed, remaining: Math.max(0, limitPerSecond - count) };
-}
+```text
+etcd watch fires
+    ↓
+Node validates the new config, then swaps the in-memory table atomically
+    ↓
+In-flight requests finish on the old table; new requests use the new one
 ```
 
-The sliding window approach is more accurate than a fixed window. It prevents burst attacks that exploit window resets at the boundary.
+**Validate before swapping, and never crash on a bad config.** A malformed route table pushed at 3 a.m. should be rejected with an alert, leaving the last-known-good table serving traffic.
 
 ## D — Data Model
 
 ```typescript
-// Route config — loaded from config store (etcd / Consul)
+// Loaded from the config store, watched for changes
 interface RouteConfig {
   id: string;
-  pathPattern: string;          // e.g. "/orders/**"
+  pathPattern: string;          // "/orders/**"
   method: "GET" | "POST" | "PUT" | "DELETE" | "*";
-  upstreamUrl: string;          // e.g. "http://order-svc:8080"
+  upstreamUrl: string;          // "http://order-svc:8080"
   stripPrefix?: string;         // remove "/orders" before forwarding
-  requiredScope?: string;       // JWT scope required to access route
+  requiredScope?: string;       // JWT scope needed for this route
+  timeoutMs: number;            // per-route, not global
+  canaryWeight?: number;        // 0–100, share sent to the canary upstream
   rateLimit?: RateLimitPolicy;
 }
 
@@ -132,18 +115,9 @@ interface RateLimitPolicy {
   keyStrategy: "ip" | "apiKey" | "userId";
 }
 
-// Stored in Redis: sliding window counter key structure
-// Key: `rl:{strategy}:{identifier}:{windowStart}`
-interface RateLimitCounter {
-  key: string;
-  count: number;
-  windowStartMs: number;
-  ttlSeconds: number;
-}
-
-// Audit log entry (written async to Kafka)
+// Written asynchronously to Kafka, one per request
 interface GatewayRequestLog {
-  requestId: string;
+  requestId: string;            // generated here; every downstream log carries it
   clientId: string;
   path: string;
   method: string;
@@ -155,15 +129,17 @@ interface GatewayRequestLog {
 }
 ```
 
+`timeoutMs` being per route rather than global is the detail worth stating. A report export legitimately takes eight seconds; a session lookup taking more than 200 ms is broken. One global timeout has to serve the slowest route and therefore protects nothing.
+
 ## I — Interface (APIs)
 
-```typescript
-// The gateway proxies all routes — these are management APIs
+The gateway proxies everything; its own API is the control plane.
 
-// GET /gateway/routes — list all active routes
+```typescript
+// GET /gateway/routes — list active routes and the config version hash
 interface ListRoutesResponse {
   routes: RouteConfig[];
-  version: string;        // config version hash
+  version: string;
 }
 
 // POST /gateway/routes — add or update a route (admin only)
@@ -175,98 +151,75 @@ interface UpsertRouteResponse {
   appliedAt: string;
 }
 
-// GET /gateway/rate-limit/status?clientId=<id>
-interface RateLimitStatusResponse {
-  clientId: string;
-  requestsThisSecond: number;
-  requestsToday: number;
-  limitPerSecond: number;
-  limitPerDay: number;
-  resetAt: string;        // ISO 8601 when daily window resets
-}
-
-// POST /gateway/circuit-breaker/reset  — manual reset (ops tool)
-interface CircuitBreakerResetRequest {
-  upstreamService: string;
-}
-interface CircuitBreakerResetResponse {
-  service: string;
-  previousState: "open" | "half-open" | "closed";
-  newState: "closed";
-}
-
-// GET /gateway/health
+// GET /gateway/health — per-upstream, not a single boolean
 interface GatewayHealthResponse {
   status: "ok" | "degraded";
+  configVersion: string;
   upstreams: Array<{
     service: string;
     state: "open" | "half-open" | "closed";
     latencyP99Ms: number;
   }>;
 }
+
+// POST /gateway/circuit-breaker/reset — ops tool for a recovered upstream
+interface CircuitBreakerResetRequest {
+  upstreamService: string;
+}
 ```
+
+Exposing `configVersion` on the health endpoint is how you detect the worst kind of drift: nodes serving different route tables because one missed a watch event.
 
 ## O — Optimizations & Trade-offs
 
-### Scaling concerns
+### Scaling Concerns
 
-| Concern | Problem | Solution |
-|---|---|---|
-| Gateway as SPOF | All traffic flows through one cluster | Deploy in multiple AZs; use active-active with L4 load balancer in front |
-| Redis rate-limit latency | Redis round-trip adds 1–2ms | Co-locate Redis in same AZ; use pipelining; local in-memory token bucket as L1 |
-| JWT validation overhead | Verify RSA signature on every request | Cache validated JWTs by `jti` with TTL = token expiry; skip DB lookup |
-| Hot route config reloading | Restart causes connection drops | Use config versioning with hot-reload via etcd watch; zero-downtime update |
-| Upstream slow response | Slow service ties up gateway connections | Set aggressive upstream timeouts (2s); use circuit breaker with 50% failure threshold |
+| Concern | Problem | Approach |
+| ------- | ------- | -------- |
+| Gateway as SPOF | All traffic flows through one cluster | Stateless nodes, active-active across 3 AZs, L4 load balancer in front |
+| JWT validation cost | RSA signature verification on every request | Cache the public key; cache validated tokens by `jti` with TTL = token expiry. Never call an auth service per request |
+| Rate-limit latency | Redis round trip adds 1–2 ms | Co-locate Redis in the same AZ; local L1 token bucket absorbs most checks |
+| Slow upstream | Connections pile up and starve every other route | Per-route timeouts plus per-upstream circuit breakers at a 50% failure threshold |
+| Config drift | A node misses a watch event and serves stale routes | Version hash on the health endpoint; alert when nodes disagree |
+| Audit log volume | 500k events/s is a firehose | Async fire-and-forget to Kafka, sampled for successful 2xx, complete for errors |
 
-### Pitfalls
+**Per-upstream circuit breakers, never a global one.** A single global threshold means one failing service trips the breaker for all of them, which converts a partial outage into a total one.
 
-| Pitfall | Verdict |
-|---|---|
-| Putting business logic in the gateway | ❌ Gateway handles cross-cutting concerns only |
-| Rate limiting only at the gateway | ❌ Also add limits inside each microservice as defence-in-depth |
-| Single Redis node for rate limiting | ❌ SPOF — use Redis Cluster with 3+ shards |
-| Synchronous auth service call per request | ❌ Too slow — validate JWT locally with cached public key |
-| Global circuit-breaker threshold | ✅ Use per-upstream thresholds; one slow service shouldn't trip others |
+### Capacity Estimation
 
-> The gateway is not a microservice. It is infrastructure. Keep it thin — authentication, routing, rate limiting. Any logic beyond that belongs in a dedicated service.
+| Metric | Estimate |
+| ------ | -------- |
+| Total request rate across all services | 500k rps |
+| Gateway overhead per request | ~2 ms (Redis check plus routing) |
+| Gateway nodes needed (at ~50k rps each) | 10, plus headroom for one AZ failing → 15 |
+| Route table size | ~200 routes, a few KB per node |
+| Config reload frequency | Event-driven, typically minutes apart |
+| Audit throughput | ~500k events/s → Kafka, 6+ partitions |
 
-See [Chapter ?? — Load Balancing](#ch-load-balancing) for L4 vs L7 trade-offs and [Chapter ?? — Design a Rate Limiter](#ch-design-rate-limiter) for sliding-window algorithm details.
+State these to show the gateway is a thin, high-throughput layer. **The bottleneck is Redis or network, never CPU** — and the node count is set by the AZ-failure case, not the happy path.
 
 ## Common Follow-up Questions
 
 **Q: How do you handle WebSocket or gRPC traffic?**
-A: WebSockets require a persistent connection — use L4 pass-through for those routes. For gRPC, terminate TLS at the gateway and proxy as HTTP/2 to upstreams. Most managed gateways (AWS API GW, Kong) support this natively.
 
-**Q: How do you do canary deployments through the gateway?**
-A: Add a weight field to RouteConfig (`canaryWeight: 10` sends 10% traffic to v2). The router uses weighted random selection. Gradually increase weight while monitoring error rates.
+WebSockets need the connection to stay open, so those routes are L4 pass-through — the gateway cannot inspect frames after the upgrade, which means auth has to happen on the handshake and per-message limits move into the service. For gRPC, terminate TLS at the edge and proxy HTTP/2 to the upstream. Most managed gateways support both natively.
 
-**Q: What if the config store (etcd) goes down?**
-A: Gateway instances cache the last-known route config in memory. They continue serving traffic with stale routes. Alert ops but do not crash — availability over consistency for read traffic.
+**Q: How do you do canary and blue/green deploys through the gateway?**
 
-**Q: How do you prevent DDoS at the gateway layer?**
-A: Combine IP-based rate limiting (sliding window in Redis) with a WAF (AWS WAF / Cloudflare) in front of the load balancer. The WAF handles volumetric attacks before they reach the gateway.
+`canaryWeight` on the route: the router does weighted selection, so `canaryWeight: 5` sends 5% to the new upstream. Ramp while watching error rate and p99 for that route specifically, then flip to 100% and remove the old upstream. Because the weight lives in the config store, the whole rollout is a live change with no gateway deploy — which also means a rollback is one config write.
 
-**Q: Gateway vs service mesh — when do you use each?**
-A: Gateway handles north-south traffic (client → cluster). Service mesh (Istio, Linkerd) handles east-west traffic (service → service). Use both in mature microservice deployments.
+**Q: What if the config store goes down?**
 
-**Q: How do you do blue/green deployments with an API gateway?**
-A: Add a `version` field to `RouteConfig`. Route 100% traffic to `upstreamUrl-blue`. When deploying green, set `canaryWeight: 5` to send 5% to green. Monitor error rates; ramp to 100% then remove blue. The gateway config store (etcd) makes this a live change with no deployment.
+Nodes keep serving from their in-memory copy of the last-known-good config. Alert, but do not crash and do not fail requests: availability over consistency for read traffic. The failure this protects against is worse than stale routes — a gateway fleet that restarts into an empty route table returns 404 for everything.
 
-**Q: How do you handle request fan-out (one client call hits 3 services)?**
-A: Two options. First, an Aggregation Gateway pattern: a thin service behind the gateway calls multiple upstream services and merges responses. Second, GraphQL gateway: client specifies exactly which fields to fetch and a resolver fans out. Do not put aggregation logic in the routing gateway itself.
+**Q: How do you prevent DDoS at this layer?**
 
-### Capacity Estimation (quick numbers to state in the interview)
+Not here. A volumetric attack exhausts bandwidth before the pipeline runs, so that is a WAF and CDN job in front of the load balancer. What the gateway handles is application-layer abuse: IP-keyed limits for unauthenticated traffic, per-key quotas for authenticated traffic, and a global ceiling for load shedding.
 
-| Metric | Estimate |
-|---|---|
-| Total RPS across all services | 500k |
-| Gateway processing overhead per request | ~2ms (Redis + routing) |
-| Gateway instances needed (at 50k RPS each) | 10 nodes |
-| Redis rate-limit ops per request | 2 (INCR + EXPIRE) |
-| Peak Redis IOPS | 1 million/s (well within Redis single-node limits) |
-| Avg route table size | 200 routes |
-| Config hot-reload frequency | Every 30 seconds |
-| Audit log throughput | ~500k events/s → Kafka with 6 partitions |
+**Q: How do you handle a request that needs data from three services?**
 
-State these numbers to show you understand the gateway is a thin, high-throughput layer — not a compute-heavy service. The bottleneck is almost always Redis or network, not CPU.
+Not in the router. Either an aggregation service sitting behind the gateway that fans out and merges, or a GraphQL layer where the client specifies fields and resolvers fan out. Putting fan-out in the routing gateway means partial-failure handling and three upstream latencies land inside the component every request depends on.
 
+**Q: A route's p99 has doubled. How do you tell whether it is the gateway or the upstream?**
+
+The audit log carries `gatewayLatencyMs` and `upstreamLatencyMs` separately, and the request id it generates propagates to every downstream log. That split answers the question directly, which is the reason both fields exist rather than a single total — without it, every latency investigation starts with an argument about whose problem it is.
