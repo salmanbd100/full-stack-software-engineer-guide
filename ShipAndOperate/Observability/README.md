@@ -1,5 +1,5 @@
 ---
-title: Part VIII — Observability
+title: Observability
 part: 8
 chapter: 0
 slug: ship-observability-index
@@ -10,7 +10,7 @@ tags: [observability, monitoring, metrics, dashboards, alerting, slo]
 in_book: true
 ---
 
-# Part VIII — Observability
+# Observability
 
 Monitoring answers questions you thought of in advance. Observability is whether you can answer the
 question you did not think of, at two in the morning, from the data you already collect. That
@@ -29,14 +29,9 @@ Alerting is last on purpose — an alert is only ever as good as the signal unde
 | 02 | [Metrics and Dashboards](./02-metrics-and-dashboards.md)                  | How are metrics collected and queried, and what makes a screen readable? |
 | 03 | [Alerting and On-Call](./03-alerting-and-on-call.md)                      | What makes an alert worth waking a human for?                       |
 
-The browser half of this story lives in Part IV. Core Web Vitals are SLIs and real-user monitoring is
-field data, so the thinking here transfers directly — but the collection mechanics belong there and
-are not repeated.
-
 ## What Interviewers Probe For
 
-The senior signal for this part is **owns the change all the way to production, including the way
-back.** Four questions carry most of the weight:
+Four observability-specific questions, on top of the part-level signals in the Part VIII opener:
 
 - **Why percentiles, not averages?** An average latency of 200 ms can hide a p99 of nine seconds. The
   follow-up is the real test: you cannot average percentiles across instances — you aggregate the
@@ -54,6 +49,3 @@ back.** Four questions carry most of the weight:
 01 first, always — the rest of the section assumes its vocabulary, particularly cardinality and the
 error budget. Then 02, because the burn-rate alerts in 03 query the recording rules 02 defines. Finish
 with 03.
-
-**Interview sprint:** 01 → 03. Fundamentals and alerting are where nearly every observability question
-lands; 02 is where the follow-ups go.

@@ -36,7 +36,7 @@ happened: the budget arithmetic in #1, the frontend-share rule, and the line-bud
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-30 · **Progress:** 29 / 83
+**Last updated:** 2026-08-31 · **Progress:** 30 / 83
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2587,7 +2587,7 @@ specified but unowned. This needs either a new Phase 2 item or an explicit widen
 
 ---
 
-### - [ ] 30. Split `DevOps/README.md` (1,378 lines) `S`
+### - [x] 30. Split `DevOps/README.md` (1,378 lines) `S` — ✅ **done 2026-08-31**
 
 It is a full curriculum index for content that is about to be 80% archived. Rewrite as a ~120-line
 `ShipAndOperate/README.md` part opener after item 20 lands.
@@ -2599,6 +2599,30 @@ It is a full curriculum index for content that is about to be 80% archived. Rewr
 > fires on a directory holding loose `.md` files. This item now writes a new file rather than trimming
 > an old one. The five section READMEs beneath it (`Git`, `Containers`, `CICD`, `Observability`,
 > `Cloud`) already exist and are the model to match; a sixth is due when `Deployment/` is written.
+
+**Delivered:**
+
+- **`ShipAndOperate/README.md` written — 59 lines**, the Part VIII opener. Sections table for all six
+  sections with chapter counts, the part-level senior signal (four questions), a consolidated reading
+  order and eleven-chapter interview sprint, and a closing note on the three deliberate cross-section
+  overlaps plus what #20 moved to `Archive/devops/`. `Deployment/` and its README existed by the time
+  this ran, so all six sections are covered — the note above expected five.
+- **The six section READMEs are no longer pretending to be part openers.** Each was titled
+  `# Part VIII — <Section>` and each repeated the same part-level senior-signal paragraph verbatim
+  (`CICD` and `Deployment` also shared the "build once, promote the artefact" bullet word for word).
+  Titles are now the section name; each probe list keeps only its section-specific questions and
+  points at the opener for the part-level ones. Their per-section `**Interview sprint:**` lines are
+  gone — the opener carries one consolidated sprint covering the same chapters.
+- **Net line change for Part VIII: zero.** 354 lines of section READMEs became 294; the 59-line opener
+  spends exactly what the dedup freed. `pnpm lint:docs` reports Part 8 at 6,046 — the same figure as
+  before this item — and the `budget` tally unchanged at 31,241, so nothing regressed and
+  `.lint-baseline.json` needed no edit. `pnpm book:collect` picks up 262 files, one more than before.
+- **Deliberately not done:** Part VIII is still +546 over its 5,500 budget. That cut belongs to
+  **#31e** and its table is correct as written — this item neither helped nor hurt it.
+- **Note for #31e and Phase 3.** The opener's length was set by the `budget` ratchet, not by taste: a
+  part opener is a required structural file, but the `budget` rule counts it like any chapter, so
+  writing one for an over-budget part means finding the lines somewhere in that part first. Part III's
+  and Part VII's openers will hit the same wall if they are written before #31a–#31e land.
 
 ---
 
@@ -3362,13 +3386,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 10/17 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 11/17 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **83** | **29/83** | **35%**   |
+| **Total** | **83** | **30/83** | **36%**   |
 
 ---
 

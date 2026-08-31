@@ -1,5 +1,5 @@
 ---
-title: Part VIII — Cloud Essentials
+title: Cloud Essentials
 part: 8
 chapter: 0
 slug: ship-cloud-index
@@ -10,7 +10,7 @@ tags: [cloud, serverless, object-storage, cdn]
 in_book: true
 ---
 
-# Part VIII — Cloud Essentials
+# Cloud Essentials
 
 Clouds differ; the primitives do not. Every provider gives you somewhere to run code without a
 server, somewhere to put files that is not a disk, and something that caches those files near the
@@ -20,9 +20,6 @@ else. That is what this section covers.
 Each chapter states the principle without a brand name first, then names products second — AWS most
 often, because it is the one most interview panels assume, with Vercel and Cloudflare where the
 frontend-facing shape differs. Saying the principle before the product is itself a senior signal.
-
-> ⚠️ Deep cloud coverage is out of scope. `BOOK-SPEC.md` § 6 caps this at three condensed chapters
-> rather than a service-by-service tour. The fuller AWS material is in `Archive/devops/aws/`.
 
 ## Chapters
 
@@ -34,8 +31,7 @@ frontend-facing shape differs. Saying the principle before the product is itself
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **owns the change all the way to production, including the way
-back.** For cloud services, three questions do most of the work:
+Three cloud-specific questions, on top of the part-level signals in the Part VIII opener:
 
 - **Can you separate the principle from the product?** "How would you serve user uploads?" wants
   object storage, a presigned URL, and a cache in front — not a recitation of bucket settings. Naming
@@ -51,6 +47,3 @@ back.** For cloud services, three questions do most of the work:
 
 01 first for the vocabulary — regions, the managed-service ladder, and the responsibility line all
 get used by the two chapters after it. 02 and 03 are independent of each other.
-
-**Interview sprint:** 02 → 03. Serverless and the edge are where a frontend-heavy role gets probed;
-the rest is background.

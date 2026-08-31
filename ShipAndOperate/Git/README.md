@@ -1,5 +1,5 @@
 ---
-title: Part VIII — Version Control with Git
+title: Version Control with Git
 part: 8
 chapter: 0
 slug: ship-git-index
@@ -10,7 +10,7 @@ tags: [git, version-control, branching, code-review, monorepo]
 in_book: true
 ---
 
-# Part VIII — Version Control with Git
+# Version Control with Git
 
 Git is the one tool in this part you touch every hour of every working day, and the one where a
 shaky mental model costs you the most. Most engineers learn Git as a list of commands that usually
@@ -32,25 +32,17 @@ about — trunk-based or GitFlow, squash or merge, one repository or twenty.
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **owns the change all the way to production, including the way
-back.** For Git, that shows up in three places:
+Two Git-specific questions, on top of the part-level signals in the Part VIII opener:
 
 - **Can you recover?** "You force-pushed over a colleague's branch — what now?" A senior reaches for
-  the reflog and explains why the objects are still there. A junior apologises. The question is
-  really asking whether you understand that Git rarely deletes anything.
+  the reflog and explains why the objects are still there. The question is really asking whether you
+  understand that Git rarely deletes anything.
 - **Do you have a reason for your branching model?** Naming GitFlow is worth nothing. Explaining that
   long-lived branches make merge conflicts a scheduling problem, and that trunk-based development
   trades that for feature flags and better tests, is worth a lot.
-- **Do your commits help the next person?** Reviewers, `git bisect`, and release notes all read the
-  same history. Engineers who write `fix stuff` commits are telling you how they treat the people
-  downstream of them.
 
 ## Reading Order
 
 Straight through. Chapters 01 and 02 are the pair that matters — 03 assumes you can picture the object
 graph, because "squash or rebase merge" is a question about what happens to commits. Chapter 04 is the
 only one you can safely read out of order.
-
-**Interview sprint:** 01 → 03. The object model and the branching-and-review argument cover most of
-what gets asked. Read 02's reflog and `bisect` sections if you have ten minutes more — the recovery
-question comes up often.

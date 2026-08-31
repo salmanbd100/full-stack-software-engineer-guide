@@ -1,5 +1,5 @@
 ---
-title: Part VIII — Deployment
+title: Deployment
 part: 8
 chapter: 0
 slug: ship-deployment-index
@@ -10,7 +10,7 @@ tags: [deployment, preview-environments, rollback, feature-flags, edge]
 in_book: true
 ---
 
-# Part VIII — Deployment
+# Deployment
 
 The pipeline builds the change. This section is about what happens to it afterwards — how it reaches
 users, who sees it first, and how it comes back. That last part is where seniority shows. Plenty of
@@ -32,15 +32,8 @@ things that model makes cheap.
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **owns the change all the way to production, including the way
-back.** In a deployment round, that means:
+Three deployment-specific questions, on top of the part-level signals in the Part VIII opener:
 
-- **Build once, promote the artefact.** A pipeline that rebuilds per environment tested one thing and
-  shipped another. Candidates who describe a separate build per stage have usually never had to explain
-  a difference between staging and production.
-- **Which changes are one-way doors?** Dropped columns, consumed queue messages, sent emails, records
-  created in someone else's system. "We just roll back" is the answer of someone who has not yet had a
-  migration outlive their deployment.
 - **Where does the code run, and why there?** Edge execution is a latency win and a data-access loss.
   Moving a database-backed route to the edge to make it faster is a common and confident wrong answer.
 - **Do previews use production data?** The answer should be no, and the follow-up — branched database,
@@ -55,10 +48,3 @@ The four chapters build on each other in sequence, but only the first is a prere
 01 first — every other chapter in this section depends on the immutable-artefact model it sets up.
 02 and 03 can be read in either order. 04 is the one that comes up most often in senior interviews,
 because it is where deployment stops being an infrastructure question and starts being a product one.
-
-**Interview sprint:** 01 → 03 → 04. The artefact model, the one-way doors, and the deploy/release split.
-
-⚠️ Two neighbouring sections overlap with this one deliberately. The per-instance release strategies —
-blue/green, rolling and canary — live in the CI/CD section, because they are properties of the pipeline
-rather than of the platform. The CDN behaviour that decides whether a promoted build is actually visible
-lives in the Cloud section. Read this section for what the platform does with an artefact once it exists.

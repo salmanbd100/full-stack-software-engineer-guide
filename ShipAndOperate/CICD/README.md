@@ -1,5 +1,5 @@
 ---
-title: Part VIII — Continuous Integration and Delivery
+title: Continuous Integration and Delivery
 part: 8
 chapter: 0
 slug: ship-cicd-index
@@ -10,7 +10,7 @@ tags: [cicd, github-actions, deployment, pipeline-security]
 in_book: true
 ---
 
-# Part VIII — Continuous Integration and Delivery
+# Continuous Integration and Delivery
 
 The pipeline is where a team's real engineering standards live. Whatever the wiki says about testing
 and review, the pipeline is what is actually enforced. Senior candidates get asked about it because
@@ -32,28 +32,16 @@ credentials reach the pipeline without being stored in it.
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **owns the change all the way to production, including the way
-back.** In the pipeline round, that means:
+Two pipeline-specific questions, on top of the part-level signals in the Part VIII opener:
 
-- **Build once, promote the artefact.** Rebuilding per environment means the thing you tested is not
-  the thing you shipped. Candidates who describe a separate build per stage have usually never had to
-  explain a difference between staging and production.
 - **Can you make a slow pipeline fast without deleting the tests?** Caching, parallel jobs, splitting
   the fast feedback loop from the full suite, and only running the expensive checks where they change
   a decision. "Skip the flaky ones" is the wrong answer.
 - **What does your rollback look like?** Not "we redeploy the previous tag" — that is the happy path.
   What about a database migration? A cached asset? Feature flags exist because some changes cannot be
   un-deployed, and knowing which is a seniority marker.
-- **Where do the credentials come from?** Long-lived cloud keys in repository secrets are still the
-  most common finding. Short-lived OIDC tokens are the expected answer.
 
 ## Reading Order
 
 01 first — its vocabulary is used by the other three. After that, 03 and 04 are the two most likely
 to come up in an interview, and 02 is the one to read if the role names GitHub Actions.
-
-**Interview sprint:** 01 → 03 → 04. Principles, release strategy, and the credential question. Add
-02's OIDC section if you have ten more minutes.
-
-> Testing strategy has its canonical home in Part IV and Part V. What is pipeline-specific about it —
-> stage ordering, which tier runs where, and quality gates — is in chapter 01.
