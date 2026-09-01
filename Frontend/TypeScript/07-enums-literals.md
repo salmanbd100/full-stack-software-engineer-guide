@@ -5,220 +5,185 @@ chapter: 0
 slug: enums-literals
 level: intermediate # beginner | intermediate | advanced
 reading_time: 7
-updated: 2026-08-28
+updated: 2026-08-31
 tags: [frontend, typescript, enums, literals]
 in_book: true
 ---
 
-# Enums and Literal Types {#ch-enums-and-literal-types}
+# Enums and Literal Types {#ch-enums-literals}
 
 > Model a fixed set of values without shipping a runtime object nobody asked for.
 
 **In this chapter:** string literal unions · string enums · `as const` objects · what enums emit · when a numeric enum is still right
 
-## Table of Contents
-- [String Literal Types](#string-literal-types)
-- [String Enums](#string-enums)
-- [as const Objects — The Modern Approach](#as-const-objects)
-- [When to Use Which](#when-to-use-which)
-- [Numeric Enums](#numeric-enums)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+There are three ways to say "one of these five values", and they differ in one respect: **what exists
+at runtime.** A literal union exists only at compile time and costs nothing. An `as const` object
+exists as a plain object you can iterate. An `enum` exists as a generated object with its own rules
+about what may be assigned to it. Pick by whether you need the values at runtime — not by which looks
+most like the language you came from.
 
-## String Literal Types
+## How It Works
 
-The simplest approach. No runtime overhead. Works great with APIs.
+### Literal unions
 
 ```typescript
-// User roles
-type UserRole = "admin" | "user" | "guest";
+type UserRole = 'admin' | 'user' | 'guest';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-// Order status
-type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+async function setRole(userId: number, role: UserRole): Promise<void> {
+  await fetch(`/api/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ role }) });
+}
 
-// HTTP methods
-type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-
-// Theme
-type Theme = "light" | "dark" | "system";
+setRole(1, 'admin'); // ✅
+setRole(1, 'superuser'); // ❌ not a valid role
 ```
+
+Zero runtime output, and the values are exactly the strings your API sends — no translation layer.
+This is the default for a small fixed set.
+
+### `as const` objects
 
 ```typescript
-// Usage in a real scenario
-interface User {
-  id: number;
-  name: string;
-  role: UserRole;  // type-safe, maps directly to database/API value
-}
+const OrderStatus = {
+  Pending: 'pending',
+  Shipped: 'shipped',
+  Delivered: 'delivered',
+} as const;
 
-async function updateUserRole(userId: number, role: UserRole): Promise<void> {
-  await fetch(`/api/users/${userId}/role`, {
-    method: "PATCH",
-    body: JSON.stringify({ role }), // "admin" or "user" or "guest"
-  });
-}
+type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
+// 'pending' | 'shipped' | 'delivered'
 
-updateUserRole(1, "admin");    // ✅
-updateUserRole(1, "superuser"); // ❌ Error: not a valid role
+Object.values(OrderStatus); // ✅ iterable — for a dropdown, a validation list
+setStatus('ord_1', OrderStatus.Shipped); // ✅ named access
+setStatus('ord_1', 'shipped'); // ✅ the raw string works too
 ```
 
----
+One declaration produces both the runtime list and the type, so they cannot drift. Accepting the raw
+string matters at a boundary: JSON arrives as `'shipped'`, not as `OrderStatus.Shipped`.
 
-## String Enums
-
-Enums group related constants under a **namespace** and show up in autocomplete.
+### `enum`
 
 ```typescript
 enum LogLevel {
-  Error = "ERROR",
-  Warning = "WARNING",
-  Info = "INFO",
-  Debug = "DEBUG",
+  Error = 'ERROR',
+  Info = 'INFO',
 }
 
-function log(level: LogLevel, message: string): void {
-  console.log(`[${level}] ${message}`);
-}
-
-log(LogLevel.Info, "Server started");   // [INFO] Server started
-log(LogLevel.Error, "Connection lost"); // [ERROR] Connection lost
-
-// ⚠️ Enums require using the enum member — raw strings don't work
-log("INFO", "test"); // ❌ Error: must use LogLevel.Info
+log(LogLevel.Info, 'started'); // ✅
+log('INFO', 'started'); // ❌ a string enum is nominal — the raw value is rejected
 ```
 
-### Iterating over enum values
+A string enum is **nominally** typed: only its own members are assignable, even when the value is
+identical. That is occasionally what you want and usually friction, because every payload crossing a
+boundary needs converting.
+
+### The comparison
+
+| Property                    | Literal union | `as const` object | `enum`                 |
+| --------------------------- | ------------- | ----------------- | ---------------------- |
+| Runtime output               | None          | A plain object    | A generated object     |
+| Iterate the values           | ❌             | ✅                 | ✅                      |
+| Accepts the raw string       | ✅             | ✅                 | ❌                      |
+| Tree-shakes                  | n/a           | ✅                 | ❌ (unless `const enum`) |
+| Works with `erasableSyntaxOnly` / plain-JS runtimes | ✅ | ✅            | ❌                      |
+
+That last row is why the direction of travel matters: `enum` is one of the few TypeScript features
+that emits code rather than being erased, so it is incompatible with the type-stripping runtimes now
+shipping in Node.js and browsers.
+
+### Numeric enums, and where they still fit
+
+```typescript
+enum Permission {
+  None = 0,
+  Read = 1 << 0, // 1
+  Write = 1 << 1, // 2
+  Delete = 1 << 2, // 4
+}
+
+const granted = Permission.Read | Permission.Write; // 3
+
+function has(current: number, required: Permission): boolean {
+  return (current & required) === required;
+}
+```
+
+Bitwise flags are the one case where a numeric enum reads better than the alternatives — the
+combination `3` is not a member, and the type is meant to be open. Everywhere else, numeric enums are
+the weakest option: a plain number is assignable to one, so `setStatus(99)` compiles.
+
+## When to Use It
+
+| Scenario                                        | Reach for                | Why                                            |
+| ----------------------------------------------- | ------------------------ | ---------------------------------------------- |
+| A handful of values used only in type positions   | Literal union            | No runtime cost, and matches API strings        |
+| Values you must iterate — a dropdown, a validator | `as const` object        | One source of truth for both layers            |
+| A large group of related constants                | `as const` object        | Namespaced access without an emitted enum       |
+| Bitwise flags                                     | Numeric `enum`           | Combinations are the point; openness is correct |
+| A codebase already full of enums                  | Keep the existing style  | Consistency beats a partial migration           |
+
+## Common Mistakes
+
+**❌ Reaching for `enum` because it is familiar.** It is the only option here that emits runtime code,
+does not tree-shake, and rejects the raw values your API sends.
+
+**❌ Trusting a numeric enum to validate.** Any number is assignable:
 
 ```typescript
 enum Status {
-  Pending = "pending",
-  Active = "active",
-  Inactive = "inactive",
+  Active = 1,
+  Inactive = 2,
 }
-
-// Get all values for a dropdown
-const statusOptions = Object.values(Status);
-// ["pending", "active", "inactive"]
-
-// Get all keys
-const statusKeys = Object.keys(Status) as (keyof typeof Status)[];
-// ["Pending", "Active", "Inactive"]
+declare function set(s: Status): void;
+set(99); // ✅ compiles — the type is not closed
 ```
 
----
+**❌ Declaring the list twice.** A `type Role = 'admin' | 'user'` beside a
+`const ROLES = ['admin', 'user']` will diverge. Derive one:
+`const ROLES = ['admin', 'user'] as const; type Role = (typeof ROLES)[number];`
 
-## as const Objects — The Modern Approach
+**❌ Forgetting `as const`.** Without it, `{ Pending: 'pending' }` has property type `string`, and the
+derived union collapses to `string` — silently losing every guarantee.
 
-This pattern gives you the **best of both worlds**: enum-like autocomplete + literal type safety + zero runtime overhead.
+**❌ Using `const enum` in a library.** It relies on inlining, which breaks under `isolatedModules`
+and under bundlers that compile files independently.
 
-```typescript
-// Define as a const object
-const OrderStatus = {
-  Pending: "pending",
-  Processing: "processing",
-  Shipped: "shipped",
-  Delivered: "delivered",
-  Cancelled: "cancelled",
-} as const;
+> ⚠️ A literal union is erased, so nothing validates a string arriving from JSON, a URL parameter or
+> `localStorage`. Check it at the boundary — `ROLES.includes(value)` against an `as const` array is the
+> cheapest form.
 
-// Extract the union type from values
-type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
-// "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+## 🔑 Key Takeaways
 
-// Usage — accepts both object access and raw strings
-function updateStatus(orderId: string, status: OrderStatus): void {
-  console.log(`Order ${orderId} → ${status}`);
-}
-
-updateStatus("ord_123", OrderStatus.Shipped); // ✅ Object access
-updateStatus("ord_123", "shipped");           // ✅ Raw string also works
-updateStatus("ord_123", "lost");              // ❌ Error: not a valid status
-```
-
----
-
-## When to Use Which
-
-| Feature | Literal Types | `as const` Object | Enum |
-|---------|--------------|-------------------|------|
-| Runtime object | ❌ None | ✅ Yes | ✅ Yes |
-| Iterate values | ❌ No | ✅ Yes | ✅ Yes |
-| Accept raw strings | ✅ Yes | ✅ Yes | ❌ No |
-| Autocomplete | ✅ IDEs suggest | ✅ Via object | ✅ Via enum |
-| Bundle impact | Zero | Tiny | Small |
-| API compatibility | ✅ Great | ✅ Great | ⚠️ Needs `.value` |
-
-### Decision guide
-
-```text
-Do you need to iterate or loop over all values?
-├── Yes → use as const object or enum
-└── No → use literal types
-
-Do you want raw strings to be accepted (e.g. from JSON API)?
-├── Yes → use literal types or as const object
-└── No → use enum (strictly requires enum members)
-
-Is this a large group of related constants (HTTP codes, permission flags)?
-├── Yes → use enum or as const object
-└── No → literal types are simplest
-```
-
----
-
-## Numeric Enums
-
-Use sparingly. Most useful for **bitwise permission flags** or HTTP status codes.
-
-```typescript
-// Bitwise permission flags — one of the best uses for numeric enums
-enum Permission {
-  None    = 0,
-  Read    = 1 << 0, // 1
-  Write   = 1 << 1, // 2
-  Delete  = 1 << 2, // 4
-}
-
-const userPermissions = Permission.Read | Permission.Write; // 3
-
-function hasPermission(user: number, required: Permission): boolean {
-  return (user & required) === required;
-}
-
-hasPermission(userPermissions, Permission.Read);   // true
-hasPermission(userPermissions, Permission.Delete);  // false
-```
-
-⚠️ Numeric enums accept **any number**, not just defined values. Use string enums or `as const` when you need strict validation.
-
----
+- The three options differ in what exists at runtime; choose on that, not on syntax familiarity.
+- A literal union costs nothing and matches the strings your API actually sends.
+- `as const` plus `(typeof x)[keyof typeof x]` gives iteration and a type from one declaration.
+- String enums are nominal, so raw values are rejected at every boundary.
+- Numeric enums accept any number, which makes them unsuitable for validation but right for bitwise flags.
 
 ## Interview Questions
 
-### Q: Should you use enums or literal types in modern TypeScript?
+**Q: Should you use `enum` in new TypeScript?**
 
-Default to **literal types** for simple string constants — they're zero-overhead and work naturally with JSON APIs. Use **enums** when you need iteration or bitwise flags. Use **`as const` objects** as a middle ground that supports both iteration and raw string values.
+Usually not. It is one of the few features that emits runtime code, it does not tree-shake, its string
+form rejects the raw values arriving from an API, and it does not work under type-stripping runtimes.
+A literal union covers most needs; an `as const` object covers the rest and gives you iteration.
 
-### Q: What is the problem with numeric enums?
+**Q: How do you derive a type from a runtime array of values?**
 
-Numeric enums accept any number, not just the defined values. TypeScript won't catch `setStatus(99)` if `Status` is a numeric enum. String enums or literal types are stricter.
+`const ROLES = ['admin', 'user'] as const;` then `type Role = (typeof ROLES)[number];`. The `as const`
+stops widening so the elements keep their literal types, and the indexed access over `number` produces
+their union. One declaration serves the runtime check and the type.
 
-```typescript
-enum NumStatus { Active = 1, Inactive = 2 }
+**Q: When would you keep enums in a codebase that has them?**
 
-function setStatus(s: NumStatus) {}
-setStatus(99); // ✅ TypeScript allows this — dangerous!
+When they are used consistently and widely. A partial migration leaves two conventions for the same
+concept, which costs more in confusion than the enums cost in bundle size. Migrate when a module is
+being rewritten anyway, or when the runtime constraint forces it.
 
-type StrStatus = "active" | "inactive";
-function setStatus2(s: StrStatus) {}
-setStatus2("deleted"); // ❌ Error — correctly caught
-```
+## What to Read Next
 
-### Q: What does `as const` do?
-
-It tells TypeScript to treat a value as a **read-only literal type** rather than widening it. `const x = "GET"` gives `string`. `const x = "GET" as const` gives `"GET"`.
-
----
-
-[← Advanced Types](./06-advanced-types.md) | [Next: React TypeScript →](./08-react-typescript.md)
+- [Chapter ?? — Advanced Types](#ch-advanced-types) — the `as const` and indexed-access mechanics in full
+- [Chapter ?? — Type Guards](#ch-type-guards) — validating one of these values at a boundary
+- [Chapter ?? — Basic Types](#ch-basic-types) — literal types and where widening happens

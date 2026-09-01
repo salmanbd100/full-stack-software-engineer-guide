@@ -4,226 +4,203 @@ part: 1
 chapter: 0
 slug: basic-types
 level: intermediate # beginner | intermediate | advanced
-reading_time: 7
-updated: 2026-08-28
+reading_time: 8
+updated: 2026-08-31
 tags: [frontend, typescript, basic, types]
 in_book: true
 ---
 
-# TypeScript Basic Types {#ch-typescript-basic-types}
+# TypeScript Basic Types {#ch-basic-types}
 
 > Annotate only where inference cannot reach, and know what `any`, `unknown` and `never` each cost you.
 
 **In this chapter:** primitives · annotation vs inference · `any` vs `unknown` vs `never` · arrays and tuples · typing functions
 
-## Table of Contents
-- [Why TypeScript?](#why-typescript)
-- [Primitive Types](#primitive-types)
-- [Type Annotations vs Inference](#type-annotations-vs-inference)
-- [Special Types](#special-types)
-- [Arrays and Tuples](#arrays-and-tuples)
-- [Functions](#functions)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+TypeScript's type system exists at compile time and disappears at runtime. That single fact explains
+its shape: it can prove things about your code before it runs, and it can prove nothing once it is
+running. Good TypeScript therefore puts types where the compiler cannot work them out for itself —
+function boundaries and external data — and stays quiet everywhere inference already knows the answer.
 
-## Why TypeScript?
+## How It Works
 
-TypeScript adds types to JavaScript. It catches bugs **before** your code runs, not after.
+| Type        | Holds                                    | Note                                        |
+| ----------- | ---------------------------------------- | ------------------------------------------- |
+| `string`    | `'alice'`, `` `hi ${name}` ``            | —                                           |
+| `number`    | `42`, `3.14`, `NaN`, `Infinity`          | One type for integers and floats            |
+| `boolean`   | `true`, `false`                          | —                                           |
+| `bigint`    | `9007199254740993n`                      | Does not mix with `number`                  |
+| `null`      | `null`                                   | Deliberate absence                          |
+| `undefined` | `undefined`                              | Not yet set                                 |
+
+`strictNullChecks` is what makes `null` and `undefined` mean anything: without it they are assignable
+to every type and the compiler cannot catch the commonest runtime error there is. Treat it as
+non-optional.
+
+### Annotation versus inference
 
 ```typescript
-// JavaScript — no error until runtime
-function getUser(id) {
-  return fetch(`/api/users/${id}`);
-}
-getUser(undefined); // Oops — runtime bug
+// ✅ let inference do it — the value states the type
+let count = 0; // number
+const status = 'pending'; // 'pending', a literal type, because it is const
 
-// TypeScript — error caught at compile time
-function getUser(id: number): Promise<Response> {
-  return fetch(`/api/users/${id}`);
-}
-getUser(undefined); // ❌ Error: Argument of type 'undefined' is not assignable to type 'number'
+// ✅ annotate where inference cannot reach
+function createUser(name: string, role: 'admin' | 'user' = 'user'): User { /* … */ }
+const parsed: unknown = JSON.parse(raw); // external data has no knowable type
+
+// ❌ redundant — the compiler already knows
+let message: string = 'Hello';
 ```
 
----
+Annotate **function parameters and exported return types**; let inference handle locals. A return
+annotation on a public function is not redundancy — it pins the contract, so a change inside the body
+fails there rather than at every call site.
 
-## Primitive Types
-
-| Type | Example | Notes |
-|------|---------|-------|
-| `string` | `"Alice"`, `` `Hello ${name}` `` | Text values |
-| `number` | `42`, `3.14` | All numbers, including floats |
-| `boolean` | `true`, `false` | Only true or false |
-| `null` | `null` | Intentional absence of value |
-| `undefined` | `undefined` | Variable not yet assigned |
+### `any`, `unknown`, `never`
 
 ```typescript
-// Realistic example: user profile
-let username: string = "alice_dev";
-let age: number = 28;
-let isPremium: boolean = true;
-let lastLogin: Date | null = null; // hasn't logged in yet
+// ❌ any switches the compiler off for this value and everything it flows into
+const data: any = await res.json();
+data.user.name.toUpperCase(); // compiles; crashes if any link is null
+
+// ✅ unknown accepts anything but permits nothing until you prove the shape
+const data: unknown = await res.json();
+if (typeof data === 'object' && data !== null && 'user' in data) { /* narrowed */ }
 ```
 
-> `null` and `undefined` are different. Use `null` when you intentionally set "no value". Use `undefined` for something that hasn't been set yet.
+|                    | `any`                     | `unknown`                     | `never`                          |
+| ------------------ | ------------------------- | ----------------------------- | -------------------------------- |
+| Accepts            | Everything                | Everything                    | Nothing                          |
+| You may            | Do anything               | Nothing until narrowed        | —                                |
+| Means              | "Stop checking"           | "Checked later"               | "This cannot happen"             |
+| Reach for it when  | Migrating JavaScript, under protest | Parsing external data | Exhaustiveness, functions that throw |
 
----
-
-## Type Annotations vs Inference
-
-TypeScript can **infer** types automatically. You don't always need to write them.
-
-```typescript
-// ✅ Let TypeScript infer — cleaner
-let count = 0;         // inferred: number
-let name = "Alice";    // inferred: string
-let active = true;     // inferred: boolean
-
-// ✅ Add annotation when the type isn't obvious
-let userId: string | number = getUserId(); // could be either
-let status: "pending" | "active" | "inactive" = "pending"; // literal union
-
-// ❌ Over-annotating obvious types
-let message: string = "Hello"; // redundant — TypeScript already knows
-```
-
-**Rule of thumb:** Let TypeScript infer when the value makes the type obvious. Be explicit for function parameters, return types, and union types.
-
----
-
-## Special Types
-
-### 💡 **any vs unknown**
-
-Both allow "any value" but `unknown` is **safe** — you must check the type before using it.
+`never` earns its place in the exhaustiveness check, which is the single most useful compile-time
+guard in a codebase with unions:
 
 ```typescript
-// ❌ any — skips all type checking
-let data: any = fetchFromApi();
-data.user.name.toUpperCase(); // No error — but crashes if data is null
+type Status = 'active' | 'inactive' | 'banned';
 
-// ✅ unknown — forces you to check first
-let data: unknown = fetchFromApi();
-
-if (typeof data === "object" && data !== null && "user" in data) {
-  console.log(data); // Safe access
-}
-```
-
-| | `any` | `unknown` |
-|--|-------|-----------|
-| Type checking | Disabled | Required before use |
-| Safe? | ❌ No | ✅ Yes |
-| Use when | Migrating JS code | Receiving external data |
-
-### 💡 **void vs never**
-
-```typescript
-// void — function returns nothing (or undefined)
-function logError(message: string): void {
-  console.error(message);
-}
-
-// never — function NEVER returns (throws or loops forever)
-function throwError(message: string): never {
-  throw new Error(message);
-}
-
-// Practical use: exhaustive switch
-type Status = "active" | "inactive" | "banned";
-
-function handleStatus(status: Status): string {
+function label(status: Status): string {
   switch (status) {
-    case "active": return "Welcome back!";
-    case "inactive": return "Account paused";
-    case "banned": return "Access denied";
-    default:
-      const _exhausted: never = status; // TypeScript errors if you miss a case
-      return _exhausted;
+    case 'active':
+      return 'Welcome back';
+    case 'inactive':
+      return 'Paused';
+    case 'banned':
+      return 'Access denied';
+    default: {
+      // Adding a fourth Status makes this line fail to compile, here,
+      // rather than falling through silently at runtime
+      const exhaustive: never = status;
+      return exhaustive;
+    }
   }
 }
 ```
 
----
-
-## Arrays and Tuples
+### Arrays and tuples
 
 ```typescript
-// Arrays — all elements same type
-const userIds: number[] = [1, 2, 3];
-const tags: string[] = ["typescript", "react", "node"];
-const mixed: (string | number)[] = [1, "two", 3]; // union element type
+const ids: number[] = [1, 2, 3];
+const mixed: (string | number)[] = [1, 'two'];
+const frozen: readonly string[] = ['a']; // no push, no sort, no splice
 
-// Tuple — fixed length, specific types per position
-type Coordinate = [number, number];
-const point: Coordinate = [40.7128, -74.0060]; // NYC lat/lng
+// A tuple fixes length and the type at each position
+type Coordinate = [lat: number, lng: number]; // named elements, TS 4.0+
+const point: Coordinate = [40.7128, -74.006];
 
-// Named tuples (TypeScript 4.0+) — more readable
-type PaginationResult = [data: unknown[], total: number, page: number];
-const result: PaginationResult = [users, 150, 2];
-const [data, total, page] = result; // destructure
+// Which is what makes destructuring a returned pair typed
+function parseRow(row: string): [id: number, name: string] {
+  const [id, name] = row.split(',');
+  return [Number(id), name];
+}
 ```
 
-```typescript
-// Real-world: CSV row parsing
-function parseUserRow(row: string): [id: number, name: string, email: string] {
-  const [id, name, email] = row.split(",");
-  return [parseInt(id), name, email];
-}
+`readonly T[]` is the cheapest immutability guarantee in the language: it costs nothing at runtime and
+stops the mutating array methods at compile time.
 
-const [userId, userName, userEmail] = parseUserRow("1,Alice,alice@dev.com");
-```
-
----
-
-## Functions
+### Functions
 
 ```typescript
-// Always type parameters and return values in exported/public functions
-function createUser(name: string, email: string, role: "admin" | "user" = "user"): User {
-  return { id: Date.now(), name, email, role };
-}
-
-// Optional parameters
 function greet(name: string, greeting?: string): string {
-  return `${greeting ?? "Hello"}, ${name}!`;
+  return `${greeting ?? 'Hello'}, ${name}!`;
 }
 
-// Rest parameters
-function mergeConfigs(...configs: Partial<Config>[]): Config {
-  return Object.assign({}, ...configs);
-}
-
-// Function type alias — useful for callbacks and props
+// A named function type is what makes callback and prop signatures readable
 type EventHandler<T = void> = (event: T) => void;
 type AsyncFn<T> = () => Promise<T>;
 ```
 
----
+## When to Use It
+
+| Scenario                                  | Reach for                    | Why                                                |
+| ----------------------------------------- | ---------------------------- | -------------------------------------------------- |
+| A local whose value states its type        | No annotation                | Inference is exact and stays correct when the value changes |
+| A parameter, or an exported return type    | An explicit annotation       | It is the contract; inference would let it drift    |
+| A `fetch` body, `JSON.parse`, `postMessage` | `unknown` plus a type guard | The shape is a runtime fact, not a compile-time one |
+| A union you must handle completely         | A `never` exhaustiveness check | New members break the build, not production      |
+| An array a function must not modify        | `readonly T[]`               | Free, and enforced                                 |
+
+## Common Mistakes
+
+**❌ Using `any` to silence an error.** It does not contain the problem: `any` propagates through
+every expression it touches, so one annotation can disable checking across a whole call path. If you
+genuinely do not know the type, that is what `unknown` is for.
+
+**❌ Annotating what inference already knows.** `const names: string[] = users.map((u) => u.name)` adds
+nothing and will not update when `name` changes type.
+
+**❌ Widening a literal by accident:**
+
+```typescript
+let method = 'GET'; // ❌ inferred as string, so it will not fit 'GET' | 'POST'
+const method = 'GET'; // ✅ inferred as 'GET'
+```
+
+**❌ Confusing `void` and `never`.** `void` means the function returns nothing useful; `never` means
+it does not return at all — it throws or loops forever. A function annotated `never` that finishes
+normally is a compile error, which is the point.
+
+**❌ Reading a type assertion as a check.** `data as User` tells the compiler to stop arguing; it
+verifies nothing. Only a runtime guard actually establishes the shape.
+
+> ⚠️ Types are erased at build time. There is no `instanceof MyInterface`, no reflection over a type,
+> and nothing stops a wrongly-shaped JSON payload at the boundary. Validate external input at runtime
+> — a schema library, or a hand-written guard.
+
+## 🔑 Key Takeaways
+
+- Types exist only at compile time, so external data always needs a runtime check.
+- Annotate function parameters and exported return types; let inference handle locals.
+- `any` disables checking and spreads; `unknown` is the safe container for data you have not validated.
+- `never` powers exhaustiveness checks that turn a missed union member into a build failure.
+- `const` infers a literal type where `let` widens to the primitive.
 
 ## Interview Questions
 
-### Q: What's the difference between `any` and `unknown`?
+**Q: What is the difference between `any` and `unknown`?**
 
-`any` turns off type checking — you can call any method and TypeScript won't complain. `unknown` is safer: TypeScript won't let you use the value until you prove what type it is with a type guard.
+Both accept any value. `any` also permits any operation, so it switches type checking off for that
+value and everything derived from it. `unknown` permits nothing until you narrow it with a type guard,
+which is exactly what you want at a boundary — the compiler forces the validation you should be
+writing anyway.
 
-```typescript
-let a: any = "hello";
-a.toFixed(); // No error — but crashes at runtime!
+**Q: When should you annotate rather than let TypeScript infer?**
 
-let u: unknown = "hello";
-u.toUpperCase(); // ❌ Error
-if (typeof u === "string") u.toUpperCase(); // ✅ OK
-```
+At contracts: function parameters, and the return types of anything exported. Inside a function,
+inference is more accurate than an annotation and stays correct as the code changes. The other case is
+where you want a wider type than the value implies — `let id: string | number = 1`.
 
-### Q: What's the difference between `void` and `never`?
+**Q: TypeScript compiled with no errors. What can still go wrong at runtime?**
 
-`void` means a function returns `undefined` (or nothing). `never` means the function **never reaches the end** — it always throws or loops forever.
+Anything crossing a boundary the compiler cannot see: an API returning a different shape, a
+`localStorage` value, `JSON.parse`, a third-party library whose types are wrong, or an `as` assertion
+that lied. Type erasure means none of these are checked, which is why validation belongs at the edges.
 
-### Q: When should you use explicit type annotations vs letting TypeScript infer?
+## What to Read Next
 
-Infer for local variables with obvious types (`let count = 0`). Use explicit annotations for function parameters, public API return types, and union types that TypeScript can't guess (`let id: string | number`).
-
----
-
-[← Back to TypeScript](./README.md) | [Next: Interfaces & Types →](./02-interfaces-types.md)
+- [Chapter ?? — Interfaces and Type Aliases](#ch-interfaces-types) — describing object shapes properly
+- [Chapter ?? — Type Guards](#ch-type-guards) — how to turn `unknown` into something usable
+- [Chapter ?? — Data Types and Variables](#ch-data-types-variables) — the runtime values underneath these types

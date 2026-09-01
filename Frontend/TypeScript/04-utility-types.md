@@ -5,91 +5,28 @@ chapter: 0
 slug: utility-types
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
-updated: 2026-08-28
+updated: 2026-08-31
 tags: [frontend, typescript, utility, types]
 in_book: true
 ---
 
-# TypeScript Utility Types {#ch-typescript-utility-types}
+# TypeScript Utility Types {#ch-utility-types}
 
 > Derive a type from an existing one instead of maintaining two that drift apart.
 
 **In this chapter:** `Partial`, `Required`, `Readonly` · `Pick` and `Omit` · `Record` · `ReturnType` and `Parameters` · `Exclude` and `Extract`
 
-## Table of Contents
-- [Property Modifiers](#property-modifiers)
-- [Shape Selection](#shape-selection)
-- [Record — Key-Value Types](#record)
-- [Type Extraction](#type-extraction)
-- [Union Filtering](#union-filtering)
-- [Combining Utilities](#combining-utilities)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+Every type you hand-write twice is a type that will disagree with itself eventually. Utility types
+make one declaration the source of truth and derive the rest — the create input, the update patch, the
+public view. Add a field to the model and every derived type follows; forget to handle it somewhere and
+the build tells you. That is the entire argument, and it is why these matter more than their
+one-line definitions suggest.
 
-## Property Modifiers
+## How It Works
 
-### 💡 `Partial<T>` — Make all properties optional
-
-Most useful for **PATCH/update endpoints** where you only send what changed.
-
-```typescript
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: "admin" | "user";
-}
-
-// PATCH /api/users/:id — only send fields you want to update
-async function updateUser(id: number, changes: Partial<User>): Promise<User> {
-  return fetchJson(`/api/users/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(changes),
-  });
-}
-
-updateUser(1, { name: "Bob" });          // ✅ Only update name
-updateUser(1, { email: "b@dev.com" });   // ✅ Only update email
-```
-
-### 💡 `Required<T>` — Make all properties required
-
-Opposite of `Partial`. Removes all `?` from properties.
-
-```typescript
-interface Config {
-  apiUrl?: string;
-  timeout?: number;
-  retries?: number;
-}
-
-// After validation, we know all values are present
-function startApp(config: Required<Config>): void {
-  console.log(`Connecting to ${config.apiUrl}...`);
-}
-```
-
-### 💡 `Readonly<T>` — Prevent mutations
-
-```typescript
-// Config should not change after startup
-const appConfig: Readonly<Config> = {
-  apiUrl: "https://api.example.com",
-  timeout: 5000,
-  retries: 3,
-};
-
-appConfig.timeout = 10000; // ❌ Error: cannot assign to readonly property
-```
-
----
-
-## Shape Selection
-
-### 💡 `Pick<T, Keys>` — Keep only specific properties
-
-Use when you need a **subset** of a type, like a public view that excludes sensitive fields.
+Assume one model throughout:
 
 ```typescript
 interface User {
@@ -97,189 +34,174 @@ interface User {
   name: string;
   email: string;
   passwordHash: string;
-  role: "admin" | "user";
-}
-
-// Safe to send to the frontend
-type PublicUser = Pick<User, "id" | "name" | "email">;
-
-function toPublicUser(user: User): PublicUser {
-  return { id: user.id, name: user.name, email: user.email };
+  role: 'admin' | 'user';
+  bio?: string;
 }
 ```
 
-### 💡 `Omit<T, Keys>` — Remove specific properties
+### Property modifiers
 
-Use when it's easier to say what to **exclude**.
+| Utility        | Effect                        | Typical use                              |
+| -------------- | ----------------------------- | ---------------------------------------- |
+| `Partial<T>`   | Every property optional        | A PATCH body, a config override           |
+| `Required<T>`  | Every property required        | Config after defaults have been applied   |
+| `Readonly<T>`  | Every property `readonly`      | Frozen configuration, reducer state       |
 
 ```typescript
-// POST /api/users — id is auto-generated, don't send it
-type CreateUserInput = Omit<User, "id" | "passwordHash"> & { password: string };
-
-async function createUser(input: CreateUserInput): Promise<User> {
-  return fetchJson("/api/users", { method: "POST", body: JSON.stringify(input) });
+async function updateUser(id: number, changes: Partial<User>): Promise<User> {
+  return fetchJson(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(changes) });
 }
 ```
 
-| | `Pick` | `Omit` |
-|--|--------|--------|
-| Use when | Short list of fields to **keep** | Short list of fields to **remove** |
-| Example | `Pick<User, "id" \| "name">` | `Omit<User, "password">` |
+All three are **shallow**. `Readonly<T>` protects the top level and nothing below it; there is no
+built-in deep variant.
 
----
-
-## Record
-
-### 💡 `Record<Keys, Value>` — Typed key-value map
+### Selecting a shape
 
 ```typescript
-// ✅ Status message lookup
-type Status = "pending" | "processing" | "shipped" | "delivered";
+// keep a few
+type PublicUser = Pick<User, 'id' | 'name' | 'email'>;
 
-const statusLabels: Record<Status, string> = {
-  pending: "Waiting for payment",
-  processing: "Being prepared",
-  shipped: "On the way",
-  delivered: "Delivered",
+// remove a few
+type CreateUserInput = Omit<User, 'id' | 'passwordHash'> & { password: string };
+type UpdateUserInput = Partial<CreateUserInput>;
+```
+
+| Use        | When                                       | Fails how                                            |
+| ---------- | ------------------------------------------ | ---------------------------------------------------- |
+| `Pick`     | The list to keep is shorter                 | A key that does not exist is an error                |
+| `Omit`     | The list to remove is shorter               | A key that does not exist is **silently ignored**    |
+
+That asymmetry matters. `Omit<User, 'pasword'>` compiles happily and quietly omits nothing, so a
+renamed field leaves a hole. `Pick` catches the same typo immediately — a reason to prefer it for
+anything security-sensitive, like stripping `passwordHash`.
+
+### `Record`
+
+```typescript
+type Status = 'pending' | 'shipped' | 'delivered';
+
+// Every member of the union must appear — add a status and this fails to compile
+const labels: Record<Status, string> = {
+  pending: 'Waiting for payment',
+  shipped: 'On the way',
+  delivered: 'Delivered',
 };
 
-// ✅ In-memory cache
-const userCache: Record<number, User> = {};
-
-function getCachedUser(id: number): User | undefined {
-  return userCache[id];
-}
+const cache: Record<number, User> = {}; // an open-ended map
 ```
 
----
+`Record` over a literal union is an exhaustiveness check you get for free. `Record<string, T>` is the
+opposite — an index signature that gives up key checking entirely.
 
-## Type Extraction
-
-### 💡 `ReturnType<T>` — Get what a function returns
+### Extracting from functions
 
 ```typescript
 function getAuthPayload() {
-  return {
-    userId: 1,
-    email: "alice@dev.com",
-    role: "admin" as const,
-    expiresAt: new Date(),
-  };
+  return { userId: 1, role: 'admin' as const, expiresAt: new Date() };
 }
 
-// Don't repeat yourself — extract the type from the function
 type AuthPayload = ReturnType<typeof getAuthPayload>;
-// { userId: number; email: string; role: "admin"; expiresAt: Date }
+type Args = Parameters<typeof createPost>; // a labelled tuple
+
+async function fetchUser(id: number): Promise<User> { /* … */ }
+type Fetched = Awaited<ReturnType<typeof fetchUser>>; // User, not Promise<User>
 ```
 
-### 💡 `Awaited<T>` — Unwrap Promise types
+`typeof` in a type position is the bridge from a value to its type. `ReturnType` and `Parameters`
+without it is the commonest beginner error here.
+
+**A typed wrapper needs no signature of its own:**
 
 ```typescript
-async function fetchUser(id: number): Promise<User> {
-  return fetchJson(`/api/users/${id}`);
-}
-
-// Get the resolved type of an async function
-type FetchedUser = Awaited<ReturnType<typeof fetchUser>>; // User
-
-// Useful for extracting types from Promise chains
-type ResolvedData = Awaited<Promise<{ items: string[]; total: number }>>;
-// { items: string[]; total: number }
-```
-
-### `Parameters<T>` — Get function parameter types
-
-```typescript
-function createPost(title: string, content: string, authorId: number) { /* ... */ }
-
-type CreatePostArgs = Parameters<typeof createPost>;
-// [title: string, content: string, authorId: number]
-
-// Useful for typed wrappers
-function loggedCreatePost(...args: Parameters<typeof createPost>) {
-  console.log("Creating post:", args[0]);
+function loggedCreatePost(...args: Parameters<typeof createPost>): ReturnType<typeof createPost> {
   return createPost(...args);
 }
 ```
 
----
-
-## Union Filtering
-
-### `NonNullable<T>` — Remove null and undefined
+### Filtering unions
 
 ```typescript
-type MaybeUser = User | null | undefined;
-type DefiniteUser = NonNullable<MaybeUser>; // User
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
-// Useful in array filtering
-const users: (User | null)[] = [user1, null, user2, null];
-const validUsers: User[] = users.filter((u): u is User => u !== null);
+type Mutating = Exclude<HttpMethod, 'GET'>; // 'POST' | 'PUT' | 'DELETE'
+type Safe = Extract<HttpMethod, 'GET' | 'HEAD'>; // 'GET'
+type Definite = NonNullable<User | null | undefined>; // User
 ```
 
-### `Extract<T, U>` and `Exclude<T, U>`
+`Exclude` and `Extract` operate on **union members**, while `Omit` and `Pick` operate on **object
+keys**. Reaching for the wrong pair is the most common mix-up in this chapter.
+
+### Composing
 
 ```typescript
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-
-// Keep only the listed types
-type SafeMethod = Extract<HttpMethod, "GET" | "POST">;
-// "GET" | "POST"
-
-// Remove specific types
-type MutatingMethod = Exclude<HttpMethod, "GET">;
-// "POST" | "PUT" | "DELETE" | "PATCH"
+type PublicProfile = Readonly<Omit<User, 'passwordHash'>>;
+type SelfUpdate = Partial<Pick<User, 'name' | 'bio'>>;
+type AdminUpdate = Partial<Omit<User, 'id' | 'passwordHash'>>;
 ```
 
----
+## When to Use It
 
-## Combining Utilities
+| Scenario                                       | Reach for                        | Why                                            |
+| ---------------------------------------------- | -------------------------------- | ---------------------------------------------- |
+| A PATCH endpoint body                           | `Partial<Model>`                 | Every field optional, none invented            |
+| An API view that must not leak a field           | `Pick<Model, …>`                 | A typo in the key list fails the build         |
+| A lookup that must cover every union member      | `Record<Union, V>`               | Missing a member is a compile error            |
+| Reusing a function's shape in a wrapper          | `Parameters` and `ReturnType`    | The wrapper cannot drift from the original     |
+| Narrowing an existing union                      | `Exclude` / `Extract`            | Stays correct when the union gains a member    |
 
-Utilities compose. Chain them for precise types.
+## Common Mistakes
 
-```typescript
-interface UserProfile {
-  id: number;
-  name: string;
-  email: string;
-  bio?: string;
-  avatar?: string;
-  passwordHash: string;
-  role: "admin" | "user";
-}
+**❌ Trusting `Omit` to catch a typo.** It accepts keys that do not exist. Prefer `Pick` where the
+consequence of a miss is a leaked field, or constrain it:
+`Omit<User, Extract<keyof User, 'passwordHash'>>`.
 
-// Public profile for API response
-type PublicProfile = Readonly<Omit<UserProfile, "passwordHash">>;
+**❌ Forgetting `typeof`.** `ReturnType<getAuthPayload>` is an error; the argument must be a *type*, so
+it is `ReturnType<typeof getAuthPayload>`.
 
-// Fields available for self-update
-type SelfUpdateInput = Partial<Pick<UserProfile, "name" | "bio" | "avatar">>;
+**❌ Expecting `Readonly` or `Partial` to go deep.** They apply to the top level only.
+`Readonly<Config>` leaves `config.db.host` writable.
 
-// Admin can update these
-type AdminUpdateInput = Partial<Omit<UserProfile, "id" | "passwordHash">>;
-```
+**❌ Using `Exclude` on object keys.** `Exclude<User, 'id'>` does nothing useful — `User` is not a
+union. `Omit<User, 'id'>` is the key-level operation.
 
----
+**❌ `Record<string, T>` as the default map type.** It permits every string key, so typos in reads
+return `undefined` silently. Use a literal union when the keys are known.
+
+> ⚠️ `Partial<T>` on an update object hides a real ambiguity: `{ bio: undefined }` and `{}` are
+> different intentions — "clear the field" versus "leave it alone" — and `Partial` types them the same.
+> Model the distinction explicitly if the API cares.
+
+## 🔑 Key Takeaways
+
+- Deriving types from one model is what stops the create, update and view shapes drifting apart.
+- `Pick` rejects a key that does not exist; `Omit` ignores it — prefer `Pick` where a miss leaks data.
+- `Record` over a literal union is a free exhaustiveness check; over `string` it is an index signature.
+- `ReturnType`, `Parameters` and `Awaited` need `typeof` to turn a function value into a type.
+- `Exclude`/`Extract` filter union members; `Omit`/`Pick` filter object keys.
 
 ## Interview Questions
 
-### Q: What's the difference between `Pick` and `Omit`?
+**Q: What is the difference between `Pick` and `Omit`, beyond direction?**
 
-`Pick` says "only keep these fields". `Omit` says "remove these fields, keep the rest". Use `Pick` when the list to keep is small; use `Omit` when the list to remove is small.
+`Pick` constrains its keys to `keyof T`, so a misspelling is a compile error. `Omit` accepts any key,
+so a misspelling silently omits nothing. Direction decides which is shorter to write; that asymmetry
+decides which is safer when the consequence is exposing a field you meant to strip.
 
-### Q: When would you use `Partial`?
+**Q: When would you not use `Partial` for an update type?**
 
-For update (PATCH) operations where not all fields are required. Also for default configs, optional form states, and deep merge utilities.
+When "field absent" and "field explicitly cleared" must be distinguished — `Partial` collapses them.
+Also when some fields are genuinely required in an update, such as a version for optimistic locking:
+`Partial<Pick<T, …>> & { version: number }` states that, and `Partial<T>` does not.
 
-### Q: How do you get the return type of an async function?
+**Q: Why prefer `Record<Status, string>` to `Record<string, string>` for a label map?**
 
-```typescript
-async function fetchOrder(id: number): Promise<Order> { /* ... */ }
+The literal union forces every status to have a label, so adding a status breaks the build at the map
+rather than rendering `undefined`. `Record<string, string>` accepts any key, so a typo in either the
+definition or the lookup passes silently.
 
-type Order = Awaited<ReturnType<typeof fetchOrder>>;
-```
+## What to Read Next
 
-Use `Awaited` to unwrap the Promise, then `ReturnType` to get the inner type.
-
----
-
-[← Generics](./03-generics.md) | [Next: Type Guards →](./05-type-guards.md)
+- [Chapter ?? — Advanced Types](#ch-advanced-types) — how these utilities are implemented, with mapped and conditional types
+- [Chapter ?? — Interfaces and Type Aliases](#ch-interfaces-types) — the models you derive from
+- [Chapter ?? — Generics](#ch-generics) — the mechanism every utility type is built on

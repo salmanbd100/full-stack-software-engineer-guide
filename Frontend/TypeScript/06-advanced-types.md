@@ -4,293 +4,207 @@ part: 1
 chapter: 0
 slug: advanced-types
 level: advanced # beginner | intermediate | advanced
-reading_time: 9
-updated: 2026-08-28
+reading_time: 8
+updated: 2026-08-31
 tags: [frontend, typescript, advanced, types]
 in_book: true
 ---
 
-# TypeScript Advanced Types {#ch-typescript-advanced-types}
+# TypeScript Advanced Types {#ch-advanced-types}
 
 > Compute types from other types, and know when that power stops paying for itself.
 
 **In this chapter:** unions and intersections · template literal types · conditional types and `infer` · mapped types · `as const`
 
-## Table of Contents
-- [Union Types](#union-types)
-- [Intersection Types](#intersection-types)
-- [Template Literal Types](#template-literal-types)
-- [Conditional Types](#conditional-types)
-- [Mapped Types](#mapped-types)
-- [as const Assertion](#as-const-assertion)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+TypeScript's type system is a small functional language of its own: it has values (types), branches
+(conditional types), iteration (mapped types) and pattern matching (`infer`). Everything in this
+chapter is a program that runs at compile time and produces a type. The judgement worth developing
+alongside the syntax is **when to stop** — a type that takes ten minutes to read costs more than the
+bug it prevents.
 
-## Union Types
+## How It Works
 
-A value can be **one of several types**. Use `|` to combine them.
+### Unions and intersections
+
+`|` means one of; `&` means all of.
 
 ```typescript
-// Primitive unions
 type ID = string | number;
-type Status = "active" | "inactive" | "banned";
-
-// Object unions — narrowing required to access type-specific props
-type SearchResult = UserResult | PostResult | CommentResult;
-
-interface UserResult   { kind: "user";    id: number; name: string }
-interface PostResult   { kind: "post";    id: number; title: string }
-interface CommentResult { kind: "comment"; id: number; body: string }
-
-function renderResult(result: SearchResult) {
-  switch (result.kind) {
-    case "user":    return result.name;   // ✅ name exists here
-    case "post":    return result.title;  // ✅ title exists here
-    case "comment": return result.body;   // ✅ body exists here
-  }
-}
+type BaseEntity = { createdAt: Date } & { deletedAt: Date | null };
 ```
 
-### Accepting strings and arrays
+An intersection with a conflicting property produces `never` for that property, so the type is
+uninhabitable and the error appears at the assignment rather than the declaration:
 
 ```typescript
-// Accept single item or array — flexible API design
-type OneOrMany<T> = T | T[];
-
-function processIds(ids: OneOrMany<number>): number[] {
-  return Array.isArray(ids) ? ids : [ids];
-}
-
-processIds(1);         // ✅ → [1]
-processIds([1, 2, 3]); // ✅ → [1, 2, 3]
+type C = { id: string } & { id: number };
+const c: C = { id: '1' }; // ❌ id is never
 ```
 
----
+For object shapes, `interface … extends` reports the same conflict where you wrote it. Use `&` for
+composing type aliases, not as a habit.
 
-## Intersection Types
+### Template literal types
 
-A value must satisfy **all types at once**. Use `&` to combine them.
+String types built from patterns — which turns stringly-typed APIs into checked ones:
 
 ```typescript
-interface HasTimestamps {
-  createdAt: Date;
-  updatedAt: Date;
-}
+type EventName = 'click' | 'focus' | 'blur';
+type Handler = `on${Capitalize<EventName>}`; // 'onClick' | 'onFocus' | 'onBlur'
 
-interface HasSoftDelete {
-  deletedAt: Date | null;
-}
-
-// All DB entities get timestamps + soft delete
-type BaseEntity = HasTimestamps & HasSoftDelete;
-
-interface User extends BaseEntity {
-  id: number;
-  name: string;
-  email: string;
-}
-// User must have: id, name, email, createdAt, updatedAt, deletedAt
-
-// Merging object shapes at runtime
-function mergeOptions<A, B>(defaults: A, overrides: B): A & B {
-  return { ...defaults, ...overrides } as A & B;
-}
+type Resource = 'users' | 'posts';
+type Route = `/${Resource}` | `/${Resource}/:id`;
 ```
 
-⚠️ If two intersected types have the **same property with different types**, that property becomes `never`.
+Combinations multiply, so two unions of four members produce sixteen types. That is fine; four unions
+of ten members produce ten thousand and the compiler will tell you so.
 
-```typescript
-type A = { id: string };
-type B = { id: number };
-type C = A & B;
-
-const c: C = { id: "1" }; // ❌ id is never — can't be both string and number
-```
-
----
-
-## Template Literal Types
-
-Build **string types** from patterns. Great for generating type-safe event names, CSS classes, or API routes.
-
-```typescript
-// Basic pattern
-type EventName = "click" | "focus" | "blur" | "change";
-type EventHandler = `on${Capitalize<EventName>}`;
-// "onClick" | "onFocus" | "onBlur" | "onChange"
-
-// API route patterns
-type Resource = "users" | "posts" | "comments";
-type CrudRoute = `/${Resource}` | `/${Resource}/:id`;
-// "/users" | "/users/:id" | "/posts" | "/posts/:id" | ...
-
-// CSS property pattern
-type FlexDirection = "row" | "column";
-type FlexWrap = "nowrap" | "wrap";
-type FlexFlow = `${FlexDirection} ${FlexWrap}`;
-// "row nowrap" | "row wrap" | "column nowrap" | "column wrap"
-```
-
-### Real-world: Event emitter with typed events
+**A typed event bus is the pattern worth remembering:**
 
 ```typescript
 type AppEvents = {
-  "user:login": { userId: number; timestamp: Date };
-  "user:logout": { userId: number };
-  "order:placed": { orderId: string; total: number };
+  'user:login': { userId: number };
+  'order:placed': { orderId: string; total: number };
 };
 
-function emit<K extends keyof AppEvents>(event: K, payload: AppEvents[K]): void {
-  eventBus.emit(event, payload);
-}
+function emit<K extends keyof AppEvents>(event: K, payload: AppEvents[K]): void {}
 
-emit("user:login", { userId: 1, timestamp: new Date() }); // ✅
-emit("user:login", { userId: "1" }); // ❌ userId must be number
+emit('user:login', { userId: 1 }); // ✅
+emit('user:login', { userId: '1' }); // ❌ wrong payload for this event
 ```
 
----
+### Conditional types and `infer`
 
-## Conditional Types
-
-Select a type based on a condition. Syntax: `T extends U ? X : Y`.
+`T extends U ? X : Y` is a branch. `infer` captures a type from the pattern being matched.
 
 ```typescript
-// Simple check
-type IsArray<T> = T extends any[] ? true : false;
+type ArrayElement<T> = T extends readonly (infer E)[] ? E : never;
+type E1 = ArrayElement<User[]>; // User
 
-type A = IsArray<string[]>; // true
-type B = IsArray<number>;   // false
-```
-
-### `infer` — extract types from other types
-
-```typescript
-// Extract the element type from an array
-type ArrayElement<T> = T extends (infer E)[] ? E : never;
-
-type E1 = ArrayElement<string[]>;   // string
-type E2 = ArrayElement<User[]>;     // User
-type E3 = ArrayElement<number>;     // never (not an array)
-
-// Extract the resolved value from a Promise
 type Unpacked<T> = T extends Promise<infer U> ? U : T;
-
 type P1 = Unpacked<Promise<string>>; // string
-type P2 = Unpacked<number>;          // number (unchanged)
-
-// Real use: infer function return from an async function
-type AsyncReturn<T extends (...args: any) => Promise<any>> =
-  T extends (...args: any) => Promise<infer R> ? R : never;
-
-async function getUser(): Promise<User> { /* ... */ }
-
-type FetchedUser = AsyncReturn<typeof getUser>; // User
 ```
 
----
+This is how the standard utilities are built:
+`type ReturnType<T> = T extends (...args: never[]) => infer R ? R : never`.
 
-## Mapped Types
+Conditional types **distribute** over a naked type parameter, which is the behaviour that surprises
+people: `ArrayElement<string[] | number[]>` is `string | number`, because the condition is applied to
+each member separately. Wrapping the parameter in a tuple — `[T] extends [U]` — switches distribution
+off.
 
-Transform every property in a type. The foundation of utility types like `Partial` and `Readonly`.
+### Mapped types
+
+Iterate over the keys of a type and transform each one:
 
 ```typescript
-// Make all values a specific type (e.g., stringify for forms)
-type Stringified<T> = {
-  [K in keyof T]: string;
-};
+type Stringified<T> = { [K in keyof T]: string };
 
-type StringifiedUser = Stringified<User>;
-// { id: string; name: string; email: string; role: string }
-
-// Add a "dirty" flag per field (form state tracking)
+// Per-field form state — a real use, not a toy
 type FormFields<T> = {
   [K in keyof T]: { value: T[K]; dirty: boolean; error?: string };
 };
-
-type UserForm = FormFields<Pick<User, "name" | "email">>;
-// {
-//   name: { value: string; dirty: boolean; error?: string }
-//   email: { value: string; dirty: boolean; error?: string }
-// }
 ```
 
-### Key remapping (TypeScript 4.1+)
+Key remapping (TypeScript 4.1 and later) rewrites the key itself, which is how you generate a derived
+API surface:
 
 ```typescript
-// Generate getter methods from a type
 type Getters<T> = {
   [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];
 };
-
-type UserGetters = Getters<Pick<User, "name" | "email">>;
-// { getName: () => string; getEmail: () => string }
+// Getters<{ name: string }> is { getName: () => string }
 ```
 
----
+`Partial`, `Readonly` and `Pick` are all one-line mapped types — knowing that is what lets you write
+the variant the standard library does not have, such as a deep `Readonly`.
 
-## as const Assertion
+### `as const`
 
-`as const` makes TypeScript treat values as **literal types** instead of widening them.
+Stops widening, and marks everything `readonly`:
 
 ```typescript
-// Without as const — types are widened
-const config = {
-  method: "GET",    // type: string (not "GET")
-  timeout: 5000,    // type: number (not 5000)
-};
+const config = { method: 'GET', timeout: 5000 } as const;
+// { readonly method: 'GET'; readonly timeout: 5000 }
 
-// With as const — types are literal and readonly
-const config = {
-  method: "GET",
-  timeout: 5000,
-} as const;
-// { readonly method: "GET"; readonly timeout: 5000 }
+// Deriving a union from a runtime array — one source of truth for both
+const ROLES = ['admin', 'user', 'guest'] as const;
+type Role = (typeof ROLES)[number]; // 'admin' | 'user' | 'guest'
 
-// Extract union type from an array
-const ROLES = ["admin", "user", "guest"] as const;
-type Role = typeof ROLES[number]; // "admin" | "user" | "guest"
-
-// Object-based enum pattern (common in modern TS)
-const HttpStatus = {
-  OK: 200,
-  Created: 201,
-  NotFound: 404,
-  ServerError: 500,
-} as const;
-
-type HttpStatusCode = typeof HttpStatus[keyof typeof HttpStatus];
-// 200 | 201 | 404 | 500
+const HttpStatus = { OK: 200, NotFound: 404 } as const;
+type StatusCode = (typeof HttpStatus)[keyof typeof HttpStatus]; // 200 | 404
 ```
 
----
+That last pattern is the modern replacement for `enum`: one object that exists at runtime, and a union
+type derived from it, with no separate declaration to keep in step.
+
+## When to Use It
+
+| Scenario                                          | Reach for                          | Why                                            |
+| ------------------------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| A list of values needed at runtime **and** as a type | `as const` plus `(typeof x)[number]` | One declaration, no drift                  |
+| Event names, route paths, i18n keys                | Template literal types             | Turns a string typo into a compile error        |
+| The same transformation across every field         | A mapped type                       | One rule instead of a hand-written twin type   |
+| Extracting a type from inside another               | A conditional type with `infer`     | The only mechanism that can pattern-match      |
+| A shape used in exactly one place                   | Write it out longhand               | A computed type costs reader time forever      |
+
+## Common Mistakes
+
+**❌ Reaching for a conditional type where an overload is clearer.** A function whose return type
+depends on an argument is usually better expressed as two overloads than as a conditional type the
+caller cannot read in an error message.
+
+**❌ Forgetting that conditional types distribute.** `NonNullable<T>` works precisely *because* it
+distributes; a check you meant to apply to the whole union will silently apply per member. Use
+`[T] extends [U]` when you want the union treated as one thing.
+
+**❌ Using `&` to extend an interface.** Conflicts become `never` and surface far from the declaration.
+`extends` reports them immediately.
+
+**❌ Treating `as const` as deep immutability.** It is compile-time only, and does not freeze the
+object at runtime. `Object.freeze` does that, one level deep.
+
+**❌ Building a type so clever it cannot be read.** A five-line conditional type with three `infer`
+positions is a maintenance liability. If the alternative is a small amount of duplication, take the
+duplication.
+
+> ⚠️ Deeply recursive types hit the compiler's instantiation limit and slow every build and editor
+> keystroke in the project. If `tsc --generateTrace` points at one of your helpers, simplify it rather
+> than raising limits.
+
+## 🔑 Key Takeaways
+
+- The type system is a compile-time language: conditional types branch, mapped types iterate, `infer` pattern-matches.
+- Conditional types distribute over naked type parameters — wrap in a tuple to stop it.
+- An intersection with conflicting properties yields `never`, so prefer `extends` for object shapes.
+- `as const` plus `(typeof x)[number]` derives a union from a runtime array, replacing `enum`.
+- Cleverness has an ongoing cost in build time and readability; duplication is sometimes the cheaper option.
 
 ## Interview Questions
 
-### Q: What's the difference between union and intersection?
+**Q: What does `infer` do?**
 
-Union (`|`) means "this OR that" — a value can be one of the types. Intersection (`&`) means "this AND that" — a value must satisfy all types.
+It captures a type from within a conditional type's pattern, binding it to a name usable in the true
+branch. `T extends Promise<infer U> ? U : T` matches any promise and gives back its resolved type.
+`ReturnType`, `Parameters` and `Awaited` are all built from it.
 
-```typescript
-type A = { x: number };
-type B = { y: string };
+**Q: What is distribution in conditional types, and when does it bite?**
 
-const union: A | B = { x: 1 };           // OK — just A
-const inter: A & B = { x: 1, y: "hi" }; // Must have both x AND y
-```
+When the checked type is a naked type parameter and the argument is a union, the condition is applied
+to each member and the results are unioned. That is what makes `Exclude` and `NonNullable` work. It
+bites when you intended a single check on the whole union — `[T] extends [U]` disables it.
 
-### Q: What is `infer` used for?
+**Q: Why prefer `as const` objects over `enum`?**
 
-`infer` lets you **capture a type** inside a conditional type check. It's used in utility types like `ReturnType` and `Awaited`.
+A numeric `enum` allows any number to be assigned to it and emits a runtime object with reverse
+mappings; `const enum` cannot be used across module boundaries in some build setups. An `as const`
+object is plain JavaScript, tree-shakes, and derives an exact literal union — one declaration serving
+both the runtime and the type layer.
 
-```typescript
-type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
-```
+## What to Read Next
 
-### Q: When would you use template literal types?
-
-When you need to generate many string types from combinations of other string literals. Common uses: event names (`onClick`), API routes (`/users/:id`), CSS properties, and typed internationalization keys.
-
----
-
-[← Type Guards](./05-type-guards.md) | [Next: Enums & Literals →](./07-enums-literals.md)
+- [Chapter ?? — Utility Types](#ch-utility-types) — the standard mapped and conditional types
+- [Chapter ?? — Enums and Literal Types](#ch-enums-literals) — why `as const` usually wins
+- [Chapter ?? — Generics](#ch-generics) — the constraints these computations rely on

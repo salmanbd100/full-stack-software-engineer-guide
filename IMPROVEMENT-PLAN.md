@@ -36,7 +36,7 @@ happened: the budget arithmetic in #1, the frontend-share rule, and the line-bud
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-08-31 · **Progress:** 31 / 83
+**Last updated:** 2026-09-01 · **Progress:** 32 / 83
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2704,7 +2704,7 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 >
 > | Part | Now | Budget | Over | Assigned cutting items | Status |
 > | ---- | --- | ------ | ---- | ---------------------- | ------ |
-> | I — Foundations | 12,601 | 5,000 | **+7,601** | #26 | ✅ all done |
+> | I — Foundations | ~~12,601~~ **4,976** | 5,000 | ~~+7,601~~ **0** | #26, **#31a** | ✅ **under budget** |
 > | II — Browser Platform | 12,146 | 6,000 | **+6,146** | **none** | 🔴 never assigned |
 > | IV — Frontend at Scale | 6,649 | 5,500 | +1,149 | #42, #57, #58 | pending |
 > | V — Backend | 13,010 | 6,500 | **+6,510** | #24 ✅, #31 `S` | #31 is worth ~600 |
@@ -2713,7 +2713,8 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 > | IX — Human Layer | 4,553 | 2,500 | **+2,053** | #25, #29 | ✅ all done |
 > | Appendix — DSA | 4,610 | 5,600 | −990 ✅ | #27 | ✅ done |
 >
-> **31,241 lines over, and 23,582 of it with no remaining owner.** Parts III and VII then add 19,500
+> **31,241 lines over, and 23,582 of it with no remaining owner.** _(#31a has since cleared Part I's
+> 7,601; the live figure is **23,251**, which `pnpm lint:docs --rule=budget` reports.)_ Parts III and VII then add 19,500
 > lines that have not been written yet, so the book as planned lands near **88,000 against a 57,000
 > budget and a 60,000 hard ceiling**.
 >
@@ -2728,11 +2729,11 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 **The check is now machine-run.** `pnpm lint:docs` has a `budget` rule reading the ceilings straight
 out of [BOOK-SPEC.md § 5](./BOOK-SPEC.md) and measuring the tree against them. It is counted in
 **lines, not occurrences** — the summed overage across every part — so a part cannot grow without the
-number moving. Baseline: **31,241**. Like every other rule it ratchets down; commit the lower number.
+number moving. Baseline: ~~31,241~~ **23,251** after #31a. Like every other rule it ratchets down; commit the lower number.
 
 ---
 
-### - [ ] 31a. Trim Part I — Foundations — to its 5,000-line budget `L`
+### - [x] 31a. Trim Part I — Foundations — to its 5,000-line budget `L` — ✅ **done 2026-09-01**
 
 **+7,601 over.** `#26` merged `OOP/` into `Backend/DesignPatterns/` and was the only cutting item
 assigned to this part. It did what it said and the part is still 2.5× its ceiling.
@@ -2748,6 +2749,36 @@ BOOK-SPEC § 5 budgets this part at **~22 chapters**; it holds 26. The work is a
 mechanism and the interview-relevant depth, cut the exhaustive API tours.
 
 **Done when:** `pnpm lint:docs` reports Part 1 at or under its BOOK-SPEC § 5 budget.
+
+**Delivered:**
+
+- **Part I is 12,601 → 4,976 lines, 24 under the 5,000 ceiling.** `pnpm lint:docs` no longer reports a
+  Part 1 budget violation. The `budget` baseline drops 30,852 → **23,251**; `too-long` drops 19 → **8**
+  (all eleven remaining Part I over-400 files are gone). Both committed to `.lint-baseline.json`.
+- **All 23 chapters rewritten to the Book Chapter Standard**, not merely shortened. Every one now has the
+  six blocks in order, `{#ch-<slug>}` matching its front-matter slug, and no hand-written TOC, back-link,
+  `####`, retired emoji or relative link. `Frontend/JavaScript` and `Frontend/TypeScript` predated the
+  standard entirely — they carried `📚 🎯 🚨 🎓 📊 🔗` headings, "External Resources" and "Related Topics"
+  sections, and title-derived H1 anchors that did not match their slugs.
+- **The cut fell almost entirely where the item predicted.** `Frontend/JavaScript` 8,558 → 2,133;
+  `Frontend/TypeScript` 2,479 → 1,672; `Backend/DesignPatterns` 1,564 → 1,171.
+- **Deduplication, not just trimming.** The loop-variable trap now lives only in `03-closures`; the `this`
+  gotchas only in `04-this-keyword`; `08-es6-features` dropped its `let`/`const`, arrow-function, class,
+  promise and async/await tours, which chapters 01, 02, 05 and 06 already own. `08` gained the optional
+  chaining and nullish coalescing its opening promised but never covered.
+- **One correctness fix.** `Frontend/TypeScript/08-react-typescript.md` taught `forwardRef` as the way to
+  pass a ref. Context7 confirms React 19 makes `ref` an ordinary prop and `forwardRef` is slated for
+  deprecation; the chapter now teaches the current form and says what to do on React 18.
+- **Chapters average 208 lines, not the ~220 target, and that is arithmetic rather than choice.**
+  BOOK-SPEC § 5 budgets Part I at ~22 chapters; it holds 23 plus three part-opener READMEs (193 lines),
+  which leaves 4,807 ÷ 23 = 209. Every chapter is inside the mandatory 150–400 range (189–216). Merging
+  two chapters to reach the spec's 22 was considered and rejected: the natural candidates
+  (`enums-literals` into `advanced-types`) would bury a frequently-asked interview topic inside a chapter
+  named for something else.
+- **Left undone, deliberately:** `Backend/Security/06-validation.md` has `slug: validation` but an H1
+  anchor of `{#ch-backend-input-validation}`. Five pre-existing chapters already link to the anchor, and
+  the three new links from Part I match them, so every cross-reference resolves. Fixing the mismatch is
+  Part V work, not this item.
 
 ---
 
@@ -3435,13 +3466,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 12/17 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 13/17 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **83** | **31/83** | **37%**   |
+| **Total** | **83** | **32/83** | **39%**   |
 
 ---
 

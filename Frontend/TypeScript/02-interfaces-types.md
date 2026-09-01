@@ -4,293 +4,199 @@ part: 1
 chapter: 0
 slug: interfaces-types
 level: intermediate # beginner | intermediate | advanced
-reading_time: 9
-updated: 2026-08-28
+reading_time: 8
+updated: 2026-08-31
 tags: [frontend, typescript, interfaces, types]
 in_book: true
 ---
 
-# Interfaces and Type Aliases {#ch-interfaces-and-type-aliases}
+# Interfaces and Type Aliases {#ch-interfaces-types}
 
 > Pick between `interface` and `type` on the two grounds that actually differ, not on preference.
 
 **In this chapter:** declaration merging · unions and primitives · extending vs intersecting · optional vs `undefined`
 
-## Table of Contents
-- [Interfaces](#interfaces)
-- [Type Aliases](#type-aliases)
-- [Interface vs Type](#interface-vs-type)
-- [Extending and Composing](#extending-and-composing)
-- [Real-World Patterns](#real-world-patterns)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+`interface` and `type` overlap almost completely for object shapes. Two things genuinely differ:
+**only `interface` merges** when declared twice, and **only `type` can name something that is not an
+object** — a union, a primitive, a tuple, a function signature. Every other difference people cite is
+either style or a version-old detail. Decide on those two, and stop arguing.
 
-## Interfaces
-
-An interface describes the **shape** of an object. It's a contract — anything that uses the interface must have these properties.
+## How It Works
 
 ```typescript
 interface User {
   id: number;
   name: string;
-  email: string;
-  role: "admin" | "user";
-  avatar?: string;       // optional
-  readonly createdAt: Date; // cannot be changed after creation
-}
-
-const user: User = {
-  id: 1,
-  name: "Alice",
-  email: "alice@dev.com",
-  role: "admin",
-  createdAt: new Date(),
-};
-
-user.name = "Bob";       // ✅ OK
-user.createdAt = new Date(); // ❌ Error: readonly
-```
-
-### Interface with Methods
-
-```typescript
-interface Repository<T> {
-  findById(id: number): Promise<T | null>;
-  findAll(): Promise<T[]>;
-  create(data: Omit<T, "id">): Promise<T>;
-  update(id: number, data: Partial<T>): Promise<T>;
-  delete(id: number): Promise<void>;
+  role: 'admin' | 'user';
+  avatar?: string; // may be absent entirely
+  readonly createdAt: Date; // assignable at creation, never after
 }
 ```
 
-### Index Signatures — Dynamic Keys
+`readonly` and `?` are the two modifiers that carry real weight: `readonly` stops later assignment,
+`?` makes the key optional. Both are compile-time only.
+
+### What only `type` can do
 
 ```typescript
-interface TranslationMap {
-  [key: string]: string; // any string key → string value
-}
-
-const labels: TranslationMap = {
-  submit: "Submit",
-  cancel: "Cancel",
-  loading: "Loading...",
-};
+type ID = string | number; // a union
+type Status = 'pending' | 'active'; // literal union
+type Pagination = [page: number, limit: number]; // a tuple
+type Middleware = (req: Request, next: () => void) => void; // a call signature
+type Admin = User & { permissions: string[] }; // an intersection
 ```
 
----
-
-## Type Aliases
-
-Type aliases can represent **anything** — primitives, unions, intersections, tuples, or functions.
+### What only `interface` can do
 
 ```typescript
-// Union type — one of several values
-type Status = "pending" | "active" | "suspended";
-type ID = string | number;
-
-// Object shape (similar to interface)
-type Address = {
-  street: string;
-  city: string;
-  country: string;
-};
-
-// Intersection — combine multiple types
-type UserWithAddress = User & { address: Address };
-
-// Tuple
-type Pagination = [page: number, limit: number];
-
-// Function signature
-type Middleware = (req: Request, res: Response, next: () => void) => void;
-```
-
----
-
-## Interface vs Type
-
-| Feature | `interface` | `type` |
-|---------|-------------|--------|
-| Object shapes | ✅ | ✅ |
-| Union types | ❌ | ✅ |
-| Tuple types | ❌ | ✅ |
-| Extend/merge | `extends` keyword | `&` intersection |
-| Declaration merging | ✅ (same name = merge) | ❌ (error on duplicate) |
-| Implements in classes | ✅ | ✅ |
-
-### Declaration Merging — interfaces only
-
-```typescript
-// Useful for extending third-party types (e.g., Express Request)
+// Two declarations of one name merge. This is how you add a field to a
+// third-party type you do not own — Express's Request, for example
 interface Request {
   user?: User;
 }
-
 interface Request {
   requestId: string;
 }
-// Both declarations merge into one Request type
+// Request now has both
 ```
 
-### ✅ Use `interface` for:
-- Object shapes you might extend later
-- Public API contracts
-- Classes that `implement` it
+Declaration merging is a feature at a library boundary and a hazard inside your own code, where two
+files silently contributing to one type is a debugging problem. A duplicate `type` is an error, which
+in your own code is usually what you want.
 
-### ✅ Use `type` for:
-- Union types: `type Status = "pending" | "done"`
-- Intersection types: `type Admin = User & { permissions: string[] }`
-- Tuples, function signatures, primitives
+| Capability                        | `interface` | `type` |
+| --------------------------------- | ----------- | ------ |
+| Object shape                       | ✅           | ✅      |
+| Union, primitive, tuple            | ❌           | ✅      |
+| Mapped and conditional types       | ❌           | ✅      |
+| Declaration merging                | ✅           | ❌      |
+| `extends`                          | ✅           | Via `&` |
+| `implements` on a class            | ✅           | ✅      |
 
----
+### Extending versus intersecting
 
-## Extending and Composing
+`interface Product extends BaseEntity` and `type Product = BaseEntity & { … }` reach the same shape by
+different routes. `extends` checks compatibility as it goes, so a
+conflicting property is an error at the declaration. `&` does not — a conflict silently produces a
+member of type `never`, which then fails at the assignment instead. That makes `extends` the better
+error message, and it is the reason to prefer it for object shapes.
 
-```typescript
-// Interface extends interface
-interface BaseEntity {
-  id: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+### Discriminated unions
 
-interface Product extends BaseEntity {
-  name: string;
-  price: number;
-  stock: number;
-}
-
-// Multiple inheritance
-interface Post extends BaseEntity {
-  title: string;
-  content: string;
-  authorId: number;
-}
-
-// Type intersection — same result
-type AuditedProduct = Product & { auditedBy: string };
-```
-
----
-
-## Real-World Patterns
-
-### API Response Types
-
-```typescript
-interface ApiResponse<T> {
-  data: T;
-  message: string;
-  success: boolean;
-}
-
-interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-}
-
-// Usage
-async function getUsers(): Promise<PaginatedResponse<User>> {
-  const res = await fetch("/api/users?page=1&limit=20");
-  return res.json();
-}
-```
-
-### Form Data Types
-
-```typescript
-// Separate form state from the DB model
-interface LoginForm {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
-
-// Create input excludes auto-generated fields
-type CreateUserInput = Omit<User, "id" | "createdAt"> & {
-  password: string;
-};
-
-// Update input makes all fields optional
-type UpdateUserInput = Partial<Omit<User, "id" | "createdAt">>;
-```
-
-### Discriminated Union for State
+The most valuable pattern in the language: a union whose members share a literal-typed field, which
+the compiler uses to narrow.
 
 ```typescript
 type RequestState<T> =
-  | { status: "idle" }
-  | { status: "loading" }
-  | { status: "success"; data: T }
-  | { status: "error"; error: string };
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: T }
+  | { status: 'error'; error: string };
 
-// Type-safe state handling
-function renderUser(state: RequestState<User>) {
-  if (state.status === "success") {
-    return state.data.name; // ✅ TypeScript knows data exists here
-  }
-  if (state.status === "error") {
-    return state.error; // ✅ TypeScript knows error exists here
-  }
+function render(state: RequestState<User>): string {
+  if (state.status === 'success') return state.data.name; // `data` exists only here
+  if (state.status === 'error') return state.error; // `error` exists only here
+  return 'Loading…';
 }
 ```
 
----
+This is strictly better than an object with optional fields — `{ data?: T; error?: string }` allows
+both, or neither, and the compiler cannot tell you which state you are in.
 
-## Common Pitfall: Optional vs Undefined
+### Optional versus `| undefined`
 
 ```typescript
-// ❌ These look similar but behave differently
 interface A {
-  age?: number; // age can be omitted entirely
+  age?: number; // the key may be missing
 }
-
 interface B {
-  age: number | undefined; // age MUST be present (even if undefined)
+  age: number | undefined; // the key must be present; the value may be undefined
 }
 
-const a: A = { name: "Alice" }; // ✅ age omitted — OK
-// const b: B = {}; // ❌ Error: age is missing
-const b: B = { age: undefined }; // ✅ Must explicitly include it
+const a: A = {}; // ✅
+const b: B = {}; // ❌ Property 'age' is missing
+const b2: B = { age: undefined }; // ✅
 ```
 
----
+Use `?` for genuinely optional data. Use `| undefined` when the caller must acknowledge the field —
+a patch object where "not sent" and "sent as empty" mean different things.
+`exactOptionalPropertyTypes` tightens this further by stopping `?` fields accepting an explicit
+`undefined`.
+
+## When to Use It
+
+| Scenario                                       | Reach for                       | Why                                              |
+| ---------------------------------------------- | ------------------------------- | ------------------------------------------------ |
+| An object shape, especially one others extend    | `interface`                     | Better errors on conflict; merges for library augmentation |
+| A union, tuple, primitive alias or function type | `type`                          | `interface` cannot express them                  |
+| Mutually exclusive states                        | A discriminated union of `type`s | The compiler proves which fields exist          |
+| Adding a field to a third-party type             | `interface` declaration merging  | The only mechanism that works                   |
+| A derived shape — omit, pick, partial            | `type` with utility types        | Stays in step with the source type              |
+
+**Deriving inputs from the model rather than restating them:**
+
+```typescript
+type CreateUserInput = Omit<User, 'id' | 'createdAt'> & { password: string };
+type UpdateUserInput = Partial<CreateUserInput>;
+```
+
+## Common Mistakes
+
+**❌ Modelling state with optional fields.** `{ loading?: boolean; data?: T; error?: string }` permits
+eight combinations, most of them meaningless. A discriminated union permits exactly the states that
+exist.
+
+**❌ Using an index signature to avoid naming keys.** `{ [key: string]: string }` gives up every
+autocomplete and typo check on that object. `Record<'submit' | 'cancel', string>` keeps them.
+
+**❌ Assuming an interface catches an extra property.** Excess-property checking applies only to a
+fresh object literal. Assign through a variable first and the extra field passes unnoticed:
+
+```typescript
+const input = { id: 1, name: 'a', typo: true };
+const user: User = input; // ✅ compiles — no literal, no excess check
+```
+
+**❌ Reaching for `&` on object shapes out of habit.** A conflicting property becomes `never` and the
+error surfaces far from the declaration. `extends` reports it where you wrote it.
+
+**❌ Merging your own interfaces by accident.** Two files declaring `interface Config` in the same
+scope quietly become one type. If that was not deliberate, use `type`, which errors instead.
+
+## 🔑 Key Takeaways
+
+- Only `interface` merges across declarations; only `type` can name a union, tuple, primitive or function.
+- Prefer `extends` over `&` for object shapes — conflicts are reported at the declaration.
+- A discriminated union lets the compiler prove which fields exist in each state.
+- `?` means the key may be absent; `| undefined` means the key is required and its value may not be set.
+- Excess-property checking only fires on fresh object literals, not on assignment through a variable.
 
 ## Interview Questions
 
-### Q: When should you use `interface` vs `type`?
+**Q: When would you use `interface` over `type`?**
 
-Default to `interface` for object shapes. Use `type` for unions, intersections, and tuples.
+For object shapes, especially ones other code extends or a library consumer augments — `extends` gives
+clearer conflict errors, and declaration merging is the only way to add a field to a third-party type.
+`type` for anything that is not an object shape: unions, tuples, function signatures, mapped and
+conditional types.
 
-```typescript
-interface User { id: number; name: string; } // object shape → interface
-type Status = "active" | "inactive";          // union → type
-type AdminUser = User & { permissions: string[] }; // intersection → type
-```
+**Q: What is a discriminated union and why prefer it to optional fields?**
 
-### Q: What is declaration merging?
+A union whose members share a field with distinct literal types, which TypeScript uses to narrow.
+Optional fields describe the union of every combination, so the compiler cannot rule out
+`{ loading: true, error: 'x' }`. The discriminated form makes impossible states unrepresentable, and
+narrowing gives you the right fields in each branch with no casting.
 
-Only interfaces support it. If you declare the same interface twice, TypeScript merges them into one. This is useful for extending third-party types like Express's `Request`.
+**Q: Why did TypeScript not catch this extra property?**
 
-### Q: What is a discriminated union?
+Excess-property checking is a special case that only applies to object literals assigned directly to a
+typed target. Assigning through an intermediate variable makes it a normal structural compatibility
+check, and extra properties are compatible. Annotate at the point of creation to keep the check.
 
-A union where each member has a common property with a unique literal value. TypeScript uses that property to narrow the type.
+## What to Read Next
 
-```typescript
-type Shape =
-  | { kind: "circle"; radius: number }
-  | { kind: "square"; side: number };
-
-function area(s: Shape) {
-  if (s.kind === "circle") return Math.PI * s.radius ** 2;
-  return s.side ** 2;
-}
-```
-
----
-
-[← Basic Types](./01-basic-types.md) | [Next: Generics →](./03-generics.md)
+- [Chapter ?? — Generics](#ch-generics) — making these shapes reusable across types
+- [Chapter ?? — Utility Types](#ch-utility-types) — `Omit`, `Pick` and `Partial` in depth
+- [Chapter ?? — Type Guards](#ch-type-guards) — narrowing a discriminated union at a boundary

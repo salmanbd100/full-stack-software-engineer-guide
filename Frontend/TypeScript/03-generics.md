@@ -5,266 +5,202 @@ chapter: 0
 slug: generics
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
-updated: 2026-08-28
+updated: 2026-08-31
 tags: [frontend, typescript, generics]
 in_book: true
 ---
 
-# TypeScript Generics {#ch-typescript-generics}
+# TypeScript Generics {#ch-generics}
 
 > Write a function once and keep the caller's exact type all the way through it.
 
 **In this chapter:** generic functions · generic interfaces · constraints with `extends` · inference · when a generic is overkill
 
-## Table of Contents
-- [What are Generics?](#what-are-generics)
-- [Generic Functions](#generic-functions)
-- [Generic Interfaces](#generic-interfaces)
-- [Generic Constraints](#generic-constraints)
-- [Real-World Patterns](#real-world-patterns)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+A generic is a **relationship** between types, not a placeholder for "any type". `T[] → T` says the
+element type coming out is the element type that went in. That relationship is the whole value: the
+caller's concrete type survives the call, so `first([1, 2])` is `number | undefined` rather than
+`any`. If a type parameter appears only once in a signature, it is expressing no relationship — and
+is almost certainly the wrong tool.
 
-## What are Generics?
-
-Generics let you write code that works with **any type** while keeping type safety. Think of `T` as a placeholder — you fill it in when you use the function or class.
+## How It Works
 
 ```typescript
-// ❌ Without generics — either duplicate code or lose type safety
-function firstItem(arr: any[]): any {
+// ❌ `any` loses the type on the way through
+function firstAny(arr: any[]): any {
   return arr[0];
 }
+firstAny([1, 2]).toUpperCase(); // compiles; crashes
 
-const id = firstItem([1, 2, 3]);
-id.toUpperCase(); // No error — but crashes at runtime!
-
-// ✅ With generics — works with any type, stays safe
-function firstItem<T>(arr: T[]): T | undefined {
+// ✅ the generic ties output to input
+function first<T>(arr: readonly T[]): T | undefined {
   return arr[0];
 }
-
-const id = firstItem([1, 2, 3]);    // id: number | undefined
-const name = firstItem(["Alice"]);  // name: string | undefined
-id.toUpperCase();   // ❌ Error: number has no toUpperCase
-name.toUpperCase(); // ✅ OK
+first([1, 2]).toUpperCase(); // ❌ number has no toUpperCase — caught
 ```
 
----
-
-## Generic Functions
+Two or more parameters express a relationship between several positions:
 
 ```typescript
-// Single type parameter
-function identity<T>(value: T): T {
-  return value;
-}
-
-// Multiple type parameters
-function pair<T, U>(first: T, second: U): [T, U] {
-  return [first, second];
-}
-
-const entry = pair("userId", 42); // [string, number]
-const coords = pair(40.71, -74.00); // [number, number]
-
-// Generic arrow function
-const toArray = <T>(item: T): T[] => [item];
-```
-
-### Generic Higher-Order Functions
-
-```typescript
-function mapArray<T, U>(arr: T[], transform: (item: T) => U): U[] {
+function mapArray<T, U>(arr: readonly T[], transform: (item: T) => U): U[] {
   return arr.map(transform);
 }
 
-const userNames = mapArray(users, (u) => u.name);   // string[]
-const userIds = mapArray(users, (u) => u.id);       // number[]
-
-function filterArray<T>(arr: T[], predicate: (item: T) => boolean): T[] {
-  return arr.filter(predicate);
-}
-
-const activeUsers = filterArray(users, (u) => u.active); // User[]
+const names = mapArray(users, (u) => u.name); // string[] — U inferred from the callback
 ```
 
----
-
-## Generic Interfaces
+### Generic interfaces and classes
 
 ```typescript
-// Generic API response
-interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message: string;
-  timestamp: string;
-}
-
-type UserResponse = ApiResponse<User>;
-type UsersResponse = ApiResponse<User[]>;
-type DeleteResponse = ApiResponse<{ deleted: boolean }>;
-
-// Generic repository (common backend pattern)
 interface Repository<T> {
   findById(id: number): Promise<T | null>;
-  findAll(filters?: Partial<T>): Promise<T[]>;
-  create(data: Omit<T, "id">): Promise<T>;
+  create(data: Omit<T, 'id'>): Promise<T>;
   update(id: number, data: Partial<T>): Promise<T>;
-  delete(id: number): Promise<void>;
 }
 
-class UserRepository implements Repository<User> {
-  async findById(id: number): Promise<User | null> {
-    return db.users.findOne({ id });
-  }
-  // ... implement other methods
-}
+class UserRepository implements Repository<User> {} // T is fixed once, for every member
 ```
 
----
+Naming the parameter once at the interface makes every member consistent — `create` cannot accidentally
+take a different entity from `findById`.
 
-## Generic Constraints
+### Constraints
 
-### `extends` — require specific properties
+`extends` narrows what a type parameter may be, which is what lets you actually use the value inside:
 
 ```typescript
-// T must have a name property
+// without the constraint, `item.name` would not compile
 function logName<T extends { name: string }>(item: T): void {
   console.log(item.name);
 }
-
-logName({ name: "Alice", age: 28 }); // ✅
-logName(42); // ❌ Error: number has no 'name' property
 ```
 
-### `keyof` — type-safe property access
+`keyof` is the constraint that matters most in day-to-day code, because it makes property access
+type-safe:
 
 ```typescript
-// K must be a key that exists on T
 function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
   return obj[key];
 }
 
-const user = { id: 1, name: "Alice", email: "alice@dev.com" };
-
-const name = getProperty(user, "name");    // string
-const id = getProperty(user, "id");        // number
-const foo = getProperty(user, "foo");      // ❌ Error: 'foo' is not a key of user
+const user = { id: 1, name: 'Alice' };
+getProperty(user, 'name'); // string
+getProperty(user, 'nope'); // ❌ not a key of user
 ```
 
-### Default type parameters
+Note the return type: `T[K]`, an **indexed access type**, not a union of all value types. That is why
+`getProperty(user, 'id')` is `number` and not `number | string`.
+
+### Defaults
 
 ```typescript
-// T defaults to string if not specified
 interface FormField<T = string> {
   value: T;
-  error?: string;
   touched: boolean;
 }
 
-const emailField: FormField = { value: "", touched: false };          // T = string
-const ageField: FormField<number> = { value: 0, touched: false };     // T = number
-const termsField: FormField<boolean> = { value: false, touched: false }; // T = boolean
+const email: FormField = { value: '', touched: false }; // T = string
+const age: FormField<number> = { value: 0, touched: false };
 ```
 
----
+### Inference
 
-## Real-World Patterns
-
-### Type-Safe Fetch Wrapper
+TypeScript infers type arguments from the call, so you rarely write them. Supply one explicitly when
+there is nothing to infer from — a return-position-only parameter:
 
 ```typescript
-async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, options);
-  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+async function fetchJson<T>(url: string): Promise<T> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
 
-// Usage — type inferred from the generic
-const user = await fetchJson<User>("/api/users/1");           // User
-const users = await fetchJson<User[]>("/api/users");          // User[]
-const post = await fetchJson<Post>("/api/posts/42");          // Post
+const user = await fetchJson<User>('/api/users/1'); // nothing in the args reveals T
 ```
 
-### Generic State Manager
+That signature is honest about only one thing — it does **not** validate that the body is a `User`.
+`fetchJson<T>` is an assertion dressed as a generic; pair it with a runtime schema check at any
+boundary you do not control.
+
+## When to Use It
+
+| Scenario                                         | Reach for                     | Why                                              |
+| ------------------------------------------------ | ----------------------------- | ------------------------------------------------ |
+| The return type depends on an argument's type     | A generic function            | The relationship is the point                    |
+| A container or wrapper reused across entities     | A generic interface or class  | One declaration keeps every member consistent    |
+| Property access by key                            | `K extends keyof T`, returning `T[K]` | Typos fail; the exact value type comes back |
+| Several functions taking the same shape           | A plain `interface` parameter | No relationship to express — a generic adds noise |
+| Untyped external data                             | `unknown` plus validation     | A generic here only asserts, it does not check   |
+
+**A `Result` type is the common case worth memorising:**
 
 ```typescript
-interface AsyncState<T> {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-}
-
-function createInitialState<T>(): AsyncState<T> {
-  return { data: null, loading: false, error: null };
-}
-
-const userState = createInitialState<User>();    // AsyncState<User>
-const postsState = createInitialState<Post[]>(); // AsyncState<Post[]>
-```
-
-### Generic Error Handler
-
-```typescript
-type Result<T, E = Error> =
-  | { ok: true; value: T }
-  | { ok: false; error: E };
+type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
 
 async function safeAsync<T>(fn: () => Promise<T>): Promise<Result<T>> {
   try {
-    const value = await fn();
-    return { ok: true, value };
-  } catch (error) {
+    return { ok: true, value: await fn() };
+  } catch (error: unknown) {
     return { ok: false, error: error instanceof Error ? error : new Error(String(error)) };
   }
 }
-
-const result = await safeAsync(() => fetchJson<User>("/api/users/1"));
-
-if (result.ok) {
-  console.log(result.value.name); // ✅ User
-} else {
-  console.error(result.error.message); // ✅ Error
-}
 ```
 
----
+## Common Mistakes
+
+**❌ A type parameter used once.** It relates nothing to nothing:
+
+```typescript
+function log<T>(value: T): void {} // ❌ identical to (value: unknown): void
+```
+
+**❌ Constraining with `any`.** `<T extends any>` constrains nothing; either leave it unconstrained or
+constrain it to the shape you actually use.
+
+**❌ Reaching for a generic instead of a union.** If the function handles exactly three known types,
+`string | number | Date` says so plainly. A generic implies it works for anything.
+
+**❌ Treating `fetchJson<User>()` as validation.** The type argument tells the compiler what to
+assume; nothing checks the payload. This is the most common way a "fully typed" codebase still throws
+`undefined is not an object` in production.
+
+**❌ Over-parameterising.** Four type parameters on one function means the signature is doing too
+much. Split it, or accept a concrete type.
+
+> ⚠️ Generics are erased at compile time. There is no way to branch on `T` at runtime, no `new T()`,
+> and no `typeof T`. Anything that must exist at runtime has to be passed as a value.
+
+## 🔑 Key Takeaways
+
+- A generic expresses a relationship between types; a parameter used once expresses nothing.
+- `extends` is what makes a type parameter usable inside the function body.
+- `K extends keyof T` returning `T[K]` is the type-safe property-access pattern.
+- Type arguments are inferred from arguments — write them only where nothing infers.
+- A generic return type is an assertion, not validation; check external data at runtime.
 
 ## Interview Questions
 
-### Q: What's the difference between `T` and `any`?
+**Q: How do you constrain a generic, and why would you need to?**
 
-`any` turns off type checking — TypeScript won't catch errors. `T` is a **placeholder** that preserves type information through the function, so errors are caught at compile time.
+With `extends`. Without a constraint the compiler knows nothing about `T`, so you cannot read a
+property or call a method on it. `T extends { id: number }` allows `item.id`;
+`K extends keyof T` restricts a key argument to keys that exist.
 
-```typescript
-function echo<T>(val: T): T { return val; }
+**Q: When is a generic the wrong tool?**
 
-const s = echo("hello");
-s.toFixed(); // ❌ Error — TypeScript knows s is string, not number
-```
+When the type parameter appears once, which means it expresses no relationship and `unknown` would do.
+When the set of types is small and known, where a union is clearer. And when the real need is runtime
+validation — a generic return type only tells the compiler what to assume.
 
-### Q: How do you constrain a generic type?
+**Q: What does `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` buy over `(obj: object, key: string): unknown`?**
 
-Use `extends`. This ensures `T` has certain properties before you use them.
+Two things. A key that does not exist on the object fails to compile rather than returning
+`undefined` at runtime. And the return type is the exact type of that property, so no cast or
+narrowing is needed at the call site.
 
-```typescript
-function sortByKey<T extends Record<string, string | number>>(
-  arr: T[],
-  key: keyof T
-): T[] {
-  return [...arr].sort((a, b) => (a[key] > b[key] ? 1 : -1));
-}
+## What to Read Next
 
-sortByKey(users, "name"); // ✅ OK
-sortByKey(users, "foo");  // ❌ Error: 'foo' not a key of User
-```
-
-### Q: When should you use generics?
-
-Use generics when you want a function or class to work with **multiple types** while keeping each type's information. Common cases: utility functions, API wrappers, data structures (stacks, queues), React hooks.
-
----
-
-[← Interfaces & Types](./02-interfaces-types.md) | [Next: Utility Types →](./04-utility-types.md)
+- [Chapter ?? — Utility Types](#ch-utility-types) — the generics the standard library already gives you
+- [Chapter ?? — Advanced Types](#ch-advanced-types) — conditional and mapped types built on constraints
+- [Chapter ?? — Type Guards](#ch-type-guards) — validating what a generic only assumes
