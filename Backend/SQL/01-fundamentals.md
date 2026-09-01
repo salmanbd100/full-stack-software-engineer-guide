@@ -3,296 +3,222 @@ title: SQL Fundamentals
 part: 5
 chapter: 0
 slug: sql-fundamentals
-level: beginner # beginner | intermediate | advanced
+level: intermediate
 reading_time: 9
-updated: 2026-08-28
-tags: [backend, sql, fundamentals]
+updated: 2026-09-01
+tags: [sql, joins, cte, window-functions, postgres]
 in_book: true
 ---
 
 # SQL Fundamentals {#ch-sql-fundamentals}
 
-> Pick the right join and know what the engine does with a `GROUP BY` before you write it.
+> Write the query the interviewer asks for, and explain what the database does with it.
 
-**In this chapter:** CRUD · the joins · `GROUP BY` and `HAVING` · subqueries vs CTEs · `EXISTS` vs `IN` · window functions
+**In this chapter:** the clause evaluation order · joins that do what you meant · grouping and filtering groups · CTEs against subqueries · window functions
 
-## 💡 **What Is SQL**
+## 💡 The Core Idea
 
-SQL (Structured Query Language) is the standard language for talking to relational databases. Every backend role expects fluency with the basics, plus comfort with JOINs, aggregations, subqueries, CTEs, and window functions.
+SQL is declarative: you describe the result you want, and the planner decides how to get it. That
+is why two queries returning identical rows can differ by a factor of a thousand in cost, and why
+"can you write this query" is only half of what an interviewer is testing.
 
-**What we cover here:**
+The single most useful thing to hold in your head is the **evaluation order**, which is not the
+order you write the clauses in:
 
-- `SELECT`, `INSERT`, `UPDATE`, `DELETE` (quickly)
-- JOINs and their semantics
-- `GROUP BY` and `HAVING`
-- Subqueries vs CTEs
-- Window functions
-- `EXISTS` vs `IN`
-
----
-
-## 💡 **CRUD Basics**
-
-**SELECT — read rows:**
-
-```sql
-SELECT id, name, email
-FROM users
-WHERE status = 'active'
-ORDER BY created_at DESC
-LIMIT 20 OFFSET 40;  -- page 3 of 20
+```text
+FROM → JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT
 ```
 
-> Always list columns explicitly. `SELECT *` blocks index-only scans, breaks when the schema changes, and ships unused bytes over the wire.
+Almost every SQL confusion resolves against that list. You cannot use a `SELECT` alias in
+`WHERE`, because `WHERE` runs first. You can use it in `ORDER BY`, because that runs later.
+`WHERE` filters rows; `HAVING` filters groups, because groups do not exist yet when `WHERE` runs.
 
-**INSERT — add rows:**
-
-```sql
--- Batch insert: one round-trip, one transaction
-INSERT INTO users (name, email) VALUES
-  ('Ada', 'ada@x.com'),
-  ('Bo',  'bo@x.com');
-
--- Upsert (PostgreSQL)
-INSERT INTO users (email, name) VALUES ('ada@x.com', 'Ada')
-ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
-RETURNING id;
-```
-
-**UPDATE and DELETE — always with a WHERE:**
+## Joins
 
 ```sql
-UPDATE products SET price = price * 1.1 WHERE category = 'books';
-DELETE FROM sessions WHERE expires_at < NOW();
-```
-
-`DELETE` vs `TRUNCATE`: `DELETE` is row-by-row, fires triggers, and is rollback-safe inside a transaction. `TRUNCATE` is a DDL operation that drops and recreates storage — much faster but resets identity columns and (in MySQL) cannot be rolled back.
-
----
-
-## 💡 **JOINs**
-
-JOINs combine rows from multiple tables on a matching column.
-
-| JOIN              | What you get                                   | Use when                              |
-| ----------------- | ---------------------------------------------- | ------------------------------------- |
-| `INNER JOIN`      | Only rows that match on both sides             | You need both records to exist        |
-| `LEFT JOIN`       | All rows from the left, matches from the right | "All users, with or without orders"   |
-| `RIGHT JOIN`      | Mirror of LEFT (rarely used)                   | Almost never — flip the tables        |
-| `FULL OUTER JOIN` | Everything from both sides                     | Data reconciliation between systems   |
-| `CROSS JOIN`      | Cartesian product                              | Generating combinations, calendars    |
-
-**Examples:**
-
-```sql
--- INNER: users who placed orders
+-- INNER: rows that match on both sides
 SELECT u.name, o.total
 FROM users u
 JOIN orders o ON o.user_id = u.id;
 
--- LEFT: every user, with their order count (0 if none)
-SELECT u.name, COUNT(o.id) AS order_count
-FROM users u
-LEFT JOIN orders o ON o.user_id = u.id
-GROUP BY u.id, u.name;
-
--- Anti-join: users with NO orders
-SELECT u.name
-FROM users u
-LEFT JOIN orders o ON o.user_id = u.id
-WHERE o.id IS NULL;
-```
-
-⚠️ **Gotcha:** filtering a `LEFT JOIN`ed table in `WHERE` (e.g. `WHERE o.status = 'paid'`) silently turns it into an `INNER JOIN`. Put that condition on the `ON` clause if you want to keep unmatched rows.
-
-```sql
--- ✅ keeps users with no paid order
+-- LEFT: every user, with NULLs where there is no order
 SELECT u.name, o.total
 FROM users u
+LEFT JOIN orders o ON o.user_id = u.id;
+```
+
+| Join | Keeps | Reach for it when |
+| ---- | ----- | ----------------- |
+| `INNER` | Only matching rows on both sides | The relationship is required |
+| `LEFT` | All left rows, `NULL` on the right | "Every user, and their orders if any" |
+| `RIGHT` | All right rows | Rare — flip the tables and use `LEFT` |
+| `FULL` | Everything from both | Reconciling two sources |
+| `CROSS` | Every combination | Generating a date × product grid |
+
+The classic trap is a filter on the outer table placed in `WHERE` instead of `ON`:
+
+```sql
+-- ❌ Silently becomes an INNER JOIN: the NULL rows fail the WHERE test
+SELECT u.name, o.total FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE o.status = 'paid';
+
+-- ✅ The condition belongs to the join, so unmatched users survive
+SELECT u.name, o.total FROM users u
 LEFT JOIN orders o ON o.user_id = u.id AND o.status = 'paid';
 ```
 
----
+> ⚠️ A join multiplies rows. Joining a user to their orders and their addresses gives
+> orders × addresses rows per user, and any `SUM` over that double-counts. Aggregate each side in
+> a subquery first, or use `COUNT(DISTINCT …)`.
 
-## 💡 **GROUP BY and HAVING**
+## Grouping
 
-`GROUP BY` collapses rows by column value; aggregate functions (`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`) summarize each group.
-
-**Logical execution order:**
-
-```text
-FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT
-```
-
-| Clause   | Filters         | Sees aggregates? |
-| -------- | --------------- | ---------------- |
-| `WHERE`  | Individual rows | ❌               |
-| `HAVING` | Groups          | ✅               |
+Every column in `SELECT` must either be in `GROUP BY` or wrapped in an aggregate. Postgres
+enforces this; MySQL historically did not, and silently returned an arbitrary row.
 
 ```sql
-SELECT country, COUNT(*) AS user_count, AVG(age) AS avg_age
-FROM users
-WHERE status = 'active'        -- filter rows first
-GROUP BY country
-HAVING COUNT(*) > 100          -- filter groups
-ORDER BY user_count DESC;
-```
-
-⚠️ Every non-aggregated column in `SELECT` must appear in `GROUP BY` (Postgres enforces this; MySQL with `ONLY_FULL_GROUP_BY` does too).
-
-**Aggregate quirks with NULL:**
-
-- `COUNT(*)` counts rows, including NULLs.
-- `COUNT(col)`, `SUM`, `AVG`, etc. ignore NULLs.
-- `AVG` ignores NULL — it does not divide by the total row count.
-
----
-
-## 💡 **Subqueries vs CTEs**
-
-**Subquery** — a query nested inside another:
-
-```sql
-SELECT name
-FROM users
-WHERE id IN (SELECT user_id FROM orders WHERE total > 1000);
-```
-
-**CTE (Common Table Expression)** — a named, top-of-query subquery:
-
-```sql
-WITH high_value AS (
-  SELECT user_id, SUM(total) AS spend
-  FROM orders
-  GROUP BY user_id
-  HAVING SUM(total) > 10000
-)
-SELECT u.name, h.spend
+SELECT u.id, u.name, COUNT(o.id) AS order_count, COALESCE(SUM(o.total), 0) AS lifetime_value
 FROM users u
-JOIN high_value h ON h.user_id = u.id
-ORDER BY h.spend DESC;
+LEFT JOIN orders o ON o.user_id = u.id AND o.status = 'paid'
+WHERE u.created_at >= now() - interval '1 year'   -- filters rows, before grouping
+GROUP BY u.id, u.name
+HAVING COUNT(o.id) >= 3                            -- filters groups, after
+ORDER BY lifetime_value DESC
+LIMIT 20;
 ```
 
-**When to reach for a CTE:**
+Two details worth knowing cold. `COUNT(*)` counts rows; `COUNT(column)` skips `NULL`s — which is
+why the `LEFT JOIN` above gives `0` rather than `1` for a user with no orders. And `SUM` over an
+empty set is `NULL`, not zero, so wrap it in `COALESCE`.
 
-- ✅ Query has 2+ levels of nesting and is hard to read
-- ✅ You reference the same subquery more than once
-- ✅ You need recursion (org charts, category trees, graph traversal)
+## CTEs and Subqueries
 
-**Recursive CTE — hierarchy traversal:**
+A **CTE** (`WITH …`) is a named subquery. Its value is readability, and in a recursive form, doing
+something you otherwise cannot.
 
 ```sql
-WITH RECURSIVE descendants AS (
-  SELECT id, name, manager_id, 0 AS depth
-  FROM employees
-  WHERE id = $1                       -- start node
+WITH monthly AS (
+  SELECT date_trunc('month', created_at) AS month, SUM(total) AS revenue
+  FROM orders WHERE status = 'paid'
+  GROUP BY 1
+)
+SELECT month, revenue,
+       revenue - LAG(revenue) OVER (ORDER BY month) AS change
+FROM monthly
+ORDER BY month;
+```
 
+> ⚠️ Before Postgres 12 a CTE was an **optimisation fence** — always materialised, never inlined,
+> which turned readable queries into slow ones. From 12 onward, a CTE referenced once is inlined
+> unless you write `MATERIALIZED`. Know which version you are on before blaming the CTE.
+
+**Recursive CTEs** walk a hierarchy — the standard answer to "find all descendants of this
+category":
+
+```sql
+WITH RECURSIVE tree AS (
+  SELECT id, parent_id, name, 1 AS depth
+  FROM categories WHERE id = $1          -- anchor
   UNION ALL
-
-  SELECT e.id, e.name, e.manager_id, d.depth + 1
-  FROM employees e
-  JOIN descendants d ON e.manager_id = d.id
+  SELECT c.id, c.parent_id, c.name, t.depth + 1
+  FROM categories c JOIN tree t ON c.parent_id = t.id
+  WHERE t.depth < 10                     -- guard: a cycle otherwise runs forever
 )
-SELECT * FROM descendants;
+SELECT * FROM tree;
 ```
 
-> Pre-Postgres 12, CTEs were an optimization fence (always materialized). Modern Postgres inlines them when safe, so performance is usually identical to a subquery. Prefer CTEs for readability.
-
----
-
-## 💡 **EXISTS vs IN**
-
-Both check membership but have different semantics around NULL and different performance profiles.
+### `EXISTS` against `IN`
 
 ```sql
--- EXISTS: stops at first match, correlated to outer row
-SELECT u.name
-FROM users u
-WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);
+-- ✅ EXISTS short-circuits on the first match and handles NULLs correctly
+SELECT * FROM users u WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);
 
--- IN: builds the full list then probes
-SELECT name FROM users
-WHERE id IN (SELECT user_id FROM orders);
+-- ⚠️ NOT IN returns zero rows if the subquery yields a single NULL
+SELECT * FROM users WHERE id NOT IN (SELECT user_id FROM orders); -- user_id nullable → empty
 ```
 
-| Pattern  | Best for                              | NULL trap                                 |
-| -------- | ------------------------------------- | ----------------------------------------- |
-| `EXISTS` | Large subqueries, anti-joins          | Safe                                      |
-| `IN`     | Small, static lists (`IN ('US','CA')`)| `NOT IN` returns no rows if list has NULL |
+`NOT IN` with a nullable column is the trap. `NULL` makes the comparison unknown, so nothing
+qualifies. Use `NOT EXISTS`, which is null-safe and usually plans better.
 
-⚠️ `NOT IN (SELECT col FROM ...)` where `col` can be NULL returns **zero rows** — NULL propagates through the comparison. Use `NOT EXISTS` for anti-joins.
+## Window Functions
 
----
-
-## 💡 **Window Functions**
-
-Window functions compute across a set of rows **without collapsing** them. Each input row keeps its identity but gains an aggregate-style column.
-
-| Function       | Use case                                          |
-| -------------- | ------------------------------------------------- |
-| `ROW_NUMBER()` | Pagination, dedup, "top N per group"              |
-| `RANK()`       | Ranking with gaps for ties (1, 2, 2, 4)           |
-| `DENSE_RANK()` | Ranking without gaps (1, 2, 2, 3)                 |
-| `LAG / LEAD`   | Compare to previous / next row (day-over-day)     |
-| `SUM() OVER`   | Running totals, cumulative percentages            |
-| `AVG() OVER`   | Moving averages (with `ROWS BETWEEN`)             |
-
-**Top 3 products per category:**
+A window function computes across a set of rows **without collapsing them** — the difference from
+`GROUP BY`, and the answer to most "top N per group" questions.
 
 ```sql
-WITH ranked AS (
-  SELECT p.*,
-         ROW_NUMBER() OVER (PARTITION BY category ORDER BY revenue DESC) AS rn
-  FROM products p
-)
-SELECT * FROM ranked WHERE rn <= 3;
+-- The three most recent orders per user, keeping every column
+SELECT * FROM (
+  SELECT o.*,
+         ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS rn
+  FROM orders o
+) ranked
+WHERE rn <= 3;
 ```
 
-**Day-over-day change:**
+| Function | Gives |
+| -------- | ----- |
+| `ROW_NUMBER()` | 1, 2, 3 — no ties, arbitrary tie-break |
+| `RANK()` | 1, 2, 2, 4 — ties share, then a gap |
+| `DENSE_RANK()` | 1, 2, 2, 3 — ties share, no gap |
+| `LAG` / `LEAD` | The previous or next row's value — period-over-period change |
+| `SUM(x) OVER (ORDER BY …)` | A running total |
 
-```sql
-SELECT
-  day,
-  revenue,
-  revenue - LAG(revenue) OVER (ORDER BY day) AS delta
-FROM daily_sales;
-```
+The window function is evaluated after `WHERE` and `GROUP BY` but before `ORDER BY`, which is why
+filtering on `rn` needs the subquery wrapper above.
 
-**7-day moving average:**
+## Common Mistakes
 
-```sql
-SELECT day, revenue,
-  AVG(revenue) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma7
-FROM daily_sales;
-```
+**❌ `SELECT *` in application code.** A new column silently widens every response, an ORM maps
+fields that no longer exist, and a covering index stops covering. Name the columns.
 
-> If you find yourself joining a table to a `GROUP BY` of itself, you usually want a window function instead.
+**❌ Building SQL by string concatenation.** Always parameterise — see
+[Chapter ?? — Input Validation and Injection](#ch-backend-input-validation).
 
----
+**❌ `OFFSET` for deep pagination.** The database still walks the skipped rows. Use keyset
+pagination, as in [Chapter ?? — REST API Best Practices](#ch-rest-best-practices).
 
-## 📚 **Interview Q&A**
+**❌ Comparing a `timestamptz` to a naked string in application queries.** Pass a real timestamp
+parameter; implicit casts can disable an index on that column.
 
-**Q1. What's the difference between `WHERE` and `HAVING`?**
-`WHERE` filters rows before grouping and cannot see aggregates. `HAVING` filters groups after aggregation and can reference aggregates like `COUNT(*) > 100`. Use `WHERE` whenever possible — it runs earlier and benefits from indexes.
+## 🔑 Key Takeaways
 
-**Q2. When would you use a CTE over a subquery?**
-Three cases: (1) the same subquery is referenced multiple times, (2) the query has multiple levels of nesting and is hard to follow, (3) you need recursion. In modern Postgres, performance is equivalent for non-recursive CTEs, so the choice is mainly about readability.
+- Clause evaluation order — `FROM`, `WHERE`, `GROUP BY`, `HAVING`, `SELECT`, `ORDER BY` — explains most SQL surprises.
+- A filter on the outer table of a `LEFT JOIN` belongs in `ON`, not `WHERE`, or the join becomes inner.
+- `COUNT(*)` counts rows and `COUNT(col)` ignores `NULL`; `SUM` over nothing is `NULL`.
+- `NOT IN` over a nullable column returns nothing; `NOT EXISTS` is the null-safe form.
+- Window functions rank and compare without collapsing rows, which is how you get top N per group.
 
-**Q3. Why can `NOT IN` return zero rows unexpectedly?**
-SQL three-valued logic. If the inner query returns even one NULL, `value NOT IN (..., NULL, ...)` evaluates to `UNKNOWN`, which filters the row out. Use `NOT EXISTS` for anti-joins — it handles NULL correctly.
+## Interview Questions
 
----
+**Q: What is the difference between `WHERE` and `HAVING`?**
 
-## ✅ **Best Practices**
+`WHERE` filters individual rows before grouping; `HAVING` filters the groups after aggregation, so
+it is the only clause that can reference an aggregate. Putting a non-aggregate condition in
+`HAVING` still works but is slower, because you grouped rows you were going to discard.
 
-- ✅ List columns explicitly; never `SELECT *` in app code.
-- ✅ Always `WHERE` on `UPDATE` and `DELETE` — wrap in a transaction during dev.
-- ✅ Use parameterized queries — never string-concatenate user input.
-- ✅ Prefer `EXISTS` / `NOT EXISTS` over `IN` / `NOT IN` for subqueries.
-- ✅ Push filtering into the database, not the application layer.
-- ❌ Don't wrap indexed columns in functions in `WHERE` (e.g. `UPPER(email) =`) — it kills the index.
-- ❌ Don't filter `LEFT JOIN`ed tables in `WHERE` if you want to keep unmatched rows.
+**Q: A `LEFT JOIN` is returning only matched rows. Why?**
 
----
+Because a condition on the right-hand table is in `WHERE`. Unmatched rows have `NULL` there, the
+comparison is unknown, and they are filtered out — turning the outer join into an inner one. Move
+the condition into the `ON` clause.
 
-[← Back to Backend](../README.md) | [Next: Database Design →](./02-database-design.md)
+**Q: How do you get the top three rows per group?**
+
+A window function: `ROW_NUMBER() OVER (PARTITION BY group_col ORDER BY sort_col DESC)` in a
+subquery, then filter on the rank in the outer query. The wrapper is needed because window
+functions are evaluated after `WHERE`. `DISTINCT ON` is a shorter Postgres-only option when you
+want exactly one row per group.
+
+**Q: When is a CTE the wrong choice?**
+
+When you need the planner to push a filter into it and your engine materialises it — the CTE becomes
+an optimisation fence, executing in full before the outer filter applies. On Postgres 12 and later a
+single-use CTE is inlined by default, so the concern is largely historical, but on an older engine a
+plain subquery or a lateral join can be dramatically faster.
+
+## What to Read Next
+
+- [Chapter ?? — Indexes and Query Plans](#ch-indexes) — why the query you just wrote is slow
+- [Chapter ?? — Database Design](#ch-database-design) — the schema these queries run against
+- [Chapter ?? — Transactions and Concurrency](#ch-sql-transactions) — what happens when two of these run at once

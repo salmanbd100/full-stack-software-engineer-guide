@@ -1,321 +1,207 @@
 ---
-title: API Versioning
+title: API Versioning and Contracts
 part: 5
 chapter: 0
 slug: versioning
-level: intermediate # beginner | intermediate | advanced
-reading_time: 13
-updated: 2026-08-28
-tags: [backend, api, versioning]
+level: advanced
+reading_time: 9
+updated: 2026-09-01
+tags: [api, versioning, openapi, contracts, deprecation]
 in_book: true
 ---
 
-# API Versioning {#ch-api-versioning}
+# API Versioning and Contracts {#ch-versioning}
 
-> Tell a breaking change from a safe one, and avoid cutting a new version at all.
+> Change an API other teams depend on without breaking them, and make the contract the thing that cannot drift.
 
-**In this chapter:** breaking vs non-breaking · where the version goes · additive change instead of a new version · deprecation and sunset · when it is safe to delete
+**In this chapter:** what actually breaks a client · where the version goes · avoiding a new version · a typed contract with one source of truth · deprecation and deletion
 
-## Overview
+## 💡 The Core Idea
 
-Versioning is how you change an API without breaking the clients already using it. The mechanism — a path segment, a header — is the easy part and takes an afternoon.
+Versioning is a cost, not a feature. Every live version is a code path you maintain, test and
+patch. The senior instinct is therefore not "how do I version this" but **"how do I make this
+change without a new version"** — and only when that fails, how to introduce one and retire the
+old one on a schedule.
 
-The hard part is everything after: running two code paths, knowing who still uses the old one, and actually turning it off.
+That instinct rests on one distinction: additive changes are safe, removals and redefinitions are
+not.
 
-> **The senior framing:** every version you ship is a maintenance contract you cannot cancel unilaterally. So the goal isn't good versioning, it's **needing fewer versions** — design for additive change first, and version only when the change genuinely cannot be additive.
+## How It Works
 
-## Table of Contents
+### Breaking against non-breaking
 
-- [Breaking vs Non-Breaking Changes](#breaking-vs-non-breaking-changes)
-- [Where to Put the Version](#where-to-put-the-version)
-- [Implementing Path Versioning](#implementing-path-versioning)
-- [Avoiding a New Version](#avoiding-a-new-version)
-- [Deprecation and Sunset](#deprecation-and-sunset)
-- [Knowing When It's Safe to Delete](#knowing-when-its-safe-to-delete)
-- [Interview Questions](#interview-questions)
-- [Summary](#summary)
+| Change | Breaking? | Why |
+| ------ | --------- | --- |
+| Add an optional response field | ❌ No | A client that ignores it is unaffected |
+| Add an optional request field | ❌ No | Existing callers omit it and get the old behaviour |
+| Add a new endpoint | ❌ No | Nothing referenced it |
+| Remove or rename a field | ✅ Yes | A client reads it today |
+| Change a type — `"5"` to `5` | ✅ Yes | Parsers and validators fail |
+| Make an optional request field required | ✅ Yes | Existing callers stop validating |
+| Add a value to an enum | ⚠️ Usually | A client with a `switch` and no default falls through |
+| Tighten validation | ✅ Yes | Requests that worked now 400 |
+| Change a default | ✅ Yes | Silent behaviour change, the worst kind |
 
-## Breaking vs Non-Breaking Changes
+The two rows people get wrong are the last two. Tightening validation and changing a default both
+look like bug fixes and both break callers, silently, in production.
 
-The whole discipline rests on classifying a change correctly.
+### Where the version goes
 
-| Change | Breaking? | Note |
-| ------ | --------- | ---- |
-| Add a new endpoint | ✅ Safe | Nobody calls it yet |
-| Add an optional request field | ✅ Safe | Old clients omit it |
-| Add a response field | ✅ Safe *in theory* | See the warning below |
-| Make a required field optional | ✅ Safe | Loosening never breaks a caller |
-| Add a new enum value | 🔴 **Breaking** | Clients with a `switch` and no default fall through |
-| Rename a field | 🔴 Breaking | Even `name` → `fullName` |
-| Change a type | 🔴 Breaking | `"19.99"` → `19.99` breaks parsers |
-| Remove a field or endpoint | 🔴 Breaking | Obvious |
-| Make an optional field required | 🔴 Breaking | Existing requests start failing |
-| Tighten validation | 🔴 Breaking | Previously accepted input now 400s |
-| Change a status code or error shape | 🔴 Breaking | Client error handling is coupled to it |
-| Change default sort or page size | 🔴 Breaking | Silently changes results — the worst kind |
+| Strategy | Looks like | Verdict |
+| -------- | ---------- | ------- |
+| **Path** | `/v1/users` | The default. Visible in logs, trivial to route, cacheable |
+| **Header** | `Accept: application/vnd.api+json;version=1` | Purer REST; invisible in a log, easy to forget in a `curl` |
+| **Query** | `/users?version=1` | Pollutes the cache key and gets dropped by proxies |
+| **Per-field** | `?fields=…` with additive-only schema | Best when it works — GraphQL's model |
 
-> ⚠️ **"Adding a field is safe" assumes tolerant clients.** A client with strict schema validation, or one that hashes the whole response, breaks on a new field. Publish tolerant-reader expectations in your docs, and treat additive changes as safe *because you said so up front*.
+Use the path unless you have a specific reason not to. Version the **major** number only:
+`/v1`, never `/v1.2.3`. Minor and patch changes are by definition non-breaking, so they need no
+route.
 
-**The two that catch people out** are new enum values and changed defaults. Both look additive and neither is. Mention either one in an interview and you sound like someone who has broken production before.
-
-## Where to Put the Version
-
-| Strategy | Example | Verdict |
-| -------- | ------- | ------- |
-| **URL path** | `/v2/users` | ✅ Default choice. Visible in logs, trivial to route and cache, easy to `curl` |
-| **Custom header** | `API-Version: 2` | ⚠️ Clean URLs, but invisible in logs and easy for caches to ignore |
-| **Accept header** | `Accept: application/vnd.api.v2+json` | ⚠️ Purest REST, worst ergonomics |
-| **Date header** | `API-Version: 2026-01-15` | ✅ Excellent for large public APIs (Stripe's model) |
-| **Query param** | `/users?v=2` | ❌ Mixes identity with filtering, breaks caches |
-
-**Pick the path unless you have a reason not to.** It is what GitHub, Twilio, and most public APIs do, and "I can see the version in the access log" matters more in an incident than URL aesthetics.
-
-> ✨ **The date-based variant is worth knowing.** Stripe pins each account to the API version current when it signed up, sent as a date. New accounts get the latest; existing ones never break; a single header opts a caller into the new behaviour. It costs a compatibility-transform layer per change, and buys you the ability to ship breaking changes weekly.
-
-🔴 **If you cache behind a CDN and version by header, you must send `Vary: API-Version`.** Otherwise v1 responses get served to v2 clients — a genuinely hard bug to diagnose.
-
-## Implementing Path Versioning
-
-The rule that keeps this maintainable: **version the boundary, never the business logic.** One service, many representations.
+Route to a version at the edge, and keep the shared logic underneath:
 
 ```typescript
-import express, { Router } from "express";
+// One service layer, two presenters. The version lives in the transform, not the business logic.
+app.use('/v1', v1Router); // v1: { name: string }
+app.use('/v2', v2Router); // v2: { firstName: string; lastName: string }
 
-// ── Domain layer: no version awareness at all ─────────────────────
-interface OrderRow {
-  id: string;
-  total: number;
-  currency: string;
-  status: "pending" | "shipped" | "cancelled";
-  createdAt: Date;
-}
+const toV1 = (u: User) => ({ id: u.id, name: `${u.firstName} ${u.lastName}` });
+const toV2 = (u: User) => ({ id: u.id, firstName: u.firstName, lastName: u.lastName });
+```
 
-class OrderService {
-  async findById(id: string): Promise<OrderRow | null> {
-    return db.orders.findOne({ id });
-  }
-}
+Duplicating the *service* per version is how a two-version API becomes unmaintainable. Duplicate
+only the shape.
 
-// ── Presentation layer: one serializer per version ────────────────
-interface OrderV1 {
-  id: string;
-  amount: number; // v1 exposed a bare number
-  status: string;
-}
+### Avoiding a new version
 
-interface OrderV2 {
-  id: string;
-  total: { amount: number; currency: string }; // v2 made money a type
-  status: string;
-  createdAt: string;
-}
+Four techniques cover most changes:
 
-const toV1 = (o: OrderRow): OrderV1 => ({ id: o.id, amount: o.total, status: o.status });
+- **Add, do not replace.** Ship `firstName` and `lastName` alongside `name`, populate all three,
+  and mark `name` deprecated. No version needed.
+- **Default the new behaviour to the old one.** A new `include` parameter that defaults to the
+  previous response is additive.
+- **Expand, then contract.** Write both fields, migrate clients, delete the old field later. This
+  is the same pattern as a zero-downtime database migration.
+- **Feature-flag by client.** Opt individual consumers into the new behaviour, verify, then flip
+  the default.
 
-const toV2 = (o: OrderRow): OrderV2 => ({
-  id: o.id,
-  total: { amount: o.total, currency: o.currency },
-  status: o.status,
-  createdAt: o.createdAt.toISOString(),
+## The Contract Is the Deliverable
+
+A version number is worthless if nobody can tell what a version contains. The contract has to be
+machine-readable and generated from something that cannot drift from the code.
+
+**One source of truth, three artefacts:**
+
+```typescript
+import { z } from 'zod';
+
+// The schema is the single definition. Everything else is derived from it.
+export const CreateUser = z.object({
+  email: z.string().email(),
+  firstName: z.string().min(1).max(100),
+  role: z.enum(['viewer', 'editor', 'admin']).default('viewer'),
 });
 
-// ── Routing ───────────────────────────────────────────────────────
-const service = new OrderService();
-
-function ordersRouter<T>(serialize: (o: OrderRow) => T): Router {
-  const router = Router();
-  router.get("/orders/:id", async (req, res) => {
-    const order = await service.findById(req.params.id);
-    if (!order) return res.status(404).json({ title: "Not found", status: 404 });
-    res.json(serialize(order));
-  });
-  return router;
-}
-
-const app = express();
-app.use("/v1", ordersRouter(toV1));
-app.use("/v2", ordersRouter(toV2));
+export type CreateUser = z.infer<typeof CreateUser>; // 1. The TypeScript type
 ```
 
-**Why this shape:**
-
-- ✅ A bug fix in `OrderService` fixes both versions at once.
-- ✅ Serializers are pure functions — easy to unit test, easy to delete.
-- ✅ Adding v3 is one function and one `app.use`.
-
-❌ **The anti-pattern** is copying the whole controller into a `v2/` folder. It works for a week, then a fix lands in one copy and not the other, and now v1 and v2 disagree about what an order is.
-
-> ⚠️ **Version whole APIs, not individual endpoints.** `/v1/users` alongside `/v3/orders` is a matrix nobody can document or reason about. Bump the surface together and keep the mental model simple.
-
-## Avoiding a New Version
-
-Most "we need v2" moments don't. Cheaper options, roughly in order:
-
-**1. Add alongside, don't replace.** Ship the new field, keep writing the old one, and mark it deprecated in the docs.
+From that one object you get the runtime validator (2) by calling `CreateUser.parse(req.body)` in
+the route, and the OpenAPI schema (3) by converting it at build time. Because all three come from
+the same declaration, the documented contract cannot disagree with the enforced one.
 
 ```typescript
-// Transitional response — both fields, both correct.
-{
-  "name": "Ada Lovelace",      // deprecated, removed in v2
-  "fullName": "Ada Lovelace"   // preferred
-}
-```
-
-**2. Expand and contract.** The safe way to rename anything, including database columns:
-
-```text
-1. Write both, read old      ← deploy new code, nothing breaks
-2. Backfill                  ← old records get the new field
-3. Read new, still write old ← the switch, and it's reversible
-4. Stop writing old          ← after clients have migrated
-5. Delete old                ← weeks or months later
-```
-
-**3. Opt-in flags for genuinely new behaviour.**
-
-```typescript
-// Client asks for the new shape explicitly; default stays stable.
-const useNewPricing = req.header("X-Features")?.includes("pricing-v2") ?? false;
-```
-
-**4. Deprecate a field instead of an API.** Cheaper than a whole version, and GraphQL formalises this with `@deprecated(reason: "…")`. See [GraphQL](./02-graphql.md).
-
-## Deprecation and Sunset
-
-Use the standard HTTP headers ([RFC 8594](https://www.rfc-editor.org/rfc/rfc8594.html) and the `Deprecation` header draft) rather than inventing `X-` names. Tooling understands them.
-
-```typescript
-import type { RequestHandler } from "express";
-
-/** Marks a version deprecated and advertises when it stops working. */
-function deprecated(sunsetISO: string, guide: string): RequestHandler {
-  const sunset = new Date(sunsetISO).toUTCString();
-
-  return (_req, res, next) => {
-    res.set({
-      Deprecation: "true",
-      Sunset: sunset, // RFC 8594 — an HTTP-date, not a bare "2026-06-01"
-      Link: `<${guide}>; rel="deprecation"; type="text/html"`,
-    });
-    next();
-  };
-}
-
-app.use("/v1", deprecated("2026-12-31T23:59:59Z", "https://docs.example.com/v1-to-v2"));
-```
-
-**A realistic timeline for a public API:**
-
-```text
-Month 0   Ship v2. Announce v1 deprecation. Publish the migration guide.
-Month 1   Deprecation + Sunset headers on every v1 response.
-Month 3   Email the top consumers by traffic. Offer help.
-Month 6   Block v1 for newly created API keys. Existing keys unaffected.
-Month 9   Brownouts — return 410 for one hour, twice, announced in advance.
-Month 12  Sunset. 410 Gone, with a link to the guide.
-```
-
-> ✨ **Brownouts are the trick that actually works.** Emails get filtered; a one-hour outage produces a support ticket from the team that never read them, while there's still time to migrate. Announce them, keep them short, and never run one on a Friday.
-
-**Return 410 Gone, not 404.** 410 means "this existed and is intentionally gone" — a client can log it and stop retrying. 404 looks like a typo and gets retried forever.
-
-```typescript
-app.use("/v1", (_req, res) => {
-  res.status(410).json({
-    type: "https://docs.example.com/errors/version-sunset",
-    title: "API v1 has been sunset",
-    status: 410,
-    detail: "v1 was retired on 2026-12-31. Use /v2.",
-  });
+// Generate the spec at build time and commit it, so a diff shows contract changes in review.
+const registry = new OpenAPIRegistry();
+registry.registerPath({
+  method: 'post',
+  path: '/v1/users',
+  request: { body: { content: { 'application/json': { schema: CreateUser } } } },
+  responses: { 201: { description: 'Created' } },
 });
 ```
 
-## Knowing When It's Safe to Delete
+> ⚠️ Hand-written OpenAPI is out of date within a sprint. If the spec is not generated from the
+> code that runs, it is documentation of intent, not of behaviour.
 
-You cannot sunset what you cannot measure. Tag every request with its version and its caller.
+**Then gate it in CI.** Two checks catch nearly everything:
+
+1. **Drift** — regenerate the spec and fail if it differs from the committed file.
+2. **Breaking change** — diff the new spec against the previous release with a tool such as
+   `oasdiff`, and fail the build on a breaking diff unless the version was bumped.
+
+That second check is what turns "we agreed not to break clients" into something the pipeline
+enforces.
+
+## Deprecation and Deletion
+
+Announce in the response, not only in a changelog. Two standard headers do the work:
 
 ```typescript
-app.use((req, _res, next) => {
-  const version = req.path.match(/^\/v(\d+)\//)?.[1] ?? "unversioned";
-
-  metrics.increment("api.request", {
-    version,
-    route: req.route?.path ?? "unknown",
-    clientId: req.apiKeyId ?? "anonymous", // ✅ per-client, or you can't call anyone
-  });
-
-  next();
-});
+res.set('Deprecation', 'Sun, 01 Mar 2026 00:00:00 GMT'); // RFC 9745
+res.set('Sunset', 'Sun, 01 Sep 2026 00:00:00 GMT');      // RFC 8594
+res.set('Link', '</v2/users>; rel="successor-version"');
 ```
 
-**What to watch:**
+Then log every call to the deprecated path with the caller's identity. That log is the only
+reliable answer to "is it safe to delete yet".
 
-| Signal | Why it matters |
-| ------ | -------------- |
-| Requests per version | The headline number |
-| **Distinct clients** per version | 1000 requests from one dead cron job is not 1000 users |
-| Traffic by client | Tells you who to email first |
-| Which v1 fields are still read | Field-level usage lets you delete pieces early |
-| Last-seen timestamp per client | Finds abandoned integrations |
+```typescript
+// Per-consumer usage, so you know who to contact rather than guessing.
+metrics.increment('api.deprecated', { version: 'v1', route: req.route.path, client: req.clientId });
+```
 
-> 🔴 **Traffic near zero is not the same as zero.** A quarterly batch job shows up as noise for 89 days and a broken customer on the 90th. Check for at least one full business cycle before deleting.
+A workable timeline for an internal API is announce → six months → delete, with the last two
+months in **monitor mode**: return the old response but alert on every call. For a public API,
+twelve months is the floor. Never delete on the strength of a changelog entry and no telemetry.
+
+## Common Mistakes
+
+**❌ Versioning the whole API for one endpoint's change.** Every consumer has to migrate,
+including the ones unaffected. Version at the resource level if the platform allows it.
+
+**❌ Duplicating business logic per version.** The versions drift, and a bug fix lands in one.
+
+**❌ Skipping the deprecation window because "nobody uses v1".** Add the telemetry first; the
+answer is regularly a mobile app release from two years ago that cannot be updated.
+
+**❌ Treating an enum addition as additive.** It is additive for the schema and breaking for any
+client whose `switch` has no `default`. Document new enum values as breaking unless you know every
+consumer.
+
+## 🔑 Key Takeaways
+
+- Additive changes are safe; removals, retypings, tightened validation and changed defaults are not.
+- Put the major version in the path, and never a minor or patch number.
+- Version the response shape, never the business logic underneath it.
+- Generate the OpenAPI spec from the same schema the runtime validates against, and fail CI on drift.
+- Deprecation needs `Deprecation`/`Sunset` headers plus per-consumer telemetry; deletion needs the telemetry to be quiet.
 
 ## Interview Questions
 
-**Q1: Which versioning strategy would you choose, and why?**
+**Q: How do you add a required field to a request without breaking clients?**
 
-URL path versioning for a normal public REST API — it's visible in logs and traces, trivial to route in a gateway, and safe with any cache. For a large API that ships breaking changes often, I'd use date-based versions pinned per account, like Stripe: new callers get current behaviour, existing ones never break, and you carry a compatibility-transform layer instead of a fork of the codebase.
+You do not — that is breaking by definition. Add it as optional with a default that reproduces the
+current behaviour, measure how many callers send it, then make it required in the next major
+version once adoption is complete. If the field genuinely has no safe default, that is the case
+for a new version.
 
-**Q2: Which changes need a new version?**
+**Q: Path, header or query versioning?**
 
-Anything a client can observe and depend on: removing or renaming fields, changing types, tightening validation, changing error shapes or status codes, and changing defaults like page size or sort order. Adding endpoints or optional fields is safe if you've told clients to be tolerant readers. The two people miss are new enum values — a client `switch` with no default falls through — and changed defaults, which break silently.
+Path, in almost every case: it is visible in access logs, routable at the load balancer, and
+cacheable without a `Vary` header. Header versioning is more RESTful in theory but invisible in
+debugging and easy to omit. Query versioning fragments the cache key and gets stripped by some
+proxies.
 
-**Q3: How do you avoid needing v2 at all?**
+**Q: How do you know a version is safe to delete?**
 
-Additive change plus expand-and-contract. To rename a field I write both and read the old one, backfill, flip reads to the new one, then stop writing the old one once traffic confirms nobody reads it. Every step is independently deployable and reversible. A version is what I reach for when the *shape* of the resource changes, not when a field does.
+From per-consumer request telemetry on the old routes, not from a changelog. Announce with
+`Deprecation` and `Sunset` headers, log every remaining call with the caller's identity, contact
+the stragglers, and run a monitor-mode period where the old behaviour still works but every call
+alerts. Delete when the counter has been zero for a full cycle of your consumers' release
+cadences.
 
-**Q4: How do you sunset a version?**
+## What to Read Next
 
-Announce it, then serve `Deprecation` and `Sunset` headers with a `Link` to the migration guide on every response. Track usage per client, not just totals, and contact the biggest consumers directly. Block new API keys from the old version, run a couple of announced brownouts, then return `410 Gone`. For a public API the whole thing is 6–12 months.
-
-**Q5: 404 or 410 for a removed version?**
-
-410 Gone. It says the resource existed and was intentionally removed, so a client can log it and stop retrying. A 404 reads like a typo and gets retried indefinitely.
-
-**Q6: How do you avoid duplicated code across versions?**
-
-The domain layer has no idea versions exist. Each version gets a pure serializer function that maps the domain object to that version's response shape, plus a thin router. Bug fixes land once; adding a version is one function. Copying controllers into `v2/` guarantees the two drift apart.
-
-**Q7: Do internal microservices need versioning?**
-
-Not the same way. If you control every caller, you can coordinate a deploy, so schema evolution plus contract tests beats maintaining parallel versions. gRPC/Protobuf gives you additive-by-design field numbering. What you still need is compatibility across a rolling deploy — during a rollout, old and new instances run at once, so each change must be backward-compatible for at least one deploy cycle even with no external clients.
-
-**Q8: Should you version from day one?**
-
-Yes — ship `/v1` even if there's never a v2, because retrofitting a prefix onto a live unversioned API is itself a breaking change. It costs nothing on day one.
-
-## Summary
-
-**Checklist:**
-
-- [ ] `/v1` in the path from the first deploy
-- [ ] Version the whole API surface, not individual endpoints
-- [ ] Major versions only — no `/v1.2`
-- [ ] Domain logic shared; one serializer per version
-- [ ] Additive change and expand-and-contract tried before a version bump
-- [ ] `Deprecation`, `Sunset`, and `Link` headers on deprecated versions
-- [ ] `Vary: API-Version` if versioning by header behind a cache
-- [ ] Usage metrics per version **and per client**
-- [ ] Migration guide published before deprecation is announced
-- [ ] `410 Gone` after sunset, never `404`
-
-**Best practices:**
-
-1. **Fewer versions beats good versioning** — design for additive change.
-2. **Version the edge** — serializers change, the domain doesn't.
-3. **Measure before you delete** — distinct clients, over a full business cycle.
-4. **Brownouts, not just emails** — a short announced outage finds the clients nobody could reach.
-
----
-
-[← GraphQL](./02-graphql.md) | [API Index](./README.md) | [Rate Limiting →](./04-rate-limiting.md)
+- [Chapter ?? — REST API Best Practices](#ch-rest-best-practices) — the conventions a version is preserving
+- [Chapter ?? — GraphQL](#ch-graphql) — evolving a schema with deprecation instead of versions
+- [Chapter ?? — Database Migrations and ORMs](#ch-orms) — expand-then-contract applied to schema

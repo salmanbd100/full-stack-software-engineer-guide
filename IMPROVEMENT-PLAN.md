@@ -36,7 +36,7 @@ happened: the budget arithmetic in #1, the frontend-share rule, and the line-bud
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-01 · **Progress:** 33 / 83
+**Last updated:** 2026-09-01 · **Progress:** 34 / 83
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2848,7 +2848,7 @@ plus an archive, the way `#20` treated DevOps.
 
 ---
 
-### - [ ] 31c. Trim Part V — Backend — to its 6,500-line budget `L`
+### - [x] 31c. Trim Part V — Backend — to its 6,500-line budget `L` — ✅ **done 2026-09-01**
 
 **+6,510 over.** `#24` consolidated security and is done. `#31` dedups three topic pairs and is worth
 roughly 600 lines — a tenth of what is needed.
@@ -2871,6 +2871,73 @@ content *into* it.
 Part VI. Trimming first means trimming lines that are about to move anyway.
 
 **Done when:** `pnpm lint:docs` reports Part 5 at or under its BOOK-SPEC § 5 budget.
+
+**Delivered:**
+
+- **Part V is 12,869 → 6,458 lines, 42 under the 6,500 ceiling.** `pnpm lint:docs` no longer reports a
+  Part 5 budget violation. The `budget` baseline drops 17,105 → **10,736**; `too-long` drops 2 → **0**,
+  because the last two over-length files in the book were both Part V (`API/02-graphql.md` 449 and
+  `SQL/02-database-design.md` 451). Both committed to `.lint-baseline.json`. `pnpm book:collect` now
+  builds 244 files / 52,575 lines, down from 262 / 72,962.
+- **49 files became 35: 28 chapters and 7 READMEs, down from 42 chapters.** The item was right that this
+  is a chapter-count decision rather than a line-trimming one — no directory was individually wrong.
+  BOOK-SPEC § 5 budgets ~30 chapters; 28 is what the line budget actually pays for at the 150-line floor.
+
+  | Section | Was | Now | What changed |
+  | ------- | --- | --- | ------------ |
+  | `NodeJS` | 8 ch / 2,176 | **6 ch / 1,326** | `07-child-processes` + `08-clustering` → `06-scaling-node`; `06-security` folded into `Backend/Security/` |
+  | `API` | 6 ch / 2,188 | **5 ch / 1,206** | `05-documentation` merged into `03-versioning` (now *Versioning and Contracts*); `06-websockets` → `05-realtime-and-streaming`, gaining SSE and HTTP streaming |
+  | `SQL` | 8 ch / 2,380 | **5 ch / 1,101** | `05-postgresql`, `07-migrations` and `08-optimization` distributed across `02`–`05`, which now carry them by concept rather than by tool |
+  | `NoSQL` | 6 ch / 1,590 | **4 ch / 855** | `04-indexing` merged into `03-indexing-and-aggregation`; `05-mongoose` folded into `01` and `02` |
+  | `Security` | 8 ch / 2,827 | **6 ch / 1,342** | `07-sql-injection` merged into `06-validation`; `04-encryption` cut on scope |
+  | `Testing` | 6 ch / 1,595 | **2 ch / 481** | `03-e2e`, `04-tdd`, `05-mocking`, `06-best-practices` archived — Part IV owns the discipline |
+
+- **The largest single saving was deduplicating `Backend/Testing` against Part IV.** `Frontend/Testing`
+  (1,938 lines) already owns the pyramid, AAA, the test-double vocabulary, coverage, TDD, Playwright and
+  flakiness. Part V now keeps only what is backend-specific — `01-unit-testing.md` (*Testing a Node
+  Service*: what is worth unit testing, injection over `vi.mock`, fake timers, error paths) and
+  `02-integration.md` (*Integration Testing a Service*: supertest, a real Postgres in Testcontainers,
+  the four isolation strategies, factories, MSW, parallelism) — and says so in its README. That is 1,114
+  lines, and none of it was a judgement call about value.
+- **All 28 chapters were written or rewritten to the Book Chapter Standard**, verified by script: six
+  blocks in order, 150–400 lines (192–259, mean 217), exactly one `## 💡` and one `## 🔑`, at most three
+  blockquote `⚠️` callouts, no retired emoji, no `####`, no hand-written TOC, no back-link, no relative
+  link in any body, 3–6 interview questions with at least one judgement call, and balanced code fences.
+  Only `NodeJS/05`, `API/01` and `API/04` were trims of already-conforming files; the rest were full
+  rewrites, because `SQL/*` and `NoSQL/*` predated the standard entirely (`## 💡 **Bold Heading**`
+  throughout, `## 📚 Interview Q&A`, `## ✅ Best Practices`) and `API/02–03`, `API/05` and `Security/01`
+  still carried `## Overview`, `## Table of Contents` and `## Summary`.
+- **27 pre-existing slug/anchor mismatches found and closed.** Almost every Backend chapter had an H1
+  anchor that did not match its front matter `slug` — `slug: event-loop-async` under
+  `{#ch-node-event-loop}`, `slug: jwt` under `{#ch-jwt-authentication}`, and 25 more. Every surviving
+  chapter now has `{#ch-<slug>}`. This includes the one **#31a explicitly deferred to Part V**:
+  `Security/06-validation.md` had `slug: validation` against `{#ch-backend-input-validation}`, and since
+  five chapters outside Part V link to that anchor, the **slug** was changed to match the anchor rather
+  than the reverse. Two Part IV files (`Frontend/Security/03-security-headers.md` and its README) were
+  updated from `#ch-cors-and-csrf` to `#ch-cors-csrf` for the same reason.
+- **Zero dangling cross-references.** A scan of every removed anchor found no live referrer for any of
+  the 31 that went away; the two SystemDesign chapters pointing at `#ch-websockets` were repointed to
+  `#ch-realtime-streaming`. `#ch-versioning`, one of the four dangling references recorded at #31, now
+  resolves — the merged chapter kept that slug deliberately.
+- **One scope cut, stated plainly.** `Security/04-encryption.md` (374 lines — the TLS handshake,
+  certificate chains, encryption at rest, envelope encryption and key rotation) is archived. Judged the
+  least-asked material in Part V for this reader against a hard ceiling; HSTS, TLS termination and
+  certificate basics are already covered by `Frontend/Security/03-security-headers.md` in Part IV, whose
+  single reference to the removed chapter was repointed. If Part V ever gains budget, this is the first
+  thing to bring back.
+- **`Archive/backend/` created, mirroring the source layout** (`api/`, `nodejs/`, `nosql/`, `security/`,
+  `sql/`, `testing/`) as `Archive/README.md` requires, with all 15 files moved by `git mv` so rename
+  detection holds, and the layout tree in that README updated.
+- **Headroom is 42 lines, and #54–#55 do not touch Part V** — but two later items do. #70 assigns real
+  chapter numbers, which rewrites every `Chapter ??` reference and may change line counts slightly, and
+  #75 adds `check:code-samples`, which will need the fences to compile. Neither should add net lines.
+  Any future Part V addition has to be paid for by a cut, exactly as BOOK-SPEC § 5 requires.
+
+**Correction to the budget table below.** Its Part V row credits "#24 ✅, #31 pending" with ~5,800 lines
+and gives #31c the remaining +6,510. The realised split is **#24 and #31 delivered ~390 in Part V
+between them, and this item delivered 6,411** — so #31c carried nearly the whole overage, not the
+remainder of it. The table's attribution for Part V is now closed and correct at the total; only the
+per-item split was wrong.
 
 ---
 
@@ -3509,13 +3576,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 14/17 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 15/17 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **83** | **33/83** | **40%**   |
+| **Total** | **83** | **34/83** | **41%**   |
 
 ---
 

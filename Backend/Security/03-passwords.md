@@ -1,368 +1,205 @@
 ---
-title: Passwords and Multi-Factor Authentication
+title: Password Security
 part: 5
 chapter: 0
 slug: password-security
-level: intermediate # beginner | intermediate | advanced
-reading_time: 14
-updated: 2026-08-29
-tags: [backend, security, passwords, mfa, webauthn]
+level: intermediate
+reading_time: 8
+updated: 2026-09-01
+tags: [security, passwords, argon2, mfa, bcrypt]
 in_book: true
 ---
 
-# Passwords and Multi-Factor Authentication {#ch-password-security}
+# Password Security {#ch-password-security}
 
-> Store a password so that a database leak is not an account leak, and add the second factor that makes the first one matter less.
+> Store a password so a database leak is not an account leak, and design a reset flow that is not the weakest link.
 
-**In this chapter:** argon2 and bcrypt · salting · register and login · the rules that actually help · reset flows · brute force · TOTP and WebAuthn
+**In this chapter:** choosing a hashing algorithm · why salt and pepper differ · registration and login · rules that help and rules that do not · reset flows · a second factor
 
 ## 💡 The Core Idea
 
-Assume your database will leak one day. **Password security is about making that leak survivable.**
+You never store a password. You store a value derived from it by a function that is deliberately
+slow and impossible to reverse, so that a stolen database is not a stolen set of accounts.
 
-You never store the password. You store a slow, salted hash of it. When the user logs in, you hash what they typed and compare.
+"Deliberately slow" is the part general-purpose hashes get wrong. SHA-256 is designed to be fast,
+and a modern GPU computes billions of SHA-256 hashes per second — so a leaked SHA-256 table of
+common passwords is cracked in minutes. A password hash must be slow on purpose, and tunable, so it
+can be made slower as hardware improves.
 
-> **Hashing is not encryption.** Encryption is reversible by design — if you can decrypt a password, so can an attacker with your key. Hashing is one-way.
+## Choosing an Algorithm
 
-## Choosing a Hashing Algorithm
-
-The right algorithm is **deliberately slow**. Speed is the attacker's advantage, not yours.
-
-| Algorithm    | Verdict     | Memory-hard | Notes                                     |
-| ------------ | ----------- | ----------- | ----------------------------------------- |
-| **Argon2id** | ✅ Best     | ✅ Yes      | Password Hashing Competition winner       |
-| **bcrypt**   | ✅ Good     | ❌ No       | 25+ years in production, everywhere       |
-| **scrypt**   | ✅ Good     | ✅ Yes      | Solid, less common in Node.js             |
-| **PBKDF2**   | ⚠️ Acceptable | ❌ No     | Use only when required for compliance     |
-| **SHA-256**  | ❌ Never    | ❌ No       | Built for speed — billions of guesses/sec |
-| **MD5**      | ❌ Never    | ❌ No       | Broken                                    |
-
-**Why "memory-hard" matters:** bcrypt is slow on a CPU, but a GPU or custom chip can still run many hashes in parallel. Argon2id also demands a lot of RAM per hash, which is expensive to parallelize.
+| Algorithm | Verdict | Notes |
+| --------- | ------- | ----- |
+| **Argon2id** | ✅ First choice | Memory-hard, so GPUs and ASICs lose their advantage |
+| **scrypt** | ✅ Acceptable | Also memory-hard; fewer good libraries |
+| **bcrypt** | ✅ Still fine | Everywhere, well understood; caps input at 72 bytes |
+| PBKDF2 | ⚠️ Only if a compliance regime demands it | Not memory-hard |
+| SHA-256, MD5, SHA-1 | ❌ Never | Fast by design — that is the whole problem |
 
 ```typescript
-import argon2 from "argon2";
+import argon2 from 'argon2';
 
-// ✅ Recommended defaults — tune so hashing takes ~250–500ms on your hardware
-const ARGON_OPTIONS = {
+// OWASP's 2026 baseline. Tune upwards until hashing takes ~250ms on your hardware.
+const OPTIONS: argon2.Options = {
   type: argon2.argon2id,
-  memoryCost: 19456, // 19 MiB
-  timeCost: 2,
+  memoryCost: 19_456, // 19 MiB — the memory-hard parameter, the one that matters
+  timeCost: 2,        // iterations
   parallelism: 1,
-} as const;
+};
 
-export async function hashPassword(plain: string): Promise<string> {
-  return argon2.hash(plain, ARGON_OPTIONS);
-}
+export const hashPassword = (plain: string): Promise<string> => argon2.hash(plain, OPTIONS);
 
 export async function verifyPassword(hash: string, plain: string): Promise<boolean> {
-  return argon2.verify(hash, plain); // parameters are read from the hash string
-}
-```
-
-**bcrypt is still a fine choice**, and it's the most common answer in interviews:
-
-```typescript
-import bcrypt from "bcrypt";
-
-const COST_FACTOR = 12; // each +1 doubles the work
-
-export async function hashPassword(plain: string): Promise<string> {
-  return bcrypt.hash(plain, COST_FACTOR);
-}
-
-export async function verifyPassword(hash: string, plain: string): Promise<boolean> {
-  return bcrypt.compare(plain, hash);
-}
-```
-
-> ⚠️ **bcrypt truncates at 72 bytes.** Longer passwords are silently cut. If you allow long passphrases, either cap the length or pre-hash with SHA-256 before bcrypt. Argon2 has no such limit.
-
-## Salt and Why It Matters
-
-A **salt** is random data mixed into each password before hashing. It is stored alongside the hash — it is not a secret.
-
-```text
-Without salt:  hash("password123") → same hash for every user
-                                     → one rainbow table cracks them all
-
-With salt:     hash("password123" + "a9f3...") → unique per user
-                                     → the table must be rebuilt per user
-```
-
-Both bcrypt and Argon2 generate and embed the salt for you:
-
-```text
-$argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHQ$hashvalue...
- ^algo     ^ver ^parameters      ^salt        ^hash
-```
-
-That's why one string is all you store — verification reads the parameters back out of it.
-
-**Pepper** is a second secret, shared across all users, kept outside the database (in a secret manager or HSM):
-
-```typescript
-import crypto from "node:crypto";
-
-const PEPPER: string = process.env.PASSWORD_PEPPER!;
-
-function withPepper(plain: string): string {
-  return crypto.createHmac("sha256", PEPPER).update(plain).digest("base64");
-}
-
-// Hash the peppered value. A stolen DB alone is now not enough to crack.
-export async function hashPassword(plain: string): Promise<string> {
-  return argon2.hash(withPepper(plain), ARGON_OPTIONS);
-}
-```
-
-> ✨ Pepper only helps if the attacker gets the database but **not** the application secrets. Rotating it is painful, so add it deliberately — not by default.
-
-## Register and Login
-
-```typescript
-import type { Request, Response } from "express";
-
-export async function register(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body as { email: string; password: string };
-
-  const problem: string | null = checkPasswordStrength(password);
-  if (problem) {
-    res.status(400).json({ error: problem });
-    return;
+  try {
+    return await argon2.verify(hash, plain); // Parameters are embedded in the hash string.
+  } catch {
+    return false; // A malformed stored hash must not throw a 500 at a login endpoint.
   }
-
-  const passwordHash: string = await hashPassword(password);
-  await db.users.insert({ email, passwordHash });
-
-  // Never echo the hash back, not even to admins.
-  res.status(201).json({ email });
 }
 ```
 
-The login path has one subtlety worth calling out:
+The parameters are stored inside the hash, which is what lets you raise the cost later and rehash
+each user transparently on their next successful login.
+
+> ⚠️ bcrypt silently truncates input at 72 bytes. A passphrase manager generating 100-character
+> passwords means the last 28 characters do nothing, and — worse — pre-hashing with SHA-256 to work
+> around it introduces a password-shucking weakness unless done carefully. Argon2id has no such
+> limit.
+
+### Salt and pepper
+
+A **salt** is a random value per password, stored alongside the hash. It means two users with the
+same password have different hashes, so one cracked hash does not reveal the other, and precomputed
+rainbow tables are useless. Argon2 and bcrypt generate and embed the salt for you — you should never
+be writing salt-handling code.
+
+A **pepper** is a single secret value, the same for every password, kept outside the database — in a
+secret manager or an HSM. It means a database leak alone is not enough to start cracking. It is
+optional, and its cost is that rotating it requires rehashing on next login.
+
+## Registration and Login
 
 ```typescript
-export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = req.body as { email: string; password: string };
-  const user = await db.users.findOne({ email });
+async function login(email: string, password: string): Promise<Session> {
+  const user = await db.users.findUnique({ where: { email: email.toLowerCase() } });
 
-  // ⚠️ Hash even when the user doesn't exist, so response time doesn't leak
-  // whether the email is registered (a timing / user-enumeration attack).
-  const hash: string = user?.passwordHash ?? DUMMY_HASH;
-  const ok: boolean = await verifyPassword(hash, password);
+  // Always do the work, even for an unknown email, or response time leaks which
+  // addresses are registered.
+  const stored = user?.passwordHash ?? DUMMY_HASH;
+  const ok = await verifyPassword(stored, password);
 
   if (!user || !ok) {
-    // ✅ One generic message for both cases.
-    res.status(401).json({ error: "Invalid email or password" });
-    return;
+    await recordFailedAttempt(email);
+    // One message for both cases. "No such user" is an account enumeration oracle.
+    throw new AppError('Invalid email or password', 401, 'invalid_credentials');
   }
 
-  res.json({ token: signAccessToken({ sub: user.id, role: user.role }) });
+  // Opportunistic upgrade: the cost parameters changed since this hash was made.
+  if (argon2.needsRehash(user.passwordHash, OPTIONS)) {
+    await db.users.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(password) } });
+  }
+
+  return createSession(user.id);
 }
 ```
 
-**❌ Bad — leaks which emails exist:**
+Three things in that function are the whole answer to "how do you write a login endpoint":
+constant-ish work regardless of whether the account exists, one generic error message, and an
+opportunistic rehash.
 
-```typescript
-if (!user) return res.status(404).json({ error: "No account with that email" });
-if (!ok) return res.status(401).json({ error: "Wrong password" });
-```
+## Rules That Help and Rules That Do Not
 
-**✅ Good:** identical status, identical message, similar timing.
+Current NIST and OWASP guidance is the opposite of what most systems still enforce.
 
-### Upgrading hashes over time
+| Rule | Verdict | Why |
+| ---- | ------- | --- |
+| Minimum 8 characters, ideally 12 | ✅ | Length is what actually resists cracking |
+| Maximum of at least 64 characters | ✅ | Do not block passphrases or managers |
+| Check against a breached-password list | ✅ | The single highest-value check |
+| Allow every Unicode character, including spaces | ✅ | Restricting the alphabet shrinks the search space |
+| Mandatory mixed case, digits and symbols | ❌ | Produces `Password1!` — predictable, and no stronger |
+| Forced rotation every 90 days | ❌ | Produces `Summer2026`, then `Autumn2026` |
+| Truncating or stripping characters silently | ❌ | The user cannot log in and does not know why |
 
-Hardware gets faster, so today's cost factor is tomorrow's weak setting. Re-hash on successful login:
+The breached-password check is worth implementing properly. The "have I been pwned" range API lets
+you check a password against known breaches without sending it: hash it with SHA-1, send the first
+five hex characters, and search the returned suffixes locally — k-anonymity, so the service never
+learns the full hash.
 
-```typescript
-if (await argon2.needsRehash(user.passwordHash, ARGON_OPTIONS)) {
-  // We have the plaintext right here — the only moment we can upgrade it.
-  await db.users.update(user.id, { passwordHash: await hashPassword(password) });
-}
-```
+## Reset Flows
 
-## Password Rules That Actually Help
+A reset flow is a way to obtain an account without the password. It is attacked more often than the
+login form.
 
-Modern guidance (NIST SP 800-63B) is the opposite of what most apps do:
+| Rule | Reason |
+| ---- | ------ |
+| Token is 32+ random bytes | Guessing must be infeasible |
+| Store only the hash of the token | A database leak must not hand over live reset links |
+| 15–60 minute expiry | Shrinks the window |
+| Single use — deleted on success | A link in an inbox is reusable otherwise |
+| Same response whether or not the email exists | Otherwise the form is an enumeration oracle |
+| Invalidate all sessions on success | The attacker may already be logged in |
+| Never include the new password in the email | Email is not a secure channel |
 
-| Rule                              | Verdict | Why                                              |
-| --------------------------------- | ------- | ------------------------------------------------ |
-| Minimum 8 characters (12+ better) | ✅ Do   | Length beats complexity                          |
-| Allow up to 64+ characters        | ✅ Do   | Don't block passphrases or password managers     |
-| Check against breached-password lists | ✅ Do | Stops the passwords attackers try first        |
-| Allow all Unicode and spaces      | ✅ Do   | Arbitrary restrictions push users to weak choices|
-| Force upper + lower + digit + symbol | ❌ Don't | Produces `Password1!`, predictable and weak  |
-| Force expiry every 90 days        | ❌ Don't | Produces `Summer2024`, then `Summer2025`        |
-| Block paste in the password field | ❌ Don't | Breaks password managers                        |
+That last-but-one rule is the one people miss. If an attacker had a session, resetting the password
+should end it — otherwise the recovery did not recover anything.
 
-```typescript
-const COMMON_PASSWORDS = new Set(["password", "123456", "qwerty", "letmein"]);
+## Brute Force and a Second Factor
 
-export function checkPasswordStrength(password: string): string | null {
-  if (password.length < 12) return "Password must be at least 12 characters";
-  if (password.length > 128) return "Password is too long";
-  if (COMMON_PASSWORDS.has(password.toLowerCase())) return "This password is too common";
-  return null;
-}
-```
+Rate limiting on the login endpoint is not optional, and it must be keyed on **both** the account
+and the source. Per-account limiting alone lets an attacker spray one password across a million
+accounts; per-IP limiting alone is defeated by a botnet. See
+[Chapter ?? — Rate Limiting](#ch-rate-limiting) for the mechanism.
 
-> ✨ **Best single upgrade:** check new passwords against the Have I Been Pwned range API. It uses k-anonymity — you send the first 5 characters of the SHA-1 hash, never the password.
+Lockout is a trade: locking an account after five failures stops brute force and hands an attacker a
+denial-of-service against any user whose email they know. Progressive delay plus a CAPTCHA after a
+threshold is usually the better balance.
 
-## Password Reset Flow
+| Second factor | Strength | Note |
+| ------------- | -------- | ---- |
+| **Passkeys / WebAuthn** | ✅ Strongest | Phishing-resistant by design — the credential is bound to the origin |
+| **TOTP** (authenticator app) | ✅ Good | Needs a rate limit of its own; six digits is 1-in-a-million per guess |
+| **Push approval** | ⚠️ Fair | Vulnerable to approval fatigue |
+| **SMS** | ⚠️ Weak | SIM swap and SS7 interception; better than nothing |
+| **Email code** | ❌ | The email account is usually the reset channel already |
 
-The reset link is a temporary credential. Treat it like one.
-
-```text
-1. POST /forgot  { email }
-        │
-        ▼
-2. Always respond "if that account exists, we sent a link"   ← no enumeration
-        │
-        ▼
-3. Generate random token → store SHA-256(token) with 15-min expiry
-        │
-        ▼
-4. Email the raw token as a one-time link
-        │
-        ▼
-5. POST /reset  { token, newPassword }
-        │
-        ▼
-6. Hash the token, look it up, check expiry, then delete it and all sessions
-```
-
-```typescript
-import crypto from "node:crypto";
-
-export async function requestReset(email: string): Promise<void> {
-  const user = await db.users.findOne({ email });
-  if (!user) return; // silent — the response is identical either way
-
-  const raw: string = crypto.randomBytes(32).toString("hex");
-  const tokenHash: string = crypto.createHash("sha256").update(raw).digest("hex");
-
-  await db.resetTokens.insert({
-    userId: user.id,
-    tokenHash, // ⚠️ store the hash — a leaked DB shouldn't grant account takeover
-    expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-  });
-
-  await sendEmail(email, `https://app.example.com/reset?token=${raw}`);
-}
-
-export async function completeReset(raw: string, newPassword: string): Promise<void> {
-  const tokenHash = crypto.createHash("sha256").update(raw).digest("hex");
-  const record = await db.resetTokens.findOne({ tokenHash });
-
-  if (!record || record.expiresAt < new Date()) throw new Error("Invalid or expired link");
-
-  await db.users.update(record.userId, { passwordHash: await hashPassword(newPassword) });
-  await db.resetTokens.deleteByUser(record.userId); // single use
-  await db.sessions.deleteByUser(record.userId); // log out everywhere
-}
-```
-
-## Brute Force Protection
-
-Slow hashing protects a **stolen database**. Rate limiting protects the **live login endpoint**.
-
-```typescript
-import rateLimit from "express-rate-limit";
-
-export const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 5, // per IP per window
-  skipSuccessfulRequests: true, // only failures count
-  message: { error: "Too many attempts. Try again later." },
-});
-
-app.post("/auth/login", loginLimiter, login);
-```
-
-**Layer three defenses:**
-
-| Layer               | Stops                                  | Watch out for                        |
-| ------------------- | -------------------------------------- | ------------------------------------ |
-| **Per-IP limit**    | Simple scripted attacks                | Shared office IPs, NAT               |
-| **Per-account lockout** | Targeted guessing on one account   | Becomes a denial-of-service on users |
-| **CAPTCHA after N failures** | Bots, credential stuffing     | Adds friction — trigger it late      |
-
-> ⚠️ **Exponential backoff beats hard lockout.** Locking an account for 30 minutes lets an attacker lock out your users on purpose. Increasing delays slow the attacker without a permanent block.
-
-## Adding a Second Factor
-
-Every control so far protects the password. None of them help when the user reuses it and the other site
-leaks first. A second factor changes the failure mode: a stolen password is no longer a stolen account.
-
-| Factor                | Strength  | Trade-off                                                |
-| --------------------- | --------- | -------------------------------------------------------- |
-| **SMS code**          | Weak      | SIM-swap attacks, but still far better than nothing       |
-| **TOTP** (authenticator app) | Strong | Phishable — a fake site can relay the code in real time |
-| **Push approval**     | Strong    | Fatigue: users approve prompts they did not trigger       |
-| **WebAuthn / passkey**| Strongest | Phishing-resistant; the credential is bound to the origin |
-
-TOTP is the common baseline: a shared secret plus the current time produces a six-digit code, so no
-network round trip is needed.
-
-```typescript
-import { authenticator } from "otplib";
-
-// Enrolment: generate once, store against the user, show as a QR code.
-const secret: string = authenticator.generateSecret();
-
-function verifyTotp(userSecret: string, token: string): boolean {
-  return authenticator.verify({ token, secret: userSecret });
-}
-```
-
-WebAuthn is the one worth arguing for on anything sensitive. The credential is scoped to your origin, so a
-convincing phishing page cannot use it — the browser simply will not release a credential registered for
-`bank.com` to `bank-secure.com`. That property is what TOTP lacks.
-
-> ⚠️ **Design the recovery path before you launch the feature.** Users lose phones. Issue single-use
-> recovery codes at enrolment, require re-authentication before a factor can be removed, and treat "reset
-> my MFA" as an identity-proofing problem rather than a support ticket.
+Passkeys are the direction of travel and worth being able to describe: a key pair generated on the
+device, with the private key never leaving it, and the challenge signed per origin — which is why
+phishing does not work against them.
 
 ## 🔑 Key Takeaways
 
-- Store a slow, salted hash — Argon2id by preference, bcrypt at cost 12 or above — and tune it so one hash takes 250–500 ms on production hardware.
-- Length beats character-class rules: allow long passphrases, drop the symbol requirements, and check new passwords against breached lists.
-- Never reveal whether an account exists, on login or on reset; keep the message and the timing identical.
-- Reset tokens are credentials: random, hashed at rest, short-lived, single-use, and they invalidate every existing session on use.
-- A second factor is what makes password reuse survivable, and WebAuthn is the only common one that resists phishing.
+- Password hashing must be deliberately slow and tunable; Argon2id is the current first choice.
+- Salt is per-password and handled by the library; pepper is one secret kept outside the database.
+- A login endpoint must take similar time and return an identical message whether or not the account exists.
+- Length and a breached-password check beat composition rules and forced rotation, which make passwords worse.
+- A reset must invalidate every existing session, or the recovery leaves the attacker logged in.
 
 ## Interview Questions
 
-**Q1: How do you store passwords?**
+**Q: Why not SHA-256 with a salt?**
 
-Hashed with a slow, salted, adaptive algorithm — Argon2id, or bcrypt with cost 12+. Never plaintext, never encryption (reversible), never a fast hash like SHA-256 or MD5. The salt is generated per user and embedded in the hash string by the library.
+Because SHA-256 is fast by design — billions of hashes per second on a GPU — so a salt only stops
+precomputed tables, not brute force against each hash individually. A password hash needs a tunable
+work factor and, ideally, to be memory-hard so specialised hardware gains no advantage. Argon2id and
+bcrypt are built for exactly that.
 
-**Q2: Why is SHA-256 wrong for passwords?**
+**Q: Salt or pepper?**
 
-It's designed to be fast. A GPU can compute billions of SHA-256 hashes per second, so an offline attack on a leaked database cracks common passwords almost immediately. bcrypt and Argon2 are deliberately slow and tunable, which keeps the attacker's cost high as hardware improves.
+Both, if you can. The salt is random per password, stored with the hash, and defeats rainbow tables
+and hash comparison between users. The pepper is a single secret stored outside the database, so
+that leaking the database is not enough to begin cracking. The salt is mandatory and free; the
+pepper is optional and costs you a rehash-on-login when it rotates.
 
-**Q3: What is a salt, and does it need to be secret?**
+**Q: Your login endpoint responds in 50 ms for unknown emails and 300 ms for known ones. Why does that matter?**
 
-Random data unique per password, mixed in before hashing, so identical passwords produce different hashes. That defeats rainbow tables and means cracking must be done per user. It doesn't need to be secret — it's stored alongside the hash. It only needs to be unique and random.
-
-**Q4: Salt vs. pepper?**
-
-The salt is per-user and stored with the hash. The pepper is a single secret shared across all users and stored outside the database. If only the database leaks, the pepper still blocks cracking. Rotating a pepper is hard, so it's an extra layer, not a replacement for a good algorithm.
-
-**Q5: Why one generic "invalid email or password" message?**
-
-Different messages tell an attacker which emails are registered, which is the first step in credential stuffing. I also hash against a dummy value when the user isn't found, so response timing doesn't leak the same information.
-
-**Q6: How do you build a secure password reset?**
-
-Generate a cryptographically random token, store only its hash with a short expiry (15 minutes), and email the raw value. On use, hash the incoming token, look it up, check expiry, then delete it and invalidate all existing sessions. Respond identically whether or not the account exists.
-
-**Q7: Should passwords expire every 90 days?**
-
-No — NIST dropped that recommendation. Forced rotation leads to predictable variations like `Summer2024` → `Summer2025`. Force a change only when there's evidence of compromise, and instead check new passwords against known-breached lists and offer MFA.
+It is an account enumeration oracle: an attacker can confirm which addresses are registered without
+a single successful login, which feeds credential stuffing and phishing. The fix is to verify against
+a dummy hash when the user does not exist, so the work — and therefore the timing — is comparable,
+and to return one message for both cases.
 
 ## What to Read Next
 
-- [Chapter ?? — JWT Authentication](#ch-jwt-authentication) — what the server issues once the password check passes
-- [Chapter ?? — OAuth 2.0](#ch-oauth-2) — delegating the password problem to an identity provider
-- [Chapter ?? — Encryption in Transit and at Rest](#ch-encryption-in-transit-and-at-rest) — why passwords are hashed rather than encrypted
+- [Chapter ?? — Sessions and JWTs](#ch-jwt) — what is issued once the password checks out
+- [Chapter ?? — OAuth 2.1 and OpenID Connect](#ch-oauth) — delegating this problem to someone else
+- [Chapter ?? — Rate Limiting](#ch-rate-limiting) — the limiter the login endpoint depends on

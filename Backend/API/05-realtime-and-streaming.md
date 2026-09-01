@@ -1,20 +1,21 @@
 ---
-title: WebSockets
+title: Real-Time and Streaming APIs
 part: 5
 chapter: 0
-slug: api-websockets
-level: intermediate # beginner | intermediate | advanced
-reading_time: 12
-updated: 2026-08-31
-tags: [backend, api, websockets]
+slug: realtime-streaming
+level: advanced
+reading_time: 11
+updated: 2026-09-01
+tags: [api, websockets, sse, streaming, realtime, backend]
 in_book: true
 ---
 
-# WebSockets {#ch-websockets}
+# Real-Time and Streaming APIs {#ch-realtime-streaming}
 
-> Run a socket server that authenticates, authorises and survives contact with real clients.
+> Push to a client over the right transport, and rebuild on the socket every guarantee the HTTP
+> middleware used to give you.
 
-**In this chapter:** what the upgrade skips · a typed server · authenticating a socket · rooms and broadcast · the Redis adapter · backpressure and dead connections
+**In this chapter:** SSE and HTTP streaming · what the upgrade skips · a typed, validated socket server · handshake auth and revalidation · broadcast across instances · backpressure
 
 ## 💡 The Core Idea
 
@@ -38,13 +39,6 @@ Sec-WebSocket-Version: 13
 Origin: https://app.example.com
 ```
 
-```http
-HTTP/1.1 101 Switching Protocols
-Upgrade: websocket
-Connection: Upgrade
-Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
-```
-
 After `101` the connection is no longer speaking HTTP. Two consequences come up constantly:
 
 - **Cookies are sent on the handshake**, and the browser does **not** apply CORS to WebSockets. A malicious page can open a socket to your server carrying the user's cookies, so the server must check `Origin` itself.
@@ -61,41 +55,64 @@ Use `wss://` always. Plain `ws://` gets mangled by intercepting proxies and is t
 | "Fresh within ~30 seconds" is acceptable | No — poll |
 | Tens of thousands of concurrent connections and a small team | Consider buying it — Ably, Pusher, AWS API Gateway WebSockets |
 
+## Server-Sent Events and HTTP Streaming
+
+Before reaching for a socket, check whether one direction is enough. **SSE** is a long-lived HTTP
+response of `text/event-stream`, and the browser's `EventSource` handles reconnection and
+last-event-id replay for you. It is plain HTTP, so your auth middleware, rate limiter and logging
+all still apply — the single biggest operational advantage over WebSockets.
+
+```typescript
+app.get("/events", requireAuth, async (req, res) => {
+  res.set({
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache, no-transform", // no-transform stops proxies buffering
+    Connection: "keep-alive",
+  });
+  res.flushHeaders();
+
+  // The client resumes with Last-Event-ID, so a gap is recoverable without a separate call.
+  const since = req.header("Last-Event-ID");
+  const unsubscribe = bus.subscribe(req.user.id, since, (event: Event): void => {
+    res.write(`id: ${event.id}\nevent: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`);
+  });
+
+  const keepAlive = setInterval((): void => res.write(": ping\n\n"), 15_000);
+  req.on("close", (): void => { clearInterval(keepAlive); unsubscribe(); });
+});
+```
+
+Two traps. Over HTTP/1.1 a browser allows six connections per origin and an SSE stream occupies
+one for its whole life; on HTTP/2 that limit is gone. And any proxy that buffers will hold your
+events until its buffer fills, which is why `no-transform` and the periodic comment ping are not
+optional.
+
+**Streaming a token-by-token response** — the shape an AI feature needs — is the same mechanism
+with a simpler contract: keep the response open and write chunks as they are produced. Choose SSE
+when the client needs typed events and resumability, and a plain chunked response when it only
+needs the text.
+
 ## A Typed Server
 
 Socket.IO over raw `ws` buys reconnection, rooms, acknowledgements and a polling fallback. Type the events, or you lose every guarantee at the boundary.
 
 ```typescript
-import { Server } from "socket.io";
-import http from "node:http";
-import { z } from "zod";
-
 // ── Event contracts, shared with the client ───────────────────────
 interface ServerToClient {
   message: (payload: { id: string; room: string; body: string; at: string }) => void;
-  presence: (payload: { userId: string; online: boolean }) => void;
   error: (payload: { code: string; message: string }) => void;
 }
-
 interface ClientToServer {
-  join: (room: string, ack: (ok: boolean) => void) => void;
   send: (payload: { room: string; body: string }, ack: (id: string) => void) => void;
 }
+interface SocketData { userId: string } // set by the auth middleware below
 
-interface SocketData {
-  userId: string; // set by the auth middleware below
-}
+const io = new Server<ClientToServer, ServerToClient, Record<string, never>, SocketData>(server, {
+  // Not the same as CORS on your REST API — browsers don't enforce it here.
+  cors: { origin: ["https://app.example.com"], credentials: true },
+  maxHttpBufferSize: 1e5, // 100 KB per message; the default 1 MB is generous
+});
 
-const io = new Server<ClientToServer, ServerToClient, Record<string, never>, SocketData>(
-  http.createServer(),
-  {
-    // Not the same as CORS on your REST API — browsers don't enforce it here.
-    cors: { origin: ["https://app.example.com"], credentials: true },
-    maxHttpBufferSize: 1e5, // 100 KB per message; the default 1 MB is generous
-  },
-);
-
-// ── Validate every inbound payload ────────────────────────────────
 const SendPayload = z.object({
   room: z.string().regex(/^[a-z0-9-]{3,40}$/),
   body: z.string().min(1).max(2000),
@@ -103,11 +120,10 @@ const SendPayload = z.object({
 
 io.on("connection", (socket) => {
   socket.on("send", async (raw, ack) => {
-    const parsed = SendPayload.safeParse(raw);
+    const parsed = SendPayload.safeParse(raw); // Nothing else validated this.
     if (!parsed.success) {
       return socket.emit("error", { code: "INVALID_PAYLOAD", message: "Bad message" });
     }
-
     const { room, body } = parsed.data;
 
     // Authorise per message — joining a room once is not standing permission.
@@ -117,7 +133,7 @@ io.on("connection", (socket) => {
 
     const saved = await messages.create({ room, body, userId: socket.data.userId });
     io.to(room).emit("message", { ...saved, at: saved.createdAt.toISOString() });
-    ack(saved.id); // acknowledgement — the client knows it persisted
+    ack(saved.id); // Acknowledgement — the client knows it persisted.
   });
 });
 ```
@@ -148,19 +164,9 @@ io.use((socket, next) => {
 
 **Token expiry is the subtle problem.** A connection can outlive the token that opened it — a 15-minute JWT holding a socket open for six hours means five and three-quarter hours of unauthenticated access.
 
-```typescript
-// Re-check periodically and disconnect when the credential dies.
-io.on("connection", (socket) => {
-  const timer = setInterval(async () => {
-    if (!(await stillValid(socket.data.userId))) {
-      socket.emit("error", { code: "SESSION_EXPIRED", message: "Reauthenticate" });
-      socket.disconnect(true);
-    }
-  }, 60_000);
-
-  socket.on("disconnect", () => clearInterval(timer));
-});
-```
+The fix is a periodic check on an interval — revalidate the session, emit a `SESSION_EXPIRED`
+error and call `socket.disconnect(true)` when it fails — cleared on `disconnect` so the timer does
+not outlive the socket.
 
 A token in `auth` also sidesteps the `Origin` problem entirely: nothing is sent automatically, so a hostile page has no credential to replay.
 
@@ -168,14 +174,10 @@ A token in `auth` also sidesteps the `Origin` problem entirely: nothing is sent 
 
 A room is a set of socket ids on one server. It is the right abstraction for "everyone watching document 42".
 
-```typescript
-socket.join(`room:${roomId}`);             // this socket joins
-socket.join(`user:${socket.data.userId}`); // every device of one user
-
-io.to(`room:${roomId}`).emit("message", payload);   // everyone in the room
-socket.to(`room:${roomId}`).emit("presence", p);    // everyone *except* the sender
-io.to(`user:${userId}`).emit("presence", p);        // all of one user's tabs
-```
+`socket.join()` adds a socket to a room. Join two: `room:<id>` for the document or channel, and
+`user:<id>` for every device of one user. Then `io.to(room).emit()` reaches everyone,
+`socket.to(room).emit()` reaches everyone except the sender, and `io.to(`user:${id}`).emit()`
+reaches all of one user's tabs.
 
 The `user:<id>` room is the pattern to remember. People have three tabs and a phone. Addressing a user, not a socket, is what makes notifications behave correctly.
 
@@ -184,13 +186,9 @@ The `user:<id>` room is the pattern to remember. People have three tabs and a ph
 One instance holds its own sockets and knows nothing about the others, so a broadcast from pod 1 never reaches the half of the room sitting on pod 2. [Chapter ?? — Real-Time Communication](#ch-realtime-communication) covers why the topology behaves that way and what it costs. The wiring is small:
 
 ```typescript
-import { createAdapter } from "@socket.io/redis-adapter";
-import { createClient } from "redis";
-
 const pubClient = createClient({ url: process.env.REDIS_URL });
 const subClient = pubClient.duplicate();
 await Promise.all([pubClient.connect(), subClient.connect()]);
-
 io.adapter(createAdapter(pubClient, subClient));
 
 // Now this reaches every matching socket on every pod.
@@ -215,22 +213,8 @@ For high-frequency data, **coalesce instead of queueing**: keep only the latest 
 
 **Dead connections need heartbeats.** A client that loses power sends no close frame, so the server keeps the socket — and its memory — indefinitely. Socket.IO pings by default (`pingInterval`, `pingTimeout`); with raw `ws` you send ping frames and drop sockets that miss a pong.
 
-```typescript
-const alive = new WeakSet<WebSocket>();
-
-wss.on("connection", (ws) => {
-  alive.add(ws);
-  ws.on("pong", () => alive.add(ws));
-});
-
-setInterval(() => {
-  for (const ws of wss.clients) {
-    if (!alive.has(ws)) { ws.terminate(); continue; } // missed the last round
-    alive.delete(ws);
-    ws.ping();
-  }
-}, 30_000);
-```
+The pattern with raw `ws` is a set of live sockets: mark a socket alive on `pong`, and every 30
+seconds terminate any socket still unmarked from the previous round before pinging again.
 
 **Rate limit per socket too** — one connection can send thousands of messages a second. Reuse the token bucket from [Chapter ?? — Rate Limiting](#ch-rate-limiting), keyed on `socket.data.userId` rather than an IP.
 
@@ -238,12 +222,6 @@ setInterval(() => {
 
 ❌ **Authorising once, at connect.** A client that joined a room legitimately may have lost access since.
 ✅ Check permission inside every handler, on every message.
-
-❌ **Putting the token in the query string.** It lands in access logs, proxy logs and browser history.
-✅ Send it in the handshake `auth` payload.
-
-❌ **Trusting the payload shape because it came over your own socket.** Nothing validated it.
-✅ Parse every inbound message with a schema before touching it.
 
 ❌ **Broadcasting from one pod and calling it done.** It works in development, where there is one pod.
 ✅ Add a pub/sub adapter before the second instance exists, not after.
@@ -273,13 +251,13 @@ A token in the handshake `auth` payload, verified in middleware before the conne
 
 A pub/sub adapter — Redis for Socket.IO — so every pod receives every broadcast and delivers it to its own sockets. Sticky sessions are still needed if the long-polling fallback is enabled. The adapter does not give durability, since Redis Pub/Sub is fire-and-forget, and every message fans out to every pod whether or not it holds a relevant socket, which stops scaling somewhere in the low dozens.
 
-**Q: What happens when a client cannot keep up?**
+**Q: When would you not build a socket server at all?**
 
-Its outbound messages queue in your process, which is an unbounded memory leak. I watch `bufferedAmount` and either drop the slow client or coalesce — keeping only the newest value per key and flushing on an interval, which is what a price feed actually wants. Separately, heartbeats are needed to reap connections that died without sending a close frame.
-
-**Q: When would you not build this yourself?**
-
-Past a few tens of thousands of concurrent connections, or on a team without operational capacity for stateful infrastructure. A managed service removes connection scaling, fan-out sharding and deploy draining as things you own. The tradeoff is per-connection cost and a vendor in the hot path of your most latency-sensitive feature, so I would want the message volume forecast before committing either way.
+When the traffic is one-directional — SSE keeps your HTTP middleware, auth and logging, and the
+browser handles reconnection for you. When "fresh within thirty seconds" is acceptable, polling is
+cheaper to operate than anything stateful. And past a few tens of thousands of concurrent
+connections on a small team, a managed service removes fan-out sharding and deploy draining as
+things you own.
 
 ## What to Read Next
 

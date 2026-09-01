@@ -1,65 +1,50 @@
 ---
-title: Part V — NoSQL
+title: Part V — NoSQL and Caching
 part: 5
 chapter: 0
 slug: backend-nosql-index
-level: intermediate # beginner | intermediate | advanced
-reading_time: 3
-updated: 2026-08-28
-tags: [nosql, mongodb, redis, aggregation, mongoose]
+level: intermediate
+reading_time: 2
+updated: 2026-09-01
+tags: [nosql, mongodb, redis, schema, aggregation]
 in_book: true
 ---
 
-# Part V — NoSQL
+# Part V — NoSQL and Caching
 
-Two databases, chosen because they are the two a frontend-heavy full stack engineer actually meets:
-MongoDB, which is where the document model shows up in practice, and Redis, which is where almost
-every cache, session store, rate limiter and queue eventually lands.
+Two stores, chosen for how often they actually appear: MongoDB, because a great many product
+codebases have one, and Redis, because almost every production service has one somewhere.
 
-The framing that matters is that "schemaless" is a claim about the database, not about your data.
-Your documents have a shape; the only question is whether it is written down and enforced somewhere.
-Deciding what to embed and what to reference **is** your schema design, and getting it wrong is
-expensive in exactly the same way as getting a relational schema wrong.
+The framing throughout is comparative. A document store is worth knowing partly for itself and
+partly because articulating what it trades away is how you demonstrate that you understand the
+relational model too.
 
 ## Chapters
 
-| #  | Chapter                                                    | What it answers                                                  |
-| -- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [MongoDB Fundamentals](./01-mongodb.md)                    | What does a document database actually guarantee you?            |
-| 02 | [Document Design Patterns](./02-design-patterns.md)        | What do you embed, and what do you reference?                    |
-| 03 | [Aggregation Pipeline](./03-aggregation.md)                | How do you push work into the database instead of looping?       |
-| 04 | [MongoDB Indexing](./04-indexing.md)                       | Will the planner actually use this index — and can you prove it? |
-| 05 | [Mongoose](./05-mongoose.md)                               | Where does the ODM stop paying for itself?                       |
-| 06 | [Redis](./06-redis.md)                                     | Which data structure, and what is its expiry?                    |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [MongoDB](./01-mongodb.md) | What does the document model buy, and what does it cost? |
+| 02 | [Document Schema Design](./02-schema-design.md) | Embed or reference, and how do you tell? |
+| 03 | [Indexing and Aggregation](./03-indexing-and-aggregation.md) | Why is this pipeline slow? |
+| 04 | [Redis](./04-redis.md) | Which structure, and what happens when the process restarts? |
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **designs an API the frontend can actually consume well, and knows
-why the query is slow.** For document stores the "why is it slow" answer is usually modelling:
-
-- **Embed or reference?** The rule is about access pattern and growth: embed what you always read
-  together and that is bounded, reference what grows without limit or is read on its own. A candidate
-  who answers by preference has not designed one.
-- **Do you know MongoDB's actual consistency guarantees?** Single-document operations are atomic;
-  multi-document transactions exist but cost. Read and write concerns are the knobs, and knowing they
-  exist is the question.
-- **Can you make an index prove itself?** `explain()` and the `IXSCAN` versus `COLLSCAN` distinction.
-  Compound index prefix order matters and is the most common mistake in this area.
-- **What is Redis for, here?** Cache, session store, rate limiter, lock, queue — each with a
-  different data structure and a different failure mode. "It is fast" is not an answer, and every key
-  needs an expiry policy or you have built a memory leak with a network interface.
-- **What is your cache invalidation story?** Time-to-live is the default and is usually right.
-  Explicit invalidation on write is correct and hard. The wrong answer is having neither and
-  discovering the staleness in production.
-- **When would you not reach for MongoDB?** Anything with real relational integrity requirements,
-  or joins across three or more collections in the hot path. Being willing to say that makes the rest
-  of the answer credible.
+- **Embed or reference.** The answer must come from the access pattern and the growth bound, not from
+  an entity diagram. The 16 MB document limit turns "unbounded" into a hard constraint.
+- **What is atomic.** A single document, always. Anything wider needs an explicit transaction, and
+  needing them routinely is a modelling signal.
+- **The ESR rule.** Equality, sort, range — and what an in-memory sort costs when you get it wrong.
+- **Shard key choice.** Why a monotonic key sends every insert to one shard.
+- **Pub/Sub against Streams.** One loses messages by design; the other does not. Choosing the wrong
+  one for a job queue is a common mistake.
+- **Whether Redis is a system of record.** It is not, and being clear about that matters more than
+  knowing its commands.
 
 ## Reading Order
 
-01 → 02 → 04 is the spine: the model, the modelling decision, and making queries fast. 03 and 05 are
-practical and can wait until you need them. 06 is independent of the rest and can be read first if
-Redis is what your team runs.
+01 → 02 → 03 in order; each assumes the one before. 04 is independent and can be read first if
+caching is the immediate need.
 
-**Interview sprint:** 02 → 04 → 06. The embed-or-reference question, the index question, and the
-"what would you use Redis for" question cover most of it.
+**Interview sprint:** 02 → 04. The embed-or-reference judgement and the Redis structure choice are
+the two that come up reliably.

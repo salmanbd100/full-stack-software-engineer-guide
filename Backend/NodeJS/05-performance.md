@@ -3,267 +3,208 @@ title: Node.js Performance
 part: 5
 chapter: 0
 slug: nodejs-performance
-level: advanced # beginner | intermediate | advanced
+level: advanced
 reading_time: 9
-updated: 2026-08-28
-tags: [backend, nodejs, performance]
+updated: 2026-09-01
+tags: [nodejs, performance, profiling, caching, memory]
 in_book: true
 ---
 
-# Node.js Performance {#ch-node-performance}
+# Node.js Performance {#ch-nodejs-performance}
 
-> Find the actual bottleneck before changing anything, because it is rarely where you expect.
+> Find the actual bottleneck with a profile instead of a guess, and fix the three things that are usually wrong.
 
-**In this chapter:** profiling and flame graphs · blocking the loop · the database, where the time usually is · caching · memory leaks · HTTP-level wins
+**In this chapter:** measuring before changing · where the time really goes · caching with a correct key · memory leaks · HTTP-level wins
 
-## 💡 Measure, Then Fix
+## 💡 The Core Idea
 
-Most Node "optimization" work targets the wrong thing. Developers micro-tune loops while a missing database index costs 400 ms per request.
+Node performance work has a reliable order, and almost every wasted week comes from skipping the
+first step. **Measure, find the slowest thing, fix that, measure again.**
 
-The order that actually pays:
+The reason this matters more in Node than elsewhere is that the intuitive answer is nearly always
+wrong. Engineers optimise their JavaScript, and the profile shows 5 ms of JavaScript and 400 ms
+of waiting on a database that has no index. Node is a coordination layer; most of its latency
+belongs to something it called.
 
-| Priority | Area                          | Typical win     |
-| -------- | ----------------------------- | --------------- |
-| 🔴 **1** | Stop blocking the event loop  | Seconds         |
-| 🔴 **2** | Fix N+1 and missing indexes   | Hundreds of ms  |
-| ⚠️ **3** | Cache what's expensive        | Tens to hundreds of ms |
-| ⚠️ **4** | Parallelise independent I/O   | Tens of ms      |
-| ✅ **5** | V8 and JS micro-tuning        | Microseconds    |
+## How It Works
 
-> Nobody has ever fixed a slow Node service by rewriting a `for` loop. Profile first — the bottleneck is rarely where you assume.
+### Measure the right number
 
----
+| Metric | Says | Trap |
+| ------ | ---- | ---- |
+| **p50 latency** | The typical request | Hides the tail entirely |
+| **p99 latency** | The worst 1% — where users churn | Needs volume to be stable |
+| **Event loop delay** | Whether the loop is blocked | The single best Node health signal |
+| **RSS** | Total process memory | Includes buffers outside the heap |
+| **Heap used** | V8 objects | Growth across restarts means a leak |
 
-## Find the Bottleneck
-
-**Event loop delay** is the first metric to check. If it's high, nothing else matters.
-
-```typescript
-import { monitorEventLoopDelay } from "node:perf_hooks";
-
-const h = monitorEventLoopDelay({ resolution: 20 });
-h.enable();
-
-setInterval(() => {
-  logger.info({ p99Ms: h.percentile(99) / 1e6, meanMs: h.mean / 1e6 }, "loop delay");
-  h.reset();
-}, 30_000);
-```
-
-Single-digit ms is healthy. Sustained triple digits means requests are queueing behind CPU work.
-
-**Then get a CPU profile.** The blocking function sits at the top of the flame graph.
-
-```bash
-node --cpu-prof --cpu-prof-dir=./profiles app.js   # load it in Chrome DevTools
-```
-
-**Time individual operations** with `perf_hooks`:
+Event loop delay is the metric to alert on. If it sits above ~50 ms, no amount of database tuning
+will help, because requests are queued behind your own code.
 
 ```typescript
-import { performance } from "node:perf_hooks";
+import { monitorEventLoopDelay } from 'node:perf_hooks';
 
-const start = performance.now();
-const rows = await db.query(sql);
-logger.info({ ms: performance.now() - start, rows: rows.length }, "query");
+const histogram = monitorEventLoopDelay({ resolution: 20 });
+histogram.enable();
+
+setInterval((): void => {
+  metrics.gauge('event_loop.p99_ms', histogram.percentile(99) / 1e6);
+  histogram.reset();
+}, 10_000).unref();
 ```
 
-> ⚠️ Benchmark against production-shaped data. A query that's fast on 100 rows can be catastrophic on 10 million.
+### Find the bottleneck
 
----
+Three tools, in the order you should reach for them:
 
-## Don't Block the Event Loop
+1. **A flame graph** — `node --cpu-prof app.js`, then open the `.cpuprofile` in Chrome DevTools.
+   Wide bars are where the CPU went. This finds the accidental `JSON.parse` of a 3 MB payload.
+2. **A heap snapshot pair** — take one, apply load, take another, compare in DevTools. Anything
+   whose retained size grows across both is a leak candidate.
+3. **Database query logs with timings** — `log_min_duration_statement` in Postgres, the profiler
+   in MongoDB. This is where the answer usually is.
 
-One synchronous CPU burst stalls **every** concurrent request on that process.
+Time the boundaries in code so the profile is not the only signal:
 
 ```typescript
-// ❌ 200 ms of CPU — every other request waits 200 ms
-app.post("/hash", (req, res) => {
-  const hash = crypto.pbkdf2Sync(req.body.password, salt, 600_000, 32, "sha256");
-  res.json({ hash: hash.toString("hex") });
-});
-
-// ✅ Async version runs on libuv's thread pool
-app.post("/hash", async (req, res) => {
-  const hash = await promisify(crypto.pbkdf2)(req.body.password, salt, 600_000, 32, "sha256");
-  res.json({ hash: hash.toString("hex") });
-});
+async function timed<T>(name: string, fn: () => Promise<T>): Promise<T> {
+  const start = performance.now();
+  try {
+    return await fn();
+  } finally {
+    metrics.histogram(`op.${name}.ms`, performance.now() - start);
+  }
+}
 ```
 
-Common blockers, all easy to miss: `JSON.parse` on multi-MB payloads, `*Sync` file APIs, `sort()` on huge arrays, and backtracking regexes.
+### Where the time actually goes
 
-🔴 **Regex backtracking is a denial-of-service vector.** `/^(a+)+$/` against a crafted string runs for years.
+In a typical request that takes 400 ms, the split is usually close to this:
 
-```typescript
-// ❌ Nested quantifier — exponential on failure
-const bad = /^(\s*\w+)+$/;
+| Cost | Share | Fix |
+| ---- | ----- | --- |
+| Unindexed or N+1 queries | 60–80% | Index, batch, or join |
+| Serialisation of a large response | 5–15% | Paginate; select fewer columns |
+| Outbound HTTP with no connection reuse | 5–15% | Keep-alive agent |
+| Your JavaScript | Under 5% | Usually not the problem |
 
-// ✅ Bound the input, keep the pattern linear
-if (input.length > 256) throw new ValidationError("too long");
-```
-
-For genuine CPU work, use [worker threads](./01-event-loop-async.md) or [clustering](./08-clustering.md).
-
-⚠️ **`UV_THREADPOOL_SIZE` defaults to 4.** File I/O, DNS, and `pbkdf2`/`bcrypt` share those four threads. Heavy hashing plus file reads will contend — raise it toward your core count.
-
----
-
-## Database: Where the Time Actually Goes
-
-**Always pool connections.** Opening a TCP connection and authenticating per query costs more than the query.
-
-```typescript
-const pool = new Pool({
-  max: 20,                       // roughly cores × 2–4, and within the DB's limit
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000, // fail fast rather than queue forever
-});
-```
-
-⚠️ Pool size is not "bigger is better." Every connection costs memory on the database, and beyond its capacity you just move the queue.
-
-**Kill N+1 queries** — usually the single biggest win in a CRUD service:
+**The N+1, which is the most common single defect:**
 
 ```typescript
 // ❌ 1 + N round trips
-const posts = await db.posts.findAll();
+const posts = await db.posts.findMany({ take: 20 });
 for (const post of posts) {
-  post.author = await db.users.findById(post.authorId);   // N queries
+  post.author = await db.users.findUnique({ where: { id: post.authorId } });
 }
 
-// ✅ 2 round trips
-const posts = await db.posts.findAll();
-const authors = await db.users.findByIds(posts.map((p) => p.authorId));
+// ✅ 2 round trips, regardless of page size
+const posts = await db.posts.findMany({ take: 20 });
+const authors = await db.users.findMany({
+  where: { id: { in: [...new Set(posts.map((p) => p.authorId))] } },
+});
 const byId = new Map(authors.map((a) => [a.id, a]));
-posts.forEach((p) => { p.author = byId.get(p.authorId); });
 ```
 
-> `Map` lookup is O(1); scanning an array inside the loop would just move the N+1 from the database into your CPU.
+**Reuse sockets on outbound calls.** Without an agent, every `fetch` pays a TCP and TLS
+handshake — 30–80 ms across a region.
 
-Also: select only the columns you need, paginate with a cursor rather than `OFFSET`, and index every column you filter or sort on.
-
----
+```typescript
+import { Agent, setGlobalDispatcher } from 'undici';
+setGlobalDispatcher(new Agent({ keepAliveTimeout: 30_000, connections: 128 }));
+```
 
 ## Caching
 
-```text
-Request ──▶ in-process Map ──▶ Redis ──▶ Database
-            ~0.001 ms          ~1 ms      ~10-100 ms
-```
-
-**In-process** is fastest but is per-instance and dies on restart. Use it for small, hot, rarely-changing data — and always bound it:
+Caching is the largest available win and the easiest to get subtly wrong. The key must contain
+**everything the response varies by** — tenant, locale, permissions, version.
 
 ```typescript
-import { LRUCache } from "lru-cache";
+async function cached<T>(key: string, ttlSeconds: number, fn: () => Promise<T>): Promise<T> {
+  const hit = await redis.get(key);
+  if (hit !== null) return JSON.parse(hit) as T;
 
-const cache = new LRUCache<string, Config>({ max: 1_000, ttl: 60_000 });
-```
-
-🔴 **An unbounded `Map` used as a cache is a memory leak.** It only ever grows.
-
-**Redis** is shared across instances and survives restarts — the right default above a single process. See [Redis](../NoSQL/06-redis.md).
-
-⚠️ **Guard against cache stampede.** When a hot key expires, every concurrent request misses at once and they all hit the database together. De-duplicate in-flight loads:
-
-```typescript
-const inFlight = new Map<string, Promise<User>>();
-
-function loadUser(id: string): Promise<User> {
-  const existing = inFlight.get(id);
-  if (existing) return existing;                       // reuse the pending request
-
-  const p = db.users.findById(id).finally(() => inFlight.delete(id));
-  inFlight.set(id, p);
-  return p;
+  const value = await fn();
+  // Set with expiry in one command; a separate EXPIRE can be orphaned by a crash.
+  await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+  return value;
 }
+
+// Tenant and locale are in the key, so no cross-tenant leak is possible.
+const page = await cached(`catalogue:v2:${tenantId}:${locale}:${pageNo}`, 300, load);
 ```
 
----
+Three rules:
+
+- **Version the key** (`v2` above). A shape change with the old key serves stale objects that no
+  longer parse.
+- **Always set a TTL.** A cache with no expiry is a memory leak with a nicer name.
+- **Guard the stampede.** When a hot key expires, every request misses at once. A short lock, or
+  serving stale while one request refreshes, prevents the pile-up.
 
 ## Memory Leaks
 
-Node's heap grows until the process is OOM-killed. The four usual causes:
+Four causes account for nearly all of them:
 
-| Cause | Fix |
-| --- | --- |
-| Unbounded cache or array | LRU with a `max` |
-| Listeners added per request | `removeListener`, or `once` |
-| Timers never cleared | `clearInterval` on shutdown |
-| Closures holding big objects | Narrow the captured scope |
-
-```typescript
-// ❌ Adds a listener on every request — leaks, then warns at 11
-app.use((req, _res, next) => {
-  emitter.on("event", () => handle(req));
-  next();
-});
-```
-
-> A `MaxListenersExceededWarning` is almost always a real leak, not a limit to raise.
-
-**Confirm before you hunt:** take two heap snapshots under load, minutes apart, and compare in Chrome DevTools. Objects that grew between snapshots and are still retained are your leak.
+| Cause | Looks like | Fix |
+| ----- | ---------- | --- |
+| Unbounded `Map` or array as a cache | Heap grows, never falls | `lru-cache` with `max` |
+| Listener added per request | `MaxListenersExceeded` warning | `once`, or remove on cleanup |
+| Timer holding a closure | Heap grows in steps | `clearInterval`, and `.unref()` |
+| Closure capturing a large buffer | Retained size on a small object | Slice out what you need |
 
 ```typescript
-import { writeHeapSnapshot } from "node:v8";
-process.on("SIGUSR2", () => writeHeapSnapshot());   // trigger on demand in prod
+// ❌ Grows for the life of the process
+const sessions = new Map<string, Session>();
+
+// ✅ Bounded, with eviction
+const sessions = new LRUCache<string, Session>({ max: 10_000, ttl: 30 * 60_000 });
 ```
 
----
+## Common Mistakes
 
-## HTTP-Level Wins
+**❌ Optimising JavaScript before looking at the queries.** The profile decides, not intuition.
 
-```typescript
-import compression from "compression";
-app.use(compression());        // 70-80% smaller JSON responses
-```
+**❌ Benchmarking with `--inspect` attached or `NODE_ENV` unset.** The inspector changes
+optimisation decisions, and many frameworks — Express view caching among them — only enable
+their fast paths when `NODE_ENV=production`.
 
-**Reuse outbound connections** — without keep-alive every call to an internal service pays a fresh TCP and TLS handshake:
+**❌ Trusting an average.** A p50 of 40 ms with a p99 of 4 s is a broken service that looks
+healthy on a dashboard.
 
-```typescript
-import { Agent } from "undici";
-const agent = new Agent({ keepAliveTimeout: 30_000, connections: 128 });
-```
+**❌ Compressing in the application when a proxy is already doing it.** You pay the CPU twice and
+the loop stalls on `zlib` for large responses.
 
-**Always set a timeout on outbound calls.** A dependency that hangs will exhaust your pool and take you down with it:
+## 🔑 Key Takeaways
 
-```typescript
-await fetch(url, { signal: AbortSignal.timeout(3_000) });
-```
+- Measure first: the bottleneck is in the database far more often than in your JavaScript.
+- Event loop delay is the one Node-specific metric worth alerting on.
+- N+1 queries and missing connection reuse are the two most common real defects.
+- A cache key must contain every dimension the response varies by, and every entry needs a TTL.
+- Unbounded maps, per-request listeners and forgotten timers cause almost every leak.
 
----
+## Interview Questions
 
-## Interview Q&A
+**Q: A service's p99 is 3 s while p50 is 30 ms. Where do you look?**
 
-**Q: How do you find a performance problem in production?**
-A: Start with metrics, not code — event loop delay, p99 latency per route, and memory over time. Loop delay points at CPU blocking, so capture a CPU profile during a stall. Flat loop delay with slow endpoints points at I/O, so trace the downstream calls. The mistake is jumping straight to profiling before you know whether the bottleneck is CPU or I/O.
+At the tail's shape rather than the average. Either a subset of requests hits a slow path — a
+missing index that only matters for large tenants — or the event loop is blocked periodically by
+CPU work or garbage collection, queueing everything behind it. Event loop delay and per-endpoint
+percentiles separate the two in minutes.
 
-**Q: Your API is slow only under load. Why?**
-A: Something is serialising. Usual suspects: a connection pool too small, so requests queue for a connection; CPU work blocking the loop, which only shows once concurrency rises; or a downstream service without a timeout, holding connections open. Load-test with the pool and loop delay both instrumented, and it's usually obvious which.
+**Q: How do you confirm a memory leak rather than normal growth?**
 
-**Q: How do you detect a memory leak?**
-A: Watch heap-used over time — a leak trends up and never recovers after GC, unlike normal sawtooth. Then compare two heap snapshots taken minutes apart under load, and look at the retainers of whatever grew. Caches without eviction and per-request event listeners cover most cases.
+Compare two heap snapshots taken under steady load, an interval apart, and look for constructors
+whose retained size grows in both. Normal growth plateaus as caches fill; a leak keeps a straight
+line. RSS alone is not proof, because buffers and native allocations live outside the heap.
 
-**Q: When does clustering help and when doesn't it?**
-A: It helps when you're CPU-bound on a multi-core box — four workers use four cores. It doesn't help when you're I/O-bound waiting on a database, because the bottleneck is the database, and it can hurt by multiplying your connection count. Measure loop delay first: high means CPU-bound and clustering will help.
+**Q: When is caching the wrong fix?**
 
-**Q: Where does caching go wrong?**
-A: Invalidation and stampede. Stale data is worse than slow data for anything users act on, so pick a TTL you can defend. On expiry of a hot key, every request misses simultaneously and hammers the origin — de-duplicate in-flight loads or use a short random TTL jitter.
+When the underlying query is slow because of a missing index — the cache hides a 2 s query until
+it expires, and the stampede on expiry is worse than the original. Also when correctness demands
+freshness, or when the key would need so many dimensions that the hit rate approaches zero.
 
----
+## What to Read Next
 
-## Best Practices
-
-✅ Profile before optimising — measure the bottleneck, don't guess
-✅ Track event loop delay as a first-class production metric
-✅ Pool database connections; size deliberately
-✅ Batch queries to kill N+1
-✅ Bound every cache with an LRU and a TTL
-✅ Set timeouts on every outbound call
-✅ Raise `UV_THREADPOOL_SIZE` if you do heavy hashing or file I/O
-❌ Don't use `*Sync` APIs on a request path
-❌ Don't use a plain `Map` as an unbounded cache
-❌ Don't micro-optimise JavaScript before fixing I/O and queries
-
----
-
-[← Previous: Error Handling](./04-error-handling.md) | [Next: Security →](./06-security.md)
+- [Chapter ?? — Scaling a Node Process](#ch-scaling-node) — using every core, and moving CPU work off-thread
+- [Chapter ?? — Indexes and Query Plans](#ch-indexes) — reading the plan behind the slow query
+- [Chapter ?? — Redis](#ch-redis) — the cache this chapter assumes

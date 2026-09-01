@@ -3,268 +3,210 @@ title: Streams and Buffers
 part: 5
 chapter: 0
 slug: streams-buffers
-level: intermediate # beginner | intermediate | advanced
+level: intermediate
 reading_time: 9
-updated: 2026-08-28
-tags: [backend, nodejs, streams, buffers]
+updated: 2026-09-01
+tags: [nodejs, streams, buffers, backpressure]
 in_book: true
 ---
 
-# Streams and Buffers {#ch-streams-and-buffers}
+# Streams and Buffers {#ch-streams-buffers}
 
-> Process a file larger than your memory, and handle backpressure instead of ignoring it.
+> Move data through a Node process without ever holding all of it, and know why `pipe()` is the wrong default.
 
-**In this chapter:** buffers · the four stream types · why `pipe()` is the wrong default · backpressure · transform streams
+**In this chapter:** buffers and encodings · the four stream types · backpressure · transforms · the two patterns you will actually ship
 
-## 💡 Process Data You Can't Hold in Memory
+## 💡 The Core Idea
 
-Reading a 5 GB file with `readFile` needs 5 GB of RAM. Ten users doing it at once needs 50 GB, and your process dies.
+A stream processes data in **chunks over time** instead of all at once. A 2 GB file read with
+`fs.readFile` needs 2 GB of heap and blocks until the last byte lands. The same file read as a
+stream needs 64 KB at a time and starts producing output immediately.
 
-A **stream** moves that data in small chunks, so memory stays flat no matter how big the source is. A **buffer** is the chunk itself — a fixed block of raw bytes.
+The reason this matters is not elegance, it is memory per concurrent request. Ten users each
+downloading a 200 MB export is 2 GB of resident memory with buffering and about 1 MB with
+streaming. Streaming is what makes the difference between a container that survives and one the
+scheduler kills.
 
-> Buffers are *what* the bytes are. Streams are *how* they flow. Constant memory, and the first byte reaches the client before the last one is read.
+## How It Works
 
----
+### Buffers hold bytes, not text
 
-## Buffers
-
-JavaScript strings are UTF-16 text. Files, sockets, and images are raw bytes. `Buffer` is Node's fixed-length byte array for that.
+A `Buffer` is a fixed-length view over raw memory outside the V8 heap. Every byte that arrives
+from a socket or a file is a `Buffer` until you decode it.
 
 ```typescript
-const fromText = Buffer.from("héllo", "utf8");  // 6 bytes — é takes 2
-const fromHex = Buffer.from("deadbeef", "hex");
-const empty = Buffer.alloc(1024);               // zero-filled
-
-console.log(fromText.length);      // 6 — BYTES, not characters
-console.log("héllo".length);       // 5 — characters
+const buf: Buffer = Buffer.from('héllo', 'utf8');
+console.log(buf.length);          // 6 — 'é' is two bytes
+console.log('héllo'.length);      // 5 — JavaScript counts code units
+console.log(buf.toString('base64'));
 ```
 
-⚠️ **`.length` is bytes.** Every "why is my byte count wrong?" bug starts by assuming otherwise.
-
-🔴 **Never use `Buffer.allocUnsafe` for data you return.** It skips zero-filling for speed, so it hands you whatever was in that memory before — potentially another request's data.
+The trap is decoding a chunk boundary. A UTF-8 character can be split across two chunks, so
+`chunk.toString()` per chunk produces mojibake at the seam.
 
 ```typescript
-Buffer.alloc(1024);        // ✅ zeroed, safe
-Buffer.allocUnsafe(1024);  // 🔴 old memory contents — only if you overwrite it all immediately
+// ❌ Corrupts multi-byte characters at chunk boundaries
+stream.on('data', (chunk: Buffer): void => process.stdout.write(chunk.toString()));
+
+// ✅ Holds partial characters until the next chunk completes them
+stream.setEncoding('utf8');
 ```
 
-| Encoding  | Use for                              |
-| --------- | ------------------------------------ |
-| `utf8`    | Text (default)                       |
-| `base64`  | Embedding binary in JSON or a header |
-| `hex`     | Hashes, signatures                   |
-| `ascii`   | Legacy protocols                     |
+> ⚠️ Never use `Buffer.allocUnsafe` for anything that leaves the process. It hands back
+> uninitialised memory, which may contain fragments of previous requests. Use `Buffer.alloc`.
 
-**Compare secrets in constant time** — a normal `===` leaks information through timing:
+### The four stream types
+
+| Type | Direction | Example |
+| ---- | --------- | ------- |
+| **Readable** | Out of a source | `fs.createReadStream`, an HTTP request |
+| **Writable** | Into a sink | `fs.createWriteStream`, an HTTP response |
+| **Duplex** | Both, independent | A TCP socket |
+| **Transform** | Both, coupled | `zlib.createGzip`, a CSV encoder |
+
+### Backpressure is the whole point
+
+A readable can usually produce faster than a writable can consume. Backpressure is the signal
+that says *stop*. `write()` returns `false` when the sink's internal buffer is full; you are
+expected to wait for `'drain'` before writing again.
 
 ```typescript
-import { timingSafeEqual } from "node:crypto";
-
-function safeEqual(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return timingSafeEqual(bufA, bufB);
+// The manual version, so the mechanism is visible.
+async function copy(src: Readable, dst: Writable): Promise<void> {
+  for await (const chunk of src) {
+    if (!dst.write(chunk)) {
+      await once(dst, 'drain'); // Pause the source until the sink catches up.
+    }
+  }
+  dst.end();
 }
 ```
 
----
+Ignore that return value and the buffer grows without limit — the memory problem you used
+streams to avoid, reintroduced.
 
-## The Four Stream Types
+### `pipeline`, not `pipe`
 
-| Type          | Direction        | Example                        |
-| ------------- | ---------------- | ------------------------------ |
-| **Readable**  | Source           | `fs.createReadStream`, HTTP request |
-| **Writable**  | Destination      | `fs.createWriteStream`, HTTP response |
-| **Duplex**    | Both, independent | TCP socket                     |
-| **Transform** | Both, chunk in → chunk out | `zlib.createGzip`, a parser |
-
-An HTTP handler is already two streams: `req` is Readable, `res` is Writable.
-
----
-
-## Piping — and Why `pipe()` Is the Wrong Default
-
-`pipe()` connects a readable to a writable and handles backpressure. What it does **not** do is forward errors or clean up.
+`pipe()` handles backpressure but **not** error propagation or cleanup. If the destination
+fails mid-transfer, the source stays open and its file descriptor leaks.
 
 ```typescript
-// ❌ If the write fails, the read stream stays open — a file descriptor leak
-source.pipe(destination);
+// ❌ On a write error, readStream is never destroyed
+readStream.pipe(gzip).pipe(writeStream);
+
+// ✅ Destroys every stream in the chain on any failure
+await pipeline(readStream, createGzip(), writeStream);
 ```
 
-Use `pipeline` instead. It propagates errors and destroys every stream in the chain:
+`pipeline` from `node:stream/promises` is the correct default. Reach for `pipe` only when you
+genuinely want the source to survive the destination.
 
-```typescript
-import { pipeline } from "node:stream/promises";
-import { createReadStream, createWriteStream } from "node:fs";
-import { createGzip } from "node:zlib";
+## When to Use It
 
-await pipeline(
-  createReadStream("access.log"),
-  createGzip(),
-  createWriteStream("access.log.gz"),
-);
-```
-
-> ✨ **Rule: always `pipeline`, never bare `pipe`.** The promise version gives you `try/catch` for free. This is a common senior-level interview probe.
-
----
-
-## Backpressure
-
-A fast reader plus a slow writer means chunks pile up in memory — the exact problem streams were meant to solve.
-
-```text
-read 100 MB/s  ──▶  [ buffer grows ]  ──▶  write 10 MB/s   🔴 memory climbs
-```
-
-`write()` returns `false` when the destination's internal buffer is full. Honouring that signal *is* backpressure handling:
-
-```typescript
-// ❌ Ignores the signal — unbounded memory growth
-readable.on("data", (chunk) => destination.write(chunk));
-
-// ✅ Pause until the destination drains
-readable.on("data", (chunk) => {
-  if (!destination.write(chunk)) {
-    readable.pause();
-    destination.once("drain", () => readable.resume());
-  }
-});
-```
-
-`pipe()` and `pipeline()` do all of this for you — which is the main reason to never hand-roll the loop above.
-
----
+| Scenario | Choose | Why |
+| -------- | ------ | --- |
+| File or export larger than a few MB | Stream | Memory stays flat as size grows |
+| Response the client can start rendering early | Stream | Time to first byte drops |
+| Data must be validated as a whole before any output | Buffer | You cannot un-send a bad chunk |
+| Small JSON body, under ~100 KB | Buffer | Streaming adds complexity for nothing |
 
 ## Transform Streams
 
-A Transform is where your logic goes: parse, filter, encrypt, redact.
+A transform is where your logic goes. Implement `_transform`, push whatever you want downstream,
+call the callback.
+
+**A line-delimited JSON parser:**
 
 ```typescript
-import { Transform, TransformCallback } from "node:stream";
+class JsonLines extends Transform {
+  private tail = '';
 
-class RedactEmails extends Transform {
-  private tail = "";
-
-  _transform(chunk: Buffer, _enc: BufferEncoding, done: TransformCallback): void {
-    const text = this.tail + chunk.toString("utf8");
-    const lines = text.split("\n");
-    this.tail = lines.pop() ?? "";     // last line may be cut mid-way
-
-    const clean = lines.map((l) => l.replace(/[\w.]+@[\w.]+/g, "[redacted]"));
-    done(null, clean.join("\n") + "\n");
+  constructor() {
+    super({ readableObjectMode: true }); // Emits objects, consumes bytes.
   }
 
-  _flush(done: TransformCallback): void {
-    done(null, this.tail);             // don't lose the final partial line
+  _transform(chunk: Buffer, _enc: string, done: (e?: Error) => void): void {
+    const lines = (this.tail + chunk.toString('utf8')).split('\n');
+    this.tail = lines.pop() ?? ''; // Last element may be a partial line.
+    try {
+      for (const line of lines) {
+        if (line.trim()) this.push(JSON.parse(line) as unknown);
+      }
+      done();
+    } catch (err) {
+      done(err as Error); // Surfaces through pipeline and destroys the chain.
+    }
+  }
+
+  _flush(done: () => void): void {
+    if (this.tail.trim()) this.push(JSON.parse(this.tail) as unknown);
+    done();
   }
 }
 ```
 
-⚠️ **Chunks do not respect your record boundaries.** A 64 KB chunk will land mid-line, mid-JSON, mid-UTF-8-character. Buffer the remainder in `_transform` and emit it in `_flush` — forgetting `_flush` silently drops the last record.
+The `tail` field is the part people forget. Chunk boundaries do not respect your record
+boundaries, and `_flush` is what handles a final line with no trailing newline.
 
-### Async generators — usually simpler
+## The Two Patterns You Will Ship
 
-Any async iterable works as a pipeline stage, with no class needed:
-
-```typescript
-await pipeline(
-  createReadStream("users.csv"),
-  async function* (source: AsyncIterable<Buffer>) {
-    for await (const chunk of source) {
-      yield chunk.toString().toUpperCase();
-    }
-  },
-  createWriteStream("out.csv"),
-);
-```
-
-> Reach for the generator form first. Drop to a `Transform` class when you need object mode, custom watermarks, or reusable stream objects.
-
----
-
-## Real-World Patterns
-
-### Stream a large query to the client
+**Streaming a large export to an HTTP response:**
 
 ```typescript
-import { Readable } from "node:stream";
+app.get('/exports/orders.csv', async (req, res) => {
+  res.type('text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="orders.csv"');
 
-app.get("/export", async (_req, res) => {
-  res.setHeader("Content-Type", "application/x-ndjson");
-
-  await pipeline(
-    Readable.from(db.query("SELECT * FROM events").stream()),
-    async function* (rows: AsyncIterable<EventRow>) {
-      for await (const row of rows) yield JSON.stringify(row) + "\n";
-    },
-    res,
-  );
+  // A database cursor, not a full result set — the query never materialises in memory.
+  const cursor = db.query(new QueryStream('SELECT * FROM orders'));
+  await pipeline(cursor, new CsvTransform(), res);
 });
 ```
 
-Memory stays flat whether the table has 100 rows or 100 million, and the browser starts receiving immediately.
+## Common Mistakes
 
-### Video with range requests
+**❌ `await pipeline(...)` without a client-disconnect guard.** If the browser aborts a
+download, the source keeps reading. Listen for `res.on('close')` and destroy the source, or let
+`pipeline` do it by passing an `AbortSignal`.
 
-```typescript
-app.get("/video/:id", (req, res) => {
-  const size = statSync(filePath).size;
-  const range = req.headers.range;
+**❌ Mixing `'data'` handlers with `pipe` on the same stream.** Both consume; you get half the
+chunks in each place.
 
-  if (!range) return createReadStream(filePath).pipe(res);
+**❌ Object mode everywhere.** `objectMode: true` sets `highWaterMark` to 16 *objects*. If each
+object is a 5 MB row, that is 80 MB buffered. Set `highWaterMark` explicitly for large objects.
 
-  const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
-  const start = Number(startStr);
-  const end = endStr ? Number(endStr) : size - 1;
+## 🔑 Key Takeaways
 
-  res.writeHead(206, {
-    "Content-Range": `bytes ${start}-${end}/${size}`,
-    "Accept-Ranges": "bytes",
-    "Content-Length": end - start + 1,
-    "Content-Type": "video/mp4",
-  });
+- Streaming keeps memory flat as payload size grows — that is its only real argument.
+- A `Buffer` holds bytes; decode with `setEncoding`, never per chunk, or multi-byte characters break at seams.
+- `write()` returning `false` is backpressure, and ignoring it recreates unbounded buffering.
+- Use `pipeline` over `pipe`: it propagates errors and destroys the whole chain.
+- A transform must carry partial records across chunk boundaries and drain them in `_flush`.
 
-  createReadStream(filePath, { start, end }).pipe(res);
-});
-```
+## Interview Questions
 
-> `206 Partial Content` plus `Accept-Ranges` is what makes seeking work. Without it the browser must download the whole file to jump to the middle.
+**Q: What is backpressure and what happens if you ignore it?**
 
----
+It is the writable side telling the readable side to slow down, signalled by `write()` returning
+`false` and lifted by the `'drain'` event. Ignoring it means chunks accumulate in the writable's
+internal buffer, which has no hard ceiling, so a fast source and a slow sink grow the heap until
+the process is killed. `pipe` and `pipeline` handle it for you; manual loops do not.
 
-## Interview Q&A
+**Q: Why is `pipeline` preferred over `pipe`?**
 
-**Q: Buffer or stream — how do you choose?**
-A: Size and predictability. If the data is small and bounded (a config file, a JSON body under a few MB), buffering is simpler and faster. If it's large, unbounded, or user-supplied, stream it — memory then depends on chunk size rather than payload size. The tipping point in practice is a few megabytes, or any point where concurrent requests multiply the cost.
+`pipe` only wires data and backpressure. On an error in any stream it leaves the others open, so
+file descriptors and sockets leak, and the error is emitted on a stream nobody is listening to.
+`pipeline` propagates the error to a single callback or promise and destroys every stream in the
+chain.
 
-**Q: What is backpressure and who handles it?**
-A: It's the signal that a destination can't keep up — `write()` returning `false`. Ignore it and chunks queue in memory until the process dies. `pipe()` and `pipeline()` handle it automatically by pausing the source until `drain`. You only handle it manually if you're consuming `data` events yourself, which you generally shouldn't.
+**Q: A stream of JSON lines occasionally throws "Unexpected end of JSON input". Why?**
 
-**Q: Why `pipeline()` over `pipe()`?**
-A: `pipe()` doesn't forward errors and doesn't destroy the other streams when one fails, so a mid-chain error leaks file descriptors and sockets. `pipeline()` propagates the error and tears the whole chain down. The `stream/promises` version also makes it awaitable.
+Because a chunk boundary landed inside a record. Each chunk is an arbitrary number of bytes, not
+a whole line, so parsing per chunk will eventually split one. The fix is to keep the trailing
+partial line in state, prepend it to the next chunk, and handle the final fragment in `_flush`.
 
-**Q: How do you handle a chunk that splits a record in half?**
-A: Keep the trailing partial in instance state, emit only complete records in `_transform`, and flush the remainder in `_flush`. Missing `_flush` is the classic bug — the last line of every file quietly disappears.
+## What to Read Next
 
-**Q: What is object mode?**
-A: By default streams carry buffers or strings. With `objectMode: true` each chunk can be any JavaScript value, so you can pipe parsed records between stages. The watermark then counts objects rather than bytes.
-
----
-
-## Best Practices
-
-✅ Always use `pipeline()` from `node:stream/promises`
-✅ Stream anything user-supplied or unbounded in size
-✅ Handle partial records with `_flush`
-✅ Prefer async generators for simple transforms
-✅ Use `Buffer.alloc`, not `allocUnsafe`, for anything you return
-✅ Compare secrets with `timingSafeEqual`
-❌ Don't `readFile` a file whose size you don't control
-❌ Don't ignore the return value of `write()` in hand-rolled loops
-❌ Don't concatenate stream chunks into one big buffer — that defeats the point
-
----
-
-[← Previous: Event Loop](./01-event-loop-async.md) | [Next: Module System →](./03-module-system.md)
+- [Chapter ?? — The Event Loop and Async Node](#ch-event-loop-async) — why chunked work keeps the loop responsive
+- [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming) — streaming over HTTP and WebSockets
+- [Chapter ?? — Node.js Performance](#ch-nodejs-performance) — spotting the buffered response in a memory profile

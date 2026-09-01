@@ -1,345 +1,227 @@
 ---
-title: OAuth 2.0
+title: OAuth 2.1 and OpenID Connect
 part: 5
 chapter: 0
 slug: oauth
-level: intermediate # beginner | intermediate | advanced
-reading_time: 13
-updated: 2026-08-29
-tags: [backend, security, oauth, oidc, sso]
+level: advanced
+reading_time: 9
+updated: 2026-09-01
+tags: [security, oauth, oidc, sso, pkce]
 in_book: true
 ---
 
-# OAuth 2.0 {#ch-oauth-2}
+# OAuth 2.1 and OpenID Connect {#ch-oauth}
 
-> Walk through the authorisation code flow with PKCE and explain what each redirect is protecting.
+> Walk the authorisation code flow with PKCE and say what each redirect is protecting against.
 
-**In this chapter:** the four roles · authorisation code with PKCE · the grant types worth knowing · OAuth vs OIDC vs JWT · state and redirect validation · SSO and magic links
+**In this chapter:** the four roles · authorisation code with PKCE · the grants that survive · OAuth against OIDC against JWT · state, redirects and scopes · SSO and magic links
 
 ## 💡 The Core Idea
 
-**OAuth 2.0** lets a user give one app limited access to their data on another service — without sharing their password.
+OAuth lets a user give one application limited access to their data on another service without
+sharing a password. "Sign in with Google" is the everyday case: your application never sees the
+Google password, only a token scoped to what the user approved.
 
-"Sign in with Google" is the everyday example. Your app never sees the Google password. It receives a token that works only for the scopes the user approved.
+The distinction that decides whether you understand it: **OAuth is authorisation, not
+authentication.** It answers "what may this application do?" **OpenID Connect** is the thin layer on
+top that answers "who is this user?" by adding an `id_token`. Using raw OAuth for login is a known
+anti-pattern, because an access token proves an application has permission, not who granted it.
 
-> **OAuth is authorization, not authentication.** It answers "what may this app do?" **OpenID Connect (OIDC)** is the thin layer on top that answers "who is this user?"
+> ⚠️ **Moving target:** OAuth 2.1 consolidates a decade of best-practice documents — it makes PKCE
+> mandatory and removes the implicit and password grants. The durable principle is that the
+> credential travels back-channel and the code is bound to the client that requested it. Grant names
+> and endpoints will keep moving.
 
 ## The Four Roles
 
-| Role                     | Who it is                | Example                       |
-| ------------------------ | ------------------------ | ----------------------------- |
-| **Resource Owner**       | The user                 | You                           |
-| **Client**               | The app wanting access   | A photo printing service      |
-| **Authorization Server** | Issues tokens            | Google's OAuth endpoints      |
-| **Resource Server**      | Holds the protected data | Google Photos API             |
+| Role | Who | Example |
+| ---- | --- | ------- |
+| **Resource owner** | The user | You |
+| **Client** | The application wanting access | A photo printing service |
+| **Authorisation server** | Issues tokens | Google's OAuth endpoints |
+| **Resource server** | Holds the data | The Google Photos API |
 
-The authorization server and resource server often belong to the same company, but they are different jobs.
+The last two often belong to the same company but are different jobs — and in an interview, keeping
+them separate is what shows you have read the specification rather than a tutorial.
 
-## Authorization Code Flow with PKCE
+## Authorisation Code with PKCE
 
-This is **the** flow to know. It's the recommended default for web apps, SPAs, and mobile apps.
-
-```text
-1. User clicks "Sign in with Google"
-        │
-        ▼
-2. Redirect to Google  (client_id, scope, state, code_challenge)
-        │
-        ▼
-3. User logs in and approves the scopes
-        │
-        ▼
-4. Google redirects back:  /callback?code=abc&state=xyz
-        │
-        ▼
-5. Server POSTs code + code_verifier  →  Google   (back channel)
-        │
-        ▼
-6. Google returns access_token (+ refresh_token, id_token)
-        │
-        ▼
-7. Server calls the API with the access token
+```mermaid
+sequenceDiagram
+  participant U as "User agent"
+  participant C as "Your server"
+  participant A as "Authorisation server"
+  U->>A: "1. Redirect: client_id, scope, state, code_challenge"
+  A->>U: "2. Login and consent"
+  A->>U: "3. Redirect to /callback?code=abc&state=xyz"
+  U->>C: "4. Deliver code + state"
+  C->>A: "5. POST code + code_verifier + client_secret (back channel)"
+  A->>C: "6. access_token, refresh_token, id_token"
 ```
 
-**Why the extra round trip?** The code in step 4 travels through the browser URL, where it can leak into logs and history. It is useless alone — redeeming it needs a client secret or a PKCE verifier, sent server-to-server.
+**The authorisation code flow. Only the code crosses the browser; the tokens never do.**
 
-### What PKCE adds
+The extra round trip is the point. The code in step 3 travels through a URL, where it lands in
+browser history, referrer headers and proxy logs. It is useless on its own: redeeming it needs the
+client secret or the PKCE verifier, sent server to server.
 
-**PKCE** (Proof Key for Code Exchange, said "pixie") stops a stolen authorization code from being redeemed by someone else.
-
-```text
-Before redirect:   verifier  = random string
-                   challenge = SHA256(verifier)    → sent in step 2
-
-At token exchange: send the raw verifier           → sent in step 5
-
-Server checks:     SHA256(verifier) === challenge  ✅
-```
-
-An attacker who intercepts the code never saw the verifier, so the exchange fails.
+**PKCE** (Proof Key for Code Exchange) binds the code to whoever started the flow. The client sends
+`SHA256(verifier)` up front and the raw `verifier` at exchange time; an attacker who intercepts the
+code never saw the verifier, so the exchange fails.
 
 ```typescript
-import crypto from "node:crypto";
-
 export function createPkcePair(): { verifier: string; challenge: string } {
-  const verifier: string = crypto.randomBytes(32).toString("base64url");
-  const challenge: string = crypto
-    .createHash("sha256")
-    .update(verifier)
-    .digest("base64url");
-
+  const verifier = crypto.randomBytes(32).toString('base64url');
+  const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
   return { verifier, challenge };
 }
-```
-
-> ✨ PKCE was designed for mobile apps that can't hide a secret. It is now recommended for **every** client, including confidential ones.
-
-## Server Implementation
-
-**Step 1 — build the authorization URL:**
-
-```typescript
-import crypto from "node:crypto";
-import type { Request, Response } from "express";
-
-const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 
 export function startLogin(req: Request, res: Response): void {
   const { verifier, challenge } = createPkcePair();
-  const state: string = crypto.randomBytes(16).toString("hex");
+  const state = crypto.randomBytes(16).toString('hex');
 
-  // Both must survive the round trip — session or signed cookie.
+  // Both must survive the round trip — session, or a signed cookie.
   req.session.pkceVerifier = verifier;
   req.session.oauthState = state;
 
   const params = new URLSearchParams({
     client_id: process.env.OAUTH_CLIENT_ID!,
-    redirect_uri: "https://app.example.com/auth/callback",
-    response_type: "code",
-    scope: "openid email profile", // ask for the least you need
+    redirect_uri: 'https://app.example.com/auth/callback',
+    response_type: 'code',
+    scope: 'openid email profile', // Ask for the least you need.
     state,
     code_challenge: challenge,
-    code_challenge_method: "S256",
+    code_challenge_method: 'S256',
   });
-
-  res.redirect(`${AUTH_URL}?${params.toString()}`);
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
 }
 ```
 
-**Step 2 — handle the callback and exchange the code:**
+**The callback does three things, in order:**
 
 ```typescript
-interface TokenResponse {
-  access_token: string;
-  refresh_token?: string;
-  id_token?: string;
-  expires_in: number;
-  token_type: "Bearer";
-}
-
 export async function handleCallback(req: Request, res: Response): Promise<void> {
   const { code, state } = req.query as { code?: string; state?: string };
 
-  // ⚠️ CSRF check — reject if state doesn't match what we sent.
+  // 1. Reject a mismatched state — this is the CSRF check for the flow itself.
   if (!code || !state || state !== req.session.oauthState) {
-    res.status(400).json({ error: "Invalid OAuth state" });
-    return;
+    return void res.status(400).json({ error: 'Invalid OAuth state' });
   }
 
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: "https://app.example.com/auth/callback",
-      client_id: process.env.OAUTH_CLIENT_ID!,
-      client_secret: process.env.OAUTH_CLIENT_SECRET!, // server-side only
-      code_verifier: req.session.pkceVerifier!,
-    }),
-  });
+  // 2. Exchange the code back-channel, with the verifier and the client secret.
+  const tokens = await exchangeCode(code, req.session.pkceVerifier!);
 
-  if (!response.ok) {
-    res.status(401).json({ error: "Token exchange failed" });
-    return;
-  }
-
-  const tokens = (await response.json()) as TokenResponse;
-
-  // Issue *your own* session now. Don't hand provider tokens to the browser.
+  // 3. Issue *your own* session. The browser never receives provider tokens.
   req.session.userId = await upsertUserFromIdToken(tokens.id_token!);
-  res.redirect("/dashboard");
+  res.redirect('/dashboard');
 }
 ```
 
-> 🔴 **Never send the provider's access or refresh token to the frontend.** Keep them server-side, keyed by your own session.
+> ⚠️ Never send the provider's access or refresh token to the frontend. Keep them server-side,
+> encrypted, keyed by your own session. A provider refresh token is as sensitive as a password.
 
-**Step 3 — refresh when the access token expires:**
+## The Grants Worth Knowing
 
-```typescript
-export async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      client_id: process.env.OAUTH_CLIENT_ID!,
-      client_secret: process.env.OAUTH_CLIENT_SECRET!,
-    }),
-  });
+| Grant | For | Status |
+| ----- | --- | ------ |
+| **Authorisation code + PKCE** | Web apps, SPAs, mobile | ✅ The default for everything |
+| **Client credentials** | Service to service, no user | ✅ Correct for machine auth |
+| **Refresh token** | A new access token | ✅ With rotation |
+| **Device code** | TVs, CLIs — typing is awkward | ✅ Niche but valid |
+| **Implicit** | An old SPA workaround | ❌ Removed in 2.1 |
+| **Resource owner password** | The app collects the password | ❌ Removed in 2.1 |
 
-  if (!response.ok) throw new Error("Refresh failed — user must log in again");
-  return (await response.json()) as TokenResponse;
-}
-```
+Implicit died because it returned the access token in a URL fragment — visible in history, referrers
+and logs — with no way to authenticate the client. The password grant died because the application
+sees the password, which removes both the delegation and the provider's MFA.
 
-## Grant Types: Which to Use
+## OAuth, OIDC and JWT
 
-| Grant                         | Use for                              | Status                      |
-| ----------------------------- | ------------------------------------ | --------------------------- |
-| **Authorization Code + PKCE** | Web apps, SPAs, mobile               | ✅ The default              |
-| **Client Credentials**        | Service-to-service, no user involved | ✅ Correct for machine auth |
-| **Refresh Token**             | Getting a new access token           | ✅ Use with rotation        |
-| **Device Code**               | TVs, CLIs — typing is awkward        | ✅ Niche but valid          |
-| **Implicit**                  | Old SPA workaround                   | ❌ Deprecated               |
-| **Resource Owner Password**   | App collects the user's password     | ❌ Deprecated               |
+| Thing | Is | Answers |
+| ----- | -- | ------- |
+| **OAuth 2.1** | An authorisation framework | "What may this application access?" |
+| **OIDC** | An identity layer on top of OAuth | "Who is this user?" |
+| **JWT** | A token *format* | Neither — it is a container |
 
-**Why implicit died:** it returned the access token directly in the URL fragment — visible in history, referrers, and logs — with no way to authenticate the client.
-
-**Why the password grant died:** the app sees the user's password, so there is no delegation and no MFA. That defeats the point of OAuth.
-
-```typescript
-// Client credentials — no user, one service calling another
-const res = await fetch("https://auth.example.com/oauth/token", {
-  method: "POST",
-  headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  body: new URLSearchParams({
-    grant_type: "client_credentials",
-    client_id: process.env.SVC_CLIENT_ID!,
-    client_secret: process.env.SVC_CLIENT_SECRET!,
-    scope: "reports:read",
-  }),
-});
-```
-
-## OAuth vs OIDC vs JWT
-
-People mix these up constantly. Keep them separate:
-
-| Thing         | What it is                       | Answers                     |
-| ------------- | -------------------------------- | --------------------------- |
-| **OAuth 2.0** | An authorization framework       | "What may this app access?" |
-| **OIDC**      | An identity layer built on OAuth | "Who is this user?"         |
-| **JWT**       | A token *format*                 | Neither — it's a container  |
-
-- OIDC adds the **`id_token`**: a JWT describing the user (`sub`, `email`, `name`).
-- OAuth access tokens *may* be JWTs, or may be opaque random strings. Both are valid.
-
-> **Interview line:** "OAuth alone tells me an app has permission. It doesn't reliably tell me who logged in. For sign-in I use OIDC and validate the `id_token`."
+OIDC adds the `id_token`, a JWT with verified claims about the user. OAuth access tokens may be JWTs
+or opaque strings; both are valid, and an opaque token you introspect is often the better choice
+because it is revocable.
 
 ## Security Essentials
 
-**✅ Always validate `state`.** Without it, an attacker can complete a flow in the victim's browser and link their own account to the victim's session (login CSRF).
+**✅ Always validate `state`.** Without it, an attacker completes a flow in the victim's browser and
+links their own provider account to the victim's session — login CSRF.
 
-**✅ Match redirect URIs exactly.** A wildcard or open redirect leaks the authorization code:
+**✅ Match redirect URIs exactly.**
 
 ```typescript
-// ❌ Dangerous — any subdomain takeover steals codes
+// ❌ Any subdomain takeover now steals authorisation codes
 const allowed = /^https:\/\/.*\.example\.com\//;
 
-// ✅ Exact allowlist
-const ALLOWED_REDIRECTS = new Set(["https://app.example.com/auth/callback"]);
+// ✅ Exact allowlist, no pattern matching
+const ALLOWED_REDIRECTS = new Set(['https://app.example.com/auth/callback']);
 ```
 
-**✅ Request the smallest scope.** Ask for `email profile`, not `drive.readonly`, unless you truly read files. A leaked token then does less harm.
+**✅ Request the smallest scope.** `email profile`, not `drive.readonly`, unless you genuinely read
+files. A leaked token then does less damage.
 
-**✅ Validate the `id_token`.** Check the signature against the provider's JWKS, plus `iss`, `aud`, `exp`, and `nonce`. Never trust a decoded-but-unverified token.
-
-**✅ Store provider tokens encrypted, server-side.** Treat a refresh token like a password.
+**✅ Validate the `id_token` properly.** Verify the signature against the provider's JWKS, then
+`iss`, `aud`, `exp` and `nonce`. A decoded-but-unverified token is attacker-controlled JSON.
 
 ## SSO and Magic Links
 
-Two adjacent patterns get confused with OAuth in interviews, and both are worth being able to place.
+**Single sign-on** is the same flow with the customer's identity provider — Okta, Entra ID, Auth0 —
+instead of a consumer brand. The provider holds the user directory, authenticates once, and each
+application trusts a signed assertion. SAML 2.0 is XML-based and still common in enterprise
+procurement; OIDC is the same idea over the flow above and is what to choose for anything new.
 
-**Single sign-on** means one login works across many applications. An identity provider — Okta, Entra ID,
-Auth0, your own — holds the user directory, and each application trusts an assertion it signs.
+**Magic links** remove the password rather than federating it: the user types an email address and
+clicks a one-time signed URL.
 
-```text
-User → App A: redirected to the identity provider
-IdP: authenticates the user once, sets its own session
-IdP → App A: signed assertion (SAML) or id_token (OIDC)
-User → App B: IdP session already exists, so no second login
-```
+Generate 32 random bytes, store only the hash with a 15-minute expiry, and mail the raw token in
+the URL — the mailbox holds the only copy.
 
-SAML 2.0 is XML-based and still the default in older enterprise procurement. OIDC is the same idea over
-the flow described above, and is what you should choose for anything new. The mechanics are identical to
-"sign in with Google"; the only difference is that the provider is the customer's, not a consumer brand.
+| Pattern | Reach for it when | Do not, when |
+| ------- | ----------------- | ------------ |
+| **SSO (OIDC)** | Enterprise buyers, internal tools, product suites | A consumer product with no directory behind it |
+| **Magic links** | Low-friction sign-up, invite flows | High-value accounts — the mailbox becomes the credential |
 
-**Magic links** remove the password instead of federating it. The user types an email address, the server
-mails a one-time signed URL, and clicking it starts the session.
-
-```typescript
-import crypto from "node:crypto";
-
-async function sendMagicLink(email: string): Promise<void> {
-  const token: string = crypto.randomBytes(32).toString("hex");
-  const expiresAt: Date = new Date(Date.now() + 15 * 60 * 1000);
-
-  // Store only the hash — the mailbox holds the only copy of the raw token.
-  await db.magicLinks.insert({ email, tokenHash: sha256(token), expiresAt });
-  await mailer.send(email, `https://app.example.com/auth?t=${token}`);
-}
-```
-
-| Pattern         | Reach for it when                                      | Do not, when                                     |
-| --------------- | ------------------------------------------------------ | ------------------------------------------------ |
-| **SSO (OIDC)**  | Enterprise buyers, internal tools, multi-product suites | A consumer product with no directory behind it   |
-| **Magic links** | Low-friction consumer sign-up, invite flows             | High-value accounts — the mailbox becomes the credential |
-
-> ⚠️ **A magic link is a bearer credential in an inbox.** Treat it like a password reset token: single
-> use, short expiry, hashed at rest, and never a second factor on its own.
+A magic link is a bearer credential sitting in an inbox. Treat it like a password reset token:
+single use, short expiry, hashed at rest, never a second factor on its own.
 
 ## 🔑 Key Takeaways
 
-- OAuth answers "what may this application do?"; OpenID Connect adds the `id_token` that answers "who is this user?".
-- Use the authorisation code flow with PKCE everywhere, including confidential clients — the implicit flow is deprecated.
-- `state` protects the callback against CSRF; PKCE protects the code against interception. They are different jobs.
-- Match redirect URIs exactly against an allowlist; prefix matching is how accounts get taken over.
-- Provider tokens stay on the server, encrypted, tied to your own session — the browser never holds a refresh token.
+- OAuth answers what an application may do; OIDC's `id_token` answers who the user is.
+- Authorisation code with PKCE is the only flow to use, including for confidential clients.
+- `state` protects the callback against CSRF and PKCE protects the code against interception — different jobs.
+- Match redirect URIs against an exact allowlist; prefix or wildcard matching is how accounts get taken over.
+- Provider tokens stay server-side and encrypted; the browser only ever holds your own session.
 
 ## Interview Questions
 
-**Q1: What problem does OAuth 2.0 solve?**
+**Q: Walk me through the authorisation code flow.**
 
-It lets a user grant an app limited access to their data on another service without giving up their password. The app gets a scoped, expiring token instead of credentials, and the user can revoke it at any time.
+The application redirects the user to the authorisation server with its client id, the requested
+scopes, a random `state` and a PKCE challenge. The user authenticates and consents, and the server
+redirects back with a short-lived code. The application's backend then exchanges that code, plus the
+verifier and its client secret, for tokens over a direct server-to-server call. The code crosses the
+browser; the tokens do not.
 
-**Q2: Walk me through the authorization code flow.**
+**Q: What does PKCE add, and why does a confidential client need it too?**
 
-The app redirects the user to the authorization server with its client ID, requested scopes, and a random `state`. The user logs in and consents. The server redirects back with a short-lived code. The app's backend then exchanges that code — plus its client secret or PKCE verifier — for tokens over a direct server-to-server call. The code travels through the browser; the tokens never do.
+It binds the code to the client that started the flow, so a code stolen from a redirect cannot be
+redeemed. It was designed for mobile apps that cannot keep a secret, and OAuth 2.1 requires it
+everywhere — because a confidential client can still leak a code through an open redirect or a
+referrer header, and PKCE makes that leak useless.
 
-**Q3: What does PKCE add, and why is it needed?**
+**Q: What is `state` for, and is it the same as PKCE?**
 
-It binds the authorization code to the client that started the flow. The client sends a hash of a random verifier up front, then the raw verifier at exchange time. An attacker who steals the code from a redirect can't redeem it. It was built for mobile apps that can't keep a secret and is now recommended for all clients.
-
-**Q4: Why is the implicit flow deprecated?**
-
-It returned the access token in the redirect URL fragment, where it leaks into history, logs, and referrer headers, and the client couldn't be authenticated. Authorization code with PKCE gives SPAs the same convenience safely.
-
-**Q5: OAuth vs OpenID Connect?**
-
-OAuth is authorization — permission to access resources. OIDC is a standard layer on top that adds authentication: an `id_token` (a JWT) with verified claims about the user, plus a `/userinfo` endpoint. Using raw OAuth for login is a known anti-pattern.
-
-**Q6: What is the `state` parameter for?**
-
-CSRF protection for the OAuth flow itself. The client generates a random value, stores it in the session, and sends it with the authorization request. On callback it must match. Without it an attacker can force a victim's browser to complete a flow with the attacker's code.
-
-**Q7: Where do you store the tokens you get back?**
-
-Server-side, encrypted, tied to my own session. The browser only ever gets my session cookie or short-lived JWT — never the provider's tokens. A refresh token is as sensitive as a password.
+No. `state` is CSRF protection for the flow: a random value stored in the session and required to
+match on callback, which stops an attacker forcing a victim's browser to complete a flow with the
+attacker's code. PKCE protects the code itself from being redeemed by a third party. You need both.
 
 ## What to Read Next
 
-- [Chapter ?? — JWT Authentication](#ch-jwt-authentication) — validating the `id_token` you get back
+- [Chapter ?? — Sessions and JWTs](#ch-jwt) — validating the `id_token` and issuing your own session
 - [Chapter ?? — Authorisation](#ch-authorisation) — what scopes do and do not decide once the user is in
-- [Chapter ?? — Passwords and Multi-Factor Authentication](#ch-password-security) — the flow you are delegating away
+- [Chapter ?? — Password Security](#ch-password-security) — the flow you are delegating away

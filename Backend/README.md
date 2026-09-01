@@ -3,9 +3,9 @@ title: Part V — Backend for Frontend Engineers
 part: 5
 chapter: 0
 slug: backend-index
-level: intermediate # beginner | intermediate | advanced
+level: intermediate
 reading_time: 2
-updated: 2026-08-28
+updated: 2026-09-01
 tags: [backend, nodejs, api, sql, nosql, security]
 in_book: true
 ---
@@ -24,14 +24,14 @@ is the surface a frontend engineer owns or negotiates with, at the depth a senio
 
 ## Sections
 
-| Section                                                        | Chapters | What it covers                                                       |
-| -------------------------------------------------------------- | -------- | -------------------------------------------------------------------- |
-| [Node.js](./NodeJS/README.md)                                  | 8        | The event loop, streams, modules, errors, performance, scaling       |
-| [API Design](./API/README.md)                                  | 6        | REST, GraphQL, versioning, rate limiting, docs, WebSockets           |
-| [SQL and Relational Data](./SQL/README.md)                     | 8        | Schema design, indexes, transactions, ORMs, query plans              |
-| [NoSQL](./NoSQL/README.md)                                     | 6        | MongoDB modelling, aggregation, indexing, Mongoose, Redis            |
-| [Security](./Security/README.md)                               | 8        | JWT, OAuth, passwords and MFA, encryption, CORS/CSRF, validation, injection, authorisation |
-| [Testing](./Testing/README.md)                                 | 6        | What to test on a server, and where the boundaries go                |
+| Section | Chapters | What it covers |
+| ------- | -------- | -------------- |
+| [Node.js](./NodeJS/README.md) | 6 | The event loop, streams, modules, errors, performance, scaling |
+| [API Design](./API/README.md) | 5 | REST, GraphQL, versioning and contracts, rate limiting, real-time |
+| [SQL and Relational Data](./SQL/README.md) | 5 | Schema design, indexes and plans, transactions, ORMs, migrations |
+| [NoSQL and Caching](./NoSQL/README.md) | 4 | Document modelling, aggregation, indexing, Redis |
+| [Security](./Security/README.md) | 6 | Sessions and JWTs, OAuth, passwords, authorisation, CORS/CSRF, injection |
+| [Testing](./Testing/README.md) | 2 | Backend-specific testing; the discipline itself is Part IV |
 
 `Backend/DesignPatterns/` also lives in this tree, but it belongs to **Part I** — patterns are
 language material, not backend material, and `scripts/lib/book.ts` maps it accordingly.
@@ -47,11 +47,10 @@ why the query is slow.** Both halves matter, and candidates usually have only on
 - **Do you understand the event loop as a constraint?** One thread. A synchronous JSON parse of a
   large body blocks every other request on the process. This is the Node question that separates
   people who have run a service from people who have written one.
-- **Can you read a query plan?** Not optimise from memory — read one, and point at the line that is
-  the problem. Reaching for `EXPLAIN ANALYZE` before guessing answers most of this.
-- **Where does the token live and why?** Sessions versus JWTs is the most reliably asked auth
-  question, and the correct answer is a trade-off — revocation and statefulness against scale — not a
-  preference.
+- **Can you read a query plan?** Not optimise from memory — read one, and point at the line that
+  is the problem. Reaching for `EXPLAIN ANALYZE` before guessing answers most of this.
+- **Where does the token live and why?** Sessions against JWTs is the most reliably asked auth
+  question, and the answer is a trade-off — revocation against scale — not a preference.
 
 ## Reading Order
 

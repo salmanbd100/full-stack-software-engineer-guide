@@ -5,7 +5,7 @@ chapter: 0
 slug: rest-best-practices
 level: intermediate # beginner | intermediate | advanced
 reading_time: 13
-updated: 2026-08-28
+updated: 2026-09-01
 tags: [api, rest, http, backend, idempotency]
 in_book: true
 ---
@@ -61,21 +61,9 @@ a job (`POST /reports`, returning `202`).
 **Safe** means no state change — a crawler can call it freely. **Idempotent** means calling it five times
 leaves the same state as calling it once. That property is what makes a retry safe.
 
-**`PUT` replaces, `PATCH` merges:**
-
-```typescript
-interface User { id: string; name: string; email: string; phone?: string }
-
-// PUT /users/123  { "name": "Ada", "email": "ada@x.com" }  → phone is cleared
-async function replaceUser(id: string, body: Omit<User, "id">): Promise<User> {
-  return db.users.replaceOne({ id }, { id, ...body });
-}
-
-// PATCH /users/123  { "name": "Ada" }  → email and phone untouched
-async function updateUser(id: string, patch: Partial<Omit<User, "id">>): Promise<User> {
-  return db.users.updateOne({ id }, { $set: patch });
-}
-```
+`PUT` replaces: `PUT /users/123` with `{ "name": "Ada", "email": "ada@x.com" }` clears `phone`.
+`PATCH /users/123` with `{ "name": "Ada" }` leaves the other fields alone. Pick by whether the
+client loaded the whole resource.
 
 A patch of `{ "views": "+1" }` gives a different result on every call, which is why the specification
 cannot promise `PATCH` is idempotent. A plain `$set` patch is idempotent in practice. Say both things.
@@ -99,21 +87,6 @@ You need about a dozen, not sixty.
 | 500  | Internal Server Error | Your bug. Never leak the stack trace                      |
 | 503  | Service Unavailable   | Dependency down, or shedding load                         |
 
-```mermaid
-flowchart TD
-  A[Write request arrives] --> B{Caller identified?}
-  B -->|No| C[401]
-  B -->|Yes| D{Allowed to see it?}
-  D -->|No| E[404 or 403]
-  D -->|Yes| F{Input valid?}
-  F -->|No| G[400 with field errors]
-  F -->|Yes| H{Finishes now?}
-  H -->|No| I[202 plus job resource]
-  H -->|Yes| J[201 or 204]
-```
-
-**How a write request resolves to a status code.**
-
 ## When to Use It
 
 | Scenario                                        | Choose            | Why                                                            |
@@ -132,48 +105,21 @@ Use one shape everywhere and make it machine-readable.
 [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457.html) is the standard worth naming.
 
 ```typescript
-interface FieldError {
-  field: string;
-  code: string;    // machine-readable: "too_short", not "must be longer"
-  message: string;
-}
-
 interface ProblemDetails {
   type: string;      // stable URI identifying the error class
   title: string;     // short human summary
   status: number;    // matches the HTTP status
-  detail?: string;   // about this one occurrence
-  instance?: string; // the request path
-  errors?: FieldError[];
+  errors?: { field: string; code: string; message: string }[];
   traceId?: string;  // ties the response to your logs
 }
 ```
 
-Build that shape in one place. `AppError` here is a small `Error` subclass carrying `status`, `type` and
-optional `errors`; everything a route throws either is one or is a bug.
+Build that shape in **one** place```
 
-```typescript
-import type { ErrorRequestHandler } from "express";
-
-export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
-  const known = err instanceof AppError;
-  const status = known ? err.status : 500;
-
-  // Log the real error server-side; return a safe one to the client.
-  if (!known || status >= 500) req.log.error({ err, traceId: req.id });
-
-  const body: ProblemDetails = {
-    type: known ? err.type : "about:blank",
-    title: known ? err.message : "Internal Server Error",
-    status,
-    instance: req.originalUrl,
-    errors: known ? err.errors : undefined,
-    traceId: req.id, // ✅ the most useful field in any support ticket
-  };
-
-  res.status(status).json(body);
-};
-```
+Build that shape in **one** place — a single Express error handler that turns any thrown error
+into `ProblemDetails`, logs the real error server-side, and returns a safe one. The handler itself
+is in [Chapter ?? — Error Handling in Node](#ch-nodejs-error-handling); what matters here is that
+every route throws and no route formats.
 
 Return **all** validation errors at once. A form that surfaces one bad field per round trip is a bad API,
 not a bad frontend.
@@ -218,9 +164,9 @@ async function listOrders(cursor: string | undefined, limit = 20): Promise<Page<
 > ⚠️ A cursor is opaque. Clients must not parse it. Base64 is encoding, not security — sign it if it
 > exposes anything sensitive.
 
-State the tradeoff out loud: cursors give up random access. You cannot jump to page 50, and a total count
-needs a separate, often approximate, query. That is the right trade for a feed and the wrong one for a
-paginated report.
+State the tradeoff out loud: cursors give up random access. You cannot jump to page 50, and a
+total count needs a separate, often approximate, query. That is the right trade for a feed and the
+wrong one for a paginated report.
 
 ## Idempotent Writes
 
@@ -228,30 +174,24 @@ paginated report.
 Without protection the customer is charged twice.
 
 ```typescript
-import type { RequestHandler } from "express";
-
 export const idempotency: RequestHandler = async (req, res, next) => {
   const key = req.header("Idempotency-Key");
   if (!key) return next();
 
   // SET NX — only the first request for this key claims the slot.
   const claimed = await redis.set(`idem:${key}`, "in-flight", { NX: true, EX: 86_400 });
-
   if (!claimed) {
     const stored = await redis.get(`idem:${key}`);
-    if (stored === "in-flight") {
-      return res.status(409).json({ title: "Request already in progress" });
-    }
-    return res.status(200).json(JSON.parse(stored!)); // replay the first response
+    // Still running? Tell the client to wait. Finished? Replay the stored response.
+    return stored === "in-flight"
+      ? res.status(409).json({ title: "Request already in progress" })
+      : res.status(200).json(JSON.parse(stored!));
   }
 
-  res.on("finish", async () => {
-    if (res.statusCode < 400) {
-      await redis.set(`idem:${key}`, JSON.stringify(res.locals.body), { EX: 86_400 });
-    } else {
-      await redis.del(`idem:${key}`); // a failure should be retryable
-    }
-  });
+  // Store the response on success so a retry replays it; delete on failure so a retry is allowed.
+  res.on("finish", () => void (res.statusCode < 400
+    ? redis.set(`idem:${key}`, JSON.stringify(res.locals.body), { EX: 86_400 })
+    : redis.del(`idem:${key}`)));
 
   next();
 };
@@ -276,26 +216,9 @@ res.status(404).json({ type: "https://errors.example.com/not-found", title: "Use
 
 Retries and circuit breakers read the status line, not your body. A `200` on failure blinds all of them.
 
-**❌ Wrong — user input straight into a sort clause:**
-
-```typescript
-const sort = { [req.query.sort as string]: -1 }; // injection, and a full table scan
-```
-
-**✅ Right — allowlist the sortable columns:**
-
-```typescript
-const SORTABLE = new Set(["createdAt", "total", "status"]);
-
-function parseSort(raw = "-createdAt"): Record<string, 1 | -1> {
-  const desc = raw.startsWith("-");
-  const field = desc ? raw.slice(1) : raw;
-  return SORTABLE.has(field) ? { [field]: desc ? -1 : 1 } : { createdAt: -1 };
-}
-```
-
-The same rule covers filtering and sparse field selection: `?fields=id,total` and `?status=shipped` shape
-a collection, they never identify one row, and every accepted key comes from a list you control.
+**❌ Passing user input straight into a sort or filter clause.** `{ [req.query.sort]: -1 }` is both an
+injection and a guaranteed table scan. Allowlist every sortable and filterable key — see
+[Chapter ?? — Input Validation and Injection](#ch-backend-input-validation).
 
 > ⚠️ Authorisation must check the **object**, not just the route. `GET /orders/9` has to verify that
 > order 9 belongs to the caller. A route guard alone lets any authenticated user read every order.
@@ -309,13 +232,6 @@ a collection, they never identify one row, and every accepted key comes from a l
 - A `200` response with `success: false` breaks every cache, retry and dashboard that reads HTTP.
 
 ## Interview Questions
-
-**Q: What makes an API RESTful?**
-
-Resources identified by URLs, manipulated with standard HTTP methods, stateless requests, and responses
-that are explicit about caching. In practice "RESTful" means using HTTP as designed instead of tunnelling
-RPC through `POST`. Strict REST also requires HATEOAS — hypermedia links in responses — which almost
-nobody implements, and it is worth saying so.
 
 **Q: `PUT` or `PATCH`?**
 
@@ -335,13 +251,6 @@ Keyset pagination. `OFFSET` degrades linearly because the database still scans t
 concurrent inserts cause duplicates and gaps. I encode the last row's sort key plus its id into an opaque
 cursor, filter with a `WHERE (sortKey, id) < (…)` predicate, and fetch `limit + 1` rows to detect the next
 page without a `COUNT(*)`.
-
-**Q: When would you not build a REST API?**
-
-When the client needs deeply nested, highly variable data, REST forces either over-fetching or a waterfall
-of round trips — GraphQL earns its complexity there. When both ends are internal and typed, a generated
-contract beats hand-written routes. And when the server must push, REST has no answer at all. The cost of
-leaving REST is losing HTTP caching and universal tooling, so I would name what replaces them.
 
 ## What to Read Next
 

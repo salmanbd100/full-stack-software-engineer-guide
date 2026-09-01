@@ -1,225 +1,205 @@
 ---
-title: Transactions and ACID
+title: Transactions and Concurrency
 part: 5
 chapter: 0
 slug: sql-transactions
-level: intermediate # beginner | intermediate | advanced
-reading_time: 8
-updated: 2026-08-28
-tags: [backend, sql, transactions]
+level: advanced
+reading_time: 9
+updated: 2026-09-01
+tags: [sql, transactions, acid, isolation, locking]
 in_book: true
 ---
 
-# Transactions and ACID {#ch-transactions-and-acid}
+# Transactions and Concurrency {#ch-sql-transactions}
 
-> Choose an isolation level knowing exactly which anomaly it still permits.
+> Pick an isolation level on purpose, and stop the lost update that read-committed will not stop for you.
 
-**In this chapter:** the ACID properties · the four isolation levels · lost updates · optimistic vs pessimistic locking · deadlocks · savepoints
+**In this chapter:** what ACID actually promises · the four isolation levels and their anomalies · optimistic against pessimistic locking · deadlocks · transactions in application code
 
-## 💡 **What Is a Transaction**
+## 💡 The Core Idea
 
-A transaction is a group of database operations executed as a single logical unit. Either every statement commits, or none of them do. Transactions are the foundation of correctness in any system that touches money, inventory, or shared state.
+A transaction turns several statements into one indivisible operation: all of them happen, or none
+of them do. That is the easy half, and it is not what interviews are about.
 
-```sql
-BEGIN;  -- or START TRANSACTION
+The hard half is **concurrency**. Your transaction is not running alone, and the isolation level
+decides what it is allowed to see of everyone else's in-flight work. The default in Postgres and
+most engines is `READ COMMITTED`, which prevents dirty reads and permits lost updates — so
+read-modify-write logic written without thinking about it is silently wrong under load, and correct
+in every test that runs one request at a time.
 
-UPDATE accounts SET balance = balance - 100 WHERE id = 1;
-UPDATE accounts SET balance = balance + 100 WHERE id = 2;
-INSERT INTO transfers (from_id, to_id, amount) VALUES (1, 2, 100);
+## What ACID Promises
 
-COMMIT;  -- or ROLLBACK on error
-```
+| Property | Promise | Delivered by |
+| -------- | ------- | ------------ |
+| **Atomicity** | All statements commit or none do | The write-ahead log and rollback |
+| **Consistency** | Constraints hold at commit | Your constraints — the database only enforces what you declared |
+| **Isolation** | Concurrent transactions do not corrupt each other | MVCC and locks, to the degree the isolation level specifies |
+| **Durability** | A committed write survives a crash | `fsync` of the write-ahead log |
 
-If the process crashes between the two `UPDATE`s, the database rolls the partial work back on restart — you do not lose $100 to the void.
+Consistency is the one people misstate. The database does not know your business rules; it enforces
+the constraints you wrote. An `AND` you forgot in a `CHECK` is not an isolation problem.
 
----
+## Isolation Levels
 
-## 💡 **ACID Properties**
+| Level | Dirty read | Non-repeatable read | Phantom read | Lost update |
+| ----- | ---------- | ------------------- | ------------ | ----------- |
+| `READ UNCOMMITTED` | Possible | Possible | Possible | Possible |
+| `READ COMMITTED` (default) | No | Possible | Possible | **Possible** |
+| `REPEATABLE READ` | No | No | No (in Postgres) | Detected — the transaction aborts |
+| `SERIALIZABLE` | No | No | No | No |
 
-| Letter | Guarantee                             | What it prevents                       |
-| ------ | ------------------------------------- | -------------------------------------- |
-| **A**  | Atomicity — all or nothing            | Partial writes after crash             |
-| **C**  | Consistency — constraints always hold | Negative balances, orphaned FKs        |
-| **I**  | Isolation — concurrent txns don't mix | Dirty reads, lost updates              |
-| **D**  | Durability — committed data survives  | Loss of committed work on power loss   |
+- **Dirty read** — seeing another transaction's uncommitted write. Postgres never allows this at
+  any level.
+- **Non-repeatable read** — reading the same row twice inside one transaction and getting different
+  values, because someone committed in between.
+- **Phantom read** — re-running a query and finding new rows. Postgres's snapshot isolation
+  prevents this at `REPEATABLE READ`, which the SQL standard does not require.
+- **Lost update** — two transactions read the same value, both compute from it, and the second
+  write overwrites the first.
 
-**Atomicity** is enforced by the transaction log (WAL). The engine writes intent before mutating data pages; on crash recovery it replays committed records and rolls back the rest.
+Postgres implements `REPEATABLE READ` as snapshot isolation: your transaction sees the database as
+of its first statement. Conflicting writes are detected at commit and raise a serialisation
+failure, which means **any application using it must be prepared to retry**.
 
-**Consistency** is enforced by `CHECK`, `FOREIGN KEY`, `UNIQUE`, and `NOT NULL` constraints — plus your application invariants. If any constraint fails mid-transaction, the entire transaction rolls back.
-
-**Durability** is what `fsync` to the WAL buys you. Commit returns only after the log entry is persisted to disk (or to a quorum of replicas in a synchronous-replication setup).
-
-**Isolation** is the interesting one — covered next.
-
----
-
-## 💡 **Isolation Levels**
-
-Stricter isolation means fewer concurrency anomalies but more blocking and rollbacks. The SQL standard defines four levels by which anomalies they prevent.
-
-| Level                | Dirty read | Non-repeatable read | Phantom read | Common default     |
-| -------------------- | ---------- | ------------------- | ------------ | ------------------ |
-| **READ UNCOMMITTED** | ✅ allowed | ✅ allowed          | ✅ allowed   | Rare               |
-| **READ COMMITTED**   | ❌         | ✅ allowed          | ✅ allowed   | PostgreSQL default |
-| **REPEATABLE READ** | ❌         | ❌                  | ⚠️ (PG: ❌)  | MySQL InnoDB       |
-| **SERIALIZABLE**     | ❌         | ❌                  | ❌           | Critical writes    |
-
-**The three anomalies:**
-
-- **Dirty read** — reading another transaction's uncommitted change.
-- **Non-repeatable read** — re-running `SELECT` returns different values for the same row because someone committed an `UPDATE` in between.
-- **Phantom read** — re-running the same range query returns *new rows* because someone committed an `INSERT` in between.
-
-> PostgreSQL's `REPEATABLE READ` (snapshot isolation) already prevents phantoms for most workloads but can still suffer write skew. Use `SERIALIZABLE` for true serializability — it adds predicate locking / SSI on top.
-
----
-
-## 💡 **Lost Updates and How to Avoid Them**
-
-Two transactions read the same row, both update based on what they read, and one overwrites the other. Classic race.
+## The Lost Update
 
 ```sql
--- Both sessions read balance = 100, both write balance = 50 after deducting 50.
--- Real answer should be 0.
-T1: SELECT balance FROM accounts WHERE id = 1;  -- 100
-T2: SELECT balance FROM accounts WHERE id = 1;  -- 100
-T1: UPDATE accounts SET balance = 50 WHERE id = 1;  -- COMMIT
-T2: UPDATE accounts SET balance = 50 WHERE id = 1;  -- COMMIT (lost T1's work)
+-- Two concurrent transactions, READ COMMITTED. Stock starts at 10.
+-- T1: SELECT stock FROM products WHERE id = 1;   -- 10
+-- T2: SELECT stock FROM products WHERE id = 1;   -- 10
+-- T1: UPDATE products SET stock = 9 WHERE id = 1;
+-- T2: UPDATE products SET stock = 9 WHERE id = 1;  -- one sale vanished
 ```
 
-**Two ways to fix it:**
+Three fixes, in increasing order of cost:
 
-### Pessimistic locking — `SELECT ... FOR UPDATE`
+**1. Do the arithmetic in the database.** Correct, cheapest, and the answer whenever the new value
+is a function of the old one.
 
-Take an exclusive row lock at read time. Other readers using `FOR UPDATE` wait.
+```sql
+UPDATE products SET stock = stock - 1 WHERE id = $1 AND stock >= 1;
+-- Zero rows affected means insufficient stock. The row lock is held only for this statement.
+```
+
+**2. Optimistic locking** — a version column. No lock is held, so it scales; the loser retries.
+
+```sql
+UPDATE products SET stock = $1, version = version + 1
+WHERE id = $2 AND version = $3;
+-- Zero rows affected means someone else committed first: re-read and retry.
+```
+
+**3. Pessimistic locking** — `SELECT … FOR UPDATE` takes a row lock until the transaction ends.
 
 ```sql
 BEGIN;
-SELECT balance FROM accounts WHERE id = 1 FOR UPDATE;
--- now nobody else can lock or update this row until COMMIT
-UPDATE accounts SET balance = balance - 50 WHERE id = 1;
+SELECT stock FROM products WHERE id = $1 FOR UPDATE; -- other writers block here
+UPDATE products SET stock = $2 WHERE id = $1;
 COMMIT;
 ```
 
-Use when contention is high and conflicts are expected (seat booking, inventory decrement).
+| Approach | Use when | Cost |
+| -------- | -------- | ---- |
+| In-database arithmetic | The new value derives from the old one | None — always prefer it |
+| Optimistic (version column) | Conflicts are rare; a long think-time between read and write | Retry logic, and a user-visible conflict |
+| Pessimistic (`FOR UPDATE`) | Conflicts are common; the work between read and write is short | Blocked writers; deadlock risk |
 
-### Optimistic locking — version column
+`FOR UPDATE SKIP LOCKED` is the variant worth knowing: it is how you build a work queue on a SQL
+table, because each worker claims rows nobody else holds instead of queueing behind them.
 
-No locks. Each row has a `version` (or `updated_at`) column; updates fail if the version changed since you read it.
+## Deadlocks
 
-```sql
--- read
-SELECT id, balance, version FROM accounts WHERE id = 1;
--- write only if version still matches
-UPDATE accounts
-SET balance = $1, version = version + 1
-WHERE id = 1 AND version = $oldVersion;
--- affected rows = 0 means someone beat you; retry
+Two transactions each hold what the other needs. The database detects the cycle and kills one with
+a serialisation error.
+
+```text
+T1: locks row A → waits for row B
+T2: locks row B → waits for row A
 ```
 
-```typescript
-async function withdraw(accountId: number, amount: number): Promise<void> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const { balance, version } = await db.one(
-      "SELECT balance, version FROM accounts WHERE id = $1",
-      [accountId]
-    );
-    if (balance < amount) throw new Error("Insufficient funds");
+The prevention is boringly effective: **always acquire locks in a consistent order.** If every
+transfer locks the lower account id first, the cycle cannot form.
 
-    const result = await db.result(
-      `UPDATE accounts SET balance = $1, version = version + 1
-       WHERE id = $2 AND version = $3`,
-      [balance - amount, accountId, version]
-    );
-    if (result.rowCount === 1) return;  // success
-  }
-  throw new Error("Too much contention");
-}
+```typescript
+const [first, second] = [fromId, toId].sort(); // Deterministic order, no cycle possible.
+await tx.query('SELECT 1 FROM accounts WHERE id = $1 FOR UPDATE', [first]);
+await tx.query('SELECT 1 FROM accounts WHERE id = $1 FOR UPDATE', [second]);
 ```
 
-| Strategy        | Use when                                 | Cost                          |
-| --------------- | ---------------------------------------- | ----------------------------- |
-| **Pessimistic** | High contention, short critical section  | Blocking, deadlock risk       |
-| **Optimistic**  | Low contention, retry is cheap           | Wasted work on conflicts      |
+Keep transactions short for the same reason — a long transaction holds locks longer, widening
+every window for conflict. And never do anything slow inside one.
 
----
-
-## 💡 **Deadlocks**
-
-A deadlock is a cycle: T1 holds lock A and waits for B; T2 holds B and waits for A. The database detects the cycle and kills one transaction with a deadlock error.
-
-**Prevention:**
-
-- **Lock rows in a consistent order.** If two transfers between the same two accounts always lock the lower ID first, no cycle can form.
-- **Keep transactions short.** Never wait on a network call or user input while holding locks.
-- **Catch and retry.** Deadlock errors (PG: `40P01`, MySQL: `1213`) are safe to retry.
+## Transactions in Application Code
 
 ```typescript
-async function transfer(fromId: number, toId: number, amount: number): Promise<void> {
-  const [lo, hi] = fromId < toId ? [fromId, toId] : [toId, fromId];
+async function transfer(fromId: string, toId: string, amount: number): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rowCount } = await client.query(
+      'UPDATE accounts SET balance = balance - $1 WHERE id = $2 AND balance >= $1',
+      [amount, fromId],
+    );
+    if (rowCount === 0) throw new AppError('Insufficient funds', 409, 'insufficient_funds');
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      await db.tx(async (t) => {
-        // Always lock in (lo, hi) order to prevent deadlocks
-        await t.none("SELECT 1 FROM accounts WHERE id IN ($1, $2) ORDER BY id FOR UPDATE", [lo, hi]);
-        await t.none("UPDATE accounts SET balance = balance - $1 WHERE id = $2", [amount, fromId]);
-        await t.none("UPDATE accounts SET balance = balance + $1 WHERE id = $2", [amount, toId]);
-      });
-      return;
-    } catch (err: any) {
-      if (err.code === "40P01" && attempt < 2) continue;  // deadlock: retry
-      throw err;
-    }
+    await client.query('UPDATE accounts SET balance = balance + $1 WHERE id = $2', [amount, toId]);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release(); // Without this, the pool leaks a connection per call.
   }
 }
 ```
 
----
+Three rules this shows:
 
-## 💡 **Savepoints**
+- **One client for the whole transaction.** Statements issued through the pool land on different
+  connections and are therefore different transactions.
+- **`ROLLBACK` in `catch`, `release` in `finally`.** A missing `release` exhausts the pool, and the
+  symptom is the whole service hanging.
+- **Never `await` an HTTP call inside a transaction.** A 30-second timeout becomes a 30-second lock.
 
-Savepoints let you roll back part of a transaction without losing the whole thing — useful when one optional step might fail.
+> ⚠️ Retrying a serialisation failure is mandatory at `REPEATABLE READ` and `SERIALIZABLE`. Retry
+> the whole transaction, not the failed statement, and cap the attempts.
 
-```sql
-BEGIN;
-INSERT INTO orders (...) VALUES (...);
+**Savepoints** give partial rollback inside a transaction — useful when one optional step may fail
+without invalidating the rest. In Postgres, note that *any* error aborts the whole transaction
+unless a savepoint was set, so a `try`/`catch` around one statement without a savepoint does not
+let you continue.
 
-SAVEPOINT before_email;
-INSERT INTO email_queue (...) VALUES (...);
--- if the email insert fails:
-ROLLBACK TO SAVEPOINT before_email;
+## 🔑 Key Takeaways
 
-COMMIT;  -- order is still saved
-```
+- `READ COMMITTED` is the default and it permits lost updates, so read-modify-write needs explicit protection.
+- Prefer arithmetic in the `UPDATE` statement; it is correct and free.
+- Optimistic locking scales and needs retry logic; pessimistic locking blocks and needs short transactions.
+- Acquire locks in a deterministic order and deadlocks cannot form.
+- Any code at `REPEATABLE READ` or above must retry serialisation failures.
 
-ORMs use savepoints under the hood to implement "nested transactions".
+## Interview Questions
 
----
+**Q: What is a lost update, and does the default isolation level prevent it?**
 
-## 📚 **Interview Q&A**
+Two transactions read the same value, each computes a new one from it, and the second write
+overwrites the first — one update disappears. `READ COMMITTED` does not prevent it: both reads are
+legal and both writes are legal. You need in-database arithmetic, a version check, or a row lock.
 
-**Q1. Walk me through ACID with an example of each property being violated.**
-Atomicity: crash between two `UPDATE`s leaves $100 deducted but not credited. Consistency: an `UPDATE` that would drop balance below zero violates a `CHECK` constraint. Isolation: two concurrent withdrawals both read the same balance and overdraw the account. Durability: server crashes right after `COMMIT` but the change is gone — only happens if you disabled `fsync`.
+**Q: Optimistic or pessimistic locking?**
 
-**Q2. What's the difference between Repeatable Read and Serializable in Postgres?**
-Both use snapshot isolation, so neither has dirty reads or non-repeatable reads. Repeatable Read can still produce write skew — two transactions read the same data, each updates a disjoint row, and the resulting state violates a multi-row invariant. Serializable adds Serializable Snapshot Isolation (SSI) which tracks read/write dependencies and aborts one transaction if cycles form. Use Serializable when the invariant spans multiple rows.
+Optimistic when conflicts are rare or the gap between read and write is long — an edit form open
+for ten minutes should not hold a lock. Pessimistic when conflicts are frequent and the work
+between read and write is short, because retry storms cost more than brief blocking. Optimistic
+pushes the conflict to the user; pessimistic pushes latency onto other writers.
 
-**Q3. When would you choose optimistic over pessimistic locking?**
-Optimistic when conflicts are rare and retries are cheap (most CRUD on per-user data). Pessimistic when conflicts are likely and the critical section is short (seat booking, inventory decrement, ID generation). Pessimistic blocks; optimistic wastes work on conflict.
+**Q: How do you prevent deadlocks?**
 
----
+Acquire locks in a consistent order across all code paths, keep transactions short, and touch as
+few rows as possible. Detection is the database's job, and it will kill one transaction — so the
+application still needs to retry. Lock ordering is what stops the cycle forming in the first place.
 
-## ✅ **Best Practices**
+## What to Read Next
 
-- ✅ Keep transactions short — no HTTP calls or user input inside.
-- ✅ Acquire locks in a consistent order across the codebase.
-- ✅ Use `READ COMMITTED` by default; bump up only when an invariant demands it.
-- ✅ Always wrap transaction logic in try/catch with explicit rollback.
-- ✅ Treat deadlock errors as retryable, not as bugs.
-- ❌ Don't use `READ UNCOMMITTED` to "make things faster" — it's almost always wrong.
-- ❌ Don't rely on application-layer locking when the database can do it correctly.
-
----
-
-[← Previous: Indexes](./03-indexes.md) | [Next: PostgreSQL →](./05-postgresql.md)
+- [Chapter ?? — Indexes and Query Plans](#ch-indexes) — why a lock is held longer than you expected
+- [Chapter ?? — ORMs and Migrations](#ch-orms) — how an ORM wraps a transaction, and where it does not
+- [Chapter ?? — REST API Best Practices](#ch-rest-best-practices) — idempotency keys, the HTTP-level version of this problem

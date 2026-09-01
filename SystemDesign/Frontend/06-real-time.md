@@ -193,5 +193,5 @@ When the client only listens. `EventSource` gives me automatic reconnection and 
 ## What to Read Next
 
 - [Chapter ?? — Real-Time Communication](#ch-realtime-communication) — choosing the transport, and what holding those connections costs
-- [Chapter ?? — WebSockets](#ch-websockets) — the server the client is talking to: authentication, rooms, backpressure
+- [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming) — the server the client is talking to: authentication, rooms, backpressure
 - [Chapter ?? — Design a Chat System](#ch-design-chat-system) — the same client concerns inside a full design answer

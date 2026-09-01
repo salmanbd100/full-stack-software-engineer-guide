@@ -1,292 +1,217 @@
 ---
-title: The Node.js Event Loop
+title: The Event Loop and Async Node
 part: 5
 chapter: 0
 slug: event-loop-async
-level: intermediate # beginner | intermediate | advanced
+level: intermediate
 reading_time: 10
-updated: 2026-08-28
-tags: [backend, nodejs, event, loop, async]
+updated: 2026-09-01
+tags: [nodejs, event-loop, async, concurrency]
 in_book: true
 ---
 
-# The Node.js Event Loop {#ch-node-event-loop}
+# The Event Loop and Async Node {#ch-event-loop-async}
 
-> Explain how one thread serves thousands of connections, and what stalls it.
+> Explain how one thread serves thousands of connections, and name the exact line that will stall all of them.
 
-**In this chapter:** the phases of the loop · microtasks vs macrotasks · `setImmediate` vs `setTimeout` · what blocking looks like in production
+**In this chapter:** the loop's phases · microtasks against macrotasks · concurrency patterns that scale · what blocking looks like in production
 
-## 💡 One Thread, Thousands of Connections
+## 💡 The Core Idea
 
-Node.js runs your JavaScript on **one thread**. It still serves tens of thousands of concurrent connections, because it almost never *waits*.
+Node runs your JavaScript on **one thread**. It stays fast because almost nothing your code
+waits for is done by that thread. A database query, a file read, an HTTP call — Node hands each
+one to the operating system or to a background thread pool, then goes back to running other
+work. When the result is ready, the operating system tells Node, and Node runs your callback.
 
-When you read a file or query a database, Node hands the work to the operating system and moves on. The **event loop** is what picks your callback back up once that work finishes.
+So Node is not fast because it is parallel. It is fast because it is never idle while waiting.
+The corollary is the thing interviewers are actually testing: **any CPU work you do inline is
+work nobody else can do anything during.** One 200 ms JSON parse is 200 ms of latency added to
+every other request in flight.
 
-> The rule that explains every Node performance problem: **waiting is free, thinking is not.** I/O costs you nothing while it's in flight. CPU work blocks every other request on that process.
+## How It Works
 
----
+The event loop is a fixed cycle of phases. Each phase has its own queue of callbacks, and the
+loop drains that queue before moving on.
 
-## The Event Loop
+| Phase | Runs | You see it as |
+| ----- | ---- | ------------- |
+| **timers** | `setTimeout`, `setInterval` callbacks whose time has passed | Scheduled work |
+| **pending callbacks** | Some system-level callbacks, mostly TCP errors | Rarely |
+| **poll** | I/O completions — sockets, file reads, DNS | Where a server spends its life |
+| **check** | `setImmediate` callbacks | "Run right after this I/O phase" |
+| **close** | `close` handlers on sockets and streams | Cleanup |
 
-Each turn of the loop runs six phases in order. Each phase has its own queue of callbacks.
-
-```text
-   ┌─────────────▶ timers            setTimeout, setInterval
-   │                 │
-   │                 ▼
-   │              pending callbacks  deferred system errors (e.g. TCP)
-   │                 │
-   │                 ▼
-   │              idle, prepare      internal only
-   │                 │
-   │                 ▼
-   │              poll               ◀── new I/O arrives here
-   │                 │                   (loop can BLOCK here)
-   │                 ▼
-   │              check              setImmediate
-   │                 │
-   │                 ▼
-   └───────────── close callbacks    socket.on("close")
+```mermaid
+flowchart LR
+  A["timers"] --> B["pending callbacks"]
+  B --> C["poll (I/O)"]
+  C --> D["check (setImmediate)"]
+  D --> E["close handlers"]
+  E --> A
 ```
 
-| Phase       | Runs                          | You'll be asked about  |
-| ----------- | ----------------------------- | ---------------------- |
-| **timers**  | Expired `setTimeout`/`setInterval` | Why timers are "at least", never "exactly" |
-| **poll**    | I/O callbacks — most of your code | Where Node idles when there's nothing to do |
-| **check**   | `setImmediate` callbacks      | `setImmediate` vs `setTimeout(fn, 0)` |
-| **close**   | Cleanup handlers              | Rarely                 |
+**One turn of the event loop. Between every arrow, Node drains the microtask queue.**
 
-⚠️ **A timer is a threshold, not a promise.** `setTimeout(fn, 100)` means "not before 100 ms." If a callback in an earlier phase is busy for a second, your timer fires late. Node cannot interrupt running JavaScript.
+### Microtasks beat everything
 
----
+Two queues sit **outside** the phases and are drained after every single callback, not once per
+phase:
 
-## Microtasks Beat Everything
+1. `process.nextTick` — Node's own queue, drained first
+2. Promise reactions (`.then`, `await` resumption) — drained second
 
-Between **every** phase — and after every individual callback — Node drains two extra queues:
+That ordering is the classic interview question.
 
-1. **`process.nextTick`** queue
-2. **Promise** microtask queue (`.then`, `await`)
-
-`nextTick` drains completely first, then promises.
+**Ordering, from a cold start:**
 
 ```typescript
-console.log("1 sync");
+setTimeout((): void => console.log('1 timeout'), 0);
+setImmediate((): void => console.log('2 immediate'));
+Promise.resolve().then((): void => console.log('3 promise'));
+process.nextTick((): void => console.log('4 nextTick'));
+console.log('5 sync');
 
-setTimeout(() => console.log("5 timer"), 0);
-setImmediate(() => console.log("6 immediate"));
-
-Promise.resolve().then(() => console.log("4 promise"));
-process.nextTick(() => console.log("3 nextTick"));
-
-console.log("2 sync");
-
-// 1 sync → 2 sync → 3 nextTick → 4 promise → 5 timer → 6 immediate
+// 5 sync → 4 nextTick → 3 promise → 1 timeout → 2 immediate
 ```
 
-**Read the order as a rule:** all synchronous code → all `nextTick` → all promises → then the loop advances a phase.
+Synchronous code finishes first because the loop has not started a turn yet. Then `nextTick`,
+then promises, then the loop begins and hits **timers** before **check**.
 
-🔴 **A recursive `nextTick` starves the loop entirely.** The queue must empty before the loop moves on, so it never does:
+> ⚠️ A recursive `process.nextTick` starves the loop completely — the queue is drained until
+> empty, and it never becomes empty. Recursive `setImmediate` yields between turns and is safe.
+
+### The thread pool is small and shared
+
+`fs`, `dns.lookup`, `zlib` and `crypto.pbkdf2` do not use the OS event notification system.
+They run on libuv's thread pool, which defaults to **four threads**. Four concurrent
+`bcrypt.hash` calls will queue the fifth. Sockets do not use the pool, so ordinary HTTP and
+database traffic is unaffected.
 
 ```typescript
-// 🔴 The process is now permanently deaf to I/O and timers
-function loop(): void {
-  process.nextTick(loop);
+// Raise it before any async work starts — it is read once, at first use.
+process.env.UV_THREADPOOL_SIZE = '8';
+```
+
+## When to Use It
+
+Concurrency shape matters more than syntax. These are the four you should be able to reach for
+without thinking.
+
+| You have | Use | Why |
+| -------- | --- | --- |
+| Independent calls, all must succeed | `Promise.all` | One round trip's worth of latency, not N |
+| Independent calls, partial failure is fine | `Promise.allSettled` | You get every result plus every reason |
+| Several sources, first answer wins | `Promise.race` | Timeouts and hedged requests |
+| A large list, one shared downstream | Bounded pool | Protects the database from your own fan-out |
+
+**Bounded concurrency — the pattern most people get wrong:**
+
+```typescript
+async function mapLimit<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+
+  // `limit` workers share one cursor, so at most `limit` calls are ever open.
+  const worker = async (): Promise<void> => {
+    while (cursor < items.length) {
+      const index = cursor++;
+      results[index] = await fn(items[index]);
+    }
+  };
+
+  await Promise.all(Array.from({ length: limit }, worker));
+  return results;
 }
 
-// ✅ setImmediate yields — the loop completes a full turn between calls
-function yielding(): void {
-  setImmediate(yielding);
-}
+const users = await mapLimit(ids, 10, (id: string) => fetchUser(id));
 ```
 
-> Interview-ready: "`nextTick` runs before promises and before the loop advances. `setImmediate` runs in the check phase, so it yields to I/O. Prefer `setImmediate` for anything recursive."
+`Promise.all(ids.map(fetchUser))` with 5,000 ids opens 5,000 sockets and exhausts the
+connection pool. The version above opens ten.
 
-### `setTimeout(fn, 0)` vs `setImmediate`
+## Common Mistakes
 
-In the **main module** the order is genuinely nondeterministic — it depends on how long the process took to start relative to the 1 ms timer floor.
-
-Inside an **I/O callback** it is always deterministic:
+**❌ CPU work inline in a request handler**
 
 ```typescript
-import { readFile } from "node:fs";
-
-readFile("data.txt", () => {
-  setTimeout(() => console.log("timer"), 0);
-  setImmediate(() => console.log("immediate")); // ✅ always first
+app.post('/report', (req, res) => {
+  const csv = rows.map(toCsvLine).join('\n'); // 400 ms for 200k rows
+  res.type('text/csv').send(csv);
 });
 ```
 
-We're in the poll phase, and `check` comes immediately after poll — while `timers` requires wrapping around to the next turn.
-
----
-
-## Async Patterns
-
-| Pattern         | Use it for                            |
-| --------------- | ------------------------------------- |
-| **Callbacks**   | Legacy APIs, event emitters           |
-| **Promises**    | Combining concurrent work             |
-| **async/await** | Everything you write today            |
-
-Error-first callbacks still appear in older APIs. Wrap them once rather than nesting:
+**✅ Stream it, or move it off-thread**
 
 ```typescript
-import { promisify } from "node:util";
-import { readFile } from "node:fs/promises"; // ✅ already promise-based
-```
-
-### Sequential vs concurrent — the mistake that matters
-
-```typescript
-// ❌ 900 ms — each await blocks the next, for no reason
-const user = await fetchUser(id);        // 300 ms
-const orders = await fetchOrders(id);    // 300 ms
-const prefs = await fetchPrefs(id);      // 300 ms
-
-// ✅ 300 ms — independent work starts together
-const [user, orders, prefs] = await Promise.all([
-  fetchUser(id),
-  fetchOrders(id),
-  fetchPrefs(id),
-]);
-```
-
-> Only chain `await` when a later call genuinely needs an earlier result. This is the single most common async code-review finding.
-
-### Choosing a combinator
-
-| Method                 | Settles when            | Rejects when          | Reach for it                       |
-| ---------------------- | ----------------------- | --------------------- | ---------------------------------- |
-| `Promise.all`          | All fulfil              | **Any** rejects (fast) | All-or-nothing work                |
-| `Promise.allSettled`   | All settle              | Never                 | Fan-out where partial success is OK |
-| `Promise.race`         | First settles           | If first settles as rejection | Timeouts                   |
-| `Promise.any`          | First **fulfils**       | Only if all reject    | Fallback across mirrors            |
-
-```typescript
-interface Report { userId: string; ok: boolean }
-
-// A failed email shouldn't abort the other 999
-const results = await Promise.allSettled(users.map(sendEmail));
-
-const report: Report[] = results.map((r, i) => ({
-  userId: users[i].id,
-  ok: r.status === "fulfilled",
-}));
-```
-
-⚠️ **`Promise.all` rejects fast but does not cancel.** The other promises keep running — they're just unobserved. Use `AbortSignal` when you actually need to stop the work:
-
-```typescript
-const res = await fetch(url, { signal: AbortSignal.timeout(5_000) });
-```
-
-### Don't fan out without a limit
-
-```typescript
-// ❌ 50,000 concurrent connections — you DoS your own database
-await Promise.all(ids.map(fetchRecord));
-
-// ✅ Bounded concurrency
-async function pooled<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
-  const out: R[] = [];
-  for (let i = 0; i < items.length; i += limit) {
-    out.push(...(await Promise.all(items.slice(i, i + limit).map(fn))));
-  }
-  return out;
-}
-
-const records = await pooled(ids, 20, fetchRecord);
-```
-
----
-
-## Blocking the Event Loop
-
-Blocking is not only long loops. These are all synchronous and all stop every request on the process:
-
-- `JSON.parse` on a large payload
-- `fs.readFileSync`, `crypto.pbkdf2Sync`
-- A catastrophic-backtracking regex on user input
-- `array.sort()` on hundreds of thousands of items
-
-```typescript
-// ❌ Every other request on this process waits
-app.get("/report", (_req, res) => {
-  res.json(buildHeavyReport()); // 4 seconds of CPU
+app.post('/report', (req, res) => {
+  res.type('text/csv');
+  // Each chunk yields to the loop, so other requests interleave.
+  Readable.from(rows).pipe(new CsvTransform()).pipe(res);
 });
 ```
 
-**Fixes, in the order to consider them:**
+Anything over roughly 10 ms of straight-line CPU per request belongs in a worker thread or a
+stream. See [Chapter ?? — Scaling a Node Process](#ch-scaling-node) for the worker route.
 
-| Situation                    | Fix                                     |
-| ---------------------------- | --------------------------------------- |
-| CPU work in a request        | **Worker thread** — keeps the loop free |
-| Work that can be deferred    | **Queue** it, return `202 Accepted`     |
-| Many CPU-bound requests      | **[Clustering](./08-clustering.md)** across cores |
-| Separate binary or script    | **[Child process](./07-child-processes.md)** |
+**❌ `await` in a loop over independent work**
 
 ```typescript
-import { Worker } from "node:worker_threads";
-
-function runOffThread<T>(file: string, data: unknown): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker(file, { workerData: data });
-    worker.on("message", resolve);
-    worker.on("error", reject);
-    worker.on("exit", (code) => {
-      if (code !== 0) reject(new Error(`Worker exited with ${code}`));
-    });
-  });
+for (const id of ids) {
+  results.push(await fetchUser(id)); // N sequential round trips
 }
 ```
 
-> Worker threads share memory and are cheap to talk to — right for CPU work. Child processes are isolated — right for running *other programs*. See [Child Processes](./07-child-processes.md).
-
-**Measure it** — Node tells you when the loop is stalling:
+**✅ Fan out, then bound it**
 
 ```typescript
-import { monitorEventLoopDelay } from "node:perf_hooks";
-
-const h = monitorEventLoopDelay({ resolution: 20 });
-h.enable();
-setInterval(() => console.log("p99 lag (ms)", h.percentile(99) / 1e6), 10_000);
+const results = await mapLimit(ids, 10, fetchUser);
 ```
 
-Healthy is single-digit milliseconds. Sustained triple digits means users are queueing.
+**❌ Synchronous file and crypto calls on the hot path.** `fs.readFileSync`,
+`crypto.randomBytes` with a large size, and `JSON.parse` on a multi-megabyte body all block.
+Read config synchronously at boot; never per request.
 
----
+**❌ A forgotten `await` on a promise-returning call.** The function returns before the work
+finishes, errors surface as an unhandled rejection, and the request has already been answered.
+Turn on `@typescript-eslint/no-floating-promises`.
 
-## Interview Q&A
+## 🔑 Key Takeaways
 
-**Q: How does a single-threaded runtime handle 10,000 connections?**
-A: The connections are almost always *waiting*, not computing. Node registers interest in each socket with the OS (`epoll`/`kqueue`) and runs a callback only when data is actually ready. Cost per idle connection is a few KB, versus roughly a megabyte for a thread stack in a thread-per-request server. It fails badly the moment requests need real CPU, because there's one thread to share.
+- Node's speed comes from never waiting on its own thread, not from parallelism.
+- Microtasks — `process.nextTick`, then promises — drain after every callback, before the loop's next phase.
+- The libuv thread pool defaults to four threads and is shared by `fs`, `zlib` and `crypto`.
+- Unbounded `Promise.all` over a large list is a self-inflicted denial of service on your database.
+- More than ~10 ms of inline CPU per request is a latency tax on every other request in flight.
 
-**Q: Is Node.js really single-threaded?**
-A: Your JavaScript is. The runtime is not — libuv keeps a thread pool (4 by default, `UV_THREADPOOL_SIZE`) used for file I/O, DNS lookups, and some crypto. Network I/O doesn't use the pool at all; it's handled by the OS event notification system.
+## Interview Questions
 
-**Q: `process.nextTick` vs `setImmediate`?**
-A: `nextTick` runs before the loop advances and before promise microtasks; `setImmediate` runs in the check phase of the next turn. `nextTick` has higher priority despite the name suggesting otherwise. Recursive `nextTick` starves I/O; recursive `setImmediate` doesn't. Default to `setImmediate`.
+**Q: Node is single-threaded, so how does it handle 10,000 concurrent connections?**
 
-**Q: Why did `setTimeout(fn, 100)` fire after 3 seconds?**
-A: Something blocked the loop. Timers only fire when the loop reaches the timers phase, and Node can't interrupt running JavaScript. The timer is a minimum delay, never a guarantee.
+The JavaScript runs on one thread, but the waiting does not. Node registers interest in each
+socket with the OS notification system (`epoll` on Linux, `kqueue` on macOS) and returns to the
+loop. The OS reports which sockets are ready; Node runs only those callbacks. Memory per idle
+connection is small, so the limit is file descriptors and memory rather than threads.
 
-**Q: How do you find a blocked event loop in production?**
-A: Track loop delay with `monitorEventLoopDelay` and alert on the p99. To find the culprit, capture a CPU profile (`--cpu-prof` or Clinic Flame) during the stall — the blocking synchronous frame sits at the top.
+**Q: What logs first — `setTimeout(fn, 0)` or `setImmediate(fn)`?**
 
----
+From synchronous code, `setTimeout` usually wins, because the loop reaches the **timers** phase
+before the **check** phase. From inside an I/O callback, `setImmediate` always wins, because
+**check** comes immediately after **poll** and the loop has to complete a full turn to get back
+to timers. The reliable statement is the phase order, not a fixed answer.
 
-## Best Practices
+**Q: `process.nextTick` or `Promise.resolve().then` — does the difference matter?**
 
-✅ Use `Promise.all` for independent work — don't `await` in sequence out of habit
-✅ Bound your concurrency when fanning out over a large list
-✅ Move CPU work to worker threads; move deferrable work to a queue
-✅ Prefer `setImmediate` over `process.nextTick` for recursion
-✅ Monitor event loop delay as a first-class production metric
-✅ Always attach `error` handlers — an unhandled rejection terminates the process by default
-❌ Don't use `*Sync` file or crypto APIs on a request path
-❌ Don't treat `setTimeout` delays as accurate
-❌ Don't `await` inside a `for` loop when the iterations are independent
+`nextTick` drains entirely before any promise reaction, so it is higher priority. It exists for
+library authors who need to run after the current operation but before anything else observes
+state. In application code, prefer promises: recursive `nextTick` starves the event loop, and
+recursive promise chains do not.
 
----
+## What to Read Next
 
-[← Back to NodeJS](./README.md) | [Next: Streams & Buffers →](./02-streams-buffers.md)
+- [Chapter ?? — Streams and Buffers](#ch-streams-buffers) — how to process data that does not fit in memory
+- [Chapter ?? — Scaling a Node Process](#ch-scaling-node) — worker threads, clustering, and using every core
+- [Chapter ?? — Node.js Performance](#ch-nodejs-performance) — finding the blocking call before a user does

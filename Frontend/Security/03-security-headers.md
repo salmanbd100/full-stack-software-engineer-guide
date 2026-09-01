@@ -218,5 +218,5 @@ It denies powerful features (camera, mic, geolocation) you don't use — for you
 ## What to Read Next
 
 - [Chapter ?? — Content Security Policy](#ch-content-security-policy) — the one header big enough for its own chapter
-- [Chapter ?? — Encryption in Transit and at Rest](#ch-encryption-in-transit-and-at-rest) — what HSTS is protecting
-- [Chapter ?? — CORS and CSRF](#ch-cors-and-csrf) — the headers that decide who may read the response
+- [Chapter ?? — Sessions and JWTs](#ch-jwt) — where the credential these headers protect actually lives
+- [Chapter ?? — CORS and CSRF](#ch-cors-csrf) — the headers that decide who may read the response

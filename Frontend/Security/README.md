@@ -55,4 +55,4 @@ layer and read best after them, once you know what they are mitigating.
 
 **Interview sprint:** 01 → 02 → 03. Cross-site scripting, CSP and the header set are the three that
 get asked by name in almost every senior frontend loop. CSRF is asked just as often; it is answered in
-[Chapter ?? — CORS and CSRF](#ch-cors-and-csrf), because the defence is configured on the server.
+[Chapter ?? — CORS and CSRF](#ch-cors-csrf), because the defence is configured on the server.

@@ -1,250 +1,223 @@
 ---
-title: Integration Testing
+title: Integration Testing a Service
 part: 5
 chapter: 0
 slug: integration
-level: intermediate # beginner | intermediate | advanced
-reading_time: 7
-updated: 2026-08-28
-tags: [backend, testing, integration]
+level: advanced
+reading_time: 9
+updated: 2026-09-01
+tags: [testing, integration, supertest, testcontainers, backend]
 in_book: true
 ---
 
-# Integration Testing {#ch-integration-testing}
+# Integration Testing a Service {#ch-integration}
 
-> Test against a real database and a real router, where most service bugs actually live.
+> Test against a real database and a real HTTP layer, and keep the suite fast and independent anyway.
 
-**In this chapter:** when integration beats unit · API testing with Supertest · testing against a real database · test data setup · cross-test pollution
+**In this chapter:** what an integration test covers · a real database in a container · isolation between tests · fixtures and factories · substituting third parties · running in parallel
 
-## 💡 What Is an Integration Test?
+## 💡 The Core Idea
 
-An integration test runs **multiple real components together** — usually your app code plus a real database, real HTTP server, and real third-party clients (or close fakes). It checks that the seams between layers actually work.
+An integration test exercises your service through its actual boundary — an HTTP request in, a real
+database underneath — and asserts on what came back and what changed. It is the highest-value test
+a backend has, because it covers the parts that break: routing, middleware order, validation,
+serialisation, transactions and the query itself.
 
-> A unit test asks "does this function compute correctly?" An integration test asks "does my code talk to the database and HTTP layer correctly?"
+The two objections are speed and flakiness, and both come from the same cause: **shared state**. An
+integration suite that is slow and unreliable is almost always one where tests see each other's
+data. Fix the isolation and the suite becomes fast enough to run on every commit.
 
----
+## Through the Real HTTP Layer
 
-## When to Use
-
-| Scenario                                | Use Integration Test? |
-| --------------------------------------- | --------------------- |
-| Test a SQL query returns right rows     | ✅                     |
-| Test API endpoint returns 201 on create | ✅                     |
-| Test ORM relations load correctly       | ✅                     |
-| Test pure utility function              | ❌ Use unit test       |
-| Test third-party billing flow           | ❌ Use E2E or sandbox  |
-
----
-
-## API Testing with Supertest
-
-`supertest` wraps your Express/Fastify app and makes HTTP-style assertions without binding a real port.
+`supertest` mounts your Express app in-process and drives it over a real socket, so middleware,
+parsers, error handlers and status codes are all exercised.
 
 ```typescript
-import request from "supertest";
-import { app } from "../src/app";
+import request from 'supertest';
+import { app } from '../src/app';
 
-describe("POST /users", () => {
-  test("creates a user and returns 201", async () => {
-    const response = await request(app)
-      .post("/users")
-      .send({ email: "ada@example.com", name: "Ada" })
+describe('POST /orders', () => {
+  it('creates an order and returns 201 with a Location header', async () => {
+    const token = await signInAs('agent');
+
+    const res = await request(app)
+      .post('/orders')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ sku: 'ABC-123', quantity: 2 })
       .expect(201);
 
-    expect(response.body).toMatchObject({
-      id: expect.any(String),
-      email: "ada@example.com",
-    });
+    expect(res.headers.location).toBe(`/orders/${res.body.id}`);
+
+    // Assert the side effect, not only the response.
+    const row = await db.orders.findUnique({ where: { id: res.body.id } });
+    expect(row).toMatchObject({ sku: 'ABC-123', quantity: 2, status: 'pending' });
   });
 
-  test("returns 400 when email is missing", async () => {
-    await request(app)
-      .post("/users")
-      .send({ name: "Ada" })
+  it('rejects an unknown field with 400 and names it', async () => {
+    const res = await request(app)
+      .post('/orders')
+      .set('Authorization', `Bearer ${await signInAs('agent')}`)
+      .send({ sku: 'ABC-123', quantity: 2, status: 'paid' }) // mass assignment attempt
       .expect(400);
+
+    expect(res.body.error.fields).toContainEqual({ field: 'status', code: 'unrecognized_keys' });
+  });
+
+  it('refuses a viewer with 403', async () => {
+    await request(app)
+      .post('/orders')
+      .set('Authorization', `Bearer ${await signInAs('viewer')}`)
+      .send({ sku: 'ABC-123', quantity: 2 })
+      .expect(403);
   });
 });
 ```
 
----
+Three tests, and between them they cover the happy path, the validation boundary and the
+authorisation boundary. That is the shape worth copying per endpoint: **one success, one rejected
+input, one rejected caller.**
 
-## Database Testing
+## A Real Database, Not a Fake One
 
-Three common strategies:
+Substituting SQLite for Postgres, or an in-memory MongoDB for the real one, tests a different
+engine. The dialect differs, the constraints differ, the isolation semantics differ — and those are
+exactly the things an integration test exists to verify.
 
-### 1. Real DB + Transactions (Recommended)
-
-Wrap each test in a transaction, roll back at the end. Fast and isolated.
-
-```typescript
-import { db } from "../src/db";
-
-beforeEach(async () => {
-  await db.query("BEGIN");
-});
-
-afterEach(async () => {
-  await db.query("ROLLBACK");
-});
-
-test("inserts a user", async () => {
-  await db.query("INSERT INTO users (email) VALUES ($1)", ["ada@example.com"]);
-  const { rows } = await db.query("SELECT * FROM users");
-  expect(rows).toHaveLength(1);
-});
-```
-
-### 2. Testcontainers
-
-Spin up a real database container per test run. Slower start, real parity.
+Run the real engine in a container, migrated to the current schema.
 
 ```typescript
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
-
-let container;
-let connectionUri: string;
+// One container per suite run, torn down after. Testcontainers handles the lifecycle.
+let container: StartedPostgreSqlContainer;
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer().start();
-  connectionUri = container.getConnectionUri();
-});
+  container = await new PostgreSqlContainer('postgres:17-alpine').start();
+  process.env.DATABASE_URL = container.getConnectionUri();
+  await migrate(); // The same migrations production runs — this is part of the test.
+}, 60_000);
 
-afterAll(async () => {
-  await container.stop();
+afterAll(async () => { await container.stop(); });
+```
+
+Running the real migrations is not incidental. A migration that fails on an empty database will fail
+in production too, and this is where you find out.
+
+## Isolation Is the Whole Problem
+
+| Strategy | Speed | Isolation | Use when |
+| -------- | ----- | --------- | -------- |
+| **Transaction per test, rolled back** | ✅ Fastest | ✅ Complete | The code under test does not manage its own transactions |
+| **Truncate tables between tests** | ⚠️ Fair | ✅ Complete | The default choice; simple and predictable |
+| **A schema or database per worker** | ⚠️ Slower setup | ✅ Complete | Running suites in parallel |
+| **Delete only what the test created** | ✅ Fast | ❌ Fragile | Never — one missed row and the next test fails |
+
+```typescript
+// Truncate everything except the migration ledger, in one statement.
+afterEach(async () => {
+  const { rows } = await db.query<{ tablename: string }>(
+    `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_migrations'`,
+  );
+  const list = rows.map((r) => `"${r.tablename}"`).join(', ');
+  // CASCADE handles foreign keys; RESTART IDENTITY resets sequences so ids are predictable.
+  await db.query(`TRUNCATE ${list} RESTART IDENTITY CASCADE`);
 });
 ```
 
-### 3. In-Memory Stand-in
+The transaction-rollback strategy is faster and has one catch worth knowing: if the code under test
+opens its own transaction, you now have a nested transaction, and the behaviour you are testing is
+not the behaviour production has. Truncation avoids that question entirely.
 
-SQLite for tests when prod is Postgres. Fast but loses DB-specific features (`JSONB`, window functions). **Risky** — production behavior may differ.
+> ⚠️ Never point a test suite at a shared development or staging database. `TRUNCATE` in a test
+> hook has deleted a great deal of real data. The connection string must come from a container the
+> suite started.
 
-> Senior teams usually pick #1 or #2. Don't fake the DB in integration tests if the schema or queries are non-trivial.
+## Fixtures and Factories
 
----
-
-## Test Data Setup
-
-**❌ Bad — every test creates its own users from scratch:**
-
-```typescript
-test("a", async () => {
-  await db.query("INSERT INTO users ...");
-  await db.query("INSERT INTO orders ...");
-  // ...20 more lines
-});
-```
-
-**✅ Good — use factories:**
+A factory builds a valid object with overrides for the fields the test cares about. It is what keeps
+a test readable: the two lines that matter are visible, and the twenty required fields are not.
 
 ```typescript
-// test-factories.ts
-export async function createUser(overrides: Partial<User> = {}): Promise<User> {
-  return userRepo.insert({
-    email: `user-${Date.now()}@example.com`,
-    name: "Test User",
-    ...overrides,
+export async function makeOrder(over: Partial<Order> = {}): Promise<Order> {
+  const tenant = over.tenantId ? { id: over.tenantId } : await makeTenant();
+  return db.orders.create({
+    data: {
+      tenantId: tenant.id,
+      sku: `SKU-${counter++}`, // Unique per call — no unique-constraint collisions.
+      quantity: 1,
+      status: 'pending',
+      ...over,
+    },
   });
 }
 
-// in tests
-test("user can place order", async () => {
-  const user = await createUser({ tier: "pro" });
-  // ...
-});
+// The test says only what is relevant to it.
+const stale = await makeOrder({ status: 'paid', paidAt: daysAgo(40) });
 ```
 
----
+Prefer factories over shared seed files. A seed file is global state: every test depends on it,
+nobody can change it safely, and reading a test does not tell you what the data looks like.
 
-## Avoiding Cross-Test Pollution
+## Third Parties
 
-**Problem:** Test A inserts a user, Test B counts users — gets 1 unexpectedly.
-
-**Solutions (best to worst):**
-
-1. Transaction rollback per test (fastest)
-2. Truncate tables in `beforeEach`
-3. Unique data per test (random emails)
+Do not call a real payment provider from a test suite. Intercept at the HTTP layer instead of
+mocking your own client, so the client's own request-building and error handling are still tested.
 
 ```typescript
-beforeEach(async () => {
-  await db.query("TRUNCATE users, orders, payments RESTART IDENTITY CASCADE");
-});
+// MSW intercepts at the network boundary, so the real client code runs.
+const server = setupServer(
+  http.post('https://api.stripe.com/v1/charges', () =>
+    HttpResponse.json({ id: 'ch_test_1', status: 'succeeded' })),
+);
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' })); // Catch unexpected calls.
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 ```
 
----
+`onUnhandledRequest: 'error'` is the setting to keep. Without it, a test that unexpectedly reaches
+the internet passes locally and fails in CI.
 
-## Mocking External Services
+## Running in Parallel
 
-Internal DB → keep real.
-External APIs (Stripe, SendGrid) → mock at the HTTP boundary.
+Integration suites parallelise well once isolation is per worker rather than per suite. Give each
+worker its own database — a schema per worker on one container is usually enough — and let the runner
+shard the files.
 
-```typescript
-import nock from "nock";
+Two things break under parallelism: any test that asserts on a global counter or an auto-increment
+value, and any test that binds a fixed port. Use `RESTART IDENTITY` and let the OS assign the port.
 
-test("sends welcome email on signup", async () => {
-  const scope = nock("https://api.sendgrid.com")
-    .post("/v3/mail/send")
-    .reply(202);
+## 🔑 Key Takeaways
 
-  await request(app).post("/signup").send({ email: "ada@example.com" });
+- Integration tests cover what actually breaks: routing, middleware order, validation, transactions and the query.
+- Use the real database engine in a container, migrated by the real migrations.
+- Slowness and flakiness are almost always shared state — truncate between tests, or a schema per worker.
+- Factories with overrides keep tests readable; shared seed files are global state nobody can change.
+- Intercept third parties at the HTTP boundary so your own client code is still under test.
 
-  expect(scope.isDone()).toBe(true);
-});
-```
+## Interview Questions
 
-> Mock at the HTTP layer (`nock`, `msw`), not inside your service code. This catches request-shape bugs.
+**Q: Why not use SQLite in place of Postgres for tests?**
 
----
+Because it is a different engine: different types, different constraint behaviour, no row-level
+security, different transaction and locking semantics. Those differences are precisely what an
+integration test is for, so the suite passes while production breaks. A container running the real
+version costs a few seconds at start-up and removes the whole class of problem.
 
-## Parallel Tests
+**Q: How do you keep an integration suite isolated and still fast?**
 
-Jest runs test files in parallel by default. For DB tests this means **separate schemas per worker**:
+By making the isolation cheap rather than skipping it. A transaction per test rolled back at the end
+is fastest but interferes with code that manages its own transactions, so truncating every table
+with `CASCADE` and `RESTART IDENTITY` is the reliable default. For parallelism, give each worker its
+own schema so isolation is per worker rather than per test file.
 
-```typescript
-// jest.setup.ts
-const workerId = process.env.JEST_WORKER_ID;
-process.env.DATABASE_URL = `postgres://localhost/test_db_${workerId}`;
-```
+**Q: Where do you draw the line between an integration test and an end-to-end test?**
 
-Without isolation, parallel tests trample each other.
+An integration test runs the service in-process with real infrastructure and stubs anything outside
+the team's control. An end-to-end test runs deployed components together, including the browser, and
+is worth having for a handful of critical journeys only. The ratio follows from cost: integration
+tests are seconds and deterministic; end-to-end tests are minutes and flaky.
 
----
+## What to Read Next
 
-## Speed Tips
-
-| Tactic                         | Speedup                          |
-| ------------------------------ | -------------------------------- |
-| Transaction rollback           | 10–50× faster than truncate      |
-| Reuse DB connection            | Skips TCP handshake              |
-| Skip migrations between runs   | Use `--passWithNoTests` smartly  |
-| Tag slow tests, run separately | Keep dev loop snappy             |
-
----
-
-## Interview Q&A
-
-**Q: How do you keep integration tests isolated?**
-A: Wrap each test in a transaction and roll back, or truncate tables between tests. Use unique data per test if both approaches are too slow.
-
-**Q: Should you mock the database in integration tests?**
-A: No. The whole point is to verify the real DB queries work. Mock at the *external* boundary (HTTP APIs, message queues), not at your own data layer.
-
-**Q: Integration tests are slow — what do you do?**
-A: Use transaction rollback over truncate, parallelize with isolated schemas, mock external HTTP calls, and split fast/slow suites so dev feedback stays under a minute.
-
----
-
-## Best Practices
-
-✅ Use a real database — same engine and version as production
-✅ Reset state between tests (transactions or truncate)
-✅ Use factories for test data, not copy-pasted inserts
-✅ Mock only external HTTP services
-✅ Run in CI with isolated DB per worker
-❌ Don't share state across tests
-❌ Don't use SQLite to test Postgres-specific features
-❌ Don't mock your own service layer in integration tests
-
----
-
-[← Previous: Unit Testing](./01-unit-testing.md) | [Next: E2E Testing →](./03-e2e.md)
+- [Chapter ?? — Testing a Node Service](#ch-unit-testing) — what belongs below this layer
+- [Chapter ?? — Transactions and Concurrency](#ch-sql-transactions) — the semantics a real engine gives you
+- [Chapter ?? — End-to-End Testing](#ch-end-to-end-testing) — the browser layer, and why there should be few of them

@@ -3,448 +3,202 @@ title: Database Design
 part: 5
 chapter: 0
 slug: database-design
-level: intermediate # beginner | intermediate | advanced
-reading_time: 14
-updated: 2026-08-28
-tags: [backend, sql, database, design]
+level: advanced
+reading_time: 9
+updated: 2026-09-01
+tags: [sql, schema, normalisation, constraints, postgres]
 in_book: true
 ---
 
 # Database Design {#ch-database-design}
 
-> Design a schema that will not need rescuing, and know when normalising is the wrong call.
+> Model a domain so the database refuses to hold invalid data, and know when to denormalise on purpose.
 
-**In this chapter:** normalisation and when to stop · entity relationships · choosing data types · constraints · worked schemas
+**In this chapter:** normal forms and when to break them · relationships and join tables · choosing types · constraints as the last line of defence
 
-## 💡 **Overview**
+## 💡 The Core Idea
 
-Database design is the process of structuring data to minimize redundancy, ensure data integrity, and optimize performance.
+A schema is the only part of a system that outlives every rewrite. Application code gets replaced;
+the data survives, along with every bad decision encoded in it.
 
-**What You'll Learn:**
-- Normalization (1NF, 2NF, 3NF) and when to denormalize
-- Entity relationships (One-to-One, One-to-Many, Many-to-Many)
-- Data types and constraints
-- Real-world schema design patterns
-- Database design best practices
+So the goal is to make invalid states **unrepresentable**. If an order cannot exist without a
+customer, that is a foreign key, not a check in a service. If a status can only be one of four
+values, that is a constraint, not an enum in TypeScript. Application validation improves the error
+message; the database is what guarantees the rule, because it is the only thing every writer goes
+through.
 
-**Why This Matters:**
-- Good design prevents data anomalies and ensures consistency
-- Proper normalization reduces redundancy and saves storage
-- Well-designed schemas improve query performance
-- Database design is heavily tested in technical interviews
+## Normalisation
 
-> **Key Insight:** Database design is about finding the right balance between normalization (data integrity) and denormalization (performance).
+| Form | Rule | Violation looks like |
+| ---- | ---- | -------------------- |
+| **1NF** | Every column holds one atomic value | `tags` as `"a,b,c"` in a text column |
+| **2NF** | 1NF, and no non-key column depends on part of a composite key | `product_name` in `order_items` |
+| **3NF** | 2NF, and no non-key column depends on another non-key column | `city` and `postcode` both in `users` |
 
-## Normalization
-
-### What is Normalization?
-
-Normalization is organizing data to minimize redundancy and dependency. It involves dividing large tables into smaller tables and defining relationships.
-
-### First Normal Form (1NF)
-
-**Rules:**
-- Each column contains atomic (indivisible) values
-- Each column contains values of single type
-- Each column has unique name
-- Order doesn't matter
+Third normal form is the default, and the reason is duplication. If a product name lives in
+`order_items`, renaming a product means updating a million rows, and any row you miss is now
+wrong. One fact, one place.
 
 ```sql
--- ❌ Not in 1NF (phone numbers in single column)
-CREATE TABLE users (
-  id INT PRIMARY KEY,
-  name VARCHAR(100),
-  phones VARCHAR(255)  -- '555-1234, 555-5678'
+-- ❌ Repeating groups and a derived column
+CREATE TABLE orders (
+  id            bigserial PRIMARY KEY,
+  customer_name text,              -- duplicated from customers
+  item1_sku     text,              -- repeating group
+  item2_sku     text,
+  total         numeric            -- derived from the items
 );
 
--- ✅ 1NF (atomic values)
-CREATE TABLE users (
-  id INT PRIMARY KEY,
-  name VARCHAR(100)
+-- ✅ One fact in one place
+CREATE TABLE orders (
+  id          bigserial PRIMARY KEY,
+  customer_id bigint NOT NULL REFERENCES customers(id),
+  status      text   NOT NULL DEFAULT 'pending',
+  created_at  timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE user_phones (
-  id INT PRIMARY KEY,
-  user_id INT,
-  phone VARCHAR(20),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+CREATE TABLE order_items (
+  order_id   bigint  NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id bigint  NOT NULL REFERENCES products(id),
+  quantity   integer NOT NULL CHECK (quantity > 0),
+  -- Price is copied deliberately: an invoice must not change when a price does.
+  unit_price numeric(12,2) NOT NULL CHECK (unit_price >= 0),
+  PRIMARY KEY (order_id, product_id)
 );
 ```
 
-### Second Normal Form (2NF)
+That `unit_price` copy is the important nuance. Normalisation says do not duplicate a fact — but
+the price *at the time of the order* is a different fact from the current price. Point-in-time
+data is always copied.
 
-**Rules:**
-- Must be in 1NF
-- All non-key attributes fully dependent on primary key
-- No partial dependencies
+### Denormalising on purpose
+
+Denormalisation is a considered trade, made after a measurement, with an owner for the
+consistency problem you just created.
+
+| Technique | Buys | Costs |
+| --------- | ---- | ----- |
+| Counter column (`comment_count`) | No `COUNT(*)` on read | Must be updated in the same transaction, or it drifts |
+| Copied display field (`author_name`) | No join on a hot list | Stale after a rename |
+| Materialised view | Complex aggregate served instantly | Refresh lag, and the refresh cost |
+| JSONB blob for variable attributes | No table per product type | No referential integrity, weaker indexing |
+
+The honest rule: **normalise first, denormalise with a measurement.** Whoever adds a counter column
+owns keeping it correct.
+
+## Relationships
+
+| Relationship | Implementation |
+| ------------ | -------------- |
+| One-to-one | Foreign key with a `UNIQUE` constraint, or the same primary key on both tables |
+| One-to-many | Foreign key on the *many* side |
+| Many-to-many | A join table whose primary key is the pair of foreign keys |
+| Self-referencing | Nullable foreign key to the same table — `parent_id` |
 
 ```sql
--- ❌ Not in 2NF (course_name depends only on course_id)
-CREATE TABLE enrollments (
-  student_id INT,
-  course_id INT,
-  course_name VARCHAR(100),
-  enrollment_date DATE,
-  PRIMARY KEY (student_id, course_id)
-);
-
--- ✅ 2NF (separate tables)
-CREATE TABLE courses (
-  id INT PRIMARY KEY,
-  name VARCHAR(100)
-);
-
-CREATE TABLE enrollments (
-  student_id INT,
-  course_id INT,
-  enrollment_date DATE,
-  PRIMARY KEY (student_id, course_id),
-  FOREIGN KEY (course_id) REFERENCES courses(id)
+CREATE TABLE user_roles (
+  user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role_id bigint NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
+  granted_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, role_id)   -- also prevents duplicate grants
 );
 ```
 
-### Third Normal Form (3NF)
+The `ON DELETE` action is a design decision, not boilerplate. `CASCADE` for data owned by the
+parent — an order's items. `RESTRICT` when the reference proves the parent is in use — a role
+still granted to somebody. `SET NULL` when the link is optional. Choosing `CASCADE` everywhere
+means one bad delete removes half the database.
 
-**Rules:**
-- Must be in 2NF
-- No transitive dependencies
-- Non-key attributes depend only on primary key
+## Choosing Types
 
-```sql
--- ❌ Not in 3NF (city depends on zip_code, not on id)
-CREATE TABLE users (
-  id INT PRIMARY KEY,
-  name VARCHAR(100),
-  zip_code VARCHAR(10),
-  city VARCHAR(100)
-);
+| Need | Use | Not |
+| ---- | --- | --- |
+| Money | `numeric(12,2)` | `float` — 0.1 + 0.2 is not 0.3 |
+| Timestamp | `timestamptz` | `timestamp` — no zone means no meaning |
+| Identifier, single database | `bigint` / `bigserial` | `int` — 2.1 billion arrives sooner than you think |
+| Identifier, generated by clients | `uuid` (v7 if ordered) | `uuid` v4 as a clustered key — random inserts fragment the index |
+| Small fixed set | `text` + `CHECK`, or a native `enum` | `smallint` codes nobody can read |
+| Free text | `text` | `varchar(255)` — the limit is arbitrary in Postgres |
+| Variable attributes | `jsonb` | `json` — no indexing, no deduplication |
 
--- ✅ 3NF (remove transitive dependency)
-CREATE TABLE zip_codes (
-  zip_code VARCHAR(10) PRIMARY KEY,
-  city VARCHAR(100)
-);
+> ⚠️ `timestamp without time zone` is the most expensive default in schema design. It stores a
+> wall-clock reading with no zone, so two servers in different regions disagree about what it
+> means, and daylight-saving transitions become unrecoverable. Always `timestamptz`.
 
-CREATE TABLE users (
-  id INT PRIMARY KEY,
-  name VARCHAR(100),
-  zip_code VARCHAR(10),
-  FOREIGN KEY (zip_code) REFERENCES zip_codes(zip_code)
-);
-```
-
-## Entity Relationships
-
-### One-to-One (1:1)
-
-```sql
-CREATE TABLE users (
-  id INT PRIMARY KEY,
-  email VARCHAR(100) UNIQUE,
-  password VARCHAR(255)
-);
-
-CREATE TABLE user_profiles (
-  id INT PRIMARY KEY,
-  user_id INT UNIQUE,
-  bio TEXT,
-  avatar VARCHAR(255),
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-```
-
-### One-to-Many (1:N)
-
-```sql
-CREATE TABLE authors (
-  id INT PRIMARY KEY,
-  name VARCHAR(100)
-);
-
-CREATE TABLE books (
-  id INT PRIMARY KEY,
-  title VARCHAR(200),
-  author_id INT,
-  FOREIGN KEY (author_id) REFERENCES authors(id)
-);
-```
-
-### Many-to-Many (M:N)
-
-```sql
-CREATE TABLE students (
-  id INT PRIMARY KEY,
-  name VARCHAR(100)
-);
-
-CREATE TABLE courses (
-  id INT PRIMARY KEY,
-  title VARCHAR(100)
-);
-
--- Junction/Bridge table
-CREATE TABLE enrollments (
-  student_id INT,
-  course_id INT,
-  enrollment_date DATE,
-  grade VARCHAR(2),
-  PRIMARY KEY (student_id, course_id),
-  FOREIGN KEY (student_id) REFERENCES students(id),
-  FOREIGN KEY (course_id) REFERENCES courses(id)
-);
-```
-
-## Data Types
-
-### Numeric Types
-
-```sql
--- Integers
-TINYINT     -- 1 byte: -128 to 127
-SMALLINT    -- 2 bytes: -32,768 to 32,767
-MEDIUMINT   -- 3 bytes: -8,388,608 to 8,388,607
-INT         -- 4 bytes: -2 billion to 2 billion
-BIGINT      -- 8 bytes: very large numbers
-
--- Decimals
-DECIMAL(10,2)  -- Fixed precision: 10 digits, 2 after decimal
-NUMERIC(10,2)  -- Same as DECIMAL
-FLOAT          -- Approximate, 4 bytes
-DOUBLE         -- Approximate, 8 bytes
-```
-
-### String Types
-
-```sql
-CHAR(10)        -- Fixed length, padded
-VARCHAR(100)    -- Variable length, up to specified max
-TEXT            -- Large text, up to 65,535 characters
-MEDIUMTEXT      -- Up to 16 MB
-LONGTEXT        -- Up to 4 GB
-```
-
-### Date/Time Types
-
-```sql
-DATE            -- YYYY-MM-DD
-TIME            -- HH:MM:SS
-DATETIME        -- YYYY-MM-DD HH:MM:SS
-TIMESTAMP       -- Auto-updates, timezone aware
-YEAR            -- YYYY
-```
-
-### Other Types
-
-```sql
-BOOLEAN         -- TRUE/FALSE (usually TINYINT(1))
-ENUM('S','M','L')  -- Predefined values
-JSON            -- JSON data (MySQL 5.7+, PostgreSQL)
-UUID            -- Universally unique identifier
-```
+`jsonb` earns its place for genuinely variable attributes — product specifications that differ per
+category — and can be indexed with GIN. It is the wrong home for anything you filter or join on
+constantly; that wants a column.
 
 ## Constraints
 
 ```sql
-CREATE TABLE users (
-  -- PRIMARY KEY
-  id INT PRIMARY KEY AUTO_INCREMENT,
-
-  -- UNIQUE
-  email VARCHAR(100) UNIQUE,
-
-  -- NOT NULL
-  name VARCHAR(100) NOT NULL,
-
-  -- DEFAULT
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  status VARCHAR(20) DEFAULT 'active',
-
-  -- CHECK
-  age INT CHECK (age >= 18),
-
-  -- FOREIGN KEY
-  role_id INT,
-  FOREIGN KEY (role_id) REFERENCES roles(id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
-);
+ALTER TABLE subscriptions
+  ADD CONSTRAINT valid_period CHECK (ends_at > starts_at),
+  ADD CONSTRAINT one_active_per_user EXCLUDE USING gist (
+    user_id WITH =, tstzrange(starts_at, ends_at) WITH &&
+  );  -- no two overlapping subscriptions for one user
 ```
 
-## Schema Design Examples
+| Constraint | Guarantees |
+| ---------- | ---------- |
+| `NOT NULL` | The value exists — the cheapest and most-skipped constraint |
+| `UNIQUE` | No duplicates, and creates an index you probably wanted |
+| `FOREIGN KEY` | The reference resolves; orphans are impossible |
+| `CHECK` | A domain rule holds for every row, forever |
+| `EXCLUDE` | No two rows conflict — overlapping bookings, double-booked rooms |
 
-### E-commerce Database
+The `EXCLUDE` constraint is the one worth naming in an interview. Preventing overlapping date
+ranges in application code requires a lock and a read; one constraint does it correctly under any
+concurrency.
 
-```sql
--- Users
-CREATE TABLE users (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  email VARCHAR(100) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+## Common Mistakes
 
--- Products
-CREATE TABLE products (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(200) NOT NULL,
-  description TEXT,
-  price DECIMAL(10,2) NOT NULL,
-  stock INT DEFAULT 0,
-  category_id INT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (category_id) REFERENCES categories(id)
-);
+**❌ A nullable column that is never legitimately null.** Every read now needs a null check, and
+the planner loses information. Add `NOT NULL` with a default.
 
--- Categories
-CREATE TABLE categories (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL,
-  parent_id INT,
-  FOREIGN KEY (parent_id) REFERENCES categories(id)
-);
+**❌ Storing a list in a text column.** `"1,5,9"` cannot be joined, cannot be indexed usefully, and
+cannot be constrained. Use a join table or an array type.
 
--- Orders
-CREATE TABLE orders (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT NOT NULL,
-  total DECIMAL(10,2) NOT NULL,
-  status ENUM('pending','paid','shipped','delivered') DEFAULT 'pending',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
+**❌ Soft deletes with no partial index.** `deleted_at IS NULL` on every query, plus a `UNIQUE`
+constraint that now blocks re-registering a deleted email. Use a partial unique index:
+`CREATE UNIQUE INDEX ON users (email) WHERE deleted_at IS NULL`.
 
--- Order Items
-CREATE TABLE order_items (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  order_id INT NOT NULL,
-  product_id INT NOT NULL,
-  quantity INT NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-  FOREIGN KEY (product_id) REFERENCES products(id)
-);
-```
+**❌ A natural key as the primary key.** Email addresses and national identifiers change, and every
+foreign key referencing them has to change too. Use a surrogate key and a `UNIQUE` constraint on
+the natural one.
 
-### Blog Database
+## 🔑 Key Takeaways
 
-```sql
-CREATE TABLE users (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE posts (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  title VARCHAR(200) NOT NULL,
-  slug VARCHAR(200) UNIQUE NOT NULL,
-  content TEXT NOT NULL,
-  author_id INT NOT NULL,
-  status ENUM('draft','published') DEFAULT 'draft',
-  published_at TIMESTAMP NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (author_id) REFERENCES users(id)
-);
-
-CREATE TABLE tags (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(50) UNIQUE NOT NULL
-);
-
-CREATE TABLE post_tags (
-  post_id INT,
-  tag_id INT,
-  PRIMARY KEY (post_id, tag_id),
-  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-  FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
-
-CREATE TABLE comments (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  post_id INT NOT NULL,
-  user_id INT NOT NULL,
-  content TEXT NOT NULL,
-  parent_id INT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
-);
-```
+- The schema outlives the application, so encode rules where every writer must pass through them.
+- Normalise to third normal form by default; denormalise only after a measurement, with an owner for the drift.
+- Point-in-time data such as an invoice price is copied deliberately — that is not a normalisation violation.
+- `timestamptz`, `numeric` for money and `bigint` for identifiers avoid the three most expensive type mistakes.
+- `EXCLUDE` constraints enforce "no overlap" correctly under concurrency, which application code cannot.
 
 ## Interview Questions
 
-### Q1: What is normalization and why is it important?
+**Q: When would you denormalise?**
 
-**Answer:**
-Normalization is organizing data to reduce redundancy and improve data integrity. It prevents:
-- Update anomalies
-- Insertion anomalies
-- Deletion anomalies
-- Data inconsistency
+After measuring that a join or aggregate is genuinely the bottleneck and cannot be fixed with an
+index. A comment counter on a post is a fair trade if reads outnumber writes heavily — but it
+introduces a consistency obligation, so the counter must be updated in the same transaction as the
+comment, and there must be a job that reconciles it.
 
-### Q2: Explain the difference between 1NF, 2NF, and 3NF
+**Q: Surrogate or natural primary key?**
 
-**Answer:**
-- **1NF**: Atomic values, no repeating groups
-- **2NF**: 1NF + no partial dependencies
-- **3NF**: 2NF + no transitive dependencies
+Surrogate, nearly always. A natural key such as an email is stable until the day a user changes
+it, and then every foreign key referencing it has to change too. Keep the natural key as a
+`UNIQUE` constraint so the uniqueness rule is still enforced.
 
-### Q3: When would you denormalize a database?
+**Q: How do you prevent two overlapping bookings for the same room?**
 
-**Answer:**
-Denormalize for performance when:
-- Read-heavy workloads
-- Complex joins are slow
-- Data doesn't change often
-- Acceptable to have redundancy
+An `EXCLUDE USING gist` constraint on the room id and the time range with the overlap operator.
+Doing it in application code requires reading existing bookings and locking the row, and any gap
+between the read and the write is a race — under concurrency the constraint is the only correct
+answer.
 
-Trade-off: Performance vs. Data integrity
+## What to Read Next
 
-### Q4: What is the difference between CHAR and VARCHAR?
-
-**Answer:**
-- **CHAR**: Fixed length, padded with spaces, faster for fixed-size data
-- **VARCHAR**: Variable length, uses only needed space, better for varying lengths
-
-### Q5: What are the types of relationships in databases?
-
-**Answer:**
-- **One-to-One**: User → Profile
-- **One-to-Many**: Author → Books
-- **Many-to-Many**: Students ↔ Courses (needs junction table)
-
-## Best Practices
-
-### ✅ Do's
-
-1. **Use appropriate data types**
-2. **Add constraints** for data integrity
-3. **Use foreign keys** to enforce relationships
-4. **Normalize to 3NF** as starting point
-5. **Use meaningful table/column names**
-6. **Add indexes** on foreign keys
-7. **Use AUTO_INCREMENT** for primary keys
-
-### ❌ Don'ts
-
-1. **Don't store calculated values**
-2. **Don't use generic names** (data, info, etc.)
-3. **Don't over-normalize** (balance with performance)
-4. **Don't forget constraints**
-5. **Don't use reserved keywords** as names
-
-## Summary
-
-- Normalization reduces redundancy (1NF, 2NF, 3NF)
-- Use appropriate data types for efficiency
-- Define clear relationships (1:1, 1:N, M:N)
-- Apply constraints for data integrity
-- Design for current needs, plan for future
-- Balance normalization with performance
-
----
-
-[← Previous: SQL Fundamentals](./01-fundamentals.md) | [Next: Indexes & Optimization →](./03-indexes.md)
+- [Chapter ?? — Indexes and Query Plans](#ch-indexes) — the indexes this schema needs
+- [Chapter ?? — ORMs and Migrations](#ch-orms) — changing a live schema without downtime
+- [Chapter ?? — Transactions and Concurrency](#ch-sql-transactions) — the guarantees constraints rely on

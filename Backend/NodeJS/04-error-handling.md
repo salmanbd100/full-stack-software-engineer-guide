@@ -1,263 +1,231 @@
 ---
-title: Node.js Error Handling
+title: Error Handling in Node
 part: 5
 chapter: 0
 slug: nodejs-error-handling
-level: intermediate # beginner | intermediate | advanced
+level: intermediate
 reading_time: 9
-updated: 2026-08-28
-tags: [backend, nodejs, error, handling]
+updated: 2026-09-01
+tags: [nodejs, errors, express, resilience]
 in_book: true
 ---
 
-# Node.js Error Handling {#ch-node-error-handling}
+# Error Handling in Node {#ch-nodejs-error-handling}
 
-> Separate an operational failure from a programmer bug, and treat each one differently.
+> Draw the line between a failure you answer and a failure you restart for, and put every error on one path.
 
-**In this chapter:** operational vs programmer errors · a typed error base · preserving `cause` · narrowing `unknown` · one Express handler · process-level handlers
+**In this chapter:** operational against programmer errors · a typed error base · one Express handler · process-level handlers · retries that do not amplify
 
-## 💡 The Distinction Everything Hangs On
+## 💡 The Core Idea
 
-There are exactly two kinds of error, and they need opposite responses.
+Every error in a Node service is one of two kinds, and the whole design follows from telling
+them apart.
 
-| | **Operational** | **Programmer** |
-| --- | --- | --- |
-| **What** | The world misbehaved | Your code is wrong |
-| **Examples** | Timeout, 404, bad input, DB down | `undefined.name`, wrong argument type |
-| **Response** | Handle it — retry, degrade, return 4xx | **Let it crash**, then fix it |
+An **operational error** is an expected outcome of talking to the world: the row is not there,
+the token expired, the payment provider timed out. You handle it, you answer the request, the
+process stays up.
 
-> Catching a bug to keep the process alive leaves you running on corrupted state. Catching a timeout and retrying is correct. Telling them apart is the whole skill.
+A **programmer error** is a bug: reading a property of `undefined`, a broken invariant, a
+mistyped config key. There is no sensible recovery, because you no longer know what state the
+process is in. The correct response is to log it with full context and let the process die so the
+supervisor replaces it.
 
----
+Treating the second kind as the first is how a service ends up serving corrupted responses for
+hours instead of restarting in two seconds.
 
-## A Typed Error Base
+## How It Works
 
-Tag operational errors so your handler can recognise them.
+### A typed error base
 
 ```typescript
 export class AppError extends Error {
-  readonly isOperational = true;
-
   constructor(
     message: string,
-    readonly statusCode: number,
+    readonly status: number,
     readonly code: string,
+    readonly expose: boolean = true, // Safe to show the client?
     options?: { cause?: unknown },
   ) {
     super(message, options);
     this.name = new.target.name;
-    Error.captureStackTrace(this, new.target);  // hide the constructor frame
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(resource: string) {
-    super(`${resource} not found`, 404, "NOT_FOUND");
+  constructor(resource: string, cause?: unknown) {
+    super(`${resource} not found`, 404, 'not_found', true, { cause });
   }
 }
 
-export class ValidationError extends AppError {
-  constructor(message: string, readonly fields: Record<string, string>) {
-    super(message, 400, "VALIDATION_FAILED");
+export class UpstreamError extends AppError {
+  // expose: false — the client gets a generic message, the log gets the detail.
+  constructor(service: string, cause?: unknown) {
+    super(`${service} unavailable`, 502, 'upstream_unavailable', false, { cause });
   }
 }
 ```
 
-Anything without `isOperational` is a bug, by definition.
+Two fields carry the weight. `status` and `code` let one handler answer every error without a
+chain of `instanceof` checks. `expose` decides whether the message is safe to send — an
+`UpstreamError` message may quote a connection string, and a 500 must never leak it.
 
-⚠️ **Always subclass `Error`.** Throwing a string or plain object loses the stack trace, and `instanceof` checks stop working.
+### Preserve the cause
 
----
-
-## Preserve the Cause
-
-When you wrap an error, keep the original. The `cause` option is standard and `console.error` prints the whole chain.
+`cause` is the standard way to keep the original error without swallowing it.
 
 ```typescript
 try {
-  await chargeCard(order);
+  await stripe.charges.create(payload);
 } catch (err) {
-  throw new AppError("Payment failed", 502, "PAYMENT_FAILED", { cause: err });
+  throw new UpstreamError('stripe', err); // Original stack is still reachable.
 }
 ```
 
-❌ Without it, you get "Payment failed" and no idea whether it was DNS, a timeout, or a declined card.
+Log the whole chain, not just the top error — walk `err.cause` until it is no longer an
+`Error` and record each `name: message` pair. A 502 whose cause is `ECONNREFUSED` is a different
+incident from one whose cause is a 401.
 
----
+### Narrowing `unknown`
 
-## Narrowing `unknown`
-
-In TypeScript, `catch` gives you `unknown`. Narrow it before use:
+Under `useUnknownInCatchVariables` — on by default with `strict` — a `catch` binding is
+`unknown`. Narrow it once, in a helper, rather than casting at every site.
 
 ```typescript
 function toError(value: unknown): Error {
   if (value instanceof Error) return value;
-  return new Error(String(value));
-}
-
-try {
-  await risky();
-} catch (err: unknown) {
-  const error = toError(err);
-  logger.error({ err: error }, "risky() failed");
+  // A rejected promise can carry a string, a number, or nothing at all.
+  return new Error(typeof value === 'string' ? value : JSON.stringify(value));
 }
 ```
 
----
+## One Handler for Everything
 
-## Express: One Handler for Everything
-
-An Express error handler is any middleware with **four** parameters. Register it last.
+Express funnels every error into a four-argument middleware. In Express 5, a rejected promise
+from an `async` handler reaches it automatically; in Express 4 it does not, and an unwrapped
+`async` handler drops the request on the floor.
 
 ```typescript
-import type { Request, Response, NextFunction } from "express";
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction): void => {
+  const e = toError(err);
+  const app = e instanceof AppError ? e : undefined;
+  const status = app?.status ?? 500;
 
-export function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction,
-): void {
-  const isOperational = err instanceof AppError;
-  const status = isOperational ? err.statusCode : 500;
-
-  logger.error({ err, path: req.path, requestId: req.id }, "request failed");
+  // One log line per failed request, with the correlation id the client can quote.
+  req.log.error({ err: chain(e), status, requestId: req.id }, 'request failed');
 
   res.status(status).json({
     error: {
-      // 🔴 Never leak an internal message or stack to the client
-      message: isOperational ? err.message : "Internal server error",
-      code: isOperational ? err.code : "INTERNAL",
+      code: app?.code ?? 'internal_error',
+      message: app?.expose ? e.message : 'Internal server error',
       requestId: req.id,
     },
   });
-}
-```
-
-> Return a `requestId` on every error. Users can quote it and you can find the exact log line — the cheapest support win available.
-
-### Async routes
-
-Express 4 does **not** catch rejected promises. A thrown error in an `async` handler hangs the request until it times out.
-
-```typescript
-// ❌ Express 4 — this rejection is never seen; the client waits forever
-app.get("/users", async (req, res) => {
-  res.json(await db.users.findAll());
 });
-
-// ✅ Wrap it
-const wrap = (fn: RequestHandler): RequestHandler =>
-  (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
-
-app.get("/users", wrap(async (req, res) => {
-  res.json(await db.users.findAll());
-}));
 ```
 
-✨ **Express 5 fixes this** — rejected promises are forwarded to `next()` automatically, so the wrapper is no longer needed.
+Three rules make this work:
 
----
+- **Register it last**, after every route and every other middleware.
+- **Never send a response twice** — check `res.headersSent` if any earlier code might have
+  started streaming.
+- **Default to 500 and a generic message.** An unrecognised error is a bug, and bugs leak.
 
 ## Process-Level Handlers
 
-These are for **logging and clean shutdown**, not for staying alive.
-
 ```typescript
-process.on("unhandledRejection", (reason: unknown) => {
-  logger.fatal({ err: reason }, "unhandled rejection");
-  throw reason;                      // escalate to uncaughtException
+process.on('unhandledRejection', (reason: unknown): void => {
+  logger.fatal({ err: chain(reason) }, 'unhandled rejection');
+  throw reason; // Converts it into an uncaught exception; one exit path.
 });
 
-process.on("uncaughtException", (err: Error) => {
-  logger.fatal({ err }, "uncaught exception");
-  shutdown(1);                       // log, drain, exit
+process.on('uncaughtException', (err: Error): void => {
+  logger.fatal({ err: chain(err) }, 'uncaught exception');
+  // Stop accepting work, let in-flight requests finish, then exit non-zero.
+  server.close((): void => process.exit(1));
+  setTimeout((): void => process.exit(1), 10_000).unref();
 });
 ```
 
-🔴 **Never keep serving after an `uncaughtException`.** The stack unwound at an arbitrary point — locks may be held, transactions half-applied, memory inconsistent. Log it, close connections, exit, and let your supervisor restart a clean process.
+> ⚠️ These handlers are for **logging and exiting**, not for recovery. Continuing after an
+> uncaught exception leaves half-applied state — an open transaction, a released lock — and the
+> next request sees it.
 
-> "Let it crash" only works if something restarts you. Run under systemd, Kubernetes, or [PM2](./08-clustering.md).
+The same shape covers `SIGTERM`, which is what an orchestrator sends before it stops a container.
+Close the server, drain the connection pool, exit 0.
 
-### Graceful shutdown
+## Retries That Do Not Amplify
 
-```typescript
-async function shutdown(code: number): Promise<void> {
-  server.close();                              // stop accepting new connections
-  setTimeout(() => process.exit(code), 10_000).unref();  // hard cap
-  await Promise.allSettled([db.close(), redis.quit()]);
-  process.exit(code);
-}
+A retry is a load multiplier. Three rules keep it from turning a slow dependency into an outage:
 
-process.on("SIGTERM", () => shutdown(0));
-```
-
-⚠️ The timeout matters. Without it, one stuck connection blocks the exit and your orchestrator sends `SIGKILL` mid-write.
-
----
-
-## Retries
-
-Retry **transient** failures only — timeouts, 429, 5xx, connection resets. Never retry a 400 or a validation error; it will fail identically every time.
+1. **Retry only idempotent, transient failures** — timeouts, connection resets, 429, 503. Never
+   a 400 or a 409.
+2. **Exponential backoff with jitter**, so clients that failed together do not return together.
+3. **A cap on attempts and a circuit breaker**, so a dead dependency is not hammered.
 
 ```typescript
 async function retry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
-  let lastError: unknown;
-
   for (let i = 0; i < attempts; i++) {
     try {
       return await fn();
     } catch (err) {
-      lastError = err;
-      if (!isTransient(err)) throw err;              // fail fast on real errors
-
-      const backoff = 2 ** i * 100;
-      const jitter = Math.random() * 100;            // spread the retry storm
-      await new Promise((r) => setTimeout(r, backoff + jitter));
+      if (i === attempts - 1 || !isTransient(err)) throw err;
+      const base = 2 ** i * 100;
+      await sleep(base + Math.random() * base); // Full jitter.
     }
   }
-  throw lastError;
+  throw new Error('unreachable');
 }
 ```
 
-✨ **Jitter is not optional.** Without it, every client that failed during an outage retries at the same instant and knocks the service over again as it recovers.
+## Common Mistakes
 
-⚠️ **Only retry idempotent operations.** Retrying `POST /charge` after a timeout may charge twice — the first call might have succeeded. Send an idempotency key.
+**❌ `catch` that logs and continues**
 
----
+```typescript
+try { await saveOrder(o); } catch (e) { logger.error(e); } // Client gets 200
+```
 
-## Interview Q&A
+**✅ Translate and rethrow**
 
-**Q: Should you catch every error?**
-A: No. Catch operational errors you can do something about. Let programmer errors crash — a caught `TypeError` leaves the process in an unknown state, and the bug then shows up somewhere far from its cause. The test is simple: if you can't take a meaningful action in the catch block, don't write one.
+```typescript
+try { await saveOrder(o); } catch (e) { throw new UpstreamError('orders', e); }
+```
 
-**Q: What happens to an unhandled promise rejection?**
-A: Since Node 15 it terminates the process, same as an uncaught exception. Before that it was a warning, which hid real bugs. Register a handler to log the reason before you exit, but don't use it to keep running.
+**❌ Sending `err.message` on a 500.** It is written for you, not for the caller, and it
+regularly contains a hostname, a query, or a path.
 
-**Q: Why does my async Express route hang instead of returning 500?**
-A: Express 4 only forwards errors passed to `next()` or thrown synchronously. A rejected promise from an `async` handler is invisible to it, so the response is never sent and the request hangs until timeout. Wrap handlers, or move to Express 5, which handles it natively.
+**❌ `process.exit()` immediately in a signal handler.** In-flight requests are cut mid-response.
+Close the server first, with a timeout as the backstop.
 
-**Q: How do you handle errors across microservices?**
-A: Propagate a correlation ID through every hop and include it in logs and error responses, so one identifier reconstructs the whole request path. Return stable machine-readable error codes rather than prose. Add timeouts and a circuit breaker on every outbound call — without them one slow dependency exhausts your connection pool and the failure spreads.
+## 🔑 Key Takeaways
 
-**Q: When is it wrong to retry?**
-A: When the operation isn't idempotent, or when the error is permanent. Retrying a 400 wastes time and hides the bug. Retrying a non-idempotent `POST` risks duplicate side effects — use an idempotency key so the server can deduplicate.
+- Operational errors are answered; programmer errors are logged and the process restarts.
+- One typed error base with `status`, `code` and `expose` removes error handling from every route.
+- Use `cause` to keep the original error, and log the whole chain.
+- Process-level handlers exist to log and exit, never to recover.
+- Retries need idempotency, jittered backoff, and a cap, or they amplify the outage.
 
----
+## Interview Questions
 
-## Best Practices
+**Q: Should you keep the process alive after an `uncaughtException`?**
 
-✅ Subclass `Error`; mark operational errors with a flag
-✅ Pass `{ cause }` when wrapping so the root cause survives
-✅ Centralise formatting in one Express error handler, registered last
-✅ Return a request ID in every error response
-✅ Exponential backoff **with jitter**, transient errors only
-✅ Handle `SIGTERM` and drain connections with a hard timeout
-❌ Don't swallow errors in an empty `catch`
-❌ Don't leak stack traces or internal messages to clients
-❌ Don't keep serving traffic after an `uncaughtException`
-❌ Don't retry non-idempotent operations without an idempotency key
+No. By definition you do not know what state the process is in — a transaction may be open, a
+lock held, a cache half-written. Log with full context, stop accepting new connections, let
+in-flight work finish briefly, and exit non-zero so the supervisor starts a clean process.
 
----
+**Q: How do you stop one error handler from leaking internals?**
 
-[← Previous: Module System](./03-module-system.md) | [Next: Performance →](./05-performance.md)
+Decide exposure at throw time, not at response time. Every error carries an `expose` flag; the
+handler sends the message only when it is true and a fixed generic string otherwise. Unrecognised
+errors default to 500 and generic, so a new throw site is safe by default rather than by review.
+
+**Q: Why add jitter to retry backoff?**
+
+Because without it every client that failed at the same moment retries at the same moment. The
+dependency sees a synchronised wave of traffic that repeats, decaying slowly, which is exactly
+the shape that keeps a recovering service down. Jitter spreads the retries across the window.
+
+## What to Read Next
+
+- [Chapter ?? — REST API Best Practices](#ch-rest-best-practices) — the one error shape a client can parse
+- [Chapter ?? — The Event Loop and Async Node](#ch-event-loop-async) — where an unhandled rejection comes from

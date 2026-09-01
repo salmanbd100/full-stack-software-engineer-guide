@@ -3,49 +3,46 @@ title: Part V — Backend Testing
 part: 5
 chapter: 0
 slug: part-backend-testing
-level: intermediate # beginner | intermediate | advanced
+level: intermediate
 reading_time: 2
-updated: 2026-08-28
-tags: [testing, tdd, mocking, integration, e2e]
+updated: 2026-09-01
+tags: [testing, integration, nodejs, backend]
 in_book: true
 ---
 
 # Part V — Backend Testing
 
-Testing questions in a senior interview are rarely about a framework. They are about judgement: what
-you choose to test, what you deliberately do not, and how you keep a suite fast enough that people
-still run it. This section is organised around that — the three layers of the pyramid first, then the
-practices that decide whether a suite stays useful after a year.
+Two chapters, deliberately. The discipline of testing — the pyramid, arrange-act-assert, the
+vocabulary of test doubles, when TDD helps, how to stop a suite going flaky — is covered in
+[Part IV](../../Frontend/Testing/README.md) and applies unchanged on the server. Repeating it here
+would be duplication rather than depth.
 
-TypeScript throughout. The examples use the vocabulary shared by Jest and Vitest, because the ideas
-survive the choice and the API does not.
+What is genuinely different on a backend is the shape of the pyramid and the nature of the
+dependencies. Most of a service's behaviour lives in its integration with a database and an HTTP
+boundary, not in its pure functions, so the weight shifts downward and the isolation problem becomes
+the thing that decides whether the suite is usable.
 
 ## Chapters
 
-| #  | Chapter                                                | What it answers                                                 |
-| -- | ------------------------------------------------------ | ---------------------------------------------------------------- |
-| 01 | [Unit Testing](./01-unit-testing.md)                   | What is the unit, and what belongs outside it?                    |
-| 02 | [Integration Testing](./02-integration.md)             | Where do the real bugs live, and how do you reach them?           |
-| 03 | [End-to-End Testing](./03-e2e.md)                      | How few E2E tests can you get away with?                          |
-| 04 | [Test-Driven Development](./04-tdd.md)                 | When does writing the test first actually help?                   |
-| 05 | [Mocking and Stubbing](./05-mocking.md)                | What should you mock, and what does mocking cost you?             |
-| 06 | [Testing Best Practices](./06-best-practices.md)       | Why does a green suite stop catching regressions?                 |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [Testing a Node Service](./01-unit-testing.md) | What is worth unit testing, and what tests only your mocks? |
+| 02 | [Integration Testing a Service](./02-integration.md) | How do you use a real database and stay fast? |
 
 ## What Interviewers Probe For
 
-- **Do you test behaviour or implementation?** A test that breaks when you rename a private method
-  was testing the wrong thing. This is the fastest way to tell a senior answer from a junior one.
-- **Can you justify the shape of the pyramid?** Not recite it. Say why the integration layer is where
-  most of the value sits for a service that mostly moves data between an API and a database.
-- **Do you know what mocking costs?** Every mock is a claim about how a dependency behaves, and that
-  claim silently rots. A candidate who volunteers this without prompting is signalling experience.
-- **What do you do about a flaky test?** The wrong answers are "retry it" and "delete it". The right
-  answer starts with finding the shared state.
+- **What you do *not* test.** Naming controllers-with-a-mocked-database as low value is a stronger
+  signal than reciting the pyramid.
+- **Injection against module mocking.** Why `vi.mock` is the exception rather than the default.
+- **Why not SQLite in place of Postgres.** Different engine, different semantics — the differences
+  are what the test exists to catch.
+- **Isolation strategy.** Transaction rollback, truncation, or a schema per worker, and the tradeoff
+  each carries.
+- **A test that passes locally and fails in CI.** The answer is almost always shared state or
+  ordering.
 
 ## Reading Order
 
-01 → 02 → 03 gives you the pyramid bottom-up. 05 and 06 are the two that change how you write tests;
-04 is worth reading even if you do not practise TDD, because the interview question is about when it
-pays rather than whether you do it.
+01 then 02. Both are short, and 02 is where the value is.
 
-**Interview sprint:** 01 → 05 → 06.
+**Interview sprint:** 02, plus Part IV's testing fundamentals chapter.

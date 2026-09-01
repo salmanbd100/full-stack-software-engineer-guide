@@ -22,7 +22,7 @@ in_book: true
 
 The question that decides between them is narrow: **does the client also need to send frequent messages?** If yes, you need a bidirectional socket and you accept stateful infrastructure. If no, you are pushing one way, and plain HTTP already does that.
 
-This chapter owns the choice and the topology. The server code lives in [Chapter ?? — WebSockets](#ch-websockets); the browser code lives in [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features).
+This chapter owns the choice and the topology. The server code lives in [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming); the browser code lives in [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features).
 
 ## How It Works
 
@@ -158,6 +158,6 @@ When updates are rare or the client is often offline. Holding a connection open 
 
 ## What to Read Next
 
-- [Chapter ?? — WebSockets](#ch-websockets) — the server implementation: typed events, authentication, rooms, backpressure
+- [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming) — the server implementation: typed events, authentication, rooms, backpressure
 - [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features) — the client: reconnection, jitter, and recovering missed messages
 - [Chapter ?? — Design a Notification System](#ch-design-notification-system) — where this building block sits inside a full design

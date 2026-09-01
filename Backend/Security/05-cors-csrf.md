@@ -3,333 +3,216 @@ title: CORS and CSRF
 part: 5
 chapter: 0
 slug: cors-csrf
-level: intermediate # beginner | intermediate | advanced
-reading_time: 12
-updated: 2026-08-28
-tags: [backend, security, cors, csrf]
+level: intermediate
+reading_time: 9
+updated: 2026-09-01
+tags: [security, cors, csrf, cookies, samesite]
 in_book: true
 ---
 
-# CORS and CSRF {#ch-cors-and-csrf}
+# CORS and CSRF {#ch-cors-csrf}
 
-> Configure CORS without opening a hole, and know why it is not a CSRF defence.
+> Configure CORS without opening your API to every origin, and explain why CORS is not a CSRF defence.
 
-**In this chapter:** the same-origin policy · preflight requests · configuring CORS safely · how CSRF works · `SameSite` and tokens · sending the token from a single-page app
+**In this chapter:** the same-origin policy · how CORS actually works · configuring it safely · how CSRF works · `SameSite` and tokens · why one does not solve the other
 
 ## 💡 The Core Idea
 
-These two get confused in almost every interview. They are not related, and one does **not** protect against the other.
+These two get confused constantly, and the reason is that both involve cross-origin requests. They
+protect opposite things.
 
-| Concept  | What it is                                          | Protects        |
-| -------- | --------------------------------------------------- | --------------- |
-| **CORS** | A way to **relax** the Same-Origin Policy            | The user's data from other sites reading it |
-| **CSRF** | An **attack** that abuses automatically-sent cookies | — it's the attack, not a defense |
+**The same-origin policy** stops a page on `evil.com` from *reading* a response from
+`api.yourbank.com`. **CORS** is how a server opts out of that restriction for origins it trusts. So
+CORS is a **relaxation** mechanism, not a protection — a permissive CORS policy removes a browser
+protection you had for free.
 
-> **The one-liner:** CORS controls who may **read** your response. CSRF is about who may **trigger** a request. A forged `POST` still reaches your server even when CORS blocks the attacker from reading the reply — the damage is already done.
+**CSRF** exploits the fact that the same-origin policy never stopped the request being *sent*. A
+form on `evil.com` can POST to your API, the browser attaches the user's cookies, and the write
+happens. The attacker cannot read the response, and for a state-changing request they do not need to.
+
+One sentence for the interview: **CORS controls who may read your responses; CSRF is about who may
+cause your writes.**
 
 ## Same-Origin Policy
 
-An **origin** is the triple: scheme + host + port. All three must match.
+An origin is the triple **scheme + host + port**. All three must match.
 
-```text
-https://app.example.com/dashboard   ← the page
-
-https://app.example.com/api/users   ✅ same origin
-https://api.example.com/users       ❌ different host
-http://app.example.com/users        ❌ different scheme
-https://app.example.com:8080/users  ❌ different port
-```
-
-The Same-Origin Policy is a **browser** rule. It stops JavaScript on one origin from reading responses from another. It does not stop the request from being sent, and it does nothing outside a browser — `curl` and server-to-server calls ignore it entirely.
+| URL | Same origin as `https://app.example.com`? |
+| --- | ----------------------------------------- |
+| `https://app.example.com/api` | ✅ Path is irrelevant |
+| `http://app.example.com` | ❌ Different scheme |
+| `https://api.example.com` | ❌ Different host — a subdomain is a different origin |
+| `https://app.example.com:8443` | ❌ Different port |
 
 ## How CORS Works
 
-CORS is the server's way of saying "this specific origin may read my response."
+CORS is entirely a **browser** mechanism enforced on the response. The request usually reaches your
+server and executes; the browser then refuses to hand the response to the calling script. That is
+why a "CORS error" in the console can accompany a row that was successfully written.
 
-**Simple requests** go straight through, and the browser checks the response headers before handing the body to JavaScript.
+Requests split into two kinds:
 
-A request stays "simple" only with `GET`, `HEAD`, or `POST`, a basic `Content-Type` (`text/plain`, `application/x-www-form-urlencoded`, `multipart/form-data`), and no custom headers.
+**Simple requests** go straight out. `GET`, `HEAD`, or `POST` with a content type of
+`application/x-www-form-urlencoded`, `multipart/form-data` or `text/plain`, and no custom headers.
 
-**Everything else triggers a preflight:**
+**Preflighted requests** are everything else — any `PUT`, `DELETE`, `PATCH`, any
+`Content-Type: application/json`, any `Authorization` header. The browser first sends an `OPTIONS`
+request asking permission.
 
-```text
-Browser                                    Server (api.example.com)
-   │                                              │
-   │  OPTIONS /users                              │
-   │  Origin: https://app.example.com             │
-   │  Access-Control-Request-Method: PUT          │
-   │  Access-Control-Request-Headers: authorization
-   ├─────────────────────────────────────────────▶│
-   │                                              │
-   │  204 No Content                              │
-   │  Access-Control-Allow-Origin: https://app.example.com
-   │  Access-Control-Allow-Methods: GET,PUT,POST  │
-   │  Access-Control-Allow-Headers: authorization │
-   │  Access-Control-Max-Age: 600                 │
-   ◀─────────────────────────────────────────────┤
-   │                                              │
-   │  PUT /users  (the real request)              │
-   ├─────────────────────────────────────────────▶│
+```http
+OPTIONS /api/orders HTTP/1.1
+Origin: https://app.example.com
+Access-Control-Request-Method: PATCH
+Access-Control-Request-Headers: content-type, authorization
 ```
 
-> ✨ **`Access-Control-Max-Age` is a real performance win.** Without it, every non-simple request pays for two round trips. Caching the preflight for 10 minutes removes that.
+```http
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: https://app.example.com
+Access-Control-Allow-Methods: GET, POST, PATCH, DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 86400
+```
 
-**The response headers that matter:**
+`Access-Control-Max-Age` is the practical detail most people miss: without it, every JSON request
+pays a second round trip.
 
-| Header                             | Purpose                                      |
-| ---------------------------------- | -------------------------------------------- |
-| `Access-Control-Allow-Origin`      | Which origin may read the response            |
-| `Access-Control-Allow-Credentials` | Allow cookies/auth headers to be sent         |
-| `Access-Control-Allow-Methods`     | Methods allowed (preflight only)              |
-| `Access-Control-Allow-Headers`     | Request headers allowed (preflight only)      |
-| `Access-Control-Expose-Headers`    | Response headers JS is allowed to read        |
-
-## Configuring CORS Safely
+### Configuring it safely
 
 ```typescript
-import cors, { type CorsOptions } from "cors";
+const ALLOWED = new Set(['https://app.example.com', 'https://admin.example.com']);
 
-const ALLOWED_ORIGINS: readonly string[] = [
-  "https://app.example.com",
-  "https://admin.example.com",
-];
-
-const options: CorsOptions = {
+app.use(cors({
   origin: (origin, callback) => {
-    // No origin = same-origin, curl, or a mobile app — allow it through.
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error("Not allowed by CORS"));
+    // No Origin header: same-origin, curl, or a server-side call. Allow it.
+    if (!origin) return callback(null, true);
+    callback(null, ALLOWED.has(origin)); // Exact match — never a regex on the host.
   },
-  credentials: true, // required for cookies
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  maxAge: 600, // cache preflight for 10 minutes
-};
-
-app.use(cors(options));
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86_400,
+}));
 ```
 
-**🔴 The two dangerous mistakes:**
+> ⚠️ `Access-Control-Allow-Origin: *` with `Access-Control-Allow-Credentials: true` is rejected by
+> every browser — the combination would let any site read authenticated responses. Libraries that
+> reflect the request's `Origin` header back are equivalent to `*` and are the most common
+> misconfiguration in the wild.
 
-```typescript
-// ❌ Wildcard with credentials — browsers reject this, and people "fix" it wrongly
-app.use(cors({ origin: "*", credentials: true }));
-
-// ❌ Reflecting whatever origin asked — this allows *every* site
-app.use(cors({ origin: (o, cb) => cb(null, true), credentials: true }));
-```
-
-Reflecting the origin with `credentials: true` means any website can make authenticated requests **and read the responses**. That's a full account-data leak.
-
-```typescript
-// ✅ Explicit allowlist, always
-```
-
-> ⚠️ **`origin: "*"` is fine for a truly public, unauthenticated API.** It becomes dangerous the moment cookies or auth headers are involved.
+Three further rules. Do not reflect an arbitrary `Origin`. Do not use a regex such as
+`/example\.com$/`, which matches `evil-example.com`. And remember `Vary: Origin` on the response, or
+a CDN will cache one origin's CORS headers and serve them to another.
 
 ## How CSRF Works
 
-The browser attaches cookies to requests for a domain **automatically** — no matter which site triggered the request.
+1. The user is logged in to `bank.example.com`, so a session cookie exists.
+2. The user visits `evil.com`.
+3. `evil.com` auto-submits a form to `bank.example.com/transfer`.
+4. The browser attaches the cookie. The transfer happens.
 
-The user is logged into `bank.com`. They open `evil.com`, which silently submits a form:
+The attacker never reads the response. For a write, they never needed to. Note what makes it
+possible: **the credential is sent automatically.** A token in an `Authorization` header is not sent
+by a cross-site form, which is why token-in-header APIs are not CSRF-vulnerable — and why moving to
+cookies reintroduces the problem.
+
+### Defence 1 — `SameSite` cookies
 
 ```typescript
-// Served by evil.com. No click required — it submits on load.
-const attack = `
-  <form action="https://bank.com/transfer" method="POST" id="f">
-    <input name="to" value="attacker">
-    <input name="amount" value="10000">
-  </form>
-  <script>document.getElementById("f").submit()</script>
-`;
+res.cookie('session', id, { httpOnly: true, secure: true, sameSite: 'lax' });
 ```
 
-The browser sends the bank's session cookie. The server sees a valid session and performs the transfer.
+| Value | Sent on cross-site requests | Note |
+| ----- | --------------------------- | ---- |
+| `Strict` | Never | Strongest; a link from an email arrives logged out |
+| `Lax` (browser default) | Only on top-level `GET` navigations | The right default — blocks cross-site `POST` |
+| `None` | Always | Requires `Secure`; only for a deliberate cross-site integration |
 
-| Operation type   | Examples                         | At risk?             |
-| ---------------- | -------------------------------- | -------------------- |
-| **State-changing** | `POST /transfer`, `DELETE /user` | ✅ Yes — the target  |
-| **Read-only**    | `GET /profile`                   | Should be harmless   |
+`Lax` blocks the classic attack, because a cross-site form `POST` does not carry the cookie. It is
+not sufficient on its own for two reasons: an older browser may ignore it, and any state-changing
+`GET` endpoint is still exposed. Which leads to the rule that `GET` must never change state — a
+principle from [Chapter ?? — REST API Best Practices](#ch-rest-best-practices) that turns out to be
+a security control.
 
-> ⚠️ **Never let a `GET` change state.** A state-changing `GET` can be fired by `<img src="https://bank.com/delete?id=1">` — no form, no JavaScript.
+### Defence 2 — a token the attacker cannot read
 
-**CSRF only matters for cookie-based auth.** If your API takes a `Authorization: Bearer` header that JavaScript must add explicitly, a cross-site form can't add it — so classic CSRF doesn't apply.
-
-## CSRF Defense 1: SameSite Cookies
-
-The cheapest, most effective first layer. Set it on every session cookie.
-
-| Value      | Cross-site behavior                    | Use for                          |
-| ---------- | -------------------------------------- | -------------------------------- |
-| **Strict** | Never sent cross-site                  | Banking, admin panels            |
-| **Lax**    | Sent only on top-level `GET` navigation | Most apps (good default)        |
-| **None**   | Sent on all cross-site requests        | Embedded widgets — requires `Secure` |
+The double-submit pattern: the server sets a random value in a readable cookie, and the client
+echoes it in a header. A cross-site attacker can cause the cookie to be sent but cannot read it to
+construct the header, because the same-origin policy stops them.
 
 ```typescript
-res.cookie("sessionId", token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "lax", // blocks the cross-site POST above
-});
-```
-
-**Why `Lax` stops the attack:** the forged request is a cross-site `POST`, so the browser omits the cookie. The bank sees no session.
-
-> ⚠️ **Necessary but not sufficient.** Older browsers, some OAuth redirect flows, and any cookie that must be `SameSite=None` still need tokens. Use both layers.
-
-## CSRF Defense 2: Tokens
-
-The server issues an unpredictable token. Real requests echo it back; a forged cross-site request can't, because the attacker can't read it.
-
-**Heads up:** the classic `csurf` middleware is archived and unmaintained. Use `csrf-csrf` or a small custom check.
-
-```typescript
-import { doubleCsrf } from "csrf-csrf";
-
-const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
-  getSecret: () => process.env.CSRF_SECRET!,
-  getSessionIdentifier: (req) => req.session.id,
-  cookieName: "__Host-csrf",
-  cookieOptions: { sameSite: "lax", secure: true },
+// Issue: a readable cookie holding a random token.
+app.get('/csrf', (req, res) => {
+  const token = crypto.randomBytes(32).toString('base64url');
+  res.cookie('csrf_token', token, { sameSite: 'lax', secure: true }); // NOT httpOnly — the app reads it
+  res.json({ token });
 });
 
-app.get("/csrf-token", (req, res) => res.json({ token: generateCsrfToken(req, res) }));
-app.post("/transfer", doubleCsrfProtection, handleTransfer);
-```
+// Verify: the header must match the cookie, compared in constant time.
+export const csrf: RequestHandler = (req, res, next) => {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
 
-### The double-submit pattern, by hand
+  const fromCookie = req.cookies.csrf_token as string | undefined;
+  const fromHeader = req.header('X-CSRF-Token');
+  const ok = fromCookie && fromHeader && fromCookie.length === fromHeader.length &&
+    crypto.timingSafeEqual(Buffer.from(fromCookie), Buffer.from(fromHeader));
 
-```text
-Server → sets cookie:  csrfToken=abc123
-Client → reads cookie, sends header:  X-CSRF-Token: abc123
-Server → cookie === header ?   ✅ allow    ❌ reject
-```
-
-**Why it works:** `evil.com` cannot read your cookie (Same-Origin Policy) and cannot set a custom header on a cross-site form submission. So it can't make the two match.
-
-```typescript
-import crypto from "node:crypto";
-import type { Request, Response, NextFunction } from "express";
-
-export function checkCsrf(req: Request, res: Response, next: NextFunction): void {
-  const cookie = req.cookies.csrfToken as string | undefined;
-  const header = req.get("x-csrf-token");
-
-  if (!cookie || !header) {
-    res.status(403).json({ error: "CSRF token missing" });
-    return;
-  }
-
-  // Constant-time compare — avoids leaking the token byte by byte via timing.
-  const ok = crypto.timingSafeEqual(Buffer.from(cookie), Buffer.from(header));
-  if (!ok) {
-    res.status(403).json({ error: "CSRF validation failed" });
-    return;
-  }
+  if (!ok) return void res.status(403).json({ error: { code: 'csrf_failed' } });
   next();
-}
+};
 ```
 
-> ⚠️ The `__Host-` cookie prefix forces `Secure`, host-only, path `/`. It stops a compromised subdomain from overwriting your CSRF cookie.
+The stronger variant is the **signed double-submit**: the cookie holds a value signed with a
+server-side secret and bound to the session, so an attacker who can set cookies on a sibling
+subdomain still cannot forge a valid pair.
 
-## Sending the Token from a Single-Page App
+> ⚠️ Do not put the CSRF token in `localStorage`. Then an XSS reads it and the defence is gone — and
+> the point of the pattern is that reading requires same-origin access.
 
-The token only helps if every state-changing request carries it. Fetch it once after login, then route
-mutations through one wrapper rather than trusting each call site to remember.
+## Why CORS Does Not Stop CSRF
 
-```typescript
-async function getCsrfToken(): Promise<string> {
-  const res = await fetch("/csrf-token", { credentials: "same-origin" });
-  const { token } = (await res.json()) as { token: string };
-  return token;
-}
+Three reasons, and being able to give them is the answer to the most common question in this area:
 
-async function mutate(url: string, token: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(url, {
-    ...options,
-    credentials: "same-origin", // the session cookie still has to be sent
-    headers: {
-      ...options.headers,
-      "Content-Type": "application/json",
-      "X-CSRF-Token": token,
-    },
-  });
-}
-```
-
-Two browser rules are doing the work here, and they are worth being able to state:
-
-- **The same-origin policy** stops `evil.com` reading the cookie or the response from your origin.
-- **A cross-site form or `<img>` cannot set a custom header.** Only a same-origin `fetch` or `XHR` can add
-  `X-CSRF-Token`, which is precisely what the attacker does not have.
-
-The protection therefore comes from the header the attacker cannot forge, not from where the token is
-kept — so holding it in memory or in `localStorage` is fine, while the session cookie stays `HttpOnly`.
-
-## Why CORS Doesn't Stop CSRF
-
-This is the question interviewers use to separate memorization from understanding.
-
-```text
-CSRF attack:  evil.com  ──POST /transfer (with cookies)──▶  bank.com
-                                                              │
-                                            money already moved ✅ for attacker
-                                                              │
-              evil.com  ◀──response blocked by CORS───────────┘
-                            (attacker doesn't care)
-```
-
-**Three reasons CORS is not a CSRF defense:**
-
-1. **CORS filters reading, not sending.** The request executes; only the response is withheld.
-2. **HTML forms don't need CORS at all.** A cross-site `<form>` submit is a normal navigation, not a `fetch` — no preflight, no CORS check.
-3. **Simple requests skip preflight.** A `POST` with `Content-Type: application/x-www-form-urlencoded` goes straight to your handler.
-
-> **Say this in an interview:** "CORS is about confidentiality of the response. CSRF is about integrity of the request. Different problems, different fixes."
+1. **The request is still sent.** CORS is enforced on the response, after your handler ran.
+2. **Simple requests are not preflighted at all.** A cross-site form `POST` with
+   `application/x-www-form-urlencoded` never asks permission.
+3. **The attacker does not need the response.** A transfer that succeeds is a successful attack even
+   if the browser discards the reply.
 
 ## 🔑 Key Takeaways
 
-- CORS relaxes the same-origin policy for reading a response; it is not access control, and non-browser clients ignore it entirely.
-- Never reflect an arbitrary `Origin` back with `credentials: true` — keep an explicit allowlist.
-- CSRF only applies to credentials the browser attaches automatically, which means cookie sessions rather than an `Authorization` header your code sets.
-- Layer `SameSite=Lax` with an anti-CSRF token: `SameSite` fails open on legacy browsers and `SameSite=None` cookies, and tokens cover the gap.
-- Fix XSS first — script running on your origin defeats every CSRF defence in this chapter.
+- CORS relaxes the same-origin policy; it is a permission mechanism, not a protection.
+- CORS is enforced on the response, so a blocked read may still have executed a write.
+- `Allow-Origin: *` with credentials is invalid, and reflecting the request's `Origin` is equivalent to it.
+- `SameSite=Lax` blocks the classic CSRF form post, provided no `GET` endpoint changes state.
+- CORS cannot prevent CSRF, because the request is sent regardless and the attacker never needs the response.
 
 ## Interview Questions
 
-**Q1: What is CORS and what problem does it solve?**
+**Q: Does CORS protect your API?**
 
-CORS is a browser mechanism for safely relaxing the Same-Origin Policy. By default JavaScript can't read a response from a different origin. The server opts specific origins in using `Access-Control-Allow-Origin` and related headers. It's permission to read, not a firewall — non-browser clients ignore it completely.
+No. CORS is how a server grants permission for a cross-origin script to *read* a response; it is
+enforced by the browser, after the request has reached your server. A non-browser client ignores it
+entirely, and a cross-site form post executes whether or not CORS allows the reading of the reply.
+Authentication and authorisation protect the API; CORS decides who may read the answer.
 
-**Q2: What triggers a preflight request?**
+**Q: Why is reflecting the `Origin` header a vulnerability?**
 
-Anything that isn't a "simple" request: methods beyond `GET`/`HEAD`/`POST`, a `Content-Type` like `application/json`, or custom headers such as `Authorization`. The browser sends an `OPTIONS` request first and only proceeds if the server approves the method and headers.
+Because it makes every origin an allowed origin, and combined with `Allow-Credentials: true` it lets
+any website make authenticated requests to your API and read the responses. It is functionally
+`Allow-Origin: *` with credentials, which browsers reject outright — reflection is the accidental
+version that browsers accept.
 
-**Q3: Why can't you use `origin: "*"` with credentials?**
+**Q: `SameSite=Lax` is set. Do you still need CSRF tokens?**
 
-Browsers explicitly forbid it, because it would let any site make authenticated cross-origin requests and read the responses. With credentials you must echo one specific allowed origin — which means keeping an explicit allowlist.
-
-**Q4: What is CSRF and why does it work?**
-
-It tricks a logged-in user's browser into sending a request they didn't intend. It works because browsers attach cookies automatically, even to requests started by another site, so the server can't distinguish a forged call from a real one.
-
-**Q5: Does CORS protect against CSRF?**
-
-No. CORS decides who may read a response; the forged request still executes. Cross-site form submissions don't go through CORS at all, and simple requests skip preflight. CSRF needs `SameSite` cookies and anti-CSRF tokens.
-
-**Q6: How does `SameSite` stop CSRF?**
-
-`Lax` or `Strict` tells the browser not to attach the cookie to cross-site requests, so the forged `POST` arrives with no session. It's the cheapest first layer, but edge cases — legacy browsers, redirect flows, `SameSite=None` cookies — mean you should still use tokens.
-
-**Q7: Do JWT-in-header APIs need CSRF protection?**
-
-Not for classic CSRF. A cross-site form can't set an `Authorization` header, and the browser won't add one automatically. But if you store that JWT in a cookie that's sent automatically, you're back to cookie-based auth and CSRF applies again.
+For most applications `Lax` is the main defence and is close to sufficient. Tokens are still
+warranted if any state-changing endpoint responds to `GET`, if you must support browsers that
+predate `SameSite`, if a cookie is `SameSite=None` for a deliberate integration, or if a sibling
+subdomain you do not fully control could set cookies on the parent domain.
 
 ## What to Read Next
 
-- [Chapter ?? — XSS Prevention](#ch-xss-prevention) — the attack that bypasses every defence here
-- [Chapter ?? — JWT Authentication](#ch-jwt-authentication) — why header-based tokens change the CSRF picture
-- [Chapter ?? — Security Headers](#ch-security-headers) — the browser-enforced half of the same story
+- [Chapter ?? — Sessions and JWTs](#ch-jwt) — where the credential lives, and why cookies win
+- [Chapter ?? — Input Validation and Injection](#ch-backend-input-validation) — the other half of not trusting a request
+- [Chapter ?? — Security Headers](#ch-security-headers) — the response headers that close the neighbouring attacks
