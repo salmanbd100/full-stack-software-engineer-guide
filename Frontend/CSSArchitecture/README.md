@@ -5,7 +5,7 @@ chapter: 0
 slug: frontend-cssarchitecture-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
+updated: 2026-09-01
 tags: [css, tailwind, css-in-js, design-systems, methodologies]
 in_book: true
 ---
@@ -28,8 +28,7 @@ because the interview question is never "which is best" — it is "why did your 
 | 01 | [CSS Methodologies](./01-css-methodologies.md)                   | How do you name things so a stranger can add a rule safely?      |
 | 02 | [Utility-First vs Component-First](./02-utility-vs-component.md) | What is the actual Tailwind trade-off, stripped of preference?   |
 | 03 | [CSS-in-JS](./03-css-in-js.md)                                   | What does runtime CSS-in-JS cost at hydration?                   |
-| 04 | [Atomic CSS](./04-atomic-css.md)                                 | Why does a stylesheet stop growing once classes do one thing?    |
-| 05 | [Design Systems](./05-design-systems.md)                         | How do forty teams adopt a component library without forking it? |
+| 04 | [Design Systems](./04-design-systems.md)                         | How do forty teams adopt a component library without forking it? |
 
 ## What Interviewers Probe For
 
@@ -55,11 +54,11 @@ for architecture specifically, *can defend a styling decision at team scale*.
 
 ## Reading Order
 
-Chapter 01 first; it sets the vocabulary the rest use. Chapters 02 and 04 are closely related and
-read well together. Chapter 05 is the one that matters most for a senior or staff-level conversation.
+Chapter 01 first; it sets the vocabulary the rest use. Chapter 04 is the one that matters most for a
+senior or staff-level conversation.
 
-**Interview sprint:** 02 → 05. The utility-versus-component question and the design-system question
-are the two that come up; 01, 03 and 04 are background for answering them well.
+**Interview sprint:** 02 → 04. The utility-versus-component question and the design-system question
+are the two that come up; 01 and 03 are background for answering them well.
 
 > ⚠️ Design systems appear here and in Part IV's architecture material. This chapter is the styling
 > half — tokens, theming, distribution. The governance and migration half belongs to Part IV.

@@ -4,374 +4,215 @@ part: 2
 chapter: 0
 slug: date-number-formatting
 level: intermediate # beginner | intermediate | advanced
-reading_time: 10
-updated: 2026-08-28
-tags: [frontend, internationalization, date, number, formatting]
+reading_time: 8
+updated: 2026-09-01
+tags: [i18n, intl, dates, numbers, currency, timezones]
 in_book: true
 ---
 
-# Date and Number Formatting {#ch-date-and-number-formatting}
+# Date and Number Formatting {#ch-date-number-formatting}
 
-> Format dates, numbers and currency for any locale using the platform, not a library.
+> Format dates, numbers and currency for any locale using the platform, and know which time zone the result is in.
 
-**In this chapter:** the `Intl` family · `DateTimeFormat` · `NumberFormat` and currency · `RelativeTimeFormat` · time zones · when a library still earns its bytes
+**In this chapter:** the `Intl` family · dates and relative time · numbers, currency and compact notation · time zones · why formatters must be cached
 
-## Table of Contents
+## 💡 The Core Idea
 
-- [Intl API Overview](#intl-api-overview)
-- [Intl.DateTimeFormat](#intldatetimeformat)
-- [Intl.NumberFormat](#intlnumberformat)
-- [Currency Formatting](#currency-formatting)
-- [Intl.RelativeTimeFormat](#intlrelativetimeformat)
-- [Time Zone Handling](#time-zone-handling)
-- [Library Comparison](#library-comparison)
-- [Common Pitfalls](#common-pitfalls)
-- [Interview Questions](#interview-questions)
+Every locale disagrees about how to write the same value. `1.234,56` is one thousand in Germany and
+one-point-something in the United States. The date `03/04/2026` is March in one country and April in
+another. There is no clever formatting function you can write, because the correct answer is data —
+hundreds of locales' worth of it — and the browser already ships that data as the `Intl` APIs. The job
+is to hand `Intl` a value, a locale and an intent, and never to assemble a formatted string by hand.
 
----
+> Store values as values. Format them at the edge, once, with the user's locale and an explicit time
+> zone.
 
-## Intl API Overview
+## How It Works
 
-### 💡 **Available APIs**
+| API | Formats | Typical use |
+| --- | ------- | ----------- |
+| `Intl.DateTimeFormat` | Dates and times | Timestamps, calendars |
+| `Intl.NumberFormat` | Numbers, currency, percentages, units | Prices, metrics, file sizes |
+| `Intl.RelativeTimeFormat` | "3 days ago", "tomorrow" | Activity feeds |
+| `Intl.ListFormat` | "A, B and C" | Tag lists, author lists |
+| `Intl.PluralRules` | Plural category selection | Counted nouns |
+| `Intl.Collator` | Locale-aware sorting and comparison | Sorting names |
 
-| API | Purpose |
-|-----|---------|
-| `Intl.DateTimeFormat` | Format dates and times |
-| `Intl.NumberFormat` | Format numbers, currency, units |
-| `Intl.RelativeTimeFormat` | "2 days ago", "in 3 hours" |
-| `Intl.PluralRules` | Determine plural category |
-| `Intl.ListFormat` | "a, b, and c" |
-| `Intl.Collator` | Locale-aware string sorting |
+### Dates
 
-**Locale format follows BCP 47:** `language-script-region`
-
-| Locale | Meaning |
-|--------|---------|
-| `en-US` | English (United States) |
-| `de-DE` | German (Germany) |
-| `ar-SA` | Arabic (Saudi Arabia) |
-| `zh-Hans-CN` | Chinese Simplified (China) |
-
----
-
-## Intl.DateTimeFormat
-
-### 💡 **Basic Usage**
+Ask for the *intent* — a long month, a two-digit hour — and let the locale decide the order and the
+separators.
 
 ```typescript
-const date = new Date('2025-12-18');
+const value = new Date('2026-03-04T14:30:00Z');
 
-new Intl.DateTimeFormat('en-US').format(date);  // "12/18/2025"
-new Intl.DateTimeFormat('de-DE').format(date);  // "18.12.2025"
-new Intl.DateTimeFormat('ja-JP').format(date);  // "2025/12/18"
+// Always name the time zone. Without it the output is the browser's zone,
+// which differs per user and makes bug reports irreproducible.
+const opts: Intl.DateTimeFormatOptions = {
+  dateStyle: 'long',
+  timeStyle: 'short',
+  timeZone: 'Europe/Oslo',
+};
+
+new Intl.DateTimeFormat('en-GB', opts).format(value); // 4 March 2026 at 15:30
+new Intl.DateTimeFormat('de-DE', opts).format(value); // 4. März 2026 um 15:30
+new Intl.DateTimeFormat('ja-JP', opts).format(value); // 2026年3月4日 15:30
 ```
 
-> The same date displays completely differently across locales.
+`dateStyle` and `timeStyle` are the right default because they encode the locale's own conventions.
+Reach for the component options — `year`, `month`, `day`, `hour` — only when you need a shape the styles
+do not offer.
 
----
-
-### 💡 **Format Options**
+### Relative time
 
 ```typescript
-// Long date
-new Intl.DateTimeFormat('en-US', {
-  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-}).format(date);
-// "Thursday, December 18, 2025"
+const rtf = new Intl.RelativeTimeFormat('en-GB', { numeric: 'auto' });
 
-// Short date + time
-new Intl.DateTimeFormat('en-US', {
-  dateStyle: 'short', timeStyle: 'short'
-}).format(date);
-// "12/18/25, 12:00 AM"
+// numeric: 'auto' produces "yesterday" instead of "1 day ago".
+rtf.format(-1, 'day'); // yesterday
+rtf.format(-2, 'hour'); // 2 hours ago
 ```
 
-| `dateStyle` | Example |
-|-------------|---------|
-| `'full'` | Thursday, December 18, 2025 |
-| `'long'` | December 18, 2025 |
-| `'medium'` | Dec 18, 2025 |
-| `'short'` | 12/18/25 |
-
----
-
-### 💡 **React Hook**
+Picking the unit is the part `Intl` does not do for you. Walk a table of units from largest to smallest
+and use the first one the difference exceeds.
 
 ```typescript
-import { useMemo, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-
-function useDateFormatter(options: Intl.DateTimeFormatOptions = {}): (date: Date) => string {
-  const { i18n } = useTranslation();
-
-  const formatter = useMemo(
-    () => new Intl.DateTimeFormat(i18n.language, options),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [i18n.language, JSON.stringify(options)]
-  );
-
-  return useCallback((date: Date) => formatter.format(date), [formatter]);
-}
-
-// Usage
-function DateDisplay({ date }: { date: Date }): JSX.Element {
-  const formatDate = useDateFormatter({ year: 'numeric', month: 'long', day: 'numeric' });
-  return <time>{formatDate(date)}</time>;
-}
-```
-
----
-
-## Intl.NumberFormat
-
-### 💡 **Basic Numbers**
-
-```typescript
-const n = 1234.56;
-
-new Intl.NumberFormat('en-US').format(n);  // "1,234.56"
-new Intl.NumberFormat('de-DE').format(n);  // "1.234,56"
-new Intl.NumberFormat('fr-FR').format(n);  // "1 234,56"
-```
-
-> Thousands separator and decimal separator differ by locale.
-
----
-
-### 💡 **Styles and Notation**
-
-```typescript
-// Percentage
-new Intl.NumberFormat('en-US', { style: 'percent' }).format(0.12);
-// "12%"
-
-// Compact notation
-new Intl.NumberFormat('en-US', { notation: 'compact' }).format(1_000_000);
-// "1M"
-
-// Unit
-new Intl.NumberFormat('en-US', {
-  style: 'unit', unit: 'kilometer-per-hour', unitDisplay: 'short'
-}).format(100);
-// "100 km/h"
-
-// Control decimal places
-new Intl.NumberFormat('en-US', {
-  minimumFractionDigits: 2, maximumFractionDigits: 2
-}).format(1234.5);
-// "1,234.50"
-```
-
-| Style | Use Case |
-|-------|----------|
-| `'decimal'` | Regular numbers |
-| `'percent'` | Rates and ratios |
-| `'currency'` | Monetary values |
-| `'unit'` | Physical measurements |
-
----
-
-## Currency Formatting
-
-### 💡 **Basic Currency**
-
-```typescript
-function formatCurrency(amount: number, locale: string, currency: string): string {
-  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount);
-}
-
-formatCurrency(1234.56, 'en-US', 'USD');  // "$1,234.56"
-formatCurrency(1234.56, 'de-DE', 'EUR');  // "1.234,56 €"
-formatCurrency(1234,    'ja-JP', 'JPY');  // "￥1,234"
-```
-
-> JPY and KRW have 0 decimal places. `Intl.NumberFormat` handles this automatically — never force `minimumFractionDigits: 2` on these currencies.
-
----
-
-### 💡 **Display Options**
-
-| `currencyDisplay` | Result |
-|-------------------|--------|
-| `'symbol'` (default) | $1,234.56 |
-| `'code'` | USD 1,234.56 |
-| `'name'` | 1,234.56 US dollars |
-
-```typescript
-// Accounting format — negative in parentheses
-new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  currencySign: 'accounting'
-}).format(-1234.56);
-// "($1,234.56)"
-```
-
----
-
-## Intl.RelativeTimeFormat
-
-### 💡 **Relative Time**
-
-```typescript
-const rtf = new Intl.RelativeTimeFormat('en-US', { numeric: 'auto' });
-
-rtf.format(-1, 'day');     // "yesterday"
-rtf.format(1, 'day');      // "tomorrow"
-rtf.format(-2, 'hour');    // "2 hours ago"
-rtf.format(0, 'day');      // "today"
-```
-
-`numeric: 'auto'` uses natural language ("yesterday") over numeric ("1 day ago").
-
----
-
-### 💡 **Time Ago Helper**
-
-```typescript
-interface TimeUnit {
-  unit: Intl.RelativeTimeFormatUnit;
-  seconds: number;
-}
-
-const TIME_UNITS: TimeUnit[] = [
-  { unit: 'year',   seconds: 31_536_000 },
-  { unit: 'month',  seconds: 2_592_000 },
-  { unit: 'week',   seconds: 604_800 },
-  { unit: 'day',    seconds: 86_400 },
-  { unit: 'hour',   seconds: 3_600 },
-  { unit: 'minute', seconds: 60 },
-  { unit: 'second', seconds: 1 }
+const UNITS: readonly [Intl.RelativeTimeFormatUnit, number][] = [
+  ['year', 31_536_000],
+  ['month', 2_592_000],
+  ['week', 604_800],
+  ['day', 86_400],
+  ['hour', 3_600],
+  ['minute', 60],
 ];
 
-function formatTimeAgo(date: Date, locale = 'en-US'): string {
+function timeAgo(when: Date, locale: string): string {
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-  const diffSeconds = (date.getTime() - Date.now()) / 1000;
+  const seconds = (when.getTime() - Date.now()) / 1000;
 
-  for (const { unit, seconds } of TIME_UNITS) {
-    if (Math.abs(diffSeconds) >= seconds) {
-      return rtf.format(Math.round(diffSeconds / seconds), unit);
-    }
+  for (const [unit, size] of UNITS) {
+    if (Math.abs(seconds) >= size) return rtf.format(Math.round(seconds / size), unit);
   }
-
-  return rtf.format(0, 'second');
-}
-
-formatTimeAgo(new Date(Date.now() - 3_600_000));  // "1 hour ago"
-formatTimeAgo(new Date(Date.now() + 86_400_000)); // "tomorrow"
-```
-
----
-
-## Time Zone Handling
-
-### 💡 **Always Be Explicit**
-
-```typescript
-const date = new Date();
-
-new Intl.DateTimeFormat('en-US', {
-  timeZone: 'America/New_York',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZoneName: 'short'
-}).format(date);
-// "January 22, 2026, 10:30 AM EST"
-```
-
-`Date` stores UTC internally. Without an explicit `timeZone`, output uses the **browser's local time zone** — which varies per user.
-
----
-
-## Library Comparison
-
-| Need | Use |
-|------|-----|
-| Simple formatting | Intl API (0KB, native) |
-| Date math (add days, diff) | `date-fns` (~15KB) |
-| Lightweight + plugins | `Day.js` (~2KB) |
-| Complex time zone logic | `Luxon` (~20KB) |
-
-The Intl API handles **display formatting**. Reach for a library only when you need **date manipulation**.
-
----
-
-## Common Pitfalls
-
-### 💡 **Not Memoizing Formatters**
-
-Creating `Intl.DateTimeFormat` or `Intl.NumberFormat` is expensive.
-
-```typescript
-// ❌ Bad: New instance on every render
-function DateDisplay({ date }: { date: Date }): JSX.Element {
-  return <p>{new Intl.DateTimeFormat('en-US').format(date)}</p>;
-}
-
-// ✅ Good: Memoize
-function DateDisplay({ date }: { date: Date }): JSX.Element {
-  const fmt = useMemo(() => new Intl.DateTimeFormat('en-US'), []);
-  return <p>{fmt.format(date)}</p>;
+  return rtf.format(0, 'second'); // "now"
 }
 ```
 
----
-
-### 💡 **Forcing Decimals on Zero-Decimal Currencies**
+### Numbers and currency
 
 ```typescript
-// ❌ Bad: JPY doesn't have cents
-new Intl.NumberFormat('ja-JP', {
-  style: 'currency', currency: 'JPY', minimumFractionDigits: 2
-}).format(1234);
-// "￥1,234.00" — incorrect
+const amount = 1234.5;
 
-// ✅ Good: Let Intl decide
-new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(1234);
-// "￥1,234"
+new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
+// 1.234,50 €  — note the trailing symbol and the swapped separators
+
+// Zero-decimal currencies: never force fraction digits, Intl already knows.
+new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(1234); // ￥1,234
+
+// Compact notation for dashboards, and it localises the abbreviation too.
+new Intl.NumberFormat('en-GB', { notation: 'compact' }).format(1_234_567); // 1.2M
+
+// Units are first-class, so you do not concatenate a suffix.
+new Intl.NumberFormat('en-GB', { style: 'unit', unit: 'megabyte' }).format(42); // 42 MB
 ```
 
----
+The **currency and the locale are independent**. The locale decides the format; the currency decides
+the symbol and the number of decimal places. A Norwegian user viewing a euro price wants Norwegian
+separators and a euro symbol, which means `Intl.NumberFormat('nb-NO', { currency: 'EUR' })`.
+
+### Time zones
+
+`Date` holds a UTC instant. Everything about a time zone is a *formatting* decision, which is why the
+option lives on the formatter rather than on the value.
+
+```typescript
+// The user's own zone, when you want their local time. Read it, do not guess it.
+const zone: string = Intl.DateTimeFormat().resolvedOptions().timeZone; // "Europe/Oslo"
+```
+
+Store instants as UTC. Store a *future* appointment as a wall-clock time plus an IANA zone identifier,
+because the offset for that zone may change before the date arrives — legislatures move daylight-saving
+rules, and a stored offset silently becomes wrong.
+
+> ⚠️ **Moving target:** the `Temporal` API is arriving in browsers and replaces `Date` for arithmetic,
+> zoned date-times and durations. The durable principle is unchanged: keep instants in UTC, keep zones
+> as IANA identifiers, and format at the edge.
+
+## When to Use It
+
+| Need | Choose | Why |
+| ---- | ------ | --- |
+| Displaying a date, number, price or list | `Intl` | It is native, zero bytes, and already correct for every locale |
+| Date arithmetic — add a month, diff two dates | A date library, or `Temporal` where available | `Intl` formats; it does not compute |
+| A fixed machine-readable format | `toISOString()` | Logs and APIs want stability, not locale |
+| Sorting a list of names | `Intl.Collator` | `localeCompare` per comparison is far slower and less configurable |
+| Formatting the same shape many times | One cached formatter | Constructing a formatter is the expensive part |
+
+## Common Mistakes
+
+**❌ Wrong — a new formatter on every render:**
+
+```typescript
+function Price({ value }: { value: number }): JSX.Element {
+  // Constructing the formatter costs far more than formatting with it.
+  return <span>{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value)}</span>;
+}
+```
+
+**✅ Right — construct once, reuse:**
+
+```typescript
+// Module scope, or a Map keyed by locale plus options when the locale varies.
+const eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+
+function Price({ value }: { value: number }): JSX.Element {
+  return <span>{eur.format(value)}</span>;
+}
+```
+
+**❌ Wrong — formatting without a time zone.** The same timestamp renders as two different days for
+users either side of midnight, and the bug is unreproducible for whoever investigates it.
+
+**❌ Wrong — sending a formatted string from the server.** Once a number is `"1.234,56"` the client
+cannot re-render it in another locale, sort it, or do arithmetic on it. Send the value and the currency
+code; format on the client that knows the user.
+
+## 🔑 Key Takeaways
+
+- Locale formatting is data, not logic, and the browser already ships that data as the `Intl` APIs.
+- Always pass an explicit `timeZone`, or the output silently depends on the viewer's machine.
+- The locale and the currency are separate decisions: one picks the format, the other the symbol and the decimal places.
+- Constructing an `Intl` formatter is expensive and formatting with it is cheap, so cache the instance.
+- `Intl` formats and does not compute; date arithmetic needs a library or `Temporal`.
 
 ## Interview Questions
 
-### 1. What is the Intl API and why use it?
+**Q: Why use `Intl` rather than a formatting library?**
 
-Native browser API for locale-aware formatting — dates, numbers, currencies, relative time. No external library required, follows Unicode CLDR standards, supports all major locales.
+Because it is already in the runtime, it costs nothing in bundle size, and its locale data is more
+complete than any library ships. A library is worth adding for arithmetic — adding months, diffing,
+zoned recurrence — which `Intl` deliberately does not do.
 
-### 2. How do you format currency for multiple locales?
+**Q: How would you display a price to users in several countries?**
 
-```typescript
-new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(1234.56);
-// "$1,234.56"
-new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(1234.56);
-// "1.234,56 €"
-```
+Send the numeric amount and the ISO currency code from the server, never a formatted string. Format on
+the client with `Intl.NumberFormat` using the user's locale and that currency code, so a Norwegian user
+sees Norwegian separators around a euro symbol. Never force `minimumFractionDigits`, because zero-decimal
+currencies like JPY would gain cents that do not exist.
 
-### 3. Why is time zone handling tricky in JavaScript?
+**Q: What goes wrong with time zones in a web application?**
 
-`Date` stores UTC internally. Without an explicit `timeZone` option in `Intl.DateTimeFormat`, output uses the browser's local time zone — giving different results for different users.
+`Date` is a UTC instant, and every rendering decision is a formatting decision, so omitting `timeZone`
+makes the output depend on the viewer's machine. The subtler failure is storing a future appointment as
+an offset: zone rules change by legislation, so the stored offset becomes wrong. Store the wall-clock
+time and the IANA zone identifier instead.
 
-### 4. What's the performance consideration for Intl formatters?
+**Q: When would you not format on the client?**
 
-Creating `Intl.DateTimeFormat` and `Intl.NumberFormat` is expensive. Memoize instances with `useMemo` in React, or cache by locale key outside components.
+When the output has to be stable rather than local — logs, exported CSVs, API payloads, cache keys.
+Those want `toISOString()` and raw numbers, because a locale-formatted value is ambiguous the moment it
+leaves the browser that produced it.
 
-### 5. When would you use date-fns instead of the Intl API?
+## What to Read Next
 
-When you need **date manipulation** — adding days, diffing two dates, parsing strings. The Intl API handles display output only, not date math.
-
----
-
-## Navigation
-
-- [01 - i18n Fundamentals](./01-i18n-fundamentals.md)
-- [02 - Pluralization](./02-pluralization.md)
-- [04 - RTL Support](./04-rtl-support.md)
-
----
-
-**Last Updated:** June 2026
-**Difficulty:** Intermediate
+- [Chapter ?? — Internationalisation Fundamentals](#ch-i18n-fundamentals) — how the locale reaches this code
+- [Chapter ?? — Pluralisation](#ch-pluralization) — the `Intl` member that decides which noun form goes beside a number

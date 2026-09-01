@@ -4,38 +4,41 @@ part: 2
 chapter: 0
 slug: utility-vs-component
 level: intermediate # beginner | intermediate | advanced
-reading_time: 8
-updated: 2026-08-28
-tags: [frontend, cssarchitecture, utility, component]
+reading_time: 9
+updated: 2026-09-01
+tags: [css, tailwind, css-modules, utility, component, tokens]
 in_book: true
 ---
 
-# Utility-First vs Component-First CSS {#ch-utility-first-vs-component-first-css}
+# Utility-First vs Component-First CSS {#ch-utility-vs-component}
 
 > Argue both sides of the Tailwind question with the actual tradeoff, not a preference.
 
-**In this chapter:** the core tradeoff · utility-first · component-first · the hybrid most teams land on · the decision rule
+**In this chapter:** where the abstraction tax is paid · why utility CSS stops growing · component-scoped CSS · the hybrid most teams land on · the decision rule
 
-## The Core Tradeoff
+## 💡 The Core Idea
 
-| | Utility-First | Component-First |
-|---|---|---|
-| **Where styles live** | In the markup | In a separate stylesheet / styled block |
-| **Abstraction unit** | The utility (`mt-4`) | The component (`.card`) |
-| **First-paint cost** | Larger initial HTML | Larger initial CSS |
-| **Refactor cost** | Cheap — change markup | Expensive — find all consumers of `.card` |
-| **Design system cost** | Cheap — tokens in `tailwind.config` | Cheap — tokens in CSS vars |
-| **Learning curve** | Memorize utility names | Memorize project conventions |
+Both approaches solve the same problem — CSS has one global namespace — and they pay for it in
+different currencies. Utility-first puts single-purpose classes in the markup, so the stylesheet stays
+small and the HTML gets noisy. Component-first puts a semantic class per component in a scoped
+stylesheet, so the markup stays clean and the stylesheet grows with the component count. Neither is
+correct in the abstract. The question is which cost your team would rather carry.
 
-The split is really about **where you pay the abstraction tax** — at write time or at maintenance time.
+> The choice is not HTML versus CSS. It is whether you want the design system enforced by tooling or
+> enforced by discipline.
 
----
+## How It Works
 
-## Utility-First (Tailwind)
+| | Utility-first | Component-first |
+| - | ------------- | --------------- |
+| Where styles live | In the markup | In a scoped stylesheet next to the component |
+| Unit of abstraction | The utility (`mt-4`) | The component (`.card`) |
+| Payload growth | Flat — bounded class vocabulary | Linear in component count |
+| Design tokens | In the build config, unreachable if not declared | In custom properties, reachable but optional |
+| Refactor a layout pattern | Edit every instance, or extract a component | Edit one class |
+| DevTools debugging | Harder — which of nine utilities set the padding? | Easier — one named class |
 
-### 💡 **What It Is**
-
-Single-purpose classes applied directly in markup. No new CSS file per component.
+**Utility-first, and the reason the bundle stays flat:**
 
 ```tsx
 function Card({ title, body }: { title: string; body: string }) {
@@ -48,169 +51,160 @@ function Card({ title, body }: { title: string; body: string }) {
 }
 ```
 
-**How It Works:** A build step (Tailwind's JIT compiler) scans your source files for class names and generates only the CSS you actually use. Unused utilities never ship.
+The class vocabulary is **bounded**. The first component to use `p-4` ships those bytes; every later
+component reuses them for free. A build step scans the source, emits only the classes it finds, and the
+result is typically 10–20 KB gzipped whether the app has thirty components or three hundred. Semantic
+component CSS has no such ceiling: each new component brings its own selector and its own declarations.
 
-### Pros
+**The tokens are the config**, which is what turns a utility set into a design system:
 
-- ✅ **No naming.** You don't bikeshed over `.card-wrapper` vs `.card-container`.
-- ✅ **Local reasoning.** Styles live next to markup; no jumping between files.
-- ✅ **Dead code = zero.** If a class isn't in markup, the build doesn't emit it.
-- ✅ **Tiny CSS payload.** Production CSS is usually 10–20 KB gzipped regardless of app size.
-- ✅ **Design system is the config.** `tailwind.config.ts` holds tokens; designers and engineers share one source of truth.
+```typescript
+import type { Config } from 'tailwindcss';
 
-### Cons
+// Off-token values are simply not expressible as a class — that is the enforcement mechanism.
+const config: Config = {
+  content: ['./src/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: { brand: { 50: '#eff6ff', 500: '#3b82f6', 900: '#1e3a8a' } },
+      spacing: { 18: '4.5rem' },
+    },
+  },
+};
 
-- ❌ **Long class strings.** A complex component can hit 200+ characters of `className`.
-- ❌ **Markup churn on design tweaks.** Changing a button's padding means editing every button instance (unless you extract a component — which you should).
-- ❌ **Hard to override deeply.** Pseudo-selectors, complex media queries, and `:has()` work but feel awkward.
-- ❌ **Lock-in to one toolchain.** Tailwind's build step is non-negotiable.
+export default config;
+```
 
-### When to Reach for It
+**Component-first, with CSS Modules:**
 
-- ✅ Greenfield app with a small-to-medium team
-- ✅ Strong component framework (React/Vue/Svelte) — you abstract repetition into components, not classes
-- ✅ You ship a lot of one-off marketing pages or admin UIs
-- ❌ You need to support unscoped legacy CSS at the same time — Tailwind's resets will fight it
-- ❌ Email templates or CMS rich-text — utilities don't survive HTML sanitizers
-
-> **Key Insight:** Tailwind isn't "CSS in your HTML." It's **a constrained design system enforced through class names.** The constraint is the point — engineers can't invent a `#3B82F7` blue when the only blue is `bg-blue-500`.
-
----
-
-## Component-First (CSS Modules / styled-components)
-
-### 💡 **What It Is**
-
-A semantic class per component, scoped automatically so name collisions can't happen.
-
-**CSS Modules:**
 ```css
-/* Card.module.css */
+/* Card.module.css — the bundler rewrites .card to Card_card__a3f9, so collisions cannot happen. */
 .card {
-  padding: 16px;
+  padding: var(--space-4);
   border-radius: 8px;
   background: var(--color-surface);
 }
-
-.title {
-  font-size: 18px;
-  font-weight: 600;
-}
 ```
 
 ```tsx
-import styles from "./Card.module.css";
+import styles from './Card.module.css';
 
-interface CardProps {
-  title: string;
-  body: string;
-}
-
-function Card({ title, body }: CardProps) {
-  return (
-    <article className={styles.card}>
-      <h2 className={styles.title}>{title}</h2>
-      <p>{body}</p>
-    </article>
-  );
+function Card({ title }: { title: string }) {
+  return <article className={styles.card}>{title}</article>;
 }
 ```
 
-**How It Works:** The bundler rewrites class names to something unique (`Card_card__a3f9`) at build time. Two files can both declare `.card` without conflict.
+What you gain is the full language: container queries, `:has()`, keyframes, cross-element selectors —
+all of it natural rather than bolted on. What you lose is enforcement. Nothing stops someone writing
+`padding: 17px` instead of `var(--space-4)`.
 
-### Pros
+> ⚠️ **Moving target:** styled-components entered maintenance mode in 2024 and runtime CSS-in-JS
+> interacts badly with React Server Components. The durable principle is that generating styles during
+> render costs you time on every render; prefer a build-time solution — CSS Modules, vanilla-extract,
+> or a utility set.
 
-- ✅ **Semantic class names.** `.card` reads as "the card" — easier to grep, easier to debug in DevTools.
-- ✅ **Full CSS power.** Media queries, `:has()`, container queries, keyframes — all natural.
-- ✅ **Clean markup.** `className={styles.card}` instead of 12 utilities.
-- ✅ **Familiar.** Junior engineers don't need to learn a utility vocabulary.
+### The hybrid most teams actually run
 
-### Cons
-
-- ❌ **More files.** Every component gets a `.module.css` sibling.
-- ❌ **CSS can drift from markup.** Delete a component, forget the stylesheet.
-- ❌ **Token discipline is on you.** No tooling stops someone from writing `padding: 17px` instead of using `var(--space-4)`.
-- ❌ **Runtime cost (styled-components).** Generating styles in JS adds bundle size and a render-time cost. The library officially moved to maintenance mode in 2024 — prefer CSS Modules or [vanilla-extract](https://vanilla-extract.style/) for new projects.
-
-### When to Reach for It
-
-- ✅ Component libraries published to npm — consumers don't want to install Tailwind
-- ✅ Apps with complex, dynamic styling driven by props (themes, A/B variants)
-- ✅ Teams with strong existing CSS skills who hate utility soup
-- ❌ Marketing pages with lots of one-off layouts — you'll write throwaway CSS files
-
-> **Key Insight:** CSS Modules give you the **scoping** of utility-first without the **constraint**. That's a feature for component libraries and a bug for product apps where consistency matters more than flexibility.
-
----
-
-## The Hybrid (What Most Real Teams Do)
-
-In practice, large codebases use both:
-
-- **Tailwind for layout and one-off styling** — `flex`, `gap-4`, `mt-2`, spacing utilities
-- **Component-scoped CSS for complex internals** — animations, `:has()` selectors, container queries, anything that gets ugly inline
+Large codebases use both, and it works because they solve different halves of the problem.
 
 ```tsx
-import styles from "./DataTable.module.css";
+import styles from './DataTable.module.css';
 
 function DataTable() {
+  // Utilities for the boring 80%: spacing, flex, colour.
   return (
     <div className="flex flex-col gap-4 p-6">
-      <table className={styles.table}>{/* complex selectors live in CSS */}</table>
+      {/* A module for the messy 20%: cross-row selectors, sticky headers, animation. */}
+      <table className={styles.table} />
     </div>
   );
 }
 ```
 
-This works because Tailwind and CSS Modules don't fight — they target different problems. Tailwind handles the boring 80% (spacing, flex, colors). Modules handle the messy 20% (cross-element selectors, complex animations).
+The trap is adopting both with no rule about which to reach for. Half the codebase becomes utilities,
+half becomes modules, and nobody knows where to look for a given style. Write the rule down — one
+sentence in the repository README is enough.
 
-⚠️ The trap: teams adopt both **without rules** about which to use when. Result: half the codebase is utilities, half is modules, nobody knows where to look. **Write the rule down** — even one sentence in the README.
+## When to Use It
 
----
+| Project shape | Pick | Why |
+| ------------- | ---- | --- |
+| Product app, component framework, small-to-medium team | Utility-first, extract components when class lists repeat | Constraint is worth more than freedom when consistency is the goal |
+| Component library published to npm | CSS Modules or vanilla-extract | Consumers should not have to adopt your build step |
+| Design-system-heavy enterprise app | Utilities for tokens, modules for complex components | The 80/20 split is real at this size |
+| Existing BEM codebase | Keep BEM, migrate deliberately | Two systems layered on one namespace is worse than either alone |
+| Editorial or art-directed pages | Component-first | Bespoke layouts fight a token grid the whole way |
+| Email, or HTML through a sanitiser | Inline styles | Neither classes nor modules survive the pipeline |
 
-## Tradeoff Table
+## Common Mistakes
 
-| Concern | Utility-First | Component-First |
-|---------|---------------|-----------------|
-| **Cold-start dev velocity** | Slow (memorize utilities) | Fast (write what you know) |
-| **6-month-in velocity** | Fast (no naming, no file hop) | Slower (more files to navigate) |
-| **Design system enforcement** | Strong (config-bound) | Weak (developer discipline) |
-| **Final CSS bundle size** | Tiny (10–20 KB) | Grows with components (50–200 KB) |
-| **Refactoring a color/spacing token** | Edit config, rebuild | Edit CSS var, rebuild |
-| **Refactoring a layout pattern** | Edit every instance or extract a component | Edit one class |
-| **DevTools debugging** | Hard (which utility set padding?) | Easy (one named class) |
-| **Server-side rendering** | Trivial | Trivial (Modules), harder (styled-components) |
+**❌ Wrong — collapsing utilities back into classes:**
 
----
+```css
+/* This recreates every problem utilities exist to avoid: a growing stylesheet,
+   a name to bikeshed, and dead CSS when the component is deleted. */
+.btn {
+  @apply px-4 py-2 bg-blue-500 text-white rounded;
+}
+```
 
-## Decision Rule
+**✅ Right — extract a component, not a class:**
 
-| Project Shape | Pick |
-|---------------|------|
-| Product app, React/Vue, small-to-medium team | **Tailwind**, extract components when class lists repeat |
-| Published component library (`@acme/ui`) | **CSS Modules** or **vanilla-extract** — don't force consumers to use Tailwind |
-| Design-system-heavy enterprise app | **Tailwind for tokens + CSS Modules for complex components** |
-| Legacy app with existing BEM CSS | **Keep BEM**, don't introduce Tailwind on top — pick one and migrate |
-| Email or sanitized HTML | **Inline styles** — neither approach survives email clients |
+```tsx
+export function Button({ children }: { children: React.ReactNode }) {
+  return (
+    <button className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">{children}</button>
+  );
+}
+```
 
-⚠️ Avoid styled-components for new code in 2026. It's in maintenance mode and the runtime cost is real. CSS Modules, vanilla-extract, or Tailwind cover the same ground without the JS overhead.
+The abstraction you want already exists in the framework. Reaching for a CSS-level shorthand moves the
+duplication rather than removing it, and the stylesheet starts growing again.
 
----
+**❌ Wrong — treating utility classes as inline styles.** Inline styles cannot express media queries,
+hover states, pseudo-elements, or theming, and they ship the same bytes on every element. Utilities are
+real classes: the browser parses them once and reuses them. The resemblance is visual only.
+
+## 🔑 Key Takeaways
+
+- Utility-first keeps the stylesheet flat because the class vocabulary is bounded and shared; component CSS grows with the component count.
+- Component-first buys the full CSS language and spends design-system enforcement, which then depends on discipline.
+- The design tokens are the real product in either approach, and utility config makes off-token values unreachable.
+- Most large codebases run a hybrid, and the failure mode is having no written rule about which to use where.
+- Runtime CSS-in-JS costs time on every render, so prefer a build-time solution for new work.
 
 ## Interview Questions
 
-### 💡 **Q: Tailwind looks like inline styles. Why isn't it?**
+**Q: A teammate says Tailwind violates separation of concerns. How do you respond?**
 
-Inline styles can't do media queries, hover states, pseudo-elements, or theming. They also can't be deduplicated — every instance ships the same bytes. Tailwind's utilities are **real classes** that the browser caches once and reuses everywhere. The "looks like inline" part is purely visual; the runtime behavior is completely different.
+Separation of concerns was about separating logic from presentation, not markup from stylesheets. With
+a component framework the unit of concern is the component, and markup, styles and behaviour describe
+one thing. The boundary worth defending is tokens against layout — and a utility config enforces that
+more strictly than ad-hoc CSS does.
 
-### 💡 **Q: A teammate says Tailwind violates "separation of concerns." How do you respond?**
+**Q: Why does a utility stylesheet stay small as the application grows?**
 
-Separation of concerns was about **separating logic from presentation**, not separating HTML from CSS. With component frameworks, the unit of concern is the **component** — markup, styles, and behavior travel together because they describe one thing. Tailwind doesn't break the principle; it relocates the boundary. The real concern to separate is **design tokens** (in config) from **layout** (in markup) — and Tailwind enforces that more strictly than ad-hoc CSS does.
+Because the class set is finite and shared. The first use of `p-4` emits the rule and every later use
+costs nothing, so the CSS grows with the size of the design system, not the size of the app. A build
+step also drops classes that appear nowhere in the source, so deleting a component removes its styles
+automatically.
 
-### 💡 **Q: How do you keep utility class lists from becoming unreadable?**
+**Q: How do you keep utility class lists readable?**
 
-Three rules. **One:** extract a component the moment a class list repeats — `<PrimaryButton />` not 14 buttons with the same 8 utilities. **Two:** use `clsx` or `cva` (class-variance-authority) to organize variant-driven classes. **Three:** sort utilities consistently (Tailwind's Prettier plugin does this automatically). If you're still drowning in classes after that, the component is doing too much — split it.
+Extract a component the moment a class list repeats, use a variant helper such as
+`class-variance-authority` for state-driven classes, and sort utilities automatically with the
+formatter plugin. If it is still unreadable after that, the component is doing too much and should be
+split.
 
----
+**Q: When would you not choose a utility framework?**
 
-[← Back to CSS Architecture](./README.md)
+When you are publishing a component library — forcing consumers onto your build step is a real cost —
+or when the work is art-directed, where every section wants values the token scale does not have. Also
+when a large BEM or Sass codebase already exists: layering a second system on the same global namespace
+costs more than living with the first one.
+
+## What to Read Next
+
+- [Chapter ?? — CSS Methodologies](#ch-css-methodologies) — the naming conventions this replaced, and why they existed
+- [Chapter ?? — CSS-in-JS](#ch-css-in-js) — what runtime style generation costs at hydration
+- [Chapter ?? — Design Systems](#ch-cssarchitecture-design-systems) — where the tokens both approaches consume come from

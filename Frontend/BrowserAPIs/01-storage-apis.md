@@ -10,7 +10,7 @@ tags: [frontend, browser, apis, storage]
 in_book: true
 ---
 
-# Web Storage APIs {#ch-web-storage-apis}
+# Web Storage APIs {#ch-storage-apis}
 
 > Choose between localStorage and sessionStorage deliberately, and know why neither should hold a token.
 

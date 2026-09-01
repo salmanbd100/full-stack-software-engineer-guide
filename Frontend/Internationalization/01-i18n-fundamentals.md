@@ -3,392 +3,226 @@ title: Internationalisation Fundamentals
 part: 2
 chapter: 0
 slug: i18n-fundamentals
-level: beginner # beginner | intermediate | advanced
-reading_time: 11
-updated: 2026-08-28
-tags: [frontend, internationalization, i18n, fundamentals]
+level: intermediate # beginner | intermediate | advanced
+reading_time: 9
+updated: 2026-09-01
+tags: [i18n, l10n, locale, translation, typescript]
 in_book: true
 ---
 
 # Internationalisation Fundamentals {#ch-i18n-fundamentals}
 
-> Build a UI that can ship in another language without a rewrite, and know what belongs in a translation file.
+> Build a UI that can ship in another language without a rewrite, and say what belongs in a translation file.
 
-**In this chapter:** i18n vs l10n · translation file structure · language detection and switching · interpolation · typed translation keys
+**In this chapter:** i18n against l10n · what a translation key must not assume · detecting and switching locale · interpolation and JSX · typed keys
 
-## Table of Contents
+## 💡 The Core Idea
 
-- [i18n vs l10n](#i18n-vs-l10n)
-- [Translation File Structure](#translation-file-structure)
-- [Popular Libraries](#popular-libraries)
-- [Language Detection](#language-detection)
-- [Language Switching](#language-switching)
-- [Translation Interpolation](#translation-interpolation)
-- [TypeScript Integration](#typescript-integration)
-- [Interview Questions](#interview-questions)
+Internationalisation is not translation. It is removing every assumption your interface makes about
+language — that text reads left to right, that a sentence has one plural form, that a name is
+`first last`, that a date is a number followed by a slash, that a label will still fit its button. Do
+that and adding a language is a content task. Skip it and adding a language is a rewrite, because
+every one of those assumptions is baked into the markup and the layout.
 
----
+> i18n is the plumbing and l10n is the water. Engineers own the plumbing, and it has to be laid before
+> anyone knows which languages are coming.
 
-## i18n vs l10n
+## How It Works
 
-### 💡 **Key Difference**
+| | Internationalisation (i18n) | Localisation (l10n) |
+| - | --------------------------- | ------------------- |
+| What it is | The infrastructure that makes language swappable | The content and conventions for one locale |
+| Who owns it | Engineers | Translators and regional teams |
+| When it happens | Once, in the architecture | Repeatedly, per locale |
+| Cost shape | Fixed, and rises steeply if deferred | Linear per language |
 
-| Aspect | i18n | l10n |
-|--------|------|------|
-| **What** | Technical infrastructure | Content & cultural adaptation |
-| **Responsibility** | Engineers | Translators |
-| **Timing** | Built into architecture | Added per language |
-| **Cost** | One-time setup | Ongoing per language |
+### A translation key is a contract
 
-> Think of i18n as the plumbing, l10n as the water.
-
-**What l10n handles:**
+The single most common i18n defect is a sentence assembled from fragments. Word order differs between
+languages, so a fragment cannot be translated in isolation.
 
 ```typescript
-// Date formats differ by region
-'en-US': 'MM/DD/YYYY'  // 12/18/2025
-'de-DE': 'DD.MM.YYYY'  // 18.12.2025
+// ❌ Untranslatable: German and Japanese put these pieces in a different order,
+// and the translator sees three unrelated strings with no sentence to work from.
+`${t('you.have')} ${count} ${t('unread.messages')}`;
 
-// Number separators vary
-'en-US': '1,234.56'    // Comma thousands, period decimal
-'de-DE': '1.234,56'    // Period thousands, comma decimal
+// ✅ One key, one whole sentence, with named placeholders.
+t('inbox.unread', { count });
 ```
 
----
+Keys are named for **meaning**, not for the English words or the place they appear. `button.save` breaks
+the moment the same button says "Update" in a second context; `document.action.save` survives it. And
+never key by the source string itself — the day someone edits the English copy, every translation
+silently detaches.
 
-## Translation File Structure
-
-### 💡 **JSON Format**
-
-```json
-// en.json
-{
-  "greeting": "Hello",
-  "buttons": {
-    "save": "Save",
-    "cancel": "Cancel"
-  },
-  "notifications": {
-    "message_one": "You have {{count}} message",
-    "message_other": "You have {{count}} messages"
-  }
-}
-```
-
-```typescript
-const { t } = useTranslation();
-t('greeting')                        // "Hello"
-t('buttons.save')                    // "Save"
-t('notifications.message', { count: 5 })  // "You have 5 messages"
-```
-
----
-
-### 💡 **Namespace Strategy**
-
-Organize translations by feature for large apps.
+### Organising the files
 
 ```text
 locales/
 ├── en/
-│   ├── common.json      # Shared: save, cancel, delete
-│   ├── auth.json        # Login, register screens
-│   └── dashboard.json   # Dashboard page
-└── es/
-    ├── common.json
-    └── ...
+│   ├── common.json      shared: save, cancel, delete
+│   ├── auth.json        sign-in and registration
+│   └── dashboard.json   one feature
+└── de/ …
 ```
 
-```typescript
-const { t } = useTranslation('auth');
-t('login.title')  // From auth namespace
+Start with one file per locale. Split into namespaces when a file passes a few hundred keys, and split
+by feature only when teams start colliding in it. The reason to split is not tidiness — it is that a
+namespace is the unit you can load on demand, so the German user of the dashboard never downloads the
+sign-in strings.
 
-const { t: tCommon } = useTranslation('common');
-tCommon('button.save')  // From common namespace
+### Detecting and switching
+
+Order the signals by how strongly each one expresses intent.
+
+```mermaid
+flowchart LR
+  A[Stored preference] -->|none| B[URL segment /de/…]
+  B -->|none| C[Accept-Language / navigator.languages]
+  C -->|no match| D[Default locale]
 ```
 
-| App Size | Strategy |
-|----------|----------|
-| **Small** | Single file per language (`locales/en.json`) |
-| **Medium** | By namespace (`locales/en/common.json`) |
-| **Large** | By feature (`src/features/auth/locales/en.json`) |
+**Locale resolution. An explicit choice always outranks a detected one.**
 
-> Start simple. Split into namespaces only when a file exceeds ~500 keys.
-
----
-
-## Popular Libraries
-
-### 💡 **Comparison**
-
-| Library | Best For | Bundle Size |
-|---------|----------|-------------|
-| **react-i18next** | React apps | ~40KB |
-| **next-i18next** | Next.js (SSR) | ~40KB |
-| **FormatJS** | Enterprise, ICU | ~25KB |
-
----
-
-### 💡 **react-i18next**
+Put the locale in the URL. A locale held only in `localStorage` cannot be shared, linked, crawled, or
+server-rendered correctly, and search engines will index one language for every URL you have.
 
 ```typescript
-// i18n.ts
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+const SUPPORTED = ['en', 'de', 'fr', 'ar'] as const;
+type Locale = (typeof SUPPORTED)[number];
 
-i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: { greeting: 'Hello!' } },
-    es: { translation: { greeting: '¡Hola!' } }
-  },
-  lng: 'en',
-  fallbackLng: 'en',
-  interpolation: { escapeValue: false }
-});
-
-export default i18n;
-```
-
-```typescript
-import { useTranslation } from 'react-i18next';
-
-function Welcome(): JSX.Element {
-  const { t, i18n } = useTranslation();
-  return (
-    <div>
-      <h1>{t('greeting')}</h1>
-      <button onClick={() => i18n.changeLanguage('es')}>Switch to Spanish</button>
-    </div>
-  );
-}
-```
-
----
-
-### 💡 **next-i18next (SSR)**
-
-```typescript
-// next-i18next.config.js
-module.exports = {
-  i18n: { defaultLocale: 'en', locales: ['en', 'es', 'de'] },
-  localePath: './public/locales'
-};
-```
-
-```typescript
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import type { GetStaticProps } from 'next';
-
-export default function HomePage(): JSX.Element {
-  const { t } = useTranslation('common');
-  return <h1>{t('title')}</h1>;
+function isSupported(value: string | null): value is Locale {
+  return value !== null && (SUPPORTED as readonly string[]).includes(value);
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => ({
-  props: { ...(await serverSideTranslations(locale ?? 'en', ['common'])) }
-});
-```
+function resolveLocale(pathSegment: string | null, stored: string | null): Locale {
+  if (isSupported(stored)) return stored;
+  if (isSupported(pathSegment)) return pathSegment;
 
----
-
-## Language Detection
-
-### 💡 **Detection Priority**
-
-```text
-1. User preference (localStorage)   ← Most reliable
-       ↓
-2. URL path or parameter (/en/page)
-       ↓
-3. Browser language (navigator.language)
-       ↓
-4. Fallback default                 ← Last resort
-```
-
----
-
-### 💡 **Implementation**
-
-```typescript
-const SUPPORTED = ['en', 'es', 'de', 'fr', 'ar'] as const;
-type SupportedLang = typeof SUPPORTED[number];
-
-function detectLanguage(): SupportedLang {
-  const saved = localStorage.getItem('language') as SupportedLang | null;
-  if (saved && (SUPPORTED as readonly string[]).includes(saved)) return saved;
-
-  const urlLang = new URLSearchParams(window.location.search).get('lang');
-  if (urlLang && (SUPPORTED as readonly string[]).includes(urlLang)) {
-    return urlLang as SupportedLang;
+  // navigator.languages is ordered by preference; match the base tag so
+  // de-AT resolves to de rather than falling through to the default.
+  for (const tag of navigator.languages) {
+    const base = tag.split('-')[0];
+    if (isSupported(base)) return base;
   }
-
-  const browserLang = navigator.language.split('-')[0] as SupportedLang;
-  if ((SUPPORTED as readonly string[]).includes(browserLang)) return browserLang;
-
   return 'en';
 }
 ```
 
----
-
-## Language Switching
-
-### 💡 **Language Switcher**
+Switching locale is three side effects, and forgetting the last two is what breaks screen readers and
+right-to-left layouts.
 
 ```typescript
-import { useTranslation } from 'react-i18next';
-
-interface Language {
-  code: string;
-  name: string;
-}
-
-const LANGUAGES: Language[] = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'ar', name: 'العربية' }
-];
-
-function isRTL(lang: string): boolean {
-  return ['ar', 'he', 'fa', 'ur'].includes(lang);
-}
-
-function LanguageSwitcher(): JSX.Element {
-  const { i18n } = useTranslation();
-
-  const handleChange = async (code: string): Promise<void> => {
-    await i18n.changeLanguage(code);
-    localStorage.setItem('language', code);
-    document.documentElement.lang = code;
-    document.documentElement.dir = isRTL(code) ? 'rtl' : 'ltr';
-  };
-
-  return (
-    <select value={i18n.language} onChange={(e) => handleChange(e.target.value)}>
-      {LANGUAGES.map(({ code, name }) => (
-        <option key={code} value={code}>{name}</option>
-      ))}
-    </select>
-  );
+async function setLocale(locale: Locale): Promise<void> {
+  await loadMessages(locale);
+  localStorage.setItem('locale', locale);
+  // lang drives hyphenation, quotation marks and the screen reader's voice.
+  document.documentElement.lang = locale;
+  document.documentElement.dir = ['ar', 'he', 'fa', 'ur'].includes(locale) ? 'rtl' : 'ltr';
 }
 ```
 
----
+### Interpolation, and text that contains markup
 
-## Translation Interpolation
-
-### 💡 **Variable Substitution**
+A string with a link inside it cannot be split without breaking word order. Pass the elements to the
+translation instead of concatenating around it — every library has some form of this, usually a
+component that maps placeholders in the string onto React children.
 
 ```json
-{
-  "welcome": "Welcome, {{name}}!",
-  "itemCount": "You have {{count}} items"
-}
+{ "terms.accept": "I accept the <terms>terms</terms> and the <privacy>privacy policy</privacy>" }
 ```
+
+The translator receives one sentence with two marked spans and can move them wherever the target
+language needs them.
+
+### Typed keys
+
+Untyped `t()` calls are the only place in a TypeScript codebase where a typo ships silently, then
+renders a raw key to a user.
 
 ```typescript
-t('welcome', { name: 'Alice' })   // "Welcome, Alice!"
-t('itemCount', { count: 42 })     // "You have 42 items"
+// Derive the key union from the source-language file, so adding a key to the
+// JSON is the only step and a typo is a compile error.
+import type en from '../locales/en/common.json';
+
+type Leaves<T> = T extends string
+  ? ''
+  : { [K in keyof T & string]: '' extends Leaves<T[K]> ? K : `${K}.${Leaves<T[K]>}` }[keyof T & string];
+
+export type MessageKey = Leaves<typeof en>;
+declare function t(key: MessageKey, values?: Record<string, string | number>): string;
 ```
 
----
+## When to Use It
 
-### 💡 **Trans Component for JSX**
+| Situation | Choose | Why |
+| --------- | ------ | --- |
+| One locale today, more plausible later | Extract strings, skip the tooling | Extraction is the expensive part and it does not get cheaper |
+| Locale is per user, content is per locale | URL segment plus stored preference | Shareable, crawlable, and server-renderable |
+| Server-rendered app | Resolve locale on the server, per request | Rendering the wrong language then correcting it is a visible flash |
+| Right-to-left locale in scope | Set `dir` from day one | Retrofitting direction touches every layout rule |
+| A handful of static labels | The platform's `Intl` APIs alone | A translation library for six strings is pure overhead |
 
-Use when translation strings contain HTML or React elements:
+## Common Mistakes
 
-```json
-{ "termsAccept": "I accept the <1>terms</1> and <3>privacy policy</3>" }
-```
+**❌ Wrong — text baked into a fixed-width layout:**
 
 ```typescript
-import { Trans } from 'react-i18next';
-
-function TermsCheckbox(): JSX.Element {
-  return (
-    <Trans i18nKey="termsAccept">
-      I accept the <a href="/terms">terms</a> and
-      <a href="/privacy">privacy policy</a>
-    </Trans>
-  );
-}
+// German is routinely 30% longer than English; Finnish more. The label clips.
+<button className="w-24 truncate">{t('actions.submit')}</button>
 ```
 
-| Scenario | Use This |
-|----------|----------|
-| Plain text | `t('key')` |
-| Text with variables | `t('key', { name: value })` |
-| Text with HTML/JSX | `<Trans>` component |
-| Pluralization | `t('key', { count: number })` |
-
----
-
-## TypeScript Integration
-
-### 💡 **Type-Safe Translations**
+**✅ Right — let the content size the control:**
 
 ```typescript
-// types/i18n.d.ts
-interface Translations {
-  greeting: string;
-  buttons: {
-    save: string;
-    cancel: string;
-  };
-}
-
-declare module 'react-i18next' {
-  interface CustomTypeOptions {
-    resources: {
-      translation: Translations;
-    };
-  }
-}
-
-// t() is now fully typed — typos become compile errors
-const { t } = useTranslation();
-t('greeting')   // ✅ OK
-t('invalid')    // ❌ TypeScript error
+<button className="min-w-24 px-4 py-2">{t('actions.submit')}</button>
 ```
 
----
+**❌ Wrong — locale only in client state.** No shareable URL, no correct server render, and one indexed
+language for the whole site.
+
+**❌ Wrong — formatting by hand.** Building `${day}/${month}/${year}` or inserting thousands separators
+with a regular expression re-implements, badly, what `Intl` already knows for every locale.
+
+## 🔑 Key Takeaways
+
+- Internationalisation removes assumptions about language; localisation supplies the content for one locale.
+- A translation key holds a whole sentence, because word order differs and a fragment cannot be translated in isolation.
+- Name keys for meaning rather than for the English text, so editing the copy does not detach every translation.
+- The locale belongs in the URL, because a locale in client state cannot be shared, crawled, or server-rendered.
+- Switching locale means updating the messages, `lang`, and `dir` — the last two are what assistive technology reads.
 
 ## Interview Questions
 
-### 1. What's the difference between i18n and l10n?
+**Q: What is the difference between i18n and l10n, and which is your job?**
 
-- **i18n**: Technical infrastructure — string extraction, library setup, language detection and switching
-- **l10n**: Content and cultural adaptation — actual translations, date/number formats, cultural considerations
+i18n is the engineering work that makes language, direction, and format swappable: extracted strings,
+locale resolution, `Intl` formatting, layouts that survive longer text. l10n is the content work for a
+specific locale. The engineer owns i18n, and it has to exist before the first translation arrives,
+because retrofitting it means touching every component.
 
-### 2. How does language detection work?
+**Q: Why can you not build a sentence by concatenating translated fragments?**
 
-Priority: localStorage → URL parameter → `navigator.language` → fallback default. Each step is a more reliable signal of user intent than the next.
+Because word order is not universal. English "You have 3 unread messages" reorders in German and
+restructures in Japanese, and the translator working on a fragment has no sentence to reason about.
+One key per sentence with named placeholders lets the translator move the placeholders wherever the
+grammar requires.
 
-### 3. What's the difference between `t()` and `<Trans>`?
+**Q: Where do you keep the current locale, and why?**
 
-| `t()` | `<Trans>` |
-|-------|-----------|
-| Returns a string | Returns JSX |
-| Simple variable interpolation | HTML/React elements in translations |
+In the URL, with a stored preference as the tiebreaker. A URL-borne locale is shareable, indexable, and
+available to the server before the first render, so the page never renders the wrong language and then
+corrects itself. Client-only state fails all four.
 
-### 4. How do you handle missing translations?
+**Q: When would you not add an i18n library?**
 
-Set `fallbackLng: 'en'`, use `missingKeyHandler` to log in development, and provide `defaultValue` in components for critical strings.
+When there is one locale and no roadmap for a second, or when the surface is a handful of static
+labels. Extracting strings and using `Intl` for dates and numbers costs almost nothing and keeps the
+door open; a full translation runtime, namespace loading and a translation-management workflow is
+overhead until a second locale actually exists.
 
-### 5. How do you optimize i18n bundle size?
+## What to Read Next
 
-Lazy load translations by namespace using `i18next-http-backend`. Only load translations needed for the current page; load others on demand.
-
----
-
-## Navigation
-
-- [02 - Pluralization](./02-pluralization.md)
-- [03 - Date & Number Formatting](./03-date-number-formatting.md)
-- [04 - RTL Support](./04-rtl-support.md)
-
----
-
-**Last Updated:** June 2026
-**Difficulty:** Intermediate
+- [Chapter ?? — Pluralisation](#ch-pluralization) — why `count === 1` is wrong in most languages
+- [Chapter ?? — Date and Number Formatting](#ch-date-number-formatting) — the `Intl` APIs that replace hand-rolled formatting
+- [Chapter ?? — RTL Support](#ch-rtl-support) — what setting `dir` actually changes

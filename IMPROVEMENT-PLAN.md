@@ -36,7 +36,7 @@ happened: the budget arithmetic in #1, the frontend-share rule, and the line-bud
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-01 · **Progress:** 32 / 83
+**Last updated:** 2026-09-01 · **Progress:** 33 / 83
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2705,7 +2705,7 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 > | Part | Now | Budget | Over | Assigned cutting items | Status |
 > | ---- | --- | ------ | ---- | ---------------------- | ------ |
 > | I — Foundations | ~~12,601~~ **4,976** | 5,000 | ~~+7,601~~ **0** | #26, **#31a** | ✅ **under budget** |
-> | II — Browser Platform | 12,146 | 6,000 | **+6,146** | **none** | 🔴 never assigned |
+> | II — Browser Platform | ~~12,146~~ **5,775** | 6,000 | ~~+6,146~~ **0** | **#31b** | ✅ **under budget** |
 > | IV — Frontend at Scale | 6,649 | 5,500 | +1,149 | #42, #57, #58 | pending |
 > | V — Backend | 13,010 | 6,500 | **+6,510** | #24 ✅, #31 `S` | #31 is worth ~600 |
 > | VI — System Design | 13,736 | 6,500 | **+7,236** | #22, #23, #28 | ✅ all done |
@@ -2714,7 +2714,7 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 > | Appendix — DSA | 4,610 | 5,600 | −990 ✅ | #27 | ✅ done |
 >
 > **31,241 lines over, and 23,582 of it with no remaining owner.** _(#31a has since cleared Part I's
-> 7,601; the live figure is **23,251**, which `pnpm lint:docs --rule=budget` reports.)_ Parts III and VII then add 19,500
+> 7,601; the live figure is **23,251**, which `pnpm lint:docs --rule=budget` reports. #31b has since cleared Part II's 6,146; the live figure is **17,105**.)_ Parts III and VII then add 19,500
 > lines that have not been written yet, so the book as planned lands near **88,000 against a 57,000
 > budget and a 60,000 hard ceiling**.
 >
@@ -2729,7 +2729,7 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 **The check is now machine-run.** `pnpm lint:docs` has a `budget` rule reading the ceilings straight
 out of [BOOK-SPEC.md § 5](./BOOK-SPEC.md) and measuring the tree against them. It is counted in
 **lines, not occurrences** — the summed overage across every part — so a part cannot grow without the
-number moving. Baseline: ~~31,241~~ **23,251** after #31a. Like every other rule it ratchets down; commit the lower number.
+number moving. Baseline: ~~31,241~~ ~~23,251~~ **17,105** after #31a and #31b. Like every other rule it ratchets down; commit the lower number.
 
 ---
 
@@ -2782,7 +2782,7 @@ mechanism and the interview-relevant depth, cut the exhaustive API tours.
 
 ---
 
-### - [ ] 31b. Trim Part II — Browser Platform — to its 6,000-line budget `L`
+### - [x] 31b. Trim Part II — Browser Platform — to its 6,000-line budget `L` — ✅ **done 2026-09-01**
 
 **+6,146 over, and never assigned to anyone.** The budget table counts a 6,200-line "browser platform
 trimmed (PWA is 6,002 lines today)" cut with no item behind it. `#13` flagged this on 2026-08-28;
@@ -2802,6 +2802,49 @@ full PWA manual. Consider whether this is six chapters trimmed to ~220 each, or 
 plus an archive, the way `#20` treated DevOps.
 
 **Done when:** `pnpm lint:docs` reports Part 2 at or under its BOOK-SPEC § 5 budget.
+
+**Delivered:**
+
+- **Part II is 12,146 → 5,775 lines, 225 under the 6,000 ceiling.** `pnpm lint:docs` no longer reports a
+  Part 2 budget violation. The `budget` baseline drops 23,251 → **17,105**; `too-long` drops 8 → **2** (only
+  `Backend/API/02-graphql.md` and `Backend/SQL/02-database-design.md` remain, both Part V). Both committed
+  to `.lint-baseline.json`.
+- **The scope question was answered "three chapters plus an archive".** `Frontend/PWA` was six chapters and
+  5,829 lines — larger than Part IX entire, and every chapter over 400 lines. It is now **three chapters,
+  758 lines**, written from scratch to the Book Chapter Standard:
+  - `01-service-workers.md` — lifecycle, scope, `fetch` interception, the update path, the kill switch
+  - `02-caching-and-offline.md` — the five strategies, Cache API against IndexedDB, the offline write queue
+    with idempotency keys, and Background Sync framed as the wake-up rather than the mechanism
+  - `03-install-and-push.md` — manifest, display modes, maskable icons, `beforeinstallprompt`, the
+    three-party push system, VAPID, permission timing
+  The six originals are in `Archive/pwa/`. Nothing linked to them — they had no cross-references in or out —
+  so the consolidation broke no anchors.
+- **`Frontend/CSSArchitecture` went 5 chapters → 4.** `04-atomic-css.md` was almost entirely a subset of
+  `02-utility-vs-component.md` (both taught Tailwind, tokens-as-config, and the same pros and cons). It is
+  archived to `Archive/cssarchitecture/`; its one distinct argument — why a utility stylesheet stops growing,
+  and why `@apply` throws that away — is now in `02`. `05-design-systems.md` renumbered to `04`.
+- **16 chapters rewritten to the Book Chapter Standard**, not merely shortened: the 3 new PWA chapters, all 4
+  in `Internationalization`, 5 of 8 in `HtmlCss` (`02`, `05`, `06`, `07`, `08`), and all 4 in
+  `CSSArchitecture`. Every one now has the six blocks in order, `{#ch-<slug>}` matching its front matter, and
+  no hand-written TOC, back-link, `####`, retired emoji or relative body link. The `HtmlCss`, `i18n` and
+  `CSSArchitecture` files predated the standard entirely — they carried `### 💡 **Bold Heading**` throughout,
+  `## 🎯 Interview Questions`, `## Navigation` blocks and "Last Updated: June 2026" footers.
+- **Deduplication, not just trimming.** `08-advanced-css` dropped container queries (owned by `05-responsive-design`),
+  logical properties (owned by `04-rtl-support`) and the View Transitions API (owned by `06-css-animations`),
+  and dropped `@layer` to `02-css-fundamentals`, where the cascade already lives. That is where roughly a third
+  of the `HtmlCss` saving came from.
+- **Three anchor/slug mismatches fixed** in files this item touched the neighbourhood of:
+  `04-grid.md` (`#ch-css-grid` → `#ch-grid`), `01-storage-apis.md` (`#ch-web-storage-apis` → `#ch-storage-apis`),
+  `02-cookies-same-site.md` (`#ch-cookies-and-samesite` → `#ch-cookies-same-site`). Nothing linked to the old
+  anchors, and the new cross-references from Part II resolve.
+- **Left undone, deliberately:** the four `Frontend/BrowserAPIs` chapters (1,143 lines) are still pre-standard —
+  hand-written TOCs, `### Q:` interview headings, no Key Takeaways or What to Read Next. They were never over
+  budget and trimming them was not needed to clear the ceiling, so they are left for a standards pass. The two
+  `[← Previous]` nav footers in `02` and `03` were removed, since those are a flat violation of the standard.
+- **Headroom is 225 lines and two Phase 5 items will spend it.** #54 creates `Frontend/Accessibility/` in Part II
+  and #55 moves micro-frontend material out to Part IV. If #54 lands more than ~200 lines of net new content, it
+  either absorbs `HtmlCss/07-accessibility.md` (254 lines) rather than sitting beside it, or Part II goes back over.
+  Decide that at #54, not after.
 
 ---
 
@@ -3466,13 +3509,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 13/17 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 14/17 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **83** | **32/83** | **39%**   |
+| **Total** | **83** | **33/83** | **40%**   |
 
 ---
 
@@ -3537,7 +3580,7 @@ current tree; content is mapped to its destination part, so `DevOps/Agile` count
 > | SystemDesign deduped | 13,700 | ~6,464 | #22, #23, #28 ✅ | **#31d** (+7,236) |
 > | DSA trimmed | 13,500 | 14,490 ✅ **over-delivered** | #27 ✅ | — |
 > | Foundations consolidated | 12,500 | ~4,899 | #26 ✅ | **#31a** (+7,601) |
-> | Browser platform trimmed | 6,200 | 54 | **no item existed** | **#31b** (+6,146) |
+> | Browser platform trimmed | 6,200 | **6,371** ✅ **over-delivered** | #31b ✅ | — |
 > | Backend deduped | 5,800 | ~0 so far | #24 ✅, #31 pending | **#31c** (+6,510) |
 > | Human layer condensed | 3,400 | 1,683 | #25, #29 ✅ | **#31e** (+2,053) |
 > | Frontend-at-scale net trim | 1,300 | 0 so far | #42, #57, #58 pending | **#31e** (+1,149) |

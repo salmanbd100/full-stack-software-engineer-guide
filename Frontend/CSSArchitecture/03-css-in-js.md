@@ -4,282 +4,193 @@ part: 2
 chapter: 0
 slug: css-in-js
 level: intermediate # beginner | intermediate | advanced
-reading_time: 9
-updated: 2026-08-28
-tags: [frontend, cssarchitecture, css, js]
+reading_time: 8
+updated: 2026-09-01
+tags: [css, css-in-js, emotion, vanilla-extract, ssr, performance]
 in_book: true
 ---
 
 # CSS-in-JS {#ch-css-in-js}
 
-> Weigh runtime CSS-in-JS against the zero-runtime alternatives, and know what each costs at hydration.
+> Say what runtime CSS-in-JS costs at render and hydration, and pick a zero-runtime alternative when it does not earn that cost.
 
-**In this chapter:** what CSS-in-JS solves · styled-components and Emotion · zero-runtime compilers · SSR and the flash of unstyled content · bundle cost
+**In this chapter:** what CSS-in-JS bought · runtime against build-time extraction · the server-rendering problem · the measurable cost · the decision rule
 
-## 💡 **What CSS-in-JS Is**
+## 💡 The Core Idea
 
-CSS-in-JS lets you write styles directly in component files. The library generates unique class names at runtime (or build time) and injects styles into the page.
+CSS-in-JS answered three real problems at once: scoping without a naming convention, styles that depend
+on props, and styles that live next to the component that uses them. The disagreement is not about
+whether those are worth having — it is about *when* the CSS gets produced. A runtime library builds the
+stylesheet while your components render, in the browser, on every render. A build-time library produces
+exactly the same stylesheet before anything ships. The developer experience is nearly identical; the
+cost profile is not.
 
-**Why it exists:**
-- **Scoping** — no global class name collisions.
-- **Dynamic styles** — change styles based on props, theme, or state.
-- **Co-location** — styles live next to the component that uses them.
-- **Dead code removal** — unused components mean unused styles get dropped.
+> The question is never "CSS-in-JS or not". It is "at build time or at render time", and only one of
+> those answers is free.
 
-**Two main camps:**
+## How It Works
 
-| Approach | Examples | Cost |
-|----------|----------|------|
-| **Runtime** | styled-components, Emotion | JS overhead at render time |
-| **Zero-runtime** | Linaria, Vanilla Extract | Extracts CSS at build time |
-
----
-
-## 💡 **styled-components**
-
-The most popular runtime library. Uses tagged template literals to define styled elements.
-
-**How It Works:** Each `styled.div` call generates a unique class name and injects CSS into the document head when the component first renders.
+A runtime library turns a template literal into a hashed class name, serialises the declarations, and
+inserts a rule into a stylesheet in the document head the first time the component renders.
 
 ```typescript
-import styled from 'styled-components';
-
-interface ButtonProps {
-  $primary?: boolean;
-  $size?: 'sm' | 'md' | 'lg';
-}
-
-const Button = styled.button<ButtonProps>`
-  background: ${(props) => (props.$primary ? '#3b82f6' : '#fff')};
-  color: ${(props) => (props.$primary ? '#fff' : '#111')};
-  padding: ${(props) => (props.$size === 'lg' ? '12px 24px' : '8px 16px')};
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-// Usage
-<Button $primary $size="lg">Save</Button>
-```
-
-**Transient props** — Use the `$` prefix so React doesn't forward the prop to the DOM.
-
-**When to Use:**
-- ✅ Heavily dynamic styles driven by props or theme.
-- ✅ Component-library projects where styles ship with the component.
-- ❌ Static marketing sites (use CSS or Tailwind).
-- ❌ Performance-critical apps with many style variants.
-
-**Common Mistakes:**
-
-❌ **Bad** — Defining styled components inside render:
-```typescript
-function Card() {
-  const Wrapper = styled.div`padding: 16px;`; // Recreated every render
-  return <Wrapper />;
-}
-```
-
-✅ **Good** — Define at module scope:
-```typescript
-const Wrapper = styled.div`padding: 16px;`;
-
-function Card() {
-  return <Wrapper />;
-}
-```
-
-> **Key Insight:** styled-components is convenient but adds runtime cost. Every render evaluates template literals and may inject new style rules.
-
----
-
-## 💡 **Emotion**
-
-Similar API to styled-components plus a `css` prop for one-off styles. Smaller, slightly faster, more flexible.
-
-```typescript
-/** @jsxImportSource @emotion/react */
-import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-// Same styled API as styled-components
-const Card = styled.div`
-  padding: 16px;
-  background: #fff;
-`;
-
-// Inline css prop
-function Banner() {
-  return (
-    <div
-      css={css`
-        background: #fef3c7;
-        padding: 12px;
-      `}
-    >
-      Notice
-    </div>
-  );
+interface ButtonProps {
+  // The $ prefix marks a transient prop so it is not forwarded to the DOM.
+  $primary?: boolean;
 }
+
+// Define at module scope. Inside a component body this is recreated on every
+// render, which throws away the class-name cache and remounts the DOM node.
+const Button = styled.button<ButtonProps>`
+  background: ${(props) => (props.$primary ? '#3b82f6' : '#fff')};
+  padding: 8px 16px;
+  border-radius: 6px;
+`;
 ```
 
-**Emotion vs styled-components:**
-
-| Feature | styled-components | Emotion |
-|---------|-------------------|---------|
-| Bundle size | ~12 KB | ~7 KB |
-| `css` prop | No | Yes |
-| Performance | Slower | Faster |
-| API surface | Smaller | Larger |
-| Active maintenance | Slower | Faster |
-
-For most new projects, Emotion is the better runtime pick.
-
----
-
-## 💡 **Zero-Runtime CSS-in-JS**
-
-Libraries like **Linaria** and **Vanilla Extract** extract CSS at build time. You write CSS-in-JS syntax, but the output is plain static CSS files. No runtime cost.
-
-### Vanilla Extract
-
-Type-safe CSS using TypeScript. Generates static CSS at build time.
+A build-time library takes the same idea and resolves it during compilation. The output is a plain CSS
+file and a string of class names — there is no library left in the bundle.
 
 ```typescript
-// button.css.ts
+// button.css.ts — this file runs at build time, never in the browser.
 import { style } from '@vanilla-extract/css';
 
 export const button = style({
   background: '#3b82f6',
-  color: '#fff',
   padding: '8px 16px',
-  borderRadius: 6,
-  ':hover': {
-    opacity: 0.9,
-  },
+  ':hover': { opacity: 0.9 },
 });
+```
 
-// Button.tsx
+```typescript
 import { button } from './button.css';
 
 export function Button() {
+  // `button` is a literal class name by the time this ships.
   return <button className={button}>Save</button>;
 }
 ```
 
-### Linaria
+| | Runtime (Emotion, styled-components) | Build-time (vanilla-extract, Linaria) |
+| - | ------------------------------------ | ------------------------------------- |
+| Bundle cost | 7–15 KB gzipped, plus per-render work | Zero — the library is gone |
+| Prop-driven styles | Direct, any expression | Through custom properties or variants |
+| Theming | Context, or custom properties | Custom properties |
+| Server Components | Needs `'use client'` on every styled component | Works unchanged |
+| Type safety | Optional | Strong, since the tokens are TypeScript |
+| First paint | Styles arrive after JavaScript executes | Styles arrive in the stylesheet |
 
-Looks like styled-components but extracts to CSS files:
+### The server-rendering problem
+
+A runtime library generates styles while rendering, so on the server it has to collect every rule
+produced and inline it into the HTML head. Miss that and the first paint is unstyled. Get it slightly
+wrong and the server and client hash class names differently, which React reports as a hydration
+mismatch.
+
+The deeper issue is architectural. React Server Components render on the server and ship no JavaScript,
+so a library that needs a runtime to produce styles cannot participate — every styled component has to
+become a Client Component, which pulls its subtree across the boundary with it.
+
+> ⚠️ **Moving target:** styled-components entered maintenance mode in 2024, and library recommendations
+> here change every year or two. The durable principle does not: work done during render happens on
+> every render, on the user's device, and moving that work to build time is always available and always
+> cheaper.
+
+### What it actually costs
+
+Three separate costs, and interviewers usually want the middle one.
+
+- **Bundle:** 7–15 KB gzipped before you write a single style.
+- **Render:** parsing the template, hashing, and inserting rules. On mid-range mobile a
+  style-heavy tree measurably adds milliseconds per render, and it repeats on every re-render that
+  changes an interpolated value.
+- **Payload:** server-rendered HTML carries the collected `<style>` block, so the document grows with
+  the size of the rendered tree rather than with the size of the design system.
+
+## When to Use It
+
+| Situation | Choose | Why |
+| --------- | ------ | --- |
+| Next.js App Router, Server Components | vanilla-extract or CSS Modules | A runtime library forces `'use client'` down the tree |
+| Type-safe tokens, tight performance budget | vanilla-extract | Tokens are TypeScript and the runtime cost is zero |
+| Client-heavy SPA with genuinely dynamic styles | Emotion | Prop interpolation is direct and the app is already JavaScript-bound |
+| Existing styled-components codebase | Stay, unless profiling says otherwise | Migration cost is real and the library still works |
+| Greenfield product UI with a token scale | A utility framework | Same constraint, no styling layer to maintain |
+
+## Common Mistakes
+
+**❌ Wrong — a styled component inside the render function:**
 
 ```typescript
-import { styled } from '@linaria/react';
+function Card() {
+  // New component identity every render: React unmounts the old subtree,
+  // and the library re-inserts the rule each time.
+  const Wrapper = styled.div`padding: 16px;`;
+  return <Wrapper />;
+}
+```
 
-const Button = styled.button`
-  background: #3b82f6;
-  color: #fff;
+**✅ Right — module scope, with the dynamic part as a custom property:**
+
+```typescript
+const Wrapper = styled.div`
+  padding: 16px;
+  /* A custom property changes without re-serialising the rule. */
+  background: var(--card-bg);
 `;
-// Compiles to a regular .css file at build time
+
+function Card({ bg }: { bg: string }) {
+  return <Wrapper style={{ '--card-bg': bg } as React.CSSProperties} />;
+}
 ```
 
-**Why they matter:**
-- Zero JS runtime cost.
-- Smaller client bundle.
-- Faster First Contentful Paint.
-- Plays well with SSR and React Server Components.
+Interpolating a changing value into the template means a new class name and a new rule for every
+distinct value. Routing it through a custom property keeps one rule and lets the browser do the work.
 
----
+**❌ Wrong — putting global styles through the runtime.** Resets, font declarations, and `:root` token
+definitions never change per render. Ship them as a static stylesheet so they arrive with the document
+rather than after the JavaScript.
 
-## 💡 **Runtime vs Zero-Runtime Tradeoffs**
+## 🔑 Key Takeaways
 
-| Aspect | Runtime (styled-components, Emotion) | Zero-Runtime (Linaria, Vanilla Extract) |
-|--------|-------------------------------------|-----------------------------------------|
-| Dynamic prop-based styles | Easy | Limited — usually via CSS variables |
-| Bundle size | +7–15 KB | 0 KB runtime |
-| Render performance | Slower (serialize + inject) | Same as plain CSS |
-| Theming | Trivial via context | Via CSS variables |
-| React Server Components | Limited / hacky | Full support |
-| Type safety | Optional | Strong (Vanilla Extract) |
+- CSS-in-JS solved scoping, prop-driven styles and co-location, and build-time libraries keep all three without a runtime.
+- Runtime libraries do work on every render, and that work lands on the user's device.
+- Server-rendering a runtime library means collecting and inlining styles, which grows the HTML and risks hydration mismatches.
+- Runtime CSS-in-JS cannot participate in React Server Components, so every styled component becomes a client boundary.
+- Dynamic values belong in custom properties, not in template interpolations that mint a new class per value.
 
-**Decision flow:**
-1. Need React Server Components? → Zero-runtime or CSS Modules.
-2. Heavy dynamic styling and SPA? → Emotion or styled-components.
-3. Want type-safe tokens and zero overhead? → Vanilla Extract.
-4. Just want to ship fast? → Tailwind.
+## Interview Questions
 
----
+**Q: What does CSS-in-JS give you that plain CSS does not?**
 
-## 💡 **SSR Considerations**
+Automatic scoping with no naming convention, styles that read props directly, and co-location so
+deleting a component deletes its styles. Build-time libraries deliver all three with no runtime, which
+is why the category has shifted in that direction rather than away from the idea.
 
-Runtime libraries must collect styles on the server and inject them into the HTML response.
+**Q: Why is runtime CSS-in-JS a problem for React Server Components?**
 
-```typescript
-// Next.js pages router with styled-components
-import { ServerStyleSheet } from 'styled-components';
+Server Components render on the server and ship no JavaScript. A runtime library needs to execute
+during render to produce class names and rules, so any component using it must be a Client Component —
+and that marks the whole subtree below it. You end up shipping the JavaScript the architecture exists
+to avoid.
 
-const sheet = new ServerStyleSheet();
-const html = renderToString(sheet.collectStyles(<App />));
-const styleTags = sheet.getStyleElement();
-```
+**Q: How would you measure whether your styling layer is costing you anything?**
 
-**Common SSR problems:**
-- **FOUC** — unstyled flash if styles aren't extracted properly.
-- **Hydration mismatch** — server and client generate different class names.
-- **RSC incompatibility** — styled-components needs `'use client'` everywhere.
+Bundle size for the library itself, then a CPU profile of a re-render-heavy interaction on a throttled
+mid-range device — style serialisation and insertion show up as identifiable work. On the server, check
+whether the inlined `<style>` block is a meaningful share of the HTML payload, because that delays
+first paint directly.
 
-Zero-runtime libraries avoid all of this. CSS is just CSS.
+**Q: When would you keep a runtime library despite the cost?**
 
----
+When the application is a client-rendered SPA whose styles genuinely vary per render in ways custom
+properties cannot express, or when the codebase already has thousands of styled components and
+profiling shows styling is not the bottleneck. Migration is expensive and a working system that is not
+your slowest path is rarely worth rewriting.
 
-## 💡 **Performance and Bundle Size**
+## What to Read Next
 
-This comes up often in interviews.
-
-**Runtime cost breakdown:**
-- Library code: 7–15 KB gzipped.
-- Per-component cost: template parsing + hashing + style insertion.
-- Re-render cost: re-evaluates template literals.
-
-**Real-world impact:**
-- Heavy CSS-in-JS apps can drop 5–15 ms per render on mid-range mobile.
-- First paint slows because styles inject after JS executes.
-- Server-rendered HTML balloons with inlined `<style>` tags.
-
-**Mitigations:**
-- Use `styled.div.attrs()` to avoid recreating styles.
-- Memoize expensive style interpolations.
-- Move global styles to a static CSS file.
-- Consider migrating to Vanilla Extract or Tailwind for hot paths.
-
-> **Key Insight:** styled-components became popular when React was new. Today, with RSC and stricter perf budgets, zero-runtime options are the better default for new code.
-
----
-
-## 💡 **Decision Rule**
-
-| Use Case | Pick |
-|----------|------|
-| Dynamic theming, SPA, fast iteration | Emotion |
-| Type-safe design system, perf matters | Vanilla Extract |
-| Next.js App Router / React Server Components | Vanilla Extract or CSS Modules |
-| Existing styled-components codebase | Stick unless perf forces migration |
-| Greenfield app, no special needs | Tailwind |
-
----
-
-## 🎯 **Interview Questions**
-
-**Q1: What problem does CSS-in-JS solve that plain CSS doesn't?**
-Three things: automatic scoping (no global collisions), dynamic styles tied to props or state, and co-location of styles with components. It also enables dead-code elimination — if a component is tree-shaken, its styles go with it.
-
-**Q2: Why are zero-runtime libraries like Vanilla Extract gaining traction?**
-Runtime CSS-in-JS adds JS to parse, serialize, and inject styles on every render. Zero-runtime libraries do all that at build time. The output is a static CSS file. You keep the developer experience of writing styles in TS but pay zero runtime cost. They also work with React Server Components, which runtime libraries struggle with.
-
-**Q3: What's the SSR challenge with styled-components and how do you solve it?**
-On the server, styled-components must collect every style rule rendered, then inline them in the HTML head. Without this, the client sees a flash of unstyled content. You use `ServerStyleSheet.collectStyles()` and `getStyleElement()`. The downside: it serializes a lot of CSS into HTML, increasing payload size, and it doesn't work cleanly with React Server Components.
-
----
-
-[← Back to CSS Architecture](./README.md)
+- [Chapter ?? — Utility-First vs Component-First CSS](#ch-utility-vs-component) — the two alternatives this competes with
+- [Chapter ?? — Design Systems](#ch-cssarchitecture-design-systems) — the token layer any of these approaches consumes

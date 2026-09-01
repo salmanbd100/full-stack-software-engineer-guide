@@ -10,7 +10,7 @@ tags: [frontend, browser, apis, cookies, same]
 in_book: true
 ---
 
-# Cookies and SameSite {#ch-cookies-and-samesite}
+# Cookies and SameSite {#ch-cookies-same-site}
 
 > Set a cookie an attacker cannot read or replay, and explain each attribute you chose.
 
@@ -270,7 +270,3 @@ Set the cookie with `Domain=example.com` so both subdomains receive it. Use `Sam
 ### Q: What's the third-party cookie phase-out about?
 
 Browsers (Safari ITP, Firefox ETP, Chrome's stalled Privacy Sandbox) are blocking cookies set by domains other than the one in the URL bar. It mostly affects cross-site ad tracking. For first-party use (your session on your own domain), nothing changes. For embedded third-party features (SSO, payments), use the **Storage Access API** or move to first-party endpoints.
-
----
-
-[← Previous: Storage APIs](./01-storage-apis.md) | [Next: IndexedDB →](./03-indexeddb.md)

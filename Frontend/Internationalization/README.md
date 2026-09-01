@@ -5,7 +5,7 @@ chapter: 0
 slug: frontend-internationalization-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-08-28
+updated: 2026-09-01
 tags: [i18n, l10n, intl, rtl, formatting]
 in_book: true
 ---

@@ -5,188 +5,117 @@ chapter: 0
 slug: css-animations
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
-tags: [frontend, html, css, animations]
+updated: 2026-09-01
+tags: [css, animations, compositor, performance, reduced-motion]
 in_book: true
 ---
 
 # CSS Animations {#ch-css-animations}
 
-> Animate on the compositor, respect `prefers-reduced-motion`, and know why `transition: all` costs you frames.
+> Animate on the compositor, respect `prefers-reduced-motion`, and say why `transition: all` costs you frames.
 
-**In this chapter:** transition vs animation · `@keyframes` · timing functions · the compositor and what is cheap to animate · `will-change` · reduced motion
+**In this chapter:** transition against animation · `@keyframes` and fill mode · easing that looks physical · the rendering pipeline · `will-change` · reduced motion · view transitions
 
-## 1. Transition vs Animation
+## 💡 The Core Idea
 
-### 💡 **Two Tools, Different Jobs**
+A browser has about 16 milliseconds to produce a frame, and it spends that budget in four stages:
+style, layout, paint, composite. Which CSS property you animate decides how many of those stages run
+sixty times a second. `transform` and `opacity` run only the last one, on the GPU, and stay smooth on a
+cheap phone. `width`, `height`, `top` and `left` run all four, and miss frames. Every other animation
+question — easing, duration, `will-change` — is polish on top of that one decision.
 
-| Aspect | `transition` | `animation` (`@keyframes`) |
-|--------|--------------|----------------------------|
-| Triggered by | State change (hover, class toggle) | Automatically or via class |
-| Defines | Start → end only | Multi-step sequence |
-| Loops | No | Yes (`infinite`) |
-| Best for | Hover, focus, simple state | Spinners, complex choreography |
+> Animate `transform` and `opacity`. Everything else is a performance conversation waiting to happen.
 
-**When to Use:**
-- ✅ `transition` — color changes on hover, sliding a modal in on class toggle, button feedback.
-- ✅ `animation` — loading spinners, attention-getting pulses, multi-step entrance choreography.
-- ❌ Don't use `animation` with `infinite` for state-driven UI — that's a transition.
+## How It Works
 
-> **Key Insight:** If the motion runs because something changed, use `transition`. If it runs on its own timeline, use `animation`.
+| | `transition` | `animation` with `@keyframes` |
+| - | ------------ | ----------------------------- |
+| Runs when | A property's value changes | On its own timeline, or when a class is added |
+| Describes | Start to end | Any number of intermediate steps |
+| Can loop | No | Yes |
+| Right for | Hover, focus, a class toggle | Spinners, entrances, choreography |
 
----
-
-## 2. Transition Properties
+The rule is simple: if the motion happens *because something changed*, it is a transition. If it runs
+on its own schedule, it is an animation.
 
 ```css
 .button {
-  transition: transform 200ms ease-out 0ms;
-  /*          property   duration  easing     delay */
+  /* property duration easing delay — list properties explicitly. */
+  transition: transform 200ms ease-out;
 }
 
 .button:hover { transform: scale(1.05); }
 ```
 
-| Property | Purpose |
-|----------|---------|
-| `transition-property` | Which property animates (or `all`) |
-| `transition-duration` | How long (use `ms`, e.g., `200ms`) |
-| `transition-timing-function` | Easing curve |
-| `transition-delay` | Wait before starting |
-
-**Common Mistakes:**
-- ❌ `transition: all 300ms` — animates every property, including layout-triggering ones. Costly.
-- ✅ List specific properties: `transition: transform 200ms, opacity 200ms`.
-
-⚠️ Durations under 100ms feel instant; over 500ms feel sluggish. UI feedback lives in 150–300ms.
-
----
-
-## 3. `@keyframes` and Animation Properties
-
 ```css
-@keyframes slide-in {
-  from { transform: translateX(-100%); opacity: 0; }
-  to   { transform: translateX(0);     opacity: 1; }
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.panel {
-  animation: slide-in 300ms ease-out both;
-  /*         name      dur   easing   fill-mode */
+.toast {
+  /* `both` applies the from-state before the run and holds the to-state after it. */
+  animation: slide-up 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 ```
 
-| Property | Purpose |
-|----------|---------|
-| `animation-name` | Keyframes to use |
-| `animation-duration` | Length per iteration |
-| `animation-timing-function` | Easing |
-| `animation-delay` | Wait before start |
-| `animation-iteration-count` | Number of loops (`infinite` allowed) |
-| `animation-direction` | `normal`, `reverse`, `alternate` |
-| `animation-fill-mode` | Apply styles before/after run (`forwards`, `backwards`, `both`) |
-| `animation-play-state` | `running` or `paused` |
+`animation-fill-mode` is the property people lose an afternoon to. Without `forwards` or `both`, the
+element snaps back to its pre-animation styles the instant the animation ends.
 
-> **Key Insight:** Without `animation-fill-mode: forwards`, the element snaps back to its pre-animation state when the animation ends. This bites people constantly.
+### Easing
 
----
+| Curve | Use for |
+| ----- | ------- |
+| `ease-out` | Anything entering — it decelerates as it arrives, which reads as physical |
+| `ease-in` | Anything leaving — it accelerates away |
+| `linear` | Continuous loops only, such as a spinner |
+| `cubic-bezier(0.4, 0, 0.2, 1)` | A reliable general-purpose curve |
+| `steps(n)` | Sprite sheets and typewriter effects |
 
-## 4. Timing Functions
+Real motion accelerates and decelerates, so `linear` reads as mechanical everywhere except a true
+infinite loop. Duration matters as much: under 100ms feels instantaneous, over 500ms feels sluggish,
+and UI feedback belongs in 150–300ms.
 
-```css
-transition-timing-function: ease;            /* default — slow-fast-slow */
-transition-timing-function: linear;          /* constant speed */
-transition-timing-function: ease-in;         /* slow start */
-transition-timing-function: ease-out;        /* slow end */
-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); /* custom */
-transition-timing-function: steps(4, end);   /* discrete steps (sprite animation) */
-```
-
-**Choosing:**
-- `ease-out` — most natural for elements *entering* (decelerate as they arrive).
-- `ease-in` — for elements *leaving* (accelerate as they exit).
-- `linear` — only for continuous motion like spinners.
-- `cubic-bezier(0.4, 0, 0.2, 1)` — Material Design's "standard" curve; reliable default.
-- `steps()` — sprite sheets, typewriter effects.
-
-> **Key Insight:** Real-world motion accelerates and decelerates. `linear` looks robotic except for true infinite loops.
-
----
-
-## 5. Performance — The Critical Section
-
-### 💡 **The Rendering Pipeline**
-
-Each frame can go through:
+### The pipeline
 
 ```text
 Style → Layout → Paint → Composite
 ```
 
-- **Layout** (reflow): geometry recalc. Slowest. Triggered by `width`, `height`, `top`, `margin`, `padding`, `font-size`, etc.
-- **Paint**: filling pixels. Triggered by `color`, `background`, `box-shadow`, `border-radius`.
-- **Composite**: layer compositing on the GPU. Cheapest. Triggered by `transform` and `opacity`.
+| Property | Cheapest stage it reaches |
+| -------- | ------------------------- |
+| `transform`, `opacity` | Composite — GPU, no geometry, no repaint |
+| `background-color`, `box-shadow`, `border-radius` | Paint |
+| `width`, `height`, `top`, `left`, `margin`, `padding`, `font-size` | Layout |
 
-### 💡 **The Two Magic Properties**
+Layout is the expensive one because changing one element's geometry can change its siblings' and its
+ancestors'. So the substitutions matter: `transform: translate()` instead of `top` and `left`,
+`transform: scale()` instead of `width` and `height`.
 
-```css
-/* Composite-only — GPU accelerated, 60fps even on slow devices */
-transform: translateX(100px);
-opacity: 0.5;
-```
+This is also why `transition: all` is a mistake rather than a shortcut. It opts every property into
+animation, including the layout-triggering ones, and a later declaration that changes `width` for an
+unrelated reason silently becomes an animation.
 
-**Why:** `transform` and `opacity` skip layout *and* paint. The browser promotes the element to its own compositor layer and animates it on the GPU.
-
-**Common Mistakes:**
-- ❌ Animating `width`, `height`, `top`, `left` — triggers layout every frame. Janky.
-- ✅ Use `transform: translate()` instead of `top/left`. Use `transform: scale()` instead of `width/height`.
-
-| Property | Pipeline Cost |
-|----------|---------------|
-| `transform` | Composite only ✅ |
-| `opacity` | Composite only ✅ |
-| `background-color` | Paint ⚠️ |
-| `box-shadow` | Paint ⚠️ |
-| `width`, `height`, `top`, `left` | Layout ❌ |
-| `margin`, `padding` | Layout ❌ |
-
-> **Key Insight:** "Animate transform and opacity" is the single most important CSS performance rule. Bring it up in any animation interview.
-
----
-
-## 6. `will-change` — Use Sparingly
-
-### 💡 **A Hint, Not a Free Pass**
-
-```css
-.modal {
-  will-change: transform, opacity;
-}
-```
-
-**How It Works:** `will-change` tells the browser to promote an element to its own compositor layer *before* animation starts, avoiding a one-frame setup hiccup.
-
-**When to Use:**
-- ✅ Right before an expensive animation, ideally toggled via JS.
-- ❌ Globally, on many elements, or "just in case."
-
-**Why "sparingly":** Each promoted layer consumes GPU memory. Slapping `will-change` everywhere can crash mobile browsers and make things *slower*.
+### `will-change`
 
 ```typescript
-// Toggle just-in-time, then remove
+// Promote just before the animation, and release afterwards.
 element.style.willChange = 'transform';
-element.addEventListener('transitionend', () => {
-  element.style.willChange = 'auto';
-}, { once: true });
+element.addEventListener(
+  'transitionend',
+  () => {
+    element.style.willChange = 'auto';
+  },
+  { once: true },
+);
 ```
 
-> **Key Insight:** `will-change` is a debugging tool you reach for *after* measuring a problem — not a default.
+`will-change` asks the browser to promote an element to its own compositor layer *before* the animation
+starts, which removes a one-frame setup cost. Each promoted layer costs GPU memory, so applying it
+broadly — or permanently in a stylesheet — makes a page slower and can exhaust memory on mobile. It is
+a tool you reach for after measuring, not a default.
 
----
-
-## 7. `prefers-reduced-motion` — Accessibility
-
-Some users get nausea, headaches, or vestibular issues from motion. The OS exposes a setting; respect it.
+### Reduced motion
 
 ```css
 @media (prefers-reduced-motion: reduce) {
@@ -201,21 +130,20 @@ Some users get nausea, headaches, or vestibular issues from motion. The OS expos
 }
 ```
 
-⚠️ Don't kill animation entirely — some motion conveys meaning (focus rings, state changes). Replace large parallax/translation with simple fades.
+Motion can cause nausea and migraine for users with vestibular disorders, and the operating system
+already exposes their preference. The blanket rule above is the right *floor*, but the better treatment
+is per-component: replace large translations and parallax with a short fade, and keep the small motion
+that carries meaning, such as a focus or state change.
 
-> **Key Insight:** Mentioning `prefers-reduced-motion` in an interview signals senior-level a11y awareness instantly.
-
----
-
-## 8. View Transitions API — Modern Briefly
-
-The View Transitions API animates between two DOM states automatically — even across pages (with the Cross-Document variant in Chrome).
+### View transitions
 
 ```typescript
-// Same-document
-document.startViewTransition(() => {
-  updateTheDOM(); // synchronous DOM mutation
-});
+function navigate(update: () => void): void {
+  // Progressive enhancement: no API, no transition, same result.
+  if (!document.startViewTransition) return update();
+  // The callback must mutate the DOM synchronously — the browser snapshots either side of it.
+  document.startViewTransition(update);
+}
 ```
 
 ```css
@@ -223,72 +151,97 @@ document.startViewTransition(() => {
 ::view-transition-new(root) {
   animation-duration: 300ms;
 }
+
+/* A matching name on both sides makes the browser morph between them. */
+.hero { view-transition-name: hero; }
 ```
 
-**Why it matters:** Previously, animating between page states (route changes, list reorders) required heavy JS libraries. Now the browser handles snapshots, layout diffing, and crossfade. Pair with `view-transition-name` to animate specific elements between states.
+The API snapshots the document before and after a DOM change and animates between the two, which
+replaces the FLIP-pattern JavaScript that route changes and list reorders used to need.
 
-⚠️ Baseline 2024 (Chrome, Edge). Safari/Firefox catching up. Use as progressive enhancement.
+> ⚠️ **Moving target:** same-document view transitions are widely available; cross-document
+> transitions are still rolling out. The durable principle is that the browser can interpolate between
+> two states more cheaply than JavaScript can, so treat it as enhancement and keep the un-animated path
+> correct.
 
----
+## When to Use It
 
-## 9. Common Patterns
+| Situation | Choose | Why |
+| --------- | ------ | --- |
+| Hover, focus, a toggled class | `transition` on named properties | Simplest thing that reads the state change |
+| A spinner or a looping pulse | `animation` with `linear` or `ease-in-out` | Continuous motion has no start state to transition from |
+| Moving an element | `transform: translate()` | `top` and `left` recompute layout every frame |
+| Resizing an element | `transform: scale()` | Same reason, plus text stays crisp under a scale |
+| An element entering the page | `ease-out` and `animation-fill-mode: both` | Deceleration reads as arriving; fill mode stops the snap-back |
+| A route change or list reorder | View transitions, as enhancement | The browser interpolates two document states for you |
 
-### Fade In
+## Common Mistakes
+
+**❌ Wrong — animating layout:**
+
 ```css
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.item { animation: fade-in 200ms ease-out both; }
-```
-
-### Slide In
-```css
-@keyframes slide-up {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-.toast { animation: slide-up 250ms cubic-bezier(0.4, 0, 0.2, 1) both; }
-```
-
-### Spinner
-```css
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-  animation: spin 1s linear infinite;
-  /* linear is correct here — continuous motion */
+.drawer {
+  transition: left 300ms; /* Layout on every frame; janky on mobile. */
+  left: -300px;
 }
 ```
 
-### Pulse (Attention)
+**✅ Right — animating the compositor:**
+
 ```css
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.05); }
+.drawer {
+  transition: transform 300ms ease-out;
+  transform: translateX(-100%);
 }
-.badge { animation: pulse 1.5s ease-in-out infinite; }
 ```
 
----
+**❌ Wrong — `transition: all`.** It animates properties you never intended, including layout ones, and
+it makes future changes to the element surprising.
+
+**❌ Wrong — `will-change` in a stylesheet on a common class.** A hundred promoted layers is a hundred
+allocations of GPU memory, held for the life of the page.
+
+**❌ Wrong — motion as the only signal.** If a state change is communicated purely by movement, users
+with reduced motion enabled — and anyone who looked away — miss it entirely.
+
+## 🔑 Key Takeaways
+
+- Only `transform` and `opacity` animate on the compositor alone, which is why they stay smooth on slow devices.
+- Layout-triggering properties recompute geometry every frame and will miss the 16ms budget on mobile.
+- `animation-fill-mode` decides whether the element holds its final state; without it, it snaps back.
+- `will-change` trades GPU memory for a smoother first frame, so it belongs on one element at a time and after measurement.
+- `prefers-reduced-motion` is an operating-system signal about health, and the right response is smaller motion rather than none.
 
 ## Interview Questions
 
-### ❓ **Q: Why animate `transform` and `opacity` instead of `top`/`left`/`width`?**
+**Q: Why animate `transform` rather than `top` and `left`?**
 
-The browser's rendering pipeline goes Style → Layout → Paint → Composite. `transform` and `opacity` only touch the composite step, which runs on the GPU and doesn't recompute geometry or repaint pixels. `top`, `left`, `width`, and `height` trigger layout — the most expensive step — for every frame. On a 60fps target you have 16ms per frame; layout-triggering animations blow past that on mobile, causing jank.
+Because the rendering pipeline is style, layout, paint, composite, and `transform` skips the first three
+of those — the browser hands the layer to the GPU and moves it. `top` and `left` change geometry, so
+layout runs for the element and potentially its siblings on every frame. With roughly 16ms per frame at
+60fps, that is the difference between smooth and visibly janky on a mid-range phone.
 
-### ❓ **Q: When should you use `will-change`, and what's the risk of overusing it?**
+**Q: What does `will-change` actually do, and why is it dangerous?**
 
-Use `will-change` immediately before an expensive animation starts, on a specific element, then remove it after. It forces the browser to promote the element to its own compositor layer, avoiding a setup hiccup on the first animated frame. The risk: each promoted layer costs GPU memory. Applying `will-change` globally or to many elements can exhaust memory, especially on mobile, making the page slower or crashing it. Treat it as a precision tool, not a default.
+It tells the browser to promote the element to its own compositor layer ahead of time, so the first
+animated frame does not pay the setup cost. Each layer consumes GPU memory, so declaring it on a shared
+class or leaving it applied permanently can make the page slower than it was and exhaust memory on
+mobile. Apply it just before the animation and remove it after.
 
-### ❓ **Q: How do you make animations accessible?**
+**Q: How do you make an animation accessible?**
 
-Three things. First, respect `prefers-reduced-motion` — wrap heavy motion in a `@media` query and tone it down (short fades instead of large translations). Second, don't convey critical information through motion alone — pair it with text or color changes. Third, keep durations short (under 400ms) and avoid flashing patterns that can trigger photosensitive seizures.
+Honour `prefers-reduced-motion` by replacing large translation and parallax with a short fade rather
+than removing all feedback. Never carry information in motion alone — pair it with text or a state
+change. Keep durations short, and avoid flashing patterns, which can trigger photosensitive seizures.
 
-### ❓ **Q: When would you reach for the View Transitions API over a CSS animation?**
+**Q: When would you not animate something at all?**
 
-When the motion needs to bridge two different DOM states — like a route change, a list reorder, or expanding a thumbnail into a detail view. CSS animations work on a single element transitioning between styles; View Transitions snapshot the before and after states of the entire document (or named regions) and crossfade or morph between them. It replaces a lot of FLIP-pattern JS code with a single API call.
+When the motion delays information the user asked for. A staggered entrance on a data table means the
+numbers arrive later than they could have, and on a repeat visit it is purely a cost. Motion earns its
+place when it explains a spatial relationship — where a panel came from, what expanded into what — and
+not when it is decoration on a path the user takes twenty times a day.
 
----
+## What to Read Next
 
-[← Back to HTML & CSS](./README.md)
+- [Chapter ?? — Accessibility](#ch-accessibility) — the rest of the user-preference queries
+- [Chapter ?? — Advanced CSS](#ch-advanced-css) — the platform features that landed alongside these

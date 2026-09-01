@@ -4,9 +4,9 @@ part: 2
 chapter: 0
 slug: css-methodologies
 level: intermediate # beginner | intermediate | advanced
-reading_time: 7
-updated: 2026-08-28
-tags: [frontend, cssarchitecture, css, methodologies]
+reading_time: 8
+updated: 2026-09-01
+tags: [css, methodologies, bem, itcss, specificity]
 in_book: true
 ---
 
@@ -14,217 +14,172 @@ in_book: true
 
 > Name and organise styles so a stranger can add a rule without breaking three others.
 
-**In this chapter:** why methodologies exist · BEM · SMACSS · ITCSS · OOCSS · which to pick and when it stops mattering
+**In this chapter:** the three problems every methodology attacks · BEM · ITCSS · the two OOCSS rules worth keeping · when methodology stops mattering
 
-## Why Methodologies Exist
+## 💡 The Core Idea
 
-Plain CSS has three structural problems:
+CSS has one global namespace and a cascade that rewards whoever writes the most specific selector.
+Left alone, a team converges on the same failure: selectors grow longer to win cascade fights,
+`!important` appears to end them, and nobody dares delete a class because they cannot trace its use. A
+methodology is a written agreement about naming and file order that removes the incentive to fight. It
+does not make CSS better; it makes CSS boring, which at forty engineers is the same thing.
 
-| Problem | What Happens Without a Methodology |
-|---------|-------------------------------------|
-| **Global namespace** | `.button` in one file overrides `.button` in another |
-| **Specificity cascade** | Teams stack selectors (`.nav ul li a.active`) to win battles, then fight back with `!important` |
-| **Dead code** | Nobody dares delete a class because they can't trace its usage |
+> The methodologies differ in vocabulary and agree on the mechanism: keep specificity flat and
+> predictable, and the cascade stops being a hazard.
 
-A methodology gives you a shared rule for class names and file structure. That's it. Everything else (utilities, design tokens, etc.) sits on top.
+## How It Works
 
----
+Three structural problems, and each methodology picks one to attack.
 
-## BEM (Block, Element, Modifier)
+| Problem | What happens without an agreement | Attacked by |
+| ------- | --------------------------------- | ----------- |
+| Global namespace | `.button` in one file silently overrides `.button` in another | BEM |
+| Specificity cascade | `.nav ul li a.active` beats `.active`, so everyone escalates | ITCSS |
+| Container coupling | A heading changes size because of where it happens to sit | OOCSS |
 
-The most widely used naming convention. If your team picks one methodology, it's usually this.
+### BEM — naming
 
-### 💡 **The Pattern**
-
-A flat naming scheme: `block__element--modifier`.
-
-- **Block** — standalone component (`card`, `nav`, `search-form`)
-- **Element** — child that has no meaning outside the block (`card__title`, `nav__item`)
-- **Modifier** — variant or state (`card--featured`, `nav__item--active`)
-
-**How It Works:** Every class is a single class selector. No nesting, no descendant combinators. Specificity stays flat at `0,1,0`.
+`block__element--modifier`. A **block** is a standalone component (`card`), an **element** is a child
+with no meaning outside it (`card__title`), a **modifier** is a variant or state (`card--featured`).
 
 ```css
-/* Block */
 .card { padding: 16px; border-radius: 8px; }
-
-/* Elements */
 .card__title { font-size: 18px; font-weight: 600; }
-.card__body  { color: #444; }
-
-/* Modifiers */
-.card--featured       { border: 2px solid gold; }
-.card__title--large   { font-size: 24px; }
+.card--featured { border: 2px solid gold; }
 ```
 
 ```html
 <article class="card card--featured">
-  <h2 class="card__title card__title--large">Title</h2>
-  <p class="card__body">Body text</p>
+  <h2 class="card__title">Title</h2>
 </article>
 ```
 
-**When to Use:**
-- ✅ Large teams where consistency matters more than brevity
-- ✅ Component-driven apps without scoped styles (no CSS Modules)
-- ❌ Small projects — the verbosity hurts more than it helps
-- ❌ Codebases already using CSS Modules or Tailwind (BEM duplicates their scoping)
+The double underscores are not the point. The point is that **every selector is a single class**, so
+every rule has specificity `0,1,0` and later rules win by source order rather than by cleverness. That
+one constraint removes most specificity bugs on its own.
 
-### Common Mistakes
+Two things go wrong in practice. Nesting elements — `.card__header__title` — breaks the flat rule for
+no gain; the element level is always one below the block, wherever it physically sits. And using
+modifiers for layout — `.card--margin-top-20` — turns a semantic variant system into a badly named
+utility set. Modifiers describe what the block *is*, not where it sits.
 
-❌ **Nesting elements in class names:**
-```css
-.card__header__title { } /* Wrong */
-```
+### ITCSS — import order
 
-✅ **Keep it flat — element is always one level below the block:**
-```css
-.card__title { } /* Right, even if it lives inside .card__header */
-```
-
-❌ **Using BEM modifiers for layout:**
-```css
-.card--margin-top-20 { margin-top: 20px; }
-```
-
-✅ **Modifiers describe the block's variant, not arbitrary spacing. Use utilities or composition for layout:**
-```css
-.card--featured { } /* semantic variant */
-```
-
-> **Key Insight:** BEM's real value isn't the double underscores — it's the rule that **every selector is a single class**. That alone kills 90% of specificity bugs.
-
----
-
-## SMACSS (Scalable and Modular Architecture for CSS)
-
-A way to **categorize** rules, not a naming convention. You can combine SMACSS with BEM.
-
-### The Five Categories
-
-| Category | Purpose | Example |
-|----------|---------|---------|
-| **Base** | Element defaults, resets | `body`, `a`, `h1` |
-| **Layout** | Page sections, grids | `.l-header`, `.l-sidebar` |
-| **Module** | Reusable components | `.card`, `.btn`, `.modal` |
-| **State** | Temporary states | `.is-active`, `.is-hidden` |
-| **Theme** | Visual variants | `.theme-dark` |
-
-**When to Use:**
-- ✅ When you need a clear folder structure but don't want strict naming rules
-- ✅ Codebases with lots of theming or state-driven UI
-- ❌ Component-scoped systems (React + CSS Modules) — categories blur
-
-> **Key Insight:** SMACSS's `is-` prefix for state (`.is-active`, `.is-loading`) survived into most modern codebases even when the rest of SMACSS didn't.
-
----
-
-## ITCSS (Inverted Triangle CSS)
-
-A way to **order your stylesheet** so specificity climbs gradually instead of zig-zagging.
-
-### The Seven Layers
+ITCSS orders the stylesheet so specificity only ever climbs.
 
 ```text
-┌─────────────────────────┐
-│ 1. Settings  (variables) │  ← low specificity, wide reach
-│ 2. Tools     (mixins)    │
-│ 3. Generic   (resets)    │
-│ 4. Elements  (h1, a)     │
-│ 5. Objects   (.o-grid)   │
-│ 6. Components(.c-card)   │
-│ 7. Utilities (.u-mt-2)   │  ← high specificity, narrow reach
-└─────────────────────────┘
+Settings → Tools → Generic → Elements → Objects → Components → Utilities
 ```
 
-You import layers in this order. Each layer only adds specificity — never subtracts. That single rule eliminates most cascade fights.
+Low-specificity, wide-reaching rules load first; narrow, high-specificity rules load last. Because each
+layer only adds specificity and never subtracts, a rule in a later layer wins without needing a longer
+selector. It is an import-order convention, not a naming one, which is why ITCSS and BEM compose
+rather than compete: ITCSS decides *where* a rule lives, BEM decides *what* it is called.
 
-**When to Use:**
-- ✅ Large monolithic stylesheets (design systems, marketing sites)
-- ✅ When the team keeps adding `!important` to win cascade wars
-- ❌ Component-scoped React apps — most layers collapse into one file per component
+### OOCSS — two rules worth keeping
 
-> **Key Insight:** ITCSS isn't about names — it's about **import order**. The triangle exists to enforce: low-specificity selectors load first, high-specificity ones load last.
-
----
-
-## OOCSS (Object-Oriented CSS)
-
-Two principles, both worth keeping even if you never call it OOCSS.
-
-### 💡 **The Two Principles**
-
-**1. Separate structure from skin.**
-A reusable layout class (structure) should not include colors or borders (skin).
+**Separate structure from skin.** A reusable layout class should not carry colour.
 
 ```css
-/* Structure — reusable */
-.media { display: flex; gap: 12px; }
-
-/* Skin — swappable */
-.skin-card    { background: white; border-radius: 8px; }
-.skin-warning { background: #fff3cd; border: 1px solid #ffc107; }
+.media { display: flex; gap: 12px; }        /* structure — reused everywhere */
+.skin-card { background: white; border-radius: 8px; }  /* skin — swapped */
 ```
 
-**2. Separate container from content.**
-Don't style children based on their parent.
+**Separate container from content.** Do not style a child based on its ancestor.
 
-❌ **Bad — content depends on container:**
 ```css
+/* ❌ The heading's size now depends on where it happens to be rendered. */
 .sidebar h2 { font-size: 14px; }
-```
 
-✅ **Good — content is independent:**
-```css
+/* ✅ The rule travels with the element. */
 .heading-sm { font-size: 14px; }
 ```
 
-**When to Use:**
-- ✅ Always, as a habit — these two rules apply regardless of methodology
-- ❌ As a full methodology — OOCSS predates components, and React already enforces composition
+OOCSS lost as a brand and won as a habit. Utility-first CSS is these two rules taken to their limit,
+and component frameworks enforce the second one by construction.
 
-> **Key Insight:** OOCSS lost as a brand but won as a mindset. Tailwind's utility composition is OOCSS taken to its logical extreme.
+### SMACSS — categories
 
----
+SMACSS categorises rules — base, layout, module, state, theme — rather than naming them. Most of it
+dissolved once components arrived, but its `is-` prefix for transient state (`.is-active`,
+`.is-loading`) outlived the rest and is worth adopting on its own: it marks a class as something
+JavaScript toggles, not something a designer owns.
 
-## Comparison
+## When to Use It
 
-| Methodology | Solves | Best For | Downside |
-|-------------|--------|----------|----------|
-| **BEM** | Naming + flat specificity | Component libraries without scoped CSS | Verbose class names |
-| **SMACSS** | File organization | Theming and state-heavy UIs | Vague category boundaries |
-| **ITCSS** | Specificity cascade | Large monolithic stylesheets | Overkill for component apps |
-| **OOCSS** | Reusability | Any codebase, as a principle | Too abstract as a full system |
+| You are building | Pick | Why |
+| ---------------- | ---- | --- |
+| Component-scoped React, Vue or Svelte app | Skip the methodology | The bundler already scopes. Keep only BEM's one-class rule |
+| Large design system in plain CSS or Sass | ITCSS for order, BEM for names | They solve different problems and compose cleanly |
+| Server-rendered app with no build-time scoping | BEM alone | Naming is the only problem you actually have |
+| Legacy stylesheet full of `!important` | ITCSS, applied to new code only | Layer order is what stops the escalation |
+| Marketing site with several themes | SMACSS categories plus BEM naming | Theme and state need somewhere to live |
 
----
+> ⚠️ Methodology is a team contract, and a contract nobody checks is a preference. Enforce it with a
+> linter rule, or expect drift within two quarters.
 
-## Decision Rule
+## Common Mistakes
 
-| You're Building | Pick |
-|-----------------|------|
-| Component-scoped React/Vue app | **Skip methodologies** — CSS Modules or Tailwind scope for you. Borrow BEM's "one class per element" rule. |
-| Large design system, plain CSS/SCSS | **ITCSS + BEM** — ITCSS for layer order, BEM for naming |
-| Server-rendered app (Rails, Django) | **BEM** alone is usually enough |
-| Marketing site with many themes | **SMACSS** for organization, BEM for naming |
+**❌ Wrong — winning the cascade with length:**
 
-⚠️ Methodology is a team contract. Picking the "best" one matters less than picking one and enforcing it via linters (`stylelint-bem-pattern`, `stylelint-selector-bem-pattern`).
+```css
+/* Each of these was added to beat the one above it. */
+.sidebar .nav ul li a.active { color: red; }
+.page .sidebar .nav ul li a.active { color: blue !important; }
+```
 
----
+**✅ Right — one class, decided by layer:**
+
+```css
+/* Components layer. */
+.nav__link { color: var(--color-text); }
+
+/* Utilities layer, imported last, so it wins without extra specificity. */
+.is-active { color: var(--color-accent); }
+```
+
+The long selector does not just lose readability. It sets a precedent, and the next engineer has to
+write a longer one to override it.
+
+**❌ Wrong — layering a methodology on a scoped system.** Adding BEM names inside CSS Modules gives you
+`Card_card__a3f9 card__title` and two scoping mechanisms for one problem. Pick the one the toolchain
+already gives you.
+
+## 🔑 Key Takeaways
+
+- Every methodology exists to make the cascade predictable, and they differ mainly in vocabulary.
+- BEM's real rule is one class per selector, which flattens specificity to `0,1,0` everywhere.
+- ITCSS is about import order, not naming, so it composes with BEM rather than replacing it.
+- OOCSS's two rules — structure apart from skin, content apart from container — apply whatever else you use.
+- In a component-scoped codebase most of a methodology is redundant, because the bundler solves the namespace problem.
 
 ## Interview Questions
 
-### 💡 **Q: Why does BEM use double underscores instead of nested selectors?**
+**Q: Why does BEM use double underscores instead of nested selectors?**
 
-Double underscores keep specificity flat. `.card__title` and `.card__body` both have specificity `0,1,0`. A nested version `.card .title` would be `0,2,0` and start a specificity arms race. BEM trades visual ugliness for predictable cascade.
+To keep specificity flat. `.card__title` is `0,1,0`; `.card .title` is `0,2,0` and starts an arms race
+where every override needs one more selector. BEM trades a visually ugly class name for a cascade you
+can reason about, which is the right trade once more than one person edits the stylesheet.
 
-### 💡 **Q: When would you choose ITCSS over BEM?**
+**Q: Would you choose ITCSS or BEM?**
 
-They solve different problems. BEM is a naming convention; ITCSS is an import-order convention. In a large SCSS codebase you use both: ITCSS for **where** rules live, BEM for **what** classes are called. The question is misleading — they compose.
+Both, because they answer different questions. ITCSS is import order — where a rule lives and therefore
+when it loads. BEM is naming — what a class is called. In a large Sass codebase you use ITCSS for the
+layers and BEM inside the components layer.
 
-### 💡 **Q: How do you migrate a legacy CSS codebase with specificity wars to a methodology?**
+**Q: How do you migrate a legacy stylesheet with specificity wars?**
 
-You don't rewrite — you contain. Add a single new layer (e.g. `.app-v2` namespace) with low-specificity rules. New components live there. Old code stays untouched. Over time, replace screens one at a time. Big-bang CSS rewrites almost always fail because regressions are invisible until production.
+Contain rather than rewrite. Add one low-specificity namespace for new work, build every new screen
+inside it, and leave the old rules untouched. Then replace screen by screen. Big-bang CSS rewrites fail
+because the regressions are visual and invisible to tests until a user finds them.
 
----
+**Q: When is a methodology the wrong answer?**
 
-[← Back to CSS Architecture](./README.md)
+When the toolchain already scopes styles. In a React codebase with CSS Modules or a utility framework,
+BEM's naming buys nothing and SMACSS's categories blur, because every component is already its own
+namespace. The one part worth keeping is the single-class habit.
+
+## What to Read Next
+
+- [Chapter ?? — Utility-First vs Component-First CSS](#ch-utility-vs-component) — what replaced these conventions and what it kept
+- [Chapter ?? — Design Systems](#ch-cssarchitecture-design-systems) — where the tokens these rules reference come from

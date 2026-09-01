@@ -4,9 +4,9 @@ part: 2
 chapter: 0
 slug: css-fundamentals
 level: beginner # beginner | intermediate | advanced
-reading_time: 11
-updated: 2026-08-28
-tags: [frontend, html, css, fundamentals]
+reading_time: 10
+updated: 2026-09-01
+tags: [css, box-model, specificity, cascade, stacking-context, units]
 in_book: true
 ---
 
@@ -14,299 +14,243 @@ in_book: true
 
 > Read any stylesheet and predict which rule wins, why a box is the size it is, and which unit belongs where.
 
-**In this chapter:** the box model · specificity and the cascade · inheritance and reset keywords · positioning and stacking contexts · units · `@layer`
+**In this chapter:** the box model and `box-sizing` · the cascade and specificity · inheritance and the reset keywords · stacking contexts · units · cascade layers
 
-## The Box Model
+## 💡 The Core Idea
 
-Every element is a rectangle made of four layers: **content → padding → border → margin**.
+Almost every CSS bug that feels mysterious comes from one of three systems doing exactly what it was
+designed to do: the box model deciding how large a box is, the cascade deciding which declaration wins,
+or a stacking context deciding which element paints on top. None of them is complicated once you can
+name the rule. What makes them feel arbitrary is guessing, and then raising specificity until the guess
+works — which is how a stylesheet becomes unmaintainable.
 
-```text
-┌─────────────────────── margin ───────────────────────┐
-│   ┌─────────────────── border ───────────────────┐   │
-│   │   ┌─────────────── padding ───────────────┐  │   │
-│   │   │             content                   │  │   │
-│   │   └───────────────────────────────────────┘  │   │
-│   └──────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────┘
-```
+> When a rule does not apply, the answer is always in the cascade order. When a box is the wrong size,
+> it is `box-sizing`. When `z-index` is ignored, it is a stacking context.
 
-### `box-sizing` — The One Setting That Matters
+## How It Works
 
-```css
-/* Default — width = content only. Padding + border ADD to it. */
-.a { box-sizing: content-box; width: 200px; padding: 20px; border: 2px; }
-/* Renders 244px wide. Surprise. */
+### The box model
 
-/* Modern — width = the actual rendered width. Padding + border fit INSIDE. */
-.b { box-sizing: border-box; width: 200px; padding: 20px; border: 2px; }
-/* Renders 200px wide. As expected. */
-```
-
-**The universal reset every codebase needs:**
+Every element is content, wrapped in padding, wrapped in a border, wrapped in margin. The only decision
+that matters is what `width` refers to.
 
 ```css
+/* Default: width is the content box. Padding and border are added to it. */
+.a { box-sizing: content-box; width: 200px; padding: 20px; border: 2px solid; }
+/* Renders 244px wide. */
+
+/* width is the rendered width. Padding and border fit inside it. */
+.b { box-sizing: border-box; width: 200px; padding: 20px; border: 2px solid; }
+/* Renders 200px wide. */
+```
+
+```css
+/* The reset every codebase needs, so that width: 50% means 50%. */
 *, *::before, *::after { box-sizing: border-box; }
 ```
 
-> **Key Insight:** Without `border-box`, every responsive width calculation becomes a math problem. With it, `width: 50%` always means 50% of the parent.
+**Margin collapse** is the other surprise. Vertical margins between adjacent block elements collapse to
+the larger of the two, not the sum; horizontal margins never collapse, and padding never collapses. It
+also collapses through an empty parent and between a parent and its first or last child. Flex and grid
+items do not collapse at all, which is often the simplest fix.
 
-### Margin Collapse — The Gotcha
+### The cascade
 
-Vertical margins between adjacent block elements **collapse** to the larger of the two. Horizontal margins never collapse. Padding never collapses.
+Declarations are compared in this order, and specificity is the *third* tiebreaker rather than the
+first.
 
-```css
-.a { margin-bottom: 30px; }
-.b { margin-top: 20px; }
-/* Gap between a and b is 30px, not 50px. */
-```
+1. **Origin and importance** — user agent, then user, then author. `!important` reverses that order.
+2. **Cascade layers** — a later layer beats an earlier one regardless of what is inside it.
+3. **Specificity** — the four-part score below.
+4. **Source order** — the last declaration wins.
 
-It also collapses through empty parents and between a parent and its first/last child. Common fix: give the parent `padding: 1px` or `display: flex` (flex/grid items don't collapse).
-
----
-
-## Specificity and the Cascade
-
-Most "why isn't my style applying?" bugs come from misunderstanding the cascade order:
-
-1. **Origin & importance** — user-agent → user → author → `!important` reverses the order
-2. **Cascade layers** (`@layer`) — later layers beat earlier ones
-3. **Specificity** — see below
-4. **Source order** — last declaration wins
-
-### Specificity Calculation
-
-A four-part score: `[inline, IDs, classes/attrs/pseudo-classes, elements/pseudo-elements]`.
+Specificity is `[inline, IDs, classes and attributes and pseudo-classes, elements]`, compared left to
+right.
 
 | Selector | Score |
-|---|---|
-| `*` | 0,0,0,0 |
+| -------- | ----- |
+| `*`, `:where(...)` | 0,0,0,0 |
 | `div` | 0,0,0,1 |
-| `.card` | 0,0,1,0 |
-| `.card:hover` | 0,0,2,0 |
-| `a[href="/x"]` | 0,0,2,0 |
+| `.card`, `[data-open]`, `:hover` | 0,0,1,0 |
 | `#main` | 0,1,0,0 |
-| `style="..."` (inline) | 1,0,0,0 |
-| `!important` | overrides everything in its origin |
+| `style="…"` | 1,0,0,0 |
 
-Compare left-to-right. `0,1,0,0` (ID) beats `0,0,99,0` (99 classes). A single `#main` always wins against any pile of classes.
-
-### 💡 **The Rules That Save You**
-
-- **Never use IDs for styling.** They're too specific to override. Reserve them for JS hooks and fragment links.
-- **Avoid `!important`.** It's a future-bug factory. Use it only inside utility classes (Tailwind does this deliberately) or to override third-party styles you don't control.
-- **Keep specificity flat.** `.btn-primary` beats `.card .header .btn` every time, because the flat one is easier to override later.
+Comparison is positional, not cumulative: `#main` at `0,1,0,0` beats ninety-nine classes at `0,0,99,0`.
+That is why an ID used for styling is effectively unoverridable, and why IDs belong to fragment links
+and JavaScript hooks instead.
 
 ```css
-/* ❌ Bad: 0,1,2,1 — only an ID can override this */
-#sidebar .widget h2.title { ... }
+/* ❌ 0,1,2,1 — nothing but another ID can override this. */
+#sidebar .widget h2.title { color: red; }
 
-/* ✅ Good: 0,0,1,0 — easy to override and reason about */
-.widget-title { ... }
+/* ✅ 0,0,1,0 — flat, greppable, overridable. */
+.widget-title { color: red; }
 ```
 
-> **Key Insight:** Specificity wars are a code smell. If you keep raising specificity to win, your architecture is fighting you.
+`:is()` and `:where()` are worth knowing precisely for this: they group selectors identically, but
+`:is()` takes the specificity of its most specific argument while `:where()` is always zero. A reset
+written with `:where()` can be overridden by any single class.
 
----
+### Inheritance and the four reset keywords
 
-## Selectors Worth Knowing
-
-### Combinators
-
-| Selector | Meaning |
-|---|---|
-| `A B` | `B` descendant of `A` (any depth) |
-| `A > B` | `B` direct child of `A` |
-| `A + B` | `B` immediately follows `A` |
-| `A ~ B` | `B` follows `A` (any sibling after) |
-
-### Pseudo-Classes That Punch Above Their Weight
-
-```css
-/* The "fancy" empty-state selector */
-.list:empty { display: none; }
-
-/* Style based on which child it is */
-.tabs > :first-child { border-left: none; }
-.row > :nth-child(odd) { background: #f8f8f8; }
-
-/* :not() for exclusions — cleaner than fighting specificity */
-.btn:not(:disabled):hover { background: blue; }
-
-/* :is() and :where() — grouping. :where() has ZERO specificity. */
-:is(h1, h2, h3) { font-family: serif; }      /* takes specificity of most specific arg */
-:where(h1, h2, h3) { font-family: serif; }   /* always 0,0,0,0 — easy to override */
-
-/* :has() — the parent selector we finally got */
-.card:has(img) { padding: 0; }
-label:has(input:checked) { font-weight: bold; }
-```
-
-### Attribute Selectors
-
-```css
-input[type="email"]      { ... }
-a[href^="https://"]      { ... }   /* starts with */
-a[href$=".pdf"]::after   { content: " (PDF)"; }   /* ends with */
-[data-state="open"]      { ... }   /* great for component state */
-```
-
----
-
-## Inheritance and the Reset Keywords
-
-Some properties inherit (color, font, line-height, visibility). Most don't (margin, padding, border, background, width).
-
-Four keywords every property accepts:
+Some properties inherit — `color`, `font`, `line-height`, `visibility`. Most do not — `margin`,
+`padding`, `border`, `background`, `width`. Every property accepts four keywords:
 
 | Keyword | Effect |
-|---|---|
-| `inherit` | Force inheritance from parent |
-| `initial` | Reset to the property's **spec default** (often not what you expect — e.g., `color: initial` is black, not your theme) |
-| `unset` | `inherit` if the property inherits, else `initial` |
-| `revert` | Roll back to the user-agent stylesheet (your browser's default) |
+| ------- | ------ |
+| `inherit` | Take the parent's computed value, whether or not the property normally inherits |
+| `initial` | The property's spec default, which is often not your design's default — `color: initial` is black |
+| `unset` | `inherit` for inherited properties, `initial` for the rest |
+| `revert` | Roll back to the user-agent stylesheet |
+
+`revert` is the underused one. It is the clean way to undo a global reset for one subtree — restoring
+list markers inside prose content, for instance — without knowing what the reset set them to.
+
+### Positioning and stacking contexts
+
+| Value | Out of flow? | Positioned against |
+| ----- | ------------ | ------------------ |
+| `static` | No | Normal flow |
+| `relative` | No, keeps its space | Its own original position |
+| `absolute` | Yes | Nearest positioned ancestor |
+| `fixed` | Yes | The viewport |
+| `sticky` | No, until the threshold | Nearest scrolling ancestor |
+
+`z-index` applies only to positioned elements, and it is compared **only within one stacking context**.
+A child cannot escape its parent's context however large its `z-index` is. A new context is created by
+`position` plus a non-`auto` `z-index`, by `position: fixed` or `sticky`, and — the ones that catch
+people — by `opacity` below 1, `transform`, `filter`, `perspective`, `will-change` and
+`isolation: isolate`.
 
 ```css
-/* Wipe an inherited color back to "whatever the browser would do" */
-.alert a { color: revert; }
-
-/* Common pattern for nested components — opt back into the parent's font */
-.modal { font: inherit; }
-```
-
-> **Key Insight:** `revert` is underrated. It's the cleanest way to undo a global reset for one element (e.g., resurrect list bullets inside prose content).
-
----
-
-## Display Values
-
-Brief view — defer Flexbox/Grid to their own topics.
-
-| Value | Behavior |
-|---|---|
-| `block` | Full width, stacks vertically. `<div>`, `<p>`, headings. |
-| `inline` | Flows in text. **Ignores width/height/vertical margin.** `<span>`, `<a>`. |
-| `inline-block` | Inline flow, but accepts width/height. Used to be the only layout tool. |
-| `flex` | One-dimensional layout (row or column). |
-| `grid` | Two-dimensional layout (rows AND columns). |
-| `contents` | Element disappears from the box tree; children become children of the grandparent. Useful for grid layouts. |
-| `none` | Removed from layout AND accessibility tree (vs `visibility: hidden` which keeps space). |
-
-**Common Mistake:** Setting `width` on an `inline` element and wondering why nothing changes. Switch to `inline-block` or `block`.
-
----
-
-## Position and Stacking
-
-| Value | Removed from Flow? | Positioned Relative To |
-|---|---|---|
-| `static` (default) | No | Normal flow |
-| `relative` | No (keeps space) | Its own original position |
-| `absolute` | Yes | Nearest **positioned** ancestor (or viewport) |
-| `fixed` | Yes | Viewport (almost always) |
-| `sticky` | No, until threshold hit | Nearest scrolling ancestor |
-
-### The Stacking Context Gotcha
-
-`z-index` only works on **positioned** elements (anything not `static`). And it's **local to its stacking context** — a child with `z-index: 9999` can't escape its parent's stacking context.
-
-A new stacking context is created by:
-
-- `position: relative/absolute` + any `z-index` other than `auto`
-- `position: fixed` or `sticky`
-- `opacity` less than 1
-- `transform`, `filter`, `perspective`, `will-change`, `isolation: isolate`
-
-```css
-/* ❌ Mystery bug: this modal never goes above the navbar */
 .navbar { position: sticky; z-index: 10; }
-.card   { opacity: 0.95; }              /* new stacking context */
-.card .modal { position: fixed; z-index: 9999; }  /* trapped inside .card */
 
-/* ✅ Fix: don't create a stacking context around portaled UI, or portal to body */
+/* This innocuous line creates a stacking context. */
+.card { opacity: 0.95; }
+
+/* Trapped inside .card, so it paints below the navbar despite the 9999. */
+.card .modal { position: fixed; z-index: 9999; }
 ```
 
-> **Key Insight:** `isolation: isolate` is the cleanest way to deliberately create a new stacking context without side effects (no transform, no opacity hack).
+`isolation: isolate` is the right way to create a context deliberately, because it has no visual side
+effect — unlike a `transform` or an `opacity` added for the purpose.
 
-### `position: sticky` — The Underused One
+`position: sticky` fails silently in three situations worth memorising: an ancestor with
+`overflow: hidden`, a parent no taller than the sticky element, and no `top` or `bottom` value set.
 
-```css
-.section-header {
-  position: sticky;
-  top: 0;     /* sticks when its top hits the viewport top */
-}
-```
+### Units
 
-Sticks within its **scrolling ancestor** and **stops at its parent's edge**. If sticky isn't working: check that no ancestor has `overflow: hidden`, that the parent is taller than the sticky element, and that you've set a `top`/`bottom` value.
-
----
-
-## Units
-
-| Unit | Relative To | When to Use |
-|---|---|---|
-| `px` | Absolute (CSS pixels, not device) | Borders, fine details, shadow offsets |
-| `rem` | Root `<html>` font-size | **Default choice** — font sizes, spacing, breakpoints. Respects user's browser zoom for text size. |
-| `em` | The element's own font-size | Component-relative spacing (padding inside a button scales with its font) |
-| `%` | Parent's same-axis dimension | Widths, sometimes heights (heights need an explicit parent height to work) |
-| `vh` / `vw` | 1% of viewport height/width | Hero sections, full-screen overlays |
-| `dvh` / `svh` / `lvh` | Dynamic / small / large viewport height | **Mobile** — handles browser chrome appearing/disappearing |
-| `ch` | Width of `0` in current font | Line-length limits (`max-width: 65ch` for readable prose) |
+| Unit | Relative to | Use for |
+| ---- | ----------- | ------- |
+| `rem` | The root font size | The default for type, spacing and breakpoints — it respects text zoom |
+| `em` | The element's own font size | Padding inside a component, so it scales with its own type |
+| `px` | Nothing | Hairlines, borders, shadow offsets |
+| `%` | The parent's same axis | Widths; heights only when the parent has one |
+| `dvh` | The *visible* viewport height | Full-height layouts on mobile |
+| `ch` | The width of `0` in the current font | Line length — `max-width: 65ch` for readable prose |
 
 ```css
-/* ❌ Bad: 100vh on mobile clips under the address bar */
+/* ❌ 100vh includes the space under the mobile address bar, so content clips. */
 .hero { height: 100vh; }
 
-/* ✅ Good: dvh tracks the visible viewport */
+/* ✅ dvh tracks the viewport as browser chrome appears and disappears. */
 .hero { height: 100dvh; }
 ```
 
-> **Key Insight:** Use `rem` by default. Reach for `em` inside reusable components. Use `px` for hairlines. Use `dvh` on mobile.
+### Cascade layers
 
----
-
-## Cascade Layers (`@layer`)
-
-Modern (2022+) feature for controlling the cascade across multiple stylesheets — without specificity wars or `!important`.
+`@layer` moves precedence from "who wrote the longer selector" to "which layer does this belong in".
 
 ```css
 @layer reset, base, components, utilities;
 
-@layer reset {
-  * { margin: 0; box-sizing: border-box; }
-}
-
 @layer components {
-  .btn { padding: 0.5rem 1rem; background: blue; }
+  #sidebar .nav .btn { padding: 0.5rem 1rem; } /* high specificity… */
 }
 
 @layer utilities {
-  /* These win over .btn regardless of specificity */
-  .text-red { color: red; }
+  .p-0 { padding: 0; } /* …and this still wins, because its layer is later. */
 }
 ```
 
-**Order matters:** later layers beat earlier ones, **regardless of specificity inside**. A single class in `utilities` beats `#x .y .z` in `components`. Unlayered styles beat all layered styles.
+Two rules make it usable: later layers beat earlier ones regardless of specificity inside them, and
+**unlayered styles beat every layered style**. That second rule is what makes `@import url(…)
+layer(vendor)` so useful — third-party CSS drops into a low-priority layer and your own unlayered
+styles override it without a single `!important`.
 
-This is how Tailwind v3+, Open Props, and modern design systems avoid `!important` everywhere.
+## When to Use It
 
-> **Key Insight:** Layers turn "who wrote the more specific selector?" into "which layer does this belong in?" — an architectural decision instead of an accident.
+| Situation | Choose | Why |
+| --------- | ------ | --- |
+| Any new project | `box-sizing: border-box` globally | Every width calculation becomes arithmetic you can do in your head |
+| A reset that must be easy to override | `:where()` selectors | Zero specificity, so one class beats it |
+| Overriding a third-party stylesheet | Import it into an early `@layer` | The alternative is `!important` in perpetuity |
+| A deliberate paint boundary | `isolation: isolate` | No visual side effect, unlike `transform` or `opacity` |
+| Undoing a global reset locally | `revert` | You do not need to know what the reset set |
+| Full-height layout on mobile | `dvh` | `vh` measures a viewport the user cannot always see |
 
----
+## Common Mistakes
+
+**❌ Wrong — raising specificity to win:**
+
+```css
+.btn { background: blue; }
+.card .btn { background: green; }
+#page .card .btn { background: red; } /* the next override needs an ID too */
+```
+
+**✅ Right — decide it by layer or by source order:**
+
+```css
+@layer components { .btn { background: blue; } }
+@layer utilities { .btn-danger { background: red; } }
+```
+
+**❌ Wrong — `width` on an inline element.** `display: inline` ignores `width`, `height` and vertical
+margins entirely. Switch to `inline-block` or `block`.
+
+**❌ Wrong — `display: none` to hide something temporarily.** It removes the element from the
+accessibility tree as well as the layout, so a screen reader user loses it. `visibility: hidden` keeps
+the space; a visually-hidden utility class keeps it available to assistive technology.
+
+## 🔑 Key Takeaways
+
+- `box-sizing: border-box` makes `width` mean the rendered width, which is what every layout calculation assumes.
+- Specificity is the third tiebreaker in the cascade, after origin and cascade layers — not the first.
+- Specificity is compared positionally, so one ID beats any number of classes, which is why IDs do not belong in stylesheets.
+- `z-index` is only compared inside a stacking context, and `opacity`, `transform` and `filter` all create one.
+- Cascade layers turn precedence into an architectural decision and remove the reason to write `!important`.
 
 ## Interview Questions
 
-### Q1: An element has `width: 200px; padding: 20px; border: 2px solid`. How wide does it actually render and why?
+**Q: An element has `width: 200px; padding: 20px; border: 2px`. How wide does it render?**
 
-**Answer:** Depends on `box-sizing`. With the default `content-box`, the box renders 244px wide — width is content only, padding and border add on top (200 + 20 + 20 + 2 + 2). With `border-box`, it renders 200px wide — padding and border fit inside the declared width. Modern codebases set `*, *::before, *::after { box-sizing: border-box; }` because it makes responsive layout math intuitive (`width: 50%` actually means 50% of the parent regardless of padding).
+244px by default, because `content-box` treats `width` as the content only and adds padding and border
+to it. With `border-box` it renders at 200px, with the padding and border inside. Modern codebases set
+`border-box` globally so that `width: 50%` genuinely means half the parent regardless of padding.
 
-### Q2: A teammate's `z-index: 9999` modal still appears behind a navbar with `z-index: 10`. What's going on?
+**Q: A modal with `z-index: 9999` still sits behind a navbar with `z-index: 10`. Why?**
 
-**Answer:** Stacking contexts. `z-index` is only compared within the same stacking context. If the modal's ancestor has `transform`, `opacity < 1`, `filter`, `will-change`, or `position` with a non-`auto` `z-index`, it creates a new stacking context — and the modal is trapped inside it. The modal's 9999 only competes against its siblings inside that context. Fixes: (1) portal the modal to `<body>` so it's a sibling of the navbar's context, (2) remove the side-effect property creating the context, or (3) use `isolation: isolate` deliberately at the top level where you want the boundary.
+Because the modal is inside a different stacking context, so its 9999 only competes with its siblings
+inside that context. Some ancestor has `opacity` below 1, a `transform`, a `filter`, or `position` with
+a `z-index` — any of those creates one. The fixes are to portal the modal to `<body>`, remove the
+property creating the context, or place an `isolation: isolate` boundary deliberately.
 
-### Q3: When would you use `rem` vs `em` vs `px`?
+**Q: When would you use `rem` over `em` over `px`?**
 
-**Answer:** `rem` is the default — sizes scale with the user's root font-size setting (accessibility), and you avoid the compounding surprises of `em`. Use `em` inside self-contained components where you want padding/margins to scale with the component's own font-size — e.g., a button where `padding: 0.5em 1em` always looks proportional regardless of the button's size variant. Use `px` for things that genuinely shouldn't scale: 1px borders, hairlines, fixed shadow offsets, media query breakpoints (though `em` is also valid there). I'd avoid `px` for typography and spacing because it ignores the user's zoom preference for text-only zoom.
+`rem` by default, because it scales with the user's root font size and does not compound. `em` inside a
+self-contained component, so that `padding: 0.5em 1em` stays proportional across size variants. `px`
+only for things that genuinely should not scale — a one-pixel border, a shadow offset.
 
----
+**Q: What problem do cascade layers solve that BEM does not?**
 
-[← Back to HTML & CSS](./README.md)
+BEM controls naming and keeps specificity flat within your own code. Layers control precedence between
+bodies of code you may not own — a vendor stylesheet, a reset, a utility set. A single class in a later
+layer beats an ID selector in an earlier one, which is exactly the case `!important` used to be reached
+for.
+
+## What to Read Next
+
+- [Chapter ?? — Advanced CSS](#ch-advanced-css) — custom properties, `:has()` and the rest of the modern set
+- [Chapter ?? — CSS Methodologies](#ch-css-methodologies) — the conventions built on top of the cascade
+- [Chapter ?? — Responsive Design](#ch-responsive-design) — where the units in this chapter get used

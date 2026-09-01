@@ -4,338 +4,233 @@ part: 2
 chapter: 0
 slug: advanced-css
 level: advanced # beginner | intermediate | advanced
-reading_time: 11
-updated: 2026-08-28
-tags: [frontend, html, css, advanced]
+reading_time: 9
+updated: 2026-09-01
+tags: [css, custom-properties, oklch, has, nesting, subgrid]
 in_book: true
 ---
 
 # Advanced CSS {#ch-advanced-css}
 
-> Use the CSS that shipped in every evergreen browser since 2023, and explain in an interview what each one replaced.
+> Use the CSS that shipped across evergreen browsers since 2023, and say in an interview what each feature replaced.
 
-**In this chapter:** custom properties · modern colour functions · `@layer` · `:has()` · container queries · logical properties · native nesting · view transitions
+**In this chapter:** custom properties as a runtime API · perceptual colour with `oklch` · `:has()` · `aspect-ratio` · native nesting · subgrid
 
-## 💡 **Custom Properties (CSS Variables)**
+## 💡 The Core Idea
 
-Real cascading variables, not preprocessor constants. They live in the DOM and respond to media queries, `:hover`, JS, everything.
+A cluster of features landed between 2022 and 2024 that between them removed most of the reasons to
+reach for a preprocessor or for JavaScript. Custom properties made CSS values dynamic. `oklch` made
+colour maths behave the way eyes do. `:has()` let a parent respond to its children. Subgrid let
+independent components share one set of tracks. The interview value is not that you can name them —
+it is that you can say what each one deleted, because that is the same as knowing why it exists.
 
-**How It Works:** Defined with `--name`, read with `var(--name, fallback)`. Inherit through the DOM tree. Scoped to the element they're declared on.
+> The question behind each of these is "what did we used to do instead?" Answer that and the feature
+> explains itself.
+
+## How It Works
+
+### Custom properties are a runtime API, not variables
+
+A preprocessor variable is a constant that disappears at build time. A custom property lives in the
+DOM, inherits, responds to media queries and pseudo-classes, and can be read and written from
+JavaScript. That last point is the one that matters architecturally: it is the only way to pass a value
+from JavaScript into CSS without writing inline style strings.
 
 ```css
 :root {
-  --color-brand: #2563eb;
+  --brand: #2563eb;
   --space: 1rem;
 }
 
 .card {
-  /* Scoped override — only this subtree sees it */
+  /* Scoped override: only this subtree sees the larger value. */
   --space: 1.5rem;
   padding: var(--space);
-  color: var(--color-brand, #000); /* fallback if undefined */
+  color: var(--brand, #000); /* second argument is the fallback */
 }
 
-/* Variables respond to media queries — runtime theming */
+/* The value responds to context, which a build-time variable cannot do. */
 @media (prefers-color-scheme: dark) {
-  :root { --color-brand: #60a5fa; }
+  :root { --brand: #60a5fa; }
 }
 ```
 
-**JS Interop:**
-
-```ts
-const root = document.documentElement;
-root.style.setProperty('--color-brand', '#ef4444');
-const current = getComputedStyle(root).getPropertyValue('--color-brand');
+```typescript
+const root: HTMLElement = document.documentElement;
+root.style.setProperty('--brand', '#ef4444');
+// Reading needs getComputedStyle — the property may be inherited rather than set here.
+const current: string = getComputedStyle(root).getPropertyValue('--brand');
 ```
 
-**When to Use:**
-- ✅ Theming, dark mode, runtime customization
-- ✅ Component variants without class explosion
-- ❌ Static values that never change (use Sass variables or just write the value)
+### Colour that behaves the way eyes do
 
-> **Key Insight:** Custom properties are the only way to pass values from JS into CSS without inline `style` strings. They're the bridge.
-
----
-
-## 💡 **Modern Color Functions**
-
-`hex` and `rgb` are dead. Use these.
+`hsl` is readable and **not perceptually uniform**: yellow at 50% lightness looks far brighter than blue
+at 50% lightness. Any ramp built by stepping HSL lightness therefore looks uneven, and dark-mode
+inversion by flipping lightness produces muddy results.
 
 ```css
-/* hsl — intuitive: hue, saturation, lightness */
-color: hsl(220 90% 56%);
-
-/* oklch — perceptually uniform. Lightness 50% looks 50% to humans. */
-color: oklch(60% 0.2 250);
-
-/* color-mix — blend two colors */
-background: color-mix(in oklch, var(--brand) 80%, white);
-
-/* Relative color syntax — derive variants from a base */
 .button {
   --brand: oklch(60% 0.2 250);
   background: var(--brand);
+
+  /* Derive states from one token instead of declaring five hex values. */
   border: 1px solid oklch(from var(--brand) calc(l - 0.15) c h);
 }
-```
 
-| Function | Use Case |
-|----------|----------|
-| `hsl()` | Human-readable manual picks |
-| `oklch()` | Design tokens, gradients, perceptual ramps |
-| `color-mix()` | Hover/active states from a single token |
-| `oklch(from ...)` | Derive border/shadow/hover from base |
-
-> **Key Insight:** `oklch` makes uniform color ramps. Going from `oklch(90%...)` to `oklch(10%...)` in steps gives a clean palette. RGB ramps look muddy.
-
----
-
-## 💡 **`@layer` — Cascade Layers**
-
-Explicit control over specificity. No more `!important` wars with vendor CSS.
-
-```css
-@layer reset, base, components, utilities;
-
-@layer reset {
-  * { margin: 0; }
-}
-
-@layer components {
-  .btn { padding: 0.5rem 1rem; }
-}
-
-@layer utilities {
-  .p-0 { padding: 0; }
+.button:hover {
+  background: color-mix(in oklch, var(--brand) 85%, white);
 }
 ```
 
-**Rules:**
-- Later layers win over earlier ones, regardless of selector specificity.
-- Unlayered styles win over **all** layered styles.
-- `@import url(...) layer(vendor)` — drop third-party CSS into a low-priority layer.
+| Function | Reach for it when |
+| -------- | ----------------- |
+| `hsl()` | A human is picking one colour by hand |
+| `oklch()` | Design tokens, ramps, gradients — anywhere steps must look even |
+| `color-mix()` | Hover and active states derived from a single token |
+| `oklch(from …)` | Borders and shadows that must track a base colour |
 
-**When to Use:**
-- ✅ Wrapping a third-party UI lib so your styles override without `!important`
-- ✅ Design systems with reset / tokens / components / utilities ordering
-- ❌ Tiny projects — overhead isn't worth it
+### `:has()` — the parent selector
 
-> **Key Insight:** Cascade layers invert the usual specificity rule. A `.btn` in a later layer beats `#header .btn` in an earlier one.
-
----
-
-## 💡 **`:has()` — The Parent Selector**
-
-The most requested CSS feature for 20 years. It styles a parent based on its children.
+Twenty years of "CSS cannot do that" ended here. `:has()` styles an element based on what it contains
+or what follows it, which moves a whole category of logic out of JavaScript.
 
 ```css
-/* Card that contains an image gets a different layout */
 .card:has(img) { display: grid; grid-template-columns: 100px 1fr; }
-
-/* Form label turns red if its input is invalid */
 label:has(input:invalid) { color: #dc2626; }
-
-/* Body modifier when a modal is open */
 body:has(dialog[open]) { overflow: hidden; }
-
-/* Sibling-aware: previous sibling style based on next */
-h2:has(+ p) { margin-bottom: 0.5rem; }
+.list:not(:has(.item)) { display: none; }
 ```
 
-**Gotcha:** `:has()` doesn't bubble up infinitely — keep selectors specific. It is heavily optimized in modern browsers, but `*:has(...)` on huge trees can still hurt.
+Each of those replaced an effect that toggled a class. The last two are the most valuable, because
+"is the modal open" and "is the list empty" were state React had to hold purely so CSS could see it.
 
-> **Key Insight:** `:has()` replaces a huge category of JS that existed only to add classes to parents. Modal open, empty list states, "has icon" variants — all CSS now.
+> ⚠️ Browsers implement `:has()` with invalidation tracking, so it is production-safe. The one shape to
+> avoid is an unqualified `*:has(…)` over a very large tree, where the engine has no cheap way to narrow
+> the candidate set.
 
----
-
-## 💡 **Container Queries**
-
-Style based on a container's size, not the viewport. Full coverage in [05-responsive-design.md](./05-responsive-design.md).
-
-```css
-.sidebar { container-type: inline-size; container-name: sidebar; }
-
-@container sidebar (min-width: 400px) {
-  .card { display: grid; grid-template-columns: 1fr 2fr; }
-}
-```
-
-> **Key Insight:** Components become truly reusable — the same card adapts to a narrow sidebar or wide main column without knowing the viewport.
-
----
-
-## 💡 **Logical Properties**
-
-Replace `left`/`right`/`top`/`bottom` with `inline-start`/`inline-end`/`block-start`/`block-end`. Critical for RTL languages (Arabic, Hebrew) and vertical writing modes (Japanese, Mongolian).
-
-| Physical | Logical |
-|----------|---------|
-| `margin-left` | `margin-inline-start` |
-| `margin-right` | `margin-inline-end` |
-| `padding-top` | `padding-block-start` |
-| `width` | `inline-size` |
-| `height` | `block-size` |
-| `text-align: left` | `text-align: start` |
+### `aspect-ratio`
 
 ```css
-/* ❌ Breaks in RTL — padding stays on the wrong side */
-.card { padding-left: 1rem; border-left: 4px solid blue; }
-
-/* ✅ Flips automatically with dir="rtl" */
-.card { padding-inline-start: 1rem; border-inline-start: 4px solid blue; }
-```
-
-**Shorthands:**
-
-```css
-margin-inline: 1rem 2rem; /* start end */
-padding-block: 0.5rem;     /* both */
-inset-inline-start: 0;     /* replaces left/right based on direction */
-```
-
-> **Key Insight:** If your product ships to any RTL market, logical properties aren't optional. Convert as you touch files.
-
----
-
-## 💡 **`aspect-ratio`**
-
-```css
-/* ❌ Old padding-bottom hack with absolute positioning */
+/* ❌ The old hack: a percentage padding whose value nobody could read. */
 .video { position: relative; padding-bottom: 56.25%; }
-.video iframe { position: absolute; inset: 0; }
 
-/* ✅ One line */
+/* ✅ */
 .video { aspect-ratio: 16 / 9; }
-.avatar { aspect-ratio: 1; width: 48px; } /* height computed */
+.avatar { aspect-ratio: 1; width: 48px; } /* height follows */
 ```
 
-Works on `img`, `video`, `iframe`, and any sized box. Pairs with `object-fit: cover` for cropping.
+Reserving the ratio before the asset loads is also what stops the image contributing to layout shift.
 
----
+### Native nesting
 
-## 💡 **Native CSS Nesting**
-
-Nesting without Sass. Shipped in all evergreen browsers (2023+).
+Nesting shipped natively in 2023, which removes one of the last standing arguments for a preprocessor.
 
 ```css
 .card {
   padding: 1rem;
-  background: white;
 
-  & .title {
-    font-size: 1.25rem;
-  }
+  & .title { font-size: 1.25rem; }
+  &:hover { background: #f9fafb; }
 
-  &:hover {
-    background: #f9fafb;
-  }
-
-  @media (min-width: 768px) {
-    padding: 2rem;
-  }
+  @media (min-width: 768px) { padding: 2rem; }
 }
 ```
 
-**Gotchas:**
-- The `&` is required when the nested selector starts with an element name (`& div` works; `div` alone doesn't, in older specs).
-- Don't nest more than 2–3 levels — same readability rules as Sass.
+The readability rule from Sass carries over unchanged: two or three levels, no more. Deep nesting
+produces long descendant selectors, and those are specificity you did not intend to create.
 
-> **Key Insight:** Native nesting deletes one build-step justification for Sass. Combined with custom properties and `@layer`, plain CSS is now what Sass was in 2018.
+### Subgrid
 
----
-
-## 💡 **Subgrid**
-
-A grid item can adopt its parent's grid tracks. Solves the "align three cards' titles, bodies, and footers" problem without flex hacks.
+Three cards in a row, each with a title, body and footer of different lengths. Before subgrid, lining
+those up across the row meant measuring in JavaScript.
 
 ```css
 .cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: auto 1fr auto; /* title, body, footer */
-  gap: 1rem;
 }
 
 .card {
   display: grid;
   grid-row: span 3;
-  grid-template-rows: subgrid; /* inherits the 3 rows */
+  /* Adopt the parent's rows instead of creating new ones. */
+  grid-template-rows: subgrid;
 }
 ```
 
-Now every card's title, body, and footer line up across the row, regardless of content length.
+## When to Use It
 
-> **Key Insight:** Before subgrid, this required JS to measure and equalize heights. Now it's free.
+| Need | Choose | Why |
+| ---- | ------ | --- |
+| Runtime theming, or a value JavaScript sets | Custom properties | The only bridge from JavaScript into CSS without inline styles |
+| A colour ramp, or dark-mode inversion | `oklch` | Even steps in lightness look even |
+| Styling a parent from its children's state | `:has()` | Removes state React held only so CSS could see it |
+| Aligning rows across sibling components | Subgrid | The alternative is measuring in JavaScript |
+| A value that never changes | Write the value | A custom property adds indirection for nothing |
+| Deeply nested component styles | Two levels, then a new class | Nesting depth becomes specificity |
 
----
+## Common Mistakes
 
-## 💡 **View Transitions API**
+**❌ Wrong — a custom property read as if it were a value:**
 
-Animate between DOM states (page navigations in SPAs, list filters, route changes) with one function call.
-
-```ts
-function update() {
-  if (!document.startViewTransition) {
-    applyChanges();
-    return;
-  }
-  document.startViewTransition(() => applyChanges());
-}
+```typescript
+// Empty string: inline styles do not include inherited custom properties.
+const brand = document.documentElement.style.getPropertyValue('--brand');
 ```
 
-```css
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.3s;
-}
+**✅ Right — read the computed value:**
 
-/* Tag an element to morph between states */
-.hero { view-transition-name: hero; }
+```typescript
+const brand = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
 ```
 
-Cross-document transitions (between full page loads) need `@view-transition { navigation: auto; }` and a same-origin navigation.
+**❌ Wrong — treating custom properties as typed.** By default a custom property is a token stream, so
+`--space: 1rem` cannot be animated and `calc()` will accept nonsense from it silently. `@property`
+declares a syntax and an initial value, which makes the property animatable and validated.
 
-> **Key Insight:** This replaces Framer Motion's `layoutId` for many cases. Native, GPU-accelerated, zero JS for the animation itself.
+**❌ Wrong — a ramp stepped in HSL.** `hsl(60 100% 50%)` and `hsl(240 100% 50%)` claim the same
+lightness and differ enormously in perceived brightness, so a palette generated that way needs
+hand-correction at every step.
 
----
+## 🔑 Key Takeaways
 
-## 🎯 **Interview Questions**
+- Custom properties live in the DOM, inherit, and respond to context, which makes them a runtime API rather than build-time variables.
+- `oklch` is perceptually uniform, so equal steps in lightness look equal — that is what makes ramps and dark-mode inversion work.
+- `:has()` moves parent-from-child styling into CSS and deletes the class-toggling effects that used to do it.
+- Native nesting removes one of the last reasons to run a preprocessor, with the same depth discipline as before.
+- Subgrid aligns tracks across sibling components, replacing JavaScript measurement.
 
-### Q1: When would you use cascade layers over BEM or specificity tricks?
+## Interview Questions
 
-**Answer:** Cascade layers solve a different problem than BEM. BEM controls *naming and authorship*; layers control *order of precedence*. Use layers when:
+**Q: Why prefer `oklch` over `hsl` for design tokens?**
 
-- You consume a third-party CSS library (Bootstrap, a date picker) and want your overrides to win without `!important`. Import their CSS into a low-priority layer.
-- You have a design system with clear tiers — reset → tokens → components → utilities — and want utilities to always beat components regardless of selector specificity.
-- You want utility classes like `.p-0` to win against `#header .card` without inflating selectors.
+Because HSL's lightness is not perceptual: yellow and blue at the same HSL lightness look nothing alike,
+so a ramp stepped uniformly looks uneven and needs correcting by hand. `oklch` lightness tracks
+perceived brightness, which makes generated ramps, dark-mode inversion by flipping lightness, and
+contrast reasoning all behave. It also reaches colours outside sRGB on wide-gamut displays.
 
-The key win: a `.btn` in `@layer utilities` beats `#sidebar .nav .btn` in `@layer components`. Specificity inside a layer still matters, but layer order trumps it.
+**Q: What did `:has()` let you delete?**
 
-### Q2: Explain `oklch` vs `hsl` for design tokens.
+The class-toggling layer. Body scroll locking when a dialog opens, error styling on a field containing
+an invalid input, empty-list states, and layout variants that depend on whether a card has an image —
+all of those were React state and effects that existed only to make child state visible to CSS.
 
-**Answer:** `hsl` is intuitive but **not perceptually uniform** — `hsl(60 100% 50%)` (yellow) looks much brighter than `hsl(240 100% 50%)` (blue) at the same lightness value. That breaks ramps and dark-mode inversion.
+**Q: What is the difference between a custom property and a Sass variable?**
 
-`oklch` is perceptually uniform: a 50% lightness yellow and 50% lightness blue look equally bright. That makes it ideal for:
-- Generating consistent shade ramps (50, 100, 200, ..., 900) by stepping lightness uniformly.
-- Dark-mode inversion via `oklch(from var(--c) calc(1 - l) c h)`.
-- Accessible contrast — lightness in oklch correlates better with WCAG contrast than HSL.
+A Sass variable is substituted at build time and does not exist in the shipped stylesheet. A custom
+property is a live DOM value: it inherits, it can be overridden per subtree, it responds to media
+queries and pseudo-classes, and JavaScript can read and write it. Only the second one can support
+runtime theming.
 
-It also has a wider gamut (`display-p3` support) so it can express colors `rgb` can't. The tradeoff: it's harder to eyeball without a picker tool.
+**Q: When is a custom property the wrong tool?**
 
-### Q3: How does `:has()` change architecture decisions you used to push to JS?
+For a value that never varies. Every `var()` is an indirection a reader has to resolve and a small
+amount of work the engine has to do, and a token that is the same everywhere buys nothing for it. The
+test is whether anything — a theme, a breakpoint, a subtree, a script — ever changes it.
 
-**Answer:** Several common patterns become pure CSS:
+## What to Read Next
 
-- **"Body is locked when modal open"** — `body:has(dialog[open]) { overflow: hidden; }`. No more `useEffect` toggling a class.
-- **Form validation styling** — `.field:has(:invalid) { border-color: red; }`. Previously needed JS to add `.error` class.
-- **Empty states** — `.list:not(:has(.item)) { display: none; }` or show an empty placeholder.
-- **Layout variants** — `.card:has(img)` vs `.card:not(:has(img))` — the same component renders differently based on content, no prop drilling.
-
-Performance-wise, browsers (Chrome 105+, Safari 15.4+, Firefox 121+) implement `:has()` with invalidation tracking — only relevant subtrees re-evaluate on DOM mutation. It's safe in production. Avoid `*:has(...)` over the entire document body for very large DOM trees as a precaution.
-
-The architecture shift: declarative style based on child state, instead of imperative class toggling. Less state in React, fewer effects, simpler components.
-
----
-
-[← Back to HTML & CSS](./README.md)
+- [Chapter ?? — CSS Fundamentals](#ch-css-fundamentals) — the cascade and cascade layers these features sit on
+- [Chapter ?? — Responsive Design](#ch-responsive-design) — container queries, the other 2023 arrival
+- [Chapter ?? — Right-to-Left Support](#ch-rtl-support) — logical properties in full

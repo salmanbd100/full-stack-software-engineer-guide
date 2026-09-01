@@ -262,7 +262,3 @@ A scope for one or more operations on one or more stores, opened as `readonly` o
 ### Q: What's the size limit?
 
 It depends. Browsers grant per-origin quotas relative to total disk free space — often around 60% of free space split among all origins, capped per origin. Use `navigator.storage.estimate()` to read the current quota, and `navigator.storage.persist()` to ask for the data not to be evicted.
-
----
-
-[← Previous: Cookies & SameSite](./02-cookies-same-site.md) | [Next: Browser Permissions →](./04-browser-permissions.md)

@@ -10,7 +10,7 @@ tags: [frontend, html, css, grid]
 in_book: true
 ---
 
-# CSS Grid {#ch-css-grid}
+# CSS Grid {#ch-grid}
 
 > Place items at exact intersections of rows and columns, and build page structure that survives content you did not plan for.
 
