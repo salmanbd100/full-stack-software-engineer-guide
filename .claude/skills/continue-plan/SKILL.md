@@ -1,11 +1,11 @@
 ---
 name: continue-plan
-description: Run the next unfinished item from IMPROVEMENT-PLAN.md, the 83-item plan turning this repo into the book manuscript. Use this whenever the user says "continue", "next", "next item", "what's next", "keep going", "carry on", or attaches IMPROVEMENT-PLAN.md with little or no other instruction — and also when they name a specific item ("do improvement #23", "do #40", "skip #12"). Triggering matters here: without this skill the session picks the wrong item, forgets the ordering constraints, or finishes the work without ticking the box, which leaves the next session starting from the wrong place.
+description: Run the next unfinished item from IMPROVEMENT-PLAN.md, the 89-item plan turning this repo into the book manuscript. Use this whenever the user says "continue", "next", "next item", "what's next", "keep going", "carry on", or attaches IMPROVEMENT-PLAN.md with little or no other instruction — and also when they name a specific item ("do improvement #23", "do #40", "skip #12"). Triggering matters here: without this skill the session picks the wrong item, forgets the ordering constraints, or finishes the work without ticking the box, which leaves the next session starting from the wrong place.
 ---
 
 # Continue the Improvement Plan
 
-`IMPROVEMENT-PLAN.md` is an 83-item plan turning this repository into the manuscript for
+`IMPROVEMENT-PLAN.md` is an 89-item plan turning this repository into the manuscript for
 **The Senior Full Stack Handbook**. The user works through it one item per session and expects
 each finished item to be recorded before the session ends.
 
@@ -96,7 +96,7 @@ They all have to move together:
 
 | Counter | Where |
 | ------- | ----- |
-| Header | `**Progress:** N / 83` near the top |
+| Header | `**Progress:** N / 89` near the top |
 | Phase Map | the `Items` / `Done` row for that item's phase |
 | Progress Tracker | the table near the bottom, including the `%` |
 

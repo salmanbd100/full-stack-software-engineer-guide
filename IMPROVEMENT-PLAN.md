@@ -19,7 +19,7 @@ Attach this file and say **"continue"**. That is the whole instruction. On recei
 | 4 | **Do exactly that one item** | Not the next one too. Not a related tidy-up. One item per session unless told otherwise |
 | 5 | **Verify against "Done when"** | Run the check. If there is nothing runnable, say so plainly rather than implying it passed |
 | 6 | **Mark it complete** | `- [ ]` → `- [x]`, append ` — ✅ **done YYYY-MM-DD**` to the heading, and add a short **Delivered:** block listing what actually shipped and anything deliberately left |
-| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 84` in the header |
+| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 89` in the header |
 | 8 | **Report** | What was done, what was verified, and what was left. Then stop |
 
 **Marking an item done is part of the item.** An item is not finished until steps 6 and 7 are done —
@@ -38,7 +38,7 @@ ordering note.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-02 · **Progress:** 36 / 84
+**Last updated:** 2026-09-03 · **Progress:** 36 / 89
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -88,8 +88,8 @@ that touch hundreds of files are where the saving actually lands.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31e, 31–65, 58a, 69, 72–73, 76, 78 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31e, #58a), everything with a voice |
-| 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 77 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31e, 31–65, 58a, 69, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31e, #58a), everything with a voice |
+| 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 79, 83 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
 
 **The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
 every file), #71 (every cross-reference), #74 (ASCII → Mermaid). Between them they touch more files
@@ -190,7 +190,7 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 | **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions | **Opus 5** throughout |
 | **5** | Fill the remaining gaps       | 54–63 · 58a | 8–12 sessions  | **Opus 5** throughout |
 | **6** | 2027-proofing                 | 64–69   | 4–6 sessions   | mixed — Sonnet for 66–68 |
-| **7** | Book assembly & publish       | 70–78   | 6–8 sessions   | mixed — Sonnet for the sweeps |
+| **7** | Book assembly & publish       | 70–83   | 6–8 sessions   | mixed — Sonnet for the sweeps |
 
 **Effort key:** `S` = one short session · `M` = one full session · `L` = split across 2–4 sessions.
 
@@ -3713,6 +3713,9 @@ Verify no part exceeds ~12 chapters (split if it does).
 Relative paths break in PDF and EPUB. Convert to the item-2 syntax and have the build resolve them to
 "see Chapter N" in print and to anchors on the web.
 
+🔴 **Ordering:** the *resolution* half needs a pandoc filter that does not exist. **#82 builds it and
+closes this item** — do the markdown conversion here, then tick both there.
+
 ---
 
 ### - [ ] 72. Write the front matter `M`
@@ -3733,6 +3736,11 @@ every chapter — that index alone is worth the purchase for a lot of readers.
 
 There is exactly **one** Mermaid diagram in 134,000 lines. ASCII diagrams do not survive PDF typesetting well.
 Convert structural diagrams to Mermaid; keep ASCII only for short linear flows.
+
+**Correction (2026-09-03):** the "exactly one" count is stale — `build/book.md` now holds **52** Mermaid
+fences. The conversion is largely done; what is missing is that **nothing renders them**. Pandoc emits
+them as code blocks, so the PDF prints Mermaid source. **#82 builds the renderer and closes this item.**
+117 files also still carry box-drawing characters that print as tofu — #81 maps those.
 
 ---
 
@@ -3755,9 +3763,54 @@ Pick one — the `Backend/API/01` voice is the strongest — and edit toward it.
 
 ---
 
-### - [ ] 77. Produce PDF and EPUB `M`
+### - [ ] 77. Calibrate the page budget, then produce the final PDF and EPUB `M`
 
-Run the full build, check pagination, code-block wrapping, table overflow, and diagram rendering in both formats.
+🔴 **Ordering:** last in Phase 7 — after #79–#83, which build the design system this item tunes.
+
+Item #5 deferred every real typographic decision to this item and left it without a "Done when". It is
+now the calibration and proof step, and it carries the plan's largest open risk.
+
+**The page budget does not currently close.** BOOK-SPEC § 5 assumes ~55 markdown lines per typeset page
+and a 950–1,050 page book. The only recorded real build (#5) produced **3,692 A4 pages from 134,000
+lines — 36 lines per page**, optimistic by roughly 50%. Carrying that rate forward:
+
+| | |
+| --- | --- |
+| Manuscript today | 39,855 lines (`build/book.md`) |
+| Finished, with Parts III and VII | ≈ 59,000 lines |
+| At 36 lines/page | ~1,640 pages |
+| Plus 253 chapters each opening a fresh page | **~1,765 pages** |
+| BOOK-SPEC § 5 target | **950–1,050 pages** |
+
+The tightening in #79–#81 — leading 1.60 → 1.32, paragraph space 0.9em → 0.30em, table rows 30pt → 15pt,
+callout padding 19pt → 7pt, chapter opening 146pt → 78pt — should reach 48–50 lines/page, landing near
+**1,330–1,400**. Still ~30% over.
+
+So this item measures rather than guesses, then presents the levers with real numbers:
+
+1. **XCharter in place of Source Serif 4** — sets ~6% narrower at the same apparent size. One line in
+   `tokens.tex`.
+2. **Chapters run on instead of opening a fresh page** — recovers ~125 pages. Costs thumb-navigability.
+3. **Crown Quarto 189×246mm instead of A4** — recovers a further ~180 and gives a 72-character measure
+   instead of A4's 90. Costs nothing but the decision.
+
+Both 2 and 3 are single token values, so no work in #79–#83 is wasted whichever way they go.
+
+Add `scripts/measure-pages.ts`, importing `loadBook`/`orderDocs`/`PART_NAMES` from `scripts/lib/book.ts`
+the way `lint-docs.ts` and `collect-chapters.ts` already do, and expose it as `pnpm book:pages`: pages per
+part against the § 5 budget, plus the true lines-per-page rate.
+
+Then run the full build and check pagination, code-block wrapping, table overflow and diagram rendering
+in both formats.
+
+**Amending the spec is part of this item.** `BOOK-SPEC.md` is locked at v1.2 and names no trim size, no
+typeface and no page-count method. Recording them in § 1 requires its own § 10 procedure: a decision-log
+row, a statement of what changed and why, and a version bump to 1.3. Leave § 5's table row shape alone —
+`partBudgets()` in `scripts/lib/book.ts` parses it with a regex and throws if a row goes missing.
+
+**Done when:** `pnpm book:build` completes with zero overfull boxes wider than 5pt, `pnpm book:pages`
+reports the page count per part against the § 5 budget, and BOOK-SPEC § 1 records the trim, the
+typefaces and the measured lines-per-page rate.
 
 ---
 
@@ -3766,6 +3819,157 @@ Run the full build, check pagination, code-block wrapping, table overflow, and d
 Options: Leanpub (iterative, pays while you write), Gumroad (full control), self-host on `salmanrahman.com`.
 **Recommendation:** Leanpub for the book plus a free VitePress companion site built from the same markdown —
 the site markets the book and the book funds the site.
+
+---
+
+### - [ ] 79. Vendor the print typefaces and build the design-token layer `M`
+
+The book has no typeface. `scripts/build-book.sh` passes `--variable=fontsize:10pt` and nothing else, so
+tectonic falls back to Latin Modern — a 1970s Computer Modern revival that sets thin and grey at 10pt on
+uncoated stock. `BOOK-SPEC.md` § 1 names no face either.
+
+Vendor three OFL families into `assets/fonts/` — the repo's first binary assets:
+
+| Role | Face | Why |
+| ---- | ---- | --- |
+| Body | **Source Serif 4** | Built for extended reading; holds colour at 10pt |
+| Display | **Source Sans 3** | Stays legible at the 8–8.5pt of eyebrows, labels and folios |
+| Code | **Source Code Pro** | Tall x-height; readable at 8.5pt, same family metrics |
+
+Load them with `fontspec` + `Path=` so the build is reproducible without system font installs. Tectonic
+runs XeTeX, so `fontspec` works unchanged.
+
+Then split the design surface into a token layer. `scripts/book-header.tex` becomes an `\input` shim over
+five files under `scripts/tex/`: `tokens.tex` (palette, type scale, geometry, leading — **the only file
+tuned during calibration**), `typography.tex`, `structure.tex`, `blocks.tex`, `glyphs.tex`. The existing
+`fancyhdr` footer and `newunicodechar` emoji table move across unchanged; they are correct.
+
+**Greyscale palette — five tones, chosen for how ink behaves, not how the screen looks:**
+
+| Token | Value | Used for |
+| ----- | ----- | -------- |
+| `ink` | 100% K | Body, chapter titles, H2, H3 |
+| `ink-mid` | 55% K | Eyebrow, captions, source notes, folio, running head |
+| `ink-light` | 35% K | Hairlines, table rules |
+| `tint-1` | 6% K | Code ground, table zebra |
+| `tint-2` | 12% K | Warning-callout ground |
+
+Two tint steps only, deliberately: **tints under 6% vanish on uncoated stock, and 13–25% goes muddy behind
+10pt text.** Everything else is carried by rule weight and type weight. This is why the source design
+cannot simply be desaturated — see #81.
+
+**Done when:** `pdffonts build/handbook.pdf` reports the three vendored families and no fallback face.
+
+---
+
+### - [ ] 80. Page architecture — geometry, running heads, part and chapter openings `M`
+
+🔴 **Ordering:** after #79 — the token layer defines the values this item consumes.
+
+Today: A4, `margin=2.2cm` uniform, `fancyhdr` heads showing `\leftmark`/`\rightmark` in default type. No
+mirrored margins, so the gutter is the same width as the fore-edge and the text block drifts toward the
+spine on every recto.
+
+Build the real page:
+
+- **A4 210×297mm, `twoside`**, mirrored: inner 26mm · outer 28mm · top 22mm · bottom 24mm. Starting
+  values — #77 calibrates them.
+- `\flushbottom`, `\widowpenalty=10000`, `\clubpenalty=10000`, `\raggedbottom` off.
+- **Part openers force a recto.** Number set 60pt at 35% K, title 28pt sans bold beneath it.
+- **Chapters start a fresh page.** Opening block is: eyebrow (8.5pt sans semibold caps, +140/1000 tracking,
+  55% K) → 12pt → number and title (22pt sans bold, 12pt apart) → 14pt → **1.2pt** rule → 18pt → deck
+  (11pt serif italic, 55% K). Total 78pt, against the 146pt the source design spends before its first word.
+- Running heads: verso = part name, recto = chapter title, both 8pt caps at 55% K. Folio outer, 8pt, 55% K.
+  Keep the existing copyright footer.
+- `\needspace` guards so the six closing blocks never split across a chapter's last two pages.
+
+**Done when:** `pdfinfo build/handbook.pdf` reports A4; every part opener falls on an odd page; no chapter
+opening block sits at the foot of a page with fewer than three lines of body under it.
+
+---
+
+### - [ ] 81. The black-and-white block library `L`
+
+🔴 **Ordering:** after #80.
+
+The book prints in black and white. The reference design carries three of its distinctions in hue alone,
+and all three collapse:
+
+| Reference | Greyscale | Consequence |
+| --------- | --------- | ----------- |
+| Navy headings `#1B3A5F` | 28% K | — |
+| Teal headings `#0F7B62` | 40% K | Too close to navy; two heading levels merge |
+| Mint callout `#E3F2EC` | 94% K | — |
+| Lavender callout `#EBEFF7` | 94% K | **Identical to mint** |
+| Pale-gold callout `#FAF3E0` | 95% K | **Identical to both** |
+
+So the three callout types must differ by **structure**, not fill — structure survives greyscale,
+photocopying and e-ink:
+
+| Block | Treatment |
+| ----- | --------- |
+| 💡 The Core Idea | 0.4pt full box, no tint |
+| 🔑 Key Takeaways | 0.4pt rules top and bottom only, no tint |
+| ⚠️ Gotcha | 2.5pt solid left bar + `tint-2` |
+| Metadata pill | 8pt sans bold caps, 0.4pt box, 4pt padding |
+| Table | 100% K header band with reversed 8.5pt sans bold; body 9/11.5 sans; `tint-1` zebra; 4pt cell padding |
+| Code | 8.5/10.5 mono on `tint-1`, 5pt padding, no border; 8.5pt sans bold label above |
+| Pull quote | 12/15 serif italic, centred, 0.4pt rules, 10pt clear |
+
+Each callout keeps its uppercase sans label — that is what actually carries the meaning. Build them with
+`tcolorbox`; tables with `tabularray`. A `scripts/lua/callouts.lua` filter maps the standard's `## 💡 …`
+and `## 🔑 …` headings and `> ⚠️ …` blockquotes onto the environments, so **no markdown changes**.
+
+Also here: the emoji substitutions. `scripts/tex/glyphs.tex` extends the existing table — 💡 and 🔑 become
+a solid square set in the heading's own weight rather than being silently dropped as they are today; ⚠️
+becomes a boxed **!**; ✅ ❌ stay `\ding{51}`/`\ding{55}`, which already work because the two glyphs differ
+in shape, not colour. **117 files still carry box-drawing characters** that print as tofu; map them here.
+
+Add `scripts/specimen.md` — a fixture chapter exercising every block — and a `pnpm book:specimen` script,
+so the system can be proved on two pages instead of a 1,400-page build.
+
+**Done when:** `pnpm book:specimen` renders all six blocks, and a mono laser print of
+`build/specimen.pdf` keeps the three callout types tellable apart.
+
+---
+
+### - [ ] 82. Lua filters — Mermaid rendering and print cross-references `M`
+
+🔴 **Ordering:** after #81. **This item closes #71 and #74** — mark both done here rather than
+duplicating the work.
+
+Two of Phase 7's items describe a build feature that does not exist. Neither can be finished by editing
+markdown:
+
+- **#74 (Mermaid).** `build/book.md` holds **52** Mermaid fences. Pandoc emits them as unrendered code
+  blocks — the PDF prints Mermaid *source*. `scripts/lua/mermaid.lua` shells out to `mmdc`
+  (`pnpm add -g @mermaid-js/mermaid-cli`) to render each fence to vector PDF, cached by content hash so a
+  rebuild does not re-render 52 diagrams. Force a monochrome theme; the default palette greys out.
+- **#71 (cross-references).** Non-negotiable #8 requires `[Chapter N — Title](#ch-slug)`, which pandoc
+  turns into a bare hyperlink — useless on paper. `scripts/lua/xref.lua` resolves each to
+  "Chapter N, page P" in print and leaves it an anchor in EPUB.
+
+Wire both into `scripts/book-pdf.yaml`, a pandoc defaults file that also replaces the eight `--variable`
+flags currently inlined in `build-book.sh`.
+
+**Done when:** no `mermaid` fence survives into `build/handbook.pdf` as text, and no `#ch-slug` link
+renders without a page number.
+
+---
+
+### - [ ] 83. Translate the design system to EPUB CSS `S`
+
+🔴 **Ordering:** after #81 — it ports that system.
+
+`build_epub` passes no `--css`, no `--epub-embed-font`, no cover: the EPUB is pandoc default styling.
+`scripts/book-meta.yaml` also has no `subject`, `identifier`, `publisher` or `description`, all of which
+retailers expect, and its `subtitle` **disagrees with `BOOK-SPEC.md` § 1** — reconcile them here.
+
+Write `scripts/epub.css` carrying the same scale and structure as print. The black-and-white constraint is
+print-only, so EPUB keeps colour and keeps real emoji — but the callouts must still read correctly on a
+monochrome e-ink screen, which means the structural distinctions from #81 carry over unchanged.
+
+**Done when:** `pnpm book:epub` passes `epubcheck` with zero errors and the output carries the stylesheet.
 
 ---
 
@@ -3780,8 +3984,8 @@ the site markets the book and the book funds the site.
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
-| 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **84** | **36/84** | **43%**   |
+| 7     | 70–83   | 0/14 | ⬜ Not started |
+| **Total** | **89** | **36/89** | **40%**   |
 
 ---
 

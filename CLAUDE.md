@@ -12,7 +12,7 @@ Two files govern the work. Read them before any substantial change:
 | File                    | Role                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **`BOOK-SPEC.md`**      | The locked contract — nine parts, line budgets, out-of-scope list, twelve non-negotiables. **The authority.** If a request contradicts it, say so |
-| **`IMPROVEMENT-PLAN.md`** | 83 numbered items (#31a–#31e carry letters), done one at a time. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop |
+| **`IMPROVEMENT-PLAN.md`** | 89 numbered items (#31a–#31e carry letters), done one at a time. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop |
 
 ## Writing or Editing Documentation
 
@@ -39,7 +39,7 @@ stop.** Those are archived deliberately, not missing.
 
 ```
 ├── BOOK-SPEC.md         # the contract — read first
-├── IMPROVEMENT-PLAN.md  # the 83-item route from repo to manuscript
+├── IMPROVEMENT-PLAN.md  # the 89-item route from repo to manuscript
 ├── Frontend/            # JavaScript, TypeScript, HTML/CSS, BrowserAPIs, PWA, i18n,
 │                        #   CSSArchitecture, Security, Testing, WebPerformance
 ├── Backend/             # Node.js, SQL, NoSQL, API, Security, Testing — plus DesignPatterns (Part I)
