@@ -270,5 +270,5 @@ become vulnerable later without changing at all.
 
 - [Chapter ?? — CI/CD Security](#ch-cicd-security) — where scanning, signing and registry credentials sit
   in the pipeline
-- [Chapter ?? — Kubernetes Essentials](#ch-kubernetes-essentials) — the same runtime controls as a pod
+- [Chapter ?? — Kubernetes Essentials](#ch-kubernetes-essentials) — the same runtime controls, in a pod spec
   spec, plus who decides to restart the container

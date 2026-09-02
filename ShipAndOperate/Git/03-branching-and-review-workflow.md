@@ -5,7 +5,7 @@ chapter: 0
 slug: branching-and-review-workflow
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-08-28
+updated: 2026-09-02
 tags: [devops, git, branching, code-review, pull-requests]
 in_book: true
 ---
@@ -44,14 +44,6 @@ Three models cover almost every team you will join.
 One permanent branch, one rule: `main` is always deployable. Branch, open a pull request, get a review,
 merge, deploy.
 
-```bash
-git switch main && git pull
-git switch -c feat/user-profile
-# commit in small steps, push, open a PR
-git push -u origin feat/user-profile
-# review → merge to main → main deploys
-```
-
 It is the default for a reason. There is exactly one version of the product in production, so there is
 nothing for a second permanent branch to hold.
 
@@ -85,15 +77,8 @@ Everyone integrates into `main` at least daily. Branches are hours old. Work tha
 anyway, disabled behind a flag, because an unfinished feature in `main` costs less than a three-week
 branch.
 
-```typescript
-// The pattern that makes trunk-based possible: deploy and release are separate events
-import { isEnabled } from '@/lib/flags';
-
-export function Dashboard({ userId }: { userId: string }): JSX.Element {
-  // The new code is in main and in production, off for everyone but the team
-  return isEnabled('dashboard-v2', userId) ? <DashboardV2 /> : <DashboardV1 />;
-}
-```
+What makes it possible is that deploy and release are separate events: the new component sits in
+`main` and in production, returned only for whoever the flag is on for.
 
 Trunk-based has a hard prerequisite. Without tests you trust and flags you can turn off, committing to
 `main` several times a day is not a strategy, it is an outage schedule.
@@ -130,17 +115,14 @@ changelogs, semantic version bumps, and a history you can filter.
 <footer — issue refs, BREAKING CHANGE:>
 ```
 
-| Type       | For                            | Example                                    |
-| ---------- | ------------------------------ | ------------------------------------------ |
-| `feat`     | New behaviour                  | `feat(api): add user profile endpoint`     |
-| `fix`      | A bug fix                      | `fix(auth): stop redirect loop on expiry`  |
-| `refactor` | No behaviour change            | `refactor(db): extract query builder`      |
-| `perf`     | Faster, same behaviour         | `perf(db): index orders on user_id`        |
-| `test`     | Tests only                     | `test(auth): cover expired session`        |
-| `docs`     | Documentation                  | `docs(readme): add local setup`            |
-| `chore`    | Tooling, dependencies          | `chore(deps): upgrade react to 19.1`       |
-| `ci`       | Pipeline changes               | `ci: cache pnpm store between jobs`        |
+| Type       | For                    | Example                                    |
+| ---------- | ---------------------- | ------------------------------------------ |
+| `feat`     | New behaviour           | `feat(api): add user profile endpoint`     |
+| `fix`      | A bug fix               | `fix(auth): stop redirect loop on expiry`  |
+| `refactor` | No behaviour change     | `refactor(db): extract query builder`      |
+| `perf`     | Faster, same behaviour  | `perf(db): index orders on user_id`        |
 
+`test`, `docs`, `chore` and `ci` cover the rest and only `feat` and `fix` move a semantic version.
 The subject says what changed and stays under about fifty characters. The body says **why**, which is the
 part nobody can reconstruct from the diff a year later.
 
@@ -155,7 +137,6 @@ changelog generator behind it is ceremony.
 | ------------------------------------ | ------------- |
 | `feat/PLAT-412-oauth-callback`       | `my-branch`   |
 | `fix/PLAT-455-session-memory-leak`   | `fix-bug`     |
-| `hotfix/xss-in-comment-render`       | `temp`        |
 
 A branch older than a week is a warning sign whatever it is called. Rebase onto `main` daily so the
 conflicts arrive in ones rather than all at the end:
@@ -210,42 +191,23 @@ different names on every host.
 - ✅ Restrict who can push directly, including administrators
 - ❌ Do not allow force pushes or branch deletion on `main`
 
-A code owners file routes reviews to the people who know the area, which matters more than the review
-count once a repository has more than one team in it.
+A code owners file routes reviews to whoever knows the area, which matters more than the review count
+once a repository holds more than one team.
 
 ## Common Mistakes
 
-**❌ Wrong — a long-lived integration branch nobody deploys:**
+❌ **A long-lived integration branch nobody deploys.** If `develop` is not deployed, it is a queue, not
+a branch, and it hides integration failures until the release.
+✅ Branch from `main` and ship behind a flag. GitFlow accepts that cost on purpose for a calendar
+release; adopting it without the calendar buys the cost with none of the benefit.
 
-```bash
-git switch -c develop         # Features merge here and wait three weeks for a release
-```
+❌ **One pull request for a refactor and a feature** — 1,400 lines of "extract query builder + add
+profile endpoint". The reviewer cannot tell which lines were meant to change behaviour, so neither
+half gets checked properly.
+✅ Two pull requests, the refactor first, so the second review is about the feature.
 
-**✅ Right — if `develop` is not deployed, it is a queue, not a branch:**
-
-```bash
-git switch -c feat/PLAT-412-oauth-callback main   # Straight to main behind a flag
-```
-
-An integration branch that never ships hides integration failures until the release. That is the exact
-cost GitFlow accepts on purpose, for a calendar release. Adopting it without the calendar buys the cost
-with none of the benefit.
-
-**❌ Wrong — one pull request for a refactor and a feature:**
-
-```text
-1,400 lines changed: extract query builder + add profile endpoint
-```
-
-**✅ Right — two pull requests, the refactor first:**
-
-```text
-PR 1:  312 lines — refactor(db): extract query builder (no behaviour change)
-PR 2:  180 lines — feat(api): add profile endpoint
-```
-
-Splitting them means the second review is about the feature. Combined, the reviewer cannot tell which
-lines were meant to change behaviour, so nobody checks either properly.
+❌ **A branch that has not seen `main` in a week.** Every conflict arrives at once, at the worst moment.
+✅ Rebase daily. Conflicts in ones are a task; conflicts in twenties are a rewrite.
 
 ## 🔑 Key Takeaways
 

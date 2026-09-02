@@ -161,17 +161,8 @@ jobs:
 Full-graph CI is the single most common reason teams conclude "monorepos do not scale". The repository
 layout was never the problem; running unrelated tests was.
 
-**❌ Wrong — a polyrepo that shares code by copying:**
-
-```bash
-cp -r ../design-system/src/components ./src/vendor/components
-```
-
-**✅ Right — publish it, version it, consume it:**
-
-```bash
-pnpm add @acme/ui@^3.0.0
-```
+**❌ Wrong — a polyrepo that shares code by copying** (`cp -r ../design-system/src/components ./src/vendor/`).
+**✅ Right — publish it, version it, consume it** (`pnpm add @acme/ui@^3.0.0`).
 
 Copied code has no version, so no consumer knows whether it holds the fixed copy. Either publish the
 shared code properly or move both projects into one repository. Copying is the option that has the costs

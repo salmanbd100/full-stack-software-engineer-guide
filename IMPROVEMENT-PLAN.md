@@ -19,7 +19,7 @@ Attach this file and say **"continue"**. That is the whole instruction. On recei
 | 4 | **Do exactly that one item** | Not the next one too. Not a related tidy-up. One item per session unless told otherwise |
 | 5 | **Verify against "Done when"** | Run the check. If there is nothing runnable, say so plainly rather than implying it passed |
 | 6 | **Mark it complete** | `- [ ]` → `- [x]`, append ` — ✅ **done YYYY-MM-DD**` to the heading, and add a short **Delivered:** block listing what actually shipped and anything deliberately left |
-| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 83` in the header |
+| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 84` in the header |
 | 8 | **Report** | What was done, what was verified, and what was left. Then stop |
 
 **Marking an item done is part of the item.** An item is not finished until steps 6 and 7 are done —
@@ -28,15 +28,17 @@ otherwise the next session starts from the wrong place.
 If an item turns out to be wrong, blocked, or already handled, **say so and amend the item** rather than
 silently skipping it or doing something adjacent. Corrections to this plan are expected — three have already
 happened: the budget arithmetic in #1, the frontend-share rule, and the line-budget attribution that added
-**#31a–#31e** on 2026-08-30.
+**#31a–#31e** on 2026-08-30, and **#58a** on 2026-09-02 when #31e turned out to be blocked on its own
+ordering note.
 
-> **Item ids can carry a letter.** #31a–#31e are Phase 2 items added after the plan was numbered.
+> **Item ids can carry a letter.** #31a–#31e are Phase 2 items and #58a is a Phase 4 item, all added
+> after the plan was numbered.
 > `scripts/plan-status.ts` sorts `31a` between `31` and `32`, so step 1 finds them in the right place.
 
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-02 · **Progress:** 35 / 83
+**Last updated:** 2026-09-02 · **Progress:** 36 / 84
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -86,7 +88,7 @@ that touch hundreds of files are where the saving actually lands.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31e, 31–65, 69, 72–73, 76, 78 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31e), everything with a voice |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31e, 31–65, 58a, 69, 72–73, 76, 78 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31e, #58a), everything with a voice |
 | 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 77 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
 
 **The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
@@ -186,7 +188,7 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 | **2** | Restructure & prune           | 20–31 · 31a–31e | 12–16 sessions | **Opus 5** (Sonnet for 21, 25, 30) |
 | **3** | 🆕 `Frontend/ModernStack/`    | 32–43   | 12–16 sessions | **Opus 5** throughout |
 | **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions | **Opus 5** throughout |
-| **5** | Fill the remaining gaps       | 54–63   | 8–12 sessions  | **Opus 5** throughout |
+| **5** | Fill the remaining gaps       | 54–63 · 58a | 8–12 sessions  | **Opus 5** throughout |
 | **6** | 2027-proofing                 | 64–69   | 4–6 sessions   | mixed — Sonnet for 66–68 |
 | **7** | Book assembly & publish       | 70–78   | 6–8 sessions   | mixed — Sonnet for the sweeps |
 
@@ -2714,7 +2716,7 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 > | Appendix — DSA | 4,610 | 5,600 | −990 ✅ | #27 | ✅ done |
 >
 > **31,241 lines over, and 23,582 of it with no remaining owner.** _(#31a has since cleared Part I's
-> 7,601; the live figure is **23,251**, which `pnpm lint:docs --rule=budget` reports. #31b has since cleared Part II's 6,146; the live figure is **17,105**. #31c cleared Part V's 6,510 and #31d Part VI's 7,236; the live figure is **3,748**, all of it owned by **#31e**.)_ Parts III and VII then add 19,500
+> 7,601; the live figure is **23,251**, which `pnpm lint:docs --rule=budget` reports. #31b has since cleared Part II's 6,146; the live figure is **17,105**. #31c cleared Part V's 6,510 and #31d Part VI's 7,236; #31e cleared Parts VIII and IX. The live figure is **1,149**, all of it Part IV, owned by **#58a**, placed after #42, #57 and #58.)_ Parts III and VII then add 19,500
 > lines that have not been written yet, so the book as planned lands near **88,000 against a 57,000
 > budget and a 60,000 hard ceiling**.
 >
@@ -3048,7 +3050,12 @@ have cost the budget headroom it exists to defend. Owner is **#42** (which resha
 
 ---
 
-### - [ ] 31e. Trim Parts IV, VIII and IX to their budgets `M`
+### - [x] 31e. Trim Parts VIII and IX to their budgets `M` — ✅ **done 2026-09-02**
+
+> **Rescoped on 2026-09-02, at the moment of doing it.** The item was written to cover Parts IV, VIII
+> and IX, and then carried a 🔴 ordering note saying Part IV must wait for **#42**, **#57** and **#58** —
+> three items in Phases 3 and 4. Those two statements cannot both hold in one session. Part IV's trim is
+> now **#58a**, ordered where it belongs; this item is Parts VIII and IX, which were unblocked.
 
 The three small overages, together because none is a session on its own. **+3,748 total.**
 
@@ -3068,12 +3075,61 @@ are obvious once the two indexes are read side by side.
 AI-era interview chapter. Either this item leaves headroom for seven more chapters, or #61's list gets
 cut to fit. Decide it here rather than discovering it at #64.
 
-Parts IV and VIII are ordinary trims: IV is `Frontend/WebPerformance` (2,300) and `Frontend/Testing`
-(1,947); VIII is evenly spread across six sections at 741–1,182 lines each.
+Part VIII is an ordinary trim, evenly spread across six sections at 741–1,182 lines each.
 
-🔴 **Ordering: run after #42, #57 and #58** for Part IV — all three move content into or out of it.
+**Done when:** `pnpm lint:docs` reports Parts 8 and 9 at or under their BOOK-SPEC § 5 budgets.
 
-**Done when:** `pnpm lint:docs` reports Parts 4, 8 and 9 at or under their BOOK-SPEC § 5 budgets.
+**Delivered:**
+
+- **Part IX: 4,553 → 1,999 against a 2,500 budget. Sixteen chapters became eight.** The item's own
+  diagnosis was right — every one of the sixteen was already inside the 150–400 line standard, so this
+  was a chapter-count problem and merging was the only lever. `Behavioral/` is now five chapters
+  (`01` STAR + the coverage grid, `02` leadership + teamwork + conflict, `03` problem solving +
+  challenges + failure, `04` ways of working, `05` engineering culture) and `Communication/` is three
+  (`01` technical communication, `02` listening + thinking aloud, `03` written communication). Both
+  part-opener READMEs rewritten. Six of the eight are new prose, not patched files — ten of the sixteen
+  predated the Book Chapter Standard entirely (retired emoji in headings, `[← Back]` footers, relative
+  links, quoted first-person answers, US spelling), so bringing them up to standard meant rewriting.
+- **Part VIII: 6,046 → 5,501 against a 5,500 budget. Twenty-three chapters became twenty-one.** Two
+  merges and six trims. `CICD/03-deployment-strategies` + `Deployment/03-rollback` →
+  `Deployment/02-deployment-strategies-and-rollback` (they shared expand/contract and the "every
+  release must work against both schemas" invariant); `Deployment/02-preview-environments` →
+  `Deployment/01-platform-deploys` (previews are a consequence of the immutable-artefact model that
+  chapter sets up). `CICD/` and `Deployment/` renumbered, both section READMEs and the part opener
+  updated.
+- **`Containers/04-kubernetes-essentials` cut 330 → 261 on a spec mandate, not for budget.**
+  BOOK-SPEC § 6 puts Kubernetes past "my service runs in a pod somewhere" out of scope, and the chapter
+  was carrying control-plane component internals and PodDisruptionBudget detail. What stayed is the part
+  a service owner promises: probes, requests and limits, rollout gating, and the endpoint-removal/SIGTERM
+  race that produces 502s.
+- **Zero new dangling anchors.** Nine slugs retired; every inbound reference repointed. `ch-preview-environments`
+  and `ch-rollback-and-recovery` folded into `ch-platform-deploys` and `ch-deployment-strategies`
+  (the merged chapters kept the slug with the most inbound references, so `ch-deployment-strategies`'s
+  four survived untouched). All nine retired Part IX slugs were referenced only from inside Part IX.
+  The three book-wide danglers that remain (`ch-preface`, `ch-further-reading`,
+  `ch-web-performance-caching-strategies`) are pre-existing and belong to **#72** and **#70**.
+- **Archived, not merged: 4 files.** `Archive/behavioral/` (new — `08-questions-to-ask.md`, 356 lines of
+  question lists whose durable third is now the closing section of `05-engineering-culture.md`) and
+  `Archive/communication/` (`03-system-design-communication.md`, a full duplicate of Part VI's
+  `ch-driving-the-round`; `05-cross-cultural-communication.md`, etiquette-by-region that ages within a
+  quarter). Nine more files were **merged**, so they are in git history rather than `Archive/` — the rule
+  `Archive/README.md` states. Both archive READMEs and the top-level one updated.
+- **`.lint-baseline.json` budget: 3,748 → 1,149.** All six other rules still at zero.
+
+**Part IX headroom was the decision this item had to make, and #61's list is the thing that gives.**
+Part IX now sits 501 lines under budget, which pays for **two** more chapters at ~230, not seven.
+**#61 has been amended** — four of its six proposed chapters already exist as sections of chapters that
+survived (mentoring in `02`, disagreement with a senior stakeholder in `02`, ADRs in `Communication/03`,
+blameless post-mortems in `05`), so its real gap is one chapter, not six. That leaves the second slot for
+**#64**'s AI-era interview chapter, which BOOK-SPEC § 4 names explicitly.
+
+**Correction to BOOK-SPEC § 5's chapter count for Part IX.** § 5 says "~18 chapters" against a
+2,500-line budget. At the 150-line chapter floor eighteen chapters is 2,700 lines, so **the two numbers
+have never been compatible.** The honest figure is **eleven** — eight now plus #61's one and #64's one,
+with a little slack. § 5's budget is the contract the lint enforces, so this item honoured it; the
+chapter count needs an amendment at **#71** or **#76**. Part VIII's "~22" is fine: it lands at 21.
+
+---
 
 ---
 
@@ -3501,6 +3557,36 @@ Absorbs `SystemDesign/Frontend/04`, `09`, `12` (item 42). Add or update:
 
 ---
 
+### - [ ] 58a. Trim Part IV to its budget `M`
+
+Split out of **#31e** on 2026-09-02 and **numbered 58a rather than 31f on purpose**: #31e carried a 🔴
+note saying Part IV must wait for #42, #57 and #58, so an item in Phase 2 could never run. Placing it
+immediately after the last of its three blockers makes the constraint structural instead of a comment
+the next session has to notice.
+
+Part IV is **6,649 against 5,500 — +1,149**, with 29 chapters where § 5 says ~24. All three blockers
+move content into or out of it:
+
+| Item | What it does to Part IV |
+| ---- | ----------------------- |
+| **#42** | Moves `SystemDesign/Frontend/01`, `05`, `08` into a new `Frontend/Architecture/`, and merges `04`, `09`, `12` into `Frontend/WebPerformance/`. Six files already counted against Part IV by `PART_OVERRIDES` in `scripts/lib/book.ts` — those entries must be **deleted** as the files move, or the lines are counted twice |
+| **#57** | Rewrites `Frontend/Testing/` (1,947 now) around Vitest and Playwright |
+| **#58** | Rewrites `Frontend/WebPerformance/` (2,300 now) for INP and absorbs #42's three files |
+
+The two fat sections are `Frontend/WebPerformance` and `Frontend/Testing`. Because #57 and #58 rewrite
+both, **the cheapest path is for them to land inside budget rather than for this item to trim after
+them** — which may make this item a verification rather than a session of work. Check that before
+starting.
+
+⚠️ **Four `SystemDesign/Frontend/` chapters still predate the Book Chapter Standard** — `00-interview-strategy`
+(also 149 lines, one under the floor), `07-offline-first`, `10-seo-analytics`, `11-auth`. Logged at #31d,
+still open. Converting them returns roughly 40 lines to Part VI, not Part IV, but they belong to whoever
+touches that directory next: this item, #42, or #70.
+
+**Done when:** `pnpm lint:docs` reports Part 4 at or under its BOOK-SPEC § 5 budget of 5,500.
+
+---
+
 ### - [ ] 59. Add `Frontend/JavaScript/11-modern-js.md` `S`
 
 The JavaScript section stops at ES6+. Add one chapter on what has landed since and shows up in code review:
@@ -3519,14 +3605,23 @@ than they return.
 
 ### - [ ] 61. Fill the Behavioral gaps with senior-level material `M`
 
-After renumbering (item 14), add the chapters a senior/staff loop actually probes:
+> **Amended at #31e — cut from six chapters to one.** Part IX came in at 1,999 against its 2,500 budget,
+> which pays for two more chapters, and **#64** owns one of them. Four of the six below already exist as
+> substantial sections of chapters that survived #31e's merge, so writing them as chapters would be
+> duplicating the book against itself.
 
-- Influence without authority
-- Technical decision-making and writing an ADR
-- Mentoring and growing engineers
-- Handling disagreement with a senior stakeholder
-- Scope negotiation and saying no
-- Incident ownership and blameless post-mortems
+| Proposed chapter | Verdict at #31e |
+| ---------------- | --------------- |
+| Influence without authority | ✅ **Write it.** The one real gap. `02-leadership-and-conflict.md` has the leading-without-authority table but not a chapter's worth |
+| Scope negotiation and saying no | Fold into the same chapter — it is influence without authority pointed the other way |
+| Technical decision-making and writing an ADR | ❌ Exists — `Communication/03-written-communication.md` § Architecture Decision Records |
+| Incident ownership and blameless post-mortems | ❌ Exists — `Behavioral/05-engineering-culture.md` § Blameless Post-Mortems |
+| Mentoring and growing engineers | ❌ Covered — `02-leadership-and-conflict.md`, including the "when is mentoring the wrong thing to offer" question |
+| Handling disagreement with a senior stakeholder | ❌ Covered — `02-leadership-and-conflict.md` § Disagreeing with someone senior, with a worked answer |
+
+**So this item is now one chapter:** *Influence, Scope and Saying No*, ~230 lines, in `Behavioral/` as
+`06`. Budget it against Part IX's 501 lines of headroom, leaving the rest for **#64**. Item 14's
+renumbering no longer applies — #31e renumbered the section.
 
 ---
 
@@ -3680,13 +3775,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 16/17 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 17/17 | ✅ Complete    |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
-| 5     | 54–63   | 0/10 | ⬜ Not started  |
+| 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **83** | **35/83** | **42%**   |
+| **Total** | **84** | **36/84** | **43%**   |
 
 ---
 
@@ -3747,17 +3842,18 @@ current tree; content is mapped to its destination part, so `DevOps/Agile` count
 >
 > | Row | Credited | Actually delivered | Items | Owner of the rest |
 > | --- | -------- | ------------------ | ----- | ----------------- |
-> | DevOps archived | 34,600 | ~34,050 | #20, #25 ✅ | **#31e** (+546) |
+> | DevOps archived | 34,600 | ~34,050 | #20, #25, **#31e** ✅ | — |
 > | SystemDesign deduped | 13,700 | ~6,464 | #22, #23, #28 ✅ | **#31d** (+7,236) |
 > | DSA trimmed | 13,500 | 14,490 ✅ **over-delivered** | #27 ✅ | — |
 > | Foundations consolidated | 12,500 | ~4,899 | #26 ✅ | **#31a** (+7,601) |
 > | Browser platform trimmed | 6,200 | **6,371** ✅ **over-delivered** | #31b ✅ | — |
 > | Backend deduped | 5,800 | ~0 so far | #24 ✅, #31 pending | **#31c** (+6,510) |
-> | Human layer condensed | 3,400 | 1,683 | #25, #29 ✅ | **#31e** (+2,053) |
-> | Frontend-at-scale net trim | 1,300 | 0 so far | #42, #57, #58 pending | **#31e** (+1,149) |
+> | Human layer condensed | 3,400 | 1,683 | #25, #29, **#31e** ✅ | — |
+> | Frontend-at-scale net trim | 1,300 | 0 so far | #42, #57, #58 pending | **#58a** (+1,149) |
 >
 > The `budget` rule in `pnpm lint:docs` now measures this every run, so the gap cannot reopen
-> silently. **#31a–#31e** own the 31,241 lines still outstanding.
+> silently. **#31a–#31e** are done; **#58a** owns the 1,149 lines still outstanding, placed after its
+> three blockers #42, #57 and #58.
 
 > The book gets **shorter and far more valuable**. Roughly 62% of the cutting is DevOps and DSA bulk, and
 > **a third of the final book (Parts III and VII) is content that does not exist yet.**

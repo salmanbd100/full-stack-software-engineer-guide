@@ -22,10 +22,10 @@ the release goes wrong. Running a cluster, Terraform and Linux administration ar
 | -------------------------------------------- | -------- | ------------------------------------------------------------------ |
 | [Version Control with Git](./Git/README.md)  | 4        | The object model, recovery, branching models, monorepo trade-offs  |
 | [Containers](./Containers/README.md)         | 4        | Images, layer caching, Compose, the pod spec you have to promise   |
-| [CI/CD](./CICD/README.md)                    | 4        | Pipeline design, GitHub Actions, release strategies, credentials   |
+| [CI/CD](./CICD/README.md)                    | 3        | Pipeline design, GitHub Actions, credentials without secrets       |
 | [Observability](./Observability/README.md)   | 3        | SLOs, metrics and cardinality, alerts worth waking a human for     |
 | [Cloud Essentials](./Cloud/README.md)        | 3        | Regions, serverless and cold starts, object storage and the CDN    |
-| [Deployment](./Deployment/README.md)         | 4        | Immutable artefacts, previews, rollback, feature flags             |
+| [Deployment](./Deployment/README.md)         | 3        | Immutable artefacts, previews, strategies, rollback, feature flags |
 
 ## What Interviewers Probe For
 
@@ -47,11 +47,10 @@ Four questions run through all six sections; each section index adds its own.
 before, and `Deployment/01`'s immutable-artefact model is what makes rollback and feature flags make sense.
 `Observability/` and `Cloud/` are independent and fit anywhere.
 
-**Interview sprint:** `Git/01`, `03` · `Containers/01`–`02`, `04` · `CICD/01`, `03`, `04` ·
-`Deployment/01`, `03`, `04` · `Observability/01`, `03` · `Cloud/02`–`03`.
+**Interview sprint:** `Git/01`, `03` · `Containers/01`–`02`, `04` · `CICD/01`, `03` ·
+`Deployment/01`–`03` · `Observability/01`, `03` · `Cloud/02`–`03`.
 
-> ⚠️ **Three overlaps are deliberate.** Blue/green, rolling and canary live in `CICD/03` — properties of
-> the pipeline, not of the platform. The CDN behaviour deciding whether a promoted build is visible is in
+> ⚠️ **Two overlaps are deliberate.** The CDN behaviour deciding whether a promoted build is visible is in
 > `Cloud/03`. Core Web Vitals and real-user monitoring are in Part IV, with the collection mechanics.
 >
 > **This part was 39,703 lines and is now under 6,000** — the largest cut in the book, made at item #20.

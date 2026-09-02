@@ -5,7 +5,7 @@ chapter: 0
 slug: github-actions
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-08-28
+updated: 2026-09-02
 tags: [devops, cicd, github, actions]
 in_book: true
 ---
@@ -38,14 +38,6 @@ flowchart TD
 ```
 
 **A workflow fans out into jobs; `needs:` is what turns parallel jobs back into a sequence.**
-
-| Concept | What it is |
-| ------- | ---------- |
-| **Workflow** | One YAML file in `.github/workflows/` |
-| **Job** | A set of steps on a fresh runner. Parallel by default |
-| **Step** | A single `run` command, or a `uses` action |
-| **Action** | A packaged, shareable step (`actions/checkout`) |
-| **Runner** | The virtual machine executing the job, GitHub-hosted or self-hosted |
 
 ## A Complete CI Workflow
 
@@ -132,10 +124,6 @@ integration:
 before it will accept a query, so the first test fails roughly one run in ten — which reads as
 flakiness rather than as a missing health check.
 
-✅ **Testcontainers** is the portable alternative: the test code starts the container itself, so the
-same setup works locally and on any CI platform. Use it when the pipeline is not the only place the
-suite runs.
-
 ## Deploying with OIDC — No Static Keys
 
 This is the single most-asked GitHub Actions security question.
@@ -170,13 +158,10 @@ deploy:
         docker push $ECR/api:${{ github.sha }}
 ```
 
-The job asks GitHub's OIDC provider for a signed JWT carrying claims about the repository, ref,
-environment and workflow. It exchanges that JWT for temporary cloud credentials. Nothing is stored,
-so nothing needs rotating. The mechanism, the trust policy and the mistake people make in it are in
-[Chapter ?? — Pipeline Security](#ch-cicd-security).
-
-✅ Name the role session after the run — `gha-${{ github.run_id }}` — and every cloud API call the
-pipeline makes is traceable back to one workflow run in the audit log.
+The job asks GitHub's OIDC provider for a signed JWT carrying claims about the repository, ref and
+environment, then exchanges it for temporary cloud credentials. Nothing is stored, so nothing needs
+rotating. Naming the session after the run makes every cloud call traceable to one workflow. The trust
+policy and the mistake people make in it are in [Chapter ?? — Pipeline Security](#ch-cicd-security).
 
 ✅ An **environment** — `environment: { name: production }` on the job — attaches protection rules
 that live in repository settings rather than the YAML: required reviewers who must approve before the
@@ -195,18 +180,9 @@ Both remove duplication; they solve different problems.
 | **Secrets** | ✅ `secrets: inherit` | Passed as inputs |
 | **Use for** | A standard build-and-deploy pipeline across repos | A repeated step sequence — set up Node, log into the registry |
 
-**The caller:**
-
-```yaml
-jobs:
-  deploy-staging:
-    uses: acme/ci-templates/.github/workflows/deploy.yml@v1
-    with: { environment: staging }
-    secrets: inherit
-```
-
-✅ One versioned reusable workflow is how a platform team enforces the same gates across fifty
-repositories without fifty copies of the YAML drifting apart.
+✅ One versioned reusable workflow — called as `uses: acme/ci-templates/.github/workflows/deploy.yml@v1`
+with `secrets: inherit` — is how a platform team enforces the same gates across fifty repositories
+without fifty copies of the YAML drifting apart.
 
 ## Caching
 
@@ -220,15 +196,9 @@ repositories without fifty copies of the YAML drifting apart.
     restore-keys: ${{ runner.os }}-build-
 ```
 
-`key` is an exact match — a hit restores and skips saving. `restore-keys` is a prefix fallback for
-when the lockfile changed. `hashFiles()` is what makes the cache invalidate itself.
-
-| | Cache | Artefact |
-| - | ----- | -------- |
-| **Purpose** | Make builds faster | Pass files between jobs, or keep an output |
-| **Lifetime** | Evicted after 7 days unused | Explicit retention, downloadable |
-| **On miss** | Slower build, nothing breaks | The consuming job fails |
-| **Use for** | `~/.npm`, build caches, layers | Build output, coverage, test reports |
+`key` is an exact match — a hit restores and skips saving. `restore-keys` is a prefix fallback for when
+the lockfile changed, and `hashFiles()` is what makes the cache invalidate itself. A cache miss is a
+slower run; an artefact miss fails the consuming job, which is the whole difference between them.
 
 ⚠️ A cache entry is immutable once written for a key, and caches are scoped per branch — a branch can
 read the default branch's cache but not another branch's. A cache key that never changes is a cache
@@ -301,5 +271,5 @@ is the better answer.
 ## What to Read Next
 
 - [Chapter ?? — Pipeline Security](#ch-cicd-security) — the trust policy, supply chain pinning, and what a leaked token buys an attacker
-- [Chapter ?? — Deployment Strategies](#ch-deployment-strategies) — what the deploy job should actually do with the image
+- [Chapter ?? — Deployment Strategies and Rollback](#ch-deployment-strategies) — what the deploy job should do with the image
 - [Chapter ?? — Building and Hardening Images](#ch-building-and-hardening-images) — why the build cache and the shipped layers are the same thing

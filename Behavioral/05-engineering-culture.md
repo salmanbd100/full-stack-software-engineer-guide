@@ -5,8 +5,8 @@ chapter: 0
 slug: engineering-culture
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-08-29
-tags: [culture, on-call, postmortems, code-review, psychological-safety]
+updated: 2026-09-02
+tags: [culture, on-call, postmortems, code-review, psychological-safety, interviews]
 in_book: true
 ---
 
@@ -14,7 +14,7 @@ in_book: true
 
 > Describe the practices that make a team fast without making it fragile — and recognise the versions that only look like them.
 
-**In this chapter:** you build it, you run it · blameless post-mortems · psychological safety · code review that finds defects · sustainable on-call · slack in the schedule
+**In this chapter:** you build it, you run it · blameless post-mortems · psychological safety · code review that finds defects · sustainable on-call · the questions that reveal the culture
 
 ## 💡 The Core Idea
 
@@ -170,6 +170,36 @@ other 80% achievable.
 > ⚠️ **Hero culture is the most flattering failure mode.** Rewarding the person who fixes things at 2am
 > removes the incentive to make 2am fixes unnecessary, and creates a bus factor of one.
 
+## Questions That Reveal the Culture
+
+Every loop ends with "do you have any questions for us?" Treat it as the one round where you are the
+interviewer, and use it to test the practices in this chapter rather than to look interested.
+
+The trick is asking about **behaviour**, not values. "Do you have a good engineering culture?" gets you
+an advert. "When did you last miss a date, and what happened?" gets you the truth.
+
+| Ask this                                                          | Because it tests                             |
+| ----------------------------------------------------------------- | -------------------------------------------- |
+| "Walk me through your last incident and what changed after it"     | Whether post-mortems produce structural fixes |
+| "How long does a one-line change take to reach production?"        | Lead time, honestly measured                  |
+| "How deep is the on-call rotation, and how many pages last week?"  | Whether the pager is sustainable              |
+| "What did a new joiner ship in their first week?"                  | Onboarding, and whether the docs work         |
+| "What is the team's most disliked piece of the system, and who owns fixing it?" | Improvement capacity, or its absence |
+| "What would you change if you had a free quarter?"                 | What the interviewer privately knows          |
+
+**What the answers tell you:**
+
+| ⚠️ Warning sign in the answer                        | What it usually means                         |
+| ---------------------------------------------------- | --------------------------------------------- |
+| No specific incident comes to mind                   | Incidents are not reviewed, or not shared      |
+| "It depends on the release train"                     | Deploy and release have not been separated     |
+| Turnover mentioned casually as normal                 | The on-call or pace problem is known and unfixed |
+| Vagueness about the first month                       | No onboarding path; you will build your own   |
+| Only positives, no challenges                          | Either rehearsed or genuinely unexamined      |
+
+Two things to avoid. Do not ask anything the job advert answers — it reads as not having read it. And
+leave compensation, holiday and start dates to the recruiter conversation, where they belong.
+
 ## Common Mistakes
 
 ❌ **A "DevOps team" that owns deployment.** The same wall as before, with an extra hop.
@@ -235,5 +265,5 @@ as a result. It is a much easier conversation with the number than without it.
 ## What to Read Next
 
 - [Chapter ?? — Ways of Working](#ch-ways-of-working) — the delivery metrics these practices move
-- [Chapter ?? — Conflict Resolution](#ch-conflict-resolution) — the stories these questions usually want
+- [Chapter ?? — Leadership, Teamwork and Conflict](#ch-leadership-teamwork) — the stories these questions usually want
 - [Chapter ?? — Written Communication](#ch-written-communication) — decision records, runbooks, and handovers

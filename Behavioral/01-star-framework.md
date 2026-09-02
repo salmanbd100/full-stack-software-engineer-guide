@@ -1,20 +1,20 @@
 ---
-title: The STAR Framework
+title: The STAR Framework and the Story Bank
 part: 9
 chapter: 0
 slug: star-framework
 level: intermediate # beginner | intermediate | advanced
-reading_time: 9
-updated: 2026-08-30
-tags: [behavioral, star, storytelling, interview]
+reading_time: 11
+updated: 2026-09-02
+tags: [behavioral, star, storytelling, preparation, interview]
 in_book: true
 ---
 
-# The STAR Framework {#ch-star-framework}
+# The STAR Framework and the Story Bank {#ch-star-framework}
 
 > Structure a behavioural answer so the interviewer hears the action and the result, in under three minutes.
 
-**In this chapter:** the four parts and their time budget · a worked answer · why failure stories are different · the story bank · the mistakes that cost the offer
+**In this chapter:** the four parts and their time budget · a worked answer · why failure stories are different · the coverage grid · the mistakes that cost the offer
 
 ## 💡 The Core Idea
 
@@ -123,9 +123,37 @@ Answers:    led a project · influenced without authority · improved a product
 ```
 
 The numbers line is the one to prepare properly. Under pressure you will remember the shape of the
-story and lose the metric, and the metric is what the interviewer writes down. Building the full grid —
-which competencies you have covered and which you have not — is [Chapter ?? — The Preparation
-Grid](#ch-preparation-grid).
+story and lose the metric, and the metric is what the interviewer writes down.
+
+## The Coverage Grid
+
+Twelve stories are no use if eight of them are the same story. The grid exists to find that out before
+the interviewer does. Put your projects down the side and the competency categories across the top,
+then fill in the cells you can actually evidence.
+
+| Project                       | Leadership                       | Challenge                        | Conflict                     | Failure                          |
+| ----------------------------- | -------------------------------- | -------------------------------- | ---------------------------- | -------------------------------- |
+| **Dashboard performance**     | Led 3 engineers for 8 weeks      | 4.5s load, no backend budget     | Team wanted a state library  | —                                |
+| **Checkout rebuild**          | —                                | PCI compliance in 6 weeks        | PM wanted the deadline held  | Safari break, 3 hours of orders  |
+| **Design-system rollout**     | Influenced 4 teams, no authority | Adoption without a mandate       | Two teams refused the tokens | First version shipped unversioned |
+
+**The empty cells are the output.** A blank column means a question you cannot answer, and a full row
+means one project is carrying too much of the loop. Both are fixable in an evening of thinking; neither
+is fixable in the room.
+
+Five categories cover most loops. Interviewers phrase them differently, so learn the category rather
+than the wording:
+
+| Category       | The question underneath it                          | Typical phrasings                                     |
+| -------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| **Leadership** | Do people follow your technical judgement?           | Led a project · mentored someone · made an unpopular call |
+| **Challenge**  | What do you do when the problem is genuinely hard?   | Complex bug · tight deadline · incomplete information |
+| **Conflict**   | Can you disagree and keep the working relationship?  | Disagreed with a manager · difficult stakeholder      |
+| **Failure**    | Do you fix systems or fix incidents?                 | A time you failed · your biggest mistake              |
+| **Impact**     | Can you name what changed because of you?            | Proudest work · went above and beyond                 |
+
+⚠️ A sixth category, **innovation**, is worth a cell but rarely worth a dedicated story. "Tell me about
+an innovative solution" is usually answered best from the challenge row, with the novel part expanded.
 
 ## When to Use It
 
@@ -155,7 +183,7 @@ STAR fits questions about the past. It fits badly on everything else, and forcin
 - The time budget is the technique — Action and Result together are three-quarters of the answer.
 - Seniority shows in the Action section, and only when you explain why you chose each step.
 - A failure story is scored on the systemic fix, not on the apology or the rollback.
-- Ten to twelve stories cover a full loop, because emphasis changes what a story answers.
+- The grid's empty cells are its output — they name the question you cannot yet answer.
 - Every story ends on a number and then a learning, in that order.
 
 ## Interview Questions
@@ -187,6 +215,6 @@ with "let me tell you about a time" answers a question that was not asked.
 
 ## What to Read Next
 
-- [Chapter ?? — The Preparation Grid](#ch-preparation-grid) — which competencies your stories cover, and the gaps
-- [Chapter ?? — Challenges and Failures](#ch-challenges-and-failures) — the hardest category, in depth
+- [Chapter ?? — Problem Solving, Challenges and Failure](#ch-problem-solving) — the two hardest categories, in depth
+- [Chapter ?? — Leadership, Teamwork and Conflict](#ch-leadership-teamwork) — the categories the grid usually leaves thinnest
 - [Chapter ?? — Technical Communication](#ch-technical-communication) — the same delivery discipline outside the behavioural round

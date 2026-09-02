@@ -5,7 +5,7 @@ chapter: 0
 slug: monitoring-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-28
+updated: 2026-09-02
 tags: [observability, monitoring, slo, cardinality, tracing]
 in_book: true
 ---
@@ -175,13 +175,11 @@ thirty days, about 43 minutes. While budget remains, ship features and take risk
 exhausted, reliability work takes priority.
 
 Worth memorising per month: 99% is 7.2 hours of downtime, 99.9% is 43 minutes, 99.99% is 4.3 minutes,
-99.999% is 26 seconds.
+99.999% is 26 seconds. Each extra nine costs roughly an order of magnitude more, and at 99.999% no
+human can be in the recovery path at all.
 
-> The error budget turns "how reliable should we be?" from an argument into a number. It also makes
-> the case that 100% is the wrong target — chasing it means shipping nothing.
-
-Each extra nine costs roughly an order of magnitude more. At 99.999% no human can be in the recovery
-path; automation has to do it.
+> The error budget turns "how reliable should we be?" from an argument into a number. It also makes the
+> case that 100% is the wrong target — chasing it means shipping nothing.
 
 ### Where the Frontend Fits
 
@@ -190,9 +188,8 @@ you do not control, so it arrives as **field data** rather than server metrics. 
 SLIs. A p75 target for INP is an SLO. Sampling and cardinality limits apply the same way — a URL with
 an ID in it is as dangerous a label in a real-user monitoring tool as it is in a metrics backend.
 
-The mechanics of collecting it — the `web-vitals` library, `PerformanceObserver`, attribution builds,
-beacon transport — belong to Part IV and are not repeated here. See
-[Chapter ?? — Performance Monitoring](#ch-performance-monitoring).
+The mechanics of collecting it — `web-vitals`, `PerformanceObserver`, attribution builds, beacon
+transport — belong to Part IV. See [Chapter ?? — Performance Monitoring](#ch-performance-monitoring).
 
 ## Common Mistakes
 

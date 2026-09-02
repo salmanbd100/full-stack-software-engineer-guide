@@ -218,6 +218,6 @@ but it cannot restore a column the migration already dropped.
 
 ## What to Read Next
 
-- [Chapter ?? — Rollback and Recovery](#ch-rollback-and-recovery) — the changes a flag cannot switch back
+- [Chapter ?? — Deployment Strategies and Rollback](#ch-deployment-strategies) — the changes a flag cannot switch back
 - [Chapter ?? — Deployment Strategies](#ch-deployment-strategies) — canary and blue/green, the per-instance half of the pair
-- [Chapter ?? — Preview Environments](#ch-preview-environments) — the other way to show unfinished work to a small audience
+- [Chapter ?? — Platform Deploys and Preview Environments](#ch-platform-deploys) — the other way to show unfinished work to a small audience

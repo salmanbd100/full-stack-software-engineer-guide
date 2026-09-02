@@ -5,7 +5,7 @@ chapter: 0
 slug: alerting
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-08-28
+updated: 2026-09-02
 tags: [observability, alerting, on-call, slo, burn-rate, incident-response]
 in_book: true
 ---
@@ -49,12 +49,10 @@ The highest-leverage principle in alerting, and the one candidates most often ge
 | Zero successful logins in five minutes | Disk at 70% |
 | Payment success rate down ten points | A node became unhealthy |
 
-High CPU with users unaffected is not an incident. A container that restarted and was replaced
-automatically is not an incident. Paging on causes produces volume without meaning, and if a cause is
-genuinely harmful, the symptom alert fires anyway.
-
-✅ Cause metrics belong on **dashboards** and in **runbooks**. You need them to diagnose — just not to
-wake anyone.
+High CPU with users unaffected is not an incident, and nor is a container that restarted and was
+replaced automatically. Paging on causes produces volume without meaning, and if a cause is genuinely
+harmful the symptom alert fires anyway. ✅ Cause metrics belong on **dashboards** and in **runbooks** —
+you need them to diagnose, just not to wake anyone.
 
 ### Three Severities, and Only Three
 
@@ -107,10 +105,8 @@ The most common real-world alerting failure is an alarm that never fired during 
 cause is almost always missing-data handling.
 
 An alarm watching a counter the application itself emits has nothing to compare when the application
-dies — the metric does not breach a threshold, it simply stops existing. If the rule treats absent
-data as healthy, the outage is silent.
-
-Two fixes, and you want both:
+dies — the metric does not breach a threshold, it stops existing. If the rule treats absent data as
+healthy, the outage is silent. Two fixes, and you want both:
 
 - Configure the rule so **missing data breaches**, not the reverse. Every metrics system has this
   setting and its default is rarely what you want.
@@ -138,9 +134,9 @@ annotations:
   dashboard: "https://grafana.internal/d/node?var-instance={{ $labels.instance }}"
 ```
 
-Every alert needs: what is broken in plain words · which system or instance · the current value
-against the threshold · user impact, or explicitly "no user impact yet" · a runbook link · a dashboard
-link already filtered to the affected thing.
+Every alert needs six things: what is broken in plain words, which instance, the value against the
+threshold, user impact (or explicitly "none yet"), a runbook link, and a dashboard link already
+filtered to the affected thing.
 
 > The runbook link is the highest-value field on the whole alert. At 3am nobody reasons from first
 > principles — they follow steps.
@@ -160,11 +156,6 @@ inhibit_rules:
   - source_matchers: [alertname="ClusterDown"]
     target_matchers: [severity="critical"]
     equal: [cluster]
-
-  # A dead node implies its containers are dead — say it once
-  - source_matchers: [alertname="NodeNotReady"]
-    target_matchers: [alertname="PodNotReady"]
-    equal: [node]
 ```
 
 ✅ **Inhibition is the difference between one useful page and a phone vibrating for ten minutes.**
@@ -183,12 +174,9 @@ inhibit_rules:
 ⚠️ The last row is the one that decides whether any of the others hold. If the engineer being paged
 cannot retune or delete a bad alert, noise accumulates forever, because nobody who feels it can fix it.
 
-**Escalate on acknowledgement, not resolution.** Someone confirming they are looking is what stops the
-escalation chain; requiring a fix means the chain fires during a legitimate long incident.
-
-```text
-page primary → 5 min no ack → page secondary → 5 min no ack → page lead
-```
+**Escalate on acknowledgement, not resolution** — `primary → 5 min no ack → secondary → 5 min no ack →
+lead`. Someone confirming they are looking is what stops the chain; requiring a fix means it fires in
+the middle of a legitimate long incident.
 
 ### The Monthly Alert Review
 
@@ -201,7 +189,7 @@ For every alert that fired last month, four questions. Each "no" has a fixed con
 | Did it need a human? | Automate the remediation |
 | Was the runbook used? | The runbook is wrong or missing |
 
-Track four numbers: pages per shift (under two), share of pages that were actionable (above 90%),
+Four numbers make the review objective: pages per shift (under two), share actionable (above 90%),
 alerts with a runbook (100%), and mean time to acknowledge (under five minutes).
 
 ## Common Mistakes
@@ -292,4 +280,4 @@ as bad luck.
 
 - [Chapter ?? — Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals) — the SLO and error budget these alerts are derived from
 - [Chapter ?? — Metrics and Dashboards](#ch-metrics-and-dashboards) — the recording rules the burn-rate expressions query
-- [Chapter ?? — Rollback and Recovery](#ch-rollback-and-recovery) — what happens after the page is acknowledged
+- [Chapter ?? — Deployment Strategies and Rollback](#ch-deployment-strategies) — what happens after the page is acknowledged

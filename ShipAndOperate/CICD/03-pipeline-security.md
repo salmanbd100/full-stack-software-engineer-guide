@@ -26,15 +26,6 @@ pipeline holds, pin what it consumes, and record what it did.
 
 ## How It Works
 
-```mermaid
-flowchart TD
-  A[Attacker controls one build step] --> S[Source code]
-  A --> C[Cloud credentials]
-  A --> R[Registry push access]
-  R --> P[Artefact deploys itself to production]
-  C --> P
-```
-
 **One compromised step is not one compromised build — it is every deployment after it.**
 
 The reachable paths are few and well known, which is what makes this answerable in an interview:
@@ -79,9 +70,9 @@ just asks.
 the organisation can assume the production deploy role — including a new one an attacker gets
 created. Pin the repository, and pin the environment or the branch as well.
 
-For non-cloud secrets — third-party API keys, database passwords — fetch them at runtime using the
-OIDC-derived identity rather than copying them into the CI platform's store. Rotation then happens in
-one place and no pipeline needs updating.
+For non-cloud values — third-party API keys, database passwords — fetch them at runtime using the
+OIDC-derived identity rather than copying them into the CI platform's store, so rotation happens in one
+place and no pipeline needs updating.
 
 ## Secret Scanning
 
@@ -94,13 +85,7 @@ Stop secrets entering the repository at all, in layers.
 | A CI job over full history | What the first two missed |
 | Provider-side alerts | Known token formats, often revoked automatically |
 
-```yaml
-secret-scan:
-  steps:
-    - uses: actions/checkout@v6
-      with: { fetch-depth: 0 } # full history required
-    - run: gitleaks detect --redact --exit-code 1
-```
+A history scan needs `fetch-depth: 0` on the checkout, or it only sees the latest commit.
 
 ⚠️ **A leaked secret is compromised the moment it is pushed**, even if you force-push it away. Forks,
 clones and CI caches keep copies. Rotate it first, then clean the history — in that order.
@@ -114,18 +99,14 @@ clones and CI caches keep copies. Rotate it first, then clean the history — in
 | A mutable base image | Pin by digest — `@sha256:…` |
 | A typosquatted package | Allowlist registries, proxy through an internal one |
 
-❌ **Mutable references — whoever owns them can move them:**
-
 ```yaml
-- uses: some-org/deploy-action@v2 # the tag can be repointed
-FROM node:24                       # the tag is rebuilt weekly
-```
+# ❌ Mutable — whoever owns them can move them
+- uses: some-org/deploy-action@v2             # the tag can be repointed
+FROM node:24                                  # the tag is rebuilt weekly
 
-✅ **Immutable references:**
-
-```yaml
-- uses: some-org/deploy-action@a1b2c3d4e5f6… # exact commit
-FROM node:24-alpine@sha256:abcd1234…        # exact image
+# ✅ Immutable
+- uses: some-org/deploy-action@a1b2c3d4e5f6…  # exact commit
+FROM node:24-alpine@sha256:abcd1234…          # exact image
 ```
 
 > The wave of npm and CI marketplace supply chain attacks through 2025 worked because most consumers

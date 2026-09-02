@@ -5,7 +5,7 @@ chapter: 0
 slug: metrics-and-dashboards
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-29
+updated: 2026-09-02
 tags: [observability, metrics, prometheus, promql, grafana, dashboards]
 in_book: true
 ---
@@ -52,15 +52,11 @@ on each target, usually `/metrics`, and appends the samples to a local time-seri
 | **Short-lived jobs** | ❌ May finish before a scrape | ✅ Natural fit |
 | **Firewalls** | Needs inbound access to targets | ✅ Outbound only |
 
-✅ Pull's real advantage is that **a failed scrape is itself a signal**. With push, "no data" could
-mean the process died, the collector broke, or the network dropped packets, and you cannot tell which.
-
-That only works if the server knows what to scrape, and once instances are short-lived and
-interchangeable a static list cannot tell it. There is no box left to log into and the target list
-changes every minute.
-
-✅ This is why Prometheus dominates container platforms: it **discovers** targets from the platform's
-API rather than from a config file you maintain.
+✅ Pull's real advantage is that **a failed scrape is itself a signal**. With push, "no data" could mean
+the process died, the collector broke, or the network dropped packets, and you cannot tell which. That
+only works if the server knows what to scrape, which is why Prometheus **discovers** targets from the
+platform's API rather than from a config file — once instances are interchangeable and short-lived, a
+static list cannot keep up.
 
 ### The Exposition Format
 
@@ -123,10 +119,8 @@ topk(5, sum by (endpoint) (rate(http_requests_total[5m])))   # noisiest endpoint
 
 # Predicts an out-of-memory kill before it happens
 container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9
-
-# CPU throttling — latency with no errors and no failing health checks
+# Throttling — latency with no errors and no failing health checks
 rate(container_cpu_cfs_throttled_seconds_total[5m])
-
 # Anything restarting is the clearest early sign of trouble
 increase(container_restarts_total[1h]) > 0
 ```
@@ -167,30 +161,15 @@ while you fix the instrumentation. Past that point the answers are horizontal sc
 a managed metrics service, where the same cardinality shows up as a bill instead of a crash. Both are
 a platform team's problem rather than yours.
 
-Where an application cannot expose `/metrics` itself, an **exporter** translates for it — host
-metrics, container resource usage, database internals, or an external prober checking endpoints and
-TLS expiry from outside.
-
 ### Dashboards as Code
 
 ❌ A dashboard clicked together in the UI has no review, no history, and no recovery when someone
 deletes it.
 
-✅ Provision from files in version control, and let the UI be a drafting tool only:
-
-```yaml
-apiVersion: 1
-providers:
-  - name: acme
-    type: file
-    allowUiUpdates: false # UI edits are discarded — Git is the source
-    options:
-      path: /var/lib/grafana/dashboards
-```
-
-The workflow that survives contact with a team: build it in the UI because the feedback loop is fast,
-export the JSON model, commit it, let provisioning apply it. With `allowUiUpdates: false` those UI
-edits are lost on the next reload — that is the point, but tell people first.
+✅ Provision from files in version control and let the UI be a drafting tool only. The workflow that
+survives contact with a team: build it in the UI because the feedback loop is fast, export the JSON
+model, commit it, let provisioning apply it. Grafana's `allowUiUpdates: false` discards UI edits on the
+next reload — that is the point, but tell people first.
 
 **Variables are what make one dashboard serve every service.** A query variable such as
 `label_values(up, job)` becomes a dropdown, and a second variable can be chained to the first. The one
@@ -221,10 +200,9 @@ Row 4  DEPENDENCIES     collapsed by default — database · cache · downstream
 | ---- | --- |
 | Three dashboards per service, not thirty | Overview, deep-dive, business metrics |
 | Top-left is the most important panel | That is where the eye lands |
-| Collapse the detail rows | Loads fast; expand only when diagnosing |
 | Thresholds and units on every panel | A colour reads faster than a number, and "1.4" of what? |
 | Link each panel to its runbook | Panel → runbook → the fix |
-| Under 20 panels | Beyond that nobody reads it and it loads slowly |
+| Under 20 panels, detail rows collapsed | Loads fast, and beyond that nobody reads it |
 
 ✅ **The heatmap is the underused panel.** A p99 line hides the fact that you have two populations —
 cache hits at 10 ms and misses at 800 ms. A heatmap makes that bimodality obvious immediately.

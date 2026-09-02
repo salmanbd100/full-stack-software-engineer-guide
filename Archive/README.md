@@ -6,7 +6,7 @@ This is where content goes when it is genuinely useful but out of scope for
 **The Senior Full Stack Handbook**. It stays in the repository, stays in git history, and stays
 searchable. It is simply invisible to the book build.
 
-Created by improvement #7. Filled by improvements #8 and #20–#31d.
+Created by improvement #7. Filled by improvements #8 and #20–#31e.
 
 `dsa-solutions/` is the one sub-tree whose originals were **replaced rather than removed** — each
 archived file has a trimmed successor at the same name under `DSA/`.
@@ -68,7 +68,10 @@ Archive/
 │   └── testing/             4 of 7 — E2E, TDD, mocking and best practices; Part IV owns the
 │                                discipline, Part V keeps only what is backend-specific
 ├── dsa-solutions/       ← #27: the full solution sets, 4 of 16 so far — see its README
-├── communication/       ← #29: 2 of 8 + README — the STAR duplicate and the ESL practice
+├── behavioral/          ← #31e: 1 of 10 + README — the questions-to-ask lists; the other five
+│                            chapters were merged into the four survivors
+├── communication/       ← #29, #31e: 4 of 8 + README — the STAR duplicate, the ESL practice, the
+│                            RADIO duplicate and the etiquette-by-region chapter
 ├── systemdesign/        ← #23–24, #28, #31d: what Part VI shed to Parts V and VIII, and to balance
 │   ├── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
 │   ├── security/            all 6 + README — #24; authz, encryption, SSRF, MFA and SSO

@@ -5,7 +5,7 @@ chapter: 0
 slug: docker-compose
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-29
+updated: 2026-09-02
 tags: [devops, docker, compose, local-development]
 in_book: true
 ---
@@ -33,19 +33,8 @@ one command — and it is excellent. Treat it as production and you have reinven
 
 ## How It Works
 
-### The Shape of the File
-
-```yaml
-services:              # the containers
-  api:
-  db:
-
-volumes:               # storage that outlives a container
-  db-data:
-
-networks:              # who can reach whom
-  backend:
-```
+A Compose file has three top-level keys that matter: `services` (the containers), `volumes` (storage that
+outlives a container) and `networks` (who can reach whom).
 
 ⚠️ The top-level `version:` key is obsolete. Compose V2 ignores it and warns; delete it from any file that
 still carries one.
@@ -123,18 +112,6 @@ networks:
     internal: true                 # no route out to the internet
 ```
 
-```mermaid
-flowchart LR
-  browser[Your browser] -->|localhost:8080| proxy[proxy]
-  subgraph edge
-    proxy --> api
-  end
-  subgraph backend
-    api --> db[(db)]
-    api --> cache[(cache)]
-  end
-```
-
 **Two networks, one bridge: only `api` can reach the database, and only `proxy` is published to the host.**
 
 The distinction to keep straight: `ports` publishes to the host machine, `expose` documents a port for
@@ -152,22 +129,10 @@ Compose interpolates `${VAR}` from your shell and from a `.env` file next to the
 `${VAR:-default}` as the fallback form. `env_file` is different: it passes variables **into** the container
 rather than substituting them in the file.
 
-For anything genuinely secret, mount it as a file instead of an environment variable:
-
-```yaml
-services:
-  db:
-    environment:
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
-    secrets: [db_password]
-
-secrets:
-  db_password:
-    file: ./secrets/db_password.txt   # keep the directory out of version control
-```
-
-Environment variables leak: they appear in `docker inspect`, in crash reports, and in the environment of
-every child process. A file at a known path does not.
+For anything genuinely secret, mount it as a file rather than an environment variable — a top-level
+`secrets:` block backed by a git-ignored file, referenced from the service, and read by the image's
+`*_FILE` variable. Environment variables leak: they appear in `docker inspect`, in crash reports, and
+in the environment of every child process. A file at a known path does not.
 
 ### Dev and Production Variants
 
