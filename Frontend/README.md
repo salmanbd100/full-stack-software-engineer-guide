@@ -5,7 +5,7 @@ chapter: 0
 slug: frontend-domain-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
+updated: 2026-09-03
 tags: [frontend, index]
 in_book: false
 ---
@@ -18,7 +18,7 @@ senior reader is not "frontend vs backend" — it is *language*, *platform*, and
 | Part | What it is | Directories here |
 | ---- | ---------- | ---------------- |
 | **I — Foundations** | The language, underneath the definition | [`JavaScript/`](./JavaScript/README.md) · [`TypeScript/`](./TypeScript/README.md) |
-| **II — The Browser Platform** | What the platform gives you before any framework does | [`HtmlCss/`](./HtmlCss/README.md) · [`BrowserAPIs/`](./BrowserAPIs/) · [`PWA/`](./PWA/README.md) · [`Internationalization/`](./Internationalization/) · [`CSSArchitecture/`](./CSSArchitecture/) |
+| **II — The Browser Platform** | What the platform gives you before any framework does | [`HtmlCss/`](./HtmlCss/README.md) · [`BrowserAPIs/`](./BrowserAPIs/) · [`PWA/`](./PWA/README.md) · [`Internationalization/`](./Internationalization/) |
 | **IV — Frontend at Scale** | Forty engineers, four years of history, a performance budget | [`WebPerformance/`](./WebPerformance/) · [`Security/`](./Security/) · [`Testing/`](./Testing/) |
 
 **Part III — The Modern Frontend Stack** also belongs to this tree and **does not exist yet**. It is
@@ -54,12 +54,11 @@ which has been a legal requirement across the EU since the European Accessibilit
 enforceable in June 2025, and **internationalisation**. Both are chronically under-taught elsewhere,
 which makes them cheap differentiation.
 
-- **[HTML and CSS](./HtmlCss/README.md)** — semantic markup, the cascade, flexbox, grid, responsive
-  design, animations, accessibility, modern CSS
+- **[HTML and CSS](./HtmlCss/README.md)** — semantic markup, accessibility, and the CSS that shipped
+  since 2023. Layout mechanics are archived; see that section's opener for why
 - **[Browser APIs](./BrowserAPIs/)** — storage, workers, observers, networking
 - **[PWA](./PWA/README.md)** — service workers, manifests, offline patterns, background sync, push
 - **[Internationalization](./Internationalization/)** — locale, formatting, bidirectional text
-- **[CSS Architecture](./CSSArchitecture/)** — scaling stylesheets past one team
 
 **Senior signal:** reaches for the platform before reaching for a library.
 

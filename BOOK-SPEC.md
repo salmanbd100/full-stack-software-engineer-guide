@@ -4,7 +4,7 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.2 · **Date:** 2026-08-29
+> **Status:** Locked · **Version:** 1.3 · **Date:** 2026-09-03
 > **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 78-item route from repo to manuscript.
 
 ---
@@ -317,6 +317,19 @@ therefore not a negotiating position for Part VIII — it is the arithmetic maxi
 **950–1,050 pages**. That is a handbook, and the title says so. If the page count has to come down later,
 the order of cuts is fixed: Part VIII first, then Part IX, then Part VI case studies — never Parts III or VII.
 
+⚠️ **Both page figures above are stale, and #77 owns replacing them.** Decision #13 sets a hard ceiling of
+**700 pages**, and the 55-lines-per-page assumption is not measured — the only real build (#5) produced
+**36 lines per page**. Item #77 measures the true rate, applies the trim-size and typeface decisions, and
+amends § 1 and this section with numbers instead of assumptions. Nothing in § 5's budget table changes
+until it does: budgets are ceilings, so a part coming in under one is already permitted.
+
+⚠️ **The spine is in a known 0.5-point breach, deliberately deferred to #77.** Decision #14 archived 2,077
+lines from Part II. Taking the plan's own committed items into account — #58a trimming Part IV to 5,500 and
+#54 adding `Frontend/Accessibility/` — the finished book projects to a spine of **27,240 of 55,034 = 49.5%**
+against non-negotiable #3's 50% floor. The gap is **554 lines**, to be closed from Parts V–IX in § 5's fixed
+cut order (Part VIII first), not from Parts I–IV. This is recorded rather than fixed because #77's
+calibration changes every number it depends on.
+
 ---
 
 ## 6. Explicitly Out of Scope
@@ -435,6 +448,8 @@ bump the version, and update any improvement-plan items the change affects.
 | 10| 2026-08-28 | Non-negotiable #1's fence allow-list **completed**, not relaxed: added `graphql`, `prisma`, `dockerfile`, `nginx`, `http` | These are declarative schema and configuration languages with **no TypeScript form** — a Dockerfile cannot be written in TypeScript, so the rule as drafted meant deleting the example rather than translating it. `sql`, `yaml` and `css` were already allowed on exactly this footing; the original list was simply incomplete. The TypeScript-only rule for *general-purpose* languages is untouched, and § 10's "relaxing the TypeScript-only rule" bar is not engaged |
 | 11| 2026-08-28 | A single fence may opt out of #1 via `<!-- lint-allow-fence: <lang> — reason -->`, with a required reason | Improvement #10. Some chapters teach untyped JavaScript semantics — implicit coercion, dynamic `this`, prototype manipulation — where TypeScript refuses to compile the very thing being shown. 37 fences use it; every one is in `Frontend/JavaScript/01`–`05`. The marker's language must match the fence, so it cannot silently cover a fence that later changes |
 | 12| 2026-08-29 | **Part VIII's budget raised from 3,500 / ~18 chapters to 5,500 / ~22** | Item #20's own keep table is this book's contract for what Part VIII contains, and six finished sections cannot fit 3,500 lines. Five were complete at the time of the amendment — Git, Containers, Observability, Cloud, Deployment — at **4,556 lines across 18 chapters**, i.e. 130% of the old budget with CI/CD still to trim. The structural floor consistent with the keep table is 22 chapters; at the book's own average of 221 lines that is 4,862, and the finished sections average 253 because the six mandatory closing blocks cost ~55 lines before any teaching. 5,500 is chosen as the **maximum the frontend-spine rule permits** — 28,500 of 57,000 is exactly 50.0% — not as an estimate of what the part will weigh. The residual ~400 lines belong to the editorial pass (#76), which is where a 25-line-per-chapter trim belongs. Alternative considered and rejected: cutting whole sections from the keep table, which would mean a Part VIII with no Git or no CI/CD |
+| 13| 2026-09-03 | **Hard ceiling of 700 pages** replaces § 1's 850–1,050 | An external constraint on the edition, not an editorial preference. It is a *page* budget, and § 1 and § 5 both express the budget in *lines* against an unmeasured 55-lines-per-page rate. #5's real build measured 36. Recording the cap here rather than rewriting the line budgets keeps the two decisions separate: this row fixes the target, **#77** measures the rate and reconciles the arithmetic. The fixed cut order in § 5 — Part VIII, then Part IX, then Part VI case studies, never Parts III or VII — is what the cap will be paid for out of |
+| 14| 2026-09-03 | **`Frontend/CSSArchitecture/` archived entire; 5 of 8 `Frontend/HtmlCss/` chapters archived** — 2,077 lines out of Part II | Improvement #31f. Two findings drove it. First, **duplication**: `CSSArchitecture/04-design-systems.md` and `SystemDesign/Frontend/08-design-systems.md` are near-verbatim — same topic, same "forty teams" framing, same subtopic list — a plain non-negotiable #7 violation, and design tokens had a third home in `HtmlCss/08-advanced-css.md`. Second, **audience**: CSS layout mechanics — the box model, flexbox, grid, breakpoints, keyframes — are assumed knowledge for a staff candidate and are not asked to be recited. What is probed is the part with a legal or architectural consequence, so `01-semantic-html`, `07-accessibility` and `08-advanced-css` were kept and renumbered 01–03. Corroborating evidence: **all nine archived chapters had zero inbound cross-references**, while the three keepers had 2, 5 and 4 — the archived set was orphaned. The three surviving `CSSArchitecture` arguments (methodologies, utility-first vs component-first, CSS-in-JS runtime cost) are **archived rather than staged under `salvage/`**, because no Part III item names a styling chapter; #41's `Tooling/` table has none. If that argument is wanted in the book, it needs a new item — see #31f's note. Accepted cost: the spine breach recorded in § 5 |
 
 ---
 

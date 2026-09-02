@@ -19,7 +19,7 @@ Attach this file and say **"continue"**. That is the whole instruction. On recei
 | 4 | **Do exactly that one item** | Not the next one too. Not a related tidy-up. One item per session unless told otherwise |
 | 5 | **Verify against "Done when"** | Run the check. If there is nothing runnable, say so plainly rather than implying it passed |
 | 6 | **Mark it complete** | `- [ ]` → `- [x]`, append ` — ✅ **done YYYY-MM-DD**` to the heading, and add a short **Delivered:** block listing what actually shipped and anything deliberately left |
-| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 89` in the header |
+| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 90` in the header |
 | 8 | **Report** | What was done, what was verified, and what was left. Then stop |
 
 **Marking an item done is part of the item.** An item is not finished until steps 6 and 7 are done —
@@ -28,17 +28,17 @@ otherwise the next session starts from the wrong place.
 If an item turns out to be wrong, blocked, or already handled, **say so and amend the item** rather than
 silently skipping it or doing something adjacent. Corrections to this plan are expected — three have already
 happened: the budget arithmetic in #1, the frontend-share rule, and the line-budget attribution that added
-**#31a–#31e** on 2026-08-30, and **#58a** on 2026-09-02 when #31e turned out to be blocked on its own
-ordering note.
+**#31a–#31e** on 2026-08-30, **#58a** on 2026-09-02 when #31e turned out to be blocked on its own
+ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-page ceiling.
 
-> **Item ids can carry a letter.** #31a–#31e are Phase 2 items and #58a is a Phase 4 item, all added
+> **Item ids can carry a letter.** #31a–#31f are Phase 2 items and #58a is a Phase 4 item, all added
 > after the plan was numbered.
 > `scripts/plan-status.ts` sorts `31a` between `31` and `32`, so step 1 finds them in the right place.
 
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-03 · **Progress:** 36 / 89
+**Last updated:** 2026-09-03 · **Progress:** 37 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -88,7 +88,7 @@ that touch hundreds of files are where the saving actually lands.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31e, 31–65, 58a, 69, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31e, #58a), everything with a voice |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31f, 31–65, 58a, 69, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31f, #58a), everything with a voice |
 | 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 79, 83 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
 
 **The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
@@ -185,7 +185,7 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 | ----- | ----------------------------- | ------- | -------------- | ----- |
 | **0** | Decide & set the rails        | 1–7     | 3–4 sessions   | mixed — see per-item table |
 | **1** | Hygiene & consistency         | 8–19    | 6–8 sessions   | **Sonnet 5** (Opus for 13, 17–18) |
-| **2** | Restructure & prune           | 20–31 · 31a–31e | 12–16 sessions | **Opus 5** (Sonnet for 21, 25, 30) |
+| **2** | Restructure & prune           | 20–31 · 31a–31f | 12–16 sessions | **Opus 5** (Sonnet for 21, 25, 30) |
 | **3** | 🆕 `Frontend/ModernStack/`    | 32–43   | 12–16 sessions | **Opus 5** throughout |
 | **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions | **Opus 5** throughout |
 | **5** | Fill the remaining gaps       | 54–63 · 58a | 8–12 sessions  | **Opus 5** throughout |
@@ -3131,6 +3131,70 @@ chapter count needs an amendment at **#71** or **#76**. Part VIII's "~22" is fin
 
 ---
 
+### - [x] 31f. Archive CSS layout mechanics and `CSSArchitecture/` `M` — ✅ **done 2026-09-03**
+
+Added on 2026-09-03, after the edition picked up a hard **700-page ceiling** — BOOK-SPEC decision #13.
+Numbered `31f` because it is Phase 2 work (restructure and prune) and it is already complete, so unlike
+**#58a** it carries no ordering constraint that a Phase 2 slot would strand.
+
+**Two independent findings, and they pointed the same way.**
+
+**Duplication.** `Frontend/CSSArchitecture/04-design-systems.md` and `SystemDesign/Frontend/08-design-systems.md`
+are near-verbatim — same subject, same "forty teams" pull quote, same subtopic list, different part stamps
+(2 and 4). That is a plain non-negotiable #7 violation, and design tokens had a **third** home in
+`HtmlCss/08-advanced-css.md`. #42 moves the SystemDesign file into `Frontend/Architecture/`, so archiving
+the CSSArchitecture one removes a duplicate rather than a topic.
+
+**Audience.** CSS layout mechanics — the box model, flexbox, grid, breakpoints, keyframes — are assumed
+knowledge for a staff candidate and are essentially never asked to be recited. What a senior round probes
+is the part with a legal or architectural consequence: which element was chosen, whether the page works
+without a mouse, and which post-2023 feature replaced a workaround still being carried.
+
+**The corroborating measurement.** Every one of the nine archived chapters had **zero inbound
+cross-references**. The three keepers had 2, 5 and 4. The archived set was orphaned, so the move cost no
+link repair — `lint:docs` reports 0 broken links after it.
+
+| Kept (renumbered) | Lines | Inbound | Why it stays |
+| ----------------- | ----: | ------: | ------------ |
+| `01-semantic-html.md` | 256 | 2 | Feeds `Accessibility/02` at #54 |
+| `02-accessibility.md` (was `07`) | 254 | 5 | BOOK-SPEC § 4 names it a legal requirement and a senior/mid differentiator |
+| `03-advanced-css.md` (was `08`) | 236 | 4 | Container queries, `:has()`, cascade layers, subgrid, `oklch()` |
+
+**Done when:** Part II is under budget with the three keepers renumbered `01`–`03`, `lint:docs` reports
+zero broken links and zero missing-README violations, and BOOK-SPEC records the decision and the spine
+consequence.
+
+**Delivered:**
+
+- **`Archive/htmlcss/`** — 5 of 8: `02-css-fundamentals`, `03-flexbox`, `04-grid`, `05-responsive-design`,
+  `06-css-animations` (1,213 lines). **`Archive/cssarchitecture/`** — all 4 + README (855 lines), joining
+  the `04-atomic-css.md` an earlier pass had already put there. All `git mv`, no deletes.
+- Keepers renumbered `07`→`02` and `08`→`03`. **Slugs are filename-independent**, so all 11 inbound
+  `#ch-` anchors still resolve; `chapter: 0` front matter means `orderDocs()` falls through to filename
+  sort, so reading order is preserved.
+- `Frontend/HtmlCss/README.md` rewritten to the part-opener standard — 64 lines, 3-chapter table. Its old
+  second paragraph claimed responsive design was the second differentiator; BOOK-SPEC § 4 says
+  internationalisation, and it now says that.
+- `Frontend/README.md`, `Archive/README.md` and BOOK-SPEC § 5 + § 11 updated. Spec bumped **1.2 → 1.3**
+  with decision rows **#13** (the 700-page cap) and **#14** (this archive).
+- **Part II: 5,795 → 3,718** against a 6,000 budget. In-book total **37,714 → 35,637**.
+- `pnpm lint:docs`: 197 files, six rules at zero, the one violation still Part IV's pre-existing +1,149.
+  **`.lint-baseline.json` unchanged** — no count moved, so there was nothing to ratchet.
+
+**Deliberately left — two open threads, both recorded rather than fixed:**
+
+1. **A 554-line spine breach, deferred to #77.** Non-negotiable #3 needs Parts I–IV ≥ 50%. With #58a
+   trimming Part IV to 5,500 and #54 refilling Part II by ~1,046 net, the finished book projects to
+   **27,240 of 55,034 = 49.5%**. The 554-line gap must be paid from Parts V–IX in § 5's fixed cut order
+   — Part VIII first — never from Parts I–IV. Deferred because #77's calibration changes every input.
+2. **No Part III home for the styling argument.** `01-css-methodologies`, `02-utility-vs-component` and
+   `03-css-in-js` were **archived, not staged under `salvage/`**, because `salvage/README.md` requires a
+   *named* destination item with a chapter number and no Part III item has one — #41's `Tooling/` table
+   has no styling chapter. The durable content (why utility-first won, what CSS-in-JS costs at runtime)
+   is worth one Part III chapter. **That needs a new item; this one did not invent it.**
+
+---
+
 ---
 
 # Phase 3 — 🆕 `Frontend/ModernStack/` (The Biggest Gap)
@@ -3770,6 +3834,14 @@ Pick one — the `Backend/API/01` voice is the strongest — and edit toward it.
 Item #5 deferred every real typographic decision to this item and left it without a "Done when". It is
 now the calibration and proof step, and it carries the plan's largest open risk.
 
+🔴 **This item now also owns two things #31f deferred to it:**
+
+1. **The 700-page ceiling** — BOOK-SPEC decision #13. § 1's "850–1,050" and § 5's "950–1,050" are both
+   stale and this item replaces them with measured numbers.
+2. **A 554-line spine breach** — #31f archived 2,077 lines from Part II, projecting Parts I–IV to
+   **49.5%** against non-negotiable #3's 50% floor. Close it from Parts V–IX in § 5's fixed cut order
+   (Part VIII first), never from Parts I–IV.
+
 **The page budget does not currently close.** BOOK-SPEC § 5 assumes ~55 markdown lines per typeset page
 and a 950–1,050 page book. The only recorded real build (#5) produced **3,692 A4 pages from 134,000
 lines — 36 lines per page**, optimistic by roughly 50%. Carrying that rate forward:
@@ -3979,13 +4051,13 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 17/17 | ✅ Complete    |
+| 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **89** | **36/89** | **40%**   |
+| **Total** | **90** | **37/90** | **41%**   |
 
 ---
 

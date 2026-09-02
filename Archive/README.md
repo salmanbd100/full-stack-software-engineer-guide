@@ -6,7 +6,7 @@ This is where content goes when it is genuinely useful but out of scope for
 **The Senior Full Stack Handbook**. It stays in the repository, stays in git history, and stays
 searchable. It is simply invisible to the book build.
 
-Created by improvement #7. Filled by improvements #8 and #20–#31e.
+Created by improvement #7. Filled by improvements #8, #20–#31e and #31f.
 
 `dsa-solutions/` is the one sub-tree whose originals were **replaced rather than removed** — each
 archived file has a trimmed successor at the same name under `DSA/`.
@@ -42,6 +42,7 @@ The full list with reasons is [BOOK-SPEC.md § 6](../BOOK-SPEC.md). In short:
 | **Out-of-platform** | Mobile and React Native, Vue and Angular | Web platform only, three frameworks maximum |
 | **Ages badly** | Company-by-company interview guides | Stale within a quarter |
 | **Personal material** | English-language coaching, marketing assets, planning documents | Useful to one person, not to a reader who paid for a book |
+| **Assumed knowledge** | CSS layout mechanics — flexbox, grid, breakpoints, keyframes | #31f; a staff candidate is assumed to have these and is not asked to recite them. The 700-page cap made the assumption explicit |
 
 ## Layout
 
@@ -54,6 +55,12 @@ Archive/
 ├── salvage/             ← staged for a later part, not out of scope — see salvage/README.md
 │   ├── ai/                  2 files inbound to Part VII at #45 and #49
 │   └── frontend/            2 files inbound to Part III at #39 and #40
+├── htmlcss/             ← #31f: 5 of 8 — the layout mechanics (the box model and cascade basics,
+│                            flexbox, grid, responsive design, animations). HtmlCss/ keeps semantic
+│                            HTML, accessibility and advanced CSS
+├── cssarchitecture/     ← #31f: all 4 + README, plus atomic CSS from an earlier pass. 04-design-systems
+│                            duplicated SystemDesign/Frontend/08 near-verbatim; the methodologies,
+│                            utility-vs-component and CSS-in-JS arguments have no Part III home yet
 ├── foundations/         ← #26: what Part I shed when OOP/ and DesignPatterns/ merged
 │   ├── oop/                 all 7 + README — condensed into two chapters
 │   └── patterns/            3 of 5 — the GoF catalogue, condensed into one chapter
