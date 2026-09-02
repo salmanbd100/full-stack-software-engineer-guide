@@ -193,13 +193,6 @@ not a performance win, and marking it cacheable is one of the few CDN mistakes t
 incident rather than a stale page. The move is to cache the shared parts and leave the personalised
 part to the origin, near its data.
 
-**Q: How would you diagnose a hit ratio of 40% on static assets?**
-
-Look at the cache key before anything else. A cookie, a per-user query parameter or a `Vary` header on
-something that varies per request will fragment one object into thousands of near-identical copies,
-each cold. After that, check that the TTL is long enough for a second request to arrive, and that the
-filenames are stable enough to be requested twice at all.
-
 ## What to Read Next
 
 - [Chapter ?? — Caching](#ch-caching) — the same idea one layer in, where the data is not public

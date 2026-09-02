@@ -5,7 +5,7 @@ chapter: 0
 slug: scalability
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-08-29
+updated: 2026-09-02
 tags: [system-design, scalability, vertical, horizontal, auto-scaling, database]
 in_book: true
 ---
@@ -110,21 +110,14 @@ What is left in memory should be safe to lose when the instance does.
 Once instances are interchangeable, capacity can follow demand. The policy matters more than the
 mechanism, and the asymmetry is the part people get wrong.
 
-```typescript
-interface AutoScalingPolicy {
-  minInstances: number;
-  maxInstances: number;
-  scaleOut: { metric: string; threshold: number; forSeconds: number; cooldownSeconds: number };
-  scaleIn: { metric: string; threshold: number; forSeconds: number; cooldownSeconds: number };
-}
+| Direction  | Trigger              | Sustained for | Cooldown | Why                                    |
+| ---------- | -------------------- | ------------- | -------- | -------------------------------------- |
+| Scale out  | CPU above 70%        | 3 minutes     | 1 minute | A spare instance costs pennies         |
+| Scale in   | CPU below 30%        | 10 minutes    | 5 minutes | A missing instance costs an outage    |
 
-const apiPolicy: AutoScalingPolicy = {
-  minInstances: 2, // never 1 — one instance is a single point of failure
-  maxInstances: 50,
-  scaleOut: { metric: "cpu", threshold: 70, forSeconds: 180, cooldownSeconds: 60 },
-  scaleIn: { metric: "cpu", threshold: 30, forSeconds: 600, cooldownSeconds: 300 },
-};
-```
+Set the minimum to two, never one — an auto-scaling group with `min: 1` is a single point of failure
+with extra steps.
+
 
 **Scale out fast, scale in slowly.** Adding an instance you did not need costs a few pennies; removing
 one you did need costs an outage during the next spike. A long scale-in cooldown is what stops the
@@ -220,21 +213,6 @@ The scale-in threshold and cooldown are too aggressive relative to scale-out, so
 immediately re-triggers the scale-out condition. Widen the gap between the thresholds and make the
 scale-in cooldown several times longer than the scale-out one. It is also worth checking the metric —
 CPU on an I/O-bound service will swing for reasons unrelated to load.
-
-**Q: Reads are slow and the primary is at 90% CPU. Walk through your options.**
-
-Cache first, because it is the only option that removes queries rather than redistributing them, and a
-90% hit ratio takes ten times the load off. Then read replicas with reads routed to them by default,
-keeping read-after-write on the primary. Then pooling if connections rather than CPU turn out to be
-the limit. Sharding does not belong in this list — it addresses writes and data volume, and neither is
-the stated problem.
-
-**Q: When would you deliberately not scale a system?**
-
-When the load is a bug. A retry storm, an unindexed query, or an N+1 in a hot endpoint will happily
-consume any capacity you buy, and scaling makes the bill grow while hiding the cause. The other case is
-a genuine but brief peak that queuing can absorb — moving the work off the request path is cheaper
-than provisioning for a spike that lasts ten minutes a day.
 
 ## What to Read Next
 

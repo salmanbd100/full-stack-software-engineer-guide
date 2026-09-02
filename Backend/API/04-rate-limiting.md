@@ -22,7 +22,7 @@ Rate limiting caps how much work one caller can ask of you in a window of time. 
 
 The framing that scores in an interview: rate limiting is not about blocking bad actors, it is about **fairness under contention**. A limit that keeps one buggy client from starving everyone else is doing its job even when nobody is attacking you.
 
-This chapter implements the limiter. Where it sits in the stack, how rules are stored per tier, and what it costs at a million requests a second belong to [Chapter ?? — Design a Rate Limiter](#ch-design-rate-limiter).
+This chapter implements the limiter. Where enforcement belongs in the stack — CDN, gateway, then service — and what it costs at a million requests a second belong to [Chapter ?? — The API Gateway Pattern](#ch-api-gateway-pattern).
 
 ## How It Works
 
@@ -224,6 +224,6 @@ which must answer during exactly the incident a limiter would reject it in.
 
 ## What to Read Next
 
-- [Chapter ?? — Design a Rate Limiter](#ch-design-rate-limiter) — where to enforce it, tiered rules, and the numbers at a million requests a second
+- [Chapter ?? — The API Gateway Pattern](#ch-api-gateway-pattern) — where to enforce it, and the numbers at a million requests a second
 - [Chapter ?? — The API Gateway Pattern](#ch-api-gateway-pattern) — the edge layer that usually owns the coarse limits
 - [Chapter ?? — GraphQL](#ch-graphql) — why one request is not one unit of work, and how complexity scoring fixes it

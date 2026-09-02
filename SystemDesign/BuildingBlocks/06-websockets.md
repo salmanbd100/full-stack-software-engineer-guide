@@ -2,7 +2,7 @@
 title: Real-Time Communication
 part: 6
 chapter: 0
-slug: building-blocks-websockets
+slug: realtime-communication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
 updated: 2026-08-31
@@ -152,12 +152,8 @@ Every server subscribes to a shared pub/sub channel and delivers received messag
 
 Around fifty thousand per Node.js process, and memory goes before CPU — each connection carries socket state and an outbound buffer. That figure is what turns a connection count into a node count, and it is also why a slow consumer matters: an unbounded outbound buffer is how a single client takes down a node holding fifty thousand others.
 
-**Q: When would you not use any of this?**
-
-When updates are rare or the client is often offline. Holding a connection open to deliver three messages a day is pure cost; a webhook or a mobile push notification delivers the same thing with no connection at all. I would also avoid a socket when the update is genuinely user-triggered — that is a request, not a push.
-
 ## What to Read Next
 
 - [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming) — the server implementation: typed events, authentication, rooms, backpressure
 - [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features) — the client: reconnection, jitter, and recovering missed messages
-- [Chapter ?? — Design a Notification System](#ch-design-notification-system) — where this building block sits inside a full design
+- [Chapter ?? — Design a Chat System](#ch-design-chat-system) — where this building block sits inside a full design

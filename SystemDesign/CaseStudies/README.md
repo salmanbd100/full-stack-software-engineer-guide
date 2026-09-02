@@ -2,70 +2,56 @@
 title: Part VI — Case Studies
 part: 6
 chapter: 0
-slug: part-case-studies
-level: advanced # beginner | intermediate | advanced
-reading_time: 3
-updated: 2026-08-30
-tags: [system-design, case-studies, interviews]
+slug: part-system-design-case-studies
+level: advanced
+reading_time: 2
+updated: 2026-09-02
+tags: [system-design, case-study, radio, interview]
 in_book: true
 ---
 
 # Part VI — Case Studies
 
-Ten worked design problems. Each one is a complete round: requirements, estimates, a data model, an
-API surface, and the two or three trade-offs an interviewer will push on.
+Four worked rounds. Each one is a different **shape** of problem rather than a different product, which
+is the point — an interviewer can ask for any of a hundred products, and there are only about a dozen
+shapes underneath them.
 
-Use them as rehearsal, not as answers to memorise. The value is in the reasoning path — clarify,
-estimate, sketch, then defend — and that path is the same whether the prompt is a URL shortener or
-something nobody has written up.
+Read them out loud against a timer. A case study you have read is worth very little; a case study you
+have talked through for forty minutes is worth the whole section.
 
-These ten are **backend and distributed-systems shaped**, because that is still what a general system
-design round asks for. They are not the whole picture for this reader. Improvement #43 adds five
-**frontend** case studies alongside them, and those are the rounds a frontend-heavy candidate is more
-likely to face and less likely to have rehearsed.
+## Chapters
 
-## Case Studies
+| #  | Chapter                                                | The shape it teaches                                        |
+| -- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| 01 | [Design a URL Shortener](./01-url-shortener.md)        | Mint a key with no coordination; serve enormous reads from cache |
+| 02 | [Design a News Feed](./02-news-feed.md)                | Fan-out on write versus on read, and the celebrity problem   |
+| 03 | [Design a Chat System](./03-chat-system.md)            | A stateful edge, message ordering, and offline delivery      |
+| 04 | [Design Ticketmaster](./04-ticketmaster.md)            | Contention rather than volume — locking and admission control |
 
-| #   | Case Study                                            | Core problem                        |
-| --- | ----------------------------------------------------- | ----------------------------------- |
-| 01  | [URL Shortener](./01-url-shortener.md)                | ID generation and read scaling      |
-| 02  | [Rate Limiter](./02-rate-limiter.md)                  | Where to enforce, tiers, capacity   |
-| 03  | [Typeahead](./03-typeahead.md)                        | Latency budget and trie caching     |
-| 04  | [Chat System](./04-chat-system.md)                    | Connection state and ordering       |
-| 05  | [Notification System](./05-notification-system.md)    | Fan-out and delivery channels       |
-| 06  | [News Feed](./06-news-feed.md)                        | Ranking and feed caching            |
-| 07  | [Instagram](./07-instagram.md)                        | Media pipeline and feed generation  |
-| 08  | [API Gateway](./08-api-gateway.md)                    | Edge concerns and thin routing      |
-| 09  | [Distributed Cache](./09-distributed-cache.md)        | Consistent hashing and eviction     |
-| 10  | [Ticketmaster](./10-ticketmaster.md)                  | Contention and the virtual queue    |
-
-The numbering is the reading order: 01 is the smallest complete round and 10 is the hardest.
+Each follows RADIO inside its `How It Works` section: requirements, architecture, data model, interface,
+optimisations. The framework itself is
+[Chapter ?? — Driving the Design Round](#ch-driving-the-round).
 
 ## What Interviewers Probe For
 
-The senior signal for Part VI is **drives the round — clarifies requirements, states assumptions,
-defends trade-offs.** In a case study specifically:
-
-- **Do you scope before you design?** Every one of these prompts is deliberately under-specified.
-  The first three minutes are for narrowing it, and skipping them is the most common failure.
-- **Do your numbers inform your design?** An estimate you calculate and then ignore is worse than no
-  estimate. The read/write ratio should visibly change what you draw next.
-- **Can you go deeper on demand?** The interviewer will pick one box and ask you to open it. Depth on
-  the component you chose to highlight is what separates a pass from a strong pass.
-- **Do you know your design's failure mode?** "What breaks first if traffic goes up ten times?" has a
-  specific answer for a specific design, and it should be one you volunteer.
+- **Do you scope before you draw?** Every chapter here names what it cut, out loud, in the requirements
+  step. That is deliberate.
+- **Do you reach the interesting decision?** Each of these designs has one — key generation, fan-out
+  strategy, session routing, admission control. A round that never gets there scores badly however tidy
+  the diagram is.
+- **Can you say what your design cannot do?** Approximate seat counts, stale feeds, no global message
+  order. Naming a limit is stronger than pretending there is none.
 
 ## Reading Order
 
-Read them in order. 01 and 02 are the smallest complete rounds and the easiest to hold in your head.
-03 and 04 are the two most likely to be asked of a frontend-heavy candidate. 09 and 10 are the
-hardest and the best value once the pattern is familiar.
+01 first — it is the smallest complete round and the one to rehearse until the structure is automatic.
+Then 02, 03 and 04 in any order; they are independent.
 
-**Interview sprint:** 01 → 02 → 03 → 04 → 05.
+**Interview sprint:** 01 and 02 end to end, out loud, timed at 45 minutes each.
 
-## What Is Not Here
-
-Ten further studies — Twitter, Uber, WhatsApp, YouTube, Netflix, Amazon, Google Search, Dropbox, a
-web crawler and a parking lot — were cut in improvement #28. They are backend-heavy variations on
-patterns these ten already teach, and the parking lot is an object modelling exercise rather than a
-system design one. Nothing was deleted: they live under `Archive/systemdesign/case-studies/`.
+> ⚠️ Six studies left this section at **#31d** — rate limiter, typeahead, notification system,
+> Instagram, API gateway and distributed cache. Each duplicated a shape another chapter already teaches,
+> or a topic Part V now owns; all six are in `Archive/systemdesign/case-studies/` and are still worth
+> reading as extra rehearsal. **Five frontend case studies join this section at #43** — a collaborative
+> editor, a typeahead component, an infinite feed, a design system for forty teams, and a dashboard with
+> fifty live widgets.

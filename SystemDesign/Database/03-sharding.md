@@ -3,9 +3,9 @@ title: Sharding
 part: 6
 chapter: 0
 slug: sharding
-level: advanced # beginner | intermediate | advanced
+level: advanced
 reading_time: 11
-updated: 2026-08-29
+updated: 2026-09-02
 tags: [system-design, database, sharding, partitioning, consistent-hashing]
 in_book: true
 ---
@@ -38,11 +38,11 @@ and forwards the query to exactly one machine — or, when it cannot, to all of 
 
 ```mermaid
 flowchart TD
-    A[Application] --> R[Router: shard = f key]
-    R -->|point query| S1[(Shard 0)]
-    R -.->|scatter-gather| S2[(Shard 1)]
-    R -.-> S3[(Shard 2)]
-    S1 --> M[Merge in application code]
+    A["Application"] --> R["Router: shard = f(key)"]
+    R -->|"point query"| S1[("Shard 0")]
+    R -.->|"scatter-gather"| S2[("Shard 1")]
+    R -.-> S3[("Shard 2")]
+    S1 --> M["Merge in application code"]
     S2 --> M
     S3 --> M
 ```
@@ -73,14 +73,10 @@ Three neighbouring terms get confused, and the distinction is worth stating clea
 ```typescript
 import { createHash } from "node:crypto";
 
-function shardIndex(key: string, shardCount: number): number {
-  const digest = createHash("md5").update(key).digest("hex");
-  return parseInt(digest.slice(0, 8), 16) % shardCount;
-}
-
 // The same user always lands on the same shard — that is the whole contract.
-const shards = ["shard-0", "shard-1", "shard-2", "shard-3"];
-const target = shards[shardIndex("user-abc123", shards.length)];
+function shardIndex(key: string, shardCount: number): number {
+  return parseInt(createHash("md5").update(key).digest("hex").slice(0, 8), 16) % shardCount;
+}
 ```
 
 That modulo is also the flaw. `hash % 4` and `hash % 5` disagree about nearly every key, so adding a
@@ -96,41 +92,23 @@ Placing each physical shard at many points on the ring — **virtual nodes** —
 even. With one point each, a few shards get large arcs by luck.
 
 ```typescript
-interface RingPoint {
-  shard: string;
-  position: number;
+interface RingPoint { shard: string; position: number }
+
+// 150 virtual nodes per shard: with one point each, a few shards win large arcs by luck.
+function buildRing(shards: string[], virtualNodes: number = 150): RingPoint[] {
+  const points: RingPoint[] = shards.flatMap((shard: string) =>
+    Array.from({ length: virtualNodes }, (_, i: number) => ({
+      shard,
+      position: ringPosition(`${shard}:${i}`),
+    })),
+  );
+  return points.sort((a: RingPoint, b: RingPoint) => a.position - b.position);
 }
 
-class ConsistentHashRing {
-  private points: RingPoint[] = [];
-  private readonly virtualNodes = 150; // enough that arcs even out
-
-  add(shard: string): void {
-    for (let i = 0; i < this.virtualNodes; i++) {
-      this.points.push({ shard, position: ringPosition(`${shard}:${i}`) });
-    }
-    this.points.sort((a, b) => a.position - b.position);
-  }
-
-  remove(shard: string): void {
-    this.points = this.points.filter((p) => p.shard !== shard);
-  }
-
-  locate(key: string): string {
-    if (this.points.length === 0) throw new Error("ring is empty");
-    const position = ringPosition(key);
-    // First point clockwise from the key, wrapping past the end of the ring.
-    const point = this.points.find((p) => p.position >= position) ?? this.points[0];
-    return point.shard;
-  }
-}
-
-function ringPosition(value: string): number {
-  let hash = 5381;
-  for (let i = 0; i < value.length; i++) {
-    hash = ((hash << 5) + hash) ^ value.charCodeAt(i);
-  }
-  return Math.abs(hash) % 2 ** 32;
+// The first point clockwise from the key, wrapping past the end of the ring.
+function locate(ring: RingPoint[], key: string): string {
+  const position: number = ringPosition(key);
+  return (ring.find((p: RingPoint) => p.position >= position) ?? ring[0]).shard;
 }
 ```
 
@@ -168,14 +146,12 @@ lands on whichever shard holds them.
 
 ```typescript
 // Spread one hot entity across buckets on write, and merge on read.
-function bucketedKey(entityId: string, buckets = 10): string {
-  return `${Math.floor(Math.random() * buckets)}_${entityId}`;
-}
+const bucketedKey = (entityId: string, buckets = 10): string =>
+  `${Math.floor(Math.random() * buckets)}_${entityId}`;
 
 async function readHotEntity(entityId: string, buckets = 10): Promise<Row[]> {
-  const keys = Array.from({ length: buckets }, (_, i) => `${i}_${entityId}`);
-  const results = await Promise.all(keys.map((k) => db.get(k)));
-  return results.flat();
+  const keys = Array.from({ length: buckets }, (_, i: number) => `${i}_${entityId}`);
+  return (await Promise.all(keys.map((k: string) => db.get(k)))).flat();
 }
 ```
 
@@ -276,13 +252,6 @@ problem, and a well-chosen key does not prevent it, because keys are distributed
 are not. For read-heavy traffic, cache aggressively or split the entity across buckets and merge on
 read. For write-heavy traffic, give the account its own shard. Both are exceptions layered on top of
 the routing rule, not replacements for it.
-
-**Q: How do you split a shard that has grown too large?**
-
-Double-write to both the old and new placement, backfill the history with verification, shift reads
-across gradually while the old copy is still readable, then stop double-writing and delete the old
-data last. Every step is reversible until the delete. How much data has to move is decided by the
-routing scheme, which is why the consistent hashing decision belongs to day one.
 
 ## What to Read Next
 

@@ -2,7 +2,7 @@
 title: SEO and Analytics
 part: 6
 chapter: 0
-slug: seo-analytics
+slug: seo-and-analytics
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
 updated: 2026-08-28

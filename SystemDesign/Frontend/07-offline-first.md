@@ -2,7 +2,7 @@
 title: Offline-First Architecture
 part: 6
 chapter: 0
-slug: offline-first
+slug: offline-first-architecture
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
 updated: 2026-08-28

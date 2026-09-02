@@ -7,7 +7,7 @@ level: intermediate # beginner | intermediate | advanced
 reading_time: 6
 updated: 2026-08-28
 tags: [system, design, frontend, rendering]
-in_book: true
+in_book: false
 ---
 
 # Rendering Strategies {#ch-rendering-strategies}

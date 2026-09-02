@@ -2,274 +2,225 @@
 title: Design a URL Shortener
 part: 6
 chapter: 0
-slug: url-shortener
-level: intermediate # beginner | intermediate | advanced
+slug: design-url-shortener
+level: intermediate
 reading_time: 10
-updated: 2026-08-30
-tags: [system-design, case-study, url-shortener, caching]
+updated: 2026-09-02
+tags: [system-design, case-study, url-shortener, caching, id-generation]
 in_book: true
 ---
 
 # Design a URL Shortener {#ch-design-url-shortener}
 
-> Generate a short unique key without a coordination bottleneck, then serve reads from cache.
+> Generate a short unique key with no coordination bottleneck, then serve almost every read from cache.
 
-**In this chapter:** requirements · architecture · data model · API surface · optimisations and trade-offs
+**In this chapter:** requirements and scale · the architecture · key generation · the data model · caching and redirect semantics
 
-## How to Open This Answer
+## 💡 The Core Idea
 
-"I'll design a URL shortening service like Bitly or TinyURL. The system is extremely read-heavy — 100:1 redirect-to-creation ratio — so caching and fast redirect are the top priorities. ID generation strategy and redirect type are the key design decisions."
+A URL shortener looks trivial and is a good interview problem for exactly that reason: there is nowhere
+to hide. Two decisions carry the whole design. **How do you mint a unique seven-character key without a
+central counter that everything queues behind**, and **how do you serve ten billion redirects a day
+without touching a database**. Everything else is plumbing.
 
-## Problem Statement
+> This is a read-heavy key-value problem wearing a web application's clothes. Recognise that in the
+> first minute and the rest of the round follows.
 
-A URL shortener converts long URLs into short 7-character codes and redirects users instantly when they visit the short link. The system handles ~100M new URLs per day and ~10B redirects per day. Redirects must complete in under 100ms, and short links must never break.
+## How It Works
 
-## R — Requirements
+### Requirements
 
-### Functional (pick 4-5 that matter most)
+**Functional:** shorten a long URL, redirect a short code to it, optional custom alias, optional
+expiry, click counts.
 
-- Shorten a long URL to a unique 7-character code
-- Redirect visitors from the short URL to the original long URL
-- Support custom aliases (e.g., `short.ly/my-brand`)
-- Set expiration dates on short links
-- Track click analytics — total clicks, geographic breakdown, referrers
+**Out of scope, said out loud:** user accounts, analytics dashboards, link previews, spam detection.
 
-### Non-Functional (pick 3-4)
+**Non-functional:** redirects under 100 ms at p99, short links must never break or be reassigned, and
+availability matters more than consistency — a redirect that works is worth more than a creation that is
+instantly visible everywhere.
 
-- Redirect latency < 100ms — delay directly hurts user experience
-- 99.99% availability — a broken short link is a critical failure
-- 100:1 read/write ratio — optimize heavily for reads
-- Durable — short links must never disappear unless explicitly expired
+**Scale:** 100 million new links a day and 10 billion redirects — a 100:1 read-to-write ratio. That is
+about 1,000 writes and 100,000 reads a second on average, and roughly three times that at peak. Storage
+at 500 bytes a row is 50 GB a day, so about 18 TB a year before replication.
 
-## A — Architecture
+### Architecture
 
-### High-Level Diagram
-
-```text
-Browser / Client
-      │
-   CDN Edge
-   (top 10% hottest URLs cached here)
-      │ cache miss
-      │
-   Load Balancer
-      │
-  API Servers (stateless)
-      │
-  ┌───┴──────────────┐
-  │                  │
-Redis Cache        ID Generator
-(hot URLs,         (Snowflake)
- 95%+ hit rate)
-  │
-  │ cache miss
-  ▼
-Cassandra
-(url_mappings table)
-      │
-   Kafka (async)
-      │
-  ClickHouse
-  (analytics)
+```mermaid
+flowchart LR
+  U["Client"] --> C["CDN / edge"]
+  C --> L["Load balancer"]
+  L --> A["Shortener service<br/>stateless"]
+  A --> R["Redis<br/>code to URL"]
+  A --> K["Key range<br/>allocator"]
+  A --> D[("Sharded key-value store<br/>code as partition key")]
+  A -.->|"click event"| Q["Queue"]
+  Q --> W["Analytics worker"]
 ```
 
-On URL creation, the API server generates a Snowflake ID, encodes it as Base62, writes to Cassandra, and caches it in Redis. On redirect, the request hits the CDN first (for hot URLs), then Redis, then Cassandra on a miss. Analytics events are written to Kafka asynchronously — the redirect response never waits for analytics.
+**Reads stop at Redis; the datastore sees only misses and writes.**
 
-> 301 vs 302 is the most common follow-up question. Use 302 so every redirect hits your server and is tracked. Use 301 only if you want browsers to cache and skip analytics.
+Click counting goes through a queue. Incrementing a row on every redirect would make the write path a
+hundred times busier than the create path, for data nobody reads in real time.
 
-## D — Data Model
+### Key generation
+
+This is the decision the round is really about.
+
+| Approach                     | Works?                                            | Problem                                    |
+| ---------------------------- | ------------------------------------------------- | ------------------------------------------ |
+| Hash the URL, take 7 chars   | Yes, and it deduplicates identical URLs            | Collisions must be detected and retried    |
+| Random 7 characters          | Yes                                                | Needs a uniqueness check on every write    |
+| Auto-increment, base62       | Yes                                                | One global counter is a write bottleneck and the codes are guessable |
+| **Pre-allocated key ranges** | **Yes — the answer to give**                       | Wasted keys when an instance dies          |
+
+Base62 over `[a-zA-Z0-9]` gives 62⁷ ≈ **3.5 trillion** codes, which is 95 years at 100 million a day.
+Seven characters is the right length, and being able to say why is part of the answer.
 
 ```typescript
-interface UrlMapping {
-  shortCode: string;       // 7-char Base62 — partition key
+const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+function toBase62(n: number): string {
+  let out = "";
+  do {
+    out = ALPHABET[n % 62] + out;
+    n = Math.floor(n / 62);
+  } while (n > 0);
+  return out.padStart(7, "0");
+}
+
+// Each instance claims a block of one million ids, then mints locally with no coordination.
+class KeyAllocator {
+  private next = 0;
+  private limit = 0;
+  constructor(private readonly claimBlock: () => Promise<{ from: number; to: number }>) {}
+
+  async take(): Promise<string> {
+    if (this.next >= this.limit) {
+      const block = await this.claimBlock(); // one round trip per million keys
+      this.next = block.from;
+      this.limit = block.to;
+    }
+    return toBase62(this.next++);
+  }
+}
+```
+
+An instance that dies wastes the rest of its block. At 3.5 trillion keys, that is not a problem worth
+solving.
+
+### Data model
+
+```typescript
+interface Link {
+  code: string;       // partition key — every read is a point lookup
   longUrl: string;
-  userId?: string;         // null for anonymous
-  isCustom: boolean;
-  createdAt: Date;
-  expiresAt?: Date;        // null = never expires
-  urlHash: string;         // SHA-256 of longUrl — for dedup check
-}
-
-interface ClickEvent {
-  eventId: string;
-  shortCode: string;
-  clickedAt: Date;
-  ipAddress: string;
-  country: string;
-  city: string;
-  userAgent: string;
-  referrer: string;
-  deviceType: 'desktop' | 'mobile' | 'tablet';
-}
-
-interface AnalyticsSummary {
-  shortCode: string;
-  totalClicks: number;
-  uniqueVisitors: number;
-  period: 'day' | 'week' | 'month';
-  topCountries: Array<{ country: string; clicks: number }>;
-  topReferrers: Array<{ source: string; clicks: number }>;
+  createdAt: number;
+  expiresAt?: number; // TTL handled by the store, not by a cleanup job
+  ownerId?: string;
 }
 ```
 
-Storage notes (plain text):
-- url_mappings: Cassandra — partition key = `short_code`, O(1) lookup; write throughput of 1,150/sec is trivial for Cassandra
-- click_events: ClickHouse — columnar, optimized for aggregations over time-series data; ingested from Kafka
-- url_hash index: secondary table in Cassandra `(url_hash → short_code)` for deduplication on creation
-- Redis: key = `url:{shortCode}`, value = longUrl string, TTL = 24 hours; LRU eviction policy
+The access pattern is one query: given a code, return a URL. That makes a key-value or wide-column store
+the right home, sharded on `code`, and makes a relational store a defensible but unnecessary choice.
 
-## I — Interface (APIs)
+Custom aliases need a uniqueness check, which is the one place a conditional write matters: insert with
+"if not exists" and return 409 rather than reading first and then writing.
 
-```typescript
-// POST /api/v1/shorten — create a short URL
-interface ShortenRequest {
-  longUrl: string;
-  customAlias?: string;
-  expiresAt?: string;  // ISO 8601
-}
-interface ShortenResponse {
-  shortUrl: string;      // e.g. https://short.ly/8M0kX
-  shortCode: string;
-  longUrl: string;
-  createdAt: string;
-  expiresAt?: string;
-}
+### Interface
 
-// GET /:shortCode — redirect (the hot path)
-// HTTP 302 Found — Location: https://original-long-url.com/...
-// Response headers include Rate-Limit and cache-control headers
+| Operation                     | Notes                                              |
+| ----------------------------- | -------------------------------------------------- |
+| `POST /links`                 | Body carries the long URL and an optional alias; returns 201 with the code |
+| `GET /{code}`                 | The hot path — a redirect, and nothing else         |
+| `GET /links/{code}/stats`     | Read from the analytics store, never the hot path   |
 
-// GET /api/v1/analytics/:shortCode?period=7d
-interface AnalyticsResponse {
-  shortCode: string;
-  totalClicks: number;
-  uniqueVisitors: number;
-  clicksByDate: Array<{ date: string; clicks: number }>;
-  topCountries: Array<{ country: string; clicks: number }>;
-  topReferrers: Array<{ source: string; clicks: number }>;
-}
+### Optimisations
 
-// DELETE /api/v1/urls/:shortCode — deactivate a short link
-interface DeleteResponse {
-  shortCode: string;
-  deleted: boolean;
-}
-```
+**Caching.** With a 95% hit ratio, 100,000 reads a second becomes 5,000 reaching the store. The access
+pattern is heavily skewed — a small fraction of links take most of the traffic — so LRU with a few
+hundred gigabytes of Redis holds the working set comfortably.
 
-## O — Optimizations & Trade-offs
+**Redirect status code.** This is a trade, not a default.
 
-### 1. ID Generation — Base62 via Snowflake
+| Code | Browser behaviour        | Consequence                                          |
+| ---- | ------------------------ | ---------------------------------------------------- |
+| 301  | Caches the redirect       | Fastest for the user, and later clicks never reach you — so no click counts and no ability to change the target |
+| 302  | Re-asks every time        | Every click is measurable and the target can change; you pay for every request |
 
-```typescript
-const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+Use **302** when analytics or editable targets are in the requirements, which they usually are. Say why.
 
-function encodeBase62(num: bigint): string {
-  if (num === 0n) return '0';
-  let encoded = '';
-  while (num > 0n) {
-    encoded = BASE62[Number(num % 62n)] + encoded;
-    num = num / 62n;
-  }
-  return encoded;
-}
+**Multi-region.** Codes are immutable once created, so replicas can serve reads anywhere without a
+consistency problem. Writes go to one region; a new link taking a second to appear elsewhere is
+invisible to the user who just created it, provided their own read is routed to the write region.
 
-// 7-char Base62 = 62^7 = 3.5 trillion unique codes
-// At 100M URLs/day → 35,000 days = 96 years of capacity
-```
+## When to Use It
 
-| Approach | Pros | Cons |
-|---|---|---|
-| MD5 hash + truncate | Deterministic | Collisions, needs collision check |
-| Random string | Simple | Collision check needed, not sortable |
-| Base62(Snowflake ID) | No collisions, sortable, compact | Requires ID service |
+This shape — mint an opaque key, write once, read enormously — recurs far beyond shorteners. It is the
+same design as an invite-code service, a file-share link, a public asset URL, or a feature-flag lookup.
+What would change it:
 
-✅ Use Base62-encoded Snowflake ID. Snowflake gives unique IDs across distributed servers without coordination at query time.
+| If the requirement adds…              | The design changes to…                                |
+| ------------------------------------- | ------------------------------------------------------ |
+| Real-time click analytics              | A streaming aggregation, not a queue and a batch worker |
+| Editable targets                       | 302 only, and cache invalidation on update             |
+| Guessable codes are unacceptable       | Longer random codes rather than sequential base62      |
+| Links expiring in seconds              | TTL in the cache as well as the store                  |
 
-### 2. Redirect Type — 301 vs 302
+## Common Mistakes
 
-| Aspect | 301 Permanent | 302 Temporary |
-|---|---|---|
-| Browser caches redirect | Yes — subsequent clicks skip your server | No — every click hits your server |
-| Analytics accuracy | ❌ Cached clicks are invisible | ✅ Every click is tracked |
-| CDN behavior | CDN caches and serves | CDN does not cache |
-| SEO | Passes link equity | Does not pass link equity |
+**❌ A single auto-increment counter**
 
-✅ Use 302 for analytics-enabled links. Use 301 only for internal redirects where analytics is irrelevant.
+> `nextId = SELECT MAX(id) + 1 FROM links`
 
-### 3. Caching — Three Layers
+Every write in the system now serialises through one row, and the codes are trivially enumerable, so
+anyone can walk the entire link database.
 
-```typescript
-async function redirect(shortCode: string): Promise<string> {
-  // Layer 1: CDN edge cache (Cloudflare) — top 10% hottest links, ~80% hit
-  // Layer 2: Redis application cache — ~95% hit rate across all links
-  const cached = await redis.get(`url:${shortCode}`);
-  if (cached) {
-    publishClickEvent(shortCode);  // fire-and-forget
-    return cached;
-  }
+**✅ Pre-allocated ranges, minted locally**
 
-  // Layer 3: Cassandra — only ~5% of redirects reach DB
-  const row = await cassandra.execute(
-    'SELECT long_url, expires_at FROM url_mappings WHERE short_code = ?',
-    [shortCode]
-  );
-  if (!row || (row.expires_at && row.expires_at < new Date())) {
-    throw new NotFoundError();
-  }
+> Each instance claims a block of a million ids in one round trip and then mints without coordination.
 
-  await redis.setex(`url:${shortCode}`, 86_400, row.long_url);
-  publishClickEvent(shortCode);
-  return row.long_url;
-}
-```
+**❌ Counting clicks synchronously**
 
-❌ Don't serve analytics synchronously in the redirect path — adds 50ms+ latency.
-✅ Publish click events to Kafka, return the redirect immediately. ClickHouse consumers process events in batch.
+Incrementing a counter on the redirect path makes the busiest path in the system a write path, for a
+number nobody reads within the second.
 
-### 4. Custom Aliases — Collision Check
+**❌ Ignoring the redirect status code**
 
-```typescript
-async function createShortUrl(longUrl: string, customAlias?: string): Promise<string> {
-  const shortCode = customAlias ?? encodeBase62(snowflake.generate());
+301 is faster and quietly removes your ability to count clicks or change a target. It is a real choice,
+and a candidate who does not mention it has not thought about the product.
 
-  if (customAlias) {
-    const exists = await cassandra.execute(
-      'SELECT short_code FROM url_mappings WHERE short_code = ?', [customAlias]
-    );
-    if (exists.rowLength > 0) throw new Error('Alias already taken');
-  }
+## 🔑 Key Takeaways
 
-  await cassandra.execute(
-    'INSERT INTO url_mappings (short_code, long_url, url_hash, created_at) VALUES (?, ?, ?, ?)',
-    [shortCode, longUrl, sha256(longUrl), new Date()]
-  );
-  return shortCode;
-}
-```
+- The two decisions that matter are key generation without coordination and serving reads from cache.
+- Pre-allocated key ranges give unique codes with one round trip per million writes and no central bottleneck.
+- Base62 over seven characters is 3.5 trillion codes — say the number, because it justifies the length.
+- 301 versus 302 is a product decision about analytics and editability, not a performance detail.
+- Click counting belongs on a queue; putting it on the redirect path inverts the system's read/write ratio.
 
-### 5. Scaling Pitfalls
+## Interview Questions
 
-| Pitfall | Fix |
-|---|---|
-| ❌ URL creation hits DB directly — 1,150 writes/sec is fine, but dedup check causes a read per write | ✅ Cache `hash:{urlHash}` in Redis; dedup check hits cache, not DB |
-| ❌ Hot URLs cause Redis stampede on TTL expiry | ✅ Probabilistic early revalidation — refresh cache when TTL < 10% remaining |
-| ❌ Analytics writes slow down redirect path | ✅ Kafka decouples — redirect returns in < 20ms, analytics processes asynchronously |
+**Q: How do you generate short codes at 1,000 writes a second without collisions?**
 
-## Common Follow-up Questions
+Pre-allocate ranges: a coordination service hands each instance a block of a million integers, and the
+instance converts them to base62 locally. That is one round trip per million keys instead of one per
+write, needs no collision check, and the only cost is wasted ids when an instance dies — which is
+irrelevant against 3.5 trillion.
 
-**Q: How do you prevent abuse — someone shortening a malware URL?**
+**Q: The cache is cold after a deploy and the store falls over. What went wrong?**
 
-On creation, run the long URL through a blocklist service (Google Safe Browsing API). If flagged, reject the request. For already-created links found to be malicious, update a Redis blocklist key `blocked:{shortCode}`. The redirect path checks this key before returning the URL.
+Every request became a miss simultaneously, so the store took the full 100,000 reads a second it was
+never provisioned for. The fixes are a warm-up that replays the top codes before the instance takes
+traffic, request coalescing so a thousand concurrent misses for one code become one store read, and a
+rolling deploy so the whole cache tier never empties at once.
 
-**Q: How do you handle URL expiration at scale?**
+**Q: Would you shard this database, and on what?**
 
-Store `expiresAt` in Cassandra. On redirect, check expiration and return 404 if expired. For cleanup, run a daily Cassandra TTL scan or use Cassandra's native `TTL` column feature — rows auto-delete on expiration. Proactively evict expired Redis keys with a background job.
+Yes, on the code itself, because every read is a point lookup by code and that keeps each one on a single
+shard. There are no range queries and no joins, so hash-based distribution is ideal — and consistent
+hashing means adding capacity moves a fraction of the keys rather than all of them.
 
-**Q: How do you scale ID generation across multiple servers?**
+## What to Read Next
 
-Each API server runs its own Snowflake generator with a unique machine ID (assigned at startup via ZooKeeper or a simple Redis counter). Snowflake IDs are generated locally — no network call needed. This means ID generation adds zero latency.
-
-**Q: What if Redis goes down? Does the whole redirect system fail?**
-
-No — fall through to Cassandra. Redirect latency spikes from ~5ms to ~50ms, but the system stays available. This is a planned degradation path — see [Chapter ?? — Caching](#ch-caching) for the fallback patterns.
-
+- [Chapter ?? — Caching](#ch-caching) — the stampede and the hit ratio arithmetic this design depends on
+- [Chapter ?? — Sharding](#ch-sharding) — why `code` is close to a perfect shard key
+- [Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation) — where the 100:1 ratio and the storage figures come from

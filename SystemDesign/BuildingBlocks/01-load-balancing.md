@@ -3,9 +3,9 @@ title: Load Balancing
 part: 6
 chapter: 0
 slug: load-balancing
-level: intermediate # beginner | intermediate | advanced
+level: intermediate
 reading_time: 9
-updated: 2026-08-29
+updated: 2026-09-02
 tags: [system-design, load-balancing, health-checks, scaling, availability]
 in_book: true
 ---
@@ -14,7 +14,7 @@ in_book: true
 
 > Choose a layer and an algorithm to match the traffic, and be able to say exactly what happens when a node dies.
 
-**In this chapter:** layer 4 vs layer 7 · routing algorithms · the health check that causes outages · draining and auto-scaling · going multi-region
+**In this chapter:** layer 4 vs layer 7 · routing algorithms · the health check that causes outages · draining and auto-scaling · service discovery · going multi-region
 
 ## 💡 The Core Idea
 
@@ -28,19 +28,9 @@ bought you a slower outage. Most of the design work is in the health check.
 
 ## How It Works
 
-The balancer accepts every request on one public address, picks a healthy backend, and forwards it.
-In parallel it probes each backend on a fixed interval and removes the ones that stop answering.
-
-```mermaid
-flowchart TD
-    C[Client] --> LB[Load balancer<br/>single public address]
-    LB -->|routing algorithm| S1[Server 1]
-    LB --> S2[Server 2]
-    LB -.->|failed probe<br/>removed from pool| S3[Server 3]
-    LB -->|probe every 10-30s| S1
-```
-
-**One address in front, a pool behind it, and a probe deciding who is in the pool.**
+The balancer accepts every request on one public address, picks a healthy backend, and forwards it. In
+parallel it probes each backend every ten to thirty seconds and removes the ones that stop answering.
+One address in front, a pool behind it, and a probe deciding who is in the pool.
 
 ### Layer 4 vs layer 7
 
@@ -69,27 +59,20 @@ to one service and `/images/*` to another without the client knowing there are t
 **The two that cover almost every case:**
 
 ```typescript
-interface Server {
-  url: string;
-  weight: number;
-  activeConnections: number;
-  healthy: boolean;
-}
+interface Server { url: string; weight: number; activeConnections: number; healthy: boolean }
 
+// Weighted: expanding by weight is fine for a pool of tens, not for a hot path.
 function weightedRoundRobin(servers: Server[]): Server | null {
-  const healthy = servers.filter((s) => s.healthy);
-  if (healthy.length === 0) return null;
-  // Expanding by weight is O(sum of weights); fine for a pool, not for a hot path.
-  const pool = healthy.flatMap((s) => Array<Server>(s.weight).fill(s));
-  return pool[Math.floor(Math.random() * pool.length)];
+  const pool = servers.filter((s) => s.healthy).flatMap((s) => Array<Server>(s.weight).fill(s));
+  return pool.length === 0 ? null : pool[Math.floor(Math.random() * pool.length)];
 }
 
+// Least connections: the right default when request durations vary widely.
 function leastConnections(servers: Server[]): Server | null {
   const healthy = servers.filter((s) => s.healthy);
-  if (healthy.length === 0) return null;
-  return healthy.reduce((min, s) =>
-    s.activeConnections < min.activeConnections ? s : min,
-  );
+  return healthy.length === 0
+    ? null
+    : healthy.reduce((min, s) => (s.activeConnections < min.activeConnections ? s : min));
 }
 ```
 
@@ -116,15 +99,14 @@ app.get("/health", async (_req, res) => {
 **✅ Two endpoints, answering two different questions:**
 
 ```typescript
-// Liveness: is this process alive? Nothing external, so a dependency blip
-// can degrade the service without deleting the fleet.
+// Liveness: is the process alive? Nothing external, so a dependency blip degrades
+// the service instead of deleting the fleet.
 app.get("/health", (_req, res) => res.sendStatus(200));
 
-// Readiness: can this instance serve traffic right now? Short timeout, so a
-// slow dependency cannot hang the probe itself.
+// Readiness: can this instance serve right now? Short timeout, so a slow dependency
+// cannot hang the probe itself.
 app.get("/ready", async (_req, res) => {
-  const ok = await checkDbPool({ timeoutMs: 1000 });
-  res.sendStatus(ok ? 200 : 503);
+  res.sendStatus((await checkDbPool({ timeoutMs: 1000 })) ? 200 : 503);
 });
 ```
 
@@ -143,21 +125,31 @@ Time to return a recovered one = interval x healthy threshold  = 15s x 2 = 30s
 
 The balancer and the auto-scaler share the instance lifecycle between them.
 
-```mermaid
-flowchart LR
-    A[Auto-scaler<br/>launches instance] --> B[Instance passes<br/>readiness probe]
-    B --> C[Balancer adds it<br/>to the pool]
-    D[Auto-scaler marks<br/>instance for removal] --> E[Balancer stops sending<br/>new requests]
-    E --> F[Drain: 30-60s for<br/>in-flight requests]
-    F --> G[Instance terminates]
-```
-
-**Scale-out waits for a probe; scale-in waits for a drain.**
+A new instance joins the pool only after passing readiness; a departing one stops receiving new requests, then drains. **Scale-out waits for a probe; scale-in waits for a drain.**
 
 **Connection draining is the step people skip.** Without it, terminating an instance kills whatever
 requests it was still serving — and those failures land on real users during what the dashboard
 reports as a successful scale-in. Thirty to sixty seconds covers almost any HTTP request; long-lived
 WebSocket connections need an application-level "reconnect now" nudge instead.
+
+### Finding the instances in the first place
+
+A balancer needs a list of healthy backends, and in an auto-scaled estate that list changes every few
+minutes. Service discovery is what keeps it current.
+
+| Model            | How it works                                                     | Where you meet it              |
+| ---------------- | ---------------------------------------------------------------- | ------------------------------ |
+| Server-side      | Instances register with a registry; the balancer reads it         | AWS target groups, Kubernetes Services |
+| Client-side      | The caller queries the registry and picks an instance itself      | Consul, Eureka, gRPC name resolvers |
+| DNS-based        | A service name resolves to current instance addresses             | Kubernetes cluster DNS         |
+
+Server-side is the default for external traffic and needs nothing from the application. Client-side
+removes a network hop and gives the caller control over the algorithm, at the cost of a discovery client
+in every service. DNS is the simplest of the three and the easiest to get wrong: clients cache
+resolutions past the TTL, so an instance that has gone away can keep receiving traffic for minutes.
+
+The registry itself must not become the single point of failure. Callers cache the last good instance
+list and keep using it when the registry is unreachable — a stale list is far better than no list.
 
 ### Going multi-region
 
@@ -227,26 +219,12 @@ balancer then removes every server and returns 503 with an empty pool — an out
 the original blip. Liveness should test only the process. Readiness may test a dependency, but with a
 short timeout and with the understanding that a shared dependency will fail it fleet-wide.
 
-**Q: How long after a server dies does traffic stop reaching it?**
-
-Interval times unhealthy threshold — with a 15-second interval and a threshold of three, about
-45 seconds. During that window a share of requests still lands on the dead server. Shortening the
-interval reduces the window but increases false evictions during GC pauses and CPU spikes, so the
-number is a deliberate trade rather than a default to minimise.
-
 **Q: When would you not put a load balancer in front of a service?**
 
-When there is exactly one instance and no plan for a second, the balancer adds a hop, a cost and
-another thing to configure without buying availability. Internal single-instance tools and
-cost-sensitive background workers reached only by a queue are the usual cases. The moment uptime
-matters or a second instance appears, the calculation flips.
-
-**Q: How does the balancer participate in a zero-downtime deploy?**
-
-New instances join only after passing readiness, so nothing receives traffic before it can serve it.
-Old instances leave in two steps — stop receiving new requests, then drain the in-flight ones — so
-nothing is killed mid-request. Weighted routing lets you shift a small share of traffic to the new
-version first and roll back by changing a weight rather than by deploying again.
+When there is exactly one instance and no plan for a second — the balancer adds a hop, a cost and
+another thing to configure without buying availability. Internal single-instance tools and background
+workers reached only through a queue are the usual cases. The moment uptime matters, or a second
+instance appears, the calculation flips.
 
 ## What to Read Next
 

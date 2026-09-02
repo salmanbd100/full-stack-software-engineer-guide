@@ -21,6 +21,8 @@ Point 3 is what separates salvage from archive. Anything without a named destina
 | ---- | ------ | ----------- | ---- |
 | `ai/06-prompt-engineering.md` | `DevOps/GenAI/06` (#21) | **#45** | `AI/Foundations/03-prompting-as-engineering.md` |
 | `ai/07-security.md` | `DevOps/GenAI/07` (#21) | **#49** | `AI/Production/05-guardrails-and-safety.md` and `06-prompt-injection.md` |
+| `frontend/rendering.md` | `SystemDesign/Frontend/03` (#31d) | **#39** | `Frontend/ModernStack/Rendering/` |
+| `frontend/state-management.md` | `SystemDesign/Frontend/02` (#31d) | **#40** | `Frontend/ModernStack/StateManagement/` |
 
 ## How to absorb one
 

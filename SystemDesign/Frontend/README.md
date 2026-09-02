@@ -19,7 +19,7 @@ budget, an accessibility floor, and a rendering strategy that has to be defended
 
 Chapter 00 is the strategy chapter. Read it first even if you skip the rest — a frontend round is
 scored on how you drive it, and the shape of a good answer here is genuinely different from the
-backend framework in [Fundamentals](../Fundamentals/08-framework.md).
+backend framework in [Fundamentals](../Fundamentals/01-driving-the-round.md).
 
 ## Chapters
 
@@ -27,8 +27,6 @@ backend framework in [Fundamentals](../Fundamentals/08-framework.md).
 | -- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
 | 00 | [Interview Strategy](./00-interview-strategy.md)                 | How is a frontend round scored differently?                   |
 | 01 | [Frontend Architecture Patterns](./01-architecture.md)           | Where do the boundaries go in a large client app?             |
-| 02 | [State Management](./02-state-management.md)                     | Server state or client state — which problem is this?         |
-| 03 | [Rendering Strategies](./03-rendering.md)                         | SSG, ISR, SSR or CSR, and why per route?                      |
 | 04 | [Performance Optimization](./04-performance.md)                  | Which metric is failing, and what actually moves it?          |
 | 05 | [Micro-Frontends](./05-micro-frontends.md)                       | When is the coordination cost worth paying?                   |
 | 06 | [Real-Time Features](./06-real-time.md)                          | What happens to the client when the connection drops?         |

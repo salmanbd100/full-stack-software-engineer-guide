@@ -7,7 +7,7 @@ level: intermediate # beginner | intermediate | advanced
 reading_time: 7
 updated: 2026-08-28
 tags: [system, design, frontend, state, management]
-in_book: true
+in_book: false
 ---
 
 # Frontend State Management {#ch-frontend-state-management}

@@ -6,7 +6,7 @@ This is where content goes when it is genuinely useful but out of scope for
 **The Senior Full Stack Handbook**. It stays in the repository, stays in git history, and stays
 searchable. It is simply invisible to the book build.
 
-Created by improvement #7. Filled by improvements #8 and #20–#31c.
+Created by improvement #7. Filled by improvements #8 and #20–#31d.
 
 `dsa-solutions/` is the one sub-tree whose originals were **replaced rather than removed** — each
 archived file has a trimmed successor at the same name under `DSA/`.
@@ -52,7 +52,8 @@ Archive/
 ├── README.md            ← this file
 ├── planning/            ← #8:  superseded plans and marketing assets
 ├── salvage/             ← staged for a later part, not out of scope — see salvage/README.md
-│   └── ai/                  2 files inbound to Part VII at #45 and #49
+│   ├── ai/                  2 files inbound to Part VII at #45 and #49
+│   └── frontend/            2 files inbound to Part III at #39 and #40
 ├── foundations/         ← #26: what Part I shed when OOP/ and DesignPatterns/ merged
 │   ├── oop/                 all 7 + README — condensed into two chapters
 │   └── patterns/            3 of 5 — the GoF catalogue, condensed into one chapter
@@ -68,11 +69,14 @@ Archive/
 │                                discipline, Part V keeps only what is backend-specific
 ├── dsa-solutions/       ← #27: the full solution sets, 4 of 16 so far — see its README
 ├── communication/       ← #29: 2 of 8 + README — the STAR duplicate and the ESL practice
-├── systemdesign/        ← #23–24, #28: what Part VI shed to Parts V and VIII, and to balance
+├── systemdesign/        ← #23–24, #28, #31d: what Part VI shed to Parts V and VIII, and to balance
 │   ├── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
 │   ├── security/            all 6 + README — #24; authz, encryption, SSRF, MFA and SSO
 │   │                            moved into Backend/Security/ first
-│   └── case-studies/        10 of 20 — #28; the backend-heaviest, CaseStudies/ keeps 10
+│   ├── building-blocks/     2 of 11 — #31d; file storage and monitoring, both owned by Part VIII
+│   ├── microservices/       3 of 8 + README — #31d; deployment and distributed tracing, owned by
+│   │                            Part VIII. The other 5 became BuildingBlocks/07–09
+│   └── case-studies/        16 of 20 — #28 archived 10, #31d another 6
 └── devops/              ← #20: the 98 files DevOps/ shed, plus genai/ (#21) and agile/ (#25)
     ├── README.md            the old 1,378-line DevOps curriculum index
     ├── agile/               all 8 + README — #25; two Part IX chapters were written from it first

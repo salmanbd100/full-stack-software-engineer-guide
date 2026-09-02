@@ -3,9 +3,9 @@ title: Caching
 part: 6
 chapter: 0
 slug: caching
-level: intermediate # beginner | intermediate | advanced
+level: intermediate
 reading_time: 9
-updated: 2026-08-29
+updated: 2026-09-02
 tags: [system-design, caching, redis, hit-ratio, invalidation]
 in_book: true
 ---
@@ -132,21 +132,15 @@ function jitteredTtl(baseSeconds: number, jitter = 0.1): number {
 }
 
 // 2. A lock, so exactly one request recomputes and the rest serve the stale copy.
-async function getWithLock(
-  cache: CacheClient,
-  db: DatabaseClient,
-  key: string,
-): Promise<Product> {
+async function getWithLock(cache: CacheClient, db: DatabaseClient, key: string): Promise<Product> {
   const cached = await cache.get<Product>(key);
   if (cached) return cached;
 
-  // SET NX EX — the first caller wins the lock, the others fall through.
-  const gotLock = await cache.setIfAbsent(`${key}:lock`, "1", 10);
-  if (!gotLock) {
+  // SET NX EX — the first caller wins the lock; the others wait and read what it wrote.
+  if (!(await cache.setIfAbsent(`${key}:lock`, "1", 10))) {
     await new Promise((resolve) => setTimeout(resolve, 50));
     return getWithLock(cache, db, key);
   }
-
   const fresh = await db.findProduct(key);
   await cache.set(key, fresh, jitteredTtl(300));
   await cache.del(`${key}:lock`);
@@ -160,29 +154,10 @@ async function getWithLock(
 
 ### Warm-up on deploy
 
-Pre-populate the keys you know will be hit, before the balancer sends the new instances any traffic.
-
-```typescript
-interface WarmupKey {
-  key: string;
-  load: () => Promise<unknown>;
-  ttlSeconds: number;
-}
-
-async function warmup(cache: CacheClient, keys: WarmupKey[]): Promise<void> {
-  await Promise.all(
-    keys.map(async ({ key, load, ttlSeconds }) => {
-      await cache.set(key, await load(), jitteredTtl(ttlSeconds));
-    }),
-  );
-}
-
-// Run as a readiness gate, not as a background task after cutover.
-await warmup(cache, [
-  { key: "homepage:featured", load: () => db.getFeaturedProducts(), ttlSeconds: 300 },
-  { key: "config:flags", load: () => db.getFeatureFlags(), ttlSeconds: 600 },
-]);
-```
+Pre-populate the handful of keys you know will be hit — the homepage query, feature flags, the
+configuration blob — and do it as a **readiness gate** rather than as a background task after cutover.
+An instance that takes traffic before its cache is warm is an instance that sends every one of its
+first requests to the database, and a rolling deploy repeats that once per instance.
 
 ## When to Use It
 
@@ -250,13 +225,6 @@ When the data changes faster than it is read, when correctness at the instant of
 requirement, and when the traffic has no repetition — every request unique means every lookup a miss
 plus the cost of storing something nobody asks for again. In those cases the real fix is usually an
 index, a read replica, or a cheaper query.
-
-**Q: Where should the cache live — in the process, in Redis, or at the CDN?**
-
-As far from the database as the data allows. Public, non-personalised responses belong at the CDN,
-where they never touch your infrastructure. Shared, non-public data belongs in Redis, where every
-instance sees the same copy and one invalidation is enough. In-process caching is fastest but each
-instance has its own copy, so it suits small, rarely-changing config and little else.
 
 ## What to Read Next
 

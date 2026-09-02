@@ -2,10 +2,10 @@
 title: The API Gateway Pattern
 part: 6
 chapter: 0
-slug: microservices-api-gateway
-level: intermediate # beginner | intermediate | advanced
+slug: api-gateway-pattern
+level: intermediate
 reading_time: 8
-updated: 2026-08-31
+updated: 2026-09-02
 tags: [system-design, microservices, api-gateway, bff]
 in_book: true
 ---
@@ -22,7 +22,7 @@ An API gateway is the single entry point for all client traffic. Clients never c
 
 The pattern is a bet: cross-cutting concerns are cheaper to maintain in one place than in twenty. That bet pays off for auth, TLS, routing and limits. It stops paying the moment anything resembling business logic moves in, because the gateway is then a shared component every team must change together.
 
-This chapter is the pattern and its boundaries. The concrete design — pipeline stages, route config, scaling, capacity — is [Chapter ?? — Design an API Gateway](#ch-design-api-gateway).
+This chapter is the pattern, its boundaries, and where the cross-cutting concerns it owns belong in the stack.
 
 ## How It Works
 
@@ -73,6 +73,28 @@ A load balancer spreads traffic across replicas. A gateway decides *which servic
 | Owns | Auth, quotas, routing, TLS termination | mTLS, retries, per-hop tracing, traffic shifting |
 
 They are complements, not alternatives. Mature microservice estates run both; a small one usually needs only the gateway.
+
+### Where a cross-cutting concern belongs
+
+Auth and rate limiting are the two the gateway is usually bought for, and both are enforced in more than
+one place. The rule is that each layer rejects what it can reject most cheaply.
+
+| Layer            | Rejects                                          | Cost of a rejection      |
+| ---------------- | ------------------------------------------------ | ------------------------ |
+| CDN or edge WAF  | Volumetric floods, known-bad IPs, obvious bots    | Nothing reaches you      |
+| API gateway      | Unauthenticated requests, per-client quotas, per-route limits | One cheap L7 hop |
+| Service          | Business rules — per-tenant plans, per-resource permissions | A full request |
+
+The gateway is the authoritative control because it sees every external request and has the client
+identity. It is not the *only* control: internal callers bypass it entirely, so a service that must not
+be overwhelmed still needs its own limit as defence in depth. The algorithms and the atomic counter that
+implement one are in [Chapter ?? — Rate Limiting](#ch-rate-limiting).
+
+Two numbers make the gateway's limiter design real. At a million requests a second, the counter store is
+the bottleneck, not the routing — so keys shard across a Redis cluster by client identifier, and each
+check is one round trip on the hot path. And every new rule ships in **monitor mode** first, counting
+what it *would* have rejected, because a limit tuned from guesses will reject a real customer on the day
+it is enabled.
 
 ## When to Use It
 
@@ -166,12 +188,8 @@ When client needs diverge enough that one payload shape actively harms a client 
 
 Keep it stateless so it scales horizontally, run it active-active across at least two availability zones behind an L4 load balancer, and cache the route config in memory so a config-store outage does not take the edge with it. Then per-upstream circuit breakers, so the gateway's own availability is not coupled to the least reliable service behind it.
 
-**Q: Gateway or service mesh?**
-
-Both, eventually, for different traffic. The gateway handles north–south — external clients entering the cluster — where auth, quotas and TLS termination matter. A mesh handles east–west service-to-service traffic, where mTLS, retries and per-hop tracing matter. A small estate usually needs only the gateway; adding a mesh before there is east–west complexity to manage is cost without benefit.
-
 ## What to Read Next
 
-- [Chapter ?? — Design an API Gateway](#ch-design-api-gateway) — the concrete design: middleware pipeline, route config, scaling and capacity numbers
+- [Chapter ?? — Rate Limiting](#ch-rate-limiting) — the algorithms and the atomic counter behind the gateway's quota check
 - [Chapter ?? — Load Balancing](#ch-load-balancing) — the layer beneath, and where L4 versus L7 actually matters
 - [Chapter ?? — Resilience Patterns](#ch-resilience-patterns) — circuit breakers and timeouts, which the gateway needs on every upstream

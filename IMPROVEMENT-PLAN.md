@@ -36,7 +36,7 @@ happened: the budget arithmetic in #1, the frontend-share rule, and the line-bud
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-01 · **Progress:** 34 / 83
+**Last updated:** 2026-09-02 · **Progress:** 35 / 83
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -2707,14 +2707,14 @@ the same four pre-existing ones (`ch-preface`, `ch-further-reading`, `ch-version
 > | I — Foundations | ~~12,601~~ **4,976** | 5,000 | ~~+7,601~~ **0** | #26, **#31a** | ✅ **under budget** |
 > | II — Browser Platform | ~~12,146~~ **5,775** | 6,000 | ~~+6,146~~ **0** | **#31b** | ✅ **under budget** |
 > | IV — Frontend at Scale | 6,649 | 5,500 | +1,149 | #42, #57, #58 | pending |
-> | V — Backend | 13,010 | 6,500 | **+6,510** | #24 ✅, #31 `S` | #31 is worth ~600 |
-> | VI — System Design | 13,736 | 6,500 | **+7,236** | #22, #23, #28 | ✅ all done |
+> | V — Backend | ~~13,010~~ **6,458** | 6,500 | ~~+6,510~~ **0** | #24, #31, **#31c** | ✅ **under budget** |
+> | VI — System Design | ~~13,736~~ **6,345** | 6,500 | ~~+7,236~~ **0** | #22, #23, #28, **#31d** | ✅ **under budget** |
 > | VIII — Ship and Operate | 6,046 | 5,500 | +546 | #20, #25 | ✅ all done |
 > | IX — Human Layer | 4,553 | 2,500 | **+2,053** | #25, #29 | ✅ all done |
 > | Appendix — DSA | 4,610 | 5,600 | −990 ✅ | #27 | ✅ done |
 >
 > **31,241 lines over, and 23,582 of it with no remaining owner.** _(#31a has since cleared Part I's
-> 7,601; the live figure is **23,251**, which `pnpm lint:docs --rule=budget` reports. #31b has since cleared Part II's 6,146; the live figure is **17,105**.)_ Parts III and VII then add 19,500
+> 7,601; the live figure is **23,251**, which `pnpm lint:docs --rule=budget` reports. #31b has since cleared Part II's 6,146; the live figure is **17,105**. #31c cleared Part V's 6,510 and #31d Part VI's 7,236; the live figure is **3,748**, all of it owned by **#31e**.)_ Parts III and VII then add 19,500
 > lines that have not been written yet, so the book as planned lands near **88,000 against a 57,000
 > budget and a 60,000 hard ceiling**.
 >
@@ -2941,7 +2941,7 @@ per-item split was wrong.
 
 ---
 
-### - [ ] 31d. Trim Part VI — System Design — to its 6,500-line budget `L`
+### - [x] 31d. Trim Part VI — System Design — to its 6,500-line budget `L` — ✅ **done 2026-09-02**
 
 **+7,236 over, with every assigned item already complete** — `#22`, `#23` and `#28` between them
 delivered 6,464 of the 13,700 lines the budget table credits them with.
@@ -2962,6 +2962,89 @@ is the shape of the problem: no section is individually wrong, and the part is 2
 reader is most likely to be examined on, and `#42` moves half of it to Part IV anyway.
 
 **Done when:** `pnpm lint:docs` reports Part 6 at or under its BOOK-SPEC § 5 budget.
+
+**Delivered:**
+
+- **Part VI is 13,488 → 6,345 lines, 155 under the 6,500 ceiling.** `pnpm lint:docs` no longer reports a
+  Part 6 budget violation. The `budget` baseline drops 10,736 → **3,748**, committed to
+  `.lint-baseline.json`; every other rule is still **0**. `pnpm book:collect` builds 217 files / 45,432
+  lines, down from 244 / 52,575.
+- **61 chapters became 28, across five sections instead of six.** BOOK-SPEC § 5 budgets ~34 chapters; 28
+  is what 6,500 lines buys once the seven protected `Frontend/` chapters take 1,175 of them. `Microservices/`
+  was dissolved — BOOK-SPEC § 4's own description of Part VI lists *Fundamentals · Building blocks ·
+  Frontend system design · case studies* and no microservices section, and its eight chapters were either
+  Part VIII's or belonged beside the building blocks.
+
+  | Section | Was | Now | What changed |
+  | ------- | --- | --- | ------------ |
+  | `Fundamentals` | 8 ch / 2,041 | **6 ch / 1,257** | `01-basics` + `08-framework` → `01-driving-the-round`; `07-calculations` → `02-estimation`; `04-performance` → `05-latency-and-throughput`; `05-cap-theorem` + `06-consistency` + `Database/07` + `Database/08` → `06-consistency-and-cap` |
+  | `BuildingBlocks` | 11 ch / 2,519 | **9 ch / 1,772** | `05-message-queues` + `11-async-processing` + `08-notifications` → `04-queues-and-async`; `07-search` rewritten as `05`; `Microservices/03` → `07-api-gateway`; `Microservices/01`+`04`+`05` → `08-service-boundaries`; `Microservices/08` → `09-resilience`; `Microservices/02` folded into `01-load-balancing`; `04-databases` merged into `Database/01` |
+  | `Database` | 10 ch / 2,739 | **4 ch / 847** | `01`+`02`+`09` → `01-choosing-a-datastore`; `04` → `02-replication`; `06` → `04-transactions-at-scale`; indexing and query optimisation handed to Part V, which owns them at implementation depth |
+  | `CaseStudies` | 10 ch / 2,565 | **4 ch / 862** | Kept the four distinct shapes — a key-value read path, fan-out, a stateful edge, contention. Six archived |
+  | `Microservices` | 8 ch / 1,895 | **dissolved** | 5 chapters became `BuildingBlocks/07`–`09`; deployment and distributed tracing archived to Part VIII |
+  | `Frontend` | 13 ch / 2,952 | **11 ch / 2,540** | **Protected, and untouched** apart from six front-matter `slug` fixes. Two chapters were staged for Part III — see below. Six of the eleven already count against Part IV via `PART_OVERRIDES`, so only 1,115 lines sit in Part VI |
+
+- **All 24 chapters this item wrote or edited conform to the Book Chapter Standard**, verified by script:
+  six blocks in order, H1 anchor matching the front-matter `slug`, 150–400 lines (160–261, mean 210),
+  exactly one `## 💡` and one `## 🔑`, at most three `⚠️` callouts, no `####`, no hand-written TOC, no
+  back-link, no relative link in any body, 3–6 interview questions **including a judgement call in every
+  one**, and balanced code fences. That includes converting the four surviving case studies from the RADIO
+  section flow to the six blocks with RADIO inside `## How It Works` — the debt **#28** logged and
+  assigned to #70 is now closed for Part VI.
+- **Two chapters staged rather than cut: `Archive/salvage/frontend/`.** `SystemDesign/Frontend/02-state-management.md`
+  (216) and `03-rendering.md` (196) are Part III material that **#42** already schedules for absorption by
+  **#39** and **#40**. Moving them early was the least damaging 412 lines available, and it honours a
+  decision the plan had already taken rather than inventing one. Both keep their front matter with
+  `in_book: false`, per the `salvage/` convention, and nothing in the book links to either anchor.
+  `SystemDesign/Frontend/` now has gaps at `02` and `03`; **#42 renumbers the section anyway.**
+- **Zero new dangling anchors, and one pre-existing defect closed.** 31 anchors went away; every inbound
+  reference was repointed. `Backend/API/04-rate-limiting.md`'s two references to `#ch-design-rate-limiter`
+  now point at `#ch-api-gateway-pattern`, which absorbed the CDN → gateway → service enforcement stack and
+  the million-requests-a-second numbers **#31** had put in the case study. `BuildingBlocks/06-websockets.md`
+  repoints from `#ch-design-notification-system` to `#ch-design-chat-system`. **The `ch-deployment-strategies`
+  duplicate anchor logged at #27, #28 and #30 is gone** — it was `Microservices/06-deployment.md`, now
+  archived, and all four inbound references were already targeting the `ShipAndOperate/CICD` chapter.
+  The three remaining book-wide danglers (`ch-preface`, `ch-further-reading`,
+  `ch-web-performance-caching-strategies`) are pre-existing and belong to **#72** and **#70**.
+- **Six slug/anchor mismatches closed** in `BuildingBlocks/06` and five `Frontend/` chapters — the same
+  defect class **#31c** fixed across Part V. These are front-matter-only edits; no `Frontend/` chapter body
+  was touched.
+- **Archived, not merged: 11 files.** `Archive/systemdesign/building-blocks/` (file storage, monitoring —
+  Part VIII owns both), `Archive/systemdesign/microservices/` (deployment, distributed tracing, and the old
+  section README), and six more case studies numbered `20`–`25` in `Archive/systemdesign/case-studies/` to
+  avoid colliding with **#28**'s ten. Everything else was **merged**, so it is in git history rather than in
+  `Archive/` — the rule `Archive/README.md` already states and `Scalability/` already follows. Both archive
+  READMEs and `Archive/salvage/README.md` updated.
+
+**Correction to #43 — decide it here, not at #43.** Part VI now stands at 6,345. **#42** removes a further
+~410 lines of `Frontend/` chapters (`04-performance`, `09-assets`, `12-monitoring` are already counted
+against Part IV; `01`, `05` and `08` move to `Frontend/Architecture/`), leaving roughly **5,930**. That
+gives #43 about **570 lines for five frontend case studies** — 114 each, below the 150-line chapter floor.
+The item as written says 250–350 lines each, which needs 1,250–1,750. **It cannot be paid for out of Part
+VI's budget as it stands.** Three options, and one of them has to be chosen at #43:
+
+1. Write the five at ~200 lines each (1,000) and take Part VI to ~6,930 — **over budget, not acceptable**
+2. Write the five at ~200 lines and cut two more backend case studies, leaving 2 backend + 5 frontend
+3. Write **four** frontend studies at ~220 (880) and cut one backend study, leaving 3 backend + 4 frontend
+
+Option 3 is the recommendation: four frontend studies still triples the frontend coverage this reader
+needs, and 3 + 4 = 7 studies is a section, not a token. #43 has been amended with this note.
+
+**Correction to BOOK-SPEC § 4's Part VI description.** It promises "ten case studies… joined by five
+frontend ones" — fifteen studies. At the 150-line floor that is 2,250 lines, 35% of the part, alongside a
+Fundamentals section, a Building Blocks section and eleven `Frontend/` chapters. **The prose and § 5's
+6,500-line budget do not close.** § 5 is the contract the lint enforces, so this item honoured the budget;
+the prose needs an amendment at **#71** or **#76**, and the honest number is seven or eight case studies,
+not fifteen.
+
+**Not done, and not this item's.** Four `SystemDesign/Frontend/` chapters — `00-interview-strategy`,
+`07-offline-first`, `10-seo-analytics`, `11-auth` — still predate the Book Chapter Standard: no six blocks,
+no interview questions, a `[← Back to README]` footer and a relative link in each, and `00` is 149 lines,
+one under the floor. This item was told to **protect** that section, and converting four chapters would
+have cost the budget headroom it exists to defend. Owner is **#42** (which reshapes the section) or
+**#70**. Fixing all four would also return ~40 lines to the part.
+
+
 
 ---
 
@@ -3167,6 +3250,15 @@ Research finding: Vite is at 98% usage; raw Webpack config has fallen to near ze
 | `04-performance.md`, `09-assets.md`, `12-monitoring.md` | Merge into `Frontend/WebPerformance/`  |
 | `00-interview-strategy.md`, `06`, `07`, `10`, `11` | Stay as frontend system design (Part VI) |
 
+> **Amended at #31d.** `02-state-management.md` and `03-rendering.md` are already out of the section —
+> they are staged in `Archive/salvage/frontend/` with `in_book: false`, waiting for #39 and #40. Two
+> consequences for this item. The directory now has **11 files numbered 00–12 with gaps at 02 and 03**,
+> so this item's move should renumber the survivors contiguously. And the six files
+> `PART_OVERRIDES` in `scripts/lib/book.ts` already counts against Part IV — `01`, `04`, `05`, `08`, `09`,
+> `12` — must have their override entries **deleted** as they move, or they will be double-counted once
+> their paths change. Four of the five stayers (`00`, `07`, `10`, `11`) still predate the Book Chapter
+> Standard; #31d left them deliberately, and this item or #70 has to convert them.
+
 **Done when:** each file lives in exactly one part with no duplicated content.
 
 ---
@@ -3183,6 +3275,18 @@ frontend system design rounds actually ask:
 5. **Design a dashboard with 50 live widgets** — data fan-in, WebSocket vs SSE vs polling, render budget
 
 Each follows RADIO and stays 250–350 lines.
+
+> 🔴 **Amended at #31d — the length is not affordable and the count has to change.** Part VI is at
+> **6,345** lines against a 6,500 ceiling. #42 removes roughly 410 more, leaving about **5,930** — so this
+> item has **~570 lines**, not the 1,250–1,750 that five studies at 250–350 need. #31d recommends
+> **four frontend studies at ~220 lines each (880), paid for by cutting one more backend study**, ending
+> at 3 backend + 4 frontend and roughly 6,460 lines. Drop the typeahead or the infinite feed — the feed
+> overlaps `CaseStudies/02-news-feed.md` and the typeahead overlaps `BuildingBlocks/05-search.md`, so
+> either can go without leaving a gap. The alternative is to cut two backend studies and keep all five.
+> **Do not write five at 250–350; it puts Part VI ~1,200 lines over and breaks the budget #31d just met.**
+>
+> Follow the six blocks, with RADIO inside `## How It Works` — that is the shape the four surviving
+> backend studies now use, and it closed the conversion debt #28 logged.
 
 ---
 
@@ -3576,13 +3680,13 @@ the site markets the book and the book funds the site.
 | ----- | ------- | ---- | -------------- |
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
-| 2     | 20–31 · 31a–31e | 15/17 | 🔄 In progress  |
+| 2     | 20–31 · 31a–31e | 16/17 | 🔄 In progress  |
 | 3     | 32–43   | 0/12 | ⬜ Not started  |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63   | 0/10 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–78   | 0/9  | ⬜ Not started |
-| **Total** | **83** | **34/83** | **41%**   |
+| **Total** | **83** | **35/83** | **42%**   |
 
 ---
 
@@ -3615,7 +3719,7 @@ current tree; content is mapped to its destination part, so `DevOps/Agile` count
 | Gross cuts                                             | Lines       |
 | ------------------------------------------------------ | ----------- |
 | DevOps archived — #20, #25                              | 34,600      |
-| SystemDesign deduped and archived — #22, #23, #28       | 13,700      |
+| SystemDesign deduped and archived — #22, #23, #28, #31d  | 13,700      |
 | DSA trimmed to pattern-recognition only — #27           | 13,500      |
 | Foundations consolidated (OOP ⟷ patterns, JS/TS) — #26  | 12,500      |
 | Browser platform trimmed (PWA is 6,002 lines today)     | 6,200       |

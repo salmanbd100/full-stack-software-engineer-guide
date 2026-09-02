@@ -2,7 +2,7 @@
 title: Frontend Authentication
 part: 6
 chapter: 0
-slug: auth
+slug: frontend-authentication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
 updated: 2026-08-28

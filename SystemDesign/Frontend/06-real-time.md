@@ -2,7 +2,7 @@
 title: Frontend Real-Time Features
 part: 6
 chapter: 0
-slug: real-time
+slug: frontend-real-time-features
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
 updated: 2026-08-31

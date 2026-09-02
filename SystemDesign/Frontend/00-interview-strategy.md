@@ -2,7 +2,7 @@
 title: Frontend System Design Strategy
 part: 6
 chapter: 0
-slug: interview-strategy
+slug: frontend-system-design-strategy
 level: intermediate # beginner | intermediate | advanced
 reading_time: 4
 updated: 2026-08-28
