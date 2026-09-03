@@ -26,22 +26,22 @@ framework change cannot take away.
 
 | #  | Chapter                                | What it answers                                                    |
 | -- | -------------------------------------- | ------------------------------------------------------------------ |
-| 01 | The React mental model                 | What happens between `setState` and the screen, and why keys matter |
-| 02 | Hooks in depth                         | Why the rules exist, and what a stale closure really captures       |
-| 03 | `useEffect` and when not to use it     | Which of these effects should have been derived state?             |
-| 04 | Component composition patterns         | How do you give an API away without giving control away?           |
-| 05 | Server Components vs Client Components | Where is the boundary, and what is allowed to cross it?            |
-| 06 | Suspense and streaming                 | How does half a page arrive, and why did hydration mismatch?       |
-| 07 | Transitions and concurrency            | Which updates are urgent, and who decides?                         |
-| 08 | Actions and forms                      | How does a mutation work without a client-side fetch handler?      |
+| 01 | [The React Mental Model](./01-react-mental-model.md) | What happens between `setState` and the screen, and why keys matter |
+| 02 | [Hooks in Depth](./02-hooks-in-depth.md) | Why the rules exist, and what a stale closure really captures       |
+| 03 | [`useEffect` and When Not to Use It](./03-when-not-to-use-effect.md) | Which of these effects should have been derived state? |
+| 04 | [Component Composition Patterns](./04-composition-patterns.md) | How do you give an API away without giving control away? |
+| 05 | [Server Components and Client Components](./05-server-and-client-components.md) | Where is the boundary, and what is allowed to cross it? |
+| 06 | [Suspense and Streaming](./06-suspense-and-streaming.md) | How does half a page arrive, and why did hydration mismatch?       |
+| 07 | [Transitions and Concurrency](./07-transitions-and-concurrency.md) | Which updates are urgent, and who decides?               |
+| 08 | [Actions and Forms](./08-actions-and-forms.md) | How does a mutation work without a client-side fetch handler?      |
 | 09 | Performance and the React Compiler     | What does the compiler memoise, and what is still yours?           |
 | 10 | Error boundaries and resilience        | What does the user see when a subtree throws?                      |
 | 11 | React and TypeScript at scale          | How do you type props, refs, context and state without `any`?      |
 | 12 | Testing React                          | What do you test when the component runs on the server?            |
 
-> ⚠️ **Being written.** Improvements #33–35 fill this table; the titles link as each chapter lands.
-> Chapter 11 absorbs the existing `Frontend/TypeScript/08-react-typescript.md`, which moves here rather
-> than being copied.
+> ⚠️ **Being written.** Chapters 01–08 are written (#33, #34). Improvement #35 fills 09–12; those titles
+> link as each chapter lands. Chapter 11 absorbs the existing
+> `Frontend/TypeScript/08-react-typescript.md`, which moves here rather than being copied.
 
 ## What Interviewers Probe For
 

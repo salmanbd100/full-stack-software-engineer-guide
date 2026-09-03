@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-03 · **Progress:** 38 / 90
+**Last updated:** 2026-09-03 · **Progress:** 40 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -3256,7 +3256,7 @@ _the framework is an implementation detail; the rendering model and the state mo
 
 ---
 
-### - [ ] 33. Write `React/` chapters 01–04 — the model `L`
+### - [x] 33. Write `React/` chapters 01–04 — the model `L` — ✅ **done 2026-09-03**
 
 Use **Context7 MCP** for current React docs before writing.
 
@@ -3267,9 +3267,46 @@ Use **Context7 MCP** for current React docs before writing.
 | 03  | `useEffect` and when **not** to use it | The single most common senior red flag — derived state, event handlers, `useSyncExternalStore` |
 | 04  | Component composition patterns  | Compound components, render props today, slots, controlled vs uncontrolled |
 
+> **Amended 2026-09-03 — this item had no "Done when" line.** #33 through #41 were all written without
+> one; the acceptance test for a chapter-writing item is the same each time, so it is stated here and
+> should be copied into #34–#41 as each is picked up.
+
+**Done when:** all four chapters exist under `Frontend/ModernStack/React/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body),
+`pnpm lint:docs` shows no rule regressed, and the section README links them.
+
+**Delivered:**
+
+- Four chapters, **965 lines** — `01-react-mental-model.md` (227), `02-hooks-in-depth.md` (249),
+  `03-when-not-to-use-effect.md` (231), `04-composition-patterns.md` (258). All inside the 150–400 band,
+  all seven `##` headings in the Book Chapter Standard's order, no `####`, no relative links in a body
+- Part III is now **1,406 of its 12,000-line budget** across 11 files. The book is 208 files, 41,664 lines
+- **The split between 02 and 03 is deliberate and worth keeping.** 02 is the *mechanism* — call order,
+  `useState` against `useRef`, dependency arrays, cleanup, stale closures, custom hooks. 03 is the
+  *judgement* — the four effects to delete (derived state, `key` resets, event logic, external stores) and
+  the table of the ones that stay. Writing both as "useEffect" chapters would have been a non-negotiable
+  #7 duplication
+- Context7 checked against `/reactjs/react.dev` before writing. Three React 19 facts the chapters depend
+  on and that pre-19 training data gets wrong: **`ref` is a plain prop** and `forwardRef` is heading for
+  deprecation; **`<Context value={…}>`** replaces `<Context.Provider>`; and **`use` is the one hook that
+  may be called conditionally**. `vercel:react-best-practices` was also consulted per the
+  `write-topic-docs` companion table — it supplied the lazy-`useState`-initialiser, no-components-inside-
+  components and derive-during-render points
+- **Slugs are now fixed for the whole React section**, because 01–04 cross-reference forward and #34/#35
+  must match them. `react-mental-model`, `react-hooks-in-depth`, `when-not-to-use-effect`,
+  `react-composition-patterns`, then `server-components-vs-client-components`, `suspense-and-streaming`,
+  `transitions-and-concurrency`, `react-actions-and-forms`, `react-performance-and-the-compiler`,
+  `react-error-boundaries`, `react-typescript-at-scale`, `testing-react`. Chapter 03 also points forward
+  at `four-kinds-of-state`, which #40 owns. Note `react-typescript` is **taken** by
+  `Frontend/TypeScript/08-react-typescript.md` until #35 moves it, which is why chapter 11's slug differs
+- Forward cross-references use the `[Chapter ?? — Title](#ch-slug)` form the standard allows. **#70 has to
+  replace every `??` with a real number** — there are 5 in this set
+- `pnpm lint:docs`: 204 → **208 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,149. **`.lint-baseline.json` unchanged**
+
 ---
 
-### - [ ] 34. Write `React/` chapters 05–08 — the concurrent era `L`
+### - [x] 34. Write `React/` chapters 05–08 — the concurrent era `L` — ✅ **done 2026-09-03**
 
 | #   | Chapter                       | Must cover                                                             |
 | --- | ----------------------------- | ---------------------------------------------------------------------- |
@@ -3277,6 +3314,38 @@ Use **Context7 MCP** for current React docs before writing.
 | 06  | Suspense and streaming        | Boundaries, fallbacks, streaming SSR, hydration mismatch debugging      |
 | 07  | Transitions and concurrency   | `useTransition`, `useDeferredValue`, urgent vs non-urgent updates       |
 | 08  | Actions and forms             | React 19 Actions, `useActionState`, `useOptimistic`, `useFormStatus`, server mutations |
+
+**Done when:** all four chapters exist under `Frontend/ModernStack/React/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body),
+`pnpm lint:docs` shows no rule regressed, and the section README links them. _Added at #34, per #33's
+amendment — #35–#41 still need the same line copied in._
+
+**Delivered:**
+
+- Four chapters, **841 lines** — `05-server-and-client-components.md` (230),
+  `06-suspense-and-streaming.md` (185), `07-transitions-and-concurrency.md` (186),
+  `08-actions-and-forms.md` (240). All in the 150–400 band, all seven `##` headings in order, no `####`,
+  no relative links in a body, ⚠️ callouts at 0–1 per chapter against a budget of 3
+- `React/` is now 8 of 12 chapters and **1,806 lines**. Part III is at **2,247 of 12,000**
+- Context7 supplied four things that decide whether these chapters are right, and that pre-19 training
+  data gets wrong. **`'use client'` marks a boundary on the module dependency graph, not the render
+  tree** — which is why a Client Component can render a Server Component passed as `children` but cannot
+  import one; that is chapter 05's central argument. The **exact serialisable-props list** (primitives,
+  iterables, `Date`, plain objects, JSX, promises, Server Functions — never classes, closures or
+  null-prototype objects). **`useActionState` returns a three-tuple** `[state, action, isPending]`.
+  And **React replays a form submission made before hydration finished**, which is chapter 08's
+  progressive-enhancement claim
+- 06 and 07 came in at 185 and 186 lines against a ~220 target. Both are inside the band and were left
+  rather than padded; they are tight because the API surface is small and the judgement is in the
+  placement, which the decision tables carry
+- **Slug reservations this item makes for later items.** Chapter 06 points at `#ch-streaming-html` and
+  chapter 05 at `#ch-rendering-spectrum` — both **#39**, which should use `rendering-spectrum`,
+  `hydration-and-its-costs`, `streaming-html`, `choosing-per-route`, `seo-and-rendering`,
+  `edge-vs-origin`. Chapter 08 points at `#ch-form-state`, which **#40** owns. Chapter 03 already
+  reserved `four-kinds-of-state` from the same item
+- Forward `[Chapter ?? — …]` references now total **12 across chapters 01–08**, all for #70 to number
+- `pnpm lint:docs`: 208 → **212 files**, six rules at zero, the one violation still Part IV's
+  pre-existing +1,149. **`.lint-baseline.json` unchanged**
 
 ---
 
@@ -4081,12 +4150,12 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
-| 3     | 32–43   | 1/12 | 🔄 In progress |
+| 3     | 32–43   | 3/12 | 🔄 In progress |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **38/90** | **42%**   |
+| **Total** | **90** | **40/90** | **44%**   |
 
 ---
 
