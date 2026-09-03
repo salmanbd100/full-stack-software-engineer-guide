@@ -19,16 +19,17 @@ senior reader is not "frontend vs backend" — it is *language*, *platform*, and
 | ---- | ---------- | ---------------- |
 | **I — Foundations** | The language, underneath the definition | [`JavaScript/`](./JavaScript/README.md) · [`TypeScript/`](./TypeScript/README.md) |
 | **II — The Browser Platform** | What the platform gives you before any framework does | [`HtmlCss/`](./HtmlCss/README.md) · [`BrowserAPIs/`](./BrowserAPIs/) · [`PWA/`](./PWA/README.md) · [`Internationalization/`](./Internationalization/) |
+| **III — The Modern Frontend Stack** | React, Next.js and Svelte, plus the models underneath them | [`ModernStack/`](./ModernStack/README.md) |
 | **IV — Frontend at Scale** | Forty engineers, four years of history, a performance budget | [`WebPerformance/`](./WebPerformance/) · [`Security/`](./Security/) · [`Testing/`](./Testing/) |
 
-**Part III — The Modern Frontend Stack** also belongs to this tree and **does not exist yet**. It is
-planned as `Frontend/ModernStack/` — React, Next.js, Svelte, plus framework-agnostic sections on
-rendering, state management and tooling. At 12,000 lines it is the largest part in the book, and it is
-the single biggest gap in this repository. See improvements #32–43.
+**Part III — The Modern Frontend Stack** is the largest part in the book at 12,000 lines, and it was
+the single biggest gap in this repository. [`ModernStack/`](./ModernStack/README.md) now exists with its
+six section indexes — React, Next.js, Svelte, Rendering, State Management, Tooling — and the chapters
+themselves are being written by improvements #33–43.
 
-> ⚠️ Two directories referenced by older versions of this file — `./React/` and `./NextJs/` — have
-> never existed. They were an aspiration, not a link. Nothing else here promises a directory that is
-> not on the table above.
+> ⚠️ Two directories referenced by older versions of this file — `./React/` and `./NextJs/` — never
+> existed. They were an aspiration, not a link, and the material they promised lives under
+> `ModernStack/` instead. Nothing here promises a directory that is not on the table above.
 
 ---
 
@@ -62,6 +63,22 @@ which makes them cheap differentiation.
 
 **Senior signal:** reaches for the platform before reaching for a library.
 
+## Part III — The Modern Frontend Stack
+
+The part the book exists for, and the one the 2026–27 senior loop is built on. It is deliberately split
+in half: three sections teach today's tools, three teach the models underneath them, so half the part
+survives the next major release of anything.
+
+- **[Modern Stack](./ModernStack/README.md)** — the part opener, and the argument that the framework is
+  an implementation detail while the rendering model and the state model are the architecture
+- **[React](./ModernStack/React/README.md)** · **[Next.js](./ModernStack/NextJS/README.md)** ·
+  **[Svelte](./ModernStack/Svelte/README.md)** — the three frameworks, and only these three
+- **[Rendering](./ModernStack/Rendering/README.md)** ·
+  **[State Management](./ModernStack/StateManagement/README.md)** ·
+  **[Tooling](./ModernStack/Tooling/README.md)** — framework-agnostic by design
+
+**Senior signal:** picks a rendering strategy per route and can defend it.
+
 ## Part IV — Frontend at Scale
 
 Part III is how to build it. Part IV is how to build it when it is large, old, and someone is held to
@@ -80,7 +97,7 @@ a performance budget.
 
 ## Reading Order
 
-Straight down the table: I → II → (III, when it exists) → IV. Each part assumes the one above it.
+Straight down the table: I → II → III → IV. Each part assumes the one above it.
 
 **Interview sprint:** Part I in full, then `HtmlCss/` and `WebPerformance/`. Those three cover the
 majority of what a frontend-heavy senior loop actually asks before the system design round.

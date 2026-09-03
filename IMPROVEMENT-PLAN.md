@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-03 · **Progress:** 37 / 90
+**Last updated:** 2026-09-03 · **Progress:** 38 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -3218,12 +3218,41 @@ Frontend/ModernStack/
 
 ---
 
-### - [ ] 32. Scaffold `Frontend/ModernStack/` and write the part opener `S`
+### - [x] 32. Scaffold `Frontend/ModernStack/` and write the part opener `S` — ✅ **done 2026-09-03**
 
 Create all six subdirectories with READMEs and a Part III opener explaining the through-line:
 _the framework is an implementation detail; the rendering model and the state model are the architecture._
 
 **Done when:** the tree exists, READMEs list planned chapters, and `Frontend/README.md` links resolve (fixes item 9's outstanding two).
+
+**Delivered:**
+
+- `Frontend/ModernStack/` created with all six subdirectories and **seven READMEs, 441 lines**:
+  the Part III opener plus `React/`, `NextJS/`, `Svelte/`, `Rendering/`, `StateManagement/`, `Tooling/`.
+  Part III goes from 0 to 441 of its 12,000-line budget
+- The opener carries the part's through-line — *the framework is an implementation detail; the rendering
+  model and the state model are the architecture* — and the half-and-half structure that justifies it:
+  three tool sections, three model sections, so half the part survives the next major release
+- All 46 planned chapters are listed across the six section tables with a "what it answers" column,
+  matching the chapter lists in #33–41 exactly. **Titles are plain text, not links** — the files do not
+  exist yet and a link to one would be a `broken-link` violation. Each table carries a ⚠️ note naming the
+  item that fills it, and `Rendering/`/`StateManagement/` name the two chapters staged in
+  `Archive/salvage/frontend/` that #39 and #40 absorb
+- Section indexes follow the `ShipAndOperate/` precedent, not the `Part N — X` one: the part opener is
+  `ModernStack/README.md` and the six below it take bare titles, because all six live under one directory
+- Context7 checked before writing. Version-stamped **React 19, Next.js 16, Svelte 5**, with a
+  moving-target callout in the opener and another in `NextJS/` for the caching semantics that changed in
+  15 and again in 16
+- `Frontend/README.md`: Part III added to the parts table, given its own section body, and the "does not
+  exist yet" paragraph replaced. Reading order is now `I → II → III → IV` with no parenthetical
+- `README.md` (repo root): Part III's "Where it lives today" cell now links at `ModernStack/`, the "two
+  holes in the hull" section says *almost* no React content rather than none, the stale claim that
+  `Frontend/README.md` links to `./React/` and `./NextJs/` is gone, and the layout tree says Parts I–IV
+- **Item 9's outstanding two were already closed by #18**, which deleted the `./React/` and `./NextJs/`
+  links rather than waiting for this item to make them resolve. `broken-link` was already 0 on entry and
+  is still 0; this item added the working links the plan expected, one item late in bookkeeping terms
+- `pnpm lint:docs`: 197 → **204 files**, six rules at zero, the one violation still Part IV's
+  pre-existing +1,149. **`.lint-baseline.json` unchanged.** `pnpm book:collect`: 204 files, 40,695 lines
 
 ---
 
@@ -4052,12 +4081,12 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
-| 3     | 32–43   | 0/12 | ⬜ Not started  |
+| 3     | 32–43   | 1/12 | 🔄 In progress |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **37/90** | **41%**   |
+| **Total** | **90** | **38/90** | **42%**   |
 
 ---
 

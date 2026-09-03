@@ -91,7 +91,7 @@ part that does not exist in the repository yet.
 | ---- | ------ | ------ | -------------------- |
 | **I — Foundations** | JavaScript semantics · TypeScript · OOP and design patterns | 5,000 | [`Frontend/JavaScript`](./Frontend/JavaScript/), [`Frontend/TypeScript`](./Frontend/TypeScript/), [`Backend/DesignPatterns`](./Backend/DesignPatterns/) |
 | **II — The Browser Platform** | HTML and CSS · Browser APIs · Accessibility · i18n · PWA | 6,000 | [`Frontend/HtmlCss`](./Frontend/HtmlCss/README.md), [`Frontend/BrowserAPIs`](./Frontend/BrowserAPIs/), [`Frontend/PWA`](./Frontend/PWA/README.md) |
-| **III — The Modern Frontend Stack** 🆕 | React · Next.js · Svelte · Rendering · State · Tooling | **12,000** | **Nothing yet.** Planned as `Frontend/ModernStack/` |
+| **III — The Modern Frontend Stack** 🆕 | React · Next.js · Svelte · Rendering · State · Tooling | **12,000** | [`Frontend/ModernStack`](./Frontend/ModernStack/README.md) — scaffolded at #32; chapters are #33–41 |
 | **IV — Frontend at Scale** | Architecture · Web performance · Frontend security · Testing | 5,500 | [`Frontend/WebPerformance`](./Frontend/WebPerformance/), [`Frontend/Security`](./Frontend/Security/), [`Frontend/Testing`](./Frontend/Testing/) |
 | **V — Backend for Frontend Engineers** | Node internals · API design · SQL and NoSQL · Auth | 6,500 | [`Backend`](./Backend/README.md) |
 | **VI — System Design** | Fundamentals · Building blocks · Frontend SD · Case studies | 6,500 | [`SystemDesign`](./SystemDesign/README.md) |
@@ -107,14 +107,16 @@ under does not hand its surplus to another.
 
 These are the reason the book is worth writing, and they are both empty:
 
-- **There is no React, Next.js or Svelte content.** Part III is the largest part in the book at 22% of
-  the budget, and the part most readers are buying it for. Planned as improvements #32–43.
+- **There is almost no React, Next.js or Svelte content.** Part III is the largest part in the book at
+  22% of the budget, and the part most readers are buying it for. `Frontend/ModernStack/` now exists with
+  its six section indexes (#32); the 46 chapters are improvements #33–43.
 - **There is no AI content.** The old `DevOps/GenAI/` was about *using* AI tools for DevOps chores, not
   about *building* AI features, which is what a 2027 senior loop asks about. #21 archived it. Part VII is
   planned as #44–53.
 
-`Frontend/README.md` links to `./React/` and `./NextJs/`; both 404. `Backend/README.md` promises
-Express and NestJS; neither exists. Do not assume a directory exists because a README references it.
+`Backend/README.md` promises Express and NestJS; neither exists. The chapter tables under
+`Frontend/ModernStack/` list titles rather than links for the same reason. Do not assume a file exists
+because a README names it.
 
 ---
 
@@ -152,7 +154,7 @@ the two before it, and why cross-references are anchors rather than "as we saw e
 ├── BOOK-SPEC.md         the contract — nine parts, budgets, twelve non-negotiables
 ├── IMPROVEMENT-PLAN.md  the 78-item route from repository to manuscript
 ├── REFERENCE-CHAPTER.md pointer at the worked example of the standard
-├── Frontend/            Parts I, II and IV
+├── Frontend/            Parts I, II, III and IV
 ├── Backend/             Part V
 ├── SystemDesign/        Part VI
 ├── ShipAndOperate/      Part VIII — what survived the #20 cut
