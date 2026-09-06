@@ -255,4 +255,4 @@ a component it has opted out of, and reviewers still ask.
 
 - [Chapter ?? — The React Mental Model](#ch-react-mental-model) — why `children` sidesteps a re-render
 - [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components) — composition across the boundary, where `children` becomes structural
-- [Chapter ?? — React with TypeScript](#ch-react-typescript) — typing generic components and slot props
+- [Chapter ?? — React and TypeScript at Scale](#ch-react-typescript-at-scale) — typing generic components and slot props

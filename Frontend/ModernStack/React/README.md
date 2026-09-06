@@ -5,7 +5,7 @@ chapter: 0
 slug: modern-stack-react-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-03
+updated: 2026-09-06
 tags: [react, hooks, rsc, suspense, actions, react-compiler]
 in_book: true
 ---
@@ -34,14 +34,14 @@ framework change cannot take away.
 | 06 | [Suspense and Streaming](./06-suspense-and-streaming.md) | How does half a page arrive, and why did hydration mismatch?       |
 | 07 | [Transitions and Concurrency](./07-transitions-and-concurrency.md) | Which updates are urgent, and who decides?               |
 | 08 | [Actions and Forms](./08-actions-and-forms.md) | How does a mutation work without a client-side fetch handler?      |
-| 09 | Performance and the React Compiler     | What does the compiler memoise, and what is still yours?           |
-| 10 | Error boundaries and resilience        | What does the user see when a subtree throws?                      |
-| 11 | React and TypeScript at scale          | How do you type props, refs, context and state without `any`?      |
-| 12 | Testing React                          | What do you test when the component runs on the server?            |
+| 09 | [Performance and the React Compiler](./09-performance-and-the-compiler.md) | What does the compiler memoise, and what is still yours? |
+| 10 | [Error Boundaries and Resilience](./10-error-boundaries.md) | What does the user see when a subtree throws?         |
+| 11 | [React and TypeScript at Scale](./11-react-typescript-at-scale.md) | How do you type props, refs, context and state without `any`? |
+| 12 | [Testing React](./12-testing-react.md) | What do you test when the component runs on the server?            |
 
-> ⚠️ **Being written.** Chapters 01–08 are written (#33, #34). Improvement #35 fills 09–12; those titles
-> link as each chapter lands. Chapter 11 absorbs the existing
-> `Frontend/TypeScript/08-react-typescript.md`, which moves here rather than being copied.
+Chapter 11 is where `Frontend/TypeScript`'s React chapter now lives — it moved here rather than being
+copied, and gained the parts that only matter at scale: unions for async state, generic components, and
+the typing rules the server/client boundary imposes.
 
 ## What Interviewers Probe For
 

@@ -246,4 +246,4 @@ state machine — not when two components happen to call the same three hooks.
 
 - [Chapter ?? — `useEffect` and When Not to Use It](#ch-when-not-to-use-effect) — the judgement call this chapter's mechanism enables
 - [Chapter ?? — The React Mental Model](#ch-react-mental-model) — why call order works at all
-- [Chapter ?? — React with TypeScript](#ch-react-typescript) — typing state, refs and custom hook returns
+- [Chapter ?? — React and TypeScript at Scale](#ch-react-typescript-at-scale) — typing state, refs and custom hook returns

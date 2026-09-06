@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-03 · **Progress:** 40 / 90
+**Last updated:** 2026-09-06 · **Progress:** 42 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -3349,7 +3349,7 @@ amendment — #35–#41 still need the same line copied in._
 
 ---
 
-### - [ ] 35. Write `React/` chapters 09–12 — production React `M`
+### - [x] 35. Write `React/` chapters 09–12 — production React `M` — ✅ **done 2026-09-06**
 
 | #   | Chapter                        | Must cover                                                           |
 | --- | ------------------------------ | -------------------------------------------------------------------- |
@@ -3358,11 +3358,52 @@ amendment — #35–#41 still need the same line copied in._
 | 11  | React + TypeScript at scale    | Typing props/generics/refs/context, discriminated unions for state (merge/expand `Frontend/TypeScript/08-react-typescript.md`) |
 | 12  | Testing React                  | RTL philosophy, testing RSCs, async and Suspense, what not to test    |
 
-> Item 12's existing `Frontend/TypeScript/08-react-typescript.md` (478 lines) should be **moved here**, not duplicated.
+> Item 12's existing `Frontend/TypeScript/08-react-typescript.md` should be **moved here**, not duplicated.
+
+**Done when:** all four chapters exist under `Frontend/ModernStack/React/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body),
+`pnpm lint:docs` shows no rule regressed, and the section README links them. _Copied in at #35, per #34's
+note — #36–#41 still need the same line._
+
+**Delivered:**
+
+- Four chapters, **965 lines** — `09-performance-and-the-compiler.md` (217),
+  `10-error-boundaries.md` (240), `11-react-typescript-at-scale.md` (300), `12-testing-react.md` (208).
+  All in the 150–400 band, all seven `##` headings in order, no `####`, no relative links in a body,
+  ⚠️ callouts at 1–2 per chapter against a budget of 3
+- **`React/` is complete — 12 chapters, 2,838 lines.** Part III is at **3,212 of 12,000** across 15 files.
+  The book is 215 files
+- **The TypeScript React chapter moved, it was not copied.** `Frontend/TypeScript/08-react-typescript.md`
+  (212 lines, not the 478 this item claimed — that figure was wrong) is deleted and its content is now
+  chapter 11, expanded with discriminated-union async state, generic components, `useActionState` typing
+  and the rule that TypeScript **cannot** model the server/client boundary. `Frontend/TypeScript/README.md`
+  drops its row for 08 and points at Part III instead; Part I is now 7 chapters
+- **Slug change other items must know about.** The old `react-typescript` slug is **retired**; chapter 11
+  is `react-typescript-at-scale`, as #33 reserved. The two live references — `React/02` and `React/04` —
+  were rewritten. Nothing else in the tree pointed at it
+- Context7 checked against `/reactjs/react.dev` and `/testing-library/testing-library-docs`. Four facts
+  the chapters rest on: the **React Compiler bails out silently** on any component that breaks the Rules
+  of React, and `eslint-plugin-react-hooks` surfaces those diagnostics even before adoption; the
+  `"use memo"` / `"use no memo"` directives; React 19's **root-level `onCaughtError` / `onUncaughtError` /
+  `onRecoverableError`** options, which is where hydration mismatches actually surface; and that profiling
+  instrumentation is stripped from production builds, so profiles must be read with that in mind.
+  `vercel:react-best-practices` supplied the three-problems framing in chapter 09 — bundle, waterfalls
+  and re-renders are separate problems and only the third is the compiler's
+- **One duplication resolved against #57, which is amended.** #57's add-list included "testing Server
+  Components, testing async/Suspense" for `Frontend/Testing/` — the same ground as chapter 12. Chapter 12
+  keeps the React-specific *judgement* (what to test at which level, why an async Server Component is not
+  renderable by Testing Library, `findBy*` against the `act` warning, what not to test) and defers the
+  RTL query API to `Frontend/Testing/03`, which it cross-references. #57 now says so explicitly. This
+  also leaves Part IV's +1,149 overage no worse
+- Forward `[Chapter ?? — …]` references in `React/` total **38 across chapters 01–12**, all for #70 to
+  number. The figures logged at #33 ("5") and #34 ("12") were undercounts — they missed the
+  in-body references and counted only part of each "What to Read Next" block. 38 is the measured count
+- `pnpm lint:docs`: 212 → **215 files** (four added, one deleted), six rules at zero, the one violation
+  still Part IV's pre-existing +1,149. **`.lint-baseline.json` unchanged**
 
 ---
 
-### - [ ] 36. Write `NextJS/` chapters 01–05 — the framework `L`
+### - [x] 36. Write `NextJS/` chapters 01–05 — the framework `L` — ✅ **done 2026-09-06**
 
 Use **Context7 MCP** — Next.js moves fast and training data goes stale quickly.
 
@@ -3373,6 +3414,48 @@ Use **Context7 MCP** — Next.js moves fast and training data goes stale quickly
 | 03  | Server Actions             | Mutations, validation, progressive enhancement, security (never trust the client) |
 | 04  | Rendering in Next.js       | Static, dynamic, streaming, **Partial Prerendering (PPR)** — the flagship 2026 concept |
 | 05  | Middleware and the edge    | Request interception, auth gating, personalisation, edge vs Node runtime tradeoffs |
+
+**Done when:** all five chapters exist under `Frontend/ModernStack/NextJS/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body),
+`pnpm lint:docs` shows no rule regressed, and the section README links them. _Copied in at #36, per #34's
+note — #37–#41 still need the same line._
+
+**Delivered:**
+
+- Five chapters, **1,129 lines** — `01-app-router-mental-model.md` (216),
+  `02-data-fetching-and-caching.md` (255), `03-server-actions.md` (236), `04-rendering-in-nextjs.md` (214),
+  `05-middleware-and-the-edge.md` (208). All in the 150–400 band, all seven `##` headings in order, no
+  `####`, no relative links in a body, ⚠️ callouts at 1–2 per chapter against a budget of 3. Every chapter
+  carries a moving-target callout, which this section needs more than any other
+- Part III is at **4,343 of 12,000** across 20 files. The book is **220 files**
+- **Slugs are now fixed for the whole Next.js section**, because 01–05 cross-reference forward and #37
+  must match: `app-router-mental-model`, `nextjs-data-and-caching`, `server-actions`,
+  `rendering-in-nextjs`, `nextjs-middleware-and-the-edge`, then for #37 `nextjs-assets`,
+  `nextjs-auth-patterns`, `route-handlers-and-the-bff`, `nextjs-deployment-and-runtime`,
+  `migrating-to-the-app-router`. Chapter 04 points forward at `#ch-rendering-spectrum`, which **#39** owns
+- **Context7 against `/vercel/next.js` changed four things a pre-16 draft would have got wrong**, and #37
+  needs all four. **`middleware.ts` is renamed `proxy.ts`** (export `proxy`, `skipMiddlewareUrlNormalize`
+  → `skipProxyUrlNormalize`) and **`proxy` runs on Node.js only** — the runtime is not configurable and
+  route-segment `runtime` config in that file is a build error; edge-runtime code must stay in
+  `middleware.ts`. **`cacheComponents: true` replaces `experimental.ppr`**, and the per-route
+  `experimental_ppr` export is removed. **`revalidateTag` now takes a cache profile as a second
+  argument**, and `updateTag` is the same-request counterpart. **Synchronous access to `cookies()`,
+  `headers()`, `params` and `searchParams` is fully removed in 16**
+- `vercel:nextjs` and `vercel:next-cache-components` supplied the platform judgement the reference docs
+  do not spell out: the three content types under Cache Components, the rule that runtime APIs cannot be
+  read inside `use cache` and must be passed as arguments so they land in the key, `default.tsx` being
+  mandatory for every parallel slot, and `router.back()` rather than `router.push()` for closing an
+  intercepted modal. Both are vendor skills — the marketing register was stripped and the platform is
+  named only where a detail genuinely differs, per the `write-topic-docs` caution
+- **Chapter 05's title is kept as "Middleware and the Edge" deliberately.** The file is `proxy.ts` in
+  Next.js 16, but "middleware" is the word the interview uses and the word a reader scans the contents
+  for. The rename is handled inside the chapter, in the moving-target callout and a naming table
+- **No duplication with `Frontend/Security` or `Backend/Security`.** Chapter 03 covers Server Action
+  security as an *App Router* problem — the generated endpoint, the four checks, closure encryption — and
+  cross-references `#ch-backend-input-validation` for schema design rather than restating it
+- Forward `[Chapter ?? — …]` references in `NextJS/` total **21 across chapters 01–05**, for #70 to number
+- `pnpm lint:docs`: 215 → **220 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,149. **`.lint-baseline.json` unchanged**
 
 ---
 
@@ -3702,8 +3785,14 @@ Currently 8 files that reference Jest and Cypress-era practice. Research: **Vite
 
 - Make Vitest the default runner throughout (partly done — `02-vitest-basics.md` exists)
 - Replace Cypress-first E2E with Playwright-first
-- Add: testing Server Components, testing async/Suspense, component testing vs E2E boundary
+- Add: component testing vs the E2E boundary
 - Add: visual regression and accessibility testing in CI
+
+⚠️ **Amended at #35 (2026-09-06).** "Testing Server Components" and "testing async/Suspense" were
+removed from the list above — `Frontend/ModernStack/React/12-testing-react.md` now owns both, along with
+the wider question of what to test at which level. This section keeps the **tool** layer: the runner,
+the query API in `03-react-testing-library.md`, Playwright, and CI. Chapter 12 cross-references `03` for
+the queries; keep that split rather than restating either side.
 
 ---
 
@@ -4150,12 +4239,12 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
-| 3     | 32–43   | 3/12 | 🔄 In progress |
+| 3     | 32–43   | 5/12 | 🔄 In progress |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **40/90** | **44%**   |
+| **Total** | **90** | **42/90** | **47%**   |
 
 ---
 

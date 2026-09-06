@@ -5,7 +5,7 @@ chapter: 0
 slug: frontend-typescript-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
+updated: 2026-09-06
 tags: [typescript, generics, narrowing, utility-types, react]
 in_book: true
 ---
@@ -18,8 +18,9 @@ unrepresentable, and I let inference do the rest." This section covers the type 
 tool: what to model, what to derive, and where the cleverness stops paying for itself.
 
 Chapters 01–04 are the everyday type system — annotate, model, reuse. Chapters 05–07 are narrowing
-and exhaustiveness, which is where types start catching real bugs. Chapter 08 applies all of it to
-React, which is where most readers use TypeScript in anger.
+and exhaustiveness, which is where types start catching real bugs. Applying all of it to React — props,
+hooks, context, generic components — is [Chapter ?? — React and TypeScript at Scale](#ch-react-typescript-at-scale),
+which sits with the rest of the React chapters in Part III.
 
 ## Chapters
 
@@ -32,7 +33,6 @@ React, which is where most readers use TypeScript in anger.
 | 05 | [TypeScript Type Guards](./05-type-guards.md)                  | How do you get a compile error when you forget a case?       |
 | 06 | [TypeScript Advanced Types](./06-advanced-types.md)            | When does computing types from types stop being worth it?    |
 | 07 | [Enums and Literal Types](./07-enums-literals.md)              | How do you model a fixed set without a runtime object?       |
-| 08 | [React with TypeScript](./08-react-typescript.md)              | How do you type props and hooks so the compiler earns its keep? |
 
 ## What Interviewers Probe For
 
@@ -60,5 +60,6 @@ runtime, not just recite the API** — with a compile-time twist. What that look
 Straight through, but 02 and 07 are short and can be skimmed if you already write TypeScript daily.
 Chapter 05 is the one to slow down on — narrowing is what makes the rest useful.
 
-**Interview sprint:** 03 → 05 → 04 → 08. Generics, narrowing, derived types, and typing a component
-between them cover almost every TypeScript question a frontend-heavy loop asks.
+**Interview sprint:** 03 → 05 → 04, then the React chapter in Part III. Generics, narrowing, derived
+types, and typing a component between them cover almost every TypeScript question a frontend-heavy loop
+asks.

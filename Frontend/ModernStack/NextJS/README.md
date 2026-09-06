@@ -5,7 +5,7 @@ chapter: 0
 slug: modern-stack-nextjs-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-03
+updated: 2026-09-06
 tags: [nextjs, app-router, server-actions, ppr, caching, middleware]
 in_book: true
 ---
@@ -21,26 +21,28 @@ being your backend, deployment, and the migration every long-lived codebase even
 Written against **Next.js 16**. Nothing here assumes Vercel: the chapters name the platform only where
 a detail genuinely differs, such as cold starts, regional execution, or which adapter runs the build.
 
-> ⚠️ **Moving target.** Caching semantics changed in Next.js 15 and again in 16. Treat `use cache`,
-> `cacheLife` and `cacheTag` as this year's spelling of a durable principle: caching is opt-in per
-> request, and anything cached needs an explicit key you can invalidate on purpose.
+> ⚠️ **Moving target.** Caching semantics changed in Next.js 15 and again in 16, and 16 also renamed
+> `middleware.ts` to `proxy.ts` and made every request API asynchronous. Treat `use cache`, `cacheLife`
+> and `cacheTag` as this year's spelling of a durable principle: caching is opt-in per request, and
+> anything cached needs an explicit key you can invalidate on purpose.
 
 ## Chapters
 
 | #  | Chapter                     | What it answers                                                       |
 | -- | --------------------------- | --------------------------------------------------------------------- |
-| 01 | App Router mental model     | How do files become routes, and what re-renders on navigation?        |
-| 02 | Data fetching and caching   | Where does this request go, and how long does the answer live?        |
-| 03 | Server Actions              | How do you mutate data without writing an API route — and safely?     |
-| 04 | Rendering in Next.js        | Static, dynamic, streaming or partially prerendered — which, and why? |
-| 05 | Middleware and the edge     | What can you decide before the route runs, and what should you not?   |
+| 01 | [App Router Mental Model](./01-app-router-mental-model.md) | How do files become routes, and what re-renders on navigation? |
+| 02 | [Data Fetching and Caching](./02-data-fetching-and-caching.md) | Where does this request go, and how long does the answer live? |
+| 03 | [Server Actions](./03-server-actions.md) | How do you mutate data without writing an API route — and safely?     |
+| 04 | [Rendering in Next.js](./04-rendering-in-nextjs.md) | Static, dynamic, streaming or partially prerendered — which, and why? |
+| 05 | [Middleware and the Edge](./05-middleware-and-the-edge.md) | What can you decide before the route runs, and what should you not? |
 | 06 | Images, fonts and assets    | How do you ship a hero image without paying for it in CLS?            |
 | 07 | Auth patterns               | Session or token, and where is it checked?                            |
 | 08 | Route handlers and the BFF  | When is Next.js your backend, and when should it stop being one?      |
 | 09 | Deployment and runtime      | What changes when you self-host, and what does a preview cost?        |
 | 10 | Migrating Pages to App Router | How do you move a live application one route at a time?             |
 
-> ⚠️ **Being written.** Improvements #36–37 fill this table; the titles link as each chapter lands.
+> ⚠️ **Being written.** Chapters 01–05 are written (#36). Improvement #37 fills 06–10; those titles link
+> as each chapter lands.
 
 ## What Interviewers Probe For
 
