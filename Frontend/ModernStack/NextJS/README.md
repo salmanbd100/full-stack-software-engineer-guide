@@ -35,14 +35,11 @@ a detail genuinely differs, such as cold starts, regional execution, or which ad
 | 03 | [Server Actions](./03-server-actions.md) | How do you mutate data without writing an API route — and safely?     |
 | 04 | [Rendering in Next.js](./04-rendering-in-nextjs.md) | Static, dynamic, streaming or partially prerendered — which, and why? |
 | 05 | [Middleware and the Edge](./05-middleware-and-the-edge.md) | What can you decide before the route runs, and what should you not? |
-| 06 | Images, fonts and assets    | How do you ship a hero image without paying for it in CLS?            |
-| 07 | Auth patterns               | Session or token, and where is it checked?                            |
-| 08 | Route handlers and the BFF  | When is Next.js your backend, and when should it stop being one?      |
-| 09 | Deployment and runtime      | What changes when you self-host, and what does a preview cost?        |
-| 10 | Migrating Pages to App Router | How do you move a live application one route at a time?             |
-
-> ⚠️ **Being written.** Chapters 01–05 are written (#36). Improvement #37 fills 06–10; those titles link
-> as each chapter lands.
+| 06 | [Images, Fonts, and Assets](./06-images-fonts-and-assets.md) | How do you ship a hero image without paying for it in CLS? |
+| 07 | [Auth Patterns](./07-auth-patterns.md) | Session or token, and where is it checked?                            |
+| 08 | [Route Handlers and the BFF](./08-route-handlers-and-the-bff.md) | When is Next.js your backend, and when should it stop being one? |
+| 09 | [Deployment and Runtime](./09-deployment-and-runtime.md) | What changes when you self-host, and where does the cache live? |
+| 10 | [Migrating Pages to App Router](./10-migrating-to-the-app-router.md) | How do you move a live application one route at a time? |
 
 ## What Interviewers Probe For
 

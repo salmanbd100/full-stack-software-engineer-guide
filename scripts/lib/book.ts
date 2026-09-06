@@ -56,6 +56,9 @@ export const ALLOWED_FENCES: readonly string[] = [
   // Markup, style and data
   "html",
   "css",
+  // Component templates — BOOK-SPEC.md decision 15. A .svelte file's markup has no
+  // TypeScript form; the TypeScript in it lives inside <script lang="ts">.
+  "svelte",
   "json",
   "yaml",
   "text",

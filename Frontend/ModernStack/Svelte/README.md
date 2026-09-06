@@ -5,7 +5,7 @@ chapter: 0
 slug: modern-stack-svelte-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-03
+updated: 2026-09-06
 tags: [svelte, sveltekit, runes, signals, forms]
 in_book: true
 ---
@@ -28,14 +28,12 @@ gotchas here are the ones that cost real hours rather than the ones in the relea
 
 | #  | Chapter                       | What it answers                                                    |
 | -- | ----------------------------- | ------------------------------------------------------------------ |
-| 01 | Svelte 5 and the runes model  | What do `$state`, `$derived`, `$effect` and `$props` actually do?  |
-| 02 | Reactivity compared           | Signals, virtual DOM or fine-grained — what does each one cost?    |
-| 03 | Components and snippets       | How do you pass markup into a component now that slots are gone?   |
-| 04 | SvelteKit routing and loading | Which `load` runs where, and what can you stream from it?          |
-| 05 | SvelteKit form actions        | How does this form work with JavaScript switched off?              |
-| 06 | Adapters and deployment       | What does the adapter decide, and when does prerendering break?    |
-
-> ⚠️ **Being written.** Improvement #38 fills this table; the titles link as each chapter lands.
+| 01 | [Svelte 5 and the Runes Model](./01-runes-model.md) | What do `$state`, `$derived`, `$effect` and `$props` actually do? |
+| 02 | [Reactivity Compared](./02-reactivity-compared.md) | Signals, virtual DOM or fine-grained — what does each one cost? |
+| 03 | [Components and Snippets](./03-components-and-snippets.md) | How do you pass markup into a component now that slots are gone? |
+| 04 | [SvelteKit Routing and Loading](./04-sveltekit-routing-and-loading.md) | Which `load` runs where, and what can you stream from it? |
+| 05 | [SvelteKit Form Actions](./05-sveltekit-form-actions.md) | How does this form work with JavaScript switched off? |
+| 06 | [Adapters and Deployment](./06-adapters-and-deployment.md) | What does the adapter decide, and when does prerendering break? |
 
 ## What Interviewers Probe For
 

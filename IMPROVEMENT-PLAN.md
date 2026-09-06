@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-06 · **Progress:** 42 / 90
+**Last updated:** 2026-09-06 · **Progress:** 44 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -3459,7 +3459,7 @@ note — #37–#41 still need the same line._
 
 ---
 
-### - [ ] 37. Write `NextJS/` chapters 06–10 — production Next `M`
+### - [x] 37. Write `NextJS/` chapters 06–10 — production Next `M` — ✅ **done 2026-09-06**
 
 | #   | Chapter                     | Must cover                                                     |
 | --- | --------------------------- | -------------------------------------------------------------- |
@@ -3469,9 +3469,53 @@ note — #37–#41 still need the same line._
 | 09  | Deployment and runtime      | Vercel vs self-host, ISR at the edge, preview deployments, env strategy |
 | 10  | Migrating Pages → App Router| Incremental adoption — a real interview scenario                 |
 
+**Done when:** all five chapters exist under `Frontend/ModernStack/NextJS/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body),
+`pnpm lint:docs` shows no rule regressed, and the section README links them. _Copied in at #37, per #34's
+note — #38–#41 still need the same line._
+
+**Delivered:**
+
+- Five chapters, **1,091 lines** — `06-images-fonts-and-assets.md` (219), `07-auth-patterns.md` (227),
+  `08-route-handlers-and-the-bff.md` (207), `09-deployment-and-runtime.md` (226),
+  `10-migrating-to-the-app-router.md` (212). All in the 150–400 band, all seven `##` headings in order,
+  no `####`, no relative links in a body, ⚠️ callouts at 1–2 per chapter against a budget of 3. **The
+  Next.js section is complete at ten chapters** and the README's "being written" callout is gone
+- Slugs are as #36 reserved them: `nextjs-assets`, `nextjs-auth-patterns`, `route-handlers-and-the-bff`,
+  `nextjs-deployment-and-runtime`, `migrating-to-the-app-router`. Every forward reference written in
+  01–05 now resolves
+- Part III measures **5,455 of 12,000** across 29 files — 22 chapters plus 7 section openers. (#36's
+  "4,343 across 20 files" counted chapters only and against a slightly earlier tree; the figure above is
+  every Part III file as `loadBook` sees it, which is what the budget rule counts.) The book is
+  **225 files**
+- **Context7 against `/vercel/next.js` supplied five facts a pre-16 draft would have got wrong.**
+  `images.domains` is removed in favour of `remotePatterns`; **`images.qualities` is now an allow-list
+  defaulting to `[75]`**, so a `quality` prop outside it fails the build; `16` was dropped from the
+  default `imageSizes`. `use cache` **cannot be applied to a `GET` export** — the cached work moves into
+  a helper, replacing `dynamic = 'force-static'`. And `unauthorized()` / `forbidden()` are **still
+  experimental behind `experimental.authInterrupts`**, which chapter 07 says rather than presenting them
+  as stable
+- `vercel:nextjs` supplied the self-hosting judgement chapter 09 rests on: standalone output **does not
+  include `public/` or `.next/static`**, the per-instance filesystem cache is what breaks ISR behind a
+  load balancer, and `cacheMaxMemorySize: 0` is the half of the cache-handler fix that gets skipped. The
+  16-era `cacheHandlers` map (`default` / `remote`) is named in the moving-target callout alongside the
+  older single `cacheHandler`, because both are live depending on version
+- **Three duplication boundaries drawn deliberately, none of them new content.** Chapter 06 keeps the
+  `next/image` and `next/font` mechanics and defers formats, compression and CDNs to
+  `#ch-image-optimization`. Chapter 07 keeps *where* the check runs in an App Router app and defers token
+  mechanics to `#ch-jwt` and permission modelling to `#ch-authorisation`. Chapter 09 keeps what
+  `next build` emits and defers previews, artefact promotion and version skew to `#ch-platform-deploys`,
+  which already covers all three — so the item's "preview deployments" line is answered by a
+  cross-reference rather than a second telling. That is the one place this item's brief was narrowed, and
+  it was narrowed to avoid a non-negotiable #7 violation
+- Forward `[Chapter ?? — …]` references in `NextJS/` now total **44 across chapters 01–10** (21 from #36,
+  23 new), for #70 to number
+- `pnpm lint:docs`: 220 → **225 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,149. **`.lint-baseline.json` unchanged**
+
 ---
 
-### - [ ] 38. Write `Svelte/` chapters 01–06 `L`
+### - [x] 38. Write `Svelte/` chapters 01–06 `L` — ✅ **done 2026-09-06**
 
 Svelte 5 has the **highest retention rate of any framework** (91% would use again) and SvelteKit is the
 #2 meta-framework. It is also your day-job stack — this section will be the most authentic writing in the book.
@@ -3484,6 +3528,56 @@ Svelte 5 has the **highest retention rate of any framework** (91% would use agai
 | 04  | SvelteKit routing and loading  | `+page.ts`, `+page.server.ts`, `load`, streaming promises      |
 | 05  | SvelteKit form actions         | Progressive enhancement, `use:enhance`, validation             |
 | 06  | Adapters and deployment        | Node/Vercel/static adapters, prerendering, SSR toggles         |
+
+**Done when:** all six chapters exist under `Frontend/ModernStack/Svelte/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, no relative links in the body), `pnpm lint:docs` shows no
+rule regressed, and the section README links them. _Copied in at #38, per #34's note — #39–#41 still need
+the same line._
+
+**Delivered:**
+
+- Six chapters, **1,376 lines** — `01-runes-model.md` (239), `02-reactivity-compared.md` (194),
+  `03-components-and-snippets.md` (237), `04-sveltekit-routing-and-loading.md` (231),
+  `05-sveltekit-form-actions.md` (246), `06-adapters-and-deployment.md` (229). All in the 150–400 band,
+  all seven `##` headings in order, no `####`, no relative links in a body, ⚠️ callouts at 1–2 per
+  chapter against a budget of 3. Done in one session despite the `L` marking
+- Slugs: `svelte-runes`, `reactivity-compared`, `svelte-snippets`, `sveltekit-routing-and-loading`,
+  `sveltekit-form-actions`, `sveltekit-adapters-and-deployment`. Filenames are `01-runes-model.md`
+  through `06-adapters-and-deployment.md`
+- **`BOOK-SPEC.md` amended — version 1.3 → 1.4, decision log row 15.** Non-negotiable #1's fence
+  allow-list gains **`svelte`**, and `ALLOWED_FENCES` in `scripts/lib/book.ts` with it. A `.svelte` file
+  is a component template with **no TypeScript form** — its markup, `{#snippet}` blocks and `{@render}`
+  tags are compiler syntax, and the only TypeScript in it already sits inside `<script lang="ts">`. This
+  is decision 10 (`graphql`, `dockerfile`, `nginx`, `http`) applied to a language the original list did
+  not anticipate, with `tsx` as the precedent for a component syntax being allowed outright. The
+  alternative — the decision-11 `lint-allow-fence` marker — would have meant an identical comment above
+  all **17** `svelte` fences and every future one, turning a deliberate per-fence exception into
+  boilerplate. § 10's "relaxing the TypeScript-only rule" bar is **not** engaged: general-purpose
+  languages still opt out one fence at a time
+- **Context7 against `/websites/svelte_dev` and `/websites/svelte_dev_kit` fixed five things.** Exported
+  reassignable `let` from a `.svelte.ts` module **cannot** be observed by importers — the compiler
+  rewrites one file at a time — so shared state exports an object or accessors. `$state.raw` and
+  `$state.snapshot` are the two escape hatches from proxying, and both earned a table row. Prerendering
+  discovers pages by **crawling**, which is the whole explanation for the "marked as prerenderable but
+  not prerendered" build failure and why `entries` exists. SvelteKit's four `$env` modules split on two
+  axes — build/runtime and private/public — which is the same build-once-promote argument as #37's
+  chapter 09, so the two chapters cross-reference rather than repeat. And **remote functions**
+  (`query`/`form`/`command`/`prerender` in `.remote.ts`) are real but still behind
+  `kit.experimental.remoteFunctions`, so chapter 05 names them in its moving-target callout rather than
+  teaching them as the current API
+- **Chapter 02 is the one that pays for the section.** It is framework-agnostic — the three reactivity
+  strategies, the comparison table, and *why React declined signals* (interruptible rendering needs
+  replayable renders; the compiler removes the bookkeeping instead). It is the chapter to keep if Part III
+  ever has to be cut, and the README's reading order already says so
+- **No duplication with `React/`.** Chapter 01 cross-references `#ch-when-not-to-use-effect` rather than
+  re-arguing it, chapter 03 points at `#ch-react-composition-patterns` for render props, and chapter 02
+  defers React's own answer to `#ch-react-performance-and-the-compiler`. Chapter 05 pairs with
+  `#ch-server-actions` as the same problem with two answers, and chapter 06 defers previews and rollback
+  to `#ch-platform-deploys`
+- Part III now measures **6,835 of 12,000** across 35 files. The book is **231 files**
+- Forward `[Chapter ?? — …]` references in `Svelte/` total **21 across chapters 01–06**, for #70 to number
+- `pnpm lint:docs`: 225 → **231 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,149. **`.lint-baseline.json` unchanged**
 
 ---
 
@@ -4239,12 +4333,12 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
-| 3     | 32–43   | 5/12 | 🔄 In progress |
+| 3     | 32–43   | 7/12 | 🔄 In progress |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **42/90** | **47%**   |
+| **Total** | **90** | **44/90** | **49%**   |
 
 ---
 
