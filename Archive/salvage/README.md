@@ -21,8 +21,6 @@ Point 3 is what separates salvage from archive. Anything without a named destina
 | ---- | ------ | ----------- | ---- |
 | `ai/06-prompt-engineering.md` | `DevOps/GenAI/06` (#21) | **#45** | `AI/Foundations/03-prompting-as-engineering.md` |
 | `ai/07-security.md` | `DevOps/GenAI/07` (#21) | **#49** | `AI/Production/05-guardrails-and-safety.md` and `06-prompt-injection.md` |
-| `frontend/rendering.md` | `SystemDesign/Frontend/03` (#31d) | **#39** | `Frontend/ModernStack/Rendering/` |
-| `frontend/state-management.md` | `SystemDesign/Frontend/02` (#31d) | **#40** | `Frontend/ModernStack/StateManagement/` |
 
 ## How to absorb one
 
@@ -33,5 +31,10 @@ They are **source material for a chapter, not a chapter**. When the owning item 
    lifting whatever survives from the staged file
 2. Re-scope it — a file written for DevOps chores is aimed at the wrong reader
 3. `git rm` the staged file once its content has a home, and strike its row from the table above
+
+`frontend/` is gone: **#39** and **#40** absorbed `rendering.md` and `state-management.md` into Part III
+on 2026-09-07, and **#42** removed the directory once the rest of `SystemDesign/Frontend/` had moved.
+The record of where those 412 lines went is in
+[`Archive/systemdesign/frontend/README.md`](../systemdesign/frontend/README.md).
 
 An empty `Archive/salvage/` means every staged file has been absorbed. That is the goal state.

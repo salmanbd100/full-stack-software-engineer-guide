@@ -257,6 +257,3 @@ function ConsentBanner() {
 **Key insight:**
 
 > SEO and rendering are coupled. If your marketing site uses CSR, Google may index an empty page. The fix is SSG or SSR — not adding more meta tags.
-
----
-[← Back to SystemDesign](../README.md)

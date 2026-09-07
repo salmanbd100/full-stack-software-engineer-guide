@@ -1,13 +1,13 @@
 ---
 title: Frontend Performance at Scale
-part: 4
+part: 0
 chapter: 0
 slug: frontend-performance
 level: advanced # beginner | intermediate | advanced
 reading_time: 6
 updated: 2026-08-28
 tags: [system, design, frontend, performance]
-in_book: true
+in_book: false
 ---
 
 # Frontend Performance at Scale {#ch-frontend-performance-at-scale}

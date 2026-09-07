@@ -178,15 +178,15 @@ export function partBudgets(root: string): Map<number, number> {
   return budgets;
 }
 
-/** Files whose destination part is not their current directory (#25, #42). */
-const PART_OVERRIDES: Readonly<Record<string, number>> = {
-  "SystemDesign/Frontend/01-architecture.md": 4,
-  "SystemDesign/Frontend/04-performance.md": 4,
-  "SystemDesign/Frontend/05-micro-frontends.md": 4,
-  "SystemDesign/Frontend/08-design-systems.md": 4,
-  "SystemDesign/Frontend/09-assets.md": 4,
-  "SystemDesign/Frontend/12-monitoring.md": 4,
-};
+/**
+ * Files whose destination part is not their current directory (#25, #42).
+ *
+ * Empty since #42: the six `SystemDesign/Frontend/` files this held have moved to the
+ * Part IV directories that own them — `Frontend/Architecture/` and
+ * `Frontend/WebPerformance/` — so `PART_BY_PREFIX` maps them correctly on path alone.
+ * Leaving a stale entry here would double-count a file's lines against its part.
+ */
+const PART_OVERRIDES: Readonly<Record<string, number>> = {};
 
 /** Part number for a repo-relative path. 0 means "no part mapped yet". */
 export function partFor(rel: string): number {

@@ -256,6 +256,3 @@ function DeleteButton({ onDelete }: { onDelete: () => void }) {
 **Key insight:**
 
 > Access tokens in memory + refresh tokens in httpOnly cookies is the gold-standard browser auth pattern. It combines XSS protection (httpOnly cookie) with CSRF protection (the access token in the Authorization header can't be sent by a form).
-
----
-[← Back to SystemDesign](../README.md)

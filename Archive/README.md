@@ -6,7 +6,7 @@ This is where content goes when it is genuinely useful but out of scope for
 **The Senior Full Stack Handbook**. It stays in the repository, stays in git history, and stays
 searchable. It is simply invisible to the book build.
 
-Created by improvement #7. Filled by improvements #8, #20–#31e and #31f.
+Created by improvement #7. Filled by improvements #8, #20–#31e, #31f and #42.
 
 `dsa-solutions/` is the one sub-tree whose originals were **replaced rather than removed** — each
 archived file has a trimmed successor at the same name under `DSA/`.
@@ -53,8 +53,8 @@ Archive/
 ├── README.md            ← this file
 ├── planning/            ← #8:  superseded plans and marketing assets
 ├── salvage/             ← staged for a later part, not out of scope — see salvage/README.md
-│   ├── ai/                  2 files inbound to Part VII at #45 and #49
-│   └── frontend/            2 files inbound to Part III at #39 and #40
+│   └── ai/                  2 files inbound to Part VII at #45 and #49
+│                            (frontend/ is gone — #39 and #40 absorbed both files, #42 removed it)
 ├── htmlcss/             ← #31f: 5 of 8 — the layout mechanics (the box model and cascade basics,
 │                            flexbox, grid, responsive design, animations). HtmlCss/ keeps semantic
 │                            HTML, accessibility and advanced CSS
@@ -79,14 +79,16 @@ Archive/
 │                            chapters were merged into the four survivors
 ├── communication/       ← #29, #31e: 4 of 8 + README — the STAR duplicate, the ESL practice, the
 │                            RADIO duplicate and the etiquette-by-region chapter
-├── systemdesign/        ← #23–24, #28, #31d: what Part VI shed to Parts V and VIII, and to balance
+├── systemdesign/        ← #23–24, #28, #31d, #42: what Part VI shed to Parts V and VIII, and to balance
 │   ├── infrastructure/      all 8 + README — cloud, containers, CI/CD, monitoring, DR
 │   ├── security/            all 6 + README — #24; authz, encryption, SSRF, MFA and SSO
 │   │                            moved into Backend/Security/ first
 │   ├── building-blocks/     2 of 11 — #31d; file storage and monitoring, both owned by Part VIII
 │   ├── microservices/       3 of 8 + README — #31d; deployment and distributed tracing, owned by
 │   │                            Part VIII. The other 5 became BuildingBlocks/07–09
-│   └── case-studies/        16 of 20 — #28 archived 10, #31d another 6
+│   ├── case-studies/        16 of 20 — #28 archived 10, #31d another 6
+│   └── frontend/            1 of 12 — #42; 04-performance duplicated the whole of
+│                                Frontend/WebPerformance/. The other 11 moved rather than archived
 └── devops/              ← #20: the 98 files DevOps/ shed, plus genai/ (#21) and agile/ (#25)
     ├── README.md            the old 1,378-line DevOps curriculum index
     ├── agile/               all 8 + README — #25; two Part IX chapters were written from it first

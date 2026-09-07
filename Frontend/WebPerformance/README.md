@@ -5,8 +5,8 @@ chapter: 0
 slug: frontend-web-performance-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-08-28
-tags: [performance, core-web-vitals, inp, bundles, caching]
+updated: 2026-09-07
+tags: [performance, core-web-vitals, inp, bundles, caching, fonts, errors]
 in_book: true
 ---
 
@@ -35,6 +35,8 @@ still says FID in 2026, that dates them.
 | 06 | [Bundle Optimisation](./06-bundle-optimization.md)                   | What is actually in your bundle?                               |
 | 07 | [Performance Monitoring](./07-performance-monitoring.md)             | What are real users experiencing, not your dev machine?        |
 | 08 | [Rendering Optimisation](./08-rendering-optimization.md)             | How do you keep interactions inside the frame budget?          |
+| 09 | [Font and CSS Delivery](./09-font-and-css-delivery.md)               | What does the page look like before styles and fonts arrive?   |
+| 10 | [Error Tracking](./10-error-tracking.md)                              | How do you learn it is broken for users but not for you?       |
 
 ## What Interviewers Probe For
 
@@ -55,9 +57,10 @@ features.** Performance is where that is measured literally:
 
 ## Reading Order
 
-01 first, always — it defines the metrics the other seven chapters are trying to move. Then 02, 03
-and 05, which are the highest-leverage loading fixes. 07 is the chapter that makes the rest
-verifiable; do not leave it out.
+01 first, always — it defines the metrics the other nine chapters are trying to move. Then 02, 03,
+05 and 09, which are the highest-leverage loading fixes. 07 and 10 are the pair that makes the rest
+verifiable — one for what users experienced, one for what broke — and neither is optional in
+production.
 
 **Interview sprint:** 01 → 03 → 08 → 07. The metrics, the loading lever, the interaction lever, and
 how you prove any of it worked.

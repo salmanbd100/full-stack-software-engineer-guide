@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-07 · **Progress:** 47 / 90
+**Last updated:** 2026-09-07 · **Progress:** 48 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -3767,7 +3767,7 @@ rule regressed, and the section README links them. _Line added at #41, per #38's
 
 ---
 
-### - [ ] 42. Move frontend architecture out of SystemDesign into Part IV `M`
+### - [x] 42. Move frontend architecture out of SystemDesign into Part IV `M` — ✅ **done 2026-09-07**
 
 `SystemDesign/Frontend/` has 12 files at ~200 lines each. Several belong beside the new stack chapters:
 
@@ -3790,6 +3790,75 @@ rule regressed, and the section README links them. _Line added at #41, per #38's
 
 **Done when:** each file lives in exactly one part with no duplicated content.
 
+**Delivered:**
+
+- **`Frontend/Architecture/` created** (Part IV, `PART_BY_PREFIX` already mapped it) with three chapters
+  moved out of `SystemDesign/Frontend/` and **rewritten to the Book Chapter Standard** — all six blocks,
+  Key Takeaways, Interview Questions, What to Read Next, no `[← Back to]` footer, `## 💡 The Core Idea`
+  in place of the old `## 💡 **Concept**`. `01-architecture.md` → `01-frontend-architecture-patterns.md`,
+  `05-micro-frontends.md` → `02-micro-frontends.md`, `08-design-systems.md` → `03-design-systems.md`.
+  Numbering matches **#55**'s table, leaving `04` and `05` free for the two chapters it adds
+- **A #7 violation fixed inside the move.** Old `01-architecture.md` carried a "Micro-Frontend
+  Architecture" section with its own Module Federation config, duplicating `05-micro-frontends.md`
+  near-verbatim. Chapter 01 now keeps micro-frontends as one row in its decision table and
+  cross-references `#ch-micro-frontends`
+- **Two slug/anchor mismatches cleared.** `01`'s front matter said `frontend-architecture` while its H1
+  said `{#ch-frontend-architecture-patterns}`; `08`'s said `frontend-design-systems` against
+  `{#ch-design-systems-at-scale}`. Both now agree, and the one inbound reference (from
+  `StateManagement/01`) still resolves. **12 slug/anchor mismatches remain repo-wide**, all
+  pre-existing, for #70
+- **`04-performance.md` archived rather than merged**, to `Archive/systemdesign/frontend/`. Every one of
+  its sections duplicated a `Frontend/WebPerformance/` chapter — the Core Web Vitals table, LCP, INP and
+  CLS (01), code splitting (03), caching headers (04), images (05), bundle size (06). It was a summary
+  of the section it sat beside, with zero inbound references. −216 lines from Part IV
+- **`09-assets.md` merged as `Frontend/WebPerformance/09-font-and-css-delivery.md`**, rescoped to the
+  half that was not already in the section: `font-display` and the FOIT/FOUT trade, `unicode-range`
+  subsetting, preload and why `crossorigin` is mandatory, metric-override fallback faces, critical CSS
+  and `cssCodeSplit`, and icon delivery. Its images and CDN halves were dropped as duplicates of
+  chapters 05 and 04
+- **`12-monitoring.md` merged as `Frontend/WebPerformance/10-error-tracking.md`**, rescoped to the four
+  capture points, the context that makes a report actionable, redaction in `beforeSend`, sampling
+  policy, and crash-free sessions as the frontend SLO. Its RUM/`web-vitals` half duplicated chapter 07
+  and its alerting rules duplicated `#ch-alerting` in Part VIII; both are now cross-references
+- **One inbound reference retargeted.** `React/10-error-boundaries.md` pointed at
+  `#ch-frontend-monitoring`; it now points at `#ch-frontend-error-tracking`. A reciprocal reference was
+  added from `NextJS/06-images-fonts-and-assets.md` to `#ch-font-and-css-delivery`, because that chapter
+  owns the `next/font` wrapper and the new chapter owns the platform mechanics underneath it — the
+  `next/font` code sample was cut from the new chapter to keep that boundary clean
+- **The five survivors renumbered contiguously `01`–`05`**: interview strategy, real-time, offline-first,
+  SEO and analytics, auth. The old `00-` prefix is gone, which also matches every other section in the
+  repo — `SystemDesign/Fundamentals/01-driving-the-round.md` is the equivalent lead-in chapter and is
+  numbered 01
+- **All six `PART_OVERRIDES` entries deleted** from `scripts/lib/book.ts`; the map is now empty with a
+  comment saying why, so nothing is double-counted
+- **Four READMEs updated and one written.** New `Frontend/Architecture/README.md`;
+  `SystemDesign/Frontend/README.md` rebuilt (its old chapter table and reading order both referenced
+  `02` and `03`, gone since #31d); `Frontend/WebPerformance/README.md` gains rows 09 and 10;
+  `Frontend/README.md` gains `Architecture/` in the Part IV row and its "for frontend system design, see
+  `SystemDesign/Frontend/`" paragraph corrected
+- **`Archive/salvage/frontend/` removed**, as its own README invited once the section had moved.
+  `Archive/salvage/README.md` and `Archive/README.md` updated, and
+  `Archive/systemdesign/frontend/README.md` written as the record of where all twelve files went
+- `pnpm lint:docs`: **249 files, six rules at zero.** Part IV **6,649 → 6,581 (+1,081)**;
+  `.lint-baseline.json` budget lowered **1149 → 1081**. Unresolved `#ch-` references unchanged at **9**,
+  all pre-existing
+
+> 🔴 **Correction for #43 — #42 frees no Part VI lines, and #31d's arithmetic for #43 was wrong.** #31d
+> predicted this item would remove "roughly 410 more" from Part VI, leaving ~5,930 and giving #43 about
+> 570 lines. It does not, and could not: `PART_OVERRIDES` already counted all six moved files against
+> **Part IV**, not Part VI. Part VI went **6,345 → 6,337** — eight lines, from stripped footers. So #43's
+> real headroom is **163 lines**, not 570. Four frontend studies at ~220 (880) therefore needs roughly
+> **720 lines cut from the backend studies**, not the single study #31d costed. #43's note has been
+> amended.
+
+⚠️ **Not done, and still unowned: the four pre-standard survivors.** `01-interview-strategy`,
+`03-offline-first`, `04-seo-analytics` and `05-auth` still have no six blocks, no Key Takeaways, no
+Interview Questions and no What to Read Next. This item stripped their `[← Back to SystemDesign]`
+footers — the standard forbids them and #71 would have swept them anyway — which leaves
+`01-interview-strategy` at **145 lines**, five under the chapter floor rather than the two #31d recorded.
+Converting all four is a session of writing, not a tail-end of this one. #70 is *numbering*, not
+conversion, so it cannot absorb this: a note has been added under #70 naming it explicitly.
+
 ---
 
 ### - [ ] 43. Add frontend system design case studies `M`
@@ -3805,11 +3874,14 @@ frontend system design rounds actually ask:
 
 Each follows RADIO and stays 250–350 lines.
 
-> 🔴 **Amended at #31d — the length is not affordable and the count has to change.** Part VI is at
-> **6,345** lines against a 6,500 ceiling. #42 removes roughly 410 more, leaving about **5,930** — so this
-> item has **~570 lines**, not the 1,250–1,750 that five studies at 250–350 need. #31d recommends
-> **four frontend studies at ~220 lines each (880), paid for by cutting one more backend study**, ending
-> at 3 backend + 4 frontend and roughly 6,460 lines. Drop the typeahead or the infinite feed — the feed
+> 🔴 **Amended at #31d, and re-costed at #42 — the length is not affordable and the count has to change.**
+> Part VI stands at **6,337** lines against a 6,500 ceiling, so this item has **163 lines**, not the
+> 1,250–1,750 that five studies at 250–350 need. #31d put the figure at ~570 on the assumption that #42
+> would free another ~410 from Part VI; **it did not, because `PART_OVERRIDES` already counted those six
+> files against Part IV.** The recommendation still stands — **four frontend studies at ~220 lines each
+> (880)** — but paying for it now means cutting roughly **720 lines of backend studies (three of the
+> four), not one**, ending at 1 backend + 4 frontend and roughly 6,300 lines. Weigh that against cutting
+> to three frontend studies (660) and two backend, which is the cheaper trade. Drop the typeahead or the infinite feed — the feed
 > overlaps `CaseStudies/02-news-feed.md` and the typeahead overlaps `BuildingBlocks/05-search.md`, so
 > either can go without leaving a gap. The alternative is to cut two backend studies and keep all five.
 > **Do not write five at 250–350; it puts Part VI ~1,200 lines over and breaks the budget #31d just met.**
@@ -4185,6 +4257,22 @@ Handbook, the official React/Next/Svelte docs, `web.dev`, DeepLearning.AI for Pa
 Set `part` and `chapter` in front matter for every in-book file so the build produces the right sequence.
 Verify no part exceeds ~12 chapters (split if it does).
 
+> ⚠️ **Added at #42 — two jobs here are not numbering, and had no owner.** #31d and #58a both wrote
+> "owner is #42 or #70" for work this item as written cannot do. Both are now explicitly this item's:
+>
+> 1. **Convert four `SystemDesign/Frontend/` chapters to the Book Chapter Standard** —
+>    `01-interview-strategy` (also **145 lines**, five under the floor), `03-offline-first`,
+>    `04-seo-analytics`, `05-auth`. None has the six blocks, Key Takeaways, Interview Questions or What
+>    to Read Next. #42 stripped their back-link footers and renumbered them; the writing is left.
+>    Converting them returns roughly 40 lines to Part VI
+> 2. **Reconcile 12 slug/anchor mismatches**, where front-matter `slug` disagrees with the H1's
+>    `{#ch-…}`. Ten are Part IV — `Frontend/Security/02`, `03`; `Frontend/Testing/04`, `05`, `07`, `08`;
+>    `Frontend/WebPerformance/04`, `05`, `06`, `08` — and two are the appendix, `DSA/01` and `05`. Plus
+>    the **9 unresolved `#ch-` references** the same audit found: `ch-css-animations`,
+>    `ch-css-fundamentals`, `ch-responsive-design` (all three point at chapters #31f archived),
+>    `ch-web-performance-caching-strategies` ×2, `ch-bundle-optimization`, `ch-e2e-testing`,
+>    `ch-preface`, `ch-further-reading`
+
 ---
 
 ### - [ ] 71. Replace every relative link with a chapter cross-reference `M`
@@ -4467,12 +4555,12 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
-| 3     | 32–43   | 10/12 | 🔄 In progress |
+| 3     | 32–43   | 11/12 | 🔄 In progress |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **47/90** | **52%**   |
+| **Total** | **90** | **48/90** | **53%**   |
 
 ---
 

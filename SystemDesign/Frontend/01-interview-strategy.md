@@ -143,6 +143,3 @@ Every decision has a trade-off. Say it out loud:
 **Key insight:**
 
 > Success in frontend system design is about the process, not the answer. Show systematic thinking: gather requirements, make decisions with trade-offs, and communicate your reasoning at every step.
-
----
-[← Back to SystemDesign](../README.md)

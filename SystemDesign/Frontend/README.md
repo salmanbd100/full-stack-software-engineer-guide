@@ -5,8 +5,8 @@ chapter: 0
 slug: part-frontend-system-design
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
-tags: [system-design, frontend, rendering, state, performance]
+updated: 2026-09-07
+tags: [system-design, frontend, realtime, offline, seo, auth]
 in_book: true
 ---
 
@@ -17,25 +17,28 @@ to be interviewed on. A frontend system design round is not a smaller backend ro
 different set of constraints: a runtime you do not control, a network you cannot trust, a bundle
 budget, an accessibility floor, and a rendering strategy that has to be defended per route.
 
-Chapter 00 is the strategy chapter. Read it first even if you skip the rest — a frontend round is
+Chapter 01 is the strategy chapter. Read it first even if you skip the rest — a frontend round is
 scored on how you drive it, and the shape of a good answer here is genuinely different from the
 backend framework in [Fundamentals](../Fundamentals/01-driving-the-round.md).
 
+> ⚠️ This section is smaller than it was. Improvement #42 moved the chapters that were about
+> **structuring a codebase** rather than driving a round: architecture patterns, micro-frontends and
+> design systems now live in `Frontend/Architecture/`, and asset delivery and error tracking in
+> `Frontend/WebPerformance/` — all Part IV. Rendering and state management became Part III sections
+> at #39 and #40. What stayed is what a frontend design round actually opens with.
+
 ## Chapters
 
-| #  | Chapter                                                          | What it answers                                              |
-| -- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| 00 | [Interview Strategy](./00-interview-strategy.md)                 | How is a frontend round scored differently?                   |
-| 01 | [Frontend Architecture Patterns](./01-architecture.md)           | Where do the boundaries go in a large client app?             |
-| 04 | [Performance Optimization](./04-performance.md)                  | Which metric is failing, and what actually moves it?          |
-| 05 | [Micro-Frontends](./05-micro-frontends.md)                       | When is the coordination cost worth paying?                   |
-| 06 | [Real-Time Features](./06-real-time.md)                          | What happens to the client when the connection drops?         |
-| 07 | [Offline-First Architecture](./07-offline-first.md)              | What happens on a train, and how does it reconcile?           |
-| 08 | [Design Systems](./08-design-systems.md)                         | How do forty teams share components without freezing?         |
-| 09 | [Asset Management](./09-assets.md)                               | Images, fonts and bundles — what ships, and when?             |
-| 10 | [SEO and Analytics](./10-seo-analytics.md)                       | What does the crawler see, and what may you measure?          |
-| 11 | [Authentication and Authorization](./11-auth.md)                 | Where does the token live, and what can the client be told?   |
-| 12 | [Frontend Monitoring](./12-monitoring.md)                        | How do you know it is broken for users but not for you?       |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [Frontend System Design Strategy](#ch-frontend-system-design-strategy) | How is a frontend round scored differently? |
+| 02 | [Frontend Real-Time Features](#ch-frontend-real-time-features) | What happens to the client when the connection drops? |
+| 03 | [Offline-First Architecture](#ch-offline-first-architecture) | What happens on a train, and how does it reconcile? |
+| 04 | [SEO and Analytics](#ch-seo-and-analytics) | What does the crawler see, and what may you measure? |
+| 05 | [Frontend Authentication](#ch-frontend-authentication) | Where does the token live, and what can the client be told? |
+
+Improvement #43 adds four frontend case studies alongside the backend ones in
+[Case Studies](../CaseStudies/README.md).
 
 ## What Interviewers Probe For
 
@@ -54,8 +57,9 @@ as an implementation detail.** Concretely:
 
 ## Reading Order
 
-00 → 03 → 02 → 04 is the spine: how the round works, what renders where, where state lives, and how
-you make it fast. 05, 07 and 08 are the three that most often appear as the "and now scale it"
-follow-up.
+01 → 02 → 03 is the spine: how the round works, then the two network problems that separate a
+frontend design answer from a backend one. 04 and 05 are the two follow-ups that come up most often
+once the happy path is drawn.
 
-**Interview sprint:** 00 → 03 → 04 → 02.
+**Interview sprint:** 01, then 02. Those two carry most of what a frontend design round asks before
+it starts probing a specific domain.

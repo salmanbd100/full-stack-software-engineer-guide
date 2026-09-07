@@ -5,7 +5,7 @@ chapter: 0
 slug: frontend-domain-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-03
+updated: 2026-09-07
 tags: [frontend, index]
 in_book: false
 ---
@@ -20,7 +20,7 @@ senior reader is not "frontend vs backend" — it is *language*, *platform*, and
 | **I — Foundations** | The language, underneath the definition | [`JavaScript/`](./JavaScript/README.md) · [`TypeScript/`](./TypeScript/README.md) |
 | **II — The Browser Platform** | What the platform gives you before any framework does | [`HtmlCss/`](./HtmlCss/README.md) · [`BrowserAPIs/`](./BrowserAPIs/) · [`PWA/`](./PWA/README.md) · [`Internationalization/`](./Internationalization/) |
 | **III — The Modern Frontend Stack** | React, Next.js and Svelte, plus the models underneath them | [`ModernStack/`](./ModernStack/README.md) |
-| **IV — Frontend at Scale** | Forty engineers, four years of history, a performance budget | [`WebPerformance/`](./WebPerformance/) · [`Security/`](./Security/) · [`Testing/`](./Testing/) |
+| **IV — Frontend at Scale** | Forty engineers, four years of history, a performance budget | [`Architecture/`](./Architecture/README.md) · [`WebPerformance/`](./WebPerformance/) · [`Security/`](./Security/) · [`Testing/`](./Testing/) |
 
 **Part III — The Modern Frontend Stack** is the largest part in the book at 12,000 lines, and it was
 the single biggest gap in this repository. [`ModernStack/`](./ModernStack/README.md) now exists with its
@@ -84,8 +84,13 @@ survives the next major release of anything.
 Part III is how to build it. Part IV is how to build it when it is large, old, and someone is held to
 a performance budget.
 
+- **[Architecture](./Architecture/README.md)** — where the boundaries go in a large codebase,
+  micro-frontends, and design systems forty teams can adopt. Moved here from frontend system design
+  by improvement #42, because these are questions about structuring a codebase, not about driving a
+  design round
 - **[Web Performance](./WebPerformance/)** — Core Web Vitals including **INP**, which replaced FID and
-  which a lot of published material still gets wrong; loading strategy, bundles, caching
+  which a lot of published material still gets wrong; loading strategy, bundles, caching, font and CSS
+  delivery, and error tracking
 - **[Security](./Security/)** — XSS, Content Security Policy, headers, and the browser-only inputs.
   The browser-side half of the security spine; the server-side half — tokens, authorisation, CSRF
   defence, injection — lives in [`Backend/Security/`](../Backend/Security/)
@@ -102,8 +107,10 @@ Straight down the table: I → II → III → IV. Each part assumes the one abov
 **Interview sprint:** Part I in full, then `HtmlCss/` and `WebPerformance/`. Those three cover the
 majority of what a frontend-heavy senior loop actually asks before the system design round.
 
-For frontend **system design** — architecture, rendering strategy, micro-frontends, design systems —
-see [`SystemDesign/Frontend/`](../SystemDesign/Frontend/README.md), which is Part VI.
+For frontend **system design** — how a frontend round is scored, real-time features, offline-first,
+SEO and client-side auth — see [`SystemDesign/Frontend/`](../SystemDesign/Frontend/README.md), which is
+Part VI. Architecture patterns, micro-frontends and design systems used to live there and are now in
+[`Architecture/`](./Architecture/README.md) above.
 
 ## Related
 

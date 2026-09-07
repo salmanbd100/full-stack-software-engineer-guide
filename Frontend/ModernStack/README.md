@@ -75,5 +75,5 @@ and server state — which between them cover most of what a frontend-heavy seni
 system design round.
 
 All six sections are written — **46 chapters**, improvements #32–41. `Rendering/` and
-`StateManagement/` absorbed the two chapters that were staged in `Archive/salvage/frontend/`, which is now
-empty. Chapter numbers appear as `??` until improvement #70 assigns them across the whole book.
+`StateManagement/` absorbed the two chapters that were staged in `Archive/salvage/frontend/`, which #42
+then removed. Chapter numbers appear as `??` until improvement #70 assigns them across the whole book.

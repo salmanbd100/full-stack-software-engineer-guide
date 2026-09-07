@@ -244,6 +244,3 @@ async function syncWithConflictResolution(payload: SyncPayload): Promise<void> {
 **Key insight:**
 
 > Even if offline-first isn't required, a cache-first service worker for static assets makes your app load faster for every user on every visit — it's a free performance win.
-
----
-[← Back to SystemDesign](../README.md)
