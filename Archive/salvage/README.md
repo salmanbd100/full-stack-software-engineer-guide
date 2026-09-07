@@ -19,7 +19,6 @@ Point 3 is what separates salvage from archive. Anything without a named destina
 
 | File | Source | Absorbed by | Into |
 | ---- | ------ | ----------- | ---- |
-| `ai/06-prompt-engineering.md` | `DevOps/GenAI/06` (#21) | **#45** | `AI/Foundations/03-prompting-as-engineering.md` |
 | `ai/07-security.md` | `DevOps/GenAI/07` (#21) | **#49** | `AI/Production/05-guardrails-and-safety.md` and `06-prompt-injection.md` |
 
 ## How to absorb one
@@ -31,6 +30,14 @@ They are **source material for a chapter, not a chapter**. When the owning item 
    lifting whatever survives from the staged file
 2. Re-scope it — a file written for DevOps chores is aimed at the wrong reader
 3. `git rm` the staged file once its content has a home, and strike its row from the table above
+
+`ai/06-prompt-engineering.md` is gone: **#45** absorbed it into
+`AI/Foundations/03-prompting-as-engineering.md` on 2026-09-07. The techniques that survived the re-scope
+are constraints over politeness, permitting uncertainty, one example of your conventions beating a
+paragraph of description, withholding your theory when debugging, and conventions belonging in a file
+rather than a message. The DevOps-specific material — Terraform prompts, IAM wildcards, `kubectl`
+triage — did not, because it is about *using* AI tools rather than *building* AI features, which is the
+line #21 drew.
 
 `frontend/` is gone: **#39** and **#40** absorbed `rendering.md` and `state-management.md` into Part III
 on 2026-09-07, and **#42** removed the directory once the rest of `SystemDesign/Frontend/` had moved.

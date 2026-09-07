@@ -95,7 +95,7 @@ part that does not exist in the repository yet.
 | **IV — Frontend at Scale** | Architecture · Web performance · Frontend security · Testing | 5,500 | [`Frontend/WebPerformance`](./Frontend/WebPerformance/), [`Frontend/Security`](./Frontend/Security/), [`Frontend/Testing`](./Frontend/Testing/) |
 | **V — Backend for Frontend Engineers** | Node internals · API design · SQL and NoSQL · Auth | 6,500 | [`Backend`](./Backend/README.md) |
 | **VI — System Design** | Fundamentals · Building blocks · Frontend SD · Case studies | 6,500 | [`SystemDesign`](./SystemDesign/README.md) |
-| **VII — AI Engineering** 🆕 | LLM foundations · Integration · RAG · Agents · Evals · AI UX | 7,500 | **Nothing yet.** Planned as `AI/` |
+| **VII — AI Engineering** 🆕 | LLM foundations · Integration · RAG · Agents · Evals · AI UX | 7,500 | [`AI`](./AI/README.md) — scaffolded at #44; chapters are #45–53 |
 | **VIII — Ship and Operate** | Git · Containers · CI/CD · Observability · Cloud · Deployment | 3,500 | [`ShipAndOperate`](./ShipAndOperate/) — `Deployment/` still to be written |
 | **IX — The Human Layer** | Behavioural · Communication · Ways of working · The AI-era loop | 2,500 | [`Behavioral`](./Behavioral/README.md), [`Communication`](./Communication/README.md) |
 | *Appendix — DSA* | 16 LeetCode patterns | *5,600* | [`DSA`](./DSA/README.md) — ships as a companion volume |
@@ -110,9 +110,9 @@ These are the reason the book is worth writing, and they are both empty:
 - **There is almost no React, Next.js or Svelte content.** Part III is the largest part in the book at
   22% of the budget, and the part most readers are buying it for. `Frontend/ModernStack/` now exists with
   its six section indexes (#32); the 46 chapters are improvements #33–43.
-- **There is no AI content.** The old `DevOps/GenAI/` was about *using* AI tools for DevOps chores, not
-  about *building* AI features, which is what a 2027 senior loop asks about. #21 archived it. Part VII is
-  planned as #44–53.
+- **There is almost no AI content.** The old `DevOps/GenAI/` was about *using* AI tools for DevOps
+  chores, not about *building* AI features, which is what a 2027 senior loop asks about. #21 archived it.
+  `AI/` now exists with its six section indexes (#44); the 32 chapters are improvements #45–53.
 
 `Backend/README.md` promises Express and NestJS; neither exists. The chapter tables under
 `Frontend/ModernStack/` list titles rather than links for the same reason. Do not assume a file exists
@@ -157,6 +157,7 @@ the two before it, and why cross-references are anchors rather than "as we saw e
 ├── Frontend/            Parts I, II, III and IV
 ├── Backend/             Part V
 ├── SystemDesign/        Part VI
+├── AI/                  Part VII — scaffolded at #44, chapters still to write
 ├── ShipAndOperate/      Part VIII — what survived the #20 cut
 ├── Behavioral/          Part IX
 ├── Communication/       Part IX

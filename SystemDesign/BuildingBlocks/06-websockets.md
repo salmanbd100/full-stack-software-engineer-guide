@@ -156,4 +156,4 @@ Around fifty thousand per Node.js process, and memory goes before CPU — each c
 
 - [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming) — the server implementation: typed events, authentication, rooms, backpressure
 - [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features) — the client: reconnection, jitter, and recovering missed messages
-- [Chapter ?? — Design a Chat System](#ch-design-chat-system) — where this building block sits inside a full design
+- [Chapter ?? — Design a Live Dashboard](#ch-design-live-dashboard) — where this building block sits inside a full design

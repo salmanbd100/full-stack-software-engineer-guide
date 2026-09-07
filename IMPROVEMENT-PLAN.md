@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-07 · **Progress:** 48 / 90
+**Last updated:** 2026-09-07 · **Progress:** 51 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -3861,7 +3861,7 @@ conversion, so it cannot absorb this: a note has been added under #70 naming it 
 
 ---
 
-### - [ ] 43. Add frontend system design case studies `M`
+### - [x] 43. Add frontend system design case studies `M` — ✅ **done 2026-09-07**
 
 Part VI currently has 20 backend case studies and zero frontend ones. Add 5, matching what 2026–27
 frontend system design rounds actually ask:
@@ -3889,6 +3889,49 @@ Each follows RADIO and stays 250–350 lines.
 > Follow the six blocks, with RADIO inside `## How It Works` — that is the shape the four surviving
 > backend studies now use, and it closed the conversion debt #28 logged.
 
+**Done when:** Part VI holds frontend case studies alongside the backend ones, each following the six
+blocks with RADIO inside `## How It Works`; `pnpm lint:docs` shows no rule above `.lint-baseline.json`,
+which means **Part VI is at or under 6,500 lines**; the section README and the Part VI opener list the
+real chapters; and no live chapter points at an archived one.
+
+**Delivered:**
+
+- **Three frontend case studies written**, not five, at Part VI's own budget rate of ~191 lines rather
+  than the 250–350 the item asked for: `03-collaborative-editor.md` (195),
+  `04-infinite-feed.md` (189), `05-live-dashboard.md` (193). Six blocks each, RADIO inside
+  `## How It Works`, TypeScript-only fences, one mermaid diagram each with a caption
+- **The two dropped studies, and why.** _Typeahead_ — `BuildingBlocks/05-search.md` already teaches the
+  shape, and an archived `21-typeahead.md` still exists for rehearsal. _Design system for 40 teams_ —
+  #42 created `Frontend/Architecture/03-design-systems.md` (`design-systems-at-scale`), which covers
+  versioning, theming, breaking changes and adoption. Neither leaves a gap; the #42 note had not seen
+  the second overlap, because the chapter that creates it was written by #42 itself
+- **Two backend studies archived to pay for it** — `02-news-feed.md` and `03-chat-system.md` →
+  `Archive/systemdesign/case-studies/26-` and `27-`. Both were the most duplicated of the four: fan-out
+  is `BuildingBlocks/04-queues-and-async.md`, and the stateful edge is `BuildingBlocks/06-websockets.md`
+  plus `SystemDesign/Frontend/02-real-time.md`. `04-ticketmaster.md` renumbered to `02-`. The section
+  ends at **2 backend + 3 frontend**, which is the "cheaper trade" the #42 note recommended
+- **Three dangling cross-references repointed** as a result — `BuildingBlocks/04` → `#ch-design-infinite-feed`,
+  `BuildingBlocks/06` and `SystemDesign/Frontend/02` → `#ch-design-live-dashboard`
+- **`SystemDesign/CaseStudies/README.md` rewritten** and the Part VI opener corrected: its Sections table
+  claimed 13 frontend chapters (there are 5) and 4 case studies, and its opening paragraph still
+  advertised the typeahead and the design system as forthcoming. Empty leftover `SystemDesign/Microservices/`
+  removed — #31d emptied it and left the directory
+- `pnpm lint:docs`: **250 files, six rules at zero**, budget count unchanged at **1,081** (Part IV only).
+  Part VI **6,337 → 6,499** against its 6,500 ceiling
+
+> ⚠️ **Part VI now has one line of headroom, and #70 needs about 200.** 6,499 of 6,500. Converting the
+> four pre-standard `SystemDesign/Frontend/` chapters — the job #42 handed to #70 — adds the six blocks to
+> each, which is roughly 50 lines apiece; #70's own note guesses this *returns* 40 lines to Part VI, and
+> that is the wrong sign. There is nowhere in Part VI left to pay from at chapter granularity: the two
+> longest survivors, `CaseStudies/01-url-shortener.md` (226) and `02-ticketmaster.md` (218), are together
+> only 63 lines above the part's 191-line rate. **Either #76's editorial trim runs across Part VI before
+> #70's conversion, or Part VI's ceiling is raised and paid for out of Part IX**, which is at 1,999
+> against 2,500 — the only slack outside Parts I–IV, and the only move BOOK-SPEC § 5's amendment rule
+> permits. A note has been added under #70.
+>
+> **BOOK-SPEC § "Part VI" is now stale in two places** and #77 or #76 should correct it: it says the case
+> studies are "cut to ten and joined by five frontend ones". They are two and three.
+
 ---
 
 # Phase 4 — 🆕 `AI/` (The 2027 Differentiator)
@@ -3912,14 +3955,59 @@ AI/
 
 ---
 
-### - [ ] 44. Scaffold `AI/` and write the part opener `S`
+### - [x] 44. Scaffold `AI/` and write the part opener `S` — ✅ **done 2026-09-07**
 
 The opener must set the frame: **this part is for engineers who build AI features, not for ML engineers.**
 No model training, no CUDA, no PyTorch. TypeScript throughout, consistent with the rest of the book.
 
+**Done when:** `AI/` exists with the part opener and all six section indexes, each listing its planned
+chapters and naming the item that writes them; `README.md` (repo root) links at `AI/` instead of saying
+"nothing yet"; and `pnpm lint:docs` shows no rule regressed.
+
+**Delivered:**
+
+- `AI/` created with all six subdirectories and **seven READMEs, 440 lines** — the Part VII opener plus
+  `Foundations/`, `Integration/`, `RAG/`, `Agents/`, `Production/`, `AIUX/`. Part VII goes from 0 to 440
+  of its 7,500-line budget. Naming follows the `ModernStack/` precedent: the opener is `Part VII — AI
+  Engineering`, the six below it take bare titles
+- All 31 planned chapters listed across the six section tables with a "what it answers" column, matching
+  #45–#50 exactly. **Titles are plain text, not links** — the files do not exist, and neither a relative
+  path nor a `#ch-` anchor to a missing chapter should be written yet. Each table carries a ⚠️ note naming
+  the item that fills it, and `Foundations/` and `Production/` name the two salvage files they absorb
+- Each section index also carries its own **What Interviewers Probe For** and **Reading Order**, so the
+  scaffold is readable as a part rather than as six stubs
+- **Context7 checked before writing.** Version-stamped **AI SDK 7** and **MCP revision 2025-11-25**, with
+  a moving-target callout in the opener and a second in `Integration/` naming both
+- `README.md` (repo root): the Part VII row now links at `AI/README.md`; the "two holes in the hull"
+  section says *almost* no AI content and points at #45–53; the layout tree gains `AI/`
+- `pnpm lint:docs`: 250 → **257 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
+> 🔴 **Two corrections this item forced on the plan.**
+>
+> 1. **#45 and #49 name a path that no longer exists.** Both say to salvage from `DevOps/GenAI/` —
+>    `06-prompt-engineering.md` into `Foundations/03`, `07-security.md` into `Production/05`–`06`. `DevOps/`
+>    was renamed at #20 and the section archived at #21; the two files were staged at
+>    **`Archive/salvage/ai/`** and that is where they are. Both items' notes have been corrected.
+> 2. **#51's chapter had no home in the target structure.** The tree at the head of Phase 4 lists six
+>    sections and no place for the interview chapter, and #49's Production is fixed at 01–06. It is placed
+>    at the **root of `AI/`** as the part's closing chapter, introduced in the opener; #70 assigns its
+>    number, which is what puts it last.
+
+⚠️ **Part openers do not sort first, and #70 owns it.** `orderDocs` in `scripts/lib/book.ts` breaks a tie
+between two `chapter: 0` files by path, so `AI/Agents/README.md` precedes `AI/README.md` — Part III has
+had the same problem since #32, where `ModernStack/NextJS/README.md` currently opens the part. Nothing is
+lost and nothing errors; the built book simply reads in the wrong order. #70 sets real `chapter` numbers
+for every in-book file, which fixes it as a side effect — a note has been added there.
+
+⚠️ **Half of #52 is already done.** #52's "Done when" is that the Part VII opener introduces the running
+project and each section extends it. The opener introduces it — a documentation assistant — because
+BOOK-SPEC § Part VII commits to it and an opener that omitted it would be wrong on delivery. The second
+half, each section actually extending it, is untouched and is still #52's.
+
 ---
 
-### - [ ] 45. Write `AI/Foundations/` 01–05 `M`
+### - [x] 45. Write `AI/Foundations/` 01–05 `M` — ✅ **done 2026-09-07**
 
 | #   | Chapter                     | Must cover                                                     |
 | --- | --------------------------- | -------------------------------------------------------------- |
@@ -3929,7 +4017,54 @@ No model training, no CUDA, no PyTorch. TypeScript throughout, consistent with t
 | 04  | Embeddings and similarity   | What a vector is, cosine similarity, when embeddings beat keyword search |
 | 05  | Context engineering         | The 2026 reframe of "prompt engineering" — what goes in the window and what gets cut |
 
-> Salvage `DevOps/GenAI/06-prompt-engineering.md` into chapter 03.
+> Salvage `Archive/salvage/ai/06-prompt-engineering.md` into chapter 03. ⚠️ **Path corrected at #44** —
+> `DevOps/` was renamed at #20 and the section archived at #21; the file is staged under `Archive/salvage/ai/`.
+
+**Done when:** all five chapters exist under `AI/Foundations/`, each passes the Book Chapter Standard (six
+blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body), `pnpm lint:docs`
+shows no rule regressed, the section README links them, and the staged salvage file is removed.
+
+**Delivered:**
+
+- Five chapters, **1,008 lines** — `01-how-llms-behave.md` (192), `02-choosing-a-model.md` (184),
+  `03-prompting-as-engineering.md` (231), `04-embeddings-and-similarity.md` (195),
+  `05-context-engineering.md` (206). Part VII **440 → 1,446** of its 7,500-line budget. Figures are the
+  build's own count from `scripts/lib/book.ts`, which is what the budget rule reads — it runs one higher
+  than `wc -l` per file
+- **Context7 checked before writing.** The chapters are version-stamped against **AI SDK 7**, and one v7
+  change is load-bearing rather than cosmetic: the system prompt moved to an `instructions` property and
+  system messages inside `messages` are rejected by default — chapter 03 shows the current shape and
+  carries a moving-target callout. Chapter 04's `embed` / `embedMany` / `cosineSimilarity` example is the
+  current `ai` package surface
+- **The dated-prior trap in chapter 01 is called out rather than repeated.** Several 2026 frontier models
+  have removed `temperature` and `top_p` outright and reject requests that send them, exposing a reasoning
+  effort control instead. The chapter teaches sampling as the mechanism, shows the parameter, and says in a
+  moving-target callout that the knob's name and existence move — a chapter that simply said "tune
+  temperature" would already be wrong on some providers
+- **Salvage absorbed and retired.** `Archive/salvage/ai/06-prompt-engineering.md` is `git rm`-ed and its
+  row struck from `Archive/salvage/README.md`, which now records what survived the re-scope: constraints
+  over politeness, permitting uncertainty, one example beating a paragraph, withholding your theory when
+  debugging, and conventions belonging in a file. The DevOps-specific half — Terraform, IAM wildcards,
+  `kubectl` triage — did not survive, because it is about *using* AI tools rather than *building* AI
+  features, which is the line #21 drew. Only `ai/07-security.md` is still staged, for #49
+- `AI/Foundations/README.md` now links all five chapters by `#ch-` anchor and its "planned, not written"
+  note is gone; the Part VII opener's closing note names `Foundations/` as written
+- `pnpm lint:docs`: 257 → **262 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**. `pnpm book:collect`: 262 files, 52,214 lines
+
+> 🔴 **Two cross-reference corrections, one of them mine from #43.** An anchor audit written for this item
+> found that `Frontend/WebPerformance/05` and `08` carry **British** H1 anchors — `#ch-image-optimisation`,
+> `#ch-rendering-optimisation` — against **American** front-matter slugs, which is two of the twelve
+> mismatches #70 owns. #43's two new case studies had linked the slug spelling, so those three references
+> resolved to nothing; they now use the anchors that exist. #70 still owns reconciling slug and anchor.
+>
+> **Unresolved `#ch-` references are now 17 distinct, up from 8.** Eight are pre-existing and dead (they
+> point at chapters #31f archived, or at front matter that does not exist yet). **Seven are new and will
+> resolve on their own** — `ch-evals`, `ch-cost-engineering`, `ch-prompt-injection`, `ch-retrieval`,
+> `ch-ingestion-and-chunking`, `ch-vector-stores`, `ch-structured-output` — because they are forward links
+> into Part VII chapters that #46–#49 write. They are deliberate: a Foundations chapter that did not point
+> forward at retrieval or evals would be less useful than one that does. #70's audit should separate the
+> two categories rather than treating the count as one number.
 
 ---
 
@@ -3986,7 +4121,8 @@ RAG engineer and a production one is **retrieval evaluation**.
 | 05  | Guardrails and safety     | Input/output filtering, refusal handling, PII, tool permissioning   |
 | 06  | Prompt injection          | Direct and indirect, why it is the #1 AI security issue, defence in depth |
 
-> Salvage `DevOps/GenAI/07-security.md` into chapters 05–06.
+> Salvage `Archive/salvage/ai/07-security.md` into chapters 05–06. ⚠️ **Path corrected at #44** —
+> `DevOps/` was renamed at #20 and the section archived at #21; the file is staged under `Archive/salvage/ai/`.
 
 ---
 
@@ -4009,6 +4145,11 @@ AI-engineering books written by backend and ML people.
 A dedicated chapter on how AI topics appear in interviews: "design a RAG system", "how would you evaluate
 this feature", "your agent is looping, debug it", "what breaks when the model changes version".
 
+> ⚠️ **Location set at #44.** The Phase 4 target tree gave this chapter no home and #49's `Production/` is
+> fixed at 01–06, so it goes at the **root of `AI/`** as the part's closing chapter. The Part VII opener
+> already announces it under the title **AI in Interviews**; #70 assigns the `chapter` number that puts it
+> last.
+
 ---
 
 ### - [ ] 52. Add a "build it once" running project to Part VII `M`
@@ -4017,6 +4158,10 @@ Every chapter set in Part VII should thread through **one small application** �
 say — so the reader ends the part with something whole rather than eight disconnected snippets.
 
 **Done when:** the Part VII opener introduces the project and each section extends it.
+
+> ⚠️ **Half done at #44.** The opener introduces the project — a documentation assistant — because
+> BOOK-SPEC § Part VII commits to it and an opener that omitted it would have shipped wrong. What remains
+> for this item is the other half: each section actually extending the same application.
 
 ---
 
@@ -4257,6 +4402,12 @@ Handbook, the official React/Next/Svelte docs, `web.dev`, DeepLearning.AI for Pa
 Set `part` and `chapter` in front matter for every in-book file so the build produces the right sequence.
 Verify no part exceeds ~12 chapters (split if it does).
 
+> ⚠️ **Added at #44 — part openers currently do not open their parts.** `orderDocs` in
+> `scripts/lib/book.ts` breaks a tie between two `chapter: 0` files by path, so a section index sorts ahead
+> of the part opener above it: Part III opens on `ModernStack/NextJS/README.md` and Part VII on
+> `AI/Agents/README.md`. Assigning real `chapter` numbers here fixes it; verify the built book's part
+> order afterwards rather than assuming it.
+
 > ⚠️ **Added at #42 — two jobs here are not numbering, and had no owner.** #31d and #58a both wrote
 > "owner is #42 or #70" for work this item as written cannot do. Both are now explicitly this item's:
 >
@@ -4264,7 +4415,10 @@ Verify no part exceeds ~12 chapters (split if it does).
 >    `01-interview-strategy` (also **145 lines**, five under the floor), `03-offline-first`,
 >    `04-seo-analytics`, `05-auth`. None has the six blocks, Key Takeaways, Interview Questions or What
 >    to Read Next. #42 stripped their back-link footers and renumbered them; the writing is left.
->    Converting them returns roughly 40 lines to Part VI
+>    Converting them returns roughly 40 lines to Part VI — ⚠️ **wrong sign, corrected at #43.** Adding
+>    six blocks to four chapters *costs* roughly 200 lines, and after #43 Part VI stands at **6,499 of
+>    6,500**. This conversion cannot start until #76 has trimmed Part VI or the ceiling has been raised
+>    and paid for out of Part IX's 501 unused lines — see the note under #43
 > 2. **Reconcile 12 slug/anchor mismatches**, where front-matter `slug` disagrees with the H1's
 >    `{#ch-…}`. Ten are Part IV — `Frontend/Security/02`, `03`; `Frontend/Testing/04`, `05`, `07`, `08`;
 >    `Frontend/WebPerformance/04`, `05`, `06`, `08` — and two are the appendix, `DSA/01` and `05`. Plus
@@ -4555,12 +4709,12 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
-| 3     | 32–43   | 11/12 | 🔄 In progress |
-| 4     | 44–53   | 0/10 | ⬜ Not started  |
+| 3     | 32–43   | 12/12 | ✅ Complete    |
+| 4     | 44–53   | 2/10 | 🔄 In progress |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **48/90** | **53%**   |
+| **Total** | **90** | **51/90** | **57%**   |
 
 ---
 

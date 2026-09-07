@@ -217,4 +217,4 @@ machine. Fix the slow work first; queue it only when nobody is waiting.
 
 - [Chapter ?? — Resilience Patterns](#ch-resilience-patterns) — timeouts, retries and circuit breakers around the calls a worker makes
 - [Chapter ?? — Service Boundaries](#ch-service-boundaries) — events as the contract between services
-- [Chapter ?? — Design a News Feed](#ch-design-news-feed) — fan-out on write versus on read, worked end to end
+- [Chapter ?? — Design an Infinite Feed](#ch-design-infinite-feed) — fan-out on write versus on read, worked end to end from the client

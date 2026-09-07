@@ -17,10 +17,10 @@ the vocabulary first, then the components, then the two kinds of round a fronten
 actually walks into — a backend-shaped case study, and a frontend one.
 
 The balance correction matters. Classic system design material is entirely backend-shaped: shorten
-URLs, design a feed, shard a database. This reader also gets asked to design a collaborative editor, a
-typeahead, an infinite feed, a design system for forty teams, or a dashboard with fifty live widgets.
-Those rounds have their own vocabulary — rendering strategy, cache invalidation in the client,
-optimistic updates, conflict resolution — and `Frontend/` is where it lives.
+URLs, design a feed, shard a database. This reader also gets asked to design a collaborative editor, an
+infinite feed, or a dashboard with fifty live widgets. Those rounds have their own vocabulary —
+rendering strategy, cache invalidation in the client, optimistic updates, conflict resolution — and
+`Frontend/` is where it lives.
 
 ## Sections
 
@@ -29,8 +29,8 @@ optimistic updates, conflict resolution — and `Frontend/` is where it lives.
 | [Fundamentals](./Fundamentals/README.md)             | 6        | Running the round, estimation, scaling, reliability, consistency  |
 | [Building Blocks](./BuildingBlocks/README.md)        | 9        | Load balancers, caches, CDNs, queues, gateways, resilience        |
 | [Data at Scale](./Database/README.md)                | 4        | Choosing a store, replication, sharding, transactions             |
-| [Frontend System Design](./Frontend/README.md)       | 13       | The rounds this reader is most likely to face and least ready for |
-| [Case Studies](./CaseStudies/README.md)              | 4        | Worked answers — backend today, frontend studies join at #43      |
+| [Frontend System Design](./Frontend/README.md)       | 5        | The rounds this reader is most likely to face and least ready for |
+| [Case Studies](./CaseStudies/README.md)              | 5        | Worked answers — two backend-shaped, three frontend-shaped        |
 
 ## The RADIO Framework
 
