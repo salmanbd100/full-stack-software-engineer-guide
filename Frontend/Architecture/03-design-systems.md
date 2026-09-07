@@ -237,4 +237,4 @@ component library until the language is stable enough to be worth freezing.
 
 - [Chapter ?? — Micro-Frontends](#ch-micro-frontends) — the case where a shared system is what stops five teams diverging
 - [Chapter ?? — Frontend Architecture Patterns](#ch-frontend-architecture-patterns) — where the shared layer sits in a feature-organised tree
-- [Chapter ?? — Accessibility](#ch-accessibility) — the standard every published component has to meet
+- [Chapter ?? — Why Accessibility, and the Law](#ch-accessibility-and-the-law) — the standard every published component has to meet

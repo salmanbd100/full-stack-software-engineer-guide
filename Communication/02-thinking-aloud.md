@@ -68,6 +68,11 @@ the design came from the requirements rather than from memory.
 
 ## The Three Phases of a Coding Round
 
+Some 2026–27 loops now allow an AI assistant in the coding round, which raises the narration bar rather
+than lowering it: the interviewer already knows the model can produce the function, so the signal is why
+you accepted, rejected or rewrote what it gave you. The AI questions in the loop itself are
+[Chapter ?? — AI in Interviews](#ch-ai-in-interviews).
+
 ### Before writing anything
 
 Roughly five minutes, and it is the highest-value part of the hour.

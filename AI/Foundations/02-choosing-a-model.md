@@ -138,6 +138,9 @@ lower-effort version is one config change and frequently saves as much.
 > A model id that resolves to "whatever is newest" is an unpinned dependency in your critical path.
 > Pin it, and treat the upgrade as a change that has to pass the suite — because it is one.
 
+Ship the switch behind a flag as well, so a bad upgrade is a toggle rather than a deploy —
+[Chapter ?? — Feature Flags](#ch-feature-flags).
+
 ## 🔑 Key Takeaways
 
 - Model choice is per route; one model for a whole application is wrong for most of its routes.

@@ -26,10 +26,29 @@ mistaken" is a state the UI has to represent.
 
 | #  | Chapter                  | What it answers                                                        |
 | -- | ------------------------ | ------------------------------------------------------------------------ |
-| 01 | Designing for Latency    | Why does the first token matter more than the last, and what fills the wait? |
-| 02 | Generative UI            | How do you render components from model output without opening a hole?   |
-| 03 | Trust and Correctness UX | How does the interface show its working — citations, confidence, undo?   |
-| 04 | Failure States           | What does the screen do on a refusal, a timeout, or half an answer?      |
+| 01 | [Designing for Latency](#ch-designing-for-latency)    | Why does the first token matter more than the last, and what fills the wait? |
+| 02 | [Generative UI](#ch-generative-ui)            | How do you render components from model output without opening a hole?   |
+| 03 | [Trust and Correctness UX](#ch-trust-and-correctness-ux) | How does the interface show its working — citations, confidence, undo?   |
+| 04 | [Failure States](#ch-failure-states)           | What does the screen do on a refusal, a timeout, or half an answer?      |
+
+## The Running Project
+
+The last section, and the one that decides whether the previous five are worth using. The
+**documentation assistant** has a finished engine and an unfinished surface.
+
+| Chapter | What it adds to the assistant |
+| ------- | ----------------------------- |
+| 01 | A first-token target, and a retrieval phase the reader can see instead of a spinner |
+| 02 | Answer components — citation chips, a diff for a suggested doc change — rendered from an allow-list, with the model emitting passage ids the server resolves |
+| 03 | Citations that link to the source page, edit-before-accept on anything the assistant proposes changing, and undo |
+| 04 | The failure screens: "not in the docs", a truncated answer with a continue action, and a rate limit that keeps whatever already streamed |
+
+**At the end of the part** the documentation assistant streams cited answers from a measured retrieval
+pipeline, refuses honestly when a question falls outside the corpus, costs a known amount per question,
+and degrades to the plain docs index when the model is unavailable.
+
+That is thirty-one chapters in one application, and it is also the answer to the only question that
+matters in an AI round: have you shipped one of these.
 
 ## What Interviewers Probe For
 
@@ -53,5 +72,3 @@ engineering actually is. 02 and 03 are independent; 02 assumes the security boun
 
 **Interview sprint:** 01 and 04. Latency and failure design are what a frontend-heavy candidate can say
 about AI features that nobody else in the loop will.
-
-> ⚠️ **Planned, not written.** Item **#50** writes all four chapters.

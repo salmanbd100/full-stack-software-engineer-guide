@@ -24,11 +24,31 @@ counted characters. Until retrieval is measured, every fix is a guess.
 
 | #  | Chapter                                | What it answers                                                     |
 | -- | -------------------------------------- | --------------------------------------------------------------------- |
-| 01 | When RAG, When Fine-Tune, When Neither | Which problem does each actually solve, and why do teams pick wrong?  |
-| 02 | Ingestion and Chunking                 | How do you split a document without destroying its meaning?           |
-| 03 | Retrieval                              | Vector, keyword or hybrid — and where does reranking earn its latency? |
-| 04 | Vector Stores                          | Is pgvector enough, and what does a dedicated store actually cost?    |
-| 05 | Evaluating Retrieval                   | What is recall@k, and how do you build a golden set worth trusting?   |
+| 01 | [When RAG, When Fine-Tune, When Neither](#ch-when-rag-when-fine-tune-when-neither) | Which problem does each actually solve, and why do teams pick wrong?  |
+| 02 | [Ingestion and Chunking](#ch-ingestion-and-chunking)                 | How do you split a document without destroying its meaning?           |
+| 03 | [Retrieval](#ch-retrieval)                              | Vector, keyword or hybrid — and where does reranking earn its latency? |
+| 04 | [Vector Stores](#ch-vector-stores)                          | Is pgvector enough, and what does a dedicated store actually cost?    |
+| 05 | [Evaluating Retrieval](#ch-evaluating-retrieval)                   | What is recall@k, and how do you build a golden set worth trusting?   |
+
+## The Running Project
+
+Coming in, the **documentation assistant** streams answers over a keyword query. This section replaces the
+search, and in its last chapter produces the project's first number.
+
+| Chapter | What it adds to the assistant |
+| ------- | ----------------------------- |
+| 01 | The decision, stated out loud: the docs change weekly, so the facts belong in a store rather than in weights — no fine-tune |
+| 02 | Chunking by heading, with the page, the heading path and the updated date carried on every chunk |
+| 03 | Hybrid retrieval with a rerank at `k = 5`, and query rewriting through the small model |
+| 04 | `pgvector` in the Postgres the application already runs, plus the re-embed job that fires when a page changes |
+| 05 | A golden set of fifty real questions with the passage ids a correct answer must retrieve — and recall@5 |
+
+The number matters more than the pipeline. From here a chunking or ranking change is a measurement rather
+than an argument, which is the difference between the tutorial version of this project and the one worth
+putting on a CV.
+
+**At the end of this section** retrieval is measured and the answer is not. The reply can still ignore a
+passage that was retrieved correctly, and catching that is `Production/01`.
 
 ## What Interviewers Probe For
 
@@ -51,4 +71,3 @@ there is a number attached to it.
 **Interview sprint:** 01 and 05. The decision and the measurement — the two halves candidates most often
 lack.
 
-> ⚠️ **Planned, not written.** Item **#47** writes all five chapters.

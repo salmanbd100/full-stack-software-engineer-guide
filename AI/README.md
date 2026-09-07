@@ -49,9 +49,9 @@ how the pieces constrain each other, which is what the interview is about.
 | [Production](./Production/README.md)       | 6        | Evals, error analysis, observability, cost, guardrails, prompt injection     |
 | [AIUX](./AIUX/README.md)                   | 4        | Latency, generative UI, trust and correctness, failure states                |
 
-A closing chapter, **AI in Interviews**, sits at the root of this part and covers how these topics are
-actually asked: _design a RAG system_, _how would you evaluate this feature_, _your agent is looping,
-debug it_, _what breaks when the model changes version_.
+A closing chapter, [**AI in Interviews**](#ch-ai-in-interviews), sits at the root of this part and covers
+how these topics are actually asked: _design a RAG system_, _how would you evaluate this feature_, _your
+agent is looping, debug it_, _what breaks when the model changes version_.
 
 > ⚠️ **Moving target, by construction.** Provider SDKs, the AI SDK, and the Model Context Protocol all
 > ship breaking changes on a scale of months — this part is version-stamped against **AI SDK 7** and **MCP
@@ -82,10 +82,10 @@ Then split by role: a product-facing engineer should go to `AIUX/` and `RAG/` ne
 internal tooling should go to `Agents/`. `Production/` is last in the numbering and first in the
 interview — read it whatever your route.
 
-**Interview sprint:** `Foundations/01`, `Integration/03`–`04`, `RAG/01` and `05`, `Production/01`. That is
-the mental model, the two mechanics that always come up, the decision most teams get wrong, and the skill
-the market is short of.
+**Interview sprint:** `Foundations/01`, `Integration/03`–`04`, `RAG/01` and `05`, `Production/01`, then
+[AI in Interviews](#ch-ai-in-interviews). That is the mental model, the two mechanics that always come up,
+the decision most teams get wrong, the skill the market is short of, and the shape of the round itself.
 
-> ⚠️ **This part is still filling up.** `Foundations/` is written (#45); the other five section indexes
-> list chapters that are planned, and their titles appear as plain text until the file exists. Items
-> #46–#53 fill them in.
+> ⚠️ **Part VII is written.** All thirty-one chapters, every cross-reference inside the part resolving,
+> and the running project threaded through all six section indexes — each one lists what it adds to the
+> documentation assistant and what the assistant still cannot do at the end of it.

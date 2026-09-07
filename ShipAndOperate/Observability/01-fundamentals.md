@@ -72,6 +72,10 @@ http_requests_total{method, status, endpoint, user_id}
 **Never a metric label:** user ID, request ID, session ID, email, a full URL with query parameters, a
 timestamp. Those belong in logs and traces, which are built for unbounded detail.
 
+An AI feature adds two labels people reach for and should not: the prompt and the retrieved document text.
+Both are unbounded and often personal — [Chapter ?? — Observability](#ch-observability) covers what its
+spans record instead.
+
 ### Logs, Structured
 
 ❌ **Unstructured** — needs fragile regex to query:

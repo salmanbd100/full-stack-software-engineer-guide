@@ -12,9 +12,9 @@ in_book: true
 
 # Part VI — Case Studies
 
-Five worked rounds — two backend-shaped, three frontend-shaped. Each one is a different **shape** of
-problem rather than a different product, which is the point: an interviewer can ask for any of a hundred
-products, and there are only about a dozen shapes underneath them.
+Five worked rounds — two backend-shaped, three frontend-shaped. Each is a different **shape** of problem
+rather than a different product: an interviewer can ask for any of a hundred products, and there are only
+about a dozen shapes underneath.
 
 Read them out loud against a timer. A case study you have read is worth very little; a case study you
 have talked through for forty minutes is worth the whole section.
@@ -30,8 +30,9 @@ have talked through for forty minutes is worth the whole section.
 | 05 | [Design a Live Dashboard](./05-live-dashboard.md)                   | Fan-in over one connection, and dropping data to keep frames     |
 
 Each follows RADIO inside its `How It Works` section: requirements, architecture, data model, interface,
-optimisations. The framework itself is
-[Chapter ?? — Driving the Design Round](#ch-driving-the-round).
+optimisations. The framework itself is [Chapter ?? — Driving the Design Round](#ch-driving-the-round), and
+the sixth shape this section does not carry — a retrieval-based AI product, asked as "design a RAG system"
+— is worked in [Chapter ?? — AI in Interviews](#ch-ai-in-interviews).
 
 ## What Interviewers Probe For
 

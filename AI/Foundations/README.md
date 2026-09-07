@@ -31,6 +31,26 @@ conversation length, retrieval that has to be selective — follows from that on
 | 04 | [Embeddings and Similarity](#ch-embeddings-and-similarity)          | What is a vector, and when does it beat keyword search?                      |
 | 05 | [Context Engineering](#ch-context-engineering)                      | What goes into the window, what gets cut, and who decides?                   |
 
+## The Running Project
+
+Nothing runs yet. This section produces the three decisions the **documentation assistant** is built on,
+and every one of them is cheaper to change here than in any later section.
+
+| Chapter | What it adds to the assistant |
+| ------- | ----------------------------- |
+| 01 | The token arithmetic that kills the obvious design: a whole docs site does not fit in the window, so the assistant has to select passages rather than send everything |
+| 02 | Two models rather than one — a small one for query rewriting and classification, a larger one for the answer |
+| 03 | `prompts/answer.md`, versioned with the code, carrying the grounding rule: answer only from the supplied passages, and say plainly when they do not cover the question |
+| 04 | An embedding for a handful of docs pages, and the sanity check that similar questions land near the right page |
+| 05 | The window budget written down — system prompt, five passages, the last few turns — and what gets dropped first when it does not fit |
+
+The decision worth arguing about is 02. Choosing one large model for everything is the default that makes
+the cost chapter in `Production/` painful later, because query rewriting runs on every request.
+
+**At the end of this section** the assistant exists on paper: a prompt file, a model per job, and a budget
+that says what fits. It cannot answer anything yet, because nothing calls a model — `Integration/` is
+where it becomes an application.
+
 ## What Interviewers Probe For
 
 - **"Why did the model give a different answer the second time?"** Sampling. The honest answer names

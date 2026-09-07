@@ -323,12 +323,16 @@ the order of cuts is fixed: Part VIII first, then Part IX, then Part VI case stu
 amends § 1 and this section with numbers instead of assumptions. Nothing in § 5's budget table changes
 until it does: budgets are ceilings, so a part coming in under one is already permitted.
 
-⚠️ **The spine is in a known 0.5-point breach, deliberately deferred to #77.** Decision #14 archived 2,077
-lines from Part II. Taking the plan's own committed items into account — #58a trimming Part IV to 5,500 and
-#54 adding `Frontend/Accessibility/` — the finished book projects to a spine of **27,240 of 55,034 = 49.5%**
-against non-negotiable #3's 50% floor. The gap is **554 lines**, to be closed from Parts V–IX in § 5's fixed
-cut order (Part VIII first), not from Parts I–IV. This is recorded rather than fixed because #77's
-calibration changes every number it depends on.
+⚠️ **The spine is in a known breach, deliberately deferred to #77.** Decision #14 archived 2,077 lines from
+Part II. Taking the plan's own committed items into account — #58a trimming Part IV to 5,500 and #54 adding
+`Frontend/Accessibility/` — the finished book projects to a spine of **27,466 of 55,260 = 49.7%** against
+non-negotiable #3's 50% floor. The gap is **164 lines**, to be closed from Parts V–IX in § 5's fixed cut
+order (Part VIII first), not from Parts I–IV. This is recorded rather than fixed because #77's calibration
+changes every number it depends on.
+
+> The 49.5% / 554-line version of this projection assumed #54 would add ~1,046 net lines to Part II. It
+> landed at **+1,272** — six chapters at 233–256 lines, less the 255-line chapter it absorbed — which is
+> where the 226-line improvement above comes from. Every other input is still an estimate.
 
 ---
 

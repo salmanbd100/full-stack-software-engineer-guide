@@ -90,7 +90,9 @@ optional.
 **Streaming a token-by-token response** — the shape an AI feature needs — is the same mechanism
 with a simpler contract: keep the response open and write chunks as they are produced. Choose SSE
 when the client needs typed events and resumability, and a plain chunked response when it only
-needs the text.
+needs the text. The client and product half of that stream — first-token targets, cancellation, and
+keeping a partial answer when the connection dies — is
+[Chapter ?? — Streaming Responses](#ch-streaming-responses).
 
 ## A Typed Server
 

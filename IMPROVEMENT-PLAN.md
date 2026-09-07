@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-07 · **Progress:** 51 / 90
+**Last updated:** 2026-09-07 · **Progress:** 60 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -4068,7 +4068,7 @@ shows no rule regressed, the section README links them, and the staged salvage f
 
 ---
 
-### - [ ] 46. Write `AI/Integration/` 01–06 — the full stack engineer's core `L`
+### - [x] 46. Write `AI/Integration/` 01–06 — the full stack engineer's core `L` — ✅ **done 2026-09-07**
 
 This is the section your reader will use at work on Monday. Use **Context7 MCP** for current SDK APIs.
 
@@ -4081,9 +4081,38 @@ This is the section your reader will use at work on Monday. Use **Context7 MCP**
 | 05  | MCP (Model Context Protocol)  | What it standardises, servers vs clients, when to build one     |
 | 06  | Multi-provider architecture   | Gateways, failover, cost routing, avoiding vendor lock-in       |
 
+**Done when:** all six chapters exist under `AI/Integration/`, each passes the Book Chapter Standard (six
+blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body), `pnpm lint:docs`
+shows no rule regressed, and the section README links them.
+
+**Delivered:**
+
+- Six chapters, **1,297 lines** — `01-calling-an-llm-from-typescript.md` (220),
+  `02-streaming-responses.md` (204), `03-structured-output.md` (216), `04-tool-calling.md` (231),
+  `05-model-context-protocol.md` (218), `06-multi-provider-architecture.md` (208). Part VII
+  **1,446 → 2,750** of its 7,500-line budget
+- **Context7 checked before writing**, three queries against `/vercel/ai`. Three v7 surfaces are
+  load-bearing rather than cosmetic: structured output is `Output.object({ schema })` on `generateText` /
+  `streamText` rather than a separate `generateObject` call, the tool loop bounds on
+  `stopWhen: isStepCount(n)`, and the MCP client is `createMCPClient` from `@ai-sdk/mcp` with `type: 'http'`
+  streamable transport — SSE is legacy. Each chapter carries a moving-target callout naming the durable
+  principle underneath
+- **`ch-structured-output` now resolves.** It was one of the seven forward links #45 left open. The other
+  six (`ch-evals`, `ch-cost-engineering`, `ch-prompt-injection`, `ch-retrieval`, `ch-ingestion-and-chunking`,
+  `ch-vector-stores`) are still forward links, and #47 and #49 close them
+- `AI/Integration/README.md` links all six by `#ch-` anchor, its "planned, not written" note is replaced
+  by a version stamp
+- `pnpm lint:docs`: 262 → **268 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**. `pnpm book:collect`: 268 files, 53,518 lines
+
+> ⚠️ **The security boundary is stated in three chapters and owned by one.** `04-tool-calling` puts
+> authorisation in the dispatcher, `05-model-context-protocol` names tool descriptions as untrusted prompt
+> text, and both forward-link `#ch-prompt-injection`. #49 writes that chapter and should treat these two as
+> the setup rather than restating them.
+
 ---
 
-### - [ ] 47. Write `AI/RAG/` 01–05 `M`
+### - [x] 47. Write `AI/RAG/` 01–05 `M` — ✅ **done 2026-09-07**
 
 Research finding: RAG is the most widely deployed enterprise LLM pattern, and the gap between a tutorial
 RAG engineer and a production one is **retrieval evaluation**.
@@ -4096,9 +4125,32 @@ RAG engineer and a production one is **retrieval evaluation**.
 | 04  | Vector stores              | pgvector vs dedicated stores, index types, the operational cost |
 | 05  | Evaluating retrieval       | Recall@k, golden sets, why "the answer was wrong" is usually a retrieval bug |
 
+**Done when:** all five chapters exist under `AI/RAG/`, each passes the Book Chapter Standard (six blocks
+in order, 150–400 lines, TypeScript-only fences, no relative links in the body), `pnpm lint:docs` shows no
+rule regressed, and the section README links them.
+
+**Delivered:**
+
+- Five chapters, **1,085 lines** — `01-when-rag-when-fine-tune-when-neither.md` (195),
+  `02-ingestion-and-chunking.md` (236), `03-retrieval.md` (222), `04-vector-stores.md` (206),
+  `05-evaluating-retrieval.md` (226). Part VII **2,750 → 3,839** of its 7,500-line budget
+- **Three of #45's seven forward links now resolve** — `ch-retrieval`, `ch-ingestion-and-chunking`,
+  `ch-vector-stores`. The remaining three (`ch-evals`, `ch-cost-engineering`, `ch-prompt-injection`) are
+  #49's
+- **Chapter 01 answers "neither" honestly**, which the item's framing invited but did not require: a corpus
+  of a few hundred pages fits in a cached window, and building an ingestion pipeline for it is the most
+  common over-engineering in this part of the stack. The chapter ranks four options by cost and tells the
+  reader to stop at the first that works
+- **Chapter 04 carries one SQL fence**, the pgvector schema and query. `sql` is on the Book Chapter
+  Standard allow-list; the rule is TypeScript for *code*, and a schema is not TypeScript in any honest
+  rendering. Every other fence in the section is TypeScript or mermaid
+- `AI/RAG/README.md` links all five by `#ch-` anchor and its "planned, not written" note is gone
+- `pnpm lint:docs`: 268 → **273 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
 ---
 
-### - [ ] 48. Write `AI/Agents/` 01–05 `M`
+### - [x] 48. Write `AI/Agents/` 01–05 `M` — ✅ **done 2026-09-07**
 
 | #   | Chapter                       | Must cover                                                 |
 | --- | ----------------------------- | ---------------------------------------------------------- |
@@ -4108,9 +4160,33 @@ RAG engineer and a production one is **retrieval evaluation**.
 | 04  | Durability and long-running work | Retries, resumption, human-in-the-loop approval gates    |
 | 05  | Multi-agent patterns          | Orchestrator/worker, when a single agent is genuinely better |
 
+**Done when:** all five chapters exist under `AI/Agents/`, each passes the Book Chapter Standard (six
+blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body), `pnpm lint:docs`
+shows no rule regressed, and the section README links them.
+
+**Delivered:**
+
+- Five chapters, **1,097 lines** — `01-what-an-agent-actually-is.md` (218),
+  `02-designing-the-tool-surface.md` (218), `03-memory-and-state.md` (214),
+  `04-durability-and-long-running-work.md` (223), `05-multi-agent-patterns.md` (224). Part VII
+  **3,839 → 4,940** of its 7,500-line budget
+- **The section's ordering note held.** `AI/Agents/README.md` said 01 and 02 depend on `Integration/04`;
+  that chapter landed at #46, so both link `#ch-tool-calling` and neither restates the loop mechanics
+- **Chapter 05 argues against the item's own framing, deliberately.** The plan asked for orchestrator /
+  worker and "when a single agent is genuinely better". The chapter names the only two things splitting
+  buys — context isolation and parallelism — and reclassifies reviewer, router and specialist agents as
+  patterns that should not be agents at all. That is the senior signal the section index promised
+- `AI/Agents/README.md` links all five by `#ch-` anchor and its "planned, not written" note is gone
+- `pnpm lint:docs`: 273 → **278 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
+> ⚠️ **Four new forward links, all owned by #49** — `ch-evals`, `ch-observability`, `ch-cost-engineering`
+> and `ch-prompt-injection`. `ch-observability` is new here; the other three were already outstanding from
+> #45 and #46. All four resolve when #49 lands.
+
 ---
 
-### - [ ] 49. Write `AI/Production/` 01–06 — the section that sets the book apart `L`
+### - [x] 49. Write `AI/Production/` 01–06 — the section that sets the book apart `L` — ✅ **done 2026-09-07**
 
 | #   | Chapter                   | Must cover                                                       |
 | --- | ------------------------- | ---------------------------------------------------------------- |
@@ -4124,9 +4200,43 @@ RAG engineer and a production one is **retrieval evaluation**.
 > Salvage `Archive/salvage/ai/07-security.md` into chapters 05–06. ⚠️ **Path corrected at #44** —
 > `DevOps/` was renamed at #20 and the section archived at #21; the file is staged under `Archive/salvage/ai/`.
 
+**Done when:** all six chapters exist under `AI/Production/`, each passes the Book Chapter Standard (six
+blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body), `pnpm lint:docs`
+shows no rule regressed, the section README links them, and the staged salvage file is removed.
+
+**Delivered:**
+
+- Six chapters, **1,283 lines** — `01-evals.md` (203), `02-error-analysis-loops.md` (198),
+  `03-observability.md` (214), `04-cost-engineering.md` (217), `05-guardrails-and-safety.md` (233),
+  `06-prompt-injection.md` (218). Part VII **4,940 → 6,226** of its 7,500-line budget
+- **All remaining forward links from #45, #46 and #48 now resolve** — `ch-evals`, `ch-cost-engineering`,
+  `ch-prompt-injection` and `ch-observability`. Part VII's internal cross-references are complete except
+  for the four that point into `AIUX/` (#50) and the interview chapter (#51)
+- **Salvage absorbed and retired.** `Archive/salvage/ai/07-security.md` is `git rm`-ed. What survived the
+  re-scope: three risk boundaries rather than one, the data-egress decision being architectural rather
+  than a filter, an agent with real permissions as a privileged principal, the untrusted-content source
+  table, and the sentence 06 turns on — there is no reliable way to make a model ignore injected
+  instructions, so constrain what success achieves. What did not: Amazon Q agent configuration, Bedrock
+  as the named answer, Terraform state as the leak example, and the "different review process for
+  AI-generated code" material, all of which is about *using* AI coding tools rather than *building* AI
+  features. `Archive/salvage/README.md` records both halves and its staged table is now empty;
+  `Archive/salvage/ai/README.md` is rewritten as a record so the inbound references from
+  `Archive/README.md` still resolve
+- **Chapter 06 leads with the lethal trifecta** — private data, untrusted content, an outward channel —
+  because it is the framing that turns a vague worry into a design-review checklist, and it names the
+  third leg as the one usually added last by someone improving a feature
+- `AI/Production/README.md` links all six by `#ch-` anchor and its "planned, not written" note is gone
+- `pnpm lint:docs`: 278 → **284 files**, six rules at zero, the one violation still Part IV's
+  pre-existing +1,081. **`.lint-baseline.json` unchanged**
+
+> ⚠️ **Part VII's budget is now the binding constraint.** 6,226 of 7,500 lines used with #50 (4 chapters),
+> #51 (1 chapter) and #52's running-project extensions still to come. At the section's ~215-line average
+> that is roughly 1,075 lines of chapters plus #52, against 1,274 remaining. #50 and #51 should target
+> **~195 lines**, not the book-wide ~220, or Part VII becomes the second part over budget.
+
 ---
 
-### - [ ] 50. Write `AI/AIUX/` 01–04 — the frontend-heavy angle `M`
+### - [x] 50. Write `AI/AIUX/` 01–04 — the frontend-heavy angle `M` — ✅ **done 2026-09-07**
 
 **This is the section only a frontend-heavy author can write well.** It is your book's edge over the
 AI-engineering books written by backend and ML people.
@@ -4138,9 +4248,41 @@ AI-engineering books written by backend and ML people.
 | 03  | Trust and correctness UX     | Citations, confidence, edit-before-accept, undo, showing the model's work |
 | 04  | Failure states               | Refusals, timeouts, partial answers, rate limits — designing the unhappy path |
 
+**Done when:** all four chapters exist under `AI/AIUX/`, each passes the Book Chapter Standard (six
+blocks in order, 150–400 lines, TypeScript-only fences, no relative links in the body), `pnpm lint:docs`
+shows no rule regressed, and the section README links them.
+
+**Delivered:**
+
+- Four chapters, **794 lines** — `01-designing-for-latency.md` (187), `02-generative-ui.md` (208),
+  `03-trust-and-correctness-ux.md` (202), `04-failure-states.md` (197). Part VII **6,226 → 7,022** of its
+  7,500-line budget. Deliberately written at **~198 lines** rather than the book-wide ~220, per the budget
+  note added at #49
+- **Every `#ch-` reference in `AI/` now resolves.** An audit of all 31 written files against every `slug:`
+  in the repo returns zero unresolved anchors — the seven forward links #45 opened are closed, and so are
+  the four #46 and #48 added. Part VII is internally complete
+- **02 and 03 carry the security argument into the frontend**, which is what makes this section the one
+  only a frontend author writes. A model-supplied `src` or `href` is the third leg of `Production/06`'s
+  lethal trifecta added by a rendering decision; the fix — emit a chunk id, resolve it server-side — is
+  also the citation-verification control from `Production/05`, so one pattern does correctness and
+  security at once
+- **04 argues the unhappy path is most of the engineering**, not the polish stage, because refusal and
+  empty retrieval are daily traffic in a scoped assistant. It also names the truncation trap explicitly:
+  `finishReason: 'length'` arrives with HTTP 200, so a half sentence renders as a finished answer
+- `AI/AIUX/README.md` links all four by `#ch-` anchor and its "planned, not written" note is gone
+- `pnpm lint:docs`: 284 → **288 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
+> 🔴 **Part VII has 478 lines left and two items still to spend them.** 7,022 of 7,500 used. #51's
+> interview chapter has a 150-line floor from the Book Chapter Standard, and #52 has to extend six section
+> READMEs with the running project. The only combination that fits is **#51 at ~190 lines** and **#52
+> adding ~45 lines per section README**. Both items' notes have been updated. If either overruns, Part VII
+> becomes the second part over budget and `lint:docs` will report a new violation — that is a baseline
+> change, not a passing run.
+
 ---
 
-### - [ ] 51. Write `AI/` interview chapter `S`
+### - [x] 51. Write `AI/` interview chapter `S` — ✅ **done 2026-09-07**
 
 A dedicated chapter on how AI topics appear in interviews: "design a RAG system", "how would you evaluate
 this feature", "your agent is looping, debug it", "what breaks when the model changes version".
@@ -4150,32 +4292,157 @@ this feature", "your agent is looping, debug it", "what breaks when the model ch
 > already announces it under the title **AI in Interviews**; #70 assigns the `chapter` number that puts it
 > last.
 
+> 🔴 **Budget: ~190 lines, not ~220.** Part VII stood at 7,022 of 7,500 when #50 finished. This chapter
+> and #52 share the remaining 478. The Book Chapter Standard's floor is 150, so there is room — but not
+> for an average-length chapter.
+
+**Done when:** the chapter exists at the root of `AI/`, passes the Book Chapter Standard (six blocks in
+order, 150–400 lines, TypeScript-only fences, no relative links in the body), `pnpm lint:docs` shows no
+rule regressed, and the Part VII opener links it. _("Done when" was missing from this item and was added
+when it was executed — the acceptance test is the same as #49's and #50's.)_
+
+**Delivered:**
+
+- `AI/07-ai-in-interviews.md`, **203 lines**, slug `ai-in-interviews`. Part VII **7,023 → 7,225** of its
+  7,500-line budget. Written 13 lines over the ~190 target and still inside it — **275 lines remain for
+  #52**, which its note budgets at ~280 across six section READMEs. #52 should aim at **~45 per README**
+  and treat that as a ceiling, not an estimate
+- **Numbered `07-` rather than `01-`** so the filename sorts after the six section directories it closes.
+  Front matter keeps `chapter: 0`; #70 assigns the real number
+- **Structured as the four archetypes named in this item**, one `###` round each: design a RAG system,
+  how would you evaluate this feature, your agent is looping, what breaks on a version change. Each round
+  teaches the *method* — the phases to drive, the order to bisect in, the artefact the answer produces —
+  and cross-references the section chapter that owns the mechanics, so nothing is restated. Retrieval
+  causes of loops live in `Agents/01`–`02`, version pinning in `Foundations/02` and `Production/01`
+- **The loop round turns on a three-line trace** showing the same tool called with the same arguments and
+  the same empty result. That is the fastest way to show that a looping agent is a tool-surface bug rather
+  than a reasoning failure, and asking for the trace at all is most of what the question scores
+- **Only two code fences**, deliberately: the trace, and an `UpgradeReport` interface whose `regressions`
+  field is the one list that blocks a release. The eval-case shape was left to `Production/01` rather than
+  duplicated here
+- `AI/README.md` links the chapter by `#ch-ai-in-interviews` from both the Sections block and the
+  interview-sprint path, and its status note now reads **all thirty-one chapters written**
+- Every `#ch-` anchor used in `AI/` still resolves — audited against every `slug:` in the repo, zero
+  unresolved
+- `pnpm lint:docs`: 288 → **289 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
 ---
 
-### - [ ] 52. Add a "build it once" running project to Part VII `M`
+### - [x] 52. Add a "build it once" running project to Part VII `M` — ✅ **done 2026-09-07**
 
 Every chapter set in Part VII should thread through **one small application** — a documentation assistant,
 say — so the reader ends the part with something whole rather than eight disconnected snippets.
 
 **Done when:** the Part VII opener introduces the project and each section extends it.
 
+> ⚠️ **Half of this is already done** — the opener introduced the documentation assistant at #44. What
+> remains is each of the six section READMEs extending it.
+>
+> 🔴 **Budget: ~45 lines per section README, ~280 total.** Part VII stood at 7,022 of 7,500 after #50,
+> and #51 takes roughly 190 of the remaining 478.
+
 > ⚠️ **Half done at #44.** The opener introduces the project — a documentation assistant — because
 > BOOK-SPEC § Part VII commits to it and an opener that omitted it would have shipped wrong. What remains
 > for this item is the other half: each section actually extending the same application.
 
+**Delivered:**
+
+- **A `## The Running Project` section in all six section READMEs**, placed identically — after the
+  Chapters table, before `## What Interviewers Probe For`. Each one has the same three parts: the state
+  the documentation assistant arrives in, a row per chapter saying what that chapter adds to it, and an
+  **"At the end of this section"** line naming what the assistant still cannot do plus which section
+  fixes it. Read in order the six blocks are a continuous build log
+- **121 lines total, ~20 per README** rather than the ~45 this item budgeted. The tables carry the
+  content, so the prose around them stayed short. Part VII **7,225 → 7,345** of 7,500, leaving **155
+  lines spare** — #53's cross-linking sweep has room
+- **The arc, so #53 and #70 do not have to reconstruct it:** `Foundations/` produces three decisions and
+  no running code — a prompt file, a small model for rewriting and a large one for answers, a written
+  window budget. `Integration/` makes it an application that streams cited answers over a keyword query.
+  `RAG/` replaces the query with hybrid retrieval and produces the project's first number, recall@5.
+  `Agents/` adds one bounded triage agent and deliberately keeps the answer path a workflow.
+  `Production/` adds the pass rate, the cost per question and the security boundary. `AIUX/` finishes the
+  surface and states what the reader ends the part holding
+- **The through-line that ties the sections together is `Integration/03`'s reply schema** — an answer
+  carrying passage ids rather than pasted text. `RAG/05` measures against those ids, `Production/05` and
+  `06` resolve them server-side so an injected docs page cannot fabricate a citation, and `AIUX/02` renders
+  them as chips from an allow-list. Three sections depend on one field, which is the point of a running
+  project rather than eight snippets
+- **Fixed a stale fragment in `AI/Agents/README.md`** — a dangling blockquote reading "> `Integration/04`,
+  which must be written first", left over from the pre-#48 planning note. All of `Integration/` is written,
+  so the line was both broken markdown and wrong
+- `AI/README.md`'s status note now records the part as complete: thirty-one chapters, every internal
+  cross-reference resolving, and the running project threaded through all six indexes
+- `pnpm lint:docs`: **289 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
+> ⚠️ **Budget note corrected.** This item's 🔴 note allowed ~45 lines per section README on the assumption
+> that Part VII would be nearly full. It came in at ~20, so Part VII closes at 7,345 of 7,500 rather than
+> at the ceiling. Nothing in Phase 4 is now budget-blocked.
+
 ---
 
-### - [ ] 53. Cross-link AI into the rest of the book `S`
+### - [x] 53. Cross-link AI into the rest of the book `S` — ✅ **done 2026-09-07**
 
 Add explicit cross-references: Part V (API design for streaming endpoints), Part IV (performance budgets for
 AI features), Part VI (system design for an AI product), Part VIII (deploying and monitoring AI workloads),
 Part IX (the AI-assisted interview loop).
 
+**Done when:** each of the five named parts has an explicit `#ch-` cross-reference to `AI/` and one back
+from `AI/`, every anchor resolves to an existing H1, no part crosses its BOOK-SPEC § 5 budget, and
+`pnpm lint:docs` shows no rule regressed. _("Done when" was missing and was added when the item ran.)_
+
+**Delivered:**
+
+- **Ten cross-references, five pairs, both directions.** Each is placed in the body sentence that earns it
+  rather than appended to a `What to Read Next` list — the six affected AI chapters already carried three
+  links each, which is the standard's ceiling
+
+| Part | Into `AI/` | Back out of `AI/` |
+| ---- | ---------- | ----------------- |
+| IV — performance budgets | `WebPerformance/README.md` → `ch-designing-for-latency` | `AIUX/01` → `ch-core-web-vitals`, on the INP target a streaming pane still has to meet |
+| V — streaming endpoints | `API/05` → `ch-streaming-responses` (the client half: first token, cancellation, partial answers) | `Integration/02` → `ch-realtime-streaming` (the server half: proxy buffering, keep-alive ping, HTTP/1.1 connection limit) |
+| VI — AI product design | `CaseStudies/README.md` → `ch-ai-in-interviews`, named as the sixth shape the section does not carry | `07-ai-in-interviews` → `ch-driving-the-round` |
+| VIII — deploy and monitor | `Observability/01` → `ch-observability`; `Deployment/03` → `ch-choosing-a-model` | `Production/03` → `ch-monitoring-fundamentals`; `Foundations/02` → `ch-feature-flags` |
+| IX — the AI-assisted loop | `Communication/02` → `ch-ai-in-interviews` | `07-ai-in-interviews` → `ch-thinking-aloud` |
+
+- **Two parts had no line budget left, so their inbound links were made line-neutral.** Part IV is
+  1,081 lines over (the standing baseline violation) and Part VI had exactly one line spare, so adding
+  even a bullet to either would have raised the `lint:docs` count and turned CI red. Both links were paid
+  for inside the same file: `Frontend/WebPerformance/README.md` gained the AI sentence and gave a line back
+  by tightening its INP paragraph, `SystemDesign/CaseStudies/README.md` the same with its opening
+  paragraph. **Part IV is unchanged at 6,581 and Part VI unchanged at 6,500**
+- **The Part IX link is about the loop, not the topic** — some 2026–27 coding rounds allow an AI
+  assistant, which raises the narration bar rather than lowering it, because the interviewer already knows
+  the model can write the function. That note is now in `Communication/02`, ahead of its three-phase
+  section
+- **Fixed a defect found on the way:** `ShipAndOperate/Deployment/03-feature-flags.md` listed
+  `ch-deployment-strategies` **twice** in `What to Read Next` under two different titles. One of the pair
+  became the `ch-choosing-a-model` link, so the fix cost nothing. Related: **#27's open note about
+  `ch-deployment-strategies` being a duplicate *anchor* is now moot** — both of the files it named
+  (`SystemDesign/Microservices/06-deployment.md`, `ShipAndOperate/CICD/03-deployment-strategies.md`) were
+  removed by later Phase 2 items, and exactly one H1 carries the anchor today
+- Budgets after: **IV 6,581 / 5,500 (unchanged), V 6,460 / 6,500, VI 6,500 / 6,500, VII 7,359 / 7,500,
+  VIII 5,496 / 5,500, IX 2,004 / 2,500**
+- All eleven anchors used were checked to resolve to exactly one H1 carrying `{#ch-<slug>}`
+- `pnpm lint:docs`: **289 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
+> ⚠️ **Phase 4 is complete** — `AI/` is thirty-one chapters, seven indexes, a running project through all
+> six sections, and cross-links into five other parts.
+>
+> ⚠️ **A backlog this item saw and did not touch:** a repo-wide audit found **77 distinct `#ch-` anchors
+> that resolve to nothing**, in the older parts — for example `ch-content-security-policy` where the slug
+> is `csp-headers`, and `ch-image-optimisation` where it is `image-optimization`. Nothing lints anchor
+> resolution, so they are silent and will only surface as broken links in the PDF and EPUB. **#71** owns
+> cross-reference rewriting and should either fix them or gain an `unresolved-anchor` lint rule; a
+> `duplicate-anchor` rule for #70 is still worth the same trade.
+
 ---
 
 # Phase 5 — Fill the Remaining Gaps
 
-### - [ ] 54. Create `Frontend/Accessibility/` `M`
+### - [x] 54. Create `Frontend/Accessibility/` `M` — ✅ **done 2026-09-07**
 
 Accessibility is one 343-line file inside `Html&CSS/`. Since **June 2025 the European Accessibility Act is
 enforceable** — any consumer-facing site serving the EU must comply, regardless of where the company is.
@@ -4192,6 +4459,59 @@ things (with i18n) that separates senior from mid in frontend system design roun
 | 06  | Testing a11y — axe, screen readers, CI gates |
 
 Move and expand `Html&CSS/07-accessibility.md` here.
+
+**Done when:** the six chapters and a section README exist under `Frontend/Accessibility/`, each passes the
+Book Chapter Standard, the absorbed chapter is gone from `HtmlCss/` with every inbound cross-reference
+repointed, Part II is still under its 6,000-line budget, and `pnpm lint:docs` shows no rule regressed.
+_("Done when" was missing and was added when the item ran.)_
+
+**Delivered:**
+
+- **Seven files, 1,527 lines.** `README.md` (70), `01-why-accessibility-and-the-law.md` (233),
+  `02-the-accessibility-tree.md` (246), `03-aria-and-when-not-to-use-it.md` (233),
+  `04-keyboard-and-focus-management.md` (247), `05-accessible-forms.md` (256),
+  `06-testing-accessibility.md` (242). Slugs: `accessibility-and-the-law`, `accessibility-tree`, `aria`,
+  `keyboard-and-focus`, `accessible-forms`, `testing-accessibility`, `frontend-accessibility-index`
+- **Part II: 3,718 → 4,990 of 6,000.** Net **+1,272**, not the ~1,046 the #31d note projected, because the
+  six chapters came in at the standard's ~220–250 rather than being trimmed to fit a projection
+- **The old chapter was absorbed, not moved beside.** `Frontend/HtmlCss/02-accessibility.md` (255 lines) is
+  `git rm`-ed and its material is distributed: WCAG structure and the AA numbers into 01, name computation
+  and the tree into 02, the three kinds of ARIA and live regions into 03, focus and `<dialog>` into 04,
+  labels and errors into 05, the automation ceiling into 06. `03-advanced-css.md` is renumbered to `02`
+- **`HtmlCss/` is now two chapters**, and its README says why — the accessibility material outgrew a
+  section about markup and styling. Cross-directory links there use relative paths, because part-opener
+  H1s carry no `{#ch-}` anchor in this repo and an anchor link to one would not resolve
+- **Three inbound cross-references repointed** — `Internationalization/04-rtl-support` → `#ch-accessibility-tree`,
+  `Architecture/03-design-systems` → `#ch-accessibility-and-the-law`,
+  `ModernStack/StateManagement/04-form-state` → `#ch-accessible-forms`. Every `#ch-` anchor in the new
+  section resolves; `Frontend/README.md` lists the directory in both its Part II table and its Part II prose
+- **`HtmlCss/01-semantic-html.md` was deliberately left where it is.** #31d's note says it "feeds
+  `Accessibility/02`", and that is what happened: 02 covers what the browser *computes* from markup — the
+  tree, role/name/state, the accessible-name algorithm, what removes a node — and cross-references
+  semantic HTML for the element catalogue. Moving it would have left `HtmlCss/` with one chapter and
+  duplicated the catalogue in two places
+- **Four factual corrections against the chapter it replaced**, all of which a 2027 audit would catch: the
+  2 px / 3 : 1 focus indicator is **2.4.13 Focus Appearance, which is AAA**, not an AA requirement (AA
+  gives you 1.4.11 at 3 : 1 and the new 2.4.11 Focus Not Obscured); the WCAG 2.2 additions at A and AA are
+  **six, named precisely** — 2.4.11, 2.5.7, 2.5.8, 3.2.6, 3.3.7, 3.3.8 — rather than a list of five
+  including a AAA criterion; **4.1.1 Parsing was removed** in 2.2, which older audit templates still flag;
+  and the automation ceiling is stated as a third to a half rather than a flat third
+- **Context7 checked** for `axe-core` before writing 06. `AxeBuilder` with `.withTags()` / `.exclude()` /
+  `.analyze()` is current, and the tag list is scoped to the conformance level claimed
+  (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`) rather than running every rule axe ships
+- **BOOK-SPEC § 5's spine callout amended with the measured input.** Its projection assumed this item would
+  add ~1,046 net; at +1,272 the finished book projects to **27,466 of 55,260 = 49.7%**, so the deferred
+  breach against non-negotiable #3 falls from **554 lines to 164**. Still #77's to close, still from Parts
+  V–IX in the fixed cut order
+- `pnpm lint:docs`: 289 → **295 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,081. **`.lint-baseline.json` unchanged**
+
+> ⚠️ **A boundary #57 must respect.** `Frontend/Testing/07-specialized-testing.md` already carries ~25
+> lines of a11y testing — `vitest-axe`, RTL role queries, the automation percentage. The split now is that
+> **`Accessibility/06` owns the method** (which layer catches what, CI gating and baselining, the keyboard
+> and screen reader passes, the conformance report) and **`Testing/07` owns the tool catalogue** among
+> visual and contract tests. #57's planned "accessibility testing in CI" addition should cross-reference
+> `#ch-testing-accessibility` rather than restate it, or the two will drift.
 
 ---
 
@@ -4710,11 +5030,11 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
 | 3     | 32–43   | 12/12 | ✅ Complete    |
-| 4     | 44–53   | 2/10 | 🔄 In progress |
-| 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
+| 4     | 44–53   | 10/10 | ✅ Complete    |
+| 5     | 54–63 · 58a | 1/11 | 🔄 In progress |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **51/90** | **57%**   |
+| **Total** | **90** | **60/90** | **67%**   |
 
 ---
 

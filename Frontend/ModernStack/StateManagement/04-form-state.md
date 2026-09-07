@@ -118,7 +118,7 @@ them live while they fix it.
 
 Whichever mode you choose, the error must reach assistive technology. Link the message to the input with
 `aria-describedby`, mark the field `aria-invalid`, and move focus to the first error on a failed submit —
-see [Chapter ?? — Accessibility](#ch-accessibility).
+see [Chapter ?? — Accessible Forms and Error Messaging](#ch-accessible-forms).
 
 ### Server-action forms
 

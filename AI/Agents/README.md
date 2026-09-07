@@ -26,11 +26,31 @@ loops is nearly always an agent whose tools lie to it.
 
 | #  | Chapter                          | What it answers                                                    |
 | -- | -------------------------------- | -------------------------------------------------------------------- |
-| 01 | What an Agent Actually Is        | What is the loop, and where does it stop?                            |
-| 02 | Designing the Tool Surface       | How granular should a tool be, and what makes a description work?    |
-| 03 | Memory and State                 | What survives a turn, a session, a restart — and at what token cost? |
-| 04 | Durability and Long-Running Work | How does a job that takes an hour survive a deploy?                  |
-| 05 | Multi-Agent Patterns             | When does splitting help, and when is one agent simply better?       |
+| 01 | [What an Agent Actually Is](#ch-what-an-agent-actually-is)        | What is the loop, and where does it stop?                            |
+| 02 | [Designing the Tool Surface](#ch-designing-the-tool-surface)       | How granular should a tool be, and what makes a description work?    |
+| 03 | [Memory and State](#ch-memory-and-state)                 | What survives a turn, a session, a restart — and at what token cost? |
+| 04 | [Durability and Long-Running Work](#ch-durability-and-long-running-work) | How does a job that takes an hour survive a deploy?                  |
+| 05 | [Multi-Agent Patterns](#ch-multi-agent-patterns)             | When does splitting help, and when is one agent simply better?       |
+
+## The Running Project
+
+The **documentation assistant** answers well now. This section asks whether it should also *do* things,
+and for most of the product the honest answer is no.
+
+| Chapter | What it adds to the assistant |
+| ------- | ----------------------------- |
+| 01 | The scope decision: question-and-answer stays a two-step workflow, and only doc triage — which pages cover this, and what changed — gets a loop |
+| 02 | `search_docs` returning "no match, try these terms" instead of an empty array, which is what stops the triage agent looping |
+| 03 | Session memory — the last few turns verbatim, older ones summarised, with the token cost of both written down |
+| 04 | The nightly re-embed as a durable job, so a deploy halfway through does not leave the index half-built |
+| 05 | The multi-agent version, deliberately not built, with the single-agent measurement as the reason |
+
+Row 01 is the one to notice. A section about agents whose running project keeps most traffic on a plain
+workflow is making the argument the section exists to make.
+
+**At the end of this section** the assistant has one bounded agent — step cap, token budget, read-only
+tools — and one workflow serving everything else. What it still has no view of is what any of it costs or
+how often it is right, which is `Production/`.
 
 ## What Interviewers Probe For
 
@@ -52,6 +72,3 @@ reread. 03 follows naturally from the token arithmetic in `Foundations/05`. 04 a
 
 **Interview sprint:** 01 and 02. The loop and the tool surface answer most agent questions asked at
 senior level.
-
-> ⚠️ **Planned, not written.** Item **#48** writes all five chapters. Chapters 01 and 02 depend on
-> `Integration/04`, which must be written first.
