@@ -38,7 +38,7 @@ ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-06 · **Progress:** 44 / 90
+**Last updated:** 2026-09-07 · **Progress:** 47 / 90
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -3581,7 +3581,7 @@ the same line._
 
 ---
 
-### - [ ] 39. Write `Rendering/` chapters 01–06 — the framework-agnostic core `M`
+### - [x] 39. Write `Rendering/` chapters 01–06 — the framework-agnostic core `M` — ✅ **done 2026-09-07**
 
 > This is the chapter set that makes the book last past 2027. Frameworks change; rendering models do not.
 
@@ -3597,9 +3597,49 @@ the same line._
 > ⚠️ `SystemDesign/Frontend/03-rendering.md` (179 lines) already covers part of this — **absorb and delete it**,
 > leaving a cross-reference.
 
+**Done when:** all six chapters exist under `Frontend/ModernStack/Rendering/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, no relative links in the body), `pnpm lint:docs` shows no
+rule regressed, the section README links them, and the salvaged `rendering.md` is deleted. _Line added at
+#39, per #38's note._
+
+**Delivered:**
+
+- Six chapters, **1,201 lines** — `01-rendering-spectrum.md` (187), `02-hydration-and-its-costs.md` (192),
+  `03-streaming-html.md` (231), `04-choosing-per-route.md` (190), `05-seo-and-rendering.md` (196),
+  `06-edge-vs-origin.md` (205). All in the 150–400 band, all seven `##` headings in order, no `####`, no
+  relative links in a body, ⚠️ callouts at 0–2 per chapter against a budget of 3
+- Slugs: `rendering-spectrum`, `hydration-and-its-costs`, `streaming-html`, `choosing-per-route`,
+  `seo-and-rendering`, `edge-vs-origin-rendering`
+- **`Archive/salvage/frontend/rendering.md` deleted**, its decision matrix absorbed into chapter 04's route
+  inventory and its CSR/SSR/SSG/ISR comparison into chapter 01. `Archive/salvage/frontend/README.md`
+  updated to show one file remaining, for #40. Nothing linked to `#ch-rendering-strategies`
+- **Chapter 04 is the one that pays for the section** — the route inventory table is the artefact a
+  candidate draws on a whiteboard, and the four questions (audience · allowed staleness · indexed · is the
+  cache key bounded) are the procedure behind it. Chapter 01's spectrum exists to give it vocabulary
+- Research corrected three things the training data would have got wrong. **Streaming does not need an edge
+  runtime** — it works on full origin runtimes, and chapter 06 says so as a named myth. **The cold-start
+  argument for the edge has weakened**: warm-instance reuse, bytecode caching and per-instance concurrency
+  have narrowed the gap, so chapter 06 carries a moving-target callout around the numbers rather than
+  quoting them. And **PPR does not remove the function invocation** — a route with holes runs a function on
+  every request; what it removes is the wait. Context7 against `/withastro/docs` and `/qwikdev/qwik` fixed
+  the islands and resumability material in chapter 02: Astro's `client:*` directives are per-island
+  *loading* strategies, and Qwik's model serialises listener references plus state into the HTML rather
+  than replaying the application
+- **Four duplication boundaries drawn deliberately.** Chapter 02 defers hydration-mismatch diagnosis to
+  `#ch-suspense-and-streaming` and the server/client boundary to `#ch-server-components-vs-client-components`.
+  Chapter 03 keeps the *transport* — chunked encoding, the placeholder-and-swap trick, what silently
+  buffers a response — and defers the React API to `#ch-suspense-and-streaming` and PPR-in-Next.js to
+  `#ch-rendering-in-nextjs`. Chapter 05 keeps *what a crawler receives* and defers meta tags, structured
+  data and sitemaps to Part VI's `#ch-seo-and-analytics`, which already covers all three. Chapter 06
+  deepens the compact edge/origin table in `#ch-nextjs-middleware-and-the-edge` rather than repeating it,
+  and defers tier one to `#ch-cdn`
+- Forward `[Chapter ?? — …]` references in `Rendering/` total **21 across chapters 01–06**, for #70 to number
+- `pnpm lint:docs`: 231 → **237 files** (six added, one deleted), six rules at zero, the one violation still
+  Part IV's pre-existing +1,149. **`.lint-baseline.json` unchanged**
+
 ---
 
-### - [ ] 40. Write `StateManagement/` chapters 01–06 `M`
+### - [x] 40. Write `StateManagement/` chapters 01–06 `M` — ✅ **done 2026-09-07**
 
 Research finding for 2026–27: the field has moved to a **category-first model** — server state, client state,
 form state, and URL state are four different problems. Redux is no longer the default; Zustand has overtaken
@@ -3616,9 +3656,55 @@ it in downloads; TanStack Query owns server state.
 
 > Absorb `SystemDesign/Frontend/02-state-management.md` (199 lines) and cross-reference.
 
+**Done when:** all six chapters exist under `Frontend/ModernStack/StateManagement/`, each passes the Book
+Chapter Standard (six blocks in order, 150–400 lines, no relative links in the body), `pnpm lint:docs`
+shows no rule regressed, the section README links them, and the salvaged `state-management.md` is deleted.
+_Line added at #40, per #38's note._
+
+**Delivered:**
+
+- Six chapters, **1,321 lines** — `01-four-kinds-of-state.md` (206), `02-server-state.md` (244),
+  `03-client-state.md` (244), `04-form-state.md` (225), `05-url-as-state.md` (205),
+  `06-signals-and-the-next-model.md` (197). All in the 150–400 band, all seven `##` headings in order, no
+  `####`, no relative links in a body, ⚠️ callouts at 0–2 per chapter against a budget of 3
+- Slugs: `four-kinds-of-state`, `server-state`, `client-state`, `form-state`, `url-as-state`,
+  `signals-and-the-next-model`
+- **`Archive/salvage/frontend/state-management.md` deleted**, and with it the salvage directory is empty
+  of chapters — `Archive/salvage/frontend/README.md` now records where both files went and notes that #42
+  may remove the directory. The old file's server-versus-client split became chapter 01's four-category
+  framing; its Context, Zustand and Redux Toolkit sections became chapter 03, corrected (see below)
+- **Chapter 01 is the one that pays for the section**, as the README already claimed. The classification
+  question — "if two browser tabs disagreed, which one would be wrong?" — is the whole framing, and
+  chapters 02–05 are one category each
+- Context7 corrected four things, and one of them was a bug in the salvaged file. **Zustand 5 requires
+  stable selector output**: the salvaged example selected `(state) => ({ users, fetchUsers })`, which in
+  version 5 re-renders repeatedly and can throw "maximum update depth exceeded" — chapter 03 carries this
+  as a ⚠️ and names `useShallow` as the fix. **TanStack Query v5** renamed `cacheTime` → `gcTime` and
+  `isLoading` → `isPending`, requires array keys, and later v5 releases renamed the mutation callback
+  arguments again, so chapter 02's optimistic-update example names the third argument positionally and
+  carries a moving-target callout. **Zod 4** promoted string formats to top level (`z.email()`, not
+  `z.string().email()`) and reorganised the issue types. **nuqs** replaced `throttleMs` with
+  `limitUrlUpdates: { method, timeMs }`
+- **Chapter 06 was re-scoped to avoid a #7 violation.** The item's brief — "why do signals work, why has
+  React not adopted them" — is already answered in depth by `#ch-reactivity-compared` (#38's chapter 02),
+  which argues it as a *rendering* question. Chapter 06 therefore takes signals as a **state-container**
+  primitive: the three primitives, glitch-free propagation, laziness, the TC39 proposal and its
+  interoperability motive, and the section's sharpest point — signals cover exactly one of the four
+  categories and do nothing for server state. React's reason for declining gets one paragraph and a
+  cross-reference rather than a second telling
+- Three further duplication boundaries. Chapter 02 defers server-side caching to `#ch-nextjs-data-and-caching`
+  and `#ch-caching`. Chapter 04 keeps *where validation lives* and the draft lifecycle, deferring submit
+  mechanics to `#ch-react-actions-and-forms`, `#ch-server-actions` and `#ch-sveltekit-form-actions`, and
+  server-side revalidation to `#ch-backend-input-validation`. Chapter 05 defers canonical URLs and variant
+  indexing to #39's `#ch-seo-and-rendering`
+- Forward `[Chapter ?? — …]` references in `StateManagement/` total **28 across chapters 01–06**, for #70
+  to number
+- `pnpm lint:docs`: 237 → **243 files** (six added, one deleted), six rules at zero, the one violation still
+  Part IV's pre-existing +1,149. **`.lint-baseline.json` unchanged**
+
 ---
 
-### - [ ] 41. Write `Tooling/` chapters 01–06 `M`
+### - [x] 41. Write `Tooling/` chapters 01–06 `M` — ✅ **done 2026-09-07**
 
 Research finding: Vite is at 98% usage; raw Webpack config has fallen to near zero; complexity is "the loser".
 
@@ -3630,6 +3716,54 @@ Research finding: Vite is at 98% usage; raw Webpack config has fallen to near ze
 | 04  | Monorepos                    | pnpm workspaces, Turborepo, task graphs, when _not_ to     |
 | 05  | Type-checking and linting at scale | `tsc --build`, project references, Biome vs ESLint, CI gates |
 | 06  | Package management           | pnpm vs npm vs yarn, lockfiles, supply-chain safety        |
+
+**Done when:** all six chapters exist under `Frontend/ModernStack/Tooling/`, each passes the Book Chapter
+Standard (six blocks in order, 150–400 lines, no relative links in the body), `pnpm lint:docs` shows no
+rule regressed, and the section README links them. _Line added at #41, per #38's note._
+
+**Delivered:**
+
+- Six chapters, **1,281 lines** — `01-modules-and-bundling.md` (215), `02-vite-and-the-dev-loop.md` (208),
+  `03-rust-bundlers.md` (187), `04-monorepos.md` (240), `05-type-checking-and-linting.md` (210),
+  `06-package-management.md` (221). All in the 150–400 band, all seven `##` headings in order, no `####`,
+  no relative links in a body, ⚠️ callouts at 0–2 per chapter against a budget of 3
+- Slugs: `modules-and-bundling`, `vite-and-the-dev-loop`, `rust-bundlers`, `monorepos`,
+  `type-checking-and-linting`, `package-management`
+- **Research changed the substance of three chapters, not just the version numbers.** **Vite 8 ships
+  Rolldown as its single bundler**, replacing the esbuild-in-dev / Rollup-in-build split — so the familiar
+  "dev and build use different bundlers, hence the interop bugs" explanation is now *history*, and chapter
+  02 carries it as a moving-target callout rather than as current fact. **pnpm no longer runs dependency
+  build scripts by default**, and pnpm 11 replaced `onlyBuiltDependencies` with `allowBuilds`; with
+  `minimumReleaseAge`, this is the strongest supply-chain material in the book and chapter 06 leads on it.
+  **Turborepo v2 uses `tasks`, not `pipeline`**, and the `env` versus `passThroughEnv` split got its own
+  section in chapter 04 because getting it wrong is how a staging build gets served from a production
+  cache. Also confirmed: Turbopack is the Next.js 16 default with stable on-disk dev caching, and the
+  TypeScript Go port is real and heading for TypeScript 7
+- **Chapter 03's thesis is that the three Rust bundlers differ by which ecosystem they preserve** — Rspack
+  keeps Webpack configuration, Rolldown keeps Rollup plugins, Turbopack is built into Next.js — not by
+  throughput, and that you normally inherit one by choosing a framework. It also carries the point that
+  SWC, Oxc and esbuild *strip* types without checking them, which is the setup for chapter 05
+- **Chapter 04 was re-scoped to avoid a #7 violation.** The item's "when *not* to" line is already answered
+  in full by `#ch-repository-strategies` (ShipAndOperate/Git), which owns the monorepo-versus-polyrepo
+  decision with its own decision table. Chapter 04 therefore starts one step later — you have a monorepo,
+  now make it cheap — and covers the two graphs, cache-key composition, affected-only runs and publishing,
+  deferring the choice itself with a cross-reference in the opening paragraph
+- Two further duplication boundaries. Chapter 01 keeps *what a bundler is* — the four steps, `exports`
+  resolution, the graph, chunking as partitioning, source maps — and defers tree shaking, minification and
+  compression to `#ch-bundle-optimisation` and splitting technique to `#ch-code-splitting`, both Part IV,
+  which is already +1,149 over budget. Chapter 05 defers the type patterns themselves to
+  `#ch-react-typescript-at-scale`
+- **Anchor correction worth carrying forward.** Three Part IV and Part VI files have front-matter slugs
+  that do not match their H1 anchors — `bundle-optimization` versus `{#ch-bundle-optimisation}`,
+  `image-optimization` versus `{#ch-image-optimisation}`, `frontend-architecture` versus
+  `{#ch-frontend-architecture-patterns}`. The new chapters link to the **H1 anchors**, which resolve.
+  Chapters from #35–37 link to the slugs, which do not: **9 unresolved `#ch-` references remain repo-wide,
+  all pre-existing, for #70 to reconcile**
+- Forward `[Chapter ?? — …]` references in `Tooling/` total **25 across chapters 01–06**, for #70 to number
+- **Part III is complete at 46 chapters.** `Frontend/ModernStack/README.md`'s "being written" note is
+  replaced by a statement of what shipped, and `Archive/salvage/frontend/` now holds only its README
+- `pnpm lint:docs`: 243 → **249 files**, six rules at zero, the one violation still Part IV's pre-existing
+  +1,149. **`.lint-baseline.json` unchanged**
 
 ---
 
@@ -4333,12 +4467,12 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 0     | 1–7     | 7/7  | ✅ Complete    |
 | 1     | 8–19    | 12/12 | ✅ Complete    |
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
-| 3     | 32–43   | 7/12 | 🔄 In progress |
+| 3     | 32–43   | 10/12 | 🔄 In progress |
 | 4     | 44–53   | 0/10 | ⬜ Not started  |
 | 5     | 54–63 · 58a | 0/11 | ⬜ Not started  |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **44/90** | **49%**   |
+| **Total** | **90** | **47/90** | **52%**   |
 
 ---
 

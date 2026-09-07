@@ -5,7 +5,7 @@ chapter: 0
 slug: modern-stack-tooling-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-03
+updated: 2026-09-07
 tags: [vite, bundlers, turbopack, monorepo, pnpm, typescript, linting]
 in_book: true
 ---
@@ -24,16 +24,14 @@ once a codebase has several packages, several teams and a CI bill.
 
 ## Chapters
 
-| #  | Chapter                            | What it answers                                                  |
-| -- | ---------------------------------- | ---------------------------------------------------------------- |
-| 01 | Modules and bundling               | What does a bundler actually do, and why did that import survive? |
-| 02 | Vite and the dev loop              | Why is the dev server instant and the build not?                 |
-| 03 | Turbopack, Rspack and Rolldown     | What problem did rewriting all of this in Rust solve?            |
-| 04 | Monorepos                          | What does a task graph buy, and when is one repository worse?    |
-| 05 | Type-checking and linting at scale | How do you keep `tsc` and CI fast as the codebase grows?         |
-| 06 | Package management                 | What does the lockfile promise, and what does it not?            |
-
-> ⚠️ **Being written.** Improvement #41 fills this table; the titles link as each chapter lands.
+| #  | Chapter                                                                          | What it answers                                                  |
+| -- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 01 | [Modules and Bundling](#ch-modules-and-bundling)                                 | What does a bundler actually do, and why did that import survive? |
+| 02 | [Vite and the Dev Loop](#ch-vite-and-the-dev-loop)                               | Why is the dev server instant and the build not?                 |
+| 03 | [Turbopack, Rspack and Rolldown](#ch-rust-bundlers)                              | What problem did rewriting all of this in Rust solve?            |
+| 04 | [Monorepos](#ch-monorepos)                                                       | What does a task graph buy, and when is one repository worse?    |
+| 05 | [Type-Checking and Linting at Scale](#ch-type-checking-and-linting)              | How do you keep `tsc` and CI fast as the codebase grows?         |
+| 06 | [Package Management](#ch-package-management)                                     | What does the lockfile promise, and what does it not?            |
 
 ## What Interviewers Probe For
 

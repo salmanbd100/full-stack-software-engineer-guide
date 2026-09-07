@@ -5,7 +5,7 @@ chapter: 0
 slug: part-modern-frontend-stack
 level: advanced # beginner | intermediate | advanced
 reading_time: 4
-updated: 2026-09-03
+updated: 2026-09-07
 tags: [react, nextjs, svelte, rendering, state, tooling]
 in_book: true
 ---
@@ -74,6 +74,6 @@ cold from anywhere.
 and server state — which between them cover most of what a frontend-heavy senior loop asks before the
 system design round.
 
-> ⚠️ **Being written now.** The chapter tables in each section index are the plan, not a directory
-> listing — improvements #33–41 write them, and the titles link once each file lands. `Rendering/` and
-> `StateManagement/` also absorb two chapters currently staged in `Archive/salvage/frontend/`.
+All six sections are written — **46 chapters**, improvements #32–41. `Rendering/` and
+`StateManagement/` absorbed the two chapters that were staged in `Archive/salvage/frontend/`, which is now
+empty. Chapter numbers appear as `??` until improvement #70 assigns them across the whole book.

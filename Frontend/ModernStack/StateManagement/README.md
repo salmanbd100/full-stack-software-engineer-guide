@@ -5,7 +5,7 @@ chapter: 0
 slug: modern-stack-state-management-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-03
+updated: 2026-09-07
 tags: [state, tanstack-query, zustand, forms, url-state, signals]
 in_book: true
 ---
@@ -23,17 +23,14 @@ TanStack Query owns server state — but the chapters argue from the problem, no
 
 ## Chapters
 
-| #  | Chapter                          | What it answers                                                   |
-| -- | -------------------------------- | ----------------------------------------------------------------- |
-| 01 | The four kinds of state          | Server, client, form or URL — which one is this, and why ask?    |
-| 02 | Server state with TanStack Query | How do you cache, invalidate and refetch without writing a cache? |
-| 03 | Client state                     | Zustand, Jotai, Context — and when does `useState` still win?     |
-| 04 | Form state                       | Where does validation live when the server validates too?         |
-| 05 | URL as state                     | What should survive a refresh, a back button and a pasted link?   |
-| 06 | Signals and the next model       | Why do runes and signals work, and why has React not adopted them? |
-
-> ⚠️ **Being written.** Improvement #40 fills this table; the titles link as each chapter lands. It also
-> absorbs `SystemDesign/Frontend/02-state-management.md`, staged in `Archive/salvage/frontend/`.
+| #  | Chapter                                                                     | What it answers                                                   |
+| -- | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 01 | [The Four Kinds of State](#ch-four-kinds-of-state)                          | Server, client, form or URL — which one is this, and why ask?    |
+| 02 | [Server State with TanStack Query](#ch-server-state)                        | How do you cache, invalidate and refetch without writing a cache? |
+| 03 | [Client State](#ch-client-state)                                            | Zustand, Jotai, Context — and when does `useState` still win?     |
+| 04 | [Form State](#ch-form-state)                                                | Where does validation live when the server validates too?         |
+| 05 | [URL as State](#ch-url-as-state)                                            | What should survive a refresh, a back button and a pasted link?   |
+| 06 | [Signals and the Next Model](#ch-signals-and-the-next-model)                | Why do runes and signals work, and why has React not adopted them? |
 
 ## What Interviewers Probe For
 

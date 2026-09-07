@@ -5,7 +5,7 @@ chapter: 0
 slug: modern-stack-rendering-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-03
+updated: 2026-09-07
 tags: [rendering, ssr, ssg, isr, ppr, hydration, streaming, seo]
 in_book: true
 ---
@@ -22,18 +22,14 @@ codebase that gives them one answer has chosen wrongly for at least two of them.
 
 ## Chapters
 
-| #  | Chapter                         | What it answers                                                     |
-| -- | ------------------------------- | ------------------------------------------------------------------- |
-| 01 | The rendering spectrum          | CSR, SSR, SSG, ISR, PPR, islands — what does each actually do?      |
-| 02 | Hydration and its costs         | What is the browser paying for after the HTML has arrived?          |
-| 03 | Streaming HTML                  | How does a response arrive in pieces, and what does that buy?       |
-| 04 | Choosing per route, not per app | Which strategy does this route need, and how do you defend it?      |
-| 05 | SEO and rendering               | What does a crawler need, and what genuinely requires server render? |
-| 06 | Edge versus origin rendering    | Where should this run, and when is the edge the wrong answer?       |
-
-> ⚠️ **Being written.** Improvement #39 fills this table; the titles link as each chapter lands. It also
-> absorbs `SystemDesign/Frontend/03-rendering.md`, staged in `Archive/salvage/frontend/`, which covered
-> part of chapters 01 and 04.
+| #  | Chapter                                                                    | What it answers                                                     |
+| -- | -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 01 | [The Rendering Spectrum](#ch-rendering-spectrum)                           | CSR, SSR, SSG, ISR, PPR, islands — what does each actually do?      |
+| 02 | [Hydration and Its Costs](#ch-hydration-and-its-costs)                     | What is the browser paying for after the HTML has arrived?          |
+| 03 | [Streaming HTML](#ch-streaming-html)                                       | How does a response arrive in pieces, and what does that buy?       |
+| 04 | [Choosing Per Route, Not Per App](#ch-choosing-per-route)                  | Which strategy does this route need, and how do you defend it?      |
+| 05 | [SEO and Rendering](#ch-seo-and-rendering)                                 | What does a crawler need, and what genuinely requires server render? |
+| 06 | [Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering)               | Where should this run, and when is the edge the wrong answer?       |
 
 ## What Interviewers Probe For
 

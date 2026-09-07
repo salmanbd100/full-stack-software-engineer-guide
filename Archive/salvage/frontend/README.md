@@ -1,18 +1,17 @@
-# Staged for Part III — `Frontend/ModernStack/`
+# Staged for Part III — `Frontend/ModernStack/` — ✅ empty
 
-Two chapters lifted out of `SystemDesign/Frontend/` by improvement **#31d**, ahead of the move that
-**#42** already schedules. Both describe framework-agnostic concerns that Part III owns, and both are
-about to be replaced by six chapters each rather than moved as they are.
+Two chapters were lifted out of `SystemDesign/Frontend/` by improvement **#31d**, ahead of the move that
+**#42** already schedules. Both described framework-agnostic concerns that Part III owns, and both have
+now been replaced by six chapters each rather than moved as they were.
 
-| File | Absorbed by | Into | What is worth keeping |
-| ---- | ----------- | ---- | --------------------- |
-| `rendering.md` | **#39** | `Frontend/ModernStack/Rendering/` | The SSG / ISR / SSR / CSR decision table and the per-route framing. The streaming and PPR material has to be written fresh |
-| `state-management.md` | **#40** | `Frontend/ModernStack/StateManagement/` | The server-state versus client-state split, which is the distinction the whole section is built on |
+| File | Absorbed by | Into | Status |
+| ---- | ----------- | ---- | ------ |
+| `rendering.md` | **#39** | `Frontend/ModernStack/Rendering/` | ✅ Absorbed and deleted, 2026-09-07. Its decision matrix became chapter 04's route inventory; the CSR/SSR/SSG/ISR comparison became chapter 01 |
+| `state-management.md` | **#40** | `Frontend/ModernStack/StateManagement/` | ✅ Absorbed and deleted, 2026-09-07. Its server-state versus client-state split became chapter 01's four-category framing; Context, Zustand and Redux Toolkit became chapter 03 |
 
 Taking them out early was a budget decision: Part VI had to reach 6,500 lines, and 412 lines of Part III
-material sitting inside Part VI was the least damaging 412 lines to move. Nothing in the book links to
+material sitting inside Part VI was the least damaging 412 lines to move. Nothing in the book linked to
 either anchor.
 
-Both keep their old Part VI front matter with `in_book: false`. Do not fix that in place — the new
-chapters get fresh front matter, and these files are deleted once absorbed. See
-[`../README.md`](../README.md) for the absorb procedure.
+**This directory now holds only this file.** It is kept as the record of where those 412 lines went;
+#42 may delete it once the rest of `SystemDesign/Frontend/` has moved.
