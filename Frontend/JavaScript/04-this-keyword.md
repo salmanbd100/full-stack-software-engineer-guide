@@ -33,20 +33,10 @@ of their own at all, so they fall through to the enclosing scope's.
 | 2nd      | Explicit        | `fn.call(obj)`        | Whatever you passed                        |
 | 3rd      | Implicit        | `obj.method()`        | The object immediately before the dot      |
 | 4th      | Default         | `fn()`                | `undefined` in strict mode and in modules; `globalThis` in a sloppy-mode script |
+| —        | Arrow           | Any call at all       | The enclosing scope's `this` — no rule above applies |
 
-```mermaid
-flowchart TD
-    A[Is it an arrow function?] -->|Yes| B[this = enclosing scope's this]
-    A -->|No| C{Called with new?}
-    C -->|Yes| D[this = the new object]
-    C -->|No| E{call / apply / bind?}
-    E -->|Yes| F[this = the given object]
-    E -->|No| G{Called as obj.method?}
-    G -->|Yes| H[this = obj]
-    G -->|No| I[this = undefined in strict mode]
-```
-
-**Resolving `this` from the call site, in priority order.**
+Check the rules in that order and stop at the first match. An arrow short-circuits the whole table,
+because it has no `this` slot for a call site to fill.
 
 ### Implicit binding, and losing it
 
@@ -93,15 +83,9 @@ const bound: () => void = greet.bind(user, 'Hey', '!'); // returns a new functio
 ```
 
 `bind` is permanent: a bound function cannot be re-bound, and calling it with `new` is the one thing
-that overrides it. It also accepts leading arguments, which makes it a partial-application tool:
-
-```typescript
-function log(level: 'ERROR' | 'INFO', message: string): void {
-  console.log(`[${level}] ${message}`);
-}
-
-const logError: (message: string) => void = log.bind(null, 'ERROR');
-```
+that overrides it. It also accepts leading arguments, which makes it a partial-application tool —
+`const logError = log.bind(null, 'ERROR')` fixes the first parameter and returns a function taking
+the rest.
 
 ### Arrow functions
 

@@ -158,7 +158,7 @@ the newest material in the book and the part most readers meet cold.
 
 ## J
 
-**JWT** — JSON Web Token: a signed, self-describing token. Stateless and therefore hard to revoke. [Sessions and JWTs](#ch-jwt)
+**JWT** — JSON Web Token: a signed, self-describing token. Stateless and therefore hard to revoke. [Credentials, Sessions and Tokens](#ch-credentials-and-sessions)
 
 ## L
 
@@ -186,7 +186,7 @@ the newest material in the book and the part most readers meet cold.
 
 **N+1 query** — One query per row of a previous result, instead of one query for all of them. The standard GraphQL failure. [GraphQL](#ch-graphql)
 
-**Nullish coalescing** — `??`, which falls back only on `null` or `undefined`, unlike `||`. [ES2015 and Later Features](#ch-es6-features)
+**Nullish coalescing** — `??`, which falls back only on `null` or `undefined`, unlike `||`. [Modern JavaScript](#ch-modern-javascript)
 
 ## O
 

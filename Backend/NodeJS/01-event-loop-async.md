@@ -155,7 +155,7 @@ app.post('/report', (req, res) => {
 ```
 
 Anything over roughly 10 ms of straight-line CPU per request belongs in a worker thread or a
-stream. See [Chapter ?? — Scaling a Node Process](#ch-scaling-node) for the worker route.
+stream. See [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) for the worker route.
 
 **❌ `await` in a loop over independent work**
 
@@ -213,5 +213,5 @@ recursive promise chains do not.
 ## What to Read Next
 
 - [Chapter ?? — Streams and Buffers](#ch-streams-buffers) — how to process data that does not fit in memory
-- [Chapter ?? — Scaling a Node Process](#ch-scaling-node) — worker threads, clustering, and using every core
-- [Chapter ?? — Node.js Performance](#ch-nodejs-performance) — finding the blocking call before a user does
+- [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) — finding the blocking call, and using every core
+- [Chapter ?? — Error Handling in Node](#ch-nodejs-error-handling) — what to do with the rejection this loop surfaced

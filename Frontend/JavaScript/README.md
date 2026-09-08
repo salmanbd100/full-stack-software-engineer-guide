@@ -32,10 +32,9 @@ schedules your callbacks, the methods you reach for a hundred times a day, and h
 | 05 | [Prototypes and Inheritance](./05-prototypes-inheritance.md)           | What is `class` actually doing underneath?                  |
 | 06 | [Promises and Async/Await](./06-promises-async.md)                     | How do you compose async work without nesting it?           |
 | 07 | [The Event Loop](./07-event-loop.md)                                   | In what exact order will this code log?                     |
-| 08 | [ES2015 and Later Features](./08-es6-features.md)                      | What did each modern form replace, and why does that matter?|
-| 09 | [Array and Object Methods](./09-array-object-methods.md)               | Which of these mutates the thing you passed in?             |
-| 10 | [Error Handling](./10-error-handling.md)                               | How do you fail in a way that is recoverable and loggable?  |
-| 11 | [Modern JavaScript](./11-modern-js.md)                                 | Which additions since ES2020 replace something in your code?|
+| 08 | [Array and Object Methods](./08-array-object-methods.md)               | Which of these mutates the thing you passed in?             |
+| 09 | [Error Handling](./09-error-handling.md)                               | How do you fail in a way that is recoverable and loggable?  |
+| 10 | [Modern JavaScript](./10-modern-js.md)                                 | Which additions since ES2020 replace something in your code?|
 
 ## What Interviewers Probe For
 

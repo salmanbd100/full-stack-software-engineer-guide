@@ -58,9 +58,9 @@ For `const buddy = new Dog()` where `Dog extends Animal`, the chain is
 ```javascript
 const obj = {};
 
-obj.__proto__;              // deprecated accessor — recognise it, don't write it
-Object.getPrototypeOf(obj); // ✅ the standard read
-Object.setPrototypeOf(a, b); // ✅ the standard write — but slow, avoid in hot paths
+obj.__proto__;               // deprecated accessor — recognise it, don't write it
+Object.getPrototypeOf(obj);  // ✅ the standard read
+Object.setPrototypeOf(a, b); // ✅ the standard write — slow, so avoid it in hot paths
 ```
 
 ### Why methods go on the prototype
@@ -100,7 +100,7 @@ const personPrototype = {
 
 const alice = Object.create(personPrototype) as { name: string; greet(): void };
 alice.name = 'Alice';
-alice.greet(); // 'Hello, I'm Alice'
+alice.greet(); // 'Hello, I'm Alice' — found by delegation, not ownership
 ```
 
 ### `class`, and what it is sugar for
@@ -126,22 +126,9 @@ typeof Animal; // 'function' — still a function, still a prototype
 Object.getPrototypeOf(new Dog('a')) === Dog.prototype; // true
 ```
 
-The pre-2015 equivalent was three lines of manual wiring —
-`Animal.call(this, name)` in the child constructor,
-`Dog.prototype = Object.create(Animal.prototype)`, and
-`Dog.prototype.constructor = Dog` to repair the reference the assignment clobbered. Recognise it in
-old code; never write it.
-
-### `prototype` versus `__proto__`
-
-Two different things with confusingly similar names:
-
-- `Fn.prototype` — a property **on a constructor function**, holding the object that instances will
-  delegate to.
-- `obj.__proto__` — the link **on an instance**, pointing at that object.
-
-So `alice.__proto__ === Person.prototype` is `true`, and `Person.__proto__` is `Function.prototype`,
-which is something else entirely.
+The pre-2015 equivalent was three lines of manual wiring — `Animal.call(this, name)` in the child
+constructor, `Dog.prototype = Object.create(Animal.prototype)`, and `Dog.prototype.constructor = Dog`
+to repair the reference the assignment clobbered. Recognise it in old code; never write it.
 
 ## When to Use It
 

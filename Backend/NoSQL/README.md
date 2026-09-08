@@ -5,8 +5,8 @@ chapter: 0
 slug: backend-nosql-index
 level: intermediate
 reading_time: 2
-updated: 2026-09-01
-tags: [nosql, mongodb, redis, schema, aggregation]
+updated: 2026-09-08
+tags: [nosql, mongodb, redis, schema, caching]
 in_book: true
 ---
 
@@ -23,10 +23,12 @@ relational model too.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [MongoDB](./01-mongodb.md) | What does the document model buy, and what does it cost? |
-| 02 | [Document Schema Design](./02-schema-design.md) | Embed or reference, and how do you tell? |
-| 03 | [Indexing and Aggregation](./03-indexing-and-aggregation.md) | Why is this pipeline slow? |
-| 04 | [Redis](./04-redis.md) | Which structure, and what happens when the process restarts? |
+| 01 | [Document Databases](./01-document-databases.md) | What does the document model buy, and embed or reference? |
+| 02 | [Redis](./02-redis.md) | Which structure, and what happens when the process restarts? |
+
+Aggregation pipelines and shard-key mechanics are deliberately absent. The first is a MongoDB
+specialist's skill; the second belongs one level up, to [Chapter ?? — Replication](#ch-replication)
+and [Chapter ?? — Sharding](#ch-sharding), where they are decisions rather than commands.
 
 ## What Interviewers Probe For
 
@@ -34,8 +36,6 @@ relational model too.
   an entity diagram. The 16 MB document limit turns "unbounded" into a hard constraint.
 - **What is atomic.** A single document, always. Anything wider needs an explicit transaction, and
   needing them routinely is a modelling signal.
-- **The ESR rule.** Equality, sort, range — and what an in-memory sort costs when you get it wrong.
-- **Shard key choice.** Why a monotonic key sends every insert to one shard.
 - **Pub/Sub against Streams.** One loses messages by design; the other does not. Choosing the wrong
   one for a job queue is a common mistake.
 - **Whether Redis is a system of record.** It is not, and being clear about that matters more than
@@ -43,8 +43,6 @@ relational model too.
 
 ## Reading Order
 
-01 → 02 → 03 in order; each assumes the one before. 04 is independent and can be read first if
-caching is the immediate need.
-
-**Interview sprint:** 02 → 04. The embed-or-reference judgement and the Redis structure choice are
-the two that come up reliably.
+01 then 02, though the two are independent — start with 02 if caching is the immediate need. Both are
+in the interview sprint: the embed-or-reference judgement and the Redis structure choice are the two
+that come up reliably.

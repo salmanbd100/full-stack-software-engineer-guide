@@ -213,6 +213,6 @@ subdomain you do not fully control could set cookies on the parent domain.
 
 ## What to Read Next
 
-- [Chapter ?? — Sessions and JWTs](#ch-jwt) — where the credential lives, and why cookies win
+- [Chapter ?? — Credentials, Sessions and Tokens](#ch-credentials-and-sessions) — where the credential lives, and why cookies win
 - [Chapter ?? — Input Validation and Injection](#ch-backend-input-validation) — the other half of not trusting a request
 - [Chapter ?? — Security Headers](#ch-security-headers) — the response headers that close the neighbouring attacks

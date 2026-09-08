@@ -138,7 +138,7 @@ const service = moduleRef.get(OrdersService);
 
 Compare that to mocking a module in a test file: the fake is declared where it is used, it is typed
 against the real interface, and nothing depends on the runtime's module resolution. That is the same
-argument as [Chapter ?? — Testing a Node Service](#ch-unit-testing) makes for plain constructor
+argument as [Chapter ?? — Testing a Node Service](#ch-testing-node-services) makes for plain constructor
 injection — NestJS just makes it the default rather than a discipline.
 
 ## When to Use It
@@ -215,5 +215,5 @@ short-lived function.
 ## What to Read Next
 
 - [Chapter ?? — Express](#ch-express) — the pipeline NestJS wraps, and the baseline it is compared against
-- [Chapter ?? — Testing a Node Service](#ch-unit-testing) — why constructor injection is the testing argument
+- [Chapter ?? — Testing a Node Service](#ch-testing-node-services) — why constructor injection is the testing argument
 - [Chapter ?? — Authorisation](#ch-authorisation) — the models a guard is enforcing

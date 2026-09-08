@@ -118,15 +118,13 @@ disconnected pod missed is not worth replaying. It is the wrong choice for anyth
 
 ## Persistence
 
-| Mode | Mechanism | Loses |
-| ---- | --------- | ----- |
-| **RDB** | Periodic point-in-time snapshot | Everything since the last snapshot — minutes |
-| **AOF** | Appends every write command | Up to one second with the default `everysec` fsync |
-| **Both** | AOF for recovery, RDB for backups | The usual production choice |
+Two modes, usually both. **RDB** takes periodic point-in-time snapshots and loses everything since
+the last one; **AOF** appends every write command and loses up to a second with the default
+`everysec` fsync. Production normally runs AOF for recovery and RDB for backups.
 
-Even AOF with `everysec` can lose a second of writes, and a replica acknowledges asynchronously. So
-the honest statement is: **Redis is not a system of record.** Anything that must survive is written
-to a durable store first, and Redis holds the fast copy.
+Even AOF can lose that second, and a replica acknowledges asynchronously. So the honest statement is:
+**Redis is not a system of record.** Anything that must survive is written to a durable store first,
+and Redis holds the fast copy.
 
 ## When Redis Is the Wrong Tool
 
@@ -190,4 +188,4 @@ them apart under pressure.
 
 - [Chapter ?? — Caching](#ch-caching) — the strategies and invalidation patterns this chapter deliberately leaves out
 - [Chapter ?? — Rate Limiting](#ch-rate-limiting) — the atomic token bucket built on these primitives
-- [Chapter ?? — Node.js Performance](#ch-nodejs-performance) — where a cache belongs in a request path
+- [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) — where a cache belongs in a request path

@@ -137,7 +137,7 @@ The same applies to `WHERE created_at::date = $1` — cast the parameter instead
 `NOT EXISTS` over `NOT IN` — it is null-safe and usually plans better.
 
 **Batch the N+1.** The most common "slow query" is a fast query run 200 times. One `WHERE id IN
-(…)` replaces it; see [Chapter ?? — Node.js Performance](#ch-nodejs-performance).
+(…)` replaces it; see [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance).
 
 **Find the unused indexes and drop them.** `pg_stat_user_indexes` reports `idx_scan` per index; a
 non-unique index with zero scans after a full business cycle is pure write cost.
@@ -192,4 +192,4 @@ bad one.
 
 - [Chapter ?? — SQL Fundamentals](#ch-sql-fundamentals) — the queries these indexes serve
 - [Chapter ?? — Database Design](#ch-database-design) — where constraints create indexes for free
-- [Chapter ?? — Node.js Performance](#ch-nodejs-performance) — finding the slow query from the application side
+- [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) — finding the slow query from the application side

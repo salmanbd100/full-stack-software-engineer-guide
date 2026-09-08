@@ -14,7 +14,7 @@ in_book: true
 
 > Predict what a value will do before you run it — which types copy, which share, and which comparisons lie.
 
-**In this chapter:** primitives vs references · type coercion · `var`, `let` and `const` · shallow vs deep copies · narrowing `unknown`
+**In this chapter:** primitives vs references · type coercion · `var`, `let` and `const` · `Map`, `Set` and `Symbol` · shallow vs deep copies
 
 ## 💡 The Core Idea
 
@@ -83,13 +83,6 @@ including `'0'`, `'false'`, `[]` and `{}`.
 | `const` | Block           | ❌ `ReferenceError`            | ❌        | ✅ Default           |
 
 ```typescript
-function varLeaks(): number {
-  if (true) {
-    var x: number = 20; // no block scope — escapes the `if`
-  }
-  return x; // 20
-}
-
 const person: { name: string } = { name: 'Alice' };
 person.name = 'Bob'; // ✅ mutating the object is fine
 // person = { name: 'Carol' }; // ❌ reassigning the binding is not
@@ -97,6 +90,27 @@ person.name = 'Bob'; // ✅ mutating the object is fine
 
 `const` freezes the **binding**, not the value. For a genuinely immutable object you need
 `Object.freeze` (one level deep) or a `readonly` type in TypeScript.
+
+### Keyed collections and `Symbol`
+
+`Object` is not the only keyed store, and the choice comes back to the value model: an object coerces
+every key to a string, while a `Map` keeps the key you handed it.
+
+```typescript
+const cache = new Map<object, string>(); // any value as a key, insertion order, a real `.size`
+const unique: string[] = [...new Set(['a', 'b', 'a'])]; // unique values, O(1) membership
+const INTERNAL = Symbol('internal'); // a unique key no other code can collide with
+```
+
+| Need                          | `Object`                 | `Map`                          |
+| ----------------------------- | ------------------------ | ------------------------------ |
+| Keys that are not strings     | ❌ Coerced to strings     | ✅ Any value, objects included  |
+| Frequent add and delete       | Slower                   | ✅ Optimised for it             |
+| Counting entries              | `Object.keys(o).length`  | ✅ `.size`                      |
+| Keys that come from user input | ❌ Can collide with `__proto__` | ✅ No prototype chain to hit |
+
+`WeakMap` and `WeakSet` hold their keys weakly, so an entry disappears once nothing else references
+its key — the right store for metadata attached to a DOM node or a class instance.
 
 ## When to Use It
 

@@ -17,11 +17,11 @@ out that you know it. In a senior loop those are separate problems, and the seco
 candidates neglect — a correct design explained in the wrong order scores worse than a simpler design
 explained well.
 
-Three chapters, covering the places where delivery decides the outcome: the spoken explanation, where
-the order you say things in changes whether they land; the technical round, where silence gets read as
-being stuck and the wrong question gets answered confidently; and the written channels — pull
-requests, review comments, decision records, runbooks — where most senior influence actually happens
-and which almost no interview prep material covers.
+Four chapters, covering the places where delivery decides the outcome: the spoken explanation, where
+the order you say things in changes whether they land; the technical round, where silence reads as
+being stuck; the written channels — pull requests, review comments, decision records, runbooks — where
+most senior influence actually happens; and the assisted round, where the model can write the code and
+what is left to score is your judgement about it.
 
 ## Chapters
 
@@ -30,6 +30,7 @@ and which almost no interview prep material covers.
 | 01  | [Technical Communication](./01-technical-communication.md)   | In what order does a listener need the pieces?             |
 | 02  | [Listening and Thinking Aloud](./02-thinking-aloud.md)       | Are you answering the right question, out loud?            |
 | 03  | [Written Communication](./03-written-communication.md)       | How do you write a PR, an ADR or a runbook people use?     |
+| 04  | [The AI-Assisted Interview](./04-the-ai-assisted-interview.md) | How do you use an assistant without removing the signal? |
 
 Behavioural answers have their own section. STAR, the story bank and the delivery rules live in
 `Behavioral/`, starting at [Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework).
@@ -57,8 +58,9 @@ round.** Communication is how that ownership becomes visible to someone else.
 
 ## Reading Order
 
-01 first — it sets the order-of-explanation idea the other two apply. 02 next if you have interviews
-booked; it is the highest-leverage chapter here, because most answers fail before any knowledge is
-tested. 03 is the one worth returning to on the job rather than before an interview.
+01 first — it sets the order-of-explanation idea the rest apply. 02 next if you have interviews booked;
+it is the highest-leverage chapter here, because most answers fail before any knowledge is tested. 04
+directly after 02, since it raises the same narration bar for a room where an assistant is allowed. 03
+is the one worth returning to on the job rather than before an interview.
 
-**Interview sprint:** 01 → 02.
+**Interview sprint:** 01 → 02 → 04.

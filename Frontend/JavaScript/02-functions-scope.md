@@ -43,14 +43,9 @@ function greet(name: string): string {
 const sayHi = (name: string): string => `Hi, ${name}!`;
 ```
 
-A **named** function expression gets a self-reference that is not visible outside — useful for
-recursion without leaking a name:
-
-```typescript
-const factorial = function fact(n: number): number {
-  return n <= 1 ? 1 : n * fact(n - 1); // `fact` is in scope only in here
-};
-```
+A **named** function expression gets a self-reference visible only inside itself —
+`const factorial = function fact(n: number) { ... }` can recurse through `fact` without leaking the
+name into the surrounding scope.
 
 Arrows drop five things regular functions have: their own `this`, the `arguments` object, a
 `prototype`, constructor behaviour, and the ability to be a generator. Four of those are
@@ -72,11 +67,9 @@ const withRest = (...args) => { console.log(args); }; // ✅ the replacement
 ```typescript
 function outer(): void {
   const outerVar: string = 'outer';
-
   function inner(): void {
     console.log(outerVar); // reaches the parent, and on up to module scope
   }
-
   inner();
   // console.log(innerVar); // ❌ scope only looks outward, never inward
 }

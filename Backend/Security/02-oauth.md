@@ -222,6 +222,6 @@ attacker's code. PKCE protects the code itself from being redeemed by a third pa
 
 ## What to Read Next
 
-- [Chapter ?? — Sessions and JWTs](#ch-jwt) — validating the `id_token` and issuing your own session
+- [Chapter ?? — Credentials, Sessions and Tokens](#ch-credentials-and-sessions) — the password flow you are delegating away, and the session you issue afterwards
 - [Chapter ?? — Authorisation](#ch-authorisation) — what scopes do and do not decide once the user is in
-- [Chapter ?? — Password Security](#ch-password-security) — the flow you are delegating away
+- [Chapter ?? — CORS and CSRF](#ch-cors-csrf) — protecting the cookie that ends up holding the session

@@ -5,7 +5,7 @@ chapter: 0
 slug: backend-index
 level: intermediate
 reading_time: 2
-updated: 2026-09-07
+updated: 2026-09-08
 tags: [backend, nodejs, frameworks, api, sql, nosql, security]
 in_book: true
 ---
@@ -26,13 +26,13 @@ is the surface a frontend engineer owns or negotiates with, at the depth a senio
 
 | Section | Chapters | What it covers |
 | ------- | -------- | -------------- |
-| [Node.js](./NodeJS/README.md) | 6 | The event loop, streams, modules, errors, performance, scaling |
+| [Node.js](./NodeJS/README.md) | 5 | The event loop, streams, modules, errors, performance and scaling |
 | [Node Frameworks](./Frameworks/README.md) | 3 | Express, NestJS and dependency injection, edge runtimes and Hono |
 | [API Design](./API/README.md) | 6 | REST, GraphQL, versioning and contracts, rate limiting, real-time, tRPC |
 | [SQL and Relational Data](./SQL/README.md) | 5 | Schema design, indexes and plans, transactions, ORMs, migrations |
-| [NoSQL and Caching](./NoSQL/README.md) | 4 | Document modelling, aggregation, indexing, Redis |
-| [Security](./Security/README.md) | 6 | Sessions and JWTs, OAuth, passwords, authorisation, CORS/CSRF, injection |
-| [Testing](./Testing/README.md) | 2 | Backend-specific testing; the discipline itself is Part IV |
+| [NoSQL and Caching](./NoSQL/README.md) | 2 | Document modelling and the embed-or-reference decision, Redis |
+| [Security](./Security/README.md) | 5 | Credentials and sessions, OAuth, authorisation, CORS/CSRF, injection |
+| [Testing](./Testing/README.md) | 1 | Backend-specific testing; the discipline itself is Part IV |
 
 `Backend/DesignPatterns/` also lives in this tree, but it belongs to **Part I** — patterns are
 language material, not backend material, and `scripts/lib/book.ts` maps it accordingly.
@@ -68,5 +68,5 @@ and it is also roughly the order a full stack loop asks about it. `NoSQL/` and `
 self-contained and can be read whenever they are relevant.
 
 **Interview sprint:** `NodeJS/01` (the event loop), `Frameworks/01` (Express), `API/01` (REST) and
-`API/02` (GraphQL), `SQL/03` (indexes), `Security/01` (JWT). Those six carry most of what a
-frontend-heavy full stack interview asks on the backend.
+`API/02` (GraphQL), `SQL/03` (indexes), `Security/01` (credentials and sessions). Those six carry
+most of what a frontend-heavy full stack interview asks on the backend.

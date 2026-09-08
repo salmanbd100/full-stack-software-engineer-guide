@@ -142,7 +142,6 @@ class PostgresUnitOfWork implements UnitOfWork {
       // ✅ Every repository shares the same client, so they share the transaction.
       const result = await work({
         orders: new SqlOrderRepository(client),
-        inventory: new SqlInventoryRepository(client),
         ledger: new SqlLedgerRepository(client),
       });
       await client.query('COMMIT');
@@ -157,7 +156,7 @@ class PostgresUnitOfWork implements UnitOfWork {
 }
 
 // Usage — all or nothing.
-await uow.run(async ({ orders, ledger }) => {
+await uow.run(async ({ orders, ledger }): Promise<void> => {
   await orders.save(order);
   await ledger.record(payment);
 });

@@ -74,14 +74,12 @@ A factory returns a function that has captured its configuration. One factory pr
 specialised functions with no duplication.
 
 ```typescript
-type UnaryNumberFn = (n: number) => number;
-
-function createMultiplier(multiplier: number): UnaryNumberFn {
+function createMultiplier(multiplier: number): (n: number) => number {
   return (n: number): number => n * multiplier;
 }
 
-const double: UnaryNumberFn = createMultiplier(2); // remembers 2
-const triple: UnaryNumberFn = createMultiplier(3); // remembers 3
+const double = createMultiplier(2); // remembers 2
+const triple = createMultiplier(3); // remembers 3
 ```
 
 Partial application is the same idea generalised: a `partial(fn, ...fixed)` helper captures the leading

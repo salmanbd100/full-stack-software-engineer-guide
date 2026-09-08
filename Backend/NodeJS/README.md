@@ -5,7 +5,7 @@ chapter: 0
 slug: backend-nodejs-index
 level: intermediate
 reading_time: 2
-updated: 2026-09-01
+updated: 2026-09-08
 tags: [nodejs, event-loop, streams, performance, scaling]
 in_book: true
 ---
@@ -28,8 +28,7 @@ it: a single error path, and a way to use more than one core.
 | 02 | [Streams and Buffers](./02-streams-buffers.md) | How do you move data you cannot hold in memory? |
 | 03 | [The Module System](./03-module-system.md) | Why does this import work and the next one throw? |
 | 04 | [Error Handling in Node](./04-error-handling.md) | Which failures do you answer, and which do you restart for? |
-| 05 | [Node.js Performance](./05-performance.md) | Where did the 400 ms actually go? |
-| 06 | [Scaling a Node Process](./06-scaling-node.md) | Worker threads or replicas, and what breaks when you fork? |
+| 05 | [Node.js Performance and Scaling](./05-performance-and-scaling.md) | Where did the 400 ms go, and do you need a faster loop or more of them? |
 
 ## What Interviewers Probe For
 
@@ -46,7 +45,7 @@ it: a single error path, and a way to use more than one core.
 
 ## Reading Order
 
-01 first, always — every later chapter assumes it. Then 04, which every service needs. 02, 05 and 06
-are independent of each other; 03 can be read whenever an import breaks.
+01 first, always — every later chapter assumes it. Then 04, which every service needs. 02 and 05 are
+independent of each other; 03 can be read whenever an import breaks.
 
-**Interview sprint:** 01 → 04 → 06.
+**Interview sprint:** 01 → 04 → 05.

@@ -220,6 +220,6 @@ there a 404 is actively confusing.
 
 ## What to Read Next
 
-- [Chapter ?? — Sessions and JWTs](#ch-jwt) — establishing the identity these checks depend on
+- [Chapter ?? — Credentials, Sessions and Tokens](#ch-credentials-and-sessions) — establishing the identity these checks depend on
 - [Chapter ?? — Input Validation and Injection](#ch-backend-input-validation) — the other half of trusting a request
 - [Chapter ?? — REST API Best Practices](#ch-rest-best-practices) — where the 403 and 404 sit in the status code map

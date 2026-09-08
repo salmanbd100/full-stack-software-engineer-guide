@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-08 · **Progress:** 70 / 92
+**Last updated:** 2026-09-08 · **Progress:** 73 / 92
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -4639,7 +4639,7 @@ lives in.
 
 ---
 
-### - [ ] 56a. Trim Part V to its budget `M`
+### - [x] 56a. Trim Part V to its budget `M` — ✅ **done 2026-09-08**
 
 Split out of **#56** on 2026-09-07, on the same precedent as #58a: an item that adds content to a part
 with no headroom needs a named item to pay for it, not a comment.
@@ -4675,6 +4675,69 @@ Two candidate routes, and this item has to pick one and say why:
 close some of this for free.
 
 **Done when:** `pnpm lint:docs` reports Part 5 at or under its BOOK-SPEC § 5 budget of 6,500.
+
+**Delivered:**
+
+- **Part V is 7,434 → 6,492 of 6,500**, verified by `pnpm lint:docs`, which no longer lists Part 5 at
+  all. The only remaining budget breach is Part 1's +306, owned by **#60a**. `.lint-baseline.json`'s
+  `budget` count is committed down from 1,081 to 306
+- **⚠️ #68 and #70 were checked first, as this item required, and neither closes any of it.** #68 is
+  a staleness sweep (FID for INP, Jest and Cypress defaults) — it corrects content rather than
+  removing chapters, and nothing in Part V is 2024-era enough to archive on those grounds. #70 is
+  front-matter numbering plus a slug/anchor reconciliation, all of which is line-neutral. The overage
+  had to be paid structurally
+- **Neither of the item's two candidate routes was taken as written, and the arithmetic is why.**
+  Archiving two `Backend/NoSQL/` chapters returns ~400 lines against a **+934** overage, not "roughly
+  the whole" of it — that estimate in the item above was wrong. The `Backend/Security/` merge returns
+  less still. What closed it was **five chapters removed across four sections**, chosen on one
+  principle: *Part V loses the material another part of the book already owns, not the material that
+  is merely long.* Part V goes from **32 chapters to 27** against § 5's ~30, which is permitted —
+  budgets are ceilings, and § 5's own spine note wants Parts V–IX smaller, not larger
+- **`Backend/NoSQL/` 4 chapters → 2, −389 lines.** New **`01-document-databases.md`** (233 lines,
+  `#ch-document-databases`) merges MongoDB and document schema design into one chapter organised
+  around the single trade — store the shape you read, pay in duplication — and keeps what is actually
+  asked: embed or reference, the 16 MB ceiling as a hard constraint, compare-and-swap through the
+  update filter, the extended-reference and bucket patterns, the `$lookup` smell. **Replication,
+  sharding and write concern were dropped, not merged**: `#ch-replication` and `#ch-sharding` in
+  Part VI own them as decisions rather than commands. `03-indexing-and-aggregation.md` was archived
+  outright — aggregation pipelines are a MongoDB specialist's skill, and its ESR rule restates
+  `#ch-indexes`' leftmost-prefix rule under another name. `04-redis.md` → `02-redis.md`, unchanged
+  apart from a compressed persistence section
+- **`Backend/Security/` 6 → 5, −150 lines.** New **`01-credentials-and-sessions.md`** (248 lines,
+  `#ch-credentials-and-sessions`) merges `01-jwt` and `03-passwords`. The merge is coherent rather
+  than convenient: authentication is two problems discussed as one — proving the user once, and
+  remembering it afterwards — and both reduce to holding a credential you can invalidate. Argon2id
+  parameters, the constant-time login endpoint, the session-against-JWT trade, refresh rotation with
+  reuse detection and family revocation, and the `alg: none`/algorithm-confusion pair all survive.
+  02–06 renumber to 02–05; slugs unchanged
+- **`Backend/NodeJS/` 6 → 5, −205 lines.** New **`05-performance-and-scaling.md`** (212 lines) merges
+  `05-performance` and `06-scaling-node`, keeping slug `nodejs-performance` so eight inbound
+  cross-references stay valid. They are the same question at two altitudes — measure before you
+  change, then decide whether the fix is a faster loop or more of them — and the merged chapter keeps
+  the sentence that matters: worker threads fix a blocked loop, replicas fix throughput, and using
+  the second for the first gives you four blocked loops. **The `## Caching` section was dropped**
+  (`#ch-redis` and `#ch-caching` own it) along with the zero-downtime-restart walkthrough, which
+  `#ch-deployment-strategies` owns; the `SIGTERM` drain survives as five lines
+- **`Backend/Testing/` 2 → 1, −189 lines.** New **`01-testing-node-services.md`** (243 lines,
+  `#ch-testing-node-services`) merges unit and integration testing. Justified by #57, which landed
+  the session before: `Frontend/Testing/` is now 7 chapters and `#ch-testing-strategy` owns the
+  pyramid, doubles, coverage and flakiness generically, so Part V needs only the backend layer —
+  injection over module mocking, supertest through the real stack, Testcontainers with the real
+  migrations, the four isolation strategies, factories over seed files, MSW with
+  `onUnhandledRequest: 'error'`. The section is a one-chapter directory, which the lint accepts
+- **Eleven cross-reference sites repaired across eight files**, so no `#ch-` reference in the book points
+  at an archived slug: `Glossary.md`, `Frontend/Security/03-security-headers.md`,
+  `Frontend/ModernStack/NextJS/07-auth-patterns.md`, `Backend/Security/02-oauth.md`, `03`, `04`,
+  `Backend/Frameworks/02-nestjs.md` and `Backend/NodeJS/01-event-loop-async.md`. Five files also had
+  their link *text* updated where the target chapter was renamed but the slug survived
+  (`ch-nodejs-performance`). Verified by grep: every `ch-jwt`, `ch-password-security`,
+  `ch-scaling-node`, `ch-unit-testing`, `ch-integration`, `ch-mongodb` and `ch-nosql-*` reference
+  outside `Archive/` is gone
+- **Five READMEs updated** — the four section openers plus `Backend/README.md`, whose Sections table
+  now reads 5 / 3 / 6 / 5 / 2 / 5 / 1 and whose interview sprint points at `Security/01` by its new
+  name. `Archive/README.md`'s layout tree records all 22 files `backend/` now holds and why
+- **Headroom is 8 lines.** That is deliberately more than #43 left Part VI (1 line) but it is still
+  thin: any later item that adds a Part V chapter has to pay for it here first, exactly as #56 had to
 
 ---
 
@@ -4959,7 +5022,7 @@ than they return.
 
 ---
 
-### - [ ] 60a. Trim Part I to its budget `S`
+### - [x] 60a. Trim Part I to its budget `S` — ✅ **done 2026-09-08**
 
 Split out of **#59** and **#60** on 2026-09-08, on the same precedent as #56a and #58a.
 
@@ -4989,6 +5052,52 @@ The likely route, in order of how defensible it is:
 close some of this for free.
 
 **Done when:** `pnpm lint:docs` reports Part 1 at or under its BOOK-SPEC § 5 budget of 5,000.
+
+> ⚠️ **The item's ⚠️ note was checked and closed: #68 and #70 free nothing here.** #68's list — FID vs
+> INP, `getServerSideProps`, Jest/Cypress, Redux, Webpack config, runtime CSS-in-JS — touches Parts
+> III and IV, not one line of `Frontend/JavaScript/`, `Frontend/TypeScript/` or
+> `Backend/DesignPatterns/`. #70 assigns front-matter numbers and reconciles slugs; it moves no lines.
+> So the overage had to be paid in full, here.
+>
+> **And the item's first bullet was optimistic.** Deleting `08-es6-features.md` is 214 lines against a
+> 306-line overage, not "the whole overage in one move" — and the two sections it says to merge into
+> `01` and `11` add lines back. The route below is the item's, extended.
+
+**Delivered:**
+
+- **Part I is 4,991 of 5,000** (was 5,306, **+306**), and `pnpm lint:docs` now reports **0 violations
+  on every rule** — the `budget` baseline goes from 306 to 0, so the rule is hard-fail from here
+- **`Frontend/JavaScript/08-es6-features.md` deleted** (−214), as the item directed, with its two
+  genuinely probed sections absorbed rather than dropped: **`Map`, `Set`, `Symbol` and `WeakMap`** into
+  `01-data-types-variables.md` as `### Keyed collections and `Symbol`` — which is where it belongs,
+  since the `Object`-versus-`Map` choice is the primitives-versus-references question again — and
+  **optional chaining with `??`** into `10-modern-js.md` as an ES2020 section ahead of the ES2023
+  material. Destructuring, spread, template literals and ES modules went with the chapter: assumed
+  knowledge for this reader, and spread-is-shallow was already in `01`
+- **The section renumbered** — `09`→`08`, `10`→`09`, `11`→`10` — on the precedent of #20's
+  `Backend/Security/` renames, so filenames stay sequential. Slugs and every `#ch-` anchor are
+  unchanged, so no cross-reference broke. `Frontend/JavaScript/README.md` is down to ten rows
+- **Two references repointed:** `Glossary.md`'s *Nullish coalescing* entry now cites
+  `#ch-modern-javascript`, and `08-array-object-methods.md`'s What to Read Next cites
+  `#ch-data-types-variables` for `Map` and `Set`
+- **The two chapters #59 and #60 wrote into headroom that did not exist paid most of the rest back**,
+  which is the item's third bullet: `10-modern-js.md` 262→230, `08-typescript-at-scale.md` 270→233.
+  Nothing was cut that the book does not say elsewhere — `10`'s `Object.hasOwn` section duplicated a
+  row in `08-array-object-methods.md`, and its polyfill mistake-pair restated its own baseline section
+- **The remaining ~50 lines came from five chapters, and every cut was a duplication rather than a
+  trim for space:** `01`'s `varLeaks` fence (`02` owns block scope), `02`'s named-function-expression
+  fence (folded to prose), `04`'s `this` decision-tree diagram (it restated the priority table
+  directly above it, one row per branch — the arrow case moved into the table as a row), `05`'s
+  `prototype` versus `__proto__` section (stated in its Key Takeaways *and* answered in full as its
+  first interview question), and `08`'s `slice`/`splice` pair plus a second `reduce` pair
+- **Part I is now 23 chapters against § 5's ~22**, with an average of 208 lines. `Backend/DesignPatterns/`
+  was left at five chapters: the item asks whether § 5's chapter figure assumed them, and § 4 answers it
+  — "OOP and design patterns in TypeScript" is named Part I scope, so they are not the place to cut
+- ⚠️ **Noted, not fixed, for #70:** `Backend/DesignPatterns/03` and `05` have no `## Common Mistakes`
+  block, and all five pattern chapters use topic-specific `##` headings instead of the standard body
+  flow. That is a Book Chapter Standard gap, not a budget one, and converting them would *add* lines
+- ⚠️ **The margin is nine lines.** Part I has no room for another chapter, and #68's sweep should be
+  read as a trim-only pass over these three directories
 
 ---
 
@@ -5159,7 +5268,7 @@ likely to arrive without — Part VII especially.
 
 # Phase 6 — 2027-Proofing
 
-### - [ ] 64. Write the AI-era interview chapter `M`
+### - [x] 64. Write the AI-era interview chapter `M` — ✅ **done 2026-09-08**
 
 The most current, most saleable chapter in the book. Research findings to build it on:
 
@@ -5175,6 +5284,65 @@ Chapter covers: how to use AI in an interview without failing it, how to verify 
 prompt hygiene under time pressure, and what to do when AI is banned.
 
 **Home:** `Behavioral/` or a new `InterviewCraft/` section in Part IX.
+
+**Done when:** the chapter exists in Part IX, passes the Book Chapter Standard (six blocks in order,
+150–400 lines, TypeScript-only fences, no relative links in the body, ⚠️ within its budget of three),
+every `#ch-` anchor it uses resolves to a real `slug:`, Part IX stays inside its 2,500-line BOOK-SPEC § 5
+budget, its section opener links it, and `pnpm lint:docs` shows no rule regressed. _("Done when" was
+missing from this item and was added when it ran — the acceptance test matches #51's.)_
+
+> ⚠️ **Home changed from `Behavioral/` to `Communication/`, and `InterviewCraft/` was ruled out on
+> budget.** Part IX had **262 lines left of 2,500** when this item started, and a new directory costs a
+> part-opener README as well as the chapter — the `no-readme` lint rule has no exemption — so
+> `InterviewCraft/` could not be paid for. Between the two existing homes, `Communication/` is the right
+> one: this is a **technical round**, not a behavioural-story round. Its direct sibling is
+> `Communication/02-thinking-aloud.md`, which already carried the forward reference to the AI-assisted
+> loop, and the Communication opener's framing — "the technical round, where silence reads as being
+> stuck" — extends to it. `Behavioral/` is STAR, failure and influence stories; this chapter would have
+> sat oddly there and needed that opener's framing rewritten.
+
+**Delivered:**
+
+- **`Communication/04-the-ai-assisted-interview.md`**, **254 lines**, slug `ai-assisted-interview`,
+  H1 anchor `#ch-ai-assisted-interview`. Part IX **2,238 → 2,495** of its 2,500-line budget
+- **Covers all four things this item names**, one `###` each: the two rooms and how to find out which
+  one you are in, the four scored axes, verifying generated code out loud, prompt hygiene on the clock,
+  and the room where AI is banned. Plus the code-comprehension round as a six-node Mermaid flowchart —
+  reproduce, then summarise, then hypothesise — because the *order* is the teachable part
+- **The verification section turns on one worked example**: an unedited assistant-produced
+  `retry<T>()` with four real defects — retries non-transient errors, loses the `cause`, sleeps after
+  the final attempt, no jitter. The fix is described in prose rather than shown as a second fence, both
+  to save lines and because the chapter is about *naming the input that breaks it*, not about retry.
+  The sentence pattern it teaches is "this is fine unless X", because that is what an interviewer can
+  write down as a verification signal
+- **Deliberately does not overlap `AI/07-ai-in-interviews.md`** (Part VII, slug `ai-in-interviews`).
+  That chapter is the four AI *questions* a senior loop asks; this one is using an assistant in the
+  room and being scored on it. They cross-reference each other as the two halves of the AI-era loop,
+  and the two slugs are distinct
+- **React-specific review defects were left to #65 on purpose.** Generated code that defeats
+  memoisation with a new object reference is that item's example, in Part IV. This chapter's example is
+  framework-free so the two do not collide
+- **Moving-target callout present**, as the topic demands: the 38/62 split, the four axes and the
+  code-comprehension round are stamped as the 2026–27 picture, with the durable principle named
+  underneath — the interviewer scores your judgement, and the assistant only changes which layer that
+  judgement has to be visible at
+- **`Communication/README.md` updated** — "Three chapters" → "Four", a table row, and the Reading Order
+  now runs 01 → 02 → 04 with 04 placed directly after the narration chapter it raises the bar on.
+  Net cost **+3 lines**, paid for by tightening the opener's second paragraph
+- `pnpm lint:docs`: 295 → **296 files**, **all seven rules at zero, 0 violations total**.
+  `.lint-baseline.json` unchanged. `pnpm book:collect`: 296 files, 59,424 lines
+- **The research figures are BOOK-SPEC § Part IX's, used as written and not independently re-verified
+  in this session.** They are attributed in the chapter as the 2026–27 picture rather than as standing
+  fact, and named as "at least one major employer" rather than by company — a book that prints
+  "Google does X" is wrong the moment X changes, and the spec's own framing is the research finding,
+  not a citation
+
+> ⚠️ **Part IX is now effectively full: 2,495 of 2,500, with 13 chapters against § 5's "~18".** #65–#69
+> must not add lines here, and **#66's moving-target callouts cannot be paid for out of Part IX** — this
+> chapter already has one and is at the three-⚠️ ceiling. Two live consequences for Phase 7: **#73** (back
+> matter) has no room in Part IX for an interview-question index, and **#77**'s page-rate reconciliation
+> should treat Part IX's chapter count, not its line count, as the thing that is under budget. Five parts
+> are now within 10 lines of their ceiling — I (9), IV (4), V (4), VI (0), VIII (0) and IX (5).
 
 ---
 
@@ -5532,10 +5700,10 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
 | 3     | 32–43   | 12/12 | ✅ Complete    |
 | 4     | 44–53   | 10/10 | ✅ Complete    |
-| 5     | 54–63 · 56a · 58a · 60a | 11/13 | 🔄 In progress |
-| 6     | 64–69   | 0/6  | ⬜ Not started |
+| 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
+| 6     | 64–69   | 1/6  | 🔄 In progress |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **92** | **70/92** | **76%**   |
+| **Total** | **92** | **73/92** | **79%**   |
 
 ---
 

@@ -209,4 +209,4 @@ partial line in state, prepend it to the next chunk, and handle the final fragme
 
 - [Chapter ?? — The Event Loop and Async Node](#ch-event-loop-async) — why chunked work keeps the loop responsive
 - [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming) — streaming over HTTP and WebSockets
-- [Chapter ?? — Node.js Performance](#ch-nodejs-performance) — spotting the buffered response in a memory profile
+- [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) — spotting the buffered response in a memory profile

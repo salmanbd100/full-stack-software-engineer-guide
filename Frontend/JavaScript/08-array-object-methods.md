@@ -141,9 +141,6 @@ is not.
 `const sorted = items.sort(...)` reorders `items` too — including React props and store state.
 Copy first: `[...items].sort(...)` or `items.toSorted(...)`.
 
-**❌ Confusing `slice` with `splice`.** One letter apart, opposite behaviour: `slice` copies, `splice`
-mutates and returns what it removed.
-
 **❌ `await` inside `forEach`.** The callback returns a promise that `forEach` discards, so the loop
 finishes before any of the work does:
 
@@ -154,10 +151,8 @@ await Promise.all(items.map((i) => save(i))); // ✅ parallel
 ```
 
 **❌ `reduce` with no initial value.** On an empty array it throws, and on a non-empty one the first
-element becomes the accumulator — which is rarely the type you wanted.
-
-**❌ Reaching for `reduce` where `map` or `filter` fits.** A `reduce` that builds an array of the same
-length is a `map` written obscurely.
+element becomes the accumulator — which is rarely the type you wanted. A `reduce` that builds an array
+of the same length is a `map` written obscurely.
 
 > ⚠️ `Object.freeze` is shallow. `freeze(state)` leaves `state.user` fully mutable. There is no
 > built-in deep freeze; recurse yourself, or rely on `readonly` types at compile time.
@@ -192,6 +187,5 @@ the cases that genuinely change the container — a sum, a lookup table, a group
 
 ## What to Read Next
 
-- [Chapter ?? — Data Types and Variables](#ch-data-types-variables) — why an in-place sort changes your caller's array
-- [Chapter ?? — ES2015 and Later Features](#ch-es6-features) — spread, `Map` and `Set` alongside these methods
+- [Chapter ?? — Data Types and Variables](#ch-data-types-variables) — why an in-place sort changes your caller's array, and where `Map` and `Set` fit
 - [Chapter ?? — Promises and Async/Await](#ch-promises-async) — the right way to iterate asynchronously

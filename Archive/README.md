@@ -6,7 +6,7 @@ This is where content goes when it is genuinely useful but out of scope for
 **The Senior Full Stack Handbook**. It stays in the repository, stays in git history, and stays
 searchable. It is simply invisible to the book build.
 
-Created by improvement #7. Filled by improvements #8, #20–#31e, #31f and #42.
+Created by improvement #7. Filled by improvements #8, #20–#31e, #31f, #42 and #56a.
 
 `dsa-solutions/` is the one sub-tree whose originals were **replaced rather than removed** — each
 archived file has a trimmed successor at the same name under `DSA/`.
@@ -64,16 +64,20 @@ Archive/
 ├── foundations/         ← #26: what Part I shed when OOP/ and DesignPatterns/ merged
 │   ├── oop/                 all 7 + README — condensed into two chapters
 │   └── patterns/            3 of 5 — the GoF catalogue, condensed into one chapter
-├── backend/             ← #31c: the 15 files Part V shed reaching its 6,500-line budget
-│   ├── api/                 1 of 6 — documentation, merged into API/03 (versioning and contracts)
-│   ├── nodejs/              3 of 9 — security folded into Backend/Security/; child processes and
-│   │                            clustering merged into NodeJS/06 (scaling a Node process)
-│   ├── nosql/               2 of 7 — indexing merged into NoSQL/03; Mongoose folded into 01 and 02
-│   ├── security/            2 of 9 — SQL injection merged into Security/06; encryption cut on scope
-│   ├── sql/                 3 of 9 — PostgreSQL, migrations and optimisation distributed across
+├── backend/             ← #31c, #56a: the 22 files Part V shed reaching its 6,500-line budget
+│   ├── api/                 1 — documentation, merged into API/03 (versioning and contracts)
+│   ├── nodejs/              5 — security folded into Backend/Security/; child processes and
+│   │                            clustering merged into scaling; #56a added performance and scaling,
+│   │                            now one chapter, NodeJS/05
+│   ├── nosql/               5 — Mongoose and an earlier indexing chapter; #56a added MongoDB,
+│   │                            schema design and aggregation. NoSQL/ is now 2 chapters: the
+│   │                            document model and Redis
+│   ├── security/            4 — SQL injection merged into validation; encryption cut on scope;
+│   │                            #56a added JWTs and passwords, now one chapter, Security/01
+│   ├── sql/                 3 — PostgreSQL, migrations and optimisation distributed across
 │   │                            SQL/02–05, which now carry them by concept rather than by tool
-│   └── testing/             4 of 7 — E2E, TDD, mocking and best practices; Part IV owns the
-│                                discipline, Part V keeps only what is backend-specific
+│   └── testing/             6 — E2E, TDD, mocking and best practices; #56a added unit and
+│                                integration, now one chapter. Part IV owns the discipline
 ├── dsa-solutions/       ← #27: the full solution sets, 4 of 16 so far — see its README
 ├── behavioral/          ← #31e: 1 of 10 + README — the questions-to-ask lists; the other five
 │                            chapters were merged into the four survivors

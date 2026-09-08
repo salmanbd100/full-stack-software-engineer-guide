@@ -201,4 +201,4 @@ interop cost everywhere and gets none of the benefit, so migrate wholesale or no
 ## What to Read Next
 
 - [Chapter ?? — Error Handling in Node](#ch-nodejs-error-handling) — where a failed import surfaces
-- [Chapter ?? — Node.js Performance](#ch-nodejs-performance) — how barrel files cost you cold start
+- [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) — how barrel files cost you cold start

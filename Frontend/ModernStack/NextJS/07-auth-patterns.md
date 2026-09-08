@@ -65,8 +65,8 @@ valid for its full lifetime?** For a public content site with 15-minute tokens, 
 internal admin tool where an offboarded employee must lose access now, no. A common middle path stores
 the session in the database and caches the lookup, keeping revocation while paying for it rarely.
 
-Token mechanics — signing, rotation, refresh — belong to
-[Chapter ?? — JWT](#ch-jwt), and who may do what belongs to
+Token mechanics — hashing a password, signing, rotation, refresh — belong to
+[Chapter ?? — Credentials, Sessions and Tokens](#ch-credentials-and-sessions), and who may do what belongs to
 [Chapter ?? — Authorisation](#ch-authorisation). This chapter is about where in an App Router
 application those checks run.
 
