@@ -19,7 +19,7 @@ in_book: true
 ## 💡 The Core Idea
 
 The discipline of testing — the pyramid, arrange-act-assert, the vocabulary of doubles, when to
-practise TDD — is [Chapter ?? — Testing Fundamentals](#ch-testing-fundamentals) in Part IV, and it
+practise TDD — is [Chapter ?? — Testing Fundamentals](#ch-testing-strategy) in Part IV, and it
 applies unchanged here. This chapter is about what is different on the server.
 
 Two things are. First, **most of a service's behaviour is in its integration with a database and an
@@ -205,5 +205,5 @@ schedule is not what production runs.
 ## What to Read Next
 
 - [Chapter ?? — Integration Testing a Service](#ch-integration) — the real database, the real HTTP layer
-- [Chapter ?? — Testing Fundamentals](#ch-testing-fundamentals) — the pyramid, AAA and the vocabulary of doubles
+- [Chapter ?? — Testing Fundamentals](#ch-testing-strategy) — the pyramid, AAA and the vocabulary of doubles
 - [Chapter ?? — Error Handling in Node](#ch-nodejs-error-handling) — the error shape these tests assert on

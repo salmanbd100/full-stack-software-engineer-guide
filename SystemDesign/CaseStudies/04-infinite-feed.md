@@ -184,6 +184,6 @@ decision, not a technical one. Saying so is the answer the interviewer is listen
 
 ## What to Read Next
 
-- [Chapter ?? — Rendering Optimisation](#ch-rendering-optimisation) — the frame budget the virtualiser is protecting
-- [Chapter ?? — Image Optimisation](#ch-image-optimisation) — formats, sizing and priority for the media in these rows
+- [Chapter ?? — Rendering Optimisation](#ch-rendering-and-streaming) — the frame budget the virtualiser is protecting
+- [Chapter ?? — Image Optimisation](#ch-asset-delivery) — formats, sizing and priority for the media in these rows
 - [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — where the INP and CLS numbers in the requirements come from

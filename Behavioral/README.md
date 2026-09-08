@@ -35,6 +35,7 @@ deep enough to be humane — than without it.
 | 03 | [Problem Solving, Challenges and Failure](./03-problem-solving-and-failure.md)  | How do you show method rather than heroics, and own a real failure? |
 | 04 | [Ways of Working](./04-ways-of-working.md)                                      | What do the four DORA metrics measure, and what corrupts them?   |
 | 05 | [Engineering Culture](./05-engineering-culture.md)                              | Which practices only look like ownership, review and safety?     |
+| 06 | [Influence, Scope and Saying No](./06-influence-scope-and-saying-no.md)         | How do you refuse something so it reads as judgement, not obstruction? |
 
 ## What Interviewers Probe For
 
@@ -58,10 +59,18 @@ round** — which in a behavioural round means owning the decision, including th
   a fact. Knowing why the sprint keeps failing, what work in progress costs, and which metric a
   director will ask for and should not get, is the senior version.
 
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "Tell me about an impactful project" | Describes executing someone else's decision well | Names the moment they chose, what they weighed, and what they gave up |
+| "What was the result?" | "It improved performance a lot" | "p95 went from 4.2 s to 900 ms, and checkout drop-off fell by a fifth" |
+| "Tell me about a failure" | Picks one that is secretly a strength | States what went wrong plainly, what changed, and that the change stuck |
+
 ## Reading Order
 
 01 first, and before anything else — the framework and the coverage grid are what make the rest
-usable. Then 02 and 03 as the story categories to fill the grid with. 04 and 05 next, because they
+usable. Then 02, 03 and 06 as the story categories to fill the grid with. 04 and 05 next, because they
 are where several of those stories come from, and 05's closing section is what to reread the morning
 of the interview.
 

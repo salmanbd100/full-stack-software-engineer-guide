@@ -210,4 +210,4 @@ match.
 
 - [Chapter ?? — Array and Object Methods](#ch-array-object-methods) — the built-ins these features are usually combined with
 - [Chapter ?? — Data Types and Variables](#ch-data-types-variables) — why spread being shallow matters
-- [Chapter ?? — Code Splitting](#ch-code-splitting) — dynamic `import()` as a performance tool
+- [Chapter ?? — Code Splitting](#ch-loading-and-code-splitting) — dynamic `import()` as a performance tool

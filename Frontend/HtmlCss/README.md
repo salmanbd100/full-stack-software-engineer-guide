@@ -53,6 +53,14 @@ round, that shows up as:
 - **Do you understand what triggers layout?** Animating `width` and animating `transform` look the same
   and cost completely different amounts. This is where Part IV's performance material starts.
 
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "Make this accessible" | Adds `role` and `aria-label` | Picks the element that already has the semantics, and adds ARIA only for what HTML cannot express |
+| "Why is this styled wrongly?" | "I'll add `!important`" | Specificity, then inheritance, then which cascade layer won — and `!important` as a stated design decision |
+| "Why is this animation janky?" | "It needs `will-change`" | Animating `width` forces layout every frame; `transform` composites without it |
+
 ## Reading Order
 
 Straight through — both chapters are independent and each reads cold. Then go to

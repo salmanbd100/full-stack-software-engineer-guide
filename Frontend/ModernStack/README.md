@@ -59,6 +59,14 @@ the framework as an implementation detail.** Four questions run through all six 
 - **What did you choose not to use?** Reaching for the platform, for `useState`, or for a static route
   is a stronger answer than reaching for a library. Complexity is the thing being tested.
 
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "Why is this slow?" | "I added `memo` and `useCallback`" | "The parent recreates the object every render, so the identity breaks — and since the compiler, that memoisation was not mine to add" |
+| "Where does this data live?" | "In Redux, so everything can reach it" | "It is server state, so it belongs in the query cache; Redux would be a second copy that goes stale" |
+| "Which rendering strategy?" | "Server-side rendering, it's better for SEO" | "Static for the marketing routes, streamed server-rendering for the dashboard, client for the editor — per route, for stated reasons" |
+
 ## Reading Order
 
 `Rendering/01` first, then your framework, then the rest. That order is deliberate: the rendering

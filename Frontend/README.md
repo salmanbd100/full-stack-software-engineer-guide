@@ -87,9 +87,9 @@ Part III is how to build it. Part IV is how to build it when it is large, old, a
 a performance budget.
 
 - **[Architecture](./Architecture/README.md)** — where the boundaries go in a large codebase,
-  micro-frontends, and design systems forty teams can adopt. Moved here from frontend system design
-  by improvement #42, because these are questions about structuring a codebase, not about driving a
-  design round
+  micro-frontends, design systems forty teams can adopt, and keeping a long-lived app upgradable.
+  Moved here from frontend system design by improvement #42, because these are questions about
+  structuring a codebase, not about driving a design round
 - **[Web Performance](./WebPerformance/)** — Core Web Vitals including **INP**, which replaced FID and
   which a lot of published material still gets wrong; loading strategy, bundles, caching, font and CSS
   delivery, and error tracking

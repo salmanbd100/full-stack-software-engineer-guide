@@ -205,4 +205,4 @@ code relying on module evaluation order that bundling changed.
 
 - [Chapter ?? — Turbopack, Rspack and Rolldown](#ch-rust-bundlers) — why the layer underneath was rewritten
 - [Chapter ?? — Modules and Bundling](#ch-modules-and-bundling) — the four steps this chapter splits in two
-- [Chapter ?? — Vitest Basics](#ch-vitest-basics) — the test runner that reuses this pipeline
+- [Chapter ?? — Vitest Basics](#ch-vitest) — the test runner that reuses this pipeline

@@ -2,277 +2,231 @@
 title: Frontend Caching Strategies
 part: 4
 chapter: 0
-slug: web-performance-caching-strategies
+slug: frontend-caching-strategies
 level: intermediate # beginner | intermediate | advanced
-reading_time: 9
-updated: 2026-08-28
-tags: [frontend, web, performance, caching, strategies]
+reading_time: 11
+updated: 2026-09-07
+tags: [caching, cache-control, etag, service-worker, react-query, performance]
 in_book: true
 ---
 
 # Frontend Caching Strategies {#ch-frontend-caching-strategies}
 
-> Cache at the right layer, and have an answer for how each entry becomes wrong.
+> Pick a cache lifetime you can defend per resource, and make sure a deploy can always invalidate it.
 
-**In this chapter:** the caching layers · `Cache-Control` and `ETag` · immutable assets and cache busting · service worker caches · client-side data caching
+**In this chapter:** the four layers and who controls each · `Cache-Control` decisions · `ETag` and the 304 · content hashing as the enabler · service worker strategies · client-side data caches
 
-## Overview
+## 💡 The Core Idea
 
-Caching means **saving copies of files so they don't get downloaded again**. A cached file loads instantly — no network, no wait.
+Caching is one trade made repeatedly: **speed now against staleness later.** Every decision in this
+chapter is choosing a point on that line for one specific resource, and the reason it is a senior topic
+is that getting it wrong in the safe direction is invisible while getting it wrong in the unsafe
+direction is a page nobody can fix without telling users to hard-refresh.
 
-> **Why It's Powerful:**
-> The fastest request is the one you never make. Caching is often the single biggest performance win available.
+The rule that makes aggressive caching safe is **immutability by URL**. If a file's URL changes
+whenever its content changes, you can cache it for a year with no risk, because the stale copy is
+never requested again. If the URL is stable and the content is not, every cache lifetime is a bet on
+how long you can tolerate the old version.
 
----
+So the question is never "how long should I cache this". It is "can this URL's content ever change" —
+and if it can, "how do I invalidate it".
 
-## Table of Contents
-- [The Caching Layers](#the-caching-layers)
-- [HTTP Cache Headers](#http-cache-headers)
-- [Cache Busting](#cache-busting)
-- [Service Worker Strategies](#service-worker-strategies)
-- [Client-Side Data Caching](#client-side-data-caching)
-- [Interview Questions](#interview-questions)
+## How It Works
 
----
+### Four layers, and who controls each
 
-## The Caching Layers
-
-```text
-Browser cache         ← fastest, checked first
-   ↓ (miss)
-Service Worker cache  ← programmable, works offline
-   ↓ (miss)
-CDN edge server       ← close to the user
-   ↓ (miss)
-Origin server         ← slowest, last resort
+```mermaid
+flowchart LR
+  A[Browser cache<br/>headers only] -->|miss| B[Service worker<br/>your code]
+  B -->|miss| C[CDN edge<br/>headers + purge API]
+  C -->|miss| D[(Origin)]
 ```
 
-> **Key Insight:**
-> Each layer is a chance to skip a slow network request. Use the ones that fit your app.
+**Each layer is a chance to skip the next one — and a place a stale copy can hide.**
 
----
+The control column is what matters in an interview. You configure the browser cache **entirely through
+headers** and cannot reach into it — there is no purge. The CDN you can usually purge by API. The
+service worker is code you wrote, which means it is the layer that can serve a stale application
+forever if the update logic is wrong.
 
-## HTTP Cache Headers
+### `Cache-Control` decisions, per resource type
 
-The server tells the browser how long to cache a file. `Cache-Control` is the main header.
+| Resource | Header | Reasoning |
+| -------- | ------ | --------- |
+| HTML document | `no-cache` | Must revalidate: it names the hashed assets |
+| Hashed JS and CSS | `public, max-age=31536000, immutable` | The URL changes when the content does |
+| Public API response | `public, max-age=300` | Tolerable staleness, big hit-rate win |
+| User-specific data | `private, max-age=600` | Browser may cache; the shared CDN must not |
+| Anything sensitive | `no-store` | Not written to disk anywhere |
+
+Two headers are routinely confused. `no-cache` does **not** mean "do not cache" — it means "cache it,
+but revalidate before every use". `no-store` is the one that means do not keep a copy. Using
+`no-cache` for a bank statement is the mistake that follows from mixing them up.
+
+`immutable` is the addition worth knowing: without it, a browser revalidates a long-cached asset on a
+reload anyway, and `immutable` tells it not to bother.
+
+### `ETag` turns a download into a 304
+
+An `ETag` is a fingerprint of the response body. The browser sends it back and the server can answer
+"unchanged" without resending anything.
 
 ```typescript
-import express, { type Request, type Response } from 'express';
+const etag = createHash("sha1").update(JSON.stringify(data)).digest("hex");
 
-const app = express();
-
-// Hashed static assets never change at a given URL → cache for a year
-app.use('/static', express.static('public', {
-  maxAge: '1y',
-  immutable: true,
-}));
-
-// API data → short cache, revalidate with ETag
-app.get('/api/data', (req: Request, res: Response) => {
-  res.set('Cache-Control', 'public, max-age=3600');
-  res.json(getData());
-});
+// The client already holds this exact body — answer 304 with no payload.
+if (req.headers["if-none-match"] === etag) return res.status(304).end();
+res.set("ETag", etag).json(data);
 ```
 
-### 💡 **Common Patterns**
+The round trip still happens, so this saves bandwidth rather than latency. That makes it right for
+large responses that change rarely and wrong for small ones, where the request costs more than the
+body it saves.
 
-| Resource | `Cache-Control` | Meaning |
-|----------|-----------------|---------|
-| HTML pages | `no-cache` | Always revalidate before use |
-| Hashed JS/CSS | `public, max-age=31536000, immutable` | Cache 1 year, never recheck |
-| API responses | `public, max-age=300` | Cache 5 minutes |
-| User-specific data | `private, max-age=600` | Browser only, not the CDN |
-| Sensitive data | `no-store` | Never cache anywhere |
-
-### 💡 **ETag — Revalidate Without Re-downloading**
-
-An ETag is a fingerprint of the content. The browser asks "still valid?" and the server replies `304 Not Modified` if nothing changed — no body re-sent.
-
-```typescript
-import { createHash } from 'crypto';
-import type { Request, Response } from 'express';
-
-function etagFor(content: string): string {
-  return createHash('md5').update(content).digest('hex');
-}
-
-app.get('/api/data', (req: Request, res: Response) => {
-  const data = getData();
-  const etag = etagFor(JSON.stringify(data));
-
-  if (req.headers['if-none-match'] === etag) {
-    res.status(304).end(); // client already has this version
-    return;
-  }
-
-  res.set('ETag', etag);
-  res.json(data);
-});
-```
-
----
-
-## Cache Busting
-
-When a file changes, its URL must change so browsers fetch the new version. The reliable way is a **content hash in the filename**.
+### Content hashing is what makes the year-long cache safe
 
 ```html
-<!-- ❌ Query strings: some proxies ignore them -->
+<!-- ❌ A query string. Some intermediaries strip or ignore it, and the path is unchanged -->
 <link rel="stylesheet" href="styles.css?v=2" />
 
-<!-- ✅ Content hash: new content = new URL = guaranteed fresh fetch -->
-<link rel="stylesheet" href="styles.abc123.css" />
+<!-- ✅ The hash is in the path, so new content is a genuinely new URL -->
+<link rel="stylesheet" href="styles.a1b2c3.css" />
 ```
 
-Bundlers add the hash for you:
+Every bundler emits this by default now — `[name].[hash].js` for entries and chunks and
+`[name].[hash].[ext]` for assets. This is why the HTML must be `no-cache`: the document is the only
+thing naming the hashed files, so a cached document means the browser keeps asking for last week's
+bundle — a fully warm cache serving the application from before your deploy. The pattern is
+**immutable assets, revalidated document.**
+
+### Service worker strategies
+
+A service worker is a programmable proxy. Four strategies cover nearly everything, and the choice is
+"what is the cost of being one version behind".
+
+| Strategy | Behaviour | Right for |
+| -------- | --------- | --------- |
+| **Cache first** | Cache, network only on miss | Hashed assets and fonts — they cannot go stale |
+| **Network first** | Network, cache as fallback | Data where freshness matters more than speed |
+| **Stale while revalidate** | Serve cache now, refresh in the background | Most content: instant, and current on next visit |
+| **Network only** | Never cached | Anything sensitive or transactional |
 
 ```typescript
-// vite.config.ts
-export default {
-  build: {
-    rollupOptions: {
-      output: {
-        entryFileNames: '[name].[hash].js',
-        chunkFileNames: '[name].[hash].js',
-        assetFileNames: '[name].[hash].[ext]',
-      },
-    },
-  },
-};
-```
-
-> **Key Insight:**
-> Content hashing lets you cache assets for a year safely — the URL itself changes whenever the file does.
-
----
-
-## Service Worker Strategies
-
-A Service Worker is a programmable proxy between your app and the network. It can serve cached responses and work offline.
-
-| Strategy | Behavior | Best For |
-|----------|----------|----------|
-| **Cache First** | Cache → fall back to network | Static assets, fonts |
-| **Network First** | Network → fall back to cache | Fresh API data, news |
-| **Stale While Revalidate** | Serve cache, update in background | Most content |
-| **Network Only** | Always network | Sensitive data |
-
-**Stale-While-Revalidate** — instant response plus a background refresh:
-
-```typescript
-self.addEventListener('fetch', (event: FetchEvent) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request).then((response) => {
-        caches.open('v1').then((cache) => cache.put(event.request, response.clone()));
-        return response;
-      });
-      return cached ?? network; // serve cache now, freshen for next time
-    }),
-  );
-});
-```
-
-### 💡 **Use Workbox in Real Projects**
-
-Hand-written Service Workers are easy to get wrong. Google's Workbox gives you the strategies as one-liners:
-
-```typescript
-import { registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst } from 'workbox-strategies';
-import { ExpirationPlugin } from 'workbox-expiration';
-
 registerRoute(
-  ({ request }) => request.destination === 'image',
+  ({ request }) => request.destination === "image",
   new CacheFirst({
-    cacheName: 'images',
+    cacheName: "images",
     plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 })],
   }),
 );
 
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/'),
-  new NetworkFirst({ cacheName: 'api', networkTimeoutSeconds: 3 }),
+  ({ url }) => url.pathname.startsWith("/api/"),
+  // Fall back to cache if the network has not answered in three seconds.
+  new NetworkFirst({ cacheName: "api", networkTimeoutSeconds: 3 }),
 );
 ```
 
----
+Use a library rather than hand-writing the `fetch` handler. The failure mode of a hand-rolled service
+worker is not a slow page — it is a cached shell that never updates, on every device that visited
+once, and you cannot purge it from the server.
+[Chapter ?? — Caching Strategies and Offline UX](#ch-caching-and-offline) covers the offline side and
+the update lifecycle in full.
 
-## Client-Side Data Caching
+### Client-side data caching is a cache too
 
-For API data in React, a data-fetching library handles caching, deduplication, and revalidation for you. Prefer this over hand-rolled `Map`/`localStorage` caches.
+A data-fetching library is the fourth cache, and the one most frontend work actually touches.
 
 ```tsx
-import { useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,    // data is fresh for 5 minutes
-      gcTime: 10 * 60 * 1000,      // keep unused data in memory for 10 minutes
-      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // considered fresh: no refetch at all
+      gcTime: 10 * 60 * 1000, // kept in memory while unused, then dropped
     },
   },
 });
-
-function UserProfile({ userId }: { userId: string }): JSX.Element {
-  const { data, isLoading } = useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => fetchUser(userId),
-  });
-
-  if (isLoading) return <Loading />;
-  return <Profile user={data} />;
-}
 ```
 
-> **Note:** In React Query v5, the old `cacheTime` option was renamed to `gcTime`.
+Those two options are different questions and get conflated constantly. `staleTime` is "how long
+before I bother asking again". `gcTime` is "how long I keep an unused copy in memory". A `staleTime`
+of zero with a long `gcTime` means instant renders from cache followed by a background refetch — which
+is stale-while-revalidate, in the client.
 
----
+> ⚠️ **Moving target:** React Query renamed `cacheTime` to `gcTime` in v5, and framework-level caching
+> — Next.js in particular — has changed defaults across several majors. The durable principle is that
+> a cache needs an explicit freshness window and an explicit invalidation trigger. Verify the current
+> option names.
+
+## When to Use It
+
+| Situation | Do | Why |
+| --------- | -- | --- |
+| Hashed JavaScript, CSS, images | `max-age=31536000, immutable` | The URL changes with the content |
+| The HTML document | `no-cache` | It names the hashed assets |
+| A large JSON response that rarely changes | `ETag` and revalidate | Saves the body, not the round trip |
+| A small, frequently-changing response | No cache headers | Revalidation costs more than the payload |
+| Per-user data behind a CDN | `private` | Or one user's data is served to another |
+| An app that must work offline | Service worker, stale-while-revalidate | Instant, and current next visit |
+| Server data in a React app | A query library with explicit `staleTime` | It also gives deduplication and invalidation |
+
+## Common Mistakes
+
+❌ **Caching the HTML alongside the assets.** Users keep loading the previous release from a warm
+cache and no deploy fixes it.
+✅ `no-cache` on the document, `immutable` on hashed assets.
+
+❌ **`no-cache` for sensitive data.** It permits storing a copy; it only requires revalidation.
+✅ `no-store` is the one that means do not keep it.
+
+❌ **Query strings for cache busting.** Some intermediaries ignore them, so the path stays the same.
+✅ Put the content hash in the filename.
+
+❌ **A hand-written service worker.** The failure mode is a permanently stale shell you cannot purge.
+✅ Use a maintained library and test the update path explicitly.
+
+❌ **Treating `staleTime` and `gcTime` as the same setting.** One controls refetching, the other memory.
+✅ Set both deliberately, and know which one you meant.
+
+## 🔑 Key Takeaways
+
+- Caching trades speed against staleness; content-hashed URLs are what make the aggressive end of that trade safe.
+- The browser cache is controlled only by headers and cannot be purged — so never long-cache a URL whose content can change.
+- `no-cache` means revalidate before use; `no-store` means keep no copy.
+- Immutable assets with a revalidated HTML document is the pattern that lets a deploy take effect immediately.
+- A service worker is code, which makes it the one layer that can serve a stale app forever.
 
 ## Interview Questions
 
-**Q1: What are the main HTTP cache headers?**
+**Q: How would you set cache headers for a single-page application?**
 
-`Cache-Control` (the main directive: `max-age`, `public`/`private`, `no-cache`/`no-store`, `immutable`), `ETag` (content fingerprint for revalidation), and `Last-Modified` (timestamp-based revalidation).
+Content-hash every asset and serve those with `max-age=31536000, immutable`, then serve the HTML
+document with `no-cache`. The document is the only thing naming the hashed files, so it has to be
+revalidated on every load — cache it and users keep booting the previous release from a warm cache,
+and no deploy reaches them. That pairing is what makes the year-long asset cache safe.
 
-**Q2: Difference between `no-cache` and `no-store`?**
+**Q: What is the difference between `no-cache` and `no-store`?**
 
-`no-cache` allows caching but forces revalidation with the server before each use. `no-store` forbids caching entirely — used for sensitive data.
+`no-cache` allows a copy to be stored but requires revalidation before it is used, so a 304 still
+saves the download. `no-store` forbids keeping a copy at all. The distinction matters because
+`no-cache` on sensitive data still leaves it on disk, which is the mistake the naming invites.
 
-**Q3: How do you cache aggressively but still ship updates?**
+**Q: When is an `ETag` not worth adding?**
 
-Put a content hash in the filename and serve it with `max-age=31536000, immutable`. When the file changes, the hash and URL change, so the browser fetches the new version automatically. HTML stays `no-cache` so it always points at the latest hashed assets.
+On small, frequently-changing responses. The conditional request still costs a full round trip, so all
+you save is the body — and if the body is 400 bytes you have spent a request to save almost nothing.
+It pays on large responses that change rarely, where a 304 avoids re-sending a lot of data.
 
-**Q4: Name the Service Worker caching strategies and when to use each.**
+**Q: A user reports the app is stuck on an old version and a normal reload does not help. What is your first hypothesis?**
 
-Cache First (static assets), Network First (fresh API data), Stale-While-Revalidate (most content — instant plus background refresh), Network Only (sensitive data).
+A service worker serving a cached shell without an update path — that is the one layer where a bug
+persists on the user's device and cannot be purged from the server. Second hypothesis is the HTML
+being cached with a long `max-age`, which produces the same symptom for the same reason. Both are
+checked in seconds: look at what the document's cache headers actually are, and whether a service
+worker is registered and how it handles activation.
 
-**Q5: How does an ETag save bandwidth?**
+## What to Read Next
 
-The browser sends the stored ETag in `If-None-Match`. If the content is unchanged, the server replies `304 Not Modified` with no body, so the browser reuses its cached copy — only headers travel over the wire.
-
-**Q6: Why is cache invalidation hard?**
-
-You must keep multiple layers (browser, Service Worker, CDN, app) consistent without serving stale data. Common tools: content hashing for assets, TTLs for data, versioned cache names in Service Workers, and CDN purges on deploy.
-
----
-
-## Summary
-
-| Layer | Caches | Configure With |
-|-------|--------|----------------|
-| Browser | Files | `Cache-Control` headers |
-| Service Worker | Anything | Workbox strategies |
-| CDN | Static files | CDN rules + headers |
-| App | API data | React Query / SWR |
-
-> **Remember:**
-> - Content-hash static assets, then cache them for a year.
-> - Keep HTML `no-cache`.
-> - Pick a Service Worker strategy per resource type.
-> - Let a data library handle client-side API caching.
-
----
-
-[← Code Splitting](./03-code-splitting.md) | [Next: Image Optimization →](./05-image-optimization.md)
+- [Chapter ?? — Loading and Code Splitting](#ch-loading-and-code-splitting) — why vendor chunks and cache lifetime are the same argument
+- [Chapter ?? — Caching Strategies and Offline UX](#ch-caching-and-offline) — the service worker update lifecycle in full
+- [Chapter ?? — Caching](#ch-caching) — the same trade at the system-design layer

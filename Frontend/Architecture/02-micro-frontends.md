@@ -35,7 +35,7 @@ the cost for nothing.
 | Approach | Independence | Cost | Fits |
 | -------- | ------------ | ---- | ---- |
 | **Build-time** — each app publishes an npm package | Low. The shell must rebuild and redeploy | Low | Two or three teams that tolerate coupled releases |
-| **Runtime JavaScript** — Module Federation, import maps | High. Deploy the remote, the shell picks it up | Medium | The default for genuine independence |
+| **Runtime JavaScript** — Module Federation, single-spa, import maps | High. Deploy the remote, the shell picks it up | Medium | The default for genuine independence |
 | **iframes** | Highest. Total isolation of CSS, JS and globals | Low to build, high to use | Wrapping a legacy or third-party app |
 | **Web Components** | High | Medium | Mixed frameworks under one shell |
 
@@ -116,6 +116,28 @@ function CheckoutRoute() {
 > durable principle is that runtime integration means resolving code by URL at load time, which turns
 > another team's deploy into a network dependency of yours. The plugin names will move.
 
+### The single-spa alternative
+
+Module Federation composes **modules**; single-spa composes **applications**. A root config maps a URL
+predicate to a bundle, and each application exports `bootstrap`, `mount` and `unmount` lifecycles that
+the root calls as the route changes.
+
+```typescript
+import { registerApplication, start } from "single-spa";
+
+registerApplication({
+  name: "checkout",
+  app: () => System.import("@acme/checkout"), // resolved through an import map
+  activeWhen: ["/checkout"],
+});
+
+start();
+```
+
+The trade is the unit of composition. single-spa owns routing and application lifecycle, so mixed
+frameworks under one shell are straightforward — but a remote is a whole screen. Reach for Federation
+when remotes have to interleave inside one page, and for single-spa when each remote owns a route.
+
 ### Shared dependencies
 
 `singleton: true` on React is not an optimisation. Two React copies in one page means two independent
@@ -132,7 +154,9 @@ shared: {
 ```
 
 The consequence is a constraint people underestimate: every remote must be on a compatible React
-major. Micro-frontends give you independent **deploys**, not independent **upgrades**.
+major. Micro-frontends give you independent **deploys**, not independent **upgrades** — which makes
+the version policy in [Chapter ?? — Dependencies and Upgrades](#ch-dependencies-and-upgrades) a
+prerequisite rather than a nicety.
 
 ### Cross-app communication
 

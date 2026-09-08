@@ -32,14 +32,18 @@ the release goes wrong. Running a cluster, Terraform and Linux administration ar
 The senior signal for this part is **owns the change all the way to production, including the way back.**
 Four questions run through all six sections; each section index adds its own.
 
-- **Build once, promote the artefact.** A pipeline that rebuilds per environment tested one thing and
-  shipped another. A separate build per stage means never having had to explain a staging/production gap.
-- **Which changes are one-way doors?** Dropped columns, consumed queue messages, sent emails, records created
-  in someone else's system. "We just roll back" is said by nobody whose migration outlived its deployment.
 - **Can you debug what you cannot log into?** A distroless image with no shell, a cold-started function,
   a p99 hiding behind an average. Operating a system and building one are different skills.
 - **Where do the credentials come from?** Long-lived cloud keys in repository secrets are still the most
   common finding; short-lived OIDC tokens are the expected answer.
+
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "How do you deploy?" | "The pipeline builds and deploys per environment" | "Build once, promote the artefact — a rebuild per stage means staging tested something else" |
+| "How do you roll back?" | "We just roll back the deploy" | "Code rolls back; a dropped column, a consumed message and a sent email do not. Here is which of those we have" |
+| "Something is broken in production" | "I'd check the logs" | "p99 by route first, because an average hides it — then traces on the slow path, then logs" |
 
 ## Reading Order
 

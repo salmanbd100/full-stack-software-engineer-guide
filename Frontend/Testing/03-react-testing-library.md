@@ -4,192 +4,130 @@ part: 4
 chapter: 0
 slug: react-testing-library
 level: intermediate # beginner | intermediate | advanced
-reading_time: 9
-updated: 2026-08-28
-tags: [frontend, testing, react, library]
+reading_time: 10
+updated: 2026-09-07
+tags: [testing-library, react, queries, userevent, accessibility, testing]
 in_book: true
 ---
 
 # React Testing Library {#ch-react-testing-library}
 
-> Query the way a user would, so a refactor does not turn into a hundred failing tests.
+> Query the way a user would, so a refactor changes the markup without changing a single test.
 
-**In this chapter:** `render` and `screen` · the query priority · `userEvent` over `fireEvent` · `findBy` and async · testing custom hooks
+**In this chapter:** why the query API is shaped like this · the three variants · query priority · `userEvent` over `fireEvent` · async without arbitrary waits · one render for every provider
 
-## Overview
+## 💡 The Core Idea
 
-React Testing Library (RTL) tests components the way a user sees them — by visible text, roles, and labels — not by internal state or props. This makes tests resilient: they keep passing when you refactor, and fail only when real behavior breaks. RTL works with any runner; here we pair it with Vitest.
+Testing Library gives you **no access to the component**. There is no instance, no state, no props —
+only the DOM it produced and the same handles a user has: visible text, accessible roles, labels.
 
-> **Guiding principle:** "The more your tests resemble the way your software is used, the more confidence they can give you."
+That restriction is the entire design. A test that can only see what a user sees cannot assert on an
+implementation detail, so it survives every refactor that keeps behaviour intact. Rename a hook, split
+a component in three, move state to a store: the test does not notice, because none of that changed
+what appeared on screen.
 
-## Table of Contents
+The second-order effect is the one worth mentioning in an interview. Because the best queries are
+accessibility queries, a component that is hard to query is usually a component a screen reader cannot
+use either — so the test suite becomes an accessibility check by accident. That connection is made
+properly in [Chapter ?? — Testing Accessibility](#ch-testing-accessibility).
 
-- [Setup](#setup)
-- [Rendering and `screen`](#rendering-and-screen)
-- [Queries](#queries)
-- [Query Priority](#query-priority)
-- [User Interactions](#user-interactions)
-- [Testing Async Behavior](#testing-async-behavior)
-- [Testing Custom Hooks](#testing-custom-hooks)
-- [Custom Render with Providers](#custom-render-with-providers)
-- [Debugging](#debugging)
-- [Interview Questions](#interview-questions)
+## How It Works
 
-## Setup
+### Three query variants, one decision
 
-```bash
-npm install -D @testing-library/react @testing-library/user-event @testing-library/jest-dom jsdom
-```
+The prefix decides what happens when the element is not there, and picking the wrong one is the most
+common source of a confusing failure.
 
-Add `environment: "jsdom"` and the jest-dom matchers in your Vitest setup (see [02-vitest-basics.md](./02-vitest-basics.md#setup-and-config)).
+| Variant | Missing element | Async | Use for |
+| ------- | --------------- | ----- | ------- |
+| `getBy…` | Throws, printing the DOM | No | It should be there right now |
+| `queryBy…` | Returns `null` | No | Asserting something is **absent** |
+| `findBy…` | Throws after the timeout | Yes | It appears after a promise resolves |
 
-## Rendering and `screen`
-
-```typescript
-import { render, screen } from "@testing-library/react";
-import { it, expect } from "vitest";
-
-it("renders a button", () => {
-  render(<button>Click me</button>);
-  expect(screen.getByRole("button", { name: /click me/i })).toBeInTheDocument();
-});
-```
-
-> **Always use `screen`** instead of destructuring queries from `render`. It is less code, gives better errors, and stays consistent across tests.
-
-## Queries
-
-Three query variants, each behaving differently when an element is missing:
-
-| Variant     | Not found        | Use for                       |
-| ----------- | ---------------- | ----------------------------- |
-| `getBy...`  | ❌ throws         | Element should exist          |
-| `queryBy...` | ✅ returns `null` | Asserting absence            |
-| `findBy...` | ❌ throws (async, waits) | Element appears later (async) |
-
-```typescript
-// getBy — must exist now
-expect(screen.getByRole("heading")).toBeInTheDocument();
-
-// queryBy — checking something is NOT there
-expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-
-// findBy — wait for async content
-expect(await screen.findByText("Ada Lovelace")).toBeInTheDocument();
-
-// getAllBy / queryAllBy / findAllBy return arrays
+```tsx
+expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+expect(screen.queryByRole("alert")).not.toBeInTheDocument(); // absence
+expect(await screen.findByText("Ada Lovelace")).toBeInTheDocument(); // appears later
 expect(screen.getAllByRole("listitem")).toHaveLength(3);
 ```
 
-## Query Priority
+`getBy` for absence is the mistake: it throws instead of returning null, so the assertion never runs.
+And always query through `screen` rather than destructuring from `render` — the failure output is
+better and the tests read the same everywhere.
 
-Query the way users find things. Prefer accessible queries; treat `getByTestId` as a last resort.
+### Query priority is not a style preference
 
-```typescript
-// 1. getByRole — BEST (covers most elements)
-screen.getByRole("button", { name: /submit/i });
-screen.getByRole("heading", { level: 1 });
-
-// 2. getByLabelText — form fields
-screen.getByLabelText(/email/i);
-
-// 3. getByPlaceholderText / getByText / getByDisplayValue
-screen.getByText(/welcome back/i);
-
-// 4. getByAltText / getByTitle — images, icons
-screen.getByAltText(/profile photo/i);
-
-// 5. getByTestId — only when nothing else works
-screen.getByTestId("chart-canvas");
+```tsx
+screen.getByRole("button", { name: /submit/i }); // 1. how a user and a screen reader find it
+screen.getByLabelText(/email/i); // 2. form fields, by their label
+screen.getByText(/welcome back/i); // 3. non-interactive content
+screen.getByAltText(/profile photo/i); // 4. images
+screen.getByTestId("chart-canvas"); // 5. last resort — a canvas has no accessible content
 ```
 
-> Using roles and labels forces accessible markup. If your test can't find a button by its name, neither can a screen reader.
+Work down that list, and stop at the first one that works. The reason to prefer role and label is
+mechanical: those are the properties assistive technology uses, so a query that cannot find a control
+is evidence that the markup is wrong, not that the test needs a test id.
 
-## User Interactions
+`getByTestId` is legitimate for things with no accessible representation — a chart canvas, a map tile
+layer. It is not legitimate as a way past a missing label.
 
-Prefer `userEvent` over `fireEvent`. `userEvent` simulates a real user — it fires the full sequence of events (hover, focus, keydown, input) and respects disabled elements.
+### `userEvent`, not `fireEvent`
 
-```typescript
+`fireEvent` dispatches one event. `userEvent` performs an **interaction**, which is a sequence:
+pointer down, focus, key down, input, key up, change. That difference is what catches real bugs.
+
+```tsx
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { vi, it, expect } from "vitest";
 
-it("submits the search form", async () => {
-  const user = userEvent.setup();
+it("submits the search term", async () => {
+  const user = userEvent.setup(); // once per test, before render
   const onSearch = vi.fn();
   render(<SearchForm onSearch={onSearch} />);
 
-  await user.type(screen.getByRole("searchbox"), "react testing");
+  await user.type(screen.getByRole("searchbox"), "testing library");
   await user.click(screen.getByRole("button", { name: /search/i }));
 
-  expect(onSearch).toHaveBeenCalledWith("react testing");
+  expect(onSearch).toHaveBeenCalledWith("testing library");
 });
 ```
 
-Common actions: `user.click()`, `user.type()`, `user.clear()`, `user.selectOptions()`, `user.upload()`, `user.tab()`, `user.keyboard("{Enter}")`.
+`userEvent` also **refuses to interact with a disabled or hidden element**, which is how a test catches
+a button that should have been disabled during submission. `fireEvent.click` on a disabled button
+happily fires, and the bug ships. Keep `fireEvent` for the few low-level events `userEvent` does not
+model, such as `scroll`.
 
-> Use `fireEvent` only for low-level events `userEvent` doesn't cover, like `scroll`.
+Every `userEvent` call returns a promise. A missing `await` lets the assertion run before React has
+re-rendered, which produces a failure that looks like a component bug and is not.
 
-## Testing Async Behavior
+### Async, without a single arbitrary wait
 
-```typescript
-// Component fetches a user, shows "Loading..." then the name
-it("shows loading, then the user", async () => {
-  render(<UserProfile userId={1} />);
+```tsx
+it("shows the loading state, then the profile", async () => {
+  render(<UserProfile userId="1" />);
 
-  expect(screen.getByText(/loading/i)).toBeInTheDocument();
-
-  // findBy waits (default 1000ms) for the element to appear
-  expect(await screen.findByText("Ada Lovelace")).toBeInTheDocument();
-  expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+  expect(screen.getByRole("status")).toBeInTheDocument(); // loading
+  expect(await screen.findByText("Ada Lovelace")).toBeInTheDocument(); // resolved
+  expect(screen.queryByRole("status")).not.toBeInTheDocument(); // gone
 });
 ```
 
-**`waitFor`** for assertions that aren't a single query, and **`waitForElementToBeRemoved`** for disappearing elements:
+`findBy` polls until the element exists or the timeout expires, so it waits exactly as long as
+needed. Reach for `waitFor` only when the condition is not a single query — a count, or two
+assertions that must hold together — and `waitForElementToBeRemoved` when the thing you care about is
+a disappearance.
 
-```typescript
-import { waitFor, waitForElementToBeRemoved } from "@testing-library/react";
+> ⚠️ `waitFor(() => screen.getByText("x"))` is `findByText` written the long way, with worse error
+> output. If you have written that, replace it.
 
-await waitForElementToBeRemoved(() => screen.queryByRole("status"));
+### One custom render for the provider tree
 
-await waitFor(() => {
-  expect(screen.getAllByRole("row")).toHaveLength(10);
-});
-```
+Nearly every component needs a router, a query client and a theme. Wrapping them per test is how the
+setup drifts between files.
 
-> ✅ Prefer `findBy` over `waitFor(() => getBy...)` — it is shorter and gives clearer errors.
-
-## Testing Custom Hooks
-
-Use `renderHook` for hooks. Wrap state updates in `act`.
-
-```typescript
-import { renderHook, act } from "@testing-library/react";
-import { it, expect } from "vitest";
-
-function useCounter(start = 0) {
-  const [count, setCount] = useState(start);
-  return { count, increment: () => setCount((c) => c + 1) };
-}
-
-it("increments the counter", () => {
-  const { result } = renderHook(() => useCounter(5));
-
-  expect(result.current.count).toBe(5);
-
-  act(() => result.current.increment());
-
-  expect(result.current.count).toBe(6);
-});
-```
-
-> For complex hooks, prefer testing them **through a small component** — it is closer to real usage.
-
-## Custom Render with Providers
-
-Most components need Router, Theme, or Query providers. Wrap them once in a custom render.
-
-```typescript
+```tsx
 // test-utils.tsx
 import { render, type RenderOptions } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
@@ -197,12 +135,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement, ReactNode } from "react";
 
 function AllProviders({ children }: { children: ReactNode }) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+  // retry: false — otherwise a failing request test waits out three retries
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
     <MemoryRouter>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
     </MemoryRouter>
   );
 }
@@ -212,51 +149,94 @@ function customRender(ui: ReactElement, options?: RenderOptions) {
 }
 
 export * from "@testing-library/react";
-export { customRender as render }; // override the default render
+export { customRender as render }; // shadow the real render
 ```
 
-Then import `render` from `./test-utils` in every test.
+A fresh `QueryClient` per render matters: a shared one carries cached data into the next test, which
+is the leaked-state failure from [Chapter ?? — Testing Strategy](#ch-testing-strategy) in its most
+confusing form.
 
-## Debugging
+### Read the failure before changing the query
 
-```typescript
-screen.debug(); // print the current DOM
-screen.debug(screen.getByRole("form")); // print one element
-
-import { logRoles } from "@testing-library/react";
-logRoles(container); // list every available role — great for fixing getByRole
-
-screen.logTestingPlaygroundURL(); // opens an interactive query builder
+```tsx
+screen.debug(); // the current DOM
+logRoles(screen.getByRole("form")); // every role available, with its accessible name
 ```
 
-When a query fails, RTL prints the full DOM and the roles it found. Read that output before guessing.
+When `getByRole` fails, the output already lists the roles that exist. Nine times in ten it says the
+button has no accessible name, which is the actual bug.
+
+## When to Use It
+
+| Situation | Choose | Why |
+| --------- | ------ | --- |
+| A component's visible behaviour | Testing Library in Vitest | Fast, and asserts what a user observes |
+| A hook with no UI of its own | `renderHook` | Cheaper than building a host component |
+| A hook with meaningful UI consequences | A small host component | Closer to real usage; catches render-loop bugs |
+| Layout, focus rings, real scrolling | Browser mode or Playwright | jsdom has no layout engine |
+| A whole journey across pages | Playwright — [Chapter ?? — End-to-End Testing with Playwright](#ch-end-to-end-testing) | Routing and a real build are the thing being tested |
+
+## Common Mistakes
+
+❌ **`getBy` when asserting absence.** It throws before the assertion runs, so the test fails for the
+wrong reason.
+✅ `queryBy` returns `null`, which is what `not.toBeInTheDocument()` needs.
+
+❌ **A missing `await` on a `userEvent` call.** The assertion runs before React re-renders.
+✅ `await` every interaction; `userEvent.setup()` once per test.
+
+❌ **`getByTestId` because the role query failed.** The failing query was telling you the markup has
+no accessible name.
+✅ Fix the label. Keep test ids for content with no accessible representation.
+
+❌ **`container.querySelector("div > button")`.** Any markup change breaks it, and it asserts nothing
+a user cares about.
+✅ Roles and accessible names, which survive restructuring.
+
+❌ **Sharing a `QueryClient` between tests.** Cached data leaks forward and produces order-dependent
+failures.
+✅ Construct it inside the wrapper so each render gets a fresh one.
+
+## 🔑 Key Takeaways
+
+- Testing Library exposes only the DOM, which is what makes its tests survive refactors.
+- The query prefix decides missing-element behaviour: `getBy` throws, `queryBy` returns null, `findBy` waits.
+- Query priority follows what assistive technology uses, so a failing role query is usually a markup bug.
+- `userEvent` fires the whole interaction sequence and refuses disabled elements; `fireEvent` does neither.
+- `findBy` removes every reason to write an arbitrary wait.
 
 ## Interview Questions
 
-**Q1: How does RTL differ from Enzyme?**
+**Q: Why does Testing Library refuse to give you access to component state?**
 
-Enzyme tests implementation details — internal state, instance methods, shallow rendering. RTL tests behavior through the rendered DOM, the way a user interacts. RTL tests survive refactors and push you toward accessible markup, which is why the React team recommends it.
+Because a test that can read internals will assert on them, and then every refactor breaks tests
+without any behaviour changing. Restricting the test to the DOM means it fails only when what the user
+sees changes — which is the only failure worth a developer's attention. The cost is that genuinely
+internal logic has to be extracted and unit-tested separately, which is usually better structure anyway.
 
-**Q2: Explain `getBy` vs `queryBy` vs `findBy`.**
+**Q: What does `userEvent` do that `fireEvent` does not?**
 
-`getBy` throws if not found — use when the element must exist. `queryBy` returns `null` — use to assert something is absent. `findBy` returns a promise and waits — use for async content. All throw if they match multiple elements.
+It performs the full sequence a browser would: pointer events, focus, keydown, input, keyup, change.
+That catches bugs a single synthetic event misses — a handler that depends on focus, or a validation
+that runs on blur. It also refuses to interact with disabled or hidden elements, so a button that
+should be disabled during submit actually fails the test instead of silently firing.
 
-**Q3: Why prefer `userEvent` over `fireEvent`?**
+**Q: When is `getByTestId` acceptable?**
 
-`fireEvent` dispatches a single raw DOM event. `userEvent` simulates the full interaction — for a click that means hover, mousedown, focus, mouseup, click — and respects disabled state. It is far closer to real user behavior, so tests catch more bugs.
+When the element has no accessible representation to query — a chart canvas, a map layer, a decorative
+wrapper you need to assert exists. It is not acceptable as a workaround for a control with no
+accessible name, because there the failing role query is a real accessibility defect and the test id
+hides it.
 
-**Q4: What is the query priority and why does it matter?**
+**Q: How do you test a custom hook?**
 
-Role → label → text → alt/title → test ID. Higher-priority queries match how real users and assistive tech find elements, so they double as accessibility checks. Test IDs are a last resort because they are invisible to users.
+`renderHook` for a hook with no UI consequences — it is faster than building a host component and the
+assertions are direct. For anything whose point is what it renders, or that could loop on re-render,
+build a small component and test through it: that is closer to real usage and catches the class of bug
+`renderHook` cannot see, like an effect that re-runs forever.
 
-**Q5: How do you test a custom hook?**
+## What to Read Next
 
-Use `renderHook` and read `result.current`. Wrap any state-changing call in `act` so React flushes updates. For hooks with heavy logic, testing them through a real component is often more reliable than testing the hook directly.
-
----
-
-**Next:** [Integration Testing →](./04-integration-testing.md)
-
-**Previous:** [← Vitest Basics](./02-vitest-basics.md)
-
-[← Back to Testing](./README.md) | [↑ Frontend](../README.md)
+- [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — the same queries against a faked network
+- [Chapter ?? — Testing React](#ch-testing-react) — Server Components, Suspense, and which level a React test belongs at
+- [Chapter ?? — Testing Accessibility](#ch-testing-accessibility) — where the role queries above become a conformance check

@@ -121,7 +121,7 @@ library that did not change.
 Two chunk boundaries exist without you asking. A **dynamic import** — `import('./Editor')` — is always a
 split point, because its target is not needed until it is called. And most bundlers separate
 `node_modules` from source for the caching reason above. Everything beyond that is configuration, covered
-as a performance technique in [Chapter ?? — Code Splitting](#ch-code-splitting).
+as a performance technique in [Chapter ?? — Code Splitting](#ch-loading-and-code-splitting).
 
 ### Source maps, and what they cost
 

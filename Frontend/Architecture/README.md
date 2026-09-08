@@ -29,9 +29,11 @@ are genuinely about **driving a design round** rather than about structuring a c
 | 01 | [Frontend Architecture Patterns](#ch-frontend-architecture-patterns) | Where do the boundaries go, and which ones are worth enforcing? |
 | 02 | [Micro-Frontends](#ch-micro-frontends) | When is deploy independence worth the coordination cost? |
 | 03 | [Design Systems at Scale](#ch-design-systems-at-scale) | How do forty teams share components without freezing the design? |
+| 04 | [Dependencies and Upgrades](#ch-dependencies-and-upgrades) | How does a five-year-old frontend stay upgradable? |
 
-Two more chapters are scheduled here by improvement #55 — monorepo versus polyrepo frontends, and
-managing dependencies and upgrades.
+The monorepo-versus-polyrepo decision is the fourth boundary in this set, and it is not repeated here:
+[Chapter ?? — Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies) argues the choice
+and [Chapter ?? — Monorepos](#ch-monorepos) covers the task graph and caching that make one workable.
 
 ## What Interviewers Probe For
 
@@ -47,10 +49,18 @@ features.** In this section that shows up as three habits:
 - **Having a migration path.** A boundary introduced into an existing codebase needs an incremental
   route in. "We would rewrite it" is the answer that ends the conversation.
 
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "How would you structure this?" | Draws three layers | Names what *stops* a component importing the API client — a lint rule or a build graph, not a convention |
+| "Would you use micro-frontends?" | "Yes, for better separation" | "Only if a shared release train is the bottleneck you can name; otherwise a monorepo is cheaper" |
+| "How do we adopt this?" | "We'd rewrite it" | An incremental route in, with the first boundary and what it costs to maintain |
+
 ## Reading Order
 
-01 → 02 → 03. Chapter 01 sets up the vocabulary the other two assume, and it is also the one that says
-which of the heavier patterns you are allowed to skip.
+01 → 02 → 03 → 04. Chapter 01 sets up the vocabulary the rest assume, and it is also the one that says
+which of the heavier patterns you are allowed to skip. Chapter 04 reads fine on its own.
 
 **Interview sprint:** 01, then the "When to Use It" table in 02. Those two cover the architecture
 questions a senior frontend loop actually asks.

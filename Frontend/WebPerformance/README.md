@@ -5,8 +5,8 @@ chapter: 0
 slug: frontend-web-performance-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-09-07
-tags: [performance, core-web-vitals, inp, bundles, caching, fonts, errors]
+updated: 2026-09-08
+tags: [performance, core-web-vitals, inp, bundles, caching, budgets, rum]
 in_book: true
 ---
 
@@ -25,18 +25,15 @@ passed FID comfortably routinely fail INP, and a candidate still saying FID in 2
 
 ## Chapters
 
-| #  | Chapter                                                              | What it answers                                                |
-| -- | -------------------------------------------------------------------- | -------------------------------------------------------------- |
-| 01 | [Core Web Vitals](./01-core-web-vitals.md)                           | Which fix moves which metric?                                  |
-| 02 | [Lazy Loading](./02-lazy-loading.md)                                 | How do you defer without pushing your largest paint out?       |
-| 03 | [Code Splitting](./03-code-splitting.md)                             | How do you ship this route's code and nothing else?            |
-| 04 | [Frontend Caching Strategies](./04-caching-strategies.md)            | At which layer, and how does each entry become wrong?          |
-| 05 | [Image Optimisation](./05-image-optimization.md)                     | What is the smallest image that still looks right?             |
-| 06 | [Bundle Optimisation](./06-bundle-optimization.md)                   | What is actually in your bundle?                               |
-| 07 | [Performance Monitoring](./07-performance-monitoring.md)             | What are real users experiencing, not your dev machine?        |
-| 08 | [Rendering Optimisation](./08-rendering-optimization.md)             | How do you keep interactions inside the frame budget?          |
-| 09 | [Font and CSS Delivery](./09-font-and-css-delivery.md)               | What does the page look like before styles and fonts arrive?   |
-| 10 | [Error Tracking](./10-error-tracking.md)                              | How do you learn it is broken for users but not for you?       |
+| #  | Chapter                                                                        | What it answers                                                |
+| -- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| 01 | [Core Web Vitals](./01-core-web-vitals.md)                                     | Which fix moves which metric?                                  |
+| 02 | [Loading and Code Splitting](./02-loading-and-code-splitting.md)               | How do you defer without pushing your largest paint out?       |
+| 03 | [Bundles, Budgets and Third Parties](./03-bundles-budgets-and-third-parties.md) | What is in your bundle, and what stops it growing back?        |
+| 04 | [Frontend Caching Strategies](./04-caching-strategies.md)                      | At which layer, and how does each entry become wrong?          |
+| 05 | [Asset Delivery](./05-asset-delivery.md)                                       | What does the page look like before images, fonts and CSS land? |
+| 06 | [Rendering and Streaming](./06-rendering-and-streaming.md)                     | How do you keep interactions inside the frame budget?          |
+| 07 | [Measuring in Production](./07-measuring-in-production.md)                     | What are real users experiencing, and what broke for them?     |
 
 ## What Interviewers Probe For
 
@@ -53,14 +50,15 @@ features.** Performance is where that is measured literally:
   question and it filters well.
 - **Lab or field?** Lighthouse gives you a repeatable score on one synthetic device. The Chrome User
   Experience Report tells you what your users actually got. A senior answer uses both and says which
-  question each one answers.
+  question each one answers — and knows a lab run cannot measure INP at all.
+- **What stops the bundle growing back?** A budget that fails the build, not an optimisation week. The
+  candidates who have lived through this answer with a CI gate and a delta comment on the pull request.
 
 ## Reading Order
 
-01 first, always — it defines the metrics the other nine chapters are trying to move. Then 02, 03,
-05 and 09, which are the highest-leverage loading fixes. 07 and 10 are the pair that makes the rest
-verifiable — one for what users experienced, one for what broke — and neither is optional in
-production.
+01 first, always — it defines the metrics the other six chapters are trying to move. Then 02 and 05,
+which are the highest-leverage loading fixes, and 03 for the gate that keeps them fixed. 07 is what
+makes all of it verifiable, and it is not optional in production.
 
-**Interview sprint:** 01 → 03 → 08 → 07. The metrics, the loading lever, the interaction lever, and
+**Interview sprint:** 01 → 02 → 06 → 07. The metrics, the loading lever, the interaction lever, and
 how you prove any of it worked.

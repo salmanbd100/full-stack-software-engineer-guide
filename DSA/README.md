@@ -57,6 +57,14 @@ the rest of the book is. What is being watched:
 - **Can you test your own solution?** Walking one example and one edge case through the finished code,
   unprompted, closes the round well and catches roughly half of all off-by-one errors.
 
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| Given `n ≤ 10⁵` | Writes the nested loop and hopes | "That rules out `O(n²)`, so this is a hash map or a sorted two-pointer pass" |
+| Handed the problem | Starts typing | Clarifies duplicates, empty input and sortedness, then states the plan before typing |
+| Solution finished | "That should work" | Walks one normal case and one edge case through the code, unprompted |
+
 ## Reading Order
 
 01 first — the complexity chapter is the one that makes the others legible. Then straight through:

@@ -19,7 +19,7 @@ Attach this file and say **"continue"**. That is the whole instruction. On recei
 | 4 | **Do exactly that one item** | Not the next one too. Not a related tidy-up. One item per session unless told otherwise |
 | 5 | **Verify against "Done when"** | Run the check. If there is nothing runnable, say so plainly rather than implying it passed |
 | 6 | **Mark it complete** | `- [ ]` → `- [x]`, append ` — ✅ **done YYYY-MM-DD**` to the heading, and add a short **Delivered:** block listing what actually shipped and anything deliberately left |
-| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 90` in the header |
+| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 92` in the header |
 | 8 | **Report** | What was done, what was verified, and what was left. Then stop |
 
 **Marking an item done is part of the item.** An item is not finished until steps 6 and 7 are done —
@@ -29,16 +29,18 @@ If an item turns out to be wrong, blocked, or already handled, **say so and amen
 silently skipping it or doing something adjacent. Corrections to this plan are expected — three have already
 happened: the budget arithmetic in #1, the frontend-share rule, and the line-budget attribution that added
 **#31a–#31e** on 2026-08-30, **#58a** on 2026-09-02 when #31e turned out to be blocked on its own
-ordering note, and **#31f** on 2026-09-03 when the edition picked up a hard 700-page ceiling.
+ordering note, **#31f** on 2026-09-03 when the edition picked up a hard 700-page ceiling, and **#56a**
+and **#60a** on 2026-09-07 and 2026-09-08 when #56's, #59's and #60's new chapters met Parts V and I
+with almost no headroom left.
 
-> **Item ids can carry a letter.** #31a–#31f are Phase 2 items and #58a is a Phase 4 item, all added
-> after the plan was numbered.
+> **Item ids can carry a letter.** #31a–#31f are Phase 2 items; #56a, #58a and #60a are Phase 5
+> items. All were added after the plan was numbered.
 > `scripts/plan-status.ts` sorts `31a` between `31` and `32`, so step 1 finds them in the right place.
 
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-07 · **Progress:** 60 / 90
+**Last updated:** 2026-09-08 · **Progress:** 70 / 92
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -88,7 +90,7 @@ that touch hundreds of files are where the saving actually lands.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31f, 31–65, 58a, 69, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31f, #58a), everything with a voice |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31f, 31–65, 56a, 58a, 60a, 69, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31f, #56a, #58a, #60a), everything with a voice |
 | 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 79, 83 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
 
 **The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
@@ -188,7 +190,7 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 | **2** | Restructure & prune           | 20–31 · 31a–31f | 12–16 sessions | **Opus 5** (Sonnet for 21, 25, 30) |
 | **3** | 🆕 `Frontend/ModernStack/`    | 32–43   | 12–16 sessions | **Opus 5** throughout |
 | **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions | **Opus 5** throughout |
-| **5** | Fill the remaining gaps       | 54–63 · 58a | 8–12 sessions  | **Opus 5** throughout |
+| **5** | Fill the remaining gaps       | 54–63 · 56a · 58a · 60a | 8–12 sessions  | **Opus 5** throughout |
 | **6** | 2027-proofing                 | 64–69   | 4–6 sessions   | mixed — Sonnet for 66–68 |
 | **7** | Book assembly & publish       | 70–83   | 6–8 sessions   | mixed — Sonnet for the sweeps |
 
@@ -4515,7 +4517,7 @@ _("Done when" was missing and was added when the item ran.)_
 
 ---
 
-### - [ ] 55. Create `Frontend/Architecture/` `M`
+### - [x] 55. Create `Frontend/Architecture/` `M` — ✅ **done 2026-09-07**
 
 Receives the moved files from item 42 plus new material. Part IV chapters:
 
@@ -4527,9 +4529,56 @@ Receives the moved files from item 42 plus new material. Part IV chapters:
 | 04  | Monorepo vs polyrepo frontends | New                                        |
 | 05  | Managing dependencies and upgrades | New — the senior maintenance skill    |
 
+**Done when:** the five rows above each resolve to exactly one chapter in the book, whichever part it
+lives in.
+
+> ⚠️ **Amended on delivery — the table is four chapters, not five.** Row 04, *monorepo vs polyrepo
+> frontends*, was **already written twice** by the time this item ran, and writing a third copy would
+> have been a plain non-negotiable #7 violation:
+>
+> - `ShipAndOperate/Git/04-repository-strategies.md` (`#ch-repository-strategies`, 212 lines) is row 04
+>   exactly — the boundary cost, monorepo mechanics, polyrepo and published packages, and a decision
+>   framework
+> - `Frontend/ModernStack/Tooling/04-monorepos.md` (`#ch-monorepos`, 240 lines) owns the half that is
+>   about making one work — the two graphs, cache keys, affected-only runs
+>
+> So row 04 is **delivered by cross-reference**, not by a new chapter, and row 05 became chapter `04`
+> on disk. The alternative — moving `#ch-repository-strategies` from Part VIII into Part IV — was
+> rejected: Part VIII is at 5,496 of 5,500 and Part IV was already +1,081, so the move would have made
+> the worse breach worse.
+
+**Delivered:**
+
+- **`Frontend/Architecture/04-dependencies-and-upgrades.md`** (235 lines, `#ch-dependencies-and-upgrades`)
+  — row 05. Scoped deliberately against the two chapters that already touch dependencies, so nothing
+  is restated: `#ch-package-management` (Part III) keeps lockfiles, hoisting, the three managers,
+  lifecycle scripts and the supply-chain controls; `#ch-design-systems-at-scale` keeps what you owe
+  consumers when *publishing* a major. This chapter owns **consuming** upgrades over years — the
+  four-tier dependency pricing and the wrap-the-load-bearing rule, automation policy by update type,
+  the major-version playbook as a Mermaid flow, and three upgrade-debt metrics that can go on a
+  dashboard. Renovate config keys verified against Renovate 41 via Context7, and carried under a
+  moving-target callout because they will move
+- **Row 04's two cross-references wired in.** `Frontend/Architecture/README.md` now says in the chapter
+  table that the monorepo question is answered by `#ch-repository-strategies` and `#ch-monorepos` rather
+  than repeated here. The three pre-existing `#ch-monorepos` references from `01` and `02` already
+  resolved to the Part III chapter and were left alone
+- **Row 02's `single-spa` gap closed.** #42 delivered chapter `02` with Module Federation but never
+  named single-spa, which this item's table asks for. Added a 22-line `### The single-spa alternative`
+  section — the root config, `registerApplication`/`activeWhen`, the `bootstrap`/`mount`/`unmount`
+  lifecycle, and the deciding trade against Federation (composing applications versus composing
+  modules, so a remote is a whole route rather than a component). `single-spa` also added to the
+  four-approaches table's runtime row
+- **A reciprocal reference added** from `02`'s shared-dependencies section: "independent deploys, not
+  independent upgrades" now points at `#ch-dependencies-and-upgrades`, which is where the version
+  policy it demands actually lives
+- **Rows 01 and 03 verified as already delivered by #42**, not rewritten. `01` covers feature folders
+  in its Common Mistakes and Interview Questions blocks; `03` is the moved design-systems chapter
+- `Frontend/README.md`'s Architecture bullet updated. **Part IV rises to 6,843 of 5,500** — expected,
+  and **#58a** is the item that closes it
+
 ---
 
-### - [ ] 56. Add the missing Backend chapters `M`
+### - [x] 56. Add the missing Backend chapters `M` — ✅ **done 2026-09-07**
 
 `Backend/README.md` and the root README promise Express and NestJS; neither exists.
 
@@ -4541,9 +4590,95 @@ Receives the moved files from item 42 plus new material. Part IV chapters:
 | `Backend/API/07-trpc-typed-apis.md`  | End-to-end type safety, the full stack TS answer           |
 | `Backend/API/08-sse-vs-websockets.md`| SSE matters now because of AI streaming                    |
 
+**Done when:** the promises in `Backend/README.md` and the root README all resolve to real files.
+
+> ⚠️ **Amended on delivery — four chapters, not five, and the numbering was off by one.**
+>
+> - **Row 5 (`08-sse-vs-websockets.md`) was already delivered.** `Backend/API/05-realtime-and-streaming.md`
+>   (`#ch-realtime-streaming`, 268 lines) is that chapter: SSE and HTTP streaming, what the socket
+>   upgrade skips, and a `## When to Use It` table that *is* the SSE-versus-socket decision. It also
+>   already carried the row's stated rationale — a paragraph on token-by-token streaming cross-referencing
+>   `#ch-streaming-responses` in Part VII. A second chapter would have been a non-negotiable #7 violation
+> - **`Backend/API/` had five chapters, not seven**, so the tRPC chapter is `06-trpc-typed-apis.md`.
+>   The plan's `07` assumed an `06` that never existed
+
+**Delivered:**
+
+- **`Backend/Frameworks/` created** (Part V, mapped by `PART_BY_PREFIX`'s existing `Backend` prefix — no
+  `scripts/lib/book.ts` change needed) with a 57-line part opener and three chapters. The section has a
+  single organising axis, stated in its README: how much structure the framework imposes and what it
+  assumes about the runtime
+- **`01-express.md`** (231 lines, `#ch-express`) — the pipeline as the entire mental model, generic
+  `Request<Params, ResBody, ReqBody>` typing, **the two Express 5 changes that break real code** (rejected
+  promises forwarded to `next()` automatically, and `'*'` replaced by named `'/*splat'` wildcards), the
+  four-parameter arity rule for error middleware, routers as the only composition, and a table of what
+  Express deliberately omits. Express 5 behaviour verified against `/expressjs/express` via Context7
+- **`02-nestjs.md`** (219 lines, `#ch-nestjs`) — the container as the core idea, `exports` as an enforced
+  visibility boundary, symbol tokens for interface-shaped dependencies, the five pipeline slots as a
+  Mermaid flow with **guards running before pipes** as the consequence that matters, and
+  `Test.createTestingModule` as the concrete payoff. Verified against `/nestjs/docs.nestjs.com`
+- **`03-hono-edge.md`** (221 lines, `#ch-edge-runtimes`) — the isolate/Web-API/many-regions triple and
+  what each costs, a Node-to-edge API table with the TCP-driver blocker and the `process.env`-at-module-scope
+  trap, a typed-`Bindings` Hono service, the `hc` client derived by route chaining, and a Mermaid diagram
+  putting real numbers on **proximity to the user against proximity to the data** — the honest reason a
+  ported endpoint gets slower. Verified against `/websites/hono_dev`
+- **`Backend/API/06-trpc-typed-apis.md`** (229 lines, `#ch-trpc`) — the three-way table of where the
+  contract's truth lives, `initTRPC.context<Context>()` with a `protectedProcedure` that narrows `ctx`,
+  type-only client import, `httpBatchLink`, and a **"what the types do not check"** table whose first row
+  is the one that bites: inference is checked at build time against your working tree, so a client
+  deployed ahead of its server compiles and then fails. Also tRPC's answer to versioning — migrate rather
+  than version, which only works because every caller recompiles. Verified against `/trpc/trpc`
+- **Four READMEs updated.** `Backend/README.md` gains the `Frameworks/` section row, `API` goes 5 → 6,
+  and both the reading order and interview sprint now include `Frameworks/01`. `Backend/API/README.md`
+  gains row 06 and a fifth senior-signal bullet ("is your typed API type-safe in production?"). The root
+  `README.md`'s "What Does Not Exist Yet" no longer claims Express and NestJS are missing
+- **Part V is now 7,426 against 6,500 (+926)** and `lint:docs` is red on the budget rule. This was an
+  explicit decision, not an oversight: Part V had **40 lines of headroom** and no chapter in it was
+  duplicative enough to cut — all 34 sit between 192 and 245 lines on distinct topics. **#56a** below
+  owns closing it
+
 ---
 
-### - [ ] 57. Modernise `Frontend/Testing/` `M`
+### - [ ] 56a. Trim Part V to its budget `M`
+
+Split out of **#56** on 2026-09-07, on the same precedent as #58a: an item that adds content to a part
+with no headroom needs a named item to pay for it, not a comment.
+
+Part V is **7,426 against 6,500 — +926**, with 38 chapters where § 5 says ~30. #56 added four
+(Express, NestJS, Hono/edge, tRPC) into 40 lines of headroom, deliberately and with the breach
+recorded rather than paying for it by deleting chapters nobody had asked to lose.
+
+Where the lines are:
+
+| Section | Lines | Chapters | Note |
+| ------- | ----- | -------- | ---- |
+| `Backend/Security/` | 1,362 | 6 | The fattest section. Security is documented in five places repo-wide |
+| `Backend/NodeJS/` | 1,332 | 6 | — |
+| `Backend/API/` | 1,475 | 6 | +229 from #56 |
+| `Backend/SQL/` | 1,081 | 5 | — |
+| `Backend/NoSQL/` | 861 | 4 | Mongo document modelling, aggregation, Redis |
+| `Backend/Frameworks/` | 728 | 3 | All new at #56 |
+| `Backend/Testing/` | 480 | 2 | — |
+
+Two candidate routes, and this item has to pick one and say why:
+
+- **`Backend/NoSQL/`** is the weakest fit against Part V's own stated scope — "what does a
+  frontend-heavy full stack engineer actually get asked, and actually build". MongoDB aggregation
+  pipelines are not that, and `SystemDesign/Database/01-choosing-a-datastore.md` plus
+  `SystemDesign/BuildingBlocks/02-caching.md` already own the decision-level material. Archiving two of
+  its four chapters is roughly the whole overage
+- **`Backend/Security/`** overlaps `Frontend/Security/` on CORS and on input validation (`05-cors-csrf`
+  against `#ch-csp-headers`, `06-validation` against `#ch-client-side-input-handling`). A merge here is
+  smaller and less contentious but returns fewer lines
+
+⚠️ **Check #68 and #70 first.** Both touch Part V, and an audit that archives 2024-era content may
+close some of this for free.
+
+**Done when:** `pnpm lint:docs` reports Part 5 at or under its BOOK-SPEC § 5 budget of 6,500.
+
+---
+
+### - [x] 57. Modernise `Frontend/Testing/` `M` — ✅ **done 2026-09-08**
 
 Currently 8 files that reference Jest and Cypress-era practice. Research: **Vitest and Playwright both gained
 14 points of usage year-over-year** — the largest increases in the ecosystem.
@@ -4559,9 +4694,66 @@ the wider question of what to test at which level. This section keeps the **tool
 the query API in `03-react-testing-library.md`, Playwright, and CI. Chapter 12 cross-references `03` for
 the queries; keep that split rather than restating either side.
 
+**Done when:** the section defaults to Vitest and Playwright throughout, and adds the component/E2E
+boundary and the CI checks, with every file at the Book Chapter Standard.
+
+**Delivered:**
+
+- **All eight chapters predated the Book Chapter Standard and were rewritten, not patched.** Every one
+  carried a hand-written `## Table of Contents`, an `## Overview` in place of `## 💡 The Core Idea`,
+  `### 💡 **Bold**` sub-headings, a `## Summary` block, relative-path cross-references in the body, and
+  a `[← Back to Testing]` footer — and none had `## 🔑 Key Takeaways` or `## What to Read Next`. The
+  section is now **7 chapters**, all six blocks, no relative links
+- **Two merges took the count from 8 to 7.** `01-testing-fundamentals` + `08-best-practices` →
+  **`01-testing-strategy.md`** (`#ch-testing-strategy`), which was the right merge because both were
+  arguing the same thing from two directions: the layers, and what keeps a suite trusted. It leads on
+  **the suite as a budget**, counts the type checker as a testing layer, and folds the flake taxonomy
+  in as a consequence of isolation rather than as a separate chapter
+- **`02-vitest.md`** (`#ch-vitest`) — Jest comparison demoted from the framing to one sentence, since
+  Vitest is now the default rather than the alternative. Leads on the structural point (the runner
+  inherits the build's transform and resolution, which is a correctness property, not a convenience),
+  and carries a moving-target callout for Vitest 4's provider-package browser mode and the
+  `workspace` → `projects` config change. Verified against `/vitest-dev/vitest` via Context7
+- **`05-e2e-with-playwright.md`** (`#ch-end-to-end-testing`) — **Playwright-first, as the item asks.**
+  The old chapter's `## Playwright vs Cypress` section presented them as a preference; the comparison
+  is now four rows with the structural reason underneath (Cypress runs *inside* the page, which is
+  simultaneously why its debugger is good and why multi-tab, cross-origin and iframes are awkward),
+  and Cypress is a named exception rather than a co-default
+- **The component/E2E boundary landed as `05`'s opening section**, framed by *what is real* rather than
+  by test size: a three-row table of jsdom against browser mode against end-to-end across DOM, layout
+  engine, network and routing. The deciding line is that **jsdom computes no layout**, so scroll,
+  `IntersectionObserver`, sticky positioning and focus visibility cannot be tested there — and the
+  named mistake is choosing E2E because a flow is *long*, since a twelve-step form flow is an
+  integration test
+- **`07-visual-and-contract-testing.md`** (`#ch-visual-and-contract-testing`) replaces
+  `07-specialized-testing`, reorganised around what an assertion structurally cannot express — an
+  appearance, a provider's reality, and its own blind spots. Visual regression now leads with the three
+  options that decide whether the check survives a month (`animations: "disabled"`, `mask`,
+  `maxDiffPixels`) plus the platform-parity rule for baselines. Contract testing is split into the cheap
+  version (one schema check per endpoint against staging) and consumer-driven contracts, with the
+  honest cost of each
+- **The #54 boundary respected exactly as its note required.** `07` does **not** restate accessibility
+  testing: it has a two-row table saying `#ch-testing-accessibility` owns the method and
+  `#ch-bundle-optimisation` owns performance budgets, and says why — a "specialised testing" chapter is
+  where duplication accumulates. `Frontend/Testing/README.md` carries the same pointer
+- **The #35 boundary respected.** `#ch-testing-react` keeps "what to test at which level" for React;
+  `01` cross-references it rather than repeating the table, and `03` keeps the query API that chapter 12
+  defers to
+- **`03`, `04` and `06` rewritten in place** to the standard, keeping their slugs so inbound references
+  survive: query-variant and priority tables with the accessibility consequence made explicit;
+  request interception versus module mocks as a four-row comparison, with the section's own blind spot
+  (handlers encode the frontend's assumption) stated and handed to `07`; and TDD reframed as a *design*
+  technique whose one non-negotiable case is a bug fix
+- **Six inbound cross-references retargeted** — `#ch-testing-fundamentals` → `#ch-testing-strategy`
+  (from `Backend/Testing/01`, `ShipAndOperate/CICD/01`) and `#ch-vitest-basics` → `#ch-vitest` (from
+  `ModernStack/Tooling/02`). `Frontend/Testing/README.md` rebuilt: new chapter table, and a fifth
+  senior-signal bullet on the component/E2E boundary
+- **Jest and Cypress now appear only as comparisons**, which was the item's premise: 8 Jest mentions
+  and 8 Cypress mentions across the old section, down to a single positioning sentence each
+
 ---
 
-### - [ ] 58. Refresh `Frontend/WebPerformance/` for 2027 `M`
+### - [x] 58. Refresh `Frontend/WebPerformance/` for 2027 `M` — ✅ **done 2026-09-08**
 
 Absorbs `SystemDesign/Frontend/04`, `09`, `12` (item 42). Add or update:
 
@@ -4571,9 +4763,59 @@ Absorbs `SystemDesign/Frontend/04`, `09`, `12` (item 42). Add or update:
 - Third-party script governance
 - Real user monitoring vs lab data
 
+**Done when:** INP is the responsiveness metric throughout, and the four additions above each have a
+home.
+
+**Delivered:**
+
+- **Eight of the ten chapters predated the Book Chapter Standard** (only `09` and `10`, written at #42,
+  did not) and the section was rebuilt as **7 chapters**, all six blocks. Three merges did it:
+  `02-lazy-loading` + `03-code-splitting` → **`02-loading-and-code-splitting.md`**;
+  `05-image-optimization` + `09-font-and-css-delivery` → **`05-asset-delivery.md`**;
+  `07-performance-monitoring` + `10-error-tracking` → **`07-measuring-in-production.md`**
+- **Every one of the item's five additions has a home, and each merge was chosen to give one of them
+  one:**
+
+  | Addition | Where it landed |
+  | -------- | --------------- |
+  | **INP** as the responsiveness metric | `01`, rewritten INP-first with a ⚠️ callout stating FID's removal dates (Core Web Vital March 2024, removed September 2024) and *what INP measures that FID did not* — the whole journey, every interaction, close to the worst |
+  | Performance budgets enforced in CI | `03`, retitled **Bundles, Budgets and Third Parties**. Two gates that catch different regressions: a deterministic per-entry size limit on every pull request, and metric assertions against a deployed preview. Plus the three rules that stop a budget being switched off |
+  | RSC and streaming as performance strategies | `06`, retitled **Rendering and Streaming**, with a three-lever table. The framing is that streaming improves *perceived* load without reducing work, while Server Components are the only lever that removes client work outright — and that hydration is the hidden cost of server rendering alone |
+  | Third-party script governance | `03`, as a five-row control table. The two structural claims: nothing third-party belongs in the critical path, and **a tag manager is a production deploy with no code review** |
+  | RUM against lab data | `01` and `07`. The asymmetry that carries it: **a lab run cannot measure INP at all**, because nothing interacts — so field data is a prerequisite for fixing it, not a nice-to-have |
+
+- **`01-core-web-vitals.md`** also gained the LCP-fix priority table and the attribution-first rule
+  (identify the element from field data before optimising, because it is frequently not the hero image
+  you assume)
+- **`02-loading-and-code-splitting.md`** leads on deferral moving cost rather than removing it, which
+  makes **preload-on-intent** the chapter's answer to "does splitting not just move the delay to the
+  click?" — with `onFocus` alongside `onMouseEnter`, so keyboard users get it too. `prefetch` /
+  `preload` / `preconnect` separated in one table, and the never-lazy-the-LCP-image rule as a ⚠️
+- **`04-caching-strategies.md`** rewritten around **immutability by URL** as the thing that makes
+  aggressive caching safe, with a Mermaid diagram of the four layers annotated by *who controls each* —
+  the browser cache has no purge, which is the point. `no-cache` against `no-store` corrected
+  explicitly, since the naming invites the wrong one for sensitive data
+- **`05-asset-delivery.md`** merges images with fonts and CSS on a real organising principle: images
+  degrade gracefully and fonts and CSS do not, so the question changes from "how few bytes" to "what
+  does the user see before this arrives". Keeps #42's `size-adjust`/`ascent-override` fallback-metrics
+  pairing, which is the part that actually removes FOUT
+- **`07-measuring-in-production.md`** merges performance and error tracking on the argument that they
+  are one instrument — same three fields (release, user, page), and a post-deploy INP spike and
+  rejection spike are one incident described twice. Keeps #42's redaction, sampling table and
+  crash-free-sessions SLO
+- **Seven inbound cross-references retargeted**: `#ch-code-splitting` → `#ch-loading-and-code-splitting`
+  (2 files), `#ch-image-optimisation` and `#ch-font-and-css-delivery` → `#ch-asset-delivery` (3),
+  `#ch-rendering-optimisation` → `#ch-rendering-and-streaming` (2), `#ch-performance-monitoring` and
+  `#ch-frontend-error-tracking` → `#ch-measuring-in-production` (2)
+- **A pre-existing broken anchor fixed.** `ModernStack/React/09-performance-and-the-compiler.md`
+  referenced `#ch-bundle-optimization`, but the chapter's slug was `bundle-optimisation`. The new
+  chapter keeps the **British** spelling per the repo's convention and the reference now resolves
+- `Frontend/WebPerformance/README.md` rebuilt — 10 rows to 7, new reading order and sprint, and a fifth
+  senior-signal bullet on what stops a bundle growing back. Part IV finished at **5,488 of 5,500**
+
 ---
 
-### - [ ] 58a. Trim Part IV to its budget `M`
+### - [x] 58a. Trim Part IV to its budget `M` — ✅ **done 2026-09-08**
 
 Split out of **#31e** on 2026-09-02 and **numbered 58a rather than 31f on purpose**: #31e carried a 🔴
 note saying Part IV must wait for #42, #57 and #58, so an item in Phase 2 could never run. Placing it
@@ -4601,25 +4843,156 @@ touches that directory next: this item, #42, or #70.
 
 **Done when:** `pnpm lint:docs` reports Part 4 at or under its BOOK-SPEC § 5 budget of 5,500.
 
+**Delivered:**
+
+- **`pnpm lint:docs` reports Part 4 at 5,488 of 5,500.** Verified: the budget rule now lists only
+  Part 5, and the total fell from 1,081 to 926 against a 1,081 baseline, so nothing regressed
+- **The item's own prediction was half right.** It guessed this might be "a verification rather than a
+  session of work" because #57 and #58 would land inside budget. They did not — the rewrites came in
+  at **5,675 (+175)**, because #55 had already added 262 lines and 14 rewritten chapters averaged 247
+  against a ~220 target. So a real trim was needed, but it was a trim of **this session's own new
+  chapters** rather than of anything pre-existing, which is the cheap version the item was hoping for
+- **185 lines removed across 12 of the 14 new chapters**, by cutting content that was genuinely
+  redundant rather than by shortening prose uniformly:
+  - **Four code blocks replaced by the prose that already explained them** — the `web-vitals`
+    `report()` wiring in `01` (duplicated in `07`), the `visualizer` config in `03`, the bundler
+    `[hash]` output config in `04`, the `requestAnimationFrame` before/after in `06`
+  - **Two blocks that restated a table immediately above them** — the test-doubles snippet in
+    `Testing/01`, the virtualisation ASCII sketch in `WebPerformance/06`
+  - **The `redact()` function and the `FrontendSlo` interface in `07`** compressed to a sentence and a
+    three-row table; both were illustrating a policy, not an API
+  - **The Icons section in `05`** cut to four lines pointing at `#ch-bundle-optimisation`, which
+    already owns the barrel-import argument — a #7 fix as much as a trim
+  - **Six `## Common Mistakes` pairs** dropped where a chapter had six and the sixth was the weakest,
+    and **four interview questions** dropped from chapters that had four. Every chapter still has at
+    least three questions including a judgement call, and at least five mistake pairs
+- **Part IV's shape now matches § 5 much better than before:** 23 chapters where § 5 says ~24 (was 25
+  before #55, heading for 27), and an average chapter of 235 lines against the book's 225
+- **The four `SystemDesign/Frontend/` chapters in this item's ⚠️ note were not touched** — correctly, as
+  the note says: they return ~40 lines to **Part VI**, not Part IV, and Part VI is at its budget
+  exactly. Still open for **#70**
+
 ---
 
-### - [ ] 59. Add `Frontend/JavaScript/11-modern-js.md` `S`
+### - [x] 59. Add `Frontend/JavaScript/11-modern-js.md` `S` — ✅ **done 2026-09-08**
 
 The JavaScript section stops at ES6+. Add one chapter on what has landed since and shows up in code review:
 `Array.prototype.at`, `structuredClone`, `Object.groupBy`, top-level `await`, `AbortController` patterns,
 `Intl` beyond formatting, temporal-style date handling, and the pipeline of proposals worth knowing.
 
+**Done when:** the chapter exists at the Book Chapter Standard and the section README lists it.
+
+> ⚠️ **Three of the item's eight topics were already covered and were dropped rather than restated.**
+> `structuredClone` is in `01-data-types-variables.md` (a decision-table row, a takeaway, and its own
+> interview question); `Object.groupBy` is in both `08-es6-features.md` and `09-array-object-methods.md`;
+> and `Intl` beyond formatting plus Temporal-style date handling belong to
+> `Frontend/Internationalization/03-date-number-formatting.md`, which already carries a Temporal
+> moving-target callout. Restating any of them would have been a non-negotiable #7 violation. The
+> "pipeline of proposals worth knowing" was also dropped deliberately — a list of Stage 2 proposals is
+> the fastest-staling content that could be put in a 2027 book.
+
+**Delivered:**
+
+- **`Frontend/JavaScript/11-modern-js.md`** (261 lines, `#ch-modern-javascript`) — organised around a
+  framing that survives the next five releases: the yearly cadence means the skill is **recognising
+  code that works around something the language now does**, not memorising the release list. Every
+  feature is introduced as the workaround it replaces
+- **What it covers**, all of which had no home in the repo: the ES2023 immutable array methods
+  (`toSorted`, `toReversed`, `with`, `toSpliced`) with `with()` called out for list-state work;
+  `at(-1)` and `findLast`, including the TypeScript consequence that `at()` returns `T | undefined`
+  while `arr[i]` does not unless `noUncheckedIndexedAccess` is on; `Object.hasOwn`; **ES2025 iterator
+  helpers**, framed on laziness rather than brevity, since the point is not materialising the sequence;
+  Set operations against the `[...a].filter(x => b.has(x))` idiom; top-level `await` **with its cost
+  named** (every downstream importer blocks); `Promise.withResolvers`; `AbortSignal.timeout` and
+  `AbortSignal.any`; and `Error.cause`
+- **The chapter's last section is the one that makes it useful rather than a changelog** — a
+  three-row table separating **syntax** (transpiles, no runtime cost) from a **library method** (needs a
+  polyfill, ships bytes permanently) from a **runtime capability** (cannot be polyfilled faithfully).
+  That is the real answer to "can we use this yet", and it is under a moving-target callout because
+  baselines move quarterly
+- `Frontend/JavaScript/README.md` gains row 11. **Part I rises to 5,298 of 5,000**; see **#60a**
+
 ---
 
-### - [ ] 60. Add `Frontend/TypeScript/09-typescript-at-scale.md` `S`
+### - [x] 60. Add `Frontend/TypeScript/09-typescript-at-scale.md` `S` — ✅ **done 2026-09-08**
 
 The TS section covers the language but not the engineering: project references, `strict` migration strategy,
 type-level performance, `satisfies`, module resolution, declaration files, and when types are costing more
 than they return.
 
+**Done when:** the chapter exists at the Book Chapter Standard and the section README lists it.
+
+> ⚠️ **Two amendments.** The file is **`08-typescript-at-scale.md`**, not `09` — `Frontend/TypeScript/`
+> had seven chapters, not eight, so the plan's number was off by one in the same way #56's `07-trpc`
+> was. And **project references were dropped from the chapter**, because
+> `Frontend/ModernStack/Tooling/05-type-checking-and-linting.md` (`#ch-type-checking-and-linting`)
+> already owns them along with `skipLibCheck` and why type-checking does not parallelise. This chapter
+> cross-references it instead.
+
+**Delivered:**
+
+- **`Frontend/TypeScript/08-typescript-at-scale.md`** (269 lines, `#ch-typescript-at-scale`) — scoped as
+  the *engineering* against chapters 01–07's *language*, with the organising claim that at scale every
+  question is about cost: a more precise type catches more bugs and checks slower, a cleverer type
+  catches more bugs and reads worse
+- **`strict` as seven flags rather than one switch**, with a per-flag migration-cost table and a
+  defensible order — the four cheap flags, then `noImplicitAny`, then `strictNullChecks` alone, because
+  it is the one that surfaces real bugs. The escape hatch for a codebase too large even for that is
+  `strict: true` plus per-file suppressions **and a CI check that the suppression count can only fall**,
+  which is the part that turns a migration into something that finishes
+- **`satisfies` given the explanation the feature actually needs:** an annotation is a claim about the
+  variable and widens it, so `Record<string, Route>` validates the entries and then loses the keys —
+  `routes.hoem` stops being an error. `satisfies` checks and keeps the literal type, which makes
+  `keyof typeof` a usable union. That is why it is the right tool for route tables, theme tokens and
+  permission maps, and why `as const` alone is not the same thing
+- **Module resolution** as a three-row table (`bundler` / `nodenext` / `node10`) plus the flag worth
+  being able to explain: `verbatimModuleSyntax`, because without it the compiler decides what to erase
+  and a value import used only in a type position vanishes **with its side effects**
+- **Declaration files** with one rule — type only what you call, and accurately, since a shim invented
+  from guesswork makes the compiler vouch for something wrong, and `any` in an unverified place is more
+  honest
+- **"When types cost more than they return"** given three concrete signals and a cheaper answer for
+  each, with the general escape stated: a runtime schema gives a check *and* an inferred type from one
+  declaration, which beats proving the same thing in the type system for anything crossing a boundary.
+  `tsc --generateTrace` named for when evidence is needed rather than a hunch
+- `Frontend/TypeScript/README.md` gains row 08
+
 ---
 
-### - [ ] 61. Fill the Behavioral gaps with senior-level material `M`
+### - [ ] 60a. Trim Part I to its budget `S`
+
+Split out of **#59** and **#60** on 2026-09-08, on the same precedent as #56a and #58a.
+
+Part I is **5,298 against 5,000 — +298**, with 27 chapters where § 5 says ~22. #59 and #60 added two
+chapters into 236 lines of headroom, deliberately, with the breach recorded rather than paid for by
+deleting chapters nobody asked to lose.
+
+| Section | Lines | Chapters |
+| ------- | ----- | -------- |
+| `Frontend/JavaScript/` | 2,509 | 11 (+1 at #59) |
+| `Frontend/TypeScript/` | 1,750 | 8 (+1 at #60) |
+| `Backend/DesignPatterns/` | 1,013 | 5 |
+
+The likely route, in order of how defensible it is:
+
+- **`Frontend/JavaScript/08-es6-features.md`** is the weakest chapter in Part I now that #59 exists.
+  Destructuring, spread, template literals and modules are assumed knowledge for a staff candidate, and
+  its two genuinely probed sections — `Map`/`Set`/`Symbol` and optional chaining — would merge into
+  `01-data-types-variables.md` and `11-modern-js.md` respectively. That is the whole overage in one move
+- **`Backend/DesignPatterns/`** maps to Part I by `PART_BY_PREFIX`, and § 5's ~22-chapter figure for
+  "Foundations" may not have assumed five pattern chapters. Worth checking against § 4 before cutting
+  anything from the language sections
+- The two new chapters are 261 and 269 lines against the book's 225 average, so ~80 lines are available
+  from them without losing content
+
+⚠️ **Check #68 and #70 first**, as #56a's note also says. An audit that archives 2024-era content may
+close some of this for free.
+
+**Done when:** `pnpm lint:docs` reports Part 1 at or under its BOOK-SPEC § 5 budget of 5,000.
+
+---
+
+### - [x] 61. Fill the Behavioral gaps with senior-level material `M` — ✅ **done 2026-09-08**
 
 > **Amended at #31e — cut from six chapters to one.** Part IX came in at 1,999 against its 2,500 budget,
 > which pays for two more chapters, and **#64** owns one of them. Four of the six below already exist as
@@ -4639,20 +5012,148 @@ than they return.
 `06`. Budget it against Part IX's 501 lines of headroom, leaving the rest for **#64**. Item 14's
 renumbering no longer applies — #31e renumbered the section.
 
+**Done when:** the chapter exists at the Book Chapter Standard, listed in `Behavioral/README.md`, and
+Part IX is still inside its 2,500 budget.
+
+**Delivered:**
+
+- **`Behavioral/06-influence-scope-and-saying-no.md`** (224 lines, `#ch-influence-scope-and-saying-no`)
+  — exactly the one chapter #31e reduced this item to, with scope negotiation folded in as the item
+  directed rather than written separately
+- **The framing that makes it a chapter rather than advice:** the interview question is not testing
+  assertiveness, it is testing whether you **make costs visible to the person who owns the decision.**
+  A refusal moves the argument to whether you are right; a trade moves the decision to whoever it
+  belongs to. Every section is a version of that one move
+- **Scoped deliberately against chapter 02, which #31e said already had the leading-without-authority
+  table.** No overlap: `02` owns the influence toolkit (stated criteria, evidence, being the first
+  user, commitment over consensus) and interest-versus-position; `06` owns the negotiation itself —
+  the four reframings from refusal to trade, why **scope is the only lever that genuinely moves** while
+  time is externally fixed and quality is borrowable for weeks not months, and the decomposition work
+  that turns "the dashboard by the 30th" into a shippable split
+- **Two things in it are not in the repo anywhere else.** *Cheapening the experiment* rather than
+  winning the argument — a three-day version behind a flag for 10% of users, which replaces a
+  prediction with evidence and caps the cost of being wrong. And the **escalation sequence**, whose
+  middle step is the whole answer: telling the person you are taking it up, and what you will say,
+  which is the difference between escalation reading as process and reading as betrayal
+- **A section on the three cases where a flat no is correct** — legal or regulatory, safety or user
+  harm, and anything requiring the record to be misrepresented — because the rest of the chapter argues
+  everything is a trade, and the honest version has to say where that stops. The move there is
+  different: state it as a constraint, in writing, and escalate rather than negotiate, since the real
+  risk is somebody trading it away in good faith
+- One worked STAR answer, with the detail that makes it score: the scope split is specific (four of
+  eleven screens), the decision went to the person who owned it, and the result says what happened to
+  the deferred work — which is what proves the trade was real
+- `Behavioral/README.md` gains row 06 and the reading order includes it. **Part IX: 2,230 of 2,500**,
+  leaving 270 lines for **#64** as this item required
+
 ---
 
-### - [ ] 62. Add a "senior signals" chapter to each part opener `M`
+### - [x] 62. Add a "senior signals" chapter to each part opener `M` — ✅ **done 2026-09-08**
 
 For each of the nine parts, add a short section to the README: **what an interviewer is listening for at
 senior level in this part**, and the two or three answers that mark someone as mid rather than senior.
 This is the connective tissue that makes it a book and not a wiki.
 
+**Done when:** every part opener carries the senior signal from `BOOK-SPEC.md` and an explicit
+mid-versus-senior contrast.
+
+> ⚠️ **The first half of this item was already delivered, by the items that wrote each section.** All
+> **51 in-book READMEs** carry a `## What Interviewers Probe For` section — verified by sweeping every
+> `README.md` outside `Archive/` — and the **nine part-level senior signals match `BOOK-SPEC.md` § 4
+> verbatim**, checked line by line against the nine `**Senior signal:**` lines at BOOK-SPEC.md:112–260.
+> `DSA/README.md` correctly says there is no senior signal for the appendix, because the round is not
+> scored the same way.
+>
+> The only file in the tree with no such section is `Frontend/README.md`, and it is **`in_book: false`**
+> — a repository navigation page, not a book file. Adding one would have put content in a file the
+> build excludes. The root `README.md` is in `EXCLUDED_FILES` for the same reason.
+>
+> **So the remaining work was the second half:** the mid-versus-senior contrast, which existed as an
+> implicit pattern inside the bullets ("'GraphQL is more flexible' does not") but was nowhere stated as
+> a comparison.
+
+**Delivered:**
+
+- **A `**Mid or senior, on the same question:**` table added to ten part-opener READMEs**, three rows
+  each: the question as asked, the mid answer, the senior answer. Ten rather than nine because **four
+  of the nine parts have no single opener** — Parts I, II, IV and IX are each split across several
+  section READMEs — so the table went to the lead section of each:
+
+  | Part | File |
+  | ---- | ---- |
+  | I — Foundations | `Frontend/JavaScript/README.md` |
+  | II — Browser Platform | `Frontend/HtmlCss/README.md` |
+  | III — Modern Stack | `Frontend/ModernStack/README.md` |
+  | IV — Frontend at Scale | `Frontend/Architecture/README.md` |
+  | V — Backend | `Backend/README.md` |
+  | VI — System Design | `SystemDesign/README.md` |
+  | VII — AI Engineering | `AI/README.md` |
+  | VIII — Ship and Operate | `ShipAndOperate/README.md` |
+  | IX — Human Layer | `Behavioral/README.md` |
+  | Appendix — DSA | `DSA/README.md` |
+
+- **The rows are specific rather than generic**, which is what makes the section worth reading: "I added
+  `memo` and `useCallback`" against naming the identity that broke; "GraphQL, it's more flexible"
+  against client diversity and schema ownership; "It feels much better now" against a pass rate on a
+  fifty-question golden set; "We just roll back the deploy" against which changes are one-way doors
+- **Paid for inside the two parts with no headroom.** Part VI was at its budget exactly and Part VIII
+  four lines under. In both, the new table stated two existing bullets better than the bullets did, so
+  those bullets were **removed rather than left to duplicate** — "Do you ask before you draw?" and "Can
+  you defend a trade-off rather than a choice?" in `SystemDesign/README.md`, "Build once, promote the
+  artefact" and "Which changes are one-way doors?" in `ShipAndOperate/README.md` — plus a prose tighten
+  in the System Design opener. **Part VI: 6,500 of 6,500. Part VIII: 5,500 of 5,500.** Part IV absorbed
+  its eight lines and finished at 5,496 of 5,500
+- **`Frontend/README.md` deliberately left alone**, for the `in_book: false` reason above. If a future
+  item makes it a book file, it needs the section then
+- **A structural gap logged for #70 or #72.** Four of the nine parts have no part opener at all — a
+  reader arriving at Part I lands on `Frontend/JavaScript/README.md`, which is a section index that
+  happens to lead. That is a book-assembly problem rather than a content one, and the ten-file
+  arrangement above is the best available answer until it is fixed
+
 ---
 
-### - [ ] 63. Add a glossary `M`
+### - [x] 63. Add a glossary `M` — ✅ **done 2026-09-08**
 
 One `Glossary.md` for the back matter. Every term bolded on first use in a chapter gets an entry.
 Especially important for Part VII, where the vocabulary is new to most readers.
+
+**Done when:** `Glossary.md` exists, is picked up by the build, and carries the vocabulary a reader is
+likely to arrive without — Part VII especially.
+
+> ⚠️ **"Every term bolded on first use" does not work as a selection rule for this manuscript, and was
+> replaced by curation.** A sweep over every in-book chapter for bold runs of one to four words
+> returns **1,404 distinct strings**, because the repo's voice uses bold for emphasis in almost every
+> paragraph — the top hits are `not`, `Yes`, `and`, `one`. Bold marks stress here, not term
+> introduction, so the mechanical rule would produce a 1,400-line list of mostly function words. The
+> glossary is therefore **curated**: 122 entries chosen as what a reader is likely to arrive without.
+
+**Delivered:**
+
+- **`Glossary.md`** at the repository root (307 lines, `#ch-glossary`) — **122 entries**, alphabetical
+  with a `##` heading per letter, one line each: term, a one-sentence definition, and a cross-reference
+  to the chapter that owns the idea where one does
+- **Part VII is over-represented on purpose, as the item asks**, and the file says so in its opening.
+  About a third of the entries are AI vocabulary — agent, chunking, context engineering, context
+  window, embedding, eval, golden set, grounding, guardrail, hallucination, hybrid search,
+  LLM-as-judge, MCP, prompt injection, RAG, reranking, structured output, temperature, token, tool
+  calling, vector store, zero-shot and few-shot prompting
+- **Definitions carry the book's actual position, not a dictionary's.** "Micro-frontend — solves an
+  organisational problem, not a technical one." "Hallucination — a retrieval or eval problem before it
+  is a prompting one." "Service worker — the one cache layer you cannot purge from the server."
+  "INP — replaced FID in 2024." A glossary that contradicted the chapters would be worse than none
+- **Filed as `part: 0`, not `part: 9`, and that is a deliberate correction.** `About-the-Author.md`
+  sets `part: 9`, so back matter currently counts against Part IX's chapter budget. At 55 lines that is
+  invisible; at 307 it broke Part IX by 46 lines and, worse, would have charged the glossary to the
+  Human Layer's content budget in every future measurement. `readDoc` falls back to `partFor()` when
+  `part` is not greater than zero, and no `PART_BY_PREFIX` entry matches a root-level file, so `part: 0`
+  makes the glossary unmapped: it is in the book, sorts to the back via `orderDocs`, and counts against
+  no part. **`chapter: 98`** places it before `About-the-Author.md`'s 99
+- **Kept under the 400-line ceiling deliberately.** The `too-long` lint rule has no exemption except
+  `in_book: false`, and marking the glossary out of the book to dodge the rule would have been the wrong
+  trade. 122 entries is what fits; the format is one line per entry for that reason
+- **Two things logged for #73 (write the back matter).** `About-the-Author.md` should move to `part: 0`
+  for the same reason this file did. And if the glossary is ever to exceed 400 lines, the `too-long`
+  rule needs a back-matter exemption rather than an `in_book: false` workaround
 
 ---
 
@@ -5031,10 +5532,10 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 2     | 20–31 · 31a–31f | 18/18 | ✅ Complete    |
 | 3     | 32–43   | 12/12 | ✅ Complete    |
 | 4     | 44–53   | 10/10 | ✅ Complete    |
-| 5     | 54–63 · 58a | 1/11 | 🔄 In progress |
+| 5     | 54–63 · 56a · 58a · 60a | 11/13 | 🔄 In progress |
 | 6     | 64–69   | 0/6  | ⬜ Not started |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **90** | **60/90** | **67%**   |
+| **Total** | **92** | **70/92** | **76%**   |
 
 ---
 

@@ -35,6 +35,7 @@ schedules your callbacks, the methods you reach for a hundred times a day, and h
 | 08 | [ES2015 and Later Features](./08-es6-features.md)                      | What did each modern form replace, and why does that matter?|
 | 09 | [Array and Object Methods](./09-array-object-methods.md)               | Which of these mutates the thing you passed in?             |
 | 10 | [Error Handling](./10-error-handling.md)                               | How do you fail in a way that is recoverable and loggable?  |
+| 11 | [Modern JavaScript](./11-modern-js.md)                                 | Which additions since ES2020 replace something in your code?|
 
 ## What Interviewers Probe For
 
@@ -53,6 +54,14 @@ questions carry most of the weight:
 - **Do you treat errors as a design decision?** Swallowing a rejection, throwing a string, or losing
   the stack across an `await` boundary all show up in code review. Knowing which failures are
   recoverable and which should crash the process is a seniority marker.
+
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "What logs first?" | Guesses, or recites "microtasks first" | Names the queue each callback lands in and why the microtask queue drains completely first |
+| "What is a closure?" | The definition | What it captures, when that keeps an object alive, and why the `var`-in-a-loop bug prints what it prints |
+| "What is `this` here?" | "Arrow functions don't have `this`" | The four rules in precedence order, applied to the call site in front of them |
 
 ## Reading Order
 

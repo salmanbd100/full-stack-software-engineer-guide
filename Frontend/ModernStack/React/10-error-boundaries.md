@@ -237,4 +237,4 @@ where a specific, helpful message belonged.
 
 - [Chapter ?? — Suspense and Streaming](#ch-suspense-and-streaming) — the boundary's counterpart for data that has not arrived
 - [Chapter ?? — Actions and Forms](#ch-react-actions-and-forms) — where mutation failures belong instead
-- [Chapter ?? — Error Tracking](#ch-frontend-error-tracking) — turning caught errors into something someone acts on
+- [Chapter ?? — Error Tracking](#ch-measuring-in-production) — turning caught errors into something someone acts on

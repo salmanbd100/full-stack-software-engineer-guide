@@ -114,9 +114,9 @@ These are the reason the book is worth writing, and they are both empty:
   chores, not about *building* AI features, which is what a 2027 senior loop asks about. #21 archived it.
   `AI/` now exists with its six section indexes (#44); the 32 chapters are improvements #45–53.
 
-`Backend/README.md` promises Express and NestJS; neither exists. The chapter tables under
-`Frontend/ModernStack/` list titles rather than links for the same reason. Do not assume a file exists
-because a README names it.
+`Backend/Frameworks/` closed the Express and NestJS gap at #56. The chapter tables under
+`Frontend/ModernStack/` list titles rather than links in places where a chapter is still scheduled
+rather than written. Do not assume a file exists because a README names it.
 
 ---
 

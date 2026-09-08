@@ -190,4 +190,4 @@ The question to ask in the round is whether the widget shows *state* or *events*
 
 - [Chapter ?? — Real-Time Communication](#ch-realtime-communication) — the transport comparison in full, and what held connections cost
 - [Chapter ?? — Frontend Real-Time Features](#ch-frontend-real-time-features) — reconnection, jitter and recovering missed messages on the client
-- [Chapter ?? — Rendering Optimisation](#ch-rendering-optimisation) — the frame budget the scheduler in this design is protecting
+- [Chapter ?? — Rendering Optimisation](#ch-rendering-and-streaming) — the frame budget the scheduler in this design is protecting

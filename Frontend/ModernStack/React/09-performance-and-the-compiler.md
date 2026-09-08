@@ -214,4 +214,4 @@ is there, because the default answer is now "you do not".
 
 - [Chapter ?? — Transitions and Concurrency](#ch-transitions-and-concurrency) — scheduling work you cannot make cheaper
 - [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components) — the largest bundle lever there is
-- [Chapter ?? — Bundle Optimisation](#ch-bundle-optimization) — code splitting and what to measure
+- [Chapter ?? — Bundle Optimisation](#ch-bundle-optimisation) — code splitting and what to measure

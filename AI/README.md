@@ -75,6 +75,14 @@ or an eval gap, not as bad luck.**
 - **Do you know where the security boundary is?** Prompt injection is the discipline's defining
   vulnerability, and "the model reads untrusted text and can call tools" is the sentence that explains it.
 
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "The answers are wrong" | "I improved the prompt" | "I checked whether the right chunk was retrieved first — it is a retrieval bug, not a prompting one" |
+| "Is it working?" | "It feels much better now" | "Pass rate on a fifty-question golden set went from 61% to 84%, and here is what still fails" |
+| "What does it cost?" | "The API is quite cheap" | Tokens per request, cache hit rate, and the cost per user per month under real load |
+
 ## Reading Order
 
 `Foundations/` → `Integration/` is the spine, and it is the half most readers will use at work first.

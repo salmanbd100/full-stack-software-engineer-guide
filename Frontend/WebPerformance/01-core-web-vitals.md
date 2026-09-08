@@ -5,361 +5,220 @@ chapter: 0
 slug: core-web-vitals
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-08-28
-tags: [frontend, web, performance, core, vitals]
+updated: 2026-09-07
+tags: [core-web-vitals, inp, lcp, cls, performance, metrics]
 in_book: true
 ---
 
 # Core Web Vitals {#ch-core-web-vitals}
 
-> Read the three metrics Google actually ranks on, and know which fix moves which one.
+> Name the three metrics, the number each is judged at, and what you would change first for each one.
 
-**In this chapter:** LCP · INP, which replaced FID · CLS · lab data vs field data · the order to optimise in
+**In this chapter:** the 75th-percentile rule · LCP and finding the element · INP, which replaced FID · CLS and reserved space · field data against lab data · the order to fix things in
 
-## Overview
+## 💡 The Core Idea
 
-Core Web Vitals are the **3 numbers Google uses to score real user experience** on your site. Good scores help SEO and keep users happy.
+Core Web Vitals are three numbers standing in for three things a user actually feels: **did the main
+content arrive, did the page respond when I touched it, and did anything move under my finger.**
 
-> **Why You Should Care:**
-> Google uses these scores to rank pages. Bad scores mean lower ranking and fewer visitors.
+The detail that changes how you work with them is the **75th percentile**. A site is not judged on its
+average or on your laptop — it is judged on the visit at the 75th percentile of real users, which is a
+mid-range phone on a mediocre network. So an improvement that helps the fast half of your traffic
+moves the score by nothing, and a page that feels instant in development can score poorly.
 
----
+That is why the vitals are a *field* measurement first. The lab tools are for diagnosis; the field
+number is the one that exists.
 
-## Table of Contents
-- [The Three Metrics](#the-three-metrics)
-- [LCP — Largest Contentful Paint](#lcp--largest-contentful-paint)
-- [INP — Interaction to Next Paint](#inp--interaction-to-next-paint)
-- [CLS — Cumulative Layout Shift](#cls--cumulative-layout-shift)
-- [Measuring Core Web Vitals](#measuring-core-web-vitals)
-- [Optimization Priority](#optimization-priority)
-- [Interview Questions](#interview-questions)
+## How It Works
 
----
+### The three metrics and their thresholds
 
-## The Three Metrics
+| Metric | Measures | Good | Poor |
+| ------ | -------- | ---- | ---- |
+| **LCP** — Largest Contentful Paint | When the largest visible element finished rendering | < 2.5 s | > 4 s |
+| **INP** — Interaction to Next Paint | How long from an interaction to the next painted frame | < 200 ms | > 500 ms |
+| **CLS** — Cumulative Layout Shift | How much visible content moved unexpectedly | < 0.1 | > 0.25 |
 
-Core Web Vitals measure the 3 things users feel most: **how fast it loads**, **how fast it responds**, and **how stable it looks**.
+> ⚠️ **FID is gone.** INP replaced First Input Delay as a Core Web Vital in March 2024 and FID was
+> removed entirely in September 2024. A great deal of published material — and a great many
+> interviewers' notes — still says FID, so being precise about this is a cheap way to sound current.
 
-| Metric | Full Name | Measures | Plain Meaning |
-|--------|-----------|----------|---------------|
-| **LCP** | Largest Contentful Paint | Loading | "Did the main content show up fast?" |
-| **INP** | Interaction to Next Paint | Responsiveness | "Did the page react quickly when I clicked?" |
-| **CLS** | Cumulative Layout Shift | Visual stability | "Did things jump around while loading?" |
+The difference is not cosmetic. FID measured only the **delay before the first** interaction's handler
+started. INP measures the **whole journey** — input delay, the handler running, and the browser
+painting the result — for **every** interaction, and reports close to the worst. A page could score
+well on FID while every subsequent click took half a second, and many did.
 
-**Target Thresholds (memorize these):**
+### LCP: find the element before optimising anything
 
-| Metric | ✅ Good | ⚠️ Needs Work | ❌ Poor |
-|--------|---------|----------------|---------|
-| **LCP** | < 2.5s | 2.5s – 4s | > 4s |
-| **INP** | < 200ms | 200ms – 500ms | > 500ms |
-| **CLS** | < 0.1 | 0.1 – 0.25 | > 0.25 |
+You cannot fix LCP without knowing which element it is, and it is frequently not the one you assume.
 
 ```typescript
-// The numbers worth remembering
-const thresholds = {
-  LCP: { good: 2500, poor: 4000 }, // milliseconds
-  INP: { good: 200, poor: 500 },   // milliseconds
-  CLS: { good: 0.1, poor: 0.25 },  // unitless score (lower is better)
-} as const;
-```
-
-> **Key Insight:**
-> Google scores you at the **75th percentile** of real users. A metric is "Good" only when 75% of visits hit the target.
-
----
-
-## LCP — Largest Contentful Paint
-
-LCP measures **when the biggest visible element finishes rendering**. Usually this is a hero image or a large headline.
-
-**Common LCP elements:** hero images, large `<h1>` text, video poster images, CSS background images.
-
-### 💡 **Find Your LCP Element First**
-
-You can't fix LCP until you know which element it is.
-
-```typescript
-import { onLCP, type LCPMetric } from 'web-vitals/attribution';
+import { onLCP, type LCPMetric } from "web-vitals/attribution";
 
 onLCP((metric: LCPMetric) => {
-  console.log('LCP value:', metric.value);
-  console.log('LCP element:', metric.attribution.target); // CSS selector
+  // A CSS selector for the actual element, plus the phase breakdown.
+  console.info(metric.value, metric.attribution.target, metric.attribution.resourceLoadDelay);
 });
 ```
 
-### 💡 **Optimizing LCP**
+Then work in this order, because the returns fall off sharply:
 
-Fix these in order of impact:
-
-**1. Optimize the LCP image** (usually the biggest win)
+| Fix | Typical impact |
+| --- | -------------- |
+| Give the LCP image `fetchpriority="high"` and the right format and size | Largest single win |
+| Preload the LCP resource; `preconnect` to its origin | Removes a discovery round trip |
+| Remove render-blocking CSS and JavaScript from the head | Often seconds on slow connections |
+| Improve the server or CDN response time | Raises the floor for everything |
 
 ```html
-<!-- ❌ Before: heavy, no priority, one size for all -->
-<img src="hero.jpg" alt="Hero" />
-
-<!-- ✅ After: modern format, responsive, prioritized -->
+<!-- The LCP image: modern format, right size per viewport, and not queued behind other requests -->
 <img
   src="hero.avif"
   srcset="hero-400.avif 400w, hero-800.avif 800w, hero-1200.avif 1200w"
-  sizes="(max-width: 600px) 400px, (max-width: 1200px) 800px, 1200px"
-  alt="Hero"
+  sizes="(max-width: 600px) 400px, 1200px"
+  alt="Quarterly emissions dashboard"
   fetchpriority="high"
 />
 ```
 
-**2. Preload critical resources**
+`fetchpriority="high"` matters more than it looks. By default the browser discovers images late and
+gives them low priority, so a hero image queues behind scripts it does not need to wait for.
 
-```html
-<link rel="preload" as="image" href="hero.avif" fetchpriority="high" />
-<link rel="preload" href="font.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preconnect" href="https://cdn.example.com" />
-```
+### INP: the main thread is the whole story
 
-**3. Cut render-blocking CSS/JS** — inline only the styles needed for above-the-fold content, defer the rest.
-
-**4. Speed up the server** — use a CDN and long cache headers so bytes arrive sooner.
-
-**5. Let the framework help** — Next.js handles most of this:
-
-```tsx
-import Image from 'next/image';
-
-function Hero(): JSX.Element {
-  return (
-    <Image
-      src="/hero.jpg"
-      alt="Hero"
-      width={1200}
-      height={600}
-      priority // marks this as the LCP image
-      quality={90}
-    />
-  );
-}
-```
-
-> **Key Insight:**
-> Find your LCP element, then optimize that one element. Don't waste time on things below the fold.
-
----
-
-## INP — Interaction to Next Paint
-
-INP measures **how fast the page responds to clicks, taps, and key presses**. It replaced FID in March 2024, and FID was fully removed in September 2024.
-
-```text
-You click → JS runs → browser paints the result
-            └──────── INP measures this whole journey ────────┘
-```
-
-INP watches **every** interaction (not just the first, like the old FID) and reports the worst.
-
-### 💡 **Optimizing INP**
-
-Bad INP almost always means **JavaScript is blocking the main thread**.
-
-**1. Break up long tasks** — any task over 50ms blocks input.
+Poor INP means the main thread was busy when the user interacted. There are only three things to do
+about it, and they are all about giving the thread back.
 
 ```typescript
-// ❌ Before: one long loop freezes the page
-function processAll(data: number[]): void {
-  for (const item of data) expensiveWork(item);
+// ❌ One long task. Every click during it waits.
+function reindex(rows: Row[]): void {
+  for (const row of rows) expensiveWork(row);
 }
 
-// ✅ After: yield to the browser between chunks
-async function processAll(data: number[]): Promise<void> {
-  for (let i = 0; i < data.length; i++) {
-    expensiveWork(data[i]);
-    // Modern API: give the browser a turn (falls back to setTimeout)
-    if (i % 100 === 0) await scheduler.yield();
+// ✅ Yield between chunks so input can be handled.
+async function reindex(rows: Row[]): Promise<void> {
+  for (let i = 0; i < rows.length; i++) {
+    expensiveWork(rows[i]);
+    if (i % 100 === 0) await scheduler.yield(); // hand the thread back
   }
 }
 ```
 
-**2. Debounce and throttle high-frequency events**
+| Cause | Fix |
+| ----- | --- |
+| A single task over 50 ms | Chunk it and yield, or move it to a worker |
+| A handler firing on every keystroke or scroll frame | Debounce or throttle it |
+| A large synchronous re-render after a state change | Narrow what re-renders, or mark it non-urgent |
 
-| Event | Use | Why |
-|-------|-----|-----|
-| Search input | `debounce` | Wait until typing stops |
-| Scroll handler | `throttle` | Run at most once per interval |
-| Window resize | `debounce` | Wait until resize ends |
+The 50 ms number is worth remembering: any task longer than that can hold up an interaction, and the
+browser cannot interrupt it. See
+[Chapter ?? — Rendering and Streaming](#ch-rendering-and-streaming) for the framework-level version.
 
-**3. Move heavy work to a Web Worker** so the main thread stays free for input.
+### CLS: reserve the space before the content arrives
 
-**4. In React, keep handlers cheap** and memoize expensive work:
-
-```tsx
-import { useMemo, useState } from 'react';
-
-interface Row { id: string; name: string; }
-
-function DataTable({ data }: { data: Row[] }): JSX.Element {
-  const [sortKey, setSortKey] = useState<keyof Row>('name');
-
-  // Re-sort only when inputs change, not on every render
-  const sorted = useMemo<Row[]>(
-    () => [...data].sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : -1)),
-    [data, sortKey],
-  );
-
-  return <Table data={sorted} />;
-}
-```
-
-> **Key Insight:**
-> Every millisecond freed on the main thread improves INP. Hunt for tasks longer than 50ms.
-
----
-
-## CLS — Cumulative Layout Shift
-
-CLS measures **how much the page jumps around while loading**. That moment when you go to click a button and an ad pushes it away — that is CLS.
-
-The root cause is almost always: **the browser doesn't know how big something will be until it loads**.
-
-**1. Always set image dimensions**
+Every layout shift has the same cause — **the browser did not know how big something would be.**
 
 ```html
-<!-- ❌ No size → content jumps when the image loads -->
-<img src="image.jpg" alt="Image" />
+<!-- ❌ Content jumps down when the image loads -->
+<img src="chart.png" alt="Emissions by quarter" />
 
-<!-- ✅ Reserve the space up front -->
-<img src="image.jpg" alt="Image" width="800" height="600" />
+<!-- ✅ The box exists from the first frame -->
+<img src="chart.png" alt="Emissions by quarter" width="800" height="600" />
 
-<!-- ✅ Or with modern CSS -->
-<img src="image.jpg" alt="Image" style="aspect-ratio: 16 / 9; width: 100%;" />
+<!-- ✅ Or with intrinsic ratio, for a fluid width -->
+<img src="chart.png" alt="Emissions by quarter" style="aspect-ratio: 4 / 3; width: 100%" />
 ```
 
-**2. Reserve space for dynamic content** (ads, embeds, banners)
+The same rule covers everything that arrives late: a `min-height` on an ad or embed slot, a skeleton
+the same size as the content it replaces, and `font-display: swap` with matched fallback metrics so
+the text does not reflow when the web font arrives —
+[Chapter ?? — Asset Delivery](#ch-asset-delivery) covers that pairing.
 
-```html
-<div id="ad-slot" style="min-height: 250px;"><!-- ad loads here, no jump --></div>
-```
+And one behavioural rule: never insert content above what the user is already reading. A notification
+banner belongs in a fixed overlay, not pushed into the flow.
 
-**3. Stop web fonts from reflowing text**
+### Field data and lab data answer different questions
 
-```css
-@font-face {
-  font-family: 'CustomFont';
-  src: url('font.woff2') format('woff2');
-  font-display: swap; /* show fallback immediately, swap when ready */
-}
-```
+| | Field (real users) | Lab (Lighthouse, a synthetic run) |
+| --- | --- | --- |
+| Measures | What actually happened, at the 75th percentile | One controlled load on one device |
+| Good for | Knowing whether you have a problem | Finding out why |
+| Can measure INP | Yes | No — there is no real interaction to measure |
 
-**4. Don't insert content above what the user is reading** — show notifications with `position: fixed` instead of pushing the page down.
+That last row catches people. A lab run has nobody clicking, so Lighthouse reports Total Blocking Time
+as a proxy. **INP only exists in the field**, which means you cannot fix it without real-user
+measurement in place first — see
+[Chapter ?? — Measuring in Production](#ch-measuring-in-production).
 
-> **Key Insight:**
-> If something will appear later, reserve its space now. Empty space beats jumping content.
+## When to Use It
 
----
+| Situation | Fix first | Why |
+| --------- | --------- | --- |
+| A content or marketing page scoring badly | LCP: the hero image and render-blocking head | Load dominates; there is little interaction |
+| A dashboard or editor scoring badly | INP: long tasks and re-render cost | The user interacts constantly |
+| Ads, embeds or late-loading banners | CLS: reserve every slot | One unreserved slot can fail the metric alone |
+| Good lab scores, poor field scores | Trust the field, and segment it | Your device is not the 75th percentile |
+| Poor INP with no field data | Instrument first | INP cannot be measured in a lab run |
 
-## Measuring Core Web Vitals
+## Common Mistakes
 
-The `web-vitals` library is the easiest and most accurate way to measure all three from real users.
+❌ **Optimising the average.** Improving the fast half of traffic moves the 75th percentile by nothing.
+✅ Segment field data by device and connection, and work on the slow tail.
 
-```typescript
-import { onCLS, onINP, onLCP, type Metric } from 'web-vitals';
+❌ **Talking about FID.** It stopped being a Core Web Vital in 2024.
+✅ INP, and be able to say what it measures that FID did not.
 
-function sendToAnalytics(metric: Metric): void {
-  const body = JSON.stringify({
-    name: metric.name,
-    value: metric.value,
-    rating: metric.rating, // 'good' | 'needs-improvement' | 'poor'
-    id: metric.id,
-  });
-  // `sendBeacon` survives page unload; fetch fallback for older browsers
-  navigator.sendBeacon?.('/api/vitals', body) ??
-    fetch('/api/vitals', { body, method: 'POST', keepalive: true });
-}
+❌ **Guessing the LCP element.** Teams routinely optimise an image that is not it.
+✅ Read it from attribution data, then optimise that one element.
 
-onCLS(sendToAnalytics);
-onINP(sendToAnalytics);
-onLCP(sendToAnalytics);
-```
+❌ **`loading="lazy"` on the hero image.** It defers the exact resource LCP is waiting for.
+✅ Eager, with `fetchpriority="high"`. Lazy-load only below the fold.
 
-### 💡 **Field Data vs Lab Data**
+❌ **Chasing a Lighthouse score as the goal.** It is one synthetic load and it cannot see INP at all.
+✅ Use lab runs to diagnose, and judge on field data.
 
-| Type | What It Is | Use For |
-|------|-----------|---------|
-| **Field** | Real user measurements | What Google ranks on |
-| **Lab** | Controlled test (Lighthouse) | Debugging in development |
+## 🔑 Key Takeaways
 
-> **Key Insight:**
-> Always trust **field data**. Real users on mid-range phones and slow networks see a very different site than your fast laptop.
-
----
-
-## Optimization Priority
-
-| Priority | Action | Helps |
-|----------|--------|-------|
-| 🔴 High | Optimize the LCP image | LCP |
-| 🔴 High | Add width/height to all images | CLS |
-| 🔴 High | Remove render-blocking CSS/JS | LCP |
-| 🔴 High | Preload critical fonts (`font-display: swap`) | LCP + CLS |
-| 🟡 Medium | Break up long tasks, debounce/throttle | INP |
-| 🟡 Medium | Code splitting | INP |
-| 🟢 Low | Switch to AVIF | LCP (small gain) |
-
----
+- Core Web Vitals are judged at the 75th percentile of real users, not on an average or your own device.
+- INP replaced FID in 2024: it measures every interaction end to end, not just the first input's delay.
+- LCP work starts by identifying the element from attribution data, not by guessing.
+- Every layout shift comes from unreserved space, so give late-arriving content its box up front.
+- INP cannot be measured in a lab run, which makes real-user monitoring a prerequisite for fixing it.
 
 ## Interview Questions
 
-**Q1: What are Core Web Vitals and why do they matter?**
+**Q: What replaced FID, and what does it measure differently?**
 
-Three field metrics from Google: **LCP** (loading, < 2.5s), **INP** (responsiveness, < 200ms), and **CLS** (visual stability, < 0.1). They affect search ranking, user retention, and conversions. Google scores at the 75th percentile of real users.
+INP, as of March 2024. FID only measured the delay before the first interaction's handler began, so a
+page could score well and still feel unresponsive on every click after the first. INP measures the
+full path — input delay, handler execution, and the next paint — across all interactions and reports
+close to the worst one. It is a much harder metric to game and a much better proxy for how the page
+actually feels.
 
-**Q2: How would you optimize LCP for a hero image?**
+**Q: A page has an LCP of 4.2 seconds. Walk me through your first hour.**
 
-Use a modern format (AVIF/WebP), serve responsive sizes with `srcset`, add `fetchpriority="high"`, preload it, serve from a CDN, and remove render-blocking resources. In Next.js, the `priority` prop on `<Image>` does most of this.
+Identify the LCP element from field attribution rather than assuming, because it is often a background
+image or a headline instead of the hero. Then check the sequence: is the resource discovered late,
+queued behind scripts, or just too large? Most of the time the fix is the right format and size plus
+`fetchpriority="high"` and a preload, and only after that would I look at render-blocking CSS or the
+server's response time.
 
-**Q3: What replaced FID, and why?**
+**Q: Why can Lighthouse not tell you your INP?**
 
-INP replaced FID in March 2024. FID measured only the delay of the **first** interaction. INP measures the full delay-plus-processing-plus-render time of **all** interactions, giving a truer picture of responsiveness.
+Because there is no user in a lab run. INP requires real interactions to measure, so Lighthouse
+reports Total Blocking Time as a proxy for main-thread congestion instead. That is why fixing INP
+starts with getting field data in place — without it you are optimising against a number that
+correlates but is not the metric.
 
-**Q4: What causes CLS and how do you fix it?**
+**Q: Your CLS is 0.3 and you have set width and height on every image. Where else do you look?**
 
-| Cause | Fix |
-|-------|-----|
-| Images without dimensions | Set `width`/`height` or `aspect-ratio` |
-| Web fonts reflowing text | `font-display: swap` + preload |
-| Dynamic content (ads) | Reserve space with `min-height` |
-| Content inserted above the fold | Use `position: fixed` overlays |
+Late-arriving content that has no reserved box: ad and embed slots, cookie banners inserted into the
+flow, consent modals, and anything appended above the current scroll position. Then web fonts — a
+fallback with different metrics reflows every line when the real font swaps in, which needs
+`size-adjust` and matched ascent and descent rather than just `font-display: swap`.
 
-**Q5: How do you debug a poor INP score?**
+## What to Read Next
 
-```typescript
-// Log slow interactions in the field
-const observer = new PerformanceObserver((list) => {
-  for (const entry of list.getEntries()) {
-    if (entry.duration > 200) console.log('Slow interaction:', entry);
-  }
-});
-observer.observe({ type: 'event', durationThreshold: 200 } as PerformanceObserverInit);
-```
-
-Then break up long tasks, debounce handlers, move work to a Web Worker, or memoize in React.
-
-**Q6: Field data vs lab data?**
-
-Field data is from real users (what Google ranks on); lab data is a controlled test (good for debugging and CI). Use lab to catch regressions early, field to know real-world performance.
-
----
-
-## Summary
-
-| Metric | Target | How to Optimize |
-|--------|--------|-----------------|
-| **LCP** | < 2.5s | Optimize the LCP image, preload, cut blocking resources |
-| **INP** | < 200ms | Break up long tasks, debounce, Web Workers |
-| **CLS** | < 0.1 | Set dimensions, reserve space, `font-display: swap` |
-
-> **Remember:**
-> - Core Web Vitals directly affect SEO.
-> - Trust **field data** (real users), not just lab scores.
-> - Fix the biggest wins first: LCP image and image dimensions.
-> - Measure in production with the `web-vitals` library.
-
----
-
-[Next: Lazy Loading →](./02-lazy-loading.md) | [← Back to Web Performance](./README.md)
+- [Chapter ?? — Measuring in Production](#ch-measuring-in-production) — collecting the field data these numbers come from
+- [Chapter ?? — Loading and Code Splitting](#ch-loading-and-code-splitting) — the main lever on LCP and on main-thread work
+- [Chapter ?? — Asset Delivery](#ch-asset-delivery) — images, fonts and CSS, which cause most LCP and CLS problems

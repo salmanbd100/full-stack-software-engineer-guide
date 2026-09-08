@@ -193,7 +193,7 @@ SLIs. A p75 target for INP is an SLO. Sampling and cardinality limits apply the 
 an ID in it is as dangerous a label in a real-user monitoring tool as it is in a metrics backend.
 
 The mechanics of collecting it — `web-vitals`, `PerformanceObserver`, attribution builds, beacon
-transport — belong to Part IV. See [Chapter ?? — Performance Monitoring](#ch-performance-monitoring).
+transport — belong to Part IV. See [Chapter ?? — Performance Monitoring](#ch-measuring-in-production).
 
 ## Common Mistakes
 
@@ -269,4 +269,4 @@ tail-based so errors survive.
 
 - [Chapter ?? — Metrics and Dashboards](#ch-metrics-and-dashboards) — how the numbers get collected, queried, and put on a screen
 - [Chapter ?? — Alerting and On-Call](#ch-alerting) — turning these signals into pages a tired engineer can act on
-- [Chapter ?? — Performance Monitoring](#ch-performance-monitoring) — the same thinking, measured in the browser
+- [Chapter ?? — Performance Monitoring](#ch-measuring-in-production) — the same thinking, measured in the browser

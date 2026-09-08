@@ -129,7 +129,7 @@ feedback on a pull request** — past that, developers batch changes and route a
 | Integration | Tens to hundreds | Every commit |
 | End-to-end | 10–30 critical flows | Merge to `main`, against a deployed environment |
 
-The full argument for what belongs in each tier is [Chapter ?? — Testing Fundamentals](#ch-testing-fundamentals).
+The full argument for what belongs in each tier is [Chapter ?? — Testing Fundamentals](#ch-testing-strategy).
 What the pipeline adds is the ordering and the placement.
 
 ⚠️ The inverted pyramid — mostly end-to-end tests — is slow, flaky, and its failures say *"checkout

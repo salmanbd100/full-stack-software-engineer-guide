@@ -33,6 +33,7 @@ which sits with the rest of the React chapters in Part III.
 | 05 | [TypeScript Type Guards](./05-type-guards.md)                  | How do you get a compile error when you forget a case?       |
 | 06 | [TypeScript Advanced Types](./06-advanced-types.md)            | When does computing types from types stop being worth it?    |
 | 07 | [Enums and Literal Types](./07-enums-literals.md)              | How do you model a fixed set without a runtime object?       |
+| 08 | [TypeScript at Scale](./08-typescript-at-scale.md)             | How do you get an old codebase onto `strict`, and when do types cost too much? |
 
 ## What Interviewers Probe For
 

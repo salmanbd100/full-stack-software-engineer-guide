@@ -214,5 +214,5 @@ is cached globally and priced accordingly.
 ## What to Read Next
 
 - [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — what LCP and CLS are actually measuring
-- [Chapter ?? — Font and CSS Delivery](#ch-font-and-css-delivery) — the `@font-face`, `font-display` and metric-override mechanics `next/font` is wrapping
+- [Chapter ?? — Font and CSS Delivery](#ch-asset-delivery) — the `@font-face`, `font-display` and metric-override mechanics `next/font` is wrapping
 - [Chapter ?? — Deployment and Runtime](#ch-nextjs-deployment-and-runtime) — what the image optimiser costs when you host it yourself

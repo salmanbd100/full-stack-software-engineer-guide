@@ -13,13 +13,12 @@ in_book: true
 # Part VI — System Design
 
 The round most senior candidates lose, and the one they prepare for least specifically. Part VI teaches
-the vocabulary first, then the components, then the two kinds of round a frontend-heavy engineer
-actually walks into — a backend-shaped case study, and a frontend one.
+the vocabulary first, then the components, then the two kinds of round a frontend-heavy engineer walks
+into — a backend-shaped case study, and a frontend one.
 
-The balance correction matters. Classic system design material is entirely backend-shaped: shorten
-URLs, design a feed, shard a database. This reader also gets asked to design a collaborative editor, an
-infinite feed, or a dashboard with fifty live widgets. Those rounds have their own vocabulary —
-rendering strategy, cache invalidation in the client, optimistic updates, conflict resolution — and
+The balance correction matters. Classic system design material is entirely backend-shaped — shorten
+URLs, design a feed, shard a database — while this reader also gets asked for a collaborative editor,
+an infinite feed, or a dashboard with fifty live widgets. Those rounds have their own vocabulary, and
 `Frontend/` is where it lives.
 
 ## Sections
@@ -34,8 +33,8 @@ rendering strategy, cache invalidation in the client, optimistic updates, confli
 
 ## The RADIO Framework
 
-Every case study in this part follows the same five steps, because an interviewer scores the process as
-much as the answer.
+Every case study here follows the same five steps, because the interviewer scores the process as much
+as the answer.
 
 | Step               | What you do                                             | Time      |
 | ------------------ | -------------------------------------------------------- | --------- |
@@ -50,16 +49,17 @@ The full walkthrough is [Chapter ?? — Driving the Design Round](#ch-driving-th
 ## What Interviewers Probe For
 
 The senior signal for this part is **drives the round — clarifies requirements, states assumptions,
-defends trade-offs.** Note what is not on that list: arriving at the "correct" architecture.
+defends trade-offs.** Note what is not on that list: arriving at the "correct" architecture. Two habits
+carry it: saying your assumptions out loud, so the interviewer can correct you cheaply, and being able
+to estimate — queries per second, storage per year, bandwidth are what turn a diagram into a design.
 
-- **Do you ask before you draw?** Candidates who start sketching in the first minute have skipped the
-  step the interviewer is scoring hardest. Read volume against write volume changes everything after it.
-- **Do you state your assumptions out loud?** "I am assuming ten million daily actives and a
-  hundred-to-one read-write ratio" lets the interviewer correct you cheaply. Silence does not.
-- **Can you defend a trade-off rather than a choice?** Every answer here has a cost. Naming it before
-  being asked is the clearest seniority marker in the round.
-- **Can you estimate?** Queries per second, storage per year, bandwidth — the numbers are what turn a
-  diagram into a design.
+**Mid or senior, on the same question:**
+
+| Asked | Mid answer | Senior answer |
+| ----- | ---------- | ------------- |
+| "Design a feed" | Starts drawing boxes in the first minute | "How many users, read-to-write ratio, and is the feed chronological or ranked?" before anything is drawn |
+| "Would you cache this?" | "Yes, with Redis" | "Yes — and here is the invalidation trigger, the staleness we can tolerate, and what happens on a cold cache" |
+| "Which database?" | "Postgres, it's reliable" | Access patterns first, then the choice — and what the answer would have been had the pattern differed |
 
 ## Reading Order
 

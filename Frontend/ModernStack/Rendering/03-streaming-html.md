@@ -125,7 +125,7 @@ call above that line converts a streamed response back into a buffered one, and 
 
 This table is the answer to the most common rendering interview question. Streaming is a **time to first
 byte** technique that also helps first paint. It does nothing for the hero image, which is a
-[Chapter ?? — Image Optimisation](#ch-image-optimisation) problem, and nothing for interactivity, which
+[Chapter ?? — Image Optimisation](#ch-asset-delivery) problem, and nothing for interactivity, which
 is a [Chapter ?? — Hydration and Its Costs](#ch-hydration-and-its-costs) problem.
 
 > ⚠️ **Streaming can make LCP worse.** If the largest element is inside a streamed region, the browser

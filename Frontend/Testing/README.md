@@ -5,8 +5,8 @@ chapter: 0
 slug: frontend-testing-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-08-28
-tags: [testing, vitest, react-testing-library, e2e, tdd]
+updated: 2026-09-07
+tags: [testing, vitest, react-testing-library, playwright, tdd, visual-regression]
 in_book: true
 ---
 
@@ -23,16 +23,19 @@ rewrites of everything underneath it. Almost every recommendation here follows f
 
 ## Chapters
 
-| #  | Chapter                                                          | What it answers                                                 |
-| -- | ---------------------------------------------------------------- | --------------------------------------------------------------- |
-| 01 | [Testing Fundamentals](./01-testing-fundamentals.md)             | What do you test, and at which layer?                           |
-| 02 | [Vitest Basics](./02-vitest-basics.md)                           | How do you mock a module without leaking into the next test?    |
-| 03 | [React Testing Library](./03-react-testing-library.md)           | Which query, so a refactor does not break a hundred tests?      |
-| 04 | [Frontend Integration Testing](./04-integration-testing.md)      | How do you test a whole flow against a fake network?            |
-| 05 | [End-to-End Testing](./05-e2e-testing.md)                        | Which browser tests are worth their runtime?                    |
-| 06 | [Test-Driven Development](./06-test-driven-development.md)       | When does writing the test first genuinely pay?                 |
-| 07 | [Specialised Testing](./07-specialized-testing.md)               | What do visual, accessibility and contract tests catch?         |
-| 08 | [Testing Best Practices](./08-best-practices.md)                 | How does a suite stay fast enough that people still run it?     |
+| #  | Chapter                                                              | What it answers                                                 |
+| -- | -------------------------------------------------------------------- | --------------------------------------------------------------- |
+| 01 | [Testing Strategy](./01-testing-strategy.md)                         | What do you test, at which layer, and what does it cost?        |
+| 02 | [Vitest](./02-vitest.md)                                             | How do you mock at the boundary without leaking into the next test? |
+| 03 | [React Testing Library](./03-react-testing-library.md)               | Which query, so a refactor does not break a hundred tests?      |
+| 04 | [Frontend Integration Testing](./04-integration-testing.md)          | How do you test a whole flow against a faked network?           |
+| 05 | [End-to-End Testing with Playwright](./05-e2e-with-playwright.md)    | Which browser tests earn their runtime, and where does component testing stop? |
+| 06 | [Test-Driven Development](./06-test-driven-development.md)           | When does writing the test first genuinely pay?                 |
+| 07 | [Visual and Contract Testing](./07-visual-and-contract-testing.md)   | What do you do about failures an assertion cannot express?       |
+
+Accessibility testing has its own chapter in Part II —
+[Chapter ?? — Testing Accessibility](#ch-testing-accessibility) owns the method, the CI gate and the
+two manual passes. This section deliberately does not restate it.
 
 ## What Interviewers Probe For
 
@@ -44,6 +47,8 @@ features.** A test suite is a budget — of runtime, of maintenance, and of trus
   in the wrong place.
 - **How do you handle a flaky test?** Quarantine and fix, not retry and forget. A candidate who
   reaches straight for a retry count has told you what their suite looks like.
+- **Where does component testing stop and end-to-end start?** The answer is about what is real —
+  jsdom computes no layout — not about how long the flow is.
 - **What is your coverage number for?** The honest senior answer is that coverage finds untested
   files, not untested behaviour, and that a target above roughly 80% starts buying tests written to
   satisfy the number.
@@ -54,7 +59,7 @@ features.** A test suite is a budget — of runtime, of maintenance, and of trus
 ## Reading Order
 
 01 first — it sets the layers everything else refers to. Then 03 and 04, which are where most
-frontend testing actually happens. 02 is reference material you can dip into. 06 to 08 are the
+frontend testing actually happens. 02 is reference material you can dip into. 05 to 07 are the
 judgement chapters and read well in one sitting.
 
 **Interview sprint:** 01 → 03 → 05. The layering question, the query-priority question, and knowing
