@@ -25,6 +25,12 @@ Both come down to holding a credential you can invalidate. A password is one you
 only a slow, one-way derivation of it. A session or token is one you issue, and the design question
 is whether you kept the ability to take it back.
 
+> ⚠️ **Moving target:** the recommended hashing algorithm and its parameters are revised as hardware
+> gets faster — bcrypt's cost factor and Argon2id's memory and time settings are both higher than the
+> guidance a few years ago, and the current numbers live in OWASP's cheat sheet rather than in a book.
+> The durable principle is the reason for them: the hash must stay slow relative to an attacker's GPU,
+> so the parameters are meant to be raised on a schedule.
+
 ## How It Works
 
 ### Storing a password
@@ -184,12 +190,10 @@ that into CSRF, which has a complete defence: [Chapter ?? — CORS and CSRF](#ch
 The first two are the same mistake: **trusting the token's own header to tell you how to verify it**,
 which an attacker controls.
 
-**Revocation, when you need it.** A short expiry is not revocation. If "sign out everywhere" is a
-requirement you need state — sessions, or a denylist of `jti` values in Redis with a TTL matching
-each token's remaining life. That is a lookup per request, so ask whether a session was the right
-answer from the start. And rate limiting on login must be keyed on both the account and the source:
-per-account alone lets an attacker spray one password across a million accounts, and per-IP alone
-is defeated by a botnet — [Chapter ?? — Rate Limiting](#ch-rate-limiting).
+**Revocation, when you need it.** A short expiry is not revocation. "Sign out everywhere" needs state,
+and that state is a lookup per request — so ask whether a session was the right answer from the start.
+Login rate limiting keys on both account and source ([Chapter ?? — Rate Limiting](#ch-rate-limiting)):
+per-account alone lets one password be sprayed across a million accounts, per-IP alone loses to a botnet.
 
 ## Password Rules and Reset Flows
 

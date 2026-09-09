@@ -27,6 +27,11 @@ to clear it.
 > The service worker is code you deploy once and then cannot easily take back. Design the update path
 > before you design the caching.
 
+> ⚠️ **Moving target:** the tooling around service workers churns far faster than the platform. Workbox
+> renames its strategies and recipes across majors, and framework plugins generate a worker for you and
+> then change what they generate. The durable principle is the lifecycle underneath — install, wait,
+> activate — and the fact that whatever generated the worker, you own the update path.
+
 ## How It Works
 
 Registration happens from the page. Everything after that happens in the worker's own global scope,

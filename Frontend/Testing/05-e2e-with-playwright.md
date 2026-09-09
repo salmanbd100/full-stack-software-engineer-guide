@@ -5,7 +5,7 @@ chapter: 0
 slug: end-to-end-testing
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [playwright, e2e, testing, flaky-tests, ci, browser]
 in_book: true
 ---
@@ -71,10 +71,9 @@ shows. **Realness** is the criterion.
 The structural difference is the second row. Cypress runs the test inside the page, which is what
 makes its debugger so good and what makes multiple tabs, cross-origin navigation and iframes awkward.
 Playwright drives the browser from outside over a protocol, so none of those are special cases — and
-WebKit coverage means you actually test Safari, which is where a lot of real frontend bugs are.
-
-Cypress remains a reasonable choice for a team that values its runner most and tests one Chromium
-origin. For everything else Playwright is the default now, and it is what an interviewer expects.
+WebKit coverage means you actually test Safari, where a lot of real frontend bugs are. Cypress is
+still defensible for a team that values its runner most and tests one Chromium origin; for everything
+else Playwright is the default now, and it is what an interviewer expects.
 
 ### Locators auto-wait, which removes most flake
 
@@ -112,14 +111,8 @@ state.
 
 ```typescript
 // auth.setup.ts — a setup project that runs before the test projects
-import { test as setup } from "@playwright/test";
-
 setup("authenticate", async ({ page }) => {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("user@example.com");
-  await page.getByLabel("Password").fill("hunter2");
-  await page.getByRole("button", { name: "Log in" }).click();
-  await page.waitForURL("/dashboard");
+  await logIn(page); // the same steps as the test above
   await page.context().storageState({ path: ".auth/user.json" }); // cookies + localStorage
 });
 ```
@@ -157,11 +150,10 @@ export default defineConfig({
 ```
 
 Three of those are worth arguing for. `webServer` running the **production build** rather than the dev
-server is what makes the test able to catch a build-output bug — the whole reason to have this layer.
-`trace: "on-first-retry"` gives a step-by-step DOM recording of exactly the failures you need to debug,
-without paying the recording cost on every pass. And `retries: 2` is a pragmatic concession, not a
-fix: it stops one flake blocking a merge, and it also **hides** flake, so a retried test should still
-be reported and chased.
+server is what lets the test catch a build-output bug — the whole reason to have this layer.
+`trace: "on-first-retry"` gives a step-by-step DOM recording of exactly the failures you need, without
+paying the recording cost on every pass. And `retries: 2` is a concession, not a fix: it stops one
+flake blocking a merge, and it **hides** flake, so retried tests still have to be reported and chased.
 
 ## When to Use It
 
@@ -218,13 +210,6 @@ Not in jsdom, because jsdom computes no layout — element geometry, scroll posi
 all simulated. That needs a real browser engine, which means Vitest's browser mode for a single
 component or Playwright for the page. This is the concrete version of the component-versus-E2E
 boundary: it is decided by whether the test needs real rendering, not by how big the test feels.
-
-**Q: Playwright or Cypress?**
-
-Playwright by default, mainly for WebKit coverage and because it drives the browser out of process —
-which makes multiple tabs, cross-origin navigation and iframes ordinary rather than special cases, and
-gives real parallelism without paid orchestration. Cypress still has the better interactive debugger,
-so a team testing one Chromium origin that values that most has a defensible reason to stay.
 
 **Q: Your E2E suite fails about once a week for no clear reason. How do you approach it?**
 

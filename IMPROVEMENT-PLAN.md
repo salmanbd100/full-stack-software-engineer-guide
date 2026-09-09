@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-08 · **Progress:** 73 / 92
+**Last updated:** 2026-09-09 · **Progress:** 75 / 92
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -5346,19 +5346,158 @@ missing from this item and was added when it ran — the acceptance test matches
 
 ---
 
-### - [ ] 65. Add "reviewing AI-generated code" to Part IV `S`
+### - [x] 65. Add "reviewing AI-generated code" to Part IV `S` — ✅ **done 2026-09-09**
 
 A 2026–27 senior signal: catching that generated code creates new object references that defeat memoisation,
 or that generated ARIA attributes are syntactically valid but semantically wrong. This is a genuinely new
 skill and almost nothing published covers it.
 
+**Done when:** the chapter exists at the Book Chapter Standard, `Frontend/Architecture/README.md` lists it,
+and `pnpm lint:docs` still reports Part 4 at or under its BOOK-SPEC § 5 budget of 5,500 — this item adds a
+chapter to a part that had **4 lines of headroom**, so the trim is part of the item, not a follow-on.
+
+**Delivered:**
+
+- **`Frontend/Architecture/05-reviewing-ai-generated-code.md`** (236 lines, `#ch-reviewing-ai-generated-code`),
+  built around the claim that generated code fails *differently*: human code fails where the author was
+  confused and leaves marks in the diff, while a model returns the most likely answer to a prompt stripped
+  of everything the codebase knows — so it is **locally plausible and globally wrong**. Six stable defect
+  classes in a table (reference identity, semantically wrong ARIA, security theatre, invented API surface,
+  tests that cannot fail, version drift), three of them worked as ❌/✅ pairs, then the three questions to
+  ask an author, then the gate table that maps each defect class onto a machine that owns it
+- **Placed in `Frontend/Architecture/`, not `Testing/`,** and the section opener's framing was widened to
+  carry it: every chapter there is about a boundary, and the review gate is the boundary between what an
+  assistant produces and what enters the codebase. README gains a table row, the reading order runs
+  01 → 05, and the interview-sprint line names 05 as the one most candidates have no answer for
+- **Deliberately does not collide with the two adjacent chapters.** #64's `Communication/04` teaches
+  *narrating* verification under interview conditions with a framework-free retry example; this one is the
+  team practice, with React, ARIA and sanitiser examples. `Frontend/ModernStack/React/09` owns the compiler,
+  so the reference-identity section defers to it and states precisely what the compiler does **not** fix —
+  an uncompiled file under partial adoption, a value built outside React, or a consumer that keys on
+  identity itself
+- **Moving-target callout present**, as non-negotiable #12 requires: model quality changes every few months,
+  the defect classes do not, because they come from missing context rather than from model quality
+- **Part IV paid for the chapter itself: 237 lines removed from eleven existing chapters**, on the same
+  precedent as #58a, and the part now sits at **exactly 5,500 of 5,500** with 23 chapters against § 5's ~24.
+  The cuts were of genuinely redundant content, not uniform prose shortening:
+  - **Nine code fences cut or compressed** where prose already carried them — the hand-written HTML encoder
+    in `Security/01` that the chapter itself says never to ship, the helmet block in `Security/02` that
+    restated the policy above it in camel case, the Module Federation *shell* config that mirrored the
+    remote's, the single-spa `registerApplication` snippet, the `themeToCss` build helper and the
+    `package.json` in `Architecture/03`, the Playwright `auth.setup.ts` login steps duplicated from the test
+    above, and the Lighthouse CI assertion wrapper
+  - **Six interview questions dropped** where the body already answered them in full — two from
+    `Security/01`, two from `Security/02`, and one each from `Testing/03`, `Testing/05`,
+    `WebPerformance/02` and `WebPerformance/07`. Every chapter still has at least three, including a
+    judgement call
+  - **One `## Common Mistakes` pair dropped** from each of `WebPerformance/05` and `Security/01`, in both
+    cases the pair that restated a paragraph a few lines above
+  - **`Security/01` and `Security/02` were also brought up to standard while open**, since both predate it:
+    a `### 💡` heading and two retired callouts (`🔴`, `✨`) removed, `Q1:`–`Q6:` numbering dropped, and the
+    American spellings normalised (`sanitize` → `sanitise`, `defense` → `defence`) — those two files were
+    the only ones in `Frontend/Security/` still using them
+- `pnpm lint:docs`: 296 → **297 files**, **all seven rules at zero, 0 violations total**.
+  `.lint-baseline.json` unchanged. `pnpm book:collect`: 297 files, **59,428 lines** — net **+4** across the
+  whole manuscript for a new chapter, which is the point of paying for it in place
+- **Not done, and deliberately:** the 12 slug/anchor mismatches include `Frontend/Security/02`
+  (`slug: csp-headers` against `{#ch-content-security-policy}`), which this session read and left alone —
+  it is **#70**'s, and every reference to it resolves against the H1 anchor today
+
+> ⚠️ **Part IV is now full: 5,500 of 5,500, and it is the fourth part at or within 5 lines of its ceiling
+> alongside VI (0), VIII (0), I (9), V (4) and IX (5).** **#66 cannot add a moving-target callout to any
+> Part IV chapter without removing a line from the same part** — `WebPerformance/03`, `WebPerformance/05`
+> and `Architecture/04` already carry one, and this new chapter carries one. Six of the ten parts now have
+> no usable headroom, which makes **#76**'s trim and **#77**'s page-rate calibration the two items that
+> unblock the rest of Phase 7.
+
 ---
 
-### - [ ] 66. Add a "what's changing" note to volatile chapters `S`
+### - [x] 66. Add a "what's changing" note to volatile chapters `S` — ✅ **done 2026-09-09**
 
 For chapters on fast-moving tools (Next.js caching, React Compiler, AI SDKs, bundlers), add a short
 `> ⚠️ **Moving target:**` callout naming what is likely to change and what the durable principle is.
 This is how a 2027 book survives to 2028.
+
+**Done when:** ⚠️ **added this session — the item shipped without one.** Every in-book chapter whose
+correctness depends on a version-stamped external artefact carries a `> ⚠️ **Moving target:**` callout
+naming both what will change and the durable principle underneath, `pnpm lint:docs` still reports
+**0 violations** with `budget` at zero, and no chapter exceeds the standard's **three-⚠️ ceiling**.
+Six of the ten parts had no headroom, so any callout added to a full part is **paid for inside the
+same part** — that trim is part of the item, not a follow-on.
+
+**Delivered:**
+
+- **A stated criterion, applied to all 297 files rather than to a shortlist.** A chapter is volatile
+  when its correctness depends on a **version-stamped external artefact** — a library API, a browser
+  feature's availability, a vendor's licence or prices, a spec in flight. It is not volatile when it
+  teaches a durable idea (closures, SQL joins, HNSW, STAR, the DSA patterns), however new the topic
+  feels. That rule is why Parts VI, IX and X gained nothing: a system-design chapter, a behavioural
+  chapter and a graph-traversal chapter have no version to be wrong about
+- **20 callouts added, taking coverage from 69 to 89 chapters.** By part:
+
+  | Part | Chapters given a callout | What moves |
+  | ---- | ------------------------ | ---------- |
+  | I | `TypeScript/07-enums-literals` | `erasableSyntaxOnly`, Node's type stripping — `enum` is losing runtime support |
+  | II | `BrowserAPIs/01`, `02`, `04`; `HtmlCss/02`; `PWA/01`; `Accessibility/06` | storage partitioning · third-party cookie policy · permission-prompt policy · Baseline · Workbox · axe-core rule sets |
+  | III | `React/08`; `Svelte/06`; `Tooling/04` | `useFormState`→`useActionState` · adapters track hosts · Turborepo 2's `pipeline`→`tasks` |
+  | IV | `WebPerformance/01`; `Testing/04`; `Security/03` | the metric set is Google's · MSW 2's handler rewrite · the header list keeps growing |
+  | V | `NoSQL/02`; `Frameworks/02`; `Security/01` | the Redis **licence**, not the API · NestJS majors · OWASP hashing parameters |
+  | VII | `Integration/02`, `04`; `RAG/04` | AI SDK stream helpers · `parameters`→`inputSchema`, `stepCountIs`→`isStepCount` · the vector-store vendor list |
+  | VIII | `CICD/03` | provenance and attestation formats, SLSA levels |
+
+- **Every SDK claim was checked against Context7, not written from memory** — the AI SDK 5 renames
+  (`parameters` → `inputSchema`, `maxSteps` → `stopWhen`), the AI SDK **7** rename
+  (`stepCountIs` → `isStepCount`, which confirms `AI/Integration/04`'s existing code is right for the
+  version the book is stamped at), Turborepo 2's `pipeline` → `tasks` and `outputMode` → `outputLogs`,
+  and SvelteKit's adapter set
+- **Four parts were at or within 4 lines of their ceiling, so their callouts were paid for in place.**
+  Part IV **5,500 → 5,499**, Part V **6,496 → 6,500**, Part VIII **5,500 → 5,495**, Part I
+  **4,991 → 4,996**. The cuts follow #65's precedent — content the chapter already carried, not prose
+  shortening:
+  - `Frontend/Security/03` — the development-mode helmet fence (one sentence carries it), and the two
+    interview questions that restated the header table and the `nosniff` section verbatim
+  - `Backend/Frameworks/02` — the Mermaid pipeline diagram, whose five nodes are the five rows of the
+    table directly beneath it; the one thing it added (interceptors wrapping both sides) moved into
+    the table row and the lead-in
+  - `ShipAndOperate/CICD/03` — the "how do you secure the software supply chain" question, which
+    restated the Supply Chain and Provenance sections point for point. Four questions remain
+  - `Backend/Security/01` — two lines off the revocation paragraph that duplicated its own interview
+    answer, with the Rate Limiting cross-reference kept
+- **`Frontend/Security/03` was brought up to standard while open**, on the same footing as #65's work
+  on `Security/01` and `02`: the retired `🔴` and two `✨` callouts removed, `Q1:`–`Q6:` numbering
+  dropped, and `defense`/`labeled`/`Customize` normalised to British spelling. It was the last file in
+  `Frontend/Security/` still carrying them
+- **Deliberately given no callout, with reasons**, because a sweep that adds one everywhere teaches the
+  reader to skip them:
+  - **Part VI in full.** System design has no version to be wrong about. `SystemDesign/Frontend/04`
+    was the one candidate, and crawler behaviour is already owned by `Rendering/05`
+  - **Parts IX and X in full** — behavioural material and DSA patterns are the most durable content in
+    the book. Part IX also has 5 lines of headroom and the note under #64 forbids spending them
+  - `AI/Production/03-observability` — framework-free throughout. It names a span tree and four
+    metrics, and mentions no vendor or SDK
+  - `Frontend/ModernStack/Tooling/01-modules-and-bundling` — resolution, graph partitioning and
+    chunking outlive every bundler. `Tooling/03-rust-bundlers` already owns the tool churn
+  - `Frontend/ModernStack/Svelte/03-components-and-snippets` — the slots-to-snippets transition is its
+    Core Idea already, and `Svelte/01` carries the legacy-mode callout for the whole directory
+  - `ShipAndOperate/Cloud/03-storage-and-delivery` — buckets, signed URLs, cache keys and tiers are
+    platform-independent
+- `pnpm lint:docs`: **297 files, all seven rules at zero, 0 violations total**, `.lint-baseline.json`
+  unchanged. `pnpm book:collect`: 297 files, **59,500 lines**. Every part is inside its BOOK-SPEC § 5
+  budget and no chapter exceeds three ⚠️
+- **Found and not fixed — `Frontend/BrowserAPIs/01`–`04` are still pre-standard and have no owner.**
+  #31b logged them ("left for a standards pass") and no item picked them up. All four lack
+  `## 💡 The Core Idea`, Key Takeaways and What to Read Next, and all four still carry a hand-written
+  Table of Contents and `### Q:` headings. `Frontend/HtmlCss/01-semantic-html` is missing three of the
+  six blocks for the same reason. This session added the callout to three of them without converting
+  them, to keep the item to one job. **Part II has 967 lines of headroom, which is the most in the
+  book, so the conversion is affordable — it needs assigning, and #70 is the natural home** since it
+  already owns the same conversion for `SystemDesign/Frontend/`. A second, smaller find:
+  `Backend/Security/01` has only **two** interview questions against the standard's 3–6
+
+> ⚠️ **Three chapters carry four ⚠️ callouts against the standard's ceiling of three** —
+> `Backend/DesignPatterns/05-architectural-patterns`, `ShipAndOperate/Deployment/01-platform-deploys`
+> and `Behavioral/05-engineering-culture`. All three predate this item and none was touched by it.
+> Nothing lints for the ceiling, so **#76** or **#79** should either check it or accept it in writing.
 
 ---
 
@@ -5701,9 +5840,9 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 3     | 32–43   | 12/12 | ✅ Complete    |
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
-| 6     | 64–69   | 1/6  | 🔄 In progress |
+| 6     | 64–69   | 3/6  | 🔄 In progress |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **92** | **73/92** | **79%**   |
+| **Total** | **92** | **75/92** | **82%**   |
 
 ---
 

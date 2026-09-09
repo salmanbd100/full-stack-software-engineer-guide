@@ -27,6 +27,11 @@ The confusion worth clearing up early: **the adapter does not decide how your ro
 options do. `adapter-static` cannot make a dynamic route static; it fails the build instead. The adapter
 decides where the output goes and what the request handler looks like when it gets there.
 
+> ⚠️ **Moving target:** an adapter tracks somebody else's platform, so adapter packages, their options
+> and the hosts `adapter-auto` recognises all move without SvelteKit changing. The durable principle is
+> the separation itself: page options own the rendering decision, the adapter owns packaging, and
+> swapping hosts should therefore be a one-line change rather than a rewrite.
+
 ## How It Works
 
 ### The adapters that matter

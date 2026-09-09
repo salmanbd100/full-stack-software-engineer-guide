@@ -29,6 +29,12 @@ repositories, and it is why "we tried a monorepo and it was slow" is such a comm
 The fix is to make the build system able to answer two questions: **what must run before what**, and
 **has this exact work already been done?** Everything else in this chapter is those two questions.
 
+> ⚠️ **Moving target:** the configuration spelling churns. Turborepo 2 renamed `pipeline` to `tasks`
+> and `outputMode` to `outputLogs`, dropped the `dotEnv` keys, and moved the cache directory; Nx
+> reshapes its project configuration on a similar cadence. The durable principle is the one both tools
+> implement: the cache is content-addressed over the inputs you declared, so a cache that misses when it
+> should hit means an input is undeclared.
+
 ## How It Works
 
 ### Two graphs, not one

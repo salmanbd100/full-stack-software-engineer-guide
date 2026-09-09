@@ -27,6 +27,12 @@ it is that you can say what each one deleted, because that is the same as knowin
 > The question behind each of these is "what did we used to do instead?" Answer that and the feature
 > explains itself.
 
+> ⚠️ **Moving target:** which CSS features are safe to ship moves in one direction only, and it moves
+> every few months — anchor positioning, `@scope` and container style queries are the next set to cross
+> the line. The durable principle is the check rather than the list: confirm a feature's Baseline status
+> before you rely on it, and wrap anything short of Baseline in `@supports` so the fallback is a
+> deliberate design rather than a broken layout.
+
 ## How It Works
 
 ### Custom properties are a runtime API, not variables

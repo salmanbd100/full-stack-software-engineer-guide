@@ -30,6 +30,11 @@ pieces, and a test that mocks those pieces away cannot see them.
 It is also why the layer is cheap. There is no browser to start and no server to run, so a
 twelve-step user flow costs a few hundred milliseconds.
 
+> ⚠️ **Moving target:** Mock Service Worker rewrote its handler API in version 2 — `rest` became `http`,
+> and the `res(ctx.json())` chain became a returned `HttpResponse` — so most published examples are for
+> a shape that no longer runs. The durable principle survives the rewrite: intercept at the network
+> boundary, not at the module boundary.
+
 ## How It Works
 
 ### Intercept the request, do not mock the module

@@ -29,6 +29,12 @@ moves the score by nothing, and a page that feels instant in development can sco
 That is why the vitals are a *field* measurement first. The lab tools are for diagnosis; the field
 number is the one that exists.
 
+> ⚠️ **Moving target:** the metric set belongs to Google and it has already changed once — FID out, INP
+> in — with further candidates in trial. Thresholds move too. The durable principle is the three
+> questions underneath the acronyms: did the content arrive, did the page answer when touched, did
+> anything move. Whatever the metrics are called next, they will measure those, at the 75th percentile,
+> in the field.
+
 ## How It Works
 
 ### The three metrics and their thresholds

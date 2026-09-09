@@ -5,7 +5,7 @@ chapter: 0
 slug: asset-delivery
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [images, fonts, css, avif, font-display, critical-css, performance]
 in_book: true
 ---
@@ -72,8 +72,8 @@ Sending a 1600px image to a 400px viewport wastes four times the bandwidth for n
 ```
 
 `srcset` declares what widths exist; `sizes` tells the browser how wide the image will *render*, which
-it needs before layout to choose. Getting `sizes` wrong is the common bug — the browser then picks a
-candidate for the wrong width and either wastes bytes or renders something blurry.
+it needs before layout. Getting `sizes` wrong is the common bug: the browser picks a candidate for the
+wrong width and either wastes bytes or renders something blurry.
 
 | Need | Use |
 | ---- | --- |
@@ -107,10 +107,9 @@ While a web font loads, the browser must show something. `font-display` picks th
 }
 ```
 
-Three decisions there. `woff2` alone — universally supported since 2016, so a `woff` fallback ships
+Three decisions there. `woff2` alone, universally supported since 2016, so a `woff` fallback ships
 bytes nobody downloads. A variable font, which beats three static weights and comfortably beats six.
-And a `unicode-range` subset, which cuts a Latin-Extended-plus-Cyrillic file by roughly 70% and stops
-the download entirely for text outside the range.
+And a `unicode-range` subset, which cuts a Latin-Extended-plus-Cyrillic file by roughly 70%.
 
 ```html
 <!-- crossorigin is required even same-origin: font requests are made in CORS mode -->
@@ -123,8 +122,7 @@ first viewport — preloading six weights turns an optimisation into contention 
 ### Killing the reflow with fallback metrics
 
 FOUT happens because the fallback and the web font measure differently, so the text occupies a
-different number of lines and everything below it moves. The fix is to make the fallback measure the
-same.
+different number of lines and everything below it moves. Make the fallback measure the same.
 
 ```css
 /* A fallback face whose metrics match Inter, so the swap shifts nothing */
@@ -135,14 +133,10 @@ same.
   ascent-override: 90%;
   descent-override: 22%;
 }
-
-body {
-  font-family: "Inter", "Inter Fallback", sans-serif;
-}
 ```
 
-Deriving those numbers by hand is tedious, which is why build tooling generates the face for you —
-`next/font` being one, covered in
+Then `font-family: "Inter", "Inter Fallback", sans-serif`. Deriving those percentages by hand is
+tedious, which is why build tooling generates the face — `next/font` being one, covered in
 [Chapter ?? — Images, Fonts, and Assets](#ch-nextjs-assets). What matters is knowing what it produces:
 a `local()` face pointing at a system font with its metrics overridden.
 
@@ -156,22 +150,16 @@ Every byte of CSS in a `<head>` stylesheet is on the critical path. Painting uns
 restyling it would be worse, so the answer is to shrink what is in that file rather than to unblock it.
 
 ```html
-<head>
-  <style>
-    /* First-viewport rules only. Under ~14 kB keeps it in the first congestion window. */
-    body { margin: 0; font-family: "Inter", "Inter Fallback", sans-serif; }
-    .header { height: 64px; }
-    .hero { min-height: 60vh; }
-  </style>
+<!-- Inline the first-viewport rules; under ~14 kB keeps them in the first congestion window -->
+<style>.header { height: 64px; } .hero { min-height: 60vh; }</style>
 
-  <!-- Everything else: non-blocking, promoted once it lands -->
-  <link rel="stylesheet" href="/styles/rest.css" media="print" onload="this.media='all'" />
-</head>
+<!-- Everything else: non-blocking, promoted once it lands -->
+<link rel="stylesheet" href="/styles/rest.css" media="print" onload="this.media='all'" />
 ```
 
-The `media="print"` promotion is a genuine hack. It works, and a framework that splits CSS per route
-gives you the same result without it — which is what `cssCodeSplit: true` does, emitting one
-stylesheet per JavaScript chunk so a route pays only for its own rules.
+The `media="print"` promotion is a genuine hack. A framework that splits CSS per route gives the same
+result without it — which is what `cssCodeSplit: true` does, emitting one stylesheet per JavaScript
+chunk so a route pays only for its own rules.
 
 ### Icons
 
@@ -207,9 +195,6 @@ is frequently 300 kB, for the reason given in
 ❌ **`preload` on a font without `crossorigin`.** The file is fetched twice.
 ✅ Always `crossorigin`, even same-origin.
 
-❌ **Preloading every font weight.** Now the fonts compete with the LCP image.
-✅ Preload only the faces in the first viewport.
-
 ## 🔑 Key Takeaways
 
 - Images fail gracefully and fonts and CSS do not, which is why fonts and CSS need a plan for the pre-arrival window.
@@ -237,10 +222,10 @@ images in a `srcset`, you want `<picture>`.
 
 **Q: Why is CSS render-blocking, and what do you do about it?**
 
-Because painting unstyled content and then restyling it is a worse experience than waiting — so the
-blocking is correct and the goal is to make the blocking file small. Inline the rules the first
-viewport needs, keep that under about 14 kB so it fits the first congestion window, and load the rest
-non-blocking. A framework that splits CSS per route achieves the same thing without the inlining step.
+Because painting unstyled content and then restyling it is worse than waiting, so the blocking is
+correct and the goal is to make the blocking file small. Inline what the first viewport needs, keep it
+under about 14 kB, and load the rest non-blocking — or let a framework split CSS per route, which
+achieves the same thing without the inlining step.
 
 ## What to Read Next
 

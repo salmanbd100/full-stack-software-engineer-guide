@@ -29,6 +29,12 @@ that finishes in four seconds with a four-second wait, and no amount of model tu
 > Streaming is a user-experience decision implemented in the transport layer. Treat it as a product
 > requirement, not a performance micro-optimisation.
 
+> ⚠️ **Moving target:** the helper that turns a model stream into an HTTP response has been renamed in
+> every AI SDK major — the book is stamped against AI SDK 7, where it is `toUIMessageStreamResponse`.
+> Assume the spelling has changed by the time you read this. The durable principle has not moved in a
+> decade: the route returns a response whose body is still being produced, and every layer between it
+> and the browser has to agree not to buffer.
+
 ## How It Works
 
 ### The transport

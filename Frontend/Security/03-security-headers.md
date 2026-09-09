@@ -18,7 +18,7 @@ in_book: true
 
 ## 💡 The Core Idea
 
-**Security headers** are HTTP response headers that switch on extra browser protections. Each one is a small, cheap line of defense against a specific attack — clickjacking, MIME-sniffing, protocol downgrade, referrer leaks.
+**Security headers** are HTTP response headers that switch on extra browser protections. Each one is a small, cheap line of defence against a specific attack — clickjacking, MIME-sniffing, protocol downgrade, referrer leaks.
 
 You don't set these one by one in production. You use **helmet**, which applies sensible defaults. But you should know what each header does and why.
 
@@ -33,6 +33,12 @@ You don't set these one by one in production. You use **helmet**, which applies 
 | `Permissions-Policy`          | Unwanted camera/mic/geo access | deny what you don't use                    |
 
 > ⚠️ **`X-XSS-Protection` is dead — set it to `0` (or let helmet do it).** The old legacy XSS filter was buggy and could *introduce* vulnerabilities. Modern guidance is to disable it and rely on CSP instead. `X-Frame-Options` is also superseded by CSP's `frame-ancestors`.
+
+> ⚠️ **Moving target:** this list is not fixed. `Feature-Policy` was renamed `Permissions-Policy`,
+> `X-XSS-Protection` went from recommended to harmful, and the cross-origin isolation headers arrived
+> after the six in the table were settled practice. The durable principle is what every header on the list
+> does: it removes a browser capability by default, so the question for a new one is always "what does
+> this switch off, and does anything I ship still need it?"
 
 ## Strict-Transport-Security (HSTS)
 
@@ -51,18 +57,18 @@ res.setHeader(
 - `includeSubDomains` — apply to every subdomain too.
 - `preload` — opt into the browser's hardcoded list (enforced even on the very first visit).
 
-> 🔴 **HSTS is sticky and hard to undo.** Browsers cache it for the full `max-age`. Roll out with a short `max-age` (e.g. 300s), confirm everything works over HTTPS, then raise it. Only add `preload` once you're certain — removal from preload lists is slow.
+> ⚠️ **HSTS is sticky and hard to undo.** Browsers cache it for the full `max-age`. Roll out with a short `max-age` (e.g. 300s), confirm everything works over HTTPS, then raise it. Only add `preload` once you're certain — removal from preload lists is slow.
 
 ## X-Content-Type-Options: nosniff
 
-Without this, browsers may **guess** a response's type by looking at its bytes ("MIME sniffing"). An uploaded file labeled `image/jpeg` but containing script could get executed as JavaScript.
+Without this, browsers may **guess** a response's type by looking at its bytes ("MIME sniffing"). An uploaded file labelled `image/jpeg` but containing script could get executed as JavaScript.
 
 ```typescript
 res.setHeader("X-Content-Type-Options", "nosniff");
 // Browser now trusts your Content-Type header and won't reinterpret it
 ```
 
-> ✨ One word, no downside. Always send it — especially on endpoints that serve user-uploaded files.
+> One word, no downside. Always send it — especially on endpoints that serve user-uploaded files.
 
 ## Clickjacking: frame-ancestors
 
@@ -84,7 +90,7 @@ res.setHeader("Content-Security-Policy", "frame-ancestors 'self'");
 | Allow same-origin only     | `'self'`                     | `SAMEORIGIN`          |
 | Allow specific domains     | `'self' https://partner.com` | ❌ not supported      |
 
-> ✨ Send both `X-Frame-Options: DENY` and `frame-ancestors 'none'` for now — old browsers read the former, modern ones the latter.
+> Send both `X-Frame-Options: DENY` and `frame-ancestors 'none'` for now — old browsers read the former, modern ones the latter.
 
 ## Referrer-Policy
 
@@ -130,7 +136,7 @@ app.use(helmet());
 
 `helmet()` sets HSTS, `nosniff`, `frame-ancestors`/`X-Frame-Options`, a baseline CSP, a referrer policy, `X-XSS-Protection: 0`, and hides `X-Powered-By`.
 
-**Customize the parts you care about:**
+**Customise the parts you care about:**
 
 ```typescript
 app.use(
@@ -149,18 +155,8 @@ app.use(
 );
 ```
 
-**In development**, relax what blocks your tooling (hot reload needs inline/eval):
-
-```typescript
-const isDev = process.env.NODE_ENV === "development";
-
-app.use(
-  helmet({
-    contentSecurityPolicy: isDev ? false : undefined, // helmet default in prod
-    hsts: isDev ? false : undefined, // don't pin HTTPS on localhost
-  }),
-);
-```
+In development, pass `contentSecurityPolicy: false` and `hsts: false` — hot reload needs inline and
+`eval`, and an HSTS pin on `localhost` is hard to undo.
 
 ### Verify your headers
 
@@ -191,27 +187,19 @@ Also scan a live site with **securityheaders.com** or **Mozilla Observatory** fo
 
 ## Interview Questions
 
-**Q1: Which security headers should every site send?**
-
-HSTS (force HTTPS), `X-Content-Type-Options: nosniff` (stop MIME sniffing), CSP (limit script sources), `Referrer-Policy` (stop URL leaks), and `Permissions-Policy` (lock down unused features). In practice, `helmet()` sets these for you.
-
-**Q2: How does HSTS work, and what's the risk?**
+**Q: How does HSTS work, and what's the risk?**
 
 After one HTTPS response carrying the header, the browser upgrades all future `http://` requests to that domain automatically, blocking SSL stripping. The risk is that it's sticky — cached for the whole `max-age` and hard to reverse, especially once preloaded. Start with a small `max-age`.
 
-**Q3: Why is `X-XSS-Protection` no longer recommended?**
+**Q: Why is `X-XSS-Protection` no longer recommended?**
 
 The legacy browser XSS filter it enabled was buggy and could be abused to create new vulnerabilities. Modern browsers removed it. Best practice is `X-XSS-Protection: 0` and relying on CSP — which is what helmet does by default.
 
-**Q4: `X-Frame-Options` vs. CSP `frame-ancestors`?**
+**Q: `X-Frame-Options` vs. CSP `frame-ancestors`?**
 
 Both stop your page from being framed (clickjacking). `X-Frame-Options` is older and can't allow multiple specific domains. `frame-ancestors` is the modern, more flexible replacement. Send both during the transition for old-browser coverage.
 
-**Q5: What does `nosniff` actually prevent?**
-
-It stops the browser from guessing a response's content type from its bytes. Without it, a file served as `image/jpeg` that actually contains script could be executed as JavaScript. With it, the browser trusts your declared `Content-Type`.
-
-**Q6: Why bother with `Permissions-Policy`?**
+**Q: Why bother with `Permissions-Policy`?**
 
 It denies powerful features (camera, mic, geolocation) you don't use — for your page *and* embedded third-party scripts. So a compromised ad or widget can't silently request the camera. Least privilege at the browser-feature level.
 

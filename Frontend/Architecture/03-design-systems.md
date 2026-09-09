@@ -5,7 +5,7 @@ chapter: 0
 slug: design-systems-at-scale
 level: advanced # beginner | intermediate | advanced
 reading_time: 8
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [architecture, design-systems, design-tokens, theming, versioning]
 in_book: true
 ---
@@ -114,20 +114,9 @@ it as unsupported — is what stops the system being bypassed the first time a t
 
 ### Theming
 
-Themes swap semantic tokens, never component code. CSS custom properties are the mechanism that
-works without re-rendering.
-
-```typescript
-// Emit semantic tokens as CSS variables, one block per theme
-function themeToCss(theme: Record<string, string>, selector: string): string {
-  const decls = Object.entries(theme)
-    .map(([name, value]) => `  --ds-${name}: ${value};`)
-    .join("\n");
-  return `${selector} {\n${decls}\n}`;
-}
-
-// :root gets light, [data-theme="dark"] overrides it — no JavaScript on the render path
-```
+Themes swap semantic tokens, never component code, and CSS custom properties are the mechanism that
+works without re-rendering. A build step emits each theme as one block: `:root` gets light,
+`[data-theme="dark"]` overrides it, and no JavaScript runs on the render path.
 
 ```css
 .btn--primary {
@@ -152,16 +141,8 @@ version needs three things or teams will not take it.
 | Minor | New component or new optional prop | A changelog entry |
 | Major | Renamed prop, removed component, changed default | A migration guide, a codemod, and a deprecation period on the previous major |
 
-```json
-{
-  "name": "@acme/design-system",
-  "version": "3.2.0",
-  "peerDependencies": { "react": "^19.0.0" }
-}
-```
-
-`peerDependencies` rather than `dependencies` for the framework, so the consumer's React is the only
-React in the tree. This is the same singleton constraint that
+React belongs in `peerDependencies`, never `dependencies`, so the consumer's copy is the only React in
+the tree. This is the same singleton constraint that
 [Chapter ?? — Micro-Frontends](#ch-micro-frontends) runs into from the other direction.
 
 ## When to Use It
@@ -211,13 +192,6 @@ Not all at once. Ship the token layer first as CSS variables, because it is adop
 and immediately fixes colour and spacing drift. Then publish components one at a time, starting with
 the highest-traffic primitives — button, input, dialog — and let teams migrate per component rather
 than per app. A big-bang cutover fails because it needs forty teams to schedule the same sprint.
-
-**Q: Why split tokens into primitive and semantic layers?**
-
-Because a component that references `blue500` has hard-coded a decision that belongs to the theme. The
-semantic layer — `actionPrimary` — is an indirection you can re-point per brand, per theme, or for a
-high-contrast mode without touching a single component. It also makes the token names reviewable:
-`danger` communicates intent in a way `red600` does not.
 
 **Q: You need to rename a prop on your most-used component. How do you ship it?**
 

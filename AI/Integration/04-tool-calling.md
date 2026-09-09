@@ -29,6 +29,12 @@ around it. The model is choosing a branch and filling in parameters; you are the
 > The model never executes anything. It asks. Every guarantee about what an AI feature can do lives in
 > your dispatcher, not in the prompt.
 
+> ⚠️ **Moving target:** tool definitions are the fastest-renamed surface in any AI SDK. Version 5
+> replaced `parameters` with `inputSchema` and `maxSteps` with `stopWhen`; version 7 renamed the stop
+> helper again, from `stepCountIs` to `isStepCount`. The durable principle is the protocol underneath:
+> the model returns a name and a JSON object, your code decides whether to run it, and the result goes
+> back as another message. Every SDK is sugar over those three steps.
+
 ## How It Works
 
 ### The loop

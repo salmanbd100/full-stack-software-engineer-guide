@@ -5,7 +5,7 @@ chapter: 0
 slug: react-testing-library
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [testing-library, react, queries, userevent, accessibility, testing]
 in_book: true
 ---
@@ -69,8 +69,8 @@ Work down that list, and stop at the first one that works. The reason to prefer 
 mechanical: those are the properties assistive technology uses, so a query that cannot find a control
 is evidence that the markup is wrong, not that the test needs a test id.
 
-`getByTestId` is legitimate for things with no accessible representation — a chart canvas, a map tile
-layer. It is not legitimate as a way past a missing label.
+`getByTestId` is legitimate for things with no accessible representation, such as a chart canvas. It
+is not legitimate as a way past a missing label.
 
 ### `userEvent`, not `fireEvent`
 
@@ -78,10 +78,6 @@ layer. It is not legitimate as a way past a missing label.
 pointer down, focus, key down, input, key up, change. That difference is what catches real bugs.
 
 ```tsx
-import userEvent from "@testing-library/user-event";
-import { render, screen } from "@testing-library/react";
-import { vi, it, expect } from "vitest";
-
 it("submits the search term", async () => {
   const user = userEvent.setup(); // once per test, before render
   const onSearch = vi.fn();
@@ -95,12 +91,10 @@ it("submits the search term", async () => {
 ```
 
 `userEvent` also **refuses to interact with a disabled or hidden element**, which is how a test catches
-a button that should have been disabled during submission. `fireEvent.click` on a disabled button
+a button that should have been disabled during submission — `fireEvent.click` on a disabled button
 happily fires, and the bug ships. Keep `fireEvent` for the few low-level events `userEvent` does not
-model, such as `scroll`.
-
-Every `userEvent` call returns a promise. A missing `await` lets the assertion run before React has
-re-rendered, which produces a failure that looks like a component bug and is not.
+model, such as `scroll`. Every call returns a promise, and a missing `await` lets the assertion run
+before React re-renders, producing a failure that looks like a component bug and is not.
 
 ### Async, without a single arbitrary wait
 
@@ -128,12 +122,7 @@ Nearly every component needs a router, a query client and a theme. Wrapping them
 setup drifts between files.
 
 ```tsx
-// test-utils.tsx
-import { render, type RenderOptions } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactElement, ReactNode } from "react";
-
+// test-utils.tsx — re-exports everything from the real module, with render shadowed
 function AllProviders({ children }: { children: ReactNode }) {
   // retry: false — otherwise a failing request test waits out three retries
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -213,13 +202,6 @@ Because a test that can read internals will assert on them, and then every refac
 without any behaviour changing. Restricting the test to the DOM means it fails only when what the user
 sees changes — which is the only failure worth a developer's attention. The cost is that genuinely
 internal logic has to be extracted and unit-tested separately, which is usually better structure anyway.
-
-**Q: What does `userEvent` do that `fireEvent` does not?**
-
-It performs the full sequence a browser would: pointer events, focus, keydown, input, keyup, change.
-That catches bugs a single synthetic event misses — a handler that depends on focus, or a validation
-that runs on blur. It also refuses to interact with disabled or hidden elements, so a button that
-should be disabled during submit actually fails the test instead of silently firing.
 
 **Q: When is `getByTestId` acceptable?**
 

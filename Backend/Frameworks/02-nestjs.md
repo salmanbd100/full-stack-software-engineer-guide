@@ -29,6 +29,11 @@ it. Nothing imports a concrete dependency, so nothing has to be intercepted to r
 The cost is a layer of indirection and a lot of decorators. Whether that trade pays depends almost
 entirely on how many people work in the codebase, which is the answer an interviewer is after.
 
+> ⚠️ **Moving target:** NestJS ships a major roughly yearly and each one moves something structural —
+> the underlying Express or Fastify major, the decorator metadata story, the TypeScript baseline. The
+> durable principle is the container: a class declares its dependencies and never constructs them, and
+> that idea predates NestJS by twenty years.
+
 ## How It Works
 
 ### A module is a visibility boundary
@@ -92,26 +97,15 @@ consumer changes.
 
 ### The request pipeline has five named slots
 
-Express gives you one concept — middleware. NestJS splits it into five, each with a defined position.
-Knowing the order is a standard interview question.
-
-```mermaid
-flowchart LR
-  A[Middleware] --> B[Guards]
-  B --> C[Interceptors<br/>before]
-  C --> D[Pipes]
-  D --> E[Handler]
-  E --> F[Interceptors<br/>after]
-  F --> G[Exception filters]
-```
-
-**The order a request travels, and where each concern belongs.**
+Express gives you one concept — middleware. NestJS splits it into five, each with a defined position,
+and the order is a standard interview question. A request travels down this table and back out through
+the interceptors, which wrap the handler on both sides.
 
 | Slot | Answers | Example |
 | ---- | ------- | ------- |
 | **Middleware** | Anything framework-agnostic | Request id, raw-body capture |
 | **Guard** | May this caller proceed? | Roles, scopes, tenancy |
-| **Interceptor** | What wraps the call? | Timing, caching, response mapping |
+| **Interceptor** | What wraps the call, before and after? | Timing, caching, response mapping |
 | **Pipe** | Is the input valid and the right type? | Schema validation, `ParseIntPipe` |
 | **Exception filter** | How does a thrown error become a response? | The single error shape |
 

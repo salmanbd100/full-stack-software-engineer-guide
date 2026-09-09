@@ -24,6 +24,11 @@ a trusted, signed, audited path. A compromised laptop affects one engineer. A co
 signs the attacker's code for them. Every control in this chapter follows from that: reduce what the
 pipeline holds, pin what it consumes, and record what it did.
 
+> ⚠️ **Moving target:** the supply-chain half of this chapter is the least settled. Provenance and
+> attestation formats, the SLSA levels, and which registries verify what are all still moving, and the
+> tools that generate them change names and flags yearly. The durable principle does not: know what
+> your build consumed, pin it by digest, and be able to prove afterwards what produced the artefact.
+
 ## How It Works
 
 **One compromised step is not one compromised build — it is every deployment after it.**
@@ -125,7 +130,7 @@ FROM node:24-alpine@sha256:abcd1234…          # exact image
 ✅ **Fail the build only on high and critical.** Failing on every low-severity finding trains the team
 to skip the gate, which costs you the high ones too.
 
-⚠️ Base image CVEs are the largest source of noise. Moving to a distroless or Alpine base often
+Base image CVEs are the largest source of noise. Moving to a distroless or Alpine base often
 removes most findings, because there are simply fewer packages installed.
 
 An **SBOM** lists everything inside the artefact, so *"are we affected by this new CVE?"* becomes a
@@ -238,16 +243,6 @@ full access to your secrets — a complete pipeline compromise from an anonymous
 plain `pull_request` for anything that executes contributor code, since it runs without secrets by
 design. Reserve `pull_request_target` for workflows that only need metadata, such as labelling or
 commenting, and never check out the head commit in them.
-
-**Q: How do you secure the software supply chain?**
-
-Pin everything to immutable references: a committed lockfile with `npm ci`, third-party actions
-pinned to full commit SHAs rather than tags, and base images pinned by digest. Scan at several
-layers — dependencies for known CVEs, the built image for OS and library vulnerabilities, code for
-insecure patterns — and fail the build on high and critical only, so the gate keeps its credibility.
-Generate an SBOM during the build and store it with the artefact, so a newly published CVE becomes a
-query. Sign the artefact and verify the signature at deploy time, so only images your pipeline
-produced can run.
 
 **Q: Where in the pipeline should each security check run?**
 

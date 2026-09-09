@@ -45,6 +45,13 @@ The "auto-send" behavior is what makes cookies useful for **sessions** — and w
 
 > Cookies are small (~4 KB) and travel with every request. Don't use them for general data — they add bandwidth to every call.
 
+> ⚠️ **Moving target:** third-party cookie policy has moved more than any other part of this chapter.
+> Safari and Firefox block third-party cookies by default; Chrome announced a phase-out, delayed it
+> twice and then abandoned the default deprecation, leaving `Partitioned` (CHIPS) and the Storage Access
+> API as the sanctioned ways to keep an embedded flow working. The durable principle is that the
+> attributes below are stable and the *permission to set a cookie in a third-party context* is not, so
+> never build a login flow that depends on one.
+
 ---
 
 ## Cookie Attributes

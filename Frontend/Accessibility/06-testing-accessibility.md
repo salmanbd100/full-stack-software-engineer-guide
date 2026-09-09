@@ -30,6 +30,11 @@ everywhere, and two short manual passes on anything with an interaction.
 > The useful question is never "did axe pass". It is "can I complete this task with only a keyboard, and
 > does the screen reader tell me what happened".
 
+> ⚠️ **Moving target:** axe-core adds and revises rules across majors, so the same unchanged page can
+> report a different violation count after a dependency bump — which is why a ratcheted count is a
+> fragile gate. The durable principle is the split itself: automation covers roughly a third to a half
+> of the criteria, and no version of any scanner is going to close the other half.
+
 ## How It Works
 
 ### What each layer catches

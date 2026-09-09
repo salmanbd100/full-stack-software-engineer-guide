@@ -5,7 +5,7 @@ chapter: 0
 slug: measuring-in-production
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [rum, web-vitals, error-tracking, sampling, slo, observability]
 in_book: true
 ---
@@ -55,13 +55,8 @@ Blocking Time as a proxy. Fixing INP therefore *requires* field data — see
 import { onCLS, onINP, onLCP, onTTFB, type Metric } from "web-vitals";
 
 function report(metric: Metric): void {
-  const body = JSON.stringify({
-    name: metric.name,
-    value: metric.value,
-    rating: metric.rating,
-    release: __APP_VERSION__,
-    route: location.pathname,
-  });
+  const { name, value, rating } = metric;
+  const body = JSON.stringify({ name, value, rating, release: __APP_VERSION__, route: location.pathname });
   // sendBeacon survives the unload that finalises CLS and INP.
   navigator.sendBeacon?.("/api/vitals", body) ??
     fetch("/api/vitals", { body, method: "POST", keepalive: true });
@@ -82,9 +77,8 @@ onLCP((m) => report({ ...m, element: m.attribution.target }));
 onINP((m) => report({ ...m, target: m.attribution.interactionTarget }));
 ```
 
-That single change is what turns "p75 INP is 480 ms" into "p75 INP is 480 ms, on the filter dropdown
-in the reports table". Collect attribution from the start; retrofitting it means waiting another week
-for data.
+That turns "p75 INP is 480 ms" into "p75 INP is 480 ms, on the filter dropdown in the reports table".
+Collect attribution from the start; retrofitting it means waiting another week for data.
 
 For anything the vitals do not cover, `PerformanceObserver` watches the browser's own timeline:
 
@@ -110,16 +104,12 @@ Miss any one and a whole class of failure is invisible.
 
 ```typescript
 window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
-  navigator.sendBeacon(
-    "/api/errors",
-    JSON.stringify({
-      kind: "rejection",
-      message: String(event.reason),
-      stack: event.reason instanceof Error ? event.reason.stack : undefined,
-      release: __APP_VERSION__,
-      route: location.pathname,
-    }),
-  );
+  const { reason } = event;
+  const stack = reason instanceof Error ? reason.stack : undefined;
+  navigator.sendBeacon("/api/errors", JSON.stringify({
+    kind: "rejection", message: String(reason), stack,
+    release: __APP_VERSION__, route: location.pathname,
+  }));
 });
 ```
 
@@ -145,10 +135,10 @@ address in an error service is personal data you now have to account for.
 
 ### Redact in the browser, before it leaves
 
-Every serious client offers a hook that runs immediately before send. Use it — that is the last point
-at which the data is still yours. What to strip: any query parameter or header matching
-`/token|password|secret|authorization|email|card/i`, because **query strings are the most common
-accidental leak** — tokens routinely end up in URLs and then in error reports.
+Every serious client offers a before-send hook. Use it — that is the last point at which the data is
+still yours. Strip any query parameter or header matching `/token|password|secret|authorization|email|card/i`:
+**query strings are the most common accidental leak**, because tokens routinely end up in URLs and
+then in error reports.
 
 > ⚠️ **Mask session replay by default and unmask deliberately.** An allow-list fails safe; a deny-list
 > fails the first time somebody adds a form field. A replay of a checkout captures the card input
@@ -165,10 +155,9 @@ An error service bills per event and a human triages per issue.
 | Session replay, all sessions | ~1% | Storage and privacy cost |
 | Session replay, sessions with an error | 100% | The only session you actually want is the one that broke |
 
-Most noise is not your code. Three sources account for the bulk: browser extensions injecting
-scripts, bot traffic, and `ResizeObserver loop completed with undelivered notifications`, which is
-usually benign. Filter them at the client boundary rather than in triage — including dropping any
-event whose stack contains no frame from your own origin.
+Most noise is not your code: browser extensions injecting scripts, bot traffic, and `ResizeObserver
+loop completed with undelivered notifications`, which is usually benign. Filter at the client
+boundary rather than in triage, and drop any event whose stack has no frame from your own origin.
 
 ### Alert on user impact, not on event count
 
@@ -183,8 +172,8 @@ is.
 
 **Crash-free sessions is the frontend metric to reach for first**, because it normalises by traffic. A
 raw error count spikes on a good day for visitors and hides a regression behind growth; a rate does
-neither. The alerting discipline itself — severities, burn rates, not paging people at 3 a.m. — is
-[Chapter ?? — Alerting and On-Call](#ch-alerting) and applies here unchanged.
+neither. The alerting discipline itself is [Chapter ?? — Alerting and On-Call](#ch-alerting), and it
+applies here unchanged.
 
 ## When to Use It
 
@@ -238,13 +227,6 @@ can count affected people rather than events. Breadcrumbs if you can get them, b
 clicks and requests before the throw is the closest thing to a reproduction. Without the release
 version in particular, you cannot tell a new regression from something that has been failing for
 months.
-
-**Q: How do you decide sampling rates?**
-
-Errors at 100%, because they are rare and the rare one is the point. Performance traces at 1–10%,
-because they are continuous and a sample is statistically sufficient. Session replay at about 1%
-overall but 100% for sessions that hit an error — the session you actually want is the one that broke,
-and recording everything is a storage and privacy cost with no additional signal.
 
 **Q: What is the privacy exposure here, and what do you do about it?**
 

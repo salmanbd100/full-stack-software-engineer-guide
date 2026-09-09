@@ -5,7 +5,7 @@ chapter: 0
 slug: loading-and-code-splitting
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [code-splitting, lazy-loading, prefetch, intersection-observer, performance]
 in_book: true
 ---
@@ -92,29 +92,20 @@ Splitting library code out of application code does not reduce the total bytes. 
 a user has to download them.**
 
 ```typescript
-// vite.config.ts
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id: string): string | undefined {
-          if (!id.includes("node_modules")) return undefined;
-          if (id.includes("react")) return "react-vendor"; // changes a few times a year
-          return "vendor";
-        },
-      },
-    },
-  },
-});
+// vite.config.ts — build.rollupOptions.output.manualChunks
+function manualChunks(id: string): string | undefined {
+  if (!id.includes("node_modules")) return undefined;
+  if (id.includes("react")) return "react-vendor"; // changes a few times a year
+  return "vendor";
+}
 ```
 
 Application code changes every deploy, so its content hash changes and users re-download it.
-Dependencies change rarely. Keeping them in a separate chunk means a routine release invalidates a
-small file instead of a large one — which is a caching argument, and belongs beside
-[Chapter ?? — Frontend Caching Strategies](#ch-frontend-caching-strategies).
-
-Do not over-split. Each chunk is a request, and thirty tiny chunks cost more in round trips and
-compression efficiency than they save.
+Dependencies change rarely. Keeping them apart means a routine release invalidates a small file
+instead of a large one — a caching argument, and one that belongs beside
+[Chapter ?? — Frontend Caching Strategies](#ch-frontend-caching-strategies). But do not over-split:
+each chunk is a request, and thirty tiny chunks cost more in round trips and compression efficiency
+than they save.
 
 ### Prefetch, preload, and the difference that gets asked
 
@@ -130,8 +121,8 @@ import(/* webpackPreload: true */ "./CriticalWidget"); // needed now, in paralle
 ```
 
 Prefetching everything is a real anti-pattern: low-priority requests still consume bandwidth and
-connections, so on a phone they compete with the resources the current page needs. Prefetch the one or
-two probable next steps, not the whole route table.
+connections, so on a phone they compete with the current page. Prefetch the one or two probable next
+steps, not the whole route table.
 
 ### Preload on intent, which is the pattern worth remembering
 
@@ -171,9 +162,9 @@ And the cheapest deferral of all needs no JavaScript at all:
 }
 ```
 
-The browser skips layout and paint for off-screen sections entirely. On a long report page that is a
-large first-paint win for two lines of CSS — and `contain-intrinsic-size` is not optional, because
-without it the scrollbar resizes as you scroll.
+The browser skips layout and paint for off-screen sections entirely — a large first-paint win on a
+long report page, for two lines of CSS. `contain-intrinsic-size` is not optional: without it the
+scrollbar resizes as you scroll.
 
 ## When to Use It
 
@@ -221,13 +212,6 @@ It does, and that is why splitting alone is only half the technique. The other h
 chunk on the first signal of intent — hover or focus on the link, which typically precedes the click by
 a few hundred milliseconds. That gives a small initial bundle and no perceptible wait, and it is the
 difference between a split that helps and one users complain about.
-
-**Q: Why separate vendor code into its own chunk?**
-
-For cache lifetime rather than for size. The total bytes are the same, but application code changes on
-every deploy and dependencies change a few times a year — so keeping them apart means a routine
-release invalidates a small hash-named file instead of the whole bundle. Returning users then download
-only what actually changed.
 
 **Q: When is a component not worth splitting?**
 

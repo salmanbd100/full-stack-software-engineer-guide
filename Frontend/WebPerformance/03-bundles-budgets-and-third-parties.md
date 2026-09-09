@@ -5,7 +5,7 @@ chapter: 0
 slug: bundle-optimisation
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [bundle-size, tree-shaking, performance-budget, ci, third-party-scripts]
 in_book: true
 ---
@@ -87,13 +87,10 @@ Minification removes what only humans need; compression removes redundancy in wh
 they take 80–90% off JavaScript, and every hosting platform and CDN does Brotli with a gzip fallback
 automatically now.
 
-The consequence for how you work: **an uncompressed size is not a number to make decisions with.**
-Configure your analyser to report compressed sizes, or you will spend time on a dependency that
-compresses well and ignore one that does not.
-
-Every analyser has a flag for this — `rollup-plugin-visualizer` takes `gzipSize` and `brotliSize`, and
-the Webpack equivalent has the same option. Read the treemap before optimising anything. It routinely shows one dependency accounting for a third
-of the bundle, and it is almost never the one the team assumed.
+So **an uncompressed size is not a number to make decisions with.** Every analyser has a flag —
+`rollup-plugin-visualizer` takes `gzipSize` and `brotliSize`, and the Webpack equivalent has the same
+option. Read the treemap before optimising anything: it routinely shows one dependency accounting for
+a third of the bundle, and it is almost never the one the team assumed.
 
 ### A budget is only a budget if it fails the build
 
@@ -115,15 +112,9 @@ different regressions.
 
 ```json
 {
-  "ci": {
-    "assert": {
-      "assertions": {
-        "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
-        "total-blocking-time": ["error", { "maxNumericValue": 300 }],
-        "resource-summary:script:size": ["error", { "maxNumericValue": 200000 }]
-      }
-    }
-  }
+  "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+  "total-blocking-time": ["error", { "maxNumericValue": 300 }],
+  "resource-summary:script:size": ["error", { "maxNumericValue": 200000 }]
 }
 ```
 
@@ -146,8 +137,8 @@ reflowing — which no size check can see.
 
 ### The bytes you do not control
 
-Third-party scripts are where a page's performance is usually lost, and the usual technical
-optimisations do not apply — you cannot tree-shake a tag manager. What you can do is govern.
+Third-party scripts are where a page's performance is usually lost, and the usual optimisations do not
+apply — you cannot tree-shake a tag manager. What you can do is govern.
 
 | Control | What it prevents |
 | ------- | ---------------- |
@@ -155,7 +146,7 @@ optimisations do not apply — you cannot tree-shake a tag manager. What you can
 | A recorded reason and expiry date per script | Scripts nobody remembers, still loading three years on |
 | Load after interaction or on idle, never in the head | A vendor's script blocking your first paint |
 | A separate budget line for third-party bytes | First-party work being spent to pay for vendor growth |
-| `preconnect` for the ones that must be early | The connection cost being serial with the request |
+| `preconnect` for the ones that must be early, with `defer` on the script itself | The connection cost being serial with the request |
 
 The two structural moves worth naming in an interview:
 
@@ -164,12 +155,6 @@ The two structural moves worth naming in an interview:
 - **A tag manager is a production deploy with no code review.** Marketing can ship arbitrary
   JavaScript to every user without a pull request. Treat container changes as releases, with an owner
   and a rollback, or accept that your performance budget is advisory.
-
-```html
-<!-- The connection is opened early; the script itself is not on the critical path -->
-<link rel="preconnect" href="https://analytics.example.com" />
-<script src="https://analytics.example.com/a.js" defer></script>
-```
 
 ## When to Use It
 

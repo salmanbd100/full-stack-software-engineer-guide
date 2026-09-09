@@ -30,6 +30,11 @@ the recall improvement that justifies it does not arrive until the corpus is lar
 > Adding a vector database is adding a stateful production dependency. The bar for that is higher than
 > benchmark numbers.
 
+> ⚠️ **Moving target:** the vendor list dates faster than anything else in this part, and pgvector keeps
+> narrowing the gap that justified leaving it — quantised vector types and index improvements land every
+> few releases. The durable principle is the trade the whole chapter is about: an approximate index buys
+> speed with recall, and you cannot judge either from a benchmark run without your filters.
+
 ## How It Works
 
 ### Exact against approximate

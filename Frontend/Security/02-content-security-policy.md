@@ -5,7 +5,7 @@ chapter: 0
 slug: csp-headers
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
+updated: 2026-09-09
 tags: [frontend, security, csp, headers]
 in_book: true
 ---
@@ -20,7 +20,7 @@ in_book: true
 
 **Content Security Policy (CSP)** is an HTTP header that tells the browser which sources it may load scripts, styles, and other content from. Anything not on the allowlist is blocked.
 
-CSP is **defense in depth for XSS.** Even if an attacker injects `<script>`, a good CSP stops it from running. It's a backup layer — not a replacement for output encoding.
+CSP is **defence in depth for XSS.** Even if an attacker injects `<script>`, a good CSP stops it from running. It's a backup layer — not a replacement for output encoding.
 
 ## How CSP Works
 
@@ -39,9 +39,9 @@ A policy is a list of **directives**, each with a **source list**, separated by 
 Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.example.com
 ```
 
-### 💡 **The big win: blocking inline scripts**
-
-Most XSS payloads are inline (`<script>...</script>` or `onerror=...`). A CSP without `'unsafe-inline'` blocks them by default. That single rule defeats a large class of attacks.
+The big win is blocking inline scripts. Most XSS payloads are inline — `<script>...</script>` or
+`onerror=...` — and a CSP without `'unsafe-inline'` blocks them by default. That one rule defeats a
+large class of attacks.
 
 ## Key Directives and Source Values
 
@@ -71,7 +71,7 @@ Most XSS payloads are inline (`<script>...</script>` or `onerror=...`). A CSP wi
 | `'unsafe-inline'`   | Allow inline scripts/styles — ❌ **avoid**       |
 | `'unsafe-eval'`     | Allow `eval()` — ❌ **avoid**                    |
 
-> 🔴 **`'unsafe-inline'` in `script-src` defeats the whole point of CSP.** An attacker's injected inline script runs normally. Use nonces or hashes instead.
+> ⚠️ **`'unsafe-inline'` in `script-src` defeats the whole point of CSP.** An attacker's injected inline script runs normally. Use nonces or hashes instead.
 
 ## A Sensible Starter Policy
 
@@ -98,24 +98,9 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 });
 ```
 
-**With helmet** (cleaner for Express; it ships a reasonable default policy):
-
-```typescript
-import helmet from "helmet";
-
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://cdn.example.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.example.com"],
-      objectSrc: ["'none'"],
-      frameAncestors: ["'none'"],
-    },
-  }),
-);
-```
+`helmet.contentSecurityPolicy({ directives })` expresses the same policy as a camel-cased object and
+ships a reasonable default. Either way it is one header; the library only saves you the string
+concatenation.
 
 ## Nonce-Based CSP (for inline scripts)
 
@@ -163,7 +148,8 @@ Content-Security-Policy:
 - `'strict-dynamic'` — a trusted script can load further scripts without listing each domain.
 - `https:` and `'unsafe-inline'` — **ignored** by modern browsers when a nonce is present; they're only fallbacks for old browsers. So this stays strict where it matters.
 
-> ✨ **Why this scales:** you stop maintaining long domain allowlists. Trust flows from your nonce outward, which is both safer and far less brittle.
+This is what makes a strict CSP maintainable: you stop curating domain allowlists, and trust flows
+outward from your nonce instead.
 
 ## Rolling It Out Safely with Reporting
 
@@ -195,15 +181,8 @@ app.post(
 );
 ```
 
-**Rollout in three steps:**
-
-```text
-1. Report-Only → watch violations, fix legit ones
-        ↓
-2. Enforce on a few low-risk pages
-        ↓
-3. Enforce everywhere
-```
+**Rollout in three steps:** report-only until the violations are all legitimate ones you have fixed →
+enforce on a few low-risk pages → enforce everywhere.
 
 ## 🔑 Key Takeaways
 
@@ -215,27 +194,19 @@ app.post(
 
 ## Interview Questions
 
-**Q1: What problem does CSP solve?**
-
-It limits where the browser may load scripts and other resources, and blocks inline scripts by default. That stops most injected XSS from running, even when output encoding was missed. It's a second layer, not the first.
-
-**Q2: Why is `'unsafe-inline'` dangerous in `script-src`?**
+**Q: Why is `'unsafe-inline'` dangerous in `script-src`?**
 
 It re-allows inline scripts — exactly what most XSS payloads are. With it, an injected `<script>` runs normally and CSP gives you almost nothing for scripts. Use nonces or hashes instead of `'unsafe-inline'`.
 
-**Q3: How do nonces make inline scripts safe?**
-
-The server generates a random nonce each request and puts it both in the header and on its own `<script>` tags. The browser runs only scripts with the matching nonce. An injected script can't know the nonce, so it's blocked. The value must be random and unguessable per request.
-
-**Q4: What is `'strict-dynamic'` and why use it?**
+**Q: What is `'strict-dynamic'` and why use it?**
 
 It says: trust scripts loaded by an already-trusted (nonced) script, without listing every domain. This lets you drop fragile domain allowlists — trust propagates from your nonce. It's the core of a modern strict CSP.
 
-**Q5: CSP vs. CORS — what's the difference?**
+**Q: CSP vs. CORS — what's the difference?**
 
 CSP controls what **your page** is allowed to load (an inbound-to-the-page guard). CORS controls which other origins may **read responses from your API** (a cross-origin access guard). Different directions, different problems.
 
-**Q6: How do you deploy a strict CSP without breaking production?**
+**Q: How do you deploy a strict CSP without breaking production?**
 
 Start with `Content-Security-Policy-Report-Only` and a reporting endpoint. Watch real violations, fix the legitimate ones (add nonces, move inline scripts out), then switch to the enforcing header — ideally page-by-page first.
 

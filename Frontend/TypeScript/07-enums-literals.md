@@ -24,6 +24,11 @@ exists as a plain object you can iterate. An `enum` exists as a generated object
 about what may be assigned to it. Pick by whether you need the values at runtime — not by which looks
 most like the language you came from.
 
+> ⚠️ **Moving target:** the ecosystem is moving against syntax that emits code. TypeScript 5.8 added
+> `erasableSyntaxOnly`, and Node.js strips types rather than compiling them, so `enum` is losing runtime
+> support rather than gaining it. The durable principle outlives the flags: prefer the form that
+> disappears at build time, and pay for a runtime object only when you need to iterate the values.
+
 ## How It Works
 
 ### Literal unions

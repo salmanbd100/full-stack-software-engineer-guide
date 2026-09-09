@@ -5,7 +5,7 @@ chapter: 0
 slug: dependencies-and-upgrades
 level: advanced # beginner | intermediate | advanced
 reading_time: 11
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [dependencies, upgrades, semver, renovate, migration, maintenance]
 in_book: true
 ---
@@ -43,7 +43,7 @@ different policies, and knowing which tier a package is in is most of the decisi
 | **Leaf utility** | Date formatting, `clsx`, a slug helper | Hours | Take updates automatically; delete rather than upgrade if it is trivial |
 | **Your own packages** | The design system, shared config | Yours to control | You owe consumers the contract in [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) |
 
-The tier that gets teams into trouble is the middle one. A form library reaches into every screen
+The middle tier is the one that gets teams into trouble. A form library reaches into every screen
 because nobody drew a boundary around it, and then it is a framework in practice with none of a
 framework's support guarantees.
 
@@ -64,8 +64,8 @@ export function track(event: AnalyticsEvent): void {
 }
 ```
 
-Two hundred call sites now depend on `AnalyticsEvent`, which you own, rather than on the vendor's
-signature, which you do not. Swapping vendors is a rewrite of one file.
+Two hundred call sites now depend on `AnalyticsEvent`, which you own, not on the vendor's signature,
+which you do not. Swapping vendors is a rewrite of one file.
 
 ### Automate the safe updates so a human only sees the risky ones
 
@@ -111,7 +111,7 @@ Four decisions in that file, and each one is worth being able to defend:
 > suite is what gates it. Check the current key names before copying a config.
 
 **Automerge is a claim about your test suite.** If integration coverage is thin, automerging patches
-means shipping unreviewed third-party changes straight to users. Fix the suite first, or automerge dev
+ships unreviewed third-party changes straight to users. Fix the suite first, or automerge dev
 dependencies only and say so.
 
 ### Run a major as a migration
@@ -138,8 +138,8 @@ Three things make the difference between a two-week migration and an abandoned b
   old major will block the entire upgrade, and you want to find that on day one, not in week three.
 - **Land it incrementally.** A route, a flag, or a single package in the workspace. A branch that has
   to be all-or-nothing accumulates conflicts faster than it makes progress.
-- **Book the cleanup.** Compatibility shims added "temporarily" are how a codebase ends up on two
-  versions of the same library for two years.
+- **Book the cleanup.** Shims added "temporarily" are how a codebase ends up on two versions of the
+  same library for two years.
 
 ### Give upgrade debt a number
 
@@ -152,8 +152,8 @@ all cheap to collect in the pipeline:
 | **Dependency age** | Median days between the installed version's release and today | Whether the drift is getting worse |
 | **Unmaintained count** | Direct dependencies with no release in 18 months | Where the next block will come from |
 
-Put those three in the same dashboard as the performance and error budgets. Debt that is visible every
-sprint gets paid down; debt that surfaces once a year during an incident does not.
+Put those three on the same dashboard as the performance and error budgets. Debt that is visible every
+sprint gets paid down; debt that surfaces once a year in an incident does not.
 
 ## When to Use It
 

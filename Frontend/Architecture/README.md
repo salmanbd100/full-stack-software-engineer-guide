@@ -5,8 +5,8 @@ chapter: 0
 slug: frontend-architecture-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-09-07
-tags: [architecture, boundaries, micro-frontends, design-systems]
+updated: 2026-09-09
+tags: [architecture, boundaries, micro-frontends, design-systems, code-review]
 in_book: true
 ---
 
@@ -14,8 +14,9 @@ in_book: true
 
 Part III is how to build a frontend. This section is what changes when the frontend is large, old, and
 worked on by more people than fit in one standup. Every chapter here is about a **boundary** — between
-layers, between teams, or between the shared UI vocabulary and the features that consume it — and about
-what each boundary costs to maintain once it exists.
+layers, between teams, between the shared UI vocabulary and the features that consume it, and between
+what an assistant produces and what enters the codebase — and about what each boundary costs to
+maintain once it exists.
 
 These chapters were frontend system design material until improvement #42. They read better here,
 next to performance, security and testing, because all four answer the same question: what breaks at
@@ -30,6 +31,7 @@ are genuinely about **driving a design round** rather than about structuring a c
 | 02 | [Micro-Frontends](#ch-micro-frontends) | When is deploy independence worth the coordination cost? |
 | 03 | [Design Systems at Scale](#ch-design-systems-at-scale) | How do forty teams share components without freezing the design? |
 | 04 | [Dependencies and Upgrades](#ch-dependencies-and-upgrades) | How does a five-year-old frontend stay upgradable? |
+| 05 | [Reviewing AI-Generated Code](#ch-reviewing-ai-generated-code) | Which defects does generated code have that human code does not? |
 
 The monorepo-versus-polyrepo decision is the fourth boundary in this set, and it is not repeated here:
 [Chapter ?? — Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies) argues the choice
@@ -59,8 +61,8 @@ features.** In this section that shows up as three habits:
 
 ## Reading Order
 
-01 → 02 → 03 → 04. Chapter 01 sets up the vocabulary the rest assume, and it is also the one that says
-which of the heavier patterns you are allowed to skip. Chapter 04 reads fine on its own.
+01 → 02 → 03 → 04 → 05. Chapter 01 sets up the vocabulary the rest assume, and it is also the one that
+says which of the heavier patterns you are allowed to skip. Chapters 04 and 05 read fine on their own.
 
-**Interview sprint:** 01, then the "When to Use It" table in 02. Those two cover the architecture
-questions a senior frontend loop actually asks.
+**Interview sprint:** 01, then the "When to Use It" table in 02, then 05. Those cover the architecture
+questions a senior frontend loop actually asks, and 05 is the one most candidates have no answer for.

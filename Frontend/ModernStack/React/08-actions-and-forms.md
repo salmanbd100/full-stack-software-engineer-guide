@@ -29,6 +29,12 @@ becomes a real submission again — one that works before your JavaScript has lo
 > The senior point is not the hooks. It is that a form submitted at second one, before hydration
 > finished, is replayed rather than lost.
 
+> ⚠️ **Moving target:** the names here have already moved once — `useFormState` became
+> `useActionState`, and React's own documentation renamed Server Actions to Server Functions. Expect the
+> hook surface to keep settling. The durable principle is underneath it and is not React's to change: a
+> `<form>` posts without JavaScript, so everything an Action adds is an enhancement on top of a
+> submission that already works.
+
 ## How It Works
 
 ### `<form action={fn}>`

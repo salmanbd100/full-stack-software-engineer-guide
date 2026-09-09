@@ -40,6 +40,12 @@ Sensitive browser features (location, camera, mic, notifications, clipboard, sen
 - The user can revoke any permission from browser settings. Your code must handle "denied" gracefully.
 - Permissions are **per origin** (scheme + host + port). `https://app.example.com` and `https://example.com` are different.
 
+> ⚠️ **Moving target:** the set of names `navigator.permissions.query` accepts differs per browser and
+> grows every year, and browsers keep tightening when a prompt may appear at all — quieter notification
+> UI, gesture requirements, one-time grants that expire when the tab closes. The durable principle is
+> that a denial is sticky and only the user can undo it, so *when* you ask is a design decision, not a
+> code detail.
+
 ---
 
 ## The Permissions API

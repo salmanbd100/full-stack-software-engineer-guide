@@ -5,7 +5,7 @@ chapter: 0
 slug: micro-frontends
 level: advanced # beginner | intermediate | advanced
 reading_time: 8
-updated: 2026-09-07
+updated: 2026-09-09
 tags: [architecture, micro-frontends, module-federation, deployment, boundaries]
 in_book: true
 ---
@@ -71,25 +71,13 @@ export default {
 };
 ```
 
-**The shell — resolves remotes by URL at runtime:**
+**The shell — resolves remotes by URL at runtime, with the same `shared` block:**
 
 ```typescript
-// shell/webpack.config.ts
-export default {
-  plugins: [
-    new ModuleFederationPlugin({
-      name: "shell",
-      remotes: {
-        checkoutApp: "checkoutApp@https://checkout.example.com/remoteEntry.js",
-        searchApp: "searchApp@https://search.example.com/remoteEntry.js",
-      },
-      shared: {
-        react: { singleton: true },
-        "react-dom": { singleton: true },
-      },
-    }),
-  ],
-};
+remotes: {
+  checkoutApp: "checkoutApp@https://checkout.example.com/remoteEntry.js",
+  searchApp: "searchApp@https://search.example.com/remoteEntry.js",
+}
 ```
 
 **Consuming a remote, with the two guards that are not optional:**
@@ -118,21 +106,9 @@ function CheckoutRoute() {
 
 ### The single-spa alternative
 
-Module Federation composes **modules**; single-spa composes **applications**. A root config maps a URL
-predicate to a bundle, and each application exports `bootstrap`, `mount` and `unmount` lifecycles that
-the root calls as the route changes.
-
-```typescript
-import { registerApplication, start } from "single-spa";
-
-registerApplication({
-  name: "checkout",
-  app: () => System.import("@acme/checkout"), // resolved through an import map
-  activeWhen: ["/checkout"],
-});
-
-start();
-```
+Module Federation composes **modules**; single-spa composes **applications**. Its root config maps a
+route predicate to a bundle through `registerApplication`, and each application exports `bootstrap`,
+`mount` and `unmount` lifecycles the root calls as the route changes.
 
 The trade is the unit of composition. single-spa owns routing and application lifecycle, so mixed
 frameworks under one shell are straightforward — but a remote is a whole screen. Reach for Federation
@@ -143,15 +119,8 @@ when remotes have to interleave inside one page, and for single-spa when each re
 `singleton: true` on React is not an optimisation. Two React copies in one page means two independent
 hook dispatchers, and any component crossing between them throws.
 
-```typescript
-// ✅ One React instance for the whole page, version negotiated across remotes
-shared: {
-  react: { singleton: true, requiredVersion: "^19.0.0" },
-}
-
-// ❌ No shared config — shell and each remote load their own React.
-// Hooks throw the moment a remote component renders inside a shell context.
-```
+Leave `shared` out and the shell and every remote load their own React. Hooks throw the moment a
+remote component renders inside a shell context, and the stack trace points at neither team's code.
 
 The consequence is a constraint people underestimate: every remote must be on a compatible React
 major. Micro-frontends give you independent **deploys**, not independent **upgrades** — which makes
@@ -179,13 +148,10 @@ interface CartItemAdded {
 function addToCart(detail: CartItemAdded): void {
   window.dispatchEvent(new CustomEvent<CartItemAdded>("cart:item-added", { detail }));
 }
-
-// In the cart remote
-window.addEventListener("cart:item-added", (event) => {
-  const { productId, quantity } = (event as CustomEvent<CartItemAdded>).detail;
-  cartStore.add(productId, quantity);
-});
 ```
+
+The cart remote listens for `cart:item-added` and casts `event.detail` back to `CartItemAdded`. That
+interface is the whole contract, and it is the only thing both teams have to agree a version for.
 
 ## When to Use It
 

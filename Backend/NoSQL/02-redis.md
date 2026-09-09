@@ -32,6 +32,12 @@ This chapter covers Redis as a data store. Cache strategy — read-through, writ
 belongs to [Chapter ?? — Caching](#ch-caching), and rate limiting to
 [Chapter ?? — Rate Limiting](#ch-rate-limiting).
 
+> ⚠️ **Moving target:** the licence, not the API. Redis left open source in 2024, the Valkey fork
+> followed, and Redis 8 moved again to AGPL — so "we run Redis" now means one of several forks, and a
+> managed provider may not be running the one you think. The durable principle is that the data
+> structures and their atomicity guarantees are the same across all of them; check the licence and the
+> fork before you check the feature list.
+
 ## The Structures You Will Actually Use
 
 | Structure | Holds | Use for |

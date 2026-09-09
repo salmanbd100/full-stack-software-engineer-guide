@@ -40,6 +40,12 @@ const theme: string | null = localStorage.getItem("theme"); // "dark"
 
 > Because they block the main thread, never read or write large amounts of data in a hot path (scroll, animation, render).
 
+> ⚠️ **Moving target:** browsers now partition storage by top-level site, so the same origin embedded in
+> two different parent sites sees two different stores — and eviction rules under storage pressure differ
+> per browser and keep changing. The durable principle is that web storage is a synchronous,
+> same-origin string cache with no security boundary and no guarantee of survival. Treat everything in
+> it as disposable.
+
 ---
 
 ## localStorage vs sessionStorage
