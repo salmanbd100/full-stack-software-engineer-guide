@@ -1,7 +1,7 @@
 ---
 title: Agents
 part: 7
-chapter: 0
+chapter: 20
 slug: ai-agents-index
 level: advanced
 reading_time: 3

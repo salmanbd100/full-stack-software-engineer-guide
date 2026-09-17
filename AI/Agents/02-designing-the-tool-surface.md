@@ -1,7 +1,7 @@
 ---
 title: Designing the Tool Surface
 part: 7
-chapter: 0
+chapter: 22
 slug: designing-the-tool-surface
 level: advanced
 reading_time: 12

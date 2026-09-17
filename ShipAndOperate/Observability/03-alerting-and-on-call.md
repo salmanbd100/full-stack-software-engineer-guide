@@ -1,7 +1,7 @@
 ---
 title: Alerting and On-Call
 part: 8
-chapter: 0
+chapter: 18
 slug: alerting
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

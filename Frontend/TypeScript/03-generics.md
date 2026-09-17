@@ -1,7 +1,7 @@
 ---
 title: TypeScript Generics
 part: 1
-chapter: 0
+chapter: 15
 slug: generics
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

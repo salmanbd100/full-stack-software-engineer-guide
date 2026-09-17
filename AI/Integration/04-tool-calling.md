@@ -1,7 +1,7 @@
 ---
 title: Tool Calling
 part: 7
-chapter: 0
+chapter: 11
 slug: tool-calling
 level: advanced
 reading_time: 12

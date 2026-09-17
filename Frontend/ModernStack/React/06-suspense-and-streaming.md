@@ -1,7 +1,7 @@
 ---
 title: Suspense and Streaming
 part: 3
-chapter: 0
+chapter: 7
 slug: suspense-and-streaming
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

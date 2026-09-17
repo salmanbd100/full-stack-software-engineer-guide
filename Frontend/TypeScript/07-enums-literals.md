@@ -1,7 +1,7 @@
 ---
 title: Enums and Literal Types
 part: 1
-chapter: 0
+chapter: 19
 slug: enums-literals
 level: intermediate # beginner | intermediate | advanced
 reading_time: 7

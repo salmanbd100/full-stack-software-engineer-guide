@@ -1,7 +1,7 @@
 ---
 title: Queues and Asynchronous Work
 part: 6
-chapter: 0
+chapter: 12
 slug: message-queues
 level: intermediate
 reading_time: 11

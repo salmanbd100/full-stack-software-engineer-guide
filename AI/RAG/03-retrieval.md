@@ -1,7 +1,7 @@
 ---
 title: Retrieval
 part: 7
-chapter: 0
+chapter: 17
 slug: retrieval
 level: advanced
 reading_time: 12

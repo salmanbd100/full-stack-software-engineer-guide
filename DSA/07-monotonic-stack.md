@@ -1,7 +1,7 @@
 ---
 title: Monotonic Stack
 part: 10
-chapter: 0
+chapter: 7
 slug: monotonic-stack
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

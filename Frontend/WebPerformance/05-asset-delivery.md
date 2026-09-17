@@ -1,7 +1,7 @@
 ---
 title: Asset Delivery
 part: 4
-chapter: 0
+chapter: 12
 slug: asset-delivery
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

@@ -1,7 +1,7 @@
 ---
 title: Pluralisation
 part: 2
-chapter: 0
+chapter: 18
 slug: pluralization
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

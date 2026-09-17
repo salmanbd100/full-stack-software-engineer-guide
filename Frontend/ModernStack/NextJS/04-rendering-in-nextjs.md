@@ -1,7 +1,7 @@
 ---
 title: Rendering in Next.js
 part: 3
-chapter: 0
+chapter: 18
 slug: rendering-in-nextjs
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

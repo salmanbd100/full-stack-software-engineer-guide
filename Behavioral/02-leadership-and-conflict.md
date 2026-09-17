@@ -1,7 +1,7 @@
 ---
 title: Leadership, Teamwork and Conflict
 part: 9
-chapter: 0
+chapter: 3
 slug: leadership-teamwork
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

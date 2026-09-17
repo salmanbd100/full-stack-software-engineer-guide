@@ -1,7 +1,7 @@
 ---
 title: Components and Snippets
 part: 3
-chapter: 0
+chapter: 28
 slug: svelte-snippets
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

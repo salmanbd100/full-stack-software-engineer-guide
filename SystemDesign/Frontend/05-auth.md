@@ -1,7 +1,7 @@
 ---
 title: Frontend Authentication
 part: 6
-chapter: 0
+chapter: 28
 slug: frontend-authentication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

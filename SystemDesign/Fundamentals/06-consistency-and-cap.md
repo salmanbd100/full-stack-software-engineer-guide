@@ -1,7 +1,7 @@
 ---
 title: Consistency and CAP
 part: 6
-chapter: 0
+chapter: 7
 slug: consistency-and-cap
 level: advanced
 reading_time: 11

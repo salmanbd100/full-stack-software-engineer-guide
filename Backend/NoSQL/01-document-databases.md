@@ -1,7 +1,7 @@
 ---
 title: Document Databases
 part: 5
-chapter: 0
+chapter: 25
 slug: document-databases
 level: intermediate
 reading_time: 10

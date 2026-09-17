@@ -1,7 +1,7 @@
 ---
 title: Frontend Caching Strategies
 part: 4
-chapter: 0
+chapter: 11
 slug: frontend-caching-strategies
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

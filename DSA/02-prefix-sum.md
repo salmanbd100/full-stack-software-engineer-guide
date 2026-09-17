@@ -1,7 +1,7 @@
 ---
 title: Prefix Sum
 part: 10
-chapter: 0
+chapter: 2
 slug: prefix-sum
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

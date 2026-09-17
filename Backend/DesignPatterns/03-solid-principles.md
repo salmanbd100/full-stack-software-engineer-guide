@@ -1,7 +1,7 @@
 ---
 title: SOLID Principles
 part: 1
-chapter: 0
+chapter: 24
 slug: solid-principles
 level: intermediate # beginner | intermediate | advanced
 reading_time: 15

@@ -1,7 +1,7 @@
 ---
 title: Hydration and Its Costs
 part: 3
-chapter: 0
+chapter: 34
 slug: hydration-and-its-costs
 level: advanced # beginner | intermediate | advanced
 reading_time: 13

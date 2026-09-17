@@ -1,7 +1,7 @@
 ---
 title: In-Place Linked List Reversal
 part: 10
-chapter: 0
+chapter: 6
 slug: in-place-linked-list-reversal
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: Vite and the Dev Loop
 part: 3
-chapter: 0
+chapter: 48
 slug: vite-and-the-dev-loop
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

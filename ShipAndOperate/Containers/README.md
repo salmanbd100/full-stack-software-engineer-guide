@@ -1,7 +1,7 @@
 ---
 title: Containers
 part: 8
-chapter: 0
+chapter: 6
 slug: ship-containers-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2

@@ -1,7 +1,7 @@
 ---
 title: Middleware and the Edge
 part: 3
-chapter: 0
+chapter: 19
 slug: nextjs-middleware-and-the-edge
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

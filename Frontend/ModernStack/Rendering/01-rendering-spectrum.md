@@ -1,7 +1,7 @@
 ---
 title: The Rendering Spectrum
 part: 3
-chapter: 0
+chapter: 33
 slug: rendering-spectrum
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

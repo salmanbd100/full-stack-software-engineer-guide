@@ -1,7 +1,7 @@
 ---
 title: Images, Fonts, and Assets
 part: 3
-chapter: 0
+chapter: 20
 slug: nextjs-assets
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

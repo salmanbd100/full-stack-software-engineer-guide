@@ -1,7 +1,7 @@
 ---
 title: Overlapping Intervals
 part: 10
-chapter: 0
+chapter: 9
 slug: overlapping-intervals
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

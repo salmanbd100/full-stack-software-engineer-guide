@@ -1,7 +1,7 @@
 ---
 title: Redis
 part: 5
-chapter: 0
+chapter: 26
 slug: redis
 level: intermediate
 reading_time: 8

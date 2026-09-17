@@ -1,7 +1,7 @@
 ---
 title: SQL Fundamentals
 part: 5
-chapter: 0
+chapter: 19
 slug: sql-fundamentals
 level: intermediate
 reading_time: 9

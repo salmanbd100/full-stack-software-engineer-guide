@@ -1,7 +1,7 @@
 ---
 title: OAuth 2.1 and OpenID Connect
 part: 5
-chapter: 0
+chapter: 29
 slug: oauth
 level: advanced
 reading_time: 9

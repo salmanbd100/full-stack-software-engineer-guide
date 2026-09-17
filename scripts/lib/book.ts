@@ -123,6 +123,97 @@ const PART_BY_PREFIX: readonly [string, number][] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Reading order within a part — improvement #70
+// ---------------------------------------------------------------------------
+
+/**
+ * The README that opens each part, where one exists.
+ *
+ * Parts I, II, IV and IX have none: their content is spread across two or more
+ * top-level directories with no single file above them, and `collect-chapters.ts`
+ * inserts the `# Part N` divider itself. That is a gap for a later item, not a bug.
+ */
+export const PART_OPENERS: Readonly<Record<number, string>> = {
+  3: "Frontend/ModernStack/README.md",
+  5: "Backend/README.md",
+  6: "SystemDesign/README.md",
+  7: "AI/README.md",
+  8: "ShipAndOperate/README.md",
+  10: "DSA/README.md",
+};
+
+/**
+ * Section order within each part — **the reading order of the book**, and the input
+ * `number-chapters.ts` turns into front-matter `chapter` values.
+ *
+ * Alphabetical order by path is wrong almost everywhere: it opens Part I on design
+ * patterns and Part II on accessibility, when BOOK-SPEC.md § 4 says JavaScript and
+ * HTML/CSS come first. Every list below is taken from that part's "Covers:" line, or
+ * from the Sections table in its own part opener where it has one.
+ *
+ * A directory missing from this map is a hard error in `number-chapters.ts` rather
+ * than a silent fallback — a new section must be placed deliberately.
+ */
+export const SECTION_ORDER: Readonly<Record<number, readonly string[]>> = {
+  1: ["Frontend/JavaScript", "Frontend/TypeScript", "Backend/DesignPatterns"],
+  2: [
+    "Frontend/HtmlCss",
+    "Frontend/BrowserAPIs",
+    "Frontend/Accessibility",
+    "Frontend/Internationalization",
+    "Frontend/PWA",
+  ],
+  3: [
+    "Frontend/ModernStack/React",
+    "Frontend/ModernStack/NextJS",
+    "Frontend/ModernStack/Svelte",
+    "Frontend/ModernStack/Rendering",
+    "Frontend/ModernStack/StateManagement",
+    "Frontend/ModernStack/Tooling",
+  ],
+  4: [
+    "Frontend/Architecture",
+    "Frontend/WebPerformance",
+    "Frontend/Security",
+    "Frontend/Testing",
+  ],
+  5: [
+    "Backend/NodeJS",
+    "Backend/Frameworks",
+    "Backend/API",
+    "Backend/SQL",
+    "Backend/NoSQL",
+    "Backend/Security",
+    "Backend/Testing",
+  ],
+  6: [
+    "SystemDesign/Fundamentals",
+    "SystemDesign/BuildingBlocks",
+    "SystemDesign/Database",
+    "SystemDesign/Frontend",
+    "SystemDesign/CaseStudies",
+  ],
+  7: [
+    "AI/Foundations",
+    "AI/Integration",
+    "AI/RAG",
+    "AI/Agents",
+    "AI/Production",
+    "AI/AIUX",
+  ],
+  8: [
+    "ShipAndOperate/Git",
+    "ShipAndOperate/Containers",
+    "ShipAndOperate/CICD",
+    "ShipAndOperate/Observability",
+    "ShipAndOperate/Cloud",
+    "ShipAndOperate/Deployment",
+  ],
+  9: ["Behavioral", "Communication"],
+  10: ["DSA"],
+};
+
+// ---------------------------------------------------------------------------
 // Line budgets — BOOK-SPEC.md § 5
 // ---------------------------------------------------------------------------
 
@@ -347,9 +438,23 @@ export function findMarkdown(root: string): string[] {
 }
 
 /**
- * Reading order: part, then chapter number, then path. Files that #3 has not
- * stamped yet fall back to their directory prefix, so the build still produces a
- * sensibly ordered book before the front-matter sweep runs.
+ * Reading order: part, then chapter number, then path.
+ *
+ * **Changed at #70, and the two changes are related.** `chapter` is now stamped on every
+ * in-book file by `number-chapters.ts`, so it is authoritative and is compared first.
+ * Before that sweep almost every file sat at `chapter: 0`, and the two rules written to
+ * cope with that both produced the wrong book:
+ *
+ *   - Skipping the comparison when either side was 0 meant a part full of zeroes fell
+ *     through to `localeCompare`, so Part III opened on `ModernStack/NextJS/README.md`
+ *     rather than on the part opener above it (found at #44).
+ *   - Preferring a README ahead of the chapter comparison meant any section index
+ *     outranked every chapter at the same depth — `Backend/API/README.md` would have
+ *     sorted above `Backend/NodeJS/01-event-loop-async.md` once real numbers arrived.
+ *
+ * So: `chapter: 0` now means **part opener**, and leads its part. The README and path
+ * rules survive only as tiebreaks for equal numbers, which is a state a new unstamped
+ * file passes through — and `lint:docs` fails it for the missing key while it does.
  */
 export function orderDocs(docs: Doc[]): Doc[] {
   return [...docs].sort((a: Doc, b: Doc) => {
@@ -358,14 +463,13 @@ export function orderDocs(docs: Doc[]): Doc[] {
     const partB: number = b.part === 0 ? 99 : b.part;
     if (partA !== partB) return partA - partB;
 
-    // A part opener always leads its part.
+    const chapA: number = a.fm.chapter ?? 0;
+    const chapB: number = b.fm.chapter ?? 0;
+    if (chapA !== chapB) return chapA - chapB;
+
     const depthA: number = a.rel.split("/").length;
     const depthB: number = b.rel.split("/").length;
     if (a.isReadme !== b.isReadme && depthA === depthB) return a.isReadme ? -1 : 1;
-
-    const chapA: number = a.fm.chapter ?? 0;
-    const chapB: number = b.fm.chapter ?? 0;
-    if (chapA !== chapB && chapA !== 0 && chapB !== 0) return chapA - chapB;
 
     return a.rel.localeCompare(b.rel);
   });

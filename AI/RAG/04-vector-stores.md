@@ -1,7 +1,7 @@
 ---
 title: Vector Stores
 part: 7
-chapter: 0
+chapter: 18
 slug: vector-stores
 level: advanced
 reading_time: 11

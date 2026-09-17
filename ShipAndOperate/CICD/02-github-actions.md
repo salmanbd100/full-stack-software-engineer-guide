@@ -1,7 +1,7 @@
 ---
 title: GitHub Actions
 part: 8
-chapter: 0
+chapter: 13
 slug: github-actions
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

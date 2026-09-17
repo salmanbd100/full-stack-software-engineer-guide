@@ -1,7 +1,7 @@
 ---
 title: Design Patterns in TypeScript
 part: 1
-chapter: 0
+chapter: 25
 slug: design-patterns-in-typescript
 level: intermediate # beginner | intermediate | advanced
 reading_time: 15

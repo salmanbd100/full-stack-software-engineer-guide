@@ -1,7 +1,7 @@
 ---
 title: SvelteKit Routing and Loading
 part: 3
-chapter: 0
+chapter: 29
 slug: sveltekit-routing-and-loading
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

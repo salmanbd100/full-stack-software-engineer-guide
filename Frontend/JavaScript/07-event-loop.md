@@ -1,7 +1,7 @@
 ---
 title: The Event Loop
 part: 1
-chapter: 0
+chapter: 8
 slug: event-loop
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

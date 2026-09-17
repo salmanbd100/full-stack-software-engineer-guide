@@ -1,7 +1,7 @@
 ---
 title: Visual and Contract Testing
 part: 4
-chapter: 0
+chapter: 27
 slug: visual-and-contract-testing
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

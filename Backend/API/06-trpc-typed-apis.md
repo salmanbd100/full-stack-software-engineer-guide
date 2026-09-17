@@ -1,7 +1,7 @@
 ---
 title: tRPC and Typed APIs
 part: 5
-chapter: 0
+chapter: 17
 slug: trpc
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

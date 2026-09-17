@@ -1,7 +1,7 @@
 ---
 title: Database Design
 part: 5
-chapter: 0
+chapter: 20
 slug: database-design
 level: advanced
 reading_time: 9

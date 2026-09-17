@@ -1,7 +1,7 @@
 ---
 title: Performance and the React Compiler
 part: 3
-chapter: 0
+chapter: 10
 slug: react-performance-and-the-compiler
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

@@ -1,7 +1,7 @@
 ---
 title: XSS Prevention
 part: 4
-chapter: 0
+chapter: 16
 slug: xss-prevention
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

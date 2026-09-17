@@ -1,7 +1,7 @@
 ---
 title: Testing React
 part: 3
-chapter: 0
+chapter: 13
 slug: testing-react
 level: advanced # beginner | intermediate | advanced
 reading_time: 11
@@ -206,4 +206,4 @@ fail assembled. Component tests sit between the two and are best kept for intera
 
 - [Chapter ?? — React Testing Library](#ch-react-testing-library) — the query API and setup in detail
 - [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components) — why the boundary changes the test
-- [Chapter ?? — End-to-End Testing](#ch-e2e-testing) — where composed routes are actually covered
+- [Chapter ?? — End-to-End Testing with Playwright](#ch-end-to-end-testing) — where composed routes are actually covered

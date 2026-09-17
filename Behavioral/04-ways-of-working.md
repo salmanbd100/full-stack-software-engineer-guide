@@ -1,7 +1,7 @@
 ---
 title: Ways of Working
 part: 9
-chapter: 0
+chapter: 5
 slug: ways-of-working
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

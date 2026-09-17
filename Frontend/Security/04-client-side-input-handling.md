@@ -1,7 +1,7 @@
 ---
 title: Client-Side Input Handling
 part: 4
-chapter: 0
+chapter: 19
 slug: client-side-input-handling
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

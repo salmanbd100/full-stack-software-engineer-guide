@@ -1,7 +1,7 @@
 ---
 title: Resilience Patterns
 part: 6
-chapter: 0
+chapter: 17
 slug: resilience-patterns
 level: advanced
 reading_time: 10

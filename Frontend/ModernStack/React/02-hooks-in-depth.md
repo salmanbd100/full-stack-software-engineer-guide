@@ -1,7 +1,7 @@
 ---
 title: Hooks in Depth
 part: 3
-chapter: 0
+chapter: 3
 slug: react-hooks-in-depth
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

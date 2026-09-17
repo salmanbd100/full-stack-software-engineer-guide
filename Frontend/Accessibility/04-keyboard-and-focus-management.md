@@ -1,7 +1,7 @@
 ---
 title: Keyboard and Focus Management
 part: 2
-chapter: 0
+chapter: 13
 slug: keyboard-and-focus
 level: advanced
 reading_time: 11

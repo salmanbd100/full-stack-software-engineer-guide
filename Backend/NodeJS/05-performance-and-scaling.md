@@ -1,7 +1,7 @@
 ---
 title: Node.js Performance and Scaling
 part: 5
-chapter: 0
+chapter: 6
 slug: nodejs-performance
 level: advanced
 reading_time: 10

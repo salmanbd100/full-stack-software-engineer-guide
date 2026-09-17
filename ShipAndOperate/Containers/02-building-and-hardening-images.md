@@ -1,7 +1,7 @@
 ---
 title: Building and Hardening Images
 part: 8
-chapter: 0
+chapter: 8
 slug: building-and-hardening-images
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

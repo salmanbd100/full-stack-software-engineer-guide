@@ -1,7 +1,7 @@
 ---
 title: Turbopack, Rspack and Rolldown
 part: 3
-chapter: 0
+chapter: 49
 slug: rust-bundlers
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

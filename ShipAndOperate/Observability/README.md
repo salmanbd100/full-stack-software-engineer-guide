@@ -1,7 +1,7 @@
 ---
 title: Observability
 part: 8
-chapter: 0
+chapter: 15
 slug: ship-observability-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2

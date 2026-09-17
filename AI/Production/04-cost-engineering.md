@@ -1,7 +1,7 @@
 ---
 title: Cost Engineering
 part: 7
-chapter: 0
+chapter: 30
 slug: cost-engineering
 level: advanced
 reading_time: 11

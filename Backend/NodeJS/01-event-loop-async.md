@@ -1,7 +1,7 @@
 ---
 title: The Event Loop and Async Node
 part: 5
-chapter: 0
+chapter: 2
 slug: event-loop-async
 level: intermediate
 reading_time: 10

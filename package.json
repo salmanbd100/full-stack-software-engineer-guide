@@ -18,6 +18,7 @@
     "lint:docs": "node --experimental-strip-types scripts/lint-docs.ts",
     "check:versions": "node --experimental-strip-types scripts/check-version-stamps.ts",
     "check:stale": "node --experimental-strip-types scripts/check-stale-terms.ts",
+    "number:chapters": "node --experimental-strip-types scripts/number-chapters.ts",
     "plan:next": "node --experimental-strip-types scripts/plan-status.ts --next",
     "plan:check": "node --experimental-strip-types scripts/plan-status.ts --check",
     "frontmatter": "node --experimental-strip-types scripts/add-frontmatter.ts"

@@ -1,7 +1,7 @@
 ---
 title: Design a Collaborative Document Editor
 part: 6
-chapter: 0
+chapter: 32
 slug: design-collaborative-editor
 level: advanced
 reading_time: 9

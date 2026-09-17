@@ -1,7 +1,7 @@
 ---
 title: Service Workers
 part: 2
-chapter: 0
+chapter: 22
 slug: service-workers
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

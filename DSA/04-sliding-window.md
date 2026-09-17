@@ -1,7 +1,7 @@
 ---
 title: Sliding Window
 part: 10
-chapter: 0
+chapter: 4
 slug: sliding-window
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

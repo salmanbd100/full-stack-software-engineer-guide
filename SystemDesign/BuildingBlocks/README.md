@@ -1,7 +1,7 @@
 ---
 title: Part VI — Building Blocks
 part: 6
-chapter: 0
+chapter: 8
 slug: part-system-design-building-blocks
 level: intermediate
 reading_time: 2

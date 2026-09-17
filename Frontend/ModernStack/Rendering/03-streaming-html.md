@@ -1,7 +1,7 @@
 ---
 title: Streaming HTML
 part: 3
-chapter: 0
+chapter: 35
 slug: streaming-html
 level: advanced # beginner | intermediate | advanced
 reading_time: 13

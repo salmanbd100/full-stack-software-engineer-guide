@@ -1,7 +1,7 @@
 ---
 title: Auth Patterns
 part: 3
-chapter: 0
+chapter: 21
 slug: nextjs-auth-patterns
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

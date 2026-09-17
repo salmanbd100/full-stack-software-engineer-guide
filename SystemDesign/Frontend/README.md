@@ -1,7 +1,7 @@
 ---
 title: Part VI — Frontend System Design
 part: 6
-chapter: 0
+chapter: 23
 slug: part-frontend-system-design
 level: advanced # beginner | intermediate | advanced
 reading_time: 3

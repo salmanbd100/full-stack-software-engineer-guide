@@ -1,7 +1,7 @@
 ---
 title: Breadth-First Search
 part: 10
-chapter: 0
+chapter: 13
 slug: breadth-first-search
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

@@ -1,8 +1,8 @@
 ---
 title: Content Security Policy
 part: 4
-chapter: 0
-slug: csp-headers
+chapter: 17
+slug: content-security-policy
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
 updated: 2026-09-09

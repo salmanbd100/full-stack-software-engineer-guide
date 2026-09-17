@@ -1,7 +1,7 @@
 ---
 title: Error Boundaries and Resilience
 part: 3
-chapter: 0
+chapter: 11
 slug: react-error-boundaries
 level: advanced # beginner | intermediate | advanced
 reading_time: 10

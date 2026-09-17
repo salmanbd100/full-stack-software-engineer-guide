@@ -1,7 +1,7 @@
 ---
 title: Pipeline Security
 part: 8
-chapter: 0
+chapter: 14
 slug: cicd-security
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

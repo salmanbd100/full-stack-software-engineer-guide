@@ -1,7 +1,7 @@
 ---
 title: Influence, Scope and Saying No
 part: 9
-chapter: 0
+chapter: 7
 slug: influence-scope-and-saying-no
 level: advanced # beginner | intermediate | advanced
 reading_time: 10

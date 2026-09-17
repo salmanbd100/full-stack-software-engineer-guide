@@ -1,7 +1,7 @@
 ---
 title: Interfaces and Type Aliases
 part: 1
-chapter: 0
+chapter: 14
 slug: interfaces-types
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

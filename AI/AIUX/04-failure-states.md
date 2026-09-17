@@ -1,7 +1,7 @@
 ---
 title: Failure States
 part: 7
-chapter: 0
+chapter: 37
 slug: failure-states
 level: advanced
 reading_time: 10

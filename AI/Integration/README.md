@@ -1,7 +1,7 @@
 ---
 title: Integration
 part: 7
-chapter: 0
+chapter: 7
 slug: ai-integration-index
 level: advanced
 reading_time: 3

@@ -1,7 +1,7 @@
 ---
 title: Platform Deploys and Preview Environments
 part: 8
-chapter: 0
+chapter: 24
 slug: platform-deploys
 level: intermediate # beginner | intermediate | advanced
 reading_time: 13

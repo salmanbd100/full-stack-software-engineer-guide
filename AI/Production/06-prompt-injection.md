@@ -1,7 +1,7 @@
 ---
 title: Prompt Injection
 part: 7
-chapter: 0
+chapter: 32
 slug: prompt-injection
 level: advanced
 reading_time: 12

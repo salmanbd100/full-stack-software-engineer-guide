@@ -1,7 +1,7 @@
 ---
 title: "Repository Strategies: Monorepo vs Polyrepo"
 part: 8
-chapter: 0
+chapter: 5
 slug: repository-strategies
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

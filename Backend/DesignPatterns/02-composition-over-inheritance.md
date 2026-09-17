@@ -1,7 +1,7 @@
 ---
 title: Composition over Inheritance
 part: 1
-chapter: 0
+chapter: 23
 slug: composition-over-inheritance
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

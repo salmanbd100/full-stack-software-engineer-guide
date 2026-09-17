@@ -1,7 +1,7 @@
 ---
 title: Cloud Essentials
 part: 8
-chapter: 0
+chapter: 19
 slug: ship-cloud-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2

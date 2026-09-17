@@ -1,7 +1,7 @@
 ---
 title: Designing for Latency
 part: 7
-chapter: 0
+chapter: 34
 slug: designing-for-latency
 level: intermediate
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: Part VI — Data at Scale
 part: 6
-chapter: 0
+chapter: 18
 slug: part-system-design-database
 level: advanced
 reading_time: 2

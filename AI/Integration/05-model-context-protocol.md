@@ -1,7 +1,7 @@
 ---
 title: MCP (Model Context Protocol)
 part: 7
-chapter: 0
+chapter: 12
 slug: model-context-protocol
 level: advanced
 reading_time: 11

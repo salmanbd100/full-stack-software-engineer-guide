@@ -1,7 +1,7 @@
 ---
 title: How LLMs Behave
 part: 7
-chapter: 0
+chapter: 2
 slug: how-llms-behave
 level: intermediate
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: TypeScript Basic Types
 part: 1
-chapter: 0
+chapter: 13
 slug: basic-types
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

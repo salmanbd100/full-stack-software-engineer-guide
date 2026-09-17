@@ -1,7 +1,7 @@
 ---
 title: Replication
 part: 6
-chapter: 0
+chapter: 20
 slug: replication
 level: intermediate
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: Part IX — Behaviour and Ways of Working
 part: 9
-chapter: 0
+chapter: 1
 slug: behavioral-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

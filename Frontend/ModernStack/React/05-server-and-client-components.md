@@ -1,7 +1,7 @@
 ---
 title: Server Components and Client Components
 part: 3
-chapter: 0
+chapter: 6
 slug: server-components-vs-client-components
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

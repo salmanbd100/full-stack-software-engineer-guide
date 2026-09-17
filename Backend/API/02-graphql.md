@@ -1,7 +1,7 @@
 ---
 title: GraphQL
 part: 5
-chapter: 0
+chapter: 13
 slug: graphql
 level: advanced
 reading_time: 10

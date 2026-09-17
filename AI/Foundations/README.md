@@ -1,7 +1,7 @@
 ---
 title: Foundations
 part: 7
-chapter: 0
+chapter: 1
 slug: ai-foundations-index
 level: intermediate
 reading_time: 3

@@ -1,7 +1,7 @@
 ---
 title: OOP Core Concepts in TypeScript
 part: 1
-chapter: 0
+chapter: 22
 slug: oop-core-concepts
 level: intermediate # beginner | intermediate | advanced
 reading_time: 14

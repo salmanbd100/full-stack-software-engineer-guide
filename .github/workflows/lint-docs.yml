@@ -41,6 +41,11 @@ jobs:
       - name: Lint documentation
         run: pnpm lint:docs
 
+      - name: Check reading-order numbers are current
+        # Fails if a chapter has been added or moved without renumbering its part —
+        # the build would otherwise put it somewhere alphabetical. Improvement #70.
+        run: pnpm number:chapters --check
+
       - name: Check the plan's counters agree
         run: pnpm plan:check
 

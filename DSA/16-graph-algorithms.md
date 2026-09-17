@@ -1,7 +1,7 @@
 ---
 title: Graph Algorithms
 part: 10
-chapter: 0
+chapter: 16
 slug: graph-algorithms
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

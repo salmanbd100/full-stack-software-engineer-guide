@@ -1,7 +1,7 @@
 ---
 title: Modified Binary Search
 part: 10
-chapter: 0
+chapter: 10
 slug: modified-binary-search
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

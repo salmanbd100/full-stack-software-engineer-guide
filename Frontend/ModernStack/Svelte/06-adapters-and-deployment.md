@@ -1,7 +1,7 @@
 ---
 title: Adapters and Deployment
 part: 3
-chapter: 0
+chapter: 31
 slug: sveltekit-adapters-and-deployment
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

@@ -1,7 +1,7 @@
 ---
 title: The React Mental Model
 part: 3
-chapter: 0
+chapter: 2
 slug: react-mental-model
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

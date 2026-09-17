@@ -1,7 +1,7 @@
 ---
 title: Design Systems at Scale
 part: 4
-chapter: 0
+chapter: 4
 slug: design-systems-at-scale
 level: advanced # beginner | intermediate | advanced
 reading_time: 8

@@ -1,8 +1,8 @@
 ---
 title: Time and Space Complexity
 part: 10
-chapter: 0
-slug: time-space-complexity
+chapter: 1
+slug: time-and-space-complexity
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
 updated: 2026-08-30

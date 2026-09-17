@@ -1,7 +1,7 @@
 ---
 title: Written Communication
 part: 9
-chapter: 0
+chapter: 11
 slug: written-communication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

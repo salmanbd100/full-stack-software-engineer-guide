@@ -1,7 +1,7 @@
 ---
 title: Problem Solving, Challenges and Failure
 part: 9
-chapter: 0
+chapter: 4
 slug: problem-solving
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

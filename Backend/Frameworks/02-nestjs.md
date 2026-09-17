@@ -1,7 +1,7 @@
 ---
 title: NestJS
 part: 5
-chapter: 0
+chapter: 9
 slug: nestjs
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

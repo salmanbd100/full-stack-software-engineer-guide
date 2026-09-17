@@ -1,7 +1,7 @@
 ---
 title: Part II — HTML and CSS
 part: 2
-chapter: 0
+chapter: 1
 slug: frontend-html-css-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

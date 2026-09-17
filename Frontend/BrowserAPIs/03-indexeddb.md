@@ -1,7 +1,7 @@
 ---
 title: IndexedDB
 part: 2
-chapter: 0
+chapter: 7
 slug: indexeddb
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

@@ -1,7 +1,7 @@
 ---
 title: Top K Elements
 part: 10
-chapter: 0
+chapter: 8
 slug: top-k-elements
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

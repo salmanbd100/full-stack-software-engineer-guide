@@ -1,7 +1,7 @@
 ---
 title: React
 part: 3
-chapter: 0
+chapter: 1
 slug: modern-stack-react-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3

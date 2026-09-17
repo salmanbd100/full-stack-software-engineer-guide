@@ -1,7 +1,7 @@
 ---
 title: Choosing a Datastore
 part: 6
-chapter: 0
+chapter: 19
 slug: choosing-a-datastore
 level: intermediate
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: Multi-Agent Patterns
 part: 7
-chapter: 0
+chapter: 25
 slug: multi-agent-patterns
 level: advanced
 reading_time: 11

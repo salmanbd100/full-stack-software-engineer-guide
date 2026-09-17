@@ -1,7 +1,7 @@
 ---
 title: Depth-First Search
 part: 10
-chapter: 0
+chapter: 12
 slug: depth-first-search
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

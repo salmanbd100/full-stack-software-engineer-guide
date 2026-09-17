@@ -1,7 +1,7 @@
 ---
 title: Streaming Responses
 part: 7
-chapter: 0
+chapter: 9
 slug: streaming-responses
 level: intermediate
 reading_time: 11

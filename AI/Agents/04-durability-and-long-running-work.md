@@ -1,7 +1,7 @@
 ---
 title: Durability and Long-Running Work
 part: 7
-chapter: 0
+chapter: 24
 slug: durability-and-long-running-work
 level: advanced
 reading_time: 11

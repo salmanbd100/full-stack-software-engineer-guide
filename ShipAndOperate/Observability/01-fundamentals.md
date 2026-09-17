@@ -1,7 +1,7 @@
 ---
 title: Monitoring and Observability Fundamentals
 part: 8
-chapter: 0
+chapter: 16
 slug: monitoring-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 11

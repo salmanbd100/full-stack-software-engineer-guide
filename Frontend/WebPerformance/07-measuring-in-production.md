@@ -1,7 +1,7 @@
 ---
 title: Measuring in Production
 part: 4
-chapter: 0
+chapter: 14
 slug: measuring-in-production
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

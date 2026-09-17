@@ -1,7 +1,7 @@
 ---
 title: Tooling
 part: 3
-chapter: 0
+chapter: 46
 slug: modern-stack-tooling-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

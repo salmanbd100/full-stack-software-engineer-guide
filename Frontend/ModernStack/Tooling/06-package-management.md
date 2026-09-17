@@ -1,7 +1,7 @@
 ---
 title: Package Management
 part: 3
-chapter: 0
+chapter: 52
 slug: package-management
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

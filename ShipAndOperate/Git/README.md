@@ -1,7 +1,7 @@
 ---
 title: Version Control with Git
 part: 8
-chapter: 0
+chapter: 1
 slug: ship-git-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2

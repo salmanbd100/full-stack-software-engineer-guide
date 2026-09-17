@@ -1,7 +1,7 @@
 ---
 title: Technical Communication
 part: 9
-chapter: 0
+chapter: 9
 slug: technical-communication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

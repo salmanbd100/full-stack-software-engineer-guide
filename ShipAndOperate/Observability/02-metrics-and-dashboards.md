@@ -1,7 +1,7 @@
 ---
 title: Metrics and Dashboards
 part: 8
-chapter: 0
+chapter: 17
 slug: metrics-and-dashboards
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

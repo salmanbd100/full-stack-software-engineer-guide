@@ -1,7 +1,7 @@
 ---
 title: Testing Accessibility
 part: 2
-chapter: 0
+chapter: 15
 slug: testing-accessibility
 level: advanced
 reading_time: 11
@@ -49,7 +49,7 @@ everywhere, and two short manual passes on anything with an interaction.
 
 The middle three are the ones teams argue about; the last two are the ones that find the defects users
 report. The tooling-level catalogue of these test types lives in
-[Chapter ?? — Specialised Testing](#ch-specialized-testing) — this chapter is about the method.
+[Chapter ?? — Visual and Contract Testing](#ch-visual-and-contract-testing) — this chapter is about the method.
 
 ### axe in a component test
 
@@ -243,4 +243,4 @@ after interaction are the parts no test in that pull request can see.
 
 - [Chapter ?? — Why Accessibility, and the Law](#ch-accessibility-and-the-law) — the standard these tests are measuring against
 - [Chapter ?? — Keyboard and Focus Management](#ch-keyboard-and-focus) — what the manual keyboard pass is looking for
-- [Chapter ?? — Specialised Testing](#ch-specialized-testing) — where a11y checks sit among visual and contract tests
+- [Chapter ?? — Visual and Contract Testing](#ch-visual-and-contract-testing) — where a11y checks sit among the other specialised tests

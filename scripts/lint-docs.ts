@@ -60,6 +60,8 @@ type RuleId =
   | "too-long"
   | "missing-readme"
   | "heading-jump"
+  | "anchor-mismatch"
+  | "unresolved-xref"
   | "budget";
 
 const RULE_TITLES: Readonly<Record<RuleId, string>> = {
@@ -69,6 +71,8 @@ const RULE_TITLES: Readonly<Record<RuleId, string>> = {
   "too-long": `File over ${MAX_LINES} lines with in_book: true`,
   "missing-readme": "Content directory with no README.md",
   "heading-jump": "Heading level jump",
+  "anchor-mismatch": "Front-matter slug disagrees with the H1 anchor",
+  "unresolved-xref": "Cross-reference to a #ch- anchor no chapter carries",
   budget: "Lines over the BOOK-SPEC § 5 part budget",
 };
 
@@ -260,6 +264,65 @@ function checkLength(doc: Doc): void {
 }
 
 // ---------------------------------------------------------------------------
+// Whole-book rules — cross-references resolve — improvement #70
+// ---------------------------------------------------------------------------
+
+/**
+ * Two halves of one guarantee: **every `[…](#ch-x)` in the book lands somewhere.**
+ *
+ * The audit at #42 found twelve chapters whose front-matter `slug` disagreed with the
+ * `{#ch-…}` on their own H1, plus nine references pointing at nothing. Both are invisible
+ * until the PDF is built and a link goes nowhere, and both were found by hand. They are
+ * mechanical, so they belong here rather than in a separate script — unlike
+ * `check:stale` and `check:versions`, which report judgement calls and stay out on
+ * purpose (see #67 and #68).
+ *
+ * `collect-chapters.ts` injects `{#ch-<slug>}` on any chapter that has no anchor, so a
+ * missing anchor is fine. A *disagreeing* one is not: the handwritten anchor wins in the
+ * built book, and every reference written against the slug dangles silently.
+ */
+function checkAnchors(docs: Doc[]): void {
+  for (const doc of docs) {
+    const slug: string | undefined = doc.fm.slug;
+    if (!slug) continue;
+
+    const h1 = /^#\s+.+?\{#([^}]+)\}\s*$/m.exec(doc.body);
+    if (!h1) continue; // no anchor at all — the build supplies one from the slug
+
+    if (h1[1] !== `ch-${slug}`) {
+      report(
+        "anchor-mismatch",
+        doc.rel,
+        1,
+        `H1 anchor {#${h1[1]}} but front matter says slug: ${slug}`,
+      );
+    }
+  }
+}
+
+function checkCrossReferences(docs: Doc[]): void {
+  const anchors = new Set<string>();
+  for (const doc of docs) {
+    for (const m of doc.body.matchAll(/\{#(ch-[a-z0-9-]+)\}/g)) anchors.add(m[1]);
+    if (doc.fm.slug) anchors.add(`ch-${doc.fm.slug}`);
+  }
+
+  for (const doc of docs) {
+    const lines: string[] = doc.body.split("\n");
+    const offset: number = bodyOffset(doc);
+
+    for (let i = 0; i < lines.length; i++) {
+      const stripped: string = lines[i].replace(/`[^`]*`/g, "");
+      for (const m of stripped.matchAll(/\]\(#(ch-[a-z0-9-]+)\)/g)) {
+        if (!anchors.has(m[1])) {
+          report("unresolved-xref", doc.rel, offset + i + 1, `#${m[1]} has no chapter`);
+        }
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Whole-book rule — part line budgets
 // ---------------------------------------------------------------------------
 
@@ -333,6 +396,8 @@ for (const doc of docs) {
   checkLength(doc);
 }
 checkReadmes();
+checkAnchors(docs);
+checkCrossReferences(docs);
 const budgetOverage: number = checkBudgets(docs);
 
 const counts: Record<string, number> = {};

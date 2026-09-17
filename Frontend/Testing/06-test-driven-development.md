@@ -1,7 +1,7 @@
 ---
 title: Test-Driven Development
 part: 4
-chapter: 0
+chapter: 26
 slug: test-driven-development
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

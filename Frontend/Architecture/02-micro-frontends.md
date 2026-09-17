@@ -1,7 +1,7 @@
 ---
 title: Micro-Frontends
 part: 4
-chapter: 0
+chapter: 3
 slug: micro-frontends
 level: advanced # beginner | intermediate | advanced
 reading_time: 8

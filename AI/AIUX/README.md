@@ -1,7 +1,7 @@
 ---
 title: AIUX
 part: 7
-chapter: 0
+chapter: 33
 slug: ai-aiux-index
 level: advanced
 reading_time: 3

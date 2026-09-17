@@ -1,7 +1,7 @@
 ---
 title: Part II — Accessibility
 part: 2
-chapter: 0
+chapter: 9
 slug: frontend-accessibility-index
 level: advanced
 reading_time: 3

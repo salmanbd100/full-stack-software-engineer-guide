@@ -1,7 +1,7 @@
 ---
 title: Binary Tree Traversal
 part: 10
-chapter: 0
+chapter: 11
 slug: binary-tree-traversal
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

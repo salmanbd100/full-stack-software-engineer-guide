@@ -1,7 +1,7 @@
 ---
 title: Testing Strategy
 part: 4
-chapter: 0
+chapter: 21
 slug: testing-strategy
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

@@ -1,7 +1,7 @@
 ---
 title: Deployment
 part: 8
-chapter: 0
+chapter: 23
 slug: ship-deployment-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

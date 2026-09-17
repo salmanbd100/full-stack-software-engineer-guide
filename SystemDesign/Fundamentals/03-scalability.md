@@ -1,7 +1,7 @@
 ---
 title: Scalability
 part: 6
-chapter: 0
+chapter: 4
 slug: scalability
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

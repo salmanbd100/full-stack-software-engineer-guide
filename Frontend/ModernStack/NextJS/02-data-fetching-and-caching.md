@@ -1,7 +1,7 @@
 ---
 title: Data Fetching and Caching
 part: 3
-chapter: 0
+chapter: 16
 slug: nextjs-data-and-caching
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -252,4 +252,4 @@ data the component could have queried directly.
 
 - [Chapter ?? — Rendering in Next.js](#ch-rendering-in-nextjs) — how cached and dynamic content share one route
 - [Chapter ?? — Server Actions](#ch-server-actions) — where invalidation is actually called from
-- [Chapter ?? — Frontend Caching Strategies](#ch-web-performance-caching-strategies) — the CDN layer sitting in front of all of this
+- [Chapter ?? — Frontend Caching Strategies](#ch-frontend-caching-strategies) — the CDN layer sitting in front of all of this

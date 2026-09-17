@@ -1,7 +1,7 @@
 ---
 title: Real-Time and Streaming APIs
 part: 5
-chapter: 0
+chapter: 16
 slug: realtime-streaming
 level: advanced
 reading_time: 11

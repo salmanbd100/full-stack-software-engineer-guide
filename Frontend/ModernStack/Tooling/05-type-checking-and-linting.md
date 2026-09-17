@@ -1,7 +1,7 @@
 ---
 title: Type-Checking and Linting at Scale
 part: 3
-chapter: 0
+chapter: 51
 slug: type-checking-and-linting
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

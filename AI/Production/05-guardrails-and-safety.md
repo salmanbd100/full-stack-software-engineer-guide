@@ -1,7 +1,7 @@
 ---
 title: Guardrails and Safety
 part: 7
-chapter: 0
+chapter: 31
 slug: guardrails-and-safety
 level: advanced
 reading_time: 11

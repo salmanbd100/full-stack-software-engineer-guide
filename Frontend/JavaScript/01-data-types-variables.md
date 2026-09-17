@@ -1,7 +1,7 @@
 ---
 title: Data Types and Variables
 part: 1
-chapter: 0
+chapter: 2
 slug: data-types-variables
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

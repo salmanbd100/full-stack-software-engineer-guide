@@ -1,7 +1,7 @@
 ---
 title: Advanced Git
 part: 8
-chapter: 0
+chapter: 3
 slug: advanced-git
 level: advanced # beginner | intermediate | advanced
 reading_time: 9

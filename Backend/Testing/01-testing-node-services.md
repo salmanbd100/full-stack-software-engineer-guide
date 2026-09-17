@@ -1,7 +1,7 @@
 ---
 title: Testing a Node Service
 part: 5
-chapter: 0
+chapter: 34
 slug: testing-node-services
 level: advanced
 reading_time: 11

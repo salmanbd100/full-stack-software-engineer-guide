@@ -1,7 +1,7 @@
 ---
 title: React Testing Library
 part: 4
-chapter: 0
+chapter: 23
 slug: react-testing-library
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

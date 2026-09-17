@@ -1,7 +1,7 @@
 ---
 title: Branching and Review Workflow
 part: 8
-chapter: 0
+chapter: 4
 slug: branching-and-review-workflow
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

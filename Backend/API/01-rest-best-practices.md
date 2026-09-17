@@ -1,7 +1,7 @@
 ---
 title: REST API Best Practices
 part: 5
-chapter: 0
+chapter: 12
 slug: rest-best-practices
 level: intermediate # beginner | intermediate | advanced
 reading_time: 13

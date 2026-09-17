@@ -1,7 +1,7 @@
 ---
 title: The AI-Assisted Interview
 part: 9
-chapter: 0
+chapter: 12
 slug: ai-assisted-interview
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

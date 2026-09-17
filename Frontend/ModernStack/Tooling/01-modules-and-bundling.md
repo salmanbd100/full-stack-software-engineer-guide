@@ -1,7 +1,7 @@
 ---
 title: Modules and Bundling
 part: 3
-chapter: 0
+chapter: 47
 slug: modules-and-bundling
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

@@ -1,7 +1,7 @@
 ---
 title: Part I — JavaScript Foundations
 part: 1
-chapter: 0
+chapter: 1
 slug: frontend-javascript-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

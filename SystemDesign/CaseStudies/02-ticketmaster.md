@@ -1,7 +1,7 @@
 ---
 title: Design Ticketmaster
 part: 6
-chapter: 0
+chapter: 31
 slug: design-ticketmaster
 level: advanced
 reading_time: 11

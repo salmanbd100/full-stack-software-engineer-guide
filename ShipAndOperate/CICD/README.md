@@ -1,7 +1,7 @@
 ---
 title: Continuous Integration and Delivery
 part: 8
-chapter: 0
+chapter: 11
 slug: ship-cicd-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2

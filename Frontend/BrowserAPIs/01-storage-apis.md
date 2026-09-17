@@ -1,7 +1,7 @@
 ---
 title: Web Storage APIs
 part: 2
-chapter: 0
+chapter: 5
 slug: storage-apis
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

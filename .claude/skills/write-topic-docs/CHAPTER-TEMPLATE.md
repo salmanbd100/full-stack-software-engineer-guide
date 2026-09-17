@@ -13,7 +13,9 @@ in_book: true
 <!--
 COPY THIS FILE to start a new chapter. Then:
   1. Fill the front matter. `slug` must be globally unique and match the {#ch-...} anchor below.
-  2. Leave `part`/`chapter` as 0 if you do not know them — improvement #70 assigns the real numbers.
+  2. Set `part`. Leave `chapter: 0` — it now means "part opener", and #70's
+     `pnpm number:chapters` renumbers the whole part from the reading order in
+     `scripts/lib/book.ts`, so hand-picking a number here achieves nothing.
   3. Delete every HTML comment, including this one, before committing.
   4. Target ~220 lines. Hard limits: 150 min, 400 max.
   5. Check against the Quality Checklist in SKILL.md before you finish.

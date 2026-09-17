@@ -1,7 +1,7 @@
 ---
 title: Part VI — Case Studies
 part: 6
-chapter: 0
+chapter: 29
 slug: part-system-design-case-studies
 level: advanced
 reading_time: 2

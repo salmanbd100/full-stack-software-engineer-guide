@@ -1,7 +1,7 @@
 ---
 title: Frontend Architecture Patterns
 part: 4
-chapter: 0
+chapter: 2
 slug: frontend-architecture-patterns
 level: advanced # beginner | intermediate | advanced
 reading_time: 8

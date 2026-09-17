@@ -1,7 +1,7 @@
 ---
 title: Client State
 part: 3
-chapter: 0
+chapter: 42
 slug: client-state
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

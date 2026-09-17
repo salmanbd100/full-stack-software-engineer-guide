@@ -1,7 +1,7 @@
 ---
 title: Calling an LLM from TypeScript
 part: 7
-chapter: 0
+chapter: 8
 slug: calling-an-llm-from-typescript
 level: intermediate
 reading_time: 11

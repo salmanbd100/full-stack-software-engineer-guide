@@ -1,7 +1,7 @@
 ---
 title: Service Boundaries
 part: 6
-chapter: 0
+chapter: 16
 slug: service-boundaries
 level: advanced
 reading_time: 11

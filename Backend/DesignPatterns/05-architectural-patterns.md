@@ -1,7 +1,7 @@
 ---
 title: Architectural Patterns
 part: 1
-chapter: 0
+chapter: 26
 slug: architectural-patterns
 level: advanced # beginner | intermediate | advanced
 reading_time: 16

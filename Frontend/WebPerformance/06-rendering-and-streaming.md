@@ -1,7 +1,7 @@
 ---
 title: Rendering and Streaming
 part: 4
-chapter: 0
+chapter: 13
 slug: rendering-and-streaming
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

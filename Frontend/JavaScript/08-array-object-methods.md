@@ -1,7 +1,7 @@
 ---
 title: Array and Object Methods
 part: 1
-chapter: 0
+chapter: 9
 slug: array-object-methods
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

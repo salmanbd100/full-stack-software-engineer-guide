@@ -1,7 +1,7 @@
 ---
 title: Git Fundamentals
 part: 8
-chapter: 0
+chapter: 2
 slug: git-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 9

@@ -1,7 +1,7 @@
 ---
 title: Advanced CSS
 part: 2
-chapter: 0
+chapter: 3
 slug: advanced-css
 level: advanced # beginner | intermediate | advanced
 reading_time: 9
@@ -237,6 +237,6 @@ test is whether anything — a theme, a breakpoint, a subtree, a script — ever
 
 ## What to Read Next
 
-- [Chapter ?? — CSS Fundamentals](#ch-css-fundamentals) — the cascade and cascade layers these features sit on
-- [Chapter ?? — Responsive Design](#ch-responsive-design) — container queries, the other 2023 arrival
+- [Chapter ?? — Semantic HTML](#ch-semantic-html) — the markup the cascade is applied to
+- [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) — custom properties as design tokens, across teams
 - [Chapter ?? — Right-to-Left Support](#ch-rtl-support) — logical properties in full

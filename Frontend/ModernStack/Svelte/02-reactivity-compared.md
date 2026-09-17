@@ -1,7 +1,7 @@
 ---
 title: Reactivity Compared
 part: 3
-chapter: 0
+chapter: 27
 slug: reactivity-compared
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

@@ -1,7 +1,7 @@
 ---
 title: Kubernetes Essentials
 part: 8
-chapter: 0
+chapter: 10
 slug: kubernetes-essentials
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

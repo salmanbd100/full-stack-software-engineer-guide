@@ -1,7 +1,7 @@
 ---
 title: Part VI — System Design Fundamentals
 part: 6
-chapter: 0
+chapter: 1
 slug: part-system-design-fundamentals
 level: intermediate
 reading_time: 2

@@ -1,7 +1,7 @@
 ---
 title: Bundles, Budgets and Third Parties
 part: 4
-chapter: 0
+chapter: 10
 slug: bundle-optimisation
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

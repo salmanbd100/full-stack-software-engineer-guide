@@ -1,7 +1,7 @@
 ---
 title: Trust and Correctness UX
 part: 7
-chapter: 0
+chapter: 36
 slug: trust-and-correctness-ux
 level: advanced
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: Part IV — Web Performance
 part: 4
-chapter: 0
+chapter: 7
 slug: frontend-web-performance-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2

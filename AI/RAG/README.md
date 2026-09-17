@@ -1,7 +1,7 @@
 ---
 title: RAG
 part: 7
-chapter: 0
+chapter: 14
 slug: ai-rag-index
 level: advanced
 reading_time: 3

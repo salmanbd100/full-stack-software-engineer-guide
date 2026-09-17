@@ -1,7 +1,7 @@
 ---
 title: Deployment Strategies and Rollback
 part: 8
-chapter: 0
+chapter: 25
 slug: deployment-strategies
 level: advanced # beginner | intermediate | advanced
 reading_time: 13

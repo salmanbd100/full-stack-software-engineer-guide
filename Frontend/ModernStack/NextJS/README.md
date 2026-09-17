@@ -1,7 +1,7 @@
 ---
 title: Next.js
 part: 3
-chapter: 0
+chapter: 14
 slug: modern-stack-nextjs-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3

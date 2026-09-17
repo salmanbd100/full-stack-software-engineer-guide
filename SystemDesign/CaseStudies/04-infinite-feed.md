@@ -1,7 +1,7 @@
 ---
 title: Design an Infinite Feed
 part: 6
-chapter: 0
+chapter: 33
 slug: design-infinite-feed
 level: advanced
 reading_time: 9

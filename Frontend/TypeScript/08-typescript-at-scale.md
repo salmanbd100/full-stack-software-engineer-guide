@@ -1,7 +1,7 @@
 ---
 title: TypeScript at Scale
 part: 1
-chapter: 0
+chapter: 20
 slug: typescript-at-scale
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

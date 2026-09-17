@@ -1,7 +1,7 @@
 ---
 title: Evaluating Retrieval
 part: 7
-chapter: 0
+chapter: 19
 slug: evaluating-retrieval
 level: advanced
 reading_time: 12

@@ -1,7 +1,7 @@
 ---
 title: Frontend Integration Testing
 part: 4
-chapter: 0
+chapter: 24
 slug: frontend-integration-testing
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

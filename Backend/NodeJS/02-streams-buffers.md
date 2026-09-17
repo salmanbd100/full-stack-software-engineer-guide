@@ -1,7 +1,7 @@
 ---
 title: Streams and Buffers
 part: 5
-chapter: 0
+chapter: 3
 slug: streams-buffers
 level: intermediate
 reading_time: 9

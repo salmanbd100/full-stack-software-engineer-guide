@@ -1,7 +1,7 @@
 ---
 title: Dynamic Programming
 part: 10
-chapter: 0
+chapter: 15
 slug: dynamic-programming
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

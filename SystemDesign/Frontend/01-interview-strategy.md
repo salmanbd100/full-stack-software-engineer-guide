@@ -1,7 +1,7 @@
 ---
 title: Frontend System Design Strategy
 part: 6
-chapter: 0
+chapter: 24
 slug: frontend-system-design-strategy
 level: intermediate # beginner | intermediate | advanced
 reading_time: 4

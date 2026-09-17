@@ -1,7 +1,7 @@
 ---
 title: Frontend Architecture
 part: 4
-chapter: 0
+chapter: 1
 slug: frontend-architecture-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2

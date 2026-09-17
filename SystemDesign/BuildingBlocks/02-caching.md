@@ -1,7 +1,7 @@
 ---
 title: Caching
 part: 6
-chapter: 0
+chapter: 10
 slug: caching
 level: intermediate
 reading_time: 9

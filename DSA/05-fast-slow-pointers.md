@@ -1,8 +1,8 @@
 ---
 title: Fast and Slow Pointers
 part: 10
-chapter: 0
-slug: fast-slow-pointers
+chapter: 5
+slug: fast-and-slow-pointers
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
 updated: 2026-08-30

@@ -1,7 +1,7 @@
 ---
 title: Migrating Pages to App Router
 part: 3
-chapter: 0
+chapter: 24
 slug: migrating-to-the-app-router
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

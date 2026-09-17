@@ -78,7 +78,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Cosine similarity** — The similarity measure between two embedding vectors, based on the angle between them. [Embeddings and Similarity](#ch-embeddings-and-similarity)
 
-**CSP** — Content Security Policy: a header restricting which sources a page may load or execute. [Content Security Policy](#ch-csp-headers)
+**CSP** — Content Security Policy: a header restricting which sources a page may load or execute. [Content Security Policy](#ch-content-security-policy)
 
 **CSR** — Client-side rendering: the server sends a shell and the browser builds the page. [The Rendering Spectrum](#ch-rendering-spectrum)
 

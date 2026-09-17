@@ -1,7 +1,7 @@
 ---
 title: Two Pointers
 part: 10
-chapter: 0
+chapter: 3
 slug: two-pointers
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

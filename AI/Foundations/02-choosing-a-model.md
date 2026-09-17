@@ -1,7 +1,7 @@
 ---
 title: Choosing a Model
 part: 7
-chapter: 0
+chapter: 3
 slug: choosing-a-model
 level: intermediate
 reading_time: 10

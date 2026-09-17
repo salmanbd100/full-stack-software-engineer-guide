@@ -1,7 +1,7 @@
 ---
 title: Ingestion and Chunking
 part: 7
-chapter: 0
+chapter: 16
 slug: ingestion-and-chunking
 level: advanced
 reading_time: 12

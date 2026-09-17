@@ -1,7 +1,7 @@
 ---
 title: Loading and Code Splitting
 part: 4
-chapter: 0
+chapter: 9
 slug: loading-and-code-splitting
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

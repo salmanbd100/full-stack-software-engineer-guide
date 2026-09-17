@@ -1,7 +1,7 @@
 ---
 title: Closures
 part: 1
-chapter: 0
+chapter: 4
 slug: closures
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

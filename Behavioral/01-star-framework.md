@@ -1,7 +1,7 @@
 ---
 title: The STAR Framework and the Story Bank
 part: 9
-chapter: 0
+chapter: 2
 slug: star-framework
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

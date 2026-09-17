@@ -1,7 +1,7 @@
 ---
 title: When RAG, When Fine-Tune, When Neither
 part: 7
-chapter: 0
+chapter: 15
 slug: when-rag-when-fine-tune-when-neither
 level: intermediate
 reading_time: 11

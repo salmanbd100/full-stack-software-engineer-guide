@@ -1,7 +1,7 @@
 ---
 title: Error Handling
 part: 1
-chapter: 0
+chapter: 10
 slug: javascript-error-handling
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

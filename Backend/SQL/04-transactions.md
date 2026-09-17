@@ -1,7 +1,7 @@
 ---
 title: Transactions and Concurrency
 part: 5
-chapter: 0
+chapter: 22
 slug: sql-transactions
 level: advanced
 reading_time: 9

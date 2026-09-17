@@ -1,7 +1,7 @@
 ---
 title: Error Handling in Node
 part: 5
-chapter: 0
+chapter: 5
 slug: nodejs-error-handling
 level: intermediate
 reading_time: 9

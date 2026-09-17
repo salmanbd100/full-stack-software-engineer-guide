@@ -1,7 +1,7 @@
 ---
 title: Part IV — Frontend Testing
 part: 4
-chapter: 0
+chapter: 20
 slug: frontend-testing-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2

@@ -1,7 +1,7 @@
 ---
 title: Reviewing AI-Generated Code
 part: 4
-chapter: 0
+chapter: 6
 slug: reviewing-ai-generated-code
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

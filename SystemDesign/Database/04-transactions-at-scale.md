@@ -1,7 +1,7 @@
 ---
 title: Transactions at Scale
 part: 6
-chapter: 0
+chapter: 22
 slug: database-transactions
 level: advanced
 reading_time: 10

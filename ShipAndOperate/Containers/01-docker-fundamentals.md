@@ -1,7 +1,7 @@
 ---
 title: Docker Fundamentals
 part: 8
-chapter: 0
+chapter: 7
 slug: docker-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 9

@@ -1,7 +1,7 @@
 ---
 title: Part V — Node.js
 part: 5
-chapter: 0
+chapter: 1
 slug: backend-nodejs-index
 level: intermediate
 reading_time: 2

@@ -1,7 +1,7 @@
 ---
 title: Edge Versus Origin Rendering
 part: 3
-chapter: 0
+chapter: 38
 slug: edge-vs-origin-rendering
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

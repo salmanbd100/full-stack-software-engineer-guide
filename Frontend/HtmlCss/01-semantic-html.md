@@ -1,7 +1,7 @@
 ---
 title: Semantic HTML
 part: 2
-chapter: 0
+chapter: 2
 slug: semantic-html
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

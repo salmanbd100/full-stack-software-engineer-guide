@@ -1,7 +1,7 @@
 ---
 title: TypeScript Utility Types
 part: 1
-chapter: 0
+chapter: 16
 slug: utility-types
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

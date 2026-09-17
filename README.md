@@ -60,6 +60,7 @@ Every script in [`package.json`](./package.json):
 | `pnpm book:pdf` | PDF only. The faster one while iterating |
 | `pnpm book:epub` | EPUB only |
 | `pnpm book:collect` | Assembles `build/book.md` without typesetting it. Catches ordering and front-matter breakage cheaply |
+| `pnpm number:chapters` | Renumbers front-matter `chapter` across every part from the reading order in `scripts/lib/book.ts`. `--check` reports without writing |
 | `pnpm plan:next` | The next unchecked plan item, its "Done when", and which model to use |
 | `pnpm plan:check` | Verifies the plan's three progress counters still agree |
 | `pnpm frontmatter` | Stamps YAML front matter across the manuscript (improvement #3) |

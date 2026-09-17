@@ -1,7 +1,7 @@
 ---
 title: The Module System
 part: 5
-chapter: 0
+chapter: 4
 slug: module-system
 level: intermediate
 reading_time: 8

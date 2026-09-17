@@ -1,8 +1,8 @@
 ---
 title: Security Headers
 part: 4
-chapter: 0
-slug: secure-headers
+chapter: 18
+slug: security-headers
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
 updated: 2026-08-28

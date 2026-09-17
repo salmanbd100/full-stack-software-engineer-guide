@@ -1,7 +1,7 @@
 ---
 title: Generative UI
 part: 7
-chapter: 0
+chapter: 35
 slug: generative-ui
 level: advanced
 reading_time: 10

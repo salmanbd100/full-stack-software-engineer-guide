@@ -1,7 +1,7 @@
 ---
 title: Functions and Scope
 part: 1
-chapter: 0
+chapter: 3
 slug: functions-scope
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

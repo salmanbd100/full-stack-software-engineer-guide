@@ -1,7 +1,7 @@
 ---
 title: Observability
 part: 7
-chapter: 0
+chapter: 29
 slug: observability
 level: advanced
 reading_time: 11

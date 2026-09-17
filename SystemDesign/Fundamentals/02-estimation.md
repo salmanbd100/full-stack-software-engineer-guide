@@ -1,7 +1,7 @@
 ---
 title: Back-of-Envelope Estimation
 part: 6
-chapter: 0
+chapter: 3
 slug: back-of-envelope-estimation
 level: intermediate
 reading_time: 9

@@ -1,7 +1,7 @@
 ---
 title: Error Analysis Loops
 part: 7
-chapter: 0
+chapter: 28
 slug: error-analysis-loops
 level: advanced
 reading_time: 11

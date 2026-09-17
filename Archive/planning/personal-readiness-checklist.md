@@ -49,5 +49,7 @@
 **Read:** [System Design Primer](https://github.com/donnemartin/system-design-primer) ·
 [Frontend Interview Handbook](https://www.frontendinterviewhandbook.com/)
 
-> This list dates from 2024 and shows it. Improvement #73 writes the book's **Further Reading** back
-> matter from scratch rather than salvaging this.
+> This list dates from 2024 and shows it. The book's **Further Reading** back matter was written from
+> scratch at improvement #69 — `Further-Reading.md` at the repository root — rather than salvaged from
+> here. Two entries survived the rebuild on their own merits: the System Design Primer and the Frontend
+> Interview Handbook.

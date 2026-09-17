@@ -1,7 +1,7 @@
 ---
 title: Driving the Design Round
 part: 6
-chapter: 0
+chapter: 2
 slug: driving-the-round
 level: intermediate
 reading_time: 10

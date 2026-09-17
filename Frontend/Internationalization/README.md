@@ -1,7 +1,7 @@
 ---
 title: Part II — Internationalisation
 part: 2
-chapter: 0
+chapter: 16
 slug: frontend-internationalization-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2

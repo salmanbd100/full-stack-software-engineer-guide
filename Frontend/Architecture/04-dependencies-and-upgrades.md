@@ -1,7 +1,7 @@
 ---
 title: Dependencies and Upgrades
 part: 4
-chapter: 0
+chapter: 5
 slug: dependencies-and-upgrades
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

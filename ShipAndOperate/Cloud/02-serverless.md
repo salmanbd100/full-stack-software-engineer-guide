@@ -1,7 +1,7 @@
 ---
 title: Serverless Functions
 part: 8
-chapter: 0
+chapter: 21
 slug: serverless-functions
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

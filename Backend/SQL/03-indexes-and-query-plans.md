@@ -1,7 +1,7 @@
 ---
 title: Indexes and Query Plans
 part: 5
-chapter: 0
+chapter: 21
 slug: indexes
 level: advanced
 reading_time: 10

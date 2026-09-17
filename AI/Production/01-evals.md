@@ -1,7 +1,7 @@
 ---
 title: Evals
 part: 7
-chapter: 0
+chapter: 27
 slug: evals
 level: advanced
 reading_time: 12

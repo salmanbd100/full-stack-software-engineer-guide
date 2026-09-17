@@ -1,7 +1,7 @@
 ---
 title: Why Accessibility, and the Law
 part: 2
-chapter: 0
+chapter: 10
 slug: accessibility-and-the-law
 level: intermediate
 reading_time: 10

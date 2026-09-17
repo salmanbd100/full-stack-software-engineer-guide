@@ -1,7 +1,7 @@
 ---
 title: Part I — TypeScript
 part: 1
-chapter: 0
+chapter: 12
 slug: frontend-typescript-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

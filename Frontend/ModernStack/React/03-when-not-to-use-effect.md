@@ -1,7 +1,7 @@
 ---
 title: useEffect and When Not to Use It
 part: 3
-chapter: 0
+chapter: 4
 slug: when-not-to-use-effect
 level: advanced # beginner | intermediate | advanced
 reading_time: 10

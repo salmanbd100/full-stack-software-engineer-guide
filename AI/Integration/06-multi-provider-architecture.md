@@ -1,7 +1,7 @@
 ---
 title: Multi-Provider Architecture
 part: 7
-chapter: 0
+chapter: 13
 slug: multi-provider-architecture
 level: advanced
 reading_time: 11

@@ -1,7 +1,7 @@
 ---
 title: Part I — OOP and Design Patterns
 part: 1
-chapter: 0
+chapter: 21
 slug: backend-design-patterns-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

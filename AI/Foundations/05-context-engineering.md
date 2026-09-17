@@ -1,7 +1,7 @@
 ---
 title: Context Engineering
 part: 7
-chapter: 0
+chapter: 6
 slug: context-engineering
 level: advanced
 reading_time: 11

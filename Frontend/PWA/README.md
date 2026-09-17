@@ -1,7 +1,7 @@
 ---
 title: Part II — Progressive Web Apps
 part: 2
-chapter: 0
+chapter: 21
 slug: frontend-pwa-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3

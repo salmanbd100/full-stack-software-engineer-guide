@@ -1,7 +1,7 @@
 ---
 title: AI in Interviews
 part: 7
-chapter: 0
+chapter: 38
 slug: ai-in-interviews
 level: advanced
 reading_time: 9

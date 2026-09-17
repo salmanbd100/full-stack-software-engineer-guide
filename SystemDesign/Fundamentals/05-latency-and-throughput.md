@@ -1,7 +1,7 @@
 ---
 title: Latency and Throughput
 part: 6
-chapter: 0
+chapter: 6
 slug: latency-and-throughput
 level: intermediate
 reading_time: 10

@@ -5,5 +5,7 @@
   "too-long": 0,
   "missing-readme": 0,
   "heading-jump": 0,
+  "anchor-mismatch": 0,
+  "unresolved-xref": 1,
   "budget": 0
 }

@@ -1,7 +1,7 @@
 ---
 title: Part V — NoSQL and Caching
 part: 5
-chapter: 0
+chapter: 24
 slug: backend-nosql-index
 level: intermediate
 reading_time: 2

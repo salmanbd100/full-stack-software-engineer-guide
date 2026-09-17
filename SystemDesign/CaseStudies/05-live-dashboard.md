@@ -1,7 +1,7 @@
 ---
 title: Design a Live Dashboard
 part: 6
-chapter: 0
+chapter: 34
 slug: design-live-dashboard
 level: advanced
 reading_time: 9

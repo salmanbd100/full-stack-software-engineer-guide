@@ -1,7 +1,7 @@
 ---
 title: End-to-End Testing with Playwright
 part: 4
-chapter: 0
+chapter: 25
 slug: end-to-end-testing
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

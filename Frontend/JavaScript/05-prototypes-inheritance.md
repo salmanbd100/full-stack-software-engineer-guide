@@ -1,7 +1,7 @@
 ---
 title: Prototypes and Inheritance
 part: 1
-chapter: 0
+chapter: 6
 slug: prototypes-inheritance
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

@@ -1,7 +1,7 @@
 ---
 title: The `this` Keyword
 part: 1
-chapter: 0
+chapter: 5
 slug: this-keyword
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

@@ -1,7 +1,7 @@
 ---
 title: Core Web Vitals
 part: 4
-chapter: 0
+chapter: 8
 slug: core-web-vitals
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

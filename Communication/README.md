@@ -1,7 +1,7 @@
 ---
 title: Part IX — Communication
 part: 9
-chapter: 0
+chapter: 8
 slug: communication-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

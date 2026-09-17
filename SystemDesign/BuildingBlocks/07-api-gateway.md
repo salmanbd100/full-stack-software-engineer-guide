@@ -1,7 +1,7 @@
 ---
 title: The API Gateway Pattern
 part: 6
-chapter: 0
+chapter: 15
 slug: api-gateway-pattern
 level: intermediate
 reading_time: 8

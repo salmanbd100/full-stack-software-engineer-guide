@@ -1,7 +1,7 @@
 ---
 title: Credentials, Sessions and Tokens
 part: 5
-chapter: 0
+chapter: 28
 slug: credentials-and-sessions
 level: advanced
 reading_time: 11

@@ -1,7 +1,7 @@
 ---
 title: CORS and CSRF
 part: 5
-chapter: 0
+chapter: 31
 slug: cors-csrf
 level: intermediate
 reading_time: 9

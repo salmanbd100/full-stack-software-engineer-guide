@@ -1,7 +1,7 @@
 ---
 title: What an Agent Actually Is
 part: 7
-chapter: 0
+chapter: 21
 slug: what-an-agent-actually-is
 level: intermediate
 reading_time: 11

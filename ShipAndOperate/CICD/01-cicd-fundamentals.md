@@ -1,7 +1,7 @@
 ---
 title: CI/CD Fundamentals
 part: 8
-chapter: 0
+chapter: 12
 slug: cicd-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 10

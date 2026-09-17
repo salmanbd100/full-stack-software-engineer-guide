@@ -1,7 +1,7 @@
 ---
 title: Component Composition Patterns
 part: 3
-chapter: 0
+chapter: 5
 slug: react-composition-patterns
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

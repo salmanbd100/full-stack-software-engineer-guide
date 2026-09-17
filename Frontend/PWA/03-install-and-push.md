@@ -1,7 +1,7 @@
 ---
 title: Installability and Push Notifications
 part: 2
-chapter: 0
+chapter: 24
 slug: install-and-push
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

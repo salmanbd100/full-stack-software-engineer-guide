@@ -1,7 +1,7 @@
 ---
 title: TypeScript Advanced Types
 part: 1
-chapter: 0
+chapter: 18
 slug: advanced-types
 level: advanced # beginner | intermediate | advanced
 reading_time: 8

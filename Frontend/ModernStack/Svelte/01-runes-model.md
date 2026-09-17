@@ -1,7 +1,7 @@
 ---
 title: Svelte 5 and the Runes Model
 part: 3
-chapter: 0
+chapter: 26
 slug: svelte-runes
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

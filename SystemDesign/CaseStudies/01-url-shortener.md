@@ -1,7 +1,7 @@
 ---
 title: Design a URL Shortener
 part: 6
-chapter: 0
+chapter: 30
 slug: design-url-shortener
 level: intermediate
 reading_time: 10

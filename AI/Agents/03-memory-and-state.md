@@ -1,7 +1,7 @@
 ---
 title: Memory and State
 part: 7
-chapter: 0
+chapter: 23
 slug: memory-and-state
 level: advanced
 reading_time: 11

@@ -1,7 +1,7 @@
 ---
 title: Part V — SQL and Relational Data
 part: 5
-chapter: 0
+chapter: 18
 slug: part-sql-and-relational-data
 level: intermediate
 reading_time: 2

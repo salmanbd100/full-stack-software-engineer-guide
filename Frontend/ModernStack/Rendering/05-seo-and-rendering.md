@@ -1,7 +1,7 @@
 ---
 title: SEO and Rendering
 part: 3
-chapter: 0
+chapter: 37
 slug: seo-and-rendering
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

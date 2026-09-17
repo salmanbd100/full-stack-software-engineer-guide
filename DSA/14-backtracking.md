@@ -1,7 +1,7 @@
 ---
 title: Backtracking
 part: 10
-chapter: 0
+chapter: 14
 slug: backtracking
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

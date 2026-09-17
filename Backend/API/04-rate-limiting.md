@@ -1,7 +1,7 @@
 ---
 title: Rate Limiting
 part: 5
-chapter: 0
+chapter: 15
 slug: rate-limiting
 level: intermediate # beginner | intermediate | advanced
 reading_time: 14

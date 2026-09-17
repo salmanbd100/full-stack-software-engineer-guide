@@ -1,7 +1,7 @@
 ---
 title: State Management
 part: 3
-chapter: 0
+chapter: 39
 slug: modern-stack-state-management-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3

@@ -1,7 +1,7 @@
 ---
 title: Feature Flags
 part: 8
-chapter: 0
+chapter: 26
 slug: feature-flags
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

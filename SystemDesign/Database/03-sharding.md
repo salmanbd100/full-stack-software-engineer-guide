@@ -1,7 +1,7 @@
 ---
 title: Sharding
 part: 6
-chapter: 0
+chapter: 21
 slug: sharding
 level: advanced
 reading_time: 11

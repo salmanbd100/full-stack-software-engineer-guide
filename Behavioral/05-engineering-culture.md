@@ -1,7 +1,7 @@
 ---
 title: Engineering Culture
 part: 9
-chapter: 0
+chapter: 6
 slug: engineering-culture
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

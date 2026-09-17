@@ -1,7 +1,7 @@
 ---
 title: Docker Compose
 part: 8
-chapter: 0
+chapter: 9
 slug: docker-compose
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

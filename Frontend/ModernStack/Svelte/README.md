@@ -1,7 +1,7 @@
 ---
 title: Svelte
 part: 3
-chapter: 0
+chapter: 25
 slug: modern-stack-svelte-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

@@ -1,7 +1,7 @@
 ---
 title: Transitions and Concurrency
 part: 3
-chapter: 0
+chapter: 8
 slug: transitions-and-concurrency
 level: advanced # beginner | intermediate | advanced
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: Promises and Async/Await
 part: 1
-chapter: 0
+chapter: 7
 slug: promises-async
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

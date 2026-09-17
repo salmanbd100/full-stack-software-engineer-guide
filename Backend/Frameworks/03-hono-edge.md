@@ -1,7 +1,7 @@
 ---
 title: Edge Runtimes and Hono
 part: 5
-chapter: 0
+chapter: 10
 slug: edge-runtimes
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

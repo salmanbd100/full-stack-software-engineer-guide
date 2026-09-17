@@ -1,7 +1,7 @@
 ---
 title: Deployment and Runtime
 part: 3
-chapter: 0
+chapter: 23
 slug: nextjs-deployment-and-runtime
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

@@ -1,7 +1,7 @@
 ---
 title: Load Balancing
 part: 6
-chapter: 0
+chapter: 9
 slug: load-balancing
 level: intermediate
 reading_time: 9

@@ -1,7 +1,7 @@
 ---
 title: Listening and Thinking Aloud
 part: 9
-chapter: 0
+chapter: 10
 slug: thinking-aloud
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12

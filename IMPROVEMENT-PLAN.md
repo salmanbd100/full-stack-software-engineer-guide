@@ -19,7 +19,7 @@ Attach this file and say **"continue"**. That is the whole instruction. On recei
 | 4 | **Do exactly that one item** | Not the next one too. Not a related tidy-up. One item per session unless told otherwise |
 | 5 | **Verify against "Done when"** | Run the check. If there is nothing runnable, say so plainly rather than implying it passed |
 | 6 | **Mark it complete** | `- [ ]` → `- [x]`, append ` — ✅ **done YYYY-MM-DD**` to the heading, and add a short **Delivered:** block listing what actually shipped and anything deliberately left |
-| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 92` in the header |
+| 7 | **Update both counters** | The **Phase Map** row and the **Progress Tracker** table at the bottom, plus `Progress: N / 93` in the header |
 | 8 | **Report** | What was done, what was verified, and what was left. Then stop |
 
 **Marking an item done is part of the item.** An item is not finished until steps 6 and 7 are done —
@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-17 · **Progress:** 77 / 92
+**Last updated:** 2026-09-17 · **Progress:** 79 / 93
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -90,7 +90,7 @@ that touch hundreds of files are where the saving actually lands.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31f, 31–65, 56a, 58a, 60a, 69, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31f, #56a, #58a, #60a), everything with a voice |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31f, 31–65, 56a, 58a, 60a, 69, 70a, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31f, #56a, #58a, #60a), everything with a voice |
 | 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 79, 83 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
 
 **The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
@@ -192,7 +192,7 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 | **4** | 🆕 `AI/`                      | 44–53   | 10–14 sessions | **Opus 5** throughout |
 | **5** | Fill the remaining gaps       | 54–63 · 56a · 58a · 60a | 8–12 sessions  | **Opus 5** throughout |
 | **6** | 2027-proofing                 | 64–69   | 4–6 sessions   | mixed — Sonnet for 66–68 |
-| **7** | Book assembly & publish       | 70–83   | 6–8 sessions   | mixed — Sonnet for the sweeps |
+| **7** | Book assembly & publish       | 70–83 · 70a | 6–8 sessions   | mixed — Sonnet for the sweeps |
 
 **Effort key:** `S` = one short session · `M` = one full session · `L` = split across 2–4 sessions.
 
@@ -5626,16 +5626,60 @@ reports **zero** — no term with no correct present-tense use left survives any
 
 ---
 
-### - [ ] 69. Update all external resource lists `S`
+### - [x] 69. Update all external resource lists `S` — ✅ **done 2026-09-17**
 
 The root README's resources are 2024-era. Rebuild around current sources: GreatFrontEnd, Frontend Interview
 Handbook, the official React/Next/Svelte docs, `web.dev`, DeepLearning.AI for Part VII, and Alex Xu for Part VI.
+
+> ⚠️ **The premise was stale, and the item was re-aimed rather than skipped.** The root README has
+> carried no resource list since **#17** moved the 2024 one to
+> `Archive/planning/personal-readiness-checklist.md`. A sweep for resource lists elsewhere found
+> **none in the manuscript at all** — every `## Resources` heading in the tree is under `Archive/`, and
+> the only external links in live chapters are three incidental ones (`idb`, `js-cookie`, RFC 9457).
+> So there was nothing left to *update*. What the item actually describes — that specific list of
+> sources, one per part — is a **Further Reading** back-matter chapter, and this item now writes it.
+
+**Done when:** `Further-Reading.md` exists, is picked up by the build, and carries a current, checked
+source list for every part — with the sources this item names among them.
+
+**Delivered:**
+
+- **`Further-Reading.md`** at the repository root (178 lines, `#ch-further-reading`) — a **How to Use
+  This List** opener, a cross-part **Interview Loop** table, then one table per part and one for the
+  appendix. Roughly 60 entries, each with a one-line reason it is on the list rather than a description
+- **Every source the item names is in it:** GreatFrontEnd (three playbooks — front-end, React,
+  behavioural), Frontend Interview Handbook, the React / Next.js / Svelte + SvelteKit docs, `web.dev`,
+  DeepLearning.AI short courses for Part VII, and Alex Xu's two volumes plus ByteByteGo for Part VI
+- **Every URL was opened before it was published.** All 60-odd checked with `curl -L` on 2026-09-17;
+  three came back non-200 and were handled rather than shipped: `greatfrontend.com/front-end-system-design`
+  is a 404 (the live path is `/front-end-system-design-playbook`), `oreilly.com` blocks automated
+  requests entirely so *The Staff Engineer's Path* is cited **without a link**, and `leetcode.com` sits
+  behind bot protection that 403s any client — it is linked anyway, because the appendix already cites
+  it 289 times and the site is plainly live. **Two entries survived from the 2024 archive list on merit**:
+  the System Design Primer and the Frontend Interview Handbook
+- **Filed `part: 0`, `chapter: 100`**, following the correction #63 made for `Glossary.md`. Back matter
+  charges no part's line budget, so the 178 lines are free: `book:collect` goes 59,504 → **59,683**
+  and the `budget` lint rule stays at **0**. The file sorts to the very back, after the glossary —
+  verified in `build/book.md`
+- **Closes one of the nine unresolved `#ch-` references #70 lists.** `#ch-further-reading` now has a
+  target; `About-the-Author.md` already pointed at it. Eight remain, and `#ch-preface` is **#72**'s
+- **Follows the `Glossary.md` shape, not the six blocks.** No Core Idea, Key Takeaways or Interview
+  Questions — back matter is a lookup surface, and #63 set that precedent. It does carry What to Read
+  Next, pointing at the glossary and the author note
+- **Two `⚠️` callouts, within the budget of three:** one on link rot, saying the durable advice is
+  to go to the vendor's own docs and treat third-party writing as having a shelf life; one
+  moving-target callout on Part III, saying only the official docs are load-bearing there
+- **Corrected two pointers that named the wrong item.** The archived checklist and **#73** both said
+  #73 would write Further Reading. #73 keeps the other three back-matter jobs
+- **Verified:** `pnpm lint:docs` → **298 files, all seven rules at 0**, `.lint-baseline.json`
+  unchanged. `pnpm check:stale` → 0. `pnpm check:versions` → 0 and 0. `pnpm book:collect` clean,
+  2 files unsorted by design (the glossary and this one)
 
 ---
 
 # Phase 7 — Book Assembly & Publish
 
-### - [ ] 70. Fix final chapter ordering and numbering `M`
+### - [x] 70. Fix final chapter ordering and numbering `M` — ✅ **done 2026-09-17**
 
 Set `part` and `chapter` in front matter for every in-book file so the build produces the right sequence.
 Verify no part exceeds ~12 chapters (split if it does).
@@ -5647,23 +5691,89 @@ Verify no part exceeds ~12 chapters (split if it does).
 > order afterwards rather than assuming it.
 
 > ⚠️ **Added at #42 — two jobs here are not numbering, and had no owner.** #31d and #58a both wrote
-> "owner is #42 or #70" for work this item as written cannot do. Both are now explicitly this item's:
->
-> 1. **Convert four `SystemDesign/Frontend/` chapters to the Book Chapter Standard** —
->    `01-interview-strategy` (also **145 lines**, five under the floor), `03-offline-first`,
->    `04-seo-analytics`, `05-auth`. None has the six blocks, Key Takeaways, Interview Questions or What
->    to Read Next. #42 stripped their back-link footers and renumbered them; the writing is left.
->    Converting them returns roughly 40 lines to Part VI — ⚠️ **wrong sign, corrected at #43.** Adding
->    six blocks to four chapters *costs* roughly 200 lines, and after #43 Part VI stands at **6,499 of
->    6,500**. This conversion cannot start until #76 has trimmed Part VI or the ceiling has been raised
->    and paid for out of Part IX's 501 unused lines — see the note under #43
-> 2. **Reconcile 12 slug/anchor mismatches**, where front-matter `slug` disagrees with the H1's
->    `{#ch-…}`. Ten are Part IV — `Frontend/Security/02`, `03`; `Frontend/Testing/04`, `05`, `07`, `08`;
->    `Frontend/WebPerformance/04`, `05`, `06`, `08` — and two are the appendix, `DSA/01` and `05`. Plus
->    the **9 unresolved `#ch-` references** the same audit found: `ch-css-animations`,
->    `ch-css-fundamentals`, `ch-responsive-design` (all three point at chapters #31f archived),
->    `ch-web-performance-caching-strategies` ×2, `ch-bundle-optimization`, `ch-e2e-testing`,
->    `ch-preface`, `ch-further-reading`
+> "owner is #42 or #70" for work this item as written cannot do. The **slug and cross-reference
+> reconciliation** was done here. The **four-chapter conversion is blocked on Part VI's line budget**
+> and is now **#70a**, so it stops holding this item open.
+
+**Done when:** every in-book file carries a real `chapter`, `book:collect` opens each part on its own
+part opener, and no cross-reference in the manuscript points at an anchor that does not exist.
+
+**Delivered:**
+
+- **`scripts/number-chapters.ts` + `pnpm number:chapters`** stamps `chapter` across the manuscript from
+  a declared reading order. **289 of 298 in-book files** were renumbered; the nine untouched are the
+  part openers already at 0 and the three root back-matter files, which are numbered by hand.
+  `--check` reports without writing and exits non-zero, and is now a CI step
+- **The reading order is declared, not inferred.** `SECTION_ORDER` and `PART_OPENERS` in
+  `scripts/lib/book.ts` — read from `BOOK-SPEC.md` § 4's "Covers:" lines and from each part opener's
+  own Sections table. **Alphabetical order was wrong nearly everywhere**: it opened Part I on design
+  patterns rather than JavaScript, and Part II on accessibility rather than HTML and CSS. A directory
+  missing from that map is a hard error in the script, so a new section has to be placed deliberately
+- **#44's part-opener bug is fixed, and the fix was two changes, not one.** Assigning numbers alone was
+  not enough. `orderDocs` compared READMEs *before* chapter numbers, which would have sorted
+  `Backend/API/README.md` above `Backend/NodeJS/01-event-loop-async.md` the moment real numbers landed;
+  and it skipped the comparison whenever either side was 0, which is what let a section index outrank
+  its part opener. `chapter` is now compared first and `chapter: 0` means **part opener**. Verified in
+  the built book: **Part III opens on `ModernStack/README.md` and Part VII on `AI/README.md`**
+- **Four slug/anchor mismatches fixed, not twelve.** The #42 audit's list is stale — eight of its twelve
+  were resolved by later items that renamed or renumbered the files, and two of its named files
+  (`Frontend/Testing/08`, `Frontend/WebPerformance/08`) no longer exist. The four real ones were
+  `Frontend/Security/02` and `03` and `DSA/01` and `05`. **In all four the front matter was the wrong
+  side** — the H1 anchor matched the title and carried every inbound reference (16 references against 1),
+  so the `slug` moved to the anchor rather than the reverse
+- **Six unresolved cross-references fixed, one left.** Also not the audit's nine:
+  `ch-css-animations` and `ch-bundle-optimization` had already gone, `ch-further-reading` was closed at
+  #69, and `ch-specialized-testing` ×2 had appeared since. Retargeted `ch-e2e-testing` →
+  `ch-end-to-end-testing`, `ch-web-performance-caching-strategies` ×2 → `ch-frontend-caching-strategies`,
+  `ch-specialized-testing` ×2 → `ch-visual-and-contract-testing`, and replaced the two links in
+  `HtmlCss/02-advanced-css` that pointed at chapters #31f archived (`ch-css-fundamentals`,
+  `ch-responsive-design`) with Semantic HTML and Design Systems at Scale. **`ch-preface` is left** —
+  the preface does not exist until **#72**, and the reference is correct in advance
+- **Two new `lint:docs` rules, so none of this can come back:** `anchor-mismatch` (front-matter slug
+  against the H1 anchor) and `unresolved-xref` (every `](#ch-…)` lands on a chapter). Both are
+  mechanical, which is why they are lint rules rather than standalone scripts like `check:stale` and
+  `check:versions`. **Verified they are not false negatives:** breaking one slug and one reference on
+  purpose made both fire with the right file and line
+- **`.lint-baseline.json` carries `unresolved-xref: 1`**, which is `ch-preface` and nothing else.
+  #72 takes it to 0
+- **The `~12 chapters per part` check in this item is wrong and was replaced.** Twelve per part times
+  nine parts is 108 chapters; `BOOK-SPEC.md` § 4 budgets **~249**, with Part III alone at ~46. The
+  ceiling belongs to a **section**, and the script checks that instead: the largest is
+  `ModernStack/React` at exactly 12. The appendix is exempt — its 16 patterns are locked by § 4
+- **Chapter counts against `BOOK-SPEC.md` § 4, now measurable for the first time:** I 23/~22 ·
+  II 19/~26 · III 46/~46 · IV 23/~24 · V 27/~30 · VI 29/~34 · VII 32/~31 · VIII 20/~22 ·
+  IX 10/~18 · Appendix 16/16. **245 in-book chapters plus 3 back matter.** Parts II, VI and IX are the
+  ones materially short of their planned count
+- **Line-neutral.** `book:collect` reports **59,683 lines**, unchanged — numbering rewrites one integer
+  per file
+- **`CHAPTER-TEMPLATE.md` corrected.** It told authors to leave `chapter: 0` "if you do not know the
+  number". That now means part opener, so the template says to leave it at 0 and let
+  `pnpm number:chapters` assign the real one
+- **Spotted, not fixed — the root README's status table is stale**: "16 of 78 improvements", "the
+  78-item route", "423 files · ~134,000 lines". The plan is at 92 items and the manuscript at 298
+  in-book files. Not this item's, and no item currently owns it
+- **Verified:** `pnpm number:chapters --check` → clean and idempotent. `pnpm lint:docs` → **298 files,
+  8 rules at 0 and `unresolved-xref` at its baseline of 1**. `pnpm book:collect` → 298 files, 59,683
+  lines, every part opening on the right file. `pnpm check:stale` → 0. `pnpm check:versions` → 0 and 0
+
+---
+
+### - [ ] 70a. Convert the four `SystemDesign/Frontend/` chapters `M`
+
+Split out of **#70** on 2026-09-17, where it had been parked since #42 and was blocking an otherwise
+finished item.
+
+`01-interview-strategy` (also **145 lines**, five under the floor), `03-offline-first`, `04-seo-analytics`
+and `05-auth` predate the Book Chapter Standard. None has the six blocks, Key Takeaways, Interview
+Questions or What to Read Next, and `01` still opens on `## 💡 **Concept**` rather than
+`## 💡 The Core Idea`. #42 stripped their back-link footers and renumbered them; the writing is left.
+
+🔴 **Ordering: blocked on #76.** Adding six blocks to four chapters **costs** roughly 200 lines, and
+Part VI stands at **6,499 of 6,500** after #43. This cannot start until #76 has trimmed Part VI, or the
+ceiling has been raised and paid for out of Part IX's 501 unused lines — see the note under #43.
+
+**Done when:** all four pass `lint:docs` with the six blocks present, each is 150–400 lines, and Part VI
+is still inside its budget.
 
 ---
 
@@ -5688,6 +5798,19 @@ interview sprint, working reference, cover to cover), and the full table of cont
 
 About the author, glossary (item 63), further reading, and an index of interview questions collected from
 every chapter — that index alone is worth the purchase for a lot of readers.
+
+> ⚠️ **Amended at #69 — further reading is already written.** `Further-Reading.md` shipped at #69,
+> which is where that list of sources belonged. Three jobs are left here:
+>
+> 1. **The interview-question index** — the one genuinely new piece of writing, and the one the item
+>    calls the most saleable
+> 2. **Move `About-the-Author.md` from `part: 9` to `part: 0`**, so it stops charging its 55 lines to
+>    Part IX's content budget. `Glossary.md` and `Further-Reading.md` are both already `part: 0`; this
+>    file is the last back-matter holdout, and it also currently sorts *inside* Part IX rather than at
+>    the back. Logged at #63, restated here
+> 3. **Decide whether `too-long` needs a back-matter exemption.** The glossary is at 307 lines against a
+>    400 ceiling, and a question index over every chapter will not fit under it. Marking the file
+>    `in_book: false` to dodge the rule is the wrong trade — #63 says so explicitly
 
 ---
 
@@ -5950,9 +6073,9 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 3     | 32–43   | 12/12 | ✅ Complete    |
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
-| 6     | 64–69   | 5/6  | 🔄 In progress |
-| 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **92** | **77/92** | **84%**   |
+| 6     | 64–69   | 6/6  | ✅ Complete    |
+| 7     | 70–83 · 70a | 1/15 | 🔄 In progress |
+| **Total** | **93** | **79/93** | **85%**   |
 
 ---
 

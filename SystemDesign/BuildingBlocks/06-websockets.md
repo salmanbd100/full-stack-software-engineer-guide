@@ -1,7 +1,7 @@
 ---
 title: Real-Time Communication
 part: 6
-chapter: 0
+chapter: 14
 slug: realtime-communication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

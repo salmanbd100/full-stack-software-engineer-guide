@@ -1,7 +1,7 @@
 ---
 title: TypeScript Type Guards
 part: 1
-chapter: 0
+chapter: 17
 slug: type-guards
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

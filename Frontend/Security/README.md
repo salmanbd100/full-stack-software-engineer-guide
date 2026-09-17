@@ -1,7 +1,7 @@
 ---
 title: Part IV — Frontend Security
 part: 4
-chapter: 0
+chapter: 15
 slug: frontend-security-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2

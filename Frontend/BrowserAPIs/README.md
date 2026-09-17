@@ -1,7 +1,7 @@
 ---
 title: Part II — Browser APIs
 part: 2
-chapter: 0
+chapter: 4
 slug: frontend-browser-apis-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3

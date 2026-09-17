@@ -1,7 +1,7 @@
 ---
 title: Embeddings and Similarity
 part: 7
-chapter: 0
+chapter: 5
 slug: embeddings-and-similarity
 level: intermediate
 reading_time: 10

@@ -1,7 +1,7 @@
 ---
 title: Reliability and Availability
 part: 6
-chapter: 0
+chapter: 5
 slug: reliability-and-availability
 level: intermediate
 reading_time: 10

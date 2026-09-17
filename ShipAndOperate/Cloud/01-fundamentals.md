@@ -1,7 +1,7 @@
 ---
 title: Cloud Fundamentals
 part: 8
-chapter: 0
+chapter: 20
 slug: cloud-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 8

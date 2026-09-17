@@ -1,7 +1,7 @@
 ---
 title: Modern JavaScript
 part: 1
-chapter: 0
+chapter: 11
 slug: modern-javascript
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

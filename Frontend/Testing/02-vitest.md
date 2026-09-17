@@ -1,7 +1,7 @@
 ---
 title: Vitest
 part: 4
-chapter: 0
+chapter: 22
 slug: vitest
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
