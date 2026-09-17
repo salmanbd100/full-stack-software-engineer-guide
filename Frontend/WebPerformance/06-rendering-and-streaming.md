@@ -57,9 +57,9 @@ function ReportTable({ rows }: { rows: Row[] }) {
 }
 ```
 
-> ⚠️ **Moving target:** the React Compiler memoises components and values at build time, which removes
-> most hand-written `useMemo` and `useCallback`. The durable principle is that memoisation is a
-> main-thread optimisation and a comparison has its own cost — so it is something you apply where a
+> ⚠️ **Moving target:** the React Compiler — stable since 1.0, targeting React 19 — memoises components
+> and values at build time, which removes most hand-written `useMemo` and `useCallback`. The durable
+> principle is that memoisation is a main-thread optimisation and a comparison has its own cost — so it is something you apply where a
 > profile shows a hotspot, not everywhere. [Chapter ?? — Performance and the React Compiler](#ch-react-performance-and-the-compiler)
 > owns the current state of that tooling.
 

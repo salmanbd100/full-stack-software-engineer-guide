@@ -153,7 +153,7 @@ before I bother asking again". `gcTime` is "how long I keep an unused copy in me
 of zero with a long `gcTime` means instant renders from cache followed by a background refetch — which
 is stale-while-revalidate, in the client.
 
-> ⚠️ **Moving target:** React Query renamed `cacheTime` to `gcTime` in v5, and framework-level caching
+> ⚠️ **Moving target:** TanStack Query renamed `cacheTime` to `gcTime` in v5, and framework-level caching
 > — Next.js in particular — has changed defaults across several majors. The durable principle is that
 > a cache needs an explicit freshness window and an explicit invalidation trigger. Verify the current
 > option names.

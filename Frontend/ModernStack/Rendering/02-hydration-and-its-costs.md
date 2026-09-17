@@ -98,10 +98,10 @@ is a larger, denser HTML document and a network request on some first interactio
 
 ### Server Components are the fourth option in disguise
 
-React Server Components attack the same cost from the framework side: a component that never runs on the
-client contributes nothing to the bundle and nothing to hydration. The difference from islands is the
-direction of the default — islands are static until you opt in, React is client until you stay on the
-server side of the boundary. [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components)
+React Server Components, stable since React 19, attack the same cost from the framework side: a
+component that never runs on the client contributes nothing to the bundle and nothing to hydration. The
+difference from islands is the direction of the default — islands are static until you opt in, React is
+client until you stay on the server side of the boundary. [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components)
 covers the mechanics.
 
 ### Measuring it, not guessing

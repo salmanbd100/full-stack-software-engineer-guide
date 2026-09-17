@@ -61,8 +61,8 @@ which is the truth but is noisy in loop-heavy code; `exactOptionalPropertyTypes`
 
 ### `satisfies` checks without widening
 
-This is the addition that changed how configuration objects are typed, and it is asked about because
-the reason it exists is subtle.
+`satisfies` arrived in TypeScript 4.9 and changed how configuration objects are typed. It is asked
+about because the reason it exists is subtle.
 
 ```typescript
 type Route = { path: string; auth: boolean };
@@ -102,9 +102,9 @@ the bundler and not in `tsc`.
 | `nodenext` | Code Node runs directly, where `package.json` `exports` and extensions are enforced |
 | `node10` | Legacy only. It predates `exports` maps entirely |
 
-`verbatimModuleSyntax` is the one to be able to explain. It requires `import type` for anything used
-only as a type, then emits imports exactly as written. Without it the compiler decides which imports to
-elide, and a value import that happened to be used only in a type position disappears — taking its side
+`verbatimModuleSyntax`, added in TypeScript 5.0, is the one to be able to explain. It requires
+`import type` for anything used only as a type, then emits imports exactly as written. Without it the
+compiler decides which imports to elide, and a value import that happened to be used only in a type position disappears — taking its side
 effects with it. The flag moves that erasure into the source, where it is visible in review.
 
 `skipLibCheck` and project references belong to the build-time discussion in

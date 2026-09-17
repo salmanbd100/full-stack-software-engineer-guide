@@ -45,7 +45,7 @@ Ask before touching the whiteboard.
 interface RequirementsChecklist {
   scale: {
     dau: string;              // "10K vs 10M changes the architecture"
-    targetCWV: string;        // LCP < 2.5s? FCP targets?
+    targetCWV: string;        // LCP < 2.5s? INP < 200ms? CLS < 0.1?
   };
   userFlows: {
     coreJourneys: string[];   // what must work perfectly
@@ -53,7 +53,7 @@ interface RequirementsChecklist {
   };
   constraints: {
     platform: "mobile" | "desktop" | "both";
-    browserSupport: string;   // IE11? Safari 14+?
+    browserSupport: string;   // Baseline Widely Available? Safari 16+?
     offline: boolean;
     seo: boolean;             // drives rendering strategy
   };
@@ -82,7 +82,7 @@ Assumptions lead to wrong architectures. Spend 10 minutes asking questions — i
 |-------|----------------|
 | **Bundles** | Route-based code splitting with `React.lazy` |
 | **Images** | WebP/AVIF, `loading="lazy"`, responsive `srcset` |
-| **Caching** | CDN for static assets, React Query for server state |
+| **Caching** | CDN for static assets, TanStack Query for server state |
 | **Rendering** | SSG/ISR for public pages, CSR for dashboards |
 
 ### ❌ Mistake 3: Treating frontend as an island
@@ -103,8 +103,8 @@ type StateLocation = "local" | "context" | "global" | "server";
 const stateDecision: Record<string, StateLocation> = {
   "form input":            "local",       // useState
   "theme / locale":        "context",     // Context API
-  "user session / cart":   "global",      // Zustand / Redux
-  "server data (users)":   "server",      // React Query / SWR
+  "user session / cart":   "global",      // Zustand / Jotai
+  "server data (users)":   "server",      // TanStack Query / SWR
 };
 ```
 
@@ -115,7 +115,7 @@ Every decision has a trade-off. Say it out loud:
 | Decision | Trade-off to state |
 |----------|--------------------|
 | SSG | Fastest delivery, but stale without ISR |
-| Redux | Predictable, but boilerplate overhead |
+| A global store | One enforced pattern, but state that outlives the screen |
 | Micro-frontends | Team independence, but coordination cost |
 | Monorepo | Code sharing, but slower CI at scale |
 

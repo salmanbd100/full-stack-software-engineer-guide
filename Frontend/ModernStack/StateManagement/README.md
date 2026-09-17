@@ -30,7 +30,7 @@ TanStack Query owns server state — but the chapters argue from the problem, no
 | 03 | [Client State](#ch-client-state)                                            | Zustand, Jotai, Context — and when does `useState` still win?     |
 | 04 | [Form State](#ch-form-state)                                                | Where does validation live when the server validates too?         |
 | 05 | [URL as State](#ch-url-as-state)                                            | What should survive a refresh, a back button and a pasted link?   |
-| 06 | [Signals and the Next Model](#ch-signals-and-the-next-model)                | Why do runes and signals work, and why has React not adopted them? |
+| 06 | [Signals and the Next Model](#ch-signals-and-the-next-model)                | Why do Svelte 5 runes and signals work, and why has React 19 not adopted them? |
 
 ## What Interviewers Probe For
 
@@ -49,7 +49,7 @@ Two state questions, on top of the part-level signals in the Part III opener:
 Part III for its length. After that, read the chapter matching the problem in front of you; 02–05 are
 independent of each other.
 
-Chapter 06 pairs with the Svelte runes chapter and with `Rendering/02`; read it after either.
+Chapter 06 pairs with the Svelte 5 runes chapter and with `Rendering/02`; read it after either.
 
 **Interview sprint:** 01 → 02. The four categories plus server-state caching cover most of what a
 senior round asks about state.

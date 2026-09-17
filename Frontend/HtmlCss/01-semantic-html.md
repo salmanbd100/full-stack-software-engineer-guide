@@ -25,7 +25,7 @@ Semantic HTML is the cheapest accessibility win, the cheapest SEO win, and the c
 | **Accessibility** | Screen readers expose landmarks, headings, and form labels for free — no ARIA needed |
 | **SEO** | Crawlers weight `<article>`, `<h1>`, `<nav>` differently than `<div>` soup |
 | **Maintainability** | A new dev reading `<article>` understands intent instantly. `<div class="post">` requires hunting CSS |
-| **Resilience** | Works without CSS/JS. Reader mode, RSS, AMP, and Apple Watch summaries all parse semantic markup |
+| **Resilience** | Works without CSS/JS. Reader mode, RSS, and Apple Watch summaries all parse semantic markup |
 
 > **Key Insight:** Every `<div>` is a tiny act of giving up. Use it only when no semantic tag fits.
 

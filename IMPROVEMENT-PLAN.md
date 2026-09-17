@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-09 · **Progress:** 75 / 92
+**Last updated:** 2026-09-17 · **Progress:** 77 / 92
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -5501,18 +5501,128 @@ same part** — that trim is part of the item, not a follow-on.
 
 ---
 
-### - [ ] 67. Version-stamp every framework claim `M`
+### - [x] 67. Version-stamp every framework claim `M` — ✅ **done 2026-09-17**
 
 Every version-specific statement gets an explicit version: "React 19", "Next.js 16", "Svelte 5", "TypeScript 5.x".
 Vague claims like "modern React" age badly and make a reader distrust the book.
 
+**Done when:** `pnpm check:versions` reports **zero** on both of its rules — no chapter names
+version-gated vocabulary without naming a version somewhere in its prose, and no chapter uses vague
+modernity ("modern React", "the latest Next.js", "recent versions of") where a version belongs. This is
+BOOK-SPEC § 9 success criterion #7.
+
+> ⚠️ **This item has no "Done when" of its own — the line above was added by the session that did it.**
+> `plan-status.ts --next` flagged the omission. The acceptance test is the script, not a reading.
+
+**Delivered:**
+
+- **`scripts/check-version-stamps.ts` + `pnpm check:versions`** — the repeatable half of the editorial
+  pass, and the item's acceptance test. Two rules: a chapter that names version-gated vocabulary
+  (Server Components, App Router, PPR, runes, `satisfies`, `verbatimModuleSyntax`, …) and never names a
+  version; and vague modernity standing in for a version number. It reads `scripts/lib/book.ts`, strips
+  code fences and cross-reference link titles, and always exits 0. **Deliberately not wired into
+  `lint:docs` or CI** — it reports judgement calls, and `.lint-baseline.json` should not carry them.
+  BOOK-SPEC § 9 makes criterion #7 an editorial pass, not a lint gate; this respects that
+- **17 chapters stamped.** Part III took 13 of them — `React/01`, `03`, `05`, `06`, `12`;
+  `NextJS/10`; `Rendering/01`, `02`; `StateManagement/01` and its README; `Svelte/04`, `05`, `06` —
+  plus `Frontend/TypeScript/08`, `Frontend/WebPerformance/06`, `Backend/DesignPatterns/04` and
+  `AI/Foundations/05`. The rule applied: **stamp the first version-gated claim in a chapter, not every
+  mention** — repeating "React 19" nine times reads worse than not stamping at all
+- **Four claims were checked against Context7 rather than asserted from memory**, and one was wrong
+  before it was checked. The React Compiler is stable at 1.0 and targets React 19 by default;
+  `satisfies` is TypeScript 4.9 and `verbatimModuleSyntax` is 5.0; SvelteKit remote functions need
+  **2.27** and are still behind `kit.experimental.remoteFunctions`. The correction: a first draft of
+  `Rendering/01` said Partial Prerendering "went stable in Next.js 16". It did not — 16 removed the
+  `experimental.ppr` flag and folded PPR into **Cache Components** under the top-level `cacheComponents`
+  option. The chapter now says that, which also matches what `NextJS/02` already said
+- **Five chapters are exempt, listed with a reason in the script.** `Rendering/README`, `Rendering/04`
+  and `Rendering/05` are **framework-agnostic by design** — the section has to survive the next major
+  release of anything, so PPR and ISR appear there as spectrum vocabulary and `Rendering/01` defines and
+  stamps them for the whole section. `Tooling/README` names Turbopack in a reading-order note and
+  `Frontend/Testing/03` carries the words only inside a cross-reference title; neither is a claim
+- **Eight "bare number" phrasings were reviewed and kept** — "changed in Next.js 15 and again in 16",
+  "removed in 2.1" under the H1 *OAuth 2.1*. The product and the version are in the same sentence, so
+  they are stamped; writing the product name twice reads worse
+- **Part VII needed almost nothing.** #65–#66 already stamped it against **AI SDK 7** and **MCP revision
+  2025-11-25**, with per-chapter moving-target callouts. The one fix was
+  `AI/Foundations/05-context-engineering`, where server-side compaction "arrived recently"; it now says
+  those APIs are still provider betas that postdate the AI SDK 7 surface the part is stamped against
+- **Verified:** `pnpm check:versions` → **0 and 0**. `pnpm lint:docs` → **297 files, all seven rules at
+  zero**, `.lint-baseline.json` unchanged. `pnpm book:collect` → 297 files, **59,504 lines** (+4), every
+  part inside its BOOK-SPEC § 5 budget
+- **Not done, and not this item's job:** whether a stamped version is the *right* one is **#68**'s
+  audit, not this one. This item made claims explicit; it did not re-date them
+- **Found and not fixed — `Frontend/WebPerformance/README.md` still uses relative file paths** in its
+  chapter table (`./04-caching-strategies.md`), against non-negotiable #8. `lint:docs` does not catch it
+  because the targets exist. **#71** owns the conversion; this is a pointer for it
+
 ---
 
-### - [ ] 68. Audit for 2024-era content `M`
+### - [x] 68. Audit for 2024-era content `M` — ✅ **done 2026-09-17**
 
 Sweep for content that is now wrong or stale: FID instead of INP, `getServerSideProps` as the default,
 Jest/Cypress as defaults, Redux as the default state solution, Webpack config as a required skill,
 CSS-in-JS runtime libraries as a recommendation.
+
+**Done when:** each of the six signals above has a written verdict (below), and `pnpm check:stale`
+reports **zero** — no term with no correct present-tense use left survives anywhere in the manuscript.
+
+> ⚠️ **This item had no "Done when" either** — the line above was added by the session that did it,
+> same as #67. `plan-status.ts --next` flagged both.
+
+**Delivered:**
+
+- **All six signals the item names were already closed, by #32–43 and #65–66.** This is the finding, and
+  it is why a grep for them is useless — it matches the corrections, not the mistakes. Verdict each:
+
+  | Signal | Verdict |
+  | ------ | ------- |
+  | **FID for INP** | Closed. Every one of the 18 mentions is an explicit correction — `WebPerformance/01` carries a ⚠️ **"FID is gone"** callout, a ❌/✅ pair and an interview question, and `07` notes `onFID` was removed from the library |
+  | **`getServerSideProps` as the default** | Closed. It survives only in `NextJS/10`, the Pages→App migration chapter, where it is the *source* side of a conversion table, and in `Architecture/05` as a named AI version-drift tell |
+  | **Jest/Cypress as defaults** | Closed. `Testing/02` is Vitest and frames Jest as "the previous generation"; `Testing/05` is Playwright and puts Cypress in a comparison table |
+  | **Redux as the default store** | Closed, and carefully. `StateManagement/03` opens "Redux is no longer the default, and pretending it is would be wrong", then keeps a **"Where Redux Toolkit still wins"** section for convention at scale, action replay and middleware |
+  | **Webpack config as a required skill** | Closed. `Tooling/README` says hand-written configuration "has fallen close to zero" and "nobody wants your `webpack.config.js`". `Architecture/02` uses Webpack 5 Module Federation, which is accurate and stamped |
+  | **Runtime CSS-in-JS as a recommendation** | Closed. One mention, in `NextJS/10`, as a migration hazard — the library that "needs a Server Component story" |
+
+- **So the sweep widened past the list, and found the staleness concentrated in one place.**
+  `SystemDesign/Frontend/01-interview-strategy.md` is one of the four pre-standard Part VI chapters no
+  item has rewritten, and it held four of the seven fixes:
+  - **`browserSupport: "IE11? Safari 14+?"`** in a requirements checklist — IE11 support ended in 2022,
+    and asking about it in a design round dates the candidate instantly. Now
+    `"Baseline Widely Available? Safari 16+?"`
+  - **`targetCWV: "LCP < 2.5s? FCP targets?"`** — FCP is a real metric but has never been a Core Web
+    Vital, and the field is named `targetCWV`. Now `"LCP < 2.5s? INP < 200ms? CLS < 0.1?"`
+  - **`| Redux | Predictable, but boilerplate overhead |`** as *the* state trade-off to name, against
+    Part III's "no longer the default". Now `| A global store | One enforced pattern, but state that
+    outlives the screen |`, and the `stateDecision` comment reads `Zustand / Jotai`
+  - **"React Query"** ×2 — the library was renamed **TanStack Query**, which is what all nine Part III
+    references use
+- **Three more fixes outside it:** `Frontend/Architecture/01` and `Frontend/WebPerformance/04` also said
+  "React Query"; `Frontend/HtmlCss/01-semantic-html` listed **AMP** as a live benefit of semantic markup,
+  which stopped being true when Google dropped the Top Stories requirement and the project wound down
+- **`scripts/check-stale-terms.ts` + `pnpm check:stale`** — the acceptance test, and the regression
+  guard. It is a deny-list of terms with **no correct present-tense use left** (IE11, AMP, React Query,
+  `onFID`, Enzyme/PhantomJS/Protractor/TSLint/Bower, Create React App, Universal Analytics, Moment.js,
+  `ReactDOM.render`), each with what to say instead, and per-file exemptions where a mention is
+  deliberately historical — `Backend/API/06` states the tRPC→TanStack rename, and
+  `WebPerformance/07`'s whole point is that `onFID` no longer exists. **Verified it is not a
+  false-negative:** run against the pre-fix tree it reports all six, and zero after
+- **Deliberately not wired into `lint:docs` or CI**, same reasoning as #67's `check:versions` — it
+  reports judgement calls and `.lint-baseline.json` should not carry them
+- **Checked and found current, so left alone:** WCAG 2.2 throughout `Frontend/Accessibility/`;
+  third-party cookies (`BrowserAPIs/02` correctly says Chrome announced a phase-out and delayed it);
+  the Redis licence change and the Valkey fork (`NoSQL/02`); React 19 removals — `forwardRef`,
+  `React.FC` — in `React/11` and `React/04`; the TC39 signals proposal marked early and unstable;
+  GitHub Actions majors stamped "as of 2026" with Node 22/24 LTS; CSS `:has()`, subgrid and `oklch()`
+  as shipped with `@scope` and anchor positioning as next. Part VII needed nothing — #65–#66 stamped it
+- **Line-neutral, as #43's note requires.** Every fix is an in-place edit; `pnpm book:collect` reports
+  **59,504 lines**, unchanged. Part VI stays at its 6,500 ceiling with the same one line of headroom
+- **Verified:** `pnpm check:stale` → **0**. `pnpm lint:docs` → **297 files, all seven rules at zero**,
+  `.lint-baseline.json` unchanged. `pnpm check:versions` still **0 and 0**
+- **Not this item's job:** `SystemDesign/Frontend/01` still opens on `## 💡 **Concept**` rather than the
+  standard `## 💡 The Core Idea`, has no Key Takeaways, Interview Questions or What to Read Next, and
+  is **145 lines**, five under the floor. That conversion is **#70**'s, which already owns it and the
+  other three `SystemDesign/Frontend/` chapters. This item corrected content and changed no structure
 
 ---
 
@@ -5840,9 +5950,9 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 3     | 32–43   | 12/12 | ✅ Complete    |
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
-| 6     | 64–69   | 3/6  | 🔄 In progress |
+| 6     | 64–69   | 5/6  | 🔄 In progress |
 | 7     | 70–83   | 0/14 | ⬜ Not started |
-| **Total** | **92** | **75/92** | **82%**   |
+| **Total** | **92** | **77/92** | **84%**   |
 
 ---
 

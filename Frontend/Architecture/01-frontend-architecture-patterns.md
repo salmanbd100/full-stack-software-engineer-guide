@@ -103,7 +103,7 @@ export const userApi = {
   },
 };
 
-// Domain — knows about caching and React Query, knows nothing about the URL
+// Domain — knows about caching and TanStack Query, knows nothing about the URL
 export function useUser(id: string) {
   return useQuery({ queryKey: ["user", id], queryFn: () => userApi.getById(id) });
 }

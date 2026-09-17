@@ -113,9 +113,10 @@ usually tool output that was read once and never referenced again. Clearing it k
 shape and reclaims most of the space, without a summarisation call and without a model deciding what
 mattered.
 
-> ⚠️ **Moving target:** server-side compaction and context-editing APIs arrived recently and their names,
-> triggers and beta flags move release to release. The durable principle is the table above — three
-> distinct mechanisms with three distinct costs. Check the current API before writing the call.
+> ⚠️ **Moving target:** server-side compaction and context-editing APIs are still provider betas. They
+> postdate the AI SDK 7 surface this part is stamped against, and their names, triggers and beta flags
+> move release to release. The durable principle is the table above — three distinct mechanisms with
+> three distinct costs. Check the current API before writing the call.
 
 ### Retrieval is context selection
 

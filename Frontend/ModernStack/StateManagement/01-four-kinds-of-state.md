@@ -120,8 +120,9 @@ the filter, the sort, the page. It does not hold the results.
 
 ### Server state has a second home now
 
-React Server Components and server-side data loading change the arithmetic for the first category. If a
-route fetches on the server and renders the result, some server state never becomes client state at all.
+React 19 Server Components and server-side data loading change the arithmetic for the first category.
+If a route fetches on the server and renders the result, some server state never becomes client state at
+all.
 
 That does not remove the category, it removes the *cache* for a subset of it. Anything refetched,
 mutated, polled or updated optimistically still needs a client cache.

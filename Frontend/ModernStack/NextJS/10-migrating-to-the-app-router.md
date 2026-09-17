@@ -18,9 +18,9 @@ in_book: true
 
 ## 💡 The Core Idea
 
-`app/` and `pages/` run in the same application. A request matches one or the other, `app/` wins any
-conflict, and nothing forces you to convert a route before you are ready. That is the whole reason this
-is a migration rather than a rewrite.
+In Next.js 16, `app/` and `pages/` still run in the same application. A request matches one or the
+other, `app/` wins any conflict, and nothing forces you to convert a route before you are ready. That is
+the whole reason this is a migration rather than a rewrite.
 
 But the file moves are the easy part. The App Router changes **where data is fetched** and **what runs on
 the client**, and those two changes are what the work actually consists of. A page whose data came from
@@ -29,9 +29,9 @@ renamed — it becomes a server component that has to decide, for each piece of 
 boundary it lives on.
 
 > ⚠️ **Moving target:** codemods exist for the mechanical parts (`npx @next/codemod@latest`), and the set
-> changes with each release — asynchronous request APIs got their own codemod in 15, and 16 adds more.
-> Run the codemod for your target version rather than a remembered command. The durable principle is that
-> the mechanical rename is automatable and the boundary decision is not.
+> changes with each release — asynchronous request APIs got their own codemod in Next.js 15, and 16 adds
+> more. Run the codemod for your target version rather than a remembered command. The durable principle
+> is that the mechanical rename is automatable and the boundary decision is not.
 
 ## How It Works
 

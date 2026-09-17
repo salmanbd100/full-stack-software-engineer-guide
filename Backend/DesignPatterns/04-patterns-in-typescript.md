@@ -66,9 +66,9 @@ function shippingCost(order: Order, method: Method): number {
 }
 ```
 
-`satisfies` is doing real work: it checks every entry against `ShippingRate` while keeping the literal
-key names, so `Method` is a union of the actual methods rather than `string`, and an unknown method is a
-compile error instead of a thrown one.
+`satisfies` — TypeScript 4.9 and later — is doing real work: it checks every entry against
+`ShippingRate` while keeping the literal key names, so `Method` is a union of the actual methods rather
+than `string`, and an unknown method is a compile error instead of a thrown one.
 
 > ⚠️ **Two branches that never change do not need this.** The `if` is clearer than a map, and the
 > pattern earns its keep only when the set grows or the choice comes from configuration.

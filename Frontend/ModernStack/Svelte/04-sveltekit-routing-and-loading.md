@@ -18,7 +18,7 @@ in_book: true
 
 ## 💡 The Core Idea
 
-SvelteKit puts two decisions in the filesystem. The **directory** decides the URL. The **filename**
+SvelteKit 2 puts two decisions in the filesystem. The **directory** decides the URL. The **filename**
 decides where the code runs.
 
 `+page.svelte` is the component. `+page.ts` is data loading that runs on the server for the first request

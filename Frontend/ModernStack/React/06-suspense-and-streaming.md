@@ -96,8 +96,8 @@ is not the DOM it sent, and the mismatch has nothing to do with your data.
 
 ### Suspense on the client
 
-The same boundary works after load. `use(promise)` in a Client Component suspends until the promise
-resolves, and the nearest boundary shows its fallback.
+The same boundary works after load. React 19's `use(promise)` in a Client Component suspends until the
+promise resolves, and the nearest boundary shows its fallback.
 
 ```tsx
 "use client";

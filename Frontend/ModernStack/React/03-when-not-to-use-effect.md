@@ -150,8 +150,8 @@ Deleting effects is not the goal; deleting the ones that synchronise nothing is.
 | Fetching data in a client component with no framework or library | ⚠️ | Works, but you are hand-writing a cache |
 
 The last row is the honest one. An effect can fetch, but it cannot deduplicate, cache, retry, or
-survive a back button on its own. In an App Router application the fetch belongs on the server; in a
-client-heavy application it belongs in a query library.
+survive a back button on its own. In a Next.js 16 App Router application the fetch belongs on the
+server; in a client-heavy application it belongs in a query library.
 
 ## When to Use It
 

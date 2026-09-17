@@ -217,8 +217,8 @@ to be kept in step with every new piece of state you add.
 
 When the component is cheap, when its props are objects or callbacks created inline by the parent, or
 when the real fix is moving state down. `memo` adds a comparison on every render and a correctness
-burden. Under the React Compiler most of these decisions are made for you, which makes hand-memoising a
-thing to justify rather than a default.
+burden. Under the React Compiler — stable since 1.0, and targeting React 19 by default — most of these
+decisions are made for you, which makes hand-memoising a thing to justify rather than a default.
 
 ## What to Read Next
 

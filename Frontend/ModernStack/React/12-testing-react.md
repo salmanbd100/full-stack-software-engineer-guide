@@ -94,8 +94,9 @@ expect(await screen.findByRole("heading", { name: "Ada" })).toBeVisible();
 
 ### Testing Server Components
 
-An async Server Component is not a client component and Testing Library cannot render it. It runs on the
-server, once, and returns a tree. That leaves three approaches, in order of how much they are worth.
+An async React 19 Server Component is not a client component and Testing Library cannot render it. It
+runs on the server, once, and returns a tree. That leaves three approaches, in order of how much they
+are worth.
 
 | Approach                                        | Good for                              | Cost                                    |
 | ----------------------------------------------- | ------------------------------------- | --------------------------------------- |
@@ -112,8 +113,8 @@ Client Components are unchanged. They render in a DOM, so they test exactly as t
 is another reason to keep the interactive parts of a route on that side of the boundary.
 
 > ⚠️ **Moving target:** first-class Server Component test runners are still arriving, and the
-> recommended setup has changed with each React and framework release. The durable principle is that
-> logic tested outside the component does not care which runner wins.
+> recommended setup changed again for React 19. The durable principle is that logic tested outside the
+> component does not care which runner wins.
 
 ### What not to test
 

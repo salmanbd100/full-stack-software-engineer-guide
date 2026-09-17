@@ -18,17 +18,17 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A React tree can now be rendered in two places. **Server Components run once, on the server, and never
-re-render.** They can read a database, hold a secret, and `await` directly. They ship no JavaScript to
-the browser — only the result. **Client Components** are ordinary React: state, effects, event handlers,
-browser APIs, and a bundle the user downloads.
+Since **React 19**, a React tree can be rendered in two places. **Server Components run once, on the
+server, and never re-render.** They can read a database, hold a secret, and `await` directly. They ship
+no JavaScript to the browser — only the result. **Client Components** are ordinary React: state,
+effects, event handlers, browser APIs, and a bundle the user downloads.
 
 The two are not alternatives. They compose into one tree, and the interesting engineering is all at the
 seam. This is the single most asked frontend question in a 2026–27 senior loop, and the answers that
 score are about *the boundary*, not about which one is faster.
 
 > ⚠️ **Moving target.** The Server Component payload format, and how a framework spells the directives,
-> have moved between React releases. The durable principle does not move: two environments, one tree,
+> moved between React 18 and React 19. The durable principle does not move: two environments, one tree,
 > and everything crossing between them has to survive being written down and sent.
 
 ## How It Works

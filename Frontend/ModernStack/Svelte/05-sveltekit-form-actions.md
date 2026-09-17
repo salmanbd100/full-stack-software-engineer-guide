@@ -18,7 +18,7 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A SvelteKit form action is a **real HTML form submission**. The browser posts `multipart/form-data` to
+A SvelteKit 2 form action is a **real HTML form submission**. The browser posts `multipart/form-data` to
 the route, the server handles it, and the response is a page. That is the baseline, and it works with
 JavaScript disabled, on a slow connection, and on the request that arrives before your bundle has
 finished downloading.
@@ -27,7 +27,7 @@ finished downloading.
 changes. This ordering is the point: **the enhanced path is an optimisation of the working path**, not
 the other way round, so there is no "what happens without JavaScript" question to answer later.
 
-> ⚠️ **Moving target:** SvelteKit is landing **remote functions** — `query`, `form`, `command` and
+> ⚠️ **Moving target:** SvelteKit 2.27 landed **remote functions** — `query`, `form`, `command` and
 > `prerender` exported from `.remote.ts` files and imported directly into components — behind the
 > experimental `kit.experimental.remoteFunctions` flag. They are a different shape for the same job, and
 > they are not stable yet. The durable principle either way is that a mutation is a server-side function

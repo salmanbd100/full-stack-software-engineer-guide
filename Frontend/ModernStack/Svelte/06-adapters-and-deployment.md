@@ -18,7 +18,7 @@ in_book: true
 
 ## 💡 The Core Idea
 
-SvelteKit builds a **host-independent artefact**: a set of routes, some renderable ahead of time, some
+SvelteKit 2 builds a **host-independent artefact**: a set of routes, some renderable ahead of time, some
 needing a server. An adapter is the last build step, and it does one job — repackage that artefact into
 the shape one host expects. A long-running Node process. A directory of files. A set of serverless
 functions.

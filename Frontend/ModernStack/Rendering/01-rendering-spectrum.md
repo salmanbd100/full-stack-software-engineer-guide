@@ -31,9 +31,10 @@ The acronyms are the industry's shorthand for cells in that grid. They change na
 The grid does not.
 
 > ⚠️ **Moving target:** the names on this spectrum move faster than the ideas. "ISR" is a Next.js term
-> that SvelteKit, Nuxt and Astro all implement under their own names; Partial Prerendering shipped on
-> one platform first and is spreading. The durable principle is the grid — **when the HTML is built and
-> where the code runs** — and every new acronym lands in one of its cells.
+> that SvelteKit, Nuxt and Astro all implement under their own names; Partial Prerendering left the
+> `experimental` flag in Next.js 16 and now ships as part of Cache Components. The durable principle is
+> the grid — **when the HTML is built and where the code runs** — and every new acronym lands in one of
+> its cells.
 
 ## How It Works
 
