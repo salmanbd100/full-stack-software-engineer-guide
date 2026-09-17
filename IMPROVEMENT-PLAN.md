@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-17 · **Progress:** 79 / 93
+**Last updated:** 2026-09-17 · **Progress:** 80 / 93
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -5758,7 +5758,7 @@ part opener, and no cross-reference in the manuscript points at an anchor that d
 
 ---
 
-### - [ ] 70a. Convert the four `SystemDesign/Frontend/` chapters `M`
+### - [x] 70a. Convert the four `SystemDesign/Frontend/` chapters `M` — ✅ **done 2026-09-17**
 
 Split out of **#70** on 2026-09-17, where it had been parked since #42 and was blocking an otherwise
 finished item.
@@ -5768,12 +5768,59 @@ and `05-auth` predate the Book Chapter Standard. None has the six blocks, Key Ta
 Questions or What to Read Next, and `01` still opens on `## 💡 **Concept**` rather than
 `## 💡 The Core Idea`. #42 stripped their back-link footers and renumbered them; the writing is left.
 
-🔴 **Ordering: blocked on #76.** Adding six blocks to four chapters **costs** roughly 200 lines, and
-Part VI stands at **6,499 of 6,500** after #43. This cannot start until #76 has trimmed Part VI, or the
-ceiling has been raised and paid for out of Part IX's 501 unused lines — see the note under #43.
+> ⚠️ **The 🔴 block was wrong on both of its premises, and is struck out rather than deleted.** It read:
+> _"Ordering: blocked on #76. Adding six blocks to four chapters **costs** roughly 200 lines, and Part VI
+> stands at **6,499 of 6,500** after #43. This cannot start until #76 has trimmed Part VI, or the ceiling
+> has been raised and paid for out of Part IX's 501 unused lines — see the note under #43."_
+>
+> 1. **Part IX had 5 free lines, not 501.** It stands at **2,495 of 2,500** — it filled up between #43
+>    (2026-09-07) and this item. The escape hatch the #43 note offered no longer existed, and § 5's
+>    amendment rule leaves nowhere else to pay from: Parts V and VI are at 0 free, VIII at 5, VII at 115,
+>    and the DSA appendix sits outside the 57,000 total so it cannot fund a Part V–IX increase. Taken
+>    together with the first premise this item was a **deadlock**, not a wait.
+> 2. **Conversion is not additive.** The +200 figure assumed the six blocks get *added* to the chapters
+>    as they stood. Three of the four were 246–259 lines against Part VI's 191-line rate — 28–35% over —
+>    and were code-listing-heavy, `03` being the file #76 itself names as bullet-heavy. Converting
+>    **and** trimming in the same pass came in at **−208 lines**.
+>
+> The lesson for the remaining conversion items: cost a conversion against the part's own line rate, not
+> against the cost of the six blocks in isolation.
 
 **Done when:** all four pass `lint:docs` with the six blocks present, each is 150–400 lines, and Part VI
 is still inside its budget.
+
+**Delivered:**
+
+- **All four chapters rewritten to the six blocks**, verified by `pnpm lint:docs`: `01-interview-strategy`
+  **145 → 162**, `03-offline-first` **246 → 179**, `04-seo-analytics` **259 → 166**, `05-auth`
+  **258 → 193**. Every one is inside 150–400; `01` was five lines under the floor and is no longer in the
+  advisory list, which dropped from 2 files to 1
+- **Part VI: 6,500 → 6,292 of 6,500 — 208 lines of headroom where there was 1.** The item paid for itself
+  and then some, so #76's Part VI slice is no longer a prerequisite for anything
+- **The trim came from duplication, not from teaching.** Each chapter was re-scoped to the design decision
+  and the API tutorial handed back to the part that owns it: service-worker lifecycle and cache strategies
+  to `Frontend/PWA/01`–`02`, IndexedDB mechanics to `Frontend/BrowserAPIs/03`, `generateMetadata` and the
+  rendering/SEO table to `ModernStack/Rendering/05`, the JWT-vs-session table and the RBAC map to
+  `Backend/Security/01` and `03`. Each chapter now cross-references its owner rather than restating it —
+  a non-negotiable #7 improvement as much as a budget one
+- **What replaced it, per chapter.** `01` gained a four-layer architecture diagram and a state-placement
+  table (the round's highest-value ten minutes) in place of the five numbered mistakes, which moved into
+  `## Common Mistakes` where they belong. `03` is now built on the **outbox pattern** — idempotency keys,
+  ordered flush, conflict-strategy costs — instead of service-worker boilerplate. `04` leads on the
+  **crawl-to-index pipeline, crawl budget and canonical architecture**, the things that break at scale,
+  with consent framed as an architectural constraint. `05` leads on **where the credential can sit**,
+  single-flight refresh, the three auth states, and multi-tab logout
+- **Six Mermaid diagrams added** (flowchart and sequenceDiagram), each with a bold caption. `04` gained
+  its first TypeScript fence — it previously had none that survived the trim
+- **`⚠️ Moving target` callout added to `04`**, for consent frameworks and vendor tag APIs
+- **`SystemDesign/Frontend/README.md`: corrected a factual error left by #43** — it advertised "four
+  frontend case studies"; #43 shipped **three** (and cut the backend set to two). Chapter titles, order and
+  the "What it answers" column all still hold, so nothing else there changed
+- **Deliberately not done:** the two relative links in that README (`../Fundamentals/…`,
+  `../CaseStudies/…`) are left alone — they are **#71's** job, and #71 is the next item
+- **Verified:** `pnpm lint:docs` → 298 files, 8 rules at 0 and `unresolved-xref` at its baseline of 1 (the
+  pre-existing `#ch-preface`), so every new cross-reference resolves. `pnpm check:versions` → 0 and 0.
+  `pnpm check:stale` → 0. `pnpm book:collect` → 298 files, **59,683 → 59,475 lines**
 
 ---
 
@@ -6074,8 +6121,8 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
 | 6     | 64–69   | 6/6  | ✅ Complete    |
-| 7     | 70–83 · 70a | 1/15 | 🔄 In progress |
-| **Total** | **93** | **79/93** | **85%**   |
+| 7     | 70–83 · 70a | 2/15 | 🔄 In progress |
+| **Total** | **93** | **80/93** | **86%**   |
 
 ---
 

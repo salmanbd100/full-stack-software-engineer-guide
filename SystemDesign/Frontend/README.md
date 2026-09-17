@@ -5,7 +5,7 @@ chapter: 23
 slug: part-frontend-system-design
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-07
+updated: 2026-09-17
 tags: [system-design, frontend, realtime, offline, seo, auth]
 in_book: true
 ---
@@ -37,8 +37,9 @@ backend framework in [Fundamentals](../Fundamentals/01-driving-the-round.md).
 | 04 | [SEO and Analytics](#ch-seo-and-analytics) | What does the crawler see, and what may you measure? |
 | 05 | [Frontend Authentication](#ch-frontend-authentication) | Where does the token live, and what can the client be told? |
 
-Improvement #43 adds four frontend case studies alongside the backend ones in
-[Case Studies](../CaseStudies/README.md).
+Three frontend case studies sit alongside the two backend ones in
+[Case Studies](../CaseStudies/README.md) — the collaborative editor, the infinite feed and the live
+dashboard, each running the whole framework end to end.
 
 ## What Interviewers Probe For
 
