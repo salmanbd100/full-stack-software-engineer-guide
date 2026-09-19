@@ -23,11 +23,11 @@ have talked through for forty minutes is worth the whole section.
 
 | #  | Chapter                                                             | The shape it teaches                                          |
 | -- | ------------------------------------------------------------------- | -------------------------------------------------------------- |
-| 01 | [Design a URL Shortener](./01-url-shortener.md)                     | Mint a key with no coordination; serve enormous reads from cache |
-| 02 | [Design Ticketmaster](./02-ticketmaster.md)                         | Contention rather than volume — locking and admission control    |
-| 03 | [Design a Collaborative Document Editor](./03-collaborative-editor.md) | Convergence without a lock — CRDTs, offline merge, shared undo |
-| 04 | [Design an Infinite Feed](./04-infinite-feed.md)                    | Two budgets — bytes fetched and DOM nodes kept                   |
-| 05 | [Design a Live Dashboard](./05-live-dashboard.md)                   | Fan-in over one connection, and dropping data to keep frames     |
+| 01 | [Design a URL Shortener](#ch-design-url-shortener)                     | Mint a key with no coordination; serve enormous reads from cache |
+| 02 | [Design Ticketmaster](#ch-design-ticketmaster)                         | Contention rather than volume — locking and admission control    |
+| 03 | [Design a Collaborative Document Editor](#ch-design-collaborative-editor) | Convergence without a lock — CRDTs, offline merge, shared undo |
+| 04 | [Design an Infinite Feed](#ch-design-infinite-feed)                    | Two budgets — bytes fetched and DOM nodes kept                   |
+| 05 | [Design a Live Dashboard](#ch-design-live-dashboard)                   | Fan-in over one connection, and dropping data to keep frames     |
 
 Each follows RADIO inside its `How It Works` section: requirements, architecture, data model, interface,
 optimisations. The framework itself is [Chapter ?? — Driving the Design Round](#ch-driving-the-round), and

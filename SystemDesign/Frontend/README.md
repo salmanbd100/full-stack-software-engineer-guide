@@ -19,7 +19,7 @@ budget, an accessibility floor, and a rendering strategy that has to be defended
 
 Chapter 01 is the strategy chapter. Read it first even if you skip the rest — a frontend round is
 scored on how you drive it, and the shape of a good answer here is genuinely different from the
-backend framework in [Fundamentals](../Fundamentals/01-driving-the-round.md).
+backend framework in [Chapter ?? — Driving the Design Round](#ch-driving-the-round).
 
 > ⚠️ This section is smaller than it was. Improvement #42 moved the chapters that were about
 > **structuring a codebase** rather than driving a round: architecture patterns, micro-frontends and
@@ -38,8 +38,8 @@ backend framework in [Fundamentals](../Fundamentals/01-driving-the-round.md).
 | 05 | [Frontend Authentication](#ch-frontend-authentication) | Where does the token live, and what can the client be told? |
 
 Three frontend case studies sit alongside the two backend ones in
-[Case Studies](../CaseStudies/README.md) — the collaborative editor, the infinite feed and the live
-dashboard, each running the whole framework end to end.
+[Part VI — Case Studies](#ch-part-system-design-case-studies) — the collaborative editor, the infinite
+feed and the live dashboard, each running the whole framework end to end.
 
 ## What Interviewers Probe For
 

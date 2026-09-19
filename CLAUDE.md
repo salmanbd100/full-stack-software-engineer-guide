@@ -64,7 +64,7 @@ exists because a README references it.
 `scripts/` holds Node TypeScript that runs with no build step. Use the `pnpm` scripts:
 
 ```bash
-pnpm lint:docs        # the Book Chapter Standard, all six rules — run this before calling a file done
+pnpm lint:docs        # the Book Chapter Standard, all ten rules — run this before calling a file done
 pnpm lint:docs --rule=broken-link   # every occurrence of one rule
 pnpm book:build       # PDF + EPUB into build/  (needs: brew install pandoc tectonic)
 pnpm plan:next        # the next unchecked plan item, its "Done when", its model

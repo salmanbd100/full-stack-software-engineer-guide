@@ -30,11 +30,11 @@ maps it to Part I.
 
 | #  | Chapter                                                              | What it answers                                                  |
 | -- | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [OOP Core Concepts in TypeScript](./01-oop-core-concepts.md)         | Which pillar does the compiler enforce, and which the runtime?   |
-| 02 | [Composition over Inheritance](./02-composition-over-inheritance.md) | Why does the hierarchy break at the fourth level?                |
-| 03 | [SOLID Principles](./03-solid-principles.md)                         | Where do the five principles help, and what do they cost?        |
-| 04 | [Design Patterns in TypeScript](./04-patterns-in-typescript.md)      | Which patterns survive a language that has closures and modules? |
-| 05 | [Architectural Patterns](./05-architectural-patterns.md)             | Where do the layers of a service go, so a change lands once?     |
+| 01 | [OOP Core Concepts in TypeScript](#ch-oop-core-concepts)             | Which pillar does the compiler enforce, and which the runtime?   |
+| 02 | [Composition over Inheritance](#ch-composition-over-inheritance)     | Why does the hierarchy break at the fourth level?                |
+| 03 | [SOLID Principles](#ch-solid-principles)                             | Where do the five principles help, and what do they cost?        |
+| 04 | [Design Patterns in TypeScript](#ch-design-patterns-in-typescript)   | Which patterns survive a language that has closures and modules? |
+| 05 | [Architectural Patterns](#ch-architectural-patterns)                 | Where do the layers of a service go, so a change lands once?     |
 
 ## What Interviewers Probe For
 

@@ -26,13 +26,13 @@ is the surface a frontend engineer owns or negotiates with, at the depth a senio
 
 | Section | Chapters | What it covers |
 | ------- | -------- | -------------- |
-| [Node.js](./NodeJS/README.md) | 5 | The event loop, streams, modules, errors, performance and scaling |
-| [Node Frameworks](./Frameworks/README.md) | 3 | Express, NestJS and dependency injection, edge runtimes and Hono |
-| [API Design](./API/README.md) | 6 | REST, GraphQL, versioning and contracts, rate limiting, real-time, tRPC |
-| [SQL and Relational Data](./SQL/README.md) | 5 | Schema design, indexes and plans, transactions, ORMs, migrations |
-| [NoSQL and Caching](./NoSQL/README.md) | 2 | Document modelling and the embed-or-reference decision, Redis |
-| [Security](./Security/README.md) | 5 | Credentials and sessions, OAuth, authorisation, CORS/CSRF, injection |
-| [Testing](./Testing/README.md) | 1 | Backend-specific testing; the discipline itself is Part IV |
+| [Node.js](#ch-backend-nodejs-index) | 5 | The event loop, streams, modules, errors, performance and scaling |
+| [Node Frameworks](#ch-backend-frameworks-index) | 3 | Express, NestJS and dependency injection, edge runtimes and Hono |
+| [API Design](#ch-backend-api-index) | 6 | REST, GraphQL, versioning and contracts, rate limiting, real-time, tRPC |
+| [SQL and Relational Data](#ch-part-sql-and-relational-data) | 5 | Schema design, indexes and plans, transactions, ORMs, migrations |
+| [NoSQL and Caching](#ch-backend-nosql-index) | 2 | Document modelling and the embed-or-reference decision, Redis |
+| [Security](#ch-backend-security-index) | 5 | Credentials and sessions, OAuth, authorisation, CORS/CSRF, injection |
+| [Testing](#ch-part-backend-testing) | 1 | Backend-specific testing; the discipline itself is Part IV |
 
 `Backend/DesignPatterns/` also lives in this tree, but it belongs to **Part I** — patterns are
 language material, not backend material, and `scripts/lib/book.ts` maps it accordingly.

@@ -26,7 +26,7 @@ the thing that decides whether the suite is usable.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [Testing a Node Service](./01-testing-node-services.md) | What is worth unit testing, and how do you use a real database and stay fast? |
+| 01 | [Testing a Node Service](#ch-testing-node-services) | What is worth unit testing, and how do you use a real database and stay fast? |
 
 ## What Interviewers Probe For
 

@@ -25,11 +25,11 @@ an infinite feed, or a dashboard with fifty live widgets. Those rounds have thei
 
 | Section                                              | Chapters | What it covers                                                    |
 | ----------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| [Fundamentals](./Fundamentals/README.md)             | 6        | Running the round, estimation, scaling, reliability, consistency  |
-| [Building Blocks](./BuildingBlocks/README.md)        | 9        | Load balancers, caches, CDNs, queues, gateways, resilience        |
-| [Data at Scale](./Database/README.md)                | 4        | Choosing a store, replication, sharding, transactions             |
-| [Frontend System Design](./Frontend/README.md)       | 5        | The rounds this reader is most likely to face and least ready for |
-| [Case Studies](./CaseStudies/README.md)              | 5        | Worked answers — two backend-shaped, three frontend-shaped        |
+| [Fundamentals](#ch-part-system-design-fundamentals)             | 6        | Running the round, estimation, scaling, reliability, consistency  |
+| [Building Blocks](#ch-part-system-design-building-blocks)        | 9        | Load balancers, caches, CDNs, queues, gateways, resilience        |
+| [Data at Scale](#ch-part-system-design-database)                | 4        | Choosing a store, replication, sharding, transactions             |
+| [Frontend System Design](#ch-part-frontend-system-design)       | 5        | The rounds this reader is most likely to face and least ready for |
+| [Case Studies](#ch-part-system-design-case-studies)              | 5        | Worked answers — two backend-shaped, three frontend-shaped        |
 
 ## The RADIO Framework
 

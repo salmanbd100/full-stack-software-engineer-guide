@@ -23,18 +23,18 @@ schedules your callbacks, the methods you reach for a hundred times a day, and h
 
 ## Chapters
 
-| #  | Chapter                                                                | What it answers                                             |
-| -- | ---------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 01 | [Data Types and Variables](./01-data-types-variables.md)               | Which values copy, which share, and which comparisons lie?  |
-| 02 | [Functions and Scope](./02-functions-scope.md)                         | Where does a variable live, and for how long?               |
-| 03 | [Closures](./03-closures.md)                                           | Why does this callback still see the old value?             |
-| 04 | [The `this` Keyword](./04-this-keyword.md)                             | What is `this`, working from the call site alone?           |
-| 05 | [Prototypes and Inheritance](./05-prototypes-inheritance.md)           | What is `class` actually doing underneath?                  |
-| 06 | [Promises and Async/Await](./06-promises-async.md)                     | How do you compose async work without nesting it?           |
-| 07 | [The Event Loop](./07-event-loop.md)                                   | In what exact order will this code log?                     |
-| 08 | [Array and Object Methods](./08-array-object-methods.md)               | Which of these mutates the thing you passed in?             |
-| 09 | [Error Handling](./09-error-handling.md)                               | How do you fail in a way that is recoverable and loggable?  |
-| 10 | [Modern JavaScript](./10-modern-js.md)                                 | Which additions since ES2020 replace something in your code?|
+| #  | Chapter                                                                | What it answers                                              |
+| -- | ---------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 01 | [Data Types and Variables](#ch-data-types-variables)                   | Which values copy, which share, and which comparisons lie?   |
+| 02 | [Functions and Scope](#ch-functions-scope)                             | Where does a variable live, and for how long?                |
+| 03 | [Closures](#ch-closures)                                               | Why does this callback still see the old value?              |
+| 04 | [The `this` Keyword](#ch-this-keyword)                                 | What is `this`, working from the call site alone?            |
+| 05 | [Prototypes and Inheritance](#ch-prototypes-inheritance)               | What is `class` actually doing underneath?                   |
+| 06 | [Promises and Async/Await](#ch-promises-async)                         | How do you compose async work without nesting it?            |
+| 07 | [The Event Loop](#ch-event-loop)                                       | In what exact order will this code log?                      |
+| 08 | [Array and Object Methods](#ch-array-object-methods)                   | Which of these mutates the thing you passed in?              |
+| 09 | [Error Handling](#ch-javascript-error-handling)                        | How do you fail in a way that is recoverable and loggable?   |
+| 10 | [Modern JavaScript](#ch-modern-javascript)                             | Which additions since ES2020 replace something in your code? |
 
 ## What Interviewers Probe For
 

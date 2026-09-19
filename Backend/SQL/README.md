@@ -22,11 +22,11 @@ Postgres is the worked example throughout. The concepts transfer; the syntax mos
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [SQL Fundamentals](./01-fundamentals.md) | Can you write the query and say what the engine does with it? |
-| 02 | [Database Design](./02-database-design.md) | How do you make invalid data impossible to store? |
-| 03 | [Indexes and Query Plans](./03-indexes-and-query-plans.md) | Which index does this `WHERE` clause actually use? |
-| 04 | [Transactions and Concurrency](./04-transactions.md) | What stops two requests overwriting each other? |
-| 05 | [ORMs and Migrations](./05-orms-and-migrations.md) | How do you change a schema with traffic on it? |
+| 01 | [SQL Fundamentals](#ch-sql-fundamentals) | Can you write the query and say what the engine does with it? |
+| 02 | [Database Design](#ch-database-design) | How do you make invalid data impossible to store? |
+| 03 | [Indexes and Query Plans](#ch-indexes) | Which index does this `WHERE` clause actually use? |
+| 04 | [Transactions and Concurrency](#ch-sql-transactions) | What stops two requests overwriting each other? |
+| 05 | [ORMs and Migrations](#ch-orms) | How do you change a schema with traffic on it? |
 
 ## What Interviewers Probe For
 

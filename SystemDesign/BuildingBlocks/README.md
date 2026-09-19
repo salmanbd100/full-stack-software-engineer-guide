@@ -23,15 +23,15 @@ Memcached; what matters is the invalidation strategy and the stampede.
 
 | #  | Chapter                                                        | What it answers                                               |
 | -- | -------------------------------------------------------------- | ------------------------------------------------------------- |
-| 01 | [Load Balancing](./01-load-balancing.md)                       | L4 or L7, and what happens the moment a node dies?             |
-| 02 | [Caching](./02-caching.md)                                     | What to cache, where, and how it goes stale                    |
-| 03 | [Content Delivery Network](./03-cdn.md)                        | How much traffic never reaches your origin?                    |
-| 04 | [Queues and Asynchronous Work](./04-queues-and-async.md)       | Queue or log? What comes off the request path?                 |
-| 05 | [Search](./05-search.md)                                       | When does `LIKE` stop being enough?                            |
-| 06 | [Real-Time Communication](./06-websockets.md)                  | WebSocket, SSE or polling — and what does the topology cost?   |
-| 07 | [The API Gateway Pattern](./07-api-gateway.md)                 | What belongs at the edge, and what must never go there?        |
-| 08 | [Service Boundaries](./08-service-boundaries.md)               | Where do you split, and what does each split cost?             |
-| 09 | [Resilience Patterns](./09-resilience.md)                      | What happens when a dependency stops answering?                |
+| 01 | [Load Balancing](#ch-load-balancing)                       | L4 or L7, and what happens the moment a node dies?             |
+| 02 | [Caching](#ch-caching)                                     | What to cache, where, and how it goes stale                    |
+| 03 | [Content Delivery Network](#ch-cdn)                        | How much traffic never reaches your origin?                    |
+| 04 | [Queues and Asynchronous Work](#ch-message-queues)       | Queue or log? What comes off the request path?                 |
+| 05 | [Search](#ch-search)                                       | When does `LIKE` stop being enough?                            |
+| 06 | [Real-Time Communication](#ch-realtime-communication)                  | WebSocket, SSE or polling — and what does the topology cost?   |
+| 07 | [The API Gateway Pattern](#ch-api-gateway-pattern)                 | What belongs at the edge, and what must never go there?        |
+| 08 | [Service Boundaries](#ch-service-boundaries)               | Where do you split, and what does each split cost?             |
+| 09 | [Resilience Patterns](#ch-resilience-patterns)                      | What happens when a dependency stops answering?                |
 
 ## What Interviewers Probe For
 

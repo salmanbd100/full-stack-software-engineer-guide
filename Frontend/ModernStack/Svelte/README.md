@@ -28,12 +28,12 @@ gotchas here are the ones that cost real hours rather than the ones in the relea
 
 | #  | Chapter                       | What it answers                                                    |
 | -- | ----------------------------- | ------------------------------------------------------------------ |
-| 01 | [Svelte 5 and the Runes Model](./01-runes-model.md) | What do `$state`, `$derived`, `$effect` and `$props` actually do? |
-| 02 | [Reactivity Compared](./02-reactivity-compared.md) | Signals, virtual DOM or fine-grained — what does each one cost? |
-| 03 | [Components and Snippets](./03-components-and-snippets.md) | How do you pass markup into a component now that slots are gone? |
-| 04 | [SvelteKit Routing and Loading](./04-sveltekit-routing-and-loading.md) | Which `load` runs where, and what can you stream from it? |
-| 05 | [SvelteKit Form Actions](./05-sveltekit-form-actions.md) | How does this form work with JavaScript switched off? |
-| 06 | [Adapters and Deployment](./06-adapters-and-deployment.md) | What does the adapter decide, and when does prerendering break? |
+| 01 | [Svelte 5 and the Runes Model](#ch-svelte-runes) | What do `$state`, `$derived`, `$effect` and `$props` actually do? |
+| 02 | [Reactivity Compared](#ch-reactivity-compared) | Signals, virtual DOM or fine-grained — what does each one cost? |
+| 03 | [Components and Snippets](#ch-svelte-snippets) | How do you pass markup into a component now that slots are gone? |
+| 04 | [SvelteKit Routing and Loading](#ch-sveltekit-routing-and-loading) | Which `load` runs where, and what can you stream from it? |
+| 05 | [SvelteKit Form Actions](#ch-sveltekit-form-actions) | How does this form work with JavaScript switched off? |
+| 06 | [Adapters and Deployment](#ch-sveltekit-adapters-and-deployment) | What does the adapter decide, and when does prerendering break? |
 
 ## What Interviewers Probe For
 

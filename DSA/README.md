@@ -26,22 +26,22 @@ one template worth memorising, two worked examples, the complexity, and a curate
 
 | #  | Pattern                                                                    | The signal in the question                                   |
 | -- | -------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [Time and Space Complexity](./01-time-space-complexity.md)                 | Any constraint on `n` — it tells you the target complexity   |
-| 02 | [Prefix Sum](./02-prefix-sum.md)                                           | Repeated range queries over a fixed array                    |
-| 03 | [Two Pointers](./03-two-pointers.md)                                       | A sorted array, and a pair or triplet to find                |
-| 04 | [Sliding Window](./04-sliding-window.md)                                   | "Longest" or "shortest" contiguous subarray                  |
-| 05 | [Fast and Slow Pointers](./05-fast-slow-pointers.md)                       | A cycle, a midpoint, or constant extra space required        |
-| 06 | [In-Place Linked List Reversal](./06-linkedlist-in-place-reversal.md)      | Reverse a list or a section, allocating nothing              |
-| 07 | [Monotonic Stack](./07-monotonic-stack.md)                                 | "Next greater" or "next smaller" for every element           |
-| 08 | [Top K Elements](./08-top-k-elements.md)                                   | K largest or most frequent, without sorting everything       |
-| 09 | [Overlapping Intervals](./09-overlapping-intervals.md)                     | Any input that is a list of start and end pairs              |
-| 10 | [Modified Binary Search](./10-modified-binary-search.md)                   | Sorted-but-rotated, or searching an answer space             |
-| 11 | [Binary Tree Traversal](./11-binary-tree-traversal.md)                     | The order the problem needs is the traversal it wants        |
-| 12 | [Depth-First Search](./12-depth-first-search.md)                           | Explore to the depth — paths, islands, connectivity          |
-| 13 | [Breadth-First Search](./13-breadth-first-search.md)                       | Shortest path in an unweighted graph, or level by level      |
-| 14 | [Backtracking](./14-backtracking.md)                                       | Permutations, combinations, "all possible" anything          |
-| 15 | [Dynamic Programming](./15-dynamic-programming.md)                         | Overlapping subproblems and an optimal-substructure smell    |
-| 16 | [Graph Algorithms](./16-graph-algorithms.md)                               | Nodes and edges, weighted paths, ordering with dependencies  |
+| 01 | [Time and Space Complexity](#ch-time-and-space-complexity)                 | Any constraint on `n` — it tells you the target complexity   |
+| 02 | [Prefix Sum](#ch-prefix-sum)                                               | Repeated range queries over a fixed array                    |
+| 03 | [Two Pointers](#ch-two-pointers)                                           | A sorted array, and a pair or triplet to find                |
+| 04 | [Sliding Window](#ch-sliding-window)                                       | "Longest" or "shortest" contiguous subarray                  |
+| 05 | [Fast and Slow Pointers](#ch-fast-and-slow-pointers)                       | A cycle, a midpoint, or constant extra space required        |
+| 06 | [In-Place Linked List Reversal](#ch-in-place-linked-list-reversal)         | Reverse a list or a section, allocating nothing              |
+| 07 | [Monotonic Stack](#ch-monotonic-stack)                                     | "Next greater" or "next smaller" for every element           |
+| 08 | [Top K Elements](#ch-top-k-elements)                                       | K largest or most frequent, without sorting everything       |
+| 09 | [Overlapping Intervals](#ch-overlapping-intervals)                         | Any input that is a list of start and end pairs              |
+| 10 | [Modified Binary Search](#ch-modified-binary-search)                       | Sorted-but-rotated, or searching an answer space             |
+| 11 | [Binary Tree Traversal](#ch-binary-tree-traversal)                         | The order the problem needs is the traversal it wants        |
+| 12 | [Depth-First Search](#ch-depth-first-search)                               | Explore to the depth — paths, islands, connectivity          |
+| 13 | [Breadth-First Search](#ch-breadth-first-search)                           | Shortest path in an unweighted graph, or level by level      |
+| 14 | [Backtracking](#ch-backtracking)                                           | Permutations, combinations, "all possible" anything          |
+| 15 | [Dynamic Programming](#ch-dynamic-programming)                             | Overlapping subproblems and an optimal-substructure smell    |
+| 16 | [Graph Algorithms](#ch-graph-algorithms)                                   | Nodes and edges, weighted paths, ordering with dependencies  |
 
 ## What Interviewers Probe For
 
@@ -78,4 +78,4 @@ dynamic programming between them cover the majority of what gets asked.
 > all sixteen chapters to pattern recognition, one template, two worked examples, complexity and a
 > curated problem table — 19,281 lines down to 4,520, each chapter between 218 and 363. The full
 > teaching versions, with every solution worked line by line, live in
-> [`Archive/dsa-solutions/`](../Archive/dsa-solutions/README.md) — nothing was deleted.
+> `Archive/dsa-solutions/` in the repository — nothing was deleted.

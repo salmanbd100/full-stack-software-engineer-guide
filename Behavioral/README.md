@@ -30,12 +30,12 @@ deep enough to be humane — than without it.
 
 | #  | Chapter                                                                         | What it answers                                                  |
 | -- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [The STAR Framework and the Story Bank](./01-star-framework.md)                 | How do you keep the setup from eating the answer?                |
-| 02 | [Leadership, Teamwork and Conflict](./02-leadership-and-conflict.md)            | How do you show influence without authority, and disagree well?  |
-| 03 | [Problem Solving, Challenges and Failure](./03-problem-solving-and-failure.md)  | How do you show method rather than heroics, and own a real failure? |
-| 04 | [Ways of Working](./04-ways-of-working.md)                                      | What do the four DORA metrics measure, and what corrupts them?   |
-| 05 | [Engineering Culture](./05-engineering-culture.md)                              | Which practices only look like ownership, review and safety?     |
-| 06 | [Influence, Scope and Saying No](./06-influence-scope-and-saying-no.md)         | How do you refuse something so it reads as judgement, not obstruction? |
+| 01 | [The STAR Framework and the Story Bank](#ch-star-framework)                 | How do you keep the setup from eating the answer?                |
+| 02 | [Leadership, Teamwork and Conflict](#ch-leadership-teamwork)            | How do you show influence without authority, and disagree well?  |
+| 03 | [Problem Solving, Challenges and Failure](#ch-problem-solving)  | How do you show method rather than heroics, and own a real failure? |
+| 04 | [Ways of Working](#ch-ways-of-working)                                      | What do the four DORA metrics measure, and what corrupts them?   |
+| 05 | [Engineering Culture](#ch-engineering-culture)                              | Which practices only look like ownership, review and safety?     |
+| 06 | [Influence, Scope and Saying No](#ch-influence-scope-and-saying-no)         | How do you refuse something so it reads as judgement, not obstruction? |
 
 ## What Interviewers Probe For
 

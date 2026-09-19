@@ -24,14 +24,14 @@ underneath them. When React 20 lands, three of these sections need revising and 
 
 ## Sections
 
-| Section                                          | Chapters | What it covers                                                       |
-| ------------------------------------------------ | -------- | -------------------------------------------------------------------- |
-| [React](./React/README.md)                       | 12       | The model, hooks, the server/client boundary, concurrency, Actions   |
-| [Next.js](./NextJS/README.md)                    | 10       | App Router, caching, Server Actions, PPR, the edge, migration        |
-| [Svelte](./Svelte/README.md)                     | 6        | Runes, signals against the virtual DOM, SvelteKit loading and forms  |
-| [Rendering](./Rendering/README.md)               | 6        | CSR to PPR, hydration cost, streaming, choosing per route            |
-| [State Management](./StateManagement/README.md)  | 6        | Server, client, form and URL state — four problems, not one          |
-| [Tooling](./Tooling/README.md)                   | 6        | Modules, Vite, the Rust generation, monorepos, package management    |
+| Section                                                     | Chapters | What it covers                                                       |
+| ----------------------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| [React](#ch-modern-stack-react-index)                       | 12       | The model, hooks, the server/client boundary, concurrency, Actions   |
+| [Next.js](#ch-modern-stack-nextjs-index)                    | 10       | App Router, caching, Server Actions, PPR, the edge, migration        |
+| [Svelte](#ch-modern-stack-svelte-index)                     | 6        | Runes, signals against the virtual DOM, SvelteKit loading and forms  |
+| [Rendering](#ch-modern-stack-rendering-index)               | 6        | CSR to PPR, hydration cost, streaming, choosing per route            |
+| [State Management](#ch-modern-stack-state-management-index) | 6        | Server, client, form and URL state — four problems, not one          |
+| [Tooling](#ch-modern-stack-tooling-index)                   | 6        | Modules, Vite, the Rust generation, monorepos, package management    |
 
 Three frameworks, and only three. Vue and Angular appear in comparison tables where they sharpen a
 tradeoff, never as chapters — see `BOOK-SPEC.md` § 6. Svelte earns its slot twice over: Svelte 5 has the

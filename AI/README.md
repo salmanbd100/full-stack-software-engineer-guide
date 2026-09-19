@@ -42,12 +42,12 @@ how the pieces constrain each other, which is what the interview is about.
 
 | Section                                    | Chapters | What it covers                                                              |
 | ------------------------------------------ | -------- | --------------------------------------------------------------------------- |
-| [Foundations](./Foundations/README.md)     | 5        | How models behave, choosing one, prompting, embeddings, context engineering |
-| [Integration](./Integration/README.md)     | 6        | Calling, streaming, structured output, tools, MCP, multi-provider            |
-| [RAG](./RAG/README.md)                     | 5        | When to retrieve, ingestion, retrieval, vector stores, retrieval evaluation  |
-| [Agents](./Agents/README.md)               | 5        | The loop, the tool surface, memory, durability, multi-agent patterns         |
-| [Production](./Production/README.md)       | 6        | Evals, error analysis, observability, cost, guardrails, prompt injection     |
-| [AIUX](./AIUX/README.md)                   | 4        | Latency, generative UI, trust and correctness, failure states                |
+| [Foundations](#ch-ai-foundations-index)     | 5        | How models behave, choosing one, prompting, embeddings, context engineering |
+| [Integration](#ch-ai-integration-index)     | 6        | Calling, streaming, structured output, tools, MCP, multi-provider            |
+| [RAG](#ch-ai-rag-index)                     | 5        | When to retrieve, ingestion, retrieval, vector stores, retrieval evaluation  |
+| [Agents](#ch-ai-agents-index)               | 5        | The loop, the tool surface, memory, durability, multi-agent patterns         |
+| [Production](#ch-ai-production-index)       | 6        | Evals, error analysis, observability, cost, guardrails, prompt injection     |
+| [AIUX](#ch-ai-aiux-index)                   | 4        | Latency, generative UI, trust and correctness, failure states                |
 
 A closing chapter, [**AI in Interviews**](#ch-ai-in-interviews), sits at the root of this part and covers
 how these topics are actually asked: _design a RAG system_, _how would you evaluate this feature_, _your

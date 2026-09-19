@@ -26,18 +26,18 @@ framework change cannot take away.
 
 | #  | Chapter                                | What it answers                                                    |
 | -- | -------------------------------------- | ------------------------------------------------------------------ |
-| 01 | [The React Mental Model](./01-react-mental-model.md) | What happens between `setState` and the screen, and why keys matter |
-| 02 | [Hooks in Depth](./02-hooks-in-depth.md) | Why the rules exist, and what a stale closure really captures       |
-| 03 | [`useEffect` and When Not to Use It](./03-when-not-to-use-effect.md) | Which of these effects should have been derived state? |
-| 04 | [Component Composition Patterns](./04-composition-patterns.md) | How do you give an API away without giving control away? |
-| 05 | [Server Components and Client Components](./05-server-and-client-components.md) | Where is the boundary, and what is allowed to cross it? |
-| 06 | [Suspense and Streaming](./06-suspense-and-streaming.md) | How does half a page arrive, and why did hydration mismatch?       |
-| 07 | [Transitions and Concurrency](./07-transitions-and-concurrency.md) | Which updates are urgent, and who decides?               |
-| 08 | [Actions and Forms](./08-actions-and-forms.md) | How does a mutation work without a client-side fetch handler?      |
-| 09 | [Performance and the React Compiler](./09-performance-and-the-compiler.md) | What does the compiler memoise, and what is still yours? |
-| 10 | [Error Boundaries and Resilience](./10-error-boundaries.md) | What does the user see when a subtree throws?         |
-| 11 | [React and TypeScript at Scale](./11-react-typescript-at-scale.md) | How do you type props, refs, context and state without `any`? |
-| 12 | [Testing React](./12-testing-react.md) | What do you test when the component runs on the server?            |
+| 01 | [The React Mental Model](#ch-react-mental-model) | What happens between `setState` and the screen, and why keys matter |
+| 02 | [Hooks in Depth](#ch-react-hooks-in-depth) | Why the rules exist, and what a stale closure really captures       |
+| 03 | [`useEffect` and When Not to Use It](#ch-when-not-to-use-effect) | Which of these effects should have been derived state? |
+| 04 | [Component Composition Patterns](#ch-react-composition-patterns) | How do you give an API away without giving control away? |
+| 05 | [Server Components and Client Components](#ch-server-components-vs-client-components) | Where is the boundary, and what is allowed to cross it? |
+| 06 | [Suspense and Streaming](#ch-suspense-and-streaming) | How does half a page arrive, and why did hydration mismatch?       |
+| 07 | [Transitions and Concurrency](#ch-transitions-and-concurrency) | Which updates are urgent, and who decides?               |
+| 08 | [Actions and Forms](#ch-react-actions-and-forms) | How does a mutation work without a client-side fetch handler?      |
+| 09 | [Performance and the React Compiler](#ch-react-performance-and-the-compiler) | What does the compiler memoise, and what is still yours? |
+| 10 | [Error Boundaries and Resilience](#ch-react-error-boundaries) | What does the user see when a subtree throws?         |
+| 11 | [React and TypeScript at Scale](#ch-react-typescript-at-scale) | How do you type props, refs, context and state without `any`? |
+| 12 | [Testing React](#ch-testing-react) | What do you test when the component runs on the server?            |
 
 Chapter 11 is where `Frontend/TypeScript`'s React chapter now lives — it moved here rather than being
 copied, and gained the parts that only matter at scale: unions for async state, generic components, and

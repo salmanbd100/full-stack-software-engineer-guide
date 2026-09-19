@@ -251,6 +251,3 @@ The `<button>` gives you focus, keyboard activation (Enter + Space), disabled st
 
 **Answer:** No `<label>` association. Three concrete problems: (1) clicking the text doesn't focus the input — bad for everyone on touch devices, (2) screen readers announce "edit text, blank" because the input has no accessible name, (3) the hit target shrinks to just the input. Fix: wrap with `<label>` or use `<label for="id">` + matching `id` on the input. For grouped controls like radios, add `<fieldset><legend>` so the group has a name too.
 
----
-
-[← Back to HTML & CSS](./README.md)

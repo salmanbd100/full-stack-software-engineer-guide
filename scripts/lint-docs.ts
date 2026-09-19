@@ -56,6 +56,7 @@ const REQUIRED_KEYS: readonly string[] = [
 type RuleId =
   | "front-matter"
   | "broken-link"
+  | "relative-link"
   | "fence-language"
   | "too-long"
   | "missing-readme"
@@ -67,6 +68,7 @@ type RuleId =
 const RULE_TITLES: Readonly<Record<RuleId, string>> = {
   "front-matter": "Missing or invalid front matter",
   "broken-link": "Broken relative link",
+  "relative-link": "Relative file link where a #ch- cross-reference belongs",
   "fence-language": "Code fence outside the allow-list",
   "too-long": `File over ${MAX_LINES} lines with in_book: true`,
   "missing-readme": "Content directory with no README.md",
@@ -252,6 +254,8 @@ function checkLinks(doc: Doc, line: string, lineNo: number): void {
     const abs: string = resolve(ROOT, dirname(doc.rel), decodeURIComponent(path));
     if (!existsSync(abs)) {
       report("broken-link", doc.rel, lineNo, `${target} does not exist`);
+    } else if (path.endsWith(".md")) {
+      report("relative-link", doc.rel, lineNo, `${target} — use [Chapter ?? — Title](#ch-slug)`);
     }
   }
 }

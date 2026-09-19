@@ -27,13 +27,13 @@ passed FID comfortably routinely fail INP, and a candidate still saying FID in 2
 
 | #  | Chapter                                                                        | What it answers                                                |
 | -- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| 01 | [Core Web Vitals](./01-core-web-vitals.md)                                     | Which fix moves which metric?                                  |
-| 02 | [Loading and Code Splitting](./02-loading-and-code-splitting.md)               | How do you defer without pushing your largest paint out?       |
-| 03 | [Bundles, Budgets and Third Parties](./03-bundles-budgets-and-third-parties.md) | What is in your bundle, and what stops it growing back?        |
-| 04 | [Frontend Caching Strategies](./04-caching-strategies.md)                      | At which layer, and how does each entry become wrong?          |
-| 05 | [Asset Delivery](./05-asset-delivery.md)                                       | What does the page look like before images, fonts and CSS land? |
-| 06 | [Rendering and Streaming](./06-rendering-and-streaming.md)                     | How do you keep interactions inside the frame budget?          |
-| 07 | [Measuring in Production](./07-measuring-in-production.md)                     | What are real users experiencing, and what broke for them?     |
+| 01 | [Core Web Vitals](#ch-core-web-vitals)                                     | Which fix moves which metric?                                  |
+| 02 | [Loading and Code Splitting](#ch-loading-and-code-splitting)               | How do you defer without pushing your largest paint out?       |
+| 03 | [Bundles, Budgets and Third Parties](#ch-bundle-optimisation) | What is in your bundle, and what stops it growing back?        |
+| 04 | [Frontend Caching Strategies](#ch-frontend-caching-strategies)                      | At which layer, and how does each entry become wrong?          |
+| 05 | [Asset Delivery](#ch-asset-delivery)                                       | What does the page look like before images, fonts and CSS land? |
+| 06 | [Rendering and Streaming](#ch-rendering-and-streaming)                     | How do you keep interactions inside the frame budget?          |
+| 07 | [Measuring in Production](#ch-measuring-in-production)                     | What are real users experiencing, and what broke for them?     |
 
 ## What Interviewers Probe For
 

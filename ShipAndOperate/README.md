@@ -18,14 +18,14 @@ the release goes wrong. Running a cluster, Terraform and Linux administration ar
 
 ## Sections
 
-| Section                                      | Chapters | What it covers                                                     |
-| -------------------------------------------- | -------- | ------------------------------------------------------------------ |
-| [Version Control with Git](./Git/README.md)  | 4        | The object model, recovery, branching models, monorepo trade-offs  |
-| [Containers](./Containers/README.md)         | 4        | Images, layer caching, Compose, the pod spec you have to promise   |
-| [CI/CD](./CICD/README.md)                    | 3        | Pipeline design, GitHub Actions, credentials without secrets       |
-| [Observability](./Observability/README.md)   | 3        | SLOs, metrics and cardinality, alerts worth waking a human for     |
-| [Cloud Essentials](./Cloud/README.md)        | 3        | Regions, serverless and cold starts, object storage and the CDN    |
-| [Deployment](./Deployment/README.md)         | 3        | Immutable artefacts, previews, strategies, rollback, feature flags |
+| Section                                        | Chapters | What it covers                                                     |
+| ---------------------------------------------- | -------- | ------------------------------------------------------------------ |
+| [Version Control with Git](#ch-ship-git-index) | 4        | The object model, recovery, branching models, monorepo trade-offs  |
+| [Containers](#ch-ship-containers-index)        | 4        | Images, layer caching, Compose, the pod spec you have to promise   |
+| [CI/CD](#ch-ship-cicd-index)                   | 3        | Pipeline design, GitHub Actions, credentials without secrets       |
+| [Observability](#ch-ship-observability-index)  | 3        | SLOs, metrics and cardinality, alerts worth waking a human for     |
+| [Cloud Essentials](#ch-ship-cloud-index)       | 3        | Regions, serverless and cold starts, object storage and the CDN    |
+| [Deployment](#ch-ship-deployment-index)        | 3        | Immutable artefacts, previews, strategies, rollback, feature flags |
 
 ## What Interviewers Probe For
 

@@ -283,6 +283,3 @@ Write the value to `localStorage` from one tab and listen for the `storage` even
 
 When you need: more than ~5 MB, structured queries, indexes, binary data (Blobs), or non-blocking access. `localStorage` is fine for a handful of small string values — for anything bigger or richer, reach for IndexedDB.
 
----
-
-[← Back to Browser APIs](./README.md) | [Next: Cookies & SameSite →](./02-cookies-same-site.md)

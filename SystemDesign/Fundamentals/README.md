@@ -24,12 +24,12 @@ and the framework in it is what stops a strong engineer from rambling.
 
 | #  | Chapter                                                        | What it answers                                              |
 | -- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [Driving the Design Round](./01-driving-the-round.md)          | How do you run the forty-five minutes?                        |
-| 02 | [Back-of-Envelope Estimation](./02-estimation.md)              | How big is this, roughly, before anyone builds it?            |
-| 03 | [Scalability](./03-scalability.md)                             | Which lever does this bottleneck actually call for?           |
-| 04 | [Reliability and Availability](./04-reliability.md)            | What does "three nines" cost, and what does it buy?           |
-| 05 | [Latency and Throughput](./05-latency-and-throughput.md)       | Which one are you optimising, and where does the time go?     |
-| 06 | [Consistency and CAP](./06-consistency-and-cap.md)             | Which read may be stale, and what happens if it is?           |
+| 01 | [Driving the Design Round](#ch-driving-the-round)          | How do you run the forty-five minutes?                        |
+| 02 | [Back-of-Envelope Estimation](#ch-back-of-envelope-estimation)              | How big is this, roughly, before anyone builds it?            |
+| 03 | [Scalability](#ch-scalability)                             | Which lever does this bottleneck actually call for?           |
+| 04 | [Reliability and Availability](#ch-reliability-and-availability)            | What does "three nines" cost, and what does it buy?           |
+| 05 | [Latency and Throughput](#ch-latency-and-throughput)       | Which one are you optimising, and where does the time go?     |
+| 06 | [Consistency and CAP](#ch-consistency-and-cap)             | Which read may be stale, and what happens if it is?           |
 
 ## What Interviewers Probe For
 

@@ -24,11 +24,11 @@ it: a single error path, and a way to use more than one core.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [The Event Loop and Async Node](./01-event-loop-async.md) | How does one thread serve thousands of connections? |
-| 02 | [Streams and Buffers](./02-streams-buffers.md) | How do you move data you cannot hold in memory? |
-| 03 | [The Module System](./03-module-system.md) | Why does this import work and the next one throw? |
-| 04 | [Error Handling in Node](./04-error-handling.md) | Which failures do you answer, and which do you restart for? |
-| 05 | [Node.js Performance and Scaling](./05-performance-and-scaling.md) | Where did the 400 ms go, and do you need a faster loop or more of them? |
+| 01 | [The Event Loop and Async Node](#ch-event-loop-async) | How does one thread serve thousands of connections? |
+| 02 | [Streams and Buffers](#ch-streams-buffers) | How do you move data you cannot hold in memory? |
+| 03 | [The Module System](#ch-module-system) | Why does this import work and the next one throw? |
+| 04 | [Error Handling in Node](#ch-nodejs-error-handling) | Which failures do you answer, and which do you restart for? |
+| 05 | [Node.js Performance and Scaling](#ch-nodejs-performance) | Where did the 400 ms go, and do you need a faster loop or more of them? |
 
 ## What Interviewers Probe For
 

@@ -27,9 +27,9 @@ already caching the broken version?*
 
 | #  | Chapter                                                                     | What it answers                                                  |
 | -- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [Service Workers](./01-service-workers.md)                                  | How do you update one without stranding an open tab?             |
-| 02 | [Caching Strategies and Offline UX](./02-caching-and-offline.md)             | Which strategy per request type, and where do offline writes go?  |
-| 03 | [Installability and Push Notifications](./03-install-and-push.md)            | How do you ask for permission without getting blocked?           |
+| 01 | [Service Workers](#ch-service-workers)                                  | How do you update one without stranding an open tab?             |
+| 02 | [Caching Strategies and Offline UX](#ch-caching-and-offline)             | Which strategy per request type, and where do offline writes go?  |
+| 03 | [Installability and Push Notifications](#ch-install-and-push)            | How do you ask for permission without getting blocked?           |
 
 ## What Interviewers Probe For
 

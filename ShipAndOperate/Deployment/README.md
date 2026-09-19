@@ -25,9 +25,9 @@ things that model makes cheap.
 
 | #  | Chapter                                                          | What it answers                                                    |
 | -- | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 01 | [Platform Deploys and Preview Environments](./01-platform-deploys.md) | What does promoting a deployment do, and how does a pull request get a real URL? |
-| 02 | [Deployment Strategies and Rollback](./02-deployment-strategies-and-rollback.md) | Which risk are you buying down, and which changes cannot be undone? |
-| 03 | [Feature Flags](./03-feature-flags.md)                           | How do you release to some users without deploying again?           |
+| 01 | [Platform Deploys and Preview Environments](#ch-platform-deploys) | What does promoting a deployment do, and how does a pull request get a real URL? |
+| 02 | [Deployment Strategies and Rollback](#ch-deployment-strategies) | Which risk are you buying down, and which changes cannot be undone? |
+| 03 | [Feature Flags](#ch-feature-flags)                           | How do you release to some users without deploying again?           |
 
 ## What Interviewers Probe For
 

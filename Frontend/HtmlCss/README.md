@@ -25,7 +25,7 @@ works without a mouse, and which of the features that shipped since 2023 replace
 still carrying. The archived layout chapters are in `Archive/htmlcss/` if they are ever wanted back.
 
 **Accessibility used to be the third chapter here and is now a section of its own** — six chapters, in
-[`Accessibility/`](../Accessibility/README.md). It outgrew this section for the reason it is
+[Part II — Accessibility](#ch-frontend-accessibility-index). It outgrew this section for the reason it is
 worth reading: since the European Accessibility Act became enforceable in June 2025 it is a legal
 requirement with a named standard, and it is one of the two topics — with internationalisation — that most
 reliably separate a senior candidate from a mid-level one in a frontend round.
@@ -34,8 +34,8 @@ reliably separate a senior candidate from a mid-level one in a frontend round.
 
 | #  | Chapter                                        | What it answers                                                |
 | -- | ---------------------------------------------- | -------------------------------------------------------------- |
-| 01 | [Semantic HTML](./01-semantic-html.md)         | Which element, and what do you get free by choosing it?        |
-| 02 | [Advanced CSS](./02-advanced-css.md)           | What shipped since 2023, and what did each feature replace?    |
+| 01 | [Semantic HTML](#ch-semantic-html)             | Which element, and what do you get free by choosing it?        |
+| 02 | [Advanced CSS](#ch-advanced-css)               | What shipped since 2023, and what did each feature replace?    |
 
 ## What Interviewers Probe For
 
@@ -64,8 +64,8 @@ round, that shows up as:
 ## Reading Order
 
 Straight through — both chapters are independent and each reads cold. Then go to
-[`Accessibility/`](../Accessibility/README.md), which is where the document half of this section continues
-and is the higher-leverage read for a senior interview.
+[Part II — Accessibility](#ch-frontend-accessibility-index), which is where the document half of this
+section continues and is the higher-leverage read for a senior interview.
 
 **Interview sprint:** 01, then the accessibility section. Semantics and accessibility cover most of what a
 frontend loop asks about the document before it moves on to frameworks. Chapter 02 is worth an hour only

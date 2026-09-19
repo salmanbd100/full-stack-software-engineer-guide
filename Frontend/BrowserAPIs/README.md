@@ -25,10 +25,10 @@ when the user clears site data. Choosing between them is a threat-modelling exer
 
 | #  | Chapter                                                    | What it answers                                                  |
 | -- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [Web Storage APIs](./01-storage-apis.md)                   | localStorage or sessionStorage — and why neither holds a token?  |
-| 02 | [Cookies and SameSite](./02-cookies-same-site.md)          | Which attributes stop a cookie being read or replayed?           |
-| 03 | [IndexedDB](./03-indexeddb.md)                             | How do you store structured data past the 5MB wall?              |
-| 04 | [Browser Permissions](./04-browser-permissions.md)         | How do you ask, given that a denial is usually permanent?        |
+| 01 | [Web Storage APIs](#ch-storage-apis)                       | localStorage or sessionStorage — and why neither holds a token?  |
+| 02 | [Cookies and SameSite](#ch-cookies-same-site)              | Which attributes stop a cookie being read or replayed?           |
+| 03 | [IndexedDB](#ch-indexeddb)                                 | How do you store structured data past the 5MB wall?              |
+| 04 | [Browser Permissions](#ch-browser-permissions)             | How do you ask, given that a denial is usually permanent?        |
 
 ## What Interviewers Probe For
 
@@ -59,4 +59,5 @@ browser". Chapters 03 and 04 are independent and can be read in either order.
 the two that actually get asked; 03 and 04 come up mainly when the role is offline-first.
 
 > ⚠️ Service workers and the Cache API are the browser's other storage layer, and they live in
-> [PWA](../PWA/README.md) rather than here, because their lifecycle is what makes them difficult.
+> [Part II — Progressive Web Apps](#ch-frontend-pwa-index) rather than here, because their lifecycle is
+> what makes them difficult.

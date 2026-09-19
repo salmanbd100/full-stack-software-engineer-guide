@@ -26,10 +26,10 @@ what your pod spec has to promise for a rollout to be safe.
 
 | #  | Chapter                                                                   | What it answers                                                |
 | -- | ------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| 01 | [Docker Fundamentals](./01-docker-fundamentals.md)                        | What is a container really, and why did this one exit?         |
-| 02 | [Building and Hardening Images](./02-building-and-hardening-images.md)    | How do you get a small image that rebuilds fast and is not root? |
-| 03 | [Docker Compose](./03-docker-compose.md)                                  | How do you run the whole stack locally without a cluster?      |
-| 04 | [Kubernetes Essentials](./04-kubernetes-essentials.md)                    | What does a rolling update do to your in-flight requests?      |
+| 01 | [Docker Fundamentals](#ch-docker-fundamentals)                        | What is a container really, and why did this one exit?         |
+| 02 | [Building and Hardening Images](#ch-building-and-hardening-images)    | How do you get a small image that rebuilds fast and is not root? |
+| 03 | [Docker Compose](#ch-docker-compose)                                  | How do you run the whole stack locally without a cluster?      |
+| 04 | [Kubernetes Essentials](#ch-kubernetes-essentials)                    | What does a rolling update do to your in-flight requests?      |
 
 ## What Interviewers Probe For
 

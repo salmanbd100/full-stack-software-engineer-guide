@@ -25,9 +25,9 @@ frontend-facing shape differs. Saying the principle before the product is itself
 
 | #  | Chapter                                                    | What it answers                                                  |
 | -- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [Cloud Fundamentals](./01-fundamentals.md)                 | What are regions, zones, and which half of security is yours?    |
-| 02 | [Serverless Functions](./02-serverless.md)                 | What happens between the deploy and the handler, and what does a cold start cost? |
-| 03 | [Object Storage and Delivery](./03-storage-and-delivery.md) | How do you store user files and serve them fast without touching a disk? |
+| 01 | [Cloud Fundamentals](#ch-cloud-fundamentals)                 | What are regions, zones, and which half of security is yours?    |
+| 02 | [Serverless Functions](#ch-serverless-functions)                 | What happens between the deploy and the handler, and what does a cold start cost? |
+| 03 | [Object Storage and Delivery](#ch-object-storage-and-delivery) | How do you store user files and serve them fast without touching a disk? |
 
 ## What Interviewers Probe For
 

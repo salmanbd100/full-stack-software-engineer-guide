@@ -25,13 +25,13 @@ rewrites of everything underneath it. Almost every recommendation here follows f
 
 | #  | Chapter                                                              | What it answers                                                 |
 | -- | -------------------------------------------------------------------- | --------------------------------------------------------------- |
-| 01 | [Testing Strategy](./01-testing-strategy.md)                         | What do you test, at which layer, and what does it cost?        |
-| 02 | [Vitest](./02-vitest.md)                                             | How do you mock at the boundary without leaking into the next test? |
-| 03 | [React Testing Library](./03-react-testing-library.md)               | Which query, so a refactor does not break a hundred tests?      |
-| 04 | [Frontend Integration Testing](./04-integration-testing.md)          | How do you test a whole flow against a faked network?           |
-| 05 | [End-to-End Testing with Playwright](./05-e2e-with-playwright.md)    | Which browser tests earn their runtime, and where does component testing stop? |
-| 06 | [Test-Driven Development](./06-test-driven-development.md)           | When does writing the test first genuinely pay?                 |
-| 07 | [Visual and Contract Testing](./07-visual-and-contract-testing.md)   | What do you do about failures an assertion cannot express?       |
+| 01 | [Testing Strategy](#ch-testing-strategy)                         | What do you test, at which layer, and what does it cost?        |
+| 02 | [Vitest](#ch-vitest)                                             | How do you mock at the boundary without leaking into the next test? |
+| 03 | [React Testing Library](#ch-react-testing-library)               | Which query, so a refactor does not break a hundred tests?      |
+| 04 | [Frontend Integration Testing](#ch-frontend-integration-testing)          | How do you test a whole flow against a faked network?           |
+| 05 | [End-to-End Testing with Playwright](#ch-end-to-end-testing)    | Which browser tests earn their runtime, and where does component testing stop? |
+| 06 | [Test-Driven Development](#ch-test-driven-development)           | When does writing the test first genuinely pay?                 |
+| 07 | [Visual and Contract Testing](#ch-visual-and-contract-testing)   | What do you do about failures an assertion cannot express?       |
 
 Accessibility testing has its own chapter in Part II —
 [Chapter ?? — Testing Accessibility](#ch-testing-accessibility) owns the method, the CI gate and the

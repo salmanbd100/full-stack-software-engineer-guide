@@ -27,10 +27,10 @@ what is left to score is your judgement about it.
 
 | #   | Chapter                                                      | What it answers                                            |
 | --- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| 01  | [Technical Communication](./01-technical-communication.md)   | In what order does a listener need the pieces?             |
-| 02  | [Listening and Thinking Aloud](./02-thinking-aloud.md)       | Are you answering the right question, out loud?            |
-| 03  | [Written Communication](./03-written-communication.md)       | How do you write a PR, an ADR or a runbook people use?     |
-| 04  | [The AI-Assisted Interview](./04-the-ai-assisted-interview.md) | How do you use an assistant without removing the signal? |
+| 01  | [Technical Communication](#ch-technical-communication)       | In what order does a listener need the pieces?             |
+| 02  | [Listening and Thinking Aloud](#ch-thinking-aloud)           | Are you answering the right question, out loud?            |
+| 03  | [Written Communication](#ch-written-communication)           | How do you write a PR, an ADR or a runbook people use?     |
+| 04  | [The AI-Assisted Interview](#ch-ai-assisted-interview)       | How do you use an assistant without removing the signal?   |
 
 Behavioural answers have their own section. STAR, the story bank and the delivery rules live in
 `Behavioral/`, starting at [Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework).

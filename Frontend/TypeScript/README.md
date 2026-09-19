@@ -26,14 +26,14 @@ which sits with the rest of the React chapters in Part III.
 
 | #  | Chapter                                                        | What it answers                                              |
 | -- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [TypeScript Basic Types](./01-basic-types.md)                  | What do `any`, `unknown` and `never` each cost you?          |
-| 02 | [Interfaces and Type Aliases](./02-interfaces-types.md)        | On what two grounds do they actually differ?                 |
-| 03 | [TypeScript Generics](./03-generics.md)                        | How do you keep the caller's exact type all the way through? |
-| 04 | [TypeScript Utility Types](./04-utility-types.md)              | How do you derive a type instead of maintaining two?         |
-| 05 | [TypeScript Type Guards](./05-type-guards.md)                  | How do you get a compile error when you forget a case?       |
-| 06 | [TypeScript Advanced Types](./06-advanced-types.md)            | When does computing types from types stop being worth it?    |
-| 07 | [Enums and Literal Types](./07-enums-literals.md)              | How do you model a fixed set without a runtime object?       |
-| 08 | [TypeScript at Scale](./08-typescript-at-scale.md)             | How do you get an old codebase onto `strict`, and when do types cost too much? |
+| 01 | [TypeScript Basic Types](#ch-basic-types)                  | What do `any`, `unknown` and `never` each cost you?          |
+| 02 | [Interfaces and Type Aliases](#ch-interfaces-types)        | On what two grounds do they actually differ?                 |
+| 03 | [TypeScript Generics](#ch-generics)                        | How do you keep the caller's exact type all the way through? |
+| 04 | [TypeScript Utility Types](#ch-utility-types)              | How do you derive a type instead of maintaining two?         |
+| 05 | [TypeScript Type Guards](#ch-type-guards)                  | How do you get a compile error when you forget a case?       |
+| 06 | [TypeScript Advanced Types](#ch-advanced-types)            | When does computing types from types stop being worth it?    |
+| 07 | [Enums and Literal Types](#ch-enums-literals)              | How do you model a fixed set without a runtime object?       |
+| 08 | [TypeScript at Scale](#ch-typescript-at-scale)             | How do you get an old codebase onto `strict`, and when do types cost too much? |
 
 ## What Interviewers Probe For
 

@@ -26,10 +26,10 @@ this section is about not shipping a library for work the browser already does.
 
 | #  | Chapter                                                          | What it answers                                                |
 | -- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
-| 01 | [Internationalisation Fundamentals](./01-i18n-fundamentals.md)   | What belongs in a translation file, and what does not?         |
-| 02 | [Pluralisation](./02-pluralization.md)                           | How do you handle six plural forms without hard-coding one?    |
-| 03 | [Date and Number Formatting](./03-date-number-formatting.md)     | How much of this does `Intl` already do for you?               |
-| 04 | [Right-to-Left Support](./04-rtl-support.md)                     | How do you mirror a layout without a second stylesheet?        |
+| 01 | [Internationalisation Fundamentals](#ch-i18n-fundamentals)       | What belongs in a translation file, and what does not?         |
+| 02 | [Pluralisation](#ch-pluralization)                               | How do you handle six plural forms without hard-coding one?    |
+| 03 | [Date and Number Formatting](#ch-date-number-formatting)         | How much of this does `Intl` already do for you?               |
+| 04 | [Right-to-Left Support](#ch-rtl-support)                         | How do you mirror a layout without a second stylesheet?        |
 
 ## What Interviewers Probe For
 

@@ -24,10 +24,10 @@ day-to-day SQL belong to Part V, and this section assumes them rather than repea
 
 | #  | Chapter                                                       | What it answers                                              |
 | -- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [Choosing a Datastore](./01-choosing-a-datastore.md)          | Which family of store, and what does the choice cost?         |
-| 02 | [Replication](./02-replication.md)                            | What can a reader see while the copies disagree?              |
-| 03 | [Sharding](./03-sharding.md)                                  | Which shard key will you not regret in a year?                |
-| 04 | [Transactions at Scale](./04-transactions-at-scale.md)        | What isolation does this feature need, and what breaks across machines? |
+| 01 | [Choosing a Datastore](#ch-choosing-a-datastore)          | Which family of store, and what does the choice cost?         |
+| 02 | [Replication](#ch-replication)                            | What can a reader see while the copies disagree?              |
+| 03 | [Sharding](#ch-sharding)                                  | Which shard key will you not regret in a year?                |
+| 04 | [Transactions at Scale](#ch-database-transactions)        | What isolation does this feature need, and what breaks across machines? |
 
 ## What Interviewers Probe For
 

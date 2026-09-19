@@ -23,8 +23,8 @@ relational model too.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [Document Databases](./01-document-databases.md) | What does the document model buy, and embed or reference? |
-| 02 | [Redis](./02-redis.md) | Which structure, and what happens when the process restarts? |
+| 01 | [Document Databases](#ch-document-databases) | What does the document model buy, and embed or reference? |
+| 02 | [Redis](#ch-redis) | Which structure, and what happens when the process restarts? |
 
 Aggregation pipelines and shard-key mechanics are deliberately absent. The first is a MongoDB
 specialist's skill; the second belongs one level up, to [Chapter ?? — Replication](#ch-replication)

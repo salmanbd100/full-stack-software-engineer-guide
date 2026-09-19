@@ -30,16 +30,16 @@ a detail genuinely differs, such as cold starts, regional execution, or which ad
 
 | #  | Chapter                     | What it answers                                                       |
 | -- | --------------------------- | --------------------------------------------------------------------- |
-| 01 | [App Router Mental Model](./01-app-router-mental-model.md) | How do files become routes, and what re-renders on navigation? |
-| 02 | [Data Fetching and Caching](./02-data-fetching-and-caching.md) | Where does this request go, and how long does the answer live? |
-| 03 | [Server Actions](./03-server-actions.md) | How do you mutate data without writing an API route — and safely?     |
-| 04 | [Rendering in Next.js](./04-rendering-in-nextjs.md) | Static, dynamic, streaming or partially prerendered — which, and why? |
-| 05 | [Middleware and the Edge](./05-middleware-and-the-edge.md) | What can you decide before the route runs, and what should you not? |
-| 06 | [Images, Fonts, and Assets](./06-images-fonts-and-assets.md) | How do you ship a hero image without paying for it in CLS? |
-| 07 | [Auth Patterns](./07-auth-patterns.md) | Session or token, and where is it checked?                            |
-| 08 | [Route Handlers and the BFF](./08-route-handlers-and-the-bff.md) | When is Next.js your backend, and when should it stop being one? |
-| 09 | [Deployment and Runtime](./09-deployment-and-runtime.md) | What changes when you self-host, and where does the cache live? |
-| 10 | [Migrating Pages to App Router](./10-migrating-to-the-app-router.md) | How do you move a live application one route at a time? |
+| 01 | [App Router Mental Model](#ch-app-router-mental-model) | How do files become routes, and what re-renders on navigation? |
+| 02 | [Data Fetching and Caching](#ch-nextjs-data-and-caching) | Where does this request go, and how long does the answer live? |
+| 03 | [Server Actions](#ch-server-actions) | How do you mutate data without writing an API route — and safely?     |
+| 04 | [Rendering in Next.js](#ch-rendering-in-nextjs) | Static, dynamic, streaming or partially prerendered — which, and why? |
+| 05 | [Middleware and the Edge](#ch-nextjs-middleware-and-the-edge) | What can you decide before the route runs, and what should you not? |
+| 06 | [Images, Fonts, and Assets](#ch-nextjs-assets) | How do you ship a hero image without paying for it in CLS? |
+| 07 | [Auth Patterns](#ch-nextjs-auth-patterns) | Session or token, and where is it checked?                            |
+| 08 | [Route Handlers and the BFF](#ch-route-handlers-and-the-bff) | When is Next.js your backend, and when should it stop being one? |
+| 09 | [Deployment and Runtime](#ch-nextjs-deployment-and-runtime) | What changes when you self-host, and where does the cache live? |
+| 10 | [Migrating Pages to App Router](#ch-migrating-to-the-app-router) | How do you move a live application one route at a time? |
 
 ## What Interviewers Probe For
 

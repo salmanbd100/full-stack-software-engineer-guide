@@ -25,12 +25,12 @@ you, and pushing data the client did not ask for.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [REST API Best Practices](./01-rest-best-practices.md) | Can another engineer guess this API before reading the docs? |
-| 02 | [GraphQL](./02-graphql.md) | How do you stop the resolver chain melting your database? |
-| 03 | [API Versioning and Contracts](./03-versioning.md) | Is this change breaking, and can the spec drift from the code? |
-| 04 | [Rate Limiting](./04-rate-limiting.md) | Which algorithm, and how does it work across every instance? |
-| 05 | [Real-Time and Streaming APIs](./05-realtime-and-streaming.md) | SSE or a socket, and what does the upgrade throw away? |
-| 06 | [tRPC and Typed APIs](./06-trpc-typed-apis.md) | When does inference replace a schema, and when does it not? |
+| 01 | [REST API Best Practices](#ch-rest-best-practices) | Can another engineer guess this API before reading the docs? |
+| 02 | [GraphQL](#ch-graphql) | How do you stop the resolver chain melting your database? |
+| 03 | [API Versioning and Contracts](#ch-versioning) | Is this change breaking, and can the spec drift from the code? |
+| 04 | [Rate Limiting](#ch-rate-limiting) | Which algorithm, and how does it work across every instance? |
+| 05 | [Real-Time and Streaming APIs](#ch-realtime-streaming) | SSE or a socket, and what does the upgrade throw away? |
+| 06 | [tRPC and Typed APIs](#ch-trpc) | When does inference replace a schema, and when does it not? |
 
 ## What Interviewers Probe For
 

@@ -23,11 +23,11 @@ then stop the request itself being hostile.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [Credentials, Sessions and Tokens](./01-credentials-and-sessions.md) | Is a database leak also an account leak, and is the session revocable? |
-| 02 | [OAuth 2.1 and OpenID Connect](./02-oauth.md) | What is each redirect in the flow protecting? |
-| 03 | [Authorisation](./03-authorisation.md) | Does this user own *this* object? |
-| 04 | [CORS and CSRF](./04-cors-csrf.md) | Why does CORS not prevent CSRF? |
-| 05 | [Input Validation and Injection](./05-validation.md) | Where does data become code? |
+| 01 | [Credentials, Sessions and Tokens](#ch-credentials-and-sessions) | Is a database leak also an account leak, and is the session revocable? |
+| 02 | [OAuth 2.1 and OpenID Connect](#ch-oauth) | What is each redirect in the flow protecting? |
+| 03 | [Authorisation](#ch-authorisation) | Does this user own *this* object? |
+| 04 | [CORS and CSRF](#ch-cors-csrf) | Why does CORS not prevent CSRF? |
+| 05 | [Input Validation and Injection](#ch-backend-input-validation) | Where does data become code? |
 
 ## What Interviewers Probe For
 

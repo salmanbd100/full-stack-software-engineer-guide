@@ -64,6 +64,6 @@ the first rule of ARIA cover most of what a frontend loop asks — and 06's "wha
 the follow-up that usually decides the answer.
 
 > ⚠️ This section replaces the single accessibility chapter that used to sit in
-> [`HtmlCss/`](../HtmlCss/README.md). Its material is distributed across all six chapters here, so nothing
-> was lost — but its old anchor no longer exists, and the three cross-references that used it were
-> repointed when this section was created.
+> [Part II — HTML and CSS](#ch-frontend-html-css-index). Its material is distributed across all six
+> chapters here, so nothing was lost — but its old anchor no longer exists, and the three
+> cross-references that used it were repointed when this section was created.

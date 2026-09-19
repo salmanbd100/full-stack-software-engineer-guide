@@ -5829,8 +5829,51 @@ is still inside its budget.
 Relative paths break in PDF and EPUB. Convert to the item-2 syntax and have the build resolve them to
 "see Chapter N" in print and to anchors on the web.
 
-🔴 **Ordering:** the *resolution* half needs a pandoc filter that does not exist. **#82 builds it and
-closes this item** — do the markdown conversion here, then tick both there.
+🔴 **Ordering — the markdown half is DONE (2026-09-17); the next unchecked item to work is #72.** Every
+relative link in the manuscript is now a `#ch-` cross-reference and a lint rule holds it there. What is
+left is the *resolution* half, which needs a pandoc filter that does not exist: **#82 builds it and ticks
+this box.** Do not redo the conversion — read the Delivered block below first.
+
+**Done when:** no in-book file contains a relative file link (`lint:docs` rule `relative-link` at 0 —
+delivered), and `scripts/lua/xref.lua` renders every `#ch-` link with a chapter and page number in the
+PDF (**#82**).
+
+**Delivered — the markdown half (2026-09-17):**
+
+- **219 relative links converted across 42 files**, leaving **zero** in the manuscript. 206 were chapter
+  tables in part-opener and section-index READMEs, rewritten mechanically (link text untouched, target
+  swapped to `#ch-<slug>`); 13 were prose or navigation links and were done by hand
+- **Section openers now have a reference form**, because nothing in the book had pointed at one before:
+  `[Part II — Accessibility](#ch-frontend-accessibility-index)` — the target's own `title`, not a
+  `Chapter ?? —` prefix, since a section index is not a chapter. Used in `Frontend/HtmlCss`,
+  `Frontend/Accessibility`, `Frontend/BrowserAPIs`, `Frontend/Security` and `SystemDesign/Frontend`
+- **Chapter references keep the `Chapter ?? — Title` form** the repo already uses 1,058 times against 4
+  numbered ones. #70 assigned real numbers in front matter, and **#82's filter reads them from there** —
+  hardcoding 219 more numbers into prose would go stale the moment a chapter moves
+- **Three back-link footers deleted** rather than converted — `BrowserAPIs/01`, `BrowserAPIs/04` and
+  `HtmlCss/01` ended on `[← Back to …] | [Next: … →]`. The Book Chapter Standard bans back-links outright,
+  so there was nothing to convert. Those three chapters are still otherwise pre-standard (hand-written
+  TOCs, no Key Takeaways, no *What to Read Next*) — that is **#76's** job, not this one
+- **One link had no chapter to point at:** `DSA/README.md` → `Archive/dsa-solutions/`. `Archive/` is not in
+  the book, so the link became inline code naming the repository path. A hyperlink to a repo directory is
+  dead paper
+- **New `lint:docs` rule `relative-link`**, baseline 0, so the conversion cannot rot — the same reflex as
+  #70's two rules. `broken-link` only ever caught links whose *target was missing*; a correct relative link
+  was invisible to it, which is how 219 of them survived to Phase 7. **Verified it is not a false
+  negative:** restoring one link by hand made it fire with the right file and line
+- **`in_book: false` files are deliberately exempt** — `README.md` and `Frontend/README.md` are repository
+  navigation, never enter the PDF, and their relative links are correct. `loadBook` already drops them, so
+  the rule inherits the exemption rather than restating it
+- **Ten tables were re-padded.** Shortening `](./01-foo.md)` to `](#ch-foo)` broke the column alignment in
+  every table that had been hand-aligned to a uniform line width. Realigned only those blocks; tables that
+  were never aligned were left as they were
+- **`CLAUDE.md` corrected:** it described `lint:docs` as "all six rules". There were nine before this item
+  and there are ten now
+- **Verified:** `pnpm lint:docs` → 298 files, nine rules at 0 including the new `relative-link`, and
+  `unresolved-xref` at its baseline of 1 (the pre-existing `#ch-preface`, which #72 closes).
+  `pnpm check:versions` → 0 and 0. `pnpm check:stale` → 0. `pnpm book:collect` → 298 files,
+  **59,475 → 59,468 lines** (the three deleted footers, and two paragraphs rewrapped). **Not verified: nothing renders these
+  cross-references on paper yet** — that is exactly what #82 is for, and no PDF was built here
 
 ---
 
@@ -6084,7 +6127,10 @@ markdown:
   rebuild does not re-render 52 diagrams. Force a monochrome theme; the default palette greys out.
 - **#71 (cross-references).** Non-negotiable #8 requires `[Chapter N — Title](#ch-slug)`, which pandoc
   turns into a bare hyperlink — useless on paper. `scripts/lua/xref.lua` resolves each to
-  "Chapter N, page P" in print and leaves it an anchor in EPUB.
+  "Chapter N, page P" in print and leaves it an anchor in EPUB. **The markdown half landed on 2026-09-17**
+  — every relative link is now a `#ch-` anchor and a `relative-link` lint rule holds it there, so nothing
+  is left to convert. Note that **1,058 of those references read `Chapter ?? — Title`**: the number lives
+  in front matter, not in the prose, so the filter has to supply it rather than trust the link text.
 
 Wire both into `scripts/book-pdf.yaml`, a pandoc defaults file that also replaces the eight `--variable`
 flags currently inlined in `build-book.sh`.

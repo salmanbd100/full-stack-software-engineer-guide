@@ -25,9 +25,9 @@ Alerting is last on purpose — an alert is only ever as good as the signal unde
 
 | #  | Chapter                                                                   | What it answers                                                     |
 | -- | ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 01 | [Monitoring and Observability Fundamentals](./01-fundamentals.md)         | What do you measure, and what does an SLO commit you to?            |
-| 02 | [Metrics and Dashboards](./02-metrics-and-dashboards.md)                  | How are metrics collected and queried, and what makes a screen readable? |
-| 03 | [Alerting and On-Call](./03-alerting-and-on-call.md)                      | What makes an alert worth waking a human for?                       |
+| 01 | [Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals)         | What do you measure, and what does an SLO commit you to?            |
+| 02 | [Metrics and Dashboards](#ch-metrics-and-dashboards)                  | How are metrics collected and queried, and what makes a screen readable? |
+| 03 | [Alerting and On-Call](#ch-alerting)                      | What makes an alert worth waking a human for?                       |
 
 ## What Interviewers Probe For
 

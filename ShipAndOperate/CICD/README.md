@@ -25,9 +25,9 @@ stored in it. What the pipeline does with the artefact afterwards is the `Deploy
 
 | #   | Chapter                                                    | What it answers                                                     |
 | --- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| 01  | [CI/CD Fundamentals](./01-cicd-fundamentals.md)            | What is the pipeline for, and how do you keep it under ten minutes?  |
-| 02  | [GitHub Actions](./02-github-actions.md)                   | How do you write a workflow that holds no long-lived credentials?    |
-| 03  | [Pipeline Security](./03-pipeline-security.md)             | How does a secret leak out of a build, and how do you stop it?       |
+| 01  | [CI/CD Fundamentals](#ch-cicd-fundamentals)            | What is the pipeline for, and how do you keep it under ten minutes?  |
+| 02  | [GitHub Actions](#ch-github-actions)                   | How do you write a workflow that holds no long-lived credentials?    |
+| 03  | [Pipeline Security](#ch-cicd-security)             | How does a secret leak out of a build, and how do you stop it?       |
 
 ## What Interviewers Probe For
 

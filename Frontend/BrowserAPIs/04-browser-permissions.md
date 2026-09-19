@@ -264,6 +264,3 @@ You can't — once denied, the browser won't show your prompt again. You can onl
 
 Geolocation, camera, microphone, clipboard read, and persistent background features (Push, Background Sync). They expose either who/where the user is, or sensitive content. Best practice: minimum scope (e.g. `audio: true` only, never both unless needed), explain why before prompting, and stop tracks/release handles immediately after use.
 
----
-
-[← Previous: IndexedDB](./03-indexeddb.md) | [Back to Browser APIs →](./README.md)

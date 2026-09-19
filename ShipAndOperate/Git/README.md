@@ -25,10 +25,10 @@ about — trunk-based or GitFlow, squash or merge, one repository or twenty.
 
 | #  | Chapter                                                                              | What it answers                                                |
 | -- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| 01 | [Git Fundamentals](./01-git-fundamentals.md)                                         | What is a commit, and what do the three trees actually hold?   |
-| 02 | [Advanced Git](./02-advanced-git.md)                                                 | How do you get back work you thought you had lost?             |
-| 03 | [Branching and Review Workflow](./03-branching-and-review-workflow.md)               | Which branching model, and what makes a change reviewable?      |
-| 04 | [Repository Strategies](./04-repository-strategies.md)                                | Monorepo or polyrepo, and what does each one cost you?          |
+| 01 | [Git Fundamentals](#ch-git-fundamentals)                                         | What is a commit, and what do the three trees actually hold?   |
+| 02 | [Advanced Git](#ch-advanced-git)                                                 | How do you get back work you thought you had lost?             |
+| 03 | [Branching and Review Workflow](#ch-branching-and-review-workflow)               | Which branching model, and what makes a change reviewable?      |
+| 04 | [Repository Strategies](#ch-repository-strategies)                                | Monorepo or polyrepo, and what does each one cost you?          |
 
 ## What Interviewers Probe For
 

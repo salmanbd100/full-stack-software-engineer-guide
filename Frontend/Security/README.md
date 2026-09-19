@@ -15,7 +15,7 @@ in_book: true
 The browser half of the security spine. Four chapters on the attacks that are executed in a user's
 browser against your origin, and the platform features that stop them. The server half — tokens,
 sessions, authorisation, transport, injection into a database — lives in
-[`Backend/Security/`](../../Backend/Security/README.md).
+[Part V — Backend Security](#ch-backend-security-index).
 
 The organising idea is that browser security is defence in depth with a specific ordering. Output
 encoding stops most cross-site scripting. Content Security Policy is what saves you when the encoding
@@ -26,10 +26,10 @@ who names only one layer has described a single point of failure.
 
 | #  | Chapter                                                          | What it answers                                                        |
 | -- | ---------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 01 | [XSS Prevention](./01-xss-prevention.md)                         | Where exactly does your framework stop protecting you?                 |
-| 02 | [Content Security Policy](./02-content-security-policy.md)       | How do you write a policy that survives a successful injection?        |
-| 03 | [Security Headers](./03-security-headers.md)                     | Which six headers, and what does each one prevent?                     |
-| 04 | [Client-Side Input Handling](./04-client-side-input-handling.md) | Which inputs never reach the server, so the browser is the only check? |
+| 01 | [XSS Prevention](#ch-xss-prevention)                             | Where exactly does your framework stop protecting you?                 |
+| 02 | [Content Security Policy](#ch-content-security-policy)           | How do you write a policy that survives a successful injection?        |
+| 03 | [Security Headers](#ch-security-headers)                         | Which six headers, and what does each one prevent?                     |
+| 04 | [Client-Side Input Handling](#ch-client-side-input-handling)     | Which inputs never reach the server, so the browser is the only check? |
 
 ## What Interviewers Probe For
 
