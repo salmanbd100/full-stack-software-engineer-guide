@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-17 · **Progress:** 80 / 93
+**Last updated:** 2026-09-19 · **Progress:** 82 / 93
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -5829,7 +5829,7 @@ is still inside its budget.
 Relative paths break in PDF and EPUB. Convert to the item-2 syntax and have the build resolve them to
 "see Chapter N" in print and to anchors on the web.
 
-🔴 **Ordering — the markdown half is DONE (2026-09-17); the next unchecked item to work is #72.** Every
+🔴 **Ordering — the markdown half is DONE (2026-09-17); skip this item and take the next unchecked one below it.** Every
 relative link in the manuscript is now a `#ch-` cross-reference and a lint rule holds it there. What is
 left is the *resolution* half, which needs a pandoc filter that does not exist: **#82 builds it and ticks
 this box.** Do not redo the conversion — read the Delivered block below first.
@@ -5877,17 +5877,134 @@ PDF (**#82**).
 
 ---
 
-### - [ ] 72. Write the front matter `M`
+### - [x] 72. Write the front matter `M` — ✅ **done 2026-09-19**
 
 Preface (why this book exists, who it is for, what it will not teach), how to read it (three paths:
 interview sprint, working reference, cover to cover), and the full table of contents.
 
+> ⚠️ **Amended — "the full table of contents" was already the build's job, and the item had no
+> "Done when".** `build-book.sh` has passed `--toc --toc-depth=2 --top-level-division=part` since #5,
+> and `book-meta.yaml` titles the result *Contents*. A hand-written list would be a second copy of 245
+> chapter titles with nothing checking it, and the Book Chapter Standard bans hand-written TOCs
+> outright. What the front matter carries instead is the thing a generated contents list cannot give
+> you: a **nine-row map of the parts**, saying what each one answers and how long it is. The acceptance
+> test below was written at this item; the original text had none.
+
+**Done when:** `Preface.md` and `How-to-Read-This-Book.md` exist, sort ahead of Part I in
+`book:collect`, `lint:docs` rule `unresolved-xref` reaches 0 (`#ch-preface` had been its only entry
+since #70), and a real PDF and EPUB build lists both at the front of the generated Contents.
+
+**Delivered:**
+
+- **`Preface.md` (162 lines)** — why the book exists (the three genres already on the shelf and the gap
+  between them), who it is for and the four readers it is not for, the ten topics it will not teach and
+  the three ceilings that follow, the three-question promise, what "frontend-heavy" means, and the five
+  rules that decide how fast the book rots. Closes with the note on English that `BOOK-SPEC.md` § 3 asks
+  for
+- **`How-to-Read-This-Book.md` (151 lines)** — the three routes from `BOOK-SPEC.md` § 8, **a six-week
+  interview-sprint plan week by week**, a two-week and a one-week compression of it, the nine parts at a
+  glance, the six blocks every chapter uses, and the conventions. The spec names the three paths; it
+  does not schedule them, and a reader six weeks out needs the schedule
+- **`part: 0` no longer means "back".** It meant "not one of the nine parts", and `orderDocs` sorted
+  every such file after Part IX — fine while the only ones were the glossary and further reading, wrong
+  the moment a preface existed. `lib/book.ts` now carries a **`matterFor()`** discriminator reading the
+  `front-matter` / `back-matter` tag, which the three back-matter files **already had** before this
+  item, so no existing front matter was touched. Sort keys: front → −1, back → 98, neither → 99
+- **A `part: 0` file with no matter tag is still an error**, keeps its old position and keeps its
+  warning. That safety net is why the tag discriminates rather than a new front-matter key
+- **`collect-chapters.ts` emits no level-1 divider above the front matter** — it opens the book, so
+  there is no part above it to escape from, and a `\part*{Front Matter}` page before the preface is not
+  how a book opens. Back matter is the opposite case and needs one, or the glossary sorts *inside*
+  Part IX in the generated contents: it now gets `# Back Matter {.unnumbered}` in place of the
+  `# Unsorted` it had been filed under since #63, which also retires the spurious
+  `⚠️ 2 file(s) have no part mapping` line `book:collect` had printed on every run since then
+- **`unresolved-xref` closed at 0 and the baseline committed.** It had sat at 1 since #70 — the
+  `#ch-preface` reference `About-the-Author.md` wrote in advance at #17. All ten `lint:docs` rules are
+  now at 0 for the first time
+- **No six blocks.** The preface follows the shape #63 and #69 set for matter — opening, body, *What to
+  Read Next* — with no Core Idea, Key Takeaways or Interview Questions. Interview questions in a
+  preface would be absurd
+- **The parts map is measured, not copied from the spec.** 23 · 19 · 46 · 23 · 27 · 29 · 32 · 20 · 10,
+  plus the appendix's 16 — counted from the tree, against § 5's `~` targets. **Part IX reads 10, not the
+  11 `loadBook` reports**, because `About-the-Author.md` is still filed `part: 9`; **#73** moves it to
+  `part: 0` and the count stays right. ⚠️ **These ten numbers have nothing checking them** — #76 and #77
+  must re-read that table, since every later trim moves it
+- **The 313 new lines are free.** `checkBudgets` skips `part: 0`, so front matter charges no part's
+  ceiling. `book:collect` goes 59,468 → **59,783** with the `budget` rule still at 0
+- **Not done, and logged to #76: four parts still have no part opener.** Parts I, II, IV and IX open on
+  a section index instead, which #60a logged against "#70 or #72". It cannot be paid for here — Part I
+  is at 4,996 of 5,000, Part IV at 5,499 of 5,500 and Part IX at 2,495 of 2,500, so a 60–150 line
+  opener fails the `budget` rule on three of the four. It needs the trim first, which is #76's job
+- **Noted, not fixed:** the PDF's part dividers read *"Part 1 — Foundations"* in arabic while every part
+  opener a page later reads *"Part I — JavaScript Foundations"*. Pre-existing since #5, cosmetic, and
+  **#80** owns part and chapter openings
+- **Verified:** `pnpm lint:docs` → **300 files, all ten rules at 0**, `.lint-baseline.json` rewritten
+  with `unresolved-xref: 1 → 0`. `pnpm check:versions` → 0 and 0. `pnpm check:stale` → 0.
+  `pnpm book:pdf` → **1,304 pages**, Contents opening on *Preface* (page 1) then *How to Read This Book*
+  (page 5) then *Part 1 — Foundations* (page 9), both bodies read correctly on the page.
+  `pnpm book:epub` → navigation runs Preface → How to Read This Book → Part 1, and ends Back Matter →
+  Glossary → Further Reading. **Not verified: the 1,304-page count against decision #13's 700-page
+  ceiling** — that is #77's arithmetic, and no typographic decision was taken here
+
 ---
 
-### - [ ] 73. Write the back matter `S`
+### - [x] 73. Write the back matter `S` — ✅ **done 2026-09-19**
 
 About the author, glossary (item 63), further reading, and an index of interview questions collected from
 every chapter — that index alone is worth the purchase for a lot of readers.
+
+**Done when:** the interview-question index exists and covers every chapter that has a question block,
+`About-the-Author.md` sits at `part: 0` and sorts into the back matter, the `too-long` decision below is
+made rather than dodged, and the back matter renders in order in a real PDF and EPUB build.
+
+**Delivered:**
+
+- **`Interview-Question-Index.md` — 961 questions from 240 chapters**, grouped by part, then by chapter,
+  every chapter a `#ch-` cross-reference. Opens with a four-step method for using it: answer aloud in
+  under ninety seconds, mark it fluent / shaky / blank, open only the chapters that were not fluent, come
+  back three days later. **The answers are deliberately not reproduced** — they live in the chapter, which
+  is what the link is for, and copying them would be a second canonical home against non-negotiable #7
+- **It is generated, not written — `scripts/build-question-index.ts`.** Hand-maintaining 961 lines lifted
+  out of 240 chapters would put the index one chapter edit away from being silently wrong, and **#74 and
+  #76 both rewrite chapters after this item**, so "silently" would have meant "immediately".
+  `pnpm index:questions` writes it; **`pnpm index:check` regenerates into memory and diffs**, so a stale
+  index is a failed command rather than a wrong page. Same shape as `number:chapters --check`
+- **Wired into CI** as a fifth step in `.github/workflows/lint-docs.yml`, between the numbering check and
+  `plan:check`. A generator with nothing checking it is a generator that stops being run
+- **The parser handles the wrapped question.** 960 of the 961 `**Q: …**` blocks sit on one line;
+  `NextJS/04-rendering-in-nextjs.md:195` wraps across two, so the scan accumulates until the closing `**`
+  and skips fenced code. A single-line regex would have dropped that question and nothing would have said so
+- **`About-the-Author.md` moved from `part: 9` to `part: 0`, `chapter: 99` → `102`.** It had been charging
+  its 56 lines to Part IX's content budget and sorting *inside* Part IX; **Part IX is now 2,439 of 2,500
+  rather than 2,495**, and the back matter reads Glossary → Further Reading → Interview Question Index →
+  About the Author. Logged at #63, restated at #69, closed here
+- **The `too-long` decision, job 3: back matter is exempt, front matter is not.** The rule means "a
+  *chapter* over 400 lines should have been split or cut", and that holds for the preface and *How to Read
+  This Book*, which stay under it. It does not hold for a lookup surface: the glossary is one entry per
+  term and the index is one line per question, and neither can be split by length without becoming
+  useless. #63 had already rejected the alternative by name — marking the file `in_book: false` takes it
+  out of the book to satisfy a check about the book. **The exemption reads the `back-matter` tag**, so it
+  covers four files and cannot be claimed by a chapter that grew
+- **Verified the exemption is narrow and not a false negative.** The index is the *only* file in the
+  manuscript over 400 lines (1,299; the glossary is 308). A throwaway 438-line chapter dropped into
+  `Communication/` made `too-long` fire with the right file and line, and removing it took the rule back
+  to 0 — so the exemption covers exactly what it was written for. The same probe was run on
+  `index:check`: appending one line to the index made it fail, regenerating made it pass
+- **The index costs about 23 printed pages** — 1,303 to 1,325 of a 1,326-page build. Recorded for **#77**,
+  which owns the 700-page ceiling; back matter charges no *part* budget but it does charge pages, and this
+  is the largest single addition Phase 7 has made
+- **Five chapters still have no Interview Questions block** and are therefore absent from the index:
+  `HtmlCss/01-semantic-html`, `BrowserAPIs/01-storage-apis`, `02-cookies-same-site`, `03-indexeddb`,
+  `04-browser-permissions`. All five are pre-standard files #71 already logged to **#76**; the index will
+  pick them up on the next regeneration after that item, with no change here
+- **`CLAUDE.md` updated:** the two new scripts, a warning that the index is generated and never
+  hand-edited, and the CI list corrected — it claimed three steps and has run four since #70
+- **Verified:** `pnpm lint:docs` → **301 files, all ten rules at 0**, `.lint-baseline.json` unchanged.
+  `pnpm index:check` → current. `pnpm number:chapters --check` → clean, Part IX now 10 chapters · 12
+  files. `pnpm check:versions` → 0 and 0. `pnpm check:stale` → 0. `pnpm book:collect` → **301 files,
+  61,081 lines** (59,783 + the index). `pnpm book:build` → PDF **1,326 pages** with the index reading
+  correctly on the page, and EPUB navigation ending Back Matter → Glossary → Further Reading → Interview
+  Question Index → About the Author
 
 > ⚠️ **Amended at #69 — further reading is already written.** `Further-Reading.md` shipped at #69,
 > which is where that list of sources belonged. Three jobs are left here:
@@ -5932,6 +6049,16 @@ Read cover to cover for one voice. The repo currently swings between textbook-ne
 Pick one — the `Backend/API/01` voice is the strongest — and edit toward it.
 
 **Split across sessions:** one part per session.
+
+> ⚠️ **Added at #72 — this item also owns the four missing part openers.** Parts I, II, IV and IX
+> have none: the reader arriving at Part I lands on `Frontend/JavaScript/README.md`, a section index
+> that happens to lead. #60a logged it against "#70 or #72" and neither could take it, because it is a
+> **budget** problem rather than a writing one. Part I sits at 4,996 of 5,000 and Part IV at 5,499 of
+> 5,500, so a 60–150 line opener fails `lint:docs` on both the moment it is written. This is the item
+> that frees the lines, so it is the item that can pay for them: trim the part first, then write its
+> opener to the Part-Opener README standard in `write-topic-docs`. Part II has ~975 lines of headroom
+> and needs no trim. **Part IX gained headroom at #73** — moving `About-the-Author.md` to `part: 0`
+> took it to 2,439 of 2,500, so 61 lines are free there, enough for a short opener but not a full one.
 
 ---
 
@@ -6167,8 +6294,8 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
 | 6     | 64–69   | 6/6  | ✅ Complete    |
-| 7     | 70–83 · 70a | 2/15 | 🔄 In progress |
-| **Total** | **93** | **80/93** | **86%**   |
+| 7     | 70–83 · 70a | 4/15 | 🔄 In progress |
+| **Total** | **93** | **82/93** | **88%**   |
 
 ---
 

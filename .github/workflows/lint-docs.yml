@@ -46,6 +46,11 @@ jobs:
         # the build would otherwise put it somewhere alphabetical. Improvement #70.
         run: pnpm number:chapters --check
 
+      - name: Check the interview-question index is current
+        # The index is generated from every chapter's Interview Questions block, so a
+        # chapter edit silently invalidates it. Improvement #73.
+        run: pnpm index:check
+
       - name: Check the plan's counters agree
         run: pnpm plan:check
 

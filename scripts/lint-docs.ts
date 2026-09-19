@@ -27,6 +27,7 @@ import {
   EXCLUDED_DIRS,
   PART_NAMES,
   loadBook,
+  matterFor,
   partBudgets,
   type Doc,
 } from "./lib/book.ts";
@@ -260,8 +261,26 @@ function checkLinks(doc: Doc, line: string, lineNo: number): void {
   }
 }
 
+/**
+ * The 400-line ceiling, with one exemption — improvement #73.
+ *
+ * **Back matter is exempt; front matter is not.** The rule exists because a *chapter* over
+ * 400 lines is a chapter that should have been split or cut, and that reasoning holds for
+ * the preface and for "How to Read This Book", which are prose and stay under it.
+ *
+ * It does not hold for a lookup surface. The glossary is one entry per term and the
+ * interview-question index is one line per question across 240 chapters — neither can be
+ * split by length without becoming useless, and cutting entries to fit a number would make
+ * the book worse in exactly the way the rule is meant to prevent. #63 considered the
+ * alternative and rejected it by name: marking the file `in_book: false` to dodge the rule
+ * would take it out of the book to satisfy a check about the book.
+ *
+ * Narrow on purpose. The exemption reads the `back-matter` tag, so it covers four files and
+ * cannot be claimed by a chapter that has grown too long.
+ */
 function checkLength(doc: Doc): void {
   if (doc.fm.in_book === false) return;
+  if (matterFor(doc) === "back") return;
   if (doc.lines > MAX_LINES) {
     report("too-long", doc.rel, 1, `${doc.lines} lines (limit ${MAX_LINES})`);
   }

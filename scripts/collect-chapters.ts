@@ -17,7 +17,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadBook, PART_NAMES, type Doc } from "./lib/book.ts";
+import { loadBook, matterFor, PART_NAMES, type Doc, type Matter } from "./lib/book.ts";
 
 const ROOT: string = process.cwd();
 const LIST_ONLY: boolean = process.argv.includes("--list");
@@ -76,24 +76,40 @@ if (LIST_ONLY) {
   process.exit(0);
 }
 
+/**
+ * The level-1 divider a run of files sits under, or `null` for no divider at all.
+ *
+ * Front matter gets `null` deliberately — improvement #72. It is the first thing in the
+ * book, so there is no part above it to escape from, and a `\part*{Front Matter}` page
+ * before the preface is not how a book opens. Back matter is the opposite case: without
+ * a divider the glossary would sit inside Part IX in the generated contents, so it gets
+ * one. "Unsorted" now means only what it says — a `part: 0` file with neither matter tag,
+ * which is a mistake rather than a placement.
+ */
+function dividerFor(part: number, matter: Matter | null): string | null {
+  if (part === 0) {
+    if (matter === "front") return null;
+    return matter === "back" ? "# Back Matter {.unnumbered}" : "# Unsorted {.unnumbered}";
+  }
+  const name: string = PART_NAMES[part] ?? "Unsorted";
+  return part === 10 ? `# ${name}` : `# Part ${part} — ${name}`;
+}
+
 const chunks: string[] = [];
-let currentPart = -1;
+let currentGroup = "";
 let unmapped = 0;
 
 for (const doc of docs) {
-  if (doc.part !== currentPart) {
-    currentPart = doc.part;
-    const name: string = PART_NAMES[currentPart] ?? "Unsorted";
-    const heading: string =
-      currentPart === 0
-        ? "# Unsorted {.unnumbered}"
-        : currentPart === 10
-          ? `# ${name}`
-          : `# Part ${currentPart} — ${name}`;
-    chunks.push(heading + "\n");
+  const matter: Matter | null = matterFor(doc);
+  const group: string = doc.part === 0 ? `matter-${matter ?? "none"}` : `part-${doc.part}`;
+
+  if (group !== currentGroup) {
+    currentGroup = group;
+    const divider: string | null = dividerFor(doc.part, matter);
+    if (divider !== null) chunks.push(divider + "\n");
   }
 
-  if (doc.part === 0) unmapped++;
+  if (doc.part === 0 && matter === null) unmapped++;
 
   chunks.push(ensureAnchor(demoteHeadings(doc.body), doc).trimEnd() + "\n");
 }

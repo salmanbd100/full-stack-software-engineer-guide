@@ -437,6 +437,50 @@ export function findMarkdown(root: string): string[] {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Matter — the pages that sit outside the nine parts — improvement #72
+// ---------------------------------------------------------------------------
+
+/**
+ * Which end of the book a `part: 0` file belongs to.
+ *
+ * `part: 0` has always meant "not one of the nine parts", and until #72 every such file
+ * was assumed to be back matter — `orderDocs` sorted it after Part IX and
+ * `collect-chapters.ts` filed it under a heading reading "Unsorted". The preface has to
+ * lead the book, so the two cases now have to be told apart.
+ *
+ * The tag is the discriminator rather than a new front-matter key, because the three
+ * back-matter files already carried `back-matter` in `tags` before this item — see
+ * `Glossary.md` and `Further-Reading.md`. A `part: 0` file with neither tag is still an
+ * unmapped file, which is a real error state, so it keeps its old sort position and its
+ * warning.
+ */
+export type Matter = "front" | "back";
+
+export function matterFor(doc: Doc): Matter | null {
+  if (doc.part !== 0) return null;
+  const tags: readonly string[] = doc.fm.tags ?? [];
+  if (tags.includes("front-matter")) return "front";
+  if (tags.includes("back-matter")) return "back";
+  return null;
+}
+
+/**
+ * The part number `orderDocs` sorts on: front matter ahead of Part I, back matter after
+ * the appendix, and an unmapped file last of all so it is visible rather than buried.
+ */
+function sortPart(doc: Doc): number {
+  if (doc.part !== 0) return doc.part;
+  switch (matterFor(doc)) {
+    case "front":
+      return -1;
+    case "back":
+      return 98;
+    default:
+      return 99;
+  }
+}
+
 /**
  * Reading order: part, then chapter number, then path.
  *
@@ -458,9 +502,8 @@ export function findMarkdown(root: string): string[] {
  */
 export function orderDocs(docs: Doc[]): Doc[] {
   return [...docs].sort((a: Doc, b: Doc) => {
-    // Unmapped files (part 0) sort to the back rather than to the front.
-    const partA: number = a.part === 0 ? 99 : a.part;
-    const partB: number = b.part === 0 ? 99 : b.part;
+    const partA: number = sortPart(a);
+    const partB: number = sortPart(b);
     if (partA !== partB) return partA - partB;
 
     const chapA: number = a.fm.chapter ?? 0;

@@ -69,14 +69,20 @@ pnpm lint:docs --rule=broken-link   # every occurrence of one rule
 pnpm book:build       # PDF + EPUB into build/  (needs: brew install pandoc tectonic)
 pnpm plan:next        # the next unchecked plan item, its "Done when", its model
 pnpm plan:check       # verify the plan's three counters still agree
+pnpm index:questions  # regenerate Interview-Question-Index.md from every chapter's Q block
+pnpm index:check      # fail if that index is stale — run after editing any Interview Questions
 ```
+
+**`Interview-Question-Index.md` is generated, never hand-edited.** It is 961 questions read out of
+every chapter's `## Interview Questions` block. Change a question in a chapter and the index is stale
+until `pnpm index:questions` runs; `index:check` is what catches it.
 
 `scripts/lib/book.ts` is the shared model of what counts as a chapter — the build and the lint both
 import it, so they cannot disagree. Anything new that walks the manuscript should import it too.
 
 **There is still no test suite**, and no `check:code-samples` until item #75. Code fences are not
 compiled by anything today — do not imply otherwise. CI (`.github/workflows/lint-docs.yml`) runs
-`lint:docs`, `plan:check` and `book:collect`, nothing else.
+`lint:docs`, `number:chapters --check`, `index:check`, `plan:check` and `book:collect`, nothing else.
 
 `lint:docs` gates on **`.lint-baseline.json`, not zero** — most of the repo predates the standard. A
 count that goes up fails; a count that goes down should be committed as the new baseline.

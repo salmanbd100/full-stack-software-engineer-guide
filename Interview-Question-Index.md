@@ -1,0 +1,1298 @@
+---
+title: Interview Question Index
+part: 0
+chapter: 101
+slug: interview-question-index
+level: intermediate # beginner | intermediate | advanced
+reading_time: 40
+updated: 2026-09-19
+tags: [back-matter, interview, index]
+in_book: true
+---
+
+# Interview Question Index {#ch-interview-question-index}
+
+> Test yourself on a part in twenty minutes, and find out which chapters you actually have to reread.
+
+**In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
+
+Every question below is taken from the **Interview Questions** block that closes a chapter. There are
+**961 of them across 240 chapters**. The answers are not repeated here — they are in the chapter,
+which is what the link on each heading is for.
+
+## How to Use It
+
+Answer out loud, then check. Those are the two halves, and skipping the first one is what makes a
+reader feel ready and then stall in the room.
+
+1. **Answer it aloud, in under ninety seconds.** The gap between what you recognise and what you can
+   say is the whole thing the loop measures, and reading silently hides it.
+2. **Mark it fluent, shaky, or blank.** Three buckets is enough. A finer scale is procrastination.
+3. **Open the chapter only for the shaky and the blank.** Rereading what you already know is the most
+   comfortable way to waste a week.
+4. **Come back to the same part three days later.** Recall decays fastest in the first seventy-two
+   hours, so the second pass is where the revision actually happens.
+
+A part you can answer at eighty per cent aloud is a part you can stop revising. One that scores below
+half is a part to read properly, not to skim again.
+
+> ⚠️ **These are not the questions you will be asked.** They are the questions the book answers, which
+> is a different set. Memorising the list would be the wrong use of it. Each one is a prompt to
+> reconstruct an explanation, and the interview version will arrive with different words around it.
+
+## Part I — Foundations
+
+_70 questions across 23 chapters._
+
+- **[Data Types and Variables](#ch-data-types-variables)**
+  - Why does changing a property through one variable affect another variable?
+  - `const arr = [1, 2]; arr.push(3);` — why is that legal?
+  - When would you deliberately reach for `JSON.parse(JSON.stringify(x))` over `structuredClone`?
+- **[Functions and Scope](#ch-functions-scope)**
+  - Explain the scope chain.
+  - What is the temporal dead zone, and why is it useful?
+  - When would you deliberately not use an arrow function?
+- **[Closures](#ch-closures)**
+  - Why does a `var` loop with `setTimeout` print the final value three times?
+  - How do closures cause memory leaks?
+  - When would you use a `#private` class field instead of a closure?
+- **[The `this` Keyword](#ch-this-keyword)**
+  - `const fn = obj.method; fn();` — what is `this`, and why?
+  - What is the difference between `call`, `apply` and `bind`?
+  - When would you choose `bind` over a class-field arrow for an event handler?
+- **[Prototypes and Inheritance](#ch-prototypes-inheritance)**
+  - What is the difference between `prototype` and `__proto__`?
+  - Are ES2015 classes real classes?
+  - When would you prefer `Object.create` to a `class`?
+- **[Promises and Async/Await](#ch-promises-async)**
+  - What is the difference between `Promise.all` and `Promise.allSettled`?
+  - Why is rejecting with a string a problem?
+  - When would you deliberately await in a loop rather than use `Promise.all`?
+- **[The Event Loop](#ch-event-loop)**
+  - What does this log — `setTimeout(() => log('A'), 0)` then `Promise.resolve().then(() => log('B'))`?
+  - How can a page freeze even though nothing is synchronously blocking?
+  - When would you reach for a Web Worker instead of chunking work with `setTimeout`?
+- **[Array and Object Methods](#ch-array-object-methods)**
+  - What is the difference between `map` and `forEach`?
+  - How would you remove duplicates from an array of objects by `id`?
+  - When is `reduce` the wrong choice?
+- **[Error Handling](#ch-javascript-error-handling)**
+  - When would you return an error instead of throwing one?
+  - How do you handle errors in async code?
+  - Why is `catch (e) { console.error(e); }` usually a bug?
+- **[Modern JavaScript](#ch-modern-javascript)**
+  - Why did the language add `toSorted` when `sort` already existed?
+  - What do iterator helpers give you that array methods do not?
+  - When is optional chaining the wrong tool?
+- **[TypeScript Basic Types](#ch-basic-types)**
+  - What is the difference between `any` and `unknown`?
+  - When should you annotate rather than let TypeScript infer?
+  - TypeScript compiled with no errors. What can still go wrong at runtime?
+- **[Interfaces and Type Aliases](#ch-interfaces-types)**
+  - When would you use `interface` over `type`?
+  - What is a discriminated union and why prefer it to optional fields?
+  - Why did TypeScript not catch this extra property?
+- **[TypeScript Generics](#ch-generics)**
+  - How do you constrain a generic, and why would you need to?
+  - When is a generic the wrong tool?
+  - What does `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` buy over `(obj: object, key: string): unknown`?
+- **[TypeScript Utility Types](#ch-utility-types)**
+  - What is the difference between `Pick` and `Omit`, beyond direction?
+  - When would you not use `Partial` for an update type?
+  - Why prefer `Record<Status, string>` to `Record<string, string>` for a label map?
+- **[TypeScript Type Guards](#ch-type-guards)**
+  - What is a type predicate, and what is its main risk?
+  - How does exhaustiveness checking work?
+  - Why does narrowing not survive into a callback?
+- **[TypeScript Advanced Types](#ch-advanced-types)**
+  - What does `infer` do?
+  - What is distribution in conditional types, and when does it bite?
+  - Why prefer `as const` objects over `enum`?
+- **[Enums and Literal Types](#ch-enums-literals)**
+  - Should you use `enum` in new TypeScript?
+  - How do you derive a type from a runtime array of values?
+  - When would you keep enums in a codebase that has them?
+- **[TypeScript at Scale](#ch-typescript-at-scale)**
+  - How would you get a 200,000-line codebase onto `strict`?
+  - What does `satisfies` do that a type annotation does not?
+  - When have types become too expensive?
+- **[OOP Core Concepts in TypeScript](#ch-oop-core-concepts)**
+  - What is the difference between `private` and `#` in a TypeScript class?
+  - TypeScript is structurally typed. What does that change about polymorphism?
+  - When would you choose an abstract class over an interface?
+- **[Composition over Inheritance](#ch-composition-over-inheritance)**
+  - "Favour composition over inheritance" — why?
+  - Show me a case where inheritance is the right call.
+  - What is the practical difference dependency injection makes?
+- **[SOLID Principles](#ch-solid-principles)**
+  - Explain SRP with a real example.
+  - Give a Liskov violation you've actually seen.
+  - When would you deliberately ignore SOLID?
+- **[Design Patterns in TypeScript](#ch-design-patterns-in-typescript)**
+  - This `switch` on payment provider keeps growing. What do you do?
+  - What is the difference between a decorator, a proxy and an adapter? They all wrap something.
+  - When is a pattern the wrong answer?
+- **[Architectural Patterns](#ch-architectural-patterns)**
+  - Why use a Repository if you already have an ORM?
+  - What actually belongs in a service?
+  - How do you know your layering is wrong?
+  - Is this layering overkill for a small service?
+
+## Part II — The Browser Platform
+
+_62 questions across 14 chapters._
+
+- **[Advanced CSS](#ch-advanced-css)**
+  - Why prefer `oklch` over `hsl` for design tokens?
+  - What did `:has()` let you delete?
+  - What is the difference between a custom property and a Sass variable?
+  - When is a custom property the wrong tool?
+- **[Why Accessibility, and the Law](#ch-accessibility-and-the-law)**
+  - Which accessibility rules apply to a product your company sells across Europe?
+  - Why AA rather than A or AAA?
+  - What did WCAG 2.2 change?
+  - A designer's palette uses `#999` for secondary text. What do you say?
+  - When would you not fix an accessibility issue immediately?
+- **[The Accessibility Tree](#ch-accessibility-tree)**
+  - What is the accessibility tree, and why does it matter to you rather than to a specialist?
+  - How is an accessible name computed?
+  - What is the difference between `hidden`, `aria-hidden` and `inert`?
+  - A `<section>` is not showing up as a landmark. Why?
+  - When is it right to hide something from screen readers?
+- **[ARIA, and When Not to Use It](#ch-aria)**
+  - What is the first rule of ARIA, and why is it first?
+  - A component sets `aria-expanded` but the menu still announces wrongly. What do you check?
+  - How do you announce that a background save succeeded?
+  - When is `aria-disabled` better than `disabled`?
+  - Would you build a custom select, and what would it cost?
+- **[Keyboard and Focus Management](#ch-keyboard-and-focus)**
+  - What is wrong with removing focus outlines, and what do you do instead?
+  - A dialog opens and Tab keeps moving through the page behind it. What is happening?
+  - Where should focus go after the user deletes a row from a table?
+  - How is keyboard navigation in a single-page application different?
+  - When should arrow keys navigate rather than Tab?
+- **[Accessible Forms and Error Messaging](#ch-accessible-forms)**
+  - A form uses placeholders instead of labels. What do you tell the designer?
+  - How do you report a validation error accessibly?
+  - When should validation run?
+  - Why are `autocomplete` attributes an accessibility concern rather than a convenience?
+  - What did WCAG 2.2 change about login forms?
+- **[Testing Accessibility](#ch-testing-accessibility)**
+  - How do you test accessibility?
+  - What can automated tooling not catch?
+  - How would you introduce accessibility gates into a large legacy codebase?
+  - Which screen reader would you test with, and how much does the choice matter?
+  - A pull request adds a component with no accessibility tests. What do you ask for?
+- **[Internationalisation Fundamentals](#ch-i18n-fundamentals)**
+  - What is the difference between i18n and l10n, and which is your job?
+  - Why can you not build a sentence by concatenating translated fragments?
+  - Where do you keep the current locale, and why?
+  - When would you not add an i18n library?
+- **[Pluralisation](#ch-pluralization)**
+  - Why is `count === 1 ? 'item' : 'items'` wrong?
+  - What are the CLDR plural categories, and how do you know which a locale uses?
+  - When would you reach for ICU MessageFormat over suffix keys?
+  - How do you handle zero?
+- **[Date and Number Formatting](#ch-date-number-formatting)**
+  - Why use `Intl` rather than a formatting library?
+  - How would you display a price to users in several countries?
+  - What goes wrong with time zones in a web application?
+  - When would you not format on the client?
+- **[Right-to-Left Support](#ch-rtl-support)**
+  - How would you add RTL support to an existing React application?
+  - What are logical properties, and why not just override with a `[dir='rtl']` block?
+  - Which icons should mirror, and how do you decide?
+  - Where does RTL support cost you something you cannot avoid?
+- **[Service Workers](#ch-service-workers)**
+  - You shipped a fix an hour ago and users still report the bug. What happened?
+  - What is the difference between `skipWaiting()` and `clients.claim()`?
+  - Why is cache-first wrong for HTML but right for `/assets/app.a91f3c.js`?
+  - When would you not use a service worker at all?
+- **[Caching Strategies and Offline UX](#ch-caching-and-offline)**
+  - Walk me through the strategy you would pick for each request on a dashboard.
+  - How do you accept a form submission with no connection?
+  - Why is stale-while-revalidate not the default for everything?
+  - When would you not cache at the service worker layer at all?
+- **[Installability and Push Notifications](#ch-install-and-push)**
+  - What makes a web application installable?
+  - Why does push need a third-party push service at all?
+  - A user reports they never see the notification permission dialogue. What do you check?
+  - When would you skip push entirely?
+
+## Part III — The Modern Frontend Stack
+
+_184 questions across 46 chapters._
+
+- **[The React Mental Model](#ch-react-mental-model)**
+  - Why does this component re-render when its props have not changed?
+  - What actually goes wrong when you use the array index as a key?
+  - How would you reset a form when the selected record changes — and why not an effect?
+  - When would you not reach for `memo`?
+- **[Hooks in Depth](#ch-react-hooks-in-depth)**
+  - Why can't hooks be called conditionally?
+  - This `setInterval` increments the counter to 1 and then stops. What is wrong?
+  - When would you choose `useRef` over `useState` for a value that changes?
+  - When is extracting a custom hook the wrong call?
+- **[useEffect and When Not to Use It](#ch-when-not-to-use-effect)**
+  - How do you decide whether a piece of logic belongs in an effect or an event handler?
+  - What is wrong with storing a filtered list in state and updating it in an effect?
+  - Your effect fires twice in development. Is that a bug?
+  - When is fetching in `useEffect` still the right answer?
+- **[Component Composition Patterns](#ch-react-composition-patterns)**
+  - A designer asks for a fifth variant of your Card. When is another prop the wrong answer?
+  - Compound components or a props object — how do you choose?
+  - Are render props obsolete?
+  - Why is an unmemoised context value a problem, and when does it stop being one?
+- **[Server Components and Client Components](#ch-server-components-vs-client-components)**
+  - Why can't you pass a function as a prop from a Server Component to a Client Component?
+  - A colleague says Client Components cannot render Server Components. Are they right?
+  - Where do you put the `'use client'` boundary, and what happens if you get it wrong?
+  - When is a Server Component the wrong choice?
+- **[Suspense and Streaming](#ch-suspense-and-streaming)**
+  - What does adding a Suspense boundary actually do to the response?
+  - How would you debug a hydration mismatch?
+  - Suspense or a transition for a search filter?
+  - Is there such a thing as too many boundaries?
+- **[Transitions and Concurrency](#ch-transitions-and-concurrency)**
+  - What problem do transitions actually solve?
+  - `useTransition` or `useDeferredValue`?
+  - Why must the expensive child be memoised for `useDeferredValue` to help?
+  - The list still feels slow after adding a transition. What now?
+- **[Actions and Forms](#ch-react-actions-and-forms)**
+  - What does React 19 give you that `onSubmit` plus `fetch` did not?
+  - How would you build a submit button for a design system that knows when it is submitting?
+  - What stops a user calling your Server Function directly with arbitrary arguments?
+  - When is an optimistic update the wrong choice?
+- **[Performance and the React Compiler](#ch-react-performance-and-the-compiler)**
+  - What does the React Compiler actually do, and what do you stop writing because of it?
+  - You enable the compiler and one component is still re-rendering constantly. Where do you look?
+  - A page takes four seconds to become interactive. Where do you start?
+  - When would you still write `useMemo` by hand?
+- **[Error Boundaries and Resilience](#ch-react-error-boundaries)**
+  - What does an error boundary catch, and what does it miss?
+  - Where do you place boundaries in a dashboard with a dozen independent widgets?
+  - Why does the error boundary go outside the Suspense boundary rather than inside?
+  - When is an error boundary the wrong tool?
+- **[React and TypeScript at Scale](#ch-react-typescript-at-scale)**
+  - Why model async state as a union rather than `loading`, `data` and `error` fields?
+  - What does typing `useReducer` actions as a discriminated union buy you?
+  - Why default a context to `undefined` rather than casting an empty object?
+  - Does TypeScript stop you passing a function to a Client Component from a Server Component?
+- **[Testing React](#ch-testing-react)**
+  - Why does Testing Library push you towards `getByRole` rather than a test id?
+  - How do you test an async Server Component?
+  - A test fails with "an update was not wrapped in act". What is actually wrong?
+  - When is a component test the wrong tool?
+- **[App Router Mental Model](#ch-app-router-mental-model)**
+  - What is the difference between `layout.tsx` and `template.tsx`?
+  - How do you build a modal that is also a shareable URL?
+  - A sidebar refetches its data on every navigation. What is wrong?
+  - When would you not use a route group?
+- **[Data Fetching and Caching](#ch-nextjs-data-and-caching)**
+  - Why can you not read `cookies()` inside a `use cache` function?
+  - `revalidateTag` or `updateTag`?
+  - A page is stale. How do you work out where?
+  - When is a Route Handler the right place for a read, rather than a Server Component?
+- **[Server Actions](#ch-server-actions)**
+  - What stops a user calling a Server Action directly?
+  - Every export in your actions file is reachable. What follows from that?
+  - A Server Action closes over a value from the page it was rendered in. Can you trust it?
+  - When would you write a Route Handler instead?
+- **[Rendering in Next.js](#ch-rendering-in-nextjs)**
+  - What problem does Partial Prerendering solve?
+  - How do you decide where the Suspense boundaries go?
+  - A route you expected to be prerendered is marked fully dynamic in the build output. What do you look for?
+  - When is a fully dynamic route the right answer?
+- **[Middleware and the Edge](#ch-nextjs-middleware-and-the-edge)**
+  - Why is checking authentication in middleware not enough?
+  - What does the `matcher` actually change?
+  - When is the edge runtime the wrong choice?
+  - How would you serve different pricing pages by country without giving up prerendering?
+- **[Images, Fonts, and Assets](#ch-nextjs-assets)**
+  - How does `next/image` reduce Cumulative Layout Shift?
+  - What does the `sizes` prop actually do, and what happens without it?
+  - Why does `next/font` self-host rather than link to Google Fonts?
+  - When would you turn Next.js image optimisation off?
+- **[Auth Patterns](#ch-nextjs-auth-patterns)**
+  - Where do you put the authentication check in an App Router application, and why not middleware?
+  - Session or JWT for a new internal dashboard?
+  - Why is `httpOnly` the important flag, rather than `secure` or `sameSite`?
+  - A layout checks the session and redirects. Is the page underneath protected?
+- **[Route Handlers and the BFF](#ch-route-handlers-and-the-bff)**
+  - When should a Next.js application expose a Route Handler at all?
+  - What is a backend-for-frontend, and what does it cost?
+  - Route Handler or Server Action for a form submission?
+  - When is Next.js the wrong place for backend work?
+- **[Deployment and Runtime](#ch-nextjs-deployment-and-runtime)**
+  - What changes when you move a Next.js application off a managed platform?
+  - Why does incremental regeneration go wrong behind a load balancer?
+  - What is the difference between a `NEXT_PUBLIC_` variable and a normal one?
+  - How would you deploy the same build to three environments?
+- **[Migrating Pages to App Router](#ch-migrating-to-the-app-router)**
+  - How would you migrate a large Pages Router application that ships weekly?
+  - What actually breaks during the migration?
+  - Why does the order of routes matter?
+  - When would you advise against migrating?
+- **[Svelte 5 and the Runes Model](#ch-svelte-runes)**
+  - What is a rune, and why does it not need a dependency array?
+  - When would you choose `$state.raw` over `$state`?
+  - Why is `$effect` the wrong tool for computing a value?
+  - How do you share reactive state between routes without a store?
+- **[Reactivity Compared](#ch-reactivity-compared)**
+  - Signals or a virtual DOM — what is the tradeoff?
+  - Why has React not adopted signals?
+  - Is a Svelte bundle always smaller?
+  - How would you choose between them for a new product?
+- **[Components and Snippets](#ch-svelte-snippets)**
+  - How do you pass markup into a Svelte 5 component?
+  - When is something a snippet rather than a component?
+  - How would you build a table component that lets the caller render each row?
+  - What does `Snippet<[T]>` mean, and why is the parameter a tuple?
+- **[SvelteKit Routing and Loading](#ch-sveltekit-routing-and-loading)**
+  - What decides whether data loading happens in `+page.ts` or `+page.server.ts`?
+  - How does streaming work in a SvelteKit load, and what is the tradeoff?
+  - A page is slow because a layout load queries the session. What do you look at?
+  - How do you re-run one load after a mutation, without reloading everything?
+- **[SvelteKit Form Actions](#ch-sveltekit-form-actions)**
+  - How does a SvelteKit form behave before hydration?
+  - What is the difference between `fail` and throwing an error in an action?
+  - What does `use:enhance` do if you pass it a callback?
+  - What stops someone posting directly to your form action?
+- **[Adapters and Deployment](#ch-sveltekit-adapters-and-deployment)**
+  - What does a SvelteKit adapter actually decide?
+  - A route is marked prerenderable and the build fails saying it was never prerendered. Why?
+  - When is `ssr = false` the right call?
+  - How do you build once and deploy the same artefact to staging and production?
+- **[The Rendering Spectrum](#ch-rendering-spectrum)**
+  - What is the difference between SSR and SSG in terms of what the server does?
+  - A page uses ISR with a 60-second revalidation. A user reports seeing data that is five minutes old. Is this a bug?
+  - When is client-side rendering the right answer in 2026?
+  - Why would you not use Partial Prerendering everywhere?
+- **[Hydration and Its Costs](#ch-hydration-and-its-costs)**
+  - The page paints in 800 ms but does not respond to clicks for another two seconds. What is happening?
+  - How does resumability differ from progressive hydration?
+  - When are islands the wrong architecture?
+  - Why does a hydration mismatch cost more than a console warning?
+- **[Streaming HTML](#ch-streaming-html)**
+  - Your TTFB is 1.8 seconds on a server-rendered page. What do you do?
+  - Can streaming make a page worse?
+  - Why can't a streamed response redirect when authentication fails halfway through?
+  - How would you prove that streaming is actually happening in production?
+- **[Choosing Per Route, Not Per App](#ch-choosing-per-route)**
+  - Walk me through how you would pick a rendering strategy for an e-commerce site.
+  - A page is declared static but the platform reports it as dynamic on every request. Where do you look?
+  - When would you deliberately choose client-side rendering in 2026?
+  - What is the risk of mixing rendering strategies within one application?
+- **[SEO and Rendering](#ch-seo-and-rendering)**
+  - Is client-side rendering bad for SEO?
+  - A product page ranks, but its social preview card is blank. What is wrong?
+  - What is a soft 404 and how does a rendering choice cause one?
+  - You have a streaming route and the metadata depends on a slow query. What do you do?
+- **[Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering)**
+  - When is the edge the wrong place to render?
+  - Cold starts used to be the argument for edge runtimes. Is that still true?
+  - Where would you do authentication in a globally distributed application?
+  - A route is server-rendered at origin and slow for European users. What are the options, in order?
+- **[The Four Kinds of State](#ch-four-kinds-of-state)**
+  - How do you decide where a piece of state should live?
+  - What is actually wrong with putting API data in Redux or Zustand?
+  - Which state belongs in the URL, and how do you decide?
+  - Is the four-category model still useful when the framework fetches on the server?
+- **[Server State with TanStack Query](#ch-server-state)**
+  - What is the difference between `staleTime` and `gcTime`?
+  - How do you structure query keys in a large application?
+  - Walk me through an optimistic update.
+  - With server components fetching data, do you still need a client query cache?
+- **[Client State](#ch-client-state)**
+  - When would you use Context instead of a state library?
+  - A component re-renders whenever any part of a global store changes. What is wrong?
+  - Zustand or Jotai?
+  - Is Redux dead?
+- **[Form State](#ch-form-state)**
+  - Why are uncontrolled inputs the default in modern form libraries?
+  - Where does validation belong when the server also validates?
+  - How do you decide when to show a validation error?
+  - A user is halfway through editing a record and a background refetch returns new server data. What do you do?
+- **[URL as State](#ch-url-as-state)**
+  - Which state belongs in the URL?
+  - How do you stop a search box from destroying the back button?
+  - What breaks when the same value lives in both the URL and a store?
+  - What is the cost of reading search params on the server?
+- **[Signals and the Next Model](#ch-signals-and-the-next-model)**
+  - What is a signal, in terms of things a React developer already uses?
+  - What is a glitch, and why does it matter?
+  - Do signals replace TanStack Query?
+  - Why hasn't React adopted signals?
+- **[Modules and Bundling](#ch-modules-and-bundling)**
+  - What does a bundler actually do?
+  - A single import added 300 KB to the bundle. How do you find out why?
+  - Why did tree shaking only become practical with ES modules?
+  - How would you decide where to split chunks?
+- **[Vite and the Dev Loop](#ch-vite-and-the-dev-loop)**
+  - Why does the Vite dev server start instantly on a large application?
+  - What is dependency pre-bundling for?
+  - Why does saving one file sometimes reload the whole page?
+  - Something works in development and breaks in the production build. Where do you start?
+- **[Turbopack, Rspack and Rolldown](#ch-rust-bundlers)**
+  - Why were the bundlers rewritten in Rust rather than optimised?
+  - How would you choose between Turbopack, Rspack and Rolldown?
+  - Your production build succeeds but the application crashes on a type error. How is that possible?
+  - Your team wants to migrate off Webpack for build speed. What do you ask first?
+- **[Monorepos](#ch-monorepos)**
+  - What does a task graph buy you that workspaces alone do not?
+  - How is a task's cache key computed, and what breaks it?
+  - A staging deployment came out with production configuration. How does a build cache cause that?
+  - When is a monorepo the wrong choice?
+- **[Type-Checking and Linting at Scale](#ch-type-checking-and-linting)**
+  - Why can't type-checking be parallelised the way linting is?
+  - How do project references speed up a large TypeScript codebase?
+  - Linting takes eight minutes in continuous integration. What do you look at first?
+  - What should block a merge, and what should not?
+- **[Package Management](#ch-package-management)**
+  - What does a lockfile actually guarantee?
+  - What is a phantom dependency and why does pnpm prevent it?
+  - How would you reduce supply-chain risk in a frontend codebase?
+  - Should you switch a project from npm to pnpm?
+
+## Part IV — Frontend at Scale
+
+_81 questions across 23 chapters._
+
+- **[Frontend Architecture Patterns](#ch-frontend-architecture-patterns)**
+  - How would you structure a frontend that forty engineers work in?
+  - Where do you put business logic in a React app, and why not in the component?
+  - When would you *not* introduce a layered architecture?
+  - A change to one API response shape touched nine files. What went wrong?
+- **[Micro-Frontends](#ch-micro-frontends)**
+  - When would you turn down micro-frontends?
+  - Why must React be a singleton across remotes, and what breaks if it is not?
+  - A remote is down in production. What does the user see?
+  - How do two micro-frontends share the current user?
+- **[Design Systems at Scale](#ch-design-systems-at-scale)**
+  - How would you introduce a design system into forty teams that all have their own components?
+  - You need to rename a prop on your most-used component. How do you ship it?
+  - When is a design system the wrong investment?
+- **[Dependencies and Upgrades](#ch-dependencies-and-upgrades)**
+  - A team says they cannot upgrade React because "too much would break". How do you find out whether that is true?
+  - Would you automerge dependency updates?
+  - When is forking a dependency the right call?
+  - How would you stop this problem coming back?
+- **[Reviewing AI-Generated Code](#ch-reviewing-ai-generated-code)**
+  - What do you look for in a pull request that was mostly written by an assistant?
+  - A team's velocity is up and their defect rate is up with it. What do you change?
+  - When would you not slow down for extra review of generated code?
+- **[Core Web Vitals](#ch-core-web-vitals)**
+  - What replaced FID, and what does it measure differently?
+  - A page has an LCP of 4.2 seconds. Walk me through your first hour.
+  - Why can Lighthouse not tell you your INP?
+  - Your CLS is 0.3 and you have set width and height on every image. Where else do you look?
+- **[Loading and Code Splitting](#ch-loading-and-code-splitting)**
+  - Does code splitting not just move the delay to the click?
+  - When is a component not worth splitting?
+- **[Bundles, Budgets and Third Parties](#ch-bundle-optimisation)**
+  - You import one function from a library and the bundle grows by 70 kB. What happened?
+  - How do you stop bundle size regressing over a year?
+  - A page has a 2 MB JavaScript payload and half of it is third-party. How do you approach it?
+- **[Frontend Caching Strategies](#ch-frontend-caching-strategies)**
+  - How would you set cache headers for a single-page application?
+  - What is the difference between `no-cache` and `no-store`?
+  - When is an `ETag` not worth adding?
+  - A user reports the app is stuck on an old version and a normal reload does not help. What is your first hypothesis?
+- **[Asset Delivery](#ch-asset-delivery)**
+  - Why is a late-arriving font a Core Web Vitals problem rather than a cosmetic one?
+  - When would you use `<picture>` instead of `srcset`?
+  - Why is CSS render-blocking, and what do you do about it?
+- **[Rendering and Streaming](#ch-rendering-and-streaming)**
+  - A dashboard has a poor INP. Where do you start?
+  - Debounce or throttle for a scroll-linked progress bar?
+  - Does server-side rendering fix responsiveness?
+  - When would you not virtualise a long list?
+- **[Measuring in Production](#ch-measuring-in-production)**
+  - Lighthouse gives the site 95 and users say it is slow. Who is right?
+  - What do you need on an error report before it is worth triaging?
+  - What is the privacy exposure here, and what do you do about it?
+- **[XSS Prevention](#ch-xss-prevention)**
+  - Encoding vs. sanitisation — when do you use each?
+  - How does React prevent XSS, and where does it fall short?
+  - What is DOM-based XSS and why is it harder to catch?
+  - Does CSP replace output encoding?
+- **[Content Security Policy](#ch-content-security-policy)**
+  - Why is `'unsafe-inline'` dangerous in `script-src`?
+  - What is `'strict-dynamic'` and why use it?
+  - CSP vs. CORS — what's the difference?
+  - How do you deploy a strict CSP without breaking production?
+- **[Security Headers](#ch-security-headers)**
+  - How does HSTS work, and what's the risk?
+  - Why is `X-XSS-Protection` no longer recommended?
+  - `X-Frame-Options` vs. CSP `frame-ancestors`?
+  - Why bother with `Permissions-Policy`?
+- **[Client-Side Input Handling](#ch-client-side-input-handling)**
+  - If client-side validation gives no security, why write it at all?
+  - A colleague adds a `postMessage` listener for an analytics widget. What do you check in review?
+  - What is an open redirect and why does it matter if the destination is the attacker's own site?
+  - When would you accept a file upload check in the browser as sufficient?
+- **[Testing Strategy](#ch-testing-strategy)**
+  - How do you decide whether something gets a unit test or an integration test?
+  - Your suite takes 25 minutes and people are merging without it. What do you do?
+  - Is 100% coverage worth aiming for?
+  - When would you not write a test?
+- **[Vitest](#ch-vitest)**
+  - Why would you pick Vitest over Jest for a new project?
+  - A test passes on its own and fails in the suite. Where do you look?
+  - When is a module mock the wrong tool?
+- **[React Testing Library](#ch-react-testing-library)**
+  - Why does Testing Library refuse to give you access to component state?
+  - When is `getByTestId` acceptable?
+  - How do you test a custom hook?
+- **[Frontend Integration Testing](#ch-frontend-integration-testing)**
+  - Why intercept requests instead of mocking the API module?
+  - What does an integration test catch that a unit test cannot?
+  - What can this layer not tell you?
+  - How do you test a loading state without making the suite slow?
+- **[End-to-End Testing with Playwright](#ch-end-to-end-testing)**
+  - How do you decide what deserves an end-to-end test?
+  - A component test needs to check that a sticky header stays visible on scroll. Where does it go?
+  - Your E2E suite fails about once a week for no clear reason. How do you approach it?
+- **[Test-Driven Development](#ch-test-driven-development)**
+  - Walk me through the cycle, and say what each step is actually for.
+  - Does TDD slow you down?
+  - When would you refuse to use it?
+  - What does BDD change?
+- **[Visual and Contract Testing](#ch-visual-and-contract-testing)**
+  - What does visual regression catch that a snapshot test does not?
+  - Your integration tests all pass and production is broken because the API renamed a field. What was missing?
+  - Why is mutation testing a better signal than coverage?
+
+## Part V — Backend for Frontend Engineers
+
+_88 questions across 27 chapters._
+
+- **[The Event Loop and Async Node](#ch-event-loop-async)**
+  - Node is single-threaded, so how does it handle 10,000 concurrent connections?
+  - What logs first — `setTimeout(fn, 0)` or `setImmediate(fn)`?
+  - `process.nextTick` or `Promise.resolve().then` — does the difference matter?
+- **[Streams and Buffers](#ch-streams-buffers)**
+  - What is backpressure and what happens if you ignore it?
+  - Why is `pipeline` preferred over `pipe`?
+  - A stream of JSON lines occasionally throws "Unexpected end of JSON input". Why?
+- **[The Module System](#ch-module-system)**
+  - Why can ESM be tree-shaken and CommonJS cannot?
+  - A colleague sees `undefined` for a function imported from a circular CommonJS dependency. What happened?
+  - When would you keep a service on CommonJS in 2027?
+- **[Error Handling in Node](#ch-nodejs-error-handling)**
+  - Should you keep the process alive after an `uncaughtException`?
+  - How do you stop one error handler from leaking internals?
+  - Why add jitter to retry backoff?
+- **[Node.js Performance and Scaling](#ch-nodejs-performance)**
+  - A service's p99 is 3 s while p50 is 30 ms. Where do you look?
+  - Worker threads or more processes — how do you choose?
+  - What breaks when you turn on clustering in an app that worked fine as one process?
+- **[Express](#ch-express)**
+  - An async Express handler throws and the client hangs. What happened?
+  - How do you make sure every error response has the same shape?
+  - Where would you put authentication?
+  - When would you not use Express?
+- **[NestJS](#ch-nestjs)**
+  - What does dependency injection actually give you that importing a module does not?
+  - A guard needs to check that the user owns the order in the request body. Is that fine?
+  - When is NestJS the wrong choice?
+  - What is the cost of the abstraction?
+- **[Edge Runtimes and Hono](#ch-edge-runtimes)**
+  - Why can't you use `pg` in a Cloudflare Worker?
+  - You move an API route to the edge and it gets slower. Why?
+  - What actually makes an isolate's cold start so much cheaper than a container's?
+  - When would you keep a service on Node instead?
+- **[REST API Best Practices](#ch-rest-best-practices)**
+  - `PUT` or `PATCH`?
+  - Which methods are idempotent, and why does it matter?
+  - How do you paginate ten million rows?
+- **[GraphQL](#ch-graphql)**
+  - What is the N+1 problem in GraphQL and why is it structural?
+  - A DataLoader is returning the wrong user's data. What went wrong?
+  - How do you rate limit GraphQL?
+- **[API Versioning and Contracts](#ch-versioning)**
+  - How do you add a required field to a request without breaking clients?
+  - Path, header or query versioning?
+  - How do you know a version is safe to delete?
+- **[Rate Limiting](#ch-rate-limiting)**
+  - What is wrong with fixed window?
+  - How do you count correctly across many servers?
+  - What do you key on, and why is IP a poor choice?
+  - When would you not rate limit an endpoint?
+- **[Real-Time and Streaming APIs](#ch-realtime-streaming)**
+  - Do you validate WebSocket messages?
+  - How do you authenticate a socket, and what goes wrong?
+  - How do you make a broadcast reach every client across ten pods?
+  - When would you not build a socket server at all?
+- **[tRPC and Typed APIs](#ch-trpc)**
+  - What does tRPC give you that a generated OpenAPI client does not?
+  - Is a tRPC API type-safe in production?
+  - Would you use tRPC for a mobile app's backend?
+  - How do you make a breaking change to a tRPC procedure?
+- **[SQL Fundamentals](#ch-sql-fundamentals)**
+  - What is the difference between `WHERE` and `HAVING`?
+  - A `LEFT JOIN` is returning only matched rows. Why?
+  - How do you get the top three rows per group?
+  - When is a CTE the wrong choice?
+- **[Database Design](#ch-database-design)**
+  - When would you denormalise?
+  - Surrogate or natural primary key?
+  - How do you prevent two overlapping bookings for the same room?
+- **[Indexes and Query Plans](#ch-indexes)**
+  - You have an index on `(user_id, status, created_at)`. Which queries use it?
+  - A query has an index and is still slow. What do you check?
+  - Why can adding an index make the system slower?
+- **[Transactions and Concurrency](#ch-sql-transactions)**
+  - What is a lost update, and does the default isolation level prevent it?
+  - Optimistic or pessimistic locking?
+  - How do you prevent deadlocks?
+- **[ORMs and Migrations](#ch-orms)**
+  - When do you drop out of the ORM into raw SQL?
+  - How do you rename a column with zero downtime?
+  - Why is `ALTER TABLE ADD COLUMN … NOT NULL DEFAULT` dangerous?
+- **[Document Databases](#ch-document-databases)**
+  - When would you choose MongoDB over Postgres?
+  - How do you decide whether to embed or reference?
+  - Are MongoDB writes atomic?
+- **[Redis](#ch-redis)**
+  - Redis is single-threaded — how is it fast, and what is the risk?
+  - Pub/Sub or Streams?
+  - How do you cap Redis memory safely?
+- **[Credentials, Sessions and Tokens](#ch-credentials-and-sessions)**
+  - Sessions or JWTs?
+  - How do you revoke a JWT?
+- **[OAuth 2.1 and OpenID Connect](#ch-oauth)**
+  - Walk me through the authorisation code flow.
+  - What does PKCE add, and why does a confidential client need it too?
+  - What is `state` for, and is it the same as PKCE?
+- **[Authorisation](#ch-authorisation)**
+  - What is broken object-level authorisation, and how do you prevent it structurally?
+  - RBAC or ABAC?
+  - 403 or 404 for a resource the user may not see?
+- **[CORS and CSRF](#ch-cors-csrf)**
+  - Does CORS protect your API?
+  - Why is reflecting the `Origin` header a vulnerability?
+  - `SameSite=Lax` is set. Do you still need CSRF tokens?
+- **[Input Validation and Injection](#ch-backend-input-validation)**
+  - Why is parameterisation safer than escaping?
+  - An endpoint is parameterised and still injectable. How?
+  - How does NoSQL injection work if there is no SQL string?
+  - Is validation enough on its own?
+- **[Testing a Node Service](#ch-testing-node-services)**
+  - What do you not unit test in a service?
+  - Dependency injection or `vi.mock`?
+  - How do you keep an integration suite isolated and still fast?
+
+## Part VI — System Design
+
+_98 questions across 29 chapters._
+
+- **[Driving the Design Round](#ch-driving-the-round)**
+  - You have 45 minutes and the prompt is "design Instagram". What are the first five minutes?
+  - The interviewer says "assume whatever you like" for the scale. What do you do?
+  - When would you not follow RADIO in order?
+- **[Back-of-Envelope Estimation](#ch-back-of-envelope-estimation)**
+  - How much storage does a photo-sharing service need after five years?
+  - Why round 86,400 to 100,000?
+  - Your estimate says the whole dataset fits in RAM on one server. Is that the design?
+- **[Scalability](#ch-scalability)**
+  - Vertical or horizontal scaling — how do you choose?
+  - What has to be true before you can scale out?
+  - Your auto-scaling group keeps adding and removing instances every few minutes. What is wrong?
+- **[Reliability and Availability](#ch-reliability-and-availability)**
+  - Your service calls four dependencies, each 99.9% available. What is your ceiling?
+  - What is the difference between high availability and disaster recovery?
+  - How do you decide an SLO?
+- **[Latency and Throughput](#ch-latency-and-throughput)**
+  - p50 is 40 ms and p99 is 3 seconds. Where do you look?
+  - How do you cut latency for users on the other side of the world?
+  - When would you accept worse latency on purpose?
+- **[Consistency and CAP](#ch-consistency-and-cap)**
+  - Your system is eventually consistent and a user says their profile edit "did not save". What do you do?
+  - When is eventual consistency unacceptable?
+  - Explain the difference between CP and "slow".
+- **[Load Balancing](#ch-load-balancing)**
+  - Layer 4 or layer 7 for an HTTP API, and why?
+  - Your health check hits the database. What is wrong with that?
+  - When would you not put a load balancer in front of a service?
+- **[Caching](#ch-caching)**
+  - Which caching pattern would you start with, and why?
+  - How do you decide the TTL?
+  - A hot key expires and the database falls over. What happened, and what do you do?
+  - When is caching the wrong answer?
+- **[Content Delivery Network](#ch-cdn)**
+  - Why is a CDN a scaling tool and not just a performance one?
+  - After a deploy, users still get the old JavaScript. What went wrong?
+  - What is origin shielding and when do you need it?
+  - When is a CDN the wrong answer?
+- **[Queues and Asynchronous Work](#ch-message-queues)**
+  - Your consumer processes the same message twice. Whose bug is it?
+  - When would you pick Kafka over SQS?
+  - When is a queue the wrong answer to a slow endpoint?
+- **[Search](#ch-search)**
+  - When do you introduce a search engine instead of using the database?
+  - How do you keep the search index consistent with the database?
+  - Search latency is fine on average and terrible at p99. Why?
+- **[Real-Time Communication](#ch-realtime-communication)**
+  - WebSocket or SSE?
+  - How does a WebSocket differ from HTTP, and why does it matter architecturally?
+  - How do you scale real-time connections across many servers?
+  - Roughly how many connections fit on one node, and what runs out first?
+- **[The API Gateway Pattern](#ch-api-gateway-pattern)**
+  - What is the difference between an API gateway and a load balancer?
+  - What should never go in the gateway?
+  - When would you introduce a BFF rather than one shared gateway?
+  - The gateway is now a single point of failure. What do you do about it?
+- **[Service Boundaries](#ch-service-boundaries)**
+  - How do you decide where to split a monolith?
+  - Two services need to update atomically. What do you do?
+  - When are microservices the wrong answer?
+- **[Resilience Patterns](#ch-resilience-patterns)**
+  - A downstream service starts taking 30 seconds instead of 200 ms. What happens to your service?
+  - How do you choose retry settings?
+  - When would you not add a circuit breaker?
+- **[Choosing a Datastore](#ch-choosing-a-datastore)**
+  - SQL or NoSQL for this system — how do you answer without hedging?
+  - What do you actually lose by moving from PostgreSQL to DynamoDB?
+  - When is denormalisation worth it?
+- **[Replication](#ch-replication)**
+  - Your primary dies. What is lost?
+  - A user reports that their profile update "did not save". Diagnose it.
+  - When would you accept multi-leader replication?
+- **[Sharding](#ch-sharding)**
+  - When do you shard, and what would you do instead?
+  - What makes a good shard key?
+  - Why is consistent hashing better than hashing modulo the shard count?
+  - A single customer generates 30% of your traffic. What happens and what do you do?
+- **[Transactions at Scale](#ch-database-transactions)**
+  - Two users buy the last item at the same time. How do you stop overselling?
+  - What isolation level would you choose, and why not serializable?
+  - Optimistic or pessimistic locking?
+- **[Frontend System Design Strategy](#ch-frontend-system-design-strategy)**
+  - You have sixty minutes and the prompt is "design Google Docs". What happens in the first ten?
+  - Where does state go, and how do you decide?
+  - The interviewer says "we do not care about SEO here". What changes?
+  - When would you argue against the design you have just drawn?
+- **[Frontend Real-Time Features](#ch-frontend-real-time-features)**
+  - A client reconnects after 30 seconds offline. How does it catch up?
+  - Why does reconnection need jitter?
+  - What does the UI owe the user when the connection drops?
+  - How do you keep a live feed from degrading the page?
+  - When would you not use a socket in the client at all?
+- **[Offline-First Architecture](#ch-offline-first-architecture)**
+  - A user creates three records offline, then comes back online. Walk me through what happens.
+  - Why does the idempotency key have to be generated on the client?
+  - When would you refuse to build offline-first?
+  - Last-write-wins is simple. What is wrong with it?
+- **[SEO and Analytics](#ch-seo-and-analytics)**
+  - The marketing team says the catalogue is not ranking. Where do you look first?
+  - Why is client-side rendering a problem for SEO if crawlers execute JavaScript?
+  - Design the analytics for a checkout flow.
+  - A third of your users decline consent. How do you still measure anything?
+- **[Frontend Authentication](#ch-frontend-authentication)**
+  - Where do you store the token, and why not `localStorage`?
+  - Eight requests get a 401 at the same moment. What happens?
+  - The client hides the delete button for non-admins. Is that authorisation?
+  - When would you not use tokens at all?
+- **[Design a URL Shortener](#ch-design-url-shortener)**
+  - How do you generate short codes at 1,000 writes a second without collisions?
+  - The cache is cold after a deploy and the store falls over. What went wrong?
+  - Would you shard this database, and on what?
+- **[Design Ticketmaster](#ch-design-ticketmaster)**
+  - Two users click the same seat at the same millisecond. What happens?
+  - The payment succeeds but the confirmation write fails. What state is the user in?
+  - When would you deliberately allow overselling?
+- **[Design a Collaborative Document Editor](#ch-design-collaborative-editor)**
+  - Two people insert a character at the same position at the same moment. What decides the order?
+  - When would you not use a CRDT?
+  - A client has been offline for a week and reconnects. What happens?
+- **[Design an Infinite Feed](#ch-design-infinite-feed)**
+  - Users say posts appear twice as they scroll. What is happening?
+  - The list is virtualised and still janky on Android. Where do you look?
+  - When would you not build infinite scroll at all?
+- **[Design a Live Dashboard](#ch-design-live-dashboard)**
+  - Why one connection rather than one per widget?
+  - The backend emits 2,000 events a second. How do you keep the UI at 60 fps?
+  - When is dropping updates the wrong call?
+
+## Part VII — AI Engineering
+
+_155 questions across 32 chapters._
+
+- **[How LLMs Behave](#ch-how-llms-behave)**
+  - Why does the same prompt give a different answer each time, and how do you test something like that?
+  - A conversation gets slower and more expensive the longer it runs. Why?
+  - Your summariser returns half a sentence. Where do you look?
+  - When does non-determinism actually matter, and when is it fine?
+- **[Choosing a Model](#ch-choosing-a-model)**
+  - How would you decide between a frontier model and a cheaper one for a feature?
+  - Where would you not use a small model?
+  - Your AI feature costs four times the forecast. What do you change first?
+  - A provider ships a new version behind the same model name. What is your process?
+- **[Prompting as Engineering](#ch-prompting-as-engineering)**
+  - What separates a prompt in a chat window from a prompt in production?
+  - Why put instructions in the system prompt rather than the user message?
+  - When does few-shot stop helping?
+  - How do you change a prompt without breaking cases that currently work?
+  - A colleague wants to fix a hallucination by adding "do not hallucinate" to the prompt. Your view?
+- **[Embeddings and Similarity](#ch-embeddings-and-similarity)**
+  - What does a cosine similarity of 0.82 tell you?
+  - When would keyword search beat embeddings?
+  - You swapped the embedding model and recall dropped. Why?
+  - Where do embeddings fit outside search?
+- **[Context Engineering](#ch-context-engineering)**
+  - What is context engineering, and how is it different from prompt engineering?
+  - Your cost per request doubled with no traffic change and no deploy. Where do you look?
+  - A conversation is about to exceed the window. What do you do?
+  - Does a million-token window mean retrieval quality stops mattering?
+  - How do you count tokens reliably before sending a request?
+- **[Calling an LLM from TypeScript](#ch-calling-an-llm-from-typescript)**
+  - What is the first thing you add to a naive `await callModel(prompt)` before shipping it?
+  - The provider returns 200 and the user sees a half-finished sentence. What happened?
+  - Would you use a provider SDK or a unified one?
+  - How do you rate-limit an AI endpoint differently from a normal one?
+  - Where do you put the API key, and what else does that endpoint need?
+- **[Streaming Responses](#ch-streaming-responses)**
+  - Why stream when the total time is the same?
+  - SSE or WebSocket for a chat feature?
+  - A user closes the tab mid-answer. What happens, and what should happen?
+  - Streaming works locally and hangs in production. Where do you look?
+  - When would you not stream?
+- **[Structured Output](#ch-structured-output)**
+  - How do you get reliable JSON out of a model?
+  - The schema validates but the data is wrong. What does that tell you?
+  - When validation fails, do you retry?
+  - Does the shape of the schema change the quality of the output?
+  - How would you extract fields from a document where some are genuinely absent?
+- **[Tool Calling](#ch-tool-calling)**
+  - Walk through what happens when a model calls a tool.
+  - Your agent is looping on the same tool. What do you check first?
+  - How do you stop a tool-calling feature from deleting production data?
+  - When would you not use tool calling?
+  - Can tool calls run in parallel?
+- **[MCP (Model Context Protocol)](#ch-model-context-protocol)**
+  - What problem does MCP actually solve?
+  - Would you build an MCP server for your team's internal API?
+  - What is the security risk in connecting to a third-party MCP server?
+  - How do tools and resources differ, and why does it matter?
+  - A tool call through an MCP server fails. Where do you look?
+- **[Multi-Provider Architecture](#ch-multi-provider-architecture)**
+  - How would you make an AI feature survive a provider outage?
+  - Is a unified SDK enough to make you portable?
+  - Where does multi-provider cost optimisation actually come from?
+  - What would you deliberately not abstract away?
+  - When is staying on one provider the right answer?
+- **[When RAG, When Fine-Tune, When Neither](#ch-when-rag-when-fine-tune-when-neither)**
+  - When would you fine-tune instead of using retrieval?
+  - Your company has 400 pages of internal documentation. Design the assistant.
+  - What does "neither" look like as an answer?
+  - How do permissions affect this decision?
+  - Can you use both?
+- **[Ingestion and Chunking](#ch-ingestion-and-chunking)**
+  - How big should a chunk be?
+  - Why does chunking matter more than the embedding model?
+  - What metadata would you store, and why at ingestion time?
+  - You change the embedding model. What happens to the existing index?
+  - How do you keep the index in step with the source documents?
+- **[Retrieval](#ch-retrieval)**
+  - Vector, keyword, or both?
+  - What does a reranker do that the retriever cannot?
+  - The assistant gives a wrong answer. What do you check first?
+  - How do you handle a follow-up question like "what about the other one?"
+  - How do you scope retrieval to what a user is allowed to see?
+- **[Vector Stores](#ch-vector-stores)**
+  - pgvector or a dedicated vector database?
+  - What does an approximate index give up?
+  - HNSW or IVFFlat?
+  - What breaks when you switch embedding models?
+  - What are the real operating costs of a separate vector store?
+- **[Evaluating Retrieval](#ch-evaluating-retrieval)**
+  - How do you know your RAG system is working?
+  - What is recall@k, and why is it the metric you start with?
+  - A user says the assistant gave a wrong answer. Walk me through the diagnosis.
+  - What is wrong with generating your golden set from the documents?
+  - How would you run this in CI without it becoming a nuisance?
+- **[What an Agent Actually Is](#ch-what-an-agent-actually-is)**
+  - Explain what an agent is to a backend engineer.
+  - When would you build a workflow instead?
+  - How do you stop an agent running away?
+  - Your agent runs to the step limit on every task. What is happening?
+  - Why does a ten-step agent cost so much more than ten single calls?
+- **[Designing the Tool Surface](#ch-designing-the-tool-surface)**
+  - How granular should an agent's tools be?
+  - What makes a good tool description?
+  - Your agent keeps calling the same tool with the same arguments. Why?
+  - How do you keep an agent from doing something destructive?
+  - Can you just expose your existing REST API as tools?
+- **[Memory and State](#ch-memory-and-state)**
+  - How does an agent "remember" anything?
+  - An agent's window fills up after ten steps. What do you do first?
+  - Your agent forgot a constraint from the first message. What went wrong?
+  - How would you build memory across sessions?
+  - What would you deliberately not store?
+- **[Durability and Long-Running Work](#ch-durability-and-long-running-work)**
+  - An agent takes forty minutes. Where does it run?
+  - How do you stop a retry from sending two emails?
+  - A tool the agent needs is down. What should happen?
+  - How do you implement human approval for a destructive step?
+  - What is different about durability here compared with any other background job?
+- **[Multi-Agent Patterns](#ch-multi-agent-patterns)**
+  - When is one agent genuinely better than three?
+  - What actually gets lost when one agent hands off to another?
+  - Is a reviewer agent a good idea?
+  - How do you debug a multi-agent system?
+  - How would you bound cost across several agents?
+- **[Evals](#ch-evals)**
+  - How do you know a prompt change made things better?
+  - When is LLM-as-judge acceptable?
+  - What goes into your golden set?
+  - How would you run this in CI without it being slow and expensive?
+  - Your eval suite passes 100%. What does that tell you?
+- **[Error Analysis Loops](#ch-error-analysis-loops)**
+  - Your assistant is "unreliable". How do you turn that into work?
+  - What do you look at in a trace?
+  - How do you decide between fixing the prompt and upgrading the model?
+  - How do you build the taxonomy?
+  - When do you stop?
+- **[Observability](#ch-observability)**
+  - What do you log for an AI feature that you would not log for a normal endpoint?
+  - Cost doubled with no deploy. Where do you look first?
+  - How do you log prompts without creating a data-protection problem?
+  - Which metrics would you put on the dashboard?
+  - A user says the answer was wrong last Tuesday. What can you tell them?
+- **[Cost Engineering](#ch-cost-engineering)**
+  - An AI feature costs four times the forecast. What do you do first?
+  - How does prompt caching work, and how do you break it?
+  - Where does most of the cost actually sit?
+  - When is a cheap-model cascade a good idea?
+  - Does streaming reduce cost?
+- **[Guardrails and Safety](#ch-guardrails-and-safety)**
+  - Where do you put guardrails, and why not in the prompt?
+  - How do you stop personal data reaching the provider?
+  - What is the risk in rendering model output in a web page?
+  - How do you keep an agent from doing damage?
+  - What is over-refusal, and why does it matter?
+- **[Prompt Injection](#ch-prompt-injection)**
+  - Explain prompt injection to a backend engineer.
+  - What is the difference between direct and indirect injection, and which worries you?
+  - What is the single most useful question to ask in a design review?
+  - How do you defend an agent that must read untrusted content?
+  - Can you not just detect and filter injection attempts?
+- **[Designing for Latency](#ch-designing-for-latency)**
+  - The model takes eight seconds. What does the user see?
+  - Which latency number do you optimise, and why?
+  - You add a reranker that improves answer quality and costs 300 ms. Is it worth it?
+  - How is optimistic UI different for AI features?
+  - What changes for a task that takes four minutes?
+- **[Generative UI](#ch-generative-ui)**
+  - What is the risk in rendering components from model output?
+  - How do you structure it safely?
+  - How do citations work without opening a hole?
+  - What do you render while a structured response is still streaming?
+  - When would you not build this?
+- **[Trust and Correctness UX](#ch-trust-and-correctness-ux)**
+  - How do you show the user the answer might be wrong?
+  - Why not show a confidence score?
+  - When would you auto-apply a generated change?
+  - What does a good citation look like?
+  - How do you avoid the interface becoming a wall of hedging?
+- **[Failure States](#ch-failure-states)**
+  - The request is rate-limited halfway through streaming. What does the user see?
+  - Which failure states does an AI feature have that a normal one does not?
+  - How should an inline suggestion feature fail?
+  - When do you retry automatically?
+  - Why design the failure states first?
+- **[AI in Interviews](#ch-ai-in-interviews)**
+  - An agent is looping in production. Walk me through it.
+  - The provider deprecates the model you are on in thirty days. What happens?
+  - When would you tell a product manager not to build an AI feature?
+
+## Part VIII — Ship and Operate
+
+_94 questions across 20 chapters._
+
+- **[Git Fundamentals](#ch-git-fundamentals)**
+  - What is the difference between `git fetch` and `git pull`?
+  - Someone force-pushed over your branch. What do you do?
+  - What do the three `git reset` modes actually change?
+  - When would you not use rebase?
+  - Why is a merge conflict not a failure?
+- **[Advanced Git](#ch-advanced-git)**
+  - How do you recover a branch you deleted by accident?
+  - Walk me through finding which commit introduced a regression.
+  - A secret was committed six months ago. What is your sequence?
+  - When would you not use interactive rebase?
+- **[Branching and Review Workflow](#ch-branching-and-review-workflow)**
+  - How would you choose a branching strategy for a new team?
+  - What is the difference between GitFlow and GitHub Flow?
+  - Squash, rebase, or merge commit — which and why?
+  - How do you keep pull requests reviewable?
+  - When would you not enforce conventional commits?
+- **[Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies)**
+  - Monorepo or polyrepo for a product with a web app, an admin app and a shared design system?
+  - What actually breaks first in a large monorepo?
+  - How do you make a breaking change to a shared library in a polyrepo?
+  - When would you not recommend a monorepo?
+- **[Docker Fundamentals](#ch-docker-fundamentals)**
+  - What is the difference between an image and a container?
+  - Why is a container not just a lightweight virtual machine?
+  - A container exited with 137. What happened, and what do you check?
+  - How do you inspect a container that crashes on startup?
+  - When would you not containerise something?
+- **[Building and Hardening Images](#ch-building-and-hardening-images)**
+  - An image takes nine minutes to build and the only change was one line of application code. What is wrong?
+  - Why can't you pass a build secret with `ARG`?
+  - What does a container actually isolate, and what does it not?
+  - Would you use a distroless base image?
+  - How would you find out whether a newly announced vulnerability affects you?
+- **[Docker Compose](#ch-docker-compose)**
+  - How does service discovery work in Compose?
+  - Your API keeps crashing on startup because the database is not ready. What do you change?
+  - What is the difference between `ports` and `expose`?
+  - When would you not use Compose?
+- **[Kubernetes Essentials](#ch-kubernetes-essentials)**
+  - Walk me through what happens when you run `kubectl apply -f deployment.yaml`.
+  - What is the difference between a liveness and a readiness probe?
+  - A pod is in `CrashLoopBackOff`. How do you debug it?
+  - Why do you still get 502s during a rolling deployment with readiness probes configured?
+- **[CI/CD Fundamentals](#ch-cicd-fundamentals)**
+  - What is the difference between Continuous Delivery and Continuous Deployment?
+  - Why should an artefact be built only once?
+  - How do you keep a CI pipeline fast without deleting tests?
+  - Is code coverage a useful quality gate?
+  - When would you not add another gate to the pipeline?
+- **[GitHub Actions](#ch-github-actions)**
+  - How do you authenticate a workflow to a cloud provider without storing credentials?
+  - What is the difference between a reusable workflow and a composite action?
+  - What is the difference between caching and artefacts?
+  - When would you use a self-hosted runner, and what does it cost you?
+- **[Pipeline Security](#ch-cicd-security)**
+  - How do you manage secrets in a CI/CD pipeline?
+  - What is the risk of `pull_request_target` and when would you use it?
+  - Where in the pipeline should each security check run?
+  - A production deployment goes bad and you suspect the pipeline. What do you need in place to investigate?
+- **[Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals)**
+  - What is the difference between monitoring and observability?
+  - What is cardinality and why does it matter?
+  - Why alert on percentiles instead of averages?
+  - Explain SLI, SLO, SLA and error budgets.
+  - You are asked to add observability to a service that has none. Where do you start, and what do you deliberately not do?
+- **[Metrics and Dashboards](#ch-metrics-and-dashboards)**
+  - Why does Prometheus pull instead of push?
+  - How do you calculate p99 latency across many instances, and what is the common mistake?
+  - A metrics server keeps getting killed for using too much memory. What is happening and what do you do?
+  - When is a dashboard the wrong tool?
+- **[Alerting and On-Call](#ch-alerting)**
+  - What makes a good alert?
+  - Why alert on symptoms rather than causes?
+  - Explain burn-rate alerting.
+  - An alarm never fired even though the service was completely down. Why?
+  - How do you stop one failure generating forty pages?
+  - How do you make on-call sustainable?
+- **[Cloud Fundamentals](#ch-cloud-fundamentals)**
+  - What is the difference between a region and an availability zone?
+  - Explain the shared responsibility model without naming a provider.
+  - When would you not use a managed service?
+  - A product serves users across Europe and Australia from one region. How do you improve latency?
+  - Why do teams split workloads across multiple accounts?
+- **[Serverless Functions](#ch-serverless-functions)**
+  - What actually happens on a cold start, and which parts can you influence?
+  - Why do serverless functions break databases, and what do you do about it?
+  - A function fires on file upload and sometimes processes the same file twice. Why?
+  - When would you choose a long-running server over functions?
+  - How do you keep secrets out of a function's environment variables?
+- **[Object Storage and Delivery](#ch-object-storage-and-delivery)**
+  - How would you handle user file uploads in a web application?
+  - What is the difference between `max-age` and `s-maxage`?
+  - After a deploy, users are getting the old JavaScript. What went wrong and how do you fix it?
+  - When is a CDN not the answer?
+  - How do you keep private files private when they are served from a bucket?
+- **[Platform Deploys and Preview Environments](#ch-platform-deploys)**
+  - What actually happens when you promote a deployment to production?
+  - Why can moving a route to the edge make it slower?
+  - A user reports a white screen right after a deploy, but you cannot reproduce it. What is happening?
+  - What does a preview environment give you that a staging environment does not?
+  - How do you make sure the artefact you tested is the artefact you shipped?
+- **[Deployment Strategies and Rollback](#ch-deployment-strategies)**
+  - Explain blue/green versus canary.
+  - Your deploy went out ten minutes ago and errors are climbing. Walk me through what you do.
+  - How do you do a zero-downtime deployment when the change includes a schema migration?
+  - What is the difference between a canary deployment and a feature flag?
+  - When would you deliberately choose the strategy with the larger blast radius?
+- **[Feature Flags](#ch-feature-flags)**
+  - What is the difference between a feature flag and a canary deployment?
+  - Your flag service becomes unreachable during peak traffic. What happens to your site?
+  - How do you stop feature flags accumulating?
+  - Where should a flag be evaluated in a server-rendered application, and why does it matter?
+  - When is a feature flag the wrong tool?
+
+## Part IX — The Human Layer
+
+_42 questions across 10 chapters._
+
+- **[The STAR Framework and the Story Bank](#ch-star-framework)**
+  - Your answer is running long and the interviewer looks restless. What do you do?
+  - The question is about a situation you have genuinely never been in. Now what?
+  - Why does "we" hurt an answer that is otherwise accurate?
+  - When would you deliberately not use STAR?
+- **[Leadership, Teamwork and Conflict](#ch-leadership-teamwork)**
+  - How do you know when to compromise and when to hold the line?
+  - What if the conflict never got resolved?
+  - You are the most senior engineer but not the lead. The lead makes a call you think is wrong. What now?
+  - When is mentoring the wrong thing to offer?
+- **[Problem Solving, Challenges and Failure](#ch-problem-solving)**
+  - What if your hardest technical problem is not that impressive?
+  - You are asked for a failure and every real one was partly someone else's fault. What do you say?
+  - When is the right answer to stop debugging?
+  - How do you tell a "risk that did not pay off" story without looking reckless?
+- **[Ways of Working](#ch-ways-of-working)**
+  - Your team runs two-week sprints but keeps missing the sprint goal because of incidents. What do you change?
+  - How do you ship to production daily when a feature takes three weeks to build?
+  - Which of the four DORA metrics would you look at first on joining a team, and why?
+  - A director asks you to report deployment frequency per engineer. What do you say?
+  - When is Scrum the wrong choice?
+- **[Engineering Culture](#ch-engineering-culture)**
+  - Tell me about an incident you were involved in and what changed afterwards.
+  - What does a blameless post-mortem actually look like in practice?
+  - How would you improve a team's code review culture?
+  - How do you know whether a team's on-call is healthy?
+  - Your team is planned to full capacity every sprint and keeps missing dates. What is your argument?
+- **[Influence, Scope and Saying No](#ch-influence-scope-and-saying-no)**
+  - Tell me about a time you pushed back on a deadline.
+  - How do you get technical debt prioritised when nobody wants to fund it?
+  - You think a feature is a waste of effort and you have been told to build it. What do you do?
+  - When is "no" the whole answer?
+- **[Technical Communication](#ch-technical-communication)**
+  - How do you explain a technical trade-off to a product manager who wants both options?
+  - The interviewer clearly disagrees with your design mid-explanation. What do you do?
+  - When should you deliberately not simplify?
+  - How do you talk about work that was genuinely a team effort without either overclaiming or disappearing?
+- **[Listening and Thinking Aloud](#ch-thinking-aloud)**
+  - How much clarifying is too much?
+  - You realise ten minutes in that your approach will not work. What do you say?
+  - The interviewer asks you to optimise something already optimal. Now what?
+  - Does thinking aloud help in a system design round too, or only in coding?
+- **[Written Communication](#ch-written-communication)**
+  - What makes a pull request easy to review?
+  - Your team has no ADRs. How do you introduce them without a process mandate?
+  - When is writing it down the wrong call?
+  - How do you disagree with a reviewer in writing without it escalating?
+- **[The AI-Assisted Interview](#ch-ai-assisted-interview)**
+  - We allow an AI assistant in this round. How will you use it?
+  - The assistant just gave you twenty lines. What do you do next?
+  - How is the code-comprehension round different from a normal coding round?
+  - When would you refuse to use the assistant even though it is allowed?
+
+## Appendix — DSA Patterns
+
+_87 questions across 16 chapters._
+
+- **[Time and Space Complexity](#ch-time-and-space-complexity)**
+  - What is the time and space complexity of your solution, and how do you know?
+  - The constraint says `n ≤ 10⁵`. What does that tell you before you have read the problem?
+  - Is `O(1)` always faster than `O(n)`?
+  - When would you deliberately choose the slower complexity?
+  - Why is appending to a dynamic array `O(1)` when it sometimes has to copy everything?
+- **[Prefix Sum](#ch-prefix-sum)**
+  - Why does the prefix array have `n + 1` entries?
+  - How does "count subarrays summing to k" become a hash-map problem?
+  - When would you not use a prefix sum?
+  - The array is all positive and the question asks for a subarray summing to `k`. What changes?
+- **[Two Pointers](#ch-two-pointers)**
+  - Why is it safe to discard an element when the sum is too small?
+  - In Container With Most Water, why move the shorter wall?
+  - What is the difference between two pointers and a sliding window?
+  - When would you not reach for two pointers on a sorted array?
+  - How do you avoid duplicate triplets in 3Sum without a `Set`?
+- **[Sliding Window](#ch-sliding-window)**
+  - There is a `while` loop inside the `for` loop. Why is this `O(n)` and not `O(n²)`?
+  - How do you decide what to store for the window?
+  - Why does a sliding window fail on an array with negative numbers?
+  - When is a fixed window the wrong choice even though the problem names a size?
+  - How does Minimum Window Substring differ from the usual template?
+- **[Fast and Slow Pointers](#ch-fast-and-slow-pointers)**
+  - Why does the fast pointer always catch the slow one inside a cycle? Could it jump over?
+  - Why 2:1 and not 3:1?
+  - When would you use a `Set` instead?
+  - How does Find the Duplicate Number become a cycle problem?
+  - What breaks if the input is a doubly linked list, or a tree?
+- **[In-Place Linked List Reversal](#ch-in-place-linked-list-reversal)**
+  - Walk through why the three assignments have to happen in that order.
+  - Why return `prev` rather than `head`?
+  - What does the dummy node actually buy you in Reverse Linked List II?
+  - When would you prefer the recursive version?
+  - How would you reverse in groups of `k` without breaking the last partial group?
+- **[Monotonic Stack](#ch-monotonic-stack)**
+  - There is a `while` loop inside the `for` loop. Why is this `O(n)`?
+  - Why store indices rather than values?
+  - How do you decide between an increasing and a decreasing stack?
+  - When is a monotonic stack the wrong tool even though the question mentions "maximum"?
+  - How does Largest Rectangle in Histogram use this pattern?
+- **[Top K Elements](#ch-top-k-elements)**
+  - Why a min-heap for the `k` largest? It sounds backwards.
+  - What is the actual saving over sorting?
+  - When would you use quickselect instead?
+  - How do you find the median of a stream?
+  - Top K Frequent Elements in guaranteed linear time — how?
+- **[Overlapping Intervals](#ch-overlapping-intervals)**
+  - Why is sorting the first move, and what does it cost you?
+  - Give the overlap condition, and say why the four diagram cases are unnecessary.
+  - Why can't you solve Meeting Rooms II by merging the intervals?
+  - Why does the "keep the maximum number of non-overlapping intervals" greedy sort by end time?
+  - How would you handle intervals that arrive continuously and must be queried live?
+- **[Modified Binary Search](#ch-modified-binary-search)**
+  - State the invariant your loop maintains.
+  - Why does `while (low <= high)` with `high = mid` loop forever?
+  - How do you search a rotated sorted array without finding the rotation point first?
+  - What breaks when the rotated array has duplicates?
+  - How do you recognise a problem that wants a binary search over the answer space?
+  - When is binary search the wrong answer even on a sorted array?
+- **[Binary Tree Traversal](#ch-binary-tree-traversal)**
+  - Why does inorder traversal of a BST produce sorted output?
+  - Which traversal for computing the height of a tree, and why?
+  - How do you traverse without recursion, and when does it matter?
+  - What is the space complexity of level order versus depth-first, and which is cheaper?
+  - Why can't you validate a BST by comparing each node to its two children?
+  - How does preorder let you rebuild a tree, when inorder alone cannot?
+- **[Depth-First Search](#ch-depth-first-search)**
+  - Why does DFS on a graph need a visited set when a tree traversal does not?
+  - Where exactly do you mark a node visited, and what breaks if you get it wrong?
+  - When is BFS the right choice instead?
+  - How do you detect a cycle in a directed graph with DFS?
+  - What is the difference between DFS and backtracking?
+  - The graph has 10⁵ nodes in a chain. What changes?
+- **[Breadth-First Search](#ch-breadth-first-search)**
+  - Why does BFS guarantee the shortest path, and why doesn't DFS?
+  - Where do you mark nodes visited, and what goes wrong otherwise?
+  - When is DFS the better choice?
+  - What is multi-source BFS and when does it apply?
+  - How do you recover the actual path, not just its length?
+  - Can BFS be written recursively?
+- **[Backtracking](#ch-backtracking)**
+  - What is the difference between backtracking and DFS?
+  - Why must you copy the current path when recording a result?
+  - Why does `explore(i + 1)` give subsets and `explore(0)` give permutations?
+  - How do you handle duplicates in the input?
+  - When would you use dynamic programming instead?
+  - What is the time complexity of a backtracking solution, and how do you justify it?
+- **[Dynamic Programming](#ch-dynamic-programming)**
+  - What two properties must a problem have for DP to apply?
+  - Memoisation or tabulation — how do you choose?
+  - How do you decide what the state is?
+  - Give a problem where greedy fails and DP succeeds, and say why.
+  - How do you get a DP solution down to `O(1)` space?
+  - When is backtracking the right answer instead of DP?
+- **[Graph Algorithms](#ch-graph-algorithms)**
+  - What do you ask before writing any graph code?
+  - How does Kahn's algorithm detect a cycle?
+  - Why does Dijkstra need a heap when BFS only needs a queue?
+  - What breaks Dijkstra on negative edge weights?
+  - When would you use Union-Find rather than DFS or BFS?
+  - Why is cycle detection different in undirected graphs?
+  - Why doesn't plain Dijkstra solve Cheapest Flights Within K Stops?
+
+## What to Read Next
+
+- [Chapter ?? — Glossary](#ch-glossary) — a term you met in a question, in one line
+- [Chapter ?? — How to Read This Book](#ch-how-to-read-this-book) — where this index sits in the six-week plan
+- [Chapter ?? — Further Reading](#ch-further-reading) — what to read when a whole part came back blank
