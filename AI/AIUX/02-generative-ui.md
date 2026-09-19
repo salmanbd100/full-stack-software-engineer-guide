@@ -36,7 +36,7 @@ a system that reads attacker-controlled documents.
 
 ### The registry
 
-```typescript
+```tsx
 const registry = {
   chart: {
     schema: z.object({

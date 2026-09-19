@@ -37,8 +37,7 @@ which sits with the rest of the React chapters in Part III.
 
 ## What Interviewers Probe For
 
-The senior signal for this part is the same as for the rest of Part I — **can reason about the
-runtime, not just recite the API** — with a compile-time twist. What that looks like in practice:
+The part-level signal with a compile-time twist. What that looks like in practice:
 
 - **Do you know where types stop?** TypeScript erases at runtime. A candidate who validates an API
   response with an `as` cast and calls it type-safe has answered the question badly. The follow-up is
@@ -49,12 +48,6 @@ runtime, not just recite the API** — with a compile-time twist. What that look
   usually an `any` with extra steps. A generic that links an argument to a return type is doing work.
 - **Do you know when to stop?** Conditional and mapped types can express almost anything, and a type
   nobody on the team can read is a liability. Naming the cost is the senior part of the answer.
-- **`unknown` or `any`?** `any` switches the checker off and spreads silently through every value it
-  touches. `unknown` forces a narrowing step at the boundary, which is exactly where you want one.
-  Reaching for `unknown` by default on external data is a small, reliable seniority marker.
-- **What does `strict` actually turn on?** `strictNullChecks` is the one that matters, and a codebase
-  without it has types that quietly lie about every optional value. Knowing that migration is
-  incremental — file by file — is the follow-up.
 
 ## Reading Order
 

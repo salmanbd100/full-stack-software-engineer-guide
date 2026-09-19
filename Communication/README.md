@@ -17,11 +17,10 @@ out that you know it. In a senior loop those are separate problems, and the seco
 candidates neglect — a correct design explained in the wrong order scores worse than a simpler design
 explained well.
 
-Four chapters, covering the places where delivery decides the outcome: the spoken explanation, where
-the order you say things in changes whether they land; the technical round, where silence reads as
-being stuck; the written channels — pull requests, review comments, decision records, runbooks — where
-most senior influence actually happens; and the assisted round, where the model can write the code and
-what is left to score is your judgement about it.
+Four chapters cover the places where delivery decides the outcome: the spoken explanation, where the
+order you say things in changes whether they land; the technical round, where silence reads as being
+stuck; the written channels — pull requests, decision records, runbooks — where most senior influence
+happens; and the assisted round, where the model writes the code and your judgement is what is scored.
 
 ## Chapters
 
@@ -32,15 +31,14 @@ what is left to score is your judgement about it.
 | 03  | [Written Communication](#ch-written-communication)           | How do you write a PR, an ADR or a runbook people use?     |
 | 04  | [The AI-Assisted Interview](#ch-ai-assisted-interview)       | How do you use an assistant without removing the signal?   |
 
-Behavioural answers have their own section. STAR, the story bank and the delivery rules live in
-`Behavioral/`, starting at [Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework).
-Narrating a system design round belongs with the design material, at
+Behavioural answers have their own section: STAR, the story bank and the delivery rules start at
+[Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework). Narrating a system design
+round belongs with the design material, at
 [Chapter ?? — Driving the Design Round](#ch-driving-the-round).
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **owns the design and uses the tool, rather than the other way
-round.** Communication is how that ownership becomes visible to someone else.
+Communication is how the part-level ownership becomes visible to someone else.
 
 - **Do you lead with the answer?** Senior communication is conclusion first, then the reasoning.
   Building up to a recommendation over four minutes leaves the interviewer guessing whether you have
@@ -59,8 +57,7 @@ round.** Communication is how that ownership becomes visible to someone else.
 ## Reading Order
 
 01 first — it sets the order-of-explanation idea the rest apply. 02 next if you have interviews booked;
-it is the highest-leverage chapter here, because most answers fail before any knowledge is tested. 04
-directly after 02, since it raises the same narration bar for a room where an assistant is allowed. 03
-is the one worth returning to on the job rather than before an interview.
+most answers fail before any knowledge is tested. 04 directly after 02, since it raises the same
+narration bar for a room where an assistant is allowed. 03 is worth returning to on the job instead.
 
 **Interview sprint:** 01 → 02 → 04.

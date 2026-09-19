@@ -18,10 +18,9 @@ layers, between teams, between the shared UI vocabulary and the features that co
 what an assistant produces and what enters the codebase — and about what each boundary costs to
 maintain once it exists.
 
-These chapters were frontend system design material until improvement #42. They read better here,
-next to performance, security and testing, because all four answer the same question: what breaks at
-scale, and what do you put in place before it does. `SystemDesign/Frontend/` keeps the chapters that
-are genuinely about **driving a design round** rather than about structuring a codebase.
+These chapters sit next to performance, security and testing because all four answer the same
+question: what breaks at scale, and what do you put in place before it does. The chapters about
+**driving a design round**, rather than about structuring a codebase, are in Part VI.
 
 ## Chapters
 
@@ -39,8 +38,7 @@ and [Chapter ?? — Monorepos](#ch-monorepos) covers the task graph and caching 
 
 ## What Interviewers Probe For
 
-The senior signal for Part IV is **thinks in budgets, boundaries and migration paths rather than
-features.** In this section that shows up as three habits:
+The part-level signal shows up here as three habits:
 
 - **Naming the enforcement mechanism.** Anyone can draw three layers. The follow-up question is what
   stops a component importing the API client directly, and the answer has to be a lint rule or a build
@@ -50,14 +48,6 @@ features.** In this section that shows up as three habits:
   the interviewer's scenario does not have that problem — scores higher than adopting them.
 - **Having a migration path.** A boundary introduced into an existing codebase needs an incremental
   route in. "We would rewrite it" is the answer that ends the conversation.
-
-**Mid or senior, on the same question:**
-
-| Asked | Mid answer | Senior answer |
-| ----- | ---------- | ------------- |
-| "How would you structure this?" | Draws three layers | Names what *stops* a component importing the API client — a lint rule or a build graph, not a convention |
-| "Would you use micro-frontends?" | "Yes, for better separation" | "Only if a shared release train is the bottleneck you can name; otherwise a monorepo is cheaper" |
-| "How do we adopt this?" | "We'd rewrite it" | An incremental route in, with the first boundary and what it costs to maintain |
 
 ## Reading Order
 

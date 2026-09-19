@@ -1,0 +1,73 @@
+% tokens.tex — improvement #79
+%
+% Every value the print design can be tuned by, in one file. Nothing else under
+% scripts/tex/ hardcodes a length, a size or a grey: they all read the names defined here.
+%
+% This is the file improvement #77 edits during calibration. If a change to the look of the
+% book needs an edit anywhere else, the token for it is missing.
+%
+% ---------------------------------------------------------------------------
+% Palette — five tones, chosen for how ink behaves rather than how a screen looks
+% ---------------------------------------------------------------------------
+%
+% The book prints in black and white, so the whole design is carried by rule weight, type
+% weight and structure, with two tints and no more. Tints under 6% vanish on uncoated
+% stock, and anything from 13% up goes muddy behind 10pt text — which is why there is no
+% third step, and why #81 distinguishes the three callout types by structure instead of
+% by fill.
+
+\usepackage{xcolor}
+
+\definecolor{ink}{gray}{0.00}       % body, chapter titles, H2, H3
+\definecolor{inkmid}{gray}{0.45}    % eyebrow, captions, folio, running head — 55% K
+\definecolor{inklight}{gray}{0.65}  % hairlines, table rules — 35% K
+\definecolor{tintone}{gray}{0.94}   % code ground, table zebra — 6% K
+\definecolor{tinttwo}{gray}{0.88}   % warning-callout ground — 12% K
+
+% `gray` in xcolor is *lightness*, so a 55% K ink is gray 0.45. Getting this backwards
+% produces a book that looks correct on screen and prints inverted in weight.
+
+% ---------------------------------------------------------------------------
+% Type scale
+% ---------------------------------------------------------------------------
+%
+% Starting values. #77 measures the real lines-per-page rate and tunes these against the
+% 700-page ceiling in BOOK-SPEC decision #13.
+
+\newcommand{\tokBodySize}{10pt}
+\newcommand{\tokBodyLeading}{13.2pt}   % 1.32 — tight for a reference book, open enough to read
+\newcommand{\tokLeadRatio}{1.10}       % \tokBodyLeading ÷ the 12pt the 10pt class would use
+\newcommand{\tokSmallSize}{8.5pt}      % eyebrows, labels, table body
+\newcommand{\tokMicroSize}{8pt}        % running heads and folios
+\newcommand{\tokCodeSize}{8.5pt}
+\newcommand{\tokCodeLeading}{10.5pt}
+\newcommand{\tokDeckSize}{11pt}        % the one-sentence promise under a chapter title
+\newcommand{\tokChapterSize}{22pt}
+\newcommand{\tokPartNumberSize}{60pt}
+\newcommand{\tokPartTitleSize}{28pt}
+
+% ---------------------------------------------------------------------------
+% Page geometry — consumed by structure.tex at #80
+% ---------------------------------------------------------------------------
+%
+% Mirrored, because a uniform margin puts the gutter and the fore-edge at the same width
+% and the text block then drifts toward the spine on every recto.
+
+\newcommand{\tokPaper}{a4paper}
+\newcommand{\tokMarginInner}{26mm}
+\newcommand{\tokMarginOuter}{28mm}
+\newcommand{\tokMarginTop}{22mm}
+\newcommand{\tokMarginBottom}{24mm}
+
+% ---------------------------------------------------------------------------
+% Rules and spacing
+% ---------------------------------------------------------------------------
+
+\newcommand{\tokHairline}{0.4pt}       % table rules, callout boxes
+\newcommand{\tokAccentRule}{1.2pt}     % under a chapter title
+\newcommand{\tokBarRule}{2.5pt}        % the left bar on a gotcha callout
+\newcommand{\tokTracking}{140}         % +140/1000 em on small caps labels
+\newcommand{\tokParSkip}{0.30em}       % 0.9em is a web value; on paper it costs ~90 pages
+\newcommand{\tokCellPad}{4pt}
+\newcommand{\tokCodePad}{5pt}
+\newcommand{\tokCalloutPad}{7pt}

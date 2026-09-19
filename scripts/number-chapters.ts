@@ -41,6 +41,11 @@ function parentDir(rel: string): string {
  * directory gets a large index so it trails, which is where `AI/07-ai-in-interviews.md`
  * belongs — its own part opener calls it "a closing chapter".
  */
+/** An index page rather than a chapter: a section README, or one of the part openers. */
+function isIndex(doc: Doc): boolean {
+  return doc.isReadme || PART_OPENERS[doc.part] === doc.rel;
+}
+
 function sectionIndex(doc: Doc, sections: readonly string[]): number {
   if (PART_OPENERS[doc.part] === doc.rel) return -1;
   const idx: number = sections.indexOf(parentDir(doc.rel));
@@ -53,8 +58,10 @@ const problems: string[] = [];
 
 const byPart = new Map<number, Doc[]>();
 for (const doc of docs) {
-  // Root-level back matter is numbered by hand and sorts last by design.
-  if (parentDir(doc.rel) === ".") continue;
+  // Root-level back matter is numbered by hand and sorts last by design. The four
+  // root-level part openers written at #76 are the exception: they are the `chapter: 0`
+  // of their part, so they have to take part in its numbering rather than sit outside it.
+  if (parentDir(doc.rel) === "." && PART_OPENERS[doc.part] !== doc.rel) continue;
   if (!byPart.has(doc.part)) byPart.set(doc.part, []);
   byPart.get(doc.part)!.push(doc);
 }
@@ -81,7 +88,7 @@ for (const part of [...byPart.keys()].sort((a: number, b: number) => a - b)) {
   // Chapters per section, for the BOOK-SPEC § 4 "split it if it is bigger" check.
   const perSection = new Map<string, number>();
   for (const doc of list) {
-    if (doc.isReadme) continue;
+    if (isIndex(doc)) continue;
     const dir: string = parentDir(doc.rel);
     perSection.set(dir, (perSection.get(dir) ?? 0) + 1);
   }
@@ -116,7 +123,7 @@ console.log(`\n🔢 number-chapters — ${docs.length} in-book files, ${byPart.s
 
 for (const part of [...byPart.keys()].sort((a: number, b: number) => a - b)) {
   const list: Doc[] = byPart.get(part)!;
-  const chapters: number = list.filter((d: Doc) => !d.isReadme).length;
+  const chapters: number = list.filter((d: Doc) => !isIndex(d)).length;
   console.log(
     `  Part ${String(part).padStart(2)} — ${(PART_NAMES[part] ?? "Unsorted").padEnd(32)} ${String(chapters).padStart(3)} chapters · ${String(list.length).padStart(3)} files`,
   );

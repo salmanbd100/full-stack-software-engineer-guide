@@ -23,9 +23,16 @@
     "index:check": "node --experimental-strip-types scripts/build-question-index.ts --check",
     "plan:next": "node --experimental-strip-types scripts/plan-status.ts --next",
     "plan:check": "node --experimental-strip-types scripts/plan-status.ts --check",
-    "frontmatter": "node --experimental-strip-types scripts/add-frontmatter.ts"
+    "frontmatter": "node --experimental-strip-types scripts/add-frontmatter.ts",
+    "check:code-samples": "node --experimental-strip-types scripts/check-code-samples.ts",
+    "site:pages": "node --experimental-strip-types scripts/build-site.ts",
+    "site:dev": "pnpm site:pages && vitepress dev site",
+    "site:build": "pnpm site:pages && vitepress build site",
+    "site:preview": "vitepress preview site"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2"
+    "@types/node": "^22.10.2",
+    "typescript": "7",
+    "vitepress": "^1.6.4"
   }
 }

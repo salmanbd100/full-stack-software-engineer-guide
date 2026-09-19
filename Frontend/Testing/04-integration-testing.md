@@ -110,7 +110,7 @@ point — a unit test of the submit handler would have passed while the button s
 Happy paths are what developers build and demo, so they are rarely broken. Errors, empty states and
 slow responses are what nobody looked at. Override a handler per test:
 
-```typescript
+```tsx
 it("shows an error when the request fails", async () => {
   server.use(
     http.get("/api/users/:id", () =>
@@ -123,7 +123,7 @@ it("shows an error when the request fails", async () => {
 });
 ```
 
-```typescript
+```tsx
 it("shows the spinner while the request is in flight", async () => {
   server.use(
     http.get("/api/users/:id", async () => {

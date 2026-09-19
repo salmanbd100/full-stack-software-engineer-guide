@@ -52,7 +52,7 @@ number is the one that exists.
 The difference is not cosmetic. FID measured only the **delay before the first** interaction's handler
 started. INP measures the **whole journey** — input delay, the handler running, and the browser
 painting the result — for **every** interaction, and reports close to the worst. A page could score
-well on FID while every subsequent click took half a second, and many did.
+well on FID while every click after it took half a second, and many did.
 
 ### LCP: find the element before optimising anything
 

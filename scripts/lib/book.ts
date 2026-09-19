@@ -24,6 +24,13 @@ export const EXCLUDED_DIRS: readonly string[] = [
   "Archive",
   "scripts",
   "build",
+  // The companion site (#78). Its pages are generated *from* the manuscript, so walking
+  // them would count every sampled chapter twice — once against its part's budget and
+  // once again as a copy.
+  "site",
+  // Binary assets and their provenance notes (#79). `assets/fonts/README.md` is a
+  // licence and version record, not a chapter, and it has no front matter to give it.
+  "assets",
 ];
 
 /** Root-level files that are about the book rather than in it. */
@@ -127,18 +134,25 @@ const PART_BY_PREFIX: readonly [string, number][] = [
 // ---------------------------------------------------------------------------
 
 /**
- * The README that opens each part, where one exists.
+ * The file that opens each part.
  *
- * Parts I, II, IV and IX have none: their content is spread across two or more
- * top-level directories with no single file above them, and `collect-chapters.ts`
- * inserts the `# Part N` divider itself. That is a gap for a later item, not a bug.
+ * Six of them are the README of the directory that holds the part. The other four —
+ * I, II, IV and IX — have no such directory: their content is spread across two or
+ * more top-level directories with no single file above them, so their openers sit at
+ * the repository root alongside the front matter and are placed by front-matter
+ * `part:` rather than by path. Written at #76; before that those four parts opened on
+ * a section index, and the reader arriving at Part I landed on JavaScript.
  */
 export const PART_OPENERS: Readonly<Record<number, string>> = {
+  1: "Part-I-Foundations.md",
+  2: "Part-II-The-Browser-Platform.md",
   3: "Frontend/ModernStack/README.md",
+  4: "Part-IV-Frontend-at-Scale.md",
   5: "Backend/README.md",
   6: "SystemDesign/README.md",
   7: "AI/README.md",
   8: "ShipAndOperate/README.md",
+  9: "Part-IX-The-Human-Layer.md",
   10: "DSA/README.md",
 };
 

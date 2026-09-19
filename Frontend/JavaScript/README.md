@@ -12,11 +12,6 @@ in_book: true
 
 # Part I — JavaScript Foundations
 
-Every senior loop still opens here, and the bar moved for one specific reason: an assistant answers
-the surface version of these questions instantly. Explaining *what* a closure is no longer scores.
-Explaining why a stale closure ate your `setInterval` callback does. This section teaches the layer
-beneath the definition — what the runtime does, in what order, and what it costs.
-
 The section splits in two. Chapters 01–05 are the language's object model: how values are stored,
 where names resolve, and what `class` compiles down to. Chapters 06–10 are the runtime: the loop that
 schedules your callbacks, the methods you reach for a hundred times a day, and how to fail honestly.
@@ -38,12 +33,8 @@ schedules your callbacks, the methods you reach for a hundred times a day, and h
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **can reason about the runtime, not just recite the API.** Four
-questions carry most of the weight:
+Three questions carry most of the weight in this section, on top of the part-level signal:
 
-- **Can you predict output order?** The event loop question — a `setTimeout`, a resolved promise and
-  a synchronous log — is the single most reliable filter in the round. It is not a trivia question.
-  It tests whether you know that the microtask queue drains completely before the next macrotask.
 - **Do you know what a closure captures?** Not the definition. The consequence: which variable the
   captured reference points at, when that keeps an object alive, and why the loop-with-`var` bug
   produces the number it does.
@@ -53,14 +44,6 @@ questions carry most of the weight:
 - **Do you treat errors as a design decision?** Swallowing a rejection, throwing a string, or losing
   the stack across an `await` boundary all show up in code review. Knowing which failures are
   recoverable and which should crash the process is a seniority marker.
-
-**Mid or senior, on the same question:**
-
-| Asked | Mid answer | Senior answer |
-| ----- | ---------- | ------------- |
-| "What logs first?" | Guesses, or recites "microtasks first" | Names the queue each callback lands in and why the microtask queue drains completely first |
-| "What is a closure?" | The definition | What it captures, when that keeps an object alive, and why the `var`-in-a-loop bug prints what it prints |
-| "What is `this` here?" | "Arrow functions don't have `this`" | The four rules in precedence order, applied to the call site in front of them |
 
 ## Reading Order
 

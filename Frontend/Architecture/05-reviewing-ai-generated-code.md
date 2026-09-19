@@ -88,7 +88,7 @@ slow again, six months after it was fixed.
 
 ```tsx
 // Valid ARIA. No keyboard access, no focus, no Enter or Space handling.
-<div role="button" aria-label="Delete invoice" onClick={remove} />
+<div role="button" aria-label="Delete invoice" onClick={remove} />;
 ```
 
 **✅ What it should be:**
@@ -96,7 +96,7 @@ slow again, six months after it was fixed.
 ```tsx
 <button type="button" onClick={remove}>
   <TrashIcon aria-hidden="true" /> Delete invoice
-</button>
+</button>;
 ```
 
 Every ARIA attribute a model adds is a **claim about behaviour it did not write**. `role="button"`

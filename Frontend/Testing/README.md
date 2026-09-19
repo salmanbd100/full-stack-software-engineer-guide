@@ -39,8 +39,7 @@ two manual passes. This section deliberately does not restate it.
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **thinks in budgets, boundaries and migration paths rather than
-features.** A test suite is a budget — of runtime, of maintenance, and of trust.
+A test suite is the part-level budget made concrete — of runtime, of maintenance, and of trust.
 
 - **Where do you draw the test boundary?** The strongest answer names the network as the mock point
   and tests everything above it together. Mocking a child component is usually a sign the boundary is
@@ -53,8 +52,7 @@ features.** A test suite is a budget — of runtime, of maintenance, and of trus
   files, not untested behaviour, and that a target above roughly 80% starts buying tests written to
   satisfy the number.
 - **When do you not write the test first?** TDD is a tool, not a creed. Exploratory work, spike code
-  and UI layout are the standard honest exceptions, and saying so reads as experience rather than
-  laziness.
+  and UI layout are the honest exceptions, and saying so reads as experience rather than laziness.
 
 ## Reading Order
 

@@ -1,0 +1,29 @@
+% glyphs.tex — the emoji substitution table.
+%
+% Moved out of book-header.tex unchanged at improvement #79; #81 extends it with the
+% box-drawing characters that 117 files still carry, and replaces the two dropped marks
+% below with solid squares set in the heading's own weight.
+%
+% Tectonic's fonts have no emoji glyphs, so the book's callout vocabulary (BOOK-SPEC.md
+% § 7 and the write-topic-docs skill) prints as tofu boxes without this. Each of the six
+% sanctioned marks is mapped to a typographic equivalent that carries the same meaning in
+% print. EPUB and HTML keep the real emoji — they render fine there.
+
+\usepackage{newunicodechar}
+\usepackage{pifont}
+
+% ✅ / ❌ — these two carry meaning inside tables and before/after pairs, so they
+% become real dingbats rather than words.
+\newunicodechar{✅}{\ding{51}}
+\newunicodechar{❌}{\ding{55}}
+
+% ⚠️ — a gotcha. The bold bang reads as a warning at body size.
+\newunicodechar{⚠}{\textbf{!}}
+
+% 💡 and 🔑 only ever appear in the two fixed headings, where the heading text already
+% says what they mean. Drop them rather than substitute something weaker.
+\newunicodechar{💡}{}
+\newunicodechar{🔑}{}
+
+% U+FE0F, the variation selector that trails ⚠️ and friends in the source.
+\newunicodechar{️}{}

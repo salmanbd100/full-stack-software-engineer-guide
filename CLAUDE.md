@@ -47,6 +47,7 @@ stop.** Those are archived deliberately, not missing.
 ├── SystemDesign/        # fundamentals, building blocks, frontend SD, 20 case studies
 ├── ShipAndOperate/      # Part VIII — Git, Containers, CI/CD, Observability, Cloud, Deployment
 ├── Behavioral/  Communication/
+├── site/                # the free VitePress companion — generated, see below
 └── scripts/             # book tooling
 ```
 
@@ -64,28 +65,47 @@ exists because a README references it.
 `scripts/` holds Node TypeScript that runs with no build step. Use the `pnpm` scripts:
 
 ```bash
-pnpm lint:docs        # the Book Chapter Standard, all ten rules — run this before calling a file done
+pnpm lint:docs        # the Book Chapter Standard, all eleven rules — run this before calling a file done
 pnpm lint:docs --rule=broken-link   # every occurrence of one rule
 pnpm book:build       # PDF + EPUB into build/  (needs: brew install pandoc tectonic)
 pnpm plan:next        # the next unchecked plan item, its "Done when", its model
 pnpm plan:check       # verify the plan's three counters still agree
 pnpm index:questions  # regenerate Interview-Question-Index.md from every chapter's Q block
 pnpm index:check      # fail if that index is stale — run after editing any Interview Questions
+pnpm check:code-samples             # compile every TypeScript fence
+pnpm check:code-samples --code=TS2304   # every occurrence of one diagnostic
+pnpm site:dev         # the free VitePress companion, generated from the manuscript
+pnpm site:build       # static build into site/.vitepress/dist
 ```
 
-**`Interview-Question-Index.md` is generated, never hand-edited.** It is 961 questions read out of
+**The companion site is generated, never hand-edited.** `scripts/build-site.ts` writes
+`site/book/**` and `site/.vitepress/sidebar.json` from the same `loadBook` the PDF build uses; both
+are gitignored, and `site/` is in `EXCLUDED_DIRS` so the generated copies never count against a
+part's budget. Only `site/index.md` and `site/.vitepress/config.ts` are written by hand. What the
+site publishes — front matter, all back matter, every index page, and one sample chapter per part
+named in `SAMPLE_CHAPTERS` — is BOOK-SPEC decision #17, not a technical detail.
+
+**`Interview-Question-Index.md` is generated, never hand-edited.** It is 988 questions read out of
 every chapter's `## Interview Questions` block. Change a question in a chapter and the index is stale
 until `pnpm index:questions` runs; `index:check` is what catches it.
 
 `scripts/lib/book.ts` is the shared model of what counts as a chapter — the build and the lint both
 import it, so they cannot disagree. Anything new that walks the manuscript should import it too.
 
-**There is still no test suite**, and no `check:code-samples` until item #75. Code fences are not
-compiled by anything today — do not imply otherwise. CI (`.github/workflows/lint-docs.yml`) runs
-`lint:docs`, `number:chapters --check`, `index:check`, `plan:check` and `book:collect`, nothing else.
+**There is still no test suite.** What there is, since #75, is `pnpm check:code-samples`: it extracts
+all 787 TypeScript fences and runs the real compiler over them, in two gates. **Syntax is hard at
+zero** — a fence that does not parse fails the build, and a `typescript` fence holding JSX counts as
+not parsing, because the label drives the syntax highlighting in the PDF. **Types are baselined**
+against `.code-samples-baseline.json`, because fences are excerpts: they are compiled per chapter, in
+reading order, and what is left is mostly a name the prose introduced two fences earlier. Every
+import resolves to `any` through a wildcard ambient module, so this proves the samples parse and hang
+together — **it does not prove they match any library's current API.** CI
+(`.github/workflows/lint-docs.yml`) runs `lint:docs`, `number:chapters --check`, `index:check`,
+`check:code-samples`, `site:pages`, `plan:check` and `book:collect`, nothing else.
 
 `lint:docs` gates on **`.lint-baseline.json`, not zero** — most of the repo predates the standard. A
 count that goes up fails; a count that goes down should be committed as the new baseline.
+`check:code-samples` uses the same ratchet, with its own baseline file.
 
 ## Library / Framework Lookups
 

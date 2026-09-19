@@ -213,7 +213,7 @@ comparison has to be an image.
 **Q: Your integration tests all pass and production is broken because the API renamed a field. What was missing?**
 
 A check against the real provider. Those tests used handlers written by the frontend, so they encode
-what we believed the API returns and will keep agreeing with us indefinitely. The cheap fix is one
+what the frontend believed the API returns, and will keep agreeing with that belief indefinitely. The cheap fix is one
 schema validation per endpoint run against staging on a schedule; the thorough fix is consumer-driven
 contracts, where the provider's own pipeline fails when a change breaks a published expectation.
 

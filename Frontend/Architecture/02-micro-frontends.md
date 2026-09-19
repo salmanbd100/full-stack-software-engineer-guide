@@ -71,18 +71,19 @@ export default {
 };
 ```
 
-**The shell — resolves remotes by URL at runtime, with the same `shared` block:**
+**The shell — the same plugin shape, with `remotes` and the same `shared` block in place of `exposes`:**
 
 ```typescript
-remotes: {
+// shell/webpack.config.ts
+const remotes = {
   checkoutApp: "checkoutApp@https://checkout.example.com/remoteEntry.js",
   searchApp: "searchApp@https://search.example.com/remoteEntry.js",
-}
+};
 ```
 
 **Consuming a remote, with the two guards that are not optional:**
 
-```typescript
+```tsx
 import { lazy, Suspense } from "react";
 
 const CheckoutFlow = lazy(() => import("checkoutApp/CheckoutFlow"));

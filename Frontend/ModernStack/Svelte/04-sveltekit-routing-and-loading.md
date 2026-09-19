@@ -200,7 +200,7 @@ named key re-runs only the one that changed.
 **Q: What decides whether data loading happens in `+page.ts` or `+page.server.ts`?**
 
 Whether the code can safely reach the browser. `+page.ts` is bundled and runs on the client for
-subsequent navigations, so it cannot hold a secret or open a database connection. `+page.server.ts` never
+later navigations, so it cannot hold a secret or open a database connection. `+page.server.ts` never
 leaves the server, at the cost of a round trip on every client navigation. If both exist the server load
 runs first and its result is handed to the universal one.
 

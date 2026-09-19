@@ -44,7 +44,7 @@ fetching lives, because that is what makes a component testable or not.
 
 **Split the piece that fetches from the piece that renders:**
 
-```typescript
+```tsx
 interface User {
   id: string;
   name: string;
@@ -93,7 +93,7 @@ flowchart TD
 
 **Imports flow one way; a dotted arrow is a violation a lint rule should reject.**
 
-```typescript
+```tsx
 // Data access — knows about HTTP, knows nothing about React
 export const userApi = {
   getById: async (id: string): Promise<User> => {

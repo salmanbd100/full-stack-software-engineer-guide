@@ -6,3 +6,9 @@ build/
 
 # node
 node_modules/
+
+# companion site (#78) — everything generated from the manuscript
+site/book/
+site/.vitepress/cache/
+site/.vitepress/dist/
+site/.vitepress/sidebar.json

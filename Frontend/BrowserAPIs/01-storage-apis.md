@@ -5,7 +5,7 @@ chapter: 5
 slug: storage-apis
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
+updated: 2026-09-19
 tags: [frontend, browser, apis, storage]
 in_book: true
 ---
@@ -16,82 +16,53 @@ in_book: true
 
 **In this chapter:** localStorage vs sessionStorage · serialising objects · cross-tab `storage` events · quota errors · why not for auth
 
-## Table of Contents
-- [What They Are](#what-they-are)
-- [localStorage vs sessionStorage](#localstorage-vs-sessionstorage)
-- [Core API](#core-api)
-- [Storing Objects](#storing-objects)
-- [Cross-Tab Sync with Storage Events](#cross-tab-sync-with-storage-events)
-- [Quota and Errors](#quota-and-errors)
-- [Security: Why Not for Tokens](#security-why-not-for-tokens)
-- [Patterns You'll See in Interviews](#patterns-youll-see-in-interviews)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+Web storage is a synchronous, same-origin, string-only key-value cache with **no security boundary and
+no guarantee of survival**. Every one of those five words is a constraint that decides what belongs in
+it: synchronous means a large read blocks the frame, string-only means everything is serialised,
+same-origin means another site cannot read it but any script on *your* page can, and no guarantee means
+the browser may evict it under pressure.
 
-## What They Are
-
-`localStorage` and `sessionStorage` are simple **key-value stores** built into the browser. Both store **strings only** under the same-origin policy. The API is **synchronous** — calls block the main thread until they finish.
+Treat everything in it as disposable. If losing the value would break the application, or leaking it
+would matter, it belongs somewhere else.
 
 ```typescript
 localStorage.setItem("theme", "dark");
 const theme: string | null = localStorage.getItem("theme"); // "dark"
 ```
 
-> Because they block the main thread, never read or write large amounts of data in a hot path (scroll, animation, render).
-
 > ⚠️ **Moving target:** browsers now partition storage by top-level site, so the same origin embedded in
 > two different parent sites sees two different stores — and eviction rules under storage pressure differ
-> per browser and keep changing. The durable principle is that web storage is a synchronous,
-> same-origin string cache with no security boundary and no guarantee of survival. Treat everything in
-> it as disposable.
+> per browser and keep changing. The durable principle is the one above: a same-origin string cache with
+> no security boundary and no promise of persistence.
 
----
+## How It Works
 
-## localStorage vs sessionStorage
+### The two stores
 
 | Feature | `localStorage` | `sessionStorage` |
-|---------|----------------|------------------|
-| **Lifetime** | Until manually cleared | Until the tab is closed |
+| ------- | -------------- | ---------------- |
+| **Lifetime** | Until cleared explicitly | Until the tab is closed |
 | **Scope** | Shared across tabs of the same origin | One tab only |
-| **Cross-tab events** | ✅ Fires `storage` event | ❌ No |
+| **Cross-tab events** | ✅ Fires `storage` | ❌ No |
 | **Size** | ~5–10 MB per origin | ~5–10 MB per origin |
 
-**When to use which:**
-
-| Need | Pick |
-|------|------|
-| Theme, language, "remember me" prefs | `localStorage` |
-| Form draft for the current tab | `sessionStorage` |
-| Wizard / multi-step flow state | `sessionStorage` |
-| Anything sensitive (tokens, PII) | **Neither** — use HttpOnly cookies |
-
----
-
-## Core API
-
-Both objects share the same five methods:
+Both objects share the same five methods, and the important detail is the return type.
 
 ```typescript
 localStorage.setItem("key", "value");
 const value: string | null = localStorage.getItem("key"); // null if missing
 localStorage.removeItem("key");
-localStorage.clear(); // remove everything for this origin
+localStorage.clear(); // everything for this origin
 const count: number = localStorage.length;
 const firstKey: string | null = localStorage.key(0);
 ```
 
-**Key rules:**
+`getItem` returns `null` for a missing key, values are always strings — booleans and numbers are
+coerced on the way in — and nothing in the store is trustworthy, because DevTools can edit all of it.
 
-- ✅ `getItem` returns `null` when the key is missing — always handle it
-- ✅ Values are **always strings** — booleans and numbers get coerced
-- ❌ Don't trust the data — it can be edited from DevTools at any time
-
----
-
-## Storing Objects
-
-The API only stores strings, so use `JSON.stringify` / `JSON.parse` for everything else.
+### Storing anything that is not a string
 
 ```typescript
 interface UserPrefs {
@@ -109,18 +80,18 @@ function loadPrefs(): UserPrefs | null {
   try {
     return JSON.parse(raw) as UserPrefs;
   } catch {
-    return null; // Corrupt or hand-edited
+    return null; // Corrupt, or hand-edited
   }
 }
 ```
 
-> Always wrap `JSON.parse` in `try/catch`. A user (or a buggy old version of your app) can leave invalid data behind.
+The `try`/`catch` is not defensive padding. A user or an old version of your own application can leave
+invalid JSON behind, and an uncaught parse error at start-up takes the whole page with it.
 
----
+### Cross-tab sync
 
-## Cross-Tab Sync with Storage Events
-
-When `localStorage` changes, **other tabs** of the same origin get a `storage` event. The tab that made the change does **not** fire the event in itself.
+A `localStorage` write fires a `storage` event in **other tabs** of the same origin. It does not fire
+in the tab that made the change, which is the detail interviewers ask about.
 
 ```typescript
 window.addEventListener("storage", (e: StorageEvent) => {
@@ -130,15 +101,14 @@ window.addEventListener("storage", (e: StorageEvent) => {
 });
 ```
 
-**Use cases:** sync theme, logout across tabs, broadcast "new message" pings.
+That covers theme sync, logging out every tab at once, and "you have a new message" pings. For
+messaging that also reaches the sending tab, `BroadcastChannel` is the simpler tool.
 
-> For **same-tab + cross-tab** messaging, prefer the `BroadcastChannel` API — it works in both directions.
+### Quota, and storage that is not there at all
 
----
-
-## Quota and Errors
-
-Most browsers cap web storage around **5–10 MB per origin**. Going over throws `QuotaExceededError`.
+Most browsers cap web storage at roughly 5–10 MB per origin, and going over throws
+`QuotaExceededError`. Private browsing can disable storage entirely, so a probe is the only reliable
+availability check.
 
 ```typescript
 function safeSet(key: string, value: string): boolean {
@@ -153,11 +123,7 @@ function safeSet(key: string, value: string): boolean {
     throw e;
   }
 }
-```
 
-**Detect availability** (private/incognito mode can disable storage):
-
-```typescript
 function isStorageAvailable(): boolean {
   try {
     const probe = "__probe__";
@@ -170,40 +136,25 @@ function isStorageAvailable(): boolean {
 }
 ```
 
-For accurate quota numbers, use the `StorageManager` API:
+For real numbers rather than a guess, `StorageManager` reports usage across IndexedDB, the Cache API
+and web storage together.
 
 ```typescript
-const { usage, quota } = await navigator.storage.estimate();
-// usage and quota are in bytes (covers IndexedDB + Cache + Storage)
+const { usage, quota } = await navigator.storage.estimate(); // bytes
 ```
 
----
+## When to Use It
 
-## Security: Why Not for Tokens
+| Need | Pick | Why |
+| ---- | ---- | --- |
+| Theme, language, "remember me" preference | `localStorage` | Small, disposable, wanted in every tab |
+| Form draft for the current tab | `sessionStorage` | Two tabs filling the same form must not collide |
+| Wizard or multi-step flow state | `sessionStorage` | The flow dies with the tab, and so should its state |
+| More than ~5 MB, or queries, or binary data | IndexedDB | Asynchronous, indexed, stores `Blob`s |
+| Tokens, personal data, anything sensitive | **Neither** | Use an `HttpOnly` cookie — see below |
 
-Anything in `localStorage` is **readable by any JavaScript running on the page** — including a third-party script that gets compromised.
-
-```typescript
-// ❌ Vulnerable to XSS — one bad <script> can exfiltrate this
-localStorage.setItem("authToken", "eyJhbGci...");
-
-// ✅ Server sets an HttpOnly cookie — JS cannot read it
-// Set-Cookie: authToken=...; HttpOnly; Secure; SameSite=Strict
-```
-
-| Risk | Why It Matters |
-|------|----------------|
-| **XSS** | Any injected script reads `localStorage` directly |
-| **No encryption** | Data sits as plain text in the user's profile |
-| **No expiration** | Forgotten tokens live forever unless you clear them |
-
-> Rule of thumb: if leaking the value would matter, it does not belong in `localStorage`.
-
----
-
-## Patterns You'll See in Interviews
-
-### Typed Storage Wrapper
+Two patterns come up often enough to be worth having ready. A typed wrapper removes the `JSON.parse`
+ceremony from call sites, and a TTL adds the expiry the API does not have.
 
 ```typescript
 class TypedStorage<T> {
@@ -228,15 +179,6 @@ class TypedStorage<T> {
   }
 }
 
-const prefs = new TypedStorage<UserPrefs>("prefs");
-prefs.set({ theme: "dark", fontSize: 14 });
-```
-
-### TTL (Time-to-Live)
-
-`localStorage` has no expiration. Add your own:
-
-```typescript
 interface Wrapped<T> {
   value: T;
   expiresAt: number;
@@ -249,7 +191,7 @@ function setWithTTL<T>(key: string, value: T, ttlMs: number): void {
 
 function getWithTTL<T>(key: string): T | null {
   const raw = localStorage.getItem(key);
-  if (!raw) return null;
+  if (raw === null) return null;
   const { value, expiresAt } = JSON.parse(raw) as Wrapped<T>;
   if (Date.now() > expiresAt) {
     localStorage.removeItem(key);
@@ -259,27 +201,81 @@ function getWithTTL<T>(key: string): T | null {
 }
 ```
 
----
+## Common Mistakes
+
+**❌ Putting a token in `localStorage`.** Anything there is readable by every script on the page,
+including a third-party dependency that gets compromised tomorrow.
+
+```typescript
+// ❌ One injected script exfiltrates this
+localStorage.setItem("authToken", "eyJhbGci...");
+
+// ✅ The server sets a cookie JavaScript cannot read
+// Set-Cookie: authToken=...; HttpOnly; Secure; SameSite=Strict
+```
+
+Three things are wrong with the first line at once: an XSS reads it directly, it sits as plain text in
+the user's profile on disk, and it has no expiry, so a forgotten token lives forever.
+
+**❌ Reading or writing in a hot path.** The API is synchronous, so a large `JSON.parse` during scroll
+or animation lands on the main thread and shows up as a dropped frame.
+
+**❌ Trusting what comes back.** The store is user-editable. Validate a shape you depend on, the same
+way you would validate a server response.
+
+**❌ Assuming the writing tab hears its own `storage` event.** It does not, and a UI that relies on it
+updates everywhere except where the user is looking.
+
+## 🔑 Key Takeaways
+
+- Web storage is a synchronous, same-origin, string-only cache with no security boundary and no promise
+  of persistence.
+- `localStorage` outlives the tab and is shared across tabs; `sessionStorage` dies with the tab and is
+  isolated to it.
+- `JSON.parse` on stored data always needs a `try`/`catch` — the store is editable and old versions
+  leave debris.
+- The `storage` event reaches every tab except the one that wrote the value.
+- If leaking the value would matter, it does not belong here. `HttpOnly` cookies are the answer for
+  session tokens.
 
 ## Interview Questions
 
-### Q: What's the difference between `localStorage` and `sessionStorage`?
+**Q: What is the difference between `localStorage` and `sessionStorage`?**
 
-Both are key-value stores scoped to the origin. `localStorage` persists until you clear it and is shared across all tabs of that origin. `sessionStorage` is wiped when the tab closes and is **isolated to that one tab**. Only `localStorage` fires the `storage` event for cross-tab sync.
+Both are key-value stores scoped to the origin. `localStorage` persists until something clears it and
+is shared across every tab of that origin. `sessionStorage` is wiped when the tab closes and is
+isolated to that one tab, which is what makes it right for a form draft. Only `localStorage` fires the
+`storage` event, so only it can drive cross-tab sync.
 
-### Q: Why shouldn't you store JWTs in `localStorage`?
+**Q: Why should a JWT not go in `localStorage`?**
 
-`localStorage` is readable from any JavaScript on the page. A single XSS — even from a third-party dependency — can exfiltrate the token. HttpOnly cookies are inaccessible to JS, so they survive XSS. Use them for session/refresh tokens.
+Because every script on the page can read it, including a compromised third-party dependency, so a
+single XSS exfiltrates the session. An `HttpOnly` cookie is not reachable from JavaScript at all, which
+means it survives an XSS that `localStorage` would not. The trade is that cookies bring CSRF into scope,
+which `SameSite` and a token pattern handle.
 
-### Q: How do you sync state across tabs?
+**Q: How do you sync state across tabs?**
 
-Write the value to `localStorage` from one tab and listen for the `storage` event in the others. The event fires in **other tabs only**, never the one that made the change. For two-way same-origin messaging, `BroadcastChannel` is simpler.
+Write to `localStorage` in one tab and listen for `storage` in the others, remembering that the writing
+tab never hears its own event — so it has to apply the change locally as well. For two-way messaging
+between same-origin contexts, `BroadcastChannel` does the same job without using storage as a bus.
 
-### Q: What happens when you hit the storage quota?
+**Q: What happens when you hit the quota, and how would you find out before you do?**
 
-`setItem` throws `QuotaExceededError`. Wrap writes in `try/catch`, and clean up stale entries (LRU, TTL, or a key prefix sweep) before retrying. Use `navigator.storage.estimate()` to check usage proactively.
+`setItem` throws a `QuotaExceededError`, so writes that can grow need a `try`/`catch` and a cleanup
+pass — least-recently-used, a TTL sweep, or dropping a key prefix — before retrying.
+`navigator.storage.estimate()` reports usage and quota across IndexedDB, the Cache API and web storage,
+which is how you find out ahead of the failure rather than during it.
 
-### Q: When would you choose IndexedDB over `localStorage`?
+**Q: When would you choose IndexedDB instead?**
 
-When you need: more than ~5 MB, structured queries, indexes, binary data (Blobs), or non-blocking access. `localStorage` is fine for a handful of small string values — for anything bigger or richer, reach for IndexedDB.
+When any one of four things is true: more than a few megabytes, structured queries or indexes, binary
+data such as a `Blob`, or a read large enough that doing it synchronously would cost a frame.
+`localStorage` is right for a handful of small strings and wrong for everything past that.
 
+## What to Read Next
+
+- [Chapter ?? — IndexedDB](#ch-indexeddb) — the asynchronous, indexed store to graduate to
+- [Chapter ?? — Cookies and SameSite](#ch-cookies-same-site) — where session tokens belong, and what
+  `SameSite` actually protects
+- [Chapter ?? — XSS Prevention](#ch-xss-prevention) — the attack that makes the token rule matter

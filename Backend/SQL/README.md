@@ -12,7 +12,7 @@ in_book: true
 
 # Part V — SQL and Relational Data
 
-The scope here is set by one question: what does a frontend-heavy engineer need in order to design a
+The scope here is set by one question: what does a frontend-heavy engineer need to design a
 schema, read a query plan, and change a live database without downtime? That is a much smaller set
 than a database course, and it is the set that comes up.
 

@@ -1,0 +1,256 @@
+% structure.tex — page geometry, running heads, part and chapter openings.
+%
+% Improvement #80. Everything here reads a token from tokens.tex; no length, size or grey
+% is written twice.
+%
+% Before this item the book was A4 with a uniform 2.2 cm margin and fancyhdr's default
+% heads, which means the gutter and the fore-edge were the same width and the text block
+% drifted toward the spine on every recto. A bound book needs mirrored margins, and a
+% reference book needs to say where you are on both sides of the spread.
+
+% ---------------------------------------------------------------------------
+% Geometry — mirrored, twoside
+% ---------------------------------------------------------------------------
+%
+% `twoside` itself is set as a class option by build-book.sh. Setting it here would be too
+% late: the class has already chosen its margin logic by the time this file is read.
+
+\usepackage[
+  \tokPaper,
+  twoside,
+  inner=\tokMarginInner,
+  outer=\tokMarginOuter,
+  top=\tokMarginTop,
+  bottom=\tokMarginBottom,
+  headheight=14pt,
+  footskip=28pt,
+]{geometry}
+
+% A page that ends short is a page the reader thinks is the end of something. `\flushbottom`
+% makes the block depth constant and pushes the slack into the inter-paragraph space, which
+% is where \tokParSkip's elasticity is for.
+\flushbottom
+
+% A single line stranded at the top or bottom of a page is the most visible typesetting
+% fault a reader can name without knowing the word for it. 10000 is TeX's "never".
+\widowpenalty=10000
+\clubpenalty=10000
+\displaywidowpenalty=10000
+
+\usepackage{needspace}
+\usepackage{titlesec}
+\usepackage{xstring}
+
+% Pandoc's template sets `secnumdepth` to -\maxdimen when --number-sections is off, which
+% is the right default for section headings and the wrong one for this book: it also
+% unnumbers \part and \chapter, so the part opener printed no numeral and every chapter
+% title lost its number. 0 numbers parts and chapters and stops there, which is exactly the
+% book's own convention — "Chapter 14 — React Server Components", and no 14.2.3 anywhere.
+\setcounter{secnumdepth}{0}
+
+% ---------------------------------------------------------------------------
+% Part openers
+% ---------------------------------------------------------------------------
+%
+% The divider `collect-chapters.ts` emits reads `# Part 3 — The Modern Frontend Stack`,
+% because that string has to work in EPUB and on the web as well, where nothing generates
+% a part number. In print the numeral is set separately and large, so the prefix would be
+% printed twice. `\StrBehind` cuts the title at the em dash and keeps the half that is a
+% name; a divider with no dash — there are none today — falls back to the whole string
+% rather than to nothing.
+
+% `\StrBehind` assigns rather than expands, so it cannot run inside \markboth — TeX reads
+% the `#1` in the mark's own definition and fails with "Illegal parameter number". The
+% split therefore happens once, into \bookpartname, and everything else reads that.
+% Only a divider that actually begins "Part " is split. The appendix's divider reads
+% `# Appendix — DSA Patterns` and is not a numbered part of the book, so it keeps its whole
+% title and prints no numeral — a big grey "X" above the DSA appendix would be claiming it
+% is Part X, which BOOK-SPEC § 5 is explicit that it is not.
+\newcommand{\bookpartname}{}
+\newcommand{\bookpartnum}{}
+\newcommand{\setpartname}[1]{%
+  \IfBeginWith{#1}{Part }%
+    {\StrBehind{#1}{— }[\bookparttail]%
+     \IfStrEq{\bookparttail}{}%
+       {\renewcommand{\bookpartname}{#1}}%
+       {\let\bookpartname\bookparttail}%
+     \renewcommand{\bookpartnum}{\thepart}}%
+    {\renewcommand{\bookpartname}{#1}%
+     \renewcommand{\bookpartnum}{}}%
+}
+
+\titleformat{\part}[display]
+  {\raggedright\vspace*{6\baselineskip}}
+  {\color{inklight}\sffamily\bfseries\fontsize{\tokPartNumberSize}{\tokPartNumberSize}\selectfont\bookpartnum}
+  {14pt}
+  {\color{ink}\sffamily\bfseries\fontsize{\tokPartTitleSize}{\tokPartTitleSize}\selectfont}
+\titlespacing*{\part}{0pt}{0pt}{2\baselineskip}
+
+% This has to come **after** \titleformat, which redefines \part itself — wrapping it
+% before means titlesec overwrites the wrapper and nothing is stripped.
+%
+% Stripping at \part itself, rather than at each place the title is used, is what keeps the
+% running head, the opener and the **table of contents** agreeing. The class hands the same
+% argument to all three, so cleaning it once upstream is the only version that cannot drift.
+\let\bookoldpart\part
+\renewcommand{\part}[1]{\cleardoublepage\setpartname{#1}\bookoldpart{\bookpartname}}
+
+% A part opener belongs on a recto — a reader turning pages sees it coming. `\cleardoublepage`
+% is the book class's default for \part in twoside, and is restated in the redefinition
+% above so that a future change to `openany` cannot silently move them.
+
+% ---------------------------------------------------------------------------
+% Chapter openings
+% ---------------------------------------------------------------------------
+%
+% The source design spends 146pt before its first word. This spends 78pt:
+%
+%   eyebrow   8.5pt sans semibold caps, +140/1000 tracking, 55% K
+%   12pt
+%   number and title   22pt sans bold
+%   14pt
+%   rule   1.2pt
+%   18pt
+%
+% The eyebrow is the part name, taken from `\leftmark`, so a reader who opens the book in
+% the middle knows which of the nine parts they are in before reading a word of the
+% chapter. The **deck** — the one-sentence promise under every chapter title — is still
+% body text rather than part of this block: it is a blockquote in the markdown and pulling
+% it into the opening needs a filter, which is #82's half of the work.
+
+% Tracking comes from the font, not from a letterspacing package: `soul` cannot letterspace
+% a macro like \leftmark without \mbox-ing it first, and microtype's \textls is pdftex-only.
+% fontspec's LetterSpace applies the feature to the face itself, which is what \tokTracking
+% means anyway — +140/1000 em.
+\newcommand{\eyebrow}[1]{%
+  {\labelfont\addfontfeature{LetterSpace=14.0}%
+   \fontsize{\tokSmallSize}{\tokSmallSize}\selectfont\color{inkmid}%
+   \MakeUppercase{#1}}%
+}
+
+\titleformat{\chapter}[display]
+  {\raggedright}
+  {\eyebrow{\leftmark}}
+  {12pt}
+  {\color{ink}\sffamily\bfseries\fontsize{\tokChapterSize}{\tokChapterSize}\selectfont
+   \liningnums{\thechapter}\hspace{12pt}}
+  [\vspace{14pt}{\color{ink}\titlerule[\tokAccentRule]}]
+\titlespacing*{\chapter}{0pt}{0pt}{18pt}
+
+% An unnumbered chapter — the preface, the glossary — has no part above it, so the eyebrow
+% would print the previous part's name. It gets no eyebrow at all.
+\titleformat{name=\chapter,numberless}[display]
+  {\raggedright}
+  {}
+  {0pt}
+  {\color{ink}\sffamily\bfseries\fontsize{\tokChapterSize}{\tokChapterSize}\selectfont}
+  [\vspace{14pt}{\color{ink}\titlerule[\tokAccentRule]}]
+
+% ---------------------------------------------------------------------------
+% Section headings, and the guards that keep the closing blocks whole
+% ---------------------------------------------------------------------------
+%
+% Every chapter ends on the same three headings — Key Takeaways, Interview Questions, What
+% to Read Next. A heading that lands two lines above a page break puts its content on the
+% next page and reads as a mistake. \needspace refuses to start one without four lines of
+% room under it.
+
+\titleformat{\section}
+  {\needspace{4\baselineskip}\color{ink}\sffamily\bfseries\fontsize{13pt}{15pt}\selectfont}
+  {}{0pt}{}
+\titlespacing*{\section}{0pt}{1.4\baselineskip}{0.4\baselineskip}
+
+\titleformat{\subsection}
+  {\needspace{3\baselineskip}\color{ink}\sffamily\fontseries{sb}\selectfont\fontsize{11pt}{13pt}\selectfont}
+  {}{0pt}{}
+\titlespacing*{\subsection}{0pt}{1.1\baselineskip}{0.3\baselineskip}
+
+% ---------------------------------------------------------------------------
+% Running heads and the folio
+% ---------------------------------------------------------------------------
+%
+% Verso carries the part, recto the chapter, both at \tokMicroSize in 55% K caps. The
+% folio sits on the outer edge so it stays outer whichever side the sheet is read from.
+%
+% `\leftmark` and `\rightmark` are what the book class fills with the part and chapter
+% titles; the marks are reset here so that the part name survives into the chapter's
+% eyebrow above.
+
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+
+% #1 has already been stripped by the \part redefinition above, so the mark only has to
+% carry it. Splitting again here would be a second place for the rule to change.
+\renewcommand{\partmark}[1]{\markboth{#1}{}}
+\renewcommand{\chaptermark}[1]{\markright{#1}}
+
+\newcommand{\headfont}{\labelfont\fontsize{\tokMicroSize}{\tokMicroSize}\selectfont}
+
+% ---------------------------------------------------------------------------
+% Running page footer — copyright and the author's site on every page.
+%
+% Note this is a *running footer*, not chapter content: BOOK-SPEC.md non-negotiable
+% #11 bans personal URLs from chapter bodies, and that still holds.
+%
+% EPUB gets the same line as `rights` metadata in scripts/book-meta.yaml. It is a
+% reflowable format with no pages, so it has no footer to put this in.
+% ---------------------------------------------------------------------------
+
+\newcommand{\bookfooter}{%
+  \headfont\color{inkmid}%
+  \textcopyright{} Salman Rahman \quad\textperiodcentered\quad
+  \href{https://www.salmanrahman.com/}{\textcolor{inkmid}{www.salmanrahman.com}}%
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyhead[LE,RO]{\headfont\color{inkmid}\liningnums{\thepage}}
+\fancyhead[RE]{\headfont\color{inkmid}\nouppercase{\leftmark}}
+\fancyhead[LO]{\headfont\color{inkmid}\nouppercase{\rightmark}}
+\fancyfoot[C]{\bookfooter}
+
+\renewcommand{\headrulewidth}{\tokHairline}
+\renewcommand{\footrulewidth}{\tokHairline}
+
+% The book class forces \thispagestyle{plain} on the first page of every chapter and
+% part. Without this, those pages would be the only ones with no copyright line.
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\bookfooter}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{\tokHairline}%
+}
+
+% The title page uses the `titlepage` environment, which sets \thispagestyle{empty}.
+% AtBeginEnvironment fires after that, so this wins. No rule here — a hairline under
+% a title page reads as a mistake.
+\usepackage{etoolbox}
+\fancypagestyle{booktitle}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\bookfooter}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+\AtBeginEnvironment{titlepage}{\thispagestyle{booktitle}}
+
+% ---------------------------------------------------------------------------
+% Genuinely blank versos
+% ---------------------------------------------------------------------------
+%
+% The book class inserts a blank verso before every part and every chapter, and the stock
+% \cleardoublepage leaves the current page style on it — so those pages came out carrying a
+% folio, a running head and a copyright line under an otherwise empty leaf. That reads as a
+% printing error rather than as a notice. This is the standard fix, and the only reason it
+% needs \makeatletter is that \c@page and \if@twoside are internal names.
+
+\makeatletter
+\renewcommand{\cleardoublepage}{%
+  \clearpage
+  \if@twoside
+    \ifodd\c@page\else
+      \hbox{}\thispagestyle{empty}\newpage
+    \fi
+  \fi
+}
+\makeatother

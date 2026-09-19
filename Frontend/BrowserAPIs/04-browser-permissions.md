@@ -16,29 +16,17 @@ in_book: true
 
 **In this chapter:** the Permissions API · the three states · geolocation · notifications · camera and microphone · asking at the right time
 
-## Table of Contents
-- [What Permissions Are](#what-permissions-are)
-- [The Permissions API](#the-permissions-api)
-- [Permission States](#permission-states)
-- [Geolocation](#geolocation)
-- [Notifications](#notifications)
-- [Camera & Microphone](#camera--microphone)
-- [Clipboard](#clipboard)
-- [Design: Asking the Right Way](#design-asking-the-right-way)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+A permission prompt is a question you get to ask **once**. The browser records the answer per origin,
+and a denial is sticky — there is no API that re-opens the dialog, and the only route back is the user
+changing a setting they will never look for. That turns *when* you ask into a design decision with a
+permanent consequence, which is why this chapter is mostly about timing rather than about API calls.
 
-## What Permissions Are
-
-Sensitive browser features (location, camera, mic, notifications, clipboard, sensors) sit behind a **permission prompt**. The browser asks the user once, then remembers the answer **per origin**.
-
-**Key rules to know:**
-
-- Most permissions require a **secure context** (HTTPS, or `localhost`).
-- Some require a **user gesture** (click, key press) to even prompt — you can't trigger them on page load.
-- The user can revoke any permission from browser settings. Your code must handle "denied" gracefully.
-- Permissions are **per origin** (scheme + host + port). `https://app.example.com` and `https://example.com` are different.
+Four rules follow from it. Most permissions need a secure context — HTTPS or `localhost`. Some need a
+user gesture, so they cannot fire on page load at all. The user can revoke at any time from browser
+settings, so `denied` is a state the code has to render, not an error. And permissions are scoped to an
+origin — scheme, host and port — so `https://app.example.com` and `https://example.com` are strangers.
 
 > ⚠️ **Moving target:** the set of names `navigator.permissions.query` accepts differs per browser and
 > grows every year, and browsers keep tightening when a prompt may appear at all — quieter notification
@@ -46,11 +34,11 @@ Sensitive browser features (location, camera, mic, notifications, clipboard, sen
 > that a denial is sticky and only the user can undo it, so *when* you ask is a design decision, not a
 > code detail.
 
----
+## How It Works
 
-## The Permissions API
+### Checking without asking
 
-`navigator.permissions.query` lets you **check** state without prompting:
+`navigator.permissions.query` reports state without showing a dialog.
 
 ```typescript
 type State = "granted" | "denied" | "prompt";
@@ -61,7 +49,7 @@ async function checkCamera(): Promise<State> {
 }
 ```
 
-Listen for changes (user revokes from settings, another tab grants):
+Listen for changes — the user revokes from settings, or another tab grants:
 
 ```typescript
 const status = await navigator.permissions.query({ name: "geolocation" });
@@ -70,11 +58,9 @@ status.addEventListener("change", () => {
 });
 ```
 
-> The Permissions API **does not request** the permission — it only reports state. To request, you call the feature's own API (e.g. `getUserMedia`, `Notification.requestPermission`).
+> The Permissions API **does not request** the permission — it only reports state. To request, you call the feature's own API — `getUserMedia`, `Notification.requestPermission`.
 
----
-
-## Permission States
+### The three states
 
 | State | What It Means | What to Do |
 |-------|---------------|------------|
@@ -84,9 +70,7 @@ status.addEventListener("change", () => {
 
 > Once a user picks **denied**, the browser will not show your prompt again. The only way back is a settings change by the user.
 
----
-
-## Geolocation
+### Geolocation
 
 ```typescript
 function getPosition(): Promise<GeolocationPosition> {
@@ -115,9 +99,7 @@ try {
 
 **For continuous tracking**, use `watchPosition` and remember to call `clearWatch` on unmount.
 
----
-
-## Notifications
+### Notifications
 
 ```typescript
 async function enableNotifications(): Promise<boolean> {
@@ -140,11 +122,9 @@ function notify(title: string, body: string): void {
 
 **For background pushes** (delivered when the tab is closed), you need a **Service Worker + Push API**, not just the Notifications API.
 
----
+### Camera and microphone
 
-## Camera & Microphone
-
-Camera and mic come from `getUserMedia`. The call itself **is** the prompt:
+Camera and microphone come from `getUserMedia`, and the call itself **is** the prompt.
 
 ```typescript
 async function startCamera(videoEl: HTMLVideoElement): Promise<MediaStream> {
@@ -172,9 +152,7 @@ function stopStream(stream: MediaStream): void {
 
 > Always call `track.stop()` when you're done. Otherwise the browser keeps the indicator on and the device locked from other apps.
 
----
-
-## Clipboard
+### Clipboard
 
 ```typescript
 async function copyText(text: string): Promise<boolean> {
@@ -201,16 +179,18 @@ async function readText(): Promise<string | null> {
 - **Reading** the clipboard almost always shows a prompt — browsers treat it as sensitive.
 - Older browsers / iframes may need the legacy `document.execCommand("copy")` fallback.
 
----
+## When to Use It
 
-## Design: Asking the Right Way
+A prompt at the wrong moment is a denial, and a denial is permanent. Progressive disclosure is the
+pattern that fixes it.
 
-A permission prompt at the wrong moment is a denial. Use **progressive disclosure**:
-
-1. **Don't ask on load.** Wait until the user clicks the feature ("Find places near me").
-2. **Pre-explain in your UI.** Show a small modal: "We use location to show nearby stores." Then trigger the native prompt.
-3. **Check state first.** If `denied`, don't try — show recovery instructions instead.
-4. **Degrade gracefully.** Default to a manual input (zip code, file upload) when permission is missing.
+1. **Never on load.** Wait until the user clicks the feature — "Find places near me".
+2. **Explain in your own interface first.** A one-line panel saying why location is needed — "Location
+   is used to show nearby stores" — and then the native prompt.
+3. **Check state before trying.** If the answer is already `denied`, show recovery instructions rather
+   than a call that does nothing.
+4. **Degrade to a manual input.** A postcode field or a file picker is what the feature falls back to,
+   and it has to be good enough to use.
 
 ```typescript
 async function tryUseLocation(): Promise<void> {
@@ -227,40 +207,70 @@ async function tryUseLocation(): Promise<void> {
 }
 ```
 
-**Bad pattern — asking everything upfront:**
+## Common Mistakes
+
+**❌ Asking for everything on page load.** Three prompts before the user has seen the page means three
+denials, and every one of them is permanent.
 
 ```typescript
 // ❌ Triggers three prompts on page load — most users deny all three
 Notification.requestPermission();
-navigator.geolocation.getCurrentPosition(...);
+navigator.geolocation.getCurrentPosition((pos: GeolocationPosition) => showNearby(pos.coords));
 navigator.mediaDevices.getUserMedia({ video: true });
 ```
 
----
+**❌ Treating `denied` as an error.** It is a state with its own interface: an explanation, a route
+into browser settings, and the manual fallback.
+
+**❌ Hiding the `<video>` element instead of stopping the tracks.** The camera stays on, the hardware
+indicator stays lit, and the device stays locked from other applications.
+
+**❌ Prompting outside a user gesture.** Safari and Firefox refuse to show the dialog at all, so the
+call looks like a silent failure rather than a rejection.
+
+**❌ Requesting more than the feature needs.** `{ video: true, audio: true }` for a feature that only
+records audio doubles what the user is being asked to trust you with.
+
+## 🔑 Key Takeaways
+
+- A permission is asked once per origin, and a denial cannot be re-prompted from code — only the user
+  can undo it from browser settings.
+- `navigator.permissions.query` reports state without prompting; the feature's own API is what asks.
+- Ask on a user action, after your own interface has explained why, never on page load.
+- `denied` is a state to design for, with recovery instructions and a manual fallback.
+- Call `stop()` on every track when you are finished, or the camera indicator stays on.
 
 ## Interview Questions
 
-### Q: How is the Permissions API different from calling the feature directly?
+**Q: How is the Permissions API different from calling the feature directly?**
 
 `navigator.permissions.query` **checks** state — `granted`, `denied`, or `prompt` — without showing a dialog. The actual request happens through the feature API (`getUserMedia`, `Notification.requestPermission`, `getCurrentPosition`). Use the Permissions API to decide whether to even attempt the call, or to show recovery UI when the answer is already `denied`.
 
-### Q: Why might `Notification.requestPermission()` not show a prompt?
+**Q: Why might `Notification.requestPermission()` not show a prompt?**
 
 Three common reasons: (1) not called from a user gesture (Safari/Firefox enforce this), (2) the user has already denied it — the browser remembers and won't re-prompt, (3) you're not in a secure context (no HTTPS). Always check `Notification.permission` first and gate on a click.
 
-### Q: How would you build a "Find restaurants near me" button?
+**Q: How would you build a "Find restaurants near me" button?**
 
 On click: query the geolocation permission state. If `denied`, show a "fix in settings" hint and a zip-code input as fallback. Otherwise call `getCurrentPosition` with a timeout and `enableHighAccuracy: false` (faster, less battery). Handle the error path the same as `denied`. Cache the last fix for a minute with `maximumAge`.
 
-### Q: How do you make sure the camera indicator turns off?
+**Q: How do you make sure the camera indicator turns off?**
 
 Call `stop()` on every track in the `MediaStream` (`stream.getTracks().forEach(t => t.stop())`). If you only hide the `<video>` element, the camera stays on and the browser indicator keeps shining. Clean up in your `useEffect` return or component unmount.
 
-### Q: A user denied notifications. How do you re-prompt?
+**Q: A user denied notifications. How do you re-prompt?**
 
 You can't — once denied, the browser won't show your prompt again. You can only show **in-page instructions** telling the user how to re-enable it from the browser's site settings (click the lock icon, find Notifications, switch back to Ask/Allow). Re-checking via the Permissions API will reflect the new state automatically.
 
-### Q: Which permissions are dangerous from a privacy standpoint?
+**Q: Which permissions are the risky ones, from a privacy standpoint?**
 
-Geolocation, camera, microphone, clipboard read, and persistent background features (Push, Background Sync). They expose either who/where the user is, or sensitive content. Best practice: minimum scope (e.g. `audio: true` only, never both unless needed), explain why before prompting, and stop tracks/release handles immediately after use.
+Geolocation, camera, microphone, clipboard read, and persistent background features (Push, Background Sync). They expose either who/where the user is, or sensitive content. Best practice: minimum scope — `audio: true` only, never both unless needed, explain why before prompting, and stop tracks/release handles immediately after use.
 
+## What to Read Next
+
+- [Chapter ?? — Install and Push](#ch-install-and-push) — the notification permission in the context
+  that actually needs it
+- [Chapter ?? — Accessible Forms and Error Messaging](#ch-accessible-forms) — the other place a
+  fallback input has to be good enough to use
+- [Chapter ?? — Client-Side Input Handling](#ch-client-side-input-handling) — what to do with the data
+  the browser hands back

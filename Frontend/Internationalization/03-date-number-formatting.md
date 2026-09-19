@@ -151,7 +151,7 @@ rules, and a stored offset silently becomes wrong.
 
 **❌ Wrong — a new formatter on every render:**
 
-```typescript
+```tsx
 function Price({ value }: { value: number }): JSX.Element {
   // Constructing the formatter costs far more than formatting with it.
   return <span>{new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value)}</span>;
@@ -160,7 +160,7 @@ function Price({ value }: { value: number }): JSX.Element {
 
 **✅ Right — construct once, reuse:**
 
-```typescript
+```tsx
 // Module scope, or a Map keyed by locale plus options when the locale varies.
 const eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
 

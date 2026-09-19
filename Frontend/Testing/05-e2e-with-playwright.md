@@ -118,15 +118,15 @@ setup("authenticate", async ({ page }) => {
 ```
 
 ```typescript
-// playwright.config.ts
-projects: [
+// playwright.config.ts — the projects array passed to defineConfig
+const projects = [
   { name: "setup", testMatch: /auth\.setup\.ts/ },
   {
     name: "chromium",
     use: { ...devices["Desktop Chrome"], storageState: ".auth/user.json" },
     dependencies: ["setup"],
   },
-],
+];
 ```
 
 Every test in the `chromium` project now starts logged in. Test the login flow itself in one test that

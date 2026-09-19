@@ -57,7 +57,7 @@ res.setHeader(
 - `includeSubDomains` — apply to every subdomain too.
 - `preload` — opt into the browser's hardcoded list (enforced even on the very first visit).
 
-> ⚠️ **HSTS is sticky and hard to undo.** Browsers cache it for the full `max-age`. Roll out with a short `max-age` (e.g. 300s), confirm everything works over HTTPS, then raise it. Only add `preload` once you're certain — removal from preload lists is slow.
+> ⚠️ **HSTS is sticky and hard to undo.** Browsers cache it for the full `max-age`. Roll out with a short `max-age` of 300s, confirm everything works over HTTPS, then raise it. Only add `preload` once you're certain — removal from preload lists is slow.
 
 ## X-Content-Type-Options: nosniff
 
@@ -110,7 +110,7 @@ This recommended value behaves as:
 
 ## Permissions-Policy
 
-Controls which powerful browser features (camera, microphone, geolocation, etc.) the page — and any embedded third-party scripts — may use. Deny what your app doesn't need.
+Controls which powerful browser features — camera, microphone, geolocation — the page — and any embedded third-party scripts — may use. Deny what your app doesn't need.
 
 ```typescript
 res.setHeader(

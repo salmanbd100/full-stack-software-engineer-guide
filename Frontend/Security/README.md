@@ -33,8 +33,7 @@ who names only one layer has described a single point of failure.
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **thinks in budgets, boundaries and migration paths rather than
-features.** For security the boundary language is literal — every question is about a trust boundary:
+For security the part-level boundary language is literal — every question is about a trust boundary:
 
 - **Can you explain XSS by context?** HTML text, an attribute, a URL and a script block each need
   different encoding. "I escape the input" is a mid-level answer; encoding at the point of output,

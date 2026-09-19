@@ -138,7 +138,7 @@ const clean: string = DOMPurify.sanitize(dirty, {
 
 React escapes any value rendered as JSX text. This covers most XSS for free.
 
-```typescript
+```tsx
 function Greeting({ name }: { name: string }) {
   // Safe: React escapes `name` automatically
   return <h1>Hello, {name}!</h1>;
@@ -148,7 +148,7 @@ function Greeting({ name }: { name: string }) {
 
 ### The escape hatches that React does **not** protect
 
-```typescript
+```tsx
 import DOMPurify from "dompurify";
 
 // 1. dangerouslySetInnerHTML — bypasses escaping. Always sanitise first.
@@ -219,7 +219,7 @@ It happens when client JS reads an attacker-controlled source (URL, `postMessage
 
 **Q: Does CSP replace output encoding?**
 
-No. CSP is a **second** layer. Encoding stops injection; CSP stops injected code from running if encoding is missed somewhere. Use both — defense in depth.
+No. CSP is a **second** layer. Encoding stops injection; CSP stops injected code from running if encoding is missed somewhere. Use both — defence in depth.
 
 ## What to Read Next
 

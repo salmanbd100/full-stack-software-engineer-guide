@@ -175,7 +175,7 @@ acknowledged. That is precisely the trade semi-synchronous replication is design
 
 **Q: A user reports that their profile update "did not save". Diagnose it.**
 
-Almost certainly replica lag: the write went to the leader and the subsequent read went to a replica that
+Almost certainly replica lag: the write went to the leader and the read after it went to a replica that
 had not applied it. Confirm by checking lag at that timestamp, then fix it with read-your-writes routing
 rather than by changing the consistency model of the whole system.
 

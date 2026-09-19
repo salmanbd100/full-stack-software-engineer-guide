@@ -162,7 +162,7 @@ response waits. The symptom is a route that quietly stopped being prerendered.
 deploy for pages nobody requests. Prerender the popular ones and let the tail render on demand.
 
 **❌ `Date.now()` or `Math.random()` inside `use cache`.** It runs once, at cache-fill time, and every
-subsequent reader sees the same frozen value. For request-time randomness, `await connection()` first.
+every later reader sees the same frozen value. For request-time randomness, `await connection()` first.
 
 **❌ Assuming this is Vercel-only.** Partial Prerendering is a rendering strategy: build a shell, stream
 the rest. Any host that can serve static files and run a Node.js server can do it; what differs between

@@ -67,10 +67,10 @@ largest variant on a phone.
 
 ```tsx
 // ❌ fill with no sizes — the browser assumes full width and takes the biggest file
-<Image src="/card.jpg" alt="" fill />
+<Image src="/card.jpg" alt="" fill />;
 
 // ✅ one column on mobile, three on desktop
-<Image src="/card.jpg" alt="" fill sizes="(max-width: 768px) 100vw, 33vw" />
+<Image src="/card.jpg" alt="" fill sizes="(max-width: 768px) 100vw, 33vw" />;
 ```
 
 The rule: **if the image is not full-bleed, `sizes` is not optional.** Write it as media queries that

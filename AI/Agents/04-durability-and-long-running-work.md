@@ -92,7 +92,7 @@ flowchart TD
 
 **Three levels, and the middle one is the one people leave out.**
 
-The middle level is what makes an agent robust rather than merely retried: a tool that is genuinely down
+The middle level is what makes an agent durable rather than merely retried: a tool that is genuinely down
 should become an **observation the model can act on** — "the deploy API is unavailable" — so it can take
 another route or stop honestly. Retrying at the tool level for ever is how a run burns its budget on one
 broken dependency.

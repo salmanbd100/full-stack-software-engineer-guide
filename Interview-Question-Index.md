@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**961 of them across 240 chapters**. The answers are not repeated here — they are in the chapter,
+**988 of them across 245 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -140,13 +140,45 @@ _70 questions across 23 chapters._
 
 ## Part II — The Browser Platform
 
-_62 questions across 14 chapters._
+_89 questions across 19 chapters._
 
+- **[Semantic HTML](#ch-semantic-html)**
+  - When do you use `<section>` versus `<article>` versus `<div>`?
+  - Why does heading order matter, and what breaks if you skip levels?
+  - A colleague puts every form field in a `<div>` with floating text above it. What is wrong?
+  - When would you not use a semantic element?
 - **[Advanced CSS](#ch-advanced-css)**
   - Why prefer `oklch` over `hsl` for design tokens?
   - What did `:has()` let you delete?
   - What is the difference between a custom property and a Sass variable?
   - When is a custom property the wrong tool?
+- **[Web Storage APIs](#ch-storage-apis)**
+  - What is the difference between `localStorage` and `sessionStorage`?
+  - Why should a JWT not go in `localStorage`?
+  - How do you sync state across tabs?
+  - What happens when you hit the quota, and how would you find out before you do?
+  - When would you choose IndexedDB instead?
+- **[Cookies and SameSite](#ch-cookies-same-site)**
+  - Walk me through `SameSite=Strict` versus `Lax` versus `None`.
+  - Why is `HttpOnly` more important than `Secure` for an auth cookie?
+  - How does `SameSite` prevent CSRF?
+  - Why not store the JWT in `localStorage`?
+  - How would you do auth across `app.example.com` and `api.example.com`?
+  - What is the third-party cookie phase-out about?
+- **[IndexedDB](#ch-indexeddb)**
+  - When would you choose IndexedDB over `localStorage`?
+  - Why is IndexedDB asynchronous?
+  - How do schema migrations work?
+  - What is a transaction in IndexedDB?
+  - How would you implement an offline-first feature?
+  - What is the size limit?
+- **[Browser Permissions](#ch-browser-permissions)**
+  - How is the Permissions API different from calling the feature directly?
+  - Why might `Notification.requestPermission()` not show a prompt?
+  - How would you build a "Find restaurants near me" button?
+  - How do you make sure the camera indicator turns off?
+  - A user denied notifications. How do you re-prompt?
+  - Which permissions are the risky ones, from a privacy standpoint?
 - **[Why Accessibility, and the Law](#ch-accessibility-and-the-law)**
   - Which accessibility rules apply to a product your company sells across Europe?
   - Why AA rather than A or AAA?

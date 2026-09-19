@@ -5,7 +5,7 @@ chapter: 2
 slug: semantic-html
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
+updated: 2026-09-19
 tags: [frontend, html, css, semantic]
 in_book: true
 ---
@@ -16,24 +16,30 @@ in_book: true
 
 **In this chapter:** document landmarks · `<section>` vs `<article>` vs `<div>` · heading hierarchy · form semantics · when to reach for ARIA
 
-## Why Seniors Should Care
+## 💡 The Core Idea
 
-Semantic HTML is the cheapest accessibility win, the cheapest SEO win, and the cheapest maintenance win. Three reasons it shows up in senior interviews:
+An HTML element is a promise about what the content *is*, and the browser acts on that promise. It
+builds an accessibility tree from it, exposes landmarks a screen reader user can jump between, decides
+what reader mode keeps, and gives a `<button>` focus and keyboard activation nobody had to write. A
+`<div>` makes no promise, so the browser does nothing — and every behaviour it would have given you has
+to be rebuilt by hand, correctly, forever.
 
-| Concern | What Semantic HTML Buys You |
-|---|---|
-| **Accessibility** | Screen readers expose landmarks, headings, and form labels for free — no ARIA needed |
-| **SEO** | Crawlers weight `<article>`, `<h1>`, `<nav>` differently than `<div>` soup |
-| **Maintainability** | A new dev reading `<article>` understands intent instantly. `<div class="post">` requires hunting CSS |
-| **Resilience** | Works without CSS/JS. Reader mode, RSS, and Apple Watch summaries all parse semantic markup |
+That is why this is the cheapest accessibility win, the cheapest SEO win and the cheapest maintenance
+win available. Every `<div>` is a small act of giving up; reach for one when no element fits, not first.
 
-> **Key Insight:** Every `<div>` is a tiny act of giving up. Use it only when no semantic tag fits.
+## How It Works
 
----
+| Concern | What the element buys you |
+| ------- | -------------------------- |
+| **Accessibility** | Landmarks, headings and form labels are exposed with no ARIA at all |
+| **SEO** | Crawlers weight `<article>`, `<h1>` and `<nav>` differently from `<div>` soup |
+| **Maintainability** | `<article>` states intent on sight; `<div class="post">` needs a hunt through the CSS |
+| **Resilience** | Works with no CSS and no JavaScript — reader mode, RSS and watch summaries all parse it |
 
-## Document Landmarks
+### Document landmarks
 
-The browser builds an **accessibility tree** from these tags. Screen reader users navigate by landmark, not by scrolling.
+Screen reader users navigate by landmark rather than by scrolling. These are the elements that create
+one.
 
 ```html
 <body>
@@ -50,114 +56,65 @@ The browser builds an **accessibility tree** from these tags. Screen reader user
 </body>
 ```
 
-### 💡 **Landmark Cheat Sheet**
+**The landmark set, and what each one is not for:**
 
-| Tag | Use For | Avoid For |
-|---|---|---|
-| `<header>` | Top of page **or** top of any `<article>`/`<section>` | Generic wrappers |
-| `<nav>` | Major navigation blocks | Every list of links (footer link lists don't need it) |
+| Tag | Use for | Avoid for |
+| --- | ------- | --------- |
+| `<header>` | Top of the page **or** top of any `<article>`/`<section>` | Generic wrappers |
+| `<nav>` | Major navigation blocks | Every list of links — a footer link list needs none |
 | `<main>` | The page's primary content | More than once per page |
-| `<article>` | Self-contained, syndicatable content (blog post, product card, comment) | Generic grouping |
+| `<article>` | Self-contained, syndicatable content — post, product card, comment | Generic grouping |
 | `<section>` | Thematic grouping that **needs a heading** | A styling wrapper |
-| `<aside>` | Sidebars, pull quotes, related links | Just because content is on the side visually |
-| `<footer>` | Page footer **or** end of an article (author, date) | Generic bottom container |
+| `<aside>` | Sidebars, pull quotes, related links | Content that is merely positioned to one side |
+| `<footer>` | Page footer **or** end of an article — author, date | Generic bottom container |
 
-**Common Mistake:**
+### Heading hierarchy
 
-```html
-<!-- ❌ Bad: nav is for major navigation, not every link group -->
-<footer>
-  <nav><a>Privacy</a><a>Terms</a></nav>
-</footer>
+Headings are how a screen reader user skims: pressing `H` jumps heading to heading. Skip a level and
+that user believes they have lost a section.
 
-<!-- ✅ Good: a plain list is enough -->
-<footer>
-  <ul><li><a>Privacy</a></li><li><a>Terms</a></li></ul>
-</footer>
-```
-
----
-
-## `<section>` vs `<article>` vs `<div>` — The Decision Rule
-
-This is the most-asked semantic HTML interview question.
-
-```text
-Could this content stand alone, syndicated to another site (RSS, share card)?
-  ├── Yes → <article>
-  └── No → Does it have a clear heading and represent a distinct theme?
-            ├── Yes → <section>
-            └── No → <div>  (purely structural / styling hook)
-```
-
-### Examples
-
-| Content | Tag | Why |
-|---|---|---|
-| Blog post | `<article>` | Syndicatable, self-contained |
-| Comment on a blog post | `<article>` (nested) | Each comment is a self-contained unit |
-| "Latest News" widget on homepage | `<section>` | Themed group, has heading, not standalone |
-| Tab panel with three subsections | `<section>` per tab panel | Each needs a heading |
-| Flexbox wrapper for layout | `<div>` | No semantic meaning — just a styling hook |
-
-> **Key Insight:** If you can't write a meaningful heading for a `<section>`, it should probably be a `<div>`.
-
----
-
-## Heading Hierarchy
-
-Headings are how screen reader users skim. They press `H` to jump heading-to-heading. Skip a level and you confuse them.
-
-### 💡 **Rules**
-
-- One `<h1>` per page (the page's primary topic).
-- Never skip levels going **down** (`h2` → `h4` is wrong).
-- Skipping going back up is fine (`h4` → `h2`).
-- The visual size of a heading is independent of its level — style with CSS, choose level by **outline**.
+- One `<h1>` per page — the page's primary topic.
+- Never skip a level going **down**. `h2` → `h4` is wrong.
+- Skipping back **up** is fine. `h4` → `h2` closes two levels at once.
+- Visual size is independent of level. Style with CSS; choose the level from the outline.
 
 ```html
-<!-- ❌ Bad: visually styled, semantically broken -->
+<!-- ❌ Visually styled, semantically broken -->
 <h1>My Site</h1>
 <h4>Articles</h4>   <!-- skipped h2, h3 -->
 <h2>An Article</h2>
 
-<!-- ✅ Good: outline matches structure -->
+<!-- ✅ The outline matches the structure -->
 <h1>My Site</h1>
 <h2>Articles</h2>
 <h3>An Article</h3>
 ```
 
-**Why it matters:** Lighthouse, axe-core, and WAVE all flag broken heading order. So do screen reader users, loudly.
+Lighthouse, axe-core and WAVE all flag broken heading order, so this one fails in CI as well as in use.
 
----
+### Form semantics
 
-## Forms — The Highest-Leverage Semantics
-
-Forms are where bad markup causes real user pain. Get these right.
-
-### Labels
+Forms are where bad markup causes real pain, and labels are the whole of it. Without a `<label>`, a
+screen reader announces "edit text, blank" and the user has nothing to go on.
 
 ```html
-<!-- ❌ Bad: no association. Click "Email" — focus doesn't move. -->
+<!-- ❌ No association. Clicking "Email" moves focus nowhere. -->
 <div>Email</div>
 <input type="email" />
 
-<!-- ✅ Good: explicit `for`/`id` association -->
+<!-- ✅ Explicit `for`/`id` association -->
 <label for="email">Email</label>
 <input id="email" type="email" name="email" />
 
-<!-- ✅ Also good: implicit wrapping -->
+<!-- ✅ Implicit wrapping, equally valid -->
 <label>
   Email
   <input type="email" name="email" />
 </label>
 ```
 
-Without a `<label>`, screen readers announce "edit text, blank" — the user has no idea what to type.
-
-### Grouping with `<fieldset>` and `<legend>`
-
-For radio groups, checkbox groups, and related sets:
+**Grouped controls need a name of their own.** `<legend>` is announced before each radio, so the user
+hears "Shipping speed, Standard, radio button" rather than "Standard, radio button".
 
 ```html
 <fieldset>
@@ -167,39 +124,33 @@ For radio groups, checkbox groups, and related sets:
 </fieldset>
 ```
 
-The `<legend>` is announced before each radio, so users hear "Shipping speed, Standard, radio button."
+**The input type is free behaviour.** Pick the most specific one available; the mobile keyboard alone
+pays for the decision.
 
-### Input Types Pull Their Weight
-
-| Type | Free Behavior |
-|---|---|
+| Type | What it gives you |
+| ---- | ----------------- |
 | `email` | Mobile email keyboard, basic validation |
 | `tel` | Numeric keypad on mobile |
-| `url` | URL keyboard with `.com` key |
-| `number` | Spinner, numeric input |
+| `url` | URL keyboard with a `.com` key |
+| `number` | Spinner and numeric input |
 | `date` / `time` | Native picker |
-| `search` | Clear button, search keyboard |
+| `search` | Clear button and search keyboard |
 
-> **Key Insight:** Always pick the most specific input type. Mobile keyboards alone are worth it.
+### Lists and tables
 
----
-
-## Lists vs Tables
-
-### Lists
-
-Use `<ul>` for unordered collections, `<ol>` when order matters (steps, rankings, code line numbers). `<dl>` for term/definition pairs (glossaries, metadata).
+`<ul>` for an unordered collection, `<ol>` where order carries meaning — steps, rankings, line numbers
+— and `<dl>` for term and definition pairs such as a glossary or a metadata block.
 
 ```html
 <dl>
-  <dt>Author</dt>   <dd>Salman Rahman</dd>
+  <dt>Author</dt>    <dd>Salman Rahman</dd>
   <dt>Published</dt> <dd>2026-05-20</dd>
 </dl>
 ```
 
-### Tables — Only for Tabular Data
-
-A `<table>` is for data with rows and columns where each cell relates to row + column headers. **Never use tables for layout.**
+A `<table>` is for data where each cell relates to a row header and a column header. `<caption>`,
+`<thead>` and `scope` are what let a screen reader announce those headers as the user moves between
+cells.
 
 ```html
 <table>
@@ -213,41 +164,111 @@ A `<table>` is for data with rows and columns where each cell relates to row + c
 </table>
 ```
 
-`<caption>`, `<thead>`, `scope="col|row"` — these let screen readers announce headers as users navigate cells.
+## When to Use It
 
----
+The `<section>` / `<article>` / `<div>` decision is the one interviewers ask about, and it resolves in
+two questions.
 
-## When Semantic HTML Isn't Enough → ARIA
+```text
+Could this content stand alone, syndicated to another site?
+  ├── Yes → <article>
+  └── No → Does it have a clear heading and one distinct theme?
+            ├── Yes → <section>
+            └── No → <div>  (purely structural, a styling hook)
+```
 
-Sometimes you build something the platform doesn't ship a tag for (tabs, combobox, tree). Then you reach for ARIA roles and attributes.
+| Content | Element | Why |
+| ------- | ------- | --- |
+| Blog post | `<article>` | Syndicatable and self-contained |
+| Comment on that post | `<article>`, nested | Each comment is a unit in its own right |
+| "Latest News" widget | `<section>` | Themed, has a heading, does not stand alone |
+| Tab panel with three subsections | `<section>` per panel | Each one needs a heading |
+| Flexbox wrapper for layout | `<div>` | No meaning at all — a styling hook |
 
-**The First Rule of ARIA:** Don't use ARIA. Use a real element.
+> ⚠️ If you cannot write a meaningful heading for a `<section>`, it is a `<div>`. The heading is not
+> decoration; it is the thing that makes the section a section.
+
+## Common Mistakes
+
+**❌ `<nav>` around every group of links.** It is for major navigation. A footer link list is a list.
 
 ```html
-<!-- ❌ Bad: reinventing a button -->
+<!-- ❌ Every link group announced as a navigation landmark -->
+<footer>
+  <nav><a>Privacy</a><a>Terms</a></nav>
+</footer>
+
+<!-- ✅ A plain list is enough -->
+<footer>
+  <ul><li><a>Privacy</a></li><li><a>Terms</a></li></ul>
+</footer>
+```
+
+**❌ Reaching for ARIA when an element exists.** ARIA fills gaps in HTML — tabs, comboboxes, trees —
+and nothing else. The first rule of ARIA is not to use ARIA.
+
+```html
+<!-- ❌ Reinventing a button, badly -->
 <div role="button" tabindex="0" onclick="...">Save</div>
 
-<!-- ✅ Good: it's already a button -->
+<!-- ✅ It is already a button -->
 <button type="button" onclick="...">Save</button>
 ```
 
-The `<button>` gives you focus, keyboard activation (Enter + Space), disabled state, and form participation for free. ARIA on a `<div>` does none of that — you'd have to wire it all up by hand.
+The `<button>` brings focus, Enter and Space activation, a disabled state and form participation. The
+`<div>` brings a role attribute and a promise you now have to keep by hand.
 
-> **Key Insight:** ARIA exists for gaps in HTML, not as a replacement for it. Defer deep ARIA patterns to the accessibility doc.
+**❌ Tables for layout.** They announce as data to a screen reader, which then reads a page of
+positioning as though it were a spreadsheet.
 
----
+**❌ Choosing a heading level for its size.** `<h4>` because the design wants smaller text is how an
+outline breaks. Choose the level from the structure and set the size in CSS.
+
+## 🔑 Key Takeaways
+
+- An element is a promise about what the content is, and the browser acts on it — a `<div>` promises
+  nothing, so nothing is given to you.
+- `<article>` stands alone, `<section>` needs a heading, `<div>` is the fallback when neither is true.
+- Heading level comes from the document outline, never from the font size the design asks for.
+- A form control without an associated `<label>` has no accessible name, and announces as "blank".
+- ARIA is for what HTML has no element for. Every other use of it is work you have signed up to redo.
 
 ## Interview Questions
 
-### Q1: When do you use `<section>` vs `<article>` vs `<div>`?
+**Q: When do you use `<section>` versus `<article>` versus `<div>`?**
 
-**Answer:** `<article>` for self-contained, syndicatable content (a blog post, a product card, a tweet — something that could live alone on another page). `<section>` for a thematic group within a page that has its own heading (e.g., "Featured Products" on a homepage). `<div>` is the fallback when there's no semantic meaning — purely a styling/layout hook. If I can't write a meaningful heading for a `<section>`, it should be a `<div>`.
+`<article>` for self-contained, syndicatable content — a blog post, a product card, something that
+could live alone on another page. `<section>` for a thematic group within a page that has its own
+heading, such as "Featured Products" on a homepage. `<div>` when there is no meaning to express and the
+element is a styling hook. The test that settles most cases: if you cannot write a meaningful heading
+for the `<section>`, it should be a `<div>`.
 
-### Q2: Why does heading order matter, and what breaks if you skip levels?
+**Q: Why does heading order matter, and what breaks if you skip levels?**
 
-**Answer:** Screen reader users navigate by heading (H key in NVDA/JAWS) and rely on level to understand structure. Skipping `h2` → `h4` implies a missing parent — the user thinks they've lost context. Style headings visually with CSS independent of level; choose the level based on the document outline, not how big you want the text. Lighthouse and axe will flag broken order, and it's a quick interview tell for whether someone understands accessibility.
+Screen reader users navigate by heading and read the level as structure. Skipping `h2` to `h4` implies
+a parent section that is not there, so the user believes they have lost context. Style headings
+visually with CSS and choose the level from the document outline. Lighthouse and axe both flag broken
+order, so it also fails automatically.
 
-### Q3: A junior puts every form field in a `<div>` with floating text above it. What's wrong and how do you fix it?
+**Q: A colleague puts every form field in a `<div>` with floating text above it. What is wrong?**
 
-**Answer:** No `<label>` association. Three concrete problems: (1) clicking the text doesn't focus the input — bad for everyone on touch devices, (2) screen readers announce "edit text, blank" because the input has no accessible name, (3) the hit target shrinks to just the input. Fix: wrap with `<label>` or use `<label for="id">` + matching `id` on the input. For grouped controls like radios, add `<fieldset><legend>` so the group has a name too.
+There is no label association, and it costs three separate things: clicking the text does not focus the
+input, the input has no accessible name so it announces as "edit text, blank", and the hit target
+shrinks to the control itself. The fix is `<label for>` with a matching `id`, or wrapping the control in
+the `<label>`. For a radio or checkbox group, add `<fieldset>` and `<legend>` so the group is named too.
 
+**Q: When would you not use a semantic element?**
+
+When the element would make a promise the content does not keep. `<aside>` for something that is merely
+positioned to one side, `<nav>` for a list of three footer links, or `<section>` for a flex wrapper all
+add a landmark a screen reader user has to navigate past. A wrong landmark is worse than no landmark,
+which is the one case where `<div>` is the right answer rather than the lazy one.
+
+## What to Read Next
+
+- [Chapter ?? — The Accessibility Tree](#ch-accessibility-tree) — what the browser builds out of
+  this markup, and how to inspect it
+- [Chapter ?? — ARIA, and When Not to Use It](#ch-aria) — the gaps semantic HTML
+  genuinely leaves, and the patterns that fill them
+- [Chapter ?? — Accessible Forms and Error Messaging](#ch-accessible-forms) — validation, error messaging and the rest of
+  the form story

@@ -121,7 +121,7 @@ adequate for most applications:
 
 The component is identical for every locale, because the locale's rules — not the code — pick the key.
 
-```typescript
+```tsx
 function UnreadBadge({ count }: { count: number }): JSX.Element {
   const { t } = useTranslation();
   // Passing `count` is what triggers plural selection. Passing it as a

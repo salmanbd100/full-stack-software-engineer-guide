@@ -16,49 +16,20 @@ in_book: true
 
 **In this chapter:** when it beats Web Storage · object stores and transactions · versioning and migrations · indexes and queries · the `idb` wrapper
 
-## Table of Contents
-- [What It Is](#what-it-is)
-- [When to Reach for IndexedDB](#when-to-reach-for-indexeddb)
-- [Core Concepts](#core-concepts)
-- [Raw API: Open and Migrate](#raw-api-open-and-migrate)
-- [CRUD in a Transaction](#crud-in-a-transaction)
-- [Indexes & Queries](#indexes--queries)
-- [The `idb` Library (What You'll Actually Use)](#the-idb-library-what-youll-actually-use)
-- [IndexedDB vs Other Storage](#indexeddb-vs-other-storage)
-- [Common Pitfalls](#common-pitfalls)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+IndexedDB is a transactional, object-based, asynchronous database that lives in the browser under the
+same-origin policy. It stores whole JavaScript objects — including `Blob`s and `File`s — rather than
+strings, it indexes their properties, and it holds hundreds of megabytes where web storage holds five.
 
-## What It Is
+The asynchrony is the design, not an inconvenience. Browser storage is on disk, and a synchronous disk
+read on the main thread freezes rendering and input, so every operation returns a request object and
+answers later. Everything awkward about the raw API follows from that one decision, and everything the
+`idb` wrapper does is hide it.
 
-**IndexedDB** is a **transactional, object-based, asynchronous** database in the browser. It stores JavaScript objects (including Blobs and Files) under the same-origin policy.
+## How It Works
 
-**Key properties:**
-
-- **Asynchronous** — every operation returns a request; UI never blocks
-- **Transactional** — operations group into transactions (ACID-style within the page)
-- **Object-store based** — closer to MongoDB than SQL; keys map to whole objects
-- **Indexes** — fast lookups on object properties
-- **Large** — typically tens to hundreds of MB; up to gigabytes on some browsers
-
----
-
-## When to Reach for IndexedDB
-
-| Use IndexedDB when… | Stick with localStorage when… |
-|----------------------|--------------------------------|
-| > 5 MB of data | < 5 MB of small strings |
-| Storing Blobs / Files | Storing flags or prefs |
-| You need indexed queries | A single lookup is enough |
-| Offline-first / PWA cache | One-off settings |
-| Background sync queue | — |
-
-**Typical interview-grade examples:** offline email/notes app, PWA asset cache, large customer dashboard data, mobile web app working without network.
-
----
-
-## Core Concepts
+### The vocabulary
 
 | Term | Meaning |
 |------|---------|
@@ -69,11 +40,10 @@ in_book: true
 | **Transaction** | Scope for reads/writes. `readonly` or `readwrite` |
 | **Cursor** | Iterator over many records, one at a time |
 
-> Schema changes (new stores, new indexes) require a **version upgrade**. They run inside an `onupgradeneeded` handler.
+Schema changes — a new store, a new index — require a **version upgrade**, and they run inside an
+`onupgradeneeded` handler. There is nowhere else they are allowed to happen.
 
----
-
-## Raw API: Open and Migrate
+### Opening and migrating
 
 ```typescript
 interface Note {
@@ -104,11 +74,10 @@ function openDB(): Promise<IDBDatabase> {
 }
 ```
 
-> The raw API is event-based and verbose — that's why almost everyone wraps it. We'll show the `idb` library further down.
+The raw API is event-based and verbose, which is why almost nobody uses it directly. The `idb` wrapper
+below is what production code looks like.
 
----
-
-## CRUD in a Transaction
+### Reading and writing inside a transaction
 
 Every read or write goes through a transaction. The transaction commits **automatically** when its scope finishes; you cannot `await` between operations on the same transaction without losing it.
 
@@ -136,9 +105,7 @@ async function getNote(db: IDBDatabase, id: number): Promise<Note | undefined> {
 
 > ⚠️ Don't `await` a `fetch()` in the middle of a transaction — the transaction will close before your next IndexedDB call runs.
 
----
-
-## Indexes & Queries
+### Indexes and queries
 
 Indexes let you look up by something other than the primary key.
 
@@ -167,11 +134,10 @@ function recentNotes(db: IDBDatabase, since: number): Promise<Note[]> {
 
 For very large result sets, use a **cursor** instead of `getAll` to stream records.
 
----
+### The `idb` wrapper
 
-## The `idb` Library (What You'll Actually Use)
-
-Jake Archibald's [`idb`](https://github.com/jakearchibald/idb) gives you the same API behind promises and TypeScript generics. This is what production code looks like.
+[`idb`](https://github.com/jakearchibald/idb) gives you the same API behind promises and TypeScript
+generics.
 
 ```typescript
 import { openDB, DBSchema, IDBPDatabase } from "idb";
@@ -205,11 +171,10 @@ await db.put("notes", { ...note!, body: "edited", updatedAt: Date.now() });
 await db.delete("notes", id);
 ```
 
-> For interviews: knowing both APIs is fine — but **mentioning `idb`** signals that you've actually shipped with IndexedDB.
+Knowing both APIs is fine for an interview, but naming `idb` unprompted signals that you have shipped
+with IndexedDB rather than read about it.
 
----
-
-## IndexedDB vs Other Storage
+## When to Use It
 
 | | localStorage | sessionStorage | IndexedDB | Cache API |
 |--|--------------|----------------|-----------|-----------|
@@ -219,46 +184,71 @@ await db.delete("notes", id);
 | **Queries** | Manual | Manual | Indexed | URL keys |
 | **Use for** | Small prefs | Tab-local draft | App data, offline records | HTTP responses (PWA) |
 
-> The **Cache API** is purpose-built for caching HTTP responses (used by service workers). For arbitrary structured data, IndexedDB is the right tool.
+The **Cache API** is purpose-built for HTTP responses and is what a service worker reaches for. For
+arbitrary structured data, IndexedDB is the right tool. The typical cases that justify it: an offline
+notes or email client, a PWA asset cache, a dashboard holding a large customer dataset, and a mobile
+web application expected to work with no network at all.
 
----
+## Common Mistakes
 
-## Common Pitfalls
+**❌ `await`ing something that is not IndexedDB inside a transaction.** The transaction commits when
+its event-loop turn ends, so a `fetch` in the middle closes it and the next call throws. Group the
+IndexedDB calls together and await once, at the end.
 
-- **Transactions die on `await` to non-IndexedDB code.** Wrap all the IndexedDB calls together, then `await` once at the end.
-- **`onupgradeneeded` is the only place to change schema.** Trying to `createObjectStore` outside it throws.
-- **Errors don't reject — they fire `onerror`.** When using the raw API, attach handlers; with `idb`, normal promise rejection works.
-- **No string keys by default.** Specify `keyPath` (auto-extract from object) or `autoIncrement: true`.
-- **Private/Incognito mode** may store in memory only (data lost on close) or refuse writes entirely.
-- **Storage can be evicted.** Use `navigator.storage.persist()` to request that your data isn't auto-cleared under pressure.
+**❌ Changing the schema outside `onupgradeneeded`.** `createObjectStore` anywhere else throws. A new
+store or index means a version bump, every time.
 
----
+**❌ Expecting the raw API to reject.** Errors fire `onerror` rather than rejecting a promise, so an
+unhandled failure is silent. With `idb`, ordinary promise rejection works and this stops being true.
+
+**❌ Assuming a key exists.** There are no string keys by default — specify a `keyPath` to extract one
+from the object, or `autoIncrement: true`.
+
+**❌ Treating storage as permanent.** Private browsing may keep everything in memory or refuse writes,
+and the browser evicts under pressure. `navigator.storage.persist()` is a request, not a guarantee.
+
+## 🔑 Key Takeaways
+
+- IndexedDB is asynchronous because synchronous disk access on the main thread would freeze the page —
+  every awkward part of the API follows from that.
+- A transaction commits when its event-loop turn ends, so awaiting unrelated work inside one loses it.
+- Schema changes happen only inside `onupgradeneeded`, and only on a version bump.
+- Reach for it past roughly 5 MB, for binary data, for indexed queries, or when a read is big enough
+  to cost a frame.
+- Use `idb` in real code, and know the raw API well enough to explain what it is hiding.
 
 ## Interview Questions
 
-### Q: When would you choose IndexedDB over `localStorage`?
+**Q: When would you choose IndexedDB over `localStorage`?**
 
 When you need any of: more than ~5 MB, structured queries on object fields, Blob/File storage, or non-blocking access in a hot path. `localStorage` is fine for a handful of small strings; everything bigger or richer belongs in IndexedDB.
 
-### Q: Why is IndexedDB asynchronous?
+**Q: Why is IndexedDB asynchronous?**
 
 To keep the main thread responsive. Browser storage lives on disk, and synchronous disk I/O on the UI thread freezes rendering and input. IndexedDB returns request objects that fire `onsuccess` / `onerror`, so reads and writes never block animations or scroll.
 
-### Q: How do schema migrations work?
+**Q: How do schema migrations work?**
 
 Each database has a version number. When you call `indexedDB.open(name, newVersion)` with a higher number than what's installed, the browser fires `onupgradeneeded`. **All schema changes** — creating/deleting stores, adding indexes — must happen inside that handler. After it returns, you're at the new version.
 
-### Q: What is a transaction in IndexedDB?
+**Q: What is a transaction in IndexedDB?**
 
 A scope for one or more operations on one or more stores, opened as `readonly` or `readwrite`. Operations inside commit together, or roll back together if any fails. The transaction commits automatically when its event-loop turn ends — so you can't `await` unrelated work in the middle without losing it.
 
-### Q: How would you implement an offline-first feature?
+**Q: How would you implement an offline-first feature?**
 
 1. **IndexedDB** holds local data + a pending-mutations queue.
 2. UI reads/writes from IndexedDB first (fast, works offline).
 3. A **service worker** intercepts requests; when offline, it returns cached responses from the Cache API.
 4. On reconnect (via `online` event or **Background Sync**), the worker drains the mutation queue and replays it against the server.
 
-### Q: What's the size limit?
+**Q: What is the size limit?**
 
 It depends. Browsers grant per-origin quotas relative to total disk free space — often around 60% of free space split among all origins, capped per origin. Use `navigator.storage.estimate()` to read the current quota, and `navigator.storage.persist()` to ask for the data not to be evicted.
+
+## What to Read Next
+
+- [Chapter ?? — Web Storage APIs](#ch-storage-apis) — the smaller, synchronous store this one replaces
+- [Chapter ?? — Service Workers](#ch-service-workers) — the other half of an offline-first feature
+- [Chapter ?? — Caching and Offline](#ch-caching-and-offline) — the Cache API, and which data belongs
+  in which store

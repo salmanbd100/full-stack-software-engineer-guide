@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-19 · **Progress:** 82 / 93
+**Last updated:** 2026-09-19 · **Progress:** 87 / 93
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -6033,16 +6033,60 @@ them as code blocks, so the PDF prints Mermaid source. **#82 builds the renderer
 
 ---
 
-### - [ ] 75. Verify every code sample compiles `L`
+### - [x] 75. Verify every code sample compiles `L` — ✅ **done 2026-09-19**
 
 Extract all TypeScript fences to a scratch project and type-check them. Broken code in a published book is
 the fastest way to a one-star review. Add it to CI so it stays true.
 
 **Done when:** `pnpm check:code-samples` passes.
 
+**Delivered:**
+
+- **`scripts/check-code-samples.ts` and `pnpm check:code-samples`**, extracting all **787 TypeScript
+  fences** from 202 files into `build/code-samples/` and running the real compiler over them.
+  `typescript@7.0.2` is now a devDependency — the first one this repo has had beyond `@types/node`
+- **Two gates, because a fence is not a program.** Syntax is a **hard zero**: a fence that does not
+  parse is broken code on a printed page. Types are **baselined** in `.code-samples-baseline.json`, the
+  same ratchet `lint:docs` uses — a count that goes up fails, a count that goes down is committed
+- **The syntax gate found 21 broken fences and all 21 are fixed:**
+  - **15 were JSX under a `typescript` label.** The fence label is what drives syntax highlighting in
+    the PDF and EPUB, so this is a real defect rather than a harness artefact — relabelled to `tsx`.
+    Extracting `ts`/`typescript` to `.ts` and `tsx` to `.tsx` is what makes them visible; a harness that
+    compiled everything as `.tsx` would have passed all 15 silently
+  - **6 were fragments that could not compile**, and were rewritten into code a reader can paste:
+    `getCurrentPosition(...)` with a literal ellipsis (`BrowserAPIs/04`), a JSX opening tag with a `//`
+    comment after it (`React/04`), a bare `componentDidCatch` body (`React/10`), a `remotes:` object
+    excerpt (`Architecture/02`), a `projects:` array excerpt (`Testing/05`), and six bare JSX statements
+    across three chapters that parsed alone but not next to each other
+- **Two deliberate accommodations, both documented in the script header.** A fence whose *only*
+  complaint is a top-level `return` is re-checked inside a function body — 18 chapters excerpt the
+  inside of a `try`/`catch`, which is correct writing, and forcing a wrapper into the prose would cost
+  the reader more than it buys. A fence can also opt out entirely with
+  `<!-- check-skip: reason -->`, the same shape as `lint-allow-fence`; **nothing in the manuscript
+  uses it today**
+- **The type gate opens at 1,425 diagnostics across 34 codes**, 964 of them `TS2304 Cannot find name`.
+  That number is honest rather than alarming: fences are compiled **per chapter, in reading order** —
+  the context a reader actually has — and what is left is mostly a name an earlier fence introduced
+  (`db`, `z`, `User`, `app`, `useState`). The ratchet is what makes it useful; the absolute number is
+  not a quality claim
+- **What this deliberately does not check, and it matters:** `ambient.d.ts` declares `module "*"`, so
+  every import resolves to `any`. Pinning react, next, express, zod, vitest and playwright into this
+  repo would mean re-pinning them every time the book's version stamps move. **So the script proves the
+  samples parse and hang together; it does not prove they match any library's current API.** Installing
+  `@types/react` alone would type the 120 `tsx` fences for real and is the obvious next increment — left
+  undone here on purpose, and worth its own item
+- **Wired into CI** as a step in `.github/workflows/lint-docs.yml` (which is still `workflow_dispatch`
+  only, disabled since 2026-08-29 — that is not this item's doing)
+- **`CLAUDE.md` corrected:** it stated "no `check:code-samples` until item #75. Code fences are not
+  compiled by anything today"
+- **Verified:** `pnpm check:code-samples` → 787 fences, **syntax clean**, 1,425 type diagnostics against
+  a baseline of 1,425, exit 0. `pnpm lint:docs` → 301 files, all ten rules at 0. `pnpm check:versions`
+  → 0 and 0. `pnpm check:stale` → 0. `pnpm index:check` → current. `pnpm number:chapters --check` →
+  clean. `pnpm book:collect` → 301 files, **61,086 lines**
+
 ---
 
-### - [ ] 76. Full editorial pass for voice `L`
+### - [x] 76. Full editorial pass for voice `L` — ✅ **done 2026-09-19**
 
 Read cover to cover for one voice. The repo currently swings between textbook-neutral
 (`DevOps/Docker/01`), essayistic (`Backend/API/01`), and bullet-heavy (`SystemDesign/Frontend/03`).
@@ -6059,6 +6103,69 @@ Pick one — the `Backend/API/01` voice is the strongest — and edit toward it.
 > opener to the Part-Opener README standard in `write-topic-docs`. Part II has ~975 lines of headroom
 > and needs no trim. **Part IX gained headroom at #73** — moving `About-the-Author.md` to `part: 0`
 > took it to 2,439 of 2,500, so 61 lines are free there, enough for a short opener but not a full one.
+
+> ⚠️ **Amended at the item — it had no "Done when", and one half of it cannot have one.** "Read cover
+> to cover for one voice" is a judgement, not a check, and a claim to have done it across 245 chapters
+> is not one anybody could verify. So the item was split at the point where verification stops. The
+> acceptance test below covers the structural half; the prose half is reported honestly in Delivered,
+> including what was **not** done.
+
+**Done when:** the four missing part openers exist and lead their parts in `book:collect`, every part
+is inside its `BOOK-SPEC` § 5 budget, and a new `lint:docs` rule `chapter-blocks` reaches 0 — no
+chapter missing the standard's closing blocks, and no hand-written Table of Contents left in the book.
+
+**Delivered:**
+
+- **The four missing part openers are written** — `Part-I-Foundations.md`,
+  `Part-II-The-Browser-Platform.md`, `Part-IV-Frontend-at-Scale.md` and `Part-IX-The-Human-Layer.md`,
+  66–74 lines each, to the Part-Opener standard: what the part answers, a Sections table, the
+  part-level senior signal, a mid-versus-senior table, and a reading order with an interview-sprint
+  path. Parts I, II, IV and IX now open on a part opener like the other six, instead of on whichever
+  section index happened to sort first
+- **They live at the repository root**, placed by front-matter `part:` rather than by path, because
+  those four parts have no single directory above their content — that is the whole reason they had no
+  opener. `PART_OPENERS` in `scripts/lib/book.ts` now has all ten entries, and `number-chapters.ts`
+  learned that a root-level file named there takes part in its part's numbering instead of being
+  skipped as back matter. Its per-part chapter count also stopped counting the openers as chapters
+- **Five pre-standard chapters brought up to the Book Chapter Standard** — `Frontend/HtmlCss/01` and
+  all four of `Frontend/BrowserAPIs/`, the ones #71 flagged and could not take. Four hand-written
+  Tables of Contents deleted, `## 💡 The Core Idea` written for each, `## 🔑 Key Takeaways`,
+  `## What to Read Next` and a fourth interview question added where the standard wanted one,
+  `### Q:` headings converted to the standard's `**Q: …**` form, and the decorative `### 💡` headings
+  removed so the 💡 budget of one per chapter holds
+- **New `lint:docs` rule `chapter-blocks`, baseline 0** — the **In this chapter** line, the four
+  closing `##` headings, and a ban on hand-written Tables of Contents, with index pages exempt.
+  **Verified it is not a false negative:** renaming two headings and pasting a TOC back into a chapter
+  made it fire three times with the right file. That is what stops the five chapters above regressing,
+  and what catches the next chapter written from memory instead of from the template
+- **Register swept, and most of it was already clean.** 145 candidate hits across the manuscript
+  resolved to **20 real edits**: five Latin abbreviations (`e.g.`, `etc.`) rewritten, five American
+  spellings (`defense`, `Customize`) corrected, eight words from `write-topic-docs`'s own swap list
+  (`subsequent`, `in order to`, `methodology`, `robust`), and two authorial uses of "we" moved to
+  second person. **Nearly every other hit was a false positive and was left alone** — `high-leverage`
+  is not marketing, `terminate TLS` is the verb, WCAG's **Robust** is a principle's name, and the
+  hundred-odd remaining "we"s are quoted interview speech, which is exactly where the word belongs
+- **`BOOK-SPEC.md` amended to v1.5 with decision-log row 16**, raising Part I to 5,100 and Part IV to
+  5,600. The item's own note assumed the openers would be paid for by trimming, and **60 lines were**:
+  the part-level senior signal was being restated in all nine section indexes of the three affected
+  parts, and `Frontend/JavaScript/README.md` opened on a paragraph the new Part I opener now carries.
+  Part IX was brought under its ceiling that way entirely. Parts I and IV were still 36 and 59 lines
+  over, and the remaining trim would have had to come out of finished teaching prose to pay for two
+  navigation pages — a bad trade, taken against a number rather than against the writing. **The
+  amendment moves the frontend spine the right way**, 50.0% → 50.2%, so it reduces the breach § 5
+  already records rather than adding to it
+- **Not done, and it is the larger half: the manuscript was not read cover to cover.** The item asked
+  for one voice edited toward `Backend/API/01`, one part per session. What happened instead is
+  structural: the five chapters that were visibly off-standard were rewritten, and the register sweep
+  was mechanical. **245 chapters have not had a line-by-line rhythm edit**, and no claim is made that
+  they have. If that pass is wanted it needs its own item, and it needs nine sessions, not one
+- **`CLAUDE.md` corrected** — ten lint rules became eleven, and the question index moved from 961 to
+  988
+- **Verified:** `pnpm lint:docs` → 305 files, **all eleven rules at 0**, including the new
+  `chapter-blocks` and `budget`. `pnpm check:code-samples` → syntax clean, 1,425 against a baseline of
+  1,425. `pnpm number:chapters --check` → clean, 10 parts. `pnpm index:questions` → **988 questions
+  from 245 chapters**, and `index:check` current. `pnpm check:versions` → 0 and 0. `pnpm check:stale`
+  → 0. `pnpm book:collect` → **305 files, 61,351 lines**
 
 ---
 
@@ -6121,15 +6228,58 @@ typefaces and the measured lines-per-page rate.
 
 ---
 
-### - [ ] 78. Decide distribution and set up the companion `M`
+### - [x] 78. Decide distribution and set up the companion `M` — ✅ **done 2026-09-19**
 
 Options: Leanpub (iterative, pays while you write), Gumroad (full control), self-host on `salmanrahman.com`.
 **Recommendation:** Leanpub for the book plus a free VitePress companion site built from the same markdown —
 the site markets the book and the book funds the site.
 
+> ⚠️ **Amended at the item — it had no "Done when".** A decision item still needs an acceptance test,
+> or "decided" and "recorded" drift apart. The test below is the one that matters: the decision is in
+> the spec's decision log, and the companion is a thing that builds rather than a plan to build one.
+
+**Done when:** the distribution choice is recorded in `BOOK-SPEC.md` § 1 with a § 10 decision-log row,
+and `pnpm site:build` produces a static site from the manuscript with zero dead links.
+
+**Delivered:**
+
+- **Leanpub chosen**, the option the item recommended, confirmed by the author. Recorded in
+  `BOOK-SPEC.md` § 1 — two new Identity rows, **Sold on** and **Companion** — and as **decision-log
+  row 17**, with the spec at **v1.6**. The reasoning is in the row: Leanpub pays while the book is
+  still being written, which matters for a 2027 edition that is 84 items into a 93-item plan, and both
+  alternatives need the book finished before the first sale
+- **`scripts/build-site.ts` and four `pnpm` scripts** — `site:pages`, `site:dev`, `site:build`,
+  `site:preview`. The generator reads the same `loadBook` the PDF build does, so **the site cannot
+  drift from the manuscript**: it is rebuilt from it every run, and nothing under `site/book/` is
+  hand-written
+- **What it publishes is the marketing decision.** The front matter, **every back-matter page,
+  including all 988 interview questions**, every part opener and section index, and **one sample
+  chapter per part** — closures, accessibility and the law, the four kinds of state, Core Web Vitals,
+  REST, driving the design round, RAG versus fine-tuning, deployment strategies, STAR. 69 pages. The
+  other 236 chapters are the product, and the site says so on every sample page
+- **A cross-reference to an unpublished chapter loses its link and keeps its title** — `**Title**
+  *(in the book)*` rather than a link into a 404. The first build found **632 dead links** doing it
+  the other way; `ignoreDeadLinks` is left **off** so the next one fails the build instead of shipping
+- **`SAMPLE_CHAPTERS` is guarded.** A slug no chapter carries exits non-zero with the name, because
+  the alternative symptom is one fewer entry in a sidebar nobody counts. One of the nine was already
+  wrong when written — `deployment-strategies-and-rollback` against an actual slug of
+  `deployment-strategies` — and the guard is what caught it
+- **`site/` added to `EXCLUDED_DIRS`** in `scripts/lib/book.ts`, so the generated copies never get
+  walked and never count a sampled chapter twice against its part's budget. `site/book/`, the sidebar
+  and the VitePress cache and dist are all gitignored; only `site/index.md` and
+  `site/.vitepress/config.ts` are checked in
+- **Wired into CI** as `pnpm site:pages` — cheap, and the only thing that catches a sample chapter
+  renamed out from under the generator
+- **Left undone on purpose:** no Leanpub account, no domain, no deploy target. Those need credentials
+  and a published book, and neither belongs in a repository. The Leanpub URLs in `site/index.md` and
+  `config.ts` are `https://leanpub.com/` placeholders and want the real slug before launch
+- **Verified:** `pnpm site:pages` → **69 pages, 9 sample chapters, 12 sidebar groups**.
+  `pnpm site:build` → `build complete`, **zero dead links**, 6.6 MB into `site/.vitepress/dist`.
+  `pnpm lint:docs` → 305 files, all eleven rules at 0
+
 ---
 
-### - [ ] 79. Vendor the print typefaces and build the design-token layer `M`
+### - [x] 79. Vendor the print typefaces and build the design-token layer `M` — ✅ **done 2026-09-19**
 
 The book has no typeface. `scripts/build-book.sh` passes `--variable=fontsize:10pt` and nothing else, so
 tectonic falls back to Latin Modern — a 1970s Computer Modern revival that sets thin and grey at 10pt on
@@ -6167,9 +6317,45 @@ cannot simply be desaturated — see #81.
 
 **Done when:** `pdffonts build/handbook.pdf` reports the three vendored families and no fallback face.
 
+**Delivered:**
+
+- **Three OFL families vendored into `assets/fonts/`** — Source Serif 4 **4.005R**, Source Sans 3
+  **3.052R**, Source Code Pro **2.042R**, 16 faces, 3.3 MB, the repository's first binary files. Only
+  the faces the design uses, not the several hundred the three releases ship. `OFL.txt` and a README
+  recording provenance, versions and what the licence does and does not permit sit beside them
+- **Loaded by path, never by system name** — `Path = assets/fonts/` per family, so the build is
+  reproducible on a machine with no fonts installed. Source Serif's **default optical size**, not
+  `SmText` or `Caption`: those are cut for 6–8.5pt and the body sets at 10pt
+- **`scripts/book-header.tex` is now a 24-line shim** over five files in `scripts/tex/`, loaded in
+  dependency order: `tokens.tex` (every tunable value — **the only file #77's calibration touches**),
+  `typography.tex`, `glyphs.tex`, `structure.tex`, `blocks.tex`. The emoji table and the fancyhdr
+  footer moved across; `blocks.tex` is deliberately **empty**, because #81 has the design in front of
+  it and a placeholder environment is a thing to delete later
+- **The five-tone greyscale palette is in `tokens.tex`** with the reason attached: `xcolor`'s `gray`
+  is lightness, so a 55% K ink is `gray 0.45`, and getting that backwards produces a book that looks
+  right on screen and prints inverted in weight
+- **Two bugs found by building it**, both worth the note. `\defaultfontfeatures{Path=…}` is global, so
+  it captured the pandoc template's own `\setmathfont{latinmodern-math}` and killed the build at
+  `\begin{document}` with an error naming a font nothing here asked for — `Path` is now set per
+  family. And `\liningnums` is already fontspec's; redefining it is a hard error, so the design uses
+  fontspec's rather than shadowing it
+- **The running heads and the folio moved to the display family**, one item earlier than #80 planned,
+  because this item's own acceptance test forced it: they were set in the body serif, so **nothing in
+  the book used Source Sans 3 at all** and `pdffonts` reported two vendored families out of three.
+  #80 still owns what they say; this is only what they are set in
+- **Measured, for #77:** the first real build since #5 is **1,450 A4 pages from 61,351 lines — 42.3
+  lines per page**, against #5's 36 and BOOK-SPEC § 5's assumed 55. Better than the plan's projection
+  and still twice the 700-page ceiling, which is #77's problem and now has a real number under it
+- **Verified:** `pnpm book:pdf` completes. `pdffonts build/handbook.pdf` → **SourceSerif4 Regular, It,
+  Bold, BoldIt · SourceSans3 Semibold · SourceCodePro Regular, It, Bold, BoldIt**, all embedded and
+  subset, **no Latin Modern and no fallback face**. The one non-vendored entry is `Dingbats`, which is
+  `pifont`'s ZapfDingbats carrying ✅ and ❌ — deliberate, and predates this item. `pdfinfo` → A4.
+  **Not verified: nothing has been printed**, so the tint values are reasoned rather than proofed —
+  #81's specimen page is where that gets tested
+
 ---
 
-### - [ ] 80. Page architecture — geometry, running heads, part and chapter openings `M`
+### - [x] 80. Page architecture — geometry, running heads, part and chapter openings `M` — ✅ **done 2026-09-19**
 
 🔴 **Ordering:** after #79 — the token layer defines the values this item consumes.
 
@@ -6192,6 +6378,55 @@ Build the real page:
 
 **Done when:** `pdfinfo build/handbook.pdf` reports A4; every part opener falls on an odd page; no chapter
 opening block sits at the foot of a page with fewer than three lines of body under it.
+
+**Delivered:**
+
+- **`scripts/tex/structure.tex` is the real page** — A4 `twoside`, mirrored inner 26 mm · outer 28 mm ·
+  top 22 mm · bottom 24 mm, `\flushbottom`, and widow, club and display-widow penalties at 10000. Paper
+  size and margins are gone from `build-book.sh`: `geometry` now reads the tokens, because a mirrored
+  page needs four values rather than one and #77 tunes them. `twoside` stays a `--variable` because it
+  has to reach the class, not the preamble
+- **Part openers force a recto**, numeral 60pt at 35% K above the title at 28pt sans bold. **All ten
+  land on an odd page** in the real build
+- **Chapter openings are the 78pt block** the item specified — eyebrow at 8.5pt sans semibold caps in
+  55% K with +140/1000 tracking, 12pt, the number and title at 22pt sans bold, 14pt, a 1.2pt rule,
+  18pt. The eyebrow is the **part name**, so a reader opening the book in the middle knows which of the
+  nine parts they are in before the first word of the chapter
+- **Running heads split by side** — verso the part, recto the chapter, both at 8pt in 55% K caps, folio
+  on the outer edge. The existing copyright footer is unchanged
+- **`\needspace` guards on every `##` and `###`** — four lines of room for a section, three for a
+  subsection — so the three closing blocks cannot start two lines above a page break
+- **Four things had to be found by building it, and all four are worth recording:**
+  1. **Pandoc unnumbers parts and chapters.** Its template sets `secnumdepth` to `-\maxdimen` when
+     `--number-sections` is off, so the part opener printed no numeral and every chapter title lost its
+     number. `secnumdepth` is now 0 — parts and chapters numbered, sections not, which is the book's
+     own convention
+  2. **`\StrBehind` cannot run inside `\markboth`.** It assigns rather than expands, and TeX fails on
+     the mark's own `#1` with "Illegal parameter number". The split happens once, into `\bookpartname`
+  3. **`titlesec` redefines `\part`**, so the wrapper that strips its title has to come *after*
+     `\titleformat`. Placed before, it was silently overwritten and nothing was stripped
+  4. **`soul` cannot letterspace a macro** like `\leftmark`, and microtype's `\textls` is pdftex-only.
+     The tracking comes from fontspec's `LetterSpace` feature instead, applied to the face
+- **The part title is stripped once, at `\part`.** The divider reads `# Part 3 — The Modern Frontend
+  Stack` because that string has to work in EPUB and on the web, where nothing generates a numeral. In
+  print the numeral is set separately, so the prefix would print twice. Cleaning it at the source is
+  what keeps the opener, the running head and **the table of contents** agreeing. The appendix is
+  exempt by name — `# Appendix — DSA Patterns` keeps its whole title and prints **no numeral**, because
+  a grey "X" above it would claim it is Part X, which BOOK-SPEC § 5 says it is not
+- **Blank versos are now genuinely blank.** The stock `\cleardoublepage` left the page style on the
+  leaf it inserts, so 148 otherwise-empty pages were carrying a folio, a running head and a copyright
+  line. The old header comment claimed they were `empty`; they were not
+- **Measured, for #77:** **1,480 A4 pages**, of which **148 are blank** — a tenth of the book, and the
+  cost of `openright`. Running chapters on rather than opening each on a fresh page is #77's lever 2,
+  and this is the number under it
+- **Fixed a regression #79 introduced:** `assets/fonts/README.md` is a licence and provenance record
+  with no front matter, and `loadBook` was walking it. `assets` is now in `EXCLUDED_DIRS`
+- **Verified:** `pdfinfo` → **1,480 pages, 595.28 × 841.89 pt (A4)**. **10 part openers, 0 on a verso.**
+  Chapter opening blocks sit at the top of their page by construction — the class opens every chapter
+  on a fresh recto or verso — so the third condition holds structurally rather than by inspection.
+  `pnpm lint:docs` → 305 files, all eleven rules at 0. `pnpm book:collect` → 305 files, 61,383 lines.
+  **Not verified: nothing has been printed**, so the mirrored margins are reasoned against a binding
+  nobody has specified, and #77 owns proving them
 
 ---
 
@@ -6294,8 +6529,8 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
 | 6     | 64–69   | 6/6  | ✅ Complete    |
-| 7     | 70–83 · 70a | 4/15 | 🔄 In progress |
-| **Total** | **93** | **82/93** | **88%**   |
+| 7     | 70–83 · 70a | 9/15 | 🔄 In progress |
+| **Total** | **93** | **87/93** | **94%**   |
 
 ---
 

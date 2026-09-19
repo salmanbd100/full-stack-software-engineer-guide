@@ -201,7 +201,7 @@ dependency.
 
 Without a timeout, requests pile up holding connections and thread-pool slots until the pool is
 exhausted, and then every request fails — including ones that never touch that dependency. With a
-timeout plus a circuit breaker, the first few requests fail fast, the breaker opens, and subsequent calls
+timeout plus a circuit breaker, the first few requests fail fast, the breaker opens, and later calls
 are rejected in microseconds while the rest of the service keeps working.
 
 **Q: How do you choose retry settings?**

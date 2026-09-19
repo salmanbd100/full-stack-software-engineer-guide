@@ -67,13 +67,16 @@ COMMON=(
 
 build_pdf() {
   echo "▸ Building PDF (tectonic)"
+  # Paper size and margins are no longer passed here: `geometry` is loaded by
+  # scripts/tex/structure.tex from the tokens, because a mirrored twoside page needs four
+  # values rather than one and #77 tunes them. `twoside` has to be a *class option*, so it
+  # stays a --variable; setting it in the preamble is too late for the class to act on.
   pandoc "$BUILD/book.md" "${COMMON[@]}" \
     --pdf-engine=tectonic \
     --include-in-header="$ROOT/scripts/book-header.tex" \
     --variable=documentclass:book \
-    --variable=papersize:a4 \
+    --variable=classoption:twoside \
     --variable=fontsize:10pt \
-    --variable=geometry:margin=2.2cm \
     --variable=colorlinks:true \
     --variable=linkcolor:RoyalBlue \
     --variable=toccolor:black \

@@ -205,7 +205,7 @@ legal frame behind that document is
 **Q: How do you test accessibility?**
 
 In layers. Lint for static markup mistakes, axe inside component tests for each meaningful state, axe in
-end-to-end tests on the critical journeys — scoped to the WCAG tags for the level we claim, and asserted
+end-to-end tests on the critical journeys — scoped to the WCAG tags for the level you claim, and asserted
 after interaction rather than only on load. Then the two manual passes: a keyboard run through the task,
 and a screen reader run to check that names match the screen and actions are announced. Automation covers
 a third to a half of the criteria, so the manual passes are not optional extras.

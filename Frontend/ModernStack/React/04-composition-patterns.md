@@ -204,7 +204,8 @@ Reaching for context early makes components that cannot be rendered anywhere els
 **❌ An unmemoised context value:**
 
 ```tsx
-<TabsContext value={{ active, select: setActive }}>  // New object every render
+// A new object on every render of the provider
+<TabsContext value={{ active, select: setActive }}>{children}</TabsContext>;
 ```
 
 Every consumer re-renders on every parent render. **✅ `useMemo` on the value**, as in the `Tabs`

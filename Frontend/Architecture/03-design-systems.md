@@ -75,7 +75,7 @@ sub-brand or a high-contrast theme. A component referencing `blue500` directly c
 What a consumer depends on is the **props**, not the markup. Keep the surface small and typed, and keep
 the accessible behaviour inside the component rather than in the consumer's hands.
 
-```typescript
+```tsx
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 

@@ -22,10 +22,6 @@ collapse into a function, a module or a union type here, and structural typing c
 polymorphism costs. Where that is true, the chapter says so rather than dressing a one-liner in a
 class hierarchy.
 
-This section sits in Part I rather than Part V. Patterns are language material, not backend material;
-it lives under `Backend/` only because that is where the files already were, and `scripts/lib/book.ts`
-maps it to Part I.
-
 ## Chapters
 
 | #  | Chapter                                                              | What it answers                                                  |
@@ -38,8 +34,7 @@ maps it to Part I.
 
 ## What Interviewers Probe For
 
-The senior signal for Part I is **can reason about the runtime, not just recite the API** — and for
-patterns specifically, it is *can justify a structure rather than apply one by reflex*.
+For patterns specifically: *can justify a structure rather than apply one by reflex*.
 
 - **Can you name the problem before the pattern?** "I would use a strategy here" is a weaker answer
   than "this switch will gain a branch every time we add a payment provider, and each branch touches
@@ -53,8 +48,6 @@ patterns specifically, it is *can justify a structure rather than apply one by r
 - **Can you argue against SOLID?** Interface segregation applied literally produces a dozen
   one-method interfaces nobody reads. The senior answer applies the principle where churn actually
   happens and says why it was skipped elsewhere.
-- **Do you understand dependency inversion in practice?** Not the definition — the testing
-  consequence. If the module constructs its own database client, you cannot test it without one.
 
 ## Reading Order
 

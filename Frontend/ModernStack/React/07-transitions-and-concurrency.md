@@ -86,7 +86,7 @@ You can tell the user the content is stale rather than pretending it is not:
 
 ```tsx
 const isStale: boolean = query !== deferredQuery;
-<div style={{ opacity: isStale ? 0.6 : 1 }}><Results query={deferredQuery} /></div>
+<div style={{ opacity: isStale ? 0.6 : 1 }}><Results query={deferredQuery} /></div>;
 ```
 
 ### Choosing between them
@@ -125,7 +125,7 @@ responsive input instead of a frozen one.
 **❌ Deferring the input's own value:**
 
 ```tsx
-<input value={deferredQuery} onChange={(e) => setQuery(e.target.value)} />
+<input value={deferredQuery} onChange={(e) => setQuery(e.target.value)} />;
 ```
 
 The character the user typed now lags behind the keyboard. The input must always be urgent; defer what

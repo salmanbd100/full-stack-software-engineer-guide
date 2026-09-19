@@ -12,14 +12,13 @@ in_book: true
 
 # Part IX — Behaviour and Ways of Working
 
-Senior offers are lost here more often than on the whiteboard. Not because candidates lack the
-stories — nine years of work produces plenty — but because the stories arrive as three minutes of
-background followed by twenty seconds of what they actually did.
+Candidates rarely lack the stories — nine years of work produces plenty. The stories arrive as three
+minutes of background followed by twenty seconds of what the candidate actually did.
 
 This section fixes that in two moves. First, a structure that puts the action and the result where
 the interviewer can hear them, plus a coverage grid: ten to twelve stories, chosen so that between
-them they answer almost any question you will be asked. Preparing per question does not scale.
-Preparing per story does.
+them they answer almost any question you will be asked. Preparing per question does not scale;
+preparing per story does.
 
 The last two chapters are the raw material rather than the technique. A behavioural round asks how
 your team delivers and how it handles failure, and those answers are much stronger with the
@@ -39,8 +38,7 @@ deep enough to be humane — than without it.
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **owns the design and uses the tool, rather than the other way
-round** — which in a behavioural round means owning the decision, including the bad ones.
+In a behavioural round the part-level signal means owning the decision, including the bad ones.
 
 - **Did you decide, or were you told?** The most common failure at senior level is a story where the
   candidate executed well on someone else's call. The interviewer is listening for the moment you
@@ -54,18 +52,10 @@ round** — which in a behavioural round means owning the decision, including th
 - **Did you influence without authority?** At senior level the question behind most leadership
   prompts is whether you can get a team to a decision you do not have the power to impose.
 - **Do your questions show you understood the role?** The final five minutes are still scored. A
-  question about how the team decides what not to build is worth ten about the tech stack.
+  question about how the team decides what *not* to build is worth ten about the tech stack.
 - **Can you describe how your team works without reciting a framework?** "We do two-week sprints" is
   a fact. Knowing why the sprint keeps failing, what work in progress costs, and which metric a
   director will ask for and should not get, is the senior version.
-
-**Mid or senior, on the same question:**
-
-| Asked | Mid answer | Senior answer |
-| ----- | ---------- | ------------- |
-| "Tell me about an impactful project" | Describes executing someone else's decision well | Names the moment they chose, what they weighed, and what they gave up |
-| "What was the result?" | "It improved performance a lot" | "p95 went from 4.2 s to 900 ms, and checkout drop-off fell by a fifth" |
-| "Tell me about a failure" | Picks one that is secretly a strength | States what went wrong plainly, what changed, and that the change stuck |
 
 ## Reading Order
 

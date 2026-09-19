@@ -37,8 +37,7 @@ passed FID comfortably routinely fail INP, and a candidate still saying FID in 2
 
 ## What Interviewers Probe For
 
-The senior signal for this part is **thinks in budgets, boundaries and migration paths rather than
-features.** Performance is where that is measured literally:
+Performance is where the part-level signal is measured literally:
 
 - **Do you measure before you change anything?** The strongest answers start with field data and a
   profile, not with a list of optimisations. "I would code-split" as an opening move is a guess.
@@ -48,9 +47,8 @@ features.** Performance is where that is measured literally:
 - **Do you know why INP is harder than FID?** Because it measures every interaction all the way to
   paint, so a long task anywhere in the session can fail you. This is the current version of the
   question and it filters well.
-- **Lab or field?** Lighthouse gives you a repeatable score on one synthetic device. The Chrome User
-  Experience Report tells you what your users actually got. A senior answer uses both and says which
-  question each one answers — and knows a lab run cannot measure INP at all.
+- **Lab or field?** Lighthouse scores one synthetic device; the Chrome User Experience Report says
+  what real users got. A senior answer uses both, and knows a lab run cannot measure INP at all.
 - **What stops the bundle growing back?** A budget that fails the build, not an optimisation week. The
   candidates who have lived through this answer with a CI gate and a delta comment on the pull request.
 

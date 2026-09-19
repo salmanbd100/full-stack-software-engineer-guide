@@ -26,6 +26,7 @@ import {
   ALLOWED_FENCES,
   EXCLUDED_DIRS,
   PART_NAMES,
+  PART_OPENERS,
   loadBook,
   matterFor,
   partBudgets,
@@ -64,6 +65,7 @@ type RuleId =
   | "heading-jump"
   | "anchor-mismatch"
   | "unresolved-xref"
+  | "chapter-blocks"
   | "budget";
 
 const RULE_TITLES: Readonly<Record<RuleId, string>> = {
@@ -76,6 +78,7 @@ const RULE_TITLES: Readonly<Record<RuleId, string>> = {
   "heading-jump": "Heading level jump",
   "anchor-mismatch": "Front-matter slug disagrees with the H1 anchor",
   "unresolved-xref": "Cross-reference to a #ch- anchor no chapter carries",
+  "chapter-blocks": "Chapter missing one of the standard's six blocks",
   budget: "Lines over the BOOK-SPEC § 5 part budget",
 };
 
@@ -346,6 +349,43 @@ function checkCrossReferences(docs: Doc[]): void {
 }
 
 // ---------------------------------------------------------------------------
+// Per-file rule — the six blocks — improvement #76
+// ---------------------------------------------------------------------------
+
+/**
+ * The Book Chapter Standard's six blocks, as far as a regex can see them.
+ *
+ * Only four of the six are checkable this way. Front matter has its own rule, and
+ * "Opening" is partly covered by `anchor-mismatch`; what is left is the **In this
+ * chapter** line and the four `##` headings that close every chapter. #76 found five
+ * chapters missing them — the four in `Frontend/BrowserAPIs/` and `HtmlCss/01` — all of
+ * which predated the standard and none of which any rule could see. A hand-written Table
+ * of Contents is in the same family: the standard bans it outright because the build
+ * generates one, and four of those five carried one.
+ *
+ * Index pages are exempt. A part opener and a section README are navigation, and the
+ * Part-Opener standard in `write-topic-docs` gives them a different shape entirely.
+ */
+const REQUIRED_BLOCKS: readonly [RegExp, string][] = [
+  [/^\*\*In this chapter:\*\*/m, "**In this chapter:** line"],
+  [/^##\s+💡\s/m, "## 💡 The Core Idea"],
+  [/^##\s+🔑\s+Key Takeaways\s*$/m, "## 🔑 Key Takeaways"],
+  [/^##\s+Interview Questions\s*$/m, "## Interview Questions"],
+  [/^##\s+What to Read Next\s*$/m, "## What to Read Next"],
+];
+
+function checkBlocks(doc: Doc): void {
+  if (doc.isReadme || doc.part === 0 || PART_OPENERS[doc.part] === doc.rel) return;
+
+  for (const [pattern, name] of REQUIRED_BLOCKS) {
+    if (!pattern.test(doc.body)) report("chapter-blocks", doc.rel, 1, `no ${name}`);
+  }
+  if (/^##\s+Table of Contents\s*$/im.test(doc.body)) {
+    report("chapter-blocks", doc.rel, 1, "hand-written Table of Contents — the build generates one");
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Whole-book rule — part line budgets
 // ---------------------------------------------------------------------------
 
@@ -417,6 +457,7 @@ for (const doc of docs) {
   checkFrontMatter(doc, slugsSeen);
   checkBody(doc);
   checkLength(doc);
+  checkBlocks(doc);
 }
 checkReadmes();
 checkAnchors(docs);

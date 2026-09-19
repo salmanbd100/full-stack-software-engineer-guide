@@ -133,7 +133,7 @@ be forgotten to check.
 
 ### Interrupting the render
 
-```typescript
+```tsx
 // app/admin/page.tsx
 import { verifySession } from "@/lib/dal";
 import { forbidden } from "next/navigation";

@@ -145,7 +145,7 @@ it("shows the dashboard after a successful login", async () => {
 
 The structure is identical. What changes is that the test name is readable by someone who does not
 write code, which is worth real money when acceptance criteria are contested — and worth nothing when
-they are not. Treat it as a naming convention, not a different methodology.
+they are not. Treat it as a naming convention, not a different method.
 
 ## When to Use It
 

@@ -167,15 +167,15 @@ declare function t(key: MessageKey, values?: Record<string, string | number>): s
 
 **❌ Wrong — text baked into a fixed-width layout:**
 
-```typescript
+```tsx
 // German is routinely 30% longer than English; Finnish more. The label clips.
-<button className="w-24 truncate">{t('actions.submit')}</button>
+<button className="w-24 truncate">{t('actions.submit')}</button>;
 ```
 
 **✅ Right — let the content size the control:**
 
-```typescript
-<button className="min-w-24 px-4 py-2">{t('actions.submit')}</button>
+```tsx
+<button className="min-w-24 px-4 py-2">{t('actions.submit')}</button>;
 ```
 
 **❌ Wrong — locale only in client state.** No shareable URL, no correct server render, and one indexed

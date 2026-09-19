@@ -1,0 +1,102 @@
+% typography.tex — improvement #79
+%
+% The three vendored families, and the body text settings that depend on them.
+%
+% Before this item the build passed `--variable=fontsize:10pt` and nothing else, so
+% tectonic fell back to Latin Modern — a 1970s Computer Modern revival that sets thin and
+% grey at 10pt on uncoated stock. Every face below is loaded from assets/fonts/ by path,
+% never by system name, so the build is reproducible on a machine with no fonts installed.
+
+\usepackage{fontspec}
+
+% Path and Extension are set **per family**, never with \defaultfontfeatures. A global
+% Path sends every later font lookup into assets/fonts/ — including the template's own
+% \setmathfont{latinmodern-math}, which then fails to resolve and takes the build down at
+% \begin{document} with an error that names a font nothing here asked for.
+\newcommand{\bookfontpath}{assets/fonts/}
+
+% --- Body: Source Serif 4 --------------------------------------------------
+%
+% The default optical size, not SmText or Caption: those are cut for 6–8.5pt, and the book
+% sets its body at 10pt. Semibold is here for the rare bold run inside body text, where
+% Bold is heavier than the page wants.
+
+\setmainfont{SourceSerif4}[
+  Path = \bookfontpath,
+  Extension = .otf,
+  Ligatures = TeX,
+  UprightFont = *-Regular,
+  ItalicFont = *-It,
+  BoldFont = *-Bold,
+  BoldItalicFont = *-BoldIt,
+  FontFace = {sb}{n}{Font=SourceSerif4-Semibold},
+  Numbers = OldStyle,
+]
+
+% Old-style figures in running text; lining figures where numbers have to align — a table
+% column, a version stamp, a folio. fontspec already provides `\liningnums{…}` for that,
+% so structure.tex and blocks.tex use it rather than a second command that would shadow it.
+
+% --- Display: Source Sans 3 ------------------------------------------------
+%
+% Carries every small structural label in the book: eyebrows, running heads, table
+% headers, code labels, callout titles. It has to stay legible at 8pt, which is where a
+% humanist sans with a tall x-height earns its place over the serif.
+
+\setsansfont{SourceSans3}[
+  Path = \bookfontpath,
+  Extension = .otf,
+  Ligatures = TeX,
+  UprightFont = *-Regular,
+  ItalicFont = *-It,
+  BoldFont = *-Bold,
+  BoldItalicFont = *-BoldIt,
+  FontFace = {sb}{n}{Font=SourceSans3-Semibold},
+  FontFace = {sb}{it}{Font=SourceSans3-SemiboldIt},
+  Numbers = Lining,
+]
+
+% Semibold is the weight the design actually calls for on labels; Bold is reserved for
+% chapter and part titles. Naming it once here keeps that distinction honest.
+\newcommand{\labelfont}{\sffamily\fontseries{sb}\selectfont}
+
+% --- Code: Source Code Pro -------------------------------------------------
+%
+% Same family metrics as the other two, so a code span inside a sentence does not change
+% the line's colour. Scaled to match the serif's x-height rather than its point size.
+
+\setmonofont{SourceCodePro}[
+  Path = \bookfontpath,
+  Extension = .otf,
+  Ligatures = TeX,
+  UprightFont = *-Regular,
+  ItalicFont = *-It,
+  BoldFont = *-Bold,
+  BoldItalicFont = *-BoldIt,
+  Scale = MatchLowercase,
+  Numbers = Lining,
+]
+
+% --- Body text settings ----------------------------------------------------
+
+\usepackage{microtype}
+
+% The class is asked for 10pt by build-book.sh, which gives a 12pt baseline. The design
+% wants \tokBodyLeading, so the ratio between the two is what gets set — a \fontsize here
+% would be undone by the first \normalsize.
+\linespread{\tokLeadRatio}\selectfont
+
+% Paragraphs are separated by space rather than indented — the book is full of lists,
+% tables and code, and an indent after every one of them reads as an error. The value is a
+% token because it is worth roughly ninety pages across the book.
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{\tokParSkip}
+
+% Ragged right, not justified. A 72–90 character measure with this much inline code in it
+% cannot be justified without rivers, and TeX's alternative is an overfull box per
+% paragraph. `ragged2e` keeps hyphenation on, which plain \raggedright turns off.
+\usepackage[newcommands]{ragged2e}
+\RaggedRight
+
+% Long code lines and wide table cells would otherwise run into the margin.
+\setlength{\emergencystretch}{3em}

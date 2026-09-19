@@ -51,6 +51,16 @@ jobs:
         # chapter edit silently invalidates it. Improvement #73.
         run: pnpm index:check
 
+      - name: Type-check every code sample
+        # Syntax is a hard gate at zero; the type diagnostics ratchet against
+        # .code-samples-baseline.json the way lint:docs does. Improvement #75.
+        run: pnpm check:code-samples
+
+      - name: Generate the companion site's pages
+        # Cheap, and it is the only thing that catches a sample chapter renamed out from
+        # under SAMPLE_CHAPTERS in build-site.ts. Improvement #78.
+        run: pnpm site:pages
+
       - name: Check the plan's counters agree
         run: pnpm plan:check
 

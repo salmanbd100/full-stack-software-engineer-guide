@@ -16,22 +16,16 @@ in_book: true
 
 **In this chapter:** cookie attributes · `SameSite` Strict, Lax and None · how SameSite blunts CSRF · cookies vs localStorage for auth
 
-## Table of Contents
-- [What Cookies Are](#what-cookies-are)
-- [Cookie Attributes](#cookie-attributes)
-- [SameSite: Strict, Lax, None](#samesite-strict-lax-none)
-- [CSRF and How SameSite Helps](#csrf-and-how-samesite-helps)
-- [Cookies vs localStorage for Auth](#cookies-vs-localstorage-for-auth)
-- [Reading & Writing from JavaScript](#reading--writing-from-javascript)
-- [Secure Auth Pattern](#secure-auth-pattern)
-- [GDPR / Consent](#gdpr--consent)
-- [Interview Questions](#interview-questions)
+## 💡 The Core Idea
 
----
+A cookie is a small piece of data the server tells the browser to keep, and the browser then attaches
+it to **every matching request without being asked**. That one behaviour explains both halves of the
+chapter: it is why cookies carry sessions, and it is why cross-site request forgery exists at all. An
+attacker who cannot read your cookie can still cause it to be sent.
 
-## What Cookies Are
-
-A **cookie** is a small piece of data the server tells the browser to store. The browser then sends it back **automatically** with every matching request.
+So every attribute on a `Set-Cookie` line is an answer to the same question — *when should the browser
+send this?* `HttpOnly` answers "never to JavaScript", `Secure` answers "never in clear text", and
+`SameSite` answers "never from someone else's page". Choosing them deliberately is the whole skill.
 
 ```text
 # Server response
@@ -41,9 +35,8 @@ Set-Cookie: sessionId=abc123; Path=/; HttpOnly; Secure; SameSite=Strict
 Cookie: sessionId=abc123
 ```
 
-The "auto-send" behavior is what makes cookies useful for **sessions** — and what makes them vulnerable to **CSRF**.
-
-> Cookies are small (~4 KB) and travel with every request. Don't use them for general data — they add bandwidth to every call.
+Cookies are small — about 4 KB — and travel with every request, so they are a session mechanism rather
+than a storage mechanism. Data that is not needed on the server belongs in web storage.
 
 > ⚠️ **Moving target:** third-party cookie policy has moved more than any other part of this chapter.
 > Safari and Firefox block third-party cookies by default; Chrome announced a phase-out, delayed it
@@ -52,9 +45,9 @@ The "auto-send" behavior is what makes cookies useful for **sessions** — and w
 > attributes below are stable and the *permission to set a cookie in a third-party context* is not, so
 > never build a login flow that depends on one.
 
----
+## How It Works
 
-## Cookie Attributes
+### The attributes
 
 | Attribute | What It Does |
 |-----------|--------------|
@@ -63,7 +56,7 @@ The "auto-send" behavior is what makes cookies useful for **sessions** — and w
 | `Max-Age=3600` | Lifetime in seconds (preferred over `Expires`) |
 | `Expires=<date>` | Absolute expiry date. No `Max-Age`/`Expires` = session cookie (dies with browser). |
 | `Secure` | Only sent over HTTPS |
-| `HttpOnly` | **Not** accessible from `document.cookie` — the single biggest defense against XSS token theft |
+| `HttpOnly` | **Not** accessible from `document.cookie` — the single biggest defence against XSS token theft |
 | `SameSite=Strict\|Lax\|None` | Controls cross-site sending (see below) |
 
 **Defaults to know:**
@@ -72,9 +65,7 @@ The "auto-send" behavior is what makes cookies useful for **sessions** — and w
 - `SameSite=None` **requires** `Secure`, or the cookie is rejected.
 - `HttpOnly` can only be set by the server — not from JavaScript.
 
----
-
-## SameSite: Strict, Lax, None
+### `SameSite`: Strict, Lax and None
 
 `SameSite` decides whether the browser sends the cookie when the request comes from a different site.
 
@@ -94,11 +85,9 @@ The "auto-send" behavior is what makes cookies useful for **sessions** — and w
 
 > `Strict` breaks the "click a link in an email, land logged-in" flow — the cookie isn't sent on that first navigation. `Lax` keeps that working while still blocking cross-site POST.
 
----
+### CSRF, and how `SameSite` blunts it
 
-## CSRF and How SameSite Helps
-
-**CSRF (Cross-Site Request Forgery)** happens because cookies are sent automatically. An attacker tricks a logged-in user into making a request from another site:
+**Cross-site request forgery** happens because cookies are sent automatically. An attacker tricks a logged-in user into making a request from another site:
 
 ```html
 <!-- On attacker.com — runs while the victim is logged in to bank.com -->
@@ -111,12 +100,12 @@ The "auto-send" behavior is what makes cookies useful for **sessions** — and w
 
 Without `SameSite`, the browser sends the bank's session cookie and the transfer goes through.
 
-**SameSite is your first defense:**
+**`SameSite` is the first defence:**
 
 - `SameSite=Lax` blocks cross-site POST → kills the form-submit attack
 - `SameSite=Strict` blocks all cross-site sends
 
-**Add a CSRF token for defense in depth:**
+**Add a CSRF token for defence in depth:**
 
 ```typescript
 // Server: issue token tied to the session
@@ -133,9 +122,33 @@ await fetch("/transfer", {
 
 > Reading the CSRF cookie and echoing it in a header is the **double-submit cookie** pattern. The attacker's page can't read your cookie (same-origin policy), so they can't fake the header.
 
----
+### Reading and writing from JavaScript
 
-## Cookies vs localStorage for Auth
+The cookie API is famously awkward — every read parses one long string, and every write is a full
+attribute line.
+
+```typescript
+// Write. `HttpOnly` cannot be set from JavaScript, by design.
+document.cookie = "theme=dark; Path=/; Max-Age=31536000; SameSite=Lax";
+
+// Read one cookie
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Delete, by expiring it
+document.cookie = "theme=; Path=/; Max-Age=0";
+```
+
+The Cookie Store API is the asynchronous replacement, available in Chromium browsers.
+
+```typescript
+await cookieStore.set({ name: "theme", value: "dark", sameSite: "lax" });
+const cookie = await cookieStore.get("theme");
+```
+
+## When to Use It
 
 | Concern | HttpOnly Cookie | localStorage |
 |---------|----------------|--------------|
@@ -146,40 +159,10 @@ await fetch("/transfer", {
 
 **The interview-ready answer:** XSS is far more common than CSRF, and HttpOnly cookies neutralize it. Use HttpOnly cookies for the session, and protect against CSRF with `SameSite=Lax` plus a token.
 
----
+### The split-token pattern
 
-## Reading & Writing from JavaScript
-
-The cookie API is famously awkward — every read parses one big string, every write is a full attribute line.
-
-```typescript
-// Write (cannot set HttpOnly from JS)
-document.cookie = "theme=dark; Path=/; Max-Age=31536000; SameSite=Lax";
-
-// Read a single cookie
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-// Delete (set an expired date)
-document.cookie = "theme=; Path=/; Max-Age=0";
-```
-
-**Modern alternative — the Cookie Store API** (Chrome/Edge, async):
-
-```typescript
-await cookieStore.set({ name: "theme", value: "dark", sameSite: "lax" });
-const cookie = await cookieStore.get("theme");
-```
-
-In production, reach for [`js-cookie`](https://github.com/js-cookie/js-cookie) — it handles encoding for you.
-
----
-
-## Secure Auth Pattern
-
-A common interview answer is the **split-token** pattern: long-lived refresh token in an HttpOnly cookie, short-lived access token in memory.
+The answer most interviewers are listening for: a long-lived refresh token in an `HttpOnly` cookie, a
+short-lived access token in memory: long-lived refresh token in an HttpOnly cookie, short-lived access token in memory.
 
 ```typescript
 // --- SERVER (Express) ---
@@ -228,9 +211,7 @@ async function api(url: string, init: RequestInit = {}): Promise<Response> {
 - Refresh token is HttpOnly → XSS cannot read it at all.
 - `SameSite=Strict` on the refresh cookie blocks CSRF on `/auth/refresh`.
 
----
-
-## GDPR / Consent
+## Consent and the Law
 
 Under GDPR (EU) and CCPA (California), you need **opt-in consent** before setting cookies that aren't strictly necessary.
 
@@ -244,36 +225,71 @@ Under GDPR (EU) and CCPA (California), you need **opt-in consent** before settin
 **Practical rules:**
 
 1. Set only essential cookies on first load.
-2. Show a banner with **Accept / Reject / Customize** (no pre-ticked boxes — that's not consent).
+2. Show a banner with **Accept / Reject / Customise** (no pre-ticked boxes — that's not consent).
 3. Persist the choice (in a first-party cookie or `localStorage`) and load other scripts only after consent.
 4. Provide a "Cookie settings" link that lets users change their mind.
 
----
+## Common Mistakes
+
+**❌ Setting `SameSite=None` to make something work.** It is the value that switches the protection
+off, and it is only correct when the cookie genuinely has to travel in a third-party context. Reaching
+for it because a request "was not sending the cookie" removes the CSRF defence for every request.
+
+**❌ Omitting `Secure` alongside `SameSite=None`.** The browser rejects the cookie outright, which
+usually surfaces as an authentication bug rather than as a cookie bug.
+
+**❌ Setting `Domain=example.com` by reflex.** It widens the cookie to every subdomain, including any
+one an attacker manages to get a foothold on. Omit `Domain` unless a subdomain really needs the cookie.
+
+**❌ Treating the cookie as the whole CSRF defence.** `SameSite=Lax` blocks the cross-site POST, and it
+is a browser behaviour — an old browser, or a same-site subdomain under attacker control, still gets
+through. The double-submit token is the second layer, not an alternative.
+
+**❌ Loading analytics before consent and asking afterwards.** A pre-ticked box is not consent, and
+neither is a banner that has already run the script behind it.
+
+## 🔑 Key Takeaways
+
+- The browser attaches a cookie to every matching request automatically, which is what makes cookies
+  work for sessions and what makes CSRF possible.
+- `HttpOnly` is the attribute that matters most for a session cookie: it is what an XSS cannot defeat.
+- `SameSite=Lax` is the modern default and the right answer for most applications; `Strict` breaks the
+  click-a-link-in-an-email flow; `None` requires `Secure` and switches the protection off.
+- Split the credential: refresh token in an `HttpOnly` cookie, access token in memory, so an XSS gets
+  at most a short-lived value.
+- Only strictly necessary cookies may be set before consent, and a pre-ticked box is not consent.
 
 ## Interview Questions
 
-### Q: Walk me through SameSite=Strict vs Lax vs None.
+**Q: Walk me through `SameSite=Strict` versus `Lax` versus `None`.**
 
 - **`Strict`** — only sent on same-site requests. Most secure, breaks cross-site UX (a link from email won't carry the session).
 - **`Lax`** — same-site + top-level GET navigation. The modern browser default. Good balance for normal apps.
 - **`None`** — sent on every request, including cross-site iframes and AJAX. Required for embedded third-party flows. Must be paired with `Secure`.
 
-### Q: Why is `HttpOnly` more important than `Secure` for auth cookies?
+**Q: Why is `HttpOnly` more important than `Secure` for an auth cookie?**
 
 `HttpOnly` blocks JavaScript from reading the cookie, which kills XSS-based token theft — the most common web attack. `Secure` only protects against an attacker on the network path, which HTTPS already largely solves. You want both, but `HttpOnly` is the bigger win.
 
-### Q: How does SameSite prevent CSRF?
+**Q: How does `SameSite` prevent CSRF?**
 
 CSRF relies on the browser auto-sending the user's session cookie when an attacker's page triggers a request to your site. `SameSite=Lax` blocks cross-site POST/PUT/DELETE, which is where CSRF lives. The attacker's request reaches your server without the cookie, so the user looks logged out and the action fails.
 
-### Q: Why not store the JWT in `localStorage`?
+**Q: Why not store the JWT in `localStorage`?**
 
 `localStorage` is readable by any script on the page. A single XSS — even from a compromised npm dependency — can read and exfiltrate the token. HttpOnly cookies are invisible to JavaScript, so the same XSS can call your APIs (because the browser auto-sends the cookie), but **cannot steal the long-lived credential** itself.
 
-### Q: How would you do auth across `app.example.com` and `api.example.com`?
+**Q: How would you do auth across `app.example.com` and `api.example.com`?**
 
 Set the cookie with `Domain=example.com` so both subdomains receive it. Use `SameSite=Lax` (or `Strict` if you don't need cross-site flows) and `Secure`. If `api.example.com` is on a totally different registrable domain, you need `SameSite=None; Secure` and CORS with `credentials: "include"`.
 
-### Q: What's the third-party cookie phase-out about?
+**Q: What is the third-party cookie phase-out about?**
 
 Browsers (Safari ITP, Firefox ETP, Chrome's stalled Privacy Sandbox) are blocking cookies set by domains other than the one in the URL bar. It mostly affects cross-site ad tracking. For first-party use (your session on your own domain), nothing changes. For embedded third-party features (SSO, payments), use the **Storage Access API** or move to first-party endpoints.
+
+## What to Read Next
+
+- [Chapter ?? — Web Storage APIs](#ch-storage-apis) — the alternative, and why it loses this argument
+- [Chapter ?? — CORS and CSRF](#ch-cors-csrf) — the server half of the forgery defence
+- [Chapter ?? — Security Headers](#ch-security-headers) — the other headers that close a category
+  before an attack starts

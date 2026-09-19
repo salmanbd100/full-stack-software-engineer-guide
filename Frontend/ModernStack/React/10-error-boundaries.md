@@ -185,8 +185,10 @@ retry, and reset the boundary on navigation.
 **❌ Swallowing the error:**
 
 ```tsx
-componentDidCatch(): void {
-  // deliberately empty — "the fallback handles it"
+class SilentBoundary extends React.Component<BoundaryProps, { hasError: boolean }> {
+  componentDidCatch(): void {
+    // deliberately empty — "the fallback handles it"
+  }
 }
 ```
 

@@ -4,8 +4,8 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.4 · **Date:** 2026-09-06
-> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 78-item route from repo to manuscript.
+> **Status:** Locked · **Version:** 1.6 · **Date:** 2026-09-19
+> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 93-item route from repo to manuscript.
 
 ---
 
@@ -17,10 +17,12 @@
 | **Subtitle**  | Frontend-heavy engineering for 2027 — fundamentals, the modern stack, system design, and AI     |
 | **Author**    | Salman Rahman                                                                                  |
 | **Edition**   | First (2027)                                                                                   |
-| **Length**    | ~57,000 lines of markdown ≈ 850–1,050 print pages (a handbook, not a primer)                   |
+| **Length**    | ~57,200 lines of markdown ≈ 850–1,050 print pages (a handbook, not a primer)                   |
 | **Language**  | British English (`colour`, `behaviour`, `organise`, `optimise`)                                |
 | **Code**      | TypeScript only                                                                                |
 | **Formats**   | PDF · EPUB · free web companion                                                                |
+| **Sold on**   | **Leanpub**, in progress — decision #17                                                        |
+| **Companion** | **VitePress**, generated from this manuscript: front and back matter, plus one sample chapter per part |
 
 **Working shorthand:** _The Handbook_.
 
@@ -277,43 +279,43 @@ two worked examples, complexity, and a curated problem table.
 
 | Part                          | Chapters | Budget      | Share    |
 | ----------------------------- | -------- | ----------- | -------- |
-| I — Foundations               | ~22      | 5,000       | 9%       |
-| II — Browser Platform         | ~26      | 6,000       | 11%      |
+| I — Foundations               | ~22      | 5,100       | 9%       |
+| II — Browser Platform         | ~26      | 6,000       | 10%      |
 | **III — Modern Stack** 🆕     | ~46      | **12,000**  | **21%**  |
-| IV — Frontend at Scale        | ~24      | 5,500       | 10%      |
+| IV — Frontend at Scale        | ~24      | 5,600       | 10%      |
 | V — Backend                   | ~30      | 6,500       | 11%      |
 | VI — System Design            | ~34      | 6,500       | 11%      |
 | **VII — AI Engineering** 🆕   | ~31      | 7,500       | 13%      |
 | VIII — Ship and Operate       | ~22      | 5,500       | 10%      |
 | IX — Human Layer              | ~18      | 2,500       | 4%       |
-| **Total (the book)**          | **~253** | **57,000**  | **100%** |
+| **Total (the book)**          | **~253** | **57,200**  | **100%** |
 | Appendix — DSA (companion)    | 16       | 5,600       | separate |
 
 Budgets are **ceilings, not allocations**. A part that comes in under does not hand its surplus to another
-part — the book just gets shorter, which is always a win. The DSA appendix sits outside the 57,000 because
-it ships as a companion (see item #27); if it is bound in, the total becomes ~62,600.
+part — the book just gets shorter, which is always a win. The DSA appendix sits outside the 57,200 because
+it ships as a companion (see item #27); if it is bound in, the total becomes ~62,800.
 
 **The sums that have to hold:**
 
 | Check                          | Value                                                    | Rule            |
 | ------------------------------ | -------------------------------------------------------- | --------------- |
-| Parts I–IX total               | 57,000                                                    | ≤ 60,000        |
-| **Frontend spine (I–IV)**      | 28,500 of 57,000 = **50.0%**                              | **≥ 50%**       |
+| Parts I–IX total               | 57,200                                                    | ≤ 60,000        |
+| **Frontend spine (I–IV)**      | 28,700 of 57,200 = **50.2%**                              | **≥ 50%**       |
 | Part III as a share            | 12,000 = **21%**                                          | Largest part    |
-| Average chapter length         | 57,000 ÷ 253 = **225 lines**                              | Within 150–400  |
+| Average chapter length         | 57,200 ÷ 253 = **226 lines**                              | Within 150–400  |
 
 > **What "frontend-heavy" means, quantified:** Parts I–IV — language foundations, the browser platform,
 > the modern stack, and frontend at scale — are **half the book**, and Part III alone is larger
 > than any other single part. Backend, system design, AI, and operations together take the rest.
 > Any restructuring that breaks either rule breaks the spec.
 
-⚠️ **The spine is now exactly at its floor, and that is a hard constraint on every later amendment.**
-Decision #12 raised Part VIII to 5,500 and took Parts I–IV from 51.8% to 50.0% of the book. There is no
-headroom left: **any future increase to a Part V–IX budget has to be paid for by an equal decrease
-elsewhere outside Parts I–IV**, or the spine drops below 50% and breaks non-negotiable #3. 5,500 is
-therefore not a negotiating position for Part VIII — it is the arithmetic maximum that rule allows.
+⚠️ **The spine has 0.2 points of headroom and no more.** Decision #12 raised Part VIII to 5,500 and took
+Parts I–IV from 51.8% to 50.0%; decision #16 added 200 lines to Parts I and IV, which is why the figure
+above reads 50.2% rather than 50.0%. **Any future increase to a Part V–IX budget still has to be paid for
+by an equal decrease elsewhere outside Parts I–IV**, or the spine drops back through the floor and breaks
+non-negotiable #3. 5,500 is therefore not a negotiating position for Part VIII.
 
-**Reality check on the page count:** at roughly 55 markdown lines per typeset page, 57,000 lines is
+**Reality check on the page count:** at roughly 55 markdown lines per typeset page, 57,200 lines is
 **950–1,050 pages**. That is a handbook, and the title says so. If the page count has to come down later,
 the order of cuts is fixed: Part VIII first, then Part IX, then Part VI case studies — never Parts III or VII.
 
@@ -455,6 +457,8 @@ bump the version, and update any improvement-plan items the change affects.
 | 13| 2026-09-03 | **Hard ceiling of 700 pages** replaces § 1's 850–1,050 | An external constraint on the edition, not an editorial preference. It is a *page* budget, and § 1 and § 5 both express the budget in *lines* against an unmeasured 55-lines-per-page rate. #5's real build measured 36. Recording the cap here rather than rewriting the line budgets keeps the two decisions separate: this row fixes the target, **#77** measures the rate and reconciles the arithmetic. The fixed cut order in § 5 — Part VIII, then Part IX, then Part VI case studies, never Parts III or VII — is what the cap will be paid for out of |
 | 14| 2026-09-03 | **`Frontend/CSSArchitecture/` archived entire; 5 of 8 `Frontend/HtmlCss/` chapters archived** — 2,077 lines out of Part II | Improvement #31f. Two findings drove it. First, **duplication**: `CSSArchitecture/04-design-systems.md` and `SystemDesign/Frontend/08-design-systems.md` are near-verbatim — same topic, same "forty teams" framing, same subtopic list — a plain non-negotiable #7 violation, and design tokens had a third home in `HtmlCss/08-advanced-css.md`. Second, **audience**: CSS layout mechanics — the box model, flexbox, grid, breakpoints, keyframes — are assumed knowledge for a staff candidate and are not asked to be recited. What is probed is the part with a legal or architectural consequence, so `01-semantic-html`, `07-accessibility` and `08-advanced-css` were kept and renumbered 01–03. Corroborating evidence: **all nine archived chapters had zero inbound cross-references**, while the three keepers had 2, 5 and 4 — the archived set was orphaned. The three surviving `CSSArchitecture` arguments (methodologies, utility-first vs component-first, CSS-in-JS runtime cost) are **archived rather than staged under `salvage/`**, because no Part III item names a styling chapter; #41's `Tooling/` table has none. If that argument is wanted in the book, it needs a new item — see #31f's note. Accepted cost: the spine breach recorded in § 5 |
 | 15| 2026-09-06 | Non-negotiable #1's fence allow-list gains **`svelte`**, on the same footing as `html` and `css` | Improvement #38. A `.svelte` file is a **component template with no TypeScript form** — its markup, its `{#snippet}` blocks and its `{@render}` tags are compiler syntax, and the only part of it that *is* TypeScript already sits inside `<script lang="ts">`. This is decision **10** applied to a language the original list did not anticipate, not a relaxation: general-purpose languages still opt out one fence at a time. The alternative considered and rejected was the entry-11 marker, which would have meant an identical `lint-allow-fence` comment above all **17** `svelte` fences in `Frontend/ModernStack/Svelte/`, and more with every future Svelte chapter — turning a deliberate per-fence exception into boilerplate and hiding the genuine JavaScript opt-outs in `Frontend/JavaScript/`. `tsx` is the precedent for a component syntax being allowed outright. § 10's "relaxing the TypeScript-only rule" bar is not engaged |
+| 16| 2026-09-19 | **Part I raised 5,000 → 5,100 and Part IV 5,500 → 5,600**, to pay for the part openers those two parts never had | Improvement #76. Every part of this book is required by `write-topic-docs` to open on a part opener, and six parts had one because their content sits under a single directory whose README became it. Parts I, II, IV and IX have no such directory — their content spans two or more top-level directories — so they opened on a **section index** instead, and a reader arriving at Part I landed on JavaScript. #76 wrote the four missing openers at the root, placed by front-matter `part:`. Part II absorbed its opener inside its existing budget and Part IX was brought under by trimming, but Parts I and IV had 4 and 0 lines of headroom. The alternative considered and rejected was trimming ~95 lines of teaching prose out of 46 finished chapters to pay for two navigation pages — a bad trade, and one that would have been made against a number rather than against the writing. **The amendment moves the spine the right way:** Parts I–IV go from exactly 50.0% to 50.2%, which reduces rather than adds to the breach recorded below. The increase is +200 lines against a 700-page ceiling, roughly four pages. Before amending, **the duplication the new openers created was removed first**: the part-level "senior signal" sentence was being restated in all nine section indexes of the three parts, and `Frontend/JavaScript/README.md` opened on a paragraph the new Part I opener now carries verbatim — 60 lines came back that way |
+| 17| 2026-09-19 | **Leanpub for the book, a generated VitePress companion for the marketing** | Improvement #78, and the option the item already recommended. Leanpub pays while the book is still being written, which matters for an edition dated 2027 and 84 items into a 93-item plan; Gumroad and self-hosting both require the book to be finished before the first sale. The companion is **generated, never written**: `scripts/build-site.ts` reads the same `loadBook` the PDF build uses, so a chapter edit reaches the site on the next run and the two cannot drift. What it publishes is the marketing decision — the front matter, **every back-matter page including all 988 interview questions**, every part opener and section index, and **one sample chapter per part**, named by slug in `SAMPLE_CHAPTERS` with a build-time guard that fails if a rename orphans one. The remaining 236 chapters are the product. A cross-reference to an unpublished chapter loses its link and keeps its title, so the site never ships a dead link to a page that exists only on paper |
 
 ---
 
