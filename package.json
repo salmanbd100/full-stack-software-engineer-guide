@@ -14,6 +14,7 @@
     "book:build": "./scripts/build-book.sh",
     "book:pdf": "./scripts/build-book.sh pdf",
     "book:epub": "./scripts/build-book.sh epub",
+    "book:specimen": "./scripts/build-book.sh specimen",
     "book:collect": "node --experimental-strip-types scripts/collect-chapters.ts",
     "lint:docs": "node --experimental-strip-types scripts/lint-docs.ts",
     "check:versions": "node --experimental-strip-types scripts/check-version-stamps.ts",

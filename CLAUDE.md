@@ -68,6 +68,7 @@ exists because a README references it.
 pnpm lint:docs        # the Book Chapter Standard, all eleven rules — run this before calling a file done
 pnpm lint:docs --rule=broken-link   # every occurrence of one rule
 pnpm book:build       # PDF + EPUB into build/  (needs: brew install pandoc tectonic)
+pnpm book:specimen    # scripts/specimen.md alone — the whole print design on two pages
 pnpm plan:next        # the next unchecked plan item, its "Done when", its model
 pnpm plan:check       # verify the plan's three counters still agree
 pnpm index:questions  # regenerate Interview-Question-Index.md from every chapter's Q block
@@ -91,6 +92,14 @@ until `pnpm index:questions` runs; `index:check` is what catches it.
 
 `scripts/lib/book.ts` is the shared model of what counts as a chapter — the build and the lint both
 import it, so they cannot disagree. Anything new that walks the manuscript should import it too.
+
+**The print design is five files in `scripts/tex/` plus one Lua filter.** `tokens.tex` holds every
+tunable value and is the only one calibration edits; `typography.tex`, `glyphs.tex`, `structure.tex`
+and `blocks.tex` read it. `scripts/lua/callouts.lua` (#81) maps the Book Chapter Standard's own
+shapes — `## 💡 …`, `## 🔑 …`, `> ⚠️ …`, `**In this chapter:**`, the bold label above a fence,
+every table — onto those environments, so **the design never asks a chapter to change**. It runs for
+the PDF only. Check a change with `pnpm book:specimen` (two pages, seconds) before `book:pdf`
+(1,500 pages, minutes).
 
 **There is still no test suite.** What there is, since #75, is `pnpm check:code-samples`: it extracts
 all 787 TypeScript fences and runs the real compiler over them, in two gates. **Syntax is hard at

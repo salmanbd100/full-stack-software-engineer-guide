@@ -1,29 +1,88 @@
 % glyphs.tex — the emoji substitution table.
 %
-% Moved out of book-header.tex unchanged at improvement #79; #81 extends it with the
-% box-drawing characters that 117 files still carry, and replaces the two dropped marks
-% below with solid squares set in the heading's own weight.
+% Moved out of book-header.tex unchanged at improvement #79; extended at #81.
 %
 % Tectonic's fonts have no emoji glyphs, so the book's callout vocabulary (BOOK-SPEC.md
 % § 7 and the write-topic-docs skill) prints as tofu boxes without this. Each of the six
 % sanctioned marks is mapped to a typographic equivalent that carries the same meaning in
 % print. EPUB and HTML keep the real emoji — they render fine there.
+%
+% Since #81, scripts/lua/callouts.lua consumes 💡, 🔑 and the ⚠️ that opens a gotcha
+% before typesetting starts: the mark becomes a block with an uppercase label, which says
+% the same thing louder. What is left for this table is every *other* appearance — the
+% vocabulary table in the front matter, a ⚠️ inside a list item, a 💡 quoted in prose —
+% and the two dingbats, which the filter never touches.
 
 \usepackage{newunicodechar}
 \usepackage{pifont}
 
 % ✅ / ❌ — these two carry meaning inside tables and before/after pairs, so they
-% become real dingbats rather than words.
+% become real dingbats rather than words. They work in one ink because the two glyphs
+% differ in shape rather than in colour.
 \newunicodechar{✅}{\ding{51}}
 \newunicodechar{❌}{\ding{55}}
 
-% ⚠️ — a gotcha. The bold bang reads as a warning at body size.
-\newunicodechar{⚠}{\textbf{!}}
+% ⚠️ — a gotcha. A boxed bang reads as a warning at body size and, unlike a bold `!` on
+% its own, does not disappear into the sentence around it.
+\newcommand{\bookwarnglyph}{%
+  {\setlength{\fboxsep}{1.2pt}\setlength{\fboxrule}{\tokHairline}%
+   \fbox{\labelfont\fontsize{\tokMicroSize}{\tokMicroSize}\selectfont !}}%
+}
+\newunicodechar{⚠}{\bookwarnglyph}
 
-% 💡 and 🔑 only ever appear in the two fixed headings, where the heading text already
-% says what they mean. Drop them rather than substitute something weaker.
-\newunicodechar{💡}{}
-\newunicodechar{🔑}{}
+% 💡 and 🔑 — a solid square, sized in em so it takes the weight and the size of whatever
+% it is set in rather than arriving as a dingbat from a third face. #79 dropped both
+% silently, which left the front matter's own vocabulary table describing two marks it
+% did not print.
+\newcommand{\booksquareglyph}{\raisebox{0.06em}{\rule{0.5em}{0.5em}}}
+\newunicodechar{💡}{\booksquareglyph}
+\newunicodechar{🔑}{\booksquareglyph}
 
 % U+FE0F, the variation selector that trails ⚠️ and friends in the source.
 \newunicodechar{️}{}
+
+% ---------------------------------------------------------------------------
+% Box-drawing characters
+% ---------------------------------------------------------------------------
+%
+% #81 was written expecting to map these: "117 files still carry box-drawing characters
+% that print as tofu". Measured against the manuscript, that is wrong twice over.
+%
+% There are five of them — ─ │ ├ └ █ — across **8 files, 175 occurrences, and every
+% single one is inside a code fence.** Source Code Pro carries all five, so they already
+% print correctly; only Source Serif 4 and Source Sans 3 are missing them, and no
+% box-drawing character appears in prose or in a table anywhere in the book.
+%
+% Substituting them here would therefore make the book worse, not better: a \rule wide
+% enough to read is not the monospaced width the ASCII diagram was drawn to, so every
+% tree and every timeline in those 8 files would lose its alignment to fix a problem it
+% does not have. They are deliberately left alone. The missing-character count that
+% build-book.sh reports is what catches it if one ever moves into prose.
+%
+% One character genuinely is missing from all three families: ✕ U+2715, which appears
+% once, as the label of a close button in an HTML sample.
+\newunicodechar{✕}{\ding{56}}
+
+% ---------------------------------------------------------------------------
+% What the build's missing-character report actually found
+% ---------------------------------------------------------------------------
+%
+% #81 added the report to build-book.sh and then ran it over the whole manuscript, which
+% is the only way any of this was ever going to be known. It found six characters the
+% vendored faces cannot set — none of them a box-drawing character.
+%
+% α U+03B1 is the inverse Ackermann function in the Union-Find complexity, and it is a
+% mathematical symbol rather than a Greek letter in running text, so it is set as one.
+% latinmodern-math is already loaded by pandoc's own template.
+\newunicodechar{α}{\ensuremath{\alpha}}
+
+% The other four are 年 月 日 and ￥, twelve occurrences between them, all inside the
+% `Intl.DateTimeFormat` and `Intl.NumberFormat` samples in the internationalisation
+% chapter. They are **deliberately not substituted**, because there is no honest
+% substitute: those comments show what the ja-JP locale actually returns, and a
+% romanisation would make the code sample claim an output it does not produce.
+%
+% Setting them needs a CJK face vendored beside the other three, which is a licence and
+% a file-size decision of the same shape as #79's and costs an order of magnitude more
+% than all three Source families together. Recorded against #77, which owns the final
+% proof. Until then the build says so on every run rather than printing a hole quietly.

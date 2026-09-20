@@ -1,12 +1,323 @@
 % blocks.tex — the black-and-white block library.
 %
-% Empty at improvement #79 by design: this file exists so that the five-file split is
-% complete and `book-header.tex` has its final shape, and **#81 fills it**.
+% Improvement #81. Every length, size and grey here is a token from tokens.tex.
 %
-% What lands here: the three callout types distinguished by structure rather than by fill
-% (a full box, top-and-bottom rules, and a solid left bar), the metadata pill, the table
-% treatment, the code block, and the pull quote — built with `tcolorbox` and `tabularray`,
-% driven by a `scripts/lua/callouts.lua` filter so no markdown changes.
+% The book prints in one ink. The reference design carried three of its distinctions in
+% hue alone — a mint, a lavender and a pale-gold callout ground — and in greyscale all
+% three land between 94% and 95% K, which is to say they become the same block. So the
+% three callout types are told apart by **structure**: a full box, a pair of rules, and a
+% solid left bar over a tint. Structure survives greyscale, a photocopier and e-ink.
 %
-% Nothing is declared here yet. A placeholder environment would be a thing to delete
-% later, and #81 has the design in front of it.
+% Each callout also keeps an uppercase sans label. That is what actually carries the
+% meaning — a reader who has never seen the book before can read "GOTCHA" without having
+% learned what a left bar is for.
+%
+% Nothing below is reached from the markdown directly. scripts/lua/callouts.lua maps the
+% Book Chapter Standard's own shapes — the `## 💡 …` and `## 🔑 …` headings, the `> ⚠️ …`
+% blockquotes, the `**In this chapter:**` line, the bold label above a code fence — onto
+% these environments, so no chapter had to change to get them.
+
+\usepackage[skins,breakable]{tcolorbox}
+\usepackage{tabularray}
+\usepackage{fvextra}
+
+% ---------------------------------------------------------------------------
+% The shared callout label
+% ---------------------------------------------------------------------------
+%
+% \tokTracking is +140/1000 em, which fontspec spells as LetterSpace=14.0 — the same
+% figure structure.tex uses for the chapter eyebrow, and for the same reason: caps at
+% 8.5pt set too tight to read without it.
+
+\newcommand{\bookcalloutlabel}[1]{%
+  {\labelfont\addfontfeature{LetterSpace=14.0}%
+   \fontsize{\tokSmallSize}{\tokSmallSize}\selectfont\color{ink}%
+   \MakeUppercase{#1}}\par\vspace{\tokCellPad}%
+}
+
+% A full-measure hairline, used by the takeaways block and the pull quote. \hrule would
+% be shorter to write and wrong to use: it is a vertical-mode primitive that ignores
+% \parskip, so the air around it stops being a token.
+\newcommand{\bookrule}[1]{{\noindent\color{ink}\rule{\linewidth}{#1}}\par}
+
+% ---------------------------------------------------------------------------
+% 💡 The Core Idea — a full 0.4pt box, no tint
+% ---------------------------------------------------------------------------
+%
+% The heaviest treatment of the three, because it opens the chapter and is the one block
+% a reader skimming for the mental model is looking for. `breakable` is not optional:
+% the longest Core Idea in the manuscript runs to 23 lines and carries a table.
+%
+% The frame is \ink rather than \inklight. \inklight is the palette's hairline tone and
+% belongs on table rules, where a 100% K grid would fight the type; a callout box is
+% structure, and structure that a photocopier can lose is not structure.
+
+\newtcolorbox{bookcoreidea}{%
+  breakable, enhanced, sharp corners,
+  colback = white,
+  colframe = ink,
+  boxrule = \tokHairline,
+  boxsep = 0pt,
+  left = \tokCalloutPad, right = \tokCalloutPad,
+  top = \tokCalloutPad, bottom = \tokCalloutPad,
+  before skip = \tokBlockSkip, after skip = \tokBlockSkip,
+  parbox = false,
+}
+
+% ---------------------------------------------------------------------------
+% 🔑 Key Takeaways — rules top and bottom only, no tint
+% ---------------------------------------------------------------------------
+%
+% An open block, deliberately: it is the last thing in a chapter before the questions,
+% and a closed box there reads as a second beginning. Every Key Takeaways block in the
+% manuscript is three to five bullets and none carries a table or a fence, so this one
+% does not need to be breakable — and \needspace keeps it off the foot of a page.
+
+\newenvironment{bookkeytakeaways}{%
+  \par\needspace{5\baselineskip}\vspace{\tokBlockSkip}%
+  \bookrule{\tokHairline}%
+  \vspace{\tokCalloutPad}%
+  \bookcalloutlabel{Key Takeaways}%
+}{%
+  \par\vspace{\tokCalloutPad}%
+  \bookrule{\tokHairline}%
+  \vspace{\tokBlockSkip}%
+}
+
+% ---------------------------------------------------------------------------
+% ⚠️ Gotcha — 2.5pt solid left bar over \tinttwo
+% ---------------------------------------------------------------------------
+%
+% The only callout with a ground, and the only one that appears mid-prose, so it has to
+% read as an interruption without becoming a second page element. The bar does that work;
+% the 12% tint is there to stop the bar floating free of anything.
+%
+% The label is an argument because 90 of the 277 gotchas in the book are the Book Chapter
+% Standard's *moving target* callout, which is a different promise to the reader: not
+% "this will catch you out" but "this will be out of date". Naming it is the whole point
+% of that callout, so the block prints the name it was given.
+%
+% `left` has to clear the bar as well as pay the padding, or the first character sits on
+% the rule.
+
+\newtcolorbox{bookgotcha}[1][Gotcha]{%
+  breakable, enhanced, sharp corners,
+  colback = tinttwo,
+  colframe = tinttwo,
+  boxrule = 0pt,
+  borderline west = {\tokBarRule}{0pt}{ink},
+  boxsep = 0pt,
+  left = \dimexpr\tokBarRule+\tokCalloutPad\relax,
+  right = \tokCalloutPad,
+  top = \tokCalloutPad, bottom = \tokCalloutPad,
+  before skip = \tokBlockSkip, after skip = \tokBlockSkip,
+  parbox = false,
+  before upper = \bookcalloutlabel{#1},
+}
+
+% ---------------------------------------------------------------------------
+% The metadata pill — the "In this chapter" line
+% ---------------------------------------------------------------------------
+%
+% Every chapter opens on three things: a title, a one-sentence promise, and a scannable
+% list of what is inside. The third is the chapter's metadata and the only thing in the
+% book that answers "is this the section I want?" without being read. A hairline box at
+% \tokMicroSize sets it apart from the promise above it without spending a page element.
+%
+% The label is caps; the items are not. The design note asks for "8pt sans bold caps",
+% and the label is set that way — but the items are five phrases of prose joined by
+% middots, and five phrases of prose in 8pt caps is a line nobody reads twice.
+
+\newtcolorbox{bookpill}{%
+  enhanced, sharp corners,
+  colback = white,
+  colframe = inklight,
+  boxrule = \tokHairline,
+  boxsep = 0pt,
+  left = \tokPillPad, right = \tokPillPad,
+  top = \tokPillPad, bottom = \tokPillPad,
+  before skip = \tokBlockSkip, after skip = \tokBlockSkip,
+  fontupper = \sffamily\fontsize{\tokMicroSize}{11pt}\selectfont\color{ink},
+}
+
+% This is the one box in the library that keeps tcolorbox's default `parbox=true`. The
+% others set `parbox=false` so their paragraphs behave like page content — which is right
+% for a callout that can run to half a page and has to break across one. The pill cannot:
+% it is one short line, and in the 1,670-page build its interior came out stretched to
+% roughly double its leading wherever the line wrapped, while the identical chapter built
+% on its own set it tight. Whatever the page builder is putting in there, a parbox is a
+% box, and it keeps it out. **Seen in the full build and fixed by reasoning; not yet
+% re-checked against one, which takes two and a half hours.**
+
+\newcommand{\bookpilllabel}[1]{%
+  {\labelfont\addfontfeature{LetterSpace=14.0}\color{inkmid}\MakeUppercase{#1}}\hspace{0.6em}%
+}
+
+% ---------------------------------------------------------------------------
+% The deck — the one-sentence promise under a chapter title
+% ---------------------------------------------------------------------------
+%
+% #80 built the 78pt chapter opening and left the deck as body text, because pulling a
+% blockquote into a title block needs a filter and there was not one yet. There is now,
+% so the deck gets its type here: 11pt serif italic at 55% K, which is the opening block's
+% last line rather than the body's first.
+
+\newcommand{\bookdeckfont}{%
+  \itshape\fontsize{\tokDeckSize}{14pt}\selectfont\color{inkmid}%
+}
+\newenvironment{bookdeck}{%
+  \par\vspace{-0.4\tokBlockSkip}\bookdeckfont
+}{%
+  \par\vspace{\tokBlockSkip}%
+}
+
+% ---------------------------------------------------------------------------
+% The pull quote, and the note it had to be split from
+% ---------------------------------------------------------------------------
+%
+% The design has one treatment for a blockquote: 12/15 serif italic, centred, hairlines
+% above and below, 10pt clear. That is right for a lifted line — "A class should have
+% one, and only one, reason to change" — and it is what \bookpullquote does.
+%
+% The manuscript uses the same markdown for a second job, though. 322 plain blockquotes
+% survive after the decks and the gotchas are taken out, and a good half of them are
+% three-line notes rather than lifted lines. Centring a three-line note in italic reads as
+% a typesetting fault, so a blockquote longer than a single short paragraph gets
+% \booknote instead: the same family, quieter — full measure, upright, one hairline down
+% the left. The filter picks between them on length.
+
+\newenvironment{bookpullquote}{%
+  \par\needspace{4\baselineskip}\vspace{\tokPullClear}%
+  \bookrule{\tokHairline}%
+  \vspace{\tokPullClear}%
+  \centering\itshape\fontsize{\tokPullSize}{\tokPullLeading}\selectfont\color{ink}%
+}{%
+  \par\vspace{\tokPullClear}%
+  \bookrule{\tokHairline}%
+  \vspace{\tokPullClear}%
+}
+
+\newtcolorbox{booknote}{%
+  breakable, enhanced, sharp corners,
+  colback = white,
+  colframe = white,
+  boxrule = 0pt,
+  borderline west = {\tokHairline}{0pt}{inklight},
+  boxsep = 0pt,
+  left = \dimexpr\tokHairline+\tokCalloutPad\relax,
+  right = 0pt,
+  top = 0pt, bottom = 0pt,
+  before skip = \tokBlockSkip, after skip = \tokBlockSkip,
+  parbox = false,
+}
+
+% ---------------------------------------------------------------------------
+% Code
+% ---------------------------------------------------------------------------
+%
+% `Shaded` is pandoc's own wrapper around the listing; the template defines it as an empty
+% environment and header-includes is written after the template, so this renewal wins.
+% Redefining it rather than filtering the code block is what keeps every fence in the
+% book — 1,161 of them — on the same ground without touching a line of markdown.
+%
+% No border. A tint and a border together make a code block louder than the chapter
+% heading above it, and the ground already says where the code starts.
+
+% ...but only when there is one to renew. Pandoc emits the definition only for a document
+% that actually contains a highlighted fence, so a preamble that renews it unconditionally
+% takes down any build without code in it — every slice of one chapter, and the specimen
+% the moment somebody trims the fences out of it. Found exactly that way.
+\makeatletter
+\@ifundefined{Shaded}{\newenvironment{Shaded}{}{}}{}
+\makeatother
+
+\renewenvironment{Shaded}{%
+  \begin{tcolorbox}[
+    breakable, enhanced, sharp corners,
+    colback = tintone, colframe = tintone, boxrule = 0pt,
+    boxsep = 0pt,
+    left = \tokCodePad, right = \tokCodePad,
+    top = \tokCodePad, bottom = \tokCodePad,
+    before skip = \tokBlockSkip, after skip = \tokBlockSkip,
+    parbox = false,
+  ]%
+}{%
+  \end{tcolorbox}%
+}
+
+% Pandoc's template defines Highlighting as a plain fancyvrb Verbatim, which does not
+% wrap. A book full of TypeScript has lines that are wider than a 26mm-margin A4 measure,
+% and an unwrapped one becomes an overfull box that prints into the fore-edge. fvextra's
+% `breaklines` folds them instead, and `breakanywhere` is needed because the long lines
+% here are import paths and generic parameters with no spaces to break at.
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{%
+  commandchars=\\\{\},
+  fontsize=\fontsize{\tokCodeSize}{\tokCodeLeading}\selectfont,
+  breaklines, breakanywhere,
+  breaksymbolleft={},
+  breakindent=0pt,
+}
+
+% The label above a fence. The Book Chapter Standard asks every code block for one, and
+% where the markdown supplies it the filter promotes the bold line to this rather than
+% leaving it as a paragraph of body text that happens to be bold.
+\newcommand{\bookcodelabel}[1]{%
+  \par\needspace{4\baselineskip}\vspace{\tokBlockSkip}%
+  {\labelfont\fontsize{\tokSmallSize}{\tokSmallSize}\selectfont\color{ink}#1}%
+  \par\vspace{-0.5\tokBlockSkip}%
+}
+
+% ---------------------------------------------------------------------------
+% Tables
+% ---------------------------------------------------------------------------
+%
+% 918 tables, two to eight columns, and they are how this book says most of what it says —
+% a decision table is the Book Chapter Standard's preferred shape over prose. So the
+% table is a designed block rather than whatever the writer emits.
+%
+% 100% K header band with the type reversed out of it, 9/11.5 sans body, \tintone on
+% alternate rows, 4pt cell padding, and no vertical rules at all. The band is what makes
+% a table scannable when 30 of them appear in one part; zebra is what stops an
+% eight-column row being read diagonally.
+%
+% Set as tabularray's global default rather than as a named theme, so the filter emits
+% nothing but a `colspec` and #77 can retune all 918 tables from this one place.
+
+% `row{1}` comes after `row{even}` on purpose. tabularray applies inner specs in the
+% order they are given and the later one wins, so a zebra rule written last would tint
+% the header band away in every table with an even number of rows.
+\newcommand{\booktblrinner}{
+  rowsep    = \tokCellPad,
+  colsep    = \tokCellPad,
+  hlines    = {\tokHairline, inklight},
+  row{2-Z}  = {font = \sffamily\fontsize{\tokTableSize}{\tokTableLeading}\selectfont},
+  row{even} = {bg = tintone},
+  row{1}    = {bg = ink, fg = white,
+               font = \labelfont\fontsize{\tokSmallSize}{11pt}\selectfont},
+}
+
+% Set twice, because `\SetTblrInner` with no optional argument reaches `tblr` only, and
+% the book's tables are mostly `longtblr` — a table that runs past a page break is the
+% normal case in a 250-chapter reference rather than the exception. Miss the second call
+% and every table outside a callout silently falls back to tabularray's own defaults,
+% which is a book with two table designs in it. The environment is named in full:
+% `[long]` is accepted without complaint and styles nothing.
+%
+% The \expandafter dance is what puts the *contents* of \booktblrinner in front of the
+% key parser rather than the macro name: l3keys does not expand a token list handed to it
+% whole.
+\expandafter\SetTblrInner\expandafter{\booktblrinner}
+\def\booktblrinnerlong{\SetTblrInner[longtblr]}
+\expandafter\booktblrinnerlong\expandafter{\booktblrinner}
+
+% `longtblr` numbers and captions itself — "Table 1.2:" above every table. This book
+% labels a table with the bold line above it that the Book Chapter Standard already asks
+% for, and a numbered float caption on top of that is one label too many. `entry` and
+% `label` drop it from the list of tables and from the cross-reference machinery; the
+% four blank templates drop the caption, its continuation, and the "(continued)" heads
+% and feet a long table repeats at every page break.
+\SetTblrOuter[longtblr]{entry=none, label=none}
+\DefTblrTemplate{caption}{default}{}
+\DefTblrTemplate{capcont}{default}{}
+\DefTblrTemplate{conthead}{default}{}
+\DefTblrTemplate{contfoot}{default}{}

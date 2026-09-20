@@ -184,6 +184,13 @@
 \renewcommand{\partmark}[1]{\markboth{#1}{}}
 \renewcommand{\chaptermark}[1]{\markright{#1}}
 
+% #80 set the two marks above and stopped there, which left the recto head showing
+% whichever `##` heading happened to end the page — "Common Mistakes" rather than the
+% chapter title. The class's own \sectionmark still calls \markright, and it runs after
+% \chaptermark does. Found by #81's specimen page; a section is not a location in this
+% book, so it writes no mark at all.
+\renewcommand{\sectionmark}[1]{}
+
 \newcommand{\headfont}{\labelfont\fontsize{\tokMicroSize}{\tokMicroSize}\selectfont}
 
 % ---------------------------------------------------------------------------

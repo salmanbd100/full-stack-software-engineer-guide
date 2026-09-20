@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-19 · **Progress:** 87 / 93
+**Last updated:** 2026-09-19 · **Progress:** 88 / 93
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -6031,6 +6031,17 @@ fences. The conversion is largely done; what is missing is that **nothing render
 them as code blocks, so the PDF prints Mermaid source. **#82 builds the renderer and closes this item.**
 117 files also still carry box-drawing characters that print as tofu — #81 maps those.
 
+**Correction (2026-09-19, at #81): the box-drawing half of that last sentence is wrong twice over, and
+there is nothing left in it.** Measured across the manuscript there are five such characters —
+`─ │ ├ └ █` — in **8 files, 175 occurrences, every one inside a code fence**. Source Code Pro carries
+all five, so they already print correctly; only the serif and the sans are missing them, and no
+box-drawing character appears in prose or in a table anywhere in the book. #81 deliberately did **not**
+map them: a rule wide enough to read is not the monospaced width the diagram was drawn to, so a
+substitution would break the alignment of every tree and timeline in those 8 files to fix a problem
+they do not have. What #81 added instead is a missing-character report in `build-book.sh`, which
+catches it if one ever moves into prose. **Only the Mermaid half of this item is still open, and #82
+still closes it.**
+
 ---
 
 ### - [x] 75. Verify every code sample compiles `L` — ✅ **done 2026-09-19**
@@ -6175,6 +6186,21 @@ chapter missing the standard's closing blocks, and no hand-written Table of Cont
 
 Item #5 deferred every real typographic decision to this item and left it without a "Done when". It is
 now the calibration and proof step, and it carries the plan's largest open risk.
+
+🔴 **#81 handed this item two more things (2026-09-19):**
+
+1. **The print proof itself.** `build/specimen.pdf` is two pages carrying every block in the design.
+   Nobody has printed it. #81's own acceptance test asks for a **mono laser print** that keeps the
+   three callout types tellable apart, and #79's tint values and #80's mirrored margins are waiting on
+   the same sheet of paper. It is the cheapest check in Phase 7 and the only one the repository cannot
+   run itself.
+2. **Four characters the vendored fonts cannot set.** 年 月 日 ￥, twelve occurrences, all in the
+   `Intl.DateTimeFormat` and `Intl.NumberFormat` samples in the internationalisation chapter. They
+   print as holes today. They were left unmapped on purpose — those comments show what the `ja-JP`
+   locale actually returns, and a romanisation would make a code sample claim an output it does not
+   produce. Setting them needs a **CJK face vendored beside the other three**, which is a licence and
+   file-size decision of #79's shape and costs an order of magnitude more than all three Source
+   families together. `pnpm book:pdf` names them on every run until it is taken.
 
 🔴 **This item now also owns two things #31f deferred to it:**
 
@@ -6430,7 +6456,7 @@ opening block sits at the foot of a page with fewer than three lines of body und
 
 ---
 
-### - [ ] 81. The black-and-white block library `L`
+### - [x] 81. The black-and-white block library `L` — ✅ **done 2026-09-19**
 
 🔴 **Ordering:** after #80.
 
@@ -6472,6 +6498,128 @@ so the system can be proved on two pages instead of a 1,400-page build.
 
 **Done when:** `pnpm book:specimen` renders all six blocks, and a mono laser print of
 `build/specimen.pdf` keeps the three callout types tellable apart.
+
+**Delivered:**
+
+- **`scripts/tex/blocks.tex` is written** — seven environments where #79 left an empty file, built on
+  `tcolorbox` and `tabularray` and reading every length, size and grey from `tokens.tex`. The three
+  callouts are told apart by structure exactly as the item drew them: **💡 The Core Idea** a 0.4pt
+  full box with no tint, **🔑 Key Takeaways** a pair of rules with nothing at the sides, **⚠️ Gotcha**
+  a 2.5pt left bar over `tint-2`. Each keeps its uppercase sans label, which is the part that works
+  for a reader who has not learned what a left bar means
+- **`scripts/lua/callouts.lua` maps the Book Chapter Standard's own vocabulary onto them, and not one
+  chapter changed.** Measured against the manuscript, one run of the filter emits **246 core-idea
+  boxes, 245 takeaway blocks, 277 gotchas (90 of them labelled MOVING TARGET), 247 metadata pills,
+  251 decks, 213 pull quotes, 105 notes, 297 code labels and 918 tables** — every count matching what
+  the markdown actually holds
+- **The gotcha label is read from the chapter rather than fixed.** 90 of the 277 are the standard's
+  *moving target* callout, which promises something different — "this will be out of date", not "this
+  will catch you out" — so the block prints MOVING TARGET and drops the bold run that said it, rather
+  than printing the name twice. The other 187 get GOTCHA. The 24 gotchas that open on a bold
+  *sentence* ("Never lazy-load the LCP image.") are left alone: uppercasing a sentence into a label
+  reads it as something it is not
+- **The pull quote had to be split in two, and that is a real amendment to the design.** The item
+  specifies one blockquote treatment — 12/15 serif italic, centred, hairlines, 10pt clear — and that
+  is right for a lifted line. The manuscript uses the same markdown for a second job: of the 318 plain
+  blockquotes left after the decks and the gotchas are taken out, **105 are three-line notes**, and a
+  centred three-line note in italic reads as a typesetting fault. So a blockquote of one short
+  paragraph becomes `bookpullquote` as drawn, and anything longer becomes `booknote` — same family,
+  quieter, full measure, one hairline down the left. The filter picks on length
+- **The metadata pill is the `**In this chapter:**` line**, which the item did not name and which is
+  the only chapter metadata the book has. The label is set in 8pt sans caps as specified; the five
+  items after it are not, because five phrases of prose in 8pt caps is a line nobody reads twice
+- **The deck came here rather than to #82.** #80 built the 78pt chapter opening and left the
+  one-sentence promise as body text, noting it needed a filter. This is the filter, and the deck is a
+  blockquote — so it is matched where every other blockquote is matched, and set at 11pt serif italic
+  in 55% K. #82 now has only Mermaid and cross-references left in it
+- **Tables are rewritten to `tabularray`, not restyled in place**, because the 100% K header band is
+  the one thing `longtable` cannot be talked into: pandoc wraps each header cell in its own minipage
+  and leaves no row for a band to sit behind. 907 become `longtblr`; the **11 that sit inside a Core
+  Idea box become `tblr`**, because a page-breaking table cannot live in a `tcolorbox`. The filter
+  knows which is which by building its traversal per nesting level rather than by tracking a flag
+- **Code blocks keep pandoc's own `Shaded` wrapper, renewed.** That is what puts all 1,161 fences on
+  the same 6% K ground without touching a line of markdown. Two things came with it: the PDF now uses
+  pandoc's **`monochrome`** highlight style instead of `tango` — tango's palette greys out into four
+  tones within a few percent of each other, so keywords, strings and comments become the same ink —
+  and `fvextra` gives the listing `breaklines`/`breakanywhere`, because a book of TypeScript has
+  import paths and generic parameters with no space to break at. The EPUB keeps tango; the
+  black-and-white constraint is print-only
+- **`scripts/specimen.md` and `pnpm book:specimen`.** A fixture written at the level
+  `collect-chapters.ts` leaves the manuscript at, so tectonic sees exactly what it sees in
+  `build/book.md`. It exercises every block, an eight-column table, a wrapped fence, an ASCII diagram
+  and both kinds of blockquote, on **two pages in four seconds** — against a full build that now
+  takes the better part of an hour. `scripts` is already in `EXCLUDED_DIRS`, so nothing that
+  walks the manuscript reads it
+
+**Three things were found by measuring rather than by reading the item, and all three change it:**
+
+- **The "117 files still carry box-drawing characters that print as tofu" is wrong twice over.** There
+  are five such characters — `─ │ ├ └ █` — across **8 files and 175 occurrences, and every single one
+  is inside a code fence.** Source Code Pro carries all five; only the serif and the sans are missing
+  them, and no box-drawing character appears in prose or in a table anywhere in the book. **They are
+  deliberately not substituted.** A rule wide enough to read is not the monospaced width the diagram
+  was drawn to, so mapping them would break the alignment of every tree and timeline in those 8 files
+  to fix a problem they do not have
+- **What is actually missing is six other characters, and nothing would have found them by eye.**
+  `build-book.sh` now reports every glyph the vendored fonts cannot set, because tectonic warns and
+  carries on — it prints a hole, and silence is the failure mode. Run over the whole manuscript it
+  found: **α** (U+03B1, the inverse Ackermann function in the Union-Find complexity — now set as the
+  maths symbol it is), **✕** (U+2715, one close button in an HTML sample — now a dingbat), and **年 月
+  日 ￥**, twelve occurrences in the `Intl` samples in the internationalisation chapter. Those four are
+  **left unmapped on purpose**: those comments show what the `ja-JP` locale actually returns, and a
+  romanisation would make a code sample claim an output it does not produce. Setting them needs a CJK
+  face vendored beside the other three — a licence and file-size decision of #79's shape, costing an
+  order of magnitude more than all three Source families together. **Recorded against #77**, which
+  owns the final proof
+- **A `%s` in a Lua pattern nearly put a hole in the DSA complexity table.** Lua patterns are bytes and
+  `%s` asks the C library whether a byte is whitespace; in the locale pandoc runs under,
+  `isspace(0xA0)` is true, and `0xA0` is the third byte of `†`. Trimming a rendered table cell with
+  `%s+$` ate it and left two orphaned bytes that came back out of the writer as replacement
+  characters. It printed as a gap in exactly one table and nowhere else. Every trim in the filter now
+  names its bytes
+
+**Also fixed here, because the specimen page showed it:** #80's running heads were never holding. The
+class's own `\sectionmark` still calls `\markright` and runs after `\chaptermark`, so the recto head
+printed whichever `##` heading ended the page — "Common Mistakes" rather than the chapter title. A
+section is not a location in this book, so it now writes no mark at all.
+
+**Two more bugs came out of building the real thing, and both are the kind that only a 1,670-page
+run shows:**
+
+- **`blocks.tex` took down any build with no code in it.** Pandoc writes the `Shaded` environment into
+  the preamble only for a document that actually contains a highlighted fence, so renewing it
+  unconditionally fails with *"Environment Shaded undefined"* — every single-chapter slice, and the
+  specimen the moment somebody trims the fences out of it. It is now defined if absent, then renewed
+- **The metadata pill's interior came out stretched in the full book** — roughly double its leading
+  wherever the line wrapped — while the identical chapter built on its own set it tight. It is the one
+  box in the library that is a single short line and never breaks, so it keeps tcolorbox's default
+  `parbox=true` and the page builder cannot reach inside it. **Reasoned and specimen-verified, not
+  re-checked against a full build**, which costs two and a half hours
+
+**Verified:** `pnpm book:pdf` → **1,670 A4 pages, no errors**, up from #80's 1,480 — the block library
+costs 190 pages and #77 now has that number. **4,810 overfull boxes, 1,074 of them wider than 5pt**,
+which is #77's acceptance criterion and is reported here as a measurement rather than as a comparison:
+no earlier build recorded the figure, so nothing says whether it moved. The **missing-character report
+comes back with only the four CJK glyphs** — α and ✕ are gone, and no box-drawing character was ever
+in it. `pnpm book:specimen` → two pages, four seconds, all seven blocks. `pnpm book:epub` → 2.0 MB,
+unchanged, the filter being PDF-only. `pnpm lint:docs` → 305 files, **all eleven rules at 0**.
+`pnpm check:code-samples` → syntax clean, 1,425 against a baseline of 1,425. `pnpm index:check` →
+current, 988 questions. `pnpm number:chapters --check` → clean. `pnpm check:versions` → 0 and 0.
+`pnpm check:stale` → 0. `pnpm site:pages` → 69 pages. `pnpm book:collect` → 305 files, 61,383 lines.
+
+**One cost worth knowing before #77 starts tuning:** `pnpm book:pdf` now takes about **two and a half
+hours**, in three TeX passes — 918 tabularray tables are not cheap, and tectonic reruns until the
+contents and the column widths settle. That is exactly why the item asked for a specimen, and why
+`pnpm book:specimen` is the thing to iterate the design against.
+
+**Half of this item's acceptance test has not been run, and cannot be run here: nothing has been
+printed.** `pnpm book:specimen` renders all seven blocks and that half is verified. Whether a 0.4pt
+hairline box, a pair of rules and a 2.5pt bar over 12% K stay tellable apart on a **mono laser print**
+is a physical check, and the design is so far only reasoned against how ink behaves on uncoated stock
+and inspected on screen at 200 dpi. `build/specimen.pdf` is two pages and exists to be printed.
+**The box is ticked and the print check is carried to #77**, which owns the final proof — the same
+way #79's tint values and #80's mirrored margins were carried there. It is two pages, and it is the
+cheapest thing in Phase 7 to actually check.
 
 ---
 
@@ -6529,8 +6677,8 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
 | 6     | 64–69   | 6/6  | ✅ Complete    |
-| 7     | 70–83 · 70a | 9/15 | 🔄 In progress |
-| **Total** | **93** | **87/93** | **94%**   |
+| 7     | 70–83 · 70a | 10/15 | 🔄 In progress |
+| **Total** | **93** | **88/93** | **95%**   |
 
 ---
 

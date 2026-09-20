@@ -71,3 +71,20 @@
 \newcommand{\tokCellPad}{4pt}
 \newcommand{\tokCodePad}{5pt}
 \newcommand{\tokCalloutPad}{7pt}
+
+% ---------------------------------------------------------------------------
+% Blocks — consumed by blocks.tex at #81
+% ---------------------------------------------------------------------------
+%
+% The book prints in black and white, so the three callout types are told apart by
+% structure rather than by fill: a full box, a pair of rules, and a solid left bar over
+% \tinttwo. Greyscale collapses the reference design's three hues to within one percent
+% of each other; rule weight survives greyscale, photocopying and e-ink.
+
+\newcommand{\tokTableSize}{9pt}        % table body — one step under the body serif
+\newcommand{\tokTableLeading}{11.5pt}
+\newcommand{\tokPullSize}{12pt}        % a line lifted out of the prose
+\newcommand{\tokPullLeading}{15pt}
+\newcommand{\tokPullClear}{10pt}       % air above and below a pull quote
+\newcommand{\tokPillPad}{4pt}
+\newcommand{\tokBlockSkip}{9pt}        % air around every block in this library
