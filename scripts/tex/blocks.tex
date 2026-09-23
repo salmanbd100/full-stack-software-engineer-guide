@@ -41,6 +41,25 @@
 \newcommand{\bookrule}[1]{{\noindent\color{ink}\rule{\linewidth}{#1}}\par}
 
 % ---------------------------------------------------------------------------
+% Ragged right, inside the boxes too
+% ---------------------------------------------------------------------------
+%
+% 🔴 Improvement #77, and it was wrong in every callout in the book until it was measured.
+% `\RaggedRight` in typography.tex is a paragraph-shape declaration, and tcolorbox resets
+% the paragraph shape when it opens its upper part: `\the\rightskip` reads `0.0pt plus
+% 20.0pt` in body text and a flat `0.0pt` inside any box below. So **1,115 callouts were
+% being set justified** while the 60,000 lines around them were ragged — the one thing
+% typography.tex says this measure cannot survive, "a 72–90 character measure with this
+% much inline code in it cannot be justified without rivers". It also produced the
+% overfull boxes: with no stretch left in \rightskip, a line that will not fit has nowhere
+% to go.
+%
+% Restated as `before upper` on each box rather than as a \tcbset default, because the
+% gotcha already uses that key for its label and a default it silently overrides is worse
+% than four explicit lines.
+\newcommand{\bookboxshape}{\RaggedRight}
+
+% ---------------------------------------------------------------------------
 % 💡 The Core Idea — a full 0.4pt box, no tint
 % ---------------------------------------------------------------------------
 %
@@ -62,6 +81,7 @@
   top = \tokCalloutPad, bottom = \tokCalloutPad,
   before skip = \tokBlockSkip, after skip = \tokBlockSkip,
   parbox = false,
+  before upper = \bookboxshape,
 }
 
 % ---------------------------------------------------------------------------
@@ -112,7 +132,7 @@
   top = \tokCalloutPad, bottom = \tokCalloutPad,
   before skip = \tokBlockSkip, after skip = \tokBlockSkip,
   parbox = false,
-  before upper = \bookcalloutlabel{#1},
+  before upper = \bookboxshape\bookcalloutlabel{#1},
 }
 
 % ---------------------------------------------------------------------------
@@ -138,6 +158,7 @@
   top = \tokPillPad, bottom = \tokPillPad,
   before skip = \tokBlockSkip, after skip = \tokBlockSkip,
   fontupper = \sffamily\fontsize{\tokMicroSize}{11pt}\selectfont\color{ink},
+  before upper = \bookboxshape,
 }
 
 % This is the one box in the library that keeps tcolorbox's default `parbox=true`. The
@@ -209,6 +230,7 @@
   top = 0pt, bottom = 0pt,
   before skip = \tokBlockSkip, after skip = \tokBlockSkip,
   parbox = false,
+  before upper = \bookboxshape,
 }
 
 % ---------------------------------------------------------------------------
@@ -258,6 +280,34 @@
   breakindent=0pt,
 }
 
+% ---------------------------------------------------------------------------
+% Inline code
+% ---------------------------------------------------------------------------
+%
+% Improvement #77. A legal place to break a line, and nothing else — no glue, so nothing
+% is discarded if the break is taken and nothing is added if it is not. An inline code
+% span therefore sets exactly as it did before unless the alternative is running into the
+% margin.
+%
+% Pandoc renders `foo bar` as \texttt{foo\ bar}, and that control space does not break. A
+% span is one rigid box, which is right in a 442pt measure and impossible in the 53pt
+% first column of a three-column table: `React.ReactNode` alone is 88pt. Every overfull
+% box in this book wider than 20pt was one of these, and the fix is to offer TeX somewhere
+% to break rather than to make the type smaller or the tables wider.
+%
+% scripts/lua/callouts.lua decides where: after a path separator, a dot, a colon, a comma,
+% a closing bracket, a hyphen, an underscore or an angle bracket, and at each camelCase
+% boundary. Those are the places a reader already parses a symbol at, so a break lands
+% where the eye would put one anyway.
+\newcommand{\bookcodebrk}{\penalty\tokCodeBreakPenalty\relax}
+
+% The same thing at four times the cost, offered between every pair of characters and only
+% inside a table cell. A column can be 30pt wide — narrower than `secrets: inherit` has any
+% structural break small enough for — and a cell that cannot wrap bleeds into the gutter.
+% Costlier so that it stays the fallback: TeX takes a break after a dot or a camelCase
+% boundary in preference, and reaches for this only when none of them is enough.
+\newcommand{\bookcodebrkany}{\penalty\tokCodeBreakPenaltyAny\relax}
+
 % The label above a fence. The Book Chapter Standard asks every code block for one, and
 % where the markdown supplies it the filter promotes the bold line to this rather than
 % leaving it as a paragraph of body text that happens to be bold.
@@ -286,14 +336,25 @@
 % `row{1}` comes after `row{even}` on purpose. tabularray applies inner specs in the
 % order they are given and the later one wins, so a zebra rule written last would tint
 % the header band away in every table with an even number of rows.
+% A table cell is the narrowest measure in the book — the six-column tables put 26pt
+% between the rules — and a word that will not fit one has nowhere to go. #77 makes TeX
+% try much harder before giving up: hyphenate almost free, break at an existing hyphen
+% almost free, and stretch the last line rather than overrun the column. Body text keeps
+% LaTeX's defaults, where a hyphen every other line would be the wrong trade.
+\newcommand{\bookcellbreaks}{%
+  \hyphenpenalty=10 \exhyphenpenalty=10 \emergencystretch=1em\relax
+}
+
 \newcommand{\booktblrinner}{
   rowsep    = \tokCellPad,
   colsep    = \tokCellPad,
   hlines    = {\tokHairline, inklight},
-  row{2-Z}  = {font = \sffamily\fontsize{\tokTableSize}{\tokTableLeading}\selectfont},
+  row{2-Z}  = {font = \sffamily\fontsize{\tokTableSize}{\tokTableLeading}\selectfont
+                      \bookcellbreaks},
   row{even} = {bg = tintone},
   row{1}    = {bg = ink, fg = white,
-               font = \labelfont\fontsize{\tokSmallSize}{11pt}\selectfont},
+               font = \labelfont\fontsize{\tokSmallSize}{11pt}\selectfont
+                      \bookcellbreaks},
 }
 
 % Set twice, because `\SetTblrInner` with no optional argument reaches `tblr` only, and
@@ -321,3 +382,39 @@
 \DefTblrTemplate{capcont}{default}{}
 \DefTblrTemplate{conthead}{default}{}
 \DefTblrTemplate{contfoot}{default}{}
+
+% ---------------------------------------------------------------------------
+% Diagrams
+% ---------------------------------------------------------------------------
+%
+% Improvement #82. 96 Mermaid fences, rendered to vector PDF by scripts/lua/mermaid.lua
+% and placed here. Until that filter existed pandoc set the *source* of every one of them
+% in monospace, so the book shipped 96 listings of `flowchart TD` where the figure should
+% have been.
+%
+% Not a float. `figure` would let LaTeX move a diagram to the next page to avoid a break,
+% and in a reference book the prose immediately under a diagram is usually reading it
+% line by line — "the second branch is where the microtask queue drains". A figure that
+% has travelled two pages from that sentence is worse than a short page.
+%
+% \needspace keeps a diagram off the last three lines of a page, where it would be split
+% from the sentence introducing it for no gain.
+
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+
+% `max width`/`max height` rather than `width`/`height`: they only ever shrink. A figure
+% small enough to sit at its natural size keeps it, so a four-node flow is not blown up
+% to the full measure with 30pt labels, and the diagram type size stays roughly constant
+% across the book instead of being a function of how complex each diagram happens to be.
+%
+% The height cap is \tokDiagramMaxHeight rather than \textheight: a diagram allowed the
+% full text height fills the page on its own and pushes the paragraph that explains it
+% over the fold. Like every other tunable value it lives in tokens.tex.
+\newcommand{\bookdiagram}[1]{%
+  \par\needspace{3\baselineskip}\vspace{\tokBlockSkip}%
+  {\centering
+   \includegraphics[max width=\linewidth, max height=\tokDiagramMaxHeight]{#1}%
+   \par}%
+  \vspace{\tokBlockSkip}%
+}

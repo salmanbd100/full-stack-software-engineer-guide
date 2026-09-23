@@ -1,0 +1,111 @@
+{
+  "_comment": [
+    "The book's five-tone palette, restated for Mermaid. Improvement #82.",
+    "",
+    "Every value below is one of the five greys in scripts/tex/tokens.tex, converted from",
+    "xcolor's lightness to a hex triplet: ink 0.00 -> #000000, inkmid 0.45 -> #737373,",
+    "inklight 0.65 -> #a6a6a6, tintone 0.94 -> #f0f0f0, tinttwo 0.88 -> #e0e0e0. Mermaid",
+    "has no include mechanism, so this is the one place in the design where a colour is",
+    "written twice; if a tint moves in tokens.tex it has to move here too.",
+    "",
+    "Mermaid's default theme is not merely colourful, it is colour-*carried*: a decision",
+    "node and a process node differ by hue and by nothing else, and in greyscale they",
+    "land within four percent of each other. The shapes carry that distinction on their",
+    "own, so every fill here is the same tint and every stroke is full-strength ink --",
+    "the same reasoning #81 applied to the three callout types.",
+    "",
+    "fontSize here is only a probe. scripts/lua/mermaid.lua renders each diagram once at",
+    "this size to learn how far it will have to shrink to fit the measure, then overrides",
+    "the value per diagram so that the shrink lands on \\tokDiagramLabelSize. Editing the",
+    "number below changes nothing about the printed book; edit the token instead.",
+    "",
+    "The spacings are cut to roughly half of Mermaid's defaults. They are fixed pixel",
+    "values rather than multiples of the type size, so on a 1,200px-wide flowchart they",
+    "are several hundred pixels of air that the page then pays for by shrinking the type.",
+    "Cutting them is the one change that makes a wide diagram more legible rather than",
+    "merely smaller."
+  ],
+
+  "theme": "base",
+
+  "themeVariables": {
+    "fontFamily": "Source Sans 3, sans-serif",
+    "fontSize": "13px",
+
+    "background": "#ffffff",
+    "textColor": "#000000",
+    "lineColor": "#000000",
+
+    "primaryColor": "#f0f0f0",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "secondaryTextColor": "#000000",
+    "secondaryBorderColor": "#000000",
+    "tertiaryColor": "#ffffff",
+    "tertiaryTextColor": "#000000",
+    "tertiaryBorderColor": "#000000",
+
+    "mainBkg": "#f0f0f0",
+    "nodeBorder": "#000000",
+    "nodeTextColor": "#000000",
+    "clusterBkg": "#ffffff",
+    "clusterBorder": "#a6a6a6",
+    "titleColor": "#000000",
+    "edgeLabelBackground": "#ffffff",
+    "labelBackground": "#ffffff",
+    "labelTextColor": "#000000",
+    "arrowheadColor": "#000000",
+
+    "noteBkgColor": "#e0e0e0",
+    "noteTextColor": "#000000",
+    "noteBorderColor": "#000000",
+
+    "actorBkg": "#f0f0f0",
+    "actorBorder": "#000000",
+    "actorTextColor": "#000000",
+    "actorLineColor": "#737373",
+    "signalColor": "#000000",
+    "signalTextColor": "#000000",
+    "labelBoxBkgColor": "#f0f0f0",
+    "labelBoxBorderColor": "#000000",
+    "loopTextColor": "#000000",
+    "activationBkgColor": "#e0e0e0",
+    "activationBorderColor": "#000000",
+    "sequenceNumberColor": "#ffffff",
+    "altBackground": "#ffffff",
+
+    "stateBkg": "#f0f0f0",
+    "stateBorder": "#000000",
+    "transitionColor": "#000000",
+    "transitionLabelColor": "#000000",
+    "compositeBackground": "#ffffff",
+    "compositeBorder": "#a6a6a6",
+    "compositeTitleBackground": "#f0f0f0",
+    "innerEndBackground": "#000000",
+    "specialStateColor": "#000000"
+  },
+
+  "flowchart": {
+    "useMaxWidth": false,
+    "htmlLabels": true,
+    "curve": "basis",
+    "nodeSpacing": 26,
+    "rankSpacing": 26,
+    "padding": 8,
+    "diagramPadding": 4
+  },
+  "sequence": {
+    "useMaxWidth": false,
+    "diagramMarginX": 4,
+    "diagramMarginY": 4,
+    "boxMargin": 6,
+    "actorMargin": 32
+  },
+  "state": {
+    "useMaxWidth": false,
+    "nodeSpacing": 26,
+    "rankSpacing": 26,
+    "diagramPadding": 4
+  }
+}

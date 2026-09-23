@@ -1,0 +1,84 @@
+# book-pdf.yaml — the PDF half of the build, in one file. Improvement #82.
+#
+# Everything here used to be an array of shell flags inside build-book.sh: eight
+# `--variable`s, two includes and a highlight style, quoted and back-slashed across a
+# line continuation. A pandoc defaults file is the same options as data, so a reader can
+# see the whole print configuration without reading bash, and the specimen build and the
+# book build cannot drift apart because they both name this file.
+#
+# What is *not* here is anything the EPUB also needs — the reader, the metadata file and
+# the table of contents stay in build-book.sh, which passes them to both targets. A
+# second copy of them here would be a second thing to keep in step.
+#
+# 🔴 Relative paths below resolve against the **working directory**, not against this
+# file. build-book.sh does `cd "$ROOT"` before it calls pandoc, which is what makes
+# `scripts/…` correct. Moving the call without moving the `cd` breaks every path here
+# with "not found in resource path".
+
+pdf-engine: tectonic
+
+include-in-header:
+  - scripts/book-header.tex
+
+# 🔴 The order is load-bearing, and both constraints point the same way: callouts.lua
+# flattens things, so anything that needs to read structure has to go first.
+#
+#   xref.lua first, because callouts.lua renders every Table to LaTeX source. 674 of the
+#   1,662 cross-references live in the chapter tables of section indexes, and by the time
+#   a table is a RawBlock its links are `\href` strings no filter can see.
+#
+#   mermaid.lua last, because callouts.lua turns a `**Label:**` paragraph sitting above a
+#   fence into a code label, and one of the 96 Mermaid fences has one —
+#   `SystemDesign/Fundamentals/01-driving-the-round.md`. It has to still be a CodeBlock
+#   when callouts.lua looks; mermaid.lua replaces it with a graphic.
+filters:
+  - type: lua
+    path: scripts/lua/xref.lua
+  - type: lua
+    path: scripts/lua/callouts.lua
+  - type: lua
+    path: scripts/lua/mermaid.lua
+
+# `monochrome` rather than `tango`, because the interior prints in one ink: tango's
+# palette greys out into four tones that sit within a few percent of each other, so
+# keywords, strings and comments become the same. monochrome carries the same
+# distinctions in weight and italic, which survive the press. The EPUB keeps tango —
+# BOOK-SPEC's black-and-white constraint is print-only.
+highlight-style: monochrome
+
+variables:
+  # `book` gives \part and \chapter; `twoside` has to be a *class option* rather than a
+  # preamble setting, because the class acts on it at \documentclass time — which is why
+  # it is here and not in scripts/tex/structure.tex with the rest of the page geometry.
+  documentclass: book
+  classoption:
+    - twoside
+    # `openany` is improvement #77's one calibration lever, and it is here rather than in
+    # structure.tex for the same reason `twoside` is: the class acts on it at
+    # \documentclass time. The book class opens every chapter on a recto by default, and
+    # in a 253-chapter reference that cost **182 completely blank pages** out of 1,690 —
+    # 11% of the book, measured with `pnpm book:pages`. A chapter still starts a fresh
+    # page, so it is still found by thumbing; it just no longer waits for a right-hand
+    # one. The parts keep their recto openings: \part still calls \cleardoublepage in
+    # structure.tex, which is ten leaves rather than 182 and is what tells a reader they
+    # have crossed into a new part.
+    - openany
+  fontsize: 10pt
+
+  # Paper size and margins are deliberately absent: `geometry` is loaded by
+  # scripts/tex/structure.tex from the tokens, because a mirrored twoside page needs four
+  # values rather than one and #77 tunes them.
+
+  # Links are coloured rather than boxed, and #77 kept it that way. The question it was
+  # left to answer was whether a second ink is worth it on a press — but #77's trim
+  # decision settles it from the other side: the edition is **A4, delivered as a PDF**
+  # (BOOK-SPEC § 1, decision #18), so the page a reader actually looks at is a screen and
+  # the link is live. Black-and-white remains the rule for everything the design draws;
+  # this is the one element that is not drawn but operated.
+  #
+  # It costs nothing if the book is ever printed in one ink either: RoyalBlue converts to
+  # a mid grey, and the cross-reference still carries the "(p. N)" xref.lua prints beside
+  # it, which is what a reader on paper follows.
+  colorlinks: true
+  linkcolor: RoyalBlue
+  toccolor: black

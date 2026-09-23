@@ -72,6 +72,20 @@
 \newcommand{\tokCodePad}{5pt}
 \newcommand{\tokCalloutPad}{7pt}
 
+% What it costs to break a line inside an inline code span — #77. Pandoc sets a code span
+% as one unbreakable run, which is correct in a 442pt measure and ruinous in a 53pt table
+% column: it was the single cause of every overfull box in the book wider than 20pt.
+% scripts/lua/callouts.lua offers TeX a break after each path, dot, colon and camelCase
+% boundary inside a span; this is how badly it should want to avoid taking one. 500 is
+% high enough that a code span in body prose still sets in one piece, and low enough that
+% a narrow cell breaks rather than bleeding into the gutter.
+\newcommand{\tokCodeBreakPenalty}{500}
+
+% And what a break *anywhere else* in a span costs — offered only inside a table cell,
+% where the column may be narrower than the shortest piece the rule above can produce.
+% Four times the cost, so it stays the last resort rather than the first fit.
+\newcommand{\tokCodeBreakPenaltyAny}{2000}
+
 % ---------------------------------------------------------------------------
 % Blocks — consumed by blocks.tex at #81
 % ---------------------------------------------------------------------------
@@ -88,3 +102,26 @@
 \newcommand{\tokPullClear}{10pt}       % air above and below a pull quote
 \newcommand{\tokPillPad}{4pt}
 \newcommand{\tokBlockSkip}{9pt}        % air around every block in this library
+
+% ---------------------------------------------------------------------------
+% Diagrams — consumed by blocks.tex at #82
+% ---------------------------------------------------------------------------
+%
+% The 96 Mermaid figures are placed at their natural size and only ever shrunk, so this
+% is a ceiling rather than a size. A diagram given the whole text height fills the page
+% alone and pushes the sentence that reads it over the fold; 0.72 leaves prose on both
+% sides of every figure in the book.
+
+\newcommand{\tokDiagramMaxHeight}{0.72\textheight}
+
+% The size the *labels inside* a diagram should end up at once it has been fitted. Read
+% by scripts/lua/mermaid.lua, not by any TeX in this repository, which is why it carries
+% its unit as a bare number: Lua has to do arithmetic with it.
+%
+% It is a target rather than a setting. A Mermaid diagram is rendered at its own natural
+% size and then shrunk to fit the measure, so the type size on the page is a function of
+% how wide the diagram happens to be — the 96 figures in this book shrink by anything
+% from 1.00 to 0.36. The filter renders each one twice: once to find out how far it will
+% shrink, and again at a font size chosen so that the shrink lands here. 8.5pt is the
+% same step the design already uses for table body, eyebrows and callout labels.
+\newcommand{\tokDiagramLabelSize}{8.5}

@@ -166,6 +166,27 @@
 \titlespacing*{\subsection}{0pt}{1.1\baselineskip}{0.3\baselineskip}
 
 % ---------------------------------------------------------------------------
+% The table of contents
+% ---------------------------------------------------------------------------
+%
+% 🔴 Improvement #77, found by measuring rather than by reading. `\@pnumwidth` is the box
+% the page number sits in at the right edge of a contents line, and LaTeX sets it to
+% 1.55em — about 15.5pt, sized for the three-digit folios of a normal book. This one runs
+% past a thousand pages, and a four-digit lining number at 10pt is 20pt wide, so **every
+% contents entry past page 999 hung its folio 4.5pt into the margin**: 499 of them, plus
+% 206 more at 1.26pt for the three-digit entries. All of it under the 5pt the item's
+% acceptance test allows, and all of it on the thirty pages a reader opens first.
+%
+% \@tocrmarg is the matching right margin for a title that wraps, and it has to stay
+% ahead of \@pnumwidth or a wrapped line runs under the number instead of stopping
+% before it.
+
+\makeatletter
+\renewcommand{\@pnumwidth}{2.2em}
+\renewcommand{\@tocrmarg}{3.2em}
+\makeatother
+
+% ---------------------------------------------------------------------------
 % Running heads and the folio
 % ---------------------------------------------------------------------------
 %

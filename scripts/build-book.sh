@@ -40,6 +40,17 @@ if [[ "$TARGET" != "epub" ]] && ! command -v tectonic >/dev/null 2>&1; then
   exit 1
 fi
 
+# mermaid-cli renders the 96 Mermaid fences (#82). Checked here rather than left to
+# pandoc, which would fail once per diagram with a Lua traceback. It is a global CLI like
+# pandoc and tectonic rather than a devDependency on purpose: it pulls a headless
+# Chromium, CI never builds the PDF, and nobody editing prose should pay for it on
+# `pnpm install`.
+if ! command -v mmdc >/dev/null 2>&1; then
+  echo "✗ mmdc is not installed (needed to render diagrams)." >&2
+  echo "  Run: pnpm add -g @mermaid-js/mermaid-cli   (or npm install -g)" >&2
+  exit 1
+fi
+
 # --- collect ---------------------------------------------------------------
 
 if [[ "$TARGET" != "specimen" ]]; then
@@ -67,22 +78,38 @@ COMMON=(
 
 # PDF-only options, shared by the book and the specimen (#81).
 #
-# `monochrome` rather than `tango`, because the interior prints in one ink: tango's
-# palette greys out into four tones that sit within a few percent of each other, so
-# keywords, strings and comments become the same. monochrome carries the same
-# distinctions in weight and italic, which survive the press. The EPUB keeps tango —
-# BOOK-SPEC's black-and-white constraint is print-only.
+# One flag since #82. The engine, the header include, the three Lua filters, the
+# highlight style and the eight variables that used to be spelled out here are now
+# scripts/book-pdf.yaml — the same options as data, and the only place the print
+# configuration is written. Its relative paths resolve against the working directory,
+# which is why the `cd "$ROOT"` above is not optional.
 PDF_ONLY=(
-  --pdf-engine=tectonic
-  --include-in-header="$ROOT/scripts/book-header.tex"
-  --lua-filter="$ROOT/scripts/lua/callouts.lua"
-  --syntax-highlighting=monochrome
-  --variable=documentclass:book
-  --variable=classoption:twoside
-  --variable=fontsize:10pt
-  --variable=colorlinks:true
-  --variable=linkcolor:RoyalBlue
-  --variable=toccolor:black
+  --defaults="$ROOT/scripts/book-pdf.yaml"
+)
+
+# The EPUB takes three filters of its own. xref.lua fills in the `Chapter ??` placeholder
+# there too — an e-reader has no pages to cite, but "see Chapter ??" is no better on a
+# screen than on paper — and mermaid.lua renders the diagrams to SVG, which is what stops
+# the EPUB shipping the same 96 listings of Mermaid source the PDF used to.
+#
+# epub-blocks.lua (#83) is callouts.lua's counterpart: the same shapes, read by the same
+# shared classifier, tagged with class names instead of wrapped in tcolorbox environments.
+# It runs last for the same reason callouts.lua does in print — it needs a Mermaid fence
+# to still be a code block while it looks for the bold label above it.
+EPUB_FILTERS=(
+  --lua-filter="$ROOT/scripts/lua/xref.lua"
+  --lua-filter="$ROOT/scripts/lua/epub-blocks.lua"
+  --lua-filter="$ROOT/scripts/lua/mermaid.lua"
+)
+
+# The ten faces the EPUB embeds, out of the sixteen in assets/fonts/. The sans is never
+# set in italic on screen, and the semibold serif print uses for bold runs inside body
+# text is a paper-weight distinction no screen renders. scripts/epub.css declares an
+# @font-face for each one against ../fonts/, which is where pandoc puts them.
+EPUB_FONTS=(
+  SourceSerif4-Regular SourceSerif4-It SourceSerif4-Bold SourceSerif4-BoldIt
+  SourceSans3-Regular SourceSans3-Semibold SourceSans3-Bold
+  SourceCodePro-Regular SourceCodePro-It SourceCodePro-Bold
 )
 
 # --- PDF -------------------------------------------------------------------
@@ -102,6 +129,35 @@ report_missing_glyphs() {
   fi
 }
 
+# The acceptance test for #82's cross-reference half: "no #ch-slug link renders without a
+# page number".
+#
+# 🔴 It reads the **PDF**, not the log, and that is not a stylistic choice. An undefined
+# \ref prints "??" where the number should be and LaTeX records it as a warning —
+# tectonic then swallows the whole TeX log behind one line reading "warnings were issued
+# by the TeX engine". A grep for "Reference ... undefined" in what tectonic prints finds
+# nothing, on a build that shipped a broken cross-reference. Written that way first, and
+# caught by breaking a reference on purpose and watching the check stay silent.
+#
+# xref.lua does the same check on the other side, against the anchors it collected, and
+# reports before the typesetter runs. This one is the end-to-end proof: it is looking at
+# the page a reader would be holding.
+report_unresolved_refs() {
+  local pdf="$1"
+  if ! command -v pdftotext >/dev/null 2>&1; then
+    echo "  ·  page references not verified: pdftotext not installed (brew install poppler)"
+    return
+  fi
+  local n
+  n="$(pdftotext "$pdf" - | grep -c "(p. ??)" || true)"
+  if [[ "$n" -gt 0 ]]; then
+    echo "  ⚠️  $n cross-reference(s) printed as \"(p. ??)\" — the anchor resolved to nothing."
+    echo "     See scripts/lua/xref.lua, which names them before the typesetter runs."
+  else
+    echo "  ✓ every #ch- cross-reference resolved to a chapter and a page"
+  fi
+}
+
 build_pdf() {
   echo "▸ Building PDF (tectonic)"
   # Paper size and margins are no longer passed here: `geometry` is loaded by
@@ -112,6 +168,7 @@ build_pdf() {
     --output="$BUILD/handbook.pdf" 2>&1 | tee "$BUILD/handbook.log"
   echo "  ✓ build/handbook.pdf ($(du -h "$BUILD/handbook.pdf" | cut -f1))"
   report_missing_glyphs "$BUILD/handbook.log"
+  report_unresolved_refs "$BUILD/handbook.pdf"
 }
 
 # --- Specimen --------------------------------------------------------------
@@ -127,17 +184,54 @@ build_specimen() {
     --output="$BUILD/specimen.pdf" 2>&1 | tee "$BUILD/specimen.log"
   echo "  ✓ build/specimen.pdf ($(du -h "$BUILD/specimen.pdf" | cut -f1))"
   report_missing_glyphs "$BUILD/specimen.log"
+  report_unresolved_refs "$BUILD/specimen.pdf"
 }
 
 # --- EPUB ------------------------------------------------------------------
 
+# The acceptance test for #83. epubcheck is what a retailer runs on upload, and the
+# failures it finds — an unparseable date, a font with no declared media type, a resource
+# nothing in the spine references — are all invisible in a reader that happens to be
+# forgiving. Not in the preflight with pandoc and tectonic: it needs a JVM, the EPUB
+# builds correctly without it, and a validator that blocks the build is a validator people
+# route around.
+report_epubcheck() {
+  local epub="$1"
+  if ! command -v epubcheck >/dev/null 2>&1; then
+    echo "  ·  not validated: epubcheck not installed (brew install epubcheck)"
+    return
+  fi
+  local log="$BUILD/epubcheck.log"
+  if epubcheck "$epub" >"$log" 2>&1; then
+    echo "  ✓ epubcheck: zero errors and zero warnings"
+  else
+    echo "  ⚠️  epubcheck found problems — see build/epubcheck.log"
+    grep -E '^(ERROR|WARNING|FATAL)' "$log" | head -20 | sed 's/^/     /'
+    return 1
+  fi
+}
+
 build_epub() {
   echo "▸ Building EPUB"
-  pandoc "$BUILD/book.md" "${COMMON[@]}" \
+
+  local font_args=()
+  local face
+  for face in "${EPUB_FONTS[@]}"; do
+    font_args+=(--epub-embed-font="$ROOT/assets/fonts/$face.otf")
+  done
+
+  # `date` is overridden here and only here. Print sets its title page from
+  # "2027 Edition", which is the right line on a page and not a date; dc:date has to be
+  # W3C-DTF or epubcheck rejects it.
+  pandoc "$BUILD/book.md" "${COMMON[@]}" "${EPUB_FILTERS[@]}" \
+    --css="$ROOT/scripts/epub.css" \
+    "${font_args[@]}" \
+    --metadata=date:2027 \
     --syntax-highlighting=tango \
     --split-level=1 \
     --output="$BUILD/handbook.epub"
   echo "  ✓ build/handbook.epub ($(du -h "$BUILD/handbook.epub" | cut -f1))"
+  report_epubcheck "$BUILD/handbook.epub"
 }
 
 case "$TARGET" in

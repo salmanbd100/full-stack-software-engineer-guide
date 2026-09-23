@@ -1,0 +1,721 @@
+/*
+ * epub.css — improvement #83
+ *
+ * The print design system, translated. `scripts/tex/` is the authority on what the book
+ * looks like; this file carries the same type scale and the same block structures onto a
+ * screen, and departs from print only where a reflowable format makes the print answer
+ * wrong. Each of those departures is commented where it happens.
+ *
+ * Three rules this file is written to:
+ *
+ * 1. **Structure first, colour second.** Print tells the three callouts apart by shape —
+ *    a full box, a pair of rules, a solid left bar (#81) — because greyscale collapses a
+ *    three-hue palette into one tone. A screen may keep the colour, and this file does,
+ *    but the shapes are unchanged: the EPUB has to read correctly on a monochrome e-ink
+ *    panel, and it does so without the colour carrying anything on its own.
+ * 2. **Relative units only.** Print sets 10/13.2 because it is solving a page budget.
+ *    A reading system's reader has already chosen a size, and overriding it is the one
+ *    thing an EPUB stylesheet must not do. Every size here is a multiple of the reader's
+ *    own body size, in the same proportions the print scale uses — 8.5pt becomes 0.85em,
+ *    22pt becomes 2.2em.
+ * 3. **No custom properties, and no rule that only works one way.** Colours are written
+ *    as a literal value and then again through `light-dark()`, the same progressive
+ *    enhancement pandoc's own default stylesheet uses: a reading system that does not
+ *    understand the second declaration keeps the first rather than dropping the rule.
+ *    `var()` would take the whole design down on an older RMSDK-based reader.
+ *
+ * Where the markup comes from: `scripts/lua/epub-blocks.lua` tags the Book Chapter
+ * Standard's own shapes with the class names below. The classification it uses is shared
+ * with print in `scripts/lua/callout-shapes.lua`, so a gotcha cannot be a callout in one
+ * format and a plain blockquote in the other.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Fonts
+ * ---------------------------------------------------------------------------
+ *
+ * The same three families print uses, embedded by `--epub-embed-font` and landing in
+ * EPUB/fonts/ beside this stylesheet. Ten faces rather than the sixteen in assets/fonts/:
+ * the sans is never set in italic here, and the semibold serif print uses for bold runs
+ * inside body text is a paper-weight distinction that no screen renders.
+ *
+ * Every stack ends in a generic family. A reader who has turned publisher fonts off gets
+ * their own serif and the design still holds, because nothing below depends on a metric
+ * these faces happen to have.
+ */
+
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/SourceSerif4-Regular.otf");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: normal;
+  font-style: italic;
+  src: url("../fonts/SourceSerif4-It.otf");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: bold;
+  font-style: normal;
+  src: url("../fonts/SourceSerif4-Bold.otf");
+}
+@font-face {
+  font-family: "Source Serif 4";
+  font-weight: bold;
+  font-style: italic;
+  src: url("../fonts/SourceSerif4-BoldIt.otf");
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/SourceSans3-Regular.otf");
+}
+/* Semibold is the weight the design calls for on labels; bold is reserved for part and
+ * chapter titles. `typography.tex` makes the same distinction with \labelfont. */
+@font-face {
+  font-family: "Source Sans 3";
+  font-weight: 600;
+  font-style: normal;
+  src: url("../fonts/SourceSans3-Semibold.otf");
+}
+@font-face {
+  font-family: "Source Sans 3";
+  font-weight: bold;
+  font-style: normal;
+  src: url("../fonts/SourceSans3-Bold.otf");
+}
+
+@font-face {
+  font-family: "Source Code Pro";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/SourceCodePro-Regular.otf");
+}
+@font-face {
+  font-family: "Source Code Pro";
+  font-weight: normal;
+  font-style: italic;
+  src: url("../fonts/SourceCodePro-It.otf");
+}
+@font-face {
+  font-family: "Source Code Pro";
+  font-weight: bold;
+  font-style: normal;
+  src: url("../fonts/SourceCodePro-Bold.otf");
+}
+
+/* ---------------------------------------------------------------------------
+ * Reset
+ * ---------------------------------------------------------------------------
+ *
+ * Kept from pandoc's default stylesheet, which this file replaces wholesale: `--css`
+ * substitutes rather than adds. Reading systems ship wildly different UA defaults and an
+ * EPUB that has not zeroed them is a different book on every device.
+ */
+
+:root {
+  color-scheme: light dark;
+}
+
+@page {
+  margin: 10px;
+}
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
+blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img,
+ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center,
+fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, figure, figcaption, footer, header,
+hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video, ol,
+ul, li, dl, dt, dd {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+
+/* ---------------------------------------------------------------------------
+ * Body
+ * ---------------------------------------------------------------------------
+ *
+ * Print sets 10/13.2 — a leading of 1.32, tight for a reference book and chosen against
+ * a page ceiling. **This is the one number deliberately not ported.** There is no page
+ * budget on a screen, the measure is whatever the reader's device happens to be, and
+ * 1.32 on a backlit panel sets denser than the same ratio does on uncoated stock. 1.5 is
+ * the screen equivalent of what print is doing, not a different decision.
+ *
+ * Paragraphs are separated rather than indented, as in print: the book is full of lists,
+ * tables and code, and an indent after every one of them reads as an error. The 0.30em
+ * `\tokParSkip` is worth ninety pages on paper and nothing at all here, so it is set at
+ * the 0.6em that actually separates two paragraphs on a screen.
+ */
+
+html {
+  font-family: "Source Serif 4", Georgia, serif;
+  line-height: 1.5;
+  color: #1a1a1a;
+  color: light-dark(#1a1a1a, #cfcfc2);
+  background-color: transparent;
+  background-color: light-dark(transparent, #232629);
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+body {
+  /* Ragged right, as in print. A 72–90 character measure with this much inline code in
+   * it cannot be justified without rivers, and a reading system's justifier has no
+   * hyphenation dictionary to rescue it with. */
+  text-align: left;
+}
+
+p {
+  text-indent: 0;
+  margin: 0.6em 0;
+  widows: 2;
+  orphans: 2;
+}
+
+ol, ul {
+  margin: 0.6em 0 0.6em 1.5em;
+}
+
+li > ol, li > ul {
+  margin-top: 0;
+}
+
+li {
+  margin: 0.25em 0;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* The Mermaid diagrams, rendered to SVG by scripts/lua/mermaid.lua. Print fits each one
+ * to a measured 8.5pt label size (#82); a screen has no fixed measure, so the figure gets
+ * its own line and the reader's own zoom. */
+img.diagram {
+  display: block;
+  margin: 1.2em auto;
+  max-width: 100%;
+}
+
+sup { vertical-align: super; font-size: smaller; }
+sub { vertical-align: sub;   font-size: smaller; }
+
+a {
+  color: #14607a;
+  color: light-dark(#14607a, #7fbcd2);
+  text-decoration: none;
+  border-bottom: 1px solid #a8c9d4;
+  border-bottom: 1px solid light-dark(#a8c9d4, #4a6b76);
+}
+
+/* The underline is the link, not the colour: a monochrome panel renders #14607a and
+ * #1a1a1a within a few percent of each other. Same principle as the callouts. */
+
+a.footnote-ref { vertical-align: super; border-bottom: 0; }
+
+span.smallcaps { font-variant: small-caps; }
+
+em, em em em, em em em em em { font-style: italic; }
+em em, em em em em { font-style: normal; }
+
+q { quotes: "\201C" "\201D" "\2018" "\2019"; }
+
+hr {
+  background-color: #8c8c8c;
+  background-color: light-dark(#8c8c8c, #6a6a64);
+  border: none;
+  height: 1px;
+  margin: 1.5em 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Headings — the print scale, in ems
+ * ---------------------------------------------------------------------------
+ *
+ * `collect-chapters.ts` leaves the manuscript at one level per structural unit: h1 is a
+ * part, h2 is a chapter, h3 a section, h4 a subsection. Sizes are the print tokens
+ * divided by the 10pt body — \tokPartTitleSize 28pt becomes 2.8em, \tokChapterSize 22pt
+ * becomes 2.2em, and the 13pt and 11pt of structure.tex's section and subsection become
+ * 1.3em and 1.1em.
+ *
+ * All four are sans and all four are ink, exactly as in print: the book's hierarchy is
+ * carried by size and weight, never by colour.
+ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  text-indent: 0;
+  text-align: left;
+  color: #1a1a1a;
+  color: light-dark(#1a1a1a, #e3e3da);
+  page-break-after: avoid;
+  break-after: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* The part opener. Print gives it a page of its own with a 60pt number; an EPUB split at
+ * part level already starts a file here, so the page break is the file boundary. */
+h1 {
+  font-size: 2.8em;
+  font-weight: bold;
+  line-height: 1.15;
+  margin: 1.2em 0 1.5em 0;
+  page-break-before: always;
+  break-before: page;
+}
+
+/* The chapter title, and the 1.2pt accent rule print sets under it (\tokAccentRule). */
+h2 {
+  font-size: 2.2em;
+  font-weight: bold;
+  line-height: 1.2;
+  margin: 2em 0 0 0;
+  padding-bottom: 0.25em;
+  border-bottom: 2px solid #1a1a1a;
+  border-bottom: 2px solid light-dark(#1a1a1a, #cfcfc2);
+  page-break-before: always;
+  break-before: page;
+}
+
+h3 {
+  font-size: 1.3em;
+  font-weight: bold;
+  line-height: 1.3;
+  margin: 1.8em 0 0.4em 0;
+}
+
+h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.4em 0 0.3em 0;
+}
+
+h5, h6 {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 1.2em 0 0.2em 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * The deck — the one-sentence promise under a chapter title
+ * ---------------------------------------------------------------------------
+ *
+ * \tokDeckSize 11pt serif italic at 55% K. The last line of the opening block rather than
+ * the first of the body, which is why it is set before the metadata pill and not after.
+ */
+
+.deck {
+  margin: 0.8em 0 0 0;
+}
+
+.deck p {
+  font-size: 1.1em;
+  font-style: italic;
+  line-height: 1.4;
+  color: #5c5c5c;
+  color: light-dark(#5c5c5c, #a5a59c);
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * The metadata pill — the "In this chapter" line
+ * ---------------------------------------------------------------------------
+ *
+ * The only thing in the book that answers "is this the section I want?" without being
+ * read. A hairline box at \tokMicroSize, label in caps, items in sentence case — five
+ * phrases of prose in 8pt caps is a line nobody reads twice.
+ */
+
+.pill {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.8em;
+  line-height: 1.45;
+  margin: 1.2em 0;
+  padding: 0.6em 0.8em;
+  border: 1px solid #8c8c8c;
+  border: 1px solid light-dark(#8c8c8c, #5e6367);
+}
+
+.pill p { margin: 0; }
+
+.pill-label {
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5c5c5c;
+  color: light-dark(#5c5c5c, #a5a59c);
+  margin-right: 0.5em;
+}
+
+/* ---------------------------------------------------------------------------
+ * The callouts
+ * ---------------------------------------------------------------------------
+ *
+ * Three types, told apart by three shapes, unchanged from #81:
+ *
+ *   💡 The Core Idea   a full 1px box, no ground
+ *   🔑 Key Takeaways   rules top and bottom only, no ground
+ *   ⚠️ Gotcha          a 3px solid left bar over a ground
+ *
+ * The colour below is additive. Strip every hue out of this section — which is what a
+ * Kindle Paperwhite does — and the three are still a box, a pair of rules and a bar, each
+ * under a labelled mark. That is the property the print design was drawn for and the
+ * reason it ports without redrawing.
+ *
+ * The label is a paragraph rather than a pseudo-element `content:` string, so the words
+ * are in the text: searchable, selectable, and announced by a screen reader.
+ */
+
+.callout {
+  margin: 1.4em 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.callout-label p {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0 0 0.5em 0;
+}
+
+/* The mark keeps its own size and its own colour — an emoji set in a letter-spaced
+ * uppercase run inherits both and comes out as a tracked-apart pictograph. */
+.callout-mark {
+  font-size: 1.1em;
+  letter-spacing: 0;
+  margin-right: 0.35em;
+}
+
+.callout > :last-child { margin-bottom: 0; }
+
+/* 💡 A full box. The heaviest of the three, because it opens the chapter and is the block
+ * a reader skimming for the mental model is looking for. */
+.callout--core-idea {
+  padding: 0.8em 0.9em;
+  border: 1px solid #1a1a1a;
+  border: 1px solid light-dark(#1a1a1a, #cfcfc2);
+}
+
+.callout--core-idea .callout-label p {
+  color: #14607a;
+  color: light-dark(#14607a, #8fc9dc);
+}
+
+/* 🔑 Open, deliberately: it is the last thing in a chapter before the questions, and a
+ * closed box there reads as a second beginning. */
+.callout--key-takeaways {
+  padding: 0.8em 0;
+  border-top: 1px solid #1a1a1a;
+  border-top: 1px solid light-dark(#1a1a1a, #cfcfc2);
+  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid light-dark(#1a1a1a, #cfcfc2);
+}
+
+/* ⚠️ The only callout with a ground, and the only one that appears mid-prose, so it has
+ * to read as an interruption without becoming a second page element. The bar does that
+ * work; the ground stops the bar floating free of anything. */
+.callout--gotcha {
+  padding: 0.8em 0.9em;
+  border-left: 3px solid #1a1a1a;
+  border-left: 3px solid light-dark(#9a5b00, #d9a441);
+  background-color: #f1eee6;
+  background-color: light-dark(#f1eee6, #33302a);
+}
+
+.callout--gotcha .callout-label p {
+  color: #7a4800;
+  color: light-dark(#7a4800, #e0b55e);
+}
+
+/* 90 of the 277 gotchas are the standard's *moving target* callout, which is a different
+ * promise: not "this will catch you out" but "this will be out of date". Print says so in
+ * the label alone. Here the label still does the work and the dashed bar agrees with it,
+ * so a reader who has the book in monochrome loses nothing. */
+.callout--moving-target {
+  border-left-style: dashed;
+}
+
+/* ---------------------------------------------------------------------------
+ * Pull quotes and the notes they were split from
+ * ---------------------------------------------------------------------------
+ *
+ * One markdown shape, two jobs. A blockquote of a single short paragraph is a line lifted
+ * out of the prose and gets the centred treatment; anything longer is a note, and
+ * centring a three-line note in italic reads as a typesetting fault. The filter picks
+ * between them at 140 characters, the same threshold print uses.
+ *
+ * `blockquote` is the pull quote here because it is the only blockquote that reaches the
+ * writer still being one — every other kind has become a div by then.
+ */
+
+blockquote {
+  margin: 1.6em 0;
+  padding: 0.9em 0;
+  border-top: 1px solid #1a1a1a;
+  border-top: 1px solid light-dark(#1a1a1a, #cfcfc2);
+  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid light-dark(#1a1a1a, #cfcfc2);
+  text-align: center;
+  font-style: italic;
+  font-size: 1.2em;
+  line-height: 1.35;
+}
+
+blockquote p { margin: 0; }
+
+.note {
+  margin: 1.2em 0;
+  padding-left: 0.9em;
+  border-left: 1px solid #8c8c8c;
+  border-left: 1px solid light-dark(#8c8c8c, #5e6367);
+}
+
+.note > :last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------------------------
+ * Code
+ * ---------------------------------------------------------------------------
+ *
+ * 8.5pt mono on a 6% ground, no border: a tint and a border together make a code block
+ * louder than the heading above it, and the ground already says where the code starts.
+ *
+ * `white-space: pre-wrap` and `overflow-wrap: break-word` are not a stylistic choice.
+ * Print folds long lines with fvextra's `breakanywhere` because the long lines in this
+ * book are import paths and generic parameters with no spaces to break at; a reading
+ * system given `pre` and a phone-width screen simply clips them, and the reader never
+ * finds out there was more.
+ */
+
+code {
+  font-family: "Source Code Pro", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85em;
+  margin: 0;
+  -webkit-hyphens: manual;
+  hyphens: manual;
+  white-space: pre-wrap;
+}
+
+/* An inline code span carries the ground too — it is the same material as a fence, and on
+ * a screen a bare monospace run at 0.85em is easy to read straight past. */
+p > code, li > code, td > code, th > code {
+  padding: 0.05em 0.25em;
+  background-color: #f4f4f3;
+  background-color: light-dark(#f4f4f3, #2b2e31);
+}
+
+pre {
+  margin: 1.2em 0;
+  padding: 0.7em 0.8em;
+  background-color: #f4f4f3;
+  background-color: light-dark(#f4f4f3, #2b2e31);
+  overflow: auto;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.35;
+}
+
+pre code {
+  padding: 0;
+  background-color: transparent;
+  overflow: visible;
+  white-space: pre-wrap;
+}
+
+.sourceCode {
+  background-color: transparent;
+  overflow: visible;
+}
+
+/* The bold line above a fence that the Book Chapter Standard asks every code block for.
+ * Print promotes it to \bookcodelabel; here it keeps its paragraph and takes the label
+ * face, so it reads as the fence's title rather than as a bold sentence of prose. */
+.code-label {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #1a1a1a;
+  color: light-dark(#1a1a1a, #cfcfc2);
+  /* Print sets the label tight above its fence with a negative skip. The screen
+   * equivalent is to take the air out of the gap rather than to overlap into it. */
+  margin: 1.2em 0 0.2em 0;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+/* Pandoc wraps a highlighted fence in div.sourceCode and an unhighlighted one in a bare
+ * pre, and the label has to sit tight against either. */
+.code-label + div.sourceCode > pre,
+.code-label + pre { margin-top: 0.2em; }
+
+/* ---------------------------------------------------------------------------
+ * Tables
+ * ---------------------------------------------------------------------------
+ *
+ * 918 of them, and they are how this book says most of what it says — a decision table is
+ * the standard's preferred shape over prose. Print gives them a 100% K header band with
+ * the type reversed out, a 6% zebra, 4pt cells and no vertical rules at all. All four
+ * port directly.
+ *
+ * `display: block` with `overflow-x: auto` is pandoc's own default and it is kept: an
+ * eight-column table on a phone has to be scrollable or it is a table with three columns
+ * of content and five off the edge.
+ */
+
+table {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.9em;
+  line-height: 1.3;
+  margin: 1.2em 0;
+  border-collapse: collapse;
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+}
+
+th, td {
+  padding: 0.4em 0.6em;
+  text-align: left;
+  vertical-align: top;
+  border: 0;
+}
+
+/* The header band is what makes a table scannable when thirty of them appear in one
+ * part. Reversed out of solid ink, exactly as in print. */
+thead th {
+  font-weight: 600;
+  color: #ffffff;
+  color: light-dark(#ffffff, #16181a);
+  background-color: #1a1a1a;
+  background-color: light-dark(#1a1a1a, #b9b9b0);
+}
+
+/* Zebra is what stops an eight-column row being read diagonally. */
+tbody tr:nth-child(even) {
+  background-color: #f4f4f3;
+  background-color: light-dark(#f4f4f3, #2b2e31);
+}
+
+tbody tr {
+  border-bottom: 1px solid #d6d6d6;
+  border-bottom: 1px solid light-dark(#d6d6d6, #3c4043);
+}
+
+table caption {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-align: left;
+  margin-bottom: 0.4em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Front matter, navigation and the odds pandoc emits
+ * ---------------------------------------------------------------------------
+ */
+
+/* The title page pandoc builds from scripts/book-meta.yaml. Set in the display sans at
+ * the top of the print scale, because it is the one page in the book that is a poster. */
+header, section.titlepage {
+  margin: 2em 0 3em 0;
+  text-align: left;
+}
+
+h1.title {
+  font-size: 2.8em;
+  line-height: 1.1;
+  margin: 0;
+  page-break-before: avoid;
+  break-before: avoid;
+  border-bottom: 0;
+}
+
+p.subtitle {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.2em;
+  font-style: italic;
+  line-height: 1.35;
+  margin: 0.6em 0 0 0;
+  color: #5c5c5c;
+  color: light-dark(#5c5c5c, #a5a59c);
+}
+
+p.author {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 2em 0 0 0;
+}
+
+p.publisher, p.date, div.rights {
+  font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.8em;
+  margin: 0.3em 0 0 0;
+  color: #5c5c5c;
+  color: light-dark(#5c5c5c, #a5a59c);
+}
+
+div.rights { margin-top: 2em; }
+
+nav#toc ol, nav#landmarks ol {
+  padding: 0;
+  margin-left: 1em;
+}
+
+nav#toc ol li, nav#landmarks ol li {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav#toc a, nav#landmarks a { border-bottom: 0; }
+
+ul.task-list { list-style: none; }
+
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+
+div.hanging-indent {
+  margin-left: 1.5em;
+  text-indent: -1.5em;
+}
+
+.display.math {
+  display: block;
+  text-align: center;
+  margin: 0.5rem auto;
+}
+
+/* Two-column divs, in the most compatible form. Nothing in the manuscript uses them
+ * today; kept because pandoc emits the class and an unstyled one is a silent
+ * single-column fallback nobody would notice. */
+div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
+}
+
+/* Workaround for an iBooks issue; see pandoc #6242. */
+@media screen {
+  .sourceCode {
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+  }
+}

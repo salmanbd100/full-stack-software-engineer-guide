@@ -40,7 +40,7 @@ with almost no headroom left.
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-19 · **Progress:** 88 / 93
+**Last updated:** 2026-09-23 · **Progress:** 93 / 93
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -5824,19 +5824,37 @@ is still inside its budget.
 
 ---
 
-### - [ ] 71. Replace every relative link with a chapter cross-reference `M`
+### - [x] 71. Replace every relative link with a chapter cross-reference `M` — ✅ **done 2026-09-22**
 
 Relative paths break in PDF and EPUB. Convert to the item-2 syntax and have the build resolve them to
 "see Chapter N" in print and to anchors on the web.
 
-🔴 **Ordering — the markdown half is DONE (2026-09-17); skip this item and take the next unchecked one below it.** Every
-relative link in the manuscript is now a `#ch-` cross-reference and a lint rule holds it there. What is
-left is the *resolution* half, which needs a pandoc filter that does not exist: **#82 builds it and ticks
-this box.** Do not redo the conversion — read the Delivered block below first.
+> ✅ **Closed at #82 on 2026-09-22.** The markdown half landed on 2026-09-17 and is recorded below.
+> The *resolution* half — the filter that turns a `#ch-` anchor into a chapter number and a page
+> number on paper — was the thing this item could not do by editing markdown, and #82 built it.
 
 **Done when:** no in-book file contains a relative file link (`lint:docs` rule `relative-link` at 0 —
 delivered), and `scripts/lua/xref.lua` renders every `#ch-` link with a chapter and page number in the
 PDF (**#82**).
+
+**Delivered — the resolution half (2026-09-22, at #82):**
+
+- **`scripts/lua/xref.lua` resolves all 1,662 cross-references in the PDF**, verified against the
+  built book: 1,662 page citations, zero occurrences of the literal `Chapter ??` left in 1,690 pages.
+  974 prose references read `Chapter 47 — Closures (p. 312)`; 613 chapter-table entries and 61
+  section-opener references get the title and the page without a number, because the table already
+  has its own `#` column; 14 that pointed at the preface, the glossary and the rest of the matter
+  lose the `Chapter ?? —` prefix entirely, since none of those is a chapter
+- **The number comes from LaTeX's own chapter counter, not from front matter** — which corrects
+  #82's own note. `number-chapters.ts` restarts numbering at 0 in every part, so `chapter: 2` is
+  Data Types and Variables in Part I *and* Semantic HTML in Part II. Those numbers are a reading
+  order, not an address, and printing them would have put nine different "Chapter 1"s in the book.
+  `\ref` is the number actually set at the head of the chapter, so the reference and its target
+  agree by construction — and it follows #77 automatically if calibration renumbers anything
+- **EPUB fills the placeholder too**, by counting level-2 headings, which is the same arithmetic.
+  It gets no page citation, because an e-reader has no pages
+- **See #82 for the rest**, including the two checks that catch an unresolved anchor and the proof
+  that neither is a false negative
 
 **Delivered — the markdown half (2026-09-17):**
 
@@ -6021,7 +6039,7 @@ made rather than dodged, and the back matter renders in order in a real PDF and 
 
 ---
 
-### - [ ] 74. Normalise all diagrams to Mermaid `M`
+### - [x] 74. Normalise all diagrams to Mermaid `M` — ✅ **done 2026-09-22**
 
 There is exactly **one** Mermaid diagram in 134,000 lines. ASCII diagrams do not survive PDF typesetting well.
 Convert structural diagrams to Mermaid; keep ASCII only for short linear flows.
@@ -6039,8 +6057,27 @@ box-drawing character appears in prose or in a table anywhere in the book. #81 d
 map them: a rule wide enough to read is not the monospaced width the diagram was drawn to, so a
 substitution would break the alignment of every tree and timeline in those 8 files to fix a problem
 they do not have. What #81 added instead is a missing-character report in `build-book.sh`, which
-catches it if one ever moves into prose. **Only the Mermaid half of this item is still open, and #82
-still closes it.**
+catches it if one ever moves into prose.
+
+**Done when:** no `mermaid` fence survives into `build/handbook.pdf` as text — the same acceptance
+test #82 carries, because #82 is what closes this item.
+
+**Delivered (2026-09-22, at #82):**
+
+- **`scripts/lua/mermaid.lua` renders all 96 fences**, and the built PDF confirms it: zero
+  occurrences of `flowchart TD`, `flowchart LR`, `sequenceDiagram` or `stateDiagram-v2` anywhere in
+  1,690 pages of extracted text. Before this the book printed 96 listings of Mermaid *source* where
+  the figure should have been — which is what the 2026-09-03 correction above was describing
+- **The EPUB was rendering them as source too**, and nothing in the plan had noticed. It now gets
+  the same 96 diagrams as SVG, which is the format an e-reader can zoom. That was not in #82's
+  wording; it was in this item's, because "normalise all diagrams" is not a print-only claim
+- **The 74 flowcharts, 5 sequence diagrams and 4 state diagrams all render** — the three types
+  `write-topic-docs` restricts the book to, so the restriction is now verified rather than assumed
+- **Not done, and it belongs to a writing item rather than to this one:** the Book Chapter Standard
+  asks for a bold caption line under every diagram, and **none of the 96 has one**. The filter
+  cannot invent a caption. One fence has a bold *label* above it, which #82 was careful to keep
+  working. Adding 96 captions is an editorial pass
+- **See #82** for the theme, the fitting, and the cost of the render
 
 ---
 
@@ -6180,7 +6217,7 @@ chapter missing the standard's closing blocks, and no hand-written Table of Cont
 
 ---
 
-### - [ ] 77. Calibrate the page budget, then produce the final PDF and EPUB `M`
+### - [x] 77. Calibrate the page budget, then produce the final PDF and EPUB `M` — ✅ **done 2026-09-23**
 
 🔴 **Ordering:** last in Phase 7 — after #79–#83, which build the design system this item tunes.
 
@@ -6251,6 +6288,77 @@ row, a statement of what changed and why, and a version bump to 1.3. Leave § 5'
 **Done when:** `pnpm book:build` completes with zero overfull boxes wider than 5pt, `pnpm book:pages`
 reports the page count per part against the § 5 budget, and BOOK-SPEC § 1 records the trim, the
 typefaces and the measured lines-per-page rate.
+
+**Delivered:**
+
+- **`scripts/measure-pages.ts`, exposed as `pnpm book:pages`.** It finds the part openers in the PDF's
+  own text — the only pages whose entire content is a numeral and a part name — and reports pages per
+  part against § 5's budget, with the true lines-per-page rate. Deliberately **measured, not derived**:
+  multiplying line counts by a global rate would produce a per-part table that cannot disagree with the
+  rate it came from, and so could never be wrong in a way anybody noticed. Line counts come from
+  `loadBook`, so they cannot disagree with the budget rule in `lint:docs`
+- **The rate is 40.6 markdown lines per typeset page, not the 55 § 5 assumed.** The book is
+  **1,513 pages**: 1,320 for Parts I–IX, plus front matter, the DSA appendix and back matter
+- **🔴 Zero overfull boxes wider than 5pt — from 271.** The baseline build had 271 over the threshold
+  and a worst case of **117pt**, a sixth of the measure bleeding into the fore-edge. The final build's
+  worst is **3.55pt**. Four causes, all of them defects rather than tuning:
+  - **Every callout in the book was set justified.** `\RaggedRight` is a paragraph-shape declaration and
+    tcolorbox resets the shape when it opens its upper part: `\the\rightskip` reads `0pt plus 20pt` in
+    body text and a flat **`0pt`** inside every box. So **1,115 callouts** were justified while the
+    60,000 lines around them were ragged — the one thing `typography.tex` says this measure cannot
+    survive — and with no stretch left, a line that would not fit had nowhere to go. Found by printing
+    `\the\rightskip` inside each environment rather than by reading the code
+  - **102 of the 918 tables had a 4pt first column.** Pandoc derives a pipe table's column widths from
+    how wide the columns are *written in the markdown*, so the `| | A | B |` shape this book uses for a
+    label column handed back a width of 1%. Every label in them — "Own runner", "Called at" — was set
+    in a column narrower than one character and spilled over its neighbour. Fixed with a floor of
+    two-thirds of an equal share, arrived at by measurement: at a half, "Simulated" still did not fit
+  - **Inline code cannot break.** Pandoc writes a code span as one rigid run — its spaces come out as
+    `\ `, which does not break — and a rigid 88pt run does not fit a 53pt column however the type is
+    tuned. `callouts.lua` now offers TeX a break after each path separator, dot, colon, hyphen, bracket
+    and camelCase boundary, and **anywhere at all inside a table cell**, at a higher penalty so the
+    structural breaks win. The penalties are tokens; a span that fits still sets in one piece
+  - **The contents pages overflowed their own folios.** `\@pnumwidth` is 1.55em, sized for three-digit
+    page numbers; this book runs past a thousand, so **499 contents entries hung their folio 4.5pt into
+    the margin** — under the item's own 5pt gate, and on the thirty pages a reader opens first
+- **🔴 The 700-page ceiling is not reachable, and the item's own page arithmetic was backwards.**
+  Decision #13's cap is 700; the book is 1,513. Every remaining typographic lever together is worth
+  roughly 40%, landing near 900. The item offered three levers and two of them do not work as written:
+  - **Crown Quarto "recovers ~180 pages" is inverted.** The same margins on a 189×246 leaf give a
+    135mm text block instead of 156mm — **31% less area per page**, so it *costs* several hundred pages.
+    A4 is the most page-efficient of the realistic trims, and decision #17 sells the edition as a
+    download rather than a print run, so **A4 is recorded** — confirmed with the author
+  - **XCharter** would replace the body face #79 vendored and argued for, needs a font this repo does
+    not carry, and buys ~6%. Not taken
+  - **Chapters running on** was the one real lever, and the author chose the middle option: `openany`,
+    so a chapter still starts a fresh page but no longer waits for a right-hand one. That alone
+    removed **182 completely blank pages**, 1,690 → 1,513
+- **BOOK-SPEC amended to v1.7** — § 1 gains **Trim** and **Typefaces** rows and a measured **Length**;
+  § 5's "reality check" and both ⚠️ deferral notes are replaced with measured numbers; **decision-log
+  row 18** records the trim, the typefaces, the rate and `openany`, with the Crown Quarto correction.
+  § 5's budget table is untouched, as the item required — `partBudgets()` still parses it
+- **The spine breach is worse than projected, and it is not this item's to close.** § 5 projected 49.7%
+  and a 164-line gap. Measured, it is **26,404 of 54,577 = 48.4%**, a gap of **1,769 lines**. The cause
+  is not that Parts V–IX grew: they came in *at* their ceilings while Parts II and III came in 870 and
+  1,321 lines *under* theirs. Closing it means either cutting 1,769 lines of finished teaching prose
+  from Parts VI, VIII and IX — decision #12 calls Part VIII's budget a structural floor — or writing
+  1,769 more into Parts II and III, which have the headroom. Both are editorial. **Recorded in § 5 with
+  both options costed; it needs its own item**
+- **Left undone, and named:** the **mono laser print** of `build/specimen.pdf` that #81 asked for — the
+  only acceptance test in Phase 7 this repository cannot run. And the **four CJK characters** 年 月 日 ￥,
+  which still print as holes. #81 framed vendoring a CJK face as costing "an order of magnitude more
+  than all three Source families"; that is true of a whole face and **not true of these four glyphs** —
+  a four-glyph OFL subset is a few kilobytes. It still needs a font download, `fonttools`, and a licence
+  call, so it is recorded rather than taken
+- **Also left, measured and under the gate:** 412 contents entries still overfull by **1.26pt**, because
+  the class sizes the chapter-number box at 1.5em and this book has three-digit chapter numbers. Fixing
+  it means copying `\l@chapter` out of the class, and 1.26pt is invisible
+- **Verified:** `pnpm book:build` → **1,513 pages**, **zero overfull boxes over 5pt** (worst 3.55pt, and
+  the whole distribution is 412×1.26pt, 8×2.93pt, 3×3.55pt), every `#ch-` cross-reference resolved to a
+  chapter and a page, and **epubcheck: zero errors and zero warnings**. `pnpm book:pages` → the table
+  above. `pnpm book:specimen` → zero overfull. `pnpm lint:docs` → 305 files, no rule regressed.
+  `pnpm check:code-samples` → 1,425 against a baseline of 1,425. The only glyph warnings are the four
+  CJK characters, unchanged
 
 ---
 
@@ -6623,7 +6731,7 @@ cheapest thing in Phase 7 to actually check.
 
 ---
 
-### - [ ] 82. Lua filters — Mermaid rendering and print cross-references `M`
+### - [x] 82. Lua filters — Mermaid rendering and print cross-references `M` — ✅ **done 2026-09-22**
 
 🔴 **Ordering:** after #81. **This item closes #71 and #74** — mark both done here rather than
 duplicating the work.
@@ -6648,9 +6756,91 @@ flags currently inlined in `build-book.sh`.
 **Done when:** no `mermaid` fence survives into `build/handbook.pdf` as text, and no `#ch-slug` link
 renders without a page number.
 
+**Delivered:**
+
+- **Three filters and one defaults file**, wired in `scripts/book-pdf.yaml`, which replaces the eight
+  `--variable` flags, the engine, the header include and the highlight style that were inlined in
+  `build-book.sh`. 🔴 Its relative paths resolve against the **working directory**, not against the
+  file — so the `cd "$ROOT"` in `build-book.sh` is now load-bearing, and that is written in the file
+- **🔴 The filter order is load-bearing, and it is the opposite of the order the item lists them in.**
+  `xref.lua` has to run **first**, because `callouts.lua` renders every Table to LaTeX source and
+  **674 of the 1,662 cross-references live in the chapter tables of section indexes** — once a table
+  is a `RawBlock` its links are `\href` strings no filter can see. `mermaid.lua` has to run **last**,
+  because `callouts.lua` reads the bold label above a fence and one Mermaid fence has one
+  (`SystemDesign/Fundamentals/01-driving-the-round.md`), so that fence has to still be a `CodeBlock`
+  when callouts.lua looks at it. Both constraints point the same way: callouts.lua flattens things,
+  so anything that needs to read structure goes before it
+- **`scripts/lua/mermaid.lua` — 96 fences, rendered to vector PDF for print and SVG for EPUB**, with
+  the fence left untouched for every other writer so the VitePress site keeps rendering Mermaid in the
+  browser. Cached by the SHA-1 of the source, the theme *and* the page geometry, in `build/diagrams/`
+- **The diagrams are fitted per figure, and that turned out to be the real work.** A Mermaid diagram
+  comes out between 500 and 1,220pt wide against a 156mm measure, so fitting means shrinking — by
+  1.00 in the best case and 0.36 in the worst — and shrinking a figure shrinks its labels with it. A
+  single font size for all 96 put type between 10pt and **3.5pt** on the page. Raising the size
+  globally does not help, because a diagram grows with its type and shrinks back. What does help is
+  that Mermaid wraps node text at a fixed width, so width moves much less than type size: each figure
+  is rendered, measured against the text block, and re-rendered at a corrected size until its labels
+  land on `\tokDiagramLabelSize`. **96 diagrams, 227 passes, labels 7.6–9.0pt against a target of
+  8.5, mean 8.4.** Also cut Mermaid's spacings to roughly half their defaults — they are fixed pixel
+  values, so on a wide flowchart they are hundreds of pixels of air the page pays for in type size
+- **A monochrome theme, in `scripts/mermaid-theme.json`**, restating the five greys from `tokens.tex`
+  — the one place in the design a colour is written twice, because Mermaid has no include mechanism.
+  Mermaid's default theme is not merely colourful, it is colour-*carried*: a decision node and a
+  process node differ by hue and nothing else, and in greyscale they land within four percent of each
+  other. The shapes carry that distinction on their own, so every fill is the 6% tint and every stroke
+  is full-strength ink — #81's reasoning about the three callout types, applied to figures
+- **The diagram labels are set in the book's own sans**, which needed a generated stylesheet:
+  mmdc injects CSS into a page with no base URL, so a relative `url(assets/fonts/…)` resolves against
+  nothing and the diagram falls back to Helvetica **silently**, because a missing web font is not an
+  error anywhere in the stack. `build/diagrams/fonts.css` is written at build time with absolute paths
+- **`scripts/lua/xref.lua` — all 1,662 references resolved.** The shapes and counts are in **#71**,
+  which this item closed. The one thing worth repeating here is the correction: **the number cannot
+  come from front matter**, as this item's own text said it would. `number-chapters.ts` restarts
+  numbering at 0 in each part, so those values are a reading order rather than an address; print uses
+  `\ref`, which is the counter actually printed at the head of the chapter
+- **`\bookdiagram` in `blocks.tex`, with two new tokens in `tokens.tex`** — `\tokDiagramMaxHeight`
+  (0.72 of the text height) and `\tokDiagramLabelSize` (8.5). Not a `figure` float: LaTeX would move
+  a diagram to the next page, and in a reference book the prose under a figure is usually reading it
+  line by line. `mermaid.lua` **parses the geometry out of `tokens.tex`** rather than restating it, so
+  a margin #77 moves re-keys the cache and refits all 96 figures instead of silently leaving them
+  fitted to a measure the book no longer has
+- **The specimen gained the diagram block** and its self-reference now resolves, so
+  `pnpm book:specimen` still proves the whole library in seconds
+- **🔴 The first version of the acceptance check was a false negative, and breaking a reference on
+  purpose is what found it.** An undefined `\ref` prints "??" and LaTeX records a warning — but
+  **tectonic swallows the entire TeX log** behind one line reading "warnings were issued by the TeX
+  engine", so grepping what tectonic prints finds nothing on a build that shipped a broken
+  cross-reference. There are now two checks and both were verified by breaking a link: `xref.lua`
+  names every unresolved anchor before the typesetter runs, and `build-book.sh` reads the **PDF**,
+  not the log, for `(p. ??)`. The second needs `pdftotext`; it says so and skips rather than passing
+  quietly when poppler is absent
+- **`mmdc` is a global CLI, checked in preflight, not a devDependency.** It pulls a headless
+  Chromium, CI never builds the PDF, and nobody editing prose should pay for it on `pnpm install` —
+  the same footing as pandoc and tectonic, which the preflight already checks
+- **Not done, and it is #77's:** the book is now **1,690 pages**, up from 1,480 before the figures
+  were drawn, against BOOK-SPEC decision #13's 700-page ceiling. Nothing here tried to close that gap;
+  it is the calibration item's whole subject, and this item has given it a real number to work from
+  for the first time. Also untouched: the **24 missing-glyph warnings** are the same 年 月 日 ￥ in the
+  internationalisation chapter that #77 already records, unchanged by this item
+- **`CLAUDE.md` corrected** — "five files in `scripts/tex/` plus one Lua filter" became five files,
+  three filters and a defaults file, with the order and the reason for it written down
+- **One stale sentence fixed in the manuscript:** `Frontend/ModernStack/README.md` told the reader
+  that "chapter numbers appear as `??` until improvement #70 assigns them". They do not any more
+- **Verified:** `pnpm book:pdf` → **1,690 pages, 6.2MB**, 96 diagrams from cache, ✓ every `#ch-`
+  cross-reference resolved to a chapter and a page. `pdftotext` over the result → **1,662 page
+  citations**, **0** `Chapter ??`, **0** occurrences of `flowchart TD`/`flowchart LR`/
+  `sequenceDiagram`/`stateDiagram-v2`. `pnpm book:epub` → 2.0MB, **96 SVGs embedded, 0 Mermaid
+  source**, chapter numbers filled in. `pnpm book:specimen` → clean, and dirty when a reference is
+  broken on purpose. `pnpm lint:docs` → 305 files, **all eleven rules at 0**. `pnpm
+  check:code-samples` → syntax clean, 1,425 against a baseline of 1,425. `pnpm check:versions` → 0
+  and 0. `pnpm check:stale` → 0. `pnpm number:chapters --check` → clean. `pnpm index:check` → current,
+  988 questions. `pnpm site:pages` → 69 pages. **Not verified: nothing has been printed.** #77 still
+  owns the mono laser proof, and 8.5pt diagram labels on screen is not the same claim as 8.5pt on
+  uncoated stock
+
 ---
 
-### - [ ] 83. Translate the design system to EPUB CSS `S`
+### - [x] 83. Translate the design system to EPUB CSS `S` — ✅ **done 2026-09-23**
 
 🔴 **Ordering:** after #81 — it ports that system.
 
@@ -6663,6 +6853,83 @@ print-only, so EPUB keeps colour and keeps real emoji — but the callouts must 
 monochrome e-ink screen, which means the structural distinctions from #81 carry over unchanged.
 
 **Done when:** `pnpm book:epub` passes `epubcheck` with zero errors and the output carries the stylesheet.
+
+**Delivered:**
+
+- **`scripts/epub.css`** — the print design translated, not re-drawn. The type scale is
+  `scripts/tex/tokens.tex` divided by the 10pt body, so `\tokSmallSize` 8.5pt is 0.85em and
+  `\tokChapterSize` 22pt is 2.2em, and the three callouts keep the three **shapes** #81 chose over
+  three hues — a full box, a pair of rules, a solid left bar. Strip every colour out of the file,
+  which is what a Paperwhite does, and the three are still tellable apart. It replaces pandoc's
+  default stylesheet rather than adding to it, because `--css` substitutes
+- **Three things deliberately not ported.** Leading is 1.5 rather than print's 1.32, because 1.32 is
+  an answer to a page budget that a reflowable format does not have. Sizes are all relative, because
+  the reader has already chosen one. And there are **no custom properties**: every colour is written
+  as a literal and then again through `light-dark()`, the same progressive enhancement pandoc's own
+  default uses, so an older RMSDK reader keeps the design instead of dropping every rule that
+  mentions `var()`
+- **`scripts/lua/callout-shapes.lua` — the shared classifier, and the structural point of this
+  item.** CSS cannot select a heading by the emoji in it, so the EPUB needed a filter of its own;
+  two filters reading the manuscript for the same shapes is how a gotcha becomes a callout in one
+  format and a plain blockquote in the other. What counts as a callout is now named **once**, and
+  `callouts.lua` and the new `epub-blocks.lua` are back-ends over it. Same arrangement as
+  `scripts/lib/book.ts`
+- **Verified behaviour-preserving for print**: `callouts.lua` before and after the extraction,
+  diffed over the whole manuscript through `pandoc -t latex` — **84,933 lines of LaTeX, byte for
+  byte identical**
+- **`scripts/lua/epub-blocks.lua`** emits nothing but divs with class names, and differs from print
+  in two ways on purpose: the emoji come back (a screen renders the mark; a second cue on a
+  monochrome panel costs nothing), and no heading is consumed silently — the label print draws as a
+  box is re-emitted as text, so it stays searchable and a screen reader still announces it. Counts in
+  the built EPUB match the plan's own figures exactly: 246 core ideas, 245 takeaways, **277 gotchas
+  of which 90 are moving targets**, 251 decks, 247 pills, 297 code labels
+- **Ten of the sixteen vendored faces embedded** — `--epub-embed-font`, with an `@font-face` per
+  face in the stylesheet. The sans is never set in italic on screen and the semibold serif is a
+  paper-weight distinction no screen renders, so six faces stay out. Every stack still ends in a
+  generic family: a reader who has turned publisher fonts off gets their own serif and nothing in
+  the design depends on a metric these faces happen to have
+- **The retail metadata, including the one field that had to stop moving.** `identifier` is now a
+  **fixed UUID** — pandoc was minting a fresh random one on every build, which reads to a shop as a
+  different book each time it is uploaded. Plus `publisher`, `description` and five BISAC-shaped
+  `subject` rows. `dc:date` is overridden to `2027` for the EPUB alone, because W3C-DTF is what
+  epubcheck accepts and "2027 Edition" is the right line on a printed title page
+- **The subtitle reconciled**, as the item asked. `book-meta.yaml` and `BOOK-SPEC.md` § 1 had
+  drifted; the spec is the authority, so the spec's wording won, to the comma. **No § 10 amendment
+  was needed** — nothing in the spec changed
+- **🔴 epubcheck found that the EPUB has been shipping invalid since #82, and nothing else could
+  have.** 88 of the 96 Mermaid figures set their node labels as XHTML inside a `<foreignObject>`,
+  and a multi-line label is a `<p>` inside a `<span>` — which is not valid XHTML, one `RSC-005` per
+  label. Every one of the 96 also carried four `@font-face` rules with absolute `file://` paths
+  (`RSC-030`, plus `OPF-014` on top). Neither renders wrong anywhere, which is exactly why it went
+  unnoticed. Fixed in `mermaid.lua`, **SVG side only**: html labels off, so the labels are real
+  `<text>` and `<tspan>`; and the generated `@font-face` rules stripped back out of the finished
+  SVG, where they were already dead — an SVG loaded through `<img>` is sandboxed and may not fetch
+  an external font in the first place
+- **The PDF cache survived that change.** The SVG variant marker goes into the cache key for SVG
+  only, so the 96 figures re-rendered at one pass each and the 96 print PDFs — two to four passes
+  apiece — were untouched. `pnpm book:specimen` still builds from cache and still resolves every
+  cross-reference
+- **`report_epubcheck` wired into `pnpm book:epub`**, printing the verdict the way the PDF build
+  prints missing glyphs and unresolved references. Deliberately **not** in the preflight: it needs a
+  JVM, the EPUB builds correctly without one, and a validator that blocks the build is a validator
+  people route around. Not in CI either — CI has neither tectonic nor mermaid-cli and never builds
+  the book
+- **Left undone, and it is the one gap in the item's opening list: there is no cover.** A jacket is
+  a design decision about the author's own book — title treatment, artwork, the 1,600×2,560 a shop
+  asks for — not a build artefact, and a generated placeholder is worse than none because it looks
+  final. epubcheck does not require one; **Leanpub will.** It belongs with the launch work #78 left
+  open beside the real store slug
+- **Also left alone:** the EPUB's diagrams are still the greyscale theme print uses. The item allows
+  the EPUB colour, but re-theming 96 figures is #82's file and #77's calibration evidence, and
+  greyscale reads correctly on every screen including e-ink. Noted rather than done
+- **Verified:** `pnpm book:epub` → 3.0 MB, **epubcheck 5.4.0: zero errors and zero warnings**, the
+  stylesheet present as `EPUB/styles/stylesheet1.css` and linked from every document, ten faces in
+  `EPUB/fonts/`. `pnpm book:specimen` → clean, every `#ch-` cross-reference resolved.
+  `pnpm lint:docs` → 305 files, no rule regressed. `pnpm index:check` → current, 988 questions.
+  `pnpm number:chapters --check` → clean. `pnpm site:pages` → 69 pages
+
+> 🔴 **Phase 7 has one item left: #77**, and it is no longer blocked — its ordering line asked for
+> #79–#83 first, and #83 was the last of them.
 
 ---
 
@@ -6677,8 +6944,8 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 4     | 44–53   | 10/10 | ✅ Complete    |
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
 | 6     | 64–69   | 6/6  | ✅ Complete    |
-| 7     | 70–83 · 70a | 10/15 | 🔄 In progress |
-| **Total** | **93** | **88/93** | **95%**   |
+| 7     | 70–83 · 70a | 15/15 | ✅ Complete    |
+| **Total** | **93** | **93/93** | **100%**  |
 
 ---
 

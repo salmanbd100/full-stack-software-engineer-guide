@@ -1,96 +1,191 @@
 --[[
   callouts.lua — improvement #81
 
-  Maps the Book Chapter Standard's own markdown shapes onto the print block library in
-  scripts/tex/blocks.tex. It exists so that **no chapter had to change to get a design**:
-  the standard already fixes the vocabulary — `## 💡 The Core Idea`, `## 🔑 Key
-  Takeaways`, `> ⚠️ …`, `**In this chapter:**`, a bold label above a fence — and those
-  shapes are what this filter reads.
+  The **print** back-end for the Book Chapter Standard's block vocabulary. What counts as
+  a callout lives in scripts/lua/callout-shapes.lua, shared with the EPUB since #83; this
+  file is only what print does with the answer.
 
-  It runs for the PDF only. The web and the EPUB render the emoji and the blockquote
-  correctly on their own; print is the format where a design carried in hue collapses.
+  It exists so that **no chapter had to change to get a design**: the standard already
+  fixes the vocabulary — `## 💡 The Core Idea`, `## 🔑 Key Takeaways`, `> ⚠️ …`,
+  `**In this chapter:**`, a bold label above a fence — and those shapes are what the
+  shared module reads.
+
+  It runs for the PDF only. The web renders the emoji and the blockquote correctly on its
+  own; the EPUB gets the same structure from epub-blocks.lua and scripts/epub.css.
 
   What it does:
 
-    Header  💡 …        → the section and everything under it, in a bookcoreidea box
-    Header  🔑 …        → the same, in bookkeytakeaways
-    BlockQuote under a chapter title → bookdeck
-    BlockQuote ⚠️ …     → bookgotcha, labelled MOVING TARGET where the chapter said so
-    BlockQuote          → bookpullquote if it is a lifted line, else booknote
+    kind core-idea      → bookcoreidea
+    kind key-takeaways  → bookkeytakeaways, which prints its own label
+    kind deck           → bookdeck
+    kind gotcha         → bookgotcha, labelled MOVING TARGET where the chapter said so
+    kind pull-quote     → bookpullquote
+    kind note           → booknote
     Para **In this chapter:** … → bookpill
     Para **Label:** before a fence → \bookcodelabel
     Table               → longtblr, or tblr where a page-breaking table cannot go
 
-  Two passes, returned as a list. The first has to see whole block lists in document
-  order, because a heading callout owns the blocks that follow it. The second rewrites
-  everything else, and it descends by hand: a callout is emitted together with its own
-  contents and the traversal is stopped there, so that the filter always knows whether
-  the table it is looking at is inside a box. That matters — a `longtblr` breaks across
-  pages and a tcolorbox cannot hold one, so a table inside a callout has to be a `tblr`.
-  Tracking that with a flag and pandoc's own traversal order is the version that works
-  until somebody nests a blockquote, which the manuscript does.
+  Two passes, returned as a list. The first is the shared module's `group`, which has to
+  see whole block lists in document order because a heading callout owns the blocks that
+  follow it. The second rewrites everything else, and it descends by hand: a callout is
+  emitted together with its own contents and the traversal is stopped there, so that the
+  filter always knows whether the table it is looking at is inside a box. That matters —
+  a `longtblr` breaks across pages and a tcolorbox cannot hold one, so a table inside a
+  callout has to be a `tblr`. Tracking that with a flag and pandoc's own traversal order
+  is the version that works until somebody nests a blockquote, which the manuscript does.
 ]]
 
-local PILL_LABEL = "In this chapter"
+local shapes = require("scripts.lua.callout-shapes")
 
--- A blockquote shorter than this, and only one paragraph long, is a line lifted out of
--- the prose and gets the centred pull quote. Anything longer is a note, and a centred
--- three-line note in italic reads as a typesetting fault rather than as emphasis.
-local PULLQUOTE_MAX = 140
+local WS = shapes.WS
 
-local CORE_IDEA = "\u{1F4A1}"
-local KEY_TAKEAWAYS = "\u{1F511}"
-local WARNING = "\u{26A0}"
-local VARIATION_SELECTOR = "\u{FE0F}"
+-- The environment each format-neutral kind is set in. The two heading callouts print a
+-- label; the deck, the pull quote and the note are told apart by their own type.
+local ENV = {
+  ["core-idea"] = { env = "bookcoreidea", label = true },
+  ["key-takeaways"] = { env = "bookkeytakeaways", label = false },
+  ["deck"] = { env = "bookdeck", label = false },
+  ["gotcha"] = { env = "bookgotcha", label = true },
+  ["pull-quote"] = { env = "bookpullquote", label = false },
+  ["note"] = { env = "booknote", label = false },
+}
 
--- Lua patterns are bytes, and `%s` asks the C library whether a byte is whitespace.
--- In a UTF-8 string that is a trap with teeth: 0xA0 is the third byte of `†`, and in the
--- locale pandoc runs under `isspace(0xA0)` is true, so `%s+$` eats it and leaves two
--- orphaned bytes that come out of the writer as replacement characters. It printed as a
--- hole in the DSA complexity table and nowhere else, which is how it nearly shipped.
--- Every trim in this file names its bytes instead.
-local WS = "[ \t\r\n]"
+-- The gotcha takes its label as a tcolorbox argument; the core idea prints it as the
+-- first thing inside the box. `bookkeytakeaways` sets its own from blocks.tex, because
+-- two rules on their own do not say what they are for.
+local LABEL_AS_ARGUMENT = { gotcha = true }
 
 local function raw(s)
   return pandoc.RawBlock("latex", s)
 end
 
-local function text_of(inlines)
-  return pandoc.utils.stringify(inlines)
+-- ---------------------------------------------------------------------------
+-- Inline code — where a code span is allowed to break
+-- ---------------------------------------------------------------------------
+--
+-- Improvement #77, and the whole of it: every overfull box in the book wider than 20pt
+-- was one long `\texttt{}`. Pandoc writes a code span as a single rigid run — the spaces
+-- in it come out as `\ `, which does not break — and a rigid 88pt run does not fit the
+-- 53pt first column of a three-column table however the type is tuned.
+--
+-- The alternative fixes were all worse. Shrinking the code face makes 1,161 fences less
+-- legible to rescue 918 tables. Widening the narrow columns means overriding the weights
+-- the author aligned the source to. Breaking anywhere, the way the fences do, is right
+-- for a fence and wrong here: a fence is already a block on its own ground, and a break
+-- mid-identifier in running prose reads as a typo.
+--
+-- So the breaks are offered where a reader already parses a symbol — and offered, not
+-- taken: \bookcodebrk is a bare penalty, so a span that fits still sets in one piece.
+--
+-- 🔴 Applied to the **escaped** LaTeX rather than to the code text, on purpose. Writing
+-- a second escaper for `\texttt` means owning pandoc's table of some twenty sequences and
+-- being wrong about one of them in one of 7,301 spans. Every pattern below is checked
+-- against the escapes pandoc actually emits: none of `\textless{}`, `\textgreater{}`,
+-- `\textbackslash{}`, `\textquotesingle{}`, `\textasciitilde{}` or `\_` contains a
+-- character this matches, and none contains a lowercase letter followed by an uppercase
+-- one, so no rule below can land inside one.
+local BRK = "\\bookcodebrk{}"
+
+-- The same thing, but costlier — see \bookcodebrkany in blocks.tex. Offered between
+-- every pair of characters, and only inside a table cell, where a column can be 30pt wide
+-- and there is no structural break in `secrets:\ inherit` narrow enough to fit it. The
+-- higher penalty is what keeps it a fallback: TeX takes a break after a dot or a
+-- camelCase boundary in preference, and comes here only when none of them is enough.
+local BRK_ANY = "\\bookcodebrkany{}"
+
+--- The characters a break may follow. Path separators and dots for module paths, colons
+--- and commas for type arguments, `@` for a version pin, brackets for a generic's tail,
+--- and the pipe that separates the branches of a regular expression.
+local AFTER = "[/%.:,=@%)%]>+]"
+
+local function breakable(latex)
+  return (latex
+    -- after an interword space, which is the nicest break in a span that has one
+    :gsub("\\ ", "\\ " .. BRK)
+    -- after a hyphen, which pandoc writes as `{-}` to keep it out of a ligature
+    :gsub("{%-}", "{-}" .. BRK)
+    -- after an escaped underscore, the other word separator in an identifier
+    :gsub("\\_", "\\_" .. BRK)
+    -- after `<` and `>`, which close a generic and open the next, and after the `|` a
+    -- regular expression separates its branches with
+    :gsub("(\\textless{})", "%1" .. BRK)
+    :gsub("(\\textgreater{})", "%1" .. BRK)
+    :gsub("(\\textbar{})", "%1" .. BRK)
+    -- after the plain punctuation a symbol is already read in pieces at. The second
+    -- capture is what keeps the break out of pandoc's `{[}` and `{]}` groups: a bracket
+    -- there is followed by the closing brace, and a penalty inside the group would be a
+    -- break offered in the one place it cannot be taken.
+    :gsub("(" .. AFTER .. ")([^}])", "%1" .. BRK .. "%2")
+    -- and after a bare hyphen, which is how pandoc writes one that cannot form a dash —
+    -- `Feature-Policy`, `X-XSS-Protection`. Matched only after a word character, so it
+    -- cannot fire a second time inside the `{-}` the rule above has already handled.
+    :gsub("(%w%-)", "%1" .. BRK)
+    -- and at each camelCase boundary, which is the only break a long bare identifier has
+    :gsub("(%l)(%u)", "%1" .. BRK .. "%2")
+    -- A break offered immediately before a space would put that space at the head of the
+    -- next line. The one after it does the same job and looks like a line break should.
+    :gsub(BRK .. "(\\ )", "%1")
+    -- And a break at the very end of the span is a break at a space that already exists.
+    :gsub(BRK .. "}$", "}"))
 end
+
+--- Escaped LaTeX, split into pieces that must not be broken apart: a control sequence
+--- with its empty argument (`\\textless{}`), a one-character escape (`\\_`), pandoc's
+--- braced hyphen (`{-}`), or a single UTF-8 character. Splitting on bytes instead would
+--- put a line break inside a multi-byte character, which is a corrupted glyph rather than
+--- an ugly one — and there are enough arrows and ticks in this book's tables to find it.
+local function tex_tokens(latex)
+  local out, i = {}, 1
+  while i <= #latex do
+    local s, e = latex:find("^\\%a+{}", i)
+    -- Pandoc braces more than the hyphen: `[` and `]` come out as `{[}` and `{]}` so
+    -- they cannot be read as an optional argument. Any bare brace group in this string is
+    -- pandoc's own — a literal brace in the code is escaped as `\{` and caught above — so
+    -- matching balanced braces keeps every one of them whole. Splitting `{[}` into three
+    -- tokens put penalties *inside* the group, which is not wrong on the page and is the
+    -- kind of nearly-wrong that becomes wrong the first time the group takes an argument.
+    if not s then s, e = latex:find("^%b{}", i) end
+    if not s then s, e = latex:find("^\\.", i) end
+    if not s then s, e = latex:find("^" .. utf8.charpattern, i) end
+    if not s then s, e = i, i end
+    out[#out + 1] = latex:sub(s, e)
+    i = e + 1
+  end
+  return out
+end
+
+--- Everything `breakable` offers, plus a costlier break between every other pair of
+--- characters. Used in table cells only.
+local function breakable_anywhere(latex)
+  local inner = latex:match("^\\texttt{(.*)}$")
+  -- Anything that is not the `\texttt{…}` pandoc has emitted for every code span in this
+  -- manuscript is left exactly as it came, rather than guessed at.
+  if not inner then return breakable(latex) end
+  return breakable("\\texttt{" .. table.concat(tex_tokens(inner), BRK_ANY) .. "}")
+end
+
+--- A code span, with somewhere to break. Pandoc does the escaping; this only adds
+--- penalties to the result, and returns it raw so nothing escapes it twice.
+--- @param widen fun(string): string  which set of break points to offer.
+local function code_inline(widen)
+  return function(code)
+    local latex = pandoc.write(pandoc.Pandoc({ pandoc.Plain({ code }) }), "latex",
+      { wrap_text = "none" })
+    latex = latex:gsub("^" .. WS .. "+", ""):gsub(WS .. "+$", "")
+    return pandoc.RawInline("latex", widen(latex))
+  end
+end
+
+--- Every inline in the book passes through one of these on its way to LaTeX, whether it
+--- is written by the traversal below or by a table cell, which `pandoc.write`s directly
+--- and so never sees a filter.
+local CODE_FILTER = { Code = code_inline(breakable) }
 
 --- Render inlines to LaTeX source on one line.
 local function inline_latex(inlines)
-  local s = pandoc.write(pandoc.Pandoc({ pandoc.Plain(inlines) }), "latex",
-    { wrap_text = "none" })
+  local s = pandoc.write(pandoc.Pandoc({ pandoc.Plain(inlines:walk(CODE_FILTER)) }),
+    "latex", { wrap_text = "none" })
   return (s:gsub("^" .. WS .. "+", ""):gsub(WS .. "+$", ""))
-end
-
---- Drop a leading callout mark and the variation selector that trails it in the source.
---- Done by exact prefix rather than by a character class: Lua patterns are byte-based,
---- and a class holding the bytes of ⚠️ also holds the first byte of an em dash.
-local function strip_mark(inlines)
-  local out = {}
-  local dropping = true
-  for _, il in ipairs(inlines) do
-    if dropping and il.t == "Str" then
-      local s = il.text
-      for _, mark in ipairs({ WARNING, CORE_IDEA, KEY_TAKEAWAYS, VARIATION_SELECTOR }) do
-        while s:sub(1, #mark) == mark do s = s:sub(#mark + 1) end
-      end
-      s = s:gsub("^" .. WS .. "+", "")
-      if s ~= "" then
-        dropping = false
-        table.insert(out, pandoc.Str(s))
-      end
-    elseif dropping and (il.t == "Space" or il.t == "SoftBreak") then
-      -- swallow the space the mark left behind
-    else
-      dropping = false
-      table.insert(out, il)
-    end
-  end
-  return pandoc.Inlines(out)
 end
 
 local function wrap(env, blocks, arg)
@@ -101,83 +196,7 @@ local function wrap(env, blocks, arg)
 end
 
 -- ---------------------------------------------------------------------------
--- Pass 1 — the deck, and the two heading-shaped callouts
--- ---------------------------------------------------------------------------
-
---- The one-sentence promise under a chapter title is a blockquote like any other; the
---- only thing that tells it apart is that it sits directly under the level-2 heading
---- `collect-chapters.ts` leaves a chapter title at. Matched here, before the blockquote
---- handler in pass 2 can claim it as a pull quote.
-local function callout_div(env, blocks, label)
-  local attr = pandoc.Attr("", { "bookcallout" }, { env = env, label = label or "" })
-  return pandoc.Div(blocks, attr)
-end
-
-local function mark_decks(blocks)
-  local out = pandoc.Blocks({})
-  local after_chapter = false
-  for _, block in ipairs(blocks) do
-    if after_chapter and block.t == "BlockQuote" then
-      out:insert(callout_div("bookdeck", block.content))
-      after_chapter = false
-    else
-      after_chapter = (block.t == "Header" and block.level == 2)
-      out:insert(block)
-    end
-  end
-  return out
-end
-
-local MARKS = {
-  { mark = CORE_IDEA, env = "bookcoreidea", label = "The Core Idea" },
-  -- The takeaways block prints its own label from blocks.tex: two rules on their own do
-  -- not say what they are for.
-  { mark = KEY_TAKEAWAYS, env = "bookkeytakeaways", label = nil },
-}
-
-local function callout_for(block)
-  if block.t ~= "Header" then return nil end
-  local text = text_of(block.content)
-  for _, spec in ipairs(MARKS) do
-    if text:sub(1, #spec.mark) == spec.mark then return spec end
-  end
-  return nil
-end
-
---- A heading callout owns its section — everything down to the next heading at the same
---- level or above. The heading itself is consumed, because the block carries the label
---- and printing both would say it twice. Neither heading reaches the table of contents
---- (`--toc-depth=2` stops at the chapter), so nothing is lost by removing them.
-local function group_callouts(blocks)
-  local out = pandoc.Blocks({})
-  local i = 1
-  while i <= #blocks do
-    local block = blocks[i]
-    local spec = callout_for(block)
-    if spec then
-      local body = pandoc.Blocks({})
-      local j = i + 1
-      while j <= #blocks do
-        local b = blocks[j]
-        if b.t == "Header" and b.level <= block.level then break end
-        body:insert(b)
-        j = j + 1
-      end
-      if spec.label then
-        body:insert(1, raw("\\bookcalloutlabel{" .. spec.label .. "}"))
-      end
-      out:insert(callout_div(spec.env, body))
-      i = j
-    else
-      out:insert(block)
-      i = i + 1
-    end
-  end
-  return out
-end
-
--- ---------------------------------------------------------------------------
--- Pass 2 — tables
+-- Tables
 -- ---------------------------------------------------------------------------
 --
 -- Rewritten to tabularray rather than restyled in place, because the header band is the
@@ -195,8 +214,37 @@ local ALIGN = {
   AlignDefault = "l",
 }
 
+--- A break after a solidus in ordinary cell text — not code, prose.
+---
+--- "Component/integration" is one word to TeX: there is no glue in it, so it cannot break,
+--- and hyphenation only ever starts at the beginning of a word, so "integration" cannot be
+--- hyphenated either. At 9pt that is 105pt of unbreakable type in a 67pt column. Offering
+--- a break after the solidus is enough, and it is where a reader already reads a pause.
+---
+--- Done on the syntax tree rather than on the rendered LaTeX so it can only ever touch
+--- text: a `/` inside an `\href` target would otherwise be split and the link broken.
+local function break_solidus(str)
+  if not str.text:find("%a/%a") then return nil end
+  local out = pandoc.Inlines({})
+  local first = true
+  for piece in (str.text .. "/"):gmatch("([^/]*)/") do
+    -- The solidus belongs to the piece before it, and the break goes after both, so a
+    -- wrapped cell reads "Component/" and then "integration" rather than losing the mark.
+    if not first then
+      out:insert(pandoc.Str("/"))
+      out:insert(pandoc.RawInline("latex", "\\bookcodebrk{}"))
+    end
+    first = false
+    if piece ~= "" then out:insert(pandoc.Str(piece)) end
+  end
+  return out
+end
+
+local CELL_FILTER = { Code = code_inline(breakable_anywhere), Str = break_solidus }
+
 local function cell_latex(cell)
-  local s = pandoc.write(pandoc.Pandoc(cell.contents), "latex", { wrap_text = "none" })
+  local s = pandoc.write(pandoc.Pandoc(cell.contents:walk(CELL_FILTER)), "latex",
+    { wrap_text = "none" })
   -- A cell is one paragraph. The writer still ends it with a newline, and a blank line
   -- inside a tblr cell would start a paragraph in a box that has no width for one.
   return (s:gsub(WS .. "+$", ""):gsub("\n\n+", "\\newline "):gsub("\n", " "))
@@ -210,15 +258,44 @@ local function row_latex(row)
   return table.concat(cells, " & ") .. " \\\\"
 end
 
+--- The narrowest a column may be, as a fraction of an equal share of the table.
+---
+--- 🔴 Improvement #77, and it is a fix rather than a preference. Pandoc computes a pipe
+--- table's column widths from **how wide the columns are written in the markdown**, so a
+--- table whose header row opens on an empty cell — `| | Reusable workflow | Composite
+--- action |`, a shape this book uses for a label column — hands back a width of 1%. At
+--- the book's measure that is a **4pt column**, and 102 of the 918 tables had one: every
+--- label in them, "Own runner", "Called at", was set in a column narrower than a single
+--- character and spilled over its neighbour. It printed that way and nobody had read
+--- 1,690 pages to notice.
+---
+--- Two thirds of an equal share is the floor, arrived at by measurement rather than by
+--- taste: at a half, a six-column table still gave its narrowest column 31pt, and "Simulated"
+--- does not fit 31pt at 9pt sans even hyphenated — English will not break a word closer
+--- than three letters from its end, so the best TeX can offer is "Sim-ulated" and
+--- "ulated" is 33pt. Two thirds buys that column 45pt and the last overfull box in the
+--- book goes with it. Columns already above the floor keep their proportions to each
+--- other, so the tables the author did align by hand are untouched.
+local MIN_COLUMN_SHARE = 0.65
+
 --- @param long boolean  false inside a callout, where a page-breaking table cannot go.
 local function render_table(tbl, long)
-  local colspec = {}
+  local weights = {}
+  local total = 0
   for _, col in ipairs(tbl.colspecs) do
     local width = col[2]
-    local weight = 1
-    if type(width) == "number" and width > 0 then
-      weight = math.max(1, math.floor(width * 100 + 0.5))
-    end
+    -- 0 means pandoc computed nothing — the table was written without aligned columns —
+    -- and equal weights are the honest answer rather than a guess.
+    local weight = (type(width) == "number" and width > 0) and width * 100 or 0
+    weights[#weights + 1] = weight
+    total = total + weight
+  end
+
+  local floor = total > 0 and (MIN_COLUMN_SHARE * total / #weights) or 0
+
+  local colspec = {}
+  for i, col in ipairs(tbl.colspecs) do
+    local weight = math.max(1, math.floor(math.max(weights[i], floor) + 0.5))
     table.insert(colspec, "X[" .. weight .. "," .. (ALIGN[col[1]] or "l") .. "]")
   end
 
@@ -237,7 +314,7 @@ local function render_table(tbl, long)
   local out = pandoc.Blocks({})
   -- No table in the manuscript carries a pandoc caption today; dropping one silently if
   -- somebody adds it would be the kind of loss nobody notices until it is printed.
-  local caption = text_of(tbl.caption.long)
+  local caption = shapes.text_of(tbl.caption.long)
   if caption ~= "" then
     out:insert(raw("\\bookcodelabel{" .. inline_latex(pandoc.Inlines({ pandoc.Str(caption) })) .. "}"))
   end
@@ -246,74 +323,7 @@ local function render_table(tbl, long)
 end
 
 -- ---------------------------------------------------------------------------
--- Pass 2 — blockquotes, the pill, and the code label
--- ---------------------------------------------------------------------------
-
---- Drop the leading bold run and the space after it. Used only where that run has been
---- lifted into the callout's label, so that "MOVING TARGET" is not immediately followed
---- by "Moving target:".
-local function strip_leading_strong(inlines)
-  local out = pandoc.Inlines({})
-  local dropped = false
-  for i, il in ipairs(inlines) do
-    if i == 1 and il.t == "Strong" then
-      dropped = true
-    elseif dropped and #out == 0 and (il.t == "Space" or il.t == "SoftBreak") then
-      -- swallow the space the run left behind
-    else
-      out:insert(il)
-    end
-  end
-  return out
-end
-
---- The bold run a gotcha opens with, when it is the standard's *moving target* callout.
---- Every other bold opener among the 277 gotchas is the callout's own first sentence —
---- "Never lazy-load the LCP image." — and uppercasing a sentence into a label reads it
---- as something it is not.
-local function gotcha_label(inlines)
-  for _, il in ipairs(inlines) do
-    if il.t == "Strong" then
-      local s = text_of(il.content):gsub("[%.: \t\r\n]+$", "")
-      return (s:lower() == "moving target") and "Moving target" or "Gotcha"
-    elseif il.t ~= "Space" and il.t ~= "SoftBreak" and il.t ~= "Str" then
-      return "Gotcha"
-    elseif il.t == "Str" then
-      local rest = il.text
-      for _, mark in ipairs({ WARNING, VARIATION_SELECTOR }) do
-        while rest:sub(1, #mark) == mark do rest = rest:sub(#mark + 1) end
-      end
-      if rest ~= "" then return "Gotcha" end
-    end
-  end
-  return "Gotcha"
-end
-
-local function is_gotcha(bq)
-  local first = bq.content[1]
-  if not first or (first.t ~= "Para" and first.t ~= "Plain") then return false end
-  return text_of(first.content):sub(1, #WARNING) == WARNING
-end
-
---- Is this paragraph nothing but one bold run — the shape the standard asks for above a
---- code fence? A trailing colon counts; a sentence with a bold word in it does not.
-local function only_strong(para)
-  local content = para.content
-  local last = #content
-  while last > 0 do
-    local il = content[last]
-    if il.t == "Space" or (il.t == "Str" and il.text:match("^:?$")) then
-      last = last - 1
-    else
-      break
-    end
-  end
-  if last ~= 1 or content[1].t ~= "Strong" then return nil end
-  return content[1].content
-end
-
--- ---------------------------------------------------------------------------
--- Pass 2 — the traversal
+-- The traversal
 -- ---------------------------------------------------------------------------
 --
 -- Built per nesting level rather than written once, because `long` has to be false for
@@ -323,50 +333,14 @@ end
 
 local build
 
---- The pull quote, the note and the gotcha a blockquote becomes.
-local function blockquote_spec(bq)
-  if is_gotcha(bq) then
-    local label = gotcha_label(bq.content[1].content)
-    local content = bq.content:clone()
-    content[1].content = strip_mark(content[1].content)
-    if label == "Moving target" then
-      content[1].content = strip_leading_strong(content[1].content)
-    end
-    return "bookgotcha", content, label
-  end
-  if #bq.content == 1 and #text_of(bq.content) <= PULLQUOTE_MAX then
-    return "bookpullquote", bq.content, nil
-  end
-  return "booknote", bq.content, nil
-end
-
---- The code label needs its sibling to decide, so it is matched on the block list rather
---- than on the paragraph: a lone bold line that is not followed by a fence is a
---- sub-heading in prose and stays one.
-local function promote_code_labels(blocks)
-  local out = pandoc.Blocks({})
-  local changed = false
-  for i, block in ipairs(blocks) do
-    local label = block.t == "Para" and only_strong(block) or nil
-    if label and blocks[i + 1] and blocks[i + 1].t == "CodeBlock" then
-      out:insert(raw("\\bookcodelabel{" .. inline_latex(label) .. "}"))
-      changed = true
-    else
-      out:insert(block)
-    end
-  end
-  if changed then return out end
+local function code_label(inlines)
+  return raw("\\bookcodelabel{" .. inline_latex(inlines) .. "}")
 end
 
 local function pill(para)
-  local first = para.content[1]
-  if not (first and first.t == "Strong"
-      and text_of(first.content):gsub("[: \t\r\n]+$", "") == PILL_LABEL) then
-    return nil
-  end
-  local rest = pandoc.Inlines({})
-  for k = 2, #para.content do rest:insert(para.content[k]) end
-  return raw("\\begin{bookpill}\\bookpilllabel{" .. PILL_LABEL .. "}"
+  local rest = shapes.pill_rest(para)
+  if not rest then return nil end
+  return raw("\\begin{bookpill}\\bookpilllabel{" .. shapes.PILL_LABEL .. "}"
     .. inline_latex(rest) .. "\\end{bookpill}")
 end
 
@@ -374,29 +348,39 @@ end
 build = function(long)
   return {
     traverse = "topdown",
-    Blocks = promote_code_labels,
+    Blocks = function(blocks) return shapes.promote_code_labels(blocks, code_label) end,
     Para = pill,
+    Code = code_inline(breakable),
 
     Table = function(tbl) return render_table(tbl, long) end,
 
     --- Emitted by pass 1: the two heading-shaped callouts and the deck.
     Div = function(div)
-      if not div.classes:includes("bookcallout") then return nil end
+      if not div.classes:includes(shapes.DIV_CLASS) then return nil end
+      local spec = ENV[div.attributes.kind]
+      if not spec then return nil end
+
       local inner = div.content:walk(build(false))
-      local label = div.attributes.label
-      return wrap(div.attributes.env, inner, label ~= "" and label or nil), false
+      local label = spec.label and div.attributes.label ~= "" and div.attributes.label or nil
+      if label and not LABEL_AS_ARGUMENT[div.attributes.kind] then
+        inner:insert(1, raw("\\bookcalloutlabel{" .. label .. "}"))
+        label = nil
+      end
+      return wrap(spec.env, inner, label), false
     end,
 
     BlockQuote = function(bq)
-      local env, content, label = blockquote_spec(bq)
-      return wrap(env, content:walk(build(false)), label), false
+      local kind, content, label = shapes.blockquote_kind(bq)
+      local spec = ENV[kind]
+      local arg = spec.label and label or nil
+      return wrap(spec.env, content:walk(build(false)), arg), false
     end,
   }
 end
 
 return {
   { Pandoc = function(doc)
-      doc.blocks = group_callouts(mark_decks(doc.blocks))
+      doc.blocks = shapes.group(doc.blocks)
       return doc
     end },
   build(true),

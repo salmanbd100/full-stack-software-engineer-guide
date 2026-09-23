@@ -4,7 +4,7 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.6 · **Date:** 2026-09-19
+> **Status:** Locked · **Version:** 1.7 · **Date:** 2026-09-23
 > **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 93-item route from repo to manuscript.
 
 ---
@@ -17,7 +17,9 @@
 | **Subtitle**  | Frontend-heavy engineering for 2027 — fundamentals, the modern stack, system design, and AI     |
 | **Author**    | Salman Rahman                                                                                  |
 | **Edition**   | First (2027)                                                                                   |
-| **Length**    | ~57,200 lines of markdown ≈ 850–1,050 print pages (a handbook, not a primer)                   |
+| **Length**    | ~57,200 lines of markdown · **1,513 pages measured** at 40.6 lines per typeset page — decision #18                |
+| **Trim**      | **A4, 210 × 297 mm** · text block 156 × 251 mm, mirrored margins 26/28 inner/outer, 22/24 top/bottom — decision #18 |
+| **Typefaces** | **Source Serif 4** body · **Source Sans 3** display · **Source Code Pro** code, vendored in `assets/fonts/` — decision #18 |
 | **Language**  | British English (`colour`, `behaviour`, `organise`, `optimise`)                                |
 | **Code**      | TypeScript only                                                                                |
 | **Formats**   | PDF · EPUB · free web companion                                                                |
@@ -313,24 +315,38 @@ it ships as a companion (see item #27); if it is bound in, the total becomes ~62
 Parts I–IV from 51.8% to 50.0%; decision #16 added 200 lines to Parts I and IV, which is why the figure
 above reads 50.2% rather than 50.0%. **Any future increase to a Part V–IX budget still has to be paid for
 by an equal decrease elsewhere outside Parts I–IV**, or the spine drops back through the floor and breaks
-non-negotiable #3. 5,500 is therefore not a negotiating position for Part VIII.
+the ≥50% rule of decision #2. 5,500 is therefore not a negotiating position for Part VIII.
 
-**Reality check on the page count:** at roughly 55 markdown lines per typeset page, 57,200 lines is
-**950–1,050 pages**. That is a handbook, and the title says so. If the page count has to come down later,
-the order of cuts is fixed: Part VIII first, then Part IX, then Part VI case studies — never Parts III or VII.
+**The page count, measured.** `pnpm book:pages` reads the typeset PDF and reports **40.6 markdown
+lines per typeset page** — the 55 this section assumed was optimistic by a third. The manuscript as it stands
+is **1,513 pages**: 1,320 for Parts I–IX, the rest front matter, the DSA appendix and back matter.
+If the page count has to come down, the order of cuts is fixed: Part VIII first, then Part IX, then Part VI
+case studies — never Parts III or VII.
 
-⚠️ **Both page figures above are stale, and #77 owns replacing them.** Decision #13 sets a hard ceiling of
-**700 pages**, and the 55-lines-per-page assumption is not measured — the only real build (#5) produced
-**36 lines per page**. Item #77 measures the true rate, applies the trim-size and typeface decisions, and
-amends § 1 and this section with numbers instead of assumptions. Nothing in § 5's budget table changes
-until it does: budgets are ceilings, so a part coming in under one is already permitted.
+🔴 **Decision #13's 700-page ceiling is not reachable by typography, and #77 measured how far off it
+is.** The book is **1,513 pages**, 2.2 times the cap. The whole of the design's remaining slack — tighter
+leading, a wider text block, a smaller body size — is worth roughly 40%, which lands near 900 and no
+lower. The ceiling can only be met by removing content: at the measured rate, 700 pages is about
+28,399 lines against the 54,577 Parts I–IX carry today. **That is a different book, and it is an editorial
+decision rather than a calibration one**, so #77 records the number and leaves the cap standing. Nothing in
+§ 5's budget table changes either: budgets are ceilings, so a part coming in under one is already
+permitted.
 
-⚠️ **The spine is in a known breach, deliberately deferred to #77.** Decision #14 archived 2,077 lines from
-Part II. Taking the plan's own committed items into account — #58a trimming Part IV to 5,500 and #54 adding
-`Frontend/Accessibility/` — the finished book projects to a spine of **27,466 of 55,260 = 49.7%** against
-non-negotiable #3's 50% floor. The gap is **164 lines**, to be closed from Parts V–IX in § 5's fixed cut
-order (Part VIII first), not from Parts I–IV. This is recorded rather than fixed because #77's calibration
-changes every number it depends on.
+🔴 **The spine breach, measured rather than projected.** Decision #14 archived 2,077 lines from Part II,
+and this section has carried a projection of the damage ever since — 49.5%, then 49.7%, both estimates.
+Measured against the tree by `pnpm book:pages`, the spine is **26,404 of 54,577 = 48.4%**
+against decision #2's 50% floor.
+
+The cause is not that Parts V–IX grew. It is that **Parts I–IV came in under their ceilings and Parts V–IX
+came in at them**: Part II is 870 lines under and Part III 1,321 under, while Parts V, VIII and IX sit on
+their budgets exactly. Closing it needs **1,769 lines** to move, and there are two ways, both editorial:
+
+| Option | Cost |
+| ------ | ---- |
+| Cut 1,769 lines from Parts V–IX, in § 5's fixed order (VIII, then IX, then VI's case studies) | Decision #12 calls Part VIII's 5,500 a structural floor, so most of it would come out of VI and IX — and it is finished teaching prose |
+| Write 1,769 more lines into Parts II and III, which have 2,191 lines of headroom between them | No budget change needed, and it is additive — but it is roughly 48 more pages against a ceiling already breached |
+
+Neither is calibration, so **#77 measures and records it rather than acting on it.** It needs its own item.
 
 > The 49.5% / 554-line version of this projection assumed #54 would add ~1,046 net lines to Part II. It
 > landed at **+1,272** — six chapters at 233–256 lines, less the 255-line chapter it absorbed — which is
@@ -460,6 +476,7 @@ bump the version, and update any improvement-plan items the change affects.
 | 16| 2026-09-19 | **Part I raised 5,000 → 5,100 and Part IV 5,500 → 5,600**, to pay for the part openers those two parts never had | Improvement #76. Every part of this book is required by `write-topic-docs` to open on a part opener, and six parts had one because their content sits under a single directory whose README became it. Parts I, II, IV and IX have no such directory — their content spans two or more top-level directories — so they opened on a **section index** instead, and a reader arriving at Part I landed on JavaScript. #76 wrote the four missing openers at the root, placed by front-matter `part:`. Part II absorbed its opener inside its existing budget and Part IX was brought under by trimming, but Parts I and IV had 4 and 0 lines of headroom. The alternative considered and rejected was trimming ~95 lines of teaching prose out of 46 finished chapters to pay for two navigation pages — a bad trade, and one that would have been made against a number rather than against the writing. **The amendment moves the spine the right way:** Parts I–IV go from exactly 50.0% to 50.2%, which reduces rather than adds to the breach recorded below. The increase is +200 lines against a 700-page ceiling, roughly four pages. Before amending, **the duplication the new openers created was removed first**: the part-level "senior signal" sentence was being restated in all nine section indexes of the three parts, and `Frontend/JavaScript/README.md` opened on a paragraph the new Part I opener now carries verbatim — 60 lines came back that way |
 | 17| 2026-09-19 | **Leanpub for the book, a generated VitePress companion for the marketing** | Improvement #78, and the option the item already recommended. Leanpub pays while the book is still being written, which matters for an edition dated 2027 and 84 items into a 93-item plan; Gumroad and self-hosting both require the book to be finished before the first sale. The companion is **generated, never written**: `scripts/build-site.ts` reads the same `loadBook` the PDF build uses, so a chapter edit reaches the site on the next run and the two cannot drift. What it publishes is the marketing decision — the front matter, **every back-matter page including all 988 interview questions**, every part opener and section index, and **one sample chapter per part**, named by slug in `SAMPLE_CHAPTERS` with a build-time guard that fails if a rename orphans one. The remaining 236 chapters are the product. A cross-reference to an unpublished chapter loses its link and keeps its title, so the site never ships a dead link to a page that exists only on paper |
 
+| 18| 2026-09-23 | **Trim, typefaces and the page rate recorded in § 1 — all three measured; chapters no longer forced onto a right-hand page** | Improvement #77, which existed to replace three assumptions with three measurements. **The rate:** § 5 assumed ~55 markdown lines per typeset page; `pnpm book:pages` reads the finished PDF and reports **40.6**, so every page figure derived from it was optimistic by a third. The book is **1,513 pages**. **The trim:** A4, 210 × 297 mm. Chosen because decision #17 sells the edition on Leanpub, which delivers a download rather than a print run, and A4 is the most page-efficient of the realistic options. The alternative the improvement plan assumed — Crown Quarto 189 × 246 mm, credited with "recovering ~180 pages" — is arithmetically backwards: the same margins on a smaller leaf give a 135 mm text block instead of 156 mm, 31% less area per page, so it **costs** several hundred pages. That error is corrected at the item. **The typefaces:** the three OFL families #79 vendored, now named in the spec rather than only in `scripts/tex/typography.tex`. **And one change to the book itself:** `openany`, because the class opened every chapter on a recto and that cost **182 completely blank pages** out of 1,690 — 11% of the edition, spent on a convention that a chapter still satisfies by starting a fresh page. Parts keep their recto openings, which is ten leaves rather than 182 |
 ---
 
 **Next:** improvement **#2** — extend `write-topic-docs` into the book chapter standard. No new chapter

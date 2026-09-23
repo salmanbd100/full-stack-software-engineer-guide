@@ -113,6 +113,23 @@ scripts/tex/
 └── blocks.tex
 ```
 
+**A Mermaid diagram, which the build renders to vector PDF rather than printing its
+source. Every fill is the 6% tint and every stroke is full-strength ink, for the same
+reason the three callouts are told apart by structure:**
+
+```mermaid
+flowchart LR
+  A[Markdown fence] --> B[mermaid.lua]
+  B --> C{In the cache?}
+  C -->|Yes| E[Vector PDF]
+  C -->|No| D[mmdc, headless Chromium]
+  D --> E
+  E --> F["Placed at natural size, shrunk to fit"]
+```
+
+**How a diagram reaches the page.** Keyed by the SHA-1 of its own source and the theme,
+so one edited diagram re-renders one diagram.
+
 ### Common Mistakes
 
 ❌ Desaturating a colour palette and calling it a black-and-white design.
@@ -145,5 +162,5 @@ the same structure without porting the greyscale.
 
 ### What to Read Next
 
-- [Chapter ?? — The Specimen Chapter](#ch-specimen) — a cross-reference to itself, to
-  prove the link renders while nothing resolves it yet
+- [Chapter ?? — The Specimen Chapter](#ch-specimen) — a cross-reference to itself, which
+  #82 resolves to a chapter number and a page rather than a literal `??`

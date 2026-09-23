@@ -67,8 +67,12 @@ exists because a README references it.
 ```bash
 pnpm lint:docs        # the Book Chapter Standard, all eleven rules — run this before calling a file done
 pnpm lint:docs --rule=broken-link   # every occurrence of one rule
-pnpm book:build       # PDF + EPUB into build/  (needs: brew install pandoc tectonic)
-pnpm book:specimen    # scripts/specimen.md alone — the whole print design on two pages
+pnpm book:build       # PDF + EPUB into build/
+                      #   needs: brew install pandoc tectonic
+                      #   and:   pnpm add -g @mermaid-js/mermaid-cli   (diagrams, #82)
+                      #   and:   brew install epubcheck   (EPUB validation, #83)
+pnpm book:specimen    # scripts/specimen.md alone — the whole print design, in seconds
+pnpm book:pages       # pages per part, measured off build/handbook.pdf (#77)
 pnpm plan:next        # the next unchecked plan item, its "Done when", its model
 pnpm plan:check       # verify the plan's three counters still agree
 pnpm index:questions  # regenerate Interview-Question-Index.md from every chapter's Q block
@@ -93,13 +97,50 @@ until `pnpm index:questions` runs; `index:check` is what catches it.
 `scripts/lib/book.ts` is the shared model of what counts as a chapter — the build and the lint both
 import it, so they cannot disagree. Anything new that walks the manuscript should import it too.
 
-**The print design is five files in `scripts/tex/` plus one Lua filter.** `tokens.tex` holds every
-tunable value and is the only one calibration edits; `typography.tex`, `glyphs.tex`, `structure.tex`
-and `blocks.tex` read it. `scripts/lua/callouts.lua` (#81) maps the Book Chapter Standard's own
-shapes — `## 💡 …`, `## 🔑 …`, `> ⚠️ …`, `**In this chapter:**`, the bold label above a fence,
-every table — onto those environments, so **the design never asks a chapter to change**. It runs for
-the PDF only. Check a change with `pnpm book:specimen` (two pages, seconds) before `book:pdf`
-(1,500 pages, minutes).
+**The print design is five files in `scripts/tex/`, four Lua filters and one pandoc defaults
+file.** `tokens.tex` holds every tunable value and is the only one calibration edits;
+`typography.tex`, `glyphs.tex`, `structure.tex` and `blocks.tex` read it. `scripts/book-pdf.yaml`
+(#82) is the whole PDF invocation as data — engine, includes, filters, highlight style, variables —
+and its relative paths resolve against the **working directory**, which is why `build-book.sh` must
+`cd` to the repo root first. The filters map the Book Chapter Standard's own shapes onto the
+design, so **the design never asks a chapter to change**:
+
+| Filter | Reads | Emits |
+| ------ | ----- | ----- |
+| `lua/xref.lua` (#82) | `[Chapter ?? — Title](#ch-slug)` | `Chapter N — Title (p. P)` in print, a filled-in anchor in EPUB |
+| `lua/callouts.lua` (#81) | the shapes `callout-shapes.lua` names, plus every table | the block library in `blocks.tex` — print only |
+| `lua/epub-blocks.lua` (#83) | the same shapes | divs with class names, styled by `scripts/epub.css` — EPUB only |
+| `lua/mermaid.lua` (#82) | every ` ```mermaid ` fence | a vector PDF for print, an SVG for EPUB, the fence untouched for the site |
+
+**`lua/callout-shapes.lua` (#83) is the shared classifier**, and it emits nothing: `## 💡 …`,
+`## 🔑 …`, `> ⚠️ …`, `**In this chapter:**` and the bold label above a fence are named there once,
+and the two back-ends decide what to do with them. It is the same arrangement as
+`scripts/lib/book.ts` — **a gotcha cannot be a callout in the PDF and a plain blockquote in the
+EPUB**, because only one file decides what a gotcha is. It is `require`d by path relative to the
+working directory, which is one more reason `build-book.sh` must `cd` to the repo root.
+
+🔴 **That order is load-bearing.** `callouts.lua` renders tables to LaTeX source, and 674 of the
+1,662 cross-references live in the chapter tables of section indexes — so `xref.lua` has to go
+first. `mermaid.lua` has to go last, because the block filter for each format needs one Mermaid
+fence to still be a code block to find the label above it.
+
+`mermaid.lua` needs **mermaid-cli** (`pnpm add -g @mermaid-js/mermaid-cli`), checked in the
+build's preflight. It renders each diagram two to four times, measuring and correcting the font size
+until the labels land on `\tokDiagramLabelSize` once the figure is shrunk to the measure, then
+caches by content hash in `build/diagrams/` — so a cold build costs minutes and the next one costs
+nothing.
+
+Check a change with `pnpm book:specimen` (ten pages, seconds) before `book:pdf` (1,500 pages,
+minutes). Both report missing glyphs and unresolved cross-references at the end; **silence there is
+the failure mode**, so the counts are printed rather than left in the log.
+
+**The EPUB is the same design in CSS, and it is validated rather than eyeballed.**
+`scripts/epub.css` (#83) ports the print type scale and the three callout structures; it replaces
+pandoc's default stylesheet wholesale, because `--css` substitutes rather than adds. `pnpm
+book:epub` runs **epubcheck** over the result and prints the verdict — not in the preflight, since
+the EPUB builds correctly without a JVM and a validator that blocks the build is one people route
+around. It is worth having: its first run found 88 of the 96 diagrams shipping invalid XHTML inside
+`<foreignObject>`, which nothing in the repository had noticed since #82.
 
 **There is still no test suite.** What there is, since #75, is `pnpm check:code-samples`: it extracts
 all 787 TypeScript fences and runs the real compiler over them, in two gates. **Syntax is hard at

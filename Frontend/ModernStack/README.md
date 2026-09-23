@@ -84,4 +84,5 @@ system design round.
 
 All six sections are written — **46 chapters**, improvements #32–41. `Rendering/` and
 `StateManagement/` absorbed the two chapters that were staged in `Archive/salvage/frontend/`, which #42
-then removed. Chapter numbers appear as `??` until improvement #70 assigns them across the whole book.
+then removed. Cross-references are written as `Chapter ?? — Title`; the build supplies the number and
+the page, so the manuscript never carries one that can go stale.

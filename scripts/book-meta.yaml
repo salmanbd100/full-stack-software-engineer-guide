@@ -1,9 +1,45 @@
 # Book metadata for the pandoc build (improvement #5).
 # Kept out of the manuscript so no single chapter's front matter can claim the title.
+#
+# The retail half of this file is improvement #83. An EPUB with no identifier, no
+# publisher and no subjects is one a shop cannot list, and pandoc fills the gap by minting
+# a fresh random UUID on every build — which reads to a retailer as a different book each
+# time it is uploaded.
 title: "The Senior Full Stack Handbook"
-subtitle: "Frontend-Heavy — Fundamentals, Modern Stack, System Design and AI Engineering for 2027"
+
+# Reconciled with BOOK-SPEC.md § 1 at #83. The two had drifted — the spec is the
+# authority, so this is the spec's wording, to the comma.
+subtitle: "Frontend-heavy engineering for 2027 — fundamentals, the modern stack, system design, and AI"
+
 author: "Salman Rahman"
 date: "2027 Edition"
 lang: en-GB
 rights: "© Salman Rahman. All rights reserved. https://www.salmanrahman.com/"
 toc-title: "Contents"
+
+# --- EPUB retail metadata (#83) ---------------------------------------------
+
+# 🔴 Fixed, and it must stay fixed. This is the book's identity to every shop and every
+# library that stocks it: change it and the second edition is a different title rather
+# than an update to this one. A new identifier belongs to a new edition, nothing less.
+identifier:
+  - scheme: uuid
+    text: bdc318a2-e05e-40f5-91ba-20921e740c7e
+
+publisher: "Salman Rahman"
+
+description: |
+  A senior-level handbook for frontend-heavy full stack engineers. Nine parts —
+  language foundations, the browser platform, the modern React and Next.js stack,
+  frontend at scale, backend, system design, AI engineering, shipping and operating,
+  and the human layer — each answering the same three questions: why does this exist,
+  when do I reach for it, and what does it cost me.
+
+# The BISAC-shaped subjects a retailer files the book under. Broad on purpose: a shop
+# matches on these, and a list narrow enough to be precise is a list nobody browses into.
+subject:
+  - Computers / Programming / General
+  - Computers / Web / Web Programming
+  - Computers / Software Development & Engineering / General
+  - Computers / Artificial Intelligence / General
+  - Business & Economics / Careers / Job Hunting
