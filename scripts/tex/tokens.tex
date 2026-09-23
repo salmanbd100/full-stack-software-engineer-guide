@@ -34,13 +34,19 @@
 % Starting values. #77 measures the real lines-per-page rate and tunes these against the
 % 700-page ceiling in BOOK-SPEC decision #13.
 
+% 🔴 Calibrated at #87, and the calibration is mostly *not* here. The slack a page has is
+% vertical and horizontal, and on A4 only one of them can be spent. The text block is
+% 156mm at 10pt, which is already about 85 characters a line — above the 66–80 a reader
+% tracks comfortably. Widening the measure or shrinking the type would buy pages by
+% making the book harder to read, so neither moved. What moved is leading, paragraph
+% spacing, block spacing and the top and bottom margins. See BOOK-SPEC decision #19.
 \newcommand{\tokBodySize}{10pt}
-\newcommand{\tokBodyLeading}{13.2pt}   % 1.32 — tight for a reference book, open enough to read
-\newcommand{\tokLeadRatio}{1.10}       % \tokBodyLeading ÷ the 12pt the 10pt class would use
+\newcommand{\tokBodyLeading}{12.8pt}   % 1.28 — #87. Tight for an 85-character measure, and the floor for one
+\newcommand{\tokLeadRatio}{1.067}      % \tokBodyLeading ÷ the 12pt the 10pt class would use
 \newcommand{\tokSmallSize}{8.5pt}      % eyebrows, labels, table body
 \newcommand{\tokMicroSize}{8pt}        % running heads and folios
 \newcommand{\tokCodeSize}{8.5pt}
-\newcommand{\tokCodeLeading}{10.5pt}
+\newcommand{\tokCodeLeading}{10pt}      % #87 — 1.18 at 8.5pt, still open for a monospace
 \newcommand{\tokDeckSize}{11pt}        % the one-sentence promise under a chapter title
 \newcommand{\tokChapterSize}{22pt}
 \newcommand{\tokPartNumberSize}{60pt}
@@ -56,8 +62,11 @@
 \newcommand{\tokPaper}{a4paper}
 \newcommand{\tokMarginInner}{26mm}
 \newcommand{\tokMarginOuter}{28mm}
-\newcommand{\tokMarginTop}{22mm}
-\newcommand{\tokMarginBottom}{24mm}
+% #87 took 2mm off the head and 3mm off the foot — 5mm of text height, about one extra
+% line a page. The inner and outer margins did **not** move: they set the measure, and the
+% measure is already at the limit of what reads well.
+\newcommand{\tokMarginTop}{20mm}
+\newcommand{\tokMarginBottom}{21mm}
 
 % ---------------------------------------------------------------------------
 % Rules and spacing
@@ -67,7 +76,7 @@
 \newcommand{\tokAccentRule}{1.2pt}     % under a chapter title
 \newcommand{\tokBarRule}{2.5pt}        % the left bar on a gotcha callout
 \newcommand{\tokTracking}{140}         % +140/1000 em on small caps labels
-\newcommand{\tokParSkip}{0.30em}       % 0.9em is a web value; on paper it costs ~90 pages
+\newcommand{\tokParSkip}{0.22em}       % 0.9em is a web value; on paper it costs ~90 pages. 0.30 → 0.22 at #87
 \newcommand{\tokCellPad}{4pt}
 \newcommand{\tokCodePad}{5pt}
 \newcommand{\tokCalloutPad}{7pt}
@@ -96,12 +105,20 @@
 % of each other; rule weight survives greyscale, photocopying and e-ink.
 
 \newcommand{\tokTableSize}{9pt}        % table body — one step under the body serif
-\newcommand{\tokTableLeading}{11.5pt}
+\newcommand{\tokTableLeading}{11pt}    % #87
 \newcommand{\tokPullSize}{12pt}        % a line lifted out of the prose
 \newcommand{\tokPullLeading}{15pt}
 \newcommand{\tokPullClear}{10pt}       % air above and below a pull quote
 \newcommand{\tokPillPad}{4pt}
-\newcommand{\tokBlockSkip}{9pt}        % air around every block in this library
+\newcommand{\tokBlockSkip}{7.5pt}      % air around every block in this library — 9pt → 7.5pt at #87
+
+% 🔴 The same value as a *length register*, and blocks.tex must use this one wherever it
+% scales the skip. `-0.4\tokBlockSkip` expands to `-0.4 7.5pt`, which is not a dimension
+% and halts the build. Before #87 the token was `9pt`, so the same expression silently
+% read as **-0.49pt** — a plausible-looking number that was never the 3.6pt the code
+% meant. A macro that holds a dimension cannot be multiplied; a register can.
+\newlength{\bookBlockSkip}
+\setlength{\bookBlockSkip}{\tokBlockSkip}
 
 % ---------------------------------------------------------------------------
 % Diagrams — consumed by blocks.tex at #82

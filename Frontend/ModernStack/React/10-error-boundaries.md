@@ -38,6 +38,8 @@ A boundary is still a class component, because the two lifecycle methods it need
 equivalent. You write it once per codebase.
 
 ```tsx
+import React from "react";
+
 interface BoundaryProps {
   fallback: React.ReactNode;
   children: React.ReactNode;

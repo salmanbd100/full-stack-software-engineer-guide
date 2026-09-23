@@ -33,10 +33,25 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { loadBook, matterFor, partBudgets, PART_NAMES, type Doc } from "./lib/book.ts";
+import {
+  COMPANION_PART,
+  loadBook,
+  matterFor,
+  partBudgets,
+  PART_NAMES,
+  type Doc,
+} from "./lib/book.ts";
 
 const ROOT: string = process.cwd();
 const PDF: string = join(ROOT, "build", "handbook.pdf");
+
+/**
+ * The companion volume (#86). Measured separately and reported on its own line, because
+ * BOOK-SPEC.md § 5 has always kept the DSA appendix outside the book's budget — and
+ * because a ceiling argued about a figure that included a second volume was being argued
+ * about the wrong number.
+ */
+const COMPANION_PDF: string = join(ROOT, "build", "companion.pdf");
 const AS_JSON: boolean = process.argv.includes("--json");
 
 /** BOOK-SPEC decision #13. A hard ceiling on the edition, not an editorial preference. */
@@ -308,6 +323,8 @@ function main(): void {
       (over > 0 ? `  (+${over}, ${((over / PAGE_CEILING) * 100).toFixed(0)}% over)` : ""),
   );
 
+  reportCompanion(docs);
+
   const share: number = (spine / bookOnly) * 100;
   const spineMark: string = share >= 50 ? "✅" : "❌";
   console.log(
@@ -320,6 +337,33 @@ function main(): void {
   // Nothing here exits non-zero. It is a measurement, and the two figures above are
   // decisions for BOOK-SPEC to record rather than gates for a build to fail on — the
   // ceiling is met by choosing a trim and a chapter-opening rule, not by a script.
+}
+
+/**
+ * The companion, in one line. It has no budget rule of its own beyond § 4's 5,600 lines,
+ * and no share of the book's page count — the whole point of #86 is that it is not in it.
+ */
+function reportCompanion(docs: Doc[]): void {
+  const lines: number = docs
+    .filter((d: Doc) => d.part === COMPANION_PART)
+    .reduce((n: number, d: Doc) => n + d.lines, 0);
+  if (lines === 0) return;
+
+  if (!existsSync(COMPANION_PDF)) {
+    console.log(
+      `  ·  Companion volume ${lines.toLocaleString()} lines, not measured:` +
+        ` build/companion.pdf not found (run \`pnpm book:companion\`)`,
+    );
+    console.log("");
+    return;
+  }
+
+  const pages: number = pdfPages(COMPANION_PDF).length;
+  console.log(
+    `  ·  Companion volume ${lines.toLocaleString()} lines over ${pages} pages` +
+      ` (${(lines / pages).toFixed(1)} l/page), built and counted separately since #86`,
+  );
+  console.log("");
 }
 
 function roman(part: number): string {

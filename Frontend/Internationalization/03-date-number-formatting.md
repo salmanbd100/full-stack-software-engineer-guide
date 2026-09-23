@@ -1,7 +1,7 @@
 ---
 title: Date and Number Formatting
 part: 2
-chapter: 19
+chapter: 23
 slug: date-number-formatting
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

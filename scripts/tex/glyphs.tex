@@ -38,6 +38,41 @@
 \newunicodechar{💡}{\booksquareglyph}
 \newunicodechar{🔑}{\booksquareglyph}
 
+% ---------------------------------------------------------------------------
+% The four CJK characters — improvement #93
+% ---------------------------------------------------------------------------
+%
+% 年 月 日 ￥, twelve occurrences, all of them inside the `Intl` samples in
+% Frontend/Internationalization/03-date-number-formatting.md — a comment showing what
+% `Intl.DateTimeFormat('ja-JP')` actually returns. #77 measured them printing as holes
+% and recorded the fix rather than taking it, because it needed a font download and a
+% licence call.
+%
+% Both are now made. `assets/fonts/NotoSansJP-Subset.otf` is **3.9 KB**: Noto Sans JP,
+% OFL 1.1 — the same licence as the three Source families — subset with `fontTools` to
+% exactly these four glyphs. #81's objection, that a CJK face costs "an order of
+% magnitude more than all three Source families", is true of a whole face and not of four
+% characters.
+%
+% 🔴 The replacement text must use \char rather than the character itself.
+% \newunicodechar makes the character active, so writing 年 inside its own definition
+% recurses until TeX runs out of stack.
+
+\newfontfamily\bookcjkfont{NotoSansJP-Subset}[
+  Path = \bookfontpath,
+  Extension = .otf,
+  Scale = MatchLowercase,
+]
+
+\newunicodechar{年}{{\bookcjkfont\char"5E74}}
+\newunicodechar{月}{{\bookcjkfont\char"6708}}
+\newunicodechar{日}{{\bookcjkfont\char"65E5}}
+\newunicodechar{￥}{{\bookcjkfont\char"FFE5}}
+
+% ★ — U+2605, inside the rating-stars sample in the web-components chapter. It is what the
+% code renders, so it has to print rather than be reworded. Zapf Dingbats has it. #93.
+\newunicodechar{★}{\ding{72}}
+
 % U+FE0F, the variation selector that trails ⚠️ and friends in the source.
 \newunicodechar{️}{}
 

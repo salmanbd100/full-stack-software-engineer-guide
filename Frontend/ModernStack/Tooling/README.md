@@ -1,7 +1,7 @@
 ---
 title: Tooling
 part: 3
-chapter: 46
+chapter: 48
 slug: modern-stack-tooling-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
@@ -32,6 +32,9 @@ once a codebase has several packages, several teams and a CI bill.
 | 04 | [Monorepos](#ch-monorepos)                                                       | What does a task graph buy, and when is one repository worse?    |
 | 05 | [Type-Checking and Linting at Scale](#ch-type-checking-and-linting)              | How do you keep `tsc` and CI fast as the codebase grows?         |
 | 06 | [Package Management](#ch-package-management)                                     | What does the lockfile promise, and what does it not?            |
+| 07 | [Styling Strategy](#ch-styling-strategy)                                          | Utilities or scoped files, and what does a runtime library cost?  |
+| 08 | [Web Components and Framework Interop](#ch-web-components-and-interop)            | How does one component library serve three frameworks?            |
+| 09 | [Headless Primitives and Accessible Components](#ch-headless-primitives)          | Do you build the combobox or adopt one, and what stays yours?     |
 
 ## What Interviewers Probe For
 
@@ -52,5 +55,8 @@ generation interests you or the role names Turbopack.
 Chapters 04–06 are independent and are the ones that matter most in a large organisation. Chapter 06
 carries the supply-chain material, which is the tooling topic most likely to come up in a security
 conversation rather than a build one.
+
+Chapter 07 is independent too, and it is the one that reaches back into React: the styling decision is
+constrained by the Server Component boundary, so read it after the React section rather than before.
 
 **Interview sprint:** 01 → 02. Everything after that is job knowledge.

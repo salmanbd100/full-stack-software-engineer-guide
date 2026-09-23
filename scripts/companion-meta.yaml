@@ -1,0 +1,37 @@
+# Companion-volume metadata for the pandoc build (improvement #86).
+#
+# The DSA appendix ships as its own volume — BOOK-SPEC.md § 5 and decision #6 — so it
+# needs its own metadata rather than the handbook's. Everything a shop reads is different:
+# a different title, a different description, and a different identifier, because to a
+# retailer this is a second product and not a second printing of the first.
+#
+# What is deliberately identical: the author, the edition line, the language and the
+# rights. It is the same book's companion, not a separate publication.
+title: "The Senior Full Stack Handbook — DSA Patterns"
+subtitle: "The companion volume: sixteen patterns, enough to recognise the problem in front of you"
+
+author: "Salman Rahman"
+date: "2027 Edition"
+lang: en-GB
+rights: "© Salman Rahman. All rights reserved. https://www.salmanrahman.com/"
+toc-title: "Contents"
+
+# --- EPUB retail metadata ---------------------------------------------------
+
+# 🔴 Fixed, like the handbook's. A new identifier belongs to a new edition, nothing less.
+identifier:
+  - scheme: uuid
+    text: b1338125-9e01-4755-9fcf-8db3c51b7106
+
+publisher: "Salman Rahman"
+
+description: |
+  The companion volume to The Senior Full Stack Handbook. Sixteen algorithm patterns for
+  the coding round — what each pattern is, how to recognise it, one worked template, two
+  worked examples, its complexity, and a curated problem set. Pattern recognition rather
+  than a solution dump: the solved sets live in the repository the chapters point at.
+
+subject:
+  - Computers / Programming / Algorithms
+  - Computers / Programming / General
+  - Business & Economics / Careers / Job Hunting

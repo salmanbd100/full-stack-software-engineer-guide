@@ -1,7 +1,7 @@
 ---
 title: Signals and the Next Model
 part: 3
-chapter: 45
+chapter: 46
 slug: signals-and-the-next-model
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

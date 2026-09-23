@@ -1,7 +1,7 @@
 ---
 title: Monorepos
 part: 3
-chapter: 50
+chapter: 52
 slug: monorepos
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

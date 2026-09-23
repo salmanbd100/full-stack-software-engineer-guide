@@ -1,7 +1,7 @@
 ---
 title: Testing Accessibility
 part: 2
-chapter: 15
+chapter: 19
 slug: testing-accessibility
 level: advanced
 reading_time: 11

@@ -1,7 +1,7 @@
 ---
 title: Browser Permissions
 part: 2
-chapter: 8
+chapter: 10
 slug: browser-permissions
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

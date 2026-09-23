@@ -4,10 +4,17 @@
 #
 # Builds The Senior Full Stack Handbook from the markdown in this repo.
 #
-#   ./scripts/build-book.sh          # PDF + EPUB
-#   ./scripts/build-book.sh pdf      # PDF only  (the fast one)
-#   ./scripts/build-book.sh epub     # EPUB only
-#   ./scripts/build-book.sh specimen # scripts/specimen.md alone, on two pages (#81)
+#   ./scripts/build-book.sh           # PDF + EPUB
+#   ./scripts/build-book.sh pdf       # PDF only  (the fast one)
+#   ./scripts/build-book.sh epub      # EPUB only
+#   ./scripts/build-book.sh specimen  # scripts/specimen.md alone, on two pages (#81)
+#   ./scripts/build-book.sh companion # the DSA companion volume, PDF + EPUB (#86)
+#
+# Two volumes since #86. The handbook is Parts I-IX with its front and back matter; the
+# companion is the DSA appendix alone, which BOOK-SPEC.md section 5 has excluded from the
+# book's line budget since v1.0. They are built from the same filters and the same design,
+# and differ only in which chapters the collector emits and which metadata file names
+# them.
 #
 # Requires: pandoc, tectonic, Node 22.6+
 #   brew install pandoc tectonic
@@ -55,7 +62,11 @@ fi
 
 if [[ "$TARGET" != "specimen" ]]; then
   echo "▸ Collecting chapters"
-  node --experimental-strip-types "$ROOT/scripts/collect-chapters.ts"
+  if [[ "$TARGET" == "companion" ]]; then
+    node --experimental-strip-types "$ROOT/scripts/collect-chapters.ts" --volume=companion
+  else
+    node --experimental-strip-types "$ROOT/scripts/collect-chapters.ts"
+  fi
 fi
 
 # --- shared pandoc options -------------------------------------------------
@@ -68,9 +79,16 @@ fi
 # --metadata-file instead, which is where a book's title belongs anyway.
 FROM="markdown+pipe_tables+task_lists-yaml_metadata_block-tex_math_dollars-tex_math_single_backslash-raw_tex-latex_macros"
 
+# The companion is a different product to a shop — its own title, description and
+# identifier (#86) — so the metadata file is chosen per volume rather than shared.
+META="$ROOT/scripts/book-meta.yaml"
+if [[ "$TARGET" == "companion" ]]; then
+  META="$ROOT/scripts/companion-meta.yaml"
+fi
+
 COMMON=(
   --from="$FROM"
-  --metadata-file="$ROOT/scripts/book-meta.yaml"
+  --metadata-file="$META"
   --toc
   --toc-depth=2
   --top-level-division=part
@@ -234,10 +252,42 @@ build_epub() {
   report_epubcheck "$BUILD/handbook.epub"
 }
 
+# --- Companion volume (#86) -------------------------------------------------
+#
+# The DSA appendix, on its own. Same filters, same tokens, same fonts — the design does
+# not fork, because a reader holding both should not be able to tell they were built by
+# two functions.
+
+build_companion() {
+  echo "▸ Building companion PDF (tectonic)"
+  pandoc "$BUILD/companion.md" "${COMMON[@]}" "${PDF_ONLY[@]}" \
+    --output="$BUILD/companion.pdf" 2>&1 | tee "$BUILD/companion.log"
+  echo "  ✓ build/companion.pdf ($(du -h "$BUILD/companion.pdf" | cut -f1))"
+  report_missing_glyphs "$BUILD/companion.log"
+  report_unresolved_refs "$BUILD/companion.pdf"
+
+  echo "▸ Building companion EPUB"
+  local font_args=()
+  local face
+  for face in "${EPUB_FONTS[@]}"; do
+    font_args+=(--epub-embed-font="$ROOT/assets/fonts/$face.otf")
+  done
+  pandoc "$BUILD/companion.md" "${COMMON[@]}" "${EPUB_FILTERS[@]}" \
+    --css="$ROOT/scripts/epub.css" \
+    "${font_args[@]}" \
+    --metadata=date:2027 \
+    --syntax-highlighting=tango \
+    --split-level=1 \
+    --output="$BUILD/companion.epub"
+  echo "  ✓ build/companion.epub ($(du -h "$BUILD/companion.epub" | cut -f1))"
+  report_epubcheck "$BUILD/companion.epub"
+}
+
 case "$TARGET" in
   pdf) build_pdf ;;
   epub) build_epub ;;
   specimen) build_specimen ;;
+  companion) build_companion ;;
   all) build_pdf; build_epub ;;
-  *) echo "Usage: $0 [pdf|epub|specimen|all]" >&2; exit 1 ;;
+  *) echo "Usage: $0 [pdf|epub|specimen|companion|all]" >&2; exit 1 ;;
 esac

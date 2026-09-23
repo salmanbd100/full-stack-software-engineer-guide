@@ -8,14 +8,15 @@ name: lint:docs
 # down is committed as the new baseline. Each rule becomes a hard gate on its own the
 # moment its baseline reaches 0.
 
-# Disabled 2026-08-29: automatic runs turned off while the manuscript is still being
-# restructured, so a red build stops mailing on every push. Run it by hand from the
-# Actions tab, or with `gh workflow run lint:docs`. Restore the `push` and
-# `pull_request` triggers below to re-enable.
+# Automatic runs were off between 2026-08-29 and 2026-09-23, while the manuscript was
+# being restructured and a red build would have mailed on every push. Restored at
+# improvement #88: the restructure finished four phases ago, every check below is green,
+# and non-negotiable #10 says code samples are enforced in CI rather than remembered.
+# `workflow_dispatch` stays, because running it by hand before a push is still useful.
 on:
-  # push:
-  #   branches: [main]
-  # pull_request:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -63,6 +64,12 @@ jobs:
 
       - name: Check the plan's counters agree
         run: pnpm plan:check
+
+      - name: Run the script test suite
+        # scripts/lib/book.ts is imported by the build, the lint, the numberer, the
+        # index, the page measurer and the site generator, so a wrong answer there is a
+        # wrong book everywhere at once. Improvement #94.
+        run: pnpm test
 
       - name: Assemble the manuscript
         # Catches an ordering or front-matter change that breaks collection, without

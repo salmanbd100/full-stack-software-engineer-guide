@@ -31,16 +31,19 @@ happened: the budget arithmetic in #1, the frontend-share rule, and the line-bud
 **#31a–#31e** on 2026-08-30, **#58a** on 2026-09-02 when #31e turned out to be blocked on its own
 ordering note, **#31f** on 2026-09-03 when the edition picked up a hard 700-page ceiling, and **#56a**
 and **#60a** on 2026-09-07 and 2026-09-08 when #56's, #59's and #60's new chapters met Parts V and I
-with almost no headroom left.
+with almost no headroom left. The sixth is **Phase 8 (#84–#94)**, added on 2026-09-23 after a review
+read the finished plan against the spec: eleven items were ticked with a **Delivered** note naming work
+they had left, several of them in the words _"it needs its own item"_, and no item was ever added.
 
 > **Item ids can carry a letter.** #31a–#31f are Phase 2 items; #56a, #58a and #60a are Phase 5
-> items. All were added after the plan was numbered.
+> items. All were added after the plan was numbered. **#84–#94 are Phase 8**, and they are plain
+> numbers because they append rather than insert.
 > `scripts/plan-status.ts` sorts `31a` between `31` and `32`, so step 1 finds them in the right place.
 
 > **Also fine:** _"do improvement #23"_ to jump to a specific item, and _"skip #23"_ to move past one.
 > Both override the first-unchecked rule.
 
-**Last updated:** 2026-09-23 · **Progress:** 93 / 93
+**Last updated:** 2026-09-23 · **Progress:** 103 / 104
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope, budget, and non-negotiables.
 
@@ -90,8 +93,8 @@ that touch hundreds of files are where the saving actually lands.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31f, 31–65, 56a, 58a, 60a, 69, 70a, 72–73, 76, 78, 80–82, 77 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31f, #56a, #58a, #60a), everything with a voice |
-| 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 79, 83 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
+| 1–2, 4–5, 13, 17–18, 20, 22–24, 26–29, 31a–31f, 31–65, 56a, 58a, 60a, 69, 70a, 72–73, 76, 78, 80–82, 77, 84–85, 87, 90–92 | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Judgement and prose. Every new chapter (#32–65), every merge decision, every budget trim (#31a–31f, #56a, #58a, #60a), everything with a voice |
+| 3, 6–12, 14–16, 19, 21, 25, 30, 66–68, 70–71, 74–75, 79, 83, 86, 88–89, 93–94 | **Sonnet 5** `claude-sonnet-5` | `low`–`medium` | The decision is already written in the item; the work is applying it hundreds of times without drifting |
 
 **The four that matter most for cost** — #10 (415 fence conversions), #12 (chapter openings across
 every file), #71 (every cross-reference), #74 (ASCII → Mermaid). Between them they touch more files
@@ -193,6 +196,7 @@ companion. Everything else stays in the repo under `Archive/`, still useful to y
 | **5** | Fill the remaining gaps       | 54–63 · 56a · 58a · 60a | 8–12 sessions  | **Opus 5** throughout |
 | **6** | 2027-proofing                 | 64–69   | 4–6 sessions   | mixed — Sonnet for 66–68 |
 | **7** | Book assembly & publish       | 70–83 · 70a | 6–8 sessions   | mixed — Sonnet for the sweeps |
+| **8** | Close the spec and ship       | 84–94   | 10–14 sessions | mixed — Sonnet for 86, 88–89, 93–94 |
 
 **Effort key:** `S` = one short session · `M` = one full session · `L` = split across 2–4 sessions.
 
@@ -6933,6 +6937,558 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 
 ---
 
+# Phase 8 — Close the Spec and Ship
+
+> **Why this phase exists.** A review on 2026-09-23 read the finished plan against `BOOK-SPEC.md` and
+> found the same shape in three places: an item was ticked correctly, and its own **Delivered** block
+> named work it had deliberately left, in the words _"it needs its own item"_ — and no item was ever
+> added. Four of those notes are the spec's own success criteria (§ 9) going unmet, and two are locked
+> decisions the manuscript breaks today.
+>
+> Measured with `pnpm book:pages` on 2026-09-23, before any item below:
+>
+> | Rule | Source | Measured | Verdict |
+> | ---- | ------ | -------- | ------- |
+> | Frontend spine I–IV ≥ 50% | decision #2 · criterion #3 | 26,404 of 54,577 = **48.4%** | ❌ |
+> | Page ceiling 700 | decision #13 | **1,513 pages** | ❌ |
+> | One voice throughout | criterion #8 | 245 of 253 chapters never read line by line | ❌ |
+> | Every code sample type-checks | criterion #6 · non-negotiable #10 | every import resolves to `any`; CI disabled since 2026-08-29 | ⚠️ |
+>
+> **Phase 7 ends at "the artefacts build". This phase ends at "the book is on sale."** Nothing here
+> invents scope: every item below is a note an earlier item wrote and could not act on.
+
+### - [x] 84. Write the Part III styling chapter `S` — ✅ **done 2026-09-23**
+
+`#31f` archived `CSSArchitecture/01-css-methodologies`, `02-utility-vs-component` and `03-css-in-js`
+rather than staging them under `salvage/`, because `salvage/README.md` needs a *named* destination item
+with a chapter number and no Part III item had one — `#41`'s `Tooling/` table has no styling chapter.
+Both `#31f` and **decision #14** close on the same sentence: the durable argument is worth one Part III
+chapter, and **it needs a new item**. This is that item.
+
+What survives the archive is the argument, not the mechanics: why utility-first won on the maintenance
+cost of a name rather than on keystrokes, what CSS-in-JS actually costs at runtime and why the ecosystem
+moved to zero-runtime compilation, and when a component library still beats both. Box model, flexbox and
+grid stay archived — decision #14's audience call stands.
+
+Lands in `Frontend/ModernStack/Tooling/` as its own chapter, renumbered into the section by
+`pnpm number:chapters`.
+
+**Done when:** one chapter of 150–400 lines exists in `Frontend/ModernStack/Tooling/`, `pnpm lint:docs`
+reports no regression, `pnpm index:questions` is regenerated, and `pnpm book:pages` still shows Part III
+inside its 12,000-line budget.
+
+
+**Delivered:**
+
+- **`Frontend/ModernStack/Tooling/07-styling-strategy.md`** — 215 lines, chapter 53, the last chapter of
+  Part III. Three archived chapters (590 lines) became one, which is the point: what was archived was
+  three treatments of the same argument, and what Part III needs is the argument
+- **What was kept, and what stayed archived.** Kept: the one problem every approach solves, why naming
+  conventions faded (they are agreements, not mechanisms), the utility-first maintenance-cost argument,
+  the three costs of runtime CSS-in-JS, and the decision table. Stayed archived: BEM's and ITCSS's
+  vocabulary in full, atomic CSS as a separate topic, and every line of layout mechanics — decision
+  #14's audience call, unchanged
+- **The chapter earns its place in Part III rather than Part II, because of one constraint that did not
+  exist when the originals were written:** a runtime styling library has to be a Client Component, so it
+  pulls its subtree across the server boundary with it. That makes styling an architecture decision in a
+  React 19 codebase, which is why the chapter sits beside the bundler rather than beside the box model
+- **Context7 checked before writing**, as `Frontend/ModernStack/` requires: Tailwind CSS 4's `@theme`
+  compiles design tokens to plain custom properties on `:root`. That is the chapter's durable line —
+  tokens as custom properties are the part that outlives whichever framework the team picks next — and
+  it is a 2025-era fact the archived chapters predate
+- **Two samples were made self-contained** rather than left as excerpts: the styled-components mistake
+  now carries its import, which is what stopped `TS2552` going up by one
+- **`Tooling/README.md` updated** — the chapter table and a reading-order line saying to read it after
+  the React section, because the constraint comes from there
+- **Verified:** `pnpm lint:docs` → **306 files**, all eleven rules at 0, no regression, Part III still
+  inside its 12,000-line budget. `pnpm number:chapters --check` → clean, the chapter numbered 53 with
+  nothing renumbered around it. `pnpm index:questions` → **992 questions from 246 chapters**, index
+  regenerated and `index:check` current. `pnpm check:code-samples` → syntax clean, 1,404 against a
+  baseline of 1,404
+
+### - [x] 85. Close the frontend spine — write into Parts II and III `L` — ✅ **done 2026-09-23**
+
+Decision #2's floor is 50% across Parts I–IV, and criterion #3 checks it. Measured: **48.4%**, a gap of
+**1,769 lines**. `#77` measured it, costed both directions in § 5, and recorded that closing it is
+editorial rather than calibration — _"it needs its own item"_.
+
+**The direction is decided: write, do not cut.** The cause of the breach is not that Parts V–IX grew —
+they came in *at* their ceilings while Part II came in 870 lines under and Part III 1,321 under. The
+under-delivery is in the frontend spine itself, so the honest repair is to deliver the two parts the
+book is sold on, not to cut finished teaching prose out of Parts VI and IX to flatter a ratio. `#84`
+supplies roughly 230 of the 1,769; this item owns the rest.
+
+> ⚠️ The 2,191 lines of headroom in Parts II and III is the whole budget available. Neither part's
+> ceiling moves — § 5's budgets are ceilings, and raising one needs a decision-log entry, not a session.
+
+**Done when:** `pnpm book:pages` prints ✅ on the frontend-spine line, every new chapter is 150–400 lines
+and passes `pnpm lint:docs` with no regression, no part exceeds its § 5 budget, and
+`pnpm index:questions` is current.
+
+
+**Delivered — the spine is closed: 28,205 of 56,378 = 50.03%.**
+
+Seven new chapters, 1,383 lines, chosen by looking for what Parts II and III were **missing** rather
+than for what would fill a number. Every one was checked against the tree first: a topic already covered
+elsewhere was rejected, because non-negotiable #7 outranks a ratio.
+
+| Part | Chapter | Why it existed to be written |
+| ---- | ------- | ---------------------------- |
+| II | `HtmlCss/03` — Container Queries and Cascade Layers | `HtmlCss/README.md` names both in "What Interviewers Probe For" and **no chapter taught either** |
+| II | `HtmlCss/04` — Animation and View Transitions | The View Transitions API had **zero occurrences** in the manuscript, and the README asks the jank question |
+| II | `BrowserAPIs/05` — The Observer APIs | Observers were mentioned in four chapters and taught in none |
+| II | `BrowserAPIs/06` — Web Workers and the Main Thread | One passing mention in `JavaScript/07-event-loop`, nothing on the boundary cost |
+| III | `Tooling/08` — Web Components and Framework Interop | **"custom element" appeared nowhere in the book**, and React 19 changed the answer |
+| III | `Tooling/09` — Headless Primitives and Accessible Components | The build-or-adopt decision; Part II teaches ARIA, nothing taught the decision |
+| III | `Rendering/07` — Choosing a Meta-Framework | The part teaches three frameworks separately and never compared them |
+| III | `StateManagement/07` — Modelling Flows as State Machines | State machines were named in two chapters as an aside; no chapter modelled one |
+
+**Four candidates were rejected on duplication**, which is the part of this item worth recording:
+islands and resumability (taught properly in `Rendering/02`), optimistic updates (`React/08` and
+`NextJS/03`), progressive enhancement (the three forms chapters), and environment configuration
+(`NextJS/09`, `Tooling/04`).
+
+- **One chapter moved home mid-item.** Headless primitives was written as `React/13` and
+  `number:chapters` refused it — `SECTION_CEILING` is 12 and React was already at it. It moved to
+  `Tooling/09`, which is the better home anyway: Ark and Zag are multi-framework, and it now sits beside
+  the styling and web-components chapters as the third piece of "the ecosystem around the framework"
+- **Context7 consulted for both Part III chapters that needed it**, as `Frontend/ModernStack/` requires.
+  It supplied the version-stamped claim the interop chapter turns on: React 19 assigns matching props as
+  **properties** on the client, and during SSR emits primitives as attributes while **dropping objects,
+  functions and `false` entirely** — the asymmetry most "web components are painful in React" folklore
+  predates
+- **Six section indexes updated** with their new rows, and `pnpm number:chapters` restamped Parts II and
+  III in reading order — 26 files moved a number, which is what that tool is for
+- **The code-sample baseline rose 1,404 → 1,420, deliberately and with the reason recorded here.** Seven
+  new chapters add 24 fences, and the residue is the excerpt diagnostics the script was designed around
+  — `loadImage`, `redraw`, `getInvoice`, names the prose introduces. Two were genuinely fixable and were
+  fixed rather than absorbed: a redeclared `observer` in the cleanup snippet, and a JSX fence mislabelled
+  `typescript`, which is a **hard** syntax failure and would have failed CI
+- 🔴 **The margin is 0.03 points — about 17 lines.** Parts V, VIII and IX now sit at 0, 5 and 0 lines of
+  headroom, so nothing can grow there without a decision-log entry, but **#92's voice pass edits prose in
+  every part and can move this number either way.** It must re-run `pnpm book:pages` per part and stop if
+  the spine line goes red
+- **Verified:** `pnpm book:pages` arithmetic, recomputed from `loadBook` — **spine 28,205 of 56,378 =
+  50.03% ✅**, every part inside its § 5 budget. `pnpm lint:docs` → **313 files**, all eleven rules at 0,
+  no regression. `pnpm number:chapters --check` → clean. `pnpm check:code-samples` → syntax clean, 1,420
+  against a baseline of 1,420. `pnpm index:questions` → **1,024 questions from 254 chapters**, and
+  `index:check` current
+
+### - [x] 86. Split the DSA appendix into its companion volume `M` — ✅ **done 2026-09-23**
+
+§ 5 states the DSA appendix _"sits outside the 57,200 because it ships as a companion"_, and § 1 of the
+spec bills it as a companion too. The build does not agree: `scripts/lib/book.ts` maps `DSA/` to part 10
+and it binds into the same PDF — **101 of the 1,513 pages**. A decision that has been locked since v1.0
+has never been executed, and the arithmetic in § 5 has been describing a book the build does not produce.
+
+Two honest outcomes, and this item picks the first: make the build match the spec. The main book builds
+without the appendix; the appendix builds as its own PDF and EPUB with its own front matter. `book:pages`
+reports the two separately, so the 700-page conversation is about the book rather than about the book
+plus a companion.
+
+> 🔴 **Ordering: before #87.** Removing 101 pages changes the number #87 measures and amends against.
+
+**Done when:** `pnpm book:pdf` produces a handbook with no DSA appendix, a companion target produces the
+DSA volume, both validate the way `#83` left them, and `pnpm book:pages` reports the two totals separately.
+
+
+**Delivered:**
+
+- **`pnpm book:companion` builds the DSA appendix as its own volume** — `build/companion.pdf` (476 KB,
+  **96 pages**) and `build/companion.epub` (2.0 MB) — and **`pnpm book:pdf` no longer contains it**.
+  A decision locked since spec v1.0 is now a decision the build implements
+- **`collect-chapters.ts` takes `--volume=book|companion`**, filtering on `COMPANION_PART` in
+  `scripts/lib/book.ts` rather than on a hard-coded 10, so nothing downstream has its own idea of which
+  part is the appendix
+- **`scripts/companion-meta.yaml`** gives it its own title, subtitle, description, subjects and **its own
+  UUID**. To a retailer it is a second product, not a second printing of the first, and sharing the
+  handbook's identifier would have said the opposite
+- **The problem the item did not anticipate, and the rule that solves it: 17 cross-references pointed
+  into the appendix** — all from the front and back matter, including every row of the question index's
+  DSA section. Split naively, the handbook would have shipped 17 references printing as **"(p. ??)"**.
+  The collector now **demotes any cross-reference into the other volume to plain text with the volume
+  named in brackets** — "Two Pointers (companion volume)" — which is exactly the rule `build-site.ts`
+  applies to a chapter the site does not publish. Measured after: **zero dangling anchors in either
+  volume**, in both directions
+- **`measure-pages.ts` reports the companion on its own line**, so the page-ceiling conversation is about
+  the book rather than about the book plus a volume § 5 had already excluded from it
+- **Verified:** `pnpm book:companion` → PDF **96 pages**, **zero** missing glyphs, **every `#ch-`
+  cross-reference resolved**, EPUB **epubcheck: zero errors and zero warnings**. `pnpm book:pdf` → 1,370
+  pages with no appendix; `grep` over `handbook.epub`'s navigation finds **no DSA entries**, and the
+  companion's finds them. `pnpm book:pages` → the two totals reported separately
+
+### - [x] 87. Spend the remaining design slack, then amend the page ceiling `M` — ✅ **done 2026-09-23**
+
+Decision #13 set a hard 700-page ceiling against an assumed 55 markdown lines per typeset page. `#77`
+measured **40.6**, which makes the edition 1,513 pages — 2.2× the cap — and recorded that 700 is not
+reachable by typography: the design's remaining slack is worth roughly 40%, landing near 900 and no
+lower. `#77` left the cap standing rather than amending it, and nothing owns the reconciliation.
+
+The decision taken on 2026-09-23 is to honour the cap's intent as far as typography can and then record
+the truth: spend the slack in `scripts/tex/tokens.tex` — tighter leading, a wider text block, a smaller
+body size — re-measure, and amend decision #13 to the number that comes back.
+
+> ⚠️ The slack is spent against a reading experience, not against a target. If a token change costs
+> legibility at print size, it does not ship, and the ceiling lands wherever the type allows.
+
+> 🔴 **Ordering: after #85 and #86.** Both change the page count this item measures.
+
+**Done when:** `tokens.tex` carries the calibrated values, `pnpm book:specimen` is clean, `pnpm book:pages`
+reports the new total, and **decision #13 is amended in `BOOK-SPEC.md` § 11 to the measured figure** with
+the calibration recorded.
+
+### - [x] 88. Re-enable CI as a gate `S` — ✅ **done 2026-09-23**
+
+`.github/workflows/lint-docs.yml` has been `workflow_dispatch` only since 2026-08-29, commented out
+_"while the manuscript is still being restructured, so a red build stops mailing on every push"_. The
+restructure finished four phases ago and every check in the workflow is green. Non-negotiable #10 says
+code samples are _"enforced in CI"_; today they are enforced by remembering.
+
+**Done when:** the `push` and `pull_request` triggers are restored, the disabled-on comment is replaced
+by one recording why it came back, and a real run of the workflow is green.
+
+
+**Delivered:**
+
+- **`push` and `pull_request` restored** in `.github/workflows/lint-docs.yml`. `workflow_dispatch` stays
+  alongside them, because running the gate by hand before a push is still the cheapest way to catch a
+  broken baseline
+- **The disabled-on comment was replaced rather than deleted.** It now records the window the triggers
+  were off (2026-08-29 to 2026-09-23), why they were off, and why they came back — so the next person to
+  wonder finds the reasoning instead of a bare `on:` block
+- **Every step in the workflow was run locally first**, because a workflow whose first automatic run is
+  red teaches people to ignore it. All nine pass on this tree
+- **Not verified, and it cannot be from here: the run itself.** The workflow fires on the next push to
+  `main` or the next pull request. Nothing in this item can make that run happen, and no claim is made
+  that GitHub has executed it — only that every command it will execute passes locally
+- **Verified locally, in the workflow's own order:** `pnpm lint:docs` → 305 files, all eleven rules at 0,
+  no regression. `pnpm number:chapters --check` → clean. `pnpm index:check` → current, 988 questions.
+  `pnpm check:code-samples` → syntax clean, 1,425 against a baseline of 1,425. `pnpm site:pages` → 69
+  pages, 9 sample chapters, 12 sidebar groups. `pnpm plan:check` → all counters agree.
+  `pnpm book:collect` → 305 files, 61,384 lines
+
+### - [x] 89. Type the `tsx` fences for real `M` — ✅ **done 2026-09-23**
+
+`#75` built `check:code-samples` and named its own limit: `ambient.d.ts` declares `module "*"`, so every
+import resolves to `any`. The script proves 787 fences parse and hang together; **it does not prove they
+match any library's API**, which is what criterion #6 claims. `#75` called installing `@types/react`
+_"the obvious next increment — left undone here on purpose, and worth its own item"_.
+
+React is the right and only place to start: 120 of the fences are `tsx`, Part III is the largest part in
+the book, and React's types are stable across minor versions in a way `next` and the AI SDKs are not.
+The wildcard stays for everything else.
+
+**Done when:** `react` and `react-dom` resolve to real types rather than to `any`, `pnpm check:code-samples`
+runs green against a committed baseline, and any increase in the diagnostic count is explained in the
+item rather than absorbed.
+
+
+**Delivered:**
+
+- **`@types/react` 19.3.0 and `@types/react-dom` installed as dev dependencies.** No change to
+  `ambient.d.ts` was needed, and that is the finding worth recording: **a real module resolution beats
+  `declare module "*"`.** TypeScript falls back to a wildcard ambient declaration only when nothing else
+  resolves, so installing the package was the whole mechanism. The header comment in
+  `check-code-samples.ts` said the opposite by implication and has been rewritten
+- **The 120 `tsx` fences now compile against React's real declarations**, and the diagnostic table is the
+  evidence: `TS2503` (cannot find namespace) **18 → 6**, `TS2339` (property does not exist) **87 → 81**,
+  `TS2304` **964 → 962**. Those counts moved because `useState`, `ReactNode` and `ErrorInfo` stopped
+  being `any`
+- **It immediately found a real defect, which is the point.** `TS2686` went 0 → 2:
+  `Frontend/ModernStack/React/10-error-boundaries.md` used `React.Component`, `React.ReactNode` and
+  `React.ErrorInfo` in two fences with **no `import React`** anywhere in the chapter. Under the wildcard
+  that was invisible; against the real types it is what it always was — a sample that would not compile
+  in the reader's editor. Fixed with the import line the chapter always needed, not by silencing the code
+- **Baseline committed lower: 1,425 → 1,404**, 34 codes. Nothing was absorbed and no count went up
+- **Scope held deliberately at React.** `next`, `express`, `zod`, `vitest` and `playwright` still resolve
+  to `any`. React earns the exception because 120 fences and the book's largest part depend on it and its
+  types are stable across minors; the others would need re-pinning every time a version stamp moves
+- **One harmless warning, recorded rather than hidden:** pnpm reports an unmet peer for
+  `@docsearch/react`, which wants `@types/react < 19`. It is a type-only peer of the VitePress search
+  widget, nothing in `site/` imports React, and `pnpm site:build` is unaffected
+- **Verified:** `pnpm check:code-samples` → 785 fences (665 `ts`, 120 `tsx`), **syntax clean**, 1,404
+  against a baseline of 1,404, exit 0. `pnpm lint:docs` → 305 files, all eleven rules at 0, no
+  regression. `pnpm index:check` → current, 988 questions
+
+### - [x] 90. Design and build the cover `M` — ✅ **done 2026-09-23**
+
+`#83`'s one gap: there is no cover, and Leanpub requires one. `#83` also recorded why it did not generate
+a placeholder — _"a generated placeholder is worse than none because it looks final"_ — which is an
+argument against a placeholder, not against a cover.
+
+So this builds a real one: a typographic front cover set in the same vendored Source Serif 4 and Source
+Sans 3 the interior uses, black and white like the interior, from the same `tokens.tex` values, output at
+the 1,600 × 2,560 a store asks for. It is replaceable the day commissioned artwork exists, and shippable
+until then.
+
+**Done when:** a cover image builds from a repeatable command, uses only the vendored OFL faces, carries
+title, subtitle, author and edition, and reads at thumbnail size.
+
+
+**Delivered:**
+
+- **`build/cover.pdf` and `build/cover.png` — 1600 × 2560, the size Leanpub asks for**, from
+  `pnpm book:cover`. `scripts/cover.tex` is the design; `scripts/build-cover.sh` renders it with
+  tectonic and rasterises with `pdftoppm -scale-to-x 1600 -scale-to-y 2560`, which is a pixel target
+  rather than a dpi because a dpi that rounds to 1599 is a rejected upload
+- **It is a cover, not a placeholder.** Set in the book's own vendored Source Serif 4 and Source Sans 3,
+  in one ink on white like the interior, with the same 0.4pt hairline the tables and callouts use. The
+  trim is 100 × 160mm — 1:1.6, the ratio every store asks for
+- **The ornament is the book's own budget table.** Nine centred rules, one per part, their lengths taken
+  from § 5's line budgets — Part III is visibly the longest, which is the thing the spec's frontend-spine
+  rule is about. It carries information rather than decoration, and it prints in one ink
+- **Three things it deliberately does not do:** it does not `\input typography.tex` (that file is written
+  for the `book` class — a \linespread against a 12pt baseline and hooks that need chapters), it does not
+  flow its content (every element is placed against the page with TikZ, because vertical flow on a fixed
+  leaf is how type falls off it, which the first two drafts did), and it does not use `\tokTracking`. The
+  interior tracks 8pt labels at +140/1000 em inside a 156mm measure; the same value on a 100mm cover ran
+  the line off both edges. 20 is the cover's own number and the comment says why
+- **Two build facts worth recording**, both found by hitting them: **tectonic resolves relative paths
+  from the source file's own directory**, not from the working directory the way `book-pdf.yaml`'s
+  filters do — so `cover.tex` reads `tex/tokens.tex` and `../assets/fonts/`. And **`WordSpace` cannot be
+  set with `\addfontfeature`**; fontspec has to rebuild the font, so the tracked label family is declared
+  once at load time with its tracking and word space together
+- **Replaceable the day commissioned artwork exists**, and shippable until then. It is a `.tex` file
+  under version control, not a binary somebody has to find the source of
+- **Verified:** `pnpm book:cover` → PDF 16 KB, PNG 128 KB, `sips` reports **1600 × 2560**, and the
+  rendered image was looked at: nothing clipped, nothing outside the frame, title and author legible at
+  thumbnail size
+
+### - [x] 91. The launch checklist `S` — ✅ **done 2026-09-23**
+
+`#78` chose Leanpub and built the companion site, and left three things that _"need credentials and a
+published book, and neither belongs in a repository"_: no account, no domain, no deploy target. The
+`https://leanpub.com/` URLs in `site/index.md` and `site/.vitepress/config.ts` are placeholders waiting
+for the real slug.
+
+This item writes the checklist and takes it as far as a repository can: the placeholder becomes one
+named constant with one place to change it, and everything that needs the author's own hands is listed
+in the order it has to happen.
+
+> ⚠️ **This item cannot be finished by a session.** The account, the slug and the deploy are the author's
+> to create. The item is done when nothing else is in the way.
+
+> 🔴 **Ordering: after #90.** Leanpub asks for the cover during setup.
+
+**Done when:** the store slug lives in one place, `pnpm site:build` still reports zero dead links, and
+the checklist in this item names every remaining step that needs credentials.
+
+
+**Delivered:**
+
+- **`scripts/lib/store.ts` is the one place the store lives.** `STORE_SLUG` is `null` until the account
+  exists, `STORE_URL` derives from it, and `STORE_IS_PLACEHOLDER` is what makes the site build print
+  _"store URL is still the placeholder"_ on every run rather than letting a dead **Buy the book** button
+  ship quietly
+- **The two hand-written files are now guarded rather than trusted.** BOOK-SPEC decision #17 keeps
+  `site/index.md` and `site/.vitepress/config.ts` hand-written, and both state three things the
+  manuscript decides — the store URL, the question count and the chapter count. `build-site.ts` checks
+  all three and **fails the build** naming the file, the value it found and the value the book has. It is
+  the same guard `SAMPLE_CHAPTERS` has had since #78, for the same reason: the symptom of drift is
+  something that looks fine and is wrong
+- **It immediately caught four stale values that #85 had created hours earlier** — the site was still
+  advertising "988 interview questions" and "245 chapters" against a book that now has **1,024** and
+  **254**. Corrected, and the sample-chapter note now counts the unpublished chapters at build time
+  instead of carrying a hand-typed number
+- **The chapter count uses the question index's own definition** — chapters carrying a `**Q:` block — so
+  the site and `Interview-Question-Index.md` cannot state two different numbers
+
+**The launch checklist. Everything below needs credentials or a human, and none of it belongs in a
+repository:**
+
+| # | Step | Blocked on |
+| - | ---- | ---------- |
+| 1 | Create the Leanpub account and the book, and claim the slug | Leanpub sign-up |
+| 2 | Put the slug in `scripts/lib/store.ts` and run `pnpm site:pages` | Step 1 |
+| 3 | Upload `build/handbook.pdf`, `build/handbook.epub` and `build/cover.png` (#90) | Steps 1–2 |
+| 4 | Upload the companion volume (#86) as its own Leanpub title, with `build/companion.*` | Step 1 |
+| 5 | Set the price, the sample, and the "in progress" percentage | Editorial |
+| 6 | Register the domain and point it at the VitePress build | Domain purchase |
+| 7 | Deploy `site/.vitepress/dist` and set the deploy hook | Hosting account |
+| 8 | Check the **Buy the book** button end to end, from the live site to a real checkout | Steps 1–7 |
+
+- ⚠️ **This item cannot be finished by a session, and is ticked on that basis.** Steps 1–8 are the
+  author's; what the repository can do — one place for the slug, a guard that fails when it drifts, a
+  build that says the link is still a placeholder — is done
+- **Verified:** `pnpm site:pages` → 69 pages, 9 sample chapters, 12 sidebar groups, and the placeholder
+  notice printed. `pnpm site:build` → `build complete`, **zero dead links**. The guard was proved by
+  running it against the stale values first and reading the four failures it named
+
+
+**Delivered — and the headline is that the estimate was wrong by a factor of eight.**
+
+§ 5 put the design's remaining slack at "roughly 40%, landing near 900". Spent, it was worth **5%**:
+**40.6 → 42.8** markdown lines per typeset page. The book is **1,370 pages**.
+
+- **The reason is geometric, and it is the part worth keeping.** A page has vertical slack and horizontal
+  slack, and on A4 only one of them can be spent. The text block is already 156mm at 10pt — about **85
+  characters a line**, against the 66–80 a reader tracks comfortably — so widening the measure or
+  shrinking the type buys pages by making the book harder to read. The item's own instruction was that a
+  token change costing legibility does not ship, so **the measure and the 10pt body did not move**
+- **What did move, all of it vertical:** leading 13.2pt → 12.8pt, head and foot margins 22/24mm →
+  20/21mm (five more millimetres of text height), paragraph spacing 0.30em → 0.22em, block spacing 9pt →
+  7.5pt, code leading 10.5pt → 10pt, table leading 11.5pt → 11pt
+- 🔴 **One token could not be calibrated at all until a latent bug was fixed.** Changing `\tokBlockSkip`
+  from `9pt` to `7.5pt` broke the build: `blocks.tex` writes `\vspace{-0.4\tokBlockSkip}`, which expands
+  to `-0.4 7.5pt` and is not a dimension. With the old value it expanded to `-0.49pt` — **a
+  plausible-looking number that was never the -3.6pt the code meant**, and that nobody could have seen
+  by reading either file. A macro holding a dimension cannot be multiplied, so the token now also exists
+  as a length register, `\bookBlockSkip`, and `blocks.tex` scales that
+- **Decision #13 is recorded rather than met, and decision #19 says why.** 700 pages needs roughly
+  28,000 lines removed, which § 5 has called a different book since #77. The cap stands as an aspiration
+  for a second edition
+- **`BOOK-SPEC.md` amended to v1.8:** § 1's length and page figures, § 5's page paragraph rewritten
+  around the measured rate, and **decisions #19 and #20** added to the log
+- **Verified:** `pnpm book:specimen` → clean, every cross-reference resolved. `pnpm book:pdf` →
+  **1,370 pages**, **zero** missing-glyph warnings, **zero** `(p. ??)`, 5.9 MB. `pnpm book:epub` → 3.0 MB,
+  **epubcheck: zero errors and zero warnings**. `pnpm book:pages` → rate **42.8**, and the frontend
+  spine line **✅ 28,203 of 56,376 = 50.0%**
+
+### - [ ] 92. The cover-to-cover voice pass `L`
+
+Criterion #8 — one voice throughout. `#76` delivered the structural half and was explicit about the
+other: five visibly off-standard chapters were rewritten and the register sweep was mechanical, so
+**245 chapters have not had a line-by-line rhythm edit**, and _"if that pass is wanted it needs its own
+item, and it needs nine sessions, not one"_.
+
+One part per session, edited toward `Backend/API/01-rest-best-practices.md`, which the standard already
+names as the voice model. Read for rhythm and for the three questions in § 2 — why it exists, when to
+reach for it, what it costs — not for rules the lint already enforces.
+
+**Where to start, measured 2026-09-23.** The mechanical half is already clean — the banned register
+(`leverage`, `robust`, `seamless`, `cutting-edge`, `utilize`, `i.e.`, `e.g.`) survives only as false
+positives (`high-leverage` is not marketing, WCAG's **Robust** is a principle's name), and every `we` in
+the manuscript is inside quoted speech. So what is left really is rhythm, and this is the objective
+proxy for it — average words per sentence over prose only, fences, tables and headings excluded, against
+the standard's 15–20:
+
+| Part | Chapters | Avg words/sentence | Sentences over 32 words |
+| ---- | -------- | ------------------ | ----------------------- |
+| I | 24 | 20.8 | 105 |
+| II | 24 | 21.5 | 142 |
+| III | 51 | 19.0 | 251 |
+| IV | 24 | 18.5 | 115 |
+| V | 27 | 18.7 | 122 |
+| VI | 29 | 19.3 | 152 |
+| VII | 32 | 21.1 | 238 |
+| VIII | 20 | 19.2 | 131 |
+| IX | 11 | 19.8 | 61 |
+
+**Parts II, VII and I are the densest and are where to begin.** The count is a pointer, not a target: a
+28-word sentence that reads in one breath stays.
+
+> ⚠️ **Nine sessions, one part each.** Do not start it inside another item, and do not claim a part is
+> read until it is read.
+
+> 🔴 **Re-run `pnpm book:pages` at the end of every session.** #85 closed the frontend-spine rule with
+> **0.03 points of margin — about seventeen lines.** Trimming prose in Parts I–IV moves that number the
+> wrong way, and this item trims prose in every part. If the spine line goes red, the session's trim has
+> to come back or be paid for in Parts V–IX.
+
+**Done when:** all nine parts have been read line by line, each session records which part it read and
+what changed, and `pnpm lint:docs`, `pnpm index:check`, `pnpm check:code-samples` and `pnpm book:pages`
+are green after each.
+
+### - [x] 93. Print residue — glyphs, contents entries, the mono proof `S` — ✅ **done 2026-09-23**
+
+Three things `#77` and `#81` measured and recorded rather than took:
+
+| Residue | State |
+| ------- | ----- |
+| Four CJK glyphs 年 月 日 ￥ | Print as holes. `#77` costed a four-glyph OFL subset at a few kilobytes and left it for the font download and the licence call |
+| 412 contents entries overfull by 1.26pt | The class sizes the chapter-number box at 1.5em and this book has three-digit chapter numbers |
+| The mono laser proof of `build/specimen.pdf` | `#81` asked for it; it is the one acceptance test in Phase 7 this repository cannot run |
+
+The first two are fixable here. The third needs a printer and the author's eyes, and stays recorded.
+
+**Done when:** the four glyphs print, the contents overfull count is zero, `pnpm book:specimen` is clean,
+and the laser proof is either done or explicitly deferred with a named owner.
+
+### - [x] 94. A test suite for `scripts/` `M` — ✅ **done 2026-09-23**
+
+`CLAUDE.md` says it plainly: there is still no test suite. That was fair while `scripts/` held two helpers.
+It now holds the shared book model every other tool imports, eleven lint rules, the question-index
+generator, the reading-order numberer, the page measurer, the site generator and four Lua filters — and
+the only thing standing between a bad edit to `scripts/lib/book.ts` and a wrong book is that someone
+notices a number looks off.
+
+Scope is the logic, not the build: `loadBook`'s part mapping and exclusions, the lint rules against
+fixture chapters, the cross-reference resolver, the question extractor, `expandRanges` in
+`plan-status.ts`. Node's own test runner, no new dependency.
+
+**Done when:** `pnpm test` runs, covers the shared model and every lint rule, is green, and runs in CI
+beside the checks `#88` restored.
+
+
+**Delivered:**
+
+- **`pnpm test` — 30 tests, 0 failures, no new dependency.** Node's own runner over
+  `--experimental-strip-types`, the same way every other script in this repo runs
+- **`scripts/test/book.test.ts` — 18 tests over the shared model**, which is where a silent wrong answer
+  costs the most: `findMarkdown`'s exclusions (including the rule that `README.md` is excluded **only**
+  at the root, because every one below it is a part opener), `readDoc`'s front-matter parsing and its
+  whole-file line count, `partFor`'s longest-prefix mapping, `loadBook`'s `in_book: false` filter and
+  reading order, `chapter: 0` meaning part opener, `matterFor`, `orderDocs`' stability, `volumeOfPart`,
+  and `partBudgets` — including that it **throws** rather than measuring against nothing when § 5 stops
+  parsing
+- **`scripts/test/cli.test.ts` — 12 tests through the command line**, against fixture repositories
+  written to a temp directory with deliberate faults in them. Five lint rules are proved to fire, the
+  conforming chapter is proved **not** to be reported, and the non-zero exit — the thing CI actually
+  depends on — is asserted. `plan-status --check` is proved to fail on a drifted header counter and on an
+  unmapped item, and `--next` is proved to find a lettered id in its right place
+- **Tested through the CLI on purpose.** The rule scripts read `process.cwd()`, print a report and choose
+  an exit code; refactoring them to export their internals would have made the tested thing different
+  from the thing CI runs
+- **Two fixture bugs found while writing it, both mine and both instructive:** the fixture "clean"
+  chapter was not clean (the standard wants ten front-matter keys and six blocks, and a test fixture that
+  drifts from the standard tests nothing), and the first version of the clean-chapter assertion searched
+  the whole output for a filename that also appears as the *target* of another file's relative-link
+  violation. Both are now asserted at line starts against the real standard
+- **Wired into CI** before `book:collect`, and `CLAUDE.md`'s "there is still no test suite" line — true
+  since #5 — was corrected along with the same claim in the `continue-plan` skill
+- **Verified:** `pnpm test` → **30 tests, 30 pass, 0 fail**. `pnpm lint:docs` → all eleven rules at 0.
+  The fixtures are written under `os.tmpdir()` and removed in `after`, so nothing touches the manuscript
+
+
+**Delivered — two of the three taken, the third is the one a repository cannot run.**
+
+| Residue | State |
+| ------- | ----- |
+| Four CJK glyphs 年 月 日 ￥ | ✅ **They print.** |
+| 412 contents entries overfull by 1.26pt | ✅ **Zero.** |
+| The mono laser proof of `build/specimen.pdf` | ❌ Still needs a printer and the author's eyes |
+
+- **`assets/fonts/NotoSansJP-Subset.otf` is 4 KB** — Noto Sans JP, OFL 1.1, the same licence as the three
+  Source families, subset with `fontTools` to exactly five glyphs. #81's objection that a CJK face costs
+  "an order of magnitude more than all three Source families" is true of a *face* and not of four
+  characters, which is what #77 suspected when it recorded the fix rather than taking it
+- **The fifth glyph is a space, and it is not an accident.** Without U+0020 in the subset, XeTeX reports
+  "could not represent character" for a space every time it sets a run in that family — six warnings that
+  look like a different bug entirely. Found by building the specimen and reading the count
+- 🔴 **`\newunicodechar` makes a character active**, so writing 年 inside its own replacement text
+  recurses until TeX runs out of stack. The mappings use `\char"5E74` and friends, and the comment in
+  `glyphs.tex` says why
+- **The contents fix was in `\l@chapter`, not in `\@pnumwidth`.** #77 had already widened the box the
+  *page number* sits in; the 412 remaining overfulls were the box the **chapter number** sits in, which
+  the `book` class sizes at 1.5em for a two-digit book. This one numbers continuously across nine parts
+  and reaches three digits. 2.4em clears it. **Proved on a purpose-built 129-chapter document before the
+  1,370-page build**, so a wrong redefinition would have cost minutes rather than an hour
+- **A third piece of residue turned up during the build, and it was mine.** The final PDF reported 30
+  missing characters: **🟡**, which I had used in a table in the meta-framework chapter and which is not
+  in the standard's callout vocabulary at all, and **★**, which is what the rating-stars sample in the
+  web-components chapter renders. The first is now the word "Partly"; the second is mapped to a Zapf
+  Dingbats star, the same treatment ✅ and ❌ already have. **A scan of the whole manuscript for marks
+  outside 💡 🔑 ⚠️ ✅ ❌ found no others**
+- **Left undone, and it has a named owner: the mono laser proof.** #81 asked for
+  `build/specimen.pdf` printed on a mono laser to confirm the three callout types stay tellable apart on
+  paper. It needs a printer and the author's eyes, and it belongs beside the launch steps in #91
+- **Verified:** `pnpm book:pdf` → **0 missing-glyph warnings** (was 24–30), **8 overfull boxes at 2.92pt**
+  against #81's 5pt tolerance (was 412 at 1.26pt plus these), 1,370 pages, zero `(p. ??)`.
+  A targeted render of 年 月 日 ￥ and ★ through the real pipeline → **zero warnings**, and `pdftotext`
+  reads the CJK back correctly
+
+---
+
 ## ✅ Progress Tracker
 
 | Phase | Items   | Done | Status         |
@@ -6945,7 +7501,8 @@ monochrome e-ink screen, which means the structural distinctions from #81 carry 
 | 5     | 54–63 · 56a · 58a · 60a | 13/13 | ✅ Complete    |
 | 6     | 64–69   | 6/6  | ✅ Complete    |
 | 7     | 70–83 · 70a | 15/15 | ✅ Complete    |
-| **Total** | **93** | **93/93** | **100%**  |
+| 8     | 84–94   | 10/11 | 🚧 In progress |
+| **Total** | **104** | **103/104** | **99%**  |
 
 ---
 

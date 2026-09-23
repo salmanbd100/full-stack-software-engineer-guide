@@ -1,7 +1,7 @@
 ---
 title: Caching Strategies and Offline UX
 part: 2
-chapter: 23
+chapter: 27
 slug: caching-and-offline
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

@@ -1,7 +1,7 @@
 ---
 title: Internationalisation Fundamentals
 part: 2
-chapter: 17
+chapter: 21
 slug: i18n-fundamentals
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

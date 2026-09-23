@@ -1,7 +1,7 @@
 ---
 title: Part II — Browser APIs
 part: 2
-chapter: 4
+chapter: 6
 slug: frontend-browser-apis-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
@@ -29,6 +29,8 @@ when the user clears site data. Choosing between them is a threat-modelling exer
 | 02 | [Cookies and SameSite](#ch-cookies-same-site)              | Which attributes stop a cookie being read or replayed?           |
 | 03 | [IndexedDB](#ch-indexeddb)                                 | How do you store structured data past the 5MB wall?              |
 | 04 | [Browser Permissions](#ch-browser-permissions)             | How do you ask, given that a denial is usually permanent?        |
+| 05 | [The Observer APIs](#ch-observer-apis)                     | How do you stop asking the browser something sixty times a second? |
+| 06 | [Web Workers and the Main Thread](#ch-web-workers)         | What can move off the thread that handles input, and what does it cost? |
 
 ## What Interviewers Probe For
 

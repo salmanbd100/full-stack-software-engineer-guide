@@ -1,11 +1,26 @@
 /**
  * collect-chapters.ts — improvement #5
  *
- * Assembles every in-book markdown file into one manuscript at build/book.md,
- * in reading order, ready for pandoc.
+ * Assembles every in-book markdown file into one manuscript in reading order, ready for
+ * pandoc.
  *
  *   node --experimental-strip-types scripts/collect-chapters.ts
  *   node --experimental-strip-types scripts/collect-chapters.ts --list   # paths only
+ *   node --experimental-strip-types scripts/collect-chapters.ts --volume=companion
+ *
+ * ## Two volumes, since #86
+ *
+ * `--volume=book` (the default) writes build/book.md — Parts I–IX, the front matter and
+ * the back matter. `--volume=companion` writes build/companion.md, which is the DSA
+ * appendix alone. BOOK-SPEC.md § 5 has always excluded the appendix from the book's
+ * 57,200 lines "because it ships as a companion"; before #86 the build bound it in
+ * anyway, so the spec's arithmetic described a book the build did not produce.
+ *
+ * **A cross-reference that points at the other volume keeps its title and loses its
+ * link**, with the volume named in brackets. That is the same rule build-site.ts (#78)
+ * applies to a chapter the site does not publish, and it is what stops the book shipping
+ * a `(p. ??)` where a page number should be. There are 17 of them, all in the front and
+ * back matter, all pointing at the appendix.
  *
  * Two things happen to each chapter on the way in:
  *   1. Its front matter is stripped — pandoc would otherwise read it as book metadata
@@ -17,12 +32,29 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadBook, matterFor, PART_NAMES, type Doc, type Matter } from "./lib/book.ts";
+import {
+  COMPANION_PART,
+  loadBook,
+  matterFor,
+  PART_NAMES,
+  volumeOfPart,
+  type Doc,
+  type Matter,
+  type Volume,
+} from "./lib/book.ts";
 
 const ROOT: string = process.cwd();
 const LIST_ONLY: boolean = process.argv.includes("--list");
 const OUT_DIR: string = join(ROOT, "build");
-const OUT_FILE: string = join(OUT_DIR, "book.md");
+
+const VOLUME: Volume = process.argv.includes("--volume=companion") ? "companion" : "book";
+const OUT_FILE: string = join(OUT_DIR, VOLUME === "companion" ? "companion.md" : "book.md");
+
+/** What a cross-reference into the other volume says instead of linking. */
+const OTHER_VOLUME: Readonly<Record<Volume, string>> = {
+  book: "companion volume",
+  companion: "main volume",
+};
 
 /**
  * Add one `#` to every ATX heading, skipping anything inside a fenced code block —
@@ -69,7 +101,27 @@ function ensureAnchor(body: string, doc: Doc): string {
   return lines.join("\n");
 }
 
-const docs: Doc[] = loadBook(ROOT);
+const all: Doc[] = loadBook(ROOT);
+const docs: Doc[] = all.filter((d: Doc) => volumeOfPart(d.part) === VOLUME);
+
+/**
+ * Every `#ch-` anchor this volume carries. Anything else a link points at is in the other
+ * volume, and a link to a page that is not in the reader's hands is worse than no link:
+ * in print it resolves to nothing and xref.lua reports it, in EPUB it is a dead internal
+ * href.
+ */
+const anchors: Set<string> = new Set(
+  docs.map((d: Doc) => d.fm.slug).filter((s): s is string => Boolean(s)),
+);
+
+/** `[Two Pointers](#ch-two-pointers)` → `Two Pointers (companion volume)`. */
+function demoteForeignRefs(body: string): string {
+  return body.replace(
+    /\[([^\]]+)\]\(#ch-([a-z0-9-]+)\)/g,
+    (whole: string, text: string, slug: string) =>
+      anchors.has(slug) ? whole : `${text.replace(/^Chapter \?\? — /, "")} (${OTHER_VOLUME[VOLUME]})`,
+  );
+}
 
 if (LIST_ONLY) {
   for (const doc of docs) console.log(doc.rel);
@@ -92,7 +144,7 @@ function dividerFor(part: number, matter: Matter | null): string | null {
     return matter === "back" ? "# Back Matter {.unnumbered}" : "# Unsorted {.unnumbered}";
   }
   const name: string = PART_NAMES[part] ?? "Unsorted";
-  return part === 10 ? `# ${name}` : `# Part ${part} — ${name}`;
+  return part === COMPANION_PART ? `# ${name}` : `# Part ${part} — ${name}`;
 }
 
 const chunks: string[] = [];
@@ -111,14 +163,17 @@ for (const doc of docs) {
 
   if (doc.part === 0 && matter === null) unmapped++;
 
-  chunks.push(ensureAnchor(demoteHeadings(doc.body), doc).trimEnd() + "\n");
+  chunks.push(demoteForeignRefs(ensureAnchor(demoteHeadings(doc.body), doc)).trimEnd() + "\n");
 }
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(OUT_FILE, chunks.join("\n"), "utf8");
 
 const totalLines: number = docs.reduce((n: number, d: Doc) => n + d.lines, 0);
-console.log(`  ${docs.length} files · ${totalLines.toLocaleString()} lines → build/book.md`);
+const outName: string = VOLUME === "companion" ? "companion.md" : "book.md";
+console.log(
+  `  ${VOLUME} · ${docs.length} files · ${totalLines.toLocaleString()} lines → build/${outName}`,
+);
 if (unmapped > 0) {
   console.log(`  ⚠️  ${unmapped} file(s) have no part mapping — collected under "Unsorted"`);
 }

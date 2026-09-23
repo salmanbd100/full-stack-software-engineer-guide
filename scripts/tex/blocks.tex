@@ -187,7 +187,7 @@
   \itshape\fontsize{\tokDeckSize}{14pt}\selectfont\color{inkmid}%
 }
 \newenvironment{bookdeck}{%
-  \par\vspace{-0.4\tokBlockSkip}\bookdeckfont
+  \par\vspace{-0.4\bookBlockSkip}\bookdeckfont
 }{%
   \par\vspace{\tokBlockSkip}%
 }
@@ -314,7 +314,7 @@
 \newcommand{\bookcodelabel}[1]{%
   \par\needspace{4\baselineskip}\vspace{\tokBlockSkip}%
   {\labelfont\fontsize{\tokSmallSize}{\tokSmallSize}\selectfont\color{ink}#1}%
-  \par\vspace{-0.5\tokBlockSkip}%
+  \par\vspace{-0.5\bookBlockSkip}%
 }
 
 % ---------------------------------------------------------------------------

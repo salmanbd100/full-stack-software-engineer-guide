@@ -30,6 +30,7 @@ codebase that gives them one answer has chosen wrongly for at least two of them.
 | 04 | [Choosing Per Route, Not Per App](#ch-choosing-per-route)                  | Which strategy does this route need, and how do you defend it?      |
 | 05 | [SEO and Rendering](#ch-seo-and-rendering)                                 | What does a crawler need, and what genuinely requires server render? |
 | 06 | [Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering)               | Where should this run, and when is the edge the wrong answer?       |
+| 07 | [Choosing a Meta-Framework](#ch-choosing-a-meta-framework)                 | Which decisions does the framework make for you, and which stick?   |
 
 ## What Interviewers Probe For
 

@@ -36,6 +36,8 @@ reliably separate a senior candidate from a mid-level one in a frontend round.
 | -- | ---------------------------------------------- | -------------------------------------------------------------- |
 | 01 | [Semantic HTML](#ch-semantic-html)             | Which element, and what do you get free by choosing it?        |
 | 02 | [Advanced CSS](#ch-advanced-css)               | What shipped since 2023, and what did each feature replace?    |
+| 03 | [Container Queries and Cascade Layers](#ch-container-queries-and-layers) | How does a component respond to its slot, and who wins a conflict? |
+| 04 | [Animation and View Transitions](#ch-animation-and-view-transitions) | Which properties are free to animate, and who holds both states? |
 
 ## What Interviewers Probe For
 

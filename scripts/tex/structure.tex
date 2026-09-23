@@ -181,9 +181,36 @@
 % ahead of \@pnumwidth or a wrapped line runs under the number instead of stopping
 % before it.
 
+% 🔴 Improvement #93, the other half of the same measurement. `\l@chapter` sizes the box
+% the chapter *number* sits in — `\@tempdima` — at 1.5em, which is about 15pt and is
+% sized for a book with two-digit chapters. This one numbers chapters continuously across
+% nine parts and reaches three digits, so a "246" ran into the title beside it and TeX
+% reported **412 overfull contents lines at 1.26pt each**. 2.4em clears a three-digit
+% lining number at \tokBodySize with a word space after it.
+%
+% `\l@section` is left alone: the contents runs to depth 2, and a section number inherits
+% its indent from the chapter box rather than setting its own.
+
 \makeatletter
 \renewcommand{\@pnumwidth}{2.2em}
 \renewcommand{\@tocrmarg}{3.2em}
+
+\renewcommand*\l@chapter[2]{%
+  \ifnum \c@tocdepth >\m@ne
+    \addpenalty{-\@highpenalty}%
+    \vskip 1.0em \@plus\p@
+    \setlength\@tempdima{2.4em}%
+    \begingroup
+      \parindent \z@ \rightskip \@pnumwidth
+      \parfillskip -\@pnumwidth
+      \leavevmode \bfseries
+      \advance\leftskip\@tempdima
+      \hskip -\leftskip
+      #1\nobreak\hfil
+      \nobreak\hb@xt@\@pnumwidth{\hss #2}\par
+      \penalty\@highpenalty
+    \endgroup
+  \fi}
 \makeatother
 
 % ---------------------------------------------------------------------------

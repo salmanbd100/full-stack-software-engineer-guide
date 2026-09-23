@@ -1,0 +1,140 @@
+% cover.tex — improvement #90
+%
+% The front cover, set in the book's own typefaces from the book's own tokens.
+%
+%   ./scripts/build-cover.sh        # pnpm book:cover
+%
+% Not a placeholder. #83 refused to generate one on the grounds that "a generated
+% placeholder is worse than none because it looks final" — which is an argument against a
+% placeholder, not against a cover. This is a finished typographic jacket: it can be
+% replaced the day commissioned artwork exists, and it is shippable until then.
+%
+% ## Why it does not \input typography.tex
+%
+% That file is written for the `book` class the manuscript is typeset in: it sets a
+% \linespread against the class's 12pt baseline, a \parskip for prose, and hooks that only
+% mean something where there are chapters. A cover is one page with six lines on it. So it
+% takes the palette and the font *paths* from tokens.tex — the values that must not drift
+% from the interior — and declares its own families.
+%
+% ## Trim
+%
+% 100 × 160mm is 1:1.6, the ratio every store asks for, and it rasterises to the
+% 1600 × 2560 Leanpub wants at 406dpi. The type is sized in millimetres of page rather
+% than in points, because a cover is read at thumbnail size before it is read at any other.
+
+\documentclass[12pt]{article}
+
+\usepackage[paperwidth=100mm,paperheight=160mm,margin=0pt]{geometry}
+\usepackage{fontspec}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{microtype}
+
+% 🔴 Relative to **this file**, not to the working directory: tectonic searches from the
+% source file's own directory, which is the opposite of how scripts/book-pdf.yaml resolves
+% its filters. build-cover.sh still cds to the root, so build/ lands in the right place.
+\input{tex/tokens.tex}
+
+\newcommand{\coverfontpath}{../assets/fonts/}
+
+\newfontfamily\coverserif{SourceSerif4}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  ItalicFont = *-It,
+  BoldFont = *-Bold,
+  Ligatures = TeX,
+]
+
+\newfontfamily\coversans{SourceSans3}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont = *-Bold,
+  FontFace = {sb}{n}{Font=SourceSans3-Semibold},
+  Ligatures = TeX,
+]
+
+\newfontfamily\covermono{SourceCodePro}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont = *-Bold,
+]
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% The one piece of drawing on the cover: nine rules, one per part, their lengths standing
+% for the parts' relative sizes in BOOK-SPEC § 5. It is the book's own budget table used
+% as an ornament, and it prints in one ink like everything inside. Centred on the axis
+% rather than ragged, so it reads as a figure rather than as a mistake.
+\newcommand{\partbars}{%
+  \begin{tikzpicture}[x=1mm, y=1mm]
+    \foreach \i/\w in {1/5.1, 2/6.0, 3/12.0, 4/5.6, 5/6.5, 6/6.5, 7/7.5, 8/5.5, 9/2.5} {
+      \fill[ink] (-\w*1.8, -\i*1.9) rectangle (\w*1.8, -\i*1.9 + 0.8);
+    }
+  \end{tikzpicture}%
+}
+
+% Letterspaced small caps need their word space opened with them, or "FIRST EDITION"
+% closes up into one word at 7pt. WordSpace is a multiplier on the font's own space.
+% `WordSpace` cannot be set with \addfontfeature — fontspec has to rebuild the font to
+% change it — so the family is declared with the tracking and the open word space
+% together, once, at load time.
+\newfontfamily\coverlabelfont{SourceSans3}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  % Not \tokTracking. The interior tracks its 8pt labels at +140/1000 em inside a 156mm
+  % measure; the same value on a 100mm cover runs the line off both edges. 20 is the
+  % cover's own value, and it is the only number here that does not come from the tokens.
+  LetterSpace = 20,
+  WordSpace = 1.8,
+]
+
+\newcommand{\coverlabel}[1]{%
+  {\coverlabelfont\fontsize{7pt}{9pt}\selectfont\color{inkmid}#1}%
+}
+
+\begin{document}
+
+% Every element is placed against the page rather than flowed, because a cover is one
+% page with six lines on it and vertical flow on a fixed leaf is how things fall off it.
+\begin{tikzpicture}[remember picture, overlay]
+  % Ground. White, because the interior is white and a black cover promises a different book.
+  \fill[white] (current page.south west) rectangle (current page.north east);
+
+  % A single hairline frame, inset — the same 0.4pt the tables and callouts use.
+  \draw[ink, line width=\tokHairline]
+    ($(current page.south west) + (7mm, 7mm)$) rectangle
+    ($(current page.north east) + (-7mm, -7mm)$);
+
+  \node[anchor=north] at ($(current page.north) + (0, -20mm)$)
+    {\coverlabel{FIRST EDITION $\cdot$ 2027}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -38mm)$)
+    {\coverserif\fontsize{25pt}{28pt}\selectfont
+     \begin{tabular}{c} The Senior \\ Full Stack \\ Handbook \end{tabular}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -78mm)$)
+    {\coverserif\itshape\fontsize{10.5pt}{14pt}\selectfont
+     \begin{tabular}{c} Frontend-heavy engineering \\ for 2027 \end{tabular}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -95mm)$)
+    {\coversans\fontsize{8pt}{11.5pt}\selectfont\color{inkmid}
+     \begin{tabular}{c} Fundamentals $\cdot$ The modern stack \\ System design $\cdot$ AI engineering \end{tabular}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -110mm)$) {\partbars};
+
+  \node[anchor=south] at ($(current page.south) + (0, 24mm)$)
+    {\coverlabel{NINE PARTS $\cdot$ 254 CHAPTERS}};
+
+  \node[anchor=south] at ($(current page.south) + (0, 13mm)$)
+    {\coversans\fontseries{sb}\selectfont\fontsize{11.5pt}{14pt}\selectfont Salman Rahman};
+\end{tikzpicture}
+
+\mbox{}
+
+\end{document}

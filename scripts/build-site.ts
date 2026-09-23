@@ -11,7 +11,7 @@
  *
  * The site is free and the book is not, so it cannot be the book. It carries the pages that
  * are **useful without the book and better with it**: the front matter, every back-matter
- * page — the glossary, the further-reading list and all 988 interview questions — and one
+ * page — the glossary, the further-reading list and every interview question — and one
  * **sample chapter per part**, chosen as that part's strongest opening argument.
  *
  * That split is the marketing decision, not a technical one. The question index is the
@@ -22,9 +22,10 @@
  * so a chapter edit reaches the site on the next run and the two can never drift.
  */
 
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { loadBook, matterFor, PART_NAMES, PART_OPENERS, type Doc } from "./lib/book.ts";
+import { STORE_URL, STORE_IS_PLACEHOLDER } from "./lib/store.ts";
 
 const ROOT: string = process.cwd();
 const SITE: string = join(ROOT, "site");
@@ -112,13 +113,20 @@ function frontMatterFor(doc: Doc, title: string): string {
   );
 }
 
-const SAMPLE_NOTE = `
+/**
+ * The note at the top of every sample chapter. Both numbers in it are counted from the
+ * manuscript rather than typed — #85 added seven chapters and the hand-written "245"
+ * was wrong the moment it landed — and the store URL comes from lib/store.ts (#91).
+ */
+function sampleNote(unpublished: number): string {
+  return `
 ::: tip This is a sample chapter
-The Senior Full Stack Handbook has 245 of these. The rest of the book is on
-[Leanpub](https://leanpub.com/), and buying it while it is in progress gets you every
+The Senior Full Stack Handbook has ${unpublished} more of these. The rest of the book is on
+[Leanpub](${STORE_URL}), and buying it while it is in progress gets you every
 update as it lands.
 :::
 `;
+}
 
 // ---------------------------------------------------------------------------
 // Build
@@ -156,6 +164,17 @@ interface SidebarGroup {
 
 const groups = new Map<string, SidebarGroup>();
 
+// Counted, not typed — every number the site states about the book comes from here.
+const unpublished: number = all.filter((d: Doc) => !published(d)).length;
+const questionCount: number = all.reduce(
+  (n: number, d: Doc) => n + (d.body.match(/^\*\*Q: /gm)?.length ?? 0),
+  0,
+);
+// Chapters that carry questions — the same population Interview-Question-Index.md counts,
+// so the site and the index can never state two different numbers.
+const chapterCount: number = all.filter((d: Doc) => /^\*\*Q: /m.test(d.body)).length;
+const note: string = sampleNote(unpublished);
+
 for (const doc of docs) {
   const slug: string = slugFor(doc);
   const route: string = routes.get(slug)!;
@@ -165,7 +184,7 @@ for (const doc of docs) {
   // The H1 is carried by the generated front matter, so drop the one in the source —
   // VitePress would otherwise render the title twice.
   body = body.replace(/^#\s+.*$/m, "").replace(/^\n+/, "");
-  if (!isIndex(doc) && doc.part !== 0) body = `${SAMPLE_NOTE}\n${body}`;
+  if (!isIndex(doc) && doc.part !== 0) body = `${note}\n${body}`;
 
   const file: string = join(PAGES, `${route.slice("/book/".length)}.md`);
   mkdirSync(dirname(file), { recursive: true });
@@ -193,6 +212,47 @@ const sidebar: SidebarGroup[] = order
 
 writeFileSync(join(SITE, ".vitepress", "sidebar.json"), `${JSON.stringify(sidebar, null, 2)}\n`);
 
+// ---------------------------------------------------------------------------
+// The two hand-written files, guarded — improvement #91
+// ---------------------------------------------------------------------------
+//
+// BOOK-SPEC decision #17 keeps `site/index.md` and `site/.vitepress/config.ts` hand-written.
+// They also state three things the manuscript decides: the store URL, how many interview
+// questions there are, and how many chapters. All three were wrong the moment #85 landed,
+// and the symptom of a wrong store URL is a "Buy the book" button that goes nowhere on
+// launch day. So they are not generated — they are checked, the same way SAMPLE_CHAPTERS is.
+
+const HAND_WRITTEN: readonly string[] = ["index.md", ".vitepress/config.ts"];
+const drift: string[] = [];
+
+for (const rel of HAND_WRITTEN) {
+  const text: string = readFileSync(join(SITE, rel), "utf8");
+  for (const url of text.match(/https:\/\/leanpub\.com[^"'\s)]*/g) ?? []) {
+    if (url !== STORE_URL) drift.push(`${rel}: store URL is ${url}, lib/store.ts says ${STORE_URL}`);
+  }
+  for (const stated of text.match(/(\d[\d,]{2,})\s+interview questions/g) ?? []) {
+    if (Number(stated.replace(/\D/g, "")) !== questionCount) {
+      drift.push(`${rel}: says "${stated}", the manuscript has ${questionCount}`);
+    }
+  }
+  for (const stated of text.match(/(\d[\d,]{2,})\s+chapters/g) ?? []) {
+    if (Number(stated.replace(/\D/g, "")) !== chapterCount) {
+      drift.push(`${rel}: says "${stated}", the manuscript has ${chapterCount}`);
+    }
+  }
+}
+
+if (drift.length > 0) {
+  console.error(`\nbuild-site: ${drift.length} hand-written value(s) no longer match the book:`);
+  for (const d of drift) console.error(`  ${d}`);
+  console.error("");
+  process.exit(1);
+}
+
+if (STORE_IS_PLACEHOLDER) {
+  console.log("  ·  store URL is still the placeholder — set STORE_SLUG in scripts/lib/store.ts");
+}
+
 // A landing page for /book/, so the section has a front door rather than only a sidebar.
 const contents: string[] = [
   "---",
@@ -203,7 +263,7 @@ const contents: string[] = [
   "# Contents",
   "",
   "Nine parts and an appendix. Everything listed below is on this site; the chapters that are",
-  `not listed — ${all.filter((d: Doc) => !published(d)).length} of them — are the book.`,
+  `not listed — ${unpublished} of them — are the book.`,
   "",
 ];
 for (const group of sidebar) {

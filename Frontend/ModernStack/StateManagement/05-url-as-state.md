@@ -1,7 +1,7 @@
 ---
 title: URL as State
 part: 3
-chapter: 44
+chapter: 45
 slug: url-as-state
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

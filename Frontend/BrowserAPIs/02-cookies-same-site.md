@@ -1,7 +1,7 @@
 ---
 title: Cookies and SameSite
 part: 2
-chapter: 6
+chapter: 8
 slug: cookies-same-site
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

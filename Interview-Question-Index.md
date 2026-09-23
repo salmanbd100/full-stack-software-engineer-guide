@@ -5,7 +5,7 @@ chapter: 101
 slug: interview-question-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 40
-updated: 2026-09-19
+updated: 2026-09-23
 tags: [back-matter, interview, index]
 in_book: true
 ---
@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**988 of them across 245 chapters**. The answers are not repeated here — they are in the chapter,
+**1,024 of them across 254 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -140,7 +140,7 @@ _70 questions across 23 chapters._
 
 ## Part II — The Browser Platform
 
-_89 questions across 19 chapters._
+_105 questions across 23 chapters._
 
 - **[Semantic HTML](#ch-semantic-html)**
   - When do you use `<section>` versus `<article>` versus `<div>`?
@@ -152,6 +152,16 @@ _89 questions across 19 chapters._
   - What did `:has()` let you delete?
   - What is the difference between a custom property and a Sass variable?
   - When is a custom property the wrong tool?
+- **[Container Queries and Cascade Layers](#ch-container-queries-and-layers)**
+  - A card component looks wrong in the sidebar but right in the main column. How do you fix it?
+  - What problem do cascade layers solve that BEM did not?
+  - Where do cascade layers sit relative to specificity and `!important`?
+  - When is a container query the wrong tool?
+- **[Animation and View Transitions](#ch-animation-and-view-transitions)**
+  - An engineer reports that a slide-in panel stutters on mid-range Android. Where do you start?
+  - What does the View Transitions API actually do for you?
+  - How do you handle `prefers-reduced-motion` without making the interface confusing?
+  - When would you use a JavaScript animation library rather than the platform?
 - **[Web Storage APIs](#ch-storage-apis)**
   - What is the difference between `localStorage` and `sessionStorage`?
   - Why should a JWT not go in `localStorage`?
@@ -179,6 +189,16 @@ _89 questions across 19 chapters._
   - How do you make sure the camera indicator turns off?
   - A user denied notifications. How do you re-prompt?
   - Which permissions are the risky ones, from a privacy standpoint?
+- **[The Observer APIs](#ch-observer-apis)**
+  - Why is `IntersectionObserver` faster than a scroll listener that does the same job?
+  - When would you use a `ResizeObserver` rather than a container query?
+  - What breaks if you forget to disconnect an observer?
+  - Why is `PerformanceObserver` the right way to collect Core Web Vitals?
+- **[Web Workers and the Main Thread](#ch-web-workers)**
+  - A table freezes for half a second when a 20 MB CSV is uploaded. Walk through the fix.
+  - What can and cannot cross the worker boundary?
+  - When is a worker the wrong answer to a slow interaction?
+  - How does moving work to a worker relate to INP?
 - **[Why Accessibility, and the Law](#ch-accessibility-and-the-law)**
   - Which accessibility rules apply to a product your company sells across Europe?
   - Why AA rather than A or AAA?
@@ -253,7 +273,7 @@ _89 questions across 19 chapters._
 
 ## Part III — The Modern Frontend Stack
 
-_184 questions across 46 chapters._
+_204 questions across 51 chapters._
 
 - **[The React Mental Model](#ch-react-mental-model)**
   - Why does this component re-render when its props have not changed?
@@ -425,6 +445,11 @@ _184 questions across 46 chapters._
   - Cold starts used to be the argument for edge runtimes. Is that still true?
   - Where would you do authentication in a globally distributed application?
   - A route is server-rendered at origin and slow for European users. What are the options, in order?
+- **[Choosing a Meta-Framework](#ch-choosing-a-meta-framework)**
+  - You are starting a new product application. Next.js or SvelteKit?
+  - Which parts of that choice can you reverse later?
+  - How would you migrate a five-year-old client-rendered application to a server-first framework?
+  - When is a meta-framework the wrong choice entirely?
 - **[The Four Kinds of State](#ch-four-kinds-of-state)**
   - How do you decide where a piece of state should live?
   - What is actually wrong with putting API data in Redux or Zustand?
@@ -455,6 +480,11 @@ _184 questions across 46 chapters._
   - What is a glitch, and why does it matter?
   - Do signals replace TanStack Query?
   - Why hasn't React adopted signals?
+- **[Modelling Flows as State Machines](#ch-modelling-flows-as-machines)**
+  - Why prefer a state machine to a few booleans?
+  - When is `useReducer` enough, and when do you reach for XState?
+  - Would you model data fetching as a state machine?
+  - How do you test a machine?
 - **[Modules and Bundling](#ch-modules-and-bundling)**
   - What does a bundler actually do?
   - A single import added 300 KB to the bundle. How do you find out why?
@@ -485,6 +515,21 @@ _184 questions across 46 chapters._
   - What is a phantom dependency and why does pnpm prevent it?
   - How would you reduce supply-chain risk in a frontend codebase?
   - Should you switch a project from npm to pnpm?
+- **[Styling Strategy](#ch-styling-strategy)**
+  - A team wants to add styled-components to a Next.js App Router project. What do you say?
+  - Where does utility-first CSS actually save you, and where does it cost you?
+  - Why are design tokens usually custom properties rather than a TypeScript object?
+  - When would you not reach for a styling framework at all?
+- **[Web Components and Framework Interop](#ch-web-components-and-interop)**
+  - A platform team wants one component library for React, SvelteKit and a legacy Angular app. What do you recommend?
+  - What actually changed for web components in React 19?
+  - What does shadow DOM buy, and what does it cost?
+  - When would you deliberately not use shadow DOM but still use custom elements?
+- **[Headless Primitives and Accessible Components](#ch-headless-primitives)**
+  - A team is about to build its own modal. What do you tell them?
+  - What is the difference between a component library and a headless primitive?
+  - Does adopting Radix or React Aria make a product accessible?
+  - When would you deliberately build the primitive yourself?
 
 ## Part IV — Frontend at Scale
 

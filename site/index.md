@@ -16,13 +16,13 @@ hero:
       text: Start reading free
       link: /book/front/preface
     - theme: alt
-      text: 988 interview questions
+      text: 1,024 interview questions
       link: /book/back/interview-question-index
 
 features:
   - title: Every question in the book, free
     details: >
-      All 988 interview questions, pulled from all 245 chapters and grouped by part. The
+      All 1,024 interview questions, pulled from all 254 chapters and grouped by part. The
       answers are in the book; the questions are here, and they are the fastest way to find
       out what you cannot answer yet.
     link: /book/back/interview-question-index

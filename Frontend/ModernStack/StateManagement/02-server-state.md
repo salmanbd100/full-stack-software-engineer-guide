@@ -1,7 +1,7 @@
 ---
 title: Server State with TanStack Query
 part: 3
-chapter: 41
+chapter: 42
 slug: server-state
 level: advanced # beginner | intermediate | advanced
 reading_time: 13

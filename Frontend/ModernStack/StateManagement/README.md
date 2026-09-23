@@ -1,7 +1,7 @@
 ---
 title: State Management
 part: 3
-chapter: 39
+chapter: 40
 slug: modern-stack-state-management-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
@@ -31,6 +31,7 @@ TanStack Query owns server state — but the chapters argue from the problem, no
 | 04 | [Form State](#ch-form-state)                                                | Where does validation live when the server validates too?         |
 | 05 | [URL as State](#ch-url-as-state)                                            | What should survive a refresh, a back button and a pasted link?   |
 | 06 | [Signals and the Next Model](#ch-signals-and-the-next-model)                | Why do Svelte 5 runes and signals work, and why has React 19 not adopted them? |
+| 07 | [Modelling Flows as State Machines](#ch-modelling-flows-as-machines)        | When do five booleans become one state, and who enforces it?      |
 
 ## What Interviewers Probe For
 

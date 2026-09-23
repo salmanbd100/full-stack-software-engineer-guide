@@ -4,8 +4,8 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.7 · **Date:** 2026-09-23
-> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 93-item route from repo to manuscript.
+> **Status:** Locked · **Version:** 1.8 · **Date:** 2026-09-23
+> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 104-item route from repo to manuscript.
 
 ---
 
@@ -17,7 +17,7 @@
 | **Subtitle**  | Frontend-heavy engineering for 2027 — fundamentals, the modern stack, system design, and AI     |
 | **Author**    | Salman Rahman                                                                                  |
 | **Edition**   | First (2027)                                                                                   |
-| **Length**    | ~57,200 lines of markdown · **1,513 pages measured** at 40.6 lines per typeset page — decision #18                |
+| **Length**    | 56,376 lines in Parts I–IX · **1,370 pages measured** at 42.8 lines per typeset page — decisions #18 and #19, plus a **96-page companion** built separately since #86 |
 | **Trim**      | **A4, 210 × 297 mm** · text block 156 × 251 mm, mirrored margins 26/28 inner/outer, 22/24 top/bottom — decision #18 |
 | **Typefaces** | **Source Serif 4** body · **Source Sans 3** display · **Source Code Pro** code, vendored in `assets/fonts/` — decision #18 |
 | **Language**  | British English (`colour`, `behaviour`, `organise`, `optimise`)                                |
@@ -295,7 +295,9 @@ two worked examples, complexity, and a curated problem table.
 
 Budgets are **ceilings, not allocations**. A part that comes in under does not hand its surplus to another
 part — the book just gets shorter, which is always a win. The DSA appendix sits outside the 57,200 because
-it ships as a companion (see item #27); if it is bound in, the total becomes ~62,800.
+it ships as a companion — and since **improvement #86 it actually does**: `pnpm book:companion` builds it
+as its own PDF and EPUB with its own metadata, and the handbook no longer carries it. Before #86 this
+sentence described a book the build did not produce.
 
 **The sums that have to hold:**
 
@@ -317,36 +319,40 @@ above reads 50.2% rather than 50.0%. **Any future increase to a Part V–IX budg
 by an equal decrease elsewhere outside Parts I–IV**, or the spine drops back through the floor and breaks
 the ≥50% rule of decision #2. 5,500 is therefore not a negotiating position for Part VIII.
 
-**The page count, measured.** `pnpm book:pages` reads the typeset PDF and reports **40.6 markdown
-lines per typeset page** — the 55 this section assumed was optimistic by a third. The manuscript as it stands
-is **1,513 pages**: 1,320 for Parts I–IX, the rest front matter, the DSA appendix and back matter.
-If the page count has to come down, the order of cuts is fixed: Part VIII first, then Part IX, then Part VI
-case studies — never Parts III or VII.
+**The page count, measured twice.** `pnpm book:pages` reads the typeset PDF and reports the real rate.
+#77 measured **40.6** markdown lines per typeset page against the ~55 this section had assumed; #87
+calibrated the design and re-measured at **42.8**. The edition is **1,370 pages**, with the DSA
+companion a separate **96-page** volume since #86.
 
-🔴 **Decision #13's 700-page ceiling is not reachable by typography, and #77 measured how far off it
-is.** The book is **1,513 pages**, 2.2 times the cap. The whole of the design's remaining slack — tighter
-leading, a wider text block, a smaller body size — is worth roughly 40%, which lands near 900 and no
-lower. The ceiling can only be met by removing content: at the measured rate, 700 pages is about
-28,399 lines against the 54,577 Parts I–IX carry today. **That is a different book, and it is an editorial
-decision rather than a calibration one**, so #77 records the number and leaves the cap standing. Nothing in
-§ 5's budget table changes either: budgets are ceilings, so a part coming in under one is already
-permitted.
+If the page count has to come down further, the order of cuts is fixed: Part VIII first, then Part IX,
+then Part VI case studies — never Parts III or VII.
 
-🔴 **The spine breach, measured rather than projected.** Decision #14 archived 2,077 lines from Part II,
-and this section has carried a projection of the damage ever since — 49.5%, then 49.7%, both estimates.
-Measured against the tree by `pnpm book:pages`, the spine is **26,404 of 54,577 = 48.4%**
-against decision #2's 50% floor.
+🔴 **Decision #13's 700-page ceiling is not reachable, and #87 proved it by trying.** This section
+estimated the design's remaining slack at "roughly 40%, landing near 900". Spent, it was worth **5%**.
+The reason is geometric: a page has vertical slack and horizontal slack, and on A4 only one of them can
+be spent. The text block is already 156mm at 10pt — about **85 characters a line**, above the 66–80 a
+reader tracks comfortably — so widening the measure or shrinking the type buys pages by making the book
+harder to read. #87 took the vertical slack only, and the cap stands as an aspiration for a second
+edition rather than a constraint this one meets. See decision #19.
 
-The cause is not that Parts V–IX grew. It is that **Parts I–IV came in under their ceilings and Parts V–IX
-came in at them**: Part II is 870 lines under and Part III 1,321 under, while Parts V, VIII and IX sit on
-their budgets exactly. Closing it needs **1,769 lines** to move, and there are two ways, both editorial:
+✅ **The spine breach is closed — improvement #85.** Decision #14 archived 2,077 lines from Part II and
+this section carried a projection of the damage for four items; #77 measured it at **26,404 of 54,577 =
+48.4%**, against decision #2's 50% floor, and recorded that closing it needed its own item.
 
-| Option | Cost |
-| ------ | ---- |
-| Cut 1,769 lines from Parts V–IX, in § 5's fixed order (VIII, then IX, then VI's case studies) | Decision #12 calls Part VIII's 5,500 a structural floor, so most of it would come out of VI and IX — and it is finished teaching prose |
-| Write 1,769 more lines into Parts II and III, which have 2,191 lines of headroom between them | No budget change needed, and it is additive — but it is roughly 48 more pages against a ceiling already breached |
+The cause was never that Parts V–IX grew. It was that **Parts I–IV came in under their ceilings and
+Parts V–IX came in at them**. So #85 closed it the honest way round — by delivering the two parts the
+book is sold on, rather than by cutting finished teaching prose out of Parts VI and IX to flatter a
+ratio. Eight new chapters, 1,383 lines, every one of them a topic the tree did not already cover:
+container queries and cascade layers, animation and view transitions, the observer APIs, web workers,
+web components and framework interop, headless primitives, choosing a meta-framework, and state
+machines.
 
-Neither is calibration, so **#77 measures and records it rather than acting on it.** It needs its own item.
+Measured after it: **28,205 of 56,378 = 50.03%.**
+
+⚠️ **The margin is 0.03 points, which is about seventeen lines.** Parts V, VIII and IX now sit at 0, 5 and
+0 lines of headroom, so nothing grows there without an amendment to this log — but **#92's voice pass
+edits prose in every part**, and a trim in Parts I–IV moves this number the wrong way. Every session of
+that item re-runs `pnpm book:pages` and stops if the spine line goes red.
 
 > The 49.5% / 554-line version of this projection assumed #54 would add ~1,046 net lines to Part II. It
 > landed at **+1,272** — six chapters at 233–256 lines, less the 255-line chapter it absorbed — which is
@@ -477,6 +483,8 @@ bump the version, and update any improvement-plan items the change affects.
 | 17| 2026-09-19 | **Leanpub for the book, a generated VitePress companion for the marketing** | Improvement #78, and the option the item already recommended. Leanpub pays while the book is still being written, which matters for an edition dated 2027 and 84 items into a 93-item plan; Gumroad and self-hosting both require the book to be finished before the first sale. The companion is **generated, never written**: `scripts/build-site.ts` reads the same `loadBook` the PDF build uses, so a chapter edit reaches the site on the next run and the two cannot drift. What it publishes is the marketing decision — the front matter, **every back-matter page including all 988 interview questions**, every part opener and section index, and **one sample chapter per part**, named by slug in `SAMPLE_CHAPTERS` with a build-time guard that fails if a rename orphans one. The remaining 236 chapters are the product. A cross-reference to an unpublished chapter loses its link and keeps its title, so the site never ships a dead link to a page that exists only on paper |
 
 | 18| 2026-09-23 | **Trim, typefaces and the page rate recorded in § 1 — all three measured; chapters no longer forced onto a right-hand page** | Improvement #77, which existed to replace three assumptions with three measurements. **The rate:** § 5 assumed ~55 markdown lines per typeset page; `pnpm book:pages` reads the finished PDF and reports **40.6**, so every page figure derived from it was optimistic by a third. The book is **1,513 pages**. **The trim:** A4, 210 × 297 mm. Chosen because decision #17 sells the edition on Leanpub, which delivers a download rather than a print run, and A4 is the most page-efficient of the realistic options. The alternative the improvement plan assumed — Crown Quarto 189 × 246 mm, credited with "recovering ~180 pages" — is arithmetically backwards: the same margins on a smaller leaf give a 135 mm text block instead of 156 mm, 31% less area per page, so it **costs** several hundred pages. That error is corrected at the item. **The typefaces:** the three OFL families #79 vendored, now named in the spec rather than only in `scripts/tex/typography.tex`. **And one change to the book itself:** `openany`, because the class opened every chapter on a recto and that cost **182 completely blank pages** out of 1,690 — 11% of the edition, spent on a convention that a chapter still satisfies by starting a fresh page. Parts keep their recto openings, which is ten leaves rather than 182 |
+| 19| 2026-09-23 | **The 700-page ceiling is recorded as unreachable rather than met: the edition is 1,370 pages, and the design's remaining slack was worth 5%, not 40%** | Improvement #87. § 5 estimated that tighter leading, a wider text block and a smaller body size would recover "roughly 40%, landing near 900". Spent, it recovered **5%** — from 40.6 to **42.8** markdown lines per typeset page. The estimate was wrong for a geometric reason worth writing down: a page has vertical slack and horizontal slack, and on A4 only one of them can be spent. The text block is 156mm at 10pt, which is already about **85 characters a line** against the 66–80 a reader tracks comfortably, so widening the measure or shrinking the type would have bought pages by making the book harder to read. #87 therefore took the vertical slack only — leading 13.2pt → 12.8pt, head and foot margins 22/24mm → 20/21mm, paragraph spacing 0.30em → 0.22em, block spacing 9pt → 7.5pt, code and table leading each down half a point — and left the measure and the 10pt body untouched. **Decision #13 stands as an aspiration for a second edition, not as a constraint this one meets.** Reaching 700 pages needs roughly 28,000 lines removed, which § 5 has said since #77 is a different book and an editorial decision rather than a calibration one. Two side effects are recorded with it: `\tokBlockSkip` could not be changed at all until a latent bug was fixed — `-0.4\tokBlockSkip` expanded to `-0.4 9pt` and TeX had been silently reading it as **-0.49pt** rather than the intended -3.6pt, so the token now also exists as a length register — and the DSA appendix leaving the volume at #86 took 96 pages with it |
+| 20| 2026-09-23 | **The DSA appendix is built as its own volume, which the spec has claimed since v1.0** | Improvement #86. § 5 has always excluded the appendix from the book's line budget "because it ships as a companion", and § 1 billed it as one, but `scripts/lib/book.ts` mapped it to part 10 and it bound into the same PDF — 101 of the 1,513 pages measured at #77. The collector now takes a `--volume`, `pnpm book:companion` builds the appendix as its own PDF and EPUB from its own metadata file with its own retail identifier, and **a cross-reference that points at the other volume keeps its title and loses its link**, with the volume named in brackets. That last rule is #78's own treatment of a chapter the site does not publish, applied to print; there were 17 such references, all in the front and back matter, and without it the handbook would have shipped 17 cross-references resolving to "(p. ??)" |
 ---
 
 **Next:** improvement **#2** — extend `write-topic-docs` into the book chapter standard. No new chapter

@@ -1,7 +1,7 @@
 ---
 title: The Four Kinds of State
 part: 3
-chapter: 40
+chapter: 41
 slug: four-kinds-of-state
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

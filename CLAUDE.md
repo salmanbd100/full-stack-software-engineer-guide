@@ -12,7 +12,7 @@ Two files govern the work. Read them before any substantial change:
 | File                    | Role                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **`BOOK-SPEC.md`**      | The locked contract — nine parts, line budgets, out-of-scope list, twelve non-negotiables. **The authority.** If a request contradicts it, say so |
-| **`IMPROVEMENT-PLAN.md`** | 89 numbered items (#31a–#31e carry letters), done one at a time. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop |
+| **`IMPROVEMENT-PLAN.md`** | 104 numbered items (#31a–#31f, #56a, #58a, #60a and #70a carry letters), done one at a time. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop |
 
 ## Writing or Editing Documentation
 
@@ -39,7 +39,7 @@ stop.** Those are archived deliberately, not missing.
 
 ```
 ├── BOOK-SPEC.md         # the contract — read first
-├── IMPROVEMENT-PLAN.md  # the 89-item route from repo to manuscript
+├── IMPROVEMENT-PLAN.md  # the 104-item route from repo to manuscript
 ├── Frontend/            # JavaScript, TypeScript, HTML/CSS, BrowserAPIs, PWA, i18n,
 │                        #   CSSArchitecture, Security, Testing, WebPerformance
 ├── Backend/             # Node.js, SQL, NoSQL, API, Security, Testing — plus DesignPatterns (Part I)
@@ -142,7 +142,9 @@ the EPUB builds correctly without a JVM and a validator that blocks the build is
 around. It is worth having: its first run found 88 of the 96 diagrams shipping invalid XHTML inside
 `<foreignObject>`, which nothing in the repository had noticed since #82.
 
-**There is still no test suite.** What there is, since #75, is `pnpm check:code-samples`: it extracts
+**`pnpm test` is the script test suite (#94)** — 30 tests over `scripts/lib/book.ts` and over the rule
+scripts' CLI behaviour, on Node's own runner with no new dependency. Alongside it, since #75, is
+`pnpm check:code-samples`: it extracts
 all 787 TypeScript fences and runs the real compiler over them, in two gates. **Syntax is hard at
 zero** — a fence that does not parse fails the build, and a `typescript` fence holding JSX counts as
 not parsing, because the label drives the syntax highlighting in the PDF. **Types are baselined**
@@ -167,7 +169,7 @@ Skip it for general programming concepts (closures, recursion, algorithm pattern
 
 ## Searching the Repository
 
-1. **READMEs are the domain indexes** — 10 directories still lack one (item #13)
+1. **READMEs are the domain indexes** — every content directory has one since #13; `lint:docs` fails if one goes missing
 2. **Files are numbered sequentially** (`01-`, `02-`)
 3. **Expect duplication until Phase 2 lands** — security is documented in five places, load balancing and
    caching in three each. Check whether a topic already exists elsewhere before writing it

@@ -1,7 +1,7 @@
 ---
 title: Right-to-Left Support
 part: 2
-chapter: 20
+chapter: 24
 slug: rtl-support
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8

@@ -85,6 +85,25 @@ export const ALLOWED_FENCES: readonly string[] = [
 // Part mapping — BOOK-SPEC.md § 4. Longest matching prefix wins.
 // ---------------------------------------------------------------------------
 
+/**
+ * The part that ships as its own volume — BOOK-SPEC.md § 5, and decision #6.
+ *
+ * The spec has said since v1.0 that the DSA appendix "sits outside the 57,200 because it
+ * ships as a companion", and § 1 bills it as a companion too. Until #86 the build did not
+ * agree: part 10 bound into the same PDF, so 101 of the book's pages were a volume the
+ * arithmetic had already excluded. This constant is what the two now agree on — the
+ * collector takes a `--volume`, and everything downstream asks here rather than hard-coding
+ * a 10.
+ */
+export const COMPANION_PART = 10;
+
+export type Volume = "book" | "companion";
+
+/** Which volume a part belongs to. Front and back matter (part 0) belong to the book. */
+export function volumeOfPart(part: number): Volume {
+  return part === COMPANION_PART ? "companion" : "book";
+}
+
 export const PART_NAMES: Readonly<Record<number, string>> = {
   1: "Foundations",
   2: "The Browser Platform",
