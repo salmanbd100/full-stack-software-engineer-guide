@@ -27,9 +27,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 🔴 No `version:` here. pnpm/action-setup refuses to run when the version is
+      # declared twice — once in this file and once as `packageManager` in package.json —
+      # and package.json is the one that also pins the version used locally. This was the
+      # first thing #88 found when it turned automatic runs back on: the workflow had been
+      # failing at setup since `packageManager` was added, and nobody saw it because the
+      # only runs were manual ones nobody watched.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - uses: actions/setup-node@v4
         with:
