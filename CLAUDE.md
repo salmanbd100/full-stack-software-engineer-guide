@@ -12,7 +12,7 @@ Two files govern the work. Read them before any substantial change:
 | File                    | Role                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **`BOOK-SPEC.md`**      | The locked contract — nine parts, line budgets, out-of-scope list, twelve non-negotiables. **The authority.** If a request contradicts it, say so |
-| **`IMPROVEMENT-PLAN.md`** | 104 numbered items (#31a–#31f, #56a, #58a, #60a and #70a carry letters), done one at a time. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop |
+| **`IMPROVEMENT-PLAN.md`** | **Phase 9 — items #95–#116**, done one at a time: cut the book from 1,370 pages to ~940, rewrite the prose in simple English, and finish the edition (softer ink, named build files, a back cover). **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop. Phases 0–8 are finished and archived in `Archive/planning/improvement-plan-phases-0-8.md` |
 
 ## Writing or Editing Documentation
 
@@ -39,11 +39,11 @@ stop.** Those are archived deliberately, not missing.
 
 ```
 ├── BOOK-SPEC.md         # the contract — read first
-├── IMPROVEMENT-PLAN.md  # the 104-item route from repo to manuscript
+├── IMPROVEMENT-PLAN.md  # the live plan — Phase 9, cut the book and simplify the English
 ├── Frontend/            # JavaScript, TypeScript, HTML/CSS, BrowserAPIs, PWA, i18n,
 │                        #   CSSArchitecture, Security, Testing, WebPerformance
 ├── Backend/             # Node.js, SQL, NoSQL, API, Security, Testing — plus DesignPatterns (Part I)
-├── DSA/                 # 16 LeetCode patterns (appendix / companion volume)
+├── DSA/                 # 16 LeetCode patterns — retired from the product by plan item #95a
 ├── SystemDesign/        # fundamentals, building blocks, frontend SD, 20 case studies
 ├── ShipAndOperate/      # Part VIII — Git, Containers, CI/CD, Observability, Cloud, Deployment
 ├── Behavioral/  Communication/
@@ -72,9 +72,9 @@ pnpm book:build       # PDF + EPUB into build/
                       #   and:   pnpm add -g @mermaid-js/mermaid-cli   (diagrams, #82)
                       #   and:   brew install epubcheck   (EPUB validation, #83)
 pnpm book:specimen    # scripts/specimen.md alone — the whole print design, in seconds
-pnpm book:pages       # pages per part, measured off build/handbook.pdf (#77)
+pnpm book:pages       # pages per part, measured off the built PDF (#77)
 pnpm plan:next        # the next unchecked plan item, its "Done when", its model
-pnpm plan:check       # verify the plan's three counters still agree
+pnpm plan:check       # verify the plan's counters still agree with its checkboxes
 pnpm index:questions  # regenerate Interview-Question-Index.md from every chapter's Q block
 pnpm index:check      # fail if that index is stale — run after editing any Interview Questions
 pnpm check:code-samples             # compile every TypeScript fence

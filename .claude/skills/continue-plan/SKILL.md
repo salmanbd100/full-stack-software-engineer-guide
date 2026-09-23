@@ -1,13 +1,15 @@
 ---
 name: continue-plan
-description: Run the next unfinished item from IMPROVEMENT-PLAN.md, the 104-item plan turning this repo into the book manuscript. Use this whenever the user says "continue", "next", "next item", "what's next", "keep going", "carry on", or attaches IMPROVEMENT-PLAN.md with little or no other instruction — and also when they name a specific item ("do improvement #23", "do #40", "skip #12"). Triggering matters here: without this skill the session picks the wrong item, forgets the ordering constraints, or finishes the work without ticking the box, which leaves the next session starting from the wrong place.
+description: Run the next unfinished item from IMPROVEMENT-PLAN.md, the Phase 9 plan (#95-#116) cutting the finished book from 1,370 pages to ~940, rewriting its prose in simple English, and softening the print colours. Use this whenever the user says "continue", "next", "next item", "what's next", "keep going", "carry on", or attaches IMPROVEMENT-PLAN.md with little or no other instruction — and also when they name a specific item ("do improvement #23", "do #40", "skip #12"). Triggering matters here: without this skill the session picks the wrong item, forgets the ordering constraints, or finishes the work without ticking the box, which leaves the next session starting from the wrong place.
 ---
 
 # Continue the Improvement Plan
 
-`IMPROVEMENT-PLAN.md` is a 104-item plan turning this repository into the manuscript for
-**The Senior Full Stack Handbook**. The user works through it one item per session and expects
-each finished item to be recorded before the session ends.
+`IMPROVEMENT-PLAN.md` is **Phase 9 — items #95-#116**, three of which carry a letter (#95a, #113a, #113b). The manuscript is finished; this phase cuts it
+from 1,370 pages to about 940, then rewrites the surviving prose in simple English for readers whose
+first language is not English. Phases 0-8 are closed and archived in
+`Archive/planning/improvement-plan-phases-0-8.md`. The user works through it one item per session and
+expects each finished item to be recorded before the session ends.
 
 That last part is the whole reason this skill exists. Doing the work is the easy half. If the
 checkbox and the three counters are not updated, the next session reads the plan, sees the item as
@@ -23,13 +25,12 @@ node --experimental-strip-types scripts/plan-status.ts --next
 ```
 
 This prints the first unchecked item, its line number, the **model and effort to use**, its
-**Done when** line, and any ordering constraints. Trust it over scanning by eye — the file is
-~1,400 lines and the first `- [ ]` is easy to miss.
+**Done when** line, and any ordering constraints. Trust it over scanning by eye.
 
-If the recommended model is not the one running, **say so before starting.** Roughly a third of the
-items are mechanical sweeps across hundreds of files where Sonnet 5 at low effort does the same job
-for 2.5× less — #10, #12, #71 and #74 between them touch more files than the rest of the plan
-combined. The mapping lives in the plan's "Model per item" table; edit that, not the script.
+Every Phase 9 item maps to **Opus 5 at high or xhigh effort**. There are no mechanical sweeps left:
+each item decides what a senior interviewer actually asks, which two chapters become one, and which
+sentence to break in half. The mapping lives in the plan's "Model and effort per item" table; edit
+that, not the script.
 
 If the user named an item (`do #23`) or said to skip one, that overrides the first-unchecked rule.
 
@@ -38,9 +39,17 @@ If the user named an item (`do #23`) or said to skip one, that overrides the fir
 Items are not always safe to do in isolation. The script surfaces constraints marked 🔴 and any
 other item that references this one. Read them properly.
 
-The live example: **#3 must run before #20.** The front matter script hardcodes 143 file paths that
-#20 renames and moves. Run #3 afterwards and every path misses, so 143 archive decisions vanish
-silently — nothing errors, the data is just gone.
+Phase 9 has three that matter:
+
+- **#95 runs before every cut.** It writes the new budgets into `BOOK-SPEC.md`, and the lint measures
+  against the spec. Cut first and nothing can tell you when a part is done
+- **#104 must leave the `budget` rule at 0** for the whole book. It is the last cut item
+- **The plain-English items (#105-#113) run after the cut**, never before. Editing prose that is
+  about to be archived wastes the session
+- **#95a runs before the cut items.** It retires the DSA companion, which changes what every later
+  item builds, indexes and publishes. Running it late means regenerating the question index twice
+- **#113a, #113b and #115 depend on nothing.** They sit before #114 because the final build has to
+  include them, but the user can call any of them early and that is not a reordering
 
 If the next item is blocked, **say which item has to go first and stop.** Do not quietly reorder,
 and do not do the blocking item instead without saying so.
@@ -90,20 +99,19 @@ Then append a **Delivered** block under the item's existing "Done when" line:
 That block is what the next session reads to understand what state the repo is in. Write it for
 someone with no memory of this conversation.
 
-### 7. Update the three counters
+### 7. Update the two counters
 
-They all have to move together:
+They both have to move together:
 
 | Counter | Where |
 | ------- | ----- |
-| Header | `**Progress:** N / 104` near the top |
-| Phase Map | the `Items` / `Done` row for that item's phase |
-| Progress Tracker | the table near the bottom, including the `%` |
+| Header | `**Progress:** N / 25` near the top |
+| Progress Tracker | the table near the bottom — the phase row and the `Total` row, including the `%` |
 
 Then prove it:
 
 ```bash
-node --experimental-strip-types scripts/plan-status.ts --check
+pnpm plan:check
 ```
 
 It exits non-zero if any counter disagrees with the checkboxes. Do not finish the turn on a red check.
@@ -115,8 +123,13 @@ stop — do not roll into the next item.
 
 ## When the Item Is Wrong
 
-The plan is a working document, not scripture. Items have already been corrected twice: #1's budget
-arithmetic was wrong, and its "frontend-heavy" rule was not achievable with real chapter counts.
+The plan is a working document, not scripture. It has been corrected many times — the archived phases
+record six rounds of it, including one whole phase added after a review found eleven items ticked
+while naming work they had left.
+
+The cut items name **candidate** chapters, chosen by reading titles and line counts. If a session
+opens a chapter and finds the candidate is the strongest thing in its section, **say so and pick a
+different one.** Hitting the line budget is the requirement; the specific list is advice.
 
 If an item is wrong, already done, or blocked, **amend the item and say so.** Add a note explaining
 what changed and why. Silently skipping it, or doing something adjacent and ticking the box, is the
@@ -127,5 +140,7 @@ one outcome that makes the plan untrustworthy.
 - Writing or editing any markdown means invoking `write-topic-docs` first — it holds the mandatory
   Book Chapter Standard
 - `BOOK-SPEC.md` § 6 lists out-of-scope topics. If an item drifts into one, flag it
-- Scripts run as `node --experimental-strip-types scripts/<name>.ts` — no build step, no `package.json`
+- Scripts run through their `pnpm` aliases — `pnpm lint:docs`, `pnpm book:pages`, `pnpm test`
+- **Cut chapters move to `Archive/`, they are never deleted** — the Phase 2 convention
+- `Interview-Question-Index.md` and everything under `site/book/` are generated. Regenerate, never edit
 - British English throughout
