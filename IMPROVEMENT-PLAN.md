@@ -7158,9 +7158,16 @@ by one recording why it came back, and a real run of the workflow is green.
   wonder finds the reasoning instead of a bare `on:` block
 - **Every step in the workflow was run locally first**, because a workflow whose first automatic run is
   red teaches people to ignore it. All nine pass on this tree
-- **Not verified, and it cannot be from here: the run itself.** The workflow fires on the next push to
-  `main` or the next pull request. Nothing in this item can make that run happen, and no claim is made
-  that GitHub has executed it — only that every command it will execute passes locally
+- **Verified on GitHub after all, and it found a real bug.** The first push after this item landed
+  triggered run **35889390754**, which failed — **at the setup step, before any check ran**.
+  `pnpm/action-setup@v4` refuses to start when the pnpm version is declared twice, once here as
+  `version: 9` and once in `package.json` as `packageManager: pnpm@9.15.0`. **The workflow had been
+  failing that way since `packageManager` was added**, and the two manual runs in August failed for the
+  same reason with nobody watching. Fixed by dropping `version:` and letting the action read
+  `package.json`, which is also what pins the version locally
+- **This is the argument for the item.** A workflow nobody runs automatically is a workflow nobody
+  notices is broken, and this one had been broken for a month behind a `workflow_dispatch` trigger
+- **Run 35889508117 is green:** all eight steps, on GitHub, including `pnpm test`
 - **Verified locally, in the workflow's own order:** `pnpm lint:docs` → 305 files, all eleven rules at 0,
   no regression. `pnpm number:chapters --check` → clean. `pnpm index:check` → current, 988 questions.
   `pnpm check:code-samples` → syntax clean, 1,425 against a baseline of 1,425. `pnpm site:pages` → 69
