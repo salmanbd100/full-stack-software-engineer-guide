@@ -43,7 +43,7 @@ stop.** Those are archived deliberately, not missing.
 ├── Frontend/            # JavaScript, TypeScript, HTML/CSS, BrowserAPIs, PWA, i18n,
 │                        #   CSSArchitecture, Security, Testing, WebPerformance
 ├── Backend/             # Node.js, SQL, NoSQL, API, Security, Testing — plus DesignPatterns (Part I)
-├── DSA/                 # 16 LeetCode patterns — retired from the product by plan item #95a
+├── DSA/                 # 16 LeetCode patterns — Book 2, its own volume (`pnpm book:companion`)
 ├── SystemDesign/        # fundamentals, building blocks, frontend SD, 20 case studies
 ├── ShipAndOperate/      # Part VIII — Git, Containers, CI/CD, Observability, Cloud, Deployment
 ├── Behavioral/  Communication/

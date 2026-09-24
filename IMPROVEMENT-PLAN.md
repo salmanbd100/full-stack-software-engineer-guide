@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-23 · **Progress:** 0 / 25
+**Last updated:** 2026-09-24 · **Progress:** 1 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -80,8 +80,9 @@ Measured on 2026-09-23 with `pnpm book:pages`, off the real typeset PDF:
 | Back matter | 4 | 1,919 | 41 |
 | **Total** | **314** | **58,610** | **1,370** |
 
-The DSA appendix ships as its own 96-page companion volume and is **not** part of these numbers.
-Item **#95a** retires it, which is why no cut item mentions DSA: it was never in the 1,370 pages.
+The DSA appendix ships as its own 96-page companion volume — **Book 2** — and is **not** part of these
+numbers. That is why no cut item mentions DSA: it was never in the 1,370 pages. Item **#95a** finishes
+the split between the two volumes.
 
 **The problem in one line: 1,370 pages is two books.** It is roughly 2.5 kg in print, it cannot be
 read cover to cover before an interview, and a reader who opens it does not know where to start.
@@ -224,7 +225,7 @@ that touches `scripts/`.
 
 # Phase 9 — Cut and Simplify
 
-### - [ ] 95. Amend the spec for the 940-page edition `M`
+### - [x] 95. Amend the spec for the 940-page edition `M` — ✅ **done 2026-09-24**
 
 Everything else in this phase measures itself against `BOOK-SPEC.md`, so the spec changes first.
 
@@ -232,7 +233,7 @@ Write the nine new budgets from **The New Part Budgets** above into § 5, with t
 and the recalculated share column. Update the two rule lines — the frontend spine reads 51.3%, Part III
 reads 21.8%. Replace the page-count paragraph: the edition is no longer 1,370 pages, and the target is
 940. Add three entries to the § 11 decision log: one for the cut itself and why 940 rather than 700,
-one for the plain-English pass replacing old item #92, and one for retiring the DSA companion (#95a).
+one for the plain-English pass replacing old item #92, and one for the DSA companion (#95a).
 
 Then re-baseline the lint. `partBudgets` reads § 5 directly, so the `budget` rule starts reporting the
 moment the spec is saved. Commit `.lint-baseline.json` with the real overage in it.
@@ -241,50 +242,61 @@ moment the spec is saved. Commit `.lint-baseline.json` with the real overage in 
 `pnpm lint:docs` runs with `budget` at its new baseline and every other rule still at 0, and the
 decision log has all three entries.
 
+**Delivered:**
+
+- `BOOK-SPEC.md` v1.9. § 5 holds the nine new budgets, the 38,600 total, the share column, the spine at
+  **51.3%** and Part III at **21.8%**. The 1,370-page paragraph is replaced by the ~940-page
+  arithmetic. It also notes that the spine has 1,000 lines of headroom only at the ceilings, not in the tree
+- § 4's nine per-part **Budget:** lines, § 1's **Length** row and § 9's success criterion #2 were rewritten
+  to match. Criterion #2 used to say 50,000–60,000 lines, which the new edition would fail by design
+- Decision log entries **#21** (the cut, and why 940 rather than 700), **#22** (the plain-English pass
+  replaces old #92) and **#23** (the DSA companion). **#23 was rewritten the same day:** it first
+  recorded the companion as retired, and the owner reversed that. It now records DSA kept as Book 2, with
+  #6 and #20 standing
+- `.lint-baseline.json` now records `budget` at **17,776**, exactly the figure this plan predicted. Every
+  other rule is still at 0. `pnpm test` passes 30/30. The `Budget` column in `pnpm book:pages` now reads
+  the new ceilings
+- The `Appendix — DSA` row stays in § 5 as Book 2's own 5,600-line ceiling, outside the 38,600 total
+
 ---
 
-### - [ ] 95a. Retire the DSA companion volume `M`
+### - [ ] 95a. Finish Book 2 — the DSA companion volume `M`
 
-The DSA appendix stops being a product. `DSA/` moves to `Archive/dsa/` — still in the repo, still
-useful as personal practice, but out of the build, out of the site, and out of the question index.
+> 🔴 **Amended 2026-09-24, at the owner's request.** This item used to retire the DSA companion and
+> move `DSA/` to `Archive/dsa/`. That is withdrawn. **DSA stays a product: Book 2, its own PDF and
+> EPUB, as decisions #6 and #20 set it up.** Decision #23 records the retirement as proposed and
+> rejected. What survives from the old item is the bug it found, which is real either way.
 
-> 🔴 **This reverses two recorded decisions, so it goes in the log as a reversal, not a deletion.**
-> Decision **#6** demoted DSA to an appendix and cut it 70% on the grounds that _"the reader must pass
-> the round"_. Decision **#20** — improvement #86, eight days ago — built it as its own PDF and EPUB
-> with its own retail identifier. Both stay in the log with the new entry beside them, saying what
-> changed and why. A reader of this book will still sit a coding round; after this item the book says
-> nothing about it, and that is the trade being made.
-
-**The companion is not part of the 940-page target.** It never was — it is a separate 96-page volume,
-and none of items #96–#104 touch it. Retiring it makes the handbook no shorter. What it buys is one
-product instead of two, and the end of a split that is currently half-finished.
+**Book 2 is not part of the 940-page target.** It never was. It is a separate 96-page volume, and none
+of items #96–#104 touch it. Its 5,600-line row stays in `BOOK-SPEC.md` § 5 as its own ceiling. It
+measures 4,618 lines today, so it is already inside that ceiling.
 
 **The half-finished split, which is the concrete bug this item fixes.** `Interview-Question-Index.md`
 is back matter in the **handbook**, and it still carries an `## Appendix — DSA Patterns` section: 87
 questions linking to `#ch-prefix-sum`, `#ch-two-pointers` and fourteen more. `build/book.md` holds
-**none** of those anchors — they are all in `build/companion.md`. So the handbook advertises 87
-questions whose links resolve to nothing, and the companion ships with no question index at all.
-`lint:docs` misses it because the chapters do exist in the repo; nothing checks anchors per volume.
+**none** of those anchors, because they are all in `build/companion.md`. So the handbook lists 87
+questions whose links go nowhere, and Book 2 ships with no question index at all. `lint:docs` misses
+it because the chapters do exist in the repo. Nothing checks anchors per volume.
 
-**What has to change, in four groups:**
+**What has to change:**
 
 | Group | Files | Change |
 | ----- | ----- | ------ |
-| **The content** | `DSA/` — 17 files, 4,618 lines | Move to `Archive/dsa/`, the same way Phase 2 archived DevOps and items #96–#104 archive chapters |
-| **The volume machinery** | `scripts/lib/book.ts`, `scripts/build-book.sh`, `scripts/collect-chapters.ts`, `scripts/measure-pages.ts`, `scripts/companion-meta.yaml`, `package.json` | Remove `COMPANION_PART`, `volumeOfPart`, `Volume`, the `--volume` flag, the `companion` build target, `pnpm book:companion`, the companion metadata file, and the companion row in the page report. One volume again |
-| **The tests** | `scripts/test/book.test.ts` | `volumeOfPart` is gone, and `partBudgets` loops to `COMPANION_PART`. Both tests need rewriting, not deleting — `pnpm test` must stay at green with the same coverage |
-| **The references** | `BOOK-SPEC.md` §§ 1, 4, 5, 8, 11 · `Further-Reading.md` · `Preface.md` · `How-to-Read-This-Book.md` · root `README.md` · `CLAUDE.md` | The appendix is named in the part list, the budget table, the length row, the reading paths and a resources table. All of it goes, except the decision log, which gains an entry |
+| **The question index** | `scripts/build-question-index.ts` | Split it by volume, using `volumeOfPart` from `scripts/lib/book.ts` — do not write a second rule for what counts as DSA. The handbook's index loses its DSA section and reads **937 questions across 238 chapters**. Book 2 gets its own generated index, **87 questions across 16 chapters**, as its back matter |
+| **The collector** | `scripts/collect-chapters.ts` | The companion volume binds its own index as back matter. The handbook's index stops binding DSA content |
+| **The index check** | `pnpm index:check` | Fails if **either** index is stale, not only the handbook's |
+| **The anchor gap** | `scripts/lint-docs.ts` or the build's xref count | A cross-reference must resolve **inside its own volume**. This is the check that would have caught the bug. It is the part of this item most worth keeping |
+| **The tests** | `scripts/test/book.test.ts` | Cover the split. `pnpm test` stays green, and the new behaviour gets tests of its own |
+| **The name** | `scripts/companion-meta.yaml`, `BOOK-SPEC.md` § 1 | Call it **Book 2** wherever the reader sees it, if the owner wants that on the title page. Ask first; do not rename the retail title unasked |
 
-⚠️ **The 17 cross-references #86 repaired will break again, differently.** #86 made a reference to the
-other volume keep its title and lose its link. Those 17 now point at a chapter that is in no volume at
-all. Find them with `pnpm lint:docs --rule=unresolved-xref` after the move and delete the sentence
-around each one — a title with no book behind it is worse than no reference.
+⚠️ **Leave the 17 cross-references #86 repaired alone.** They point from the handbook to Book 2, and
+#86's rule is correct: the title stays and the link goes, with the volume named in brackets.
 
-**Done when:** `DSA/` is gone from the manuscript tree, `pnpm book:collect` and `pnpm book:pdf` build
-one volume with no companion step, `pnpm index:questions` regenerates the index at **937 questions
-across 238 chapters** with no DSA section, `pnpm lint:docs` has every rule at its baseline with
-`unresolved-xref` at 0, `pnpm test` is green, `pnpm site:build` is clean, and the decision log records
-the reversal.
+**Done when:** `pnpm index:questions` writes the handbook index at **937 questions across 238
+chapters** with no DSA section, and a Book 2 index at **87 across 16**. `pnpm index:check` covers both.
+`pnpm book:pdf` and `pnpm book:companion` both build with zero unresolved cross-references, and Book 2
+carries its own index. `pnpm lint:docs` has every rule at its baseline, `pnpm test` is green, and
+`pnpm site:build` is clean.
 
 ---
 
@@ -613,10 +625,11 @@ book's real name:
 | --- | ----- |
 | `build/handbook.pdf` | `build/The-Senior-Full-Stack-Handbook.pdf` |
 | `build/handbook.epub` | `build/The-Senior-Full-Stack-Handbook.epub` |
+| `build/companion.pdf` | `build/The-Senior-Full-Stack-Handbook-Book-2-DSA-Patterns.pdf` |
+| `build/companion.epub` | `build/The-Senior-Full-Stack-Handbook-Book-2-DSA-Patterns.epub` |
 
-Two outputs, not four — **#95a** retires the companion, so `build/companion.*` no longer exists. If
-#95a has not run yet when this item does, rename those two as well and expect to delete the rename in
-#95a.
+Book 2 stays a product (#95a), so its two files are renamed as well. If #95a changed the volume's
+title, follow the title it settled on.
 
 No version and no year in the name. The edition is on the title page, and a filename that carries a
 version number has to be explained every time it changes.
@@ -636,9 +649,9 @@ are build scaffolding and nobody downloads them.
 Define the names once as shell variables at the top of `build-book.sh`, and export the same strings
 from `scripts/lib/book.ts` for the TypeScript side, so the next rename is one edit rather than four.
 
-**Done when:** `pnpm book:build` produces the named PDF and EPUB, `pnpm book:pages` finds the PDF and
-reports normally, `pnpm test` is green, and nothing in the repo outside `Archive/` still says
-`handbook.pdf`.
+**Done when:** `pnpm book:build` and `pnpm book:companion` produce the four named files, `pnpm book:pages`
+finds the PDF and reports normally, `pnpm test` is green, and nothing in the repo outside `Archive/` still says
+`handbook.pdf` or `companion.pdf`.
 
 ---
 
@@ -651,7 +664,7 @@ Everything has moved. This item puts the book back together and proves the numbe
 | Renumber every chapter across all nine parts | `pnpm number:chapters` |
 | Regenerate the question index and the glossary cross-references | `pnpm index:questions` |
 | Regenerate the companion site | `pnpm site:pages` |
-| Build the PDF and the EPUB — one volume, since #95a | `pnpm book:build` |
+| Build the PDF and the EPUB, and Book 2 | `pnpm book:build` · `pnpm book:companion` |
 | Measure | `pnpm book:pages` |
 | Run everything CI runs | `pnpm lint:docs` · `pnpm test` · `pnpm check:code-samples` · `pnpm plan:check` |
 
@@ -701,7 +714,7 @@ The book is a different object now, and three things still describe the old one.
 
 | What | Change |
 | ---- | ------ |
-| The store description | It sells a 1,370-page book. Rewrite around what the cut bought: one volume, readable end to end, at the real page count from #114 |
+| The store description | It sells a 1,370-page book. Rewrite around what the cut bought: a handbook readable end to end at the real page count from #114, with DSA as Book 2 |
 | `Preface.md` and `How-to-Read-This-Book.md` | The reading paths name chapters, and some of those chapters are now in `Archive/` |
 | The companion site | `SAMPLE_CHAPTERS` in `scripts/build-site.ts` may point at a chapter that no longer exists |
 
@@ -714,11 +727,11 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 0/25 | 🚧 In progress |
-| **Total** | **25** | **0/25** | **0%** |
+| 9 | 95–116 · 95a · 113a · 113b | 1/25 | 🚧 In progress |
+| **Total** | **25** | **1/25** | **4%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
-> straight after the spec amendment because retiring the companion changes what every later item
+> straight after the spec amendment because splitting the question index changes what every later item
 > builds and indexes. **#113a** and **#113b** sit before #114 because the final build has to include
 > them. `pnpm plan:next` sorts `95a` between `95` and `96`, and `113a` between `113` and `114`.
 

@@ -4,8 +4,8 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.8 · **Date:** 2026-09-23
-> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the 104-item route from repo to manuscript.
+> **Status:** Locked · **Version:** 1.9 · **Date:** 2026-09-24
+> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — Phase 9, which cuts the manuscript to the 940-page edition.
 
 ---
 
@@ -17,7 +17,7 @@
 | **Subtitle**  | Frontend-heavy engineering for 2027 — fundamentals, the modern stack, system design, and AI     |
 | **Author**    | Salman Rahman                                                                                  |
 | **Edition**   | First (2027)                                                                                   |
-| **Length**    | 56,376 lines in Parts I–IX · **1,370 pages measured** at 42.8 lines per typeset page — decisions #18 and #19, plus a **96-page companion** built separately since #86 |
+| **Length**    | **38,600-line budget** in Parts I–IX · **~940 pages** at 42.8 lines per typeset page — decision #21. The manuscript measured 56,376 lines and 1,370 pages on 2026-09-23, before the cut |
 | **Trim**      | **A4, 210 × 297 mm** · text block 156 × 251 mm, mirrored margins 26/28 inner/outer, 22/24 top/bottom — decision #18 |
 | **Typefaces** | **Source Serif 4** body · **Source Sans 3** display · **Source Code Pro** code, vendored in `assets/fonts/` — decision #18 |
 | **Language**  | British English (`colour`, `behaviour`, `organise`, `optimise`)                                |
@@ -105,7 +105,7 @@ Each part below is locked: its scope, its reason for existing, and its line budg
 ### Part I — Foundations
 
 **Covers:** JavaScript language semantics · TypeScript · OOP and design patterns in TypeScript
-**Budget:** 5,000 lines · ~22 chapters
+**Budget:** 3,600 lines · ~19 chapters
 
 Every senior interview still opens here, and research on 2026 loops is blunt about why the bar moved:
 the questions have not changed in five years, but the depth expected has, **because an AI assistant can
@@ -120,7 +120,7 @@ the definition — and it comes first because Parts III, IV and VII all quietly 
 ### Part II — The Browser Platform
 
 **Covers:** HTML and CSS · Browser APIs and storage · Accessibility · Internationalisation · PWA
-**Budget:** 6,000 lines · ~26 chapters
+**Budget:** 3,800 lines · ~18 chapters
 
 Frameworks are a layer over the platform, and engineers who skipped the platform hit a ceiling that shows
 in interviews. Two topics here punch above their weight for this reader specifically. **Accessibility** is
@@ -137,7 +137,7 @@ under-taught elsewhere. That makes this part cheap differentiation.
 ### Part III — The Modern Frontend Stack 🆕
 
 **Covers:** React · Next.js · Svelte · Rendering models · State management · Build tooling
-**Budget:** 12,000 lines · ~46 chapters — the largest part in the book, by design
+**Budget:** 8,400 lines · ~40 chapters — the largest part in the book, by design
 
 This is the part the reader bought the book for, and it does not exist in the repository yet. The 2026–27
 senior loop is built on it: Server Components versus Client Components, React 19 Actions, the `use` hook,
@@ -162,7 +162,7 @@ implementation detail.
 ### Part IV — Frontend at Scale
 
 **Covers:** Frontend architecture · Web performance · Frontend security · Testing
-**Budget:** 5,500 lines · ~24 chapters
+**Budget:** 4,000 lines · ~19 chapters
 
 Part III is how to build it. Part IV is how to build it when there are forty engineers, four years of
 history, and a performance budget someone will be held to. Micro-frontends, design systems, dependency
@@ -178,7 +178,7 @@ or the ARIA attribute that is syntactically valid and semantically wrong.
 ### Part V — Backend for Frontend Engineers
 
 **Covers:** Node.js internals · API design · SQL and NoSQL · Auth and security · Backend testing
-**Budget:** 6,500 lines · ~30 chapters (down from 14,506 lines / 53 files)
+**Budget:** 4,000 lines · ~19 chapters (down from 14,506 lines / 53 files, then 6,500 before decision #21)
 
 The book is frontend-heavy, not frontend-only. This part is scoped by a single question: **what does a
 frontend-heavy full stack engineer actually get asked and actually build?** That is Node's event loop,
@@ -193,7 +193,7 @@ stream. It is not a backend career in a box, and it does not pretend to be.
 ### Part VI — System Design
 
 **Covers:** Fundamentals · Building blocks · Frontend system design · Ten case studies
-**Budget:** 6,500 lines · ~34 chapters
+**Budget:** 4,400 lines · ~20 chapters
 
 Down from 21,903 lines, because most of that was duplication — load balancing appeared in three places,
 caching in three, CDN in three. The bigger correction is balance: the existing twenty case studies are all
@@ -209,7 +209,7 @@ forty teams, a dashboard with fifty live widgets.
 ### Part VII — AI Engineering 🆕
 
 **Covers:** LLM foundations · Integration · RAG · Agents · Production and evals · AI UX
-**Budget:** 7,500 lines · ~31 chapters
+**Budget:** 5,200 lines · ~23 chapters
 
 The reason this is a 2027 book and not a 2024 one.
 
@@ -234,7 +234,7 @@ not as bad luck.
 ### Part VIII — Ship and Operate
 
 **Covers:** Git · Containers · CI/CD · Observability · Cloud · Deployment
-**Budget:** 5,500 lines · ~22 chapters
+**Budget:** 3,400 lines · ~13 chapters
 
 Down from 39,703 lines, which is the single largest cut in the plan — an **86% reduction**. The existing DevOps material is good
 and almost entirely aimed at a different reader — Terraform across eleven files, Linux administration,
@@ -250,7 +250,7 @@ volume.
 ### Part IX — The Human Layer
 
 **Covers:** Behavioural interviewing · Communication · Ways of working · The AI-era interview loop
-**Budget:** 2,500 lines · ~18 chapters
+**Budget:** 1,800 lines · ~9 chapters
 
 Senior offers are lost here more often than on the whiteboard. Alongside STAR, influence without
 authority, ADRs, and blameless post-mortems sits the most current chapter in the book: **how interviews
@@ -279,84 +279,65 @@ two worked examples, complexity, and a curated problem table.
 
 ## 5. Budget Summary
 
-| Part                          | Chapters | Budget      | Share    |
-| ----------------------------- | -------- | ----------- | -------- |
-| I — Foundations               | ~22      | 5,100       | 9%       |
-| II — Browser Platform         | ~26      | 6,000       | 10%      |
-| **III — Modern Stack** 🆕     | ~46      | **12,000**  | **21%**  |
-| IV — Frontend at Scale        | ~24      | 5,600       | 10%      |
-| V — Backend                   | ~30      | 6,500       | 11%      |
-| VI — System Design            | ~34      | 6,500       | 11%      |
-| **VII — AI Engineering** 🆕   | ~31      | 7,500       | 13%      |
-| VIII — Ship and Operate       | ~22      | 5,500       | 10%      |
-| IX — Human Layer              | ~18      | 2,500       | 4%       |
-| **Total (the book)**          | **~253** | **57,200**  | **100%** |
-| Appendix — DSA (companion)    | 16       | 5,600       | separate |
+| Part                          | Chapters | Budget      | Share     |
+| ----------------------------- | -------- | ----------- | --------- |
+| I — Foundations               | ~19      | 3,600       | 9.3%      |
+| II — Browser Platform         | ~18      | 3,800       | 9.8%      |
+| **III — Modern Stack** 🆕     | ~40      | **8,400**   | **21.8%** |
+| IV — Frontend at Scale        | ~19      | 4,000       | 10.4%     |
+| V — Backend                   | ~19      | 4,000       | 10.4%     |
+| VI — System Design            | ~20      | 4,400       | 11.4%     |
+| **VII — AI Engineering** 🆕   | ~23      | 5,200       | 13.5%     |
+| VIII — Ship and Operate       | ~13      | 3,400       | 8.8%      |
+| IX — Human Layer              | ~9       | 1,800       | 4.7%      |
+| **Total (the book)**          | **~180** | **38,600**  | **100%**  |
+| Appendix — DSA (companion)    | 16       | 5,600       | separate  |
+
+These are the **940-page edition's** budgets — decision #21. They replace the 57,200-line set the book
+was written against, which produced 56,376 lines and 1,370 pages. Every part is over its new ceiling on
+the day this table is saved, by **17,776 lines** in total; items #96–#104 of the improvement plan cut
+that number to 0, one part at a time, and `.lint-baseline.json` records it falling.
 
 Budgets are **ceilings, not allocations**. A part that comes in under does not hand its surplus to another
-part — the book just gets shorter, which is always a win. The DSA appendix sits outside the 57,200 because
-it ships as a companion — and since **improvement #86 it actually does**: `pnpm book:companion` builds it
-as its own PDF and EPUB with its own metadata, and the handbook no longer carries it. Before #86 this
-sentence described a book the build did not produce.
+part — the book just gets shorter, which is always a win. The DSA appendix sits outside the total because
+it ships as a separate volume — **Book 2**, decision #23 — with its own 5,600-line ceiling. It measured
+4,618 lines on 2026-09-23 and none of the cut items touch it.
 
 **The sums that have to hold:**
 
 | Check                          | Value                                                    | Rule            |
 | ------------------------------ | -------------------------------------------------------- | --------------- |
-| Parts I–IX total               | 57,200                                                    | ≤ 60,000        |
-| **Frontend spine (I–IV)**      | 28,700 of 57,200 = **50.2%**                              | **≥ 50%**       |
-| Part III as a share            | 12,000 = **21%**                                          | Largest part    |
-| Average chapter length         | 57,200 ÷ 253 = **226 lines**                              | Within 150–400  |
+| Parts I–IX total               | 38,600                                                    | ≤ 60,000        |
+| **Frontend spine (I–IV)**      | 19,800 of 38,600 = **51.3%**                              | **≥ 50%**       |
+| Part III as a share            | 8,400 = **21.8%**                                         | Largest part    |
+| Average chapter length         | 38,600 ÷ 180 = **214 lines**                              | Within 150–400  |
 
 > **What "frontend-heavy" means, quantified:** Parts I–IV — language foundations, the browser platform,
 > the modern stack, and frontend at scale — are **half the book**, and Part III alone is larger
 > than any other single part. Backend, system design, AI, and operations together take the rest.
 > Any restructuring that breaks either rule breaks the spec.
 
-⚠️ **The spine has 0.2 points of headroom and no more.** Decision #12 raised Part VIII to 5,500 and took
-Parts I–IV from 51.8% to 50.0%; decision #16 added 200 lines to Parts I and IV, which is why the figure
-above reads 50.2% rather than 50.0%. **Any future increase to a Part V–IX budget still has to be paid for
-by an equal decrease elsewhere outside Parts I–IV**, or the spine drops back through the floor and breaks
-the ≥50% rule of decision #2. 5,500 is therefore not a negotiating position for Part VIII.
+⚠️ **The cut is uneven on purpose, and the spine is why.** Parts I–IV lose 31% of their lines and Parts
+V–IX lose 37%, which lifts the spine from the 50.03% measured at #85 to 51.3% at budget. At budget that
+is **1,000 lines of headroom** — Parts V–IX may total at most what Parts I–IV total. It is headroom at the
+ceilings, not in the tree: a cut that takes Parts I–IV well *under* their budgets while Parts V–IX land
+*on* theirs spends it, which is exactly how #77 found the spine at 48.4%. Every cut item re-runs
+`pnpm book:pages` and stops if the spine line goes red.
 
-**The page count, measured twice.** `pnpm book:pages` reads the typeset PDF and reports the real rate.
-#77 measured **40.6** markdown lines per typeset page against the ~55 this section had assumed; #87
-calibrated the design and re-measured at **42.8**. The edition is **1,370 pages**, with the DSA
-companion a separate **96-page** volume since #86.
+**The page count.** `pnpm book:pages` reads the typeset PDF and reports the real rate: **42.8** markdown
+lines per page since #87's calibration. 38,600 part lines, plus 315 of front matter, plus roughly 1,500
+of back matter once the generated question index shrinks with the chapter count, is about 40,400 lines —
+**roughly 940 pages**, down from the 1,370 measured on 2026-09-23. Fewer chapters also means fewer
+part-opening pages, so the real number should land slightly under. Improvement #114 measures it, and
+the edition is not called 940 pages until it has.
 
 If the page count has to come down further, the order of cuts is fixed: Part VIII first, then Part IX,
 then Part VI case studies — never Parts III or VII.
 
-🔴 **Decision #13's 700-page ceiling is not reachable, and #87 proved it by trying.** This section
-estimated the design's remaining slack at "roughly 40%, landing near 900". Spent, it was worth **5%**.
-The reason is geometric: a page has vertical slack and horizontal slack, and on A4 only one of them can
-be spent. The text block is already 156mm at 10pt — about **85 characters a line**, above the 66–80 a
-reader tracks comfortably — so widening the measure or shrinking the type buys pages by making the book
-harder to read. #87 took the vertical slack only, and the cap stands as an aspiration for a second
-edition rather than a constraint this one meets. See decision #19.
-
-✅ **The spine breach is closed — improvement #85.** Decision #14 archived 2,077 lines from Part II and
-this section carried a projection of the damage for four items; #77 measured it at **26,404 of 54,577 =
-48.4%**, against decision #2's 50% floor, and recorded that closing it needed its own item.
-
-The cause was never that Parts V–IX grew. It was that **Parts I–IV came in under their ceilings and
-Parts V–IX came in at them**. So #85 closed it the honest way round — by delivering the two parts the
-book is sold on, rather than by cutting finished teaching prose out of Parts VI and IX to flatter a
-ratio. Eight new chapters, 1,383 lines, every one of them a topic the tree did not already cover:
-container queries and cascade layers, animation and view transitions, the observer APIs, web workers,
-web components and framework interop, headless primitives, choosing a meta-framework, and state
-machines.
-
-Measured after it: **28,205 of 56,378 = 50.03%.**
-
-⚠️ **The margin is 0.03 points, which is about seventeen lines.** Parts V, VIII and IX now sit at 0, 5 and
-0 lines of headroom, so nothing grows there without an amendment to this log — but **#92's voice pass
-edits prose in every part**, and a trim in Parts I–IV moves this number the wrong way. Every session of
-that item re-runs `pnpm book:pages` and stops if the spine line goes red.
-
-> The 49.5% / 554-line version of this projection assumed #54 would add ~1,046 net lines to Part II. It
-> landed at **+1,272** — six chapters at 233–256 lines, less the 255-line chapter it absorbed — which is
-> where the 226-line improvement above comes from. Every other input is still an estimate.
+🔴 **Decision #13's 700-page ceiling is still not reachable.** #87 proved the print design has no slack
+left to give: on A4 the text block is already about **85 characters a line**, so every further page has
+to come out of the manuscript. 700 pages would need roughly 10,000 more lines out of a 38,600-line book —
+a whole part's worth, and a different book. See decisions #19 and #21.
 
 ---
 
@@ -431,7 +412,7 @@ The edition ships when all of these are true.
 | # | Criterion                                                                    | Check                        |
 | - | ---------------------------------------------------------------------------- | ---------------------------- |
 | 1 | Every part exists with its README part-opener                                 | Manual                       |
-| 2 | Total in-book length is 50,000–60,000 lines                                   | `scripts/lint-docs.ts`       |
+| 2 | Every part inside its § 5 budget — 38,600 lines in total                      | `scripts/lint-docs.ts`       |
 | 3 | Parts I–IV ≥ 50% of the book, and Part III is the largest single part         | `scripts/lint-docs.ts`       |
 | 4 | Zero broken cross-references                                                  | `scripts/lint-docs.ts`       |
 | 5 | Zero chapters over 400 lines with `in_book: true`                             | `scripts/lint-docs.ts`       |
@@ -485,6 +466,9 @@ bump the version, and update any improvement-plan items the change affects.
 | 18| 2026-09-23 | **Trim, typefaces and the page rate recorded in § 1 — all three measured; chapters no longer forced onto a right-hand page** | Improvement #77, which existed to replace three assumptions with three measurements. **The rate:** § 5 assumed ~55 markdown lines per typeset page; `pnpm book:pages` reads the finished PDF and reports **40.6**, so every page figure derived from it was optimistic by a third. The book is **1,513 pages**. **The trim:** A4, 210 × 297 mm. Chosen because decision #17 sells the edition on Leanpub, which delivers a download rather than a print run, and A4 is the most page-efficient of the realistic options. The alternative the improvement plan assumed — Crown Quarto 189 × 246 mm, credited with "recovering ~180 pages" — is arithmetically backwards: the same margins on a smaller leaf give a 135 mm text block instead of 156 mm, 31% less area per page, so it **costs** several hundred pages. That error is corrected at the item. **The typefaces:** the three OFL families #79 vendored, now named in the spec rather than only in `scripts/tex/typography.tex`. **And one change to the book itself:** `openany`, because the class opened every chapter on a recto and that cost **182 completely blank pages** out of 1,690 — 11% of the edition, spent on a convention that a chapter still satisfies by starting a fresh page. Parts keep their recto openings, which is ten leaves rather than 182 |
 | 19| 2026-09-23 | **The 700-page ceiling is recorded as unreachable rather than met: the edition is 1,370 pages, and the design's remaining slack was worth 5%, not 40%** | Improvement #87. § 5 estimated that tighter leading, a wider text block and a smaller body size would recover "roughly 40%, landing near 900". Spent, it recovered **5%** — from 40.6 to **42.8** markdown lines per typeset page. The estimate was wrong for a geometric reason worth writing down: a page has vertical slack and horizontal slack, and on A4 only one of them can be spent. The text block is 156mm at 10pt, which is already about **85 characters a line** against the 66–80 a reader tracks comfortably, so widening the measure or shrinking the type would have bought pages by making the book harder to read. #87 therefore took the vertical slack only — leading 13.2pt → 12.8pt, head and foot margins 22/24mm → 20/21mm, paragraph spacing 0.30em → 0.22em, block spacing 9pt → 7.5pt, code and table leading each down half a point — and left the measure and the 10pt body untouched. **Decision #13 stands as an aspiration for a second edition, not as a constraint this one meets.** Reaching 700 pages needs roughly 28,000 lines removed, which § 5 has said since #77 is a different book and an editorial decision rather than a calibration one. Two side effects are recorded with it: `\tokBlockSkip` could not be changed at all until a latent bug was fixed — `-0.4\tokBlockSkip` expanded to `-0.4 9pt` and TeX had been silently reading it as **-0.49pt** rather than the intended -3.6pt, so the token now also exists as a length register — and the DSA appendix leaving the volume at #86 took 96 pages with it |
 | 20| 2026-09-23 | **The DSA appendix is built as its own volume, which the spec has claimed since v1.0** | Improvement #86. § 5 has always excluded the appendix from the book's line budget "because it ships as a companion", and § 1 billed it as one, but `scripts/lib/book.ts` mapped it to part 10 and it bound into the same PDF — 101 of the 1,513 pages measured at #77. The collector now takes a `--volume`, `pnpm book:companion` builds the appendix as its own PDF and EPUB from its own metadata file with its own retail identifier, and **a cross-reference that points at the other volume keeps its title and loses its link**, with the volume named in brackets. That last rule is #78's own treatment of a chapter the site does not publish, applied to print; there were 17 such references, all in the front and back matter, and without it the handbook would have shipped 17 cross-references resolving to "(p. ??)" |
+| 21| 2026-09-24 | **The 940-page edition: part budgets cut from 57,200 to 38,600 lines**, every part reduced, the spine raised to 51.3% | Improvement #95, opening Phase 9. The finished manuscript measured **1,370 pages** — about 2.5 kg in print, too long to read before an interview, and with no obvious place to start. The rule for what stays is narrow: a senior frontend or full stack interviewer asks about it, a frontend-heavy engineer owns it, it explains *why* rather than listing options, and no other chapter already teaches it. Chapters are merged or moved to `Archive/`, never deleted — decision #9. **Why 940 and not 700:** decision #13's ceiling needs roughly 10,000 more lines out, which means dropping a whole part, and #87 proved the print design has no slack left to pay for it (decision #19). 940 is a book a reader can hold and finish, and 430 pages lighter than what exists. **Why the cut is uneven:** Parts V–IX take 37% and Parts I–IV 31%, so the spine rises from 50.03% to 51.3% and gains the 1,000-line margin it has never had; Part III stays largest at 21.8%. The fixed cut order is honoured — Part VIII takes the deepest proportional cut (38%). Decision #13 stays in the log as the aspiration it already was |
+| 22| 2026-09-24 | **A plain-English pass, part by part, replaces the cover-to-cover voice pass of old improvement #92** | Improvement #95. § 3 has always asked for short sentences, everyday words and active voice, and half of this book's readers do not speak English as a first language — but measured prose runs **18.5–21.5 words a sentence**, with 1,317 sentences over 32 words across the nine parts. Old #92 was dropped rather than finished because it would have edited prose that the cut was about to archive. Its replacement is items **#105–#113**, one part each, run **after** the cut, against the 15–20 word target. The idea stays senior; only the sentences carrying it get shorter. The 32-word count is a pointer, not a quota |
+| 23| 2026-09-24 | **The DSA companion stays a product, as Book 2.** Decisions #6 and #20 stand. A proposal to retire it, drafted into Phase 9 as improvement #95a, was **rejected by the owner the same day** | The case for retiring it: the split between the two volumes was never finished. The handbook's `Interview-Question-Index.md` still lists **87 DSA questions** linking to anchors that exist only in the companion, so the handbook ships 87 dead links, and the companion ships with no index at all. Retiring the volume would have fixed that by deleting the product. The case that won: the reader still has to pass the coding round, which is decision #6's reason and has not changed, and #86 has already built the second volume. So **#95a now finishes the split instead** — one question index per volume, and a check that a cross-reference resolves inside its own volume. Book 2 keeps its own 5,600-line ceiling outside the 38,600 total, so it does not affect the 940-page target |
 ---
 
 **Next:** improvement **#2** — extend `write-topic-docs` into the book chapter standard. No new chapter

@@ -46,7 +46,7 @@ Phase 9 has three that matter:
 - **#104 must leave the `budget` rule at 0** for the whole book. It is the last cut item
 - **The plain-English items (#105-#113) run after the cut**, never before. Editing prose that is
   about to be archived wastes the session
-- **#95a runs before the cut items.** It retires the DSA companion, which changes what every later
+- **#95a runs before the cut items.** It finishes the DSA companion as Book 2 and splits the question index by volume, which changes what every later
   item builds, indexes and publishes. Running it late means regenerating the question index twice
 - **#113a, #113b and #115 depend on nothing.** They sit before #114 because the final build has to
   include them, but the user can call any of them early and that is not a reordering
