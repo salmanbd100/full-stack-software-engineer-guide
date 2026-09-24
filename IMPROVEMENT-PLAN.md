@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-24 · **Progress:** 2 / 25
+**Last updated:** 2026-09-24 · **Progress:** 3 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -340,7 +340,7 @@ carries its own index. `pnpm lint:docs` has every rule at its baseline, `pnpm te
 
 ---
 
-### - [ ] 96. Cut Part I — Foundations — to 3,600 lines `M`
+### - [x] 96. Cut Part I — Foundations — to 3,600 lines `M` — ✅ **done 2026-09-24**
 
 From 5,036 lines across 27 files. Part I teaches the language, so it cuts less than most — but three
 of its chapters are reference material and two pairs overlap.
@@ -356,6 +356,43 @@ guards. Those are the questions that actually get asked.
 
 **Done when:** Part I reads ≤ 3,600 lines in `pnpm book:pages`, its `budget` overage is 0, and the
 seven-step checklist is green.
+
+**Delivered:**
+
+- **Part I is 3,474 lines across 19 files**, down from 5,036 across 27. That is 126 lines under the
+  3,600 budget, and **74 pages** in `pnpm book:pages` (it was 106). The `budget` rule is at **16,340**,
+  down from 17,776, and `.lint-baseline.json` is committed at that number
+- **A correction to the candidate list.** It only reached about 3,720 lines: six merges save about 190
+  lines each, not a whole chapter each. Two extra cuts closed the gap:
+  - `JavaScript/09-error-handling` merged into `06-promises-async`, because both taught `Result<T>`,
+    `fetch` not rejecting, and rejections across `await`
+  - `JavaScript/10-modern-js` was archived. It is a list of features by ES year, which is reference
+    material. `??`, `toSorted`/`with`, `Error.cause` and `AbortSignal.any` were kept in the chapters
+    that use them. Iterator helpers and the baseline table were dropped
+- **Seven merges.** Each survivor keeps its slug, so no anchor moved, but it gets a new title:
+  *Data Types, Variables and Built-ins* (+ array methods), *Scope and Closures* (+ functions and
+  scope), *Promises, Async/Await and Errors* (+ error handling), *TypeScript Basic Types, Literals and
+  Enums*, *TypeScript Advanced and Utility Types*, and *OOP and Composition over Inheritance*. Every
+  merged chapter is 213–244 lines. The React error-boundary section in the old error chapter was
+  dropped, because Part III teaches it
+- **Two outright archives:** `05-architectural-patterns`, whose inbound links now point at Part VI's
+  *Service Boundaries*, and `10-modern-js`. All eight files that left the book are in
+  `Archive/foundations/{javascript,typescript,design-patterns}/`, and a table in
+  `Archive/foundations/README.md` records where each one went
+- **Files renumbered** so each section reads 01…N with no gaps (JavaScript 01–06, TypeScript 01–06,
+  Design Patterns 01–03), and `pnpm number:chapters` restamped the front matter. The three section
+  READMEs and `Part-I-Foundations.md` have new chapter tables, counts and sprint paths. Links to the
+  removed slugs were fixed in chapters and `Glossary.md`, and links pointing at a renamed chapter now
+  carry its new title
+- **Checklist:** `lint:docs` has every rule at 0 except `budget`. `number:chapters --check` is clean.
+  `index:questions` regenerated the index, and `index:check` passes: 920 questions across 230
+  chapters, 87 across 16 for Book 2. `check:code-samples` passes syntax, and the type count fell from
+  1,420 to **1,336**, with the baseline committed. `pnpm test` passes 36/36. `pnpm book:pdf` gives
+  1,334 pages, every cross-reference resolves, and no glyphs are missing
+- 🔴 **The frontend spine is now red, and that is temporary:** Parts I–IV are 48.6% against decision
+  #2's 50% floor. Part I was cut first, while Parts V–IX are still at full length. On the new budgets
+  the spine is 51.3%, so it recovers as #100–#104 land. **#98 must not cut Part III below its
+  8,400-line budget to hit the spine early.** Re-read the spine line after #104, not before
 
 ---
 
@@ -767,8 +804,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 2/25 | 🚧 In progress |
-| **Total** | **25** | **2/25** | **8%** |
+| 9 | 95–116 · 95a · 113a · 113b | 3/25 | 🚧 In progress |
+| **Total** | **25** | **3/25** | **12%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

@@ -1,7 +1,7 @@
 ---
 title: TypeScript at Scale
 part: 1
-chapter: 20
+chapter: 14
 slug: typescript-at-scale
 level: advanced # beginner | intermediate | advanced
 reading_time: 11
@@ -227,6 +227,6 @@ inferred type, which is safer for anything crossing a boundary and much cheaper 
 
 ## What to Read Next
 
-- [Chapter ?? — TypeScript Advanced Types](#ch-advanced-types) — the type-level features whose cost this chapter prices
+- [Chapter ?? — TypeScript Advanced and Utility Types](#ch-advanced-types) — the type-level features whose cost this chapter prices
 - [Chapter ?? — Type-Checking and Linting at Scale](#ch-type-checking-and-linting) — project references and keeping whole-program checks off the critical path
 - [Chapter ?? — TypeScript at Scale in React](#ch-react-typescript-at-scale) — the same discipline applied to props, state and the server boundary

@@ -1,7 +1,7 @@
 ---
 title: Design Patterns in TypeScript
 part: 1
-chapter: 25
+chapter: 18
 slug: design-patterns-in-typescript
 level: intermediate # beginner | intermediate | advanced
 reading_time: 15
@@ -209,5 +209,5 @@ when I finally know what the abstraction should look like.
 ## What to Read Next
 
 - [Chapter ?? — SOLID Principles](#ch-solid-principles) — open/closed and dependency inversion, which most of these patterns implement
-- [Chapter ?? — Architectural Patterns](#ch-architectural-patterns) — the same ideas at the scale of a service
-- [Chapter ?? — Composition over Inheritance](#ch-composition-over-inheritance) — why the function forms above beat the class forms here
+- [Chapter ?? — Service Boundaries](#ch-service-boundaries) — the same ideas at the scale of a system
+- [Chapter ?? — OOP and Composition over Inheritance](#ch-composition-over-inheritance) — why the function forms above beat the class forms here

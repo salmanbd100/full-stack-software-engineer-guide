@@ -29,3 +29,19 @@ a table mapping the rest to the TypeScript form that replaces them. What it drop
 prototype, proxy, composite, bridge, command, state, chain of responsibility and template method as
 worked examples — nine patterns that are real, and that a frontend-heavy full stack interview does not
 ask about by name.
+
+## Phase 9 — the 940-page cut (#96)
+
+Improvement **#96** took Part I from 5,036 lines to 3,474. Eight chapters left the book. Six were
+merged into a stronger chapter, and the long originals are kept here. Two were archived outright.
+
+| Directory          | File                          | Where it went                                                      |
+| ------------------ | ----------------------------- | ------------------------------------------------------------------ |
+| `javascript/`      | `02-functions-scope.md`       | Merged into *Scope and Closures* (`#ch-closures`)                  |
+| `javascript/`      | `08-array-object-methods.md`  | Merged into *Data Types, Variables and Built-ins*                  |
+| `javascript/`      | `09-error-handling.md`        | Merged into *Promises, Async/Await and Errors*                     |
+| `javascript/`      | `10-modern-js.md`             | Archived. `??`, `toSorted`/`with`, `Error.cause` and `AbortSignal.any` were kept in the chapters above; iterator helpers and the baseline table were dropped as reference material |
+| `typescript/`      | `04-utility-types.md`         | Merged into *TypeScript Advanced and Utility Types*                |
+| `typescript/`      | `07-enums-literals.md`        | Merged into *TypeScript Basic Types, Literals and Enums*           |
+| `design-patterns/` | `01-oop-core-concepts.md`     | Merged into *OOP and Composition over Inheritance*                 |
+| `design-patterns/` | `05-architectural-patterns.md` | Archived. Part VI's *Service Boundaries* teaches layering at the scale an interview asks for |

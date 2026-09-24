@@ -1,7 +1,7 @@
 ---
 title: The `this` Keyword
 part: 1
-chapter: 5
+chapter: 4
 slug: this-keyword
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
@@ -191,6 +191,5 @@ be spied on via the prototype in tests.
 
 ## What to Read Next
 
-- [Chapter ?? — Functions and Scope](#ch-functions-scope) — what arrows give up in exchange for lexical `this`
 - [Chapter ?? — Prototypes and Inheritance](#ch-prototypes-inheritance) — where `new` binding gets its object from
-- [Chapter ?? — Closures](#ch-closures) — the other mechanism for a function to remember context
+- [Chapter ?? — Scope and Closures](#ch-closures) — what arrows give up for lexical `this`, and the other way a function remembers context

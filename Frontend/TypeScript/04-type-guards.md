@@ -1,7 +1,7 @@
 ---
 title: TypeScript Type Guards
 part: 1
-chapter: 17
+chapter: 12
 slug: type-guards
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
@@ -199,5 +199,5 @@ since a `const` cannot be reassigned and the narrowing holds.
 ## What to Read Next
 
 - [Chapter ?? — Interfaces and Type Aliases](#ch-interfaces-types) — designing unions worth narrowing
-- [Chapter ?? — Advanced Types](#ch-advanced-types) — conditional types, the type-level form of a branch
+- [Chapter ?? — TypeScript Advanced and Utility Types](#ch-advanced-types) — conditional types, the type-level form of a branch
 - [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — schema validation at a real boundary

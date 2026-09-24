@@ -1,7 +1,7 @@
 ---
 title: The Event Loop
 part: 1
-chapter: 8
+chapter: 7
 slug: event-loop
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
@@ -186,6 +186,6 @@ passing and no DOM access.
 
 ## What to Read Next
 
-- [Chapter ?? — Promises and Async/Await](#ch-promises-async) — the microtask producers you use most
-- [Chapter ?? — Functions and Scope](#ch-functions-scope) — why a deferred callback sees the value it does
+- [Chapter ?? — Promises, Async/Await and Errors](#ch-promises-async) — the microtask producers you use most
+- [Chapter ?? — Scope and Closures](#ch-closures) — why a deferred callback sees the value it does
 - [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — the frame budget measured as a user-facing metric

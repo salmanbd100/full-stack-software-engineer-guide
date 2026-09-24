@@ -1,11 +1,11 @@
 ---
 title: Part I — OOP and Design Patterns
 part: 1
-chapter: 21
+chapter: 15
 slug: backend-design-patterns-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-29
+updated: 2026-09-24
 tags: [design-patterns, solid, architecture, typescript, gof]
 in_book: true
 ---
@@ -26,11 +26,9 @@ class hierarchy.
 
 | #  | Chapter                                                              | What it answers                                                  |
 | -- | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 01 | [OOP Core Concepts in TypeScript](#ch-oop-core-concepts)             | Which pillar does the compiler enforce, and which the runtime?   |
-| 02 | [Composition over Inheritance](#ch-composition-over-inheritance)     | Why does the hierarchy break at the fourth level?                |
-| 03 | [SOLID Principles](#ch-solid-principles)                             | Where do the five principles help, and what do they cost?        |
-| 04 | [Design Patterns in TypeScript](#ch-design-patterns-in-typescript)   | Which patterns survive a language that has closures and modules? |
-| 05 | [Architectural Patterns](#ch-architectural-patterns)                 | Where do the layers of a service go, so a change lands once?     |
+| 01 | [OOP and Composition over Inheritance](#ch-composition-over-inheritance) | What does `private` enforce, and why does the hierarchy break at the fourth level? |
+| 02 | [SOLID Principles](#ch-solid-principles)                             | Where do the five principles help, and what do they cost?        |
+| 03 | [Design Patterns in TypeScript](#ch-design-patterns-in-typescript)   | Which patterns survive a language that has closures and modules? |
 
 ## What Interviewers Probe For
 
@@ -51,9 +49,9 @@ For patterns specifically: *can justify a structure rather than apply one by ref
 
 ## Reading Order
 
-Straight through. 01 and 02 are the object model and its limits, 03 turns those limits into rules, and
-04 and 05 are the recurring shapes those rules produce at two different scales.
+Straight through. 01 is the object model and its limits, 02 turns those limits into rules, and 03 is
+the recurring shapes those rules produce. Layering a whole service is Part VI's
+[Chapter ?? — Service Boundaries](#ch-service-boundaries).
 
-**Interview sprint:** 03 → 02 → 05. SOLID gets asked by name, composition versus inheritance is the
-question behind most "how would you refactor this" prompts, and architectural layering is what a
-design round expects you to draw.
+**Interview sprint:** 02 → 01. SOLID gets asked by name, and composition versus inheritance is the
+question behind most "how would you refactor this" prompts.

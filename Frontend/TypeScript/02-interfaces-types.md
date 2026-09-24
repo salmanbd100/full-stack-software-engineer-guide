@@ -1,7 +1,7 @@
 ---
 title: Interfaces and Type Aliases
 part: 1
-chapter: 14
+chapter: 10
 slug: interfaces-types
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
@@ -198,5 +198,5 @@ check, and extra properties are compatible. Annotate at the point of creation to
 ## What to Read Next
 
 - [Chapter ?? — Generics](#ch-generics) — making these shapes reusable across types
-- [Chapter ?? — Utility Types](#ch-utility-types) — `Omit`, `Pick` and `Partial` in depth
+- [Chapter ?? — TypeScript Advanced and Utility Types](#ch-advanced-types) — `Omit`, `Pick` and `Partial` in depth
 - [Chapter ?? — Type Guards](#ch-type-guards) — narrowing a discriminated union at a boundary

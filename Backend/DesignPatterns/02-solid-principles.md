@@ -1,7 +1,7 @@
 ---
 title: SOLID Principles
 part: 1
-chapter: 24
+chapter: 17
 slug: solid-principles
 level: intermediate # beginner | intermediate | advanced
 reading_time: 15
@@ -167,7 +167,7 @@ of wiring, and a domain that stays portable across frameworks.
 
 > **DIP is not DI.** DIP is the principle — depend on an abstraction you own. DI is the delivery
 > mechanism — pass it in. Injecting a concrete class satisfies DI while violating DIP entirely. See
-> [Chapter ?? — Composition over Inheritance](#ch-composition-over-inheritance).
+> [Chapter ?? — OOP and Composition over Inheritance](#ch-composition-over-inheritance).
 
 ## When SOLID Goes Wrong
 
@@ -207,5 +207,5 @@ When the change it protects against isn't coming. An interface with one implemen
 ## What to Read Next
 
 - [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript) — the mechanisms that implement these principles
-- [Chapter ?? — Architectural Patterns](#ch-architectural-patterns) — dependency inversion applied to a whole service
-- [Chapter ?? — Composition over Inheritance](#ch-composition-over-inheritance) — where Liskov violations actually come from
+- [Chapter ?? — Service Boundaries](#ch-service-boundaries) — dependency inversion applied to a whole system
+- [Chapter ?? — OOP and Composition over Inheritance](#ch-composition-over-inheritance) — where Liskov violations actually come from

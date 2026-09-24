@@ -1,7 +1,7 @@
 ---
 title: Prototypes and Inheritance
 part: 1
-chapter: 6
+chapter: 5
 slug: prototypes-inheritance
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
@@ -197,5 +197,4 @@ not expose.
 ## What to Read Next
 
 - [Chapter ?? — The `this` Keyword](#ch-this-keyword) — how `new` binding supplies the object
-- [Chapter ?? — OOP Core Concepts](#ch-oop-core-concepts) — encapsulation and polymorphism on top of this model
-- [Chapter ?? — Composition over Inheritance](#ch-composition-over-inheritance) — when the chain stops helping
+- [Chapter ?? — OOP and Composition over Inheritance](#ch-composition-over-inheritance) — encapsulation on top of this model, and what to do when the chain stops helping

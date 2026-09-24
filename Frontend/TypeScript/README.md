@@ -1,11 +1,11 @@
 ---
 title: Part I — TypeScript
 part: 1
-chapter: 12
+chapter: 8
 slug: frontend-typescript-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-06
+updated: 2026-09-24
 tags: [typescript, generics, narrowing, utility-types, react]
 in_book: true
 ---
@@ -17,8 +17,8 @@ answer is "I add types" and the senior answer is "I add the type that makes the 
 unrepresentable, and I let inference do the rest." This section covers the type system as a design
 tool: what to model, what to derive, and where the cleverness stops paying for itself.
 
-Chapters 01–04 are the everyday type system — annotate, model, reuse. Chapters 05–07 are narrowing
-and exhaustiveness, which is where types start catching real bugs. Applying all of it to React — props,
+Chapters 01–03 are the everyday type system — annotate, model, reuse. Chapters 04–05 are narrowing
+and derived types, which is where types start catching real bugs. Applying all of it to React — props,
 hooks, context, generic components — is [Chapter ?? — React and TypeScript at Scale](#ch-react-typescript-at-scale),
 which sits with the rest of the React chapters in Part III.
 
@@ -26,14 +26,12 @@ which sits with the rest of the React chapters in Part III.
 
 | #  | Chapter                                                        | What it answers                                              |
 | -- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [TypeScript Basic Types](#ch-basic-types)                  | What do `any`, `unknown` and `never` each cost you?          |
+| 01 | [TypeScript Basic Types, Literals and Enums](#ch-basic-types) | What do `any`, `unknown` and `never` cost, and why not `enum`? |
 | 02 | [Interfaces and Type Aliases](#ch-interfaces-types)        | On what two grounds do they actually differ?                 |
 | 03 | [TypeScript Generics](#ch-generics)                        | How do you keep the caller's exact type all the way through? |
-| 04 | [TypeScript Utility Types](#ch-utility-types)              | How do you derive a type instead of maintaining two?         |
-| 05 | [TypeScript Type Guards](#ch-type-guards)                  | How do you get a compile error when you forget a case?       |
-| 06 | [TypeScript Advanced Types](#ch-advanced-types)            | When does computing types from types stop being worth it?    |
-| 07 | [Enums and Literal Types](#ch-enums-literals)              | How do you model a fixed set without a runtime object?       |
-| 08 | [TypeScript at Scale](#ch-typescript-at-scale)             | How do you get an old codebase onto `strict`, and when do types cost too much? |
+| 04 | [TypeScript Type Guards](#ch-type-guards)                  | How do you get a compile error when you forget a case?       |
+| 05 | [TypeScript Advanced and Utility Types](#ch-advanced-types) | How do you derive a type instead of maintaining two, and when does it stop paying? |
+| 06 | [TypeScript at Scale](#ch-typescript-at-scale)             | How do you get an old codebase onto `strict`, and when do types cost too much? |
 
 ## What Interviewers Probe For
 
@@ -51,9 +49,9 @@ The part-level signal with a compile-time twist. What that looks like in practic
 
 ## Reading Order
 
-Straight through, but 02 and 07 are short and can be skimmed if you already write TypeScript daily.
-Chapter 05 is the one to slow down on — narrowing is what makes the rest useful.
+Straight through, but 02 can be skimmed if you already write TypeScript daily. Chapter 04 is the one
+to slow down on — narrowing is what makes the rest useful.
 
-**Interview sprint:** 03 → 05 → 04, then the React chapter in Part III. Generics, narrowing, derived
+**Interview sprint:** 03 → 04 → 05, then the React chapter in Part III. Generics, narrowing, derived
 types, and typing a component between them cover almost every TypeScript question a frontend-heavy loop
 asks.

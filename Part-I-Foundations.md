@@ -5,7 +5,7 @@ chapter: 0
 slug: part-foundations
 level: intermediate
 reading_time: 3
-updated: 2026-09-19
+updated: 2026-09-24
 tags: [javascript, typescript, oop, design-patterns]
 in_book: true
 ---
@@ -27,9 +27,9 @@ annotation. Design patterns are what the first two look like once a codebase has
 
 | Section                                                    | Chapters | What it covers                                                     |
 | ---------------------------------------------------------- | -------- | ------------------------------------------------------------------ |
-| [JavaScript Foundations](#ch-frontend-javascript-index)    | 10       | The object model, closures, `this`, the event loop, error handling |
-| [TypeScript](#ch-frontend-typescript-index)                | 8        | Types, generics, narrowing, utility types, scale                   |
-| [OOP and Design Patterns](#ch-backend-design-patterns-index) | 5      | SOLID, composition, the patterns that survive in TypeScript        |
+| [JavaScript Foundations](#ch-frontend-javascript-index)    | 6        | The object model, closures, `this`, promises and errors, the event loop |
+| [TypeScript](#ch-frontend-typescript-index)                | 6        | Types, generics, narrowing, utility types, scale                   |
+| [OOP and Design Patterns](#ch-backend-design-patterns-index) | 3      | OOP and composition, SOLID, the patterns that survive in TypeScript |
 
 ## What Interviewers Probe For
 
@@ -58,11 +58,11 @@ questions run through all three sections; each section index adds its own.
 Straight through. The JavaScript section is the dependency for the other two: the TypeScript chapters
 assume you know what a prototype is, and the pattern chapters assume both.
 
-**Interview sprint:** JavaScript 03, 04, 06 and 07 — closures, `this`, promise composition and the event
-loop — then TypeScript 03 and 06 for generics and the advanced type operators, then Design Patterns 03
+**Interview sprint:** JavaScript 02, 03, 05 and 06 — closures, `this`, promise composition and the event
+loop — then TypeScript 03 and 05 for generics and the advanced type operators, then Design Patterns 02
 for SOLID. That is the majority of what gets asked in a language round, in seven chapters.
 
-**Skip on a second pass:** the pattern catalogue in Design Patterns 04 is a reference. Read it once,
+**Skip on a second pass:** the pattern catalogue in Design Patterns 03 is a reference. Read it once,
 then come back to it by name when an interviewer uses one.
 
 > ⚠️ **Design patterns sit in `Backend/` for historical reasons, not conceptual ones.** They are Part I

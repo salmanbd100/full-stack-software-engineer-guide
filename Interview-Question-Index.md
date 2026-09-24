@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**937 of them across 238 chapters**. The answers are not repeated here — they are in the chapter,
+**920 of them across 230 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -42,17 +42,17 @@ half is a part to read properly, not to skim again.
 
 ## Part I — Foundations
 
-_70 questions across 23 chapters._
+_53 questions across 15 chapters._
 
-- **[Data Types and Variables](#ch-data-types-variables)**
+- **[Data Types, Variables and Built-ins](#ch-data-types-variables)**
   - Why does changing a property through one variable affect another variable?
   - `const arr = [1, 2]; arr.push(3);` — why is that legal?
-  - When would you deliberately reach for `JSON.parse(JSON.stringify(x))` over `structuredClone`?
-- **[Functions and Scope](#ch-functions-scope)**
+  - What is the difference between `map` and `forEach`?
+  - How would you remove duplicates from an array of objects by `id`?
+  - When is `reduce` the wrong choice?
+- **[Scope and Closures](#ch-closures)**
   - Explain the scope chain.
   - What is the temporal dead zone, and why is it useful?
-  - When would you deliberately not use an arrow function?
-- **[Closures](#ch-closures)**
   - Why does a `var` loop with `setTimeout` print the final value three times?
   - How do closures cause memory leaks?
   - When would you use a `#private` class field instead of a closure?
@@ -64,30 +64,20 @@ _70 questions across 23 chapters._
   - What is the difference between `prototype` and `__proto__`?
   - Are ES2015 classes real classes?
   - When would you prefer `Object.create` to a `class`?
-- **[Promises and Async/Await](#ch-promises-async)**
+- **[Promises, Async/Await and Errors](#ch-promises-async)**
   - What is the difference between `Promise.all` and `Promise.allSettled`?
-  - Why is rejecting with a string a problem?
+  - When would you return an error instead of throwing one?
+  - Why is `catch (e) { console.error(e); }` usually a bug?
   - When would you deliberately await in a loop rather than use `Promise.all`?
 - **[The Event Loop](#ch-event-loop)**
   - What does this log — `setTimeout(() => log('A'), 0)` then `Promise.resolve().then(() => log('B'))`?
   - How can a page freeze even though nothing is synchronously blocking?
   - When would you reach for a Web Worker instead of chunking work with `setTimeout`?
-- **[Array and Object Methods](#ch-array-object-methods)**
-  - What is the difference between `map` and `forEach`?
-  - How would you remove duplicates from an array of objects by `id`?
-  - When is `reduce` the wrong choice?
-- **[Error Handling](#ch-javascript-error-handling)**
-  - When would you return an error instead of throwing one?
-  - How do you handle errors in async code?
-  - Why is `catch (e) { console.error(e); }` usually a bug?
-- **[Modern JavaScript](#ch-modern-javascript)**
-  - Why did the language add `toSorted` when `sort` already existed?
-  - What do iterator helpers give you that array methods do not?
-  - When is optional chaining the wrong tool?
-- **[TypeScript Basic Types](#ch-basic-types)**
+- **[TypeScript Basic Types, Literals and Enums](#ch-basic-types)**
   - What is the difference between `any` and `unknown`?
-  - When should you annotate rather than let TypeScript infer?
   - TypeScript compiled with no errors. What can still go wrong at runtime?
+  - Should you use `enum` in new TypeScript?
+  - When would you keep enums in a codebase that has them?
 - **[Interfaces and Type Aliases](#ch-interfaces-types)**
   - When would you use `interface` over `type`?
   - What is a discriminated union and why prefer it to optional fields?
@@ -96,34 +86,24 @@ _70 questions across 23 chapters._
   - How do you constrain a generic, and why would you need to?
   - When is a generic the wrong tool?
   - What does `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` buy over `(obj: object, key: string): unknown`?
-- **[TypeScript Utility Types](#ch-utility-types)**
-  - What is the difference between `Pick` and `Omit`, beyond direction?
-  - When would you not use `Partial` for an update type?
-  - Why prefer `Record<Status, string>` to `Record<string, string>` for a label map?
 - **[TypeScript Type Guards](#ch-type-guards)**
   - What is a type predicate, and what is its main risk?
   - How does exhaustiveness checking work?
   - Why does narrowing not survive into a callback?
-- **[TypeScript Advanced Types](#ch-advanced-types)**
+- **[TypeScript Advanced and Utility Types](#ch-advanced-types)**
+  - What is the difference between `Pick` and `Omit`, beyond direction?
   - What does `infer` do?
   - What is distribution in conditional types, and when does it bite?
-  - Why prefer `as const` objects over `enum`?
-- **[Enums and Literal Types](#ch-enums-literals)**
-  - Should you use `enum` in new TypeScript?
-  - How do you derive a type from a runtime array of values?
-  - When would you keep enums in a codebase that has them?
+  - When would you not use `Partial` for an update type?
 - **[TypeScript at Scale](#ch-typescript-at-scale)**
   - How would you get a 200,000-line codebase onto `strict`?
   - What does `satisfies` do that a type annotation does not?
   - When have types become too expensive?
-- **[OOP Core Concepts in TypeScript](#ch-oop-core-concepts)**
+- **[OOP and Composition over Inheritance](#ch-composition-over-inheritance)**
   - What is the difference between `private` and `#` in a TypeScript class?
-  - TypeScript is structurally typed. What does that change about polymorphism?
-  - When would you choose an abstract class over an interface?
-- **[Composition over Inheritance](#ch-composition-over-inheritance)**
   - "Favour composition over inheritance" — why?
   - Show me a case where inheritance is the right call.
-  - What is the practical difference dependency injection makes?
+  - TypeScript is structurally typed. What does that change?
 - **[SOLID Principles](#ch-solid-principles)**
   - Explain SRP with a real example.
   - Give a Liskov violation you've actually seen.
@@ -132,11 +112,6 @@ _70 questions across 23 chapters._
   - This `switch` on payment provider keeps growing. What do you do?
   - What is the difference between a decorator, a proxy and an adapter? They all wrap something.
   - When is a pattern the wrong answer?
-- **[Architectural Patterns](#ch-architectural-patterns)**
-  - Why use a Repository if you already have an ORM?
-  - What actually belongs in a service?
-  - How do you know your layering is wrong?
-  - Is this layering overkill for a small service?
 
 ## Part II — The Browser Platform
 

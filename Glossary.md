@@ -24,7 +24,7 @@ the newest material in the book and the part most readers meet cold.
 
 **ABAC** — Attribute-based access control: permissions decided by attributes of the user, resource and context rather than by a fixed role. [Authorisation](#ch-authorisation)
 
-**AbortController** — The browser's cancellation primitive; its `signal` is passed to `fetch` and other APIs so a request can be aborted. [Modern JavaScript](#ch-modern-javascript)
+**AbortController** — The browser's cancellation primitive; its `signal` is passed to `fetch` and other APIs so a request can be aborted. [Promises, Async/Await and Errors](#ch-promises-async)
 
 **Accessibility tree** — The structure assistive technology reads, derived from the DOM plus roles, names and states. [The Accessibility Tree](#ch-accessibility-tree)
 
@@ -62,7 +62,7 @@ the newest material in the book and the part most readers meet cold.
 
 **CLS** — Cumulative Layout Shift: how much visible content moves unexpectedly. Good is under 0.1. [Core Web Vitals](#ch-core-web-vitals)
 
-**Closure** — A function plus the variables it captured from where it was defined. [Closures](#ch-closures)
+**Closure** — A function plus the variables it captured from where it was defined. [Scope and Closures](#ch-closures)
 
 **Code splitting** — Emitting several bundles so a page loads only the code it needs. [Loading and Code Splitting](#ch-loading-and-code-splitting)
 
@@ -186,7 +186,7 @@ the newest material in the book and the part most readers meet cold.
 
 **N+1 query** — One query per row of a previous result, instead of one query for all of them. The standard GraphQL failure. [GraphQL](#ch-graphql)
 
-**Nullish coalescing** — `??`, which falls back only on `null` or `undefined`, unlike `||`. [Modern JavaScript](#ch-modern-javascript)
+**Nullish coalescing** — `??`, which falls back only on `null` or `undefined`, unlike `||`. [Data Types, Variables and Built-ins](#ch-data-types-variables)
 
 ## O
 

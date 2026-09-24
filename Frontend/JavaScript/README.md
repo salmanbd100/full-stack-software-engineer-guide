@@ -5,31 +5,27 @@ chapter: 1
 slug: frontend-javascript-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-08-28
+updated: 2026-09-24
 tags: [javascript, closures, prototypes, event-loop, async]
 in_book: true
 ---
 
 # Part I — JavaScript Foundations
 
-The section splits in two. Chapters 01–05 are the language's object model: how values are stored,
-where names resolve, and what `class` compiles down to. Chapters 06–10 are the runtime: the loop that
-schedules your callbacks, the methods you reach for a hundred times a day, and how to fail honestly.
+The section splits in two. Chapters 01–04 are the language's object model: how values are stored,
+where names resolve, and what `class` compiles down to. Chapters 05–06 are the runtime: how async work
+composes and fails, and the loop that schedules your callbacks.
 
 ## Chapters
 
 | #  | Chapter                                                                | What it answers                                              |
 | -- | ---------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [Data Types and Variables](#ch-data-types-variables)                   | Which values copy, which share, and which comparisons lie?   |
-| 02 | [Functions and Scope](#ch-functions-scope)                             | Where does a variable live, and for how long?                |
-| 03 | [Closures](#ch-closures)                                               | Why does this callback still see the old value?              |
-| 04 | [The `this` Keyword](#ch-this-keyword)                                 | What is `this`, working from the call site alone?            |
-| 05 | [Prototypes and Inheritance](#ch-prototypes-inheritance)               | What is `class` actually doing underneath?                   |
-| 06 | [Promises and Async/Await](#ch-promises-async)                         | How do you compose async work without nesting it?            |
-| 07 | [The Event Loop](#ch-event-loop)                                       | In what exact order will this code log?                      |
-| 08 | [Array and Object Methods](#ch-array-object-methods)                   | Which of these mutates the thing you passed in?              |
-| 09 | [Error Handling](#ch-javascript-error-handling)                        | How do you fail in a way that is recoverable and loggable?   |
-| 10 | [Modern JavaScript](#ch-modern-javascript)                             | Which additions since ES2020 replace something in your code? |
+| 01 | [Data Types, Variables and Built-ins](#ch-data-types-variables)        | Which values copy, which share, and which methods mutate?    |
+| 02 | [Scope and Closures](#ch-closures)                                     | Where does a variable live, and why does this callback still see the old value? |
+| 03 | [The `this` Keyword](#ch-this-keyword)                                 | What is `this`, working from the call site alone?            |
+| 04 | [Prototypes and Inheritance](#ch-prototypes-inheritance)               | What is `class` actually doing underneath?                   |
+| 05 | [Promises, Async/Await and Errors](#ch-promises-async)                 | How do you compose async work, and fail in a way that is recoverable? |
+| 06 | [The Event Loop](#ch-event-loop)                                       | In what exact order will this code log?                      |
 
 ## What Interviewers Probe For
 
@@ -47,8 +43,8 @@ Three questions carry most of the weight in this section, on top of the part-lev
 
 ## Reading Order
 
-Straight through. Chapters 02 and 03 are a pair — closures make no sense without scope — and
-chapters 06 and 07 are the same. Do not skip 07 because you have seen the diagram before.
+Straight through. Chapters 05 and 06 are a pair — a promise's callback runs where the event loop puts
+it. Do not skip 06 because you have seen the diagram before.
 
-**Interview sprint:** 03 → 04 → 07 → 06. Closures, `this`, the event loop and promise composition
+**Interview sprint:** 02 → 03 → 06 → 05. Closures, `this`, the event loop and promise composition
 account for the majority of what gets asked in the language round.

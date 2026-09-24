@@ -1,7 +1,7 @@
 ---
 title: TypeScript Generics
 part: 1
-chapter: 15
+chapter: 11
 slug: generics
 level: intermediate # beginner | intermediate | advanced
 reading_time: 8
@@ -201,6 +201,5 @@ narrowing is needed at the call site.
 
 ## What to Read Next
 
-- [Chapter ?? — Utility Types](#ch-utility-types) — the generics the standard library already gives you
-- [Chapter ?? — Advanced Types](#ch-advanced-types) — conditional and mapped types built on constraints
+- [Chapter ?? — TypeScript Advanced and Utility Types](#ch-advanced-types) — the generics the standard library already gives you, and the conditional and mapped types behind them
 - [Chapter ?? — Type Guards](#ch-type-guards) — validating what a generic only assumes
