@@ -18,7 +18,7 @@ senior reader is not "frontend vs backend" — it is *language*, *platform*, and
 | Part | What it is | Directories here |
 | ---- | ---------- | ---------------- |
 | **I — Foundations** | The language, underneath the definition | [`JavaScript/`](./JavaScript/README.md) · [`TypeScript/`](./TypeScript/README.md) |
-| **II — The Browser Platform** | What the platform gives you before any framework does | [`HtmlCss/`](./HtmlCss/README.md) · [`Accessibility/`](./Accessibility/README.md) · [`BrowserAPIs/`](./BrowserAPIs/) · [`PWA/`](./PWA/README.md) · [`Internationalization/`](./Internationalization/) |
+| **II — The Browser Platform** | What the platform gives you before any framework does | [`HtmlCss/`](./HtmlCss/README.md) · [`Accessibility/`](./Accessibility/README.md) · [`BrowserAPIs/`](./BrowserAPIs/README.md) |
 | **III — The Modern Frontend Stack** | React, Next.js and Svelte, plus the models underneath them | [`ModernStack/`](./ModernStack/README.md) |
 | **IV — Frontend at Scale** | Forty engineers, four years of history, a performance budget | [`Architecture/`](./Architecture/README.md) · [`WebPerformance/`](./WebPerformance/) · [`Security/`](./Security/) · [`Testing/`](./Testing/) |
 
@@ -58,10 +58,9 @@ which makes them cheap differentiation.
 - **[HTML and CSS](./HtmlCss/README.md)** — semantic markup and the CSS that shipped since 2023. Layout
   mechanics are archived; see that section's opener for why
 - **[Accessibility](./Accessibility/README.md)** — the law and WCAG 2.2 AA, the accessibility tree, ARIA,
-  keyboard and focus, forms and error messaging, and how to test any of it
-- **[Browser APIs](./BrowserAPIs/)** — storage, workers, observers, networking
-- **[PWA](./PWA/README.md)** — service workers, manifests, offline patterns, background sync, push
-- **[Internationalization](./Internationalization/)** — locale, formatting, bidirectional text
+  keyboard and focus, and forms and error messaging
+- **[Browser APIs](./BrowserAPIs/README.md)** — storage and IndexedDB, cookies, observers, workers,
+  service workers and offline, and internationalisation with `Intl`
 
 **Senior signal:** reaches for the platform before reaching for a library.
 

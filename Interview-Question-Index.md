@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**920 of them across 230 chapters**. The answers are not repeated here — they are in the chapter,
+**888 of them across 223 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -115,7 +115,7 @@ _53 questions across 15 chapters._
 
 ## Part II — The Browser Platform
 
-_105 questions across 23 chapters._
+_68 questions across 15 chapters._
 
 - **[Semantic HTML](#ch-semantic-html)**
   - When do you use `<section>` versus `<article>` versus `<div>`?
@@ -137,33 +137,18 @@ _105 questions across 23 chapters._
   - What does the View Transitions API actually do for you?
   - How do you handle `prefers-reduced-motion` without making the interface confusing?
   - When would you use a JavaScript animation library rather than the platform?
-- **[Web Storage APIs](#ch-storage-apis)**
+- **[Web Storage and IndexedDB](#ch-storage-apis)**
   - What is the difference between `localStorage` and `sessionStorage`?
   - Why should a JWT not go in `localStorage`?
-  - How do you sync state across tabs?
-  - What happens when you hit the quota, and how would you find out before you do?
-  - When would you choose IndexedDB instead?
+  - When would you choose IndexedDB over `localStorage`?
+  - How do IndexedDB schema migrations work?
+  - What happens when you hit the quota?
 - **[Cookies and SameSite](#ch-cookies-same-site)**
   - Walk me through `SameSite=Strict` versus `Lax` versus `None`.
   - Why is `HttpOnly` more important than `Secure` for an auth cookie?
   - How does `SameSite` prevent CSRF?
   - Why not store the JWT in `localStorage`?
   - How would you do auth across `app.example.com` and `api.example.com`?
-  - What is the third-party cookie phase-out about?
-- **[IndexedDB](#ch-indexeddb)**
-  - When would you choose IndexedDB over `localStorage`?
-  - Why is IndexedDB asynchronous?
-  - How do schema migrations work?
-  - What is a transaction in IndexedDB?
-  - How would you implement an offline-first feature?
-  - What is the size limit?
-- **[Browser Permissions](#ch-browser-permissions)**
-  - How is the Permissions API different from calling the feature directly?
-  - Why might `Notification.requestPermission()` not show a prompt?
-  - How would you build a "Find restaurants near me" button?
-  - How do you make sure the camera indicator turns off?
-  - A user denied notifications. How do you re-prompt?
-  - Which permissions are the risky ones, from a privacy standpoint?
 - **[The Observer APIs](#ch-observer-apis)**
   - Why is `IntersectionObserver` faster than a scroll listener that does the same job?
   - When would you use a `ResizeObserver` rather than a container query?
@@ -174,6 +159,17 @@ _105 questions across 23 chapters._
   - What can and cannot cross the worker boundary?
   - When is a worker the wrong answer to a slow interaction?
   - How does moving work to a worker relate to INP?
+- **[Service Workers, Caching and Offline](#ch-service-workers)**
+  - You shipped a fix an hour ago and users still report the bug. What happened?
+  - What is the difference between `skipWaiting()` and `clients.claim()`?
+  - Walk me through the strategy you would pick for each request on a dashboard.
+  - When would you not use a service worker at all?
+- **[Internationalisation and the Intl APIs](#ch-i18n-fundamentals)**
+  - Why can you not build a sentence by joining translated fragments?
+  - Why is `count === 1 ? 'item' : 'items'` wrong?
+  - How would you show a price to users in several countries?
+  - How would you add right-to-left support to an existing app?
+  - When would you not add an i18n library?
 - **[Why Accessibility, and the Law](#ch-accessibility-and-the-law)**
   - Which accessibility rules apply to a product your company sells across Europe?
   - Why AA rather than A or AAA?
@@ -204,47 +200,6 @@ _105 questions across 23 chapters._
   - When should validation run?
   - Why are `autocomplete` attributes an accessibility concern rather than a convenience?
   - What did WCAG 2.2 change about login forms?
-- **[Testing Accessibility](#ch-testing-accessibility)**
-  - How do you test accessibility?
-  - What can automated tooling not catch?
-  - How would you introduce accessibility gates into a large legacy codebase?
-  - Which screen reader would you test with, and how much does the choice matter?
-  - A pull request adds a component with no accessibility tests. What do you ask for?
-- **[Internationalisation Fundamentals](#ch-i18n-fundamentals)**
-  - What is the difference between i18n and l10n, and which is your job?
-  - Why can you not build a sentence by concatenating translated fragments?
-  - Where do you keep the current locale, and why?
-  - When would you not add an i18n library?
-- **[Pluralisation](#ch-pluralization)**
-  - Why is `count === 1 ? 'item' : 'items'` wrong?
-  - What are the CLDR plural categories, and how do you know which a locale uses?
-  - When would you reach for ICU MessageFormat over suffix keys?
-  - How do you handle zero?
-- **[Date and Number Formatting](#ch-date-number-formatting)**
-  - Why use `Intl` rather than a formatting library?
-  - How would you display a price to users in several countries?
-  - What goes wrong with time zones in a web application?
-  - When would you not format on the client?
-- **[Right-to-Left Support](#ch-rtl-support)**
-  - How would you add RTL support to an existing React application?
-  - What are logical properties, and why not just override with a `[dir='rtl']` block?
-  - Which icons should mirror, and how do you decide?
-  - Where does RTL support cost you something you cannot avoid?
-- **[Service Workers](#ch-service-workers)**
-  - You shipped a fix an hour ago and users still report the bug. What happened?
-  - What is the difference between `skipWaiting()` and `clients.claim()`?
-  - Why is cache-first wrong for HTML but right for `/assets/app.a91f3c.js`?
-  - When would you not use a service worker at all?
-- **[Caching Strategies and Offline UX](#ch-caching-and-offline)**
-  - Walk me through the strategy you would pick for each request on a dashboard.
-  - How do you accept a form submission with no connection?
-  - Why is stale-while-revalidate not the default for everything?
-  - When would you not cache at the service worker layer at all?
-- **[Installability and Push Notifications](#ch-install-and-push)**
-  - What makes a web application installable?
-  - Why does push need a third-party push service at all?
-  - A user reports they never see the notification permission dialogue. What do you check?
-  - When would you skip push entirely?
 
 ## Part III — The Modern Frontend Stack
 
@@ -508,7 +463,7 @@ _204 questions across 51 chapters._
 
 ## Part IV — Frontend at Scale
 
-_81 questions across 23 chapters._
+_86 questions across 24 chapters._
 
 - **[Frontend Architecture Patterns](#ch-frontend-architecture-patterns)**
   - How would you structure a frontend that forty engineers work in?
@@ -614,6 +569,12 @@ _81 questions across 23 chapters._
   - What does visual regression catch that a snapshot test does not?
   - Your integration tests all pass and production is broken because the API renamed a field. What was missing?
   - Why is mutation testing a better signal than coverage?
+- **[Testing Accessibility](#ch-testing-accessibility)**
+  - How do you test accessibility?
+  - What can automated tooling not catch?
+  - How would you introduce accessibility gates into a large legacy codebase?
+  - Which screen reader would you test with, and how much does the choice matter?
+  - A pull request adds a component with no accessibility tests. What do you ask for?
 
 ## Part V — Backend for Frontend Engineers
 

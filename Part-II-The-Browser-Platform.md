@@ -5,7 +5,7 @@ chapter: 0
 slug: part-browser-platform
 level: intermediate
 reading_time: 3
-updated: 2026-09-19
+updated: 2026-09-24
 tags: [html, css, browser-apis, accessibility, i18n, pwa]
 in_book: true
 ---
@@ -17,7 +17,7 @@ shows up in interviews as a specific tell: every answer starts with a library na
 layer underneath — the markup the browser gives meaning to, the storage it offers, the accessibility
 tree it builds whether you think about it or not, and what it does with a locale it has never seen.
 
-Two of the five sections punch well above their line count for this reader. **Accessibility** is a legal
+Two subjects punch well above their line count for this reader. **Accessibility** is a legal
 requirement rather than a nice-to-have: the European Accessibility Act became enforceable in June 2025
 and applies to any company serving EU consumers, wherever that company is based. And frontend system
 design rounds are consistent on this — accessibility and internationalisation are the two topics that
@@ -28,16 +28,14 @@ elsewhere. That makes them cheap differentiation.
 
 | Section                                                         | Chapters | What it covers                                                  |
 | ---------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
-| [HTML and CSS](#ch-frontend-html-css-index)                     | 2        | Semantics the browser acts on, and the modern layout primitives |
-| [Browser APIs](#ch-frontend-browser-apis-index)                 | 4        | Storage, cookies and `SameSite`, IndexedDB, permissions          |
-| [Accessibility](#ch-frontend-accessibility-index)               | 6        | The accessibility tree, ARIA, focus, forms, testing              |
-| [Internationalisation](#ch-frontend-internationalization-index) | 4        | Message keys, plurals, dates and numbers, right-to-left          |
-| [Progressive Web Apps](#ch-frontend-pwa-index)                  | 3        | Service workers, caching and offline, install and push          |
+| [HTML and CSS](#ch-frontend-html-css-index)                     | 4        | Semantics the browser acts on, and the modern layout primitives |
+| [Browser APIs](#ch-frontend-browser-apis-index)                 | 6        | Storage and IndexedDB, cookies, observers, workers, service workers and offline, `Intl` and right-to-left |
+| [Accessibility](#ch-frontend-accessibility-index)               | 5        | The law, the accessibility tree, ARIA, focus, forms              |
 
 ## What Interviewers Probe For
 
 The senior signal for this part is **reaches for the platform before reaching for a library.** Three
-questions run through all five sections; each section index adds its own.
+questions run through all three sections; each section index adds its own.
 
 - **What does the browser already do here?** A `<dialog>`, a `<details>`, a native form validation
   message. Every one of them is a component someone was about to build, with focus management and
@@ -58,11 +56,11 @@ questions run through all five sections; each section index adds its own.
 
 ## Reading Order
 
-HTML and CSS first — the accessibility section assumes it. After that the five sections are independent
-and can be read in any order.
+HTML and CSS first — the accessibility section assumes it. After that the other two sections are
+independent and can be read in either order.
 
-**Interview sprint:** HTML and CSS 01 · Browser APIs 01 and 02 · Accessibility 02 and 03 ·
-Internationalisation 01. Six chapters, and they cover the platform questions that actually get asked.
+**Interview sprint:** HTML and CSS 01 · Browser APIs 01, 02 and 06 · Accessibility 02 and 03. Six
+chapters, and they cover the platform questions that actually get asked.
 
 **Read in full if the role names it:** the accessibility section is the one to read cover to cover for a
 public-sector, banking or EU-facing product. Those loops ask about it properly.

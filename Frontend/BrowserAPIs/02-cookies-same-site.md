@@ -5,7 +5,7 @@ chapter: 8
 slug: cookies-same-site
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-08-28
+updated: 2026-09-24
 tags: [frontend, browser, apis, cookies, same]
 in_book: true
 ---
@@ -124,28 +124,12 @@ await fetch("/transfer", {
 
 ### Reading and writing from JavaScript
 
-The cookie API is famously awkward — every read parses one long string, and every write is a full
-attribute line.
+`document.cookie` is famously awkward: a read returns one long string to parse, and a write is a full
+attribute line. `HttpOnly` cannot be set from it, by design — which is the point.
 
 ```typescript
-// Write. `HttpOnly` cannot be set from JavaScript, by design.
-document.cookie = "theme=dark; Path=/; Max-Age=31536000; SameSite=Lax";
-
-// Read one cookie
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-// Delete, by expiring it
-document.cookie = "theme=; Path=/; Max-Age=0";
-```
-
-The Cookie Store API is the asynchronous replacement, available in Chromium browsers.
-
-```typescript
-await cookieStore.set({ name: "theme", value: "dark", sameSite: "lax" });
-const cookie = await cookieStore.get("theme");
+document.cookie = "theme=dark; Path=/; Max-Age=31536000; SameSite=Lax"; // write
+document.cookie = "theme=; Path=/; Max-Age=0"; // delete, by expiring it
 ```
 
 ## When to Use It
@@ -161,8 +145,8 @@ const cookie = await cookieStore.get("theme");
 
 ### The split-token pattern
 
-The answer most interviewers are listening for: a long-lived refresh token in an `HttpOnly` cookie, a
-short-lived access token in memory: long-lived refresh token in an HttpOnly cookie, short-lived access token in memory.
+The answer most interviewers are listening for: a long-lived refresh token in an `HttpOnly` cookie,
+and a short-lived access token in memory.
 
 ```typescript
 // --- SERVER (Express) ---
@@ -211,23 +195,12 @@ async function api(url: string, init: RequestInit = {}): Promise<Response> {
 - Refresh token is HttpOnly → XSS cannot read it at all.
 - `SameSite=Strict` on the refresh cookie blocks CSRF on `/auth/refresh`.
 
-## Consent and the Law
+### Consent
 
-Under GDPR (EU) and CCPA (California), you need **opt-in consent** before setting cookies that aren't strictly necessary.
-
-| Category | Needs Consent? | Examples |
-|----------|----------------|----------|
-| **Strictly necessary** | ❌ No | Session, CSRF token, load balancer |
-| **Preferences** | ✅ Yes | Theme, language (if not essential) |
-| **Analytics** | ✅ Yes | GA, Mixpanel, Plausible |
-| **Marketing** | ✅ Yes | Ad pixels, retargeting |
-
-**Practical rules:**
-
-1. Set only essential cookies on first load.
-2. Show a banner with **Accept / Reject / Customise** (no pre-ticked boxes — that's not consent).
-3. Persist the choice (in a first-party cookie or `localStorage`) and load other scripts only after consent.
-4. Provide a "Cookie settings" link that lets users change their mind.
+Under GDPR and CCPA, only **strictly necessary** cookies — the session, the CSRF token, a load-balancer
+cookie — may be set before the user agrees. Preferences, analytics and marketing cookies need opt-in
+consent first. The banner offers Accept, Reject and Customise with nothing pre-ticked, and the scripts
+behind it load only after the choice.
 
 ## Common Mistakes
 
@@ -283,13 +256,9 @@ CSRF relies on the browser auto-sending the user's session cookie when an attack
 
 Set the cookie with `Domain=example.com` so both subdomains receive it. Use `SameSite=Lax` (or `Strict` if you don't need cross-site flows) and `Secure`. If `api.example.com` is on a totally different registrable domain, you need `SameSite=None; Secure` and CORS with `credentials: "include"`.
 
-**Q: What is the third-party cookie phase-out about?**
-
-Browsers (Safari ITP, Firefox ETP, Chrome's stalled Privacy Sandbox) are blocking cookies set by domains other than the one in the URL bar. It mostly affects cross-site ad tracking. For first-party use (your session on your own domain), nothing changes. For embedded third-party features (SSO, payments), use the **Storage Access API** or move to first-party endpoints.
-
 ## What to Read Next
 
-- [Chapter ?? — Web Storage APIs](#ch-storage-apis) — the alternative, and why it loses this argument
+- [Chapter ?? — Web Storage and IndexedDB](#ch-storage-apis) — the alternative, and why it loses this argument
 - [Chapter ?? — CORS and CSRF](#ch-cors-csrf) — the server half of the forgery defence
 - [Chapter ?? — Security Headers](#ch-security-headers) — the other headers that close a category
   before an attack starts

@@ -1,7 +1,7 @@
 ---
 title: Web Workers and the Main Thread
 part: 2
-chapter: 12
+chapter: 10
 slug: web-workers
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

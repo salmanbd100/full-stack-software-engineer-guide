@@ -130,7 +130,7 @@ registerRoute(
 Use a library rather than hand-writing the `fetch` handler. The failure mode of a hand-rolled service
 worker is not a slow page — it is a cached shell that never updates, on every device that visited
 once, and you cannot purge it from the server.
-[Chapter ?? — Caching Strategies and Offline UX](#ch-caching-and-offline) covers the offline side and
+[Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) covers the offline side and
 the update lifecycle in full.
 
 ### Client-side data caching is a cache too
@@ -228,5 +228,5 @@ worker is registered and how it handles activation.
 ## What to Read Next
 
 - [Chapter ?? — Loading and Code Splitting](#ch-loading-and-code-splitting) — why vendor chunks and cache lifetime are the same argument
-- [Chapter ?? — Caching Strategies and Offline UX](#ch-caching-and-offline) — the service worker update lifecycle in full
+- [Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) — the service worker update lifecycle in full
 - [Chapter ?? — Caching](#ch-caching) — the same trade at the system-design layer

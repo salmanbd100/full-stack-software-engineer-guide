@@ -64,6 +64,10 @@ Archive/
 ├── foundations/         ← #26: what Part I shed when OOP/ and DesignPatterns/ merged
 │   ├── oop/                 all 7 + README — condensed into two chapters
 │   └── patterns/            3 of 5 — the GoF catalogue, condensed into one chapter
+├── browser-platform/    ← #97: what Part II shed reaching 3,800 lines — see its README
+│   ├── pwa/                 2 of 3 + README — merged into BrowserAPIs/05, or dropped
+│   ├── i18n/                3 of 4 + README — merged into BrowserAPIs/06
+│   └── browser-apis/        IndexedDB (merged into BrowserAPIs/01) and permissions
 ├── backend/             ← #31c, #56a: the 22 files Part V shed reaching its 6,500-line budget
 │   ├── api/                 1 — documentation, merged into API/03 (versioning and contracts)
 │   ├── nodejs/              5 — security folded into Backend/Security/; child processes and

@@ -5,22 +5,24 @@ chapter: 13
 slug: frontend-accessibility-index
 level: advanced
 reading_time: 3
-updated: 2026-09-07
-tags: [accessibility, wcag, aria, keyboard, forms, testing]
+updated: 2026-09-24
+tags: [accessibility, wcag, aria, keyboard, forms]
 in_book: true
 ---
 
 # Part II — Accessibility
 
-Six chapters on the topic that changed status in June 2025. The European Accessibility Act became
+Five chapters on the topic that changed status in June 2025. The European Accessibility Act became
 enforceable, and accessibility stopped being a quality argument a product manager could defer and became
 a requirement with a named standard, a conformance level and an audit. For a senior engineer working on
 anything sold into the EU, that makes this one of the two subjects — with internationalisation — where
 knowing the detail is worth more than knowing another framework.
 
 The section is built around one claim: **most accessibility work is choosing the right element and
-deciding where focus goes.** ARIA is the small remainder, testing is how you find out, and the law is why
-anyone is asking. Read in that order and the six chapters are a single argument rather than a checklist.
+deciding where focus goes.** ARIA is the small remainder, and the law is why anyone is asking. How you
+find out whether you got it right — the axe gate in CI and the two manual passes — is
+[Chapter ?? — Testing Accessibility](#ch-testing-accessibility), which sits with the rest of testing in
+Part IV.
 
 ## Chapters
 
@@ -31,7 +33,6 @@ anyone is asking. Read in that order and the six chapters are a single argument 
 | 03 | [ARIA, and When Not to Use It](#ch-aria)                                   | When is an attribute the answer, and when is it making things worse? |
 | 04 | [Keyboard and Focus Management](#ch-keyboard-and-focus)                     | Can the whole product be used without a mouse, and where does focus go after an action? |
 | 05 | [Accessible Forms and Error Messaging](#ch-accessible-forms)                | How does a user who cannot see the form know what went wrong?        |
-| 06 | [Testing Accessibility](#ch-testing-accessibility)                         | What can be gated in CI, and what has to be done by hand?            |
 
 ## What Interviewers Probe For
 
@@ -57,13 +58,8 @@ attribute.**
 01 first, because it sets the target every other chapter is measured against, then 02, which is the
 mental model the rest depends on — you cannot debug an announcement without reading the tree. Then 04 and
 05, which is where most of the daily work is. 03 sits after 02 deliberately: ARIA makes sense once you
-know what it is writing into. 06 last, and revisit it whenever a pipeline needs a gate.
+know what it is writing into.
 
 **Interview sprint:** 01, 04 and the interview questions in 03. The legal frame, the focus decisions, and
-the first rule of ARIA cover most of what a frontend loop asks — and 06's "what can you not automate" is
-the follow-up that usually decides the answer.
-
-> ⚠️ This section replaces the single accessibility chapter that used to sit in
-> [Part II — HTML and CSS](#ch-frontend-html-css-index). Its material is distributed across all six
-> chapters here, so nothing was lost — but its old anchor no longer exists, and the three
-> cross-references that used it were repointed when this section was created.
+the first rule of ARIA cover most of what a frontend loop asks. "What can you not automate?" is the
+follow-up that usually decides the answer, and Part IV's testing chapter answers it.

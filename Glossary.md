@@ -242,7 +242,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Server Action** — A function marked to run on the server, callable from client code as if it were local. [Server Actions and Mutations](#ch-server-actions)
 
-**Service worker** — A programmable proxy between a page and the network, and the one cache layer you cannot purge from the server. [Service Workers](#ch-service-workers)
+**Service worker** — A programmable proxy between a page and the network, and the one cache layer you cannot purge from the server. [Service Workers, Caching and Offline](#ch-service-workers)
 
 **Sharding** — Splitting one dataset across independent stores by a key, trading joins for capacity. [Sharding](#ch-sharding)
 

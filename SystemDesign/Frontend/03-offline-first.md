@@ -22,7 +22,7 @@ Caching is not offline-first. A cached application can still show a page after t
 
 Offline-first means the local store is what the interface reads from, and the network is a background channel that reconciles it. Every write lands locally first, joins a durable queue, and is replayed when the connection returns. The reads are the easy half and the interviewer knows it; **the round is really about the queue and the merge.**
 
-The mechanics of service workers and IndexedDB belong to the browser platform and are covered in [Chapter ?? — Service Workers](#ch-service-workers) and [Chapter ?? — IndexedDB](#ch-indexeddb). This chapter is about the architecture you build on top of them.
+The mechanics of service workers and IndexedDB belong to the browser platform and are covered in [Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) and [Chapter ?? — Web Storage and IndexedDB](#ch-storage-apis). This chapter is about the architecture you build on top of them.
 
 ## How It Works
 
@@ -174,6 +174,5 @@ Nothing, if the data is single-user and you say what it costs: one of the two ed
 
 ## What to Read Next
 
-- [Chapter ?? — Service Workers](#ch-service-workers) — the mechanism underneath: install, activate, fetch and the update lifecycle
-- [Chapter ?? — Caching Strategies and Offline UX](#ch-caching-and-offline) — cache-first, network-first and stale-while-revalidate in detail
+- [Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) — the mechanism underneath: the update lifecycle and cache-first, network-first and stale-while-revalidate
 - [Chapter ?? — Design a Collaborative Document Editor](#ch-design-collaborative-editor) — where conflict resolution stops being a policy and becomes a data structure

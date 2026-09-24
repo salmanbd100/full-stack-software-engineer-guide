@@ -1,7 +1,7 @@
 ---
 title: The Observer APIs
 part: 2
-chapter: 11
+chapter: 9
 slug: observer-apis
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10

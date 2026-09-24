@@ -91,7 +91,7 @@ part that does not exist in the repository yet.
 | Part | Covers | Budget | Where it lives today |
 | ---- | ------ | ------ | -------------------- |
 | **I — Foundations** | JavaScript semantics · TypeScript · OOP and design patterns | 5,000 | [`Frontend/JavaScript`](./Frontend/JavaScript/), [`Frontend/TypeScript`](./Frontend/TypeScript/), [`Backend/DesignPatterns`](./Backend/DesignPatterns/) |
-| **II — The Browser Platform** | HTML and CSS · Browser APIs · Accessibility · i18n · PWA | 6,000 | [`Frontend/HtmlCss`](./Frontend/HtmlCss/README.md), [`Frontend/BrowserAPIs`](./Frontend/BrowserAPIs/), [`Frontend/PWA`](./Frontend/PWA/README.md) |
+| **II — The Browser Platform** | HTML and CSS · Browser APIs · Accessibility | 6,000 | [`Frontend/HtmlCss`](./Frontend/HtmlCss/README.md), [`Frontend/BrowserAPIs`](./Frontend/BrowserAPIs/README.md), [`Frontend/Accessibility`](./Frontend/Accessibility/README.md) |
 | **III — The Modern Frontend Stack** 🆕 | React · Next.js · Svelte · Rendering · State · Tooling | **12,000** | [`Frontend/ModernStack`](./Frontend/ModernStack/README.md) — scaffolded at #32; chapters are #33–41 |
 | **IV — Frontend at Scale** | Architecture · Web performance · Frontend security · Testing | 5,500 | [`Frontend/WebPerformance`](./Frontend/WebPerformance/), [`Frontend/Security`](./Frontend/Security/), [`Frontend/Testing`](./Frontend/Testing/) |
 | **V — Backend for Frontend Engineers** | Node internals · API design · SQL and NoSQL · Auth | 6,500 | [`Backend`](./Backend/README.md) |

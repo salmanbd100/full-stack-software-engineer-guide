@@ -32,10 +32,10 @@ rewrites of everything underneath it. Almost every recommendation here follows f
 | 05 | [End-to-End Testing with Playwright](#ch-end-to-end-testing)    | Which browser tests earn their runtime, and where does component testing stop? |
 | 06 | [Test-Driven Development](#ch-test-driven-development)           | When does writing the test first genuinely pay?                 |
 | 07 | [Visual and Contract Testing](#ch-visual-and-contract-testing)   | What do you do about failures an assertion cannot express?       |
+| 08 | [Testing Accessibility](#ch-testing-accessibility)               | What can be gated in CI, and what has to be done by hand?        |
 
-Accessibility testing has its own chapter in Part II —
-[Chapter ?? — Testing Accessibility](#ch-testing-accessibility) owns the method, the CI gate and the
-two manual passes. This section deliberately does not restate it.
+Chapter 08 moved here from Part II's accessibility section at #97. It owns the method, the CI gate and
+the two manual passes, so the other chapters here point at it rather than restate it.
 
 ## What Interviewers Probe For
 

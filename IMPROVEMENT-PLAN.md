@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-24 · **Progress:** 3 / 25
+**Last updated:** 2026-09-24 · **Progress:** 4 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -396,7 +396,7 @@ seven-step checklist is green.
 
 ---
 
-### - [ ] 97. Cut Part II — The Browser Platform — to 3,800 lines `M`
+### - [x] 97. Cut Part II — The Browser Platform — to 3,800 lines `M` — ✅ **done 2026-09-24**
 
 From 5,936 lines across 29 files. This part holds the two weakest sections in the book for senior
 interview prep: PWA and internationalisation are each five files deep and are each asked about as one
@@ -414,6 +414,52 @@ live and it is now an interview topic, not a nice-to-have. It is the one section
 grew for a reason.
 
 **Done when:** Part II reads ≤ 3,800 lines, its `budget` overage is 0, and the checklist is green.
+
+**Delivered:**
+
+- **Part II is 3,796 lines across 19 files**, down from 5,936 across 29. That is 4 lines under the
+  3,800 budget, and **88 pages** in `pnpm book:pages` (it was 130). Its `budget` overage is 0. The
+  whole-book `budget` rule is at **14,450**, down from 16,340, and `.lint-baseline.json` is committed at
+  that number. The fall is 1,890 rather than 2,136 because 246 lines moved to Part IV (below)
+- **Two sections became one chapter each, and both moved into `BrowserAPIs/`**, so neither needs a
+  section README:
+  - `PWA/` → *Service Workers, Caching and Offline* (`BrowserAPIs/05`, slug `service-workers`). It keeps
+    the lifecycle, scope, the five strategies, the update prompt and the kill switch. The offline write
+    queue is left to Part VI's *Offline-First Architecture*, which already teaches it as a design question.
+    Install and push were archived
+  - `Internationalization/` → *Internationalisation and the Intl APIs* (`BrowserAPIs/06`, slug
+    `i18n-fundamentals`): whole-sentence keys, locale in the URL, CLDR plurals, `Intl` formatting with
+    time zones, and right-to-left with logical properties
+- **Storage merged:** `01-storage-apis` and `03-indexeddb` became *Web Storage and IndexedDB*
+  (slug `storage-apis`). `04-browser-permissions` was archived. BrowserAPIs is now 01–06 with no gaps
+- **A correction to the candidate list — accessibility.** It said to fold
+  `01-why-accessibility-and-the-law` into the part opener. That chapter **stayed**. It is Part II's
+  sample chapter on the companion site (`SAMPLE_CHAPTERS` in `scripts/build-site.ts`), and the item's own
+  ⚠️ says the section keeps five chapters. `06-testing-accessibility` moved whole to
+  `Frontend/Testing/08-testing-accessibility.md`, with its slug unchanged and `part: 4`. **#99 is amended
+  to carry those 246 lines** — Part IV is now 5,806 lines, a cut of −1,806
+- **The candidate list alone fell 27 lines short**, so `02-cookies-same-site` was trimmed from 295 to
+  264 lines. The Cookie Store API aside and the third-party-cookie question (already in its moving-target
+  callout) were dropped, and the consent section became one paragraph
+- **Archive:** seven files and two section READMEs are in `Archive/browser-platform/{pwa,i18n,browser-apis}/`,
+  with a README table recording where each one went. `Archive/README.md`'s layout tree has the new entry.
+  `scripts/lib/book.ts` `SECTION_ORDER` for Part II lost `Internationalization` and `PWA`
+- **Indexes and links:** the Part II opener, the BrowserAPIs, Accessibility and Testing READMEs,
+  `Frontend/README.md` and the root `README.md` were updated. Links to the removed slugs in Part IV
+  (`WebPerformance/04`), Part VI (`offline-first`) and `HtmlCss/02` now point at the merged chapters,
+  and links to renamed chapters carry the new titles, including `Glossary.md`
+- **Checklist:** `lint:docs` has every rule at 0 except `budget`. `number:chapters` renumbered, and
+  `--check` is clean. `index:questions` regenerated the index, and `index:check` passes: 888 questions
+  across 223 chapters, and 87 across 16 for Book 2. `check:code-samples` passes syntax, and the type
+  total fell from 1,336 to **1,288**, with the baseline committed. One code, `TS2347`, rose by one (12 →
+  13). It comes from `openDB<NotesDB>` in the storage chapter: the call is correct `idb` usage, but every
+  import resolves to `any` in the harness. `pnpm test` passes 36/36. `pnpm book:pdf` gives **1,297
+  pages**, every cross-reference resolves, and no glyphs are missing
+- 🔴 **The frontend spine is still red, at 46.8%**, down from 48.6%. This is the same temporary state #96
+  recorded, and it deepens with each I–IV cut until Parts V–IX land. Re-read it after #104
+- **Not done:** the root `README.md` budget column still shows the pre-Phase-9 numbers for every part.
+  That belongs to #116's launch-material pass. `pnpm site:build` was not run, because the Done-when does
+  not ask for it
 
 ---
 
@@ -444,6 +490,10 @@ has to come back out of Parts V–IX instead.
 ### - [ ] 99. Cut Part IV — Frontend at Scale — to 4,000 lines `M`
 
 From 5,559 lines across 28 files. Four sections, and testing is the one that overgrew.
+
+> 🔴 **Amended by #97, 2026-09-24.** `Testing Accessibility` moved in from Part II as
+> `Frontend/Testing/08-testing-accessibility.md`. Part IV is now **5,806 lines across 29 files**, and
+> the cut is **−1,806**, not −1,559. Testing is 9 files, not 8.
 
 | Section | Now | Candidate |
 | ------- | --- | --------- |
@@ -804,8 +854,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 3/25 | 🚧 In progress |
-| **Total** | **25** | **3/25** | **12%** |
+| 9 | 95–116 · 95a · 113a · 113b | 4/25 | 🚧 In progress |
+| **Total** | **25** | **4/25** | **16%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

@@ -203,13 +203,8 @@ export const PART_OPENERS: Readonly<Record<number, string>> = {
  */
 export const SECTION_ORDER: Readonly<Record<number, readonly string[]>> = {
   1: ["Frontend/JavaScript", "Frontend/TypeScript", "Backend/DesignPatterns"],
-  2: [
-    "Frontend/HtmlCss",
-    "Frontend/BrowserAPIs",
-    "Frontend/Accessibility",
-    "Frontend/Internationalization",
-    "Frontend/PWA",
-  ],
+  // Internationalization/ and PWA/ each became one BrowserAPIs chapter at #97.
+  2: ["Frontend/HtmlCss", "Frontend/BrowserAPIs", "Frontend/Accessibility"],
   3: [
     "Frontend/ModernStack/React",
     "Frontend/ModernStack/NextJS",
