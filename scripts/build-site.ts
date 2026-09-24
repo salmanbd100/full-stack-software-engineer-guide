@@ -24,7 +24,15 @@
 
 import { mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { loadBook, matterFor, PART_NAMES, PART_OPENERS, type Doc } from "./lib/book.ts";
+import {
+  COMPANION_PART,
+  loadBook,
+  matterFor,
+  PART_NAMES,
+  PART_OPENERS,
+  volumeOf,
+  type Doc,
+} from "./lib/book.ts";
 import { STORE_URL, STORE_IS_PLACEHOLDER } from "./lib/store.ts";
 
 const ROOT: string = process.cwd();
@@ -190,16 +198,19 @@ for (const doc of docs) {
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, `${frontMatterFor(doc, title)}\n${body}`);
 
+  // Book 2's question index is back matter of Book 2 (#95a), so it sits with the DSA
+  // pages rather than as a second "Interview Question Index" under Reference.
+  const part: number = doc.part === 0 && volumeOf(doc) === "companion" ? COMPANION_PART : doc.part;
   const key: string =
-    doc.part === 0 ? (matterFor(doc) === "front" ? "front" : "back") : `part-${doc.part}`;
+    part === 0 ? (matterFor(doc) === "front" ? "front" : "back") : `part-${part}`;
   const heading: string =
-    doc.part === 0
+    part === 0
       ? matterFor(doc) === "front"
         ? "Before You Start"
         : "Reference"
-      : doc.part === 10
-        ? PART_NAMES[doc.part]
-        : `Part ${doc.part} — ${PART_NAMES[doc.part]}`;
+      : part === COMPANION_PART
+        ? PART_NAMES[part]
+        : `Part ${part} — ${PART_NAMES[part]}`;
 
   if (!groups.has(key)) groups.set(key, { text: heading, collapsed: true, items: [] });
   groups.get(key)!.items.push({ text: title, link: route });

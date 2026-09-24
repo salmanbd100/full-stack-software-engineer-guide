@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-24 · **Progress:** 1 / 25
+**Last updated:** 2026-09-24 · **Progress:** 2 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -260,7 +260,7 @@ decision log has all three entries.
 
 ---
 
-### - [ ] 95a. Finish Book 2 — the DSA companion volume `M`
+### - [x] 95a. Finish Book 2 — the DSA companion volume `M` — ✅ **done 2026-09-24**
 
 > 🔴 **Amended 2026-09-24, at the owner's request.** This item used to retire the DSA companion and
 > move `DSA/` to `Archive/dsa/`. That is withdrawn. **DSA stays a product: Book 2, its own PDF and
@@ -297,6 +297,46 @@ chapters** with no DSA section, and a Book 2 index at **87 across 16**. `pnpm in
 `pnpm book:pdf` and `pnpm book:companion` both build with zero unresolved cross-references, and Book 2
 carries its own index. `pnpm lint:docs` has every rule at its baseline, `pnpm test` is green, and
 `pnpm site:build` is clean.
+
+**Delivered:**
+
+- **`volumeOf(doc)`** in `scripts/lib/book.ts`. It defers to `volumeOfPart` for every chapter, so there
+  is still one rule for what counts as DSA. The only new case is matter: a `part: 0` file tagged
+  `companion` binds into Book 2. The tag moves nothing that has a part
+- **Two generated indexes.** `pnpm index:questions` writes `Interview-Question-Index.md` at **937
+  questions across 238 chapters**, with no DSA section, and a new `DSA-Question-Index.md` at **87 across
+  16**. That is Book 2's back matter, and its What to Read Next stays inside Book 2. `pnpm index:check`
+  checks both files and fails on either one
+- **The collector** uses `volumeOf`, so `build/companion.md` now ends on a Back Matter divider and its
+  own index. The text that replaces a cross-volume link now reads **"(Book 2)"**, where it used to say
+  "(companion volume)"
+- **The anchor gap is closed.** `lint:docs` collects anchors per volume and has a new rule,
+  **`cross-volume-xref`**, baselined at 0. A link that lands only in the other volume fails, unless it
+  points at that volume's part opener. That exception covers the one intended reference,
+  `How-to-Read-This-Book.md` → `#ch-dsa-index`. Run against the old index, the rule reports **16
+  violations**, one for each DSA chapter heading. So it would have caught this bug
+- **A correction to this item's premise.** It said to leave "the 17 cross-references #86 repaired" alone.
+  16 of those 17 were the index's own DSA chapter links, which this item removes. Only one is left,
+  and it is untouched
+- **`measure-pages.ts`** leaves Book 2's index out of the handbook's back-matter row and counts it in
+  Book 2's line. **`build-site.ts`** puts Book 2's index in the DSA sidebar group, so it is not a second
+  "Interview Question Index" under Reference
+- **The name, which the owner chose in this session:** the retail title stays *The Senior Full Stack
+  Handbook — DSA Patterns*. The subtitle and store description in `companion-meta.yaml` now say
+  **Book 2**. `BOOK-SPEC.md` § 1 has a new **Book 2** row. `Frontend/README.md` and the index
+  paragraph in `CLAUDE.md` were updated to match
+- **Tests:** `pnpm test` passes **36/36**, up from 30. There are three new `volumeOf` tests, a lint
+  test for `cross-volume-xref`, and two index tests: the split itself, and `--check` failing when only
+  Book 2's index is stale
+- **Verified:** `pnpm book:companion` gives 101 pages, *"every #ch- cross-reference resolved"*, zero
+  missing glyphs and a clean epubcheck, and the index is in the PDF. `pnpm book:pdf` gives 1,368
+  pages, all cross-references resolved and zero missing glyphs. `pnpm lint:docs` shows every rule at
+  its baseline, with `budget` still at 17,776. `number:chapters --check`, `check:code-samples` (1,420,
+  at its baseline) and `pnpm site:build` are all clean
+- **Not done, on purpose:** `DSA/README.md` is still titled *Appendix — DSA Patterns*, and
+  `PART_NAMES[10]` still reads the same. So Book 2's part divider still says "Appendix". Renaming it
+  goes beyond the subtitle-and-references option the owner picked. It is a one-line decision for a
+  later session. The handbook EPUB was not rebuilt, because the Done-when does not ask for it
 
 ---
 
@@ -727,8 +767,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 1/25 | 🚧 In progress |
-| **Total** | **25** | **1/25** | **4%** |
+| 9 | 95–116 · 95a · 113a · 113b | 2/25 | 🚧 In progress |
+| **Total** | **25** | **2/25** | **8%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

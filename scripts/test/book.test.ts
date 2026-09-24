@@ -30,6 +30,7 @@ import {
   partBudgets,
   partFor,
   readDoc,
+  volumeOf,
   volumeOfPart,
   type Doc,
 } from "../lib/book.ts";
@@ -68,6 +69,13 @@ before(() => {
   chapter("DSA/01-two-pointers.md", ["title: Two Pointers", "part: 10", "chapter: 1", "slug: two-pointers"]);
   chapter("Preface.md", ["title: Preface", "part: 0", "chapter: 0", "slug: preface", "tags: [front-matter]"]);
   chapter("Glossary.md", ["title: Glossary", "part: 0", "chapter: 0", "slug: glossary", "tags: [back-matter]"]);
+  chapter("DSA-Question-Index.md", [
+    "title: Interview Question Index",
+    "part: 0",
+    "chapter: 101",
+    "slug: dsa-question-index",
+    "tags: [back-matter, companion, index]",
+  ]);
   chapter("Frontend/JavaScript/99-draft.md", [
     "title: Draft",
     "part: 1",
@@ -176,7 +184,7 @@ describe("loadBook", () => {
 
   test("returns reading order: front matter, parts, appendix, back matter", () => {
     const slugs: string[] = loadBook(fixture).map((d: Doc) => d.fm.slug ?? d.rel);
-    assert.deepEqual(slugs, ["preface", "js-index", "closures", "two-pointers", "glossary"]);
+    assert.deepEqual(slugs, ["preface", "js-index", "closures", "two-pointers", "glossary", "dsa-question-index"]);
   });
 
   test("chapter: 0 leads its part — it means part opener, not unstamped", () => {
@@ -207,6 +215,30 @@ describe("volumeOfPart", () => {
   test("only the appendix is the companion", () => {
     assert.equal(volumeOfPart(COMPANION_PART), "companion");
     for (let part = 0; part <= 9; part++) assert.equal(volumeOfPart(part), "book");
+  });
+});
+
+describe("volumeOf", () => {
+  const bySlug = (slug: string): Doc => loadBook(fixture).find((d: Doc) => d.fm.slug === slug)!;
+
+  test("a chapter is in the volume its part is in", () => {
+    // volumeOf must not grow a second rule for what counts as DSA.
+    for (const d of loadBook(fixture).filter((x: Doc) => x.part !== 0)) {
+      assert.equal(volumeOf(d), volumeOfPart(d.part), d.rel);
+    }
+  });
+
+  test("back matter is the handbook's unless it is tagged companion", () => {
+    assert.equal(volumeOf(bySlug("glossary")), "book");
+    assert.equal(volumeOf(bySlug("preface")), "book");
+    assert.equal(volumeOf(bySlug("dsa-question-index")), "companion");
+  });
+
+  test("the companion tag means nothing on a chapter", () => {
+    // Only matter can be moved by the tag. A handbook chapter tagged `companion` by
+    // accident must stay in the handbook, or it would vanish from the PDF silently.
+    const doc: Doc = { ...bySlug("closures"), fm: { ...bySlug("closures").fm, tags: ["companion"] } };
+    assert.equal(volumeOf(doc), "book");
   });
 });
 

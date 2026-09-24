@@ -19,8 +19,13 @@
  * **A cross-reference that points at the other volume keeps its title and loses its
  * link**, with the volume named in brackets. That is the same rule build-site.ts (#78)
  * applies to a chapter the site does not publish, and it is what stops the book shipping
- * a `(p. ??)` where a page number should be. There are 17 of them, all in the front and
- * back matter, all pointing at the appendix.
+ * a `(p. ??)` where a page number should be. #86 counted 17 of them; 16 were the question
+ * index's DSA section, which #95a moved into Book 2's own index. One is left, in the front
+ * matter, and `lint:docs` allows it only because it names Book 2 as a whole — see its
+ * `cross-volume-xref` rule.
+ *
+ * Back matter binds into whichever volume `volumeOf` says, so Book 2 closes on its own
+ * question index (#95a) rather than on none.
  *
  * Two things happen to each chapter on the way in:
  *   1. Its front matter is stripped — pandoc would otherwise read it as book metadata
@@ -37,7 +42,7 @@ import {
   loadBook,
   matterFor,
   PART_NAMES,
-  volumeOfPart,
+  volumeOf,
   type Doc,
   type Matter,
   type Volume,
@@ -50,10 +55,13 @@ const OUT_DIR: string = join(ROOT, "build");
 const VOLUME: Volume = process.argv.includes("--volume=companion") ? "companion" : "book";
 const OUT_FILE: string = join(OUT_DIR, VOLUME === "companion" ? "companion.md" : "book.md");
 
-/** What a cross-reference into the other volume says instead of linking. */
+/**
+ * What a cross-reference into the other volume says instead of linking. The reader sees
+ * these words, so they use the names on the title pages — "Book 2" since #95a.
+ */
 const OTHER_VOLUME: Readonly<Record<Volume, string>> = {
-  book: "companion volume",
-  companion: "main volume",
+  book: "Book 2",
+  companion: "Book 1",
 };
 
 /**
@@ -102,7 +110,7 @@ function ensureAnchor(body: string, doc: Doc): string {
 }
 
 const all: Doc[] = loadBook(ROOT);
-const docs: Doc[] = all.filter((d: Doc) => volumeOfPart(d.part) === VOLUME);
+const docs: Doc[] = all.filter((d: Doc) => volumeOf(d) === VOLUME);
 
 /**
  * Every `#ch-` anchor this volume carries. Anything else a link points at is in the other

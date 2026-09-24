@@ -25,6 +25,7 @@
 | **Formats**   | PDF · EPUB · free web companion                                                                |
 | **Sold on**   | **Leanpub**, in progress — decision #17                                                        |
 | **Companion** | **VitePress**, generated from this manuscript: front and back matter, plus one sample chapter per part |
+| **Book 2**    | *DSA Patterns* — sixteen algorithm patterns, built as its own PDF and EPUB with its own question index. The retail title is unchanged; the subtitle names it **Book 2** — decisions #6, #20, #23 |
 
 **Working shorthand:** _The Handbook_.
 

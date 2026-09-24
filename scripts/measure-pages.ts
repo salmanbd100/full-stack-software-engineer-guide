@@ -34,11 +34,11 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import {
-  COMPANION_PART,
   loadBook,
   matterFor,
   partBudgets,
   PART_NAMES,
+  volumeOf,
   type Doc,
 } from "./lib/book.ts";
 
@@ -183,6 +183,8 @@ function manuscript(docs: Doc[]): Map<number, { chapters: number; lines: number 
   for (const doc of docs) {
     let key: number = doc.part;
     if (key === 0) {
+      // Book 2's question index is back matter of Book 2, not of this PDF (#95a).
+      if (volumeOf(doc) === "companion") continue;
       const matter = matterFor(doc);
       if (matter === "front") key = FRONT;
       else if (matter === "back") key = BACK;
@@ -345,13 +347,13 @@ function main(): void {
  */
 function reportCompanion(docs: Doc[]): void {
   const lines: number = docs
-    .filter((d: Doc) => d.part === COMPANION_PART)
+    .filter((d: Doc) => volumeOf(d) === "companion")
     .reduce((n: number, d: Doc) => n + d.lines, 0);
   if (lines === 0) return;
 
   if (!existsSync(COMPANION_PDF)) {
     console.log(
-      `  ·  Companion volume ${lines.toLocaleString()} lines, not measured:` +
+      `  ·  Book 2 ${lines.toLocaleString()} lines, not measured:` +
         ` build/companion.pdf not found (run \`pnpm book:companion\`)`,
     );
     console.log("");
@@ -360,7 +362,7 @@ function reportCompanion(docs: Doc[]): void {
 
   const pages: number = pdfPages(COMPANION_PDF).length;
   console.log(
-    `  ·  Companion volume ${lines.toLocaleString()} lines over ${pages} pages` +
+    `  ·  Book 2 ${lines.toLocaleString()} lines over ${pages} pages` +
       ` (${(lines / pages).toFixed(1)} l/page), built and counted separately since #86`,
   );
   console.log("");

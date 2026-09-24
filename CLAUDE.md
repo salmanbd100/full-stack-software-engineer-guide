@@ -90,9 +90,13 @@ part's budget. Only `site/index.md` and `site/.vitepress/config.ts` are written 
 site publishes — front matter, all back matter, every index page, and one sample chapter per part
 named in `SAMPLE_CHAPTERS` — is BOOK-SPEC decision #17, not a technical detail.
 
-**`Interview-Question-Index.md` is generated, never hand-edited.** It is 988 questions read out of
-every chapter's `## Interview Questions` block. Change a question in a chapter and the index is stale
-until `pnpm index:questions` runs; `index:check` is what catches it.
+**`Interview-Question-Index.md` and `DSA-Question-Index.md` are generated, never hand-edited.** One
+index per volume (#95a): the handbook's 937 questions, and Book 2's 87, read out of every chapter's
+`## Interview Questions` block. `volumeOf` in `scripts/lib/book.ts` decides which is which — Book 2's
+index is `part: 0` back matter tagged `companion`. Change a question in a chapter and its index is stale
+until `pnpm index:questions` runs; `index:check` catches either one. `lint:docs` has a matching
+`cross-volume-xref` rule: a cross-reference must resolve inside its own volume, except one that names
+the other volume by its part opener.
 
 `scripts/lib/book.ts` is the shared model of what counts as a chapter — the build and the lint both
 import it, so they cannot disagree. Anything new that walks the manuscript should import it too.

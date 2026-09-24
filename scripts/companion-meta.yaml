@@ -8,7 +8,9 @@
 # What is deliberately identical: the author, the edition line, the language and the
 # rights. It is the same book's companion, not a separate publication.
 title: "The Senior Full Stack Handbook — DSA Patterns"
-subtitle: "The companion volume: sixteen patterns, enough to recognise the problem in front of you"
+# "Book 2" is on the title page since #95a. The retail title stays as it was: the owner
+# chose to name the volume in the subtitle rather than rename the product.
+subtitle: "Book 2: sixteen patterns, enough to recognise the problem in front of you"
 
 author: "Salman Rahman"
 date: "2027 Edition"
@@ -26,7 +28,7 @@ identifier:
 publisher: "Salman Rahman"
 
 description: |
-  The companion volume to The Senior Full Stack Handbook. Sixteen algorithm patterns for
+  Book 2 of The Senior Full Stack Handbook. Sixteen algorithm patterns for
   the coding round — what each pattern is, how to recognise it, one worked template, two
   worked examples, its complexity, and a curated problem set. Pattern recognition rather
   than a solution dump: the solved sets live in the repository the chapters point at.

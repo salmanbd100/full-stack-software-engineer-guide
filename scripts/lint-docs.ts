@@ -30,7 +30,9 @@ import {
   loadBook,
   matterFor,
   partBudgets,
+  volumeOf,
   type Doc,
+  type Volume,
 } from "./lib/book.ts";
 
 const ROOT: string = process.cwd();
@@ -65,6 +67,7 @@ type RuleId =
   | "heading-jump"
   | "anchor-mismatch"
   | "unresolved-xref"
+  | "cross-volume-xref"
   | "chapter-blocks"
   | "budget";
 
@@ -78,6 +81,7 @@ const RULE_TITLES: Readonly<Record<RuleId, string>> = {
   "heading-jump": "Heading level jump",
   "anchor-mismatch": "Front-matter slug disagrees with the H1 anchor",
   "unresolved-xref": "Cross-reference to a #ch- anchor no chapter carries",
+  "cross-volume-xref": "Cross-reference into a chapter of the other volume",
   "chapter-blocks": "Chapter missing one of the standard's six blocks",
   budget: "Lines over the BOOK-SPEC § 5 part budget",
 };
@@ -326,22 +330,53 @@ function checkAnchors(docs: Doc[]): void {
   }
 }
 
+/**
+ * **A cross-reference has to resolve inside its own volume** — #95a.
+ *
+ * Checking anchors across the whole tree missed the bug #95a fixed: the handbook's
+ * question index carried 16 links into Book 2's chapters, every one of which resolved in
+ * the repository and none of which resolved in the handbook the reader holds. The
+ * collector demoted them to plain text, so nothing failed and the handbook shipped 87
+ * questions it did not answer.
+ *
+ * So anchors are collected per volume. A reference that lands nowhere at all is still
+ * `unresolved-xref`. One that lands only in the other volume is `cross-volume-xref` —
+ * unless it points at that volume's **part opener**, which is how one book names the other
+ * as a whole ("the DSA patterns are Book 2"). That is #86's rule, and the one reference of
+ * that shape left in the handbook is correct: the title stays, the link goes, and the
+ * volume is named in brackets.
+ */
 function checkCrossReferences(docs: Doc[]): void {
-  const anchors = new Set<string>();
+  const anchors: Record<Volume, Set<string>> = { book: new Set(), companion: new Set() };
+  const openers: Record<Volume, Set<string>> = { book: new Set(), companion: new Set() };
+
   for (const doc of docs) {
-    for (const m of doc.body.matchAll(/\{#(ch-[a-z0-9-]+)\}/g)) anchors.add(m[1]);
-    if (doc.fm.slug) anchors.add(`ch-${doc.fm.slug}`);
+    const volume: Volume = volumeOf(doc);
+    for (const m of doc.body.matchAll(/\{#(ch-[a-z0-9-]+)\}/g)) anchors[volume].add(m[1]);
+    if (doc.fm.slug) anchors[volume].add(`ch-${doc.fm.slug}`);
+    if (doc.fm.slug && PART_OPENERS[doc.part] === doc.rel) openers[volume].add(`ch-${doc.fm.slug}`);
   }
 
   for (const doc of docs) {
+    const own: Volume = volumeOf(doc);
+    const other: Volume = own === "book" ? "companion" : "book";
     const lines: string[] = doc.body.split("\n");
     const offset: number = bodyOffset(doc);
 
     for (let i = 0; i < lines.length; i++) {
       const stripped: string = lines[i].replace(/`[^`]*`/g, "");
       for (const m of stripped.matchAll(/\]\(#(ch-[a-z0-9-]+)\)/g)) {
-        if (!anchors.has(m[1])) {
-          report("unresolved-xref", doc.rel, offset + i + 1, `#${m[1]} has no chapter`);
+        const target: string = m[1];
+        if (anchors[own].has(target)) continue;
+        if (!anchors[other].has(target)) {
+          report("unresolved-xref", doc.rel, offset + i + 1, `#${target} has no chapter`);
+        } else if (!openers[other].has(target)) {
+          report(
+            "cross-volume-xref",
+            doc.rel,
+            offset + i + 1,
+            `#${target} is a chapter of the ${other === "companion" ? "Book 2" : "handbook"} volume`,
+          );
         }
       }
     }

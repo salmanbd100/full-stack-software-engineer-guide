@@ -1,32 +1,39 @@
 /**
  * build-question-index.ts — improvement #73
  *
- * Writes `Interview-Question-Index.md`: every `## Interview Questions` entry in the book,
- * grouped by part and chapter, each chapter carrying a `#ch-` cross-reference.
+ * Writes one question index per volume: `Interview-Question-Index.md` for the handbook and
+ * `DSA-Question-Index.md` for Book 2 (#95a). Each is every `## Interview Questions` entry
+ * in its volume, grouped by part and chapter, each chapter carrying a `#ch-` cross-reference.
  *
  *   node --experimental-strip-types scripts/build-question-index.ts           # write
  *   node --experimental-strip-types scripts/build-question-index.ts --check   # verify only
  *
  * ## Why this is generated rather than written
  *
- * The index is 961 questions over 229 chapters, and it is a *second* copy of text whose
+ * The index is ~1,000 questions over ~250 chapters, and it is a *second* copy of text whose
  * canonical home is the chapter — which BOOK-SPEC.md non-negotiable #7 only tolerates
  * because nothing here is authored. Hand-maintaining it would put it one chapter edit away
  * from being wrong, silently, with no check. #74 and #76 both rewrite chapters after this
  * item, so "silently" would have meant "immediately".
  *
  * `--check` is what keeps it honest: it regenerates into memory and diffs, so a stale index
- * is a failed command rather than a wrong page. Same shape as `number-chapters.ts --check`.
+ * is a failed command rather than a wrong page — for either volume's index. Same shape as `number-chapters.ts --check`.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadBook, matterFor, PART_NAMES, type Doc } from "./lib/book.ts";
+import {
+  COMPANION_PART,
+  loadBook,
+  matterFor,
+  PART_NAMES,
+  volumeOf,
+  type Doc,
+  type Volume,
+} from "./lib/book.ts";
 
 const ROOT: string = process.cwd();
 const CHECK_ONLY: boolean = process.argv.includes("--check");
-const OUT_FILE: string = join(ROOT, "Interview-Question-Index.md");
-const SLUG = "interview-question-index";
 
 /** Part numbers as the book prints them — the part openers all use roman. */
 const ROMAN: Readonly<Record<number, string>> = {
@@ -92,46 +99,99 @@ interface Entry {
   readonly questions: readonly string[];
 }
 
-const docs: Doc[] = loadBook(ROOT).filter(
-  (d: Doc) => d.fm.slug !== SLUG && matterFor(d) === null && d.part !== 0,
-);
-
-const byPart = new Map<number, Entry[]>();
-let total = 0;
-
-for (const doc of docs) {
-  const questions: string[] = questionsIn(doc);
-  if (questions.length === 0) continue;
-  if (!doc.fm.slug || !doc.fm.title) continue;
-
-  if (!byPart.has(doc.part)) byPart.set(doc.part, []);
-  byPart.get(doc.part)!.push({ title: doc.fm.title, slug: doc.fm.slug, questions });
-  total += questions.length;
+/**
+ * One index per volume — #95a.
+ *
+ * Until #95a there was one index, bound into the handbook, and it carried Book 2's 87
+ * questions under an `Appendix — DSA Patterns` heading. None of those 16 chapter links
+ * could resolve in the handbook: `collect-chapters.ts` quietly demoted every one to plain
+ * text, so the handbook listed questions it did not answer and Book 2 shipped with no
+ * index at all. Each volume now indexes its own chapters, and `volumeOf` decides which is
+ * which — there is no second rule here for what counts as DSA.
+ */
+interface IndexSpec {
+  readonly volume: Volume;
+  readonly file: string;
+  readonly slug: string;
+  readonly tags: string;
+  /** What the opening paragraph calls the chapters being indexed. */
+  readonly source: string;
+  readonly readNext: string;
 }
 
-const parts: number[] = [...byPart.keys()].sort((a: number, b: number) => a - b);
-const chapters: number = [...byPart.values()].reduce((n: number, e: Entry[]) => n + e.length, 0);
+const INDEXES: readonly IndexSpec[] = [
+  {
+    volume: "book",
+    file: "Interview-Question-Index.md",
+    slug: "interview-question-index",
+    tags: "[back-matter, interview, index]",
+    source: "the **Interview Questions** block that closes a chapter",
+    readNext: `- [Chapter ?? — Glossary](#ch-glossary) — a term you met in a question, in one line
+- [Chapter ?? — How to Read This Book](#ch-how-to-read-this-book) — where this index sits in the six-week plan
+- [Chapter ?? — Further Reading](#ch-further-reading) — what to read when a whole part came back blank`,
+  },
+  {
+    volume: "companion",
+    file: "DSA-Question-Index.md",
+    slug: "dsa-question-index",
+    tags: "[back-matter, companion, interview, index]",
+    source: "the **Interview Questions** block that closes each pattern in Book 2",
+    readNext: `- [Chapter ?? — DSA Patterns](#ch-dsa-index) — the sixteen patterns, and the order to learn them in
+- [Chapter ?? — Time and Space Complexity](#ch-time-and-space-complexity) — the vocabulary every answer above is scored in`,
+  },
+];
+
+const all: Doc[] = loadBook(ROOT);
 const today: string = new Date().toISOString().slice(0, 10);
 
-const head = `---
+interface Built {
+  readonly spec: IndexSpec;
+  readonly output: string;
+  readonly total: number;
+  readonly chapters: number;
+  readonly parts: number;
+}
+
+function build(spec: IndexSpec): Built {
+  const docs: Doc[] = all.filter(
+    (d: Doc) => matterFor(d) === null && d.part !== 0 && volumeOf(d) === spec.volume,
+  );
+
+  const byPart = new Map<number, Entry[]>();
+  let total = 0;
+
+  for (const doc of docs) {
+    const questions: string[] = questionsIn(doc);
+    if (questions.length === 0) continue;
+    if (!doc.fm.slug || !doc.fm.title) continue;
+
+    if (!byPart.has(doc.part)) byPart.set(doc.part, []);
+    byPart.get(doc.part)!.push({ title: doc.fm.title, slug: doc.fm.slug, questions });
+    total += questions.length;
+  }
+
+  const parts: number[] = [...byPart.keys()].sort((a: number, b: number) => a - b);
+  const chapters: number = [...byPart.values()].reduce((n: number, e: Entry[]) => n + e.length, 0);
+
+  const head = `---
 title: Interview Question Index
 part: 0
 chapter: 101
-slug: ${SLUG}
+slug: ${spec.slug}
 level: intermediate # beginner | intermediate | advanced
-reading_time: 40
+reading_time: ${spec.volume === "book" ? 40 : 5}
 updated: ${today}
-tags: [back-matter, interview, index]
+tags: ${spec.tags}
 in_book: true
 ---
 
-# Interview Question Index {#ch-${SLUG}}
+# Interview Question Index {#ch-${spec.slug}}
 
 > Test yourself on a part in twenty minutes, and find out which chapters you actually have to reread.
 
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
-Every question below is taken from the **Interview Questions** block that closes a chapter. There are
+Every question below is taken from ${spec.source}. There are
 **${total.toLocaleString()} of them across ${chapters} chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
@@ -156,59 +216,69 @@ half is a part to read properly, not to skim again.
 > reconstruct an explanation, and the interview version will arrive with different words around it.
 `;
 
-const body: string[] = [];
+  const body: string[] = [];
 
-for (const part of parts) {
-  const name: string = PART_NAMES[part] ?? "Unsorted";
-  const heading: string =
-    part === 10 ? `## ${name}` : `## Part ${ROMAN[part] ?? part} — ${name}`;
-  const entries: Entry[] = byPart.get(part)!;
-  const count: number = entries.reduce((n: number, e: Entry) => n + e.questions.length, 0);
+  for (const part of parts) {
+    const name: string = PART_NAMES[part] ?? "Unsorted";
+    const heading: string =
+      part === COMPANION_PART ? `## ${name}` : `## Part ${ROMAN[part] ?? part} — ${name}`;
+    const entries: Entry[] = byPart.get(part)!;
+    const count: number = entries.reduce((n: number, e: Entry) => n + e.questions.length, 0);
 
-  body.push("");
-  body.push(heading);
-  body.push("");
-  body.push(`_${count} questions across ${entries.length} chapters._`);
-  body.push("");
+    body.push("");
+    body.push(heading);
+    body.push("");
+    body.push(`_${count} questions across ${entries.length} chapters._`);
+    body.push("");
 
-  for (const entry of entries) {
-    body.push(`- **[${entry.title}](#ch-${entry.slug})**`);
-    for (const q of entry.questions) body.push(`  - ${q}`);
+    for (const entry of entries) {
+      body.push(`- **[${entry.title}](#ch-${entry.slug})**`);
+      for (const q of entry.questions) body.push(`  - ${q}`);
+    }
   }
-}
 
-const tail = `
+  const tail = `
 ## What to Read Next
 
-- [Chapter ?? — Glossary](#ch-glossary) — a term you met in a question, in one line
-- [Chapter ?? — How to Read This Book](#ch-how-to-read-this-book) — where this index sits in the six-week plan
-- [Chapter ?? — Further Reading](#ch-further-reading) — what to read when a whole part came back blank
+${spec.readNext}
 `;
 
-const output: string = head + body.join("\n") + "\n" + tail;
-
-if (CHECK_ONLY) {
-  let current = "";
-  try {
-    current = readFileSync(OUT_FILE, "utf8");
-  } catch {
-    console.log("\n❌ Interview-Question-Index.md does not exist. Run pnpm index:questions.\n");
-    process.exit(1);
-  }
-  // `updated:` moves on its own; everything below the front matter is what has to match.
-  const strip = (s: string): string => s.slice(s.indexOf("\n---", 4));
-  if (strip(current) !== strip(output)) {
-    console.log(
-      `\n❌ Interview-Question-Index.md is stale — ${total} questions in the tree. Run pnpm index:questions.\n`,
-    );
-    process.exit(1);
-  }
-  console.log(`\n✅ Interview-Question-Index.md is current — ${total} questions, ${chapters} chapters.\n`);
-  process.exit(0);
+  return { spec, output: head + body.join("\n") + "\n" + tail, total, chapters, parts: parts.length };
 }
 
-writeFileSync(OUT_FILE, output, "utf8");
-console.log(
-  `\n📇 build-question-index — ${total} questions from ${chapters} chapters across ${parts.length} parts`,
-);
-console.log(`   → Interview-Question-Index.md (${output.split("\n").length} lines)\n`);
+const built: Built[] = INDEXES.map(build);
+
+if (CHECK_ONLY) {
+  // `updated:` moves on its own; everything below the front matter is what has to match.
+  const strip = (s: string): string => s.slice(s.indexOf("\n---", 4));
+  let stale = false;
+
+  for (const { spec, output, total, chapters } of built) {
+    let current: string | null = null;
+    try {
+      current = readFileSync(join(ROOT, spec.file), "utf8");
+    } catch {
+      console.log(`\n❌ ${spec.file} does not exist. Run pnpm index:questions.`);
+      stale = true;
+      continue;
+    }
+    if (strip(current) !== strip(output)) {
+      console.log(`\n❌ ${spec.file} is stale — ${total} questions in the tree. Run pnpm index:questions.`);
+      stale = true;
+      continue;
+    }
+    console.log(`\n✅ ${spec.file} is current — ${total} questions, ${chapters} chapters.`);
+  }
+
+  console.log("");
+  process.exit(stale ? 1 : 0);
+}
+
+console.log("\n📇 build-question-index");
+for (const { spec, output, total, chapters, parts } of built) {
+  writeFileSync(join(ROOT, spec.file), output, "utf8");
+  console.log(
+    `   ${spec.volume.padEnd(9)} ${total} questions from ${chapters} chapters across ${parts} part(s) → ${spec.file} (${output.split("\n").length} lines)`,
+  );
+}
+console.log("");

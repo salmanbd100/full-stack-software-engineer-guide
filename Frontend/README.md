@@ -118,4 +118,4 @@ Part VI. Architecture patterns, micro-frontends and design systems used to live 
 
 - [System Design](../SystemDesign/README.md) — Part VI
 - [Backend](../Backend/README.md) — Part V
-- [DSA](../DSA/README.md) — the companion volume
+- [DSA](../DSA/README.md) — Book 2, the companion volume

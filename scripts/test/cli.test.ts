@@ -13,7 +13,7 @@
 
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, cpSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync, type SpawnSyncReturns } from "node:child_process";
@@ -21,11 +21,11 @@ import { spawnSync, type SpawnSyncReturns } from "node:child_process";
 const ROOT: string = process.cwd();
 
 /** Front matter with every key the standard requires, so only the intended rule fires. */
-function matter(title: string, chapter: number, slug: string): string[] {
+function matter(title: string, chapter: number, slug: string, part = 1): string[] {
   return [
     "---",
     `title: ${title}`,
-    "part: 1",
+    `part: ${part}`,
     `chapter: ${chapter}`,
     `slug: ${slug}`,
     "level: intermediate",
@@ -119,6 +119,32 @@ describe("lint-docs", () => {
       "utf8",
     );
 
+    // Book 2: an opener and one chapter. The handbook may name Book 2 by its opener, never
+    // link into one of its chapters — the #95a bug, where the handbook's question index
+    // carried 16 links that resolved in the repository and nowhere in the handbook.
+    const dsa: string = join(fixture, "DSA");
+    mkdirSync(dsa, { recursive: true });
+    writeFileSync(join(dsa, "README.md"), [...matter("DSA", 0, "dsa-index", 10), "", "# DSA {#ch-dsa-index}", ""].join("\n"), "utf8");
+    writeFileSync(
+      join(dsa, "01-two-pointers.md"),
+      [...matter("Two Pointers", 1, "two-pointers", 10), "", "# Two Pointers {#ch-two-pointers}", ""].join("\n"),
+      "utf8",
+    );
+    writeFileSync(
+      join(dir, "04-cross-volume.md"),
+      [
+        ...matter("Cross", 4, "cross"),
+        "",
+        "# Cross {#ch-cross}",
+        "",
+        "The patterns are [DSA](#ch-dsa-index).",
+        "",
+        "See [Chapter ?? — Two Pointers](#ch-two-pointers).",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
     // Faulty: no front matter at all.
     writeFileSync(join(dir, "02-no-front-matter.md"), "# Orphan\n\nNothing above.\n", "utf8");
 
@@ -166,6 +192,13 @@ describe("lint-docs", () => {
     assert.ok(stdout.includes("ch-nowhere"), "the dead anchor was not named");
   });
 
+  test("catches a link into a chapter of the other volume", () => {
+    const stdout: string = run("lint-docs.ts", fixture, ["--rule=cross-volume-xref"]).stdout;
+    assert.ok(/1 violation\(s\) of cross-volume-xref/.test(stdout), stdout);
+    assert.ok(stdout.includes("#ch-two-pointers"), "the chapter link was not named");
+    assert.equal(stdout.includes("#ch-dsa-index"), false, "naming Book 2 by its opener was flagged");
+  });
+
   test("catches a relative file link where a cross-reference belongs", () => {
     assert.equal(count(run("lint-docs.ts", fixture).stdout, "Relative file link"), 1);
   });
@@ -187,6 +220,64 @@ describe("lint-docs", () => {
   test("--rule narrows the report to one rule", () => {
     const stdout: string = run("lint-docs.ts", fixture, ["--rule=fence-language"]).stdout;
     assert.ok(/1 violation\(s\) of fence-language/.test(stdout), stdout);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// index:questions — one index per volume (#95a)
+// ---------------------------------------------------------------------------
+
+describe("build-question-index", () => {
+  let fixture: string;
+
+  function questions(title: string, chapter: number, slug: string, part: number, qs: string[]): string {
+    return [...matter(title, chapter, slug, part), "", `# ${title} {#ch-${slug}}`, "", "## Interview Questions", "",
+      ...qs.flatMap((q: string) => [`**Q: ${q}**`, "", "An answer.", ""])].join("\n");
+  }
+
+  before(() => {
+    fixture = mkdtempSync(join(tmpdir(), "index-fixture-"));
+    mkdirSync(join(fixture, "Frontend", "JavaScript"), { recursive: true });
+    mkdirSync(join(fixture, "DSA"), { recursive: true });
+    writeFileSync(
+      join(fixture, "Frontend", "JavaScript", "01-closures.md"),
+      questions("Closures", 1, "closures", 1, ["What does a closure capture?", "Why do loops surprise people?"]),
+      "utf8",
+    );
+    writeFileSync(
+      join(fixture, "DSA", "01-two-pointers.md"),
+      questions("Two Pointers", 1, "two-pointers", 10, ["When do two pointers beat a hash map?"]),
+      "utf8",
+    );
+  });
+
+  after(() => rmSync(fixture, { recursive: true, force: true }));
+
+  test("writes each volume's questions into its own index, and only there", () => {
+    const result: Run = run("build-question-index.ts", fixture);
+    assert.equal(result.status, 0, result.stdout);
+
+    const handbook: string = readFileSync(join(fixture, "Interview-Question-Index.md"), "utf8");
+    const book2: string = readFileSync(join(fixture, "DSA-Question-Index.md"), "utf8");
+
+    assert.ok(handbook.includes("What does a closure capture?"));
+    assert.equal(handbook.includes("#ch-two-pointers"), false, "Book 2 leaked into the handbook index");
+    assert.equal(handbook.includes("DSA Patterns"), false, "the handbook index kept a DSA section");
+
+    assert.ok(book2.includes("When do two pointers beat a hash map?"));
+    assert.equal(book2.includes("#ch-closures"), false, "the handbook leaked into Book 2's index");
+    assert.ok(/tags: \[[^\]]*\bcompanion\b/.test(book2), "Book 2's index is not tagged into its volume");
+  });
+
+  test("--check fails when either index is stale, not only the handbook's", () => {
+    run("build-question-index.ts", fixture);
+    assert.equal(run("build-question-index.ts", fixture, ["--check"]).status, 0);
+
+    const file: string = join(fixture, "DSA-Question-Index.md");
+    writeFileSync(file, readFileSync(file, "utf8").replace("hash map", "hash set"), "utf8");
+    const result: Run = run("build-question-index.ts", fixture, ["--check"]);
+    assert.notEqual(result.status, 0);
+    assert.ok(result.stdout.includes("DSA-Question-Index.md is stale"), result.stdout);
   });
 });
 

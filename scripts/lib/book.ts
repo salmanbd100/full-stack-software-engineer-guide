@@ -104,6 +104,20 @@ export function volumeOfPart(part: number): Volume {
   return part === COMPANION_PART ? "companion" : "book";
 }
 
+/**
+ * Which volume one file binds into — #95a.
+ *
+ * `volumeOfPart` is the rule for chapters and stays the only rule for what counts as DSA.
+ * Matter is the one case it cannot answer: every `part: 0` file sits outside the parts, so
+ * the part number says nothing about which book it closes. Book 2's question index is back
+ * matter of Book 2, and it says so with a `companion` tag beside `back-matter` — the same
+ * tag-as-discriminator arrangement `matterFor` uses, rather than a new front-matter key.
+ */
+export function volumeOf(doc: Doc): Volume {
+  if (doc.part === 0 && (doc.fm.tags ?? []).includes("companion")) return "companion";
+  return volumeOfPart(doc.part);
+}
+
 export const PART_NAMES: Readonly<Record<number, string>> = {
   1: "Foundations",
   2: "The Browser Platform",
