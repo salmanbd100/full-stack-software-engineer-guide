@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-24 · **Progress:** 5 / 25
+**Last updated:** 2026-09-24 · **Progress:** 8 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -539,7 +539,7 @@ has to come back out of Parts V–IX instead.
 
 ---
 
-### - [ ] 99. Cut Part IV — Frontend at Scale — to 4,000 lines `M`
+### - [x] 99. Cut Part IV — Frontend at Scale — to 4,000 lines `M` — ✅ **done 2026-09-24**
 
 From 5,559 lines across 28 files. Four sections, and testing is the one that overgrew.
 
@@ -559,9 +559,37 @@ every 2027 loop now asks.
 
 **Done when:** Part IV reads ≤ 4,000 lines, its `budget` overage is 0, and the checklist is green.
 
+**Delivered:**
+
+- **Part IV is 3,892 lines across 15 chapters**, down from 5,803 across 24. That is 108 lines under the
+  4,000 budget. Its `budget` overage is 0. Sections: Architecture 4, Web Performance 4, Security 2,
+  Testing 5. #99, #100 and #101 ran in one session, so the whole-book `budget` figure for all three is
+  in #101
+- **A correction to the candidate list.** The seven listed moves save about 1,500 lines, not 1,806,
+  because a merge of two ~225-line chapters saves about 215. Two extra merges closed the gap:
+  - `Security/04-client-side-input-handling` merged into `01-xss-prevention`, now *XSS Prevention and
+    Untrusted Input*. Both chapters were about where an untrusted string crosses into markup, a URL or
+    a style
+  - `WebPerformance/03-bundles-budgets-and-third-parties` merged into `02-loading-and-code-splitting`,
+    now *Loading, Code Splitting and Bundle Budgets*
+- **Seven merges.** Each survivor keeps its slug, so no anchor moved. The new titles are:
+  - *Writing the Tests: Vitest and React Testing Library* (`#ch-vitest`)
+  - *End-to-End, Visual and Contract Testing with Playwright* (`#ch-end-to-end-testing`)
+  - *Caching and Asset Delivery* (`#ch-asset-delivery`)
+  - *Content Security Policy and Security Headers* (`#ch-content-security-policy`)
+  - *Design Systems, Dependencies and Upgrades* (`#ch-design-systems-at-scale`)
+  - and the two above. Every merged chapter is 244–246 lines
+- **Two outright archives:** `Testing/06-test-driven-development` and `WebPerformance/06-rendering-and-streaming`.
+  Links to the second now point at Part III's *Performance, Transitions and the Compiler*.
+  `05-reviewing-ai-generated-code` is whole, as the item asked; it is now `Architecture/04`
+- **Archive:** nine files are in `Archive/frontend-at-scale/{architecture,web-performance,security,testing}/`,
+  and its README records where each one went. The four section READMEs and `Part-IV-Frontend-at-Scale.md`
+  have new chapter tables, counts and sprint paths. Files are renumbered 01…N in every section
+- **Checklist:** see #101 — the three items shared one run of it
+
 ---
 
-### - [ ] 100. Cut Part V — Backend for Frontend Engineers — to 4,000 lines `L`
+### - [x] 100. Cut Part V — Backend for Frontend Engineers — to 4,000 lines `L` — ✅ **done 2026-09-24**
 
 From 6,500 lines across 35 files — a 38% cut, the largest share of any part except Part VIII. The
 title of the part is the rule: this is backend **for a frontend engineer**, not a backend course.
@@ -578,9 +606,41 @@ title of the part is the rule: this is backend **for a frontend engineer**, not 
 
 **Done when:** Part V reads ≤ 4,000 lines, its `budget` overage is 0, and the checklist is green.
 
+**Delivered:**
+
+- **Part V is 3,972 lines across 15 chapters**, down from 6,500 across 27. That is 28 lines under the
+  4,000 budget. Its `budget` overage is 0. There are five sections now, not seven: NodeJS 3, API 5,
+  SQL 3, NoSQL 1, Security 3
+- **The candidate table was out of date.** It was written against an older tree: NodeJS had 5 files, not
+  6, Frameworks had 3, and Security had 5. The moves below follow the table's intent
+- **Ten merges.** Each survivor keeps its slug. The new titles are:
+  - *The Node.js Event Loop, Async and Errors* (`#ch-event-loop-async`) takes in `NodeJS/04-error-handling`.
+    This one was not on the list. It was needed for the line count, and Part I already teaches
+    promise errors, so only the Node-specific half survives
+  - *Node.js Performance, Streams and Scaling* (`#ch-nodejs-performance`) takes in `02-streams-buffers`
+  - *Express, Hono and Edge Runtimes* (`#ch-express`) takes in `Frameworks/03-hono-edge`
+  - *REST Best Practices and Versioning* (`#ch-rest-best-practices`) takes in `API/03-versioning`. It is
+    still the book's voice model, and it was cut from 259 lines to 244 rather than grown
+  - *GraphQL, tRPC and Typed API Choices* (`#ch-graphql`) takes in `06-trpc-typed-apis`
+  - *SQL Fundamentals and Schema Design* (`#ch-sql-fundamentals`) and *Indexes, Query Plans, ORMs and
+    Migrations* (`#ch-indexes`)
+  - *Choosing a Non-Relational Store: Documents and Redis* (`#ch-document-databases`)
+  - *OAuth, OIDC and Authorisation* (`#ch-oauth`) takes in `03-authorisation`
+  - *Credentials, Sessions, CORS and CSRF* (`#ch-credentials-and-sessions`) takes in `04-cors-csrf`
+- **A correction to the candidate list — CORS and CSRF.** It said to fold `04-cors-csrf` into Part IV's
+  security section. It went into `Backend/Security/01` instead. Part IV had 108 lines of headroom, and
+  the CSRF defence is configured on the server. Part IV's security README now points there
+- **Two outright archives:** `NodeJS/03-module-system` and `Frameworks/02-nestjs`
+- **Two sections folded:** Express moved into `NodeJS/03`, so `Frameworks/` is gone. *Testing a Node
+  Service* moved to `API/05` with its slug unchanged, so `Backend/Testing/` is gone. Both READMEs are in
+  the archive. `SECTION_ORDER` in `scripts/lib/book.ts` lost both directories
+- **Archive:** twelve chapters and two section READMEs are in `Archive/backend-for-frontend/`, with a
+  README table. The Part V opener (`Backend/README.md`) and four section READMEs are rewritten
+- **Checklist:** see #101
+
 ---
 
-### - [ ] 101. Cut Part VI — System Design — to 4,400 lines `M`
+### - [x] 101. Cut Part VI — System Design — to 4,400 lines `M` — ✅ **done 2026-09-24**
 
 From 6,293 lines across 35 files. `BOOK-SPEC.md` § 5 names the case studies as an early cut, and the
 building blocks carry three pairs that teach the same idea twice.
@@ -597,6 +657,49 @@ building blocks carry three pairs that teach the same idea twice.
 an interview.
 
 **Done when:** Part VI reads ≤ 4,400 lines, its `budget` overage is 0, and the checklist is green.
+
+**Delivered:**
+
+- **Part VI is 4,357 lines across 18 chapters**, down from 6,291 across 29. That is 43 lines under the
+  4,400 budget. Its `budget` overage is 0. Sections: Fundamentals 4, Building Blocks 6, Data at Scale 2,
+  Frontend 3, Case Studies 3
+- **Seven merges.** Each survivor keeps its slug. The new titles are:
+  - *Driving the Design Round, Backend and Frontend* (`#ch-driving-the-round`) takes in
+    `Frontend/01-interview-strategy`. This was not on the list. The two chapters taught how to run the
+    round twice, so RADIO for a client application became the second half of the chapter the item
+    says not to cut. It is still whole, at 244 lines
+  - *Scalability, Latency and Throughput* and *Reliability, Consistency and CAP*
+  - *Queues, Async Work and WebSockets* and *Service Boundaries and the API Gateway*
+  - *Choosing a Datastore and Replicating It* and *Sharding and Transactions at Scale*. `03-sharding`
+    was 260 lines, and the merged chapter is 244
+- **Four outright archives:** `BuildingBlocks/05-search`, `CaseStudies/02-ticketmaster`,
+  `CaseStudies/05-live-dashboard` and `Frontend/04-seo-analytics`
+- **A correction to the candidate list — SEO.** It said to fold `04-seo-analytics` into Part IV. It was
+  archived instead, because Part IV had 108 lines of headroom and Part III's *Choosing a Rendering
+  Strategy per Route, with SEO* already owns what the crawler sees
+- **Archive:** eleven files are in `Archive/system-design/`, with a README table. The older
+  `Archive/systemdesign/` is left alone. The Part VI opener and all five section READMEs are rewritten
+- **The shared checklist, run once for #99–#101:**
+  - `number:chapters` renumbered every file, and `--check` is clean
+  - 145 broken cross-references were repaired. Each was repointed at the chapter that absorbed its
+    target, and the link text now carries that chapter's new title. The same was done in `Glossary.md`.
+    Eight *What to Read Next* lists that ended up naming one chapter twice were collapsed. Three links
+    to outright archives were removed by hand
+  - `lint:docs` has every rule at 0 except `budget`. **`budget` is at 4,980**, down from 11,174, and
+    `.lint-baseline.json` is committed at that number. Only Parts VII, VIII and IX are still over
+  - `index:questions` regenerated both indexes, and `index:check` passes: **753 questions across 174
+    chapters**, and 87 across 16 for Book 2
+  - `check:code-samples` passes syntax, and the type total fell from 1,229 to **1,013**, with the
+    baseline committed. No code went up
+  - `pnpm test` passes 36/36
+  - `pnpm book:pdf` gives **1,060 pages**, down from 1,218. Every cross-reference resolves to a
+    chapter and a page, and the log has zero missing glyphs. In `pnpm book:pages`, Part IV is 86 pages,
+    Part V 88 and Part VI 102
+- 🔴 **The frontend spine is at 45.2%**, up from 43.2%, because cutting V and VI raises I–IV's share. It
+  is still below decision #2's 50% floor, and recovers only once #102–#104 land. That check belongs to #104
+- **Not done:** `pnpm site:build` was not run, because the Done-when does not ask for it. The merges were
+  written by parallel agents from one shared brief. Every report was checked and the lint covers every
+  chapter, but the 24 merged chapters were not read line by line in this session. #108–#110 do that
 
 ---
 
@@ -907,8 +1010,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 5/25 | 🚧 In progress |
-| **Total** | **25** | **5/25** | **20%** |
+| 9 | 95–116 · 95a · 113a · 113b | 8/25 | 🚧 In progress |
+| **Total** | **25** | **8/25** | **32%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

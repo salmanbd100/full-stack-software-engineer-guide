@@ -1,57 +1,56 @@
 ---
-title: Loading and Code Splitting
+title: Loading, Code Splitting and Bundle Budgets
 part: 4
-chapter: 9
+chapter: 8
 slug: loading-and-code-splitting
-level: intermediate # beginner | intermediate | advanced
-reading_time: 12
-updated: 2026-09-09
-tags: [code-splitting, lazy-loading, prefetch, intersection-observer, performance]
+level: advanced # beginner | intermediate | advanced
+reading_time: 16
+updated: 2026-09-24
+tags: [code-splitting, lazy-loading, prefetch, bundle-size, tree-shaking, performance-budget, ci, third-party-scripts, performance]
 in_book: true
 ---
 
-# Loading and Code Splitting {#ch-loading-and-code-splitting}
+# Loading, Code Splitting and Bundle Budgets {#ch-loading-and-code-splitting}
 
-> Ship less on the first request, fetch the rest before the user notices, and know which things must never be deferred.
+> Ship fewer bytes, send the rest just before they are needed, and put a gate in CI so the savings last.
 
-**In this chapter:** deferral as the only real lever · route and component splitting · vendor chunks and cache lifetime · prefetch against preload · preloading on intent · what never to defer
+**In this chapter:** deferral moves cost · route and component splitting · prefetch against preload · what defeats tree shaking · a budget that fails the build · third-party scripts
 
 ## 💡 The Core Idea
 
-There are only two ways to make a page load faster: **send fewer bytes, or send them later.** Nearly
-everything in this chapter is the second one, and the reason it works is that most of what an
-application ships is never used in a given session.
+There are only two ways to make a page load faster: **send fewer bytes, or send them later.**
 
-The important corollary is that deferral moves cost, it does not remove it. A route split into its own
-chunk is not free — it is a request that happens when the user navigates instead of at boot. So the
-skill is not "split more". It is knowing which cost the user will feel and which they will not, and
-then arranging for the deferred thing to arrive **before** the moment it is needed.
+Sending them later is code splitting. It works because most of what an app ships is never used in one
+session. But deferral moves cost; it does not remove it. A split route is still a request. It just
+happens at the click instead of at boot. So the skill is to defer hard, then load on the first sign of
+intent, before the user is waiting.
 
-That is the whole game: defer aggressively, then speculatively load on the first signal of intent.
+Sending fewer bytes does not stay done. Bundle size is a **ratchet that only turns one way**. An
+optimisation week takes 400 kB out, and the next quarter puts 500 kB back. What lasts is a budget with
+an owner and a CI gate. And much of the weight is third-party script, which you can only govern.
 
 ## How It Works
 
 ### Images: one attribute, and one thing you must not do
 
-```html
-<!-- Below the fold. The browser defers it until the user is close. -->
-<img src="chart.png" alt="Emissions by quarter" loading="lazy" width="800" height="600" />
+**Lazy below the fold, eager for the hero:**
 
-<!-- The LCP image. Eager, prioritised, never lazy. -->
+```html
+<img src="chart.png" alt="Emissions by quarter" loading="lazy" width="800" height="600" />
 <img src="hero.avif" alt="Dashboard" loading="eager" fetchpriority="high" width="1200" height="600" />
 ```
 
-> ⚠️ **Never lazy-load the LCP image.** `loading="lazy"` on a hero image defers the exact resource the
-> metric is waiting for, and it is the single most common self-inflicted performance regression. The
-> rule is simple: everything below the fold lazy, the hero eager and high priority.
+> ⚠️ **Never lazy-load the LCP image.** `loading="lazy"` on the hero defers the exact resource the
+> metric waits for. It is the most common self-inflicted performance regression.
 
-Note the `width` and `height` on both. Deferring an image without reserving its box trades a load
-problem for a layout-shift problem — see [Chapter ?? — Core Web Vitals](#ch-core-web-vitals).
+Keep `width` and `height` on both. Deferring an image without reserving its box swaps a load problem
+for a layout-shift problem. See [Chapter ?? — Core Web Vitals](#ch-core-web-vitals).
 
 ### Routes are the natural split point
 
-Most users visit a handful of routes. Splitting per route is the highest-value split available and
-costs almost nothing to set up.
+Most users visit a handful of routes. Splitting per route is the biggest win for the least work.
+
+**One Suspense boundary at the route level:**
 
 ```tsx
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -59,7 +58,6 @@ const Reports = lazy(() => import("./pages/Reports"));
 
 function App() {
   return (
-    // One boundary at the route level: the fallback is a page skeleton, not a spinner per widget.
     <Suspense fallback={<PageSkeleton />}>
       <Routes>
         <Route path="/dashboard" element={<Dashboard />} />
@@ -70,71 +68,41 @@ function App() {
 }
 ```
 
-A framework with file-based routing does this for you. What it cannot decide for you is the
-**component-level** split: a heavy chart library, a rich text editor, a map. Those are worth splitting
-when they are large and conditional — behind a tab, a modal, or a permission.
+File-based routing does this for you. Split a **component** (a chart library, an editor, a map) only
+when it is large and conditional — behind a tab, a modal or a permission.
 
-```tsx
-// A browser-only charting library, 300 kB, on a tab most users never open.
-const Chart = dynamic(() => import("../components/Chart"), {
-  loading: () => <ChartSkeleton />,
-  ssr: false,
-});
-```
-
-**Every lazy boundary needs an error boundary.** A chunk request can fail — a deploy rotated the
-filename, the network dropped — and without a boundary the failure unmounts the tree with no
-explanation. See [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) for the recovery pattern.
+**Every lazy boundary needs an error boundary.** A chunk request can fail. A deploy rotated the file
+name, or the network dropped. Without a boundary, the tree unmounts with no explanation. See
+[Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) for the retry pattern.
 
 ### Vendor chunks are about cache lifetime, not size
 
-Splitting library code out of application code does not reduce the total bytes. It changes **how often
-a user has to download them.**
+Splitting library code from app code does not cut the total bytes. It changes **how often users
+download them again.** App code changes every deploy; dependencies change a few times a year. Kept
+apart, a release invalidates a small file, not a large one. See
+[Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery). Do not over-split, though.
+Thirty tiny chunks cost more in round trips and worse compression than they save.
 
-```typescript
-// vite.config.ts — build.rollupOptions.output.manualChunks
-function manualChunks(id: string): string | undefined {
-  if (!id.includes("node_modules")) return undefined;
-  if (id.includes("react")) return "react-vendor"; // changes a few times a year
-  return "vendor";
-}
-```
-
-Application code changes every deploy, so its content hash changes and users re-download it.
-Dependencies change rarely. Keeping them apart means a routine release invalidates a small file
-instead of a large one — a caching argument, and one that belongs beside
-[Chapter ?? — Frontend Caching Strategies](#ch-frontend-caching-strategies). But do not over-split:
-each chunk is a request, and thirty tiny chunks cost more in round trips and compression efficiency
-than they save.
-
-### Prefetch, preload, and the difference that gets asked
+### Prefetch, preload, and preloading on intent
 
 | Hint | Fetches | Priority | For |
 | ---- | ------- | -------- | --- |
-| `preload` | Immediately, in parallel | High | Something **this** page needs and the parser will find late |
-| `prefetch` | During idle time | Lowest | Something the **next** navigation will probably need |
-| `preconnect` | Opens the connection only | — | A third-party origin you are about to request from |
+| `preload` | Now, in parallel | High | Something **this** page needs that the parser finds late |
+| `prefetch` | In idle time | Lowest | Something the **next** page will probably need |
+| `preconnect` | The connection only | — | A third-party origin you will request from soon |
 
-```typescript
-import(/* webpackPrefetch: true */ "./ReportsPage"); // likely next route, idle time
-import(/* webpackPreload: true */ "./CriticalWidget"); // needed now, in parallel
-```
+Do not prefetch every route: on a phone, idle requests still compete with the current page. The
+pattern worth remembering is **preload on intent**. Hover and focus come a few hundred milliseconds
+before the click, which is usually enough.
 
-Prefetching everything is a real anti-pattern: low-priority requests still consume bandwidth and
-connections, so on a phone they compete with the current page. Prefetch the one or two probable next
-steps, not the whole route table.
-
-### Preload on intent, which is the pattern worth remembering
-
-Lazy loading has one visible cost: the wait after the click. Hover and focus both precede the click by
-a few hundred milliseconds, which is usually enough.
+**Warm the chunk on hover and focus:**
 
 ```tsx
 const AdminPanel = lazy(() => import("./AdminPanel"));
 const warm = (): Promise<unknown> => import("./AdminPanel"); // the second call is a cache hit
 
 function Nav() {
-  // onFocus matters as much as onMouseEnter — keyboard users get the same benefit.
+  // onFocus matters as much as onMouseEnter: keyboard users get the same head start.
   return (
     <a href="/admin" onMouseEnter={warm} onFocus={warm}>
       Admin
@@ -143,85 +111,135 @@ function Nav() {
 }
 ```
 
-This gives a small initial bundle **and** no perceptible wait. It is the answer to "does code splitting
-not just move the delay?" — yes, and this is how you move it somewhere the user is not looking.
+### Tree shaking, and the three things that defeat it
 
-### Deferring work, not just code
+Tree shaking drops exports you never use. It must prove the removal is safe, so anything that hides
+the module graph turns it off.
 
-`IntersectionObserver` reports when an element approaches the viewport, at a fraction of the cost of a
-scroll listener firing hundreds of times a second. Construct it with a `rootMargin` of a couple of
-hundred pixels and `unobserve` each target once it has fired — the margin is the whole trick, because
-loading at the moment of visibility is already too late to feel instant.
+| Requirement | What breaks it |
+| ----------- | -------------- |
+| ES modules | A CommonJS build — `require` is dynamic, so nothing can be proved unused |
+| A production build | Development builds skip it |
+| No import-time side effects | A module that changes globals on import cannot be dropped |
 
-And the cheapest deferral of all needs no JavaScript at all:
+**Import style is a size decision — same function, thirty-five times the cost:**
 
-```css
-.long-report-section {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 500px; /* reserve a plausible height, or the scrollbar jumps */
+```typescript
+import _ from "lodash"; // ❌ the whole CommonJS build, around 70 kB
+import { debounce } from "lodash-es"; // ✅ the ES module build, around 2 kB
+```
+
+Before optimising, read the treemap from `rollup-plugin-visualizer`, using the **compressed** size.
+Minification plus Brotli removes 80–90% of JavaScript, so raw sizes mislead. One dependency often takes
+a third of the bundle, and it is rarely the one you guessed.
+
+### A budget is only a budget if it fails the build
+
+A number in a document is a wish. A budget needs two things: **an owner** who decides when it moves,
+and **a CI gate** that fails the build. Two kinds of gate catch different regressions.
+
+**Asset size per entry point — fast, runs on every pull request:**
+
+```json
+{
+  "size-limit": [
+    { "path": "dist/assets/index-*.js", "limit": "170 kB" },
+    { "path": "dist/assets/react-vendor-*.js", "limit": "45 kB" }
+  ]
 }
 ```
 
-The browser skips layout and paint for off-screen sections entirely — a large first-paint win on a
-long report page, for two lines of CSS. `contain-intrinsic-size` is not optional: without it the
-scrollbar resizes as you scroll.
+The second gate is a **metric budget**: Lighthouse CI against a preview deploy, failing when LCP
+passes 2,500 ms or blocking time passes 300 ms. A size limit catches a dependency someone added. A
+metric budget catches a change in *how* things load, such as a script that became render-blocking.
+
+| Rule | Why |
+| ---- | --- |
+| Set the limit just above today's number | A budget that starts red gets switched off in a week |
+| Fail the build, do not warn | A warning in a log is not a budget |
+| Post the delta on the pull request | "+14 kB" starts a review question; a red cross just gets retried |
+
+> ⚠️ **Moving target:** Lighthouse assertion names, bundle-size actions and CDN compression defaults
+> all churn. The durable principle is two gates: **a deterministic size check on every pull request,
+> and a metric check against a real deployed load.** Check the current config format before copying.
+
+### The bytes you do not control
+
+On a commercial page, analytics, tag managers, chat widgets and consent tools are often most of the
+JavaScript. You cannot tree-shake a tag manager. You can govern it.
+
+| Control | What it prevents |
+| ------- | ---------------- |
+| An owner and a review for every new tag | The tag manager becoming an unreviewed deploy channel |
+| A reason and an expiry date per script | Scripts nobody remembers, still loading years later |
+| Load on idle or after interaction, never in the head | A vendor blocking your first paint |
+| A separate budget line for third-party bytes | First-party savings quietly paying for vendor growth |
+
+A tag manager is **a production deploy with no code review**. Marketing can ship any JavaScript to
+every user without a pull request. Treat container changes as releases, with an owner and a rollback.
+Otherwise your budget is only advice.
 
 ## When to Use It
 
 | Situation | Do | Why |
 | --------- | -- | --- |
-| A route most users never visit | Split it | The largest win for the least work |
-| A 300 kB library behind a tab or modal | Split it, with an error boundary | Conditional and large is the ideal case |
+| A route most users never visit | Split it | The biggest win for the least work |
+| A 300 kB library behind a tab or modal | Split it, with an error boundary | Large and conditional is the ideal case |
 | A 5 kB component below the fold | Leave it | The request costs more than the bytes |
-| A hero image | Eager, `fetchpriority="high"` | Lazy here directly damages LCP |
-| Anything needed for the first paint | Never defer | You are adding a round trip to the critical path |
-| A long page of independent sections | `content-visibility: auto` | Free first-paint win, no JavaScript |
-| The probable next navigation | `prefetch` on intent | Ready before the click |
+| Anything the first paint needs | Never defer it | You add a round trip to the critical path |
+| Size creeping up every release | A size limit in CI, with an owner | The only fix that survives team changes |
+| A vendor script added last quarter | Owner, expiry, and defer it | This is where most commercial pages lose |
 
 ## Common Mistakes
-
-❌ **`loading="lazy"` on the LCP image.** Directly delays the metric.
-✅ Eager and prioritised above the fold; lazy below it.
 
 ❌ **A lazy boundary with no error boundary.** A failed chunk request unmounts the tree silently.
 ✅ Wrap every boundary, with a fallback that offers a retry.
 
-❌ **Splitting everything.** Thirty chunks means thirty requests and worse compression.
-✅ Split by route first, then only large conditional components.
+❌ **Splitting everything, or prefetching every route.** More requests, worse compression, and
+bandwidth stolen from the current page.
+✅ Split by route first, then large conditional components; prefetch one or two next steps.
 
-❌ **Prefetching every route.** Low-priority requests still compete for bandwidth on a phone.
-✅ Prefetch the one or two likely next steps.
-
-❌ **`content-visibility: auto` without `contain-intrinsic-size`.** The scrollbar jumps as sections
-render.
-✅ Always give an estimated height.
+❌ **A budget that only warns, or starts red.** Nobody reads the log, and a red gate gets disabled.
+✅ Fail the build, set the limit just above today, and ratchet it down on purpose.
 
 ## 🔑 Key Takeaways
 
-- Deferral moves cost rather than removing it, so pair every split with speculative loading on intent.
-- Route splitting is the highest-value split; component splitting is worth it only when large and conditional.
-- Vendor chunks are a caching decision — they change how often users re-download, not how much you ship.
-- `preload` is for this page and high priority; `prefetch` is for the next page and lowest priority.
-- Never lazy-load the LCP image, and never defer anything on the first-paint critical path.
+- Deferral moves cost rather than removing it, so pair every split with loading on the first sign of intent.
+- Route splitting is the highest-value split, and component splitting pays only when the code is large and conditional.
+- Tree shaking needs ES modules, a production build and no import-time side effects, and only the compressed size is worth deciding on.
+- A budget lasts only with an owner and a CI gate: a size check on every pull request and a metric check on a real load.
+- Third-party scripts are often most of the page's JavaScript, and the only levers are ownership, expiry and deferral.
 
 ## Interview Questions
 
 **Q: Does code splitting not just move the delay to the click?**
 
-It does, and that is why splitting alone is only half the technique. The other half is warming the
-chunk on the first signal of intent — hover or focus on the link, which typically precedes the click by
-a few hundred milliseconds. That gives a small initial bundle and no perceptible wait, and it is the
-difference between a split that helps and one users complain about.
+It does, which is why splitting is only half the technique. The other half is warming the chunk on
+the first signal of intent. Hover or focus usually comes a few hundred milliseconds before the click.
+That gives a small initial bundle and no wait users can see.
 
-**Q: When is a component not worth splitting?**
+**Q: You import one function from a library and the bundle grows by 70 kB. What happened?**
 
-When it is small, or when it is on the first-paint path. A 5 kB component behind a lazy boundary costs
-a request, a loading state and an error boundary in exchange for 5 kB, which is a losing trade. And
-anything the first paint needs must not be deferred at all, because you have added a serial round trip
-to the critical path.
+Almost certainly a default import against a CommonJS build. `require` is dynamic, so the bundler
+cannot prove any of the library is unused and keeps all of it. The fix is a named import from the ES
+module build. Import style is a size decision, not a style one.
+
+**Q: How do you stop bundle size regressing over a year?**
+
+Give the budget an owner and a size limit per entry point that fails the build, set just above today.
+Post the delta on every pull request, because "+14 kB" gets a question in review and a red cross gets
+retried. Pair it with a metric budget on a preview deploy, since a size check cannot see a script that
+became render-blocking.
+
+**Q: A page ships 2 MB of JavaScript and half is third-party. Where do you start?**
+
+The first-party half is splitting and refactoring work. The third-party half is governance. Every
+script gets a named owner and a reason, anything unclaimed comes out, and nothing vendor-supplied
+loads in the head. Give third-party bytes their own budget line, or first-party effort quietly funds
+vendor growth.
 
 ## What to Read Next
 
-- [Chapter ?? — Bundles, Budgets and Third Parties](#ch-bundle-optimisation) — reducing the bytes rather than deferring them
-- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — the metrics this chapter's decisions move
-- [Chapter ?? — Rendering and Streaming](#ch-rendering-and-streaming) — deferring at the framework level instead of the bundler's
+- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — the metrics these loading decisions move
+- [Chapter ?? — Measuring in Production](#ch-measuring-in-production) — the field data a metric budget should be set against
+- [Chapter ?? — Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop) — the build tooling behind chunks and tree shaking

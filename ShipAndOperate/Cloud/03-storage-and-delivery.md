@@ -246,5 +246,5 @@ working on its own and cannot be edited into a link for someone else's file.
 ## What to Read Next
 
 - [Chapter ?? — Cloud Fundamentals](#ch-cloud-fundamentals) — where storage and network sit among the primitives
-- [Chapter ?? — Frontend Caching Strategies](#ch-frontend-caching-strategies) — the same headers, from the browser's side
+- [Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) — the same headers, from the browser's side
 - [Chapter ?? — Platform and Edge Deployments](#ch-platform-deploys) — what the deploy does to everything cached in front of it

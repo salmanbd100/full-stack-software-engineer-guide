@@ -1,7 +1,7 @@
 ---
 title: Caching
 part: 6
-chapter: 10
+chapter: 8
 slug: caching
 level: intermediate
 reading_time: 9
@@ -229,5 +229,5 @@ index, a read replica, or a cheaper query.
 ## What to Read Next
 
 - [Chapter ?? — Content Delivery Network](#ch-cdn) — the same idea, moved to the edge
-- [Chapter ?? — Redis](#ch-redis) — the store itself, and the structures beyond get and set
-- [Chapter ?? — Frontend Caching Strategies](#ch-frontend-caching-strategies) — the layer nearest the user
+- [Chapter ?? — Choosing a Non-Relational Store: Documents and Redis](#ch-document-databases) — the store itself, and the structures beyond get and set
+- [Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) — the layer nearest the user

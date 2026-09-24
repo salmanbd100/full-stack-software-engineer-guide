@@ -42,7 +42,7 @@ Almost every AI question in a senior loop is one of these four, or a rewording o
 
 This is a system design round with a retrieval engine inside it, so drive it the way you drive any design
 round — requirements first, tradeoffs stated, numbers attached, per
-[Chapter ?? — Driving the Design Round](#ch-driving-the-round).
+[Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round).
 
 | Phase | What to do | Why it scores |
 | --- | --- | --- |

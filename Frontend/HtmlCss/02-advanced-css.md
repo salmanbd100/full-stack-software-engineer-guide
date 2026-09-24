@@ -238,5 +238,5 @@ test is whether anything — a theme, a breakpoint, a subtree, a script — ever
 ## What to Read Next
 
 - [Chapter ?? — Semantic HTML](#ch-semantic-html) — the markup the cascade is applied to
-- [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) — custom properties as design tokens, across teams
+- [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) — custom properties as design tokens, across teams
 - [Chapter ?? — Internationalisation and the Intl APIs](#ch-i18n-fundamentals) — logical properties and right-to-left layout

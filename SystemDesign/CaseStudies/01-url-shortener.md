@@ -1,7 +1,7 @@
 ---
 title: Design a URL Shortener
 part: 6
-chapter: 30
+chapter: 21
 slug: design-url-shortener
 level: intermediate
 reading_time: 10
@@ -222,5 +222,5 @@ hashing means adding capacity moves a fraction of the keys rather than all of th
 ## What to Read Next
 
 - [Chapter ?? — Caching](#ch-caching) — the stampede and the hit ratio arithmetic this design depends on
-- [Chapter ?? — Sharding](#ch-sharding) — why `code` is close to a perfect shard key
+- [Chapter ?? — Sharding and Transactions at Scale](#ch-sharding) — why `code` is close to a perfect shard key
 - [Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation) — where the 100:1 ratio and the storage figures come from

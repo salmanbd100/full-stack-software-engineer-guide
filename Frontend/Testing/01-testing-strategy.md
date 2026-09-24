@@ -1,7 +1,7 @@
 ---
 title: Testing Strategy
 part: 4
-chapter: 21
+chapter: 15
 slug: testing-strategy
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
@@ -56,7 +56,7 @@ A data shape or a contract?         → the type checker
 ```
 
 For the React-specific version of that decision — component against `renderHook` against a real
-build — see [Chapter ?? — React Testing Library](#ch-react-testing-library).
+build — see [Chapter ?? — Writing the Tests: Vitest and React Testing Library](#ch-vitest).
 
 ### Pyramid against trophy
 
@@ -111,7 +111,7 @@ because a coverage target is satisfied most cheaply by testing trivial code.
 
 > ⚠️ A coverage threshold in CI reliably produces tests written to raise the number. If you want a
 > quality signal rather than an execution count, mutation testing is the honest one — see
-> [Chapter ?? — Visual and Contract Testing](#ch-visual-and-contract-testing).
+> [Chapter ?? — End-to-End, Visual and Contract Testing with Playwright](#ch-end-to-end-testing).
 
 ### The four causes of a flaky test
 
@@ -208,6 +208,5 @@ pretending to a standard nobody will maintain.
 
 ## What to Read Next
 
-- [Chapter ?? — Vitest](#ch-vitest) — the runner every example in this section uses
+- [Chapter ?? — Writing the Tests: Vitest and React Testing Library](#ch-vitest) — the runner and the query API every example in this section uses
 - [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — the layer this chapter argues deserves the most weight
-- [Chapter ?? — React Testing Library](#ch-react-testing-library) — the same layer decision made for React specifically

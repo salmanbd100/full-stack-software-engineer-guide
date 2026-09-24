@@ -234,4 +234,4 @@ behaviour.
 
 - [Chapter ?? — SOLID Principles](#ch-solid-principles) — dependency inversion and Liskov, stated as rules
 - [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript) — strategy and decorator, which are composition with names
-- [Chapter ?? — Service Boundaries](#ch-service-boundaries) — the same idea at the scale of a system
+- [Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries) — the same idea at the scale of a system

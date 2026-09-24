@@ -242,4 +242,3 @@ You lose streaming for the sake of a title tag.
 
 - [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) — the definitions this chapter assigns
 - [Chapter ?? — Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering) — the second half of the decision, once the strategy is chosen
-- [Chapter ?? — SEO and Analytics](#ch-seo-and-analytics) — the structured data and sitemap detail this chapter leaves out

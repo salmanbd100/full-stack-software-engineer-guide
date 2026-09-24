@@ -5,7 +5,7 @@ chapter: 1
 slug: part-system-design-fundamentals
 level: intermediate
 reading_time: 2
-updated: 2026-09-02
+updated: 2026-09-24
 tags: [system-design, scalability, cap, consistency, estimation]
 in_book: true
 ---
@@ -14,22 +14,20 @@ in_book: true
 
 Everything else in Part VI assumes this section. These are the ideas a design round keeps returning to
 whatever you are asked to build: how to run the forty-five minutes, how to size a system in your head,
-what scaling costs, what availability buys, where the time goes, and what you give up when copies of
-your data disagree.
+what scaling costs and where the time goes, what availability buys, and what you give up when copies
+of your data disagree.
 
 Chapter 01 is the one to read twice. A design round is a performance as much as a technical exercise,
 and the framework in it is what stops a strong engineer from rambling.
 
 ## Chapters
 
-| #  | Chapter                                                        | What it answers                                              |
-| -- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [Driving the Design Round](#ch-driving-the-round)          | How do you run the forty-five minutes?                        |
-| 02 | [Back-of-Envelope Estimation](#ch-back-of-envelope-estimation)              | How big is this, roughly, before anyone builds it?            |
-| 03 | [Scalability](#ch-scalability)                             | Which lever does this bottleneck actually call for?           |
-| 04 | [Reliability and Availability](#ch-reliability-and-availability)            | What does "three nines" cost, and what does it buy?           |
-| 05 | [Latency and Throughput](#ch-latency-and-throughput)       | Which one are you optimising, and where does the time go?     |
-| 06 | [Consistency and CAP](#ch-consistency-and-cap)             | Which read may be stale, and what happens if it is?           |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [Driving the Design Round, Backend and Frontend](#ch-driving-the-round) | How do you run the forty-five minutes, whichever kind of round it is? |
+| 02 | [Back-of-Envelope Estimation](#ch-back-of-envelope-estimation) | How big is this, roughly, before anyone builds it? |
+| 03 | [Scalability, Latency and Throughput](#ch-scalability) | Which lever does this bottleneck call for, and where does the time go? |
+| 04 | [Reliability, Consistency and CAP](#ch-consistency-and-cap) | What does "three nines" buy, and which read may be stale? |
 
 ## What Interviewers Probe For
 
@@ -49,8 +47,7 @@ defends tradeoffs.** Fundamentals is where three of those four are decided:
 
 ## Reading Order
 
-01 and 02 are the interview mechanics and are worth revisiting the day before a round. 03 → 04 → 05
-build the vocabulary for the optimisation step. 06 is the hardest and the most examined; read it in
-one sitting.
+01 and 02 are the interview mechanics and are worth revisiting the day before a round. 03 builds the
+vocabulary for the optimisation step. 04 is the hardest and the most examined; read it in one sitting.
 
-**Interview sprint:** 01 → 02 first, then 03 and 06.
+**Interview sprint:** 01 → 02 first, then 03 and 04.

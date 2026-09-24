@@ -1,11 +1,11 @@
 ---
 title: Part IV — Web Performance
 part: 4
-chapter: 7
+chapter: 6
 slug: frontend-web-performance-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-09-08
+updated: 2026-09-24
 tags: [performance, core-web-vitals, inp, bundles, caching, budgets, rum]
 in_book: true
 ---
@@ -25,15 +25,12 @@ passed FID comfortably routinely fail INP, and a candidate still saying FID in 2
 
 ## Chapters
 
-| #  | Chapter                                                                        | What it answers                                                |
-| -- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| 01 | [Core Web Vitals](#ch-core-web-vitals)                                     | Which fix moves which metric?                                  |
-| 02 | [Loading and Code Splitting](#ch-loading-and-code-splitting)               | How do you defer without pushing your largest paint out?       |
-| 03 | [Bundles, Budgets and Third Parties](#ch-bundle-optimisation) | What is in your bundle, and what stops it growing back?        |
-| 04 | [Frontend Caching Strategies](#ch-frontend-caching-strategies)                      | At which layer, and how does each entry become wrong?          |
-| 05 | [Asset Delivery](#ch-asset-delivery)                                       | What does the page look like before images, fonts and CSS land? |
-| 06 | [Rendering and Streaming](#ch-rendering-and-streaming)                     | How do you keep interactions inside the frame budget?          |
-| 07 | [Measuring in Production](#ch-measuring-in-production)                     | What are real users experiencing, and what broke for them?     |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [Core Web Vitals](#ch-core-web-vitals) | Which fix moves which metric? |
+| 02 | [Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting) | How do you defer without pushing your largest paint out, and what stops the bundle growing back? |
+| 03 | [Caching and Asset Delivery](#ch-asset-delivery) | Which cache holds each response, and what does the page look like before images, fonts and CSS land? |
+| 04 | [Measuring in Production](#ch-measuring-in-production) | What are real users experiencing, and what broke for them? |
 
 ## What Interviewers Probe For
 
@@ -54,9 +51,10 @@ Performance is where the part-level signal is measured literally:
 
 ## Reading Order
 
-01 first, always — it defines the metrics the other six chapters are trying to move. Then 02 and 05,
-which are the highest-leverage loading fixes, and 03 for the gate that keeps them fixed. 07 is what
+01 first, always — it defines the metrics the other three chapters are trying to move. Then 02 and 03,
+which are the highest-leverage loading fixes and the budget gate that keeps them fixed. 04 is what
 makes all of it verifiable, and it is not optional in production.
 
-**Interview sprint:** 01 → 02 → 06 → 07. The metrics, the loading lever, the interaction lever, and
-how you prove any of it worked.
+**Interview sprint:** 01 → 02 → 04. The metrics, the loading lever, and how you prove any of it worked.
+The interaction lever — keeping work inside the frame budget — is Part III's
+[Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler).

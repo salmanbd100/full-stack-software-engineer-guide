@@ -125,7 +125,7 @@ remote component renders inside a shell context, and the stack trace points at n
 
 The consequence is a constraint people underestimate: every remote must be on a compatible React
 major. Micro-frontends give you independent **deploys**, not independent **upgrades** — which makes
-the version policy in [Chapter ?? — Dependencies and Upgrades](#ch-dependencies-and-upgrades) a
+the version policy in [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) a
 prerequisite rather than a nicety.
 
 ### Cross-app communication
@@ -185,7 +185,7 @@ deploys are coupled again through the store's shape.
 ✅ Communicate through the URL and typed custom events; keep the contract narrow enough to version.
 
 ❌ **No shared design system.** Independent teams produce five different buttons within a quarter.
-✅ Ship tokens and components as a versioned package — see [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale).
+✅ Ship tokens and components as a versioned package — see [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale).
 
 ## 🔑 Key Takeaways
 
@@ -229,4 +229,4 @@ differs per remote. Auth is the clearest example of something that belongs in th
 
 - [Chapter ?? — Frontend Architecture Patterns](#ch-frontend-architecture-patterns) — the cheaper boundaries to try first
 - [Chapter ?? — Monorepos](#ch-monorepos) — the answer when the problem is code sharing rather than deploys
-- [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) — what keeps independent teams visually coherent
+- [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) — what keeps independent teams visually coherent

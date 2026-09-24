@@ -1,11 +1,11 @@
 ---
 title: Part VI — Data at Scale
 part: 6
-chapter: 18
+chapter: 13
 slug: part-system-design-database
 level: advanced
 reading_time: 2
-updated: 2026-09-02
+updated: 2026-09-24
 tags: [system-design, database, sharding, replication, transactions]
 in_book: true
 ---
@@ -22,12 +22,10 @@ day-to-day SQL belong to Part V, and this section assumes them rather than repea
 
 ## Chapters
 
-| #  | Chapter                                                       | What it answers                                              |
-| -- | ------------------------------------------------------------- | ------------------------------------------------------------ |
-| 01 | [Choosing a Datastore](#ch-choosing-a-datastore)          | Which family of store, and what does the choice cost?         |
-| 02 | [Replication](#ch-replication)                            | What can a reader see while the copies disagree?              |
-| 03 | [Sharding](#ch-sharding)                                  | Which shard key will you not regret in a year?                |
-| 04 | [Transactions at Scale](#ch-database-transactions)        | What isolation does this feature need, and what breaks across machines? |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [Choosing a Datastore and Replicating It](#ch-choosing-a-datastore) | Which family of store, and what can a reader see while the copies disagree? |
+| 02 | [Sharding and Transactions at Scale](#ch-sharding) | Which shard key will you not regret, and what breaks across machines? |
 
 ## What Interviewers Probe For
 
@@ -41,13 +39,14 @@ day-to-day SQL belong to Part V, and this section assumes them rather than repea
 
 ## Reading Order
 
-01 → 02 → 03 → 04, in order. 01 frames the choice, 02 and 03 are the two axes of distribution — copy
-the data or split it — and 04 is what concurrency does to both.
+01 → 02, in order. They are the two axes of distribution — copy the data or split it — and the second
+half of 02 is what concurrency does to both.
 
-**Interview sprint:** 03 and 04. Shard keys and lost updates are the two questions this section is
-asked about most.
+**Interview sprint:** 02. Shard keys and lost updates are the two questions this section is asked about
+most.
 
 > ⚠️ Six chapters left this section at **#31d**. SQL and NoSQL design, indexing, data modelling and
 > query optimisation were merged into 01 or handed to Part V, which owns them at implementation depth;
-> CAP and consistency patterns merged into `Fundamentals/06-consistency-and-cap.md`. Nothing was
-> archived — git history holds the originals and none of their material is missing from the book.
+> CAP and consistency patterns merged into `Fundamentals/04-consistency-and-cap.md`. At #101 replication
+> merged into 01 and transactions at scale into 02; those two originals are in
+> `Archive/system-design/database/`.

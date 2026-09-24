@@ -202,4 +202,4 @@ to the edge is the last option, not the first.
 
 - [Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) — the same tradeoff inside one framework
 - [Chapter ?? — CDN](#ch-cdn) — what tier one does before any of this is reached
-- [Chapter ?? — Latency and Throughput](#ch-latency-and-throughput) — the numbers behind the arithmetic
+- [Chapter ?? — Scalability, Latency and Throughput](#ch-scalability) — the numbers behind the arithmetic

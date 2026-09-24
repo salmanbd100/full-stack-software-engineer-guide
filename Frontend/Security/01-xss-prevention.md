@@ -1,228 +1,245 @@
 ---
-title: XSS Prevention
+title: XSS Prevention and Untrusted Input
 part: 4
-chapter: 16
+chapter: 12
 slug: xss-prevention
 level: intermediate # beginner | intermediate | advanced
-reading_time: 10
-updated: 2026-09-09
-tags: [frontend, security, xss, prevention]
+reading_time: 13
+updated: 2026-09-24
+tags: [frontend, security, xss, prevention, input, validation, postmessage]
 in_book: true
 ---
 
-# XSS Prevention {#ch-xss-prevention}
+# XSS Prevention and Untrusted Input {#ch-xss-prevention}
 
-> Encode for the context you are writing into, and know exactly where your framework stops protecting you.
+> Find the exact point where an untrusted string becomes markup, a URL, a script or a style, and make it stay data there.
 
-**In this chapter:** the three kinds of XSS · context-aware encoding · dangerous DOM sinks · sanitising rich HTML · where React's escaping ends · CSP as a backstop
+**In this chapter:** the three kinds of XSS · the four places a string turns into code · sanitising rich HTML and where React stops · the inputs only the browser sees · client checks versus the real control
 
 ## 💡 The Core Idea
 
-**Cross-Site Scripting (XSS)** lets an attacker run their JavaScript in another user's browser. That script runs with the victim's session. It can steal cookies, read the page, make requests as the user, or change what they see.
+**Cross-Site Scripting (XSS)** lets an attacker run their JavaScript in another user's browser. The script
+runs with the victim's session. It can read the page, send requests as the user, or change what they see.
 
-The root cause is always the same: **untrusted data ends up in a place the browser treats as code.** Prevention is also one idea: keep data as data — never let it become markup or script.
+The root cause is always the same. **An untrusted string crosses from data into something the browser
+interprets** — markup, a URL, a script, or a style. Prevention is one question asked at each crossing:
+_what does the browser do with this string here?_ Where the string came from matters less than where
+it lands.
 
-## The Three Types of XSS
+## How It Works
 
-The difference is **where the payload comes from**, not what it does.
+### The three types
 
-| Type             | Where the payload lives                       | Example trigger                          |
-| ---------------- | --------------------------------------------- | ---------------------------------------- |
-| **Reflected**    | In the request, echoed back in the response   | A crafted link in a phishing email       |
-| **Stored**       | Saved in your database, served to many users  | A malicious blog comment                 |
-| **DOM-based**    | Never reaches the server — pure client-side   | `innerHTML = location.hash`              |
+| Type          | Where the payload lives                      | Example trigger                    |
+| ------------- | -------------------------------------------- | ---------------------------------- |
+| **Reflected** | In the request, echoed back in the response  | A crafted link in a phishing email |
+| **Stored**    | Saved in your database, served to many users | A malicious blog comment           |
+| **DOM-based** | Never reaches the server                     | `innerHTML = location.hash`        |
 
-Stored is the worst of the three. It runs for **every** visitor with no link to click, so one
-`<img src=x onerror=...>` in a comment field reaches thousands of users.
+Stored runs for every visitor with no link to click. DOM-based is the hardest to catch: the payload
+never appears in a server log or a WAF.
 
-## The Core Rule: Context-Aware Output Encoding
+### The four crossings
 
-The same input is dangerous in different ways depending on **where** you put it. Encode for the **exact context** where the value lands.
+**Each crossing needs its own defence, because each is parsed by a different part of the browser.**
 
-| Context           | Example                          | What to do                          |
-| ----------------- | -------------------------------- | ----------------------------------- |
-| **HTML body**     | `<div>HERE</div>`                | HTML-entity encode `< > & " '`      |
-| **HTML attribute**| `<a title="HERE">`               | Encode + always quote the attribute |
-| **JavaScript**    | `<script>var x = "HERE"</script>`| JS-string escape, or use JSON       |
-| **URL**           | `<a href="/s?q=HERE">`           | `encodeURIComponent`                |
-| **CSS**           | `style="width: HERE"`            | Avoid user input in CSS entirely    |
+| Crossing   | Safe default                            | When you cannot avoid it               |
+| ---------- | --------------------------------------- | -------------------------------------- |
+| **Markup** | `textContent`, JSX text                 | Sanitise with DOMPurify                |
+| **URL**    | Build with `encodeURIComponent`         | Allowlist the scheme or accept a path  |
+| **Script** | Never build code from strings           | Escape `<`, `>`, `&` in embedded JSON  |
+| **Style**  | Keep user input out of CSS              | Map to a fixed set of class names      |
 
-> ⚠️ **Never write your own encoder.** HTML entity encoding turns `<script>` into
-> `&lt;script&gt;`, and every framework and template engine already does it correctly for the HTML
-> body context. A hand-rolled `replace()` chain will miss a context and be trusted anyway.
+## Where a String Becomes Markup
 
-### Special case: data inside inline `<script>` (SSR)
+The bug is a **source** the attacker controls flowing into a **sink** that parses HTML: `innerHTML`,
+`outerHTML`, `insertAdjacentHTML` or `document.write`.
 
-When you serialise state into the page for hydration, an attacker can break out of the string with `</script>`. Escape the unsafe characters in the JSON.
-
-```typescript
-// ✅ Safe: neutralise <, >, & before embedding JSON in HTML
-function safeJson(data: unknown): string {
-  return JSON.stringify(data)
-    .replace(/</g, "\\u003c")
-    .replace(/>/g, "\\u003e")
-    .replace(/&/g, "\\u0026");
-}
-
-const html = `<script>window.__STATE__ = ${safeJson(state)};</script>`;
-```
-
-## DOM-based XSS and Dangerous Sinks
-
-Here the bug is entirely in your JavaScript. You read from an attacker-controlled **source** and write to a dangerous **sink**.
+**The classic DOM-based bug, and its fix:**
 
 ```typescript
-// ❌ Source: URL param  →  Sink: innerHTML
-const name: string =
-  new URLSearchParams(location.search).get("name") ?? "";
-
-document.querySelector("#hello")!.innerHTML = `Hi, ${name}!`;
-// ?name=<img src=x onerror=alert(1)> → script runs
-```
-
-**Common sinks to avoid with untrusted data:**
-
-```typescript
-el.innerHTML = data;       // HTML injection
-el.outerHTML = data;       // HTML injection
-el.insertAdjacentHTML("beforeend", data);
-document.write(data);      // HTML injection
-eval(data);                // code execution
-new Function(data);        // code execution
-setTimeout(data, 0);       // code execution if data is a string
-location.href = data;      // javascript: URLs
-```
-
-### ✅ Fix: use safe sinks
-
-```typescript
+const name: string = new URLSearchParams(location.search).get("name") ?? "";
 const el = document.querySelector("#hello")!;
-
-// textContent treats input as text, never as HTML
-el.textContent = `Hi, ${name}!`;
-
-// Building nodes is also safe
-const div = document.createElement("div");
-div.textContent = name; // cannot inject markup
+el.innerHTML = `Hi, ${name}!`; // ❌ ?name=<img src=x onerror=alert(1)> runs
+el.textContent = `Hi, ${name}!`; // ✅ treated as text, never parsed
 ```
 
-> `innerHTML` parses HTML. `textContent` does not. If you do not need HTML, never reach for
-> `innerHTML`.
+### Rich HTML you did not write
 
-## Sanitising Rich HTML with DOMPurify
+A CMS body must render as HTML, so encoding would break it. You need **sanitisation**: parse the HTML
+and strip anything that can run. DOMPurify is the standard. Uploaded SVG belongs here too, since an SVG
+can carry script: show uploads with `<img>`, never as text read into the DOM.
 
-Sometimes you **must** render HTML you didn't write — a rich-text editor, a CMS body, markdown output. Encoding would break the formatting. You need **sanitisation**: parse the HTML and strip anything dangerous.
-
-`DOMPurify` is the standard. It removes `<script>`, event handlers like `onerror`, and `javascript:` URLs.
+**Sanitise with an allowlist:**
 
 ```typescript
 import DOMPurify from "dompurify";
 
-const dirty = '<img src=x onerror=alert(1)><p>Hello</p>';
-const clean: string = DOMPurify.sanitize(dirty);
-// → '<img src="x"><p>Hello</p>'  (onerror stripped)
-```
-
-**Allowlist what you actually need** — smaller surface, safer output:
-
-```typescript
 const clean: string = DOMPurify.sanitize(dirty, {
   ALLOWED_TAGS: ["p", "b", "i", "em", "strong", "a", "ul", "ol", "li"],
   ALLOWED_ATTR: ["href", "title"],
 });
+// <img src=x onerror=alert(1)> loses its onerror; <script> is removed
 ```
 
-> ⚠️ **Sanitise on output, at render time** — not just on input. Sanitising only on save can be bypassed if data enters your DB another way (imports, other endpoints, old rows).
+> ⚠️ **Sanitise at render time, not only on save.** Data reaches your database through imports, other
+> endpoints and old rows. Only the render path sees all of it.
 
-## How React Protects You (and Where It Doesn't)
+### Where React stops protecting you
 
-React escapes any value rendered as JSX text. This covers most XSS for free.
+React escapes every value rendered as JSX text. That covers most markup crossings, but not these.
 
-```tsx
-function Greeting({ name }: { name: string }) {
-  // Safe: React escapes `name` automatically
-  return <h1>Hello, {name}!</h1>;
-}
-// name = "<script>alert(1)</script>" → rendered as harmless text
-```
-
-### The escape hatches that React does **not** protect
+**The escape hatches:**
 
 ```tsx
 import DOMPurify from "dompurify";
 
-// 1. dangerouslySetInnerHTML — bypasses escaping. Always sanitise first.
 function Article({ html }: { html: string }) {
-  const clean = DOMPurify.sanitize(html);
-  return <div dangerouslySetInnerHTML={{ __html: clean }} />;
+  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />;
 }
 
-// 2. javascript: URLs in href/src
 function SafeLink({ url, children }: { url: string; children: React.ReactNode }) {
-  const safe = /^https?:\/\//i.test(url) ? url : "#";
+  const safe: string = /^https?:\/\//i.test(url) ? url : "#";
   return <a href={safe}>{children}</a>;
 }
 ```
 
-**React's three blind spots:**
+`dangerouslySetInnerHTML` bypasses escaping, so sanitise first. A URL from user input needs its scheme
+allowlisted. The third blind spot is spreading unknown props (`{...userControlled}`), which lets an
+attacker choose the attribute.
 
-- ❌ `dangerouslySetInnerHTML` without sanitisation
-- ❌ `href` / `src` set to a `javascript:` URL
-- ❌ Spreading unknown props onto an element (`{...userControlled}`)
+## Where a String Becomes a URL or a Script
 
-## Defence in Depth: CSP, Trusted Types, HttpOnly
+**URLs.** A `javascript:` URL in `href` or `location` is code. A full URL from a query string is an
+**open redirect**: your domain lends its name to a phishing page, and link filters pass it because the
+first hop really is your site.
 
-Encoding and sanitisation are your first line. These add backup layers so a single mistake isn't fatal.
-
-**Content Security Policy** — blocks injected scripts from running at all. See [Chapter ?? — Content Security Policy](#ch-content-security-policy).
+**Accept a path, not a URL:**
 
 ```typescript
-res.setHeader(
-  "Content-Security-Policy",
-  "default-src 'self'; script-src 'self'; object-src 'none'",
-);
-// An injected <script>alert(1)</script> is blocked even if it lands in the DOM
+function safeNext(raw: string | null): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
+location.href = safeNext(new URLSearchParams(location.search).get("next"));
 ```
 
-**Trusted Types** — enforced with `require-trusted-types-for 'script'`, this makes sinks like
-`innerHTML` reject plain strings. Assignment throws unless the value came from a policy you registered
-with `trustedTypes.createPolicy`, which forces every sanitiser call through one chokepoint. Chromium
-only, as of 2026.
+`//evil.com` is protocol-relative, so it is rejected too. If you need other origins, keep an allowlist
+of hostnames.
 
-**HttpOnly cookies** — a session cookie set with `httpOnly`, `secure` and `sameSite: "strict"` is
-invisible to `document.cookie`. Injected script still runs, but it cannot read the session token.
+**Scripts.** `eval`, `new Function` and `setTimeout` with a string turn data into code, so keep strings
+out of them. The subtle case is state serialised into the page for hydration. An attacker can close the
+tag with `</script>` from inside a JSON string.
 
-> **Layered thinking:** Encode/sanitise so injection can't happen → CSP so injected code can't run → HttpOnly so a successful script can't grab the session.
+**Escape JSON before embedding it in HTML:**
+
+```typescript
+function safeJson(data: unknown): string {
+  return JSON.stringify(data).replace(/[<>&]/g, (c: string) => `\\u00${c.charCodeAt(0).toString(16)}`);
+}
+
+const html: string = `<script>window.__STATE__ = ${safeJson(state)};</script>`;
+```
+
+## Inputs Only the Browser Sees
+
+A `postMessage` from an iframe or a value in `location.hash` never reaches your server. No server
+handler exists to review, so the browser is the only place a check can happen.
+
+**A `postMessage` handler needs two checks:**
+
+```typescript
+window.addEventListener("message", (event: MessageEvent) => {
+  if (event.origin !== "https://widgets.example.com") return; // 1. exact sender
+  // 2. exact shape — the sender is not your code
+  const parsed = widgetMessageSchema.safeParse(event.data);
+  if (!parsed.success) return;
+  applyWidgetUpdate(parsed.data);
+});
+```
+
+Compare the origin to an exact string: `includes("example.com")` passes for `example.com.attacker.net`.
+When you send, name the target origin; `postMessage(data, "*")` goes to whatever page holds the frame.
+
+## Client Checks Versus the Real Control
+
+Validation in the browser is user experience. Anyone can call the API with `curl`, so the server
+enforces and the client only gives fast feedback.
+
+**One schema for the form and the endpoint:**
+
+```typescript
+import { z } from "zod";
+
+export const contactSchema = z.object({
+  email: z.email(),
+  message: z.string().min(10).max(2000),
+});
+
+const parsed = contactSchema.safeParse(req.body); // on the server, this is the gate
+if (!parsed.success) res.status(400).json(parsed.error.issues);
+```
+
+The form uses it through its resolver, so the limits cannot drift. File checks are the same: `file.type`
+is a guess from the extension, so the server still checks size and magic bytes.
+
+## When to Use It
+
+| Untrusted input                               | Choose                         | Why                                     |
+| --------------------------------------- | ------------------------------ | --------------------------------------- |
+| Real HTML from a CMS or editor          | Sanitising with an allowlist   | Encoding would destroy the markup       |
+| A URL or redirect target                | Allowlist scheme, or path only | Encoding does not stop `javascript:`    |
+| A message or fragment read in the page  | Exact origin check and a schema | No server will ever see it             |
+
+**The backstop layers.** A **Content Security Policy** stops injected script running. **Trusted Types**
+makes `innerHTML` reject plain strings, so every sanitiser call goes through one policy (Chromium-only as
+of 2026). An **`HttpOnly`** session cookie means a script that does run cannot read the token.
+
+## Common Mistakes
+
+❌ **Filtering input on the way in and trusting it on the way out.**
+✅ Encode or sanitise where the string is used. Only that point knows the context.
+
+❌ **Trusting `event.data` because the iframe is yours.** Anyone can frame your page and post to it.
+✅ Check the exact origin, then parse the payload against a schema.
 
 ## 🔑 Key Takeaways
 
-- XSS is a failure to keep data as data: the fix is context-aware encoding at the point of output, not filtering at the point of input.
-- `textContent` is safe, `innerHTML` is not, and the dangerous sinks are a short, learnable list.
-- React escapes interpolated values, but `dangerouslySetInnerHTML`, `href`/`src` and injected `<script>` JSON are all outside that guarantee.
-- Sanitise unavoidable HTML with DOMPurify at render time, never with a hand-written regex.
-- CSP, `HttpOnly` cookies and Trusted Types are the layer that limits the damage when encoding is missed once.
+- XSS happens where an untrusted string crosses into markup, a URL, a script or a style, and each crossing needs its own defence.
+- `textContent` and JSX text are safe; `innerHTML`, `dangerouslySetInnerHTML`, `javascript:` URLs and spread props are not.
+- Sanitise unavoidable HTML with DOMPurify at render time, and accept a path rather than a full URL for any redirect.
+- `postMessage` payloads and URL fragments never reach the server, so the browser must check the exact origin and the shape.
+- Client validation is user experience; share one schema so the server's check, which is the real control, cannot drift from it.
 
 ## Interview Questions
 
-**Q: Encoding vs. sanitisation — when do you use each?**
+**Q: Encoding or sanitisation — when do you use each?**
 
-- **Encoding** turns special characters into safe text (`<` → `&lt;`). Use it for plain text you display — names, comments, search terms.
-- **Sanitisation** parses HTML and removes dangerous parts. Use it only when you must render real HTML — rich-text or CMS content.
+Encoding turns special characters into text (`<` becomes `&lt;`), for anything shown as plain text.
+Sanitisation parses HTML and removes what can run. Use it only for real HTML, such as CMS content, with
+an allowlist.
 
 **Q: How does React prevent XSS, and where does it fall short?**
 
-React escapes all JSX text by default. It does **not** protect `dangerouslySetInnerHTML`, `javascript:` URLs in `href`/`src`, or spread props. Sanitise HTML with DOMPurify and validate URLs before using them.
+React escapes every value rendered as JSX text. It does not protect `dangerouslySetInnerHTML`, user URLs
+in `href` or `src`, or spread props. The fixes: sanitise, allowlist the scheme, never spread what you did
+not build.
 
-**Q: What is DOM-based XSS and why is it harder to catch?**
+**Q: A colleague adds a `postMessage` listener for an analytics widget. What do you check in review?**
 
-It happens when client JS reads an attacker-controlled source (URL, `postMessage`, `localStorage`) and writes it to a dangerous sink (`innerHTML`, `eval`). The payload never reaches the server, so server-side scanners and WAFs never see it. Fix it by using `textContent` and avoiding dangerous sinks.
+That the handler compares `event.origin` to one exact origin before touching `event.data`. That the
+payload is parsed against a schema, not destructured. And that the sending side does not use
+`postMessage(data, "*")`, which broadcasts to whatever page holds the frame.
 
-**Q: Does CSP replace output encoding?**
+**Q: Your team wants to rely on CSP instead of fixing every `innerHTML`. Would you agree?**
 
-No. CSP is a **second** layer. Encoding stops injection; CSP stops injected code from running if encoding is missed somewhere. Use both — defence in depth.
+No. CSP is the second layer. It stops injected code running when encoding is missed once, but it is easy
+to weaken with `'unsafe-inline'` or a broad allowlist. Fix the sinks, then add CSP and Trusted Types so
+a single mistake is not fatal.
 
 ## What to Read Next
 
-- [Chapter ?? — Content Security Policy](#ch-content-security-policy) — the layer that limits a successful injection
-- [Chapter ?? — Client-Side Input Handling](#ch-client-side-input-handling) — the other browser-side trust boundaries
-- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — where the stored variant is actually stopped
+- [Chapter ?? — Content Security Policy and Security Headers](#ch-content-security-policy) — the layer that limits a successful injection
+- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — the server half of the shared schema, where stored XSS is stopped
+- [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) — why an `HttpOnly` cookie limits a successful injection, and the other cross-origin boundary

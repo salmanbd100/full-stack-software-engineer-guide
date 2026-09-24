@@ -87,7 +87,7 @@ import { Button } from '../components';
 
 Removing what is reachable but unused is tree shaking, and it needs static imports and honest
 side-effect metadata to work. The mechanics are in
-[Chapter ?? — Bundle Optimisation](#ch-bundle-optimisation); what matters here is that the graph is built
+[Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting); what matters here is that the graph is built
 first and pruned second, so a graph that reaches too far limits how much pruning can help.
 
 ### Why ESM changed what was possible
@@ -99,8 +99,7 @@ without executing it.
 ES modules are **statically analysable**. Imports and exports are declarations, hoisted, with fixed names,
 resolved before any code runs. That is what makes tree shaking, safe cross-module inlining and reliable
 chunking possible at all — and it is the reason every tool in this section assumes ESM and treats
-CommonJS as a compatibility case. The runtime semantics behind that difference are in
-[Chapter ?? — The Module System](#ch-module-system).
+CommonJS as a compatibility case.
 
 ### Chunking is graph partitioning
 
@@ -121,7 +120,7 @@ library that did not change.
 Two chunk boundaries exist without you asking. A **dynamic import** — `import('./Editor')` — is always a
 split point, because its target is not needed until it is called. And most bundlers separate
 `node_modules` from source for the caching reason above. Everything beyond that is configuration, covered
-as a performance technique in [Chapter ?? — Code Splitting](#ch-loading-and-code-splitting).
+as a performance technique in [Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting).
 
 ### Source maps, and what they cost
 
@@ -211,5 +210,4 @@ front of you.
 ## What to Read Next
 
 - [Chapter ?? — Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop) — how these four steps behave differently in development
-- [Chapter ?? — Bundle Optimisation](#ch-bundle-optimisation) — tree shaking, minification and compression in detail
-- [Chapter ?? — The Module System](#ch-module-system) — ESM and CommonJS at runtime rather than at build
+- [Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting) — tree shaking, minification and compression in detail

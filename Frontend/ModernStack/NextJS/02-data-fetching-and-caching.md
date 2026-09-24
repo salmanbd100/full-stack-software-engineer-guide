@@ -252,4 +252,4 @@ data the component could have queried directly.
 
 - [Chapter ?? — Rendering in Next.js](#ch-rendering-in-nextjs) — how cached and dynamic content share one route
 - [Chapter ?? — Server Actions](#ch-server-actions) — where invalidation is actually called from
-- [Chapter ?? — Frontend Caching Strategies](#ch-frontend-caching-strategies) — the CDN layer sitting in front of all of this
+- [Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) — the CDN layer sitting in front of all of this

@@ -1,19 +1,19 @@
 ---
 title: Part V — NoSQL and Caching
 part: 5
-chapter: 24
+chapter: 15
 slug: backend-nosql-index
 level: intermediate
 reading_time: 2
-updated: 2026-09-08
+updated: 2026-09-24
 tags: [nosql, mongodb, redis, schema, caching]
 in_book: true
 ---
 
 # Part V — NoSQL and Caching
 
-Two stores, chosen for how often they actually appear: MongoDB, because a great many product
-codebases have one, and Redis, because almost every production service has one somewhere.
+One chapter on two stores, chosen for how often they actually appear: MongoDB, because a great many
+product codebases have one, and Redis, because almost every production service has one somewhere.
 
 The framing throughout is comparative. A document store is worth knowing partly for itself and
 partly because articulating what it trades away is how you demonstrate that you understand the
@@ -23,12 +23,11 @@ relational model too.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [Document Databases](#ch-document-databases) | What does the document model buy, and embed or reference? |
-| 02 | [Redis](#ch-redis) | Which structure, and what happens when the process restarts? |
+| 01 | [Choosing a Non-Relational Store: Documents and Redis](#ch-document-databases) | What does the document model buy, which Redis structure fits, and when is Postgres still the answer? |
 
 Aggregation pipelines and shard-key mechanics are deliberately absent. The first is a MongoDB
-specialist's skill; the second belongs one level up, to [Chapter ?? — Replication](#ch-replication)
-and [Chapter ?? — Sharding](#ch-sharding), where they are decisions rather than commands.
+specialist's skill; the second belongs one level up, to [Chapter ?? — Choosing a Datastore and Replicating It](#ch-choosing-a-datastore)
+and [Chapter ?? — Sharding and Transactions at Scale](#ch-sharding), where they are decisions rather than commands.
 
 ## What Interviewers Probe For
 
@@ -43,6 +42,5 @@ and [Chapter ?? — Sharding](#ch-sharding), where they are decisions rather tha
 
 ## Reading Order
 
-01 then 02, though the two are independent — start with 02 if caching is the immediate need. Both are
-in the interview sprint: the embed-or-reference judgement and the Redis structure choice are the two
-that come up reliably.
+One chapter, and it is in the interview sprint: the embed-or-reference judgement and the Redis
+structure choice are the two that come up reliably.

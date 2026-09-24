@@ -224,5 +224,5 @@ point of the boundary.
 ## What to Read Next
 
 - [Chapter ?? — Micro-Frontends](#ch-micro-frontends) — the pattern for when team independence, not code structure, is the bottleneck
-- [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) — the shared layer underneath a feature-organised tree
+- [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) — the shared layer underneath a feature-organised tree
 - [Chapter ?? — Four Kinds of State](#ch-four-kinds-of-state) — the decision that sits inside every layer boundary above

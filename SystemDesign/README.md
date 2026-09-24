@@ -5,7 +5,7 @@ chapter: 0
 slug: system-design-index
 level: advanced
 reading_time: 3
-updated: 2026-09-02
+updated: 2026-09-24
 tags: [system-design, radio, case-studies, scalability]
 in_book: true
 ---
@@ -25,11 +25,11 @@ an infinite feed, or a dashboard with fifty live widgets. Those rounds have thei
 
 | Section                                              | Chapters | What it covers                                                    |
 | ----------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| [Fundamentals](#ch-part-system-design-fundamentals)             | 6        | Running the round, estimation, scaling, reliability, consistency  |
-| [Building Blocks](#ch-part-system-design-building-blocks)        | 9        | Load balancers, caches, CDNs, queues, gateways, resilience        |
-| [Data at Scale](#ch-part-system-design-database)                | 4        | Choosing a store, replication, sharding, transactions             |
-| [Frontend System Design](#ch-part-frontend-system-design)       | 5        | The rounds this reader is most likely to face and least ready for |
-| [Case Studies](#ch-part-system-design-case-studies)              | 5        | Worked answers — two backend-shaped, three frontend-shaped        |
+| [Fundamentals](#ch-part-system-design-fundamentals)             | 4        | Running the round, estimation, scaling and latency, reliability and consistency |
+| [Building Blocks](#ch-part-system-design-building-blocks)        | 6        | Load balancers, caches, CDNs, queues and sockets, boundaries and gateways, resilience |
+| [Data at Scale](#ch-part-system-design-database)                | 2        | Choosing and replicating a store, sharding and transactions       |
+| [Frontend System Design](#ch-part-frontend-system-design)       | 3        | Real-time clients, offline-first, authentication                  |
+| [Case Studies](#ch-part-system-design-case-studies)              | 3        | Worked answers — one backend-shaped, two frontend-shaped          |
 
 ## The RADIO Framework
 
@@ -44,7 +44,7 @@ as the answer.
 | **I**nterface      | Three or four operations with the parameters that matter | 4–6 min   |
 | **O**ptimisations  | The scaling levers, and what each one costs              | 10–15 min |
 
-The full walkthrough is [Chapter ?? — Driving the Design Round](#ch-driving-the-round).
+The full walkthrough is [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round).
 
 ## What Interviewers Probe For
 
@@ -67,11 +67,12 @@ to estimate — queries per second, storage per year, bandwidth are what turn a 
 go to `Frontend/` next and treat `Database/` as depth. Then practise with the case studies, out loud,
 against a timer.
 
-**Interview sprint:** `Fundamentals/01` (the framework), `Fundamentals/02` (estimation),
+**Interview sprint:** `Fundamentals/01` (the framework, both rounds), `Fundamentals/02` (estimation),
 `BuildingBlocks/01`–`04`, then two case studies end to end.
 
 > ⚠️ Four directories are gone. `Scalability/` and `Infrastructure/` went at #22 and #23. `Security/`
 > went at #24 — authorisation, encryption at rest and SSRF moved into `Backend/Security/`.
-> `Microservices/` went at **#31d**: the gateway, service-boundary and resilience chapters are now
-> `BuildingBlocks/07`–`09`, and deployment and distributed tracing were archived because Part VIII
-> already owns them.
+> `Microservices/` went at **#31d**: the gateway, service-boundary and resilience chapters joined
+> `BuildingBlocks/`, and deployment and distributed tracing were archived because Part VIII already owns
+> them. #101 then cut the part from 6,291 lines to its 4,400 budget; `Archive/system-design/README.md`
+> records where each chapter went.

@@ -1,7 +1,7 @@
 ---
 title: Content Delivery Network
 part: 6
-chapter: 11
+chapter: 9
 slug: cdn
 level: intermediate # beginner | intermediate | advanced
 reading_time: 9

@@ -1,45 +1,37 @@
 ---
-title: The Event Loop and Async Node
+title: The Node.js Event Loop, Async and Errors
 part: 5
 chapter: 2
 slug: event-loop-async
 level: intermediate
-reading_time: 10
-updated: 2026-09-01
-tags: [nodejs, event-loop, async, concurrency]
+reading_time: 14
+updated: 2026-09-24
+tags: [nodejs, event-loop, async, concurrency, errors, express, resilience]
 in_book: true
 ---
 
-# The Event Loop and Async Node {#ch-event-loop-async}
+# The Node.js Event Loop, Async and Errors {#ch-event-loop-async}
 
-> Explain how one thread serves thousands of connections, and name the exact line that will stall all of them.
+> Explain how one thread serves thousands of connections, name the line that stalls them all, and decide which failures you answer and which you restart for.
 
-**In this chapter:** the loop's phases · microtasks against macrotasks · concurrency patterns that scale · what blocking looks like in production
+**In this chapter:** the loop's phases · microtasks against macrotasks · concurrency that scales · operational against programmer errors · crashing and shutting down cleanly
 
 ## 💡 The Core Idea
 
-Node runs your JavaScript on **one thread**. It stays fast because almost nothing your code
-waits for is done by that thread. A database query, a file read, an HTTP call — Node hands each
-one to the operating system or to a background thread pool, then goes back to running other
-work. When the result is ready, the operating system tells Node, and Node runs your callback.
-
-So Node is not fast because it is parallel. It is fast because it is never idle while waiting.
-The corollary is the thing interviewers are actually testing: **any CPU work you do inline is
-work nobody else can do anything during.** One 200 ms JSON parse is 200 ms of latency added to
-every other request in flight.
+Node runs your JavaScript on **one thread**. It stays fast because that thread never waits: a
+query, a file read or an HTTP call goes to the operating system or a small thread pool, and Node
+runs your callback when the result is ready. It is not parallel, just never idle. Two
+consequences follow. **Any CPU work you do inline blocks everyone:** one 200 ms JSON parse adds
+200 ms to every request in flight. And **one process serves every user**, so an error you cannot
+explain means unknown state for all of them. The safe answer is to log it and restart.
 
 ## How It Works
 
-The event loop is a fixed cycle of phases. Each phase has its own queue of callbacks, and the
-loop drains that queue before moving on.
+The event loop is a fixed cycle of phases, each draining its own queue of callbacks. A server
+spends most of its life in **poll**, waiting for I/O. **Timers** runs expired `setTimeout`
+callbacks, and **check** runs `setImmediate`.
 
-| Phase | Runs | You see it as |
-| ----- | ---- | ------------- |
-| **timers** | `setTimeout`, `setInterval` callbacks whose time has passed | Scheduled work |
-| **pending callbacks** | Some system-level callbacks, mostly TCP errors | Rarely |
-| **poll** | I/O completions — sockets, file reads, DNS | Where a server spends its life |
-| **check** | `setImmediate` callbacks | "Run right after this I/O phase" |
-| **close** | `close` handlers on sockets and streams | Cleanup |
+**The loop's phases:**
 
 ```mermaid
 flowchart LR
@@ -54,13 +46,8 @@ flowchart LR
 
 ### Microtasks beat everything
 
-Two queues sit **outside** the phases and are drained after every single callback, not once per
-phase:
-
-1. `process.nextTick` — Node's own queue, drained first
-2. Promise reactions (`.then`, `await` resumption) — drained second
-
-That ordering is the classic interview question.
+Two queues sit **outside** the phases and drain after every callback: `process.nextTick` first,
+then promise reactions.
 
 **Ordering, from a cold start:**
 
@@ -72,35 +59,23 @@ process.nextTick((): void => console.log('4 nextTick'));
 console.log('5 sync');
 
 // 5 sync → 4 nextTick → 3 promise → 1 timeout → 2 immediate
+// Sync code runs before the loop even starts its first turn.
 ```
 
-Synchronous code finishes first because the loop has not started a turn yet. Then `nextTick`,
-then promises, then the loop begins and hits **timers** before **check**.
-
-> ⚠️ A recursive `process.nextTick` starves the loop completely — the queue is drained until
-> empty, and it never becomes empty. Recursive `setImmediate` yields between turns and is safe.
+> ⚠️ A recursive `process.nextTick` starves the loop, because its queue never empties. A recursive
+> `setImmediate` yields between turns and is safe.
 
 ### The thread pool is small and shared
 
-`fs`, `dns.lookup`, `zlib` and `crypto.pbkdf2` do not use the OS event notification system.
-They run on libuv's thread pool, which defaults to **four threads**. Four concurrent
-`bcrypt.hash` calls will queue the fifth. Sockets do not use the pool, so ordinary HTTP and
-database traffic is unaffected.
-
-```typescript
-// Raise it before any async work starts — it is read once, at first use.
-process.env.UV_THREADPOOL_SIZE = '8';
-```
+`fs`, `dns.lookup`, `zlib` and `crypto.pbkdf2` share libuv's pool of **four threads**, so a fifth
+slow `bcrypt.hash` waits. Sockets do not use the pool. `UV_THREADPOOL_SIZE` raises the limit.
 
 ## When to Use It
-
-Concurrency shape matters more than syntax. These are the four you should be able to reach for
-without thinking.
 
 | You have | Use | Why |
 | -------- | --- | --- |
 | Independent calls, all must succeed | `Promise.all` | One round trip's worth of latency, not N |
-| Independent calls, partial failure is fine | `Promise.allSettled` | You get every result plus every reason |
+| Independent calls, partial failure is fine | `Promise.allSettled` | You get every result and every reason |
 | Several sources, first answer wins | `Promise.race` | Timeouts and hedged requests |
 | A large list, one shared downstream | Bounded pool | Protects the database from your own fan-out |
 
@@ -114,7 +89,6 @@ async function mapLimit<T, R>(
 ): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let cursor = 0;
-
   // `limit` workers share one cursor, so at most `limit` calls are ever open.
   const worker = async (): Promise<void> => {
     while (cursor < items.length) {
@@ -122,96 +96,152 @@ async function mapLimit<T, R>(
       results[index] = await fn(items[index]);
     }
   };
-
   await Promise.all(Array.from({ length: limit }, worker));
   return results;
 }
-
-const users = await mapLimit(ids, 10, (id: string) => fetchUser(id));
 ```
 
-`Promise.all(ids.map(fetchUser))` with 5,000 ids opens 5,000 sockets and exhausts the
-connection pool. The version above opens ten.
+`Promise.all(ids.map(fetchUser))` with 5,000 ids opens 5,000 sockets and drains the connection
+pool. `mapLimit(ids, 10, fetchUser)` opens ten.
 
-## Common Mistakes
+## Two Kinds of Error
 
-**❌ CPU work inline in a request handler**
+Every error in a Node service is one of two kinds. The whole design follows from telling them apart.
 
-```typescript
-app.post('/report', (req, res) => {
-  const csv = rows.map(toCsvLine).join('\n'); // 400 ms for 200k rows
-  res.type('text/csv').send(csv);
-});
-```
+| Kind | Example | Response |
+| ---- | ------- | -------- |
+| **Operational** | Row not found, token expired, provider timed out | Answer the request and stay up |
+| **Programmer** | Property of `undefined`, broken invariant, bad config key | Log it, then let the process die and restart |
 
-**✅ Stream it, or move it off-thread**
+Treat a bug as operational and you serve corrupted responses for hours. Crash, and it restarts in seconds.
 
-```typescript
-app.post('/report', (req, res) => {
-  res.type('text/csv');
-  // Each chunk yields to the loop, so other requests interleave.
-  Readable.from(rows).pipe(new CsvTransform()).pipe(res);
-});
-```
-
-Anything over roughly 10 ms of straight-line CPU per request belongs in a worker thread or a
-stream. See [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) for the worker route.
-
-**❌ `await` in a loop over independent work**
+**A typed error base:**
 
 ```typescript
-for (const id of ids) {
-  results.push(await fetchUser(id)); // N sequential round trips
+export class AppError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code: string,
+    readonly expose: boolean = true, // Safe to show the client?
+    options?: { cause?: unknown },
+  ) {
+    super(message, options);
+    this.name = new.target.name;
+  }
+}
+
+export class UpstreamError extends AppError {
+  // The client gets a generic message; the log keeps the detail through `cause`.
+  constructor(service: string, cause?: unknown) {
+    super(`${service} unavailable`, 502, 'upstream_unavailable', false, { cause });
+  }
 }
 ```
 
-**✅ Fan out, then bound it**
+`status` and `code` let one handler answer every error. `expose` decides at throw time whether the
+message is safe to send, because an upstream message may quote a hostname or a connection string.
+
+### One handler for everything
+
+Express sends every error to one four-argument middleware. In Express 5, a rejected promise from
+an `async` handler reaches it automatically. In Express 4 it does not, and the request hangs.
+
+**The single error handler, registered after every route:**
 
 ```typescript
-const results = await mapLimit(ids, 10, fetchUser);
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction): void => {
+  const known = err instanceof AppError ? err : undefined;
+  const status = known?.status ?? 500;
+  req.log.error({ err, status, requestId: req.id }, 'request failed');
+
+  res.status(status).json({
+    error: {
+      code: known?.code ?? 'internal_error',
+      message: known?.expose ? known.message : 'Internal server error',
+      requestId: req.id,
+    },
+  });
+});
 ```
 
-**❌ Synchronous file and crypto calls on the hot path.** `fs.readFileSync`,
-`crypto.randomBytes` with a large size, and `JSON.parse` on a multi-megabyte body all block.
-Read config synchronously at boot; never per request.
+An unrecognised error defaults to 500 and a generic message. It is a bug, and bugs leak.
 
-**❌ A forgotten `await` on a promise-returning call.** The function returns before the work
-finishes, errors surface as an unhandled rejection, and the request has already been answered.
+### Crashing and shutting down cleanly
+
+An unhandled rejection is a promise that failed with nothing listening. Since Node 15 it crashes
+the process by default. Keep that, and add handlers only to log first.
+
+**Process-level handlers and graceful shutdown:**
+
+```typescript
+process.on('unhandledRejection', (reason: unknown): void => {
+  logger.fatal({ err: reason }, 'unhandled rejection');
+  throw reason; // Turns it into an uncaught exception, so there is one exit path.
+});
+
+process.on('uncaughtException', (err: Error): void => {
+  logger.fatal({ err }, 'uncaught exception');
+  shutdown(1);
+});
+
+process.on('SIGTERM', (): void => shutdown(0)); // The orchestrator is stopping the container.
+
+function shutdown(code: number): void {
+  server.close((): void => process.exit(code));
+  setTimeout((): void => process.exit(code), 10_000).unref(); // Backstop.
+}
+```
+
+> ⚠️ These handlers exist to **log and exit**, never to recover. After an uncaught exception, a
+> transaction may be open or a lock held. The next request would see that half-applied state.
+
+## Common Mistakes
+
+**❌ CPU work inline in a request handler.** Building a 200k-row CSV with `map` and `join` takes
+400 ms, and every other request waits. **✅ Stream it** so each chunk yields to the loop, or move
+it to a worker thread. More than roughly 10 ms of straight-line CPU per request belongs off the loop.
+
+**❌ A `catch` that logs and carries on.** The order was not saved, yet the client gets a 200.
+**✅ Translate and rethrow** — `throw new UpstreamError('orders', e)` — so the handler answers it.
+
+**❌ A forgotten `await`.** The error becomes an unhandled rejection after the response is sent.
 Turn on `@typescript-eslint/no-floating-promises`.
 
 ## 🔑 Key Takeaways
 
 - Node's speed comes from never waiting on its own thread, not from parallelism.
-- Microtasks — `process.nextTick`, then promises — drain after every callback, before the loop's next phase.
-- The libuv thread pool defaults to four threads and is shared by `fs`, `zlib` and `crypto`.
+- Microtasks drain after every callback, `process.nextTick` first and promises second.
 - Unbounded `Promise.all` over a large list is a self-inflicted denial of service on your database.
-- More than ~10 ms of inline CPU per request is a latency tax on every other request in flight.
+- Operational errors get an answer, while programmer errors get a log line and a restart.
+- Process-level handlers exist to log and shut down cleanly, never to keep a broken process alive.
 
 ## Interview Questions
 
 **Q: Node is single-threaded, so how does it handle 10,000 concurrent connections?**
 
-The JavaScript runs on one thread, but the waiting does not. Node registers interest in each
-socket with the OS notification system (`epoll` on Linux, `kqueue` on macOS) and returns to the
-loop. The OS reports which sockets are ready; Node runs only those callbacks. Memory per idle
-connection is small, so the limit is file descriptors and memory rather than threads.
+The JavaScript runs on one thread, but the waiting does not. Node registers each socket with
+`epoll` (Linux) or `kqueue` (macOS), and the OS reports which ones are ready. Node runs only those
+callbacks, so the limit is file descriptors and memory, not threads.
 
 **Q: What logs first — `setTimeout(fn, 0)` or `setImmediate(fn)`?**
 
-From synchronous code, `setTimeout` usually wins, because the loop reaches the **timers** phase
-before the **check** phase. From inside an I/O callback, `setImmediate` always wins, because
-**check** comes immediately after **poll** and the loop has to complete a full turn to get back
-to timers. The reliable statement is the phase order, not a fixed answer.
+From synchronous code, `setTimeout` usually wins, because **timers** comes before **check**. From
+inside an I/O callback, `setImmediate` always wins, because **check** follows **poll**.
 
-**Q: `process.nextTick` or `Promise.resolve().then` — does the difference matter?**
+**Q: Should you keep the process alive after an `uncaughtException`?**
 
-`nextTick` drains entirely before any promise reaction, so it is higher priority. It exists for
-library authors who need to run after the current operation but before anything else observes
-state. In application code, prefer promises: recursive `nextTick` starves the event loop, and
-recursive promise chains do not.
+No. A transaction may be open or a cache half-written, so the state is unknown. Log with full
+context, stop accepting connections, let in-flight work finish briefly, then exit non-zero.
+
+**Q: When would you move work to a worker thread instead of making it async?**
+
+Only when the work is CPU-bound, such as parsing, resizing images or hashing. Marking CPU work
+`async` changes nothing, because it still runs on the one thread. A worker costs startup time and
+message copying, so it pays off only above a few milliseconds per task.
 
 ## What to Read Next
 
-- [Chapter ?? — Streams and Buffers](#ch-streams-buffers) — how to process data that does not fit in memory
-- [Chapter ?? — Node.js Performance and Scaling](#ch-nodejs-performance) — finding the blocking call, and using every core
-- [Chapter ?? — Error Handling in Node](#ch-nodejs-error-handling) — what to do with the rejection this loop surfaced
+- [Chapter ?? — Promises, Async/Await and Errors](#ch-promises-async) — the language-level rules for rejections this chapter builds on
+- [Chapter ?? — Node.js Performance, Streams and Scaling](#ch-nodejs-performance) — finding the blocking call, and using every core
+- [Chapter ?? — REST Best Practices and Versioning](#ch-rest-best-practices) — the one error shape a client can parse

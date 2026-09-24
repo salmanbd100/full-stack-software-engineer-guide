@@ -230,4 +230,4 @@ the limit before you reach it, across every store at once.
 
 - [Chapter ?? — Cookies and SameSite](#ch-cookies-same-site) — where session tokens belong, and what `SameSite` actually protects
 - [Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) — the Cache API, and the offline write queue that lives in IndexedDB
-- [Chapter ?? — XSS Prevention](#ch-xss-prevention) — the attack that makes the token rule matter
+- [Chapter ?? — XSS Prevention and Untrusted Input](#ch-xss-prevention) — the attack that makes the token rule matter

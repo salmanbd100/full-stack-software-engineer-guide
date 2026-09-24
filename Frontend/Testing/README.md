@@ -1,12 +1,12 @@
 ---
 title: Part IV — Frontend Testing
 part: 4
-chapter: 20
+chapter: 14
 slug: frontend-testing-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-09-07
-tags: [testing, vitest, react-testing-library, playwright, tdd, visual-regression]
+updated: 2026-09-24
+tags: [testing, vitest, react-testing-library, playwright, visual-regression, accessibility]
 in_book: true
 ---
 
@@ -23,18 +23,15 @@ rewrites of everything underneath it. Almost every recommendation here follows f
 
 ## Chapters
 
-| #  | Chapter                                                              | What it answers                                                 |
-| -- | -------------------------------------------------------------------- | --------------------------------------------------------------- |
-| 01 | [Testing Strategy](#ch-testing-strategy)                         | What do you test, at which layer, and what does it cost?        |
-| 02 | [Vitest](#ch-vitest)                                             | How do you mock at the boundary without leaking into the next test? |
-| 03 | [React Testing Library](#ch-react-testing-library)               | Which query, so a refactor does not break a hundred tests?      |
-| 04 | [Frontend Integration Testing](#ch-frontend-integration-testing)          | How do you test a whole flow against a faked network?           |
-| 05 | [End-to-End Testing with Playwright](#ch-end-to-end-testing)    | Which browser tests earn their runtime, and where does component testing stop? |
-| 06 | [Test-Driven Development](#ch-test-driven-development)           | When does writing the test first genuinely pay?                 |
-| 07 | [Visual and Contract Testing](#ch-visual-and-contract-testing)   | What do you do about failures an assertion cannot express?       |
-| 08 | [Testing Accessibility](#ch-testing-accessibility)               | What can be gated in CI, and what has to be done by hand?        |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [Testing Strategy](#ch-testing-strategy) | What do you test, at which layer, and what does it cost? |
+| 02 | [Writing the Tests: Vitest and React Testing Library](#ch-vitest) | Which query, and where do you mock, so a refactor does not break a hundred tests? |
+| 03 | [Frontend Integration Testing](#ch-frontend-integration-testing) | How do you test a whole flow against a faked network? |
+| 04 | [End-to-End, Visual and Contract Testing with Playwright](#ch-end-to-end-testing) | Which browser tests earn their runtime, and what about failures an assertion cannot express? |
+| 05 | [Testing Accessibility](#ch-testing-accessibility) | What can be gated in CI, and what has to be done by hand? |
 
-Chapter 08 moved here from Part II's accessibility section at #97. It owns the method, the CI gate and
+Chapter 05 moved here from Part II's accessibility section at #97. It owns the method, the CI gate and
 the two manual passes, so the other chapters here point at it rather than restate it.
 
 ## What Interviewers Probe For
@@ -56,9 +53,8 @@ A test suite is the part-level budget made concrete — of runtime, of maintenan
 
 ## Reading Order
 
-01 first — it sets the layers everything else refers to. Then 03 and 04, which are where most
-frontend testing actually happens. 02 is reference material you can dip into. 05 to 07 are the
-judgement chapters and read well in one sitting.
+01 first — it sets the layers everything else refers to. Then 02 and 03, which are where most
+frontend testing actually happens. 04 and 05 are the judgement chapters and read well in one sitting.
 
-**Interview sprint:** 01 → 03 → 05. The layering question, the query-priority question, and knowing
+**Interview sprint:** 01 → 02 → 04. The layering question, the query-priority question, and knowing
 which end-to-end tests earn their place cover most of what gets asked.

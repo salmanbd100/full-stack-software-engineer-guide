@@ -236,5 +236,5 @@ line-level reasoning to naming the trade-off behind each box you draw.
 ## What to Read Next
 
 - [Chapter ?? — Technical Communication](#ch-technical-communication) — the vocabulary that makes the narration land
-- [Chapter ?? — Driving the Design Round](#ch-driving-the-round) — the same habit across a 45-minute design round
+- [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round) — the same habit across a 45-minute design round
 - [Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework) — the ordering rule for a story rather than a solution

@@ -1,50 +1,89 @@
 ---
-title: Scalability
+title: Scalability, Latency and Throughput
 part: 6
 chapter: 4
 slug: scalability
 level: intermediate # beginner | intermediate | advanced
-reading_time: 10
-updated: 2026-09-02
-tags: [system-design, scalability, vertical, horizontal, auto-scaling, database]
+reading_time: 14
+updated: 2026-09-24
+tags: [system-design, scalability, vertical, horizontal, auto-scaling, database, performance, latency, throughput, percentiles, queueing]
 in_book: true
 ---
 
-# Scalability {#ch-scalability}
+# Scalability, Latency and Throughput {#ch-scalability}
 
-> Reach for the levers in cost order — bigger box, then more boxes, then a smaller database problem — and be able to say why you stopped where you did.
+> Read a latency distribution correctly, find the real bottleneck, and pull the cheapest lever that fixes it.
 
-**In this chapter:** the ladder of levers · when a bigger machine is the right answer · statelessness as the price of scaling out · auto-scaling and cooldown · scaling the database
+**In this chapter:** latency versus throughput · why the average lies · Little's Law and queueing · the ladder of scaling levers · statelessness and auto-scaling · scaling the database
 
 ## 💡 The Core Idea
 
-Scalability is not a property you add. It is a sequence of levers, each one cheaper in money and more
-expensive in complexity than the last, and the engineering judgement is knowing which one the current
-bottleneck actually calls for.
+Latency is how long one request takes. Throughput is how many requests finish per second. They often
+move in opposite directions. Batching raises throughput and adds latency. A queue protects throughput
+and hurts whoever waits at the back of it.
 
-The ladder runs: measure the bottleneck, buy a bigger machine, remove the state, add machines, then
-make the database problem smaller. Skipping to the bottom is the classic mistake — teams shard a
-database that a read replica and a cache would have carried for another two years, and inherit
-permanent operational cost for a problem they did not have.
+Scalability is how you keep both numbers inside their targets as load grows. It is not a property you
+add. It is a ladder of levers, and each rung is cheaper in money but dearer in complexity than the last.
+The ladder runs: measure, buy a bigger machine, remove the state, add machines, then shrink the database
+problem. The classic mistake is jumping to the bottom rung and sharding a database that a cache would
+have carried for two more years.
+
+> Users feel latency. Bills are paid for throughput. Know which one the requirement is written in.
 
 ## How It Works
 
-### The ladder
+### Why the average lies
 
-| Lever | Buys you | Costs you | Reach for it when |
-| --- | --- | --- | --- |
-| **Right-size** | Nothing new — the capacity you already pay for | An afternoon of profiling | Always first. The bottleneck is often not the one you assumed |
-| **Scale up** | 2–10× headroom, in a maintenance window | Money, and a restart | Databases, stateful services, anything you are not ready to re-architect |
-| **Go stateless** | The option to scale out at all | Session and file storage moved out | Before the first extra instance, not after |
-| **Scale out** | Practically unlimited capacity, plus redundancy | A balancer, and every state assumption you had | Web and API tiers, and anywhere a single node is a single point of failure |
-| **Scale the data** | Read capacity, then write capacity | Replication lag, then everything sharding brings | Once the database is the thing that saturates |
+A mean latency of 120 ms fits almost any user experience, because it hides the tail.
+
+| Statistic | Reads as                        | Use it for                                  |
+| --------- | ------------------------------- | ------------------------------------------- |
+| Mean      | Total time ÷ requests           | Capacity maths only, never user experience  |
+| p50       | Half of requests are faster     | The typical case                            |
+| p99       | 1 request in 100 is slower      | The SLO people actually set                 |
+| p99.9     | 1 request in 1,000 is slower    | What your heaviest users see all the time   |
+
+One page load can make 100 requests. So a user has a good chance of hitting the p99 on at least one.
+That is why p99 is not an edge case: at real volume, **the tail is somebody's median**.
+
+Fan-out makes the tail worse. Say one backend call is slow 1% of the time. A request that waits for ten
+such calls is slow **1 − 0.99¹⁰ ≈ 9.6%** of the time. Ten calls turn a p99 problem into a p90 problem.
+The fixes are fewer calls (batch or denormalise), hedged requests (send a duplicate after the p95 and
+take the first answer), or partial results that the UI can show with gaps.
+
+### Little's Law and the queue
+
+**The one formula behind most capacity surprises:**
+
+```text
+concurrency = arrival rate × average latency
+```
+
+A service handling 500 requests a second at 200 ms each holds 100 requests in flight. With a pool of 50
+workers, half the arrivals queue before any work starts. The key consequence: **as utilisation nears 100%, queueing time grows without limit.** At 50%
+utilisation, queue wait is about equal to service time. At 90%, it is about nine times service time.
+This is why a system that looks fine at 70% CPU falls over at 85%. The CPU number moved a little, and
+the wait time moved a lot.
+
+So plan to a utilisation ceiling, not a capacity ceiling. Around 70% is the usual target for a tier
+where latency matters. Crossing it is the signal to climb the ladder.
+
+### The ladder of levers
+
+| Lever              | Buys you                                   | Costs you                                  | Reach for it when                                       |
+| ------------------ | ------------------------------------------ | ------------------------------------------ | ------------------------------------------------------- |
+| **Right-size**     | The capacity you already pay for            | An afternoon of profiling                   | Always first. The bottleneck is often not the one you guessed |
+| **Scale up**       | 2–10× headroom, in a maintenance window     | Money, and a restart                        | Databases, stateful services, anything not ready to change |
+| **Go stateless**   | The option to scale out at all              | Moving sessions and files out               | Before the first extra instance, not after              |
+| **Scale out**      | Near-unlimited capacity, plus redundancy    | A load balancer, and every state assumption | Web and API tiers, and any single point of failure      |
+| **Scale the data** | Read capacity, then write capacity          | Replication lag, then all sharding brings   | Once the database is the thing that saturates           |
 
 ### Scaling up, and why it is not the cowardly option
 
-A bigger machine changes no architecture. That is its entire value: it is available today, it carries
-no design risk, and it buys the months you need to do the harder thing properly.
+A bigger machine changes no architecture. It is available today, carries no design risk, and buys
+the months you need to do the harder thing properly. But confirm the bottleneck first.
 
-Confirm the bottleneck before buying anything, because the wrong upgrade buys nothing at all:
+**Naming the resource that is actually saturated:**
 
 ```typescript
 interface InstanceMetrics {
@@ -63,20 +102,18 @@ function bottleneck(m: InstanceMetrics): string {
 }
 ```
 
-Two limits end this lever. The technical one is the largest instance a provider sells, and almost
-nobody meets it. The economic one arrives far earlier: each doubling roughly doubles the bill while
-returning less throughput each time, because most web workloads stop being CPU-bound long before they
-run out of cores.
+The limit is economic, not technical. Each doubling roughly doubles the bill but returns less
+throughput, because most web workloads stop being CPU-bound long before they run out of cores.
 
-> ⚠️ Vertical scaling requires a restart. On a managed database that is a maintenance window of
-> minutes, on the primary, with writes failing throughout. It is cheap in engineering time and not
-> free in availability.
+> ⚠️ Vertical scaling needs a restart. On a managed database, that is a maintenance window of minutes
+> on the primary, with writes failing throughout. It is cheap in engineering time, not free in
+> availability.
 
 ### Going stateless
 
-Scaling out only works if any server can answer any request. A server holding local state — sessions
-in memory, uploads on disk — is not interchangeable, and adding a second one produces two half-working
-systems rather than one bigger one.
+Scaling out only works if any server can answer any request. A server that holds local state, such as
+sessions in memory or uploads on disk, is not interchangeable. Adding a second one gives you two
+half-working systems, not one bigger one.
 
 **❌ State the next request cannot find:**
 
@@ -101,35 +138,28 @@ async function getSession(store: SessionStore, sessionId: string): Promise<UserS
 }
 ```
 
-The same move applies to everything else a process might hold: uploads go to object storage,
-configuration comes from the environment or a config service, and in-progress work lives in a queue.
-What is left in memory should be safe to lose when the instance does.
+The same applies to uploads (object storage) and work in progress (a queue). What stays in memory
+must be safe to lose when the instance goes.
 
 ### Auto-scaling and the cooldown
 
-Once instances are interchangeable, capacity can follow demand. The policy matters more than the
-mechanism, and the asymmetry is the part people get wrong.
+Once instances are interchangeable, capacity can follow demand. The asymmetry is what people get wrong.
 
-| Direction  | Trigger              | Sustained for | Cooldown | Why                                    |
-| ---------- | -------------------- | ------------- | -------- | -------------------------------------- |
-| Scale out  | CPU above 70%        | 3 minutes     | 1 minute | A spare instance costs pennies         |
-| Scale in   | CPU below 30%        | 10 minutes    | 5 minutes | A missing instance costs an outage    |
+| Direction | Trigger        | Sustained for | Cooldown  | Why                                |
+| --------- | -------------- | ------------- | --------- | ---------------------------------- |
+| Scale out | CPU above 70%  | 3 minutes     | 1 minute  | A spare instance costs pennies     |
+| Scale in  | CPU below 30%  | 10 minutes    | 5 minutes | A missing instance costs an outage |
 
-Set the minimum to two, never one — an auto-scaling group with `min: 1` is a single point of failure
-with extra steps.
+**Scale out fast, scale in slowly.** A long scale-in cooldown is what stops the policy from swinging
+back and forth. Set the minimum to two instances, in different availability zones, never one.
 
-
-**Scale out fast, scale in slowly.** Adding an instance you did not need costs a few pennies; removing
-one you did need costs an outage during the next spike. A long scale-in cooldown is what stops the
-policy oscillating.
-
-CPU is the default trigger and often the wrong one. A service that is waiting on a database is not
-CPU-bound, and its queue depth or p99 latency will react long before its processor does.
+CPU is the default trigger and often the wrong one. A service that waits on a database is not
+CPU-bound. Its queue depth or p99 latency reacts long before its processor does, and Little's Law says
+why: the queue is where the load shows first.
 
 ### Scaling the database
 
-The database saturates last and hurts most, because it is the one tier where "add another" does not
-work by itself. The progression is fixed, and each step is cheaper than the next:
+The database saturates last and hurts most, because "add another" does not work on its own there.
 
 ```mermaid
 flowchart LR
@@ -141,81 +171,75 @@ flowchart LR
 
 **Each step buys time for the next; sharding is the only one you cannot undo cheaply.**
 
-| Where you are | What to do |
-| --- | --- |
-| Under ~10k req/s, data fits one machine | One primary and a cache. Nothing else is justified |
-| Read-bound | Read replicas, and route reads to them by default |
-| Running out of connections | A pooler in front, multiplexing many app connections onto few database ones |
-| A few expensive read views dominating | A denormalised read model, updated from the write path |
-| Writes or data outgrow one machine | Shard, and expect it to change how every query is written |
-
-Two facts to have ready in an interview. Replicas lag — typically milliseconds, up to seconds under
-load — so a read immediately after a write must go to the primary or the user will not see their own
-change. And connection limits bite earlier than people expect: a hundred application instances holding
-ten connections each will exhaust a default PostgreSQL configuration several times over.
+Two facts to have ready. Replicas lag, by seconds under load, so a read right after a write must go
+to the primary. And connection limits bite early: a hundred app instances with ten connections each
+exhaust a default PostgreSQL setup several times over.
 
 ## When to Use It
 
-| Situation | The lever |
-| --- | --- |
-| One tier is saturated and you do not know which resource | Profile first — the upgrade you guess at usually buys nothing |
-| A database primary at 85% CPU, no time to re-architect | Scale up. It is the honest answer under pressure |
-| A web tier that must survive a node dying | Scale out, minimum two instances, sessions externalised |
-| A predictable daily peak | Auto-scaling with a slow scale-in |
-| Reads climbing, writes flat | Cache, then replicas — in that order |
-| Writes climbing and the primary already maximal | Shard, and budget for it properly |
+| Symptom                                        | Likely cause                          | The lever                                            |
+| ---------------------------------------------- | ------------------------------------- | ---------------------------------------------------- |
+| p50 fine, p99 terrible                         | GC pauses, cold caches, one slow shard | Group slow requests by tenant and instance, then fix the outlier |
+| Slow only at peak                              | Utilisation past the ceiling           | Auto-scale on queue depth, or shed load              |
+| A database primary at 85% CPU, no time to redesign | Plain saturation                   | Scale up. It is the honest answer under pressure     |
+| A web tier that must survive a node dying      | A single point of failure              | Scale out, two instances minimum, sessions externalised |
+| Reads climbing, writes flat                    | Read load                              | Cache, then replicas, in that order                  |
+| Fast at home, slow abroad                      | Geography: London to Sydney is ~250 ms of light in fibre | CDN, edge caching, regional read replicas |
 
 ## Common Mistakes
 
-❌ **Scaling before profiling.** More vCPU does nothing for a service waiting on disk. ✅ Identify which
-resource is actually saturated, then buy that one.
+❌ **Optimising the average.** The mean improves when fast requests get faster, which no user notices.
+✅ Optimise the percentile the requirement names. "p99 went from 1.2 s to 380 ms" is a result.
 
-❌ **Scaling out a stateful service.** Sticky sessions paper over it until a server dies and takes its
-users' sessions with it. ✅ Externalise state before the second instance, not after.
+❌ **Scaling before profiling.** More vCPU does nothing for a service waiting on disk. ✅ Find the
+saturated resource, then buy that one.
 
-❌ **A minimum of one instance.** Auto-scaling with `min: 1` is a single point of failure with extra
-steps. ✅ Two, always, in different availability zones.
+❌ **Scaling out a stateful service.** Sticky sessions hide it until a server dies and takes its users'
+sessions with it. ✅ Externalise state before the second instance, not after.
 
-❌ **Symmetric cooldowns.** Aggressive scale-in terminates capacity moments before it is needed again.
-✅ Scale out in minutes, scale in over tens of minutes.
+❌ **Symmetric cooldowns.** Fast scale-in removes capacity moments before it is needed again. ✅ Scale
+out in minutes, scale in over tens of minutes.
 
-❌ **Sharding as the first database move.** It multiplies the cost of every query, every migration and
-every incident. ✅ Cache, replicate and pool first; shard when the data genuinely does not fit.
+❌ **Sharding as the first database move.** It adds cost to every query, migration and incident.
+✅ Cache, replicate and pool first. Shard when the data truly does not fit.
 
 ## 🔑 Key Takeaways
 
-- Scalability is a ladder of levers in cost order, and the skill is stopping at the right rung.
-- A bigger machine is the fastest and lowest-risk answer, and it is the right one more often than it is admitted.
-- Statelessness is the precondition for scaling out — not an optimisation to do afterwards.
-- Scale out quickly and scale in slowly; the asymmetry is what keeps the policy from oscillating.
-- The database progression is cache, replicas, pooling, read models, then sharding — and only the last one is irreversible.
+- Latency and throughput trade against each other, so every performance requirement must say which one it means.
+- The mean hides the tail, and at real volume the p99 is somebody's median experience.
+- Little's Law shows that wait time explodes as utilisation nears 100%, so plan to a ceiling near 70%.
+- Scalability is a ladder of levers in cost order, and a bigger machine is the right rung more often than people admit.
+- Statelessness comes before scaling out, and in the database, sharding is the last and only irreversible step.
 
 ## Interview Questions
 
 **Q: Vertical or horizontal scaling — how do you choose?**
 
-Vertical first, because it changes nothing architecturally and can be done this afternoon. Horizontal
-once you need fault tolerance, zero-downtime deploys, or more capacity than one machine sells. The
-deciding question is usually availability rather than throughput: a single large instance is a single
-point of failure at any size, so anything with a real uptime target ends up horizontal regardless of
-load.
+Vertical first, because it changes nothing in the architecture and can happen this afternoon.
+Horizontal once you need fault tolerance, zero-downtime deploys, or more than one machine can give. The
+deciding factor is usually availability, not throughput. One large instance is a single point of
+failure at any size.
 
-**Q: What has to be true before you can scale out?**
+**Q: p50 is 40 ms and p99 is 3 seconds. Where do you look?**
 
-The servers must be interchangeable — no session in local memory, no uploaded file on local disk, no
-in-process job state. State moves to a shared store, and what is left in the process must be safe to
-lose when the instance is replaced. Without that, adding instances produces inconsistent behaviour that
-depends on which server answered.
+At something that hurts a few requests badly, not all requests slightly. Think cold caches, garbage
+collection pauses, one slow shard, lock contention, or a code path only large accounts reach. Group the
+slow requests by tenant, endpoint and instance first. The tail almost always shares an attribute.
 
-**Q: Your auto-scaling group keeps adding and removing instances every few minutes. What is wrong?**
+**Q: Your service looks fine at 70% CPU and falls over at 85%. Why?**
 
-The scale-in threshold and cooldown are too aggressive relative to scale-out, so removing capacity
-immediately re-triggers the scale-out condition. Widen the gap between the thresholds and make the
-scale-in cooldown several times longer than the scale-out one. It is also worth checking the metric —
-CPU on an I/O-bound service will swing for reasons unrelated to load.
+Queueing. By Little's Law, in-flight work equals arrival rate times latency. As utilisation nears 100%,
+queue wait grows far faster than the CPU number. A small rise in load becomes a large rise in latency,
+which is why capacity plans target a ceiling around 70%.
+
+**Q: When would you accept worse latency on purpose?**
+
+When throughput or cost matters more. Batching writes, buffering telemetry and queueing background jobs
+all delay single items but make the system cheaper and sturdier. The condition is that no user waits on
+the result. The moment one does, the trade reverses.
 
 ## What to Read Next
 
 - [Chapter ?? — Load Balancing](#ch-load-balancing) — the component that makes scaling out possible
-- [Chapter ?? — Caching](#ch-caching) — the lever that removes load rather than redistributing it
-- [Chapter ?? — Sharding](#ch-sharding) — the last rung, and what it costs
+- [Chapter ?? — Caching](#ch-caching) — the largest single lever on read latency and database load
+- [Chapter ?? — Sharding and Transactions at Scale](#ch-sharding) — the last rung, and what it costs

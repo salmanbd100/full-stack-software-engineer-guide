@@ -1,7 +1,7 @@
 ---
 title: Load Balancing
 part: 6
-chapter: 9
+chapter: 7
 slug: load-balancing
 level: intermediate
 reading_time: 9
@@ -228,6 +228,6 @@ instance appears, the calculation flips.
 
 ## What to Read Next
 
-- [Chapter ?? — Scalability](#ch-scalability) — where balancing sits among the scaling levers
-- [Chapter ?? — The API Gateway Pattern](#ch-api-gateway-pattern) — the layer above, doing auth and rate limiting rather than distribution
-- [Chapter ?? — Reliability and Availability](#ch-reliability-and-availability) — what the nines actually cost
+- [Chapter ?? — Scalability, Latency and Throughput](#ch-scalability) — where balancing sits among the scaling levers
+- [Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries) — the layer above, doing auth and rate limiting rather than distribution
+- [Chapter ?? — Reliability, Consistency and CAP](#ch-consistency-and-cap) — what the nines actually cost

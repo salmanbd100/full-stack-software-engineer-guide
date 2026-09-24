@@ -202,5 +202,5 @@ owner, none of which survive being deployed with the marketing site.
 ## What to Read Next
 
 - [Chapter ?? — Server Actions](#ch-server-actions) — the mutation path that needs no endpoint
-- [Chapter ?? — REST Best Practices](#ch-rest-best-practices) — designing the contract once it is public
-- [Chapter ?? — API Gateway Pattern](#ch-api-gateway-pattern) — where a BFF sits among the other edges
+- [Chapter ?? — REST Best Practices and Versioning](#ch-rest-best-practices) — designing the contract once it is public
+- [Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries) — where a BFF sits among the other edges

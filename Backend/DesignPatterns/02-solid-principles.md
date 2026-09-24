@@ -207,5 +207,5 @@ When the change it protects against isn't coming. An interface with one implemen
 ## What to Read Next
 
 - [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript) — the mechanisms that implement these principles
-- [Chapter ?? — Service Boundaries](#ch-service-boundaries) — dependency inversion applied to a whole system
+- [Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries) — dependency inversion applied to a whole system
 - [Chapter ?? — OOP and Composition over Inheritance](#ch-composition-over-inheritance) — where Liskov violations actually come from

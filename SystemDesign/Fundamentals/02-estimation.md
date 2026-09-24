@@ -195,6 +195,5 @@ story. Fitting in memory changes the scaling problem into an availability proble
 
 ## What to Read Next
 
-- [Chapter ?? — Driving the Design Round](#ch-driving-the-round) — where estimation sits in the running order
-- [Chapter ?? — Scalability](#ch-scalability) — what to do once the estimate says one machine is not enough
-- [Chapter ?? — Latency and Throughput](#ch-latency-and-throughput) — reading the numbers a live system reports back
+- [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round) — where estimation sits in the running order
+- [Chapter ?? — Scalability, Latency and Throughput](#ch-scalability) — what to do once the estimate says one machine is not enough

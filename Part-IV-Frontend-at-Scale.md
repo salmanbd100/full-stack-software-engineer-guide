@@ -5,7 +5,7 @@ chapter: 0
 slug: part-frontend-at-scale
 level: advanced
 reading_time: 3
-updated: 2026-09-19
+updated: 2026-09-24
 tags: [architecture, performance, security, testing, micro-frontends]
 in_book: true
 ---
@@ -31,10 +31,10 @@ attribute that is syntactically valid and semantically wrong.
 
 | Section                                                     | Chapters | What it covers                                                      |
 | ------------------------------------------------------------ | -------- | -------------------------------------------------------------------- |
-| [Frontend Architecture](#ch-frontend-architecture-index)     | 5        | Patterns, micro-frontends, design systems, upgrades, reviewing AI code |
-| [Web Performance](#ch-frontend-web-performance-index)        | 7        | Core Web Vitals, loading, budgets, caching, delivery, measurement    |
-| [Frontend Security](#ch-frontend-security-index)             | 4        | XSS, CSP, security headers, input handling on the client            |
-| [Frontend Testing](#ch-frontend-testing-index)               | 7        | Strategy, Vitest, RTL, integration, Playwright, TDD, visual          |
+| [Frontend Architecture](#ch-frontend-architecture-index)     | 4        | Patterns, micro-frontends, design systems and upgrades, reviewing AI code |
+| [Web Performance](#ch-frontend-web-performance-index)        | 4        | Core Web Vitals, loading and budgets, caching and delivery, measurement |
+| [Frontend Security](#ch-frontend-security-index)             | 2        | XSS and untrusted input, CSP and security headers                   |
+| [Frontend Testing](#ch-frontend-testing-index)               | 5        | Strategy, Vitest and RTL, integration, Playwright, accessibility    |
 
 ## What Interviewers Probe For
 
@@ -63,7 +63,7 @@ Architecture first — it sets the vocabulary of boundaries the other three sect
 security and testing are independent of each other after that.
 
 **Interview sprint:** Architecture 01 and 02 · Performance 01 and 02 · Security 01 and 02 · Testing 01.
-Seven chapters, and Testing 01 is the one that changes how the rest of the answers sound.
+Seven of the fifteen chapters, and Testing 01 is the one that changes how the rest of the answers sound.
 
 **Read in full before a system design round:** the performance section. Frontend system design questions
 are performance questions with a diagram attached.

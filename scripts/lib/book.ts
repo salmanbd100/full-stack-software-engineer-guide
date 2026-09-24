@@ -219,14 +219,13 @@ export const SECTION_ORDER: Readonly<Record<number, readonly string[]>> = {
     "Frontend/Security",
     "Frontend/Testing",
   ],
+  // Frameworks/ folded into NodeJS/ and Testing/ into API/ at #100.
   5: [
     "Backend/NodeJS",
-    "Backend/Frameworks",
     "Backend/API",
     "Backend/SQL",
     "Backend/NoSQL",
     "Backend/Security",
-    "Backend/Testing",
   ],
   6: [
     "SystemDesign/Fundamentals",

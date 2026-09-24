@@ -1,35 +1,48 @@
 ---
-title: GraphQL
+title: GraphQL, tRPC and Typed API Choices
 part: 5
-chapter: 13
+chapter: 7
 slug: graphql
 level: advanced
-reading_time: 10
-updated: 2026-09-01
-tags: [api, graphql, dataloader, schema, backend]
+reading_time: 14
+updated: 2026-09-24
+tags: [api, graphql, dataloader, schema, trpc, typescript, type-safety, openapi, contracts, backend]
 in_book: true
 ---
 
-# GraphQL {#ch-graphql}
+# GraphQL, tRPC and Typed API Choices {#ch-graphql}
 
-> Let the client choose the response shape without handing it a way to take your database down.
+> Choose between GraphQL, tRPC and REST with a generated client, and know what each one costs to run.
 
-**In this chapter:** the schema as contract · the resolver chain · N+1 and DataLoader · auth at the field level · protecting a public endpoint
+**In this chapter:** where the contract lives · GraphQL resolvers and N+1 · protecting a public graph · tRPC inference and its limits · the decision table
 
 ## 💡 The Core Idea
 
-REST decides the response shape on the server. GraphQL moves that decision to the client: one
-endpoint, one request, and the client names exactly the fields it wants. That removes both
-over-fetching and the round-trip waterfall a nested REST design forces.
+Every typed API exists to stop one failure: **the server changed and the client did not notice.** The
+approaches differ in where the truth lives and who can read it.
 
-Everything hard about GraphQL follows from the same move. Once the client picks the shape, the
-server can no longer predict the cost of a request, cache it by URL, or reason about which rows a
-query will touch. You trade the server's control for the client's flexibility, and then you spend
-engineering effort buying some of that control back.
+| Approach | Source of truth | Client types come from | Who can call it |
+| -------- | --------------- | ---------------------- | --------------- |
+| REST + OpenAPI | A published schema file | A code generator in the pipeline | Anyone, in any language |
+| GraphQL | A published schema file | A code generator, per query | Anyone, and they pick the fields |
+| tRPC | The server's own TypeScript | The compiler, at once | TypeScript callers in the same repository |
+
+GraphQL also lets the client name exactly the fields it wants, in one request. That ends
+over-fetching, but the server can no longer predict a request's cost or cache it by URL. tRPC bets
+that, with TypeScript at both ends of one repository, a schema is a redundant middle step.
 
 ## How It Works
 
-### The schema is the contract
+### REST plus a generated client
+
+The default for any API with callers you do not control. You publish an OpenAPI document, often
+generated from the server's validation schemas, and each client generates its types from it. The
+cost is one extra artefact: the generator must run in CI, and a stale generated file is a quiet bug.
+The gain: a Swift app, a Java partner and your own frontend all read one contract.
+
+### The GraphQL schema is the contract
+
+**A schema with a cycle and a nullable lookup:**
 
 ```graphql
 type User {
@@ -46,52 +59,18 @@ type Post {
 
 type Query {
   user(id: ID!): User    # Nullable: "not found" is a valid answer
-  posts(first: Int = 10, after: String): PostConnection!
-}
-
-type Mutation {
-  createPost(input: CreatePostInput!): CreatePostPayload!
 }
 ```
 
-Two conventions carry most of the value:
+**`!` is a promise.** A non-null field that resolves to `null` nulls its nearest nullable parent.
 
-- **`!` means non-null, and it is a promise you must keep.** If a non-null field resolves to
-  `null`, GraphQL nulls the nearest nullable ancestor — so one broken field can blank an entire
-  branch of the response. Make a field non-null only when it genuinely cannot be absent.
-- **Every mutation takes a single `input` and returns a payload type.** That lets you add fields
-  to either side later without a breaking change.
+### Resolvers, N+1 and DataLoader
 
-### The resolver chain
+A resolver runs once per field, only if the query asked for it, and receives its parent's value.
+So `{ posts(first: 50) { author { name } } }` calls `Post.author` fifty times: fifty queries, by
+default. `DataLoader` batches every `load()` from the same tick into one call and caches per request.
 
-A resolver runs per field, and receives the parent's return value.
-
-```typescript
-interface Context { userId: string | null; loaders: Loaders }
-
-const resolvers = {
-  Query: {
-    user: (_: unknown, args: { id: string }, ctx: Context): Promise<User | null> =>
-      ctx.loaders.user.load(args.id),
-  },
-  User: {
-    // `parent` is whatever Query.user returned. Fields with no resolver
-    // fall back to reading the property of the same name off `parent`.
-    posts: (parent: User, args: { first: number }, ctx: Context): Promise<Post[]> =>
-      ctx.loaders.postsByAuthor.load({ authorId: parent.id, first: args.first }),
-  },
-};
-```
-
-Resolution is **depth-first and lazy**: a field's resolver runs only if the query asked for it.
-That is what makes a recursive schema safe and what makes the next problem inevitable.
-
-### N+1 is the default, not an edge case
-
-`{ posts(first: 50) { author { name } } }` calls `Post.author` fifty times. Fifty queries.
-
-`DataLoader` fixes it by batching every `load()` call made in the same tick into one call, and
-memoising within the request.
+**A batched loader, built fresh for every request:**
 
 ```typescript
 import DataLoader from 'dataloader';
@@ -101,128 +80,166 @@ export function createLoaders(db: Db) {
     user: new DataLoader<string, User | null>(async (ids: readonly string[]) => {
       const rows = await db.users.findMany({ where: { id: { in: [...ids] } } });
       const byId = new Map(rows.map((r) => [r.id, r]));
-      // Must return one entry per key, in the same order. Missing → null, never a gap.
+      // One entry per key, in the same order. Missing → null, never a gap.
       return ids.map((id) => byId.get(id) ?? null);
     }),
   };
 }
-```
 
-> ⚠️ Create loaders **per request**, in the context factory. A module-level loader caches across
-> users, which serves one tenant's data to another — the most serious bug in GraphQL codebases.
-
-## Authentication and Authorisation
-
-There is no route to guard, so authentication happens once when the context is built, and
-authorisation happens per field.
-
-```typescript
-const server = new ApolloServer<Context>({ schema });
-
-await startStandaloneServer(server, {
-  context: async ({ req }): Promise<Context> => ({
-    userId: await verifyToken(req.headers.authorization),
-    loaders: createLoaders(db), // Fresh per request.
-  }),
-});
-```
-
-```typescript
 const resolvers = {
+  Post: {
+    author: (parent: Post, _: unknown, ctx: GraphQLContext): Promise<User | null> =>
+      ctx.loaders.user.load(parent.authorId),
+  },
   User: {
-    // Field-level check: anyone can read a name, only the owner reads the email.
-    email: (parent: User, _: unknown, ctx: Context): string | null =>
+    // Field-level check: only the owner reads the email.
+    email: (parent: User, _: unknown, ctx: GraphQLContext): string | null =>
       ctx.userId === parent.id ? parent.email : null,
   },
 };
 ```
 
-Put the check in the resolver for the field that exposes the data, not in the top-level query.
-The same `User` type is reachable through `Query.user`, `Post.author` and a dozen other paths; a
-check on one entry point protects none of the others.
+> ⚠️ Create loaders **per request**, in the context factory. A loader at module level caches across
+> users and serves one tenant's data to another. It is the most serious bug in GraphQL codebases.
 
-## Protecting the Endpoint
+Authorisation belongs on the field that exposes the data. `User` is reachable through `Query.user`,
+`Post.author` and many other paths, so a check on one entry point protects none of the others.
 
-A public GraphQL endpoint is a query interpreter you have exposed to the internet. Four controls,
-all of them mandatory:
+### Protecting a public GraphQL endpoint
+
+A public GraphQL endpoint is a query interpreter open to the internet. It needs three controls:
 
 | Control | Stops | How |
 | ------- | ----- | --- |
-| **Depth limit** | `{ author { posts { author { posts … } } } }` | Reject beyond ~7 levels |
-| **Complexity limit** | A wide, shallow query fetching a million rows | Cost per field × multipliers, capped per request |
-| **Persisted queries** | Arbitrary queries entirely | Client sends a hash; server holds the allowlist |
-| **Disable introspection in production** | Free schema map for an attacker | Config flag |
+| **Depth limit** | `{ author { posts { author { posts … } } } }` | Reject beyond about 7 levels |
+| **Complexity limit** | A wide, shallow query fetching a million rows | Cost per field × page size, capped per request |
+| **Persisted queries** | Arbitrary queries entirely | The client sends a hash; the server holds the allowlist |
 
-Rate limiting by request count is nearly useless here, because one request can cost a thousand
-times another. Limit on **computed complexity**, not on requests — see
-[Chapter ?? — Rate Limiting](#ch-rate-limiting).
+Counting requests is nearly useless, because one query can cost a thousand times another. GraphQL
+also returns HTTP 200 on failure, so mask stack traces and give clients a stable `extensions.code`.
 
-Errors need the same care. GraphQL returns HTTP 200 with an `errors` array, and by default the
-array contains stack traces. Mask them and put a stable machine-readable `code` in `extensions`:
+### tRPC: one router, one exported type
 
-Supply a `formatError` hook: log the original, replace an `INTERNAL_SERVER_ERROR` message with a
-generic string, and let validation and authentication errors through unchanged. The stable
-`extensions.code` is what clients should switch on, never the message text.
+**A context, an auth middleware and a router:**
+
+```typescript
+import { initTRPC, TRPCError } from "@trpc/server";
+import { z } from "zod";
+
+export interface Context {
+  user: { id: string; role: "admin" | "member" } | null;
+}
+
+const t = initTRPC.context<Context>().create();
+
+// Middleware narrows the context type, so `ctx.user` is non-null downstream.
+const protectedProcedure = t.procedure.use(async (opts) => {
+  if (!opts.ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+  return opts.next({ ctx: { user: opts.ctx.user } });
+});
+
+export const appRouter = t.router({
+  orders: t.router({
+    byId: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async (opts) => orders.find(opts.input.id, opts.ctx.user.id)),
+  }),
+});
+
+export type AppRouter = typeof appRouter; // the whole contract, as one type
+```
+
+`.input()` gives validation and the input type from one declaration. `AppRouter` is only a type,
+so importing it into the client bundles nothing.
+
+**The client applies that type:**
+
+```typescript
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import type { AppRouter } from "../server/router"; // type-only import
+
+const client = createTRPCClient<AppRouter>({
+  links: [httpBatchLink({ url: "/api/trpc" })],
+});
+
+// Autocompleted, and a compile error if `byId` loses its `id` input.
+const order = await client.orders.byId.query({ id });
+```
+
+`httpBatchLink` joins calls made in the same tick into one HTTP request, which solves the
+per-component waterfall without a query language.
+
+> ⚠️ **Moving target:** tRPC 11 changed the procedure options object and added a new TanStack Query
+> integration, `@trpc/tanstack-react-query`, beside the classic `@trpc/react-query`. The durable
+> principle is that the server's type is the contract and the client imports it type-only.
+
+### What the types do not check
+
+Typed contracts catch a renamed procedure, a changed shape or a missing field. They do not catch a
+semantic change, or whether the caller may see the data. Above all, they do not catch a **deployed**
+server older than the client's types. tRPC checks your working tree at build time, so atomic deploys
+are a precondition. They also shape versioning: add the new procedure beside the old one, move the
+call sites the compiler lists, then delete the old one. A public API needs a real deprecation window.
 
 ## When to Use It
 
-| Scenario | Choose | Why |
-| -------- | ------ | --- |
-| One or two rich clients, deeply nested data | GraphQL | The waterfall collapses into one request |
-| Many unknown public clients, cacheable reads | REST | HTTP caching and universal tooling |
-| Mobile client on a slow network | GraphQL | Payload is exactly what the screen needs |
-| File upload, binary, or streaming download | REST | GraphQL has no good answer |
-| Small internal API, both ends typed | tRPC or REST | GraphQL's machinery is not repaid |
+| Situation | Choose | Why |
+| --------- | ------ | --- |
+| One repository, TypeScript both ends, deployed together | tRPC | The lowest-ceremony end-to-end guarantee |
+| Public or partner API, cacheable reads | REST + OpenAPI | Callers you cannot compile need a published, versioned schema |
+| Mobile or any non-TypeScript client | REST, or GraphQL | Inference does not reach them, and they release on their own schedule |
+| Many clients with different data needs, deep nesting | GraphQL | Field selection is the actual requirement |
 
-The honest summary: GraphQL removes over-fetching and adds an operational burden — caching,
-cost limiting, schema governance. It pays off when client teams outnumber server teams.
+GraphQL pays off when client teams outnumber server teams, tRPC when one team owns both ends. REST
+with a generated client is the safe default everywhere else.
 
 ## Common Mistakes
 
-**❌ A `Query` field that returns everything.** `allUsers: [User!]!` with no pagination is a table
-scan a client can trigger. Use a connection type with `first` and `after`, capped server-side.
+❌ **A GraphQL resolver that calls the database directly.** It turns N+1 under any list field.
+✅ Route every read through a per-request loader.
 
-**❌ Resolvers that call the database directly.** Every one becomes an N+1 the first time it
-appears under a list field. Route all reads through loaders.
+❌ **Importing the tRPC router value instead of its type.** `import { appRouter }` pulls the database
+client into the browser bundle.
+✅ `import type { AppRouter }`, always.
 
-**❌ Marking every field non-null.** One failure then nulls a whole branch. Non-null is a promise
-about the data, not a style preference.
-
-**❌ Treating HTTP 200 as success.** A GraphQL response can be 200 with `data: null` and an error
-array. Clients must check `errors`, and monitoring must too, or failures look like traffic.
+❌ **Exposing tRPC to third parties because it is already built.** They get an unversioned surface.
+✅ Publish REST or GraphQL for external callers and keep tRPC internal.
 
 ## 🔑 Key Takeaways
 
-- The client picking the shape is the benefit and the source of every operational problem.
-- Resolution is lazy and per field, so a field's own resolver is the only safe place for its authorisation check.
-- N+1 is GraphQL's default behaviour; DataLoader, created per request, is the fix.
-- A public endpoint needs depth limits, complexity limits and persisted queries before it needs anything else.
-- GraphQL returns 200 on failure — clients and dashboards that read only the status code are blind.
+- Every typed API answers one question: where does the contract live, and can every caller read it?
+- GraphQL lets the client pick the shape, and that choice causes N+1, cost control and caching problems.
+- DataLoader fixes N+1, and it must be created per request or it leaks data between users.
+- tRPC's guarantee holds at build time and assumes the client and server deploy together.
+- Any API with external or non-TypeScript callers needs a published schema, so REST or GraphQL.
 
 ## Interview Questions
 
-**Q: What is the N+1 problem in GraphQL and why is it structural?**
+**Q: What is the N+1 problem in GraphQL, and why is it structural?**
 
-Each field resolves independently, so a list of N parents runs the child resolver N times, once
-per parent, with no shared context. It is structural because lazy per-field resolution is the
-feature. DataLoader collects the `load()` calls made in one tick, issues a single batched query,
-and memoises per request.
+Each field resolves on its own, so a list of N parents runs the child resolver N times. It is
+structural because lazy per-field resolution is the feature. DataLoader collects the `load()` calls
+from one tick and runs one batched query. Create it per request, or its cache leaks between users.
 
-**Q: A DataLoader is returning the wrong user's data. What went wrong?**
+**Q: How do you rate limit a GraphQL API?**
 
-Almost certainly a loader created once at module scope instead of per request. Its memoisation
-cache then spans users, so the second caller gets the first caller's row. Loaders belong in the
-per-request context factory, which also gives them the correct request-scoped lifetime.
+Not by request count, because one query can cost a thousand times another. Give each field a cost,
+multiply by page size, and reject a query over the caller's budget. Depth limits handle recursion,
+and persisted queries remove arbitrary queries altogether.
 
-**Q: How do you rate limit GraphQL?**
+**Q: Is a tRPC API type-safe in production?**
 
-Not by request count — one query can be a thousand times more expensive than another. Assign a
-static cost to each field, multiply by pagination arguments, and reject any query whose computed
-cost exceeds a per-caller budget. Depth limits handle the recursive case, and persisted queries
-remove the problem entirely by allowlisting the operations.
+Only at build time, against the types in the repository. A client released ahead of its server
+compiles cleanly and fails at runtime, so the guarantee depends on deploying both together.
+
+**Q: A mobile app, a web app and two partners need your API. GraphQL, tRPC or REST?**
+
+Not tRPC: its inference reaches only TypeScript callers deployed with the server. REST with OpenAPI
+suits the partners and caches well. GraphQL earns its running cost only if the clients need very
+different field sets. Many teams run REST for partners and tRPC for their own web app.
 
 ## What to Read Next
 
-- [Chapter ?? — REST API Best Practices](#ch-rest-best-practices) — the model GraphQL is reacting against
-- [Chapter ?? — API Versioning and Contracts](#ch-versioning) — evolving a schema without a version number
-- [Chapter ?? — Rate Limiting](#ch-rate-limiting) — why complexity, not request count, is the unit here
+- [Chapter ?? — REST Best Practices and Versioning](#ch-rest-best-practices) — publishing and versioning a contract for callers outside your repository
+- [Chapter ?? — Rate Limiting](#ch-rate-limiting) — why cost, not request count, is the unit for a graph
+- [Chapter ?? — Route Handlers and the BFF](#ch-route-handlers-and-the-bff) — where a Next.js app's typed backend lives

@@ -209,5 +209,5 @@ when I finally know what the abstraction should look like.
 ## What to Read Next
 
 - [Chapter ?? — SOLID Principles](#ch-solid-principles) — open/closed and dependency inversion, which most of these patterns implement
-- [Chapter ?? — Service Boundaries](#ch-service-boundaries) — the same ideas at the scale of a system
+- [Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries) — the same ideas at the scale of a system
 - [Chapter ?? — OOP and Composition over Inheritance](#ch-composition-over-inheritance) — why the function forms above beat the class forms here

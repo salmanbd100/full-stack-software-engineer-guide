@@ -1,11 +1,11 @@
 ---
 title: Part V — Backend Security
 part: 5
-chapter: 27
+chapter: 17
 slug: backend-security-index
 level: advanced
 reading_time: 2
-updated: 2026-09-08
+updated: 2026-09-24
 tags: [security, auth, jwt, oauth, validation]
 in_book: true
 ---
@@ -23,11 +23,9 @@ then stop the request itself being hostile.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [Credentials, Sessions and Tokens](#ch-credentials-and-sessions) | Is a database leak also an account leak, and is the session revocable? |
-| 02 | [OAuth 2.1 and OpenID Connect](#ch-oauth) | What is each redirect in the flow protecting? |
-| 03 | [Authorisation](#ch-authorisation) | Does this user own *this* object? |
-| 04 | [CORS and CSRF](#ch-cors-csrf) | Why does CORS not prevent CSRF? |
-| 05 | [Input Validation and Injection](#ch-backend-input-validation) | Where does data become code? |
+| 01 | [Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) | Is the session revocable, and why does CORS not prevent CSRF? |
+| 02 | [OAuth, OIDC and Authorisation](#ch-oauth) | What is each redirect protecting, and does this user own *this* object? |
+| 03 | [Input Validation and Injection](#ch-backend-input-validation) | Where does data become code? |
 
 ## What Interviewers Probe For
 
@@ -42,8 +40,8 @@ then stop the request itself being hostile.
 
 ## Reading Order
 
-01 → 02 covers authentication end to end. 03 next, because it is where the real bugs are. 04 and 05
-are independent and can be read in either order.
+01 → 02 covers authentication and authorisation end to end — and 02's second half is where the real
+bugs are. 03 is independent.
 
-**Interview sprint:** 01 → 03 → 04. Credential design, object-level authorisation and the CORS/CSRF
-distinction come up in almost every senior loop.
+**Interview sprint:** 01 → 02. Credential design, the CORS/CSRF distinction and object-level
+authorisation come up in almost every senior loop.

@@ -1,103 +1,91 @@
 ---
-title: Choosing a Datastore
+title: Choosing a Datastore and Replicating It
 part: 6
-chapter: 19
+chapter: 14
 slug: choosing-a-datastore
 level: intermediate
-reading_time: 10
-updated: 2026-09-02
-tags: [system-design, database, nosql, polyglot, data-modelling]
+reading_time: 14
+updated: 2026-09-24
+tags: [system-design, database, nosql, polyglot, data-modelling, replication, failover, replica-lag]
 in_book: true
 ---
 
-# Choosing a Datastore {#ch-choosing-a-datastore}
+# Choosing a Datastore and Replicating It {#ch-choosing-a-datastore}
 
-> Pick a store from the access patterns and the consistency requirement, and defend the choice without saying "it scales better".
+> Pick a store from the access patterns, copy it across machines, and say exactly what a reader sees while the copies disagree.
 
-**In this chapter:** the five store families · access patterns before schemas · ACID and BASE · normalise or denormalise · polyglot persistence · the migration you cannot undo
+**In this chapter:** access patterns before schemas · ACID and BASE · one owner per fact · leaders, lag and failover · routing reads
 
 ## 💡 The Core Idea
 
-Every datastore is a set of trade-offs frozen into a product. Relational databases pay write cost for
-query flexibility and correctness guarantees. Key-value stores give up querying for latency. Document
-stores give up joins for locality. The choice is therefore not "which is best" but "which trade-offs
-match what this system does most often".
+Every datastore is a set of trade-offs built into a product. Relational databases pay write cost for
+flexible queries and correctness. Key-value stores give up querying to win latency. Document stores give
+up joins to keep related data together. So the question is never "which is best". It is "which
+trade-offs match what this system does most often".
 
-That is why the honest process starts with the access patterns, not the entities. Write down the five
-queries the system will run a thousand times a second, and the store usually picks itself.
+Once you have chosen, you copy the data to more than one machine. That is **replication**, and it buys
+two separate things. **Durability** means losing one machine does not lose the data. **Read capacity**
+means several machines can answer queries. It costs one thing: the copies are never identical at the
+same instant, so someone can read a value that is already out of date.
 
-> Relational is the default, and departing from it needs a reason a sentence long. "We might need to
-> scale" is not that sentence.
+> Relational is the default, and leaving it needs a reason one sentence long. "We might need to scale"
+> is not that sentence.
 
 ## How It Works
 
-### The five families
+### The families
 
-| Family        | Shape                          | Strong at                                 | Weak at                              | Examples                |
-| ------------- | ------------------------------ | ----------------------------------------- | ------------------------------------ | ----------------------- |
-| Relational    | Tables with a fixed schema      | Joins, transactions, ad-hoc queries        | Horizontal write scaling             | PostgreSQL, MySQL       |
-| Document      | Self-contained JSON documents   | Reading one aggregate in one hit           | Cross-document joins and consistency | MongoDB, DynamoDB (document mode) |
-| Key-value     | Opaque value behind a key       | Sub-millisecond reads, huge throughput     | Any query that is not by key         | Redis, DynamoDB, Memcached |
-| Wide-column   | Rows keyed by partition + sort  | Enormous write volume, time-series ranges  | Ad-hoc queries, joins                | Cassandra, ScyllaDB     |
-| Graph         | Nodes and edges                 | Traversals many hops deep                  | Aggregate reporting, bulk writes     | Neo4j, Neptune          |
-
-A search engine and an object store belong on the same shortlist, even though they are not "databases".
-They own the two problems relational stores handle worst: ranked full-text queries and large binary
-objects.
+| Family      | Strong at                                 | Weak at                              | Examples             |
+| ----------- | ----------------------------------------- | ------------------------------------ | -------------------- |
+| Relational  | Joins, transactions, ad-hoc queries        | Scaling writes across machines       | PostgreSQL, MySQL    |
+| Document    | Reading one aggregate in one hit           | Joins and consistency across documents | MongoDB            |
+| Key-value   | Sub-millisecond reads, huge throughput     | Any query that is not by key         | Redis, DynamoDB      |
+| Wide-column | Enormous write volume, time-ordered ranges | Ad-hoc queries, joins                | Cassandra, ScyllaDB  |
+| Graph       | Traversals many hops deep                  | Reporting, bulk writes               | Neo4j                |
 
 ### Access patterns before schemas
 
-Relational modelling starts from the entities and lets the query planner work out the rest. Every other
-family works the other way round: **the primary key is the query plan**, and getting it wrong means a
-migration rather than an index.
+Relational modelling starts from the entities and lets the query planner do the rest. Every other family
+works the other way round. **The primary key is the query plan**, and a wrong key means a migration, not
+a new index.
+
+**A DynamoDB-style single-table key:**
 
 ```typescript
-// DynamoDB-style single-table design. The key IS the access pattern.
 interface OrderItem {
-  pk: string;   // "USER#42"        — partition: everything for one user is co-located
-  sk: string;   // "ORDER#2026-09-02#8821" — sort: newest-first range queries for free
+  pk: string; // "USER#42" — everything for one user lives in one partition
+  sk: string; // "ORDER#2026-09-02#8821" — sorted, so newest-first ranges are free
   status: "pending" | "shipped";
   total: number;
 }
 
 // "The last 20 orders for user 42" is one query against one partition.
-// "All orders over £500 across all users" is a full scan — and if you need it, this is the wrong store.
+// "All orders over £500 across all users" is a full scan. If you need it, this is the wrong store.
 ```
-
-Ask the question before choosing the key: which queries must be fast, and which may be slow or offline?
 
 ### ACID and BASE
 
-| | ACID (relational) | BASE (most NoSQL) |
-| --- | ----------------- | ----------------- |
-| Writes | Atomic across rows and tables | Atomic within one document or partition |
-| Reads | See a consistent snapshot | May see stale data |
-| Failure | Rolls back | Converges later |
-| Buys | Correctness with no application effort | Availability and write throughput |
-| Costs | Coordination, which limits write scaling | Correctness becomes the application's job |
+|          | ACID (relational)                 | BASE (most NoSQL)                        |
+| -------- | --------------------------------- | ---------------------------------------- |
+| Writes   | Atomic across rows and tables     | Atomic within one document or partition  |
+| Reads    | A consistent snapshot             | May be stale                             |
+| Buys     | Correctness with no extra code    | Availability and write throughput        |
+| Costs    | Coordination, which limits writes | Correctness becomes your code's job      |
 
-The practical translation: with BASE, the invariants a database used to enforce — uniqueness, referential
-integrity, a balance that cannot go negative — move into your code, and every one of them is now a race
-condition you have to think about.
+With BASE, the rules the database used to enforce move into your code. Uniqueness, foreign keys and "a
+balance cannot go negative" each become a race condition you must handle yourself.
 
-### Normalise or denormalise
+### One owner per fact
 
-| | Normalised | Denormalised |
-| --- | ---------- | ------------ |
-| Write | One place to update | Every copy must be updated |
-| Read | Joins at query time | One read, no joins |
-| Storage | Minimal | Duplicated |
-| Risk | Slow reads at scale | Copies drifting out of sync |
+Normalise by default. Denormalise one read path only once it is measurably too slow, and name who keeps
+the copies in step.
 
-Normalise by default; denormalise a specific read path once it is measurably too slow, and be explicit
-about who keeps the copies in step. A denormalised field with no owner is a bug on a delay.
+> ⚠️ Denormalisation is a cache dressed as a schema. It fails the same way, with stale data, but it has
+> no expiry. Give every duplicated field a rule for when it is refreshed.
 
-> ⚠️ Denormalisation is a caching decision wearing a schema costume. It has the same failure mode —
-> stale data — with none of a cache's expiry. Give every duplicated field a rule for when it is refreshed.
+Most real systems use two or three stores, each for what it does well.
 
-### Polyglot persistence
-
-Most real systems use two or three stores, each for what it is good at.
+**Polyglot persistence in one system:**
 
 ```mermaid
 flowchart LR
@@ -108,26 +96,81 @@ flowchart LR
   P -->|"outbox events"| S
 ```
 
-**One store owns each fact; the others are derived and rebuildable.**
+**One store owns each fact; the others are derived from it and can be rebuilt.**
 
-The rule that keeps this sane: **exactly one store is the source of truth for each piece of data.**
-Everything else is a projection that can be thrown away and rebuilt. The moment two stores both claim
-to own a fact, you have a reconciliation problem that never ends.
+If two stores both claim a fact, they drift apart and nothing tells you which is right. Write to one
+and derive the rest.
 
-Each additional store costs backups, monitoring, a failure mode and someone who understands it. Three is
-a lot for a small team.
+### Leaders and topologies
+
+| Topology      | Writes go to                          | Conflicts                  | Use for                              |
+| ------------- | ------------------------------------- | -------------------------- | ------------------------------------ |
+| Single-leader | One node, copied outwards             | Impossible                 | Almost everything — the default      |
+| Multi-leader  | Any leader, in several regions        | Certain, must be resolved  | Writes in two regions, offline clients |
+| Leaderless    | Several replicas at once, by quorum   | Likely, resolved at read   | Cassandra-style stores               |
+
+Single-leader removes write conflicts, so it wins unless the requirements force otherwise.
+
+### Synchronous or asynchronous
+
+|                        | Synchronous                           | Asynchronous                 |
+| ---------------------- | ------------------------------------- | ---------------------------- |
+| Write latency          | Leader plus the slowest replica       | Leader only                  |
+| Loss if the leader dies | None, for acknowledged writes        | Everything not yet shipped   |
+| Availability           | A stalled replica blocks writes       | Replicas cannot block writes |
+
+Production usually runs **semi-synchronous**. One replica confirms each write; the rest follow later.
+You get a durable second copy, and no single slow replica can stop the system.
+
+### Replica lag
+
+Lag is the delay between a write committing on the leader and appearing on a replica: milliseconds
+normally, minutes while a replica rebuilds. Users see it as three distinct bugs.
+
+| Anomaly          | What the user sees                          | Fix                                     |
+| ---------------- | ------------------------------------------- | --------------------------------------- |
+| Read-your-writes | "I saved it and it did not save"            | Send that user to the leader briefly    |
+| Monotonic reads  | A value appears, then vanishes on refresh   | Pin a session to one replica            |
+| Causal order     | A reply shows before the comment it answers | Read both from the same replica         |
+
+**Routing a read by lag tolerance:**
+
+```typescript
+interface ReplicaHealth { name: string; lagMs: number }
+
+function pickReplica(replicas: ReplicaHealth[], toleranceMs: number): string | null {
+  const fresh = replicas.filter((r: ReplicaHealth) => r.lagMs <= toleranceMs);
+  if (fresh.length === 0) return null; // fall back to the leader rather than serve stale data
+  return fresh[Math.floor(Math.random() * fresh.length)].name;
+}
+```
+
+Default every read to a replica, and mark the few endpoints that need the leader: a user's own recent
+write, and anything about money, stock or permissions. The opposite default never gets cleaned up.
+
+### Failover and split brain
+
+When the leader dies, a replica is promoted. You detect the failure with a heartbeat timeout, pick the
+replica with the newest log position, and point clients at it. Then you make sure the old leader
+**cannot** come back as a leader.
+
+> ⚠️ That last step is the one people forget. If the old leader recovers and still thinks it is primary,
+> two nodes accept writes and the data splits — **split brain**. Fencing prevents it: a rising term
+> number that storage checks on every write. Automatic failover without fencing is a data-loss mechanism.
+
+With asynchronous replication, failover also loses every write the old leader confirmed but had not
+shipped. So "does failover lose data?" has an honest answer: yes, up to the replication lag.
 
 ## When to Use It
 
-| Requirement                                     | Store                       | Why                                        |
-| ----------------------------------------------- | --------------------------- | ------------------------------------------ |
-| Transactions across entities, money, inventory   | Relational                  | ACID without writing it yourself           |
-| Reads by key at very low latency                 | Key-value                   | Nothing else is in the same range          |
-| One aggregate read and written as a whole        | Document                    | Locality; no joins needed                  |
-| Millions of writes a second, time-ordered        | Wide-column                 | Built for exactly this write pattern       |
-| "Friends of friends who bought X"                | Graph                       | Multi-hop traversal in a relational store is a self-join per hop |
-| Ranked full-text search                          | Search engine               | Inverted index and relevance scoring       |
-| Large binary objects                             | Object storage              | A database row is the wrong home for a 4 MB image |
+| Requirement                                   | Choice                                    | Why                                     |
+| --------------------------------------------- | ----------------------------------------- | --------------------------------------- |
+| Transactions across entities, money, stock    | Relational                                | ACID without writing it yourself        |
+| Reads by key at very low latency              | Key-value                                 | Nothing else is in the same range       |
+| Millions of time-ordered writes a second      | Wide-column                               | Built for exactly this write pattern    |
+| Ranked full-text search                       | Search engine, derived from the main store | Inverted index and relevance scoring   |
+| One database, uptime matters                  | One leader plus a sync replica in another zone | Survives a zone without losing writes |
+| Writes genuinely needed in two regions        | Multi-leader with a conflict rule         | The only option, so own its cost        |
 
 ## Common Mistakes
 
@@ -135,57 +178,66 @@ a lot for a small team.
 
 > "We picked Cassandra because we might get big."
 
-A single PostgreSQL instance handles tens of thousands of transactions a second and terabytes of data.
-Most products never leave that envelope, and the ones that do have the revenue to migrate.
+One PostgreSQL instance handles tens of thousands of transactions a second and terabytes of data. Most
+products never leave that range, and the ones that do can afford to migrate.
 
 **✅ Choosing for the access pattern you actually have**
 
-> "Writes are 400 a second and every query is by user ID with a date range, so a single Postgres with a
+> "Writes are 400 a second and every query is by user ID with a date range. One Postgres with a
 > composite index is right, and I will revisit if writes pass 5,000."
 
-**❌ Modelling a document store like a relational one**
+**❌ Treating replicas as a backup**
 
-Storing normalised documents and joining them in application code gives you a slow relational database
-with no query planner and no transactions.
+Replication copies mistakes perfectly. A `DELETE` without a `WHERE` reaches every replica in
+milliseconds.
 
-**❌ Two sources of truth**
+**✅ Replicas for availability, backups for recovery**
 
-Writing the same fact to Postgres and Elasticsearch from the application means the two will diverge, and
-nothing will tell you which is right. Write to one and derive the other.
+Replicas cover a machine or zone dying. Point-in-time backups cover bad data, and a scheduled restore
+proves they work.
 
 ## 🔑 Key Takeaways
 
-- Start from the access patterns; in every non-relational store the primary key is the query plan.
-- Relational is the default, and moving away from it needs a specific reason about access shape or write volume.
-- BASE moves correctness from the database into your application, where every invariant becomes a race condition.
-- Denormalisation is a cache with no expiry, so every duplicated field needs a named refresh rule.
-- Exactly one store owns each fact; everything else is a rebuildable projection.
+- Start from the access patterns, because in every non-relational store the primary key is the query plan.
+- Relational is the default, and leaving it needs a specific reason about access shape or write volume.
+- Exactly one store owns each fact, and every other copy is a projection you can rebuild.
+- Replication buys durability and read capacity, and it charges staleness for both.
+- Asynchronous failover loses every write not yet shipped, and failover without fencing risks split brain.
 
 ## Interview Questions
 
 **Q: SQL or NoSQL for this system — how do you answer without hedging?**
 
-Name the access patterns first, then the consistency requirement, then pick. If queries are varied and
-the data has relationships and money is involved, relational. If every query is by a known key, writes
-are enormous, and the aggregate is self-contained, a key-value or wide-column store. State the write
-volume at which you would revisit.
+Name the access patterns first, then the consistency requirement, then pick. Varied queries, related
+data and money point to relational. Every query by a known key, huge write volume and self-contained
+records point to key-value or wide-column. State the write volume at which you would revisit.
 
 **Q: What do you actually lose by moving from PostgreSQL to DynamoDB?**
 
-Joins, ad-hoc queries, and multi-entity transactions in their general form. In exchange you get
-predictable single-digit-millisecond reads and effectively unlimited write scaling. The real cost is
-that new query patterns may require a new index or a data migration, because the key design encodes the
-queries you thought of at the start.
+Joins, ad-hoc queries and general multi-entity transactions. You gain predictable low-latency reads and
+near-unlimited write scaling. The real cost is that a new query pattern may need a new index or a data
+migration, because the key encodes the queries you thought of at the start.
 
-**Q: When is denormalisation worth it?**
+**Q: Your primary dies. What is lost?**
 
-When a read path is measurably too slow with joins and the duplicated field changes rarely relative to
-how often it is read — a product name on an order line, say. It stops being worth it when the copied
-value changes often, because then every write fans out and the copies drift whenever one of those
-updates fails.
+With asynchronous replication, every write the leader confirmed but had not shipped — usually under a
+second, more if the replica was lagging. With a synchronous replica, nothing that was confirmed.
+Semi-synchronous replication exists to balance exactly that trade.
+
+**Q: A user says their profile update "did not save". Diagnose it.**
+
+Almost certainly replica lag. The write went to the leader, and the next read hit a replica that had not
+applied it yet. Confirm by checking lag at that time, then fix it with read-your-writes routing, not by
+changing the consistency of the whole system.
+
+**Q: When would you accept multi-leader replication?**
+
+Only when writes must succeed in more than one region and cross-region latency is unacceptable, or when
+clients write offline and sync later. Conflicts then become certain, so I would require a resolution
+rule the domain accepts, such as a CRDT or a business merge rule. Last-write-wins on data that matters
+is not that rule.
 
 ## What to Read Next
 
-- [Chapter ?? — Sharding](#ch-sharding) — what to do when one machine no longer holds the data
-- [Chapter ?? — Consistency and CAP](#ch-consistency-and-cap) — the guarantees each family can offer
-- [Chapter ?? — Caching](#ch-caching) — the layer that usually removes the need for a different store
+- [Chapter ?? — Sharding and Transactions at Scale](#ch-sharding) — the other axis: splitting data rather than copying it
+- [Chapter ?? — Reliability, Consistency and CAP](#ch-consistency-and-cap) — the vocabulary for what a replica may show, and where failover sits in an availability target

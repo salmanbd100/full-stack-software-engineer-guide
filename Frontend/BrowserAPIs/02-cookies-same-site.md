@@ -259,6 +259,6 @@ Set the cookie with `Domain=example.com` so both subdomains receive it. Use `Sam
 ## What to Read Next
 
 - [Chapter ?? — Web Storage and IndexedDB](#ch-storage-apis) — the alternative, and why it loses this argument
-- [Chapter ?? — CORS and CSRF](#ch-cors-csrf) — the server half of the forgery defence
-- [Chapter ?? — Security Headers](#ch-security-headers) — the other headers that close a category
+- [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) — the server half of the forgery defence
+- [Chapter ?? — Content Security Policy and Security Headers](#ch-content-security-policy) — the other headers that close a category
   before an attack starts

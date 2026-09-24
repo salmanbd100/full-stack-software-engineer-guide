@@ -5,7 +5,7 @@ chapter: 0
 slug: backend-index
 level: intermediate
 reading_time: 2
-updated: 2026-09-08
+updated: 2026-09-24
 tags: [backend, nodejs, frameworks, api, sql, nosql, security]
 in_book: true
 ---
@@ -26,13 +26,11 @@ is the surface a frontend engineer owns or negotiates with, at the depth a senio
 
 | Section | Chapters | What it covers |
 | ------- | -------- | -------------- |
-| [Node.js](#ch-backend-nodejs-index) | 5 | The event loop, streams, modules, errors, performance and scaling |
-| [Node Frameworks](#ch-backend-frameworks-index) | 3 | Express, NestJS and dependency injection, edge runtimes and Hono |
-| [API Design](#ch-backend-api-index) | 6 | REST, GraphQL, versioning and contracts, rate limiting, real-time, tRPC |
-| [SQL and Relational Data](#ch-part-sql-and-relational-data) | 5 | Schema design, indexes and plans, transactions, ORMs, migrations |
-| [NoSQL and Caching](#ch-backend-nosql-index) | 2 | Document modelling and the embed-or-reference decision, Redis |
-| [Security](#ch-backend-security-index) | 5 | Credentials and sessions, OAuth, authorisation, CORS/CSRF, injection |
-| [Testing](#ch-part-backend-testing) | 1 | Backend-specific testing; the discipline itself is Part IV |
+| [Node.js](#ch-backend-nodejs-index) | 3 | The event loop and errors, performance and streams, Express and edge runtimes |
+| [API Design](#ch-backend-api-index) | 5 | REST and versioning, GraphQL and tRPC, rate limiting, real-time, testing the service |
+| [SQL and Relational Data](#ch-part-sql-and-relational-data) | 3 | Schema design, indexes, plans and ORMs, transactions |
+| [NoSQL and Caching](#ch-backend-nosql-index) | 1 | Picking a non-relational store: documents and Redis |
+| [Security](#ch-backend-security-index) | 3 | Credentials, sessions, CORS and CSRF, OAuth and authorisation, validation |
 
 `Backend/DesignPatterns/` also lives in this tree, but it belongs to **Part I** — patterns are
 language material, not backend material, and `scripts/lib/book.ts` maps it accordingly.
@@ -63,10 +61,10 @@ why the query is slow.** Both halves matter, and candidates usually have only on
 
 ## Reading Order
 
-`NodeJS/` → `Frameworks/` → `API/` → `SQL/` → `Security/`. That is the order the material builds in,
-and it is also roughly the order a full stack loop asks about it. `NoSQL/` and `Testing/` are
-self-contained and can be read whenever they are relevant.
+`NodeJS/` → `API/` → `SQL/` → `Security/`. That is the order the material builds in, and it is also
+roughly the order a full stack loop asks about it. `NoSQL/` is self-contained and can be read whenever
+it is relevant.
 
-**Interview sprint:** `NodeJS/01` (the event loop), `Frameworks/01` (Express), `API/01` (REST) and
-`API/02` (GraphQL), `SQL/03` (indexes), `Security/01` (credentials and sessions). Those six carry
+**Interview sprint:** `NodeJS/01` (the event loop), `NodeJS/03` (Express), `API/01` (REST) and
+`API/02` (GraphQL), `SQL/02` (indexes), `Security/01` (credentials and sessions). Those six carry
 most of what a frontend-heavy full stack interview asks on the backend.

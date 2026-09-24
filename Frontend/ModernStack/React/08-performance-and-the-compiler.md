@@ -242,4 +242,4 @@ deserve a comment saying why, because the default answer is now "you do not".
 
 - [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) — the tool for content that does not exist yet
 - [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components) — the largest bundle lever there is
-- [Chapter ?? — Bundle Optimisation](#ch-bundle-optimisation) — code splitting and what to measure
+- [Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting) — code splitting and what to measure

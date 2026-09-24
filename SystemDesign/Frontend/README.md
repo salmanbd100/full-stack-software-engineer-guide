@@ -1,11 +1,11 @@
 ---
 title: Part VI — Frontend System Design
 part: 6
-chapter: 23
+chapter: 16
 slug: part-frontend-system-design
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-17
+updated: 2026-09-24
 tags: [system-design, frontend, realtime, offline, seo, auth]
 in_book: true
 ---
@@ -17,9 +17,9 @@ to be interviewed on. A frontend system design round is not a smaller backend ro
 different set of constraints: a runtime you do not control, a network you cannot trust, a bundle
 budget, an accessibility floor, and a rendering strategy that has to be defended per route.
 
-Chapter 01 is the strategy chapter. Read it first even if you skip the rest — a frontend round is
-scored on how you drive it, and the shape of a good answer here is genuinely different from the
-backend framework in [Chapter ?? — Driving the Design Round](#ch-driving-the-round).
+How to drive a frontend round — RADIO for a client application, and where each kind of state lives —
+is now the second half of [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round).
+Read that first even if you skip the rest: a frontend round is scored on how you drive it.
 
 > ⚠️ This section is smaller than it was. Improvement #42 moved the chapters that were about
 > **structuring a codebase** rather than driving a round: architecture patterns, micro-frontends and
@@ -31,15 +31,14 @@ backend framework in [Chapter ?? — Driving the Design Round](#ch-driving-the-r
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [Frontend System Design Strategy](#ch-frontend-system-design-strategy) | How is a frontend round scored differently? |
-| 02 | [Frontend Real-Time Features](#ch-frontend-real-time-features) | What happens to the client when the connection drops? |
-| 03 | [Offline-First Architecture](#ch-offline-first-architecture) | What happens on a train, and how does it reconcile? |
-| 04 | [SEO and Analytics](#ch-seo-and-analytics) | What does the crawler see, and what may you measure? |
-| 05 | [Frontend Authentication](#ch-frontend-authentication) | Where does the token live, and what can the client be told? |
+| 01 | [Frontend Real-Time Features](#ch-frontend-real-time-features) | What happens to the client when the connection drops? |
+| 02 | [Offline-First Architecture](#ch-offline-first-architecture) | What happens on a train, and how does it reconcile? |
+| 03 | [Frontend Authentication](#ch-frontend-authentication) | Where does the token live, and what can the client be told? |
 
-Three frontend case studies sit alongside the two backend ones in
-[Part VI — Case Studies](#ch-part-system-design-case-studies) — the collaborative editor, the infinite
-feed and the live dashboard, each running the whole framework end to end.
+Two frontend case studies sit alongside the backend one in
+[Part VI — Case Studies](#ch-part-system-design-case-studies) — the collaborative editor and the
+infinite feed, each running the whole framework end to end. What the crawler sees is Part III's
+[Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 ## What Interviewers Probe For
 
@@ -58,9 +57,8 @@ as an implementation detail.** Concretely:
 
 ## Reading Order
 
-01 → 02 → 03 is the spine: how the round works, then the two network problems that separate a
-frontend design answer from a backend one. 04 and 05 are the two follow-ups that come up most often
-once the happy path is drawn.
+01 → 02 is the spine: the two network problems that separate a frontend design answer from a backend
+one. 03 is the follow-up that comes up most often once the happy path is drawn.
 
-**Interview sprint:** 01, then 02. Those two carry most of what a frontend design round asks before
-it starts probing a specific domain.
+**Interview sprint:** `Fundamentals/01`, then 01 here. Those two carry most of what a frontend design
+round asks before it starts probing a specific domain.

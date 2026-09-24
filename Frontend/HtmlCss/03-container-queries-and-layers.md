@@ -191,4 +191,4 @@ that needs to know about the page as a whole still belongs in a media query.
 
 - [Chapter ?? — Advanced CSS](#ch-advanced-css) — custom properties, `:has()` and subgrid, the rest of what shipped since 2023
 - [Chapter ?? — Styling Strategy](#ch-styling-strategy) — which styling approach carries these features, and what a runtime library costs
-- [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) — where the layer order becomes a contract between teams
+- [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) — where the layer order becomes a contract between teams

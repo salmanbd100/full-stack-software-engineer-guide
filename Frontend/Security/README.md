@@ -1,18 +1,18 @@
 ---
 title: Part IV — Frontend Security
 part: 4
-chapter: 15
+chapter: 11
 slug: frontend-security-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-08-29
+updated: 2026-09-24
 tags: [security, xss, csp, headers, validation]
 in_book: true
 ---
 
 # Part IV — Frontend Security
 
-The browser half of the security spine. Four chapters on the attacks that are executed in a user's
+The browser half of the security spine. Two chapters on the attacks that are executed in a user's
 browser against your origin, and the platform features that stop them. The server half — tokens,
 sessions, authorisation, transport, injection into a database — lives in
 [Part V — Backend Security](#ch-backend-security-index).
@@ -24,12 +24,10 @@ who names only one layer has described a single point of failure.
 
 ## Chapters
 
-| #  | Chapter                                                          | What it answers                                                        |
-| -- | ---------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 01 | [XSS Prevention](#ch-xss-prevention)                             | Where exactly does your framework stop protecting you?                 |
-| 02 | [Content Security Policy](#ch-content-security-policy)           | How do you write a policy that survives a successful injection?        |
-| 03 | [Security Headers](#ch-security-headers)                         | Which six headers, and what does each one prevent?                     |
-| 04 | [Client-Side Input Handling](#ch-client-side-input-handling)     | Which inputs never reach the server, so the browser is the only check? |
+| #  | Chapter | What it answers |
+| -- | ------- | --------------- |
+| 01 | [XSS Prevention and Untrusted Input](#ch-xss-prevention) | Where exactly does your framework stop protecting you, and which inputs never reach the server? |
+| 02 | [Content Security Policy and Security Headers](#ch-content-security-policy) | How do you write a policy that survives a successful injection, and which headers close the rest? |
 
 ## What Interviewers Probe For
 
@@ -45,13 +43,13 @@ For security the part-level boundary language is literal — every question is a
   collect violations, then enforce. A candidate who has actually shipped one always mentions this.
 - **Which inputs never reach your server?** A `postMessage` payload, a value read from
   `location.hash`, a `?next=` redirect target. There is no server handler to review, so the browser is
-  the only place the check can exist. Chapter 04 is built around that distinction.
+  the only place the check can exist. Chapter 01 ends on that distinction.
 
 ## Reading Order
 
-01 and 04 are a pair — the attack and the input side of the trust boundary. 02 and 03 are the header
-layer and read best after them, once you know what they are mitigating.
+01 first — the attack and the input side of the trust boundary. 02 is the header layer and reads best
+after it, once you know what it is mitigating.
 
-**Interview sprint:** 01 → 02 → 03. Cross-site scripting, CSP and the header set are the three that
+**Interview sprint:** 01 → 02. Cross-site scripting, CSP and the header set are the three that
 get asked by name in almost every senior frontend loop. CSRF is asked just as often; it is answered in
-[Chapter ?? — CORS and CSRF](#ch-cors-csrf), because the defence is configured on the server.
+[Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions), because the defence is configured on the server.

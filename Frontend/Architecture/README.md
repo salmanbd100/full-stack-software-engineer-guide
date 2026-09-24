@@ -5,7 +5,7 @@ chapter: 1
 slug: frontend-architecture-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-09-09
+updated: 2026-09-24
 tags: [architecture, boundaries, micro-frontends, design-systems, code-review]
 in_book: true
 ---
@@ -28,9 +28,8 @@ question: what breaks at scale, and what do you put in place before it does. The
 | -- | ------- | --------------- |
 | 01 | [Frontend Architecture Patterns](#ch-frontend-architecture-patterns) | Where do the boundaries go, and which ones are worth enforcing? |
 | 02 | [Micro-Frontends](#ch-micro-frontends) | When is deploy independence worth the coordination cost? |
-| 03 | [Design Systems at Scale](#ch-design-systems-at-scale) | How do forty teams share components without freezing the design? |
-| 04 | [Dependencies and Upgrades](#ch-dependencies-and-upgrades) | How does a five-year-old frontend stay upgradable? |
-| 05 | [Reviewing AI-Generated Code](#ch-reviewing-ai-generated-code) | Which defects does generated code have that human code does not? |
+| 03 | [Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) | How do forty teams share components, and how does a five-year-old frontend stay upgradable? |
+| 04 | [Reviewing AI-Generated Code](#ch-reviewing-ai-generated-code) | Which defects does generated code have that human code does not? |
 
 The monorepo-versus-polyrepo decision is the fourth boundary in this set, and it is not repeated here:
 [Chapter ?? — Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies) argues the choice
@@ -51,8 +50,8 @@ The part-level signal shows up here as three habits:
 
 ## Reading Order
 
-01 → 02 → 03 → 04 → 05. Chapter 01 sets up the vocabulary the rest assume, and it is also the one that
-says which of the heavier patterns you are allowed to skip. Chapters 04 and 05 read fine on their own.
+01 → 02 → 03 → 04. Chapter 01 sets up the vocabulary the rest assume, and it is also the one that
+says which of the heavier patterns you are allowed to skip. Chapter 04 reads fine on its own.
 
-**Interview sprint:** 01, then the "When to Use It" table in 02, then 05. Those cover the architecture
-questions a senior frontend loop actually asks, and 05 is the one most candidates have no answer for.
+**Interview sprint:** 01, then the "When to Use It" table in 02, then 04. Those cover the architecture
+questions a senior frontend loop actually asks, and 04 is the one most candidates have no answer for.

@@ -155,4 +155,4 @@ It is more precise than either "I" or "we", and precision is what "we" costs you
 
 - [Chapter ?? — Thinking Aloud](#ch-thinking-aloud) — the same discipline while you are still deciding
 - [Chapter ?? — Written Communication](#ch-written-communication) — the written forms of these explanations
-- [Chapter ?? — Driving the Design Round](#ch-driving-the-round) — this ordering rule applied to a whiteboard
+- [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round) — this ordering rule applied to a whiteboard

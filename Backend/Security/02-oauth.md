@@ -1,48 +1,38 @@
 ---
-title: OAuth 2.1 and OpenID Connect
+title: OAuth, OIDC and Authorisation
 part: 5
-chapter: 29
+chapter: 19
 slug: oauth
 level: advanced
-reading_time: 9
-updated: 2026-09-01
-tags: [security, oauth, oidc, sso, pkce]
+reading_time: 13
+updated: 2026-09-24
+tags: [security, oauth, oidc, sso, pkce, rbac, abac, authorisation, multi-tenancy]
 in_book: true
 ---
 
-# OAuth 2.1 and OpenID Connect {#ch-oauth}
+# OAuth, OIDC and Authorisation {#ch-oauth}
 
-> Walk the authorisation code flow with PKCE and say what each redirect is protecting against.
+> Walk the authorisation code flow with PKCE, then decide what the signed-in user may do — on the server, against the object.
 
-**In this chapter:** the four roles · authorisation code with PKCE · the grants that survive · OAuth against OIDC against JWT · state, redirects and scopes · SSO and magic links
+**In this chapter:** authorisation code with PKCE · OAuth against OIDC against JWT · RBAC, ABAC and ACLs · checking the object, not the route · why scopes are not permissions
 
 ## 💡 The Core Idea
 
-OAuth lets a user give one application limited access to their data on another service without
-sharing a password. "Sign in with Google" is the everyday case: your application never sees the
-Google password, only a token scoped to what the user approved.
+Two questions protect every request. **Authentication** asks *who are you?* **Authorisation** asks
+*may you do this, to this thing?* They fail in different ways and in different places.
 
-The distinction that decides whether you understand it: **OAuth is authorisation, not
-authentication.** It answers "what may this application do?" **OpenID Connect** is the thin layer on
-top that answers "who is this user?" by adding an `id_token`. Using raw OAuth for login is a known
-anti-pattern, because an access token proves an application has permission, not who granted it.
+**OAuth** lets a user give an application limited access to their data without sharing a password.
+It answers "what may this application do?" **OpenID Connect (OIDC)** adds an `id_token` on top and
+answers "who is this user?" Raw OAuth for login is a known mistake: an access token proves permission,
+not who granted it.
 
-> ⚠️ **Moving target:** OAuth 2.1 consolidates a decade of best-practice documents — it makes PKCE
-> mandatory and removes the implicit and password grants. The durable principle is that the
-> credential travels back-channel and the code is bound to the client that requested it. Grant names
-> and endpoints will keep moving.
+Authentication belongs to the **request**, so one middleware can set it. Authorisation belongs to
+the **request and the object together**, so a route guard alone cannot decide it. Every check lives
+on the server. Hiding a button is user experience, not security.
 
-## The Four Roles
-
-| Role | Who | Example |
-| ---- | --- | ------- |
-| **Resource owner** | The user | You |
-| **Client** | The application wanting access | A photo printing service |
-| **Authorisation server** | Issues tokens | Google's OAuth endpoints |
-| **Resource server** | Holds the data | The Google Photos API |
-
-The last two often belong to the same company but are different jobs — and in an interview, keeping
-them separate is what shows you have read the specification rather than a tutorial.
+> ⚠️ **Moving target:** OAuth 2.1 makes PKCE mandatory and removes the implicit and password grants.
+> The durable principle is that the credential travels back-channel and the code is bound to the
+> client that asked for it. Grant names and endpoints will keep moving.
 
 ## Authorisation Code with PKCE
 
@@ -61,26 +51,19 @@ sequenceDiagram
 
 **The authorisation code flow. Only the code crosses the browser; the tokens never do.**
 
-The extra round trip is the point. The code in step 3 travels through a URL, where it lands in
-browser history, referrer headers and proxy logs. It is useless on its own: redeeming it needs the
-client secret or the PKCE verifier, sent server to server.
+The extra round trip is the point. The code in step 3 travels in a URL, so it lands in history and
+logs. On its own it is useless: redeeming it needs the client secret or the PKCE verifier.
 
 **PKCE** (Proof Key for Code Exchange) binds the code to whoever started the flow. The client sends
-`SHA256(verifier)` up front and the raw `verifier` at exchange time; an attacker who intercepts the
-code never saw the verifier, so the exchange fails.
+`SHA256(verifier)` first and the raw `verifier` later, so a thief holding only the code fails.
+
+**Starting the flow and handling the callback:**
 
 ```typescript
-export function createPkcePair(): { verifier: string; challenge: string } {
+export function startLogin(req: Request, res: Response): void {
   const verifier = crypto.randomBytes(32).toString('base64url');
   const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
-  return { verifier, challenge };
-}
-
-export function startLogin(req: Request, res: Response): void {
-  const { verifier, challenge } = createPkcePair();
   const state = crypto.randomBytes(16).toString('hex');
-
-  // Both must survive the round trip — session, or a signed cookie.
   req.session.pkceVerifier = verifier;
   req.session.oauthState = state;
 
@@ -95,22 +78,15 @@ export function startLogin(req: Request, res: Response): void {
   });
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
 }
-```
 
-**The callback does three things, in order:**
-
-```typescript
 export async function handleCallback(req: Request, res: Response): Promise<void> {
   const { code, state } = req.query as { code?: string; state?: string };
-
-  // 1. Reject a mismatched state — this is the CSRF check for the flow itself.
+  // 1. A mismatched state is login CSRF — reject it.
   if (!code || !state || state !== req.session.oauthState) {
     return void res.status(400).json({ error: 'Invalid OAuth state' });
   }
-
   // 2. Exchange the code back-channel, with the verifier and the client secret.
   const tokens = await exchangeCode(code, req.session.pkceVerifier!);
-
   // 3. Issue *your own* session. The browser never receives provider tokens.
   req.session.userId = await upsertUserFromIdToken(tokens.id_token!);
   res.redirect('/dashboard');
@@ -120,108 +96,149 @@ export async function handleCallback(req: Request, res: Response): Promise<void>
 > ⚠️ Never send the provider's access or refresh token to the frontend. Keep them server-side,
 > encrypted, keyed by your own session. A provider refresh token is as sensitive as a password.
 
-## The Grants Worth Knowing
+## Grants, Tokens and the Checks That Matter
 
 | Grant | For | Status |
 | ----- | --- | ------ |
 | **Authorisation code + PKCE** | Web apps, SPAs, mobile | ✅ The default for everything |
 | **Client credentials** | Service to service, no user | ✅ Correct for machine auth |
-| **Refresh token** | A new access token | ✅ With rotation |
-| **Device code** | TVs, CLIs — typing is awkward | ✅ Niche but valid |
-| **Implicit** | An old SPA workaround | ❌ Removed in 2.1 |
-| **Resource owner password** | The app collects the password | ❌ Removed in 2.1 |
+| **Implicit** | An old SPA workaround | ❌ Removed in 2.1 — token in the URL fragment |
+| **Resource owner password** | The app collects the password | ❌ Removed in 2.1 — no delegation, no provider MFA |
 
-Implicit died because it returned the access token in a URL fragment — visible in history, referrers
-and logs — with no way to authenticate the client. The password grant died because the application
-sees the password, which removes both the delegation and the provider's MFA.
+**OAuth** is an authorisation framework, **OIDC** an identity layer, and a **JWT** only a token
+*format*. An opaque access token you look up is often better than a JWT, because you can revoke it.
 
-## OAuth, OIDC and JWT
+- ✅ **Always validate `state`.** Without it, an attacker links their provider account to the victim's session.
+- ✅ **Match redirect URIs against an exact allowlist.** A wildcard like `*.example.com` turns any subdomain takeover into stolen codes.
+- ✅ **Verify the `id_token`.** Check the signature against the provider's JWKS, then `iss`, `aud`, `exp` and `nonce`.
 
-| Thing | Is | Answers |
-| ----- | -- | ------- |
-| **OAuth 2.1** | An authorisation framework | "What may this application access?" |
-| **OIDC** | An identity layer on top of OAuth | "Who is this user?" |
-| **JWT** | A token *format* | Neither — it is a container |
+## Authorisation: The Three Models
 
-OIDC adds the `id_token`, a JWT with verified claims about the user. OAuth access tokens may be JWTs
-or opaque strings; both are valid, and an opaque token you introspect is often the better choice
-because it is revocable.
+| Model | Decides from | Fits |
+| ----- | ------------ | ---- |
+| **RBAC** — role-based | The user's role | Most apps; small, stable permission sets |
+| **ABAC** — attribute-based | Attributes of user, resource and context | "Own department", "only during business hours" |
+| **ACL** — access control list | A per-object list of grants | User sharing: documents, folders, calendars |
 
-## Security Essentials
-
-**✅ Always validate `state`.** Without it, an attacker completes a flow in the victim's browser and
-links their own provider account to the victim's session — login CSRF.
-
-**✅ Match redirect URIs exactly.**
+**RBAC, done properly:** roles map to permissions, and code checks permissions — never roles.
 
 ```typescript
-// ❌ Any subdomain takeover now steals authorisation codes
-const allowed = /^https:\/\/.*\.example\.com\//;
+type Permission = 'order:read' | 'order:write' | 'order:refund';
 
-// ✅ Exact allowlist, no pattern matching
-const ALLOWED_REDIRECTS = new Set(['https://app.example.com/auth/callback']);
+const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
+  viewer: ['order:read'],
+  agent: ['order:read', 'order:write'],
+  manager: ['order:read', 'order:write', 'order:refund'],
+};
+
+export function requirePermission(permission: Permission): RequestHandler {
+  return (req, res, next) => {
+    const granted = ROLE_PERMISSIONS[req.user.role] ?? [];
+    if (!granted.includes(permission)) {
+      return void res.status(403).json({ error: { code: 'forbidden' } });
+    }
+    next();
+  };
+}
 ```
 
-**✅ Request the smallest scope.** `email profile`, not `drive.readonly`, unless you genuinely read
-files. A leaked token then does less damage.
+`if (user.role === 'admin')` scattered through handlers is the anti-pattern: a new role means
+auditing every conditional. Reach for ABAC when a requirement says "own" or "only when".
 
-**✅ Validate the `id_token` properly.** Verify the signature against the provider's JWKS, then
-`iss`, `aud`, `exp` and `nonce`. A decoded-but-unverified token is attacker-controlled JSON.
+## Check the Object, Not the Route
 
-## SSO and Magic Links
+`GET /orders/9` with a valid token must still check that order 9 is the caller's. Missing that is
+**broken object-level authorisation** — OWASP's top API risk, and just a missing `WHERE` clause.
 
-**Single sign-on** is the same flow with the customer's identity provider — Okta, Entra ID, Auth0 —
-instead of a consumer brand. The provider holds the user directory, authenticates once, and each
-application trusts a signed assertion. SAML 2.0 is XML-based and still common in enterprise
-procurement; OIDC is the same idea over the flow above and is what to choose for anything new.
+**Make the check part of the query:**
 
-**Magic links** remove the password rather than federating it: the user types an email address and
-clicks a one-time signed URL.
+```typescript
+// ❌ Route guard only. Any authenticated user reads any order.
+app.get('/orders/:id', requireAuth, async (req, res) => {
+  res.json(await db.orders.findUnique({ where: { id: req.params.id } }));
+});
 
-Generate 32 random bytes, store only the hash with a 15-minute expiry, and mail the raw token in
-the URL — the mailbox holds the only copy.
+// ✅ The tenant is part of the query, so a forgotten check returns nothing.
+app.get('/orders/:id', requireAuth, requirePermission('order:read'), async (req, res) => {
+  const order = await db.orders.findFirst({
+    where: { id: req.params.id, tenantId: req.user.tenantId },
+  });
+  // 404, not 403 — a 403 confirms the order exists, which is itself a leak.
+  if (!order) return void res.status(404).json({ error: { code: 'not_found' } });
+  res.json(order);
+});
+```
 
-| Pattern | Reach for it when | Do not, when |
-| ------- | ----------------- | ------------ |
-| **SSO (OIDC)** | Enterprise buyers, internal tools, product suites | A consumer product with no directory behind it |
-| **Magic links** | Low-friction sign-up, invite flows | High-value accounts — the mailbox becomes the credential |
+In a multi-tenant system, one missed `tenantId` leaks one customer's data to another. Defences, weakest first:
 
-A magic link is a bearer credential sitting in an inbox. Treat it like a password reset token:
-single use, short expiry, hashed at rest, never a second factor on its own.
+| Approach | Guarantee | Cost |
+| -------- | --------- | ---- |
+| `tenantId` in every query by convention | None — one omission is a breach | Free, and not enough |
+| A repository layer that adds `tenantId` | No handler can build a query without it | A layer to maintain |
+| Row-level security (RLS) in Postgres | The database refuses cross-tenant reads | A session variable per connection; awkward with transaction pooling |
+
+## OAuth Scopes Are Not Permissions
+
+A scope says what an **application** may ask for on the user's behalf. A permission says what the
+**user** may do. A token with `orders:write` does not mean this user may write this order.
+
+**Check both, in order:**
+
+```typescript
+if (!token.scope.includes('orders:write')) return res.status(403).json({ error: { code: 'insufficient_scope' } });
+if (!(await canEdit(req.user, order))) return res.status(403).json({ error: { code: 'forbidden' } });
+```
+
+Treating a scope as a permission lets an integration granted one read write everywhere. Past a few
+dozen rules, or when services must agree, move the rules into a policy engine such as OPA or Cedar.
+
+## Common Mistakes
+
+- ❌ **Trusting a client-supplied `tenantId` or `userId`.** ✅ Take both from the verified session or token.
+- ❌ **Deciding on the client.** ✅ Hide the button for UX, then repeat every check on the server.
+- ❌ **Failing open.** ✅ If the policy lookup errors, deny. A permissive default is a vulnerability.
 
 ## 🔑 Key Takeaways
 
-- OAuth answers what an application may do; OIDC's `id_token` answers who the user is.
-- Authorisation code with PKCE is the only flow to use, including for confidential clients.
-- `state` protects the callback against CSRF and PKCE protects the code against interception — different jobs.
-- Match redirect URIs against an exact allowlist; prefix or wildcard matching is how accounts get taken over.
-- Provider tokens stay server-side and encrypted; the browser only ever holds your own session.
+- OAuth answers what an application may do, OIDC's `id_token` answers who the user is, and your own authorisation decides what that user may touch.
+- Authorisation code with PKCE is the only flow to use, and `state` and PKCE do different jobs, so you need both.
+- Provider tokens stay on the server; the browser only ever holds your own session.
+- Put the tenant and owner in the query, so a forgotten check returns nothing rather than everything.
+- An OAuth scope limits the application, not the user, so check the scope and then the user's permission on the object.
 
 ## Interview Questions
 
-**Q: Walk me through the authorisation code flow.**
+**Q: Walk me through the authorisation code flow with PKCE.**
 
-The application redirects the user to the authorisation server with its client id, the requested
-scopes, a random `state` and a PKCE challenge. The user authenticates and consents, and the server
-redirects back with a short-lived code. The application's backend then exchanges that code, plus the
-verifier and its client secret, for tokens over a direct server-to-server call. The code crosses the
-browser; the tokens do not.
-
-**Q: What does PKCE add, and why does a confidential client need it too?**
-
-It binds the code to the client that started the flow, so a code stolen from a redirect cannot be
-redeemed. It was designed for mobile apps that cannot keep a secret, and OAuth 2.1 requires it
-everywhere — because a confidential client can still leak a code through an open redirect or a
-referrer header, and PKCE makes that leak useless.
+The app redirects with its client id, scopes, a random `state` and a PKCE challenge. The user signs
+in, and the server redirects back with a short-lived code. The backend exchanges the code, verifier
+and client secret for tokens, server to server. The code crosses the browser; the tokens do not.
 
 **Q: What is `state` for, and is it the same as PKCE?**
 
-No. `state` is CSRF protection for the flow: a random value stored in the session and required to
-match on callback, which stops an attacker forcing a victim's browser to complete a flow with the
-attacker's code. PKCE protects the code itself from being redeemed by a third party. You need both.
+No. `state` is CSRF protection for the flow: a random value in the session that must match on
+callback, so an attacker cannot make a victim finish a flow with the attacker's code. PKCE stops a
+stolen code being redeemed by anyone else. OAuth 2.1 requires PKCE even for confidential clients.
+
+**Q: What is broken object-level authorisation, and how do you prevent it structurally?**
+
+The caller is authenticated and their role allows the action in general, but nobody checks that this
+object is theirs. Changing an id in the URL then reads someone else's data. The fix is to make
+ownership part of the query, through a repository layer or row-level security, so a missing check
+returns no rows.
+
+**Q: 403 or 404 for a resource the user may not see?**
+
+404 when the caller should not learn it exists — a 403 on sequential ids lets an attacker count your
+data. 403 when they already know it exists, such as a team document they may read but not edit.
+
+**Q: When would you not reach for ABAC or a policy engine?**
+
+When permissions are small and stable, RBAC is simpler to reason about and audit. A policy engine
+earns its cost when rules change faster than code or several services must agree. For one team and a
+dozen rules, it adds a network hop and a new language for little gain.
 
 ## What to Read Next
 
-- [Chapter ?? — Credentials, Sessions and Tokens](#ch-credentials-and-sessions) — the password flow you are delegating away, and the session you issue afterwards
-- [Chapter ?? — Authorisation](#ch-authorisation) — what scopes do and do not decide once the user is in
-- [Chapter ?? — CORS and CSRF](#ch-cors-csrf) — protecting the cookie that ends up holding the session
+- [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) — the session you issue after the callback, and protecting the cookie that holds it
+- [Chapter ?? — REST Best Practices and Versioning](#ch-rest-best-practices) — where 403 and 404 sit in the status code map

@@ -71,6 +71,12 @@ Archive/
 ├── modern-stack/        ← #98: what Part III shed reaching 8,400 lines — see its README
 │   ├── react/ nextjs/ svelte/   4 merged into a neighbour, 5 archived as reference
 │   └── rendering/ state-management/ tooling/   4 merged, 4 archived
+├── frontend-at-scale/   ← #99: what Part IV shed reaching 4,000 lines — see its README
+│   └── architecture/ web-performance/ security/ testing/   7 merged, 2 archived
+├── backend-for-frontend/ ← #100: what Part V shed reaching 4,000 lines — see its README
+│   └── nodejs/ frameworks/ api/ sql/ nosql/ security/ testing/   10 merged, 2 archived, 2 sections folded
+├── system-design/       ← #101: what Part VI shed reaching 4,400 lines — see its README
+│   └── fundamentals/ building-blocks/ database/ frontend/ case-studies/   7 merged, 4 archived
 ├── backend/             ← #31c, #56a: the 22 files Part V shed reaching its 6,500-line budget
 │   ├── api/                 1 — documentation, merged into API/03 (versioning and contracts)
 │   ├── nodejs/              5 — security folded into Backend/Security/; child processes and

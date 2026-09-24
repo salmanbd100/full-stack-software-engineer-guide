@@ -1,7 +1,7 @@
 ---
 title: Core Web Vitals
 part: 4
-chapter: 8
+chapter: 7
 slug: core-web-vitals
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
@@ -118,7 +118,7 @@ async function reindex(rows: Row[]): Promise<void> {
 
 The 50 ms number is worth remembering: any task longer than that can hold up an interaction, and the
 browser cannot interrupt it. See
-[Chapter ?? — Rendering and Streaming](#ch-rendering-and-streaming) for the framework-level version.
+[Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler) for the framework-level version.
 
 ### CLS: reserve the space before the content arrives
 
@@ -138,7 +138,7 @@ Every layout shift has the same cause — **the browser did not know how big som
 The same rule covers everything that arrives late: a `min-height` on an ad or embed slot, a skeleton
 the same size as the content it replaces, and `font-display: swap` with matched fallback metrics so
 the text does not reflow when the web font arrives —
-[Chapter ?? — Asset Delivery](#ch-asset-delivery) covers that pairing.
+[Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) covers that pairing.
 
 And one behavioural rule: never insert content above what the user is already reading. A notification
 banner belongs in a fixed overlay, not pushed into the flow.
@@ -226,5 +226,5 @@ fallback with different metrics reflows every line when the real font swaps in, 
 ## What to Read Next
 
 - [Chapter ?? — Measuring in Production](#ch-measuring-in-production) — collecting the field data these numbers come from
-- [Chapter ?? — Loading and Code Splitting](#ch-loading-and-code-splitting) — the main lever on LCP and on main-thread work
-- [Chapter ?? — Asset Delivery](#ch-asset-delivery) — images, fonts and CSS, which cause most LCP and CLS problems
+- [Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting) — the main lever on LCP and on main-thread work
+- [Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) — images, fonts and CSS, which cause most LCP and CLS problems

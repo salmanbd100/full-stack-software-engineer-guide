@@ -51,7 +51,7 @@ For patterns specifically: *can justify a structure rather than apply one by ref
 
 Straight through. 01 is the object model and its limits, 02 turns those limits into rules, and 03 is
 the recurring shapes those rules produce. Layering a whole service is Part VI's
-[Chapter ?? — Service Boundaries](#ch-service-boundaries).
+[Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries).
 
 **Interview sprint:** 02 → 01. SOLID gets asked by name, and composition versus inheritance is the
 question behind most "how would you refactor this" prompts.

@@ -200,4 +200,4 @@ built on it.
 
 - [Chapter ?? — Container Queries and Cascade Layers](#ch-container-queries-and-layers) — the CSS answer, when the reaction is only styling
 - [Chapter ?? — Measuring in Production](#ch-measuring-in-production) — what to do with the entries once you have them
-- [Chapter ?? — Loading and Code Splitting](#ch-loading-and-code-splitting) — lazy loading as a performance strategy rather than an API
+- [Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting) — lazy loading as a performance strategy rather than an API

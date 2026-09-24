@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**832 of them across 206 chapters**. The answers are not repeated here — they are in the chapter,
+**753 of them across 174 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -390,7 +390,7 @@ _148 questions across 34 chapters._
 
 ## Part IV — Frontend at Scale
 
-_86 questions across 24 chapters._
+_62 questions across 15 chapters._
 
 - **[Frontend Architecture Patterns](#ch-frontend-architecture-patterns)**
   - How would you structure a frontend that forty engineers work in?
@@ -402,15 +402,11 @@ _86 questions across 24 chapters._
   - Why must React be a singleton across remotes, and what breaks if it is not?
   - A remote is down in production. What does the user see?
   - How do two micro-frontends share the current user?
-- **[Design Systems at Scale](#ch-design-systems-at-scale)**
+- **[Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale)**
   - How would you introduce a design system into forty teams that all have their own components?
   - You need to rename a prop on your most-used component. How do you ship it?
   - When is a design system the wrong investment?
-- **[Dependencies and Upgrades](#ch-dependencies-and-upgrades)**
-  - A team says they cannot upgrade React because "too much would break". How do you find out whether that is true?
-  - Would you automerge dependency updates?
-  - When is forking a dependency the right call?
-  - How would you stop this problem coming back?
+  - A team says they cannot upgrade React because "too much would break". How do you find out?
 - **[Reviewing AI-Generated Code](#ch-reviewing-ai-generated-code)**
   - What do you look for in a pull request that was mostly written by an assistant?
   - A team's velocity is up and their defect rate is up with it. What do you change?
@@ -420,82 +416,53 @@ _86 questions across 24 chapters._
   - A page has an LCP of 4.2 seconds. Walk me through your first hour.
   - Why can Lighthouse not tell you your INP?
   - Your CLS is 0.3 and you have set width and height on every image. Where else do you look?
-- **[Loading and Code Splitting](#ch-loading-and-code-splitting)**
+- **[Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting)**
   - Does code splitting not just move the delay to the click?
-  - When is a component not worth splitting?
-- **[Bundles, Budgets and Third Parties](#ch-bundle-optimisation)**
   - You import one function from a library and the bundle grows by 70 kB. What happened?
   - How do you stop bundle size regressing over a year?
-  - A page has a 2 MB JavaScript payload and half of it is third-party. How do you approach it?
-- **[Frontend Caching Strategies](#ch-frontend-caching-strategies)**
+  - A page ships 2 MB of JavaScript and half is third-party. Where do you start?
+- **[Caching and Asset Delivery](#ch-asset-delivery)**
   - How would you set cache headers for a single-page application?
   - What is the difference between `no-cache` and `no-store`?
-  - When is an `ETag` not worth adding?
-  - A user reports the app is stuck on an old version and a normal reload does not help. What is your first hypothesis?
-- **[Asset Delivery](#ch-asset-delivery)**
+  - A user says the app is stuck on an old version and a reload does not help. What do you check first?
+  - When would you not cache an API response at the CDN?
   - Why is a late-arriving font a Core Web Vitals problem rather than a cosmetic one?
-  - When would you use `<picture>` instead of `srcset`?
-  - Why is CSS render-blocking, and what do you do about it?
-- **[Rendering and Streaming](#ch-rendering-and-streaming)**
-  - A dashboard has a poor INP. Where do you start?
-  - Debounce or throttle for a scroll-linked progress bar?
-  - Does server-side rendering fix responsiveness?
-  - When would you not virtualise a long list?
 - **[Measuring in Production](#ch-measuring-in-production)**
   - Lighthouse gives the site 95 and users say it is slow. Who is right?
   - What do you need on an error report before it is worth triaging?
   - What is the privacy exposure here, and what do you do about it?
-- **[XSS Prevention](#ch-xss-prevention)**
-  - Encoding vs. sanitisation — when do you use each?
+- **[XSS Prevention and Untrusted Input](#ch-xss-prevention)**
+  - Encoding or sanitisation — when do you use each?
   - How does React prevent XSS, and where does it fall short?
-  - What is DOM-based XSS and why is it harder to catch?
-  - Does CSP replace output encoding?
-- **[Content Security Policy](#ch-content-security-policy)**
-  - Why is `'unsafe-inline'` dangerous in `script-src`?
-  - What is `'strict-dynamic'` and why use it?
-  - CSP vs. CORS — what's the difference?
-  - How do you deploy a strict CSP without breaking production?
-- **[Security Headers](#ch-security-headers)**
-  - How does HSTS work, and what's the risk?
-  - Why is `X-XSS-Protection` no longer recommended?
-  - `X-Frame-Options` vs. CSP `frame-ancestors`?
-  - Why bother with `Permissions-Policy`?
-- **[Client-Side Input Handling](#ch-client-side-input-handling)**
-  - If client-side validation gives no security, why write it at all?
   - A colleague adds a `postMessage` listener for an analytics widget. What do you check in review?
-  - What is an open redirect and why does it matter if the destination is the attacker's own site?
-  - When would you accept a file upload check in the browser as sufficient?
+  - Your team wants to rely on CSP instead of fixing every `innerHTML`. Would you agree?
+- **[Content Security Policy and Security Headers](#ch-content-security-policy)**
+  - Why is `'unsafe-inline'` dangerous in `script-src`?
+  - What is `'strict-dynamic'`, and why use it?
+  - How do you deploy a strict CSP without breaking production?
+  - How does HSTS work, and what is the risk?
+  - A team wants to ship without a CSP because it keeps breaking third-party widgets. What do you say?
 - **[Testing Strategy](#ch-testing-strategy)**
   - How do you decide whether something gets a unit test or an integration test?
   - Your suite takes 25 minutes and people are merging without it. What do you do?
   - Is 100% coverage worth aiming for?
   - When would you not write a test?
-- **[Vitest](#ch-vitest)**
+- **[Writing the Tests: Vitest and React Testing Library](#ch-vitest)**
   - Why would you pick Vitest over Jest for a new project?
-  - A test passes on its own and fails in the suite. Where do you look?
-  - When is a module mock the wrong tool?
-- **[React Testing Library](#ch-react-testing-library)**
   - Why does Testing Library refuse to give you access to component state?
   - When is `getByTestId` acceptable?
-  - How do you test a custom hook?
+  - A test passes on its own and fails in the suite. Where do you look?
+  - When is a module mock the wrong tool?
 - **[Frontend Integration Testing](#ch-frontend-integration-testing)**
   - Why intercept requests instead of mocking the API module?
   - What does an integration test catch that a unit test cannot?
   - What can this layer not tell you?
   - How do you test a loading state without making the suite slow?
-- **[End-to-End Testing with Playwright](#ch-end-to-end-testing)**
+- **[End-to-End, Visual and Contract Testing with Playwright](#ch-end-to-end-testing)**
   - How do you decide what deserves an end-to-end test?
-  - A component test needs to check that a sticky header stays visible on scroll. Where does it go?
   - Your E2E suite fails about once a week for no clear reason. How do you approach it?
-- **[Test-Driven Development](#ch-test-driven-development)**
-  - Walk me through the cycle, and say what each step is actually for.
-  - Does TDD slow you down?
-  - When would you refuse to use it?
-  - What does BDD change?
-- **[Visual and Contract Testing](#ch-visual-and-contract-testing)**
-  - What does visual regression catch that a snapshot test does not?
-  - Your integration tests all pass and production is broken because the API renamed a field. What was missing?
-  - Why is mutation testing a better signal than coverage?
+  - Integration tests all pass, but production broke because the API renamed a field. What was missing?
+  - Would you add visual regression to every page?
 - **[Testing Accessibility](#ch-testing-accessibility)**
   - How do you test accessibility?
   - What can automated tooling not catch?
@@ -505,55 +472,34 @@ _86 questions across 24 chapters._
 
 ## Part V — Backend for Frontend Engineers
 
-_88 questions across 27 chapters._
+_61 questions across 15 chapters._
 
-- **[The Event Loop and Async Node](#ch-event-loop-async)**
+- **[The Node.js Event Loop, Async and Errors](#ch-event-loop-async)**
   - Node is single-threaded, so how does it handle 10,000 concurrent connections?
   - What logs first — `setTimeout(fn, 0)` or `setImmediate(fn)`?
-  - `process.nextTick` or `Promise.resolve().then` — does the difference matter?
-- **[Streams and Buffers](#ch-streams-buffers)**
-  - What is backpressure and what happens if you ignore it?
-  - Why is `pipeline` preferred over `pipe`?
-  - A stream of JSON lines occasionally throws "Unexpected end of JSON input". Why?
-- **[The Module System](#ch-module-system)**
-  - Why can ESM be tree-shaken and CommonJS cannot?
-  - A colleague sees `undefined` for a function imported from a circular CommonJS dependency. What happened?
-  - When would you keep a service on CommonJS in 2027?
-- **[Error Handling in Node](#ch-nodejs-error-handling)**
   - Should you keep the process alive after an `uncaughtException`?
-  - How do you stop one error handler from leaking internals?
-  - Why add jitter to retry backoff?
-- **[Node.js Performance and Scaling](#ch-nodejs-performance)**
+  - When would you move work to a worker thread instead of making it async?
+- **[Node.js Performance, Streams and Scaling](#ch-nodejs-performance)**
   - A service's p99 is 3 s while p50 is 30 ms. Where do you look?
+  - What is backpressure, and what happens if you ignore it?
+  - Why stream an LLM response or a large file download instead of sending it whole?
   - Worker threads or more processes — how do you choose?
-  - What breaks when you turn on clustering in an app that worked fine as one process?
-- **[Express](#ch-express)**
+  - What breaks when you turn on clustering in an app that worked as one process?
+- **[Express, Hono and Edge Runtimes](#ch-express)**
   - An async Express handler throws and the client hangs. What happened?
-  - How do you make sure every error response has the same shape?
-  - Where would you put authentication?
-  - When would you not use Express?
-- **[NestJS](#ch-nestjs)**
-  - What does dependency injection actually give you that importing a module does not?
-  - A guard needs to check that the user owns the order in the request body. Is that fine?
-  - When is NestJS the wrong choice?
-  - What is the cost of the abstraction?
-- **[Edge Runtimes and Hono](#ch-edge-runtimes)**
   - Why can't you use `pg` in a Cloudflare Worker?
   - You move an API route to the edge and it gets slower. Why?
-  - What actually makes an isolate's cold start so much cheaper than a container's?
-  - When would you keep a service on Node instead?
-- **[REST API Best Practices](#ch-rest-best-practices)**
-  - `PUT` or `PATCH`?
+  - A new backend-for-frontend: Express or Hono on the edge?
+- **[REST Best Practices and Versioning](#ch-rest-best-practices)**
   - Which methods are idempotent, and why does it matter?
   - How do you paginate ten million rows?
-- **[GraphQL](#ch-graphql)**
-  - What is the N+1 problem in GraphQL and why is it structural?
-  - A DataLoader is returning the wrong user's data. What went wrong?
-  - How do you rate limit GraphQL?
-- **[API Versioning and Contracts](#ch-versioning)**
-  - How do you add a required field to a request without breaking clients?
-  - Path, header or query versioning?
-  - How do you know a version is safe to delete?
+  - How do you add a required request field without breaking clients?
+  - When would you not ship a `/v2`?
+- **[GraphQL, tRPC and Typed API Choices](#ch-graphql)**
+  - What is the N+1 problem in GraphQL, and why is it structural?
+  - How do you rate limit a GraphQL API?
+  - Is a tRPC API type-safe in production?
+  - A mobile app, a web app and two partners need your API. GraphQL, tRPC or REST?
 - **[Rate Limiting](#ch-rate-limiting)**
   - What is wrong with fixed window?
   - How do you count correctly across many servers?
@@ -564,93 +510,70 @@ _88 questions across 27 chapters._
   - How do you authenticate a socket, and what goes wrong?
   - How do you make a broadcast reach every client across ten pods?
   - When would you not build a socket server at all?
-- **[tRPC and Typed APIs](#ch-trpc)**
-  - What does tRPC give you that a generated OpenAPI client does not?
-  - Is a tRPC API type-safe in production?
-  - Would you use tRPC for a mobile app's backend?
-  - How do you make a breaking change to a tRPC procedure?
-- **[SQL Fundamentals](#ch-sql-fundamentals)**
-  - What is the difference between `WHERE` and `HAVING`?
+- **[Testing a Node Service](#ch-testing-node-services)**
+  - What do you not unit test in a service?
+  - Dependency injection or `vi.mock`?
+  - How do you keep an integration suite isolated and still fast?
+- **[SQL Fundamentals and Schema Design](#ch-sql-fundamentals)**
   - A `LEFT JOIN` is returning only matched rows. Why?
   - How do you get the top three rows per group?
-  - When is a CTE the wrong choice?
-- **[Database Design](#ch-database-design)**
   - When would you denormalise?
-  - Surrogate or natural primary key?
-  - How do you prevent two overlapping bookings for the same room?
-- **[Indexes and Query Plans](#ch-indexes)**
+  - How do you stop two overlapping bookings for the same room?
+- **[Indexes, Query Plans, ORMs and Migrations](#ch-indexes)**
   - You have an index on `(user_id, status, created_at)`. Which queries use it?
   - A query has an index and is still slow. What do you check?
-  - Why can adding an index make the system slower?
+  - When do you drop out of the ORM into raw SQL?
+  - How do you rename a column with zero downtime?
 - **[Transactions and Concurrency](#ch-sql-transactions)**
   - What is a lost update, and does the default isolation level prevent it?
   - Optimistic or pessimistic locking?
   - How do you prevent deadlocks?
-- **[ORMs and Migrations](#ch-orms)**
-  - When do you drop out of the ORM into raw SQL?
-  - How do you rename a column with zero downtime?
-  - Why is `ALTER TABLE ADD COLUMN … NOT NULL DEFAULT` dangerous?
-- **[Document Databases](#ch-document-databases)**
+- **[Choosing a Non-Relational Store: Documents and Redis](#ch-document-databases)**
   - When would you choose MongoDB over Postgres?
   - How do you decide whether to embed or reference?
-  - Are MongoDB writes atomic?
-- **[Redis](#ch-redis)**
-  - Redis is single-threaded — how is it fast, and what is the risk?
+  - Redis is single-threaded. How is it fast, and what is the risk?
   - Pub/Sub or Streams?
-  - How do you cap Redis memory safely?
-- **[Credentials, Sessions and Tokens](#ch-credentials-and-sessions)**
+  - A team wants Redis as the only database for a new orders service. What do you say?
+- **[Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions)**
   - Sessions or JWTs?
   - How do you revoke a JWT?
-- **[OAuth 2.1 and OpenID Connect](#ch-oauth)**
-  - Walk me through the authorisation code flow.
-  - What does PKCE add, and why does a confidential client need it too?
-  - What is `state` for, and is it the same as PKCE?
-- **[Authorisation](#ch-authorisation)**
-  - What is broken object-level authorisation, and how do you prevent it structurally?
-  - RBAC or ABAC?
-  - 403 or 404 for a resource the user may not see?
-- **[CORS and CSRF](#ch-cors-csrf)**
   - Does CORS protect your API?
-  - Why is reflecting the `Origin` header a vulnerability?
   - `SameSite=Lax` is set. Do you still need CSRF tokens?
+- **[OAuth, OIDC and Authorisation](#ch-oauth)**
+  - Walk me through the authorisation code flow with PKCE.
+  - What is `state` for, and is it the same as PKCE?
+  - What is broken object-level authorisation, and how do you prevent it structurally?
+  - 403 or 404 for a resource the user may not see?
+  - When would you not reach for ABAC or a policy engine?
 - **[Input Validation and Injection](#ch-backend-input-validation)**
   - Why is parameterisation safer than escaping?
   - An endpoint is parameterised and still injectable. How?
   - How does NoSQL injection work if there is no SQL string?
   - Is validation enough on its own?
-- **[Testing a Node Service](#ch-testing-node-services)**
-  - What do you not unit test in a service?
-  - Dependency injection or `vi.mock`?
-  - How do you keep an integration suite isolated and still fast?
 
 ## Part VI — System Design
 
-_98 questions across 29 chapters._
+_70 questions across 18 chapters._
 
-- **[Driving the Design Round](#ch-driving-the-round)**
+- **[Driving the Design Round, Backend and Frontend](#ch-driving-the-round)**
   - You have 45 minutes and the prompt is "design Instagram". What are the first five minutes?
   - The interviewer says "assume whatever you like" for the scale. What do you do?
+  - In a frontend round, where does state go, and how do you decide?
   - When would you not follow RADIO in order?
 - **[Back-of-Envelope Estimation](#ch-back-of-envelope-estimation)**
   - How much storage does a photo-sharing service need after five years?
   - Why round 86,400 to 100,000?
   - Your estimate says the whole dataset fits in RAM on one server. Is that the design?
-- **[Scalability](#ch-scalability)**
+- **[Scalability, Latency and Throughput](#ch-scalability)**
   - Vertical or horizontal scaling — how do you choose?
-  - What has to be true before you can scale out?
-  - Your auto-scaling group keeps adding and removing instances every few minutes. What is wrong?
-- **[Reliability and Availability](#ch-reliability-and-availability)**
+  - p50 is 40 ms and p99 is 3 seconds. Where do you look?
+  - Your service looks fine at 70% CPU and falls over at 85%. Why?
+  - When would you accept worse latency on purpose?
+- **[Reliability, Consistency and CAP](#ch-consistency-and-cap)**
   - Your service calls four dependencies, each 99.9% available. What is your ceiling?
   - What is the difference between high availability and disaster recovery?
-  - How do you decide an SLO?
-- **[Latency and Throughput](#ch-latency-and-throughput)**
-  - p50 is 40 ms and p99 is 3 seconds. Where do you look?
-  - How do you cut latency for users on the other side of the world?
-  - When would you accept worse latency on purpose?
-- **[Consistency and CAP](#ch-consistency-and-cap)**
-  - Your system is eventually consistent and a user says their profile edit "did not save". What do you do?
-  - When is eventual consistency unacceptable?
-  - Explain the difference between CP and "slow".
+  - A user says their profile edit "did not save" in an eventually consistent system. What do you do?
+  - When is eventual consistency not acceptable?
 - **[Load Balancing](#ch-load-balancing)**
   - Layer 4 or layer 7 for an HTTP API, and why?
   - Your health check hits the database. What is wrong with that?
@@ -665,54 +588,33 @@ _98 questions across 29 chapters._
   - After a deploy, users still get the old JavaScript. What went wrong?
   - What is origin shielding and when do you need it?
   - When is a CDN the wrong answer?
-- **[Queues and Asynchronous Work](#ch-message-queues)**
+- **[Queues, Async Work and WebSockets](#ch-message-queues)**
   - Your consumer processes the same message twice. Whose bug is it?
   - When would you pick Kafka over SQS?
   - When is a queue the wrong answer to a slow endpoint?
-- **[Search](#ch-search)**
-  - When do you introduce a search engine instead of using the database?
-  - How do you keep the search index consistent with the database?
-  - Search latency is fine on average and terrible at p99. Why?
-- **[Real-Time Communication](#ch-realtime-communication)**
-  - WebSocket or SSE?
-  - How does a WebSocket differ from HTTP, and why does it matter architecturally?
+  - WebSocket or SSE for streaming job progress to the browser?
   - How do you scale real-time connections across many servers?
-  - Roughly how many connections fit on one node, and what runs out first?
-- **[The API Gateway Pattern](#ch-api-gateway-pattern)**
-  - What is the difference between an API gateway and a load balancer?
-  - What should never go in the gateway?
-  - When would you introduce a BFF rather than one shared gateway?
-  - The gateway is now a single point of failure. What do you do about it?
-- **[Service Boundaries](#ch-service-boundaries)**
+- **[Service Boundaries and the API Gateway](#ch-service-boundaries)**
   - How do you decide where to split a monolith?
   - Two services need to update atomically. What do you do?
   - When are microservices the wrong answer?
+  - What is the difference between an API gateway and a load balancer?
+  - The gateway is now a single point of failure. What do you do about it?
 - **[Resilience Patterns](#ch-resilience-patterns)**
   - A downstream service starts taking 30 seconds instead of 200 ms. What happens to your service?
   - How do you choose retry settings?
   - When would you not add a circuit breaker?
-- **[Choosing a Datastore](#ch-choosing-a-datastore)**
+- **[Choosing a Datastore and Replicating It](#ch-choosing-a-datastore)**
   - SQL or NoSQL for this system — how do you answer without hedging?
   - What do you actually lose by moving from PostgreSQL to DynamoDB?
-  - When is denormalisation worth it?
-- **[Replication](#ch-replication)**
   - Your primary dies. What is lost?
-  - A user reports that their profile update "did not save". Diagnose it.
+  - A user says their profile update "did not save". Diagnose it.
   - When would you accept multi-leader replication?
-- **[Sharding](#ch-sharding)**
+- **[Sharding and Transactions at Scale](#ch-sharding)**
   - When do you shard, and what would you do instead?
   - What makes a good shard key?
-  - Why is consistent hashing better than hashing modulo the shard count?
-  - A single customer generates 30% of your traffic. What happens and what do you do?
-- **[Transactions at Scale](#ch-database-transactions)**
   - Two users buy the last item at the same time. How do you stop overselling?
-  - What isolation level would you choose, and why not serializable?
-  - Optimistic or pessimistic locking?
-- **[Frontend System Design Strategy](#ch-frontend-system-design-strategy)**
-  - You have sixty minutes and the prompt is "design Google Docs". What happens in the first ten?
-  - Where does state go, and how do you decide?
-  - The interviewer says "we do not care about SEO here". What changes?
-  - When would you argue against the design you have just drawn?
+  - An order service and a payment service must both succeed. Would you use two-phase commit?
 - **[Frontend Real-Time Features](#ch-frontend-real-time-features)**
   - A client reconnects after 30 seconds offline. How does it catch up?
   - Why does reconnection need jitter?
@@ -724,11 +626,6 @@ _98 questions across 29 chapters._
   - Why does the idempotency key have to be generated on the client?
   - When would you refuse to build offline-first?
   - Last-write-wins is simple. What is wrong with it?
-- **[SEO and Analytics](#ch-seo-and-analytics)**
-  - The marketing team says the catalogue is not ranking. Where do you look first?
-  - Why is client-side rendering a problem for SEO if crawlers execute JavaScript?
-  - Design the analytics for a checkout flow.
-  - A third of your users decline consent. How do you still measure anything?
 - **[Frontend Authentication](#ch-frontend-authentication)**
   - Where do you store the token, and why not `localStorage`?
   - Eight requests get a 401 at the same moment. What happens?
@@ -738,10 +635,6 @@ _98 questions across 29 chapters._
   - How do you generate short codes at 1,000 writes a second without collisions?
   - The cache is cold after a deploy and the store falls over. What went wrong?
   - Would you shard this database, and on what?
-- **[Design Ticketmaster](#ch-design-ticketmaster)**
-  - Two users click the same seat at the same millisecond. What happens?
-  - The payment succeeds but the confirmation write fails. What state is the user in?
-  - When would you deliberately allow overselling?
 - **[Design a Collaborative Document Editor](#ch-design-collaborative-editor)**
   - Two people insert a character at the same position at the same moment. What decides the order?
   - When would you not use a CRDT?
@@ -750,10 +643,6 @@ _98 questions across 29 chapters._
   - Users say posts appear twice as they scroll. What is happening?
   - The list is virtualised and still janky on Android. Where do you look?
   - When would you not build infinite scroll at all?
-- **[Design a Live Dashboard](#ch-design-live-dashboard)**
-  - Why one connection rather than one per widget?
-  - The backend emits 2,000 events a second. How do you keep the UI at 60 fps?
-  - When is dropping updates the wrong call?
 
 ## Part VII — AI Engineering
 

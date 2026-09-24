@@ -66,8 +66,8 @@ internal admin tool where an offboarded employee must lose access now, no. A com
 the session in the database and caches the lookup, keeping revocation while paying for it rarely.
 
 Token mechanics — hashing a password, signing, rotation, refresh — belong to
-[Chapter ?? — Credentials, Sessions and Tokens](#ch-credentials-and-sessions), and who may do what belongs to
-[Chapter ?? — Authorisation](#ch-authorisation). This chapter is about where in an App Router
+[Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions), and who may do what belongs to
+[Chapter ?? — OAuth, OIDC and Authorisation](#ch-oauth). This chapter is about where in an App Router
 application those checks run.
 
 ### The cookie
@@ -223,4 +223,4 @@ UI, and keep the real check beside the query.
 
 - [Chapter ?? — Server Actions](#ch-server-actions) — the mutation half of the same rule
 - [Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) — why the optimistic check stops where it does
-- [Chapter ?? — Authorisation](#ch-authorisation) — roles, permissions, and modelling who may do what
+- [Chapter ?? — OAuth, OIDC and Authorisation](#ch-oauth) — roles, permissions, and modelling who may do what

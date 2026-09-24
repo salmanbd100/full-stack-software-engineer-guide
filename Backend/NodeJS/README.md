@@ -5,7 +5,7 @@ chapter: 1
 slug: backend-nodejs-index
 level: intermediate
 reading_time: 2
-updated: 2026-09-08
+updated: 2026-09-24
 tags: [nodejs, event-loop, streams, performance, scaling]
 in_book: true
 ---
@@ -17,18 +17,19 @@ because it is the one place where the language you already know meets a genuinel
 execution model. The questions are not about APIs. They are about what happens to nine hundred other
 requests while yours is parsing a large JSON body.
 
-This section covers the runtime's mechanics, then the two things every production service needs from
-it: a single error path, and a way to use more than one core.
+This section covers the runtime's mechanics and its error path, then how to use more than one core,
+and last the framework most services are written in.
 
 ## Chapters
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [The Event Loop and Async Node](#ch-event-loop-async) | How does one thread serve thousands of connections? |
-| 02 | [Streams and Buffers](#ch-streams-buffers) | How do you move data you cannot hold in memory? |
-| 03 | [The Module System](#ch-module-system) | Why does this import work and the next one throw? |
-| 04 | [Error Handling in Node](#ch-nodejs-error-handling) | Which failures do you answer, and which do you restart for? |
-| 05 | [Node.js Performance and Scaling](#ch-nodejs-performance) | Where did the 400 ms go, and do you need a faster loop or more of them? |
+| 01 | [The Node.js Event Loop, Async and Errors](#ch-event-loop-async) | How does one thread serve thousands of connections, and which failures do you restart for? |
+| 02 | [Node.js Performance, Streams and Scaling](#ch-nodejs-performance) | Where did the 400 ms go, how do you move data you cannot hold in memory, and do you need more loops? |
+| 03 | [Express, Hono and Edge Runtimes](#ch-express) | A long-lived Node server, or Web-standard handlers that run at the edge? |
+
+Chapter 03 was its own *Node Frameworks* section until #100. NestJS and the module system left the book
+in the same cut.
 
 ## What Interviewers Probe For
 
@@ -45,7 +46,6 @@ it: a single error path, and a way to use more than one core.
 
 ## Reading Order
 
-01 first, always — every later chapter assumes it. Then 04, which every service needs. 02 and 05 are
-independent of each other; 03 can be read whenever an import breaks.
+01 first, always — every later chapter assumes it. 02 and 03 are independent of each other.
 
-**Interview sprint:** 01 → 04 → 05.
+**Interview sprint:** 01 → 03 → 02.

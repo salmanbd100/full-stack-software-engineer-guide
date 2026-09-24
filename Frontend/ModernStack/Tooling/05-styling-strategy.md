@@ -211,5 +211,5 @@ are writing styles at once and the naming is what breaks.
 ## What to Read Next
 
 - [Chapter ?? — Server Components vs Client Components](#ch-server-components-vs-client-components) — the boundary that rules out runtime styling libraries
-- [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) — where the token contract is actually set
-- [Chapter ?? — Bundle Optimisation](#ch-bundle-optimisation) — how to see what a styling library costs in a real build
+- [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) — where the token contract is actually set
+- [Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting) — how to see what a styling library costs in a real build

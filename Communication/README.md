@@ -34,7 +34,7 @@ happens; and the assisted round, where the model writes the code and your judgem
 Behavioural answers have their own section: STAR, the story bank and the delivery rules start at
 [Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework). Narrating a system design
 round belongs with the design material, at
-[Chapter ?? — Driving the Design Round](#ch-driving-the-round).
+[Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round).
 
 ## What Interviewers Probe For
 

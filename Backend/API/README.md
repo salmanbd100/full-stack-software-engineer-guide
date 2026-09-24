@@ -1,11 +1,11 @@
 ---
 title: Part V — API Design
 part: 5
-chapter: 11
+chapter: 5
 slug: backend-api-index
 level: intermediate
 reading_time: 2
-updated: 2026-09-07
+updated: 2026-09-24
 tags: [api, rest, graphql, versioning, realtime, trpc]
 in_book: true
 ---
@@ -25,12 +25,13 @@ you, and pushing data the client did not ask for.
 
 | #  | Chapter | What it answers |
 | -- | ------- | --------------- |
-| 01 | [REST API Best Practices](#ch-rest-best-practices) | Can another engineer guess this API before reading the docs? |
-| 02 | [GraphQL](#ch-graphql) | How do you stop the resolver chain melting your database? |
-| 03 | [API Versioning and Contracts](#ch-versioning) | Is this change breaking, and can the spec drift from the code? |
-| 04 | [Rate Limiting](#ch-rate-limiting) | Which algorithm, and how does it work across every instance? |
-| 05 | [Real-Time and Streaming APIs](#ch-realtime-streaming) | SSE or a socket, and what does the upgrade throw away? |
-| 06 | [tRPC and Typed APIs](#ch-trpc) | When does inference replace a schema, and when does it not? |
+| 01 | [REST Best Practices and Versioning](#ch-rest-best-practices) | Can another engineer guess this API before reading the docs, and is this change breaking? |
+| 02 | [GraphQL, tRPC and Typed API Choices](#ch-graphql) | Where does the contract live, and how do you stop the resolver chain melting your database? |
+| 03 | [Rate Limiting](#ch-rate-limiting) | Which algorithm, and how does it work across every instance? |
+| 04 | [Real-Time and Streaming APIs](#ch-realtime-streaming) | SSE or a socket, and what does the upgrade throw away? |
+| 05 | [Testing a Node Service](#ch-testing-node-services) | What is worth unit testing, and how do you use a real database and stay fast? |
+
+Chapter 05 was its own *Testing* section until #100. The testing discipline itself is Part IV.
 
 ## What Interviewers Probe For
 
@@ -52,7 +53,7 @@ why the query is slow.** The API half shows up as:
 
 ## Reading Order
 
-01 first — it sets the vocabulary the rest of the section uses. Then 02 and 03. The last three are
+01 first — it sets the vocabulary the rest of the section uses. Then 02. The last three are
 operational or situational and can wait until they become relevant.
 
-**Interview sprint:** 01 → 02 → 04.
+**Interview sprint:** 01 → 02 → 03.
