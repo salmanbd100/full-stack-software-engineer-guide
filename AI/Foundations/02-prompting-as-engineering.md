@@ -1,7 +1,7 @@
 ---
 title: Prompting as Engineering
 part: 7
-chapter: 4
+chapter: 3
 slug: prompting-as-engineering
 level: intermediate
 reading_time: 11

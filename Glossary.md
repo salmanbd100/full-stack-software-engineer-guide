@@ -28,7 +28,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Accessibility tree** — The structure assistive technology reads, derived from the DOM plus roles, names and states. [The Accessibility Tree](#ch-accessibility-tree)
 
-**Agent** — A system that decides which tools to call and in what order, rather than following a fixed script. [What an Agent Actually Is](#ch-what-an-agent-actually-is)
+**Agent** — A system that decides which tools to call and in what order, rather than following a fixed script. [What an Agent Is, and When to Use More Than One](#ch-what-an-agent-actually-is)
 
 **Alerting** — Notifying a human that a service-level objective is at risk; distinct from monitoring, which only records. [Alerting and On-Call](#ch-alerting)
 
@@ -70,13 +70,13 @@ the newest material in the book and the part most readers meet cold.
 
 **Context engineering** — Deciding what goes into a model's context window, in what order, within a token budget. [Context Engineering](#ch-context-engineering)
 
-**Context window** — The maximum tokens a model can attend to in one request, covering prompt and output together. [How LLMs Behave](#ch-how-llms-behave)
+**Context window** — The maximum tokens a model can attend to in one request, covering prompt and output together. [How LLMs Behave and How to Choose One](#ch-how-llms-behave)
 
 **Contract testing** — Checking that a consumer's expectations of an API still match what the provider returns. [End-to-End, Visual and Contract Testing with Playwright](#ch-end-to-end-testing)
 
 **CORS** — Cross-origin resource sharing: the response headers that let a browser expose a cross-origin response to script. [Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions)
 
-**Cosine similarity** — The similarity measure between two embedding vectors, based on the angle between them. [Embeddings and Similarity](#ch-embeddings-and-similarity)
+**Cosine similarity** — The similarity measure between two embedding vectors, based on the angle between them. [Embeddings, Vector Stores and Retrieval](#ch-retrieval)
 
 **CSP** — Content Security Policy: a header restricting which sources a page may load or execute. [Content Security Policy and Security Headers](#ch-content-security-policy)
 
@@ -104,11 +104,11 @@ the newest material in the book and the part most readers meet cold.
 
 **Edge runtime** — A lightweight isolate running Web-standard APIs in many regions; no filesystem, no raw TCP. [Express, Hono and Edge Runtimes](#ch-express)
 
-**Embedding** — A vector representation of text whose geometry encodes meaning, so similar text sits close together. [Embeddings and Similarity](#ch-embeddings-and-similarity)
+**Embedding** — A vector representation of text whose geometry encodes meaning, so similar text sits close together. [Embeddings, Vector Stores and Retrieval](#ch-retrieval)
 
 **ETag** — A fingerprint of a response body that lets a server answer "unchanged" with a 304 and no payload. [Caching and Asset Delivery](#ch-asset-delivery)
 
-**Eval** — A repeatable test of model output against a fixed dataset, producing a number you can compare across changes. [Evals](#ch-evals)
+**Eval** — A repeatable test of model output against a fixed dataset, producing a number you can compare across changes. [Evals, Retrieval Metrics and Error Analysis](#ch-evals)
 
 **Eventual consistency** — Replicas converge on the same value given time, but a read may return a stale one. [Choosing a Datastore and Replicating It](#ch-choosing-a-datastore)
 
@@ -126,19 +126,19 @@ the newest material in the book and the part most readers meet cold.
 
 ## G
 
-**Golden set** — A fixed, curated set of inputs with known-good outputs, used as the baseline for evals. [Evals](#ch-evals)
+**Golden set** — A fixed, curated set of inputs with known-good outputs, used as the baseline for evals. [Evals, Retrieval Metrics and Error Analysis](#ch-evals)
 
-**Grounding** — Supplying retrieved source material so an answer can be checked against something. [Retrieval](#ch-retrieval)
+**Grounding** — Supplying retrieved source material so an answer can be checked against something. [Embeddings, Vector Stores and Retrieval](#ch-retrieval)
 
 **Guardrail** — A check on model input or output that blocks or rewrites it before it reaches a user or a tool. [Guardrails and Safety](#ch-guardrails-and-safety)
 
 ## H
 
-**Hallucination** — Confident output unsupported by the model's inputs. A retrieval or eval problem before it is a prompting one. [How LLMs Behave](#ch-how-llms-behave)
+**Hallucination** — Confident output unsupported by the model's inputs. A retrieval or eval problem before it is a prompting one. [How LLMs Behave and How to Choose One](#ch-how-llms-behave)
 
 **Hydration** — Attaching event handlers and state to server-rendered HTML. Main-thread work proportional to the tree. [The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum)
 
-**Hybrid search** — Combining vector similarity with keyword search, because each finds what the other misses. [Retrieval](#ch-retrieval)
+**Hybrid search** — Combining vector similarity with keyword search, because each finds what the other misses. [Embeddings, Vector Stores and Retrieval](#ch-retrieval)
 
 ## I
 
@@ -162,7 +162,7 @@ the newest material in the book and the part most readers meet cold.
 
 **LCP** — Largest Contentful Paint: when the largest visible element finished rendering. Good is under 2.5 seconds. [Core Web Vitals](#ch-core-web-vitals)
 
-**LLM-as-judge** — Using a model to score another model's output against a rubric, calibrated against human labels. [Evals](#ch-evals)
+**LLM-as-judge** — Using a model to score another model's output against a rubric, calibrated against human labels. [Evals, Retrieval Metrics and Error Analysis](#ch-evals)
 
 **Long task** — Main-thread work over 50 ms, which the browser cannot interrupt and which therefore delays interaction. [Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler)
 
@@ -220,7 +220,7 @@ the newest material in the book and the part most readers meet cold.
 
 **RBAC** — Role-based access control: permissions attached to roles, and roles to users. [OAuth, OIDC and Authorisation](#ch-oauth)
 
-**Reranking** — Reordering retrieved candidates with a more expensive, more accurate model before they reach the prompt. [Retrieval](#ch-retrieval)
+**Reranking** — Reordering retrieved candidates with a more expensive, more accurate model before they reach the prompt. [Embeddings, Vector Stores and Retrieval](#ch-retrieval)
 
 **RSC** — React Server Components: components that render on the server and ship no JavaScript for themselves. [Server and Client Components](#ch-server-components-vs-client-components)
 
@@ -266,13 +266,13 @@ the newest material in the book and the part most readers meet cold.
 
 ## T
 
-**Temperature** — A sampling parameter controlling output randomness; near zero for extraction, higher for generation. [Choosing a Model](#ch-choosing-a-model)
+**Temperature** — A sampling parameter controlling output randomness; near zero for extraction, higher for generation. [How LLMs Behave and How to Choose One](#ch-how-llms-behave)
 
 **Throttle** — Running a handler at most once per interval. For cases where a steady sample matters. [Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler)
 
-**Token** — The unit a model reads and bills in: a few characters, not a word. [How LLMs Behave](#ch-how-llms-behave)
+**Token** — The unit a model reads and bills in: a few characters, not a word. [How LLMs Behave and How to Choose One](#ch-how-llms-behave)
 
-**Tool calling** — A model returning a request to invoke a named function with arguments, which your code executes. [Tool Calling](#ch-tool-calling)
+**Tool calling** — A model returning a request to invoke a named function with arguments, which your code executes. [Tool Calling and the Tool Surface](#ch-tool-calling)
 
 **Tree shaking** — Removing exports that are imported but never used, which needs ES modules and no import-time side effects. [Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting)
 
@@ -280,7 +280,7 @@ the newest material in the book and the part most readers meet cold.
 
 ## V
 
-**Vector store** — A database indexed for nearest-neighbour search over embeddings. [Vector Stores](#ch-vector-stores)
+**Vector store** — A database indexed for nearest-neighbour search over embeddings. [Embeddings, Vector Stores and Retrieval](#ch-retrieval)
 
 **`verbatimModuleSyntax`** — A TypeScript flag requiring `import type` for type-only imports, so erasure is explicit in the source. [TypeScript at Scale](#ch-typescript-at-scale)
 

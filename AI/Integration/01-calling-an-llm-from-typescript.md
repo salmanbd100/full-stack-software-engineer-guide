@@ -1,7 +1,7 @@
 ---
 title: Calling an LLM from TypeScript
 part: 7
-chapter: 8
+chapter: 6
 slug: calling-an-llm-from-typescript
 level: intermediate
 reading_time: 11
@@ -73,9 +73,8 @@ complete answer is a bug that never throws.
 
 Start with a unified SDK unless you are using one provider's frontier capability on day one. The
 migration cost runs the other way — swapping a unified call for a provider call later is an afternoon;
-retrofitting an abstraction across forty call sites is not.
-[Chapter ?? — Multi-Provider Architecture](#ch-multi-provider-architecture) covers what the abstraction
-cannot hide.
+retrofitting an abstraction across forty call sites is not. No abstraction hides everything: tool-call
+shapes, streaming events and caching still differ between providers.
 
 ### Timeouts, because the default is not one
 
@@ -217,4 +216,4 @@ open endpoint.
 
 - [Chapter ?? — Streaming Responses](#ch-streaming-responses) — the same call, delivered token by token
 - [Chapter ?? — Structured Output](#ch-structured-output) — when the answer has to be JSON your code can trust
-- [Chapter ?? — Cost Engineering](#ch-cost-engineering) — what those usage numbers add up to
+- [Chapter ?? — Observability and Cost Engineering](#ch-observability) — what those usage numbers add up to

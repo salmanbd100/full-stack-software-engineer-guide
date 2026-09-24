@@ -1,7 +1,7 @@
 ---
 title: AI in Interviews
 part: 7
-chapter: 38
+chapter: 26
 slug: ai-in-interviews
 level: advanced
 reading_time: 9
@@ -59,7 +59,7 @@ decides whether the feature may answer at all when confidence is low.
 
 Then finish on measurement rather than on components. The golden set, the hit rate you would gate on and
 the cost per question is a different answer from one that stops at the vector store — see
-[Chapter ?? — Evaluating Retrieval](#ch-evaluating-retrieval). And asked to "add AI" to an existing
+[Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals). And asked to "add AI" to an existing
 product, the honest first question is whether retrieval is needed at all:
 [Chapter ?? — When RAG, When Fine-Tune, When Neither](#ch-when-rag-when-fine-tune-when-neither) is the
 decision behind it.
@@ -76,7 +76,7 @@ The answer has three parts, in this order: **a golden set, a metric per failure 
 
 If you offer a judge model, say in the same breath how it is validated — a sample graded by hand, and
 agreement measured. An unvalidated judge is an opinion with a decimal point;
-[Chapter ?? — Evals](#ch-evals) has the full shape.
+[Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) has the full shape.
 
 ### Round three — "your agent is looping, debug it"
 
@@ -104,7 +104,7 @@ transient error worth retrying. Then bisect out loud — narrating a diagnosis i
 | Loops only on long tasks? | Context growth pushing early state out | Summarise, or persist state outside the window |
 
 Name the bounds too — a step cap, a token budget, an alert on both — because a runaway loop is a cost
-incident as well as a bug. [Chapter ?? — Designing the Tool Surface](#ch-designing-the-tool-surface) is
+incident as well as a bug. [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) is
 the underlying material.
 
 ### Round four — "what breaks when the model changes version"
@@ -141,9 +141,9 @@ points and doubles the price is a decision for someone else to take, and saying 
 
 | When the question sounds like | It is really asking | Read |
 | --- | --- | --- |
-| "Design a chatbot over our docs" | Retrieval quality and its measurement | [Chapter ?? — Retrieval](#ch-retrieval) |
-| "How do you stop it hallucinating" | Grounding, citations and refusal | [Chapter ?? — Trust and Correctness UX](#ch-trust-and-correctness-ux) |
-| "How would you make it cheaper" | Caching, routing and token accounting | [Chapter ?? — Cost Engineering](#ch-cost-engineering) |
+| "Design a chatbot over our docs" | Retrieval quality and its measurement | [Chapter ?? — Embeddings, Vector Stores and Retrieval](#ch-retrieval) |
+| "How do you stop it hallucinating" | Grounding, citations and refusal | [Chapter ?? — Trust, Correctness and Failure States](#ch-trust-and-correctness-ux) |
+| "How would you make it cheaper" | Caching, routing and token accounting | [Chapter ?? — Observability and Cost Engineering](#ch-observability) |
 | "Is this safe to ship" | Prompt injection and tool permissions | [Chapter ?? — Prompt Injection](#ch-prompt-injection) |
 
 ## Common Mistakes
@@ -200,6 +200,6 @@ rather ship a scoped assistant with a measurable pass rate than a general one no
 
 ## What to Read Next
 
-- [Chapter ?? — Evals](#ch-evals) — the golden set and the CI gate that most of these answers depend on
+- [Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) — the golden set and the CI gate that most of these answers depend on
 - [Chapter ?? — When RAG, When Fine-Tune, When Neither](#ch-when-rag-when-fine-tune-when-neither) — the decision behind round one
-- [Chapter ?? — What an Agent Actually Is](#ch-what-an-agent-actually-is) — the loop that round three debugs
+- [Chapter ?? — What an Agent Is, and When to Use More Than One](#ch-what-an-agent-actually-is) — the loop that round three debugs

@@ -240,4 +240,4 @@ being the most common accidental leak.
 
 - [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — the metrics this chapter collects and what each number means
 - [Chapter ?? — Loading, Code Splitting and Bundle Budgets](#ch-loading-and-code-splitting) — the lab-side gate this field data should calibrate
-- [Chapter ?? — Observability](#ch-observability) — the same discipline applied server-side
+- [Chapter ?? — Observability and Cost Engineering](#ch-observability) — the same discipline applied server-side

@@ -1,7 +1,7 @@
 ---
 title: MCP (Model Context Protocol)
 part: 7
-chapter: 12
+chapter: 10
 slug: model-context-protocol
 level: advanced
 reading_time: 11
@@ -41,7 +41,7 @@ language. MCP does not make models better at using tools. It standardises how a 
 
 A host runs many clients, one per server. The model itself is not in this picture at all — the host
 collects tool definitions from its clients and passes them into the model call as ordinary tool
-definitions. Everything from [Chapter ?? — Tool Calling](#ch-tool-calling) still applies underneath.
+definitions. Everything from [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) still applies underneath.
 
 ### What a server exposes
 
@@ -213,6 +213,5 @@ reviewed.
 
 ## What to Read Next
 
-- [Chapter ?? — Tool Calling](#ch-tool-calling) — the mechanism MCP standardises the description of
-- [Chapter ?? — Designing the Tool Surface](#ch-designing-the-tool-surface) — what makes a tool description work
+- [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) — the mechanism MCP standardises, and what makes a tool description work
 - [Chapter ?? — Prompt Injection](#ch-prompt-injection) — why a tool description is an attack surface

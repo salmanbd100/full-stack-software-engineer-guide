@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**753 of them across 174 chapters**. The answers are not repeated here — they are in the chapter,
+**693 of them across 162 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -646,29 +646,20 @@ _70 questions across 18 chapters._
 
 ## Part VII — AI Engineering
 
-_155 questions across 32 chapters._
+_95 questions across 20 chapters._
 
-- **[How LLMs Behave](#ch-how-llms-behave)**
-  - Why does the same prompt give a different answer each time, and how do you test something like that?
+- **[How LLMs Behave and How to Choose One](#ch-how-llms-behave)**
+  - Why does the same prompt give a different answer each time, and how do you test it?
   - A conversation gets slower and more expensive the longer it runs. Why?
   - Your summariser returns half a sentence. Where do you look?
-  - When does non-determinism actually matter, and when is it fine?
-- **[Choosing a Model](#ch-choosing-a-model)**
   - How would you decide between a frontier model and a cheaper one for a feature?
   - Where would you not use a small model?
-  - Your AI feature costs four times the forecast. What do you change first?
-  - A provider ships a new version behind the same model name. What is your process?
 - **[Prompting as Engineering](#ch-prompting-as-engineering)**
   - What separates a prompt in a chat window from a prompt in production?
   - Why put instructions in the system prompt rather than the user message?
   - When does few-shot stop helping?
   - How do you change a prompt without breaking cases that currently work?
   - A colleague wants to fix a hallucination by adding "do not hallucinate" to the prompt. Your view?
-- **[Embeddings and Similarity](#ch-embeddings-and-similarity)**
-  - What does a cosine similarity of 0.82 tell you?
-  - When would keyword search beat embeddings?
-  - You swapped the embedding model and recall dropped. Why?
-  - Where do embeddings fit outside search?
 - **[Context Engineering](#ch-context-engineering)**
   - What is context engineering, and how is it different from prompt engineering?
   - Your cost per request doubled with no traffic change and no deploy. Where do you look?
@@ -693,24 +684,17 @@ _155 questions across 32 chapters._
   - When validation fails, do you retry?
   - Does the shape of the schema change the quality of the output?
   - How would you extract fields from a document where some are genuinely absent?
-- **[Tool Calling](#ch-tool-calling)**
+- **[Tool Calling and the Tool Surface](#ch-tool-calling)**
   - Walk through what happens when a model calls a tool.
-  - Your agent is looping on the same tool. What do you check first?
+  - Your agent keeps calling the same tool with the same arguments. What do you check first?
   - How do you stop a tool-calling feature from deleting production data?
-  - When would you not use tool calling?
-  - Can tool calls run in parallel?
+  - Can you just expose your existing REST API as tools?
 - **[MCP (Model Context Protocol)](#ch-model-context-protocol)**
   - What problem does MCP actually solve?
   - Would you build an MCP server for your team's internal API?
   - What is the security risk in connecting to a third-party MCP server?
   - How do tools and resources differ, and why does it matter?
   - A tool call through an MCP server fails. Where do you look?
-- **[Multi-Provider Architecture](#ch-multi-provider-architecture)**
-  - How would you make an AI feature survive a provider outage?
-  - Is a unified SDK enough to make you portable?
-  - Where does multi-provider cost optimisation actually come from?
-  - What would you deliberately not abstract away?
-  - When is staying on one provider the right answer?
 - **[When RAG, When Fine-Tune, When Neither](#ch-when-rag-when-fine-tune-when-neither)**
   - When would you fine-tune instead of using retrieval?
   - Your company has 400 pages of internal documentation. Design the assistant.
@@ -723,78 +707,34 @@ _155 questions across 32 chapters._
   - What metadata would you store, and why at ingestion time?
   - You change the embedding model. What happens to the existing index?
   - How do you keep the index in step with the source documents?
-- **[Retrieval](#ch-retrieval)**
+- **[Embeddings, Vector Stores and Retrieval](#ch-retrieval)**
+  - What does a cosine similarity of 0.82 tell you?
+  - pgvector or a dedicated vector database?
   - Vector, keyword, or both?
   - What does a reranker do that the retriever cannot?
-  - The assistant gives a wrong answer. What do you check first?
-  - How do you handle a follow-up question like "what about the other one?"
-  - How do you scope retrieval to what a user is allowed to see?
-- **[Vector Stores](#ch-vector-stores)**
-  - pgvector or a dedicated vector database?
-  - What does an approximate index give up?
-  - HNSW or IVFFlat?
-  - What breaks when you switch embedding models?
-  - What are the real operating costs of a separate vector store?
-- **[Evaluating Retrieval](#ch-evaluating-retrieval)**
-  - How do you know your RAG system is working?
-  - What is recall@k, and why is it the metric you start with?
-  - A user says the assistant gave a wrong answer. Walk me through the diagnosis.
-  - What is wrong with generating your golden set from the documents?
-  - How would you run this in CI without it becoming a nuisance?
-- **[What an Agent Actually Is](#ch-what-an-agent-actually-is)**
-  - Explain what an agent is to a backend engineer.
+  - How do you scope retrieval to what a user may see?
+- **[What an Agent Is, and When to Use More Than One](#ch-what-an-agent-actually-is)**
   - When would you build a workflow instead?
-  - How do you stop an agent running away?
   - Your agent runs to the step limit on every task. What is happening?
-  - Why does a ten-step agent cost so much more than ten single calls?
-- **[Designing the Tool Surface](#ch-designing-the-tool-surface)**
-  - How granular should an agent's tools be?
-  - What makes a good tool description?
-  - Your agent keeps calling the same tool with the same arguments. Why?
-  - How do you keep an agent from doing something destructive?
-  - Can you just expose your existing REST API as tools?
-- **[Memory and State](#ch-memory-and-state)**
-  - How does an agent "remember" anything?
-  - An agent's window fills up after ten steps. What do you do first?
-  - Your agent forgot a constraint from the first message. What went wrong?
-  - How would you build memory across sessions?
-  - What would you deliberately not store?
-- **[Durability and Long-Running Work](#ch-durability-and-long-running-work)**
-  - An agent takes forty minutes. Where does it run?
-  - How do you stop a retry from sending two emails?
-  - A tool the agent needs is down. What should happen?
-  - How do you implement human approval for a destructive step?
-  - What is different about durability here compared with any other background job?
-- **[Multi-Agent Patterns](#ch-multi-agent-patterns)**
-  - When is one agent genuinely better than three?
-  - What actually gets lost when one agent hands off to another?
+  - When is one agent better than three?
   - Is a reviewer agent a good idea?
-  - How do you debug a multi-agent system?
   - How would you bound cost across several agents?
-- **[Evals](#ch-evals)**
+- **[Memory, State and Long-Running Work](#ch-durability-and-long-running-work)**
+  - Your agent forgot a constraint from the first message. What went wrong?
+  - An agent's window fills after ten steps. Summarise, or something else first?
+  - How do you stop a retry from sending two emails?
+  - How do you implement human approval for a destructive step?
+- **[Evals, Retrieval Metrics and Error Analysis](#ch-evals)**
   - How do you know a prompt change made things better?
+  - What is recall@k, and why do you start with it?
+  - A user says the assistant gave a wrong answer. Walk me through the diagnosis.
   - When is LLM-as-judge acceptable?
-  - What goes into your golden set?
-  - How would you run this in CI without it being slow and expensive?
-  - Your eval suite passes 100%. What does that tell you?
-- **[Error Analysis Loops](#ch-error-analysis-loops)**
   - Your assistant is "unreliable". How do you turn that into work?
-  - What do you look at in a trace?
-  - How do you decide between fixing the prompt and upgrading the model?
-  - How do you build the taxonomy?
-  - When do you stop?
-- **[Observability](#ch-observability)**
+  - How do you decide between fixing the pipeline and upgrading the model?
+- **[Observability and Cost Engineering](#ch-observability)**
   - What do you log for an AI feature that you would not log for a normal endpoint?
   - Cost doubled with no deploy. Where do you look first?
-  - How do you log prompts without creating a data-protection problem?
-  - Which metrics would you put on the dashboard?
-  - A user says the answer was wrong last Tuesday. What can you tell them?
-- **[Cost Engineering](#ch-cost-engineering)**
-  - An AI feature costs four times the forecast. What do you do first?
-  - How does prompt caching work, and how do you break it?
-  - Where does most of the cost actually sit?
   - When is a cheap-model cascade a good idea?
-  - Does streaming reduce cost?
 - **[Guardrails and Safety](#ch-guardrails-and-safety)**
   - Where do you put guardrails, and why not in the prompt?
   - How do you stop personal data reaching the provider?
@@ -807,28 +747,16 @@ _155 questions across 32 chapters._
   - What is the single most useful question to ask in a design review?
   - How do you defend an agent that must read untrusted content?
   - Can you not just detect and filter injection attempts?
-- **[Designing for Latency](#ch-designing-for-latency)**
+- **[Latency and Generative UI](#ch-generative-ui)**
   - The model takes eight seconds. What does the user see?
-  - Which latency number do you optimise, and why?
-  - You add a reranker that improves answer quality and costs 300 ms. Is it worth it?
-  - How is optimistic UI different for AI features?
-  - What changes for a task that takes four minutes?
-- **[Generative UI](#ch-generative-ui)**
-  - What is the risk in rendering components from model output?
-  - How do you structure it safely?
-  - How do citations work without opening a hole?
-  - What do you render while a structured response is still streaming?
-  - When would you not build this?
-- **[Trust and Correctness UX](#ch-trust-and-correctness-ux)**
+  - You add a reranker that improves answers and costs 300 ms. Is it worth it?
+  - What is the risk in rendering components from model output, and how do you contain it?
+  - When would you not build generative UI?
+- **[Trust, Correctness and Failure States](#ch-trust-and-correctness-ux)**
   - How do you show the user the answer might be wrong?
   - Why not show a confidence score?
   - When would you auto-apply a generated change?
-  - What does a good citation look like?
-  - How do you avoid the interface becoming a wall of hedging?
-- **[Failure States](#ch-failure-states)**
   - The request is rate-limited halfway through streaming. What does the user see?
-  - Which failure states does an AI feature have that a normal one does not?
-  - How should an inline suggestion feature fail?
   - When do you retry automatically?
   - Why design the failure states first?
 - **[AI in Interviews](#ch-ai-in-interviews)**

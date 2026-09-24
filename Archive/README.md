@@ -77,6 +77,8 @@ Archive/
 │   └── nodejs/ frameworks/ api/ sql/ nosql/ security/ testing/   10 merged, 2 archived, 2 sections folded
 ├── system-design/       ← #101: what Part VI shed reaching 4,400 lines — see its README
 │   └── fundamentals/ building-blocks/ database/ frontend/ case-studies/   7 merged, 4 archived
+├── ai-engineering/      ← #102: what Part VII shed reaching 5,200 lines — see its README
+│   └── foundations/ integration/ rag/ agents/ production/ aiux/   11 merged, 1 archived
 ├── backend/             ← #31c, #56a: the 22 files Part V shed reaching its 6,500-line budget
 │   ├── api/                 1 — documentation, merged into API/03 (versioning and contracts)
 │   ├── nodejs/              5 — security folded into Backend/Security/; child processes and

@@ -1,7 +1,7 @@
 ---
 title: When RAG, When Fine-Tune, When Neither
 part: 7
-chapter: 15
+chapter: 12
 slug: when-rag-when-fine-tune-when-neither
 level: intermediate
 reading_time: 11
@@ -192,4 +192,4 @@ and eval burden, and doing them together means neither can be measured on its ow
 
 - [Chapter ?? — Ingestion and Chunking](#ch-ingestion-and-chunking) — where a retrieval pipeline begins
 - [Chapter ?? — Context Engineering](#ch-context-engineering) — why filling the window is not free
-- [Chapter ?? — Evaluating Retrieval](#ch-evaluating-retrieval) — the measurement that settles this argument
+- [Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) — the measurement that settles this argument

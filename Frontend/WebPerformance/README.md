@@ -16,7 +16,7 @@ Performance is the clearest example of what Part IV is about: it is not a featur
 somebody is held to. This section covers the three metrics that get measured in public, the loading
 strategies that move them, and — the part most material skips — how to know whether a change helped
 real users rather than your laptop. An AI feature answers to a second budget, first token rather than
-largest paint: [Chapter ?? — Designing for Latency](#ch-designing-for-latency).
+largest paint: [Chapter ?? — Latency and Generative UI](#ch-generative-ui).
 
 One correction up front, because much published material still has it wrong. **INP replaced FID** as a
 Core Web Vital in March 2024. FID measured the delay before the first interaction was handled and almost

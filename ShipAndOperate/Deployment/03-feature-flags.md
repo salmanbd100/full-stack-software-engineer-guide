@@ -219,5 +219,5 @@ but it cannot restore a column the migration already dropped.
 ## What to Read Next
 
 - [Chapter ?? — Deployment Strategies and Rollback](#ch-deployment-strategies) — the changes a flag cannot switch back
-- [Chapter ?? — Choosing a Model](#ch-choosing-a-model) — rolling a model version change out this way, with the eval suite as the gate
+- [Chapter ?? — How LLMs Behave and How to Choose One](#ch-how-llms-behave) — rolling a model version change out this way, with the eval suite as the gate
 - [Chapter ?? — Platform Deploys and Preview Environments](#ch-platform-deploys) — the other way to show unfinished work to a small audience

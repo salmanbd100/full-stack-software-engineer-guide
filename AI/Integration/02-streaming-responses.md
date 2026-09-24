@@ -1,7 +1,7 @@
 ---
 title: Streaming Responses
 part: 7
-chapter: 9
+chapter: 7
 slug: streaming-responses
 level: intermediate
 reading_time: 11
@@ -207,6 +207,6 @@ partial-parse complexity and buys nothing. Streaming pays for itself only when a
 
 ## What to Read Next
 
-- [Chapter ?? — Designing for Latency](#ch-designing-for-latency) — what the interface does with those tokens
-- [Chapter ?? — Failure States](#ch-failure-states) — designing the broken stream properly
+- [Chapter ?? — Latency and Generative UI](#ch-generative-ui) — what the interface does with those tokens
+- [Chapter ?? — Trust, Correctness and Failure States](#ch-trust-and-correctness-ux) — designing the broken stream properly
 - [Chapter ?? — Structured Output](#ch-structured-output) — streaming an object rather than prose

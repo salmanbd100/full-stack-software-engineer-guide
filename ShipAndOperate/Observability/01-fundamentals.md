@@ -73,7 +73,7 @@ http_requests_total{method, status, endpoint, user_id}
 timestamp. Those belong in logs and traces, which are built for unbounded detail.
 
 An AI feature adds two labels people reach for and should not: the prompt and the retrieved document text.
-Both are unbounded and often personal — [Chapter ?? — Observability](#ch-observability) covers what its
+Both are unbounded and often personal — [Chapter ?? — Observability and Cost Engineering](#ch-observability) covers what its
 spans record instead.
 
 ### Logs, Structured

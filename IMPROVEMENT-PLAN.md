@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-24 · **Progress:** 8 / 25
+**Last updated:** 2026-09-24 · **Progress:** 9 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -703,7 +703,7 @@ an interview.
 
 ---
 
-### - [ ] 102. Cut Part VII — AI Engineering — to 5,200 lines `M`
+### - [x] 102. Cut Part VII — AI Engineering — to 5,200 lines `M` — ✅ **done 2026-09-24**
 
 From 7,385 lines across 39 files. Part VII is the book's 2027 differentiator and it keeps that role —
 but it was written six sections wide, and several chapters teach one idea between them.
@@ -721,6 +721,54 @@ Keep `01-evals`, `06-prompt-injection` and `07-ai-in-interviews` whole. Evals ar
 the whole part, and the other two are the questions being asked right now.
 
 **Done when:** Part VII reads ≤ 5,200 lines, its `budget` overage is 0, and the checklist is green.
+
+**Delivered:**
+
+- **Part VII is 5,151 lines across 20 chapters** by `book:pages`, down from 7,385 across 32. That is 49
+  lines under the 5,200 budget. Its `budget` overage is 0. Sections: Foundations 3, Integration 5, RAG 3,
+  Agents 2, Production 4, AIUX 2, plus *AI in Interviews* at the root
+- **Ten merges.** Each survivor keeps its slug. The new titles are:
+  - *How LLMs Behave and How to Choose One* (`#ch-how-llms-behave`)
+  - *Embeddings, Vector Stores and Retrieval* (`#ch-retrieval`), 280 lines. It takes in both
+    `Foundations/04-embeddings-and-similarity` and `RAG/04-vector-stores`
+  - *Evals, Retrieval Metrics and Error Analysis* (`#ch-evals`), 319 lines. It takes in
+    `Production/02-error-analysis-loops` and `RAG/05-evaluating-retrieval`. Everything the old evals
+    chapter taught is still there, which is how "keep `01-evals` whole" was read. `06-prompt-injection`
+    and `07-ai-in-interviews` were not merged
+  - *Tool Calling and the Tool Surface* (`#ch-tool-calling`). This one was not on the list. It absorbs
+    `Agents/02-designing-the-tool-surface`, which repeated tool calling's warnings and advice almost word
+    for word. The candidate list alone saved about 1,900 lines, short of the 2,185 needed
+  - *What an Agent Is, and When to Use More Than One*, *Memory, State and Long-Running Work*,
+    *Observability and Cost Engineering*, *Trust, Correctness and Failure States*, *Latency and Generative UI*
+- **One outright archive:** `Integration/06-multi-provider-architecture`. The one link to it, in *Calling
+  an LLM from TypeScript*, became a sentence
+- **A correction to the candidate table.** Its file counts included each section's README, and it put
+  `06-prompt-injection` in `Production`, which is right, but `07-ai-in-interviews` sits at the part root
+- **Archive:** twelve files are in `Archive/ai-engineering/{foundations,integration,rag,agents,production,aiux}/`,
+  with a README table, and `Archive/README.md` lists the directory. The Part VII opener and all six
+  section READMEs are rewritten. The section READMEs fell from 552 lines to 362
+- **The checklist:**
+  - `number:chapters` renumbered every file, and `--check` is clean
+  - Inbound links to the twelve gone slugs were repointed at the absorbing chapter, with its new title in
+    the link text. The same was done in `Glossary.md` and in three chapters outside the part. Links to
+    survivors that still carried an old title were retitled. Two *What to Read Next* lists that named one
+    chapter twice were collapsed
+  - `lint:docs` has every rule at 0 except `budget`. **`budget` is at 2,795**, down from 4,980, and
+    `.lint-baseline.json` is committed at that number. Only Parts VIII and IX are still over
+  - `index:questions` regenerated both indexes, and `index:check` passes: **693 questions across 162
+    chapters**, and 87 across 16 for Book 2
+  - `check:code-samples` passes syntax, and the type total fell from 1,013 to **981**, with the baseline
+    committed
+  - `pnpm test` passes 36/36
+  - `pnpm book:pdf` gives **1,006 pages**, down from 1,060. Every cross-reference resolves to a chapter
+    and a page, and no missing glyphs were reported. Part VII is 130 pages, down from 182
+- 🔴 **The frontend spine is at 47.7%**, up from 45.2%. It is still below decision #2's 50% floor. That
+  check belongs to #104
+- **Not done:** `pnpm site:build` was not run, because the Done-when does not ask for it. The merges were
+  written by parallel agents from one shared brief, as in #99–#101. Every report was checked and the lint
+  covers every chapter, but only the evals chapter was read in outline in this session. #108–#110 do the
+  line-by-line read. No Context7 lookup was run, because the merges reused the existing code and API names
+  (stamped against AI SDK 7 and MCP 2025-11-25) and added no new ones
 
 ---
 
@@ -1010,8 +1058,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 8/25 | 🚧 In progress |
-| **Total** | **25** | **8/25** | **32%** |
+| 9 | 95–116 · 95a · 113a · 113b | 9/25 | 🚧 In progress |
+| **Total** | **25** | **9/25** | **36%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

@@ -1,7 +1,7 @@
 ---
 title: Prompt Injection
 part: 7
-chapter: 32
+chapter: 22
 slug: prompt-injection
 level: advanced
 reading_time: 12
@@ -214,5 +214,5 @@ the security decision inside a probabilistic component, which is exactly the thi
 ## What to Read Next
 
 - [Chapter ?? — Guardrails and Safety](#ch-guardrails-and-safety) — the boundary vocabulary this builds on
-- [Chapter ?? — Designing the Tool Surface](#ch-designing-the-tool-surface) — least privilege as a design activity
-- [Chapter ?? — Generative UI](#ch-generative-ui) — rendering model output without opening an outward channel
+- [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) — least privilege as a design activity
+- [Chapter ?? — Latency and Generative UI](#ch-generative-ui) — rendering model output without opening an outward channel

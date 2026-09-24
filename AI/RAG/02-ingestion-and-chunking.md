@@ -1,7 +1,7 @@
 ---
 title: Ingestion and Chunking
 part: 7
-chapter: 16
+chapter: 13
 slug: ingestion-and-chunking
 level: advanced
 reading_time: 12
@@ -104,7 +104,7 @@ structure it was handed for free.
 
 There is no correct number and any chapter that gives you one is guessing about your corpus. What is
 correct is the method: pick a starting size from the document type, then measure recall on a golden set
-and adjust — [Chapter ?? — Evaluating Retrieval](#ch-evaluating-retrieval) is how.
+and adjust — [Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) is how.
 
 **Overlap** — repeating the last sentence or two of the previous chunk — is a cheap insurance against
 boundary loss. Ten to fifteen per cent is typical. It costs storage and some duplicate retrieval; it buys
@@ -231,6 +231,5 @@ So the pipeline needs to handle removal explicitly, not just upserts.
 
 ## What to Read Next
 
-- [Chapter ?? — Retrieval](#ch-retrieval) — what happens to these chunks at query time
-- [Chapter ?? — Vector Stores](#ch-vector-stores) — where they live and what that costs
-- [Chapter ?? — Evaluating Retrieval](#ch-evaluating-retrieval) — how to settle the size question with a number
+- [Chapter ?? — Embeddings, Vector Stores and Retrieval](#ch-retrieval) — where these chunks live and what happens to them at query time
+- [Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) — how to settle the size question with a number

@@ -1,7 +1,7 @@
 ---
 title: Structured Output
 part: 7
-chapter: 10
+chapter: 8
 slug: structured-output
 level: advanced
 reading_time: 12
@@ -211,6 +211,6 @@ value that validates is worse than a null — it passes every check I have and f
 
 ## What to Read Next
 
-- [Chapter ?? — Tool Calling](#ch-tool-calling) — structured output with a loop and side effects around it
-- [Chapter ?? — Evals](#ch-evals) — measuring how often the values, not the shapes, are right
+- [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) — structured output with a loop and side effects around it
+- [Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) — measuring how often the values, not the shapes, are right
 - [Chapter ?? — Prompting as Engineering](#ch-prompting-as-engineering) — field descriptions are prompt text

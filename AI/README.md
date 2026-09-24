@@ -5,7 +5,7 @@ chapter: 0
 slug: part-ai-engineering
 level: advanced
 reading_time: 4
-updated: 2026-09-07
+updated: 2026-09-24
 tags: [ai, llm, rag, agents, evals, ai-ux, typescript]
 in_book: true
 ---
@@ -35,19 +35,19 @@ about a codebase's own docs. It is deliberately unglamorous and deliberately com
 part it calls a model, streams to a browser, retrieves from a vector store, uses tools, has an eval suite
 with a golden set, costs a known amount per question, and degrades honestly when the model refuses.
 
-Eight disconnected snippets teach eight things. One application that grows for thirty-one chapters teaches
-how the pieces constrain each other, which is what the interview is about.
+Eight separate snippets teach eight things. One application that grows for twenty chapters teaches how
+the pieces constrain each other, which is what the interview is about.
 
 ## Sections
 
 | Section                                    | Chapters | What it covers                                                              |
 | ------------------------------------------ | -------- | --------------------------------------------------------------------------- |
-| [Foundations](#ch-ai-foundations-index)     | 5        | How models behave, choosing one, prompting, embeddings, context engineering |
-| [Integration](#ch-ai-integration-index)     | 6        | Calling, streaming, structured output, tools, MCP, multi-provider            |
-| [RAG](#ch-ai-rag-index)                     | 5        | When to retrieve, ingestion, retrieval, vector stores, retrieval evaluation  |
-| [Agents](#ch-ai-agents-index)               | 5        | The loop, the tool surface, memory, durability, multi-agent patterns         |
-| [Production](#ch-ai-production-index)       | 6        | Evals, error analysis, observability, cost, guardrails, prompt injection     |
-| [AIUX](#ch-ai-aiux-index)                   | 4        | Latency, generative UI, trust and correctness, failure states                |
+| [Foundations](#ch-ai-foundations-index)     | 3        | How models behave and choosing one, prompting, context engineering          |
+| [Integration](#ch-ai-integration-index)     | 5        | Calling, streaming, structured output, tools and the tool surface, MCP       |
+| [RAG](#ch-ai-rag-index)                     | 3        | When to retrieve, ingestion, embeddings and retrieval                        |
+| [Agents](#ch-ai-agents-index)               | 2        | The loop and multi-agent patterns, memory and durability                     |
+| [Production](#ch-ai-production-index)       | 4        | Evals and error analysis, observability and cost, guardrails, prompt injection |
+| [AIUX](#ch-ai-aiux-index)                   | 2        | Latency and generative UI, trust and failure states                          |
 
 A closing chapter, [**AI in Interviews**](#ch-ai-in-interviews), sits at the root of this part and covers
 how these topics are actually asked: _design a RAG system_, _how would you evaluate this feature_, _your
@@ -90,10 +90,6 @@ Then split by role: a product-facing engineer should go to `AIUX/` and `RAG/` ne
 internal tooling should go to `Agents/`. `Production/` is last in the numbering and first in the
 interview — read it whatever your route.
 
-**Interview sprint:** `Foundations/01`, `Integration/03`–`04`, `RAG/01` and `05`, `Production/01`, then
+**Interview sprint:** `Foundations/01`, `Integration/03`–`04`, `RAG/01`, `Production/01`, then
 [AI in Interviews](#ch-ai-in-interviews). That is the mental model, the two mechanics that always come up,
 the decision most teams get wrong, the skill the market is short of, and the shape of the round itself.
-
-> ⚠️ **Part VII is written.** All thirty-one chapters, every cross-reference inside the part resolving,
-> and the running project threaded through all six section indexes — each one lists what it adds to the
-> documentation assistant and what the assistant still cannot do at the end of it.

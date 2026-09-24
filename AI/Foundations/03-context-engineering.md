@@ -1,7 +1,7 @@
 ---
 title: Context Engineering
 part: 7
-chapter: 6
+chapter: 4
 slug: context-engineering
 level: advanced
 reading_time: 11
@@ -36,7 +36,7 @@ the most consequential component in the system.
 
 One number covers everything: instructions, tool schemas, history, retrieved context and the answer. The
 answer is allocated last, so it is what gets squeezed —
-[Chapter ?? — How LLMs Behave](#ch-how-llms-behave) has the mechanics.
+[Chapter ?? — How LLMs Behave and How to Choose One](#ch-how-llms-behave) has the mechanics.
 
 Budget it explicitly rather than discovering the limit at the provider:
 
@@ -201,6 +201,6 @@ model is a guess with extra steps. If a request has to fit, measure it rather th
 
 ## What to Read Next
 
-- [Chapter ?? — How LLMs Behave](#ch-how-llms-behave) — the token and window mechanics this chapter allocates against
-- [Chapter ?? — Retrieval](#ch-retrieval) — choosing which documents earn a place in the window
-- [Chapter ?? — Cost Engineering](#ch-cost-engineering) — caching, batching and the rest of the token bill
+- [Chapter ?? — How LLMs Behave and How to Choose One](#ch-how-llms-behave) — the token and window mechanics this chapter allocates against
+- [Chapter ?? — Embeddings, Vector Stores and Retrieval](#ch-retrieval) — choosing which documents earn a place in the window
+- [Chapter ?? — Observability and Cost Engineering](#ch-observability) — caching, batching and the rest of the token bill

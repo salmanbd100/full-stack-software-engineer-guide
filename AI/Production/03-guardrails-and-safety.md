@@ -1,7 +1,7 @@
 ---
 title: Guardrails and Safety
 part: 7
-chapter: 31
+chapter: 21
 slug: guardrails-and-safety
 level: advanced
 reading_time: 11
@@ -128,7 +128,7 @@ flowchart TD
 The principles are the ones you already apply to any privileged process: least privilege on credentials,
 read-only by default with writes as separate gated tools, approval for anything irreversible, and an
 audit log of every invocation. An agent with real permissions is an operator, and it should be reviewed
-like one — [Chapter ?? — Designing the Tool Surface](#ch-designing-the-tool-surface) is the design side
+like one — [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) is the design side
 of this.
 
 ### Refusals, in both directions
@@ -229,5 +229,5 @@ failing a user.
 ## What to Read Next
 
 - [Chapter ?? — Prompt Injection](#ch-prompt-injection) — the attack these boundaries are defending against
-- [Chapter ?? — Designing the Tool Surface](#ch-designing-the-tool-surface) — capability limits as design
-- [Chapter ?? — Failure States](#ch-failure-states) — what a refusal looks like on screen
+- [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) — capability limits as design
+- [Chapter ?? — Trust, Correctness and Failure States](#ch-trust-and-correctness-ux) — what a refusal looks like on screen
