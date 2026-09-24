@@ -1,7 +1,7 @@
 ---
 title: Streaming HTML
 part: 3
-chapter: 35
+chapter: 25
 slug: streaming-html
 level: advanced # beginner | intermediate | advanced
 reading_time: 13
@@ -81,7 +81,7 @@ document plus a tiny inline script that moves it into place.
 ```
 
 This is what React does behind a `<Suspense>` boundary, and it is why regions can arrive in completion
-order rather than document order. [Chapter ?? — Suspense and Streaming](#ch-suspense-and-streaming)
+order rather than document order. [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming)
 covers the React-side API; this chapter is about the transport underneath it.
 
 ### Producing a stream in TypeScript
@@ -126,7 +126,7 @@ call above that line converts a streamed response back into a buffered one, and 
 This table is the answer to the most common rendering interview question. Streaming is a **time to first
 byte** technique that also helps first paint. It does nothing for the hero image, which is a
 [Chapter ?? — Image Optimisation](#ch-asset-delivery) problem, and nothing for interactivity, which
-is a [Chapter ?? — Hydration and Its Costs](#ch-hydration-and-its-costs) problem.
+is a [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) problem.
 
 > ⚠️ **Streaming can make LCP worse.** If the largest element is inside a streamed region, the browser
 > paints a skeleton first, then the real content — and LCP is measured at the second paint, after the
@@ -185,7 +185,7 @@ latency win into a layout shift.
 
 **❌ Assuming crawlers cannot read a streamed page.**
 ✅ They can; chunked transfer is ordinary HTTP. The caveat is different and is covered in
-[Chapter ?? — SEO and Rendering](#ch-seo-and-rendering).
+[Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 **❌ Declaring streaming works because it works locally.**
 ✅ Local has no CDN, no WAF and no reverse proxy. Verify against the deployed URL.
@@ -226,6 +226,6 @@ the duration of the slowest query — if they match, the response is buffered so
 
 ## What to Read Next
 
-- [Chapter ?? — Suspense and Streaming](#ch-suspense-and-streaming) — the React API that drives the boundaries
-- [Chapter ?? — Choosing Per Route, Not Per App](#ch-choosing-per-route) — where streaming fits among the alternatives
+- [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) — the React API that drives the boundaries
+- [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route) — where streaming fits among the alternatives
 - [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — the definitions behind the metric table

@@ -5,7 +5,7 @@ chapter: 0
 slug: part-modern-frontend-stack
 level: advanced # beginner | intermediate | advanced
 reading_time: 4
-updated: 2026-09-07
+updated: 2026-09-24
 tags: [react, nextjs, svelte, rendering, state, tooling]
 in_book: true
 ---
@@ -26,12 +26,12 @@ underneath them. When React 20 lands, three of these sections need revising and 
 
 | Section                                                     | Chapters | What it covers                                                       |
 | ----------------------------------------------------------- | -------- | -------------------------------------------------------------------- |
-| [React](#ch-modern-stack-react-index)                       | 12       | The model, hooks, the server/client boundary, concurrency, Actions   |
-| [Next.js](#ch-modern-stack-nextjs-index)                    | 10       | App Router, caching, Server Actions, PPR, the edge, migration        |
-| [Svelte](#ch-modern-stack-svelte-index)                     | 6        | Runes, signals against the virtual DOM, SvelteKit loading and forms  |
-| [Rendering](#ch-modern-stack-rendering-index)               | 6        | CSR to PPR, hydration cost, streaming, choosing per route            |
-| [State Management](#ch-modern-stack-state-management-index) | 6        | Server, client, form and URL state — four problems, not one          |
-| [Tooling](#ch-modern-stack-tooling-index)                   | 6        | Modules, Vite, the Rust generation, monorepos, package management    |
+| [React](#ch-modern-stack-react-index)                       | 9        | The model, hooks, the server/client boundary, concurrency, Actions   |
+| [Next.js](#ch-modern-stack-nextjs-index)                    | 7        | App Router, caching, Server Actions, PPR, runtimes, auth, the BFF    |
+| [Svelte](#ch-modern-stack-svelte-index)                     | 3        | Runes, snippets, SvelteKit loading and forms                         |
+| [Rendering](#ch-modern-stack-rendering-index)               | 5        | CSR to PPR, hydration cost, streaming, choosing per route, SEO       |
+| [State Management](#ch-modern-stack-state-management-index) | 5        | Server, client, form and URL state — four problems, not one          |
+| [Tooling](#ch-modern-stack-tooling-index)                   | 5        | Modules, Vite, the Rust generation, monorepos, linting, styling      |
 
 Three frameworks, and only three. Vue and Angular appear in comparison tables where they sharpen a
 tradeoff, never as chapters — see `BOOK-SPEC.md` § 6. Svelte earns its slot twice over: Svelte 5 has the
@@ -77,12 +77,12 @@ cold from anywhere.
 `StateManagement/` and `Tooling/` are independent of all three frameworks and can be read at any point.
 `StateManagement/01` is the highest-leverage chapter in the part for its length.
 
-**Interview sprint:** `Rendering/01`, `04` · `React/03`, `05`, `08` · `NextJS/02`, `04` ·
+**Interview sprint:** `Rendering/01`, `03` · `React/03`, `05`, `07` · `NextJS/02`, `04` ·
 `StateManagement/01`–`02`. That is the server/client boundary, the effect trap, Actions, caching, PPR
 and server state — which between them cover most of what a frontend-heavy senior loop asks before the
 system design round.
 
-All six sections are written — **46 chapters**, improvements #32–41. `Rendering/` and
-`StateManagement/` absorbed the two chapters that were staged in `Archive/salvage/frontend/`, which #42
-then removed. Cross-references are written as `Chapter ?? — Title`; the build supplies the number and
-the page, so the manuscript never carries one that can go stale.
+All six sections are written — **34 chapters**. Improvements #32–41 wrote 46, and #98 cut them to 34 by
+merging pairs that taught one idea and archiving the reference material. Cross-references are written
+as `Chapter ?? — Title`; the build supplies the number and the page, so the manuscript never carries
+one that can go stale.

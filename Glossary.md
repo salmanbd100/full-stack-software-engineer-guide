@@ -80,7 +80,7 @@ the newest material in the book and the part most readers meet cold.
 
 **CSP** — Content Security Policy: a header restricting which sources a page may load or execute. [Content Security Policy](#ch-content-security-policy)
 
-**CSR** — Client-side rendering: the server sends a shell and the browser builds the page. [The Rendering Spectrum](#ch-rendering-spectrum)
+**CSR** — Client-side rendering: the server sends a shell and the browser builds the page. [The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum)
 
 **CSRF** — Cross-site request forgery: another site causing an authenticated request from the user's browser. [CORS and CSRF](#ch-cors-csrf)
 
@@ -136,9 +136,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Hallucination** — Confident output unsupported by the model's inputs. A retrieval or eval problem before it is a prompting one. [How LLMs Behave](#ch-how-llms-behave)
 
-**Hoisting (bundler)** — Flattening dependencies into a shared folder, which is how a phantom dependency becomes importable. [Package Management](#ch-package-management)
-
-**Hydration** — Attaching event handlers and state to server-rendered HTML. Main-thread work proportional to the tree. [Hydration and Its Costs](#ch-hydration-and-its-costs)
+**Hydration** — Attaching event handlers and state to server-rendered HTML. Main-thread work proportional to the tree. [The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum)
 
 **Hybrid search** — Combining vector similarity with keyword search, because each finds what the other misses. [Retrieval](#ch-retrieval)
 
@@ -172,7 +170,7 @@ the newest material in the book and the part most readers meet cold.
 
 **MCP** — Model Context Protocol: a standard interface for exposing tools and data to a model client. [Model Context Protocol](#ch-model-context-protocol)
 
-**Memoisation** — Caching a computation or a component render against its inputs. A targeted fix, not a default. [Performance and the React Compiler](#ch-react-performance-and-the-compiler)
+**Memoisation** — Caching a computation or a component render against its inputs. A targeted fix, not a default. [Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler)
 
 **Micro-frontend** — Splitting one application into independently deployable pieces composed at runtime. Solves an organisational problem, not a technical one. [Micro-Frontends](#ch-micro-frontends)
 
@@ -199,10 +197,6 @@ the newest material in the book and the part most readers meet cold.
 ## P
 
 **Partial prerendering** — Serving a static shell immediately and streaming the dynamic parts into it. [Rendering in Next.js](#ch-rendering-in-nextjs)
-
-**Peer dependency** — A dependency the consumer must provide, used to keep a singleton such as React single. [Package Management](#ch-package-management)
-
-**Phantom dependency** — A package importable at runtime without being declared, because hoisting put it in scope. [Package Management](#ch-package-management)
 
 **Prefetch** — Fetching a resource during idle time at lowest priority, for a navigation that will probably happen. [Loading and Code Splitting](#ch-loading-and-code-splitting)
 
@@ -232,7 +226,7 @@ the newest material in the book and the part most readers meet cold.
 
 **RUM** — Real user monitoring: performance data collected from actual visits, as opposed to a lab run. [Measuring in Production](#ch-measuring-in-production)
 
-**Runes** — Svelte 5's explicit reactivity primitives, replacing compiler-inferred reactive statements. [Svelte Runes](#ch-svelte-runes)
+**Runes** — Svelte 5's explicit reactivity primitives, replacing compiler-inferred reactive statements. [The Runes Model, Components and Snippets](#ch-svelte-runes)
 
 ## S
 
@@ -246,7 +240,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Sharding** — Splitting one dataset across independent stores by a key, trading joins for capacity. [Sharding](#ch-sharding)
 
-**Signal** — A reactive value that tracks its own dependents, so an update recomputes only what read it. [Signals and the Next Model](#ch-signals-and-the-next-model)
+**Signal** — A reactive value that tracks its own dependents, so an update recomputes only what read it. [Client State and Signals](#ch-client-state)
 
 **SLO** — Service level objective: a target for an indicator over a window, such as 99.5% crash-free sessions. [Measuring in Production](#ch-measuring-in-production)
 
@@ -254,9 +248,9 @@ the newest material in the book and the part most readers meet cold.
 
 **SSE** — Server-sent events: a one-way stream of typed events over HTTP, with resumability. [Real-Time and Streaming APIs](#ch-realtime-streaming)
 
-**SSG** — Static site generation: rendering to HTML at build time. [The Rendering Spectrum](#ch-rendering-spectrum)
+**SSG** — Static site generation: rendering to HTML at build time. [The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum)
 
-**SSR** — Server-side rendering: rendering to HTML per request. [The Rendering Spectrum](#ch-rendering-spectrum)
+**SSR** — Server-side rendering: rendering to HTML per request. [The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum)
 
 **STAR** — Situation, Task, Action, Result: the structure of a behavioural answer. [The STAR Framework](#ch-star-framework)
 
@@ -268,7 +262,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Stub** — A test double returning canned data, with no assertion about how it was called. [Testing Strategy](#ch-testing-strategy)
 
-**Suspense** — A React boundary that renders a fallback while a child is waiting, and the mechanism streaming uses. [Suspense and Streaming](#ch-suspense-and-streaming)
+**Suspense** — A React boundary that renders a fallback while a child is waiting, and the mechanism streaming uses. [Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming)
 
 ## T
 

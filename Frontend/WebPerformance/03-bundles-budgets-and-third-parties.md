@@ -220,4 +220,4 @@ bytes their own budget line, otherwise first-party effort silently funds vendor 
 
 - [Chapter ?? — Loading and Code Splitting](#ch-loading-and-code-splitting) — deferring bytes rather than removing them
 - [Chapter ?? — Measuring in Production](#ch-measuring-in-production) — the field data a metric budget should be calibrated against
-- [Chapter ?? — Rust-Based Bundlers](#ch-rust-bundlers) — the build-speed side of the same tooling
+- [Chapter ?? — Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop) — the build-speed side of the same tooling

@@ -225,6 +225,6 @@ has to live on the client.
 
 ## What to Read Next
 
-- [Chapter ?? — Suspense and Streaming](#ch-suspense-and-streaming) — how the payload arrives in pieces
+- [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) — how the payload arrives in pieces
 - [Chapter ?? — Actions and Forms](#ch-react-actions-and-forms) — the Server Function that crosses the boundary as a reference
-- [Chapter ?? — The Rendering Spectrum](#ch-rendering-spectrum) — where this sits next to SSR, SSG and PPR
+- [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) — where this sits next to SSR, SSG and PPR

@@ -1,11 +1,11 @@
 ---
 title: State Management
 part: 3
-chapter: 40
+chapter: 29
 slug: modern-stack-state-management-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-07
+updated: 2026-09-24
 tags: [state, tanstack-query, zustand, forms, url-state, signals]
 in_book: true
 ---
@@ -17,8 +17,8 @@ with a one-word answer. The 2026–27 question is **which kind of state is this?
 client state, form state and URL state are four different problems, and the tool that solves one of them
 well solves the others badly.
 
-Six chapters. Chapter 01 sets the categories; chapters 02–05 take one each; chapter 06 looks at where
-the model is heading. Redux is not the default any more — Zustand has overtaken it in downloads and
+Five chapters. Chapter 01 sets the categories; chapters 02–05 take one each, and chapter 03 also looks
+at signals, where the model is heading. Redux is not the default any more — Zustand has overtaken it in downloads and
 TanStack Query owns server state — but the chapters argue from the problem, not the download chart.
 
 ## Chapters
@@ -27,11 +27,9 @@ TanStack Query owns server state — but the chapters argue from the problem, no
 | -- | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | 01 | [The Four Kinds of State](#ch-four-kinds-of-state)                          | Server, client, form or URL — which one is this, and why ask?    |
 | 02 | [Server State with TanStack Query](#ch-server-state)                        | How do you cache, invalidate and refetch without writing a cache? |
-| 03 | [Client State](#ch-client-state)                                            | Zustand, Jotai, Context — and when does `useState` still win?     |
+| 03 | [Client State and Signals](#ch-client-state)                                | Zustand, Jotai, Context or signals — and when does `useState` still win? |
 | 04 | [Form State](#ch-form-state)                                                | Where does validation live when the server validates too?         |
 | 05 | [URL as State](#ch-url-as-state)                                            | What should survive a refresh, a back button and a pasted link?   |
-| 06 | [Signals and the Next Model](#ch-signals-and-the-next-model)                | Why do Svelte 5 runes and signals work, and why has React 19 not adopted them? |
-| 07 | [Modelling Flows as State Machines](#ch-modelling-flows-as-machines)        | When do five booleans become one state, and who enforces it?      |
 
 ## What Interviewers Probe For
 
@@ -46,11 +44,11 @@ Two state questions, on top of the part-level signals in the Part III opener:
 
 ## Reading Order
 
-01 first — it is the framing the other five chapters use, and it is the highest-leverage chapter in
+01 first — it is the framing the other four chapters use, and it is the highest-leverage chapter in
 Part III for its length. After that, read the chapter matching the problem in front of you; 02–05 are
 independent of each other.
 
-Chapter 06 pairs with the Svelte 5 runes chapter and with `Rendering/02`; read it after either.
+Chapter 03's signals half pairs with the Svelte 5 runes chapter; read it after that one.
 
 **Interview sprint:** 01 → 02. The four categories plus server-state caching cover most of what a
 senior round asks about state.

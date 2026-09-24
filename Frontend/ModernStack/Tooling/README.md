@@ -1,11 +1,11 @@
 ---
 title: Tooling
 part: 3
-chapter: 48
+chapter: 35
 slug: modern-stack-tooling-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-07
+updated: 2026-09-24
 tags: [vite, bundlers, turbopack, monorepo, pnpm, typescript, linting]
 in_book: true
 ---
@@ -18,23 +18,19 @@ answer to "what is the worst part of the ecosystem" is now complexity itself. Th
 interview asks. Nobody wants your `webpack.config.js`. They want to know whether you understand what a
 bundler does when the build is slow and nobody knows why.
 
-Six chapters. Chapter 01 is the mechanism every other chapter assumes. Chapters 02–03 are the tools of
-this generation and the reason they were rewritten in Rust. Chapters 04–06 are what tooling looks like
-once a codebase has several packages, several teams and a CI bill.
+Five chapters. Chapter 01 is the mechanism every other chapter assumes. Chapter 02 is the tools of this
+generation and the reason they were rewritten in Rust. Chapters 03–05 are what tooling looks like once a
+codebase has several packages, several teams and a CI bill.
 
 ## Chapters
 
 | #  | Chapter                                                                          | What it answers                                                  |
 | -- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | 01 | [Modules and Bundling](#ch-modules-and-bundling)                                 | What does a bundler actually do, and why did that import survive? |
-| 02 | [Vite and the Dev Loop](#ch-vite-and-the-dev-loop)                               | Why is the dev server instant and the build not?                 |
-| 03 | [Turbopack, Rspack and Rolldown](#ch-rust-bundlers)                              | What problem did rewriting all of this in Rust solve?            |
-| 04 | [Monorepos](#ch-monorepos)                                                       | What does a task graph buy, and when is one repository worse?    |
-| 05 | [Type-Checking and Linting at Scale](#ch-type-checking-and-linting)              | How do you keep `tsc` and CI fast as the codebase grows?         |
-| 06 | [Package Management](#ch-package-management)                                     | What does the lockfile promise, and what does it not?            |
-| 07 | [Styling Strategy](#ch-styling-strategy)                                          | Utilities or scoped files, and what does a runtime library cost?  |
-| 08 | [Web Components and Framework Interop](#ch-web-components-and-interop)            | How does one component library serve three frameworks?            |
-| 09 | [Headless Primitives and Accessible Components](#ch-headless-primitives)          | Do you build the combobox or adopt one, and what stays yours?     |
+| 02 | [Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop)                | Why is the dev server instant and the build not, and what did Rust fix? |
+| 03 | [Monorepos](#ch-monorepos)                                                       | What does a task graph buy, and when is one repository worse?    |
+| 04 | [Type-Checking and Linting at Scale](#ch-type-checking-and-linting)              | How do you keep `tsc` and CI fast as the codebase grows?         |
+| 05 | [Styling Strategy](#ch-styling-strategy)                                          | Utilities or scoped files, and what does a runtime library cost?  |
 
 ## What Interviewers Probe For
 
@@ -49,14 +45,12 @@ Two tooling questions, on top of the part-level signals in the Part III opener:
 
 ## Reading Order
 
-01 first — it is the mechanism, and 02–03 are meaningless without it. Then 02, then 03 if the Rust
-generation interests you or the role names Turbopack.
+01 first — it is the mechanism, and 02 is meaningless without it. Then 02.
 
-Chapters 04–06 are independent and are the ones that matter most in a large organisation. Chapter 06
-carries the supply-chain material, which is the tooling topic most likely to come up in a security
-conversation rather than a build one.
+Chapters 03 and 04 are independent and are the ones that matter most in a large organisation.
+Supply-chain controls on dependencies live in Part VIII's pipeline security chapter.
 
-Chapter 07 is independent too, and it is the one that reaches back into React: the styling decision is
+Chapter 05 is independent too, and it is the one that reaches back into React: the styling decision is
 constrained by the Server Component boundary, so read it after the React section rather than before.
 
 **Interview sprint:** 01 → 02. Everything after that is job knowledge.

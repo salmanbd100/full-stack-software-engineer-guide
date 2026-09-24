@@ -5,18 +5,18 @@ chapter: 1
 slug: modern-stack-react-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-06
+updated: 2026-09-24
 tags: [react, hooks, rsc, suspense, actions, react-compiler]
 in_book: true
 ---
 
 # React
 
-Twelve chapters, in three movements. Chapters 01–04 are the model: what React actually does when state
-changes, and why most hook bugs are closure bugs wearing a hat. Chapters 05–08 are the concurrent era —
-Server Components, Suspense, transitions and Actions — which is where the 2026–27 senior interview
-lives. Chapters 09–12 are what production asks for once the feature works: performance under the React
-Compiler, failure handling, types at scale, and tests that survive a refactor.
+Nine chapters, in three movements. Chapters 01–04 are the model: what React actually does when state
+changes, and why most hook bugs are closure bugs wearing a hat. Chapters 05–07 are the concurrent era —
+Server Components, Suspense and Actions — which is where the 2026–27 senior interview lives. Chapters
+08–09 are what production asks for once the feature works: performance under the React Compiler, and
+types at scale. Testing React components lives in Part IV, with the rest of testing.
 
 The section is written against **React 19**. Where a rule is older than that and will outlive it — keys
 identify, effects synchronise, props flow down — the chapter says so, because those are the parts a
@@ -31,15 +31,12 @@ framework change cannot take away.
 | 03 | [`useEffect` and When Not to Use It](#ch-when-not-to-use-effect) | Which of these effects should have been derived state? |
 | 04 | [Component Composition Patterns](#ch-react-composition-patterns) | How do you give an API away without giving control away? |
 | 05 | [Server Components and Client Components](#ch-server-components-vs-client-components) | Where is the boundary, and what is allowed to cross it? |
-| 06 | [Suspense and Streaming](#ch-suspense-and-streaming) | How does half a page arrive, and why did hydration mismatch?       |
-| 07 | [Transitions and Concurrency](#ch-transitions-and-concurrency) | Which updates are urgent, and who decides?               |
-| 08 | [Actions and Forms](#ch-react-actions-and-forms) | How does a mutation work without a client-side fetch handler?      |
-| 09 | [Performance and the React Compiler](#ch-react-performance-and-the-compiler) | What does the compiler memoise, and what is still yours? |
-| 10 | [Error Boundaries and Resilience](#ch-react-error-boundaries) | What does the user see when a subtree throws?         |
-| 11 | [React and TypeScript at Scale](#ch-react-typescript-at-scale) | How do you type props, refs, context and state without `any`? |
-| 12 | [Testing React](#ch-testing-react) | What do you test when the component runs on the server?            |
+| 06 | [Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) | How does half a page arrive, and what does the user see when a subtree throws? |
+| 07 | [Actions and Forms](#ch-react-actions-and-forms) | How does a mutation work without a client-side fetch handler?      |
+| 08 | [Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler) | Do less work or schedule it — which does this slowdown need? |
+| 09 | [React and TypeScript at Scale](#ch-react-typescript-at-scale) | How do you type props, refs, context and state without `any`? |
 
-Chapter 11 is where `Frontend/TypeScript`'s React chapter now lives — it moved here rather than being
+Chapter 09 is where `Frontend/TypeScript`'s React chapter now lives — it moved here rather than being
 copied, and gained the parts that only matter at scale: unions for async state, generic components, and
 the typing rules the server/client boundary imposes.
 
@@ -61,7 +58,7 @@ Two React-specific questions, on top of the part-level signals in the Part III o
 01 → 04 in order; each builds on the one before. Chapter 03 is the one to read twice — unnecessary
 effects are the most common senior red flag in a code review round, and the fix is usually deletion.
 
-05 → 08 also read in order and assume 01–04. If time is short, 05 is non-negotiable and 08 is close
-behind. Chapters 09–12 are independent and can be read in any order once 05 is done.
+05 → 07 also read in order and assume 01–04. If time is short, 05 is non-negotiable and 07 is close
+behind. Chapters 08 and 09 are independent and can be read in either order once 05 is done.
 
-**Interview sprint:** 01 → 03 → 05 → 08 → 09.
+**Interview sprint:** 01 → 03 → 05 → 07 → 08.

@@ -1,7 +1,7 @@
 ---
 title: Modules and Bundling
 part: 3
-chapter: 49
+chapter: 36
 slug: modules-and-bundling
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
@@ -210,6 +210,6 @@ front of you.
 
 ## What to Read Next
 
-- [Chapter ?? — Vite and the Dev Loop](#ch-vite-and-the-dev-loop) — how these four steps behave differently in development
+- [Chapter ?? — Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop) — how these four steps behave differently in development
 - [Chapter ?? — Bundle Optimisation](#ch-bundle-optimisation) — tree shaking, minification and compression in detail
 - [Chapter ?? — The Module System](#ch-module-system) — ESM and CommonJS at runtime rather than at build

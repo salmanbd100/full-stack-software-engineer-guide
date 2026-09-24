@@ -1,25 +1,25 @@
 ---
 title: Svelte
 part: 3
-chapter: 25
+chapter: 19
 slug: modern-stack-svelte-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-06
+updated: 2026-09-24
 tags: [svelte, sveltekit, runes, signals, forms]
 in_book: true
 ---
 
 # Svelte
 
-Six chapters on the framework with the highest retention rate of any surveyed, and the second most-used
+Three chapters on the framework with the highest retention rate of any surveyed, and the second most-used
 meta-framework behind Next.js. Svelte earns its place here for a reason beyond popularity: it makes a
 different bet from React on the same problem, and holding both models at once is what turns framework
 knowledge into architecture knowledge. React re-runs your component and diffs the result. Svelte 5
 compiles your component so that only the parts touching changed state ever run again.
 
-Chapters 01–03 are the language and the component model. Chapters 04–06 are SvelteKit — routing, data
-loading, forms, and what an adapter decides on your behalf at deploy time.
+Chapter 01 is the language and the component model. Chapters 02–03 are SvelteKit — routing, data
+loading and forms.
 
 Written against **Svelte 5** and current SvelteKit. This is the author's daily stack, which is why the
 gotchas here are the ones that cost real hours rather than the ones in the release notes.
@@ -28,12 +28,9 @@ gotchas here are the ones that cost real hours rather than the ones in the relea
 
 | #  | Chapter                       | What it answers                                                    |
 | -- | ----------------------------- | ------------------------------------------------------------------ |
-| 01 | [Svelte 5 and the Runes Model](#ch-svelte-runes) | What do `$state`, `$derived`, `$effect` and `$props` actually do? |
-| 02 | [Reactivity Compared](#ch-reactivity-compared) | Signals, virtual DOM or fine-grained — what does each one cost? |
-| 03 | [Components and Snippets](#ch-svelte-snippets) | How do you pass markup into a component now that slots are gone? |
-| 04 | [SvelteKit Routing and Loading](#ch-sveltekit-routing-and-loading) | Which `load` runs where, and what can you stream from it? |
-| 05 | [SvelteKit Form Actions](#ch-sveltekit-form-actions) | How does this form work with JavaScript switched off? |
-| 06 | [Adapters and Deployment](#ch-sveltekit-adapters-and-deployment) | What does the adapter decide, and when does prerendering break? |
+| 01 | [The Runes Model, Components and Snippets](#ch-svelte-runes) | What do `$state`, `$derived`, `$effect` and `$props` do, and how does markup pass into a component? |
+| 02 | [SvelteKit Routing and Loading](#ch-sveltekit-routing-and-loading) | Which `load` runs where, and what can you stream from it? |
+| 03 | [SvelteKit Form Actions](#ch-sveltekit-form-actions) | How does this form work with JavaScript switched off? |
 
 ## What Interviewers Probe For
 
@@ -48,9 +45,9 @@ Two Svelte-specific questions, on top of the part-level signals in the Part III 
 
 ## Reading Order
 
-01 → 02 → 03, then 04 → 06. Chapter 02 is the one to read even if you never write Svelte: the
-comparison table in it is the fastest way to be able to defend a framework choice in a system design
-round. Chapter 05 pairs directly with the Next.js Server Actions chapter — same problem, two answers.
+01, then 02 → 03. Chapter 01 is the one to read even if you never write Svelte: its comparison with
+React 19 is the fastest way to be able to defend a framework choice in a system design round. Chapter
+03 pairs directly with the Next.js Server Actions chapter — same problem, two answers.
 
-**Interview sprint:** 01 → 02. Everything else is job knowledge rather than interview knowledge unless
-the role names SvelteKit.
+**Interview sprint:** 01. Everything else is job knowledge rather than interview knowledge unless the
+role names SvelteKit.

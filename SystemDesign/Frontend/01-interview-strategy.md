@@ -121,7 +121,7 @@ The fifth row is the cheapest point you can score: putting view state in the URL
 ✅ For each boundary, say what changes on one side and not the other. That is what a boundary is for.
 
 ❌ **One rendering strategy for the whole app.** The catalogue page and the dashboard have opposite needs.
-✅ Choose per route — see [Chapter ?? — Choosing Per Route, Not Per App](#ch-choosing-per-route).
+✅ Choose per route — see [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 ❌ **No error, empty or loading states.** Every data-fetching design implicitly has three more screens.
 ✅ Name them when you draw the fetch, not when asked.

@@ -1,44 +1,43 @@
 ---
-title: Middleware and the Edge
+title: Middleware, Runtimes and Deployment
 part: 3
-chapter: 19
+chapter: 16
 slug: nextjs-middleware-and-the-edge
 level: advanced # beginner | intermediate | advanced
-reading_time: 11
-updated: 2026-09-06
-tags: [nextjs, middleware, proxy, edge, auth, personalisation]
+reading_time: 13
+updated: 2026-09-24
+tags: [nextjs, middleware, proxy, edge, auth, deployment, self-hosting, isr]
 in_book: true
 ---
 
-# Middleware and the Edge {#ch-nextjs-middleware-and-the-edge}
+# Middleware, Runtimes and Deployment {#ch-nextjs-middleware-and-the-edge}
 
-> Decide what genuinely has to happen before routing, keep it cheap, and stop treating the request layer as your authorisation layer.
+> Know where each piece of a Next.js app runs, keep the request layer small, and wire the build output so it survives a second server.
 
-**In this chapter:** the rename to `proxy` · matchers and cost · redirects, rewrites and personalisation · why auth checks here are optimistic · edge against origin
+**In this chapter:** the rename to `proxy` · why auth checks here are optimistic · edge against Node.js · what `next build` emits · the cache that breaks on the second instance
 
 ## 💡 The Core Idea
 
-Middleware is code that runs **before Next.js decides which route to render**, on every request that
-matches its pattern. It sees the URL, the headers and the cookies, and it can redirect, rewrite, or add a
-header and continue.
+A Next.js app runs in three places. **The request layer** runs before the router picks a route. **The
+render** runs in a server runtime, usually Node.js and sometimes the edge. **The deployment target**
+decides who serves the static files, who runs the server, and where the cache lives.
 
-That position makes it powerful and expensive in the same breath. It is the only place you can change
-where a request goes before anything renders, and it is the one piece of code that runs on *every* match
-— including the requests that would otherwise have been served straight from a CDN. Work put here is
-work multiplied by traffic.
+Most production bugs are work in the wrong place: an auth check nothing repeats, an edge query far
+from the database, a local cache behind a load balancer. Each works in development and fails at scale.
 
-> The useful question is not "can this go in middleware" — almost anything can. It is "does this have to
-> happen before the router, for every single request?" Very little does.
-
-> ⚠️ **Moving target:** Next.js 16 renamed `middleware.ts` to `proxy.ts` and the exported `middleware`
-> function to `proxy`, to make the network-boundary role explicit. `proxy` runs on the **Node.js runtime
-> only** — the runtime is not configurable, and code that needs the edge runtime must stay in
-> `middleware.ts` for now. The durable principle is that this layer is a routing decision made before
-> rendering, and it should stay small.
+> ⚠️ **Moving target:** Next.js 16 renamed `middleware.ts` to `proxy.ts` and the `middleware` export to
+> `proxy`. `proxy` runs on Node.js only; code that needs the edge runtime stays in `middleware.ts` for
+> now. 16 also adds a `cacheHandlers` map for `'use cache'`. The durable principle: routing decisions
+> stay small, and a cache shared by several processes must live where all of them can reach it.
 
 ## How It Works
 
-### The file
+### The request layer
+
+The request layer sees the URL, headers and cookies, and can redirect, rewrite or add a header. It runs
+on **every request that matches its pattern**, so work put here is work multiplied by traffic.
+
+**A locale rewrite in `proxy.ts`, with a matcher that skips static output**
 
 ```typescript
 // proxy.ts — at the project root
@@ -55,35 +54,17 @@ export const config = {
 };
 ```
 
-The `matcher` is the cost control, and the most consequential line in the file. Without one, the function
-runs for every asset request as well as every page. Match the narrowest set of paths that need the
-behaviour, and exclude static output explicitly.
-
-| Old name (≤ 15)                | New name (16)             |
-| ------------------------------ | ------------------------- |
-| `middleware.ts`                | `proxy.ts`                |
-| `export function middleware`   | `export function proxy`   |
-| `skipMiddlewareUrlNormalize`   | `skipProxyUrlNormalize`   |
-
-### What it is good at
-
-| Task                            | Why it belongs here                                      |
-| ------------------------------- | -------------------------------------------------------- |
-| Redirects and URL normalisation  | The route never has to exist                             |
-| Locale and region rewrites       | Decided from a header before any render                  |
-| A/B bucketing                    | The bucket must be chosen before the response is selected |
-| Adding a request header          | Downstream code reads it as ordinary request data         |
-| A presence check on a cookie     | Cheap, and it saves rendering a page nobody may see       |
-
-That last row is deliberately worded. **A presence check, not a session verification.**
+The `matcher` is the cost control. Without one, the function runs for every image and every chunk.
+The layer is good at redirects, locale rewrites, A/B bucketing and cheap cookie checks.
 
 ### Auth here is optimistic, and only optimistic
 
-The pattern that fails review is the one where middleware is the only thing standing between a user and
-data they should not see.
+A cookie check here is a **presence check**, not session verification.
+
+**An optimistic redirect for signed-out users**
 
 ```typescript
-// ✅ Optimistic: is there a session cookie at all? Cheap, and correct as a redirect.
+// ✅ Is there a session cookie at all? Cheap, and correct as a redirect.
 export function proxy(request: NextRequest): NextResponse | undefined {
   const hasSession = request.cookies.has("session");
   if (!hasSession && request.nextUrl.pathname.startsWith("/dashboard")) {
@@ -92,117 +73,172 @@ export function proxy(request: NextRequest): NextResponse | undefined {
 }
 ```
 
-Three reasons this cannot be the real check. The cookie's presence says nothing about its validity.
-Middleware does not run for every path that can reach your data — a Server Action or a Route Handler
-called directly may not match the pattern. And verifying a session properly means a database or token
-round trip, on every request, in the hottest code path you have.
+This cannot be the real check. A cookie can be present and invalid. A Server Action called directly
+may not match the pattern. And proper verification costs a round trip on your hottest path.
 
-**The real check belongs where the data is read**: in the Server Component, the Server Action, or a data
-access layer both of them call. Middleware is the redirect that saves a wasted render;
-[Chapter ?? — Server Actions](#ch-server-actions) has the mutation half of the same rule.
+**The real check belongs where the data is read**: in the Server Component, the Server Action, or a
+data access layer both call. [Chapter ?? — Server Actions](#ch-server-actions) has the mutation half of
+the same rule.
 
 ### Personalisation without going dynamic
 
-Middleware's quiet advantage is that it can vary the *route* without making the route dynamic. Reading a
-country header in middleware and rewriting to `/uk/pricing` keeps both `/uk/pricing` and `/us/pricing`
-fully prerendered — where reading that header inside the page would have made the page dynamic for
-everyone. This is the trick worth remembering from
-[Chapter ?? — Rendering in Next.js](#ch-rendering-in-nextjs).
+The request layer can vary the *route* without making it dynamic. Rewrite by country header to
+`/uk/pricing`, and every country page stays prerendered. Reading the header in the page would not.
 
-> ⚠️ Do not use `NextResponse.next({ headers })` to send headers onward to the client. Those headers go
-> to the browser, not to your route, and can override what the framework expects. To pass a value
-> downstream, set it on the **request** headers.
+> ⚠️ `NextResponse.next({ headers })` sends headers to the browser, not to your route. They can also
+> override headers the framework sets. To pass a value downstream, set it on the **request** headers.
 
-### Edge against origin
+### Edge against Node.js
 
 The edge runtime is a smaller JavaScript runtime that runs in many locations close to users. It is not
-a faster version of Node.js; it is a different set of tradeoffs.
+a faster Node.js; it is a different set of tradeoffs.
 
-| Dimension        | Edge                                    | Node.js origin                        |
-| ---------------- | --------------------------------------- | ------------------------------------- |
-| Cold start        | Very small                              | Larger, and warm most of the time      |
-| Distance to user  | Close                                   | One or a few regions                   |
-| Distance to data  | Usually far — the database has one home | Usually co-located                     |
-| API surface       | Web APIs only — no `fs`, limited crypto | Everything, and every npm package      |
-| Best at           | Header and cookie decisions, redirects  | Rendering, database work, heavy logic  |
+| Dimension        | Edge                                    | Node.js                              |
+| ---------------- | --------------------------------------- | ------------------------------------ |
+| Cold start       | Very small                              | Larger, and warm most of the time    |
+| Distance to user | Close                                   | One or a few regions                 |
+| Distance to data | Usually far — the database has one home | Usually co-located                   |
+| API surface      | Web APIs only — no `fs`, limited crypto | Everything, and every npm package    |
+| Best at          | Header and cookie decisions, redirects  | Rendering, database work, heavy logic |
 
-The failure mode is putting a data-reading route at the edge when the database lives in one region. Every
-query then crosses a continent, and a function that started 20 ms sooner finishes 200 ms later. **Latency
-to the user is only half the number; latency to the data is the other half.** Node.js is the right
-default, and the edge is a decision you make for a specific reason. Cold-start behaviour and regional
-placement vary by host, so check what your platform actually does rather than assuming.
+The failure mode is a data-reading route at the edge while the database sits in one region. Every
+query crosses a continent, so a function that started 20 ms sooner finishes 200 ms later. **Latency to
+the user is half the number; latency to the data is the other half.** Node.js is the default.
+
+### What `next build` emits
+
+A build does not produce "an app". It produces three things with different hosting needs. The route
+table it prints is the deployment contract.
+
+| Output                     | Where it can live      | What it needs at runtime          |
+| -------------------------- | ---------------------- | --------------------------------- |
+| Static assets and pages    | A CDN or a bucket      | Nothing                           |
+| Cached pages with a lifetime | A CDN, backed by a server | Somewhere to store and revalidate |
+| Dynamic routes             | A server process       | The request, and your data        |
+
+A managed platform wires these together silently. Self-hosted, you wire them, and you also own the
+image optimiser's CPU. Stale pages and missing styles are one of the three handled wrongly.
+
+For a container, set `output: 'standalone'`. It traces the files the server needs into one folder
+with a `server.js` entry point. **It leaves out `.next/static` and `public/`**, because you may serve
+those from a CDN. Copy both into the image yourself, or the app boots and looks unstyled.
+
+### The cache breaks on the second instance
+
+The incremental cache lives in each process, in memory and on disk. Two processes behind a load balancer break it:
+
+```mermaid
+flowchart TD
+  A[revalidateTag fires on instance A] --> B[Instance A rewrites its local cache]
+  B --> C[Instance A serves fresh HTML]
+  D[Instance B never heard about it] --> E[Instance B serves stale HTML]
+  C --> F{Load balancer<br/>picks at random}
+  E --> F
+  F --> G[Users see the page flip between versions]
+```
+
+**A per-instance cache turns one revalidation into a coin flip for every visitor.**
+
+The fix is a shared cache handler, backed by Redis, S3, or anything every process can reach. Turn off
+the in-memory copy so instances cannot disagree.
+
+**A shared cache handler, with the per-instance memory cache disabled**
+
+```typescript
+// next.config.ts
+import path from "node:path";
+import type { NextConfig } from "next";
+
+const config: NextConfig = {
+  cacheHandler: path.resolve("./cache-handler.js"),
+  cacheMaxMemorySize: 0, // no per-instance memory cache
+};
+export default config;
+```
+
+A handler implements `get`, `set` and tag invalidation. Teams skip the tag half, and it fails quietly.
+`revalidateTag` has to reach **every** instance. Test it with two processes and one revalidation.
+
+### Environment variables have two lifetimes
+
+| Kind                   | Read at | Visible to  | Changing it needs |
+| ---------------------- | ------- | ----------- | ----------------- |
+| `NEXT_PUBLIC_ANYTHING` | Build   | The browser | A rebuild         |
+| Any other variable     | Request | The server  | A restart         |
+
+`NEXT_PUBLIC_` values are **inlined into the bundle** during `next build`. They are not secret, and
+they are frozen into the artefact. A server variable is read at runtime only on a dynamic render.
+Inside a prerendered route the build-time value is baked in; `await connection()` from `next/server`
+moves that render to request time.
 
 ## When to Use It
 
-| Situation                                       | Where it belongs                                |
-| ----------------------------------------------- | ----------------------------------------------- |
-| Redirect signed-out users away from `/dashboard` | Middleware — an optimistic cookie check         |
-| Confirm the user may read this record            | The Server Component or action that reads it    |
-| Serve `/pricing` per country, still prerendered  | Middleware rewrite                              |
-| Bucket users into an experiment                  | Middleware, with the bucket set as a cookie     |
-| Rate limiting by IP                              | Middleware, or the platform's own firewall      |
-| Anything requiring a database read               | Not middleware                                  |
-| Rewriting a legacy URL scheme                    | Middleware, or static redirects in the config   |
+| Situation                                       | Where it belongs                               |
+| ----------------------------------------------- | ---------------------------------------------- |
+| Redirect signed-out users away from `/dashboard` | The request layer — an optimistic cookie check |
+| Confirm the user may read this record           | The Server Component or action that reads it   |
+| Serve `/pricing` per country, still prerendered | A rewrite in the request layer                 |
+| Anything that needs a database read             | Node.js, never the request layer               |
+| A fully static marketing site                   | `output: 'export'` to a CDN                    |
+| More than one server instance                   | A shared cache handler, always                 |
+
+Previews, promotion and version skew are platform concerns, covered in [Chapter ?? — Platform Deploys](#ch-platform-deploys).
 
 ## Common Mistakes
 
-**❌ Treating middleware as the authorisation layer.** It runs before routing, not before every data
-access, and a cookie's presence is not a valid session. Check where the data is read.
+**❌ Treating the request layer as the authorisation layer.** It runs before routing, not before every
+data access. Check where the data is read.
 
-**❌ No matcher, or a matcher that catches static assets.** The function then runs for every image and
-every chunk. The cost is invisible in development and obvious in the bill.
+**❌ No matcher, or one that catches static assets.** The function runs for every image and chunk. The
+cost is invisible in development and obvious in the bill.
 
-**❌ A database or token-introspection call in middleware.** It is on the critical path of every matched
-request. If a check is expensive, it belongs where it can be cached or where it runs once per render.
+**❌ Scaling to two instances without a cache handler.** Revalidation reaches one process, and the same
+URL serves two different pages.
 
-**❌ Choosing the edge for speed alone.** Closer to the user is further from the data. Measure the whole
-request, not the cold start.
-
-**❌ Forwarding headers with `NextResponse.next({ headers })`.** They reach the browser rather than your
-route, and can conflict with framework-set headers.
-
-**❌ Assuming the edge runtime is still available under `proxy`.** In Next.js 16 it is not — `proxy` is
-Node.js only, and route segment `runtime` config in that file is an error.
+**❌ Putting a secret behind `NEXT_PUBLIC_`.** It is compiled into the client bundle. The prefix declares
+the value public.
 
 ## 🔑 Key Takeaways
 
-- Middleware runs before routing on every matched request, which makes the `matcher` the most important line in the file.
+- The request layer runs before routing on every matched request, so the `matcher` is its most important line.
 - In Next.js 16 the file is `proxy.ts`, the export is `proxy`, and it runs on Node.js only.
-- Auth in this layer is an optimistic redirect; the real check belongs where the data is read.
-- Rewriting by header personalises a route without making it dynamic.
-- The edge is closer to users and further from your data — choose it for a stated reason, not by default.
+- Auth in the request layer is an optimistic redirect; the real check belongs where the data is read.
+- The edge is closer to users and further from your data, so Node.js is the default and the edge needs a reason.
+- A build emits static assets, server code and a cache, and two instances need a shared cache handler.
 
 ## Interview Questions
 
 **Q: Why is checking authentication in middleware not enough?**
 
-Because it answers a weaker question than the one that matters. A cookie being present does not mean the
-session is valid, middleware does not necessarily run for every path that reaches your data, and
-verifying a token properly is too expensive to do on every request. It is a good redirect — it saves
-rendering a page the user cannot use — and a bad access control decision, which belongs next to the query.
-
-**Q: What does the `matcher` actually change?**
-
-Which requests pay for the function. Without one, middleware runs for every request including static
-assets, so a cheap function multiplied by asset traffic becomes a real cost and a real latency floor.
-With a narrow matcher it runs only on the paths whose routing genuinely needs a decision.
+A present cookie is not a valid session, and middleware may not run for every path to your data.
+Verifying a token properly is also too costly for every request. It is a good redirect and a bad access
+control decision, which belongs next to the query.
 
 **Q: When is the edge runtime the wrong choice?**
 
-When the work needs your data. Edge functions run close to users and far from a database that lives in
-one region, so a query issued from the edge crosses the distance the function just saved, twice. Add the
-limited API surface — no filesystem, restricted crypto, many npm packages unavailable — and Node.js is
-the sensible default for anything that renders or reads.
+When the work needs your data. Edge functions run near users and far from a database in one region, so
+each query crosses the distance the function saved. With no filesystem and many npm packages
+unavailable, Node.js is the sensible default for rendering and reads.
 
 **Q: How would you serve different pricing pages by country without giving up prerendering?**
 
-Rewrite in middleware. Read the country from a request header there and rewrite to `/uk/pricing` or
-`/us/pricing`, both of which stay fully prerendered and CDN-servable. Reading that header inside the page
-instead would make the page dynamic for every visitor, trading a static shell for a value that only picks
-between two static outcomes.
+Read the country header in the request layer and rewrite to `/uk/pricing` or `/us/pricing`. Both stay
+prerendered and CDN-servable. Reading the header in the page would make it dynamic for every visitor.
+
+**Q: Why does incremental regeneration go wrong behind a load balancer?**
+
+The default cache is per instance. A revalidation reaches whichever instance handled that request, and
+the others keep serving the old page. Users see it flip depending on routing. The fix is a handler on
+shared storage, `cacheMaxMemorySize` at zero, and tag invalidation that reaches every instance.
+
+**Q: How would you deploy the same build to three environments?**
+
+Build once and keep every environment-specific value server-side. No `NEXT_PUBLIC_` variable may differ,
+because it is inlined at build time; the browser gets such values from an endpoint or server props.
+Where a static route reads a server value, `connection()` moves that render to request time.
 
 ## What to Read Next
 
 - [Chapter ?? — Rendering in Next.js](#ch-rendering-in-nextjs) — why a rewrite keeps a route prerendered
-- [Chapter ?? — Server Actions](#ch-server-actions) — the other place authorisation is commonly skipped
-- [Chapter ?? — Frontend Authentication](#ch-frontend-authentication) — sessions, tokens and where each is verified
+- [Chapter ?? — Data Fetching and Caching](#ch-nextjs-data-and-caching) — what the cache handler is storing
+- [Chapter ?? — Platform Deploys](#ch-platform-deploys) — previews, promotion and version skew

@@ -1,7 +1,7 @@
 ---
 title: Edge Versus Origin Rendering
 part: 3
-chapter: 38
+chapter: 27
 slug: edge-vs-origin-rendering
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -48,7 +48,7 @@ That single sentence decides almost every edge question you will be asked.
 
 The tiers are a fallthrough, not a choice: a request hits the CDN, and only what the CDN cannot answer
 goes further. The best-performing route is the one that never leaves tier one. **Caching beats placement
-every time**, which is why [Chapter ?? — Choosing Per Route, Not Per App](#ch-choosing-per-route) comes
+every time**, which is why [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route) comes
 before this chapter.
 
 ### The arithmetic
@@ -92,7 +92,7 @@ Work that is O(1), needs no data, and produces a decision rather than a page:
   the data is.
 
 The shape is the same in all five: read the request, decide, hand off. No database, no rendering, no
-awaiting anything slow. [Chapter ?? — Middleware and the Edge](#ch-nextjs-middleware-and-the-edge) shows
+awaiting anything slow. [Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) shows
 this as one framework implements it.
 
 ### Moving the data instead of the compute
@@ -200,6 +200,6 @@ to the edge is the last option, not the first.
 
 ## What to Read Next
 
-- [Chapter ?? — Middleware and the Edge](#ch-nextjs-middleware-and-the-edge) — the same tradeoff inside one framework
+- [Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) — the same tradeoff inside one framework
 - [Chapter ?? — CDN](#ch-cdn) — what tier one does before any of this is reached
 - [Chapter ?? — Latency and Throughput](#ch-latency-and-throughput) — the numbers behind the arithmetic

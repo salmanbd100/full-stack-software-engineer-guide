@@ -68,6 +68,9 @@ Archive/
 │   ├── pwa/                 2 of 3 + README — merged into BrowserAPIs/05, or dropped
 │   ├── i18n/                3 of 4 + README — merged into BrowserAPIs/06
 │   └── browser-apis/        IndexedDB (merged into BrowserAPIs/01) and permissions
+├── modern-stack/        ← #98: what Part III shed reaching 8,400 lines — see its README
+│   ├── react/ nextjs/ svelte/   4 merged into a neighbour, 5 archived as reference
+│   └── rendering/ state-management/ tooling/   4 merged, 4 archived
 ├── backend/             ← #31c, #56a: the 22 files Part V shed reaching its 6,500-line budget
 │   ├── api/                 1 — documentation, merged into API/03 (versioning and contracts)
 │   ├── nodejs/              5 — security folded into Backend/Security/; child processes and

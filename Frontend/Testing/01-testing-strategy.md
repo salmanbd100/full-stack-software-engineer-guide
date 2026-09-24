@@ -56,7 +56,7 @@ A data shape or a contract?         → the type checker
 ```
 
 For the React-specific version of that decision — component against `renderHook` against a real
-build — see [Chapter ?? — Testing React](#ch-testing-react), which owns that table.
+build — see [Chapter ?? — React Testing Library](#ch-react-testing-library).
 
 ### Pyramid against trophy
 
@@ -210,4 +210,4 @@ pretending to a standard nobody will maintain.
 
 - [Chapter ?? — Vitest](#ch-vitest) — the runner every example in this section uses
 - [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — the layer this chapter argues deserves the most weight
-- [Chapter ?? — Testing React](#ch-testing-react) — the same layer decision made for React specifically
+- [Chapter ?? — React Testing Library](#ch-react-testing-library) — the same layer decision made for React specifically

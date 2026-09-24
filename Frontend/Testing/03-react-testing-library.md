@@ -220,5 +220,4 @@ build a small component and test through it: that is closer to real usage and ca
 ## What to Read Next
 
 - [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — the same queries against a faked network
-- [Chapter ?? — Testing React](#ch-testing-react) — Server Components, Suspense, and which level a React test belongs at
 - [Chapter ?? — Testing Accessibility](#ch-testing-accessibility) — where the role queries above become a conformance check

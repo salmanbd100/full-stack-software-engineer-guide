@@ -217,5 +217,5 @@ understate.
 ## What to Read Next
 
 - [Chapter ?? — tRPC and Typed APIs](#ch-trpc) — the other route to an end-to-end typed contract
-- [Chapter ?? — Middleware and the Edge](#ch-nextjs-middleware-and-the-edge) — the same runtime inside a Next.js app
+- [Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) — the same runtime inside a Next.js app
 - [Chapter ?? — Serverless and Functions](#ch-serverless-functions) — how this compares with a regional function

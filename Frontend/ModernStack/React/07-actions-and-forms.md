@@ -1,7 +1,7 @@
 ---
 title: Actions and Forms
 part: 3
-chapter: 9
+chapter: 8
 slug: react-actions-and-forms
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -241,6 +241,6 @@ on and acted on what they saw.
 
 ## What to Read Next
 
-- [Chapter ?? — Transitions and Concurrency](#ch-transitions-and-concurrency) — the mechanism Actions are built on
+- [Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler) — the mechanism Actions are built on
 - [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components) — how a function reference crosses the boundary
 - [Chapter ?? — Form State](#ch-form-state) — validation, schemas and where they run

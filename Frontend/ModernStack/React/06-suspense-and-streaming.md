@@ -1,40 +1,56 @@
 ---
-title: Suspense and Streaming
+title: Suspense, Streaming and Error Boundaries
 part: 3
 chapter: 7
 slug: suspense-and-streaming
 level: advanced # beginner | intermediate | advanced
-reading_time: 11
-updated: 2026-09-03
-tags: [react, suspense, streaming, ssr, hydration]
+reading_time: 13
+updated: 2026-09-24
+tags: [react, suspense, streaming, ssr, hydration, error-boundaries, resilience]
 in_book: true
 ---
 
-# Suspense and Streaming {#ch-suspense-and-streaming}
+# Suspense, Streaming and Error Boundaries {#ch-suspense-and-streaming}
 
-> Place a boundary where a user would accept waiting, and debug the hydration mismatch it exposes.
+> Decide which parts of a page may be late and which may fail, and place one pair of boundaries for each.
 
-**In this chapter:** what a boundary declares · streaming SSR over the wire · where to put boundaries · hydration mismatches · fallbacks that do not shift the page
+**In this chapter:** two boundaries, two failure modes · streaming SSR over the wire · what an error boundary does not catch · where to put boundaries · hydration mismatches
 
 ## 💡 The Core Idea
 
-`<Suspense>` is a boundary, in the same sense as an error boundary. It does not fetch anything and it
-does not make anything faster. It declares: **if this subtree is not ready, show this instead — and let
-everything outside me carry on.**
+React has two boundaries, and they are siblings. A **Suspense boundary** catches "not ready yet". An
+**error boundary** catches "failed". Neither one fetches data or fixes a bug. Each one declares what the
+user sees instead, and lets everything outside it carry on.
 
-That last clause is the whole value. Without a boundary, the slowest thing on the page decides when the
-page appears. With one, the page appears immediately and the slow part fills in when it can.
+Without them, the slowest query decides when the page appears, and one error thrown during render
+unmounts the whole React tree. With them, a slow panel shows a skeleton and a broken one a message.
 
-> A boundary is a product decision written as code. You are choosing which part of the screen is
-> allowed to be late, and what the user looks at while it is.
+> A boundary is a product decision written as code. You choose which part of the screen may be late,
+> which part may fail, and what the user looks at in each case.
 
 ## How It Works
 
+### Two boundaries, one region
+
+A region that loads data can be loading, loaded or failed, so it usually gets both boundaries.
+
+**One region, both boundaries:**
+
+```tsx
+<ErrorBoundary fallback={<ChartUnavailable />}>
+  <Suspense fallback={<ChartSkeleton />}>
+    <RevenueChart /> {/* suspends while loading, throws if the fetch fails */}
+  </Suspense>
+</ErrorBoundary>
+```
+
+The error boundary must sit above the component that throws. Put it outside the Suspense boundary, as
+the React docs do, so the failure message replaces the whole region, skeleton included.
+
 ### Streaming server rendering
 
-On the server, React renders as far as it can and sends that HTML straight away. Everything above and
-around your boundaries is the **shell**. Each unresolved boundary goes out as its fallback, with a
-placeholder.
+On the server, React renders as far as it can and sends that HTML at once. Everything above and around
+your Suspense boundaries is the **shell**. Each unresolved boundary goes out as its fallback.
 
 ```mermaid
 flowchart TB
@@ -47,57 +63,67 @@ flowchart TB
 
 **One response, several flushes. The browser paints after the first, not after the last.**
 
-The swap happens with no client-side fetch and before React has hydrated — it is HTML and a tiny inline
-script. This is why streaming improves what the user sees even on a slow device: the work is already
-done by the time the JavaScript arrives.
+The swap is HTML plus a tiny inline script, with no client fetch and no wait for hydration. So streaming
+helps even on a slow device. The server renderer does this — `renderToPipeableStream` on Node, `renderToReadableStream` on Web streams —
+and every meta-framework calls one of them for you.
 
-The mechanics belong to the server renderer — `renderToPipeableStream` on Node, `renderToReadableStream`
-on Web streams — and every meta-framework calls one of them for you.
+React cannot un-send HTML. If a component throws after the shell is sent, React asks the client to
+render that subtree again. Either it succeeds after a short delay, or the error boundary's fallback appears.
 
-### Boundaries are also code-split points
+### The error boundary itself
 
-The same boundary catches `lazy()` components. A route that shows a heavy chart can send the shell, load
-the chart bundle, and swap it in without the page ever being blank.
+An error boundary is still a class component. The two lifecycle methods it needs have no hook
+equivalent. You write it once per codebase, or use the `react-error-boundary` package.
 
-### Where to put them
+**A minimal boundary:**
 
-This is the actual skill, and it is a design question more than a technical one.
+```tsx
+import React from "react";
 
-| Placement                              | Result                                                     |
-| -------------------------------------- | ----------------------------------------------------------- |
-| One boundary around the whole page      | A spinner for the whole page — you have re-invented a loader |
-| One per independent region              | ✅ The right default — nav, content, sidebar fill in separately |
-| One per row in a list                   | A popcorn effect, and layout that jumps repeatedly           |
-| None, with data awaited at the top      | Time to first byte becomes the slowest query on the page     |
+type BoundaryProps = { fallback: React.ReactNode; children: React.ReactNode };
 
-Group by **what a user would accept waiting for together**. A comment count and a comment list belong in
-one boundary. A comment list and the article do not.
+class ErrorBoundary extends React.Component<BoundaryProps, { hasError: boolean }> {
+  state = { hasError: false };
 
-### Hydration mismatches
+  // Pure — decides what renders next. No side effects here.
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
 
-Hydration attaches React to server-rendered HTML and expects the first client render to produce the same
-tree. When it does not, React discards the server HTML for that subtree and re-renders it on the client
-— slower, and visibly so.
+  // The side-effect half: this is where reporting belongs.
+  componentDidCatch(error: Error, info: React.ErrorInfo): void {
+    reportError(error, info.componentStack); // componentStack, not error.stack
+  }
 
-| Cause                                        | Fix                                                     |
-| --------------------------------------------- | -------------------------------------------------------- |
-| `Date.now()`, `Math.random()`, `new Date()` in render | Compute it in an effect, or pass a fixed value as a prop |
-| Locale or time-zone formatting                | Format on one side only, or send the formatted string    |
-| `typeof window !== "undefined"` branching     | Render the server version, then switch in an effect       |
-| Reading `localStorage` during render          | Read it in an effect, or inline a script before hydration |
-| Invalid nesting — a `<div>` inside a `<p>`    | Fix the markup; the browser silently rewrote your tree     |
+  render(): React.ReactNode {
+    return this.state.hasError ? this.props.fallback : this.props.children;
+  }
+}
+```
 
-The last row catches people out. The browser repairs invalid HTML while parsing, so the DOM React finds
-is not the DOM it sent, and the mismatch has nothing to do with your data.
+`getDerivedStateFromError` runs during render and must stay pure. `componentDidCatch` runs after, and
+only it may log or report. Capture `info.componentStack`. A JavaScript stack names the function that
+threw. The component stack names the route, the layout and the list item, which usually finds the bug.
 
-> ⚠️ `suppressHydrationWarning` silences the message, not the mismatch. It is correct for exactly one
-> case — a value that is *known* to differ, such as a rendered timestamp — and it applies to that one
-> element only. Reaching for it to clear a console is how a re-rendered subtree ships unnoticed.
+### What an error boundary does not catch
+
+| Where the error happens               | Caught? | What catches it instead                |
+| ------------------------------------- | ------- | -------------------------------------- |
+| Rendering a child component           | ✅      | The nearest boundary above it          |
+| A child's lifecycle or effect         | ✅      | The nearest boundary above it          |
+| An event handler such as `onClick`    | ❌      | A `try`/`catch`, and state you render  |
+| `setTimeout`, `requestAnimationFrame` | ❌      | A `try`/`catch` inside the callback    |
+| The boundary's own render             | ❌      | A boundary above it                    |
+
+The event handler case surprises people. React is not on the call stack when a click handler runs. If
+a failed save should show a message, set that message as state in a `catch` block.
 
 ### Suspense on the client
 
-The same boundary works after load. React 19's `use(promise)` in a Client Component suspends until the
-promise resolves, and the nearest boundary shows its fallback.
+Both boundaries work after load too. React 19's `use(promise)` suspends until the promise settles and
+the nearest Suspense fallback shows. If the promise rejects, the nearest error boundary takes over.
+
+**Reading a streamed promise:**
 
 ```tsx
 "use client";
@@ -108,78 +134,112 @@ export function Comments({ commentsPromise }: { commentsPromise: Promise<Comment
 }
 ```
 
-One caution: a promise created *during* render is a new promise every render, which suspends forever.
-The promise has to come from somewhere stable — a Server Component prop, a cache, or a query library.
+A promise created *during* render is new every render and suspends forever. Take it from somewhere
+stable: a Server Component prop, a cache, or a query library.
+
+### Hydration mismatches
+
+Hydration expects the first client render to match the server HTML. When it does not, React throws
+that subtree away and re-renders it on the client, which is slower and visible.
+
+| Cause                                                 | Fix                                                   |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| `Date.now()`, `Math.random()`, `new Date()` in render | Compute it in an effect, or pass a fixed value down   |
+| `typeof window !== "undefined"` branching             | Render the server version, then switch in an effect   |
+| Invalid nesting — a `<div>` inside a `<p>`            | Fix the markup; the browser repaired it while parsing |
+
+React 19 exposes three root options for a production error reporter: `onCaughtError`,
+`onUncaughtError` and `onRecoverableError`. Wire up the last one early. Hydration mismatches surface
+there, and React recovers silently, so without it the bug stays invisible.
+
+> ⚠️ `suppressHydrationWarning` silences the message, not the mismatch. It is correct for one case: a
+> value *known* to differ, such as a rendered timestamp. It applies to that one element only.
 
 ## When to Use It
 
-| Situation                                          | Boundary?                                    |
-| --------------------------------------------------- | --------------------------------------------- |
-| A slow query the rest of the page does not need     | ✅ Yes — this is the case it exists for       |
-| A heavy component loaded with `lazy()`              | ✅ Yes                                        |
-| Data the page is meaningless without                | ❌ No — await it in the shell                 |
-| Filtering a list the user already sees              | ❌ No — a transition, so the old list stays   |
+| Situation                                      | Reach for                                        |
+| ---------------------------------------------- | ------------------------------------------------ |
+| A slow query the rest of the page does not need | ✅ Suspense around that region                  |
+| A fetch that can fail, or third-party content   | ✅ Suspense inside, error boundary outside      |
+| Data the page is meaningless without            | ❌ No boundary — await it in the shell          |
+| Filtering a list the user already sees          | ❌ No Suspense — a transition keeps the old list |
+| A failed form submission or a missing record    | ❌ No error boundary — render it as state       |
 
-That last row is the distinction worth holding on to. Suspense is for content that **does not exist
-yet**. A transition is for content that exists and is being **replaced**. Wrapping a re-filter in
-Suspense throws away a good screen to show a spinner.
+Suspense is for content that **does not exist yet**; a transition is for content being **replaced**.
+An error boundary is for failures you did not plan for; an expected failure is state you render.
+
+### Where to put them
+
+| Level                    | Suspense fallback                | Error fallback                              |
+| ------------------------ | -------------------------------- | ------------------------------------------- |
+| Root of the application  | ❌ A page-wide spinner           | A full-page error with a reload — last resort |
+| Per route                | The shell, with the page loading | The shell and navigation, with the page failed |
+| Per independent region   | ✅ Nav, content, sidebar fill in separately | ✅ One card replaced with a retry  |
+| Per row in a list        | ❌ Content pops in, layout jumps | ❌ Noise — the list is the unit            |
+
+Group Suspense by **what a user would accept waiting for together**. A comment count and a comment list
+share a boundary. A comment list and the article do not. Place an error boundary **wherever the page
+still means something without the subtree below it**. If not, the boundary belongs higher.
+
+In the Next.js App Router, `loading.tsx` becomes a route-level Suspense boundary and `error.tsx` a
+route-level error boundary. The placement decision is still yours.
 
 ## Common Mistakes
 
-**❌ One boundary at the root.** Everything is inside it, so everything waits together. The page-level
-spinner is back, with extra ceremony.
+**❌ One boundary at the root and nothing else.** Everything waits together and fails together.
 
-**❌ A fallback of a different size to the content.** A 40-pixel spinner replaced by a 600-pixel list
-shifts everything below it and costs you Cumulative Layout Shift. **✅ Make the skeleton the shape of
-the thing.**
+**❌ A fallback of a different size to the content.** A small spinner replaced by a tall list shifts the
+page and costs Cumulative Layout Shift. **✅ Make the skeleton the shape of the thing.**
 
-**❌ Awaiting everything in the server component to keep the code tidy.** Each `await` before the return
-delays the shell. Start the promises together, await only what the shell needs, and pass the rest down.
+**❌ An error fallback with no way forward.** **✅ Add a "try again" reset, and a key that changes on
+navigation so leaving the route clears the error.**
 
-**❌ Treating a hydration warning as noise.** It means a subtree was thrown away and re-rendered. On a
-list of any size that is a real, measurable regression.
+**❌ Swallowing the error, or showing it raw.** An empty `componentDidCatch` means nobody ever finds out.
+`error.message` can carry internal identifiers or a query. **✅ Report every caught error, and show the
+user a sentence written for a human.**
 
 ## 🔑 Key Takeaways
 
-- A Suspense boundary declares what may be late and what the user sees meanwhile; it never fetches.
+- A Suspense boundary catches "not ready yet" and an error boundary catches "failed"; neither fetches or fixes anything.
 - Streaming SSR sends the shell first and swaps each boundary's HTML in as its data resolves, before hydration.
-- Boundary placement is a product decision — group content a user would accept waiting for together.
-- A hydration mismatch makes React discard and re-render the subtree, and invalid HTML nesting causes it as often as data does.
-- Suspense is for content that does not exist yet; a transition is for content being replaced.
+- An error boundary catches errors in rendering, lifecycles and effects below it — never event handlers, timers or its own render.
+- Place both boundaries around regions the user sees as separate, with the error boundary outside the Suspense boundary.
+- A hydration mismatch makes React re-render the subtree on the client, and invalid HTML nesting causes it as often as data does.
 
 ## Interview Questions
 
 **Q: What does adding a Suspense boundary actually do to the response?**
 
-It splits it. React renders and flushes everything outside the boundary immediately, with the fallback in
-the boundary's place, so the browser can paint. When the boundary's data resolves, React streams that
-HTML in the same response with a small inline script that swaps it into place. Nothing about the query
-got faster; the page simply stopped waiting for it.
+It splits it. React flushes everything outside the boundary at once, with the fallback in its place, so
+the browser can paint. When the data resolves, React streams that HTML in the same response with an
+inline script that swaps it in. The query got no faster; the page stopped waiting for it.
 
-**Q: How would you debug a hydration mismatch?**
+**Q: What does an error boundary catch, and what does it miss?**
 
-Start by reading which element React names, then check the three usual causes in order: non-deterministic
-values in render such as dates and random numbers, branching on `typeof window`, and invalid HTML
-nesting that the browser silently repaired while parsing. Only after ruling those out is it a data
-problem, and `suppressHydrationWarning` is a fix for exactly one case — a value you know legitimately
-differs on the two sides.
+It catches errors thrown while rendering its subtree, and in the lifecycles and effects below it. It
+misses anything React is not on the call stack for: event handlers, timers, and errors in the boundary
+itself. Those need an ordinary `try`/`catch` with the result put into state.
+
+**Q: How do you place boundaries in a dashboard with a dozen independent widgets?**
+
+Each widget gets an error boundary with a Suspense boundary inside it, plus one route-level boundary. A
+failing third-party chart then costs the user that chart alone. The route boundary keeps navigation alive
+so they can leave without reloading. A boundary per row goes too far.
 
 **Q: Suspense or a transition for a search filter?**
 
-A transition. The user is looking at results already, and Suspense would replace a perfectly good list
-with a skeleton on every keystroke. `useDeferredValue` or `useTransition` keeps the previous results on
-screen, marked as stale, while the new ones render. Suspense is for the first load, when there is
-nothing to keep.
+A transition. The user already sees results, and Suspense would swap a good list for a skeleton on every
+keystroke. `useTransition` or `useDeferredValue` keeps the old results on screen, marked stale, while the
+new ones render. Suspense is for the first load, when there is nothing to keep.
 
-**Q: Is there such a thing as too many boundaries?**
+**Q: When is an error boundary the wrong tool?**
 
-Yes. Every boundary is a piece of the page that can appear at a different moment, so a boundary per row
-gives you content popping in for several seconds and layout shifting each time. Boundaries should follow
-the regions a user perceives as separate — navigation, main content, a sidebar — not the shape of your
-component tree.
+When the failure is expected. Empty results, failed validation, an unauthorised response and a missing
+record are states the interface should render on purpose. Throwing for them pushes normal flows down the
+exception path and hides real crashes among the same alerts.
 
 ## What to Read Next
 
-- [Chapter ?? — Transitions and Concurrency](#ch-transitions-and-concurrency) — the tool for content that already exists
+- [Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler) — the tool for content that already exists
 - [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components) — where the streamed promise comes from
-- [Chapter ?? — Streaming HTML](#ch-streaming-html) — the same mechanism without React in the picture
+- [Chapter ?? — Actions and Forms](#ch-react-actions-and-forms) — where mutation failures belong instead

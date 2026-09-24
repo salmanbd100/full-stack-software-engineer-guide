@@ -1,7 +1,7 @@
 ---
 title: Data Fetching and Caching
 part: 3
-chapter: 16
+chapter: 13
 slug: nextjs-data-and-caching
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

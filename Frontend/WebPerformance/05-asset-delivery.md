@@ -136,8 +136,7 @@ different number of lines and everything below it moves. Make the fallback measu
 ```
 
 Then `font-family: "Inter", "Inter Fallback", sans-serif`. Deriving those percentages by hand is
-tedious, which is why build tooling generates the face — `next/font` being one, covered in
-[Chapter ?? — Images, Fonts, and Assets](#ch-nextjs-assets). What matters is knowing what it produces:
+tedious, which is why build tooling generates the face — `next/font` is one example. What matters is knowing what it produces:
 a `local()` face pointing at a system font with its metrics overridden.
 
 > ⚠️ **Moving target:** the metric-override properties landed at different times per engine, and the

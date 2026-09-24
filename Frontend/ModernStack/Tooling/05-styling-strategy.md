@@ -1,7 +1,7 @@
 ---
 title: Styling Strategy
 part: 3
-chapter: 55
+chapter: 40
 slug: styling-strategy
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11

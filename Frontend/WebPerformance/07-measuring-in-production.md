@@ -115,7 +115,7 @@ window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => 
 
 `unhandledrejection` is the one teams forget, and it is where most real failures land: an `await fetch`
 with no `try` produces a rejection, not an error, so `window.onerror` never fires. See
-[Chapter ?? — Error Boundaries and Resilience](#ch-react-error-boundaries) for the render-time half.
+[Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) for the render-time half.
 
 ### The context that decides whether a bug gets fixed
 

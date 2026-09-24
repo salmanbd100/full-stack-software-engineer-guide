@@ -151,7 +151,7 @@ or to pass a Server Action, which React serialises as a reference rather than as
 ```markdown
 ## What to Read Next
 
-- [Chapter 15 — Suspense and Streaming](#ch-suspense-and-streaming) — how the payload arrives progressively
+- [Chapter 15 — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) — how the payload arrives progressively
 - [Chapter 22 — Rendering Strategies](#ch-rendering-strategies) — where RSC sits on the spectrum
 ```
 

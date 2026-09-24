@@ -60,7 +60,7 @@ function ReportTable({ rows }: { rows: Row[] }) {
 > ⚠️ **Moving target:** the React Compiler — stable since 1.0, targeting React 19 — memoises components
 > and values at build time, which removes most hand-written `useMemo` and `useCallback`. The durable
 > principle is that memoisation is a main-thread optimisation and a comparison has its own cost — so it is something you apply where a
-> profile shows a hotspot, not everywhere. [Chapter ?? — Performance and the React Compiler](#ch-react-performance-and-the-compiler)
+> profile shows a hotspot, not everywhere. [Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler)
 > owns the current state of that tooling.
 
 Memoising a cheap component makes it slower: you have added a props comparison to something that
@@ -138,8 +138,8 @@ The performance framing that matters in an interview:
   interactions users try first.
 
 The mechanisms belong to Part III:
-[Chapter ?? — The Rendering Spectrum](#ch-rendering-spectrum) for choosing between them and
-[Chapter ?? — Hydration and Its Costs](#ch-hydration-and-its-costs) for what hydration actually does.
+[Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) covers
+choosing between them and what hydration actually does.
 What belongs here is the reason to reach for them: they are the only tools that reduce client work
 rather than reschedule it.
 
@@ -216,6 +216,5 @@ auto` gets much of the rendering benefit while keeping all of that working.
 
 ## What to Read Next
 
-- [Chapter ?? — The Rendering Spectrum](#ch-rendering-spectrum) — choosing between client, server, static and streaming
-- [Chapter ?? — Hydration and Its Costs](#ch-hydration-and-its-costs) — the main-thread cost that server rendering does not remove
+- [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) — choosing between client, server and static, and the main-thread cost server rendering does not remove
 - [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — INP, which is the metric everything here moves

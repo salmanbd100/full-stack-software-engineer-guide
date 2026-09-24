@@ -22,7 +22,7 @@ Two visitors never appear in a wireframe, and both need decisions made at archit
 
 The **crawler** is a client with no patience and a budget. It fetches your HTML, and if the content is not in it, rendering happens later in a separate queue — or not at all. The **measurement pipeline** is everything downstream of the page that answers whether the product works. Both are cheap to design in and expensive to retrofit, because both are consequences of your URL structure and your rendering strategy, and those are the two things hardest to change after launch.
 
-The tag-by-tag mechanics of meta tags and rendering choice live in [Chapter ?? — SEO and Rendering](#ch-seo-and-rendering). This chapter is the system-design view: what breaks at scale, and what the law constrains.
+The tag-by-tag mechanics of meta tags and rendering choice live in [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route). This chapter is the system-design view: what breaks at scale, and what the law constrains.
 
 ## How It Works
 
@@ -161,6 +161,5 @@ By moving what I can to the server. Response codes, latency, and the conversion 
 
 ## What to Read Next
 
-- [Chapter ?? — SEO and Rendering](#ch-seo-and-rendering) — the markup and rendering mechanics this chapter builds on
-- [Chapter ?? — Choosing Per Route, Not Per App](#ch-choosing-per-route) — how to make the per-route call the decision table above implies
+- [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route) — the crawler mechanics this chapter builds on, and how to make the per-route call
 - [Chapter ?? — Measuring in Production](#ch-measuring-in-production) — real user monitoring, and why it is a separate pipeline

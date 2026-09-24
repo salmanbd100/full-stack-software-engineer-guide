@@ -1,7 +1,7 @@
 ---
 title: React and TypeScript at Scale
 part: 3
-chapter: 12
+chapter: 10
 slug: react-typescript-at-scale
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

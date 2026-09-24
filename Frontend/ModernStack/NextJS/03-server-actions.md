@@ -1,7 +1,7 @@
 ---
 title: Server Actions
 part: 3
-chapter: 17
+chapter: 14
 slug: server-actions
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

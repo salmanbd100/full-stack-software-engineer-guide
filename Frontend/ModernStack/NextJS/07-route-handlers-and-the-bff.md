@@ -1,7 +1,7 @@
 ---
 title: Route Handlers and the BFF
 part: 3
-chapter: 22
+chapter: 18
 slug: route-handlers-and-the-bff
 level: advanced # beginner | intermediate | advanced
 reading_time: 12

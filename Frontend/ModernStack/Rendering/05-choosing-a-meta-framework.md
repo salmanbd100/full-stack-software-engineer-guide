@@ -1,7 +1,7 @@
 ---
 title: Choosing a Meta-Framework
 part: 3
-chapter: 39
+chapter: 28
 slug: choosing-a-meta-framework
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -180,6 +180,6 @@ its value. A plain client-rendered build with a router is less machinery and is 
 
 ## What to Read Next
 
-- [Chapter ?? — Choosing Per Route, Not Per App](#ch-choosing-per-route) — the same decision one level down, once the framework is fixed
+- [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route) — the same decision one level down, once the framework is fixed
 - [Chapter ?? — Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering) — the deployment axis in detail
 - [Chapter ?? — Micro-Frontends](#ch-micro-frontends) — what to do when one framework choice cannot serve everyone

@@ -1,7 +1,7 @@
 ---
 title: URL as State
 part: 3
-chapter: 45
+chapter: 34
 slug: url-as-state
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
@@ -106,7 +106,7 @@ route with new params. Frameworks expose this as a `shallow` flag, and it is a g
 The second option is what makes URL state pair naturally with server rendering: the params are inputs to
 the server render, so a pasted link produces the correct page on the very first response with no client
 fetch at all. That also makes those routes indexable — see
-[Chapter ?? — SEO and Rendering](#ch-seo-and-rendering).
+[Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 ### Reading params on the server
 
@@ -116,7 +116,7 @@ view followed by a jump to the filtered one.
 The cost is that reading search parameters makes a route dynamic in most frameworks — the response now
 depends on the request, so it cannot be fully static. That is the right tradeoff for a search page and
 the wrong one for a marketing page with a tracking parameter, which is a case for
-[Chapter ?? — Choosing Per Route, Not Per App](#ch-choosing-per-route).
+[Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 ### What must never go in a URL
 
@@ -201,5 +201,5 @@ mistake on a mostly-static page that happens to receive a campaign tracking para
 ## What to Read Next
 
 - [Chapter ?? — The Four Kinds of State](#ch-four-kinds-of-state) — where this category sits among the others
-- [Chapter ?? — SEO and Rendering](#ch-seo-and-rendering) — param variants, canonical URLs and duplicate indexing
+- [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route) — param variants, canonical URLs and duplicate indexing
 - [Chapter ?? — SvelteKit Routing and Loading](#ch-sveltekit-routing-and-loading) — params as inputs to a server load function

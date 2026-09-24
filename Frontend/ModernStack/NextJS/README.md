@@ -1,22 +1,22 @@
 ---
 title: Next.js
 part: 3
-chapter: 14
+chapter: 11
 slug: modern-stack-nextjs-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-06
+updated: 2026-09-24
 tags: [nextjs, app-router, server-actions, ppr, caching, middleware]
 in_book: true
 ---
 
 # Next.js
 
-Ten chapters covering the framework most senior frontend job descriptions name by version. Chapters
+Seven chapters covering the framework most senior frontend job descriptions name by version. Chapters
 01–05 are the framework itself: how the App Router maps files to routes, where data is fetched and
-cached, how mutations run on the server, how a route is rendered, and what happens before the route is
-reached at all. Chapters 06–10 are production — assets, authentication, the point where Next.js starts
-being your backend, deployment, and the migration every long-lived codebase eventually schedules.
+cached, how mutations run on the server, how a route is rendered, and what runs before the route and on
+which runtime. Chapters 06–07 are production — authentication, and the point where Next.js starts being
+your backend.
 
 Written against **Next.js 16**. Nothing here assumes Vercel: the chapters name the platform only where
 a detail genuinely differs, such as cold starts, regional execution, or which adapter runs the build.
@@ -34,12 +34,9 @@ a detail genuinely differs, such as cold starts, regional execution, or which ad
 | 02 | [Data Fetching and Caching](#ch-nextjs-data-and-caching) | Where does this request go, and how long does the answer live? |
 | 03 | [Server Actions](#ch-server-actions) | How do you mutate data without writing an API route — and safely?     |
 | 04 | [Rendering in Next.js](#ch-rendering-in-nextjs) | Static, dynamic, streaming or partially prerendered — which, and why? |
-| 05 | [Middleware and the Edge](#ch-nextjs-middleware-and-the-edge) | What can you decide before the route runs, and what should you not? |
-| 06 | [Images, Fonts, and Assets](#ch-nextjs-assets) | How do you ship a hero image without paying for it in CLS? |
-| 07 | [Auth Patterns](#ch-nextjs-auth-patterns) | Session or token, and where is it checked?                            |
-| 08 | [Route Handlers and the BFF](#ch-route-handlers-and-the-bff) | When is Next.js your backend, and when should it stop being one? |
-| 09 | [Deployment and Runtime](#ch-nextjs-deployment-and-runtime) | What changes when you self-host, and where does the cache live? |
-| 10 | [Migrating Pages to App Router](#ch-migrating-to-the-app-router) | How do you move a live application one route at a time? |
+| 05 | [Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) | What runs before the route, on which runtime, and where does the cache live when you self-host? |
+| 06 | [Auth Patterns](#ch-nextjs-auth-patterns) | Session or token, and where is it checked?                            |
+| 07 | [Route Handlers and the BFF](#ch-route-handlers-and-the-bff) | When is Next.js your backend, and when should it stop being one? |
 
 ## What Interviewers Probe For
 
@@ -56,8 +53,7 @@ Two Next.js-specific questions, on top of the part-level signals in the Part III
 ## Reading Order
 
 01 → 05 in order — 02's caching model is what makes 04's rendering decisions legible, and 03 assumes
-both. Chapters 06–09 are independent and can be read in any order. Chapter 10 is worth reading even
-without a migration to run: incremental adoption under load is a common system design prompt.
+both. Chapters 06 and 07 are independent and can be read in either order.
 
-**Interview sprint:** 01 → 02 → 03 → 04. Rendering and caching are what the round asks about; assets
+**Interview sprint:** 01 → 02 → 03 → 04. Rendering and caching are what the round asks about; runtimes
 and deployment are what the job asks about.

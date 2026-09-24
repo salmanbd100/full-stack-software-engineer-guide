@@ -84,7 +84,7 @@ const Chart = dynamic(() => import("../components/Chart"), {
 
 **Every lazy boundary needs an error boundary.** A chunk request can fail — a deploy rotated the
 filename, the network dropped — and without a boundary the failure unmounts the tree with no
-explanation. See [Chapter ?? — Error Boundaries](#ch-react-error-boundaries) for the recovery pattern.
+explanation. See [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) for the recovery pattern.
 
 ### Vendor chunks are about cache lifetime, not size
 

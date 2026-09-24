@@ -1,7 +1,7 @@
 ---
 title: Monorepos
 part: 3
-chapter: 52
+chapter: 38
 slug: monorepos
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -242,5 +242,4 @@ the veto: a monorepo without that tooling has all the coupling and none of the s
 ## What to Read Next
 
 - [Chapter ?? — Repository Strategies](#ch-repository-strategies) — the decision this chapter assumes you have made
-- [Chapter ?? — Package Management](#ch-package-management) — the lockfile and the workspace protocol underneath
 - [Chapter ?? — CI/CD Fundamentals](#ch-cicd-fundamentals) — where affected-only runs and remote caches plug in

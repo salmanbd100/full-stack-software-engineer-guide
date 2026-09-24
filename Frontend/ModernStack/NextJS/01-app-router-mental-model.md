@@ -1,7 +1,7 @@
 ---
 title: App Router Mental Model
 part: 3
-chapter: 15
+chapter: 12
 slug: app-router-mental-model
 level: advanced # beginner | intermediate | advanced
 reading_time: 11

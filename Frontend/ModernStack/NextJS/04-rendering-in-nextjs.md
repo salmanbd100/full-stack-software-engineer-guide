@@ -1,7 +1,7 @@
 ---
 title: Rendering in Next.js
 part: 3
-chapter: 18
+chapter: 15
 slug: rendering-in-nextjs
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -209,6 +209,6 @@ names the tradeoff rather than the default.
 
 ## What to Read Next
 
-- [Chapter ?? — The Rendering Spectrum](#ch-rendering-spectrum) — where PPR sits among CSR, SSR, SSG and islands
+- [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) — where PPR sits among CSR, SSR, SSG and islands
 - [Chapter ?? — Data Fetching and Caching](#ch-nextjs-data-and-caching) — what puts content in the shell
-- [Chapter ?? — Suspense and Streaming](#ch-suspense-and-streaming) — the React mechanism underneath the holes
+- [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) — the React mechanism underneath the holes

@@ -231,6 +231,6 @@ the failure mode and nothing downstream will catch it.
 
 ## What to Read Next
 
-- [Chapter ?? — Performance and the React Compiler](#ch-react-performance-and-the-compiler) — which reference-identity defects the compiler removes, and which it leaves
+- [Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler) — which reference-identity defects the compiler removes, and which it leaves
 - [Chapter ?? — ARIA, and When Not to Use It](#ch-aria) — why a native element beats a correct `role` every time
 - [Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow) — the review mechanics this chapter assumes, including why diff size decides review quality

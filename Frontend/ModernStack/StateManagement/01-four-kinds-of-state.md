@@ -1,7 +1,7 @@
 ---
 title: The Four Kinds of State
 part: 3
-chapter: 41
+chapter: 30
 slug: four-kinds-of-state
 level: intermediate # beginner | intermediate | advanced
 reading_time: 11
@@ -133,7 +133,7 @@ mutated, polled or updated optimistically still needs a client cache.
 | The state is… | Category | Reach for |
 | ------------- | -------- | --------- |
 | A list of records from an API | Server | A query cache — [Chapter ?? — Server State with TanStack Query](#ch-server-state) |
-| A theme, a sidebar toggle, a wizard step | Client | `useState`, then a store — [Chapter ?? — Client State](#ch-client-state) |
+| A theme, a sidebar toggle, a wizard step | Client | `useState`, then a store — [Chapter ?? — Client State and Signals](#ch-client-state) |
 | A half-typed form | Form | A form library — [Chapter ?? — Form State](#ch-form-state) |
 | A filter, a sort, a page number, an open tab | URL | Search params — [Chapter ?? — URL as State](#ch-url-as-state) |
 | Derived from any of the above | None | Compute it. Do not store it |

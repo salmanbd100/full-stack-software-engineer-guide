@@ -1,22 +1,22 @@
 ---
 title: Rendering
 part: 3
-chapter: 32
+chapter: 23
 slug: modern-stack-rendering-index
 level: advanced # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-07
+updated: 2026-09-24
 tags: [rendering, ssr, ssg, isr, ppr, hydration, streaming, seo]
 in_book: true
 ---
 
 # Rendering
 
-This is the section that makes the book last past 2027. Frameworks change; rendering models do not. Six
+This is the section that makes the book last past 2027. Frameworks change; rendering models do not. Five
 chapters, none of which name a framework in the title, covering the decision every senior frontend
 engineer is expected to make and defend: what runs where, and when.
 
-The through-line is chapter 04's argument — **rendering is a per-route decision, not a per-application
+The through-line is chapter 03's argument — **rendering is a per-route decision, not a per-application
 one.** A marketing page, a logged-in dashboard and a search result have three different answers, and a
 codebase that gives them one answer has chosen wrongly for at least two of them.
 
@@ -24,13 +24,11 @@ codebase that gives them one answer has chosen wrongly for at least two of them.
 
 | #  | Chapter                                                                    | What it answers                                                     |
 | -- | -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 01 | [The Rendering Spectrum](#ch-rendering-spectrum)                           | CSR, SSR, SSG, ISR, PPR, islands — what does each actually do?      |
-| 02 | [Hydration and Its Costs](#ch-hydration-and-its-costs)                     | What is the browser paying for after the HTML has arrived?          |
-| 03 | [Streaming HTML](#ch-streaming-html)                                       | How does a response arrive in pieces, and what does that buy?       |
-| 04 | [Choosing Per Route, Not Per App](#ch-choosing-per-route)                  | Which strategy does this route need, and how do you defend it?      |
-| 05 | [SEO and Rendering](#ch-seo-and-rendering)                                 | What does a crawler need, and what genuinely requires server render? |
-| 06 | [Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering)               | Where should this run, and when is the edge the wrong answer?       |
-| 07 | [Choosing a Meta-Framework](#ch-choosing-a-meta-framework)                 | Which decisions does the framework make for you, and which stick?   |
+| 01 | [The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) | CSR, SSR, SSG, ISR, PPR, islands — what does each do, and what does the browser pay after the HTML arrives? |
+| 02 | [Streaming HTML](#ch-streaming-html)                                       | How does a response arrive in pieces, and what does that buy?       |
+| 03 | [Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route) | Which strategy does this route need, what does a crawler need, and how do you defend it? |
+| 04 | [Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering)               | Where should this run, and when is the edge the wrong answer?       |
+| 05 | [Choosing a Meta-Framework](#ch-choosing-a-meta-framework)                 | Which decisions does the framework make for you, and which stick?   |
 
 ## What Interviewers Probe For
 
@@ -46,9 +44,9 @@ Two rendering questions, on top of the part-level signals in the Part III opener
 ## Reading Order
 
 01 first, always — it is the vocabulary every other chapter in Part III assumes, including the React and
-Next.js ones. Then 02 → 03, which explain the cost of the strategies 01 named. Chapter 04 is the payoff
-and should be read after all three.
+Next.js ones. Then 02, which explains how the strategies 01 named reach the browser. Chapter 03 is the
+payoff and should be read after both.
 
-Chapters 05 and 06 are independent and can be read whenever the question comes up.
+Chapters 04 and 05 are independent and can be read whenever the question comes up.
 
-**Interview sprint:** 01 → 04. Twenty minutes, and it is the highest return of any pair in the part.
+**Interview sprint:** 01 → 03. Twenty minutes, and it is the highest return of any pair in the part.

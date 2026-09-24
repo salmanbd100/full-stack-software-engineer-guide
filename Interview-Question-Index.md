@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**888 of them across 223 chapters**. The answers are not repeated here — they are in the chapter,
+**832 of them across 206 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -203,7 +203,7 @@ _68 questions across 15 chapters._
 
 ## Part III — The Modern Frontend Stack
 
-_204 questions across 51 chapters._
+_148 questions across 34 chapters._
 
 - **[The React Mental Model](#ch-react-mental-model)**
   - Why does this component re-render when its props have not changed?
@@ -230,41 +230,29 @@ _204 questions across 51 chapters._
   - A colleague says Client Components cannot render Server Components. Are they right?
   - Where do you put the `'use client'` boundary, and what happens if you get it wrong?
   - When is a Server Component the wrong choice?
-- **[Suspense and Streaming](#ch-suspense-and-streaming)**
+- **[Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming)**
   - What does adding a Suspense boundary actually do to the response?
-  - How would you debug a hydration mismatch?
+  - What does an error boundary catch, and what does it miss?
+  - How do you place boundaries in a dashboard with a dozen independent widgets?
   - Suspense or a transition for a search filter?
-  - Is there such a thing as too many boundaries?
-- **[Transitions and Concurrency](#ch-transitions-and-concurrency)**
-  - What problem do transitions actually solve?
-  - `useTransition` or `useDeferredValue`?
-  - Why must the expensive child be memoised for `useDeferredValue` to help?
-  - The list still feels slow after adding a transition. What now?
+  - When is an error boundary the wrong tool?
 - **[Actions and Forms](#ch-react-actions-and-forms)**
   - What does React 19 give you that `onSubmit` plus `fetch` did not?
   - How would you build a submit button for a design system that knows when it is submitting?
   - What stops a user calling your Server Function directly with arbitrary arguments?
   - When is an optimistic update the wrong choice?
-- **[Performance and the React Compiler](#ch-react-performance-and-the-compiler)**
-  - What does the React Compiler actually do, and what do you stop writing because of it?
-  - You enable the compiler and one component is still re-rendering constantly. Where do you look?
+- **[Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler)**
+  - What does the React Compiler do, and what do you stop writing because of it?
+  - You enable the compiler and one component still re-renders constantly. Where do you look?
+  - `useTransition` or `useDeferredValue`?
+  - The list still feels slow after adding a transition. What now?
   - A page takes four seconds to become interactive. Where do you start?
   - When would you still write `useMemo` by hand?
-- **[Error Boundaries and Resilience](#ch-react-error-boundaries)**
-  - What does an error boundary catch, and what does it miss?
-  - Where do you place boundaries in a dashboard with a dozen independent widgets?
-  - Why does the error boundary go outside the Suspense boundary rather than inside?
-  - When is an error boundary the wrong tool?
 - **[React and TypeScript at Scale](#ch-react-typescript-at-scale)**
   - Why model async state as a union rather than `loading`, `data` and `error` fields?
   - What does typing `useReducer` actions as a discriminated union buy you?
   - Why default a context to `undefined` rather than casting an empty object?
   - Does TypeScript stop you passing a function to a Client Component from a Server Component?
-- **[Testing React](#ch-testing-react)**
-  - Why does Testing Library push you towards `getByRole` rather than a test id?
-  - How do you test an async Server Component?
-  - A test fails with "an update was not wrapped in act". What is actually wrong?
-  - When is a component test the wrong tool?
 - **[App Router Mental Model](#ch-app-router-mental-model)**
   - What is the difference between `layout.tsx` and `template.tsx`?
   - How do you build a modal that is also a shareable URL?
@@ -285,16 +273,12 @@ _204 questions across 51 chapters._
   - How do you decide where the Suspense boundaries go?
   - A route you expected to be prerendered is marked fully dynamic in the build output. What do you look for?
   - When is a fully dynamic route the right answer?
-- **[Middleware and the Edge](#ch-nextjs-middleware-and-the-edge)**
+- **[Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge)**
   - Why is checking authentication in middleware not enough?
-  - What does the `matcher` actually change?
   - When is the edge runtime the wrong choice?
   - How would you serve different pricing pages by country without giving up prerendering?
-- **[Images, Fonts, and Assets](#ch-nextjs-assets)**
-  - How does `next/image` reduce Cumulative Layout Shift?
-  - What does the `sizes` prop actually do, and what happens without it?
-  - Why does `next/font` self-host rather than link to Google Fonts?
-  - When would you turn Next.js image optimisation off?
+  - Why does incremental regeneration go wrong behind a load balancer?
+  - How would you deploy the same build to three environments?
 - **[Auth Patterns](#ch-nextjs-auth-patterns)**
   - Where do you put the authentication check in an App Router application, and why not middleware?
   - Session or JWT for a new internal dashboard?
@@ -305,31 +289,12 @@ _204 questions across 51 chapters._
   - What is a backend-for-frontend, and what does it cost?
   - Route Handler or Server Action for a form submission?
   - When is Next.js the wrong place for backend work?
-- **[Deployment and Runtime](#ch-nextjs-deployment-and-runtime)**
-  - What changes when you move a Next.js application off a managed platform?
-  - Why does incremental regeneration go wrong behind a load balancer?
-  - What is the difference between a `NEXT_PUBLIC_` variable and a normal one?
-  - How would you deploy the same build to three environments?
-- **[Migrating Pages to App Router](#ch-migrating-to-the-app-router)**
-  - How would you migrate a large Pages Router application that ships weekly?
-  - What actually breaks during the migration?
-  - Why does the order of routes matter?
-  - When would you advise against migrating?
-- **[Svelte 5 and the Runes Model](#ch-svelte-runes)**
+- **[The Runes Model, Components and Snippets](#ch-svelte-runes)**
   - What is a rune, and why does it not need a dependency array?
-  - When would you choose `$state.raw` over `$state`?
   - Why is `$effect` the wrong tool for computing a value?
-  - How do you share reactive state between routes without a store?
-- **[Reactivity Compared](#ch-reactivity-compared)**
-  - Signals or a virtual DOM — what is the tradeoff?
-  - Why has React not adopted signals?
-  - Is a Svelte bundle always smaller?
-  - How would you choose between them for a new product?
-- **[Components and Snippets](#ch-svelte-snippets)**
-  - How do you pass markup into a Svelte 5 component?
-  - When is something a snippet rather than a component?
+  - How does Svelte 5's update model differ from React's, and does it matter?
   - How would you build a table component that lets the caller render each row?
-  - What does `Snippet<[T]>` mean, and why is the parameter a tuple?
+  - When is something a snippet rather than a component?
 - **[SvelteKit Routing and Loading](#ch-sveltekit-routing-and-loading)**
   - What decides whether data loading happens in `+page.ts` or `+page.server.ts`?
   - How does streaming work in a SvelteKit load, and what is the tradeoff?
@@ -340,36 +305,25 @@ _204 questions across 51 chapters._
   - What is the difference between `fail` and throwing an error in an action?
   - What does `use:enhance` do if you pass it a callback?
   - What stops someone posting directly to your form action?
-- **[Adapters and Deployment](#ch-sveltekit-adapters-and-deployment)**
-  - What does a SvelteKit adapter actually decide?
-  - A route is marked prerenderable and the build fails saying it was never prerendered. Why?
-  - When is `ssr = false` the right call?
-  - How do you build once and deploy the same artefact to staging and production?
-- **[The Rendering Spectrum](#ch-rendering-spectrum)**
+- **[The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum)**
   - What is the difference between SSR and SSG in terms of what the server does?
-  - A page uses ISR with a 60-second revalidation. A user reports seeing data that is five minutes old. Is this a bug?
-  - When is client-side rendering the right answer in 2026?
-  - Why would you not use Partial Prerendering everywhere?
-- **[Hydration and Its Costs](#ch-hydration-and-its-costs)**
+  - A page uses ISR with a 60-second revalidation. A user reports data five minutes old. Is this a bug?
   - The page paints in 800 ms but does not respond to clicks for another two seconds. What is happening?
-  - How does resumability differ from progressive hydration?
-  - When are islands the wrong architecture?
   - Why does a hydration mismatch cost more than a console warning?
+  - How does resumability differ from progressive hydration?
+  - When are islands the wrong architecture, and when is CSR the right one?
 - **[Streaming HTML](#ch-streaming-html)**
   - Your TTFB is 1.8 seconds on a server-rendered page. What do you do?
   - Can streaming make a page worse?
   - Why can't a streamed response redirect when authentication fails halfway through?
   - How would you prove that streaming is actually happening in production?
-- **[Choosing Per Route, Not Per App](#ch-choosing-per-route)**
+- **[Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route)**
   - Walk me through how you would pick a rendering strategy for an e-commerce site.
-  - A page is declared static but the platform reports it as dynamic on every request. Where do you look?
-  - When would you deliberately choose client-side rendering in 2026?
-  - What is the risk of mixing rendering strategies within one application?
-- **[SEO and Rendering](#ch-seo-and-rendering)**
   - Is client-side rendering bad for SEO?
+  - When would you deliberately choose client-side rendering in 2026?
   - A product page ranks, but its social preview card is blank. What is wrong?
-  - What is a soft 404 and how does a rendering choice cause one?
-  - You have a streaming route and the metadata depends on a slow query. What do you do?
+  - A page is declared static but the platform reports it as dynamic on every request. Where do you look?
+  - A streaming route's metadata depends on a slow query. What do you do?
 - **[Edge Versus Origin Rendering](#ch-edge-vs-origin-rendering)**
   - When is the edge the wrong place to render?
   - Cold starts used to be the argument for edge runtimes. Is that still true?
@@ -390,11 +344,12 @@ _204 questions across 51 chapters._
   - How do you structure query keys in a large application?
   - Walk me through an optimistic update.
   - With server components fetching data, do you still need a client query cache?
-- **[Client State](#ch-client-state)**
+- **[Client State and Signals](#ch-client-state)**
   - When would you use Context instead of a state library?
-  - A component re-renders whenever any part of a global store changes. What is wrong?
-  - Zustand or Jotai?
-  - Is Redux dead?
+  - What is a signal, in terms a React developer already uses?
+  - What is a glitch, and why does it matter?
+  - Do signals replace TanStack Query?
+  - Your team wants to move all client state into Redux. Would you?
 - **[Form State](#ch-form-state)**
   - Why are uncontrolled inputs the default in modern form libraries?
   - Where does validation belong when the server also validates?
@@ -405,30 +360,17 @@ _204 questions across 51 chapters._
   - How do you stop a search box from destroying the back button?
   - What breaks when the same value lives in both the URL and a store?
   - What is the cost of reading search params on the server?
-- **[Signals and the Next Model](#ch-signals-and-the-next-model)**
-  - What is a signal, in terms of things a React developer already uses?
-  - What is a glitch, and why does it matter?
-  - Do signals replace TanStack Query?
-  - Why hasn't React adopted signals?
-- **[Modelling Flows as State Machines](#ch-modelling-flows-as-machines)**
-  - Why prefer a state machine to a few booleans?
-  - When is `useReducer` enough, and when do you reach for XState?
-  - Would you model data fetching as a state machine?
-  - How do you test a machine?
 - **[Modules and Bundling](#ch-modules-and-bundling)**
   - What does a bundler actually do?
   - A single import added 300 KB to the bundle. How do you find out why?
   - Why did tree shaking only become practical with ES modules?
   - How would you decide where to split chunks?
-- **[Vite and the Dev Loop](#ch-vite-and-the-dev-loop)**
+- **[Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop)**
   - Why does the Vite dev server start instantly on a large application?
-  - What is dependency pre-bundling for?
   - Why does saving one file sometimes reload the whole page?
   - Something works in development and breaks in the production build. Where do you start?
-- **[Turbopack, Rspack and Rolldown](#ch-rust-bundlers)**
   - Why were the bundlers rewritten in Rust rather than optimised?
-  - How would you choose between Turbopack, Rspack and Rolldown?
-  - Your production build succeeds but the application crashes on a type error. How is that possible?
+  - Your production build succeeds but the application crashes on a type error. How?
   - Your team wants to migrate off Webpack for build speed. What do you ask first?
 - **[Monorepos](#ch-monorepos)**
   - What does a task graph buy you that workspaces alone do not?
@@ -440,26 +382,11 @@ _204 questions across 51 chapters._
   - How do project references speed up a large TypeScript codebase?
   - Linting takes eight minutes in continuous integration. What do you look at first?
   - What should block a merge, and what should not?
-- **[Package Management](#ch-package-management)**
-  - What does a lockfile actually guarantee?
-  - What is a phantom dependency and why does pnpm prevent it?
-  - How would you reduce supply-chain risk in a frontend codebase?
-  - Should you switch a project from npm to pnpm?
 - **[Styling Strategy](#ch-styling-strategy)**
   - A team wants to add styled-components to a Next.js App Router project. What do you say?
   - Where does utility-first CSS actually save you, and where does it cost you?
   - Why are design tokens usually custom properties rather than a TypeScript object?
   - When would you not reach for a styling framework at all?
-- **[Web Components and Framework Interop](#ch-web-components-and-interop)**
-  - A platform team wants one component library for React, SvelteKit and a legacy Angular app. What do you recommend?
-  - What actually changed for web components in React 19?
-  - What does shadow DOM buy, and what does it cost?
-  - When would you deliberately not use shadow DOM but still use custom elements?
-- **[Headless Primitives and Accessible Components](#ch-headless-primitives)**
-  - A team is about to build its own modal. What do you tell them?
-  - What is the difference between a component library and a headless primitive?
-  - Does adopting Radix or React Aria make a product accessible?
-  - When would you deliberately build the primitive yourself?
 
 ## Part IV — Frontend at Scale
 

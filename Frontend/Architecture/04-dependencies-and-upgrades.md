@@ -103,7 +103,7 @@ Four decisions in that file, and each one is worth being able to defend:
 | Dev dependencies grouped and automerged | They cannot reach production. One pull request a week, not thirty |
 | Patches automerged | A patch that breaks you was a mislabelled release; your tests are the check |
 | Majors held behind approval | A major is a migration with a plan, not a queue item |
-| A release-age delay | Supply-chain exposure, covered in [Chapter ?? — Package Management](#ch-package-management) |
+| A release-age delay | Supply-chain exposure, covered in [Chapter ?? — Pipeline Security](#ch-cicd-security) |
 
 > ⚠️ **Moving target:** the configuration keys above are Renovate 41's, and the equivalent
 > Dependabot grouping options are spelled differently again. The durable principle is that automation
@@ -230,6 +230,6 @@ surprises come from.
 
 ## What to Read Next
 
-- [Chapter ?? — Package Management](#ch-package-management) — what the lockfile guarantees, and the supply-chain controls this chapter assumes
+- [Chapter ?? — Pipeline Security](#ch-cicd-security) — lockfile pinning, provenance, and the supply-chain controls this chapter assumes
 - [Chapter ?? — Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies) — whether one version of a dependency or many is even an option
 - [Chapter ?? — Design Systems at Scale](#ch-design-systems-at-scale) — the same versioning contract seen from the publisher's side

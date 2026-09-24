@@ -1,7 +1,7 @@
 ---
 title: SvelteKit Routing and Loading
 part: 3
-chapter: 29
+chapter: 21
 slug: sveltekit-routing-and-loading
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -228,4 +228,4 @@ the page, which turns one changed list into a full round of queries.
 
 - [Chapter ?? — SvelteKit Form Actions](#ch-sveltekit-form-actions) — the mutation half of the same model
 - [Chapter ?? — Data Fetching and Caching](#ch-nextjs-data-and-caching) — how Next.js answers the same question
-- [Chapter ?? — Adapters and Deployment](#ch-sveltekit-adapters-and-deployment) — where these loads actually run
+- [Chapter ?? — Platform Deploys and Preview Environments](#ch-platform-deploys) — where these loads actually run

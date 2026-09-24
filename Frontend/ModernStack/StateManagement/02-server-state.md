@@ -1,7 +1,7 @@
 ---
 title: Server State with TanStack Query
 part: 3
-chapter: 42
+chapter: 31
 slug: server-state
 level: advanced # beginner | intermediate | advanced
 reading_time: 13
@@ -240,5 +240,5 @@ result, and let the client take over.
 ## What to Read Next
 
 - [Chapter ?? — The Four Kinds of State](#ch-four-kinds-of-state) — why this category is separate at all
-- [Chapter ?? — Client State](#ch-client-state) — what is left once the cache has taken the server data
+- [Chapter ?? — Client State and Signals](#ch-client-state) — what is left once the cache has taken the server data
 - [Chapter ?? — Caching](#ch-caching) — the same ideas one layer down, on the server

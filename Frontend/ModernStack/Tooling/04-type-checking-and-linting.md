@@ -1,7 +1,7 @@
 ---
 title: Type-Checking and Linting at Scale
 part: 3
-chapter: 53
+chapter: 39
 slug: type-checking-and-linting
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -27,7 +27,7 @@ program, and those cost what type-checking costs.
 
 **Type-checking** is semantic and whole-program. To know whether this call is valid it must resolve every
 type it touches, transitively. It cannot be made per-file, and it cannot be skipped, because — as
-[Chapter ?? — Turbopack, Rspack and Rolldown](#ch-rust-bundlers) explains — the bundler strips types
+[Chapter ?? — Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop) explains — the bundler strips types
 without checking them.
 
 Almost every slow pipeline is one of these three doing work that belongs to another, or the whole-program

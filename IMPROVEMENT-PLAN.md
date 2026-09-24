@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-24 · **Progress:** 4 / 25
+**Last updated:** 2026-09-24 · **Progress:** 5 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -463,7 +463,7 @@ grew for a reason.
 
 ---
 
-### - [ ] 98. Cut Part III — The Modern Frontend Stack — to 8,400 lines `L`
+### - [x] 98. Cut Part III — The Modern Frontend Stack — to 8,400 lines `L` — ✅ **done 2026-09-24**
 
 From 11,672 lines across 58 files — the biggest cut in the phase, and the most careful one. Part III
 is what the book is sold on. It stays the largest part after the cut, and React and Next.js keep the
@@ -484,6 +484,58 @@ has to come back out of Parts V–IX instead.
 
 **Done when:** Part III reads ≤ 8,400 lines, it is still the largest part, the spine line in
 `pnpm book:pages` is green, and the checklist is green.
+
+> 🔴 **Amended 2026-09-24.** The spine clause cannot pass at this point in the phase, and no cut to
+> Part III can fix that. Parts V–IX are still at full length, so I–IV read **43.2%** however well
+> Part III is cut. Cutting Part III further makes the number worse, not better. #96 and #97 recorded
+> the same thing. The clause is moved to #104, and it is checked once all nine cuts have landed. For
+> this item, the test is that Part III sits at its budget and **not below it**.
+
+**Delivered:**
+
+- **Part III is 8,392 lines**, down from 11,672. That is 8 lines under the 8,400 budget, and **184
+  pages** in `pnpm book:pages` (it was 262). It is still the largest part: the next largest is Part VII
+  at 7,385. There are **34 chapters** in six sections, down from 46: React 9, Next.js 7, Svelte 3,
+  Rendering 5, State 5 and Tooling 5. `book:pages` counts 41 files because it includes the six section
+  READMEs and the part opener. The whole-book `budget` rule is at **11,174**, down from 14,450, and
+  `.lint-baseline.json` is committed at that number
+- **The candidate list was followed, with two corrections:**
+  - `React/06-suspense-and-streaming` merged with `10-error-boundaries`, not with `07-transitions`.
+    Transitions went into `09-performance-and-the-compiler` instead, which is now `React/08`,
+    *Performance, Transitions and the Compiler*. Both are concurrency tools, and *Suspense, Streaming and
+    Error Boundaries* is the natural home for the fallback UI
+  - `Tooling/08-web-components-and-interop` was **archived rather than moved to Part II**. Part II has
+    4 lines of headroom, so moving it there would have pushed Part II over budget
+- **Merges.** Each surviving chapter keeps its slug, so no anchor moved:
+  - *Middleware, Runtimes and Deployment* takes in `NextJS/09`
+  - *The Runes Model, Components and Snippets* takes in `Svelte/03`
+  - *The Rendering Spectrum and the Cost of Hydration* takes in `Rendering/02`
+  - *Choosing a Rendering Strategy per Route, with SEO* takes in `Rendering/05`
+  - *Client State and Signals* takes in `StateManagement/06`
+  - *Vite, Rust Bundlers and the Dev Loop* takes in `Tooling/03`
+- **Seventeen files left the book** and are now in `Archive/modern-stack/{react,nextjs,svelte,rendering,state-management,tooling}/`.
+  `Archive/modern-stack/README.md` has a table recording where each one went, and `Archive/README.md`
+  lists the new directory. Links to the removed slugs were repointed:
+  - supply-chain links now go to Part VIII's *Pipeline Security* (`#ch-cicd-security`)
+  - React testing links now go to Part IV's *React Testing Library*
+  - SEO links now go to `#ch-choosing-per-route`
+  
+  The files touched were in Parts IV, V and VI, `Glossary.md`, and the `write-topic-docs` skill's
+  example. Links to renamed chapters now carry the new titles
+- **Checklist:**
+  - `lint:docs` has every rule at 0 except `budget`
+  - `number:chapters --check` is clean
+  - `index:check` passes, with **832 questions across 206 chapters**, and 87 across 16 for Book 2
+  - `check:code-samples` passes the syntax gate, and the type total fell from 1,288 to **1,229**, with
+    the baseline committed
+  - `pnpm test` passes 36/36
+  - `pnpm book:pdf` gives **1,218 pages**, down from 1,297. Every cross-reference resolves, and the log
+    shows zero missing glyphs
+- 🔴 **The frontend spine is at 43.2%**, down from 46.8%. See the amendment above. It recovers only once
+  #100–#104 land
+- **This item ran across two sessions.** The first session did the cut but left it unrecorded. The
+  second session re-ran the whole checklist against the tree and ticked the box. `pnpm site:build` was
+  not run, because the Done-when does not ask for it
 
 ---
 
@@ -601,7 +653,8 @@ chapters overlap, and one communication chapter is thin.
 Keep `04-the-ai-assisted-interview` whole. It is the most current chapter in the part.
 
 **Done when:** Part IX reads ≤ 1,800 lines, **`pnpm lint:docs` reports `budget` at 0 for the whole
-book**, and the checklist is green.
+book**, the frontend spine line in `pnpm book:pages` is green (moved here from #98), and the checklist
+is green.
 
 ---
 
@@ -854,8 +907,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 4/25 | 🚧 In progress |
-| **Total** | **25** | **4/25** | **16%** |
+| 9 | 95–116 · 95a · 113a · 113b | 5/25 | 🚧 In progress |
+| **Total** | **25** | **5/25** | **20%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

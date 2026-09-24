@@ -1,7 +1,7 @@
 ---
 title: Auth Patterns
 part: 3
-chapter: 21
+chapter: 17
 slug: nextjs-auth-patterns
 level: advanced # beginner | intermediate | advanced
 reading_time: 12
@@ -164,7 +164,7 @@ inside a `try` block** you also use for error handling — the catch swallows th
 
 **❌ Protecting routes only in the proxy.** It does not run for every path that reaches your data, and a
 present cookie is not a valid session. See
-[Chapter ?? — Middleware and the Edge](#ch-nextjs-middleware-and-the-edge).
+[Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge).
 
 **❌ Checking auth in a layout and assuming children are safe.** Layouts do not re-render on every
 navigation between their children, and they never run for a Server Action or Route Handler.
@@ -222,5 +222,5 @@ UI, and keep the real check beside the query.
 ## What to Read Next
 
 - [Chapter ?? — Server Actions](#ch-server-actions) — the mutation half of the same rule
-- [Chapter ?? — Middleware and the Edge](#ch-nextjs-middleware-and-the-edge) — why the optimistic check stops where it does
+- [Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) — why the optimistic check stops where it does
 - [Chapter ?? — Authorisation](#ch-authorisation) — roles, permissions, and modelling who may do what
