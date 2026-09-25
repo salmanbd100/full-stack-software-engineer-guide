@@ -1,7 +1,7 @@
 ---
 title: Platform Deploys and Preview Environments
 part: 8
-chapter: 24
+chapter: 15
 slug: platform-deploys
 level: intermediate # beginner | intermediate | advanced
 reading_time: 13
@@ -272,6 +272,5 @@ the guarantee is gone.
 
 ## What to Read Next
 
-- [Chapter ?? — Deployment Strategies and Rollback](#ch-deployment-strategies) — moving the pointer back, and the changes where you cannot
-- [Chapter ?? — Feature Flags](#ch-feature-flags) — releasing to a share of users rather than a share of servers
-- [Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery) — what the CDN caches in front of all of this
+- [Chapter ?? — Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies) — moving the pointer back, the changes where you cannot, and releasing to a share of users rather than a share of servers
+- [Chapter ?? — Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals) — what the CDN caches in front of all of this

@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-24 · **Progress:** 9 / 25
+**Last updated:** 2026-09-25 · **Progress:** 10 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -772,7 +772,7 @@ the whole part, and the other two are the questions being asked right now.
 
 ---
 
-### - [ ] 103. Cut Part VIII — Ship and Operate — to 3,400 lines `M`
+### - [x] 103. Cut Part VIII — Ship and Operate — to 3,400 lines `M` — ✅ **done 2026-09-25**
 
 From 5,495 lines across 27 files — the deepest proportional cut, and the spec already names this part
 as the first place to take pages from. A frontend-heavy engineer ships, watches and rolls back. They
@@ -788,6 +788,59 @@ do not run the platform.
 | `ShipAndOperate/Deployment` | 4 files, 860 | Down to 3. Fold `03-feature-flags` into `02-deployment-strategies-and-rollback` |
 
 **Done when:** Part VIII reads ≤ 3,400 lines, its `budget` overage is 0, and the checklist is green.
+
+**Delivered:**
+
+- **Part VIII is 3,366 lines across 17 files** by `book:pages`, down from 5,495 across 27. That is 34 lines
+  under the 3,400 budget, and its `budget` overage is 0. It is 11 chapters in five sections: Git 2, CI/CD 3,
+  Observability 2, Cloud 2, Deployment 2. The part prints on 74 pages, down from 120
+- **Seven merges.** Each survivor keeps its slug, and every merged chapter is 285–300 lines:
+  - *Git Fundamentals and Recovery* (`#ch-git-fundamentals`) takes in `Advanced Git`. The candidate table
+    said to trim Advanced Git in place. It was merged instead, because the list alone came out about 200
+    lines short. Only the recovery tools that come up in interviews survived: reflog, interactive rebase,
+    cherry-pick, bisect, and removing a secret from history
+  - *Branching, Review and Repository Strategy* (`#ch-branching-and-review-workflow`), now `Git/02`, takes
+    in `Repository Strategies`. The monorepo tooling detail went, with a link to *Monorepos* in Part III
+  - *Container Images: Building and Hardening* (`#ch-docker-fundamentals`) takes in `Building and Hardening Images`
+  - *GitHub Actions and Pipeline Security* (`#ch-github-actions`), now `CICD/03`, takes in `Pipeline Security`
+  - *Metrics, Dashboards and Alerting* (`#ch-metrics-and-dashboards`) takes in `Alerting and On-Call`
+  - *Cloud Fundamentals, Storage and Delivery* (`#ch-cloud-fundamentals`) takes in `Object Storage and
+    Delivery`. The CDN theory went, with a link to *Content Delivery Network* in Part VI
+  - *Deployment Strategies, Rollback and Feature Flags* (`#ch-deployment-strategies`) takes in `Feature Flags`
+- **Two archived outright:** `Docker Compose`, and `Kubernetes Essentials`, which was the last of an
+  out-of-scope § 6 topic left in the book. No live chapter linked Compose, and the three links to
+  Kubernetes were all inside Part VIII's merged chapters
+- 🔴 **A structural change the candidate table did not name: `Containers/` is folded into `CICD/`.** One
+  container chapter cannot carry a section, and the image is the artefact the pipeline builds. The
+  chapter is now `CICD/02`, between *CI/CD Fundamentals* and *GitHub Actions*. `SECTION_ORDER` in
+  `scripts/lib/book.ts` drops the directory, with a comment, as #100 did for `Frameworks/`. The old
+  section README is archived with the chapters
+- **Archive:** ten files are in `Archive/ship-and-operate/{git,containers,cicd,observability,cloud,deployment}/`,
+  with a README table, and `Archive/README.md` lists the directory. The Part VIII opener and all five section
+  READMEs are rewritten, down from 352 lines to 265
+- **The checklist:**
+  - `number:chapters` renumbered every file, and `--check` is clean
+  - Inbound links to the seven merged slugs were repointed at the absorbing chapter, with its new title in
+    the link text. This touched 21 files, including `Glossary.md` and ten chapters outside the part. Links to
+    survivors that still carried an old title were retitled. Three *What to Read Next* lists that now named one
+    chapter twice were collapsed. A path in `SystemDesign/BuildingBlocks/README.md` was repointed
+  - `lint:docs` has every rule at 0 except `budget`. **`budget` is at 700**, down from 2,795, and
+    `.lint-baseline.json` is committed at that number. Only Part IX is still over
+  - `index:questions` regenerated both indexes, and `index:check` passes: **658 questions across 153
+    chapters**, and 87 across 16 for Book 2
+  - `check:code-samples` passes syntax, and the type total fell from 981 to **979**, with the baseline committed
+  - `pnpm test` passes 36/36
+  - `pnpm book:pdf` gives **956 pages**, down from 1,006. Every cross-reference resolves to a chapter and a
+    page, and the log has no missing-character warnings
+- ✅ **The frontend spine is at 50.3%**, up from 47.7%, which is back over decision #2's 50% floor. #104 still
+  owns the final check
+- **Not done:**
+  - `pnpm site:pages` fails on four hand-written counts in `site/index.md` and `site/.vitepress/config.ts`
+    ("254 chapters", "1,024 interview questions"). They were already stale before this item, since the
+    cut began, and regenerating the site is #114's step. `pnpm site:build` was not run
+  - The merges were written by parallel agents from one shared brief, as in #102. Every report was checked
+    and the lint covers every chapter, but the merged chapters were not read line by line in this session.
+    #112 does that
 
 ---
 
@@ -1058,8 +1111,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 9/25 | 🚧 In progress |
-| **Total** | **25** | **9/25** | **36%** |
+| 9 | 95–116 · 95a · 113a · 113b | 10/25 | 🚧 In progress |
+| **Total** | **25** | **10/25** | **40%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

@@ -1,7 +1,7 @@
 ---
 title: CI/CD Fundamentals
 part: 8
-chapter: 12
+chapter: 5
 slug: cicd-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 10
@@ -199,7 +199,7 @@ The four industry-standard measures of delivery performance. Expect at least one
 
 CI works best with short-lived branches merged daily, and feature flags are what make that possible
 when the work is not finished. Which branching model demands what from a pipeline is argued out in
-[Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow).
+[Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow).
 
 ## 🔑 Key Takeaways
 
@@ -253,6 +253,6 @@ because the fix is upstream trains the team to click past the whole category.
 
 ## What to Read Next
 
-- [Chapter ?? — GitHub Actions](#ch-github-actions) — the same principles expressed in the tool most teams use
-- [Chapter ?? — Deployment Strategies](#ch-deployment-strategies) — what stage 8 actually does with the artefact
-- [Chapter ?? — Pipeline Security](#ch-cicd-security) — how the credentials reach the pipeline without being stored in it
+- [Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions) — the same principles in the tool most teams use, and how credentials reach it without being stored in it
+- [Chapter ?? — Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies) — what stage 8 actually does with the artefact
+- [Chapter ?? — Container Images: Building and Hardening](#ch-docker-fundamentals) — the artefact the pipeline builds, and why its layer order decides build time

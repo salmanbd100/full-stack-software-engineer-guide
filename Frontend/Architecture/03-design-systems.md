@@ -155,7 +155,7 @@ pile up. So automate everything non-breaking, group it, and send majors to a per
 ```
 
 Dev dependencies cannot reach production, so grouping them turns thirty pull requests into one. The
-release-age delay limits supply-chain exposure ([Chapter ?? — Pipeline Security](#ch-cicd-security)).
+release-age delay limits supply-chain exposure ([Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions)).
 
 > ⚠️ **Moving target:** these are Renovate 41's configuration keys, and Dependabot spells its grouping
 > options differently. The durable principle is that automation decides by **update type and dependency
@@ -241,5 +241,5 @@ an unbounded fear into a list of named tasks you can schedule.
 ## What to Read Next
 
 - [Chapter ?? — Micro-Frontends](#ch-micro-frontends) — where a shared system is what stops five teams diverging
-- [Chapter ?? — Pipeline Security](#ch-cicd-security) — lockfiles, provenance and the supply-chain controls automation relies on
-- [Chapter ?? — Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies) — whether one version of a dependency is even an option
+- [Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions) — lockfiles, provenance and the supply-chain controls automation relies on
+- [Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) — whether one version of a dependency is even an option

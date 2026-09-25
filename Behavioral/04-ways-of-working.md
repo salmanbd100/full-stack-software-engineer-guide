@@ -213,5 +213,5 @@ target than with a sprint goal they will renegotiate every Wednesday.
 ## What to Read Next
 
 - [Chapter ?? — Engineering Culture](#ch-engineering-culture) — the practices that decide whether these numbers can improve
-- [Chapter ?? — Pipeline Security](#ch-cicd-security) — the pipeline the lead-time number is really measuring
+- [Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions) — the pipeline the lead-time number is really measuring
 - [Chapter ?? — Written Communication](#ch-written-communication) — decision records, runbooks, and writing for people in another timezone

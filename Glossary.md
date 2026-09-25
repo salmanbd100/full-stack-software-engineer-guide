@@ -30,7 +30,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Agent** — A system that decides which tools to call and in what order, rather than following a fixed script. [What an Agent Is, and When to Use More Than One](#ch-what-an-agent-actually-is)
 
-**Alerting** — Notifying a human that a service-level objective is at risk; distinct from monitoring, which only records. [Alerting and On-Call](#ch-alerting)
+**Alerting** — Notifying a human that a service-level objective is at risk; distinct from monitoring, which only records. [Metrics, Dashboards and Alerting](#ch-metrics-and-dashboards)
 
 **ARIA** — Accessible Rich Internet Applications: attributes that add semantics HTML cannot express. The first rule is not to use it. [ARIA, and When Not to Use It](#ch-aria)
 
@@ -116,7 +116,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Fake** — A working but simplified stand-in for a dependency, such as an in-memory store. [Testing Strategy](#ch-testing-strategy)
 
-**Feature flag** — A runtime switch that separates deploying code from releasing behaviour. [Feature Flags](#ch-feature-flags)
+**Feature flag** — A runtime switch that separates deploying code from releasing behaviour. [Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies)
 
 **Few-shot prompting** — Including worked examples in the prompt so the model infers the pattern. [Prompting as Engineering](#ch-prompting-as-engineering)
 

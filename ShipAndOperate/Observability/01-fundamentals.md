@@ -1,7 +1,7 @@
 ---
 title: Monitoring and Observability Fundamentals
 part: 8
-chapter: 16
+chapter: 9
 slug: monitoring-fundamentals
 level: beginner # beginner | intermediate | advanced
 reading_time: 11
@@ -267,6 +267,5 @@ tail-based so errors survive.
 
 ## What to Read Next
 
-- [Chapter ?? — Metrics and Dashboards](#ch-metrics-and-dashboards) — how the numbers get collected, queried, and put on a screen
-- [Chapter ?? — Alerting and On-Call](#ch-alerting) — turning these signals into pages a tired engineer can act on
+- [Chapter ?? — Metrics, Dashboards and Alerting](#ch-metrics-and-dashboards) — how the numbers get collected and queried, and how they become pages a tired engineer can act on
 - [Chapter ?? — Performance Monitoring](#ch-measuring-in-production) — the same thinking, measured in the browser

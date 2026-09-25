@@ -1,46 +1,45 @@
 ---
 title: Continuous Integration and Delivery
 part: 8
-chapter: 11
+chapter: 4
 slug: ship-cicd-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 2
-updated: 2026-09-02
-tags: [cicd, github-actions, deployment, pipeline-security]
+updated: 2026-09-25
+tags: [cicd, containers, docker, github-actions, pipeline-security]
 in_book: true
 ---
 
 # Continuous Integration and Delivery
 
-The pipeline is where a team's real engineering standards live. Whatever the wiki says about testing
-and review, the pipeline is what is actually enforced. Senior candidates get asked about it because
-owning a pipeline means owning the trade-off between shipping quickly and shipping safely — and
-because a badly designed one is the most expensive kind of slow.
+The pipeline is where a team's real engineering standards live. Whatever the wiki says about testing and
+review, the pipeline is what is actually enforced. Senior candidates get asked about it because owning a
+pipeline means owning the trade-off between shipping fast and shipping safely.
 
-These three chapters go from the principles that survive any tool, through the one tool most teams now
-use, to the question the pipeline exists to answer safely: how the credentials reach it without being
-stored in it. What the pipeline does with the artefact afterwards is the `Deployment/` section.
+Three chapters, in the order the work happens: the principles that survive any tool, the image the
+pipeline builds, then the one tool most teams use and how credentials reach it without being stored in
+it. What happens to the artefact afterwards is the `Deployment/` section.
 
 ## Chapters
 
-| #   | Chapter                                                    | What it answers                                                     |
-| --- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| 01  | [CI/CD Fundamentals](#ch-cicd-fundamentals)            | What is the pipeline for, and how do you keep it under ten minutes?  |
-| 02  | [GitHub Actions](#ch-github-actions)                   | How do you write a workflow that holds no long-lived credentials?    |
-| 03  | [Pipeline Security](#ch-cicd-security)             | How does a secret leak out of a build, and how do you stop it?       |
+| #  | Chapter                                                               | What it answers                                                    |
+| -- | --------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 01 | [CI/CD Fundamentals](#ch-cicd-fundamentals)                           | What is the pipeline for, and how do you keep it under ten minutes? |
+| 02 | [Container Images: Building and Hardening](#ch-docker-fundamentals)   | How do you get a small image that rebuilds fast and does not run as root? |
+| 03 | [GitHub Actions and Pipeline Security](#ch-github-actions)            | How do you write a workflow that holds no long-lived credentials?   |
 
 ## What Interviewers Probe For
 
-Two pipeline-specific questions, on top of the part-level signals in the Part VIII opener:
+Three pipeline questions, on top of the part-level signals in the Part VIII opener:
 
-- **Can you make a slow pipeline fast without deleting the tests?** Caching, parallel jobs, splitting
-  the fast feedback loop from the full suite, and only running the expensive checks where they change
-  a decision. "Skip the flaky ones" is the wrong answer.
-- **What does your rollback look like?** Not "we redeploy the previous tag" — that is the happy path.
-  What about a database migration? A cached asset? Feature flags exist because some changes cannot be
-  un-deployed, and knowing which is a seniority marker.
+- **Can you make a slow pipeline fast without deleting the tests?** Caching, parallel jobs, and running
+  the expensive checks only where they change a decision. "Skip the flaky ones" is the wrong answer.
+- **Do you understand layer caching?** "The image takes nine minutes to build and the only change was one
+  line of code." The answer is about `COPY` order.
+- **How does a secret leak out of a build?** Through a fork's pull request, a mutable action tag or a
+  long-lived key. Each one has a specific fix.
 
 ## Reading Order
 
-01 first — its vocabulary is used by the other two. Then 03, which is the one most likely to come up
-in an interview, and 02 if the role names GitHub Actions.
+01 first — the other two use its words. Then 02 and 03 in either order. Chapter 03 is the one most likely
+to come up in an interview.

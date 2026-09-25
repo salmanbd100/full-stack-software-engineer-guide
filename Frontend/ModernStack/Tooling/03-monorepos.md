@@ -19,7 +19,7 @@ in_book: true
 ## 💡 The Core Idea
 
 Whether to use a monorepo is a coordination question, and
-[Chapter ?? — Repository Strategies](#ch-repository-strategies) answers it. This chapter starts one step
+[Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) answers it. This chapter starts one step
 later: you have one, and the problem is that everything now shares a pipeline.
 
 A monorepo without a task graph runs everything on every change. Twelve packages, one commit touching a
@@ -180,7 +180,7 @@ author, at review time, rather than by whoever runs the release.
 | A monorepo already, no task graph | This is the highest-value work available. Start here |
 | Under about five packages | Workspaces alone may be enough; add the task runner when a full run hurts |
 | Continuous integration is slow | Affected-only plus remote caching, before anything else |
-| Deciding whether to have a monorepo at all | [Chapter ?? — Repository Strategies](#ch-repository-strategies) |
+| Deciding whether to have a monorepo at all | [Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) |
 | Independently deployed frontends | That is a different problem — see [Chapter ?? — Micro-Frontends](#ch-micro-frontends) |
 
 ## Common Mistakes
@@ -241,5 +241,5 @@ the veto: a monorepo without that tooling has all the coupling and none of the s
 
 ## What to Read Next
 
-- [Chapter ?? — Repository Strategies](#ch-repository-strategies) — the decision this chapter assumes you have made
+- [Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) — the decision this chapter assumes you have made
 - [Chapter ?? — CI/CD Fundamentals](#ch-cicd-fundamentals) — where affected-only runs and remote caches plug in

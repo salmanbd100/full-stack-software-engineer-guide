@@ -49,6 +49,6 @@ distributed-systems half of the section.
 **Interview sprint:** 01, 02 and 04, then 06.
 
 > ⚠️ Two chapters left this section at **#31d**. File storage and monitoring are owned by Part VIII —
-> `ShipAndOperate/Cloud/03-storage-and-delivery.md` and `ShipAndOperate/Observability/` — and the
+> `ShipAndOperate/Cloud/01-fundamentals.md` and `ShipAndOperate/Observability/` — and the
 > originals are in `Archive/systemdesign/building-blocks/`. #101 archived search and folded WebSockets
 > and the API gateway into their neighbours; those files are in `Archive/system-design/building-blocks/`.

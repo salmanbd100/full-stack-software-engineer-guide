@@ -1,7 +1,7 @@
 ---
 title: Serverless Functions
 part: 8
-chapter: 21
+chapter: 13
 slug: serverless-functions
 level: intermediate # beginner | intermediate | advanced
 reading_time: 10
@@ -222,6 +222,6 @@ the deployment configuration, the console, or a log line.
 
 ## What to Read Next
 
-- [Chapter ?? — Cloud Fundamentals](#ch-cloud-fundamentals) — where functions sit on the managed-service ladder
+- [Chapter ?? — Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals) — where functions sit on the managed-service ladder
 - [Chapter ?? — Platform and Edge Deployments](#ch-platform-deploys) — choosing between edge and regional execution
 - [Chapter ?? — Observability Fundamentals](#ch-monitoring-fundamentals) — what to log and measure when there is no server to inspect

@@ -269,4 +269,4 @@ writing, the medium is wrong and a fifteen-minute call is the answer.
 
 - [Chapter ?? — Technical Communication](#ch-technical-communication) — the spoken counterpart of the same skill
 - [Chapter ?? — Engineering Culture](#ch-engineering-culture) — the review and on-call practices these documents serve
-- [Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow) — the mechanics around the pull request
+- [Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) — the mechanics around the pull request

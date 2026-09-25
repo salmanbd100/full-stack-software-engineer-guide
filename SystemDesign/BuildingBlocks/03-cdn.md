@@ -87,7 +87,7 @@ What hit ratio you can reach depends entirely on what you are serving:
 `max-age` speaks to the browser, `s-maxage` to the shared cache, and `stale-while-revalidate` is what
 removes the latency spike at expiry — the edge answers instantly from the stale copy and refreshes
 behind the request. The full mechanics of those directives belong to
-[Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery).
+[Chapter ?? — Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals).
 
 ### Origin shielding
 
@@ -196,5 +196,5 @@ part to the origin, near its data.
 ## What to Read Next
 
 - [Chapter ?? — Caching](#ch-caching) — the same idea one layer in, where the data is not public
-- [Chapter ?? — Object Storage and Delivery](#ch-object-storage-and-delivery) — configuring the edge and its origin in practice
+- [Chapter ?? — Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals) — configuring the edge and its origin in practice
 - [Chapter ?? — Load Balancing](#ch-load-balancing) — what handles the traffic that does reach you

@@ -142,7 +142,7 @@ already drew around copied Stack Overflow answers.
 This is the part that belongs to architecture rather than to etiquette. Generated code arrives faster
 and in bigger diffs, and reviewer attention does not scale to meet it — past roughly 400 changed
 lines, reviewers approve on trust, as
-[Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow) sets out. So every
+[Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) sets out. So every
 defect class above needs a machine to own it:
 
 | Defect class | The gate that actually holds |
@@ -233,4 +233,4 @@ the failure mode and nothing downstream will catch it.
 
 - [Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler) — which reference-identity defects the compiler removes, and which it leaves
 - [Chapter ?? — ARIA, and When Not to Use It](#ch-aria) — why a native element beats a correct `role` every time
-- [Chapter ?? — Branching and Review Workflow](#ch-branching-and-review-workflow) — the review mechanics this chapter assumes, including why diff size decides review quality
+- [Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) — the review mechanics this chapter assumes, including why diff size decides review quality

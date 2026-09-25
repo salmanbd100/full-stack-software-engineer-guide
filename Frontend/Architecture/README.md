@@ -32,7 +32,7 @@ question: what breaks at scale, and what do you put in place before it does. The
 | 04 | [Reviewing AI-Generated Code](#ch-reviewing-ai-generated-code) | Which defects does generated code have that human code does not? |
 
 The monorepo-versus-polyrepo decision is the fourth boundary in this set, and it is not repeated here:
-[Chapter ?? — Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies) argues the choice
+[Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) argues the choice
 and [Chapter ?? — Monorepos](#ch-monorepos) covers the task graph and caching that make one workable.
 
 ## What Interviewers Probe For

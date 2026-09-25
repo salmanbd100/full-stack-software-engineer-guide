@@ -242,9 +242,9 @@ export const SECTION_ORDER: Readonly<Record<number, readonly string[]>> = {
     "AI/Production",
     "AI/AIUX",
   ],
+  // Containers/ folded into CICD/ at #103 — the image is the artefact the pipeline builds.
   8: [
     "ShipAndOperate/Git",
-    "ShipAndOperate/Containers",
     "ShipAndOperate/CICD",
     "ShipAndOperate/Observability",
     "ShipAndOperate/Cloud",

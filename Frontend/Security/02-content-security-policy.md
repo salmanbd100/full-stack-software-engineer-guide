@@ -242,4 +242,4 @@ iframe. Loosen one directive for one widget rather than dropping the whole heade
 
 - [Chapter ?? — XSS Prevention and Untrusted Input](#ch-xss-prevention) — the first line of defence that CSP backs up
 - [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) — the headers that decide who may read a response
-- [Chapter ?? — Pipeline Security](#ch-cicd-security) — where the build steps that set these headers live
+- [Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions) — where the build steps that set these headers live

@@ -172,7 +172,7 @@ is.
 
 **Crash-free sessions is the frontend metric to reach for first**, because it normalises by traffic. A
 raw error count spikes on a good day for visitors and hides a regression behind growth; a rate does
-neither. The alerting discipline itself is [Chapter ?? — Alerting and On-Call](#ch-alerting), and it
+neither. The alerting discipline itself is [Chapter ?? — Metrics, Dashboards and Alerting](#ch-metrics-and-dashboards), and it
 applies here unchanged.
 
 ## When to Use It

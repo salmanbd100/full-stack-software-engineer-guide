@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**693 of them across 162 chapters**. The answers are not repeated here — they are in the chapter,
+**658 of them across 153 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -766,122 +766,78 @@ _95 questions across 20 chapters._
 
 ## Part VIII — Ship and Operate
 
-_94 questions across 20 chapters._
+_59 questions across 11 chapters._
 
-- **[Git Fundamentals](#ch-git-fundamentals)**
+- **[Git Fundamentals and Recovery](#ch-git-fundamentals)**
   - What is the difference between `git fetch` and `git pull`?
-  - Someone force-pushed over your branch. What do you do?
+  - You deleted a branch, or someone force-pushed over it. How do you get it back?
   - What do the three `git reset` modes actually change?
-  - When would you not use rebase?
-  - Why is a merge conflict not a failure?
-- **[Advanced Git](#ch-advanced-git)**
-  - How do you recover a branch you deleted by accident?
+  - When would you not use rebase or interactive rebase?
   - Walk me through finding which commit introduced a regression.
   - A secret was committed six months ago. What is your sequence?
-  - When would you not use interactive rebase?
-- **[Branching and Review Workflow](#ch-branching-and-review-workflow)**
+- **[Branching, Review and Repository Strategy](#ch-branching-and-review-workflow)**
   - How would you choose a branching strategy for a new team?
-  - What is the difference between GitFlow and GitHub Flow?
   - Squash, rebase, or merge commit — which and why?
   - How do you keep pull requests reviewable?
-  - When would you not enforce conventional commits?
-- **[Repository Strategies: Monorepo vs Polyrepo](#ch-repository-strategies)**
   - Monorepo or polyrepo for a product with a web app, an admin app and a shared design system?
-  - What actually breaks first in a large monorepo?
   - How do you make a breaking change to a shared library in a polyrepo?
   - When would you not recommend a monorepo?
-- **[Docker Fundamentals](#ch-docker-fundamentals)**
-  - What is the difference between an image and a container?
-  - Why is a container not just a lightweight virtual machine?
-  - A container exited with 137. What happened, and what do you check?
-  - How do you inspect a container that crashes on startup?
-  - When would you not containerise something?
-- **[Building and Hardening Images](#ch-building-and-hardening-images)**
-  - An image takes nine minutes to build and the only change was one line of application code. What is wrong?
-  - Why can't you pass a build secret with `ARG`?
-  - What does a container actually isolate, and what does it not?
-  - Would you use a distroless base image?
-  - How would you find out whether a newly announced vulnerability affects you?
-- **[Docker Compose](#ch-docker-compose)**
-  - How does service discovery work in Compose?
-  - Your API keeps crashing on startup because the database is not ready. What do you change?
-  - What is the difference between `ports` and `expose`?
-  - When would you not use Compose?
-- **[Kubernetes Essentials](#ch-kubernetes-essentials)**
-  - Walk me through what happens when you run `kubectl apply -f deployment.yaml`.
-  - What is the difference between a liveness and a readiness probe?
-  - A pod is in `CrashLoopBackOff`. How do you debug it?
-  - Why do you still get 502s during a rolling deployment with readiness probes configured?
 - **[CI/CD Fundamentals](#ch-cicd-fundamentals)**
   - What is the difference between Continuous Delivery and Continuous Deployment?
   - Why should an artefact be built only once?
   - How do you keep a CI pipeline fast without deleting tests?
   - Is code coverage a useful quality gate?
   - When would you not add another gate to the pipeline?
-- **[GitHub Actions](#ch-github-actions)**
+- **[Container Images: Building and Hardening](#ch-docker-fundamentals)**
+  - What is the difference between an image and a container, and why is a container not a small virtual machine?
+  - An image takes nine minutes to build and the only change was one line of application code. What is wrong?
+  - Why can't you pass a build secret with `ARG`?
+  - Would you use a distroless base image?
+  - A container exited with 137. What happened, and what do you check?
+  - How would you find out whether a newly announced vulnerability affects you?
+- **[GitHub Actions and Pipeline Security](#ch-github-actions)**
   - How do you authenticate a workflow to a cloud provider without storing credentials?
+  - What is the risk of `pull_request_target`, and when would you use it?
   - What is the difference between a reusable workflow and a composite action?
-  - What is the difference between caching and artefacts?
   - When would you use a self-hosted runner, and what does it cost you?
-- **[Pipeline Security](#ch-cicd-security)**
-  - How do you manage secrets in a CI/CD pipeline?
-  - What is the risk of `pull_request_target` and when would you use it?
-  - Where in the pipeline should each security check run?
-  - A production deployment goes bad and you suspect the pipeline. What do you need in place to investigate?
+  - A token leaks from your pipeline. What do you do, and what do you need in place?
 - **[Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals)**
   - What is the difference between monitoring and observability?
   - What is cardinality and why does it matter?
   - Why alert on percentiles instead of averages?
   - Explain SLI, SLO, SLA and error budgets.
   - You are asked to add observability to a service that has none. Where do you start, and what do you deliberately not do?
-- **[Metrics and Dashboards](#ch-metrics-and-dashboards)**
-  - Why does Prometheus pull instead of push?
+- **[Metrics, Dashboards and Alerting](#ch-metrics-and-dashboards)**
   - How do you calculate p99 latency across many instances, and what is the common mistake?
   - A metrics server keeps getting killed for using too much memory. What is happening and what do you do?
-  - When is a dashboard the wrong tool?
-- **[Alerting and On-Call](#ch-alerting)**
-  - What makes a good alert?
-  - Why alert on symptoms rather than causes?
+  - What makes a good alert, and why alert on symptoms rather than causes?
   - Explain burn-rate alerting.
   - An alarm never fired even though the service was completely down. Why?
-  - How do you stop one failure generating forty pages?
-  - How do you make on-call sustainable?
-- **[Cloud Fundamentals](#ch-cloud-fundamentals)**
+  - When is a dashboard the wrong tool?
+- **[Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals)**
   - What is the difference between a region and an availability zone?
   - Explain the shared responsibility model without naming a provider.
   - When would you not use a managed service?
-  - A product serves users across Europe and Australia from one region. How do you improve latency?
-  - Why do teams split workloads across multiple accounts?
+  - How would you handle user file uploads in a web application?
+  - After a deploy, users are getting the old JavaScript. What went wrong and how do you fix it?
 - **[Serverless Functions](#ch-serverless-functions)**
   - What actually happens on a cold start, and which parts can you influence?
   - Why do serverless functions break databases, and what do you do about it?
   - A function fires on file upload and sometimes processes the same file twice. Why?
   - When would you choose a long-running server over functions?
   - How do you keep secrets out of a function's environment variables?
-- **[Object Storage and Delivery](#ch-object-storage-and-delivery)**
-  - How would you handle user file uploads in a web application?
-  - What is the difference between `max-age` and `s-maxage`?
-  - After a deploy, users are getting the old JavaScript. What went wrong and how do you fix it?
-  - When is a CDN not the answer?
-  - How do you keep private files private when they are served from a bucket?
 - **[Platform Deploys and Preview Environments](#ch-platform-deploys)**
   - What actually happens when you promote a deployment to production?
   - Why can moving a route to the edge make it slower?
   - A user reports a white screen right after a deploy, but you cannot reproduce it. What is happening?
   - What does a preview environment give you that a staging environment does not?
   - How do you make sure the artefact you tested is the artefact you shipped?
-- **[Deployment Strategies and Rollback](#ch-deployment-strategies)**
+- **[Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies)**
   - Explain blue/green versus canary.
   - Your deploy went out ten minutes ago and errors are climbing. Walk me through what you do.
   - How do you do a zero-downtime deployment when the change includes a schema migration?
   - What is the difference between a canary deployment and a feature flag?
   - When would you deliberately choose the strategy with the larger blast radius?
-- **[Feature Flags](#ch-feature-flags)**
-  - What is the difference between a feature flag and a canary deployment?
-  - Your flag service becomes unreachable during peak traffic. What happens to your site?
-  - How do you stop feature flags accumulating?
-  - Where should a flag be evaluated in a server-rendered application, and why does it matter?
-  - When is a feature flag the wrong tool?
 
 ## Part IX — The Human Layer
 

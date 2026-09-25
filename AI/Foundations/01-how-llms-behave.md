@@ -193,7 +193,7 @@ The response stopped because it ran out of room. "length" and "stop" are differe
 **✅ Pin the version and re-run the suite on every change**
 
 An id that resolves to "whatever is newest" is an unpinned dependency in your critical path. Ship the
-switch behind a flag, so a bad upgrade is a toggle — [Chapter ?? — Feature Flags](#ch-feature-flags).
+switch behind a flag, so a bad upgrade is a toggle — [Chapter ?? — Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies).
 
 ## 🔑 Key Takeaways
 
