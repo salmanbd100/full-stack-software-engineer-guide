@@ -5,7 +5,7 @@ chapter: 0
 slug: part-human-layer
 level: intermediate
 reading_time: 3
-updated: 2026-09-19
+updated: 2026-09-25
 tags: [behavioural, communication, star, ways-of-working, ai-interviews]
 in_book: true
 ---
@@ -17,11 +17,10 @@ can do the work; this part is where a company decides whether it wants you doing
 else. The questions look soft and are not: "tell me about a disagreement" is asking how you behave when
 you are certain and outranked, and there is a wrong answer.
 
-Two sections, and they divide by what is being assessed. Behaviour covers the stories — the STAR shape,
-conflict, failure, ways of working, culture, and saying no without becoming the person who says no.
-Communication covers the delivery — explaining a system to someone who does not share your context,
-thinking aloud under observation, writing that survives being forwarded, and the newest round in the
-loop.
+Two sections, divided by what is being assessed. Behaviour covers the stories — the STAR shape,
+influence and saying no, failure, and how your team works. Communication covers the delivery —
+explaining and thinking aloud under observation, writing that survives being forwarded, and the newest
+round in the loop.
 
 That last chapter is the most current in the book. **Interviews themselves changed.** Google is adding a
 code-comprehension round where you read, debug and optimise an existing codebase with an AI assistant
@@ -33,8 +32,8 @@ interviews and 62% still forbid it — so you have to be ready for both rooms.
 
 | Section                                                   | Chapters | What it covers                                                      |
 | ----------------------------------------------------------- | -------- | -------------------------------------------------------------------- |
-| [Behaviour and Ways of Working](#ch-behavioral-index)     | 6        | STAR, leadership and conflict, failure, process, culture, influence |
-| [Communication](#ch-communication-index)                  | 4        | Explaining systems, thinking aloud, writing, the AI-assisted round  |
+| [Behaviour and Ways of Working](#ch-behavioral-index)     | 4        | STAR, leadership and saying no, failure, delivery and culture       |
+| [Communication](#ch-communication-index)                  | 3        | Explaining and thinking aloud, writing, the AI-assisted round       |
 
 ## What Interviewers Probe For
 
@@ -63,10 +62,8 @@ Behaviour before Communication. The stories come first because the communication
 delivering them, and it is easier to practise delivery on material you already have.
 
 **Interview sprint:** Behaviour 01 — the STAR shape is the container everything else goes in — then
-Communication 02 and 04. Three chapters, the evening before.
-
-**Prepare, do not memorise:** six stories, written out once, each re-usable for three or four questions.
-Behaviour 01 explains the mapping. A memorised script is audible.
+Communication 01 and 03. Three chapters, the evening before. Prepare stories, not scripts: a memorised
+script is audible.
 
 > ⚠️ **The stories have to be yours.** Every example in this part is a shape to fill, not a script to
 > lift. An interviewer who has run four hundred loops recognises a borrowed story in two follow-up

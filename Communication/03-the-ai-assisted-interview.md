@@ -1,7 +1,7 @@
 ---
 title: The AI-Assisted Interview
 part: 9
-chapter: 12
+chapter: 9
 slug: ai-assisted-interview
 level: advanced # beginner | intermediate | advanced
 reading_time: 11
@@ -246,7 +246,7 @@ than a simpler one you can.
 
 ## What to Read Next
 
-- [Chapter ?? — Listening and Thinking Aloud](#ch-thinking-aloud) — the narration technique this chapter
+- [Chapter ?? — Explaining and Thinking Aloud](#ch-thinking-aloud) — the narration technique this chapter
   raises the bar on, including what to say in the first five minutes
 - [Chapter ?? — AI in Interviews](#ch-ai-in-interviews) — the other half of the AI-era loop: the four AI
   *questions* a senior round asks, and the number that ends each one

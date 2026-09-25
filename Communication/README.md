@@ -1,11 +1,11 @@
 ---
 title: Part IX — Communication
 part: 9
-chapter: 8
+chapter: 6
 slug: communication-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-02
+updated: 2026-09-25
 tags: [communication, writing, thinking-aloud, listening, review]
 in_book: true
 ---
@@ -17,19 +17,18 @@ out that you know it. In a senior loop those are separate problems, and the seco
 candidates neglect — a correct design explained in the wrong order scores worse than a simpler design
 explained well.
 
-Four chapters cover the places where delivery decides the outcome: the spoken explanation, where the
-order you say things in changes whether they land; the technical round, where silence reads as being
-stuck; the written channels — pull requests, decision records, runbooks — where most senior influence
-happens; and the assisted round, where the model writes the code and your judgement is what is scored.
+Three chapters cover the places where delivery decides the outcome: the spoken round, where the order
+you say things in changes whether they land and silence reads as being stuck; the written channels —
+pull requests, decision records, runbooks — where most senior influence happens; and the assisted
+round, where the model writes the code and your judgement is what is scored.
 
 ## Chapters
 
 | #   | Chapter                                                      | What it answers                                            |
 | --- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| 01  | [Technical Communication](#ch-technical-communication)       | In what order does a listener need the pieces?             |
-| 02  | [Listening and Thinking Aloud](#ch-thinking-aloud)           | Are you answering the right question, out loud?            |
-| 03  | [Written Communication](#ch-written-communication)           | How do you write a PR, an ADR or a runbook people use?     |
-| 04  | [The AI-Assisted Interview](#ch-ai-assisted-interview)       | How do you use an assistant without removing the signal?   |
+| 01  | [Explaining and Thinking Aloud](#ch-thinking-aloud)          | Are you answering the right question, in the right order?  |
+| 02  | [Written Communication](#ch-written-communication)           | How do you write a PR, an ADR or a runbook people use?     |
+| 03  | [The AI-Assisted Interview](#ch-ai-assisted-interview)       | How do you use an assistant without removing the signal?   |
 
 Behavioural answers have their own section: STAR, the story bank and the delivery rules start at
 [Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework). Narrating a system design
@@ -48,16 +47,12 @@ Communication is how the part-level ownership becomes visible to someone else.
   asked is the signal.
 - **Do you check the question?** Restating a design prompt in one sentence before starting costs ten
   seconds and prevents solving the wrong problem for forty minutes.
-- **Can you disagree well?** Naming the trade-off rather than the preference, conceding the parts
-  that are right, and making it about the decision rather than the person. That is what chapter 03's
-  review-comment material is really teaching.
 - **Do you narrate or just do?** In a coding round, saying what you are about to try and why converts
   a wrong turn from a failure into a demonstration of method.
 
 ## Reading Order
 
-01 first — it sets the order-of-explanation idea the rest apply. 02 next if you have interviews booked;
-most answers fail before any knowledge is tested. 04 directly after 02, since it raises the same
-narration bar for a room where an assistant is allowed. 03 is worth returning to on the job instead.
+01 first — most answers fail before any knowledge is tested. 03 directly after, since it raises the
+same narration bar for a room where an assistant is allowed. 02 is worth returning to on the job.
 
-**Interview sprint:** 01 → 02 → 04.
+**Interview sprint:** 01 → 03.

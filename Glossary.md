@@ -98,7 +98,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Discriminated union** — A union of object types sharing a literal field, which lets the compiler narrow exhaustively. [TypeScript Type Guards](#ch-type-guards)
 
-**DORA metrics** — Deployment frequency, lead time for changes, change failure rate and time to restore. [Ways of Working](#ch-ways-of-working)
+**DORA metrics** — Deployment frequency, lead time for changes, change failure rate and time to restore. [Ways of Working and Engineering Culture](#ch-engineering-culture)
 
 ## E
 

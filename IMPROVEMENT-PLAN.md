@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-25 · **Progress:** 10 / 25
+**Last updated:** 2026-09-25 · **Progress:** 11 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -844,7 +844,7 @@ do not run the platform.
 
 ---
 
-### - [ ] 104. Cut Part IX — The Human Layer — to 1,800 lines `S`
+### - [x] 104. Cut Part IX — The Human Layer — to 1,800 lines `S` — ✅ **done 2026-09-25**
 
 From 2,500 lines across 13 files. The smallest part and the smallest cut — but two behavioural
 chapters overlap, and one communication chapter is thin.
@@ -859,6 +859,55 @@ Keep `04-the-ai-assisted-interview` whole. It is the most current chapter in the
 **Done when:** Part IX reads ≤ 1,800 lines, **`pnpm lint:docs` reports `budget` at 0 for the whole
 book**, the frontend spine line in `pnpm book:pages` is green (moved here from #98), and the checklist
 is green.
+
+**Delivered:**
+
+- **Part IX is 1,793 lines across 10 files** by `book:pages`, down from 2,500 across 13. That is 7 lines under
+  the 1,800 budget. It is 7 chapters in two sections, Behaviour 4 and Communication 3, and it prints on 43
+  pages, down from 61
+- 🔴 **Two of the three merges differ from the candidate table, on purpose.** The table folded *Ways of
+  Working* into *Leadership and Conflict*, and *Engineering Culture* into *Influence, Scope and Saying No*.
+  Neither pair shares an idea: DORA and WIP limits have nothing to do with conflict. The merges followed the
+  seams already in the text instead. The file count and the savings are the same:
+  - *Leadership, Influence and Saying No* (`#ch-leadership-teamwork`), `Behavioral/02`, takes in *Influence,
+    Scope and Saying No*. Both taught influence without authority, disagree and commit, and escalation. Two
+    of the old chapter's three STAR answers were cut: "led a project" repeated the STAR chapter's own worked
+    answer, and "the unpopular call" was dropped for length
+  - *Ways of Working and Engineering Culture* (`#ch-engineering-culture`), now `Behavioral/04`, takes in *Ways of
+    Working*. The two chapters already linked to each other. Material that Part VIII now teaches was replaced
+    by a link: deploy versus release and flags go to *Deployment Strategies, Rollback and Feature Flags*, and
+    error budgets go to *Metrics, Dashboards and Alerting*
+  - *Explaining and Thinking Aloud* (`#ch-thinking-aloud`), now `Communication/01`, takes in *Technical
+    Communication*, as the table said. The performance-story block went, because it repeated STAR's worked answer
+- **Trims elsewhere**, to reach the budget: *Written Communication* 272 → 219, with the code-comments section
+  cut and the PR checklist and feedback replies turned into prose. *STAR* 220 → 215 and *Problem Solving* 200 →
+  194, removing the "non-answers" that both chapters listed. The Part IX opener and both section READMEs were
+  rewritten for the new chapter tables, 204 → 190 lines. *The AI-Assisted Interview* is untouched, as the item
+  asked
+- **Files were renamed so numbering stays continuous:** `Behavioral/02-leadership-and-influence.md`,
+  `Behavioral/04-ways-of-working-and-culture.md`, and `Communication/01-thinking-aloud.md`,
+  `02-written-communication.md`, `03-the-ai-assisted-interview.md`. The site's Part IX sample chapter,
+  `star-framework`, is unchanged
+- **Archive:** three files are in `Archive/human-layer/{behavioral,communication}/`, with a README table.
+  `Archive/README.md` lists the directory
+- **The checklist:**
+  - `number:chapters` renumbered the part, and `--check` is clean
+  - Links to the three retired slugs were repointed: `Glossary.md` (DORA) and the section READMEs. Links that
+    still used an old title were retitled: `AI/07-ai-in-interviews.md`, the AI-assisted interview chapter, STAR,
+    and Problem Solving
+  - **`lint:docs` has all twelve rules at 0, and `budget` is at 0 for the whole book.** `.lint-baseline.json`
+    is committed at 0
+  - `index:questions` regenerated both indexes, and `index:check` passes: **647 questions across 150
+    chapters**, and 87 across 16 for Book 2
+  - `check:code-samples` passes syntax, and the type total fell from 979 to **974**, with the baseline committed
+  - `pnpm test` passes 36/36
+  - `pnpm book:pdf` gives **937 pages**, down from 956, which is inside the ~940 target. Every cross-reference
+    resolves to a chapter and a page, and the log has no missing-character warnings
+  - ✅ **The frontend spine is at 51.2%** (19,551 of 38,190 lines), above decision #2's 50% floor. This is the
+    final check #98 passed on to this item
+- **Not done:** `pnpm site:pages` still fails on the hand-written counts in `site/index.md` and
+  `site/.vitepress/config.ts`. That was already known at #103 and belongs to #114. The merged chapters were
+  written in this session and checked by the lint, but the plain-English pass is #113
 
 ---
 
@@ -1111,8 +1160,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 10/25 | 🚧 In progress |
-| **Total** | **25** | **10/25** | **40%** |
+| 9 | 95–116 · 95a · 113a · 113b | 11/25 | 🚧 In progress |
+| **Total** | **25** | **11/25** | **44%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

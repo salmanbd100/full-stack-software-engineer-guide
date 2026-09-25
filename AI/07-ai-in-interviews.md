@@ -94,7 +94,7 @@ step 5  search_docs({ q: "refund policy" })  →  []
 Identical arguments, identical result, no new information reaching the model. That is not a reasoning
 failure — it is a tool that cannot say "no match, try these terms instead", so an empty array reads as a
 transient error worth retrying. Then bisect out loud — narrating a diagnosis is its own skill, and
-[Chapter ?? — Listening and Thinking Aloud](#ch-thinking-aloud) is where it is taught — in this order:
+[Chapter ?? — Explaining and Thinking Aloud](#ch-thinking-aloud) is where it is taught — in this order:
 
 | Ask | If yes, the cause is | The fix |
 | --- | --- | --- |

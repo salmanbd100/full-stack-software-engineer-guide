@@ -5,7 +5,7 @@ chapter: 101
 slug: interview-question-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 40
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [back-matter, interview, index]
 in_book: true
 ---
@@ -17,7 +17,7 @@ in_book: true
 **In this index:** how to use it · every question in the book · grouped by part and chapter · each chapter linked
 
 Every question below is taken from the **Interview Questions** block that closes a chapter. There are
-**658 of them across 153 chapters**. The answers are not repeated here — they are in the chapter,
+**647 of them across 150 chapters**. The answers are not repeated here — they are in the chapter,
 which is what the link on each heading is for.
 
 ## How to Use It
@@ -841,50 +841,36 @@ _59 questions across 11 chapters._
 
 ## Part IX — The Human Layer
 
-_42 questions across 10 chapters._
+_31 questions across 7 chapters._
 
 - **[The STAR Framework and the Story Bank](#ch-star-framework)**
   - Your answer is running long and the interviewer looks restless. What do you do?
   - The question is about a situation you have genuinely never been in. Now what?
   - Why does "we" hurt an answer that is otherwise accurate?
   - When would you deliberately not use STAR?
-- **[Leadership, Teamwork and Conflict](#ch-leadership-teamwork)**
+- **[Leadership, Influence and Saying No](#ch-leadership-teamwork)**
   - How do you know when to compromise and when to hold the line?
   - What if the conflict never got resolved?
-  - You are the most senior engineer but not the lead. The lead makes a call you think is wrong. What now?
+  - How do you get technical debt prioritised when nobody wants to fund it?
+  - You think a feature is a waste of effort and you have been told to build it. What do you do?
   - When is mentoring the wrong thing to offer?
 - **[Problem Solving, Challenges and Failure](#ch-problem-solving)**
   - What if your hardest technical problem is not that impressive?
   - You are asked for a failure and every real one was partly someone else's fault. What do you say?
   - When is the right answer to stop debugging?
   - How do you tell a "risk that did not pay off" story without looking reckless?
-- **[Ways of Working](#ch-ways-of-working)**
-  - Your team runs two-week sprints but keeps missing the sprint goal because of incidents. What do you change?
-  - How do you ship to production daily when a feature takes three weeks to build?
-  - Which of the four DORA metrics would you look at first on joining a team, and why?
+- **[Ways of Working and Engineering Culture](#ch-engineering-culture)**
+  - Your team runs two-week sprints but keeps missing the goal because of incidents. What do you change?
+  - Which DORA metric would you look at first on joining a team, and why?
   - A director asks you to report deployment frequency per engineer. What do you say?
-  - When is Scrum the wrong choice?
-- **[Engineering Culture](#ch-engineering-culture)**
   - Tell me about an incident you were involved in and what changed afterwards.
-  - What does a blameless post-mortem actually look like in practice?
   - How would you improve a team's code review culture?
-  - How do you know whether a team's on-call is healthy?
-  - Your team is planned to full capacity every sprint and keeps missing dates. What is your argument?
-- **[Influence, Scope and Saying No](#ch-influence-scope-and-saying-no)**
-  - Tell me about a time you pushed back on a deadline.
-  - How do you get technical debt prioritised when nobody wants to fund it?
-  - You think a feature is a waste of effort and you have been told to build it. What do you do?
-  - When is "no" the whole answer?
-- **[Technical Communication](#ch-technical-communication)**
-  - How do you explain a technical trade-off to a product manager who wants both options?
-  - The interviewer clearly disagrees with your design mid-explanation. What do you do?
-  - When should you deliberately not simplify?
-  - How do you talk about work that was genuinely a team effort without either overclaiming or disappearing?
-- **[Listening and Thinking Aloud](#ch-thinking-aloud)**
+- **[Explaining and Thinking Aloud](#ch-thinking-aloud)**
   - How much clarifying is too much?
   - You realise ten minutes in that your approach will not work. What do you say?
-  - The interviewer asks you to optimise something already optimal. Now what?
-  - Does thinking aloud help in a system design round too, or only in coding?
+  - How do you explain a technical trade-off to a product manager who wants both options?
+  - The interviewer clearly disagrees with your design mid-explanation. What do you do?
+  - How do you talk about team work without overclaiming or disappearing?
 - **[Written Communication](#ch-written-communication)**
   - What makes a pull request easy to review?
   - Your team has no ADRs. How do you introduce them without a process mandate?

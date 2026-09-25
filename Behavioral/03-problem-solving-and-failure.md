@@ -125,13 +125,8 @@ about it.
 | The systemic change          | What now makes this failure impossible, or at least visible          |
 | Evidence the change stuck    | "On the next project it caught X" — otherwise it is a good intention |
 
-Three answers to avoid entirely, because interviewers hear them weekly and score them as evasion:
-
-| ❌ The non-answer                          | Why it fails                                                     |
-| ------------------------------------------ | ---------------------------------------------------------------- |
-| "I care too much about code quality"       | A strength in costume. It answers a question nobody asked         |
-| "I trusted a teammate who let me down"     | Blame with extra steps                                            |
-| "I once missed a typo in a config"         | Too small to have taught you anything                             |
+Avoid the strength in costume ("I care too much about code quality"), blame with extra steps ("I
+trusted a teammate who let me down"), and the failure too small to teach anything.
 
 ## Working Under Pressure
 
@@ -154,7 +149,6 @@ Calm is not the signal. The signal is that you reduced the number of things in p
 | "I noticed it might be X so I changed it"              | Say what evidence pointed at X. Guess-and-check is scored as guessing      |
 | Narrating a timeline instead of decisions              | Every step gets a "because". That is the whole answer                      |
 | Stopping the answer at the fix                          | Add the prevention. Half the marks for this category are in that sentence  |
-| "I solved it myself without asking anyone"              | Isolation is not a virtue at senior level. Say who you pulled in and why   |
 | A failure with no measurable cost                       | Pick a different failure. An interviewer cannot score a near miss          |
 | The root cause is a person                              | Keep asking why until it is a process. That is the point of the technique  |
 | "It was stressful but I stayed calm"                    | Describe what you cut. Calm without triage is not evidence of anything     |
@@ -196,5 +190,5 @@ result, which is a normal engineering outcome rather than a lapse in judgement.
 ## What to Read Next
 
 - [Chapter ?? — The STAR Framework and the Story Bank](#ch-star-framework) — the structure and the time budget
-- [Chapter ?? — Leadership, Teamwork and Conflict](#ch-leadership-teamwork) — the other half of the behavioural loop
-- [Chapter ?? — Engineering Culture](#ch-engineering-culture) — blameless post-mortems, which is this chapter as a practice
+- [Chapter ?? — Leadership, Influence and Saying No](#ch-leadership-teamwork) — the other half of the behavioural loop
+- [Chapter ?? — Ways of Working and Engineering Culture](#ch-engineering-culture) — blameless post-mortems, which is this chapter as a practice

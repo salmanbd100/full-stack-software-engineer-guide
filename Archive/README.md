@@ -81,6 +81,8 @@ Archive/
 │   └── foundations/ integration/ rag/ agents/ production/ aiux/   11 merged, 1 archived
 ├── ship-and-operate/    ← #103: what Part VIII shed reaching 3,400 lines — see its README
 │   └── git/ containers/ cicd/ observability/ cloud/ deployment/   7 merged, 2 archived, 1 section folded
+├── human-layer/        ← #104: what Part IX shed reaching 1,800 lines — see its README
+│   └── behavioral/ communication/   3 merged
 ├── backend/             ← #31c, #56a: the 22 files Part V shed reaching its 6,500-line budget
 │   ├── api/                 1 — documentation, merged into API/03 (versioning and contracts)
 │   ├── nodejs/              5 — security folded into Backend/Security/; child processes and

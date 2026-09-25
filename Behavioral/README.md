@@ -5,7 +5,7 @@ chapter: 1
 slug: behavioral-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 3
-updated: 2026-09-02
+updated: 2026-09-25
 tags: [behavioral, star, leadership, conflict, interviews, agile, culture]
 in_book: true
 ---
@@ -20,21 +20,18 @@ the interviewer can hear them, plus a coverage grid: ten to twelve stories, chos
 them they answer almost any question you will be asked. Preparing per question does not scale;
 preparing per story does.
 
-The last two chapters are the raw material rather than the technique. A behavioural round asks how
-your team delivers and how it handles failure, and those answers are much stronger with the
-vocabulary — batch size, work in progress, the four DORA metrics, blameless post-mortems, a rotation
-deep enough to be humane — than without it.
+The last chapter is raw material rather than technique. A behavioural round asks how your team
+delivers and handles failure, and those answers are stronger with the vocabulary — batch size, work in
+progress, the four DORA metrics, blameless post-mortems.
 
 ## Chapters
 
 | #  | Chapter                                                                         | What it answers                                                  |
 | -- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | 01 | [The STAR Framework and the Story Bank](#ch-star-framework)                 | How do you keep the setup from eating the answer?                |
-| 02 | [Leadership, Teamwork and Conflict](#ch-leadership-teamwork)            | How do you show influence without authority, and disagree well?  |
+| 02 | [Leadership, Influence and Saying No](#ch-leadership-teamwork)          | How do you lead without authority, and refuse so it reads as judgement? |
 | 03 | [Problem Solving, Challenges and Failure](#ch-problem-solving)  | How do you show method rather than heroics, and own a real failure? |
-| 04 | [Ways of Working](#ch-ways-of-working)                                      | What do the four DORA metrics measure, and what corrupts them?   |
-| 05 | [Engineering Culture](#ch-engineering-culture)                              | Which practices only look like ownership, review and safety?     |
-| 06 | [Influence, Scope and Saying No](#ch-influence-scope-and-saying-no)         | How do you refuse something so it reads as judgement, not obstruction? |
+| 04 | [Ways of Working and Engineering Culture](#ch-engineering-culture)          | What do the DORA metrics measure, and which practices only look healthy? |
 
 ## What Interviewers Probe For
 
@@ -51,18 +48,15 @@ In a behavioural round the part-level signal means owning the decision, includin
   failure that is secretly a strength is transparent and scores badly.
 - **Did you influence without authority?** At senior level the question behind most leadership
   prompts is whether you can get a team to a decision you do not have the power to impose.
-- **Do your questions show you understood the role?** The final five minutes are still scored. A
-  question about how the team decides what *not* to build is worth ten about the tech stack.
 - **Can you describe how your team works without reciting a framework?** "We do two-week sprints" is
   a fact. Knowing why the sprint keeps failing, what work in progress costs, and which metric a
   director will ask for and should not get, is the senior version.
 
 ## Reading Order
 
-01 first, and before anything else — the framework and the coverage grid are what make the rest
-usable. Then 02, 03 and 06 as the story categories to fill the grid with. 04 and 05 next, because they
-are where several of those stories come from, and 05's closing section is what to reread the morning
-of the interview.
+01 first — the framework and the coverage grid make the rest usable. Then 02 and 03, the story
+categories to fill the grid with. 04 last: it is where several of those stories come from, and its
+closing section is what to reread the morning of the interview.
 
 **Interview sprint:** 01 → 03. Structure, then the failure story, which is the one candidates most
 reliably get wrong.

@@ -5,7 +5,7 @@ chapter: 101
 slug: dsa-question-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 5
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [back-matter, companion, interview, index]
 in_book: true
 ---

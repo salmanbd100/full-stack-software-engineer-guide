@@ -1,7 +1,7 @@
 ---
 title: Written Communication
 part: 9
-chapter: 11
+chapter: 8
 slug: written-communication
 level: intermediate # beginner | intermediate | advanced
 reading_time: 12
@@ -14,7 +14,7 @@ in_book: true
 
 > Write the documents a senior engineer is judged on — the pull request, the decision record, the runbook, and the note that unblocks a decision across time zones.
 
-**In this chapter:** where a document belongs · pull requests and review comments · decision records · runbooks · deciding asynchronously · comments that earn their place
+**In this chapter:** where a document belongs · pull requests and review comments · decision records · runbooks · deciding asynchronously
 
 ## 💡 The Core Idea
 
@@ -66,15 +66,10 @@ Bundle −140KB · LCP 5.2s → 1.4s on the p75 report
 Is `ReportShell` the right seam, or should the boundary be per-widget?
 ```
 
-Five things make the difference, and none of them is length:
-
-| ✅ Do                                             | ❌ Don't                                        |
-| ------------------------------------------------- | ----------------------------------------------- |
-| A title that says what changed                     | "misc fixes", "updates"                          |
-| Explain **why**, and name the rejected alternative | Restate the diff in prose                        |
-| Before/after screenshots for any UI change          | Make the reviewer run it to see it               |
-| Keep it under ~400 lines                           | Send 1,000 lines and hope                        |
-| Name the one thing you want scrutinised            | Leave the reviewer to guess where the risk is    |
+None of what makes the difference is length. A title that says what changed, not "misc fixes". The
+**why**, with the rejected alternative, not the diff restated in prose. Before and after screenshots for
+any UI change. Under about 400 lines. And the one thing you want scrutinised, so the reviewer does not
+have to guess where the risk is.
 
 ## Review Comments
 
@@ -94,27 +89,12 @@ execute SQL. Use a parameterised query:
 Non-blocking — consider useMemo
 
 This filter runs on every render. Over ~500 items it will jank on
-low-end devices. Not blocking at current list sizes, but worth a
-ticket as the list grows.
+low-end devices. Not blocking at current sizes, but worth a ticket.
 ```
 
-```text
-Nit — "recieve" → "receive" on line 45
-```
-
-**Receiving feedback well is the same skill inverted.** Three responses cover almost everything: accept
-and say what you changed, ask for the reasoning, or disagree with a reason and an offer:
-
-```text
-"Good catch — parameterised now."
-
-"I'd like to understand the concern before I change it. Is it the
-allocation, or the readability?"
-
-"I chose this because the two callers need different error shapes.
-The alternative duplicates the parser. Happy to talk it through if
-you still think the duplication is cheaper."
-```
+**Receiving feedback is the same skill inverted.** Three responses cover almost everything: accept and
+say what you changed ("good catch — parameterised now"), ask for the reasoning ("is the concern the
+allocation, or the readability?"), or disagree with a reason and an offer to talk it through.
 
 ⚠️ "This works fine" and "I don't think that's a problem" end the conversation without resolving it.
 Either the objection is answered or the code changes — those are the two exits.
@@ -164,15 +144,7 @@ The document that matters most at 3am, and the one judged by entirely different 
 | A verification step after each action | Answers "how do I know it worked?"            |
 | A rollback for each action            | Every step has to be reversible               |
 | A "last tested" date                  | Separates a real runbook from a theoretical one |
-| What it does **not** cover            | Stops it being applied to the wrong incident  |
 | Linked from the alert itself          | Found in seconds rather than searched for     |
-
-```yaml
-annotations:
-  summary: "Checkout API p99 latency above SLO"
-  description: "p99 is {{ $value }}s, SLO is 0.8s"
-  runbook_url: "https://github.com/acme/platform/blob/main/runbooks/checkout-latency.md"
-```
 
 > ⚠️ **An untested runbook is worse than no runbook,** because it is trusted. Exercise them
 > deliberately and put the date at the top.
@@ -205,31 +177,6 @@ A longer proposal — an RFC or design document — is the same shape expanded: 
 alternatives with the reason each was rejected, risks with mitigations, success metrics, and the open
 questions you actually want answered. If the alternatives section is empty, it is not a proposal, it is
 an announcement.
-
-## Comments That Earn Their Place
-
-```typescript
-// ❌ Restates the code — delete it
-// Increment counter
-counter++;
-
-// ✅ Explains a constraint the code cannot show
-// Step by 2: odd indices hold metadata, not data
-counter += 2;
-
-// ✅ Explains why this algorithm, not what it does
-// Binary search, not linear: events are guaranteed sorted by timestamp.
-// O(log n) vs O(n); cost is maintaining sort order on insert.
-function findEventByTime(events: Event[], targetTime: number): Event | null {
-  // …
-}
-
-// ✅ A TODO someone can act on
-// TODO(salman): remove once the new API client migration lands — JIRA-1234
-```
-
-An unowned, undated `TODO` is a comment that will outlive the codebase. Put a name and a ticket on it
-or delete it.
 
 ## 🔑 Key Takeaways
 
@@ -267,6 +214,6 @@ writing, the medium is wrong and a fifteen-minute call is the answer.
 
 ## What to Read Next
 
-- [Chapter ?? — Technical Communication](#ch-technical-communication) — the spoken counterpart of the same skill
-- [Chapter ?? — Engineering Culture](#ch-engineering-culture) — the review and on-call practices these documents serve
+- [Chapter ?? — Explaining and Thinking Aloud](#ch-thinking-aloud) — the spoken counterpart of the same skill
+- [Chapter ?? — Ways of Working and Engineering Culture](#ch-engineering-culture) — the review and on-call practices these documents serve
 - [Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow) — the mechanics around the pull request

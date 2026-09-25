@@ -72,8 +72,7 @@ the bottleneck, but the ordering decision is yours and it is the part
 worth defending.
 ```
 
-Notice what the Result does. It gives a number, then a second-order outcome — something that outlived
-the project — then a learning that is specific rather than a platitude.
+The Result gives a number, then something that outlived the project, then a specific learning.
 
 ## Failure Stories Are Different
 
@@ -152,9 +151,6 @@ than the wording:
 | **Failure**    | Do you fix systems or fix incidents?                 | A time you failed · your biggest mistake              |
 | **Impact**     | Can you name what changed because of you?            | Proudest work · went above and beyond                 |
 
-⚠️ A sixth category, **innovation**, is worth a cell but rarely worth a dedicated story. "Tell me about
-an innovative solution" is usually answered best from the challenge row, with the novel part expanded.
-
 ## When to Use It
 
 STAR fits questions about the past. It fits badly on everything else, and forcing it is a tell.
@@ -175,7 +171,6 @@ STAR fits questions about the past. It fits badly on everything else, and forcin
 | "We decided", "we built", "we shipped"                   | Say what **you** did. Credit the team once, in the Result, and move on         |
 | Actions listed with no reasoning                          | Attach a "because" to at least two steps. That is where seniority shows        |
 | A result with no number                                   | Any measurable: latency, error rate, review turnaround, hours saved, headcount |
-| Reaching for the story you prepared rather than the one asked | Pause for two seconds and pick. A slightly worse fit told honestly scores higher |
 | Ending on the result                                      | End on the learning. It is the only part that says you would do it better now   |
 
 ## 🔑 Key Takeaways
@@ -216,5 +211,5 @@ with "let me tell you about a time" answers a question that was not asked.
 ## What to Read Next
 
 - [Chapter ?? — Problem Solving, Challenges and Failure](#ch-problem-solving) — the two hardest categories, in depth
-- [Chapter ?? — Leadership, Teamwork and Conflict](#ch-leadership-teamwork) — the categories the grid usually leaves thinnest
-- [Chapter ?? — Technical Communication](#ch-technical-communication) — the same delivery discipline outside the behavioural round
+- [Chapter ?? — Leadership, Influence and Saying No](#ch-leadership-teamwork) — the categories the grid usually leaves thinnest
+- [Chapter ?? — Explaining and Thinking Aloud](#ch-thinking-aloud) — the same delivery discipline outside the behavioural round
