@@ -12,17 +12,16 @@ in_book: true
 
 # Part II — Accessibility
 
-Five chapters on the topic that changed status in June 2025. The European Accessibility Act became
-enforceable, and accessibility stopped being a quality argument a product manager could defer and became
-a requirement with a named standard, a conformance level and an audit. For a senior engineer working on
-anything sold into the EU, that makes this one of the two subjects — with internationalisation — where
-knowing the detail is worth more than knowing another framework.
+Five chapters on the topic that changed status in June 2025. That month the European Accessibility Act
+became enforceable. Accessibility stopped being a quality argument a product manager could defer. It
+became a requirement with a named standard, a conformance level and an audit. For a senior engineer
+working on anything sold into the EU, this is one of two subjects where knowing the detail is worth more
+than knowing another framework. The other is internationalisation.
 
 The section is built around one claim: **most accessibility work is choosing the right element and
-deciding where focus goes.** ARIA is the small remainder, and the law is why anyone is asking. How you
-find out whether you got it right — the axe gate in CI and the two manual passes — is
-[Chapter ?? — Testing Accessibility](#ch-testing-accessibility), which sits with the rest of testing in
-Part IV.
+deciding where focus goes.** ARIA is the small remainder, and the law is why anyone is asking. To find
+out whether you got it right, you use the axe gate in CI and two manual passes. Those live in
+[Chapter ?? — Testing Accessibility](#ch-testing-accessibility), with the rest of testing in Part IV.
 
 ## Chapters
 
@@ -41,24 +40,25 @@ attribute.**
 
 - **Is accessibility a decision or a fix?** A candidate who answers a custom-dropdown question with
   `role` and `aria-label` has started in the wrong place. The first move is asking whether a `<select>`
-  will do, and the second is naming the APG pattern rather than inventing a keyboard model.
-- **Do you know what the target is?** WCAG 2.2 AA, because that is the level the European Accessibility
-  Act, the Web Accessibility Directive, ADA Title II and Section 508 all name. "We follow best practice"
-  is not an answer a procurement review accepts.
+  will do. The second is naming the APG pattern (the W3C's ARIA Authoring Practices Guide) rather than
+  inventing a keyboard model.
+- **Do you know what the target is?** WCAG 2.2 AA. It is the level that the European Accessibility Act,
+  the Web Accessibility Directive, ADA Title II and Section 508 all name. "We follow best practice" is not
+  an answer a procurement review accepts.
 - **Where does focus go?** Ask it about a dialog closing, a row being deleted, a failed submit or a
   client-side route change. Four answers, and most candidates have thought about one.
-- **What can you not automate?** Naming the ceiling — automated rules catch a third to a half of criteria
-  — and then naming the two manual passes is what separates someone who has shipped an accessible product
+- **What can you not automate?** First, name the ceiling: automated rules catch a third to a half of
+  criteria. Then name the two manual passes. That separates someone who has shipped an accessible product
   from someone who has installed axe.
 - **Can you cost it?** A custom combobox is a week of work and a permanent maintenance cost. Saying so in
-  the estimate is a senior contribution; discovering it in the sprint is not.
+  the estimate is a senior contribution. Discovering it in the sprint is not.
 
 ## Reading Order
 
-01 first, because it sets the target every other chapter is measured against, then 02, which is the
-mental model the rest depends on — you cannot debug an announcement without reading the tree. Then 04 and
-05, which is where most of the daily work is. 03 sits after 02 deliberately: ARIA makes sense once you
-know what it is writing into.
+Read 01 first, because it sets the target every other chapter is measured against. Then read 02, the
+mental model the rest depends on. You cannot debug an announcement without reading the tree. Then 04 and
+05, where most of the daily work is. 03 sits after 02 on purpose: ARIA makes sense once you know what it
+writes into.
 
 **Interview sprint:** 01, 04 and the interview questions in 03. The legal frame, the focus decisions, and
 the first rule of ARIA cover most of what a frontend loop asks. "What can you not automate?" is the

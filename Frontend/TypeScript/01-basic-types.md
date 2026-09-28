@@ -12,7 +12,7 @@ in_book: true
 
 # TypeScript Basic Types, Literals and Enums {#ch-basic-types}
 
-> Annotate only where inference cannot reach, know what `any`, `unknown` and `never` each cost you, and model a fixed set of values without shipping a runtime object nobody asked for.
+> Annotate only where inference cannot reach. Know what `any`, `unknown` and `never` each cost you. Model a fixed set of values without shipping a runtime object nobody asked for.
 
 **In this chapter:** annotation vs inference · `any` vs `unknown` vs `never` · arrays, tuples and functions · literal unions vs `as const` vs `enum` · what exists at runtime
 
@@ -20,8 +20,8 @@ in_book: true
 
 TypeScript's type system exists at compile time and disappears at runtime. That one fact explains its
 shape. It can prove things about your code before it runs, and nothing once it is running. So good
-TypeScript puts types where the compiler cannot work them out — function boundaries and external data
-— and stays quiet where inference already knows the answer.
+TypeScript puts types where the compiler cannot work them out: at function boundaries and on external
+data. Elsewhere it stays quiet, because inference already knows the answer.
 
 The same fact decides how to model "one of these five values". A literal union exists only at compile
 time. An `as const` object is a plain object you can iterate. An `enum` is generated code. Choose by
@@ -30,8 +30,8 @@ whether you need the values at runtime.
 ## How It Works
 
 `number` covers integers and floats alike. `bigint` does not mix with it. `null` means deliberate
-absence and `undefined` means not yet set. `strictNullChecks` is what makes those two mean anything:
-without it they fit every type, and the compiler cannot catch the commonest runtime error there is.
+absence and `undefined` means not yet set. `strictNullChecks` is what makes those two mean anything.
+Without it they fit every type, and the compiler cannot catch the most common runtime error of all.
 
 ### Annotation versus inference
 
@@ -139,11 +139,11 @@ log('INFO', 'started'); // ❌ string enums are nominal
 
 > ⚠️ **Moving target:** the ecosystem is moving against syntax that emits code. TypeScript 5.8 added
 > `erasableSyntaxOnly`, and Node.js strips types rather than compiling them, so `enum` is losing
-> support. The durable principle outlives the flags: prefer the form that disappears at build time,
+> support. The lasting rule outlives the flags. Prefer the form that disappears at build time,
 > and pay for a runtime object only when you need to iterate the values.
 
 A numeric enum still fits one case: **bitwise flags**, such as `Permission.Read | Permission.Write`.
-There the type is meant to be open. Everywhere else that openness is a bug — any number fits, so
+There the type is meant to be open. Everywhere else that openness is a bug. Any number fits, so
 `setStatus(99)` compiles.
 
 ## When to Use It
@@ -182,7 +182,7 @@ verifies nothing. Only a runtime guard establishes the shape.
 
 > ⚠️ Types are erased at build time. There is no `instanceof MyInterface`, and nothing stops a
 > wrongly-shaped JSON payload or an invalid role string at the boundary. Validate external input at
-> runtime — a schema library, or `ROLES.includes(value)` against an `as const` array.
+> runtime, with a schema library or with `ROLES.includes(value)` against an `as const` array.
 
 ## 🔑 Key Takeaways
 
@@ -198,7 +198,7 @@ verifies nothing. Only a runtime guard establishes the shape.
 
 Both accept any value. `any` also allows any operation, so it switches type checking off for that
 value and everything derived from it. `unknown` allows nothing until you narrow it. At a boundary
-that is what you want — the compiler forces the validation you should write anyway.
+that is what you want. The compiler forces the validation you should write anyway.
 
 **Q: TypeScript compiled with no errors. What can still go wrong at runtime?**
 
@@ -208,8 +208,8 @@ erasure means none of these are checked, which is why validation belongs at the 
 
 **Q: Should you use `enum` in new TypeScript?**
 
-Usually not. It emits runtime code, does not tree-shake, its string form rejects raw values from an
-API, and it fails under type-stripping runtimes. A literal union covers most needs, and an `as const`
+Usually not. It emits runtime code, and bundlers cannot tree-shake it. Its string form rejects raw
+values from an API, and it fails under type-stripping runtimes. A literal union covers most needs, and an `as const`
 object covers the rest with iteration.
 
 **Q: When would you keep enums in a codebase that has them?**

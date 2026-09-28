@@ -13,14 +13,14 @@ in_book: true
 # Part I — OOP and Design Patterns
 
 Object orientation is not a vocabulary test, and neither are patterns. Nobody senior is asked to
-define encapsulation or recite the Gang of Four. What gets asked is the underlying question — *this
-conditional keeps growing, what do I do about it*, *why did that hierarchy become unmaintainable* —
-and whether you can name the cost of the structure you propose.
+define encapsulation or recite the Gang of Four. Interviewers ask the question underneath: *this
+conditional keeps growing, what do I do about it*, or *why did that hierarchy become unmaintainable*.
+They also want to hear you name the cost of the structure you propose.
 
-A warning that runs through the whole section: **TypeScript is not Java.** Several classic patterns
-collapse into a function, a module or a union type here, and structural typing changes what
-polymorphism costs. Where that is true, the chapter says so rather than dressing a one-liner in a
-class hierarchy.
+One warning runs through the whole section: **TypeScript is not Java.** Here, several classic
+patterns shrink to a function, a module or a union type. Structural typing (matching types by shape,
+not by name) also changes what polymorphism costs. Where that is true, the chapter says so. It does
+not dress a one-liner in a class hierarchy.
 
 ## Chapters
 
@@ -37,15 +37,15 @@ For patterns specifically: *can justify a structure rather than apply one by ref
 - **Can you name the problem before the pattern?** "I would use a strategy here" is a weaker answer
   than "this switch will gain a branch every time we add a payment provider, and each branch touches
   the same function." The pattern is the second half of the answer, not the first.
-- **Do you know what `private` actually does?** TypeScript's `private` is erased at compile time and a
-  cast reaches straight through it; `#field` is enforced by the JavaScript runtime. Candidates who
-  know the difference have usually debugged something real.
+- **Do you know what `private` actually does?** The compiler erases TypeScript's `private`, and a
+  cast reaches straight through it. The JavaScript runtime enforces `#field`. Candidates who know
+  the difference have usually debugged something real.
 - **Do you know the TypeScript-native form?** A strategy is often a `Record<Kind, Handler>`. A
-  singleton is usually a module. An observer is frequently an `EventTarget`. Reaching for a class
+  singleton is usually a module. An observer is often an `EventTarget`. Reaching for a class
   hierarchy when the language already has the mechanism is a mid-level tell.
-- **Can you argue against SOLID?** Interface segregation applied literally produces a dozen
-  one-method interfaces nobody reads. The senior answer applies the principle where churn actually
-  happens and says why it was skipped elsewhere.
+- **Can you argue against SOLID?** Applied literally, interface segregation produces a dozen
+  one-method interfaces nobody reads. The senior answer applies the principle where churn (frequent
+  change) actually happens. It also says why the principle was skipped elsewhere.
 
 ## Reading Order
 

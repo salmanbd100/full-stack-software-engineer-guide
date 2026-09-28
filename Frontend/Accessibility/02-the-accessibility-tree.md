@@ -18,15 +18,15 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A screen reader never reads your DOM. The browser builds a second structure from it — the
-**accessibility tree** — and exposes that to assistive technology through the operating system. Each node
+A screen reader never reads your DOM. The browser builds a second structure from it, the
+**accessibility tree**. The operating system exposes that tree to assistive technology. Each node
 carries at most four things: a **role** (what this is), a **name** (what to call it), a **state** (what is
 true now), and **properties** (what is permanently true).
 
 Almost every accessibility bug is a mismatch between what you meant and what landed in that tree. A
 `<div onclick>` produces a node with no role and no name, so there is nothing to announce and nothing to
-focus. An icon button produces a node with a role and an empty name, so it announces as "button" and the
-user has to guess. Neither is visible in the browser window, and both are obvious in the tree.
+focus. An icon button produces a node with a role and an empty name. It announces as "button", and the
+user has to guess. Neither bug is visible in the browser window, and both are obvious in the tree.
 
 > Stop reasoning about what a screen reader "will say". Open the tree and read the node. It is a data
 > structure, not a black box.
@@ -51,8 +51,8 @@ HTML + ARIA + CSS  →  DOM  →  accessibility tree  →  platform API  →  sc
 | **Properties** | What is always true? | `aria-describedby`, `aria-required`, `aria-haspopup`, level |
 
 A native element fills in all four. `<input type="checkbox" checked>` is role `checkbox`, state
-`checked`, name from its `<label>`, and it updates its own state when clicked. The equivalent `div`
-supplies none of it and never will, because ARIA describes and does not implement — see
+`checked`, with its name from its `<label>`. It also updates its own state when clicked. The equivalent
+`div` supplies none of this and never will, because ARIA describes and does not implement. See
 [Chapter ?? — ARIA, and When Not to Use It](#ch-aria).
 
 ### How the accessible name is computed
@@ -81,11 +81,11 @@ produces a non-empty string wins.
 <button aria-label="Submit">Save</button>
 ```
 
-That last case is a real failure and a frequent one: a voice-control user says "click Save" and nothing
+That last case is a real failure and a frequent one. A voice-control user says "click Save" and nothing
 happens, because the name in the tree is "Submit". **Where visible text exists, name from it.**
 
-Descriptions are separate. `aria-describedby` adds text announced *after* the name, which is where hints
-and error messages belong — see [Chapter ?? — Accessible Forms and Error Messaging](#ch-accessible-forms).
+Descriptions are separate. `aria-describedby` adds text that the screen reader announces *after* the name.
+Hints and error messages belong there. See [Chapter ?? — Accessible Forms and Error Messaging](#ch-accessible-forms).
 
 ### What removes a node from the tree
 
@@ -100,8 +100,8 @@ Four mechanisms, and they differ in ways that matter.
 | Visually-hidden utility class | No | **Yes** | Yes |
 
 `aria-hidden` on anything focusable creates a control the keyboard can reach and the screen reader cannot
-describe: the user tabs to something and hears nothing. Use `inert` for a whole region that is temporarily
-unavailable — behind a modal, for instance — because it removes interactivity and focusability together.
+describe. The user tabs to something and hears nothing. Use `inert` for a whole region that is temporarily
+unavailable, such as the page behind a modal. It removes interactivity and focusability together.
 
 ```css
 /* Present to assistive technology, absent from the screen. */
@@ -115,13 +115,13 @@ unavailable — behind a modal, for instance — because it removes interactivit
 }
 ```
 
-That class is how you give an icon-only control a name that also works for voice control, and how a table
-gets a caption a designer refused. `display: none` cannot do this job.
+That class gives an icon-only control a name that also works for voice control. It also gives a table
+the caption a designer refused. `display: none` cannot do this job.
 
 ### Landmarks and headings are the navigation
 
-Screen reader users do not scroll. They jump — by landmark, by heading, by link, by form control. That
-makes document structure the primary navigation mechanism, not decoration.
+Screen reader users do not scroll. They jump by landmark (a region such as `main` or `navigation`), by
+heading, by link or by form control. So document structure is the main navigation, not decoration.
 
 | Element | Landmark role | Notes |
 | --- | --- | --- |
@@ -132,9 +132,9 @@ makes document structure the primary navigation mechanism, not decoration.
 | `<footer>` | `contentinfo` | Only when a direct child of `<body>` |
 | `<section>` | `region` | **Only if it has an accessible name** |
 
-A bare `<section>` produces no landmark at all, which is why the `aria-labelledby` pattern above is the
-difference between a navigable page and a flat one. Headings work the same way: they build an outline the
-user moves through, so **skipping from `h1` to `h4` breaks navigation** even though it looks identical.
+A bare `<section>` produces no landmark at all. So the `aria-labelledby` pattern above is the difference
+between a navigable page and a flat one. Headings work the same way: they build an outline the user moves
+through. **Skipping from `h1` to `h4` breaks navigation**, even though it looks identical.
 The element catalogue behind all of this is [Chapter ?? — Semantic HTML](#ch-semantic-html).
 
 ### Inspecting it
@@ -178,24 +178,24 @@ fix a problem the author never actually inspected.
 
 **❌ An `aria-label` that contradicts the visible text**
 
-> The tree wins, so voice control stops working and the announcement no longer matches the screen. Name
+> The tree wins. Voice control stops working, and the announcement no longer matches the screen. Name
 > from visible text with `aria-labelledby` instead.
 
 **❌ Using `title` as the name**
 
-> It is the lowest-priority source, it does not appear on touch or keyboard focus, and screen reader
+> It is the lowest-priority source. It does not appear on touch or keyboard focus, and screen reader
 > support for it varies. It is a hint, never a name.
 
 **❌ Styling a heading level to fit the design**
 
-> Heading levels are the outline users navigate. Pick the level for structure and use CSS for size —
-> `<h2 class="text-sm">` is correct, `<h4>` for visual reasons is not.
+> Heading levels are the outline users navigate. Pick the level for structure and use CSS for size.
+> `<h2 class="text-sm">` is correct; `<h4>` for visual reasons is not.
 
 ## 🔑 Key Takeaways
 
 - Assistive technology reads the accessibility tree, not the DOM, and each node carries a role, a name, a state and properties.
 - The accessible name is computed in a fixed order: `aria-labelledby`, then `aria-label`, then native labelling, then text content, then `title`.
-- Where visible text exists, name from it — an `aria-label` that disagrees with the screen breaks voice control.
+- Where visible text exists, name from it. An `aria-label` that disagrees with the screen breaks voice control.
 - `aria-hidden` hides a node from the tree but leaves it focusable, which is the most common way to strand a keyboard user.
 - Landmarks and heading levels are navigation, so an unnamed `<section>` and a skipped heading both cost users a route through the page.
 
@@ -204,39 +204,39 @@ fix a problem the author never actually inspected.
 **Q: What is the accessibility tree, and why does it matter to you rather than to a specialist?**
 
 It is the structure the browser derives from the DOM and exposes to assistive technology through the
-platform API, with one node per meaningful element carrying a role, name, state and properties. It matters
-because it is inspectable: instead of speculating about what a screen reader will say, I open the
-Accessibility pane and read the computed node. Most defects are visible there as a missing role or an
-empty name, and neither is visible on screen.
+platform API. It has one node per meaningful element, and each node carries a role, name, state and
+properties. It matters because I can inspect it. Instead of guessing what a screen reader will say, I open
+the Accessibility pane and read the computed node. Most defects show there as a missing role or an empty
+name, and neither is visible on screen.
 
 **Q: How is an accessible name computed?**
 
 In precedence order: `aria-labelledby`, `aria-label`, native labelling like `<label for>` or `alt`, then
 the element's own text content, then `title` as a last resort. The practical rule is to prefer
-`aria-labelledby` pointing at visible text, because a written `aria-label` overrides what the user can see
-— which breaks voice control when the two disagree, and drifts the moment someone edits the button text.
+`aria-labelledby` pointing at visible text. A written `aria-label` overrides what the user can see. That
+breaks voice control when the two disagree, and it drifts the moment someone edits the button text.
 
 **Q: What is the difference between `hidden`, `aria-hidden` and `inert`?**
 
 `hidden` and `display: none` remove the element from both the screen and the tree, so it is neither
-visible nor focusable. `aria-hidden="true"` removes it from the tree only — it stays visible and stays
-focusable, which is why putting it on a button strands keyboard users on a control with nothing to
-announce. `inert` keeps the element in the tree but makes it non-interactive and unfocusable, which is
-what you want for the page behind an open modal.
+visible nor focusable. `aria-hidden="true"` removes it from the tree only. It stays visible and stays
+focusable. On a button, that strands keyboard users on a control with nothing to announce. `inert` keeps
+the element in the tree but makes it non-interactive and unfocusable. That is what you want for the page
+behind an open modal.
 
 **Q: A `<section>` is not showing up as a landmark. Why?**
 
 Because `<section>` only maps to the `region` role when it has an accessible name. Adding
-`aria-labelledby` pointing at its heading gives it one, which is also the pattern that keeps the landmark
-label and the visible heading in sync. The same is true of `<nav>` when there are several — without labels
-the user hears "navigation" three times and cannot tell them apart.
+`aria-labelledby` pointing at its heading gives it one. The same pattern keeps the landmark label and the
+visible heading in sync. The same is true of `<nav>` when there are several. Without labels, the user
+hears "navigation" three times and cannot tell them apart.
 
 **Q: When is it right to hide something from screen readers?**
 
-When it is genuinely redundant or decorative: a decorative image gets `alt=""`, an icon sitting beside its
-own text label gets `aria-hidden` so it is not announced twice, and offscreen carousel slides get removed
-from the tree along with their focusability. What is never right is hiding something the user can still
-reach with a keyboard, or hiding real content because its announcement is inconvenient.
+When it is genuinely redundant or decorative. A decorative image gets `alt=""`. An icon beside its own
+text label gets `aria-hidden`, so the screen reader does not announce it twice. Offscreen carousel slides
+leave the tree and lose their focusability together. It is never right to hide something the user can
+still reach with a keyboard. Nor is it right to hide real content because its announcement is inconvenient.
 
 ## What to Read Next
 

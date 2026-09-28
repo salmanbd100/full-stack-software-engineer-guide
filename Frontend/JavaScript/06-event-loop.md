@@ -18,10 +18,10 @@ in_book: true
 
 ## 💡 The Core Idea
 
-JavaScript runs on one thread with one call stack. Asynchronous work is not run by JavaScript at all —
-the host (the browser, or Node.js) does it and puts a callback on a queue. The event loop is the rule
-for choosing what to run next, and it has one shape worth memorising: **run all synchronous code,
-then drain the entire microtask queue, then take exactly one task.** Every ordering puzzle in an
+JavaScript runs on one thread with one call stack. JavaScript does not run asynchronous work at all.
+The host (the browser, or Node.js) does it and puts a callback on a queue. The event loop is the rule
+for choosing what to run next. It has one shape worth memorising: **run all synchronous code, then
+drain the entire microtask queue, then take exactly one task.** Every ordering puzzle in an
 interview is that sentence applied.
 
 ## How It Works
@@ -80,8 +80,8 @@ setTimeout((): void => console.log('task B'), 0);
 
 ### Why microtasks can starve tasks
 
-A microtask that queues another microtask is appended to the same drain. The loop does not move on
-until the queue is empty, so a self-scheduling microtask hangs the page — no timers, no input, no
+A microtask that queues another microtask joins the same drain. The loop does not move on until the
+queue is empty. So a self-scheduling microtask hangs the page, with no timers, no input and no
 paint:
 
 ```typescript
@@ -90,14 +90,14 @@ function starve(): void {
 }
 ```
 
-`setTimeout`-based recursion has the opposite property: each callback is a separate task, so the
+Recursion through `setTimeout` behaves the opposite way. Each callback is a separate task, so the
 browser gets a chance to render between them.
 
 ### Rendering and the frame budget
 
-The browser can only paint between tasks — never in the middle of one, and never during a microtask
-drain. At 60 frames per second the whole turn has about **16 milliseconds**. A single 50 ms
-synchronous function drops three frames, which is what "janky" means in a profiler.
+The browser can only paint between tasks. It never paints in the middle of one, or during a
+microtask drain. At 60 frames per second, the whole turn has about **16 milliseconds**. A single
+50 ms synchronous function drops three frames. That is what "janky" means in a profiler.
 
 ```typescript
 // ❌ one long task — the tab is frozen for three seconds
@@ -117,14 +117,14 @@ while (Date.now() - start < 3000) {
 | To keep a long computation off the main thread | A Web Worker                         | Chunking hides jank; a worker removes it          |
 
 To chunk a long job, slice the work and `await` a `setTimeout(resolve, 0)` between slices. The yield
-**must** be a task: awaiting an already-resolved promise queues a microtask, which the loop drains
+**must** be a task. Awaiting an already-resolved promise queues a microtask. The loop drains it
 before it moves on, so nothing is painted.
 
 ## Common Mistakes
 
-**❌ Reading `setTimeout(fn, 0)` as "run now".** It means "queue a task", which waits for all
-synchronous code and every pending microtask. Browsers also clamp nested timers to roughly 4 ms and
-throttle them hard in background tabs.
+**❌ Reading `setTimeout(fn, 0)` as "run now".** It means "queue a task". That task waits for all
+synchronous code and every pending microtask. Browsers also clamp nested timers to roughly 4 ms, and
+they throttle them hard in background tabs.
 
 **❌ Assuming `await` makes surrounding code wait.** `await` suspends its own function and returns
 control to the loop. Two async functions started together interleave:
@@ -135,7 +135,7 @@ void task2(); // logs 'start', suspends — before task1 resumes
 ```
 
 **❌ Expecting a state update to be visible in the same turn.** In React 19 the value is a `const`
-captured by that render's closure, so nothing scheduled from the handler can see the new one:
+captured by that render's closure. So nothing scheduled from the handler can see the new one:
 
 ```tsx
 const handleClick = (): void => {
@@ -148,12 +148,12 @@ const handleClick = (): void => {
 The re-render happens later, with a new closure. Use the updater form, `setCount((c) => c + 1)`, when
 the next value depends on the current one.
 
-**❌ Using a microtask to "yield".** Microtasks are drained before the loop moves on, so awaiting a
-resolved promise inside a loop yields nothing at all and still blocks rendering.
+**❌ Using a microtask to "yield".** The loop drains microtasks before it moves on. So awaiting a
+resolved promise inside a loop yields nothing at all, and it still blocks rendering.
 
-> ⚠️ Node.js has extra phases the browser does not: `process.nextTick` drains before other
-> microtasks, and `setImmediate` is a distinct phase from timers. The synchronous → microtask → task
-> ordering still holds; the detail inside the task phase differs.
+> ⚠️ Node.js has extra phases the browser does not. `process.nextTick` drains before other
+> microtasks, and `setImmediate` is a separate phase from timers. The synchronous → microtask → task
+> ordering still holds. Only the detail inside the task phase differs.
 
 ## 🔑 Key Takeaways
 
@@ -168,21 +168,21 @@ resolved promise inside a loop yields nothing at all and still blocks rendering.
 **Q: What does this log — `setTimeout(() => log('A'), 0)` then `Promise.resolve().then(() => log('B'))`?**
 
 `B` then `A`. The promise callback is a microtask and the timer callback is a task. When the
-synchronous script finishes, the loop drains every microtask before picking up a single task, so the
+synchronous script finishes, the loop drains every microtask before it picks up a single task. So the
 zero-millisecond timer still comes second.
 
 **Q: How can a page freeze even though nothing is synchronously blocking?**
 
-A microtask that schedules another microtask. The loop drains the queue to empty before it advances,
-so a self-scheduling promise chain never lets a task run or a frame paint. Recursion through
-`setTimeout` avoids this because each callback is its own task.
+A microtask that schedules another microtask can freeze it. The loop drains the queue to empty before
+it advances. So a self-scheduling promise chain never lets a task run or a frame paint. Recursion
+through `setTimeout` avoids this, because each callback is its own task.
 
 **Q: When would you reach for a Web Worker instead of chunking work with `setTimeout`?**
 
-When the work is genuinely CPU-heavy and cannot be interrupted cleanly — parsing a large file,
-running a diff, image processing. Chunking spreads jank rather than removing it and adds coordination
-code. A worker moves the work off the main thread entirely; the cost is structured-clone message
-passing and no DOM access.
+Reach for one when the work is genuinely CPU-heavy and cannot be interrupted cleanly. Examples are
+parsing a large file, running a diff or processing images. Chunking spreads jank rather than removing
+it, and it adds coordination code. A worker moves the work off the main thread entirely. The cost is
+structured-clone message passing (copying data between threads) and no DOM access.
 
 ## What to Read Next
 

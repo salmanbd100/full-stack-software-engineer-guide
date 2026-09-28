@@ -19,14 +19,14 @@ in_book: true
 ## 💡 The Core Idea
 
 Focus is the keyboard user's cursor. Everything about keyboard accessibility follows from treating it that
-way: you can always see where it is, it moves in an order that matches the page, and after any action that
+way. You can always see where it is, and it moves in an order that matches the page. After any action that
 changes what is on screen, **somebody has to decide where it goes.** Skip that decision and the browser
-makes a bad one — usually back to the top of the document, so the user tabs through the header again to
-get back to where they were.
+makes a bad one. Usually it sends focus back to the top of the document, and the user tabs through the
+header again to get back.
 
-This is also the accessibility area that helps the widest group of people. Screen reader users depend on
-it, keyboard-only users depend on it, users with tremors or RSI depend on it, and power users of your own
-product notice immediately when it is good.
+This is also the accessibility area that helps the widest group of people. Screen reader users,
+keyboard-only users, and users with tremors or RSI (repetitive strain injury) all depend on it. Power
+users of your own product notice at once when it is good.
 
 > Two questions catch most defects. Can I do this with a keyboard? After I do it, where is focus?
 
@@ -44,9 +44,9 @@ strong rule and one small vocabulary.
 | `tabindex="-1"` | Focusable by script, skipped by Tab | A focus target after an action |
 | `tabindex="1"` and above | **Jumps ahead of everything** | Never |
 
-A positive `tabindex` pulls the element in front of the entire natural order, so the sequence drifts every
-time the markup changes and nobody remembers why. If the tab order is wrong, **fix the DOM order** — CSS
-`order` and `grid-area` do not move focus, which is the most common cause of a visually sensible page that
+A positive `tabindex` pulls the element in front of the entire natural order. The sequence then drifts
+every time the markup changes, and nobody remembers why. If the tab order is wrong, **fix the DOM order**.
+CSS `order` and `grid-area` do not move focus. That is the most common reason a page looks sensible but
 tabs sideways.
 
 ### Focus has to be visible
@@ -62,15 +62,14 @@ tabs sideways.
 }
 ```
 
-`:focus-visible` exists precisely because the reason people delete outlines is that they appear on mouse
-click. The browser's own heuristic already solves that, so there is no remaining argument for
-`outline: none`.
+People delete outlines because they appear on mouse click. `:focus-visible` exists for exactly that
+reason. The browser's own heuristic already solves the problem, so no argument for `outline: none` is left.
 
-Two details worth knowing. **1.4.11 requires 3 : 1 contrast** for the indicator against adjacent colours,
-which rules out a faint one-pixel line; the 2 px thickness and 3 : 1 shape written above comes from 2.4.13
-Focus Appearance, which is AAA but is the practical bar a design system should hit. And **2.4.11 Focus Not
-Obscured**, new at AA in WCAG 2.2, means a sticky header or cookie bar must not completely cover the
-focused element — add `scroll-margin-top` to focusable content instead of discovering it in an audit.
+Two details are worth knowing. First, **1.4.11 requires 3 : 1 contrast** for the indicator against
+adjacent colours, which rules out a faint one-pixel line. The 2 px, 3 : 1 ring above comes from 2.4.13
+Focus Appearance. That criterion is AAA, but it is the practical bar a design system should hit. Second,
+**2.4.11 Focus Not Obscured** is new at AA in WCAG 2.2. A sticky header or cookie bar must not completely
+cover the focused element. Add `scroll-margin-top` to focusable content, rather than finding out in an audit.
 
 ### A skip link, still
 
@@ -82,14 +81,14 @@ The first Tab stop on a page with a large header should let the user reach the c
 <main id="main" tabindex="-1">…</main>
 ```
 
-`tabindex="-1"` on the target matters: without it some browsers move the viewport but not focus, so the
+`tabindex="-1"` on the target matters. Without it, some browsers move the viewport but not focus, so the
 next Tab continues from the header. The link may be visually hidden until focused, but it must become
 visible when it is.
 
 ### Modals: the native element does four things for you
 
-A dialog owes the user four behaviours — focus moves in, Tab stays inside, Escape closes, focus returns to
-whatever opened it. `<dialog>` with `showModal()` supplies three of the four plus an inert background.
+A dialog owes the user four behaviours. Focus moves in, Tab stays inside, Escape closes, and focus returns
+to whatever opened it. `<dialog>` with `showModal()` supplies three of the four, plus an inert background.
 
 ```typescript
 const dialog = document.querySelector<HTMLDialogElement>('#confirm')!;
@@ -104,12 +103,13 @@ function openConfirm(trigger: HTMLElement): void {
 }
 ```
 
-Add `autofocus` to the element that should receive focus inside — usually the first input, or the safest
-button in a destructive confirmation. **A hand-rolled focus trap in 2027 is a signal that the wrong
-element was chosen**, and it is nearly always subtly wrong: shadow DOM, iframes and dynamically added
+Add `autofocus` to the element that should receive focus inside. That is usually the first input, or the
+safest button in a destructive confirmation. **A hand-rolled focus trap in 2027 signals that someone chose
+the wrong element.** It is also nearly always subtly wrong. Shadow DOM, iframes and dynamically added
 content all defeat a `querySelectorAll` of focusable selectors.
 
-Where a modal is not the pattern — a side panel, a mega-menu — `inert` does the containment on its own.
+Where a modal is not the pattern, such as a side panel or a mega-menu, `inert` does the containment on its
+own. An inert element cannot be focused, clicked or read by assistive technology.
 
 ```typescript
 // Everything outside the panel becomes non-interactive and unfocusable.
@@ -129,8 +129,8 @@ This is the decision that separates a competent implementation from a good one.
 | Client-side route change | The `<h1>` or `<main>` of the new view | Nothing moves focus on a client-side navigation |
 | Async result arrives | **Nowhere** — announce it in a live region | Moving focus for something the user did not initiate is hostile |
 
-The route-change row is the one single-page applications routinely miss. A real navigation resets focus to
-the document; a client-side route change does not, so the user tabs from wherever they were on the
+Single-page applications routinely miss the route-change row. A real navigation resets focus to the
+document. A client-side route change does not, so the user tabs on from wherever they were on the
 previous page.
 
 ```typescript
@@ -144,20 +144,20 @@ function focusNewView(): void {
 
 ### Composite widgets have their own key model
 
-Inside a tab list, a toolbar, a tree or a grid, Tab is not the navigation. The widget is **one** Tab stop
-and arrow keys move within it, which is what users of those patterns expect.
+Inside a tab list, a toolbar, a tree or a grid, Tab is not the navigation. The widget is **one** Tab stop,
+and arrow keys move within it. That is what users of those patterns expect.
 
 | Technique | How it works | Fits |
 | --- | --- | --- |
 | **Roving `tabindex`** | Exactly one child has `tabindex="0"`, the rest `-1`; arrow keys move it | Tabs, toolbars, radio-style groups |
 | **`aria-activedescendant`** | DOM focus stays on the container; the attribute names the active child | Comboboxes, large listboxes |
 
-The trade is that a roving `tabindex` gives you real DOM focus — so `:focus-visible` styling and native
-scrolling work — while `aria-activedescendant` keeps typing in the input, which is why a combobox needs it.
+Here is the trade. A roving `tabindex` gives you real DOM focus, so `:focus-visible` styling and native
+scrolling work. `aria-activedescendant` keeps typing in the input, which is why a combobox needs it.
 
-> ⚠️ WCAG 2.2 added 2.5.7 Dragging Movements at AA: anything reordered by dragging needs a single-pointer
-> alternative. A keyboard route through a drag-and-drop list — Move up, Move down, or cut and paste
-> semantics — satisfies both that criterion and every keyboard user.
+> ⚠️ WCAG 2.2 added 2.5.7 Dragging Movements at AA. Anything reordered by dragging needs a single-pointer
+> alternative. Give a drag-and-drop list a keyboard route, such as Move up, Move down, or cut and paste.
+> That satisfies both the criterion and every keyboard user.
 
 ## When to Use It
 
@@ -177,7 +177,7 @@ scrolling work — while `aria-activedescendant` keeps typing in the input, whic
 
 **❌ A positive `tabindex` to "fix" the order**
 
-> It jumps the element ahead of the whole document and the sequence rots as the markup changes. Move the
+> It jumps the element ahead of the whole document, and the sequence rots as the markup changes. Move the
 > element instead.
 
 **❌ Closing a dialog without returning focus**
@@ -194,50 +194,48 @@ scrolling work — while `aria-activedescendant` keeps typing in the input, whic
 
 ## 🔑 Key Takeaways
 
-- Tab order comes from the DOM, so only `tabindex="0"` and `tabindex="-1"` are safe values and CSS reordering never moves focus.
-- `:focus-visible` gives keyboard users a ring without showing one on mouse click, so there is no remaining reason to remove outlines.
-- `<dialog>` with `showModal()` supplies focus containment, an inert background and Escape; returning focus to the trigger is still yours.
-- Every action that changes what is on screen needs an explicit decision about where focus lands — especially a client-side route change.
-- Inside tabs, toolbars and comboboxes the widget is one Tab stop and arrow keys navigate, via a roving `tabindex` or `aria-activedescendant`.
+- Tab order comes from the DOM, so only `tabindex="0"` and `tabindex="-1"` are safe. CSS reordering never moves focus.
+- `:focus-visible` gives keyboard users a ring without showing one on mouse click, so no reason is left to remove outlines.
+- `<dialog>` with `showModal()` supplies focus containment, an inert background and Escape. Returning focus to the trigger is still your job.
+- Every action that changes what is on screen needs an explicit decision about where focus lands, especially a client-side route change.
+- Inside tabs, toolbars and comboboxes, the widget is one Tab stop and arrow keys navigate inside it, via a roving `tabindex` or `aria-activedescendant`.
 
 ## Interview Questions
 
 **Q: What is wrong with removing focus outlines, and what do you do instead?**
 
-It deletes the only indication a keyboard user has of where they are, which fails 2.4.7 and makes the
-product unusable without a mouse. The motivation is that the ring shows on mouse click, and
-`:focus-visible` already solves exactly that — the browser shows the indicator for keyboard interaction
-and suppresses it for pointer. I would also check the ring meets 3 : 1 against adjacent colours, because a
-faint one-pixel outline passes review and fails an audit.
+It deletes the only sign a keyboard user has of where they are. That fails 2.4.7 and makes the product
+unusable without a mouse. People remove it because the ring shows on mouse click, and `:focus-visible`
+already solves exactly that: the browser shows the ring for keyboard use and hides it for a pointer. I
+would also check it meets 3 : 1 against adjacent colours. A faint outline passes review and fails an audit.
 
 **Q: A dialog opens and Tab keeps moving through the page behind it. What is happening?**
 
-Focus was never moved into the dialog and the background was never made inert, so it is a styled overlay
-rather than a modal. With `<dialog>` and `showModal()` the browser moves focus in, inerts everything
-behind it and closes on Escape. If the markup cannot change, `inert` on the page container is the smallest
-correct fix — and either way I would add the focus return to the trigger on close, because nothing does
-that for you.
+Nothing moved focus into the dialog, and nothing made the background inert. It is a styled overlay, not a
+modal. With `<dialog>` and `showModal()`, the browser moves focus in, inerts everything behind it and
+closes on Escape. If the markup cannot change, `inert` on the page container is the smallest correct fix.
+Either way, I would add the focus return to the trigger on close, because nothing does that for you.
 
 **Q: Where should focus go after the user deletes a row from a table?**
 
-Not nowhere, which is what happens by default — the trigger has been removed, so focus falls to the body.
-The next row's action button is usually right, or the previous row if the deleted one was last, or the
-table's heading when the list is now empty. I would also announce the deletion in a polite live region,
-because a focus move alone does not tell a screen reader user what happened.
+Not nowhere, which is what happens by default. The trigger has gone, so focus falls to the body. The next
+row's action button is usually right. Use the previous row if the deleted one was last, or the table's
+heading when the list is now empty. I would also announce the deletion in a polite live region. A focus
+move alone does not tell a screen reader user what happened.
 
 **Q: How is keyboard navigation in a single-page application different?**
 
-A real navigation resets focus to the top of the new document; a client-side route change does not, so the
-user is left focused on a link that no longer exists in the layout. The fix is to move focus to the new
-view's heading with `tabindex="-1"` on route change, which both places the tab sequence correctly and gets
-the new page title announced. It is the most commonly missing piece in an SPA.
+A real navigation resets focus to the top of the new document. A client-side route change does not, so
+the user stays focused on a link that is no longer in the layout. The fix is to move focus to the new
+view's heading, with `tabindex="-1"`, on route change. That places the tab sequence correctly and gets
+the new page title announced. It is the piece an SPA most often misses.
 
 **Q: When should arrow keys navigate rather than Tab?**
 
-Inside a composite widget — tabs, a toolbar, a menu, a tree, a grid. The whole widget should be a single
-Tab stop so a keyboard user can move past it in one press, with arrows moving inside. I would implement it
-with a roving `tabindex` so DOM focus is real and `:focus-visible` works, except in a combobox, where
-`aria-activedescendant` is needed so typing stays in the input while the highlight moves.
+Inside a composite widget, such as tabs, a toolbar, a menu, a tree or a grid. The whole widget should be
+a single Tab stop, so a keyboard user can move past it in one press. Arrows move inside it. I would use a
+roving `tabindex`, so DOM focus is real and `:focus-visible` works. The exception is a combobox. There
+`aria-activedescendant` keeps typing in the input while the highlight moves.
 
 ## What to Read Next
 

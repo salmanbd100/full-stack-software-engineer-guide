@@ -19,11 +19,11 @@ in_book: true
 ## 💡 The Core Idea
 
 Internationalisation is not translation. It is removing every assumption your interface makes about
-language: that text reads left to right, that a noun has two plural forms, that a date is day, slash,
-month, and that a label still fits its button.
+language. Text reads left to right. A noun has two plural forms. A date is day, slash, month. A label
+still fits its button.
 
-Remove those assumptions and adding a language is a content task. Skip it and adding a language is a
-rewrite, because each assumption is baked into the markup and the layout.
+Remove those assumptions, and adding a language is a content task. Skip this work, and adding a language
+is a rewrite, because each assumption is baked into the markup and the layout.
 
 | | Internationalisation (i18n) | Localisation (l10n) |
 | - | --------------------------- | ------------------- |
@@ -49,17 +49,17 @@ so a translator cannot translate a fragment on its own.
 t("inbox.unread", { count });
 ```
 
-Name keys for **meaning**, such as `document.action.save`. Never use the English text as the key: the
+Name keys for **meaning**, such as `document.action.save`. Never use the English text as the key. The
 day someone edits the English copy, every translation silently detaches.
 
 ### The locale lives in the URL
 
 A locale held only in `localStorage` cannot be shared, linked, crawled or server-rendered. Put it in a
-URL segment such as `/de/…`, use a stored preference as the tiebreaker, and fall back to
+URL segment such as `/de/…`. Use a stored preference as the tiebreaker, and fall back to
 `navigator.languages`. An explicit choice always outranks a detected one.
 
-Switching locale is three side effects. The last two are the ones people forget, and they are what
-screen readers and right-to-left layout depend on.
+Switching locale is three side effects. People forget the last two, and screen readers and right-to-left
+layout depend on them.
 
 ```typescript
 const RTL_LANGUAGES: readonly string[] = ["ar", "he", "fa", "ur"];
@@ -78,8 +78,8 @@ English has two plural forms. That is an accident of history, not a rule of lang
 form. Russian has three for whole numbers, chosen by the last digit. Arabic has six, including a form
 for exactly two.
 
-The Unicode CLDR data names six categories — `zero`, `one`, `two`, `few`, `many` and `other` — and each
-language uses a subset. The browser ships this data, so you ask the locale instead of guessing.
+Unicode CLDR (shared locale data) names six categories: `zero`, `one`, `two`, `few`, `many` and
+`other`. Each language uses a subset. The browser ships this data, so you ask the locale, not guess.
 
 **Asking the platform which form a number takes:**
 
@@ -94,14 +94,14 @@ new Intl.PluralRules("ru").resolvedOptions().pluralCategories; // ["few", "many"
 
 So `count === 1 ? "item" : "items"` is not a simplification. It is a bug that happens to be invisible
 in English. Translation libraries select the key from `count`, so the component is the same in every
-locale. When one sentence varies on two axes — plural and gender, for example — ICU MessageFormat keeps
+locale. Sometimes one sentence varies on two axes, such as plural and gender. ICU MessageFormat keeps
 it in one string: `{count, plural, one {# document} other {# documents}}`.
 
 ### Dates, numbers and time zones
 
 Every locale writes the same value differently. `1.234,56` is about a thousand in Germany. `03/04/2026`
 is March in one country and April in another. The correct answer is data, and the browser ships it as
-the `Intl` APIs. Hand `Intl` a value, a locale and an intent. Never build a formatted string by hand.
+the `Intl` APIs. Give `Intl` a value, a locale and an intent. Never build a formatted string by hand.
 
 **Formatting at the edge, with an explicit time zone:**
 
@@ -124,10 +124,10 @@ new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" }).format(-1, "day"); // 
 ```
 
 Three rules make this correct. **Construct once and reuse**: building a formatter costs far more than
-formatting with it, so keep it at module scope or in a map keyed by locale. **Send values, not strings**:
+formatting with it. Keep it at module scope or in a map keyed by locale. **Send values, not strings**:
 a server that sends `"1.234,56"` has made a value the client cannot re-render, sort or add up. **Store
-instants in UTC**, and store a future appointment as a wall-clock time plus an IANA zone name, because
-governments change daylight-saving rules and a stored offset goes wrong.
+instants in UTC**, and store a future appointment as a wall-clock time plus an IANA zone name (such as
+`Europe/Berlin`). Governments change daylight-saving rules, and a stored offset then goes wrong.
 
 > ⚠️ **Moving target:** the `Temporal` API is arriving in browsers and replaces `Date` for arithmetic,
 > zoned date-times and durations. The durable principle stays the same: instants in UTC, zones as IANA
@@ -135,9 +135,9 @@ governments change daylight-saving rules and a stored offset goes wrong.
 
 ### Right-to-left is one stylesheet
 
-Set `dir="rtl"` and the browser reverses the inline direction, flips flexbox and grid, and runs the
-bidirectional algorithm over mixed text. Everything you wrote as `left` and `right` stays where it
-was — and that is the whole bug.
+Set `dir="rtl"`, and the browser reverses the inline direction and flips flexbox and grid. It also runs
+the bidirectional algorithm over mixed text. But everything you wrote as `left` and `right` stays where
+it was. That is the whole bug.
 
 | Physical — breaks in RTL | Logical — works in both |
 | ------------------------ | ----------------------- |
@@ -154,7 +154,7 @@ was — and that is the whole bug.
 }
 ```
 
-Mirror only icons that point along the reading direction — arrows, chevrons, reply. Home, search and
+Mirror only icons that point along the reading direction, such as arrows, chevrons and reply. Home, search and
 media controls stay as they are. For user-generated content in an unknown language, `dir="auto"` lets
 the browser infer direction from the text itself.
 
@@ -190,14 +190,14 @@ reads a grammar mistake. Lint translation files against `pluralCategories`.
 
 **❌ Wrong — testing RTL with English text.** `dir="rtl"` over English copy finds the easy layout bugs
 and hides the real ones: mixed-direction punctuation, clipped labels, mirrored icons that should not
-be. Test with real Arabic or Hebrew strings, or a pseudo-locale.
+be. Test with real Arabic or Hebrew strings, or a pseudo-locale (fake text that mimics a translation).
 
 ## 🔑 Key Takeaways
 
-- Internationalisation removes assumptions about language; localisation supplies the content for one locale.
+- Internationalisation removes assumptions about language. Localisation supplies the content for one locale.
 - A translation key holds a whole sentence, because word order differs and a fragment cannot be translated alone.
 - The number of plural forms belongs to the locale, so ask `Intl.PluralRules` rather than writing `count === 1`.
-- Format dates, numbers and currency with a cached `Intl` formatter and an explicit time zone, and send raw values from the server.
+- Format dates, numbers and currency with a cached `Intl` formatter and an explicit time zone. Send raw values from the server.
 - Right-to-left support is one stylesheet written in logical properties, plus `dir` and `lang` on the root element.
 
 ## Interview Questions
@@ -205,14 +205,14 @@ be. Test with real Arabic or Hebrew strings, or a pseudo-locale.
 **Q: Why can you not build a sentence by joining translated fragments?**
 
 Word order is not universal. "You have 3 unread messages" reorders in German and changes structure in
-Japanese, and a translator working on a fragment has no sentence to reason about. One key per sentence,
+Japanese. A translator working on a fragment has no sentence to reason about. One key per sentence,
 with named placeholders, lets the translator move the placeholders where the grammar needs them.
 
 **Q: Why is `count === 1 ? 'item' : 'items'` wrong?**
 
 It treats English grammar as universal. Russian picks its form from the last digit, so 21 takes the
-singular; Arabic has a form for exactly two; Chinese has no plural at all. The correct version asks the
-locale, through `Intl.PluralRules` or a translation library that wraps it.
+singular. Arabic has a form for exactly two, and Chinese has no plural at all. The correct version asks
+the locale, through `Intl.PluralRules` or a translation library that wraps it.
 
 **Q: How would you show a price to users in several countries?**
 
@@ -223,8 +223,8 @@ Norwegian separators around a euro symbol, and yen correctly gets no decimal pla
 **Q: How would you add right-to-left support to an existing app?**
 
 Set `dir` and `lang` on the root element from the resolved locale. Replace physical CSS properties with
-logical ones — that is most of the work, and a lint rule can drive it. Then audit with real RTL copy:
-absolutely positioned elements, icons and `row-reverse` are where the remaining bugs hide.
+logical ones. That is most of the work, and a lint rule can drive it. Then audit with real RTL copy.
+The remaining bugs hide in absolutely positioned elements, icons and `row-reverse`.
 
 **Q: When would you not add an i18n library?**
 

@@ -19,13 +19,13 @@ in_book: true
 ## 💡 The Core Idea
 
 The browser already knows when an element enters the viewport, changes size, or gets a new child. Before
-the observers, the only way to find out was to ask — a `scroll` listener that runs on every frame, a
-`resize` listener that fires in a storm, a `setInterval` that checks the DOM. All of that runs on the
-main thread, and the work you do inside it usually reads geometry, which forces the browser to finish
+the observers, the only way to find out was to ask. You wrote a `scroll` listener that runs on every
+frame, a `resize` listener that fires in a storm, or a `setInterval` that checks the DOM. All of that runs
+on the main thread. The work inside it usually reads geometry, and that forces the browser to finish
 layout before it can answer.
 
-An observer inverts it. You register interest once, the browser calls you when the thing actually
-happens, and it delivers the measurements it had already computed — so nothing you do forces a layout.
+An observer turns this around. You register interest once, and the browser calls you when the thing
+actually happens. It hands you the measurements it had already computed, so nothing you do forces a layout.
 
 > The observers are not a nicer syntax for a scroll handler. They are the difference between reading
 > geometry the browser has already calculated and making it calculate geometry again to answer you.
@@ -44,7 +44,7 @@ Four observers, one shape. You construct with a callback, call `observe` on targ
 
 ### IntersectionObserver
 
-The one that matters most in interviews, because lazy loading, infinite scroll, sticky-header state and
+This is the one that matters most in interviews. Lazy loading, infinite scroll, sticky-header state and
 impression tracking are all the same problem.
 
 ```typescript
@@ -63,13 +63,13 @@ const observer = new IntersectionObserver(
 document.querySelectorAll("img[data-src]").forEach((img: Element) => observer.observe(img));
 ```
 
-`threshold` is how much of the element must be visible: `0` means one pixel, `1` means all of it, and an
+`threshold` is how much of the element must be visible. `0` means one pixel, `1` means all of it, and an
 array asks to be called at each crossing. `root` defaults to the viewport and can be any scrolling
 ancestor.
 
 ### ResizeObserver
 
-Element-level sizing, which `resize` on the window cannot give you — a sidebar can change width because
+This gives you sizing per element, which `resize` on the window cannot. A sidebar can change width because
 a panel opened, with no window event at all.
 
 ```typescript
@@ -88,20 +88,20 @@ resize.observe(chart);
 
 > ⚠️ **Writing to the DOM inside a `ResizeObserver` callback can loop.** If the callback changes a size
 > that the observer is watching, it fires again. The browser detects the cycle and logs
-> `ResizeObserver loop completed with undelivered notifications` rather than hanging — treat that message
+> `ResizeObserver loop completed with undelivered notifications` rather than hanging. Treat that message
 > as a bug in your callback, not as noise to filter out of the console.
 
 ### MutationObserver
 
-For DOM you do not control — a third-party widget, a rich-text editor, content injected by an extension.
-Inside your own components, state is the answer and a mutation observer is a sign something has gone
-wrong.
+Use this for DOM you do not control, such as a third-party widget, a rich-text editor, or content that an
+extension injects. Inside your own components, state is the answer. A mutation observer there is a sign
+something has gone wrong.
 
 ### PerformanceObserver
 
-The only correct way to read Core Web Vitals, because the metrics change after the page has loaded. LCP
-updates as larger elements appear; CLS accumulates until the page is hidden. A snapshot taken at
-`load` measures none of it.
+This is the only correct way to read Core Web Vitals, because the metrics change after the page has
+loaded. LCP (largest contentful paint) updates as larger elements appear. CLS (cumulative layout shift)
+keeps adding up until the page is hidden. A snapshot taken at `load` measures none of it.
 
 ```typescript
 // `buffered: true` delivers entries recorded before this observer existed.
@@ -128,9 +128,9 @@ observer entirely, and the platform version is always cheaper than yours.
 
 ## Common Mistakes
 
-**❌ Never disconnecting.** An observer holds a reference to its targets and its callback holds whatever
-it closes over, so a component that observes and never disconnects leaks its whole scope. Disconnect in
-the teardown — `useEffect`'s cleanup, `onDestroy`, `disconnectedCallback`.
+**❌ Never disconnecting.** An observer holds a reference to its targets, and its callback holds whatever
+it closes over. So a component that observes and never disconnects leaks its whole scope. Disconnect in
+the teardown: `useEffect`'s cleanup, `onDestroy`, or `disconnectedCallback`.
 
 ```typescript
 // The cleanup is the API contract, not an optimisation.
@@ -146,54 +146,53 @@ their entries into one callback. A thousand instances is a thousand callbacks an
 already measured. Calling `getBoundingClientRect()` on the target inside the callback forces a fresh
 layout and throws away the entire advantage.
 
-**❌ Assuming the callback fires in order with rendering.** Observer callbacks are delivered as
-microtasks or at frame boundaries depending on the observer, so DOM you write in one may not be measured
-by another until the next frame. Do not build a synchronous chain out of them.
+**❌ Assuming the callback fires in order with rendering.** Some observers deliver callbacks as
+microtasks, and others at frame boundaries. So DOM you write in one callback may not reach another
+observer until the next frame. Do not build a synchronous chain out of them.
 
 ## 🔑 Key Takeaways
 
-- Observers invert the question: the browser tells you when something happened, instead of you asking on
-  every frame.
-- Entries arrive with measurements already computed, so reading them does not force layout — calling
+- Observers turn the question around: the browser tells you when something happened, instead of you asking
+  on every frame.
+- Entries arrive with measurements already computed, so reading them does not force layout. Calling
   `getBoundingClientRect()` inside the callback does.
 - One observer instance handles many targets, and every observer must be disconnected in teardown or it
   leaks.
 - `ResizeObserver` watches the element, not the window, which is the case a `resize` listener can never
   cover.
-- Prefer the platform where it exists — `loading="lazy"`, `content-visibility`, container queries and
+- Prefer the platform where it exists. `loading="lazy"`, `content-visibility`, container queries and
   `position: sticky` each remove the need for an observer.
 
 ## Interview Questions
 
 **Q: Why is `IntersectionObserver` faster than a scroll listener that does the same job?**
 
-Two reasons. A scroll handler runs on the main thread for every scroll event, whether or not anything
-crossed a boundary, and the usual implementation calls `getBoundingClientRect()`, which forces the
-browser to flush layout before it can answer. The observer does the intersection test off the main
-thread where the browser can, and delivers geometry it had already computed. The handler competes with
-rendering; the observer is told by it.
+Two reasons. First, a scroll handler runs on the main thread for every scroll event, whether or not
+anything crossed a boundary. Second, it usually calls `getBoundingClientRect()`, which forces the browser
+to flush layout before it can answer. The observer does the intersection test off the main thread where
+the browser can, and delivers geometry it had already computed. The handler competes with rendering; the
+observer is told by it.
 
 **Q: When would you use a `ResizeObserver` rather than a container query?**
 
 When something other than CSS needs the number. A container query can restyle a component at a given
-width with no JavaScript, and that is the right tool for layout changes. A canvas chart that has to
-re-render at the new pixel size, or a virtualised list that needs to recompute how many rows fit, needs
-the actual measurement — that is `ResizeObserver`.
+width with no JavaScript, and that is the right tool for layout changes. But some code needs the actual
+measurement. A canvas chart must re-render at the new pixel size, and a virtualised list must recompute
+how many rows fit. That is `ResizeObserver`.
 
 **Q: What breaks if you forget to disconnect an observer?**
 
-The observer keeps a reference to every observed element, and the callback keeps a reference to
-everything in its closure — typically the component's state and props. So an unmounted component stays
-reachable, along with any DOM it was watching, and the leak grows with every mount. It is one of the few
-memory leaks that is easy to reproduce: mount and unmount a route a hundred times and watch the detached
-node count climb in a heap snapshot.
+The observer keeps a reference to every observed element. The callback keeps a reference to everything in
+its closure, typically the component's state and props. So an unmounted component stays reachable, along
+with any DOM it was watching, and the leak grows with every mount. This leak is easy to reproduce. Mount
+and unmount a route a hundred times, and watch the detached node count climb in a heap snapshot.
 
 **Q: Why is `PerformanceObserver` the right way to collect Core Web Vitals?**
 
 Because the values are not final when the page loads. The largest contentful paint can change as bigger
-elements arrive, and layout shift accumulates until the page is hidden. Reading
-`performance.getEntries()` at `load` captures an early guess. The observer, with `buffered: true`, gets
-entries recorded before it existed and keeps receiving updates, which is why the field libraries are all
+elements arrive, and layout shift keeps adding up until the page is hidden. Reading
+`performance.getEntries()` at `load` captures an early guess. With `buffered: true`, the observer gets
+entries recorded before it existed and keeps receiving updates. That is why the field libraries are all
 built on it.
 
 ## What to Read Next

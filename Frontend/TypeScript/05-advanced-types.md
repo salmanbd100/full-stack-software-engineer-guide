@@ -19,13 +19,13 @@ in_book: true
 ## 💡 The Core Idea
 
 Every type you write by hand twice will disagree with itself one day. Utility types make one model the
-source of truth and derive the rest — the create input, the update patch, the public view. Add a
+source of truth and derive the rest: the create input, the update patch and the public view. Add a
 field to the model and every derived type follows.
 
 Underneath, the type system is a small language of its own. Mapped types iterate, conditional types
-branch, and `infer` pattern-matches. Every utility type is a one-line program in that language. The
-judgement to build alongside the syntax is **when to stop**: a type that takes ten minutes to read
-costs more than the bug it prevents.
+branch, and `infer` pattern-matches. Every utility type is a one-line program in that language. Beside the
+syntax, learn **when to stop**. A type that takes ten minutes to read costs more than the bug it
+prevents.
 
 ## How It Works
 
@@ -59,11 +59,11 @@ type PublicProfile = Readonly<Omit<User, 'passwordHash'>>; // they compose
 | `Record<K, V>`                 | An object with keys `K`       | Over a literal union, every member must appear |
 
 The `Pick`/`Omit` asymmetry matters. `Omit<User, 'pasword'>` compiles and quietly omits nothing, so a
-renamed field leaves a hole. `Pick` catches the same typo — a reason to prefer it when stripping
+renamed field leaves a hole. `Pick` catches the same typo. That is a reason to prefer it when stripping
 something like `passwordHash`.
 
-`Record<Status, string>` over a literal union is an exhaustiveness check for free: add a status and
-the label map fails to compile. `Record<string, T>` is the opposite — it gives up key checking.
+`Record<Status, string>` over a literal union is an exhaustiveness check for free. Add a status and
+the label map fails to compile. `Record<string, T>` is the opposite, because it gives up key checking.
 
 ### Extracting and filtering
 
@@ -110,14 +110,15 @@ type Unpacked<T> = T extends Promise<infer U> ? U : T;
 type MyReturnType<T> = T extends (...args: never[]) => infer R ? R : never;
 ```
 
-Conditional types **distribute** over a naked type parameter, and that surprises people.
+Conditional types **distribute** over a naked type parameter (a bare `T`, not wrapped in another
+type), and that surprises people.
 `ArrayElement<string[] | number[]>` is `string | number`, because the condition runs on each member
-separately. That is what makes `Exclude` work. Wrap the parameter in a tuple — `[T] extends [U]` — to
+separately. That is what makes `Exclude` work. Wrap the parameter in a tuple, as in `[T] extends [U]`, to
 treat the union as one thing.
 
 ### Template literal types
 
-String types built from patterns turn stringly-typed APIs into checked ones:
+String types built from patterns turn APIs that pass loose strings into checked ones:
 
 ```typescript
 type Route = `/${'users' | 'posts'}` | `/${'users' | 'posts'}/:id`;
@@ -168,8 +169,8 @@ positions is a maintenance cost. If the alternative is a little duplication, tak
 > field" and `{}` means "leave it alone", and `Partial` types them the same. Model the difference
 > explicitly if the API cares.
 
-> ⚠️ Deeply recursive types hit the compiler's instantiation limit and slow every build and editor
-> keystroke. If `tsc --generateTrace` points at one of your helpers, simplify it rather than raising
+> ⚠️ Deeply recursive types hit the compiler's instantiation limit. They slow every build and every
+> editor keystroke. If `tsc --generateTrace` points at one of your helpers, simplify it rather than raising
 > limits.
 
 ## 🔑 Key Takeaways
@@ -198,11 +199,11 @@ It captures a type from inside a conditional type's pattern and names it for the
 
 When the checked type is a naked type parameter and the argument is a union, the condition runs on
 each member and the results are joined. That is what makes `Exclude` and `NonNullable` work. It bites
-when you meant one check on the whole union — `[T] extends [U]` turns it off.
+when you meant one check on the whole union. `[T] extends [U]` turns it off.
 
 **Q: When would you not use `Partial` for an update type?**
 
-When "field absent" and "field cleared" must be told apart — `Partial` merges them. Also when some
+When "field absent" and "field cleared" must be told apart, because `Partial` merges them. Also when some
 fields are required in an update, such as a version number for optimistic locking.
 `Partial<Pick<T, …>> & { version: number }` says that, and `Partial<T>` does not.
 

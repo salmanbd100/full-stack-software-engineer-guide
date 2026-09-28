@@ -18,21 +18,21 @@ in_book: true
 
 ## 💡 The Core Idea
 
-SOLID is five design principles aimed at code that can be changed without fear. It is the most-asked
-design topic in interviews and usually the worst answered, because reciting the acronym is easy and
-applying it is not. The five are not equally useful: **dependency inversion and single responsibility
-change how you write code every day**, Liskov and interface segregation are narrower, and open/closed is
-the most misquoted of the set.
+SOLID is five design principles aimed at code you can change without fear. It is the most-asked
+design topic in interviews and usually the worst answered. Reciting the acronym is easy; applying it
+is not. The five are not equally useful. **Dependency inversion and single responsibility change how
+you write code every day.** Liskov and interface segregation are narrower, and open/closed is the most
+misquoted of the set.
 
-> **What separates a strong answer:** the smell, then the fix, then the cost. Every one of these can be
-> over-applied into a maze of one-method interfaces, and saying so is the senior signal.
+> **What separates a strong answer:** the smell, then the fix, then the cost. You can over-apply every
+> one of these into a maze of one-method interfaces. Saying so is the senior signal.
 
 ## Single Responsibility (SRP)
 
 > A class should have one, and only one, reason to change.
 
-**"One responsibility" is vague; "one reason to change" is testable.** Sharper still: a module should be
-answerable to one *actor* — one group of people who can request a change.
+**"One responsibility" is vague; "one reason to change" is testable.** Sharper still: a module should
+answer to one *actor*. An actor is one group of people who can request a change.
 
 ```typescript
 // ❌ Three actors, three reasons to change, one class.
@@ -44,9 +44,9 @@ async function register(email: string, password: string): Promise<void> {
 }
 ```
 
-The fix is three collaborators — a `UserRepository`, a `PasswordHasher`, an `EmailSender` — passed into
-a `UserRegistration` class that only composes them. Each has one reason to change, and the validation
-rule becomes testable on its own.
+The fix is three collaborators: a `UserRepository`, a `PasswordHasher` and an `EmailSender`. You pass
+them into a `UserRegistration` class that only composes them. Each has one reason to change, and the
+validation rule becomes testable on its own.
 
 ⚠️ **The failure mode is the opposite extreme.** `UserEmailValidator`, `UserEmailNormalizer`,
 `UserEmailComparer` — three classes for one string. SRP is about reasons to change, not line count. If
@@ -59,8 +59,8 @@ two things always change together, they belong together.
 **The point is not "never edit a file".** It is that adding a *new case* should not mean editing code
 that already works and is already tested.
 
-A function that switches on a `format` string and grows a branch every quarter is the smell: each edit
-risks the branches that already work, and the file is re-tested every time.
+The smell is a function that switches on a `format` string and grows a branch every quarter. Each
+edit risks the branches that already work, and the whole file needs re-testing every time.
 
 ```typescript
 // ✅ New formats are added, never edited in.
@@ -86,12 +86,12 @@ class ExportRegistry {
 
 Adding PDF export means writing one object and registering it. Nothing existing is touched.
 
-> ⚠️ **This is Strategy, from the principle side.** OCP is the goal; strategy, factory and decorator are
-> the mechanisms — see [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript).
+> ⚠️ **This is Strategy, from the principle side.** OCP is the goal. Strategy, factory and decorator are
+> the mechanisms. See [Chapter ?? — Design Patterns in TypeScript](#ch-design-patterns-in-typescript).
 
-A `switch` is not automatically a violation. Where the set of cases is genuinely fixed — the HTTP
-methods, four log levels — a `switch` with an exhaustiveness check beats a registry, because the
-compiler verifies you handled everything. OCP applies to axes that actually vary.
+A `switch` is not automatically a violation. Some sets of cases are genuinely fixed, such as the HTTP
+methods or four log levels. There, a `switch` with an exhaustiveness check beats a registry, because
+the compiler verifies you handled everything. OCP applies to axes that actually vary.
 
 ## Liskov Substitution (LSP)
 
@@ -100,19 +100,19 @@ compiler verifies you handled everything. OCP applies to axes that actually vary
 This is about **behaviour, not signatures**. TypeScript checks the types; only you can check the
 contract.
 
-The Rectangle/Square case is the textbook one: a `Square` that keeps its sides equal breaks any caller
-that sets width and height independently, even though the types line up. The version you will actually
-hit looks like this.
+The Rectangle/Square case is the textbook one. A `Square` keeps its sides equal. So it breaks any
+caller that sets width and height independently, even though the types line up.
 
-The realistic version: a `Storage` interface promising `write` and `delete`, and a
-`ReadOnlyArchiveStorage` that implements both by throwing. It compiles, satisfies the interface, and
-breaks every caller written against the base contract.
+The version you will actually hit is different. A `Storage` interface promises `write` and `delete`,
+and a `ReadOnlyArchiveStorage` implements both by throwing. It compiles and satisfies the interface.
+It also breaks every caller written against the base contract.
 
-The fix is not a better error message but a better interface: split reading from writing — that is ISP
-— so an archive simply is not a `WritableStorage`.
+The fix is not a better error message but a better interface. Split reading from writing, which is
+ISP, so an archive simply is not a `WritableStorage`.
 
-A subtype may not strengthen preconditions, weaken postconditions, break an invariant, or throw
-exceptions the base type never declared. TypeScript checks none of those four.
+A subtype may not demand more of its inputs (strengthen preconditions) or promise less about its
+results (weaken postconditions). It may not break an invariant, or throw exceptions the base type never
+declared. TypeScript checks none of those four.
 
 > ⚠️ Most LSP violations are inheritance used for code reuse rather than substitutability. When "is a"
 > holds in vocabulary but not in behaviour, use composition.
@@ -121,21 +121,21 @@ exceptions the base type never declared. TypeScript checks none of those four.
 
 > No client should be forced to depend on methods it doesn't use.
 
-A six-method `Repository<T>` forces an append-only audit log to implement `delete` — and the only way
-to implement it is to throw, which is also an LSP violation.
+A six-method `Repository<T>` forces an append-only audit log to implement `delete`. The only way to
+implement it is to throw, which is also an LSP violation.
 
-Split it into `Readable<T>`, `Writable<T>` and `Deletable`, and an audit log declares
-`implements Readable<AuditEntry>, Writable<AuditEntry>` — append-only, stated in the type.
+Split it into `Readable<T>`, `Writable<T>` and `Deletable`. Then an audit log declares
+`implements Readable<AuditEntry>, Writable<AuditEntry>`, and the type itself states "append-only".
 
-**Beyond tidiness:** a consumer depending on a six-method interface must be updated when any of the six
-changes, and its tests must stub all six. Narrow interfaces mean narrow test doubles and a narrow blast
-radius — but stop at cohesive roles, not one method per interface.
+**Beyond tidiness:** a consumer of a six-method interface must change when any of the six changes. Its
+tests must also stub all six. Narrow interfaces mean narrow test doubles and a narrow blast radius. But
+stop at cohesive roles, not one method per interface.
 
 ## Dependency Inversion (DIP)
 
 > High-level modules should not depend on low-level modules. Both should depend on abstractions.
 
-**This is the one that changes your code the most**, and it is usually explained backwards: the
+**This is the one that changes your code the most**, and people usually explain it backwards. The
 inversion is about *who owns the interface*.
 
 ```typescript
@@ -159,14 +159,15 @@ class StripeGateway implements PaymentGateway {} // SDK calls here
 ```
 
 **The detail people miss:** `PaymentGateway` lives with `OrderService`, not with the Stripe adapter.
-That is what makes it an inversion — the domain dictates the shape and vendors adapt. Put the interface
-in the infrastructure layer and you have just added a file.
+That is what makes it an inversion: the domain sets the shape and vendors adapt. Put the interface in
+the infrastructure layer and you have just added a file.
 
-It buys unit tests with a plain object and no network, vendor swaps that touch one adapter and one line
-of wiring, and a domain that stays portable across frameworks.
+It buys three things. Unit tests use a plain object and no network. A vendor swap touches one adapter
+and one line of wiring. The domain stays portable across frameworks.
 
-> **DIP is not DI.** DIP is the principle — depend on an abstraction you own. DI is the delivery
-> mechanism — pass it in. Injecting a concrete class satisfies DI while violating DIP entirely. See
+> **DIP is not DI.** DIP is the principle: depend on an abstraction you own. DI (dependency injection)
+> is the delivery mechanism: pass it in. Injecting a concrete class satisfies DI while violating DIP
+> entirely. See
 > [Chapter ?? — OOP and Composition over Inheritance](#ch-composition-over-inheritance).
 
 ## When SOLID Goes Wrong
@@ -185,24 +186,24 @@ Every principle has an over-applied form, and naming them is what interviewers l
 
 ## 🔑 Key Takeaways
 
-- Dependency inversion and single responsibility carry most of the day-to-day value; the other three are narrower.
+- Dependency inversion and single responsibility carry most of the day-to-day value. The other three are narrower.
 - Single responsibility is about who can request a change, not about how many methods a class has.
-- Open/closed is a goal; strategy, factory and decorator are the mechanisms that reach it — a fixed `switch` with an exhaustiveness check is not a violation.
-- Refactor toward these principles at the second case; starting there produces one-method interfaces nobody reads.
+- Open/closed is a goal, and strategy, factory and decorator are the mechanisms that reach it. A fixed `switch` with an exhaustiveness check is not a violation.
+- Refactor toward these principles at the second case. Starting there produces one-method interfaces nobody reads.
 
 ## Interview Questions
 
 **Q: Explain SRP with a real example.**
 
-One reason to change — better framed as one *actor*. A registration method that validates input, hashes a password, writes to the database, and sends a welcome email answers to product, security, the DBA, and marketing, so any of four groups can force a change to it. Splitting it into a repository, a hasher, and a mailer means an email-template change can't break password hashing, and I can test the validation rule with no database.
+One reason to change, better framed as one *actor*. Take a registration method that validates input, hashes a password, writes to the database and sends a welcome email. It answers to product, security, the DBA and marketing, so any of four groups can force a change to it. Split it into a repository, a hasher and a mailer. Now an email-template change can't break password hashing, and I can test the validation rule with no database.
 
 **Q: Give a Liskov violation you've actually seen.**
 
-A read-only storage implementation whose `write` and `delete` throw. It satisfies the interface, compiles fine, and breaks every caller written against the base contract. The real problem was the interface: reading and writing should have been separate, so a read-only backend simply isn't a writable one. Most LSP violations turn out to be inheritance used for reuse rather than substitutability.
+A read-only storage implementation whose `write` and `delete` throw. It satisfies the interface and compiles fine, but it breaks every caller written against the base contract. The real problem was the interface. Reading and writing should have been separate, so a read-only backend simply isn't a writable one. Most LSP violations turn out to be inheritance used for reuse rather than substitutability.
 
 **Q: When would you deliberately ignore SOLID?**
 
-When the change it protects against isn't coming. An interface with one implementation and no second in sight is maintenance cost for an option nobody will exercise, and one class per method turns a single request into a scavenger hunt. I apply a principle when I can name the change it makes cheaper — and if I can't name it, I write the simpler code and refactor when the second case actually arrives.
+When the change it protects against isn't coming. An interface with one implementation and no second in sight costs maintenance for an option nobody will use. One class per method turns a single request into a scavenger hunt. I apply a principle when I can name the change it makes cheaper. If I can't name it, I write the simpler code and refactor when the second case actually arrives.
 
 ## What to Read Next
 

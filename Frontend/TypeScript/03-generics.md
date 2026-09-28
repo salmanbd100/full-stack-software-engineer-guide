@@ -19,10 +19,10 @@ in_book: true
 ## 💡 The Core Idea
 
 A generic is a **relationship** between types, not a placeholder for "any type". `T[] → T` says the
-element type coming out is the element type that went in. That relationship is the whole value: the
+element type coming out is the element type that went in. That relationship is the whole value. The
 caller's concrete type survives the call, so `first([1, 2])` is `number | undefined` rather than
-`any`. If a type parameter appears only once in a signature, it is expressing no relationship — and
-is almost certainly the wrong tool.
+`any`. A type parameter that appears only once in a signature expresses no relationship. It is
+almost certainly the wrong tool.
 
 ## How It Works
 
@@ -62,12 +62,12 @@ interface Repository<T> {
 class UserRepository implements Repository<User> {} // T is fixed once, for every member
 ```
 
-Naming the parameter once at the interface makes every member consistent — `create` cannot accidentally
+Naming the parameter once at the interface keeps every member consistent. `create` cannot accidentally
 take a different entity from `findById`.
 
 ### Constraints
 
-`extends` narrows what a type parameter may be, which is what lets you actually use the value inside:
+`extends` narrows what a type parameter may be. That is what lets you actually use the value inside:
 
 ```typescript
 // without the constraint, `item.name` would not compile
@@ -107,7 +107,7 @@ const age: FormField<number> = { value: 0, touched: false };
 ### Inference
 
 TypeScript infers type arguments from the call, so you rarely write them. Supply one explicitly when
-there is nothing to infer from — a return-position-only parameter:
+there is nothing to infer from, such as a parameter that appears only in the return type:
 
 ```typescript
 async function fetchJson<T>(url: string): Promise<T> {
@@ -119,8 +119,8 @@ async function fetchJson<T>(url: string): Promise<T> {
 const user = await fetchJson<User>('/api/users/1'); // nothing in the args reveals T
 ```
 
-That signature is honest about only one thing — it does **not** validate that the body is a `User`.
-`fetchJson<T>` is an assertion dressed as a generic; pair it with a runtime schema check at any
+Be clear about what that signature does **not** do: it does not validate that the body is a `User`.
+`fetchJson<T>` is an assertion dressed as a generic. Pair it with a runtime schema check at any
 boundary you do not control.
 
 ## When to Use It
@@ -155,14 +155,14 @@ async function safeAsync<T>(fn: () => Promise<T>): Promise<Result<T>> {
 function log<T>(value: T): void {} // ❌ identical to (value: unknown): void
 ```
 
-**❌ Constraining with `any`.** `<T extends any>` constrains nothing; either leave it unconstrained or
+**❌ Constraining with `any`.** `<T extends any>` constrains nothing. Either leave it unconstrained, or
 constrain it to the shape you actually use.
 
 **❌ Reaching for a generic instead of a union.** If the function handles exactly three known types,
 `string | number | Date` says so plainly. A generic implies it works for anything.
 
 **❌ Treating `fetchJson<User>()` as validation.** The type argument tells the compiler what to
-assume; nothing checks the payload. This is the most common way a "fully typed" codebase still throws
+assume, and nothing checks the payload. This is the most common way a "fully typed" codebase still throws
 `undefined is not an object` in production.
 
 **❌ Over-parameterising.** Four type parameters on one function means the signature is doing too
@@ -191,7 +191,7 @@ property or call a method on it. `T extends { id: number }` allows `item.id`;
 
 When the type parameter appears once, which means it expresses no relationship and `unknown` would do.
 When the set of types is small and known, where a union is clearer. And when the real need is runtime
-validation — a generic return type only tells the compiler what to assume.
+validation, because a generic return type only tells the compiler what to assume.
 
 **Q: What does `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` buy over `(obj: object, key: string): unknown`?**
 

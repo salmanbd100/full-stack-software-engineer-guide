@@ -18,10 +18,10 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A type guard is a **runtime** check the compiler understands. That pairing is the whole point:
+A type guard is a **runtime** check the compiler understands. That pairing is the whole point.
 `typeof value === 'string'` is a real check that survives compilation, and TypeScript uses it to
-narrow the type inside the branch. It is the only honest way to move from a wide type — `unknown`, a
-union, an API payload — to a specific one, because it is the only way that actually verifies anything.
+narrow the type inside the branch. A wide type might be `unknown`, a union or an API payload. A guard
+is the only honest way to move from one to a specific type, because only a guard verifies anything.
 An `as` assertion narrows the type and checks nothing.
 
 ## How It Works
@@ -62,15 +62,15 @@ function describe(err: unknown): string {
 }
 ```
 
-> ⚠️ `instanceof` compares prototype chains, so it fails across realms — a `Date` from an iframe or a
-> Node worker is not `instanceof` your `Date`. It also fails for a class extending a built-in when
+> ⚠️ `instanceof` compares prototype chains, so it fails across realms (separate JavaScript
+> environments). A `Date` from an iframe or a Node worker is not `instanceof` your `Date`. It also fails for a class extending a built-in when
 > compiled to ES5 without an explicit `Object.setPrototypeOf`.
 
 ### `in`
 
 `if ('permissions' in user)` narrows a union by key presence, and inside the branch
-`user.permissions` is available. Useful where you cannot add a discriminant — a third-party union, for
-example. A discriminant is better where you own the type.
+`user.permissions` is available. It helps where you cannot add a discriminant, for example on a third-party
+union. A discriminant is better where you own the type.
 
 ### Type predicates
 
@@ -90,7 +90,7 @@ raw.name; // User
 ```
 
 The predicate is a **promise you make to the compiler**, not one it checks. A guard whose body is
-wrong is as unsafe as a cast — write the body to match the type exactly, or use a schema library that
+wrong is as unsafe as a cast. Write the body to match the type exactly, or use a schema library that
 derives both from one declaration.
 
 **Predicates are also what makes `filter` narrow:**
@@ -131,7 +131,7 @@ function render(state: RequestState<User>): JSX.Element {
 }
 ```
 
-The `never` assignment in `default` is the highest-value four lines in this chapter: it converts
+The `never` assignment in `default` is the highest-value four lines in this chapter. It turns
 "someone added a case and forgot to handle it" from a production bug into a build failure.
 
 ## When to Use It
@@ -157,8 +157,8 @@ an `is User` guard claims far more than it checks, and the compiler believes it.
 **❌ Ordering `instanceof` checks from general to specific.** `err instanceof Error` first means the
 `ApiError` branch is dead code.
 
-**❌ Expecting narrowing to survive a callback.** TypeScript discards narrowing across a function
-boundary because the value could change in between:
+**❌ Expecting narrowing to survive a callback.** TypeScript drops narrowing across a function
+boundary, because the value could change in between:
 
 ```typescript
 if (user.avatar !== undefined) {
@@ -180,21 +180,22 @@ const avatar = user.avatar; // ✅ capture in a const first
 **Q: What is a type predicate, and what is its main risk?**
 
 A function whose return type is `value is T`. When it returns `true`, the compiler narrows the argument
-in the calling branch. The risk is that the compiler trusts the signature without checking the body, so
-an incomplete check gives you the same false confidence as a cast — which is why generated guards from
-a schema are safer than hand-written ones.
+in the calling branch. The risk is that the compiler trusts the signature without checking the body. An
+incomplete check gives you the same false confidence as a cast. That is why guards generated from a
+schema are safer than hand-written ones.
 
 **Q: How does exhaustiveness checking work?**
 
 Narrowing removes handled members from a union, so in the `default` branch the value's type is the
 union of everything unhandled. Assigning it to `never` succeeds only when nothing is left. Add a member
-and the assignment fails to compile at that line, pointing directly at the switch that needs updating.
+and the assignment fails to compile at that line. The error points straight at the switch that needs
+updating.
 
 **Q: Why does narrowing not survive into a callback?**
 
-Because the compiler cannot prove the value has not changed between the check and the callback running
-— another function could reassign the property. Capturing the narrowed value in a `const` fixes it,
-since a `const` cannot be reassigned and the narrowing holds.
+Because the compiler cannot prove the value is unchanged between the check and the callback running.
+Another function could reassign the property. Capturing the narrowed value in a `const` fixes it: a
+`const` cannot be reassigned, so the narrowing holds.
 
 ## What to Read Next
 

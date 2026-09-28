@@ -19,11 +19,11 @@ in_book: true
 ## 💡 The Core Idea
 
 A pattern is a name for a recurring problem and one known-good response to it. The name is the least
-valuable part — what earns marks is stating the problem first: *"this switch gains a branch every time
+valuable part. What earns marks is stating the problem first: *"this switch gains a branch every time
 we add a payment provider, and each branch touches the same function."*
 
-The second half of the answer, and the one most candidates miss, is that **TypeScript is not Java**.
-Several Gang of Four patterns exist to work around a limitation this language does not have. A singleton
+Most candidates miss the second half of the answer: **TypeScript is not Java**. Several Gang of Four
+patterns exist to work around a limitation this language does not have. A singleton
 is a module. A strategy is usually a function. An observer is often an `EventTarget`. Building a class
 hierarchy where the language already has the mechanism is a mid-level tell.
 
@@ -39,14 +39,14 @@ hierarchy where the language already has the mechanism is a mid-level tell.
 | A constructor has grown eight parameters | **Builder** | An options object, usually |
 | One instance, shared | **Singleton** | A module-level `const` |
 
-The right-hand column is not a dismissal — it is the answer to "how would you implement it here", and
-having it ready separates knowing the catalogue from having used it.
+The right-hand column is not a dismissal. It is the answer to "how would you implement it here".
+Having it ready separates knowing the catalogue from having used it.
 
 ## Strategy
 
 Wrap each algorithm so the caller can swap them without knowing which is which.
 
-A `shippingCost` function branching on a `method` string is the starting point: every new option edits
+The starting point is a `shippingCost` function branching on a `method` string. Every new option edits
 it, and every edit risks the branches already there.
 
 ```typescript
@@ -66,12 +66,12 @@ function shippingCost(order: Order, method: Method): number {
 }
 ```
 
-`satisfies` — TypeScript 4.9 and later — is doing real work: it checks every entry against
-`ShippingRate` while keeping the literal key names, so `Method` is a union of the actual methods rather
-than `string`, and an unknown method is a compile error instead of a thrown one.
+`satisfies` (TypeScript 4.9 and later) is doing real work. It checks every entry against
+`ShippingRate` while keeping the literal key names. So `Method` is a union of the actual methods rather
+than `string`. An unknown method is then a compile error instead of a thrown one.
 
-> ⚠️ **Two branches that never change do not need this.** The `if` is clearer than a map, and the
-> pattern earns its keep only when the set grows or the choice comes from configuration.
+> ⚠️ **Two branches that never change do not need this.** The `if` is clearer than a map. The pattern
+> earns its keep only when the set grows or the choice comes from configuration.
 
 ## Observer
 
@@ -91,8 +91,8 @@ class TypedEmitter<Events extends Record<string, unknown>> {
 ```
 
 Returning the unsubscribe function from `on` is the detail worth copying. Observers that cannot be
-removed are the most common memory leak in long-lived front ends, and handing back the disposal at
-subscription time makes forgetting it visible in review.
+removed are the most common memory leak in long-lived front ends. When `on` hands back the clean-up
+function at subscription time, a reviewer can see when someone forgets to call it.
 
 > ⚠️ **Emitting synchronously means one slow listener blocks the publisher.** Decide deliberately
 > whether listeners run in sequence, in parallel, or on a queue, and say which in the type's name.
@@ -101,13 +101,12 @@ subscription time makes forgetting it visible in review.
 
 Move the decision about which implementation to build into one place.
 
-A `createExporter(format)` function switching over `'csv' | 'xlsx' | 'pdf'` and returning an `Exporter`
-is the whole pattern: callers ask for a format and never see a class name.
+A `createExporter(format)` function switches over `'csv' | 'xlsx' | 'pdf'` and returns an `Exporter`.
+That is the whole pattern: callers ask for a format and never see a class name.
 
-
-Construction knowledge lives once: nobody calling `createExporter` knows that PDFs need fonts, and when
-that changes, one function changes. The missing `default` is deliberate — add a format to the union and
-TypeScript flags the function as non-exhaustive, at compile time.
+Construction knowledge lives in one place. Nobody calling `createExporter` knows that PDFs need fonts.
+When that changes, one function changes. The missing `default` is deliberate. Add a format to the
+union, and TypeScript flags the function as non-exhaustive at compile time.
 
 ## Adapter
 
@@ -128,8 +127,8 @@ export const vendorGateway: PaymentGateway = {
 };
 ```
 
-One file now holds every assumption about that vendor. Replacing them means a second adapter and one
-wiring line — and the unit tests never touched the vendor, because they were written against
+One file now holds every assumption about that vendor. Replacing the vendor means a second adapter and
+one wiring line. The unit tests never touched the vendor, because they were written against
 `PaymentGateway`.
 
 ## Decorator
@@ -156,55 +155,55 @@ const withTiming =
 const handler = withTiming('report')(withRetry(3)(fetchReport));
 ```
 
-Order matters and reads inside out: retry wraps the fetch and timing wraps the retry, so the metric
-covers all three attempts. Swap them for per-attempt timings — being able to say why is the follow-up.
+Order matters and reads inside out. Retry wraps the fetch and timing wraps the retry, so the metric
+covers all three attempts. Swap them to get per-attempt timings. Explaining why is the follow-up question.
 
 ## Builder
 
 Worth knowing, and worth using less often than it is taught. A builder earns its place when construction
-is genuinely stepwise and the intermediate object is invalid — a query being assembled, a multipart
-request. For "this constructor has too many parameters", a destructured options object with defaults is
-simpler, named, optional and checked, with no builder class to maintain.
+is genuinely stepwise and the object is invalid until the last step. Examples are a query being
+assembled or a multipart request. Sometimes the real problem is "this constructor has too many
+parameters". Then a destructured options object with defaults is simpler. Its fields are named,
+optional and checked, and there is no builder class to maintain.
 
 ## Common Mistakes
 
 ❌ **Naming the pattern before the problem.** "I'd use a strategy" answers a question nobody asked.
 ✅ Describe the change that keeps happening, then propose the structure that absorbs it.
 
-❌ **A singleton class with a static `getInstance`.** ES modules are already singletons — the module
-body runs once and the export is shared.
+❌ **A singleton class with a static `getInstance`.** ES modules are already singletons. The module
+body runs once and every importer shares the export.
 ✅ Export a `const`. Reach for a class only when the instance genuinely needs to be replaced in tests.
 
 ## 🔑 Key Takeaways
 
-- State the recurring change first; the pattern is the second half of the answer, never the first.
+- State the recurring change first. The pattern is the second half of the answer, never the first.
 - Strategy in TypeScript is usually a typed record of functions, and `satisfies` keeps the keys as a checked union.
 - Return the unsubscribe function from an observer's `on`, because forgotten listeners are the standard leak.
-- Several classic patterns — singleton, decorator, facade — are a module, a function and an export in this language.
+- In this language, several classic patterns (singleton, decorator, facade) become a module, a function and an export.
 
 ## Interview Questions
 
 **Q: This `switch` on payment provider keeps growing. What do you do?**
 
-First say what the growth costs: every provider edits the same function, so each change risks the
-others and the file becomes a merge conflict magnet. Then propose a strategy — a record keyed by
-provider, one entry per implementation — so adding a provider adds an entry. In TypeScript I would use
-`satisfies` so the key union is derived from the record and the caller cannot pass an unknown
-provider.
+First say what the growth costs. Every provider edits the same function, so each change risks the
+others and the file attracts merge conflicts. Then propose a strategy: a record keyed by provider,
+with one entry per implementation. Adding a provider then adds an entry. In TypeScript I would use
+`satisfies`, so the key union comes from the record and the caller cannot pass an unknown provider.
 
 **Q: What is the difference between a decorator, a proxy and an adapter? They all wrap something.**
 
-Intent, and it is the intent that is being tested. A decorator adds behaviour while keeping the same
-interface. A proxy keeps the same interface and controls *access* — lazily, remotely, or with a cache.
+Intent, and the interviewer is testing the intent. A decorator adds behaviour while keeping the same
+interface. A proxy keeps the same interface and controls *access*: lazily, remotely, or with a cache.
 An adapter deliberately *changes* the interface so an incompatible thing fits. Same shape, three
 different reasons.
 
 **Q: When is a pattern the wrong answer?**
 
 When there is one implementation and no evidence of a second. Every pattern buys flexibility with
-indirection, and indirection is paid for on every read. The honest version of the answer is that I
-would write the direct code, and introduce the structure when the second case arrives — which is also
-when I finally know what the abstraction should look like.
+indirection, and you pay for indirection on every read. The honest answer is that I would write the
+direct code first. I would add the structure when the second case arrives. That is also when I finally
+know what the abstraction should look like.
 
 ## What to Read Next
 

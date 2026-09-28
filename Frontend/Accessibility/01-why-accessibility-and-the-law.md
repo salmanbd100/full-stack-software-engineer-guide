@@ -18,16 +18,16 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Accessibility used to be argued on ethics and market size, and both arguments are true — roughly one
-person in six lives with a disability, and every temporary injury or bright-sunlight moment puts an
-able-bodied user in the same position for an afternoon. But since June 2025 the argument in most
-European product meetings is shorter: **it is the law, the deadline has passed, and the fine lands on the
-company selling into the EU rather than on the country it is based in.**
+Accessibility used to be argued on ethics and market size, and both arguments are true. Roughly one
+person in six lives with a disability. A temporary injury or a moment in bright sunlight puts an
+able-bodied user in the same position for an afternoon. Since June 2025, most European product meetings
+use a shorter argument: **it is the law, and the deadline has passed. The fine lands on the company that
+sells into the EU, wherever that company is based.**
 
 That changes an engineer's job in one specific way. Accessibility becomes a **requirement with a named
-standard and a testable threshold**, like a security control, rather than a quality anyone can trade away
-under deadline. The senior skill is knowing which standard applies, what it actually demands, and which of
-those demands a code review can catch.
+standard and a testable threshold**, like a security control. It is no longer a quality anyone can trade
+away under deadline. The senior skill is knowing which standard applies and what it actually demands. It
+also means knowing which of those demands a code review can catch.
 
 > Nobody is asking you to memorise success criteria. They are asking whether you know what the target
 > is, and whether the thing you shipped meets it.
@@ -43,14 +43,14 @@ those demands a code review can catch.
 | **ADA Title II final rule** (US) | US state and local government, and the vendors they buy from | WCAG 2.1 AA | Compliance dates from **April 2026**, by population size |
 | **Section 508** (US) | US federal agencies and their suppliers | WCAG 2.0 AA baseline | 2018 |
 
-Two consequences people miss. **The EAA follows the customer, not the company** — a company in London,
+Two consequences people miss. **The EAA follows the customer, not the company.** A company in London,
 Dhaka or Austin selling to EU consumers is inside its scope. And **enforcement is national**: each member
-state sets its own penalties and complaint route, so "what is the fine" has twenty-seven answers and none
+state sets its own penalties and complaint route. So "what is the fine" has twenty-seven answers, and none
 of them is the useful question. The useful question is whether the product can pass an audit.
 
 > ⚠️ Procurement bites earlier than regulators do. Enterprise and public-sector buyers ask for an
-> accessibility conformance report — a **VPAT**, filled in as an ACR — during the security review. A sales
-> cycle stalling on a missing ACR is the most common way an engineering team learns that this is real.
+> accessibility conformance report during the security review. The template is a **VPAT**, and the filled-in
+> report is an ACR. A sales cycle stalling on a missing ACR is how most engineering teams learn this is real.
 
 ### WCAG, and why AA is the number
 
@@ -65,13 +65,13 @@ became a W3C Recommendation in **October 2023** and is the current version to bu
 | **Robust** | Assistive technology can interpret the markup | Contradictory ARIA, state that is never announced |
 
 Each principle holds numbered **success criteria** at three conformance levels. **AA is the level that
-matters** — it is what every instrument above names. A is the floor and is not sufficient for compliance;
-AAA is asked for in specific public-sector contexts and includes criteria that are impossible for some
-content types, which is why the W3C itself does not recommend it as a general target.
+matters**, because every instrument above names it. A is the floor and is not enough for compliance. AAA
+is asked for in some public-sector contexts. It includes criteria that are impossible for some content
+types, so the W3C itself does not recommend it as a general target.
 
 ### What WCAG 2.2 added, and what it dropped
 
-Six new criteria at A and AA, and they are the ones a 2027 interview asks about because they are recent
+WCAG 2.2 added six new criteria at A and AA. A 2027 interview asks about them because they are recent
 enough that most codebases fail them.
 
 | Criterion | Level | What it requires |
@@ -84,18 +84,18 @@ enough that most codebases fail them.
 | 3.3.8 Accessible Authentication (Minimum) | AA | No cognitive test to log in — paste and password managers must work |
 
 WCAG 2.2 also **removed 4.1.1 Parsing.** Duplicate `id` attributes and unclosed tags are no longer a
-conformance failure in their own right, because browsers recover from them and the real damage shows up
-as a different criterion. Audits written against 2.1 still flag it.
+conformance failure in their own right. Browsers recover from them, and the real damage shows up under a
+different criterion. Audits written against 2.1 still flag it.
 
-> ⚠️ **Moving target:** WCAG 3.0 has been a working draft for years, is not a Recommendation, and will
-> not be one soon — it changes the scoring model rather than the advice. Build against 2.2 AA. The durable
+> ⚠️ **Moving target:** WCAG 3.0 has been a working draft for years. It is not a Recommendation and will
+> not be one soon, and it changes the scoring model rather than the advice. Build against 2.2 AA. The durable
 > principle underneath every version is the same: content has to be perceivable, operable, understandable
 > and robust through an interface the author does not control.
 
 ### The numbers a design review has to hold
 
-These are the criteria that get decided in Figma and then argued about in a pull request, so they are the
-ones worth knowing by heart.
+Teams decide these criteria in Figma and then argue about them in a pull request. They are the ones worth
+knowing by heart.
 
 | Thing | Requirement | Level |
 | --- | --- | --- |
@@ -106,14 +106,14 @@ ones worth knowing by heart.
 | Text resize | Usable at 200% zoom, no loss of content | AA (1.4.4) |
 | Reflow | No two-dimensional scrolling at 320 CSS px width | AA (1.4.10) |
 
-`#999` on white is about 2.8 : 1 and fails body text — the single most common handoff defect in the
-industry. And **colour can never be the only signal**: a red border with no icon or text tells a
-colourblind user nothing, which fails 1.4.1 regardless of how strong the contrast is.
+`#999` on white is about 2.8 : 1 and fails body text. It is the most common handoff defect in the
+industry. And **colour can never be the only signal**. A red border with no icon or text tells a
+colourblind user nothing. That fails 1.4.1, however strong the contrast is.
 
 ### The platform already knows what the user needs
 
-Operating systems expose accessibility preferences, and honouring them is a few lines of CSS. This is the
-cheapest accessibility work available and almost nobody does all four.
+Operating systems expose accessibility preferences, and honouring them takes a few lines of CSS. This is
+the cheapest accessibility work available, and almost nobody does all four.
 
 ```css
 /* Vestibular disorders — motion can cause nausea, not just annoyance. */
@@ -140,7 +140,7 @@ cheapest accessibility work available and almost nobody does all four.
 ```
 
 In forced-colors mode the browser overrides `background-color`, `color` and `border-color`. A component
-that carried meaning only in a background gradient becomes blank, which is why an icon or a border is a
+that carried meaning only in a background gradient goes blank. That is why an icon or a border is a
 correctness decision rather than decoration.
 
 ## When to Use It
@@ -157,18 +157,18 @@ correctness decision rather than decoration.
 
 **❌ Treating an overlay widget as compliance**
 
-> Third-party "accessibility widgets" that inject a toolbar do not fix underlying markup, are routinely
-> named in complaints, and cannot make a `div` a button. The remediation is in your code.
+> Third-party "accessibility widgets" inject a toolbar. They do not fix the underlying markup, and they
+> cannot make a `div` a button. Complaints name them routinely. The fix is in your code.
 
 **❌ Targeting AAA because it sounds safer**
 
 > AAA includes criteria no product can meet across all content, so an AAA claim is usually a false one.
-> AA is what the law asks for; exceed it where it is cheap and say what level you claim.
+> AA is what the law asks for. Exceed it where it is cheap, and say what level you claim.
 
 **❌ Auditing at the end of the project**
 
-> Accessibility defects are mostly structural — the wrong element, the wrong focus order. Finding them
-> after the component library is built means rewriting components rather than changing attributes.
+> Accessibility defects are mostly structural: the wrong element, the wrong focus order. Find them after
+> the component library is built, and you rewrite components rather than change attributes.
 
 **✅ Publishing what you do not support**
 
@@ -179,7 +179,7 @@ correctness decision rather than decoration.
 
 - The European Accessibility Act has been enforceable since 28 June 2025 and follows the customer, so it reaches any company selling to EU consumers.
 - WCAG 2.2 AA is the target every instrument names; A is not sufficient and AAA is not achievable as a blanket claim.
-- WCAG 2.2 added six criteria at A and AA — focus not obscured, dragging alternatives, 24 × 24 targets, consistent help, no redundant entry, accessible authentication — and removed 4.1.1 Parsing.
+- WCAG 2.2 added six criteria at A and AA and removed 4.1.1 Parsing. The six are focus not obscured, dragging alternatives, 24 × 24 targets, consistent help, no redundant entry and accessible authentication.
 - The numbers worth memorising are 4.5 : 1 for text, 3 : 1 for anything non-text, and 24 × 24 CSS px for targets.
 - Colour alone can never carry meaning, and forced-colors mode will delete any meaning that lives in a background.
 
@@ -187,43 +187,42 @@ correctness decision rather than decoration.
 
 **Q: Which accessibility rules apply to a product your company sells across Europe?**
 
-The European Accessibility Act, enforceable since June 2025, because it follows the customer rather than
-the company's country of establishment. Its technical content is EN 301 549, which wraps WCAG, so in
-practice the target is WCAG 2.2 AA. Enforcement is national, so penalties vary by member state — the
-question worth answering internally is whether the product would pass an audit, and the artefact buyers
-ask for is a conformance report.
+The European Accessibility Act, enforceable since June 2025. It follows the customer rather than the
+company's country of establishment. Its technical content is EN 301 549, which wraps WCAG, so in practice
+the target is WCAG 2.2 AA. Enforcement is national, so penalties vary by member state. The question worth
+answering internally is whether the product would pass an audit. The artefact buyers ask for is a
+conformance report.
 
 **Q: Why AA rather than A or AAA?**
 
-AA is the level named by the EAA, the Web Accessibility Directive, ADA Title II and Section 508, so it is
-the only level with legal meaning for most products. A leaves out contrast and most keyboard requirements,
-which is not a usable product. AAA contains criteria that cannot be met across arbitrary content, so
-claiming it is usually inaccurate — better to meet AA properly and exceed it where it is cheap.
+The EAA, the Web Accessibility Directive, ADA Title II and Section 508 all name AA. So it is the only
+level with legal meaning for most products. A leaves out contrast and most keyboard requirements, which
+does not give a usable product. AAA contains criteria that no one can meet across arbitrary content, so
+an AAA claim is usually inaccurate. Better to meet AA properly and exceed it where it is cheap.
 
 **Q: What did WCAG 2.2 change?**
 
-Six criteria at A and AA that mostly formalise things good teams already did: the focused element must not
-be completely hidden behind a sticky header, anything draggable needs a single-pointer alternative,
-targets must be 24 × 24 CSS pixels, help must sit in a consistent place, a flow must not ask twice for the
-same information, and login must not require a cognitive test — so paste and password managers have to
-work. It also removed the parsing criterion, because browsers recover from malformed markup and the real
-failures surface elsewhere.
+It added six criteria at A and AA that mostly formalise what good teams already did. A sticky header must
+not completely hide the focused element. Anything draggable needs a single-pointer alternative. Targets
+must be 24 × 24 CSS pixels, and help must sit in a consistent place. A flow must not ask twice for the same
+information. Login must not need a cognitive test, so paste and password managers have to work. It also
+removed the parsing criterion, because browsers recover from malformed markup.
 
 **Q: A designer's palette uses `#999` for secondary text. What do you say?**
 
 That it is roughly 2.8 : 1 against white and fails 1.4.3, which needs 4.5 : 1 for body text. I would
-bring a measured number rather than an opinion, offer the nearest passing value, and check the same
-palette for the 3 : 1 non-text cases — icons, input borders, focus rings, chart series — because those
-fail quietly and are the ones an audit catches. If the grey is load-bearing for the brand, it can stay for
-large display text at 3 : 1.
+bring a measured number rather than an opinion, and offer the nearest passing value. Then I would check
+the same palette for the 3 : 1 non-text cases: icons, input borders, focus rings and chart series. Those
+fail quietly, and an audit catches them. If the brand depends on the grey, it can stay for large display
+text at 3 : 1.
 
 **Q: When would you not fix an accessibility issue immediately?**
 
-When it is a genuine AAA criterion, or a defect in a surface with a scheduled replacement and no user
-route to it, and in both cases I would record it in the conformance report with a date rather than let it
-stay invisible. What I would not defer is anything structural — a control that is not a control, a form
-field with no label, a keyboard trap — because those get cheaper to fix now and more expensive every
-sprint they survive.
+When it is a genuine AAA criterion. Or when it is a defect in a surface that has a scheduled replacement
+and no user route to it. In both cases I would record it in the conformance report with a date, rather
+than let it stay invisible. I would not defer anything structural: a control that is not a control, a
+form field with no label, a keyboard trap. Those are cheaper to fix now and cost more every sprint they
+survive.
 
 ## What to Read Next
 

@@ -18,17 +18,17 @@ in_book: true
 
 ## 💡 The Core Idea
 
-ARIA is a vocabulary for telling assistive technology about things HTML cannot express. It is not a
-polyfill and it is not a feature — **it changes what is reported and nothing else.** No focus behaviour,
-no keyboard handling, no state management, no styling.
+ARIA (Accessible Rich Internet Applications) is a vocabulary for telling assistive technology about
+things HTML cannot express. It is not a polyfill and it is not a feature. **It changes what is reported
+and nothing else.** It adds no focus behaviour, no keyboard handling, no state management and no styling.
 
 That single fact explains almost every ARIA bug in production. `aria-expanded="true"` on a menu that does
-not expand is a lie the screen reader repeats faithfully. `role="button"` on a `div` produces an element
-announced as a button that ignores Enter and Space and cannot be focused. In both cases the attribute made
-the experience worse than no attribute, because it replaced "this is unclear" with "this is wrong".
+not expand is a lie, and the screen reader repeats it faithfully. `role="button"` on a `div` gives an
+element that is announced as a button. It still ignores Enter and Space, and it cannot be focused. In both
+cases the attribute made things worse than no attribute. It replaced "this is unclear" with "this is wrong".
 
-> No ARIA is better than bad ARIA. The WebAIM Million audit finds pages using ARIA average *more*
-> detectable failures than pages using none — because ARIA gets reached for first and understood second.
+> No ARIA is better than bad ARIA. The WebAIM Million audit finds that pages using ARIA average *more*
+> detectable failures than pages using none. Teams reach for ARIA first and understand it second.
 
 ## How It Works
 
@@ -46,9 +46,9 @@ which teams break them.
 | 5 | **Every interactive element needs an accessible name** | Role without a name announces as its type only |
 
 Rule 1 is subtractive, and it is where most of the value is. A `<button>` arrives with a role, focus, a
-disabled state, Enter and Space handling, and a form-submit behaviour. Reproducing that on a `div` takes
-an ARIA role, a `tabindex`, two key handlers, an `aria-disabled` and a pointer-events rule — and it will
-still miss something.
+disabled state, Enter and Space handling, and a form-submit behaviour. To copy that on a `div`, you need
+an ARIA role, a `tabindex`, two key handlers, an `aria-disabled` and a pointer-events rule. It will still
+miss something.
 
 ```html
 <!-- ❌ Five lines of JavaScript away from being a button, and never quite one. -->
@@ -67,8 +67,8 @@ still miss something.
 | **Property** | What is always true? | `aria-label`, `aria-describedby`, `aria-controls`, `aria-required` | Rarely |
 
 The distinction is practical: **states are the ones you have to keep in sync with your own code.** A
-state attribute set once at render and never updated is the same defect as a stale cache, and it is the
-most common ARIA bug in component libraries.
+state attribute set once at render and never updated is the same defect as a stale cache. It is the most
+common ARIA bug in component libraries.
 
 ```typescript
 // The pattern that keeps a state honest: derive it, never assign it once.
@@ -80,8 +80,8 @@ function renderDisclosure(isOpen: boolean): string {
 }
 ```
 
-In a framework this is free, because the attribute is bound to the same state that renders the panel. It
-is hand-written DOM manipulation where the two drift apart.
+In a framework this is free, because the attribute is bound to the same state that renders the panel. The
+two drift apart in hand-written DOM code.
 
 ### What ARIA cannot do
 
@@ -93,10 +93,10 @@ is hand-written DOM manipulation where the two drift apart.
 | `role="dialog"` traps focus | No — focus management is entirely yours, or use `<dialog>` |
 | `aria-label` on a `div` makes it a control | No — a name without a role is not announced as anything |
 
-`aria-disabled` is worth dwelling on, because it exists for a good reason: a natively `disabled` button is
-removed from the tab order, so a keyboard user cannot reach it to discover why it is unavailable. Using
-`aria-disabled="true"` plus a handler that returns early keeps it focusable and explains itself. That is a
-deliberate trade, not a workaround.
+`aria-disabled` deserves a closer look, because it exists for a good reason. The browser removes a native
+`disabled` button from the tab order. A keyboard user then cannot reach it to find out why it is
+unavailable. `aria-disabled="true"` plus a handler that returns early keeps the button focusable, so it
+can explain itself. That is a deliberate trade, not a workaround.
 
 ### Live regions — announcing without moving focus
 
@@ -113,23 +113,23 @@ expires. A **live region** announces the change while leaving focus where it is.
 
 Three rules make them work, and all three are commonly missed.
 
-- **The region must exist in the tree before the text changes.** Creating the element and its content in
-  the same tick usually announces nothing, because assistive technology is watching for a mutation inside
-  a region it already knows about.
-- **Polite by default.** `assertive` interrupts whatever is being read, which is right for a submission
+- **The region must exist in the tree before the text changes.** If you create the element and its content
+  in the same tick, usually nothing is announced. Assistive technology watches for a mutation inside a
+  region it already knows about.
+- **Polite by default.** `assertive` interrupts whatever is being read. That is right for a submission
   error and wrong for "3 items in basket".
 - **Clear it, or an identical message is silent.** Writing the same string twice is not a mutation. Reset
   the region, then write.
 
-> ⚠️ Do not wire a live region to a high-frequency stream. A token-by-token AI response or a live price
-> feed piped into `aria-live` produces continuous speech the user cannot escape. Announce the completion,
-> not the progress.
+> ⚠️ Do not wire a live region to a high-frequency stream. Pipe a token-by-token AI response or a live
+> price feed into `aria-live`, and the user gets continuous speech they cannot escape. Announce the
+> completion, not the progress.
 
 ### The patterns worth learning
 
 Where ARIA genuinely earns its place, someone has already specified the keyboard contract. The **ARIA
-Authoring Practices Guide** documents each pattern's roles, states and expected keys — use it rather than
-inventing a keyboard model users have to learn.
+Authoring Practices Guide** (APG) documents each pattern's roles, states and expected keys. Use it rather
+than inventing a keyboard model users have to learn.
 
 | Pattern | Use when | The part people get wrong |
 | --- | --- | --- |
@@ -139,7 +139,7 @@ inventing a keyboard model users have to learn.
 | Modal dialog | Blocking interaction | Focus return, and inerting the rest of the page |
 | Menu button | Application-style command menus | It is not a navigation list; do not use it for links |
 
-The last row is a common mistake: `role="menu"` implies an application menu with arrow-key navigation and
+The last row is a common mistake. `role="menu"` implies an application menu with arrow-key navigation and
 no Tab stops. A site navigation dropdown of links is a disclosure containing a list, not a menu.
 
 ## When to Use It
@@ -169,7 +169,7 @@ no Tab stops. A site navigation dropdown of links is a disclosure containing a l
 
 **❌ `role="alert"` for routine confirmations**
 
-> Assertive announcements interrupt. A saved-successfully message belongs in `role="status"`; reserve
+> Assertive announcements interrupt. A saved-successfully message belongs in `role="status"`. Keep
 > `alert` for things the user must act on.
 
 **✅ Deleting ARIA as the fix**
@@ -179,10 +179,10 @@ no Tab stops. A site navigation dropdown of links is a disclosure containing a l
 
 ## 🔑 Key Takeaways
 
-- ARIA changes what is reported and never adds behaviour, so any state you declare must be matched by real code.
+- ARIA changes what is reported and never adds behaviour, so real code must back every state you declare.
 - The first rule of ARIA is to use a native element instead, and it removes most of the need for the other four.
-- States are the attributes that must stay in sync at runtime; properties and roles are set once.
-- A live region must already exist in the tree, should default to polite, and needs clearing before an identical message repeats.
+- States are the attributes that must stay in sync at runtime. Properties and roles are set once.
+- A live region must already exist in the tree and should default to polite. Clear it before an identical message repeats.
 - For tabs, comboboxes and dialogs, implement the ARIA Authoring Practices pattern rather than inventing a keyboard model.
 
 ## Interview Questions
@@ -190,40 +190,41 @@ no Tab stops. A site navigation dropdown of links is a disclosure containing a l
 **Q: What is the first rule of ARIA, and why is it first?**
 
 Use a native HTML element instead. It is first because native elements bring behaviour and semantics
-together — a `<button>` is focusable, activates on Enter and Space, exposes a disabled state and submits a
-form — whereas ARIA only changes what is announced. Most accessibility defects I have fixed were a `div`
-with ARIA bolted on, and the fix was deleting the attributes and changing the tag.
+together. A `<button>` is focusable, activates on Enter and Space, exposes a disabled state and submits a
+form. ARIA only changes what is announced. Most accessibility defects I have fixed were a `div` with ARIA
+bolted on. The fix was to delete the attributes and change the tag.
 
 **Q: A component sets `aria-expanded` but the menu still announces wrongly. What do you check?**
 
-Whether anything updates the attribute. `aria-expanded` is a state, so it has to be bound to the same
-value that shows and hides the panel; set once at render it goes stale immediately. I would read the
-computed node in the Accessibility pane, confirm the attribute is on the trigger rather than on the panel,
-and check that `aria-controls` points at an element that exists.
+Whether anything updates the attribute. `aria-expanded` is a state, so it must be bound to the same value
+that shows and hides the panel. Set once at render, it goes stale immediately. I would read the computed
+node in the Accessibility pane and confirm the attribute is on the trigger, not the panel. Then I would
+check that `aria-controls` points at an element that exists.
 
 **Q: How do you announce that a background save succeeded?**
 
-Write into a live region that was already in the DOM at page load — `role="status"`, which implies polite,
-so the message is spoken at the next pause and focus does not move. I would clear the region before
-writing so an identical second message still announces, and keep `role="alert"` for errors because it
-interrupts. Moving focus to a confirmation banner is the wrong fix; it steals the user's place in the page.
+Write into a live region that was already in the DOM at page load. `role="status"` implies polite, so the
+screen reader speaks the message at the next pause and focus does not move. I would clear the region
+before writing, so an identical second message still announces. I would keep `role="alert"` for errors,
+because it interrupts. Moving focus to a confirmation banner is the wrong fix: it steals the user's place.
 
 **Q: When is `aria-disabled` better than `disabled`?**
 
-When the user needs to be able to reach the control and find out why it is unavailable — a submit button
-blocked by an incomplete form, for example. A native `disabled` button leaves the tab order entirely, so a
-keyboard user cannot land on it or read an associated explanation. With `aria-disabled` the control stays
-focusable and announces as disabled, but the click handler has to return early, because the attribute
-prevents nothing on its own.
+When the user needs to reach the control and find out why it is unavailable. A submit button blocked by
+an incomplete form is the usual example. A native `disabled` button leaves the tab order entirely, so a
+keyboard user cannot land on it or read an explanation. With `aria-disabled` the control stays focusable
+and announces as disabled. The click handler still has to return early, because the attribute prevents
+nothing on its own.
 
 **Q: Would you build a custom select, and what would it cost?**
 
-Only if a native `<select>` genuinely cannot meet the requirement, because native gives me the mobile
-picker, the keyboard model and the screen reader behaviour outright. If it is unavoidable I would
-implement the APG combobox pattern rather than improvise: a text input with `aria-expanded` and
-`aria-controls`, a `role="listbox"` of `role="option"` children, arrow keys plus Home, End, Enter and
-Escape, and `aria-activedescendant` so DOM focus stays in the input while the highlighted option moves.
-That is a week of work and a permanent maintenance cost, which is the honest thing to say in the estimate.
+Only if a native `<select>` genuinely cannot meet the requirement. Native gives me the mobile picker, the
+keyboard model and the screen reader behaviour outright. If a custom one is unavoidable, I would build the
+APG combobox pattern rather than improvise. That means a text input with `aria-expanded` and
+`aria-controls`, and a `role="listbox"` of `role="option"` children. It needs arrow keys plus Home, End,
+Enter and Escape. It also needs `aria-activedescendant`, so DOM focus stays in the input while the
+highlighted option moves. That is a week of work and a permanent maintenance cost. The estimate should
+say so honestly.
 
 ## What to Read Next
 

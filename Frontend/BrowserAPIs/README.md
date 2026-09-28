@@ -12,13 +12,12 @@ in_book: true
 
 # Part II — Browser APIs
 
-Six chapters on what the browser gives you before any framework is involved: where state can live,
-how to keep work off the main thread, how to keep working with no network, and how to speak the
-user's language. Frameworks deliberately do not abstract most of this, because the consequences —
-security, staleness, a broken layout in Arabic — belong to you.
+Six chapters on what the browser gives you before any framework is involved. They cover where state
+can live, how to keep work off the main thread, how to keep working with no network, and how to speak
+the user's language. Frameworks deliberately leave most of this to you. The consequences are yours:
+security, stale data, a broken layout in Arabic.
 
-The through-line is that every one of these APIs has a wrong answer that ships to production
-regularly. Browser storage is not a database with a smaller quota. A service worker is not a cache you
+The through-line is that every one of these APIs has a wrong answer that often ships to production. Browser storage is not a database with a smaller quota. A service worker is not a cache you
 can purge. A translation file is not internationalisation. Each chapter names the wrong answer first.
 
 ## Chapters
@@ -37,8 +36,8 @@ can purge. A translation file is not internationalisation. Each chapter names th
 The senior signal for this part is **reaches for the platform before reaching for a library.** For
 these APIs specifically:
 
-- **Where does the access token go?** The most common browser-storage question in a senior loop, and
-  it has a real answer: an `HttpOnly` cookie, because anything JavaScript can read, an XSS can read.
+- **Where does the access token go?** It is the most common browser-storage question in a senior loop,
+  and it has a real answer. Use an `HttpOnly` cookie, because an XSS can read anything JavaScript can read.
 - **Do you know what `SameSite=Lax` actually blocks?** Cross-site POSTs, not top-level GET
   navigations. Treating it as a complete CSRF defence is a common and expensive mistake.
 - **What is the origin boundary?** Storage is partitioned by scheme, host and port. Most "the data
@@ -50,7 +49,7 @@ these APIs specifically:
 
 ## Reading Order
 
-01 and 02 first and together — they are the two halves of "where does state live in the browser".
+Read 01 and 02 first and together. They are the two halves of "where does state live in the browser".
 The rest are independent. 05 reads best after 01, because the offline write queue lives in IndexedDB.
 
 **Interview sprint:** 01 → 02 → 05. The token question, the cookie-attributes question and the

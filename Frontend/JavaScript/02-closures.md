@@ -21,10 +21,10 @@ in_book: true
 Scope in JavaScript is **lexical**. Where a variable can be read is decided by where it is written,
 not by who calls the function. Inner code reaches out to its parents, never the reverse.
 
-A **closure** follows directly. A function keeps a reference to the scope it was written in, and that
-scope stays alive as long as the function does — even after the outer function has returned. The
-detail that decides every closure question: it captures **references, not copies**. Two closures over
-one variable see the same value, and a later change reaches both.
+A **closure** follows directly. A function keeps a reference to the scope it was written in. That
+scope stays alive as long as the function does, even after the outer function has returned. One
+detail decides every closure question: a closure captures **references, not copies**. Two closures
+over one variable see the same value, and a later change reaches both.
 
 ## How It Works
 
@@ -42,13 +42,14 @@ const closure = outer();
 closure(); // 'still here' — outer has returned, but its scope has not been collected
 ```
 
-`outer`'s call frame is gone, but `message` cannot be garbage-collected. The returned function holds
-the scope that contains it. That is the whole mechanism; everything below is a use of it.
+`outer`'s call frame is gone, but the garbage collector cannot free `message`. The returned function
+holds the scope that contains it. That is the whole mechanism. Everything below is a use of it.
 
 ### Hoisting and the temporal dead zone
 
-All three declaration forms are hoisted to the top of their scope. They differ in what the binding
-holds before the declaration line runs, and in which `{ }` counts as their scope.
+The engine hoists all three declaration forms: it creates the binding at the top of its scope. The
+forms differ in what the binding holds before the declaration line runs, and in which `{ }` counts as
+their scope.
 
 | Declaration | Scope                 | Before the line runs         | Consequence                                 |
 | ----------- | --------------------- | ---------------------------- | ------------------------------------------- |
@@ -67,9 +68,9 @@ holds before the declaration line runs, and in which `{ }` counts as their scope
 | **Expression**  | `const f = function () {}` | Binding only (in the TDZ) | ✅          | ✅          |
 | **Arrow**       | `const f = () => {}`       | Binding only (in the TDZ) | ❌ Lexical  | ❌          |
 
-Arrows have no own `this`, no `arguments`, no `prototype`, and cannot be constructed. The missing
-`this` is the point: a callback written inside a method sees the method's `this` — see
-[Chapter ?? — The `this` Keyword](#ch-this-keyword). A default parameter fires only for `undefined`,
+Arrows have no own `this`, no `arguments` and no `prototype`, and you cannot call them with `new`.
+The missing `this` is the point: a callback written inside a method sees the method's `this`. See
+[Chapter ?? — The `this` Keyword](#ch-this-keyword). A default parameter applies only for `undefined`,
 never for `null`.
 
 ### Private state
@@ -136,8 +137,8 @@ for (var i = 0; i < 3; i++) {
 // 3, 3, 3
 ```
 
-`var` is function-scoped, so there is exactly one `i`. All three closures capture a reference to it,
-and all three read it after the loop has finished — by which point it is 3.
+`var` is function-scoped, so there is exactly one `i`. All three closures capture a reference to it.
+All three read it after the loop has finished, when it is already 3.
 
 **✅ `let` creates a fresh binding per iteration, so each closure captures its own:**
 
@@ -149,7 +150,7 @@ for (let i = 0; i < 3; i++) {
 ```
 
 **❌ An arrow as an object method.** It takes `this` from the surrounding scope, which is not the
-object. Use method shorthand — `onClick(): void { ... }` — so `this` is the receiver.
+object. Use method shorthand, such as `onClick(): void { ... }`, so `this` is the receiver.
 
 **❌ Closing over a container when you need one value.** A closure keeps the *whole* scope alive, not
 only the variables it reads:
@@ -176,20 +177,20 @@ keeps the element alive after it leaves the DOM.
 
 ## 🔑 Key Takeaways
 
-- Scope is lexical: it follows where code is written, not who calls it, and lookup only goes outward.
-- `var` is function-scoped and reads as `undefined` early; `let` and `const` are block-scoped and throw in the TDZ.
+- Scope is lexical: it follows where code is written, not who calls it. Lookup only goes outward.
+- `var` is function-scoped and reads as `undefined` early. `let` and `const` are block-scoped and throw in the TDZ.
 - A closure is a function plus the scope it was defined in, kept alive after that scope returns.
-- Closures capture references, not values — which is why one shared `var` produces the loop bug.
+- Closures capture references, not values. That is why one shared `var` produces the loop bug.
 - A closure can retain the whole enclosing scope, so extract the value you need instead of the container.
 
 ## Interview Questions
 
 **Q: Explain the scope chain.**
 
-Each function keeps a reference to the scope it was defined in. Resolving a name searches the current
-scope, then its parent, then upward to module scope, and takes the first match. The chain is fixed
-where the function is written, so a function passed to a different caller still reads the variables
-it was written next to.
+Each function keeps a reference to the scope it was defined in. To resolve a name, the engine searches
+the current scope, then its parent, then upward to module scope. It takes the first match. The chain
+is fixed where the function is written. A function passed to a different caller still reads the
+variables it was written next to.
 
 **Q: What is the temporal dead zone, and why is it useful?**
 
@@ -199,8 +200,8 @@ exists but is uninitialised, so reading it throws `ReferenceError`. That turns `
 
 **Q: Why does a `var` loop with `setTimeout` print the final value three times?**
 
-`var` is function-scoped, so the loop has one `i`, and each callback closes over a reference to it,
-not a copy. The callbacks run after the loop ends, so all three read 3. `let` fixes it by creating a
+`var` is function-scoped, so the loop has one `i`. Each callback closes over a reference to it, not a
+copy. The callbacks run after the loop ends, so all three read 3. `let` fixes it by creating a
 new binding on each iteration.
 
 **Q: How do closures cause memory leaks?**

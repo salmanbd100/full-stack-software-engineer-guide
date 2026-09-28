@@ -31,20 +31,20 @@ composes and fails, and the loop that schedules your callbacks.
 
 Three questions carry most of the weight in this section, on top of the part-level signal:
 
-- **Do you know what a closure captures?** Not the definition. The consequence: which variable the
-  captured reference points at, when that keeps an object alive, and why the loop-with-`var` bug
-  produces the number it does.
+- **Do you know what a closure captures?** Not the definition, but the consequence. Which variable
+  does the captured reference point at? When does that keep an object alive? Why does the
+  loop-with-`var` bug produce the number it does?
 - **Can you explain `this` from the call site?** Four rules, in precedence order, applied to code you
-  are seeing for the first time. Candidates who memorised "arrow functions do not have `this`" and
-  stopped there get caught by the first method-extraction example.
-- **Do you treat errors as a design decision?** Swallowing a rejection, throwing a string, or losing
-  the stack across an `await` boundary all show up in code review. Knowing which failures are
-  recoverable and which should crash the process is a seniority marker.
+  are seeing for the first time. Some candidates memorised "arrow functions do not have `this`" and
+  stopped there. The first method-extraction example catches them.
+- **Do you treat errors as a design decision?** Code review catches three common mistakes: swallowing
+  a rejection, throwing a string, and losing the stack across an `await`. Knowing which failures are
+  recoverable, and which should crash the process, is a seniority marker.
 
 ## Reading Order
 
-Straight through. Chapters 05 and 06 are a pair — a promise's callback runs where the event loop puts
-it. Do not skip 06 because you have seen the diagram before.
+Straight through. Chapters 05 and 06 are a pair, because a promise's callback runs where the event
+loop puts it. Do not skip 06 because you have seen the diagram before.
 
 **Interview sprint:** 02 → 03 → 06 → 05. Closures, `this`, the event loop and promise composition
-account for the majority of what gets asked in the language round.
+account for most of what the language round asks.

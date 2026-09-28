@@ -20,8 +20,8 @@ in_book: true
 
 `interface` and `type` overlap almost completely for object shapes. Two things genuinely differ:
 **only `interface` merges** when declared twice, and **only `type` can name something that is not an
-object** — a union, a primitive, a tuple, a function signature. Every other difference people cite is
-either style or a version-old detail. Decide on those two, and stop arguing.
+object**, such as a union, a primitive, a tuple or a function signature. Every other difference people
+cite is either style or a detail from an old version. Decide on those two, and stop arguing.
 
 ## How It Works
 
@@ -35,8 +35,8 @@ interface User {
 }
 ```
 
-`readonly` and `?` are the two modifiers that carry real weight: `readonly` stops later assignment,
-`?` makes the key optional. Both are compile-time only.
+`readonly` and `?` are the two modifiers that carry real weight. `readonly` stops later assignment,
+and `?` makes the key optional. Both are compile-time only.
 
 ### What only `type` can do
 
@@ -62,9 +62,9 @@ interface Request {
 // Request now has both
 ```
 
-Declaration merging is a feature at a library boundary and a hazard inside your own code, where two
-files silently contributing to one type is a debugging problem. A duplicate `type` is an error, which
-in your own code is usually what you want.
+Declaration merging is a feature at a library boundary and a hazard inside your own code. There, two
+files that silently add to one type are hard to debug. A duplicate `type` is an error, which in your
+own code is usually what you want.
 
 | Capability                        | `interface` | `type` |
 | --------------------------------- | ----------- | ------ |
@@ -79,14 +79,14 @@ in your own code is usually what you want.
 
 `interface Product extends BaseEntity` and `type Product = BaseEntity & { … }` reach the same shape by
 different routes. `extends` checks compatibility as it goes, so a
-conflicting property is an error at the declaration. `&` does not — a conflict silently produces a
+conflicting property is an error at the declaration. `&` does not. A conflict silently produces a
 member of type `never`, which then fails at the assignment instead. That makes `extends` the better
 error message, and it is the reason to prefer it for object shapes.
 
 ### Discriminated unions
 
-The most valuable pattern in the language: a union whose members share a literal-typed field, which
-the compiler uses to narrow.
+This is the most valuable pattern in the language. It is a union whose members share a field with a
+literal type, and the compiler uses that field to narrow.
 
 ```typescript
 type RequestState<T> =
@@ -102,7 +102,7 @@ function render(state: RequestState<User>): string {
 }
 ```
 
-This is strictly better than an object with optional fields — `{ data?: T; error?: string }` allows
+This is strictly better than an object with optional fields. `{ data?: T; error?: string }` allows
 both, or neither, and the compiler cannot tell you which state you are in.
 
 ### Optional versus `| undefined`
@@ -120,9 +120,9 @@ const b: B = {}; // ❌ Property 'age' is missing
 const b2: B = { age: undefined }; // ✅
 ```
 
-Use `?` for genuinely optional data. Use `| undefined` when the caller must acknowledge the field —
-a patch object where "not sent" and "sent as empty" mean different things.
-`exactOptionalPropertyTypes` tightens this further by stopping `?` fields accepting an explicit
+Use `?` for genuinely optional data. Use `| undefined` when the caller must acknowledge the field,
+as in a patch object where "not sent" and "sent as empty" mean different things.
+`exactOptionalPropertyTypes` goes further: it stops `?` fields from accepting an explicit
 `undefined`.
 
 ## When to Use It
@@ -177,23 +177,23 @@ scope quietly become one type. If that was not deliberate, use `type`, which err
 
 **Q: When would you use `interface` over `type`?**
 
-For object shapes, especially ones other code extends or a library consumer augments — `extends` gives
+For object shapes, especially ones other code extends or a library user augments. `extends` gives
 clearer conflict errors, and declaration merging is the only way to add a field to a third-party type.
-`type` for anything that is not an object shape: unions, tuples, function signatures, mapped and
+Use `type` for anything that is not an object shape: unions, tuples, function signatures, mapped and
 conditional types.
 
 **Q: What is a discriminated union and why prefer it to optional fields?**
 
 A union whose members share a field with distinct literal types, which TypeScript uses to narrow.
 Optional fields describe the union of every combination, so the compiler cannot rule out
-`{ loading: true, error: 'x' }`. The discriminated form makes impossible states unrepresentable, and
-narrowing gives you the right fields in each branch with no casting.
+`{ loading: true, error: 'x' }`. The discriminated form makes impossible states impossible to write.
+Narrowing then gives you the right fields in each branch with no casting.
 
 **Q: Why did TypeScript not catch this extra property?**
 
-Excess-property checking is a special case that only applies to object literals assigned directly to a
-typed target. Assigning through an intermediate variable makes it a normal structural compatibility
-check, and extra properties are compatible. Annotate at the point of creation to keep the check.
+Excess-property checking is a special case. It only applies to an object literal assigned directly to
+a typed target. Assigning through a variable in between makes it a normal structural check, and extra
+properties pass that check. Annotate at the point of creation to keep the check.
 
 ## What to Read Next
 

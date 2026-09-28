@@ -12,17 +12,17 @@ in_book: true
 
 # Part II — The Browser Platform
 
-A framework is a layer over the platform, and an engineer who skipped the platform hits a ceiling that
-shows up in interviews as a specific tell: every answer starts with a library name. This part is the
-layer underneath — the markup the browser gives meaning to, the storage it offers, the accessibility
-tree it builds whether you think about it or not, and what it does with a locale it has never seen.
+A framework is a layer over the platform. An engineer who skipped the platform hits a ceiling, and it shows
+up in interviews as a clear tell: every answer starts with a library name. This part is the layer underneath.
+It covers the markup the browser gives meaning to and the storage it offers. It covers the accessibility tree
+(the page model that assistive technology reads), which the browser builds whether you think about it or not.
+And it covers what the browser does with a locale it has never seen.
 
-Two subjects punch well above their line count for this reader. **Accessibility** is a legal
-requirement rather than a nice-to-have: the European Accessibility Act became enforceable in June 2025
-and applies to any company serving EU consumers, wherever that company is based. And frontend system
-design rounds are consistent on this — accessibility and internationalisation are the two topics that
-most reliably separate a senior candidate from a mid-level one, and both are chronically under-taught
-elsewhere. That makes them cheap differentiation.
+Two subjects matter far more than their line count suggests. **Accessibility** is a legal requirement, not a
+nice-to-have. The European Accessibility Act became enforceable in June 2025. It applies to any company serving
+EU consumers, wherever that company is based. Frontend system design rounds also agree on one thing.
+Accessibility and internationalisation are the two topics that most reliably separate a senior candidate from a
+mid-level one. Both are badly under-taught elsewhere, so they are a cheap way to stand out.
 
 ## Sections
 
@@ -40,11 +40,11 @@ questions run through all three sections; each section index adds its own.
 - **What does the browser already do here?** A `<dialog>`, a `<details>`, a native form validation
   message. Every one of them is a component someone was about to build, with focus management and
   keyboard behaviour included.
-- **Who is this unusable for, and how do you know?** Not "is it accessible" — that invites a yes. The
-  senior answer names a user, a mechanism and a check: a keyboard-only user, a focus trap, an axe run in
-  CI that would have caught it.
-- **What happens when the assumption breaks?** Storage full, the locale is Arabic, the network is gone,
-  the string is 40% longer in German. Each is a one-line change to the test and a redesign to the layout.
+- **Who is this unusable for, and how do you know?** Not "is it accessible", because that invites a
+  yes. The senior answer names a user, a mechanism and a check. For example: a keyboard-only user, a
+  focus trap, and an axe run in CI that would have caught it.
+- **What happens when the assumption breaks?** Storage is full, the locale is Arabic, the network is gone, or
+  the string is 40% longer in German. Each is a one-line change to the test and a redesign of the layout.
 
 **Mid or senior, on the same question:**
 
@@ -56,14 +56,14 @@ questions run through all three sections; each section index adds its own.
 
 ## Reading Order
 
-HTML and CSS first — the accessibility section assumes it. After that the other two sections are
-independent and can be read in either order.
+Read HTML and CSS first, because the accessibility section assumes it. After that, the other two
+sections are independent, and you can read them in either order.
 
 **Interview sprint:** HTML and CSS 01 · Browser APIs 01, 02 and 06 · Accessibility 02 and 03. Six
 chapters, and they cover the platform questions that actually get asked.
 
-**Read in full if the role names it:** the accessibility section is the one to read cover to cover for a
-public-sector, banking or EU-facing product. Those loops ask about it properly.
+**Read in full if the role names it:** for a public-sector, banking or EU-facing product, read the
+accessibility section cover to cover. Those loops ask about it properly.
 
-> ⚠️ **Storage appears twice on purpose.** The mechanics — quota, eviction, `SameSite` — are here.
-> Caching as a *performance* strategy, with the budgets and the measurements attached, is Part IV.
+> ⚠️ **Storage appears twice on purpose.** The mechanics (quota, eviction, `SameSite`) are here.
+> Caching as a *performance* strategy, with its budgets and measurements, is in Part IV.

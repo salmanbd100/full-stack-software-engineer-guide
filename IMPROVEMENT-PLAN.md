@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-25 · **Progress:** 11 / 25
+**Last updated:** 2026-09-28 · **Progress:** 13 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -911,7 +911,7 @@ is green.
 
 ---
 
-### - [ ] 105. Plain English — Part I `M`
+### - [x] 105. Plain English — Part I `M` — ✅ **done 2026-09-28**
 
 The cut is finished; now every surviving chapter gets read line by line. One part per session, nine
 sessions, items #105–#113. They share one method:
@@ -936,15 +936,68 @@ Part I measures **20.8 words a sentence with 105 sentences over 32 words** — t
 **Done when:** every chapter in Part I has been read line by line, the part's average is inside 15–20
 words a sentence, and `pnpm lint:docs`, `pnpm index:check` and `pnpm check:code-samples` are green.
 
+**Delivered:**
+
+- **All 19 Part I files were read line by line and edited:** the part opener, the three section READMEs, the six
+  JavaScript chapters, the six TypeScript chapters and the three Design Patterns chapters. That came to about 270
+  sentences, 437 lines in and 424 out. Long sentences were split, em-dash asides and semicolon chains became full
+  stops, and passive wording became active. Short plain-word glosses were added the first time a term appears,
+  such as hoisting, TDZ, call site, partial application, realms, naked type parameter, Liskov substitution,
+  structural typing and "ratchet". In `04-prototypes-inheritance.md`, the four steps of `new` became a numbered list
+- **Untouched:** code fences, tables, diagrams, headings, front matter, `**Q:**` lines and cross-reference links.
+  The diff was checked for each of these
+- **The measure does not match this plan's table.** No script in the repo counts words a sentence, so a
+  throwaway one was written for this session. It counts prose only: code, tables, headings, HTML comments and
+  front matter are skipped, and the text is split on `.`, `!` or `?` followed by a capital letter. It gives Part I
+  **13.7 words a sentence, with 21 sentences over 32 words, before the pass**. After the pass it gives **11.5,
+  with 3 over 32**, and all 3 are splitter artefacts: a quoted sentence followed by another sentence. Counting
+  paragraphs alone, without list items, gives 11.3. The 20.8 in the table above was measured before #96 cut the
+  part, by a method not recorded here. That figure was a pointer, and it cannot be reproduced now. Read the target
+  as "no more than 20". The part is below 15 because of short list items and deliberately short sentences, not
+  because ideas were cut
+- **Kept long on purpose:** the event loop's one bolded rule, a four-item parallel list in
+  `01-data-types-variables.md`, and quoted spoken answers in Design Patterns
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression. `pnpm index:check` is current, with 647
+  questions across 150 chapters and 87 for Book 2. `pnpm check:code-samples` exits 0, and its type total stays at
+  974 against the baseline
+- **For #106–#113:** the same measure is needed every session. Either write it again, or add it to `scripts/` as
+  a small item of its own. It was not added here, because that would be work outside this item
+
 ---
 
-### - [ ] 106. Plain English — Part II `M`
+### - [x] 106. Plain English — Part II `M` — ✅ **done 2026-09-28**
 
 The densest part in the book: **21.5 words a sentence, 142 sentences over 32 words**. The method is in
 item #105.
 
 **Done when:** Part II has been read line by line, its average is inside 15–20 words a sentence, and
 the three checks are green.
+
+**Delivered:**
+
+- **All 19 Part II files were read line by line and edited.** That covers the part opener, the three section
+  READMEs, four HTML/CSS chapters, six Browser API chapters and five Accessibility chapters. Roughly 400
+  sentences changed, 701 lines in and 705 out. The work was the same as #105: long sentences split, dash asides
+  and semicolon chains turned into full stops, and passive wording made active. Terms got a first-use gloss:
+  accessibility tree, landmark, ARIA, APG, VPAT/ACR, compositor, vestibular disorders, specificity, structured
+  clone, INP, LCP/CLS, CLDR, IANA zone names, pseudo-locale, CSRF and TTL. American spellings became British,
+  such as "neutralise"
+- **Untouched:** code fences, tables, diagrams, headings, front matter, `**Q:**` lines, cross-reference links,
+  WCAG criterion names, and the POUR wording ("perceivable, operable, understandable and robust"). The diff was
+  checked for each
+- **Measured with the #105 method** (a scratch script, not in the repo). Before: **15.7 words a sentence, 58
+  sentences over 32 words**. After: **12.0, with 2 over 32**. One of the two is an `**In this chapter:**` line,
+  which the method says to leave alone. The other is a four-way list of when to reach for IndexedDB, left whole
+  so it reads as one set. The part's opening chapter had a real 41-word sentence, on the EAA fine, and it was
+  split by hand
+- **The line budget is tight.** Part II sits at **3,773 lines against a 3,800 budget**. Two editing agents briefly
+  pushed it to 3,801–3,804, turning prose into lists, before they reflowed it. Items that add glosses to this
+  part later should expect to give up a line for each one they add
+- **One content fix:** `Frontend/HtmlCss/README.md` said the Accessibility section had "six chapters". It has
+  five, so the text now says five
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression, including the part-budget rule. `pnpm
+  index:check` is current, with 647 and 87 questions. `pnpm check:code-samples` exits 0, and the type total stays
+  at the 974 baseline
 
 ---
 
@@ -1160,8 +1213,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 11/25 | 🚧 In progress |
-| **Total** | **25** | **11/25** | **44%** |
+| 9 | 95–116 · 95a · 113a · 113b | 13/25 | 🚧 In progress |
+| **Total** | **25** | **13/25** | **52%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

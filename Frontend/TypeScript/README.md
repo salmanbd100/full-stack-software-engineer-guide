@@ -12,15 +12,15 @@ in_book: true
 
 # Part I — TypeScript
 
-TypeScript is where a senior candidate separates from a mid-level one fastest, because the mid-level
-answer is "I add types" and the senior answer is "I add the type that makes the wrong state
+TypeScript separates a senior candidate from a mid-level one faster than any other topic. The
+mid-level answer is "I add types". The senior answer is "I add the type that makes the wrong state
 unrepresentable, and I let inference do the rest." This section covers the type system as a design
 tool: what to model, what to derive, and where the cleverness stops paying for itself.
 
-Chapters 01–03 are the everyday type system — annotate, model, reuse. Chapters 04–05 are narrowing
-and derived types, which is where types start catching real bugs. Applying all of it to React — props,
-hooks, context, generic components — is [Chapter ?? — React and TypeScript at Scale](#ch-react-typescript-at-scale),
-which sits with the rest of the React chapters in Part III.
+Chapters 01–03 are the everyday type system: annotate, model, reuse. Chapters 04–05 cover narrowing
+and derived types, which is where types start catching real bugs. Applying all of it to React (props,
+hooks, context, generic components) is [Chapter ?? — React and TypeScript at Scale](#ch-react-typescript-at-scale).
+That chapter sits with the rest of the React chapters in Part III.
 
 ## Chapters
 
@@ -44,14 +44,14 @@ The part-level signal with a compile-time twist. What that looks like in practic
   is the pattern interviewers are listening for. It converts a future bug into a build failure.
 - **Do you reach for generics for the right reason?** A generic that appears once in the signature is
   usually an `any` with extra steps. A generic that links an argument to a return type is doing work.
-- **Do you know when to stop?** Conditional and mapped types can express almost anything, and a type
+- **Do you know when to stop?** Conditional and mapped types can express almost anything. But a type
   nobody on the team can read is a liability. Naming the cost is the senior part of the answer.
 
 ## Reading Order
 
-Straight through, but 02 can be skimmed if you already write TypeScript daily. Chapter 04 is the one
-to slow down on — narrowing is what makes the rest useful.
+Read straight through, but skim 02 if you already write TypeScript daily. Slow down on Chapter 04,
+because narrowing is what makes the rest useful.
 
-**Interview sprint:** 03 → 04 → 05, then the React chapter in Part III. Generics, narrowing, derived
-types, and typing a component between them cover almost every TypeScript question a frontend-heavy loop
-asks.
+**Interview sprint:** 03 → 04 → 05, then the React chapter in Part III. Together, generics, narrowing,
+derived types and typing a component cover almost every TypeScript question in a frontend-heavy
+interview loop.

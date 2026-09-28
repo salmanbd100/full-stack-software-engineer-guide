@@ -19,13 +19,14 @@ in_book: true
 ## 💡 The Core Idea
 
 An HTML element is a promise about what the content *is*, and the browser acts on that promise. It
-builds an accessibility tree from it, exposes landmarks a screen reader user can jump between, decides
-what reader mode keeps, and gives a `<button>` focus and keyboard activation nobody had to write. A
-`<div>` makes no promise, so the browser does nothing — and every behaviour it would have given you has
-to be rebuilt by hand, correctly, forever.
+builds an accessibility tree from it (the model of the page that assistive technology reads). It
+exposes landmarks (named regions) that a screen reader user can jump between. It decides what reader
+mode keeps. It gives a `<button>` focus and keyboard activation that nobody had to write. A `<div>`
+makes no promise, so the browser does nothing. You then have to rebuild every behaviour it would have
+given you by hand, correctly, forever.
 
 That is why this is the cheapest accessibility win, the cheapest SEO win and the cheapest maintenance
-win available. Every `<div>` is a small act of giving up; reach for one when no element fits, not first.
+win available. Every `<div>` is a small act of giving up. Reach for one when no element fits, not first.
 
 ## How It Works
 
@@ -38,8 +39,7 @@ win available. Every `<div>` is a small act of giving up; reach for one when no 
 
 ### Document landmarks
 
-Screen reader users navigate by landmark rather than by scrolling. These are the elements that create
-one.
+Screen reader users navigate by landmark, not by scrolling. These are the elements that create one.
 
 ```html
 <body>
@@ -70,8 +70,8 @@ one.
 
 ### Heading hierarchy
 
-Headings are how a screen reader user skims: pressing `H` jumps heading to heading. Skip a level and
-that user believes they have lost a section.
+Headings are how a screen reader user skims: pressing `H` jumps from heading to heading. If you skip a
+level, that user believes they have missed a section.
 
 - One `<h1>` per page — the page's primary topic.
 - Never skip a level going **down**. `h2` → `h4` is wrong.
@@ -94,8 +94,8 @@ Lighthouse, axe-core and WAVE all flag broken heading order, so this one fails i
 
 ### Form semantics
 
-Forms are where bad markup causes real pain, and labels are the whole of it. Without a `<label>`, a
-screen reader announces "edit text, blank" and the user has nothing to go on.
+Forms are where bad markup causes real pain, and labels are most of it. Without a `<label>`, a screen
+reader announces "edit text, blank", and the user has nothing to go on.
 
 ```html
 <!-- ❌ No association. Clicking "Email" moves focus nowhere. -->
@@ -124,7 +124,7 @@ hears "Shipping speed, Standard, radio button" rather than "Standard, radio butt
 </fieldset>
 ```
 
-**The input type is free behaviour.** Pick the most specific one available; the mobile keyboard alone
+**The input type is free behaviour.** Pick the most specific one available. The mobile keyboard alone
 pays for the decision.
 
 | Type | What it gives you |
@@ -138,8 +138,9 @@ pays for the decision.
 
 ### Lists and tables
 
-`<ul>` for an unordered collection, `<ol>` where order carries meaning — steps, rankings, line numbers
-— and `<dl>` for term and definition pairs such as a glossary or a metadata block.
+Use `<ul>` for an unordered collection. Use `<ol>` where order carries meaning, such as steps,
+rankings or line numbers. Use `<dl>` for term and definition pairs, such as a glossary or a metadata
+block.
 
 ```html
 <dl>
@@ -149,8 +150,7 @@ pays for the decision.
 ```
 
 A `<table>` is for data where each cell relates to a row header and a column header. `<caption>`,
-`<thead>` and `scope` are what let a screen reader announce those headers as the user moves between
-cells.
+`<thead>` and `scope` let a screen reader announce those headers as the user moves between cells.
 
 ```html
 <table>
@@ -186,7 +186,7 @@ Could this content stand alone, syndicated to another site?
 | Flexbox wrapper for layout | `<div>` | No meaning at all — a styling hook |
 
 > ⚠️ If you cannot write a meaningful heading for a `<section>`, it is a `<div>`. The heading is not
-> decoration; it is the thing that makes the section a section.
+> decoration. It is the thing that makes the section a section.
 
 ## Common Mistakes
 
@@ -204,8 +204,8 @@ Could this content stand alone, syndicated to another site?
 </footer>
 ```
 
-**❌ Reaching for ARIA when an element exists.** ARIA fills gaps in HTML — tabs, comboboxes, trees —
-and nothing else. The first rule of ARIA is not to use ARIA.
+**❌ Reaching for ARIA when an element exists.** ARIA (roles and states for assistive technology) fills gaps
+in HTML, such as tabs, comboboxes and trees. It does nothing else. The first rule of ARIA is not to use ARIA.
 
 ```html
 <!-- ❌ Reinventing a button, badly -->
@@ -218,16 +218,16 @@ and nothing else. The first rule of ARIA is not to use ARIA.
 The `<button>` brings focus, Enter and Space activation, a disabled state and form participation. The
 `<div>` brings a role attribute and a promise you now have to keep by hand.
 
-**❌ Tables for layout.** They announce as data to a screen reader, which then reads a page of
-positioning as though it were a spreadsheet.
+**❌ Tables for layout.** A screen reader announces them as data. It then reads a page of positioning
+as though it were a spreadsheet.
 
-**❌ Choosing a heading level for its size.** `<h4>` because the design wants smaller text is how an
-outline breaks. Choose the level from the structure and set the size in CSS.
+**❌ Choosing a heading level for its size.** Using `<h4>` because the design wants smaller text is how
+an outline breaks. Choose the level from the structure and set the size in CSS.
 
 ## 🔑 Key Takeaways
 
-- An element is a promise about what the content is, and the browser acts on it — a `<div>` promises
-  nothing, so nothing is given to you.
+- An element is a promise about what the content is, and the browser acts on it. A `<div>` promises
+  nothing, so the browser gives you nothing.
 - `<article>` stands alone, `<section>` needs a heading, `<div>` is the fallback when neither is true.
 - Heading level comes from the document outline, never from the font size the design asks for.
 - A form control without an associated `<label>` has no accessible name, and announces as "blank".
@@ -237,11 +237,11 @@ outline breaks. Choose the level from the structure and set the size in CSS.
 
 **Q: When do you use `<section>` versus `<article>` versus `<div>`?**
 
-`<article>` for self-contained, syndicatable content — a blog post, a product card, something that
-could live alone on another page. `<section>` for a thematic group within a page that has its own
-heading, such as "Featured Products" on a homepage. `<div>` when there is no meaning to express and the
-element is a styling hook. The test that settles most cases: if you cannot write a meaningful heading
-for the `<section>`, it should be a `<div>`.
+Use `<article>` for self-contained, syndicatable content. That means a blog post, a product card, or
+anything that could live alone on another page. Use `<section>` for a thematic group within a page
+that has its own heading, such as "Featured Products" on a homepage. Use `<div>` when there is no
+meaning to express and the element is a styling hook. One test settles most cases: if you cannot write
+a meaningful heading for the `<section>`, it should be a `<div>`.
 
 **Q: Why does heading order matter, and what breaks if you skip levels?**
 
@@ -252,17 +252,17 @@ order, so it also fails automatically.
 
 **Q: A colleague puts every form field in a `<div>` with floating text above it. What is wrong?**
 
-There is no label association, and it costs three separate things: clicking the text does not focus the
-input, the input has no accessible name so it announces as "edit text, blank", and the hit target
-shrinks to the control itself. The fix is `<label for>` with a matching `id`, or wrapping the control in
-the `<label>`. For a radio or checkbox group, add `<fieldset>` and `<legend>` so the group is named too.
+There is no label association, and that costs three separate things. Clicking the text does not focus
+the input. The input has no accessible name, so it announces as "edit text, blank". And the hit target
+shrinks to the control itself. The fix is `<label for>` with a matching `id`, or wrapping the control
+in the `<label>`. For a radio or checkbox group, add `<fieldset>` and `<legend>` so the group is named too.
 
 **Q: When would you not use a semantic element?**
 
-When the element would make a promise the content does not keep. `<aside>` for something that is merely
-positioned to one side, `<nav>` for a list of three footer links, or `<section>` for a flex wrapper all
-add a landmark a screen reader user has to navigate past. A wrong landmark is worse than no landmark,
-which is the one case where `<div>` is the right answer rather than the lazy one.
+Do not use one when it would make a promise the content does not keep. Think of `<aside>` for something
+merely positioned to one side, `<nav>` for three footer links, or `<section>` for a flex wrapper. Each
+adds a landmark that a screen reader user has to navigate past. A wrong landmark is worse than no
+landmark. This is the one case where `<div>` is the right answer, not the lazy one.
 
 ## What to Read Next
 

@@ -18,29 +18,28 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A cluster of features landed between 2022 and 2024 that between them removed most of the reasons to
-reach for a preprocessor or for JavaScript. Custom properties made CSS values dynamic. `oklch` made
-colour maths behave the way eyes do. `:has()` let a parent respond to its children. Subgrid let
-independent components share one set of tracks. The interview value is not that you can name them —
-it is that you can say what each one deleted, because that is the same as knowing why it exists.
+A cluster of features landed between 2022 and 2024. Together they removed most of the reasons to reach for a
+preprocessor or for JavaScript. Custom properties made CSS values dynamic. `oklch` made colour maths behave the
+way eyes do. `:has()` let a parent respond to its children. Subgrid let independent components share one set of
+tracks. The interview value is not naming them. It is saying what each one deleted, which is why it exists.
 
-> The question behind each of these is "what did we used to do instead?" Answer that and the feature
+> The question behind each of these is "what did people do before this?" Answer that and the feature
 > explains itself.
 
-> ⚠️ **Moving target:** which CSS features are safe to ship moves in one direction only, and it moves
-> every few months — anchor positioning, `@scope` and container style queries are the next set to cross
-> the line. The durable principle is the check rather than the list: confirm a feature's Baseline status
-> before you rely on it, and wrap anything short of Baseline in `@supports` so the fallback is a
-> deliberate design rather than a broken layout.
+> ⚠️ **Moving target:** the list of CSS features that are safe to ship only grows, and it grows every few
+> months. Anchor positioning, `@scope` and container style queries are the next set to cross the line. The
+> durable principle is the check, not the list. Confirm a feature's Baseline status (the MDN and web.dev label
+> for "works in every major browser") before you rely on it. Wrap anything short of Baseline in `@supports`,
+> so the fallback is a deliberate design, not a broken layout.
 
 ## How It Works
 
 ### Custom properties are a runtime API, not variables
 
 A preprocessor variable is a constant that disappears at build time. A custom property lives in the
-DOM, inherits, responds to media queries and pseudo-classes, and can be read and written from
-JavaScript. That last point is the one that matters architecturally: it is the only way to pass a value
-from JavaScript into CSS without writing inline style strings.
+DOM and inherits. It responds to media queries and pseudo-classes, and JavaScript can read and write
+it. That last point matters most for architecture. It is the only way to pass a value from JavaScript
+into CSS without writing inline style strings.
 
 ```css
 :root {
@@ -70,9 +69,9 @@ const current: string = getComputedStyle(root).getPropertyValue('--brand');
 
 ### Colour that behaves the way eyes do
 
-`hsl` is readable and **not perceptually uniform**: yellow at 50% lightness looks far brighter than blue
-at 50% lightness. Any ramp built by stepping HSL lightness therefore looks uneven, and dark-mode
-inversion by flipping lightness produces muddy results.
+`hsl` is readable but **not perceptually uniform**. Equal numbers do not look equal: yellow at 50%
+lightness looks far brighter than blue at 50% lightness. So any ramp built by stepping HSL lightness
+looks uneven. Dark-mode inversion by flipping lightness also gives muddy results.
 
 ```css
 .button {
@@ -98,7 +97,7 @@ inversion by flipping lightness produces muddy results.
 ### `:has()` — the parent selector
 
 Twenty years of "CSS cannot do that" ended here. `:has()` styles an element based on what it contains
-or what follows it, which moves a whole category of logic out of JavaScript.
+or what follows it. That moves a whole category of logic out of JavaScript.
 
 ```css
 .card:has(img) { display: grid; grid-template-columns: 100px 1fr; }
@@ -107,12 +106,12 @@ body:has(dialog[open]) { overflow: hidden; }
 .list:not(:has(.item)) { display: none; }
 ```
 
-Each of those replaced an effect that toggled a class. The last two are the most valuable, because
-"is the modal open" and "is the list empty" were state React had to hold purely so CSS could see it.
+Each of those replaced an effect that toggled a class. The last two are the most valuable. "Is the
+modal open" and "is the list empty" were state that React had to hold purely so CSS could see it.
 
-> ⚠️ Browsers implement `:has()` with invalidation tracking, so it is production-safe. The one shape to
-> avoid is an unqualified `*:has(…)` over a very large tree, where the engine has no cheap way to narrow
-> the candidate set.
+> ⚠️ Browsers implement `:has()` with invalidation tracking (they re-check only the elements a change
+> can affect), so it is production-safe. The one shape to avoid is an unqualified `*:has(…)` over a
+> very large tree. There, the engine has no cheap way to narrow the set of elements to check.
 
 ### `aspect-ratio`
 
@@ -125,11 +124,11 @@ Each of those replaced an effect that toggled a class. The last two are the most
 .avatar { aspect-ratio: 1; width: 48px; } /* height follows */
 ```
 
-Reserving the ratio before the asset loads is also what stops the image contributing to layout shift.
+Reserving the ratio before the asset loads also stops the image from causing layout shift.
 
 ### Native nesting
 
-Nesting shipped natively in 2023, which removes one of the last standing arguments for a preprocessor.
+Nesting shipped natively in 2023. That removes one of the last standing arguments for a preprocessor.
 
 ```css
 .card {
@@ -147,8 +146,8 @@ produces long descendant selectors, and those are specificity you did not intend
 
 ### Subgrid
 
-Three cards in a row, each with a title, body and footer of different lengths. Before subgrid, lining
-those up across the row meant measuring in JavaScript.
+Picture three cards in a row, each with a title, body and footer of different lengths. Before subgrid,
+lining those up across the row meant measuring in JavaScript.
 
 ```css
 .cards {
@@ -191,18 +190,18 @@ const brand = document.documentElement.style.getPropertyValue('--brand');
 const brand = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
 ```
 
-**❌ Wrong — treating custom properties as typed.** By default a custom property is a token stream, so
-`--space: 1rem` cannot be animated and `calc()` will accept nonsense from it silently. `@property`
-declares a syntax and an initial value, which makes the property animatable and validated.
+**❌ Wrong — treating custom properties as typed.** By default a custom property is a token stream
+(untyped text). So `--space: 1rem` cannot be animated, and `calc()` silently accepts nonsense from it.
+`@property` declares a syntax and an initial value. That makes the property animatable and validated.
 
 **❌ Wrong — a ramp stepped in HSL.** `hsl(60 100% 50%)` and `hsl(240 100% 50%)` claim the same
-lightness and differ enormously in perceived brightness, so a palette generated that way needs
-hand-correction at every step.
+lightness but differ hugely in perceived brightness. A palette generated that way needs correcting by
+hand at every step.
 
 ## 🔑 Key Takeaways
 
-- Custom properties live in the DOM, inherit, and respond to context, which makes them a runtime API rather than build-time variables.
-- `oklch` is perceptually uniform, so equal steps in lightness look equal — that is what makes ramps and dark-mode inversion work.
+- Custom properties live in the DOM, inherit, and respond to context. That makes them a runtime API, not build-time variables.
+- `oklch` is perceptually uniform, so equal steps in lightness look equal. That is what makes ramps and dark-mode inversion work.
 - `:has()` moves parent-from-child styling into CSS and deletes the class-toggling effects that used to do it.
 - Native nesting removes one of the last reasons to run a preprocessor, with the same depth discipline as before.
 - Subgrid aligns tracks across sibling components, replacing JavaScript measurement.
@@ -211,29 +210,30 @@ hand-correction at every step.
 
 **Q: Why prefer `oklch` over `hsl` for design tokens?**
 
-Because HSL's lightness is not perceptual: yellow and blue at the same HSL lightness look nothing alike,
-so a ramp stepped uniformly looks uneven and needs correcting by hand. `oklch` lightness tracks
-perceived brightness, which makes generated ramps, dark-mode inversion by flipping lightness, and
+Because HSL's lightness is not perceptual. Yellow and blue at the same HSL lightness look nothing
+alike, so a ramp stepped evenly looks uneven and needs correcting by hand. `oklch` lightness tracks
+perceived brightness. That makes generated ramps, dark-mode inversion by flipping lightness, and
 contrast reasoning all behave. It also reaches colours outside sRGB on wide-gamut displays.
 
 **Q: What did `:has()` let you delete?**
 
-The class-toggling layer. Body scroll locking when a dialog opens, error styling on a field containing
-an invalid input, empty-list states, and layout variants that depend on whether a card has an image —
-all of those were React state and effects that existed only to make child state visible to CSS.
+The class-toggling layer. Think of body scroll locking when a dialog opens, or error styling on a field
+that contains an invalid input. Add empty-list states, and layout variants that depend on whether a
+card has an image. All of those were React state and effects that existed only to make child state
+visible to CSS.
 
 **Q: What is the difference between a custom property and a Sass variable?**
 
-A Sass variable is substituted at build time and does not exist in the shipped stylesheet. A custom
-property is a live DOM value: it inherits, it can be overridden per subtree, it responds to media
-queries and pseudo-classes, and JavaScript can read and write it. Only the second one can support
+Sass substitutes its variable at build time, so it does not exist in the shipped stylesheet. A custom
+property is a live DOM value. It inherits, and you can override it per subtree. It responds to media
+queries and pseudo-classes, and JavaScript can read and write it. Only the custom property can support
 runtime theming.
 
 **Q: When is a custom property the wrong tool?**
 
-For a value that never varies. Every `var()` is an indirection a reader has to resolve and a small
-amount of work the engine has to do, and a token that is the same everywhere buys nothing for it. The
-test is whether anything — a theme, a breakpoint, a subtree, a script — ever changes it.
+For a value that never varies. Every `var()` is an indirection that a reader has to resolve, and a
+small amount of work for the engine. A token that is the same everywhere buys nothing for that cost.
+The test is whether anything ever changes it: a theme, a breakpoint, a subtree or a script.
 
 ## What to Read Next
 

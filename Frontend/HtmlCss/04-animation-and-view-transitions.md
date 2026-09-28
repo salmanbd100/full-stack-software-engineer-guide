@@ -18,13 +18,13 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Every animation costs one of three amounts, and which one depends entirely on the property you chose.
-The browser renders in stages — style, layout, paint, composite — and animating a property forces every
-stage from that property's stage onwards, on every frame.
+Every animation costs one of three amounts, and the property you chose decides which one.
+The browser renders in four stages: style, layout, paint and composite. Animating a property re-runs
+that property's stage and every stage after it, on every frame.
 
-`transform` and `opacity` are the two properties the compositor can change on its own. Everything else
-drags layout or paint back into the frame budget, and at 60fps the whole budget is 16.7 milliseconds
-including whatever JavaScript is already running.
+`transform` and `opacity` are the two properties the compositor (the part of the browser that assembles
+layers on screen) can change on its own. Everything else drags layout or paint back into the frame
+budget. At 60fps the whole budget is 16.7 milliseconds, including any JavaScript already running.
 
 > The senior version of "why is this janky" is not "add `will-change`". It is "you animated a property
 > that forces layout, sixty times a second".
@@ -54,8 +54,8 @@ Moving an element is `translate`, not `left`. Growing it is `scale`, not `width`
 
 ### Declaring motion
 
-CSS transitions handle state changes, keyframes handle sequences, and the Web Animations API handles
-anything that needs to be driven by code:
+CSS transitions handle state changes and keyframes handle sequences. The Web Animations API handles
+anything that code has to drive:
 
 ```typescript
 // Same model as CSS keyframes, with a promise and a handle on the animation.
@@ -69,15 +69,14 @@ const animation: Animation = drawer.animate(
 await animation.finished;
 ```
 
-The API matters for interruption. A CSS transition that is reversed mid-flight jumps; an `Animation`
-object can be reversed, paused or cancelled, which is what makes a drawer feel attached to the finger
-that is dragging it.
+The API matters for interruption. A CSS transition that you reverse mid-flight jumps. You can reverse,
+pause or cancel an `Animation` object, and that is what makes a drawer feel attached to the dragging finger.
 
 ### View transitions
 
-The problem view transitions solve is ownership. Animating from one state of a page to another means
-holding both states in the DOM at once — the old list and the new list, the small image and the large
-one — and every framework grew its own machinery for it.
+The problem view transitions solve is ownership. To animate from one state of a page to another, you
+must hold both states in the DOM at once. That means the old list and the new list, or the small image
+and the large one. Every framework grew its own machinery for it.
 
 The browser can do it instead. `startViewTransition` snapshots the page, runs the DOM update, snapshots
 again, and cross-fades between the two:
@@ -110,10 +109,10 @@ Cross-document transitions apply the same idea to an ordinary navigation, with n
 }
 ```
 
-> ⚠️ **Moving target:** the same-document API shipped in Chromium in 2023 and Safari 18; cross-document
-> came later and Firefox later still, so check current support before relying on it. The durable
-> principle is the one to hold on to — the API is a progressive enhancement by construction. Feature-detect,
-> run the plain update when it is missing, and the page is correct either way.
+> ⚠️ **Moving target:** the same-document API shipped in Chromium in 2023 and in Safari 18.
+> Cross-document came later, and Firefox later still, so check current support before relying on it. The
+> durable principle is that the API is a progressive enhancement by design. Feature-detect it, run the
+> plain update when it is missing, and the page is correct either way.
 
 ## When to Use It
 
@@ -127,9 +126,10 @@ Cross-document transitions apply the same idea to an ordinary navigation, with n
 
 ### Reduced motion is not an optional extra
 
-`prefers-reduced-motion` is a user setting for a medical condition — vestibular disorders, where large
-motion causes real nausea. WCAG 2.2 treats motion that the user cannot disable as a failure, so this is
-the same legal territory as the rest of Part II's accessibility material.
+`prefers-reduced-motion` is a user setting for a medical condition. People with vestibular disorders
+(inner-ear balance problems) feel real nausea from large motion. WCAG 2.2 treats motion that the user
+cannot disable as a failure. So this is the same legal territory as the rest of Part II's accessibility
+material.
 
 **Reduce, rather than remove:**
 
@@ -150,29 +150,29 @@ inside the media query.
 
 ## Common Mistakes
 
-**❌ `will-change` on everything.** It promotes the element to its own compositor layer permanently,
-which costs memory and can make things slower. Apply it just before the animation starts and remove it
-after, or leave it out — browsers already promote what they need.
+**❌ `will-change` on everything.** It promotes the element to its own compositor layer permanently.
+That costs memory and can make things slower. Apply it just before the animation starts and remove it
+after. Or leave it out, because browsers already promote what they need.
 
-**❌ Animating `height: auto`.** There is nothing to interpolate towards, so it does not animate at all.
+**❌ Animating `height: auto`.** There is no fixed value to animate towards, so it does not animate at all.
 Animate `grid-template-rows` from `0fr` to `1fr`, or `scale` a wrapper, or measure and animate to a
 pixel value.
 
 **❌ Treating a view transition as a page-level effect.** Without `view-transition-name` on the elements
-that persist, everything cross-fades — which reads as a flash, not as a relationship. The value of the
+that persist, everything cross-fades. That reads as a flash, not as a relationship. The value of the
 API is telling the browser which two elements are the same thing.
 
 ## 🔑 Key Takeaways
 
 - The browser renders in four stages, and animating a property re-runs its stage and everything after it
   on every frame.
-- `transform` and `opacity` are the only two properties the compositor can animate on its own — express
+- `transform` and `opacity` are the only two properties the compositor can animate on its own. Express
   motion in terms of them.
-- The Web Animations API exists for motion that has to be reversed, paused or cancelled; CSS is better
+- The Web Animations API exists for motion that has to be reversed, paused or cancelled. CSS is better
   for everything else.
-- View transitions let the browser hold the old and new state of a page, which is the machinery every
-  framework used to implement itself.
-- `prefers-reduced-motion` is an accessibility requirement, not a preference — reduce the motion, but
+- View transitions let the browser hold the old and new state of a page. Every framework used to build
+  that machinery itself.
+- `prefers-reduced-motion` is an accessibility requirement, not a preference. Reduce the motion, but
   keep the feedback.
 
 ## Interview Questions
@@ -180,31 +180,31 @@ API is telling the browser which two elements are the same thing.
 **Q: An engineer reports that a slide-in panel stutters on mid-range Android. Where do you start?**
 
 Ask what is being animated. If it is `left`, `width` or `margin`, every frame re-runs layout for the
-panel and usually for its siblings, and no amount of `will-change` changes that. Rewrite it as
-`transform: translateX()`, which the compositor handles without touching layout or paint. Only after
-that is it worth looking at what else is on the main thread during the animation — a long task will drop
-frames whatever the property.
+panel and usually for its siblings. No amount of `will-change` changes that. Rewrite it as
+`transform: translateX()`, which the compositor handles without touching layout or paint. Only then is
+it worth checking what else runs on the main thread during the animation. A long task drops frames
+whatever the property.
 
 **Q: What does the View Transitions API actually do for you?**
 
 It holds both states. Animating between two versions of a page normally means keeping the old DOM alive
-while the new DOM renders, which is the hard part and the reason animation libraries are large. The
-browser snapshots before and after your update and animates the difference, and
-`view-transition-name` tells it which elements in the two snapshots are the same object so it can move
-them rather than fade them.
+while the new DOM renders. That is the hard part, and it is why animation libraries are large. The
+browser snapshots before and after your update and animates the difference. `view-transition-name`
+tells it which elements in the two snapshots are the same object, so it can move them rather than fade
+them.
 
 **Q: How do you handle `prefers-reduced-motion` without making the interface confusing?**
 
 Reduce, do not delete. If a panel slides in and you remove the animation entirely, the user gets no
-signal that anything changed — replace the movement with an opacity change, which carries the same
-information with none of the vestibular cost. The failure mode people hit is a blanket rule that
-disables all animation, including the loading spinner that was the only evidence the app was working.
+signal that anything changed. Replace the movement with an opacity change instead. It carries the same
+information with none of the vestibular cost. A common failure is a blanket rule that disables all
+animation. That includes the loading spinner that was the only evidence the app was working.
 
 **Q: When would you use a JavaScript animation library rather than the platform?**
 
-When the motion is physical rather than timed — spring dynamics, gestures that hand off velocity,
-layout animations across a list that reorders. The platform's timing model is duration and easing, and
-faking a spring with a cubic bézier stops being convincing as soon as the user interrupts it. For
+When the motion is physical rather than timed. Examples are spring dynamics, gestures that hand off
+velocity, and layout animations across a list that reorders. The platform's timing model is duration and
+easing. A spring faked with a cubic bézier stops being convincing as soon as the user interrupts it. For
 everything else the platform is smaller, and it does not ship a runtime to the user.
 
 ## What to Read Next

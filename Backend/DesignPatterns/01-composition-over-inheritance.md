@@ -61,8 +61,8 @@ audit trail cannot be forgotten, because the only way to change the title also r
 | `#field`           | **The JavaScript runtime** | The class, at runtime too    |
 
 That third row is the interview question. `(s as any).token` reaches a `private` field at runtime.
-`s.#secret` is a `SyntaxError` that no cast defeats. Use `private` for ordinary design boundaries, and
-`#` when a value must not leak even to misbehaving code — a token a third-party script could reach.
+`s.#secret` is a `SyntaxError` that no cast defeats. Use `private` for ordinary design boundaries. Use
+`#` when a value must not leak even to misbehaving code, such as a token a third-party script could reach.
 
 > ⚠️ **A getter and setter for every field is not encapsulation.** If every private field has a public
 > pair, the object is a bag of data with more code. A setter earns its place when it validates,
@@ -70,7 +70,7 @@ That third row is the interview question. `(s as any).token` reaches a `private`
 
 ### Polymorphism removes conditionals
 
-The caller depends on a shape, not a concrete type, so a new implementation does not edit the caller.
+The caller depends on a shape, not a concrete type. So a new implementation does not edit the caller.
 TypeScript is **structural**: any object with the right members satisfies an interface, with or
 without `implements`.
 
@@ -81,7 +81,7 @@ without `implements`.
 | **Structural** | Any object with the right shape fits the type    | At compile time |
 
 Prefer an interface for abstraction. Reach for an abstract class only when implementations share real
-behaviour — a fixed sequence of steps with one step left open, the **template method**.
+behaviour. The usual case is a fixed sequence of steps with one step left open: the **template method**.
 
 ### What a deep hierarchy costs
 
@@ -98,8 +98,8 @@ class ContractRegionalManager extends RegionalManager {
 }
 ```
 
-That override breaks the Liskov substitution principle: code holding a `Manager` can fail for reasons
-it cannot see.
+That override breaks the Liskov substitution principle, which says a subtype must work anywhere its
+parent does. Code holding a `Manager` can now fail for reasons it cannot see.
 
 | Cost                             | What it looks like                                                         |
 | -------------------------------- | -------------------------------------------------------------------------- |
@@ -131,8 +131,8 @@ class Staff {
 const contractor = new Staff('Priya', { canApprove: () => false }); // any mix, no class per mix
 ```
 
-The behaviour is now a value. You can swap it at runtime, test it alone, and reuse it — three things a
-superclass cannot offer.
+The behaviour is now a value. You can swap it at runtime, test it alone, and reuse it. A superclass
+offers none of those three.
 
 ### Dependency injection is composition with a rule
 
@@ -154,12 +154,13 @@ class ReportService {
 }
 ```
 
-Testing is the whole argument. If `ReportService` built its own database client and called
-`new Date()`, testing "is a report stale after a day?" would need a database and a time machine. With
-both injected, the test is two object literals — no class and no mocking library.
+Testing is the whole argument. Suppose `ReportService` built its own database client and called
+`new Date()`. Then testing "is a report stale after a day?" would need a database and a time machine.
+With both injected, the test is two object literals. It needs no class and no mocking library.
 
-For stateless cross-cutting concerns, a **higher-order function** is composition too:
-`withAuth(withLogging(getReport))` wraps a handler twice. That is the decorator pattern with no classes.
+A cross-cutting concern is one that many handlers share, such as logging or auth. For stateless ones,
+a **higher-order function** is composition too. `withAuth(withLogging(getReport))` wraps a handler
+twice. That is the decorator pattern with no classes.
 
 > ⚠️ **Injecting everything is its own smell.** A constructor with nine dependencies is telling you the
 > class does nine things. Fix the class, not the wiring.
@@ -174,9 +175,9 @@ For stateless cross-cutting concerns, a **higher-order function** is composition
 | Swappable behaviour, or isolated tests           | Composition and injection     | Swap a field; pass a collaborator in              |
 | A subclass would override a method to do nothing | Composition                   | That override is a Liskov violation waiting to be found |
 
-Framework base classes and error hierarchies — `class NotFoundError extends HttpError` — are
-reasonable inheritance. The rule: inheritance answers "these things share behaviour", never "these
-things share some fields".
+Framework base classes and error hierarchies are reasonable inheritance. An example is
+`class NotFoundError extends HttpError`. The rule: inheritance answers "these things share behaviour",
+never "these things share some fields".
 
 ## Common Mistakes
 
@@ -197,9 +198,9 @@ dependencies again.
 
 ## 🔑 Key Takeaways
 
-- An object puts state and the rules about that state in one place; every pillar follows from that.
-- TypeScript's `private` is a compile-time check that a cast defeats; `#field` is enforced by the runtime.
-- TypeScript is structural, so any object with the right shape satisfies an interface — which makes test doubles cheap.
+- An object puts state and the rules about that state in one place. Every pillar follows from that.
+- TypeScript's `private` is a compile-time check that a cast defeats. The runtime enforces `#field`.
+- TypeScript is structural, so any object with the right shape satisfies an interface. That makes test doubles cheap.
 - A hierarchy breaks when behaviour varies on more than one axis, because a class has exactly one parent.
 - Dependency injection is composition applied to collaborators, and its payoff is a unit you can test without infrastructure.
 
@@ -207,28 +208,28 @@ dependencies again.
 
 **Q: What is the difference between `private` and `#` in a TypeScript class?**
 
-`private` is enforced by the compiler and erased from the JavaScript, so a cast to `any` reaches the
-field at runtime. `#` is a JavaScript private field, enforced by the runtime, and reading it from
+The compiler enforces `private` and then erases it from the JavaScript. So a cast to `any` reaches
+the field at runtime. `#` is a JavaScript private field that the runtime enforces. Reading it from
 outside is a syntax error. Use `private` for design boundaries and `#` when the value must not leak.
 
 **Q: "Favour composition over inheritance" — why?**
 
 Inheritance couples you to everything the ancestors do, when usually you wanted one piece of
-behaviour. Composition names that piece, makes it swappable, and keeps each part testable alone.
+behaviour. Composition names that piece and makes it swappable. It also keeps each part testable alone.
 Inheritance still wins for a genuine "is a" whose shared code is a stable algorithm.
 
 **Q: Show me a case where inheritance is the right call.**
 
-A template method: a fixed sequence where one step varies — validate, then deliver, where only
-delivery differs per channel. The shared thing is the *sequence*, which an interface cannot express
-and composition would repeat in every implementation. Error hierarchies are the other honest case.
+A template method: a fixed sequence where one step varies. For example, validate, then deliver, where
+only delivery differs per channel. The shared thing is the *sequence*. An interface cannot express it,
+and composition would repeat it in every implementation. Error hierarchies are the other honest case.
 
 **Q: TypeScript is structurally typed. What does that change?**
 
 Substitutability depends on shape, not declaration. Test doubles and adapters become cheap, because an
 object literal can satisfy a dependency. But two unrelated types with the same shape are also
-interchangeable, which can hide a real bug. A branded type is the escape hatch when you need nominal
-behaviour.
+interchangeable, which can hide a real bug. A branded type (a type with a unique tag field added) is
+the escape hatch when you need nominal behaviour, where types match by name.
 
 ## What to Read Next
 

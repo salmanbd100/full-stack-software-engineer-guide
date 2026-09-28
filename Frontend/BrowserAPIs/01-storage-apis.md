@@ -18,13 +18,13 @@ in_book: true
 
 ## 💡 The Core Idea
 
-The browser offers two kinds of general storage. **Web storage** — `localStorage` and `sessionStorage`
-— is a small, synchronous, string-only key-value cache. **IndexedDB** is an asynchronous database that
-stores whole objects, indexes them, and holds hundreds of megabytes.
+The browser offers two kinds of general storage. **Web storage** means `localStorage` and
+`sessionStorage`. It is a small, synchronous, string-only key-value cache. **IndexedDB** is an
+asynchronous database that stores whole objects, indexes them, and holds hundreds of megabytes.
 
 Neither is a security boundary. Any script on your page can read both. And neither is guaranteed to
-survive: the browser may evict either one under storage pressure. So the rule for both is the same —
-if losing the value would break the app, or leaking it would matter, it belongs somewhere else.
+survive, because the browser may evict (delete) either one under storage pressure. So the rule for both
+is the same. If losing the value would break the app, or leaking it would matter, it belongs somewhere else.
 
 ```typescript
 localStorage.setItem("theme", "dark");
@@ -33,8 +33,8 @@ const theme: string | null = localStorage.getItem("theme"); // "dark", or null i
 
 > ⚠️ **Moving target:** browsers now partition storage by top-level site, so the same origin embedded in
 > two different parent sites sees two different stores. Eviction rules also differ per browser and keep
-> changing. The durable principle: same-origin storage with no security boundary and no promise that
-> it persists.
+> changing. The durable principle is that this is same-origin storage with no security boundary and no
+> promise that it persists.
 
 ## How It Works
 
@@ -91,8 +91,8 @@ sending tab, `BroadcastChannel` is the simpler tool.
 
 A write over the quota throws `QuotaExceededError`. Private browsing can disable storage completely,
 so a write inside a `try` is the only reliable availability check. `navigator.storage.estimate()`
-reports real usage across web storage, IndexedDB and the Cache API together, so you can see the limit
-coming. `navigator.storage.persist()` asks the browser not to evict — it is a request, not a promise.
+reports real usage across web storage, IndexedDB and the Cache API together. That lets you see the limit
+coming. `navigator.storage.persist()` asks the browser not to evict, but it is a request, not a promise.
 
 ### When IndexedDB earns its complexity
 
@@ -188,11 +188,11 @@ depend on, as you would a server response.
 
 ## 🔑 Key Takeaways
 
-- Web storage and IndexedDB are both readable by every script on the page and both evictable, so neither holds secrets or irreplaceable data.
-- `localStorage` is shared across tabs and outlives them; `sessionStorage` is isolated to one tab and dies with it.
+- Every script on the page can read web storage and IndexedDB, and the browser can evict both, so neither holds secrets or irreplaceable data.
+- `localStorage` is shared across tabs and outlives them. `sessionStorage` belongs to one tab and dies with it.
 - The `storage` event reaches every tab except the one that wrote the value.
-- IndexedDB is asynchronous because synchronous disk access would freeze the page, and it earns its cost past ~5 MB, for binary data, for queries, or for offline writes.
-- Schema changes happen only inside the upgrade handler, and a transaction closes if you await unrelated work inside it.
+- IndexedDB is asynchronous because synchronous disk access would freeze the page. It earns its cost past ~5 MB, for binary data, for queries, or for offline writes.
+- Schema changes happen only inside the upgrade handler. A transaction closes if you await unrelated work inside it.
 
 ## Interview Questions
 
@@ -204,15 +204,15 @@ right for a form draft. Only `localStorage` fires the `storage` event, so only i
 
 **Q: Why should a JWT not go in `localStorage`?**
 
-Every script on the page can read it, including a compromised third-party dependency, so one XSS
+Every script on the page can read it, including a compromised third-party dependency. So one XSS
 takes the session. An `HttpOnly` cookie is out of reach of JavaScript. The trade is that cookies bring
-CSRF into scope, which `SameSite` and a token pattern handle.
+CSRF (cross-site request forgery) into scope, which `SameSite` and a token pattern handle.
 
 **Q: When would you choose IndexedDB over `localStorage`?**
 
-When any one of four things is true: more than a few megabytes, queries on object fields, binary data
-such as a `Blob`, or a read large enough to cost a frame if it ran synchronously. For a handful of
-small strings, IndexedDB is complexity with no return.
+When any one of four things is true. You store more than a few megabytes, you query on object fields,
+you store binary data such as a `Blob`, or a read is large enough to cost a frame if it ran
+synchronously. For a handful of small strings, IndexedDB is complexity with no return.
 
 **Q: How do IndexedDB schema migrations work?**
 
@@ -222,9 +222,9 @@ user several releases behind still arrives at the current schema.
 
 **Q: What happens when you hit the quota?**
 
-The write throws `QuotaExceededError`, so any store that can grow needs a `try`/`catch` and a cleanup
-pass, such as a TTL sweep or least-recently-used removal. `navigator.storage.estimate()` lets you see
-the limit before you reach it, across every store at once.
+The write throws `QuotaExceededError`. So any store that can grow needs a `try`/`catch` and a cleanup
+pass, such as a TTL (time-to-live) sweep or least-recently-used removal. `navigator.storage.estimate()`
+lets you see the limit before you reach it, across every store at once.
 
 ## What to Read Next
 

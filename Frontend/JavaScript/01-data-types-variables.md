@@ -20,9 +20,9 @@ in_book: true
 
 JavaScript has two kinds of value, and the split explains most type bugs. A **primitive** is the
 value itself: assign it and you get a copy. A **reference type** is an address: assign it and both
-names point at the same object. Why `===` surprises you, why a spread is not a deep copy, why
-`const` does not mean immutable, and why `sort` can reorder a React prop — all of it follows from
-that one distinction.
+names point at the same object. That one split explains four surprises. It is why `===` surprises you,
+why a spread is not a deep copy, why `const` does not mean immutable, and why `sort` can reorder a
+React prop.
 
 ## How It Works
 
@@ -75,7 +75,8 @@ including `'0'`, `[]` and `{}`. That is why `count || 10` is a bug when `0` is a
 | `const` | Block    | ❌ `ReferenceError`                     | ❌        | ✅ Default             |
 
 `const` freezes the **binding**, not the value. `const user = {...}; user.name = 'Bob'` is legal.
-For a truly immutable object you need `Object.freeze` — which is shallow — or a `readonly` type.
+For a truly immutable object you need `Object.freeze` or a `readonly` type. Note that `Object.freeze`
+is shallow: nested objects stay mutable.
 
 ### Keyed collections
 
@@ -92,8 +93,9 @@ const unique: string[] = [...new Set(['a', 'b', 'a'])]; // unique values, O(1) m
 | Frequent add and delete        | Slower                          | ✅ Built for it                |
 | Keys that come from user input | ❌ Can collide with `__proto__`  | ✅ No prototype chain to hit   |
 
-`WeakMap` holds its keys weakly. An entry disappears once nothing else references its key, so it is
-the right store for metadata attached to a DOM node.
+`WeakMap` holds its keys weakly: it does not stop the garbage collector from freeing them. An entry
+disappears once nothing else references its key. That makes it the right store for metadata attached
+to a DOM node.
 
 ### Array methods, and the ones that mutate
 
@@ -129,7 +131,7 @@ const next: Order[] = orders.with(0, { ...orders[0], status: 'paid' }); // a new
 ```
 
 For objects, `Object.entries` → transform → `Object.fromEntries` is the equivalent of `map` and
-`filter`. All the `Object.keys` family skip inherited properties, which `for...in` does not.
+`filter`. The whole `Object.keys` family skips inherited properties. `for...in` does not.
 
 ## When to Use It
 
@@ -199,10 +201,10 @@ into the object branch and the next property access throws. Check `value === nul
 
 ## 🔑 Key Takeaways
 
-- Primitives assign by value; objects, arrays and functions assign by address.
-- `const` stops reassignment of the binding and nothing else — the object stays mutable.
+- Primitives assign by value. Objects, arrays and functions assign by address.
+- `const` stops you reassigning the binding, and nothing else. The object stays mutable.
 - Only six values are falsy, so a default for a number or a string belongs behind `??`, not `||`.
-- `sort`, `reverse`, `splice` and the `push` family mutate; `toSorted` and `with` are the copying versions.
+- `sort`, `reverse`, `splice` and the `push` family mutate. `toSorted` and `with` are the copying versions.
 - Spread copies one level. Anything deeper needs `structuredClone` or a spread per level.
 
 ## Interview Questions
@@ -210,8 +212,8 @@ into the object branch and the next property access throws. Check `value === nul
 **Q: Why does changing a property through one variable affect another variable?**
 
 Both variables hold the same address, not the same data. Assignment copied the reference, so there is
-one object with two names. An independent object needs an explicit copy — a spread for a flat object,
-`structuredClone` for a nested one.
+one object with two names. An independent object needs an explicit copy. Use a spread for a flat
+object and `structuredClone` for a nested one.
 
 **Q: `const arr = [1, 2]; arr.push(3);` — why is that legal?**
 
@@ -222,7 +224,7 @@ binding itself never changes. `arr = []` would be the error.
 
 `map` returns a new array of the same length, built from the callback's return values. `forEach`
 returns `undefined` and exists only for side effects. Calling `map` and ignoring the result allocates
-an array for nothing, and neither of them can be awaited per item.
+an array for nothing. Neither of them can be awaited per item.
 
 **Q: How would you remove duplicates from an array of objects by `id`?**
 
@@ -232,8 +234,8 @@ A `Set` compares objects by identity, so it does not help here. Key by the field
 **Q: When is `reduce` the wrong choice?**
 
 Whenever a named method says it more clearly. A `reduce` that returns an array of the same length is a
-`map`, one that returns a subset is a `filter`, and one that returns a boolean is `some` or `every`.
-Keep `reduce` for real changes of shape — a sum or a lookup table — and prefer `Object.groupBy` for
+`map`. One that returns a subset is a `filter`, and one that returns a boolean is `some` or `every`.
+Keep `reduce` for real changes of shape, such as a sum or a lookup table. Prefer `Object.groupBy` for
 grouping.
 
 ## What to Read Next

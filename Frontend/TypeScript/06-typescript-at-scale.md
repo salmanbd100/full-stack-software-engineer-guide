@@ -12,29 +12,28 @@ in_book: true
 
 # TypeScript at Scale {#ch-typescript-at-scale}
 
-> Turn on `strict` in a codebase that was never written for it, use `satisfies` instead of an annotation, and say when a type is costing more than it returns.
+> Turn on `strict` in a codebase that was never written for it. Use `satisfies` instead of an annotation. Know when a type is costing more than it returns.
 
 **In this chapter:** the language against the engineering · migrating to `strict` one flag at a time · `satisfies` and what it fixes · module resolution and `verbatimModuleSyntax` · when to stop
 
 ## 💡 The Core Idea
 
 Chapters 01 to 07 are the language. This one is the **engineering**: what changes when the codebase is
-large, old, and shared — because at that point every question is about cost rather than expressiveness.
-A type that is more precise catches more bugs and takes longer to check; a type that is more clever
-catches more bugs and takes longer for the next person to read. A senior answer is never "make it as
-precise as possible" — it is knowing which errors a type buys and at what price.
+large, old and shared. At that point every question is about cost rather than expressiveness.
+A more precise type catches more bugs and takes longer to check. A more clever type catches more bugs
+and takes longer for the next person to read. A senior answer is never "make it as precise as
+possible". It is knowing which errors a type buys, and at what price.
 
 The other half is that a large codebase is almost never `strict` from the start. It gets there by
-migration, and having a plan that is not "turn it on and fix 4,000 errors" is one of the more reliably
-asked questions on this topic.
+migration. Interviewers reliably ask for a plan that is not "turn it on and fix 4,000 errors".
 
 ## How It Works
 
 ### `strict` is seven flags, and they go on one at a time
 
-`"strict": true` enables a group. Turning the group on at once in an existing codebase produces
-thousands of errors and no path through them. Turning the flags on individually produces a sequence of
-finishable pieces of work.
+`"strict": true` enables a group. Turning the whole group on at once in an existing codebase produces
+thousands of errors and no path through them. Turning the flags on one by one produces a series of
+pieces of work you can finish.
 
 | Flag | What it catches | Migration cost |
 | ---- | --------------- | -------------- |
@@ -50,19 +49,19 @@ finishable pieces of work.
 confidence. Then `noImplicitAny`. Then `strictNullChecks` last and on its own, because it is the one
 that surfaces real bugs and needs the attention.
 
-For a codebase too large for even that, the escape hatch is `strict: true` plus per-file suppressions —
-but it has to come with a ratchet. Add a CI check that counts the files carrying `// @ts-nocheck` or
-`// @ts-expect-error` and **fails when the count goes up.** A number that can only fall is what turns a
-migration into something that finishes; a suppression list with no gate is a list that grows.
+For a codebase too large for even that, the escape hatch is `strict: true` plus per-file suppressions.
+But it has to come with a ratchet: a count that may fall and never rise. Add a CI check that counts the
+files carrying `// @ts-nocheck` or `// @ts-expect-error` and **fails when the count goes up.** A number
+that can only fall is what makes a migration finish. A suppression list with no gate only grows.
 
-Two useful flags sit outside `strict`. `noUncheckedIndexedAccess` makes `arr[i]` yield `T | undefined`,
-which is the truth but is noisy in loop-heavy code; `exactOptionalPropertyTypes` separates "absent" from
-"present and `undefined`", and breaks common spread patterns. Both are opt-in because the cost is real.
+Two useful flags sit outside `strict`. `noUncheckedIndexedAccess` makes `arr[i]` yield `T | undefined`.
+That is the truth, but it is noisy in loop-heavy code. `exactOptionalPropertyTypes` separates "absent"
+from "present and `undefined`", and it breaks common spread patterns. Both are opt-in because the cost is real.
 
 ### `satisfies` checks without widening
 
-`satisfies` arrived in TypeScript 4.9 and changed how configuration objects are typed. It is asked
-about because the reason it exists is subtle.
+`satisfies` arrived in TypeScript 4.9 and changed how configuration objects are typed. Interviewers ask
+about it because the reason it exists is subtle.
 
 ```typescript
 type Route = { path: string; auth: boolean };
@@ -86,10 +85,10 @@ type RouteName = keyof typeof routes; // "home" | "admin"
 
 The distinction in one line: **an annotation is a claim about what the variable is; `satisfies` is a
 check that the value conforms.** With the annotation you get validation and lose the keys. With
-`satisfies` you get both, and `keyof typeof` becomes a usable union — which is what makes it the right
-tool for route tables, theme tokens, feature-flag maps and permission lists. The same argument applies
-against `as const` alone, which preserves the literals but checks nothing; `as const satisfies T` is a
-legitimate pairing when you want readonly as well.
+`satisfies` you get both, and `keyof typeof` becomes a usable union. That makes it the right tool for
+route tables, theme tokens, feature-flag maps and permission lists. The same argument applies against
+`as const` alone, which keeps the literals but checks nothing. `as const satisfies T` is a sound
+pairing when you want readonly as well.
 
 ### Module resolution, and the flag that stops surprises
 
@@ -104,12 +103,13 @@ the bundler and not in `tsc`.
 
 `verbatimModuleSyntax`, added in TypeScript 5.0, is the one to be able to explain. It requires
 `import type` for anything used only as a type, then emits imports exactly as written. Without it the
-compiler decides which imports to elide, and a value import that happened to be used only in a type position disappears — taking its side
-effects with it. The flag moves that erasure into the source, where it is visible in review.
+compiler decides which imports to elide (drop from the output). A value import that happens to be used
+only in a type position disappears, and its side effects go with it. The flag moves that erasure into
+the source, where it is visible in review.
 
 `skipLibCheck` and project references belong to the build-time discussion in
-[Chapter ?? — Type-Checking and Linting at Scale](#ch-type-checking-and-linting), which owns why type
-checking does not parallelise and what a project graph does about it.
+[Chapter ?? — Type-Checking and Linting at Scale](#ch-type-checking-and-linting). That chapter explains
+why type checking does not parallelise and what a project graph does about it.
 
 ### Declaration files, when you have to write one
 
@@ -129,11 +129,11 @@ declare module "legacy-charts" {
 The rule for a shim: **type only what you call, and type it accurately.** A shim that declares the whole
 library from guesswork is worse than no types, because the compiler now confidently agrees with
 something wrong. `any` in one place you have not verified is more honest than an invented signature. A
-wildcard module — `declare module "*.svg"` exporting a `string` — is the same rule applied to assets.
+wildcard module, such as `declare module "*.svg"` exporting a `string`, applies the same rule to assets.
 
 ### When types start costing more than they return
 
-Type-level computation is real computation, and it is single-threaded and re-run on every check.
+Type-level computation is real computation. It is single-threaded, and it re-runs on every check.
 
 ```typescript
 // ❌ A recursive conditional over a large union: compiles, and slowly.
@@ -145,7 +145,7 @@ type DeepPaths<T, Prefix extends string = ""> = {
 // ✅ Generate the union from the runtime source instead, or accept `string`.
 ```
 
-Three signals that a type has gone past its value, and each one has a cheaper answer:
+Three signals show that a type has gone past its value, and each one has a cheaper answer:
 
 | Signal | The cheaper answer |
 | ------ | ------------------ |
@@ -153,13 +153,13 @@ Three signals that a type has gone past its value, and each one has a cheaper an
 | Only one person on the team can modify it | A validated runtime schema, with the type inferred from it |
 | The error message is forty lines of nested conditionals | A narrower type and a runtime check at the boundary |
 
-The last row is the general escape: a schema validator gives you a runtime check **and** an inferred
-type from one declaration, which usually beats proving the same thing in the type system. Use
+The last row is the general escape. A schema validator gives you a runtime check **and** an inferred
+type from one declaration. That usually beats proving the same thing in the type system. Use
 `tsc --generateTrace` when you need evidence about which type is slow rather than a hunch.
 
 > ⚠️ **Moving target:** TypeScript adds and renames compiler flags every few releases, and the native
-> port changes the performance arithmetic behind this section. The durable principle is that type-level
-> work is single-threaded and re-run on every check, so precision has a measurable price.
+> port changes the performance arithmetic behind this section. The lasting principle holds: type-level
+> work is single-threaded and re-runs on every check, so precision has a measurable price.
 
 ## When to Use It
 
@@ -205,16 +205,16 @@ so the guarantee does not exist at runtime.
 
 **Q: How would you get a 200,000-line codebase onto `strict`?**
 
-Not in one commit. `strict` is seven flags, so I would turn on the four cheap ones first —
-`strictFunctionTypes`, `strictBindCallApply`, `noImplicitThis`, `useUnknownInCatchVariables` — then
+Not in one commit. `strict` is seven flags, so I would turn on the four cheap ones first:
+`strictFunctionTypes`, `strictBindCallApply`, `noImplicitThis` and `useUnknownInCatchVariables`. Then
 `noImplicitAny`, then `strictNullChecks` on its own, because that is the one that surfaces real bugs.
-If even that is too large, `strict: true` with per-file suppressions plus a CI check that the count
-only falls. The gate is the important part: without it the exclusion list becomes the permanent state.
+If even that is too large, I would use `strict: true` with per-file suppressions, plus a CI check that
+the count only falls. The gate is the important part. Without it the exclusion list becomes permanent.
 
 **Q: What does `satisfies` do that a type annotation does not?**
 
 It checks the value against the type without widening it. An annotation says what the variable *is*, so
-`Record<string, Route>` validates the entries and then throws away the specific keys — a typo in a
+`Record<string, Route>` validates the entries and then throws away the specific keys. A typo in a
 lookup stops being an error. `satisfies` validates the same way and keeps the literal type, so
 `keyof typeof` gives a real union of the keys. That is why it fits route tables and permission maps.
 
@@ -222,8 +222,8 @@ lookup stops being an error. `satisfies` validates the same way and keeps the li
 
 When the editor gets slow in one file, when only one person can safely modify a type, or when a
 mismatch produces a forty-line error nobody can read. All three say the type has moved past what it
-buys. The usual replacement is a runtime schema — one declaration gives both a runtime check and an
-inferred type, which is safer for anything crossing a boundary and much cheaper to maintain.
+buys. The usual replacement is a runtime schema. One declaration gives both a runtime check and an
+inferred type. That is safer for anything crossing a boundary, and much cheaper to maintain.
 
 ## What to Read Next
 

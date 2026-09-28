@@ -18,14 +18,14 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Two features shipped in 2023 that replaced two long-running workarounds, and both do the same kind of
-thing: they let you say something once, at the top, instead of defending it in every rule underneath.
+Two features shipped in 2023, and each replaced a long-running workaround. Both do the same kind of
+thing. They let you say something once, at the top, instead of defending it in every rule underneath.
 
-**Container queries** change what a component responds to. A media query asks about the window, which the
-component does not live in — it lives in a sidebar, or a modal, or a grid cell. **Cascade layers** change
-how conflicts are resolved. Without them, the winner of a conflict is whoever wrote the longer selector,
-so teams escalate. With them, you declare the order of your stylesheets once and specificity only
-decides fights *inside* a layer.
+**Container queries** change what a component responds to. A media query asks about the window, but the
+component does not live in the window. It lives in a sidebar, a modal or a grid cell. **Cascade layers**
+change how the browser resolves conflicts. Without them, whoever wrote the longer selector wins, so teams
+keep escalating. With them, you declare the order of your stylesheets once. Specificity (the weight of a
+selector) then only decides fights *inside* a layer.
 
 > Both features move a decision out of individual rules and into one declaration at the top of the
 > stylesheet. That is why they are architecture rather than syntax.
@@ -54,8 +54,8 @@ A component queries the element it sits inside, once that element has declared i
 }
 ```
 
-The same card can now sit in a 900px main column and a 280px sidebar on one page, and be correct in
-both. No prop, no JavaScript measurement, and no page-level breakpoint that has to know where the
+The same card can now sit in a 900px main column and a 280px sidebar on one page. It is correct in
+both. You need no prop, no JavaScript measurement, and no page-level breakpoint that knows where the
 component was placed.
 
 **Container query units** measure against the container rather than the viewport:
@@ -67,9 +67,9 @@ component was placed.
 | `cqmin` / `cqmax` | smaller / larger of the two | A clamp built out of viewport units |
 
 > ⚠️ **A container cannot query itself.** `container-type: inline-size` makes an element a query target
-> for its descendants, not for its own rules. It also creates containment, which means the element no
-> longer sizes itself from its content in the contained axis — a `container-type: size` element with no
-> explicit height collapses.
+> for its descendants, not for its own rules. It also creates containment. The element no longer sizes
+> itself from its content in the contained axis. So a `container-type: size` element with no explicit
+> height collapses.
 
 ### Cascade layers
 
@@ -93,8 +93,8 @@ earlier one **no matter how specific either is**.
 }
 ```
 
-That is what makes a utility class reliable without `!important`: the utility layer is declared last, so
-a one-class utility beats a three-class component rule by position.
+That is what makes a utility class reliable without `!important`. You declare the utility layer last,
+so a one-class utility beats a three-class component rule by position.
 
 **The layered cascade, in the order the browser resolves it:**
 
@@ -107,8 +107,8 @@ flowchart TD
 
 **Where layers sit in the cascade: above specificity, below importance.**
 
-Unlayered styles win over every layer. That is deliberate — it means adding layers to an existing
-codebase cannot break the unlayered CSS already there — and it is also the thing that surprises people.
+Unlayered styles win over every layer. That is deliberate. It means adding layers to an existing
+codebase cannot break the unlayered CSS already there. It is also the rule that surprises people.
 
 ## When to Use It
 
@@ -130,29 +130,28 @@ codebase cannot break the unlayered CSS already there — and it is also the thi
 ## Common Mistakes
 
 **❌ Turning every wrapper into a container.** `container-type` creates containment, and containment has
-a cost and a behaviour change. Declare it on the handful of elements that are genuinely layout slots —
-the grid cell, the sidebar, the modal body — not on every `div` on the way down.
+a cost and changes behaviour. Declare it on the few elements that are real layout slots, such as the
+grid cell, the sidebar and the modal body. Do not declare it on every `div` on the way down.
 
-**❌ Reaching for `container-type: size`.** It contains both axes, so the element takes its height from
-its own rules rather than from its content, and content that grows overflows silently.
+**❌ Reaching for `container-type: size`.** It contains both axes. The element takes its height from its
+own rules rather than from its content, so content that grows overflows silently.
 `inline-size` is the one you almost always want.
 
 **❌ Declaring layers in the file that uses them.** If the `@layer` order statement lives in a component
-file, the order depends on which file the bundler happened to put first — which is exactly the
-non-determinism layers exist to remove. Declare the full order once, in the entry stylesheet, before
-anything else.
+file, the order depends on which file the bundler put first. That is exactly the randomness layers exist
+to remove. Declare the full order once, in the entry stylesheet, before anything else.
 
-**❌ Assuming a layer beats `!important`.** Importance is resolved before layer order, and for
-`!important` declarations the layer order is *reversed* — the earliest layer wins. A reset layer using
+**❌ Assuming a layer beats `!important`.** The browser resolves importance before layer order. For
+`!important` declarations the layer order is *reversed*, so the earliest layer wins. A reset layer using
 `!important` will beat an important utility, which is almost never what anyone expects.
 
 ## 🔑 Key Takeaways
 
-- A media query asks about the window; a container query asks about the space the component was actually
-  given, which is what a reusable component needs.
-- `container-type: inline-size` is the safe default — `size` contains both axes and breaks
+- A media query asks about the window. A container query asks about the space the component was
+  actually given, which is what a reusable component needs.
+- `container-type: inline-size` is the safe default. `size` contains both axes and breaks
   content-driven height.
-- Cascade layers resolve conflicts by declared order, above specificity, so a one-class utility can beat
+- Cascade layers resolve conflicts by declared order, above specificity. So a one-class utility can beat
   a three-class component rule by design rather than by `!important`.
 - Unlayered CSS beats every layer, which is what makes layers safe to adopt in an existing codebase.
 - Both features move a decision from individual rules into one declaration at the top of the stylesheet.
@@ -162,30 +161,31 @@ anything else.
 **Q: A card component looks wrong in the sidebar but right in the main column. How do you fix it?**
 
 The card is responding to the viewport when it should be responding to its slot. Give the slot
-`container-type: inline-size` and rewrite the card's breakpoints as `@container` queries. Two other answers get offered: a `variant="compact"` prop, or a page-level media query that knows
-the sidebar exists. Both push knowledge of the layout into the component or into the page. Both stop
-working the next time someone places the card somewhere new.
+`container-type: inline-size` and rewrite the card's breakpoints as `@container` queries. People offer
+two other answers: a `variant="compact"` prop, or a page-level media query that knows the sidebar exists.
+Both push knowledge of the layout into the component or into the page. Both stop working the next time
+someone places the card somewhere new.
 
 **Q: What problem do cascade layers solve that BEM did not?**
 
-BEM keeps specificity flat by agreement; nothing enforces it, and it does nothing about CSS you did not
-write. Layers make the ordering a declaration the browser enforces: a third-party stylesheet imported
-into a `vendor` layer cannot outrank your components however specific its selectors are. BEM is a
-convention about names, layers are a mechanism about precedence — most codebases want both.
+BEM keeps specificity flat by agreement. Nothing enforces it, and it does nothing about CSS you did not
+write. Layers turn the ordering into a declaration the browser enforces. A third-party stylesheet
+imported into a `vendor` layer cannot outrank your components, however specific its selectors are. BEM
+is a convention about names, and layers are a mechanism about precedence. Most codebases want both.
 
 **Q: Where do cascade layers sit relative to specificity and `!important`?**
 
 Origin and importance first, then layer order, then specificity within a layer, then source order. So a
 later layer beats an earlier one regardless of specificity, and unlayered styles beat all layers. The
-catch worth knowing is that `!important` reverses the layer order: an important declaration in the
-*first* layer wins. That is why `!important` inside a reset layer is a trap.
+catch is that `!important` reverses the layer order, so an important declaration in the *first* layer
+wins. That is why `!important` inside a reset layer is a trap.
 
 **Q: When is a container query the wrong tool?**
 
-When the thing you are styling genuinely depends on the viewport — a page-level one-column-or-two
-decision, a fixed header that changes at small screens, or anything driven by device capability rather
-than by available space. Container queries also cannot look upwards past a container boundary, so a rule
-that needs to know about the page as a whole still belongs in a media query.
+When the thing you are styling really depends on the viewport. Examples are a page-level choice between
+one column and two, a fixed header that changes on small screens, or anything driven by device capability
+rather than available space. Container queries also cannot look upwards past a container boundary. So a
+rule that needs to know about the whole page still belongs in a media query.
 
 ## What to Read Next
 

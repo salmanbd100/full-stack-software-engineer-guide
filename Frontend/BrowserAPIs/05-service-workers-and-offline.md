@@ -22,7 +22,7 @@ A service worker is a script the browser keeps outside your page. It sits betwee
 network, like a proxy you wrote yourself. It survives every tab being closed, and it decides what each
 request returns.
 
-That last power is what makes it useful and what makes it dangerous. Once a worker is installed, the
+That last power makes it both useful and dangerous. Once a worker is installed, the
 browser asks it first. So a bad worker can serve a broken build to a user who has no way to clear it.
 
 > A service worker is code you deploy once and cannot easily take back. Design the update path before
@@ -30,8 +30,8 @@ browser asks it first. So a bad worker can serve a broken build to a user who ha
 
 > ⚠️ **Moving target:** the tooling churns much faster than the platform. Workbox renames its strategies
 > across majors, and framework plugins change the worker they generate. The durable principle is the
-> lifecycle underneath — install, wait, activate — and the fact that you own the update path, whatever
-> generated the worker.
+> lifecycle underneath: install, wait, activate. And whatever generated the worker, you own the update
+> path.
 
 ## How It Works
 
@@ -102,8 +102,8 @@ from the origin root, or send `Service-Worker-Allowed: /` to widen the scope.
 
 ### The five caching strategies
 
-Inside `fetch`, `event.respondWith` commits you to producing a response. A request you do not call it
-for goes to the network untouched — the right default for requests you have no opinion about.
+Inside `fetch`, `event.respondWith` commits you to producing a response. If you do not call it, the
+request goes to the network untouched. That is the right default for requests you have no opinion about.
 
 Every strategy trades staleness for speed. There is no correct strategy, only a correct pairing of
 strategy to request.
@@ -141,8 +141,8 @@ when it throws.
 
 **Responses go in the Cache API, records go in IndexedDB.** The Cache API stores `Request`/`Response`
 pairs keyed by URL. Application data, and any queue of writes made offline, needs IndexedDB's
-transactions and indexes. The offline write queue itself — sequential replay, idempotency keys — is a
-design question, and Part VI treats it as one.
+transactions and indexes. The offline write queue itself is a design question, with sequential replay
+and idempotency keys. Part VI treats it as one.
 
 ## When to Use It
 
@@ -204,8 +204,8 @@ if (event.request.mode === "navigate") {
 The document is the file that names every other file. Serving it from cache pins the whole app to an
 old version.
 
-**❌ Wrong — no way out.** A worker with no unregister path means a caching bug can only be fixed by
-every user clearing site data. Keep a kill switch you can deploy: a worker whose `install` handler calls
+**❌ Wrong — no way out.** With no unregister path, only every user clearing site data can fix a caching
+bug. Keep a kill switch you can deploy. It is a worker whose `install` handler calls
 `self.registration.unregister()`, deletes every cache and reloads its clients. Naming it before the
 interviewer asks is a strong senior signal.
 
@@ -215,9 +215,9 @@ whole origin. Cap each cache by entry count or age.
 ## 🔑 Key Takeaways
 
 - A service worker is a proxy you deploy, and it keeps serving the old version until you deliberately replace it.
-- A new worker waits until every tab controlled by the old one closes, which is why a fix can seem not to ship.
+- A new worker waits until every tab controlled by the old one closes. That is why a fix can seem not to ship.
 - Scope is the directory the worker file is served from, so a worker under `/js/` controls only `/js/`.
-- Caching strategy is a decision per request: cache first only where the URL changes with the content, network first for documents.
+- Pick a caching strategy per request. Use cache first only where the URL changes with the content, and network first for documents.
 - Every production service worker needs an unregister path you can deploy in one commit.
 
 ## Interview Questions
@@ -231,8 +231,8 @@ posts `SKIP_WAITING` to the waiting worker and reloads on `controllerchange`.
 **Q: What is the difference between `skipWaiting()` and `clients.claim()`?**
 
 `skipWaiting()` moves a new worker out of `waiting` early. `clients.claim()` makes an active worker take
-control of pages that are open now. You usually want both, followed by a reload, because the claimed
-pages are still running the previous build's JavaScript.
+control of pages that are open now. You usually want both, followed by a reload. The claimed pages are
+still running the previous build's JavaScript.
 
 **Q: Walk me through the strategy you would pick for each request on a dashboard.**
 
@@ -244,7 +244,7 @@ because slightly old numbers beat a spinner. Mutations go straight to the networ
 
 When there is no offline or install requirement. A service worker adds a deploy path that is harder to
 roll back than anything else in the frontend. HTTP caching at the CDN gives most of the speed with none
-of the staleness risk, and it is far easier to invalidate.
+of the staleness risk. It is also far easier to invalidate.
 
 ## What to Read Next
 

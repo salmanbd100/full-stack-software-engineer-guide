@@ -19,9 +19,9 @@ in_book: true
 ## 💡 The Core Idea
 
 `this` is decided by **how a function is called**, not where it is written. That single sentence
-answers almost every `this` question. A function has no fixed `this`; the call site supplies one, and
-four rules decide which. Arrow functions are the exception that proves the rule — they have no `this`
-of their own at all, so they fall through to the enclosing scope's.
+answers almost every `this` question. A function has no fixed `this`. The call site (the place where
+the function is called) supplies one, and four rules decide which. Arrow functions are the exception.
+They have no `this` of their own, so they use the `this` of the enclosing scope.
 
 ## How It Works
 
@@ -82,10 +82,10 @@ greet.apply(user, ['Hi', '.']); // arguments in an array — the only difference
 const bound: () => void = greet.bind(user, 'Hey', '!'); // returns a new function
 ```
 
-`bind` is permanent: a bound function cannot be re-bound, and calling it with `new` is the one thing
-that overrides it. It also accepts leading arguments, which makes it a partial-application tool —
-`const logError = log.bind(null, 'ERROR')` fixes the first parameter and returns a function taking
-the rest.
+`bind` is permanent. You cannot re-bind a bound function, and only calling it with `new` overrides
+it. It also accepts leading arguments, so it works as a partial-application tool: it fixes some
+arguments now and takes the rest later. `const logError = log.bind(null, 'ERROR')` fixes the first
+parameter and returns a function that takes the rest.
 
 ### Arrow functions
 
@@ -104,8 +104,9 @@ const timer = {
 };
 ```
 
-Three ways to solve the same callback problem, in order of preference today: an arrow (above),
-`fn.bind(this)`, or the pre-ES2015 idiom `const self = this`. All three still appear in real code.
+There are three ways to solve the same callback problem. In order of preference today, they are an
+arrow (above), `fn.bind(this)`, and the pre-ES2015 idiom `const self = this`. All three still appear
+in real code.
 
 ## When to Use It
 
@@ -132,7 +133,7 @@ const person = {
 **✅ Method shorthand for methods; arrows only inside them.**
 
 **❌ Passing a method as a callback.** `setTimeout(user.greet, 1000)` passes the function and drops
-the dot. Wrap it — `setTimeout(() => user.greet(), 1000)` — or bind it.
+the dot. Wrap it in an arrow, as in `setTimeout(() => user.greet(), 1000)`, or bind it.
 
 **❌ Relying on a prototype method surviving detachment:**
 
@@ -151,13 +152,13 @@ class Button {
 ```
 
 The class field costs one closure per instance rather than one function per class. For a handler you
-pass around, that is the right trade; for a method you always call with a dot, it is waste.
+pass around, that is the right trade. For a method you always call with a dot, it is waste.
 
-**❌ Calling a constructor function without `new`.** In sloppy mode `this` becomes `globalThis` and
+**❌ Calling a constructor function without `new`.** In sloppy mode `this` becomes `globalThis`, and
 the assignments silently pollute it. Use `class`, which throws instead.
 
 > ⚠️ Strict mode changes rule 4: default binding gives `undefined` rather than `globalThis`. Every
-> ES module is strict, so in any modern codebase a stray `this` throws instead of writing a global —
+> ES module is strict. So in any modern codebase a stray `this` throws instead of writing a global,
 > which is what you want.
 
 ## 🔑 Key Takeaways
@@ -178,16 +179,16 @@ object behind. `obj.method.bind(obj)` restores it.
 
 **Q: What is the difference between `call`, `apply` and `bind`?**
 
-`call` and `apply` both invoke immediately with a given `this` and differ only in how arguments are
-passed — listed versus in an array. `bind` invokes nothing; it returns a new function with `this`
-permanently fixed, optionally with leading arguments pre-filled.
+`call` and `apply` both call the function at once with a given `this`. They differ only in how you
+pass arguments: listed, or in an array. `bind` calls nothing. It returns a new function with `this`
+permanently fixed, and it can pre-fill leading arguments.
 
 **Q: When would you choose `bind` over a class-field arrow for an event handler?**
 
-When the handler should be shared on the prototype rather than duplicated per instance — for example
-a class with thousands of instances, or one whose methods you want subclasses to override. The
-class-field arrow is not on the prototype, so it cannot be overridden by a subclass method and cannot
-be spied on via the prototype in tests.
+Choose it when the handler should live once on the prototype, not be copied per instance. Examples
+are a class with thousands of instances, or one whose methods subclasses should override. The
+class-field arrow is not on the prototype. So a subclass method cannot override it, and tests cannot
+spy on it through the prototype.
 
 ## What to Read Next
 

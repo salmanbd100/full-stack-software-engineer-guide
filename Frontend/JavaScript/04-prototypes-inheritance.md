@@ -19,9 +19,9 @@ in_book: true
 ## 💡 The Core Idea
 
 JavaScript has no classes at runtime. It has objects that **delegate** to other objects. Every object
-holds a hidden link, `[[Prototype]]`, to another object; reading a property that the object does not
-own follows that link, and the next, until something matches or the chain reaches `null`. `class` is
-syntax over exactly this — a nicer way to build the same links.
+holds a hidden link, `[[Prototype]]`, to another object. When you read a property the object does not
+own, JavaScript follows that link, then the next. It stops when something matches or the chain
+reaches `null`. `class` is syntax over exactly this: a nicer way to build the same links.
 
 ## How It Works
 
@@ -84,12 +84,15 @@ A thousand instances means a thousand closures in the first form and one functio
 
 ### What `new` does
 
-Four steps: create an empty object; set its `[[Prototype]]` to the constructor's `.prototype`; run
-the constructor body with `this` bound to that object; return it, unless the body explicitly returns
-a different object.
+`new` takes four steps:
 
-`Object.create(Person.prototype)` does the first two steps on their own — which is why it is the
-direct way to express delegation with no constructor at all.
+1. Create an empty object.
+2. Set its `[[Prototype]]` to the constructor's `.prototype`.
+3. Run the constructor body with `this` bound to that object.
+4. Return the object, unless the body explicitly returns a different object.
+
+`Object.create(Person.prototype)` does only the first two steps. That makes it the direct way to
+express delegation with no constructor at all.
 
 ```typescript
 const personPrototype = {
@@ -126,9 +129,10 @@ typeof Animal; // 'function' — still a function, still a prototype
 Object.getPrototypeOf(new Dog('a')) === Dog.prototype; // true
 ```
 
-The pre-2015 equivalent was three lines of manual wiring — `Animal.call(this, name)` in the child
-constructor, `Dog.prototype = Object.create(Animal.prototype)`, and `Dog.prototype.constructor = Dog`
-to repair the reference the assignment clobbered. Recognise it in old code; never write it.
+Before 2015, the same result took three lines of manual wiring. The child constructor called
+`Animal.call(this, name)`. Then `Dog.prototype = Object.create(Animal.prototype)` linked the chain.
+Last, `Dog.prototype.constructor = Dog` repaired the reference that the assignment overwrote.
+Recognise it in old code, but never write it.
 
 ## When to Use It
 
@@ -149,15 +153,15 @@ Person.prototype = { greet() {} }; // ❌ old instances are stranded
 Person.prototype.greet = function () {}; // ✅ add to the existing object
 ```
 
-**❌ Patching a built-in prototype.** `Array.prototype.first = ...` is visible to every library in
-the page, appears in `for...in`, and collides with future standard methods. Write `first(arr)`
+**❌ Patching a built-in prototype.** Every library on the page sees `Array.prototype.first = ...`.
+It also appears in `for...in` and collides with future standard methods. Write `first(arr)`
 instead.
 
 **❌ Assuming a shadowed property is gone.** Assigning `alice.age = 25` creates an *own* property that
-hides the prototype's; `delete alice.age` makes the prototype value reappear.
+hides the prototype's. After `delete alice.age`, the prototype value reappears.
 
-**❌ Using `this` before `super()`.** In a derived constructor `this` does not exist until `super`
-returns. TypeScript catches it; plain JavaScript throws a `ReferenceError` at runtime.
+**❌ Using `this` before `super()`.** In a derived constructor, `this` does not exist until `super`
+returns. TypeScript catches it. Plain JavaScript throws a `ReferenceError` at runtime.
 
 > ⚠️ `Object.setPrototypeOf` on an existing object deoptimises it in every major engine. Set the
 > prototype at creation time with `Object.create` or `class` instead.
@@ -174,25 +178,25 @@ returns. TypeScript catches it; plain JavaScript throws a `ReferenceError` at ru
 
 **Q: What is the difference between `prototype` and `__proto__`?**
 
-`prototype` is a property on a constructor function holding the object its instances will delegate
+`prototype` is a property on a constructor function. It holds the object its instances will delegate
 to. `__proto__` is the delegation link on an instance. For `const a = new Person()`,
-`a.__proto__ === Person.prototype`. Read the link with `Object.getPrototypeOf`; `__proto__` is a
-deprecated accessor.
+`a.__proto__ === Person.prototype`. Read the link with `Object.getPrototypeOf`, because `__proto__` is
+a deprecated accessor.
 
 **Q: Are ES2015 classes real classes?**
 
 No. `class` is syntax over constructor functions and prototypes. A class is still a function, its
 methods are still installed on `.prototype`, and `extends` still just links one prototype to another.
-It adds real semantics on top — the TDZ for the binding, a required `super()` before `this`, methods
-that are non-enumerable and cannot be called with `new` — but the object model underneath is
-unchanged.
+It does add real rules on top. The class name sits in the TDZ (temporal dead zone) until its
+declaration runs, and `super()` must come before `this`. Its methods are non-enumerable and cannot be
+called with `new`. But the object model underneath is unchanged.
 
 **Q: When would you prefer `Object.create` to a `class`?**
 
-When you want one object to delegate to another without inventing a type — a config object falling
-back to defaults, a test double delegating to a real implementation, or a prototype chain built at
-runtime from data. It also gives fine control through property descriptors, which class syntax does
-not expose.
+Prefer it when one object should delegate to another and a new type adds nothing. Examples are a
+config object that falls back to defaults, or a test double that delegates to a real implementation.
+Another is a prototype chain built at runtime from data. It also gives fine control through property
+descriptors, which class syntax does not expose.
 
 ## What to Read Next
 
