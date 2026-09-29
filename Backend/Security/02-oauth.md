@@ -31,8 +31,8 @@ the **request and the object together**, so a route guard alone cannot decide it
 on the server. Hiding a button is user experience, not security.
 
 > ⚠️ **Moving target:** OAuth 2.1 makes PKCE mandatory and removes the implicit and password grants.
-> The durable principle is that the credential travels back-channel and the code is bound to the
-> client that asked for it. Grant names and endpoints will keep moving.
+> The lasting principle: the credential travels back-channel (server to server), and the code is
+> bound to the client that asked for it. Grant names and endpoints will keep moving.
 
 ## Authorisation Code with PKCE
 
@@ -49,7 +49,7 @@ sequenceDiagram
   A->>C: "6. access_token, refresh_token, id_token"
 ```
 
-**The authorisation code flow. Only the code crosses the browser; the tokens never do.**
+**The authorisation code flow. Only the code crosses the browser. The tokens never do.**
 
 The extra round trip is the point. The code in step 3 travels in a URL, so it lands in history and
 logs. On its own it is useless: redeeming it needs the client secret or the PKCE verifier.
@@ -148,7 +148,7 @@ auditing every conditional. Reach for ABAC when a requirement says "own" or "onl
 ## Check the Object, Not the Route
 
 `GET /orders/9` with a valid token must still check that order 9 is the caller's. Missing that is
-**broken object-level authorisation** — OWASP's top API risk, and just a missing `WHERE` clause.
+**broken object-level authorisation**. It is OWASP's top API risk, and just a missing `WHERE` clause.
 
 **Make the check part of the query:**
 
@@ -189,7 +189,7 @@ if (!token.scope.includes('orders:write')) return res.status(403).json({ error: 
 if (!(await canEdit(req.user, order))) return res.status(403).json({ error: { code: 'forbidden' } });
 ```
 
-Treating a scope as a permission lets an integration granted one read write everywhere. Past a few
+A scope used as a permission lets an integration write any order, whoever owns it. Past a few
 dozen rules, or when services must agree, move the rules into a policy engine such as OPA or Cedar.
 
 ## Common Mistakes
@@ -202,7 +202,7 @@ dozen rules, or when services must agree, move the rules into a policy engine su
 
 - OAuth answers what an application may do, OIDC's `id_token` answers who the user is, and your own authorisation decides what that user may touch.
 - Authorisation code with PKCE is the only flow to use, and `state` and PKCE do different jobs, so you need both.
-- Provider tokens stay on the server; the browser only ever holds your own session.
+- Provider tokens stay on the server. The browser only ever holds your own session.
 - Put the tenant and owner in the query, so a forgotten check returns nothing rather than everything.
 - An OAuth scope limits the application, not the user, so check the scope and then the user's permission on the object.
 
@@ -212,11 +212,11 @@ dozen rules, or when services must agree, move the rules into a policy engine su
 
 The app redirects with its client id, scopes, a random `state` and a PKCE challenge. The user signs
 in, and the server redirects back with a short-lived code. The backend exchanges the code, verifier
-and client secret for tokens, server to server. The code crosses the browser; the tokens do not.
+and client secret for tokens, server to server. The code crosses the browser. The tokens do not.
 
 **Q: What is `state` for, and is it the same as PKCE?**
 
-No. `state` is CSRF protection for the flow: a random value in the session that must match on
+No. `state` is CSRF protection for the flow. It is a random value in the session that must match on
 callback, so an attacker cannot make a victim finish a flow with the attacker's code. PKCE stops a
 stolen code being redeemed by anyone else. OAuth 2.1 requires PKCE even for confidential clients.
 
@@ -229,7 +229,7 @@ returns no rows.
 
 **Q: 403 or 404 for a resource the user may not see?**
 
-404 when the caller should not learn it exists — a 403 on sequential ids lets an attacker count your
+404 when the caller should not learn it exists. A 403 on sequential ids lets an attacker count your
 data. 403 when they already know it exists, such as a team document they may read but not edit.
 
 **Q: When would you not reach for ABAC or a policy engine?**

@@ -18,10 +18,10 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A URL shortener looks trivial and is a good interview problem for exactly that reason: there is nowhere
+A URL shortener looks trivial, and that is exactly why it is a good interview problem: there is nowhere
 to hide. Two decisions carry the whole design. **How do you mint a unique seven-character key without a
-central counter that everything queues behind**, and **how do you serve ten billion redirects a day
-without touching a database**. Everything else is plumbing.
+central counter that everything queues behind?** And **how do you serve ten billion redirects a day
+without touching a database?** Everything else is plumbing.
 
 > This is a read-heavy key-value problem wearing a web application's clothes. Recognise that in the
 > first minute and the rest of the round follows.
@@ -35,11 +35,11 @@ expiry, click counts.
 
 **Out of scope, said out loud:** user accounts, analytics dashboards, link previews, spam detection.
 
-**Non-functional:** redirects under 100 ms at p99, short links must never break or be reassigned, and
-availability matters more than consistency — a redirect that works is worth more than a creation that is
-instantly visible everywhere.
+**Non-functional:** redirects under 100 ms at p99 (the 99th percentile), and short links must never break
+or be reassigned. Availability matters more than consistency. A redirect that works is worth more than a
+new link that is visible everywhere at once.
 
-**Scale:** 100 million new links a day and 10 billion redirects — a 100:1 read-to-write ratio. That is
+**Scale:** 100 million new links a day and 10 billion redirects, a 100:1 read-to-write ratio. That is
 about 1,000 writes and 100,000 reads a second on average, and roughly three times that at peak. Storage
 at 500 bytes a row is 50 GB a day, so about 18 TB a year before replication.
 
@@ -59,8 +59,8 @@ flowchart LR
 
 **Reads stop at Redis; the datastore sees only misses and writes.**
 
-Click counting goes through a queue. Incrementing a row on every redirect would make the write path a
-hundred times busier than the create path, for data nobody reads in real time.
+Click counting goes through a queue. A row update on every redirect would make the write path a hundred
+times busier than the create path. Nobody reads that data in real time.
 
 ### Key generation
 
@@ -73,8 +73,8 @@ This is the decision the round is really about.
 | Auto-increment, base62       | Yes                                                | One global counter is a write bottleneck and the codes are guessable |
 | **Pre-allocated key ranges** | **Yes — the answer to give**                       | Wasted keys when an instance dies          |
 
-Base62 over `[a-zA-Z0-9]` gives 62⁷ ≈ **3.5 trillion** codes, which is 95 years at 100 million a day.
-Seven characters is the right length, and being able to say why is part of the answer.
+Base62 over `[a-zA-Z0-9]` gives 62⁷ ≈ **3.5 trillion** codes. That lasts 95 years at 100 million a day.
+Seven characters is the right length, and saying why is part of the answer.
 
 ```typescript
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -120,11 +120,11 @@ interface Link {
 }
 ```
 
-The access pattern is one query: given a code, return a URL. That makes a key-value or wide-column store
-the right home, sharded on `code`, and makes a relational store a defensible but unnecessary choice.
+The access pattern is one query: given a code, return a URL. So a key-value or wide-column store, sharded
+on `code`, is the right home. A relational store is defensible but not needed.
 
-Custom aliases need a uniqueness check, which is the one place a conditional write matters: insert with
-"if not exists" and return 409 rather than reading first and then writing.
+Custom aliases need a uniqueness check. This is the one place a conditional write matters. Insert with
+"if not exists" and return 409, rather than reading first and then writing.
 
 ### Interface
 
@@ -136,9 +136,9 @@ Custom aliases need a uniqueness check, which is the one place a conditional wri
 
 ### Optimisations
 
-**Caching.** With a 95% hit ratio, 100,000 reads a second becomes 5,000 reaching the store. The access
-pattern is heavily skewed — a small fraction of links take most of the traffic — so LRU with a few
-hundred gigabytes of Redis holds the working set comfortably.
+**Caching.** With a 95% hit ratio, only 5,000 of the 100,000 reads a second reach the store. Traffic is
+heavily skewed: a small fraction of links take most of it. So LRU (least recently used) eviction over a
+few hundred gigabytes of Redis holds the working set comfortably.
 
 **Redirect status code.** This is a trade, not a default.
 
@@ -149,13 +149,13 @@ hundred gigabytes of Redis holds the working set comfortably.
 
 Use **302** when analytics or editable targets are in the requirements, which they usually are. Say why.
 
-**Multi-region.** Codes are immutable once created, so replicas can serve reads anywhere without a
-consistency problem. Writes go to one region; a new link taking a second to appear elsewhere is
-invisible to the user who just created it, provided their own read is routed to the write region.
+**Multi-region.** Codes never change once created, so replicas can serve reads anywhere with no
+consistency problem. Writes go to one region. A new link may take a second to appear elsewhere. Its
+creator never notices, as long as their own reads are routed to the write region.
 
 ## When to Use It
 
-This shape — mint an opaque key, write once, read enormously — recurs far beyond shorteners. It is the
+This shape (mint an opaque key, write once, read enormously) recurs far beyond shorteners. It is the
 same design as an invite-code service, a file-share link, a public asset URL, or a feature-flag lookup.
 What would change it:
 
@@ -172,8 +172,8 @@ What would change it:
 
 > `nextId = SELECT MAX(id) + 1 FROM links`
 
-Every write in the system now serialises through one row, and the codes are trivially enumerable, so
-anyone can walk the entire link database.
+Every write in the system now queues on one row. The codes are also easy to guess in order, so anyone
+can walk the entire link database.
 
 **✅ Pre-allocated ranges, minted locally**
 
@@ -181,8 +181,8 @@ anyone can walk the entire link database.
 
 **❌ Counting clicks synchronously**
 
-Incrementing a counter on the redirect path makes the busiest path in the system a write path, for a
-number nobody reads within the second.
+A counter update on the redirect path turns the busiest path in the system into a write path. And nobody
+reads that number within the second.
 
 **❌ Ignoring the redirect status code**
 
@@ -193,7 +193,7 @@ and a candidate who does not mention it has not thought about the product.
 
 - The two decisions that matter are key generation without coordination and serving reads from cache.
 - Pre-allocated key ranges give unique codes with one round trip per million writes and no central bottleneck.
-- Base62 over seven characters is 3.5 trillion codes — say the number, because it justifies the length.
+- Base62 over seven characters is 3.5 trillion codes. Say the number, because it justifies the length.
 - 301 versus 302 is a product decision about analytics and editability, not a performance detail.
 - Click counting belongs on a queue; putting it on the redirect path inverts the system's read/write ratio.
 
@@ -201,23 +201,23 @@ and a candidate who does not mention it has not thought about the product.
 
 **Q: How do you generate short codes at 1,000 writes a second without collisions?**
 
-Pre-allocate ranges: a coordination service hands each instance a block of a million integers, and the
-instance converts them to base62 locally. That is one round trip per million keys instead of one per
-write, needs no collision check, and the only cost is wasted ids when an instance dies — which is
-irrelevant against 3.5 trillion.
+Pre-allocate ranges. A coordination service hands each instance a block of a million integers, and the
+instance converts them to base62 locally. That is one round trip per million keys, not one per write, and
+it needs no collision check. The only cost is wasted ids when an instance dies, which does not matter
+against 3.5 trillion.
 
 **Q: The cache is cold after a deploy and the store falls over. What went wrong?**
 
-Every request became a miss simultaneously, so the store took the full 100,000 reads a second it was
-never provisioned for. The fixes are a warm-up that replays the top codes before the instance takes
-traffic, request coalescing so a thousand concurrent misses for one code become one store read, and a
-rolling deploy so the whole cache tier never empties at once.
+Every request became a miss at the same moment, so the store took the full 100,000 reads a second it
+was never sized for. There are three fixes. A warm-up replays the top codes before the instance takes
+traffic. Request coalescing turns a thousand concurrent misses for one code into one store read. And a
+rolling deploy means the whole cache tier never empties at once.
 
 **Q: Would you shard this database, and on what?**
 
-Yes, on the code itself, because every read is a point lookup by code and that keeps each one on a single
-shard. There are no range queries and no joins, so hash-based distribution is ideal — and consistent
-hashing means adding capacity moves a fraction of the keys rather than all of them.
+Yes, on the code itself. Every read is a point lookup by code, so each one stays on a single shard.
+There are no range queries and no joins, so hash-based distribution is ideal. Consistent hashing also
+means that adding capacity moves only a fraction of the keys, not all of them.
 
 ## What to Read Next
 

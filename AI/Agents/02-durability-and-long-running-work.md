@@ -18,16 +18,16 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A model is stateless. Every memory is something your code put back into the window, so memory is **a
-storage and selection problem you own.** It splits into three problems people mix up: what the model sees
-this turn, what survives compaction, and what is still true next week.
+A model is stateless: it remembers nothing between calls. Every memory is something your code put back
+into the window. So memory is **a storage and selection problem you own.** It has three parts that people
+mix up: what the model sees this turn, what survives compaction, and what is still true next week.
 
 Long runs add a fourth problem: what survives a crash. An agent loop that takes forty minutes cannot live
 in an HTTP request. Deploys, timeouts and crashes all end it, and every lost step was a paid model call.
 So a long-running agent is **a durable workflow that happens to call a model.**
 
-> The conversation is a cache, not a database. The unit of durability is the step: if a step completed,
-> its result must survive; if it did not, it must be safe to run again.
+> The conversation is a cache, not a database. The unit of durability is the step. If a step completed,
+> its result must survive. If it did not, it must be safe to run again.
 
 ## How It Works
 
@@ -40,15 +40,15 @@ So a long-running agent is **a durable workflow that happens to call a model.**
 | **Long-term memory** | A database or index | Across sessions | Storage, plus retrieval and staleness |
 
 Most "it forgot" bugs are a missing middle row. The fact was in the window ten steps ago. Compaction
-dropped it, and nothing else held it.
+(shrinking the history to fit) dropped it, and nothing else held it.
 
 ### Tool output eats the window
 
-In an agent, history is **mostly tool output** — file contents, search results, API responses. The
-documentation assistant reads whole pages of docs, and by step 8 tool results can be 94,000 tokens
-against 6,000 of messages. Most were read once and never used again. So **clearing old tool results is the
-cheapest way to get space back.** It needs no model call. Leave a marker, so the model fetches the
-result again when it needs it rather than deciding the step never happened.
+In an agent, history is **mostly tool output**: file contents, search results, API responses. The
+documentation assistant reads whole pages of docs. By step 8, tool results can be 94,000 tokens against
+6,000 of messages. Most were read once and never used again. So **clearing old tool results is the
+cheapest way to get space back.** It needs no model call. Leave a marker, so the model fetches the result
+again when it needs it, instead of deciding the step never happened.
 
 **Clearing stale tool results, with a marker left behind**
 
@@ -67,9 +67,9 @@ When the conversation must shrink, go cheapest first: clear tool results (free),
 turns (a model call, and a model decides what mattered). Truncating is free but loses facts silently.
 [Chapter ?? — Context Engineering](#ch-context-engineering) has the full table.
 
-> ⚠️ Summarisation loses things in ways you cannot inspect. The classic failure: the agent forgets a
-> first-message constraint — "do not touch the billing service" — because a summary at step 12 judged it
-> no longer relevant. Pin constraints outside the summary.
+> ⚠️ Summarisation loses things in ways you cannot inspect. In the classic failure, the agent forgets a
+> constraint from the first message, such as "do not touch the billing service". A summary at step 12
+> judged it no longer relevant. Pin constraints outside the summary.
 
 ### A working state the window cannot lose
 
@@ -93,11 +93,11 @@ stay visible, so the agent stops retrying them. And because it is structured, it
 
 ### Long-term memory
 
-Memory across sessions is retrieval with a different corpus — see
-[Chapter ?? — Embeddings, Vector Stores and Retrieval](#ch-retrieval). The hard problem is **contradiction over time.** "The user prefers
-dark mode" stored in March may be wrong in June, and nothing in the store knows. Timestamp every memory,
-prefer recent ones, and let new facts supersede old ones rather than only appending. Memory is also personal data. Never store secrets or tokens, give memories a time-to-live, and scope by
-user id in the store, never in the prompt.
+Memory across sessions is retrieval with a different corpus. See
+[Chapter ?? — Embeddings, Vector Stores and Retrieval](#ch-retrieval). The hard problem is **contradiction
+over time.** "The user prefers dark mode" stored in March may be wrong in June, and the store cannot tell.
+Timestamp every memory, prefer recent ones, and let new facts replace old ones. Memory is also personal data.
+Never store secrets or tokens, give memories a time-to-live, and scope them by user id in the store, not the prompt.
 
 ### Persist after every step
 
@@ -122,15 +122,15 @@ async function step(run: Checkpoint): Promise<Checkpoint> {
 }
 ```
 
-A crash now costs at most one step. A resume reads the last checkpoint; it does not replay from the
-start, because a model step is not deterministic. The budget lives in the checkpoint too: in the process,
-every restart resets it and a crash-loop becomes an unbounded bill.
+A crash now costs at most one step. A resume reads the last checkpoint. It does not replay from the start,
+because a model step is not deterministic. The budget lives in the checkpoint too. Kept in process memory,
+it would reset on every restart, and a crash-loop would become an unbounded bill.
 
 ### Duplicate effects are the hard part
 
 Retrying a read is free. Retrying `sendEmail` sends a second email. A crash between "tool ran" and
-"checkpoint written" is exactly where that happens. An idempotency key must be derived from `runId` and
-step — a fresh key on retry defeats it.
+"checkpoint written" is exactly where that happens. The fix is an idempotency key, an id that lets the
+receiver ignore a repeat. Derive it from `runId` and step, because a fresh key on retry defeats it.
 
 | Approach | How | Fits |
 | --- | --- | --- |
@@ -141,8 +141,8 @@ step — a fresh key on retry defeats it.
 ### Retries at three levels
 
 1. **The tool.** Retry transient failures with backoff and the same idempotency key.
-2. **The model.** If the tool is really down, return the failure as an observation — "the search index
-   is unavailable" — so the model can take another route or stop honestly.
+2. **The model.** If the tool is really down, return the failure as an observation, such as "the search
+   index is unavailable". Then the model can take another route or stop honestly.
 3. **The run.** If nothing works, fail checkpointed, so a retry resumes rather than restarts.
 
 The middle level is the one people leave out. Without it, a run burns its budget on one broken tool.
@@ -166,9 +166,9 @@ Nothing is held open, so a deploy during the wait is harmless. The approval carr
 a double-clicked button resolves to the same step and cannot run the action twice. Give approvals a
 timeout, so a run does not resume a week later into a world that has moved on.
 
-> ⚠️ **Moving target:** durable execution frameworks — hosted workflow runtimes, queue-backed schedulers,
-> agent platforms — change quickly and name these ideas differently. Whatever the framework, check it
-> checkpoints every step, keys effects idempotently and models approval as a suspended state.
+> ⚠️ **Moving target:** durable execution frameworks, such as hosted workflow runtimes, queue-backed
+> schedulers and agent platforms, change quickly and name these ideas differently. Whatever the framework,
+> check that it checkpoints every step, keys effects idempotently and models approval as a suspended state.
 
 ## When to Use It
 
@@ -200,7 +200,7 @@ timeout, so a run does not resume a week later into a world that has moved on.
 
 ## 🔑 Key Takeaways
 
-- Models are stateless, so every memory is something your code supplies again — a storage problem you own.
+- Models are stateless, so every memory is something your code supplies again. That makes memory a storage problem you own.
 - Tool output fills an agent's window, so clear it before summarising anything.
 - Pin goal and constraints in a small structured state, because summaries drop them silently.
 - A long-running agent is a durable workflow: checkpoint every step, and persist the budget with it.
@@ -210,27 +210,27 @@ timeout, so a run does not resume a week later into a world that has moved on.
 
 **Q: Your agent forgot a constraint from the first message. What went wrong?**
 
-Compaction. A summary at a later step judged the constraint no longer relevant, and nothing errored. A
-better summariser is not the fix. I keep goal and constraints in a structured state, injected every turn,
-which costs a few hundred tokens and removes the failure mode.
+Compaction. A summary at a later step judged the constraint no longer relevant, and nothing raised an
+error. A better summariser is not the fix. I keep goal and constraints in a structured state and inject it
+every turn. That costs a few hundred tokens and removes the failure mode.
 
 **Q: An agent's window fills after ten steps. Summarise, or something else first?**
 
 Something else first: clear old tool results. Most of the window is tool output read once and never used
-again, and clearing it needs no model call. Summarising costs a call and lets a model decide what
-mattered. I leave a marker so the agent knows it can fetch the result again.
+again. Clearing it needs no model call. Summarising costs a call and lets a model decide what mattered.
+I leave a marker so the agent knows it can fetch the result again.
 
 **Q: How do you stop a retry from sending two emails?**
 
-An idempotency key built from run id, step number and tool name, passed downstream so the duplicate is
-ignored. The key must be derived, not generated — a fresh key on retry defeats it. Where the downstream
-system has no idempotency support, I record the intent first and check on resume whether it happened.
+An idempotency key built from run id, step number and tool name. Downstream, it turns the retry into a
+no-op. The key must be derived, not generated, because a fresh key on retry defeats it. Without
+idempotency support downstream, I record the intent first and check on resume whether it happened.
 
 **Q: How do you implement human approval for a destructive step?**
 
 As a state change, not a blocking wait. The run checkpoints as "awaiting approval" with the pending call,
-notifies the owner, and the process exits. A webhook loads the checkpoint and resumes, so a deploy during
-the wait is harmless and a duplicate approval cannot run the action twice. The approval also expires.
+notifies the owner, and the process exits. A webhook loads the checkpoint and resumes. So a deploy during
+the wait is harmless, and a duplicate approval cannot run the action twice. The approval also expires.
 
 ## What to Read Next
 

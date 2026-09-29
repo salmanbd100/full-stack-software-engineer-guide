@@ -47,7 +47,7 @@ boundary. Those three answers are most of what the closing chapter of this part 
 ## What Interviewers Probe For
 
 - **"How do you know your change made it better?"** A golden set, a pass rate, a regression run before
-  merge — and an honest note about what the set does not cover.
+  merge. Then an honest note about what the set does not cover.
 - **"When is LLM-as-judge acceptable?"** For graded qualities with a written rubric, once the judge has
   been checked against human labels. Never as the only signal.
 - **"It costs four times the forecast. What first?"** Measure the token profile before changing the model.

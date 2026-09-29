@@ -19,11 +19,11 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A WebSocket is one TCP connection that stays open, carrying messages in both directions with about two bytes of framing per message. The server can speak first — which HTTP cannot do at all.
+A WebSocket is one TCP connection that stays open, carrying messages in both directions with about two bytes of framing per message. The server can speak first, which HTTP cannot do at all.
 
-The cost is that you trade stateless for stateful. Every connection pins a client to one process, so load balancing, deploys and scaling all get harder.
+The cost is that you trade stateless for stateful: the server now holds per-client state. Every connection pins a client to one process, so load balancing, deploys and scaling all get harder.
 
-This chapter is the **server side**: how to build one correctly. The prior question — whether this feature needs a socket at all, or whether SSE or polling is enough — is a design decision, and it belongs to [Chapter ?? — Queues, Async Work and WebSockets](#ch-message-queues). Read that first if the protocol is still open.
+This chapter is the **server side**: how to build one correctly. The earlier question is a design decision. Does this feature need a socket at all, or are SSE or polling enough? That belongs to [Chapter ?? — Queues, Async Work and WebSockets](#ch-message-queues). Read that first if the protocol is still open.
 
 ## How It Works
 
@@ -44,7 +44,7 @@ After `101` the connection is no longer speaking HTTP. Two consequences come up 
 - **Cookies are sent on the handshake**, and the browser does **not** apply CORS to WebSockets. A malicious page can open a socket to your server carrying the user's cookies, so the server must check `Origin` itself.
 - **Middleware does not run.** Your Express auth, rate limiter, validator and logger sit on the HTTP path. The upgraded socket bypasses all of it, so every one of those concerns has to be rebuilt on the socket layer.
 
-Use `wss://` always. Plain `ws://` gets mangled by intercepting proxies and is trivially readable.
+Use `wss://` always. Intercepting proxies break plain `ws://`, and anyone on the path can read it.
 
 ## When to Use It
 
@@ -60,7 +60,7 @@ Use `wss://` always. Plain `ws://` gets mangled by intercepting proxies and is t
 Before reaching for a socket, check whether one direction is enough. **SSE** is a long-lived HTTP
 response of `text/event-stream`, and the browser's `EventSource` handles reconnection and
 last-event-id replay for you. It is plain HTTP, so your auth middleware, rate limiter and logging
-all still apply — the single biggest operational advantage over WebSockets.
+all still apply. That is its biggest operational advantage over WebSockets.
 
 ```typescript
 app.get("/events", requireAuth, async (req, res) => {
@@ -82,21 +82,20 @@ app.get("/events", requireAuth, async (req, res) => {
 });
 ```
 
-Two traps. Over HTTP/1.1 a browser allows six connections per origin and an SSE stream occupies
-one for its whole life; on HTTP/2 that limit is gone. And any proxy that buffers will hold your
-events until its buffer fills, which is why `no-transform` and the periodic comment ping are not
-optional.
+Two traps. Over HTTP/1.1 a browser allows six connections per origin, and an SSE stream holds one
+for its whole life. HTTP/2 removes that limit. And any proxy that buffers holds your events until
+its buffer fills. So `no-transform` and the periodic comment ping are not optional.
 
-**Streaming a token-by-token response** — the shape an AI feature needs — is the same mechanism
-with a simpler contract: keep the response open and write chunks as they are produced. Choose SSE
-when the client needs typed events and resumability, and a plain chunked response when it only
-needs the text. The client and product half of that stream — first-token targets, cancellation, and
-keeping a partial answer when the connection dies — is
+**Streaming a token-by-token response**, the shape an AI feature needs, is the same mechanism with
+a simpler contract. Keep the response open and write chunks as the server produces them. Choose SSE
+when the client needs typed events and resumability. Choose a plain chunked response when it only
+needs the text. The client and product half of that stream is first-token targets, cancellation,
+and keeping a partial answer when the connection dies. See
 [Chapter ?? — Streaming Responses](#ch-streaming-responses).
 
 ## A Typed Server
 
-Socket.IO over raw `ws` buys reconnection, rooms, acknowledgements and a polling fallback. Type the events, or you lose every guarantee at the boundary.
+Socket.IO gives you more than raw `ws`: reconnection, rooms, acknowledgements and a polling fallback. Type the events, or you lose every guarantee at the boundary.
 
 ```typescript
 // ── Event contracts, shared with the client ───────────────────────
@@ -140,7 +139,7 @@ io.on("connection", (socket) => {
 });
 ```
 
-> ⚠️ **A WebSocket message is untrusted input, exactly like an HTTP body.** It skipped your validation middleware, so validate and authorise inside every handler. Auth checked at connect and never again is the most common real-world WebSocket vulnerability.
+> ⚠️ **A WebSocket message is untrusted input, exactly like an HTTP body.** It skipped your validation middleware, so validate and authorise inside every handler. The most common real-world WebSocket vulnerability is auth checked at connect and never again.
 
 ## Authentication
 
@@ -164,13 +163,13 @@ io.use((socket, next) => {
 });
 ```
 
-**Token expiry is the subtle problem.** A connection can outlive the token that opened it — a 15-minute JWT holding a socket open for six hours means five and three-quarter hours of unauthenticated access.
+**Token expiry is the subtle problem.** A connection can outlive the token that opened it. A 15-minute JWT that holds a socket open for six hours gives five and three-quarter hours of unauthenticated access.
 
-The fix is a periodic check on an interval — revalidate the session, emit a `SESSION_EXPIRED`
-error and call `socket.disconnect(true)` when it fails — cleared on `disconnect` so the timer does
-not outlive the socket.
+The fix is a periodic check on an interval. Revalidate the session, and when that fails, emit a
+`SESSION_EXPIRED` error and call `socket.disconnect(true)`. Clear the timer on `disconnect`, so it
+does not outlive the socket.
 
-A token in `auth` also sidesteps the `Origin` problem entirely: nothing is sent automatically, so a hostile page has no credential to replay.
+A token in `auth` also avoids the `Origin` problem entirely. The browser sends nothing automatically, so a hostile page has no credential to replay.
 
 ## Rooms and Targeted Broadcast
 
@@ -185,7 +184,7 @@ The `user:<id>` room is the pattern to remember. People have three tabs and a ph
 
 ## Broadcasting Across Instances
 
-One instance holds its own sockets and knows nothing about the others, so a broadcast from pod 1 never reaches the half of the room sitting on pod 2. [Chapter ?? — Queues, Async Work and WebSockets](#ch-message-queues) covers why the topology behaves that way and what it costs. The wiring is small:
+One instance holds its own sockets and knows nothing about the others. So a broadcast from pod 1 never reaches the half of the room sitting on pod 2. [Chapter ?? — Queues, Async Work and WebSockets](#ch-message-queues) covers why the topology behaves that way and what it costs. The wiring is small:
 
 ```typescript
 const pubClient = createClient({ url: process.env.REDIS_URL });
@@ -213,12 +212,12 @@ if (ws.bufferedAmount > 1_000_000) {
 
 For high-frequency data, **coalesce instead of queueing**: keep only the latest value per key and flush on an interval. A live price feed cares about the current price, not the twelve you missed.
 
-**Dead connections need heartbeats.** A client that loses power sends no close frame, so the server keeps the socket — and its memory — indefinitely. Socket.IO pings by default (`pingInterval`, `pingTimeout`); with raw `ws` you send ping frames and drop sockets that miss a pong.
+**Dead connections need heartbeats.** A client that loses power sends no close frame, so the server keeps the socket and its memory forever. Socket.IO pings by default (`pingInterval`, `pingTimeout`). With raw `ws` you send ping frames and drop sockets that miss a pong.
 
-The pattern with raw `ws` is a set of live sockets: mark a socket alive on `pong`, and every 30
-seconds terminate any socket still unmarked from the previous round before pinging again.
+With raw `ws`, the pattern is a set of live sockets. Mark a socket alive on `pong`. Every 30 seconds,
+terminate any socket still unmarked from the last round, then ping again.
 
-**Rate limit per socket too** — one connection can send thousands of messages a second. Reuse the token bucket from [Chapter ?? — Rate Limiting](#ch-rate-limiting), keyed on `socket.data.userId` rather than an IP.
+**Rate limit per socket too.** One connection can send thousands of messages a second. Reuse the token bucket from [Chapter ?? — Rate Limiting](#ch-rate-limiting), keyed on `socket.data.userId` rather than an IP.
 
 ## Common Mistakes
 
@@ -234,9 +233,9 @@ seconds terminate any socket still unmarked from the previous round before pingi
 ## 🔑 Key Takeaways
 
 - The upgrade bypasses every piece of HTTP middleware, so validation, authorisation, rate limiting and logging all have to be rebuilt on the socket.
-- Authenticate on the handshake, then revalidate periodically — a long-lived connection outlives a short-lived token.
+- Authenticate on the handshake, then revalidate periodically, because a long-lived connection outlives a short-lived token.
 - Rooms should address a user, not a socket, because people have several devices open at once.
-- A pub/sub adapter makes broadcast correct across instances but adds no durability; the database still owns that.
+- A pub/sub adapter makes broadcast correct across instances but adds no durability. The database still owns that.
 - A client that cannot keep up is an unbounded memory leak, so watch the outbound buffer and coalesce high-frequency data.
 
 ## Interview Questions
@@ -247,15 +246,15 @@ Yes, every one. The upgrade bypasses all HTTP middleware, so nothing has validat
 
 **Q: How do you authenticate a socket, and what goes wrong?**
 
-A token in the handshake `auth` payload, verified in middleware before the connection is accepted — not in a query string, which lands in logs. Two things go wrong. The connection outlives the token, so you need periodic revalidation and a disconnect. And browsers do not apply CORS to WebSockets, so a cookie-authenticated socket can be opened from any origin; a token sidesteps that because nothing is sent automatically.
+A token in the handshake `auth` payload, verified in middleware before the server accepts the connection. Not in a query string, which lands in logs. Two things go wrong. The connection outlives the token, so you need periodic revalidation and a disconnect. And browsers do not apply CORS to WebSockets, so any origin can open a cookie-authenticated socket. A token avoids that, because the browser sends nothing automatically.
 
 **Q: How do you make a broadcast reach every client across ten pods?**
 
-A pub/sub adapter — Redis for Socket.IO — so every pod receives every broadcast and delivers it to its own sockets. Sticky sessions are still needed if the long-polling fallback is enabled. The adapter does not give durability, since Redis Pub/Sub is fire-and-forget, and every message fans out to every pod whether or not it holds a relevant socket, which stops scaling somewhere in the low dozens.
+A pub/sub adapter (Redis, for Socket.IO), so every pod receives every broadcast and delivers it to its own sockets. Sticky sessions are still needed if the long-polling fallback is enabled. The adapter gives no durability, since Redis Pub/Sub is fire-and-forget. And every message fans out to every pod, whether or not it holds a relevant socket. That stops scaling somewhere in the low dozens of pods.
 
 **Q: When would you not build a socket server at all?**
 
-When the traffic is one-directional — SSE keeps your HTTP middleware, auth and logging, and the
+When the traffic is one-directional. SSE keeps your HTTP middleware, auth and logging, and the
 browser handles reconnection for you. When "fresh within thirty seconds" is acceptable, polling is
 cheaper to operate than anything stateful. And past a few tens of thousands of concurrent
 connections on a small team, a managed service removes fan-out sharding and deploy draining as

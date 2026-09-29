@@ -85,7 +85,7 @@ function errorHandler(err: unknown, req: Request, res: Response, next: NextFunct
 Handlers decide *what* went wrong. The one error handler decides the status code and the body.
 
 > ⚠️ **Moving target:** Express 5 shipped in 2024 after a decade of 4.x, and most tutorials are still
-> 4.x. The durable principle is that Express is a middleware list. The two changes below are the ones
+> 4.x. The lasting principle is that Express is a middleware list. The two changes below are the ones
 > that break real code on upgrade.
 
 | Change in Express 5 | Consequence |
@@ -124,7 +124,7 @@ export default app;
 ```
 
 `c` is the context: request, response helpers, bindings and per-request state. There is no mutable
-`req` and `res` pair, and the handler *returns* its response, so two middlewares cannot fight over a field.
+`req` and `res` pair. The handler *returns* its response, so two middlewares cannot fight over a field.
 
 **Chain the routes, and `hc` derives a typed client from the server's type:**
 
@@ -155,8 +155,8 @@ running. Startup costs about a millisecond. The price is the sandbox.
 | `process.env` at import time | Bindings passed into the handler | Module-scope config reads `undefined` |
 | Long CPU work, big caches | Hard caps on CPU time and memory | Isolates are recycled at any moment |
 
-> ⚠️ **Moving target:** Cloudflare added a Node compatibility mode, Vercel's edge and Node functions
-> have converged, and Deno and Bun implement moving subsets of Node. The durable principle is **Web
+> ⚠️ **Moving target:** Cloudflare added a Node compatibility mode. Vercel's edge and Node functions
+> have converged. Deno and Bun each support a growing part of Node. The lasting principle is **Web
 > `Request`/`Response` in, no filesystem, no raw TCP, config as an argument.** Check the current
 > compatibility list before planning a port.
 

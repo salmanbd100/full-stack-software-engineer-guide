@@ -34,7 +34,7 @@ classifier and the answer writer have different right answers.
 
 ### Tokens, not characters
 
-A token is a chunk of text — often a word, often part of one. English averages about four characters per
+A token is a chunk of text: often a word, often part of one. English averages about four characters per
 token. Code, JSON, UUIDs and non-Latin scripts do far worse, so a small-looking document can be three
 times your estimate.
 
@@ -79,14 +79,14 @@ you pay for all of it again, so cumulative cost grows with the **square** of the
 | 20 | 19 turns | ~105,000 |
 
 Prompt caching exists because the stable prefix of that resend is the same every time. Summarising or
-clearing old turns exists because the resend eventually stops fitting — see
+clearing old turns exists because the resend stops fitting in the end. See
 [Chapter ?? — Context Engineering](#ch-context-engineering).
 
 ### Sampling: why the same input gives different answers
 
 The model returns a distribution and a sampler chooses from it. Always taking the most likely token is
-*greedy* decoding, and it gives flat, repetitive text. So providers sample, tuned with `temperature` (how
-much to flatten the distribution) and `top_p` (how much of the tail to consider).
+*greedy* decoding, and it gives flat, repetitive text. So providers sample. `temperature` sets how much to
+flatten the distribution, and `top_p` sets how much of the unlikely tail to consider.
 
 **A low-temperature call:**
 
@@ -100,12 +100,12 @@ const result = await generateText({
 });
 ```
 
-> ⚠️ **Moving target:** several 2026 frontier models have **removed** the sampling parameters and reject
-> requests that send them, exposing a *reasoning effort* control instead. The durable principle: output is
+> ⚠️ **Moving target:** several 2026 frontier models have **removed** the sampling parameters. They reject
+> requests that send them and offer a *reasoning effort* control instead. The lasting principle: output is
 > sampled, and you get one knob for how adventurous it is. Check your SDK's warnings, not your assumptions.
 
 **Temperature 0 is not a determinism switch.** Floating-point addition is not associative, so results
-depend on how the server batched requests, and providers update models behind a stable name.
+depend on how the server batched requests. Providers also update models behind a stable name.
 
 ### The three axes of model choice
 
@@ -131,11 +131,11 @@ everything needed. It is weak when the task is **open**.
 | Long-horizon tool use, many steps | ❌ Drifts and loops | ✅ Worth the price |
 
 Most AI features chain several closed steps and one open one, so choose the model by step. Model names
-and prices change within months; the closed-versus-open rule does not.
+and prices change within months. The closed-versus-open rule does not.
 
 ### Deciding with a number
 
-Model choice without an eval is preference dressed as engineering. The method takes an afternoon:
+Model choice with no eval (a scored run over fixed inputs) is preference dressed as engineering. Method:
 
 1. Take **fifty real inputs** from the route, including the awkward ones.
 2. Write the grading rule first: exact match, schema validity, a rubric, or a checked judge model.
@@ -157,8 +157,8 @@ export const MODELS = {
 
 **Routing** sends each request to the cheapest model that can handle it. It has three hidden costs. The
 router is an extra request with its own error rate. Caches are model-scoped, so a cascade loses cache
-reuse. And two models mean two eval suites to re-run on every provider release. Measure the strongest
-model at **lower reasoning effort** first — one model, one cache, one suite, often the same saving.
+reuse. And two models mean two eval suites to re-run on every provider release. So first measure the
+strongest model at **lower reasoning effort**. One model, one cache and one suite often give the same saving.
 
 ## When to Use It
 
@@ -193,7 +193,7 @@ The response stopped because it ran out of room. "length" and "stop" are differe
 **✅ Pin the version and re-run the suite on every change**
 
 An id that resolves to "whatever is newest" is an unpinned dependency in your critical path. Ship the
-switch behind a flag, so a bad upgrade is a toggle — [Chapter ?? — Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies).
+switch behind a flag, so a bad upgrade is a toggle. See [Chapter ?? — Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies).
 
 ## 🔑 Key Takeaways
 
@@ -207,7 +207,7 @@ switch behind a flag, so a bad upgrade is a toggle — [Chapter ?? — Deploymen
 
 **Q: Why does the same prompt give a different answer each time, and how do you test it?**
 
-Output is sampled from a distribution, and even at the lowest setting batching and floating-point effects
+Output is sampled from a distribution. Even at the lowest setting, batching and floating-point effects
 change results. Test properties, not strings: the JSON parses, the answer cites a source, the label is one
 of five. For qualitative output, score a fixed input set and watch the pass rate over time.
 
@@ -230,8 +230,8 @@ bar, teams pay frontier prices for classification.
 **Q: Where would you not use a small model?**
 
 Anywhere the task is open: ambiguous requirements, long tool chains, changes across an unfamiliar
-codebase. Small models fail there in the costly way — fluent and plausible rather than obviously broken —
-so the error shows up in review or production, not in a try-catch.
+codebase. Small models fail there in the costly way: fluent and plausible, not obviously broken. So the
+error shows up in review or production, not in a try-catch.
 
 ## What to Read Next
 

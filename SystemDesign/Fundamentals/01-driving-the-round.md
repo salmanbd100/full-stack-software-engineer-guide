@@ -23,11 +23,11 @@ are watching how you take a one-line prompt, give it edges, propose something th
 honestly about its cost.
 
 A candidate who says "I would shard by user ID" and stops has given an answer. A candidate who adds
-"that makes per-user reads one hop and global search a scatter-gather — and search is out of scope, so I
-take that trade" has shown judgement.
+"that makes per-user reads one hop and global search a scatter-gather (a query sent to every shard). But
+search is out of scope, so I take that trade" has shown judgement.
 
-> The round measures how you **narrow** an open problem. Every senior signal — scoping, estimation,
-> trade-off language, knowing when to stop — is a form of narrowing.
+> The round measures how you **narrow** an open problem. Every senior signal is a form of narrowing:
+> scoping, estimation, trade-off language, knowing when to stop.
 
 ## How It Works
 
@@ -58,8 +58,8 @@ flowchart LR
 ### R — Requirements
 
 **Functional** — what a user can do. Keep it to three or four verbs: "post a message, read a feed,
-follow a user." Name anything beyond that and cut it out loud: "search and direct messages are out of
-scope unless you want them."
+follow a user." Name anything beyond that, and cut it out loud. For example: "search and direct messages
+are out of scope unless you want them."
 
 **Non-functional** — the qualities that change the architecture. Four matter often enough to ask about
 every time:
@@ -71,7 +71,7 @@ every time:
 | Consistency  | Can a user see stale data for five seconds?   | Decides replication and store choice |
 | Availability | What happens if this is down for ten minutes? | Decides redundancy and failover      |
 
-**Scale** is the number. Get one traffic figure early and derive the rest — see
+**Scale** is the number. Get one traffic figure early and work out the rest from it. See
 [Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation).
 
 > ⚠️ Never invent a requirement silently. Say "I am going to assume 10 million daily active users and a
@@ -166,9 +166,9 @@ interface DesignConstraints {
 
 The framework, the CSS approach and the component library are preferences. Saying so is itself a signal.
 
-In the A step, open the frontend box into four layers: **delivery** (CDN, rendering strategy, cache
-headers), **app shell** (routing, error and loading boundaries), **data layer** (query cache, transport,
-retries) and **component tree** (boundaries and local state). Naming them early gives the deep dive a target.
+In the A step, open the frontend box into four layers. **Delivery**: CDN, rendering strategy, cache
+headers. **App shell**: routing, error and loading boundaries. **Data layer**: query cache, transport,
+retries. **Component tree**: boundaries and local state. Naming them early gives the deep dive a target.
 
 ### Deciding Where State Lives
 
@@ -189,7 +189,7 @@ back button and refresh.
 ## Common Mistakes
 
 ❌ **Starting with the solution.** "So we would use Kafka and Cassandra and put Redis in front." This
-answers a question nobody has asked, and locks you into choices made before you knew the scale.
+answers a question nobody asked. It locks you into choices made before you knew the scale.
 ✅ Start with the shape of the load: "Is this read-heavy? At 100:1 and 10k rps, I lean on caching and read
 replicas, and can probably avoid sharding."
 

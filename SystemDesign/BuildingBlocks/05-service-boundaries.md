@@ -96,10 +96,10 @@ An event with only an ID forces every subscriber to call back, which restores th
 Each service owns its store, and no other service reads it directly. This is what makes a boundary
 real. A shared database means a shared schema, and a shared schema means coordinated deploys forever.
 
-The price is that cross-service joins and transactions disappear. To show data from two services on
-one page, compose it in a BFF. To query across services, build a read model from events. To update two
-services together, use a **saga**: a chain of local transactions, each with a **compensating action**
-that undoes it.
+The price is that cross-service joins and transactions disappear. To show data from two services on one
+page, compose it in a BFF (a backend for frontend, covered below). To query across services, build a
+read model from events. To update two services together, use a **saga**: a chain of local transactions,
+each with a **compensating action** that undoes it.
 
 ```mermaid
 flowchart LR
@@ -136,7 +136,7 @@ limits traffic in its own way. The gateway does this once, from a route table ke
 | Traffic | Any | North–south: client to cluster | East–west: service to service |
 | Owns | Spreading load, health checks | Auth, quotas, TLS, routing | mTLS, retries, per-hop tracing |
 
-Interviewers blur these on purpose. They compose: an L4 load balancer usually fronts a stateless
+Interviewers blur these on purpose. They work together. An L4 load balancer usually fronts a stateless
 gateway cluster, and a large estate adds the mesh.
 
 > ⚠️ The gateway is the authoritative limit, not the only one. Internal callers bypass it entirely, so a
@@ -167,7 +167,7 @@ async function getWebOrder(orderId: string): Promise<FullOrderDetail> {
 }
 ```
 
-The cost is real: three BFFs mean three deploys and three places a shared change lands. A BFF earns
+The cost is real. Three BFFs mean three deploys and three places a shared change lands. A BFF earns
 that when client needs truly diverge, not when one client wants two fewer fields.
 
 ## When to Use It
@@ -220,7 +220,7 @@ holds before you consider the next.
 **Q: Two services need to update atomically. What do you do?**
 
 Accept that a distributed transaction is not available and use a saga. Each service commits locally and
-publishes an event, and each step has a compensating action. Say the consequence up front: there is a
+publishes an event, and each step has a compensating action. Say the consequence up front. There is a
 visible window where the system is half-updated, so the user-facing model needs a pending state.
 
 **Q: When are microservices the wrong answer?**
@@ -232,8 +232,8 @@ internal boundaries gets most of the design benefit and can be split later, when
 **Q: What is the difference between an API gateway and a load balancer?**
 
 A load balancer spreads traffic across replicas of one service, at L4 or L7. A gateway works at L7 and
-routes between different services by path, while owning auth, rate limits and request shaping. They
-compose: an L4 load balancer usually sits in front of a stateless gateway cluster.
+routes between different services by path. It also owns auth, rate limits and request shaping. They
+work together: an L4 load balancer usually sits in front of a stateless gateway cluster.
 
 **Q: The gateway is now a single point of failure. What do you do about it?**
 

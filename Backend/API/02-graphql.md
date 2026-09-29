@@ -29,7 +29,7 @@ approaches differ in where the truth lives and who can read it.
 
 GraphQL also lets the client name exactly the fields it wants, in one request. That ends
 over-fetching, but the server can no longer predict a request's cost or cache it by URL. tRPC bets
-that, with TypeScript at both ends of one repository, a schema is a redundant middle step.
+that a schema is a wasted middle step when TypeScript runs at both ends of one repository.
 
 ## How It Works
 
@@ -177,9 +177,9 @@ per-component waterfall without a query language.
 
 Typed contracts catch a renamed procedure, a changed shape or a missing field. They do not catch a
 semantic change, or whether the caller may see the data. Above all, they do not catch a **deployed**
-server older than the client's types. tRPC checks your working tree at build time, so atomic deploys
-are a precondition. They also shape versioning: add the new procedure beside the old one, move the
-call sites the compiler lists, then delete the old one. A public API needs a real deprecation window.
+server older than the client's types. tRPC checks your working tree at build time, so client and
+server must deploy together. That shapes versioning too: add the new procedure beside the old one,
+move the call sites the compiler lists, then delete the old one. A public API needs a deprecation window.
 
 ## When to Use It
 

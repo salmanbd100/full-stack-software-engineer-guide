@@ -18,10 +18,9 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A tool call is not the model running your code. **The model returns a structured request — a tool name
-and arguments — and your code decides whether to run it.** The result goes back into the conversation, and
-the model carries on. Your code sits in the middle, and that is the security property everything else
-rests on.
+A tool call is not the model running your code. **The model returns a structured request, a tool name
+and arguments, and your code decides whether to run it.** The result goes back into the conversation,
+and the model carries on. Your code sits in the middle. Every other security property rests on that.
 
 The tool set is also an API. Its only consumer reads English, reads your descriptions once, cannot ask a
 question and will fill every parameter with something. Design for that consumer, and most agent problems
@@ -29,8 +28,8 @@ go away. Paste in an API built for humans, and the model calls the wrong tool wi
 
 > ⚠️ **Moving target:** tool definitions are the most often renamed surface in any AI SDK. Version 5
 > replaced `parameters` with `inputSchema` and `maxSteps` with `stopWhen`. Version 7 renamed the stop
-> helper again, from `stepCountIs` to `isStepCount`. The protocol underneath does not change: the model
-> returns a name and a JSON object, your code decides whether to run it, and the result goes back as
+> helper again, from `stepCountIs` to `isStepCount`. The protocol underneath does not change. The model
+> returns a name and a JSON object. Your code decides whether to run it. The result goes back as
 > another message.
 
 ## How It Works
@@ -93,8 +92,8 @@ const { text, steps } = await generateText({
 
 ### Parallel calls
 
-A model can ask for several tools in one step. Independent ones should run at once — and "independent"
-is your judgement, not the model's.
+A model can ask for several tools in one step. Independent ones should run at once. And you decide what
+counts as independent, not the model.
 
 **Run read-only calls concurrently**
 
@@ -105,7 +104,7 @@ const results = await Promise.all(
 ```
 
 Two writes to the same record are not independent, and the model has no idea they conflict. Run side
-effects one at a time, or make the tools idempotent so a duplicate call does no harm.
+effects one at a time. Or make the tools idempotent (safe to run twice), so a duplicate call does no harm.
 
 ### The permission boundary
 
@@ -126,7 +125,7 @@ async function dispatch(call: ToolCall, user: User): Promise<unknown> {
 
 Tool arguments are untrusted input. A document the model read can shape them, so `deleteFile({ path })`
 with a model-supplied path is a path traversal waiting to happen. Authorise against the **user's**
-permissions, never the model's request. Gate destructive tools behind human approval —
+permissions, never the model's request. Gate destructive tools behind human approval.
 [Chapter ?? — Prompt Injection](#ch-prompt-injection) explains why this is the control that matters.
 
 ## When to Use It
@@ -146,22 +145,22 @@ The tool set, more than the prompt, usually decides whether the assistant works.
 
 ### Granularity
 
-The rule: **one tool per user-visible intent.** If a person would call it one action — "search the docs",
-"create a ticket", "check the build" — it is one tool. Too-fine tools are the more common and more costly
-mistake — `openFile`, `seek`, `readBytes`, `close` is four full round trips where `readFile(path)` is
-one. At the coarse end, a single `execute(command)` tool is flexible, but you can no longer say what the
-agent is able to do.
+The rule: **one tool per user-visible intent.** If a person would call it one action, it is one tool.
+"Search the docs", "create a ticket" and "check the build" are each one. Tools that are too fine are the
+more common and more costly mistake. `openFile`, `seek`, `readBytes`, `close` is four full round trips
+where `readFile(path)` is one. At the coarse end, a single `execute(command)` tool is flexible. But you
+can no longer say what the agent is able to do.
 
 ### Descriptions are prompt text
 
-The description is the model's only signal for *when* a tool applies, so most wrong-tool bugs are
+The description is the model's only signal for *when* a tool applies. So most wrong-tool bugs are
 description bugs. `'Searches the index.'` is written for a colleague who can read the source. The
-`searchDocs` description above does four things instead: it says **what it returns**, **when to use it**,
+`searchDocs` description above does four things instead. It says **what it returns**, **when to use it**,
 **when not to** and what to use instead, and **what failure looks like**. Each one removes a class of
 wrong call. Parameter descriptions are prompt text too.
 
-Names matter too: `searchDocs` and `lookupAccount` cannot be confused; `search` and `query` can, and the
-model alternates between overlapping tools because neither is clearly right.
+Names matter too. Nobody confuses `searchDocs` with `lookupAccount`. `search` and `query` are easy to
+confuse, and the model switches between overlapping tools because neither is clearly right.
 
 ### Parameters the model can fill
 
@@ -171,12 +170,13 @@ model alternates between overlapping tools because neither is clearly right.
 | `filters: Record<string, unknown>` | Named optional fields | An open bag invites invention |
 | `mode: string` | `mode: z.enum([...])` | Enums cannot be invented |
 
-The first row generalises: **never require an identifier the model has no way to know.** Accept the
-natural key and resolve it inside the tool, or add a lookup tool that returns the id first.
+The first row holds in general: **never require an identifier the model has no way to know.** Accept the
+natural key (the name a person would use) and resolve it inside the tool. Or add a lookup tool that
+returns the id first.
 
 ### Errors that teach the next step
 
-Whatever a tool returns becomes prompt text. An unhelpful result produces an unhelpful next step —
+Whatever a tool returns becomes prompt text. An unhelpful result produces an unhelpful next step,
 usually the same call again.
 
 | ❌ Returned | ✅ Better | What the model does |
@@ -185,7 +185,7 @@ usually the same call again.
 | `Error: 500` | `Search is unavailable. Answer from the conversation or say you cannot check.` | Stops retrying, degrades honestly |
 | `Invalid input` | `section must be one of: api, guides, changelog` | Fixes the argument |
 
-The empty array is the most common cause of a looping agent: it looks like a broken tool, so the model
+The empty array is the most common cause of a looping agent. It looks like a broken tool, so the model
 tries again. Say what happened, whether a retry helps, and what to do instead.
 
 > ⚠️ Never put a raw exception into the conversation. Stack traces leak file paths and internals into a
@@ -195,8 +195,8 @@ tries again. Say what happened, whether a retry helps, and what to do instead.
 
 The strongest control is a tool that does not exist. Every tool is a permission handed to a system that
 reads untrusted documents. Start read-only and add writes as separate, gated tools.
-`cancelSubscription(accountId)` can be authorised and audited; `runSql(query)` cannot. Leave out what the
-model rarely needs — a smaller surface also improves selection.
+`cancelSubscription(accountId)` can be authorised and audited. `runSql(query)` cannot. Leave out what
+the model rarely needs. A smaller surface also helps the model pick the right tool.
 
 ## Common Mistakes
 
@@ -212,11 +212,11 @@ model rarely needs — a smaller surface also improves selection.
 
 ## 🔑 Key Takeaways
 
-- The model requests a tool call; your dispatcher decides whether to run it, and all authority lives there.
-- Every loop step resends the whole conversation, so a hard step limit is the only bound on cost.
+- The model requests a tool call. Your dispatcher decides whether to run it, and all authority lives there.
+- Every loop step resends the whole conversation, so a hard step limit is the only limit on cost.
 - Design one tool per user-visible intent, with descriptions that say what it returns and when not to use it.
 - Error and empty results are prompt text: say what happened, whether to retry, and what to do instead.
-- The strongest control is a tool that does not exist, so authorise against the user and gate anything destructive.
+- The strongest control is a tool that does not exist. Authorise against the user and gate anything destructive.
 
 ## Interview Questions
 
@@ -225,7 +225,7 @@ model rarely needs — a smaller surface also improves selection.
 The model returns a tool name and JSON arguments matching the schema I sent, and generation stops. My
 code validates the arguments, checks permissions, runs the function and appends the result as a tool
 message. Then I call the model again with the longer history. That repeats until it answers or hits my
-step limit — the model never executes anything itself.
+step limit. The model never executes anything itself.
 
 **Q: Your agent keeps calling the same tool with the same arguments. What do you check first?**
 
@@ -236,16 +236,16 @@ a stop condition the model cannot meet.
 
 **Q: How do you stop a tool-calling feature from deleting production data?**
 
-By making the dangerous operation unavailable rather than discouraged. The surface exposes only what the
-feature needs, credentials are scoped to that, destructive tools sit behind human approval, and the
-dispatcher authorises against the signed-in user. A rule in the system prompt is not a control — the
-model reads untrusted content, so it can be argued away.
+By making the dangerous operation unavailable, not merely discouraged. The surface exposes only what the
+feature needs, and credentials are scoped to that. Destructive tools sit behind human approval. The
+dispatcher authorises against the signed-in user. A rule in the system prompt is not a control. The
+model reads untrusted content, so someone can argue it away.
 
 **Q: Can you just expose your existing REST API as tools?**
 
 You can, and it usually works badly. That API assumes a caller with documentation and internal ids, and
-its errors are written for developers. The model fabricates ids, misreads codes and picks between
-endpoints whose names distinguish nothing. I would redesign it for its real consumer: natural keys, enums,
+its errors are written for developers. The model invents ids, misreads codes and picks between
+endpoints whose names tell them apart in no way. I would redesign it for its real consumer: natural keys, enums,
 prose descriptions and errors written as instructions.
 
 ## What to Read Next

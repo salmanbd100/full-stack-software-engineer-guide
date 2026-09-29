@@ -20,8 +20,8 @@ in_book: true
 
 REST is not a specification you can fail a compliance test against. It is a set of conventions built on
 top of HTTP. The payoff is predictability: when the conventions hold, a client can guess how a route
-behaves without opening the documentation. Interviewers use REST design as a proxy for something bigger —
-can you model a domain, and do you understand HTTP well enough to stop reinventing it?
+behaves without opening the documentation. Interviewers use REST design to test something bigger. Can you
+model a domain, and do you understand HTTP well enough to stop reinventing it?
 
 > The URL names a **thing**. The method says what you are **doing to it**. `POST /users/123/deactivate`
 > is a red flag. `PATCH /users/123` with `{ "status": "inactive" }` is the same work, expressed in HTTP.
@@ -40,7 +40,7 @@ so the senior question is not "how do I version this" but **"how do I ship this 
 | Lowercase with hyphens      | `/orderItems`, `/order_items`    | `/order-items`               |
 | Nest only to show ownership | `/users/1/orders/9/items/4/tax`  | `/order-items/4`             |
 
-Stop nesting at two levels; deeper than that, the child has its own identity. Actions that are not CRUD
+Stop nesting at two levels. Deeper than that, the child has its own identity. Actions that are not CRUD
 still model as resources most of the time. A password reset is a request (`POST /users/123/password-resets`),
 a refund is a record (`POST /orders/9/refunds`), and a slow export is a job (`POST /reports`, returning
 `202`). Do not twist a design to avoid one RPC-style route, though. One `POST /cache:purge` beats a fake
@@ -152,9 +152,9 @@ the right trade for a feed and the wrong one for a paginated report.
 ## Idempotent Writes
 
 `POST /payments` is not idempotent, but the network will time out and the client will retry. Without
-protection the customer pays twice. The fix, used by Stripe's API, is an `Idempotency-Key` header: one
-key per logical operation, claimed with an atomic Redis `SET NX`. A repeat gets `409` while the first
-request runs, or a replay of its stored response after. Delete the key on failure, so a retry is allowed.
+protection the customer pays twice. Stripe's API uses the fix: an `Idempotency-Key` header, one key per
+logical operation. The server claims it with an atomic Redis `SET NX`. A repeat gets `409` while the
+first request runs, or a replay of its stored response after. On failure, delete the key to allow a retry.
 
 ## Changing the Contract
 
@@ -165,7 +165,7 @@ Try these first. Each one ships a change with no new version:
   pattern as a zero-downtime database migration.
 
 When a break is unavoidable, put the **major** version in the path: `/v1/users`, never `/v1.2.3`. It is
-visible in logs and routable at the load balancer; a header is purer REST but invisible when you debug.
+visible in logs and routable at the load balancer. A header is purer REST but invisible when you debug.
 Version the shape, not the service. `/v1` and `/v2` share one service layer, with two presenters that
 map the same `User` to each shape. Duplicating the service per version is how a bug fix lands in only one.
 
@@ -182,8 +182,8 @@ res.set("Sunset", "Tue, 01 Sep 2026 00:00:00 GMT"); // RFC 8594
 res.set("Link", '</v2/users>; rel="successor-version"');
 ```
 
-Then log every call to the old path with the caller's identity — the only reliable answer to "is it safe
-to delete yet". Six months suits an internal API; twelve is the floor for a public one.
+Then log every call to the old path with the caller's identity. Only that answers "is it safe to delete
+yet" reliably. Six months suits an internal API. Twelve is the minimum for a public one.
 
 ## Common Mistakes
 
@@ -208,7 +208,7 @@ app release from two years ago that cannot be updated.
 
 ## 🔑 Key Takeaways
 
-- The URL names a resource and the method names the action; a verb in the path means the design slipped.
+- The URL names a resource and the method names the action. A verb in the path means the design slipped.
 - Idempotency decides whether a client, proxy or load balancer may safely retry after a timeout.
 - Cursor pagination is the only strategy that survives large tables and concurrent inserts.
 - Additive changes are safe, but removals, retypings, tightened validation and changed defaults all break clients.
@@ -235,7 +235,7 @@ behaviour, measure how many callers send it, then make it required in the next m
 
 Almost always, if the change can be additive. A new version forces every consumer to migrate, even the
 unaffected ones, and doubles what you test. A new optional field or expand-then-contract usually does
-the job; a version earns its cost only for a true redefinition.
+the job. A version earns its cost only for a true redefinition.
 
 ## What to Read Next
 

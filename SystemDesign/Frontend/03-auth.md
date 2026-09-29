@@ -20,11 +20,11 @@ in_book: true
 
 Two sentences carry most of a frontend auth design.
 
-**The browser has no safe place to put a credential** — only places that fail differently. Memory dies on refresh. `localStorage` is readable by any script that gets injected. An `httpOnly` cookie is invisible to your own code but travels on requests you did not initiate. Choosing between those failure modes is the design, and everything else follows from it.
+**The browser has no safe place to put a credential.** It only has places that fail in different ways. Memory dies on refresh. `localStorage` is readable by any script that gets injected. An `httpOnly` cookie is hidden from your own code but travels on requests you did not start. Choosing between those failures is the design, and everything else follows from it.
 
-**Nothing the client does is enforcement.** A route guard, a hidden button and a permission check are all user interface. They make the product coherent; they stop nobody. Every one of them is re-checked on the server or it does not exist. A candidate who says this unprompted has largely passed the auth portion of the round.
+**Nothing the client does is enforcement.** A route guard, a hidden button and a permission check are all user interface. They make the product consistent, but they stop nobody. The server re-checks every one of them, or the check does not exist. A candidate who says this unprompted has largely passed the auth portion of the round.
 
-The protocol side — session design, token issuance, OAuth flows — is covered in [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) and [Chapter ?? — OAuth, OIDC and Authorisation](#ch-oauth). This chapter is the browser's half.
+The protocol side (session design, token issuance and OAuth flows) is covered in [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) and [Chapter ?? — OAuth, OIDC and Authorisation](#ch-oauth). This chapter is the browser's half.
 
 ## How It Works
 
@@ -34,7 +34,7 @@ The protocol side — session design, token issuance, OAuth flows — is covered
 | `localStorage` | Refresh, restart, other tabs | Any injected script | Almost never |
 | `httpOnly`, `Secure`, `SameSite` cookie | Refresh, restart, other tabs | Sent automatically on matching requests | The long-lived credential |
 
-The pattern this table points at is a **short-lived access token in memory, with a long-lived refresh token in an `httpOnly` cookie**. Cross-site scripting cannot read either one, and cross-site request forgery cannot use the access token, because it lives in an `Authorization` header a forged form cannot set.
+The pattern this table points at is a **short-lived access token in memory, with a long-lived refresh token in an `httpOnly` cookie**. Cross-site scripting (XSS) cannot read the cookie, and it finds no token sitting in storage. An injected script can still act as the user while the page is open. Cross-site request forgery (CSRF) cannot use the access token, because it lives in an `Authorization` header a forged form cannot set.
 
 ```mermaid
 sequenceDiagram
@@ -53,7 +53,7 @@ sequenceDiagram
 
 **Silent refresh.** The user never sees the 401, and the long-lived credential never passes through JavaScript.
 
-> ⚠️ **`SameSite` is not a CSRF strategy on its own.** `SameSite=Lax` still permits top-level `GET` navigations, so any state change reachable by a `GET` is still forgeable. Keep mutations on non-idempotent methods and pair the cookie with a token check — see [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions).
+> ⚠️ **`SameSite` is not a CSRF strategy on its own.** `SameSite=Lax` still permits top-level `GET` navigations, so any state change reachable by a `GET` is still forgeable. Keep changes on methods such as `POST`, and pair the cookie with a token check. See [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions).
 
 ## When to Use It
 
@@ -66,11 +66,11 @@ The token-in-memory pattern is the default, not the only answer.
 | A mobile or native client | Platform secure storage, not the web pattern | The browser's constraints do not apply |
 | A public API consumed by third parties | OAuth with per-client tokens | You are not the only client, so session semantics do not fit |
 
-The second row is the one candidates under-use. If the application already renders on the server, introducing tokens buys nothing and costs revocability — a session can be deleted, a token cannot be un-issued.
+The second row is the one candidates under-use. If the application already renders on the server, adding tokens buys nothing and costs you revocation. The server can delete a session, but it cannot take back a token.
 
 ## Silent Refresh Without a Stampede
 
-The interesting problem is concurrency. A dashboard fires eight requests, the token expires, and eight 401s arrive at once. A naive interceptor starts eight refreshes; seven of them race, and with refresh-token rotation six get rejected and log the user out.
+The interesting problem is concurrency. A dashboard fires eight requests, the token expires, and eight 401s arrive at once. A naive interceptor starts eight refreshes, and they race. With refresh-token rotation, the first one wins, the other seven get rejected, and the user is logged out.
 
 **Single-flight refresh — every caller awaits the same promise:**
 
@@ -100,13 +100,13 @@ async function authedFetch(input: RequestInfo, init: RequestInit = {}): Promise<
 }
 ```
 
-Three details matter. The promise is shared, so concurrent 401s collapse into one refresh. The retry happens **once** — retrying a second 401 is an infinite loop against an expired session. And `inFlight` is cleared in `finally`, so a failed refresh does not poison every later request with a rejected promise.
+Three details matter. The promise is shared, so concurrent 401s collapse into one refresh. The retry happens **once**. Retrying a second 401 is an infinite loop against an expired session. And `finally` clears `inFlight`, so a failed refresh does not hand every later request a rejected promise.
 
-Refreshing slightly *before* expiry on a timer is a useful addition, but it is not a replacement: a laptop that slept through the expiry wakes with a dead token and needs the 401 path anyway.
+A timer that refreshes just *before* expiry is a useful extra, but it does not replace this. A laptop that slept through the expiry wakes with a dead token and needs the 401 path anyway.
 
 ## Guarding Routes Without Lying
 
-Authentication has three states, and designs that model two produce the two worst bugs in the category.
+Authentication has three states. Designs that model only two produce the two worst bugs in this area.
 
 | State | The UI shows | The bug when this state is missing |
 | ----- | ------------ | ---------------------------------- |
@@ -114,13 +114,13 @@ Authentication has three states, and designs that model two produce the two wors
 | Authenticated | The route | — |
 | Anonymous | A redirect, preserving the destination | The user logs in and lands on the home page |
 
-On first load the client does not yet know who the user is — the refresh cookie has not been exchanged. Treating that as "anonymous" logs the user out on every hard refresh. Treating it as "authenticated" flashes protected content before the redirect.
+On first load the client does not yet know who the user is, because it has not yet exchanged the refresh cookie. Treating that as "anonymous" logs the user out on every hard refresh. Treating it as "authenticated" flashes protected content before the redirect.
 
-Preserve the intended destination through the login round trip, and validate it before redirecting back: an unvalidated `returnTo` parameter is an open redirect, and it is a finding in every penetration test that looks for it.
+Keep the intended destination through the login round trip, and validate it before redirecting back. An unvalidated `returnTo` parameter is an open redirect. Every penetration test that looks for one reports it.
 
 ## Multi-Tab and Logout
 
-The access token lives in memory, so every tab holds its own copy. Logging out in one leaves the others rendering a signed-in interface against a session that no longer exists.
+The access token lives in memory, so every tab holds its own copy. Logging out in one leaves the others showing a signed-in interface for a session that no longer exists.
 
 **Telling the other tabs:**
 
@@ -138,7 +138,7 @@ channel.onmessage = (event: MessageEvent<{ type: string }>) => {
 };
 ```
 
-This is a user-experience fix, not a security control. The session is already dead server-side the moment the cookie is cleared, so a tab that missed the broadcast fails on its next request anyway — the message only stops it showing stale data in the meantime. The same channel is worth using for the opposite case: a tab that refreshes successfully can share the new token so the others do not each trigger their own 401.
+This is a user-experience fix, not a security control. The session is dead on the server the moment the cookie is cleared. A tab that missed the broadcast fails on its next request anyway. The message only stops it showing stale data until then. The same channel helps in the opposite case. A tab that refreshes can share the new token, so the others do not each trigger their own 401.
 
 ## Common Mistakes
 
@@ -163,28 +163,28 @@ This is a user-experience fix, not a security control. The session is already de
 ## 🔑 Key Takeaways
 
 - The browser has no safe credential store, only stores that fail differently; pick the failure you can live with.
-- A short-lived access token in memory plus an `httpOnly` refresh cookie defeats both XSS reading and CSRF using.
+- A short-lived access token in memory plus an `httpOnly` refresh cookie keeps both out of reach of XSS theft and CSRF.
 - Refresh must be single-flight and retried exactly once, or token rotation turns a burst of 401s into a logout.
 - Authentication has three states, and omitting "unknown" causes either a login bounce or a flash of protected content.
-- Route guards and hidden buttons are user interface; the server enforces, always, without exception.
+- Route guards and hidden buttons are user interface, and the server enforces every rule, without exception.
 
 ## Interview Questions
 
 **Q: Where do you store the token, and why not `localStorage`?**
 
-The access token goes in a module-scoped variable and the refresh token in an `httpOnly`, `Secure`, `SameSite` cookie. `localStorage` is readable by any script that executes on the origin, so a single injected script — from a dependency, a tag manager, anything — exfiltrates every session. The cookie is invisible to JavaScript, and because the access token travels in an `Authorization` header rather than automatically, a forged cross-site request cannot use it either.
+The access token goes in a module-scoped variable and the refresh token in an `httpOnly`, `Secure`, `SameSite` cookie. Any script that runs on the origin can read `localStorage`. So one injected script, from a dependency or a tag manager, can steal every session. The cookie is hidden from JavaScript. The access token travels in an `Authorization` header, not automatically, so a forged cross-site request cannot use it either.
 
 **Q: Eight requests get a 401 at the same moment. What happens?**
 
-One refresh. The interceptor holds a single in-flight promise, and callers that arrive during it await the same one rather than starting their own. Without that, eight refreshes race, and with refresh-token rotation the first one invalidates the token the other seven are using, so the user is logged out by their own dashboard. Each request retries exactly once after the refresh resolves; a second 401 is a real failure and goes to login.
+One refresh. The interceptor holds a single in-flight promise, and callers that arrive during it await the same one instead of starting their own. Without that, eight refreshes race. With refresh-token rotation, the first one invalidates the token the other seven are using, so the user's own dashboard logs them out. Each request retries exactly once after the refresh resolves. A second 401 is a real failure and goes to login.
 
 **Q: The client hides the delete button for non-admins. Is that authorisation?**
 
-No, it is layout. It stops an admin-only action from appearing in the interface, which is worth doing for coherence, but the endpoint is reachable with a terminal and the role claim in a token is client-visible data. Authorisation is the server's check on every request. I would treat the client's permission map as a copy of the policy for rendering, and never as the policy.
+No, it is layout. It keeps an admin-only action out of the interface, which is worth doing. But anyone can reach the endpoint from a terminal, and the role claim in a token is data the client can see. Authorisation is the server's check on every request. I would treat the client's permission map as a copy of the policy for rendering, and never as the policy.
 
 **Q: When would you not use tokens at all?**
 
-When the application is server-rendered on one origin. A plain session cookie is simpler, has nothing for the client to leak, and — the part that usually decides it — is revocable immediately, because deleting the session row ends it. A token cannot be un-issued; you either wait out its lifetime or build the denylist that you adopted stateless tokens to avoid. I would only reach for tokens when several clients or origins are involved.
+When the application is server-rendered on one origin. A plain session cookie is simpler and gives the client nothing to leak. The part that usually decides it: you can revoke it at once, because deleting the session row ends it. You cannot take back a token. You either wait out its lifetime or build the denylist that stateless tokens were meant to avoid. I would only reach for tokens when several clients or origins are involved.
 
 ## What to Read Next
 

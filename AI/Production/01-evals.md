@@ -26,10 +26,10 @@ An eval is the missing feedback loop: a fixed set of inputs, a definition of a g
 It is a test suite with one difference. The assertion cannot be equality, because the correct output is
 a range of acceptable answers, not one string.
 
-The documentation assistant has two halves. Retrieval puts passages in the window; generation writes
-the answer from them. Both fail with the same user complaint — "the answer was wrong" — and they need
-different fixes. So an eval suite measures each half on its own. Then error analysis turns the failures
-into a ranked list of work.
+The documentation assistant has two halves. Retrieval puts passages in the window, the text the model
+reads. Generation writes the answer from them. Both fail with the same complaint: "the answer was wrong".
+But they need different fixes, so an eval suite measures each half on its own. Then error analysis turns
+the failures into a ranked list of work.
 
 This is the most-asked and least-taught skill in senior AI hiring. The reason is plain: building an eval
 suite is labelling work, and labelling work is boring.
@@ -80,8 +80,8 @@ interface EvalCase {
 ### Measure retrieval first
 
 If the right passage is not in the window, nothing downstream can recover. The generator cannot cite
-what it never saw. So retrieval is measured first, and it is cheap: no model call, only set membership
-against labelled ids.
+what it never saw. So measure retrieval first. It is cheap: no model call, only a check against the
+labelled ids.
 
 | Metric | Answers | Use when |
 | --- | --- | --- |
@@ -154,8 +154,8 @@ A model grading another model's output is useful and easy to misuse. Four condit
 ### The error-analysis loop
 
 The suite says the pass rate is 71%. It does not say what to do on Monday. **Error analysis is the step
-between a number and a change**, and it is mostly clerical work: collect the failures, read their traces,
-name what went wrong, count the names, fix the largest pile, and re-run. Run it weekly. The step teams
+between a number and a change.** It is mostly clerical work. Collect the failures and read their traces.
+Name what went wrong, count the names, fix the largest pile, and re-run. Run it weekly. The step teams
 skip is the count.
 
 Read the trace, not only the output. The wrong answer is usually several steps after the real mistake.
@@ -184,8 +184,8 @@ anything.
 | Over-refusal | 5 | 7% | Loosen the guardrail, add allowed examples | A different model |
 
 This table takes an afternoon, and it is the whole deliverable. It turns "the assistant is unreliable"
-into a ranked plan. It also answers "should we switch models?" A model change addresses grounding and
-format — about a third of these failures — at real cost. **A retrieval miss can never be fixed by the
+into a ranked plan. It also answers "should we switch models?" A model change helps with grounding and
+format, about a third of these failures, and it costs real money. **A retrieval miss can never be fixed by the
 generator.**
 
 Ambiguity is often misfiled as a model failure. Some questions have two readings, and the fix belongs in
@@ -296,7 +296,7 @@ the suite before fixing it.
 
 When the rubric is specific enough that two people would grade the same way, and the judge agrees with
 human labels on a sample. It must see the ground truth for anything factual, and it must not be the only
-signal. I would never let a judge grade output from the same model with the same context — it inherits
+signal. I would never let a judge grade output from the same model with the same context. It inherits
 the blind spots, so the score looks good and means nothing.
 
 **Q: Your assistant is "unreliable". How do you turn that into work?**
@@ -309,8 +309,8 @@ problem.
 **Q: How do you decide between fixing the pipeline and upgrading the model?**
 
 By the category counts. If most failures are retrieval misses, a better model changes nothing, because
-the passage was never in the window. If most are grounding or format failures, an upgrade may help — but
-so do cheaper fixes like fewer, better chunks or a constrained output schema. The table turns a
+the passage was never in the window. If most are grounding or format failures, an upgrade may help. But
+cheaper fixes help too, such as fewer, better chunks or a constrained output schema. The table turns a
 preference into arithmetic.
 
 ## What to Read Next

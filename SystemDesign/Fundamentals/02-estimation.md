@@ -19,9 +19,9 @@ in_book: true
 ## 💡 The Core Idea
 
 Estimation in a design round is not a maths test. It exists to make one decision: does this fit on one
-machine, or does it need a fleet? Every architectural choice downstream — sharding, caching, replication,
-queueing — follows from which side of that line you land on. So the arithmetic only has to be right to
-within a factor of two. Being fast and roughly right beats being slow and exact, every time.
+machine, or does it need a fleet? Every later choice (sharding, caching, replication, queueing) follows
+from which side of that line you land on. So the arithmetic only has to be right to within a factor of
+two. Being fast and roughly right beats being slow and exact, every time.
 
 > An estimate that changes no decision was a waste of the round. Always finish with the sentence
 > _"so that means…"_.
@@ -59,8 +59,8 @@ within a factor of two. Being fast and roughly right beats being slow and exact,
 | Postgres writes per second        | ~5,000–10,000            |
 | Redis operations per second       | ~100,000                 |
 
-> ⚠️ These are order-of-magnitude anchors, not benchmarks. Quote them as "roughly", and never argue with
-> an interviewer who has a different figure — the point is the derivation, not the constant.
+> ⚠️ These are order-of-magnitude anchors, not benchmarks. Quote them as "roughly". Never argue with an
+> interviewer who has a different figure. The point is the working, not the constant.
 
 ### The four formulas
 
@@ -100,8 +100,8 @@ find yourself writing long division on the whiteboard, you have rounded too litt
 **2,000 writes per second**, peaking around 6,000.
 
 **Reads.** Assume each user opens the feed 20 times a day and each open pulls 20 posts. That is
-2 billion feed loads, so **20,000 reads per second**, peaking at 60,000. The read-to-write ratio is
-about 100:1, which is the number that tells you to cache aggressively and read from replicas.
+2 billion feed loads, so **20,000 reads per second**, peaking at 60,000. Counted in posts, that is 40
+billion post reads a day: about 200:1 against writes. That ratio tells you to cache hard and read from replicas.
 
 **Storage.** A post with metadata is ~1 KB. 200M × 1 KB = **200 GB a day**, 73 TB a year, and 220 TB a
 year with three-way replication. So it does not fit on one machine, and posts need partitioning.
@@ -111,7 +111,7 @@ asynchronously rather than on the read.
 
 ### A URL shortener at 100 million new links a month
 
-**Writes.** 100M ÷ 2.5M seconds ≈ **40 writes per second**. That is nothing — one Postgres primary
+**Writes.** 100M ÷ 2.5M seconds ≈ **40 writes per second**. That is nothing. One Postgres primary
 handles it with room to spare.
 
 **Reads.** At a 100:1 ratio, **4,000 redirects per second**, peaking at 12,000.
@@ -120,7 +120,7 @@ handles it with room to spare.
 year, **3 TB over five years**. One machine can hold that.
 
 **So that means:** no sharding needed for years. The whole problem is read latency, which is a cache
-problem, not a scale problem. Say that out loud — recognising that a system is *small* is a senior
+problem, not a scale problem. Say that out loud. Recognising that a system is *small* is a senior
 signal too.
 
 ### A chat service at 50 billion messages a day
@@ -131,8 +131,8 @@ optional, and the partition key is the first thing to design.
 **Storage.** A message with metadata is ~200 bytes. 50B × 200 B = **10 TB a day**, 3.6 PB a year before
 replication.
 
-**So that means:** an append-only store partitioned by conversation, aggressive tiering of old messages
-to cold storage, and a retention policy that has to be a product decision rather than an engineering one.
+**So that means:** an append-only store partitioned by conversation, and old messages moved early to cold
+storage. The retention policy has to be a product decision, not an engineering one.
 
 ## When to Use It
 
@@ -147,7 +147,7 @@ to cold storage, and a retention policy that has to be a product decision rather
 
 **❌ Calculating everything**
 
-Storage, bandwidth, QPS, memory, cache size, server count, and cost — for a system where none of it
+Storage, bandwidth, QPS, memory, cache size, server count and cost, for a system where none of it
 changes the design. Estimate the one or two quantities that decide something.
 
 **✅ Estimating with a purpose**
@@ -157,8 +157,8 @@ changes the design. Estimate the one or two quantities that decide something.
 
 **❌ Forgetting the peak**
 
-Average traffic sizes nothing. Systems are provisioned for peak, and consumer peak is usually 2–3× the
-daily average — higher for anything tied to an event or a time zone.
+Average traffic sizes nothing. Teams provision systems for peak, and consumer peak is usually 2–3× the
+daily average. It runs higher for anything tied to an event or a time zone.
 
 **❌ Forgetting replication and indexes**
 
@@ -167,7 +167,7 @@ commonly add 20–50% on top.
 
 ## 🔑 Key Takeaways
 
-- Estimation exists to answer one question: one machine or a fleet — and everything else follows from the answer.
+- Estimation answers one question: one machine or a fleet? Everything else follows from the answer.
 - Round every input to one significant figure and treat 86,400 seconds as 100,000.
 - Storage estimates must include replication and index overhead, or they are low by 3–5×.
 - Provision against peak, which for consumer traffic is 2–3× the daily average.
@@ -183,13 +183,13 @@ whether you remembered that thumbnails and replication often outweigh the origin
 
 **Q: Why round 86,400 to 100,000?**
 
-Because it makes every division a shift of the decimal point, and a 16% error is well inside the
-tolerance of an estimate whose purpose is to distinguish "one machine" from "a hundred machines". Speed
-here buys time for the parts of the round that carry more signal.
+Because it makes every division a shift of the decimal point. The 16% error is well inside what an
+estimate can bear when its job is to tell "one machine" from "a hundred machines". Speed here buys time
+for the parts of the round that carry more signal.
 
 **Q: Your estimate says the whole dataset fits in RAM on one server. Is that the design?**
 
-It is the starting point, and worth saying explicitly because it removes sharding from the conversation.
+It is the starting point. Say so plainly, because it removes sharding from the conversation.
 But a single machine is a single point of failure, so the design still needs a replica and a failover
 story. Fitting in memory changes the scaling problem into an availability problem.
 

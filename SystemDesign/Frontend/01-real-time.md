@@ -18,15 +18,15 @@ in_book: true
 
 ## 💡 The Core Idea
 
-The hard part of a real-time feature is not receiving messages. It is what happens when the connection breaks — because it will, on every deploy, every tunnel, every train.
+The hard part of a real-time feature is not receiving messages. It is what happens when the connection breaks. It will break, on every deploy, in every tunnel, on every train.
 
-A client that only learns about changes through the socket is permanently one dropped frame away from being wrong, and it does not know it. **Treat the connection as a low-latency hint and HTTP as the source of truth.** A client that can rebuild its state from a REST endpoint tolerates any disconnection.
+A client that only learns about changes through the socket is always one dropped frame away from being wrong. And it does not know it. **Treat the connection as a low-latency hint and HTTP as the source of truth.** A client that can rebuild its state from a REST endpoint tolerates any disconnection.
 
 Which transport to use is a design decision covered in [Chapter ?? — Queues, Async Work and WebSockets](#ch-message-queues). This chapter assumes that call is made and builds the client.
 
 ## How It Works
 
-Two browser APIs, and they are not symmetrical in how much they do for you.
+The browser has two APIs, and they do not do the same amount of work for you.
 
 **`WebSocket` — bidirectional, and reconnection is yours to build:**
 
@@ -54,7 +54,7 @@ source.onerror = () => {
 };
 ```
 
-The server side of SSE is three response headers — `Content-Type: text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive` — and events written as `id:` and `data:` lines. The `id` is what the browser replays from, so emit one.
+SSE (Server-Sent Events, the protocol behind `EventSource`) needs little on the server. It sends three response headers: `Content-Type: text/event-stream`, `Cache-Control: no-cache` and `Connection: keep-alive`. It then writes events as `id:` and `data:` lines. The browser replays from the `id`, so always send one.
 
 ## When to Use It
 
@@ -69,7 +69,7 @@ The transport decision is upstream. What the *client* decides is how much it tru
 
 ## Reconnection with Backoff and Jitter
 
-Reconnecting is table stakes. Reconnecting *politely* is the part that gets tested.
+Every client must reconnect. Reconnecting *politely* is the part that gets tested.
 
 ```typescript
 interface ReconnectState {
@@ -82,13 +82,13 @@ function nextDelayMs({ attempt }: ReconnectState): number {
 }
 ```
 
-> ⚠️ **Without jitter every client reconnects on the same schedule.** A pod restart becomes a synchronised stampede that flattens the pod that just came up. The randomisation is not decoration — it is the difference between a five-second blip and a rolling outage.
+> ⚠️ **Without jitter every client reconnects on the same schedule.** A pod restart becomes a stampede that flattens the pod that just came up. The randomness is not decoration. It is the difference between a five-second blip and a rolling outage.
 
 Three details that separate a working client from a demo:
 
 - **Cap the delay, not the attempts.** A client that gives up after five tries is broken for anyone who closed their laptop for an hour. Keep retrying at the ceiling.
 - **Reset the delay on a *successful* open**, not on the attempt. Otherwise a flapping connection never backs off.
-- **Pause while the tab is hidden.** `document.visibilityState` lets you stop retrying for a background tab and reconnect immediately when it returns, which is both cheaper and faster than a timer that ran the whole time.
+- **Pause while the tab is hidden.** `document.visibilityState` lets you stop retrying for a background tab and reconnect as soon as it returns. That is cheaper and faster than a timer that ran the whole time.
 
 ## Recovering Missed Messages
 
@@ -110,13 +110,13 @@ socket.addEventListener("message", (event: MessageEvent<string>) => {
 });
 ```
 
-Two properties make this safe. `apply` must be **idempotent**, because the catch-up fetch and the live stream will overlap and deliver the same event twice. And `lastEventId` advances only after the event is applied, so a crash mid-apply replays rather than skips.
+Two properties make this safe. `apply` must be **idempotent**, because the catch-up fetch and the live stream will overlap and deliver the same event twice. And `lastEventId` moves forward only after the event is applied, so a crash mid-apply replays the event instead of skipping it.
 
 With SSE you get the same mechanism for free: the browser sends `Last-Event-ID` on reconnect and the server resumes from it.
 
 ## Rendering Live Data
 
-The connection is a side effect with a lifetime, which is exactly what an effect hook is for.
+The connection is a side effect with a lifetime. That is exactly what an effect hook is for.
 
 ```typescript
 function useLiveFeed(roomId: string): { events: FeedEvent[]; connected: boolean } {
@@ -139,9 +139,9 @@ function useLiveFeed(roomId: string): { events: FeedEvent[]; connected: boolean 
 }
 ```
 
-Three things this hook gets right and most do not: it **closes the connection on cleanup**, it **bounds the buffer** so a busy room cannot grow state without limit, and it **exposes `connected`** so the UI can say so. Surfacing connection state is not polish — a dashboard that silently stopped updating is actively misleading.
+This hook gets three things right that most do not. It **closes the connection on cleanup**. It **bounds the buffer**, so a busy room cannot grow state without limit. And it **exposes `connected`**, so the UI can say so. Showing connection state is not polish. A dashboard that silently stopped updating misleads the user.
 
-**High-frequency streams need throttling in the client too.** A price feed at 50 messages a second does not need 50 renders a second. Buffer incoming messages and flush on an animation frame or a fixed interval; the user cannot perceive the difference and the main thread stops thrashing.
+**High-frequency streams need throttling in the client too.** A price feed at 50 messages a second does not need 50 renders a second. Buffer incoming messages and flush them on an animation frame or a fixed interval. The user cannot see the difference, and the main thread stops thrashing.
 
 ## Common Mistakes
 
@@ -172,23 +172,23 @@ Three things this hook gets right and most do not: it **closes the connection on
 
 **Q: A client reconnects after 30 seconds offline. How does it catch up?**
 
-Not through the socket. The client tracks the last event id it applied, and on reconnect it calls a REST endpoint for everything after that id, then resumes live events. Applying has to be idempotent because the catch-up and the live stream overlap. The socket is a latency optimisation; relying on the transport for delivery guarantees is how clients end up silently out of sync.
+Not through the socket. The client tracks the last event id it applied, and on reconnect it calls a REST endpoint for everything after that id, then resumes live events. Applying has to be idempotent because the catch-up and the live stream overlap. The socket only makes things faster. Clients that rely on the transport to deliver every message end up silently out of sync.
 
 **Q: Why does reconnection need jitter?**
 
-Because every client reconnects at once otherwise. A pod restart drops thousands of connections simultaneously, and if they all use the same backoff curve they return in synchronised waves and flatten the replacement pod. Randomising each delay spreads the return over the window and turns a potential rolling outage into a brief blip.
+Because every client reconnects at once otherwise. A pod restart drops thousands of connections at the same moment. If they all use the same backoff curve, they return in waves and flatten the replacement pod. A random delay per client spreads the return over the window. A possible rolling outage becomes a brief blip.
 
 **Q: What does the UI owe the user when the connection drops?**
 
-An honest state. Three visible states — connecting, live, stale — and a timestamp on anything numeric. The failure mode I care about is a dashboard that stopped receiving updates twenty minutes ago and still renders confident numbers, because someone will make a decision on them. Showing "last updated 20 minutes ago" costs nothing and prevents that.
+An honest state. Show three states (connecting, live and stale) and a timestamp on anything numeric. The failure I care about is a dashboard that stopped receiving updates twenty minutes ago and still shows confident numbers. Someone will make a decision on them. Showing "last updated 20 minutes ago" costs nothing and prevents that.
 
 **Q: How do you keep a live feed from degrading the page?**
 
-Two limits. Throttle rendering — buffer messages and flush on an interval or animation frame, since nobody perceives fifty updates a second. And bound the client buffer, evicting old events, because a tab left open on a busy room otherwise grows until it stalls. Both are things that look fine in a demo and fail after an hour of real traffic.
+Two limits. Throttle rendering: buffer messages and flush on an interval or animation frame, since nobody sees fifty updates a second. And bound the client buffer by evicting old events. Otherwise a tab left open on a busy room grows until it stalls. Both look fine in a demo and fail after an hour of real traffic.
 
 **Q: When would you not use a socket in the client at all?**
 
-When the client only listens. `EventSource` gives me automatic reconnection and `Last-Event-ID` replay for free, over plain HTTP that every proxy already handles — that is a large amount of code I do not have to write or test. I would only take on a raw `WebSocket` when the client genuinely needs to send frequent messages.
+When the client only listens. `EventSource` gives me automatic reconnection and `Last-Event-ID` replay for free. It runs over plain HTTP that every proxy already handles. That is a lot of code I do not have to write or test. I would only take on a raw `WebSocket` when the client genuinely needs to send frequent messages.
 
 ## What to Read Next
 

@@ -18,13 +18,13 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A load balancer turns a set of servers into one logical service. Clients address a single name; the
-balancer decides which machine answers. That indirection is what makes every other scaling move
-possible — you cannot add a second server usefully until something is willing to send traffic to it.
+A load balancer turns a set of servers into one logical service. Clients call a single name, and the
+balancer decides which machine answers. Every other scaling move depends on this step. A second server
+is no use until something is willing to send traffic to it.
 
-The interesting part is not the distribution. It is the failure handling. A balancer that spreads
-traffic evenly but takes ninety seconds to notice a dead node has not bought you availability, it has
-bought you a slower outage. Most of the design work is in the health check.
+The interesting part is not the distribution. It is the failure handling. Picture a balancer that
+spreads traffic evenly but takes ninety seconds to notice a dead node. It has not bought you
+availability. It has bought you a slower outage. Most of the design work is in the health check.
 
 ## How It Works
 
@@ -76,9 +76,9 @@ function leastConnections(servers: Server[]): Server | null {
 }
 ```
 
-IP hash deserves a warning. Mobile clients move between WiFi and cellular and change IP mid-session,
-so affinity built on the client address breaks exactly when a user is walking out of a building. If
-you need session state, put it in Redis and keep every server interchangeable.
+IP hash deserves a warning. Mobile clients move between WiFi and cellular and change IP mid-session.
+Affinity built on the client address breaks exactly when a user walks out of a building. If you need
+session state, put it in Redis and keep every server interchangeable.
 
 ### The health check that causes outages
 
@@ -117,20 +117,20 @@ Time to remove a dead server = interval x unhealthy threshold  = 15s x 3 = 45s
 Time to return a recovered one = interval x healthy threshold  = 15s x 2 = 30s
 ```
 
-> ⚠️ Tightening to a 5-second interval with a threshold of 2 detects failure in ten seconds — and
-> also evicts healthy servers during a garbage-collection pause. Detection speed trades directly
-> against flapping.
+> ⚠️ A 5-second interval with a threshold of 2 detects failure in ten seconds. It also evicts healthy
+> servers during a garbage-collection pause. Faster detection means more flapping — servers dropping
+> out of the pool and coming back.
 
 ### Draining and auto-scaling
 
 The balancer and the auto-scaler share the instance lifecycle between them.
 
-A new instance joins the pool only after passing readiness; a departing one stops receiving new requests, then drains. **Scale-out waits for a probe; scale-in waits for a drain.**
+A new instance joins the pool only after it passes readiness. A departing one stops receiving new requests, then drains. **Scale-out waits for a probe; scale-in waits for a drain.**
 
-**Connection draining is the step people skip.** Without it, terminating an instance kills whatever
-requests it was still serving — and those failures land on real users during what the dashboard
-reports as a successful scale-in. Thirty to sixty seconds covers almost any HTTP request; long-lived
-WebSocket connections need an application-level "reconnect now" nudge instead.
+**Connection draining is the step people skip.** Without it, stopping an instance kills the requests
+it was still serving. Those failures land on real users, while the dashboard reports a successful
+scale-in. Thirty to sixty seconds covers almost any HTTP request. Long-lived WebSocket connections
+need an application-level "reconnect now" nudge instead.
 
 ### Finding the instances in the first place
 
@@ -145,11 +145,11 @@ minutes. Service discovery is what keeps it current.
 
 Server-side is the default for external traffic and needs nothing from the application. Client-side
 removes a network hop and gives the caller control over the algorithm, at the cost of a discovery client
-in every service. DNS is the simplest of the three and the easiest to get wrong: clients cache
+in every service. DNS is the simplest of the three and the easiest to get wrong. Clients cache
 resolutions past the TTL, so an instance that has gone away can keep receiving traffic for minutes.
 
 The registry itself must not become the single point of failure. Callers cache the last good instance
-list and keep using it when the registry is unreachable — a stale list is far better than no list.
+list and keep using it when the registry is unreachable. A stale list is far better than no list.
 
 ### Going multi-region
 
@@ -162,9 +162,9 @@ announces a single address from every location and routes on network distance an
 | **Regional balancer** | Which server | A single instance dying |
 | **Cross-zone balancing** | Which availability zone within a region | One zone becoming unbalanced or unhealthy |
 
-The failover story is what interviewers ask for: if the Singapore region fails its health checks, the
-global balancer stops answering with Singapore addresses and traffic lands in the next-nearest healthy
-region within a minute or so. Latency gets worse; the service stays up.
+Interviewers ask for the failover story. Say the Singapore region fails its health checks. The global
+balancer stops answering with Singapore addresses, and traffic lands in the next-nearest healthy region
+within a minute or so. Latency gets worse, but the service stays up.
 
 ## When to Use It
 
@@ -181,8 +181,8 @@ region within a minute or so. Latency gets worse; the service stays up.
 ❌ **Sessions on the app server.** The next request lands on a different machine and the user is
 logged out. ✅ Keep session state in Redis or a signed token, so every server is interchangeable.
 
-❌ **A health check that tests the shared database.** One blip fails every instance simultaneously and
-the pool empties. ✅ Split liveness from readiness, and never probe a shared dependency in the check
+❌ **A health check that tests the shared database.** One blip fails every instance at the same time,
+and the pool empties. ✅ Split liveness from readiness, and never probe a shared dependency in the check
 that controls fleet membership.
 
 ❌ **Round-robin for WebSockets.** Connections are long-lived and unequal, so an even share of new
@@ -192,13 +192,13 @@ connections becomes a wildly uneven share of load. ✅ Least connections.
 drain window and make the deploy wait for it.
 
 ❌ **One balancer, no redundancy.** The thing you added to remove a single point of failure becomes
-one. ✅ Managed balancers run redundant nodes across zones by default — use that rather than a single
+one. ✅ Managed balancers run redundant nodes across zones by default. Use that, not a single
 self-hosted instance.
 
 ## 🔑 Key Takeaways
 
-- A load balancer's value is failure detection, not distribution — the routing algorithm is the easy half.
-- Layer 7 costs about a millisecond and buys routing on path, host and header; it is the default for HTTP.
+- A load balancer's value is failure detection, not distribution. The routing algorithm is the easy half.
+- Layer 7 costs about a millisecond and buys routing on path, host and header. It is the default for HTTP.
 - Liveness and readiness are different questions, and merging them turns a dependency blip into an outage.
 - Detection time is interval times threshold, and tightening it trades flapping for speed.
 - Draining is what separates a clean scale-in from a burst of user-visible errors.
@@ -215,14 +215,14 @@ enough that a millisecond matters.
 **Q: Your health check hits the database. What is wrong with that?**
 
 Every instance shares that database, so a brief database problem fails every check at once. The
-balancer then removes every server and returns 503 with an empty pool — an outage strictly worse than
-the original blip. Liveness should test only the process. Readiness may test a dependency, but with a
-short timeout and with the understanding that a shared dependency will fail it fleet-wide.
+balancer then removes every server and returns 503 with an empty pool. That outage is worse than the
+original blip. Liveness should test only the process. Readiness may test a dependency, but with a
+short timeout, and knowing that a shared dependency will fail it across the whole fleet.
 
 **Q: When would you not put a load balancer in front of a service?**
 
-When there is exactly one instance and no plan for a second — the balancer adds a hop, a cost and
-another thing to configure without buying availability. Internal single-instance tools and background
+When there is exactly one instance and no plan for a second. The balancer then adds a hop, a cost and
+another thing to configure, and buys no availability. Internal single-instance tools and background
 workers reached only through a queue are the usual cases. The moment uptime matters, or a second
 instance appears, the calculation flips.
 

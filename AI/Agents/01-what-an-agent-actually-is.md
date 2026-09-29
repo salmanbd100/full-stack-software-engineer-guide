@@ -97,15 +97,15 @@ the sum of a growing context, not ten times one call. That is roughly quadratic 
 about 2k input tokens for one step, 110k for ten, and 420k for twenty.
 
 A step limit is therefore a cost control, not only a safety net. It is also why bulky tool output is the
-first thing to clear from the history — see [Chapter ?? — Memory, State and Long-Running Work](#ch-durability-and-long-running-work).
+first thing to clear from the history. See [Chapter ?? — Memory, State and Long-Running Work](#ch-durability-and-long-running-work).
 
 ### Workflow or agent
 
 A workflow has a fixed path, a stack trace and a known cost. An agent has a path chosen at runtime, a
 trace of decisions and a cost that is bounded at best. Most shipped "agents" should be workflows. The
-documentation assistant's normal path is retrieve, then answer — a known sequence, so write it as code.
-An agent earns its cost on "why do the docs and the code disagree here?", where the steps depend on what
-it finds.
+documentation assistant's normal path is retrieve, then answer. That is a known sequence, so write it as
+code. An agent earns its cost on "why do the docs and the code disagree here?", where the steps depend on
+what it finds.
 
 > ⚠️ Autonomy is a cost, not a feature. Every decision you hand to the model can go differently on the
 > next run, and each one has to be verified rather than assumed.
@@ -153,7 +153,7 @@ Everything a worker knows must fit into the string its parent reads. Uncertainty
 reason a route was dropped rarely survive. So the orchestrator treats a hedged finding as fact, or sends
 another worker over the same ground. Three hops of summary over an ambiguous requirement give three
 plausible readings. Three workers and an orchestrator also use **three to five times the tokens** of one
-agent, the trace becomes a tree, and each hop needs its own eval. The parallel win must pay for all of it.
+agent. The trace becomes a tree, and each hop needs its own eval. The parallel win must pay for all of it.
 
 > ⚠️ A "reviewer agent" with the same model and context shares the author's blind spots, agrees, and
 > doubles the cost. A real check runs something the model cannot fake: a test, a schema, a source of truth.
@@ -189,29 +189,29 @@ agent, the trace becomes a tree, and each hop needs its own eval. The parallel w
 **✅ Log every step, with one trace id across every worker**
 
 > An agent failure is a decision failure, and it is unreadable without the trace. Log the handoff
-> summaries too — a subtly wrong answer is usually a subtly wrong summary two hops up.
+> summaries too. A subtly wrong answer is usually a subtly wrong summary two hops up.
 
 ## 🔑 Key Takeaways
 
-- An agent is a loop whose branch condition is a model; the tools and the goal are yours, the path is not.
+- An agent is a loop whose branch condition is a model. The tools and the goal are yours, but the path is not.
 - Cost grows faster than step count, because every step resends the whole conversation.
 - Production agents need four stop conditions, and the programmatic one is what makes them reliable.
-- If you can draw the flowchart in advance, write the flowchart — most "agents" should be workflows.
+- If you can draw the flowchart in advance, write the flowchart. Most "agents" should be workflows.
 - Split into several agents only for context isolation or parallelism, and expect three to five times the tokens.
 
 ## Interview Questions
 
 **Q: When would you build a workflow instead?**
 
-Whenever I can draw the sequence. Classify, retrieve, draft is code: deterministic, testable, cheaper and
-unable to choose a branch I did not intend. An agent earns its cost when the path depends on what it
-finds, such as triage across several sources.
+Whenever I can draw the sequence. Classify, retrieve, draft is code. It is deterministic, testable and
+cheaper, and it cannot take a branch I did not intend. An agent earns its cost when the path depends on
+what it finds, such as triage across several sources.
 
 **Q: Your agent runs to the step limit on every task. What is happening?**
 
 I would read the trace first. If it repeats one call with the same arguments, a tool is returning an
 empty result that looks like a failure. If it alternates between two tools, their descriptions overlap.
-If it just keeps going, the goal never said what finished looks like — and a new model fixes none of these.
+If it just keeps going, the goal never said what finished looks like. A new model fixes none of these.
 
 **Q: When is one agent better than three?**
 
@@ -223,12 +223,12 @@ context, it buys neither benefit.
 **Q: Is a reviewer agent a good idea?**
 
 Usually not as described. With the same model and context, it inherits the generator's blind spots and
-tends to agree, so it doubles the cost and measures nothing. I want a check that can fail independently:
+tends to agree. So it doubles the cost and measures nothing. I want a check that can fail independently:
 the tests, a schema, or a lookup against a source of truth.
 
 **Q: How would you bound cost across several agents?**
 
-At the run level, because per-agent limits multiply — three workers at ten steps is thirty calls before
+At the run level, because per-agent limits multiply. Three workers at ten steps is thirty calls before
 synthesis. I would carry one shared budget through the run, charge it as steps complete, and stop the
 whole tree when it runs out. I would also cap the plan itself, since twelve subtasks instead of three
 multiplies everything downstream.

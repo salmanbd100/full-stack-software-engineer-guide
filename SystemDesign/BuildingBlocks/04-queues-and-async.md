@@ -114,7 +114,7 @@ is healthy. Fifty messages whose oldest is an hour old means a consumer has stal
 
 ### Pushing the result back
 
-"Real-time" is a requirement, not a technology: the server must tell the client something without being
+"Real-time" is a requirement, not a technology. The server must tell the client something without being
 asked. Three transports meet it at very different prices.
 
 | | **WebSocket** | **SSE** | **Polling** |
@@ -172,7 +172,7 @@ Notifications are the classic fan-out problem: one event becomes thousands of de
 | Hybrid           | Write-side for normal accounts, read-side for the outliers  | Real systems, almost always                      |
 
 Every fan-out needs **deduplication** keyed on the business event, so a redelivery never sends a push
-twice, and **per-channel rate limits**, because providers reject a burst of a million emails.
+twice. It also needs **per-channel rate limits**, because providers reject a burst of a million emails.
 
 ## When to Use It
 
@@ -188,7 +188,7 @@ twice, and **per-channel rate limits**, because providers reject a burst of a mi
 ## Common Mistakes
 
 ❌ **A worker that is not safe to run twice.** Charging a card on message receipt with no key will
-double-charge, usually during an incident, when redelivery is most likely.
+double-charge. It usually happens during an incident, when redelivery is most likely.
 ✅ Send `Idempotency-Key: order-8821`, so a redelivery returns the original charge.
 
 ❌ **Reaching for a socket because the feature is called "live".** Most live features push one way.
@@ -202,14 +202,14 @@ double-charge, usually during an incident, when redelivery is most likely.
 - A queue decouples when work happens from when it was requested, and the user contract changes from "done" to "accepted".
 - Assume at-least-once delivery and make every consumer idempotent, keyed on the business fact rather than the message.
 - Alert on the age of the oldest message, because depth alone hides a stalled consumer.
-- Choose a WebSocket only when the client sends frequent messages; otherwise SSE or polling costs far less to run.
+- Choose a WebSocket only when the client sends frequent messages. Otherwise SSE or polling costs far less to run.
 - A held connection belongs to one process, so cross-server broadcast needs a pub/sub broker and still needs the database for durability.
 
 ## Interview Questions
 
 **Q: Your consumer processes the same message twice. Whose bug is it?**
 
-Nobody's — at-least-once delivery guarantees it, because an acknowledgement can be lost after the work
+Nobody's. At-least-once delivery guarantees it, because an acknowledgement can be lost after the work
 succeeded. The consumer must be idempotent: a naturally idempotent operation, an idempotency key the
 downstream honours, or a processed-set keyed on the business identifier.
 
@@ -227,7 +227,7 @@ Fix the slow work first, and queue it only when nobody is waiting.
 
 **Q: WebSocket or SSE for streaming job progress to the browser?**
 
-SSE. Progress flows one way, SSE is plain HTTP so proxies and HTTP/2 multiplexing work, and browsers
+SSE. Progress flows one way. SSE is plain HTTP, so proxies and HTTP/2 multiplexing work, and browsers
 reconnect by themselves with `Last-Event-ID` replay. A WebSocket earns its cost only when traffic is
 genuinely bidirectional, such as chat or collaborative cursors.
 
@@ -235,7 +235,7 @@ genuinely bidirectional, such as chat or collaborative cursors.
 
 Every server subscribes to a shared pub/sub channel and delivers messages to its own sockets. That makes
 broadcast correct but leaves two gaps. The broker is fire-and-forget, so durability comes from the
-database. Every message also reaches every server, which stops scaling in the low dozens of nodes; past
+database. Every message also reaches every server, which stops scaling in the low dozens of nodes. Past
 that, shard by room or buy a managed service.
 
 ## What to Read Next

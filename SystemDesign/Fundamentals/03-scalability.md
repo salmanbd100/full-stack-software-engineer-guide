@@ -48,8 +48,8 @@ That is why p99 is not an edge case: at real volume, **the tail is somebody's me
 
 Fan-out makes the tail worse. Say one backend call is slow 1% of the time. A request that waits for ten
 such calls is slow **1 − 0.99¹⁰ ≈ 9.6%** of the time. Ten calls turn a p99 problem into a p90 problem.
-The fixes are fewer calls (batch or denormalise), hedged requests (send a duplicate after the p95 and
-take the first answer), or partial results that the UI can show with gaps.
+There are three fixes. Make fewer calls (batch or denormalise). Send hedged requests: a duplicate after
+the p95 wait, taking whichever answer comes first. Or return partial results the UI can show with gaps.
 
 ### Little's Law and the queue
 
@@ -59,11 +59,11 @@ take the first answer), or partial results that the UI can show with gaps.
 concurrency = arrival rate × average latency
 ```
 
-A service handling 500 requests a second at 200 ms each holds 100 requests in flight. With a pool of 50
-workers, half the arrivals queue before any work starts. The key consequence: **as utilisation nears 100%, queueing time grows without limit.** At 50%
-utilisation, queue wait is about equal to service time. At 90%, it is about nine times service time.
-This is why a system that looks fine at 70% CPU falls over at 85%. The CPU number moved a little, and
-the wait time moved a lot.
+A service handling 500 requests a second at 200 ms each holds 100 requests in flight. A pool of 50
+workers can finish only 250 a second, so its queue grows without end. The key consequence: **as
+utilisation nears 100%, queueing time grows without limit.** At 50% utilisation, queue wait is about
+equal to service time. At 90%, it is about nine times service time. So a system that looks fine at 70%
+CPU falls over at 85%. The CPU number moved a little, and the wait time moved a lot.
 
 So plan to a utilisation ceiling, not a capacity ceiling. Around 70% is the usual target for a tier
 where latency matters. Crossing it is the signal to climb the ladder.
@@ -80,8 +80,8 @@ where latency matters. Crossing it is the signal to climb the ladder.
 
 ### Scaling up, and why it is not the cowardly option
 
-A bigger machine changes no architecture. It is available today, carries no design risk, and buys
-the months you need to do the harder thing properly. But confirm the bottleneck first.
+A bigger machine changes no architecture. It is available today, carries no design risk, and buys the
+months you need to do the harder thing properly. But confirm the bottleneck first.
 
 **Naming the resource that is actually saturated:**
 
@@ -171,9 +171,9 @@ flowchart LR
 
 **Each step buys time for the next; sharding is the only one you cannot undo cheaply.**
 
-Two facts to have ready. Replicas lag, by seconds under load, so a read right after a write must go
-to the primary. And connection limits bite early: a hundred app instances with ten connections each
-exhaust a default PostgreSQL setup several times over.
+Two facts to have ready. Replicas lag, by seconds under load, so a read right after a write must go to
+the primary. And connection limits bite early. A hundred app instances with ten connections each use up
+a default PostgreSQL setup (100 connections) ten times over.
 
 ## When to Use It
 
@@ -209,7 +209,7 @@ out in minutes, scale in over tens of minutes.
 - The mean hides the tail, and at real volume the p99 is somebody's median experience.
 - Little's Law shows that wait time explodes as utilisation nears 100%, so plan to a ceiling near 70%.
 - Scalability is a ladder of levers in cost order, and a bigger machine is the right rung more often than people admit.
-- Statelessness comes before scaling out, and in the database, sharding is the last and only irreversible step.
+- Statelessness comes before scaling out. In the database, sharding is the last step and the only one hard to undo.
 
 ## Interview Questions
 

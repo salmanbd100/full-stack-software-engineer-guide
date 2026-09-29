@@ -18,15 +18,15 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Caching is not offline-first. A cached application can still show a page after the network drops — but the moment the user *writes* something, the design either has an answer or it loses the data.
+Caching is not offline-first. A cached application can still show a page after the network drops. But the moment the user *writes* something, the design either has an answer or it loses the data.
 
-Offline-first means the local store is what the interface reads from, and the network is a background channel that reconciles it. Every write lands locally first, joins a durable queue, and is replayed when the connection returns. The reads are the easy half and the interviewer knows it; **the round is really about the queue and the merge.**
+Offline-first means the interface reads from the local store, and the network is a background channel that brings it in line with the server. Every write lands locally first, joins a lasting queue, and is replayed when the connection returns. The reads are the easy half, and the interviewer knows it. **The round is really about the queue and the merge.**
 
-The mechanics of service workers and IndexedDB belong to the browser platform and are covered in [Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) and [Chapter ?? — Web Storage and IndexedDB](#ch-storage-apis). This chapter is about the architecture you build on top of them.
+The mechanics of service workers and IndexedDB belong to the browser platform. They are covered in [Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) and [Chapter ?? — Web Storage and IndexedDB](#ch-storage-apis). This chapter is about the architecture you build on top of them.
 
 ## How It Works
 
-Three layers, and they fail independently. Most designs only think about the first.
+There are three layers, and each fails on its own. Most designs only think about the first.
 
 | Layer | Holds | Fails as |
 | ----- | ----- | -------- |
@@ -34,7 +34,7 @@ Three layers, and they fail independently. Most designs only think about the fir
 | Read data | Server state the user is looking at | A stale or empty screen |
 | Write queue | Mutations not yet accepted | Silent data loss |
 
-The write queue is the **outbox**: a durable, ordered list of intents that survives a reload, a crash and a tab close.
+The write queue is the **outbox**: a lasting, ordered list of intended writes that survives a reload, a crash and a tab close.
 
 ```mermaid
 flowchart TD
@@ -56,7 +56,7 @@ Two properties make this safe. Each queued write carries a **client-generated id
 
 ## When to Use It
 
-Offline-first is not free — it adds a local schema, a migration path and a merge policy. Charge for it only where it pays.
+Offline-first is not free. It adds a local schema, a migration path and a merge policy. Pay for it only where it pays back.
 
 | The application | Design | Why |
 | --------------- | ------ | --- |
@@ -100,9 +100,9 @@ async function flush(queue: PendingWrite[]): Promise<void> {
 }
 ```
 
-Three decisions are encoded there. Writes flush **in order**, because a delete that overtakes its create fails. A non-conflict error **stops the whole flush** rather than skipping ahead, for the same reason. And `baseVersion` travels with the write, which is what lets the server detect a conflict at all.
+That code makes three decisions. Writes flush **in order**, because a delete that overtakes its create fails. A non-conflict error **stops the whole flush** instead of skipping ahead, for the same reason. And `baseVersion` travels with the write. That is what lets the server detect a conflict at all.
 
-> ⚠️ **Background Sync is not available everywhere.** The `sync` event gives you a retry after the tab has closed, but support is partial across browsers. Treat it as an optimisation and keep a flush on application start and on the `online` event, or writes from a closed tab never leave the device.
+> ⚠️ **Background Sync is not available everywhere.** The `sync` event gives you a retry after the tab has closed, but not every browser supports it. Treat it as an extra. Also flush on application start and on the `online` event, or writes from a closed tab never leave the device.
 
 ## Choosing a Conflict Strategy
 
@@ -116,17 +116,17 @@ A conflict is two edits against the same `baseVersion`. Every offline design nee
 | Prompt the user | Show both, let them pick | Interrupts, and needs a real interface | Rare, high-value conflicts |
 | CRDT | Merges by construction | A new data model and library | Collaborative text and lists |
 
-Clock skew makes "highest timestamp" less reliable than it sounds — a device with a wrong clock wins or loses every conflict. A server-assigned version number is a better tiebreaker than a client timestamp.
+Clock skew (device clocks that disagree) makes "highest timestamp" less reliable than it sounds. A device with a wrong clock wins or loses every conflict. A server-assigned version number is a better tiebreaker than a client timestamp.
 
-For collaborative editing the answer is almost always a CRDT; that argument is made in [Chapter ?? — Design a Collaborative Document Editor](#ch-design-collaborative-editor).
+For collaborative editing the answer is almost always a CRDT, a data type built to merge on its own. That argument is made in [Chapter ?? — Design a Collaborative Document Editor](#ch-design-collaborative-editor).
 
 ## What the UI Owes the User
 
 An offline application that lies is worse than one that refuses to load.
 
 - **Show the write's state**, not just the application's. Pending, synced and failed are three different things, and only the user can decide what to do about the third.
-- **Never fake success on a write you cannot honour.** Optimistic is fine when the rollback is cheap; it is not fine for anything involving money or stock.
-- **Surface storage pressure.** Browsers evict origin data under pressure, and an eviction that takes the outbox with it is silent data loss. Request persistent storage and tell the user when it is refused.
+- **Never fake success on a write you cannot honour.** Optimistic is fine when the rollback is cheap. It is not fine for anything involving money or stock.
+- **Surface storage pressure.** Browsers delete a site's stored data when disk space runs low. An eviction that takes the outbox with it is silent data loss. Request persistent storage and tell the user when it is refused.
 - **Make failure recoverable.** A write that has failed five times needs a visible retry or an export, not an infinite spinner.
 
 ## Common Mistakes
@@ -158,19 +158,19 @@ An offline application that lies is worse than one that refuses to load.
 
 **Q: A user creates three records offline, then comes back online. Walk me through what happens.**
 
-Each record was written to the local store and appended to an outbox with a client-generated id that doubles as the idempotency key. On reconnect I flush the queue in order, one request at a time, sending the base version with each. A 2xx removes the entry; a 409 goes to the conflict policy; a 5xx or a network error stops the flush so ordering is preserved, and the whole thing retries with backoff.
+Each record went to the local store and into an outbox, with a client-generated id that is also the idempotency key. On reconnect I flush the queue in order, one request at a time, sending the base version with each. A 2xx removes the entry. A 409 goes to the conflict policy. A 5xx or a network error stops the flush to keep the order, and the whole flush retries with backoff.
 
 **Q: Why does the idempotency key have to be generated on the client?**
 
-Because the failure I am protecting against is ambiguous. If the request times out I do not know whether the server applied it, and retrying without a key creates a duplicate. A server-issued key is no use — obtaining it is itself a network call that can fail the same way. Generating it locally before the first attempt makes every retry provably the same write.
+Because the failure I am protecting against is ambiguous. If the request times out I do not know whether the server applied it, and retrying without a key creates a duplicate. A server-issued key is no use. Getting it is itself a network call that can fail the same way. Generating it locally before the first attempt makes every retry provably the same write.
 
 **Q: When would you refuse to build offline-first?**
 
-When the write cannot be honoured later. Booking a seat, taking a payment, drawing down stock — queuing those means telling the user something is done when I have no authority to promise it, and the failure surfaces hours later when it is far more expensive. For those I would keep the shell cached so the application still loads, and block the action with an honest message.
+When the write cannot be honoured later. Booking a seat, taking a payment or drawing down stock are examples. Queuing those tells the user something is done when I have no authority to promise it. The failure then shows up hours later, when it costs far more. For those I would keep the shell cached so the application still loads, and block the action with an honest message.
 
 **Q: Last-write-wins is simple. What is wrong with it?**
 
-Nothing, if the data is single-user and you say what it costs: one of the two edits is discarded and nobody is told. The failure people underestimate is clock skew — if the tiebreaker is a client timestamp, a device with a wrong clock wins or loses every conflict it is in. I would use a server-assigned version rather than a timestamp, and for anything collaborative I would move to a CRDT instead.
+Nothing, if the data is single-user and you say what it costs: one of the two edits is discarded and nobody is told. The failure people underestimate is clock skew. If the tiebreaker is a client timestamp, a device with a wrong clock wins or loses every conflict it is in. I would use a server-assigned version rather than a timestamp, and for anything collaborative I would move to a CRDT instead.
 
 ## What to Read Next
 

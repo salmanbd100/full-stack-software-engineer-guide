@@ -12,19 +12,19 @@ in_book: true
 
 # Ingestion and Chunking {#ch-ingestion-and-chunking}
 
-> Split documents so the right passage can be found whole — and keep enough metadata to filter, cite and re-index without starting over.
+> Split documents so the right passage can be found whole, and keep enough metadata to filter, cite and re-index without starting over.
 
 **In this chapter:** the pipeline's five stages · why fixed-size splitting fails · structure-aware chunking · overlap and context headers · metadata as a first-class field · keeping the index fresh
 
 ## 💡 The Core Idea
 
-A chunk is the smallest unit your system can retrieve. That one sentence carries the whole chapter:
-**you can only ever find a whole chunk, so a chunk that splits an idea in half makes that idea
+A chunk is one piece of a split document, and it is the smallest unit your system can retrieve. So
+**you can only ever find a whole chunk, and a chunk that splits an idea in half makes that idea
 unfindable.** No reranker recovers it, no better model repairs it, and no prompt change works around it.
 
-This is why chunking is upstream of everything else in a retrieval system. A cheap embedding model with
-good chunks beats a frontier embedding model with chunks cut every 512 characters, and the second team
-usually spends weeks tuning the retriever before looking at the splitter.
+This is why chunking comes before everything else in a retrieval system. A cheap embedding model (it
+turns text into a vector of numbers) with good chunks beats a frontier one with chunks cut every 512
+characters. The second team usually spends weeks tuning the retriever before it looks at the splitter.
 
 > Chunk the document the way its author structured it. They already decided where the ideas end.
 
@@ -44,13 +44,12 @@ flowchart LR
 **Five stages. Everything downstream inherits the decisions made in the first three.**
 
 Parsing is the stage people underrate. A PDF that loses its table structure, or an HTML page that keeps
-its navigation menu, produces chunks that are noise before any splitting happens. Extract structure —
-headings, lists, tables, code blocks — because the next stage needs it.
+its navigation menu, gives you noisy chunks before any splitting happens. Extract the structure, such as
+headings, lists, tables and code blocks, because the next stage needs it.
 
 ### Why fixed-size splitting fails
 
-Splitting every 500 characters is the tutorial default and it breaks documents in the specific places
-that matter.
+Splitting every 500 characters is the tutorial default. It breaks documents in exactly the places that matter.
 
 ```text
 Chunk 41: "...To rotate the signing key, first disable"
@@ -58,7 +57,7 @@ Chunk 42: "the old key, then run the rotation job. If you skip..."
 ```
 
 A query for "how do I rotate the signing key" now matches chunk 41, which does not contain the answer,
-and chunk 42, which does not contain the question's vocabulary. Both score mediocre. Neither is retrieved
+and chunk 42, which does not contain the question's vocabulary. Both score only moderately. Neither is retrieved
 with confidence.
 
 | Approach | Splits on | Fits |
@@ -69,7 +68,7 @@ with confidence.
 | **Semantic** | Detected topic shifts, by embedding distance | Long unstructured transcripts |
 | **Whole document** | Nothing | Short pages, FAQ entries, tickets |
 
-Structure-aware is the default worth reaching for. Documentation, wikis and knowledge bases already carry
+Structure-aware splitting is the right default. Documentation, wikis and knowledge bases already carry
 their own boundaries, and honouring them costs almost nothing.
 
 ```typescript
@@ -91,8 +90,8 @@ function chunkMarkdown(doc: ParsedDoc, maxTokens = 500): Chunk[] {
 ```
 
 The shape of that function is the point: **split only what does not fit.** A 200-token section is a
-better chunk than two 100-token halves of it, and a splitter that always splits is throwing away
-structure it was handed for free.
+better chunk than its two 100-token halves. A splitter that always splits throws away structure it got
+for free.
 
 ### Size, overlap and the header trick
 
@@ -102,13 +101,14 @@ structure it was handed for free.
 | Medium (400–800) | Balanced | Usually sufficient | Documentation, articles |
 | Large (1,000+) | Low — one match drags in noise | Rich | Narrative, legal, contracts |
 
-There is no correct number and any chapter that gives you one is guessing about your corpus. What is
-correct is the method: pick a starting size from the document type, then measure recall on a golden set
-and adjust — [Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) is how.
+There is no correct number. Any chapter that gives you one is guessing about your corpus. What is correct
+is the method. Pick a starting size from the document type, then measure recall on a golden set (a fixed
+list of real questions with known answers) and adjust. Recall is how often the right chunk comes back.
+[Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) shows how.
 
-**Overlap** — repeating the last sentence or two of the previous chunk — is a cheap insurance against
-boundary loss. Ten to fifteen per cent is typical. It costs storage and some duplicate retrieval; it buys
-back the sentence that would otherwise have been orphaned.
+**Overlap** repeats the last sentence or two of the previous chunk. It is cheap insurance against losing
+text at a boundary, and ten to fifteen per cent is typical. It costs storage and some duplicate
+retrieval. In return it saves the sentence that would otherwise have been cut off.
 
 **Context headers** are the better trick and cost less. Prefix each chunk with its document title and
 heading path before embedding:
@@ -123,8 +123,8 @@ short chunks, because a fragment with no context embeds near everything and near
 
 ### Metadata earns its place
 
-Metadata is not documentation. It is a filter, a citation and a freshness signal, and adding it after the
-fact means re-embedding the whole corpus.
+Metadata is not documentation. It is a filter, a citation and a freshness signal. Adding it after the
+fact means re-ingesting the whole corpus.
 
 | Field | Used for |
 | --- | --- |
@@ -141,15 +141,15 @@ gets rebuilt when the second customer arrives.
 
 An index is a cache of your documents and it goes stale the same way.
 
-- **Re-embed on change, not on schedule.** Hash the chunk text; if the hash is unchanged, skip the
+- **Re-embed on change, not on schedule.** Hash the chunk text. If the hash has not changed, skip the
   embedding call. On a large corpus this is the difference between minutes and hours.
-- **Deletes must propagate.** A deleted document whose chunks stay indexed will be cited confidently and
-  is one of the harder bugs to notice.
+- **Deletes must propagate.** If a deleted document's chunks stay in the index, the system cites them
+  confidently. It is one of the harder bugs to notice.
 - **Changing the embedding model means re-embedding everything.** Vectors from two models are not
   comparable, so plan for a full rebuild and a switchover, not a gradual migration.
 
-> ⚠️ Mixing vectors from two embedding models in one index produces silent nonsense. Nothing errors;
-> similarity scores simply stop meaning anything.
+> ⚠️ Mixing vectors from two embedding models in one index produces silent nonsense. Nothing throws an
+> error. Similarity scores simply stop meaning anything.
 
 ## When to Use It
 
@@ -175,59 +175,59 @@ An index is a cache of your documents and it goes stale the same way.
 
 **❌ Deciding chunk size by reading a blog post**
 
-> The right size is a property of your documents and your questions, and it is a one-hour experiment once
-> a golden set exists.
+> The right size is a property of your documents and your questions. Once a golden set exists, finding it
+> is a one-hour experiment.
 
 **✅ Store metadata at ingestion, even fields you do not use yet**
 
-> Adding `tenantId` later means re-embedding the whole corpus. Adding it now costs a column.
+> Adding `tenantId` later means re-ingesting the whole corpus. Adding it now costs a column.
 
 ## 🔑 Key Takeaways
 
 - A chunk is the smallest retrievable unit, so a chunk that splits an idea makes that idea unfindable.
 - Split on the document's own structure and only split sections that genuinely do not fit.
-- Prefix chunks with their document and heading path — a fragment with no context embeds near nothing.
-- Metadata is a filter, a citation and a permission boundary; adding it later means re-embedding everything.
+- Prefix chunks with their document and heading path. A fragment with no context embeds near nothing.
+- Metadata is a filter, a citation and a permission boundary. Adding it later means re-ingesting everything.
 - Vectors from two embedding models are not comparable, so a model change is a full rebuild.
 
 ## Interview Questions
 
 **Q: How big should a chunk be?**
 
-It depends on the document, and the answer I would give is a method rather than a number. Reference
-entries want small chunks because precision matters and each entry is self-contained; narrative or legal
-text wants larger ones because meaning spans paragraphs. I would start from the document type, build a
-golden set of real questions, and measure recall at a few sizes. Anyone who answers with a fixed number
-has not measured it on the corpus in front of them.
+It depends on the document, so I would answer with a method, not a number. Reference entries want small
+chunks, because precision matters and each entry stands alone. Narrative or legal text wants larger ones,
+because meaning spans paragraphs. I would start from the document type, build a golden set of real
+questions, and measure recall at a few sizes. Anyone who gives a fixed number has not measured it on the
+corpus in front of them.
 
 **Q: Why does chunking matter more than the embedding model?**
 
-Because retrieval can only ever return whole chunks. If the answer straddles a boundary, no chunk
-contains it, and a better embedding model just ranks the incomplete chunks more accurately. Chunking sets
-the ceiling on what is findable; the embedding model determines how close you get to that ceiling. Teams
-usually tune the second and never look at the first.
+Because retrieval can only ever return whole chunks. If the answer crosses a boundary, no chunk contains
+it. A better embedding model just ranks the incomplete chunks more accurately. Chunking sets the ceiling
+on what is findable, and the embedding model decides how close you get to it. Teams usually tune the
+second and never look at the first.
 
 **Q: What metadata would you store, and why at ingestion time?**
 
 Source path and location for citations, heading path for context and filtering, an updated timestamp for
-freshness, and visibility or tenant fields for permissions. At ingestion, because metadata lives on the
-indexed record — adding a field later means walking the corpus again, and if it changes the embedded text
-it means paying for every embedding a second time. The permission fields are the ones that hurt most to
-retrofit.
+freshness, and visibility or tenant fields for permissions. I store them at ingestion because metadata
+lives on the indexed record. Adding a field later means walking the whole corpus again. If the field
+changes the embedded text, you also pay for every embedding a second time. The permission fields hurt
+most to add later.
 
 **Q: You change the embedding model. What happens to the existing index?**
 
-It has to be rebuilt. Vectors from different models occupy different spaces, so similarity between them
-is meaningless — and the failure is silent, since the arithmetic still produces numbers. I would build the
-new index alongside the old one, evaluate both on the same golden set, and cut over once the new one wins,
-rather than migrating in place.
+It has to be rebuilt. Vectors from different models live in different spaces, so similarity between them
+means nothing. The failure is silent, because the maths still produces numbers. I would build the new
+index next to the old one, evaluate both on the same golden set, and switch once the new one wins. I
+would not migrate in place.
 
 **Q: How do you keep the index in step with the source documents?**
 
-Content-hash each chunk and only re-embed when the hash changes, which makes an incremental run cheap
-enough to do on every publish. Deletions matter more than they look — a removed document whose chunks
-remain indexed will be retrieved and cited with total confidence, and nobody notices until a user does.
-So the pipeline needs to handle removal explicitly, not just upserts.
+Hash each chunk's content and only re-embed when the hash changes. That makes an incremental run cheap
+enough to do on every publish. Deletions matter more than they look. If a document is removed but its
+chunks stay indexed, the system retrieves and cites them with total confidence. Nobody notices until a
+user does. So the pipeline must handle removal explicitly, not just upserts (insert-or-update writes).
 
 ## What to Read Next
 

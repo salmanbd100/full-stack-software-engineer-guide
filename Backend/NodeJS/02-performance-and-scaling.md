@@ -86,12 +86,12 @@ const authors = await db.users.findMany({
 const byId = new Map(authors.map((a) => [a.id, a]));
 ```
 
-Without a keep-alive agent, every outbound `fetch` pays a fresh TCP and TLS handshake. That is
-30–80 ms across a region. `setGlobalDispatcher(new Agent({ keepAliveTimeout: 30_000 }))` from
-`undici` fixes it.
+Node's `fetch` reuses connections, but it closes an idle one after about 4 seconds. The next call then pays a
+fresh TCP and TLS handshake, 30–80 ms across a region. The `undici` call
+`setGlobalDispatcher(new Agent({ keepAliveTimeout: 30_000 }))` keeps connections open longer.
 
 Leaks usually come from an unbounded `Map` cache, a listener added per request, or a timer holding a
-closure. Normal growth levels off; a leak keeps rising in a straight line.
+closure. Normal growth levels off. A leak keeps rising in a straight line.
 
 ## Streams and Backpressure
 
@@ -149,7 +149,7 @@ app.get('/exports/orders.csv', async (req, res) => {
 
 > ⚠️ Chunk boundaries do not respect your records. A UTF-8 character or a JSON line can be split
 > across two chunks. Call `setEncoding('utf8')` on text streams, and have a transform carry the partial
-> last line into the next chunk and parse it in `_flush`.
+> last line into the next chunk, and parse what is left in `_flush`.
 
 ## Using More Than One Core
 
@@ -211,14 +211,14 @@ keeps reading after the browser has gone.
 **Q: A service's p99 is 3 s while p50 is 30 ms. Where do you look?**
 
 At the shape of the tail, not the average. Either some requests hit a slow path, such as a missing
-index that only matters for large tenants, or CPU work or garbage collection blocks the loop now and
+index that only matters for large customers. Or CPU work or garbage collection blocks the loop now and
 then. Event loop delay and per-endpoint percentiles separate the two in minutes.
 
 **Q: What is backpressure, and what happens if you ignore it?**
 
 It is the writable side telling the readable side to slow down. `write()` returns `false`, and the
 `'drain'` event lifts it. Ignore it and chunks pile up in the sink's buffer with no ceiling, until the
-process is killed. `pipeline` handles it for you; a hand-written loop does not.
+process is killed. `pipeline` handles it for you. A hand-written loop does not.
 
 **Q: Why stream an LLM response or a large file download instead of sending it whole?**
 

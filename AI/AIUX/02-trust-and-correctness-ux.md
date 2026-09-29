@@ -29,8 +29,8 @@ cannot: **where this came from, and how easily the user can check it.**
 The same honesty applies when things go wrong. In an AI feature, **failure is a normal operating
 state**: refusals happen daily, and rate limits arrive the week the feature succeeds.
 
-> Do not ask the user to trust the answer. Give them a two-second way to check it — and when it fails,
-> keep what you have, say what happened, and make the next action cheap.
+> Do not ask the user to trust the answer. Give them a two-second way to check it. When it fails, keep
+> what you have, say what happened, and make the next action cheap.
 
 ## How It Works
 
@@ -75,7 +75,7 @@ Generate  →  Show as an editable draft  →  User edits  →  Explicit accept 
 ```
 
 Auto-applying is where AI features lose users for good. One silent wrong edit costs more trust than
-twenty good suggestions build. Now the user must check everything, which is more work than doing it alone.
+twenty good suggestions build. After it, the user must check everything, which is more work than doing it alone.
 
 | Consequence of a wrong output | Pattern |
 | --- | --- |
@@ -132,21 +132,21 @@ mark it incomplete, and offer to continue from where it stopped.
 | "I cannot help with that" | "I only cover product documentation. For account questions, try support." |
 
 A good message has three parts: **what happened, whether a retry is worth it, and what else to try.** It is
-the same discipline as a tool's error message for a model — see
-[Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) — written for a human.
+the discipline of a tool's error message for a model, written for a human. See
+[Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling).
 
 A failed feature should also fall back to what the product did before it existed. Failed AI search shows
 keyword results. A missing summary shows the full document. **An inline assistive feature should fail
-invisibly** — an editor that shows an error box for a missing suggestion is worse than no suggestions.
+invisibly.** An editor that shows an error box for a missing suggestion is worse than no suggestions.
 
 ### Retry without being annoying
 
-Retry a transient failure with no partial content — a 500, or a timeout before the first token — once,
-silently. Never auto-retry a refusal or a content filter: it is a decision, not an outage, and it costs
-again. A manual retry must keep the question. After three failures in a row, say the dependency is down.
+Retry a short-lived failure with no partial content once, silently. That means a 500, or a timeout before
+the first token. Never auto-retry a refusal or a content filter. It is a decision, not an outage, and it
+costs again. A manual retry must keep the question. After three failures in a row, say the dependency is down.
 
 > ⚠️ Auto-retrying a streamed request that already produced tokens double-charges and can stitch two
-> different answers together. Continue from the partial state, or start cleanly — not both.
+> different answers together. Continue from the partial state, or start cleanly, but not both.
 
 ## When to Use It
 
@@ -213,13 +213,13 @@ wrong edit makes the user check every output, and that loss is permanent.
 
 The text that already arrived, kept and marked incomplete, plus a plain note of what happened and roughly
 when it will work. The pane must not clear to a generic error, which throws away content already read and
-already paid for. Continuing from the partial state is the primary action; regenerating is the fallback.
+already paid for. Continuing from the partial state is the primary action, and regenerating is the fallback.
 
 **Q: When do you retry automatically?**
 
-For transient failures with no partial content — a 500, an overload, a timeout before the first token —
-once, silently. Not for refusals or content filters, which return the same result and charge again. Not on
-top of a stream that already produced tokens, because that double-charges and can stitch two answers together.
+Once and silently, for short-lived failures with no partial content: a 500, an overload, a timeout before
+the first token. Not for refusals or content filters, which return the same result and charge again. Not
+on top of a stream that already produced tokens, because that double-charges and can stitch two answers.
 
 **Q: Why design the failure states first?**
 

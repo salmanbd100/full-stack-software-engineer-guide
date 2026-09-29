@@ -20,12 +20,12 @@ in_book: true
 
 Before MCP, every application that wanted the model to reach your issue tracker wrote its own adapter.
 Five applications and eight systems meant forty adapters, all doing the same thing differently. **MCP
-turns that N×M problem into N+M: each system exposes one server, each application speaks one client
+turns that N×M problem into N+M. Each system exposes one server. Each application speaks one client
 protocol.**
 
 It is the same move as the Language Server Protocol, and worth naming that way in an interview. LSP did
-not make editors better at language analysis; it stopped every editor reimplementing it for every
-language. MCP does not make models better at using tools. It standardises how a tool describes itself.
+not make editors better at language analysis. It stopped every editor rebuilding it for every language.
+MCP does not make models better at using tools. It standardises how a tool describes itself.
 
 > MCP is plumbing, not intelligence. It changes who writes the adapter, not what the model can do.
 
@@ -39,7 +39,7 @@ language. MCP does not make models better at using tools. It standardises how a 
 | **Client** | The connection the host holds to one server | One per server, managed by the host |
 | **Server** | A process exposing capabilities over the protocol | A docs server, a database server |
 
-A host runs many clients, one per server. The model itself is not in this picture at all — the host
+A host runs many clients, one per server. The model itself is not in this picture at all. The host
 collects tool definitions from its clients and passes them into the model call as ordinary tool
 definitions. Everything from [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) still applies underneath.
 
@@ -51,10 +51,10 @@ definitions. Everything from [Chapter ?? — Tool Calling and the Tool Surface](
 | **Resources** | Readable content, addressed by URI | The application |
 | **Prompts** | Reusable templated instructions | The user, usually as a command |
 
-The split matters and is often missed. Tools are model-driven and can have effects. Resources are
-application-driven and read-only — a file, a table, a document. **Attaching a resource is not the same as
-letting the model call a tool**, and blurring the two is how a read-only integration acquires write
-access nobody reviewed.
+The split matters, and people often miss it. Tools are model-driven and can have effects. Resources are
+application-driven and read-only: a file, a table, a document. **Attaching a resource is not the same as
+letting the model call a tool.** Blur the two, and a read-only integration gains write access nobody
+reviewed.
 
 ### Transports
 
@@ -65,12 +65,12 @@ http   →  remote server, streamable HTTP, needs auth
 
 **Two transports, and the choice is really a security question, not a networking one.**
 
-`stdio` launches the server as a child process and speaks over standard input and output. It is the right
-choice for local tooling — a file server, a local database — and it inherits the permissions of whoever
-started it.
+`stdio` launches the server as a child process and talks over standard input and output. It is the right
+choice for local tooling, such as a file server or a local database. It inherits the permissions of
+whoever started it.
 
 Streamable HTTP is for remote servers and brings everything remote implies: authentication, transport
-security, rate limits, and an audit trail. An HTTP MCP server is a public API with a tool-shaped
+security, rate limits and an audit trail. An HTTP MCP server is a public API with a tool-shaped
 description, and it needs the controls of one.
 
 ### Connecting to a server
@@ -97,14 +97,14 @@ try {
 ```
 
 Two things in that snippet deserve attention. Tools are **discovered at runtime**, so a server can change
-what it offers between deployments of your application — good for iteration, and a reason to pin
-versions for anything you depend on. And merging tool sets by spread means a later server silently
-overrides an earlier server's identically named tool. Namespace them.
+what it offers between deployments of your application. That helps iteration, and it is a reason to pin
+versions for anything you depend on. Also, merging tool sets by spread means a later server silently
+overrides an earlier server's tool of the same name. Namespace them (prefix each name with its server).
 
-> ⚠️ **Moving target:** this chapter is stamped against **MCP revision 2025-11-25**, and both the
-> specification and the client packages move on a scale of months — the SSE transport is already legacy
-> in favour of streamable HTTP. The durable principle is the three primitives and the client/server
-> split. Check the current revision before implementing.
+> ⚠️ **Moving target:** this chapter is stamped against **MCP revision 2025-11-25**. Both the
+> specification and the client packages change within months. The SSE transport is already legacy, in
+> favour of streamable HTTP. The lasting principle is the three primitives and the client/server split.
+> Check the current revision before implementing.
 
 ### When building one is worth it
 
@@ -121,11 +121,11 @@ except a process to supervise and a schema to keep in sync.
 
 ### The trust boundary
 
-An MCP server is code you did not write, describing tools in text the model will read, running with
-whatever credentials you gave it. Every one of those clauses is a risk.
+An MCP server is code you did not write. It describes tools in text the model will read, and it runs
+with whatever credentials you gave it. Each of those facts is a risk.
 
-- **Tool descriptions are prompt text.** A malicious server can write a description that instructs the
-  model to exfiltrate context into an argument. Review descriptions, not just code.
+- **Tool descriptions are prompt text.** A malicious server can write a description that tells the model
+  to exfiltrate (smuggle out) context inside an argument. Review descriptions, not just code.
 - **Servers can change what they expose.** Tools discovered at runtime can differ from the ones you
   reviewed. Pin versions for anything you depend on.
 - **A local server has the user's permissions.** A `stdio` server started from a developer machine can
@@ -160,13 +160,13 @@ whatever credentials you gave it. Every one of those clauses is a risk.
 **✅ Give a remote MCP server the controls you would give any public API**
 
 > Authentication, per-caller rate limits, least-privilege credentials, and an audit log of every tool
-> invocation. It is an API; the tool-shaped description does not change that.
+> invocation. It is an API. The tool-shaped description does not change that.
 
 ## 🔑 Key Takeaways
 
 - MCP standardises how tools describe themselves, turning N×M integrations into N+M.
-- A host runs one client per server; the model sees ordinary tool definitions and knows nothing about the protocol.
-- Tools are model-driven and can act; resources are application-driven and read-only — do not conflate them.
+- A host runs one client per server. The model sees ordinary tool definitions and knows nothing of the protocol.
+- Tools are model-driven and can act. Resources are application-driven and read-only. Do not mix them up.
 - Tool descriptions from a third-party server are untrusted prompt text reaching your model.
 - Build a server when several applications need the same integration; otherwise define tools in code.
 
@@ -175,41 +175,38 @@ whatever credentials you gave it. Every one of those clauses is a risk.
 **Q: What problem does MCP actually solve?**
 
 Adapter duplication. Every application that wanted a model to reach a given system used to write its own
-integration, so five applications and eight systems meant forty adapters. MCP defines one protocol, so
-each system ships one server and each application ships one client. It is the Language Server Protocol
-argument applied to tools — it does not make the model smarter, it stops everyone rewriting the same
-glue.
+integration. Five applications and eight systems meant forty adapters. MCP defines one protocol, so each
+system ships one server and each application ships one client. It is the Language Server Protocol
+argument applied to tools. It does not make the model smarter. It stops everyone rewriting the same glue.
 
 **Q: Would you build an MCP server for your team's internal API?**
 
 Only if more than one application needs it. With a single consumer, in-repo tool definitions are simpler,
-faster and easier to type-check, and the protocol only adds a process boundary and a schema to keep in
-sync. The moment a second and third application want the same integration — a chat product, an IDE, a
-support tool — the arithmetic flips and one server beats three adapters.
+faster and easier to type-check. The protocol only adds a process boundary and a schema to keep in sync.
+Once a second and third application want the same integration, the arithmetic flips. Think of a chat
+product, an IDE and a support tool. One server then beats three adapters.
 
 **Q: What is the security risk in connecting to a third-party MCP server?**
 
-That its tool descriptions are prompt text going straight into the model's context. A server can describe
-a benign-looking tool with instructions that steer the model into passing along data from elsewhere in
-the conversation, and reviewing the server's source code does not catch it because the payload is in the
-description. Combining servers is the sharper version: one that reads private data and one that can post
-externally form an exfiltration path that neither has alone.
+Its tool descriptions are prompt text that goes straight into the model's context. A server can describe
+a harmless-looking tool with hidden instructions. Those steer the model into passing along data from
+elsewhere in the conversation. Reviewing the server's source code does not catch it, because the payload
+is in the description. Combining servers is the sharper version. One that reads private data and one
+that can post externally form an exfiltration path that neither has alone.
 
 **Q: How do tools and resources differ, and why does it matter?**
 
-Tools are invoked by the model and can have side effects. Resources are content the application chooses
-to attach, addressed by URI and read-only. The distinction matters because it decides who is in control:
-attaching a resource is the application deciding what the model sees, while exposing a tool is granting
-the model the ability to act. Treating them the same is how a read-only integration acquires write
-access nobody signed off on.
+The model invokes tools, and tools can have side effects. Resources are content the application chooses
+to attach, addressed by URI and read-only. The difference decides who is in control. Attaching a resource
+is the application deciding what the model sees. Exposing a tool gives the model the power to act. Treat
+them the same, and a read-only integration gains write access nobody signed off on.
 
 **Q: A tool call through an MCP server fails. Where do you look?**
 
-The same places as any tool call, plus one. Transport first — is the process alive, is the HTTP endpoint
-authenticating. Then the schema, because arguments still have to validate. Then the description, since
-the model may be calling the wrong tool for an understandable reason. The extra place is version drift:
-tools are discovered at runtime, so the server may be exposing something different from what was
-reviewed.
+The same places as any tool call, plus one. Transport first: is the process alive, and is the HTTP
+endpoint authenticating? Then the schema, because arguments still have to validate. Then the description,
+since the model may call the wrong tool for an understandable reason. The extra place is version drift.
+Tools are discovered at runtime, so the server may expose something different from what you reviewed.
 
 ## What to Read Next
 

@@ -12,8 +12,8 @@ in_book: true
 
 # AIUX
 
-Two chapters on the interface layer — the section only a frontend-heavy author writes well. AI books are
-mostly written by backend and ML people, so this is usually their weakest material.
+Two chapters on the interface layer. Only a frontend-heavy author writes this section well. Backend and
+ML people write most AI books, so this is usually their weakest material.
 
 The through-line: **an AI feature is the first product surface where slow, wrong and refused are normal
 states, not bugs.** What you know about perceived performance and error boundaries still applies. But the
@@ -36,10 +36,10 @@ The last section, and the one that decides whether the others are worth using.
 | 01 | A first-token target, a visible retrieval phase instead of a spinner, and citation chips rendered from an allow-list |
 | 02 | Citations that link to the source, edit-before-accept and undo, and the failure screens: "not in the docs", a truncated answer with a continue action, a rate limit that keeps what already streamed |
 
-**At the end of the part** the documentation assistant streams cited answers from a measured pipeline,
-refuses honestly outside its corpus, costs a known amount per question, and falls back to the plain docs
-index when the model is down. That is the answer to the only question that matters in an AI round: have
-you shipped one of these.
+**At the end of the part** the documentation assistant streams cited answers from a measured pipeline.
+It refuses honestly outside its corpus and costs a known amount per question. When the model is down, it
+falls back to the plain docs index. That answers the only question that matters in an AI round: have you
+shipped one of these?
 
 ## What Interviewers Probe For
 
@@ -53,7 +53,7 @@ you shipped one of these.
 
 ## Reading Order
 
-01 → 02. 01 assumes the security boundary from `Production/04`, so read that first if you can.
+01 → 02. 01 assumes the security boundary from the Prompt Injection chapter, so read that first if you can.
 
 **Interview sprint:** both. Latency and failure design are what a frontend-heavy candidate can say that
 nobody else in the loop will.

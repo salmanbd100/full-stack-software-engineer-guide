@@ -16,7 +16,7 @@ The scope here is set by one question: what does a frontend-heavy engineer need 
 schema, read a query plan, and change a live database without downtime? That is a much smaller set
 than a database course, and it is the set that comes up.
 
-Postgres is the worked example throughout. The concepts transfer; the syntax mostly does too.
+Postgres is the worked example throughout. The concepts transfer, and most of the syntax does too.
 
 ## Chapters
 
@@ -35,14 +35,14 @@ The senior signal is **knows why the query is slow.** In practice:
 - **Composite index order.** Equality, then sort, then range. Getting this wrong is the most common
   real cause of a slow query that "has an index".
 - **Isolation levels.** That `READ COMMITTED` permits lost updates, and what you do about it.
-- **Zero-downtime migration.** Expand, backfill, deploy, contract — and which DDL statements take a
+- **Zero-downtime migration.** Expand, backfill, deploy, contract. And which DDL statements take a
   lock that stops the service.
 - **`EXPLAIN ANALYZE`.** A large gap between estimated and actual rows is the finding, not the
   execution time.
 
 ## Reading Order
 
-01 first. 02 next — it is the chapter that changes how you write queries. 03 when concurrency is in
+01 first. 02 next: it is the chapter that changes how you write queries. 03 when concurrency is in
 front of you.
 
 **Interview sprint:** 02 → 03 → 01.

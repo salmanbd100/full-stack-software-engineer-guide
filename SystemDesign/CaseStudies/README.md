@@ -12,12 +12,12 @@ in_book: true
 
 # Part VI — Case Studies
 
-Three worked rounds — one backend-shaped, two frontend-shaped. Each is a different **shape** of problem
-rather than a different product: an interviewer can ask for any of a hundred products, and there are only
-about a dozen shapes underneath.
+Three worked rounds: one backend-shaped, two frontend-shaped. Each is a different **shape** of problem,
+not a different product. An interviewer can ask for any of a hundred products, but only about a dozen
+shapes sit underneath.
 
-Read them out loud against a timer. A case study you have read is worth very little; a case study you
-have talked through for forty minutes is worth the whole section.
+Read them out loud against a timer. A case study you have only read is worth very little. A case study
+you have talked through for forty minutes is worth the whole section.
 
 ## Chapters
 
@@ -31,28 +31,27 @@ These three cover the shapes the others reduce to: a read-heavy key–value serv
 must converge, and a client with a render budget.
 
 Each follows RADIO inside its `How It Works` section: requirements, architecture, data model, interface,
-optimisations. The framework itself is [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round), and
-the sixth shape this section does not carry — a retrieval-based AI product, asked as "design a RAG system"
-— is worked in [Chapter ?? — AI in Interviews](#ch-ai-in-interviews).
+optimisations. The framework itself is in [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round).
+One shape this section does not carry is a retrieval-based AI product, asked as "design a RAG system".
+[Chapter ?? — AI in Interviews](#ch-ai-in-interviews) works that one.
 
 ## What Interviewers Probe For
 
 - **Do you scope before you draw?** Every chapter here names what it cut, out loud, in the requirements
   step. That is deliberate.
-- **Do you reach the interesting decision?** Each design has one — key generation, the merge rule, the
-  render budget. A round that never gets there scores badly however tidy the
-  diagram is.
+- **Do you reach the interesting decision?** Each design has one: key generation, the merge rule, the
+  render budget. A round that never gets there scores badly, however tidy the diagram is.
 - **Can you say what your design cannot do?** Tombstones that never leave, a footer the infinite feed makes
   unreachable. Naming a limit is stronger than pretending there is none.
 
 ## Reading Order
 
-01 first — it is the smallest complete round and the one to rehearse until the structure is automatic.
-Then 02 and 03 in either order; they are independent.
+Read 01 first. It is the smallest complete round, and the one to rehearse until the structure is automatic.
+Then read 02 and 03 in either order. They are independent.
 
 **Interview sprint:** 01 and whichever of 02–03 is closest to the role, out loud, timed at 45 minutes each.
 
-> ⚠️ Ten studies left this section — six at **#31d**, two at **#43** (news feed, chat system) and two at
-> **#101** (Ticketmaster, live dashboard). Each duplicated a shape another chapter teaches or a topic
+> ⚠️ Ten studies left this section: six at **#31d**, two at **#43** (news feed, chat system) and two at
+> **#101** (Ticketmaster, live dashboard). Each repeated a shape another chapter teaches, or a topic
 > Part V now owns. They sit in `Archive/systemdesign/case-studies/` and `Archive/system-design/case-studies/`,
 > and still work as extra rehearsal.

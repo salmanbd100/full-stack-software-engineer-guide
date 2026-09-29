@@ -19,11 +19,11 @@ in_book: true
 ## 💡 The Core Idea
 
 A cache keeps a copy of expensive-to-produce data somewhere cheap to read. That is the whole
-mechanism. What makes it the highest-leverage move in system design is the arithmetic: a cache does
-not make the database faster, it stops most requests from reaching the database at all.
+mechanism. The arithmetic makes it the strongest move in system design. A cache does not make the
+database faster. It stops most requests from reaching the database at all.
 
-That reframes it. Caching is not a performance trick applied after the fact — it is a capacity
-decision made before you buy servers. The hard part was never the storing. It is knowing when the
+That changes how to see it. Caching is not a performance trick you add later. It is a capacity
+decision you make before you buy servers. The hard part was never the storing. It is knowing when the
 copy you stored stopped being true.
 
 ## How It Works
@@ -40,8 +40,8 @@ Hit ratio is hits divided by total lookups, and the number behind the origin is 
 
 Going from 90% to 95% halves the load on the database. That is the shape of the curve, and it is why
 "raise the hit ratio" beats "add a replica" almost every time. Below 50%, the cache is not earning its
-complexity — either the TTL is too short, the cache is too small to hold the working set, or the data
-genuinely is not repeated.
+complexity. Either the TTL is too short, the cache is too small for the working set (the keys in active
+use), or the data really is not repeated.
 
 ### The four patterns
 
@@ -110,19 +110,19 @@ The decision is two questions: how often is it read, and how fast does it change
 
 ### Eviction and store choice
 
-When memory fills, something has to go. **LRU** — evict the least recently used — is the right default
-and what Redis does once `maxmemory` is set. **LFU** wins for long-running caches with a stable hot
-set, where recency misleads. TTL expiry is not really eviction: it is your statement about how long a
-copy may be wrong.
+When memory fills, something has to go. **LRU** (evict the least recently used) is the right default.
+Redis needs `maxmemory-policy allkeys-lru` for it: with only `maxmemory` set, it rejects writes instead.
+**LFU** (least frequently used) wins for long-running caches with a stable hot set, where recency
+misleads. TTL expiry is not really eviction. It is your statement of how long a copy may be wrong.
 
-Redis is the default cache store for new systems — it has data structures beyond strings, replication,
+Redis is the default cache store for new systems. It has data structures beyond strings, replication,
 clustering and persistence. Memcached wins only on raw throughput for pure key-value work at extreme
 scale, and gives up everything else.
 
 ### The stampede
 
-When a hot key expires, every in-flight request misses at the same moment and they all hit the
-database together. Two defences, and they compose:
+When a hot key expires, every in-flight request misses at the same moment, and they all hit the
+database together. There are two defences, and they work together:
 
 ```typescript
 // 1. Jitter, so related keys stop expiring in the same second.
@@ -131,33 +131,34 @@ function jitteredTtl(baseSeconds: number, jitter = 0.1): number {
   return Math.round(baseSeconds + (Math.random() * 2 - 1) * spread);
 }
 
-// 2. A lock, so exactly one request recomputes and the rest serve the stale copy.
-async function getWithLock(cache: CacheClient, db: DatabaseClient, key: string): Promise<Product> {
+// 2. A lock, so exactly one request recomputes and the rest wait, then retry.
+async function getWithLock(cache: CacheClient, db: DatabaseClient, productId: string): Promise<Product> {
+  const key = `product:${productId}`;
   const cached = await cache.get<Product>(key);
   if (cached) return cached;
 
   // SET NX EX — the first caller wins the lock; the others wait and read what it wrote.
   if (!(await cache.setIfAbsent(`${key}:lock`, "1", 10))) {
     await new Promise((resolve) => setTimeout(resolve, 50));
-    return getWithLock(cache, db, key);
+    return getWithLock(cache, db, productId);
   }
-  const fresh = await db.findProduct(key);
+  const fresh = await db.findProduct(productId);
   await cache.set(key, fresh, jitteredTtl(300));
   await cache.del(`${key}:lock`);
   return fresh;
 }
 ```
 
-> ⚠️ A deploy is a stampede in disguise. New instances start with cold local caches, and if the shared
-> cache was also flushed, the first minute of traffic goes entirely to the database — at peak, that is
-> the moment it falls over.
+> ⚠️ A deploy is a stampede in disguise. New instances start with cold local caches. If the shared cache
+> was also flushed, the first minute of traffic goes entirely to the database. At peak, that is the
+> moment it falls over.
 
 ### Warm-up on deploy
 
-Pre-populate the handful of keys you know will be hit — the homepage query, feature flags, the
-configuration blob — and do it as a **readiness gate** rather than as a background task after cutover.
-An instance that takes traffic before its cache is warm is an instance that sends every one of its
-first requests to the database, and a rolling deploy repeats that once per instance.
+Fill the handful of keys you know will be hit: the homepage query, feature flags, the configuration
+blob. Do it as a **readiness gate**, not as a background task after cutover. An instance that takes
+traffic before its cache is warm sends all of its first requests to the database. A rolling deploy
+repeats that once per instance.
 
 ## When to Use It
 
@@ -172,7 +173,7 @@ first requests to the database, and a rolling deploy repeats that once per insta
 ## Common Mistakes
 
 ❌ **No TTL.** A key with no expiry is stale forever once the invalidation path misses it once. ✅ Always
-set a TTL, even a generous one — it is the backstop for the invalidation you forgot.
+set a TTL, even a generous one. It is the backstop for the invalidation you forgot.
 
 ❌ **A shared key for per-user data.** `cart:latest` serves one customer's basket to the next. ✅ The
 user or entity id goes in the key, always.
@@ -180,8 +181,8 @@ user or entity id goes in the key, always.
 ❌ **Invalidating nowhere.** The read path is written, the write path is not, and updates take a full
 TTL to appear. ✅ Eviction belongs in the same function as the write.
 
-❌ **Treating the cache as a store.** Redis restarts, and if the data does not also exist in the
-database it is simply gone. ✅ Everything in the cache must be re-derivable from the source of truth.
+❌ **Treating the cache as a store.** Redis restarts. If the data does not also exist in the
+database, it is simply gone. ✅ Everything in the cache must be re-derivable from the source of truth.
 
 ❌ **Uniform TTLs set at deploy.** Every key expires in the same second and the stampede is
 self-inflicted. ✅ Jitter by ten percent.
@@ -189,9 +190,9 @@ self-inflicted. ✅ Jitter by ten percent.
 ## 🔑 Key Takeaways
 
 - A cache is a capacity multiplier: 90% to 95% hit ratio halves the load reaching the database.
-- Cache-aside plus TTL covers most systems; reach for the other patterns only when it fails you.
-- The write path owns invalidation — a read path written alone is how stale data ships.
-- Below a 50% hit ratio the cache is costing more than it saves; fix the TTL, the size, or the key.
+- Cache-aside plus TTL covers most systems. Reach for the other patterns only when it fails you.
+- The write path owns invalidation. A read path written alone is how stale data ships.
+- Below a 50% hit ratio the cache costs more than it saves. Fix the TTL, the size, or the key.
 - Jitter the TTLs and warm the hot keys, or a deploy will hand the whole load to the database at once.
 
 ## Interview Questions
@@ -199,32 +200,31 @@ self-inflicted. ✅ Jitter by ten percent.
 **Q: Which caching pattern would you start with, and why?**
 
 Cache-aside. The application checks the cache, falls back to the database on a miss, and writes what it
-found. It keeps the cache out of the write path, so a cache outage degrades latency rather than
-correctness, and it caches only what is actually read. The cost is that every caller has to remember
-the invalidation, which is why the eviction belongs inside the update function rather than at the
-call site.
+found. It keeps the cache out of the write path, so a cache outage hurts latency, not correctness. It
+also caches only what is actually read. The cost is that every caller has to remember the
+invalidation. That is why the eviction belongs inside the update function, not at the call site.
 
 **Q: How do you decide the TTL?**
 
 Start from how wrong the data is allowed to be, not from how long you would like to cache it. A
-product listing that is five minutes stale is fine; an account balance is not cacheable at any TTL. Then
-check the hit ratio: if it is low, the TTL is expiring keys before they are reused. Explicit eviction
-on write lets you run a longer TTL safely, because the TTL stops being the primary freshness mechanism
+product listing that is five minutes stale is fine. An account balance is not cacheable at any TTL.
+Then check the hit ratio. If it is low, the TTL is expiring keys before they are reused. Explicit
+eviction on write lets you run a longer TTL safely. The TTL stops being the main freshness mechanism
 and becomes the backstop.
 
 **Q: A hot key expires and the database falls over. What happened, and what do you do?**
 
-A cache stampede — every concurrent request missed at the same instant and went to the origin
-together. The fixes are a lock so only one request recomputes while the others wait or serve stale,
-jittered TTLs so related keys do not expire in the same second, and pre-warming the known-hot keys
-before a deploy sends traffic to cold instances.
+A cache stampede. Every concurrent request missed at the same instant and went to the origin together.
+Three fixes apply. A lock lets only one request recompute while the others wait or serve stale.
+Jittered TTLs stop related keys expiring in the same second. And pre-warming the known-hot keys
+protects cold instances before a deploy sends them traffic.
 
 **Q: When is caching the wrong answer?**
 
-When the data changes faster than it is read, when correctness at the instant of reading is the
-requirement, and when the traffic has no repetition — every request unique means every lookup a miss
-plus the cost of storing something nobody asks for again. In those cases the real fix is usually an
-index, a read replica, or a cheaper query.
+When the data changes faster than it is read, or when it must be correct at the instant of reading.
+Also when the traffic has no repetition. If every request is unique, every lookup is a miss, and you
+pay to store something nobody asks for again. The real fix is then usually an index, a read replica,
+or a cheaper query.
 
 ## What to Read Next
 

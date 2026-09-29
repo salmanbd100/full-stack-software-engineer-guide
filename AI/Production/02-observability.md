@@ -20,11 +20,10 @@ in_book: true
 
 Debugging an ordinary service means reading a stack trace. The code took a path, and the trace shows
 which branch. **An AI feature has no such trace, because the decisions were not made in your code.**
-Which chunks were retrieved, which tool the model chose, what the prompt held — none of it is in the
-source.
+None of it is in the source: which chunks came back, which tool the model chose, what the prompt held.
 
 So a trace is the only way to rebuild a request after the fact. It is also where cost is measured. An AI
-feature is the first thing most web teams ship with a **visible marginal cost per user**. A page view
+feature is the first thing most web teams ship where **each extra use has a visible cost**. A page view
 costs a fraction of a penny. One question to the documentation assistant can cost several pence, and a
 chatty user can cost pounds a day.
 
@@ -43,9 +42,10 @@ request  (4.2 s · £0.019)
 └── validate        (1 ms  · schema ok)
 ```
 
-One trace per request, one span per stage, with tokens and cost at every level. "The request took four
-seconds" prompts a guess. "Retrieval took 310 ms and the model took 3.6 s" ends the conversation. Cost
-works the same way: the span tree names the expensive stage, and it is often not the one people expect. Cardinality and sampling are ordinary practice, taught in
+One trace per request, one span (a timed step inside the trace) per stage, with tokens and cost at every
+level. "The request took four seconds" prompts a guess. "Retrieval took 310 ms and the model took 3.6 s"
+ends the conversation. Cost works the same way. The span tree names the expensive stage, and it is often
+not the one people expect. Cardinality and sampling are ordinary practice, taught in
 [Chapter ?? — Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals).
 
 ### What each span records
@@ -92,7 +92,7 @@ interface LlmSpan {
 
 Prompts and completions hold whatever the user typed, which is often personal data and sometimes a
 credential. Redact keys and known personal-data patterns before the log call. Log chunk ids, not chunk
-text — it keeps most of the diagnostic value at a fraction of the exposure and the storage bill.
+text. That keeps most of the diagnostic value at a fraction of the exposure and the storage bill.
 
 At volume, full logging can cost more than the model calls. Keep **metadata on every request** and
 **full content on a sample**, plus every failure and refusal. Keep content thirty days, numbers a year.
@@ -153,14 +153,14 @@ the cache-read token count on the span, not the arrangement.**
 
 **Routing and cascades.** Intent classification and schema-bound extraction run well on small models.
 Save the frontier model for open-ended reasoning and long tool chains. A **cascade** runs the cheap
-model, checks the result, and escalates on failure. Measure the escalation rate first: at 50% a cascade
-costs more than the frontier model alone, because the failed cheap call still bills.
+model, checks the result, and escalates on failure. Measure the escalation rate first. Every escalated
+request pays for both calls and waits for both, so a high rate eats the saving and adds latency.
 
 **Batching and streaming.** Batch APIs usually halve the price for a delayed result, so nightly
 backfills belong there. **Streaming saves no money**, except when a user stops a wrong answer early.
 
-> ⚠️ **Moving target:** prices, cache lifetimes and batch discounts change within weeks, and reasoning
-> tokens are billed while often hidden from the response. The durable part is the ranked list and your
+> ⚠️ **Moving target:** prices, cache lifetimes and batch discounts change within weeks. Reasoning
+> tokens are often billed but hidden from the response. The durable part is the ranked list and your
 > own token profile. Never quote a price from a book.
 
 **Cost computed from the span, not the invoice**
@@ -194,7 +194,7 @@ median. A per-user token budget with a graceful limit protects both the bill and
 
 **❌ Breaking the cache prefix without noticing**
 
-> One interpolated timestamp near the front and every request pays full price. Nothing fails; the bill
+> One interpolated timestamp near the front and every request pays full price. Nothing fails. The bill
 > just rises.
 
 **✅ Log chunk ids, model version and cached tokens on every request**
@@ -208,7 +208,7 @@ median. A per-user token budget with a graceful limit protects both the bill and
 - Tokens, cache hits and cost belong on each span, which makes cost per request and per user a query.
 - Prompt and completion logs are personal data and need retention, access control and a deletion path.
 - Input tokens usually dominate the bill, and prompt caching is the largest saving that costs no quality.
-- Measure the token profile before downgrading the model; the fix is usually in the input.
+- Measure the token profile before downgrading the model, because the fix is usually in the input.
 
 ## Interview Questions
 
@@ -229,8 +229,8 @@ everywhere.
 **Q: When is a cheap-model cascade a good idea?**
 
 When the cheap model usually succeeds and a reliable check exists, such as schema validation. Measure the
-escalation rate first. At about half escalating, the cascade costs more than the strong model alone,
-because the failed call still bills. Below about twenty per cent it is a large saving.
+escalation rate first. Each escalation pays for both calls, so the cascade saves money only while the cheap
+call costs less than the strong-model calls it avoids. Below about twenty per cent it is a large saving.
 
 ## What to Read Next
 

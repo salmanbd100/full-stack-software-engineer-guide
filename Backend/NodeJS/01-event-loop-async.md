@@ -18,16 +18,16 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Node runs your JavaScript on **one thread**. It stays fast because that thread never waits: a
-query, a file read or an HTTP call goes to the operating system or a small thread pool, and Node
-runs your callback when the result is ready. It is not parallel, just never idle. Two
-consequences follow. **Any CPU work you do inline blocks everyone:** one 200 ms JSON parse adds
-200 ms to every request in flight. And **one process serves every user**, so an error you cannot
-explain means unknown state for all of them. The safe answer is to log it and restart.
+Node runs your JavaScript on **one thread**. It stays fast because that thread never waits. A query,
+a file read or an HTTP call goes to the operating system or a small thread pool. Node runs your
+callback when the result is ready. It is not parallel, just never idle. Two consequences follow. **Any
+CPU work you do inline blocks everyone:** one 200 ms JSON parse adds 200 ms to every open request.
+And **one process serves every user**, so an error you cannot explain means unknown state for all of
+them. The safe answer is to log it and restart.
 
 ## How It Works
 
-The event loop is a fixed cycle of phases, each draining its own queue of callbacks. A server
+The event loop is a fixed cycle of phases. Each phase empties its own queue of callbacks. A server
 spends most of its life in **poll**, waiting for I/O. **Timers** runs expired `setTimeout`
 callbacks, and **check** runs `setImmediate`.
 
@@ -58,7 +58,7 @@ Promise.resolve().then((): void => console.log('3 promise'));
 process.nextTick((): void => console.log('4 nextTick'));
 console.log('5 sync');
 
-// 5 sync → 4 nextTick → 3 promise → 1 timeout → 2 immediate
+// 5 sync → 4 nextTick → 3 promise → 1 timeout ⇄ 2 immediate (order not guaranteed here)
 // Sync code runs before the loop even starts its first turn.
 ```
 
@@ -67,8 +67,8 @@ console.log('5 sync');
 
 ### The thread pool is small and shared
 
-`fs`, `dns.lookup`, `zlib` and `crypto.pbkdf2` share libuv's pool of **four threads**, so a fifth
-slow `bcrypt.hash` waits. Sockets do not use the pool. `UV_THREADPOOL_SIZE` raises the limit.
+`fs`, `dns.lookup`, `zlib` and `crypto.pbkdf2` share libuv's pool of **four threads** (libuv is the C
+library under Node). A fifth slow `bcrypt.hash` waits. Sockets do not use it. `UV_THREADPOOL_SIZE` raises it.
 
 ## When to Use It
 
@@ -203,7 +203,7 @@ function shutdown(code: number): void {
 it to a worker thread. More than roughly 10 ms of straight-line CPU per request belongs off the loop.
 
 **❌ A `catch` that logs and carries on.** The order was not saved, yet the client gets a 200.
-**✅ Translate and rethrow** — `throw new UpstreamError('orders', e)` — so the handler answers it.
+**✅ Translate and rethrow** with `throw new UpstreamError('orders', e)`, so the handler answers it.
 
 **❌ A forgotten `await`.** The error becomes an unhandled rejection after the response is sent.
 Turn on `@typescript-eslint/no-floating-promises`.
@@ -226,8 +226,8 @@ callbacks, so the limit is file descriptors and memory, not threads.
 
 **Q: What logs first — `setTimeout(fn, 0)` or `setImmediate(fn)`?**
 
-From synchronous code, `setTimeout` usually wins, because **timers** comes before **check**. From
-inside an I/O callback, `setImmediate` always wins, because **check** follows **poll**.
+From synchronous code, `setTimeout` usually wins, but Node does not guarantee it. From inside an I/O
+callback, `setImmediate` always wins, because **check** follows **poll**.
 
 **Q: Should you keep the process alive after an `uncaughtException`?**
 

@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-29 · **Progress:** 15 / 25
+**Last updated:** 2026-09-29 · **Progress:** 18 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1089,16 +1089,63 @@ the three checks are green.
 
 ---
 
-### - [ ] 109. Plain English — Part V `M`
+### - [x] 109. Plain English — Part V `M` — ✅ **done 2026-09-29**
 
 **18.7 words a sentence, 122 long sentences.** The method is in item #105.
 
 **Done when:** Part V has been read line by line, its average is inside 15–20 words a sentence, and the
 three checks are green.
 
+**Delivered:**
+
+- **All 21 Part V files were read line by line and edited.** That covers the part opener, the five section
+  READMEs, and every chapter in API, Node.js, NoSQL, Security and SQL. The part went from **3,951 to 3,948
+  lines** against its 4,000 budget, and no file grew. The work matched #105: long sentences split, dash asides
+  and semicolon chains turned into full stops, and passive wording made active. "Durable principle" became
+  "lasting principle" in the moving-target callouts. Terms got a first-use gloss: libuv, credential stuffing,
+  WAF, mass assignment, hoisted (for `vi.mock`), atomic deploys, opaque id, back-channel and the query planner
+- **Untouched:** code fences (except the fixes named below), tables, diagrams, headings, front matter,
+  `**Q:**` lines, `**In this chapter:**` lines and cross-reference links. A grep of the diff for changed lines
+  starting with `|`, `#`, `**Q:`, `**In this` or a front-matter key prints nothing
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression, including the part-budget rule. `pnpm
+  index:check` is current, with 647 and 87 questions. `pnpm check:code-samples` exits 0 at a total of 974. `pnpm
+  test` passes 36/36. #109–#111 ran in one session, so these checks cover all three parts together
+- **Measured with the #105 method** (a scratch script, still not in the repo). Before: **14.3 words a sentence,
+  31 over 32 words**. After: **12.8, with 5 over 32**. Four are splitter artefacts. The fifth is a three-item
+  list in the API README that reads in one breath
+- **Content fixes, found during the read:**
+  - `SQL/03-transactions.md`: Postgres kills a deadlock victim with a deadlock error (40P01), not a
+    serialisation error. Under `REPEATABLE READ`, the conflicting `UPDATE` fails when it runs, not at commit
+  - `SQL/02-indexes-and-query-plans.md`: PgBouncer transaction mode no longer breaks prepared statements
+    (supported since 1.21, checked through Context7). The example list is now `SET`, advisory locks and `LISTEN`
+  - `SQL/01-fundamentals.md`: the `COUNT(column)` example now says "after a `LEFT JOIN`". The `EXCLUDE` example
+    notes that it needs `btree_gist`
+  - `Security/03-validation.md`: `?filter[$ne]=null` becomes an object only under the `qs` parser, which is
+    Express 4's default. Express 5's is "simple" (checked through Context7). The `validate` middleware wrote to
+    `req[part]`, but Express 5's `req.query` is a getter and cannot be assigned. It now writes to
+    `res.locals[part]`
+  - `NodeJS/01-event-loop-async.md`: `setTimeout` against `setImmediate` "usually wins, but Node does not
+    guarantee it", and the ordering comment in the fence now says so. The Redis licence callout now says
+    Redis 8 *added* AGPL as an option; it did not move to it
+  - `NodeJS/02-performance-and-scaling.md`: said every outbound `fetch` without a keep-alive agent pays a
+    fresh handshake. Node's `fetch` reuses connections but drops an idle one after about 4 seconds, so the
+    `undici` `Agent` extends the window rather than turning reuse on
+  - `API/03-rate-limiting.md`: the Lua script's deprecated `HMSET` is now `HSET`
+- **The code-sample baseline moved sideways.** The `res.locals` fix swaps one excerpt diagnostic for another:
+  TS2540 (assigning to `req[part]`) went to 0, and TS2339 (`locals` on the DOM `Response` the checker assumes)
+  went from 54 to 55. The total stays at 974, and `.code-samples-baseline.json` is committed with the swap.
+  Adding an `import type` from `express` to the fence did not help. The wildcard module turns `NextFunction`
+  into a namespace, and that raises TS2709 instead
+- **Reported, not changed:**
+  - `Security/02-oauth.md` says OAuth 2.1 "requires PKCE even for confidential clients". RFC 9700 says
+    SHOULD, not MUST. The current 2.1 draft was not checked
+  - `API/04-realtime-and-streaming.md`: "about two bytes of framing" is true of server-to-client frames only.
+    Client frames add a 4-byte mask
+  - `API/02-graphql.md`: "tRPC 11 changed the procedure options object" was not verified
+
 ---
 
-### - [ ] 110. Plain English — Part VI `M`
+### - [x] 110. Plain English — Part VI `M` — ✅ **done 2026-09-29**
 
 **19.3 words a sentence, 152 long sentences.** System design prose runs long because it qualifies
 everything — watch for the "which means that… , which in turn…" chain. The method is in item #105.
@@ -1106,15 +1153,98 @@ everything — watch for the "which means that… , which in turn…" chain. The
 **Done when:** Part VI has been read line by line, its average is inside 15–20 words a sentence, and
 the three checks are green.
 
+**Delivered:**
+
+- **All 24 Part VI files were read line by line and edited.** That covers the part opener, the five section
+  READMEs, and every chapter in Fundamentals, Building Blocks, Database, Frontend System Design and Case
+  Studies. The part went from **4,333 to 4,330 lines** against its 4,400 budget. The "which means…, which in
+  turn…" chains this item warned about were split, mostly in Core Ideas, ⚠️ callouts and interview answers.
+  Terms got a first-use gloss: scatter-gather, network partition, flapping, working set, LRU/LFU, origin,
+  anycast, PoP, BFF (used before it was defined in ch 05), p99, bulkhead, CRDT, tombstones, fan-out, overscan,
+  SSE, clock skew and lost update
+- **Untouched:** code fences (except the fixes named below), tables, diagrams, headings, front matter,
+  `**Q:**` lines, `**In this chapter:**` lines and cross-reference links. A grep of the diff for changed lines
+  starting with `|`, `#`, `**Q:`, `**In this` or a front-matter key prints nothing
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression, including the part-budget rule. `pnpm
+  index:check` is current, with 647 and 87 questions. `pnpm check:code-samples` exits 0 at a total of 974. `pnpm
+  test` passes 36/36. #109–#111 ran in one session, so these checks cover all three parts together
+- **Measured with the #105 method.** Before: **14.8 words a sentence, 62 over 32 words**. After: **12.7, with 3
+  over 32**. All three are splitter artefacts: ❌ lines joined to their ✅ fix, and two bold questions joined
+- **Content fixes.** This part had the most, and most were arithmetic the chapter got wrong about itself:
+  - `Fundamentals/02-estimation.md`: the social-feed example said reads outnumber writes "about 100:1". The
+    chapter's own numbers give 40 billion post reads a day against 200 million writes, about 200:1
+  - `Fundamentals/03-scalability.md`: "with 50 workers, half the arrivals queue" is wrong. 50 workers at 200 ms
+    finish only 250 requests a second against 500 arriving, so the queue grows without end. The connection
+    example now names Postgres's default of 100 connections, used up ten times over
+  - `BuildingBlocks/02-caching.md`: LRU is not "what Redis does once `maxmemory` is set". With `maxmemory`
+    alone, Redis rejects writes, and LRU needs `maxmemory-policy allkeys-lru` (checked through Context7). In
+    the `getWithLock` fence, the comment promised a stale copy the code does not have: the waiters retry. The
+    function also passed the cache key to `db.findProduct`, so it now takes a `productId`
+  - `BuildingBlocks/03-cdn.md`: "ten points of hit ratio halves it every time" holds only from 80% to 90%.
+    The takeaway now says each point is worth more the higher you go, and the fence comment matches
+  - `CaseStudies/02-collaborative-editor.md`: "Batch by frame" undid its own point. One message per frame is
+    about 60 a second, which is more than 8 keystrokes a second. It is now "Batch on a tick": a 50 ms tick in
+    the client and the fan-out gives each peer 20 messages a second at any typing rate
+  - `Frontend/03-auth.md`: the refresh stampede said "seven race, six rejected". Its own answer says eight
+    race and seven lose, and it now says that everywhere. It also said XSS "cannot read either" token. An
+    injected script can call `/auth/refresh` itself and read the new access token. The text and the Key
+    Takeaway now say the design stops token *theft*, not an attacker acting as the user while the page is open
+  - `CaseStudies/README.md`: "the sixth shape this section does not carry" dated from when it held more
+    studies, and now reads "one shape"
+- **Reported, not changed:** `Fundamentals/03`'s Core Idea calls each rung of the ladder "cheaper in money" than
+  the last, which is arguable. `06-resilience.md` says a breaker with no fallback brings "no benefit", which
+  undersells how it protects the caller's connections. The two ⚠️ history callouts in the Database and
+  Frontend READMEs name file paths in backticks. They are not links, but they are paths in book text
+
 ---
 
-### - [ ] 111. Plain English — Part VII `M`
+### - [x] 111. Plain English — Part VII `M` — ✅ **done 2026-09-29**
 
 The second-densest part: **21.1 words a sentence, 238 long sentences.** The AI chapters were written
 fast and it shows in the rhythm. The method is in item #105.
 
 **Done when:** Part VII has been read line by line, its average is inside 15–20 words a sentence, and
 the three checks are green.
+
+**Delivered:**
+
+- **26 of the 27 Part VII files were read line by line and edited.** `AI/Integration/README.md` was read and
+  left as it was, because it already reads plainly. The part went from **5,124 to 5,109 lines** against its
+  5,200 budget. Word swaps included "mystique", "through-line", "displacement activity", "fabricates",
+  "conflate" and "interpolating". Terms got a first-use gloss: eval, few-shot, window, *k*, judge model,
+  buffer, backpressure, idempotent, natural key, exfiltrate, namespace, span, golden set, recall, chunk,
+  embedding model, upsert, ANN, BM25, quantised, frontier model, stateless and compaction
+- **Untouched:** code fences (except the fixes named below), tables, diagrams, headings, front matter,
+  `**Q:**` lines, `**In this chapter:**` lines and cross-reference links. A grep of the diff for changed lines
+  starting with `|`, `#`, `**Q:`, `**In this` or a front-matter key prints nothing
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression, including the part-budget rule. `pnpm
+  index:check` is current, with 647 and 87 questions. `pnpm check:code-samples` exits 0 at a total of 974. `pnpm
+  test` passes 36/36. #109–#111 ran in one session, so these checks cover all three parts together
+- **Measured with the #105 method.** Before: **14.8 words a sentence, 73 over 32 words**. After: **12.4, with
+  11 over 32**. Ten are splitter artefacts: a bold lead joined to the next sentence. One is `01-evals.md`'s
+  33-word promise, which the standard says must stay one sentence. This plan's 21.1 was measured before #102's
+  cut, the same finding as #105
+- **Checked through Context7:** the AI SDK 7 claims hold. `system` is renamed `instructions`, `system`
+  messages inside `messages` are rejected unless `allowSystemInMessages` is set, and `stepCountIs` is
+  renamed `isStepCount`
+- **Content fixes:**
+  - `Production/02-observability.md`: said that at a 50% escalation rate a cascade costs more than the
+    frontier model alone. It costs the cheap call plus half the frontier call, so that is only true if the
+    cheap model costs over half as much. The body and the interview answer now give the real break-even
+  - `RAG/02-ingestion-and-chunking.md`: three places said a new metadata field "means re-embedding the whole
+    corpus". That contradicted the chapter's own answer. It means re-ingesting, and you re-embed only if the
+    field changes the embedded text
+  - `RAG/03-retrieval.md`: the tenant pre-filter fence called `embed(userQuery)`. The AI SDK signature is
+    `embed({ model, value })`, which returns `{ embedding }` (checked through Context7), and the fence now uses it
+  - `Production/03-guardrails-and-safety.md`: "text it [the model] does not fully trust" now says "you". The
+    label above the redaction fence was plain text, and it is now bold, as the standard requires
+  - `AIUX/README.md`: Reading Order pointed at `Production/04`, a path. It now names the chapter
+- **Reported, not changed:**
+  - "Token counting is exact and free" (Foundations 01 and 03) holds for Anthropic's endpoint, but may be too
+    broad for "the provider's"
+  - Foundations 03's answer blames a fixed *k* for retrieved context growing with the corpus, when only
+    larger chunks would grow it
+  - `Production/02`'s trace shows 6,400 input tokens, while its "where the tokens go" table sums to about 7,660
 
 ---
 
@@ -1280,8 +1410,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 15/25 | 🚧 In progress |
-| **Total** | **25** | **15/25** | **60%** |
+| 9 | 95–116 · 95a · 113a · 113b | 18/25 | 🚧 In progress |
+| **Total** | **25** | **18/25** | **72%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

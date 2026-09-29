@@ -22,10 +22,10 @@ A transaction turns several statements into one indivisible operation: all of th
 of them do. That is the easy half, and it is not what interviews are about.
 
 The hard half is **concurrency**. Your transaction is not running alone, and the isolation level
-decides what it is allowed to see of everyone else's in-flight work. The default in Postgres and
-most engines is `READ COMMITTED`, which prevents dirty reads and permits lost updates — so
-read-modify-write logic written without thinking about it is silently wrong under load, and correct
-in every test that runs one request at a time.
+decides what it may see of everyone else's in-flight work. The default in Postgres and most engines
+is `READ COMMITTED`. It prevents dirty reads but permits lost updates. So read-modify-write logic
+written without care is silently wrong under load, and correct in every test that runs one request
+at a time.
 
 ## What ACID Promises
 
@@ -36,7 +36,7 @@ in every test that runs one request at a time.
 | **Isolation** | Concurrent transactions do not corrupt each other | MVCC and locks, to the degree the isolation level specifies |
 | **Durability** | A committed write survives a crash | `fsync` of the write-ahead log |
 
-Consistency is the one people misstate. The database does not know your business rules; it enforces
+Consistency is the one people misstate. The database does not know your business rules. It enforces
 the constraints you wrote. An `AND` you forgot in a `CHECK` is not an isolation problem.
 
 ## Isolation Levels
@@ -58,8 +58,8 @@ the constraints you wrote. An `AND` you forgot in a `CHECK` is not an isolation 
   write overwrites the first.
 
 Postgres implements `REPEATABLE READ` as snapshot isolation: your transaction sees the database as
-of its first statement. Conflicting writes are detected at commit and raise a serialisation
-failure, which means **any application using it must be prepared to retry**.
+of its first statement. A conflicting write is detected when it runs and raises a serialisation
+failure. So **any application using it must be prepared to retry**.
 
 ## The Lost Update
 
@@ -81,7 +81,7 @@ UPDATE products SET stock = stock - 1 WHERE id = $1 AND stock >= 1;
 -- Zero rows affected means insufficient stock. The row lock is held only for this statement.
 ```
 
-**2. Optimistic locking** — a version column. No lock is held, so it scales; the loser retries.
+**2. Optimistic locking** — a version column. No lock is held, so it scales. The loser retries.
 
 ```sql
 UPDATE products SET stock = $1, version = version + 1
@@ -104,20 +104,20 @@ COMMIT;
 | Optimistic (version column) | Conflicts are rare; a long think-time between read and write | Retry logic, and a user-visible conflict |
 | Pessimistic (`FOR UPDATE`) | Conflicts are common; the work between read and write is short | Blocked writers; deadlock risk |
 
-`FOR UPDATE SKIP LOCKED` is the variant worth knowing: it is how you build a work queue on a SQL
-table, because each worker claims rows nobody else holds instead of queueing behind them.
+`FOR UPDATE SKIP LOCKED` is the variant worth knowing. It is how you build a work queue on a SQL
+table. Each worker claims rows nobody else holds, instead of queueing behind them.
 
 ## Deadlocks
 
 Two transactions each hold what the other needs. The database detects the cycle and kills one with
-a serialisation error.
+a deadlock error.
 
 ```text
 T1: locks row A → waits for row B
 T2: locks row B → waits for row A
 ```
 
-The prevention is boringly effective: **always acquire locks in a consistent order.** If every
+The prevention is boringly effective: **always take locks in a consistent order.** If every
 transfer locks the lower account id first, the cycle cannot form.
 
 ```typescript
@@ -126,7 +126,7 @@ await tx.query('SELECT 1 FROM accounts WHERE id = $1 FOR UPDATE', [first]);
 await tx.query('SELECT 1 FROM accounts WHERE id = $1 FOR UPDATE', [second]);
 ```
 
-Keep transactions short for the same reason — a long transaction holds locks longer, widening
+Keep transactions short for the same reason. A long transaction holds locks longer, widening
 every window for conflict. And never do anything slow inside one.
 
 ## Transactions in Application Code
@@ -164,17 +164,17 @@ Three rules this shows:
 > ⚠️ Retrying a serialisation failure is mandatory at `REPEATABLE READ` and `SERIALIZABLE`. Retry
 > the whole transaction, not the failed statement, and cap the attempts.
 
-**Savepoints** give partial rollback inside a transaction — useful when one optional step may fail
-without invalidating the rest. In Postgres, note that *any* error aborts the whole transaction
-unless a savepoint was set, so a `try`/`catch` around one statement without a savepoint does not
-let you continue.
+**Savepoints** give partial rollback inside a transaction. They help when one optional step may fail
+without invalidating the rest. In Postgres, *any* error aborts the whole transaction unless a
+savepoint was set. So a `try`/`catch` around one statement without a savepoint does not let you
+continue.
 
 ## 🔑 Key Takeaways
 
 - `READ COMMITTED` is the default and it permits lost updates, so read-modify-write needs explicit protection.
-- Prefer arithmetic in the `UPDATE` statement; it is correct and free.
-- Optimistic locking scales and needs retry logic; pessimistic locking blocks and needs short transactions.
-- Acquire locks in a deterministic order and deadlocks cannot form.
+- Prefer arithmetic in the `UPDATE` statement. It is correct and free.
+- Optimistic locking scales and needs retry logic. Pessimistic locking blocks and needs short transactions.
+- Take locks in a deterministic order and deadlocks cannot form.
 - Any code at `REPEATABLE READ` or above must retry serialisation failures.
 
 ## Interview Questions
@@ -182,21 +182,21 @@ let you continue.
 **Q: What is a lost update, and does the default isolation level prevent it?**
 
 Two transactions read the same value, each computes a new one from it, and the second write
-overwrites the first — one update disappears. `READ COMMITTED` does not prevent it: both reads are
+overwrites the first. One update disappears. `READ COMMITTED` does not prevent it: both reads are
 legal and both writes are legal. You need in-database arithmetic, a version check, or a row lock.
 
 **Q: Optimistic or pessimistic locking?**
 
-Optimistic when conflicts are rare or the gap between read and write is long — an edit form open
+Optimistic when conflicts are rare or the gap between read and write is long. An edit form open
 for ten minutes should not hold a lock. Pessimistic when conflicts are frequent and the work
 between read and write is short, because retry storms cost more than brief blocking. Optimistic
-pushes the conflict to the user; pessimistic pushes latency onto other writers.
+pushes the conflict to the user. Pessimistic pushes latency onto other writers.
 
 **Q: How do you prevent deadlocks?**
 
-Acquire locks in a consistent order across all code paths, keep transactions short, and touch as
-few rows as possible. Detection is the database's job, and it will kill one transaction — so the
-application still needs to retry. Lock ordering is what stops the cycle forming in the first place.
+Take locks in a consistent order across all code paths, keep transactions short, and touch as few
+rows as possible. The database detects a deadlock and kills one transaction, so the application
+still needs to retry. Lock ordering is what stops the cycle forming in the first place.
 
 ## What to Read Next
 

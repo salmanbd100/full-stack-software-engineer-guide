@@ -79,7 +79,7 @@ shard moves almost all the data.
 
 Consistent hashing removes the modulo. Keys and shards both sit on a ring, and a key belongs to the
 first shard clockwise from it. A new shard takes keys only from its neighbour, so about `1/N` of the
-data moves. Placing each shard at many points on the ring — **virtual nodes** — keeps the slices even.
+data moves. Each shard also sits at many points on the ring. These **virtual nodes** keep slices even.
 
 ### Choosing a shard key
 
@@ -124,8 +124,8 @@ denormalising, and by sending global questions such as reporting to a warehouse.
 ### Transactions inside one shard
 
 Inside a shard, ordinary transactions still work. **Read committed** is the right default, and it is
-PostgreSQL's. Its gap is the **lost update**: two read-modify-writes both read 100, both write 50, and
-50 disappears. That gap matters for balances, counters and stock.
+PostgreSQL's. Its gap is the **lost update**. Two requests each read a value, change it and write it
+back: both read 100, both write 50, and one change disappears. That matters for balances and stock.
 
 **Let the database do the arithmetic, in one conditional statement:**
 
@@ -135,7 +135,7 @@ WHERE sku = 'A1' AND quantity > 0; -- zero rows affected means sold out
 ```
 
 When logic must run in between, lock. **Optimistic** locking adds a version column and retries on
-conflict; it suits rare conflicts. **Pessimistic** locking uses `SELECT ... FOR UPDATE`; it suits frequent
+conflict. It suits rare conflicts. **Pessimistic** locking uses `SELECT ... FOR UPDATE`, and suits frequent
 ones. Serializable prevents every anomaly but turns contention into errors the code must retry.
 
 > ⚠️ Never hold a database lock across a network call. A row locked while you wait for a payment
@@ -177,7 +177,7 @@ async function onOrderPlaced(db: Db, event: OutboxEvent): Promise<void> {
 ```
 
 **Idempotency** makes all of this safe. Every retry-based pattern will sometimes apply an operation
-twice. A unique event id, checked in the same transaction as the effect, makes the repeat a no-op.
+twice. A unique event id, checked in the same transaction as the effect, makes the repeat do nothing.
 
 ## When to Use It
 

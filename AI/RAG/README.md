@@ -15,7 +15,7 @@ in_book: true
 Retrieval-augmented generation is the most common enterprise LLM pattern. Three chapters: the decision,
 the pipeline in, and the pipeline out. Measuring it lives in `Production/01`, next to every other eval.
 
-The through-line is that most "the model gave a wrong answer" bugs are not model bugs. The right passage
+The common thread is that most "the model gave a wrong answer" bugs are not model bugs. The right passage
 was never retrieved, or was ranked eleventh, or was cut in half by a chunker that counted characters.
 Until retrieval is measured, every fix is a guess.
 
@@ -29,8 +29,8 @@ Until retrieval is measured, every fix is a guess.
 
 ## The Running Project
 
-Coming in, the **documentation assistant** streams answers over a keyword query. This section replaces
-the search.
+The **documentation assistant** arrives here streaming answers over a keyword query. This section replaces
+that search.
 
 | Chapter | What it adds to the assistant |
 | ------- | ----------------------------- |
@@ -38,8 +38,7 @@ the search.
 | 02 | Chunking by heading, with the page, heading path and updated date on every chunk |
 | 03 | Embeddings in `pgvector`, the re-embed job, and hybrid retrieval with a rerank at `k = 5` |
 
-**At the end of this section** retrieval works and nothing measures it. The golden set and recall@5 are
-the first thing `Production/01` builds.
+**By the end of this section** retrieval works but nothing measures it. `Production/01` builds that first.
 
 ## What Interviewers Probe For
 
@@ -47,11 +46,12 @@ the first thing `Production/01` builds.
   that went into the window before touching the prompt. Most candidates skip this.
 - **"Why not fine-tune instead?"** Fine-tuning teaches form and behaviour; retrieval supplies facts. Facts
   that change weekly belong in a store.
-- **"How big should a chunk be?"** A trap unless you answer with a method: measure recall on a golden set.
+- **"How big should a chunk be?"** A trap unless you answer with a method: measure recall on a golden set
+  (fixed questions with known right passages), with recall@5 as the number.
 
 ## Reading Order
 
-01 first — it stops you building a pipeline for a problem that did not need one. Then 02 → 03, which is
-the pipeline in build order. Then `Production/01`.
+Read 01 first. It stops you building a pipeline for a problem that did not need one. Then 02 → 03, the
+pipeline in build order. Then `Production/01`.
 
 **Interview sprint:** 01, then the retrieval half of `Production/01`.

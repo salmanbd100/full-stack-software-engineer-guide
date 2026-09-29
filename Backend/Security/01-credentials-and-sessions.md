@@ -27,8 +27,8 @@ that cookie. **CORS** is the browser rule people confuse with a defence against 
 opposites: CORS decides who may *read* your responses, CSRF is about who may *cause* your writes.
 
 > ⚠️ **Moving target:** the recommended hashing algorithm and its settings rise as hardware gets
-> faster. Current numbers live in OWASP's cheat sheet, not in a book. The durable principle: the hash
-> must stay slow relative to an attacker's GPU, so you raise the settings on a schedule.
+> faster. Current numbers live in OWASP's cheat sheet, not in a book. The lasting principle: the hash
+> must stay slow against an attacker's GPU, so you raise the settings on a schedule.
 
 ## How It Works
 
@@ -87,9 +87,9 @@ Rate-limit login on both account and source IP ([Chapter ?? — Rate Limiting](#
 
 ### Session against JWT
 
-A **session** keeps state on the server and gives the client an opaque id; revocation is a delete. A
-**JWT** puts the state in a signed token, so there is no lookup — and nothing to delete to revoke it.
-A JWT is not "more secure". It is **stateless**, which buys scale and costs revocation.
+A **session** keeps state on the server and gives the client an opaque id, a random key. Revoking it
+is a delete. A **JWT** puts the state in a signed token, so there is no lookup, and nothing to delete
+to revoke it. A JWT is not "more secure". It is **stateless**, which buys scale and costs revocation.
 
 > ⚠️ **Never put anything secret in a JWT.** The payload is base64url — encoding, not encryption.
 
@@ -108,7 +108,7 @@ which the attacker controls.
 
 ### Refresh tokens
 
-A short access token limits a leak; the long refresh token is the sensitive one.
+A short access token limits a leak. The long-lived refresh token is the sensitive one.
 
 **Rotation with reuse detection:**
 
@@ -127,8 +127,8 @@ async function refresh(presented: string): Promise<Tokens> {
 }
 ```
 
-Store only a hash, so a database leak hands over no live sessions. Rotate on every use, and if a used
-token comes back, an old copy is loose — revoke the whole family.
+Store only a hash, so a database leak hands over no live sessions. Rotate on every use. If a used token
+comes back, an old copy is loose, so revoke the whole family.
 
 ### Where the credential lives
 
@@ -146,11 +146,11 @@ trades that for CSRF, which has a complete defence. The cookie attributes themse
 
 A user logged in to `bank.example.com` visits `evil.com`. It auto-submits a form to
 `bank.example.com/transfer`, the browser attaches the cookie, and the transfer happens. The attacker
-never reads the response, and never needed to. **The credential is sent automatically.** A token in an `Authorization` header is not, which is why
-moving from header tokens to cookies brings CSRF back.
+never reads the response, and never needed to. **The credential is sent automatically.** A token in an
+`Authorization` header is not. That is why moving from header tokens to cookies brings CSRF back.
 
-**Defence one is `SameSite=Lax`:** a cross-site `POST` no longer carries the cookie, unless a `GET`
-changes state — so "`GET` never writes" from
+**Defence one is `SameSite=Lax`:** a cross-site `POST` no longer carries the cookie. It fails if a `GET`
+changes state. So "`GET` never writes" from
 [Chapter ?? — REST Best Practices and Versioning](#ch-rest-best-practices) is a security control.
 
 **Defence two is a token the attacker cannot read.** The server sets a random value in a readable
@@ -195,8 +195,8 @@ app.use(cors({
 ```
 
 Send `Vary: Origin`, or a CDN serves one origin's headers to another. Browsers reject
-`Allow-Origin: *` with credentials, but reflecting the request's `Origin` is the same hole — and they
-accept it.
+`Allow-Origin: *` with credentials, but reflecting the request's `Origin` is the same hole. Browsers
+accept that one.
 
 ## When to Use It
 
@@ -236,8 +236,8 @@ Authentication and authorisation protect the API.
 
 **Q: `SameSite=Lax` is set. Do you still need CSRF tokens?**
 
-Often not — `Lax` is the main defence. Add tokens if a `GET` changes state, a cookie must be
-`SameSite=None`, or an untrusted sibling subdomain can set cookies — then sign them to the session.
+Often not. `Lax` is the main defence. Add tokens if a `GET` changes state, a cookie must be
+`SameSite=None`, or an untrusted sibling subdomain can set cookies. Then sign them to the session.
 
 ## What to Read Next
 

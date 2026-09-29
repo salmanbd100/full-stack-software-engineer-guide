@@ -18,12 +18,12 @@ in_book: true
 
 ## 💡 The Core Idea
 
-The discipline of testing — the pyramid, arrange-act-assert, the vocabulary of doubles, when to
-practise TDD — is [Chapter ?? — Testing Strategy](#ch-testing-strategy) in Part IV and applies
-unchanged here. This chapter is about what is different on the server.
+The discipline of testing is in [Chapter ?? — Testing Strategy](#ch-testing-strategy) in Part IV:
+the pyramid, arrange-act-assert, the vocabulary of doubles, when to practise TDD. It applies unchanged
+here. This chapter is about what is different on the server.
 
 Two things are. First, **most of a service's behaviour is in its integration with a database and an
-HTTP boundary**, not in its pure functions — so the backend pyramid is flatter than a UI's. Second,
+HTTP boundary**, not in its pure functions. So the backend pyramid is flatter than a UI's. Second,
 **a service's dependencies are processes, not components**: a database, a queue, a payment provider.
 How you substitute those decides how much of your suite is worth running.
 
@@ -67,18 +67,18 @@ export async function chargeOrder(deps: Deps, orderId: string): Promise<void> {
 }
 ```
 
-`vi.mock` and `jest.mock` are hoisted, module-scoped and order-sensitive, which makes them the most
-common source of confusing test failures. Reach for them when you cannot change the code — a
-third-party module imported deep in a call chain — not as the default.
+`vi.mock` and `jest.mock` are hoisted (moved to the top of the file), module-scoped and
+order-sensitive. That makes them the most common source of confusing test failures. Use them when you
+cannot change the code, such as a third-party module imported deep in a call chain. Not as the default.
 
-The same argument covers non-determinism: injecting a `clock` and an `idGenerator` costs one
-parameter each and removes a whole class of intermittent failure. Where the code cannot be
-restructured — retries, debounces, schedulers — use fake timers and advance the clock rather than
-shortening the real delays, because a shortened schedule is not the one production runs.
+The same argument covers non-determinism. Injecting a `clock` and an `idGenerator` costs one
+parameter each and removes a whole class of intermittent failure. Some code you cannot restructure:
+retries, debounces, schedulers. There, use fake timers and advance the clock. Do not shorten the real
+delays, because a shortened schedule is not the one production runs.
 
 > ⚠️ Mocking your own database layer to unit test a query is the highest-cost, lowest-value test
-> there is. It asserts that your code calls the ORM the way you wrote it, passes when the query is
-> wrong, and breaks whenever you refactor.
+> there is. It asserts that your code calls the ORM the way you wrote it. It passes when the query is
+> wrong, and it breaks whenever you refactor.
 
 ### Through the real HTTP layer
 
@@ -103,15 +103,15 @@ it('creates an order and returns 201 with a Location header', async () => {
 
 The shape worth copying per endpoint is three tests: **one success, one rejected input, one rejected
 caller.** Between them they cover the happy path, the validation boundary and the authorisation
-boundary — including the mass-assignment attempt, where a request sends `status: 'paid'` and the
-schema must reject the unrecognised key by name.
+boundary. That includes mass assignment, where a request sends a field it should not set, such as
+`status: 'paid'`. The schema must reject the unrecognised key by name.
 
 ### A real database, not a fake one
 
-Substituting SQLite for Postgres, or an in-memory MongoDB for the real one, tests a different engine:
-different types, different constraint behaviour, different transaction and locking semantics. Those
-differences are exactly what an integration test exists to catch, so the suite passes while
-production breaks.
+Substituting SQLite for Postgres, or an in-memory MongoDB for the real one, tests a different engine.
+It has different types, different constraint behaviour, different transaction and locking semantics.
+An integration test exists to catch exactly those differences, so the suite passes while production
+breaks.
 
 ```typescript
 // One container per suite run. Testcontainers owns the lifecycle.
@@ -126,8 +126,8 @@ beforeAll(async () => {
 afterAll(() => container.stop());
 ```
 
-Running the real migrations is not incidental: a migration that fails on an empty database will fail
-in production too, and this is where you find out.
+Running the real migrations matters. A migration that fails on an empty database will fail in
+production too, and this is where you find out.
 
 ### Isolation is the whole problem
 
@@ -145,8 +145,8 @@ One statement in `afterEach` clears everything: select every table in `public` e
 ledger from `pg_tables`, then `TRUNCATE "a", "b", … RESTART IDENTITY CASCADE`. `CASCADE` handles
 foreign keys, and `RESTART IDENTITY` resets sequences so ids stay predictable.
 
-Rollback is faster and has one catch: if the code under test opens its own transaction you now have
-a nested one, and the behaviour you are testing is not the behaviour production has. Truncation
+Rollback is faster and has one catch. If the code under test opens its own transaction, you now have
+a nested one. Then the behaviour you are testing is not the behaviour production has. Truncation
 avoids the question.
 
 > ⚠️ Never point a test suite at a shared development or staging database. `TRUNCATE` in a test hook
@@ -155,8 +155,8 @@ avoids the question.
 
 ### Factories and third parties
 
-A factory builds a valid object with overrides for the fields the test cares about, so the two lines
-that matter are visible and the twenty required fields are not:
+A factory builds a valid object, with overrides for the fields the test cares about. The two lines
+that matter stay visible, and the twenty required fields stay hidden:
 
 ```typescript
 export async function makeOrder(over: Partial<Order> = {}): Promise<Order> {
@@ -202,23 +202,23 @@ Assert on the fields that form the contract.
 mutates makes the suite order-dependent, and it will only fail in CI.
 
 **❌ Chasing 100% coverage.** Coverage is a floor for finding untested branches, not a target. A
-suite written to satisfy a percentage tests getters — and one that asserts on error *message* text
+suite written to satisfy a percentage tests getters. One that asserts on error *message* text
 breaks on prose changes. Assert the shape you promised: status, code, whether it is safe to expose.
 
 ## 🔑 Key Takeaways
 
-- A backend pyramid is flatter than a frontend one: most behaviour is in the integration, not in pure functions.
+- A backend pyramid is flatter than a frontend one, because most behaviour is in the integration, not in pure functions.
 - Dependencies as parameters remove the need for module mocking, which is the main source of confusing failures.
 - Mocking your own data layer produces tests that pass while the query is broken.
 - Use the real database engine in a container, migrated by the real migrations.
-- Slowness and flakiness are almost always shared state — truncate between tests, or a schema per worker.
+- Slowness and flakiness almost always come from shared state. Truncate between tests, or use a schema per worker.
 
 ## Interview Questions
 
 **Q: What do you not unit test in a service?**
 
 Controllers that only translate a request into one service call, and any query with the database
-mocked — both assert that the code is written the way it is written. They break on refactors and stay
+mocked. Both assert that the code is written the way it is written. They break on refactors and stay
 green when the behaviour is wrong. Those belong in tests against a real database and a real HTTP
 layer.
 
@@ -226,14 +226,14 @@ layer.
 
 Injection wherever the code is mine. A fake object passed as a parameter is explicit, type-checked,
 and has no hoisting or module-registry behaviour to reason about. `vi.mock` is for modules I cannot
-restructure — a third-party client imported several levels down — and it should be the exception,
-because module mocks are the usual cause of tests that fail depending on import order.
+restructure, such as a third-party client imported several levels down. It should be the exception.
+Module mocks are the usual cause of tests that fail depending on import order.
 
 **Q: How do you keep an integration suite isolated and still fast?**
 
-By making the isolation cheap rather than skipping it. A transaction per test rolled back at the end
-is fastest but interferes with code that manages its own transactions, so truncating every table
-with `CASCADE` and `RESTART IDENTITY` is the reliable default. For parallelism, give each worker its
+By making the isolation cheap rather than skipping it. A transaction per test, rolled back at the
+end, is fastest. But it interferes with code that manages its own transactions. So truncating every
+table with `CASCADE` and `RESTART IDENTITY` is the reliable default. For parallelism, give each worker its
 own schema so isolation is per worker rather than per test file.
 
 ## What to Read Next

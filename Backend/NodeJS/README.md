@@ -12,13 +12,12 @@ in_book: true
 
 # Part V — Node.js
 
-Node is the runtime a frontend-heavy engineer is most likely to be asked to reason about at depth,
-because it is the one place where the language you already know meets a genuinely different
-execution model. The questions are not about APIs. They are about what happens to nine hundred other
-requests while yours is parsing a large JSON body.
+Node is the runtime a frontend-heavy engineer is most likely to be asked about in depth. Here the
+language you already know meets a truly different execution model. The questions are not about APIs.
+They are about what happens to nine hundred other requests while yours is parsing a large JSON body.
 
-This section covers the runtime's mechanics and its error path, then how to use more than one core,
-and last the framework most services are written in.
+This section covers how the runtime works and how it handles errors. Then it shows how to use more
+than one core. Last comes the framework most services are written in.
 
 ## Chapters
 
@@ -33,19 +32,19 @@ in the same cut.
 
 ## What Interviewers Probe For
 
-- **Microtask ordering.** `setTimeout` against `setImmediate` against `process.nextTick` — the
-  reliable answer names the loop's phases rather than memorising an output.
-- **What blocking looks like.** Being able to point at a line and say "that stalls every other
-  request" is the whole test.
-- **Backpressure.** Streams are asked about because ignoring `write()`'s return value is an
-  unbounded memory leak, and most candidates have never had to know.
+- **Microtask ordering.** `setTimeout` against `setImmediate` against `process.nextTick`. The
+  reliable answer names the loop's phases instead of reciting a memorised output.
+- **What blocking looks like.** The whole test is to point at a line and say "that stalls every
+  other request".
+- **Backpressure.** Ignoring `write()`'s return value causes a memory leak with no limit. Most
+  candidates have never had to know this, so interviewers ask.
 - **Operational against programmer errors.** Whether you keep the process alive after an uncaught
-  exception, and why not.
+  exception, and why you should not.
 - **Statelessness.** Turning on clustering breaks in-memory sessions, counters and cron jobs. Naming
   that list unprompted is a strong signal.
 
 ## Reading Order
 
-01 first, always — every later chapter assumes it. 02 and 03 are independent of each other.
+Always read 01 first, because every later chapter assumes it. 02 and 03 are independent of each other.
 
 **Interview sprint:** 01 → 03 → 02.

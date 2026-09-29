@@ -31,10 +31,10 @@ the last second of writes.
 
 So the question is never "SQL or NoSQL". It is: what do I read, and what can I afford to lose?
 
-> ⚠️ **Moving target:** the licence, not the API. Redis left open source in 2024, the Valkey fork
-> followed, and Redis 8 moved again to AGPL. "We run Redis" may now mean one of several forks. The
-> durable principle is that the data structures and their atomic guarantees are the same in all of
-> them. Check the licence and the fork before you check the feature list.
+> ⚠️ **Moving target:** the licence, not the API. Redis left open source in 2024, and the Valkey fork
+> followed. Redis 8 then added AGPL as a licence option. "We run Redis" may now mean one of several
+> forks. The lasting principle is that the data structures and their atomic guarantees are the same
+> in all of them. Check the licence and the fork before you check the feature list.
 
 ## How It Works
 

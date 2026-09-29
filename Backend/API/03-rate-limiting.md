@@ -20,13 +20,13 @@ in_book: true
 
 Rate limiting caps how much work one caller can ask of you in a window of time. It protects capacity, contains abuse, keeps third-party bills predictable and enforces pricing tiers.
 
-The framing that scores in an interview: rate limiting is not about blocking bad actors, it is about **fairness under contention**. A limit that keeps one buggy client from starving everyone else is doing its job even when nobody is attacking you.
+The framing that scores in an interview: rate limiting is not about blocking bad actors. It is about **fairness under contention**, when many callers compete for the same capacity. A limit that keeps one buggy client from starving everyone else is doing its job even when nobody is attacking you.
 
-This chapter implements the limiter. Where enforcement belongs in the stack — CDN, gateway, then service — and what it costs at a million requests a second belong to [Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries).
+This chapter builds the limiter. Two questions belong to another chapter: where enforcement sits in the stack (CDN, gateway, then service), and what it costs at a million requests a second. See [Chapter ?? — Service Boundaries and the API Gateway](#ch-service-boundaries).
 
 ## How It Works
 
-Every algorithm answers the same question — has this caller had too much? — and they differ in what they remember.
+Every algorithm answers the same question: has this caller had too much? They differ in what they remember.
 
 | Algorithm | Memory | Accuracy | Bursts | Use when |
 | --------- | ------ | -------- | ------ | -------- |
@@ -36,7 +36,7 @@ Every algorithm answers the same question — has this caller had too much? — 
 | **Token bucket** | O(1) | Good | Controlled | ✅ Public APIs, variable request cost |
 | **Leaky bucket (queue)** | O(queue) | Exact | None — smooths output | Protecting a fragile downstream |
 
-**Short answer for most APIs: token bucket.** It allows a genuine burst — which is what real clients look like, since a page load fires eight requests at once — while holding the long-run average, and it extends naturally to "this endpoint costs 10, that one costs 1".
+**Short answer for most APIs: token bucket.** It allows a genuine burst, and real clients do burst: a page load fires eight requests at once. It still holds the long-run average. It also extends naturally to "this endpoint costs 10, that one costs 1".
 
 ### Fixed Window and Its Boundary Problem
 
@@ -54,19 +54,19 @@ limit = 100 per minute
 
 **A client gets 2× the limit across any boundary.** For a limit that exists to protect capacity, that is the exact moment it fails.
 
-> ⚠️ **The in-memory version is also wrong on more than one instance.** Four pods with a local `Map` means the effective limit is 4× what you configured — and it drifts as pods scale.
+> ⚠️ **The in-memory version is also wrong on more than one instance.** Four pods with a local `Map` means the effective limit is 4× what you configured. It also drifts as pods scale.
 
 ### Sliding Window Counter
 
-**Sliding window log** stores a timestamp per request and counts what falls inside the trailing window. Exact, and memory grows with traffic — a client at 10k requests a minute costs 10k timestamps.
+**Sliding window log** stores a timestamp per request and counts what falls inside the trailing window. It is exact, but memory grows with traffic. A client at 10k requests a minute costs 10k timestamps.
 
 **Sliding window counter** is the practical compromise: keep the current window's count plus the previous window's, and weight the previous one by how much of it still overlaps.
 
-Two counters per key, O(1), and no 2× boundary burst. It can be off by a few percent when traffic is uneven inside a window — an acceptable trade that Cloudflare made for the same reason.
+Two counters per key, O(1), and no 2× boundary burst. It can be off by a few percent when traffic is uneven inside a window. Cloudflare accepted that trade for the same reason.
 
 ### Token Bucket
 
-A bucket holds up to `capacity` tokens and refills at `refillPerSec`. Each request spends tokens equal to its cost; an empty bucket means rejection.
+A bucket holds up to `capacity` tokens and refills at `refillPerSec`. Each request spends tokens equal to its cost. An empty bucket means rejection.
 
 **Two dials, two meanings** — this is the part interviewers probe:
 
@@ -75,9 +75,9 @@ A bucket holds up to `capacity` tokens and refills at `refillPerSec`. Each reque
 | `capacity` | How large a burst you tolerate | 100 → a page firing 100 calls succeeds |
 | `refillPerSec` | The sustained rate | 10/s → 600 a minute long-run |
 
-**Cost-based limiting is the senior move.** `GET /users/me` and `POST /reports/export` are not the same request. Charge tokens by real cost — for GraphQL, by query complexity — so one endpoint cannot be used to bypass a limit tuned for another. See [Chapter ?? — GraphQL, tRPC and Typed API Choices](#ch-graphql) for how complexity is scored.
+**Cost-based limiting is the senior move.** `GET /users/me` and `POST /reports/export` are not the same request. Charge tokens by real cost (for GraphQL, by query complexity). Then no caller can use one endpoint to get around a limit tuned for another. See [Chapter ?? — GraphQL, tRPC and Typed API Choices](#ch-graphql) for how complexity is scored.
 
-**Leaky bucket** is the queue-shaped sibling: requests wait and drain at a fixed rate instead of being rejected. Use it when a downstream system has a hard rate cap you must not exceed — you are smoothing your own output, not policing a caller.
+**Leaky bucket** is the queue-shaped sibling: requests wait and drain at a fixed rate instead of being rejected. Use it when a downstream system has a hard rate cap you must not exceed. There you smooth your own output; you are not policing a caller.
 
 ## When to Use It
 
@@ -91,7 +91,7 @@ A bucket holds up to `capacity` tokens and refills at `refillPerSec`. Each reque
 
 ## Counting Across Instances
 
-Multiple instances need one shared counter, and the check must be **atomic** — read, refill and write in one step, or two concurrent requests both see the last token.
+Multiple instances need one shared counter, and the check must be **atomic**. Read, refill and write must happen in one step, or two concurrent requests both see the last token.
 
 ```typescript
 // Redis Lua runs atomically: no other command interleaves.
@@ -115,7 +115,7 @@ const TOKEN_BUCKET = `
     allowed = 1
   end
 
-  redis.call('HMSET', tokens_key, 'tokens', tokens, 'ts', now)
+  redis.call('HSET', tokens_key, 'tokens', tokens, 'ts', now)
   -- TTL = time to refill a full bucket, so idle keys expire themselves.
   redis.call('PEXPIRE', tokens_key, math.ceil(capacity / refill_rate * 1000))
 
@@ -128,9 +128,9 @@ time and cost in `arguments`, then read the two-element reply as `[allowed, rema
 
 **Why Lua and not `INCR` plus `EXPIRE`:** those are two round trips. If the process dies between them you get a key with no TTL that blocks the caller forever. Lua makes the whole decision one atomic operation.
 
-> ⚠️ **Every request now costs a Redis round trip.** At high volume, add a local pre-check: keep a small per-instance allowance and only consult Redis when it is exhausted. You trade exactness for latency — usually the right call, but say it out loud rather than pretending Redis is free.
+> ⚠️ **Every request now costs a Redis round trip.** At high volume, add a local pre-check: keep a small per-instance allowance and only ask Redis when it runs out. You trade exactness for latency. That is usually the right call, but say it out loud. Do not pretend Redis is free.
 
-**In practice, use the library.** `express-rate-limit` with `rate-limit-redis` is battle-tested.
+**In practice, use the library.** `express-rate-limit` with `rate-limit-redis` is well proven in production.
 Set `standardHeaders: "draft-8"` for the combined `RateLimit` header, drop the legacy
 `X-RateLimit-*` ones, set `ipv6Subnet: 56` so one client is one key rather than 2^72, and supply
 your own `keyGenerator`.
@@ -147,13 +147,13 @@ Prefer the most specific identity you have: API key or client id, then user id, 
 | **User id** | Follows the user across networks | Attacker can register more accounts |
 | **IP** | Always available | Shared by NAT, corporate and mobile carriers; trivially rotated with IPv6 |
 
-**`X-Forwarded-For` is client-controlled unless a proxy you trust rewrote it.** Blindly reading the first value lets anyone forge a fresh identity per request. Set Express's `trust proxy` to the number of proxies you actually run, and never more.
+**`X-Forwarded-For` is client-controlled unless a proxy you trust rewrote it.** If you trust the first value blindly, anyone can forge a fresh identity per request. Set Express's `trust proxy` to the number of proxies you actually run, and never more.
 
 ```typescript
 app.set("trust proxy", 1); // exactly one trusted proxy in front of us
 ```
 
-Layer the limits: per user or key for fairness, per IP as a coarse backstop for unauthenticated traffic, a global ceiling for load shedding, and **separate strict limits on login, password reset and OTP** — otherwise the general limit is a perfectly good credential-stuffing budget.
+Layer the limits. Use per user or key for fairness, and per IP as a coarse backstop for unauthenticated traffic. Add a global ceiling for load shedding, and **separate strict limits on login, password reset and OTP**. Otherwise the general limit is a perfectly good budget for credential stuffing (trying leaked passwords at scale).
 
 ## Response Headers and Failure
 
@@ -167,13 +167,13 @@ res.status(429).set({
 }).json({ title: "Too Many Requests", status: 429, detail: "Retry in 42 seconds." });
 ```
 
-Send the headers on **successful** responses too. A client that can see `remaining=3` slows itself down; a client that only learns about the limit at `429` cannot. And keep `429` for "you sent too much" — `503` means the service itself is in trouble, and conflating them misleads every retry policy downstream.
+Send the headers on **successful** responses too. A client that can see `remaining=3` slows itself down. A client that only learns about the limit at `429` cannot. And keep `429` for "you sent too much". `503` means the service itself is in trouble, and mixing them up misleads every retry policy downstream.
 
 **When Redis is unreachable, fail open loudly.** Catch the error, log it, increment a counter such
-as `ratelimit.unavailable`, and call `next()`. A silent dead limiter is the real risk — you want an
+as `ratelimit.unavailable`, and call `next()`. A silent dead limiter is the real risk. You want an
 alert, not a rejection.
 
-Rejecting everything turns a limiter outage into an API outage. Keep a cheap in-process limiter as a fallback so you degrade to approximate limiting rather than none.
+Rejecting everything turns a limiter outage into an API outage. Keep a cheap in-process limiter as a fallback. Then you fall back to approximate limiting rather than none.
 
 ## Common Mistakes
 
@@ -192,34 +192,34 @@ Rejecting everything turns a limiter outage into an API outage. Keep a cheap in-
 ❌ **Enforcing a new limit on day one.** Real traffic is burstier than anyone predicts.
 ✅ Run in monitor mode for a week and log what *would* have been blocked.
 
-> ⚠️ **Rate limiting is not DDoS protection.** A volumetric attack saturates your bandwidth before your middleware runs — that is a CDN and WAF job. Conflating the two is a common interview stumble.
+> ⚠️ **Rate limiting is not DDoS protection.** A volumetric attack fills your bandwidth before your middleware runs. That is a job for the CDN and the WAF (web application firewall). Mixing up the two is a common interview stumble.
 
 ## 🔑 Key Takeaways
 
 - Token bucket is the default for public APIs because it tolerates a real burst while holding the long-run average.
 - Fixed window allows 2× the limit across a boundary, which is precisely when the limit mattered.
-- Distributed counting is only correct if read, refill and write happen atomically — one Lua script, not two commands.
+- Distributed counting is only correct if read, refill and write happen atomically: one Lua script, not two commands.
 - Key on the strongest identity available, and treat `X-Forwarded-For` as untrusted unless a proxy you own rewrote it.
-- Fail open with an alert: a limiter outage should not become an API outage.
+- Fail open with an alert. A limiter outage should not become an API outage.
 
 ## Interview Questions
 
 **Q: What is wrong with fixed window?**
 
-Boundary bursts. A client can send the full limit at 12:00:59 and the full limit again at 12:01:00, so it gets 2× the intended rate in about a second. Sliding window counter fixes it with two counters and a weighted overlap — still O(1) memory, no boundary spike, and a few percent of inaccuracy when traffic is uneven inside the window.
+Boundary bursts. A client can send the full limit at 12:00:59 and the full limit again at 12:01:00, so it gets 2× the intended rate in about a second. Sliding window counter fixes it with two counters and a weighted overlap. It keeps O(1) memory and no boundary spike, at a few percent of error when traffic is uneven inside the window.
 
 **Q: How do you count correctly across many servers?**
 
-Shared state in Redis with the whole decision in a Lua script, so read-refill-write is atomic. `INCR` plus `EXPIRE` as separate calls can leave a key without a TTL if the process dies in between. At high volume I would add a per-instance local allowance to cut round trips and accept slight over-admission, and set each key's TTL to the bucket's full-refill time so idle keys clean themselves up.
+Shared state in Redis with the whole decision in a Lua script, so read-refill-write is atomic. `INCR` plus `EXPIRE` as separate calls can leave a key without a TTL if the process dies in between. At high volume I would add a per-instance local allowance to cut round trips, and accept that it lets a few extra requests through. I would set each key's TTL to the bucket's full-refill time, so idle keys clean themselves up.
 
 **Q: What do you key on, and why is IP a poor choice?**
 
-API key or user id when the caller is authenticated, IP only as a fallback. An office behind NAT shares one address, mobile carriers rotate them, and an IPv6 client has effectively unlimited addresses — which is why you key on a /56 subnet rather than a single address. And `X-Forwarded-For` is forgeable unless a proxy you control rewrote it, so `trust proxy` must be set to the real hop count.
+API key or user id when the caller is authenticated, IP only as a fallback. An office behind NAT shares one address, and mobile carriers rotate them. An IPv6 client has almost unlimited addresses, so you key on a /56 subnet rather than a single address. And `X-Forwarded-For` is forgeable unless a proxy you control rewrote it, so `trust proxy` must be set to the real hop count.
 
 **Q: When would you not rate limit an endpoint?**
 
-On an internal service where the callers are known and the failure mode is a paging alert rather
-than abuse — there the limiter adds a Redis round trip and a new way to fail. Also on a health check,
+On an internal service where the callers are known, and the failure mode is a paging alert, not
+abuse. There the limiter adds a Redis round trip and a new way to fail. Also on a health check,
 which must answer during exactly the incident a limiter would reject it in.
 
 ## What to Read Next

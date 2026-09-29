@@ -18,14 +18,14 @@ in_book: true
 
 ## 💡 The Core Idea
 
-SQL is declarative. You describe the result, and the planner decides how to get it. Two queries that
-return the same rows can differ in cost by a factor of a thousand. So "can you write this query" is only
-half of what an interviewer tests.
+SQL is declarative. You describe the result, and the query planner inside the database decides how to
+get it. Two queries that return the same rows can differ in cost by a factor of a thousand. So "can you
+write this query" is only half of what an interviewer tests.
 
 The schema matters even more. Code gets rewritten, but the data survives, with every bad decision stored
 in it. The goal is to make invalid states **impossible to store**. If an order cannot exist without a
-customer, that is a foreign key, not a check in a service. Application validation gives a better error message. The database guarantees the rule,
-because every writer goes through it.
+customer, that is a foreign key, not a check in a service. Application validation gives a better error
+message. The database guarantees the rule, because every writer goes through it.
 
 ## How It Works
 
@@ -43,8 +43,8 @@ filters groups, because groups do not exist yet when `WHERE` runs. So `HAVING` i
 can test an aggregate such as `COUNT(o.id) >= 3`.
 
 Every column in `SELECT` must be in `GROUP BY` or wrapped in an aggregate. `COUNT(*)` counts rows, but
-`COUNT(column)` skips `NULL`s, so a user with no orders gets `0`, not `1`. `SUM` over an empty set is
-`NULL`, not zero, so wrap it in `COALESCE`.
+`COUNT(column)` skips `NULL`s. So after a `LEFT JOIN`, a user with no orders gets `0`, not `1`. `SUM`
+over an empty set is `NULL`, not zero, so wrap it in `COALESCE`.
 
 ### Joins
 
@@ -167,7 +167,7 @@ the parent is in use. `CASCADE` everywhere means one bad delete removes half the
 
 `NOT NULL`, `UNIQUE`, `FOREIGN KEY` and `CHECK` cover most rules. The one worth naming in an interview is
 `EXCLUDE`. In application code, "no overlap" needs a read and a lock, and any gap between them is a race.
-The constraint is correct under any concurrency.
+The constraint is correct under any concurrency. The `=` on a plain column needs `btree_gist`.
 
 **No two overlapping subscriptions for one user:**
 

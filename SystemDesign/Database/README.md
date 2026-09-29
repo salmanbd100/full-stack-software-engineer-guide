@@ -12,13 +12,13 @@ in_book: true
 
 # Part VI — Data at Scale
 
-The data layer is where most system designs are actually decided. Choosing a store fixes what queries
-are cheap; choosing a shard key fixes what is possible at all; choosing an isolation level fixes what
-can go wrong under concurrency. All three are expensive to change later, which is why interviewers
-spend so much of a round here.
+The data layer is where most system designs are really decided. The store you choose fixes which
+queries are cheap. The shard key fixes what is possible at all. The isolation level fixes what can go
+wrong when requests run at the same time. All three are costly to change later, so interviewers spend
+much of a round here.
 
 This section is the **distributed** half of the subject. Schema design, indexing, query plans and
-day-to-day SQL belong to Part V, and this section assumes them rather than repeating them.
+day-to-day SQL belong to Part V. This section assumes them and does not repeat them.
 
 ## Chapters
 
@@ -39,14 +39,14 @@ day-to-day SQL belong to Part V, and this section assumes them rather than repea
 
 ## Reading Order
 
-01 → 02, in order. They are the two axes of distribution — copy the data or split it — and the second
-half of 02 is what concurrency does to both.
+01 → 02, in order. They are the two ways to spread data: copy it or split it. The second half of 02
+shows what concurrent writes do to both.
 
 **Interview sprint:** 02. Shard keys and lost updates are the two questions this section is asked about
 most.
 
 > ⚠️ Six chapters left this section at **#31d**. SQL and NoSQL design, indexing, data modelling and
-> query optimisation were merged into 01 or handed to Part V, which owns them at implementation depth;
-> CAP and consistency patterns merged into `Fundamentals/04-consistency-and-cap.md`. At #101 replication
-> merged into 01 and transactions at scale into 02; those two originals are in
+> query optimisation merged into 01 or moved to Part V, which covers them at implementation depth. CAP
+> and consistency patterns merged into `Fundamentals/04-consistency-and-cap.md`. At #101 replication
+> merged into 01 and transactions at scale into 02. Those two originals are in
 > `Archive/system-design/database/`.

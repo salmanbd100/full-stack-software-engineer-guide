@@ -12,12 +12,12 @@ in_book: true
 
 # Part VI — Building Blocks
 
-Every design round is assembled from the same small set of components. Once you know what each one
-buys, what it costs, and where it fails, most architectures become a matter of choosing which ones the
-requirements actually pay for.
+Every design round is built from the same small set of components. Learn what each one buys, what it
+costs, and where it fails. Most architectures then come down to choosing which ones the requirements
+actually pay for.
 
 Read this section for the trade-offs, not the product names. A cache is a cache whether it is Redis or
-Memcached; what matters is the invalidation strategy and the stampede.
+Memcached. What matters is the invalidation strategy and the stampede.
 
 ## Chapters
 
@@ -36,19 +36,19 @@ Memcached; what matters is the invalidation strategy and the stampede.
   database row and a cron job would carry is a common over-engineering signal.
 - **Can you name what a component costs?** A cache costs staleness. A queue costs eventual consistency
   and a duplicate-delivery problem. A gateway costs a hop and a shared component.
-- **Do you know the failure mode?** Every block in this section has one that shows up in production and
-  never in a tutorial: the health check that takes down the fleet, the cache stampede, the retry storm.
+- **Do you know the failure mode?** Every block here has one that shows up in production, never in a
+  tutorial. Think of the health check that takes down the fleet, the cache stampede, the retry storm.
 - **Do you keep business logic out of infrastructure?** The gateway routes; services decide.
 
 ## Reading Order
 
 01 → 02 → 03 are the components almost every round touches, in the order a request meets them. 04
-covers the two ways work leaves the request path. 05 and 06 belong together — they are the
+covers the two ways work leaves the request path. 05 and 06 belong together. They are the
 distributed-systems half of the section.
 
 **Interview sprint:** 01, 02 and 04, then 06.
 
-> ⚠️ Two chapters left this section at **#31d**. File storage and monitoring are owned by Part VIII —
-> `ShipAndOperate/Cloud/01-fundamentals.md` and `ShipAndOperate/Observability/` — and the
-> originals are in `Archive/systemdesign/building-blocks/`. #101 archived search and folded WebSockets
+> ⚠️ Two chapters left this section at **#31d**. Part VIII now owns file storage and monitoring, in
+> `ShipAndOperate/Cloud/01-fundamentals.md` and `ShipAndOperate/Observability/`. The originals
+> are in `Archive/systemdesign/building-blocks/`. #101 archived search and folded WebSockets
 > and the API gateway into their neighbours; those files are in `Archive/system-design/building-blocks/`.

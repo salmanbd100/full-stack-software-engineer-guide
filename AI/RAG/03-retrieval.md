@@ -22,14 +22,15 @@ An embedding turns text into a fixed-length list of numbers: a **point in space*
 similar meaning. "Cancel my subscription" and "how do I close my account" land close together, although
 they share no important word. Keyword search matches strings. Embedding search matches meaning.
 
-Documents become points once, at ingestion; a query becomes one per request. Embeddings blur exact
-tokens — an error code, a function name — so keyword search still matters. **Production retrieval runs both.** Its job is not to answer, but to get the answer into the window, ranked high.
+Documents become points once, at ingestion. A query becomes one on every request. Embeddings blur exact
+tokens, such as an error code or a function name, so keyword search still matters. **Production
+retrieval runs both.** Its job is not to answer, but to get the answer into the window, ranked high.
 
 ## How It Works
 
 ### A vector is a point, and direction is what matters
 
-No single number in a vector means anything you can read; the **geometry** carries the meaning.
+No single number in a vector means anything you can read. The **geometry** carries the meaning.
 Cosine similarity measures the angle between two vectors, not the distance between their tips. So two
 documents saying the same thing at different lengths still count as close.
 
@@ -55,14 +56,14 @@ top *k*, or measure a threshold on your own labelled queries.
 
 ### One model on both sides
 
-Vectors from two models cannot be compared, so query and documents share one model, and changing it
-means re-embedding everything. Many models also take an input type (query or document); getting it
-backwards costs recall silently. Store the model name and version beside every vector.
+Vectors from two models cannot be compared. So query and documents share one model, and changing it
+means re-embedding everything. Many models also take an input type (query or document). Getting it
+backwards silently costs recall. Store the model name and version beside every vector.
 
 ### Where the vectors live: start with Postgres
 
-A vector store returns the *k* nearest vectors to a query vector. The rest — filters, namespaces — is
-ordinary database work. pgvector makes a vector a column type, which inherits your backups, migrations,
+A vector store returns the *k* nearest vectors to a query vector. The rest, such as filters and namespaces, is
+ordinary database work. pgvector makes a vector a column type, so vectors inherit your backups, migrations,
 access control and transactions. The documentation assistant keeps its chunks in the Postgres it already runs.
 
 **The chunks table, an index and a filtered query in pgvector**
@@ -88,10 +89,10 @@ LIMIT 20;
 
 The permission filter, the similarity search and the data sit in one engine. With no index, the query
 compares against every row. That is exact, and `O(n)`. **Under about 100,000 vectors, exact search is
-usually fine** — tens of milliseconds. An approximate (ANN) index turns the scan into milliseconds at
-ten million rows, and gives up a little recall, typically 1–5% of the true neighbours. **HNSW**, a graph
-of neighbours, suits a growing corpus but builds slowly and wants memory. **IVFFlat**, learned clusters,
-builds fast but degrades as data shifts, so it needs rebuilds.
+usually fine**, at tens of milliseconds. An approximate nearest-neighbour (ANN) index answers in
+milliseconds at ten million rows. It gives up a little recall, typically 1–5% of the true neighbours.
+**HNSW**, a graph of neighbours, suits a growing corpus but builds slowly and needs memory. **IVFFlat**
+groups vectors into learned clusters. It builds fast but degrades as the data shifts, so it needs rebuilds.
 
 > ⚠️ **An approximate index plus a selective filter is where recall quietly collapses.** The index walks
 > a graph built over all rows. If few rows match the filter, the search runs out of candidates before it
@@ -100,20 +101,20 @@ builds fast but degrades as data shifts, so it needs rebuilds.
 
 ### What a dedicated store costs
 
-A dedicated vector database buys scale past tens of millions of vectors and managed sharding. It costs a
-second stateful system, with no joins or transactions across the two. The unforecast cost is the
-**sync**: every deletion and permission change becomes a distributed operation. When sync fails, a chunk survives its
-deleted document and gets cited to a user with full confidence. Storage is the other surprise. A
-1536-dimension float32 vector is 6 KB, so a million chunks is 6 GB before the index, and HNSW can
-double that in memory. Shortened dimensions cut this, if your eval says the recall loss is acceptable.
+A dedicated vector database buys scale past tens of millions of vectors, and managed sharding. It costs a
+second stateful system, with no joins or transactions across the two. The cost nobody forecasts is the
+**sync**: every deletion and permission change becomes a distributed operation. When sync fails, a chunk
+outlives its deleted document and gets cited to a user with full confidence. Storage is the other
+surprise. A 1536-dimension float32 vector is 6 KB, so a million chunks is 6 GB before the index. HNSW can
+double that in memory. Fewer dimensions cut this, if your eval says the recall loss is acceptable.
 
-The assistant's **re-embed job** runs when a page changes: it deletes the page's old chunks and writes
-new ones in one transaction. Changing embedding model is the same job over every page, into a parallel
-index, followed by a switchover once both indexes have been scored on the same questions.
+The assistant's **re-embed job** runs when a page changes. It deletes the page's old chunks and writes
+new ones in one transaction. Changing the embedding model runs the same job over every page, into a
+parallel index. Reads switch over once both indexes have been scored on the same questions.
 
-> ⚠️ **Moving target:** vendor lists date fast, and pgvector keeps narrowing the gap — quantised vector
-> types and index improvements land every few releases. The principle holds: an approximate index buys
-> speed with recall, and a benchmark without your filters measures neither.
+> ⚠️ **Moving target:** vendor lists go out of date fast, and pgvector keeps narrowing the gap. Quantised
+> (compressed) vector types and index improvements land every few releases. The principle holds: an
+> approximate index buys speed with recall, and a benchmark without your filters measures neither.
 
 ### Three search modes, three blind spots
 
@@ -128,8 +129,8 @@ opposite. Numbers and dates embed badly too, so they belong in metadata filters.
 
 ### Hybrid search, and merging the two lists
 
-BM25 scores are unbounded and cosine scores are not, so normalising them is brittle. **Reciprocal rank
-fusion** uses ranks instead, and there is nothing to calibrate.
+BM25, the standard keyword-ranking formula, gives unbounded scores and cosine does not. So putting the two
+on one scale is fragile. **Reciprocal rank fusion** uses ranks instead, and there is nothing to calibrate.
 
 **Reciprocal rank fusion over a keyword list and a vector list**
 
@@ -153,18 +154,17 @@ A document both lists rank highly rises above one only a single list liked.
 
 ### Reranking and choosing *k*
 
-The retriever optimises for **recall**; the reranker optimises for **precision**. A vector search compares two embeddings computed apart, so the document never sees the query. A
-cross-encoder reranker reads query and passage **together** and scores the pair. It is far more
-accurate, and it cannot be precomputed. It adds 100–400 ms and a per-document charge. Skip it when the
-corpus is small enough that the top five already hold the answer.
+The retriever optimises for **recall**. The reranker optimises for **precision**. A vector search
+compares two embeddings computed apart, so the document never sees the query. A cross-encoder reranker
+reads query and passage **together** and scores the pair. It is far more accurate, but it cannot be
+precomputed. It adds 100–400 ms and a per-document charge. Skip it when the top five already hold the answer.
 
 Each chunk passed on costs window space and tokens, and adds noise. So **retrieve wide and cheap, rerank
 narrow, send few**: fuse two top-50 lists, rerank 20, pass 5. The assistant reranks to `k = 5`.
 
 ### Filters are access control
 
-If users may see different documents, the filter **is** the access control. It has to run inside the
-search, not after it.
+If users may see different documents, the filter **is** the access control. It runs in the search, not after.
 
 **Pre-filtering by tenant and role inside the engine**
 
@@ -175,14 +175,15 @@ declare const index: { query(q: object): Promise<unknown[]> };
 declare const userQuery: string;
 declare const user: { tenantId: string; roles: string[] };
 
+const { embedding } = await embed({ model: EMBEDDING_MODEL, value: userQuery });
 const hits = await index.query({
-  vector: await embed(userQuery),
+  vector: embedding,
   topK: 50,
   filter: { tenantId: user.tenantId, visibility: { $in: user.roles } }, // pre-filter, in the engine
 });
 ```
 
-Filtering in application code fails twice: if all 50 are hidden the user gets nothing, and whoever
+Filtering in application code fails twice. If all 50 are hidden, the user gets nothing. And whoever
 raises the limit to "fix" it makes a leak possible.
 
 ### Query rewriting
@@ -190,7 +191,7 @@ raises the limit to "fix" it makes a leak possible.
 The user's words are often not the corpus's words. Two fixes help:
 
 - **Rewriting** turns "and what about the other one?" into a standalone question using the history.
-  Without it, follow-ups retrieve noise — the most common multi-turn RAG bug.
+  Without it, follow-ups retrieve noise. This is the most common multi-turn RAG bug.
 - **Multi-query expansion** searches two or three phrasings and fuses the results, buying recall.
 
 > ⚠️ Both add a full model round trip before retrieval starts. The assistant rewrites through its small,
@@ -251,21 +252,21 @@ It is not a probability and not comparable across models. Unrelated text can sco
 **Q: pgvector or a dedicated vector database?**
 
 pgvector until scale really demands otherwise. It makes vectors a column in a database I already back
-up, migrate and secure, and filtering and similarity become one planner decision. A dedicated store adds
-a second system and a sync pipeline, whose signature failure is a deleted document still being cited. I
+up, migrate and secure. Filtering and similarity then become one planner decision. A dedicated store adds
+a second system and a sync pipeline. Its typical failure is a deleted document that still gets cited. I
 would move at tens of millions of vectors, or when vector load starts to hurt transactional traffic.
 
 **Q: Vector, keyword, or both?**
 
 Both, in almost every production system, because they fail on different queries. Vector search handles
-paraphrase and misses error codes; keyword search does the reverse. I would fuse by rank rather than
-normalise scores, and on a tiny corpus start with one until the eval shows which queries fail.
+paraphrase and misses error codes. Keyword search does the reverse. I would fuse by rank, not normalise
+scores. On a tiny corpus, I would start with one until the eval shows which queries fail.
 
 **Q: What does a reranker do that the retriever cannot?**
 
-It reads the query and the passage together. A vector search compares embeddings computed apart, which
-makes it fast and precomputable but limits its precision. A cross-encoder scores the pair directly: more
-accurate, never precomputed. So retrieve fifty cheaply, rerank twenty, send five.
+It reads the query and the passage together. A vector search compares embeddings computed apart. That
+makes it fast and precomputable, but limits its precision. A cross-encoder scores the pair directly. It
+is more accurate, but never precomputed. So retrieve fifty cheaply, rerank twenty, send five.
 
 **Q: How do you scope retrieval to what a user may see?**
 

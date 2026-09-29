@@ -19,13 +19,13 @@ in_book: true
 ## 💡 The Core Idea
 
 The hard part is not sending keystrokes over a socket. It is that two people edit **the same position** at
-the same moment, one of them on a train with no signal, and both edits have to survive. A lock would solve
-it and destroy the product. So the design gives every replica the right to edit immediately and makes the
-merge rule mathematical instead of negotiated.
+the same moment, one of them on a train with no signal, and both edits must survive. A lock would solve it
+and destroy the product. So every replica may edit at once, and the merge rule is mathematical, not
+negotiated.
 
-That single constraint — **the local edit renders before the server has heard of it** — decides the rest.
-The client owns a full replica, the server is a relay with a log, and the only question left open is which
-merge rule you pick.
+One constraint decides the rest: **the local edit renders before the server has heard of it**. The client
+owns a full replica and the server is a relay with a log. The only open question is which merge rule you
+pick.
 
 > This is a frontend round wearing a distributed systems costume. Say that out loud early.
 
@@ -39,11 +39,11 @@ colleague's.
 
 **Out of scope:** comments, suggestion mode, media embeds, permissions.
 
-**Non-functional:** a local keystroke paints in under 16 ms — never behind a round trip. Replicas that have
+**Non-functional:** a local keystroke paints in under 16 ms, never behind a round trip. Replicas that have
 seen the same edits show the same document. A client offline for a day still merges.
 
-**Scale:** most documents have 1–5 concurrent editors; design for 50, with a tail of documents holding 5 MB
-of text and ten years of history.
+**Scale:** most documents have 1–5 concurrent editors. Design for 50, with a tail of documents that hold
+5 MB of text and ten years of history.
 
 ### Architecture
 
@@ -59,9 +59,9 @@ flowchart LR
 
 **Every edit applies locally first, then queues; the server is never on the typing path.**
 
-The server is deliberately dull: route operations to the other clients, append them to a log, snapshot
-occasionally. It is **stateful per document** — one document, one process — which gives a single ordering
-point and makes fan-out trivial.
+The server is deliberately dull. It routes operations to the other clients, appends them to a log, and
+takes a snapshot now and then. It is **stateful per document**: one document, one process. That gives a
+single ordering point and makes fan-out (sending each edit to every other client) trivial.
 
 ### The convergence rule: OT or CRDT
 
@@ -72,11 +72,12 @@ point and makes fan-out trivial.
 | Cost on disk | Small: text plus a log | Larger: metadata per character, plus tombstones |
 | Offline for hours | Painful — the transform chain grows | Natural |
 
-Pick **CRDT** here, because "offline edits merge" is in the requirements and it is the clause OT struggles
-with. Name what it costs: metadata per character, and tombstones that never fully leave.
+Pick **CRDT** (conflict-free replicated data type) here. "Offline edits merge" is in the requirements,
+and that is the clause OT struggles with. Name the cost: metadata per character, and tombstones (markers
+for deleted characters) that never fully leave.
 
-> ⚠️ Do not claim to implement either from scratch. The senior answer names a library — Yjs, Automerge —
-> states the property it needs, and spends the time on what the library does not solve.
+> ⚠️ Do not claim to build either from scratch. The senior answer names a library, such as Yjs or
+> Automerge. It states the property it needs, and spends the time on what the library does not solve.
 
 ### Data model
 
@@ -98,9 +99,9 @@ interface Char {
 }
 ```
 
-Deletion sets a flag. Removing the element would break any concurrent insert pointing at it, so the
-character stays and the renderer skips it. Two inserts after the same character are ordered by comparing
-`CharId` — an arbitrary rule, but an **identical** one on every replica, which is the whole trick.
+Deletion sets a flag. Removing the element would break any concurrent insert that points at it, so the
+character stays and the renderer skips it. Replicas order two inserts after the same character by comparing
+`CharId`. The rule is arbitrary, but it is **identical** on every replica, and that is the whole trick.
 
 ### Interface
 
@@ -117,24 +118,23 @@ type ServerMessage =
   | { type: "awareness"; peers: readonly Peer[] };
 ```
 
-Awareness — cursors, selections, who is here — is **disposable**: high frequency, worthless a second later,
-and never written to the log. Putting it on the durable channel is what turns a 5 KB document into a 40 MB
-log.
+Awareness (cursors, selections, who is here) is **disposable**. It is high frequency, worthless a second
+later, and never written to the log. Put it on the lasting channel, and a 5 KB document grows a 40 MB log.
 
 ### Undo that belongs to you
 
 `Ctrl+Z` must not delete a colleague's sentence, so undo is not a global stack. Each replica keeps its own
-stack of inverse operations and applies the inverse as a **fresh edit**, which then merges like any other.
-History stays append-only; nothing rewinds.
+stack of inverse operations. It applies the inverse as a **fresh edit**, which then merges like any other.
+History stays append-only. Nothing rewinds.
 
 ### Optimisations
 
 **Snapshot and compact.** Replaying ten years of operations to open a document is not viable. Snapshot every
-few thousand operations; a joining client gets the snapshot plus the tail.
+few thousand operations. A joining client gets the snapshot plus the tail.
 
-**Batch by frame.** Fifty people typing at 8 characters a second is 400 messages a second per document if
-each keystroke is a message. Coalesce per animation frame — one message every ~16 ms — and the CRDT merges
-the batch identically.
+**Batch on a tick.** Fifty people typing 8 characters a second send 400 messages a second, and fan-out to
+49 peers makes that about 20,000. Coalesce on a 50 ms tick, in the client and the fan-out, and each peer
+gets 20 messages a second at any typing rate. The CRDT merges a batch identically.
 
 ## When to Use It
 
@@ -151,8 +151,8 @@ the batch identically.
 > `{ cursor: 412 }`
 
 Character 412 is a different character the moment a remote insert lands above it. Cursors anchor to a
-`CharId`, like everything else. Blocking the keystroke on an acknowledgement is the same mistake in the
-time dimension: typing that waits for the server feels broken at 80 ms and unusable at 300 ms.
+`CharId`, like everything else. Blocking the keystroke on an acknowledgement is the same mistake in time.
+Typing that waits for the server feels broken at 80 ms and unusable at 300 ms.
 
 **✅ One process per document**
 
@@ -171,21 +171,21 @@ time dimension: typing that waits for the server feels broken at 80 ms and unusa
 
 **Q: Two people insert a character at the same position at the same moment. What decides the order?**
 
-Both inserts name the same predecessor, so the replicas compare the two identifiers — replica id and
-counter — using a total order every replica computes the same way. It is arbitrary but deterministic, which
+Both inserts name the same predecessor. So the replicas compare the two identifiers (replica id and
+counter) using a total order every replica computes the same way. It is arbitrary but deterministic, which
 is all convergence needs. One character lands first, and everybody sees the same one first.
 
 **Q: When would you not use a CRDT?**
 
 When nothing is offline and the data is structured rather than free text. A form with independent fields
-converges fine with last-write-wins per field, and a server-authoritative model is easier to reason about
+converges fine with last-write-wins per field. A server-authoritative model is also easier to reason about
 and audit. CRDTs earn their metadata cost only when concurrent edits to one sequence are normal.
 
 **Q: A client has been offline for a week and reconnects. What happens?**
 
-It sends its queued operations and asks for everything since its last sequence number; if that tail is
-large, the server sends a snapshot instead and the client merges its pending edits on top — safe precisely
-because the merge is order-independent. The risk to name is the outbox: if it only ever lived in memory,
+It sends its queued operations and asks for everything since its last sequence number. If that tail is
+large, the server sends a snapshot instead, and the client merges its pending edits on top. This is safe
+because the merge does not depend on order. The risk to name is the outbox. If it only lived in memory,
 the week of work is gone, so it belongs in IndexedDB.
 
 ## What to Read Next

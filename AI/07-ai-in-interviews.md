@@ -18,9 +18,9 @@ in_book: true
 
 ## 💡 The Core Idea
 
-An AI round is not a quiz about transformers. It is a round about **whether you can locate a failure and
-attach a number to it.** Every question in this chapter has a version that sounds like knowledge and a
-version that is really about measurement, and the second one is what is being scored.
+An AI round is not a quiz about transformers. It tests **whether you can locate a failure and attach a
+number to it.** Every question in this chapter has two versions. One sounds like knowledge. The other is
+really about measurement, and that second one is what the interviewer scores.
 
 > The senior signal for this part is one sentence: **measure before improving.** Say what you would
 > measure, and say it before you say what you would change.
@@ -40,8 +40,8 @@ Almost every AI question in a senior loop is one of these four, or a rewording o
 
 ### Round one — "design a RAG system"
 
-This is a system design round with a retrieval engine inside it, so drive it the way you drive any design
-round — requirements first, tradeoffs stated, numbers attached, per
+This is a system design round with a retrieval engine inside it. Drive it like any design round:
+requirements first, tradeoffs stated, numbers attached. See
 [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round).
 
 | Phase | What to do | Why it scores |
@@ -57,10 +57,10 @@ Two clarifying answers change the architecture more than anything else. **How of
 decides whether re-embedding is a nightly job or a queue on the write path. **What a wrong answer costs**
 decides whether the feature may answer at all when confidence is low.
 
-Then finish on measurement rather than on components. The golden set, the hit rate you would gate on and
-the cost per question is a different answer from one that stops at the vector store — see
-[Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals). And asked to "add AI" to an existing
-product, the honest first question is whether retrieval is needed at all:
+Then finish on measurement, not on components. An answer that ends with the golden set, the hit rate you
+would gate on and the cost per question beats one that stops at the vector store. See
+[Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals). Asked to "add AI" to an existing
+product, the honest first question is whether retrieval is needed at all.
 [Chapter ?? — When RAG, When Fine-Tune, When Neither](#ch-when-rag-when-fine-tune-when-neither) is the
 decision behind it.
 
@@ -68,19 +68,19 @@ decision behind it.
 
 The answer has three parts, in this order: **a golden set, a metric per failure mode, and a gate in CI.**
 
-- **The golden set** — fifty to a few hundred real questions with known-good answers, versioned next to
+- **The golden set**: fifty to a few hundred real questions with known-good answers, versioned next to
   the code. Say where the cases came from: production traces, not imagination.
 - **A metric per failure mode**, because they fail separately. Retrieval hit rate, answer correctness and
   citation validity are three numbers, and a drop in the first looks nothing like a drop in the third.
 - **A gate**, so a prompt change that lowers the pass rate cannot ship.
 
-If you offer a judge model, say in the same breath how it is validated — a sample graded by hand, and
-agreement measured. An unvalidated judge is an opinion with a decimal point;
+If you offer a judge model (a model that grades another model's output), say at once how you validate it.
+Grade a sample by hand and measure agreement. An unvalidated judge is an opinion with a decimal point.
 [Chapter ?? — Evals, Retrieval Metrics and Error Analysis](#ch-evals) has the full shape.
 
 ### Round three — "your agent is looping, debug it"
 
-Ask for the trace. That request alone is most of the point, and if there is no trace to hand, say what you
+Ask for the trace. That request alone is most of the point. If there is no trace to hand, say what you
 would want in it: the step index, the tool name, the arguments, and the result.
 
 **The trace that ends this question in ten seconds:**
@@ -92,9 +92,9 @@ step 5  search_docs({ q: "refund policy" })  →  []
 ```
 
 Identical arguments, identical result, no new information reaching the model. That is not a reasoning
-failure — it is a tool that cannot say "no match, try these terms instead", so an empty array reads as a
-transient error worth retrying. Then bisect out loud — narrating a diagnosis is its own skill, and
-[Chapter ?? — Explaining and Thinking Aloud](#ch-thinking-aloud) is where it is taught — in this order:
+failure. The tool cannot say "no match, try these terms instead", so an empty array reads as a passing
+error worth retrying. Then narrow the cause down out loud, in the order below. Narrating a diagnosis is
+its own skill: [Chapter ?? — Explaining and Thinking Aloud](#ch-thinking-aloud) teaches it.
 
 | Ask | If yes, the cause is | The fix |
 | --- | --- | --- |
@@ -103,18 +103,18 @@ transient error worth retrying. Then bisect out loud — narrating a diagnosis i
 | Runs to the step cap on every task? | No satisfiable stop condition | State the completion criterion in the goal |
 | Loops only on long tasks? | Context growth pushing early state out | Summarise, or persist state outside the window |
 
-Name the bounds too — a step cap, a token budget, an alert on both — because a runaway loop is a cost
-incident as well as a bug. [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) is
+Name the bounds too: a step cap, a token budget, and an alert on both. A runaway loop is a cost incident
+as well as a bug. [Chapter ?? — Tool Calling and the Tool Surface](#ch-tool-calling) is
 the underlying material.
 
 ### Round four — "what breaks when the model changes version"
 
-The framing that wins is that **a model id is a dependency in the critical path.** A pinned version is a
-lockfile entry; an alias resolving to whatever is newest is an unreviewed deploy on the provider's schedule.
+The framing that wins: **a model id is a dependency in the critical path.** A pinned version is a lockfile
+entry. An alias that resolves to whatever is newest is an unreviewed deploy on the provider's schedule.
 
-Then name what drifts: structured output and tool-calling formats, refusal boundaries, the prompt cache
-that invalidates on the id change, and price per token — so a same-quality upgrade can break a latency
-budget.
+Then name what drifts: structured output and tool-calling formats, refusal boundaries, and price per
+token. The prompt cache also goes cold on the id change, so an upgrade of the same quality can still
+break a latency budget.
 
 **What an upgrade produces, and the only blocking part of it:**
 
@@ -133,9 +133,9 @@ interface UpgradeReport {
 Three numbers move together and the regression list decides. An upgrade that raises the pass rate by two
 points and doubles the price is a decision for someone else to take, and saying so is the senior answer.
 
-> ⚠️ **Moving target:** provider SDKs, model ids and pricing all change on a scale of months, so no
-> memorised model name survives this book. The durable principle is the one above — the version is a
-> dependency, and the eval suite is its regression test.
+> ⚠️ **Moving target:** provider SDKs, model ids and pricing all change every few months, so no memorised
+> model name survives this book. The lasting principle is the one above. The version is a dependency, and
+> the eval suite is its regression test.
 
 ## When to Use It
 
@@ -150,8 +150,8 @@ points and doubles the price is a decision for someone else to take, and saying 
 
 **❌ Reaching for the prompt first**
 
-> Prompt changes are the cheapest thing to try and the hardest to attribute. Locate the failure —
-> retrieval, tools, or generation — before changing anything.
+> Prompt changes are the cheapest thing to try and the hardest to trace to a result. Locate the failure
+> first (retrieval, tools, or generation) before changing anything.
 
 **✅ Answering with a diagnosis, then a fix**
 
@@ -160,14 +160,14 @@ points and doubles the price is a decision for someone else to take, and saying 
 
 **❌ Having no cost answer**
 
-> This is the first feature class in years whose marginal cost per user is visible, so "I have not thought
+> This is the first kind of feature in years whose extra cost per user is visible. So "I have not thought
 > about cost" ends a senior round badly.
 
 ## 🔑 Key Takeaways
 
 - Every AI interview question is a measurement question wearing a knowledge question's clothes, so state
   the number you would gate on before the architecture.
-- Answer with a diagnosis before a fix — retrieval, tools, or generation, then what you would change.
+- Answer with a diagnosis before a fix: retrieval, tools, or generation, then what you would change.
 - A RAG design that ends at the vector store is unfinished; it ends at the golden set and the cost per question.
 - Ask for the trace when an agent misbehaves, and read the arguments, not just the tool names.
 - A model version is a pinned dependency, and the eval suite is the regression test that gates its upgrade.
@@ -176,9 +176,9 @@ points and doubles the price is a decision for someone else to take, and saying 
 
 **Q: An agent is looping in production. Walk me through it.**
 
-I read the trace before touching the prompt. If the same tool is called with the same arguments, it is
-returning something the model cannot distinguish from a transient failure — usually an empty array — and
-the fix is a return value that says "no match" and suggests a next term. If the calls differ but the run
+I read the trace before touching the prompt. Say the same tool is called with the same arguments. Then it
+returns something the model cannot tell apart from a passing failure, usually an empty array. The fix is
+a return value that says "no match" and suggests a next term. If the calls differ but the run
 never ends, there is no satisfiable stop condition and the goal needs a completion criterion. I would also
 check for two tools whose descriptions overlap, and confirm a step cap and a token budget exist with an
 alert on both.
@@ -187,15 +187,15 @@ alert on both.
 
 It is a dependency upgrade in the critical path, so it goes through the same process as any other. Pin the
 candidate id on a branch, run the golden set against both, and compare pass rate, cost per question and
-p95 latency. Cases that passed before and fail now are the blocking list; the rest is a judgement call
+p95 latency. Cases that passed before and fail now are the blocking list. The rest is a judgement call
 about price and speed. I would expect the output and tool-calling formats to drift first, and the prompt
 cache to be cold on the new id, which changes the latency profile before quality enters the argument.
 
 **Q: When would you tell a product manager not to build an AI feature?**
 
-When the task is deterministic and a query would answer it, when a wrong answer costs more than a fast one
-is worth, or when there is no way to tell whether the output was right. That last case is the real blocker
-— a feature nobody can evaluate cannot be improved, so it degrades quietly with every model change. I would
+There are three cases. The task is deterministic and a query would answer it. A wrong answer costs more
+than a fast one is worth. Or there is no way to tell whether the output was right. That last case is the
+real blocker. Nobody can improve a feature nobody can evaluate, so it degrades quietly with every model change. I would
 rather ship a scoped assistant with a measurable pass rate than a general one nobody can grade.
 
 ## What to Read Next

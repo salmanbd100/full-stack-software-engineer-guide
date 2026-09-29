@@ -12,14 +12,14 @@ in_book: true
 
 # Part V — API Design
 
-This is the section a frontend engineer has the most standing to be opinionated about, because you
-have spent years consuming other people's decisions here. Every awkward client-side workaround — the
-waterfall of three requests, the pagination that skips a row, the field that is sometimes `null` and
-sometimes absent — started as an API design choice.
+A frontend engineer has the most right to strong opinions on this section. You have spent years
+consuming other people's decisions here. Every awkward client-side workaround started as an API
+design choice: the waterfall of three requests, the pagination that skips a row, the field that is
+sometimes `null` and sometimes absent.
 
-It covers the contract itself, then the operational concerns that turn a working endpoint into one
-that survives production: evolving it without breaking clients, limiting what one caller can cost
-you, and pushing data the client did not ask for.
+It covers the contract itself first. Then it covers what turns a working endpoint into one that
+survives production: changing it without breaking clients, limiting what one caller can cost you,
+and pushing data the client did not ask for.
 
 ## Chapters
 
@@ -39,21 +39,21 @@ The senior signal for this part is **designs an API the frontend can actually co
 why the query is slow.** The API half shows up as:
 
 - **Can you defend your status codes?** 401 against 403, 404 against 403, and what the failure body
-  contains. It sounds pedantic and it is the fastest way to tell whether someone has designed an API
-  or only consumed one.
+  contains. It sounds pedantic. It is also the fastest way to tell whether someone has designed an
+  API or only consumed one.
 - **Do you know the N+1 problem in GraphQL?** A nested field resolved per parent row is the standard
   failure. Naming DataLoader, or batching generally, is the expected follow-up.
-- **How do you paginate?** Offset pagination duplicates and skips rows under concurrent writes;
-  cursor pagination does not. Knowing why is the actual question.
+- **How do you paginate?** Offset pagination duplicates and skips rows under concurrent writes.
+  Cursor pagination does not. Knowing why is the actual question.
 - **REST or GraphQL — on what grounds?** A scoring answer names client diversity, over-fetching,
   caching and schema ownership. "GraphQL is more flexible" does not.
 - **Where do you rate-limit?** In-process counters break the moment there are two instances.
-- **Is your typed API type-safe in production?** Inference is checked at build time against your
-  working tree. The scoring answer names the deployed-server-behind-the-client failure.
+- **Is your typed API type-safe in production?** TypeScript checks inference at build time, against
+  your working tree. The scoring answer names the failure where the deployed server lags the client.
 
 ## Reading Order
 
-01 first — it sets the vocabulary the rest of the section uses. Then 02. The last three are
-operational or situational and can wait until they become relevant.
+Read 01 first. It sets the words the rest of the section uses. Then read 02. The last three are
+operational or situational, so they can wait until you need them.
 
 **Interview sprint:** 01 → 02 → 03.

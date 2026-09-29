@@ -12,14 +12,13 @@ in_book: true
 
 # Part VI — System Design
 
-The round most senior candidates lose, and the one they prepare for least specifically. Part VI teaches
-the vocabulary first, then the components, then the two kinds of round a frontend-heavy engineer walks
-into — a backend-shaped case study, and a frontend one.
+This is the round most senior candidates lose, and the one they prepare for least. Part VI teaches the
+vocabulary first, then the components, then the two kinds of round a frontend-heavy engineer meets: a
+backend-shaped case study, and a frontend one.
 
-The balance correction matters. Classic system design material is entirely backend-shaped — shorten
-URLs, design a feed, shard a database — while this reader also gets asked for a collaborative editor,
-an infinite feed, or a dashboard with fifty live widgets. Those rounds have their own vocabulary, and
-`Frontend/` is where it lives.
+That balance matters. Classic system design material is all backend: shorten URLs, design a feed, shard
+a database. But this reader also gets asked for a collaborative editor, an infinite feed, or a dashboard
+with fifty live widgets. Those rounds have their own vocabulary, and `Frontend/` is where it lives.
 
 ## Sections
 
@@ -50,8 +49,8 @@ The full walkthrough is [Chapter ?? — Driving the Design Round, Backend and Fr
 
 The senior signal for this part is **drives the round — clarifies requirements, states assumptions,
 defends trade-offs.** Note what is not on that list: arriving at the "correct" architecture. Two habits
-carry it: saying your assumptions out loud, so the interviewer can correct you cheaply, and being able
-to estimate — queries per second, storage per year, bandwidth are what turn a diagram into a design.
+carry it. First, say your assumptions out loud, so the interviewer can correct you cheaply. Second,
+estimate: queries per second, storage per year and bandwidth turn a diagram into a design.
 
 **Mid or senior, on the same question:**
 
@@ -71,8 +70,8 @@ against a timer.
 `BuildingBlocks/01`–`04`, then two case studies end to end.
 
 > ⚠️ Four directories are gone. `Scalability/` and `Infrastructure/` went at #22 and #23. `Security/`
-> went at #24 — authorisation, encryption at rest and SSRF moved into `Backend/Security/`.
-> `Microservices/` went at **#31d**: the gateway, service-boundary and resilience chapters joined
-> `BuildingBlocks/`, and deployment and distributed tracing were archived because Part VIII already owns
-> them. #101 then cut the part from 6,291 lines to its 4,400 budget; `Archive/system-design/README.md`
+> went at #24, and its authorisation, encryption at rest and SSRF moved into `Backend/Security/`.
+> `Microservices/` went at **#31d**. Its gateway, service-boundary and resilience chapters joined
+> `BuildingBlocks/`. Deployment and distributed tracing were archived, because Part VIII already owns
+> them. #101 then cut the part from 6,291 lines to its 4,400 budget. `Archive/system-design/README.md`
 > records where each chapter went.

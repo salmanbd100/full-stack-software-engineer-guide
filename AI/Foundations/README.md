@@ -12,9 +12,9 @@ in_book: true
 
 # Foundations
 
-Three chapters of mental model, before any SDK. A senior engineer does not need to know how attention
-works. They do need to know why the same prompt gives two different answers, why the tenth message costs
-more than the first, and why "just use the biggest model" is a cost decision dressed up as a quality one.
+Three chapters of mental model, before any SDK. A senior engineer need not know how attention works. They
+do need to know why one prompt gives two different answers, and why the tenth message costs more than the
+first. They also need to see "just use the biggest model" as a cost decision dressed up as a quality one.
 
 The through-line is one sentence: **a model is a stateless function over a token budget.** Truncated
 answers, forgotten instructions and cost that grows with the conversation all follow from it.
@@ -45,13 +45,13 @@ is where it becomes an application.
 
 - **"Why did the model give a different answer the second time?"** Sampling. Name temperature, then add
   the part that matters: you cannot test a non-deterministic system with equality checks.
-- **"It works in the playground and fails in production. Why?"** Almost always context — a different
+- **"It works in the playground and fails in production. Why?"** Almost always context: a different
   system prompt, a cut window, or retrieved text the playground never had. Ask to see the assembled request.
 - **"When would you use a smaller model?"** Routing, extraction and anything on a hot path. Naming where you
-  would *not* — open-ended reasoning, long tool use — makes it a judgement, not a preference.
+  would *not* (open-ended reasoning, long tool use) makes it a judgement, not a preference.
 
 ## Reading Order
 
-01 first; the rest of the part assumes its vocabulary. 02 and 03 can be read in either order.
+01 first. The rest of the part assumes its vocabulary. 02 and 03 can be read in either order.
 
 **Interview sprint:** 01 and 03. They cover most of what a general AI question is really testing.

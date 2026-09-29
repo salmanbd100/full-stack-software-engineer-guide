@@ -18,12 +18,12 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A feed is unbounded and a device is not. Two separate budgets have to hold at once, and confusing them is
-the classic mistake: the **network budget** is how much data you fetch, and the **render budget** is how many
-DOM nodes exist. "Load more" only addresses the first. After two thousand posts the page is slow because
+A feed has no end and a device has limits. Two separate budgets must hold at once, and mixing them up is
+the classic mistake. The **network budget** is how much data you fetch. The **render budget** is how many
+DOM nodes exist. "Load more" only deals with the first. After two thousand posts the page is slow because
 there are two thousand posts *in the document*, not because the JSON was large. So the design keeps a
-sliding window of rows in the DOM, and treats scroll position as data the system stores and restores
-deliberately rather than something the browser happens to get right.
+sliding window of rows in the DOM. It also treats scroll position as data it stores and restores on
+purpose, not something the browser happens to get right.
 
 > The senior signal here is naming the render budget before anyone asks about performance.
 
@@ -36,8 +36,8 @@ reads. Opening a post and pressing back returns to the same row.
 
 **Out of scope:** ranking, ads, comments, composing.
 
-**Non-functional:** interaction stays under 200 ms (INP) during scroll, cumulative layout shift under 0.1,
-and memory flat after two thousand items. First screen is usable in under 2 seconds on a mid-range phone.
+**Non-functional:** interaction stays under 200 ms (INP) during scroll, cumulative layout shift (CLS) under
+0.1, and memory flat after two thousand items. First screen is usable in under 2 seconds on a mid-range phone.
 
 **Scale:** a session is 200–3,000 items. Pages of 20. Assume a feed that changes while it is being read.
 
@@ -64,8 +64,8 @@ Offsets are wrong the moment the feed changes underneath the reader.
 | A post is deleted | One item is silently skipped | Unaffected |
 | Cost on the server | `OFFSET 60` scans and discards 60 rows | Index seek from the cursor's key |
 
-The cursor is opaque to the client and encodes the sort key plus a tiebreaker id, so ordering is total and
-paging can never loop:
+The cursor is opaque to the client. It encodes the sort key plus a tiebreaker id, so the order is total
+and paging can never loop:
 
 ```typescript
 interface FeedPage {
@@ -81,13 +81,13 @@ interface FeedItem {
 }
 ```
 
-`width` and `height` look like clutter and are the reason the feed does not jump. Without them the client
+`width` and `height` look like clutter, but they are why the feed does not jump. Without them the client
 cannot reserve space, and every image that loads pushes the text the reader is looking at down the page.
 
 ### Virtualisation and the anchoring problem
 
-Render roughly one viewport of rows plus a screen of overscan either side — around 30 — and give the
-scroller a spacer sized from measured heights, with an estimate for rows not yet seen.
+Render roughly one viewport of rows, plus a screen of overscan (extra rows off screen) either side: around
+30 in all. Give the scroller a spacer sized from measured heights, with an estimate for rows not yet seen.
 
 The subtle part is what happens when an estimate turns out wrong. Correcting the height of a row **above**
 the viewport moves everything below it, and the content under the reader's thumb jumps.
@@ -111,21 +111,21 @@ broken.
 
 ### Images
 
-Reserve the box before the bytes arrive with `aspect-ratio` from the server-sent dimensions, load below the
-fold with `loading="lazy"`, and set `fetchpriority="high"` on the first one or two only. That combination
-is what buys a CLS near zero rather than a stream of small shifts that add up.
+Reserve the box before the bytes arrive, with `aspect-ratio` from the server-sent dimensions. Load below
+the fold with `loading="lazy"`, and set `fetchpriority="high"` on the first one or two only. Together these
+give a CLS near zero, not a stream of small shifts that add up.
 
 ### Restoring position
 
-Browser scroll restoration works on a fixed-height document, which a virtualised feed is not. Store the
-anchor instead — the cursor that was loaded, the id of the top visible item, and the pixel offset within it
-— and on return refetch that page, scroll to the **item**, then apply the offset. Anchoring to an id rather
-than a pixel is what survives the feed having changed while the user was away.
+Browser scroll restoration works on a fixed-height document, and a virtualised feed is not one. Store the
+anchor instead: the cursor that was loaded, the id of the top visible item, and the pixel offset within it.
+On return, refetch that page, scroll to the **item**, then apply the offset. An id anchor, unlike a pixel
+one, still works if the feed changed while the user was away.
 
 ### Optimisations
 
-**Prefetch one page early.** Trigger the next fetch when the last loaded row is about two screens away, not
-when it enters the viewport, so the loader is never seen on a normal scroll.
+**Prefetch one page early.** Start the next fetch when the last loaded row is about two screens away, not
+when it enters the viewport. The loader is then never seen on a normal scroll.
 
 **Never inject above the viewport.** New posts go into the cache and surface as a "12 new posts" pill.
 Inserting them into the DOM above the reader moves the page under them, which reads as a bug.
@@ -154,7 +154,7 @@ twice", and it is never reproducible on a quiet test account.
 
 ## 🔑 Key Takeaways
 
-- Network cost and DOM cost are separate budgets; loading less data does not make a long list fast.
+- Network cost and DOM cost are separate budgets. Loading less data does not make a long list fast.
 - Cursor pagination is required, not preferred, once the underlying list can change while it is read.
 - Height corrections above the viewport must be cancelled with an equal scroll adjustment, or the page jumps.
 - Server-sent media dimensions are what make layout shift a solved problem rather than a chased one.
@@ -165,21 +165,21 @@ twice", and it is never reproducible on a quiet test account.
 **Q: Users say posts appear twice as they scroll. What is happening?**
 
 The API is almost certainly paginating by offset while the feed is changing. A new post at the head pushes
-everything down by one, so the next page starts one row earlier and repeats an item — and a deletion causes
-the mirror-image bug, a silently skipped post. Cursor pagination fixes it, and deduplicating by id in the
-page cache is the cheap safety net.
+everything down by one, so the next page starts one row earlier and repeats an item. A deletion causes the
+mirror-image bug: a silently skipped post. Cursor pagination fixes it, and deduplicating by id in the page
+cache is the cheap safety net.
 
 **Q: The list is virtualised and still janky on Android. Where do you look?**
 
-At what each row does rather than how many exist. Common causes are images without reserved space forcing
-layout on every load, a row re-rendering on every scroll frame because the handler updates state, and
-expensive work such as date formatting done per render rather than once at cache time. Profile a scroll and
-check whether the long frames are layout or script — the fix differs.
+At what each row does, not how many exist. One common cause is images without reserved space, which force
+layout on every load. Another is a row that re-renders on every scroll frame because the handler updates
+state. A third is costly work, such as date formatting, done per render instead of once at cache time.
+Profile a scroll and check whether the long frames are layout or script, because the fix differs.
 
 **Q: When would you not build infinite scroll at all?**
 
-When the content has to be findable — search results, documentation, anything crawlable — or when users
-need the footer. Infinite scroll trades linkable, reachable pages for engagement, and that is a product
+When the content has to be findable (search results, documentation, anything crawlable), or when users
+need the footer. Infinite scroll trades linkable, reachable pages for engagement. That is a product
 decision, not a technical one. Saying so is the answer the interviewer is listening for.
 
 ## What to Read Next

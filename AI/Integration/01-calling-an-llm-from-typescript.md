@@ -18,15 +18,14 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A model call is an HTTP request to a service that is **ten to a hundred times slower than your database,
-priced per byte in both directions, and able to fail while returning HTTP 200.** Nothing else about it is
-exotic. Every discipline you already apply to a payment gateway or a search API applies here, and the
-teams that get burned are the ones who treat the call as a library function rather than as a network
-dependency.
+A model call is an HTTP request to a slow service. It is **ten to a hundred times slower than your
+database, priced by the token in both directions, and able to fail while returning HTTP 200.** Nothing
+else about it is unusual. Every habit you apply to a payment gateway or a search API applies here. The
+teams that get burned treat the call as a library function, not as a network dependency.
 
-The one unfamiliar failure mode is worth stating on its own: the request can succeed, the status can be
-`200`, the body can be well-formed, and the content can still be wrong. HTTP tells you the transport
-worked. It tells you nothing about the answer.
+One failure is new, so it gets its own paragraph. The request can succeed, the status can be `200`, the
+body can be well-formed, and the content can still be wrong. HTTP tells you the transport worked. It
+tells you nothing about the answer.
 
 > Treat the response as untrusted input from a slow remote service. That single framing gets most of the
 > engineering right.
@@ -35,8 +34,8 @@ worked. It tells you nothing about the answer.
 
 ### The shape of a call
 
-Three things go up — instructions, messages, and settings — and three come back: content, a stop reason,
-and usage.
+Three things go up: instructions, messages and settings. Three come back: content, a stop reason and
+usage.
 
 ```typescript
 import { generateText } from 'ai';
@@ -54,8 +53,8 @@ result.finishReason; // 'stop' | 'length' | 'tool-calls' | 'content-filter' | 'e
 result.usage;        // inputTokens, outputTokens — the bill
 ```
 
-**`finishReason` is the field most codebases never read**, and it is the one that tells you the answer was
-cut off. A `length` finish means the model ran out of output allowance mid-sentence. Rendering that as a
+**`finishReason` is the field most codebases never read.** It is the one that tells you the answer was
+cut off. A `length` finish means the model ran out of output allowance mid-sentence. Showing that as a
 complete answer is a bug that never throws.
 
 > ⚠️ **Moving target:** this book is stamped against **AI SDK 7**, where the system prompt is the
@@ -71,15 +70,15 @@ complete answer is a bug that never throws.
 | **Unified SDK** (the AI SDK, LangChain) | One call shape across providers, one streaming format | A lag on new features; leaks where providers genuinely differ |
 | **Your own wrapper** | Exactly your needs | You now maintain a unified SDK |
 
-Start with a unified SDK unless you are using one provider's frontier capability on day one. The
-migration cost runs the other way — swapping a unified call for a provider call later is an afternoon;
-retrofitting an abstraction across forty call sites is not. No abstraction hides everything: tool-call
-shapes, streaming events and caching still differ between providers.
+Start with a unified SDK, unless you need one provider's newest feature on day one. The migration cost
+runs the other way. Swapping a unified call for a provider call later takes an afternoon. Adding an
+abstraction across forty call sites later does not. No abstraction hides everything: tool-call shapes,
+streaming events and caching still differ between providers.
 
 ### Timeouts, because the default is not one
 
-Most HTTP clients default to no timeout or to two minutes. Both are wrong for a user-facing model call: a
-reasoning model can legitimately think for ninety seconds, and a user will not wait ten.
+Most HTTP clients default to no timeout or to two minutes. Both are wrong for a user-facing model call.
+A reasoning model can really think for ninety seconds, and a user will not wait ten.
 
 ```typescript
 async function ask(question: string, budgetMs: number): Promise<string> {
@@ -112,13 +111,13 @@ flowchart TD
 
 **Which model errors are worth a second attempt, and which are a waste of money.**
 
-A `429` and a `503` are transient and belong in a retry with exponential backoff and jitter. A `400`
-(malformed request, context too long) and a `401` are deterministic — retrying them burns latency to
-reach the same failure. A content filter is a decision, not an outage; retrying it verbatim usually
-returns the same refusal.
+A `429` and a `503` are transient (they pass on their own). Retry them with exponential backoff and
+jitter. A `400` (malformed request, context too long) and a `401` are deterministic. Retrying them burns
+time to reach the same failure. A content filter is a decision, not an outage. Retrying it word for word
+usually returns the same refusal.
 
-Retry counts as a request. Three retries on a large prompt is four times the input cost, and the input is
-usually the expensive half.
+Every retry is a full request. Three retries on a large prompt cost four times the input, and the input
+is usually the expensive half.
 
 ### Errors worth naming separately
 
@@ -132,9 +131,9 @@ usually the expensive half.
 
 ### Where the key lives
 
-The API key is a server-side secret with a per-token cost attached. It never reaches the browser, and a
+The API key is a server-side secret with a per-token cost attached. It never reaches the browser. A
 public endpoint that forwards user text straight to a provider is an open tab on your billing account.
-The route needs the same controls as any expensive endpoint: authentication, a per-user rate limit, and a
+The route needs the same controls as any expensive endpoint: authentication, a per-user rate limit and a
 cap on input size.
 
 ## When to Use It
@@ -164,53 +163,51 @@ cap on input size.
 
 **✅ Give every call an explicit token ceiling and an explicit deadline**
 
-> `maxOutputTokens` bounds the bill, `abortSignal` bounds the wait. Neither has a safe default, and a
+> `maxOutputTokens` limits the bill. `abortSignal` limits the wait. Neither has a safe default, and a
 > missing one shows up as a cost spike or a hung request.
 
 ## 🔑 Key Takeaways
 
 - A model call is a slow, expensive network dependency that can fail while returning HTTP 200.
-- Always set an output token ceiling and an explicit deadline; neither has a usable default.
-- Read `finishReason` — a truncated answer is indistinguishable from a complete one without it.
-- Retry rate limits and overload errors with backoff; never retry malformed requests or content filters.
-- Start on a unified SDK, because retrofitting an abstraction across many call sites costs far more than replacing one.
+- Always set an output token ceiling and an explicit deadline. Neither has a usable default.
+- Read `finishReason`. Without it, a truncated answer looks exactly like a complete one.
+- Retry rate limits and overload errors with backoff. Never retry malformed requests or content filters.
+- Start on a unified SDK. Adding an abstraction across many call sites later costs far more than replacing one.
 
 ## Interview Questions
 
 **Q: What is the first thing you add to a naive `await callModel(prompt)` before shipping it?**
 
 A deadline and an output ceiling. The default timeout in most HTTP clients is longer than any user will
-wait, and without `maxOutputTokens` a single request can generate until the model decides to stop, which
-is unbounded cost on a per-request basis. After those two, the error taxonomy: which failures retry and
-which do not.
+wait. Without `maxOutputTokens`, one request can generate until the model decides to stop. That is
+unbounded cost per request. After those two, the error taxonomy: which failures retry and which do not.
 
 **Q: The provider returns 200 and the user sees a half-finished sentence. What happened?**
 
 The output allowance ran out and `finishReason` came back as `length`. The transport succeeded, so
-nothing threw. The fix is to read the finish reason and treat truncation as a real error state — either
+nothing threw. The fix is to read the finish reason and treat truncation as a real error state. Then
 raise the ceiling, ask the model for a shorter answer, or tell the user the response was cut short.
 Silently rendering it is the failure.
 
 **Q: Would you use a provider SDK or a unified one?**
 
-A unified SDK by default, because the cost of adding a second provider later is otherwise a rewrite of
-every call site, and multi-provider is a question of when rather than if once cost or an outage forces
-it. I would use the provider SDK directly if the feature depends on something that provider shipped this
-quarter, since unified layers lag on new capabilities by design.
+A unified SDK by default. Without one, adding a second provider later means rewriting every call site.
+And a second provider is a question of when, not if, once cost or an outage forces it. I would use the
+provider SDK directly if the feature depends on something that provider shipped this quarter. Unified
+layers lag on new features by design.
 
 **Q: How do you rate-limit an AI endpoint differently from a normal one?**
 
-By cost rather than by request count. One request with a 100k-token context and a long answer can cost
-more than a thousand ordinary requests, so a per-minute request cap does not bound spend. Cap input size,
-cap output tokens, and track a per-user token budget alongside the request limit — that is the control
-that actually protects the bill.
+By cost, not by request count. One request with a 100k-token context and a long answer can cost more
+than a thousand ordinary requests. So a per-minute request cap does not limit spend. Cap input size, cap
+output tokens, and track a per-user token budget next to the request limit. That is the control that
+actually protects the bill.
 
 **Q: Where do you put the API key, and what else does that endpoint need?**
 
 Server-side only, never in the browser or a client bundle. The endpoint that holds it needs
-authentication, a per-user token budget, an input size cap, and a timeout — otherwise it is an
-unauthenticated way for anyone to spend your money, which is a different and worse problem than a normal
-open endpoint.
+authentication, a per-user token budget, an input size cap and a timeout. Without them, anyone can spend
+your money through it. That is a different and worse problem than a normal open endpoint.
 
 ## What to Read Next
 

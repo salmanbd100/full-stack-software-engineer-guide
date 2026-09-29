@@ -117,7 +117,7 @@ and fails over at once. Both cost about twice one copy. Recovery has two numbers
 ### What CAP actually says
 
 Redundant data brings the second budget. CAP describes a distributed system during a **network
-partition**, when nodes cannot reach each other. During a partition, the system must choose:
+partition**: a break that stops nodes reaching each other. During a partition, the system must choose:
 
 | Choice | Behaviour during a partition                            | Example stores                       |
 | ------ | ------------------------------------------------------- | ------------------------------------ |
@@ -136,7 +136,7 @@ Networks do partition, so "CA" is not a design choice. It is a single machine.
 
 The "else" branch is the daily one. A write confirmed by a quorum across three zones is slower than one
 confirmed by a single node. You are paying milliseconds for agreement. DynamoDB and Cassandra favour
-latency by default; Spanner pays latency for global consistency.
+latency by default. Spanner pays latency for global consistency.
 
 ### The consistency spectrum
 
@@ -164,7 +164,7 @@ Overlap is not a global order, though. Two concurrent writes can land on differe
 
 **Consensus** (Raft, Paxos) gives that order. A leader appends each write to its log and commits once a
 majority confirms. A five-node cluster commits with three and survives two failures. Use an odd number
-of nodes to avoid split votes. Without a majority, the cluster stops accepting writes — that is CP by
+of nodes to avoid split votes. Without a majority, the cluster stops accepting writes. That is CP by
 design.
 
 When replicas do accept conflicting writes, something must decide. **Last write wins** keeps the newer
@@ -185,7 +185,7 @@ types that always merge the same way.
 
 **❌ Backups that have never been restored**
 
-You do not have a backup, you have a file. The first restore reveals the missing grants, the wrong
+You do not have a backup. You have a file. The first restore reveals the missing grants, the wrong
 Postgres version and the four hours it really takes.
 
 **✅ A timed restore drill each quarter, recorded against the stated RTO**
@@ -204,14 +204,14 @@ Then checkout charges twice. A single label for the whole system means the desig
 - Availability is a budget with a cost curve, and each extra nine costs roughly ten times more.
 - Serial dependencies pull availability down, and only independent redundancy pushes it up.
 - The error budget turns reliability from an argument into arithmetic about whether to ship.
-- CAP only applies during a partition; the latency-versus-consistency trade in PACELC is the one you pay every day.
+- CAP only applies during a partition. The latency-versus-consistency trade in PACELC is the one you pay every day.
 - Consistency is chosen per feature, and read-your-writes fixes the most common staleness complaint at almost no cost.
 
 ## Interview Questions
 
 **Q: Your service calls four dependencies, each 99.9% available. What is your ceiling?**
 
-About 99.6% if every call is required — roughly 35 hours of downtime a year. To do better, the service
+About 99.6% if every call is required. That is roughly 35 hours of downtime a year. To do better, the service
 must not need all four. Cache what you can, make non-critical calls optional with a degraded response,
 and keep timeouts short so a slow dependency does not eat the request budget.
 

@@ -19,11 +19,11 @@ in_book: true
 ## 💡 The Core Idea
 
 In a distributed system, a dependency being slow is worse than a dependency being down. A service that
-is down returns an error immediately and the caller moves on. A service that takes thirty seconds holds
-one of the caller's connections for thirty seconds, and at any real request rate the caller runs out of
-connections and fails too — for requests that had nothing to do with the slow dependency.
+is down returns an error at once, and the caller moves on. A service that takes thirty seconds holds
+one of the caller's connections for thirty seconds. At any real request rate, the caller runs out of
+connections and fails too. It fails even for requests that had nothing to do with the slow dependency.
 
-Resilience is the set of patterns that convert *slow* into *fast failure*, and then decide what to show
+Resilience is the set of patterns that turn *slow* into *fast failure*, and then decide what to show
 the user instead.
 
 > Every remote call needs an answer to one question: what happens if this never comes back?
@@ -47,10 +47,10 @@ async function callWithTimeout<T>(fn: (signal: AbortSignal) => Promise<T>, ms: n
 }
 ```
 
-Set the timeout from the dependency's observed p99, not from a round number — usually p99 plus a small
-margin. And keep the budget **decreasing down the call chain**: if the gateway allows 3 seconds, the
-service it calls must allow less, or the inner call will still be running after the outer one has given
-up and the work is wasted.
+Set the timeout from the dependency's observed p99 (the latency 99% of calls beat), not a round number.
+Usually that is p99 plus a small margin. Keep the budget **decreasing down the call chain**. If the
+gateway allows 3 seconds, the service it calls must allow less. Otherwise the inner call keeps running
+after the outer one has given up, and the work is wasted.
 
 | Layer                   | Timeout          |
 | ----------------------- | ---------------- |
@@ -80,7 +80,7 @@ const delayMs = (attempt: number, baseMs: number = 100, capMs: number = 10_000):
 
 > ⚠️ Retries are the most common cause of a small incident becoming a large one. Three attempts per
 > client is a 3× load multiplier applied exactly when the system is weakest. Cap attempts, always add
-> jitter, and never retry at more than one layer of the stack — a retrying client behind a retrying
+> jitter, and never retry at more than one layer of the stack. A retrying client behind a retrying
 > gateway behind a retrying SDK is a 27× multiplier nobody designed.
 
 ### Circuit breakers
@@ -106,13 +106,13 @@ stateDiagram-v2
 | Open duration      | 30 s                  | Long enough for a restart, short enough to recover quickly |
 | Half-open probes   | 1                     | More probes re-flood a service that is still fragile |
 
-One breaker **per dependency**, never one for the whole service, or a failing analytics call will block
-checkout.
+Use one breaker **per dependency**, never one for the whole service. Otherwise a failing analytics call
+will block checkout.
 
 ### Bulkheads
 
-A bulkhead limits how much of a shared resource one dependency can consume, so its failure cannot starve
-everything else.
+A bulkhead limits how much of a shared resource one dependency can use, so its failure cannot starve
+everything else. The name comes from the sealed walls that stop one flooded section sinking a ship.
 
 ```typescript
 // Separate concurrency pools mean a stalled payment provider cannot consume every worker.
@@ -135,7 +135,7 @@ payments is not.
 
 ### Load shedding and degradation
 
-When the system cannot serve everything, choose what to drop rather than letting the queue choose.
+When the system cannot serve everything, you choose what to drop. Do not let the queue choose.
 
 | Level                       | Drop first                                  |
 | --------------------------- | ------------------------------------------- |
@@ -145,14 +145,14 @@ When the system cannot serve everything, choose what to drop rather than letting
 | Never                       | Authentication, checkout, the core read     |
 
 Degradation is what the user sees instead. A feed page that renders without the "people you may know"
-rail is a working page. A feed page that returns 500 because that one call timed out is an outage, and
-it was a choice.
+rail is a working page. A feed page that returns 500 because that one call timed out is an outage. And
+someone chose it.
 
 ### The patterns compose
 
-Applied to a single outbound call, in order: **bulkhead** decides whether there is capacity, **circuit
-breaker** decides whether the dependency is worth calling, **timeout** bounds the wait, **retry** handles
-a transient failure, and **fallback** decides what to return when all of that has been exhausted.
+Apply them to one outbound call in this order. The **bulkhead** decides whether there is capacity. The
+**circuit breaker** decides whether the dependency is worth calling. The **timeout** bounds the wait,
+**retry** handles a transient failure, and the **fallback** decides what to return when all else fails.
 
 ## When to Use It
 
@@ -192,30 +192,30 @@ dependency.
 - A slow dependency is more dangerous than a dead one, because it consumes the caller's connections while producing nothing.
 - Timeouts are the foundation: every other pattern needs a bounded wait to act on.
 - Retries multiply load during an incident, so cap them, add jitter, and retry at exactly one layer.
-- Circuit breakers are scoped per dependency; one breaker for a whole service couples unrelated features.
+- Circuit breakers are scoped per dependency. One breaker for a whole service couples unrelated features.
 - Decide in advance which features degrade, so overload produces a reduced page rather than an error page.
 
 ## Interview Questions
 
 **Q: A downstream service starts taking 30 seconds instead of 200 ms. What happens to your service?**
 
-Without a timeout, requests pile up holding connections and thread-pool slots until the pool is
-exhausted, and then every request fails — including ones that never touch that dependency. With a
-timeout plus a circuit breaker, the first few requests fail fast, the breaker opens, and later calls
-are rejected in microseconds while the rest of the service keeps working.
+Without a timeout, requests pile up holding connections and thread-pool slots until the pool runs out.
+Then every request fails, including ones that never touch that dependency. With a timeout plus a
+circuit breaker, the first few requests fail fast and the breaker opens. Later calls are rejected in
+microseconds, while the rest of the service keeps working.
 
 **Q: How do you choose retry settings?**
 
-Retry only transient failures and only idempotent operations, cap at two or three attempts, use
-exponential backoff with full jitter, and enforce a global retry budget so retries stay a small fraction
-of total traffic. The most important constraint is that only one layer retries — client, gateway and SDK
-all retrying multiplies the load by their product.
+Retry only transient failures and only idempotent operations. Cap at two or three attempts and use
+exponential backoff with full jitter. Enforce a global retry budget, so retries stay a small fraction
+of total traffic. Most important, only one layer retries. If client, gateway and SDK all retry, the
+load multiplies by their product.
 
 **Q: When would you not add a circuit breaker?**
 
-When the dependency has no meaningful fallback and the request is worthless without it — opening the
-breaker just converts a slow failure into a fast one with no benefit to the user, while adding a
-component that can trip incorrectly. A timeout and a clear error is enough there.
+When the dependency has no meaningful fallback and the request is worthless without it. Opening the
+breaker then only turns a slow failure into a fast one, with no benefit to the user. It also adds a
+component that can trip wrongly. A timeout and a clear error are enough there.
 
 ## What to Read Next
 

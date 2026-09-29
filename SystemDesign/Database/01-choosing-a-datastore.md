@@ -119,13 +119,13 @@ Single-leader removes write conflicts, so it wins unless the requirements force 
 | Loss if the leader dies | None, for acknowledged writes        | Everything not yet shipped   |
 | Availability           | A stalled replica blocks writes       | Replicas cannot block writes |
 
-Production usually runs **semi-synchronous**. One replica confirms each write; the rest follow later.
-You get a durable second copy, and no single slow replica can stop the system.
+Production usually runs **semi-synchronous**. One replica confirms each write, and the rest follow
+later. You get a safe second copy, and no single slow replica can stop the system.
 
 ### Replica lag
 
-Lag is the delay between a write committing on the leader and appearing on a replica: milliseconds
-normally, minutes while a replica rebuilds. Users see it as three distinct bugs.
+Lag is the delay between a write committing on the leader and appearing on a replica. It is normally
+milliseconds, and minutes while a replica rebuilds. Users see it as three different bugs.
 
 | Anomaly          | What the user sees                          | Fix                                     |
 | ---------------- | ------------------------------------------- | --------------------------------------- |
@@ -150,13 +150,13 @@ write, and anything about money, stock or permissions. The opposite default neve
 
 ### Failover and split brain
 
-When the leader dies, a replica is promoted. You detect the failure with a heartbeat timeout, pick the
+When the leader dies, you promote a replica. You detect the failure with a heartbeat timeout, pick the
 replica with the newest log position, and point clients at it. Then you make sure the old leader
 **cannot** come back as a leader.
 
 > ⚠️ That last step is the one people forget. If the old leader recovers and still thinks it is primary,
-> two nodes accept writes and the data splits — **split brain**. Fencing prevents it: a rising term
-> number that storage checks on every write. Automatic failover without fencing is a data-loss mechanism.
+> two nodes accept writes and the data splits. This is **split brain**. Fencing prevents it: a rising
+> term number that storage checks on every write. Automatic failover without fencing loses data.
 
 With asynchronous replication, failover also loses every write the old leader confirmed but had not
 shipped. So "does failover lose data?" has an honest answer: yes, up to the replication lag.
@@ -220,9 +220,9 @@ migration, because the key encodes the queries you thought of at the start.
 
 **Q: Your primary dies. What is lost?**
 
-With asynchronous replication, every write the leader confirmed but had not shipped — usually under a
-second, more if the replica was lagging. With a synchronous replica, nothing that was confirmed.
-Semi-synchronous replication exists to balance exactly that trade.
+With asynchronous replication, you lose every write the leader confirmed but had not shipped. That is
+usually under a second, more if the replica was lagging. With a synchronous replica, you lose nothing
+that was confirmed. Semi-synchronous replication exists to balance exactly that trade.
 
 **Q: A user says their profile update "did not save". Diagnose it.**
 
@@ -234,8 +234,8 @@ changing the consistency of the whole system.
 
 Only when writes must succeed in more than one region and cross-region latency is unacceptable, or when
 clients write offline and sync later. Conflicts then become certain, so I would require a resolution
-rule the domain accepts, such as a CRDT or a business merge rule. Last-write-wins on data that matters
-is not that rule.
+rule the domain accepts. That could be a CRDT (a data type built to merge on its own) or a business
+merge rule. Last-write-wins on data that matters is not that rule.
 
 ## What to Read Next
 

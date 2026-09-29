@@ -23,15 +23,15 @@ answer equality and range questions on a **prefix** of its sort key, and nothing
 `WHERE lower(email) = $1` cannot use an index on `email`: the index stores `email`, not `lower(email)`.
 
 An ORM sits on top of all this. It maps rows to objects and writes the SQL for you. That saves a lot
-of boilerplate, but it hides the thing you most need to see: **how many queries your code sends,
+of boilerplate. But it hides the thing you most need to see: **how many queries your code sends,
 and what each one costs.** A property access that looks free is a round trip. A migration tool can
 write correct SQL that locks your whole table.
 
-So let the ORM write the routine 90% of queries, always see and read the plan of the SQL that ran,
-and change the schema in steps that old and new code can both survive.
+So let the ORM write the routine 90% of queries. Always read the plan of the SQL that ran. Change
+the schema in steps that old and new code can both survive.
 
 > ⚠️ **Moving target:** Prisma, Drizzle and TypeORM all change their query APIs across major
-> versions, and Prisma has moved its engine architecture more than once. The durable principle is
+> versions, and Prisma has moved its engine architecture more than once. The lasting principle is
 > that generated SQL must be observable and a schema change must be safe for the code still running.
 > The method names will move.
 
@@ -39,7 +39,7 @@ and change the schema in steps that old and new code can both survive.
 
 ### Composite column order is the whole game
 
-The default B-tree covers almost every case; GIN is for containment on `jsonb`, arrays and
+The default B-tree covers almost every case. GIN is for containment on `jsonb`, arrays and
 full-text. A B-tree on `(a, b, c)` is one list sorted by `a`, then `b`, then `c`. That gives the
 **leftmost prefix rule**: the index helps only a query that constrains a prefix of its columns.
 
@@ -80,7 +80,7 @@ Every index is paid for on writes: each `INSERT`, `UPDATE` and `DELETE` updates 
 ## The Query Your ORM Sends
 
 An ORM gives you types from the schema and parameterised queries by default. In return, its SQL is
-sometimes far from optimal. Prisma uses its own schema language; Drizzle keeps the schema in
+sometimes far from optimal. Prisma uses its own schema language. Drizzle keeps the schema in
 TypeScript and looks like SQL. The choice matters less than knowing what SQL comes out.
 
 **The N+1, and its fix:**
@@ -116,10 +116,10 @@ see the SQL, you cannot review it, and you cannot run `EXPLAIN` on it.
 
 ### Connection pooling
 
-The database has a hard connection limit, and a pool reuses a few connections, usually 10–20 per
+The database has a hard connection limit. A pool reuses a few connections, usually 10–20 per
 instance. The arithmetic catches people. Forty serverless instances with a pool of 10 open 400
 connections against a limit of 100. Autoscaled apps need an external pooler, such as PgBouncer, in
-transaction mode, which breaks session features such as prepared statements and `LISTEN`/`NOTIFY`.
+transaction mode. That mode breaks session features such as `SET`, advisory locks and `LISTEN`.
 
 ## Reading a Plan
 
@@ -221,9 +221,9 @@ filters.
 
 **Q: A query has an index and is still slow. What do you check?**
 
-The plan first. Common causes are a function or cast on the indexed column, stale statistics giving
-a bad row estimate and a nested loop, or a low-selectivity index the planner rightly ignores. A large
-`Rows Removed by Filter` means the index is missing a column the predicate needs.
+The plan first. Common causes are a function or cast on the indexed column, or stale statistics that
+give a bad row estimate and a nested loop. Or the index matches so many rows that the planner rightly
+ignores it. A large `Rows Removed by Filter` means the index is missing a column the predicate needs.
 
 **Q: When do you drop out of the ORM into raw SQL?**
 

@@ -18,15 +18,15 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Every injection vulnerability — SQL, NoSQL, command, path, template — is the same bug wearing
-different clothes: **data was concatenated into a string that something else interprets as code.**
-The interpreter cannot tell your intent from the attacker's, because by the time it sees the string
-they are indistinguishable.
+Every injection vulnerability is the same bug in different clothes, whether SQL, NoSQL, command, path
+or template. **Data was concatenated into a string that something else interprets as code.** The
+interpreter cannot tell your intent from the attacker's. By the time it sees the string, the two look
+the same.
 
-There are therefore only two real defences, and they are the same defence at different layers:
+So there are only two real defences, and they are the same defence at different layers:
 
 1. **Never build the instruction by concatenation.** Pass data through a channel the interpreter
-   keeps separate — a bound parameter, an argument array, a structured query object.
+   keeps separate: a bound parameter, an argument array, a structured query object.
 2. **Validate at the boundary** against a schema that describes what you accept, so anything
    unexpected is rejected before it reaches any interpreter at all.
 
@@ -43,7 +43,7 @@ Validation is the first line and parameterisation is the guarantee. Neither repl
 Prefer rejection. Sanitisation silently changes what the user sent, which makes bugs hard to
 diagnose and leaves you guessing what "safe" means.
 
-**Allowlist, never blocklist.** A blocklist enumerates what is bad, and attackers only need one
+**Allowlist, never blocklist.** A blocklist lists what is bad, and attackers only need one
 thing you did not think of.
 
 ```typescript
@@ -80,15 +80,15 @@ export function validate<T extends z.ZodTypeAny>(schema: T, part: 'body' | 'quer
         },
       });
     }
-    req[part] = result.data as never; // Parsed and coerced, not the raw input.
+    res.locals[part] = result.data; // Express 5's req.query is a getter; read parsed input here.
     next();
   };
 }
 ```
 
 `.strict()` is the line that matters most. Without it, a request can carry `{ role: 'admin' }` or
-`{ isVerified: true }` into an object you spread into a database write — **mass assignment**. Never
-spread a request body into a model; name the fields.
+`{ isVerified: true }` into an object you spread into a database write. That is **mass assignment**.
+Never spread a request body into a model. Name the fields.
 
 ## SQL Injection
 
@@ -102,13 +102,13 @@ const rows = await db.query('SELECT * FROM users WHERE id = $1', [req.params.id]
 ```
 
 Parameterisation is not escaping. The value travels outside the statement, so there is no string for
-an attacker to break out of. An ORM or query builder parameterises by default, which is a real
-security benefit — but `prisma.$queryRawUnsafe` and its equivalents opt back out.
+an attacker to break out of. An ORM or query builder parameterises by default, a real security
+gain. But `prisma.$queryRawUnsafe` and its equivalents opt back out.
 
 ### What you cannot parameterise
 
-Identifiers — table names, column names, sort direction — are part of the statement, not values. A
-placeholder is not allowed there, so the only safe route is an allowlist.
+Identifiers, such as table and column names, are part of the statement, not values. So is the sort
+direction. A placeholder is not allowed there, so the only safe route is an allowlist.
 
 ```typescript
 const SORTABLE = { createdAt: 'created_at', total: 'total', status: 'status' } as const;
@@ -121,17 +121,17 @@ function orderBy(field: string, dir: string): string {
 }
 ```
 
-`LIKE` patterns are the other case: the value is parameterised, but `%` and `_` inside it are
-wildcards, so escape them before binding if the input should be literal.
+`LIKE` patterns are the other case. The value is parameterised, but `%` and `_` inside it are
+wildcards. Escape them before binding if the input should be literal.
 
-**Defence in depth**: the application's database user should have only the privileges it needs —
-no `DROP`, no `CREATE`, no access to tables it never reads. A successful injection then does far
+**Defence in depth**: give the application's database user only the privileges it needs. That means
+no `DROP`, no `CREATE`, and no access to tables it never reads. A successful injection then does far
 less.
 
 ## NoSQL, Command and Path Injection
 
-**NoSQL injection** works through objects rather than strings. Express parses
-`?filter[$ne]=null` into `{ $ne: null }`, so a query built from `req.query` receives an operator.
+**NoSQL injection** works through objects, not strings. The `qs` parser (Express 4's default) turns
+`?filter[$ne]=null` into `{ $ne: null }`, and a JSON body can carry one, so a query receives an operator.
 
 ```typescript
 // ❌ req.body.password may be the object { $ne: null }, matching any user
@@ -168,7 +168,7 @@ function safePath(name: string): string {
 ```
 
 `path.basename` alone is not enough on every platform, and `startsWith` alone is defeated by
-`/var/app/uploads-evil`. Both, in that order.
+`/var/app/uploads-evil`. Use both, in that order.
 
 > ⚠️ **Prototype pollution** is the JavaScript-specific member of this family. A JSON body
 > containing `__proto__` merged into an object with a naive deep-merge can add properties to
@@ -189,22 +189,22 @@ function safePath(name: string): string {
 | `Content-Disposition: attachment` and `nosniff` on download | Stops the browser rendering it |
 
 **Server-side request forgery** is validation of a URL you are about to fetch. A user-supplied URL
-can point at `169.254.169.254` — the cloud metadata endpoint — or at an internal service that trusts
+can point at `169.254.169.254` (the cloud metadata endpoint) or at an internal service that trusts
 network position.
 
-The check has to happen on the **resolved address**, not the hostname: parse the URL, reject any
-protocol other than `http:` and `https:`, resolve the hostname yourself, reject private and
-link-local ranges, and then connect to that pinned address — otherwise a second DNS lookup can
-return an internal one (DNS rebinding).
+The check has to happen on the **resolved address**, not the hostname. Parse the URL and reject any
+protocol other than `http:` and `https:`. Resolve the hostname yourself, reject private and
+link-local ranges, and connect to that pinned address. Otherwise a second DNS lookup can return an
+internal one (DNS rebinding).
 
-Also disable redirect following, or validate again at each hop — a public URL that redirects to
+Also disable redirect following, or validate again at each hop. A public URL that redirects to
 `127.0.0.1` defeats a single up-front check.
 
 ## 🔑 Key Takeaways
 
 - Every injection is data concatenated into something another interpreter parses as code.
-- Parameterise values and allowlist identifiers — those are the only two options, and they cover everything.
-- Validate at the boundary with `.strict()` schemas; without it, mass assignment sets fields you never exposed.
+- Parameterise values and allowlist identifiers. Those are the only two options, and they cover everything.
+- Validate at the boundary with `.strict()` schemas. Without it, mass assignment sets fields you never exposed.
 - `spawn` with an argument array has no shell, so command injection has nowhere to live.
 - SSRF needs address-level validation after DNS resolution, plus the same check on every redirect.
 
@@ -219,23 +219,23 @@ depends on getting the character set, the quoting mode and every edge case right
 
 **Q: An endpoint is parameterised and still injectable. How?**
 
-Almost certainly an identifier — a sort column, a table name, or a direction interpolated into the
+Almost certainly an identifier: a sort column, a table name, or a direction interpolated into the
 statement, because placeholders are not permitted there. The fix is an allowlist mapping request
 values to known-safe column names, with the sort direction chosen from a fixed pair rather than
 taken from the request.
 
 **Q: How does NoSQL injection work if there is no SQL string?**
 
-Through operator objects. A query framework parses `filter[$ne]=null` in a query string into
-`{ $ne: null }`, and a query built from `req.query` then receives an operator where it expected a
-value — `{ password: { $ne: null } }` matches every user. Validating that the field is a string
-before it reaches the driver closes it.
+Through operator objects. A query parser such as `qs` turns `filter[$ne]=null` into `{ $ne: null }`.
+A query built from `req.query` then receives an operator where it expected a value, and
+`{ password: { $ne: null } }` matches every user. Validating that the field is a string before it
+reaches the driver closes it.
 
 **Q: Is validation enough on its own?**
 
 No, and treating it as the guarantee is the mistake. Validation is the first line: it rejects the
-obviously wrong shape early and gives a useful error. The guarantee is that data never becomes code
-— parameterised statements, argument arrays, allowlisted identifiers. A service with perfect schemas
+obviously wrong shape early and gives a useful error. The guarantee is that data never becomes code:
+parameterised statements, argument arrays, allowlisted identifiers. A service with perfect schemas
 and one concatenated query is still injectable.
 
 ## What to Read Next
