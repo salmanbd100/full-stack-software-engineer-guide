@@ -19,16 +19,16 @@ in_book: true
 ## 💡 The Core Idea
 
 Performance and error tracking are the same instrument. Both answer "what actually happened to real
-users", both are collected in the browser and sent to something you did not build, and both are
+users". Both are collected in the browser and sent to something you did not build. And both are
 useless without the same three fields: **which release, which user, which page**.
 
-The reason to treat them as one chapter is that the interesting failures are correlated. A spike in
-INP and a spike in unhandled rejections after a deploy are the same incident described twice. Wiring
-them separately gives you two dashboards nobody joins up.
+They share one chapter because the interesting failures are linked. A spike in INP and a spike in
+unhandled rejections after a deploy are the same incident described twice. Wiring them separately
+gives you two dashboards nobody joins up.
 
-The uncomfortable half is that all of this data leaves the browser. Session replay in particular is a
-recording of somebody using your product, and treating that as a technical decision rather than a
-privacy one is how teams end up with card numbers in a vendor's database.
+The uncomfortable half is that all of this data leaves the browser. Session replay is a recording of
+somebody using your product. Treat it as a technical decision rather than a privacy one, and you end
+up with card numbers in a vendor's database.
 
 ## How It Works
 
@@ -42,11 +42,11 @@ privacy one is how teams end up with card numbers in a vendor's database.
 | Good in CI | No — needs traffic | Yes, and deterministic enough to gate on |
 
 You need both, and the split is clean: **lab data gates the pull request, field data tells you what to
-work on.** A team with only lab data optimises for a synthetic profile; a team with only field data
+work on.** A team with only lab data optimises for a simulated profile. A team with only field data
 knows it is slow and cannot say why.
 
-The one hard asymmetry is INP. There is no interaction in a lab run, so Lighthouse substitutes Total
-Blocking Time as a proxy. Fixing INP therefore *requires* field data — see
+The one hard difference is INP. There is no interaction in a lab run, so Lighthouse reports Total
+Blocking Time as a stand-in. Fixing INP therefore *requires* field data. See
 [Chapter ?? — Core Web Vitals](#ch-core-web-vitals).
 
 ### Collecting vitals, and the attribution build
@@ -78,7 +78,7 @@ onINP((m) => report({ ...m, target: m.attribution.interactionTarget }));
 ```
 
 That turns "p75 INP is 480 ms" into "p75 INP is 480 ms, on the filter dropdown in the reports table".
-Collect attribution from the start; retrofitting it means waiting another week for data.
+Collect attribution from the start. Adding it later means waiting another week for data.
 
 For anything the vitals do not cover, `PerformanceObserver` watches the browser's own timeline:
 
@@ -113,7 +113,7 @@ window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => 
 });
 ```
 
-`unhandledrejection` is the one teams forget, and it is where most real failures land: an `await fetch`
+`unhandledrejection` is the one teams forget, and it is where most real failures land. An `await fetch`
 with no `try` produces a rejection, not an error, so `window.onerror` never fires. See
 [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming) for the render-time half.
 
@@ -130,23 +130,23 @@ An error report without these is a string somebody closes.
 | **A user identifier** | Turns "1,200 events" into "three users, one in a retry loop" |
 | **Browser and device** | Most long-tail errors are one engine or one old version |
 
-An **identifier, not an identity.** `user.id` is enough to count affected people; a name and an email
+An **identifier, not an identity.** `user.id` is enough to count affected people. A name and an email
 address in an error service is personal data you now have to account for.
 
 ### Redact in the browser, before it leaves
 
-Every serious client offers a before-send hook. Use it — that is the last point at which the data is
-still yours. Strip any query parameter or header matching `/token|password|secret|authorization|email|card/i`:
-**query strings are the most common accidental leak**, because tokens routinely end up in URLs and
+Every serious client offers a before-send hook. Use it: that is the last point at which the data is
+still yours. Strip any query parameter or header matching `/token|password|secret|authorization|email|card/i`.
+**Query strings are the most common accidental leak**, because tokens often end up in URLs and
 then in error reports.
 
-> ⚠️ **Mask session replay by default and unmask deliberately.** An allow-list fails safe; a deny-list
+> ⚠️ **Mask session replay by default and unmask deliberately.** An allow-list fails safe. A deny-list
 > fails the first time somebody adds a form field. A replay of a checkout captures the card input
 > unless you stopped it in advance, and "we will add it to the deny-list" is not a plan.
 
 ### Sampling, because both budgets are finite
 
-An error service bills per event and a human triages per issue.
+An error service bills per event, and a human triages per issue.
 
 | Signal | Rate | Why |
 | ------ | ---- | --- |
@@ -156,8 +156,8 @@ An error service bills per event and a human triages per issue.
 | Session replay, sessions with an error | 100% | The only session you actually want is the one that broke |
 
 Most noise is not your code: browser extensions injecting scripts, bot traffic, and `ResizeObserver
-loop completed with undelivered notifications`, which is usually benign. Filter at the client
-boundary rather than in triage, and drop any event whose stack has no frame from your own origin.
+loop completed with undelivered notifications`, which is usually harmless. Filter in the client
+rather than in triage, and drop any event whose stack has no frame from your own origin.
 
 ### Alert on user impact, not on event count
 
@@ -171,7 +171,7 @@ is.
 | p75 LCP under 2.5 s | 90% | 24 h |
 
 **Crash-free sessions is the frontend metric to reach for first**, because it normalises by traffic. A
-raw error count spikes on a good day for visitors and hides a regression behind growth; a rate does
+raw error count spikes on a busy day and hides a regression behind growth. A rate does
 neither. The alerting discipline itself is [Chapter ?? — Metrics, Dashboards and Alerting](#ch-metrics-and-dashboards), and it
 applies here unchanged.
 
@@ -205,36 +205,36 @@ applies here unchanged.
 
 ## 🔑 Key Takeaways
 
-- Lab data gates the pull request; field data tells you what to work on — and INP exists only in the field.
+- Lab data gates the pull request, and field data tells you what to work on. INP exists only in the field.
 - The attribution build is what turns a bad metric into a named element or interaction.
 - Four capture points are needed for full error coverage, and `unhandledrejection` is the one usually missing.
 - Release version and uploaded source maps are what make a minified production stack usable at all.
-- Crash-free sessions is the frontend SLO to start with, because a rate does not move with traffic.
+- Crash-free sessions is the frontend SLO (service-level objective) to start with, because a rate does not move with traffic.
 
 ## Interview Questions
 
 **Q: Lighthouse gives the site 95 and users say it is slow. Who is right?**
 
-The users. Lighthouse is one scripted load on one device profile, and it cannot measure INP at all
-because nothing interacts with the page. Field data at the 75th percentile is the number that
-describes reality, and it will usually show the problem is responsiveness on mid-range phones rather
-than load. The lab run is still useful — just for diagnosis, not for judgement.
+The users. Lighthouse is one scripted load on one device profile. It cannot measure INP at all,
+because nothing interacts with the page. Field data at the 75th percentile describes reality. It
+will usually show the problem is responsiveness on mid-range phones rather than load. The lab run
+is still useful, but for diagnosis, not for judgement.
 
 **Q: What do you need on an error report before it is worth triaging?**
 
-Release version, a readable stack via uploaded source maps, the route, and a user identifier so you
-can count affected people rather than events. Breadcrumbs if you can get them, because the sequence of
-clicks and requests before the throw is the closest thing to a reproduction. Without the release
+Release version, a readable stack from uploaded source maps, the route, and a user identifier. The
+identifier lets you count affected people rather than events. Add breadcrumbs if you can get them:
+the clicks and requests before the throw are the closest thing to a reproduction. Without the release
 version in particular, you cannot tell a new regression from something that has been failing for
 months.
 
 **Q: What is the privacy exposure here, and what do you do about it?**
 
 Everything collected leaves the browser for a third party, and session replay is a recording of
-someone using your product. The controls are: redact in a before-send hook so the last decision
-happens on your side, mask replay input by default and unmask specific fields deliberately, send an
-opaque user id rather than a name or email, and strip sensitive query parameters — tokens in URLs
-being the most common accidental leak.
+someone using your product. First, redact in a before-send hook, so the last decision happens on
+your side. Mask replay input by default and unmask specific fields deliberately. Send an opaque user
+id rather than a name or email. And strip sensitive query parameters: tokens in URLs are the most
+common accidental leak.
 
 ## What to Read Next
 

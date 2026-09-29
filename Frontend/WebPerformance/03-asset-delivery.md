@@ -41,7 +41,7 @@ flowchart LR
 **Each layer is a chance to skip the next one — and a place a stale copy can hide.**
 
 You set the browser cache **only through headers**, and you cannot purge it. You can purge the CDN
-by API. The service worker is your own code, so a bug there can serve a stale app forever —
+by API. The service worker is your own code, so a bug there can serve a stale app forever.
 [Chapter ?? — Service Workers, Caching and Offline](#ch-service-workers) covers its update lifecycle.
 
 ### `Cache-Control`, per resource type
@@ -87,15 +87,15 @@ the same headers as the browser, plus two that matter at the edge.
 The danger is the word *shared*. A personalised page cached without `private` hands one user's data
 to the next. `Vary: Cookie` avoids that but splits the cache per user, so keep personal data out.
 
-> ⚠️ **Moving target:** framework caching — Next.js in particular — has changed its defaults across
-> several majors, and each hosting platform adds its own cache headers. The durable principle is that
+> ⚠️ **Moving target:** framework caching, Next.js in particular, has changed its defaults across
+> several major versions. Each hosting platform also adds its own cache headers. The durable principle is that
 > every cache needs an explicit freshness window and an explicit invalidation trigger. Check what
 > your framework actually sends in the response headers.
 
 ### Images: format, size, and the box
 
 AVIF is roughly half the size of JPEG for the same photograph, and WebP about 70%. SVG suits logos
-and icons. Past a point, quality buys nothing visible: **JPEG 85, WebP 80, AVIF 65** — AVIF uses a
+and icons. Past a point, quality buys nothing visible: **JPEG 85, WebP 80, AVIF 65**. AVIF uses a
 different scale, which is why its number looks low.
 
 **The same image at several widths:**
@@ -113,7 +113,7 @@ different scale, which is why its number looks low.
 
 `srcset` lists the widths that exist. `sizes` tells the browser how wide the image will *render*,
 which it needs before layout. A wrong `sizes` is the common bug: the browser picks the wrong file
-and either wastes bytes or looks blurry. Use `<picture>` when the image itself changes — a different
+and either wastes bytes or looks blurry. Use `<picture>` when the image itself changes: a different
 crop per breakpoint, or AVIF with a JPEG `<img>` fallback. Without that fallback, an old browser
 shows nothing. For user uploads, an image CDN does all of this through URL parameters, because you
 cannot build the variants ahead of time.
@@ -153,7 +153,7 @@ happens because the fallback and the web font measure differently. So make them 
 
 Then use `font-family: "Inter", "Inter Fallback", sans-serif`. Build tools such as `next/font`
 generate that fallback face for you. Preload only the faces in the first viewport, and always with
-`crossorigin` — font requests use CORS mode, so without it the browser fetches the file twice.
+`crossorigin`. Font requests use CORS mode, so without it the browser fetches the file twice.
 
 > ⚠️ **Moving target:** font tooling is renamed every couple of years. The durable principle is to
 > self-host the font, subset it, and pair it with a metrics-matched fallback.
@@ -161,7 +161,7 @@ generate that fallback face for you. Preload only the faces in the first viewpor
 ### CSS is render-blocking, and that is correct
 
 Painting unstyled content and then restyling it is worse than waiting. So do not unblock the
-stylesheet — shrink it.
+stylesheet. Shrink it.
 
 **Critical CSS inline, the rest deferred:**
 
@@ -171,8 +171,8 @@ stylesheet — shrink it.
 <link rel="stylesheet" href="/styles/rest.css" media="print" onload="this.media='all'" />
 ```
 
-The `media="print"` swap is a hack; splitting CSS per route gets the same result. For icons, use
-an SVG sprite with `<use>` — one cacheable request. An icon font blocks rendering and hurts accessibility.
+The `media="print"` swap is a hack. Splitting CSS per route gets the same result. For icons, use
+an SVG sprite with `<use>`: one cacheable request. An icon font blocks rendering and hurts accessibility.
 
 ## When to Use It
 
@@ -189,7 +189,7 @@ an SVG sprite with `<use>` — one cacheable request. An icon font blocks render
 ❌ **Caching the HTML alongside the assets.** Users keep loading the old release, and no deploy fixes it.
 ✅ `no-cache` on the document, `immutable` on hashed assets.
 
-❌ **`no-cache` for sensitive data.** It allows a stored copy; it only requires revalidation.
+❌ **`no-cache` for sensitive data.** It allows a stored copy. It only requires revalidation.
 ✅ `no-store` is the one that means keep nothing.
 
 ❌ **An image with no `width`/`height` or `aspect-ratio`.** You traded bytes for a layout shift.
@@ -217,7 +217,7 @@ it, and users keep booting the previous release from a warm cache.
 **Q: What is the difference between `no-cache` and `no-store`?**
 
 `no-cache` allows a stored copy but revalidates it before use, so a 304 still saves the download.
-`no-store` forbids any copy — so `no-cache` on sensitive data still leaves it on disk.
+`no-store` forbids any copy. So `no-cache` on sensitive data still leaves it on disk.
 
 **Q: A user says the app is stuck on an old version and a reload does not help. What do you check first?**
 

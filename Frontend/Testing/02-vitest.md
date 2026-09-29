@@ -58,8 +58,8 @@ afterEach(() => {
 });
 ```
 
-Resets in the setup file make isolation the default, not a habit. jsdom costs startup time per file,
-so a codebase of mostly pure logic runs faster with `node` as the default.
+Resets in the setup file make isolation the default, not a habit. jsdom (a DOM written in JavaScript)
+costs startup time per file. A codebase of mostly pure logic runs faster with `node` as the default.
 
 > ⚠️ **Moving target:** Vitest reached 4.x in 2025. Browser mode moved to a provider package, and the
 > `workspace` file became a `projects` field in the main config. The durable principle is that the
@@ -106,7 +106,7 @@ it("submits the search term", async () => {
 
 `userEvent` also refuses to click a disabled or hidden element. `fireEvent.click` on a disabled button
 fires anyway, and the bug ships. For async output, `findBy` polls until the element appears.
-`waitFor` wrapped around a `getBy` is the same thing with worse errors; keep it for a count.
+`waitFor` wrapped around a `getBy` is the same thing with worse errors. Keep it for a count.
 
 ### One custom render for the provider tree
 
@@ -168,7 +168,7 @@ it("retries after the backoff window", async () => {
 });
 ```
 
-Use the async version: promise callbacks a timer schedules only run if microtasks are flushed too.
+Use the async version. Promise callbacks that a timer schedules run only if microtasks flush too.
 `vi.setSystemTime()` freezes `Date.now()` for anything with an expiry.
 
 ### Snapshots, and their trap
@@ -210,20 +210,20 @@ unrelated change, gets regenerated with `-u` unread, and then asserts nothing. P
 
 **Q: Why would you pick Vitest over Jest for a new project?**
 
-It uses the project's own Vite config, so tests and the build agree, which removes a class of false
+It uses the project's own Vite config, so tests and the build agree. That removes a class of false
 passes. The API matches Jest, so the switch is cheap. For a project not built with Vite, the case is
 much weaker.
 
 **Q: Why does Testing Library refuse to give you access to component state?**
 
-A test that can read internals will assert on them, and then every refactor breaks tests with no
-change in behaviour. Limited to the DOM, it fails only when what the user sees changes. The cost is
+A test that can read internals will assert on them. Then every refactor breaks tests with no change
+in behaviour. A test limited to the DOM fails only when what the user sees changes. The cost is
 that pure internal logic must be pulled out and unit-tested on its own.
 
 **Q: When is `getByTestId` acceptable?**
 
-When the element has nothing accessible to query, such as a chart canvas. Never as a way past a
-control with no accessible name: there the failing query is a real defect, and the test id hides it.
+When the element has nothing accessible to query, such as a chart canvas. Never use it to get past a
+control with no accessible name. There the failing query is a real defect, and the test id hides it.
 
 **Q: A test passes on its own and fails in the suite. Where do you look?**
 
@@ -234,7 +234,7 @@ one worker to tell order dependence apart from parallelism.
 **Q: When is a module mock the wrong tool?**
 
 When you are really faking the network. A module mock proves your code called a function, not what
-request went out, and it skips the fetch layer and error handling. Intercepting the request tests the
+request went out. It also skips the fetch layer and error handling. Intercepting the request tests the
 code that runs in production.
 
 ## What to Read Next

@@ -69,7 +69,7 @@ function App() {
 ```
 
 File-based routing does this for you. Split a **component** (a chart library, an editor, a map) only
-when it is large and conditional — behind a tab, a modal or a permission.
+when it is large and conditional: behind a tab, a modal or a permission.
 
 **Every lazy boundary needs an error boundary.** A chunk request can fail. A deploy rotated the file
 name, or the network dropped. Without a boundary, the tree unmounts with no explanation. See
@@ -78,7 +78,7 @@ name, or the network dropped. Without a boundary, the tree unmounts with no expl
 ### Vendor chunks are about cache lifetime, not size
 
 Splitting library code from app code does not cut the total bytes. It changes **how often users
-download them again.** App code changes every deploy; dependencies change a few times a year. Kept
+download them again.** App code changes every deploy. Dependencies change a few times a year. Kept
 apart, a release invalidates a small file, not a large one. See
 [Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery). Do not over-split, though.
 Thirty tiny chunks cost more in round trips and worse compression than they save.
@@ -91,7 +91,7 @@ Thirty tiny chunks cost more in round trips and worse compression than they save
 | `prefetch` | In idle time | Lowest | Something the **next** page will probably need |
 | `preconnect` | The connection only | — | A third-party origin you will request from soon |
 
-Do not prefetch every route: on a phone, idle requests still compete with the current page. The
+Do not prefetch every route. On a phone, idle requests still compete with the current page. The
 pattern worth remembering is **preload on intent**. Hover and focus come a few hundred milliseconds
 before the click, which is usually enough.
 
@@ -149,7 +149,7 @@ and **a CI gate** that fails the build. Two kinds of gate catch different regres
 }
 ```
 
-The second gate is a **metric budget**: Lighthouse CI against a preview deploy, failing when LCP
+The second gate is a **metric budget**. Lighthouse CI runs against a preview deploy and fails when LCP
 passes 2,500 ms or blocking time passes 300 ms. A size limit catches a dependency someone added. A
 metric budget catches a change in *how* things load, such as a script that became render-blocking.
 
@@ -200,7 +200,7 @@ bandwidth stolen from the current page.
 ✅ Split by route first, then large conditional components; prefetch one or two next steps.
 
 ❌ **A budget that only warns, or starts red.** Nobody reads the log, and a red gate gets disabled.
-✅ Fail the build, set the limit just above today, and ratchet it down on purpose.
+✅ Fail the build and set the limit just above today. Then lower it on purpose, step by step.
 
 ## 🔑 Key Takeaways
 
@@ -226,15 +226,15 @@ module build. Import style is a size decision, not a style one.
 
 **Q: How do you stop bundle size regressing over a year?**
 
-Give the budget an owner and a size limit per entry point that fails the build, set just above today.
-Post the delta on every pull request, because "+14 kB" gets a question in review and a red cross gets
+Give the budget an owner, and a size limit per entry point that fails the build, set just above today.
+Post the size change on every pull request. "+14 kB" gets a question in review; a red cross gets
 retried. Pair it with a metric budget on a preview deploy, since a size check cannot see a script that
 became render-blocking.
 
 **Q: A page ships 2 MB of JavaScript and half is third-party. Where do you start?**
 
 The first-party half is splitting and refactoring work. The third-party half is governance. Every
-script gets a named owner and a reason, anything unclaimed comes out, and nothing vendor-supplied
+script gets a named owner and a reason. Anything unclaimed comes out, and nothing from a vendor
 loads in the head. Give third-party bytes their own budget line, or first-party effort quietly funds
 vendor growth.
 

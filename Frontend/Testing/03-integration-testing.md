@@ -22,17 +22,17 @@ An integration test on the frontend has one rule: **everything is real except th
 child components, real state, real routing, real form library, real query cache. The only substitution
 is at the HTTP boundary.
 
-That single line is doing a lot of work. It is the reason this layer catches the bugs that matter — a
-loading state that never clears, a form that posts twice, an error path nobody rendered, a cache that
-serves stale data after a mutation. None of those live in a function; they live in the seams between
+That single rule does a lot of work. It is why this layer catches the bugs that matter: a loading
+state that never clears, a form that posts twice, an error path nobody rendered, a cache that serves
+stale data after a mutation. None of those live in a function. They live in the seams between
 pieces, and a test that mocks those pieces away cannot see them.
 
 It is also why the layer is cheap. There is no browser to start and no server to run, so a
 twelve-step user flow costs a few hundred milliseconds.
 
-> ⚠️ **Moving target:** Mock Service Worker rewrote its handler API in version 2 — `rest` became `http`,
-> and the `res(ctx.json())` chain became a returned `HttpResponse` — so most published examples are for
-> a shape that no longer runs. The durable principle survives the rewrite: intercept at the network
+> ⚠️ **Moving target:** Mock Service Worker rewrote its handler API in version 2. `rest` became `http`,
+> and the `res(ctx.json())` chain became a returned `HttpResponse`. Most published examples use a
+> shape that no longer runs. The durable principle survives the rewrite: intercept at the network
 > boundary, not at the module boundary.
 
 ## How It Works
@@ -49,8 +49,8 @@ Both approaches make a component render fake data. Only one of them tests your c
 | Breaks when | You rename the module | The request contract changes — which is correct |
 
 The second column is the important one. A module mock asserts that `getUser("1")` was called. It says
-nothing about whether the resulting request had the auth header, hit the right path, or handled a 500
-— and those are exactly the things that break in production.
+nothing about whether the request had the auth header, hit the right path, or handled a 500. Those
+are exactly the things that break in production.
 
 Mock Service Worker intercepts at the network layer, so `fetch` genuinely runs:
 
@@ -84,8 +84,8 @@ afterAll(() => server.close());
 ```
 
 `onUnhandledRequest: "error"` is not optional. Without it, a request to a URL you forgot to handle
-falls through to the real network — the test then passes in a session with network access and fails in
-CI, or worse, quietly hits a live service.
+falls through to the real network. The test then passes with network access and fails in CI. Worse,
+it may quietly hit a live service.
 
 ### A flow, not an assertion
 
@@ -102,8 +102,8 @@ it("creates a user and shows the confirmation", async () => {
 });
 ```
 
-Six pieces collaborate in those four lines, and any of them can be the thing that broke. That is the
-point — a unit test of the submit handler would have passed while the button stayed disabled.
+Six pieces work together in those four lines, and any of them can be the thing that broke. That is
+the point. A unit test of the submit handler would have passed while the button stayed disabled.
 
 ### The unhappy paths are where the value is
 
@@ -141,14 +141,14 @@ it("shows the spinner while the request is in flight", async () => {
 Four handler variations cover most of what goes wrong: a 500, a 401, an empty list, and a slow
 response. Writing those four for each important flow buys more than doubling the unit tests.
 
-> ⚠️ A `delay()` in a handler is a real wait, so keep it short and use it only where the pending state
+> ⚠️ A `delay()` in a handler is a real wait. Keep it short, and use it only where the pending state
 > is the assertion. Ten tests with a 200 ms delay is two seconds of suite time for nothing.
 
 ### Reset, or the tests couple themselves together
 
-`server.resetHandlers()` in `afterEach` is what keeps a per-test override from leaking into the next
-test. So is a fresh query client per render — a shared cache means the second test reads the first
-test's data, and the failure looks like a component bug.
+`server.resetHandlers()` in `afterEach` stops a per-test override from leaking into the next test.
+So does a fresh query client per render. With a shared cache, the second test reads the first test's
+data, and the failure looks like a component bug.
 
 ## When to Use It
 
@@ -175,7 +175,7 @@ the frontend. If the server changes its response, every one of these tests still
 ❌ **Only testing the happy path.** The 500, the 401 and the empty list are the ones that ship broken.
 ✅ A handler override per failure mode, on every flow that matters.
 
-❌ **Mocking your own components to "isolate" the flow.** The integration is the thing under test; you
+❌ **Mocking your own components to "isolate" the flow.** The integration is the thing under test. You
 have just removed it.
 ✅ Render the real tree. Substitute only the network.
 
@@ -194,30 +194,30 @@ have just removed it.
 
 **Q: Why intercept requests instead of mocking the API module?**
 
-Because a module mock removes the code most likely to be wrong. Interception leaves the URL building,
-the headers, the serialisation and the error mapping in the test, so an assertion about what the user
-sees is also an assertion that the request was right. The module mock only proves a function was
-called with some arguments, which is rarely the failing part.
+Because a module mock removes the code most likely to be wrong. Interception keeps the URL building,
+the headers, the serialisation and the error mapping in the test. So an assertion about what the user
+sees also shows that the request was right. The module mock only proves a function was called with
+some arguments, and that is rarely the failing part.
 
 **Q: What does an integration test catch that a unit test cannot?**
 
 Anything in the seams. A loading state that never clears, a submit that fires twice, an error branch
-that renders nothing, a cache that serves stale data after a mutation. Each individual unit can be
-correct while the composition is broken, and in a typical React application that composition is where
-most of the risk sits.
+that renders nothing, a cache that serves stale data after a mutation. Each unit can be correct
+while the composition is broken. In a typical React application, most of the risk sits in that
+composition.
 
 **Q: What can this layer not tell you?**
 
-Whether the real server agrees. The handlers are the frontend's assumption about the API, so if the
-backend changes a field name every test still passes and production breaks. Closing that needs
-something that checks against the real contract — a generated client, a shared schema, or contract
-tests. It also cannot see anything requiring a real browser: layout, focus order, actual navigation.
+Whether the real server agrees. The handlers are the frontend's assumption about the API. If the
+backend changes a field name, every test still passes and production breaks. Closing that gap needs a
+check against the real contract: a generated client, a shared schema, or contract tests. It also
+cannot see anything that needs a real browser: layout, focus order, actual navigation.
 
 **Q: How do you test a loading state without making the suite slow?**
 
-Add a short delay to one handler in the one test that asserts the pending state, and assert on the
-spinner before awaiting the resolved content. The mistake is a global delay, which multiplies across
-every test in the suite for no additional confidence.
+Add a short delay to one handler, in the one test that asserts the pending state. Assert on the
+spinner before awaiting the resolved content. The mistake is a global delay. It multiplies across
+every test in the suite and adds no confidence.
 
 ## What to Read Next
 

@@ -18,20 +18,20 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Core Web Vitals are three numbers standing in for three things a user actually feels: **did the main
-content arrive, did the page respond when I touched it, and did anything move under my finger.**
+Core Web Vitals are three numbers. Each stands for one thing a user feels: **did the main content
+arrive, did the page respond when I touched it, and did anything move under my finger.**
 
 The detail that changes how you work with them is the **75th percentile**. A site is not judged on its
-average or on your laptop — it is judged on the visit at the 75th percentile of real users, which is a
-mid-range phone on a mediocre network. So an improvement that helps the fast half of your traffic
+average or on your laptop. It is judged on the visit at the 75th percentile of real users, which is a
+mid-range phone on a slow network. So an improvement that helps the fast half of your traffic
 moves the score by nothing, and a page that feels instant in development can score poorly.
 
-That is why the vitals are a *field* measurement first. The lab tools are for diagnosis; the field
-number is the one that exists.
+That is why the vitals are a *field* measurement first: data from real users' browsers. Lab tools are
+for diagnosis. The field number is the one that counts.
 
-> ⚠️ **Moving target:** the metric set belongs to Google and it has already changed once — FID out, INP
-> in — with further candidates in trial. Thresholds move too. The durable principle is the three
-> questions underneath the acronyms: did the content arrive, did the page answer when touched, did
+> ⚠️ **Moving target:** the metric set belongs to Google, and it has already changed once (FID out, INP
+> in). More candidates are in trial, and thresholds move too. The durable principle is the three
+> questions under the acronyms: did the content arrive, did the page answer when touched, did
 > anything move. Whatever the metrics are called next, they will measure those, at the 75th percentile,
 > in the field.
 
@@ -45,18 +45,18 @@ number is the one that exists.
 | **INP** — Interaction to Next Paint | How long from an interaction to the next painted frame | < 200 ms | > 500 ms |
 | **CLS** — Cumulative Layout Shift | How much visible content moved unexpectedly | < 0.1 | > 0.25 |
 
-> ⚠️ **FID is gone.** INP replaced First Input Delay as a Core Web Vital in March 2024 and FID was
-> removed entirely in September 2024. A great deal of published material — and a great many
-> interviewers' notes — still says FID, so being precise about this is a cheap way to sound current.
+> ⚠️ **FID is gone.** INP replaced First Input Delay as a Core Web Vital in March 2024, and FID was
+> removed entirely in September 2024. Much published material, and many interviewers' notes, still
+> say FID. Being precise about this is a cheap way to sound current.
 
-The difference is not cosmetic. FID measured only the **delay before the first** interaction's handler
-started. INP measures the **whole journey** — input delay, the handler running, and the browser
-painting the result — for **every** interaction, and reports close to the worst. A page could score
+The difference is real. FID measured only the **delay before the first** interaction's handler
+started. INP measures the **whole journey** for **every** interaction: input delay, the handler
+running, and the browser painting the result. It reports close to the worst. A page could score
 well on FID while every click after it took half a second, and many did.
 
 ### LCP: find the element before optimising anything
 
-You cannot fix LCP without knowing which element it is, and it is frequently not the one you assume.
+You cannot fix LCP without knowing which element it is, and it is often not the one you assume.
 
 ```typescript
 import { onLCP, type LCPMetric } from "web-vitals/attribution";
@@ -67,7 +67,7 @@ onLCP((metric: LCPMetric) => {
 });
 ```
 
-Then work in this order, because the returns fall off sharply:
+Then work in this order, because each fix pays off less than the one before:
 
 | Fix | Typical impact |
 | --- | -------------- |
@@ -93,7 +93,7 @@ gives them low priority, so a hero image queues behind scripts it does not need 
 ### INP: the main thread is the whole story
 
 Poor INP means the main thread was busy when the user interacted. There are only three things to do
-about it, and they are all about giving the thread back.
+about it, and all three give the thread back.
 
 ```typescript
 // ❌ One long task. Every click during it waits.
@@ -116,13 +116,13 @@ async function reindex(rows: Row[]): Promise<void> {
 | A handler firing on every keystroke or scroll frame | Debounce or throttle it |
 | A large synchronous re-render after a state change | Narrow what re-renders, or mark it non-urgent |
 
-The 50 ms number is worth remembering: any task longer than that can hold up an interaction, and the
-browser cannot interrupt it. See
+Remember the 50 ms number. Any task longer than that can hold up an interaction, and the browser
+cannot interrupt it. See
 [Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler) for the framework-level version.
 
 ### CLS: reserve the space before the content arrives
 
-Every layout shift has the same cause — **the browser did not know how big something would be.**
+Every layout shift has the same cause: **the browser did not know how big something would be.**
 
 ```html
 <!-- ❌ Content jumps down when the image loads -->
@@ -135,12 +135,12 @@ Every layout shift has the same cause — **the browser did not know how big som
 <img src="chart.png" alt="Emissions by quarter" style="aspect-ratio: 4 / 3; width: 100%" />
 ```
 
-The same rule covers everything that arrives late: a `min-height` on an ad or embed slot, a skeleton
-the same size as the content it replaces, and `font-display: swap` with matched fallback metrics so
-the text does not reflow when the web font arrives —
+The same rule covers everything that arrives late. Give an ad or embed slot a `min-height`. Make a
+skeleton the same size as the content it replaces. Pair `font-display: swap` with matched fallback
+metrics, so the text does not reflow when the web font arrives.
 [Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) covers that pairing.
 
-And one behavioural rule: never insert content above what the user is already reading. A notification
+And one behaviour rule: never insert content above what the user is already reading. A notification
 banner belongs in a fixed overlay, not pushed into the flow.
 
 ### Field data and lab data answer different questions
@@ -152,8 +152,8 @@ banner belongs in a fixed overlay, not pushed into the flow.
 | Can measure INP | Yes | No — there is no real interaction to measure |
 
 That last row catches people. A lab run has nobody clicking, so Lighthouse reports Total Blocking Time
-as a proxy. **INP only exists in the field**, which means you cannot fix it without real-user
-measurement in place first — see
+as a stand-in. **INP only exists in the field.** You cannot fix it until real-user measurement is in
+place. See
 [Chapter ?? — Measuring in Production](#ch-measuring-in-production).
 
 ## When to Use It
@@ -174,13 +174,13 @@ measurement in place first — see
 ❌ **Talking about FID.** It stopped being a Core Web Vital in 2024.
 ✅ INP, and be able to say what it measures that FID did not.
 
-❌ **Guessing the LCP element.** Teams routinely optimise an image that is not it.
+❌ **Guessing the LCP element.** Teams often optimise an image that is not it.
 ✅ Read it from attribution data, then optimise that one element.
 
 ❌ **`loading="lazy"` on the hero image.** It defers the exact resource LCP is waiting for.
 ✅ Eager, with `fetchpriority="high"`. Lazy-load only below the fold.
 
-❌ **Chasing a Lighthouse score as the goal.** It is one synthetic load and it cannot see INP at all.
+❌ **Chasing a Lighthouse score as the goal.** It is one simulated load, and it cannot see INP at all.
 ✅ Use lab runs to diagnose, and judge on field data.
 
 ## 🔑 Key Takeaways
@@ -195,33 +195,32 @@ measurement in place first — see
 
 **Q: What replaced FID, and what does it measure differently?**
 
-INP, as of March 2024. FID only measured the delay before the first interaction's handler began, so a
-page could score well and still feel unresponsive on every click after the first. INP measures the
-full path — input delay, handler execution, and the next paint — across all interactions and reports
-close to the worst one. It is a much harder metric to game and a much better proxy for how the page
-actually feels.
+INP, as of March 2024. FID only measured the delay before the first interaction's handler began. A
+page could score well and still feel slow on every click after the first. INP measures the full
+path (input delay, handler run, and next paint) across all interactions, and reports close to the
+worst one. It is much harder to game, and a much better guide to how the page actually feels.
 
 **Q: A page has an LCP of 4.2 seconds. Walk me through your first hour.**
 
-Identify the LCP element from field attribution rather than assuming, because it is often a background
-image or a headline instead of the hero. Then check the sequence: is the resource discovered late,
-queued behind scripts, or just too large? Most of the time the fix is the right format and size plus
-`fetchpriority="high"` and a preload, and only after that would I look at render-blocking CSS or the
+Identify the LCP element from field attribution rather than assuming. It is often a background image
+or a headline instead of the hero. Then check the sequence: is the resource discovered late, queued
+behind scripts, or just too large? Most of the time the fix is the right format and size, plus
+`fetchpriority="high"` and a preload. Only after that would I look at render-blocking CSS or the
 server's response time.
 
 **Q: Why can Lighthouse not tell you your INP?**
 
-Because there is no user in a lab run. INP requires real interactions to measure, so Lighthouse
-reports Total Blocking Time as a proxy for main-thread congestion instead. That is why fixing INP
-starts with getting field data in place — without it you are optimising against a number that
-correlates but is not the metric.
+Because there is no user in a lab run. INP needs real interactions to measure, so Lighthouse reports
+Total Blocking Time instead, as a stand-in for a busy main thread. That is why fixing INP starts with
+getting field data in place. Without it, you are optimising a number that correlates with the metric
+but is not the metric.
 
 **Q: Your CLS is 0.3 and you have set width and height on every image. Where else do you look?**
 
 Late-arriving content that has no reserved box: ad and embed slots, cookie banners inserted into the
-flow, consent modals, and anything appended above the current scroll position. Then web fonts — a
-fallback with different metrics reflows every line when the real font swaps in, which needs
-`size-adjust` and matched ascent and descent rather than just `font-display: swap`.
+flow, consent modals, and anything added above the current scroll position. Then web fonts. A
+fallback with different metrics reflows every line when the real font swaps in. The fix needs
+`size-adjust` and matched ascent and descent, not just `font-display: swap`.
 
 ## What to Read Next
 

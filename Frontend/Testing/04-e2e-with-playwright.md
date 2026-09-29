@@ -19,9 +19,9 @@ in_book: true
 ## 💡 The Core Idea
 
 An end-to-end test is the only test that runs **your real build, in a real browser engine, against a
-real server**. That is its whole value, and also why it is slow and sometimes fails for no fault of
-yours. So **pick the smallest set of journeys whose failure would be unacceptable, and defend that
-number** — three to ten for most products.
+real server**. That is its whole value. It is also why it is slow and sometimes fails through no
+fault of yours. So **pick the smallest set of journeys whose failure would be unacceptable, and defend
+that number**: three to ten for most products.
 
 Every other test compares an expected value with an actual one. That cannot reach three failures:
 
@@ -51,8 +51,9 @@ Do not choose E2E because a flow is *long*. A twelve-step form is still an integ
 
 ### Why Playwright is the default
 
-Cypress runs the test *inside* the page: a great debugger, but awkward tabs, cross-origin and iframes.
-Playwright drives the browser from *outside*, so none of those are special, and it also runs WebKit.
+Cypress runs the test *inside* the page. That gives a great debugger, but tabs, cross-origin and
+iframes are awkward. Playwright drives the browser from *outside*, so none of those are special. It
+also runs WebKit.
 
 ### Locators auto-wait, which removes most flake
 
@@ -85,7 +86,7 @@ role and label first, test id when there is no accessible text, CSS never.
 
 ### Log in once, and configure CI with care
 
-Logging in inside `beforeEach` is often most of a suite's runtime, so log in once and reuse the state.
+Logging in inside `beforeEach` is often most of a suite's runtime. Log in once and reuse the state.
 
 **A setup project, and the CI settings worth arguing for:**
 
@@ -111,8 +112,8 @@ export default defineConfig({
 ```
 
 Keep one test that does **not** use the stored state, to test login itself. Running `webServer` on the
-**production build** is what lets the suite catch a build-output bug. Retries stop one flake blocking
-a merge, but they also **hide** flake, so report retried tests and chase them.
+**production build** lets the suite catch a build-output bug. Retries stop one flake blocking a
+merge. But they also **hide** flake, so report retried tests and chase them.
 
 ### Visual regression compares pixels, not the DOM
 
@@ -133,7 +134,7 @@ test("the pricing page is visually unchanged", async ({ page }) => {
 ```
 
 Without those options the test fails every run, and the team learns to approve diffs unread.
-**Generate baselines on the platform that compares them** — a macOS baseline differs from a Linux
+**Generate baselines on the platform that compares them.** A macOS baseline differs from a Linux
 runner on nearly every glyph. Visual tests pay best on design-system components: forty components in
 four states is 160 screenshots nobody could check by hand.
 
@@ -159,7 +160,7 @@ test("the users endpoint still returns the shape we parse", async ({ request }) 
 Run one per endpoint against staging on a schedule. It finds a renamed field the day it ships. The
 full version is **consumer-driven contracts**: the consumer publishes what it needs, and the
 provider's own pipeline fails when a change breaks it. That needs a shared broker and the API team's
-buy-in — worth it when several teams use one API, overkill when one team ships both sides.
+buy-in. It is worth it when several teams use one API, and overkill when one team ships both sides.
 
 > ⚠️ **Moving target:** contract-testing tools churn, and clients generated from OpenAPI or GraphQL
 > schemas now do much of their job. The durable principle is that a mock is your assumption, and
@@ -168,8 +169,8 @@ buy-in — worth it when several teams use one API, overkill when one team ships
 
 ### Mutation testing, and what runs where
 
-Coverage counts the lines that ran. Mutation testing changes your code — `age >= 18` becomes
-`age > 18` — and checks whether any test fails. If none does, `age === 18` is untested, even at 100%
+Coverage counts the lines that ran. Mutation testing changes your code (`age >= 18` becomes
+`age > 18`) and checks whether any test fails. If none does, `age === 18` is untested, even at 100%
 coverage. The suite runs once per mutant, so it is an audit of costly modules, not a gate.
 
 | Stage | Runs | Why there |
@@ -222,7 +223,7 @@ three to ten tests, and a small number is what keeps them trusted.
 
 **Q: Your E2E suite fails about once a week for no clear reason. How do you approach it?**
 
-Get the trace first — `trace: "on-first-retry"` records each step of the real failure. Then check the
+Get the trace first. `trace: "on-first-retry"` records each step of the real failure. Then check the
 usual four: a fixed timeout, a live third-party call, state shared between tests, and a truly racy
 assertion. Report retried tests, because retries hide the count.
 
@@ -234,9 +235,9 @@ fix is consumer-driven contracts, where the provider's pipeline fails first.
 
 **Q: Would you add visual regression to every page?**
 
-No. Pages that change weekly create more baseline churn than value, and one header change fails twenty
-full-page shots. Put visual tests on design-system components, plus two or three key layouts — where
-the failure is visual and nobody could check it by hand.
+No. Pages that change weekly create more baseline churn than value. One header change fails twenty
+full-page shots. Put visual tests on design-system components, plus two or three key layouts. There
+the failure is visual, and nobody could check it by hand.
 
 ## What to Read Next
 

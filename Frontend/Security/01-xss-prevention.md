@@ -22,7 +22,7 @@ in_book: true
 runs with the victim's session. It can read the page, send requests as the user, or change what they see.
 
 The root cause is always the same. **An untrusted string crosses from data into something the browser
-interprets** — markup, a URL, a script, or a style. Prevention is one question asked at each crossing:
+interprets**: markup, a URL, a script, or a style. Prevention is one question asked at each crossing:
 _what does the browser do with this string here?_ Where the string came from matters less than where
 it lands.
 
@@ -37,11 +37,11 @@ it lands.
 | **DOM-based** | Never reaches the server                     | `innerHTML = location.hash`        |
 
 Stored runs for every visitor with no link to click. DOM-based is the hardest to catch: the payload
-never appears in a server log or a WAF.
+never appears in a server log or a WAF (web application firewall).
 
 ### The four crossings
 
-**Each crossing needs its own defence, because each is parsed by a different part of the browser.**
+**Each crossing needs its own defence, because a different part of the browser parses each one.**
 
 | Crossing   | Safe default                            | When you cannot avoid it               |
 | ---------- | --------------------------------------- | -------------------------------------- |
@@ -52,8 +52,8 @@ never appears in a server log or a WAF.
 
 ## Where a String Becomes Markup
 
-The bug is a **source** the attacker controls flowing into a **sink** that parses HTML: `innerHTML`,
-`outerHTML`, `insertAdjacentHTML` or `document.write`.
+The bug starts at a **source** the attacker controls. It flows into a **sink**, an API that parses
+HTML: `innerHTML`, `outerHTML`, `insertAdjacentHTML` or `document.write`.
 
 **The classic DOM-based bug, and its fix:**
 
@@ -68,7 +68,7 @@ el.textContent = `Hi, ${name}!`; // ✅ treated as text, never parsed
 
 A CMS body must render as HTML, so encoding would break it. You need **sanitisation**: parse the HTML
 and strip anything that can run. DOMPurify is the standard. Uploaded SVG belongs here too, since an SVG
-can carry script: show uploads with `<img>`, never as text read into the DOM.
+can carry script. Show uploads with `<img>`, never as text read into the DOM.
 
 **Sanitise with an allowlist:**
 
@@ -111,7 +111,7 @@ attacker choose the attribute.
 ## Where a String Becomes a URL or a Script
 
 **URLs.** A `javascript:` URL in `href` or `location` is code. A full URL from a query string is an
-**open redirect**: your domain lends its name to a phishing page, and link filters pass it because the
+**open redirect**. Your domain lends its name to a phishing page. Link filters pass it, because the
 first hop really is your site.
 
 **Accept a path, not a URL:**
@@ -160,7 +160,7 @@ window.addEventListener("message", (event: MessageEvent) => {
 ```
 
 Compare the origin to an exact string: `includes("example.com")` passes for `example.com.attacker.net`.
-When you send, name the target origin; `postMessage(data, "*")` goes to whatever page holds the frame.
+When you send, name the target origin. `postMessage(data, "*")` goes to whatever page holds the frame.
 
 ## Client Checks Versus the Real Control
 
@@ -181,8 +181,8 @@ const parsed = contactSchema.safeParse(req.body); // on the server, this is the 
 if (!parsed.success) res.status(400).json(parsed.error.issues);
 ```
 
-The form uses it through its resolver, so the limits cannot drift. File checks are the same: `file.type`
-is a guess from the extension, so the server still checks size and magic bytes.
+The form uses the same schema through its resolver, so the limits cannot drift. File checks work the
+same way. `file.type` is a guess from the extension, so the server still checks size and magic bytes.
 
 ## When to Use It
 
@@ -207,18 +207,18 @@ of 2026). An **`HttpOnly`** session cookie means a script that does run cannot r
 ## 🔑 Key Takeaways
 
 - XSS happens where an untrusted string crosses into markup, a URL, a script or a style, and each crossing needs its own defence.
-- `textContent` and JSX text are safe; `innerHTML`, `dangerouslySetInnerHTML`, `javascript:` URLs and spread props are not.
+- `textContent` and JSX text are safe. `innerHTML`, `dangerouslySetInnerHTML`, `javascript:` URLs and spread props are not.
 - Sanitise unavoidable HTML with DOMPurify at render time, and accept a path rather than a full URL for any redirect.
 - `postMessage` payloads and URL fragments never reach the server, so the browser must check the exact origin and the shape.
-- Client validation is user experience; share one schema so the server's check, which is the real control, cannot drift from it.
+- Client validation is user experience. Share one schema so the server's check, the real control, cannot drift from it.
 
 ## Interview Questions
 
 **Q: Encoding or sanitisation — when do you use each?**
 
-Encoding turns special characters into text (`<` becomes `&lt;`), for anything shown as plain text.
-Sanitisation parses HTML and removes what can run. Use it only for real HTML, such as CMS content, with
-an allowlist.
+Encoding turns special characters into text (`<` becomes `&lt;`). Use it for anything shown as plain
+text. Sanitisation parses HTML and removes what can run. Use it only for real HTML, such as CMS
+content, with an allowlist.
 
 **Q: How does React prevent XSS, and where does it fall short?**
 
@@ -234,7 +234,7 @@ payload is parsed against a schema, not destructured. And that the sending side 
 
 **Q: Your team wants to rely on CSP instead of fixing every `innerHTML`. Would you agree?**
 
-No. CSP is the second layer. It stops injected code running when encoding is missed once, but it is easy
+No. CSP is the second layer. It stops injected code running when you miss one encoding, but it is easy
 to weaken with `'unsafe-inline'` or a broad allowlist. Fix the sinks, then add CSP and Trusted Types so
 a single mistake is not fatal.
 

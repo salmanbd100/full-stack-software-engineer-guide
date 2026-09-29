@@ -14,10 +14,10 @@ in_book: true
 
 Nobody is hired for knowing the Vitest API. What gets tested in an interview is judgement: what is
 worth testing, at which layer, and what a test is allowed to know about the implementation. This
-section is organised around that question, and the framework material is deliberately thin — it is
+section is organised around that question. The framework material is thin on purpose. It is only
 the vocabulary you need to have the real conversation.
 
-The through-line is coupling. A test that knows about internal state breaks on every refactor and
+The through-line is coupling. A test that knows about internal state breaks on every refactor. It
 teaches the team to distrust the suite. A test that drives the interface the way a user does survives
 rewrites of everything underneath it. Almost every recommendation here follows from that one idea.
 
@@ -36,24 +36,23 @@ the two manual passes, so the other chapters here point at it rather than restat
 
 ## What Interviewers Probe For
 
-A test suite is the part-level budget made concrete — of runtime, of maintenance, and of trust.
+A test suite spends three budgets: runtime, maintenance and trust.
 
 - **Where do you draw the test boundary?** The strongest answer names the network as the mock point
   and tests everything above it together. Mocking a child component is usually a sign the boundary is
   in the wrong place.
 - **How do you handle a flaky test?** Quarantine and fix, not retry and forget. A candidate who
   reaches straight for a retry count has told you what their suite looks like.
-- **Where does component testing stop and end-to-end start?** The answer is about what is real —
-  jsdom computes no layout — not about how long the flow is.
-- **What is your coverage number for?** The honest senior answer is that coverage finds untested
-  files, not untested behaviour, and that a target above roughly 80% starts buying tests written to
-  satisfy the number.
+- **Where does component testing stop and end-to-end start?** The answer is about what is real, not
+  about how long the flow is. jsdom (the fake DOM most unit tests run in) computes no layout.
+- **What is your coverage number for?** The honest senior answer: coverage finds untested files, not
+  untested behaviour. A target above roughly 80% starts buying tests written to satisfy the number.
 - **When do you not write the test first?** TDD is a tool, not a creed. Exploratory work, spike code
-  and UI layout are the honest exceptions, and saying so reads as experience rather than laziness.
+  and UI layout are the honest exceptions. Saying so reads as experience, not laziness.
 
 ## Reading Order
 
-01 first — it sets the layers everything else refers to. Then 02 and 03, which are where most
+Read 01 first. It sets the layers everything else refers to. Then read 02 and 03, where most
 frontend testing actually happens. 04 and 05 are the judgement chapters and read well in one sitting.
 
 **Interview sprint:** 01 → 02 → 04. The layering question, the query-priority question, and knowing

@@ -12,16 +12,16 @@ in_book: true
 
 # Part IV — Web Performance
 
-Performance is the clearest example of what Part IV is about: it is not a feature, it is a budget
-somebody is held to. This section covers the three metrics that get measured in public, the loading
-strategies that move them, and — the part most material skips — how to know whether a change helped
-real users rather than your laptop. An AI feature answers to a second budget, first token rather than
-largest paint: [Chapter ?? — Latency and Generative UI](#ch-generative-ui).
+Performance is the clearest example of what Part IV is about. It is not a feature; it is a budget
+somebody is held to. This section covers the three metrics that get measured in public and the loading
+strategies that move them. It also covers the part most material skips: how to know whether a change
+helped real users rather than your laptop. An AI feature answers to a second budget, first token rather
+than largest paint: [Chapter ?? — Latency and Generative UI](#ch-generative-ui).
 
 One correction up front, because much published material still has it wrong. **INP replaced FID** as a
-Core Web Vital in March 2024. FID measured the delay before the first interaction was handled and almost
-every site passed it; INP measures every interaction all the way to paint and takes the worst. Sites that
-passed FID comfortably routinely fail INP, and a candidate still saying FID in 2026 dates themselves.
+Core Web Vital in March 2024. FID measured the delay before the first interaction was handled, and almost
+every site passed it. INP measures every interaction all the way to paint and takes the worst. Sites that
+passed FID easily often fail INP, and a candidate still saying FID in 2026 sounds out of date.
 
 ## Chapters
 
@@ -43,17 +43,17 @@ Performance is where the part-level signal is measured literally:
   a real LCP problem.
 - **Do you know why INP is harder than FID?** Because it measures every interaction all the way to
   paint, so a long task anywhere in the session can fail you. This is the current version of the
-  question and it filters well.
-- **Lab or field?** Lighthouse scores one synthetic device; the Chrome User Experience Report says
+  question, and it filters well.
+- **Lab or field?** Lighthouse scores one simulated device. The Chrome User Experience Report says
   what real users got. A senior answer uses both, and knows a lab run cannot measure INP at all.
-- **What stops the bundle growing back?** A budget that fails the build, not an optimisation week. The
-  candidates who have lived through this answer with a CI gate and a delta comment on the pull request.
+- **What stops the bundle growing back?** A budget that fails the build, not an optimisation week.
+  Candidates who have lived through this answer with a CI gate and a size-change comment on the PR.
 
 ## Reading Order
 
-01 first, always — it defines the metrics the other three chapters are trying to move. Then 02 and 03,
-which are the highest-leverage loading fixes and the budget gate that keeps them fixed. 04 is what
-makes all of it verifiable, and it is not optional in production.
+01 first, always. It defines the metrics the other three chapters try to move. Then 02 and 03: the
+loading fixes that pay off most, and the budget gate that keeps them fixed. 04 is how you check all
+of it, and it is not optional in production.
 
 **Interview sprint:** 01 → 02 → 04. The metrics, the loading lever, and how you prove any of it worked.
 The interaction lever — keeping work inside the frame budget — is Part III's

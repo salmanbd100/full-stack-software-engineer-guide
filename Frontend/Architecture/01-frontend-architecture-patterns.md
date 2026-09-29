@@ -19,8 +19,8 @@ in_book: true
 ## 💡 The Core Idea
 
 Architecture is the set of rules about **which file is allowed to import which other file**. That is
-all it is. Everything else — folder names, layer diagrams, dependency-injection containers — exists to
-make those rules visible and hard to break by accident.
+all it is. Everything else exists to make those rules visible and hard to break by accident. That
+includes folder names, layer diagrams and dependency-injection containers.
 
 The reason it matters is not elegance. It is the cost of change. In a codebase with no boundaries, a
 change to the shape of an API response touches components, tests, and three unrelated screens. In a
@@ -29,7 +29,7 @@ lands, not by asking you to name a pattern.
 
 ## How It Works
 
-Three patterns cover almost every real frontend. They are not alternatives — they stack.
+Three patterns cover almost every real frontend. They are not alternatives. They stack.
 
 | Pattern | The rule it adds | Cost |
 | ------- | ---------------- | ---- |
@@ -75,7 +75,7 @@ function UserCardContainer({ userId }: { userId: string }) {
 }
 ```
 
-> ⚠️ In React 19 the container/presentational split is less about testability than it used to be —
+> ⚠️ In React 19 the container/presentational split is less about testability than it used to be.
 > Server Components already keep fetching out of the interactive tree. The durable principle survives:
 > a component that fetches and a component that renders have different reasons to change.
 
@@ -116,11 +116,11 @@ function UserPage({ id }: { id: string }) {
 ```
 
 The layering only holds if something enforces it. In practice that is an ESLint rule
-(`import/no-restricted-paths`) or the boundary plugin in your monorepo tool — not a code review habit.
+(`import/no-restricted-paths`) or the boundary plugin in your monorepo tool, not a code review habit.
 
 ### Clean architecture
 
-Push the framework to the edge so the domain has no dependency on it. You could, in theory, replace
+Push the framework to the edge so the domain does not depend on it. In theory, you could replace
 React with Svelte and leave the core untouched.
 
 **A use case the UI calls into:**
@@ -148,8 +148,8 @@ function LoginPage() {
 }
 ```
 
-This is the pattern most often applied too early. It pays for itself in long-lived apps with real
-domain rules — pricing, entitlements, regulated workflows — and it is dead weight in a CRUD dashboard.
+This is the pattern teams most often apply too early. It pays for itself in long-lived apps with real
+domain rules, such as pricing, entitlements or regulated workflows. In a CRUD dashboard it is dead weight.
 
 ## When to Use It
 
@@ -161,13 +161,13 @@ domain rules — pricing, entitlements, regulated workflows — and it is dead w
 | Teams blocking each other on deploys | Micro-frontends — see [Chapter ?? — Micro-Frontends](#ch-micro-frontends) | The bottleneck is organisational, not architectural |
 | Shared code across separate frontends | A monorepo, not a new pattern — see [Chapter ?? — Monorepos](#ch-monorepos) | Tooling solves this cheaper than architecture does |
 
-The honest answer in an interview is a sequence, not a pick: start component-based, add layering when
-logic starts repeating, and only consider anything heavier when a concrete pain has a name.
+The honest answer in an interview is a sequence, not a pick. Start component-based. Add layering when
+logic starts repeating. Consider anything heavier only when a concrete pain has a name.
 
 ## Common Mistakes
 
-❌ **Business logic inside components.** A price calculation in a JSX file cannot be tested without
-rendering, cannot be reused on the server, and gets copied the first time a second screen needs it.
+❌ **Business logic inside components.** You cannot test a price calculation in a JSX file without
+rendering it. You cannot reuse it on the server, and it gets copied when a second screen needs it.
 ✅ Move it to a plain function or a hook the component calls.
 
 ❌ **Layers with no enforcement.** A `data/` folder that components import from directly is a naming
@@ -178,13 +178,13 @@ convention, not an architecture.
 users is indirection with no payoff.
 ✅ Introduce it when a domain rule exists that is worth protecting.
 
-❌ **Folders by type instead of by feature.** `components/`, `hooks/`, `utils/` at 200 files means
-every feature is smeared across the tree and nothing can be deleted safely.
+❌ **Folders by type instead of by feature.** With `components/`, `hooks/` and `utils/` at 200 files,
+every feature is smeared across the tree. Nothing can be deleted safely.
 ✅ Group by feature and keep only genuinely shared code in a shared folder.
 
 ## 🔑 Key Takeaways
 
-- Architecture is a set of import rules; everything else is presentation of those rules.
+- Architecture is a set of import rules. Everything else is a way of showing those rules.
 - Component-based is the correct default, and the only decision it forces is where fetching lives.
 - Layering is worth the cost the moment business logic starts appearing in more than one component.
 - Clean architecture protects domain rules from the framework, and is dead weight without domain rules.
@@ -194,31 +194,31 @@ every feature is smeared across the tree and nothing can be deleted safely.
 
 **Q: How would you structure a frontend that forty engineers work in?**
 
-By feature, not by file type, with a small shared layer underneath and an enforced rule about which
-direction imports may point. The reason is deletion: a feature folder can be removed in one commit,
-whereas a feature spread across `components/`, `hooks/` and `utils/` cannot be removed safely at all.
-Name the enforcement mechanism — a lint rule or a build-graph boundary — because that is what makes
-the answer real rather than aspirational.
+By feature, not by file type, with a small shared layer underneath. Add an enforced rule about which
+direction imports may point. The reason is deletion: you can remove a feature folder in one commit.
+A feature spread across `components/`, `hooks/` and `utils/` cannot be removed safely at all. Name
+the enforcement mechanism, such as a lint rule or a build-graph boundary. That makes the answer real,
+not aspirational.
 
 **Q: Where do you put business logic in a React app, and why not in the component?**
 
 In plain functions, or in hooks that call them. A component is the wrong home because it can only run
-inside a render, which makes the logic untestable without a renderer, unusable on the server, and
-invisible to anyone looking for it. The test for whether logic belongs in a component is whether it
-would still make sense if the UI were a CLI.
+inside a render. The logic becomes untestable without a renderer, unusable on the server, and hard to
+find. To test whether logic belongs in a component, ask whether it would still make sense if the UI
+were a CLI.
 
 **Q: When would you *not* introduce a layered architecture?**
 
 When there is no business logic to layer. A dashboard that fetches and displays is better served by
 colocated data fetching than by three folders and an indirection per call. Layering is a response to
-duplication and to logic that outgrew a single screen; introduced before that, it costs navigation
-effort and buys nothing.
+duplication and to logic that outgrew a single screen. Before that point, it costs navigation effort
+and buys nothing.
 
 **Q: A change to one API response shape touched nine files. What went wrong?**
 
 The response type leaked past the data-access boundary and became the type the UI renders directly.
-The fix is a mapping step: the data layer owns the wire shape, maps it to a domain type, and only the
-domain type is allowed upwards. That confines the next shape change to one file, which is the actual
+The fix is a mapping step. The data layer owns the wire shape and maps it to a domain type. Only the
+domain type may travel upwards. That keeps the next shape change to one file, which is the real
 point of the boundary.
 
 ## What to Read Next

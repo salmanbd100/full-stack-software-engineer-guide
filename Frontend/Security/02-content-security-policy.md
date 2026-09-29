@@ -89,9 +89,10 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 });
 ```
 
-Domain allowlists are fragile: a CDN hosts thousands of libraries, and one weak entry can be abused.
-Google recommends this strict policy instead. `'strict-dynamic'` lets a nonced script load more
-scripts, so trust flows from the nonce. `https:` and `'unsafe-inline'` only serve old browsers.
+Domain allowlists are fragile. A CDN hosts thousands of libraries, and an attacker can abuse one weak
+entry. Google recommends this strict policy instead. `'strict-dynamic'` lets a nonced script load more
+scripts, so trust flows from the nonce. `https:` and `'unsafe-inline'` are fallbacks for old browsers.
+A browser that understands nonces and `'strict-dynamic'` ignores both, so they open no hole.
 
 ## Rolling CSP Out Safely
 
@@ -134,9 +135,10 @@ Stay in report-only until every report is one you understand. Enforce on a few l
 
 ### HSTS
 
-**HSTS** forces HTTPS. After one HTTPS response with the header, the browser upgrades every later
-`http://` request itself, which blocks SSL stripping. `includeSubDomains` covers subdomains, and
-`preload` puts you on the browser's built-in list so even the first visit is protected.
+**HSTS** (HTTP Strict Transport Security) forces HTTPS. After one HTTPS response with the header, the
+browser upgrades every later `http://` request itself. That blocks SSL stripping, where an attacker on
+the network downgrades you to HTTP. `includeSubDomains` covers subdomains. `preload` puts you on the
+browser's built-in list, so the browser protects even the first visit.
 
 > ⚠️ **HSTS is close to a one-way door.** Browsers cache it for the whole `max-age`, and leaving the
 > preload list is slow. Start with `max-age=300`, confirm every subdomain serves valid HTTPS, then raise it.
@@ -162,9 +164,9 @@ user thinks they click the attacker's button but clicks "Delete account" on your
 
 ## helmet and Testing
 
-In Express, **helmet** applies the whole set with sane defaults. It sets HSTS, `nosniff`,
-`frame-ancestors`, a baseline CSP, a referrer policy and `X-XSS-Protection: 0`, and it hides
-`X-Powered-By`. Customise the parts you care about rather than hand-rolling strings.
+In Express, **helmet** applies the whole set with sensible defaults. It sets HSTS, `nosniff`,
+`frame-ancestors`, a baseline CSP, a referrer policy and `X-XSS-Protection: 0`. It also hides
+`X-Powered-By`. Customise the parts you care about rather than writing header strings by hand.
 
 **helmet with a custom CSP and HSTS:**
 

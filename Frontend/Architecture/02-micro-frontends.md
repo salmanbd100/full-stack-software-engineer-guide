@@ -22,11 +22,10 @@ Micro-frontends split one user-facing application into pieces that separate team
 **deploy on their own schedules**. A shell application stitches the pieces together at runtime so the
 user sees one product.
 
-The thing to be clear about in an interview: this solves an **organisational** problem, not a
-technical one. Nothing about a micro-frontend makes the app faster, smaller or easier to reason about
-— it makes all three worse. What it buys is that the checkout team can ship on Tuesday without
-waiting for the search team's release train. If nobody is waiting on a release train, you are paying
-the cost for nothing.
+Be clear about this in an interview: it solves an **organisational** problem, not a technical one.
+A micro-frontend does not make the app faster, smaller or easier to reason about. It makes all three
+worse. What it buys is that the checkout team can ship on Tuesday without waiting for the search
+team's release train. If nobody is waiting on a release train, you are paying the cost for nothing.
 
 ## How It Works
 
@@ -40,13 +39,13 @@ the cost for nothing.
 | **Web Components** | High | Medium | Mixed frameworks under one shell |
 
 Build-time integration is the one most often mislabelled. Publishing `@acme/checkout-ui` and
-consuming it from the shell is a shared component library with extra steps — the shell still has to
+consuming it from the shell is a shared component library with extra steps. The shell still has to
 redeploy for the change to reach users, so the deploy independence never arrives.
 
 ### Module Federation
 
-Each remote declares what it exposes; the shell declares where to find remotes. Neither side needs the
-other at build time.
+Module Federation lets one build load code from another build at runtime, by URL. Each remote declares
+what it exposes, and the shell declares where to find remotes. Neither side needs the other at build time.
 
 **The remote — the checkout team's build:**
 
@@ -100,19 +99,19 @@ function CheckoutRoute() {
 }
 ```
 
-> ⚠️ **Moving target:** Module Federation is a Webpack 5 feature that Rspack implements natively and
-> Vite covers through a plugin, and the runtime API has changed across Federation 1.x and 2.x. The
-> durable principle is that runtime integration means resolving code by URL at load time, which turns
+> ⚠️ **Moving target:** Module Federation is a Webpack 5 feature. Rspack implements it natively and
+> Vite covers it through a plugin. The runtime API has changed across Federation 1.x and 2.x. The
+> durable principle is that runtime integration resolves code by URL at load time. That turns
 > another team's deploy into a network dependency of yours. The plugin names will move.
 
 ### The single-spa alternative
 
-Module Federation composes **modules**; single-spa composes **applications**. Its root config maps a
-route predicate to a bundle through `registerApplication`, and each application exports `bootstrap`,
-`mount` and `unmount` lifecycles the root calls as the route changes.
+Module Federation composes **modules**. single-spa composes **applications**. Its root config maps a
+route predicate to a bundle through `registerApplication`. Each application exports `bootstrap`,
+`mount` and `unmount` lifecycles, and the root calls them as the route changes.
 
 The trade is the unit of composition. single-spa owns routing and application lifecycle, so mixed
-frameworks under one shell are straightforward — but a remote is a whole screen. Reach for Federation
+frameworks under one shell are straightforward. But a remote is a whole screen. Reach for Federation
 when remotes have to interleave inside one page, and for single-spa when each remote owns a route.
 
 ### Shared dependencies
@@ -121,12 +120,12 @@ when remotes have to interleave inside one page, and for single-spa when each re
 hook dispatchers, and any component crossing between them throws.
 
 Leave `shared` out and the shell and every remote load their own React. Hooks throw the moment a
-remote component renders inside a shell context, and the stack trace points at neither team's code.
+remote component renders inside a shell context. The stack trace points at neither team's code.
 
-The consequence is a constraint people underestimate: every remote must be on a compatible React
-major. Micro-frontends give you independent **deploys**, not independent **upgrades** — which makes
-the version policy in [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) a
-prerequisite rather than a nicety.
+This leads to a constraint people underestimate: every remote must be on a compatible React major.
+Micro-frontends give you independent **deploys**, not independent **upgrades**. That makes the
+version policy in [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale) a
+prerequisite, not a nicety.
 
 ### Cross-app communication
 
@@ -165,8 +164,8 @@ interface is the whole contract, and it is the only thing both teams have to agr
 | Startup or MVP | ❌ Premature; the coordination overhead outruns the benefit |
 | Screens that share state constantly | ❌ The domain boundary is in the wrong place |
 
-The last row is the one worth rehearsing. If two micro-frontends need to see each other's state on
-every interaction, they are one application that has been cut along the wrong seam. Fix the seam before
+The last row is the one worth rehearsing. Two micro-frontends may need to see each other's state on
+every interaction. Then they are one application, cut along the wrong seam. Fix the seam before
 reaching for more integration machinery.
 
 ## Common Mistakes
@@ -175,14 +174,14 @@ reaching for more integration machinery.
 ✅ Adopt it only when deploy independence is the bottleneck you can name.
 
 ❌ **No error boundary around a remote.** A remote that fails to load takes the whole shell with it.
-✅ Wrap every remote in an error boundary with a usable fallback, and treat load failure as expected.
+✅ Wrap every remote in an error boundary with a usable fallback. Treat load failure as expected.
 
 ❌ **Different framework majors per remote.** Independent deploys do not mean independent React versions.
 ✅ Agree a shared-dependency version policy up front and enforce it in CI.
 
 ❌ **A shared state library across remotes.** The moment two remotes import the same store, their
 deploys are coupled again through the store's shape.
-✅ Communicate through the URL and typed custom events; keep the contract narrow enough to version.
+✅ Communicate through the URL and typed custom events. Keep the contract narrow enough to version.
 
 ❌ **No shared design system.** Independent teams produce five different buttons within a quarter.
 ✅ Ship tokens and components as a versioned package — see [Chapter ?? — Design Systems, Dependencies and Upgrades](#ch-design-systems-at-scale).
@@ -190,7 +189,7 @@ deploys are coupled again through the store's shape.
 ## 🔑 Key Takeaways
 
 - Micro-frontends buy deploy independence and cost you bundle size, latency and debuggability.
-- Build-time integration is a component library with extra steps; the independence needs runtime loading.
+- Build-time integration is a component library with extra steps. The independence needs runtime loading.
 - `singleton: true` on the framework is mandatory, and it means every remote shares a framework major.
 - Keep the cross-app contract to the URL plus typed custom events, or the deploys re-couple.
 - Every remote is a network dependency, so every remote needs an error boundary and a fallback.
@@ -199,31 +198,31 @@ deploys are coupled again through the store's shape.
 
 **Q: When would you turn down micro-frontends?**
 
-Whenever the pain being described is code duplication or inconsistent UI, because neither is a deploy
-problem. A monorepo with a shared component package solves both at a fraction of the operational cost.
-The one thing micro-frontends uniquely solve is teams waiting on each other to release, so if nobody
-is waiting, the answer is no.
+Whenever the pain is code duplication or inconsistent UI, because neither is a deploy problem. A
+monorepo with a shared component package solves both at a fraction of the operational cost. The one
+thing only micro-frontends solve is teams waiting on each other to release. If nobody is waiting, the
+answer is no.
 
 **Q: Why must React be a singleton across remotes, and what breaks if it is not?**
 
-Hooks are resolved through a module-level dispatcher inside the React copy that rendered the component.
-With two copies loaded, a component from one copy rendering inside a tree owned by the other reads a
-null dispatcher and throws. `singleton: true` makes the loaders negotiate a single instance, which is
+React resolves hooks through a module-level dispatcher inside the copy that rendered the component.
+With two copies loaded, a component from one copy may render inside a tree the other owns. It reads a
+null dispatcher and throws. `singleton: true` makes the loaders agree on a single instance. That is
 also why remotes cannot be on incompatible React majors.
 
 **Q: A remote is down in production. What does the user see?**
 
-Whatever the shell's error boundary renders — and if there is no boundary, a blank page, because a
-failed dynamic import rejects during render. The design question behind this is which remotes are
-load-bearing: navigation and auth need to be in the shell, while a recommendations panel should
-degrade to nothing and let the rest of the page work.
+Whatever the shell's error boundary renders. With no boundary, a blank page, because a failed dynamic
+import rejects during render. The design question behind this is which remotes are load-bearing.
+Navigation and auth need to be in the shell. A recommendations panel should degrade to nothing and
+let the rest of the page work.
 
 **Q: How do two micro-frontends share the current user?**
 
-The shell owns authentication and passes the resolved user down as props or context to remotes it
-mounts, or the remotes read a token the shell put in a well-known place. What they should not do is
-each run their own auth flow, because then the user signs in twice and the session-expiry behaviour
-differs per remote. Auth is the clearest example of something that belongs in the shell, not in a remote.
+The shell owns authentication and passes the resolved user to the remotes it mounts, as props or
+context. Or the remotes read a token the shell put in a well-known place. Each remote should not run
+its own auth flow. The user would sign in twice, and session-expiry behaviour would differ per remote.
+Auth is the clearest example of something that belongs in the shell, not in a remote.
 
 ## What to Read Next
 

@@ -189,7 +189,7 @@ dependencies with no release in 18 months**. Put them beside the error budget, w
 ## Common Mistakes
 
 ❌ **Components referencing primitive tokens.** `blue500` in a button means the button cannot be re-themed.
-✅ Components read semantic tokens only; semantics point at primitives.
+✅ Components read semantic tokens only. Semantic tokens point at primitives.
 
 ❌ **Accessibility as the consumer's job.** A `Dialog` that does not trap focus ships broken in every app.
 ✅ Focus, keyboard handling and roles live inside the component and are tested there.
@@ -230,7 +230,7 @@ the previous major. A clean break is technically correct and gets your system fo
 
 When the design language is still moving. Components encode decisions, so building them early means
 rebuilding them after teams have worked around the first version. Ship tokens early, because values are
-cheap to change, and wait on components until the language is worth freezing.
+cheap to change. Wait on components until the language is worth freezing.
 
 **Q: A team says they cannot upgrade React because "too much would break". How do you find out?**
 

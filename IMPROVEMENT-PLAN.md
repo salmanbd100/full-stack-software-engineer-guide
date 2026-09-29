@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-29 · **Progress:** 14 / 25
+**Last updated:** 2026-09-29 · **Progress:** 15 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1049,13 +1049,43 @@ the three checks are green.
 
 ---
 
-### - [ ] 108. Plain English — Part IV `M`
+### - [x] 108. Plain English — Part IV `M` — ✅ **done 2026-09-29**
 
 Already the cleanest part at **18.5 words a sentence**, with 115 long sentences to break up. The method
 is in item #105.
 
 **Done when:** Part IV has been read line by line, its average is inside 15–20 words a sentence, and
 the three checks are green.
+
+**Delivered:**
+
+- **All 20 Part IV files were read line by line and edited.** That covers the part opener, the four section
+  READMEs, and every chapter in Architecture, Security, Testing and Web Performance. The diff is 457 lines in
+  and 461 out, and the part went from **3,872 to 3,868 lines** against its 4,000 budget. The work matched #105:
+  long sentences split, dash asides and semicolon chains turned into full stops, and passive wording made
+  active. Plainer words were swapped in, such as "synthetic" → "simulated", "benign" → "harmless" and "delta" →
+  "size change". Terms got a first-use gloss: INP, Module Federation, axe, jsdom, VPAT, ACR, CSP, CSRF, WAF,
+  sink, HSTS, SSL stripping and SLO
+- **Untouched:** code fences, tables, diagrams, headings, front matter, `**Q:**` lines, `**In this chapter:**`
+  lines and cross-reference links. A grep of the diff for changed lines starting with `|`, `#`, a fence,
+  `**Q:` or `**In this` prints nothing
+- **Measured with the #105 method** (a scratch script, still not in the repo). Before: **15.7 words a
+  sentence, 48 sentences over 32 words**. After: **13.1, with 10 over 32**. The ten that are left are two
+  `**In this chapter:**` lines, five splitter artefacts where a bold lead or bold sentence gets joined to the
+  next sentence, and three deliberate parallel lists (in Architecture ch04, Testing ch03 and the Web
+  Performance README). The 18.5 in this plan's table was measured before #99 cut the part, which matches what
+  #105 found
+- **Two content fixes:**
+  - `Security/02-content-security-policy.md` said `https:` and `'unsafe-inline'` in the strict policy "only
+    serve old browsers". That sits just below a warning that `'unsafe-inline'` defeats CSP. It now also says
+    that a browser which understands nonces and `'strict-dynamic'` ignores both, so they open no hole
+  - `Architecture/04-reviewing-ai-generated-code.md` said "the React 19 compiler". The compiler ships
+    separately from React 19, and the rest of the book calls it the React Compiler, so it now does too
+- **Reported but left alone:** `Security/01` calls a full URL from a query string "an open redirect", when
+  strictly the redirect that uses it is. The wording is loose, but a reader will understand it
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression, including the part-budget rule. `pnpm
+  index:check` is current, with 647 and 87 questions. `pnpm check:code-samples` exits 0, with no count up
+  against the baseline
 
 ---
 
@@ -1250,8 +1280,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 14/25 | 🚧 In progress |
-| **Total** | **25** | **14/25** | **56%** |
+| 9 | 95–116 · 95a · 113a · 113b | 15/25 | 🚧 In progress |
+| **Total** | **25** | **15/25** | **60%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item
