@@ -18,52 +18,50 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Three different jobs get bundled together under "code quality", and they have wildly different costs.
+Three different jobs get bundled together under "code quality". Their costs are wildly different.
 
 **Formatting** is syntactic. It reads one file, ignores everything else, and finishes instantly.
 
 **Linting** is pattern matching. Most rules read one file and finish quickly. A minority need the whole
 program, and those cost what type-checking costs.
 
-**Type-checking** is semantic and whole-program. To know whether this call is valid it must resolve every
-type it touches, transitively. It cannot be made per-file, and it cannot be skipped, because — as
-[Chapter ?? — Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop) explains — the bundler strips types
+**Type-checking** is semantic and whole-program. To know whether this call is valid, it must resolve every
+type it touches, transitively. You cannot make it per-file, and you cannot skip it. As
+[Chapter ?? — Vite, Rust Bundlers and the Dev Loop](#ch-vite-and-the-dev-loop) explains, the bundler strips types
 without checking them.
 
-Almost every slow pipeline is one of these three doing work that belongs to another, or the whole-program
-one being run more often than it needs to be.
+In almost every slow pipeline, one of these three does work that belongs to another. Or the
+whole-program one runs more often than it needs to.
 
 > ⚠️ **Moving target:** both halves of this chapter are being rewritten in native languages. A Go port of
-> the TypeScript compiler is in progress and is intended to become TypeScript 7, with roughly an
-> order-of-magnitude speed-up, and Rust linters are steadily adding the type-aware rules they currently
-> lack. Check what your version supports. The durable part is the cost model: whole-program work is
-> expensive whoever writes the implementation.
+> the TypeScript compiler is in progress. It is meant to become TypeScript 7, roughly ten times faster.
+> Rust linters are steadily adding the type-aware rules they still lack. Check what your version
+> supports. The durable part is the cost model: whole-program work is expensive whoever writes the
+> implementation.
 
 ## How It Works
 
 ### Why type-checking does not parallelise
 
-A linter can shard a thousand files across eight cores. A type-checker cannot, because checking file A
-requires the resolved types of everything A imports, and those requirements form the same graph the
-bundler walks.
+A linter can shard a thousand files across eight cores. A type-checker cannot. Checking file A needs the
+resolved types of everything A imports. Those needs form the same graph the bundler walks.
 
 There are three levers, in order of value.
 
-**`skipLibCheck: true`.** Without it, the compiler checks every `.d.ts` file in `node_modules` — tens of
-thousands of declarations you did not write and cannot fix. It stays enabled in essentially every real
-project.
+**`skipLibCheck: true`.** Without it, the compiler checks every `.d.ts` file in `node_modules`: tens of
+thousands of declarations you did not write and cannot fix. Almost every real project keeps it on.
 
-**`incremental: true`.** The compiler writes a `.tsbuildinfo` file recording what it checked, so the next
-run only re-checks what changed. Cache that file in continuous integration or the benefit exists only on
-developer machines.
+**`incremental: true`.** The compiler writes a `.tsbuildinfo` file that records what it checked. The
+next run then re-checks only what changed. Cache that file in continuous integration, or the benefit
+exists only on developer machines.
 
 **Project references.** The real scaling mechanism, and the one most teams never reach for.
 
 ### Project references, and why they change the shape
 
 Normally, checking an application means re-checking the source of every package it imports. Project
-references replace that: each project is compiled once to `.d.ts` **declaration files**, and downstream
-projects consume the declarations instead of the sources.
+references replace that. Each project compiles once to `.d.ts` **declaration files**. Downstream
+projects read the declarations instead of the sources.
 
 ```json
 // packages/web/tsconfig.json
@@ -73,14 +71,14 @@ projects consume the declarations instead of the sources.
 }
 ```
 
-`tsc --build` then walks the reference graph, checks each project once in dependency order, skips any
-whose build info is still valid, and can run independent projects in parallel.
+`tsc --build` then walks the reference graph and checks each project once, in dependency order. It skips
+any project whose build info is still valid, and it can run independent projects in parallel.
 
-The cost is real: every referenced project needs `composite: true`, must emit declarations, and can no
-longer have a circular reference to anything downstream. That last constraint is usually a benefit
-disguised as a chore — it forces the package boundaries to be acyclic, which they should have been
-anyway. The unit of work becomes the package rather than the repository, which is the same shift the task
-graph in [Chapter ?? — Monorepos](#ch-monorepos) makes for builds.
+The cost is real. Every referenced project needs `composite: true` and must emit declarations. It also
+can no longer have a circular reference to anything downstream. That last rule is usually a benefit
+that looks like a chore. It forces the package boundaries to be acyclic, which they should have been
+anyway. The unit of work becomes the package, not the repository. The task graph in
+[Chapter ?? — Monorepos](#ch-monorepos) makes the same shift for builds.
 
 ### Two kinds of lint rule
 
@@ -91,16 +89,16 @@ graph in [Chapter ?? — Monorepos](#ch-monorepos) makes for builds.
 | **Cost** | Milliseconds per file, parallel | As expensive as type-checking, again |
 | **Parallelises** | Yes | No |
 
-This table is the answer to "why does linting take eight minutes". Enabling a type-aware preset makes the
-linter build a second full type program. You are now type-checking twice.
+This table answers "why does linting take eight minutes". A type-aware preset makes the linter build a
+second full type program. You are now type-checking twice.
 
-The pragmatic arrangement is a split:
+The practical arrangement is a split:
 
 - **A fast Rust linter — Biome or Oxlint — on every file, on every commit.** Syntactic rules, unused
   code, import hygiene, framework rules. Fast enough to be a pre-commit hook.
 - **A small, deliberate set of type-aware rules**, run once in continuous integration alongside the type
-  check. Choose the ones that catch real bugs — an unawaited promise is the strongest example — rather
-  than enabling the preset.
+  check. Choose the ones that catch real bugs, instead of enabling the preset. An unawaited promise is
+  the strongest example.
 
 ### Formatting is not linting
 
@@ -114,8 +112,8 @@ never reach a human or fail a build:
 | Continuous integration | Check, and fail with the exact command to fix it — or fix it and push |
 | Code review | Never. A comment about a blank line is a process failure |
 
-Biome does formatting and linting in one binary, which removes the configuration seam between two tools
-that has caused arguments for a decade.
+Biome does formatting and linting in one binary. That removes the configuration seam between two tools,
+which has caused arguments for a decade.
 
 ### What gates a merge
 
@@ -167,41 +165,41 @@ step.
 
 ## 🔑 Key Takeaways
 
-- Formatting, linting and type-checking have different costs; treating them as one makes the pipeline slow.
-- Type-checking is whole-program and cannot be sharded — `skipLibCheck`, incremental builds and project references are the levers.
-- Project references make the unit of checking a package by consuming declaration files instead of sources.
-- Type-aware lint rules cost a second full type-check; enable them deliberately, not as a preset.
+- Formatting, linting and type-checking have different costs. Treating them as one makes the pipeline slow.
+- Type-checking is whole-program and cannot be sharded. `skipLibCheck`, incremental builds and project references are the levers.
+- Project references make the package the unit of checking, by reading declaration files instead of sources.
+- Type-aware lint rules cost a second full type-check. Enable them deliberately, not as a preset.
 - Nothing but `tsc` validates types, so it has to gate merges.
 
 ## Interview Questions
 
 **Q: Why can't type-checking be parallelised the way linting is?**
 
-Because checking a file requires the resolved types of everything it imports, transitively — it is a
-whole-program analysis over a dependency graph, not a per-file pass. The way to parallelise it is to cut
-the graph into projects with declared boundaries, so each is checked once and downstream projects read its
-declaration files rather than its sources.
+Because checking a file needs the resolved types of everything it imports, transitively. It is a
+whole-program analysis over a dependency graph, not a per-file pass. To parallelise it, cut the graph
+into projects with declared boundaries. Then each is checked once, and downstream projects read its
+declaration files instead of its sources.
 
 **Q: How do project references speed up a large TypeScript codebase?**
 
 Each project compiles to `.d.ts` files and records its own build info. Consumers type-check against those
-declarations instead of re-checking the sources, so unchanged projects are skipped entirely and
-independent ones run in parallel. The price is `composite: true`, emitted declarations, and an acyclic
-package graph — which most codebases should have anyway.
+declarations instead of re-checking the sources. So the compiler skips unchanged projects entirely and
+runs independent ones in parallel. The price is `composite: true`, emitted declarations, and an acyclic
+package graph, which most codebases should have anyway.
 
 **Q: Linting takes eight minutes in continuous integration. What do you look at first?**
 
 Whether type-aware rules are enabled. Those build a full type program, so the linter is type-checking the
-repository a second time. Split the configuration: syntactic rules on a fast Rust linter across
-everything, and a small deliberate set of type-aware rules run once alongside the type check. Then check
-that lint is running on affected packages rather than all of them.
+repository a second time. Split the configuration. Run syntactic rules on a fast Rust linter across
+everything. Run a small, deliberate set of type-aware rules once, alongside the type check. Then check
+that lint runs on affected packages, not all of them.
 
 **Q: What should block a merge, and what should not?**
 
-Formatting, fast lint rules and the type check on affected packages should block — they are cheap and
+Formatting, fast lint rules and the type check on affected packages should block. They are cheap, and
 they catch real problems. A full-repository type check, dependency audits and licence scans should run on
-a schedule and alert someone, because they fail for reasons the pull request author did not cause and
-cannot fix.
+a schedule and alert someone. They fail for reasons the pull request author did not cause and cannot
+fix.
 
 ## What to Read Next
 

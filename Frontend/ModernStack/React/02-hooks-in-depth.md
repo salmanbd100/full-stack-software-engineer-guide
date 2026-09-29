@@ -18,17 +18,16 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A hook is a way to attach something — a value, a subscription, a piece of work — to a component
-instance. The component function itself is stateless and runs from top to bottom every render. The state
-lives outside it, in a list held by React, and **React matches your hook calls to that list by call
-order.**
+A hook attaches something to a component instance: a value, a subscription, a piece of work. The
+component function itself holds no state and runs from top to bottom every render. The state lives
+outside it, in a list that React holds. **React matches your hook calls to that list by call order.**
 
-Everything unusual about hooks follows from that one implementation detail. There is no name and no key;
-there is only "the third hook this component called". Change the order between renders and the third
+Everything unusual about hooks follows from that one implementation detail. There is no name and no key.
+There is only "the third hook this component called". Change the order between renders, and the third
 call gets the second call's state.
 
-> This is why the rules are not style advice. `useState` inside an `if` is not ugly — it is a
-> use-after-free waiting for a branch to flip.
+> This is why the rules are not style advice. `useState` inside an `if` is not just ugly. It is a
+> use-after-free bug waiting for a branch to flip.
 
 ## How It Works
 
@@ -41,7 +40,7 @@ call gets the second call's state.
 | Name custom hooks `useSomething`               | The linter and the React Compiler both rely on it   |
 
 React 19 adds one deliberate exception: **`use` may be called conditionally.** It reads a promise or a
-context and can appear inside an `if` or a loop, because it does not own a state slot. Every other hook
+context. It can appear inside an `if` or a loop, because it does not own a state slot. Every other hook
 still follows the rules above.
 
 ### `useState` against `useRef`
@@ -75,8 +74,8 @@ function handleScroll(event: UIEvent<HTMLDivElement>): void {
 ### Effects synchronise; they are not lifecycle hooks
 
 The useful way to read `useEffect` is: *keep this external thing in step with this state.* Not "run on
-mount". The dependency array is not a list of triggers you tune until the warning goes away — it is the
-list of values the effect uses, and React re-synchronises whenever any of them differs.
+mount". The dependency array is not a list of triggers you tune until the warning goes away. It is the
+list of values the effect uses. React re-synchronises whenever any of them differs.
 
 Every effect that starts something must be able to stop it. The cleanup runs before the next
 synchronisation and again on unmount.
@@ -111,9 +110,9 @@ useEffect(() => {
 
 ### Stale closures
 
-Every render creates new functions, and each one closes over the values from *that* render. If a
-function outlives the render that made it — inside an interval, a subscription, an event listener — it
-keeps reading the old values forever.
+Every render creates new functions, and each one closes over the values from *that* render. Some
+functions outlive the render that made them, such as an interval, a subscription or an event listener.
+Those keep reading the old values forever.
 
 **❌ The counter that stops at one:**
 
@@ -137,18 +136,17 @@ useEffect(() => {
 }, []);
 ```
 
-Two fixes, one principle: either put the value in the dependency array so the effect re-runs with a
-fresh closure, or stop reading the value and describe the change instead. Deleting a dependency to
+Two fixes, one principle. Either put the value in the dependency array, so the effect re-runs with a
+fresh closure. Or stop reading the value and describe the change instead. Deleting a dependency to
 silence the linter picks neither and hides the bug.
 
 ### Custom hooks
 
-A custom hook is a function that calls hooks. That is the whole mechanism — there is no registry and no
+A custom hook is a function that calls hooks. That is the whole mechanism. There is no registry and no
 sharing. Two components calling `useOnlineStatus()` get two independent pieces of state.
 
-Extract one when the *logic* repeats, not when the code merely looks similar. A good custom hook hides a
-subscription, a synchronisation or a sequence of related state transitions behind a name that says what
-it does.
+Extract one when the *logic* repeats, not when the code only looks similar. A good custom hook hides a
+subscription, a synchronisation or a sequence of related state changes. Its name says what it does.
 
 ```tsx
 function useOnlineStatus(): boolean {
@@ -167,9 +165,10 @@ function useOnlineStatus(): boolean {
 }
 ```
 
-`useSyncExternalStore` is the right tool whenever the data lives outside React — a browser API, a
-third-party store, a media query. It reads the value during render rather than after it, so there is no
-flash of the wrong state and no tearing when React renders concurrently.
+`useSyncExternalStore` is the right tool whenever the data lives outside React: a browser API, a
+third-party store, a media query. It reads the value during render, not after it. So there is no flash
+of the wrong state, and no tearing (two parts of the screen showing different values) when React
+renders concurrently.
 
 ## When to Use It
 
@@ -192,7 +191,7 @@ useEffect(() => {
 ```
 
 The effect now describes a synchronisation it does not perform. **✅ Declare every value the effect
-reads**, then make the unstable ones stable — move the function inside the effect, hoist it out of the
+reads**, then make the unstable ones stable. Move the function inside the effect, hoist it out of the
 component, or wrap it in `useCallback`.
 
 **❌ Two `useState` calls that must always agree.** If setting one without the other is a bug, they are
@@ -216,31 +215,31 @@ hides the dependencies without simplifying anything. Extract behaviour, not line
 
 **Q: Why can't hooks be called conditionally?**
 
-React stores hook state in a list per component instance and matches calls to entries by order, since a
-hook call has no name or key. A conditional call shifts every later hook by one slot, so a `useState`
-would read another hook's value. React 19's `use` is exempt because it owns no slot — it reads a promise
-or context rather than storing anything.
+React stores hook state in a list per component instance. A hook call has no name or key, so React
+matches calls to entries by order. A conditional call shifts every later hook by one slot, so a
+`useState` would read another hook's value. React 19's `use` is exempt because it owns no slot. It
+reads a promise or context and stores nothing.
 
 **Q: This `setInterval` increments the counter to 1 and then stops. What is wrong?**
 
-The callback closes over `count` from the render in which the effect ran, and the empty dependency array
-means the effect never re-runs, so that closure lives forever with `count` frozen at its initial value.
-Passing an updater function to `setCount` removes the dependency on the captured value entirely, which
-is the fix that keeps the interval from being torn down and recreated every second.
+The callback closes over `count` from the render in which the effect ran. The empty dependency array
+means the effect never re-runs. So that closure lives forever, with `count` frozen at its first value.
+The fix is to pass an updater function to `setCount`. It removes the dependency on the captured value,
+and it keeps the interval from being torn down and recreated every second.
 
 **Q: When would you choose `useRef` over `useState` for a value that changes?**
 
-When the UI does not read it during render. A drag offset updated on every pointer move, a timer id, or
-the previous value of a prop are all transient bookkeeping — putting them in state means a render per
-change for output nobody sees. The test is simple: if removing the value from the JSX changes nothing on
-screen, it does not belong in state.
+When the UI does not read it during render. Examples are a drag offset updated on every pointer move, a
+timer id, or the previous value of a prop. These are all short-lived bookkeeping. Putting them in state
+means a render per change, for output nobody sees. The test is simple: if removing the value from the
+JSX changes nothing on screen, it does not belong in state.
 
 **Q: When is extracting a custom hook the wrong call?**
 
 When it only moves lines. A hook that wraps four unrelated calls hides which props and state the
-component actually depends on, and makes the effects harder to reason about rather than easier. Extract
-when the *logic* is genuinely reused or genuinely self-contained — a subscription, a synchronisation, a
-state machine — not when two components happen to call the same three hooks.
+component depends on. It makes the effects harder to reason about, not easier. Extract when the *logic*
+is truly reused or self-contained, such as a subscription, a synchronisation or a state machine. Do not
+extract just because two components happen to call the same three hooks.
 
 ## What to Read Next
 

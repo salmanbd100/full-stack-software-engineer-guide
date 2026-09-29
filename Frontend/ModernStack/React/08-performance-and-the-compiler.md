@@ -26,19 +26,19 @@ requests that wait on each other. Inside React, you have two levers, and they do
 | **Do less work**        | Skip renders whose output would not change        | Memoisation — now written by the compiler   |
 | **Schedule the work**   | Let urgent updates interrupt expensive ones       | `useTransition`, `useDeferredValue`         |
 
-Doing less makes renders cheaper. Scheduling makes nothing cheaper; it changes *what blocks*. A senior
+Doing less makes renders cheaper. Scheduling makes nothing cheaper. It changes *what blocks*. A senior
 engineer can tell which lever a slowdown needs before touching either.
 
-> ⚠️ **Moving target:** the React Compiler shipped as 1.0 alongside React 19, and its defaults,
-> directives and lint packaging are still settling. The durable principle is that memoisation is a
-> cache, a cache needs stable identity to work, and a cache you have not measured is a cost. Who writes
-> the cache — you or the compiler — is an implementation detail.
+> ⚠️ **Moving target:** the React Compiler shipped as 1.0 alongside React 19. Its defaults, directives
+> and lint packaging are still settling. The lasting principle: memoisation is a cache, a cache needs
+> stable identity to work, and a cache you have not measured is a cost. Whether you or the compiler
+> writes the cache is an implementation detail.
 
 ## How It Works
 
 ### What a re-render costs
 
-A re-render has three phases: render calls the component, reconcile diffs the new tree against the old
+A re-render has three phases. Render calls the component, reconcile diffs the new tree against the old
 one, and commit applies the differences to the DOM. A component that re-renders with the same output
 still pays for the first two. That is usually cheap. It gets expensive when hundreds of components do it
 on every keystroke, or when one of them sorts ten thousand rows on the way through.
@@ -71,7 +71,7 @@ file. `"use no memo"` skips one, as a temporary way to isolate a suspected compi
 
 The compiler only memoises what it can prove safe. Its proof is the Rules of React: components are pure,
 props and state are not mutated, and hooks run unconditionally. Break one, and the compiler **skips that
-component silently**. Everything else still gets optimised; that component gets no speed-up and no error.
+component silently**. Everything else still gets optimised. That component gets no speed-up and no error.
 
 > ⚠️ A component that mutates a prop, or reads a `ref` during render, will pass tests, ship, and quietly
 > get none of the compiler's benefit. `eslint-plugin-react-hooks` reports these bail-outs, and it works
@@ -195,7 +195,7 @@ are thrown away. No memoisation can rescue it. Move `Row` to module level.
 
 - A slow React screen needs one of two levers: do less work with memoisation, or schedule it with transitions.
 - The React Compiler automates memoisation, but it silently skips any component that breaks the Rules of React.
-- `useTransition` marks an update you trigger; `useDeferredValue` marks a value you were handed.
+- `useTransition` marks an update you trigger. `useDeferredValue` marks a value you were handed.
 - Neither lever touches bundle size or network waterfalls, which cause most real slowness.
 - Profile the specific interaction, confirm in a production build, and fix the cause rather than caching over it.
 
@@ -203,14 +203,14 @@ are thrown away. No memoisation can rescue it. Move `Row` to module level.
 
 **Q: What does the React Compiler do, and what do you stop writing because of it?**
 
-It analyses components at build time and caches what they produce — returned JSX, objects, callbacks and
+It analyses components at build time and caches what they produce: returned JSX, objects, callbacks and
 derived values. That covers what `memo`, `useMemo` and `useCallback` did by hand, so most of them leave
 application code. It does nothing for bundle size, waterfalls, or the cost of one expensive render.
 
 **Q: You enable the compiler and one component still re-renders constantly. Where do you look?**
 
 First, check whether it was compiled at all. The compiler skips any component that breaks the Rules of
-React, and it does so silently; `eslint-plugin-react-hooks` reports those cases. If it was compiled, look
+React, and it does so silently. `eslint-plugin-react-hooks` reports those cases. If it was compiled, look
 for a value entering from outside React with a fresh identity each time.
 
 **Q: `useTransition` or `useDeferredValue`?**
@@ -234,9 +234,9 @@ which is a different symptom with a different measurement.
 
 **Q: When would you still write `useMemo` by hand?**
 
-When the value is not part of a render — a stable object handed to a non-React library, or an expensive
-result that feeds an effect. Also in a component the compiler cannot compile and you cannot fix yet. Both
-deserve a comment saying why, because the default answer is now "you do not".
+When the value is not part of a render, such as a stable object handed to a non-React library, or an
+expensive result that feeds an effect. Also in a component the compiler cannot compile and you cannot
+fix yet. Both deserve a comment saying why, because the default answer is now "you do not".
 
 ## What to Read Next
 

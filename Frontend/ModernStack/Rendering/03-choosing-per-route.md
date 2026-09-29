@@ -30,9 +30,9 @@ crawler run my JavaScript?" It is: **what does the raw HTML of this URL contain,
 
 The senior answer is a **procedure**: list the routes, ask each four questions, read off the strategy.
 
-> ⚠️ **Moving target:** crawler behaviour changes without notice, and the crawler population has changed
-> more since 2023 than in the decade before. Any claim about what one bot renders ages fast. The durable
-> principle: HTML in the first response is indexed reliably, and everything else is indexed on someone
+> ⚠️ **Moving target:** crawler behaviour changes without notice. The set of crawlers has changed more
+> since 2023 than in the decade before. Any claim about what one bot renders ages fast. The lasting
+> principle: HTML in the first response is indexed reliably. Everything else is indexed on someone
 > else's schedule.
 
 ## How It Works
@@ -110,7 +110,7 @@ hosting bill moves.
 | `/reports/[id]` | Per tenant | None | None | Per tenant | **SSR** |
 | `/status` | Everyone | 30 seconds | None | One | **ISR**, 30 s |
 
-Interviewers pull on two rows. `/search` is not cached at all: an unbounded key means every request
+Interviewers pull on two rows. `/search` is not cached at all. An unbounded key means every request
 misses, so a cache adds cost for nothing. `/dashboard` is client-rendered *on purpose*. With no crawler
 and no shared HTML, SSR costs a function call per view for a page that can never be reused.
 
@@ -136,9 +136,9 @@ the canonical link in the server-rendered head, from the route's own definition.
 
 ### What mixing actually costs
 
-Per-route strategies are not free, and pretending they are is the weak version of this answer.
+Per-route strategies are not free. Pretending they are is the weak version of this answer.
 
-- **Two data-fetching shapes in one codebase.** Static routes fetch at build; dynamic routes fetch per
+- **Two data-fetching shapes in one codebase.** Static routes fetch at build. Dynamic routes fetch per
   request. Shared components must work in both, so data usually arrives as props, not from a hook.
 - **Cache correctness becomes a review item.** The bug that matters is a personalised value leaking into
   a cached page. Anything that reads a cookie, header or session must sit inside the dynamic region.
@@ -217,7 +217,7 @@ For routes nothing indexes, client rendering has no SEO cost at all.
 **Q: When would you deliberately choose client-side rendering in 2026?**
 
 For an authenticated surface with no crawler and no shared HTML: a dashboard, an admin tool, an editor.
-SSR there produces a page that can never be cached, costs a function call per view, and ships the same
+SSR there gives a page that can never be cached. It costs a function call per view and ships the same
 bundle. The exception is when first paint on slow devices matters enough to pay for a server shell.
 
 **Q: A product page ranks, but its social preview card is blank. What is wrong?**
@@ -234,8 +234,8 @@ component several levels down. Search the whole component tree the route pulls i
 
 **Q: A streaming route's metadata depends on a slow query. What do you do?**
 
-Split the query. Fetch only what the head needs, such as title, description and image, in the metadata
-function, and let the body stream. Await the full aggregate for the head and the whole response buffers.
+Split the query. In the metadata function, fetch only what the head needs, such as title, description
+and image. Let the body stream. If the head awaits the full aggregate, the whole response buffers.
 You lose streaming for the sake of a title tag.
 
 ## What to Read Next

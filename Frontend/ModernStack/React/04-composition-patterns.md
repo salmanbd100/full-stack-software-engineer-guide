@@ -18,13 +18,13 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Every reusable component makes the same trade: how much does the caller get to decide, and how much do
+Every reusable component makes the same trade. How much does the caller get to decide, and how much do
 you decide for them? Get it wrong in one direction and the component is rigid, so callers fork it. Get
 it wrong in the other and it is a configuration format with forty props.
 
-Composition is the way out. Instead of adding a prop for each variation, **let the caller pass the
-varying part in.** The component keeps the behaviour — the state, the keyboard handling, the
-accessibility — and hands back the parts that differ.
+Composition is the way out. Do not add a prop for each variation. **Let the caller pass the varying
+part in.** The component keeps the behaviour: the state, the keyboard handling, the accessibility. It
+hands back the parts that differ.
 
 > The tell that a component needs composition is a boolean that only exists to hide markup:
 > `showIcon`, `withFooter`, `isCompact`. Each one is a decision the caller wanted to make and could not.
@@ -33,8 +33,8 @@ accessibility — and hands back the parts that differ.
 
 ### `children` is the default answer
 
-Passing markup as `children` solves most cases, and it has a performance property people miss: the
-children are created by the *parent*, so a state change inside the wrapper does not re-render them.
+Passing markup as `children` solves most cases. It also has a performance property people miss. The
+*parent* creates the children, so a state change inside the wrapper does not re-render them.
 
 **A wrapper whose state cannot touch what it wraps:**
 
@@ -102,9 +102,9 @@ Tabs.Panel = function Panel({ id, children }: { id: string; children: ReactNode 
 };
 ```
 
-The caller arranges the markup however the design needs it; `Tabs` still owns which tab is selected.
-The thrown error in `useTabs` matters — it turns "used outside the provider" from a silent `null` into
-a message at the point of the mistake.
+The caller arranges the markup however the design needs it. `Tabs` still owns which tab is selected.
+The thrown error in `useTabs` matters. It turns "used outside the provider" from a silent `null` into a
+message at the point of the mistake.
 
 ### Slots — named children
 
@@ -128,15 +128,15 @@ function Page({ header, sidebar, children }: PageProps) {
 }
 ```
 
-This is what Svelte calls snippets and what Vue calls named slots. In React it needs no API at all —
-elements are values, so a prop can hold one.
+This is what Svelte calls snippets and what Vue calls named slots. In React it needs no API at all.
+Elements are values, so a prop can hold one.
 
 ### Render props, now that hooks exist
 
 Hooks replaced render props for sharing *logic*. A `useHover` hook is better than a `<Hover>` component
 in every way: no extra tree node, no nesting, and the types come out cleanly.
 
-Render props survive for one job — when the component owns something the caller must **render
+Render props survive for one job. The component owns something the caller must **render
 differently**, and the varying part depends on values only the component has.
 
 ```tsx
@@ -152,12 +152,12 @@ function VirtualList<T>({ items, rowHeight, renderRow }: VirtualListProps<T>) {
 }
 ```
 
-The component owns windowing; the caller owns the row. A hook cannot express that, because the value
-being shared is markup produced from internal state.
+The component owns windowing (rendering only the visible rows). The caller owns the row. A hook cannot
+express that, because the shared value is markup produced from internal state.
 
 ### Controlled against uncontrolled
 
-A component is **controlled** when the parent owns its value and hands it back as a prop, and
+A component is **controlled** when the parent owns its value and hands it back as a prop. It is
 **uncontrolled** when the component keeps its own state and only reports changes.
 
 | Question                              | Uncontrolled           | Controlled                        |
@@ -168,7 +168,7 @@ A component is **controlled** when the parent owns its value and hands it back a
 | Cost to the caller                    | None                   | State plus a handler, every time   |
 
 Default to uncontrolled and offer controlled as an option. The usual shape takes `defaultValue` for the
-uncontrolled case and `value` for the controlled one, deciding by whether `value` was passed.
+uncontrolled case and `value` for the controlled one. Whether `value` was passed decides the mode.
 
 ```tsx
 function useControllable<T>(value: T | undefined, defaultValue: T): [T, (next: T) => void] {
@@ -197,9 +197,9 @@ function useControllable<T>(value: T | undefined, defaultValue: T): [T, (next: T
 **❌ A boolean per variation.** `<Card compact bordered showFooter hideAvatar />` is four decisions the
 caller wanted to express as markup. **✅ Take a `footer` slot and let them pass nothing.**
 
-**❌ Context as the first tool.** Context is for values a whole subtree needs — theme, current user,
-the tabs state above. Passing one prop through two components is not prop drilling; it is a prop.
-Reaching for context early makes components that cannot be rendered anywhere else.
+**❌ Context as the first tool.** Context is for values a whole subtree needs, such as theme, current
+user, or the tabs state above. Passing one prop through two components is not prop drilling. It is a
+prop. Reaching for context early makes components that cannot be rendered anywhere else.
 
 **❌ An unmemoised context value:**
 
@@ -209,9 +209,9 @@ Reaching for context early makes components that cannot be rendered anywhere els
 ```
 
 Every consumer re-renders on every parent render. **✅ `useMemo` on the value**, as in the `Tabs`
-example — until the React Compiler is doing it for you, and even then, know why it is there.
+example. Do this until the React Compiler does it for you, and even then, know why it is there.
 
-**❌ Reaching for `forwardRef`.** In React 19 `ref` is an ordinary prop and `forwardRef` is on its way
+**❌ Reaching for `forwardRef`.** In React 19 `ref` is an ordinary prop, and `forwardRef` is on its way
 to deprecation. Declare `ref` in the props type and pass it through.
 
 ## 🔑 Key Takeaways
@@ -227,30 +227,30 @@ to deprecation. Declare `ref` in the props type and pass it through.
 **Q: A designer asks for a fifth variant of your Card. When is another prop the wrong answer?**
 
 When the prop exists only to switch markup on or off. Each `showX` boolean multiplies the states the
-component can be in and moves a design decision away from the person making it. A slot — `header`,
-`footer`, `actions` — collapses all of those variants into one API, and the next variant needs no change
-at all. Keep props for behaviour and data; give markup to the caller.
+component can be in. It also moves a design decision away from the person making it. A slot such as
+`header`, `footer` or `actions` collapses all of those variants into one API. The next variant then
+needs no change at all. Keep props for behaviour and data, and give markup to the caller.
 
 **Q: Compound components or a props object — how do you choose?**
 
 A props object is right when the shape is fixed and the caller has no layout opinion. Compound
 components are right when the caller must arrange the parts, or the set of parts is open-ended, as with
-tabs, menus and tables. The cost is a context and a runtime error for misuse; the benefit is that the
+tabs, menus and tables. The cost is a context, and a runtime error for misuse. The benefit is that the
 design team can rearrange the markup without an API change.
 
 **Q: Are render props obsolete?**
 
-For sharing logic, yes — a hook does the same job with no extra element, no nesting and better types.
-They are still the right tool when a component owns state that the caller must render differently, such
-as a virtualised list where the component decides which rows exist and the caller decides what a row
-looks like. That is a value a hook cannot return, because it is markup built from internal state.
+For sharing logic, yes. A hook does the same job with no extra element, no nesting and better types.
+But they are still the right tool when a component owns state that the caller must render differently.
+Take a virtualised list: the component decides which rows exist, and the caller decides what a row
+looks like. A hook cannot return that value, because it is markup built from internal state.
 
 **Q: Why is an unmemoised context value a problem, and when does it stop being one?**
 
-The provider creates a new object every render, so every consumer sees a changed value and re-renders,
-even when the underlying data is identical. Memoising the value fixes it. Under the React Compiler that
-memoisation is inserted for you, but the reasoning still has to be yours — the compiler cannot help with
-a component it has opted out of, and reviewers still ask.
+The provider creates a new object every render. So every consumer sees a changed value and re-renders,
+even when the underlying data is identical. Memoising the value fixes it. If you use the React
+Compiler, it inserts that memoisation for you, but the reasoning still has to be yours. The compiler
+cannot help with a component it has opted out of, and reviewers still ask.
 
 ## What to Read Next
 

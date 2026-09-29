@@ -18,21 +18,21 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Chapter 04 assigns a rendering strategy to each route. This chapter is one level up: the framework
-decides which strategies are available, where the code runs, and how much of the answer is already made
-for you.
+[Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route) assigns a
+rendering strategy to each route. This chapter is one level up. The framework decides which strategies
+are available, where the code runs, and how much of the answer is already made for you.
 
 Almost every serious candidate can render HTML on a server. What separates them is **the router, the
-data-loading model, and the deployment target** — those are what a meta-framework actually supplies, and
-they are what you inherit for the lifetime of the codebase.
+data-loading model, and the deployment target**. Those are what a meta-framework really supplies. You
+inherit them for the lifetime of the codebase.
 
 > The framework is not chosen on benchmarks. It is chosen on which decisions you want made for you, and
 > which ones you want to keep.
 
 ## How It Works
 
-Four axes. Everything else — bundler, styling, testing — is replaceable later and should not carry the
-decision.
+Four axes matter. Everything else (bundler, styling, testing) you can replace later, so it should not
+carry the decision.
 
 | Axis | The question | Why it is hard to change later |
 | ---- | ------------ | ------------------------------ |
@@ -43,21 +43,21 @@ decision.
 
 ### The candidates
 
-Version-stamped, because every row here has moved in the last two years.
+Each row carries a version, because every row here has moved in the last two years.
 
 | Framework | Rendering default | Data loading | Best fit |
 | --------- | ----------------- | ------------ | -------- |
-| **Next.js 15 (App Router)** | Server Components — server-first | `async` components, then Server Actions for writes | Product applications where most of the page is server-rendered and the team is React |
+| **Next.js 16 (App Router)** | Server Components — server-first | `async` components, then Server Actions for writes | Product applications where most of the page is server-rendered and the team is React |
 | **React Router 7 / Remix-style** | Server rendering with client routing | Route loaders and actions, one per route | Teams that want the web platform's form model and an explicit data boundary |
 | **SvelteKit 2** | Server rendering, client hydration | `load` functions, and form actions for writes | Smaller bundles, less framework ceremony, and teams that value the authoring model |
 | **Astro 5** | Static, with opt-in islands | Component-level fetching at build or request time | Content-led sites with islands of interactivity |
 
-The honest summary: **for an application, Next.js and SvelteKit are both correct answers and the team
+The honest summary: **for an application, Next.js and SvelteKit are both correct answers, and the team
 is the tiebreak. For a content site, Astro is a different and usually better tool.**
 
 ### Data loading is the real difference
 
-Rendering models converged; data loading did not.
+Rendering models converged. Data loading did not.
 
 ```tsx
 // Next.js App Router: data is fetched inside the component that needs it.
@@ -74,22 +74,22 @@ export async function loader({ params }: { params: { id: string } }) {
 }
 ```
 
-Both fetch on the server. The difference is **where the waterfall can form**. Component-level fetching
-makes co-location easy and nested waterfalls easy to create by accident; route-level loading makes the
-request set explicit and parallel by default, at the cost of a component that cannot ask for its own
-data.
+Both fetch on the server. The difference is **where the waterfall (requests that wait on each other)
+can form**. Component-level fetching makes co-location easy, and makes nested waterfalls easy to create
+by accident. Route-level loading makes the request set explicit and parallel by default. The cost is a
+component that cannot ask for its own data.
 
-That is the tradeoff to name in an interview. It is not a matter of taste — it decides what a slow page
+That is the tradeoff to name in an interview. It is not a matter of taste. It decides what a slow page
 looks like in production and where you go to fix it.
 
-> ⚠️ **Moving target:** the App Router's caching semantics changed in Next.js 15 and again in 16,
-> React Router absorbed Remix in v7, and SvelteKit's adapters move with the hosts. The durable question
+> ⚠️ **Moving target:** the App Router's caching semantics changed in Next.js 15 and again in 16.
+> React Router absorbed Remix in v7, and SvelteKit's adapters move with the hosts. The lasting question
 > does not change: where does data come from, where does code run, and what does the framework do when
 > you need to leave its happy path.
 
 ## When to Use It
 
-**What is genuinely reversible**, and therefore should not dominate the decision:
+**What you can really reverse**, so it should not dominate the decision:
 
 | Decision | Reversible? | Cost to change |
 | -------- | ----------- | -------------- |
@@ -102,46 +102,45 @@ looks like in production and where you go to fix it.
 
 **The questions to ask before the framework question:**
 
-- What does the team already know? A framework nobody has shipped costs a quarter of velocity, and that
-  is usually larger than any difference between the candidates.
+- What does the team already know? A framework nobody has shipped costs a quarter of velocity. That is
+  usually larger than any difference between the candidates.
 - What must this render for a crawler, and what must it render for a user with no JavaScript?
-- Where does it have to run — your own infrastructure, one vendor, or anywhere?
+- Where does it have to run: your own infrastructure, one vendor, or anywhere?
 - Which framework will still be maintained in five years by an organisation you can name?
 
 ### The migration question
 
-Nobody chooses a framework on a blank page; they choose one with an existing application behind them.
-The two moves that work are **strangling by route** — the new framework serves some paths, the old one
-serves the rest, behind one proxy — and **strangling by component**, where shared pieces ship as custom
-elements both stacks can mount. The move that does not work is a parallel rewrite with a switchover
-date.
+Nobody chooses a framework on a blank page. They choose with an existing application behind them. Two
+moves work. The first is **strangling by route**: behind one proxy, the new framework serves some paths
+and the old one serves the rest. The second is **strangling by component**: shared pieces ship as custom
+elements both stacks can mount. A parallel rewrite with a switchover date does not work.
 
 ## Common Mistakes
 
-**❌ Choosing on benchmarks.** Framework benchmark differences are dwarfed by your images, your fonts
-and your third-party scripts. Nobody has ever been slow because of the framework's hydration overhead
+**❌ Choosing on benchmarks.** Your images, your fonts and your third-party scripts matter far more than
+framework benchmark differences. Nobody has ever been slow because of the framework's hydration overhead
 alone.
 
-**❌ Choosing on hiring.** "It is easier to hire React developers" is true and is usually an argument
-about the last decade rather than the next one. Weigh it against whether the team already ships in the
+**❌ Choosing on hiring.** "It is easier to hire React developers" is true. But it is usually an argument
+about the last decade, not the next one. Weigh it against whether the team already ships in the
 alternative.
 
 **❌ Adopting a framework for one feature.** Partial prerendering, or server actions, or resumability,
 is not a reason to move a codebase. Ask what the feature is worth over three years, in engineer-months.
 
-**❌ Ignoring the escape hatches.** Every application eventually needs something the framework did not
-plan for — a long-running request, a websocket, a legacy endpoint, a very specific cache header. Read
-how each candidate handles that *before* choosing, because it is where the pain lands.
+**❌ Ignoring the escape hatches.** Every application in time needs something the framework did not
+plan for: a long-running request, a websocket, a legacy endpoint, a very specific cache header. Read
+how each candidate handles that *before* choosing. It is where the pain lands.
 
 ## 🔑 Key Takeaways
 
-- A meta-framework supplies a router, a data-loading model and a deployment target; the rest is
+- A meta-framework supplies a router, a data-loading model and a deployment target. The rest is
   replaceable and should not carry the decision.
-- Rendering models have converged, so data loading is the axis that genuinely differs — component-level
-  fetching co-locates and risks waterfalls, route-level loading is explicit and parallel by default.
+- Rendering models have converged, so data loading is the axis that really differs. Component-level
+  fetching co-locates and risks waterfalls. Route-level loading is explicit and parallel by default.
 - Server-first versus client-first and the data-loading pattern are the two decisions you cannot cheaply
   reverse.
-- For applications, Next.js and SvelteKit are both defensible and the team is the tiebreak; for
+- For applications, Next.js and SvelteKit are both defensible, and the team is the tiebreak. For
   content-led sites, Astro is a different tool.
 - Migrations succeed by strangling route by route or component by component, and fail as parallel
   rewrites.
@@ -150,33 +149,33 @@ how each candidate handles that *before* choosing, because it is where the pain 
 
 **Q: You are starting a new product application. Next.js or SvelteKit?**
 
-Both work, so the answer has to be about the team and the constraints rather than the frameworks. Name
-what actually differs — the data-loading model, the deployment story, the size of the ecosystem you will
-need — and then say what would decide it for you: if the team has shipped React and the product needs a
-large third-party ecosystem, Next.js; if the team values a smaller runtime and less framework ceremony
-and has SvelteKit experience, SvelteKit. An answer that claims one is simply better has not understood
-the question.
+Both work, so the answer must be about the team and the constraints, not the frameworks. Name what
+really differs: the data-loading model, the deployment story, the size of the ecosystem you will need.
+Then say what would decide it for you. If the team has shipped React and the product needs a large
+third-party ecosystem, Next.js. If the team values a smaller runtime and less framework ceremony, and
+has SvelteKit experience, SvelteKit. An answer that claims one is simply better has not understood the
+question.
 
 **Q: Which parts of that choice can you reverse later?**
 
 Styling, bundler and most libraries are reversible for the cost of a codemod. The data-loading pattern
-is not — it is written into every route. Server-first versus client-first is not either, because it
-decides where every component's code runs. Hosting sits in between: an adapter usually covers it, unless
-you have reached for runtime-specific APIs, which is exactly why those should be behind a thin module.
+is not, because it is written into every route. Nor is server-first versus client-first, because it
+decides where every component's code runs. Hosting sits in between. An adapter usually covers it, unless
+you have used runtime-specific APIs. That is why those should sit behind a thin module.
 
 **Q: How would you migrate a five-year-old client-rendered application to a server-first framework?**
 
-Route by route, behind one proxy: the new framework owns a path, the old application owns everything
-else, and the two ship independently. Start with a route that is low-risk and high-value — usually a
-marketing or detail page where the SEO or LCP win is real — and keep shared components in one place both
-stacks can consume. What I would not do is a parallel rewrite with a switchover date; the feature work
-does not stop while it happens, and the two versions diverge.
+Route by route, behind one proxy. The new framework owns a path, the old application owns everything
+else, and the two ship independently. Start with a low-risk, high-value route, usually a marketing or
+detail page where the SEO or LCP win is real. Keep shared components in one place both stacks can use.
+I would not do a parallel rewrite with a switchover date. The feature work does not stop while it
+happens, and the two versions diverge.
 
 **Q: When is a meta-framework the wrong choice entirely?**
 
 When the artefact is not a site. An embedded widget, an internal tool behind a login with no SEO and no
 first-paint budget, or a desktop application shell all pay the framework's constraints and get little of
-its value. A plain client-rendered build with a router is less machinery and is honest about what it is.
+its value. A plain client-rendered build with a router has less machinery and is honest about what it is.
 
 ## What to Read Next
 

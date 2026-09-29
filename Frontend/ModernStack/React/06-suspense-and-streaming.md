@@ -64,8 +64,8 @@ flowchart TB
 **One response, several flushes. The browser paints after the first, not after the last.**
 
 The swap is HTML plus a tiny inline script, with no client fetch and no wait for hydration. So streaming
-helps even on a slow device. The server renderer does this — `renderToPipeableStream` on Node, `renderToReadableStream` on Web streams —
-and every meta-framework calls one of them for you.
+helps even on a slow device. The server renderer does the work: `renderToPipeableStream` on Node, and
+`renderToReadableStream` on Web streams. Every meta-framework calls one of them for you.
 
 React cannot un-send HTML. If a component throws after the shell is sent, React asks the client to
 render that subtree again. Either it succeeds after a short delay, or the error boundary's fallback appears.
@@ -139,8 +139,8 @@ stable: a Server Component prop, a cache, or a query library.
 
 ### Hydration mismatches
 
-Hydration expects the first client render to match the server HTML. When it does not, React throws
-that subtree away and re-renders it on the client, which is slower and visible.
+Hydration is React attaching its handlers to the server HTML. It needs the first client render to match.
+If not, React throws that subtree away and re-renders it on the client, which is slower and visible.
 
 | Cause                                                 | Fix                                                   |
 | ----------------------------------------------------- | ----------------------------------------------------- |
@@ -165,8 +165,8 @@ there, and React recovers silently, so without it the bug stays invisible.
 | Filtering a list the user already sees          | ❌ No Suspense — a transition keeps the old list |
 | A failed form submission or a missing record    | ❌ No error boundary — render it as state       |
 
-Suspense is for content that **does not exist yet**; a transition is for content being **replaced**.
-An error boundary is for failures you did not plan for; an expected failure is state you render.
+Suspense is for content that **does not exist yet**. A transition is for content being **replaced**.
+An error boundary is for failures you did not plan for. An expected failure is state you render.
 
 ### Where to put them
 
@@ -200,7 +200,7 @@ user a sentence written for a human.**
 
 ## 🔑 Key Takeaways
 
-- A Suspense boundary catches "not ready yet" and an error boundary catches "failed"; neither fetches or fixes anything.
+- A Suspense boundary catches "not ready yet" and an error boundary catches "failed". Neither fetches or fixes anything.
 - Streaming SSR sends the shell first and swaps each boundary's HTML in as its data resolves, before hydration.
 - An error boundary catches errors in rendering, lifecycles and effects below it — never event handlers, timers or its own render.
 - Place both boundaries around regions the user sees as separate, with the error boundary outside the Suspense boundary.
@@ -212,7 +212,7 @@ user a sentence written for a human.**
 
 It splits it. React flushes everything outside the boundary at once, with the fallback in its place, so
 the browser can paint. When the data resolves, React streams that HTML in the same response with an
-inline script that swaps it in. The query got no faster; the page stopped waiting for it.
+inline script that swaps it in. The query got no faster. The page just stopped waiting for it.
 
 **Q: What does an error boundary catch, and what does it miss?**
 

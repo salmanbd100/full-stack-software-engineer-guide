@@ -12,12 +12,12 @@ in_book: true
 
 # Rendering
 
-This is the section that makes the book last past 2027. Frameworks change; rendering models do not. Five
-chapters, none of which name a framework in the title, covering the decision every senior frontend
-engineer is expected to make and defend: what runs where, and when.
+This is the section that makes the book last past 2027. Frameworks change. Rendering models do not.
+There are five chapters, and no chapter title names a framework. They cover a decision every senior
+frontend engineer must make and defend: what runs where, and when.
 
-The through-line is chapter 03's argument — **rendering is a per-route decision, not a per-application
-one.** A marketing page, a logged-in dashboard and a search result have three different answers, and a
+The main idea is chapter 03's argument: **rendering is a per-route decision, not a per-application
+one.** A marketing page, a logged-in dashboard and a search result have three different answers. A
 codebase that gives them one answer has chosen wrongly for at least two of them.
 
 ## Chapters
@@ -34,19 +34,19 @@ codebase that gives them one answer has chosen wrongly for at least two of them.
 
 Two rendering questions, on top of the part-level signals in the Part III opener:
 
-- **"Your LCP is 4.2 seconds. Where do you look?"** The answer separates the metrics. TTFB is a server
-  and network problem; FCP is a streaming and blocking-resource problem; LCP is usually an image or a
+- **"Your LCP is 4.2 seconds. Where do you look?"** A good answer separates the metrics. TTFB is a server
+  and network problem. FCP is a streaming and blocking-resource problem. LCP is usually an image or a
   font. Candidates who answer "add SSR" have not understood which number moved.
 - **"When is the edge the wrong choice?"** When the data is not there. Rendering in Sydney against a
-  database in Virginia turns one slow round trip into several. Data locality beats compute locality, and
-  saying so out loud is a strong senior signal.
+  database in Virginia turns one slow round trip into several. Data locality beats compute locality.
+  Saying so out loud is a strong senior signal.
 
 ## Reading Order
 
-01 first, always — it is the vocabulary every other chapter in Part III assumes, including the React and
-Next.js ones. Then 02, which explains how the strategies 01 named reach the browser. Chapter 03 is the
-payoff and should be read after both.
+Always read 01 first. It gives the vocabulary every other chapter in Part III assumes, including the
+React and Next.js ones. Then read 02, which explains how the strategies from 01 reach the browser.
+Chapter 03 is the payoff, so read it after both.
 
-Chapters 04 and 05 are independent and can be read whenever the question comes up.
+Chapters 04 and 05 stand alone. Read them whenever the question comes up.
 
 **Interview sprint:** 01 → 03. Twenty minutes, and it is the highest return of any pair in the part.

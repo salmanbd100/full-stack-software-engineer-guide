@@ -22,15 +22,15 @@ A React component is a function, so typing one is typing a function: name the pr
 That much is mechanical. What separates a codebase that scales from one that merely compiles is *what
 you choose to model*.
 
-The high-leverage move is to make invalid states unrepresentable. `{ loading, data, error }` as three
-independent fields describes eight combinations, six of which are nonsense — loading with an error and
-data, for example — and every consumer has to defend against all eight. A discriminated union describes
-three, and the compiler narrows to exactly one. That single change removes more defensive branches from
-a large React codebase than any other typing decision.
+The move that pays most is to make invalid states unrepresentable. `{ loading, data, error }` as three
+independent fields describes eight combinations. Four are nonsense, such as loading with an error and
+data, and every consumer has to defend against all eight. A discriminated union describes four, and the
+compiler narrows to exactly one. That single change removes more defensive branches from a large React
+codebase than any other typing decision.
 
 > ⚠️ **Moving target:** React 19 made `ref` an ordinary prop, so `forwardRef` is redundant and heading
-> for deprecation. Hook typings also shift between `@types/react` majors. The durable principle is that
-> props are a typed contract and hooks are generic functions; the helper names move around it.
+> for deprecation. Hook typings also shift between `@types/react` majors. The lasting principle: props
+> are a typed contract and hooks are generic functions. The helper names move around it.
 
 ## How It Works
 
@@ -82,19 +82,19 @@ function Button({ variant = "primary", loading, children, ...rest }: ButtonProps
 }
 ```
 
-Every native attribute — `type`, `aria-label`, `onFocus` — keeps working and stays checked.
+Every native attribute, such as `type`, `aria-label` or `onFocus`, keeps working and stays checked.
 
-For events, reach for `React.MouseEvent<HTMLButtonElement>`, `React.ChangeEvent<HTMLInputElement>` and
+For events, use `React.MouseEvent<HTMLButtonElement>`, `React.ChangeEvent<HTMLInputElement>` and
 `React.FormEvent<HTMLFormElement>`. Read `currentTarget`, which is typed as the element the handler is
-attached to; `target` is whatever was actually clicked and is typed loosely for that reason.
+attached to. `target` is whatever was actually clicked, so its type is loose.
 
 ### State that cannot be invalid
 
 ```tsx
-// ❌ Eight combinations, six of them meaningless
+// ❌ Eight combinations, four of them meaningless
 interface BadState { loading: boolean; data: User | null; error: string | null }
 
-// ✅ Three, and the compiler narrows to one
+// ✅ Four, and the compiler narrows to one
 type RequestState =
   | { status: "idle" }
   | { status: "loading" }
@@ -102,8 +102,8 @@ type RequestState =
   | { status: "error"; message: string };
 ```
 
-With the union, `state.data` does not exist until `status === "success"`, so the "render the data while
-loading" bug becomes a compile error rather than a code review comment.
+With the union, `state.data` does not exist until `status === "success"`. So the "render the data while
+loading" bug becomes a compile error, not a code review comment.
 
 `useReducer` is where the same idea pays twice, because the action union is checked at every dispatch:
 
@@ -131,8 +131,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 `dispatch({ type: "add" })` without an `item` will not compile, and neither will a typo in `type`.
 
-The two annotations worth knowing for `useState`: annotate when `null` hides the real type, and annotate
-an empty array, because `useState([])` widens to `never[]` and nothing can ever be added to it.
+Two `useState` annotations are worth knowing. Annotate when `null` hides the real type. Annotate an
+empty array too, because `useState([])` widens to `never[]` and nothing can ever be added to it.
 
 ```tsx
 const [count, setCount] = useState(0);                 // inferred: number
@@ -143,7 +143,7 @@ const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
 ### Generic components
 
-A generic component keeps the caller's exact type all the way through, which is what makes one `List`
+A generic component keeps the caller's exact type all the way through. That is what lets one `List`
 serve every entity in the application.
 
 ```tsx
@@ -163,8 +163,8 @@ function List<T>({ items, getKey, renderItem }: ListProps<T>) {
 
 The same reasoning applies to custom hooks. `useFetch<User>(url)` returning
 `{ data: User | null; status: RequestState["status"] }` gives the caller a typed value with no cast.
-Note what it does **not** do: the type argument asserts the response shape, it does not check it.
-Validate at the boundary — see [Chapter ?? — Type Guards](#ch-type-guards).
+Note what it does **not** do. The type argument asserts the response shape. It does not check it.
+Validate at the boundary — see [Chapter ?? — TypeScript Type Guards](#ch-type-guards).
 
 ### Context without `| undefined` in every consumer
 
@@ -181,7 +181,7 @@ function useAuth(): AuthContextValue {
 ```
 
 The throwing accessor hook is what removes `| undefined` from every consumer. Without it, each component
-handles a case that should be impossible. In React 19 the provider is the context itself —
+handles a case that should be impossible. In React 19 the provider is the context itself:
 `<AuthContext value={auth}>`, with `.Provider` now optional.
 
 ### Typing across the server boundary
@@ -189,8 +189,8 @@ handles a case that should be impossible. In React 19 the provider is the contex
 Two React 19 concepts have typing rules that only exist because of the server/client split.
 
 **Props crossing into a Client Component must be serialisable.** TypeScript will happily accept
-`onSave: () => void` on a Client Component rendered from a Server Component, and it fails at runtime.
-The type system does not model the boundary, so the discipline is yours: props that cross it are data,
+`onSave: () => void` on a Client Component rendered from a Server Component, but it fails at runtime.
+The type system does not model the boundary, so the discipline is yours. Props that cross it are data,
 plus Server Functions.
 
 **Actions have a fixed shape,** and typing the state is what makes the error path safe:
@@ -211,9 +211,9 @@ const [state, submitAction, isPending] = useActionState<FormState, FormData>(
 );
 ```
 
-`FormData` values are `string | File | null`, never the shape you want. A runtime schema parse is what
-turns them into a typed object — and it is the same parse that stops a hand-crafted request reaching
-your database.
+`FormData` values are `string | File | null`, never the shape you want. A runtime schema parse turns
+them into a typed object. The same parse also stops a hand-crafted request from reaching your
+database.
 
 ## When to Use It
 
@@ -230,7 +230,7 @@ your database.
 
 **❌ `useState([])` with no type argument.** It infers `never[]`, so nothing can ever be added.
 
-**❌ `React.FC<Props>`.** It historically added an implicit `children`, blocks generic components, and
+**❌ `React.FC<Props>`.** It used to add an implicit `children`, it blocks generic components, and it
 buys nothing a plain annotated function does not.
 
 **❌ `createContext({} as AuthContextValue)`.** The cast makes a missing provider undetectable, so the
@@ -249,9 +249,9 @@ const [data, setData] = useState<User | null>(null);
 Every consumer now writes its own guess about which combinations are real. One union replaces all of
 them.
 
-**❌ Still writing `forwardRef` in React 19.** `ref` is a normal prop now; the wrapper adds a layer and
+**❌ Still writing `forwardRef` in React 19.** `ref` is a normal prop now. The wrapper adds a layer and
 will be deprecated. In a codebase still on React 18, `forwardRef<HTMLInputElement, Props>` remains
-correct — check the version before changing anything.
+correct, so check the version before changing anything.
 
 **❌ Treating a type argument as validation.** `await res.json() as User` is an assertion, not a check.
 The compiler stops asking questions and the runtime finds out later, in a component that cannot explain
@@ -259,39 +259,39 @@ itself.
 
 ## 🔑 Key Takeaways
 
-- A props interface is a contract between files; annotate it explicitly and skip `React.FC`.
+- A props interface is a contract between files. Annotate it explicitly and skip `React.FC`.
 - A discriminated union on `status` removes the impossible combinations that boolean flags create.
 - An action union plus a `never` default turns every invalid dispatch into a compile error.
 - Default a context to `undefined` and throw in the accessor hook, so consumers never handle it.
-- Types erase at runtime — validate data crossing a network or form boundary with a real schema parse.
+- Types erase at runtime. Validate data crossing a network or form boundary with a real schema parse.
 
 ## Interview Questions
 
 **Q: Why model async state as a union rather than `loading`, `data` and `error` fields?**
 
-Three independent fields describe eight combinations and only three are meaningful, so every consumer
-writes defensive branches for states that cannot happen — and eventually one of them gets it wrong. A
-union on `status` narrows to a single variant, so `data` is only reachable once the request succeeded.
-The invalid states stop being handled because they stop being expressible.
+Three independent fields describe eight combinations, and only four are meaningful. So every consumer
+writes defensive branches for states that cannot happen, and one day one of them gets it wrong. A union
+on `status` narrows to a single variant, so `data` is only reachable once the request succeeded. The
+invalid states stop being handled because they can no longer be expressed.
 
 **Q: What does typing `useReducer` actions as a discriminated union buy you?**
 
 Every dispatch is checked against the union, so a missing field or a mistyped action name fails at the
-call site. Inside the reducer, switching on `type` narrows the action so only that variant's fields are
-accessible, and assigning the action to `never` in the `default` branch turns a newly added action into
-a build failure rather than a silent no-op.
+call site. Inside the reducer, switching on `type` narrows the action, so only that variant's fields are
+accessible. Assigning the action to `never` in the `default` branch turns a newly added action into a
+build failure, not a silent no-op.
 
 **Q: Why default a context to `undefined` rather than casting an empty object?**
 
-The cast makes an unprovided context indistinguishable from a provided one, so the failure surfaces as a
-confusing runtime error inside a child component. `undefined` is a state the accessor hook can detect
-and turn into a clear message, and the narrowing means every consumer receives a non-optional value.
+The cast makes a missing provider look the same as a real one. The failure then surfaces as a confusing
+runtime error inside a child component. `undefined` is a state the accessor hook can detect and turn
+into a clear message. The narrowing also means every consumer receives a non-optional value.
 
 **Q: Does TypeScript stop you passing a function to a Client Component from a Server Component?**
 
-No, and that is the trap. The type system has no model of the server/client boundary, so the code
-compiles and then fails at render when React tries to serialise the prop. The rule has to be held by the
-author: what crosses that boundary is data, or a Server Function, and nothing else.
+No, and that is the trap. The type system has no model of the server/client boundary. So the code
+compiles, then fails at render when React tries to serialise the prop. The author has to hold the rule:
+what crosses that boundary is data, or a Server Function, and nothing else.
 
 ## What to Read Next
 

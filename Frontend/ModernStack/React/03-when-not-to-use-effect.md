@@ -18,13 +18,13 @@ in_book: true
 
 ## 💡 The Core Idea
 
-An effect exists to synchronise React with something **outside** React — a socket, a browser API, a
+An effect exists to synchronise React with something **outside** React: a socket, a browser API, a
 third-party widget, the document title. If nothing outside React is involved, the effect is not
 synchronising anything. It is a render that runs a second time to fix up the first.
 
-This is the highest-signal topic in a React code review round. Unnecessary effects are not a style
-problem: each one adds a render, a paint the user can see, and a dependency array that has to stay
-correct forever.
+This topic tells an interviewer the most in a React code review round. Unnecessary effects are not a
+style problem. Each one adds a render, a paint the user can see, and a dependency array that has to
+stay correct forever.
 
 > Ask one question of every effect: **what outside React am I keeping in step with?** If the answer is
 > "some other state in this same component", delete the effect.
@@ -56,8 +56,8 @@ const [items, setItems] = useState<Item[]>([]);
 const total: number = items.reduce((sum: number, i: Item) => sum + i.price, 0);
 ```
 
-If the calculation is genuinely expensive — measure first — wrap it in `useMemo`. That is still not an
-effect: it stays inside the render, so the value and the list can never disagree.
+If the calculation is truly expensive (measure first), wrap it in `useMemo`. That is still not an
+effect. It stays inside the render, so the value and the list can never disagree.
 
 ### Resetting state belongs to `key`
 
@@ -70,8 +70,8 @@ useEffect(() => {
 }, [contactId]);
 ```
 
-The old values are painted first, then cleared, and every new piece of state has to be added to this
-list by hand.
+The browser paints the old values first, then the effect clears them. Every new piece of state has to
+be added to this list by hand.
 
 **✅ Give React a new identity and let it rebuild:**
 
@@ -97,9 +97,9 @@ useEffect(() => {
 }, [submitted, cart]);
 ```
 
-In development this runs twice under Strict Mode, and in production it runs again on any remount. A
-`submitted` flag in state is almost always a sign that an event handler was turned into a state machine
-for no reason.
+In development this runs twice under Strict Mode. In production it runs again on any remount. A
+`submitted` flag in state is almost always a sign that someone turned an event handler into a state
+machine for no reason.
 
 **✅ Do it where it happened:**
 
@@ -115,8 +115,8 @@ something. Showing is an effect. Doing is a handler.
 
 ### External data belongs in `useSyncExternalStore`
 
-Reading a browser API into state with an effect gives you a render of the wrong value first, and a
-subscription that resubscribes whenever the dependency array changes.
+Reading a browser API into state with an effect has two costs. The first render shows the wrong value.
+And the subscription resubscribes whenever the dependency array changes.
 
 **❌ Subscribe, then mirror into state:**
 
@@ -134,12 +134,12 @@ useEffect(() => {
 }, []);
 ```
 
-**✅ Read it during render instead** — the `useOnlineStatus` hook in the previous chapter does this in
-five lines with `useSyncExternalStore`, and it gives the server a correct value to render as well.
+**✅ Read it during render instead.** The `useOnlineStatus` hook in the previous chapter does this in
+five lines with `useSyncExternalStore`. It also gives the server a correct value to render.
 
 ### The effects that stay
 
-Deleting effects is not the goal; deleting the ones that synchronise nothing is.
+The goal is not to delete effects. The goal is to delete the ones that synchronise nothing.
 
 | Effect                                              | Keep? | Because                                    |
 | ---------------------------------------------------- | ----- | ------------------------------------------- |
@@ -149,9 +149,9 @@ Deleting effects is not the goal; deleting the ones that synchronise nothing is.
 | Sending an analytics page view on route change       | ✅    | Caused by the screen, not by a click        |
 | Fetching data in a client component with no framework or library | ⚠️ | Works, but you are hand-writing a cache |
 
-The last row is the honest one. An effect can fetch, but it cannot deduplicate, cache, retry, or
-survive a back button on its own. In a Next.js 16 App Router application the fetch belongs on the
-server; in a client-heavy application it belongs in a query library.
+The last row is the honest one. An effect can fetch, but on its own it cannot deduplicate, cache,
+retry, or survive a back button. In a Next.js 16 App Router application the fetch belongs on the
+server. In a client-heavy application it belongs in a query library.
 
 ## When to Use It
 
@@ -178,13 +178,13 @@ useEffect(() => { onChange(value); }, [value, onChange]);
 The parent learns about the change one render late. **✅ Call `onChange` in the same handler that calls
 `setValue`**, or lift the state so the parent owns it.
 
-**❌ Blaming Strict Mode for a double-fire.** Development remounts every component once on purpose, to
-surface effects with no cleanup. An effect that breaks under it is broken in production too, on the
-next remount. Write the cleanup instead of removing the check.
+**❌ Blaming Strict Mode for a double-fire.** In development, React remounts every component once on
+purpose, to surface effects with no cleanup. An effect that breaks under it is broken in production
+too, on the next remount. Write the cleanup instead of removing the check.
 
 > ⚠️ `useEffect` with an empty dependency array is not "run once". It is "run once per mount", and
-> React reserves the right to mount a component again. Anything that must genuinely happen once per
-> application load belongs at module scope, outside the component.
+> React may mount a component again. Anything that must truly happen once per application load belongs
+> at module scope, outside the component.
 
 ## 🔑 Key Takeaways
 
@@ -198,30 +198,30 @@ next remount. Write the cleanup instead of removing the check.
 
 **Q: How do you decide whether a piece of logic belongs in an effect or an event handler?**
 
-Ask why it should run. If it runs because the user did something specific — clicked buy, submitted a
-form — it belongs in that handler, because an effect cannot see the cause and will run again on any
-remount. If it runs because the component is on screen in a particular state, and it touches something
-outside React, it is an effect.
+Ask why it should run. Say it runs because the user did something specific, such as clicking buy or
+submitting a form. Then it belongs in that handler. An effect cannot see the cause, and it will run
+again on any remount. If it runs because the component is on screen in a particular state, and it
+touches something outside React, it is an effect.
 
 **Q: What is wrong with storing a filtered list in state and updating it in an effect?**
 
-It creates a second source of truth that can disagree with the first, and it costs an extra render in
-which the screen shows a filtered list that does not match the data. Computing it during render makes
-the two impossible to desynchronise. If profiling shows the filter is genuinely expensive, `useMemo`
-keeps it inside the render rather than after it.
+It creates a second source of truth that can disagree with the first. It also costs an extra render,
+in which the screen shows a filtered list that does not match the data. Computing it during render
+means the two can never fall out of step. If profiling shows the filter is truly expensive, `useMemo`
+keeps it inside the render, not after it.
 
 **Q: Your effect fires twice in development. Is that a bug?**
 
-The double fire is not the bug; it is the check. Strict Mode mounts, unmounts and remounts each
-component to reveal effects whose cleanup is missing or incomplete, and anything that breaks under it
-will break in production the next time React remounts the subtree. The fix is a cleanup that fully
-reverses the setup, or moving the work out of the effect entirely.
+The double fire is not the bug. It is the check. Strict Mode mounts, unmounts and remounts each
+component to reveal effects whose cleanup is missing or incomplete. Anything that breaks under it will
+break in production the next time React remounts the subtree. The fix is a cleanup that fully reverses
+the setup, or moving the work out of the effect entirely.
 
 **Q: When is fetching in `useEffect` still the right answer?**
 
 Rarely, and it is worth saying so plainly. It works for a small client-only application with one or two
-requests, but it gives you no deduplication, no caching, no revalidation and no cancellation beyond
-what you write yourself. On a server-rendered framework the fetch belongs on the server; in a
+requests. But it gives you no deduplication, no caching, no revalidation and no cancellation beyond
+what you write yourself. On a server-rendered framework the fetch belongs on the server. In a
 client-heavy application it belongs in a query library that already solved those four problems.
 
 ## What to Read Next

@@ -26,8 +26,8 @@ Most production bugs are work in the wrong place: an auth check nothing repeats,
 from the database, a local cache behind a load balancer. Each works in development and fails at scale.
 
 > ⚠️ **Moving target:** Next.js 16 renamed `middleware.ts` to `proxy.ts` and the `middleware` export to
-> `proxy`. `proxy` runs on Node.js only; code that needs the edge runtime stays in `middleware.ts` for
-> now. 16 also adds a `cacheHandlers` map for `'use cache'`. The durable principle: routing decisions
+> `proxy`. `proxy` runs on Node.js only. Code that needs the edge runtime stays in `middleware.ts` for
+> now. 16 also adds a `cacheHandlers` map for `'use cache'`. The lasting principle: routing decisions
 > stay small, and a cache shared by several processes must live where all of them can reach it.
 
 ## How It Works
@@ -91,7 +91,7 @@ The request layer can vary the *route* without making it dynamic. Rewrite by cou
 ### Edge against Node.js
 
 The edge runtime is a smaller JavaScript runtime that runs in many locations close to users. It is not
-a faster Node.js; it is a different set of tradeoffs.
+a faster Node.js. It is a different set of tradeoffs.
 
 | Dimension        | Edge                                    | Node.js                              |
 | ---------------- | --------------------------------------- | ------------------------------------ |
@@ -103,7 +103,7 @@ a faster Node.js; it is a different set of tradeoffs.
 
 The failure mode is a data-reading route at the edge while the database sits in one region. Every
 query crosses a continent, so a function that started 20 ms sooner finishes 200 ms later. **Latency to
-the user is half the number; latency to the data is the other half.** Node.js is the default.
+the user is half the number. Latency to the data is the other half.** Node.js is the default.
 
 ### What `next build` emits
 
@@ -116,8 +116,8 @@ table it prints is the deployment contract.
 | Cached pages with a lifetime | A CDN, backed by a server | Somewhere to store and revalidate |
 | Dynamic routes             | A server process       | The request, and your data        |
 
-A managed platform wires these together silently. Self-hosted, you wire them, and you also own the
-image optimiser's CPU. Stale pages and missing styles are one of the three handled wrongly.
+A managed platform wires these together for you. Self-hosted, you wire them, and you also own the
+image optimiser's CPU. Stale pages and missing styles mean one of the three is handled wrongly.
 
 For a container, set `output: 'standalone'`. It traces the files the server needs into one folder
 with a `server.js` entry point. **It leaves out `.next/static` and `public/`**, because you may serve
@@ -156,7 +156,7 @@ const config: NextConfig = {
 export default config;
 ```
 
-A handler implements `get`, `set` and tag invalidation. Teams skip the tag half, and it fails quietly.
+A handler implements `get`, `set` and tag invalidation. Teams skip the tag part, and it fails quietly.
 `revalidateTag` has to reach **every** instance. Test it with two processes and one revalidation.
 
 ### Environment variables have two lifetimes
@@ -168,7 +168,7 @@ A handler implements `get`, `set` and tag invalidation. Teams skip the tag half,
 
 `NEXT_PUBLIC_` values are **inlined into the bundle** during `next build`. They are not secret, and
 they are frozen into the artefact. A server variable is read at runtime only on a dynamic render.
-Inside a prerendered route the build-time value is baked in; `await connection()` from `next/server`
+Inside a prerendered route the build-time value is baked in. `await connection()` from `next/server`
 moves that render to request time.
 
 ## When to Use It
@@ -195,8 +195,8 @@ cost is invisible in development and obvious in the bill.
 **❌ Scaling to two instances without a cache handler.** Revalidation reaches one process, and the same
 URL serves two different pages.
 
-**❌ Putting a secret behind `NEXT_PUBLIC_`.** It is compiled into the client bundle. The prefix declares
-the value public.
+**❌ Putting a secret behind `NEXT_PUBLIC_`.** It is compiled into the client bundle. The prefix marks
+the value as public.
 
 ## 🔑 Key Takeaways
 
@@ -211,14 +211,14 @@ the value public.
 **Q: Why is checking authentication in middleware not enough?**
 
 A present cookie is not a valid session, and middleware may not run for every path to your data.
-Verifying a token properly is also too costly for every request. It is a good redirect and a bad access
-control decision, which belongs next to the query.
+Verifying a token properly is also too costly for every request. It makes a good redirect but a bad
+access-control decision. That decision belongs next to the query.
 
 **Q: When is the edge runtime the wrong choice?**
 
 When the work needs your data. Edge functions run near users and far from a database in one region, so
-each query crosses the distance the function saved. With no filesystem and many npm packages
-unavailable, Node.js is the sensible default for rendering and reads.
+each query crosses the distance the function saved. The edge also has no filesystem, and many npm
+packages do not run there. So Node.js is the sensible default for rendering and reads.
 
 **Q: How would you serve different pricing pages by country without giving up prerendering?**
 
@@ -234,7 +234,7 @@ shared storage, `cacheMaxMemorySize` at zero, and tag invalidation that reaches 
 **Q: How would you deploy the same build to three environments?**
 
 Build once and keep every environment-specific value server-side. No `NEXT_PUBLIC_` variable may differ,
-because it is inlined at build time; the browser gets such values from an endpoint or server props.
+because it is inlined at build time. The browser gets such values from an endpoint or server props.
 Where a static route reads a server value, `connection()` moves that render to request time.
 
 ## What to Read Next

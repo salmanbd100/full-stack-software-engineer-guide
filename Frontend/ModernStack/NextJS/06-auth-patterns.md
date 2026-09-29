@@ -23,8 +23,8 @@ client fetch can all reach the same database row, and they do not share a reques
 place a check is guaranteed to run is **the code that reads the row**.
 
 That turns authentication into three layers with three different jobs. The proxy layer redirects people
-who obviously should not be here. The render layer decides what to show. The data layer decides what is
-allowed, every time, with no exceptions. Only the last one is security; the first two are user
+who clearly should not be here. The render layer decides what to show. The data layer decides what is
+allowed, every time, with no exceptions. Only the last one is security. The first two are user
 experience.
 
 ```mermaid
@@ -41,9 +41,9 @@ flowchart LR
 
 **The three entry points converge on one check. The proxy is a shortcut past a wasted render, not a gate.**
 
-> ⚠️ **Moving target:** `cookies()` and `headers()` are asynchronous from Next.js 15 and the synchronous
-> forms are removed in 16. `middleware.ts` is now `proxy.ts`. `unauthorized()` and `forbidden()` still
-> need `experimental.authInterrupts` in `next.config.ts`. The durable principle survives all three: the
+> ⚠️ **Moving target:** `cookies()` and `headers()` are asynchronous from Next.js 15, and 16 removes the
+> synchronous forms. `middleware.ts` is now `proxy.ts`. `unauthorized()` and `forbidden()` still need
+> `experimental.authInterrupts` in `next.config.ts`. The lasting principle survives all three: the
 > authoritative check belongs beside the query.
 
 ## How It Works
@@ -62,11 +62,11 @@ Both end up as an `httpOnly` cookie. What differs is whether the server can chan
 
 The senior answer is not "JWT because stateless". It is: **can you afford a stolen credential to stay
 valid for its full lifetime?** For a public content site with 15-minute tokens, usually yes. For an
-internal admin tool where an offboarded employee must lose access now, no. A common middle path stores
-the session in the database and caches the lookup, keeping revocation while paying for it rarely.
+internal admin tool where a departing employee must lose access now, no. A common middle path stores
+the session in the database and caches the lookup. You keep revocation and rarely pay for it.
 
-Token mechanics — hashing a password, signing, rotation, refresh — belong to
-[Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions), and who may do what belongs to
+Token mechanics (hashing a password, signing, rotation, refresh) belong to
+[Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions). Who may do what belongs to
 [Chapter ?? — OAuth, OIDC and Authorisation](#ch-oauth). This chapter is about where in an App Router
 application those checks run.
 
@@ -89,16 +89,16 @@ export async function createSession(sessionId: string, expiresAt: Date): Promise
 }
 ```
 
-`httpOnly` is the line that matters. A token in `localStorage` is readable by any script that gets onto
-the page, and the App Router gives you no reason to put it there — the server can read a cookie during
-render, and the client component that needs the user's name can be handed it as a prop.
+`httpOnly` is the line that matters. Any script that gets onto the page can read a token in
+`localStorage`. The App Router gives you no reason to put it there. The server can read a cookie during
+render, and it can pass the user's name as a prop to the client component that needs it.
 
 ### Where cookies can and cannot be set
 
 **`cookies().set()` only works where a response is being built:** a Server Action or a Route Handler.
-Calling it while rendering a Server Component throws, because the headers have already gone. Rolling a
-session forward on every page view therefore cannot happen during render — do it in the proxy, or in the
-action the user is already triggering.
+Calling it while rendering a Server Component throws, because the headers have already gone. So you
+cannot extend a session on every page view during render. Do it in the proxy, or in the action the user
+is already triggering.
 
 ### The data access layer
 
@@ -126,10 +126,10 @@ export async function getInvoice(id: string) {
 }
 ```
 
-Two things are doing work here. React's `cache()` deduplicates `verifySession` **within a single
-request**, so a layout, three components and an action all verify once rather than four times. And the
-ownership condition lives in the `where` clause — a query that cannot return someone else's row cannot
-be forgotten to check.
+Two things do the work here. React's `cache()` deduplicates `verifySession` **within a single
+request**, so a layout, three components and an action verify once, not four times. And the ownership
+condition lives in the `where` clause. A query that cannot return someone else's row leaves no check to
+forget.
 
 ### Interrupting the render
 
@@ -146,8 +146,8 @@ export default async function AdminPage() {
 ```
 
 `unauthorized()` (401) and `forbidden()` (403) render `unauthorized.tsx` and `forbidden.tsx`, the way
-`notFound()` renders `not-found.tsx`. Like `redirect()`, they work by throwing, so **never call them
-inside a `try` block** you also use for error handling — the catch swallows the navigation.
+`notFound()` renders `not-found.tsx`. Like `redirect()`, they work by throwing. So **never call them
+inside a `try` block** you also use for error handling, because the catch swallows the navigation.
 
 ## When to Use It
 
@@ -173,12 +173,12 @@ navigation between their children, and they never run for a Server Action or Rou
 away from being dropped. Put ownership in the `where` clause.
 
 **❌ Storing a token in `localStorage` so the client can read it.** That is exactly what makes XSS
-worth exploiting. Use an `httpOnly` cookie and pass the display data down as props.
+(cross-site scripting) worth exploiting. Use an `httpOnly` cookie and pass the display data down as props.
 
 **❌ Calling `cookies().set()` during render.** The response headers are gone. Set cookies in an action,
 a Route Handler, or the proxy.
 
-**❌ Wrapping `redirect()` or `forbidden()` in `try`/`catch`.** They signal by throwing; catching them
+**❌ Wrapping `redirect()` or `forbidden()` in `try`/`catch`.** They signal by throwing. Catching them
 turns a redirect into a silent error.
 
 ## 🔑 Key Takeaways
@@ -194,30 +194,30 @@ turns a redirect into a silent error.
 **Q: Where do you put the authentication check in an App Router application, and why not middleware?**
 
 In the data access layer that every read and mutation goes through, wrapped in `cache()` so it runs once
-per request. Middleware — `proxy.ts` in Next.js 16 — sees a cookie's presence, not its validity, and does
-not necessarily run for the Server Actions and Route Handlers that can reach the same data. It is the
-right place for a cheap redirect and the wrong place for a decision.
+per request. Middleware (`proxy.ts` in Next.js 16) sees that a cookie is present, not that it is valid.
+It also may not run for the Server Actions and Route Handlers that reach the same data. It is the right
+place for a cheap redirect and the wrong place for a decision.
 
 **Q: Session or JWT for a new internal dashboard?**
 
-Sessions, almost always. The deciding question is revocation: an internal tool needs an offboarded
-account to lose access immediately, and a signed token stays valid until it expires no matter what the
-server thinks. The usual objection is the per-request lookup, which a cache in front of the session store
-handles at a fraction of the cost of getting revocation wrong.
+Sessions, almost always. The deciding question is revocation. An internal tool needs a departed user's
+account to lose access at once. A signed token stays valid until it expires, whatever the server thinks.
+The usual objection is the per-request lookup. A cache in front of the session store handles that, at a
+fraction of the cost of getting revocation wrong.
 
 **Q: Why is `httpOnly` the important flag, rather than `secure` or `sameSite`?**
 
-Because it is the one that defeats the attack you cannot fully prevent. `secure` stops interception on
-the wire and `sameSite` blunts cross-site requests, but if any script runs on your page — a dependency,
-an injected string — anything reachable from JavaScript is already gone. `httpOnly` puts the credential
-somewhere the page cannot read at all, which is why the App Router's server-side session model is worth
-the small inconvenience.
+It defeats the attack you cannot fully prevent. `secure` stops interception on the wire, and `sameSite`
+weakens cross-site requests. But if any script runs on your page, such as a dependency or an injected
+string, anything JavaScript can reach is already gone. `httpOnly` puts the credential where the page
+cannot read it at all. That is why the App Router's server-side session model is worth the small
+inconvenience.
 
 **Q: A layout checks the session and redirects. Is the page underneath protected?**
 
-No. Layouts persist across navigations between their children, so the check may not re-run, and they do
-not execute for Server Actions or Route Handlers at all. Treat that check as what decides the navigation
-UI, and keep the real check beside the query.
+No. Layouts persist across navigations between their children, so the check may not re-run. They also do
+not run for Server Actions or Route Handlers at all. Let that check decide the navigation UI, and keep
+the real check beside the query.
 
 ## What to Read Next
 

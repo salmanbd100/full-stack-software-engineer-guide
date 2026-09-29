@@ -57,12 +57,12 @@ sequenceDiagram
 Cold start does not grow with application size, because nothing is processed until something asks for
 it. A change to one file invalidates one module, not a bundle. That is why the update feels instant.
 
-Source files are served raw, but `node_modules` is not. Dependencies are **pre-bundled** once and cached
-under `node_modules/.vite`. Some packages still ship CommonJS, which a browser cannot import. And an ESM
-package split into hundreds of small files would trigger hundreds of requests for one import.
+Vite serves source files raw, but not `node_modules`. It **pre-bundles** dependencies once and caches
+them under `node_modules/.vite`. Some packages still ship CommonJS, which a browser cannot import. And an
+ESM package split into hundreds of small files would trigger hundreds of requests for one import.
 
-Pre-bundling is development-only. A dependency the scanner missed, because it is imported dynamically,
-makes the page reload mid-session. Listing it in `optimizeDeps.include` fixes it.
+Pre-bundling is development-only. The scanner can miss a dependency that is imported dynamically, and
+then the page reloads mid-session. Listing it in `optimizeDeps.include` fixes it.
 
 ### How HMR decides what to reload
 
@@ -111,8 +111,8 @@ build time**, not read at runtime. `import.meta.env.VITE_API_URL` becomes a stri
 
 There are two reasons, and the interesting one is not "Rust is faster than JavaScript".
 
-**Parallelism.** Parsing and transforming modules is embarrassingly parallel, since each file is
-independent. A single-threaded JavaScript process cannot use the other cores on the machine.
+**Parallelism.** Parsing and transforming modules is embarrassingly parallel: each file is independent,
+so the work splits cleanly. A single-threaded JavaScript process cannot use the other cores on the machine.
 
 **Incrementality.** The old model is a pipeline: read, transform, link and emit every file. The new model
 memoises single operations, such as parsing one file or resolving one specifier. It records what each
@@ -148,7 +148,7 @@ the framework has chosen. Knowing the differences matters for migration and diag
 The transform layer moved the same way. **SWC** (Rust) replaces Babel in Next.js and Turbopack. **Oxc**
 (Rust) powers Rolldown's parsing and the Oxlint linter. **esbuild** (Go) is still widely used.
 
-> ⚠️ **These tools strip types; they do not check them.** They delete TypeScript annotations without
+> ⚠️ **These tools strip types. They do not check them.** They delete TypeScript annotations without
 > building a type graph, which is why they are fast. A green build proves nothing about type correctness.
 > [Chapter ?? — Type-Checking and Linting at Scale](#ch-type-checking-and-linting) covers where the check goes.
 
@@ -177,7 +177,7 @@ The transform layer moved the same way. **SWC** (Rust) replaces Babel in Next.js
 ✅ It is inlined into the client bundle. Anything with that prefix is public.
 
 **❌ Trusting that dev behaviour equals build behaviour.**
-✅ Dev serves unbundled modules; the build bundles, tree-shakes and minifies. Run the production build in
+✅ Dev serves unbundled modules. The build bundles, tree-shakes and minifies. Run the production build in
 continuous integration on every change, not just before a release.
 
 **❌ Believing the build validates your types.**
@@ -191,7 +191,7 @@ continuous integration on every change, not just before a release.
 
 ## 🔑 Key Takeaways
 
-- The dev server and the build are different programs: least work per change against most work up front.
+- The dev server and the build are different programs: least work per change, against most work up front.
 - Development serves unbundled native ESM, and HMR walks up the import graph for a module that accepts the update.
 - `VITE_` variables are inlined at build time, so they are public and need a rebuild to change.
 - Rust bought real parallelism and an incremental cache that makes rebuild cost follow the size of the change.
@@ -213,16 +213,16 @@ exported next to a component. Moving it to its own module fixes it.
 
 **Q: Something works in development and breaks in the production build. Where do you start?**
 
-At the dev/build asymmetry. Development serves unbundled modules with no tree shaking and no
-minification; the build does all three. Before Vite 8 it also used a different bundler with different
+At the gap between dev and build. Development serves unbundled modules with no tree shaking and no
+minification. The build does all three. Before Vite 8 it also used a different bundler with different
 CommonJS interop. Look for a dependency that resolves in only one mode, a side effect removed by tree
 shaking, or code that relies on module evaluation order.
 
 **Q: Why were the bundlers rewritten in Rust rather than optimised?**
 
-Bundling is embarrassingly parallel, and a single-threaded process cannot use the other cores. An
-incremental cache fine-grained enough to make rebuilds follow the change needs memory control that is
-impractical in a garbage-collected runtime. Optimisation buys a constant factor. The architecture change
+Bundling is embarrassingly parallel, and a single-threaded process cannot use the other cores. Rebuilds
+that follow the size of the change need a very fine-grained incremental cache. That needs memory control
+that is impractical in a garbage-collected runtime. Optimisation buys a constant factor. The architecture change
 alters what build time is proportional to.
 
 **Q: Your production build succeeds but the application crashes on a type error. How?**

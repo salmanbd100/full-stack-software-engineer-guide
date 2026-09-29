@@ -20,12 +20,12 @@ in_book: true
 
 Since **React 19**, a React tree can be rendered in two places. **Server Components run once, on the
 server, and never re-render.** They can read a database, hold a secret, and `await` directly. They ship
-no JavaScript to the browser — only the result. **Client Components** are ordinary React: state,
+no JavaScript to the browser, only the result. **Client Components** are ordinary React: state,
 effects, event handlers, browser APIs, and a bundle the user downloads.
 
 The two are not alternatives. They compose into one tree, and the interesting engineering is all at the
-seam. This is the single most asked frontend question in a 2026–27 senior loop, and the answers that
-score are about *the boundary*, not about which one is faster.
+seam. This is the most asked frontend question in a 2026–27 senior loop. The answers that score are
+about *the boundary*, not about which one is faster.
 
 > ⚠️ **Moving target.** The Server Component payload format, and how a framework spells the directives,
 > moved between React 18 and React 19. The durable principle does not move: two environments, one tree,
@@ -37,10 +37,10 @@ score are about *the boundary*, not about which one is faster.
 
 This is the sentence most explanations get wrong. `'use client'` at the top of a file does not mean
 "this component is a Client Component". It means **this module is an entry point into the client
-bundle** — and every module it *imports* joins the client bundle with it.
+bundle.** Every module it *imports* joins the client bundle with it.
 
-The directive applies to the **module dependency graph**, not to the render tree. That distinction has
-a consequence people find surprising:
+The directive applies to the **module dependency graph**, not to the render tree. That difference has
+a result people find surprising:
 
 ```tsx
 // app/page.tsx — a Server Component, no directive
@@ -57,13 +57,13 @@ export default async function Page() {
 }
 ```
 
-`Footer` is rendered *inside* `Sidebar`, a Client Component — and it is still a Server Component. It
+`Footer` is rendered *inside* `Sidebar`, a Client Component, and it is still a Server Component. It
 never enters the client bundle, because `Sidebar` does not import it. `Page` imports it, renders it, and
-hands the finished element across as `children`. A parent–child relationship in the render tree says
-nothing about where a component ran.
+hands the finished element across as `children`. A parent–child link in the render tree says nothing
+about where a component ran.
 
-This is the escape hatch for the rule people repeat as "Client Components cannot render Server
-Components". They cannot *import* one. They can happily render one they were handed.
+This is the way around the rule people repeat as "Client Components cannot render Server Components".
+They cannot *import* one. They can happily render one they were handed.
 
 ### What is allowed to cross
 
@@ -79,15 +79,15 @@ wire. Only things with a serialised form can go.
 | Promises                                                  | Anything holding a database handle or a request object |
 | Server Functions — those marked `'use server'`            | —                                                    |
 
-A function fails because code has no serialised form. React throws at render, which is the right
-behaviour and a confusing error the first time. There are two correct responses: pass the data down and
-define the handler inside the Client Component, or pass a **Server Function**, which React serialises as
-a reference rather than as code.
+A function fails because code has no serialised form. React throws at render. That is the right
+behaviour, but a confusing error the first time. There are two correct responses. Pass the data down
+and define the handler inside the Client Component. Or pass a **Server Function**, which React
+serialises as a reference, not as code.
 
 ### Passing a promise across
 
-A Server Component does not have to await everything before it responds. It can start a slow query, pass
-the unresolved promise as a prop, and let the client resolve it with `use` inside a Suspense boundary.
+A Server Component does not have to await everything before it responds. It can start a slow query and
+pass the unresolved promise as a prop. The client then resolves it with `use` inside a Suspense boundary.
 
 ```tsx
 // Server Component
@@ -115,13 +115,13 @@ export function Comments({ commentsPromise }: { commentsPromise: Promise<Comment
 }
 ```
 
-The note arrives in the first flush; the comments stream in when the query finishes. Nothing waits for
-everything.
+The note arrives in the first flush (the first chunk of HTML sent). The comments stream in when the
+query finishes. Nothing waits for everything.
 
 ### Where the boundary belongs
 
-Push it **down and outward** — as deep in the tree and as narrow as the interactivity requires. A page
-whose only interactive element is a like button should send one button's worth of JavaScript, not the
+Push it **down and outward**: as deep in the tree and as narrow as the interactivity needs. Say a page's
+only interactive element is a like button. It should send one button's worth of JavaScript, not the
 page's.
 
 ```tsx
@@ -165,9 +165,9 @@ Server is the default. Move to the client when you need something the server can
 
 ## Common Mistakes
 
-**❌ `'use client'` at the top of every file.** It compounds: each directive drags its whole import
-subtree into the bundle. One at the root of a layout can turn an entire application back into a
-client-rendered one, silently, with no error.
+**❌ `'use client'` at the top of every file.** It compounds. Each directive drags its whole import
+subtree into the bundle. One at the root of a layout can silently turn an entire application back into
+a client-rendered one, with no error.
 
 **❌ Passing a callback down to make a child interactive:**
 
@@ -175,15 +175,15 @@ client-rendered one, silently, with no error.
 <ClientList onSelect={(id: string) => db.select(id)} />  // Throws — a function cannot serialise
 ```
 
-**✅ Give the client a Server Function instead**, or pass the id and let the Client Component own the
-handler.
+**✅ Pass a Server Function instead**, or pass the id and let the Client Component own the handler.
 
 **❌ Serialising far more than the UI needs.** Every prop crossing the boundary is bytes in the HTML
 response *and* work for the client to parse. Passing a 200-field record so a component can read two
-fields is a payload problem hiding as a convenience.
+fields is a payload problem dressed up as a convenience.
 
 **❌ Assuming a Server Component can be interactive later.** It has no state and never re-renders. There
-is no "hydrate this one" — the interactive part has to be a Client Component from the start.
+is no "hydrate this one" (attach client code to it later). The interactive part has to be a Client
+Component from the start.
 
 ## 🔑 Key Takeaways
 
@@ -197,31 +197,31 @@ is no "hydrate this one" — the interactive part has to be a Client Component f
 
 **Q: Why can't you pass a function as a prop from a Server Component to a Client Component?**
 
-Props crossing the boundary are serialised into the payload and sent over the wire, and a function has
-no serialised form, so React throws at render. The two fixes are to pass the data down and define the
-handler inside the Client Component, or to pass a Server Function, which React serialises as a reference
-the client can call rather than as code.
+Props crossing the boundary are serialised into the payload and sent over the wire. A function has no
+serialised form, so React throws at render. There are two fixes. Pass the data down and define the
+handler inside the Client Component. Or pass a Server Function, which React serialises as a reference
+the client can call, not as code.
 
 **Q: A colleague says Client Components cannot render Server Components. Are they right?**
 
 Half right. A Client Component cannot *import* a Server Component, because importing it would pull the
-module into the client bundle. It can render one that was passed to it as `children` or as any other
-element prop, since the parent — a Server Component — already rendered it. The directive draws its line
-on the module graph, not on the render tree.
+module into the client bundle. But it can render one passed to it as `children` or as any other element
+prop. The parent, a Server Component, already rendered it. The directive draws its line on the module
+graph, not on the render tree.
 
 **Q: Where do you put the `'use client'` boundary, and what happens if you get it wrong?**
 
-As deep and as narrow as the interactivity requires — ideally on the smallest leaf that needs state or a
-handler. Put it too high and every module below it joins the client bundle, so a page that should have
-shipped one button's worth of JavaScript ships the whole article. There is no error for this; it shows
-up only as a bundle that grew.
+As deep and as narrow as the interactivity needs, ideally on the smallest leaf that needs state or a
+handler. Put it too high and every module below it joins the client bundle. A page that should have
+shipped one button's worth of JavaScript then ships the whole article. There is no error for this. It
+shows up only as a bundle that grew.
 
 **Q: When is a Server Component the wrong choice?**
 
-When the thing genuinely belongs to the user's session on the device: a controlled input, a drag
-interaction, anything reading `window` or `localStorage`, anything that needs to respond without a round
-trip. Server Components render once and never again, so any state that has to change after the response
-has to live on the client.
+When the thing truly belongs to the user's session on the device. Examples are a controlled input, a
+drag interaction, anything reading `window` or `localStorage`, and anything that must respond without a
+round trip. Server Components render once and never again. So any state that has to change after the
+response has to live on the client.
 
 ## What to Read Next
 

@@ -19,19 +19,18 @@ in_book: true
 ## 💡 The Core Idea
 
 A Route Handler is a file called `route.ts` that exports functions named after HTTP methods. There is no
-framework layer above it: the argument is a `Request`, the return value is a `Response`, and everything
+framework layer above it. The argument is a `Request`, the return value is a `Response`, and everything
 in between is yours.
 
 The interesting question is never whether Next.js *can* serve an API. It can. The question is **who calls
-this endpoint**. Code you render can talk to your database directly from a Server Component, and your own
-forms can mutate through a Server Action — neither needs a URL. An endpoint earns its existence when the
-caller is something you do not control: a webhook, a mobile app, a partner, a `<script>` on someone
-else's page.
+this endpoint**. A Server Component can talk to your database directly, and your own forms can mutate
+through a Server Action. Neither needs a URL. An endpoint earns its place when the caller is something
+you do not control: a webhook, a mobile app, a partner, or a `<script>` on someone else's page.
 
-> ⚠️ **Moving target:** `GET` handler caching has changed twice. Cached by default in Next.js 14,
-> uncached by default in 15, and under Cache Components in 16 a `GET` prerenders unless it touches
-> runtime data, with `use cache` on a helper replacing `dynamic = 'force-static'`. The durable principle
-> is that caching is opt-in and every cached thing needs a key you can invalidate.
+> ⚠️ **Moving target:** `GET` handler caching has changed twice. It was cached by default in Next.js 14
+> and uncached by default in 15. Under Cache Components in 16, a `GET` prerenders unless it touches
+> runtime data, and `use cache` on a helper replaces `dynamic = 'force-static'`. The lasting principle:
+> caching is opt-in, and every cached thing needs a key you can invalidate.
 
 ## How It Works
 
@@ -53,10 +52,10 @@ export async function GET(
 ```
 
 `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` and `OPTIONS` are supported, one export each. The handler
-runs in the same environment as a Server Component — `cookies()`, `headers()` and Node APIs all work —
-but there is no React DOM, so nothing renders here.
+runs in the same environment as a Server Component, so `cookies()`, `headers()` and Node APIs all work.
+But there is no React DOM, so nothing renders here.
 
-**A `route.ts` and a `page.tsx` cannot share a segment.** Both claim the same URL, and the page loses.
+**A `route.ts` and a `page.tsx` cannot share a segment.** Both claim the same URL, so Next.js rejects the pair.
 Put endpoints under a path of their own.
 
 ### Caching a `GET`
@@ -79,8 +78,8 @@ async function getRates(): Promise<Rate[]> {
 }
 ```
 
-The tag is what makes this maintainable: `revalidateTag("rates")` from the action that changes a rate
-invalidates the endpoint without anybody remembering the URL. The mechanics are in
+The tag makes this easy to maintain. The action that changes a rate calls `revalidateTag("rates")`, and
+that invalidates the endpoint without anyone remembering the URL. The mechanics are in
 [Chapter ?? — Data Fetching and Caching](#ch-nextjs-data-and-caching).
 
 ### Handler, action, or neither
@@ -94,14 +93,13 @@ invalidates the endpoint without anybody remembering the URL. The mechanics are 
 | A client component polling for updates   | A Route Handler          | It needs a URL and a cache header           |
 | A cron or scheduled job                  | A Route Handler          | Triggered by a request from outside         |
 
-The first row is the one candidates get wrong. Writing `fetch('/api/invoices')` inside a Server Component
-serialises a call to your own server, through your own network stack, to run a query the component could
-have run itself.
+Candidates get the first row wrong. `fetch('/api/invoices')` inside a Server Component sends a call to
+your own server, through your own network stack. It runs a query the component could have run itself.
 
 ### What a backend-for-frontend actually is
 
 A BFF is an API shaped for **one** client, owned by the team that builds that client. It sits between a
-user interface and the services behind it, and it earns its place by doing four things:
+user interface and the services behind it. It earns its place by doing four things:
 
 | Job                  | Example                                                          |
 | -------------------- | ---------------------------------------------------------------- |
@@ -110,14 +108,14 @@ user interface and the services behind it, and it earns its place by doing four 
 | Response shaping     | Return the twelve fields the screen renders, not the ninety      |
 | Protocol translation | gRPC or SOAP upstream, JSON to the browser                       |
 
-Next.js is a good BFF because the code that shapes the response and the code that renders it are in one
-repository, reviewed together, deployed together. When the screen needs another field, one pull request
-changes both ends.
+Next.js makes a good BFF. The code that shapes the response and the code that renders it live in one
+repository, reviewed together and deployed together. When the screen needs another field, one pull
+request changes both ends.
 
 ### And where it stops
 
-The same coupling is the cost. A BFF is a frontend concern deployed on a frontend release cadence, and
-work that does not fit that shape should not be pushed into it.
+The same coupling is the cost. A BFF is a frontend concern, released on the frontend's schedule. Work
+that does not fit that shape should not be pushed into it.
 
 | Signal                                          | What it means                                            |
 | ----------------------------------------------- | -------------------------------------------------------- |
@@ -127,8 +125,8 @@ work that does not fit that shape should not be pushed into it.
 | Heavy CPU, or a database with its own scaling    | It should scale separately from your page rendering       |
 | External consumers need versioning and an SLA    | That is a contract, and contracts need an owner           |
 
-> ⚠️ Every endpoint you add is a public URL. It is not protected by living next to your components:
-> validate the body, check the session in the same data access layer your pages use, and rate-limit
+> ⚠️ Every endpoint you add is a public URL. Living next to your components does not protect it.
+> Validate the body, check the session in the same data access layer your pages use, and rate-limit
 > anything unauthenticated.
 
 ## When to Use It
@@ -156,8 +154,8 @@ check, same validation, same rate limit.
 **❌ Putting `route.ts` beside `page.tsx`.** They collide on the same path. Namespace endpoints under
 `/api` or a segment of their own.
 
-**❌ Letting the BFF become the product API.** Once other teams depend on it, your frontend release
-cadence becomes their outage risk. Split it out at the second consumer, not the fifth.
+**❌ Letting the BFF become the product API.** Once other teams depend on it, your frontend releases
+become their outage risk. Split it out at the second consumer, not the fifth.
 
 **❌ Running long jobs in a handler.** Serverless platforms enforce a timeout and bill for wall-clock
 time. Enqueue the work and return an id.
@@ -175,29 +173,29 @@ time. Enqueue the work and return an id.
 **Q: When should a Next.js application expose a Route Handler at all?**
 
 When the caller is something you do not render. Webhooks, mobile clients, partner integrations, cron
-triggers and polling clients all need a URL. Your own pages do not — a Server Component can query the
-database directly, and a Server Action handles a mutation from your own UI without an endpoint existing.
+triggers and polling clients all need a URL. Your own pages do not. A Server Component can query the
+database directly, and a Server Action handles a mutation from your own UI with no endpoint at all.
 
 **Q: What is a backend-for-frontend, and what does it cost?**
 
-An API shaped for a single client and owned by that client's team. It collapses several upstream calls
-into one, keeps credentials server-side, and returns only the fields the screen uses. The cost is
-coupling: it ships on the frontend's release cadence and scales with the frontend's traffic, so as soon
-as a second independent consumer appears, it is a product API wearing the wrong clothes.
+An API shaped for a single client and owned by that client's team. It merges several upstream calls into
+one, keeps credentials on the server, and returns only the fields the screen uses. The cost is coupling.
+It ships on the frontend's release schedule and scales with the frontend's traffic. So once a second
+independent consumer appears, it is a product API wearing the wrong clothes.
 
 **Q: Route Handler or Server Action for a form submission?**
 
-Server Action. It runs on the server without a public URL you have to name, works before JavaScript
-loads because it is a real form submission, and integrates with the router's revalidation. A Route
-Handler for the same job means writing the fetch, the serialisation and the error handling by hand, and
-leaves you an endpoint to secure.
+Server Action. It runs on the server without a public URL you have to name. It works before JavaScript
+loads, because it is a real form submission. It also works with the router's revalidation. A Route
+Handler for the same job means writing the fetch, the serialisation and the error handling by hand. It
+also leaves you an endpoint to secure.
 
 **Q: When is Next.js the wrong place for backend work?**
 
-When the work does not fit a request. Background jobs, queues, retries, long-lived sockets and heavy
-CPU all sit badly on a serverless request handler that is timed and billed by wall-clock time. The other
-signal is organisational: once several teams consume the endpoint, it needs versioning, an SLA and an
-owner, none of which survive being deployed with the marketing site.
+When the work does not fit a request. Background jobs, queues, retries, long-lived sockets and heavy CPU
+all sit badly on a serverless request handler, timed and billed by wall-clock time. The other signal is
+organisational. Once several teams consume the endpoint, it needs versioning, an SLA and an owner. None
+of those survive being deployed with the marketing site.
 
 ## What to Read Next
 

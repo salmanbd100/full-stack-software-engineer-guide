@@ -19,12 +19,12 @@ in_book: true
 ## 💡 The Core Idea
 
 An HTTP response does not have to be assembled before it is sent. The server can write the first bytes,
-keep the connection open, and write more as it goes. Browsers have parsed HTML incrementally since the
-1990s — they render what has arrived and keep going.
+keep the connection open, and write more as it goes. Browsers have parsed HTML in pieces since the
+1990s. They render what has arrived and keep going.
 
-Streaming is that old capability used deliberately. Instead of waiting for the slowest query on the page,
-the server flushes the shell — `<head>`, layout, navigation — immediately, then flushes each region as
-its data resolves.
+Streaming uses that old ability on purpose. The server does not wait for the slowest query on the page.
+It flushes the shell (`<head>`, layout, navigation) at once. Then it flushes each region as its data
+resolves.
 
 The user sees the page in the order the *server* can produce it, not in the order of the slowest thing on
 it. Nothing about the page got faster. The waiting was rearranged so that most of it happens behind
@@ -61,8 +61,8 @@ database. Those downloads now overlap the query instead of queueing behind it.
 
 ### Out-of-order streaming
 
-A naive stream is document order: the server cannot send the footer before the middle. That is a problem
-when the middle is the slow part.
+A naive stream follows document order. The server cannot send the footer before the middle. That is a
+problem when the middle is the slow part.
 
 Frameworks solve it with a placeholder-and-swap trick. The slow region is emitted as an empty placeholder
 with an identifier. When its data resolves, the server appends the real markup at the *end* of the
@@ -82,11 +82,11 @@ document plus a tiny inline script that moves it into place.
 
 This is what React does behind a `<Suspense>` boundary, and it is why regions can arrive in completion
 order rather than document order. [Chapter ?? — Suspense, Streaming and Error Boundaries](#ch-suspense-and-streaming)
-covers the React-side API; this chapter is about the transport underneath it.
+covers the React-side API. This chapter is about the transport underneath it.
 
 ### Producing a stream in TypeScript
 
-Every server runtime exposes the same shape — a stream you write into and the framework flushes.
+Every server runtime exposes the same shape: a stream you write into, which the framework flushes.
 
 **A hand-rolled streaming response with the Web Streams API:**
 
@@ -111,8 +111,8 @@ export async function handler(): Promise<Response> {
 }
 ```
 
-The rule the example demonstrates: **do not `await` anything before the first `enqueue`.** One awaited
-call above that line converts a streamed response back into a buffered one, and no error is reported.
+The example shows one rule: **do not `await` anything before the first `enqueue`.** One awaited call
+above that line turns a streamed response back into a buffered one. Nothing reports an error.
 
 ### Which metric moves
 
@@ -123,15 +123,15 @@ call above that line converts a streamed response back into a buffered one, and 
 | **LCP** | The largest element paints | Only if the largest element is in the shell |
 | **INP** | Response to interaction | No — that is hydration, not streaming |
 
-This table is the answer to the most common rendering interview question. Streaming is a **time to first
-byte** technique that also helps first paint. It does nothing for the hero image, which is a
-[Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) problem, and nothing for interactivity, which
-is a [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) problem.
+This table answers the most common rendering interview question. Streaming is a **time to first byte**
+technique that also helps first paint. It does nothing for the hero image. That is a
+[Chapter ?? — Caching and Asset Delivery](#ch-asset-delivery) problem. It does nothing for interactivity,
+which is a [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) problem.
 
 > ⚠️ **Streaming can make LCP worse.** If the largest element is inside a streamed region, the browser
-> paints a skeleton first, then the real content — and LCP is measured at the second paint, after the
-> data arrived. A page that buffered would have painted once, later, but with a better LCP. Keep the
-> LCP element out of the slow region.
+> paints a skeleton first, then the real content. LCP is measured at the second paint, after the data
+> arrived. A buffered page would have painted once, later, but with a better LCP. Keep the LCP element
+> out of the slow region.
 
 ### The headers you gave up
 
@@ -139,9 +139,9 @@ Once the first byte is out, the response status and headers are fixed. That has 
 saying out loud in a design round:
 
 - **A failure after the flush cannot become a 500.** The best you can do is stream an error message into
-  the page, which is exactly why streaming frameworks push you towards error boundaries.
+  the page. This is why streaming frameworks push you towards error boundaries.
 - **A redirect after the flush is not possible.** Authentication checks and redirects must happen before
-  the shell goes out — this is the real reason they live in middleware.
+  the shell goes out. This is the real reason they live in middleware.
 - **`Set-Cookie` after the flush is ignored.** Session rotation belongs above the render.
 
 ### What silently disables it
@@ -156,7 +156,7 @@ Streaming is unusually easy to break without an error, because a buffered respon
 | A framework middleware that reads the response body | Buffered, and hard to find |
 | Serving through a platform that caches whole responses | Correct output, no streaming |
 
-The check is one command: `curl -N` the route and watch whether bytes arrive in groups. If everything
+The check is one command. Run `curl -N` on the route and watch whether bytes arrive in groups. If everything
 lands at once, something between your code and the terminal is buffering.
 
 ## When to Use It
@@ -180,11 +180,11 @@ needs it, behind a boundary.
 that are actually slow.
 
 **❌ Streaming without a fallback that reserves space.**
-✅ A zero-height skeleton means the content pushes the page down when it arrives, and you have converted a
+✅ With a zero-height skeleton, the content pushes the page down when it arrives. You have turned a
 latency win into a layout shift.
 
 **❌ Assuming crawlers cannot read a streamed page.**
-✅ They can; chunked transfer is ordinary HTTP. The caveat is different and is covered in
+✅ They can. Chunked transfer is ordinary HTTP. The caveat is different and is covered in
 [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 **❌ Declaring streaming works because it works locally.**
@@ -194,7 +194,7 @@ latency win into a layout shift.
 
 - Streaming flushes the shell before the data resolves, so downloads overlap queries instead of queueing.
 - Out-of-order delivery uses a placeholder plus an inline script, which is why regions can land early.
-- It moves TTFB and usually FCP; it moves LCP only if the largest element is in the shell.
+- It moves TTFB and usually FCP. It moves LCP only if the largest element is in the shell.
 - After the first byte, the status, redirects and cookies are already decided.
 - A single `await` above the first flush, or one buffering proxy, silently turns it off.
 
@@ -203,26 +203,26 @@ latency win into a layout shift.
 **Q: Your TTFB is 1.8 seconds on a server-rendered page. What do you do?**
 
 Find out what the server is waiting for before its first byte. Usually one query in a layout blocks the
-whole render. Flush the shell first and move the slow region behind a boundary, so TTFB becomes the cost
-of rendering the layout rather than the cost of the slowest query on the page.
+whole render. Flush the shell first and move the slow region behind a boundary. TTFB then becomes the
+cost of rendering the layout, not the cost of the slowest query on the page.
 
 **Q: Can streaming make a page worse?**
 
 Yes, in two ways. If the largest contentful element is in a streamed region, LCP is measured after the
-swap and gets worse. And a fallback that does not reserve the right space converts the wait into
+swap and gets worse. And a fallback that does not reserve the right space turns the wait into
 cumulative layout shift. Streaming pays off when the shell is worth looking at.
 
 **Q: Why can't a streamed response redirect when authentication fails halfway through?**
 
-The status line and headers were sent with the first chunk and cannot be recalled. Anything that changes
-the response as a whole — status, redirect, `Set-Cookie` — has to be decided before the shell is flushed,
-which is why authentication checks sit in middleware above the render.
+The status line and headers went out with the first chunk and cannot be recalled. Anything that changes
+the response as a whole (status, redirect, `Set-Cookie`) must be decided before the shell is flushed.
+That is why authentication checks sit in middleware above the render.
 
 **Q: How would you prove that streaming is actually happening in production?**
 
-Request the deployed URL with `curl -N` and watch for bytes arriving in distinct groups, and check that
-the response carries chunked transfer rather than a `Content-Length`. Compare TTFB in field data against
-the duration of the slowest query — if they match, the response is buffered somewhere in the path.
+Request the deployed URL with `curl -N` and watch for bytes arriving in distinct groups. Check that the
+response uses chunked transfer, not a `Content-Length`. Compare TTFB in field data with the duration of
+the slowest query. If they match, something in the path is buffering the response.
 
 ## What to Read Next
 

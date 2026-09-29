@@ -33,8 +33,8 @@ in the world has an opinion about it.
 survive a refresh and a paste into a chat window.
 
 Each category has different rules about staleness, validity, sharing and persistence. **A tool built for
-one of them handles the others badly**, which is why "we standardised on one store" produces a codebase
-that is fighting itself.
+one of them handles the others badly.** That is why "we standardised on one store" gives you a codebase
+that fights itself.
 
 ## How It Works
 
@@ -53,9 +53,9 @@ flowchart TD
 
 **Three questions, in order, classify almost everything.**
 
-The first question is the one that matters most, and it has a sharp form: **if two browser tabs
-disagreed, which one would be wrong?** If the answer is "whichever one is out of date", the server owns
-it and you are holding a cache. If the answer is "neither, they are independent", it is client state.
+The first question matters most, and it has a sharp form: **if two browser tabs disagreed, which one
+would be wrong?** If the answer is "whichever one is out of date", the server owns it. You are holding a
+cache. If the answer is "neither, they are independent", it is client state.
 
 ### What each category demands
 
@@ -88,8 +88,8 @@ interface UserStore {
 }
 ```
 
-Four fields, and every one of them is a decision you have now made badly. There is no staleness policy,
-so the data is refetched on every mount or never. There is no request deduplication, so three components
+Four fields, and each one is a decision you have now made badly. There is no staleness policy, so the
+code refetches the data on every mount or never. There is no request deduplication, so three components
 mounting together fire three requests. There is no invalidation, so a mutation elsewhere leaves this
 stale. There is no retry and no cancellation.
 
@@ -115,16 +115,15 @@ The point is not the library. It is that naming the category made the missing po
 | URL state → component state | A dashboard nobody can link to | Back button breaks, links do not reproduce the view |
 | Server state → the URL | The whole result set in a query string | URL length limits, and stale links |
 
-The last row is the one people trip on after learning the fourth category. The URL holds the *inputs* —
-the filter, the sort, the page. It does not hold the results.
+People trip on the last row after they learn the fourth category. The URL holds the *inputs*: the
+filter, the sort, the page. It does not hold the results.
 
 ### Server state has a second home now
 
-React 19 Server Components and server-side data loading change the arithmetic for the first category.
-If a route fetches on the server and renders the result, some server state never becomes client state at
-all.
+React 19 Server Components and server-side data loading change the sums for the first category. If a
+route fetches on the server and renders the result, some server state never becomes client state at all.
 
-That does not remove the category, it removes the *cache* for a subset of it. Anything refetched,
+That does not remove the category. It removes the *cache* for part of it. Anything refetched,
 mutated, polled or updated optimistically still needs a client cache.
 [Chapter ?? — Server State with TanStack Query](#ch-server-state) covers where the line falls.
 
@@ -138,19 +137,19 @@ mutated, polled or updated optimistically still needs a client cache.
 | A filter, a sort, a page number, an open tab | URL | Search params — [Chapter ?? — URL as State](#ch-url-as-state) |
 | Derived from any of the above | None | Compute it. Do not store it |
 
-That last row deserves its own sentence. **Derived values are not state.** A filtered list, a total, a
-"has unsaved changes" flag — all of these are functions of state that people store as state, and every
-copy is a chance to go out of sync.
+That last row deserves its own sentence. **Derived values are not state.** Take a filtered list, a total,
+or a "has unsaved changes" flag. Each is a function of state that people store as state. Every copy is a
+chance to go out of sync.
 
 ## Common Mistakes
 
 **❌ Choosing the library first.**
-✅ Classify the state, then pick. "We use Redux" answers a question nobody asked; "this is server state,
+✅ Classify the state, then pick. "We use Redux" answers a question nobody asked. "This is server state,
 so it needs a cache with an invalidation policy" answers the real one.
 
 **❌ Treating the four categories as four libraries.**
 ✅ They are four *problems*. A small application may solve client, form and URL state with React and the
-platform, and only pull in a library for server state.
+platform. It may only need a library for server state.
 
 **❌ Copying server data into local state so it can be edited.**
 ✅ That fork goes stale the moment anything invalidates the query. Keep the cached value as the truth and
@@ -167,7 +166,7 @@ keeping it honest.
 ## 🔑 Key Takeaways
 
 - Server, client, form and URL state are four different problems with four different rules.
-- Server state is a cache; if you store it in a general-purpose store, you have hand-written a bad one.
+- Server state is a cache. Put it in a general-purpose store and you have hand-written a bad one.
 - Form state is invalid on purpose, which is why it does not belong in application state.
 - URL state holds the inputs to a view, never the results.
 - Derived values are not state — compute them.
@@ -177,28 +176,28 @@ keeping it honest.
 **Q: How do you decide where a piece of state should live?**
 
 Ask whether the truth lives on a server. If it does, it is a cache and needs staleness, deduplication and
-invalidation. If not, ask whether a user is editing it — that is form state, and it is invalid by design.
-If not, ask whether a pasted link should reproduce it — that is URL state. What is left is client state,
+invalidation. If not, ask whether a user is editing it. That is form state, and it is invalid by design.
+If not, ask whether a pasted link should reproduce it. That is URL state. What is left is client state,
 and most of that is local to one component.
 
 **Q: What is actually wrong with putting API data in Redux or Zustand?**
 
-Nothing syntactically — the problem is what you have to build next. Server data needs a staleness policy,
+Nothing in the syntax. The problem is what you have to build next. Server data needs a staleness policy,
 request deduplication, cache invalidation on mutation, retries, cancellation and background refetching. A
-general-purpose store gives you none of those, so you write them by hand, per slice, and they drift.
+general-purpose store gives you none of those. So you write them by hand, per slice, and they drift.
 
 **Q: Which state belongs in the URL, and how do you decide?**
 
 Anything a user would reasonably expect to share, bookmark or reach with the back button: filters, sort
 order, pagination, the selected tab, the open row of a table. The test is whether pasting the link into a
-message should reproduce what the sender is looking at. Transient things — hover, scroll, a menu — should
-not be there.
+message should reproduce what the sender is looking at. Short-lived things, such as hover, scroll or an
+open menu, should not be there.
 
 **Q: Is the four-category model still useful when the framework fetches on the server?**
 
 Yes, but the first category shrinks. Data fetched and rendered on the server never becomes a client cache
-at all. What remains is anything refetched, polled, mutated or updated optimistically — and that still
-needs the full set of cache policies, so the distinction still does the work.
+at all. What remains is anything refetched, polled, mutated or updated optimistically. That still needs
+the full set of cache policies, so the distinction still does the work.
 
 ## What to Read Next
 

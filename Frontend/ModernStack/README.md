@@ -14,9 +14,9 @@ in_book: true
 
 This is the part the book exists for, and it rests on one claim: **the framework is an implementation
 detail; the rendering model and the state model are the architecture.** An engineer who can only drive
-React answers the first question in a loop. An engineer who can say where the server/client boundary
-sits, why one route streams and the next one does not, and which of the four kinds of state a piece of
-data belongs to answers every question after it — in React, in Svelte, and in whatever ships next.
+React answers the first question in a loop. A stronger one can say where the server/client boundary
+sits, why one route streams and the next does not, and which of four kinds of state some data belongs
+to. That engineer answers every question after it, in React, in Svelte, and in whatever ships next.
 
 So the part is split in half on purpose. `React/`, `NextJS/` and `Svelte/` teach the tools that 2026–27
 job descriptions actually name. `Rendering/`, `StateManagement/` and `Tooling/` teach the models
@@ -34,13 +34,13 @@ underneath them. When React 20 lands, three of these sections need revising and 
 | [Tooling](#ch-modern-stack-tooling-index)                   | 5        | Modules, Vite, the Rust generation, monorepos, linting, styling      |
 
 Three frameworks, and only three. Vue and Angular appear in comparison tables where they sharpen a
-tradeoff, never as chapters — see `BOOK-SPEC.md` § 6. Svelte earns its slot twice over: Svelte 5 has the
-highest retention rate of any framework surveyed, SvelteKit is the second most-used meta-framework, and
-it is the stack this author ships on daily.
+tradeoff, never as chapters (see `BOOK-SPEC.md` § 6). Svelte earns its slot twice over. Svelte 5 has the
+highest retention rate of any framework surveyed, and SvelteKit is the second most-used meta-framework.
+It is also the stack this author ships on daily.
 
 > ⚠️ **Moving target — this is the fastest-ageing part of the book.** It is written against React 19,
-> Next.js 16 and Svelte 5. Caching semantics in Next.js changed in 15 and again in 16; the React
-> Compiler changed what memoisation is for. The durable principles are the ones in `Rendering/`,
+> Next.js 16 and Svelte 5. Caching semantics in Next.js changed in 15 and again in 16, and the React
+> Compiler changed what memoisation is for. The lasting principles are the ones in `Rendering/`,
 > `StateManagement/` and `Tooling/`: rendering is a per-route decision, state has categories, and a
 > bundler resolves a graph. Those outlive every API name on this page.
 
@@ -53,7 +53,7 @@ the framework as an implementation detail.** Four questions run through all six 
   2026–27 frontend question. A candidate who cannot say why a function will not serialise across it has
   not shipped an App Router application.
 - **Why is this component re-rendering?** Not "add `memo`". The answer names the state that changed, the
-  identity that broke, and — since the React Compiler — whether memoisation was ever yours to add.
+  identity that broke, and whether memoisation was ever yours to add now that the React Compiler exists.
 - **Which kind of state is this?** Server state, client state, form state and URL state are four
   different problems with four different tools. Putting a cache in Redux is the classic tell.
 - **What did you choose not to use?** Reaching for the platform, for `useState`, or for a static route
@@ -69,20 +69,20 @@ the framework as an implementation detail.** Four questions run through all six 
 
 ## Reading Order
 
-`Rendering/01` first, then your framework, then the rest. That order is deliberate: the rendering
-spectrum gives you the vocabulary — hydration, streaming, islands, PPR — that the React and Next.js
+`Rendering/01` first, then your framework, then the rest. That order is deliberate. The rendering
+spectrum gives you the vocabulary (hydration, streaming, islands, PPR) that the React and Next.js
 chapters then assume. After that, `React/` → `NextJS/` reads in dependency order, and `Svelte/` reads
 cold from anywhere.
 
 `StateManagement/` and `Tooling/` are independent of all three frameworks and can be read at any point.
-`StateManagement/01` is the highest-leverage chapter in the part for its length.
+`StateManagement/01` gives the most value for its length of any chapter in the part.
 
 **Interview sprint:** `Rendering/01`, `03` · `React/03`, `05`, `07` · `NextJS/02`, `04` ·
 `StateManagement/01`–`02`. That is the server/client boundary, the effect trap, Actions, caching, PPR
-and server state — which between them cover most of what a frontend-heavy senior loop asks before the
+and server state. Between them, they cover most of what a frontend-heavy senior loop asks before the
 system design round.
 
 All six sections are written — **34 chapters**. Improvements #32–41 wrote 46, and #98 cut them to 34 by
 merging pairs that taught one idea and archiving the reference material. Cross-references are written
-as `Chapter ?? — Title`; the build supplies the number and the page, so the manuscript never carries
+as `Chapter ?? — Title`. The build supplies the number and the page, so the manuscript never carries
 one that can go stale.

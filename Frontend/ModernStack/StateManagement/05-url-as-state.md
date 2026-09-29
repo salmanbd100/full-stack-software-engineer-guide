@@ -21,19 +21,19 @@ in_book: true
 The URL is a state container that already has a user interface. It has a back button, a forward button,
 a share action, a bookmark, and an edit field. No store you write will ever get those for free.
 
-It is also the only piece of application state the user can *see*. That is a feature and a constraint:
-anything you put there is public, editable, and permanent enough to end up in a support ticket.
+It is also the only piece of application state the user can *see*. That is a feature and a limit.
+Anything you put there is public, editable, and lasting enough to end up in a support ticket.
 
 The test for whether a value belongs in it is one sentence: **if someone pasted this link into a message,
 should the recipient see the same view?** Filters, sort order, page number, the open tab, the selected
-row — yes. A hover state, a scroll position, a half-open menu — no.
+row: yes. A hover state, a scroll position, a half-open menu: no.
 
 ## How It Works
 
 ### Everything in a URL is a string
 
-Search params have no types. Every value needs a parser on the way in and a serialiser on the way out,
-and every parse can fail because users edit URLs.
+Search params have no types. Every value needs a parser on the way in and a serialiser on the way out.
+Every parse can fail, because users edit URLs.
 
 **Typed params, with defaults, using `nuqs`:**
 
@@ -54,16 +54,16 @@ setFilters({ page: 2 }); // updates only `page`, leaves the rest of the URL alon
 
 Two design rules follow.
 
-**Defaults should not appear in the URL.** `?page=1&sort=newest` on a first visit is noise, it makes two
+**Defaults should not appear in the URL.** `?page=1&sort=newest` on a first visit is noise. It makes two
 URLs for one view, and it splits caching and search-engine signals. Clear a param when it equals its
 default.
 
 **Unknown values must fall back, not crash.** `?sort=banana` is one keystroke away from `?sort=newest`.
-Parse against a literal union and fall back to the default rather than trusting the string.
+Parse against a literal union and fall back to the default. Do not trust the string.
 
 ### Push or replace
 
-Every URL update is a history entry or an overwrite, and choosing wrongly breaks the back button in one
+Every URL update is a history entry or an overwrite. Choose wrongly and you break the back button in one
 of two directions.
 
 | Change | Mode | Why |
@@ -73,15 +73,16 @@ of two directions.
 | Applying a filter from a dropdown | **push** | One deliberate action, one history entry |
 | Restoring state on mount | **replace** | It was never a navigation |
 
-The failure everyone has met: a search box that pushes on every keystroke, so leaving the page means
+The failure everyone has met: a search box that pushes on every keystroke. Leaving the page means
 pressing back once per character typed.
 
 ### Throttling the writes
 
-Even with `replace`, writing the URL on every keystroke is expensive — it touches the router, and in
-frameworks where a param change triggers a server round trip, it triggers one per character.
+Even with `replace`, writing the URL on every keystroke is costly. It touches the router. In frameworks
+where a param change triggers a server round trip, you get one round trip per character.
 
-The fix is to keep the input controlled locally and throttle or debounce the URL write:
+The fix is to keep the input controlled locally and throttle or debounce the URL write. Debouncing
+waits until typing pauses:
 
 ```typescript
 const [q, setQ] = useQueryState('q', {
@@ -90,22 +91,22 @@ const [q, setQ] = useQueryState('q', {
 });
 ```
 
-The input stays responsive because the DOM value updates immediately; the URL — and any fetch it drives —
+The input stays responsive because the DOM value updates at once. The URL, and any fetch it drives,
 catches up when the user pauses.
 
 ### Shallow or not: does this refetch?
 
-A URL update can be handled entirely on the client, or it can go back to the server to re-render the
-route with new params. Frameworks expose this as a `shallow` flag, and it is a genuine decision:
+The client can handle a URL update on its own, or the update can go back to the server to re-render the
+route with new params. Frameworks expose this as a `shallow` flag, and it is a real decision:
 
-- **Shallow** — the client already has what it needs, so the update is just a re-render. Right for a
+- **Shallow:** the client already has what it needs, so the update is just a re-render. Right for a
   client-side filter over data already loaded.
-- **Not shallow** — the server re-renders with the new params. Right when the params drive the query,
-  which is the usual case for search, pagination and filtering over a real dataset.
+- **Not shallow:** the server re-renders with the new params. Right when the params drive the query.
+  That is the usual case for search, pagination and filtering over a real dataset.
 
-The second option is what makes URL state pair naturally with server rendering: the params are inputs to
-the server render, so a pasted link produces the correct page on the very first response with no client
-fetch at all. That also makes those routes indexable — see
+The second option is why URL state pairs so well with server rendering. The params are inputs to the
+server render, so a pasted link produces the correct page on the very first response, with no client
+fetch at all. That also lets search engines index those routes. See
 [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 ### Reading params on the server
@@ -113,16 +114,16 @@ fetch at all. That also makes those routes indexable — see
 Because params arrive with the request, the first render can be correct. There is no flash of the default
 view followed by a jump to the filtered one.
 
-The cost is that reading search parameters makes a route dynamic in most frameworks — the response now
-depends on the request, so it cannot be fully static. That is the right tradeoff for a search page and
-the wrong one for a marketing page with a tracking parameter, which is a case for
+The cost: in most frameworks, reading search parameters makes a route dynamic. The response now depends
+on the request, so it cannot be fully static. That is the right tradeoff for a search page. It is the
+wrong one for a marketing page with a tracking parameter, which is a case for
 [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 ### What must never go in a URL
 
-URLs travel further than people expect. They are written to server logs, proxy logs and analytics; sent
-in the `Referer` header to third-party scripts; stored in browser history on shared machines; and pasted
-into tickets.
+URLs travel further than people expect. Servers, proxies and analytics write them to logs. The `Referer`
+header sends them to third-party scripts. Browser history keeps them on shared machines, and people
+paste them into tickets.
 
 | Never | Because |
 | ----- | ------- |
@@ -131,9 +132,8 @@ into tickets.
 | Large payloads — a whole result set, a serialised form | Length limits, and the link stops working when the data moves |
 | Anything derivable from other params | A second source of truth in a place users can edit |
 
-The practical limit on URL length is a few thousand characters across browsers, proxies and servers, and
-the first thing to break is usually a CDN rather than the browser. Keep params to identifiers and
-enumerations.
+The practical limit on URL length is a few thousand characters across browsers, proxies and servers. The
+first thing to break is usually a CDN, not the browser. Keep params to identifiers and enumerations.
 
 ## When to Use It
 
@@ -156,13 +156,13 @@ enumerations.
 ✅ Users and bots will send anything. Parse to a union or a number with a fallback.
 
 **❌ Writing defaults into the URL.**
-✅ Two URLs for one view splits caching and search signals, and looks careless.
+✅ Two URLs for one view split caching and search signals, and look careless.
 
 **❌ Keeping the same value in the URL and in a store.**
-✅ Two sources of truth that disagree after a back-button press. The URL wins; derive everything else.
+✅ Two sources of truth that disagree after a back-button press. The URL wins. Derive everything else.
 
 **❌ Putting an identifier that leaks information into a shareable link.**
-✅ Anything in a URL is logged by every hop it passes through. Treat it as public.
+✅ Every hop a URL passes through logs it. Treat it as public.
 
 ## 🔑 Key Takeaways
 
@@ -170,31 +170,31 @@ enumerations.
 - Every param is a string, so each one needs a parser, a default, and a fallback for junk.
 - Push for deliberate navigation, replace for continuous adjustment, and throttle the writes.
 - Reading params on the server makes the first render correct, at the cost of making the route dynamic.
-- URLs are logged everywhere — never put tokens, personal data or large payloads in one.
+- URLs are logged everywhere. Never put tokens, personal data or large payloads in one.
 
 ## Interview Questions
 
 **Q: Which state belongs in the URL?**
 
-Anything a user would reasonably share, bookmark or reach with the back button: search query, filters,
+Anything a user would expect to share, bookmark or reach with the back button: search query, filters,
 sort, pagination, the active tab, the selected item. The test is whether pasting the link should
-reproduce the sender's view. Transient interface state and anything sensitive stay out.
+reproduce the sender's view. Short-lived interface state and anything sensitive stay out.
 
 **Q: How do you stop a search box from destroying the back button?**
 
-Use replace rather than push for the URL update, so typing overwrites the current entry instead of adding
-one per character, and debounce the write by a few hundred milliseconds. Keep the input value local so it
+Use replace, not push, for the URL update. Typing then overwrites the current entry instead of adding one
+per character. Debounce the write by a few hundred milliseconds too. Keep the input value local so it
 stays responsive while the URL catches up.
 
 **Q: What breaks when the same value lives in both the URL and a store?**
 
-They disagree. A back-button press changes the URL without going through your setter, so the store keeps
-the old value and the page shows a mixture of both. Make the URL the source of truth and derive
+They disagree. A back-button press changes the URL without going through your setter. The store keeps
+the old value, and the page shows a mix of both. Make the URL the source of truth and derive
 everything else from it, or keep the value out of the URL entirely.
 
 **Q: What is the cost of reading search params on the server?**
 
-The route becomes dynamic — the response now depends on the request, so it cannot be served from a static
+The route becomes dynamic. The response now depends on the request, so it cannot be served from a static
 cache. That is correct for a search or filter page, where the params are the query anyway. It is a
 mistake on a mostly-static page that happens to receive a campaign tracking parameter.
 

@@ -18,21 +18,21 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A Server Action looks like a function call and is not one. `'use server'` tells the bundler to leave the
-function on the server and hand the client a **reference** — an opaque generated id. When the form
-submits, the browser POSTs that id and its arguments to your application, and Next.js runs the matching
+A Server Action looks like a function call, but it is not one. `'use server'` tells the bundler to keep
+the function on the server and give the client a **reference**: an opaque generated id. When the form
+submits, the browser POSTs that id and its arguments to your application. Next.js runs the matching
 function.
 
-Everything about how they should be written comes from that one sentence. The action is an HTTP
+Everything about how to write actions comes from that one fact. The action is an HTTP
 endpoint. It has a URL. It accepts whatever a caller sends. It does not care that the component next to
 it was rendered for an administrator.
 
-> Co-location is an ergonomics feature, not a security boundary. The file the action lives in tells you
-> nothing about who is allowed to call it.
+> Keeping the action next to its form is a convenience, not a security boundary. The file the action
+> lives in tells you nothing about who may call it.
 
-> ⚠️ **Moving target:** the ergonomics around actions move every release — `useActionState` replaced
-> `useFormState`, and `forbidden()` and `unauthorized()` arrived with file conventions of their own. The
-> durable principle does not move: an action is a public endpoint, and the checks belong inside it.
+> ⚠️ **Moving target:** the APIs around actions change every release. `useActionState` replaced
+> `useFormState`, and `forbidden()` and `unauthorized()` arrived with their own file conventions. The
+> lasting principle does not change: an action is a public endpoint, and the checks belong inside it.
 
 ## How It Works
 
@@ -58,8 +58,8 @@ export async function createPost(formData: FormData): Promise<void> {
 }
 ```
 
-Pass it straight to a form and the form works before hydration, because the browser is doing a real
-submission:
+Pass it straight to a form. The form then works before hydration (before React attaches to the HTML),
+because the browser does a real submission:
 
 ```tsx
 <form action={createPost}>
@@ -68,9 +68,9 @@ submission:
 </form>
 ```
 
-The React side — `useActionState` for the returned value and the pending flag, `useOptimistic` for the
-in-flight state, `useFormStatus` inside the submit button — is the same everywhere React 19 runs and is
-covered in [Chapter ?? — Actions and Forms](#ch-react-actions-and-forms). This chapter is about the
+The React side is the same everywhere React 19 runs: `useActionState` for the returned value and the
+pending flag, `useOptimistic` for the in-flight state, and `useFormStatus` inside the submit button.
+[Chapter ?? — Actions and Forms](#ch-react-actions-and-forms) covers it. This chapter is about the
 server half.
 
 ### The four checks
@@ -84,8 +84,7 @@ Every action does these four things, in this order, before it touches anything.
 | **Validate**     | Is the input the right shape?                 | Malformed data reaches the database            |
 | **Scope**        | Do they own the record they named?             | Any user can edit any row by changing an id    |
 
-The fourth is the one that gets missed, and it produces the most common finding in App Router code
-review.
+The fourth is the one people miss. It causes the most common finding in App Router code review.
 
 ```typescript
 // ❌ Unsafe: the whole item, including its id, came from the client
@@ -106,13 +105,13 @@ export async function completeItem(itemId: string): Promise<void> {
 ```
 
 `unauthorized()` and `forbidden()` from `next/navigation` throw to the matching `unauthorized.tsx` and
-`forbidden.tsx` files, which keeps the failure UI out of the action.
+`forbidden.tsx` files. That keeps the failure UI out of the action.
 
 ### Validation is not the form
 
-`FormData` values are `string | File | null`. A required attribute on an input is a hint to the browser
-and is absent from a hand-crafted POST. The only validation that counts runs inside the action, with a
-runtime schema.
+`FormData` values are `string | File | null`. A `required` attribute on an input is a hint to the
+browser, and a hand-crafted POST does not have it. The only validation that counts runs inside the
+action, with a runtime schema.
 
 ```typescript
 const PostSchema = z.object({
@@ -122,23 +121,24 @@ const PostSchema = z.object({
 });
 ```
 
-Return the failure as state rather than throwing, so the form can render it — that is what the
+Return the failure as state instead of throwing, so the form can render it. That is what the
 `useActionState` state parameter is for.
 
 ### What Next.js does for you
 
-Two protections come for free, and knowing their limits matters more than knowing they exist.
+Two protections come for free. Knowing their limits matters more than knowing they exist.
 
-- **CSRF.** Next.js compares the `Origin` header with `Host` and rejects the request when they differ.
-  Behind a reverse proxy that rewrites the host, `serverActions.allowedOrigins` is what makes it work
-  again. This checks the request's origin — it is not authentication.
-- **Closure encryption.** Variables an action captures from its enclosing component are encrypted before
-  they are sent to the client, so a closed-over user id is not readable in the page source. Across
-  several server instances the key must be shared, via `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` at build
-  time, or decryption fails on whichever instance did not create the payload.
+- **CSRF** (cross-site request forgery). Next.js compares the `Origin` header with `Host` and rejects
+  the request when they differ. Behind a reverse proxy that rewrites the host, set
+  `serverActions.allowedOrigins` to make it work again. This checks where the request came from. It is
+  not authentication.
+- **Closure encryption.** Next.js encrypts the variables an action captures from its component before
+  sending them to the client. So a closed-over user id is not readable in the page source. With several
+  server instances, they must share the key through `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` at build time.
+  If not, decryption fails on any instance that did not create the payload.
 
-Encrypted is not the same as trustworthy for authorisation. The closure is a value from the render that
-produced the form; treat it as an input, and re-check it:
+Encrypted does not mean safe to trust for authorisation. The closure is a value from the render that
+produced the form. Treat it as an input, and re-check it:
 
 ```tsx
 export default async function Page() {
@@ -157,9 +157,9 @@ export default async function Page() {
 
 ### After the mutation
 
-An action that changes data and does not invalidate anything leaves the user looking at the old value.
-Invalidate by tag, then redirect if the flow moves on — `updateTag` when the same user must see the
-result, `revalidateTag` when the next visitor is soon enough. That distinction is
+An action that changes data but invalidates nothing leaves the user looking at the old value.
+Invalidate by tag, then redirect if the flow moves on. Use `updateTag` when the same user must see the
+result, and `revalidateTag` when the next visitor is soon enough. That difference is covered in
 [Chapter ?? — Data Fetching and Caching](#ch-nextjs-data-and-caching).
 
 ## When to Use It
@@ -176,22 +176,22 @@ result, `revalidateTag` when the next visitor is soon enough. That distinction i
 ## Common Mistakes
 
 **❌ Sending the whole object from the client.** `completeItem(item)` lets the caller choose the id, the
-owner and the price. Send the minimum — usually one identifier and one change — and look the rest up.
+owner and the price. Send the minimum, usually one identifier and one change, and look up the rest.
 
 **❌ Assuming the action is private because the component was.** The endpoint exists whether or not any
 UI renders. An action reachable only from an admin page is reachable from `curl`.
 
 **❌ Trusting `required`, `maxlength` or a disabled button.** All three are client-side, and none of them
-exist in a replayed request. Validate inside the action, always.
+exist in a replayed request. Always validate inside the action.
 
-**❌ Using an action for a cacheable read.** Server Actions are POST, so no HTTP cache, no CDN, and calls
-are serialised one after another. A Route Handler or a Server Component fetch is the right tool.
+**❌ Using an action for a cacheable read.** Server Actions are POST. So there is no HTTP cache and no
+CDN, and calls run one after another. Use a Route Handler or a Server Component fetch instead.
 
 **❌ No revalidation after a write.** The mutation succeeds, the page shows the previous value, and the
 bug report says "saving does not work".
 
-**❌ Exporting helpers from a `'use server'` file.** Every export in that file becomes a callable
-endpoint. Keep actions in their own module and helpers somewhere else.
+**❌ Exporting helpers from a `'use server'` file.** Every exported async function becomes a callable
+endpoint, and any other export fails the build. Keep actions in their own module, helpers elsewhere.
 
 ## 🔑 Key Takeaways
 
@@ -205,29 +205,28 @@ endpoint. Keep actions in their own module and helpers somewhere else.
 
 **Q: What stops a user calling a Server Action directly?**
 
-Nothing. It is an HTTP endpoint with a generated identifier, and the identifier is in the page the user
-already has. The only protections are the ones written inside the action: check the session, check the
-permission, validate the input, and look up the record by owner rather than by the id you were handed.
+Nothing. It is an HTTP endpoint with a generated identifier, and that identifier is in the page the user
+already has. The only protections are the ones inside the action. Check the session, check the
+permission, validate the input, and look up the record by owner, not by the id you were handed.
 
 **Q: Every export in your actions file is reachable. What follows from that?**
 
-That the file is an API surface and should be treated like one. Helpers, constants and formatting
-functions do not belong in a `'use server'` module, because each one becomes a callable endpoint. Keep
-the file to actions, and give each one the four checks.
+The file is an API surface, so treat it like one. Async helpers do not belong in a `'use server'`
+module, because each one becomes a callable endpoint. Constants cannot live there at all: the build
+rejects any export that is not an async function. Keep only actions in the file, and check each one.
 
 **Q: A Server Action closes over a value from the page it was rendered in. Can you trust it?**
 
-Not for authorisation. Next.js encrypts closure variables so they are not readable in the page source,
-which protects confidentiality, but the value still originates from a render that may be minutes old and
-arrives with the request. Use it as an input — re-read the current state and compare — rather than as a
-fact.
+Not for authorisation. Next.js encrypts closure variables so they are not readable in the page source.
+That protects confidentiality. But the value still comes from a render that may be minutes old, and it
+arrives with the request. Use it as an input, not as a fact: re-read the current state and compare.
 
 **Q: When would you write a Route Handler instead?**
 
 When the caller is not your own UI, or when the request should be a GET. Mobile clients, third-party
-integrations and webhooks need a stable, documented contract and their own authentication; cacheable
-reads need HTTP semantics that a POST-only action cannot provide. Actions are for mutations initiated by
-your own application.
+integrations and webhooks need a stable, documented contract and their own authentication. Cacheable
+reads need HTTP semantics that a POST-only action cannot give. Actions are for mutations that your own
+application starts.
 
 ## What to Read Next
 

@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-28 · **Progress:** 13 / 25
+**Last updated:** 2026-09-29 · **Progress:** 14 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1001,7 +1001,7 @@ the three checks are green.
 
 ---
 
-### - [ ] 107. Plain English — Part III `L`
+### - [x] 107. Plain English — Part III `L` — ✅ **done 2026-09-29**
 
 The longest part, at **19.0 words a sentence with 251 sentences over 32 words** — the most long
 sentences of any part, simply because it is the biggest. Expect this one to run long. The method is in
@@ -1009,6 +1009,43 @@ item #105.
 
 **Done when:** Part III has been read line by line, its average is inside 15–20 words a sentence, and
 the three checks are green.
+
+**Delivered:**
+
+- **All 41 Part III files were read line by line and edited.** That covers the part opener, the six section
+  READMEs, and every chapter in Next.js, React, Rendering, State Management, Svelte and Tooling. The diff is
+  1,294 lines in and 1,308 out. The work matched #105: long sentences split, dash asides and semicolon chains
+  turned into full stops, passive wording made active, and plainer words swapped in ("durable" → "lasting",
+  "co-located" → "sits beside", "leverage" dropped). Terms got a first-use gloss: RSC payload, waterfall,
+  hydration, CSRF, ISR, XSS, reconciliation, tearing, windowing, first flush and debouncing. The "transition"
+  gloss in React ch07 was left out, because the line budget had no room for it
+- **Untouched:** code fences, tables, diagrams, headings, front matter, `**Q:**` lines, `**In this chapter:**`
+  lines and cross-reference links. The diff was checked for each, and the only exceptions are the content fixes below
+- **Measured with the #105 method** (a scratch script, still not in the repo). Before: **14.9 words a sentence,
+  78 sentences over 32 words**. After: **12.3, with 6 over 32**. All six are splitter artefacts: a bold sentence
+  ending in `?**` or `.**` is joined to the sentence after it. The 19.0 in this plan's table was measured before
+  #98 cut the part, and it cannot be reproduced now, which matches #105's finding
+- **The line budget held.** Part III went from **8,348 to 8,334 lines** against its 8,400 budget, and no file grew
+- **Five content fixes, found during the read:**
+  - `React/09-react-typescript-at-scale.md` said the `RequestState` union "describes three" states and that
+    "six are nonsense". The union has four variants (idle, loading, success, error). So four of the eight
+    combinations are meaningful and four are nonsense. The Core Idea, the code comments and the first
+    Interview answer were all corrected. Its inline link text now reads "TypeScript Type Guards", the chapter's real title
+  - `NextJS/03-server-actions.md` said constants exported from a `'use server'` file become endpoints. The
+    Next.js docs (checked through Context7) say every export there must be an async function, and anything else
+    fails the build. The Common Mistakes entry and the Interview answer now say so
+  - `NextJS/07-route-handlers-and-the-bff.md` said that when a `route.ts` and a `page.tsx` share a segment,
+    "the page loses". Next.js does not allow the pair at all, so the text now says "Next.js rejects the pair"
+  - `Rendering/05-choosing-a-meta-framework.md` pointed at "Chapter 04" as bare text. It meant
+    chapter 26, choosing-per-route, so it is now a real `#ch-choosing-per-route` cross-reference. Its candidates
+    table said "Next.js 15"; it now says 16, matching the rest of the part
+- **Also fixed in passing:** a doubled "every every" in `NextJS/04`, a subjectless fragment in `React/07`, and
+  a subject–verb slip in `StateManagement/05`
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression, including the part-budget rule. `pnpm
+  index:check` is current, with 647 and 87 questions. `pnpm check:code-samples` exits 0, and its type total stays
+  at the 974 baseline
+- **Not done:** a wording risk in `NextJS/07`'s "Route Handler or Server Action" answer was reported but left alone.
+  It could read as saying an action has no URL, while ch03 stresses that it does. It is a judgement call, not an error
 
 ---
 
@@ -1213,8 +1250,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 13/25 | 🚧 In progress |
-| **Total** | **25** | **13/25** | **52%** |
+| 9 | 95–116 · 95a · 113a · 113b | 14/25 | 🚧 In progress |
+| **Total** | **25** | **14/25** | **56%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

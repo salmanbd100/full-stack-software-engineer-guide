@@ -19,19 +19,19 @@ in_book: true
 ## 💡 The Core Idea
 
 A SvelteKit 2 form action is a **real HTML form submission**. The browser posts `multipart/form-data` to
-the route, the server handles it, and the response is a page. That is the baseline, and it works with
-JavaScript disabled, on a slow connection, and on the request that arrives before your bundle has
-finished downloading.
+the route, the server handles it, and the response is a page. That is the baseline. It works with
+JavaScript off, on a slow connection, and for a request that arrives before your bundle has finished
+downloading.
 
-`use:enhance` then upgrades the same form to a `fetch` with no page reload. Nothing about the server
-changes. This ordering is the point: **the enhanced path is an optimisation of the working path**, not
-the other way round, so there is no "what happens without JavaScript" question to answer later.
+`use:enhance` then upgrades the same form to a `fetch` with no page reload. Nothing on the server
+changes. This order is the point: **the enhanced path is an optimisation of the working path**, not the
+other way round. So you never have to answer "what happens without JavaScript" later.
 
-> ⚠️ **Moving target:** SvelteKit 2.27 landed **remote functions** — `query`, `form`, `command` and
-> `prerender` exported from `.remote.ts` files and imported directly into components — behind the
-> experimental `kit.experimental.remoteFunctions` flag. They are a different shape for the same job, and
-> they are not stable yet. The durable principle either way is that a mutation is a server-side function
-> with its own authorisation and validation.
+> ⚠️ **Moving target:** SvelteKit 2.27 added **remote functions** behind the experimental
+> `kit.experimental.remoteFunctions` flag. These are `query`, `form`, `command` and `prerender`, exported
+> from `.remote.ts` files and imported directly into components. They are a different shape for the same
+> job, and they are not stable yet. The durable principle holds either way: a mutation is a server-side
+> function with its own authorisation and validation.
 
 ## How It Works
 
@@ -72,8 +72,8 @@ export const actions = {
 </form>
 ```
 
-Three things are worth naming. `fail(status, data)` returns a **4xx with a body**, which is what lets the
-page re-render with the user's input still in the fields. `redirect(303, …)` uses the See Other status so
+Three things are worth naming. `fail(status, data)` returns a **4xx with a body**. That lets the page
+re-render with the user's input still in the fields. `redirect(303, …)` uses the See Other status, so
 the browser follows with a `GET` and a refresh does not re-post. And the returned value arrives as the
 `form` prop, typed from the action.
 
@@ -99,8 +99,8 @@ export const actions = {
 <button formaction="?/archive">Archive</button>
 ```
 
-A route has either a `default` action or named ones, never both. The `?/name` query parameter is how the
-plain HTML path selects between them, which is why it works without JavaScript.
+A route has either a `default` action or named ones, never both. The plain HTML path picks between them
+with the `?/name` query parameter. That is why it works without JavaScript.
 
 ### `use:enhance`
 
@@ -112,9 +112,9 @@ plain HTML path selects between them, which is why it works without JavaScript.
 <form method="POST" use:enhance>…</form>
 ```
 
-Added bare, it intercepts the submission, sends it with `fetch`, and then does what the browser would
-have done: updates the `form` prop and the page status, resets the form on success, **invalidates all
-load data**, and follows redirects. The result behaves like the unenhanced version without the reload.
+Added bare, it intercepts the submission and sends it with `fetch`. Then it does what the browser would
+have done. It updates the `form` prop and the page status, resets the form on success, **invalidates
+all load data**, and follows redirects. The result behaves like the plain version, without the reload.
 
 Pass a function to take over the parts you care about:
 
@@ -139,12 +139,12 @@ Pass a function to take over the parts you care about:
 ```
 
 > ⚠️ Returning a callback **replaces** the default handling. Forget to call `update()` and the form stops
-> resetting, the `form` prop stops arriving, and loads stop re-running — with no error to tell you.
+> resetting, the `form` prop stops arriving, and loads stop re-running. No error tells you.
 
 ### Where the security check goes
 
-An action is a public endpoint. It is reachable by a `POST` from anywhere, so co-location with the page
-proves nothing:
+An action is a public endpoint. Anyone can reach it with a `POST`, so sitting next to the page proves
+nothing:
 
 ```typescript
 export const actions = {
@@ -164,11 +164,11 @@ export const actions = {
 } satisfies Actions;
 ```
 
-Session, validation, ownership — every time, inside the action. Schema design belongs to
-[Chapter ?? — Input Validation](#ch-backend-input-validation); this is where it is called.
+Check session, validation and ownership every time, inside the action. Schema design belongs to
+[Chapter ?? — Input Validation](#ch-backend-input-validation). This is where you call it.
 
-SvelteKit checks the `Origin` header on form posts by default, which covers the classic cross-site form
-submission. That is a floor, not a substitute for the authorisation check above it.
+By default, SvelteKit checks the `Origin` header on form posts. That covers the classic cross-site form
+submission. It is a floor, not a substitute for the authorisation check above it.
 
 ## When to Use It
 
@@ -186,17 +186,17 @@ submission. That is a floor, not a substitute for the authorisation check above 
 **❌ Returning `fail()` without the submitted values.** The page re-renders empty and the user retypes
 everything. Send back what they entered, minus the password.
 
-**❌ A 302 redirect after a POST.** Use `redirect(303, …)` so the browser follows with a `GET`;
-otherwise a refresh re-submits.
+**❌ A 302 redirect after a POST.** Use `redirect(303, …)` so the browser follows with a `GET`.
+Otherwise a refresh re-submits.
 
-**❌ A custom `enhance` callback that never calls `update()`.** You have silently opted out of resetting,
-of the `form` prop, and of invalidation.
+**❌ A custom `enhance` callback that never calls `update()`.** You have silently lost resetting, the
+`form` prop, and invalidation.
 
 **❌ Trusting the action because it sits next to the page.** It is a URL. Check the session, validate the
 body, and put ownership in the query.
 
 **❌ Building the JavaScript path first.** Write the plain form, confirm it works with scripting off, then
-add `use:enhance`. Doing it the other way round is how the no-JavaScript path quietly stops working.
+add `use:enhance`. Done the other way round, the no-JavaScript path quietly stops working.
 
 **❌ Throwing a bare `Error` for a validation failure.** That is a 500 and an error page. Validation
 failures are `fail(400, …)` and belong in the form.
@@ -204,9 +204,9 @@ failures are `fail(400, …)` and belong in the form.
 ## 🔑 Key Takeaways
 
 - A form action is a real HTML form post, so the route works before any JavaScript loads.
-- `fail(status, data)` re-renders the page with the user's input; `redirect(303, …)` prevents a re-post.
-- `use:enhance` upgrades the same form to `fetch`, and a custom callback replaces its defaults unless you call `update()`.
-- Actions are public endpoints — session, validation and ownership checks all belong inside them.
+- `fail(status, data)` re-renders the page with the user's input. `redirect(303, …)` prevents a re-post.
+- `use:enhance` upgrades the same form to `fetch`. A custom callback replaces its defaults unless you call `update()`.
+- Actions are public endpoints. Session, validation and ownership checks all belong inside them.
 - Named actions plus `?/name` keep multiple verbs on one route working without scripting.
 
 ## Interview Questions
@@ -214,30 +214,30 @@ failures are `fail(400, …)` and belong in the form.
 **Q: How does a SvelteKit form behave before hydration?**
 
 Exactly as an HTML form does: the browser posts to the route, the action runs, and the server returns a
-page. That is the default path, not a fallback. `use:enhance` intercepts the same submission afterwards
-and sends it by `fetch` instead, which is why progressive enhancement here costs no extra code — the
-working version is the one you wrote first.
+page. That is the default path, not a fallback. Later, `use:enhance` intercepts the same submission and
+sends it by `fetch` instead. So progressive enhancement here costs no extra code. The working version is
+the one you wrote first.
 
 **Q: What is the difference between `fail` and throwing an error in an action?**
 
 `fail` returns a 4xx with a body, so the page re-renders with the user's data and your validation
 messages in the `form` prop. Throwing produces an error page and loses the submission. Validation
-problems are expected outcomes and belong in `fail`; a thrown error should mean something genuinely went
+problems are expected outcomes and belong in `fail`. A thrown error should mean something really went
 wrong.
 
 **Q: What does `use:enhance` do if you pass it a callback?**
 
-It hands you control before the request and, through the returned function, after the response — and it
-stops doing its own work. The default behaviour (resetting the form, updating the `form` prop, invalidating
-loads, following redirects) is what `update()` performs, so a callback that never calls it has silently
-disabled all four.
+It hands you control before the request and, through the returned function, after the response. It also
+stops doing its own work. `update()` performs the default behaviour: it resets the form, updates the
+`form` prop, invalidates loads and follows redirects. A callback that never calls it has silently turned
+off all four.
 
 **Q: What stops someone posting directly to your form action?**
 
 Nothing, and that is the point. The action is a URL that accepts a `POST` from any client. SvelteKit
-checks the `Origin` header, which handles classic cross-site submissions, but authorisation and
-validation are yours: verify the session, parse the body against a schema, and put ownership into the
-query rather than checking it afterwards.
+checks the `Origin` header, which handles classic cross-site submissions. But authorisation and
+validation are your job. Verify the session, parse the body against a schema, and put ownership into
+the query instead of checking it afterwards.
 
 ## What to Read Next
 

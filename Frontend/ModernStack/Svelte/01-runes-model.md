@@ -26,7 +26,7 @@ not per component**. React re-runs a component function and compares the result.
 which values feed which DOM nodes. Changing one value updates the nodes that read it, and nothing else runs.
 
 Components follow the same idea. A **snippet** is markup with a name, and declaring one produces a value.
-You pass it as a prop, like anything else. Svelte 4's slots were a separate mechanism; snippets delete it.
+You pass it as a prop, like anything else. Svelte 4's slots were a separate mechanism. Snippets remove it.
 
 > ⚠️ **Moving target:** runes and snippets are Svelte 5. Svelte 4's `let` reactivity, `$:` statements,
 > `writable` stores and `<slot />` still compile in legacy mode. Real codebases contain both, and search
@@ -56,9 +56,9 @@ You pass it as a prop, like anything else. Svelte 4's slots were a separate mech
 <p>Total: {total.toFixed(2)}</p>
 ```
 
-There is no dependency array and no memo. `total` records what it reads while it evaluates, so
-refactoring the expression cannot silently break it. A derived value is **pulled, not pushed**: it is
-marked stale, and recomputed the next time something reads it. Use `$derived.by` for multi-statement
+There is no dependency array and no memo. `total` records what it reads while it runs, so a refactor
+of the expression cannot silently break it. A derived value is **pulled, not pushed**. Svelte marks it
+stale and recomputes it the next time something reads it. Use `$derived.by` for multi-statement
 computations.
 
 ### `$state` is deep, and that costs something
@@ -101,8 +101,8 @@ for **synchronising with things outside Svelte**: a canvas, a map, an event list
 | Runtime shipped             | Larger — the reconciler         | Small — most logic compiles away      |
 | Where mistakes cost you     | Re-render boundaries            | Effects that write state              |
 
-React keeps the diff because a pure render can be thrown away and restarted, which concurrency and
-Suspense need. Neither model is faster in general, and for most products it is not the constraint.
+React keeps the diff because a pure render can be thrown away and restarted. Concurrency and Suspense
+need that. Neither model is faster in general, and for most products speed here is not the limit.
 
 ### `$props` and `$bindable`
 
@@ -177,11 +177,11 @@ one row. It is the direct equivalent of a render prop in React.
 `Snippet<[T]>` is the type. The tuple lists the parameter types in order, so `Snippet<[Invoice, number]>`
 takes two arguments and `Snippet` alone takes none.
 
-A snippet is **not a component**. It has no state and no lifecycle; it is a closure over its declaring
-scope. If the markup needs its own `$state` or `$effect`, make it a component.
+A snippet is **not a component**. It has no state and no lifecycle. It is a closure over the scope that
+declares it. If the markup needs its own `$state` or `$effect`, make it a component.
 
 > ⚠️ A snippet declared inside `{#each}` closes over that iteration's variables. Rendered later, it shows
-> the values it captured — usually what you want, and occasionally very confusing.
+> the values it captured. That is usually what you want, and now and then very confusing.
 
 ## When to Use It
 
@@ -211,7 +211,7 @@ render throws when nothing was passed.
 - `$state` is deeply reactive through a proxy, so snapshot it before handing it to code outside Svelte.
 - `$derived` is the default and `$effect` is the exception, reserved for talking to things outside Svelte.
 - Props are one-way unless the child declares `$bindable`.
-- A snippet is markup as a value; `children` and snippet props replace slots, and a snippet has no state of its own.
+- A snippet is markup as a value. `children` and snippet props replace slots. A snippet has no state of its own.
 
 ## Interview Questions
 
@@ -223,9 +223,9 @@ hook's dependency list drifts from the code above it.
 
 **Q: Why is `$effect` the wrong tool for computing a value?**
 
-It runs after the DOM has updated, so the value is always one pass behind, and an effect that writes
-state can retrigger itself. `$derived` computes lazily on read and cannot loop. Effects are for reaching
-outside Svelte.
+It runs after the DOM has updated, so the value is always one pass behind. An effect that writes state
+can also trigger itself again. `$derived` computes lazily on read and cannot loop. Effects are for
+reaching outside Svelte.
 
 **Q: How does Svelte 5's update model differ from React's, and does it matter?**
 
@@ -236,7 +236,7 @@ concurrency. For most products, team, ecosystem and rendering strategy decide mo
 **Q: How would you build a table component that lets the caller render each row?**
 
 Take the data as a prop and a `Snippet<[Row]>` for the row. The component owns the loop, the empty state
-and any sorting; the caller writes the cells in `{#snippet row(item)}`. It is React's render prop pattern.
+and any sorting. The caller writes the cells in `{#snippet row(item)}`. It is React's render prop pattern.
 
 **Q: When is something a snippet rather than a component?**
 

@@ -34,9 +34,9 @@ as the whole tree, not just the interactive parts.
 That cost explains the spectrum. Each step from SSR towards islands and Server Components is one attempt
 to ship and run less JavaScript. The acronyms change every few years. The grid and the cost do not.
 
-> ⚠️ **Moving target:** the names on this spectrum move faster than the ideas. "ISR" is a Next.js term
-> that SvelteKit, Nuxt and Astro all implement under their own names; Partial Prerendering left the
-> `experimental` flag in Next.js 16 and now ships as part of Cache Components. The durable principle is
+> ⚠️ **Moving target:** the names on this spectrum move faster than the ideas. "ISR" is a Next.js term.
+> SvelteKit, Nuxt and Astro all implement it under their own names. Partial Prerendering left the
+> `experimental` flag in Next.js 16 and now ships as part of Cache Components. The lasting principle is
 > **when the HTML is built, where the code runs, and how much of it the browser must re-run**.
 
 ## How It Works
@@ -76,18 +76,18 @@ When the lifetime expires, two behaviours are possible. Confusing them causes re
 
 - **Invalidate** — serve the stale copy at once and rebuild in the background. The user waits for
   nothing. This is *stale-while-revalidate*, the default in every framework that ships ISR.
-- **Delete** — drop the entry, so the next request blocks while the page rebuilds. Right for a price;
-  a latency spike everywhere else.
+- **Delete** — drop the entry, so the next request blocks while the page rebuilds. This is right for a
+  price. Everywhere else it is a latency spike.
 
 > ⚠️ Invalidation is usually keyed by a **tag**, and a coarse tag has a large blast radius. One
-> `products` tag on 40,000 pages means one catalogue import rebuilds all of them. Tag by identity —
-> `product:${id}` — and add a roll-up tag only where you want the sledgehammer.
+> `products` tag on 40,000 pages means one catalogue import rebuilds all of them. Tag by identity, such
+> as `product:${id}`. Add a roll-up tag only where you want the sledgehammer.
 
 ### PPR: one response, two origins
 
-Partial Prerendering splits a single route. The static parts are prerendered and cached. The dynamic
-parts are marked as holes. On a request, the cached shell goes out at once, and a function streams the
-holes into the same response. There is no second request and no client-side fetch waterfall.
+Partial Prerendering splits one route. The static parts are prerendered and cached. The dynamic parts
+are marked as holes. On a request, the cached shell goes out at once, and a function streams the holes
+into the same response. There is no second request and no client-side waterfall (fetches in a chain).
 
 The part candidates get wrong: **PPR does not remove the server invocation.** A route with holes runs a
 function on every request. What PPR removes is the *wait*.
@@ -171,8 +171,8 @@ small and INP is bad, hydration is not the problem. Look for an expensive event 
 | Content site with a few interactive widgets | **SSG + islands** | Most of the page never needed JavaScript |
 | Large app, slow devices in the field | **Server Components** or resumability | The tree size is the cost |
 
-Two rules survive every case. **Cache what is shared; render what is personal.** And **the more distinct
-cache keys a route has, the less caching is worth.** A page keyed by user identity has a hit rate near zero.
+Two rules hold in every case. First: **cache what is shared; render what is personal.** Second: **the
+more distinct cache keys a route has, the less caching is worth.** A page keyed by user has a hit rate near zero.
 
 ## Common Mistakes
 
@@ -181,11 +181,11 @@ cache keys a route has, the less caching is worth.** A page keyed by user identi
 the whole argument of [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route).
 
 **❌ Reaching for SSR to fix a slow page.**
-✅ SSR moves work to the server; it does not delete it. If the page ships 900 KB of JavaScript, SSR adds
-a server bill and still hydrates the 900 KB. First paint gets faster; first response does not.
+✅ SSR moves work to the server. It does not delete it. If the page ships 900 KB of JavaScript, SSR adds
+a server bill and still hydrates the 900 KB. First paint gets faster. First response does not.
 
 **❌ Marking every island `client:load` because it is the easy directive.**
-✅ That is full hydration with extra steps. Default to `client:visible` or `client:idle`; justify each `client:load`.
+✅ That is full hydration with extra steps. Default to `client:visible` or `client:idle`. Justify each `client:load`.
 
 **❌ Fixing hydration mismatch warnings by suppressing them.**
 ✅ The warning hides a second render of that subtree. Find the value that differs and make it agree.
@@ -228,8 +228,8 @@ rendered it again. On the root, that can mean re-rendering the whole page.
 **Q: How does resumability differ from progressive hydration?**
 
 Progressive hydration still runs every component on the client, in smaller pieces and a better order.
-Resumability does not run them: the server serialises state and listener references into the HTML, and
-code arrives on the first interaction that needs it. One reschedules the work; the other deletes most of it.
+Resumability does not run them. The server serialises state and listener references into the HTML, and
+code arrives on the first interaction that needs it. One reschedules the work. The other deletes most of it.
 
 **Q: When are islands the wrong architecture, and when is CSR the right one?**
 

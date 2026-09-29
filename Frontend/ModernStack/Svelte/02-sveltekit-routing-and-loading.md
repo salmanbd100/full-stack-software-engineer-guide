@@ -21,10 +21,10 @@ in_book: true
 SvelteKit 2 puts two decisions in the filesystem. The **directory** decides the URL. The **filename**
 decides where the code runs.
 
-`+page.svelte` is the component. `+page.ts` is data loading that runs on the server for the first request
-and in the browser for every navigation after it. `+page.server.ts` is data loading that only ever runs on
-the server. That last distinction is the entire security and performance model of a SvelteKit route, and
-it is visible in a directory listing.
+`+page.svelte` is the component. `+page.ts` loads data on the server for the first request, and in the
+browser for every navigation after it. `+page.server.ts` loads data only on the server. That last split
+is the whole security and performance model of a SvelteKit route. You can see it in a directory
+listing.
 
 ## How It Works
 
@@ -40,9 +40,9 @@ it is visible in a directory listing.
 | `+server.ts`       | Server only                  | An HTTP endpoint, not a page                    |
 | `+error.svelte`    | Server, then browser         | The error boundary for this segment             |
 
-Routes nest by directory. `src/routes/(app)/invoices/[id]/+page.svelte` serves `/invoices/123` —
-brackets are parameters, and a directory in parentheses is a **group**: it shares a layout without
-appearing in the URL. `[[lang]]` is optional, `[...rest]` catches the remainder.
+Routes nest by directory. `src/routes/(app)/invoices/[id]/+page.svelte` serves `/invoices/123`.
+Brackets are parameters. A directory in parentheses is a **group**: it shares a layout but does not
+appear in the URL. `[[lang]]` is optional, and `[...rest]` catches the remainder.
 
 ### Universal load against server load
 
@@ -78,10 +78,10 @@ export const load: PageLoad = async ({ data, fetch }) => {
 | Return values | Anything, including classes | Serialisable by `devalue`: JSON plus `Date`, `Map`, `Set`, `BigInt`, `RegExp` |
 | Can stream promises | No | Yes |
 
-If both exist, the **server load runs first** and its result arrives as `data` in the universal load. The
-rule for choosing: anything that would leak a credential or open a database connection goes in
-`.server.ts`, and the rest belongs in `+page.ts` so that a client-side navigation can fetch it directly
-rather than round-tripping through your server.
+If both exist, the **server load runs first** and its result arrives as `data` in the universal load.
+How to choose: anything that could leak a credential or open a database connection goes in `.server.ts`.
+The rest belongs in `+page.ts`. Then a client-side navigation can fetch it directly, without a round
+trip through your server.
 
 ### Layout loads and `await parent()`
 
@@ -96,9 +96,9 @@ export const load: PageServerLoad = async ({ parent }) => {
 };
 ```
 
-> ⚠️ `await parent()` is a waterfall. Layout and page loads run **in parallel** by default, and awaiting
-> the parent gives that up. Call it as late as possible, after any query that does not depend on it has
-> already been started.
+> ⚠️ `await parent()` is a waterfall: one request waits for another to finish. Layout and page loads run
+> **in parallel** by default, and awaiting the parent gives that up. Call it as late as possible, after
+> you have started any query that does not depend on it.
 
 ### Streaming a slow promise
 
@@ -130,14 +130,14 @@ export const load: PageServerLoad = async ({ params }) => {
 {/await}
 ```
 
-The rule is that the **awaited data gates the response and the unawaited data does not**. Put the shell
-of the page behind an `await` and everything slow behind a promise. Include a `{:catch}` — an unhandled
-streamed rejection surfaces as an error late, after the page has already rendered.
+The rule: **awaited data holds back the response, and unawaited data does not**. Put the shell of the
+page behind an `await` and everything slow behind a promise. Include a `{:catch}`. Without it, a
+streamed rejection shows up as an error late, after the page has already rendered.
 
 ### Re-running a load
 
 Loads re-run when something they depend on changes. SvelteKit tracks `params`, `url` and any URL fetched
-with the supplied `fetch`. For anything else — a custom client, a mutation elsewhere — declare it:
+with the supplied `fetch`. For anything else, such as a custom client or a mutation elsewhere, declare it:
 
 ```typescript
 export const load: PageServerLoad = async ({ depends }) => {
@@ -153,7 +153,7 @@ await invalidate("app:invoices"); // re-run loads that declared this key
 await invalidateAll(); // re-run everything — the blunt instrument
 ```
 
-Form actions invalidate everything for you by default, which is covered in
+By default, form actions invalidate everything for you. See
 [Chapter ?? — SvelteKit Form Actions](#ch-sveltekit-form-actions).
 
 ## When to Use It
@@ -172,14 +172,14 @@ Form actions invalidate everything for you by default, which is covered in
 **❌ Putting a secret in `+page.ts`.** That file is bundled and shipped. Anything private belongs in a
 `.server.ts` file, which the build refuses to send to the client.
 
-**❌ `await parent()` at the top of every load.** It serialises requests that would otherwise run
-together. Await it only where the value is genuinely needed.
+**❌ `await parent()` at the top of every load.** It makes requests that could run together run one
+after another. Await it only where you really need the value.
 
 **❌ Awaiting everything in a server load.** The response cannot start until the slowest query finishes.
-Await what the shell needs; stream the rest.
+Await what the shell needs, and stream the rest.
 
-**❌ Streaming without a `{:catch}`.** A rejected promise arrives after the page has rendered, and
-without a catch block it becomes an unhandled error rather than a message in the UI.
+**❌ Streaming without a `{:catch}`.** A rejected promise arrives after the page has rendered. Without a
+catch block, it becomes an unhandled error, not a message in the UI.
 
 **❌ Using the global `fetch` inside a load.** The one passed into `load` carries cookies, resolves
 relative URLs, and lets SvelteKit track the dependency for invalidation. The global one does none of that.
@@ -189,8 +189,8 @@ named key re-runs only the one that changed.
 
 ## 🔑 Key Takeaways
 
-- The directory names the URL; the filename decides whether code runs on the server, in the browser, or both.
-- `+page.server.ts` is the only place a secret or a database connection belongs, and its return value must survive `devalue` serialisation.
+- The directory names the URL. The filename decides whether code runs on the server, in the browser, or both.
+- `+page.server.ts` is the only place for a secret or a database connection. Its return value must survive `devalue` serialisation.
 - Layout and page loads run in parallel, so `await parent()` is a deliberate waterfall.
 - Returning an unawaited promise from a server load streams it after the page.
 - Use the `fetch` given to `load` — it carries cookies and registers the dependency that invalidation needs.
@@ -201,28 +201,28 @@ named key re-runs only the one that changed.
 
 Whether the code can safely reach the browser. `+page.ts` is bundled and runs on the client for
 later navigations, so it cannot hold a secret or open a database connection. `+page.server.ts` never
-leaves the server, at the cost of a round trip on every client navigation. If both exist the server load
-runs first and its result is handed to the universal one.
+leaves the server, but it costs a round trip on every client navigation. If both exist, the server load
+runs first and SvelteKit hands its result to the universal one.
 
 **Q: How does streaming work in a SvelteKit load, and what is the tradeoff?**
 
-Return a promise instead of an awaited value. The response starts as soon as the awaited data is ready,
-and the promise's result is streamed in afterwards, rendered with `{#await}`. The tradeoff is error
-handling and headers: the status code is already sent, so a streamed rejection cannot become a 500 — it
-has to be caught in the markup, which is why `{:catch}` is not optional.
+Return a promise instead of an awaited value. The response starts as soon as the awaited data is ready.
+The promise's result streams in afterwards, and `{#await}` renders it. The tradeoff is error handling
+and headers. The status code is already sent, so a streamed rejection cannot become a 500. You have to
+catch it in the markup, which is why `{:catch}` is not optional.
 
 **Q: A page is slow because a layout load queries the session. What do you look at?**
 
-Whether the page load is awaiting `parent()` before starting its own work. Layout and page loads run in
-parallel by design; `await parent()` converts that into a waterfall. Move the call below any query that
-does not need the parent's data, and if the session is needed for the query itself, consider whether the
-lookup belongs in `locals` from a hook instead.
+Whether the page load awaits `parent()` before it starts its own work. Layout and page loads run in
+parallel by design, and `await parent()` turns that into a waterfall. Move the call below any query that
+does not need the parent's data. If the query itself needs the session, ask whether the lookup belongs
+in `locals`, set by a hook, instead.
 
 **Q: How do you re-run one load after a mutation, without reloading everything?**
 
 Declare a dependency key with `depends('app:invoices')` in the load, then call
-`invalidate('app:invoices')` after the mutation. `invalidateAll()` also works but re-runs every load on
-the page, which turns one changed list into a full round of queries.
+`invalidate('app:invoices')` after the mutation. `invalidateAll()` also works, but it re-runs every load
+on the page. One changed list then costs a full round of queries.
 
 ## What to Read Next
 

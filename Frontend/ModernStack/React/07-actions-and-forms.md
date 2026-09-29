@@ -18,21 +18,21 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Every mutation in a React application used to require the same four pieces of hand-written state:
-submitting, error, result, and something optimistic while the request was in flight. Everyone wrote them,
-everyone wrote them slightly differently, and most people got the race conditions wrong.
+Every mutation in a React application used to need the same four pieces of hand-written state:
+submitting, error, result, and an optimistic value while the request was in flight. Everyone wrote
+them, each a little differently, and most people got the race conditions wrong.
 
-React 19 made it a first-class concept. **An Action is an async function that React runs inside a
-transition**, tracking the pending state for you. Pass one to a form's `action` prop and the form
-becomes a real submission again — one that works before your JavaScript has loaded.
+React 19 made this a first-class concept. **An Action is an async function that React runs inside a
+transition**, and React tracks its pending state for you. Pass one to a form's `action` prop and the
+form becomes a real submission again. It works before your JavaScript has loaded.
 
 > The senior point is not the hooks. It is that a form submitted at second one, before hydration
 > finished, is replayed rather than lost.
 
-> ⚠️ **Moving target:** the names here have already moved once — `useFormState` became
+> ⚠️ **Moving target:** the names here have already changed once. `useFormState` became
 > `useActionState`, and React's own documentation renamed Server Actions to Server Functions. Expect the
-> hook surface to keep settling. The durable principle is underneath it and is not React's to change: a
-> `<form>` posts without JavaScript, so everything an Action adds is an enhancement on top of a
+> hook surface to keep settling. The lasting principle sits underneath, and it is not React's to change:
+> a `<form>` posts without JavaScript. So everything an Action adds is an enhancement on top of a
 > submission that already works.
 
 ## How It Works
@@ -58,13 +58,13 @@ function Search() {
 }
 ```
 
-Individual buttons can override it with `formAction`, which is how one form gets a "Publish" and a
-"Save draft" without a hidden field and a branch.
+Individual buttons can override it with `formAction`. That is how one form gets a "Publish" and a
+"Save draft" button without a hidden field and a branch.
 
 ### `useActionState` — the result and the pending flag
 
-Wraps an action so React keeps the last returned value. The signature is a reducer over submissions:
-the function receives the previous state and the form data.
+It wraps an action so React keeps the last value it returned. The signature is a reducer over
+submissions: the function receives the previous state and the form data.
 
 ```tsx
 interface FormState {
@@ -90,12 +90,12 @@ function UpdateName() {
 }
 ```
 
-Returning the error rather than throwing it is deliberate: a returned value survives serialisation from
-the server, and it keeps the failure in the render tree rather than in an error boundary.
+Returning the error rather than throwing it is deliberate. A returned value survives serialisation from
+the server. It also keeps the failure in the render tree, not in an error boundary.
 
 ### `useFormStatus` — pending state from a child
 
-Imported from `react-dom`, not `react`. It reads the status of the nearest `<form>` **above** it, which
+Import it from `react-dom`, not `react`. It reads the status of the nearest `<form>` **above** it. That
 is what makes a shared submit button possible.
 
 ```tsx
@@ -109,8 +109,8 @@ export function SubmitButton({ children }: { children: ReactNode }) {
 ```
 
 > ⚠️ `useFormStatus` must live in a **child** of the form, never in the component that renders the
-> `<form>` element. In the same component it always reports `pending: false`, silently — there is no
-> warning, and the button simply never disables.
+> `<form>` element. In the same component it always reports `pending: false`. There is no warning, and
+> the button simply never disables.
 
 ### `useOptimistic` — show the result before it happens
 
@@ -139,22 +139,22 @@ function Thread({ messages, sendMessage }: ThreadProps) {
 }
 ```
 
-Rollback is automatic — if the action throws, React reverts to the real state. What is *not* automatic is
-telling the user, which is still your job.
+Rollback is automatic: if the action throws, React reverts to the real state. Telling the user is *not*
+automatic. That is still your job.
 
 ### Progressive enhancement
 
-A form with an action is a form. Before hydration, the browser submits it; React replays that submission
-once hydration completes. Nothing is dropped in the window between HTML arriving and JavaScript running
-— the window in which real users on real networks click things.
+A form with an action is a form. Before hydration, while React is not yet attached to the HTML, the
+browser submits it. React replays that submission once hydration completes. Nothing is dropped between
+the HTML arriving and the JavaScript running. Real users on real networks click things in that window.
 
 This only holds if the form is a real `<form>` with named inputs. A `<div>` with an `onClick` has none
 of it.
 
 ### Server Functions
 
-A function marked `'use server'` runs on the server and can be handed to the client as a prop. React
-serialises it as a **reference**; the client gets a generated endpoint to call.
+A function marked `'use server'` runs on the server, and you can hand it to the client as a prop. React
+serialises it as a **reference**. The client gets a generated endpoint to call.
 
 ```tsx
 "use server";
@@ -171,7 +171,7 @@ export async function updateName(name: string): Promise<Result> {
 
 Note what those first three lines are. **A Server Function is a public HTTP endpoint with a generated
 name.** Anyone can call it with any arguments. Authentication, authorisation and validation belong
-inside it, every time — being co-located with a component is not access control.
+inside it, every time. Living in the same file as a component is not access control.
 
 ## When to Use It
 
@@ -193,51 +193,51 @@ session inside the function, not in the component that renders the button.
 `false` forever and nothing disables.
 
 **❌ Keeping `onSubmit` and `preventDefault` out of habit.** That path gives up the pre-hydration
-replay and the automatic reset, and puts you back to hand-rolling the pending state.
+replay and the automatic reset. You are back to writing the pending state by hand.
 
-**❌ Optimistic updates with no failure story.** The rollback is automatic; the explanation is not. A
+**❌ Optimistic updates with no failure story.** The rollback is automatic. The explanation is not. A
 message that silently vanishes is worse than one that took a second to send.
 
 **❌ Controlled inputs everywhere by reflex.** Actions read `FormData`, so uncontrolled inputs with
-`name` attributes are enough — and they are what makes the form work before hydration.
+`name` attributes are enough. They are also what makes the form work before hydration.
 
 ## 🔑 Key Takeaways
 
 - An Action is an async function React runs in a transition, tracking pending state for you.
 - `<form action>` needs no `preventDefault`, resets on success, and is replayed if submitted before hydration.
-- `useActionState` returns the last result and a pending flag; `useFormStatus` reads that pending state from a child.
+- `useActionState` returns the last result and a pending flag. `useFormStatus` reads that pending state from a child.
 - `useOptimistic` rolls back automatically on failure, but telling the user is still your job.
-- A Server Function is a public endpoint — authenticate, authorise and validate inside it.
+- A Server Function is a public endpoint. Authenticate, authorise and validate inside it.
 
 ## Interview Questions
 
 **Q: What does React 19 give you that `onSubmit` plus `fetch` did not?**
 
-Pending state, automatic reset, and the transition semantics that keep the page responsive — but the one
+Pending state, automatic reset, and the transition semantics that keep the page responsive. But the one
 that matters is progressive enhancement. A form with an `action` works before hydration, and React
-replays a submission made in that window instead of losing it. On a slow device that window is seconds
-long, and it is exactly when impatient users click.
+replays a submission made in that window instead of losing it. On a slow device that window lasts
+seconds, and it is exactly when impatient users click.
 
 **Q: How would you build a submit button for a design system that knows when it is submitting?**
 
 `useFormStatus` inside the button component. It reads the nearest form above it in the tree, so the
-button needs no props and no wiring from the form. The trap is that it must be a child of the `<form>`:
-called in the same component that renders the form element it reports `pending: false` forever, with no
+button needs no props and no wiring from the form. The trap: it must be a child of the `<form>`. Called
+in the same component that renders the form element, it reports `pending: false` forever, with no
 warning at all.
 
 **Q: What stops a user calling your Server Function directly with arbitrary arguments?**
 
-Nothing. It compiles to a public endpoint with a generated name, and the client is handed a reference to
-it. Every Server Function needs its own session check, authorisation check and input validation, exactly
-like a route handler would. Co-location with the component that calls it is an ergonomics feature, not a
+Nothing. It compiles to a public endpoint with a generated name, and the client gets a reference to it.
+Every Server Function needs its own session check, authorisation check and input validation, just like
+a route handler. Keeping it next to the component that calls it is a convenience for developers, not a
 security boundary.
 
 **Q: When is an optimistic update the wrong choice?**
 
-When being wrong is expensive or hard to explain. Showing a sent message or a toggled like is fine —
-the user understands a message that failed. Showing a completed payment, a confirmed booking or a
-deleted record before the server agreed is not, because the correction arrives after the user has moved
-on and acted on what they saw.
+When being wrong is expensive or hard to explain. Showing a sent message or a toggled like is fine. The
+user understands a message that failed. Showing a completed payment, a confirmed booking or a deleted
+record before the server agreed is not. The correction arrives after the user has moved on and acted on
+what they saw.
 
 ## What to Read Next
 

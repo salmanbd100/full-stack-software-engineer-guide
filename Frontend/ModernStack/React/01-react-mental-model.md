@@ -51,8 +51,8 @@ handlers or effects, never in the body of a component.
 
 ### Reconciliation
 
-React compares the element tree it just produced against the previous one, node by node, and follows
-three rules.
+Reconciliation is the diff step. React compares the element tree it just produced with the previous
+one, node by node, and follows three rules.
 
 | What changed                | What React does                                     | Cost                        |
 | --------------------------- | --------------------------------------------------- | --------------------------- |
@@ -74,10 +74,10 @@ There is a short list, and one popular answer is not on it.
 | A context it reads changed value          | ✅ Yes                                            |
 | Its props changed                         | ❌ Not a cause on its own                         |
 
-A child re-renders because its parent did. Props are along for the ride. Props only become a *cause*
-when you wrap the child in `memo`, which asks React to compare them and skip the render if they match.
-Understanding that order — parent first, props second — is what separates a real answer to "why is this
-re-rendering?" from a guess.
+A child re-renders because its parent did. Props just come along. Props only become a *cause* when you
+wrap the child in `memo`. That asks React to compare them and skip the render if they match. Know the
+order: parent first, props second. That is what separates a real answer to "why is this re-rendering?"
+from a guess.
 
 ### State is a snapshot
 
@@ -118,8 +118,8 @@ ordering. Give React the wrong identity and it moves state to the wrong row.
 ```
 
 Delete the first row and every remaining row shifts down one index. React sees "the item at index 0
-changed its props", keeps the DOM node it already had, and the half-typed text in row 1 is now sitting
-in what used to be row 2.
+changed its props" and keeps the DOM node it already had. The half-typed text from row 1 now sits in
+what used to be row 2.
 
 **✅ A stable identity from the data:**
 
@@ -127,8 +127,8 @@ in what used to be row 2.
 {rows.map((row: Row) => <EditableRow key={row.id} row={row} />)}
 ```
 
-The same mechanism works in reverse. Changing a key deliberately destroys the subtree and rebuilds it,
-which is the cleanest way to reset state when the thing being edited changes.
+The same mechanism works in reverse. Change a key on purpose, and React destroys the subtree and
+rebuilds it. That is the cleanest way to reset state when the thing being edited changes.
 
 ```tsx
 // Every piece of state inside EditForm resets when a different contact is selected.
@@ -146,7 +146,7 @@ Re-render problems have four common shapes, and only one of them is solved by me
 | A leaf is genuinely expensive and props are stable | `memo` on that leaf                | Turns props into a real skip condition        |
 | State is lost when a list reorders           | Fix the key, not the render            | This is an identity bug, not a performance bug |
 
-Reach for the first two before the third. Restructuring costs nothing at runtime; memoisation adds a
+Try the first two before the third. Restructuring costs nothing at runtime. Memoisation adds a
 comparison on every render and a cache entry to keep correct.
 
 ## Common Mistakes
@@ -194,31 +194,31 @@ optimising, and measure the commit, not the render count.
 
 **Q: Why does this component re-render when its props have not changed?**
 
-Because its parent re-rendered. By default React re-renders the whole subtree below an update; it does
-not compare props first. Wrapping the child in `memo` adds that comparison, but it only helps if the
-props are referentially stable — a new object or arrow function created in the parent's render defeats
-it immediately.
+Because its parent re-rendered. By default React re-renders the whole subtree below an update. It does
+not compare props first. Wrapping the child in `memo` adds that comparison. But it only helps if the
+props keep the same reference between renders. A new object or arrow function created in the parent's
+render defeats it at once.
 
 **Q: What actually goes wrong when you use the array index as a key?**
 
 React matches list items across renders by key. With an index, deleting or inserting an item shifts
-every key after it, so React thinks existing components received new props rather than that items moved.
-The DOM nodes and their internal state stay in place while the data slides past them, which shows up as
-input text, scroll position or focus attached to the wrong row.
+every key after it. React thinks the existing components received new props, not that items moved. The
+DOM nodes and their internal state stay in place while the data slides past them. You see it as input
+text, scroll position or focus attached to the wrong row.
 
 **Q: How would you reset a form when the selected record changes — and why not an effect?**
 
 Pass the record's id as the `key` to the form component. React sees a different identity, unmounts the
 old subtree and mounts a fresh one, so every field resets in a single render. An effect that clears the
-fields runs *after* the browser has already painted the old values, which the user can see, and it has
-to be kept in step with every new piece of state you add.
+fields runs *after* the browser has already painted the old values, and the user can see them. You also
+have to keep that effect in step with every new piece of state you add.
 
 **Q: When would you not reach for `memo`?**
 
 When the component is cheap, when its props are objects or callbacks created inline by the parent, or
 when the real fix is moving state down. `memo` adds a comparison on every render and a correctness
-burden. Under the React Compiler — stable since 1.0, and targeting React 19 by default — most of these
-decisions are made for you, which makes hand-memoising a thing to justify rather than a default.
+burden. The React Compiler is stable since 1.0 and targets React 19 by default. It makes most of these
+decisions for you, so hand-memoising becomes a thing to justify, not a default.
 
 ## What to Read Next
 

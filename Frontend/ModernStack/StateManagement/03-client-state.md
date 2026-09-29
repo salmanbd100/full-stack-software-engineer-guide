@@ -75,9 +75,9 @@ export const useUiStore = create<UiStore>()((set) => ({
 const open = useUiStore((s) => s.sidebarOpen);
 ```
 
-> ⚠️ **Zustand 5 requires stable selector output.** A selector that returns a new object each call —
-> `(s) => ({ a: s.a, b: s.b })` — causes repeated re-renders and can throw "maximum update depth
-> exceeded". Select one value per call, or wrap the selector in `useShallow` from
+> ⚠️ **Zustand 5 requires stable selector output.** Take a selector that returns a new object each
+> call, such as `(s) => ({ a: s.a, b: s.b })`. It causes repeated re-renders and can throw "maximum
+> update depth exceeded". Select one value per call, or wrap the selector in `useShallow` from
 > `zustand/react/shallow`.
 
 ### Jotai and Redux Toolkit
@@ -145,8 +145,8 @@ Two properties make a signal library worth more than an event emitter and a `Set
 
 > ⚠️ **Moving target:** a TC39 proposal would add signals to JavaScript itself. It is early, its API
 > is not stable, and it may never ship. Use your framework's primitives, not the proposed shape. The
-> durable idea is the graph — container, tracked read, notified write, lazy derivation — and that
-> transfers between every implementation.
+> lasting idea is the graph: container, tracked read, notified write, lazy derivation. That carries
+> over to every implementation.
 
 React did not adopt signals. Concurrent rendering must abandon and replay renders, and a subscription
 that has already written to the DOM cannot be replayed. React shipped a memoising compiler instead.
@@ -203,19 +203,19 @@ It is the same error as [Chapter ?? — useEffect and When Not to Use It](#ch-wh
 
 ## 🔑 Key Takeaways
 
-- Client state is what is left after server, form and URL state — usually small, and usually local.
+- Client state is what is left after server, form and URL state. It is usually small, and usually local.
 - Context delivers values but has no subscriptions, so every consumer re-renders on every change.
 - Zustand subscribes per selector, Jotai per atom, and Redux earns its place for convention at scale.
 - Every store is a partial signal graph: a container, a tracked read, and a write that notifies.
-- Signals solve client state only; server data still needs a cache with staleness and invalidation.
+- Signals solve client state only. Server data still needs a cache with staleness and invalidation.
 
 ## Interview Questions
 
 **Q: When would you use Context instead of a state library?**
 
-For values that are read widely and change rarely — a theme, a locale, a handle to a client. Context
+For values that are read widely and change rarely: a theme, a locale, a handle to a client. Context
 has no subscriptions, so every consumer re-renders when the provider value changes identity. That is
-free when it changes on login, and expensive when it changes on every keystroke.
+free when it changes on login, and costly when it changes on every keystroke.
 
 **Q: What is a signal, in terms a React developer already uses?**
 
