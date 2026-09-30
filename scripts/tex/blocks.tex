@@ -21,6 +21,13 @@
 \usepackage{tabularray}
 \usepackage{fvextra}
 
+% tcolorbox sets its text in `black` by default rather than the document's colour, so
+% without this every callout and code block bypasses the softened \ink (#113a). It is
+% `every box` rather than a plain \tcbset because a box nested in another — a moving-target
+% callout inside a Core Idea — is reset to tcolorbox's initial values, and only `every box`
+% survives that reset.
+\tcbset{every box/.style = {colupper = ink, collower = ink}}
+
 % ---------------------------------------------------------------------------
 % The shared callout label
 % ---------------------------------------------------------------------------

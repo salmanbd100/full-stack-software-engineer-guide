@@ -9,7 +9,7 @@ import { defineConfig } from "vitepress";
 import sidebar from "./sidebar.json" with { type: "json" };
 
 const DESCRIPTION =
-  "The free companion to The Senior Full Stack Handbook — 1,024 interview questions, " +
+  "The free companion to The Senior Full Stack Handbook — 734 interview questions, " +
   "the glossary, and one sample chapter from every part.";
 
 export default defineConfig({

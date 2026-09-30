@@ -58,7 +58,7 @@ Promise.resolve().then((): void => console.log('3 promise'));
 process.nextTick((): void => console.log('4 nextTick'));
 console.log('5 sync');
 
-// 5 sync → 4 nextTick → 3 promise → 1 timeout ⇄ 2 immediate (order not guaranteed here)
+// 5 sync → 4 nextTick → 3 promise → then 1 timeout and 2 immediate, in either order
 // Sync code runs before the loop even starts its first turn.
 ```
 

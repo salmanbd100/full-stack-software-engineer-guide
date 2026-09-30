@@ -81,4 +81,4 @@ variables:
   # it, which is what a reader on paper follows.
   colorlinks: true
   linkcolor: RoyalBlue
-  toccolor: black
+  toccolor: ink

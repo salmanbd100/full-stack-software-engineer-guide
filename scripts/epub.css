@@ -159,8 +159,8 @@ ul, li, dl, dt, dd {
 html {
   font-family: "Source Serif 4", Georgia, serif;
   line-height: 1.5;
-  color: #1a1a1a;
-  color: light-dark(#1a1a1a, #cfcfc2);
+  color: #1f1f1f;
+  color: light-dark(#1f1f1f, #cfcfc2);
   background-color: transparent;
   background-color: light-dark(transparent, #232629);
   -webkit-hyphens: auto;
@@ -218,7 +218,7 @@ a {
 }
 
 /* The underline is the link, not the colour: a monochrome panel renders #14607a and
- * #1a1a1a within a few percent of each other. Same principle as the callouts. */
+ * #1f1f1f within a few percent of each other. Same principle as the callouts. */
 
 a.footnote-ref { vertical-align: super; border-bottom: 0; }
 
@@ -255,8 +255,8 @@ h1, h2, h3, h4, h5, h6 {
   font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
   text-indent: 0;
   text-align: left;
-  color: #1a1a1a;
-  color: light-dark(#1a1a1a, #e3e3da);
+  color: #1f1f1f;
+  color: light-dark(#1f1f1f, #e3e3da);
   page-break-after: avoid;
   break-after: avoid;
   page-break-inside: avoid;
@@ -281,8 +281,8 @@ h2 {
   line-height: 1.2;
   margin: 2em 0 0 0;
   padding-bottom: 0.25em;
-  border-bottom: 2px solid #1a1a1a;
-  border-bottom: 2px solid light-dark(#1a1a1a, #cfcfc2);
+  border-bottom: 2px solid #1f1f1f;
+  border-bottom: 2px solid light-dark(#1f1f1f, #cfcfc2);
   page-break-before: always;
   break-before: page;
 }
@@ -406,8 +406,8 @@ h5, h6 {
  * a reader skimming for the mental model is looking for. */
 .callout--core-idea {
   padding: 0.8em 0.9em;
-  border: 1px solid #1a1a1a;
-  border: 1px solid light-dark(#1a1a1a, #cfcfc2);
+  border: 1px solid #1f1f1f;
+  border: 1px solid light-dark(#1f1f1f, #cfcfc2);
 }
 
 .callout--core-idea .callout-label p {
@@ -419,10 +419,10 @@ h5, h6 {
  * closed box there reads as a second beginning. */
 .callout--key-takeaways {
   padding: 0.8em 0;
-  border-top: 1px solid #1a1a1a;
-  border-top: 1px solid light-dark(#1a1a1a, #cfcfc2);
-  border-bottom: 1px solid #1a1a1a;
-  border-bottom: 1px solid light-dark(#1a1a1a, #cfcfc2);
+  border-top: 1px solid #1f1f1f;
+  border-top: 1px solid light-dark(#1f1f1f, #cfcfc2);
+  border-bottom: 1px solid #1f1f1f;
+  border-bottom: 1px solid light-dark(#1f1f1f, #cfcfc2);
 }
 
 /* ⚠️ The only callout with a ground, and the only one that appears mid-prose, so it has
@@ -430,7 +430,7 @@ h5, h6 {
  * work; the ground stops the bar floating free of anything. */
 .callout--gotcha {
   padding: 0.8em 0.9em;
-  border-left: 3px solid #1a1a1a;
+  border-left: 3px solid #1f1f1f;
   border-left: 3px solid light-dark(#9a5b00, #d9a441);
   background-color: #f1eee6;
   background-color: light-dark(#f1eee6, #33302a);
@@ -465,10 +465,10 @@ h5, h6 {
 blockquote {
   margin: 1.6em 0;
   padding: 0.9em 0;
-  border-top: 1px solid #1a1a1a;
-  border-top: 1px solid light-dark(#1a1a1a, #cfcfc2);
-  border-bottom: 1px solid #1a1a1a;
-  border-bottom: 1px solid light-dark(#1a1a1a, #cfcfc2);
+  border-top: 1px solid #1f1f1f;
+  border-top: 1px solid light-dark(#1f1f1f, #cfcfc2);
+  border-bottom: 1px solid #1f1f1f;
+  border-bottom: 1px solid light-dark(#1f1f1f, #cfcfc2);
   text-align: center;
   font-style: italic;
   font-size: 1.2em;
@@ -548,8 +548,8 @@ pre code {
   font-family: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
   font-size: 0.85em;
   font-weight: 600;
-  color: #1a1a1a;
-  color: light-dark(#1a1a1a, #cfcfc2);
+  color: #1f1f1f;
+  color: light-dark(#1f1f1f, #cfcfc2);
   /* Print sets the label tight above its fence with a negative skip. The screen
    * equivalent is to take the air out of the gap rather than to overlap into it. */
   margin: 1.2em 0 0.2em 0;
@@ -600,8 +600,8 @@ thead th {
   font-weight: 600;
   color: #ffffff;
   color: light-dark(#ffffff, #16181a);
-  background-color: #1a1a1a;
-  background-color: light-dark(#1a1a1a, #b9b9b0);
+  background-color: #1f1f1f;
+  background-color: light-dark(#1f1f1f, #b9b9b0);
 }
 
 /* Zebra is what stops an eight-column row being read diagonally. */

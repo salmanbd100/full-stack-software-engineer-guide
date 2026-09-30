@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-29 · **Progress:** 18 / 25
+**Last updated:** 2026-09-30 · **Progress:** 21 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1248,16 +1248,73 @@ the three checks are green.
 
 ---
 
-### - [ ] 112. Plain English — Part VIII `M`
+### - [x] 112. Plain English — Part VIII `M` — ✅ **done 2026-09-29**
 
 **19.2 words a sentence, 131 long sentences.** The method is in item #105.
 
 **Done when:** Part VIII has been read line by line, its average is inside 15–20 words a sentence, and
 the three checks are green.
 
+**Delivered:**
+
+- **All 17 Part VIII files were read line by line and edited:** the part opener, the five section READMEs, and
+  every chapter in Git, CI/CD, Observability, Cloud and Deployment. The part went from **3,366 to 3,376 lines**
+  against its 3,400 budget. Terms got a first-use gloss: garbage collection, hunk, blob, ceremony, feature flag,
+  digest, runner, JWT, SBOM, microVM, CVE, OOM killer, buckets, quantiles, RED, USE, PromQL, relabelling,
+  inhibition, CDN, principal, eventually consistent, TTL, idempotent, isolate-based runtimes, immutable artefact,
+  hydrate, blast radius, readiness probe, trunk-based development and fix forward
+- **Untouched:** tables, diagrams, headings, front matter, `**Q:**` lines, `**In this chapter:**` lines and
+  cross-reference links. A grep of the diff for changed lines starting with `|`, `#`, `**Q:`, `**In this`, a
+  fence marker or a front-matter key prints nothing. Code fences changed only for the three bugs below
+- **Checks:** `pnpm lint:docs` has 0 violations and no regression, including the part-budget rule. `pnpm
+  index:check` is current, with 647 and 87 questions. `pnpm check:code-samples` exits 0 at a total of 974. `pnpm
+  test` passes 36/36. #112 and #113 ran in one session, so these checks cover both parts together
+- **Measured with the #105 method** (a scratch script, still not in the repo). Before: **15.0 words a sentence,
+  31 over 32 words**. After: **12.9, with 15 over 32**. All 15 are splitter artefacts: What to Read Next lists
+  and bullet lists read as one sentence, or a ❌ line joined to its ✅ fix
+- **Content fixes:**
+  - `Git/01-git-fundamentals.md`: `git revert HEAD~1..HEAD` reverts one commit, not the two its comment names. It
+    is now `HEAD~2..HEAD`. The secret-removal fence force-pushed straight after `git filter-repo`, which removes
+    `origin` as a safety measure, and `--all` skipped tags. The fence now re-adds the remote and pushes tags too
+    (checked through Context7). The Core Idea said a lost commit survives ninety days. That is
+    `gc.reflogExpire`, for reachable entries. An unreachable commit gets `gc.reflogExpireUnreachable`, 30 days.
+    "Nine 'wip' commits" did not match `rebase -i HEAD~5`
+  - `Git/02-branching-and-review-workflow.md`: a `BREAKING CHANGE` footer also moves a semantic version, not only
+    `feat` and `fix`
+  - `CICD/01-cicd-fundamentals.md`: What to Read Next pointed at "stage 8" of a seven-stage table. "Most CI
+    platforms" name retryable failure classes became "some, such as GitLab CI" (not checked through Context7)
+  - `CICD/03-github-actions.md`: "First-party `actions/*` on a major tag…; nothing else" now says what it meant:
+    pin everything else by SHA
+  - `Observability/02-metrics-and-dashboards.md`: "Prometheus 3.0 shipped native histograms" is wrong. They were
+    experimental from 2.40 and became stable in 3.8 (checked through Context7). The dashboard advice blamed a fixed
+    `[5m]` for blank graphs on zoom. It is `$__interval` that goes blank, by shrinking below the scrape interval.
+    "Grafana stores nothing" is now "stores no metric data"
+  - `Cloud/01-fundamentals.md`: listing slows as the *prefix* grows, not the bucket. A second availability zone
+    "costs little", not "nothing", because cross-zone traffic is billed
+  - `Cloud/02-serverless.md`: Vercel sets memory per project, not per route in `vercel.json`. "A handler that
+    charges a card twice will charge a card twice" said nothing, so it now names idempotency
+  - `Deployment/01-platform-deploys.md`: the "build once, promote" fence deployed a *preview* and promoted it. On
+    Vercel that promotion rebuilds with production variables (checked through Context7), which breaks the rule
+    the section teaches. The fence now stages a production build with `--prod --skip-domain` and promotes that.
+    The ✅ in Common Mistakes that said "promote the preview" now says "promote the deployment that passed"
+  - `Deployment/02-deployment-strategies-and-rollback.md`: a plain Postgres `CREATE INDEX` blocks writes, not the
+    whole table
+- **Reported, not changed:**
+  - The DORA table in `CICD/01` uses the 2021 elite bands (change failure under 15%, restore under an hour). Later
+    reports put change failure near 5%, and 2023 renamed "time to restore" to "failed deployment recovery time"
+  - `CICD/03`: the workflow fence uses third-party `docker/*` actions on mutable tags, which the chapter's own rule
+    forbids. `cache: npm` caches the download cache, not `node_modules`, so "minutes to seconds" overstates it.
+    The `actions/checkout` major in the Moving-target callout may be stale
+  - `CICD/02`: distroless image names carry a Debian suffix (`nodejs24-debian12`). The Compose example adds back
+    `NET_BIND_SERVICE` for an app on port 3000, which does not need it
+  - `Cloud/02`'s answer says to record the idempotency key *before* doing the work. That skips the work forever if
+    the first attempt fails after recording. The CDN diagram in `Cloud/01` says "~400" edge locations
+  - `Deployment/02`: blue/green by weighted DNS records rolls back in minutes, not "seconds", because resolvers
+    cache. `Deployment/01` calls previews "public by default on most platforms", which may be dated
+
 ---
 
-### - [ ] 113. Plain English — Part IX `S`
+### - [x] 113. Plain English — Part IX `S` — ✅ **done 2026-09-29**
 
 The smallest part: **19.8 words a sentence, 61 long sentences.** It is also the part a reader reads
 last and most tired, so it earns the care. The method is in item #105.
@@ -1265,9 +1322,39 @@ last and most tired, so it earns the care. The method is in item #105.
 **Done when:** Part IX has been read line by line, its average is inside 15–20 words a sentence, and
 the three checks are green.
 
+**Delivered:**
+
+- **All 10 Part IX files were read line by line and edited:** the part opener, both section READMEs, the four
+  Behavioral chapters and the three Communication chapters. The part went from **1,793 to 1,795 lines** against
+  its 1,800 budget. Spoken answers outside fences were cut into short spoken sentences, such as "We never agreed.
+  He still thinks…". Terms got a first-use gloss: STAR, competency categories, five whys, triage, batch size,
+  DORA, swarming, psychological safety, bus factor, narration, fence-sitting, severity, supersedes, artefact,
+  rubric, jitter, predicate and atrophy
+- **Untouched:** code fences, including the worked STAR stories in ` ```text ` fences, whose ACTION blocks still
+  run long. Also tables, headings, front matter, `**Q:**` lines, `**In this chapter:**` lines and cross-reference
+  links. The same diff grep as #112 prints nothing
+- **Checks:** the same run as #112: `lint:docs` 0 violations, `index:check` current, `check:code-samples` at 974,
+  `pnpm test` 36/36
+- **Measured with the #105 method.** Before: **17.3 words a sentence, 40 over 32 words**, the densest part left.
+  After: **13.3, with 10 over 32**. All 10 are What to Read Next lists, the `**In this chapter:**` line in
+  `Behavioral/04`, or a quotation the splitter joins to the next sentence
+- **Content fixes:**
+  - `Communication/03-the-ai-assisted-interview.md`: the generated `retry` sleeps 1 + 2 + 4 seconds before it
+    throws, so a 400 waits *seven* seconds to fail, not four. "Sixty-two per cent of the time" turned a share of
+    companies into a share of rounds, and it now says "at 62% of companies"
+  - `Behavioral/04-ways-of-working-and-culture.md`: two places said a PR-open-to-merge measure hides "how long work
+    waited before anyone started it". The chapter defines lead time from first commit, so that wait is never in it.
+    Both now name what the short measure really misses: first commit to PR open, and merge to deploy
+- **Reported, not changed:**
+  - The DORA table in `Behavioral/04` has the same 2021 bands as `CICD/01` (see #112)
+  - The 38% / 62% AI-policy split, the unnamed employer's model switching, and the 2026 code-comprehension round
+    (Part IX opener and `Communication/03`) have no source in the book. The Moving-target callout covers them
+  - `Communication/02`'s ADR fence is titled "cache layer" while its options are all read replicas
+  - `Behavioral/02`'s worked story measures "first input delay". INP replaced FID in March 2024
+
 ---
 
-### - [ ] 113a. Soften the reading colours `S`
+### - [x] 113a. Soften the reading colours `S` — ✅ **done 2026-09-30**
 
 The book sets body text in pure black. On paper that is correct and normal. On a screen — which is
 where a PDF is read — black on white at 10pt is the harshest pairing the design can produce, and it
@@ -1296,6 +1383,45 @@ Expect a cold build of several minutes, once.
 **Done when:** `pnpm book:specimen` builds clean and its body text reads `#1F1F1F`, `pnpm book:pdf`
 builds with zero missing glyphs, the diagrams match the body ink, `pnpm book:epub` passes epubcheck,
 and `pnpm site:build` is clean.
+
+**Delivered:**
+
+- **`scripts/tex/tokens.tex`:** `ink` is `gray 0.122` (#1F1F1F) and `inklight` is `gray 0.60` (#999999), as the
+  table asked. **Changing the token alone would have changed nothing in the body.** Body text never named `ink`,
+  so it printed in LaTeX's default black. The token file now also runs `\color{ink}` in the preamble. That makes
+  `ink` the document's default colour, which is what `\normalcolor` restores in headers, footnotes and floats
+- **Two more places bypassed the ink, and both were found by measuring, not by reading:**
+  - tcolorbox sets box text in `black`, whatever the document colour. `blocks.tex` now sets `colupper` and
+    `collower` to `ink` through `every box`. A plain `\tcbset` was tried first. It fixed top-level boxes but not a
+    box nested in another, because tcolorbox resets nested boxes to its initial values. Moving-target callouts
+    inside a Core Idea box (pages 137, 305 and about 60 others) stayed pure black until `every box` replaced it
+  - `toccolor: black` in `scripts/book-pdf.yaml` is now `toccolor: ink`
+- **`scripts/mermaid-theme.json`:** all 28 `#000000` are now `#1f1f1f`, and the three `#a6a6a6` are `#999999`.
+  The header comment names the new values. **`scripts/epub.css`:** all 22 `#1a1a1a` are now `#1f1f1f`. The
+  dark-mode values are light greys and did not move
+- **`site/.vitepress/config.ts`:** checked, not changed. VitePress's default light body text is `#3c3c43`. That is
+  already softer than `#1F1F1F`, at about 11:1 against white, so the plan's "do not redefine the theme" holds
+- **Verified:**
+  - `pnpm book:specimen` builds clean. Every text run in its content streams is `0.122` (ink), `0.45` (inkmid),
+    white, or the blue link colour
+  - `pnpm book:pdf` builds with zero missing glyphs and every cross-reference resolved, at 935 pages. Each of
+    its pages was rendered at 100 dpi, and none has a pure-black pixel. The ink cannot make one, so this proves
+    nothing prints in `#000000`. Before the nested-box fix, the same scan found 62 pages that did
+  - The rebuilt diagram PDFs draw in `.1216 .1216 .1216`, the same value as the body. The EPUB's 61 SVGs carry
+    `#1f1f1f`. Their only other black values are Mermaid built-ins for features the book does not use: the
+    "neo" look's start circle, KaTeX paths and 6%-opacity shadow filters
+  - `pnpm book:epub`: epubcheck reports zero errors and zero warnings
+  - `pnpm site:build` is clean. See the next bullet
+- **Two fixes outside this item, needed to pass its own Done when:**
+  - **The first cold build reported a missing glyph:** `⇄` in a code comment in
+    `Backend/NodeJS/01-event-loop-async.md`, added by #109. It described output rather than being output, so the
+    comment was reworded ("then 1 timeout and 2 immediate, in either order") rather than mapped in `glyphs.tex`
+  - **`pnpm site:build` failed before any colour was touched.** `build-site.ts` checks the hand-written numbers,
+    and `site/index.md` and `config.ts` still said "1,024 interview questions" and "254 chapters". They now say
+    734 and 166, the values the build itself reports. That is #116's ground, and a note under #116 says so
+- **Seen, not changed:** in print, a moving-target callout's body starts lower-case ("the names on this
+  spectrum…"). `callout-shapes.lua` lifts "Moving target:" into the label and leaves the next word as it was.
+  It is a print design detail, not a colour, so it belongs in #114's rebuild pass or an item of its own
 
 ---
 
@@ -1404,14 +1530,19 @@ The book is a different object now, and three things still describe the old one.
 **Done when:** the three documents describe the edition that now exists, `pnpm site:build` is clean,
 and the launch checklist from #91 has been re-read against the new edition.
 
+> **Note from #113a (2026-09-30):** `pnpm site:build` was failing on stale hand-written counts, and #113a had to
+> pass it. The three numbers in `site/index.md` and `site/.vitepress/config.ts` now read 734 questions and 166
+> chapters. Nothing else in the site copy changed. The store description, the reading paths and
+> `SAMPLE_CHAPTERS` are still this item's work.
+
 ---
 
 ## ✅ Progress Tracker
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 18/25 | 🚧 In progress |
-| **Total** | **25** | **18/25** | **72%** |
+| 9 | 95–116 · 95a · 113a · 113b | 21/25 | 🚧 In progress |
+| **Total** | **25** | **21/25** | **84%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

@@ -18,14 +18,24 @@
 
 \usepackage{xcolor}
 
-\definecolor{ink}{gray}{0.00}       % body, chapter titles, H2, H3
+\definecolor{ink}{gray}{0.122}      % body, chapter titles, H2, H3 — #1F1F1F, 88% K
 \definecolor{inkmid}{gray}{0.45}    % eyebrow, captions, folio, running head — 55% K
-\definecolor{inklight}{gray}{0.65}  % hairlines, table rules — 35% K
+\definecolor{inklight}{gray}{0.60}  % hairlines, table rules — 40% K
 \definecolor{tintone}{gray}{0.94}   % code ground, table zebra — 6% K
 \definecolor{tinttwo}{gray}{0.88}   % warning-callout ground — 12% K
 
 % `gray` in xcolor is *lightness*, so a 55% K ink is gray 0.45. Getting this backwards
 % produces a book that looks correct on screen and prints inverted in weight.
+%
+% `ink` sits one step off black (#113a). The PDF is read on a screen, where pure black on
+% white at 10pt is the harshest pairing the design can make; #1F1F1F still gives 16.5:1.
+% `inklight` moved with it so the hairlines stay a clear step below the softened ink.
+% scripts/mermaid-theme.json and scripts/epub.css restate these values and move with them.
+%
+% `\color` in the preamble sets the document's *default* colour, which is what
+% `\normalcolor` restores in headers, footnotes and floats — so body text and the
+% monochrome code highlighting both land on `ink` without naming it.
+\color{ink}
 
 % ---------------------------------------------------------------------------
 % Type scale
