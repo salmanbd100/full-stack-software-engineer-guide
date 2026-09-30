@@ -21,7 +21,7 @@ in_book: true
 Every deployment strategy answers one question: **how many users see the new version before you find
 out it is broken?** Rolling says a growing share. Blue/green says all of them at once, but the old
 version still runs, so the way back is a pointer flip. Canary says five percent, measured. You buy a
-smaller blast radius with money and time. That trade is the answer an interviewer wants.
+smaller blast radius (the share of users a bad release can hurt) with money and time. That trade is the answer an interviewer wants.
 
 A feature flag answers a different question. The strategies move **code** between servers. A flag
 decides **behaviour** per user, inside code that is already deployed everywhere. That separates
@@ -59,16 +59,16 @@ spec:
 ```
 
 People forget `maxUnavailable: 0`. The default of 25% removes a quarter of your capacity mid-deploy.
-At peak traffic, that turns a deploy into an incident. A readiness probe is just as necessary. Without
-one, traffic reaches a pod when the container starts, not when the application can serve.
+At peak traffic, that turns a deploy into an incident. A readiness probe (a check that the pod can
+serve) is just as necessary. Without one, traffic reaches a pod when the container starts, not when the application can serve.
 
 ### Blue/green
 
-Run two complete environments and switch all traffic at once. One serves traffic; the other is the
+Run two complete environments and switch all traffic at once. One serves traffic, and the other is the
 rollback. The switch is one line of configuration: a load balancer's target group, weighted DNS records flipped
 0/100, or a function alias re-pointed. Instant rollback is the reason to choose it, because the old
-environment is still warm. The costs are double infrastructure during the deploy, and every user moves
-at once, so a subtle bug reaches 100% of traffic immediately. The database, session store and cache
+environment is still warm. There are two costs. You pay for double infrastructure during the deploy.
+And every user moves at once, so a subtle bug reaches 100% of traffic immediately. The database, session store and cache
 are shared and cannot be duplicated. That is where blue/green gets hard.
 
 ### Canary
@@ -111,7 +111,8 @@ rate, p99 latency, saturation, and one business metric such as checkout completi
 
 A feature flag is **a runtime switch that decides which code path a request takes.** Both paths are
 deployed on every server, and the flag picks one. An unfinished feature can sit in `main` for three
-weeks with no long-lived branch. That is what makes trunk-based development workable. A bad feature
+weeks with no long-lived branch. That is what makes trunk-based development (everyone merging small
+changes into `main` often) workable. A bad feature
 can be switched off in seconds by someone who is not on the engineering rota.
 
 **A flag evaluation with a safe default:**
@@ -141,7 +142,7 @@ target staff first, roll out by percentage, or run an experiment.
 **The flag is the rollback that needs no deploy.** Turning it off is a configuration change, measured
 in seconds. Use it with a canary, not instead of one. The canary validates the **build**: no memory
 leak, no broken dependency, no latency regression. The flag validates the **feature**. Evaluate it on
-the server, so the HTML arrives correct; in the browser, the page flips and scores as layout shift.
+the server, so the HTML arrives correct. In the browser, the page flips, and that counts as layout shift.
 
 > ⚠️ A cached page plus a per-user flag is a correctness bug. Either put the flag value in the cache
 > key, or do not cache the response at all.
@@ -185,7 +186,7 @@ const variant: CheckoutVariant = flags.newCheckout ? "rewrite" : "legacy";
 - **Check the flag once per request, at the top of the handler**, so two halves of a request cannot disagree.
 - **Remove the flag in the same sprint that ships the feature**, not in a backlog ticket.
 
-> ⚠️ **Moving target:** flag vendors and their SDKs change shape often, and OpenFeature
+> ⚠️ **Moving target:** flag vendors and their SDKs change shape often. OpenFeature
 > is the vendor-neutral interface most of them now implement. The durable principle: **wrap the vendor
 > behind your own narrow interface**, so swapping providers is one file and tests can pass a plain object.
 
@@ -203,7 +204,7 @@ ALTER TABLE users RENAME COLUMN email TO email_address;
 ✅ **Expand/contract, over four releases:** add `email_address` and keep `email`, with code that
 writes both and reads the old one. Backfill existing rows in batches. Deploy code that reads the new
 column. Drop `email` in a later release, once the rollback window has closed. A nullable column is
-safe to add directly; a new index locks the table unless you use `CREATE INDEX CONCURRENTLY` in Postgres.
+safe to add directly. In Postgres, a new index blocks writes unless you use `CREATE INDEX CONCURRENTLY`.
 
 **The rule:** the deployed release must work against both the old and the new schema, or you cannot
 roll back. Run migrations as a separate, explicit step, not automatically on deploy, so the
@@ -228,8 +229,9 @@ Re-deploying an old image tag takes minutes. A migration has no automatic revers
 
 ## Roll Back or Fix Forward
 
-Both are legitimate. Fix forward when a one-way door is involved, because a rollback would leave data
-and code disagreeing, or when you know the cause and the fix ships faster. Otherwise, roll back.
+Both are legitimate. Fix forward (ship a new fix instead of going back) in two cases. The first is a
+one-way door, because a rollback would leave data and code disagreeing. The second is when you know the
+cause and the fix ships faster. Otherwise, roll back.
 ✅ **Roll back first, diagnose second.** The bad build is immutable and still on its own URL, so you can
 reproduce it afterwards.
 
@@ -281,7 +283,7 @@ version must work against both schemas.
 **Q: What is the difference between a canary deployment and a feature flag?**
 
 A canary controls which **instances** serve traffic, so it validates the build: no memory leak, no
-latency regression. A flag controls which **users** see new behaviour, evaluated per request in code
+latency regression. A flag controls which **users** see new behaviour. It is evaluated per request, in code
 already deployed everywhere, so it validates the feature and allows precise targeting. Flags roll back
 faster, because turning one off is a configuration change. They are complementary, not alternatives.
 

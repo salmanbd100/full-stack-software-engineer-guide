@@ -27,10 +27,10 @@ The interviewer does not need the project's history. They need the moment two po
 did about it, and whether the other person would work with you again.
 
 Pushing back is the version candidates most often misread. They hear a question about assertiveness.
-It is a question about whether **you make costs visible to the person who owns the decision.** "No, we
-can't do that in three weeks" is a refusal, and it moves the argument to whether you are right. "We can
-do it in three weeks without the audit trail, or in five with it — which do you want?" is a **trade**,
-and it moves the decision to the person whose decision it is.
+It is really about whether **you make costs visible to the person who owns the decision.** "No, we
+can't do that in three weeks" is a refusal. It moves the argument to whether you are right. "We can do
+it in three weeks without the audit trail, or in five with it. Which do you want?" is a **trade**. It
+moves the decision to the person whose decision it is.
 
 > Senior candidates are not scored on being right. They are scored on how they behaved while being right,
 > and on what they did the times they were not.
@@ -48,7 +48,7 @@ are the ones that survive being refused.
 | Consensus       | Commitment           | "Two people still preferred Redux, and both shipped Context happily" |
 
 **Consensus is not the target.** Consensus means everyone agrees, which usually means the decision was
-too small to matter. What you want is **commitment** — people who lost the argument still doing the work
+too small to matter. What you want is **commitment**: people who lost the argument still do the work
 properly, because the process was fair even though the outcome was not theirs.
 
 ### Interest, not position
@@ -76,7 +76,7 @@ The rule under all four: **you do not own the priority, you own the estimate and
 
 Time, scope and quality are the three levers people call negotiable. Time is usually fixed by a
 contract, a regulation or a conference. Quality can be borrowed for weeks, never for months. **Scope is
-the one that really moves**, so the skill is splitting a request into something shippable. "The
+the one that really moves**, so the skill is cutting a request down to something shippable. "The
 reporting dashboard by the 30th" does not move as a unit. "The three charts the regulator asks for by
 the 30th, and the query builder next sprint" usually does.
 
@@ -133,21 +133,21 @@ deferred screens were never asked for again. The one-page document
 became how that client ran its next two releases.
 ```
 
-Neither answer has a villain — an unreasonable other party is scored as a story about you. Both put the
-reasoning in the Action. And the second says what happened to the deferred work, which is the evidence
-the trade was real rather than a quiet way of dropping things.
+Neither answer has a villain. If the other person sounds unreasonable, the interviewer scores it as a
+story about you. Both put the reasoning in the Action. And the second says what happened to the
+deferred work. That proves the trade was real, not a quiet way of dropping things.
 
 ## When the Decision Goes Against You
 
 **Disagreeing about value, not cost.** When you think a feature will not be used, you are not
-negotiating cost — you are disagreeing about value, which is not your call. The move that works is
+negotiating cost. You are disagreeing about value, and value is not your call. The move that works is
 **making the experiment cheaper rather than winning the argument**: "let us build the three-day version
-behind a flag for 10% of users." You have stopped defending a prediction and started proposing a way to
+behind a flag for 10% of users." Now you are not defending a prediction. You are proposing a way to
 find out.
 
-**Disagree and commit, visibly.** Say once, clearly, what you think and why — in writing, with the risk
-quantified, so the trade-off can be recovered later. Then build it properly and do not reopen it in
-standups. An engineer who half-builds something to prove a point is the outcome interviewers probe for.
+**Disagree and commit, visibly.** Say once, clearly, what you think and why. Put it in writing, with the
+risk given as a number, so anyone can find the trade-off later. Then build it properly and do not
+reopen it in standups. Interviewers probe for the engineer who half-builds something to prove a point.
 
 **Escalate without going around someone.** Escalation reads as mature or political depending on one
 thing: whether the person you escalate past knew you were going to.
@@ -170,18 +170,18 @@ The middle step is the whole answer. Most candidates skip from step one to step 
 | **Safety or user harm** | A data exposure has no version that is 60% shipped |
 | **Something you would have to misrepresent** | If holding the line needs the record to be wrong, the answer is no |
 
-State these as constraints, not opinions, put them in writing, and escalate straight away. A legal
-requirement framed as a preference gets traded away by someone who did not know it was fixed.
+State these as constraints, not opinions. Put them in writing, and escalate straight away. If you
+present a legal requirement as a preference, someone who did not know it was fixed will trade it away.
 
 ## Feedback and Bad News
 
-**Feedback uses SBI** — situation, behaviour, impact — and never mentions the person's character: "In
-last week's payment PR, the variables were named x, tmp and data1, and it took me two hours to follow
-the flow." Then stop and ask: "What is your thinking when you name things?" The answer is often something you did
-not know — here, that the team had never written its naming conventions down.
+**Feedback uses SBI** (situation, behaviour, impact) and never mentions the person's character. For
+example: "In last week's payment PR, the variables were named x, tmp and data1. It took me two hours to
+follow the flow." Then stop and ask: "What is your thinking when you name things?" The answer is often
+something you did not know. Here, it was that the team had never written its naming conventions down.
 
-**Bad news uses BLUF** — bottom line up front. Lead with it ("we cannot ship this for the conference"),
-state what broke and what you missed, bring two or three options with a recommendation, and say who
+**Bad news uses BLUF**: bottom line up front. Lead with it ("we cannot ship this for the conference").
+State what broke and what you missed. Bring two or three options with a recommendation, and say who
 tells whom by when. Bad news delivered this way **builds** trust, because it proves you will say it next
 time too.
 
@@ -200,8 +200,8 @@ time too.
 ## 🔑 Key Takeaways
 
 - Every question in this category asks what happened when two people wanted different things.
-- Without authority, the tools are agreed criteria, evidence, and going first yourself — and the target is commitment, not consensus.
-- Pushing back means making costs visible to the decision's owner; you own the estimate and the risk, not the priority.
+- Without authority, the tools are agreed criteria, evidence, and going first yourself. The target is commitment, not consensus.
+- Pushing back means making costs visible to the decision's owner. You own the estimate and the risk, not the priority.
 - Scope is the lever that really moves, so splitting the request into something shippable is the work.
 - Escalation is mature only if you told the person first, and legal, safety and integrity issues are constraints, not trades.
 
@@ -209,34 +209,34 @@ time too.
 
 **Q: How do you know when to compromise and when to hold the line?**
 
-Hold the line on anything you would have to defend in an incident review — data loss, security, a
-legal obligation, an irreversible migration. Compromise on everything reversible, which is most things.
-Saying it that way shows you have a rule rather than a temperament.
+Hold the line on anything you would have to defend in an incident review: data loss, security, a
+legal obligation, a migration you cannot undo. Compromise on everything reversible, which is most
+things. Saying it that way shows you follow a rule, not your mood.
 
 **Q: What if the conflict never got resolved?**
 
-Say so. "We never agreed; he still thinks the abstraction was premature. We shipped mine because it was
-my service, and I asked him to review the interface so his concern was recorded." Unresolved
-disagreements are normal at senior level, and pretending otherwise is less believable.
+Say so. "We never agreed. He still thinks the abstraction was premature. We shipped mine because it was
+my service. I asked him to review the interface, so his concern was on record." Unresolved
+disagreements are normal at senior level. Pretending otherwise is less believable.
 
 **Q: How do you get technical debt prioritised when nobody wants to fund it?**
 
 Convert it into the currency the decision is made in. "The auth module is a mess" competes with
-nothing; "every feature touching auth takes a day longer, and four of next quarter's six touch it"
-competes with the roadmap. If it still loses, that is a legitimate outcome — someone else's numbers were
+nothing. "Every feature touching auth takes a day longer, and four of next quarter's six touch it"
+competes with the roadmap. If it still loses, that is a fair outcome: someone else's numbers were
 bigger.
 
 **Q: You think a feature is a waste of effort and you have been told to build it. What do you do?**
 
 Say once what I think and why, and ask what evidence would change my mind. Then try to make being wrong
-cheap — the three-day version behind a flag for a slice of users — so the disagreement becomes something
-we can settle. If the full build is still the decision, I build it properly.
+cheap, such as the three-day version behind a flag for a slice of users. Then the disagreement becomes
+something we can settle. If the full build is still the decision, I build it properly.
 
 **Q: When is mentoring the wrong thing to offer?**
 
-When the problem is not skill. Someone missing deadlines because their tasks have no clear success
-criteria does not need a mentor; they need the task rewritten. Reaching for mentoring by reflex shows
-you have not diagnosed the cause.
+When the problem is not skill. Someone who misses deadlines because their tasks have no clear success
+criteria does not need a mentor. They need the task rewritten. Reaching for mentoring by reflex shows
+you have not found the cause.
 
 ## What to Read Next
 

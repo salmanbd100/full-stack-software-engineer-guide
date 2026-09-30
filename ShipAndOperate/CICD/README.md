@@ -16,9 +16,9 @@ The pipeline is where a team's real engineering standards live. Whatever the wik
 review, the pipeline is what is actually enforced. Senior candidates get asked about it because owning a
 pipeline means owning the trade-off between shipping fast and shipping safely.
 
-Three chapters, in the order the work happens: the principles that survive any tool, the image the
-pipeline builds, then the one tool most teams use and how credentials reach it without being stored in
-it. What happens to the artefact afterwards is the `Deployment/` section.
+Three chapters, in the order the work happens. First, the principles that survive any tool. Then the
+image the pipeline builds. Last, the one tool most teams use, and how credentials reach it without being
+stored in it. What happens to the artefact afterwards is the `Deployment/` section.
 
 ## Chapters
 
@@ -41,5 +41,5 @@ Three pipeline questions, on top of the part-level signals in the Part VIII open
 
 ## Reading Order
 
-01 first — the other two use its words. Then 02 and 03 in either order. Chapter 03 is the one most likely
+01 first, because the other two use its words. Then 02 and 03 in either order. Chapter 03 is the one most likely
 to come up in an interview.

@@ -19,11 +19,11 @@ in_book: true
 ## 💡 The Core Idea
 
 A branching model is a queue policy. Every branch is work waiting to join `main`. The longer it waits,
-the more `main` moves underneath it. Git does not cause merge pain; the time between branching and
+the more `main` moves underneath it. Git does not cause merge pain. The time between branching and
 merging does. Every model in this chapter answers one question: **how long may a branch live?**
 
-That answer decides the rest. If branches live for hours, you need little ceremony and a lot of
-automated tests. If they live for weeks, you need release branches and someone who owns the merge. Pick
+That answer decides the rest. If branches live for hours, you need little ceremony (process and
+sign-off steps) and a lot of automated tests. If they live for weeks, you need release branches and someone who owns the merge. Pick
 the ceremony that matches the interval your team can really keep to.
 
 A repository boundary is the same idea one level up. Inside one repository, a change to shared code and
@@ -68,13 +68,13 @@ flowchart LR
 **Every path that merges into `main` also merges back into `develop`.** Forget the second merge and the
 hotfix is lost, then comes back as a regression in the next release.
 
-GitFlow earns its cost when you really support more than one version in production, or when a release
-needs a sign-off gate that takes days. Otherwise the second permanent branch is a queue nobody asked for.
+GitFlow is worth its cost in two cases. You really support more than one version in production, or a
+release needs a sign-off gate that takes days. Otherwise the second permanent branch is a queue nobody asked for.
 
 ### Trunk-Based Development
 
-Everyone integrates into `main` at least once a day, and branches are hours old. Unfinished work ships
-anyway, switched off behind a flag. An unfinished feature in `main` costs less than a three-week branch.
+Everyone merges into `main` at least once a day, and branches are hours old. Unfinished work ships
+anyway, switched off behind a feature flag (a runtime switch). An unfinished feature in `main` costs less than a three-week branch.
 
 This works because deploy and release are separate events. The new component sits in `main` and in
 production, but only the users the flag is on for can see it.
@@ -105,8 +105,8 @@ The model sets the shape of the queue. These rules decide whether anything in it
 
 ### Conventional Commits
 
-A machine-readable prefix on a human-readable subject. It costs nothing, and it buys generated
-changelogs, automatic version bumps and a history you can filter.
+A prefix a machine can read, on a subject a human can read. It costs nothing. In return you get
+generated changelogs, automatic version bumps and a history you can filter.
 
 **The commit message shape:**
 
@@ -119,9 +119,9 @@ changelogs, automatic version bumps and a history you can filter.
 ```
 
 The common types are `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore` and `ci`, for example
-`fix(auth): stop redirect loop on expiry`. Only `feat` and `fix` move a semantic version. The
-subject says what changed, in about fifty characters. The body says **why** — the part nobody can
-rebuild from the diff a year later.
+`fix(auth): stop redirect loop on expiry`. Only `feat`, `fix` and a `BREAKING CHANGE` footer move a
+semantic version. The subject says what changed, in about fifty characters. The body says **why**.
+Nobody can rebuild that from the diff a year later.
 
 > ⚠️ Conventional commits are only worth enforcing if something reads them. A commit lint with no
 > changelog generator behind it is ceremony.
@@ -130,7 +130,7 @@ rebuild from the diff a year later.
 
 Use `<type>/<ticket>-<short-description>`, for example `feat/PLAT-412-oauth-callback`, so a branch list
 reads as a work list. A branch older than a week is a warning sign, whatever its name. Rebase onto
-`origin/main` every day and push with `--force-with-lease`, so conflicts arrive one at a time.
+`origin/main` every day and push with `--force-with-lease`. Then conflicts arrive one at a time.
 
 ### Pull Request Size
 
@@ -151,8 +151,8 @@ pnpm lint && pnpm test        # Never make CI the first reader
 git rebase origin/main        # Review the change against current main, not last week's
 ```
 
-A pull request description should say *why now*, link the ticket and show evidence — a screenshot for a
-UI change, a test name for a fix. Reviewers cannot guess intent from a diff.
+A pull request description should say *why now*, link the ticket and show evidence. For example, add a
+screenshot for a UI change, or a test name for a fix. Reviewers cannot guess intent from a diff.
 
 ### Merge Method
 
@@ -167,7 +167,7 @@ reviewed change. It loses the intermediate commits. That is only a real cost if 
 
 ### Branch Protection
 
-The platform must enforce the policy; goodwill will not. Every host has the same few settings under
+The platform must enforce the policy. Goodwill will not. Every host has the same few settings under
 different names.
 
 - ✅ Require a pull request, with at least one approving review
@@ -195,13 +195,13 @@ consumers in one pull request. One CI run tells you whether the rename is comple
 same rename is a major version, three upgrade pull requests and a period where consumers disagree.
 
 The price is CI. "Run the tests" now means 40 packages, and nobody waits for that on every push. A
-monorepo needs a build system that reads the dependency graph and skips unchanged work, plus a shared
-remote cache. The tools — pnpm workspaces, Turborepo, Nx, Changesets — are covered in
+monorepo needs a build system that reads the dependency graph and skips unchanged work. It also needs a
+shared remote cache. The tools (pnpm workspaces, Turborepo, Nx, Changesets) are covered in
 [Chapter ?? — Monorepos](#ch-monorepos).
 
 A polyrepo buys real autonomy. The billing team ships on Tuesday without knowing what the web team is
-doing, and the billing repository can be locked down in a way a directory cannot. It pays in
-coordination: a breaking change in a shared package becomes a migration with a long tail of old versions.
+doing. The billing repository can also be locked down in a way a directory cannot. The cost is
+coordination. A breaking change in a shared package becomes a migration with a long tail of old versions.
 
 | Situation                                           | Choose   | Because                                        |
 | --------------------------------------------------- | -------- | ---------------------------------------------- |
@@ -211,13 +211,13 @@ coordination: a breaking change in a shared package becomes a migration with a l
 | An open-source library with outside consumers       | Polyrepo | External users need real semantic versions     |
 | A regulated service most engineers must not read    | Polyrepo | Git permissions stop at the repository         |
 
-Most organisations end up with several monorepos, not one of either. The boundary sits where change
-coupling really stops, and that is not a compromise.
+Most organisations end up with several monorepos, not one of either. The boundary sits where changes
+stop being coupled, and that is not a compromise.
 
 ## Common Mistakes
 
-❌ **A long-lived integration branch nobody deploys.** If `develop` is never deployed, it is a queue, and
-it hides integration failures until the release.
+❌ **A long-lived integration branch nobody deploys.** If `develop` is never deployed, it is a queue. It
+hides integration failures until the release.
 ✅ Branch from `main` and ship behind a flag. GitFlow accepts that cost on purpose for a calendar
 release. Without the calendar, you pay the cost and get none of the benefit.
 
@@ -227,7 +227,7 @@ gets checked properly.
 ✅ Two pull requests, the refactor first, so the second review is only about the feature.
 
 ❌ **A monorepo with a single pipeline** that runs every test on every push. This is the most common
-reason teams decide "monorepos do not scale". The layout was never the problem; running unrelated tests
+reason teams decide "monorepos do not scale". The layout was never the problem. Running unrelated tests
 was.
 ✅ Scope CI to the change with affected-only builds and a remote cache.
 
@@ -237,11 +237,11 @@ holds the fixed copy. It takes the costs of both models and the benefits of neit
 
 ## 🔑 Key Takeaways
 
-- Branch lifetime is the variable that matters; a branching model is a policy for how long a branch may live.
+- Branch lifetime is the variable that matters. A branching model is a policy for how long a branch may live.
 - GitHub Flow is the default, trunk-based needs trusted tests and flags, and GitFlow needs a real release calendar or more than one live version.
 - Past roughly 400 changed lines, reviewers approve on trust, so split the pull request instead.
 - Squash merging keeps one reviewed change per commit on `main`, which is what makes `git bisect` cheap.
-- A repository boundary is a coordination boundary: a monorepo swaps version drift for CI that must understand the dependency graph.
+- A repository boundary is a coordination boundary. A monorepo swaps version drift for CI that must understand the dependency graph.
 
 ## Interview Questions
 
@@ -253,8 +253,8 @@ release calendar or several supported versions justifies GitFlow's second perman
 
 **Q: Squash, rebase, or merge commit — which and why?**
 
-Squash by default, because it puts one reviewed change per commit on `main` and makes `git bisect` land
-on something meaningful. Rebase merge when the individual commits were written to be read. Merge commit
+Squash by default. It puts one reviewed change per commit on `main`, so `git bisect` lands on something
+meaningful. Rebase merge when the individual commits were written to be read. Merge commit
 when the branch topology itself is information worth keeping.
 
 **Q: How do you keep pull requests reviewable?**
@@ -271,14 +271,14 @@ graph will make the repository feel slow within months.
 
 **Q: How do you make a breaking change to a shared library in a polyrepo?**
 
-Ship it additively first, so both shapes work, and publish that as a minor version. Migrate consumers one
-at a time, then remove the old shape in a major version. One breaking release and a coordinated flag day
-needs every team free at once, which is rarely true.
+First ship it as an addition, so both shapes work, and publish that as a minor version. Migrate consumers
+one at a time, then remove the old shape in a major version. One breaking release on a shared "flag day"
+needs every team free at once, and that is rarely true.
 
 **Q: When would you not recommend a monorepo?**
 
-When teams need truly independent release cadence, when access to part of the code must be restricted,
-or when nobody will own the build tooling. The last one decides it in practice. A monorepo with no cache
+There are three cases. Teams need truly independent release schedules, access to part of the code must
+be restricted, or nobody will own the build tooling. The last one decides it in practice. A monorepo with no cache
 and no affected-only CI is worse than either option done properly.
 
 ## What to Read Next

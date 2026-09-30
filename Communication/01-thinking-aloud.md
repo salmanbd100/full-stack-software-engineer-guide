@@ -19,14 +19,15 @@ in_book: true
 ## 💡 The Core Idea
 
 A technical round scores your reasoning, and reasoning is invisible. Anything you do not say out loud is
-worth nothing, which is why a clearly explained O(n²) solution beats a silent O(n) one.
+worth nothing. That is why a clearly explained O(n²) solution beats a silent O(n) one.
 
-Two things decide whether the narration lands. First, **it has to be about the right problem**: the most
-common failure is not a missing algorithm but three confident minutes on a question nobody asked.
-Second, **it has to come in the right order**. Every explanation answers three questions — what are you
-doing, why this approach, and what does it cost. Candidates who lose a room answer them backwards:
-mechanism first, purpose eventually, cost never. A listener cannot judge a mechanism before they know
-what it is for, so everything said before the purpose has to be heard again afterwards.
+Two things decide whether the narration (talking through what you do as you do it) lands. First, **it
+has to be about the right problem**. The most common failure is not a missing algorithm. It is three
+confident minutes on a question nobody asked. Second, **it has to come in the right order**. Every
+explanation answers three questions: what are you doing, why this approach, and what does it cost.
+Candidates who lose a room answer them backwards: mechanism first, purpose eventually, cost never. A
+listener cannot judge a mechanism before they know what it is for. So everything said before the
+purpose has to be heard again afterwards.
 
 > "I use `map` to transform the array" is a description. "I use `map` rather than `forEach` because it
 > returns a new array, which keeps the reducer pure" is an explanation. Only the second is scored.
@@ -47,12 +48,12 @@ approach, the risk management, or the team coordination?"
 
 That costs eight seconds and saves three minutes. Ask the question that narrows ("chronological or
 ranked feed?"), not the one that stalls ("what do you mean?"). In a design round, **write the
-constraints down** and quote them back — "given the 100:1 read-to-write ratio you mentioned…" proves the
+constraints down** and quote them back. "Given the 100:1 read-to-write ratio you mentioned…" proves the
 design came from the requirements, not from memory.
 
 ### Explain in the order a listener needs
 
-**Attach a "because" to every real choice.** Two or three in a five-minute explanation is enough — the
+**Attach a "because" to every real choice.** Two or three in a five-minute explanation is enough. The
 point is to prove the choices were choices.
 
 | Say                              | Not                        |
@@ -61,14 +62,14 @@ point is to prove the choices were choices.
 | "This trades space for time by…"  | "It's fast"                 |
 | "O(n) — one pass, and we need every element anyway" | "It's efficient" |
 
-**Explain an architecture in five beats:** what it does in one sentence, the components and what each
-owns, how a request flows through them, why the two or three key decisions went that way, and what you
-considered and rejected. The last beat reads as senior. An architecture with no rejected options sounds
-like the only one you know.
+**Explain an architecture in five beats.** Say what it does in one sentence. Name the components and
+what each owns. Show how a request flows through them. Say why the two or three key decisions went that
+way. Then say what you considered and rejected. That last beat reads as senior. An architecture with no
+rejected options sounds like the only one you know.
 
-**Explain a trade-off, then commit.** Interviewers punish fence-sitting far more than a defensible wrong
-choice. "For this app I would take Zustand, because the state is small and the team is three people —
-Redux's structure is worth its cost at fifteen, not at three."
+**Explain a trade-off, then commit.** Interviewers punish fence-sitting (refusing to pick a side) far
+more than a defensible wrong choice. "For this app I would take Zustand, because the state is small and
+the team is three people. Redux's structure is worth its cost at fifteen, not at three."
 
 **Explain performance with numbers**: the problem, what the profiler showed, the change, and the
 before and after. A performance claim without a before and an after is an opinion.
@@ -81,8 +82,8 @@ before and after. A performance claim without a before and an after is an opinio
 | **Technical peers** | The design decision     | As deep as they take it         | Explaining things they know     |
 | **Non-technical partners** | What changes for the user | An analogy, then one detail | Unexplained acronyms       |
 
-For executives, use **BLUF** — bottom line up front: the conclusion, two supporting facts, then what you
-need from them. Defining an acronym costs four words and buys the rest of the answer.
+For executives, use **BLUF**, bottom line up front. Give the conclusion, two supporting facts, then what
+you need from them. Defining an acronym costs four words and keeps them with you for the rest of the answer.
 
 ⚠️ Rooms differ in how much directness they expect. Some interviewers read "I led the migration" as
 ownership; others read it as overclaiming. The fix is to say **both**: what you decided, and who did it
@@ -90,11 +91,11 @@ with you.
 
 ## The Three Phases of a Coding Round
 
-Some 2026–27 loops allow an AI assistant in the coding round. That raises the narration bar: the
-interviewer knows the model can write the function, so the signal is why you accepted, rejected or
-rewrote what it gave you — see [Chapter ?? — The AI-Assisted Interview](#ch-ai-assisted-interview).
+Some 2026–27 loops allow an AI assistant in the coding round. That raises the narration bar. The
+interviewer knows the model can write the function. So the signal is why you accepted, rejected or
+rewrote what it gave you. See [Chapter ?? — The AI-Assisted Interview](#ch-ai-assisted-interview).
 
-**Before writing anything** — about five minutes, the highest-value part of the hour:
+**Before writing anything**, spend about five minutes. They are the highest-value part of the hour:
 
 ```text
 1. Restate the problem and ask what is ambiguous
@@ -132,11 +133,11 @@ function twoSum(nums: number[], target: number): [number, number] | null {
 ```
 
 Saying the second comment out loud answers the edge case the interviewer was about to ask about. When
-you are unsure of an API, say so and keep moving: "I think it is `map.has` — I will check at the end."
+you are unsure of an API, say so and keep moving: "I think it is `map.has`. I will check at the end."
 
-**After coding**, three steps, none optional: trace the example through the code, test the edges (empty
-input, negatives, no match), and state time and space complexity. "I'm done" without a trace is an
-incomplete answer even when the code is correct.
+**After coding**, take three steps, and none is optional. Trace the example through the code. Test the
+edges (empty input, negatives, no match). State the time and space complexity. "I'm done" without a
+trace is an incomplete answer, even when the code is correct.
 
 ## Hints and Being Stuck
 
@@ -153,8 +154,8 @@ information in the round.
 Respond in three beats: acknowledge it, say what it changed, then act. Ignoring a hint is scored much
 harder than needing one.
 
-**Silence is the only answer you cannot recover from**, because it gives nothing to score. When stuck,
-say the shape of the problem:
+**Silence is the only answer you cannot recover from**, because it gives nothing to score. When you are
+stuck, say the shape of the problem:
 
 ```text
 "I'm stuck on the duplicate case. Two options: a check before the loop,
@@ -165,7 +166,7 @@ one it argues for."
 
 If that runs out, ask directly: "Would you rather I optimise time or space here?"
 
-⚠️ Do not nod at a term you do not know. "I have not used CQRS in production — how do you mean it here?"
+⚠️ Do not nod at a term you do not know. "I have not used CQRS in production. How do you mean it here?"
 keeps you in the conversation. Guessing gets found out on the follow-up.
 
 ## Common Mistakes
@@ -182,17 +183,17 @@ keeps you in the conversation. Guessing gets found out on the follow-up.
 ## 🔑 Key Takeaways
 
 - Reasoning that is not said out loud is not scored, so a clear O(n²) beats a silent O(n).
-- Paraphrase any ambiguous question before answering — it costs seconds and saves minutes.
-- Explain purpose, then mechanism, then cost; a listener cannot judge a mechanism with no purpose attached.
-- Commit to an option and name what would change your mind — fence-sitting scores worse than being wrong.
-- A hint means they still think you can pass, and stuck out loud is recoverable where stuck in silence is not.
+- Paraphrase any ambiguous question before answering. It costs seconds and saves minutes.
+- Explain purpose, then mechanism, then cost. A listener cannot judge a mechanism with no purpose attached.
+- Commit to an option and name what would change your mind. Fence-sitting scores worse than being wrong.
+- A hint means they still think you can pass. You can recover from being stuck out loud, but not from being stuck in silence.
 
 ## Interview Questions
 
 **Q: How much clarifying is too much?**
 
 Two or three questions that change your approach, asked once at the start. Questions that would not
-change what you build read as stalling, and asking them one at a time makes the interviewer run the
+change what you build read as stalling. Asking them one at a time makes the interviewer run the
 session instead of you.
 
 **Q: You realise ten minutes in that your approach will not work. What do you say?**
@@ -203,20 +204,20 @@ senior signal. Quietly patching it until time runs out is the failure mode.
 
 **Q: How do you explain a technical trade-off to a product manager who wants both options?**
 
-Convert both into things they already price — time, risk and reversibility. "Option A ships in a week
+Convert both into things they already weigh: time, risk and reversibility. "Option A ships in a week
 and locks the data model; option B takes three and does not. If we are wrong about the model, A costs a
 month to undo." That is a decision they can make. A latency table is not.
 
 **Q: The interviewer clearly disagrees with your design mid-explanation. What do you do?**
 
 Stop and get the objection out loud: "You look unconvinced about the cache — is it the invalidation?"
-Then address it or concede it. Talking over visible disagreement loses a design round fastest, because
-everything after is weighed against an objection you never answered.
+Then address it or concede it. Talking over visible disagreement loses a design round fastest. The
+interviewer weighs everything after it against an objection you never answered.
 
 **Q: How do you talk about team work without overclaiming or disappearing?**
 
 Split the sentence: the decision that was yours, the execution that was shared. "I chose to extract
-notifications first; Priya and Sam did the extraction while I wrote the reference implementation." It is
+notifications first. Priya and Sam did the extraction while I wrote the reference implementation." It is
 more precise than either "I" or "we".
 
 ## What to Read Next

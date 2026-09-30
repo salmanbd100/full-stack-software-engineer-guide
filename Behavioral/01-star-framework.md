@@ -18,9 +18,9 @@ in_book: true
 
 ## 💡 The Core Idea
 
-The interviewer is not scoring the story. They are scoring the evidence inside it — what you decided,
-why you decided it, and what changed as a result. STAR is simply the order that puts that evidence
-where a listener can hear it.
+The interviewer is not scoring the story. They are scoring the evidence inside it: what you decided,
+why you decided it, and what changed as a result. STAR (situation, task, action, result) is simply the
+order that puts that evidence where a listener can hear it.
 
 Most candidates get this backwards. They spend ninety seconds on context, thirty on what they did,
 and run out of time before the result. The setup is the cheapest part of the answer and it is where
@@ -28,7 +28,7 @@ the time goes.
 
 ## How It Works
 
-Four parts, in order, with a time budget. The budget is the whole technique — the acronym on its own
+Four parts, in order, with a time budget. The budget is the whole technique. The acronym on its own
 is not worth memorising.
 
 | Part          | Share   | ~Time | What belongs here                                       | Failure mode                              |
@@ -41,9 +41,9 @@ is not worth memorising.
 **Total: two to three minutes.** Anything past four minutes is being endured, not scored.
 
 The Action section is where seniority becomes visible, because it is the only part where you explain a
-choice. "I added an index" is mid-level. "The profiler pointed at a sequential scan on a 40-million-row
-table, so I added a covering index rather than caching the result — the query was already correct and
-I did not want a second source of truth" is senior.
+choice. "I added an index" is mid-level. This is senior: "The profiler pointed at a sequential scan on a
+40-million-row table, so I added a covering index rather than caching the result. The query was already
+correct, and I did not want a second source of truth."
 
 ## A Worked Answer
 
@@ -72,7 +72,7 @@ the bottleneck, but the ordering decision is yours and it is the part
 worth defending.
 ```
 
-The Result gives a number, then something that outlived the project, then a specific learning.
+The Result gives a number, then something that lasted beyond the project, then a specific learning.
 
 ## Failure Stories Are Different
 
@@ -80,7 +80,7 @@ The Result gives a number, then something that outlived the project, then a spec
 or fix incidents.
 
 An answer that stops at "I rolled it back and apologised" describes an incident. The answer that scores
-continues into what stopped it recurring:
+goes on to say what stopped it happening again:
 
 ```text
 SITUATION: I shipped a checkout change that broke Safari. We lost roughly
@@ -103,14 +103,14 @@ actually took is that I had treated cross-browser support as something you
 remember to do, and remembering does not scale.
 ```
 
-⚠️ Do not invent a failure that is secretly a strength. "I care too much about code quality" is heard
-several times a week and it is scored as evasion.
+⚠️ Do not invent a failure that is secretly a strength. Interviewers hear "I care too much about code
+quality" several times a week, and they score it as dodging the question.
 
 ## Building the Story Bank
 
 Ten to twelve stories cover a full loop, because one story answers several questions once you change
-the emphasis. A migration project is a technical-challenge story, a leadership story, and an
-adapting-to-change story depending on which part you expand.
+the emphasis. A migration project can be a technical-challenge story, a leadership story or an
+adapting-to-change story. It depends on which part you expand.
 
 For each story, write down four things and nothing else:
 
@@ -122,13 +122,13 @@ Answers:    led a project · influenced without authority · improved a product
 ```
 
 The numbers line is the one to prepare properly. Under pressure you will remember the shape of the
-story and lose the metric, and the metric is what the interviewer writes down.
+story and forget the metric. The metric is what the interviewer writes down.
 
 ## The Coverage Grid
 
-Twelve stories are no use if eight of them are the same story. The grid exists to find that out before
-the interviewer does. Put your projects down the side and the competency categories across the top,
-then fill in the cells you can actually evidence.
+Twelve stories are no use if eight of them are the same story. The grid finds that out before the
+interviewer does. Put your projects down the side and the competency categories (the skills being
+scored) across the top. Then fill in the cells you can back with a real example.
 
 | Project                       | Leadership                       | Challenge                        | Conflict                     | Failure                          |
 | ----------------------------- | -------------------------------- | -------------------------------- | ---------------------------- | -------------------------------- |
@@ -136,9 +136,9 @@ then fill in the cells you can actually evidence.
 | **Checkout rebuild**          | —                                | PCI compliance in 6 weeks        | PM wanted the deadline held  | Safari break, 3 hours of orders  |
 | **Design-system rollout**     | Influenced 4 teams, no authority | Adoption without a mandate       | Two teams refused the tokens | First version shipped unversioned |
 
-**The empty cells are the output.** A blank column means a question you cannot answer, and a full row
-means one project is carrying too much of the loop. Both are fixable in an evening of thinking; neither
-is fixable in the room.
+**The empty cells are the output.** A blank column means a question you cannot answer. A full row
+means one project is carrying too much of the loop. You can fix both in an evening of thinking. You
+cannot fix either in the room.
 
 Five categories cover most loops. Interviewers phrase them differently, so learn the category rather
 than the wording:
@@ -153,7 +153,7 @@ than the wording:
 
 ## When to Use It
 
-STAR fits questions about the past. It fits badly on everything else, and forcing it is a tell.
+STAR fits questions about the past. It fits badly on everything else, and forcing it gives you away.
 
 | The question                              | Use            | Why                                                   |
 | ----------------------------------------- | -------------- | ----------------------------------------------------- |
@@ -185,28 +185,27 @@ STAR fits questions about the past. It fits badly on everything else, and forcin
 
 **Q: Your answer is running long and the interviewer looks restless. What do you do?**
 
-Cut to the Result. Say "the outcome was X, and I can go back through how we got there if it is useful"
-— that lands the evidence and hands them control of the depth. Trailing off mid-Action leaves the
-answer with no scored content in it at all.
+Cut to the Result. Say "the outcome was X, and I can go back through how we got there if it is useful".
+That lands the evidence and lets them choose how deep to go. Trailing off mid-Action leaves the answer
+with nothing in it that scores.
 
 **Q: The question is about a situation you have genuinely never been in. Now what?**
 
-Say so, then offer the nearest real thing: "I have not managed a direct report, but I have owned the
-onboarding for two joiners, which is the closest I have come — is that useful?" Inventing an
+Say so, then offer the nearest real thing: "I have not managed a direct report. But I have owned the
+onboarding for two new joiners, which is the closest I have come. Is that useful?" An invented
 experience fails the follow-up question, and there is always a follow-up question.
 
 **Q: Why does "we" hurt an answer that is otherwise accurate?**
 
-Because the interviewer is scoring one person and "we" makes the contribution unrecoverable. It is
-usually honesty rather than modesty — the work really was collaborative — so the fix is not to
-overclaim but to be precise: name what you decided and what you wrote, and name the team's part
-separately.
+Because the interviewer is scoring one person, and "we" hides which part was yours. It usually comes
+from honesty rather than modesty: the work really was shared. So the fix is not to overclaim but to be
+precise. Name what you decided and what you wrote, and name the team's part separately.
 
 **Q: When would you deliberately not use STAR?**
 
-On method questions and hypotheticals — "how do you approach X", "what would you do if Y". Those want
-your general practice first, optionally anchored by a short example afterwards. Opening a hypothetical
-with "let me tell you about a time" answers a question that was not asked.
+On method questions and hypotheticals, such as "how do you approach X" or "what would you do if Y".
+Those want your general practice first, perhaps backed by a short example afterwards. Opening a
+hypothetical with "let me tell you about a time" answers a question that was not asked.
 
 ## What to Read Next
 

@@ -28,7 +28,7 @@ and how to get back when they do something else.
 
 Two Git questions, on top of the part-level signals in the Part VIII opener:
 
-- **Can you recover?** "You force-pushed over a colleague's branch — what now?" A senior reaches for the
+- **Can you recover?** "You force-pushed over a colleague's branch. What now?" A senior reaches for the
   reflog and explains why the objects are still there. Git rarely deletes anything.
 - **Do you have a reason for your branching model?** Naming GitFlow is worth nothing. Saying that
   long-lived branches turn merge conflicts into a scheduling problem, and that trunk-based development

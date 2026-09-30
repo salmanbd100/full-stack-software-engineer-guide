@@ -12,17 +12,17 @@ in_book: true
 
 # Part IX — Behaviour and Ways of Working
 
-Candidates rarely lack the stories — nine years of work produces plenty. The stories arrive as three
-minutes of background followed by twenty seconds of what the candidate actually did.
+Candidates rarely lack the stories. Nine years of work produces plenty. The problem is how they arrive:
+three minutes of background, then twenty seconds of what the candidate actually did.
 
 This section fixes that in two moves. First, a structure that puts the action and the result where
-the interviewer can hear them, plus a coverage grid: ten to twelve stories, chosen so that between
-them they answer almost any question you will be asked. Preparing per question does not scale;
-preparing per story does.
+the interviewer can hear them. Second, a coverage grid: ten to twelve stories, chosen so that together
+they answer almost any question you will be asked. Preparing per question does not scale. Preparing
+per story does.
 
 The last chapter is raw material rather than technique. A behavioural round asks how your team
-delivers and handles failure, and those answers are stronger with the vocabulary — batch size, work in
-progress, the four DORA metrics, blameless post-mortems.
+delivers and handles failure. Those answers are stronger with the right vocabulary: batch size, work in
+progress, the four DORA delivery metrics, blameless post-mortems.
 
 ## Chapters
 
@@ -44,19 +44,19 @@ In a behavioural round the part-level signal means owning the decision, includin
   seconds to 900 milliseconds, and the checkout drop-off fell by a fifth" is. Vague results read as
   stories that did not happen.
 - **Can you own a failure without either spinning or grovelling?** The strongest answer states what
-  went wrong plainly, says what you would do differently, and shows the change stuck. Choosing a
-  failure that is secretly a strength is transparent and scores badly.
+  went wrong plainly, says what you would do differently, and shows the change stuck. A failure that
+  is secretly a strength is easy to see through, and it scores badly.
 - **Did you influence without authority?** At senior level the question behind most leadership
   prompts is whether you can get a team to a decision you do not have the power to impose.
 - **Can you describe how your team works without reciting a framework?** "We do two-week sprints" is
-  a fact. Knowing why the sprint keeps failing, what work in progress costs, and which metric a
-  director will ask for and should not get, is the senior version.
+  a fact. The senior version knows why the sprint keeps failing, what work in progress costs, and
+  which metric a director will ask for and should not get.
 
 ## Reading Order
 
-01 first — the framework and the coverage grid make the rest usable. Then 02 and 03, the story
-categories to fill the grid with. 04 last: it is where several of those stories come from, and its
-closing section is what to reread the morning of the interview.
+01 first, because the framework and the coverage grid make the rest usable. Then 02 and 03, the story
+categories to fill the grid with. 04 last. Several of those stories come from it, and its closing
+section is what to reread on the morning of the interview.
 
 **Interview sprint:** 01 → 03. Structure, then the failure story, which is the one candidates most
 reliably get wrong.

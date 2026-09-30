@@ -20,13 +20,13 @@ in_book: true
 
 A metrics stack does three separate jobs. One system **collects and stores** numbers over time. A
 second **queries and draws** them. A third **decides when a human must be woken**. The collector owns
-the data; the dashboard and the alert rules only read it.
+the data. The dashboard and the alert rules only read it.
 
-Prometheus is the collector most teams standardise on. Grafana is the drawing layer and stores nothing,
-which is why one dashboard can put container, database and log data on one time axis. Alerts are PromQL
-too, so a bad query makes both a bad graph and a bad page.
+Prometheus is the collector most teams standardise on. Grafana is the drawing layer and stores no metric data.
+That is why one dashboard can put container, database and log data on one time axis. Alerts are written in PromQL
+(the Prometheus query language) too, so a bad query makes both a bad graph and a bad page.
 
-> ⚠️ **Moving target:** Prometheus 3.0 shipped native histograms and Grafana's alerting was rebuilt in
+> ⚠️ **Moving target:** native histograms became stable in Prometheus 3.8, and Grafana's alerting was rebuilt in
 > version 8. The durable principles are pull-based collection over a text endpoint, storage cost that
 > scales with cardinality, and a dashboard that is only a client. API names and defaults will change.
 
@@ -42,7 +42,7 @@ flowchart LR
   P -->|rules fire| A[alert router]
 ```
 
-**Prometheus pulls; it does not receive.** Every interval it fetches `/metrics` on each target and
+**Prometheus pulls. It does not receive.** Every interval it fetches `/metrics` on each target and
 stores the samples. The real gain is that **a failed scrape is itself a signal**: the `up` metric drops
 to zero. With push, "no data" could mean a dead process, a broken collector or a lost packet. Pull only
 works if the server knows what to scrape, so it **discovers** targets from the platform's API.
@@ -56,7 +56,7 @@ works if the server knows what to scrape, so it **discovers** targets from the p
 | **Histogram** | Cumulative counters per latency bucket, plus a sum and a count | Through `histogram_quantile()` |
 
 A target exposes these as plain text. A histogram bucket such as `le="0.5"` counts every request that
-took 0.5 s **or less**. Percentiles are worked out from the buckets at query time; they are never stored.
+took 0.5 s **or less**. Percentiles are worked out from the buckets at query time. They are never stored.
 
 ❌ Graphing `http_requests_total` raw gives a line that only climbs and drops to zero on restart.
 ✅ `rate(http_requests_total[5m])` gives requests per second and handles the reset.
@@ -94,10 +94,10 @@ seconds. The p99 is the experience of your unhappiest regular users, and they ar
 ### Cardinality Is the Cost
 
 Every unique combination of label values is its own series. The index for every active series lives
-in memory, so series count — not request volume — decides the server's memory. One label holding a
+in memory, so series count decides the server's memory, not request volume. One label holding a
 user ID, a request ID or a full URL turns one metric into millions of series and an out-of-memory kill.
 
-The emergency brake is relabelling at scrape time: `drop` the exploding metric, or `labeldrop` the bad
+The emergency brake is relabelling (rewriting labels) at scrape time. `drop` the exploding metric, or `labeldrop` the bad
 label. On a managed service the same mistake arrives as a bill instead of a crash.
 
 ### Recording Rules
@@ -143,11 +143,11 @@ Row 4  DEPENDENCIES     collapsed by default — database · cache · downstream
 ```
 
 Keep three dashboards per service, not thirty: overview, deep-dive and business metrics. Put the most
-important panel top-left, give every panel units and thresholds, and stay under twenty panels.
+important panel top-left. Give every panel units and thresholds. Stay under twenty panels.
 
 **Dashboards are code.** One clicked together in the UI has no review, no history and no recovery.
 Build it in the UI, export the JSON model, commit it, and let provisioning apply it. In panels, use
-`$__rate_interval` instead of a fixed `[5m]`, which gives a **blank graph** when someone zooms in.
+`$__rate_interval`, not `$__interval`. Zoom in and `$__interval` shrinks below the scrape interval, which gives a **blank graph**.
 
 ### What Earns a Page
 
@@ -160,7 +160,7 @@ Build it in the UI, export the JSON model, commit it, and let provisioning apply
 | **Real** — something is genuinely broken | Fix the threshold, or delete the alert |
 
 Alert fatigue is the real failure mode of monitoring, not missing coverage. Once a team learns most
-pages are noise, response to real incidents slows — and nobody sees it, because the dashboards still
+pages are noise, response to real incidents slows. Nobody sees it, because the dashboards still
 look thorough. Above about two pages per on-call shift, the monitoring is broken, not the system.
 
 **Page on symptoms, not causes:**
@@ -172,7 +172,7 @@ look thorough. Above about two pages per on-call shift, the monitoring is broken
 | Zero successful logins in five minutes | Memory at 80% |
 
 High CPU with happy users is not an incident. If a cause really hurts, the symptom alert fires anyway.
-Cause metrics belong on dashboards and in runbooks — you need them to diagnose, not to wake anyone.
+Cause metrics belong on dashboards and in runbooks. You need them to diagnose, not to wake anyone.
 Keep three severities only: **critical** pages, **warning** opens a ticket, **info** goes to a log.
 
 ### Burn-Rate Alerting
@@ -202,7 +202,7 @@ fires only when a short window *and* a long window both breach.
     runbook: "https://runbooks.internal/checkout-errors"
 ```
 
-The short window gives fast detection; the long one confirms it is sustained. A thirty-second spike
+The short window gives fast detection. The long one confirms it is sustained. A thirty-second spike
 does not page, because the long window has not moved. The `for` duration stops flapping on one bad
 scrape. Every page carries what is broken, the value against the threshold, user impact, a runbook
 link and a dashboard link already filtered to the affected service.
@@ -210,14 +210,14 @@ link and a dashboard link already filtered to the affected service.
 ### Silence Has to Mean Broken
 
 The most common real alerting failure is an alarm that stayed quiet through a total outage. An alarm
-on a counter the app emits has nothing to compare once the app dies — the metric stops existing
+on a counter the app emits has nothing to compare once the app dies. The metric stops existing
 rather than breaching. Two fixes, and you want both:
 
 - Configure the rule so **missing data breaches**. The default is rarely what you want.
-- Also alert on something that lives **outside the app** — load balancer target health, 5xx at the
+- Also alert on something that lives **outside the app**: load balancer target health, 5xx at the
   edge, or an external prober. Those keep reporting when every instance is dead.
 
-**Inhibition** cuts noise most: while `ClusterDown` fires, every critical alert inside it is held back.
+**Inhibition** (muting alerts while a bigger one fires) cuts noise most. While `ClusterDown` fires, every critical alert inside it is held back.
 
 ### On-Call, Runbooks and the Post-Incident Review
 
@@ -227,7 +227,7 @@ A sustainable rotation has at least six people, a primary and a secondary, and e
 > ⚠️ The person woken must have authority to delete or retune the alert that woke them. Without it,
 > noise piles up forever, because nobody who suffers it can fix it.
 
-The runbook link is the most valuable field on any alert: at 3am nobody reasons from first principles.
+The runbook link is the most valuable field on any alert. At 3am nobody reasons from first principles.
 
 After a real incident, write a **blameless** review: a timeline, the impact, the contributing causes,
 and a short list of owned actions with dates. Ask "why did the system allow this?", not "who did it?".
@@ -268,28 +268,28 @@ the metric or `labeldrop` the label, then move that dimension into logs or trace
 
 **Q: What makes a good alert, and why alert on symptoms rather than causes?**
 
-It is urgent, actionable and real; failing any one makes it a ticket, an automation or a deletion.
-Symptoms are what users feel — error rate, p99, failed logins. Causes like high CPU create noise, and a
+It is urgent, actionable and real. Failing any one makes it a ticket, an automation or a deletion.
+Symptoms are what users feel: error rate, p99, failed logins. Causes such as high CPU create noise. A
 harmful cause shows up as a symptom anyway, so cause metrics stay on dashboards for diagnosis.
 
 **Q: Explain burn-rate alerting.**
 
 It alerts on how fast the error budget is being spent, not on a fixed error rate, and checks two
-windows. A short window alone pages on blips; a long window alone is slow. Firing only when both
-breach ignores a thirty-second spike but catches a sustained failure in minutes, with 14.4× paging
-and 3× opening a ticket.
+windows. A short window alone pages on blips. A long window alone is slow. Firing only when both
+breach ignores a thirty-second spike but catches a sustained failure in minutes. A 14.4× burn pages,
+and 3× opens a ticket.
 
 **Q: An alarm never fired even though the service was completely down. Why?**
 
 Almost certainly missing-data handling. The alarm watched a metric the app itself emits, and when the
-app died the metric vanished instead of breaching. Configure absence as a breach, and also alert on
-something outside the app — load balancer health, edge 5xx or an external prober.
+app died the metric vanished instead of breaching. Configure absence as a breach. Also alert on
+something outside the app: load balancer health, edge 5xx or an external prober.
 
 **Q: When is a dashboard the wrong tool?**
 
 When the question has a known answer, because then it should be an alert rather than something a
 human watches. Dashboards are for exploring and for diagnosis after an alert fires. The other case is
-a dashboard built because the metrics existed — thirty unread dashboards suggest coverage while
+a dashboard built because the metrics existed. Thirty unread dashboards suggest coverage while
 quietly loading the collector.
 
 ## What to Read Next

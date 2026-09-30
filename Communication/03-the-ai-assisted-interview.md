@@ -20,13 +20,13 @@ in_book: true
 
 When the assistant is allowed, the code stops being evidence. Everyone in the room knows the model can
 produce a working function, so producing one proves nothing. What is left to score is **your judgement
-about the code** — what you asked for, what you rejected, and how you checked.
+about the code**: what you asked for, what you rejected, and how you checked.
 
-This inverts the habit most candidates bring. In an unassisted round the artefact is the answer, so you
-go quiet and type. In an assisted round the artefact is the *cheap* part, and going quiet is the failure:
-you have removed the only thing being measured. The documented rejection pattern is exactly this —
-candidates who lean on the model without showing their own understanding are failed, while the ones who
-pass use it for well-defined subtasks and keep the design in their own hands.
+This reverses the habit most candidates bring. In an unassisted round the artefact (the code you
+produce) is the answer, so you go quiet and type. In an assisted round the artefact is the *cheap* part,
+and going quiet is the failure. You have removed the only thing being measured. The documented rejection
+pattern is exactly this. Candidates who lean on the model without showing their own understanding fail.
+The ones who pass use it for well-defined subtasks and keep the design in their own hands.
 
 So the rule for the whole hour is one sentence. **You own the design, the assistant owns the typing, and
 you say out loud which is which.**
@@ -35,9 +35,9 @@ you say out loud which is which.**
 
 ### Two rooms, and you do not pick which one
 
-Roughly 38% of US companies now permit AI in technical interviews and 62% still prohibit it, so you have
-to arrive ready for both. You cannot infer which room you are in from the company's public engineering
-brand — the policy is usually set per loop, sometimes per interviewer.
+Roughly 38% of US companies now permit AI in technical interviews and 62% still prohibit it. So you have
+to arrive ready for both. You cannot tell which room you are in from the company's public engineering
+brand. The policy is usually set per loop, and sometimes per interviewer.
 
 Ask in the first minute, and ask precisely, because "allowed" covers three very different rooms.
 
@@ -48,15 +48,15 @@ Ask in the first minute, and ask precisely, because "allowed" covers three very 
 | "Should I say when a block is generated?" | Most interviewers want this; assume yes unless told otherwise |
 | "Is the internet allowed for docs?" | Some loops ban the model but allow MDN, which changes how you handle an API you half-remember |
 
-> ⚠️ If a shared editor arrives with an assistant switched on and the round is meant to be unassisted,
-> say so and turn it off while they watch. Saying nothing and letting the suggestions appear is the one
-> mistake in this chapter that ends a loop rather than costing points.
+> ⚠️ A shared editor may arrive with an assistant switched on when the round is meant to be unassisted.
+> If so, say so and turn it off while they watch. Saying nothing and letting the suggestions appear is
+> the one mistake in this chapter that ends a loop rather than costing points.
 
 ### The four axes an assisted round scores
 
-At least one major employer now lets candidates switch between models mid-interview and scores the round
-on four named axes. Treat the four as a checklist of what to make visible, because they are what the
-rubric asks the interviewer to write down.
+At least one major employer now lets candidates switch between models mid-interview. It scores the round
+on four named axes. Treat the four as a checklist of what to make visible. They are what the rubric (the
+scoring guide) asks the interviewer to write down.
 
 | Axis | What it looks like unassisted | What it looks like with an assistant |
 | ---- | ----------------------------- | ------------------------------------ |
@@ -66,14 +66,14 @@ rubric asks the interviewer to write down.
 | **Communication** | You narrate your thinking | You narrate the prompt *before* you send it, so the interviewer hears the intent, not just the output |
 
 The pattern across the right-hand column: **every axis moves one level up the stack.** You are no longer
-scored on producing the thing; you are scored on specifying and checking it.
+scored on producing the thing. You are scored on specifying and checking it.
 
 ### The code-comprehension round
 
-The newer round shape, added by at least one major employer for the 2026 cycle, is not "write a
-function" at all. You are given an existing codebase and asked to read, debug and optimise it, with an
-assistant available. It is closer to a first week on the job than to a puzzle, and it rewards a
-completely different order of operations.
+At least one major employer added a newer round shape for the 2026 cycle. It is not "write a function"
+at all. You get an existing codebase and are asked to read, debug and optimise it, with an assistant
+available. It is closer to a first week on the job than to a puzzle. It rewards a completely different
+order of operations.
 
 ```mermaid
 flowchart TD
@@ -90,13 +90,13 @@ failure is reproduced, and before you have committed to a hypothesis.**
 
 Two things about that order matter more than the fix itself. **Reproducing before reading** stops you
 from being led by whichever file you happened to open first. And **asking for a summary rather than a
-fix** uses the model for the job it is genuinely good at — telling you what 400 unfamiliar lines do —
-while keeping the diagnosis, which is the scored part, yours.
+fix** uses the model for the job it is genuinely good at: telling you what 400 unfamiliar lines do. The
+diagnosis, which is the scored part, stays yours.
 
 ### Verifying generated code out loud
 
 This is the craft the round is really about. Here is a block an assistant will produce for "add retries
-to this call", written the way it actually arrives.
+to this call". It is written the way it actually arrives.
 
 **What the assistant produced, unedited:**
 
@@ -117,25 +117,26 @@ It compiles, it reads well, and it has four defects. Saying them in this order i
 
 1. **It retries every error.** A 400 or a validation failure will never succeed, so this turns one fast
    failure into three slow ones. Retry is only correct for *transient* faults.
-2. **It loses the cause.** The caller gets `Retry failed` and cannot tell a timeout from a bad payload,
-   which is the log line you will want at 3am.
+2. **It loses the cause.** The caller gets `Retry failed` and cannot tell a timeout from a bad payload.
+   That difference is the log line you will want at 3am.
 3. **It sleeps after the last attempt.** Four seconds of waiting, and then it throws anyway.
-4. **There is no jitter.** Every client backs off on the same schedule, so an outage ends with a
-   synchronised stampede — see [Chapter ?? — Rate Limiting](#ch-rate-limiting).
+4. **There is no jitter** (a small random delay). Every client backs off on the same schedule, so an
+   outage ends with a synchronised stampede. See [Chapter ?? — Rate Limiting](#ch-rate-limiting).
 
-The fix follows from the list: take a predicate that says whether an error is transient, break out of
-the loop when it is not, skip the sleep on the final attempt, add jitter to the delay, and pass the last
-error through as `cause`. Five small edits, each traceable to one sentence you said out loud.
+The fix follows from the list. Take a predicate (a function that returns true or false) that says
+whether an error is transient. Break out of the loop when it is not. Skip the sleep on the final attempt.
+Add jitter to the delay. Pass the last error through as `cause`. That is five small edits, each traceable
+to one sentence you said out loud.
 
-Note what the narration did. It never said "this is wrong" — it named **the input that breaks it** each
-time. That is the sentence pattern to practise: *"this is fine unless the error is a 400, in which case
-we wait four seconds to fail."* An interviewer can write that down as a verification signal. "Looks a
+Note what the narration did. It never said "this is wrong". It named **the input that breaks it** each
+time. That is the sentence pattern to practise: *"this is fine unless the error is a 400. Then we wait
+seven seconds to fail."* An interviewer can write that down as a verification signal. "Looks a
 bit off" is not something anyone can score.
 
 ### Prompt hygiene on the clock
 
 Under time pressure the temptation is to describe the whole problem and hope. That produces a large block
-you then have to read, which costs more time than writing it yourself would have.
+you then have to read. Reading it costs more time than writing it yourself would have.
 
 | ❌ Prompt that costs you time | ✅ Prompt that buys you time | Why |
 | ---------------------------- | --------------------------- | --- |
@@ -144,20 +145,20 @@ you then have to read, which costs more time than writing it yourself would have
 | Pastes the problem description | Pastes the failing test and the error | The test is unambiguous; your prose is not |
 | "Fix the bug" | "Summarise what this module does in five lines" | Keeps the diagnosis yours, which is the graded part |
 
-Two limits worth holding to. **Ask for one function, not a file** — you have to read every line aloud,
-so anything over about fifteen lines is a block you will not properly check. And **two attempts, then
-write it yourself.** Arguing with a model in front of an interviewer burns clock and reads as an
-inability to just do the thing.
+Hold to two limits. **Ask for one function, not a file.** You have to read every line aloud, so you
+will not properly check anything over about fifteen lines. And **two attempts, then write it
+yourself.** Arguing with a model in front of an interviewer wastes the clock. It also suggests you
+cannot just do the thing.
 
-> ⚠️ Never let a line into the editor you cannot explain. Interviewers probe exactly here: they pick a
+> ⚠️ Never let a line into the editor that you cannot explain. Interviewers probe exactly here. They pick a
 > generated line and ask why it is there. "The assistant added that" is a rejection, and it is the most
 > common one in this format.
 
 ### The room where AI is banned
 
-Sixty-two per cent of the time this is still the round, and the risk is not knowledge — it is atrophy.
-If every line you have written for a year arrived by pressing Tab, the unassisted hour will find that
-out.
+At 62% of companies this is still the round. The risk is not knowledge. It is atrophy: a skill that
+fades from lack of use. If every line you have written for a year arrived by pressing Tab, the
+unassisted hour will find that out.
 
 | What changes | What does not |
 | ------------ | ------------- |
@@ -165,9 +166,9 @@ out.
 | Typos and syntax cost real seconds | Narrating the approach before typing |
 | You choose the edge cases with no prompt to suggest them | Naming the input that would break your own code |
 
-The preparation is unglamorous and it works: **practise one problem a week with autocomplete switched
-off entirely.** Not a tutorial, not a new topic — a problem you have already solved, typed cold. The
-muscle you are keeping is recall, and it is the only one an assistant can quietly take from you.
+The preparation is dull, and it works: **practise one problem a week with autocomplete switched
+off entirely.** Not a tutorial, not a new topic. Pick a problem you have already solved and type it cold.
+The muscle you are keeping is recall, and it is the only one an assistant can quietly take from you.
 
 ## When to Use It
 
@@ -198,50 +199,50 @@ has not run.
 
 ❌ **Announcing that you do not use AI, as a signal of rigour.**
 ✅ Answer the question that was asked. In a 2026–27 loop this reads as being behind rather than
-principled — the same way refusing to use a debugger would.
+principled, the same way refusing to use a debugger would.
 
 > ⚠️ **Moving target:** interview policy is changing faster than the tools. The 38/62 split, the four
 > scored axes and the code-comprehension round are the 2026–27 picture and will look different by 2028.
-> The durable principle is the one that has not moved: **the interviewer is scoring your judgement, and
-> the assistant only changes which layer that judgement has to be visible at.**
+> The durable principle is the one that has not moved: **the interviewer is scoring your judgement. The
+> assistant only changes the layer where that judgement has to be visible.**
 
 ## 🔑 Key Takeaways
 
-- When the assistant is allowed, the code is no longer evidence — your reasoning about it is the only
+- When the assistant is allowed, the code is no longer evidence. Your reasoning about it is the only
   thing left to score.
-- Ask in the first minute whether AI is permitted and what "permitted" covers, because the answer varies
-  per loop rather than per company.
+- Ask in the first minute whether AI is permitted and what "permitted" covers. The answer varies per
+  loop rather than per company.
 - Verify generated code by naming the input that breaks it, not by saying it looks wrong.
-- Never let a line into the editor you cannot explain; being asked about one is the standard probe.
+- Never let a line into the editor that you cannot explain. Being asked about one is the standard probe.
 - The unassisted round is still the majority, so practise one problem a week with autocomplete off.
 
 ## Interview Questions
 
 **Q: We allow an AI assistant in this round. How will you use it?**
 
-Answer with the split, not with enthusiasm. Types, fixtures and boilerplate go to the assistant; the core
+Answer with the split, not with enthusiasm. Types, fixtures and boilerplate go to the assistant. The core
 algorithm and every design decision stay with you. Add that you will say when a block is generated and
 walk through it before it goes in. That one sentence covers three of the four scored axes before you have
 written any code.
 
 **Q: The assistant just gave you twenty lines. What do you do next?**
 
-Read it out loud against inputs, not against style. Name the case that breaks it — an empty array, a
-non-transient error, a duplicate key — and either fix that case or delete the block and ask for something
-smaller. Saying "this is fine unless X" is what an interviewer can record as verification.
+Read it out loud against inputs, not against style. Name the case that breaks it, such as an empty
+array, a non-transient error or a duplicate key. Then either fix that case, or delete the block and ask
+for something smaller. Saying "this is fine unless X" is what an interviewer can record as verification.
 
 **Q: How is the code-comprehension round different from a normal coding round?**
 
-The artefact already exists, so nothing is scored on producing code. It measures how you orient in
-unfamiliar code: reproduce the failure before reading, use the assistant for a summary of the module
-rather than for a fix, state a hypothesis, and change the smallest thing that tests it. The fix is often
+The artefact already exists, so nothing is scored on producing code. It measures how you find your way
+in unfamiliar code. Reproduce the failure before reading. Use the assistant for a summary of the module,
+not for a fix. State a hypothesis, and change the smallest thing that tests it. The fix is often
 one line, and the line is not the point.
 
 **Q: When would you refuse to use the assistant even though it is allowed?**
 
 When the subtask *is* the interview. If the round is "implement an LRU cache", generating it removes the
-only signal in the hour, so you write it yourself and use the assistant for the test fixtures instead.
-The same applies to any trade-off question — an architecture you cannot defend independently is worse
+only signal in the hour. So you write it yourself and use the assistant for the test fixtures instead.
+The same applies to any trade-off question. An architecture you cannot defend on your own is worse
 than a simpler one you can.
 
 ## What to Read Next

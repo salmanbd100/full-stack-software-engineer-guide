@@ -13,14 +13,13 @@ in_book: true
 # Part IX — Communication
 
 Every other part of this book is about knowing something. This one is about the interviewer finding
-out that you know it. In a senior loop those are separate problems, and the second is the one
-candidates neglect — a correct design explained in the wrong order scores worse than a simpler design
-explained well.
+out that you know it. In a senior loop those are separate problems, and candidates neglect the second.
+A correct design explained in the wrong order scores worse than a simpler design explained well.
 
-Three chapters cover the places where delivery decides the outcome: the spoken round, where the order
-you say things in changes whether they land and silence reads as being stuck; the written channels —
-pull requests, decision records, runbooks — where most senior influence happens; and the assisted
-round, where the model writes the code and your judgement is what is scored.
+Three chapters cover the places where delivery decides the outcome. In the spoken round, the order
+you say things in decides whether they land, and silence reads as being stuck. In the written channels
+(pull requests, decision records, runbooks), most senior influence happens. In the assisted round, the
+model writes the code and the interviewer scores your judgement.
 
 ## Chapters
 
@@ -47,12 +46,12 @@ Communication is how the part-level ownership becomes visible to someone else.
   asked is the signal.
 - **Do you check the question?** Restating a design prompt in one sentence before starting costs ten
   seconds and prevents solving the wrong problem for forty minutes.
-- **Do you narrate or just do?** In a coding round, saying what you are about to try and why converts
-  a wrong turn from a failure into a demonstration of method.
+- **Do you narrate or just do?** In a coding round, say what you are about to try and why. Then a
+  wrong turn stops being a failure and becomes a way to show your method.
 
 ## Reading Order
 
-01 first — most answers fail before any knowledge is tested. 03 directly after, since it raises the
-same narration bar for a room where an assistant is allowed. 02 is worth returning to on the job.
+Read 01 first, because most answers fail before any knowledge is tested. Read 03 straight after. It
+raises the same narration bar for a room where an assistant is allowed. Come back to 02 on the job.
 
 **Interview sprint:** 01 → 03.

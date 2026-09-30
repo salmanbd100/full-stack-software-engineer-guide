@@ -18,10 +18,10 @@ in_book: true
 
 ## 💡 The Core Idea
 
-These questions look like two categories and are really one. "Tell me about a hard problem you solved"
-and "tell me about a time you failed" both ask whether you have a **method** — something you would do
-again on a problem you have not seen. The first asks you to describe it working. The second asks you to
-describe it after it did not.
+These questions look like two categories but are really one. "Tell me about a hard problem you solved"
+and "tell me about a time you failed" both ask whether you have a **method**. A method is something you
+would do again on a problem you have not seen. The first question asks you to describe it working. The
+second asks you to describe it after it did not.
 
 The trap in both is the same. A candidate tells the story as a sequence of events, and the interviewer
 cannot tell whether the outcome came from judgement or from luck.
@@ -41,9 +41,9 @@ Every good debugging answer is the same four beats, whatever the bug was.
 | **Prevent**     | What now catches this class of bug                  | The senior half of the answer                |
 
 The fourth beat is the one candidates drop, and it is the one that separates levels. Fixing the bug is
-the job. Making the bug's whole class visible next time is the seniority.
+the job. Making the whole class of bug visible next time is what shows seniority.
 
-**The five whys, run properly, lands on a process rather than a line of code:**
+**The five whys (asking "why?" again at each answer), run properly, lands on a process, not a line of code:**
 
 ```text
 Why did the service crash?          → Memory overflow
@@ -53,8 +53,8 @@ Why was no policy set?              → The default was assumed to have one
 Root cause: no config validation in the deploy pipeline
 ```
 
-Notice the answer is "our pipeline does not check this", not "someone forgot". A root cause you can
-blame on a person is a symptom you have stopped early.
+Notice the answer is "our pipeline does not check this", not "someone forgot". If you can blame the
+root cause on a person, you stopped too early and found only a symptom.
 
 ## Two Worked Answers
 
@@ -112,8 +112,8 @@ the first demo is to be wrong cheaply. On the next project that caught
 a wrong assumption about permissions in the first fortnight.
 ```
 
-⚠️ The failure answer names three mistakes and does not soften any of them. A single vague mistake with
-a long redemption arc reads as rehearsed; three specific ones read as someone who actually thought
+⚠️ The failure answer names three mistakes and does not soften any of them. One vague mistake followed
+by a long recovery story sounds rehearsed. Three specific ones sound like someone who actually thought
 about it.
 
 ## What a Failure Story Must Contain
@@ -125,13 +125,13 @@ about it.
 | The systemic change          | What now makes this failure impossible, or at least visible          |
 | Evidence the change stuck    | "On the next project it caught X" — otherwise it is a good intention |
 
-Avoid the strength in costume ("I care too much about code quality"), blame with extra steps ("I
-trusted a teammate who let me down"), and the failure too small to teach anything.
+Avoid three shapes. The strength in disguise ("I care too much about code quality"). Blame with extra
+steps ("I trusted a teammate who let me down"). And the failure too small to teach anything.
 
 ## Working Under Pressure
 
-The pressure question is really about **triage**, and the answer has to contain an explicit ranking rule
-or it is just a description of stress.
+The pressure question is really about **triage**: deciding what to deal with first. The answer needs a
+clear ranking rule. Without one, it is just a description of stress.
 
 | When everything is urgent            | The rule                                                      |
 | ------------------------------------ | ------------------------------------------------------------- |
@@ -156,36 +156,36 @@ Calm is not the signal. The signal is that you reduced the number of things in p
 ## 🔑 Key Takeaways
 
 - Hard-problem and failure questions both test whether you have a repeatable method.
-- The four beats are observe, hypothesise, test, prevent — and prevent is the one that reads as senior.
-- A root cause that blames a person is a symptom; keep asking why until it is a process.
+- The four beats are observe, hypothesise, test, prevent. Prevent is the one that reads as senior.
+- A root cause that blames a person is a symptom. Keep asking why until it is a process.
 - A failure story needs a real cost, your decision as the cause, and evidence the fix stuck.
-- Under pressure the scored signal is triage — what you removed from the list, not how calm you sounded.
+- Under pressure the scored signal is triage: what you removed from the list, not how calm you sounded.
 
 ## Interview Questions
 
 **Q: What if your hardest technical problem is not that impressive?**
 
-Tell it anyway, and be precise about the method. A well-narrated cache-invalidation bug scores above a
-badly narrated distributed-systems story, because the interviewer can only score what they can follow.
-Reaching for scale you did not have collapses on the first follow-up question.
+Tell it anyway, and be precise about the method. A well-told cache-invalidation bug scores above a
+badly told distributed-systems story, because the interviewer can only score what they can follow.
+Claiming scale you did not have falls apart at the first follow-up question.
 
 **Q: You are asked for a failure and every real one was partly someone else's fault. What do you say?**
 
-Take your part of it and describe only that. "The API contract changed without notice — and I had built
-against it without a contract test, which was mine to add" is honest about both halves without spending
-the answer on the other party.
+Take your part of it and describe only that. For example: "The API contract changed without notice. I
+had built against it without a contract test, and adding one was my job." That is honest about both
+halves, and it does not spend the answer on the other party.
 
 **Q: When is the right answer to stop debugging?**
 
-When the cost of continuing exceeds the cost of the workaround, and you can say what the workaround
-costs. Senior engineers ship a mitigation with a ticket attached more often than they find root causes
-under time pressure, and saying so is a strength if you name what you deferred.
+When continuing costs more than the workaround, and you can say what the workaround costs. Under time
+pressure, senior engineers more often ship a mitigation with a ticket attached than find the root
+cause. Saying so is a strength, as long as you name what you put off.
 
 **Q: How do you tell a "risk that did not pay off" story without looking reckless?**
 
-Show the risk was bounded before you took it. A staged rollout, a flag, a rollback plan, and a metric
-that would tell you it was failing. Then the story is about a bounded experiment returning a negative
-result, which is a normal engineering outcome rather than a lapse in judgement.
+Show the risk was limited before you took it: a staged rollout, a flag, a rollback plan, and a metric
+that would tell you it was failing. Then the story is about a limited experiment that returned a
+negative result. That is a normal engineering outcome, not a lapse in judgement.
 
 ## What to Read Next
 

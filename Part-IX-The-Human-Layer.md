@@ -12,21 +12,21 @@ in_book: true
 
 # Part IX — The Human Layer
 
-Senior offers are lost here more often than on the whiteboard. The technical rounds establish that you
-can do the work; this part is where a company decides whether it wants you doing it next to everyone
-else. The questions look soft and are not: "tell me about a disagreement" is asking how you behave when
-you are certain and outranked, and there is a wrong answer.
+Senior offers are lost here more often than on the whiteboard. The technical rounds show that you can
+do the work. This part is where a company decides whether it wants you doing it next to everyone else.
+The questions look soft, but they are not. "Tell me about a disagreement" asks how you behave when you
+are sure you are right and the other person outranks you. There is a wrong answer.
 
-Two sections, divided by what is being assessed. Behaviour covers the stories — the STAR shape,
-influence and saying no, failure, and how your team works. Communication covers the delivery —
-explaining and thinking aloud under observation, writing that survives being forwarded, and the newest
-round in the loop.
+Two sections, divided by what is being assessed. Behaviour covers the stories: the STAR shape
+(situation, task, action, result), influence and saying no, failure, and how your team works.
+Communication covers the delivery: explaining and thinking aloud while someone watches, writing that
+still works when it is forwarded, and the newest round in the loop.
 
 That last chapter is the most current in the book. **Interviews themselves changed.** Google is adding a
 code-comprehension round where you read, debug and optimise an existing codebase with an AI assistant
 available. Meta lets candidates switch between models mid-interview and scores on problem solving, code
-quality, verification and communication. Roughly 38% of US companies now permit AI in technical
-interviews and 62% still forbid it — so you have to be ready for both rooms.
+quality, verification and communication. Roughly 38% of US companies now allow AI in technical
+interviews, and 62% still forbid it. You have to be ready for both rooms.
 
 ## Sections
 
@@ -38,7 +38,7 @@ interviews and 62% still forbid it — so you have to be ready for both rooms.
 ## What Interviewers Probe For
 
 The senior signal for this part is **owns the design and uses the tool, rather than the other way
-round.** Three questions run through both sections; each section index adds its own.
+round.** Three questions run through both sections. Each section index adds its own.
 
 - **What did *you* decide?** A story where the team shipped something is a team story. The interviewer is
   listening for the decision that was yours, the alternative you rejected, and the reason.
@@ -61,10 +61,10 @@ round.** Three questions run through both sections; each section index adds its 
 Behaviour before Communication. The stories come first because the communication chapters are about
 delivering them, and it is easier to practise delivery on material you already have.
 
-**Interview sprint:** Behaviour 01 — the STAR shape is the container everything else goes in — then
-Communication 01 and 03. Three chapters, the evening before. Prepare stories, not scripts: a memorised
-script is audible.
+**Interview sprint:** Behaviour 01 first, because every other answer sits inside the STAR shape. Then
+Communication 01 and 03. Three chapters, the evening before. Prepare stories, not scripts: an
+interviewer can hear a memorised script.
 
 > ⚠️ **The stories have to be yours.** Every example in this part is a shape to fill, not a script to
-> lift. An interviewer who has run four hundred loops recognises a borrowed story in two follow-up
-> questions, and the recovery from that is worse than an ordinary answer.
+> lift. An interviewer who has run four hundred loops spots a borrowed story within two follow-up
+> questions. Once you are caught, you are worse off than with an ordinary answer.

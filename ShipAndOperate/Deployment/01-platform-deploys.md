@@ -69,21 +69,22 @@ https://acme-shop.com
 
 ### Build once, promote the artefact
 
-The single most important rule, and the one interviewers actually test. A pipeline that rebuilds per
-environment is testing one artefact and shipping a different one — different dependency resolutions,
-different build timestamps, sometimes a different lockfile state.
+This is the most important rule, and the one interviewers actually test. A pipeline that rebuilds per
+environment tests one artefact and ships a different one. Dependency resolutions and build timestamps
+differ, and sometimes the lockfile state does too.
 
 ✅ **Build once, promote the same deployment:**
 
 ```bash
-vercel build                                  # one artefact
-DEPLOY_URL=$(vercel deploy --prebuilt)        # published, preview only
+vercel build --prod                                         # one artefact, production variables
+DEPLOY_URL=$(vercel deploy --prebuilt --prod --skip-domain)  # published, domain not moved yet
 # ... run the smoke tests against $DEPLOY_URL ...
-vercel promote "$DEPLOY_URL" --yes            # re-aim production, no rebuild
+vercel promote "$DEPLOY_URL" --yes                           # re-aim production, no rebuild
 ```
 
-This is what "promotion" means everywhere — container registries, S3 artefact buckets and platform
-deploys all do the same thing under different names.
+This is what "promotion" means everywhere. Container registries, S3 artefact buckets and platform
+deploys all do the same thing under different names. On Vercel, promoting a *preview* deployment
+rebuilds it with production variables. That is why the artefact above is staged as a production build.
 
 ## Where the Code Runs
 
@@ -129,22 +130,22 @@ Server has:  /_next/static/chunks/page-d4e5f6.js   (build N+1)
                       404 → white screen
 ```
 
-Because old deployments are never deleted, the fix is routing rather than caching: the client sends the
+Old deployments are never deleted, so the fix is routing rather than caching. The client sends the
 deployment ID it was served, and the platform routes that request back to the matching build. Vercel
-calls this **skew protection**; the general term is **version pinning**.
+calls this **skew protection**. The general term is **version pinning**.
 
-✅ Version the API and never break a contract within a release, regardless. Skew protection has a
-retention window; a backward-compatible API does not expire.
+✅ Version the API anyway, and never break a contract within a release. Skew protection has a
+retention window. A backward-compatible API does not expire.
 
 ## A Preview Per Branch
 
 A preview environment is **a full deployment of one branch, at its own URL, thrown away when the branch
-merges.** It exists because the alternative — a single shared staging environment — has a queue. One
+merges.** It exists because the alternative, a single shared staging environment, has a queue. One
 person's half-finished migration blocks everyone else's review, and the person who broke it is not
 always the person who has to debug it.
 
-Previews are cheap for the reason above: a deployment is an immutable build behind a pointer, so a
-second copy costs a build rather than a second environment. Each preview gets its own environment
+Previews are cheap for the reason above. A deployment is an immutable build behind a pointer, so a
+second copy costs a build, not a second environment. Each preview gets its own environment
 values, so the same code can point at a different database without a code change.
 
 ```typescript
@@ -158,11 +159,11 @@ export const deployEnv: DeployEnv =
 export const isRealTraffic: boolean = deployEnv === "production";
 ```
 
-> ⚠️ Guarding on `NODE_ENV === "production"` does not work here. A preview **is** a production build —
+> ⚠️ Guarding on `NODE_ENV === "production"` does not work here. A preview **is** a production build:
 > minified, optimised, `NODE_ENV=production`. Only the platform's own variable tells the two apart.
 
-Previews replace staging for *review*. They do not replace it for *rehearsal* — a release that
-coordinates three services still needs one place where all three sit at the candidate version.
+Previews replace staging for *review*. They do not replace it for *rehearsal*. A release that
+coordinates three services still needs one place where all three run the candidate version.
 
 ## The Data Problem
 
@@ -182,9 +183,9 @@ migration, and the first migration always comes.
 ❌ **Never point a preview at the production database with writes enabled.** A preview is code that has
 not been reviewed yet. That is the entire point of it.
 
-Third-party services need the same treatment: test-mode payment keys, a catch-all inbox for email,
-analytics disabled outright — preview traffic poisons funnels — and webhooks either registered per URL
-or stubbed.
+Third-party services need the same treatment. Use test-mode payment keys and a catch-all inbox for
+email. Turn analytics off outright, because preview traffic poisons funnels. Register webhooks per URL,
+or stub them.
 
 ## Locking Previews Down
 
@@ -199,20 +200,20 @@ unreleased work.
 | **`x-robots-tag: noindex`** | Search engines                           | Always. A leaked preview in search is an incident |
 
 > ⚠️ **Moving target:** header names, protection tiers and bypass mechanisms differ by platform and get
-> renamed. The durable principle: **previews are private by default, and CI is granted access with a
-> revocable token — never by turning the protection off.**
+> renamed. The durable principle: **previews are private by default. CI gets access with a revocable
+> token, never by turning the protection off.**
 
 ## Common Mistakes
 
 ❌ **Treating the preview URL as disposable and the production deploy as the "real" build.**
-✅ They are the same artefact. If the preview passed, promote *it* — do not merge and rebuild.
+✅ They should be the same artefact. Promote the deployment that passed. Do not merge and rebuild.
 
 ❌ **Putting secrets in a build-time variable prefixed for the client.**
 ✅ Anything the bundler inlines ships to the browser. Read secrets at request time, in server code.
 
 ❌ **Assuming the CDN purges itself on deploy.**
 ✅ Static assets are content-hashed and safe. HTML and API responses hold their `s-maxage` until it
-expires — a stale page after a deploy is usually a cache header, not a broken build.
+expires. A stale page after a deploy is usually a cache header, not a broken build.
 
 ❌ **Every preview writing to the same database, so the review environment is broken more often than not.**
 ✅ Branch the database, or seed a fresh one. The cost of the fix is far below the cost of the queue.
@@ -226,48 +227,49 @@ unreviewed work.
 
 ## 🔑 Key Takeaways
 
-- A deployment is an immutable artefact and a domain is a pointer at one — that is why rollback is instant.
+- A deployment is an immutable artefact and a domain is a pointer at one. That is why rollback is instant.
 - Build once and promote the same artefact; rebuilding per environment ships something you never tested.
 - Edge execution wins on latency and loses on data access, so database-backed routes belong in the database's region.
 - A preview is a production build, so environment detection must use the platform variable, not `NODE_ENV`.
-- The application copy is cheap and the data copy is not — branch or seed, and never write to production.
+- The application copy is cheap and the data copy is not. Branch or seed, and never write to production.
 
 ## Interview Questions
 
 **Q: What actually happens when you promote a deployment to production?**
 
-Nothing is rebuilt. The build already exists as an immutable deployment with its own permanent URL, and
-promotion re-points the production domain at it. The switch is atomic, so no request sees a
-half-updated site, and the previous deployment stays live on its own URL — which is what makes rollback
+Nothing is rebuilt. The build already exists as an immutable deployment with its own permanent URL.
+Promotion re-points the production domain at it. The switch is atomic, so no request sees a
+half-updated site. The previous deployment stays live on its own URL, and that is what makes rollback
 a pointer change rather than a redeploy.
 
 **Q: Why can moving a route to the edge make it slower?**
 
 Edge runtimes start close to the user but far from your data. A handler in Sydney querying a database
 in Frankfurt pays roughly 250 ms per round trip, which dwarfs the 100 ms of cold start it saved. Edge
-is right for work that needs no origin data — redirects, token checks, geo routing, A/B assignment.
+is right for work that needs no origin data, such as redirects, token checks, geo routing and A/B assignment.
 Anything reading your database belongs in the database's region, with the CDN in front doing the
 geographic work.
 
 **Q: A user reports a white screen right after a deploy, but you cannot reproduce it. What is happening?**
 
 Almost certainly version skew. Their tab was loaded from the previous build and is requesting a
-content-hashed chunk the new build renamed, so the request 404s and the app fails to hydrate. The
+content-hashed chunk the new build renamed. The request 404s, and the app fails to hydrate (attach
+its JavaScript to the server HTML). The
 platform-level fix is pinning requests to the deployment the client was served. The durable fix is
 never breaking an API contract within a release, plus detecting a new build and offering a reload.
 
 **Q: What does a preview environment give you that a staging environment does not?**
 
-Isolation per branch. Staging is a shared resource with an implicit queue: one unfinished change blocks
-everyone else's review, and diagnosing a failure means first working out whose change caused it.
+Isolation per branch. Staging is a shared resource with a hidden queue. One unfinished change blocks
+everyone else's review. To diagnose a failure, you first have to work out whose change caused it.
 Previews give each pull request its own URL built from that branch alone, so a reviewer sees exactly
 one change. Staging still earns its place for release rehearsals spanning several services.
 
 **Q: How do you make sure the artefact you tested is the artefact you shipped?**
 
 Produce one build, publish it as a deployment, run the smoke tests against that deployment's own URL,
-then promote it by ID. The pipeline should have exactly one build step, and every later stage should
-take a deployment identifier as input rather than a Git reference. If any stage can trigger a rebuild,
+then promote it by ID. The pipeline should have exactly one build step. Every later stage should
+take a deployment identifier as input, not a Git reference. If any stage can trigger a rebuild,
 the guarantee is gone.
 
 ## What to Read Next

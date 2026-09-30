@@ -12,12 +12,12 @@ in_book: true
 
 # Cloud Essentials
 
-Clouds differ; the primitives do not. Every provider gives you somewhere to run code without a server,
-somewhere to put files that is not a disk, and something that caches those files near the user. A
-frontend-heavy full stack engineer reaches for those three all the time and for almost nothing else.
+Clouds differ, but the primitives do not. Every provider gives you three things: somewhere to run code
+without a server, somewhere to put files that is not a disk, and something that caches those files near
+the user. A frontend-heavy full stack engineer uses those three all the time, and almost nothing else.
 
-Each chapter states the principle without a brand name first, then names the products — AWS most often,
-because most interview panels assume it, with Vercel and Cloudflare where the frontend shape differs.
+Each chapter states the principle first, with no brand name, and then names the products. AWS comes up
+most often, because most interview panels assume it. Vercel and Cloudflare appear where the frontend differs.
 
 ## Chapters
 
@@ -31,10 +31,10 @@ because most interview panels assume it, with Vercel and Cloudflare where the fr
 Two cloud questions, on top of the part-level signals in the Part VIII opener:
 
 - **Can you separate the principle from the product?** "How would you serve user uploads?" wants object
-  storage, a presigned URL and a cache in front — not a list of bucket settings.
+  storage, a presigned URL and a cache in front. It does not want a list of bucket settings.
 - **Do you know what a cold start costs?** Bundle size, connection reuse, and whether the load is spiky or
   steady all change the answer.
 
 ## Reading Order
 
-01 first, for the words — regions, the managed-service ladder and the responsibility line. Then 02.
+Read 01 first, for the words: regions, the managed-service ladder and the responsibility line. Then read 02.

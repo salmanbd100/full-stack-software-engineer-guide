@@ -39,8 +39,8 @@ keeping those two jobs straight.
 
 ### Containers Are Not Small Virtual Machines
 
-A virtual machine boots its own kernel; a container shares the host's. So containers give you **packaging
-and resource isolation**, not a strong security boundary. Untrusted code belongs in a microVM sandbox.
+A virtual machine boots its own kernel. A container shares the host's. So containers give you **packaging
+and resource isolation**, not a strong security boundary. Untrusted code belongs in a microVM sandbox (a small, fast virtual machine with its own kernel).
 
 ### Layers, and Why Order Sets Build Time
 
@@ -63,7 +63,7 @@ the manifest and lockfile alone, install, then copy the source. Reverse those tw
 change to a component reinstalls the whole dependency tree.
 
 ⚠️ A cache is only reused if the **builder still has the layers**. A fresh CI runner has none, so the
-pipeline must import a cache explicitly — see [Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions).
+pipeline must import a cache explicitly. See [Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions).
 Fast local rebuilds and fast pipeline builds are two different problems with two different fixes.
 
 ### Multi-Stage Builds Decide What Ships
@@ -95,7 +95,7 @@ Four details in that file matter more than they look:
 
 - `--from=build` copies **files, not layers**, so none of the build stage's history reaches the result.
 - `--chown` during the copy avoids a later `RUN chown -R`, which would duplicate every file in a new layer.
-- `USER` comes after the copies. The build needs write access; the runtime does not.
+- `USER` comes after the copies. The build needs write access. The runtime does not.
 - `CMD` uses the array form. The shell form, `CMD node server.js`, makes a shell PID 1, and that shell
   does not pass SIGTERM on to Node.
 
@@ -126,8 +126,8 @@ rebuilding last Tuesday's image. Tag your own images with the commit SHA, never 
 
 ### Hardening the Runtime
 
-The controls below belong to whatever runs the image: Compose for a local stack, or the orchestrator,
-which is usually another team's platform and uses the same settings under different names.
+The controls below belong to whatever runs the image: Compose for a local stack, or the orchestrator. The
+orchestrator is usually another team's platform, and it uses the same settings under different names.
 
 **Take away everything the process does not need:**
 
@@ -151,8 +151,8 @@ whole Docker API. A process holding it can start a privileged container that mou
 
 ### Secrets Never Belong in a Layer
 
-`ARG` and `ENV` values are stored in the image metadata, and `docker history` shows them. When a build
-really needs a credential — for example, to upload source maps — mount it for one instruction only.
+`ARG` and `ENV` values are stored in the image metadata, and `docker history` shows them. Sometimes a build
+really needs a credential, for example to upload source maps. Then mount it for one instruction only.
 
 **Mount the secret for one `RUN`, then pass it at build time:**
 
@@ -227,14 +227,14 @@ away from root outside. ✅ `USER node`, plus `read_only` with a `tmpfs` where w
 ❌ **Deploying `latest`.** Two machines pull it a week apart and get different images. ✅ Tag with the
 commit SHA, and promote that exact tag through each environment.
 
-❌ **Scanning once, at build time.** The image was clean when it shipped; the advisory landed on Thursday.
+❌ **Scanning once, at build time.** The image was clean when it shipped. The advisory landed on Thursday.
 ✅ Scan the deployed set on a schedule and keep an SBOM you can query.
 
 ## 🔑 Key Takeaways
 
 - A container is a host process with a restricted view of the machine, so it gives packaging and resource
   isolation but not a strong security boundary.
-- An image is a stack of read-only layers and is the artefact the pipeline ships; containers are
+- An image is a stack of read-only layers and is the artefact the pipeline ships. Containers are
   disposable copies of it.
 - Instruction order sets build time, and the content of the final stage sets image size and attack surface.
 - Layers only add, so a build secret must be mounted for one instruction rather than copied in and deleted.
@@ -264,14 +264,14 @@ BuildKit secret mount gives the value to the one `RUN` that needs it and writes 
 
 **Q: Would you use a distroless base image?**
 
-For a service where the security review matters, yes. No shell and no package manager removes most
-post-exploitation tooling and a chunk of the CVE surface. The cost is debuggability: you cannot exec into a
+For a service where the security review matters, yes. No shell and no package manager removes most of
+the tools an attacker uses after getting in. It also removes many known vulnerabilities (CVEs). The cost is debuggability: you cannot exec into a
 shell that does not exist. If the team's only debugging technique is logging into the container, distroless
 will hurt before it helps.
 
 **Q: A container exited with 137. What happened, and what do you check?**
 
-137 is 128 plus 9, so the process was SIGKILLed — in practice, almost always by the OOM killer. Confirm with
+137 is 128 plus 9, so the process got SIGKILL. In practice the sender is almost always the OOM (out-of-memory) killer. Confirm with
 `State.OOMKilled` in `docker inspect`. Then decide whether the limit is too low or the process leaks:
 `docker stats` during a normal run shows memory that climbs and never falls if it leaks.
 

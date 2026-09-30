@@ -19,14 +19,14 @@ in_book: true
 ## 💡 The Core Idea
 
 A cloud provider rents you four things: somewhere to run code, somewhere to keep bytes, a network
-between them, and a way to say who may do what. Every service in the console is one of those four,
-sold at a different level of _how much of the operating is yours_. The names differ; the primitives
+between them, and a way to say who may do what. Every service in the console is one of those four.
+What changes is _how much of the operating is yours_. The names differ, but the primitives
 do not.
 
 Interviewers care about the primitives more than the names. "How would you serve user uploads?" wants
 object storage, a signed URL and a cache in front of it. The shape is simple: your application never
-carries the bytes. It issues a short-lived URL, the browser talks to storage directly, and the CDN
-serves everyone after that. Your servers make permission decisions, not megabytes.
+carries the bytes. It issues a short-lived URL, and the browser talks to storage directly. The CDN (a
+cache near the user) serves everyone after that. Your servers make permission decisions, not megabytes.
 
 ## How It Works
 
@@ -39,7 +39,7 @@ serves everyone after that. Your servers make permission decisions, not megabyte
 | **Network**  | Routing, load balancing, edge caching | CloudFront · Cloud CDN · Front Door · Cloudflare              |
 | **Identity** | Who may call what, and with which key | IAM · Cloud IAM · Entra ID                                    |
 
-A managed database is compute and storage sold together — a pricing decision, not a fifth primitive.
+A managed database is compute and storage sold together. That is a pricing decision, not a fifth primitive.
 
 ### Geography: region, zone, edge
 
@@ -68,8 +68,8 @@ distributed-systems problem.
 ### The managed-service ladder
 
 The same application can run at five heights: a virtual machine, a container service, a managed
-runtime, a function, or a managed product. Each rung up hands the provider more of the operating — the
-OS, then the runtime, then scaling — and takes away more of your control. Billing moves too, from
+runtime, a function, or a managed product. Each rung up hands the provider more of the operating: the
+OS, then the runtime, then scaling. It also takes away more of your control. Billing moves too, from
 paying for uptime to paying per invocation or per use.
 
 > ⚠️ The rung changes _who fixes it_, never _who is accountable_. A managed database that runs out of
@@ -87,7 +87,7 @@ real breaches happen:
 
 ### Identity: the part a frontend-heavy engineer touches
 
-Identity is a list of policies: which principal may do which action on which resource. Three habits
+Identity is a list of policies: which principal (a user, role or service) may do which action on which resource. Three habits
 cover most of what you will be asked:
 
 - **Roles, not long-lived keys.** A deploy pipeline or a function assumes a role and gets a session
@@ -104,7 +104,8 @@ container, pinned to one region. A **key** is the object's full identifier, such
 `users/42/avatar.png`. An **object** is the bytes plus metadata: content type, cache headers and tags.
 
 The key **looks** like a path and is not one. The keyspace is flat, and `/` is an ordinary character
-that tools draw as folders. Listing "a folder" is a prefix scan, and it slows down as the bucket grows.
+that tools draw as folders. Listing "a folder" is a prefix scan that pages through keys 1,000 at a time.
+It gets slower as the prefix grows.
 Never build a feature on listing.
 
 > ⚠️ Object storage has no partial writes and no append. You replace a whole object or you leave it
@@ -160,24 +161,24 @@ export async function createUploadTicket(userId: string, contentType: string): P
 }
 ```
 
-Private downloads work the same way: sign a short-lived `GET`, or a signed **cookie** when a whole set
-of files must be readable at once, for example a video's manifest and its segments.
+Private downloads work the same way. Sign a short-lived `GET` for one file. Use a signed **cookie** when a
+whole set of files must be readable at once, for example a video's manifest and its segments.
 
 ### A CDN in front of the bucket
 
 [Chapter ?? — Content Delivery Network](#ch-cdn) covers how edges route and what they offload. Here the
-question is what you configure, and who owns each setting. A miss costs one origin request; every
+question is what you configure, and who owns each setting. A miss costs one origin request. Every
 later user in that region is served from the edge.
 
 **The origin.** Lock it so the CDN is the only thing that can read it. A publicly readable bucket lets
 users find the direct URL, skip the cache, and skip your signed-URL rules. Every provider has an
-origin-only mechanism — an origin access control, a signed origin request, or a shared secret header.
+origin-only mechanism, such as an origin access control, a signed origin request or a shared secret header.
 Turn one on and block public reads.
 
 **The cache key.** The edge stores each response under a key. Everything you let into that key
 multiplies the copies, and every extra copy is another miss. Always include the path and
 `Accept-Encoding`. Include only the query parameters that change the response. Leave cookies out for
-assets — one session cookie in the key means zero hits.
+assets. One session cookie in the key means zero hits.
 
 **Cache headers — the origin sets how long things live, in application code:**
 
@@ -197,10 +198,10 @@ const dashboard = { "cache-control": "private, no-store" };
 `stale-while-revalidate` removes the latency spike at expiry: the edge answers from the stale copy and
 refreshes behind the request.
 
-**Invalidation.** Purging is slow, usually metered and eventually consistent. "Invalidate everything"
-on deploy empties the cache and floods the origin. Change the URL instead: with hashed filenames such
-as `app.7f3c9a.js`, a new build asks for new URLs and the old copies are never requested again. Only
-the small HTML entry point needs a short TTL or a purge.
+**Invalidation.** Purging is slow and usually metered. It is also eventually consistent: edges catch up
+at different times. "Invalidate everything" on deploy empties the cache and floods the origin. Change the
+URL instead. With hashed filenames such as `app.7f3c9a.js`, a new build asks for new URLs, and nobody
+requests the old copies again. Only the small HTML entry point needs a short TTL (time to live) or a purge.
 
 ## When to Use It
 
@@ -222,14 +223,14 @@ and anything personalised stays at the origin with a `private` cache header.
 
 ## Common Mistakes
 
-❌ **Deploying into one availability zone.** A second zone costs close to nothing and is the largest
+❌ **Deploying into one availability zone.** A second zone costs little and is the largest
 availability win there is. ✅ Run in at least two.
 
 ❌ **Choosing a region out of habit.** `us-east-1` is the tutorial default and the wrong answer for a
 European product with a residency rule. ✅ Choose on users, then law, then price.
 
-❌ **Using the root account or a long-lived key for daily work.** Policy cannot constrain root, and it
-is the first credential an attacker looks for. ✅ Use a scoped role with an expiring session.
+❌ **Using the root account or a long-lived key for daily work.** Policy cannot limit root. It is also
+the first credential an attacker looks for. ✅ Use a scoped role with an expiring session.
 
 ❌ **Proxying uploads through the application.** It burns bandwidth and memory and breaks on large
 files. ✅ Presign, let the browser upload directly, and confirm afterwards.
@@ -254,7 +255,7 @@ entry, and the hit rate collapses. ✅ Include only what changes the response.
 
 A region is a geographic area. A zone is one or more data centres inside it, with separate power,
 cooling and network, close enough for fast replication. Spreading across zones protects against one
-data centre failing and usually costs nothing. Spreading across regions costs a second copy of
+data centre failing and costs little. Spreading across regions costs a second copy of
 everything plus a consistency problem.
 
 **Q: Explain the shared responsibility model without naming a provider.**
@@ -265,10 +266,10 @@ line moves with how managed the service is, but data and access control never cr
 
 **Q: When would you not use a managed service?**
 
-When it cannot do what you need — an unsupported runtime, a process that outlives a request, or a
-compliance rule that needs isolation you can show. Cost is a weaker reason than it sounds. The managed
-price usually beats an engineer's time running it yourself, unless the workload is large, steady and
-predictable.
+When it cannot do what you need. For example: an unsupported runtime, a process that outlives a request,
+or a compliance rule that needs isolation you can show. Cost is a weaker reason than it sounds. The
+managed price is usually lower than the engineer time it takes to run it yourself. The exception is a
+workload that is large, steady and predictable.
 
 **Q: How would you handle user file uploads in a web application?**
 
@@ -279,8 +280,8 @@ the operation to one key.
 
 **Q: After a deploy, users are getting the old JavaScript. What went wrong and how do you fix it?**
 
-Either the asset filenames did not change, so the edge still serves the old bytes, or the HTML that
-references them is cached too long. Hash the content into asset filenames so each build produces new
+There are two likely causes. The asset filenames did not change, so the edge still serves the old
+bytes. Or the HTML that references them is cached too long. Hash the content into asset filenames so each build produces new
 URLs, and cache those forever. Give the HTML a short `s-maxage` and make it the only thing you purge.
 
 ## What to Read Next

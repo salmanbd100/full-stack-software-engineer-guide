@@ -19,10 +19,10 @@ in_book: true
 ## 💡 The Core Idea
 
 You hand the platform a handler and a trigger. It owns everything else: when a process starts, how
-many run, when they are killed. That single trade buys you scaling you never configure and a bill that
+many run, when they are killed. That one trade buys you scaling you never configure, and a bill that
 goes to zero when nobody calls you.
 
-It also takes away the thing a long-running server gives for free — a process that is _already
+It also takes away the thing a long-running server gives for free: a process that is _already
 running_. Every serverless failure mode in this chapter comes from that one loss.
 
 ## How It Works
@@ -62,9 +62,9 @@ export async function handler(event: { key: string }): Promise<Response> {
 }
 ```
 
-> ⚠️ Module scope is a **cache, not storage**. The instance can be killed at any moment and a second
-> instance never sees the first one's variables. Cache a client or a secret there; never a counter, a
-> session, or anything you would be sad to lose.
+> ⚠️ Module scope is a **cache, not storage**. The instance can be killed at any moment, and a second
+> instance never sees the first one's variables. Cache a client or a secret there. Never keep a counter,
+> a session, or anything you would be sad to lose.
 
 ### The three invocation shapes
 
@@ -77,7 +77,7 @@ The trigger decides who retries, and how many times. Getting this wrong is how e
 | **Queue-polled**     | A queue or change stream            | No            | Until acknowledged or the queue gives up | Partial batch failure       |
 
 Asynchronous is the shape that surprises people. The platform retries your handler without telling the
-original caller, so a handler that charges a card twice will charge a card twice.
+original caller. A handler that is not idempotent (safe to run twice) will charge a card twice.
 
 **Report only the failed messages in a batch, not the whole batch:**
 
@@ -102,7 +102,7 @@ export async function handler(event: { Records: QueueRecord[] }): Promise<BatchR
 
 ### Cold starts
 
-A cold start is the init step above happening while a user waits. It is not one number — it is a sum,
+A cold start is the init step above happening while a user waits. It is not one number. It is a sum,
 and only some of it is yours.
 
 | Part of the cold start        | Typical cost      | Can you change it?                              |
@@ -120,23 +120,23 @@ and only some of it is yours.
 - **Do not put the function on a private network** unless it must reach something inside one.
 - **Pre-warm instances** for a latency-sensitive path. It works, and you pay for idle capacity.
 
-> ✅ Measure before you tune. Send the same request several times and compare the first with the rest —
-> the gap is your cold start, and it is often smaller than the database query next to it.
+> ✅ Measure before you tune. Send the same request several times and compare the first with the rest.
+> The gap is your cold start. It is often smaller than the database query next to it.
 
 ### Concurrency and the bill
 
 The classic model gives **one instance one request at a time**. Ten simultaneous requests means ten
-instances, which means ten cold starts on the first spike and ten database connections.
+instances. On the first spike, that means ten cold starts and ten database connections.
 
-Newer models change that. Isolate-based runtimes and the "fluid" style of function reuse an instance
-across concurrent requests, so a handler that spends its time waiting on I/O costs far less. The
-consequence is that in-flight work now overlaps, and module-scope state is shared between requests
-that are running at the same time.
+Newer models change that. Isolate-based runtimes (many small sandboxes in one process) and the "fluid"
+style of function reuse an instance across concurrent requests. A handler that spends its time waiting
+on I/O then costs far less. The catch is that in-flight work now overlaps. Module-scope state is shared
+between requests that are running at the same time.
 
-> ⚠️ **Moving target:** every published limit here moves — durations, memory ceilings, concurrency
+> ⚠️ **Moving target:** every published limit here moves. Durations, memory ceilings, concurrency
 > models and pricing units all changed within the last two years, and vendors disagree on all of them.
-> AWS Lambda caps at 15 minutes and 10 GB; Vercel Functions set duration and memory per route in
-> `vercel.json`; Cloudflare Workers bill CPU time, not wall time, and default to 30 seconds of it. The
+> AWS Lambda caps at 15 minutes and 10 GB. Vercel Functions set duration per route in `vercel.json` and
+> memory per project. Cloudflare Workers bill CPU time, not wall time, and default to 30 seconds of it. The
 > durable principle: **check the current limit for your platform before designing around one, and never
 > design a request path that needs a number close to the ceiling.**
 
@@ -154,70 +154,70 @@ that are running at the same time.
 ## Common Mistakes
 
 ❌ **Opening a database connection inside the handler.** A hundred concurrent instances open a hundred
-connections and exhaust the database's pool. ✅ Create the client in module scope, and put a connection
+connections and exhaust the database's pool. ✅ Create the client in module scope. Put a connection
 pooler between the functions and the database.
 
 ❌ **Assuming an event arrives once.** Asynchronous and queue triggers retry, so at-least-once is the
-guarantee. ✅ Make handlers idempotent — key the work on an event ID and ignore a repeat.
+guarantee. ✅ Make handlers idempotent. Key the work on an event ID and ignore a repeat.
 
-❌ **Leaving the timeout at the maximum.** A hung upstream call then bills for fifteen minutes and holds
-concurrency the whole time. ✅ Set the timeout just above the realistic worst case, and set a shorter
+❌ **Leaving the timeout at the maximum.** A hung upstream call then bills for fifteen minutes. It also
+holds concurrency the whole time. ✅ Set the timeout just above the realistic worst case. Set a shorter
 one on the HTTP client inside it.
 
-❌ **Storing secrets in plain environment variables.** They are readable by anyone with console access
-and they end up in logs. ✅ Fetch from a secret store at init and cache in module scope.
+❌ **Storing secrets in plain environment variables.** Anyone with console access can read them, and
+they end up in logs. ✅ Fetch from a secret store at init and cache in module scope.
 
 ❌ **Attaching the widest available role because the narrow one failed once.** ✅ Grant the specific
-actions on the specific resources; a function that reads one bucket prefix should say so.
+actions on the specific resources. A function that reads one bucket prefix should say so.
 
 ❌ **Logging plain strings.** Nothing can query them later. ✅ Log structured JSON with a request ID, so
 one slow request can be traced across every function it touched.
 
 ## 🔑 Key Takeaways
 
-- An instance runs its module scope once and its handler many times; that boundary is the whole performance model.
+- An instance runs its module scope once and its handler many times. That boundary is the whole performance model.
 - The trigger decides the retry semantics, so it decides whether your handler must be idempotent.
-- A cold start is a sum of platform time and your bundle — only the second half is yours to fix.
-- One instance per concurrent request is what exhausts database connections; pool outside the function.
-- Serverless removes server management, not operational thinking — timeouts, concurrency and retries are still yours.
+- A cold start is a sum of platform time and your bundle. Only the second half is yours to fix.
+- One instance per concurrent request is what exhausts database connections. Pool outside the function.
+- Serverless removes server management, not operational thinking. Timeouts, concurrency and retries are still yours.
 
 ## Interview Questions
 
 **Q: What actually happens on a cold start, and which parts can you influence?**
 
 The platform provisions a sandbox, starts the runtime, loads your bundle, and runs your module-scope
-code before the handler is called. The first two are the platform's and only pre-warming avoids them.
-The last two are yours: bundle size drives load time, and anything you do at module scope — fetching
-secrets, building clients, reading config — is added to every cold start. Attaching a private network
+code before the handler is called. The first two belong to the platform, and only pre-warming avoids
+them. The last two are yours. Bundle size drives load time. Anything you do at module scope, such as
+fetching secrets, building clients or reading config, is added to every cold start. Attaching a private network
 often costs more than all of it together.
 
 **Q: Why do serverless functions break databases, and what do you do about it?**
 
 The classic model runs one request per instance, so concurrency and connection count rise together. A
-spike to a few hundred instances opens a few hundred connections and the database refuses new ones.
-The fixes stack: create the client in module scope so it is reused across requests, put a connection
-pooler in front of the database, cap the function's concurrency, and prefer an HTTP-based data API
-where the workload is bursty.
+spike to a few hundred instances opens a few hundred connections, and the database refuses new ones.
+The fixes stack. Create the client in module scope so it is reused across requests. Put a connection
+pooler in front of the database, and cap the function's concurrency. Where the workload is bursty,
+prefer an HTTP-based data API.
 
 **Q: A function fires on file upload and sometimes processes the same file twice. Why?**
 
-Asynchronous triggers retry on failure, and the delivery guarantee is at-least-once — a handler that
-succeeded but timed out on the response still gets re-invoked. The fix is idempotency, not more
-retries: derive a key from the event, record it before doing the work, and make a repeat a no-op.
+Asynchronous triggers retry on failure, and the delivery guarantee is at-least-once. A handler that
+succeeded but timed out on the response still gets called again. The fix is idempotency, not more
+retries. Derive a key from the event, record it before doing the work, and make a repeat do nothing.
 Add a dead-letter queue so events that fail every retry are visible rather than silently dropped.
 
 **Q: When would you choose a long-running server over functions?**
 
-When the request does not end — WebSockets, server-sent events, a streaming session — or when the work
-outlives a request, like video encoding or a large export. Also when traffic is steady and high enough
-that reserved capacity beats per-invocation pricing, or when the process genuinely benefits from a warm
-in-memory cache that survives between requests.
+When the request does not end, as with WebSockets, server-sent events or a streaming session. Or when
+the work outlives a request, such as video encoding or a large export. Also when traffic is steady and
+high enough that reserved capacity beats per-invocation pricing. Or when the process really benefits
+from a warm in-memory cache that survives between requests.
 
 **Q: How do you keep secrets out of a function's environment variables?**
 
 Store them in a managed secret store and grant the function's role permission to read only the specific
 secret it needs. Fetch it once during init and hold it in module scope so it is not re-fetched per
-request. Rotation then happens in the store rather than in a redeploy, and the value never appears in
+request. Rotation then happens in the store, not in a redeploy. The value never appears in
 the deployment configuration, the console, or a log line.
 
 ## What to Read Next

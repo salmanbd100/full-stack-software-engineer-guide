@@ -23,13 +23,13 @@ diff. Git shows you diffs because they are easier to read, but it stores complet
 the snapshots by their parent pointers and you have a graph. Every Git command adds to that graph, moves
 a label around it, or reads it back.
 
-A branch is one of those labels — a file holding forty hex characters. Creating a branch is cheap
+A branch is one of those labels: a file holding forty hex characters. Creating a branch is cheap
 because there is nothing to copy. Deleting one throws away a name, not any work.
 
-Git rarely deletes anything. A commit stops being visible when no label points at it any more, but it
-stays in the object database until garbage collection runs — by default, not for ninety days. Every
-recovery tool in this chapter is the same trick: find the hash of a commit nothing points at, and point
-a label at it again.
+Git rarely deletes anything. A commit stops being visible when no label points at it any more. It
+still stays in the object database until garbage collection (Git's clean-up of unused objects) removes
+it. By default the reflog keeps a lost commit safe for thirty days. Every recovery tool in this chapter
+uses one trick: find the hash of a commit nothing points at, and point a label at it again.
 
 > "I lost my work" almost always means "I lost the name of my work." The reflog remembers the names.
 
@@ -49,14 +49,15 @@ Three places hold a version of your files at any moment. Git calls them the **th
 Working tree  ──git add──▶  Index  ──git commit──▶  HEAD  ──git push──▶  remote
 ```
 
-The index is the part most people skip, and it is what makes Git worth learning. It lets you commit a
-subset of what you changed, so one commit means one logical change even when your afternoon did not.
-`git add -p` walks each hunk and lets you choose what belongs in this commit. `git commit --amend`
-rewrites the last commit — safe before you push, a history rewrite for everyone else afterwards.
+Most people skip the index, but it is what makes Git worth learning. It lets you commit part of what
+you changed, so one commit means one logical change even when your afternoon did not. `git add -p`
+walks each hunk (a block of changed lines) and lets you choose what goes in this commit. `git commit
+--amend` rewrites the last commit. That is safe before you push. After you push, it rewrites history
+for everyone else.
 
 ### Merge and Rebase Do Different Things to the Graph
 
-Both integrate one branch into another. They differ in what the graph looks like when they finish.
+Both bring one branch's work into another. They differ in what the graph looks like when they finish.
 
 | Aspect                  | Merge                          | Rebase                                    |
 | ----------------------- | ------------------------------ | ----------------------------------------- |
@@ -65,15 +66,15 @@ Both integrate one branch into another. They differ in what the graph looks like
 | **History shape**       | Branching, shows what happened | Linear, shows a tidy story                |
 | **Safe on shared work** | ✅ Yes                         | ❌ No — the old commits vanish for others |
 
-Rebase is a rewrite: fine on a branch only you have, destructive on one a colleague has pulled.
+Rebase is a rewrite. It is fine on a branch only you have, and destructive on one a colleague has pulled.
 
-A conflict is not an error. It means two commits changed the same lines and Git will not guess. Edit
-the file, stage it to say "resolved", and commit — or run `git merge --abort` to go back.
+A conflict is not an error. It means two commits changed the same lines, and Git will not guess. Edit
+the file, stage it to say "resolved", and commit. Or run `git merge --abort` to go back.
 
 ### Remotes
 
 A remote-tracking branch such as `origin/main` is a local label. It records where the remote was the
-last time you spoke to it, and it moves on `fetch`, never on its own.
+last time you spoke to it. It moves on `fetch`, never on its own.
 
 | Command                       | What it does                                              | When to reach for it             |
 | ----------------------------- | --------------------------------------------------------- | -------------------------------- |
@@ -82,7 +83,7 @@ last time you spoke to it, and it moves on `fetch`, never on its own.
 | `git pull --rebase`           | `fetch` then replay your commits on top                   | You want no merge commits        |
 | `git push --force-with-lease` | Overwrites the remote only if it matches your last fetch  | Rewriting your own pushed branch |
 
-> ⚠️ Plain `--force` does not check what is on the remote, which is how colleagues lose commits.
+> ⚠️ Plain `--force` does not check what is on the remote. That is how colleagues lose commits.
 > `--force-with-lease` refuses if someone pushed since your last fetch. Never use either on a shared branch.
 
 ## When to Use It
@@ -139,8 +140,8 @@ have is really gone.
 
 ### Interactive Rebase and Cherry-Pick
 
-Nine "wip" commits are honest but unreadable. `git rebase -i HEAD~5` opens a list, and you edit one
-word per line to turn them into the two or three commits that describe what you did.
+A branch full of "wip" and "typo" commits is honest but unreadable. `git rebase -i HEAD~5` opens a
+list of the last five. You edit one word per line to turn them into the few commits that describe your work.
 
 **The todo list, edited:**
 
@@ -152,16 +153,16 @@ reword f0a1b2c test(auth): add callback tests
 drop   c3d4e5f debug logging
 ```
 
-`squash` and `fixup` both fold a commit into the one above; `fixup` throws its message away. Rebasing
+`squash` and `fixup` both fold a commit into the one above. `fixup` throws its message away. Rebasing
 rewrites every commit from the edit point onwards, so do it before you open the pull request.
 
-`git cherry-pick <hash>` is the smaller cousin. It copies one commit onto the branch you are on, with a
+`git cherry-pick <hash>` is the smaller tool. It copies one commit onto the branch you are on, with a
 new hash. Use it to put a single fix on a release branch without bringing the rest of `main` along.
 
 ### Bisect Finds the Breaking Commit in O(log n)
 
 The feature worked in `v2.4.0` and is broken on `main`, with 300 commits between them. Bisect checks
-out the midpoint, you say good or bad, and it halves the range — about nine steps instead of 300.
+out the midpoint and you say good or bad. Then it halves the range. That takes about nine steps instead of 300.
 
 **The automated version, which turns a twenty-minute loop into one command:**
 
@@ -176,18 +177,19 @@ commit that fails to compile is marked "bad" and bisect blames the wrong change.
 
 ### Getting a Secret Out of History
 
-Deleting the file in a new commit does nothing. The blob is still reachable from the commit that added
-it, and anyone can `git show` it. The history has to be rewritten.
+Deleting the file in a new commit does nothing. The blob (the stored file content) is still reachable
+from the commit that added it, and anyone can `git show` it. You have to rewrite the history.
 
 **Removing the file from every commit:**
 
 ```bash
 # git-filter-repo is the maintained tool; git filter-branch is deprecated
 git filter-repo --path config/prod.env --invert-paths
-git push --force --all        # Every hash downstream of the file changes
+git remote add origin <url>   # filter-repo removes origin as a safety measure
+git push --force --all && git push --force --tags   # Every hash after the file changes
 ```
 
-Then, in this order, because the order is the whole answer:
+Then do these steps in this order. The order is the whole answer.
 
 1. **Rotate the credential first.** Assume it was read. Rewriting history proves nothing about who
    cloned the repository yesterday.
@@ -210,12 +212,12 @@ git push --force              # Everyone who pulled now has commits that no long
 **✅ Right — undo forwards, not backwards:**
 
 ```bash
-git revert HEAD~1..HEAD       # Two new commits that reverse the two bad ones
+git revert HEAD~2..HEAD       # Two new commits that reverse the two bad ones
 git push                      # No force, nobody's clone breaks
 ```
 
-Rewriting shared history moves the cost onto every other clone. Reverting keeps the mistake visible,
-which is honest and costs nothing.
+Rewriting shared history moves the cost onto every other clone. Reverting keeps the mistake visible.
+That is honest, and it costs nothing.
 
 **❌ Wrong — bisecting with a flaky suite:**
 
@@ -229,16 +231,16 @@ git bisect run pnpm test      # "bad" sometimes means "unlucky"
 git bisect run pnpm vitest run src/billing/prorate.test.ts
 ```
 
-Bisect is a binary search. One wrong answer sends it down the wrong half, and it reports a wrong commit
-with total confidence.
+Bisect is a binary search. One wrong answer sends it down the wrong half. It then reports the wrong
+commit with total confidence.
 
 ## 🔑 Key Takeaways
 
 - A commit is a full snapshot plus a parent pointer, and a branch is a file holding one commit hash.
 - Commits become unreachable, not deleted, so recovery means finding the hash in the reflog and pointing a label at it.
-- Merge keeps the commits it integrates, while rebase replaces them, which is why rebase is unsafe on anything shared.
+- Merge keeps the commits it brings in, but rebase replaces them. That is why rebase is unsafe on anything shared.
 - Use `reset` for history nobody has seen and `revert` for history that has been pushed.
-- Removing a committed secret starts with rotating it; the history rewrite is the second step, not the fix.
+- Removing a committed secret starts with rotating it. The history rewrite is the second step, not the fix.
 
 ## Interview Questions
 
@@ -250,8 +252,8 @@ is `fetch` followed by a merge, or a rebase with `--rebase`. Fetch first when yo
 
 **Q: You deleted a branch, or someone force-pushed over it. How do you get it back?**
 
-Find the old tip in `git reflog` and recreate the label with `git switch -c <name> <hash>`, then push it
-back if needed. The commits were never removed — only the name was. Then mention `--force-with-lease`,
+Find the old tip in `git reflog` and recreate the label with `git switch -c <name> <hash>`. Then push it
+back if needed. The commits were never removed. Only the name was. Then mention `--force-with-lease`,
 which would have refused the force-push.
 
 **Q: What do the three `git reset` modes actually change?**
@@ -267,13 +269,13 @@ time instead.
 
 **Q: Walk me through finding which commit introduced a regression.**
 
-Mark a known-good tag and the broken `HEAD`, then let `git bisect run` drive one deterministic test. It
+Mark a known-good tag and the broken `HEAD`. Then let `git bisect run` drive one deterministic test. It
 takes about log₂(n) steps, so 300 commits resolve in about nine. The check must fail for exactly this bug,
 and exit 125 for commits that cannot build.
 
 **Q: A secret was committed six months ago. What is your sequence?**
 
-Rotate the credential first, because the repository has been cloned since and no rewrite can reach those
+Rotate the credential first. The repository has been cloned since, and no rewrite can reach those
 copies. Then rewrite history with `git filter-repo`, force-push every branch and tag, and have
 collaborators re-clone. Finally, add secret scanning to the pipeline so the next one is caught before merge.
 

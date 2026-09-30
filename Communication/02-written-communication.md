@@ -18,11 +18,11 @@ in_book: true
 
 ## 💡 The Core Idea
 
-Writing is the only part of your work that operates while you are asleep, and at senior level most of
+Writing is the only part of your work that keeps working while you are asleep. At senior level, most of
 your influence arrives that way. A design that persuades in a meeting persuades six people. The same
 design written down persuades the team that joins next year.
 
-The failure mode is almost never prose quality. It is **putting the content in the wrong place** — a
+The failure mode is almost never prose quality. It is **putting the content in the wrong place**: a
 deploy procedure in a chat thread, a decision in someone's memory, an API contract in a wiki table.
 
 | Content                        | Right home                        | ❌ Wrong home              |
@@ -37,11 +37,11 @@ deploy procedure in a chat thread, a decision in someone's memory, an API contra
 > because updating it is a separate action nobody remembers to take.
 
 ⚠️ An answer given in chat is invisible to everyone who was not there. The second time a question
-arrives, the answer belongs in a document and the chat reply should be a link to it.
+arrives, put the answer in a document and reply in chat with a link to it.
 
 ## Pull Requests
 
-A pull request description is a persuasive document with a deadline. The reviewer has fifteen minutes
+A pull request description is a persuasive document with a deadline. The reviewer has fifteen minutes,
 and you are competing with their own work.
 
 ```text
@@ -66,15 +66,15 @@ Bundle −140KB · LCP 5.2s → 1.4s on the p75 report
 Is `ReportShell` the right seam, or should the boundary be per-widget?
 ```
 
-None of what makes the difference is length. A title that says what changed, not "misc fixes". The
-**why**, with the rejected alternative, not the diff restated in prose. Before and after screenshots for
-any UI change. Under about 400 lines. And the one thing you want scrutinised, so the reviewer does not
-have to guess where the risk is.
+Length is not what makes the difference. These things do: a title that says what changed, not "misc
+fixes". The **why**, with the rejected alternative, not the diff restated in prose. Before and after
+screenshots for any UI change. Under about 400 lines. And the one thing you want checked closely, so the
+reviewer does not have to guess where the risk is.
 
 ## Review Comments
 
-Every comment carries a severity, the problem, and a suggestion. The severity is what stops authors
-treating a spelling note as a blocker.
+Every comment carries a severity (how much it matters), the problem, and a suggestion. The severity
+stops authors treating a spelling note as a blocker.
 
 ```text
 Blocking — SQL injection
@@ -92,17 +92,17 @@ This filter runs on every render. Over ~500 items it will jank on
 low-end devices. Not blocking at current sizes, but worth a ticket.
 ```
 
-**Receiving feedback is the same skill inverted.** Three responses cover almost everything: accept and
-say what you changed ("good catch — parameterised now"), ask for the reasoning ("is the concern the
-allocation, or the readability?"), or disagree with a reason and an offer to talk it through.
+**Receiving feedback is the same skill in reverse.** Three responses cover almost everything. Accept
+and say what you changed ("good catch, parameterised now"). Ask for the reasoning ("is the concern the
+allocation, or the readability?"). Or disagree with a reason and an offer to talk it through.
 
 ⚠️ "This works fine" and "I don't think that's a problem" end the conversation without resolving it.
-Either the objection is answered or the code changes — those are the two exits.
+Either the objection is answered or the code changes. Those are the only two exits.
 
 ## Architecture Decision Records
 
-The highest-value document on a long-lived codebase and the most neglected. An ADR is short, written
-once, and **never edited** — a decision that changes gets a new record superseding it.
+This is the highest-value document on a long-lived codebase, and the most neglected. An ADR is short,
+written once, and **never edited**. When a decision changes, a new record replaces (supersedes) it.
 
 ```text
 # ADR-014: Server-side rendering for the reporting dashboard
@@ -131,12 +131,12 @@ Precomputed reports — rejected; filters are user-defined.
 ```
 
 The value is not the decision. It is the **context** and the **alternatives**. Two years later the
-question is always "did they know about X?", and an ADR answers it in thirty seconds — which is the
+question is always "did they know about X?", and an ADR answers it in thirty seconds. That is the
 difference between a team that can revisit a decision and one that can only inherit it.
 
 ## Runbooks
 
-The document that matters most at 3am, and the one judged by entirely different criteria.
+This is the document that matters most at 3am, and it is judged by entirely different criteria.
 
 | Requirement                          | Why                                          |
 | ------------------------------------ | -------------------------------------------- |
@@ -146,13 +146,13 @@ The document that matters most at 3am, and the one judged by entirely different 
 | A "last tested" date                  | Separates a real runbook from a theoretical one |
 | Linked from the alert itself          | Found in seconds rather than searched for     |
 
-> ⚠️ **An untested runbook is worse than no runbook,** because it is trusted. Exercise them
-> deliberately and put the date at the top.
+> ⚠️ **An untested runbook is worse than no runbook,** because people trust it. Test your runbooks
+> on purpose and put the date at the top.
 
 ## Deciding Asynchronously
 
-Most teams span time zones, which turns writing quality into a delivery constraint. The pattern that
-stops a decision stalling for a week is an explicit deadline with a stated default.
+Most teams span time zones, so writing quality limits how fast you deliver. One pattern stops a
+decision stalling for a week: an explicit deadline with a stated default.
 
 ```text
 Decision needed by Thursday 17:00 UTC — cache layer for the reporting replica
@@ -169,18 +169,18 @@ Recommendation: B. Reporting load is predictable and we can resize online.
 Objections by Thursday 17:00 UTC, otherwise I proceed with B.
 ```
 
-Conclusion first, then the decision, the deadline, and the context the reader lacks. Default to a public
-channel over a direct message: the same answer helps one person once in a DM, and everyone who searches
-for it later in a channel.
+Put the conclusion first, then the decision, the deadline, and the context the reader lacks. Prefer a
+public channel to a direct message. In a DM the answer helps one person once. In a channel it helps
+everyone who searches for it later.
 
-A longer proposal — an RFC or design document — is the same shape expanded: summary, problem, proposal,
-alternatives with the reason each was rejected, risks with mitigations, success metrics, and the open
-questions you actually want answered. If the alternatives section is empty, it is not a proposal, it is
-an announcement.
+A longer proposal, such as an RFC or design document, is the same shape expanded. It has a summary, the
+problem, the proposal, and the alternatives with the reason each was rejected. Then come risks with
+mitigations, success metrics, and the open questions you actually want answered. If the alternatives
+section is empty, it is not a proposal. It is an announcement.
 
 ## 🔑 Key Takeaways
 
-- Most documentation failures are the wrong home, not bad prose; technical docs live with the code.
+- Most documentation failures are the wrong home, not bad prose. Technical docs live with the code.
 - A pull request description explains why and names the alternative you rejected.
 - Every review comment carries a severity, or authors treat every note as a blocker.
 - An ADR is valuable for its context and rejected alternatives, not for the decision itself.
@@ -190,25 +190,25 @@ an announcement.
 
 **Q: What makes a pull request easy to review?**
 
-Size first — under about 400 lines, because review quality collapses past that regardless of the
-reviewer. Then a description that gives the reviewer the *why* and points at the part you are least
-sure of. Reviewers find more defects when they know where to look, and that is the author's job.
+Size first: under about 400 lines, because review quality collapses past that, whoever the reviewer
+is. Then a description that gives the reviewer the *why* and points at the part you are least sure
+of. Reviewers find more defects when they know where to look, and telling them is the author's job.
 
 **Q: Your team has no ADRs. How do you introduce them without a process mandate?**
 
 Write one, for the next decision that comes up, and link it from the pull request that implements it.
-Nobody adopts a template; people adopt a thing that answered a question for them. The second time
+Nobody adopts a template. People adopt a thing that answered a question for them. The second time
 someone asks "why is it like this?" and you paste a link, you have the argument without needing to make it.
 
 **Q: When is writing it down the wrong call?**
 
-When the decision is cheap and reversible. A document has a maintenance cost and a stale document is
-worse than none, so a choice you would happily remake in an afternoon does not need a record. Reserve
-them for decisions that are expensive to revisit.
+When the decision is cheap and reversible. A document has a maintenance cost, and a stale document is
+worse than none. A choice you would happily remake in an afternoon does not need a record. Keep
+records for decisions that are expensive to revisit.
 
 **Q: How do you disagree with a reviewer in writing without it escalating?**
 
-Give the reasoning, name what the alternative costs, and offer a conversation. The offer matters — it
+Give the reasoning, name what the alternative costs, and offer a conversation. The offer matters. It
 signals you are not trying to win by having the last comment. If it takes more than two rounds in
 writing, the medium is wrong and a fifteen-minute call is the answer.
 

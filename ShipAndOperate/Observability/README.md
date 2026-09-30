@@ -29,7 +29,7 @@ only built one.
 Three observability questions, on top of the part-level signals in the Part VIII opener:
 
 - **Why percentiles, not averages?** An average of 200 ms can hide a p99 of nine seconds. You cannot
-  average percentiles across instances — you add up the histogram buckets first, then take the quantile.
+  average percentiles across instances. You add up the histogram buckets first, then take the quantile.
 - **What is cardinality?** The number of time series is the product of every label's distinct values. A
   user ID in a label is how a metrics backend runs out of memory.
 - **Would you alert on high CPU?** No. Page on symptoms the user can see, and keep resource metrics on the
