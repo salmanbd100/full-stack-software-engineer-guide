@@ -4,29 +4,81 @@ part: 0
 chapter: 0
 slug: book-index
 level: intermediate # beginner | intermediate | advanced
-reading_time: 7
-updated: 2026-08-28
+reading_time: 5
+updated: 2026-09-30
 tags: []
 in_book: false
 ---
 
 # The Senior Full Stack Handbook
 
-**Frontend-Heavy — Fundamentals, Modern Stack, System Design and AI Engineering for 2027**
+**Frontend-heavy engineering for 2027: fundamentals, the modern stack, system design and AI**
 
-This repository is the **manuscript** for a book. It began as a personal interview-prep collection and is
-being restructured, chapter by chapter, into something that can be bound and printed.
-
-It is still useful as a knowledge base while that happens — but treat every directory as work in progress,
-not as a finished reference.
+This repository is the **manuscript** for a book, and the tooling that builds it. The book is written.
+It is 935 pages in nine parts, short enough to read end to end. A second volume, **Book 2: DSA
+Patterns**, covers the coding round.
 
 | | |
 | --- | --- |
-| **Progress** | 16 of 78 improvements · [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md) |
-| **Scope** | Locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md) — nine parts, line budgets, twelve non-negotiables |
-| **Current size** | 423 files · ~134,000 lines |
-| **Target** | ~55,000 lines in-book. Everything else moves to [`Archive/`](./Archive/README.md) |
-| **Reader** | 3–8 years' experience, targeting senior or staff frontend / full stack roles |
+| **The handbook** | 150 chapters in nine parts · 39,913 lines · **935 pages** |
+| **Book 2** | *DSA Patterns* · 16 chapters · 101 pages · its own PDF, EPUB and question index |
+| **Scope** | Locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md): nine parts, line budgets, twelve non-negotiables |
+| **Plan** | [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md): Phase 9, the cut from 1,370 pages and the plain-English pass |
+| **Reader** | 3–8 years' experience, going for a senior or staff frontend or full stack role |
+| **Web** | [www.salmanrahman.com](https://www.salmanrahman.com/) |
+
+---
+
+## Who It Is For
+
+An engineer with **3–8 years' experience** going for a senior or staff **frontend-heavy full stack**
+role. This person owns the frontend end to end. They are expected to be credible on the backend, in
+the system design round, and now on the AI feature, without being a specialist in any of them.
+
+It assumes you can already write TypeScript and use a framework. It does not stop to explain what a
+hook is. It explains the layer under the definition. An assistant can answer the surface version of
+every one of these questions instantly, and that is why the interview bar moved.
+
+---
+
+## The Nine Parts
+
+Each part's scope and budget are locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md) § 4 and § 5. The counts
+are from the rebuild at improvement #114.
+
+| Part | Covers | Chapters | Pages | Where it lives |
+| ---- | ------ | -------- | ----- | -------------- |
+| **I — Foundations** | JavaScript · TypeScript · design patterns | 15 | 74 | [`Frontend/JavaScript`](./Frontend/JavaScript/README.md), [`Frontend/TypeScript`](./Frontend/TypeScript/README.md), [`Backend/DesignPatterns`](./Backend/DesignPatterns/README.md) |
+| **II — The Browser Platform** | HTML and CSS · browser APIs · accessibility | 15 | 88 | [`Frontend/HtmlCss`](./Frontend/HtmlCss/README.md), [`Frontend/BrowserAPIs`](./Frontend/BrowserAPIs/README.md), [`Frontend/Accessibility`](./Frontend/Accessibility/README.md) |
+| **III — The Modern Frontend Stack** | React · Next.js · Svelte · rendering · state · tooling | 34 | 186 | [`Frontend/ModernStack`](./Frontend/ModernStack/README.md) |
+| **IV — Frontend at Scale** | Architecture · performance · security · testing | 15 | 86 | [`Frontend/Architecture`](./Frontend/Architecture/README.md), [`Frontend/WebPerformance`](./Frontend/WebPerformance/README.md), [`Frontend/Security`](./Frontend/Security/README.md), [`Frontend/Testing`](./Frontend/Testing/README.md) |
+| **V — Backend for Frontend Engineers** | Node.js · API design · SQL and NoSQL · security | 15 | 88 | [`Backend`](./Backend/README.md) |
+| **VI — System Design** | Fundamentals · building blocks · frontend design · case studies | 18 | 102 | [`SystemDesign`](./SystemDesign/README.md) |
+| **VII — AI Engineering** | Foundations · integration · RAG · agents · production · AI UX | 20 | 128 | [`AI`](./AI/README.md) |
+| **VIII — Ship and Operate** | Git · CI/CD · observability · cloud · deployment | 11 | 74 | [`ShipAndOperate`](./ShipAndOperate/README.md) |
+| **IX — The Human Layer** | Behavioural · communication | 7 | 41 | [`Behavioral`](./Behavioral/README.md), [`Communication`](./Communication/README.md) |
+| *Book 2 — DSA Patterns* | Sixteen algorithm patterns | 16 | 101 | [`DSA`](./DSA/README.md) |
+
+Parts I–IV are 51.2% of the handbook. That is the rule behind "frontend-heavy": the spec requires
+at least half. The rest of the handbook's 935 pages is front matter, part openers and back matter:
+the glossary, the question index, further reading and the author page.
+
+Topics that are out of scope, such as Terraform, Kubernetes operations and deep AWS, are in
+[`Archive/`](./Archive/README.md). They were cut on purpose and are not missing.
+
+---
+
+## How to Read It
+
+[`How-to-Read-This-Book.md`](./How-to-Read-This-Book.md) sets out three routes.
+
+| Route | The path | For |
+| ----- | -------- | --- |
+| **Interview sprint** (6 weeks) | Parts I → III → VI → IX, then Book 2 | A loop that starts in about six weeks |
+| **Working reference** | Any chapter, cold, from the contents | A decision you have to make on Tuesday |
+| **Cover to cover** | Parts I → IX in order | Levelling up deliberately, over months |
+
+Every chapter stands alone. That is why cross-references are anchors rather than "as we saw earlier".
 
 ---
 
@@ -38,152 +90,60 @@ not as a finished reference.
 | ---- | ------- | ---------- |
 | **Node** | `>=22.6.0` | Every script. They are TypeScript and run unbuilt via `--experimental-strip-types` |
 | **pnpm** | `9.15.0` | The package manager. Do not switch it |
-| **pandoc** + **tectonic** | any recent | PDF and EPUB only. `brew install pandoc tectonic` (~250 MB) |
+| **pandoc** + **tectonic** | any recent | The PDF and EPUB. `brew install pandoc tectonic` |
+| **mermaid-cli** | any recent | The diagrams. `pnpm add -g @mermaid-js/mermaid-cli` |
+| **epubcheck** | any recent | EPUB validation. `brew install epubcheck` |
+| **poppler** | any recent | The cover PNGs. `brew install poppler` |
 
 ```bash
 pnpm install
 ```
 
-The only dependency is `@types/node`, so `scripts/*.ts` typecheck. There is no framework here and nothing
-to build — this repository is markdown and tooling.
-
 ### Commands
-
-Every script in [`package.json`](./package.json):
 
 | Command | What it does |
 | ------- | ------------ |
-| `pnpm lint:docs` | Checks every manuscript file against the Book Chapter Standard — front matter, broken links, code fences, chapter length, missing READMEs, heading jumps. **Run this before calling any file done** |
-| `pnpm lint:docs --rule=<id>` | Every occurrence of one rule, e.g. `--rule=broken-link` |
-| `pnpm lint:docs --strict` | Fail on any violation at all, rather than on a regression |
-| `pnpm book:build` | The full book — PDF and EPUB into `build/` |
-| `pnpm book:pdf` | PDF only. The faster one while iterating |
-| `pnpm book:epub` | EPUB only |
-| `pnpm book:collect` | Assembles `build/book.md` without typesetting it. Catches ordering and front-matter breakage cheaply |
-| `pnpm number:chapters` | Renumbers front-matter `chapter` across every part from the reading order in `scripts/lib/book.ts`. `--check` reports without writing |
-| `pnpm plan:next` | The next unchecked plan item, its "Done when", and which model to use |
-| `pnpm plan:check` | Verifies the plan's three progress counters still agree |
-| `pnpm frontmatter` | Stamps YAML front matter across the manuscript (improvement #3) |
+| `pnpm lint:docs` | Checks every manuscript file against the Book Chapter Standard. **Run it before calling a file done** |
+| `pnpm book:build` | The handbook as PDF and EPUB, into `build/The-Senior-Full-Stack-Handbook.{pdf,epub}` |
+| `pnpm book:companion` | Book 2, as its own PDF and EPUB |
+| `pnpm book:specimen` | The whole print design on ten pages, in seconds |
+| `pnpm book:cover` | The front and back cover, as a PDF and two 1600 × 2560 PNGs |
+| `pnpm book:pages` | Pages per part, measured from the built PDF |
+| `pnpm index:questions` | Regenerates both question indexes from every chapter's questions |
+| `pnpm check:code-samples` | Compiles every TypeScript fence in the book |
+| `pnpm site:dev` · `pnpm site:build` | The free companion site, generated from the manuscript |
+| `pnpm test` | The script test suite |
+| `pnpm plan:next` · `pnpm plan:check` | The next plan item, and a check that the plan's counters agree |
 
-> **`lint:docs` gates on `.lint-baseline.json`, not zero.** Most of this repository predates the standard,
-> so a hard zero would sit red for months and train everyone to ignore it. A count that goes **up** fails
-> the build; a count that goes down should be committed as the new, lower ceiling.
+`lint:docs` and `check:code-samples` gate on a baseline file, not on zero. A count that goes **up**
+fails. A count that goes down should be committed as the new baseline.
+
+CI ([`.github/workflows/lint-docs.yml`](./.github/workflows/lint-docs.yml)) runs `lint:docs`,
+`number:chapters --check`, `index:check`, `check:code-samples`, `site:pages`, `plan:check`, `test`
+and `book:collect` on every push and pull request.
 
 ### How the build works
 
-`scripts/lib/book.ts` is the single model of what counts as a chapter — exclusions, the part mapping, the
-front-matter reader, reading order. The build and the linter both import it, so they cannot disagree.
-Anything new that walks the manuscript should import it too.
+`scripts/lib/book.ts` is the one model of what counts as a chapter: exclusions, the part mapping, the
+front-matter reader and the reading order. The build, the lint and the site generator all import it,
+so they cannot disagree. [`Archive/`](./Archive/README.md) is skipped by everything.
 
-Reading order comes from front matter `part` + `chapter`, falling back to the directory prefix for files
-that have not been stamped yet. [`Archive/`](./Archive/README.md) is skipped by everything.
-
-CI ([`.github/workflows/lint-docs.yml`](./.github/workflows/lint-docs.yml)) runs `lint:docs`,
-`plan:check` and `book:collect` on every push and pull request.
-
----
-
-## The Nine Parts
-
-Scope, reason and line budget for each are locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md) § 4. 🆕 marks a
-part that does not exist in the repository yet.
-
-| Part | Covers | Budget | Where it lives today |
-| ---- | ------ | ------ | -------------------- |
-| **I — Foundations** | JavaScript semantics · TypeScript · OOP and design patterns | 5,000 | [`Frontend/JavaScript`](./Frontend/JavaScript/), [`Frontend/TypeScript`](./Frontend/TypeScript/), [`Backend/DesignPatterns`](./Backend/DesignPatterns/) |
-| **II — The Browser Platform** | HTML and CSS · Browser APIs · Accessibility | 6,000 | [`Frontend/HtmlCss`](./Frontend/HtmlCss/README.md), [`Frontend/BrowserAPIs`](./Frontend/BrowserAPIs/README.md), [`Frontend/Accessibility`](./Frontend/Accessibility/README.md) |
-| **III — The Modern Frontend Stack** 🆕 | React · Next.js · Svelte · Rendering · State · Tooling | **12,000** | [`Frontend/ModernStack`](./Frontend/ModernStack/README.md) — scaffolded at #32; chapters are #33–41 |
-| **IV — Frontend at Scale** | Architecture · Web performance · Frontend security · Testing | 5,500 | [`Frontend/WebPerformance`](./Frontend/WebPerformance/), [`Frontend/Security`](./Frontend/Security/), [`Frontend/Testing`](./Frontend/Testing/) |
-| **V — Backend for Frontend Engineers** | Node internals · API design · SQL and NoSQL · Auth | 6,500 | [`Backend`](./Backend/README.md) |
-| **VI — System Design** | Fundamentals · Building blocks · Frontend SD · Case studies | 6,500 | [`SystemDesign`](./SystemDesign/README.md) |
-| **VII — AI Engineering** 🆕 | LLM foundations · Integration · RAG · Agents · Evals · AI UX | 7,500 | [`AI`](./AI/README.md) — scaffolded at #44; chapters are #45–53 |
-| **VIII — Ship and Operate** | Git · Containers · CI/CD · Observability · Cloud · Deployment | 3,500 | [`ShipAndOperate`](./ShipAndOperate/) — `Deployment/` still to be written |
-| **IX — The Human Layer** | Behavioural · Communication · Ways of working · The AI-era loop | 2,500 | [`Behavioral`](./Behavioral/README.md), [`Communication`](./Communication/README.md) |
-| *Appendix — DSA* | 16 LeetCode patterns | *5,600* | [`DSA`](./DSA/README.md) — ships as a companion volume |
-
-**Total: ~249 chapters, 55,000 lines.** Budgets are ceilings, not allocations — a part that comes in
-under does not hand its surplus to another.
-
-### The two holes in the hull
-
-These are the reason the book is worth writing, and they are both empty:
-
-- **There is almost no React, Next.js or Svelte content.** Part III is the largest part in the book at
-  22% of the budget, and the part most readers are buying it for. `Frontend/ModernStack/` now exists with
-  its six section indexes (#32); the 46 chapters are improvements #33–43.
-- **There is almost no AI content.** The old `DevOps/GenAI/` was about *using* AI tools for DevOps
-  chores, not about *building* AI features, which is what a 2027 senior loop asks about. #21 archived it.
-  `AI/` now exists with its six section indexes (#44); the 32 chapters are improvements #45–53.
-
-`Backend/Frameworks/` closed the Express and NestJS gap at #56. The chapter tables under
-`Frontend/ModernStack/` list titles rather than links in places where a chapter is still scheduled
-rather than written. Do not assume a file exists because a README names it.
-
----
-
-## Who It Is For
-
-A developer with **3–8 years' experience** targeting a senior or staff **frontend-heavy full stack**
-role — someone who owns the frontend end to end and is expected to be credible on the backend, the
-system design round, and now the AI feature, without pretending to be a specialist in any of them.
-
-It assumes you can already write JavaScript and use a framework. It does not stop to explain what a
-hook is. What it explains is the layer underneath the definition — because an assistant can answer the
-surface version of every one of these questions instantly, and that is precisely why the interview bar
-moved.
-
----
-
-## How to Read It
-
-The book has to work three ways. The front matter written at improvement #72 makes these explicit.
-
-| Path | Route | For |
-| ---- | ----- | --- |
-| **Interview sprint** (6 weeks) | Part I → III → VI → IX, then the Appendix | A loop starting in a month |
-| **Working reference** | Any chapter, cold, via the index | Tuesday afternoon |
-| **Cover to cover** | I → IX in order | Levelling up deliberately |
-
-The working-reference path is the demanding one. It is why every chapter has to stand alone without
-the two before it, and why cross-references are anchors rather than "as we saw earlier".
-
----
-
-## Repository Layout
-
-```text
-├── BOOK-SPEC.md         the contract — nine parts, budgets, twelve non-negotiables
-├── IMPROVEMENT-PLAN.md  the 78-item route from repository to manuscript
-├── REFERENCE-CHAPTER.md pointer at the worked example of the standard
-├── Frontend/            Parts I, II, III and IV
-├── Backend/             Part V
-├── SystemDesign/        Part VI
-├── AI/                  Part VII — scaffolded at #44, chapters still to write
-├── ShipAndOperate/      Part VIII — what survived the #20 cut
-├── Behavioral/          Part IX
-├── Communication/       Part IX
-├── DSA/                 the companion volume
-├── Archive/             out of scope, never deleted
-└── scripts/             the build, the linter, the plan tooling
-```
-
-[`Backend/API/01-rest-best-practices.md`](./Backend/API/01-rest-best-practices.md) is the **reference
-chapter** — currently the only file passing the standard with zero violations.
+The print design lives in `scripts/tex/`, and `tokens.tex` holds every value that can be tuned. The
+companion site under `site/` is generated. Only `site/index.md` and `site/.vitepress/config.ts` are
+written by hand.
 
 ---
 
 ## Contributing to the Manuscript
 
 1. **Read [`BOOK-SPEC.md`](./BOOK-SPEC.md) first.** If a topic is on the out-of-scope list, it was
-   archived deliberately. It is not missing.
+   archived on purpose.
 2. **Start from `.claude/skills/write-topic-docs/CHAPTER-TEMPLATE.md`**, not from a blank file. The
-   Book Chapter Standard — six blocks, TypeScript-only fences, 150–400 lines, `#ch-slug`
-   cross-references — is mandatory.
-3. **Use [`REFERENCE-CHAPTER.md`](./REFERENCE-CHAPTER.md)** as the worked example when the written
-   standard and your instinct disagree.
+   Book Chapter Standard is mandatory: six blocks, TypeScript-only fences, 150–400 lines, `#ch-slug`
+   cross-references.
+3. **Use [`REFERENCE-CHAPTER.md`](./REFERENCE-CHAPTER.md)** as the worked example when the standard
+   and your instinct disagree.
 4. **Run `pnpm lint:docs`** before you call anything done.
-
-Say _"continue"_ with [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md) attached to pick up the next item.
 
 ---
 

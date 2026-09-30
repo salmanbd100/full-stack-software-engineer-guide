@@ -5,9 +5,9 @@ hero:
   name: The Senior Full Stack Handbook
   text: Frontend-heavy, 2027 edition
   tagline: >
-    Nine parts on what a senior frontend-heavy full stack interview actually asks — the
-    runtime under the API, the rendering model under the framework, and the rounds that
-    decide the level rather than the offer.
+    Nine parts, 935 pages, short enough to read end to end. The runtime under the API, the
+    rendering model under the framework, and the rounds that decide the level rather than
+    the offer. The coding round has its own volume, Book 2: DSA Patterns.
   actions:
     - theme: brand
       text: Buy the book
@@ -22,9 +22,9 @@ hero:
 features:
   - title: Every question in the book, free
     details: >
-      All 734 interview questions, pulled from all 166 chapters and grouped by part. The
-      answers are in the book; the questions are here, and they are the fastest way to find
-      out what you cannot answer yet.
+      All 734 interview questions, pulled from all 166 chapters of both volumes and grouped
+      by part. The answers are in the books. The questions are here, and they are the fastest
+      way to find out what you cannot answer yet.
     link: /book/back/interview-question-index
     linkText: Browse the index
   - title: One sample chapter per part

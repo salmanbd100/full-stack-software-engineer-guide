@@ -5,7 +5,7 @@ chapter: 2
 slug: how-to-read-this-book
 level: beginner # beginner | intermediate | advanced
 reading_time: 10
-updated: 2026-09-19
+updated: 2026-09-30
 tags: [front-matter]
 in_book: true
 ---
@@ -23,7 +23,7 @@ the one fewest people need.
 
 | Route                  | The path                                             | For                                    |
 | ---------------------- | ----------------------------------------------------- | -------------------------------------- |
-| **Interview sprint**   | Parts I → III → VI → IX, then the appendix            | A loop that starts in about six weeks  |
+| **Interview sprint**   | Parts I → III → VI → IX, then Book 2                  | A loop that starts in about six weeks  |
 | **Working reference**  | Any chapter, cold, straight from the contents         | A decision you have to make on Tuesday |
 | **Cover to cover**     | Parts I → IX in order                                  | Levelling up deliberately, over months |
 
@@ -34,8 +34,8 @@ asked.
 ### The interview sprint
 
 Four parts carry most of the interview weight: the language (Part I), the framework stack
-(Part III), system design (Part VI) and the human rounds (Part IX). The appendix carries the coding
-round. Everything else is depth you use if you have the weeks for it.
+(Part III), system design (Part VI) and the human rounds (Part IX). Book 2, the separate DSA Patterns
+volume, carries the coding round. Everything else is depth you use if you have the weeks for it.
 
 Six weeks, assuming eight to ten hours each week:
 
@@ -45,7 +45,7 @@ Six weeks, assuming eight to ten hours each week:
 | 2    | Part III — React and Next.js sections                         | Defend the server/client boundary on a whiteboard            |
 | 3    | Part III — rendering, state, tooling                          | Pick a rendering strategy per route and say what it costs    |
 | 4    | Part VI — fundamentals and frontend system design             | Drive a round: clarify, assume out loud, name the trade-off  |
-| 5    | Part VI case studies, plus the appendix patterns              | Recognise the pattern in a problem you have not seen         |
+| 5    | Part VI case studies, plus the Book 2 patterns                | Recognise the pattern in a problem you have not seen         |
 | 6    | Part IX, plus Part VII's first section                        | Tell three stories in STAR form without rehearsing them      |
 
 Two adjustments worth making to that plan. If the role names AI work anywhere in the description,
@@ -65,7 +65,7 @@ by breadth, not by depth — a half-read chapter scores nothing.
 
 | You have  | Read this                                                                      | Accept that you are dropping        |
 | --------- | ------------------------------------------------------------------------------ | ----------------------------------- |
-| Two weeks | Part I's language chapters · Part III's React and rendering sections · Part VI's frontend system design · Part IX | The appendix, and most of Part VI's case studies |
+| Two weeks | Part I's language chapters · Part III's React and rendering sections · Part VI's frontend system design · Part IX | Book 2, and most of Part VI's case studies |
 | One week  | The **key takeaways and interview questions only**, every chapter of Parts I, III and VI | Everything else, on purpose         |
 
 The one-week route sounds like cheating and is not. Those two blocks are the chapter compressed into
@@ -84,7 +84,8 @@ per term, and the chapter that owns it named on the same line. See
 
 ### Cover to cover
 
-Read the parts in order. Each part opener sets up the vocabulary the part uses, says what
+The book is 935 pages, so this route is real rather than a boast: about three months at ten pages a
+day. Read the parts in order. Each part opener sets up the vocabulary the part uses, says what
 interviewers probe for in that area, and gives a reading order inside the part — including which
 chapters the sprint route skips.
 
@@ -148,4 +149,4 @@ Five conventions run through every part.
 
 - [Chapter ?? — Preface](#ch-preface) — why the book is shaped this way, and what it leaves out
 - [Chapter ?? — Further Reading](#ch-further-reading) — one source per part for when this book hands over
-- [Part I — JavaScript Foundations](#ch-frontend-javascript-index) — where the cover-to-cover route starts
+- [Part I — Foundations](#ch-part-foundations) — where the cover-to-cover route starts

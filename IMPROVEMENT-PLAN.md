@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-30 · **Progress:** 24 / 25
+**Last updated:** 2026-09-30 · **Progress:** 25 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1640,7 +1640,7 @@ size, the web address is the author's real one in the cover, `site/index.md` and
 
 ---
 
-### - [ ] 116. Update the launch material for the new edition `S`
+### - [x] 116. Update the launch material for the new edition `S` — ✅ **done 2026-09-30**
 
 The book is a different object now, and three things still describe the old one.
 
@@ -1663,14 +1663,64 @@ and the launch checklist from #91 has been re-read against the new edition.
 > chapters. Nothing else in the site copy changed. The store description, the reading paths and
 > `SAMPLE_CHAPTERS` are still this item's work.
 
+**Delivered:**
+
+- 🔴 **A correction to this item: there was no store description to rewrite.** No file in the repository holds
+  one. Nothing said "1,370 pages" either: the only sales copy is the site's landing page and its meta
+  description. That landing page is treated as the store description here. The Leanpub listing text is still
+  to be written in Leanpub itself (checklist step 5 below). The back-cover blurb from #115 and the landing
+  tagline are the copy to start from
+- **The landing page (`site/index.md`)** now sells the edition that exists. The tagline says "Nine parts,
+  935 pages, short enough to read end to end", and names Book 2: DSA Patterns as the coding-round volume.
+  The question feature says its 166 chapters come from both volumes. The meta description in
+  `site/.vitepress/config.ts` says the same. The two guarded counts (734 questions, 166 chapters) did not change
+- **`Preface.md`** had three stale claims, not reading paths. "One volume instead of three" now reads "935
+  pages, short enough to read end to end", and says the algorithm patterns are Book 2 rather than left out.
+  "Three condensed [cloud] chapters" is now two. "Fifteen system design case studies, ten backend, five
+  frontend" is now the three that exist: one backend-shaped, two frontend-shaped. BOOK-SPEC § 6's "ten
+  backend, five frontend" is a ceiling, so it stays
+- **`How-to-Read-This-Book.md`:** all four mentions of "the appendix" now say Book 2. The cover-to-cover route
+  gives the real length: "about three months at ten pages a day". The closing link pointed at the Part I
+  *section* index under an old title, "Part I — JavaScript Foundations". It now points at the part opener,
+  `#ch-part-foundations`. Every chapter the reading paths name was checked against the tree. They name parts
+  and sections, not chapters, and every section still exists
+- **`SAMPLE_CHAPTERS` needed no change.** All nine slugs resolve to an in-book chapter in the right part, from
+  `closures` (Part I) to `star-framework` (Part IX). The landing page's list of the nine matches them
+- **The root `README.md` was rewritten** from #114's note. It was stale almost throughout: "16 of 78
+  improvements", "423 files · ~134,000 lines", the old budgets, "the two holes in the hull" (no React and no AI
+  content, both long since written), and DSA as an appendix. It now gives the measured edition: 150 chapters,
+  39,913 lines, 935 pages, and Book 2 at 16 chapters and 101 pages. It has a parts table with #114's chapter and
+  page counts, the three routes, the full prerequisites (mermaid-cli, epubcheck and poppler were missing), the
+  commands and the CI steps as they actually run
+- **The #91 launch checklist, re-read against this edition.** Three steps changed, and one gap is new:
+
+  | # | Step | What changed |
+  | - | ---- | ------------ |
+  | 1 | Create the Leanpub account and the book | Unchanged |
+  | 2 | Make `www.salmanrahman.com` lead to the store page, or change `STORE_URL` in `scripts/lib/store.ts` to the store URL | **Was "put the slug in `store.ts`".** #115 removed `STORE_SLUG`. Every "Buy the book" link now goes to the author's site |
+  | 3 | Upload `build/The-Senior-Full-Stack-Handbook.{pdf,epub}` and `build/cover.png` (back: `build/cover-back.png`) | **File names changed at #113b**, and the back cover is new at #115 |
+  | 4 | Upload Book 2 as its own title: `build/The-Senior-Full-Stack-Handbook-Book-2-DSA-Patterns.{pdf,epub}` | **File names changed.** 🔴 **Book 2 has no cover.** `scripts/cover.tex` is the handbook's only. Leanpub asks for one per title |
+  | 5 | Write the store description, set the price and the sample | **"In progress" percentage dropped:** the book is finished. Start the description from the back-cover blurb |
+  | 6 | Decide where the companion site lives on `salmanrahman.com`, and point DNS at it | **Was "register the domain".** The domain exists |
+  | 7 | Deploy `site/.vitepress/dist` and set the deploy hook | Unchanged |
+  | 8 | Check the **Buy the book** button end to end, from the live site to a real checkout | Unchanged |
+
+- **Verified:** `pnpm site:build` is clean. `lint:docs` shows no rule regressed. `index:check` passes: 647
+  questions from 150 chapters, and 87 from 16. `number:chapters --check`, `check:code-samples` and `plan:check`
+  pass. `pnpm test`: 37 of 37 pass. Every relative link in the new README resolves to a file
+- **Seen, not changed:**
+  - `CLAUDE.md`'s repository tree still lists Containers, PWA, i18n and CSSArchitecture, which are archived
+  - `CLAUDE.md` says CI runs seven steps "nothing else", but the workflow also runs `pnpm test`
+  - Book 2's missing cover (step 4) needs its own item
+
 ---
 
 ## ✅ Progress Tracker
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 24/25 | 🚧 In progress |
-| **Total** | **25** | **24/25** | **96%** |
+| 9 | 95–116 · 95a · 113a · 113b | 25/25 | ✅ Complete |
+| **Total** | **25** | **25/25** | **100%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

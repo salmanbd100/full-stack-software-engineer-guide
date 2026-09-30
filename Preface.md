@@ -5,7 +5,7 @@ chapter: 1
 slug: preface
 level: beginner # beginner | intermediate | advanced
 reading_time: 9
-updated: 2026-09-19
+updated: 2026-09-30
 tags: [front-matter]
 in_book: true
 ---
@@ -72,8 +72,9 @@ saves them the money.
 
 ## What It Will Not Teach
 
-Saying no here is what keeps this to one volume instead of three. Every topic below was considered
-and cut on purpose, not forgotten.
+Saying no here is what keeps this book to 935 pages, short enough to read end to end. The algorithm
+patterns for the coding round are not left out. They are a separate volume, Book 2. Every topic below
+was considered and cut on purpose, not forgotten.
 
 | Left out                              | Why                                                               |
 | ------------------------------------- | ------------------------------------------------------------------ |
@@ -81,7 +82,7 @@ and cut on purpose, not forgotten.
 | Linux administration                  | Useful, wrong book                                                  |
 | Python and shell automation           | The book is TypeScript only; scripting breaks that rule             |
 | Kubernetes operations                 | Past "my service runs in a pod somewhere", this is an SRE skill     |
-| Deep cloud service coverage           | Three condensed chapters, not sixteen. Clouds differ; principles do not |
+| Deep cloud service coverage           | Two condensed chapters, not sixteen. Clouds differ; principles do not |
 | Cost optimisation as a discipline     | Its own field, with its own books                                   |
 | Model training and fine-tuning        | A different profession from building features on top of a model     |
 | Mobile and React Native               | The web platform only                                               |
@@ -92,8 +93,8 @@ Three ceilings follow from that list, and they hold everywhere in the book.
 
 - **Three frameworks.** React, Next.js and Svelte. A fourth would turn the book into a survey.
 - **One cloud** for the worked examples, with the principle always stated cloud-free first.
-- **Fifteen system design case studies** — ten backend, five frontend. More would make it a
-  case-study book, which this is not.
+- **Three system design case studies**, one backend-shaped and two frontend-shaped. Each teaches a
+  shape of problem that the others reduce to. More would make it a case-study book, which this is not.
 
 ## The Promise
 
