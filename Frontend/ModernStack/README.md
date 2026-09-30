@@ -69,20 +69,25 @@ the framework as an implementation detail.** Four questions run through all six 
 
 ## Reading Order
 
-`Rendering/01` first, then your framework, then the rest. That order is deliberate. The rendering
-spectrum gives you the vocabulary (hydration, streaming, islands, PPR) that the React and Next.js
-chapters then assume. After that, `React/` → `NextJS/` reads in dependency order, and `Svelte/` reads
-cold from anywhere.
+Read [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum) first,
+then your framework, then the rest. That order is deliberate. The rendering spectrum gives you the
+vocabulary (hydration, streaming, islands, PPR) that the React and Next.js chapters then assume. After
+that, React then Next.js reads in dependency order, and Svelte reads cold from anywhere.
 
-`StateManagement/` and `Tooling/` are independent of all three frameworks and can be read at any point.
-`StateManagement/01` gives the most value for its length of any chapter in the part.
+State Management and Tooling are independent of all three frameworks and can be read at any point.
+[Chapter ?? — The Four Kinds of State](#ch-four-kinds-of-state) gives the most value for its length of
+any chapter in the part.
 
-**Interview sprint:** `Rendering/01`, `03` · `React/03`, `05`, `07` · `NextJS/02`, `04` ·
-`StateManagement/01`–`02`. That is the server/client boundary, the effect trap, Actions, caching, PPR
-and server state. Between them, they cover most of what a frontend-heavy senior loop asks before the
-system design round.
+**Interview sprint:** these ten chapters cover the server/client boundary, the effect trap, Actions,
+caching, PPR and server state. Between them, they cover most of what a frontend-heavy senior loop asks
+before the system design round.
 
-All six sections are written — **34 chapters**. Improvements #32–41 wrote 46, and #98 cut them to 34 by
-merging pairs that taught one idea and archiving the reference material. Cross-references are written
-as `Chapter ?? — Title`. The build supplies the number and the page, so the manuscript never carries
-one that can go stale.
+- [Chapter ?? — The Rendering Spectrum and the Cost of Hydration](#ch-rendering-spectrum)
+- [Chapter ?? — Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route)
+- [Chapter ?? — useEffect and When Not to Use It](#ch-when-not-to-use-effect)
+- [Chapter ?? — Server Components and Client Components](#ch-server-components-vs-client-components)
+- [Chapter ?? — Actions and Forms](#ch-react-actions-and-forms)
+- [Chapter ?? — Data Fetching and Caching](#ch-nextjs-data-and-caching)
+- [Chapter ?? — Rendering in Next.js](#ch-rendering-in-nextjs)
+- [Chapter ?? — The Four Kinds of State](#ch-four-kinds-of-state)
+- [Chapter ?? — Server State with TanStack Query](#ch-server-state)

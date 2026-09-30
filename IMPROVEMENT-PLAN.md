@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-30 · **Progress:** 25 / 25
+**Last updated:** 2026-10-01 · **Progress:** 26 / 31
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -213,7 +213,7 @@ time. It must read **0** when #104 is done.
 
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
-| 95–116, 95a, 113a, 113b | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Every item here is a judgement call: what a senior interviewer actually asks, which two chapters become one, and which sentence to break in half. There is no mechanical sweep left in this plan |
+| 95–122, 95a, 113a, 113b | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Every item here is a judgement call: what a senior interviewer actually asks, which two chapters become one, and which sentence to break in half. There is no mechanical sweep left in this plan |
 
 `pnpm plan:next` reads this table. Edit the table, not `scripts/plan-status.ts`.
 
@@ -1715,12 +1715,152 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 ---
 
+# Phase 10 — Pre-publication Polish
+
+Phase 9 finished the book: 935 pages, and every gate green. A final review on 2026-09-30 then read what
+the gates cannot: what a reader actually sees on the page, and what a store asks for. It found no
+reason to cut anything. It found six pieces of finishing work. **None of them removes teaching
+content.**
+
+---
+
+### - [x] 117. Take the plan's history out of the printed book `M` — ✅ **done 2026-10-01**
+
+Twelve section and part openers carry notes addressed to the author, not the reader: improvement numbers
+("#101 then cut the part…"), `Archive/` paths, line budgets, and reading orders written as repository
+paths (`` `Git/` → `CICD/` ``). They are `in_book: true`, so all of it prints. `build/book.md` shows it at
+lines 3625, 7193, 22438, 23407, 24765, 25243 and 25861.
+
+| File | What prints |
+| ---- | ----------- |
+| `Frontend/ModernStack/README.md` | "Improvements #32–41 wrote 46, and #98 cut them to 34", repo-path reading order |
+| `Frontend/Testing/README.md` · `Frontend/HtmlCss/README.md` | #97, `Archive/htmlcss/` |
+| `Backend/NodeJS/README.md` · `Backend/API/README.md` | #100 |
+| `SystemDesign/README.md` and its `BuildingBlocks/`, `Database/`, `CaseStudies/`, `Frontend/` openers | #22–#24, #31d, #42, #101, `Archive/…`, "4,400 budget" |
+| `ShipAndOperate/README.md` | "39,703 lines", #20, #103, `Archive/devops/`, repo-path reading order |
+
+Rewrite each note as one line a reader can use (what is out of scope, and where to read about it), or
+delete it. Then add a `plan-reference` rule to `scripts/lint-docs.ts` that fails on an item number, an
+`Archive/` path or "Improvement #" in any `in_book: true` file, so this cannot come back.
+
+**Done when:** `grep -nE "(Improvements? |[Ii]tem )?#[0-9]{2,3}[a-e]?\b|Archive/" build/book.md` finds
+nothing the plan wrote, `pnpm lint:docs` shows the new rule at 0, and `pnpm test` covers the rule.
+
+**Delivered:**
+
+- **Twelve openers rewritten, and one more found.** `DSA/README.md` carried the same kind of note (#27,
+  `Archive/dsa-solutions/`), so Book 2 had the leak too. Each note is now one line a reader can use: what
+  is out of scope, and which part covers the topic instead. Nothing a reader needs was removed. The
+  history ("#101 cut the part from 6,291 lines", "the originals are in `Archive/…`") was
+  the author's, and git and `Archive/README.md` still record it
+- **Reading orders written as repository paths are now cross-references.** The interview sprints in
+  `Frontend/ModernStack/README.md` and `ShipAndOperate/README.md` are lists of
+  `[Chapter ?? — Title](#ch-slug)`, so print shows a chapter number and a page. The sprint in
+  `SystemDesign/README.md` names its two chapters the same way. Section names are written in words
+  ("Git, then CI/CD, then Deployment"), not as `Git/ → CICD/`
+- **A new lint rule, `plan-reference`** (`scripts/lint-docs.ts`), baselined at 0. It flags an item number
+  outside inline code (`#101`, `#31d`) and any `Archive/` path. It passes a colour such as `` `#999` `` and a
+  sample PR's "Closes #482" inside a fence. A new test in `scripts/test/cli.test.ts` covers both sides
+- **`scripts/plan-status.ts`** matched phase rows with a single digit, so it could not see a Phase 10 row.
+  It now accepts two
+- **Verified:**
+  - `pnpm book:pdf` gives 935 pages, every cross-reference resolved to a chapter and a page, and no
+    missing glyphs were reported
+  - The Done-when grep over `build/book.md` now finds only colours (`#000`, `#999`), a code comment
+    (`"USER#42"`) and the sample PR's "Closes #482". There are no plan items and no `Archive/` paths
+  - `pnpm lint:docs`: 0 violations, `plan-reference` at 0. `pnpm test`: 38 of 38 pass
+  - `index:check`, `number:chapters --check`, `check:code-samples` (974, at baseline) and `site:pages` all
+    pass
+- **Seen, not changed:** the "Part VI —" prefix on section openers is #120's work
+
+---
+
+### - [ ] 118. Give the book what a publisher expects `M`
+
+| Gap | Fix |
+| --- | --- |
+| No copyright page and no ISBN | An imprint page after the title: © 2027 Salman Rahman, first edition, "ISBN pending" until one is bought, the trademark and "no warranty" notice, and a short colophon (fonts, pandoc, Tectonic). An `isbn` identifier next to the uuid in `scripts/book-meta.yaml` |
+| Neither EPUB has a cover | `epub-cover-image` in `scripts/book-meta.yaml` and `scripts/companion-meta.yaml` |
+| Book 2 has no cover at all | Noted in #116. A Book 2 variant of `scripts/cover.tex` |
+| One epubcheck log for two books | `report_epubcheck` in `scripts/build-book.sh` writes `build/epubcheck.log` for both, so the handbook's verdict is overwritten. One log per book |
+| Back cover total | The part rows add to 867, the total reads 935. Label it "including front and back matter" |
+| No errata pointer | One line in the Preface's "How to Trust What Is Here", pointing at the companion site |
+
+**Done when:** both PDFs open on a copyright page, `unzip -l` shows a cover image in both EPUBs,
+epubcheck is clean for both with separate logs, and Book 2 has a front and a back cover.
+
+---
+
+### - [ ] 119. Re-stamp the facts that will be stale in 2027 `M`
+
+**Context7 first**, for every line below.
+
+| Where | Now | Fix |
+| ----- | --- | --- |
+| `ShipAndOperate/CICD/03-github-actions.md:69` | `node: [22, 24]`: Node 22 reaches end of life in April 2027 | The two LTS lines in support at press time |
+| `Frontend/ModernStack/Tooling/04-type-checking-and-linting.md:36` | The Go port "is in progress… meant to become TypeScript 7" | Its real release state |
+| `Frontend/BrowserAPIs/02-cookies-same-site.md:75, 229` | Lax "is the browser default" | Chromium defaults to Lax; Firefox and Safari do not. Set it explicitly |
+| `Frontend/ModernStack/React/08-performance-and-the-compiler.md:32` | Compiler 1.0 "shipped alongside React 19" | It shipped in October 2025 |
+| `Frontend/ModernStack/React/04-composition-patterns.md:212` | "until the React Compiler does it for you" | A cross-reference to chapter 08: it exists |
+| `Frontend/ModernStack/Tooling/README.md:15` · `About-the-Author.md` | "98% use Vite", "SvelteKit is the second most-used meta-framework" | Name the survey and the year, or soften |
+| `WebPerformance/README.md:24`, `Rendering/03`, `Rendering/05` | "in 2026" | The one framing the rest of the 2027 edition uses |
+
+**Done when:** every row is fixed or recorded as checked, and `pnpm check:versions` and
+`pnpm check:stale` are clean.
+
+---
+
+### - [ ] 120. Make the book agree with itself `M`
+
+| Where | Problem | Fix |
+| ----- | ------- | --- |
+| `Backend/API/03-rate-limiting.md:35` | The table calls sliding-window counter the production default; lines 39 and 199 say token bucket | Token bucket, everywhere |
+| `SystemDesign/Fundamentals/04-consistency-and-cap.md` · `ShipAndOperate/Observability/01-fundamentals.md` | SLOs and error budgets taught twice, against the Preface's "one canonical home" | Full treatment in Observability, a short mention plus a cross-reference in the other |
+| `Frontend/BrowserAPIs/01-storage-apis.md` · `02-cookies-same-site.md` | The same "JWT in localStorage" interview question in both | Keep it in 02; give 01 a different storage question |
+| `Backend/Security/02-oauth.md:64, 79` · `01-credentials-and-sessions.md:168` | `crypto.*` and `res.redirect` with no import, so they resolve to browser globals | Add the `node:crypto` and Express imports |
+| `Frontend/ModernStack/React/06-suspense-and-streaming.md:95` | A helper named `reportError` shadows the browser's global | Rename to `logError` |
+| Section openers under React, NextJS, AI, ShipAndOperate, Behavioral, Communication | Some headings carry "Part N —", so three pages are titled "Part IX" | Section openers drop the prefix |
+| `ShipAndOperate/CICD/01-cicd-fundamentals.md:98` · `About-the-Author.md` | "front-end"; a template `## How It Works` heading | "frontend"; a real heading |
+| `ModernStack/README.md:15`, `BuildingBlocks/04-queues-and-async.md:160`, `AI/Foundations/03-context-engineering.md:21` | Sentences of 40+ words | Split |
+
+**Done when:** each row is fixed, `pnpm index:questions` has run and `index:check` passes, and
+`pnpm check:code-samples` is below 974 with the lower baseline committed.
+
+---
+
+### - [ ] 121. Bring the repository's own documents up to date `S`
+
+- **`CLAUDE.md`:** delete "What Does Not Exist Yet" (React, Next.js and AI all exist). Update the counts
+  (647 questions, 580 fences, 37 tests, a 935-page PDF), the tree (Containers, PWA, i18n and
+  CSSArchitecture are archived), the CI step list (`pnpm test` runs too), and Phase 9 as finished
+- **`README.md:26`, `Frontend/README.md:25, 28`, `BOOK-SPEC.md:20`:** the stale line counts, item
+  numbers and "~940"
+- **`.github/workflows/lint-docs.yml`:** add `check:versions` and `check:stale`
+- **`scripts/lint-docs.ts`:** stop listing part openers and `part: 0` files as "under 150 lines"
+
+**Done when:** `grep -n "1,370\|937 questions\|787\|30 tests" CLAUDE.md README.md` is empty, and CI
+runs the two new steps.
+
+---
+
+### - [ ] 122. Rebuild and verify the files that get uploaded `S`
+
+The PDF and EPUB in `build/` were built before #113b–#116 landed, and #117–#121 change them again.
+
+**Done when:** `pnpm book:build` and `pnpm book:companion` finish with zero missing glyphs and every
+cross-reference resolved. Both epubcheck logs are clean. `pnpm book:pages` is at or under decision #21's
+950-page ceiling, with the frontend spine at 50% or more. `pnpm site:build` is clean. The four files and
+both covers in the #116 launch checklist exist with today's date.
+
+---
+
 ## ✅ Progress Tracker
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
 | 9 | 95–116 · 95a · 113a · 113b | 25/25 | ✅ Complete |
-| **Total** | **25** | **25/25** | **100%** |
+| 10 | 117–122 | 1/6 | 🔄 In progress |
+| **Total** | **31** | **26/31** | **84%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

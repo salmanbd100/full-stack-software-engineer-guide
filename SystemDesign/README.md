@@ -62,16 +62,14 @@ estimate: queries per second, storage per year and bandwidth turn a diagram into
 
 ## Reading Order
 
-`Fundamentals/` → `BuildingBlocks/` → then split by the round you expect. Frontend-heavy readers should
-go to `Frontend/` next and treat `Database/` as depth. Then practise with the case studies, out loud,
-against a timer.
+Fundamentals, then Building Blocks, then split by the round you expect. Frontend-heavy readers should
+go to Frontend System Design next and treat Data at Scale as depth. Then practise with the case
+studies, out loud, against a timer.
 
-**Interview sprint:** `Fundamentals/01` (the framework, both rounds), `Fundamentals/02` (estimation),
-`BuildingBlocks/01`–`04`, then two case studies end to end.
+**Interview sprint:** [Chapter ?? — Driving the Design Round, Backend and Frontend](#ch-driving-the-round)
+(the framework, both rounds), [Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation),
+the first four Building Blocks chapters, then two case studies end to end.
 
-> ⚠️ Four directories are gone. `Scalability/` and `Infrastructure/` went at #22 and #23. `Security/`
-> went at #24, and its authorisation, encryption at rest and SSRF moved into `Backend/Security/`.
-> `Microservices/` went at **#31d**. Its gateway, service-boundary and resilience chapters joined
-> `BuildingBlocks/`. Deployment and distributed tracing were archived, because Part VIII already owns
-> them. #101 then cut the part from 6,291 lines to its 4,400 budget. `Archive/system-design/README.md`
-> records where each chapter went.
+> ⚠️ **Some system design topics live elsewhere in the book.** Authorisation, encryption at rest and
+> SSRF are in Part V's security chapters. Deployment and distributed tracing are in Part VIII. This part
+> keeps what a design round actually asks you to draw.

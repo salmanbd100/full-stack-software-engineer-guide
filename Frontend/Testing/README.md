@@ -31,8 +31,8 @@ rewrites of everything underneath it. Almost every recommendation here follows f
 | 04 | [End-to-End, Visual and Contract Testing with Playwright](#ch-end-to-end-testing) | Which browser tests earn their runtime, and what about failures an assertion cannot express? |
 | 05 | [Testing Accessibility](#ch-testing-accessibility) | What can be gated in CI, and what has to be done by hand? |
 
-Chapter 05 moved here from Part II's accessibility section at #97. It owns the method, the CI gate and
-the two manual passes, so the other chapters here point at it rather than restate it.
+Chapter 05 is the book's one home for testing accessibility. It owns the method, the CI gate and the
+two manual passes, so other chapters point at it rather than restate it.
 
 ## What Interviewers Probe For
 

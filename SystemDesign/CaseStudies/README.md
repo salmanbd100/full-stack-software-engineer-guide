@@ -51,7 +51,5 @@ Then read 02 and 03 in either order. They are independent.
 
 **Interview sprint:** 01 and whichever of 02–03 is closest to the role, out loud, timed at 45 minutes each.
 
-> ⚠️ Ten studies left this section: six at **#31d**, two at **#43** (news feed, chat system) and two at
-> **#101** (Ticketmaster, live dashboard). Each repeated a shape another chapter teaches, or a topic
-> Part V now owns. They sit in `Archive/systemdesign/case-studies/` and `Archive/system-design/case-studies/`,
-> and still work as extra rehearsal.
+> ⚠️ **Three studies, on purpose.** The classic prompts (news feed, chat, ticketing, a live dashboard)
+> reuse the shapes these three teach. Rehearse them with the same structure once these feel automatic.

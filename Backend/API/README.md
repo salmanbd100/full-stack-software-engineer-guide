@@ -31,7 +31,7 @@ and pushing data the client did not ask for.
 | 04 | [Real-Time and Streaming APIs](#ch-realtime-streaming) | SSE or a socket, and what does the upgrade throw away? |
 | 05 | [Testing a Node Service](#ch-testing-node-services) | What is worth unit testing, and how do you use a real database and stay fast? |
 
-Chapter 05 was its own *Testing* section until #100. The testing discipline itself is Part IV.
+Chapter 05 covers what is particular to a Node service. The testing discipline itself is Part IV.
 
 ## What Interviewers Probe For
 

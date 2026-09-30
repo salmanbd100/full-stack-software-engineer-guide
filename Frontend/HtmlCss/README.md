@@ -21,8 +21,7 @@ consequences, not as syntax.
 It is short on purpose. Interviewers assume a senior candidate knows the layout mechanics: the box
 model, flexbox, grid, breakpoints and keyframes. They almost never ask you to recite them. They probe
 the parts with a legal or architectural consequence. Which element did you choose? Does the page work
-without a mouse? Which features shipped since 2023 replaced a workaround you are still carrying? The
-archived layout chapters are in `Archive/htmlcss/` if they are ever wanted back.
+without a mouse? Which features shipped since 2023 replaced a workaround you are still carrying?
 
 **Accessibility used to be the third chapter here and is now a section of its own**, with five chapters,
 in [Part II — Accessibility](#ch-frontend-accessibility-index). It outgrew this section for the same

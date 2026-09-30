@@ -48,7 +48,6 @@ distributed-systems half of the section.
 
 **Interview sprint:** 01, 02 and 04, then 06.
 
-> ⚠️ Two chapters left this section at **#31d**. Part VIII now owns file storage and monitoring, in
-> `ShipAndOperate/Cloud/01-fundamentals.md` and `ShipAndOperate/Observability/`. The originals
-> are in `Archive/systemdesign/building-blocks/`. #101 archived search and folded WebSockets
-> and the API gateway into their neighbours; those files are in `Archive/system-design/building-blocks/`.
+> ⚠️ **File storage and monitoring are in Part VIII**, in
+> [Chapter ?? — Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals) and the Observability
+> chapters. WebSockets and the API gateway are taught inside the chapters that use them.

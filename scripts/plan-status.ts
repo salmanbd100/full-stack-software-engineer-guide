@@ -181,7 +181,7 @@ if (want("--check")) {
   for (const l of lines) {
     // The Items cell is prose once a phase holds sub-items ("20–31 · 31a–31e"), so it is
     // matched loosely. The done/of pair in the next cell is what this check reads.
-    const m = l.match(/^\|\s*(\d)\s*\|\s*[^|]+?\s*\|\s*(\d+)\/(\d+)\s*\|/);
+    const m = l.match(/^\|\s*(\d+)\s*\|\s*[^|]+?\s*\|\s*(\d+)\/(\d+)\s*\|/);
     if (m) rows.push({ phase: m[1], done: Number(m[2]), of: Number(m[3]) });
   }
   const phaseSum: number = rows.reduce((a, r) => a + r.done, 0);

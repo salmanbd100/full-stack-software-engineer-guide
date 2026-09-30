@@ -27,9 +27,6 @@ than one core. Last comes the framework most services are written in.
 | 02 | [Node.js Performance, Streams and Scaling](#ch-nodejs-performance) | Where did the 400 ms go, how do you move data you cannot hold in memory, and do you need more loops? |
 | 03 | [Express, Hono and Edge Runtimes](#ch-express) | A long-lived Node server, or Web-standard handlers that run at the edge? |
 
-Chapter 03 was its own *Node Frameworks* section until #100. NestJS and the module system left the book
-in the same cut.
-
 ## What Interviewers Probe For
 
 - **Microtask ordering.** `setTimeout` against `setImmediate` against `process.nextTick`. The

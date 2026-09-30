@@ -45,8 +45,6 @@ shows what concurrent writes do to both.
 **Interview sprint:** 02. Shard keys and lost updates are the two questions this section is asked about
 most.
 
-> ⚠️ Six chapters left this section at **#31d**. SQL and NoSQL design, indexing, data modelling and
-> query optimisation merged into 01 or moved to Part V, which covers them at implementation depth. CAP
-> and consistency patterns merged into `Fundamentals/04-consistency-and-cap.md`. At #101 replication
-> merged into 01 and transactions at scale into 02. Those two originals are in
-> `Archive/system-design/database/`.
+> ⚠️ **Schema design, indexing and query optimisation are in Part V**, at implementation depth. CAP and
+> consistency patterns are in [Chapter ?? — Reliability, Consistency and CAP](#ch-consistency-and-cap).
+> This section is only about data that no longer fits on one machine.

@@ -69,6 +69,7 @@ type RuleId =
   | "unresolved-xref"
   | "cross-volume-xref"
   | "chapter-blocks"
+  | "plan-reference"
   | "budget";
 
 const RULE_TITLES: Readonly<Record<RuleId, string>> = {
@@ -83,6 +84,7 @@ const RULE_TITLES: Readonly<Record<RuleId, string>> = {
   "unresolved-xref": "Cross-reference to a #ch- anchor no chapter carries",
   "cross-volume-xref": "Cross-reference into a chapter of the other volume",
   "chapter-blocks": "Chapter missing one of the standard's six blocks",
+  "plan-reference": "Improvement-plan history in a printed file",
   budget: "Lines over the BOOK-SPEC § 5 part budget",
 };
 
@@ -244,6 +246,28 @@ function checkBody(doc: Doc): void {
     }
 
     checkLinks(doc, line, lineNo);
+    checkPlanReference(doc, line, lineNo);
+  }
+}
+
+/**
+ * Improvement #117. Openers had grown notes to the author — "#101 then cut the part",
+ * "the rest are in `Archive/devops/`" — and every one of them printed. A reader cannot
+ * act on an item number or a path into the repository.
+ *
+ * Item numbers are matched outside inline code, so a colour like `#999` passes; code
+ * fences never reach this function, so "Closes #482" in a sample PR passes too. An
+ * `Archive/` path is caught even in backticks, because that is how the notes wrote it.
+ */
+const PLAN_ITEM = /(?<![\w&#])#\d{2,3}[a-e]?\b/;
+
+function checkPlanReference(doc: Doc, line: string, lineNo: number): void {
+  const prose: string = line.replace(/`[^`]*`/g, "");
+  const item = PLAN_ITEM.exec(prose);
+  if (item) {
+    report("plan-reference", doc.rel, lineNo, `plan item \`${item[0]}\``);
+  } else if (line.includes("Archive/")) {
+    report("plan-reference", doc.rel, lineNo, "path into `Archive/`");
   }
 }
 

@@ -91,7 +91,7 @@ describe("lint-docs", () => {
         "",
         "## 💡 The Core Idea",
         "",
-        "The mental model, in plain words.",
+        "The mental model, in plain words. A grey like `#999` is not a plan item.",
         "",
         "## How It Works",
         "",
@@ -99,6 +99,10 @@ describe("lint-docs", () => {
         "",
         "```typescript",
         "const x: number = 1;",
+        "```",
+        "",
+        "```text",
+        "Closes #482.",
         "```",
         "",
         "## 🔑 Key Takeaways",
@@ -161,6 +165,10 @@ describe("lint-docs", () => {
         "",
         "See [the other one](../JavaScript/01-good.md).",
         "",
+        "Two chapters left at #101.",
+        "",
+        "They are in `Archive/old/`.",
+        "",
         "### A heading that skipped a level",
         "",
         "```python",
@@ -197,6 +205,12 @@ describe("lint-docs", () => {
     assert.ok(/1 violation\(s\) of cross-volume-xref/.test(stdout), stdout);
     assert.ok(stdout.includes("#ch-two-pointers"), "the chapter link was not named");
     assert.equal(stdout.includes("#ch-dsa-index"), false, "naming Book 2 by its opener was flagged");
+  });
+
+  test("catches improvement-plan history in a printed file", () => {
+    // Two lines, two violations: an item number, then an Archive/ path. The clean
+    // chapter's `#999` and the "Closes #482" inside its fence must not count.
+    assert.equal(count(run("lint-docs.ts", fixture).stdout, "Improvement-plan history"), 2);
   });
 
   test("catches a relative file link where a cross-reference belongs", () => {

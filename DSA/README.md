@@ -74,8 +74,6 @@ harder. Do not skip 03 and 04; they underpin more questions than any other pair 
 **Interview sprint:** 01 → 03 → 04 → 13 → 15. Complexity, two pointers, sliding window, BFS and
 dynamic programming between them cover the majority of what gets asked.
 
-> ⚠️ **This appendix ships as a companion volume, not bound into the book.** Improvement #27 trimmed
-> all sixteen chapters to pattern recognition, one template, two worked examples, complexity and a
-> curated problem table — 19,281 lines down to 4,520, each chapter between 218 and 363. The full
-> teaching versions, with every solution worked line by line, live in
-> `Archive/dsa-solutions/` in the repository — nothing was deleted.
+> ⚠️ **Each chapter teaches recognition, not every solution.** You get the pattern's signals, how it
+> works, the common mistakes and a curated problem table. Solve those problems yourself: recognising
+> the pattern under time pressure is the skill the round tests.

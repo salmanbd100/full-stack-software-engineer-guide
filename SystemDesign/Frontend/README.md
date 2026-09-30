@@ -21,11 +21,10 @@ How to drive a frontend round is now the second half of [Chapter ?? — Driving 
 It covers RADIO for a client application and where each kind of state lives. Read it first, even if
 you skip the rest. A frontend round is scored on how you drive it.
 
-> ⚠️ This section is smaller than it was. Improvement #42 moved out the chapters about **structuring
-> a codebase** rather than driving a round. Architecture patterns, micro-frontends and design systems
-> now live in `Frontend/Architecture/`. Asset delivery and error tracking live in
-> `Frontend/WebPerformance/`. Both are Part IV. Rendering and state management became Part III sections
-> at #39 and #40. What stayed is what a frontend design round really opens with.
+> ⚠️ **This section is about driving a round, not structuring a codebase.** Architecture patterns,
+> micro-frontends and design systems are in Part IV's architecture chapters, and asset delivery and
+> error tracking in its performance chapters. Rendering and state management are Part III. What is
+> here is what a frontend design round really opens with.
 
 ## Chapters
 

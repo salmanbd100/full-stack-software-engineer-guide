@@ -47,13 +47,21 @@ Two questions run through every section, and each section index adds its own.
 
 ## Reading Order
 
-`Git/` → `CICD/` → `Deployment/`, in that order. Each uses the words of the one before, and the
-immutable-artefact model (an artefact is never changed after the build) in `Deployment/01` is what
-makes rollback and feature flags make sense.
-`Observability/` and `Cloud/` stand alone and fit anywhere.
+Git, then CI/CD, then Deployment, in that order. Each uses the words of the one before, and the
+immutable-artefact model (an artefact is never changed after the build) in
+[Chapter ?? — Platform Deploys and Preview Environments](#ch-platform-deploys) is what makes rollback
+and feature flags make sense. Observability and Cloud stand alone and fit anywhere.
 
-**Interview sprint:** `Git/02` · `CICD/02`–`03` · `Deployment/01`–`02` · `Observability/02` · `Cloud/01`.
+**Interview sprint:**
 
-> ⚠️ **This part was 39,703 lines and is now under 3,400.** Item #20 made the first cut and #103
-> the second. Terraform, Linux, Kubernetes, Docker Compose and the deep AWS tour were not deleted. They are
-> in `Archive/devops/` and `Archive/ship-and-operate/`, just outside a book written for this reader.
+- [Chapter ?? — Branching, Review and Repository Strategy](#ch-branching-and-review-workflow)
+- [Chapter ?? — Container Images: Building and Hardening](#ch-docker-fundamentals)
+- [Chapter ?? — GitHub Actions and Pipeline Security](#ch-github-actions)
+- [Chapter ?? — Platform Deploys and Preview Environments](#ch-platform-deploys)
+- [Chapter ?? — Deployment Strategies, Rollback and Feature Flags](#ch-deployment-strategies)
+- [Chapter ?? — Metrics, Dashboards and Alerting](#ch-metrics-and-dashboards)
+- [Chapter ?? — Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals)
+
+> ⚠️ **Terraform, Linux administration, Kubernetes operations and a deep AWS tour are out of scope.**
+> A frontend-heavy engineer ships, watches and rolls back; those belong to a book written for the
+> platform team.
