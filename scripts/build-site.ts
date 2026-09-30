@@ -33,7 +33,7 @@ import {
   volumeOf,
   type Doc,
 } from "./lib/book.ts";
-import { STORE_URL, STORE_IS_PLACEHOLDER } from "./lib/store.ts";
+import { STORE_URL, STORE_LABEL } from "./lib/store.ts";
 
 const ROOT: string = process.cwd();
 const SITE: string = join(ROOT, "site");
@@ -129,9 +129,8 @@ function frontMatterFor(doc: Doc, title: string): string {
 function sampleNote(unpublished: number): string {
   return `
 ::: tip This is a sample chapter
-The Senior Full Stack Handbook has ${unpublished} more of these. The rest of the book is on
-[Leanpub](${STORE_URL}), and buying it while it is in progress gets you every
-update as it lands.
+The Senior Full Stack Handbook has ${unpublished} more of these. The rest of the book is at
+[${STORE_LABEL}](${STORE_URL}).
 :::
 `;
 }
@@ -238,9 +237,10 @@ const drift: string[] = [];
 
 for (const rel of HAND_WRITTEN) {
   const text: string = readFileSync(join(SITE, rel), "utf8");
-  for (const url of text.match(/https:\/\/leanpub\.com[^"'\s)]*/g) ?? []) {
-    if (url !== STORE_URL) drift.push(`${rel}: store URL is ${url}, lib/store.ts says ${STORE_URL}`);
-  }
+  // Both directions: the leftover placeholder is drift, and so is a file that has lost the
+  // real address, since a guard that only looks for the old URL passes any new one.
+  if (/https:\/\/leanpub\.com/.test(text)) drift.push(`${rel}: still links to the leanpub.com placeholder`);
+  if (!text.includes(STORE_URL)) drift.push(`${rel}: has no link to ${STORE_URL}, the URL lib/store.ts names`);
   for (const stated of text.match(/(\d[\d,]{2,})\s+interview questions/g) ?? []) {
     if (Number(stated.replace(/\D/g, "")) !== questionCount) {
       drift.push(`${rel}: says "${stated}", the manuscript has ${questionCount}`);
@@ -258,10 +258,6 @@ if (drift.length > 0) {
   for (const d of drift) console.error(`  ${d}`);
   console.error("");
   process.exit(1);
-}
-
-if (STORE_IS_PLACEHOLDER) {
-  console.log("  ·  store URL is still the placeholder — set STORE_SLUG in scripts/lib/store.ts");
 }
 
 // A landing page for /book/, so the section has a front door rather than only a sidebar.

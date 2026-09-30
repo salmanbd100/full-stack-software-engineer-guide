@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-30 · **Progress:** 23 / 25
+**Last updated:** 2026-09-30 · **Progress:** 24 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1575,7 +1575,7 @@ count is **≤ 950**, the frontend spine line is green, and every CI check passe
 
 ---
 
-### - [ ] 115. Build the back cover and put the web address on it `M`
+### - [x] 115. Build the back cover and put the web address on it `M` — ✅ **done 2026-09-30**
 
 > 🔴 **A correction to this plan.** An earlier draft of this item said the cover's spine width comes
 > from the page count. It does not. `scripts/cover.tex` is a **front cover only** — a 100 × 160mm
@@ -1603,6 +1603,40 @@ appears in exactly one place in the source.
 **Done when:** `pnpm book:cover` produces a two-page PDF, both pages rasterise cleanly at thumbnail
 size, the web address is the author's real one in the cover, `site/index.md` and
 `site/.vitepress/config.ts`, and no `leanpub.com` placeholder is left.
+
+**Delivered:**
+
+- **The address is `www.salmanrahman.com`**, supplied by the author this session. The links use
+  `https://www.salmanrahman.com/`, the same string `scripts/book-meta.yaml`, `scripts/companion-meta.yaml` and the
+  colophon in `scripts/tex/structure.tex` already printed. So the site, the cover and the book now agree
+- **`scripts/cover.tex` has a back page.** Same 100 × 160mm trim, same hairline frame, same three families and
+  tokens. Top to bottom: a letterspaced title label; a three-paragraph blurb (who it is for, what it covers, the
+  three-question promise) taken from BOOK-SPEC § 2 and § 3; a "What is inside" table of the nine parts with #114's
+  chapter and page counts (150 chapters, 935 pages); the author line from `About-the-Author.md`; and
+  `\coverurl` at the foot in `inkmid` at `\tokSmallSize`. `\covertitle`, `\coverauthor` and `\coverurl` sit together,
+  and the address appears once in the source
+- **Two stale claims on the front were fixed with it**, because the back would have contradicted them. "254
+  CHAPTERS" now reads "150 CHAPTERS". The nine part bars were drawn from the old 57,200-line budgets. They are now
+  the § 5 budgets ÷ 700, so Part III keeps its 12.0 width
+- **`scripts/build-cover.sh` rasterises both pages**: `build/cover.png` (front, the name the store upload already
+  uses) and `build/cover-back.png`, each 1600 × 2560
+- **The site's placeholder is gone, and so is the mechanism that expected one.** `scripts/lib/store.ts` no longer has
+  `STORE_SLUG` or `STORE_IS_PLACEHOLDER`. It holds `STORE_URL` and `STORE_LABEL`. The old guard in
+  `build-site.ts` only matched `leanpub.com` URLs, so any other address would have passed unchecked. It now fails
+  if a hand-written file still has the placeholder, or no longer has `STORE_URL`. The sample-chapter note now
+  reads "The rest of the book is at www.salmanrahman.com". Its Leanpub-only line about in-progress updates was
+  dropped
+- **Verified:**
+  - `pnpm book:cover` writes a 2-page `build/cover.pdf` (`pdfinfo`: `Pages: 2`) and two 1600 × 2560 PNGs
+  - Both PNGs were viewed at 900px and at 256px. Nothing is clipped, nothing overlaps, and the title, table and
+    address are readable at thumbnail size. The first render set the author's description in Computer Modern and
+    ran the blurb into the table. Both were fixed before this was written
+  - `pnpm site:build` is clean, and 9 generated sample pages link to the address. With the placeholder put back in
+    `site/index.md`, `site:pages` failed with both drift messages. The file was then restored
+  - `git grep leanpub.com` outside `Archive/` finds only this plan's own text
+  - `pnpm test`: 37 of 37 pass
+- **Not checked:** whether `www.salmanrahman.com` links on to a store page. That is the author's site, and
+  #116's re-read of the launch checklist is the place to confirm it
 
 ---
 
@@ -1635,8 +1669,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 23/25 | 🚧 In progress |
-| **Total** | **25** | **23/25** | **92%** |
+| 9 | 95–116 · 95a · 113a · 113b | 24/25 | 🚧 In progress |
+| **Total** | **25** | **24/25** | **96%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

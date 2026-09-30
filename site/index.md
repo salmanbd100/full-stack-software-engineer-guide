@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Buy the book
-      link: https://leanpub.com/
+      link: https://www.salmanrahman.com/
     - theme: alt
       text: Start reading free
       link: /book/front/preface

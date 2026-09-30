@@ -1,6 +1,6 @@
 % cover.tex — improvement #90
 %
-% The front cover, set in the book's own typefaces from the book's own tokens.
+% The front and back covers — #90 and #115 — set in the book's own typefaces from the book's own tokens.
 %
 %   ./scripts/build-cover.sh        # pnpm book:cover
 %
@@ -66,13 +66,20 @@
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
 
+% The title, the author and the web address, once each. The address is the one string the
+% cover, site/index.md and site/.vitepress/config.ts must agree on — #115.
+\newcommand{\covertitle}{The Senior Full Stack Handbook}
+\newcommand{\coverauthor}{Salman Rahman}
+\newcommand{\coverurl}{www.salmanrahman.com}
+
 % The one piece of drawing on the cover: nine rules, one per part, their lengths standing
 % for the parts' relative sizes in BOOK-SPEC § 5. It is the book's own budget table used
 % as an ornament, and it prints in one ink like everything inside. Centred on the axis
 % rather than ragged, so it reads as a figure rather than as a mistake.
 \newcommand{\partbars}{%
   \begin{tikzpicture}[x=1mm, y=1mm]
-    \foreach \i/\w in {1/5.1, 2/6.0, 3/12.0, 4/5.6, 5/6.5, 6/6.5, 7/7.5, 8/5.5, 9/2.5} {
+    % Budget ÷ 700, so Part III's 8,400 keeps the 12.0 the widest bar has always had.
+    \foreach \i/\w in {1/5.1, 2/5.4, 3/12.0, 4/5.7, 5/5.7, 6/6.3, 7/7.4, 8/4.9, 9/2.6} {
       \fill[ink] (-\w*1.8, -\i*1.9) rectangle (\w*1.8, -\i*1.9 + 0.8);
     }
   \end{tikzpicture}%
@@ -100,8 +107,8 @@
 
 \begin{document}
 
-% Every element is placed against the page rather than flowed, because a cover is one
-% page with six lines on it and vertical flow on a fixed leaf is how things fall off it.
+% Every element is placed against the page rather than flowed, because a cover is a
+% fixed leaf, and vertical flow on a fixed leaf is how things fall off it.
 \begin{tikzpicture}[remember picture, overlay]
   % Ground. White, because the interior is white and a black cover promises a different book.
   \fill[white] (current page.south west) rectangle (current page.north east);
@@ -129,10 +136,79 @@
   \node[anchor=north] at ($(current page.north) + (0, -110mm)$) {\partbars};
 
   \node[anchor=south] at ($(current page.south) + (0, 24mm)$)
-    {\coverlabel{NINE PARTS $\cdot$ 254 CHAPTERS}};
+    {\coverlabel{NINE PARTS $\cdot$ 150 CHAPTERS}};
 
   \node[anchor=south] at ($(current page.south) + (0, 13mm)$)
-    {\coversans\fontseries{sb}\selectfont\fontsize{11.5pt}{14pt}\selectfont Salman Rahman};
+    {\coversans\fontseries{sb}\selectfont\fontsize{11.5pt}{14pt}\selectfont \coverauthor};
+\end{tikzpicture}
+
+\mbox{}
+
+\newpage
+
+% ## The back cover — #115
+%
+% Same trim, same frame, same families. Four blocks, top to bottom: the blurb, what is
+% inside, the author, the address. The blurb is BOOK-SPEC § 2 and § 3 in the book's own
+% plain English, not new copy. The part table carries #114's measured chapter and page
+% counts — update it when the book is rebuilt, or the back promises a book that is not
+% inside.
+\newcommand{\backpart}[4]{#1 & #2 & #3 & #4 \\}
+
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[white] (current page.south west) rectangle (current page.north east);
+
+  \draw[ink, line width=\tokHairline]
+    ($(current page.south west) + (7mm, 7mm)$) rectangle
+    ($(current page.north east) + (-7mm, -7mm)$);
+
+  \node[anchor=north] at ($(current page.north) + (0, -14mm)$)
+    {\coverlabel{THE SENIOR FULL STACK HANDBOOK}};
+
+  \node[anchor=north, text width=72mm, align=left] at ($(current page.north) + (0, -22mm)$)
+    {\coverserif\fontsize{8pt}{11pt}\selectfont\color{ink}
+     \setlength{\parskip}{1.6mm}\raggedright\frenchspacing
+     You can build the feature. The senior interview asks you to defend the design. This
+     book is for engineers with three to eight years' experience who want a senior or staff
+     frontend or full stack role.
+
+     It treats the modern frontend stack and AI engineering as one job, from the language
+     and the browser to system design, shipping and the people you work with.
+
+     Every chapter answers three questions: \textit{why does this exist, when do I reach
+     for it, and what does it cost me?} Then it gives you the answer you can say out loud
+     in an interview.\par};
+
+  \node[anchor=north] at ($(current page.north) + (0, -74mm)$)
+    {\coverlabel{WHAT IS INSIDE}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -79mm)$)
+    {\coversans\fontsize{7pt}{9.6pt}\selectfont\color{ink}
+     \setlength{\tabcolsep}{1.6mm}%
+     \begin{tabular}{@{}l l r r@{}}
+       & \color{inkmid}Part & \color{inkmid}Chapters & \color{inkmid}Pages \\[0.4mm]
+       \backpart{I}{Foundations}{15}{74}
+       \backpart{II}{The Browser Platform}{15}{88}
+       \backpart{III}{The Modern Frontend Stack}{34}{186}
+       \backpart{IV}{Frontend at Scale}{15}{86}
+       \backpart{V}{Backend for Frontend Engineers}{15}{88}
+       \backpart{VI}{System Design}{18}{102}
+       \backpart{VII}{AI Engineering}{20}{128}
+       \backpart{VIII}{Ship and Operate}{11}{74}
+       \backpart{IX}{The Human Layer}{7}{41}
+       [0.4mm]
+       & \fontseries{sb}\selectfont Total & \fontseries{sb}\selectfont 150 & \fontseries{sb}\selectfont 935 \\
+     \end{tabular}};
+
+  % `font=` rather than a font switch inside the node: `align` breaks the node into lines,
+  % and a switch set before the first \\ does not reach the second.
+  \node[anchor=south, align=center, font=\coversans\fontsize{8pt}{11pt}\selectfont]
+    at ($(current page.south) + (0, 22mm)$)
+    {{\fontseries{sb}\selectfont\coverauthor}\\
+     {\color{inkmid}Senior frontend engineer, nine years' experience}};
+
+  \node[anchor=south] at ($(current page.south) + (0, 12mm)$)
+    {\coversans\fontsize{\tokSmallSize}{11pt}\selectfont\color{inkmid}\coverurl};
 \end{tikzpicture}
 
 \mbox{}

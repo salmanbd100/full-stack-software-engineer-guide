@@ -30,7 +30,7 @@ export default defineConfig({
       { text: "Read", link: "/book/front/preface" },
       { text: "Questions", link: "/book/back/interview-question-index" },
       { text: "Glossary", link: "/book/back/glossary" },
-      { text: "Buy the book", link: "https://leanpub.com/" },
+      { text: "Buy the book", link: "https://www.salmanrahman.com/" },
     ],
 
     sidebar: { "/book/": sidebar },
