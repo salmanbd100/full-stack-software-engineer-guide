@@ -239,4 +239,4 @@ later without a rewrite.
 
 - [Chapter ?? — The Node.js Event Loop, Async and Errors](#ch-event-loop-async) — what belongs in the error handler this chapter registers
 - [Chapter ?? — Middleware, Runtimes and Deployment](#ch-nextjs-middleware-and-the-edge) — the same edge runtime inside a Next.js app
-- [Chapter ?? — Serverless and Functions](#ch-serverless-functions) — how an isolate compares with a regional function
+- [Chapter ?? — Serverless Functions](#ch-serverless-functions) — how an isolate compares with a regional function

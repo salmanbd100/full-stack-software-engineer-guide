@@ -99,6 +99,19 @@ export const COMPANION_PART = 10;
 
 export type Volume = "book" | "companion";
 
+/**
+ * The basename of each volume's built PDF and EPUB, under `build/` — #113b.
+ *
+ * These are the files a reader downloads, so they carry the book's real name. No edition
+ * or year: that is on the title page, and a filename with a version in it has to be
+ * explained every time it changes. `scripts/build-book.sh` sets the same two strings as
+ * `BOOK_NAME` and `COMPANION_NAME`, and a test fails if the two drift apart.
+ */
+export const OUTPUT_NAMES: Readonly<Record<Volume, string>> = {
+  book: "The-Senior-Full-Stack-Handbook",
+  companion: "The-Senior-Full-Stack-Handbook-Book-2-DSA-Patterns",
+};
+
 /** Which volume a part belongs to. Front and back matter (part 0) belong to the book. */
 export function volumeOfPart(part: number): Volume {
   return part === COMPANION_PART ? "companion" : "book";

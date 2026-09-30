@@ -222,7 +222,7 @@ the newest material in the book and the part most readers meet cold.
 
 **Reranking** — Reordering retrieved candidates with a more expensive, more accurate model before they reach the prompt. [Embeddings, Vector Stores and Retrieval](#ch-retrieval)
 
-**RSC** — React Server Components: components that render on the server and ship no JavaScript for themselves. [Server and Client Components](#ch-server-components-vs-client-components)
+**RSC** — React Server Components: components that render on the server and ship no JavaScript for themselves. [Server Components and Client Components](#ch-server-components-vs-client-components)
 
 **RUM** — Real user monitoring: performance data collected from actual visits, as opposed to a lab run. [Measuring in Production](#ch-measuring-in-production)
 

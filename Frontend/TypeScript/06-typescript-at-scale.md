@@ -229,4 +229,4 @@ inferred type. That is safer for anything crossing a boundary, and much cheaper 
 
 - [Chapter ?? — TypeScript Advanced and Utility Types](#ch-advanced-types) — the type-level features whose cost this chapter prices
 - [Chapter ?? — Type-Checking and Linting at Scale](#ch-type-checking-and-linting) — project references and keeping whole-program checks off the critical path
-- [Chapter ?? — TypeScript at Scale in React](#ch-react-typescript-at-scale) — the same discipline applied to props, state and the server boundary
+- [Chapter ?? — React and TypeScript at Scale](#ch-react-typescript-at-scale) — the same discipline applied to props, state and the server boundary

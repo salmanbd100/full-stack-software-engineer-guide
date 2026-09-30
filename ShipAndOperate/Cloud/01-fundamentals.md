@@ -288,4 +288,4 @@ URLs, and cache those forever. Give the HTML a short `s-maxage` and make it the 
 
 - [Chapter ?? — Serverless Functions](#ch-serverless-functions) — the rung most frontend-heavy teams live on
 - [Chapter ?? — Content Delivery Network](#ch-cdn) — how the edge routes, offloads and shields the origin
-- [Chapter ?? — Platform and Edge Deployments](#ch-platform-deploys) — what a deploy does to everything cached in front of it
+- [Chapter ?? — Platform Deploys and Preview Environments](#ch-platform-deploys) — what a deploy does to everything cached in front of it

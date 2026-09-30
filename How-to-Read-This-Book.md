@@ -90,18 +90,18 @@ chapters the sprint route skips.
 
 ## The Nine Parts at a Glance
 
-| Part                                                          | Chapters | What it answers                                                       |
-| ------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
-| I — [Foundations](#ch-frontend-javascript-index)               | 23       | What the runtime is actually doing, in JavaScript and TypeScript        |
-| II — [The Browser Platform](#ch-frontend-html-css-index)       | 19       | What the platform gives you before any framework does                   |
-| III — [The Modern Frontend Stack](#ch-part-modern-frontend-stack) | 46   | React, Next.js and Svelte — and the rendering models underneath them    |
-| IV — [Frontend at Scale](#ch-frontend-architecture-index)      | 23       | What changes at forty engineers, four years, and a performance budget   |
-| V — [Backend for Frontend Engineers](#ch-backend-index)        | 27       | The backend this role is actually asked to design and build             |
-| VI — [System Design](#ch-system-design-index)                  | 29       | How to drive a design round, backend and frontend                       |
-| VII — [AI Engineering](#ch-part-ai-engineering)                | 32       | Shipping features on top of models, and measuring whether they work     |
-| VIII — [Ship and Operate](#ch-ship-and-operate-index)          | 20       | Owning a change to production, including the way back                   |
-| IX — [The Human Layer](#ch-behavioral-index)                   | 10       | The rounds that decide the level rather than the offer                  |
-| Appendix — [DSA Patterns](#ch-dsa-index)                       | 16       | Sixteen patterns, enough to recognise the problem in front of you       |
+| Part                                                              | Chapters | What it answers                                                       |
+| ----------------------------------------------------------------- | -------- | --------------------------------------------------------------------- |
+| I — [Foundations](#ch-part-foundations)                           | 15       | What the runtime is actually doing, in JavaScript and TypeScript      |
+| II — [The Browser Platform](#ch-part-browser-platform)            | 15       | What the platform gives you before any framework does                 |
+| III — [The Modern Frontend Stack](#ch-part-modern-frontend-stack) | 34       | React, Next.js and Svelte — and the rendering models underneath them  |
+| IV — [Frontend at Scale](#ch-part-frontend-at-scale)              | 15       | What changes at forty engineers, four years, and a performance budget |
+| V — [Backend for Frontend Engineers](#ch-backend-index)           | 15       | The backend this role is actually asked to design and build           |
+| VI — [System Design](#ch-system-design-index)                     | 18       | How to drive a design round, backend and frontend                     |
+| VII — [AI Engineering](#ch-part-ai-engineering)                   | 20       | Shipping features on top of models, and measuring whether they work   |
+| VIII — [Ship and Operate](#ch-ship-and-operate-index)             | 11       | Owning a change to production, including the way back                 |
+| IX — [The Human Layer](#ch-part-human-layer)                      | 7        | The rounds that decide the level rather than the offer                |
+| Book 2 — [DSA Patterns](#ch-dsa-index)                            | 16       | Sixteen patterns, enough to recognise the problem in front of you     |
 
 Part III is the largest by design — it is the part most readers bought the book for. Part IX is the
 shortest and is lost more often than any other.

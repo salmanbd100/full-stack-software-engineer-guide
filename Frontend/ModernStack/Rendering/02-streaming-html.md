@@ -167,7 +167,7 @@ lands at once, something between your code and the terminal is buffering.
 | Every query is fast (under ~50 ms) | **No** | The complexity buys nothing measurable |
 | Fully static or ISR-cached page | **No** | There is nothing to wait for |
 | Page whose largest element depends on the slow query | **Careful** | You may trade LCP for TTFB |
-| API returning JSON to a client | **Different problem** | See [Chapter ?? — Real-Time Streaming](#ch-realtime-streaming) |
+| API returning JSON to a client | **Different problem** | See [Chapter ?? — Real-Time and Streaming APIs](#ch-realtime-streaming) |
 
 ## Common Mistakes
 

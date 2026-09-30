@@ -67,7 +67,8 @@ exists because a README references it.
 ```bash
 pnpm lint:docs        # the Book Chapter Standard, all eleven rules — run this before calling a file done
 pnpm lint:docs --rule=broken-link   # every occurrence of one rule
-pnpm book:build       # PDF + EPUB into build/
+pnpm book:build       # PDF + EPUB into build/The-Senior-Full-Stack-Handbook.{pdf,epub}
+                      #   (names: OUTPUT_NAMES in scripts/lib/book.ts, #113b)
                       #   needs: brew install pandoc tectonic
                       #   and:   pnpm add -g @mermaid-js/mermaid-cli   (diagrams, #82)
                       #   and:   brew install epubcheck   (EPUB validation, #83)

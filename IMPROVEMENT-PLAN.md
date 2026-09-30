@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-09-30 · **Progress:** 21 / 25
+**Last updated:** 2026-09-30 · **Progress:** 23 / 25
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1425,7 +1425,7 @@ and `pnpm site:build` is clean.
 
 ---
 
-### - [ ] 113b. Give the built files meaningful names `S`
+### - [x] 113b. Give the built files meaningful names `S` — ✅ **done 2026-09-30**
 
 `build/handbook.pdf` says nothing once it is in somebody's Downloads folder. Four outputs get the
 book's real name:
@@ -1462,9 +1462,37 @@ from `scripts/lib/book.ts` for the TypeScript side, so the next rename is one ed
 finds the PDF and reports normally, `pnpm test` is green, and nothing in the repo outside `Archive/` still says
 `handbook.pdf` or `companion.pdf`.
 
+**Delivered:**
+
+- **One name per volume, in two places that a test checks against each other.** `OUTPUT_NAMES` in
+  `scripts/lib/book.ts` (`book`, `companion`) is the TypeScript side. `BOOK_NAME` and `COMPANION_NAME` at the
+  top of `scripts/build-book.sh` are the shell side. A new test in `scripts/test/book.test.ts` reads both
+  variables out of the script and fails if either differs from `OUTPUT_NAMES`. The next rename is two lines,
+  and the test catches a miss
+- **`scripts/build-book.sh`:** all six `--output` paths and their echo, glyph, cross-reference and epubcheck
+  lines use the variables. `book.md`, `companion.md`, `handbook.log`, `companion.log` and `epubcheck.log` keep
+  their short names, as the item said
+- **`scripts/measure-pages.ts`:** it builds both PDF paths from `OUTPUT_NAMES`, and its "not found" messages and
+  report header print the real path
+- **`CLAUDE.md`:** the `book:build` line now names the output file and points to `OUTPUT_NAMES`
+- **Two rows in this item's table were wrong.** `CLAUDE.md` never named `build/handbook.pdf`, and
+  `.github/workflows/lint-docs.yml` names no built file, because CI never builds the PDF. There was nothing to
+  fix in either
+- **Verified:**
+  - The four old files were deleted from `build/` first, so a stale file could not pass for a new one
+  - `pnpm book:build` wrote `build/The-Senior-Full-Stack-Handbook.pdf` (4.1M) and `.epub` (2.3M).
+    `pnpm book:companion` wrote `build/The-Senior-Full-Stack-Handbook-Book-2-DSA-Patterns.pdf` (492K) and
+    `.epub` (1.4M). Both logs have zero missing glyphs, every cross-reference resolved, and epubcheck reports
+    zero errors and zero warnings on both EPUBs
+  - `pnpm book:pages` finds both PDFs and reports normally: 935 pages, and Book 2 at 101. The ❌ against
+    decision #13's 700-page ceiling was there before this item and is #114's to settle
+  - `pnpm test`: 37 of 37 pass
+  - `git grep` outside `Archive/` finds `handbook.pdf` / `companion.pdf` only in this plan's own description of
+    the rename (line 140 and this item). That text records the change, so it stays
+
 ---
 
-### - [ ] 114. Rebuild and measure the 940-page edition `M`
+### - [x] 114. Rebuild and measure the 940-page edition `M` — ✅ **done 2026-09-30**
 
 Everything has moved. This item puts the book back together and proves the number.
 
@@ -1483,6 +1511,67 @@ clean and are wrong.
 
 **Done when:** the PDF builds with zero missing glyphs and zero unresolved cross-references, the page
 count is **≤ 950**, the frontend spine line is green, and every CI check passes.
+
+**Delivered:**
+
+- **The edition is 935 pages.** `pnpm book:pages` on the rebuilt PDF:
+
+  | Part | Ch | Lines | Budget | Pages |
+  | ---- | -- | ----- | ------ | ----- |
+  | Front matter | 2 | 315 | — | 36 |
+  | I — Foundations | 19 | 3,487 | 3,600 | 74 |
+  | II — The Browser Platform | 19 | 3,792 | 3,800 | 88 |
+  | III — The Modern Frontend Stack | 41 | 8,375 | 8,400 | 186 |
+  | IV — Frontend at Scale | 20 | 3,888 | 4,000 | 86 |
+  | V — Backend for Frontend Engineers | 21 | 3,969 | 4,000 | 88 |
+  | VI — System Design | 24 | 4,354 | 4,400 | 102 |
+  | VII — AI Engineering | 27 | 5,135 | 5,200 | 128 |
+  | VIII — Ship and Operate | 17 | 3,376 | 3,400 | 74 |
+  | IX — The Human Layer | 10 | 1,795 | 1,800 | 41 |
+  | Back matter | 4 | 1,427 | — | 32 |
+  | **Total** | **222 files** | **39,913** | | **935** |
+
+  The "Ch" column counts files, openers and section indexes included. `number:chapters` counts **150
+  chapters** in the handbook (15 · 15 · 34 · 15 · 15 · 18 · 20 · 11 · 7) and 16 in Book 2. Book 2 is 101 pages.
+  The spine is 51.2%, against decision #2's 50% floor
+- **The steps, in order:**
+  - `number:chapters` found every file already numbered
+  - `index:questions` produced no content change: 647 questions from 150 chapters, and 87 in Book 2. Only the
+    `updated:` stamps moved, and they were reverted
+  - `site:pages` wrote 65 pages
+  - `book:build` and `book:companion` built both volumes
+- **Quiet breakage 1: cross-references naming a title the chapter no longer has.** Print prints the authored
+  title beside the resolved number, so "Chapter 122 — Backend Input Validation" sat above a chapter headed
+  "Input Validation and Injection". A scratch check compared all 1,175 `#ch-` links against their target's H1,
+  and 12 stale titles were fixed on 16 lines in 12 files. The titles were Serverless Functions, Input Validation
+  and Injection, Monitoring and Observability Fundamentals, Real-Time and Streaming APIs, `useEffect` and When
+  Not to Use It, Component Composition Patterns, Server Components and Client Components, React and TypeScript at
+  Scale, Platform Deploys and Preview Environments, and Measuring in Production. Abbreviations such as "CDN",
+  "CI/CD" and "Input Validation" were left as they are. The chapter *numbers* cannot go stale: 676 of the
+  references are `Chapter ??` and take LaTeX's own counter. A spot check of three fixed references in the PDF
+  found the chapter number, title and page all agreeing
+- **Quiet breakage 2: `How-to-Read-This-Book.md`'s "Nine Parts at a Glance" table.** It gave the pre-cut chapter
+  counts (Part I 23, III 46, VII 32). Parts I, II, IV and IX linked to a section index rather than the part opener
+  #76 wrote, and DSA was still called an "Appendix". All ten rows now carry the `number:chapters` counts and the
+  opener anchors, and the last row reads "Book 2". Every section index's "N chapters" sentence was checked
+  against its directory's file count, and all 17 agree
+- **`scripts/measure-pages.ts` now judges against 950, decision #21's edition, not #13's 700.** The report
+  failed on every run against a ceiling the spec had already set aside (decisions #19 and #21). It now reads
+  "✅ 935 pages against decision #21's 950-page ceiling"
+- **Verified:**
+  - Both PDFs have zero missing glyphs (`could not represent character` count is 0 in both logs), and every
+    `#ch-` cross-reference resolved
+  - Both EPUBs pass epubcheck with zero errors and zero warnings
+  - Every CI step is green: `lint:docs` has 0 violations on every rule, including the `budget` rule at 0
+  - `number:chapters --check` and `index:check` pass
+  - `check:code-samples`: syntax clean, types 974 against a baseline of 974
+  - `site:pages`, `plan:check` and `book:collect` pass
+  - `pnpm test`: 37 of 37 pass
+- **Seen, not changed:**
+  - The root `README.md` is excluded from the book but still describes the old one: "~249 chapters, 55,000
+    lines", Part III's 46 and Part VII's 32. A note under #116 says so
+  - Two section indexes, HtmlCss and Behavioral, have H1s that begin "Part II —" and "Part IX —" although they
+    are not the part openers. That is a naming question, not a count
 
 ---
 
@@ -1530,6 +1619,11 @@ The book is a different object now, and three things still describe the old one.
 **Done when:** the three documents describe the edition that now exists, `pnpm site:build` is clean,
 and the launch checklist from #91 has been re-read against the new edition.
 
+> **Note from #114 (2026-09-30):** the root `README.md` is the repository's landing page, not a book file. It
+> still describes the pre-cut book: "~249 chapters, 55,000 lines", Part III's 46 and Part VII's 32 chapters, and a
+> parts table of the old budgets. The edition is 150 chapters and 39,913 lines over 935 pages. It is launch material
+> in all but name.
+
 > **Note from #113a (2026-09-30):** `pnpm site:build` was failing on stale hand-written counts, and #113a had to
 > pass it. The three numbers in `site/index.md` and `site/.vitepress/config.ts` now read 734 questions and 166
 > chapters. Nothing else in the site copy changed. The store description, the reading paths and
@@ -1541,8 +1635,8 @@ and the launch checklist from #91 has been re-read against the new edition.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 9 | 95–116 · 95a · 113a · 113b | 21/25 | 🚧 In progress |
-| **Total** | **25** | **21/25** | **84%** |
+| 9 | 95–116 · 95a · 113a · 113b | 23/25 | 🚧 In progress |
+| **Total** | **25** | **23/25** | **92%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

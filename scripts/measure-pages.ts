@@ -36,6 +36,7 @@ import { execFileSync } from "node:child_process";
 import {
   loadBook,
   matterFor,
+  OUTPUT_NAMES,
   partBudgets,
   PART_NAMES,
   volumeOf,
@@ -43,7 +44,8 @@ import {
 } from "./lib/book.ts";
 
 const ROOT: string = process.cwd();
-const PDF: string = join(ROOT, "build", "handbook.pdf");
+const PDF_NAME: string = `build/${OUTPUT_NAMES.book}.pdf`;
+const PDF: string = join(ROOT, PDF_NAME);
 
 /**
  * The companion volume (#86). Measured separately and reported on its own line, because
@@ -51,11 +53,17 @@ const PDF: string = join(ROOT, "build", "handbook.pdf");
  * because a ceiling argued about a figure that included a second volume was being argued
  * about the wrong number.
  */
-const COMPANION_PDF: string = join(ROOT, "build", "companion.pdf");
+const COMPANION_PDF_NAME: string = `build/${OUTPUT_NAMES.companion}.pdf`;
+const COMPANION_PDF: string = join(ROOT, COMPANION_PDF_NAME);
 const AS_JSON: boolean = process.argv.includes("--json");
 
-/** BOOK-SPEC decision #13. A hard ceiling on the edition, not an editorial preference. */
-const PAGE_CEILING = 700;
+/**
+ * The edition's page target, BOOK-SPEC decision #21: ~940 pages, with #114's ≤ 950 as the
+ * line it is judged on. Decision #13's 700 stays in the spec as an aspiration for a second
+ * edition (decision #19), and a report that failed every run against it was a red mark
+ * nobody could act on.
+ */
+const PAGE_CEILING = 950;
 
 /** Part numbers used for the two runs of pages that are not a numbered part. */
 const FRONT = -1;
@@ -213,7 +221,7 @@ function lpad(s: string, n: number): string {
 
 function main(): void {
   if (!existsSync(PDF)) {
-    console.error(`✗ build/handbook.pdf not found. Run \`pnpm book:pdf\` first.`);
+    console.error(`✗ ${PDF_NAME} not found. Run \`pnpm book:pdf\` first.`);
     process.exit(1);
   }
 
@@ -281,7 +289,7 @@ function main(): void {
   }
 
   console.log("");
-  console.log("📐 book:pages — the page budget, measured off build/handbook.pdf");
+  console.log(`📐 book:pages — the page budget, measured off ${PDF_NAME}`);
   console.log("");
   console.log(
     `  ${pad("Part", 34)}${lpad("Ch", 5)}${lpad("Lines", 9)}${lpad("Budget", 9)}` +
@@ -321,7 +329,7 @@ function main(): void {
   const over: number = total - PAGE_CEILING;
   const ceilingMark: string = over > 0 ? "❌" : "✅";
   console.log(
-    `  ${ceilingMark} ${total} pages against decision #13's ${PAGE_CEILING}-page ceiling` +
+    `  ${ceilingMark} ${total} pages against decision #21's ${PAGE_CEILING}-page ceiling` +
       (over > 0 ? `  (+${over}, ${((over / PAGE_CEILING) * 100).toFixed(0)}% over)` : ""),
   );
 
@@ -354,7 +362,7 @@ function reportCompanion(docs: Doc[]): void {
   if (!existsSync(COMPANION_PDF)) {
     console.log(
       `  ·  Book 2 ${lines.toLocaleString()} lines, not measured:` +
-        ` build/companion.pdf not found (run \`pnpm book:companion\`)`,
+        ` ${COMPANION_PDF_NAME} not found (run \`pnpm book:companion\`)`,
     );
     console.log("");
     return;

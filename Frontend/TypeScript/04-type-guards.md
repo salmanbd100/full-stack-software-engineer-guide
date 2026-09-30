@@ -201,4 +201,4 @@ Another function could reassign the property. Capturing the narrowed value in a 
 
 - [Chapter ?? — Interfaces and Type Aliases](#ch-interfaces-types) — designing unions worth narrowing
 - [Chapter ?? — TypeScript Advanced and Utility Types](#ch-advanced-types) — conditional types, the type-level form of a branch
-- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — schema validation at a real boundary
+- [Chapter ?? — Input Validation and Injection](#ch-backend-input-validation) — schema validation at a real boundary

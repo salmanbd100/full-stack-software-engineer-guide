@@ -223,5 +223,5 @@ the deployment configuration, the console, or a log line.
 ## What to Read Next
 
 - [Chapter ?? — Cloud Fundamentals, Storage and Delivery](#ch-cloud-fundamentals) — where functions sit on the managed-service ladder
-- [Chapter ?? — Platform and Edge Deployments](#ch-platform-deploys) — choosing between edge and regional execution
-- [Chapter ?? — Observability Fundamentals](#ch-monitoring-fundamentals) — what to log and measure when there is no server to inspect
+- [Chapter ?? — Platform Deploys and Preview Environments](#ch-platform-deploys) — choosing between edge and regional execution
+- [Chapter ?? — Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals) — what to log and measure when there is no server to inspect

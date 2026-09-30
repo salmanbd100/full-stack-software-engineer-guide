@@ -227,5 +227,5 @@ open thousands of sockets at once. Batching is the middle ground.
 ## What to Read Next
 
 - [Chapter ?? — The Event Loop](#ch-event-loop) — why a settled promise resumes before a `setTimeout`
-- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — stopping bad input before it becomes an error
-- [Chapter ?? — Monitoring Fundamentals](#ch-monitoring-fundamentals) — what to do with the errors you log
+- [Chapter ?? — Input Validation and Injection](#ch-backend-input-validation) — stopping bad input before it becomes an error
+- [Chapter ?? — Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals) — what to do with the errors you log

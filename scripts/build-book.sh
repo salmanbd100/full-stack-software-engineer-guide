@@ -31,6 +31,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD="$ROOT/build"
 TARGET="${1:-all}"
 
+# The files a reader downloads carry the book's real name (#113b). The same two strings are
+# OUTPUT_NAMES in scripts/lib/book.ts, which measure-pages.ts reads; a test fails if they
+# drift. Logs and intermediates (book.md, handbook.log) keep their short names.
+BOOK_NAME="The-Senior-Full-Stack-Handbook"
+COMPANION_NAME="The-Senior-Full-Stack-Handbook-Book-2-DSA-Patterns"
+
 cd "$ROOT"
 
 # --- preflight -------------------------------------------------------------
@@ -183,10 +189,10 @@ build_pdf() {
   # values rather than one and #77 tunes them. `twoside` has to be a *class option*, so it
   # stays a --variable; setting it in the preamble is too late for the class to act on.
   pandoc "$BUILD/book.md" "${COMMON[@]}" "${PDF_ONLY[@]}" \
-    --output="$BUILD/handbook.pdf" 2>&1 | tee "$BUILD/handbook.log"
-  echo "  ✓ build/handbook.pdf ($(du -h "$BUILD/handbook.pdf" | cut -f1))"
+    --output="$BUILD/$BOOK_NAME.pdf" 2>&1 | tee "$BUILD/handbook.log"
+  echo "  ✓ build/$BOOK_NAME.pdf ($(du -h "$BUILD/$BOOK_NAME.pdf" | cut -f1))"
   report_missing_glyphs "$BUILD/handbook.log"
-  report_unresolved_refs "$BUILD/handbook.pdf"
+  report_unresolved_refs "$BUILD/$BOOK_NAME.pdf"
 }
 
 # --- Specimen --------------------------------------------------------------
@@ -247,9 +253,9 @@ build_epub() {
     --metadata=date:2027 \
     --syntax-highlighting=tango \
     --split-level=1 \
-    --output="$BUILD/handbook.epub"
-  echo "  ✓ build/handbook.epub ($(du -h "$BUILD/handbook.epub" | cut -f1))"
-  report_epubcheck "$BUILD/handbook.epub"
+    --output="$BUILD/$BOOK_NAME.epub"
+  echo "  ✓ build/$BOOK_NAME.epub ($(du -h "$BUILD/$BOOK_NAME.epub" | cut -f1))"
+  report_epubcheck "$BUILD/$BOOK_NAME.epub"
 }
 
 # --- Companion volume (#86) -------------------------------------------------
@@ -261,10 +267,10 @@ build_epub() {
 build_companion() {
   echo "▸ Building companion PDF (tectonic)"
   pandoc "$BUILD/companion.md" "${COMMON[@]}" "${PDF_ONLY[@]}" \
-    --output="$BUILD/companion.pdf" 2>&1 | tee "$BUILD/companion.log"
-  echo "  ✓ build/companion.pdf ($(du -h "$BUILD/companion.pdf" | cut -f1))"
+    --output="$BUILD/$COMPANION_NAME.pdf" 2>&1 | tee "$BUILD/companion.log"
+  echo "  ✓ build/$COMPANION_NAME.pdf ($(du -h "$BUILD/$COMPANION_NAME.pdf" | cut -f1))"
   report_missing_glyphs "$BUILD/companion.log"
-  report_unresolved_refs "$BUILD/companion.pdf"
+  report_unresolved_refs "$BUILD/$COMPANION_NAME.pdf"
 
   echo "▸ Building companion EPUB"
   local font_args=()
@@ -278,9 +284,9 @@ build_companion() {
     --metadata=date:2027 \
     --syntax-highlighting=tango \
     --split-level=1 \
-    --output="$BUILD/companion.epub"
-  echo "  ✓ build/companion.epub ($(du -h "$BUILD/companion.epub" | cut -f1))"
-  report_epubcheck "$BUILD/companion.epub"
+    --output="$BUILD/$COMPANION_NAME.epub"
+  echo "  ✓ build/$COMPANION_NAME.epub ($(du -h "$BUILD/$COMPANION_NAME.epub" | cut -f1))"
+  report_epubcheck "$BUILD/$COMPANION_NAME.epub"
 }
 
 case "$TARGET" in

@@ -27,6 +27,7 @@ import {
   loadBook,
   matterFor,
   orderDocs,
+  OUTPUT_NAMES,
   partBudgets,
   partFor,
   readDoc,
@@ -256,5 +257,17 @@ describe("partBudgets", () => {
     writeFileSync(join(broken, "BOOK-SPEC.md"), "# Spec\n\nNo budget table here.\n", "utf8");
     assert.throws(() => partBudgets(broken), /no budget row found/);
     rmSync(broken, { recursive: true, force: true });
+  });
+});
+
+describe("OUTPUT_NAMES", () => {
+  // build-book.sh writes the files and measure-pages.ts reads them. If the two names part,
+  // `pnpm book:pages` reports "not found" on a book that built fine.
+  test("matches the names build-book.sh writes", () => {
+    const script: string = readFileSync(join(ROOT, "scripts", "build-book.sh"), "utf8");
+    const shellName = (v: string): string | undefined =>
+      script.match(new RegExp(`^${v}="([^"]+)"$`, "m"))?.[1];
+    assert.equal(shellName("BOOK_NAME"), OUTPUT_NAMES.book);
+    assert.equal(shellName("COMPANION_NAME"), OUTPUT_NAMES.companion);
   });
 });

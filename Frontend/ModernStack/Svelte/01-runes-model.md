@@ -246,5 +246,5 @@ supplies and the callee positions. Once it needs its own `$state` or an effect, 
 ## What to Read Next
 
 - [Chapter ?? — SvelteKit Routing and Loading](#ch-sveltekit-routing-and-loading) — where these components get their data
-- [Chapter ?? — When Not to Use Effect](#ch-when-not-to-use-effect) — the same argument about effects, in React
-- [Chapter ?? — React Composition Patterns](#ch-react-composition-patterns) — render props, the React version of snippets
+- [Chapter ?? — `useEffect` and When Not to Use It](#ch-when-not-to-use-effect) — the same argument about effects, in React
+- [Chapter ?? — Component Composition Patterns](#ch-react-composition-patterns) — render props, the React version of snippets

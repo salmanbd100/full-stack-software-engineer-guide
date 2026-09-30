@@ -241,5 +241,5 @@ a single mistake is not fatal.
 ## What to Read Next
 
 - [Chapter ?? — Content Security Policy and Security Headers](#ch-content-security-policy) — the layer that limits a successful injection
-- [Chapter ?? — Backend Input Validation](#ch-backend-input-validation) — the server half of the shared schema, where stored XSS is stopped
+- [Chapter ?? — Input Validation and Injection](#ch-backend-input-validation) — the server half of the shared schema, where stored XSS is stopped
 - [Chapter ?? — Credentials, Sessions, CORS and CSRF](#ch-credentials-and-sessions) — why an `HttpOnly` cookie limits a successful injection, and the other cross-origin boundary
