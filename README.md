@@ -5,7 +5,7 @@ chapter: 0
 slug: book-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 5
-updated: 2026-09-30
+updated: 2026-10-01
 tags: []
 in_book: false
 ---
@@ -25,7 +25,7 @@ Patterns**, covers the coding round.
 | **Scope** | Locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md): nine parts, line budgets, twelve non-negotiables |
 | **Plan** | [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md): Phases 9–10, the cut to 903 pages, the plain-English pass and the print edition |
 | **Reader** | 3–8 years' experience, going for a senior or staff frontend or full stack role |
-| **Web** | [www.salmanrahman.com](https://www.salmanrahman.com/) |
+| **Web** | The whole book, free, at [www.salmanrahman.com/handbook](https://www.salmanrahman.com/handbook/) |
 
 ---
 
@@ -111,7 +111,7 @@ pnpm install
 | `pnpm book:pages` | Pages per part, measured from the built PDF |
 | `pnpm index:questions` | Regenerates both question indexes from every chapter's questions |
 | `pnpm check:code-samples` | Compiles every TypeScript fence in the book |
-| `pnpm site:dev` · `pnpm site:build` | The free companion site, generated from the manuscript |
+| `pnpm site:dev` · `pnpm site:build` | The free web edition, generated from the manuscript |
 | `pnpm test` | The script test suite |
 | `pnpm plan:next` · `pnpm plan:check` | The next plan item, and a check that the plan's counters agree |
 
@@ -119,8 +119,8 @@ pnpm install
 fails. A count that goes down should be committed as the new baseline.
 
 CI ([`.github/workflows/lint-docs.yml`](./.github/workflows/lint-docs.yml)) runs `lint:docs`,
-`number:chapters --check`, `index:check`, `check:code-samples`, `site:pages`, `plan:check`, `test`
-and `book:collect` on every push and pull request.
+`number:chapters --check`, `index:check`, `check:code-samples`, `site:build`, `check:versions --check`,
+`check:stale --check`, `plan:check`, `test` and `book:collect` on every push and pull request.
 
 ### How the build works
 
@@ -128,9 +128,25 @@ and `book:collect` on every push and pull request.
 front-matter reader and the reading order. The build, the lint and the site generator all import it,
 so they cannot disagree. [`Archive/`](./Archive/README.md) is skipped by everything.
 
-The print design lives in `scripts/tex/`, and `tokens.tex` holds every value that can be tuned. The
-companion site under `site/` is generated. Only `site/index.md` and `site/.vitepress/config.ts` are
-written by hand.
+The print design lives in `scripts/tex/`, and `tokens.tex` holds every value that can be tuned.
+
+### The web edition
+
+The site under `site/` is VitePress, and the chapters in it are generated from the manuscript.
+Never edit `site/book/` by hand. Only these files are written by hand:
+
+| File | What it holds |
+| ---- | ------------- |
+| `site/index.md` | The home page |
+| `site/building-this-book.md` | The developer guide to this build. Web only |
+| `site/.vitepress/config.ts` | The site config, including `base: '/handbook/'` |
+| `site/.vitepress/theme/` | A wider measure, larger type and the portfolio's teal brand colour. Web only |
+| `site/public/` | The portfolio's favicons |
+
+**How it deploys:** the site is its own Vercel project, `senior-full-stack-handbook`, connected to this
+repo. A push to `main` deploys to production, and any other branch gets a preview. The
+`salman-portfolio` app rewrites `/handbook/*` to that project, so the portfolio never needs a redeploy.
+`vercel.json` holds only the build settings. A failed build leaves the last good deployment live.
 
 ---
 

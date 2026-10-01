@@ -84,14 +84,26 @@ pnpm site:build       # static build into site/.vitepress/dist
 are gitignored, and `site/` is in `EXCLUDED_DIRS` so the generated copies never count against a
 part's budget. Only `site/index.md`, `site/building-this-book.md` (the developer guide to this build and the
 portfolio connection — web only, never in the PDF or EPUB) `site/.vitepress/config.ts` and `site/.vitepress/theme/`
-(a wider measure and larger type, web only) are written by hand; `site/public/` holds the
+(a wider measure, larger type and the portfolio's teal brand colour, web only) are written by hand; `site/public/` holds the
 portfolio's favicons. It
 publishes **the whole book** — BOOK-SPEC decision #24, which replaced #17's one sample chapter per part.
 It is served at `www.salmanrahman.com/handbook/` (`base` in `config.ts`): the `salman-portfolio`
-Next.js app rewrites `/handbook/*` to this repo's own Vercel project, and `vercel.json` makes every
-push to `main` rebuild it with `pnpm site:build`. No portfolio redeploy is needed, and a failed build
-leaves the last good deployment live. ` ```mermaid ` fences render client-side through
+Next.js app rewrites `/handbook/*` to this repo's own Vercel project (`senior-full-stack-handbook`).
+That project is **Git-connected to this repo**, so every push to `main` deploys to production and every
+other branch gets a preview; `vercel.json` only holds the build settings (`pnpm site:build`, the output
+directory, the `/handbook` rewrites). The link was missing until 1 October 2026, and every deploy before
+then came from the CLI — if a push ever stops deploying, check the project's Git link before `vercel.json`.
+No portfolio redeploy is needed, and a failed build leaves the last good deployment live. ` ```mermaid ` fences render client-side through
 `vitepress-plugin-mermaid`.
+
+**The web edition must look like part of `salman-portfolio`, not a separate site.** A reader who
+moves from `www.salmanrahman.com` to `/handbook` should not feel they have left it. Before any visual
+change to the site — colour, type, icons, spacing, components — read the portfolio first
+(`../salman-portfolio`, its tokens in `app/globals.css`) and take its values rather than VitePress's
+defaults or new ones. Where the portfolio has no answer (it has no dark mode), extend its values in the
+same spirit and say so in a comment. Check the rendered result, not only the source: the portfolio's
+own `favicon.ico` is still Next's default triangle, which a byte-for-byte copy carried straight into
+the handbook.
 
 **`Interview-Question-Index.md` and `DSA-Question-Index.md` are generated, never hand-edited.** One
 index per volume (#95a): the handbook's 647 questions, and Book 2's 87, read out of every chapter's
