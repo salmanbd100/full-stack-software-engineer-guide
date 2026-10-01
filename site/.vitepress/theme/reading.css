@@ -47,6 +47,14 @@
   }
 }
 
+/* Mermaid wraps every node label in a <p> and sizes the box before this sheet reaches it,
+   so the rules above would grow the text and clip it. Labels keep Mermaid's own size. */
+#app .vp-doc .mermaid p {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 #app .vp-doc h2 {
   font-size: 28px;
   line-height: 36px;
