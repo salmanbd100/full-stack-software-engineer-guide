@@ -17,7 +17,7 @@
 | **Subtitle**  | Frontend-heavy engineering for 2027 — fundamentals, the modern stack, system design, and AI     |
 | **Author**    | Salman Rahman                                                                                  |
 | **Edition**   | First (2027)                                                                                   |
-| **Length**    | **38,600-line budget** in Parts I–IX · **~940 pages** at 42.8 lines per typeset page — decision #21. The manuscript measured 56,376 lines and 1,370 pages on 2026-09-23, before the cut |
+| **Length**    | **38,600-line budget** in Parts I–IX · **~940 pages** at 42.8 lines per typeset page — decision #21. **Measured: 38,181 lines and 903 pages on 2026-10-01.** The manuscript measured 56,376 lines and 1,370 pages on 2026-09-23, before the cut |
 | **Trim**      | **A4, 210 × 297 mm** · text block 156 × 251 mm, mirrored margins 26/28 inner/outer, 22/24 top/bottom — decision #18 |
 | **Typefaces** | **Source Serif 4** body · **Source Sans 3** display · **Source Code Pro** code, vendored in `assets/fonts/` — decision #18 |
 | **Language**  | British English (`colour`, `behaviour`, `organise`, `optimise`)                                |

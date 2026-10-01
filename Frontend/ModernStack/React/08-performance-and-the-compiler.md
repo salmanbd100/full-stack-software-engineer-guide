@@ -29,8 +29,8 @@ requests that wait on each other. Inside React, you have two levers, and they do
 Doing less makes renders cheaper. Scheduling makes nothing cheaper. It changes *what blocks*. A senior
 engineer can tell which lever a slowdown needs before touching either.
 
-> ⚠️ **Moving target:** the React Compiler shipped as 1.0 alongside React 19. Its defaults, directives
-> and lint packaging are still settling. The lasting principle: memoisation is a cache, a cache needs
+> ⚠️ **Moving target:** React Compiler 1.0 shipped in October 2025, for React 17 and later. Its
+> defaults, directives and lint packaging are still settling. The lasting principle: memoisation is a cache, a cache needs
 > stable identity to work, and a cache you have not measured is a cost. Whether you or the compiler
 > writes the cache is an implementation detail.
 

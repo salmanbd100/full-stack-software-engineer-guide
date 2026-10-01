@@ -1,5 +1,5 @@
 ---
-title: Part IX — Behaviour and Ways of Working
+title: Behaviour and Ways of Working
 part: 9
 chapter: 1
 slug: behavioral-index
@@ -10,7 +10,7 @@ tags: [behavioral, star, leadership, conflict, interviews, agile, culture]
 in_book: true
 ---
 
-# Part IX — Behaviour and Ways of Working
+# Behaviour and Ways of Working
 
 Candidates rarely lack the stories. Nine years of work produces plenty. The problem is how they arrive:
 three minutes of background, then twenty seconds of what the candidate actually did.

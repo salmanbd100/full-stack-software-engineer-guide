@@ -5,7 +5,7 @@ chapter: 101
 slug: interview-question-index
 level: intermediate # beginner | intermediate | advanced
 reading_time: 40
-updated: 2026-09-25
+updated: 2026-10-01
 tags: [back-matter, interview, index]
 in_book: true
 ---
@@ -139,7 +139,7 @@ _68 questions across 15 chapters._
   - When would you use a JavaScript animation library rather than the platform?
 - **[Web Storage and IndexedDB](#ch-storage-apis)**
   - What is the difference between `localStorage` and `sessionStorage`?
-  - Why should a JWT not go in `localStorage`?
+  - A user logs out in one tab. How do the other open tabs find out?
   - When would you choose IndexedDB over `localStorage`?
   - How do IndexedDB schema migrations work?
   - What happens when you hit the quota?
@@ -320,7 +320,7 @@ _148 questions across 34 chapters._
 - **[Choosing a Rendering Strategy per Route, with SEO](#ch-choosing-per-route)**
   - Walk me through how you would pick a rendering strategy for an e-commerce site.
   - Is client-side rendering bad for SEO?
-  - When would you deliberately choose client-side rendering in 2026?
+  - When would you deliberately choose client-side rendering in 2027?
   - A product page ranks, but its social preview card is blank. What is wrong?
   - A page is declared static but the platform reports it as dynamic on every request. Where do you look?
   - A streaming route's metadata depends on a slow query. What do you do?

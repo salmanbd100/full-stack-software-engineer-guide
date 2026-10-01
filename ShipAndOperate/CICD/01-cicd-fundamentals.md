@@ -95,7 +95,7 @@ deploy-prod:
 ```
 
 An **artefact** is the packaged output of the build, such as a container image, a zipped function
-bundle or a compiled front-end. Tag it by commit SHA. Add a readable release tag that points at the same
+bundle or a compiled frontend. Tag it by commit SHA. Add a readable release tag that points at the same
 digest (the image's content hash). Never deploy `latest`.
 
 > If you cannot point at what is running in production and trace it to a commit, you do not have a

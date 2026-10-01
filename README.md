@@ -23,7 +23,7 @@ Patterns**, covers the coding round.
 | **The handbook** | 150 chapters in nine parts · 39,913 lines · **903 pages** |
 | **Book 2** | *DSA Patterns* · 16 chapters · 101 pages · its own PDF, EPUB and question index |
 | **Scope** | Locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md): nine parts, line budgets, twelve non-negotiables |
-| **Plan** | [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md): Phase 9, the cut from 1,370 pages and the plain-English pass |
+| **Plan** | [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md): Phases 9–10, the cut to 903 pages, the plain-English pass and the print edition |
 | **Reader** | 3–8 years' experience, going for a senior or staff frontend or full stack role |
 | **Web** | [www.salmanrahman.com](https://www.salmanrahman.com/) |
 

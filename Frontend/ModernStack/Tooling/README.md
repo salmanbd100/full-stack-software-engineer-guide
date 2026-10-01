@@ -12,9 +12,9 @@ in_book: true
 
 # Tooling
 
-Build tooling stopped being a specialism and became basic literacy. Among developers who use a bundler
-at all, 98% use Vite. Hand-written Webpack configuration has fallen close to zero. And the survey answer
-to "what is the worst part of the ecosystem" is now complexity itself. That changes what an interview
+Build tooling stopped being a specialism and became basic literacy. In recent developer surveys, Vite
+is the bundler almost everyone uses, and hand-written Webpack configuration is rare. The most common
+complaint about the ecosystem is now complexity itself. That changes what an interview
 asks. Nobody wants your `webpack.config.js`. They want to know whether you understand what a bundler
 does when the build is slow and nobody knows why.
 

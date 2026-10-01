@@ -10,12 +10,13 @@
  *   2. Vague modernity standing in for a version: "modern React", "the latest Next.js",
  *      "recent versions of".
  *
- * Deliberately NOT wired into `lint:docs` or CI. It reports judgement calls, not violations, and
- * `.lint-baseline.json` should not have to carry them. Run it by hand:
+ * Not part of `lint:docs`: it reports judgement calls, not violations, and `.lint-baseline.json`
+ * should not have to carry them. Run it by hand:
  *
  *   node --experimental-strip-types scripts/check-version-stamps.ts
  *
- * Exit code is always 0. Read the output and decide.
+ * By hand the exit code is always 0. Read the output and decide. CI runs it with `--check`
+ * since #121, which exits 1 on any finding, so a new one gets a stamp or an exemption.
  */
 
 import { loadBook } from "./lib/book.ts";
@@ -45,15 +46,13 @@ const VAGUE: readonly (readonly [string, RegExp])[] = [
  *
  * `Rendering/` is framework-agnostic by design — it has to still read correctly after the next major
  * release of anything, so PPR and the rest appear there as spectrum vocabulary. `Rendering/01`
- * defines and stamps them for the whole section. The other two are a product name in a reading-order
- * note and a cross-reference title; neither is a claim.
+ * defines and stamps them for the whole section. `Tooling/README.md` names a product in a
+ * reading-order note, which is not a claim.
  */
 const EXEMPT: ReadonlyMap<string, string> = new Map([
   ["Frontend/ModernStack/Rendering/README.md", "framework-agnostic section; 01 carries the stamp"],
-  ["Frontend/ModernStack/Rendering/04-choosing-per-route.md", "framework-agnostic section; 01 carries the stamp"],
-  ["Frontend/ModernStack/Rendering/05-seo-and-rendering.md", "framework-agnostic section; 01 carries the stamp"],
+  ["Frontend/ModernStack/Rendering/03-choosing-per-route.md", "framework-agnostic section; 01 carries the stamp"],
   ["Frontend/ModernStack/Tooling/README.md", "product name in a reading-order note, not a claim"],
-  ["Frontend/Testing/03-react-testing-library.md", "gated words appear only in a cross-reference title"],
 ]);
 
 /** Prose only: no code fences, and no chapter titles borrowed from cross-references. */
@@ -106,3 +105,5 @@ console.log(`  ${vague.length === 0 ? "✅" : "⚠️ "}  ${vague.length}  Vague
 vague.forEach((l) => console.log(l));
 
 console.log();
+
+if (process.argv.includes("--check") && unstamped.length + vague.length > 0) process.exit(1);

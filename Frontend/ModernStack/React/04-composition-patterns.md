@@ -209,7 +209,8 @@ prop. Reaching for context early makes components that cannot be rendered anywhe
 ```
 
 Every consumer re-renders on every parent render. **✅ `useMemo` on the value**, as in the `Tabs`
-example. Do this until the React Compiler does it for you, and even then, know why it is there.
+example. The React Compiler writes this memo for you where it is enabled. Know why it is there either
+way — see [Chapter ?? — Performance, Transitions and the Compiler](#ch-react-performance-and-the-compiler).
 
 **❌ Reaching for `forwardRef`.** In React 19 `ref` is an ordinary prop, and `forwardRef` is on its way
 to deprecation. Declare `ref` in the props type and pass it through.

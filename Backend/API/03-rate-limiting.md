@@ -32,8 +32,8 @@ Every algorithm answers the same question: has this caller had too much? They di
 | --------- | ------ | -------- | ------ | -------- |
 | **Fixed window** | O(1) per key | Poor | 2× at boundaries | Simple internal APIs |
 | **Sliding window log** | O(requests) | Exact | None | Low volume, strict fairness |
-| **Sliding window counter** | O(1) | Good | Slight | ✅ Sensible production default |
-| **Token bucket** | O(1) | Good | Controlled | ✅ Public APIs, variable request cost |
+| **Sliding window counter** | O(1) | Good | Slight | Steady traffic, no boundary spike |
+| **Token bucket** | O(1) | Good | Controlled | ✅ The production default: public APIs, variable cost |
 | **Leaky bucket (queue)** | O(queue) | Exact | None — smooths output | Protecting a fragile downstream |
 
 **Short answer for most APIs: token bucket.** It allows a genuine burst, and real clients do burst: a page load fires eight requests at once. It still holds the long-run average. It also extends naturally to "this endpoint costs 10, that one costs 1".

@@ -12,11 +12,11 @@ in_book: true
 
 # Part III — The Modern Frontend Stack
 
-This is the part the book exists for, and it rests on one claim: **the framework is an implementation
-detail; the rendering model and the state model are the architecture.** An engineer who can only drive
+This is the part the book exists for, and it rests on one claim. **The framework is an implementation
+detail. The rendering model and the state model are the architecture.** An engineer who can only drive
 React answers the first question in a loop. A stronger one can say where the server/client boundary
-sits, why one route streams and the next does not, and which of four kinds of state some data belongs
-to. That engineer answers every question after it, in React, in Svelte, and in whatever ships next.
+sits and why one route streams and the next does not. They can also say which of four kinds of state
+some data belongs to. That engineer answers every question after it, in React, in Svelte, and in whatever ships next.
 
 So the part is split in half on purpose. `React/`, `NextJS/` and `Svelte/` teach the tools that 2026–27
 job descriptions actually name. `Rendering/`, `StateManagement/` and `Tooling/` teach the models

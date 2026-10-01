@@ -21,7 +21,7 @@ than largest paint: [Chapter ?? — Latency and Generative UI](#ch-generative-ui
 One correction up front, because much published material still has it wrong. **INP replaced FID** as a
 Core Web Vital in March 2024. FID measured the delay before the first interaction was handled, and almost
 every site passed it. INP measures every interaction all the way to paint and takes the worst. Sites that
-passed FID easily often fail INP, and a candidate still saying FID in 2026 sounds out of date.
+passed FID easily often fail INP, and a candidate still saying FID in 2027 sounds out of date.
 
 ## Chapters
 

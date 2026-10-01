@@ -60,6 +60,9 @@ logs. On its own it is useless: redeeming it needs the client secret or the PKCE
 **Starting the flow and handling the callback:**
 
 ```typescript
+import crypto from 'node:crypto';
+import type { Request, RequestHandler, Response } from 'express';
+
 export function startLogin(req: Request, res: Response): void {
   const verifier = crypto.randomBytes(32).toString('base64url');
   const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');

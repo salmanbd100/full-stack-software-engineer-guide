@@ -19,8 +19,8 @@ in_book: true
 ## 💡 The Core Idea
 
 Prompt engineering asks *what should I say to the model*. Context engineering asks the question that
-really decides the answer in a production system: **what is in the window on this request, in what
-order, and what did it push out?** The *window* is everything the model reads in one request.
+really decides the answer in production. **What is in the window on this request, in what order, and
+what did it push out?** The *window* is everything the model reads in one request.
 
 The reframe happened because the job changed. A 2023 feature sent a handwritten prompt. A 2026 feature
 builds a request from a system prompt, tool definitions, conversation history, several retrieved

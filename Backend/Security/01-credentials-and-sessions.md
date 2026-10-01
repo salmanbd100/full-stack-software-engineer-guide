@@ -160,6 +160,9 @@ but the same-origin policy stops it reading the value to build the header.
 **Double-submit check:**
 
 ```typescript
+import crypto from 'node:crypto';
+import type { RequestHandler } from 'express';
+
 export const csrf: RequestHandler = (req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const fromCookie = req.cookies.csrf_token as string | undefined; // NOT HttpOnly — the app reads it

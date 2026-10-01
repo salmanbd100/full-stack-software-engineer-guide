@@ -33,18 +33,20 @@ without checking them.
 In almost every slow pipeline, one of these three does work that belongs to another. Or the
 whole-program one runs more often than it needs to.
 
-> ⚠️ **Moving target:** both halves of this chapter are being rewritten in native languages. A Go port of
-> the TypeScript compiler is in progress. It is meant to become TypeScript 7, roughly ten times faster.
-> Rust linters are steadily adding the type-aware rules they still lack. Check what your version
-> supports. The durable part is the cost model: whole-program work is expensive whoever writes the
-> implementation.
+> ⚠️ **Moving target:** both halves of this chapter are moving to native languages. TypeScript 7,
+> released in July 2026, is the compiler ported to Go. It checks about ten times faster, partly by
+> running several checkers on separate threads. Rust linters are still adding the type-aware rules they
+> lack. Check what your version supports. The durable part is the cost model: whole-program work is
+> expensive whoever writes the implementation.
 
 ## How It Works
 
 ### Why type-checking does not parallelise
 
-A linter can shard a thousand files across eight cores. A type-checker cannot. Checking file A needs the
-resolved types of everything A imports. Those needs form the same graph the bundler walks.
+A linter can shard a thousand files across eight cores. A type-checker cannot do it cleanly. Checking
+file A needs the resolved types of everything A imports. Those needs form the same graph the bundler
+walks. TypeScript 7 does run checkers in parallel, but each one still resolves the shared imports it
+touches, so more cores give less than they do for a linter.
 
 There are three levers, in order of value.
 

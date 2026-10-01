@@ -61,7 +61,8 @@ than a storage mechanism. Data that the server does not need belongs in web stor
 
 **Defaults to know:**
 
-- Modern browsers treat a cookie with **no `SameSite`** as `SameSite=Lax`.
+- Chromium browsers treat a cookie with **no `SameSite`** as `SameSite=Lax`. Firefox and Safari do
+  not, so always set it explicitly.
 - `SameSite=None` **requires** `Secure`, or the cookie is rejected.
 - `HttpOnly` can only be set by the server — not from JavaScript.
 
@@ -72,7 +73,7 @@ than a storage mechanism. Data that the server does not need belongs in web stor
 | Value | Same-site request | Top-level navigation from another site | Cross-site AJAX / iframe |
 |-------|-------------------|----------------------------------------|--------------------------|
 | `Strict` | ✅ Sent | ❌ Not sent | ❌ Not sent |
-| `Lax` (default) | ✅ Sent | ✅ Sent (GET only) | ❌ Not sent |
+| `Lax` (Chromium's default) | ✅ Sent | ✅ Sent (GET only) | ❌ Not sent |
 | `None` | ✅ Sent | ✅ Sent | ✅ Sent (requires `Secure`) |
 
 **Which to choose:**
@@ -226,8 +227,9 @@ neither is a banner that has already run the script behind it.
 - The browser attaches a cookie to every matching request automatically. That makes cookies work for
   sessions, and it also makes CSRF possible.
 - `HttpOnly` is the attribute that matters most for a session cookie, because an XSS cannot defeat it.
-- `SameSite=Lax` is the browser default and the right answer for most applications. `Strict` breaks the
-  click-a-link-in-an-email flow. `None` requires `Secure` and switches the protection off.
+- `SameSite=Lax` is the right answer for most applications. Only Chromium applies it by default, so set
+  it explicitly. `Strict` breaks the click-a-link-in-an-email flow. `None` requires `Secure` and
+  switches the protection off.
 - Split the credential: refresh token in an `HttpOnly` cookie, access token in memory. Then an XSS gets
   at most a short-lived value.
 - Only strictly necessary cookies may be set before consent, and a pre-ticked box is not consent.
@@ -237,7 +239,7 @@ neither is a banner that has already run the script behind it.
 **Q: Walk me through `SameSite=Strict` versus `Lax` versus `None`.**
 
 - **`Strict`**: sent only on same-site requests. Most secure, but it breaks cross-site UX, because a link from an email will not carry the session.
-- **`Lax`**: same-site requests plus top-level GET navigation. The browser default, and a good balance for normal apps.
+- **`Lax`**: same-site requests plus top-level GET navigation. Chromium's default, and a good balance for normal apps.
 - **`None`**: sent on every request, including cross-site iframes and AJAX. Required for embedded third-party flows. Must be paired with `Secure`.
 
 **Q: Why is `HttpOnly` more important than `Secure` for an auth cookie?**

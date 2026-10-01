@@ -14,7 +14,7 @@ in_book: true
 
 > Put a number on how often a system may be down or stale, and pick the redundancy that pays for it.
 
-**In this chapter:** the nines and the error budget · how systems fail · CAP and PACELC · the consistency spectrum · quorums and consensus
+**In this chapter:** the nines and what they cost · how systems fail · CAP and PACELC · the consistency spectrum · quorums and consensus
 
 ## 💡 The Core Idea
 
@@ -61,18 +61,14 @@ redundant(0.99, 3);          // 0.999999 — three independent copies
 The key word is **independent**. Three replicas in one rack share a power supply. They are not three
 copies of anything.
 
-### SLI, SLO and the error budget
+### The target, and the budget it gives you
 
-| Term         | What it is                                  | Example                                   |
-| ------------ | ------------------------------------------- | ----------------------------------------- |
-| SLI          | The measurement                             | Share of requests served under 300 ms     |
-| SLO          | The internal target for that measurement    | 99.9% under 300 ms, over 30 days          |
-| SLA          | The promise in the contract, with a penalty | 99.5%, or the customer gets credit        |
-| Error budget | The failure you allow: 100% − SLO           | 0.1% of 30 days = 43 minutes              |
-
-The error budget turns "should we ship this risky change?" from an argument into arithmetic. If the
-budget is intact, ship. If it is spent, the next job is reliability. Always set the SLO tighter than the
-SLA, so your own alarm fires before the contract's.
+The availability you pick becomes an **SLO**, your internal target. The failure it still allows,
+100% minus the SLO, is the **error budget**. At 99.9% over 30 days that is about 43 minutes. The budget
+turns "should we ship this risky change?" from an argument into arithmetic. If it is intact, ship. If it
+is spent, the next job is reliability. How to choose the measurement, set the target below the contract
+and spend the budget is taught in
+[Chapter ?? — Monitoring and Observability Fundamentals](#ch-monitoring-fundamentals).
 
 ### How systems fail
 

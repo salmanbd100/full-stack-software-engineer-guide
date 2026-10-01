@@ -1,5 +1,5 @@
 ---
-title: Part IX — Communication
+title: Communication
 part: 9
 chapter: 6
 slug: communication-index
@@ -10,7 +10,7 @@ tags: [communication, writing, thinking-aloud, listening, review]
 in_book: true
 ---
 
-# Part IX — Communication
+# Communication
 
 Every other part of this book is about knowing something. This one is about the interviewer finding
 out that you know it. In a senior loop those are separate problems, and candidates neglect the second.

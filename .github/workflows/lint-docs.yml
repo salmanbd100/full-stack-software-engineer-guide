@@ -66,6 +66,15 @@ jobs:
         # under SAMPLE_CHAPTERS in build-site.ts. Improvement #78.
         run: pnpm site:pages
 
+      - name: Check every version-gated claim names its version
+        # Non-negotiable #5. `--check` fails on any finding; the fix is a stamp, or an
+        # exemption with a reason in the script. Improvement #121.
+        run: pnpm check:versions --check
+
+      - name: Check no stale term has come back
+        # FID, React Query, Create React App and the rest. Improvement #121.
+        run: pnpm check:stale --check
+
       - name: Check the plan's counters agree
         run: pnpm plan:check
 

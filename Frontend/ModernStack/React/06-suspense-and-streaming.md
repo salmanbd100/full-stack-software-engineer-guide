@@ -79,6 +79,7 @@ equivalent. You write it once per codebase, or use the `react-error-boundary` pa
 
 ```tsx
 import React from "react";
+import { logError } from "./monitoring"; // your error tracker
 
 type BoundaryProps = { fallback: React.ReactNode; children: React.ReactNode };
 
@@ -92,7 +93,7 @@ class ErrorBoundary extends React.Component<BoundaryProps, { hasError: boolean }
 
   // The side-effect half: this is where reporting belongs.
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
-    reportError(error, info.componentStack); // componentStack, not error.stack
+    logError(error, info.componentStack); // componentStack, not error.stack
   }
 
   render(): React.ReactNode {

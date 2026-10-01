@@ -577,8 +577,15 @@ for (const rule of Object.keys(RULE_TITLES) as RuleId[]) {
 }
 
 // Advisory, not a rule: the standard's lower bound is a merge prompt, not a failure.
+// Part openers and front/back matter (`part: 0`) are navigation pages, not chapters.
+const OPENER_FILES: ReadonlySet<string> = new Set(Object.values(PART_OPENERS));
 const short: Doc[] = docs.filter(
-  (d: Doc) => !d.isReadme && d.lines < MIN_LINES && d.fm.in_book !== false,
+  (d: Doc) =>
+    !d.isReadme &&
+    !OPENER_FILES.has(d.rel) &&
+    d.part !== 0 &&
+    d.lines < MIN_LINES &&
+    d.fm.in_book !== false,
 );
 
 console.log(`\n  ${violations.length} violation(s) total.`);

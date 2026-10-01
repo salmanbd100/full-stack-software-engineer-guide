@@ -15,9 +15,10 @@
  *
  *   node --experimental-strip-types scripts/check-stale-terms.ts
  *
- * Exit code is always 0. It reports judgement calls, not violations, so it is deliberately NOT
- * wired into `lint:docs` or CI and `.lint-baseline.json` does not carry it. See also
- * `check-version-stamps.ts`, the same shape of check for improvement #67.
+ * By hand the exit code is always 0. With `--check` it exits 1 on any hit, which is how CI runs it
+ * since #121: the count is zero, so a new hit is either a regression or a missing exemption, and
+ * both need a decision. It is still not part of `lint:docs`, and `.lint-baseline.json` does not
+ * carry it. See also `check-version-stamps.ts`, the same shape of check for improvement #67.
  */
 
 import { loadBook } from "./lib/book.ts";
@@ -45,15 +46,12 @@ const STALE: readonly Term[] = [
   {
     pattern: /React Query/g,
     instead: "TanStack Query — the library was renamed",
-    exempt: new Map([
-      ["Backend/API/06-trpc-typed-apis.md", "states the history: the React Query integration moved to TanStack Query's own package"],
-    ]),
   },
   {
     pattern: /\bonFID\b/g,
     instead: "onINP — onFID was removed from web-vitals",
     exempt: new Map([
-      ["Frontend/WebPerformance/07-measuring-in-production.md", "the chapter's point is that `onFID` no longer exists"],
+      ["Frontend/WebPerformance/04-measuring-in-production.md", "the chapter's point is that `onFID` no longer exists"],
     ]),
   },
   {
@@ -101,3 +99,5 @@ for (const term of STALE) {
 
 const exemptions = STALE.reduce((n, t) => n + (t.exempt?.size ?? 0), 0);
 console.log(`  ${found === 0 ? "✅" : "⚠️ "}  ${found}  Term with no correct present-tense use left (${exemptions} exempt)\n`);
+
+if (process.argv.includes("--check") && found > 0) process.exit(1);

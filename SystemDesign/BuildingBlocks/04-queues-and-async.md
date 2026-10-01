@@ -154,7 +154,7 @@ shared channel and delivers what it receives to its own sockets. Redis Pub/Sub i
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
 | **Fan-out cost**        | Every message reaches every pod. Past a few dozen pods, shard the channel by room                        |
 | **No durability**       | Redis Pub/Sub drops what a disconnected pod missed, so the database is the source of truth               |
-| **Deploys are outages** | A rolling deploy drops every socket on a pod at once. Stop accepting, tell clients to reconnect, exit on a stagger |
+| **Deploys are outages** | A rolling deploy drops every socket on a pod at once. Stop accepting new ones, tell clients to reconnect, then exit on a stagger |
 | **Capacity**            | About 50k idle sockets per Node.js process; memory runs out before CPU                                   |
 
 **Know when to buy.** A managed service (Ably, Pusher, AWS API Gateway WebSockets) takes connection

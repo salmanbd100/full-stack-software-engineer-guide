@@ -66,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [22, 24] # Maintenance and Active LTS
+        node: [24, 26] # the two LTS lines in support
         shard: [1, 2] # split the suite across runners
     steps:
       - uses: actions/checkout@v6

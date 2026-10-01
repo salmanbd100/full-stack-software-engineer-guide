@@ -12,7 +12,7 @@ Two files govern the work. Read them before any substantial change:
 | File                    | Role                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **`BOOK-SPEC.md`**      | The locked contract — nine parts, line budgets, out-of-scope list, twelve non-negotiables. **The authority.** If a request contradicts it, say so |
-| **`IMPROVEMENT-PLAN.md`** | **Phase 9 — items #95–#116**, done one at a time: cut the book from 1,370 pages to ~940, rewrite the prose in simple English, and finish the edition (softer ink, named build files, a back cover). **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop. Phases 0–8 are finished and archived in `Archive/planning/improvement-plan-phases-0-8.md` |
+| **`IMPROVEMENT-PLAN.md`** | **Phases 9 and 10 — items #95–#122.** Phase 9 cut the book to a 903-page edition and rewrote the prose in simple English. Phase 10 got it ready to print: copyright page, covers, facts re-stamped for 2027, a final rebuild. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop. Phases 0–8 are finished and archived in `Archive/planning/improvement-plan-phases-0-8.md` |
 
 ## Writing or Editing Documentation
 
@@ -39,26 +39,19 @@ stop.** Those are archived deliberately, not missing.
 
 ```
 ├── BOOK-SPEC.md         # the contract — read first
-├── IMPROVEMENT-PLAN.md  # the live plan — Phase 9, cut the book and simplify the English
-├── Frontend/            # JavaScript, TypeScript, HTML/CSS, BrowserAPIs, PWA, i18n,
-│                        #   CSSArchitecture, Security, Testing, WebPerformance
-├── Backend/             # Node.js, SQL, NoSQL, API, Security, Testing — plus DesignPatterns (Part I)
+├── IMPROVEMENT-PLAN.md  # the plan — Phases 9–10, the cut, plain English, the print edition
+├── Frontend/            # JavaScript, TypeScript, HtmlCss, Accessibility, BrowserAPIs, ModernStack
+│                        #   (React, Next.js, Svelte), Architecture, Security, Testing, WebPerformance
+├── Backend/             # Node.js, SQL, NoSQL, API, Security — plus DesignPatterns (Part I)
+├── AI/                  # Part VII — foundations, integration, RAG, agents, AI UX, production
 ├── DSA/                 # 16 LeetCode patterns — Book 2, its own volume (`pnpm book:companion`)
 ├── SystemDesign/        # fundamentals, building blocks, frontend SD, 20 case studies
-├── ShipAndOperate/      # Part VIII — Git, Containers, CI/CD, Observability, Cloud, Deployment
+├── ShipAndOperate/      # Part VIII — Git, CI/CD, Observability, Cloud, Deployment
 ├── Behavioral/  Communication/
 ├── site/                # the free VitePress companion — generated, see below
+├── Archive/             # cut chapters (Containers, PWA, i18n, CSSArchitecture, …) — moved, never deleted
 └── scripts/             # book tooling
 ```
-
-## What Does Not Exist Yet
-
-The biggest gap: **there is no React, Next.js, Svelte or AI content at all.** `Frontend/README.md` links
-to `./React/README.md` and `./NextJs/README.md` — both 404. `Backend/README.md` promises Express and
-NestJS; neither exists.
-
-Planned: `Frontend/ModernStack/` (items #32–43) and `AI/` (items #44–53). Do not assume a directory
-exists because a README references it.
 
 ## Scripts
 
@@ -80,6 +73,8 @@ pnpm index:questions  # regenerate Interview-Question-Index.md from every chapte
 pnpm index:check      # fail if that index is stale — run after editing any Interview Questions
 pnpm check:code-samples             # compile every TypeScript fence
 pnpm check:code-samples --code=TS2304   # every occurrence of one diagnostic
+pnpm check:versions   # version-gated claims with no version named; --check fails on any (CI)
+pnpm check:stale      # terms with no correct present-tense use left; --check fails on any (CI)
 pnpm site:dev         # the free VitePress companion, generated from the manuscript
 pnpm site:build       # static build into site/.vitepress/dist
 ```
@@ -92,7 +87,7 @@ site publishes — front matter, all back matter, every index page, and one samp
 named in `SAMPLE_CHAPTERS` — is BOOK-SPEC decision #17, not a technical detail.
 
 **`Interview-Question-Index.md` and `DSA-Question-Index.md` are generated, never hand-edited.** One
-index per volume (#95a): the handbook's 937 questions, and Book 2's 87, read out of every chapter's
+index per volume (#95a): the handbook's 647 questions, and Book 2's 87, read out of every chapter's
 `## Interview Questions` block. `volumeOf` in `scripts/lib/book.ts` decides which is which — Book 2's
 index is `part: 0` back matter tagged `companion`. Change a question in a chapter and its index is stale
 until `pnpm index:questions` runs; `index:check` catches either one. `lint:docs` has a matching
@@ -135,7 +130,7 @@ until the labels land on `\tokDiagramLabelSize` once the figure is shrunk to the
 caches by content hash in `build/diagrams/` — so a cold build costs minutes and the next one costs
 nothing.
 
-Check a change with `pnpm book:specimen` (ten pages, seconds) before `book:pdf` (1,500 pages,
+Check a change with `pnpm book:specimen` (ten pages, seconds) before `book:pdf` (about 900 pages,
 minutes). Both report missing glyphs and unresolved cross-references at the end; **silence there is
 the failure mode**, so the counts are printed rather than left in the log.
 
@@ -147,10 +142,10 @@ the EPUB builds correctly without a JVM and a validator that blocks the build is
 around. It is worth having: its first run found 88 of the 96 diagrams shipping invalid XHTML inside
 `<foreignObject>`, which nothing in the repository had noticed since #82.
 
-**`pnpm test` is the script test suite (#94)** — 30 tests over `scripts/lib/book.ts` and over the rule
+**`pnpm test` is the script test suite (#94)** — 39 tests over `scripts/lib/book.ts` and over the rule
 scripts' CLI behaviour, on Node's own runner with no new dependency. Alongside it, since #75, is
 `pnpm check:code-samples`: it extracts
-all 787 TypeScript fences and runs the real compiler over them, in two gates. **Syntax is hard at
+all 580 TypeScript fences and runs the real compiler over them, in two gates. **Syntax is hard at
 zero** — a fence that does not parse fails the build, and a `typescript` fence holding JSX counts as
 not parsing, because the label drives the syntax highlighting in the PDF. **Types are baselined**
 against `.code-samples-baseline.json`, because fences are excerpts: they are compiled per chapter, in
@@ -158,7 +153,8 @@ reading order, and what is left is mostly a name the prose introduced two fences
 import resolves to `any` through a wildcard ambient module, so this proves the samples parse and hang
 together — **it does not prove they match any library's current API.** CI
 (`.github/workflows/lint-docs.yml`) runs `lint:docs`, `number:chapters --check`, `index:check`,
-`check:code-samples`, `site:pages`, `plan:check` and `book:collect`, nothing else.
+`check:code-samples`, `site:pages`, `check:versions --check`, `check:stale --check`, `plan:check`,
+`test` and `book:collect`, nothing else.
 
 `lint:docs` gates on **`.lint-baseline.json`, not zero** — most of the repo predates the standard. A
 count that goes up fails; a count that goes down should be committed as the new baseline.
@@ -176,5 +172,6 @@ Skip it for general programming concepts (closures, recursion, algorithm pattern
 
 1. **READMEs are the domain indexes** — every content directory has one since #13; `lint:docs` fails if one goes missing
 2. **Files are numbered sequentially** (`01-`, `02-`)
-3. **Expect duplication until Phase 2 lands** — security is documented in five places, load balancing and
-   caching in three each. Check whether a topic already exists elsewhere before writing it
+3. **Every topic has one canonical home** — the Preface promises it, and Phases 2 and 10 removed the
+   duplicates. Check whether a topic already exists elsewhere before writing it, and cross-reference
+   rather than re-teach

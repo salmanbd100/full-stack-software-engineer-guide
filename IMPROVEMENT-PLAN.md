@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-10-01 · **Progress:** 27 / 31
+**Last updated:** 2026-10-01 · **Progress:** 31 / 31
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1839,7 +1839,7 @@ epubcheck is clean for both with separate logs, and Book 2 has a front and a bac
 
 ---
 
-### - [ ] 119. Re-stamp the facts that will be stale in 2027 `M`
+### - [x] 119. Re-stamp the facts that will be stale in 2027 `M` — ✅ **done 2026-10-01**
 
 **Context7 first**, for every line below.
 
@@ -1856,9 +1856,32 @@ epubcheck is clean for both with separate logs, and Book 2 has a front and a bac
 **Done when:** every row is fixed or recorded as checked, and `pnpm check:versions` and
 `pnpm check:stale` are clean.
 
+**Delivered:**
+
+- **Every row fixed.** The CI matrix is now `node: [24, 26]`. Node 22 reaches end of life on 2027-04-30,
+  and Node 26 enters LTS in October 2026. `Tooling/04` says TypeScript 7 shipped in July 2026. The
+  "does not parallelise" section now says TS 7 does run checkers in parallel but each one still
+  resolves shared imports, so the cost model holds. `02-cookies-same-site` makes Lax Chromium's default,
+  says Firefox and Safari do not apply it, and says to set it explicitly. That fix covers lines 64, 75,
+  229 and 241, not just the two the row named. `React/08` dates Compiler 1.0 to October 2025.
+  `React/04` now cross-references chapter 08
+- **The survey claims were softened, not cited.** No source could be confirmed for "98% use Vite" or
+  "SvelteKit is the second most-used meta-framework", so `Tooling/README.md` and `About-the-Author.md`
+  now make the qualitative claim only
+- **"in 2026" became "in 2027"**, the framing `Accessibility/04` and `AI/README.md` already use. That
+  includes one interview question in `Rendering/03`, and `index:questions` was re-run afterwards
+- **Both check scripts had stale exemption paths, which is what made them noisy.**
+  `check-version-stamps.ts` exempted `Rendering/04-choosing-per-route` and `05-seo-and-rendering`, but
+  the chapter is now `03-` and the other is gone. `check-stale-terms.ts` exempted
+  `WebPerformance/07-measuring-in-production` (now `04-`) and an archived tRPC chapter. The paths are
+  fixed and the dead entries removed. `Architecture/04` got a real stamp ("React 19 … React Compiler
+  1.0") instead of an exemption
+- Verified: `check:versions` shows 0 and 0, `check:stale` shows 0 (1 exempt), `lint:docs` has no
+  regression, `index:check` passes, and `pnpm test` passes 39/39
+
 ---
 
-### - [ ] 120. Make the book agree with itself `M`
+### - [x] 120. Make the book agree with itself `M` — ✅ **done 2026-10-01**
 
 | Where | Problem | Fix |
 | ----- | ------- | --- |
@@ -1874,9 +1897,41 @@ epubcheck is clean for both with separate logs, and Book 2 has a front and a bac
 **Done when:** each row is fixed, `pnpm index:questions` has run and `index:check` passes, and
 `pnpm check:code-samples` is below 974 with the lower baseline committed.
 
+**Delivered:**
+
+- **Rate limiting:** the table's ✅ "production default" moved from sliding-window counter to token
+  bucket. Sliding window keeps its own row ("steady traffic, no boundary spike"), and the decision
+  table already said the same
+- **SLOs have one home.** `Fundamentals/04` lost its SLI/SLO/SLA table. It now has a short paragraph
+  that names the SLO and the error budget and links to `#ch-monitoring-fundamentals` for the full
+  treatment. The "In this chapter" line changed to match
+- **The JWT question now lives only in `02-cookies-same-site`.** `01-storage-apis` asks instead how the
+  other tabs learn about a logout (the `storage` event, `BroadcastChannel`, and the server still ending
+  the session)
+- **The auth samples now have real imports.** `02-oauth` imports `node:crypto` and
+  `Request, RequestHandler, Response` from Express. `01-credentials-and-sessions` imports
+  `node:crypto` and `RequestHandler`. `React/06` renames `reportError` to `logError` and imports it
+  from `./monitoring`
+- **The section openers dropped "Part IX —".** Only `Behavioral/README.md` and
+  `Communication/README.md` still had it, in both the title and the H1. The React and NextJS openers
+  never had the prefix. ModernStack, AI and ShipAndOperate are real part openers, so they keep "Part N —"
+- **Smaller fixes:** "front-end" became "frontend" in `CICD/01`, and the template `## How It Works` in
+  `About-the-Author.md` became `## How This Book Is Made`
+- **The long-sentence row was partly stale.** A count over the three named files found no sentence of
+  40 or more words left; the plain-English passes had already split them. The longest at the named
+  places, about 30 words each in `ModernStack/README.md` and `AI/Foundations/03`, were split anyway.
+  The deploy row in `BuildingBlocks/04` was reworded
+- **Code samples: 974 → 969, baseline committed.** TS2304, TS2339 and TS2554 went down. **TS2709 went up
+  by 2 (23 → 25)**, and that is expected. A named type import from `express` hits `ambient.d.ts`'s
+  `declare module "*"`, the same artefact the `NextFunction` imports already carry. The rise is the
+  price of honest imports, not new breakage
+- Verified: `index:questions` re-run and `index:check` passes. `lint:docs` has no regression,
+  `number:chapters --check` passes, and `check:versions` and `check:stale` are clean. `pnpm test`
+  passes 39/39
+
 ---
 
-### - [ ] 121. Bring the repository's own documents up to date `S`
+### - [x] 121. Bring the repository's own documents up to date `S` — ✅ **done 2026-10-01**
 
 - **`CLAUDE.md`:** delete "What Does Not Exist Yet" (React, Next.js and AI all exist). Update the counts
   (647 questions, 580 fences, 37 tests, a 935-page PDF), the tree (Containers, PWA, i18n and
@@ -1889,9 +1944,29 @@ epubcheck is clean for both with separate logs, and Book 2 has a front and a bac
 **Done when:** `grep -n "1,370\|937 questions\|787\|30 tests" CLAUDE.md README.md` is empty, and CI
 runs the two new steps.
 
+**Delivered:**
+
+- **`CLAUDE.md`:** "What Does Not Exist Yet" is deleted. The counts are now 647 questions, 580 fences,
+  **39 tests** (the item said 37, but the suite has 39) and a 903-page PDF. The tree adds `AI/` and
+  `Archive/`, removes Containers, PWA, i18n, CSSArchitecture and the Backend `Testing/`, and names
+  ModernStack and Architecture. The CI list now matches the workflow. The plan row describes Phases 9
+  and 10. `check:versions` and `check:stale` are in the script list. The "duplication until Phase 2"
+  search tip became the one-canonical-home rule
+- **`README.md:26`, `Frontend/README.md`, `BOOK-SPEC.md:20`:** the plan row, Part III's size (about
+  8,400 lines, not 12,000) and the stale "being written by #33–43". The spec keeps its ~940 budget and
+  adds the measurement: 38,181 lines and 903 pages on 2026-10-01
+- **CI runs `check:versions --check` and `check:stale --check`.** Both scripts always exited 0, so a
+  step would have been decoration. `--check` now exits 1 on any finding. Tested by planting "Create
+  React App with modern React" in a chapter: both exited 1, then 0 once it was removed
+- **`lint-docs.ts`:** the "under 150 lines" advisory skips anything in `PART_OPENERS` and anything at
+  `part: 0`. It used to list the four root part openers and `About-the-Author.md`, and now lists nothing
+- Verified: the Done-when grep is empty. `lint:docs` has no regression, `pnpm test` passes 39/39, and
+  `site:pages` builds 65 pages. **Not verified: the workflow on GitHub.** Nothing has been pushed, so
+  the two new steps have only been run locally
+
 ---
 
-### - [ ] 122. Rebuild and verify the files that get uploaded `S`
+### - [x] 122. Rebuild and verify the files that get uploaded `S` — ✅ **done 2026-10-01**
 
 The PDF and EPUB in `build/` were built before #113b–#116 landed, and #117–#121 change them again.
 
@@ -1900,6 +1975,29 @@ cross-reference resolved. Both epubcheck logs are clean. `pnpm book:pages` is at
 950-page ceiling, with the frontend spine at 50% or more. `pnpm site:build` is clean. The four files and
 both covers in the #116 launch checklist exist with today's date.
 
+**Delivered:**
+
+- **The whole edition was rebuilt from the #119–#121 manuscript,** in this order: `pnpm book:cover`,
+  `pnpm book:build`, `pnpm book:companion`, `pnpm site:build`. All four exited 0. Every upload file is
+  dated 2026-10-01:
+  - `The-Senior-Full-Stack-Handbook.pdf` (4.0M) and `.epub` (3.0M)
+  - `The-Senior-Full-Stack-Handbook-Book-2-DSA-Patterns.pdf` (484K) and `.epub` (2.0M)
+  - `cover.png` and `cover-back.png`, plus Book 2's `cover-book-2.png` and `cover-book-2-back.png`
+- **Missing glyphs: 0** in `handbook.log` and `companion.log`. `report_missing_glyphs` prints only when
+  the count is above zero, so the zero was read from the logs, not inferred from silence. Both builds
+  print "every #ch- cross-reference resolved to a chapter and a page". Both epubcheck runs report zero
+  errors and zero warnings
+- **`pnpm book:pages`:** 903 pages against the 950 ceiling. The frontend spine is 51.2% (19,553 of
+  38,181), and Book 2 is 101 pages. That is the same page count `CLAUDE.md`, `README.md` and
+  `BOOK-SPEC.md` were given in #121, so none of them needed another edit
+- **Seen, not changed:** four overfull lines remain, each 2.0–6.0pt too wide. One of them, 3.5pt at
+  `texput.tex:908`, is new since the morning's build and sits early in the book; it is likely
+  front-matter text from #118. None reaches the 10pt that usually shows. Finding the source lines needs
+  a build with `--keep-logs`
+- **What remains is the #116 launch checklist, and every step needs credentials or a human:** the
+  Leanpub account, `STORE_URL`, the uploads, the store description and price, DNS, the site deploy, and
+  an end-to-end check of the buy button
+
 ---
 
 ## ✅ Progress Tracker
@@ -1907,8 +2005,8 @@ both covers in the #116 launch checklist exist with today's date.
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
 | 9 | 95–116 · 95a · 113a · 113b | 25/25 | ✅ Complete |
-| 10 | 117–122 | 2/6 | 🔄 In progress |
-| **Total** | **31** | **27/31** | **87%** |
+| 10 | 117–122 | 6/6 | ✅ Complete |
+| **Total** | **31** | **31/31** | **100%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

@@ -31,9 +31,8 @@ round, and now on the AI feature — without pretending to be a specialist in an
 scoped by one question, *what does that engineer actually get asked and actually build*, rather than
 by what a backend curriculum would cover.
 
-**Why Svelte is one of the three frameworks.** It earns the place on the numbers — Svelte 5 has the
-highest retention rate of any framework surveyed, and SvelteKit is the second most-used
-meta-framework — but it is in the book because it is the author's daily stack, and that section is
+**Why Svelte is one of the three frameworks.** It earns the place on the numbers — Svelte has sat at or
+near the top of developer-satisfaction surveys for years — but it is in the book because it is the author's daily stack, and that section is
 the most lived-in writing here. Writing about a framework you ship with on Monday reads differently
 from writing about one you read the docs for.
 
@@ -42,7 +41,7 @@ and machine-learning people, so the interface layer — latency, generative UI, 
 the unhappy path when a model refuses or times out — is consistently their weakest chapter. Here it
 is written by a frontend engineer, which is the only real advantage this book claims over them.
 
-## How It Works
+## How This Book Is Made
 
 The manuscript is maintained in the open as a repository of markdown chapters, built to PDF and EPUB
 by a small TypeScript toolchain. Every chapter is checked against a written standard before it ships:

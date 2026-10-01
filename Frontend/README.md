@@ -22,10 +22,9 @@ senior reader is not "frontend vs backend" — it is *language*, *platform*, and
 | **III — The Modern Frontend Stack** | React, Next.js and Svelte, plus the models underneath them | [`ModernStack/`](./ModernStack/README.md) |
 | **IV — Frontend at Scale** | Forty engineers, four years of history, a performance budget | [`Architecture/`](./Architecture/README.md) · [`WebPerformance/`](./WebPerformance/) · [`Security/`](./Security/) · [`Testing/`](./Testing/) |
 
-**Part III — The Modern Frontend Stack** is the largest part in the book at 12,000 lines, and it was
-the single biggest gap in this repository. [`ModernStack/`](./ModernStack/README.md) now exists with its
-six section indexes — React, Next.js, Svelte, Rendering, State Management, Tooling — and the chapters
-themselves are being written by improvements #33–43.
+**Part III — The Modern Frontend Stack** is the largest part in the book, at about 8,400 lines.
+[`ModernStack/`](./ModernStack/README.md) holds its six sections: React, Next.js, Svelte, Rendering,
+State Management and Tooling.
 
 > ⚠️ Two directories referenced by older versions of this file — `./React/` and `./NextJs/` — never
 > existed. They were an aspiration, not a link, and the material they promised lives under

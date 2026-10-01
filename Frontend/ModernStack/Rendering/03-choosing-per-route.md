@@ -214,7 +214,7 @@ For indexed content, yes, but not because crawlers cannot run JavaScript. Search
 deferred second pass, so content and links are found late. Social scrapers and AI crawlers never run it.
 For routes nothing indexes, client rendering has no SEO cost at all.
 
-**Q: When would you deliberately choose client-side rendering in 2026?**
+**Q: When would you deliberately choose client-side rendering in 2027?**
 
 For an authenticated surface with no crawler and no shared HTML: a dashboard, an admin tool, an editor.
 SSR there gives a page that can never be cached. It costs a function call per view and ships the same

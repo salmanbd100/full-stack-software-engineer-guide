@@ -14,7 +14,7 @@ in_book: true
 
 > Defend a framework choice with the four properties that actually differ, and know which ones you can change your mind about later.
 
-**In this chapter:** what a meta-framework is for · the four axes that differ · the candidates in 2026 · what is genuinely reversible · the migration cost · how to answer it in an interview
+**In this chapter:** what a meta-framework is for · the four axes that differ · the candidates in 2027 · what is genuinely reversible · the migration cost · how to answer it in an interview
 
 ## 💡 The Core Idea
 

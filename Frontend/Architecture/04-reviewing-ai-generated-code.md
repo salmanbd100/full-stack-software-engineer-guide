@@ -76,8 +76,8 @@ export function Dashboard({ points }: { points: Point[] }) {
 version re-renders it on every keystroke elsewhere in the page. Nothing fails. The chart is just
 slow again, six months after it was fixed.
 
-> ⚠️ The React Compiler removes much of this class inside the components it compiles. On a fully
-> adopted codebase this diff is harmless. It does not help in three cases: the file is not compiled
+> ⚠️ In a React 19 codebase with React Compiler 1.0 enabled, the compiler removes much of this class
+> inside the components it compiles. On a fully adopted codebase this diff is harmless. It does not help in three cases: the file is not compiled
 > (partial adoption is normal), the value is built outside React, or the consumer keys on identity
 > itself, such as a `Map`. The durable question is not "is this tidy" but **"what consumes this
 > reference, and does it care that it changed?"**

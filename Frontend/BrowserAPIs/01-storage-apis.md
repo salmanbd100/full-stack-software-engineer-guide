@@ -202,11 +202,12 @@ Both are key-value stores scoped to the origin. `localStorage` persists until cl
 every tab. `sessionStorage` is wiped when the tab closes and belongs to that tab alone, which makes it
 right for a form draft. Only `localStorage` fires the `storage` event, so only it drives cross-tab sync.
 
-**Q: Why should a JWT not go in `localStorage`?**
+**Q: A user logs out in one tab. How do the other open tabs find out?**
 
-Every script on the page can read it, including a compromised third-party dependency. So one XSS
-takes the session. An `HttpOnly` cookie is out of reach of JavaScript. The trade is that cookies bring
-CSRF (cross-site request forgery) into scope, which `SameSite` and a token pattern handle.
+Write a marker to `localStorage` on logout. The `storage` event fires in every other tab of the origin,
+and each one clears its state and redirects. The tab that wrote it gets no event, so it handles its own
+logout directly. `BroadcastChannel` does the same job with a cleaner message API. Either way, the server
+must also end the session, because a tab that is asleep will not hear the event.
 
 **Q: When would you choose IndexedDB over `localStorage`?**
 
