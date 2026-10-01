@@ -13,6 +13,25 @@
   --vp-layout-max-width: 1680px;
 }
 
+/* --- Brand ------------------------------------------------------------- */
+
+/* The portfolio's accent ramp (salman-portfolio app/globals.css), so /handbook reads as
+   part of salmanrahman.com. The portfolio has no dark mode; the dark values lighten the
+   same hue until links clear AA on VitePress's #1b1b1f. */
+:root {
+  --vp-c-brand-1: #2e7d96;
+  --vp-c-brand-2: #1f6278;
+  --vp-c-brand-3: #2e7d96;
+  --vp-c-brand-soft: rgba(46, 125, 150, 0.14);
+}
+
+.dark {
+  --vp-c-brand-1: #5fb3cc;
+  --vp-c-brand-2: #3a98b4;
+  --vp-c-brand-3: #2e7d96;
+  --vp-c-brand-soft: rgba(58, 152, 180, 0.16);
+}
+
 /* --- Measure ----------------------------------------------------------- */
 
 #app .VPDoc.has-aside .content-container {
