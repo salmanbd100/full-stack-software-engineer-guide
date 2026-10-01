@@ -29,10 +29,13 @@ export default withMermaid(
     lastUpdated: true,
 
     head: [
-      // The portfolio's own icons, copied into site/public/ — VitePress does not prefix
-      // `head` links with `base`, so the path is written out.
-      ["link", { rel: "icon", href: `${BASE}favicon.ico`, sizes: "any" }],
-      ["link", { rel: "icon", type: "image/svg+xml", href: `${BASE}icon.svg` }],
+      // The portfolio's SR mark — VitePress does not prefix `head` links with `base`, so the
+      // path is written out. `sizes: "any"` goes on the SVG, as the portfolio has it: a
+      // browser picks the icon marked "any", and the .ico is only the fallback for one that
+      // cannot draw SVG. The portfolio's own favicon.ico is Next's default triangle, so this
+      // one is rendered from icon.svg rather than copied.
+      ["link", { rel: "icon", href: `${BASE}favicon.ico`, sizes: "16x16 32x32 48x48" }],
+      ["link", { rel: "icon", type: "image/svg+xml", href: `${BASE}icon.svg`, sizes: "any" }],
       ["meta", { property: "og:title", content: "The Senior Full Stack Handbook" }],
       ["meta", { property: "og:description", content: DESCRIPTION }],
       ["meta", { name: "twitter:card", content: "summary_large_image" }],
