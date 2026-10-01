@@ -15,12 +15,12 @@ in_book: false
 **Frontend-heavy engineering for 2027: fundamentals, the modern stack, system design and AI**
 
 This repository is the **manuscript** for a book, and the tooling that builds it. The book is written.
-It is 935 pages in nine parts, short enough to read end to end. A second volume, **Book 2: DSA
+It is 903 pages in nine parts, short enough to read end to end. A second volume, **Book 2: DSA
 Patterns**, covers the coding round.
 
 | | |
 | --- | --- |
-| **The handbook** | 150 chapters in nine parts · 39,913 lines · **935 pages** |
+| **The handbook** | 150 chapters in nine parts · 39,913 lines · **903 pages** |
 | **Book 2** | *DSA Patterns* · 16 chapters · 101 pages · its own PDF, EPUB and question index |
 | **Scope** | Locked in [`BOOK-SPEC.md`](./BOOK-SPEC.md): nine parts, line budgets, twelve non-negotiables |
 | **Plan** | [`IMPROVEMENT-PLAN.md`](./IMPROVEMENT-PLAN.md): Phase 9, the cut from 1,370 pages and the plain-English pass |
@@ -60,7 +60,7 @@ are from the rebuild at improvement #114.
 | *Book 2 — DSA Patterns* | Sixteen algorithm patterns | 16 | 101 | [`DSA`](./DSA/README.md) |
 
 Parts I–IV are 51.2% of the handbook. That is the rule behind "frontend-heavy": the spec requires
-at least half. The rest of the handbook's 935 pages is front matter, part openers and back matter:
+at least half. The rest of the handbook's 903 pages is front matter, part openers and back matter:
 the glossary, the question index, further reading and the author page.
 
 Topics that are out of scope, such as Terraform, Kubernetes operations and deep AWS, are in

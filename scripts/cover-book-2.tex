@@ -1,0 +1,119 @@
+% cover-book-2.tex — improvement #118
+%
+% Book 2's front and back covers. Until #118 the DSA volume had no cover at all, and a store
+% asks for one per title (the #116 launch checklist, step 4).
+%
+%   ./scripts/build-cover.sh        # pnpm book:cover — builds both volumes' covers
+%
+% It is the handbook's jacket with Book 2's words: the same trim, frame, families and
+% tokens, from scripts/tex/cover-preamble.tex. A reader holding both should see a pair.
+% What differs is the copy and the one drawing — sixteen squares for sixteen patterns,
+% where the handbook has nine bars for nine parts.
+
+\documentclass[12pt]{article}
+
+\input{tex/cover-preamble.tex}
+
+% Four rows of four, one square per chapter. The handbook's bars carry the parts' sizes;
+% these carry nothing but the count, because the patterns are not ranked.
+\newcommand{\patterngrid}{%
+  \begin{tikzpicture}[x=1mm, y=1mm]
+    \foreach \r in {0,...,3} {
+      \foreach \c in {0,...,3} {
+        \fill[ink] (\c*5.2 - 7.4, -\r*5.2) rectangle ++(2.6, 2.6);
+      }
+    }
+  \end{tikzpicture}%
+}
+
+\begin{document}
+
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[white] (current page.south west) rectangle (current page.north east);
+
+  \draw[ink, line width=\tokHairline]
+    ($(current page.south west) + (7mm, 7mm)$) rectangle
+    ($(current page.north east) + (-7mm, -7mm)$);
+
+  \node[anchor=north] at ($(current page.north) + (0, -20mm)$)
+    {\coverlabel{FIRST EDITION $\cdot$ 2027}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -32mm)$)
+    {\coversans\fontsize{8pt}{11pt}\selectfont\color{inkmid}\covertitle};
+
+  \node[anchor=north] at ($(current page.north) + (0, -42mm)$)
+    {\coverserif\fontsize{25pt}{28pt}\selectfont
+     \begin{tabular}{c} Book 2 \\ DSA \\ Patterns \end{tabular}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -82mm)$)
+    {\coverserif\itshape\fontsize{10.5pt}{14pt}\selectfont
+     \begin{tabular}{c} Enough to recognise \\ the problem in front of you \end{tabular}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -104mm)$) {\patterngrid};
+
+  \node[anchor=south] at ($(current page.south) + (0, 24mm)$)
+    {\coverlabel{SIXTEEN PATTERNS $\cdot$ THE CODING ROUND}};
+
+  \node[anchor=south] at ($(current page.south) + (0, 13mm)$)
+    {\coversans\fontseries{sb}\selectfont\fontsize{11.5pt}{14pt}\selectfont \coverauthor};
+\end{tikzpicture}
+
+\mbox{}
+
+\newpage
+
+% ## The back cover
+%
+% The blurb is scripts/companion-meta.yaml's description in the book's plain English. The
+% list is the sixteen chapter titles in reading order — update it if a chapter is renamed.
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[white] (current page.south west) rectangle (current page.north east);
+
+  \draw[ink, line width=\tokHairline]
+    ($(current page.south west) + (7mm, 7mm)$) rectangle
+    ($(current page.north east) + (-7mm, -7mm)$);
+
+  \node[anchor=north] at ($(current page.north) + (0, -14mm)$)
+    {\coverlabel{BOOK 2 $\cdot$ DSA PATTERNS}};
+
+  \node[anchor=north, text width=72mm, align=left] at ($(current page.north) + (0, -22mm)$)
+    {\coverserif\fontsize{8pt}{11pt}\selectfont\color{ink}
+     \setlength{\parskip}{1.6mm}\raggedright\frenchspacing
+     The coding round asks one thing first: can you see which pattern this problem is? This
+     book teaches sixteen of them.
+
+     For each pattern you get the signals that give it away, how it works, the mistakes
+     interviewers see most, and a short list of problems to practise on. Every sample is
+     TypeScript.
+
+     It is the companion to \textit{\covertitle}, and it reads on its own.\par};
+
+  \node[anchor=north] at ($(current page.north) + (0, -70mm)$)
+    {\coverlabel{THE SIXTEEN PATTERNS}};
+
+  \node[anchor=north] at ($(current page.north) + (0, -76mm)$)
+    {\coversans\fontsize{7pt}{9.6pt}\selectfont\color{ink}
+     \setlength{\tabcolsep}{2.4mm}%
+     \begin{tabular}{@{}l l@{}}
+       Time and Space Complexity & Overlapping Intervals \\
+       Prefix Sum & Modified Binary Search \\
+       Two Pointers & Binary Tree Traversal \\
+       Sliding Window & Depth-First Search \\
+       Fast and Slow Pointers & Breadth-First Search \\
+       In-Place Linked List Reversal & Backtracking \\
+       Monotonic Stack & Dynamic Programming \\
+       Top K Elements & Graph Algorithms \\
+     \end{tabular}};
+
+  \node[anchor=south, align=center, font=\coversans\fontsize{8pt}{11pt}\selectfont]
+    at ($(current page.south) + (0, 22mm)$)
+    {{\fontseries{sb}\selectfont\coverauthor}\\
+     {\color{inkmid}Senior frontend engineer, nine years' experience}};
+
+  \node[anchor=south] at ($(current page.south) + (0, 12mm)$)
+    {\coversans\fontsize{\tokSmallSize}{11pt}\selectfont\color{inkmid}\coverurl};
+\end{tikzpicture}
+
+\mbox{}
+
+\end{document}

@@ -96,7 +96,6 @@ COMMON=(
   --from="$FROM"
   --metadata-file="$META"
   --toc
-  --toc-depth=2
   --top-level-division=part
 )
 
@@ -109,6 +108,12 @@ COMMON=(
 # which is why the `cd "$ROOT"` above is not optional.
 PDF_ONLY=(
   --defaults="$ROOT/scripts/book-pdf.yaml"
+)
+
+# The copyright page (#118), on the verso of the title page. Both volumes, not the
+# specimen: a ten-page design check has no title page to put it behind.
+IMPRINT=(
+  --include-before-body="$ROOT/scripts/tex/imprint.tex"
 )
 
 # The EPUB takes three filters of its own. xref.lua fills in the `Chapter ??` placeholder
@@ -188,7 +193,7 @@ build_pdf() {
   # scripts/tex/structure.tex from the tokens, because a mirrored twoside page needs four
   # values rather than one and #77 tunes them. `twoside` has to be a *class option*, so it
   # stays a --variable; setting it in the preamble is too late for the class to act on.
-  pandoc "$BUILD/book.md" "${COMMON[@]}" "${PDF_ONLY[@]}" \
+  pandoc "$BUILD/book.md" "${COMMON[@]}" "${PDF_ONLY[@]}" "${IMPRINT[@]}" \
     --output="$BUILD/$BOOK_NAME.pdf" 2>&1 | tee "$BUILD/handbook.log"
   echo "  ✓ build/$BOOK_NAME.pdf ($(du -h "$BUILD/$BOOK_NAME.pdf" | cut -f1))"
   report_missing_glyphs "$BUILD/handbook.log"
@@ -225,18 +230,33 @@ report_epubcheck() {
     echo "  ·  not validated: epubcheck not installed (brew install epubcheck)"
     return
   fi
-  local log="$BUILD/epubcheck.log"
+  # One log per volume (#118). A shared build/epubcheck.log meant `book:companion` overwrote
+  # the handbook's verdict, and the only surviving proof was for the smaller book.
+  local log="$BUILD/epubcheck-$(basename "$epub" .epub).log"
   if epubcheck "$epub" >"$log" 2>&1; then
-    echo "  ✓ epubcheck: zero errors and zero warnings"
+    echo "  ✓ epubcheck: zero errors and zero warnings (${log#"$ROOT/"})"
   else
-    echo "  ⚠️  epubcheck found problems — see build/epubcheck.log"
+    echo "  ⚠️  epubcheck found problems — see ${log#"$ROOT/"}"
     grep -E '^(ERROR|WARNING|FATAL)' "$log" | head -20 | sed 's/^/     /'
     return 1
   fi
 }
 
+# The EPUB's cover (#118). A store shows it in every listing and a reader shows it on the
+# shelf; an EPUB without one is shown as a grey rectangle. It is the PNG `pnpm book:cover`
+# renders, so it has to exist first — and a missing cover fails the build rather than
+# quietly shipping an EPUB with none, which is how both volumes went out until #118.
+require_cover() {
+  local png="$1"
+  if [[ ! -f "$png" ]]; then
+    echo "✗ ${png#"$ROOT/"} does not exist. Run: pnpm book:cover" >&2
+    exit 1
+  fi
+}
+
 build_epub() {
   echo "▸ Building EPUB"
+  require_cover "$BUILD/cover.png"
 
   local font_args=()
   local face
@@ -253,6 +273,8 @@ build_epub() {
     --metadata=date:2027 \
     --syntax-highlighting=tango \
     --split-level=1 \
+    --toc-depth=2 \
+    --epub-cover-image="$BUILD/cover.png" \
     --output="$BUILD/$BOOK_NAME.epub"
   echo "  ✓ build/$BOOK_NAME.epub ($(du -h "$BUILD/$BOOK_NAME.epub" | cut -f1))"
   report_epubcheck "$BUILD/$BOOK_NAME.epub"
@@ -265,8 +287,9 @@ build_epub() {
 # two functions.
 
 build_companion() {
+  require_cover "$BUILD/cover-book-2.png"
   echo "▸ Building companion PDF (tectonic)"
-  pandoc "$BUILD/companion.md" "${COMMON[@]}" "${PDF_ONLY[@]}" \
+  pandoc "$BUILD/companion.md" "${COMMON[@]}" "${PDF_ONLY[@]}" "${IMPRINT[@]}" \
     --output="$BUILD/$COMPANION_NAME.pdf" 2>&1 | tee "$BUILD/companion.log"
   echo "  ✓ build/$COMPANION_NAME.pdf ($(du -h "$BUILD/$COMPANION_NAME.pdf" | cut -f1))"
   report_missing_glyphs "$BUILD/companion.log"
@@ -284,6 +307,8 @@ build_companion() {
     --metadata=date:2027 \
     --syntax-highlighting=tango \
     --split-level=1 \
+    --toc-depth=2 \
+    --epub-cover-image="$BUILD/cover-book-2.png" \
     --output="$BUILD/$COMPANION_NAME.epub"
   echo "  ✓ build/$COMPANION_NAME.epub ($(du -h "$BUILD/$COMPANION_NAME.epub" | cut -f1))"
   report_epubcheck "$BUILD/$COMPANION_NAME.epub"
@@ -294,6 +319,6 @@ case "$TARGET" in
   epub) build_epub ;;
   specimen) build_specimen ;;
   companion) build_companion ;;
-  all) build_pdf; build_epub ;;
+  all) require_cover "$BUILD/cover.png"; build_pdf; build_epub ;;
   *) echo "Usage: $0 [pdf|epub|specimen|companion|all]" >&2; exit 1 ;;
 esac

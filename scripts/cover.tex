@@ -25,52 +25,7 @@
 
 \documentclass[12pt]{article}
 
-\usepackage[paperwidth=100mm,paperheight=160mm,margin=0pt]{geometry}
-\usepackage{fontspec}
-\usepackage{tikz}
-\usetikzlibrary{calc}
-\usepackage{microtype}
-
-% 🔴 Relative to **this file**, not to the working directory: tectonic searches from the
-% source file's own directory, which is the opposite of how scripts/book-pdf.yaml resolves
-% its filters. build-cover.sh still cds to the root, so build/ lands in the right place.
-\input{tex/tokens.tex}
-
-\newcommand{\coverfontpath}{../assets/fonts/}
-
-\newfontfamily\coverserif{SourceSerif4}[
-  Path = \coverfontpath,
-  Extension = .otf,
-  UprightFont = *-Regular,
-  ItalicFont = *-It,
-  BoldFont = *-Bold,
-  Ligatures = TeX,
-]
-
-\newfontfamily\coversans{SourceSans3}[
-  Path = \coverfontpath,
-  Extension = .otf,
-  UprightFont = *-Regular,
-  BoldFont = *-Bold,
-  FontFace = {sb}{n}{Font=SourceSans3-Semibold},
-  Ligatures = TeX,
-]
-
-\newfontfamily\covermono{SourceCodePro}[
-  Path = \coverfontpath,
-  Extension = .otf,
-  UprightFont = *-Regular,
-  BoldFont = *-Bold,
-]
-
-\pagestyle{empty}
-\setlength{\parindent}{0pt}
-
-% The title, the author and the web address, once each. The address is the one string the
-% cover, site/index.md and site/.vitepress/config.ts must agree on — #115.
-\newcommand{\covertitle}{The Senior Full Stack Handbook}
-\newcommand{\coverauthor}{Salman Rahman}
-\newcommand{\coverurl}{www.salmanrahman.com}
+\input{tex/cover-preamble.tex}
 
 % The one piece of drawing on the cover: nine rules, one per part, their lengths standing
 % for the parts' relative sizes in BOOK-SPEC § 5. It is the book's own budget table used
@@ -83,26 +38,6 @@
       \fill[ink] (-\w*1.8, -\i*1.9) rectangle (\w*1.8, -\i*1.9 + 0.8);
     }
   \end{tikzpicture}%
-}
-
-% Letterspaced small caps need their word space opened with them, or "FIRST EDITION"
-% closes up into one word at 7pt. WordSpace is a multiplier on the font's own space.
-% `WordSpace` cannot be set with \addfontfeature — fontspec has to rebuild the font to
-% change it — so the family is declared with the tracking and the open word space
-% together, once, at load time.
-\newfontfamily\coverlabelfont{SourceSans3}[
-  Path = \coverfontpath,
-  Extension = .otf,
-  UprightFont = *-Regular,
-  % Not \tokTracking. The interior tracks its 8pt labels at +140/1000 em inside a 156mm
-  % measure; the same value on a 100mm cover runs the line off both edges. 20 is the
-  % cover's own value, and it is the only number here that does not come from the tokens.
-  LetterSpace = 20,
-  WordSpace = 1.8,
-]
-
-\newcommand{\coverlabel}[1]{%
-  {\coverlabelfont\fontsize{7pt}{9pt}\selectfont\color{inkmid}#1}%
 }
 
 \begin{document}
@@ -151,7 +86,7 @@
 % Same trim, same frame, same families. Four blocks, top to bottom: the blurb, what is
 % inside, the author, the address. The blurb is BOOK-SPEC § 2 and § 3 in the book's own
 % plain English, not new copy. The part table carries #114's measured chapter and page
-% counts — update it when the book is rebuilt, or the back promises a book that is not
+% counts, re-measured at #118 — update it when the book is rebuilt, or the back promises a book that is not
 % inside.
 \newcommand{\backpart}[4]{#1 & #2 & #3 & #4 \\}
 
@@ -188,16 +123,20 @@
      \begin{tabular}{@{}l l r r@{}}
        & \color{inkmid}Part & \color{inkmid}Chapters & \color{inkmid}Pages \\[0.4mm]
        \backpart{I}{Foundations}{15}{74}
-       \backpart{II}{The Browser Platform}{15}{88}
-       \backpart{III}{The Modern Frontend Stack}{34}{186}
-       \backpart{IV}{Frontend at Scale}{15}{86}
-       \backpart{V}{Backend for Frontend Engineers}{15}{88}
+       \backpart{II}{The Browser Platform}{15}{86}
+       \backpart{III}{The Modern Frontend Stack}{34}{182}
+       \backpart{IV}{Frontend at Scale}{15}{84}
+       \backpart{V}{Backend for Frontend Engineers}{15}{86}
        \backpart{VI}{System Design}{18}{102}
-       \backpart{VII}{AI Engineering}{20}{128}
+       \backpart{VII}{AI Engineering}{20}{124}
        \backpart{VIII}{Ship and Operate}{11}{74}
        \backpart{IX}{The Human Layer}{7}{41}
        [0.4mm]
-       & \fontseries{sb}\selectfont Total & \fontseries{sb}\selectfont 150 & \fontseries{sb}\selectfont 935 \\
+       & \fontseries{sb}\selectfont Total & \fontseries{sb}\selectfont 150 & \fontseries{sb}\selectfont 903 \\
+       % The part rows add to 853. The other pages are the front and back matter — the Preface,
+       % the glossary, the question index — and the back said 935 with nothing to explain the
+       % gap until #118.
+       & \multicolumn{3}{@{}l@{}}{\color{inkmid}Total pages include the front and back matter} \\
      \end{tabular}};
 
   % `font=` rather than a font switch inside the node: `align` breaks the node into lines,

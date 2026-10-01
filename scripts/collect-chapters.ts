@@ -33,6 +33,9 @@
  *   2. Every heading is pushed down one level, so a chapter's `#` becomes `##`. That
  *      leaves level 1 free for the part dividers this script inserts, which is what
  *      pandoc's --top-level-division=part expects.
+ *   3. In front and back matter only, every heading below the title is marked
+ *      `{.unnumbered .unlisted}`, so the contents gives the preface one line rather than
+ *      one per section. A chapter's sections stay listed.
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -65,10 +68,10 @@ const OTHER_VOLUME: Readonly<Record<Volume, string>> = {
 };
 
 /**
- * Add one `#` to every ATX heading, skipping anything inside a fenced code block —
+ * Rewrite every ATX heading line, skipping anything inside a fenced code block —
  * a `# comment` line in a bash fence is not a heading.
  */
-function demoteHeadings(body: string): string {
+function mapHeadings(body: string, rewrite: (line: string) => string): string {
   let inFence = false;
   let fenceMarker = "";
 
@@ -87,9 +90,32 @@ function demoteHeadings(body: string): string {
       }
 
       if (inFence) return line;
-      return /^#{1,5} /.test(line) ? "#" + line : line;
+      return /^#{1,6} /.test(line) ? rewrite(line) : line;
     })
     .join("\n");
+}
+
+/** Add one `#` to every heading. */
+function demoteHeadings(body: string): string {
+  return mapHeadings(body, (line: string) => (/^#{1,5} /.test(line) ? "#" + line : line));
+}
+
+/**
+ * Keep a matter file's sections out of the contents and the EPUB nav. `.unlisted` alone
+ * is enough for the nav, but pandoc's LaTeX writer ignores it on a numbered heading and
+ * still writes the TOC line — only a `\section*` it writes no `\addcontentsline` for.
+ * `.unnumbered` costs nothing visible, because `secnumdepth` 0 numbers no section anyway.
+ * Runs after demotion, so `##` is the file's title and is left alone.
+ */
+function unlistSections(body: string): string {
+  return mapHeadings(body, (line: string) => {
+    if (!/^#{3,} /.test(line)) return line;
+    const attrs = /\{([^}]*)\}\s*$/.exec(line);
+    if (!attrs) return `${line.trimEnd()} {.unnumbered .unlisted}`;
+    const have: string[] = attrs[1].trim().split(/\s+/);
+    const add: string[] = [".unnumbered", ".unlisted"].filter((c: string) => !have.includes(c));
+    return `${line.slice(0, attrs.index)}{${[...have, ...add].join(" ")}}`;
+  });
 }
 
 /**
@@ -171,7 +197,8 @@ for (const doc of docs) {
 
   if (doc.part === 0 && matter === null) unmapped++;
 
-  chunks.push(demoteForeignRefs(ensureAnchor(demoteHeadings(doc.body), doc)).trimEnd() + "\n");
+  const body: string = ensureAnchor(demoteHeadings(doc.body), doc);
+  chunks.push(demoteForeignRefs(matter === null ? body : unlistSections(body)).trimEnd() + "\n");
 }
 
 mkdirSync(OUT_DIR, { recursive: true });

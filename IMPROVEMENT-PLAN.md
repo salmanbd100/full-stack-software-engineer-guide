@@ -30,7 +30,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-10-01 · **Progress:** 26 / 31
+**Last updated:** 2026-10-01 · **Progress:** 27 / 31
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -1775,7 +1775,7 @@ nothing the plan wrote, `pnpm lint:docs` shows the new rule at 0, and `pnpm test
 
 ---
 
-### - [ ] 118. Give the book what a publisher expects `M`
+### - [x] 118. Give the book what a publisher expects `M` — ✅ **done 2026-10-01**
 
 | Gap | Fix |
 | --- | --- |
@@ -1788,6 +1788,54 @@ nothing the plan wrote, `pnpm lint:docs` shows the new rule at 0, and `pnpm test
 
 **Done when:** both PDFs open on a copyright page, `unzip -l` shows a cover image in both EPUBs,
 epubcheck is clean for both with separate logs, and Book 2 has a front and a back cover.
+
+**Delivered:**
+
+- **A copyright page, `scripts/tex/imprint.tex`**, on the verso of the title page in both PDFs. It is passed
+  with `--include-before-body` (the `IMPRINT` array in `build-book.sh`), not the specimen. It holds the
+  copyright, "First edition, 2027", "ISBN: pending", the publisher, the reproduction and no-warranty notices,
+  trademarks, where to report a mistake, and a one-line colophon. It names no title, so one file serves both
+  volumes
+- 🔴 **A correction to this item: no `isbn` identifier was added.** No ISBN has been bought, and a made-up
+  number in retail metadata is worse than none. The comment at the top of `imprint.tex` says where the real
+  one goes (the imprint line and each volume's `identifier` list) and that each volume needs its own
+- **EPUB covers.** `--epub-cover-image` is passed on the command line, not in the metadata files, so each
+  volume names its own PNG. A new `require_cover` in `build-book.sh` fails the build if the PNG is missing.
+  For `all` and `companion` it runs before the long PDF typesetting, not after it
+- **Book 2's cover, `scripts/cover-book-2.tex`:** front and back, on the handbook's trim, frame and tokens.
+  The shared half of `cover.tex` moved to `scripts/tex/cover-preamble.tex` so the two cannot drift.
+  The front has sixteen squares where the handbook has nine bars; the back has a blurb and the sixteen
+  pattern names. `build-cover.sh` builds both volumes: `cover{,-back}.png` and `cover-book-2{,-back}.png`
+- **epubcheck writes one log per volume:** `build/epubcheck-<file name>.log`. The stale shared log was deleted
+- **Preface errata line,** in "How to Trust What Is Here". It points at the web address on the copyright
+  page, because non-negotiable #11 keeps URLs out of chapter bodies
+- **Found during the session, and fixed at the user's request: a 26-page Contents.**
+  - Every front- and back-matter file had its sections in the Contents ("Why This Book Exists", Glossary A–Z…).
+    `collect-chapters.ts` now marks those sections `{.unnumbered .unlisted}`. Only that combination keeps the
+    LaTeX writer from adding a contents line. A new test covers it
+  - Every chapter also listed its five fixed headings: How It Works, When to Use It, Common Mistakes,
+    Interview Questions, What to Read Next. `toc-depth: 1` in `scripts/book-pdf.yaml` now gives parts and
+    chapters only. The EPUB keeps `--toc-depth=2`, now passed by its own two invocations, because its nav
+    counts from the part and 1 would drop every chapter
+  - The Contents went from 26 pages to 8. **The handbook is 903 pages**, down from 935, and five parts lost
+    one or two pages each, most likely because fewer part openers needed a blank page to land on a recto.
+    The back cover's part table was re-measured: the parts add to 853, the total reads 903, and the new
+    note under it says the total includes front and back matter. "935 pages" became 903 in the Preface,
+    How to Read This Book, `site/index.md`, `site/.vitepress/config.ts` and `README.md`
+- **Verified:**
+  - `pnpm book:cover`, `book:build` and `book:companion` all finish. Both PDFs resolve every cross-reference
+    and report no missing glyphs
+  - Both EPUBs pass epubcheck with zero errors and zero warnings, each with its own log
+  - Both EPUBs carry an `<item properties="cover-image">`, and both PDFs open page 2 on the copyright text.
+    The EPUB nav lists the Preface and How to Read once each, then the parts and their chapters
+  - `book:pages` gives 903 pages for the handbook and 101 for Book 2. The spine is at 51.2%
+  - `pnpm test`: 39 of 39 pass. `lint:docs` has 0 violations, and `index:check`, `site:pages` and
+    `check:code-samples` (974) all pass
+- 🔴 **The handbook PDF now takes about 37 minutes to build** (four TeX passes at about nine minutes each).
+  An earlier run was stopped at the one-hour background limit because the machine slept during it. Run the
+  build in the foreground, or keep the machine awake
+- **Seen, not changed:** the `README.md` parts table still has the old per-part pages (Book 2's 101 is still right). #121
+  updates it from these numbers
 
 ---
 
@@ -1859,8 +1907,8 @@ both covers in the #116 launch checklist exist with today's date.
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
 | 9 | 95–116 · 95a · 113a · 113b | 25/25 | ✅ Complete |
-| 10 | 117–122 | 1/6 | 🔄 In progress |
-| **Total** | **31** | **26/31** | **84%** |
+| 10 | 117–122 | 2/6 | 🔄 In progress |
+| **Total** | **31** | **27/31** | **87%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item

@@ -1,0 +1,76 @@
+% cover-preamble.tex — what both covers share, improvement #118.
+%
+% Split out of scripts/cover.tex when Book 2 got a cover of its own
+% (scripts/cover-book-2.tex). Everything a reader would notice if it differed between the
+% two lives here once: the trim, the three families, the label style, and the title,
+% author and web address strings. Each cover keeps only its own drawing and copy.
+%
+% 🔴 Paths resolve against the directory of the file tectonic was given — scripts/ — not
+% against this one, which is why `tex/tokens.tex` has no `../`.
+
+\usepackage[paperwidth=100mm,paperheight=160mm,margin=0pt]{geometry}
+\usepackage{fontspec}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{microtype}
+
+% 🔴 Relative to **this file**, not to the working directory: tectonic searches from the
+% source file's own directory, which is the opposite of how scripts/book-pdf.yaml resolves
+% its filters. build-cover.sh still cds to the root, so build/ lands in the right place.
+\input{tex/tokens.tex}
+
+\newcommand{\coverfontpath}{../assets/fonts/}
+
+\newfontfamily\coverserif{SourceSerif4}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  ItalicFont = *-It,
+  BoldFont = *-Bold,
+  Ligatures = TeX,
+]
+
+\newfontfamily\coversans{SourceSans3}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont = *-Bold,
+  FontFace = {sb}{n}{Font=SourceSans3-Semibold},
+  Ligatures = TeX,
+]
+
+\newfontfamily\covermono{SourceCodePro}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  BoldFont = *-Bold,
+]
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% The title, the author and the web address, once each. The address is the one string the
+% cover, site/index.md and site/.vitepress/config.ts must agree on — #115.
+\newcommand{\covertitle}{The Senior Full Stack Handbook}
+\newcommand{\coverauthor}{Salman Rahman}
+\newcommand{\coverurl}{www.salmanrahman.com}
+
+% Letterspaced small caps need their word space opened with them, or "FIRST EDITION"
+% closes up into one word at 7pt. WordSpace is a multiplier on the font's own space.
+% `WordSpace` cannot be set with \addfontfeature — fontspec has to rebuild the font to
+% change it — so the family is declared with the tracking and the open word space
+% together, once, at load time.
+\newfontfamily\coverlabelfont{SourceSans3}[
+  Path = \coverfontpath,
+  Extension = .otf,
+  UprightFont = *-Regular,
+  % Not \tokTracking. The interior tracks its 8pt labels at +140/1000 em inside a 156mm
+  % measure; the same value on a 100mm cover runs the line off both edges. 20 is the
+  % cover's own value, and it is the only number here that does not come from the tokens.
+  LetterSpace = 20,
+  WordSpace = 1.8,
+]
+
+\newcommand{\coverlabel}[1]{%
+  {\coverlabelfont\fontsize{7pt}{9pt}\selectfont\color{inkmid}#1}%
+}

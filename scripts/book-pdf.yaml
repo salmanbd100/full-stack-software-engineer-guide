@@ -17,6 +17,14 @@
 
 pdf-engine: tectonic
 
+# Parts and chapters, and nothing below them (#118). At 2 the contents listed every
+# chapter's How It Works, When to Use It, Common Mistakes, Interview Questions and What to
+# Read Next — the same five lines 222 times, 26 pages that told a reader nothing. Under
+# `--top-level-division=part` pandoc maps 1 to \setcounter{tocdepth}{0}, which is the
+# chapter level. The EPUB keeps 2 in build-book.sh: its nav counts from the part, so 1
+# there would drop every chapter.
+toc-depth: 1
+
 include-in-header:
   - scripts/book-header.tex
 

@@ -84,7 +84,7 @@ per term, and the chapter that owns it named on the same line. See
 
 ### Cover to cover
 
-The book is 935 pages, so this route is real rather than a boast: about three months at ten pages a
+The book is 903 pages, so this route is real rather than a boast: about three months at ten pages a
 day. Read the parts in order. Each part opener sets up the vocabulary the part uses, says what
 interviewers probe for in that area, and gives a reading order inside the part — including which
 chapters the sprint route skips.

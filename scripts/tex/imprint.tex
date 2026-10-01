@@ -1,0 +1,44 @@
+% imprint.tex — the copyright page, improvement #118.
+%
+% The verso of the title page, in both volumes. build-book.sh passes it with
+% --include-before-body, which pandoc's LaTeX template places straight after \maketitle and
+% before the table of contents. That is where a reader, a shop and a library look for it.
+%
+% It names no title on purpose, so one file serves the handbook and Book 2. It cannot read
+% the title from pandoc either: the book class's \maketitle empties \@title once it has set it.
+%
+% The web address is allowed here. BOOK-SPEC non-negotiable #11 keeps personal URLs out of
+% chapter bodies; this page is not a chapter, and the running footer already carries it.
+%
+% 🔴 The ISBN line says "pending" until an ISBN is bought. Put the real number here and in
+% the `identifier` list in scripts/book-meta.yaml (and companion-meta.yaml, for Book 2's own
+% number) on the same day. Each volume needs its own.
+
+\thispagestyle{empty}
+\vspace*{\fill}
+
+{\fontsize{\tokSmallSize}{12pt}\selectfont\color{ink}
+\setlength{\parskip}{3mm}\raggedright
+
+\textcopyright{} 2027 Salman Rahman. All rights reserved.
+
+First edition, 2027.\\
+ISBN: pending.\\
+Published by Salman Rahman \textperiodcentered{} www.salmanrahman.com
+
+No part of this book may be copied, stored or shared in any form without the author's written
+permission, except for short quotations in reviews and articles.
+
+The information in this book is given without warranty. The author has taken care over it, but
+accepts no liability for any loss or damage caused by using it. The code samples are written to
+teach, so test them before you run them in production.
+
+Product and company names in this book are trademarks of their owners. They are used only to
+name those products, and no endorsement is implied.
+
+To report a mistake, or a claim that has moved since this edition, use the web address above.
+
+{\color{inkmid}Set in Source Serif 4, Source Sans 3 and Source Code Pro. Typeset from Markdown with
+pandoc and Tectonic. Diagrams drawn with Mermaid.}\par}
+
+\clearpage

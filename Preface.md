@@ -72,7 +72,7 @@ saves them the money.
 
 ## What It Will Not Teach
 
-Saying no here is what keeps this book to 935 pages, short enough to read end to end. The algorithm
+Saying no here is what keeps this book to 903 pages, short enough to read end to end. The algorithm
 patterns for the coding round are not left out. They are a separate volume, Book 2. Every topic below
 was considered and cut on purpose, not forgotten.
 
@@ -144,6 +144,9 @@ knowing before you rely on a page.
 
 Where the book hands over to somewhere else, it says where. The sources worth your time — one per
 part, not forty — are in [Chapter ?? — Further Reading](#ch-further-reading).
+
+If you find a mistake, or a claim that has moved since this edition, report it through the web
+address on the copyright page. Corrections go into the next update of the edition.
 
 ## A Note on English
 

@@ -5,7 +5,7 @@ hero:
   name: The Senior Full Stack Handbook
   text: Frontend-heavy, 2027 edition
   tagline: >
-    Nine parts, 935 pages, short enough to read end to end. The runtime under the API, the
+    Nine parts, 903 pages, short enough to read end to end. The runtime under the API, the
     rendering model under the framework, and the rounds that decide the level rather than
     the offer. The coding round has its own volume, Book 2: DSA Patterns.
   actions:

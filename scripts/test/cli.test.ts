@@ -296,6 +296,45 @@ describe("build-question-index", () => {
 });
 
 // ---------------------------------------------------------------------------
+// book:collect — one contents line per matter file, every section per chapter
+// ---------------------------------------------------------------------------
+
+describe("collect-chapters", () => {
+  let fixture: string;
+
+  before(() => {
+    fixture = mkdtempSync(join(tmpdir(), "collect-fixture-"));
+    writeFileSync(
+      join(fixture, "Preface.md"),
+      ["---", "title: Preface", "part: 0", "slug: preface", "tags: [front-matter]", "in_book: true", "---", "",
+        "# Preface {#ch-preface}", "", "## Why This Book Exists", "", "### A detail {#detail}", "",
+        "```bash", "## not a heading", "```", ""].join("\n"),
+      "utf8",
+    );
+    mkdirSync(join(fixture, "Frontend", "JavaScript"), { recursive: true });
+    writeFileSync(
+      join(fixture, "Frontend", "JavaScript", "01-closures.md"),
+      [...matter("Closures", 1, "closures"), "", "# Closures {#ch-closures}", "", "## How It Works", ""].join("\n"),
+      "utf8",
+    );
+  });
+
+  after(() => rmSync(fixture, { recursive: true, force: true }));
+
+  test("unlists a matter file's sections and leaves a chapter's alone", () => {
+    const result: Run = run("collect-chapters.ts", fixture);
+    assert.equal(result.status, 0, result.stdout);
+    const book: string = readFileSync(join(fixture, "build", "book.md"), "utf8");
+
+    assert.ok(book.includes("## Preface {#ch-preface}\n"), "the matter title itself was unlisted");
+    assert.ok(book.includes("### Why This Book Exists {.unnumbered .unlisted}\n"), book);
+    assert.ok(book.includes("#### A detail {#detail .unnumbered .unlisted}\n"), "an existing anchor was not merged");
+    assert.ok(book.includes("## not a heading\n"), "a line inside a fence was rewritten");
+    assert.ok(book.includes("### How It Works\n"), "a chapter's section lost its contents line");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // plan:check — the counters that decide where the next session starts
 // ---------------------------------------------------------------------------
 
