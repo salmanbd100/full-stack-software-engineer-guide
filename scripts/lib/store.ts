@@ -13,13 +13,13 @@
  * (`scripts/book-meta.yaml`) already print. The site links there, and the store is
  * reached from it.
  *
- * **Change `STORE_URL` here and nowhere else.** `build-site.ts` uses it directly for the
- * pages it generates, and *checks* the two hand-written files against it — the same
- * build-time guard `SAMPLE_CHAPTERS` gets, and for the same reason: the symptom of drift
- * is a link that looks fine and goes nowhere.
+ * **Change `STORE_URL` here and nowhere else.** `build-site.ts` *checks* the two
+ * hand-written site files against it, because the
+ * symptom of drift is a link that looks fine and goes nowhere. Since decision #24 the book
+ * is free on the web, so this is the author's address the site links back to.
  */
 
-/** The URL every "Buy the book" link points at. */
+/** The author's address — the back cover, the rights line, and the site's link home. */
 export const STORE_URL: string = "https://www.salmanrahman.com/";
 
 /** The same address as a reader sees it printed — on the back cover and in the sample note. */

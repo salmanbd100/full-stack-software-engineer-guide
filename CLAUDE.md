@@ -48,7 +48,7 @@ stop.** Those are archived deliberately, not missing.
 ├── SystemDesign/        # fundamentals, building blocks, frontend SD, 20 case studies
 ├── ShipAndOperate/      # Part VIII — Git, CI/CD, Observability, Cloud, Deployment
 ├── Behavioral/  Communication/
-├── site/                # the free VitePress companion — generated, see below
+├── site/                # the free web edition (VitePress) — generated, see below
 ├── Archive/             # cut chapters (Containers, PWA, i18n, CSSArchitecture, …) — moved, never deleted
 └── scripts/             # book tooling
 ```
@@ -75,16 +75,22 @@ pnpm check:code-samples             # compile every TypeScript fence
 pnpm check:code-samples --code=TS2304   # every occurrence of one diagnostic
 pnpm check:versions   # version-gated claims with no version named; --check fails on any (CI)
 pnpm check:stale      # terms with no correct present-tense use left; --check fails on any (CI)
-pnpm site:dev         # the free VitePress companion, generated from the manuscript
+pnpm site:dev         # the free web edition, generated from the manuscript
 pnpm site:build       # static build into site/.vitepress/dist
 ```
 
-**The companion site is generated, never hand-edited.** `scripts/build-site.ts` writes
+**The web edition is generated, never hand-edited.** `scripts/build-site.ts` writes
 `site/book/**` and `site/.vitepress/sidebar.json` from the same `loadBook` the PDF build uses; both
 are gitignored, and `site/` is in `EXCLUDED_DIRS` so the generated copies never count against a
-part's budget. Only `site/index.md` and `site/.vitepress/config.ts` are written by hand. What the
-site publishes — front matter, all back matter, every index page, and one sample chapter per part
-named in `SAMPLE_CHAPTERS` — is BOOK-SPEC decision #17, not a technical detail.
+part's budget. Only `site/index.md`, `site/building-this-book.md` (the developer guide to this build and the
+portfolio connection — web only, never in the PDF or EPUB) and `site/.vitepress/config.ts` are
+written by hand. It
+publishes **the whole book** — BOOK-SPEC decision #24, which replaced #17's one sample chapter per part.
+It is served at `www.salmanrahman.com/handbook/` (`base` in `config.ts`): the `salman-portfolio`
+Next.js app rewrites `/handbook/*` to this repo's own Vercel project, and `vercel.json` makes every
+push to `main` rebuild it with `pnpm site:build`. No portfolio redeploy is needed, and a failed build
+leaves the last good deployment live. ` ```mermaid ` fences render client-side through
+`vitepress-plugin-mermaid`.
 
 **`Interview-Question-Index.md` and `DSA-Question-Index.md` are generated, never hand-edited.** One
 index per volume (#95a): the handbook's 647 questions, and Book 2's 87, read out of every chapter's
@@ -153,7 +159,7 @@ reading order, and what is left is mostly a name the prose introduced two fences
 import resolves to `any` through a wildcard ambient module, so this proves the samples parse and hang
 together — **it does not prove they match any library's current API.** CI
 (`.github/workflows/lint-docs.yml`) runs `lint:docs`, `number:chapters --check`, `index:check`,
-`check:code-samples`, `site:pages`, `check:versions --check`, `check:stale --check`, `plan:check`,
+`check:code-samples`, `site:build`, `check:versions --check`, `check:stale --check`, `plan:check`,
 `test` and `book:collect`, nothing else.
 
 `lint:docs` gates on **`.lint-baseline.json`, not zero** — most of the repo predates the standard. A

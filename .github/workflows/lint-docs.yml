@@ -61,10 +61,11 @@ jobs:
         # .code-samples-baseline.json the way lint:docs does. Improvement #75.
         run: pnpm check:code-samples
 
-      - name: Generate the companion site's pages
-        # Cheap, and it is the only thing that catches a sample chapter renamed out from
-        # under SAMPLE_CHAPTERS in build-site.ts. Improvement #78.
-        run: pnpm site:pages
+      - name: Build the web edition
+        # The same build Vercel runs on every push to main (vercel.json, decision #24).
+        # VitePress fails on a dead link, so a broken cross-reference fails the PR here
+        # rather than the deploy. Improvement #78.
+        run: pnpm site:build
 
       - name: Check every version-gated claim names its version
         # Non-negotiable #5. `--check` fails on any finding; the fix is a stamp, or an
