@@ -183,7 +183,7 @@ The EPUB uses the same collected file and the same classifier. Instead of LaTeX 
 4. It writes `site/.vitepress/sidebar.json`, grouped by part.
 5. It checks the hand-written pages (this one, the home page and the config). The build fails if any of them states a count of chapters or interview questions that no longer matches the manuscript.
 
-The generated files are in `.gitignore`. Only the home page, this page and `site/.vitepress/config.ts` are written by hand.
+The generated files are in `.gitignore`. Only the home page, this page, `site/.vitepress/config.ts` and the reading theme in `site/.vitepress/theme/` are written by hand. The theme widens the text column and raises the type size — web only, the print design never sees it.
 
 VitePress then builds the static site. Three settings in `config.ts` matter:
 

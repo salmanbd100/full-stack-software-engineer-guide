@@ -29,6 +29,10 @@ export default withMermaid(
     lastUpdated: true,
 
     head: [
+      // The portfolio's own icons, copied into site/public/ — VitePress does not prefix
+      // `head` links with `base`, so the path is written out.
+      ["link", { rel: "icon", href: `${BASE}favicon.ico`, sizes: "any" }],
+      ["link", { rel: "icon", type: "image/svg+xml", href: `${BASE}icon.svg` }],
       ["meta", { property: "og:title", content: "The Senior Full Stack Handbook" }],
       ["meta", { property: "og:description", content: DESCRIPTION }],
       ["meta", { name: "twitter:card", content: "summary_large_image" }],

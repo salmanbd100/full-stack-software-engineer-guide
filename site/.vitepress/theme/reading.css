@@ -1,0 +1,66 @@
+/*
+ * A wider measure and larger type than VitePress's defaults, which are tuned for API
+ * reference pages rather than chapters read end to end.
+ *
+ * Every rule is under #app: VitePress's layout rules are component-scoped and carry a
+ * [data-v-…] attribute, so a plain class selector loses to them.
+ */
+
+:root {
+  /* 272px left "The Senior Full Stack Handbook" running under the sidebar's scrollbar,
+     because the nav title shares the sidebar's width. */
+  --vp-sidebar-width: 320px;
+  --vp-layout-max-width: 1680px;
+}
+
+/* --- Measure ----------------------------------------------------------- */
+
+#app .VPDoc.has-aside .content-container {
+  max-width: 860px;
+}
+
+@media (min-width: 960px) {
+  #app .VPDoc:not(.has-sidebar) .container {
+    max-width: 1240px;
+  }
+
+  #app .VPDoc:not(.has-sidebar) .content {
+    max-width: 900px;
+  }
+}
+
+/* --- Type -------------------------------------------------------------- */
+
+#app .vp-doc p,
+#app .vp-doc li,
+#app .vp-doc blockquote > p {
+  font-size: 17px;
+  line-height: 30px;
+}
+
+@media (min-width: 768px) {
+  #app .vp-doc p,
+  #app .vp-doc li,
+  #app .vp-doc blockquote > p {
+    font-size: 18px;
+    line-height: 32px;
+  }
+}
+
+#app .vp-doc h2 {
+  font-size: 28px;
+  line-height: 36px;
+}
+
+#app .vp-doc h3 {
+  font-size: 22px;
+  line-height: 30px;
+}
+
+#app .vp-doc table {
+  font-size: 16px;
+}
+
+#app .vp-doc div[class*="language-"] code {
+  font-size: 15px;
+}

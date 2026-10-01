@@ -83,8 +83,9 @@ pnpm site:build       # static build into site/.vitepress/dist
 `site/book/**` and `site/.vitepress/sidebar.json` from the same `loadBook` the PDF build uses; both
 are gitignored, and `site/` is in `EXCLUDED_DIRS` so the generated copies never count against a
 part's budget. Only `site/index.md`, `site/building-this-book.md` (the developer guide to this build and the
-portfolio connection — web only, never in the PDF or EPUB) and `site/.vitepress/config.ts` are
-written by hand. It
+portfolio connection — web only, never in the PDF or EPUB) `site/.vitepress/config.ts` and `site/.vitepress/theme/`
+(a wider measure and larger type, web only) are written by hand; `site/public/` holds the
+portfolio's favicons. It
 publishes **the whole book** — BOOK-SPEC decision #24, which replaced #17's one sample chapter per part.
 It is served at `www.salmanrahman.com/handbook/` (`base` in `config.ts`): the `salman-portfolio`
 Next.js app rewrites `/handbook/*` to this repo's own Vercel project, and `vercel.json` makes every
