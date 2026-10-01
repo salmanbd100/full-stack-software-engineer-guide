@@ -12,3 +12,4 @@ site/book/
 site/.vitepress/cache/
 site/.vitepress/dist/
 site/.vitepress/sidebar.json
+.vercel

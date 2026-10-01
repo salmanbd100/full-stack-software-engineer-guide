@@ -232,6 +232,7 @@ This split is what makes updates automatic. Pushing to the book repository rebui
   "buildCommand": "pnpm site:build",
   "outputDirectory": "site/.vitepress/dist",
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/handbook", "destination": "/" },
     { "source": "/handbook/:path*", "destination": "/:path*" }
@@ -239,13 +240,15 @@ This split is what makes updates automatic. Pushing to the book repository rebui
 }
 ```
 
-VitePress writes files to the root of `dist/`, but the pages ask for everything under `/handbook/`. The two rewrites strip that prefix, so the project works both on its own `*.vercel.app` address and behind the portfolio.
+VitePress writes files to the root of `dist/`, but the pages ask for everything under `/handbook/`. The two rewrites strip that prefix, so the project works both on its own `*.vercel.app` address and behind the portfolio. `trailingSlash: false` makes `/handbook/` redirect to `/handbook` — without it, Vercel answers `/handbook/` with a 404. For the same reason the portfolio never forwards a trailing slash: the redirect would send the reader to the `*.vercel.app` host.
 
 **Set-up, once:**
 
 1. In Vercel, choose **Add New → Project** and import `salmanbd100/full-stack-software-engineer-guide`.
 2. Leave the build settings alone — `vercel.json` sets them. Set the production branch to `main`.
 3. Deploy. Note the production address, for example `https://senior-full-stack-handbook.vercel.app`.
+
+> ⚠️ If Vercel says it **cannot connect the repository**, the Vercel GitHub app has not been given access to it. Open GitHub → Settings → Applications → Vercel → Configure, add the repository, then connect it under the project's **Settings → Git**. Until then, `vercel deploy --prod` from the repository root deploys by hand.
 
 ### 2. Point the portfolio at it
 
@@ -266,7 +269,7 @@ export const HANDBOOK = {
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
-      { source: HANDBOOK.path, destination: `${HANDBOOK.origin}${HANDBOOK.path}/` },
+      { source: HANDBOOK.path, destination: `${HANDBOOK.origin}${HANDBOOK.path}` },
       {
         source: `${HANDBOOK.path}/:path*`,
         destination: `${HANDBOOK.origin}${HANDBOOK.path}/:path*`,

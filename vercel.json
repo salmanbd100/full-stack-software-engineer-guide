@@ -4,13 +4,14 @@
   "buildCommand": "pnpm site:build",
   "outputDirectory": "site/.vitepress/dist",
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/handbook", "destination": "/" },
     { "source": "/handbook/:path*", "destination": "/:path*" }
   ],
   "headers": [
     {
-      "source": "/assets/(.*)",
+      "source": "/:prefix(handbook)?/assets/:file*",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ]
