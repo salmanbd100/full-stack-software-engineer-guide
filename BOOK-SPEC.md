@@ -4,8 +4,8 @@
 > checked against this file. If a change contradicts the spec, either the change is wrong or the spec
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
-> **Status:** Locked · **Version:** 1.9 · **Date:** 2026-09-24
-> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — Phase 9, which cuts the manuscript to the 940-page edition.
+> **Status:** Locked · **Version:** 1.11 · **Date:** 2026-10-12
+> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — Phases 9–10 cut the manuscript to the 903-page edition; Phase 11 adds the Bangla web edition.
 
 ---
 
@@ -22,9 +22,9 @@
 | **Typefaces** | **Source Serif 4** body · **Source Sans 3** display · **Source Code Pro** code, vendored in `assets/fonts/` — decision #18 |
 | **Language**  | British English (`colour`, `behaviour`, `organise`, `optimise`)                                |
 | **Code**      | TypeScript only                                                                                |
-| **Formats**   | PDF · EPUB · free web companion                                                                |
+| **Formats**   | PDF · EPUB (English) · free web edition (English and Bangla)                                                                |
 | **Published** | **Free on the web** at www.salmanrahman.com/handbook — decision #24, replacing #17 |
-| **Web edition** | **VitePress**, generated from this manuscript: the whole book, redeployed on every push to `main` — decision #24 |
+| **Web edition** | **VitePress**, generated from this manuscript: the whole book, redeployed on every push to `main` — decision #24. **Bilingual, English and Bangla**; the Bangla is machine-translated and cached in `i18n/bn/` — decision #25 |
 | **Book 2**    | *DSA Patterns* — sixteen algorithm patterns, built as its own PDF and EPUB with its own question index. The retail title is unchanged; the subtitle names it **Book 2** — decisions #6, #20, #23 |
 
 **Working shorthand:** _The Handbook_.
@@ -471,6 +471,8 @@ bump the version, and update any improvement-plan items the change affects.
 | 22| 2026-09-24 | **A plain-English pass, part by part, replaces the cover-to-cover voice pass of old improvement #92** | Improvement #95. § 3 has always asked for short sentences, everyday words and active voice, and half of this book's readers do not speak English as a first language — but measured prose runs **18.5–21.5 words a sentence**, with 1,317 sentences over 32 words across the nine parts. Old #92 was dropped rather than finished because it would have edited prose that the cut was about to archive. Its replacement is items **#105–#113**, one part each, run **after** the cut, against the 15–20 word target. The idea stays senior; only the sentences carrying it get shorter. The 32-word count is a pointer, not a quota |
 | 23| 2026-09-24 | **The DSA companion stays a product, as Book 2.** Decisions #6 and #20 stand. A proposal to retire it, drafted into Phase 9 as improvement #95a, was **rejected by the owner the same day** | The case for retiring it: the split between the two volumes was never finished. The handbook's `Interview-Question-Index.md` still lists **87 DSA questions** linking to anchors that exist only in the companion, so the handbook ships 87 dead links, and the companion ships with no index at all. Retiring the volume would have fixed that by deleting the product. The case that won: the reader still has to pass the coding round, which is decision #6's reason and has not changed, and #86 has already built the second volume. So **#95a now finishes the split instead** — one question index per volume, and a check that a cross-reference resolves inside its own volume. Book 2 keeps its own 5,600-line ceiling outside the 38,600 total, so it does not affect the 940-page target |
 | 24| 2026-10-01 | **The whole book is free to read on the web, at www.salmanrahman.com/handbook.** Replaces decision #17 | The owner's call. #17 published one sample chapter per part and kept the rest back as the product; the manuscript repository is public, so the line it drew was not holding anything back. `build-site.ts` now publishes every page `loadBook` returns, and every cross-reference is a live link. The site is its own Vercel project, built from this repository by `vercel.json` on every push to `main`; the portfolio rewrites `/handbook/*` to it, so a book change never needs a portfolio deploy. The PDF and EPUB builds are unchanged. |
+| 25| 2026-10-12 | **The web edition is bilingual: English and Bangla.** The PDF and EPUB stay English, and the English manuscript stays the single source | Improvement #123, opening Phase 11. The owner's call. § 3 already writes the English for readers whose first language is not English; a Bangla site goes one step further for Bangla readers. **How it is made:** Claude translates each page of the manuscript in Claude Code sessions, following `i18n/TRANSLATION-BRIEF.md`, and `pnpm site:translate --write` writes it to `i18n/bn/`, keyed by a SHA-256 of the English body. **No API is called and nothing is spent** — amended 2026-10-12 (v1.11), when the owner chose this over a paid Message Batches run; `site:translate` reports what is missing or stale and is the only way a page gets into the cache. Nobody edits the Bangla by hand as a second source. When a chapter changes, its Bangla page goes stale and is translated again. A missing or stale page falls back to English with a short notice, so a Bangla link never 404s. A validator checks that code fences, inline code, link targets and `**Q: **` markers come back byte-identical, and a page that fails is not written. **Why the translation is cached and committed, not built on Vercel:** CI holds no key; a deploy costs nothing, however often `main` is pushed; and a failed or slow translation cannot break a deploy, because the build only reads files already in the repository. The alternative, translating during `site:build`, was rejected for those three reasons. `i18n/` must stay out of `loadBook`'s chapters — improvement #124 adds it to `EXCLUDED_DIRS` — or the Bangla files would count against every part's budget |
+
 ---
 
 **Next:** improvement **#2** — extend `write-topic-docs` into the book chapter standard. No new chapter
