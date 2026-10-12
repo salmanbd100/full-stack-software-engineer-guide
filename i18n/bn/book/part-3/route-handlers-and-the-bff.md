@@ -21,7 +21,7 @@ call করে**। একটি Server Component সরাসরি আপন�
 Action দিয়ে mutation করতে পারে। দুটোরই কোনো URL লাগে না। একটি endpoint তখনই তার জায়গা পায়, যখন caller এমন কিছু
 যা আপনার নিয়ন্ত্রণে নেই: একটি webhook, একটি mobile app, একটি partner, অথবা অন্য কারও page-এর একটি `<script>`।
 
-> ⚠️ **বদলাতে থাকা বিষয়:** `GET` handler-এর caching দুবার বদলেছে। Next.js 14-এ এটা default-এ cache হতো, আর 15-এ
+> ⚠️ **যা বদলাতে থাকে:** `GET` handler-এর caching দুবার বদলেছে। Next.js 14-এ এটা default-এ cache হতো, আর 15-এ
 > default-এ cache হতো না। 16-এর Cache Components-এ একটি `GET` prerender হয়, যদি না সেটা runtime data ছোঁয়। আর একটি
 > helper-এর ওপর `use cache` `dynamic = 'force-static'`-এর জায়গা নেয়। স্থায়ী নীতি: caching opt-in, আর cache করা
 > প্রতিটি জিনিসের এমন একটি key দরকার, যেটা আপনি invalidate করতে পারেন।

@@ -24,7 +24,7 @@ Task graph ছাড়া একটি monorepo প্রতিটি পরি
 সমাধান হলো এমন একটি build system, যেটা দুটো প্রশ্নের উত্তর দিতে পারে: **কোনটা কোনটার আগে চলতে হবে**, আর **ঠিক এই
 কাজটা কি আগেই করা হয়েছে?** এই অধ্যায়ের বাকিটা এই দুটো প্রশ্ন নিয়েই।
 
-> ⚠️ **চলমান লক্ষ্য:** configuration-এর নামগুলো বদলাতেই থাকে। Turborepo 2 `pipeline`-এর নাম বদলে `tasks` করেছে,
+> ⚠️ **যা বদলাতে থাকে:** configuration-এর নামগুলো বদলাতেই থাকে। Turborepo 2 `pipeline`-এর নাম বদলে `tasks` করেছে,
 > `outputMode`-কে করেছে `outputLogs`, `dotEnv` key-গুলো বাদ দিয়েছে, আর cache directory সরিয়েছে। Nx-ও প্রায় একই
 > হারে তার project configuration-এর রূপ বদলায়। দুটো tool-ই একই টেকসই নীতি মেনে চলে। Cache আপনার declare করা
 > input-গুলোর ওপর content-addressed: এর key হলো সেগুলোর একটি hash। তাই যে cache-এ hit হওয়ার কথা, সেখানে miss হলে

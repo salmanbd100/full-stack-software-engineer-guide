@@ -84,6 +84,9 @@ The same sections recur in every chapter. Always translate them this way:
 | `## Chapters` | `## অধ্যায়গুলো` |
 | `## Reading Order` | `## পড়ার ক্রম` |
 | `**In this chapter:**` | `**এই অধ্যায়ে:**` |
+| `> ⚠️ **Moving target:**` | `> ⚠️ **যা বদলাতে থাকে:**` |
+| `Durable principle` | `টেকসই নীতি` |
+| `Reach for` (table column) | `কী ব্যবহার করবেন` |
 
 Heading anchors such as `{#ch-closures}` stay exactly as they are. So do HTML comments such as
 `<!-- lint-allow-fence: … -->`.

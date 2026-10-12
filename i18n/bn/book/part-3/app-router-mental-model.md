@@ -132,7 +132,7 @@ Component output) ফেরত পায়। অপরিবর্তিত la
 "প্রতিটি navigation-এ আমার sidebar re-fetch করছে কেন" প্রায় সবসময় একই bug। Fetch-টি এমন একটি
 `page.tsx`-এ আছে, যেটা বদলে যাচ্ছে, বা এমন একটি `template.tsx`-এ, যেটা design অনুযায়ীই remount হয়।
 
-> ⚠️ **চলমান লক্ষ্য:** Next.js 16 `params`, `searchParams`, `cookies()`
+> ⚠️ **যা বদলাতে থাকে:** Next.js 16 `params`, `searchParams`, `cookies()`
 > আর `headers()`-এ synchronous access সরিয়ে দিয়েছে, আর `middleware.ts`-এর নাম বদলে `proxy.ts` করেছে। স্থায়ী নীতি: একটি route
 > nested segment দিয়ে তৈরি, আর request data asynchronous-ভাবে আসে। Filename-গুলো বদলায়।
 

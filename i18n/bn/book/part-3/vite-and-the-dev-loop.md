@@ -25,7 +25,7 @@ Vite-এর মূল অন্তর্দৃষ্টি ছিল, এ দু
 Browser native ESM দিয়ে module চায়, আর Vite চাহিদামতো সেগুলো transform করে। নিচের Rust-এ নতুন করে লেখা tool-গুলো
 আরও এগিয়ে যায়: একটি rebuild-এর খরচ হয় যা _বদলেছে_ তার সমান, যা আছে তার সমান নয়।
 
-> ⚠️ **চলমান লক্ষ্য:** এটা বইয়ের সবচেয়ে দ্রুত বদলানো কোণ। Vite 2–7 development-এ esbuild আর build-এ Rollup ব্যবহার
+> ⚠️ **যা বদলাতে থাকে:** এটা বইয়ের সবচেয়ে দ্রুত বদলানো কোণ। Vite 2–7 development-এ esbuild আর build-এ Rollup ব্যবহার
 > করত। Vite 8 দুটোকেই **Rolldown**-এ এক করেছে, যেটা Rollup-compatible plugin-সহ একটি Rust bundler। Next.js-এর ভেতরে
 > default হলো Turbopack, আর Rspack-এর লক্ষ্য Webpack build। Default, stability status আর benchmark আবার বদলাবে, তাই
 > নিজের version দেখে নিন। যে ধারণাগুলো টিকে থাকবে: development-এ কম কাজ, build-এ বেশি। আর bundler বেছে নিন **সেটা কোন

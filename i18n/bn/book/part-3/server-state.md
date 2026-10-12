@@ -22,7 +22,7 @@ memory থেকে ফেলে দিতে পারে।
 Library বাকি যা করে, সবই এই কাঠামো থেকে আসে: deduplication, retry, window focus-এ refetch, optimistic update।
 কাঠামোটা শিখুন, API এমনিতেই বোঝা যাবে। আগে API শিখলে data কেন আবার fetch হলো, সেটা নিয়ে এক বছর বিভ্রান্ত থাকবেন।
 
-> ⚠️ **বদলাতে থাকা বিষয়:** TanStack Query v5, v4-এর এত কিছুর নাম বদলেছে যে search result-গুলো আর মেলে না। `cacheTime`
+> ⚠️ **যা বদলাতে থাকে:** TanStack Query v5, v4-এর এত কিছুর নাম বদলেছে যে search result-গুলো আর মেলে না। `cacheTime`
 > এখন `gcTime`, `isLoading` এখন `isPending`, আর key অবশ্যই array হতে হবে। পরের v5 release-গুলো mutation
 > callback-এর argument-এর নাম আবার বদলেছে। টেকসই model হলো key, staleness ঘড়ি, garbage ঘড়ি, invalidation। কোনো
 > example copy করার আগে, এগুলোসহ, আপনার `package.json`-এ version দেখে নিন।

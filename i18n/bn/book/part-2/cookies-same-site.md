@@ -33,7 +33,7 @@ Cookie: sessionId=abc123
 Cookie ছোট, প্রায় 4 KB, আর প্রতিটি request-এর সাথে যায়। তাই এটা storage-এর পদ্ধতি নয়, session-এর পদ্ধতি। যে data
 server-এর দরকার নেই, সেটার জায়গা web storage-এ।
 
-> ⚠️ **বদলাতে থাকা বিষয়:** এই অধ্যায়ের অন্য যেকোনো অংশের চেয়ে third-party cookie policy বেশি বদলেছে।
+> ⚠️ **যা বদলাতে থাকে:** এই অধ্যায়ের অন্য যেকোনো অংশের চেয়ে third-party cookie policy বেশি বদলেছে।
 > Safari আর Firefox default-ভাবে third-party cookie block করে। Chrome একটি phase-out ঘোষণা করেছিল, দুবার পিছিয়েছে,
 > তারপর default deprecation পুরোপুরি বাদ দিয়েছে। Embedded flow চালু রাখার অনুমোদিত উপায় এখন `Partitioned` (CHIPS)
 > আর Storage Access API। টেকসই নীতি হলো: নিচের attribute-গুলো স্থির, কিন্তু *third-party context-এ cookie set করার

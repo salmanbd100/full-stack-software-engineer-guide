@@ -15,7 +15,7 @@ framework-টি নিজেই। এগুলো দেখায় App Route
 লেখা হয়েছে **Next.js 16** ধরে। এখানে কিছুই Vercel ধরে নেয় না। অধ্যায়গুলো platform-এর নাম নেয় শুধু যেখানে
 কোনো খুঁটিনাটি সত্যিই আলাদা, যেমন cold start, regional execution, বা কোন adapter build চালায়।
 
-> ⚠️ **চলমান লক্ষ্য।** Caching-এর নিয়ম Next.js 15-এ বদলেছে, 16-এ আবার বদলেছে। Version 16 আরও
+> ⚠️ **যা বদলাতে থাকে।** Caching-এর নিয়ম Next.js 15-এ বদলেছে, 16-এ আবার বদলেছে। Version 16 আরও
 > `middleware.ts`-এর নাম বদলে `proxy.ts` করেছে, আর প্রতিটি request API-কে asynchronous করেছে। `use cache`, `cacheLife`
 > আর `cacheTag`-কে একটি স্থায়ী নীতির এই বছরের নাম হিসেবে দেখুন। Caching প্রতি request-এ opt-in, আর cache করা
 > যেকোনো কিছুর একটি explicit key দরকার, যেটা আপনি ইচ্ছা করে invalidate করতে পারেন।

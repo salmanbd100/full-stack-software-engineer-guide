@@ -132,7 +132,7 @@ log('INFO', 'started'); // ❌ string enums are nominal
 | কাঁচা string গ্রহণ করে                           | ✅             | ✅                 | ❌                        |
 | Type-stripping runtime-এ চলে                     | ✅             | ✅                 | ❌                        |
 
-> ⚠️ **বদলাতে থাকা বিষয়:** যে syntax code emit করে, ecosystem তার বিপরীতে সরে যাচ্ছে। TypeScript 5.8
+> ⚠️ **যা বদলাতে থাকে:** যে syntax code emit করে, ecosystem তার বিপরীতে সরে যাচ্ছে। TypeScript 5.8
 > `erasableSyntaxOnly` যোগ করেছে, আর Node.js type compile না করে strip করে। তাই `enum`-এর support কমছে।
 > স্থায়ী নিয়মটা এই flag-গুলোর চেয়ে বেশিদিন টিকবে। যে রূপ build time-এ মিলিয়ে যায়, সেটাই বেছে নিন।
 > Runtime object-এর দাম দিন শুধু তখন, যখন মানগুলোর ওপর iterate করা দরকার।

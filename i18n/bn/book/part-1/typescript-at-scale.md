@@ -150,7 +150,7 @@ type DeepPaths<T, Prefix extends string = ""> = {
 একটি inferred type দেয়। সাধারণত সেটা type system-এ একই জিনিস প্রমাণ করার চেয়ে ভালো। কোন type ধীর, সেটা নিয়ে
 আন্দাজ নয়, প্রমাণ দরকার হলে `tsc --generateTrace` ব্যবহার করুন।
 
-> ⚠️ **বদলাতে থাকা বিষয়:** TypeScript প্রতি কয়েকটি release-এ compiler flag যোগ করে আর নাম বদলায়। আর native
+> ⚠️ **যা বদলাতে থাকে:** TypeScript প্রতি কয়েকটি release-এ compiler flag যোগ করে আর নাম বদলায়। আর native
 > port এই section-এর পেছনের performance-এর হিসাব বদলে দেয়। স্থায়ী নীতিটা টিকে থাকে: type-স্তরের কাজ
 > single-threaded, আর প্রতিটি check-এ আবার চলে, তাই নিখুঁততার একটি মাপা যায় এমন দাম আছে।
 

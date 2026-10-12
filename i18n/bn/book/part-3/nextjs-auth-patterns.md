@@ -35,7 +35,7 @@ flowchart LR
 
 **তিনটি entry point একটি check-এ এসে মেলে। Proxy একটি অপচয়ী render এড়ানোর shortcut, কোনো gate নয়।**
 
-> ⚠️ **বদলাতে থাকা বিষয়:** Next.js 15 থেকে `cookies()` আর `headers()` asynchronous, আর 16 synchronous রূপগুলো
+> ⚠️ **যা বদলাতে থাকে:** Next.js 15 থেকে `cookies()` আর `headers()` asynchronous, আর 16 synchronous রূপগুলো
 > সরিয়ে দিয়েছে। `middleware.ts` এখন `proxy.ts`। `unauthorized()` আর `forbidden()`-এর জন্য এখনো `next.config.ts`-এ
 > `experimental.authInterrupts` লাগে। তিনটি পরিবর্তনের পরেও স্থায়ী নীতিটা টিকে আছে: আসল check-এর জায়গা query-র
 > পাশে।

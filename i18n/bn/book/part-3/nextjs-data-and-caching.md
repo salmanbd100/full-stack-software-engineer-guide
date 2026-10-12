@@ -23,7 +23,7 @@ lifetime**, আর **একটি tag, যা দিয়ে এটা মু�
 পাবেন। Key না থাকলে সব user একটি entry share করে। Lifetime না থাকলে এটা চিরকাল stale থাকে। Tag না থাকলে ঠিক
 করার একমাত্র উপায় একটি redeploy।
 
-> ⚠️ **চলমান লক্ষ্য:** caching-এর নিয়ম Next.js 15-এ বদলেছে, 16-এ আবার বদলেছে। `unstable_cache` আর
+> ⚠️ **যা বদলাতে থাকে:** caching-এর নিয়ম Next.js 15-এ বদলেছে, 16-এ আবার বদলেছে। `unstable_cache` আর
 > `experimental.ppr` চলে গেছে, তাদের জায়গা নিয়েছে `cacheComponents` আর `use cache`। স্থায়ী নীতি হলো ওপরের তিনটি
 > column: একটি key, একটি lifetime, আর ইচ্ছা করে invalidate করার একটি উপায়।
 
