@@ -43,5 +43,5 @@ Part III-এর শুরুর অধ্যায়ের part-স্তরে
 
 অধ্যায় 03-এর signal-এর অংশটি Svelte 5 runes অধ্যায়ের সঙ্গে জোড়া। সেটার পরে এটা পড়ুন।
 
-**Interview-এর তাড়াহুড়োয়:** 01 → 02। চারটি ভাগ আর server-state caching মিলে, একটি senior round state নিয়ে যা
+**Interview sprint:** 01 → 02। চারটি ভাগ আর server-state caching মিলে, একটি senior round state নিয়ে যা
 জিজ্ঞেস করে তার বেশিরভাগই ঢেকে দেয়।

@@ -48,5 +48,5 @@ Part-স্তরের সংকেতই, কিন্তু compile-time-এ�
 কারণ narrowing-ই বাকি সবকিছুকে কাজের করে তোলে।
 
 **Interview sprint:** 03 → 04 → 05, তারপর Part III-এর React অধ্যায়। Generics, narrowing, derived type আর একটি
-component-কে type করা — একসঙ্গে এগুলো একটি frontend-ভারী interview loop-এর প্রায় প্রতিটি TypeScript প্রশ্ন কভার
+component-কে type করা — একসঙ্গে এগুলো একটি frontend-heavy interview loop-এর প্রায় প্রতিটি TypeScript প্রশ্ন কভার
 করে।
