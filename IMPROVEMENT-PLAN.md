@@ -4,6 +4,9 @@
 > Frontend-Heavy, 2027 Edition_** down to about **940 pages**, and make every surviving sentence easy
 > to read for someone whose first language is not English.
 >
+> **Phase 11 (#123–#130)** adds a Bangla edition of the web site: every page, switchable from English.
+> The PDF and EPUB stay English.
+>
 > **This file is not part of the book.** It lives in the repo and the book build skips it.
 
 ---
@@ -30,7 +33,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-10-01 · **Progress:** 31 / 31
+**Last updated:** 2026-10-12 · **Progress:** 35 / 39
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -214,6 +217,7 @@ time. It must read **0** when #104 is done.
 | Items | Model | Effort | Why |
 | ----- | ----- | ------ | --- |
 | 95–122, 95a, 113a, 113b | **Opus 5** `claude-opus-5` | `high`–`xhigh` | Every item here is a judgement call: what a senior interviewer actually asks, which two chapters become one, and which sentence to break in half. There is no mechanical sweep left in this plan |
+| 123–130 | **Opus 5.5** `claude-opus-5-5` | `high` | Build tooling, a VitePress locale and a paid translation run. Each item is mostly code, and it must be checked against real output |
 
 `pnpm plan:next` reads this table. Edit the table, not `scripts/plan-status.ts`.
 
@@ -2000,13 +2004,292 @@ both covers in the #116 launch checklist exist with today's date.
 
 ---
 
+# Phase 11 — The Bangla Web Edition
+
+The web edition at `www.salmanrahman.com/handbook/` gets a language switch: **English** and
+**বাংলা**. Switching changes everything: the menus, the sidebar, the search and the chapter text.
+The PDF and EPUB stay English.
+
+**How it works, in one picture:**
+
+```
+manuscript (English) ──▶ Claude, in Claude Code sessions ──▶ pnpm site:translate --write ──▶ i18n/bn/**  (committed cache)
+manuscript + i18n/bn ──▶ pnpm site:build ──▶ /handbook/book/** (en)  +  /handbook/bn/book/** (bn)
+```
+
+Four rules hold for the whole phase:
+
+- **Translation runs in Claude Code sessions, not on Vercel and not through the API.** Its output is
+  committed. Nothing ever calls the API, no key exists anywhere, and the edition costs no API spend
+- **The cache key is a SHA-256 of the English body.** Edit a chapter and only that chapter goes stale.
+  `site:translate --list` names only the stale pages
+- **A missing or stale page falls back to English,** with a short Bangla notice. A Bangla link never
+  404s
+- **Code never changes.** Fences, inline code, link targets, Mermaid source and the `**Q: **` markers
+  must come back byte-identical. A validator checks this, and a page that fails is not written
+
+**Size:** 222 pages, about 1.9M characters of prose and 0.28M of code, measured with `loadBook` on
+2026-10-12.
+
+> 🔁 **Amended 2026-10-12, during #126.** The plan first had `site:translate` send every page to the
+> Message Batches API, at an estimated $20–40 for the book. The owner chose not to pay for API access
+> and asked for the translation to be done in Claude Code instead, then pushed. #126, #128 and #129
+> are rewritten for that, and BOOK-SPEC decision #25 is amended to match (v1.11). The rules for
+> translators are in `i18n/TRANSLATION-BRIEF.md`.
+
+---
+
+### - [x] 123. Record the bilingual web edition in the spec `S` — ✅ **done 2026-10-12**
+
+The site's scope is changing, and `BOOK-SPEC.md` is the authority on scope. So the spec changes first.
+
+Add decision **#25** to § 11. The web edition is bilingual, English and Bangla. The Bangla text is
+machine-translated from the manuscript by `pnpm site:translate` and cached in `i18n/bn/`. The PDF and
+EPUB stay English, and the English manuscript stays the single source. Say why the translation is
+cached and committed rather than built on Vercel: no key in CI, no cost per deploy, and a failed
+translation cannot break a deploy.
+
+**Done when:** decision #25 is in § 11 and `pnpm plan:check` passes.
+
+**Delivered:**
+
+- **Decision #25** in `BOOK-SPEC.md` § 11: the web edition is English and Bangla, and the Bangla is
+  machine-translated by `pnpm site:translate` into `i18n/bn/`, keyed by a SHA-256 of the English body.
+  The PDF and EPUB stay English, and the English manuscript stays the single source. It records why
+  the cache is committed rather than built on Vercel: no key in CI, no cost per deploy, and a failed
+  translation cannot break a deploy. It also records the English fallback and the validator rule
+- **§ 10 asks for a version bump, so the spec went from 1.9 to 1.10**, dated 2026-10-12. The
+  Companion line in the header now names Phases 9–11 instead of Phase 9 alone
+- **§ 1 changed too, so the spec does not contradict itself:** the `Formats` row says the PDF and
+  EPUB are English and the web edition is English and Bangla, and the `Web edition` row cites #25
+- **#25 names #124 as the item that keeps `i18n/` out of `loadBook`**. That has not happened yet, so
+  the decision does not claim it has
+- **Fixed in passing:** decision #24 was followed straight by `---` with no blank line. #25 sits
+  between them now, and there is a blank line before the rule
+
+---
+
+### - [x] 124. Share the routing and keep `i18n/` out of the book `S` — ✅ **done 2026-10-12**
+
+Both `build-site.ts` and the new translate script need the same route for every page. Today
+`slugFor` and `routeFor` live inside `scripts/build-site.ts`.
+
+- Move `slugFor`, `routeFor` and `isIndex` into a new `scripts/lib/site.ts`, and import them in
+  `build-site.ts`. Do not change their behaviour
+- Add `"i18n"` to `EXCLUDED_DIRS` in `scripts/lib/book.ts`, with a comment saying why. Otherwise the
+  Bangla files would count as chapters: twice the lines, against every part budget
+- Add a test in `scripts/test/book.test.ts` saying that a file under `i18n/` is not loaded
+
+**Done when:** `pnpm site:pages` writes the same `site/book/**` as before (diff the tree before and
+after), `pnpm test` is green with the new test, and `pnpm lint:docs` shows no change.
+
+**Delivered:**
+
+- **`scripts/lib/site.ts`** holds `isIndex`, `routeFor` and `slugFor`, moved out of
+  `scripts/build-site.ts` unchanged and exported. `build-site.ts` imports them and no longer imports
+  `PART_OPENERS`. #126 should import the same three, not copy them
+- **`"i18n"` is in `EXCLUDED_DIRS`** in `scripts/lib/book.ts`, with a comment: a translated file has
+  its English source's front matter, so walking it would load every chapter twice
+- **`scripts/test/book.test.ts`:** the fixture now has `i18n/bn/book/part-1/closures.md`, with the
+  same slug as the English chapter. The excluded-directory test checks `i18n` as well, and a new test
+  says `loadBook` returns `closures` once, from `Frontend/`. With the exclusion taken out, three tests
+  fail. With it in, `pnpm test` passes 40/40
+- **Verified:** `pnpm site:pages` before and after gives the same 222 pages. `diff -r` of
+  `site/book/` and of `sidebar.json` shows no difference. `pnpm lint:docs` output is byte-identical
+  (0 violations), and `check:code-samples` shows no regression
+- **Not done:** `CLAUDE.md` still says the suite has 39 tests. It now has 40. That belongs to #130's
+  documentation pass
+
+---
+
+### - [x] 125. Write the translation validator `S` — ✅ **done 2026-10-12**
+
+A pure function in `scripts/lib/translate.ts`: `validateTranslation(en, bn)` returns a list of
+problems, and an empty list means the page is safe to write. It checks:
+
+- the same fenced blocks, in the same order, **byte-identical** (TypeScript, Mermaid, everything)
+- the same multiset of link targets: `(#ch-…)`, `(/book/…)` and absolute URLs
+- the same number of `##` and `###` headings
+- the same number of `**Q: ` markers
+- the same number of inline code spans, with identical contents
+
+Also put `hashSource(body)` (SHA-256) and the front matter read and write for `i18n/bn/*.md` here
+(`sourceHash`, `title`, `translatedAt`, `model`).
+
+Add `scripts/test/translate.test.ts` and add it to the `test` script in `package.json`.
+
+**Done when:** `pnpm test` is green. The new tests prove each check: a faithful translation passes,
+and a dropped fence, an edited fence, a lost `#ch-` link, a missing Q marker and an edited inline code
+span each fail with a readable message.
+
+**Delivered:**
+
+- **`scripts/lib/translate.ts`:** `validateTranslation(en, bn)` returns a list of problems, and each
+  one names what changed (`fenced block 3 changed: English "…", Bangla "…"`,
+  `link target lost: #ch-closures`, `**Q: markers: English has 5, Bangla has 4`). Fences follow
+  CommonMark: backticks or tildes, up to three spaces of indent, closed by a run at least as long.
+  The manuscript only uses column-0 triple backticks, but model output might not. Link, heading and
+  Q checks run on prose with fences and code spans removed, so a URL inside a code sample is checked
+  only as part of its fence
+- **Two decisions the item did not spell out:** inline code spans are compared **as a multiset**,
+  because Bangla word order can move a span within a sentence. Bare URLs drop trailing punctuation,
+  following GFM's autolink rule, and the Bangla full stop `।` counts as punctuation. Without that, the
+  faithful-translation test failed: `…/Closures.` and `…/Closures এ।` read as different links
+- **The cache file:** `hashSource` (SHA-256 hex), `TranslationMeta`
+  (`sourceHash`, `title`, `translatedAt`, `model`), `writeTranslation` and `readTranslation`. Values
+  are written as JSON strings. A JSON string is valid YAML, so VitePress reads the same file, and a
+  Bangla title with a colon or a quote round-trips. `readTranslation` returns `null` for a file
+  missing any key
+- **`scripts/test/translate.test.ts`**, added to `pnpm test`: 13 tests. They cover a faithful page,
+  each failure the Done-when line names, plus a lost URL, a lost heading, moved inline code and a URL
+  inside a fence, and the cache file round trip. `pnpm test` passes 53/53
+- **Checked against the real manuscript:** all 222 `loadBook` pages pass when validated against
+  themselves. So no page has a shape the validator mistakes for damage. `tsc --strict --noEmit` on
+  the new files reports nothing
+- **Not done:** `CLAUDE.md` still says the suite has 39 tests. It has 53 now. This is left for #130,
+  like #124's note
+
+---
+
+### - [x] 126. Build `pnpm site:translate` `M` — ✅ **done 2026-10-12**
+
+> 🔁 **Rewritten 2026-10-12.** This item first built a Message Batches client (`@anthropic-ai/sdk`,
+> a pending-batch file, a `--dry-run` cost estimate). The owner chose no API spend, so it builds the
+> same cache tool with no model call in it: Claude translates in the session, and the script is the
+> one door into the cache.
+
+The new script `scripts/translate-site.ts` works out which pages are missing or stale, hands a
+translator the English, and takes the Bangla back through the validator.
+
+- `--source=<route>` prints the English body with every fence replaced by `<!-- fence N -->`. The
+  translator never sees code, so it cannot change it
+- `--write=<route> --from=<file> --title=<Bangla title>` puts the fences back from the English, runs
+  `validateTranslation`, and writes `i18n/bn/<route>.md` with its front matter only if nothing failed
+- No flag: counts of fresh, stale, invalid and missing. `--list` names them. `--only=front`,
+  `--only=part-1`, `--only=<slug>` (can repeat) scope any command. `--check` exits 1 on a stale or
+  invalid page (a missing one falls back to English by design)
+- `i18n/TRANSLATION-BRIEF.md`: the translation rules, kept in the repository so every session uses the
+  same ones
+
+**Done when:** `pnpm site:translate` lists all 222 pages as missing. One page translated in the
+session goes in through `--write`, passes the validator, and its fences are byte-identical to the
+English.
+
+**Delivered:**
+
+- **`scripts/translate-site.ts`** and `pnpm site:translate`, as above. It imports `routeFor` and
+  `slugFor` from `scripts/lib/site.ts` (#124), so a cached page sits at the same route the site builds.
+  The `model` front-matter field reads `claude-opus-5-5 (Claude Code)`
+- **`maskFences` and `unmaskFences`** in `scripts/lib/translate.ts`. Fences are a seventh of the book,
+  so masking them saves work, and it rules out a hand-copied sample drifting by one character. A
+  dropped placeholder is not repaired, so the validator still reports the missing fence. Two tests
+  were added, and `pnpm test` passes 55/55
+- **Verified:** before any page was written, `pnpm site:translate` reported `222 pages: 0 fresh, 0
+  stale, 0 invalid, 222 missing`. Then `/book/part-8/ship-observability-index`, the smallest page
+  (1,704 characters), was translated in the session and written through `--write`. `--check` reports
+  it `fresh`. That page has no fences, so fence restoration is proven by the tests, not by this page
+- **`i18n/TRANSLATION-BRIEF.md`** sets the house style: spoken-standard Bangla (চলিত), short sentences,
+  আপনি, technical terms in Latin script with hyphenated Bangla suffixes, Western digits, and the
+  validator's rules in plain words. The Observability page is the reference page
+- **BOOK-SPEC decision #25 amended** (v1.10 → v1.11) to say who translates and that no API is called.
+  No `@anthropic-ai/sdk` dependency was added
+
+---
+
+### - [ ] 127. Add the Bangla locale to the site `L`
+
+The site gets its switch. It must work with **zero** translations, because every page simply falls
+back to English.
+
+- **`scripts/build-site.ts`:**
+  - after the English pass, write `site/bn/book/**` for every page. Use the cached body when its
+    `sourceHash` matches. If not, use English with the notice "এই অধ্যায়ের বাংলা অনুবাদ এখনও
+    হালনাগাদ হয়নি — নিচে ইংরেজি সংস্করণ দেওয়া হলো।"
+  - run `rewriteLinks` with a `/bn` prefix, so Bangla pages link to Bangla pages
+  - build a second sidebar from the translated titles and a `PART_NAMES_BN` map, and write
+    `sidebar.json` as `{ en, bn }`
+  - generate a Bangla contents page at `site/bn/book/index.md`
+  - print `translated / stale / missing` in the summary line
+  - add `site/bn/book/` to `.gitignore`
+- **`site/bn/index.md`** (hand-written): the home page in Bangla. Add it to `HAND_WRITTEN`, and teach
+  the drift guard the Bangla phrasing (`টি ইন্টারভিউ প্রশ্ন`, `টি অধ্যায়`), with the Bengali digits
+  ০–৯ normalised before the comparison
+- **`site/.vitepress/config.ts`:** `locales.root` (en-GB, today's nav and footer) and `locales.bn`
+  (`label: "বাংলা"`, `lang: "bn-BD"`). Give the Bangla locale its own:
+  - nav and footer
+  - `outline.label`, `docFooter`, `lastUpdated.text`
+  - `returnToTopLabel`, `sidebarMenuLabel`, `darkModeSwitchLabel`, `langMenuLabel`
+  - `search.options.locales.bn`
+
+  Set `sidebar: { "/book/": en, "/bn/book/": bn }`
+- **Type:** load Noto Sans Bengali from Google Fonts and apply it under `:lang(bn)` in
+  `reading.css`. The portfolio has no Bengali face. Say in a comment that this extends its type in
+  the same spirit, as CLAUDE.md asks
+
+**Done when:** `pnpm site:build` is clean with `ignoreDeadLinks: false`. On `pnpm site:dev`, checked in
+the browser in light and dark mode:
+
+- the switcher moves between `/handbook/book/x` and `/handbook/bn/book/x` on the same page
+- the Bangla menus, sidebar and search labels show
+- every Bangla page shows the fallback notice and the English text
+- the one page translated in #126 shows in Bangla, in Noto Sans Bengali
+
+Breaking a count in `site/bn/index.md` makes `site:pages` fail. `pnpm test` and `pnpm lint:docs` are
+unchanged.
+
+---
+
+### - [ ] 128. Pilot: translate the front matter and Part I `M`
+
+Check the quality on a small part before the rest of the book.
+
+1. Translate every front-matter and Part I page with `site:translate --source` / `--write`, following
+   `i18n/TRANSLATION-BRIEF.md`
+2. The owner reads at least three chapters in Bangla. Anything they flag (terms that should have
+   stayed English, a tone that is too formal, broken tables) goes into the brief, and the affected
+   pages are translated again
+
+**Done when:** `pnpm site:translate --only=front --only=part-1` reports every page fresh. The owner
+has said the quality is good enough to go on. Every change to the brief is written in the
+**Delivered** block, with the reason.
+
+---
+
+### - [ ] 129. Translate the rest of the book `M`
+
+Parts II–X and the back matter, following the brief the pilot settled. This is about 1.9M
+characters, so it spans sessions. `pnpm site:translate --list` always says what is left.
+
+**Done when:** `pnpm site:translate --check` passes and reports no missing pages, or only the ones
+listed in **Delivered** as staying English, each with a reason.
+
+---
+
+### - [ ] 130. Document it, deploy it, and check it live `S`
+
+- **`CLAUDE.md`:** add `site:translate` to Scripts, and point at `i18n/TRANSLATION-BRIEF.md`. In the web-edition paragraph, say that `i18n/bn/` is
+  a generated cache (hand-fix a page only if you accept that a re-translation overwrites it), and that
+  `site/bn/index.md` is hand-written and guarded
+- **`site/building-this-book.md`:** a short section on how the Bangla edition is made, and that it is
+  machine-translated
+- **After a chapter edit:** run `pnpm site:translate --list`, translate the stale pages, then commit
+  the cache. Write that in CLAUDE.md
+  where the editing workflow is
+- Push to `main` and check the Vercel deploy
+
+**Done when:** `www.salmanrahman.com/handbook/bn/` is live. The switcher works there, and a Bangla
+chapter loads with its font. `pnpm plan:check` passes, and Phase 11 shows 8/8.
+
+---
+
 ## ✅ Progress Tracker
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
 | 9 | 95–116 · 95a · 113a · 113b | 25/25 | ✅ Complete |
 | 10 | 117–122 | 6/6 | ✅ Complete |
-| **Total** | **31** | **31/31** | **100%** |
+| 11 | 123–130 | 4/8 | 🟡 In progress |
+| **Total** | **39** | **35/39** | **90%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item
