@@ -30,10 +30,11 @@
     "frontmatter": "node --experimental-strip-types scripts/add-frontmatter.ts",
     "check:code-samples": "node --experimental-strip-types scripts/check-code-samples.ts",
     "site:pages": "node --experimental-strip-types scripts/build-site.ts",
+    "site:translate": "node --experimental-strip-types scripts/translate-site.ts",
     "site:dev": "pnpm site:pages && vitepress dev site",
     "site:build": "pnpm site:pages && vitepress build site",
     "site:preview": "vitepress preview site",
-    "test": "node --experimental-strip-types --test scripts/test/book.test.ts scripts/test/cli.test.ts"
+    "test": "node --experimental-strip-types --test scripts/test/book.test.ts scripts/test/cli.test.ts scripts/test/translate.test.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
