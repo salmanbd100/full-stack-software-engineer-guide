@@ -89,6 +89,7 @@ The same sections recur in every chapter. Always translate them this way:
 | `Reach for` (table column) | `কী ব্যবহার করবেন` |
 | `frontend-heavy` | `frontend-heavy` — stays English, the book's own subtitle term |
 | `boundary` (Server Component, error, service) | `boundary` — stays English |
+| `hot` / `cold` (key, path, cache, start) | `hot` / `cold` — stay English: `hot key`, `cold start` |
 | `**Interview sprint:**` | `**Interview sprint:**` — stays English, a named route through the book |
 
 Heading anchors such as `{#ch-closures}` stay exactly as they are. So do HTML comments such as

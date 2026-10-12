@@ -1,0 +1,201 @@
+---
+sourceHash: "85f8eb705e23616e93829a640d2e461720ac5f19551b616650cf330d34152abe"
+title: "Streaming Response"
+translatedAt: "2026-10-12T12:27:21.455Z"
+model: "claude-opus-5-5 (Claude Code)"
+---
+
+# Streaming Response {#ch-streaming-responses}
+
+> আট সেকেন্ডে পুরো উত্তরের বদলে 400 ms-এ প্রথম token browser-এ পৌঁছে দিন — আর user চলে গেলে পরিষ্কারভাবে সেটা cancel করুন।
+
+**এই অধ্যায়ে:** কেন streaming কোনো optimisation নয় · SSE আর transport বাছাই · server route · একেবারে নিচ পর্যন্ত cancellation · আংশিক result-ও result
+
+## 💡 মূল ধারণা
+
+একটি model একবারে একটি করে token generate করে। প্রথমটা দেখানোর আগে শেষটার জন্য অপেক্ষা করা একটি সিদ্ধান্ত, আর
+প্রায় সবসময়ই ভুল সিদ্ধান্ত। **Streaming উত্তরকে দ্রুত করে না। এটা আট সেকেন্ডের একটি অপেক্ষাকে 400 ms-এর অপেক্ষায়
+পরিণত করে, তারপর text আসতে থাকে মানুষের পড়ার চেয়ে দ্রুত।**
+
+এতে মাপকাঠিটা বদলে যায়। User-এর সামনের একটি feature-এ যে সংখ্যা গুরুত্বপূর্ণ, সেটা হলো **time to first token**,
+মোট সময় নয়। ধরুন একটি model ছয় সেকেন্ডে শেষ করে, প্রথম token 300 ms-এ। এটা সেই model-এর চেয়ে ভালো লাগে, যেটা চার
+সেকেন্ড অপেক্ষার পর চার সেকেন্ডে শেষ করে। Model যতই tune করুন, এই ফারাক মেটে না।
+
+> Streaming হলো transport layer-এ বাস্তবায়িত একটি user-experience সিদ্ধান্ত। এটাকে product requirement হিসেবে দেখুন,
+> performance-এর ক্ষুদ্র optimisation হিসেবে নয়।
+
+> ⚠️ **যা বদলাতে থাকে:** যে helper একটি model stream-কে HTTP response-এ পরিণত করে, প্রতিটি AI SDK major-এ তার নাম
+> বদলেছে। এই বই AI SDK 7-এর ভিত্তিতে লেখা, যেখানে এটা `toUIMessageStreamResponse`।
+> ধরে নিন, আপনি পড়ার সময়ের মধ্যে নামটা বদলে গেছে। টেকসই নীতিটা এক দশকেও নড়েনি। Route এমন একটি response ফেরত
+> দেয়, যার body এখনো তৈরি হচ্ছে। এর আর browser-এর মাঝের প্রতিটি layer-কে buffer না করতে রাজি হতে হবে (মানে body
+> সম্পূর্ণ না হওয়া পর্যন্ত আটকে রাখা চলবে না)।
+
+## কীভাবে কাজ করে
+
+### Transport
+
+তিনটি option, আর প্রায় সব ক্ষেত্রে একটিই জেতে।
+
+| Transport | যেখানে মানায় | বিপক্ষে |
+| --- | --- | --- |
+| **Server-Sent Events** | একমুখী server → client text | শুধু text, একটি দিক |
+| **WebSocket** | দুইমুখী, voice, live collaboration | Connection state, scaling, reconnection logic |
+| **Chunked HTTP / `ReadableStream`** | সাধারণ token pipe, framework-এর built-in | Event framing আপনাকে নতুন করে বানাতে হয় |
+
+**Server-Sent Events-ই default।** একটি model response হলো HTTP-র ওপর একমুখী text, আর SSE ঠিক এর জন্যই
+বানানো। এটা নিজে থেকে reconnect করে, সাধারণ HTTP infrastructure-এর মধ্য দিয়ে কাজ করে, আর কোনো protocol upgrade
+লাগে না। WebSocket ব্যবহার করুন যখন client-ও stream করে, যেমন audio input বা একটি shared editing session। Server-এ
+সেই response খোলা রাখলে আসে proxy buffering, keep-alive ping আর HTTP/1.1-এ ছয়টি connection-এর সীমা। এগুলো আছে
+[Chapter ?? — Real-Time ও Streaming API](#ch-realtime-streaming)-এ।
+
+### Server route
+
+```typescript
+import { streamText, convertToModelMessages, type UIMessage } from 'ai';
+
+export async function POST(req: Request): Promise<Response> {
+  const { messages }: { messages: UIMessage[] } = await req.json();
+
+  const result = streamText({
+    model: 'anthropic/claude-sonnet-4.6',
+    instructions: DOCS_ASSISTANT_INSTRUCTIONS,
+    messages: convertToModelMessages(messages),
+    abortSignal: req.signal,        // the whole point — see cancellation below
+    onAbort: ({ steps }) => persistPartial(steps),
+    onFinish: ({ usage, text }) => recordUsage(usage, text),
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+খেয়াল করুন, এখানে কী **নেই**: model call-এ কোনো `await` নেই। `streamText` সঙ্গে সঙ্গে একটি stream
+handle নিয়ে ফেরত আসে, আর token আসতে থাকা অবস্থাতেই response client-এর কাছে ফিরে যায়। পুরো result-এর জন্য
+await করে তারপর stream করা একটি সাধারণ ভুল। এতে পুরো অপেক্ষাটা ফিরে আসে।
+
+### Cancellation-কে provider পর্যন্ত পৌঁছাতে হবে
+
+যে user tab বন্ধ করেছেন বা stop-এ click করেছেন, তাঁর আর আগ্রহ নেই। Provider-এর কাছে request আসলে abort না হওয়া
+পর্যন্ত token-গুলো টাকা খরচ করে যায়। আর সেটা হয় কেবল তখনই, যখন signal প্রতিটি hop পেরিয়ে যায়।
+
+```mermaid
+flowchart LR
+  A[User clicks stop] --> B[Client aborts fetch]
+  B --> C[Server sees req.signal abort]
+  C --> D[abortSignal cancels provider request]
+  D --> E[Generation stops, billing stops]
+```
+
+**Cancellation-এ কোনো টাকা বাঁচাতে হলে abort-কে কোথায় কোথায় যেতে হবে।**
+
+যেকোনো জায়গায় শিকল ভাঙলে model এমন একটি socket-এ generate করে যায়, যা কেউ পড়ছে না। Call-এ
+`req.signal` পাঠিয়ে দেওয়া এক line-এর কাজ। এই line-টাই cancellation-কে আসল করে, শুধু দেখানোর জন্য নয়।
+
+> ⚠️ Buffering proxy stream গিলে ফেলে। একটি CDN, API gateway বা compression middleware সম্পূর্ণ body-র জন্য অপেক্ষা
+> করতে পারে। তাতে streaming route আবার blocking হয়ে যায়। এটা দেখতে লাগে ধীর model-এর মতো, ভুল configure করা proxy-র
+> মতো নয়। Deploy করা URL test করুন, কখনো শুধু `localhost` নয়।
+
+### Backpressure, আর কেন এটা সাধারণত আপনার সমস্যা নয়
+
+`ReadableStream` নিজে থেকেই backpressure প্রয়োগ করে (reader writer-কে ধীর করে দেয়)। Client ধীরে পড়লে queue ভরে
+যায়, আর producer থেমে যায়। প্রতি সেকেন্ডে কয়েকশো token-এর text-এর জন্য কোনো browser-ই bottleneck নয়।
+
+Fan-out-এ এটা জরুরি। ধরুন একটি model response অনেক subscriber-এর কাছে stream হচ্ছে, যেমন একটি shared session বা
+live demo-তে। সেখানে একজন ধীর consumer সবাইকে আটকে দেয়, যদি না আপনি তাকে আলাদা করেন। প্রতি subscriber-এর জন্য
+buffer রাখুন, আর যে subscriber পিছিয়ে পড়ে তাকে বাদ দিন। তাকে source-এর ওপর backpressure দিতে দেবেন না।
+
+### আংশিক উত্তরেরও দাম আছে
+
+একটি stream 60%-এ মারা গেলে আপনার হাতে একটি উত্তরের 60% আছে। সেটা ফেলে দিয়ে error দেখালে user-এর কাছে যা একমাত্র আছে,
+সেটাই বাতিল হয়।
+
+| ঘটনা | ❌ প্রচলিত | ✅ আরও ভালো |
+| --- | --- | --- |
+| Stream-এর মাঝপথে network চলে যায় | Pane খালি করে error দেখানো | Text রাখুন, অসম্পূর্ণ চিহ্নিত করুন, retry দিন |
+| User stop-এ click করেন | বাতিল করা | রেখে দিন; প্রায়ই তাঁরা এটুকুই চেয়েছিলেন |
+| Token 400-এ rate limit | পুরো failure | 400 token রাখুন, ব্যাখ্যা দিন, বাকিটা retry করুন |
+
+Abort হলে আংশিক output persist করুন। একটি agent loop-এ আংশিক state আবার হিসাব করা দামি, আর সেই save-এর জায়গা
+`onAbort`।
+
+## কখন ব্যবহার করবেন
+
+| পরিস্থিতি | Stream করবেন? | কেন |
+| --- | --- | --- |
+| Chat বা assistant UI | হ্যাঁ | Time to first token-ই পুরো অভিজ্ঞতা |
+| লম্বা generate করা document | হ্যাঁ | অগ্রগতি দেখা যায়; user আগেই থামাতে পারেন |
+| একটি label ফেরত দেওয়া classification | না | Output 5 token; streaming অকারণে জটিলতা বাড়ায় |
+| অন্য service যে JSON ব্যবহার করে | সাধারণত না | Consumer-এর দরকার একটি সম্পূর্ণ, valid object |
+| Background batch job | না | কেউ দেখছে না |
+
+## সাধারণ ভুল
+
+**❌ পুরো response-এর জন্য await করে তারপর একটি stream-এ লেখা**
+
+```typescript
+const { text } = await generateText({ /* ... */ }); // the eight-second wait, restored
+return new Response(toStream(text));
+```
+
+> Route এখন এমন একটি result stream করছে, যার জন্য user আগেই অপেক্ষা করে ফেলেছেন। Streaming call ব্যবহার করুন।
+
+**❌ Abort signal forward না করা**
+
+> Client disconnect করে, provider generate করতেই থাকে, আর আপনি টাকা দিতেই থাকেন। কেউ পড়ুক বা না পড়ুক, token-এর
+> bill হয়।
+
+**❌ শুধু localhost-এ streaming test করা**
+
+> কোনো proxy নেই, CDN নেই, gateway নেই। Buffering দেখা দেয় staging-এ, আর মনে হয় model ধীর।
+
+**✅ আংশিক text আসার সঙ্গে সঙ্গে render করুন, আর failure হলেও রেখে দিন**
+
+> User পড়ার গতিতে একটি উত্তর গড়ে উঠতে দেখেন, আর একটি ভাঙা stream তাঁকে খালি box-এর বদলে উত্তরের বেশিরভাগটা দিয়ে
+> যায়।
+
+## 🔑 মূল শিক্ষা
+
+- Streaming একটি লম্বা অপেক্ষার বদলে একটি ছোট অপেক্ষা দেয়। গুরুত্বপূর্ণ মাপকাঠি হলো time to first token।
+- Server-Sent Events-ই ঠিক default, কারণ একটি model response হলো সাধারণ HTTP-র ওপর একমুখী text।
+- Cancellation তখনই টাকা বাঁচায়, যখন abort signal provider request পর্যন্ত পৌঁছায়।
+- Buffering proxy চুপচাপ একটি streaming route-কে আবার blocking বানিয়ে দেয়। Deploy করা URL test করুন।
+- Stream fail করলে আংশিক output রেখে দিন। এটা উত্তরের বেশিরভাগ, আর ফেলে দিলে কারও লাভ হয় না।
+
+## Interview-এর প্রশ্ন
+
+**Q: মোট সময় একই হলে stream কেন করবেন?**
+
+কারণ অনুভূত latency মোট সময় নয়। যে user 400 ms-এ text দেখেন, তিনি system-কে responsive মনে করেন, আট সেকেন্ডে শেষ
+হলেও। যে user চার সেকেন্ড spinner-এর দিকে তাকিয়ে থাকেন, তিনি ভাবেন এটা ভেঙে গেছে। এই ফারাক যেকোনো model upgrade-এ
+যা পাওয়া যেত, তার চেয়ে বড়। এর খরচ transport-এ একটি পরিবর্তন, model-এ নয়।
+
+**Q: একটি chat feature-এর জন্য SSE নাকি WebSocket?**
+
+SSE, যদি না client-কেও stream করতে হয়। Data একদিকে যায়, HTTP-র ওপর text হিসেবে। SSE নিজে থেকে reconnect করে, আর
+protocol upgrade ছাড়াই সাধারণ HTTP infrastructure-এর মধ্য দিয়ে যায়। WebSocket connection state, reconnection
+handling আর scaling-এর প্রশ্ন যোগ করে। বিনিময়ে দেয় দুইমুখী traffic, যা feature-টা ব্যবহারই করে না। Voice input বা
+live collaboration থাকলে উত্তর বদলায়।
+
+**Q: উত্তরের মাঝপথে একজন user tab বন্ধ করে দিলেন। কী হয়, আর কী হওয়া উচিত?**
+
+Default-ভাবে server provider থেকে পড়তেই থাকে, আর যে token কেউ দেখে না, তার প্রতিটির দাম দেন আপনি। বরং client-এর
+disconnect-এ server request abort হওয়া উচিত। তারপর server তার abort signal model call-এ forward করে, ফলে generation
+সত্যিই থামে। এটা একটি parameter। এটা ছাড়া cancellation একটি UI-র বিভ্রম মাত্র।
+
+**Q: Streaming local-এ কাজ করে, production-এ ঝুলে থাকে। কোথায় দেখবেন?**
+
+Route আর browser-এর মাঝের সবকিছুতে। একটি CDN, gateway বা compression middleware body সম্পূর্ণ না হওয়া পর্যন্ত
+response buffer করতে পারে। তাতে stream একটিমাত্র blocking write হয়ে যায়। এটা দেখতে লাগে ধীর model-এর মতো, যা মানুষকে
+পুরোপুরি ভুল layer-এ পাঠিয়ে দেয়। আগে response header আর proxy-র buffering configuration check করুন।
+
+**Q: কখন stream করবেন না?**
+
+যখন কেউ দেখছে না, বা consumer-এর এমনিতেই পুরোটা দরকার। যেমন একটি label ফেরত দেওয়া classifier, একটি background job,
+বা অন্য service-এ যাওয়া JSON output। সেখানে streaming আংশিক parse-এর জটিলতা যোগ করে, আর কিছুই দেয় না। Streaming তখনই
+নিজের দাম তোলে, যখন একজন মানুষ অপেক্ষা করছেন।
+
+## এরপর কী পড়বেন
+
+- [Chapter ?? — Latency ও Generative UI](#ch-generative-ui) — ওই token-গুলো দিয়ে interface কী করে
+- [Chapter ?? — বিশ্বাস, নির্ভুলতা ও Failure State](#ch-trust-and-correctness-ux) — ভাঙা stream ঠিকভাবে design করা
+- [Chapter ?? — Structured Output](#ch-structured-output) — prose-এর বদলে একটি object stream করা
