@@ -10,7 +10,7 @@ session uses it too.
 pnpm site:translate --list --only=part-3                 # what is missing or stale
 pnpm -s site:translate --source=/book/part-3/hooks > en.md
 # translate en.md into bn.md
-pnpm site:translate --write=/book/part-3/hooks --from=bn.md --title="<Bangla title>"
+pnpm site:translate --write=/book/part-3/hooks --from=bn.md
 ```
 
 `--write` refuses a page that fails the validator, and prints why. Fix `bn.md` and run it again.
@@ -50,19 +50,47 @@ The validator enforces these, and a page that breaks one is not written:
 - **`<!-- fence N -->` lines** — leave each one exactly as it is, on its own line, in its place.
   They are the code blocks, put back from the English after translation
 - **Inline code** — everything between backticks, byte for byte. `` `useState` `` stays
-  `` `useState` ``, even when it reads like a word
+  `` `useState` ``, even when it reads like a word. Do not add backticks the English does not
+  have, either: the validator counts them
 - **Link targets** — `(#ch-…)`, `(/book/…)`, `https://…`. Translate the link *text* only
 - **Headings** — the same number of `##` and `###` headings. Translate the words, keep the level
 - **Emoji callouts** — 💡 🔑 ⚠️ ✅ ❌ stay where they are, in the same shape (`## 💡 …`, `> ⚠️ …`)
 - **Table shape** — the same columns and rows. Cell widths do not need to line up
 
-## Titles
+## Titles and cross-references
 
-`--title` is the page's title for the sidebar. Use the same Bangla as the page's `#` heading.
-A title that is a technical term (Observability, Closures, React Server Components) may stay
-English.
+Every page's Bangla title is in `i18n/titles.bn.json`, decided once for the whole book. `--write`
+takes the title from there, and rewrites every cross-reference that names its target —
+`[Chapter ?? — Title](#ch-slug)`, or a bare `[Title](#ch-slug)` in an index table — to that title.
+So translate link text freely; it is corrected on the way in. Use the mapped title in the page's
+own `#` heading too. To change a title, edit the map and run `pnpm site:translate --normalise`.
 
-## Reference page
+Keep the `Chapter ?? — ` prefix in English: `build-site.ts` strips exactly that string.
 
-`i18n/bn/book/part-8/ship-observability-index.md` is the first page translated, and it sets the house
-style. When in doubt, match it.
+## Standard headings and labels
+
+The same sections recur in every chapter. Always translate them this way:
+
+| English | Bangla |
+| ------- | ------ |
+| `## 💡 The Core Idea` | `## 💡 মূল ধারণা` |
+| `## How It Works` | `## কীভাবে কাজ করে` |
+| `## When to Use It` | `## কখন ব্যবহার করবেন` |
+| `## Common Mistakes` | `## সাধারণ ভুল` |
+| `## 🔑 Key Takeaways` | `## 🔑 মূল শিক্ষা` |
+| `## Interview Questions` | `## Interview-এর প্রশ্ন` |
+| `## What to Read Next` | `## এরপর কী পড়বেন` |
+| `## What Interviewers Probe For` | `## Interviewer-রা যা যাচাই করেন` |
+| `## Chapters` | `## অধ্যায়গুলো` |
+| `## Reading Order` | `## পড়ার ক্রম` |
+| `**In this chapter:**` | `**এই অধ্যায়ে:**` |
+
+Heading anchors such as `{#ch-closures}` stay exactly as they are. So do HTML comments such as
+`<!-- lint-allow-fence: … -->`.
+
+## Reference pages
+
+Two pages set the house style. When in doubt, match them:
+
+- `i18n/bn/book/part-1/closures.md` — a full chapter, with every standard section
+- `i18n/bn/book/part-8/ship-observability-index.md` — a section index

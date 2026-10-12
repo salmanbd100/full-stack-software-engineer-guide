@@ -8,7 +8,8 @@
  *   pnpm site:translate --list                   # the same, one route per line
  *   pnpm site:translate --only=part-1            # scope any command: front, back, part-N, a slug
  *   pnpm site:translate --source=<route>         # the English body, fences masked, for a translator
- *   pnpm site:translate --write=<route> --from=<file> --title="<Bangla title>"
+ *   pnpm site:translate --write=<route> --from=<file>
+ *   pnpm site:translate --normalise              # re-apply the title map to every cached page
  *   pnpm site:translate --check                  # exit 1 if a cached page is stale or invalid
  *
  * ## No API
@@ -19,6 +20,11 @@
  * its code fences masked (`--source`), and takes the Bangla back (`--write`): it puts the
  * fences back from the English, runs `validateTranslation`, and writes the file only if the
  * list of problems is empty. A translation that skipped `--write` is not in the cache.
+ *
+ * Titles come from `i18n/titles.bn.json`, one Bangla title per slug, never from the translator:
+ * `--write` sets the page's title from it and rewrites every `[Chapter ?? — …](#ch-…)` link
+ * to match, so the sidebar and every cross-reference agree on what a chapter is called.
+ * Change a title there and run `--normalise`.
  *
  * The cache key is `hashSource` of the English body. Edit a chapter and its Bangla page goes
  * stale; the site falls back to English for it until it is translated again.
@@ -31,6 +37,7 @@ import { routeFor, slugFor } from "./lib/site.ts";
 import {
   hashSource,
   maskFences,
+  normaliseXrefs,
   readTranslation,
   unmaskFences,
   validateTranslation,
@@ -40,6 +47,7 @@ import {
 const ROOT: string = process.cwd();
 const CACHE: string = join(ROOT, "i18n", "bn");
 const MODEL = "claude-opus-5-5 (Claude Code)";
+const TITLES: Record<string, string> = JSON.parse(readFileSync(join(ROOT, "i18n", "titles.bn.json"), "utf8"));
 
 const argv: string[] = process.argv.slice(2);
 const flag = (name: string): string | undefined =>
@@ -58,6 +66,10 @@ const pages: Page[] = loadBook(ROOT).map((doc: Doc) => {
   const route: string = routeFor(doc, slugFor(doc));
   return { doc, route, group: route.split("/")[2], file: join(CACHE, `${route.slice(1)}.md`) };
 });
+
+const EN_TITLES: Record<string, string> = Object.fromEntries(
+  pages.map((p: Page) => [slugFor(p.doc), p.doc.fm.title ?? ""]),
+);
 
 const inScope = (p: Page): boolean =>
   only.length === 0 || only.some((o: string) => o === p.group || o === slugFor(p.doc) || o === p.route);
@@ -90,15 +102,19 @@ const write: string | undefined = flag("write");
 if (write) {
   const page: Page = find(write);
   const from: string | undefined = flag("from");
-  const title: string | undefined = flag("title");
-  if (!from || !title) {
-    console.error("❌ --write needs --from=<file> and --title=<Bangla title>");
+  const title: string | undefined = TITLES[slugFor(page.doc)];
+  if (!from) {
+    console.error("❌ --write needs --from=<file>");
+    process.exit(2);
+  }
+  if (!title) {
+    console.error(`❌ ${slugFor(page.doc)} has no title in i18n/titles.bn.json — add one first`);
     process.exit(2);
   }
 
   // A translator may hand back the title line `--source` put on top; it is not the body.
   const raw: string = readFileSync(from, "utf8").replace(/^<!-- title:.*-->\n/, "");
-  const body: string = unmaskFences(raw, page.doc.body);
+  const body: string = normaliseXrefs(unmaskFences(raw, page.doc.body), page.doc.body, TITLES, EN_TITLES);
   const problems: string[] = validateTranslation(page.doc.body, body);
   if (problems.length > 0) {
     console.error(`❌ ${page.route} — not written, ${problems.length} problem(s):`);
@@ -111,6 +127,25 @@ if (write) {
   writeFileSync(page.file, writeTranslation(meta, body.endsWith("\n") ? body : `${body}\n`), "utf8");
   console.log(`✅ ${page.route} → ${page.file.slice(ROOT.length + 1)}`);
   process.exit(0);
+}
+
+// ---------------------------------------------------------------------------
+// --normalise: the title map, re-applied to the cache
+// ---------------------------------------------------------------------------
+
+if (argv.includes("--normalise")) {
+  let changed = 0;
+  for (const page of pages.filter((p: Page) => inScope(p) && existsSync(p.file))) {
+    const cached = readTranslation(readFileSync(page.file, "utf8"));
+    if (!cached) continue;
+    const title: string = TITLES[slugFor(page.doc)] ?? cached.meta.title;
+    const body: string = normaliseXrefs(cached.body, page.doc.body, TITLES, EN_TITLES);
+    if (title === cached.meta.title && body === cached.body) continue;
+    // The source hash is left as it was: a stale page must stay stale after this.
+    writeFileSync(page.file, writeTranslation({ ...cached.meta, title }, body), "utf8");
+    changed++;
+  }
+  console.log(`🌐 site:translate --normalise — ${changed} page(s) rewritten`);
 }
 
 // ---------------------------------------------------------------------------

@@ -192,6 +192,56 @@ export function validateTranslation(en: string, bn: string): string[] {
   return problems;
 }
 
+const XREF = /\[([^\]]*)\]\(#ch-([a-z0-9-]+)\)/g;
+
+/** Every cross-reference's text, grouped by slug, in reading order. */
+function xrefTexts(markdown: string): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const m of split(markdown).masked.matchAll(XREF)) out.set(m[2], [...(out.get(m[2]) ?? []), m[1]]);
+  return out;
+}
+
+const PART_PREFIX = /^(Part [IVX]+|Appendix|পরিশিষ্ট) — /;
+
+/**
+ * Give every cross-reference that names its target the target's Bangla title, from
+ * `i18n/titles.bn.json`. The text of a link is written by whoever translates the page that
+ * *holds* it, and the title by whoever translates the page it *points at*, so left to the
+ * translators the two drift apart.
+ *
+ * Each Bangla link is paired with the English link to the same slug at the same position.
+ * Where the English text is the target's title, with or without a `Chapter ?? — ` or
+ * `Part N — ` prefix, the Bangla text becomes the mapped title in the same shape. Any other
+ * link text — a link on a phrase in a sentence — is the translator's and is left alone.
+ */
+export function normaliseXrefs(
+  bn: string,
+  en: string,
+  titles: Readonly<Record<string, string>>,
+  enTitles: Readonly<Record<string, string>>,
+): string {
+  const source: Map<string, string[]> = xrefTexts(en);
+  const seen = new Map<string, number>();
+
+  return bn.replace(XREF, (link: string, _text: string, slug: string) => {
+    const k: number = seen.get(slug) ?? 0;
+    seen.set(slug, k + 1);
+    const english: string | undefined = source.get(slug)?.[k];
+    const bnTitle: string | undefined = titles[slug];
+    const enTitle: string | undefined = enTitles[slug];
+    if (english === undefined || !bnTitle || !enTitle) return link;
+
+    const numbered = /^Chapter (\?\?|\d+) — (.*)$/.exec(english);
+    const named: string = numbered ? numbered[2] : english;
+    let text: string;
+    if (named === enTitle) text = bnTitle;
+    else if (named === enTitle.replace(PART_PREFIX, "")) text = bnTitle.replace(PART_PREFIX, "");
+    else return link;
+
+    return `[${numbered ? `Chapter ${numbered[1]} — ` : ""}${text}](#ch-${slug})`;
+  });
+}
+
 // ---------------------------------------------------------------------------
 // The cache file
 // ---------------------------------------------------------------------------

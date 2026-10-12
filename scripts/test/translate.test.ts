@@ -12,6 +12,7 @@ import assert from "node:assert/strict";
 import {
   hashSource,
   maskFences,
+  normaliseXrefs,
   readTranslation,
   unmaskFences,
   validateTranslation,
@@ -147,5 +148,25 @@ describe("masking fences for a translator", () => {
   test("a dropped placeholder is not repaired, so the validator still catches it", () => {
     const bn: string = unmaskFences(maskFences(BN).replace("<!-- fence 1 -->", ""), EN);
     assert.ok(validateTranslation(EN, bn).some((p: string) => p.startsWith("fenced blocks:")));
+  });
+});
+
+describe("normaliseXrefs", () => {
+  const titles = { scope: "Scope ও Closure", "part-x": "Part I — ভিত্তি" };
+  const enTitles = { scope: "Scope and Closures", "part-x": "Part I — Foundations" };
+
+  test("a titled cross-reference takes the mapped title, whatever the translator wrote", () => {
+    const en = "See [Chapter ?? — Scope and Closures](#ch-scope) and [Foundations](#ch-part-x).";
+    const bn = "দেখুন [অধ্যায় ?? — স্কোপ](#ch-scope) আর [ভিত্তিসমূহ](#ch-part-x)।";
+    assert.equal(
+      normaliseXrefs(bn, en, titles, enTitles),
+      "দেখুন [Chapter ?? — Scope ও Closure](#ch-scope) আর [ভিত্তি](#ch-part-x)।",
+    );
+  });
+
+  test("a link on a phrase keeps the translator's words", () => {
+    const en = "Closures [trap loop variables](#ch-scope).";
+    const bn = "Closure [loop variable আটকে রাখে](#ch-scope)।";
+    assert.equal(normaliseXrefs(bn, en, titles, enTitles), bn);
   });
 });
