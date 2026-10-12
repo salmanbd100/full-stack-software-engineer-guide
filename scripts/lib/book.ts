@@ -31,6 +31,10 @@ export const EXCLUDED_DIRS: readonly string[] = [
   // Binary assets and their provenance notes (#79). `assets/fonts/README.md` is a
   // licence and version record, not a chapter, and it has no front matter to give it.
   "assets",
+  // The Bangla web edition's translation cache (#124, decision #25). Every file there is a
+  // translated chapter with the same front matter as its English source, so walking it
+  // would load each chapter twice and count its lines twice against its part's budget.
+  "i18n",
 ];
 
 /** Root-level files that are about the book rather than in it. */

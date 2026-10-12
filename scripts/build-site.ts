@@ -25,36 +25,15 @@ import {
   loadBook,
   matterFor,
   PART_NAMES,
-  PART_OPENERS,
   volumeOf,
   type Doc,
 } from "./lib/book.ts";
+import { isIndex, routeFor, slugFor } from "./lib/site.ts";
 import { STORE_URL } from "./lib/store.ts";
 
 const ROOT: string = process.cwd();
 const SITE: string = join(ROOT, "site");
 const PAGES: string = join(SITE, "book");
-
-/** A part opener or section README: navigation rather than a chapter. */
-function isIndex(doc: Doc): boolean {
-  return doc.isReadme || PART_OPENERS[doc.part] === doc.rel;
-}
-
-// ---------------------------------------------------------------------------
-// Routes
-// ---------------------------------------------------------------------------
-
-/** `/book/part-4/core-web-vitals` — stable, and independent of where the file sits. */
-function routeFor(doc: Doc, slug: string): string {
-  const matter = matterFor(doc);
-  if (doc.part === 0) return `/book/${matter === "front" ? "front" : "back"}/${slug}`;
-  return `/book/part-${doc.part}/${slug}`;
-}
-
-/** Fallback for a file with no front-matter slug, which lint:docs should never allow. */
-function slugFor(doc: Doc): string {
-  return doc.fm.slug ?? doc.rel.replace(/\.md$/, "").replace(/[^A-Za-z0-9]+/g, "-").toLowerCase();
-}
 
 // ---------------------------------------------------------------------------
 // Page bodies

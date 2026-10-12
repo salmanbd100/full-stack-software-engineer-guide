@@ -88,6 +88,7 @@ before(() => {
   // Must never be walked.
   chapter("Archive/old/01-terraform.md", ["title: Terraform", "part: 8", "slug: terraform"]);
   chapter("site/book/copy.md", ["title: Copy", "part: 1", "slug: copy"]);
+  chapter("i18n/bn/book/part-1/closures.md", ["title: Closures", "part: 1", "chapter: 7", "slug: closures"]);
   writeFileSync(join(fixture, "CLAUDE.md"), "# agent instructions\n", "utf8");
   writeFileSync(join(fixture, "README.md"), "# repo landing page\n", "utf8");
 });
@@ -101,7 +102,7 @@ after(() => {
 describe("findMarkdown", () => {
   test("skips every excluded directory", () => {
     const found: string[] = findMarkdown(fixture);
-    for (const dir of ["Archive", "site"]) {
+    for (const dir of ["Archive", "site", "i18n"]) {
       assert.ok(EXCLUDED_DIRS.includes(dir), `${dir} should be on the exclusion list`);
       assert.equal(
         found.some((f: string) => f.includes(`/${dir}/`)),
@@ -122,6 +123,12 @@ describe("findMarkdown", () => {
     const found: string[] = findMarkdown(fixture).map((f: string) => f.replace(fixture + "/", ""));
     assert.ok(found.includes("Frontend/JavaScript/README.md"));
     assert.equal(found.includes("README.md"), false);
+  });
+
+  test("a translated chapter under i18n/ is not loaded as a second copy", () => {
+    const closures: Doc[] = loadBook(fixture).filter((d: Doc) => d.fm.slug === "closures");
+    assert.equal(closures.length, 1);
+    assert.equal(closures[0].rel, "Frontend/JavaScript/01-closures.md");
   });
 });
 
