@@ -1,6 +1,6 @@
 ---
 name: write-topic-docs
-description: Run this skill BEFORE writing or editing ANY document in this repo — chapters, READMEs, or any markdown under Frontend/, Backend/, DSA/, SystemDesign/, DevOps/, OOP/, Behavioral/, or Communication/. This repo is a book manuscript; the Book Chapter Standard in this skill is mandatory. Use when the user asks to "write docs", "add a topic", "add a chapter", "edit a file", "create a new pattern doc", "document X", or "add a markdown for Y".
+description: Run this skill BEFORE writing, editing, renaming, archiving or deleting ANY document in this repo — chapters, READMEs, or any markdown under Frontend/, Backend/, AI/, DSA/, SystemDesign/, ShipAndOperate/, Behavioral/, or Communication/. Every such change must also update the Bangla web edition in i18n/bn/ in natural Bangla, in the same session. This repo is a book manuscript; the Book Chapter Standard in this skill is mandatory. Use when the user asks to "write docs", "add a topic", "add a chapter", "edit a file", "create a new pattern doc", "document X", or "add a markdown for Y".
 ---
 
 # Write Topic Documentation
@@ -677,3 +677,40 @@ not patching around it.
 4. **Strip retired emoji** and heading decoration
 5. **TypeScript only** — convert any JS/Python examples
 6. **Update the part-opener README** if the chapter's title or order changed
+
+## Keep the Bangla Edition in Step (MANDATORY)
+
+The web edition has a Bangla copy of every page in `i18n/bn/`, keyed by a hash of the English. Any
+change to a book page makes its Bangla stale, and the site then shows the English with a notice.
+**Bring the Bangla up to date in the same session, before you call the work done.** The owner
+should never have to ask for it.
+
+The translating is done by you, in the session. There is no API call and no script that translates
+(decision #25). The rules are in `i18n/TRANSLATION-BRIEF.md`. Read it, and the reference page
+`i18n/bn/book/part-1/closures.md`, before translating. The standard is **natural Bangla that reads as
+if it was written in Bangla**, not translated English. The brief's "Write Bangla, not translated
+English" table lists the habits to avoid.
+
+| You did this to an English page | Then do this |
+| ------------------------------- | ------------ |
+| **Edited it** | `pnpm site:translate --list` names the stale route. Translate the whole page again from `--source`, then `--write` |
+| **Added it** | Add its Bangla title to `i18n/titles.bn.json` under its slug first, or `--write` refuses. Then translate it |
+| **Renamed its title** | Update its entry in `i18n/titles.bn.json`, then `pnpm site:translate --normalise` so every cross-reference follows |
+| **Changed its slug** | Move its key in `i18n/titles.bn.json`, then translate it under the new route. `git rm` the page at the old route |
+| **Archived or deleted it** | `git rm` its page under `i18n/bn/` and remove its key from `i18n/titles.bn.json`. Nothing else reports the leftover. Git history keeps the old translation |
+
+**Per stale page:**
+
+```bash
+pnpm -s site:translate --source=/book/<route> > en.md    # in the scratchpad, never the repo
+# write bn.md from en.md, to the brief
+pnpm site:translate --write=/book/<route> --from=bn.md
+```
+
+Always translate the whole page from the English, even after a one-line edit. Patching the old
+Bangla keeps its sentence shapes, and `--write` takes only a whole page anyway.
+
+**Done means** `pnpm site:translate --check` passes (`0 stale, 0 invalid`). If the session cannot
+finish the Bangla, say which routes are still stale. Do not report the edit as done without saying
+so. A stale page is not broken, because the site falls back to English, but the owner expects the
+Bangla to keep up.
