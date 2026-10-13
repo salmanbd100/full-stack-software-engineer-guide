@@ -1,0 +1,883 @@
+---
+sourceHash: "edecf578bbcfe96e35835ea6e03e78012b435fb85b30ff33b34a8487ba41753a"
+title: "Interview প্রশ্নের সূচি"
+translatedAt: "2026-10-13T03:17:14.978Z"
+model: "claude-opus-5-5 (Claude Code)"
+---
+
+# Interview প্রশ্নের সূচি {#ch-interview-question-index}
+
+> বিশ মিনিটে একটি part-এর ওপর নিজেকে যাচাই করুন, আর বের করুন কোন অধ্যায়গুলো আসলেই আবার পড়তে হবে।
+
+**এই সূচিতে:** কীভাবে ব্যবহার করবেন · বইয়ের প্রতিটি প্রশ্ন · part আর অধ্যায় অনুযায়ী সাজানো · প্রতিটি অধ্যায়ের link
+
+নিচের প্রতিটি প্রশ্ন নেওয়া হয়েছে অধ্যায়ের শেষের **Interview-এর প্রশ্ন** block থেকে। মোট **150টি অধ্যায়ে 647টি
+প্রশ্ন**। উত্তরগুলো এখানে আবার দেওয়া হয়নি — সেগুলো অধ্যায়ে আছে। প্রতিটি heading-এর link সেজন্যই।
+
+## কীভাবে ব্যবহার করবেন
+
+আগে জোরে জোরে উত্তর দিন, তারপর মিলিয়ে দেখুন। এই দুটো অর্ধেক। প্রথমটা বাদ দিলেই পাঠক নিজেকে তৈরি মনে করেন, আর
+তারপর interview-এর ঘরে গিয়ে আটকে যান।
+
+1. **জোরে উত্তর দিন, নব্বই সেকেন্ডের মধ্যে।** আপনি যা চিনতে পারেন আর যা বলতে পারেন, তার ফাঁকটাই interview loop
+   মাপে। চুপচাপ পড়লে সেই ফাঁক লুকিয়ে থাকে।
+2. **দাগ দিন: সাবলীল, নড়বড়ে, নাকি ফাঁকা।** তিনটি ভাগই যথেষ্ট। এর চেয়ে সূক্ষ্ম মাপকাঠি মানে কাজ পিছিয়ে দেওয়া।
+3. **শুধু নড়বড়ে আর ফাঁকাগুলোর জন্য অধ্যায় খুলুন।** যা আগেই জানেন, তা আবার পড়া এক সপ্তাহ নষ্ট করার সবচেয়ে আরামদায়ক
+   উপায়।
+4. **তিন দিন পরে একই part-এ ফিরে আসুন।** প্রথম বাহাত্তর ঘণ্টায় মনে রাখা সবচেয়ে দ্রুত কমে। তাই আসল revision হয়
+   দ্বিতীয় দফায়।
+
+যে part-এর আশি শতাংশ প্রশ্নের উত্তর আপনি জোরে দিতে পারেন, সেটার revision থামাতে পারেন। যেটায় অর্ধেকের কম পান,
+সেটা ঠিকমতো পড়তে হবে, আবার চোখ বুলিয়ে নয়।
+
+> ⚠️ **এগুলো সেই প্রশ্ন নয়, যা আপনাকে জিজ্ঞেস করা হবে।** এগুলো সেই প্রশ্ন, যার উত্তর বইটি দেয় — দুটো আলাদা সেট।
+> তালিকাটা মুখস্থ করা এর ভুল ব্যবহার। প্রতিটি প্রশ্ন একটি ব্যাখ্যা নতুন করে গড়ে তোলার সংকেত। Interview-এ প্রশ্নটা
+> আসবে অন্য শব্দে মোড়া হয়ে।
+
+## Part I — ভিত্তি
+
+_15টি অধ্যায়ে 53টি প্রশ্ন।_
+
+- **[Data Type, Variable ও Built-in](#ch-data-types-variables)**
+  - একটি variable দিয়ে property বদলালে আরেকটি variable-এ কেন প্রভাব পড়ে?
+  - `const arr = [1, 2]; arr.push(3);` — এটা কেন বৈধ?
+  - `map` আর `forEach`-এর পার্থক্য কী?
+  - Object-এর একটি array থেকে `id` ধরে duplicate কীভাবে সরাবেন?
+  - কখন `reduce` ভুল পছন্দ?
+- **[Scope ও Closure](#ch-closures)**
+  - Scope chain ব্যাখ্যা করুন।
+  - Temporal dead zone কী, আর এটা কেন কাজের?
+  - `setTimeout` সহ একটি `var` loop কেন শেষ value-টি তিনবার print করে?
+  - Closure কীভাবে memory leak ঘটায়?
+  - কখন closure-এর বদলে একটি `#private` class field ব্যবহার করবেন?
+- **[`this` Keyword](#ch-this-keyword)**
+  - `const fn = obj.method; fn();` — `this` কী, আর কেন?
+  - `call`, `apply` আর `bind`-এর পার্থক্য কী?
+  - একটি event handler-এর জন্য কখন class-field arrow-এর বদলে `bind` বেছে নেবেন?
+- **[Prototype ও Inheritance](#ch-prototypes-inheritance)**
+  - `prototype` আর `__proto__`-এর পার্থক্য কী?
+  - ES2015 class কি আসল class?
+  - কখন একটি `class`-এর চেয়ে `Object.create` পছন্দ করবেন?
+- **[Promise, Async/Await ও Error](#ch-promises-async)**
+  - `Promise.all` আর `Promise.allSettled`-এর পার্থক্য কী?
+  - কখন error throw না করে return করবেন?
+  - `catch (e) { console.error(e); }` সাধারণত কেন একটি bug?
+  - কখন `Promise.all` ব্যবহার না করে ইচ্ছা করে loop-এর ভেতরে await করবেন?
+- **[Event Loop](#ch-event-loop)**
+  - এটা কী log করে — `setTimeout(() => log('A'), 0)`, তারপর `Promise.resolve().then(() => log('B'))`?
+  - কিছুই synchronously block না করলেও একটি page কীভাবে freeze হতে পারে?
+  - কখন `setTimeout` দিয়ে কাজ ভাগ না করে একটি Web Worker ব্যবহার করবেন?
+- **[TypeScript-এর Basic Type, Literal ও Enum](#ch-basic-types)**
+  - `any` আর `unknown`-এর পার্থক্য কী?
+  - TypeScript কোনো error ছাড়াই compile হয়েছে। Runtime-এ তবুও কী ভুল হতে পারে?
+  - নতুন TypeScript-এ কি `enum` ব্যবহার করা উচিত?
+  - যে codebase-এ enum আছে, সেখানে কখন সেগুলো রেখে দেবেন?
+- **[Interface ও Type Alias](#ch-interfaces-types)**
+  - কখন `type`-এর বদলে `interface` ব্যবহার করবেন?
+  - Discriminated union কী, আর optional field-এর চেয়ে এটা কেন ভালো?
+  - TypeScript এই বাড়তি property-টি কেন ধরল না?
+- **[TypeScript Generics](#ch-generics)**
+  - একটি generic-কে কীভাবে constrain করবেন, আর কেন সেটা দরকার হতে পারে?
+  - কখন generic ভুল হাতিয়ার?
+  - `(obj: object, key: string): unknown`-এর তুলনায় `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` বাড়তি কী দেয়?
+- **[TypeScript Type Guard](#ch-type-guards)**
+  - Type predicate কী, আর এর প্রধান ঝুঁকি কী?
+  - Exhaustiveness checking কীভাবে কাজ করে?
+  - Narrowing কেন একটি callback-এর ভেতরে টিকে থাকে না?
+- **[TypeScript-এর Advanced ও Utility Type](#ch-advanced-types)**
+  - দিক ছাড়া `Pick` আর `Omit`-এর পার্থক্য কী?
+  - `infer` কী করে?
+  - Conditional type-এ distribution কী, আর কখন এটা সমস্যা করে?
+  - কখন একটি update type-এর জন্য `Partial` ব্যবহার করবেন না?
+- **[বড় পরিসরে TypeScript](#ch-typescript-at-scale)**
+  - 200,000 line-এর একটি codebase-কে কীভাবে `strict`-এ আনবেন?
+  - একটি type annotation যা করে না, `satisfies` তা কী করে?
+  - কখন type বেশি ব্যয়বহুল হয়ে যায়?
+- **[OOP ও Inheritance-এর বদলে Composition](#ch-composition-over-inheritance)**
+  - একটি TypeScript class-এ `private` আর `#`-এর পার্থক্য কী?
+  - "Inheritance-এর চেয়ে composition বেছে নিন" — কেন?
+  - এমন একটি ক্ষেত্র দেখান, যেখানে inheritance-ই সঠিক সিদ্ধান্ত।
+  - TypeScript structurally typed। এতে কী বদলায়?
+- **[SOLID নীতি](#ch-solid-principles)**
+  - একটি বাস্তব উদাহরণ দিয়ে SRP ব্যাখ্যা করুন।
+  - আপনি আসলে দেখেছেন এমন একটি Liskov লঙ্ঘনের উদাহরণ দিন।
+  - কখন ইচ্ছা করে SOLID উপেক্ষা করবেন?
+- **[TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript)**
+  - Payment provider-এর ওপর এই `switch`-টি বড় হতেই থাকছে। কী করবেন?
+  - Decorator, proxy আর adapter-এর পার্থক্য কী? সবগুলোই তো কিছু একটা wrap করে।
+  - কখন একটি pattern ভুল উত্তর?
+
+## Part II — Browser Platform
+
+_15টি অধ্যায়ে 68টি প্রশ্ন।_
+
+- **[Semantic HTML](#ch-semantic-html)**
+  - কখন `<section>`, কখন `<article>`, আর কখন `<div>` ব্যবহার করবেন?
+  - Heading-এর ক্রম কেন গুরুত্বপূর্ণ, আর level বাদ দিলে কী ভাঙে?
+  - একজন সহকর্মী প্রতিটি form field একটি `<div>`-এ রাখেন, ওপরে ভাসমান text দিয়ে। সমস্যা কী?
+  - কখন একটি semantic element ব্যবহার করবেন না?
+- **[Advanced CSS](#ch-advanced-css)**
+  - Design token-এর জন্য `hsl`-এর চেয়ে `oklch` কেন ভালো?
+  - `:has()` আপনাকে কী মুছে ফেলতে দিয়েছে?
+  - একটি custom property আর একটি Sass variable-এর পার্থক্য কী?
+  - কখন custom property ভুল হাতিয়ার?
+- **[Container Query ও Cascade Layer](#ch-container-queries-and-layers)**
+  - একটি card component sidebar-এ ভুল দেখায়, কিন্তু main column-এ ঠিক। কীভাবে ঠিক করবেন?
+  - Cascade layer কোন সমস্যার সমাধান করে, যা BEM করেনি?
+  - Specificity আর `!important`-এর তুলনায় cascade layer কোথায় বসে?
+  - কখন container query ভুল হাতিয়ার?
+- **[Animation ও View Transition](#ch-animation-and-view-transitions)**
+  - একজন engineer জানালেন, mid-range Android-এ একটি slide-in panel আটকে আটকে চলে। কোথা থেকে শুরু করবেন?
+  - View Transitions API আসলে আপনার জন্য কী করে?
+  - Interface-কে বিভ্রান্তিকর না করে `prefers-reduced-motion` কীভাবে সামলাবেন?
+  - কখন platform-এর বদলে একটি JavaScript animation library ব্যবহার করবেন?
+- **[Web Storage ও IndexedDB](#ch-storage-apis)**
+  - `localStorage` আর `sessionStorage`-এর পার্থক্য কী?
+  - একজন user একটি tab-এ log out করলেন। অন্য খোলা tab-গুলো কীভাবে জানবে?
+  - কখন `localStorage`-এর বদলে IndexedDB বেছে নেবেন?
+  - IndexedDB-র schema migration কীভাবে কাজ করে?
+  - Quota-য় পৌঁছে গেলে কী হয়?
+- **[Cookie ও SameSite](#ch-cookies-same-site)**
+  - `SameSite=Strict`, `Lax` আর `None`-এর পার্থক্য ধাপে ধাপে বুঝিয়ে বলুন।
+  - একটি auth cookie-র জন্য `Secure`-এর চেয়ে `HttpOnly` কেন বেশি গুরুত্বপূর্ণ?
+  - `SameSite` কীভাবে CSRF ঠেকায়?
+  - JWT কেন `localStorage`-এ রাখবেন না?
+  - `app.example.com` আর `api.example.com` জুড়ে auth কীভাবে করবেন?
+- **[Observer API](#ch-observer-apis)**
+  - একই কাজ করা একটি scroll listener-এর চেয়ে `IntersectionObserver` কেন দ্রুত?
+  - কখন container query-র বদলে একটি `ResizeObserver` ব্যবহার করবেন?
+  - একটি observer disconnect করতে ভুলে গেলে কী ভাঙে?
+  - Core Web Vitals সংগ্রহের সঠিক উপায় কেন `PerformanceObserver`?
+- **[Web Worker ও Main Thread](#ch-web-workers)**
+  - 20 MB-র একটি CSV upload করলে একটি table আধা সেকেন্ডের জন্য freeze হয়ে যায়। সমাধানটা ধাপে ধাপে বলুন।
+  - Worker boundary পার হয়ে কী যেতে পারে আর কী পারে না?
+  - কখন একটি ধীর interaction-এর জন্য worker ভুল উত্তর?
+  - কাজ worker-এ সরানোর সঙ্গে INP-এর সম্পর্ক কী?
+- **[Service Worker, Caching ও Offline](#ch-service-workers)**
+  - এক ঘণ্টা আগে আপনি একটি fix ship করেছেন, তবু user-রা এখনো bug-টি দেখছেন। কী হয়েছে?
+  - `skipWaiting()` আর `clients.claim()`-এর পার্থক্য কী?
+  - একটি dashboard-এর প্রতিটি request-এর জন্য কোন strategy বেছে নেবেন, ধাপে ধাপে বলুন।
+  - কখন service worker একেবারেই ব্যবহার করবেন না?
+- **[Internationalisation ও Intl API](#ch-i18n-fundamentals)**
+  - অনূদিত টুকরো জুড়ে কেন একটি বাক্য তৈরি করা যায় না?
+  - `count === 1 ? 'item' : 'items'` কেন ভুল?
+  - কয়েকটি দেশের user-দের কাছে একটি দাম কীভাবে দেখাবেন?
+  - একটি চালু app-এ right-to-left support কীভাবে যোগ করবেন?
+  - কখন একটি i18n library যোগ করবেন না?
+- **[Accessibility কেন, আর আইন কী বলে](#ch-accessibility-and-the-law)**
+  - আপনার কোম্পানি পুরো ইউরোপে যে product বিক্রি করে, তাতে কোন accessibility নিয়ম খাটে?
+  - A বা AAA নয়, AA কেন?
+  - WCAG 2.2 কী বদলেছে?
+  - একজন designer-এর palette-এ secondary text-এর জন্য `#999` ব্যবহার করা হয়েছে। আপনি কী বলবেন?
+  - কখন একটি accessibility সমস্যা সঙ্গে সঙ্গে ঠিক করবেন না?
+- **[Accessibility Tree](#ch-accessibility-tree)**
+  - Accessibility tree কী, আর এটা একজন specialist-এর নয়, আপনার কাছে কেন গুরুত্বপূর্ণ?
+  - একটি accessible name কীভাবে হিসাব করা হয়?
+  - `hidden`, `aria-hidden` আর `inert`-এর পার্থক্য কী?
+  - একটি `<section>` landmark হিসেবে দেখা যাচ্ছে না। কেন?
+  - কখন screen reader থেকে কিছু লুকানো ঠিক?
+- **[ARIA, আর কখন এটা ব্যবহার করবেন না](#ch-aria)**
+  - ARIA-র প্রথম নিয়ম কী, আর এটা কেন প্রথম?
+  - একটি component `aria-expanded` set করে, তবু menu ভুল announce করে। কী কী check করবেন?
+  - Background-এ একটি save সফল হয়েছে, এটা কীভাবে announce করবেন?
+  - কখন `disabled`-এর চেয়ে `aria-disabled` ভালো?
+  - আপনি কি একটি custom select বানাবেন, আর তাতে কী খরচ হবে?
+- **[Keyboard ও Focus Management](#ch-keyboard-and-focus)**
+  - Focus outline সরিয়ে দেওয়ায় সমস্যা কী, আর তার বদলে কী করবেন?
+  - একটি dialog খোলে, আর Tab পেছনের page-এর ভেতর দিয়ে চলতেই থাকে। কী হচ্ছে?
+  - User একটি table থেকে একটি row delete করার পর focus কোথায় যাওয়া উচিত?
+  - একটি single-page application-এ keyboard navigation কীভাবে আলাদা?
+  - কখন Tab-এর বদলে arrow key দিয়ে navigate করা উচিত?
+- **[Accessible Form ও Error Message](#ch-accessible-forms)**
+  - একটি form label-এর বদলে placeholder ব্যবহার করে। Designer-কে কী বলবেন?
+  - একটি validation error accessible-ভাবে কীভাবে জানাবেন?
+  - Validation কখন চলা উচিত?
+  - `autocomplete` attribute কেন সুবিধার বিষয় নয়, বরং accessibility-র বিষয়?
+  - WCAG 2.2 login form নিয়ে কী বদলেছে?
+
+## Part III — আধুনিক Frontend Stack
+
+_34টি অধ্যায়ে 148টি প্রশ্ন।_
+
+- **[React-এর Mental Model](#ch-react-mental-model)**
+  - Props বদলায়নি, তবু এই component কেন re-render হয়?
+  - Array index-কে key হিসেবে ব্যবহার করলে আসলে কী ভুল হয়?
+  - Selected record বদলালে একটি form কীভাবে reset করবেন — আর effect দিয়ে কেন নয়?
+  - কখন `memo` ব্যবহার করবেন না?
+- **[Hook-এর গভীরে](#ch-react-hooks-in-depth)**
+  - Hook কেন শর্তসাপেক্ষে call করা যায় না?
+  - এই `setInterval` counter-কে 1 পর্যন্ত বাড়িয়ে থেমে যায়। সমস্যা কী?
+  - যে value বদলায়, তার জন্য কখন `useState`-এর বদলে `useRef` বেছে নেবেন?
+  - কখন একটি custom hook আলাদা করা ভুল সিদ্ধান্ত?
+- **[useEffect, আর কখন এটা ব্যবহার করবেন না](#ch-when-not-to-use-effect)**
+  - একটি logic effect-এ যাবে নাকি event handler-এ, কীভাবে ঠিক করবেন?
+  - একটি filtered list state-এ রেখে effect-এ update করায় সমস্যা কী?
+  - Development-এ আপনার effect দুবার চলে। এটা কি bug?
+  - কখন `useEffect`-এ fetch করা এখনো সঠিক উত্তর?
+- **[Component Composition Pattern](#ch-react-composition-patterns)**
+  - একজন designer আপনার Card-এর পঞ্চম একটি variant চাইছেন। কখন আরেকটি prop ভুল উত্তর?
+  - Compound component নাকি props object — কীভাবে বেছে নেবেন?
+  - Render props কি অচল হয়ে গেছে?
+  - Memoise না করা context value কেন সমস্যা, আর কখন সেটা আর সমস্যা থাকে না?
+- **[Server Component ও Client Component](#ch-server-components-vs-client-components)**
+  - Server Component থেকে Client Component-এ prop হিসেবে একটি function কেন পাঠানো যায় না?
+  - একজন সহকর্মী বলছেন, Client Component Server Component render করতে পারে না। তিনি কি ঠিক?
+  - `'use client'` boundary কোথায় বসাবেন, আর ভুল জায়গায় বসালে কী হয়?
+  - কখন Server Component ভুল পছন্দ?
+- **[Suspense, Streaming ও Error Boundary](#ch-suspense-and-streaming)**
+  - একটি Suspense boundary যোগ করলে response-এ আসলে কী হয়?
+  - একটি error boundary কী ধরে, আর কী ধরতে পারে না?
+  - এক ডজন স্বাধীন widget-ওয়ালা একটি dashboard-এ boundary কীভাবে বসাবেন?
+  - একটি search filter-এর জন্য Suspense নাকি transition?
+  - কখন error boundary ভুল হাতিয়ার?
+- **[Action ও Form](#ch-react-actions-and-forms)**
+  - `onSubmit` আর `fetch` যা দিত না, React 19 আপনাকে তা কী দেয়?
+  - একটি design system-এর জন্য এমন submit button কীভাবে বানাবেন, যেটা জানে কখন submit হচ্ছে?
+  - একজন user যাতে ইচ্ছামতো argument দিয়ে সরাসরি আপনার Server Function call করতে না পারেন, কী সেটা ঠেকায়?
+  - কখন optimistic update ভুল পছন্দ?
+- **[Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler)**
+  - React Compiler কী করে, আর এর কারণে আপনি কী লেখা বন্ধ করেন?
+  - Compiler চালু করলেন, তবু একটি component বারবার re-render হচ্ছে। কোথায় খুঁজবেন?
+  - `useTransition` নাকি `useDeferredValue`?
+  - Transition যোগ করার পরেও list ধীর লাগছে। এখন কী?
+  - একটি page interactive হতে চার সেকেন্ড নেয়। কোথা থেকে শুরু করবেন?
+  - কখন এখনো হাতে `useMemo` লিখবেন?
+- **[বড় পরিসরে React ও TypeScript](#ch-react-typescript-at-scale)**
+  - Async state-কে `loading`, `data` আর `error` field দিয়ে না রেখে কেন union হিসেবে model করবেন?
+  - `useReducer`-এর action-গুলোকে discriminated union হিসেবে type করলে কী লাভ?
+  - একটি context-এর default কেন খালি object cast না করে `undefined` রাখবেন?
+  - Server Component থেকে Client Component-এ function পাঠানো কি TypeScript ঠেকায়?
+- **[App Router-এর Mental Model](#ch-app-router-mental-model)**
+  - `layout.tsx` আর `template.tsx`-এর পার্থক্য কী?
+  - এমন একটি modal কীভাবে বানাবেন, যেটা একই সঙ্গে share করার মতো একটি URL-ও?
+  - প্রতিটি navigation-এ একটি sidebar তার data আবার fetch করে। সমস্যা কী?
+  - কখন route group ব্যবহার করবেন না?
+- **[Data Fetching ও Caching](#ch-nextjs-data-and-caching)**
+  - একটি `use cache` function-এর ভেতরে কেন `cookies()` পড়া যায় না?
+  - `revalidateTag` নাকি `updateTag`?
+  - একটি page stale। কোথায় stale, কীভাবে বের করবেন?
+  - কখন একটি read-এর জন্য Server Component-এর বদলে Route Handler সঠিক জায়গা?
+- **[Server Action](#ch-server-actions)**
+  - একজন user-কে সরাসরি একটি Server Action call করা থেকে কী ঠেকায়?
+  - আপনার actions file-এর প্রতিটি export-এ পৌঁছানো যায়। এর ফলাফল কী?
+  - একটি Server Action যে page-এ render হয়েছে, সেখানকার একটি value-কে close over করে। সেটাকে কি বিশ্বাস করা যায়?
+  - কখন তার বদলে একটি Route Handler লিখবেন?
+- **[Next.js-এ Rendering](#ch-rendering-in-nextjs)**
+  - Partial Prerendering কোন সমস্যার সমাধান করে?
+  - Suspense boundary কোথায় যাবে, কীভাবে ঠিক করবেন?
+  - যে route prerender হবে ভেবেছিলেন, build output-এ সেটা fully dynamic দেখাচ্ছে। কী খুঁজবেন?
+  - কখন একটি fully dynamic route-ই সঠিক উত্তর?
+- **[Middleware, Runtime ও Deployment](#ch-nextjs-middleware-and-the-edge)**
+  - Middleware-এ authentication check করা কেন যথেষ্ট নয়?
+  - কখন edge runtime ভুল পছন্দ?
+  - Prerendering না ছেড়ে দেশ অনুযায়ী আলাদা pricing page কীভাবে দেখাবেন?
+  - একটি load balancer-এর পেছনে incremental regeneration কেন গোলমাল করে?
+  - একই build তিনটি environment-এ কীভাবে deploy করবেন?
+- **[Auth Pattern](#ch-nextjs-auth-patterns)**
+  - একটি App Router application-এ authentication check কোথায় রাখবেন, আর middleware-এ কেন নয়?
+  - একটি নতুন internal dashboard-এর জন্য session নাকি JWT?
+  - `secure` বা `sameSite` নয়, `httpOnly`-ই কেন গুরুত্বপূর্ণ flag?
+  - একটি layout session check করে redirect করে। নিচের page কি সুরক্ষিত?
+- **[Route Handler ও BFF](#ch-route-handlers-and-the-bff)**
+  - একটি Next.js application-এর আদৌ কখন Route Handler expose করা উচিত?
+  - Backend-for-frontend কী, আর এর খরচ কী?
+  - একটি form submission-এর জন্য Route Handler নাকি Server Action?
+  - কখন backend-এর কাজের জন্য Next.js ভুল জায়গা?
+- **[Runes Model, Component ও Snippet](#ch-svelte-runes)**
+  - Rune কী, আর এর কেন dependency array লাগে না?
+  - একটি value হিসাব করার জন্য `$effect` কেন ভুল হাতিয়ার?
+  - Svelte 5-এর update model React-এর থেকে কীভাবে আলাদা, আর তাতে কি কিছু যায় আসে?
+  - এমন একটি table component কীভাবে বানাবেন, যেখানে caller প্রতিটি row নিজে render করতে পারে?
+  - কখন কিছু একটা component না হয়ে snippet হবে?
+- **[SvelteKit-এ Routing ও Loading](#ch-sveltekit-routing-and-loading)**
+  - Data loading `+page.ts`-এ হবে নাকি `+page.server.ts`-এ, কী দিয়ে ঠিক হয়?
+  - একটি SvelteKit load-এ streaming কীভাবে কাজ করে, আর tradeoff কী?
+  - একটি layout load session query করে বলে একটি page ধীর। কী দেখবেন?
+  - একটি mutation-এর পরে সবকিছু reload না করে একটি load কীভাবে আবার চালাবেন?
+- **[SvelteKit Form Action](#ch-sveltekit-form-actions)**
+  - Hydration-এর আগে একটি SvelteKit form কেমন আচরণ করে?
+  - একটি action-এ `fail` আর error throw করার পার্থক্য কী?
+  - `use:enhance`-কে একটি callback দিলে সেটা কী করে?
+  - কেউ যাতে সরাসরি আপনার form action-এ post করতে না পারে, কী সেটা ঠেকায়?
+- **[Rendering Spectrum ও Hydration-এর খরচ](#ch-rendering-spectrum)**
+  - Server কী করে, সেই হিসাবে SSR আর SSG-র পার্থক্য কী?
+  - একটি page 60-সেকেন্ডের revalidation দিয়ে ISR ব্যবহার করে। একজন user পাঁচ মিনিট পুরোনো data দেখছেন। এটা কি bug?
+  - Page 800 ms-এ paint হয়, কিন্তু আরও দুই সেকেন্ড click-এ সাড়া দেয় না। কী হচ্ছে?
+  - একটি hydration mismatch-এর খরচ কেন একটি console warning-এর চেয়ে বেশি?
+  - Resumability progressive hydration থেকে কীভাবে আলাদা?
+  - কখন island ভুল architecture, আর কখন CSR-ই সঠিক?
+- **[Streaming HTML](#ch-streaming-html)**
+  - একটি server-rendered page-এ আপনার TTFB 1.8 সেকেন্ড। কী করবেন?
+  - Streaming কি একটি page-কে খারাপ করতে পারে?
+  - মাঝপথে authentication fail করলে একটি streamed response কেন redirect করতে পারে না?
+  - Production-এ streaming আসলেই হচ্ছে, এটা কীভাবে প্রমাণ করবেন?
+- **[প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route)**
+  - একটি e-commerce site-এর জন্য কীভাবে rendering strategy বেছে নেবেন, ধাপে ধাপে বলুন।
+  - Client-side rendering কি SEO-র জন্য খারাপ?
+  - 2027-এ কখন ইচ্ছা করে client-side rendering বেছে নেবেন?
+  - একটি product page rank করে, কিন্তু এর social preview card ফাঁকা। সমস্যা কী?
+  - একটি page static হিসেবে declare করা, কিন্তু platform প্রতিটি request-এ সেটাকে dynamic বলছে। কোথায় খুঁজবেন?
+  - একটি streaming route-এর metadata একটি ধীর query-র ওপর নির্ভর করে। কী করবেন?
+- **[Edge বনাম Origin Rendering](#ch-edge-vs-origin-rendering)**
+  - কখন edge render করার ভুল জায়গা?
+  - একসময় cold start-ই ছিল edge runtime-এর পক্ষে যুক্তি। সেটা কি এখনো সত্যি?
+  - বিশ্বজুড়ে ছড়ানো একটি application-এ authentication কোথায় করবেন?
+  - একটি route origin-এ server-rendered, আর ইউরোপের user-দের জন্য ধীর। বিকল্পগুলো কী, ক্রম অনুযায়ী?
+- **[Meta-Framework বাছাই](#ch-choosing-a-meta-framework)**
+  - আপনি একটি নতুন product application শুরু করছেন। Next.js নাকি SvelteKit?
+  - এই সিদ্ধান্তের কোন অংশগুলো পরে ফিরিয়ে নেওয়া যায়?
+  - পাঁচ বছরের পুরোনো একটি client-rendered application-কে কীভাবে একটি server-first framework-এ migrate করবেন?
+  - কখন meta-framework পুরোপুরি ভুল পছন্দ?
+- **[চার ধরনের State](#ch-four-kinds-of-state)**
+  - একটি state কোথায় থাকবে, কীভাবে ঠিক করবেন?
+  - API data Redux বা Zustand-এ রাখায় আসলে সমস্যা কী?
+  - কোন state URL-এ থাকবে, আর সেটা কীভাবে ঠিক করবেন?
+  - Framework যখন server-এ fetch করে, তখনও কি চার-ভাগের model কাজের?
+- **[TanStack Query দিয়ে Server State](#ch-server-state)**
+  - `staleTime` আর `gcTime`-এর পার্থক্য কী?
+  - একটি বড় application-এ query key কীভাবে সাজাবেন?
+  - একটি optimistic update ধাপে ধাপে বুঝিয়ে বলুন।
+  - Server component যখন data fetch করে, তখনও কি client-এ query cache লাগে?
+- **[Client State ও Signal](#ch-client-state)**
+  - কখন state library-র বদলে Context ব্যবহার করবেন?
+  - Signal কী, এমন ভাষায় যা একজন React developer আগে থেকেই ব্যবহার করেন?
+  - Glitch কী, আর এটা কেন গুরুত্বপূর্ণ?
+  - Signal কি TanStack Query-র জায়গা নেয়?
+  - আপনার team সব client state Redux-এ সরাতে চায়। আপনি কি সরাবেন?
+- **[Form State](#ch-form-state)**
+  - আধুনিক form library-তে uncontrolled input কেন default?
+  - Server-ও যখন validate করে, তখন validation কোথায় থাকবে?
+  - কখন validation error দেখাবেন, কীভাবে ঠিক করবেন?
+  - একজন user একটি record edit করার মাঝপথে, আর একটি background refetch নতুন server data নিয়ে এল। কী করবেন?
+- **[State হিসেবে URL](#ch-url-as-state)**
+  - কোন state URL-এ থাকবে?
+  - একটি search box যাতে back button নষ্ট না করে, কীভাবে ঠেকাবেন?
+  - একই value URL আর একটি store দুই জায়গাতেই থাকলে কী ভাঙে?
+  - Server-এ search params পড়ার খরচ কী?
+- **[Module ও Bundling](#ch-modules-and-bundling)**
+  - একটি bundler আসলে কী করে?
+  - একটি import bundle-এ 300 KB যোগ করেছে। কেন, কীভাবে বের করবেন?
+  - ES module আসার পরেই কেন tree shaking বাস্তবে কাজের হলো?
+  - Chunk কোথায় ভাগ করবেন, কীভাবে ঠিক করবেন?
+- **[Vite, Rust Bundler ও Dev Loop](#ch-vite-and-the-dev-loop)**
+  - একটি বড় application-এ Vite dev server কেন সঙ্গে সঙ্গে চালু হয়?
+  - একটি file save করলে কখনো কখনো পুরো page কেন reload হয়?
+  - কিছু একটা development-এ কাজ করে, কিন্তু production build-এ ভাঙে। কোথা থেকে শুরু করবেন?
+  - Bundler-গুলোকে optimise না করে কেন Rust-এ নতুন করে লেখা হলো?
+  - আপনার production build সফল, কিন্তু application একটি type error-এ crash করে। কীভাবে?
+  - Build speed-এর জন্য আপনার team Webpack ছাড়তে চায়। প্রথমে কী জিজ্ঞেস করবেন?
+- **[Monorepo](#ch-monorepos)**
+  - শুধু workspace যা দেয় না, একটি task graph তা কী দেয়?
+  - একটি task-এর cache key কীভাবে হিসাব হয়, আর কী সেটা ভাঙে?
+  - একটি staging deployment production configuration নিয়ে বেরিয়েছে। একটি build cache কীভাবে এটা ঘটায়?
+  - কখন monorepo ভুল পছন্দ?
+- **[বড় পরিসরে Type-Checking ও Linting](#ch-type-checking-and-linting)**
+  - Linting-এর মতো type-checking কেন parallel করা যায় না?
+  - Project reference কীভাবে একটি বড় TypeScript codebase-কে দ্রুত করে?
+  - Continuous integration-এ linting আট মিনিট নেয়। প্রথমে কী দেখবেন?
+  - কী একটি merge আটকাবে, আর কী আটকাবে না?
+- **[Styling Strategy](#ch-styling-strategy)**
+  - একটি team একটি Next.js App Router project-এ styled-components যোগ করতে চায়। আপনি কী বলবেন?
+  - Utility-first CSS আসলে কোথায় বাঁচায়, আর কোথায় খরচ বাড়ায়?
+  - Design token সাধারণত TypeScript object না হয়ে custom property কেন?
+  - কখন কোনো styling framework-ই ব্যবহার করবেন না?
+
+## Part IV — বড় পরিসরে Frontend
+
+_15টি অধ্যায়ে 62টি প্রশ্ন।_
+
+- **[Frontend Architecture Pattern](#ch-frontend-architecture-patterns)**
+  - চল্লিশজন engineer কাজ করেন এমন একটি frontend কীভাবে সাজাবেন?
+  - একটি React app-এ business logic কোথায় রাখবেন, আর component-এ কেন নয়?
+  - কখন একটি layered architecture *আনবেন না*?
+  - একটি API response-এর shape বদলাতে নয়টি file ছুঁতে হলো। কী ভুল হয়েছিল?
+- **[Micro-Frontend](#ch-micro-frontends)**
+  - কখন micro-frontend-কে না বলবেন?
+  - React কেন সব remote জুড়ে singleton হতেই হবে, আর না হলে কী ভাঙে?
+  - Production-এ একটি remote down। User কী দেখেন?
+  - দুটো micro-frontend বর্তমান user-কে কীভাবে share করে?
+- **[Design System, Dependency ও Upgrade](#ch-design-systems-at-scale)**
+  - যে চল্লিশটি team-এর প্রত্যেকের নিজস্ব component আছে, তাদের মধ্যে একটি design system কীভাবে আনবেন?
+  - আপনার সবচেয়ে বেশি ব্যবহৃত component-এর একটি prop-এর নাম বদলাতে হবে। কীভাবে ship করবেন?
+  - কখন design system ভুল বিনিয়োগ?
+  - একটি team বলছে তারা React upgrade করতে পারবে না, কারণ "অনেক কিছু ভাঙবে"। কীভাবে যাচাই করবেন?
+- **[AI-এর লেখা Code Review](#ch-reviewing-ai-generated-code)**
+  - যে pull request-এর বেশিরভাগ একটি assistant লিখেছে, তাতে কী খুঁজবেন?
+  - একটি team-এর velocity বেড়েছে, সঙ্গে তাদের defect rate-ও। কী বদলাবেন?
+  - কখন generated code-এর বাড়তি review-এর জন্য গতি কমাবেন না?
+- **[Core Web Vitals](#ch-core-web-vitals)**
+  - FID-এর জায়গা কী নিয়েছে, আর এটা কী আলাদাভাবে মাপে?
+  - একটি page-এর LCP 4.2 সেকেন্ড। আপনার প্রথম এক ঘণ্টা ধাপে ধাপে বলুন।
+  - Lighthouse কেন আপনার INP বলতে পারে না?
+  - আপনার CLS 0.3, আর প্রতিটি image-এ width আর height set করেছেন। আর কোথায় খুঁজবেন?
+- **[Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting)**
+  - Code splitting কি শুধু দেরিটাকে click-এর সময়ে সরিয়ে দেয় না?
+  - একটি library থেকে একটি function import করলেন, আর bundle 70 kB বেড়ে গেল। কী হয়েছে?
+  - এক বছর ধরে bundle size যাতে আবার না বাড়ে, কীভাবে ঠেকাবেন?
+  - একটি page 2 MB JavaScript ship করে, যার অর্ধেক third-party। কোথা থেকে শুরু করবেন?
+- **[Caching ও Asset Delivery](#ch-asset-delivery)**
+  - একটি single-page application-এর জন্য cache header কীভাবে set করবেন?
+  - `no-cache` আর `no-store`-এর পার্থক্য কী?
+  - একজন user বলছেন app একটি পুরোনো version-এ আটকে আছে, আর reload করেও লাভ হচ্ছে না। প্রথমে কী check করবেন?
+  - কখন একটি API response CDN-এ cache করবেন না?
+  - দেরিতে আসা একটি font কেন দেখার সমস্যা নয়, বরং Core Web Vitals-এর সমস্যা?
+- **[Production-এ মাপা](#ch-measuring-in-production)**
+  - Lighthouse site-টিকে 95 দেয়, আর user-রা বলেন এটা ধীর। কে ঠিক?
+  - একটি error report-এ কী কী থাকলে সেটা triage করার যোগ্য হয়?
+  - এখানে privacy-র ঝুঁকি কী, আর সেটা নিয়ে কী করবেন?
+- **[XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention)**
+  - Encoding নাকি sanitisation — কখন কোনটা ব্যবহার করবেন?
+  - React কীভাবে XSS ঠেকায়, আর কোথায় পিছিয়ে পড়ে?
+  - একজন সহকর্মী একটি analytics widget-এর জন্য `postMessage` listener যোগ করেছেন। Review-এ কী check করবেন?
+  - আপনার team প্রতিটি `innerHTML` ঠিক না করে CSP-র ওপর ভরসা করতে চায়। আপনি কি রাজি হবেন?
+- **[Content Security Policy ও Security Header](#ch-content-security-policy)**
+  - `script-src`-এ `'unsafe-inline'` কেন বিপজ্জনক?
+  - `'strict-dynamic'` কী, আর এটা কেন ব্যবহার করবেন?
+  - Production না ভেঙে একটি strict CSP কীভাবে deploy করবেন?
+  - HSTS কীভাবে কাজ করে, আর ঝুঁকি কী?
+  - একটি team CSP ছাড়া ship করতে চায়, কারণ এটা বারবার third-party widget ভেঙে দেয়। আপনি কী বলবেন?
+- **[Testing Strategy](#ch-testing-strategy)**
+  - কোনো কিছুর জন্য unit test নাকি integration test, কীভাবে ঠিক করবেন?
+  - আপনার suite 25 মিনিট নেয়, আর লোকজন সেটা ছাড়াই merge করছে। কী করবেন?
+  - 100% coverage কি লক্ষ্য রাখার মতো?
+  - কখন test লিখবেন না?
+- **[Test লেখা: Vitest ও React Testing Library](#ch-vitest)**
+  - নতুন project-এর জন্য Jest-এর বদলে কেন Vitest বেছে নেবেন?
+  - Testing Library কেন আপনাকে component state-এ access দিতে রাজি নয়?
+  - কখন `getByTestId` গ্রহণযোগ্য?
+  - একটি test একা চালালে pass করে, suite-এ fail করে। কোথায় খুঁজবেন?
+  - কখন module mock ভুল হাতিয়ার?
+- **[Frontend Integration Testing](#ch-frontend-integration-testing)**
+  - API module mock না করে কেন request intercept করবেন?
+  - Unit test যা ধরতে পারে না, integration test তা কী ধরে?
+  - এই layer আপনাকে কী বলতে পারে না?
+  - Suite ধীর না করে একটি loading state কীভাবে test করবেন?
+- **[Playwright দিয়ে End-to-End, Visual ও Contract Testing](#ch-end-to-end-testing)**
+  - কোনটা end-to-end test পাওয়ার যোগ্য, কীভাবে ঠিক করবেন?
+  - আপনার E2E suite প্রায় সপ্তাহে একবার কোনো স্পষ্ট কারণ ছাড়াই fail করে। কীভাবে এগোবেন?
+  - সব integration test pass করে, কিন্তু production ভেঙেছে কারণ API একটি field-এর নাম বদলেছে। কী বাদ পড়েছিল?
+  - আপনি কি প্রতিটি page-এ visual regression যোগ করবেন?
+- **[Accessibility Testing](#ch-testing-accessibility)**
+  - Accessibility কীভাবে test করবেন?
+  - Automated tooling কী ধরতে পারে না?
+  - একটি বড় legacy codebase-এ accessibility gate কীভাবে আনবেন?
+  - কোন screen reader দিয়ে test করবেন, আর সেই পছন্দ কতটা গুরুত্বপূর্ণ?
+  - একটি pull request accessibility test ছাড়া একটি component যোগ করেছে। কী চাইবেন?
+
+## Part V — Frontend Engineer-দের জন্য Backend
+
+_15টি অধ্যায়ে 61টি প্রশ্ন।_
+
+- **[Node.js Event Loop, Async ও Error](#ch-event-loop-async)**
+  - Node single-threaded, তাহলে এটা 10,000 concurrent connection কীভাবে সামলায়?
+  - কোনটা আগে log হয় — `setTimeout(fn, 0)` নাকি `setImmediate(fn)`?
+  - একটি `uncaughtException`-এর পরে কি process বাঁচিয়ে রাখা উচিত?
+  - কখন কাজকে async না করে একটি worker thread-এ সরাবেন?
+- **[Node.js Performance, Stream ও Scaling](#ch-nodejs-performance)**
+  - একটি service-এর p99 3 s, অথচ p50 30 ms। কোথায় খুঁজবেন?
+  - Backpressure কী, আর এটা উপেক্ষা করলে কী হয়?
+  - একটি LLM response বা বড় file download পুরোটা একবারে না পাঠিয়ে কেন stream করবেন?
+  - Worker thread নাকি আরও process — কীভাবে বেছে নেবেন?
+  - যে app একটি process হিসেবে ঠিকঠাক চলত, তাতে clustering চালু করলে কী ভাঙে?
+- **[Express, Hono ও Edge Runtime](#ch-express)**
+  - একটি async Express handler throw করে, আর client ঝুলে থাকে। কী হয়েছে?
+  - Cloudflare Worker-এ কেন `pg` ব্যবহার করা যায় না?
+  - একটি API route edge-এ সরালেন, আর সেটা আরও ধীর হয়ে গেল। কেন?
+  - একটি নতুন backend-for-frontend: Express নাকি edge-এ Hono?
+- **[REST Best Practice ও Versioning](#ch-rest-best-practices)**
+  - কোন method-গুলো idempotent, আর এটা কেন গুরুত্বপূর্ণ?
+  - এক কোটি row কীভাবে paginate করবেন?
+  - Client না ভেঙে একটি required request field কীভাবে যোগ করবেন?
+  - কখন একটি `/v2` ship করবেন না?
+- **[GraphQL, tRPC ও Typed API বাছাই](#ch-graphql)**
+  - GraphQL-এ N+1 সমস্যা কী, আর এটা কেন গঠনগত?
+  - একটি GraphQL API-তে কীভাবে rate limit করবেন?
+  - একটি tRPC API কি production-এ type-safe?
+  - একটি mobile app, একটি web app আর দুটো partner-এর আপনার API লাগবে। GraphQL, tRPC নাকি REST?
+- **[Rate Limiting](#ch-rate-limiting)**
+  - Fixed window-এ সমস্যা কী?
+  - অনেকগুলো server জুড়ে সঠিকভাবে কীভাবে গুনবেন?
+  - কীসের ওপর key করবেন, আর IP কেন খারাপ পছন্দ?
+  - কখন একটি endpoint-এ rate limit করবেন না?
+- **[Real-Time ও Streaming API](#ch-realtime-streaming)**
+  - আপনি কি WebSocket message validate করেন?
+  - একটি socket কীভাবে authenticate করবেন, আর কী ভুল হয়?
+  - একটি broadcast যাতে দশটি pod জুড়ে প্রতিটি client-এর কাছে পৌঁছায়, কীভাবে করবেন?
+  - কখন socket server একেবারেই বানাবেন না?
+- **[Node Service Testing](#ch-testing-node-services)**
+  - একটি service-এ কী unit test করবেন না?
+  - Dependency injection নাকি `vi.mock`?
+  - একটি integration suite-কে isolated রেখেও কীভাবে দ্রুত রাখবেন?
+- **[SQL-এর মূল কথা ও Schema Design](#ch-sql-fundamentals)**
+  - একটি `LEFT JOIN` শুধু মিলে যাওয়া row ফেরত দিচ্ছে। কেন?
+  - প্রতিটি group থেকে ওপরের তিনটি row কীভাবে পাবেন?
+  - কখন denormalise করবেন?
+  - একই room-এর জন্য দুটো overlapping booking কীভাবে ঠেকাবেন?
+- **[Index, Query Plan, ORM ও Migration](#ch-indexes)**
+  - আপনার `(user_id, status, created_at)`-এর ওপর একটি index আছে। কোন query-গুলো এটা ব্যবহার করে?
+  - একটি query-র index আছে, তবু ধীর। কী check করবেন?
+  - কখন ORM ছেড়ে raw SQL-এ নামবেন?
+  - Zero downtime-এ একটি column-এর নাম কীভাবে বদলাবেন?
+- **[Transaction ও Concurrency](#ch-sql-transactions)**
+  - Lost update কী, আর default isolation level কি এটা ঠেকায়?
+  - Optimistic নাকি pessimistic locking?
+  - Deadlock কীভাবে ঠেকাবেন?
+- **[Non-Relational Store বাছাই: Document ও Redis](#ch-document-databases)**
+  - কখন Postgres-এর বদলে MongoDB বেছে নেবেন?
+  - Embed করবেন নাকি reference, কীভাবে ঠিক করবেন?
+  - Redis single-threaded। এটা দ্রুত কীভাবে, আর ঝুঁকি কী?
+  - Pub/Sub নাকি Streams?
+  - একটি team নতুন orders service-এর একমাত্র database হিসেবে Redis চায়। আপনি কী বলবেন?
+- **[Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions)**
+  - Session নাকি JWT?
+  - একটি JWT কীভাবে revoke করবেন?
+  - CORS কি আপনার API-কে সুরক্ষা দেয়?
+  - `SameSite=Lax` set করা আছে। এখনো কি CSRF token লাগবে?
+- **[OAuth, OIDC ও Authorisation](#ch-oauth)**
+  - PKCE সহ authorisation code flow ধাপে ধাপে বুঝিয়ে বলুন।
+  - `state` কীসের জন্য, আর এটা কি PKCE-র মতোই?
+  - Broken object-level authorisation কী, আর গঠনগতভাবে এটা কীভাবে ঠেকাবেন?
+  - যে resource user দেখতে পারবেন না, তার জন্য 403 নাকি 404?
+  - কখন ABAC বা একটি policy engine ব্যবহার করবেন না?
+- **[Input Validation ও Injection](#ch-backend-input-validation)**
+  - Escaping-এর চেয়ে parameterisation কেন বেশি নিরাপদ?
+  - একটি endpoint parameterised, তবু injectable। কীভাবে?
+  - কোনো SQL string না থাকলে NoSQL injection কীভাবে কাজ করে?
+  - শুধু validation কি যথেষ্ট?
+
+## Part VI — System Design
+
+_18টি অধ্যায়ে 70টি প্রশ্ন।_
+
+- **[Design Round চালানো, Backend ও Frontend](#ch-driving-the-round)**
+  - আপনার হাতে 45 মিনিট, আর prompt হলো "Instagram design করুন"। প্রথম পাঁচ মিনিট কী করবেন?
+  - Scale নিয়ে interviewer বলছেন "যা খুশি ধরে নিন"। কী করবেন?
+  - একটি frontend round-এ state কোথায় যায়, আর কীভাবে ঠিক করবেন?
+  - কখন RADIO ক্রম মেনে চলবেন না?
+- **[Back-of-Envelope Estimation](#ch-back-of-envelope-estimation)**
+  - একটি photo-sharing service-এর পাঁচ বছর পরে কত storage লাগবে?
+  - 86,400-কে কেন 100,000-এ round করবেন?
+  - আপনার estimate বলছে পুরো dataset একটি server-এর RAM-এ ধরে যায়। এটাই কি design?
+- **[Scalability, Latency ও Throughput](#ch-scalability)**
+  - Vertical নাকি horizontal scaling — কীভাবে বেছে নেবেন?
+  - p50 40 ms আর p99 3 সেকেন্ড। কোথায় খুঁজবেন?
+  - আপনার service 70% CPU-তে ঠিকঠাক দেখায়, আর 85%-এ ভেঙে পড়ে। কেন?
+  - কখন ইচ্ছা করে খারাপ latency মেনে নেবেন?
+- **[Reliability, Consistency ও CAP](#ch-consistency-and-cap)**
+  - আপনার service চারটি dependency call করে, প্রতিটি 99.9% available। আপনার সর্বোচ্চ সীমা কত?
+  - High availability আর disaster recovery-র পার্থক্য কী?
+  - একটি eventually consistent system-এ একজন user বলছেন তাঁর profile edit "save হয়নি"। কী করবেন?
+  - কখন eventual consistency গ্রহণযোগ্য নয়?
+- **[Load Balancing](#ch-load-balancing)**
+  - একটি HTTP API-র জন্য layer 4 নাকি layer 7, আর কেন?
+  - আপনার health check database-এ যায়। এতে সমস্যা কী?
+  - কখন একটি service-এর সামনে load balancer রাখবেন না?
+- **[Caching](#ch-caching)**
+  - কোন caching pattern দিয়ে শুরু করবেন, আর কেন?
+  - TTL কীভাবে ঠিক করবেন?
+  - একটি hot key expire হলো, আর database ভেঙে পড়ল। কী হয়েছে, আর কী করবেন?
+  - কখন caching ভুল উত্তর?
+- **[Content Delivery Network](#ch-cdn)**
+  - CDN কেন শুধু performance-এর নয়, scaling-এরও হাতিয়ার?
+  - একটি deploy-এর পরেও user-রা পুরোনো JavaScript পাচ্ছেন। কী ভুল হয়েছে?
+  - Origin shielding কী, আর কখন এটা লাগে?
+  - কখন CDN ভুল উত্তর?
+- **[Queue, Async কাজ ও WebSocket](#ch-message-queues)**
+  - আপনার consumer একই message দুবার process করে। Bug-টি কার?
+  - কখন SQS-এর বদলে Kafka বেছে নেবেন?
+  - একটি ধীর endpoint-এর জন্য কখন queue ভুল উত্তর?
+  - Browser-এ job-এর অগ্রগতি stream করতে WebSocket নাকি SSE?
+  - অনেকগুলো server জুড়ে real-time connection কীভাবে scale করবেন?
+- **[Service Boundary ও API Gateway](#ch-service-boundaries)**
+  - একটি monolith কোথায় ভাঙবেন, কীভাবে ঠিক করবেন?
+  - দুটো service-কে atomically update করতে হবে। কী করবেন?
+  - কখন microservice ভুল উত্তর?
+  - একটি API gateway আর একটি load balancer-এর পার্থক্য কী?
+  - Gateway এখন একটি single point of failure। এ নিয়ে কী করবেন?
+- **[Resilience Pattern](#ch-resilience-patterns)**
+  - একটি downstream service 200 ms-এর বদলে 30 সেকেন্ড নিতে শুরু করল। আপনার service-এর কী হয়?
+  - Retry setting কীভাবে বেছে নেবেন?
+  - কখন circuit breaker যোগ করবেন না?
+- **[Datastore বাছাই ও তার Replication](#ch-choosing-a-datastore)**
+  - এই system-এর জন্য SQL নাকি NoSQL — দোনোমনা না করে কীভাবে উত্তর দেবেন?
+  - PostgreSQL থেকে DynamoDB-তে গেলে আসলে কী হারান?
+  - আপনার primary মারা গেল। কী হারাল?
+  - একজন user বলছেন তাঁর profile update "save হয়নি"। Diagnose করুন।
+  - কখন multi-leader replication মেনে নেবেন?
+- **[বড় পরিসরে Sharding ও Transaction](#ch-sharding)**
+  - কখন shard করবেন, আর তার বদলে কী করবেন?
+  - একটি ভালো shard key কীসে হয়?
+  - দুজন user একই সময়ে শেষ item-টি কিনছেন। Overselling কীভাবে ঠেকাবেন?
+  - একটি order service আর একটি payment service দুটোকেই সফল হতে হবে। আপনি কি two-phase commit ব্যবহার করবেন?
+- **[Frontend-এ Real-Time Feature](#ch-frontend-real-time-features)**
+  - 30 সেকেন্ড offline থাকার পর একটি client reconnect করে। সে কীভাবে বাকিটা ধরে ফেলে?
+  - Reconnection-এ কেন jitter লাগে?
+  - Connection কেটে গেলে UI user-কে কী দিতে বাধ্য?
+  - একটি live feed যাতে page-কে খারাপ না করে, কীভাবে রাখবেন?
+  - কখন client-এ socket একেবারেই ব্যবহার করবেন না?
+- **[Offline-First Architecture](#ch-offline-first-architecture)**
+  - একজন user offline অবস্থায় তিনটি record তৈরি করলেন, তারপর online-এ ফিরলেন। কী ঘটে, ধাপে ধাপে বলুন।
+  - Idempotency key কেন client-এই তৈরি করতে হয়?
+  - কখন offline-first বানাতে অস্বীকার করবেন?
+  - Last-write-wins সহজ। এতে সমস্যা কী?
+- **[Frontend Authentication](#ch-frontend-authentication)**
+  - Token কোথায় রাখবেন, আর `localStorage`-এ কেন নয়?
+  - আটটি request একই মুহূর্তে 401 পায়। কী ঘটে?
+  - Client non-admin-দের কাছ থেকে delete button লুকিয়ে রাখে। এটা কি authorisation?
+  - কখন token একেবারেই ব্যবহার করবেন না?
+- **[একটি URL Shortener Design করুন](#ch-design-url-shortener)**
+  - সেকেন্ডে 1,000 write-এ collision ছাড়া short code কীভাবে তৈরি করবেন?
+  - একটি deploy-এর পরে cache cold, আর store ভেঙে পড়ল। কী ভুল হয়েছে?
+  - আপনি কি এই database shard করবেন, আর কীসের ওপর?
+- **[একটি Collaborative Document Editor Design করুন](#ch-design-collaborative-editor)**
+  - দুজন মানুষ একই মুহূর্তে একই জায়গায় একটি character insert করলেন। ক্রম কী দিয়ে ঠিক হয়?
+  - কখন CRDT ব্যবহার করবেন না?
+  - একটি client এক সপ্তাহ offline থেকে reconnect করল। কী ঘটে?
+- **[একটি Infinite Feed Design করুন](#ch-design-infinite-feed)**
+  - User-রা বলছেন scroll করার সময় post দুবার দেখা যায়। কী হচ্ছে?
+  - List virtualised, তবু Android-এ janky। কোথায় খুঁজবেন?
+  - কখন infinite scroll একেবারেই বানাবেন না?
+
+## Part VII — AI Engineering
+
+_20টি অধ্যায়ে 95টি প্রশ্ন।_
+
+- **[LLM কীভাবে আচরণ করে, আর কোনটা বাছবেন](#ch-how-llms-behave)**
+  - একই prompt প্রতিবার কেন আলাদা উত্তর দেয়, আর এটা কীভাবে test করবেন?
+  - একটি conversation যত লম্বা চলে, তত ধীর আর ব্যয়বহুল হয়। কেন?
+  - আপনার summariser আধখানা বাক্য ফেরত দেয়। কোথায় খুঁজবেন?
+  - একটি feature-এর জন্য frontier model আর সস্তা একটি model-এর মধ্যে কীভাবে বেছে নেবেন?
+  - কোথায় একটি ছোট model ব্যবহার করবেন না?
+- **[Engineering হিসেবে Prompting](#ch-prompting-as-engineering)**
+  - Chat window-এর একটি prompt আর production-এর একটি prompt-এর মধ্যে তফাত কোথায়?
+  - Instruction কেন user message-এ না রেখে system prompt-এ রাখবেন?
+  - কখন few-shot আর কাজে আসে না?
+  - এখন যে case-গুলো কাজ করছে, সেগুলো না ভেঙে একটি prompt কীভাবে বদলাবেন?
+  - একজন সহকর্মী prompt-এ "hallucinate করবে না" যোগ করে একটি hallucination ঠিক করতে চান। আপনার মত কী?
+- **[Context Engineering](#ch-context-engineering)**
+  - Context engineering কী, আর এটা prompt engineering থেকে কীভাবে আলাদা?
+  - Traffic বদলায়নি, কোনো deploy-ও হয়নি, তবু প্রতি request-এর খরচ দ্বিগুণ হয়েছে। কোথায় খুঁজবেন?
+  - একটি conversation window ছাড়িয়ে যেতে চলেছে। কী করবেন?
+  - দশ লাখ token-এর window মানে কি retrieval quality আর গুরুত্বপূর্ণ নয়?
+  - একটি request পাঠানোর আগে নির্ভরযোগ্যভাবে token কীভাবে গুনবেন?
+- **[TypeScript থেকে LLM Call করা](#ch-calling-an-llm-from-typescript)**
+  - একটি সরল `await callModel(prompt)` ship করার আগে প্রথম কী যোগ করবেন?
+  - Provider 200 ফেরত দেয়, আর user একটি অসমাপ্ত বাক্য দেখেন। কী হয়েছে?
+  - Provider SDK নাকি একটি unified SDK ব্যবহার করবেন?
+  - একটি সাধারণ endpoint থেকে একটি AI endpoint-এর rate limit কীভাবে আলাদা করবেন?
+  - API key কোথায় রাখবেন, আর ওই endpoint-এর আর কী লাগে?
+- **[Streaming Response](#ch-streaming-responses)**
+  - মোট সময় একই হলে কেন stream করবেন?
+  - একটি chat feature-এর জন্য SSE নাকি WebSocket?
+  - উত্তরের মাঝপথে একজন user tab বন্ধ করে দিলেন। কী ঘটে, আর কী ঘটা উচিত?
+  - Streaming local-এ কাজ করে, production-এ ঝুলে থাকে। কোথায় খুঁজবেন?
+  - কখন stream করবেন না?
+- **[Structured Output](#ch-structured-output)**
+  - একটি model থেকে নির্ভরযোগ্য JSON কীভাবে পাবেন?
+  - Schema validate হয়, কিন্তু data ভুল। এটা আপনাকে কী বলে?
+  - Validation fail করলে কি retry করবেন?
+  - Schema-র shape কি output-এর quality বদলায়?
+  - এমন একটি document থেকে field কীভাবে বের করবেন, যেখানে কিছু field সত্যিই নেই?
+- **[Tool Calling ও Tool Surface](#ch-tool-calling)**
+  - একটি model একটি tool call করলে কী ঘটে, ধাপে ধাপে বলুন।
+  - আপনার agent একই argument দিয়ে একই tool বারবার call করছে। প্রথমে কী check করবেন?
+  - একটি tool-calling feature যাতে production data delete না করে, কীভাবে ঠেকাবেন?
+  - আপনার বর্তমান REST API-কে কি সরাসরি tool হিসেবে expose করা যায়?
+- **[MCP (Model Context Protocol)](#ch-model-context-protocol)**
+  - MCP আসলে কোন সমস্যার সমাধান করে?
+  - আপনার team-এর internal API-র জন্য কি একটি MCP server বানাবেন?
+  - একটি third-party MCP server-এ connect করায় security ঝুঁকি কী?
+  - Tool আর resource কীভাবে আলাদা, আর এটা কেন গুরুত্বপূর্ণ?
+  - একটি MCP server-এর মাধ্যমে একটি tool call fail করে। কোথায় খুঁজবেন?
+- **[কখন RAG, কখন Fine-Tune, কখন কোনোটাই নয়](#ch-when-rag-when-fine-tune-when-neither)**
+  - কখন retrieval ব্যবহার না করে fine-tune করবেন?
+  - আপনার কোম্পানির 400 পাতার internal documentation আছে। Assistant-টি design করুন।
+  - উত্তর হিসেবে "কোনোটাই না" দেখতে কেমন?
+  - Permission এই সিদ্ধান্তে কীভাবে প্রভাব ফেলে?
+  - দুটোই কি ব্যবহার করা যায়?
+- **[Ingestion ও Chunking](#ch-ingestion-and-chunking)**
+  - একটি chunk কত বড় হওয়া উচিত?
+  - Embedding model-এর চেয়ে chunking কেন বেশি গুরুত্বপূর্ণ?
+  - কোন metadata রাখবেন, আর ingestion-এর সময়েই কেন?
+  - আপনি embedding model বদলালেন। বর্তমান index-এর কী হয়?
+  - Source document-এর সঙ্গে index-কে কীভাবে তাল মিলিয়ে রাখবেন?
+- **[Embedding, Vector Store ও Retrieval](#ch-retrieval)**
+  - 0.82 cosine similarity আপনাকে কী বলে?
+  - pgvector নাকি একটি আলাদা vector database?
+  - Vector, keyword, নাকি দুটোই?
+  - Retriever যা পারে না, একটি reranker তা কী করে?
+  - একজন user যা দেখতে পারেন, retrieval-কে কীভাবে শুধু তার মধ্যে সীমিত রাখবেন?
+- **[Agent আসলে কী, আর কখন একাধিক Agent লাগে](#ch-what-an-agent-actually-is)**
+  - কখন তার বদলে একটি workflow বানাবেন?
+  - আপনার agent প্রতিটি task-এ step limit পর্যন্ত চলে যায়। কী হচ্ছে?
+  - কখন তিনটি agent-এর চেয়ে একটি ভালো?
+  - একটি reviewer agent কি ভালো ধারণা?
+  - কয়েকটি agent জুড়ে খরচ কীভাবে সীমার মধ্যে রাখবেন?
+- **[Memory, State ও দীর্ঘ সময়ের কাজ](#ch-durability-and-long-running-work)**
+  - আপনার agent প্রথম message-এর একটি শর্ত ভুলে গেছে। কী ভুল হয়েছিল?
+  - দশ step পরে একটি agent-এর window ভরে যায়। Summarise করবেন, নাকি আগে অন্য কিছু?
+  - একটি retry যাতে দুটো email না পাঠায়, কীভাবে ঠেকাবেন?
+  - একটি destructive step-এর জন্য human approval কীভাবে implement করবেন?
+- **[Eval, Retrieval Metric ও Error Analysis](#ch-evals)**
+  - একটি prompt change আসলেই উন্নতি এনেছে, কীভাবে জানবেন?
+  - recall@k কী, আর কেন এটা দিয়ে শুরু করবেন?
+  - একজন user বলছেন assistant ভুল উত্তর দিয়েছে। Diagnosis ধাপে ধাপে বুঝিয়ে বলুন।
+  - কখন LLM-as-judge গ্রহণযোগ্য?
+  - আপনার assistant "অনির্ভরযোগ্য"। এটাকে কীভাবে নির্দিষ্ট কাজে পরিণত করবেন?
+  - Pipeline ঠিক করবেন নাকি model upgrade করবেন, কীভাবে ঠিক করবেন?
+- **[Observability ও Cost Engineering](#ch-observability)**
+  - একটি AI feature-এর জন্য কী log করবেন, যা একটি সাধারণ endpoint-এর জন্য করতেন না?
+  - কোনো deploy ছাড়াই খরচ দ্বিগুণ হয়েছে। প্রথমে কোথায় খুঁজবেন?
+  - কখন cheap-model cascade ভালো ধারণা?
+- **[Guardrail ও Safety](#ch-guardrails-and-safety)**
+  - Guardrail কোথায় রাখবেন, আর prompt-এ কেন নয়?
+  - ব্যক্তিগত data যাতে provider-এর কাছে না পৌঁছায়, কীভাবে ঠেকাবেন?
+  - একটি web page-এ model output render করার ঝুঁকি কী?
+  - একটি agent যাতে ক্ষতি না করে, কীভাবে আটকাবেন?
+  - Over-refusal কী, আর এটা কেন গুরুত্বপূর্ণ?
+- **[Prompt Injection](#ch-prompt-injection)**
+  - একজন backend engineer-কে prompt injection ব্যাখ্যা করুন।
+  - Direct আর indirect injection-এর পার্থক্য কী, আর কোনটা আপনাকে বেশি চিন্তায় ফেলে?
+  - একটি design review-এ জিজ্ঞেস করার মতো সবচেয়ে কাজের একটি প্রশ্ন কী?
+  - যে agent-কে untrusted content পড়তেই হয়, তাকে কীভাবে রক্ষা করবেন?
+  - Injection-এর চেষ্টা কি শুধু detect আর filter করা যায় না?
+- **[Latency ও Generative UI](#ch-generative-ui)**
+  - Model আট সেকেন্ড নেয়। User কী দেখেন?
+  - আপনি একটি reranker যোগ করলেন, যা উত্তর ভালো করে আর 300 ms খরচ করে। এটা কি লাভজনক?
+  - Model output থেকে component render করার ঝুঁকি কী, আর কীভাবে সেটা সীমিত রাখবেন?
+  - কখন generative UI বানাবেন না?
+- **[বিশ্বাস, নির্ভুলতা ও Failure State](#ch-trust-and-correctness-ux)**
+  - উত্তরটা ভুল হতে পারে, user-কে কীভাবে দেখাবেন?
+  - একটি confidence score কেন দেখাবেন না?
+  - কখন একটি generated change নিজে থেকেই apply করবেন?
+  - Streaming-এর মাঝপথে request rate-limited হলো। User কী দেখেন?
+  - কখন নিজে থেকে retry করবেন?
+  - Failure state কেন আগে design করবেন?
+- **[Interview-এ AI](#ch-ai-in-interviews)**
+  - Production-এ একটি agent loop-এ আটকে আছে। ধাপে ধাপে বুঝিয়ে বলুন।
+  - আপনি যে model-এ আছেন, provider ত্রিশ দিনের মধ্যে সেটা deprecate করছে। কী ঘটে?
+  - কখন একজন product manager-কে একটি AI feature না বানাতে বলবেন?
+
+## Part VIII — Ship ও Operate
+
+_11টি অধ্যায়ে 59টি প্রশ্ন।_
+
+- **[Git-এর মূল কথা ও Recovery](#ch-git-fundamentals)**
+  - `git fetch` আর `git pull`-এর পার্থক্য কী?
+  - আপনি একটি branch delete করেছেন, বা কেউ সেটার ওপর force-push করেছে। কীভাবে ফিরিয়ে আনবেন?
+  - তিনটি `git reset` mode আসলে কী বদলায়?
+  - কখন rebase বা interactive rebase ব্যবহার করবেন না?
+  - কোন commit একটি regression এনেছে, তা খুঁজে বের করা ধাপে ধাপে বলুন।
+  - ছয় মাস আগে একটি secret commit হয়েছিল। আপনার ধাপগুলো কী?
+- **[Branching, Review ও Repository Strategy](#ch-branching-and-review-workflow)**
+  - একটি নতুন team-এর জন্য branching strategy কীভাবে বেছে নেবেন?
+  - Squash, rebase, নাকি merge commit — কোনটা আর কেন?
+  - Pull request-গুলোকে review করার উপযোগী কীভাবে রাখবেন?
+  - একটি web app, একটি admin app আর একটি shared design system-ওয়ালা product-এর জন্য monorepo নাকি polyrepo?
+  - একটি polyrepo-তে একটি shared library-তে breaking change কীভাবে করবেন?
+  - কখন monorepo-র পরামর্শ দেবেন না?
+- **[CI/CD-র মূল কথা](#ch-cicd-fundamentals)**
+  - Continuous Delivery আর Continuous Deployment-এর পার্থক্য কী?
+  - একটি artefact কেন শুধু একবারই build করা উচিত?
+  - Test না মুছে একটি CI pipeline কীভাবে দ্রুত রাখবেন?
+  - Code coverage কি একটি কাজের quality gate?
+  - কখন pipeline-এ আরেকটি gate যোগ করবেন না?
+- **[Container Image: Build ও Hardening](#ch-docker-fundamentals)**
+  - Image আর container-এর পার্থক্য কী, আর একটি container কেন ছোট একটি virtual machine নয়?
+  - একটি image build হতে নয় মিনিট লাগে, আর একমাত্র পরিবর্তন ছিল application code-এর একটি line। সমস্যা কী?
+  - `ARG` দিয়ে কেন একটি build secret পাঠানো যায় না?
+  - আপনি কি একটি distroless base image ব্যবহার করবেন?
+  - একটি container 137 দিয়ে exit করেছে। কী হয়েছে, আর কী check করবেন?
+  - নতুন ঘোষিত একটি vulnerability আপনাকে প্রভাবিত করে কিনা, কীভাবে বের করবেন?
+- **[GitHub Actions ও Pipeline Security](#ch-github-actions)**
+  - Credential না রেখে একটি workflow-কে cloud provider-এ কীভাবে authenticate করবেন?
+  - `pull_request_target`-এর ঝুঁকি কী, আর কখন এটা ব্যবহার করবেন?
+  - একটি reusable workflow আর একটি composite action-এর পার্থক্য কী?
+  - কখন self-hosted runner ব্যবহার করবেন, আর এর খরচ কী?
+  - আপনার pipeline থেকে একটি token leak হয়েছে। কী করবেন, আর আগে থেকে কী ব্যবস্থা রাখা দরকার?
+- **[Monitoring ও Observability-র মূল কথা](#ch-monitoring-fundamentals)**
+  - Monitoring আর observability-র পার্থক্য কী?
+  - Cardinality কী, আর এটা কেন গুরুত্বপূর্ণ?
+  - Average-এর বদলে percentile-এ কেন alert করবেন?
+  - SLI, SLO, SLA আর error budget ব্যাখ্যা করুন।
+  - যে service-এ কোনো observability নেই, তাতে সেটা যোগ করতে বলা হলো। কোথা থেকে শুরু করবেন, আর ইচ্ছা করে কী করবেন না?
+- **[Metrics, Dashboard ও Alerting](#ch-metrics-and-dashboards)**
+  - অনেকগুলো instance জুড়ে p99 latency কীভাবে হিসাব করবেন, আর সাধারণ ভুলটা কী?
+  - একটি metrics server বেশি memory ব্যবহারের জন্য বারবার kill হচ্ছে। কী হচ্ছে, আর কী করবেন?
+  - একটি ভালো alert কীসে হয়, আর কারণের বদলে লক্ষণে কেন alert করবেন?
+  - Burn-rate alerting ব্যাখ্যা করুন।
+  - Service পুরোপুরি down থাকলেও একটি alarm কখনো বাজেনি। কেন?
+  - কখন dashboard ভুল হাতিয়ার?
+- **[Cloud-এর মূল কথা, Storage ও Delivery](#ch-cloud-fundamentals)**
+  - Region আর availability zone-এর পার্থক্য কী?
+  - কোনো provider-এর নাম না নিয়ে shared responsibility model ব্যাখ্যা করুন।
+  - কখন managed service ব্যবহার করবেন না?
+  - একটি web application-এ user-এর file upload কীভাবে সামলাবেন?
+  - একটি deploy-এর পরে user-রা পুরোনো JavaScript পাচ্ছেন। কী ভুল হয়েছে, আর কীভাবে ঠিক করবেন?
+- **[Serverless Function](#ch-serverless-functions)**
+  - একটি cold start-এ আসলে কী ঘটে, আর কোন অংশগুলোয় আপনি প্রভাব ফেলতে পারেন?
+  - Serverless function কেন database ভেঙে দেয়, আর এ নিয়ে কী করবেন?
+  - একটি function file upload-এ চলে, আর কখনো কখনো একই file দুবার process করে। কেন?
+  - কখন function-এর বদলে একটি long-running server বেছে নেবেন?
+  - একটি function-এর environment variable-এ যাতে secret না থাকে, কীভাবে রাখবেন?
+- **[Platform Deploy ও Preview Environment](#ch-platform-deploys)**
+  - একটি deployment production-এ promote করলে আসলে কী ঘটে?
+  - একটি route edge-এ সরালে কেন সেটা আরও ধীর হতে পারে?
+  - একজন user জানালেন, deploy-এর ঠিক পরেই সাদা screen দেখছেন, কিন্তু আপনি reproduce করতে পারছেন না। কী হচ্ছে?
+  - একটি staging environment যা দেয় না, একটি preview environment তা কী দেয়?
+  - যে artefact test করেছেন, সেটাই যে ship করছেন, তা কীভাবে নিশ্চিত করবেন?
+- **[Deployment Strategy, Rollback ও Feature Flag](#ch-deployment-strategies)**
+  - Blue/green আর canary-র পার্থক্য ব্যাখ্যা করুন।
+  - দশ মিনিট আগে আপনার deploy বেরিয়েছে, আর error বাড়ছে। কী করবেন, ধাপে ধাপে বলুন।
+  - পরিবর্তনে একটি schema migration থাকলে zero-downtime deployment কীভাবে করবেন?
+  - একটি canary deployment আর একটি feature flag-এর পার্থক্য কী?
+  - কখন ইচ্ছা করে বড় blast radius-ওয়ালা strategy বেছে নেবেন?
+
+## Part IX — মানুষের স্তর
+
+_7টি অধ্যায়ে 31টি প্রশ্ন।_
+
+- **[STAR Framework ও Story Bank](#ch-star-framework)**
+  - আপনার উত্তর লম্বা হয়ে যাচ্ছে, আর interviewer অস্থির দেখাচ্ছেন। কী করবেন?
+  - প্রশ্নটা এমন একটি পরিস্থিতি নিয়ে, যেটায় আপনি সত্যিই কখনো পড়েননি। এখন কী?
+  - অন্যথায় নির্ভুল একটি উত্তরকে "আমরা" শব্দটা কেন ক্ষতিগ্রস্ত করে?
+  - কখন ইচ্ছা করে STAR ব্যবহার করবেন না?
+- **[Leadership, প্রভাব ও না বলা](#ch-leadership-teamwork)**
+  - কখন আপস করবেন আর কখন অবস্থানে অটল থাকবেন, কীভাবে বুঝবেন?
+  - Conflict-টির যদি কখনো সমাধানই না হয়ে থাকে?
+  - কেউ যখন technical debt-এর জন্য বরাদ্দ দিতে চায় না, তখন সেটাকে অগ্রাধিকার কীভাবে দেওয়াবেন?
+  - আপনার মনে হয় একটি feature শ্রমের অপচয়, আর আপনাকে সেটা বানাতে বলা হয়েছে। কী করবেন?
+  - কখন mentoring দেওয়াটা ভুল জিনিস?
+- **[Problem Solving, চ্যালেঞ্জ ও ব্যর্থতা](#ch-problem-solving)**
+  - আপনার সবচেয়ে কঠিন technical সমস্যা যদি তেমন চমকপ্রদ না হয়?
+  - আপনাকে একটি ব্যর্থতার কথা জিজ্ঞেস করা হলো, আর প্রতিটি বাস্তব ব্যর্থতায় আংশিক দোষ অন্য কারও। কী বলবেন?
+  - কখন debugging থামানোই সঠিক উত্তর?
+  - বেপরোয়া না দেখিয়ে "যে ঝুঁকি কাজে দেয়নি" গল্প কীভাবে বলবেন?
+- **[কাজের ধরন ও Engineering Culture](#ch-engineering-culture)**
+  - আপনার team দুই সপ্তাহের sprint চালায়, কিন্তু incident-এর কারণে বারবার লক্ষ্যে পৌঁছাতে পারে না। কী বদলাবেন?
+  - একটি team-এ যোগ দিয়ে প্রথমে কোন DORA metric দেখবেন, আর কেন?
+  - একজন director আপনাকে প্রতি engineer-এর deployment frequency report করতে বলছেন। আপনি কী বলবেন?
+  - আপনি জড়িত ছিলেন এমন একটি incident-এর কথা বলুন, আর পরে কী বদলেছিল।
+  - একটি team-এর code review culture কীভাবে উন্নত করবেন?
+- **[ব্যাখ্যা করা ও জোরে জোরে ভাবা](#ch-thinking-aloud)**
+  - কতটা clarify করা বেশি হয়ে যায়?
+  - দশ মিনিট পরে বুঝলেন আপনার পদ্ধতি কাজ করবে না। কী বলবেন?
+  - দুটো option-ই চান এমন একজন product manager-কে একটি technical trade-off কীভাবে ব্যাখ্যা করবেন?
+  - আপনার ব্যাখ্যার মাঝপথে interviewer স্পষ্টতই আপনার design-এর সঙ্গে একমত নন। কী করবেন?
+  - বাড়িয়ে না বলে, আবার নিজেকে হারিয়ে না ফেলে, team-এর কাজ নিয়ে কীভাবে কথা বলবেন?
+- **[লিখিত Communication](#ch-written-communication)**
+  - একটি pull request-কে review করা সহজ কীসে হয়?
+  - আপনার team-এর কোনো ADR নেই। Process চাপিয়ে না দিয়ে কীভাবে এগুলো চালু করবেন?
+  - কখন লিখে রাখা ভুল সিদ্ধান্ত?
+  - ব্যাপারটা না বাড়িয়ে লিখিতভাবে একজন reviewer-এর সঙ্গে কীভাবে দ্বিমত করবেন?
+- **[AI-সহায়িত Interview](#ch-ai-assisted-interview)**
+  - এই round-এ আমরা একটি AI assistant ব্যবহারের অনুমতি দিই। আপনি এটা কীভাবে ব্যবহার করবেন?
+  - Assistant এইমাত্র আপনাকে বিশটি line দিয়েছে। এরপর কী করবেন?
+  - Code-comprehension round একটি সাধারণ coding round থেকে কীভাবে আলাদা?
+  - অনুমতি থাকলেও কখন assistant ব্যবহার করতে অস্বীকার করবেন?
+
+## এরপর কী পড়বেন
+
+- [Chapter ?? — শব্দকোষ](#ch-glossary) — কোনো প্রশ্নে যে term পেয়েছেন, তার এক line-এর ব্যাখ্যা
+- [Chapter ?? — এই বইটা কীভাবে পড়বেন](#ch-how-to-read-this-book) — ছয় সপ্তাহের পরিকল্পনায় এই সূচির জায়গা কোথায়
+- [Chapter ?? — আরও পড়ার জন্য](#ch-further-reading) — পুরো একটি part ফাঁকা এলে কী পড়বেন

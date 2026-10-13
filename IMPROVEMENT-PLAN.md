@@ -33,7 +33,7 @@ If an item turns out to be wrong or blocked, **amend it and say so.** Do not ski
 > **Also fine:** _"do #101"_ to jump to one item, and _"skip #101"_ to move past one. Both beat the
 > first-unchecked rule.
 
-**Last updated:** 2026-10-12 · **Progress:** 35 / 39
+**Last updated:** 2026-10-12 · **Progress:** 36 / 39
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority on scope and budgets. If this file and
 the spec disagree, **the spec wins.**
@@ -2253,15 +2253,61 @@ Check the quality on a small part before the rest of the book.
 has said the quality is good enough to go on. Every change to the brief is written in the
 **Delivered** block, with the reason.
 
+**Progress (2026-10-13) — translated, waiting for the owner's read:**
+
+- All 22 front-matter and Part I pages are fresh. The owner asked for the whole book to be translated
+  and pushed in one go, so #129 ran without waiting for this review. The review now covers the whole
+  book: anything the owner flags goes into the brief, and the affected pages are translated again
+- **Brief changes the pilot forced, and why:**
+  - **Titles come from one map, `i18n/titles.bn.json`.** Six translators gave the same chapter
+    different Bangla names in their link text. `--write` now takes the page title from the map and
+    rewrites every cross-reference that names its target (`normaliseXrefs`, two tests)
+  - **`Chapter ?? — ` stays English** in link text, because `build-site.ts` strips only that string.
+    One translator had written `অধ্যায় ?? — `
+  - **A standard-heading table**, because `How It Works` and `Interview Questions` each came back two
+    ways. It grew during #129 to cover Moving target, Durable principle, Reach for, Interview sprint,
+    frontend-heavy, boundary, hot/cold and the DSA headings
+  - **`--title` is gone.** A title with backticks was eaten by the shell (`` `this` Keyword `` became
+    ` Keyword`)
+  - **"No backticks the English lacks"**, because three pages first failed the validator with an extra
+    inline code span
+- **Still to do:** the owner reads at least three chapters
+
 ---
 
-### - [ ] 129. Translate the rest of the book `M`
+### - [x] 129. Translate the rest of the book `M` — ✅ **done 2026-10-13**
 
 Parts II–X and the back matter, following the brief the pilot settled. This is about 1.9M
 characters, so it spans sessions. `pnpm site:translate --list` always says what is left.
 
 **Done when:** `pnpm site:translate --check` passes and reports no missing pages, or only the ones
 listed in **Delivered** as staying English, each with a reason.
+
+**Delivered:**
+
+- **All 222 pages are translated:** `pnpm site:translate --check` reports `222 fresh, 0 stale,
+  0 invalid, 0 missing`. Nothing stays English. Every page went in through `--write` and the validator
+- **How:** about 45 sub-agent batches of 30–60K characters each, run four to ten at a time, over
+  2026-10-12 and 2026-10-13. The owner's plan limits stopped two waves partway (a session limit, then a
+  weekly one). Pages that had passed were already in the cache, so nothing was lost, and
+  `site:translate --list` set the next batch. No API was called
+- **Consistency after the fact:** recurring labels that came back worded two ways were normalised
+  across the cache (Moving target → যা বদলাতে থাকে, Reach for → কী ব্যবহার করবেন, frontend-heavy kept
+  English, Interview sprint kept English), and `--normalise` re-applied the title map. One stiff
+  phrase ("UI user-এর কাছে কী ঋণী") was reworded on the two pages that had it
+- **Completeness check (no gate does this):** the Bangla word count against the English, per page,
+  runs from 0.87 to 1.02, with a median of 0.95. Line counts match to within five. No page was
+  summarised
+- **Known gaps, not fixed:**
+  - **Prose inside fences stays English.** Fences are put back from the English, so worked examples
+    that sit in a fence, such as the STAR stories in Part IX, are English on the Bangla page
+  - **`realtime-streaming` (Part V)** has a broken inline code span in the English:
+    `` `io.to(`user:${id}`).emit()` ``, with backticks nested inside backticks. The Bangla copies it
+    byte for byte. Fixing the English makes that one page stale
+  - **Two older pages use গরম/ঠান্ডা and সীমানা** where the brief now keeps hot/cold and boundary in
+    English. They were left alone, because a blanket replace would also hit ordinary prose
+- **`pnpm test` 57/57, `lint:docs` 0 violations with no regression, `site:pages` unchanged** (222
+  pages). Nothing reads `i18n/bn/` yet: the site shows the Bangla from #127
 
 ---
 
@@ -2288,8 +2334,8 @@ chapter loads with its font. `pnpm plan:check` passes, and Phase 11 shows 8/8.
 | ----- | ----- | ---- | ------ |
 | 9 | 95–116 · 95a · 113a · 113b | 25/25 | ✅ Complete |
 | 10 | 117–122 | 6/6 | ✅ Complete |
-| 11 | 123–130 | 4/8 | 🟡 In progress |
-| **Total** | **39** | **35/39** | **90%** |
+| 11 | 123–130 | 5/8 | 🟡 In progress |
+| **Total** | **39** | **36/39** | **92%** |
 
 > **Three items carry a letter**, all added on 2026-09-23 after the plan was numbered. **#95a** sits
 > straight after the spec amendment because splitting the question index changes what every later item
