@@ -44,7 +44,7 @@ TTL খুব ছোট, নয়তো working set-এর (সক্রিয�
 | --- | --- | --- | --- |
 | **Cache-aside** | Application, miss হলে | Eventual | Read-heavy, সাধারণ কাজ — default |
 | **Read-through** | Cache নিজেই, miss হলে | Eventual | Miss-এর logic প্রতিটি caller-এ নয়, এক জায়গায় চান |
-| **Write-through** | Application দুটোতেই লেখে | Read-after-write-এ strong | Write কম, আর stale read গ্রহণযোগ্য নয় |
+| **Write-through** | Application দুটিতেই লেখে | Read-after-write-এ strong | Write কম, আর stale read গ্রহণযোগ্য নয় |
 | **Write-behind** | Cache asynchronously flush করে | Eventual, আর crash হলে data হারায় | Write-heavy counter আর metric |
 
 **Cache-aside, সঙ্গে যে invalidation অবশ্যই থাকতে হবে:**
@@ -92,7 +92,7 @@ async function updateProduct(
 
 ### কী cache করবেন, আর কী নয়
 
-সিদ্ধান্তটা দুটো প্রশ্নে: কতবার পড়া হয়, আর কত দ্রুত বদলায়।
+সিদ্ধান্তটা দুটি প্রশ্নে: কতবার পড়া হয়, আর কত দ্রুত বদলায়।
 
 | Data | Read | বদলায় | রায় |
 | --- | --- | --- | --- |
@@ -105,7 +105,7 @@ async function updateProduct(
 
 ### Eviction আর store বাছাই
 
-Memory ভরে গেলে কিছু একটা সরাতে হয়। **LRU** (সবচেয়ে কম সম্প্রতি ব্যবহৃতটা evict করা) ঠিক default।
+Memory ভরে গেলে কিছু একটি সরাতে হয়। **LRU** (সবচেয়ে কম সম্প্রতি ব্যবহৃতটা evict করা) ঠিক default।
 এর জন্য Redis-এ `maxmemory-policy allkeys-lru` দরকার: শুধু `maxmemory` set করা থাকলে সে বরং write reject করে।
 **LFU** (সবচেয়ে কম বার ব্যবহৃত) জেতে দীর্ঘ সময় চলা cache-এ, যেখানে hot set স্থির, আর সাম্প্রতিকতা ভুল পথে নেয়।
 TTL expiry আসলে eviction নয়। এটা আপনার ঘোষণা, একটি copy কতক্ষণ ভুল থাকতে পারে।
@@ -117,7 +117,7 @@ clustering আর persistence আছে। Memcached জেতে শুধু �
 ### Stampede
 
 একটি hot key expire হলে, চলমান প্রতিটি request একই মুহূর্তে miss করে, আর সবাই একসঙ্গে database-এ গিয়ে পড়ে।
-দুটো প্রতিরক্ষা আছে, আর তারা একসঙ্গে কাজ করে:
+দুটি প্রতিরক্ষা আছে, আর তারা একসঙ্গে কাজ করে:
 
 ```typescript
 // 1. Jitter, so related keys stop expiring in the same second.

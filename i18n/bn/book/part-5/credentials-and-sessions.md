@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-Authentication দুটো সমস্যা: **user কে, তা প্রমাণ করা**, একবার, আর পরের প্রতিটি request-এ **সেটা মনে রাখা**।
+Authentication দুটি সমস্যা: **user কে, তা প্রমাণ করা**, একবার, আর পরের প্রতিটি request-এ **সেটা মনে রাখা**।
 Password আপনি কখনো রাখেন না — রাখেন শুধু একটি ধীর, একমুখী hash। Session বা token আপনি issue করেন, আর design-এর
 প্রশ্ন হলো, আপনি এখনো সেটা revoke করতে পারেন কি না।
 
@@ -79,7 +79,7 @@ async function login(email: string, password: string): Promise<Session> {
 }
 ```
 
-Login-এ account আর source IP দুটো ধরেই rate limit করুন ([Chapter ?? — Rate Limiting](#ch-rate-limiting))।
+Login-এ account আর source IP দুটি ধরেই rate limit করুন ([Chapter ?? — Rate Limiting](#ch-rate-limiting))।
 
 ### Session বনাম JWT
 
@@ -99,7 +99,7 @@ const token = jwt.sign({ sub: user.id, role: user.role }, SECRET, { expiresIn: '
 const claims = jwt.verify(token, SECRET, { algorithms: ['HS256'], ...opts }) as Claims;
 ```
 
-`algorithms` pin করলে `alg: none` আর algorithm confusion আটকে যায়। দুটোই token-এর নিজের header-কে বিশ্বাস করে,
+`algorithms` pin করলে `alg: none` আর algorithm confusion আটকে যায়। দুটিই token-এর নিজের header-কে বিশ্বাস করে,
 যেটা attacker-এর নিয়ন্ত্রণে।
 
 ### Refresh token

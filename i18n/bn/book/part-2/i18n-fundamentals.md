@@ -14,7 +14,7 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 Internationalisation মানে অনুবাদ নয়। এর মানে হলো ভাষা নিয়ে আপনার interface যত অনুমান করে, সবগুলো সরিয়ে ফেলা।
-লেখা বাঁ থেকে ডানে পড়া হয়। একটি noun-এর plural রূপ দুটো। Date মানে দিন, slash, মাস। একটি label তার button-এ
+লেখা বাঁ থেকে ডানে পড়া হয়। একটি noun-এর plural রূপ দুটি। Date মানে দিন, slash, মাস। একটি label তার button-এ
 এঁটে যায়।
 
 এই অনুমানগুলো সরিয়ে ফেললে, নতুন ভাষা যোগ করা শুধু একটি content-এর কাজ। এই কাজ বাদ দিলে, নতুন ভাষা যোগ করা মানে
@@ -53,7 +53,7 @@ Key-এর নাম দিন **অর্থ** অনুযায়ী, যে
 একটি URL segment-এ রাখুন। সংরক্ষিত পছন্দকে tiebreaker হিসেবে ব্যবহার করুন, আর শেষে `navigator.languages`-এ
 fall back করুন। স্পষ্টভাবে বেছে নেওয়া locale সবসময় detect করা locale-এর চেয়ে অগ্রাধিকার পায়।
 
-Locale বদলানো মানে তিনটি side effect। মানুষ শেষ দুটো ভুলে যায়, অথচ screen reader আর right-to-left layout সেগুলোর
+Locale বদলানো মানে তিনটি side effect। মানুষ শেষ দুটি ভুলে যায়, অথচ screen reader আর right-to-left layout সেগুলোর
 ওপরই নির্ভর করে।
 
 ```typescript
@@ -69,7 +69,7 @@ async function setLocale(locale: string): Promise<void> {
 
 ### Plural-এর নিয়ম locale-এর
 
-English-এ plural রূপ দুটো। এটা ইতিহাসের একটি দুর্ঘটনা, ভাষার কোনো নিয়ম নয়। Chinese-এ রূপ একটি। Russian-এ পূর্ণসংখ্যার
+English-এ plural রূপ দুটি। এটা ইতিহাসের একটি দুর্ঘটনা, ভাষার কোনো নিয়ম নয়। Chinese-এ রূপ একটি। Russian-এ পূর্ণসংখ্যার
 জন্য রূপ তিনটি, শেষ অঙ্ক দেখে বেছে নেওয়া হয়। Arabic-এ রূপ ছয়টি, যার মধ্যে ঠিক দুইয়ের জন্য একটি আলাদা রূপও আছে।
 
 Unicode CLDR (শেয়ার করা locale data) ছয়টি category-র নাম দেয়: `zero`, `one`, `two`, `few`, `many` আর
@@ -134,7 +134,7 @@ new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" }).format(-1, "day"); // 
 bidirectional algorithm-ও চালায়। কিন্তু আপনি যা কিছু `left` আর `right` হিসেবে লিখেছেন, সেগুলো যেখানে ছিল সেখানেই
 থাকে। পুরো bug এটুকুই।
 
-| Physical — RTL-এ ভেঙে যায় | Logical — দুটোতেই কাজ করে |
+| Physical — RTL-এ ভেঙে যায় | Logical — দুটিতেই কাজ করে |
 | ------------------------ | ----------------------- |
 | `margin-left` / `margin-right` | `margin-inline-start` / `margin-inline-end` |
 | `padding-left` / `padding-right` | `padding-inline-start` / `padding-inline-end` |
@@ -162,7 +162,7 @@ direction বুঝে নিতে দেয়।
 | সাধারণ গোনা noun | Plural suffix key, library বেছে নেয় | সবচেয়ে কম আনুষ্ঠানিকতা, আর translator-রা রীতিটা জানেন |
 | Plural আর gender একসঙ্গে | ICU MessageFormat | Suffix key-তে প্রতিটি combination-এর জন্য একটি করে key লাগত |
 | যেকোনো নতুন stylesheet | প্রথম commit থেকেই logical property | একই পরিমাণ typing, আর পরে কোনো RTL migration নেই |
-| Date arithmetic — এক মাস যোগ, দুটো date-এর পার্থক্য | `Temporal` বা একটি date library | `Intl` value format করে; হিসাব করে না |
+| Date arithmetic — এক মাস যোগ, দুটি date-এর পার্থক্য | `Temporal` বা একটি date library | `Intl` value format করে; হিসাব করে না |
 
 ## সাধারণ ভুল
 

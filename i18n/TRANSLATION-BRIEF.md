@@ -34,7 +34,7 @@ it the way you would explain it out loud. These are the habits that gave the fir
 
 | Translationese | Write instead | Why |
 | -------------- | ------------- | --- |
-| `একটি` before every noun, copying "a/an" | Drop it, or use `একটা` / `-টা` / `-টি` only where Bangla needs a count | Bangla has no article. `একটি closure প্রশ্ন` is English grammar |
+| `একটি` before every noun, copying "a/an" | Drop it, or use `একটি` / `-টি` only where Bangla needs a count | Bangla has no article. `একটি closure প্রশ্ন` is English grammar |
 | English sentence order: `TDZ সেটাকে একটি stack trace-এ পরিণত করে` | Rebuild the sentence: `TDZ থাকলে সেখানেই error হয়, আর stack trace দোষী line-টা দেখিয়ে দেয়` | Bangla puts the verb last and prefers cause → effect |
 | Stiff verbs: `পরিণত করে`, `গণ্য হয়`, `নির্ধারণ করে`, `প্রদান করে`, `সম্পন্ন হয়` | `হয়ে যায়`, `ধরা হয়`, `ঠিক হয়`, `দেয়`, `শেষ হয়` | Nobody talks like a government notice |
 | `সে` for an engine, browser or function | Repeat the noun, or restructure | `সে` is for people; it sounds like a literal "it" |
@@ -46,8 +46,10 @@ it the way you would explain it out loud. These are the habits that gave the fir
 **Test before `--write`:** read the page aloud in your head. If a sentence only makes sense once you
 picture the English behind it, rewrite it.
 
-**`-টা` and `-টি`:** prefer `-টা` and `একটা` in explanation, the way people speak. `-টি` is fine in
-headings and tables. Do not mix both on the same noun in one paragraph.
+**Counting words use book spelling, `-টি`:** `একটি`, `দুটি`, `তিনটি`, `চারটি`, `পাঁচটি`, `প্রতিটি`,
+`কয়েকটি`, `আরেকটি` — with their endings `দুটিই`, `তিনটির`, `একটিতে`. Never the spoken `দুটো`, `তিনটে`,
+`চারটে`, `পাঁচটা`. Clock times keep `-টা`: `রাত তিনটায়`. The plain English stays plain; the Bangla
+spelling is the standard printed one.
 
 **Inline code and natural Bangla:** the validator counts backtick spans, so mention an identifier in
 backticks exactly as often as the English does. A repeat mention that the English leaves out can be

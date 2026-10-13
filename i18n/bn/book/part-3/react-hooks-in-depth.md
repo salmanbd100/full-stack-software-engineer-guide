@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-একটি hook একটি component instance-এর সাথে কিছু একটা যুক্ত করে: একটি value, একটি subscription, এক টুকরো কাজ।
+একটি hook একটি component instance-এর সাথে কিছু একটি যুক্ত করে: একটি value, একটি subscription, এক টুকরো কাজ।
 Component function নিজে কোনো state রাখে না, আর প্রতিটি render-এ ওপর থেকে নিচে চলে। State থাকে এর বাইরে, একটি
 list-এ, যেটা React ধরে রাখে। **React আপনার hook call-গুলোকে ওই list-এর সাথে মেলায় call order দিয়ে।**
 
@@ -31,7 +31,7 @@ component-এর call করা তৃতীয় hook"। Render থেকে 
 | --------------------------------------------- | --------------------------------------------------- |
 | Hook call করুন top level-এ, কখনো branch, loop বা early return-এর ভেতরে নয় | Call order সরে যায়, আর state ভুল slot থেকে পড়া হয় |
 | Hook call করুন শুধু component বা অন্য hook থেকে | State যুক্ত করার মতো কোনো instance React-এর কাছে থাকে না        |
-| Custom hook-এর নাম দিন `useSomething`               | Linter আর React Compiler দুটোই এর ওপর নির্ভর করে   |
+| Custom hook-এর নাম দিন `useSomething`               | Linter আর React Compiler দুটিই এর ওপর নির্ভর করে   |
 
 React 19 একটি ইচ্ছাকৃত ব্যতিক্রম যোগ করে: **`use` শর্তসাপেক্ষে call করা যায়।** এটা একটি promise বা একটি context
 পড়ে। এটা একটি `if` বা loop-এর ভেতরে থাকতে পারে, কারণ এর নিজের কোনো state slot নেই। বাকি প্রতিটি hook এখনও ওপরের
@@ -39,7 +39,7 @@ React 19 একটি ইচ্ছাকৃত ব্যতিক্রম য�
 
 ### `useState` বনাম `useRef`
 
-দুটোই re-render পার হয়ে টিকে থাকে। কিন্তু render ঘটায় শুধু একটি।
+দুটিই re-render পার হয়ে টিকে থাকে। কিন্তু render ঘটায় শুধু একটি।
 
 | দরকার                                       | ব্যবহার করুন        | কেন                                            |
 | ------------------------------------------ | ---------- | ----------------------------------------------- |

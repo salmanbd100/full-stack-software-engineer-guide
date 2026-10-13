@@ -116,7 +116,7 @@ database Frankfurt-এ, প্রতিটি query-তে 90 ms দেয় �
 একটি বৈশিষ্ট্য, আর পূর্ণ origin runtime ঠিকঠাকই stream করে।
 [Chapter ?? — Streaming HTML](#ch-streaming-html) দেখুন।
 
-ভুল ধারণাটি আছে, কারণ দুটো feature একই platform-এ একসঙ্গে এসেছিল। Streaming পাওয়ার জন্য edge runtime বেছে নেওয়া
+ভুল ধারণাটি আছে, কারণ দুটি feature একই platform-এ একসঙ্গে এসেছিল। Streaming পাওয়ার জন্য edge runtime বেছে নেওয়া
 মানে npm package, database driver আর দীর্ঘ সময় ছেড়ে দেওয়া — এমন একটি জিনিসের জন্য, যা আপনার আগেই ছিল।
 
 ## কখন ব্যবহার করবেন
@@ -153,7 +153,7 @@ database Frankfurt-এ, প্রতিটি query-তে 90 ms দেয় �
 
 ## 🔑 মূল শিক্ষা
 
-- তিনটি tier: CDN-এ কোনো compute নেই, edge-এ কোনো data নেই, origin-এ compute আর data দুটোই আছে।
+- তিনটি tier: CDN-এ কোনো compute নেই, edge-এ কোনো data নেই, origin-এ compute আর data দুটিই আছে।
 - Data পর্যন্ত latency সাধারণত user পর্যন্ত latency-কে ছাপিয়ে যায়। Compute সরানোর আগে round trip গুনুন।
 - Edge মানায় একটি request নিয়ে constant-time সিদ্ধান্তে, database পড়ে এমন rendering-এ নয়।
 - Render হওয়া output cache করা latency, খরচ আর availability — তিনটিতেই একসঙ্গে edge rendering-কে হারায়।
@@ -175,7 +175,7 @@ trip কয়েকটিতে পরিণত হয়। Data যদি ক
 
 **Q: একটি globally distributed application-এ authentication কোথায় করবেন?**
 
-দুটো স্তরে। Edge-এ একটি সস্তা উপস্থিতি-যাচাই চালান: কোনো session cookie আছে কি, আর সেটা কি ঠিক গড়নের? এটা
+দুটি স্তরে। Edge-এ একটি সস্তা উপস্থিতি-যাচাই চালান: কোনো session cookie আছে কি, আর সেটা কি ঠিক গড়নের? এটা
 unauthenticated traffic-কে কোনো খরচ হওয়ার আগেই redirect করে দেয়। আসল যাচাই হয় session store বা database-এর
 একই region-এ। শুধু সেখানেই এটা একটি local round trip-এ চলতে পারে।
 
@@ -183,7 +183,7 @@ unauthenticated traffic-কে কোনো খরচ হওয়ার আগ�
 
 প্রথমে cache করুন। HTML যদি share করা যায়, তাহলে CDN সেটা Frankfurt থেকে serve করে, কোনো compute ছাড়াই। যদি এটা
 সত্যিই প্রতিটি request-এর জন্য আলাদা হয়, তাহলে দেখুন function-টি database-এর একই region-এ চলছে কি না। প্রায়ই
-আসল bug সেটাই। এই দুটোর পরেই শুধু আমি Europe-এ একটি read replica-র কথা ভাবব। Render-কে edge-এ সরানো শেষ option,
+আসল bug সেটাই। এই দুটির পরেই শুধু আমি Europe-এ একটি read replica-র কথা ভাবব। Render-কে edge-এ সরানো শেষ option,
 প্রথম নয়।
 
 ## এরপর কী পড়বেন

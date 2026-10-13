@@ -47,7 +47,7 @@ update হতে দেয়। তাই অসাবধানে লেখা
   commit করেছে।
 - **Phantom read** — একটি query আবার চালিয়ে নতুন row খুঁজে পাওয়া। Postgres-এর snapshot isolation `REPEATABLE READ`-এ
   এটা আটকায়, যেটা SQL standard দাবি করে না।
-- **Lost update** — দুটো transaction একই value পড়ে, দুজনেই সেটা থেকে হিসাব করে, আর দ্বিতীয় write প্রথমটার ওপর
+- **Lost update** — দুটি transaction একই value পড়ে, দুজনেই সেটা থেকে হিসাব করে, আর দ্বিতীয় write প্রথমটার ওপর
   overwrite করে।
 
 Postgres `REPEATABLE READ`-কে snapshot isolation হিসেবে implement করে: আপনার transaction database-কে দেখে তার প্রথম
@@ -101,7 +101,7 @@ COMMIT;
 
 ## Deadlock
 
-দুটো transaction-এর প্রতিটি সেটা ধরে আছে, যেটা অন্যটার দরকার। Database এই চক্রটা ধরে ফেলে আর একটি deadlock error
+দুটি transaction-এর প্রতিটি সেটা ধরে আছে, যেটা অন্যটার দরকার। Database এই চক্রটা ধরে ফেলে আর একটি deadlock error
 দিয়ে একটিকে মেরে ফেলে।
 
 ```text
@@ -172,8 +172,8 @@ async function transfer(fromId: string, toId: string, amount: number): Promise<v
 
 **Q: Lost update কী, আর default isolation level কি এটা আটকায়?**
 
-দুটো transaction একই value পড়ে, প্রতিটি সেটা থেকে একটি নতুন value হিসাব করে, আর দ্বিতীয় write প্রথমটার ওপর
-overwrite করে। একটি update হারিয়ে যায়। `READ COMMITTED` এটা আটকায় না: দুটো read-ই বৈধ, দুটো write-ও বৈধ। আপনার
+দুটি transaction একই value পড়ে, প্রতিটি সেটা থেকে একটি নতুন value হিসাব করে, আর দ্বিতীয় write প্রথমটার ওপর
+overwrite করে। একটি update হারিয়ে যায়। `READ COMMITTED` এটা আটকায় না: দুটি read-ই বৈধ, দুটি write-ও বৈধ। আপনার
 লাগবে database-এর ভেতরে হিসাব, একটি version check, বা একটি row lock।
 
 **Q: Optimistic নাকি pessimistic locking?**

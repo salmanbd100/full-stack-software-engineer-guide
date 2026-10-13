@@ -17,7 +17,7 @@ Rate limiting একটি নির্দিষ্ট সময়ের window
 
 Interview-এ যে framing নম্বর পায়: rate limiting খারাপ লোকদের আটকানোর ব্যাপার নয়। এটা হলো **প্রতিযোগিতার মধ্যে ন্যায্যতা**, যখন অনেক caller একই capacity-র জন্য লড়ে। যে limit একটি buggy client-কে বাকি সবাইকে না খাইয়ে রাখা থেকে আটকায়, কেউ আক্রমণ না করলেও সেটা তার কাজ করছে।
 
-এই অধ্যায় limiter-টি বানায়। দুটো প্রশ্ন অন্য অধ্যায়ের: stack-এর কোথায় enforcement বসে (CDN, gateway, তারপর service), আর সেকেন্ডে দশ লাখ request-এ এর খরচ কত। দেখুন [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries)।
+এই অধ্যায় limiter-টি বানায়। দুটি প্রশ্ন অন্য অধ্যায়ের: stack-এর কোথায় enforcement বসে (CDN, gateway, তারপর service), আর সেকেন্ডে দশ লাখ request-এ এর খরচ কত। দেখুন [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries)।
 
 ## কীভাবে কাজ করে
 
@@ -57,13 +57,13 @@ limit = 100 per minute
 
 **Sliding window counter** বাস্তবসম্মত আপস: বর্তমান window-এর গণনা আর আগের window-এর গণনা রাখুন, আর আগেরটির কতটা এখনো overlap করছে, সেই অনুপাতে তাকে weight দিন।
 
-প্রতি key-তে দুটো counter, O(1), আর সীমানায় 2× burst নেই। একটি window-এর ভেতরে traffic অসমান হলে এটা কয়েক শতাংশ ভুল হতে পারে। Cloudflare একই কারণে এই বিনিময় মেনে নিয়েছে।
+প্রতি key-তে দুটি counter, O(1), আর সীমানায় 2× burst নেই। একটি window-এর ভেতরে traffic অসমান হলে এটা কয়েক শতাংশ ভুল হতে পারে। Cloudflare একই কারণে এই বিনিময় মেনে নিয়েছে।
 
 ### Token Bucket
 
 একটি bucket সর্বোচ্চ `capacity`-টি token ধরে, আর `refillPerSec` হারে ভরে ওঠে। প্রতিটি request তার খরচের সমান token খরচ করে। খালি bucket মানে reject।
 
-**দুটো dial, দুটো অর্থ** — interviewer-রা এই অংশটাই খোঁচান:
+**দুটি dial, দুটি অর্থ** — interviewer-রা এই অংশটাই খোঁচান:
 
 | Dial | নিয়ন্ত্রণ করে | উদাহরণ |
 | ---- | -------- | ------- |
@@ -79,14 +79,14 @@ limit = 100 per minute
 | Traffic-এর ধরন | Algorithm | কারণ |
 | ------------- | --------- | ------ |
 | Public API, client-রা বৈধভাবে burst করে | Token bucket | Burst চলে, গড় ধরে রাখা হয় |
-| Request-এর খরচ ভীষণ আলাদা | প্রতি-endpoint খরচসহ token bucket | একটি dial-ই দুটো সামলায় |
+| Request-এর খরচ ভীষণ আলাদা | প্রতি-endpoint খরচসহ token bucket | একটি dial-ই দুটি সামলায় |
 | স্থির traffic, সহজ সঠিকতা চান | Sliding window counter | O(1), আর সীমানায় spike নেই |
 | একটি downstream সীমা ছাড়ানো চলবে না | Leaky bucket | Reject না করে output মসৃণ করে |
 | Internal service, অপব্যবহার নিয়ে চিন্তা নেই | Fixed window | কাজ করে এমন সবচেয়ে সস্তা জিনিস |
 
 ## Instance জুড়ে গণনা
 
-একাধিক instance-এর একটি shared counter দরকার, আর check-টি হতে হবে **atomic**। Read, refill আর write একটি ধাপে হতে হবে, নইলে একসাথে আসা দুটো request দুটোই শেষ token-টি দেখে।
+একাধিক instance-এর একটি shared counter দরকার, আর check-টি হতে হবে **atomic**। Read, refill আর write একটি ধাপে হতে হবে, নইলে একসাথে আসা দুটি request দুটিই শেষ token-টি দেখে।
 
 ```typescript
 // Redis Lua runs atomically: no other command interleaves.
@@ -121,7 +121,7 @@ const TOKEN_BUCKET = `
 এটা `redis.eval` দিয়ে call করুন: bucket key `keys`-এ, আর capacity, refill rate, বর্তমান সময় আর খরচ
 `arguments`-এ। তারপর দুই element-এর reply-টি `[allowed, remaining]` হিসেবে পড়ুন।
 
-**কেন Lua, `INCR` আর `EXPIRE` নয়:** ওগুলো দুটো round trip। দুটোর মাঝে process মারা গেলে আপনি পান TTL ছাড়া একটি key, যেটা caller-কে চিরকাল আটকে রাখে। Lua পুরো সিদ্ধান্তটাকে একটি atomic operation বানায়।
+**কেন Lua, `INCR` আর `EXPIRE` নয়:** ওগুলো দুটি round trip। দুটির মাঝে process মারা গেলে আপনি পান TTL ছাড়া একটি key, যেটা caller-কে চিরকাল আটকে রাখে। Lua পুরো সিদ্ধান্তটাকে একটি atomic operation বানায়।
 
 > ⚠️ **এখন প্রতিটি request-এর খরচ একটি Redis round trip।** বেশি volume-এ একটি local pre-check যোগ করুন: প্রতি instance-এ একটি ছোট বরাদ্দ রাখুন, আর সেটা ফুরোলে তবেই Redis-কে জিজ্ঞেস করুন। আপনি latency-র বদলে নির্ভুলতা ছাড়ছেন। সাধারণত সেটাই সঠিক সিদ্ধান্ত, কিন্তু মুখে বলুন। Redis বিনামূল্যে, এমন ভান করবেন না।
 
@@ -162,7 +162,7 @@ res.status(429).set({
 }).json({ title: "Too Many Requests", status: 429, detail: "Retry in 42 seconds." });
 ```
 
-Header-গুলো **সফল** response-এও পাঠান। যে client `remaining=3` দেখতে পায়, সে নিজেই গতি কমায়। যে client limit-এর কথা জানে শুধু `429`-এ, সে পারে না। আর `429` রাখুন "আপনি বেশি পাঠিয়েছেন"-এর জন্য। `503` মানে service নিজেই বিপদে, আর দুটো গুলিয়ে ফেললে downstream-এর প্রতিটি retry policy ভুল পথে যায়।
+Header-গুলো **সফল** response-এও পাঠান। যে client `remaining=3` দেখতে পায়, সে নিজেই গতি কমায়। যে client limit-এর কথা জানে শুধু `429`-এ, সে পারে না। আর `429` রাখুন "আপনি বেশি পাঠিয়েছেন"-এর জন্য। `503` মানে service নিজেই বিপদে, আর দুটি গুলিয়ে ফেললে downstream-এর প্রতিটি retry policy ভুল পথে যায়।
 
 **Redis-এ পৌঁছানো না গেলে, জোরে জানিয়ে fail open করুন।** Error ধরুন, log করুন, একটি counter বাড়ান, যেমন
 `ratelimit.unavailable`, আর `next()` call করুন। নিঃশব্দে মরে থাকা একটি limiter-ই আসল ঝুঁকি। আপনি চান একটি
@@ -175,7 +175,7 @@ alert, reject নয়।
 ❌ **কয়েকটি instance-এর পেছনে একটি local `Map`-এ counter।** কার্যকর limit configure করা limit-এর N×।
 ✅ Counter shared করুন, আর সিদ্ধান্তটা একটি round trip-এ atomic করুন।
 
-❌ **দুটো call হিসেবে `INCR` তারপর `EXPIRE`।** দুটোর মাঝে crash হলে থেকে যায় TTL ছাড়া একটি key, যেটা caller-কে চিরকাল আটকে রাখে।
+❌ **দুটি call হিসেবে `INCR` তারপর `EXPIRE`।** দুটির মাঝে crash হলে থেকে যায় TTL ছাড়া একটি key, যেটা caller-কে চিরকাল আটকে রাখে।
 ✅ একটি Lua script, একটি atomic সিদ্ধান্ত।
 
 ❌ **প্রথম `X-Forwarded-For` value পড়া।** যে কেউ প্রতি request-এ একটি নতুন পরিচয় জাল করতে পারে।
@@ -187,13 +187,13 @@ alert, reject নয়।
 ❌ **প্রথম দিন থেকেই নতুন limit বলবৎ করা।** আসল traffic যে কারও অনুমানের চেয়ে বেশি burst করে।
 ✅ এক সপ্তাহ monitor mode-এ চালান, আর কী block *হতো* তা log করুন।
 
-> ⚠️ **Rate limiting DDoS সুরক্ষা নয়।** একটি volumetric attack আপনার middleware চলার আগেই bandwidth ভরে দেয়। এটা CDN আর WAF-এর (web application firewall) কাজ। দুটো গুলিয়ে ফেলা interview-এ একটি সাধারণ হোঁচট।
+> ⚠️ **Rate limiting DDoS সুরক্ষা নয়।** একটি volumetric attack আপনার middleware চলার আগেই bandwidth ভরে দেয়। এটা CDN আর WAF-এর (web application firewall) কাজ। দুটি গুলিয়ে ফেলা interview-এ একটি সাধারণ হোঁচট।
 
 ## 🔑 মূল শিক্ষা
 
 - Public API-র default token bucket, কারণ এটা দীর্ঘমেয়াদি গড় ধরে রেখেও একটি সত্যিকারের burst সহ্য করে।
 - Fixed window একটি সীমানা জুড়ে limit-এর 2× অনুমতি দেয়, আর ঠিক তখনই limit-টা দরকার ছিল।
-- Distributed গণনা তখনই সঠিক, যখন read, refill আর write atomic-ভাবে হয়: একটি Lua script, দুটো command নয়।
+- Distributed গণনা তখনই সঠিক, যখন read, refill আর write atomic-ভাবে হয়: একটি Lua script, দুটি command নয়।
 - পাওয়া যায় এমন সবচেয়ে শক্ত পরিচয়ের ওপর key করুন, আর `X-Forwarded-For`-কে অবিশ্বস্ত ধরুন, যদি না আপনার নিজের একটি proxy সেটা আবার লিখে থাকে।
 - একটি alert-সহ fail open করুন। একটি limiter outage যেন API outage না হয়ে যায়।
 
@@ -201,7 +201,7 @@ alert, reject নয়।
 
 **Q: Fixed window-এ সমস্যা কী?**
 
-সীমানার burst। একজন client 12:00:59-এ পুরো limit পাঠাতে পারে, আর 12:01:00-এ আবার পুরো limit। তাই প্রায় এক সেকেন্ডে সে উদ্দিষ্ট হারের 2× পায়। Sliding window counter দুটো counter আর একটি weighted overlap দিয়ে এটা ঠিক করে। এটা O(1) memory রাখে আর সীমানায় কোনো spike নেই, বিনিময়ে window-এর ভেতরে traffic অসমান হলে কয়েক শতাংশ ভুল।
+সীমানার burst। একজন client 12:00:59-এ পুরো limit পাঠাতে পারে, আর 12:01:00-এ আবার পুরো limit। তাই প্রায় এক সেকেন্ডে সে উদ্দিষ্ট হারের 2× পায়। Sliding window counter দুটি counter আর একটি weighted overlap দিয়ে এটা ঠিক করে। এটা O(1) memory রাখে আর সীমানায় কোনো spike নেই, বিনিময়ে window-এর ভেতরে traffic অসমান হলে কয়েক শতাংশ ভুল।
 
 **Q: অনেক server জুড়ে সঠিকভাবে কীভাবে গুনবেন?**
 

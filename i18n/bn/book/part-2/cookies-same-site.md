@@ -199,7 +199,7 @@ user বেছে নেওয়ার পরে।
 
 ## সাধারণ ভুল
 
-**❌ কিছু একটা চালু করতে `SameSite=None` set করা।** এই value সুরক্ষাটা বন্ধ করে দেয়। এটা ঠিক শুধু তখনই, যখন cookie-কে
+**❌ কিছু একটি চালু করতে `SameSite=None` set করা।** এই value সুরক্ষাটা বন্ধ করে দেয়। এটা ঠিক শুধু তখনই, যখন cookie-কে
 সত্যিই third-party context-এ যেতে হয়। একটি request "cookie পাঠাচ্ছিল না" বলে যদি এটা ব্যবহার করেন, তাহলে প্রতিটি
 request থেকে CSRF সুরক্ষা সরিয়ে দিচ্ছেন।
 
@@ -238,7 +238,7 @@ script আগেই চালিয়ে দিয়েছে, সেটাও
 
 **Q: Auth cookie-র জন্য `Secure`-এর চেয়ে `HttpOnly` কেন বেশি গুরুত্বপূর্ণ?**
 
-`HttpOnly` JavaScript-কে cookie পড়তে দেয় না। এটা XSS-নির্ভর token চুরি থামায়, আর XSS হলো সবচেয়ে সাধারণ web attack। `Secure` শুধু network path-এ থাকা attacker থেকে রক্ষা করে, যেটা HTTPS এমনিতেই মূলত সমাধান করে দেয়। দুটোই চান, কিন্তু `HttpOnly`-এর লাভ বড়।
+`HttpOnly` JavaScript-কে cookie পড়তে দেয় না। এটা XSS-নির্ভর token চুরি থামায়, আর XSS হলো সবচেয়ে সাধারণ web attack। `Secure` শুধু network path-এ থাকা attacker থেকে রক্ষা করে, যেটা HTTPS এমনিতেই মূলত সমাধান করে দেয়। দুটিই চান, কিন্তু `HttpOnly`-এর লাভ বড়।
 
 **Q: `SameSite` কীভাবে CSRF ঠেকায়?**
 
@@ -250,7 +250,7 @@ Page-এর যেকোনো script `localStorage` পড়তে পার�
 
 **Q: `app.example.com` আর `api.example.com` জুড়ে auth কীভাবে করবেন?**
 
-Cookie `Domain=example.com` দিয়ে set করুন, যাতে দুটো subdomain-ই এটা পায়। `Secure` ব্যবহার করুন, আর `SameSite=Lax`, বা cross-site flow না লাগলে `Strict`। API যদি সম্পূর্ণ আলাদা registrable domain-এ থাকে, তাহলে `SameSite=None; Secure` আর `credentials: "include"` সহ CORS লাগবে।
+Cookie `Domain=example.com` দিয়ে set করুন, যাতে দুটি subdomain-ই এটা পায়। `Secure` ব্যবহার করুন, আর `SameSite=Lax`, বা cross-site flow না লাগলে `Strict`। API যদি সম্পূর্ণ আলাদা registrable domain-এ থাকে, তাহলে `SameSite=None; Secure` আর `credentials: "include"` সহ CORS লাগবে।
 
 ## এরপর কী পড়বেন
 

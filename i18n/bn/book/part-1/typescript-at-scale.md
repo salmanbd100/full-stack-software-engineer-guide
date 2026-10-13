@@ -50,7 +50,7 @@ Interviewer-রা প্রায় নিশ্চিতভাবেই এ�
 
 `strict`-এর বাইরে দুটি কাজের flag আছে। `noUncheckedIndexedAccess` দিলে `arr[i]` থেকে `T | undefined` আসে।
 এটাই সত্য, কিন্তু loop-ভরা code-এ এটা অনেক গোলমাল করে। `exactOptionalPropertyTypes` "নেই" আর "আছে, কিন্তু
-`undefined`"-কে আলাদা করে, আর এটা সাধারণ spread pattern ভেঙে দেয়। দুটোই opt-in, কারণ খরচটা সত্যিকারের।
+`undefined`"-কে আলাদা করে, আর এটা সাধারণ spread pattern ভেঙে দেয়। দুটিই opt-in, কারণ খরচটা সত্যিকারের।
 
 ### `satisfies` widen না করে check করে
 
@@ -78,7 +78,7 @@ type RouteName = keyof typeof routes; // "home" | "admin"
 ```
 
 এক লাইনে পার্থক্য: **annotation হলো variable-টি কী, সেই বিষয়ে একটি দাবি; `satisfies` হলো value-টি মানছে কি না,
-সেই check।** Annotation দিলে আপনি validation পান, আর key-গুলো হারান। `satisfies` দিলে দুটোই পান, আর
+সেই check।** Annotation দিলে আপনি validation পান, আর key-গুলো হারান। `satisfies` দিলে দুটিই পান, আর
 `keyof typeof` একটি ব্যবহারযোগ্য union হয়ে যায়। তাই route table, theme token, feature-flag map আর permission
 তালিকার জন্য এটাই ঠিক হাতিয়ার। একই যুক্তি শুধু `as const`-এর বিরুদ্ধেও খাটে, যেটা literal রাখে কিন্তু কিছুই check
 করে না। Readonly-ও চাইলে `as const satisfies T` একটি সঠিক জোড়া।
@@ -215,7 +215,7 @@ error থাকে না। `satisfies` একইভাবে validate কর�
 
 যখন একটি file-এ editor ধীর হয়ে যায়, যখন শুধু একজনই একটি type নিরাপদে বদলাতে পারেন, বা যখন একটি অমিল থেকে
 চল্লিশ লাইনের এমন error আসে, যেটা কেউ পড়তে পারে না। তিনটিই বলে, type-টি যা কিনে দেয়, তার সীমা পেরিয়ে গেছে।
-সাধারণ বিকল্প হলো একটি runtime schema। একটিমাত্র declaration একটি runtime check আর একটি inferred type দুটোই
+সাধারণ বিকল্প হলো একটি runtime schema। একটিমাত্র declaration একটি runtime check আর একটি inferred type দুটিই
 দেয়। Boundary পার হওয়া যেকোনো কিছুর জন্য সেটা বেশি নিরাপদ, আর maintain করা অনেক সস্তা।
 
 ## এরপর কী পড়বেন

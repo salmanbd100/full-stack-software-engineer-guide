@@ -9,18 +9,18 @@ model: "claude-opus-5-5 (Claude Code)"
 
 > CSR থেকে Server Components পর্যন্ত spectrum-এর প্রতিটি বিন্দুর নাম বলুন। তারপর একটি বেছে নেওয়ার আগে বলুন, প্রতিটি browser-এর কাছে কত খরচ চায়।
 
-**এই অধ্যায়ে:** প্রতিটি strategy-র পেছনের দুটো প্রশ্ন · CSR, SSR, SSG, ISR, PPR · hydration কী আবার তৈরি করে · islands, progressive hydration আর resumability · সিদ্ধান্তের table
+**এই অধ্যায়ে:** প্রতিটি strategy-র পেছনের দুটি প্রশ্ন · CSR, SSR, SSG, ISR, PPR · hydration কী আবার তৈরি করে · islands, progressive hydration আর resumability · সিদ্ধান্তের table
 
 ## 💡 মূল ধারণা
 
-প্রতিটি rendering strategy দুটো প্রশ্নের উত্তর দেয়, শুধু দুটোই।
+প্রতিটি rendering strategy দুটি প্রশ্নের উত্তর দেয়, শুধু দুটিই।
 
 **HTML কখন তৈরি হয়?** Build-এর সময়, request-এর সময়, নাকি page load হওয়ার পর browser-এ।
 **JavaScript কোথায় চলে?** একটি server-এ, একটি CDN edge location-এ, নাকি user-এর device-এ।
 
-এই দুটো প্রশ্নকে আড়াআড়ি মেলালেই grid-টি পেয়ে যান। SSG হলো build-এর সময়, একটি server-এ। SSR হলো request-এর
+এই দুটি প্রশ্নকে আড়াআড়ি মেলালেই grid-টি পেয়ে যান। SSG হলো build-এর সময়, একটি server-এ। SSR হলো request-এর
 সময়, একটি server-এ। CSR হলো request-এর সময়, device-এ। ISR হলো build-এর সময়, তারপর আবার তৈরি করে cache করা।
-Partial Prerendering একই response-এ দুটোই একসাথে।
+Partial Prerendering একই response-এ দুটিই একসাথে।
 
 তবে server HTML-এর একটি ফাঁদ আছে। এতে কোনো listener নেই, কোনো state নেই। তাই framework সেগুলো জুড়তে browser-এ
 একই component-গুলো আবার চালায়। এই দ্বিতীয় দফাটিই **hydration**। এর খরচ পুরো tree-র সমান, শুধু interactive অংশের
@@ -49,7 +49,7 @@ flowchart LR
   F -->|Browser| H[CSR<br/>ship a shell and a bundle]
 ```
 
-**পাঁচটি strategy, যাদের পার্থক্য শুধু একটাই: request আসার আগে কতটা HTML তৈরি হয়ে আছে।**
+**পাঁচটি strategy, যাদের পার্থক্য শুধু একটিই: request আসার আগে কতটা HTML তৈরি হয়ে আছে।**
 
 | Strategy | HTML তৈরি হয় | প্রতি request-এ server-এর কাজ | Data কতটা fresh |
 | -------- | ---------- | ----------------------- | -------------- |
@@ -68,7 +68,7 @@ flowchart LR
 ISR ঠিক SSR-এর মতোই render করে। পার্থক্য হলো output কোথায় যায়। এটা একটি নির্দিষ্ট মেয়াদসহ টেকসই cache-এ লেখা হয়,
 আর পরের request render না করে cache থেকে পড়ে।
 
-মেয়াদ শেষ হলে দুই রকম আচরণ সম্ভব। এ দুটো গুলিয়ে ফেললে সত্যিকারের incident ঘটে:
+মেয়াদ শেষ হলে দুই রকম আচরণ সম্ভব। এ দুটি গুলিয়ে ফেললে সত্যিকারের incident ঘটে:
 
 - **Invalidate** — stale copy-টি সঙ্গে সঙ্গে serve করুন, আর background-এ আবার তৈরি করুন। User কোনো কিছুর জন্য
   অপেক্ষা করে না। এটাই *stale-while-revalidate*, ISR ship করা প্রতিটি framework-এর default।
@@ -167,7 +167,7 @@ hydration সমস্যা নয়। তার বদলে একটি �
 | কয়েকটি interactive widget-সহ content site | **SSG + islands** | Page-এর বেশিরভাগ অংশে কখনো JavaScript লাগেনি |
 | বড় app, field-এ ধীর device | **Server Components** বা resumability | Tree-র আকারই খরচ |
 
-দুটো নিয়ম সব ক্ষেত্রেই খাটে। প্রথমত: **যা shared, তা cache করুন; যা personal, তা render করুন।** দ্বিতীয়ত: **একটি
+দুটি নিয়ম সব ক্ষেত্রেই খাটে। প্রথমত: **যা shared, তা cache করুন; যা personal, তা render করুন।** দ্বিতীয়ত: **একটি
 route-এর আলাদা cache key যত বেশি, caching-এর মূল্য তত কম।** User অনুযায়ী key করা একটি page-এর hit rate প্রায় শূন্য।
 
 ## সাধারণ ভুল
@@ -189,7 +189,7 @@ route-এর আলাদা cache key যত বেশি, caching-এর ম�
 
 ## 🔑 মূল শিক্ষা
 
-- প্রতিটি strategy দুটো প্রশ্নের উত্তর দেয়: HTML কখন তৈরি হয়, আর code কোথায় চলে।
+- প্রতিটি strategy দুটি প্রশ্নের উত্তর দেয়: HTML কখন তৈরি হয়, আর code কোথায় চলে।
 - ISR হলো SSR আর একটি মেয়াদসহ cache, আর hole আছে এমন প্রতিটি request-এ PPR এখনো একটি function চালায়।
 - Hydration পুরো component tree আবার চালায়, আর এর execute ধাপটিই সেই লম্বা task, যা প্রথম click আটকে রাখে।
 - Islands আর Server Components client-এর কাজ বাদ দেয়, progressive hydration শুধু সেটা নতুন করে সাজায়, আর resumability দ্বিতীয় দফাটাই এড়িয়ে যায়।
@@ -230,7 +230,7 @@ Progressive hydration তবুও client-এ প্রতিটি component �
 **Q: কখন islands ভুল architecture, আর কখন CSR সঠিক?**
 
 Interactive অংশগুলো state share করলে islands ভুল। এরা আলাদা root, তাই একটি filter আর তার result-এর দরকার হয়
-দুটোর বাইরের একটি store, একটি URL parameter, বা একটি বড় island। CSR সঠিক, যখন কোনো crawler নেই আর cache করার মতো
+দুটির বাইরের একটি store, একটি URL parameter, বা একটি বড় island। CSR সঠিক, যখন কোনো crawler নেই আর cache করার মতো
 shared HTML-ও নেই, যেমন একটি authenticated dashboard। সেখানে server rendering কেনে সামান্য দ্রুত একটি paint আর
 একটি uncacheable server bill।
 

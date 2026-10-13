@@ -11,7 +11,7 @@ Pipeline পরিবর্তনটি build করে। এই section তা
 কীভাবে এটা ফিরিয়ে আনা যায়। শেষ অংশটাতেই seniority বোঝা যায়। অনেক engineer একটি deployment বর্ণনা করতে পারেন। কম
 জনই release বের হওয়ার আগে বলতে পারেন, এর কোন অংশ একটি rollback ফিরিয়ে আনবে না।
 
-দুটো অধ্যায়ই একটি ধারণা মেনে চলে: একটি deployment হলো একটি immutable artefact (একটি build output, যেটা কখনো বদলায়
+দুটি অধ্যায়ই একটি ধারণা মেনে চলে: একটি deployment হলো একটি immutable artefact (একটি build output, যেটা কখনো বদলায়
 না), আর একটি domain হলো সেরকম একটির দিকে তাক করা একটি pointer।
 Preview environment, instant rollback আর প্রতি-user release — এই সবকিছুই এই model সস্তা করে দেয়।
 

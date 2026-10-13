@@ -53,7 +53,7 @@ Chunk 42: "the old key, then run the rotation job. If you skip..."
 ```
 
 "how do I rotate the signing key" query এখন chunk 41-এর সাথে মেলে, যেটায় উত্তর নেই। আবার chunk 42-এর সাথেও মেলে,
-যেটায় প্রশ্নের শব্দগুলো নেই। দুটোরই score মাঝারি। কোনোটাই আত্মবিশ্বাসের সাথে retrieve হয় না।
+যেটায় প্রশ্নের শব্দগুলো নেই। দুটিরই score মাঝারি। কোনোটাই আত্মবিশ্বাসের সাথে retrieve হয় না।
 
 | পদ্ধতি | কীসের ভিত্তিতে ভাগ করে | কোথায় মানায় |
 | --- | --- | --- |
@@ -84,7 +84,7 @@ function chunkMarkdown(doc: ParsedDoc, maxTokens = 500): Chunk[] {
 }
 ```
 
-ওই function-এর গঠনটাই আসল কথা: **শুধু যেটা আঁটে না, সেটাই ভাগ করুন।** একটি 200-token section তার দুটো
+ওই function-এর গঠনটাই আসল কথা: **শুধু যেটা আঁটে না, সেটাই ভাগ করুন।** একটি 200-token section তার দুটি
 100-token অর্ধেকের চেয়ে ভালো chunk। যে splitter সবসময় ভাগ করে, সে বিনা খরচে পাওয়া structure ফেলে দেয়।
 
 ### Size, overlap আর header-এর কৌশল
@@ -100,7 +100,7 @@ Document-এর ধরন দেখে একটি শুরুর size বা�
 একটি নির্দিষ্ট তালিকা) recall মাপুন, আর size ঠিক করুন। Recall মানে সঠিক chunk কত ঘন ঘন ফিরে আসে।
 [Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals) দেখায় কীভাবে।
 
-**Overlap** আগের chunk-এর শেষ এক-দুটো sentence আবার রাখে। সীমানায় text হারানোর বিরুদ্ধে এটা সস্তা বীমা, আর
+**Overlap** আগের chunk-এর শেষ এক-দুটি sentence আবার রাখে। সীমানায় text হারানোর বিরুদ্ধে এটা সস্তা বীমা, আর
 সাধারণত দশ থেকে পনেরো শতাংশ রাখা হয়। এতে storage খরচ হয়, কিছু duplicate retrieval-ও হয়। বদলে এটা সেই
 sentence-টি বাঁচায়, যেটা নইলে কাটা পড়ত।
 
@@ -139,10 +139,10 @@ Index আপনার document-গুলোর একটি cache, আর এট
   দিন। বড় corpus-এ এটাই কয়েক মিনিট আর কয়েক ঘণ্টার পার্থক্য।
 - **Delete-কে পুরো পথে পৌঁছাতে হবে।** মুছে ফেলা document-এর chunk index-এ থেকে গেলে system আত্মবিশ্বাসের সাথে
   সেগুলো cite করে। এটা চোখে পড়া সবচেয়ে কঠিন bug-গুলোর একটি।
-- **Embedding model বদলানো মানে সবকিছু re-embed করা।** দুটো model-এর vector তুলনা করা যায় না। তাই ধাপে ধাপে
+- **Embedding model বদলানো মানে সবকিছু re-embed করা।** দুটি model-এর vector তুলনা করা যায় না। তাই ধাপে ধাপে
   migration নয়, পুরো rebuild আর একটি switchover-এর পরিকল্পনা করুন।
 
-> ⚠️ এক index-এ দুটো embedding model-এর vector মেশালে নিঃশব্দে অর্থহীন ফল আসে। কিছুই error throw করে না।
+> ⚠️ এক index-এ দুটি embedding model-এর vector মেশালে নিঃশব্দে অর্থহীন ফল আসে। কিছুই error throw করে না।
 > Similarity score-এর আর কোনো মানে থাকে না, ব্যস।
 
 ## কখন ব্যবহার করবেন
@@ -182,7 +182,7 @@ Index আপনার document-গুলোর একটি cache, আর এট
 - Document-এর নিজের structure ধরে ভাগ করুন, আর শুধু সেই section-ই ভাগ করুন যেটা সত্যিই আঁটে না।
 - Chunk-এর শুরুতে তার document আর heading path জুড়ে দিন। Context-হীন টুকরো কোনো কিছুর কাছেই embed হয় না।
 - Metadata একটি filter, একটি citation আর একটি permission boundary। পরে যোগ করা মানে সবকিছু আবার ingest করা।
-- দুটো embedding model-এর vector তুলনা করা যায় না, তাই model বদলানো মানে পুরো rebuild।
+- দুটি embedding model-এর vector তুলনা করা যায় না, তাই model বদলানো মানে পুরো rebuild।
 
 ## Interview-এর প্রশ্ন
 
@@ -212,7 +212,7 @@ text বদলায়, তাহলে প্রতিটি embedding-এর 
 
 এটা নতুন করে বানাতে হবে। আলাদা model-এর vector আলাদা space-এ থাকে, তাই তাদের মধ্যে similarity-র কোনো মানে
 নেই। Failure-টা নিঃশব্দ, কারণ অঙ্ক তখনও সংখ্যা দেয়। আমি পুরোনোটার পাশে নতুন index বানাব, একই golden set-এ
-দুটোকে evaluate করব, আর নতুনটা জিতলে switch করব। জায়গায় দাঁড়িয়ে migrate করব না।
+দুটিকে evaluate করব, আর নতুনটা জিতলে switch করব। জায়গায় দাঁড়িয়ে migrate করব না।
 
 **Q: Index-কে source document-এর সাথে কীভাবে তাল মিলিয়ে রাখবেন?**
 

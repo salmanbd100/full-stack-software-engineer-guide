@@ -34,7 +34,7 @@ search team-এর release train-এর জন্য অপেক্ষা ন�
 | **Web Component** | বেশি | মাঝারি | একটি shell-এর নিচে মিশ্র framework |
 
 Build-time integration-কেই সবচেয়ে বেশি ভুল নাম দেওয়া হয়। `@acme/checkout-ui` publish করে shell থেকে সেটা ব্যবহার
-করা হলো বাড়তি কয়েকটা ধাপসহ একটি shared component library। পরিবর্তনটি user-এর কাছে পৌঁছাতে shell-কে এখনো redeploy
+করা হলো বাড়তি কয়েকটি ধাপসহ একটি shared component library। পরিবর্তনটি user-এর কাছে পৌঁছাতে shell-কে এখনো redeploy
 করতে হয়, তাই deploy-এর স্বাধীনতা কখনো আসে না।
 
 ### Module Federation
@@ -75,7 +75,7 @@ const remotes = {
 };
 ```
 
-**একটি remote ব্যবহার করা, এমন দুটো guard সহ, যেগুলো ঐচ্ছিক নয়:**
+**একটি remote ব্যবহার করা, এমন দুটি guard সহ, যেগুলো ঐচ্ছিক নয়:**
 
 ```tsx
 import { lazy, Suspense } from "react";
@@ -111,7 +111,7 @@ Federation বাছুন, আর প্রতিটি remote একটি rou
 
 ### Shared dependency
 
-React-এ `singleton: true` কোনো optimisation নয়। একটি page-এ React-এর দুটো copy মানে দুটো স্বাধীন hook dispatcher,
+React-এ `singleton: true` কোনো optimisation নয়। একটি page-এ React-এর দুটি copy মানে দুটি স্বাধীন hook dispatcher,
 আর এদের মাঝে পার হওয়া যেকোনো component throw করে।
 
 `shared` বাদ দিলে shell আর প্রতিটি remote নিজের নিজের React load করে। একটি remote component একটি shell context-এর ভেতরে
@@ -159,7 +159,7 @@ Cart remote `cart:item-added` শোনে, আর `event.detail`-কে আব�
 | Startup বা MVP | ❌ অকালপক্ব; coordination-এর বাড়তি খরচ লাভকে ছাড়িয়ে যায় |
 | যে screen-গুলো সারাক্ষণ state share করে | ❌ Domain-এর সীমানা ভুল জায়গায় |
 
-শেষ row-টাই অনুশীলন করার মতো। দুটো micro-frontend-কে হয়তো প্রতিটি interaction-এ একে অপরের state দেখতে হয়। তাহলে
+শেষ row-টাই অনুশীলন করার মতো। দুটি micro-frontend-কে হয়তো প্রতিটি interaction-এ একে অপরের state দেখতে হয়। তাহলে
 এরা একটিই application, ভুল জোড়া বরাবর কাটা। আরও integration-এর যন্ত্রপাতির দিকে হাত বাড়ানোর আগে জোড়াটা ঠিক করুন।
 
 ## সাধারণ ভুল
@@ -173,7 +173,7 @@ Cart remote `cart:item-added` শোনে, আর `event.detail`-কে আব�
 ❌ **প্রতিটি remote-এ আলাদা framework major।** স্বাধীন deploy মানে স্বাধীন React version নয়।
 ✅ আগেভাগেই একটি shared-dependency version policy-তে একমত হোন, আর CI-তে সেটা বলবৎ করুন।
 
-❌ **Remote-গুলোর মধ্যে একটি shared state library।** দুটো remote একই store import করামাত্র, store-এর আকৃতির মধ্য দিয়ে
+❌ **Remote-গুলোর মধ্যে একটি shared state library।** দুটি remote একই store import করামাত্র, store-এর আকৃতির মধ্য দিয়ে
 এদের deploy আবার জুড়ে যায়।
 ✅ URL আর typed custom event দিয়ে যোগাযোগ করুন। চুক্তিটা এতটা সরু রাখুন, যাতে version করা যায়।
 
@@ -183,7 +183,7 @@ Cart remote `cart:item-added` শোনে, আর `event.detail`-কে আব�
 ## 🔑 মূল শিক্ষা
 
 - Micro-frontend deploy-এর স্বাধীনতা দেয়, আর বিনিময়ে নেয় bundle size, latency আর debug করার সহজতা।
-- Build-time integration হলো বাড়তি কয়েকটা ধাপসহ একটি component library। স্বাধীনতার জন্য runtime loading লাগে।
+- Build-time integration হলো বাড়তি কয়েকটি ধাপসহ একটি component library। স্বাধীনতার জন্য runtime loading লাগে।
 - Framework-এ `singleton: true` বাধ্যতামূলক, আর এর মানে প্রতিটি remote একই framework major share করে।
 - App-গুলোর মধ্যকার চুক্তি URL আর typed custom event-এ সীমিত রাখুন, নইলে deploy আবার জুড়ে যায়।
 - প্রতিটি remote একটি network dependency, তাই প্রতিটি remote-এর একটি error boundary আর একটি fallback লাগে।
@@ -192,13 +192,13 @@ Cart remote `cart:item-added` শোনে, আর `event.detail`-কে আব�
 
 **Q: কখন আপনি micro-frontend ফিরিয়ে দেবেন?**
 
-যখনই কষ্টটা code duplication বা অসংগত UI, কারণ দুটোর কোনোটাই deploy-এর সমস্যা নয়। Shared component package সহ একটি
-monorepo দুটোই সমাধান করে, operational খরচের সামান্য অংশে। একমাত্র যে জিনিসটা শুধু micro-frontend-ই সমাধান করে, তা
+যখনই কষ্টটা code duplication বা অসংগত UI, কারণ দুটির কোনোটাই deploy-এর সমস্যা নয়। Shared component package সহ একটি
+monorepo দুটিই সমাধান করে, operational খরচের সামান্য অংশে। একমাত্র যে জিনিসটা শুধু micro-frontend-ই সমাধান করে, তা
 হলো release-এর জন্য team-গুলোর একে অপরের অপেক্ষায় থাকা। কেউ অপেক্ষা না করলে উত্তর হলো না।
 
 **Q: Remote-গুলো জুড়ে React-কে কেন singleton হতে হবে, আর না হলে কী ভাঙে?**
 
-React hook resolve করে একটি module-level dispatcher দিয়ে, যেটা থাকে component-টি যে copy render করেছে তার ভেতরে। দুটো
+React hook resolve করে একটি module-level dispatcher দিয়ে, যেটা থাকে component-টি যে copy render করেছে তার ভেতরে। দুটি
 copy load হলে, একটি copy-র component অন্য copy-র মালিকানার tree-র ভেতরে render হতে পারে। এটা একটি null dispatcher পড়ে
 আর throw করে। `singleton: true` loader-গুলোকে একটিমাত্র instance-এ একমত করায়। এ কারণেই remote-গুলো incompatible React
 major-এ থাকতে পারে না।
@@ -209,7 +209,7 @@ Shell-এর error boundary যা render করে। কোনো boundary ন
 সময় reject করে। এর পেছনের design প্রশ্নটা হলো, কোন remote-গুলো ভার বহন করে। Navigation আর auth-কে shell-এ থাকতে হবে।
 একটি recommendation panel কিছুই না দেখিয়ে নেমে যাওয়া উচিত, আর page-এর বাকিটাকে কাজ করতে দেওয়া উচিত।
 
-**Q: দুটো micro-frontend কীভাবে current user share করে?**
+**Q: দুটি micro-frontend কীভাবে current user share করে?**
 
 Shell authentication-এর মালিক, আর যে remote-গুলো mount করে, তাদের কাছে resolve করা user-কে props বা context হিসেবে পাঠায়।
 নয়তো remote-গুলো একটি token পড়ে, যেটা shell একটি সুপরিচিত জায়গায় রেখেছে। প্রতিটি remote-এর নিজের auth flow চালানো উচিত

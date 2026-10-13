@@ -33,10 +33,10 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## পড়ার ক্রম
 
-01 → 02, ক্রম অনুযায়ী। এ দুটো data ছড়ানোর দুই উপায়: copy করা, বা ভাগ করা। 02-এর দ্বিতীয় অর্ধেক দেখায়,
-একই সময়ের write দুটোর ওপর কী প্রভাব ফেলে।
+01 → 02, ক্রম অনুযায়ী। এ দুটি data ছড়ানোর দুই উপায়: copy করা, বা ভাগ করা। 02-এর দ্বিতীয় অর্ধেক দেখায়,
+একই সময়ের write দুটির ওপর কী প্রভাব ফেলে।
 
-**Interview sprint:** 02। এই section থেকে সবচেয়ে বেশি যে দুটো প্রশ্ন আসে, তা হলো shard key আর lost update।
+**Interview sprint:** 02। এই section থেকে সবচেয়ে বেশি যে দুটি প্রশ্ন আসে, তা হলো shard key আর lost update।
 
 > ⚠️ **Schema design, indexing আর query optimisation Part V-এ আছে**, implementation-এর গভীরতায়। CAP আর
 > consistency pattern আছে [Chapter ?? — Reliability, Consistency ও CAP](#ch-consistency-and-cap)-এ।

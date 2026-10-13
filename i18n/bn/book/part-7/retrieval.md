@@ -14,20 +14,20 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 Embedding text-কে সংখ্যার একটি নির্দিষ্ট দৈর্ঘ্যের তালিকায় পরিণত করে: **space-এ একটি বিন্দু**। কাছাকাছি থাকা মানে
-অর্থ কাছাকাছি। "Cancel my subscription" আর "how do I close my account" কাছাকাছি গিয়ে পড়ে, যদিও দুটোয় কোনো
+অর্থ কাছাকাছি। "Cancel my subscription" আর "how do I close my account" কাছাকাছি গিয়ে পড়ে, যদিও দুটিতে কোনো
 গুরুত্বপূর্ণ শব্দ মেলে না। Keyword search string মেলায়। Embedding search অর্থ মেলায়।
 
 Document একবারই বিন্দু হয়, ingestion-এর সময়। Query প্রতিটি request-এ একটি বিন্দু হয়। Embedding নির্দিষ্ট token,
 যেমন একটি error code বা function-এর নাম, ঝাপসা করে ফেলে। তাই keyword search এখনো জরুরি। **Production
-retrieval দুটোই চালায়।** এর কাজ উত্তর দেওয়া নয়, বরং উত্তরটা window-এ ঢোকানো, ওপরের দিকে rank করে।
+retrieval দুটিই চালায়।** এর কাজ উত্তর দেওয়া নয়, বরং উত্তরটা window-এ ঢোকানো, ওপরের দিকে rank করে।
 
 ## কীভাবে কাজ করে
 
 ### Vector একটি বিন্দু, আর আসল ব্যাপার হলো দিক
 
 Vector-এর কোনো একটি সংখ্যার এমন কোনো মানে নেই যেটা আপনি পড়ে বুঝতে পারবেন। মানেটা বহন করে **geometry**।
-Cosine similarity দুটো vector-এর মাঝের কোণ মাপে, তাদের মাথার মধ্যে দূরত্ব নয়। তাই একই কথা ভিন্ন দৈর্ঘ্যে বলা
-দুটো document-ও কাছাকাছি গণ্য হয়।
+Cosine similarity দুটি vector-এর মাঝের কোণ মাপে, তাদের মাথার মধ্যে দূরত্ব নয়। তাই একই কথা ভিন্ন দৈর্ঘ্যে বলা
+দুটি document-ও কাছাকাছি গণ্য হয়।
 
 **তিনটি phrase embed করে তুলনা করা**
 
@@ -51,7 +51,7 @@ cosineSimilarity(embeddings[0], embeddings[2]); // ~0.55 — both account admin,
 
 ### দুই দিকেই একটি model
 
-দুটো model-এর vector তুলনা করা যায় না। তাই query আর document একই model ব্যবহার করে, আর model বদলানো মানে সবকিছু
+দুটি model-এর vector তুলনা করা যায় না। তাই query আর document একই model ব্যবহার করে, আর model বদলানো মানে সবকিছু
 re-embed করা। অনেক model একটি input type-ও নেয় (query বা document)। উল্টো দিলে নিঃশব্দে recall কমে যায়।
 প্রতিটি vector-এর পাশে model-এর নাম আর version রাখুন।
 
@@ -97,14 +97,14 @@ Permission filter, similarity search আর data এক engine-এ থাকে�
 ### একটি dedicated store-এর খরচ
 
 একটি dedicated vector database কয়েক কোটি vector ছাড়িয়ে scale, আর managed sharding এনে দেয়। খরচ হলো একটি দ্বিতীয়
-stateful system, যেখানে দুটোর মধ্যে কোনো join বা transaction নেই। যে খরচ কেউ আগে থেকে হিসাব করে না, সেটা **sync**:
+stateful system, যেখানে দুটির মধ্যে কোনো join বা transaction নেই। যে খরচ কেউ আগে থেকে হিসাব করে না, সেটা **sync**:
 প্রতিটি deletion আর permission-এর পরিবর্তন একটি distributed operation হয়ে যায়। Sync ব্যর্থ হলে একটি chunk তার মুছে
 ফেলা document-এর পরেও বেঁচে থাকে, আর পুরো আত্মবিশ্বাসের সাথে একজন user-এর কাছে cite হয়। Storage আরেকটি চমক।
 একটি 1536-dimension float32 vector 6 KB, তাই দশ লাখ chunk index-এর আগেই 6 GB। HNSW memory-তে এটা দ্বিগুণ করতে
 পারে। Dimension কমালে এটা কমে, যদি আপনার eval বলে recall-এর ক্ষতি মেনে নেওয়া যায়।
 
 Assistant-এর **re-embed job** একটি page বদলালে চলে। এটা page-এর পুরোনো chunk মুছে দেয় আর নতুনগুলো লেখে, এক
-transaction-এ। Embedding model বদলালে একই job প্রতিটি page-এর ওপর চলে, একটি parallel index-এ। একই প্রশ্নে দুটো
+transaction-এ। Embedding model বদলালে একই job প্রতিটি page-এর ওপর চলে, একটি parallel index-এ। একই প্রশ্নে দুটি
 index-এর score নেওয়া হয়ে গেলে read switch করে।
 
 > ⚠️ **যা বদলাতে থাকে:** vendor-এর তালিকা দ্রুত পুরোনো হয়ে যায়, আর pgvector ফারাক কমিয়েই চলেছে। Quantised
@@ -117,14 +117,14 @@ index-এর score নেওয়া হয়ে গেলে read switch ক�
 | --- | --- | --- | --- |
 | **Keyword (BM25)** | নির্দিষ্ট term, code, নাম, বিরল শব্দ | Paraphrase, সমার্থক শব্দ | সস্তা, কোনো embedding call নেই |
 | **Vector** | অর্থ, paraphrase, অন্য ভাষা | Identifier, সংখ্যা, negation | প্রতি query-তে একটি embedding call |
-| **Hybrid** | দুটোই | সামান্য; দুটোর recall-ই পায় | দুটো search আর fusion |
+| **Hybrid** | দুটিই | সামান্য; দুটির recall-ই পায় | দুটি search আর fusion |
 
 Negation সেই অন্ধ জায়গা, যেটা সবাই ভুলে যায়: "deployments that do **not** use the cache" তার বিপরীতের কাছে
 embed হয়। সংখ্যা আর তারিখও খারাপভাবে embed হয়, তাই এদের জায়গা metadata filter-এ।
 
-### Hybrid search, আর দুটো তালিকা মেলানো
+### Hybrid search, আর দুটি তালিকা মেলানো
 
-BM25, keyword-ranking-এর standard formula, সীমাহীন score দেয়, cosine দেয় না। তাই দুটোকে এক মাপকাঠিতে আনা
+BM25, keyword-ranking-এর standard formula, সীমাহীন score দেয়, cosine দেয় না। তাই দুটিকে এক মাপকাঠিতে আনা
 ভঙ্গুর। **Reciprocal rank fusion** এর বদলে rank ব্যবহার করে, আর calibrate করার কিছু থাকে না।
 
 **একটি keyword তালিকা আর একটি vector তালিকার ওপর reciprocal rank fusion**
@@ -145,17 +145,17 @@ function fuse(lists: string[][], k = 60): string[] {
 const merged = fuse([await keywordSearch(q, 50), await vectorSearch(q, 50)]).slice(0, 20);
 ```
 
-যে document-কে দুটো তালিকাই ওপরে rank করে, সে এমন document-এর ওপরে ওঠে যাকে শুধু একটি তালিকা পছন্দ করেছে।
+যে document-কে দুটি তালিকাই ওপরে rank করে, সে এমন document-এর ওপরে ওঠে যাকে শুধু একটি তালিকা পছন্দ করেছে।
 
 ### Reranking আর *k* বাছাই
 
 Retriever **recall**-এর জন্য optimise করে। Reranker **precision**-এর জন্য optimise করে। একটি vector search আলাদাভাবে
-হিসাব করা দুটো embedding তুলনা করে, তাই document কখনো query-কে দেখে না। একটি cross-encoder reranker query আর
+হিসাব করা দুটি embedding তুলনা করে, তাই document কখনো query-কে দেখে না। একটি cross-encoder reranker query আর
 passage **একসাথে** পড়ে, আর জোড়াটিকে score দেয়। এটা অনেক বেশি নিখুঁত, কিন্তু আগে থেকে হিসাব করে রাখা যায় না। এটা
 100–400 ms আর প্রতি document-এ একটি খরচ যোগ করে। ওপরের পাঁচটিতেই উত্তর থাকলে এটা বাদ দিন।
 
 পাঠানো প্রতিটি chunk window-এর জায়গা আর token খরচ করে, আর noise বাড়ায়। তাই **চওড়া আর সস্তায় retrieve করুন,
-সরু করে rerank করুন, অল্প পাঠান**: দুটো top-50 তালিকা fuse করুন, 20-টি rerank করুন, 5-টি পাঠান। Assistant
+সরু করে rerank করুন, অল্প পাঠান**: দুটি top-50 তালিকা fuse করুন, 20-টি rerank করুন, 5-টি পাঠান। Assistant
 `k = 5`-এ rerank করে।
 
 ### Filter-ই access control
@@ -184,13 +184,13 @@ limit বাড়ায়, সে একটি leak-এর সুযোগ ক
 
 ### Query rewriting
 
-User-এর শব্দ প্রায়ই corpus-এর শব্দ নয়। দুটো সমাধান কাজে লাগে:
+User-এর শব্দ প্রায়ই corpus-এর শব্দ নয়। দুটি সমাধান কাজে লাগে:
 
 - **Rewriting** history ব্যবহার করে "and what about the other one?"-কে একটি স্বয়ংসম্পূর্ণ প্রশ্নে পরিণত করে।
   এটা ছাড়া follow-up প্রশ্ন noise retrieve করে। Multi-turn RAG-এর সবচেয়ে সাধারণ bug এটাই।
 - **Multi-query expansion** দুই-তিনটি ভিন্ন phrasing দিয়ে search করে আর result-গুলো fuse করে, recall কেনে।
 
-> ⚠️ দুটোই retrieval শুরুর আগে একটি পুরো model round trip যোগ করে। Assistant তার ছোট, দ্রুত model দিয়ে rewrite
+> ⚠️ দুটিই retrieval শুরুর আগে একটি পুরো model round trip যোগ করে। Assistant তার ছোট, দ্রুত model দিয়ে rewrite
 > করে। আপনার traffic-এ recall-এর লাভ latency-র দাম মেটায় কি না, তা মেপে দেখুন।
 
 ## কখন ব্যবহার করবেন
@@ -217,7 +217,7 @@ User-এর শব্দ প্রায়ই corpus-এর শব্দ নয
 
 **❌ Re-embed না করে embedding model বদলানো**
 
-> Store-এ এখন দুটো বেমানান geometry। Result বিশ্বাসযোগ্য দেখায়, কিন্তু মান খারাপ। সবকিছু একটি parallel index-এ
+> Store-এ এখন দুটি বেমানান geometry। Result বিশ্বাসযোগ্য দেখায়, কিন্তু মান খারাপ। সবকিছু একটি parallel index-এ
 > re-embed করুন, তারপর read switch করুন।
 
 **❌ Ranking-এর সমস্যা সারাতে *k* বাড়ানো**
@@ -226,7 +226,7 @@ User-এর শব্দ প্রায়ই corpus-এর শব্দ নয
 
 **✅ প্রতিটি vector-এর সাথে model version, আর প্রতিটি request-এর সাথে retrieve করা chunk log করুন**
 
-> উত্তর ভুল হলে প্রথম প্রশ্ন হলো, সঠিক অংশটি আদৌ retrieve হয়েছিল কি না। এই দুটো record সেই প্রশ্নকে পাঁচ মিনিটের
+> উত্তর ভুল হলে প্রথম প্রশ্ন হলো, সঠিক অংশটি আদৌ retrieve হয়েছিল কি না। এই দুটি record সেই প্রশ্নকে পাঁচ মিনিটের
 > একটি পরীক্ষায় পরিণত করে।
 
 ## 🔑 মূল শিক্ষা
@@ -234,7 +234,7 @@ User-এর শব্দ প্রায়ই corpus-এর শব্দ নয
 - Embedding এমন একটি বিন্দু, যেখানে কাছাকাছি থাকা মানে অর্থ কাছাকাছি। এর similarity score rank, probability নয়।
 - Query আর document-কে একই embedding model ব্যবহার করতে হবে। তাই model বদলানো মানে একটি parallel index-এ পুরো re-embed।
 - Scale বাধ্য না করা পর্যন্ত vector আগে থেকে চালানো database-এই রাখুন। দ্বিতীয় store একটি sync pipeline আনে, যেটা নিঃশব্দে ব্যর্থ হয়।
-- Keyword আর vector search উল্টো ধরনের query-তে ব্যর্থ হয়। তাই দুটোই চালান, rank দিয়ে fuse করুন, আর চওড়া candidate set rerank করে অল্প কয়েকটিতে নামান।
+- Keyword আর vector search উল্টো ধরনের query-তে ব্যর্থ হয়। তাই দুটিই চালান, rank দিয়ে fuse করুন, আর চওড়া candidate set rerank করে অল্প কয়েকটিতে নামান।
 - Permission filter search engine-এর ভেতরে চলে, আর conversational query retrieval-এর আগে স্বয়ংসম্পূর্ণ query-তে rewrite করা হয়।
 
 ## Interview-এর প্রশ্ন
@@ -253,11 +253,11 @@ dedicated store একটি দ্বিতীয় system আর একটি
 যেটা তখনও cite হয়। আমি কয়েক কোটি vector-এ সরে যাব, অথবা যখন vector-এর load transactional traffic-এর ক্ষতি করতে
 শুরু করবে।
 
-**Q: Vector, keyword, নাকি দুটোই?**
+**Q: Vector, keyword, নাকি দুটিই?**
 
-দুটোই, প্রায় প্রতিটি production system-এ, কারণ এরা ভিন্ন query-তে ব্যর্থ হয়। Vector search paraphrase সামলায় আর
+দুটিই, প্রায় প্রতিটি production system-এ, কারণ এরা ভিন্ন query-তে ব্যর্থ হয়। Vector search paraphrase সামলায় আর
 error code মিস করে। Keyword search ঠিক উল্টো। আমি score normalise না করে rank দিয়ে fuse করব। খুব ছোট corpus-এ
-আমি একটা দিয়ে শুরু করব, যতক্ষণ না eval দেখায় কোন query ব্যর্থ হচ্ছে।
+আমি একটি দিয়ে শুরু করব, যতক্ষণ না eval দেখায় কোন query ব্যর্থ হচ্ছে।
 
 **Q: Reranker এমন কী করে যা retriever পারে না?**
 

@@ -86,7 +86,7 @@ raw.name; // User
 
 Predicate হলো **compiler-কে দেওয়া আপনার প্রতিশ্রুতি**, compiler এটা check করে না। যে guard-এর body ভুল, সেটা
 একটি cast-এর মতোই অনিরাপদ। Body-টি type-এর সঙ্গে হুবহু মিলিয়ে লিখুন। অথবা এমন একটি schema library ব্যবহার করুন,
-যেটা একটি declaration থেকেই দুটো বানায়।
+যেটা একটি declaration থেকেই দুটি বানায়।
 
 **`filter`-কে narrow করায়ও predicate-ই:**
 

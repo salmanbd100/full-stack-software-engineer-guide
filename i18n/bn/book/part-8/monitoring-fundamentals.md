@@ -68,7 +68,7 @@ http_requests_total{method, status, endpoint, user_id}
 timestamp। এদের জায়গা log আর trace-এ, যেগুলো সীমাহীন বিস্তারিতের জন্যই বানানো।
 
 একটি AI feature দুটি label যোগ করে, যেগুলোর দিকে মানুষ হাত বাড়ায় কিন্তু বাড়ানো উচিত নয়: prompt আর retrieve করা
-document-এর text। দুটোই সীমাহীন, আর প্রায়ই ব্যক্তিগত। এর span-গুলো বদলে কী record করে, তা আছে
+document-এর text। দুটিই সীমাহীন, আর প্রায়ই ব্যক্তিগত। এর span-গুলো বদলে কী record করে, তা আছে
 [Chapter ?? — Observability ও Cost Engineering](#ch-observability)-এ।
 
 ### Log, Structured
@@ -93,14 +93,14 @@ document-এর text। দুটোই সীমাহীন, আর প্র�
 ```
 
 চারটি level, ঠিকভাবে ব্যবহার করা। `ERROR` মানে একটি request fail করেছে আর হয়তো একজন মানুষকে কিছু করতে হবে। `WARN`
-মানে কিছু একটা খারাপ হয়েছিল কিন্তু সামলানো গেছে। `INFO` গুরুত্বপূর্ণ business event-এর জন্য। `DEBUG` production-এ
+মানে কিছু একটি খারাপ হয়েছিল কিন্তু সামলানো গেছে। `INFO` গুরুত্বপূর্ণ business event-এর জন্য। `DEBUG` production-এ
 বন্ধ থাকে।
 
 **সবকিছু `ERROR` হলে, আসলে কোনোটাই error নয়।** যে team সফল retry-কে error হিসেবে log করে, তারা error graph দেখা বন্ধ
 করে দেয়।
 
 **Container log-এর একটি নিয়মকে আপসহীন করে দেয়: stdout আর stderr-এ লিখুন, কখনো container-এর ভেতরের কোনো file-এ
-নয়।** যখন আপনি সেই file পড়তে চাইবেন, ততক্ষণে container চলে গেছে। Host-এর কিছু একটা দুটো stream সংগ্রহ করে
+নয়।** যখন আপনি সেই file পড়তে চাইবেন, ততক্ষণে container চলে গেছে। Host-এর কিছু একটি দুটি stream সংগ্রহ করে
 machine-এর বাইরে পাঠিয়ে দেয়।
 
 ### Trace আর Sampling
@@ -205,7 +205,7 @@ label হিসেবে ঠিক ততটাই বিপজ্জনক, য
 
 - Monitoring জানা failure mode check করে। Observability এমন প্রশ্নের উত্তর দেয়, যা কেউ আশা করেনি, আর এটা আপনার
   data-র একটি বৈশিষ্ট্য, কিনে আনা কোনো tool নয়।
-- Metrics বলে কিছু একটা ভুল হয়েছে, trace বলে কোথায়, আর log বলে কী। Shared trace ID-ই এদের যুক্ত করে।
+- Metrics বলে কিছু একটি ভুল হয়েছে, trace বলে কোথায়, আর log বলে কী। Shared trace ID-ই এদের যুক্ত করে।
 - Metric label-কে সীমিত হতেই হবে। একটি label-এ একটি unique identifier মৃত metrics backend-এর সবচেয়ে সাধারণ কারণ।
 - Percentile-এর average করা যায় না। এ কারণেই latency-র জায়গা summary নয়, histogram।
 - Error budget ছাড়া একটি SLO শুধু একটি ইচ্ছা। Budget-ই reliability-কে খরচ করার একটি সিদ্ধান্তে পরিণত করে।

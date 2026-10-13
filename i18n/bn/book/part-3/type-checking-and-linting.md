@@ -37,7 +37,7 @@ check না করেই সেগুলো মুছে ফেলে।
 
 ### Type-checking কেন parallel হয় না
 
-একটি linter হাজারটা file আটটা core-এ ভাগ করে দিতে পারে। একটি type-checker এটা পরিষ্কারভাবে পারে না। File A check
+একটি linter হাজারটা file আটটি core-এ ভাগ করে দিতে পারে। একটি type-checker এটা পরিষ্কারভাবে পারে না। File A check
 করতে A যা যা import করে, তার সবকিছুর resolve করা type লাগে। এই প্রয়োজনগুলো সেই একই graph তৈরি করে, যেটা bundler
 হেঁটে দেখে। TypeScript 7 সত্যিই checker-গুলো parallel-এ চালায়, কিন্তু প্রত্যেকটিকে তার ছোঁয়া shared import-গুলো
 নিজেই resolve করতে হয়। তাই linter-এর তুলনায় বেশি core দিয়ে লাভ কম হয়।
@@ -106,7 +106,7 @@ program বানায়। আপনি এখন দুবার type-check 
 | Continuous integration | Check করুন, আর ঠিক করার হুবহু command দিয়ে fail করুন — নয়তো ঠিক করে push করুন |
 | Code review | কখনো না। একটি ফাঁকা line নিয়ে comment মানে process-এর ব্যর্থতা |
 
-Biome একটি binary-তেই formatting আর linting করে। এতে দুটো tool-এর মাঝের configuration-এর জোড়া সরে যায়, যেটা এক
+Biome একটি binary-তেই formatting আর linting করে। এতে দুটি tool-এর মাঝের configuration-এর জোড়া সরে যায়, যেটা এক
 দশক ধরে তর্ক বাধিয়েছে।
 
 ### কী একটি merge আটকায়
@@ -122,7 +122,7 @@ Biome একটি binary-তেই formatting আর linting করে। এ�
 | পুরো repository-র type check | প্রতি রাতে | শুধু প্রভাবিত অংশে চালানোর ফলে জমা হওয়া বিচ্যুতি ধরে |
 | Dependency আর licence audit | প্রতি রাতে, শুধু alert | Pull request author-এর সমস্যা নয় |
 
-বাস্তবে দুটো নিয়ম পার্থক্য গড়ে দেয়। **প্রতিটি check নিজস্ব job-এ চালান**, যাতে একটি লাল pipeline "build failed" না
+বাস্তবে দুটি নিয়ম পার্থক্য গড়ে দেয়। **প্রতিটি check নিজস্ব job-এ চালান**, যাতে একটি লাল pipeline "build failed" না
 বলে আসল সমস্যাটির নাম বলে। আর **শুধু প্রভাবিত package-এ চালান**, পুরো sweep একটি schedule-এ।
 
 ## কখন ব্যবহার করবেন

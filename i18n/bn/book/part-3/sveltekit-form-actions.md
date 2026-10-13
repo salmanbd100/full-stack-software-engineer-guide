@@ -93,7 +93,7 @@ export const actions = {
 <button formaction="?/archive">Archive</button>
 ```
 
-একটি route-এ হয় একটি `default` action থাকে, নয়তো named action-গুলো, কখনো দুটোই নয়। সাধারণ HTML path
+একটি route-এ হয় একটি `default` action থাকে, নয়তো named action-গুলো, কখনো দুটিই নয়। সাধারণ HTML path
 `?/name` query parameter দিয়ে এদের মধ্যে বাছাই করে। এজন্যই এটা JavaScript ছাড়া কাজ করে।
 
 ### `use:enhance`

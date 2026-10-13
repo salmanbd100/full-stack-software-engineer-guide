@@ -16,7 +16,7 @@ model: "claude-opus-5-5 (Claude Code)"
 একটি test suite হলো একটি **budget**, কোনো গুণ নয়। প্রতিটি test প্রতিটি push-এ runtime আর প্রতিটি refactor-এ
 maintenance খরচ করে। বিনিময়ে এটা কিছুটা আত্মবিশ্বাস কেনে। Strategy মানে ঠিক করা, কোন test তাদের দামের যোগ্য।
 
-Team-রা এটা দুটো বিপরীত উপায়ে ভুল করে। এক team হাজার হাজার unit test লেখে, যেগুলো internal নিয়ে assert করে। প্রতিটি
+Team-রা এটা দুটি বিপরীত উপায়ে ভুল করে। এক team হাজার হাজার unit test লেখে, যেগুলো internal নিয়ে assert করে। প্রতিটি
 refactor একশোটা test ভাঙে, আর product কাজ করে কি না, তা কেউ জানতে পারে না। অন্য team শুধু end-to-end test লেখে।
 Suite চল্লিশ মিনিট নেয়, সপ্তাহে দুবার এলোমেলোভাবে fail করে, আর skip হয়ে যায়। দুই team-ই শেষে পায় এমন একটি suite,
 যেটা কেউ বিশ্বাস করে না, আর সেটা কোনো suite না থাকারই সমান।
@@ -51,7 +51,7 @@ A data shape or a contract?         → the type checker
 
 ### Pyramid বনাম trophy
 
-দুটো shape-ই বলে "সস্তা layer বেশি, দামি layer কম"। মাঝখানটা কোথায় বসে, তা নিয়ে তাদের মতভেদ।
+দুটি shape-ই বলে "সস্তা layer বেশি, দামি layer কম"। মাঝখানটা কোথায় বসে, তা নিয়ে তাদের মতভেদ।
 
 | | Pyramid | Trophy |
 | --- | ------- | ------ |
@@ -110,7 +110,7 @@ failure পড়ার বদলে pipeline আবার চালাতে �
 | কারণ | Flaky version | সমাধান |
 | ----- | ----------------- | ------- |
 | **Timing** | Assert করার আগে একটি নির্দিষ্ট `setTimeout` | `await screen.findBy...`, যেটা ঠিক যতক্ষণ দরকার ততক্ষণ অপেক্ষা করে |
-| **Shared state** | একটি module-level object, যেটা দুটো test বদলায় | একটি factory, যেটা প্রতি test-এ নতুন data return করে |
+| **Shared state** | একটি module-level object, যেটা দুটি test বদলায় | একটি factory, যেটা প্রতি test-এ নতুন data return করে |
 | **আসল network** | একটি live API call | Request interception — দেখুন [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) |
 | **Randomness** | `Math.random()`, `Date.now()` | Seed করুন, বা `vi.setSystemTime()` দিয়ে clock থামিয়ে দিন |
 

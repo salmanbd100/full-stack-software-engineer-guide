@@ -14,7 +14,7 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 SQL declarative। আপনি ফলাফলটা বর্ণনা করেন, আর database-এর ভেতরের query planner ঠিক করে সেটা কীভাবে পাবে।
-একই row return করা দুটো query-র খরচে হাজার গুণ পার্থক্য হতে পারে। তাই "আপনি কি এই query লিখতে পারেন" হলো
+একই row return করা দুটি query-র খরচে হাজার গুণ পার্থক্য হতে পারে। তাই "আপনি কি এই query লিখতে পারেন" হলো
 interviewer যা যাচাই করেন, তার অর্ধেক মাত্র।
 
 Schema আরও বেশি গুরুত্বপূর্ণ। Code আবার লেখা হয়, কিন্তু data টিকে থাকে, তার ভেতরে জমা থাকা প্রতিটি খারাপ
@@ -118,7 +118,7 @@ WHERE rn <= 3;
 | ------- | ----------------------------------------------------------- | ------------------------------------ |
 | **1NF** | প্রতিটি column একটি atomic value ধরে                         | `tags` রাখা হয়েছে `"a,b,c"` হিসেবে           |
 | **2NF** | কোনো non-key column একটি composite key-এর অংশের ওপর নির্ভর করে না        | `order_items`-এ `product_name`      |
-| **3NF** | কোনো non-key column অন্য একটি non-key column-এর ওপর নির্ভর করে না         | `users`-এ `city` আর `postcode` দুটোই |
+| **3NF** | কোনো non-key column অন্য একটি non-key column-এর ওপর নির্ভর করে না         | `users`-এ `city` আর `postcode` দুটিই |
 
 Third normal form হলো default, কারণ duplication সময়ের সাথে সরে যায়। একটি product-এর নাম যদি `order_items`-এ
 থাকে, তাহলে product-এর নাম বদলানো মানে দশ লাখ row update করা। যে row বাদ পড়ল, সেটা এখন ভুল। একটি তথ্য, একটি জায়গা।
@@ -142,7 +142,7 @@ CREATE TABLE order_items (
 );
 ```
 
-ওই `unit_price` copy-টাই মূল সূক্ষ্মতা। *Order-এর সময়ের* দাম আর আজকের দাম দুটো আলাদা তথ্য। নির্দিষ্ট সময়ের
+ওই `unit_price` copy-টাই মূল সূক্ষ্মতা। *Order-এর সময়ের* দাম আর আজকের দাম দুটি আলাদা তথ্য। নির্দিষ্ট সময়ের
 data সবসময় copy করা হয়, আর সেটা কোনো violation নয়।
 
 `ON DELETE` একটি design-এর সিদ্ধান্ত: parent যে data-র মালিক, তার জন্য `CASCADE`, আর reference যখন প্রমাণ করে
@@ -164,7 +164,7 @@ parent ব্যবহার হচ্ছে, তখন `RESTRICT`। সব জ
 `EXCLUDE`। Application code-এ "কোনো overlap নয়" করতে একটি read আর একটি lock লাগে, আর এদের মাঝের যেকোনো ফাঁক একটি
 race। Constraint যেকোনো concurrency-তে সঠিক থাকে। একটি সাধারণ column-এ `=`-এর জন্য `btree_gist` লাগে।
 
-**একজন user-এর জন্য overlap করা দুটো subscription নয়:**
+**একজন user-এর জন্য overlap করা দুটি subscription নয়:**
 
 ```sql
 ALTER TABLE subscriptions
@@ -223,7 +223,7 @@ row চাইলে `DISTINCT ON` আরও ছোট।
 চেয়ে অনেক বেশি, তখন একটি comment counter ন্যায্য বিনিময়। তবে এটা একটি দায় তৈরি করে: comment-এর একই
 transaction-এ এটা update করুন, আর একটি job চালান যেটা এটাকে reconcile করে।
 
-**Q: একই room-এর জন্য overlap করা দুটো booking কীভাবে আটকাবেন?**
+**Q: একই room-এর জন্য overlap করা দুটি booking কীভাবে আটকাবেন?**
 
 Room id আর time range-এর ওপর overlap operator দিয়ে একটি `EXCLUDE USING gist` constraint ব্যবহার করুন। Application
 code-এ আপনাকে বিদ্যমান booking পড়তে আর lock নিতে হয়, আর read আর write-এর মাঝের যেকোনো ফাঁক একটি race।
@@ -232,4 +232,4 @@ Concurrency-তে constraint-ই একমাত্র সঠিক উত্�
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Index, Query Plan, ORM ও Migration](#ch-indexes) — এইমাত্র লেখা query-টি কেন ধীর, আর একটি live schema কীভাবে বদলাবেন
-- [Chapter ?? — Transaction ও Concurrency](#ch-sql-transactions) — এমন দুটো query একসাথে চললে কী হয়
+- [Chapter ?? — Transaction ও Concurrency](#ch-sql-transactions) — এমন দুটি query একসাথে চললে কী হয়

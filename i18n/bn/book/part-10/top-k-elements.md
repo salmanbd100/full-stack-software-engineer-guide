@@ -101,7 +101,7 @@ function findKthLargest(nums: number[], k: number): number {
 // Time: O(n log k), Space: O(k)  — sorting is O(n log n) and O(n)
 ```
 
-Size-এর সীমা থেকে দুটো বৈশিষ্ট্য আপনা থেকেই আসে। সংজ্ঞা অনুযায়ীই root হলো `k`তম largest, কারণ ঠিক `k − 1`টি
+Size-এর সীমা থেকে দুটি বৈশিষ্ট্য আপনা থেকেই আসে। সংজ্ঞা অনুযায়ীই root হলো `k`তম largest, কারণ ঠিক `k − 1`টি
 element তার ওপরে আছে। আর memory `O(k)`, `O(n)` নয়। তাই input কখনো ধরে রাখতেই হয় না — এই pattern-এর অস্তিত্বের
 পুরো কারণ এটাই।
 
@@ -167,7 +167,7 @@ function topKFrequentBuckets(nums: number[], k: number): number[] {
 ```
 
 ⚠️ Quickselect-এর `O(n)` একটি গড়, নিশ্চয়তা নয়। শত্রুভাবাপন্ন input-এ এর সবচেয়ে খারাপ ক্ষেত্র `O(n²)`। এটা
-array-এর ক্রমও বদলে দেয়। সেরা solution হিসেবে প্রস্তাব করার আগে দুটো খরচই উল্লেখ করুন।
+array-এর ক্রমও বদলে দেয়। সেরা solution হিসেবে প্রস্তাব করার আগে দুটি খরচই উল্লেখ করুন।
 
 ## কখন ব্যবহার করবেন
 
@@ -175,14 +175,14 @@ array-এর ক্রমও বদলে দেয়। সেরা solution 
 | ----------------------------------------------------- | -------------------- | ----------------------------------------- |
 | "`k` largest", "`k` most frequent", "`k` closest"      | `k` size-এর heap     | সংজ্ঞা দেওয়ার মতো উদাহরণ                          |
 | "…একটি stream থেকে" বা "element আসার সাথে সাথে"              | Heap, সবসময় চালু রাখা      | সীমাহীন input আর কিছুই সামলাতে পারে না       |
-| "Median of a stream"                                  | **দুটো** heap        | নিচের অর্ধেকের জন্য max-heap, ওপরের জন্য min |
+| "Median of a stream"                                  | **দুটি** heap        | নিচের অর্ধেকের জন্য max-heap, ওপরের জন্য min |
 | "Merge `k` sorted lists"                              | `k`টি head-এর heap    | পরের output সবসময় `k`টির একটি        |
 | `k`তম **smallest** element                        | `k` size-এর max-heap | নিয়মটা উল্টে দিন                            |
 | পুরো sorted ক্রম এমনিতেই দরকার                | Sort                 | Heap কিছুই বাঁচায় না                     |
 
 যে রূপভেদটা অনুশীলন করা দরকার, সেটা Find Median from Data Stream। কারণ দুই-heap-এর উত্তরটা স্পষ্ট নয়, আর প্রশ্নটা
 প্রায়ই আসে। ছোট অর্ধেক একটি max-heap-এ রাখুন আর বড় অর্ধেক একটি min-heap-এ। আবার ভারসাম্য আনুন, যাতে size-এর
-পার্থক্য বড়জোর এক থাকে। Median হলো একটি বা দুটো root।
+পার্থক্য বড়জোর এক থাকে। Median হলো একটি বা দুটি root।
 
 ## সাধারণ ভুল
 
@@ -193,7 +193,7 @@ array-এর ক্রমও বদলে দেয়। সেরা solution 
 // ✅ min-heap capped at k — O(n log k) and O(k) space
 ```
 
-দুটোই সঠিক। কিন্তু input একটি stream হলে শুধু একটিই কাজ করে।
+দুটিই সঠিক। কিন্তু input একটি stream হলে শুধু একটিই কাজ করে।
 
 **Heap-কে `k` ছাড়িয়ে বাড়তে দেওয়া:**
 
@@ -241,10 +241,10 @@ array-এর ক্রমও বদলে দেয়। সেরা solution 
 | 658 | Find K Closest Elements          | Medium     | এখানে binary search heap-কে হারায়                 |
 | 692 | Top K Frequent Words             | Medium     | Comparator-এর ভেতরে টাই ভাঙা                |
 | 23  | Merge k Sorted Lists             | Hard       | `k`টি list head-এর একটি heap                          |
-| 295 | Find Median from Data Stream     | Hard       | দুটো heap, আর ভারসাম্যের invariant          |
+| 295 | Find Median from Data Stream     | Hard       | দুটি heap, আর ভারসাম্যের invariant          |
 
 215 দুবার solve করুন — একবার heap দিয়ে, একবার quickselect দিয়ে। তারপর 347 দুবার, heap আর bucket দিয়ে। সৎ
-complexity-সহ দুটো solution দিতে পারা — প্রশ্নটা আসলে এটাই যাচাই করে।
+complexity-সহ দুটি solution দিতে পারা — প্রশ্নটা আসলে এটাই যাচাই করে।
 
 ## 🔑 মূল শিক্ষা
 
@@ -259,14 +259,14 @@ complexity-সহ দুটো solution দিতে পারা — প্র�
 **Q: `k`টি largest-এর জন্য min-heap কেন? শুনতে তো উল্টো লাগে।**
 
 কারণ আপনি বারবার যে element-টি পরীক্ষা করেন, সেটা আপনার বর্তমান রক্ষিতদের মধ্যে *সবচেয়ে দুর্বল*। Min-heap সেটাকে
-root-এ রাখে। তাই নতুন কারও সাথে তুলনা আর হেরে যাওয়াটিকে বাদ দেওয়া — দুটোতেই পৌঁছাতে `O(1)` আর ঠিক করতে `O(log k)`।
+root-এ রাখে। তাই নতুন কারও সাথে তুলনা আর হেরে যাওয়াটিকে বাদ দেওয়া — দুটিতেই পৌঁছাতে `O(1)` আর ঠিক করতে `O(log k)`।
 Max-heap-এ root হলো আপনার সেরা element, আর সবচেয়ে ছোট রক্ষিতটি খুঁজতে প্রতি ধাপে `O(k)` খরচ হতো।
 
 **Q: Sort করার তুলনায় আসল সাশ্রয়টা কী?**
 
 Time `O(n log n)` থেকে নেমে `O(n log k)` হয়। এটা কাজে আসে যখন `k` `n`-এর চেয়ে অনেক ছোট — দশ লাখের মধ্যে সবচেয়ে
 বড় পাঁচটি। বড় লাভটা space-এ: `O(n)`-এর বদলে `O(k)`। মানে input কখনো memory-তে ধরে রাখতে হয় না, তাই একই code
-একটি stream-এও চলে। `k ≈ n` হলে দুটো সমান, আর তখন sort-এর code বেশি পরিষ্কার।
+একটি stream-এও চলে। `k ≈ n` হলে দুটি সমান, আর তখন sort-এর code বেশি পরিষ্কার।
 
 **Q: কখন এর বদলে quickselect ব্যবহার করবেন?**
 
@@ -277,9 +277,9 @@ input-এ `O(n²)` worst case, যেটা random pivot বাছাই অস�
 
 **Q: একটি stream-এর median কীভাবে বের করবেন?**
 
-দুটো heap: নিচের অর্ধেকের জন্য একটি max-heap আর ওপরের অর্ধেকের জন্য একটি min-heap, size-এ বড়জোর এক element-এর
+দুটি heap: নিচের অর্ধেকের জন্য একটি max-heap আর ওপরের অর্ধেকের জন্য একটি min-heap, size-এ বড়জোর এক element-এর
 পার্থক্য রেখে। প্রতিটি insert এক দিকে যায়, তারপর একটি root অন্য দিকে সরিয়ে ভারসাম্য আনা হয়। তাই median হলো বড়
-heap-এর root, অথবা size সমান হলে দুটো root-এর গড়। Insert `O(log n)`, আর median পড়া `O(1)`।
+heap-এর root, অথবা size সমান হলে দুটি root-এর গড়। Insert `O(log n)`, আর median পড়া `O(1)`।
 
 **Q: নিশ্চিত linear time-এ Top K Frequent Elements — কীভাবে?**
 

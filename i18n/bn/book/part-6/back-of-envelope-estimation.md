@@ -141,7 +141,7 @@ const egressBytesPerSecond = (readsPerSecond: number, bytesPerRead: number): num
 **❌ সবকিছু হিসাব করা**
 
 Storage, bandwidth, QPS, memory, cache size, server-এর সংখ্যা আর খরচ, এমন একটি system-এর জন্য যেখানে এর কোনোটাই
-design বদলায় না। শুধু সেই এক-দুটো পরিমাণ estimate করুন, যেগুলো কিছু একটা ঠিক করে।
+design বদলায় না। শুধু সেই এক-দুটি পরিমাণ estimate করুন, যেগুলো কিছু একটি ঠিক করে।
 
 **✅ উদ্দেশ্য নিয়ে estimate করা**
 

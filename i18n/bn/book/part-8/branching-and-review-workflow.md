@@ -22,7 +22,7 @@ model: "claude-opus-5-5 (Claude Code)"
 merge-এর দায়িত্ব নেন। আপনার team সত্যিই যে ব্যবধান মেনে চলতে পারে, তার সঙ্গে মানানসই আনুষ্ঠানিকতা বেছে নিন।
 
 Repository-র সীমা একই ধারণা, এক ধাপ ওপরে। একটি repository-র ভেতরে shared code-এর একটি change আর তার caller-দের
-change একটিই commit। দুটো repository জুড়ে সেই একই change হয়ে যায় একটি version number, যেটা প্রতিটি consumer
+change একটিই commit। দুটি repository জুড়ে সেই একই change হয়ে যায় একটি version number, যেটা প্রতিটি consumer
 নিজের সময়সূচিতে upgrade করে।
 
 ## কীভাবে কাজ করে
@@ -38,12 +38,12 @@ change একটিই commit। দুটো repository জুড়ে সে�
 ### GitHub Flow
 
 একটি স্থায়ী branch আর একটি নিয়ম: `main` সবসময় deploy করার মতো অবস্থায় থাকে। Branch করুন, একটি pull request
-খুলুন, review নিন, merge করুন, deploy করুন। এটা default হওয়ার একটা কারণ আছে। Production-এ product-এর শুধু একটি
+খুলুন, review নিন, merge করুন, deploy করুন। এটা default হওয়ার একটি কারণ আছে। Production-এ product-এর শুধু একটি
 version চলে, তাই দ্বিতীয় একটি স্থায়ী branch-এর ধরে রাখার মতো কিছু নেই।
 
 ### GitFlow
 
-দুটো স্থায়ী branch আর তিন ধরনের অস্থায়ী branch। `develop` শেষ হওয়া feature-গুলো জমা করে। `release/*` একটি
+দুটি স্থায়ী branch আর তিন ধরনের অস্থায়ী branch। `develop` শেষ হওয়া feature-গুলো জমা করে। `release/*` একটি
 version-কে স্থিতিশীল করে। `hotfix/*` branch করে `main` থেকে, কারণ `develop`-এ এমন কাজ আছে যেটা ship করার জন্য
 তৈরি নয়।
 
@@ -63,7 +63,7 @@ flowchart LR
 **যে path `main`-এ merge হয়, সেটা `develop`-এও ফিরে merge হয়।** দ্বিতীয় merge-টি ভুলে গেলে hotfix-টি হারিয়ে যায়,
 তারপর পরের release-এ একটি regression হিসেবে ফিরে আসে।
 
-GitFlow দুটো ক্ষেত্রে তার খরচের যোগ্য। আপনি সত্যিই production-এ একাধিক version support করেন, অথবা একটি release-এর
+GitFlow দুটি ক্ষেত্রে তার খরচের যোগ্য। আপনি সত্যিই production-এ একাধিক version support করেন, অথবা একটি release-এর
 এমন sign-off gate দরকার যেটায় কয়েক দিন লাগে। নইলে দ্বিতীয় স্থায়ী branch-টি এমন একটি queue, যেটা কেউ চায়নি।
 
 ### Trunk-Based Development
@@ -72,7 +72,7 @@ GitFlow দুটো ক্ষেত্রে তার খরচের যো�
 flag (runtime-এর একটি switch)-এর পেছনে বন্ধ অবস্থায়। `main`-এ একটি অসম্পূর্ণ feature-এর খরচ তিন সপ্তাহের একটি
 branch-এর চেয়ে কম।
 
-এটা কাজ করে কারণ deploy আর release দুটো আলাদা ঘটনা। নতুন component-টি `main`-এ আর production-এ বসে থাকে, কিন্তু
+এটা কাজ করে কারণ deploy আর release দুটি আলাদা ঘটনা। নতুন component-টি `main`-এ আর production-এ বসে থাকে, কিন্তু
 যাঁদের জন্য flag চালু, শুধু সেই user-রাই সেটা দেখতে পান।
 
 Trunk-based-এর একটি কঠিন পূর্বশর্ত আছে। যে test-এ ভরসা করেন আর যে flag বন্ধ করতে পারেন — এগুলো ছাড়া দিনে কয়েকবার
@@ -176,7 +176,7 @@ approval-এর সংখ্যার চেয়ে এটা বেশি গ
 
 ## Monorepo নাকি Polyrepo
 
-প্রশ্নটা কখনো "একটি repository নাকি অনেকগুলো" নয়। প্রশ্নটা হলো **"এই দুটো জিনিস কি একটি commit-এ বদলাতে পারা
+প্রশ্নটা কখনো "একটি repository নাকি অনেকগুলো" নয়। প্রশ্নটা হলো **"এই দুটি জিনিস কি একটি commit-এ বদলাতে পারা
 উচিত?"** প্রতিটি উত্তর একটি খরচকে অন্য কোথাও সরিয়ে দেয়।
 
 | খরচ                | Monorepo                                  | Polyrepo                                  |
@@ -203,7 +203,7 @@ repository-কে এমনভাবে বন্ধ করেও রাখা �
 | --------------------------------------------------- | -------- | ---------------------------------------------- |
 | একটি product-এর frontend, backend আর shared type     | Monorepo | Contract change হয় একটি commit আর একটি review |
 | Design system, আর যে app-গুলো সেটা ব্যবহার করে        | Monorepo | নইলে প্রতিটি token change একটি release          |
-| আলাদা roadmap আর on-call সহ দুটো product              | Polyrepo | Shared CI থেকে কিছুই লাভ হয় না                  |
+| আলাদা roadmap আর on-call সহ দুটি product              | Polyrepo | Shared CI থেকে কিছুই লাভ হয় না                  |
 | বাইরের consumer সহ একটি open-source library          | Polyrepo | বাইরের user-দের সত্যিকারের semantic version লাগে |
 | একটি regulated service, যেটা বেশিরভাগ engineer-এর পড়া নিষেধ | Polyrepo | Git permission repository-তেই থেমে যায়  |
 
@@ -219,15 +219,15 @@ queue। Release পর্যন্ত এটা integration failure লুক�
 
 ❌ **একটি refactor আর একটি feature-এর জন্য একটি pull request** — "extract query builder + add profile endpoint"-এর
 1,400 line। Reviewer বলতে পারেন না কোন line-গুলো behaviour বদলানোর জন্য ছিল, তাই কোনো অর্ধেকই ঠিকমতো যাচাই হয় না।
-✅ দুটো pull request, আগে refactor, যাতে দ্বিতীয় review শুধু feature নিয়ে হয়।
+✅ দুটি pull request, আগে refactor, যাতে দ্বিতীয় review শুধু feature নিয়ে হয়।
 
 ❌ **একটি pipeline-ওয়ালা একটি monorepo**, যেটা প্রতিটি push-এ প্রতিটি test চালায়। Team-গুলো "monorepo scale করে
 না" সিদ্ধান্তে পৌঁছানোর সবচেয়ে সাধারণ কারণ এটাই। Layout কখনো সমস্যা ছিল না। সমস্যা ছিল অসম্পর্কিত test চালানো।
 ✅ Affected-only build আর একটি remote cache দিয়ে CI-কে change-এর মধ্যে সীমিত রাখুন।
 
 ❌ **এমন একটি polyrepo, যেটা copy করে code share করে।** Copy করা code-এর কোনো version নেই, তাই কোনো consumer জানে
-না তার কাছে ঠিক করা copy-টি আছে কি না। এটা দুটো model-এরই খরচ নেয়, আর কোনোটারই লাভ নয়।
-✅ Shared code publish আর version করুন, অথবা দুটো project-কে একটি repository-তে নিয়ে আসুন।
+না তার কাছে ঠিক করা copy-টি আছে কি না। এটা দুটি model-এরই খরচ নেয়, আর কোনোটারই লাভ নয়।
+✅ Shared code publish আর version করুন, অথবা দুটি project-কে একটি repository-তে নিয়ে আসুন।
 
 ## 🔑 মূল শিক্ষা
 
@@ -265,7 +265,7 @@ Monorepo। ওই তিনটি সবসময় একসঙ্গে ব�
 
 **Q: একটি polyrepo-তে একটি shared library-তে breaking change কীভাবে করবেন?**
 
-প্রথমে এটাকে একটি সংযোজন হিসেবে ship করুন, যাতে দুটো আকারই কাজ করে, আর সেটা একটি minor version হিসেবে publish
+প্রথমে এটাকে একটি সংযোজন হিসেবে ship করুন, যাতে দুটি আকারই কাজ করে, আর সেটা একটি minor version হিসেবে publish
 করুন। Consumer-দের একে একে migrate করুন, তারপর একটি major version-এ পুরোনো আকারটি সরিয়ে দিন। একটি shared "flag
 day"-তে একটিমাত্র breaking release-এর জন্য প্রতিটি team-কে একই সময়ে ফাঁকা থাকতে হয়, আর সেটা খুব কমই সত্যি হয়।
 

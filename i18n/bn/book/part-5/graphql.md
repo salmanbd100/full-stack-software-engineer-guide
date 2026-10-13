@@ -225,7 +225,7 @@ query ইচ্ছেমতো query পুরোপুরি সরিয়ে
 **Q: একটি tRPC API কি production-এ type-safe?**
 
 শুধু build-এর সময়, repository-র type-গুলোর বিপরীতে। Server-এর আগে release হওয়া একটি client পরিষ্কারভাবে compile হয়
-আর runtime-এ fail করে। তাই নিশ্চয়তাটা নির্ভর করে দুটো একসাথে deploy করার ওপর।
+আর runtime-এ fail করে। তাই নিশ্চয়তাটা নির্ভর করে দুটি একসাথে deploy করার ওপর।
 
 **Q: একটি mobile app, একটি web app আর দুজন partner-এর আপনার API দরকার। GraphQL, tRPC নাকি REST?**
 

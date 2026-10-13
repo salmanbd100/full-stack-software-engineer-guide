@@ -18,9 +18,9 @@ model: "claude-opus-5-5 (Claude Code)"
 
 কিন্তু copy একটি দ্বিতীয় সমস্যা আনে। Data একাধিক machine-এ থাকলে copy-গুলো একমত না-ও হতে পারে। এই অমিল নিয়ে একটি
 system যে প্রতিশ্রুতিগুলো দেয়, সেগুলোই consistency। শক্ত প্রতিশ্রুতির জন্য coordination লাগে, আর coordination-এর খরচ
-latency আর availability। এই অধ্যায়ের দুটো অর্ধেকই budget।
+latency আর availability। এই অধ্যায়ের দুটি অর্ধেকই budget।
 
-> কিছু design করার আগে দুটো প্রশ্ন করুন। এটা মাসে কত মিনিট down থাকতে পারে? আর কোন feature-এর কোন read কতটা stale
+> কিছু design করার আগে দুটি প্রশ্ন করুন। এটা মাসে কত মিনিট down থাকতে পারে? আর কোন feature-এর কোন read কতটা stale
 > হতে পারে?
 
 ## কীভাবে কাজ করে
@@ -94,7 +94,7 @@ Timeout, retry budget, circuit breaker আর load shedding এই loop ভা�
 ### Redundancy আর recovery
 
 Active-passive একটি অলস standby রাখে, আর কয়েক সেকেন্ড থেকে কয়েক মিনিটে failover করে। Active-active প্রতিটি node
-ব্যবহার করে, আর সাথে সাথে failover করে। দুটোরই খরচ একটি copy-র প্রায় দ্বিগুণ। Recovery-র দুটো সংখ্যা আছে, আলাদাভাবে
+ব্যবহার করে, আর সাথে সাথে failover করে। দুটিরই খরচ একটি copy-র প্রায় দ্বিগুণ। Recovery-র দুটি সংখ্যা আছে, আলাদাভাবে
 ঠিক করা:
 
 - **RPO (recovery point objective)** হলো আপনি কতটা data হারাতে পারেন। রাতের backup মানে 24 ঘণ্টা।
@@ -147,18 +147,18 @@ lag-এর চেয়ে বেশি সময় ধরে সেই user-�
 
 একটি leaderless store তিনটি সংখ্যা দিয়ে consistency ঠিক করে। **N** হলো replica-র সংখ্যা। **W** হলো কতগুলোকে একটি
 write confirm করতে হবে। **R** হলো একটি read কতগুলোকে জিজ্ঞেস করে। **যখন W + R > N, read set আর write set একে অপরকে
-ছেদ করে**, তাই একটি read সর্বশেষ write দেখে। N=3, W=2, R=2 হলো সাধারণ ভারসাম্য: দুটো path-ই একটি হারানো node সামলে
+ছেদ করে**, তাই একটি read সর্বশেষ write দেখে। N=3, W=2, R=2 হলো সাধারণ ভারসাম্য: দুটি path-ই একটি হারানো node সামলে
 টিকে থাকে।
 
-তবে ছেদ মানে কোনো global ক্রম নয়। দুটো একযোগে হওয়া write ভিন্ন set-এ পড়ে conflict করতে পারে।
+তবে ছেদ মানে কোনো global ক্রম নয়। দুটি একযোগে হওয়া write ভিন্ন set-এ পড়ে conflict করতে পারে।
 
 **Consensus** (Raft, Paxos) সেই ক্রম দেয়। একটি leader প্রতিটি write তার log-এ যোগ করে, আর majority confirm করলে
-commit করে। পাঁচ node-এর একটি cluster তিনটি দিয়ে commit করে, আর দুটো failure সামলে টিকে থাকে। Vote সমান-সমান ভাগ
+commit করে। পাঁচ node-এর একটি cluster তিনটি দিয়ে commit করে, আর দুটি failure সামলে টিকে থাকে। Vote সমান-সমান ভাগ
 হওয়া এড়াতে বিজোড় সংখ্যক node ব্যবহার করুন। Majority না থাকলে cluster write নেওয়া বন্ধ করে। এটা design অনুযায়ীই CP।
 
 Replica-রা যখন সত্যিই conflicting write নেয়, তখন কাউকে সিদ্ধান্ত নিতে হয়। **Last write wins** নতুন timestamp-টা
 রাখে আর অন্য write-টা চুপচাপ ফেলে দেয়। অনেক store-এ এটাই default, তাই এটা প্রস্তাব করার সময় সেটা বলুন। **Version
-vector** conflict ধরে, আর দুটো version-ই app-এর হাতে দেয়। **CRDT** হলো এমন data type, যেগুলো সবসময় একইভাবে merge হয়।
+vector** conflict ধরে, আর দুটি version-ই app-এর হাতে দেয়। **CRDT** হলো এমন data type, যেগুলো সবসময় একইভাবে merge হয়।
 
 ## কখন ব্যবহার করবেন
 

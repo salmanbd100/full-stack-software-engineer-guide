@@ -14,7 +14,7 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 CDN হলো একটি map-ওয়ালা cache। এটা আপনার response-এর copy শত শত জায়গায় রাখে, আর প্রতিটি user-কে সবচেয়ে কাছেরটা
-থেকে উত্তর দেয়। এর দুটো ফল আছে, আর বিখ্যাত কেবল একটি।
+থেকে উত্তর দেয়। এর দুটি ফল আছে, আর বিখ্যাত কেবল একটি।
 
 বিখ্যাতটি হলো latency। যে request-এর একটি মহাসাগর পার হওয়ার কথা ছিল, তার উত্তর আসে কয়েক millisecond দূর থেকে।
 বেশি মূল্যবানটি হলো offload। Edge-এ serve হওয়া প্রতিটি response এমন একটি request, যা আপনার server কখনো দেখে না।
@@ -114,7 +114,7 @@ async function purgeEntryPoints(cdn: CdnClient, distributionId: string): Promise
 
 Streaming একটি video-কে কয়েক সেকেন্ড করে segment-এ ভাগ করে। Edge প্রতিটি segment আলাদাভাবে cache করে, আর যে
 দর্শক সামনে টেনে যান, তিনি শুধু যা দেখেন তা-ই আনেন। Player-রা byte-range request-ও পাঠায়, যার উত্তর edge-কে
-partial content দিয়ে দিতে হয়, পুরো object দিয়ে নয়। যেকোনো গুরুতর CDN-এ দুটোই default। Interview-এ এদের নাম
+partial content দিয়ে দিতে হয়, পুরো object দিয়ে নয়। যেকোনো গুরুতর CDN-এ দুটিই default। Interview-এ এদের নাম
 বলুন: এরাই ব্যাখ্যা করে, একটি platform কীভাবে একটি origin থেকে লাখ লাখ একসঙ্গে দেখা দর্শককে serve করে।
 
 ## কখন ব্যবহার করবেন
@@ -145,7 +145,7 @@ incident-এর মতো দেখায়। ✅ Entry point-গুলো exa
 ✅ বড় অপরিবর্তনীয় asset-এর জন্য shielding চালু করুন।
 
 ❌ **CDN-এর পেছনে publicly readable origin।** User-রা সরাসরি URL খুঁজে পান আর cache এড়িয়ে যান। আপনার hit ratio
-আর access rule দুটোরই আর কোনো মানে থাকে না। ✅ Origin-কে শুধু CDN-এর identity-র জন্য সীমিত করুন।
+আর access rule দুটিরই আর কোনো মানে থাকে না। ✅ Origin-কে শুধু CDN-এর identity-র জন্য সীমিত করুন।
 
 ## 🔑 মূল শিক্ষা
 

@@ -110,7 +110,7 @@ request-গুলো কীভাবে batch করেছে তার ওপ�
 | **Latency** | Stream করলে প্রথম token পর্যন্ত সময়; নইলে মোট সময় | আসল prompt আকারে p95 |
 | **খরচ** | প্রতি input আর output token-এর দাম, যা প্রায় 5× আলাদা | *সম্পূর্ণ হওয়া কাজ* প্রতি খরচ, request প্রতি নয় |
 
-আপনি দুটো optimise করতে পারবেন। Output stream হলে user যা অনুভব করেন, তা হলো **প্রথম** token পর্যন্ত সময়। তাই
+আপনি দুটি optimise করতে পারবেন। Output stream হলে user যা অনুভব করেন, তা হলো **প্রথম** token পর্যন্ত সময়। তাই
 একটি ধীর model যা আগে শুরু করে, সেটা দ্রুত মনে হতে পারে। যে সস্তা model-এর দুবার retry লাগে, সেটা সস্তা নয়।
 
 ### Frontier বনাম ছোট
@@ -152,7 +152,7 @@ export const MODELS = {
 
 **Routing** প্রতিটি request-কে সেই সবচেয়ে সস্তা model-এ পাঠায়, যা এটা সামলাতে পারে। এর তিনটি লুকানো খরচ আছে। Router
 একটি বাড়তি request, যার নিজস্ব error rate আছে। Cache model-ভিত্তিক, তাই একটি cascade cache-এর পুনর্ব্যবহার হারায়।
-আর দুটো model মানে প্রতিটি provider release-এ আবার চালানোর জন্য দুটো eval suite। তাই আগে সবচেয়ে শক্তিশালী model-টা
+আর দুটি model মানে প্রতিটি provider release-এ আবার চালানোর জন্য দুটি eval suite। তাই আগে সবচেয়ে শক্তিশালী model-টা
 **কম reasoning effort-এ** মাপুন। একটি model, একটি cache আর একটি suite প্রায়ই একই সাশ্রয় দেয়।
 
 ## কখন ব্যবহার করবেন
@@ -220,7 +220,7 @@ Prompt-এর আগে finish reason আর token-এর সংখ্যায�
 
 **Q: একটি feature-এর জন্য frontier model আর একটি সস্তা model-এর মধ্যে কীভাবে সিদ্ধান্ত নেবেন?**
 
-দুটোকেই একই পঞ্চাশটি আসল input-এ চালান, ফলাফল দেখার আগেই grading rule লিখে। Pass rate, p95 latency আর সম্পূর্ণ
+দুটিকেই একই পঞ্চাশটি আসল input-এ চালান, ফলাফল দেখার আগেই grading rule লিখে। Pass rate, p95 latency আর সম্পূর্ণ
 হওয়া কাজ প্রতি খরচ তুলনা করুন, তারপর মানদণ্ড পার হওয়া সবচেয়ে সস্তাটা নিন। মানদণ্ড না থাকলে team-গুলো classification-এর
 জন্য frontier-এর দাম দেয়।
 

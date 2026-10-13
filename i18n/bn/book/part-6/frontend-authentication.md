@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-দুটো বাক্যেই frontend auth design-এর বেশিরভাগটা ধরা আছে।
+দুটি বাক্যেই frontend auth design-এর বেশিরভাগটা ধরা আছে।
 
 **Browser-এ credential রাখার কোনো নিরাপদ জায়গা নেই।** আছে শুধু এমন জায়গা, যেগুলো আলাদা আলাদাভাবে fail করে। Memory refresh-এ মরে যায়। `localStorage` যেকোনো inject হওয়া script পড়তে পারে। একটি `httpOnly` cookie আপনার নিজের code থেকে লুকানো, কিন্তু এমন request-এর সাথেও যায় যেগুলো আপনি শুরু করেননি। এই failure-গুলোর মধ্যে বাছাই করাটাই design, আর বাকি সবকিছু এখান থেকেই আসে।
 
@@ -101,7 +101,7 @@ Expire হওয়ার ঠিক *আগে* refresh করা একটি t
 
 ## মিথ্যা না বলে route guard করা
 
-Authentication-এর তিনটি state আছে। যে design শুধু দুটো model করে, সেটা এই এলাকার সবচেয়ে খারাপ দুটো bug তৈরি করে।
+Authentication-এর তিনটি state আছে। যে design শুধু দুটি model করে, সেটা এই এলাকার সবচেয়ে খারাপ দুটি bug তৈরি করে।
 
 | State | UI যা দেখায় | এই state না থাকলে যে bug |
 | ----- | ------------ | ---------------------------------- |
@@ -158,7 +158,7 @@ channel.onmessage = (event: MessageEvent<{ type: string }>) => {
 ## 🔑 মূল শিক্ষা
 
 - Browser-এ নিরাপদ কোনো credential store নেই, আছে শুধু আলাদাভাবে fail করা store; যে failure নিয়ে বাঁচতে পারবেন, সেটা বাছুন।
-- Memory-তে একটি স্বল্পায়ু access token আর একটি `httpOnly` refresh cookie দুটোকেই XSS চুরি আর CSRF-এর নাগালের বাইরে রাখে।
+- Memory-তে একটি স্বল্পায়ু access token আর একটি `httpOnly` refresh cookie দুটিকেই XSS চুরি আর CSRF-এর নাগালের বাইরে রাখে।
 - Refresh-কে single-flight হতে হবে আর ঠিক একবার retry হতে হবে, নাহলে token rotation একঝাঁক 401-কে একটি logout-এ পরিণত করে।
 - Authentication-এর তিনটি state আছে, আর "unknown" বাদ দিলে হয় login-এ ছুড়ে দেওয়া, নয়তো সুরক্ষিত content-এর এক ঝলক ঘটে।
 - Route guard আর লুকানো button হলো user interface, আর প্রতিটি নিয়ম server enforce করে, কোনো ব্যতিক্রম ছাড়া।

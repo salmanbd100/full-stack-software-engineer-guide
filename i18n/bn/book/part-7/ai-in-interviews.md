@@ -14,7 +14,7 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 AI round transformer নিয়ে কোনো quiz নয়। এটা যাচাই করে, **আপনি একটি failure খুঁজে বের করে তার সঙ্গে একটি সংখ্যা
-জুড়তে পারেন কি না।** এই অধ্যায়ের প্রতিটি প্রশ্নের দুটো রূপ আছে। একটি শুনতে জ্ঞানের প্রশ্ন মনে হয়। অন্যটি আসলে
+জুড়তে পারেন কি না।** এই অধ্যায়ের প্রতিটি প্রশ্নের দুটি রূপ আছে। একটি শুনতে জ্ঞানের প্রশ্ন মনে হয়। অন্যটি আসলে
 মাপজোখের প্রশ্ন, আর interviewer নম্বর দেন সেই দ্বিতীয়টিতেই।
 
 > এই part-এর senior সংকেত এক বাক্যে: **উন্নতি করার আগে মাপুন।** কী মাপবেন সেটা বলুন, আর সেটা বলুন কী বদলাবেন
@@ -48,7 +48,7 @@ AI round transformer নিয়ে কোনো quiz নয়। এটা �
 | মাপজোখ | Golden set, retrieval hit rate, আর CI gate | যে অর্ধেক বেশিরভাগ candidate বাদ দেন |
 | খরচ | প্রতি প্রশ্নে token, cache hit rate, প্রত্যাশিত volume-এ দাম | AI feature-এর marginal cost চোখে দেখা যায় |
 
-দুটো clarifying উত্তর architecture-কে অন্য যেকোনো কিছুর চেয়ে বেশি বদলায়। **Corpus কত ঘন ঘন বদলায়**, সেটা ঠিক
+দুটি clarifying উত্তর architecture-কে অন্য যেকোনো কিছুর চেয়ে বেশি বদলায়। **Corpus কত ঘন ঘন বদলায়**, সেটা ঠিক
 করে re-embedding একটি nightly job হবে, নাকি write path-এ একটি queue। **ভুল উত্তরের দাম কত**, সেটা ঠিক করে
 confidence কম থাকলে feature-টি আদৌ উত্তর দিতে পারবে কি না।
 
@@ -94,11 +94,11 @@ error হিসেবে পড়ে, যা আবার চেষ্টা �
 | প্রশ্ন করুন | উত্তর হ্যাঁ হলে কারণ | সমাধান |
 | --- | --- | --- |
 | একই tool, একই argument, বারবার? | এমন একটি result, যেটা model failure থেকে আলাদা করতে পারে না | স্পষ্ট "কোনো match নেই" আর একটি hint return করুন |
-| দুটো tool, যাদের দুটোই যুক্তিসঙ্গতভাবে খাটতে পারে? | Description একটি আরেকটির ওপর পড়ছে | দুটো এক করুন, বা boundary স্পষ্ট করুন |
+| দুটি tool, যাদের দুটিই যুক্তিসঙ্গতভাবে খাটতে পারে? | Description একটি আরেকটির ওপর পড়ছে | দুটি এক করুন, বা boundary স্পষ্ট করুন |
 | প্রতিটি task-এ step cap পর্যন্ত চলে? | পূরণ করা যায় এমন কোনো stop condition নেই | Goal-এ completion criterion লিখে দিন |
 | শুধু লম্বা task-এ loop করে? | Context বেড়ে গিয়ে শুরুর state বের করে দিচ্ছে | Summarise করুন, বা state window-এর বাইরে রাখুন |
 
-সীমাগুলোর নামও বলুন: একটি step cap, একটি token budget, আর দুটোর ওপরই alert। নিয়ন্ত্রণের বাইরে চলে যাওয়া loop
+সীমাগুলোর নামও বলুন: একটি step cap, একটি token budget, আর দুটির ওপরই alert। নিয়ন্ত্রণের বাইরে চলে যাওয়া loop
 একটি bug, আবার একটি cost incident-ও। [Chapter ?? — Tool Calling ও Tool Surface](#ch-tool-calling) এর
 ভিত্তির material।
 
@@ -150,8 +150,8 @@ interface UpgradeReport {
 
 **✅ আগে diagnosis, তারপর fix দিয়ে উত্তর দেওয়া**
 
-> "ভুল chunk ফিরে এসেছে" আর "ঠিক chunk ফিরে এসেছে, কিন্তু উত্তর সেটাকে উপেক্ষা করেছে" — এরা দুটো আলাদা bug,
-> দুটোর সমাধানও আলাদা। এদের আলাদা করাটাই উত্তর।
+> "ভুল chunk ফিরে এসেছে" আর "ঠিক chunk ফিরে এসেছে, কিন্তু উত্তর সেটাকে উপেক্ষা করেছে" — এরা দুটি আলাদা bug,
+> দুটির সমাধানও আলাদা। এদের আলাদা করাটাই উত্তর।
 
 **❌ খরচ নিয়ে কোনো উত্তর না থাকা**
 
@@ -175,13 +175,13 @@ Prompt-এ হাত দেওয়ার আগে আমি trace পড়�
 return করছে, যেটা model একটি সাময়িক failure থেকে আলাদা করতে পারে না, সাধারণত একটি খালি array। সমাধান হলো এমন
 একটি return value, যেটা "কোনো match নেই" বলে আর পরের একটি term প্রস্তাব করে। যদি call-গুলো আলাদা হয় কিন্তু run
 কখনো শেষ না হয়, তাহলে পূরণ করা যায় এমন কোনো stop condition নেই, আর goal-এ একটি completion criterion দরকার। আমি
-এমন দুটো tool-ও খুঁজব, যাদের description একটি আরেকটির ওপর পড়ে। আর নিশ্চিত হব যে একটি step cap আর একটি token
-budget আছে, দুটোর ওপরই alert সহ।
+এমন দুটি tool-ও খুঁজব, যাদের description একটি আরেকটির ওপর পড়ে। আর নিশ্চিত হব যে একটি step cap আর একটি token
+budget আছে, দুটির ওপরই alert সহ।
 
 **Q: আপনি যে model-এ আছেন, provider সেটা তিরিশ দিনের মধ্যে deprecate করছে। কী হবে?**
 
 এটা critical path-এ একটি dependency upgrade, তাই এটা অন্য যেকোনোটার মতো একই প্রক্রিয়ার মধ্য দিয়ে যায়। একটি
-branch-এ candidate id pin করুন, দুটোর ওপরই golden set চালান, আর pass rate, প্রতি প্রশ্নের খরচ আর p95 latency
+branch-এ candidate id pin করুন, দুটির ওপরই golden set চালান, আর pass rate, প্রতি প্রশ্নের খরচ আর p95 latency
 তুলনা করুন। যে case-গুলো আগে pass করত আর এখন fail করে, সেগুলোই blocking list। বাকিটা দাম আর গতি নিয়ে একটি
 বিচারের ব্যাপার। আমি আশা করব output আর tool-calling-এর format আগে drift করবে, আর নতুন id-তে prompt cache cold
 থাকবে। এটা quality-র তর্ক শুরু হওয়ার আগেই latency profile বদলে দেয়।

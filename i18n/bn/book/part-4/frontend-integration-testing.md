@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-Frontend-এ integration test-এর একটাই নিয়ম: **network ছাড়া সবকিছু আসল।** আসল child component, আসল state, আসল
+Frontend-এ integration test-এর একটিই নিয়ম: **network ছাড়া সবকিছু আসল।** আসল child component, আসল state, আসল
 routing, আসল form library, আসল query cache। বদলানো হয় শুধু HTTP boundary-তে।
 
 এই একটি নিয়মই অনেক কাজ করে। এ কারণেই এই layer গুরুত্বপূর্ণ bug-গুলো ধরে: এমন loading state যেটা কখনো সরে না,

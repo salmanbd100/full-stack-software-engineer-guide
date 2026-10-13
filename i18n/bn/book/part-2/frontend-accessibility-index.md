@@ -10,12 +10,12 @@ model: "claude-opus-5-5 (Claude Code)"
 এমন একটি বিষয় নিয়ে পাঁচটি অধ্যায়, যার অবস্থান June 2025-এ বদলে গেছে। সেই মাসে European Accessibility Act
 বলবৎযোগ্য হয়। Accessibility আর এমন কোনো quality-র যুক্তি রইল না, যেটা একজন product manager পিছিয়ে দিতে পারেন।
 এটা হয়ে গেল একটি requirement, যার আছে একটি নির্দিষ্ট standard, একটি conformance level আর একটি audit। EU-তে বিক্রি
-হওয়া যেকোনো কিছুতে কাজ করা একজন senior engineer-এর জন্য, এটা সেই দুটো বিষয়ের একটি, যেখানে খুঁটিনাটি জানা আরেকটি
+হওয়া যেকোনো কিছুতে কাজ করা একজন senior engineer-এর জন্য, এটা সেই দুটি বিষয়ের একটি, যেখানে খুঁটিনাটি জানা আরেকটি
 framework জানার চেয়ে বেশি মূল্যবান। অন্যটি হলো internationalisation।
 
 পুরো section একটি দাবির ওপর দাঁড়িয়ে: **accessibility-র বেশিরভাগ কাজ হলো সঠিক element বেছে নেওয়া আর focus কোথায় যাবে
 তা ঠিক করা।** ARIA হলো ছোট অবশিষ্ট অংশটুকু, আর আইনের কারণেই সবাই প্রশ্নটা তুলছে। আপনি ঠিক করেছেন কি না, তা জানতে
-CI-তে axe gate আর দুটো manual pass ব্যবহার করেন। সেগুলো আছে
+CI-তে axe gate আর দুটি manual pass ব্যবহার করেন। সেগুলো আছে
 [Chapter ?? — Accessibility Testing](#ch-testing-accessibility)-এ, Part IV-এর বাকি testing-এর সঙ্গে।
 
 ## অধ্যায়গুলো
@@ -42,7 +42,7 @@ CI-তে axe gate আর দুটো manual pass ব্যবহার কর�
 - **Focus কোথায় যায়?** প্রশ্নটা করুন একটি dialog বন্ধ হওয়া, একটি row delete হওয়া, একটি ব্যর্থ submit বা একটি
   client-side route change নিয়ে। চারটি উত্তর, আর বেশিরভাগ candidate এর একটি নিয়েই ভেবেছেন।
 - **কী automate করা যায় না?** প্রথমে সীমাটা বলুন: automated rule এক-তৃতীয়াংশ থেকে অর্ধেক criteria ধরে। তারপর
-  দুটো manual pass-এর নাম বলুন। এটাই আলাদা করে দেয়, কে একটি accessible product ship করেছেন, আর কে শুধু axe
+  দুটি manual pass-এর নাম বলুন। এটাই আলাদা করে দেয়, কে একটি accessible product ship করেছেন, আর কে শুধু axe
   install করেছেন।
 - **আপনি কি এর খরচ হিসাব করতে পারেন?** একটি custom combobox মানে এক সপ্তাহের কাজ আর একটি স্থায়ী maintenance খরচ।
   Estimate-এ সেটা বলা একটি senior অবদান। Sprint-এর মাঝে সেটা আবিষ্কার করা নয়।

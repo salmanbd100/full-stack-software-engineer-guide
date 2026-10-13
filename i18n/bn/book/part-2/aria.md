@@ -42,7 +42,7 @@ W3C ARIA ব্যবহারের পাঁচটি নিয়ম প্�
 
 নিয়ম 1 বাদ দেওয়ার নিয়ম, আর বেশিরভাগ মূল্য এখানেই। একটি `<button>` সঙ্গে নিয়ে আসে একটি role, focus, একটি disabled
 state, Enter আর Space handling, আর form-submit-এর behaviour। একটি `div`-এ এটা নকল করতে আপনার লাগবে একটি ARIA role,
-একটি `tabindex`, দুটো key handler, একটি `aria-disabled` আর একটি pointer-events rule। তবু কিছু না কিছু বাদ পড়বে।
+একটি `tabindex`, দুটি key handler, একটি `aria-disabled` আর একটি pointer-events rule। তবু কিছু না কিছু বাদ পড়বে।
 
 ```html
 <!-- ❌ Five lines of JavaScript away from being a button, and never quite one. -->
@@ -75,7 +75,7 @@ function renderDisclosure(isOpen: boolean): string {
 ```
 
 একটি framework-এ এটা বিনা খরচে মেলে, কারণ attribute-টি সেই একই state-এ bind করা থাকে, যেটা panel render করে। হাতে লেখা
-DOM code-এ দুটো আলাদা হয়ে যায়।
+DOM code-এ দুটি আলাদা হয়ে যায়।
 
 ### ARIA যা পারে না
 

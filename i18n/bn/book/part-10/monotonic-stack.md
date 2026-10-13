@@ -155,7 +155,7 @@ Structure-টি একটি monotonic **deque**, কারণ window পের
 // ✅ while (temps[stack.at(-1)!] < temps[i])   // next greater
 ```
 
-দুটো element দিয়ে যাচাই করুন। `[1, 2]`-এ index 0-কে অবশ্যই একটি উত্তর পেতে হবে। না পেলে চিহ্নটা ভুল।
+দুটি element দিয়ে যাচাই করুন। `[1, 2]`-এ index 0-কে অবশ্যই একটি উত্তর পেতে হবে। না পেলে চিহ্নটা ভুল।
 
 **Stack খালি কিনা দেখার আগেই stack top দেখা:**
 
@@ -218,7 +218,7 @@ iteration অনেক element pop করতে পারে, কিন্তু
 
 **Q: Value-র বদলে index কেন রাখবেন?**
 
-কারণ উত্তরটা সাধারণত অবস্থান-নির্ভর। Daily Temperatures চায় `i - cooler`, আর Largest Rectangle চায় দুটো stack
+কারণ উত্তরটা সাধারণত অবস্থান-নির্ভর। Daily Temperatures চায় `i - cooler`, আর Largest Rectangle চায় দুটি stack
 entry-র মাঝখানে মাপা একটি প্রস্থ। Index থাকলে array থেকে value বিনা খরচে পাওয়া যায়। কিন্তু value থেকে অবস্থানে
 ফেরার কোনো উপায় নেই।
 

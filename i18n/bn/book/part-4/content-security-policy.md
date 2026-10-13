@@ -7,7 +7,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 # Content Security Policy ও Security Header {#ch-content-security-policy}
 
-> এমন একটি policy লিখুন, যেটা একটি সফল injection-এর পরেও টিকে থাকে, তার চারপাশে header-গুলো set করুন, আর site না ভেঙে দুটোই roll out করুন।
+> এমন একটি policy লিখুন, যেটা একটি সফল injection-এর পরেও টিকে থাকে, তার চারপাশে header-গুলো set করুন, আর site না ভেঙে দুটিই roll out করুন।
 
 **এই অধ্যায়ে:** CSP কীভাবে কাজ করে · nonce আর strict-dynamic · report-only rollout · HSTS, nosniff আর clickjacking · helmet আর testing
 
@@ -87,7 +87,7 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 Domain allowlist ভঙ্গুর। একটি CDN হাজার হাজার library host করে, আর একজন attacker একটি দুর্বল entry-র অপব্যবহার করতে
 পারে। Google এর বদলে এই strict policy recommend করে। `'strict-dynamic'` একটি nonce থাকা script-কে আরও script load
 করতে দেয়, তাই trust nonce থেকে প্রবাহিত হয়। `https:` আর `'unsafe-inline'` হলো পুরনো browser-এর জন্য fallback। যে
-browser nonce আর `'strict-dynamic'` বোঝে, সে দুটোকেই উপেক্ষা করে, তাই এগুলো কোনো ফাঁক তৈরি করে না।
+browser nonce আর `'strict-dynamic'` বোঝে, সে দুটিকেই উপেক্ষা করে, তাই এগুলো কোনো ফাঁক তৈরি করে না।
 
 ## নিরাপদে CSP Roll Out করা
 
@@ -155,7 +155,7 @@ attacker-এর button-এ click করছেন, কিন্তু আসল�
 | শুধু same origin       | `'self'`                     | `SAMEORIGIN`            |
 | নির্দিষ্ট partner domain  | `'self' https://partner.com` | ❌ support করে না        |
 
-`frame-ancestors` `X-Frame-Options`-এর জায়গা নেয়। পুরনো browser-এর জন্য আপাতত দুটোই পাঠান।
+`frame-ancestors` `X-Frame-Options`-এর জায়গা নেয়। পুরনো browser-এর জন্য আপাতত দুটিই পাঠান।
 
 ## helmet আর Testing
 

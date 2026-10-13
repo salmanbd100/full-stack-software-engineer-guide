@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-প্রতিটি request-কে দুটো প্রশ্ন রক্ষা করে। **Authentication** জিজ্ঞেস করে, *আপনি কে?* **Authorisation** জিজ্ঞেস করে,
+প্রতিটি request-কে দুটি প্রশ্ন রক্ষা করে। **Authentication** জিজ্ঞেস করে, *আপনি কে?* **Authorisation** জিজ্ঞেস করে,
 *এই জিনিসটার ওপর আপনি কি এটা করতে পারেন?* এরা আলাদাভাবে ব্যর্থ হয়, আর আলাদা জায়গায়।
 
 **OAuth** একজন user-কে password শেয়ার না করেই একটি application-কে তার data-তে সীমিত access দিতে দেয়। এটা উত্তর দেয়
@@ -21,7 +21,7 @@ model: "claude-opus-5-5 (Claude Code)"
 কে?" Login-এর জন্য খালি OAuth একটি পরিচিত ভুল: একটি access token permission প্রমাণ করে, কে সেটা দিয়েছে তা নয়।
 
 Authentication **request**-এর অংশ, তাই একটি middleware এটা set করতে পারে। Authorisation **request আর object
-দুটোর একসাথে** অংশ, তাই শুধু একটি route guard এটা ঠিক করতে পারে না। প্রতিটি check থাকে server-এ। একটি button
+দুটির একসাথে** অংশ, তাই শুধু একটি route guard এটা ঠিক করতে পারে না। প্রতিটি check থাকে server-এ। একটি button
 লুকানো হলো user experience, security নয়।
 
 > ⚠️ **যা বদলাতে থাকে:** OAuth 2.1 PKCE-কে বাধ্যতামূলক করে, আর implicit ও password grant সরিয়ে দেয়। টেকসই নীতি:
@@ -179,7 +179,7 @@ app.get('/orders/:id', requireAuth, requirePermission('order:read'), async (req,
 একটি scope বলে, একটি **application** user-এর হয়ে কী চাইতে পারে। একটি permission বলে, **user** কী করতে পারেন।
 `orders:write` সহ একটি token-এর মানে এই নয় যে এই user এই order-এ write করতে পারেন।
 
-**দুটোই check করুন, ক্রম মেনে:**
+**দুটিই check করুন, ক্রম মেনে:**
 
 ```typescript
 if (!token.scope.includes('orders:write')) return res.status(403).json({ error: { code: 'insufficient_scope' } });
@@ -191,14 +191,14 @@ Permission হিসেবে ব্যবহার করা একটি scope
 
 ## সাধারণ ভুল
 
-- ❌ **Client-এর দেওয়া `tenantId` বা `userId`-কে বিশ্বাস করা।** ✅ দুটোই verified session বা token থেকে নিন।
+- ❌ **Client-এর দেওয়া `tenantId` বা `userId`-কে বিশ্বাস করা।** ✅ দুটিই verified session বা token থেকে নিন।
 - ❌ **Client-এ সিদ্ধান্ত নেওয়া।** ✅ UX-এর জন্য button লুকান, তারপর প্রতিটি check server-এ আবার করুন।
 - ❌ **Fail open করা।** ✅ Policy lookup-এ error হলে deny করুন। একটি permissive default একটি vulnerability।
 
 ## 🔑 মূল শিক্ষা
 
 - OAuth উত্তর দেয় একটি application কী করতে পারবে, OIDC-র `id_token` উত্তর দেয় user কে, আর আপনার নিজের authorisation ঠিক করে সেই user কী ছুঁতে পারবেন।
-- PKCE সহ authorisation code-ই ব্যবহার করার একমাত্র flow, আর `state` ও PKCE আলাদা কাজ করে, তাই দুটোই লাগবে।
+- PKCE সহ authorisation code-ই ব্যবহার করার একমাত্র flow, আর `state` ও PKCE আলাদা কাজ করে, তাই দুটিই লাগবে।
 - Provider-এর token server-এই থাকে। Browser কখনো শুধু আপনার নিজের session ধরে রাখে।
 - Tenant আর owner-কে query-তে রাখুন, যাতে একটি ভুলে যাওয়া check সবকিছু নয়, কিছুই return না করে।
 - একটি OAuth scope application-কে সীমিত করে, user-কে নয়, তাই scope check করুন, তারপর object-এর ওপর user-এর permission।

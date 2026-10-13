@@ -14,7 +14,7 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 URL shortener দেখতে খুব সহজ। ঠিক এই কারণেই এটা একটি ভালো interview সমস্যা: লুকানোর কোনো জায়গা নেই। পুরো
-design দুটো সিদ্ধান্তের ওপর দাঁড়িয়ে। **এমন একটি central counter ছাড়া কীভাবে সাত অক্ষরের একটি unique key তৈরি
+design দুটি সিদ্ধান্তের ওপর দাঁড়িয়ে। **এমন একটি central counter ছাড়া কীভাবে সাত অক্ষরের একটি unique key তৈরি
 করবেন, যার পেছনে সবকিছু queue-তে দাঁড়ায়?** আর **database না ছুঁয়ে কীভাবে দিনে দশ billion redirect serve
 করবেন?** বাকি সব plumbing।
 
@@ -114,7 +114,7 @@ interface Link {
 }
 ```
 
-Access pattern একটাই query: একটি code দিলে একটি URL ফেরত দাও। তাই `code`-এর ওপর shard করা একটি key-value বা
+Access pattern একটিই query: একটি code দিলে একটি URL ফেরত দাও। তাই `code`-এর ওপর shard করা একটি key-value বা
 wide-column store-ই সঠিক জায়গা। Relational store-এর পক্ষেও যুক্তি দেওয়া যায়, কিন্তু দরকার নেই।
 
 Custom alias-এর জন্য uniqueness check লাগে। এই একটি জায়গাতেই conditional write গুরুত্বপূর্ণ। আগে read করে তারপর
@@ -184,7 +184,7 @@ candidate এটা উল্লেখ করেন না, তিনি product
 
 ## 🔑 মূল শিক্ষা
 
-- যে দুটো সিদ্ধান্ত গুরুত্বপূর্ণ: coordination ছাড়া key generation, আর cache থেকে read serve করা।
+- যে দুটি সিদ্ধান্ত গুরুত্বপূর্ণ: coordination ছাড়া key generation, আর cache থেকে read serve করা।
 - আগে থেকে বরাদ্দ করা key range প্রতি million write-এ একটি round trip দিয়ে unique code দেয়, কোনো central bottleneck ছাড়া।
 - সাত অক্ষরের base62 মানে 3.5 trillion code। সংখ্যাটা বলুন, কারণ এটাই দৈর্ঘ্যের যুক্তি।
 - 301 বনাম 302 analytics আর editability নিয়ে একটি product সিদ্ধান্ত, performance-এর খুঁটিনাটি নয়।

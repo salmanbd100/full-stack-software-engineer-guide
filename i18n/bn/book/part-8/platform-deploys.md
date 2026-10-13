@@ -154,7 +154,7 @@ export const isRealTraffic: boolean = deployEnv === "production";
 ```
 
 > ⚠️ এখানে `NODE_ENV === "production"` দিয়ে guard করা কাজ করে না। একটি preview **আসলেই** একটি production build:
-> minified, optimised, `NODE_ENV=production`। শুধু platform-এর নিজস্ব variable দুটোকে আলাদা করে চেনায়।
+> minified, optimised, `NODE_ENV=production`। শুধু platform-এর নিজস্ব variable দুটিকে আলাদা করে চেনায়।
 
 Preview *review*-এর জন্য staging-এর জায়গা নেয়। *Rehearsal*-এর জন্য নেয় না। যে release তিনটি service-কে সমন্বয়
 করে, তার এখনো এমন একটি জায়গা দরকার যেখানে তিনটিই candidate version চালায়।
@@ -199,7 +199,7 @@ stub করুন।
 ## সাধারণ ভুল
 
 ❌ **Preview URL-কে ফেলে দেওয়ার জিনিস আর production deploy-কে "আসল" build ভাবা।**
-✅ দুটো একই artefact হওয়া উচিত। যে deployment pass করেছে সেটাই promote করুন। Merge করে আবার build করবেন না।
+✅ দুটি একই artefact হওয়া উচিত। যে deployment pass করেছে সেটাই promote করুন। Merge করে আবার build করবেন না।
 
 ❌ **Client-এর জন্য prefix দেওয়া একটি build-time variable-এ secret রাখা।**
 ✅ Bundler যা inline করে, তা browser-এ চলে যায়। Secret request-এর সময় server code-এ পড়ুন।

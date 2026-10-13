@@ -21,8 +21,8 @@ Eval হলো সেই হারিয়ে যাওয়া feedback loop:
 এটা একটি test suite, শুধু একটি পার্থক্যসহ। Assertion equality হতে পারে না, কারণ সঠিক output একটি string নয়, বরং
 গ্রহণযোগ্য উত্তরের একটি পরিসর।
 
-Documentation assistant-এর দুটো অর্ধেক। Retrieval passage-গুলো window-এ রাখে, অর্থাৎ যে text model পড়ে।
-Generation সেগুলো থেকে উত্তর লেখে। দুটোই একই অভিযোগ নিয়ে ব্যর্থ হয়: "উত্তরটা ভুল ছিল"। কিন্তু দুটোর সমাধান আলাদা,
+Documentation assistant-এর দুটি অর্ধেক। Retrieval passage-গুলো window-এ রাখে, অর্থাৎ যে text model পড়ে।
+Generation সেগুলো থেকে উত্তর লেখে। দুটিই একই অভিযোগ নিয়ে ব্যর্থ হয়: "উত্তরটা ভুল ছিল"। কিন্তু দুটির সমাধান আলাদা,
 তাই একটি eval suite প্রতিটি অর্ধেক আলাদা করে মাপে। তারপর error analysis failure-গুলোকে কাজের একটি ক্রমানুসারে
 সাজানো তালিকায় পরিণত করে।
 
@@ -52,9 +52,9 @@ Senior AI hiring-এ এটাই সবচেয়ে বেশি জিজ�
 set-এর মূল অংশ হিসেবে নয়।
 
 প্রতিটি case সেই passage-গুলোর id বহন করে, যেগুলো retrieve হওয়া উচিত। Corpus পড়েছেন এমন একজন মানুষ সেগুলো
-label করেন। ওই একটি field-ই একই set দিয়ে দুটো অর্ধেক মাপা সম্ভব করে।
+label করেন। ওই একটি field-ই একই set দিয়ে দুটি অর্ধেক মাপা সম্ভব করে।
 
-**একটি golden case, যেটা retrieval আর উত্তর দুটোই কভার করে**
+**একটি golden case, যেটা retrieval আর উত্তর দুটিই কভার করে**
 
 ```typescript
 interface EvalCase {
@@ -98,8 +98,8 @@ function recallAtK(cases: EvalCase[], retrieve: (q: string, k: number) => Promis
 }
 ```
 
-এটা *k*-এর দুটো value-তে report করুন। `recall@20` retriever-কে মাপে। `recall@5` retriever আর reranker দুটোকে মাপে।
-দুটো সংখ্যা একটি অস্পষ্ট অভিযোগকে তিনটি workstream-এর একটিতে নামিয়ে আনে।
+এটা *k*-এর দুটি value-তে report করুন। `recall@20` retriever-কে মাপে। `recall@5` retriever আর reranker দুটিকে মাপে।
+দুটি সংখ্যা একটি অস্পষ্ট অভিযোগকে তিনটি workstream-এর একটিতে নামিয়ে আনে।
 
 | recall@20 | recall@5 | রোগনির্ণয় | সমাধান |
 | --- | --- | --- | --- |
@@ -126,7 +126,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | **Deterministic** | Schema valid, একটি প্রয়োজনীয় id cite করে, latency budget-এর মধ্যে, যখন উচিত তখন refuse করেছে | বিনামূল্যে | যা কিছু এটা কভার করতে পারে |
 | **Model-graded** | একটি rubric অনুযায়ী faithfulness, tone, সম্পূর্ণতা | প্রতি case-এ একটি model call | যে গুণের কোনো programmatic রূপ নেই |
-| **Human** | আসল বিচার; বাকি দুটোকে calibrate করা | ব্যয়বহুল | মাঝে মাঝে, একটি sample |
+| **Human** | আসল বিচার; বাকি দুটিকে calibrate করা | ব্যয়বহুল | মাঝে মাঝে, একটি sample |
 
 **যা কিছু পারেন, প্রথম row-তে ঠেলে দিন।** মানের একটি বড় অংশ code দিয়ে যাচাই করা যায়। উত্তর কি retrieve করা কোনো
 source cite করেছে? JSON কি valid? Injection-এর চেষ্টায় কি refuse করেছে? এই check-গুলো কয়েক millisecond-এ চলে, আর
@@ -183,7 +183,7 @@ phrase লিখুন, তারপর phrase-গুলোকে দলে ভ�
 format-এ লাভ হয়, এই failure-গুলোর প্রায় এক-তৃতীয়াংশ, আর এতে আসল টাকা খরচ হয়। **একটি retrieval miss generator
 কখনোই ঠিক করতে পারে না।**
 
-অস্পষ্টতাকে প্রায়ই ভুল করে model failure হিসেবে ধরা হয়। কিছু প্রশ্নের দুটো অর্থ হয়, আর সমাধানের জায়গা interface-এ,
+অস্পষ্টতাকে প্রায়ই ভুল করে model failure হিসেবে ধরা হয়। কিছু প্রশ্নের দুটি অর্থ হয়, আর সমাধানের জায়গা interface-এ,
 pipeline-এ নয়।
 
 থামুন যখন বাকি থাকা সবচেয়ে বড় category suite-এর noise-এর চেয়ে ছোট, অথবা যখন সেটা ঠিক করার খরচ failure-এর চেয়ে
@@ -225,7 +225,7 @@ pipeline-এ নয়।
 | যে প্রথম prompt পরিবর্তন নিয়ে কেউ তর্ক করে, তার আগে | বিশটি case বানান; তর্কটা একটি মাপজোখে পরিণত হয় |
 | Chunk size বা *k* tune করার আগে | আগে প্রাসঙ্গিক chunk id label করুন, নইলে বুঝতে পারবেন না কাজে লাগল কি না |
 | একজন user ভুল উত্তরের কথা জানায় | Log করা chunk id দেখুন, তারপর ঠিক করার আগে এটাকে একটি case হিসেবে যোগ করুন |
-| Model, provider বা embedding model বদলানো | একই set-এ দুটোই চালান — switch করার একমাত্র নিরাপদ উপায় |
+| Model, provider বা embedding model বদলানো | একই set-এ দুটিই চালান — switch করার একমাত্র নিরাপদ উপায় |
 | Pass rate কমেছে আর কেউ জানে না কেন | নতুন করে fail করা trace পড়ুন; category নিজেই নিজের নাম বলে দেয় |
 | User-রা অভিযোগ করছে কিন্তু metric ঠিক দেখাচ্ছে | আসল traffic থেকে sample নিন — suite-এ একটি category নেই |
 
@@ -237,7 +237,7 @@ pipeline-এ নয়।
 
 **❌ শুধু end-to-end উত্তরের মান মাপা**
 
-> এটা বলে কিছু একটা ভুল, কিন্তু কোন অর্ধেকে তা কিছুই বলে না। সাধারণ ফল হলো ভুল অর্ধেকে দুই সপ্তাহ।
+> এটা বলে কিছু একটি ভুল, কিন্তু কোন অর্ধেকে তা কিছুই বলে না। সাধারণ ফল হলো ভুল অর্ধেকে দুই সপ্তাহ।
 
 **❌ এইমাত্র কেউ যে failure report করল, সেটা ঠিক করা**
 
@@ -245,7 +245,7 @@ pipeline-এ নয়।
 
 **❌ এক run-এ কয়েকটি জিনিস বদলানো**
 
-> দুটো prompt edit আর একটি retrieval পরিবর্তন একসাথে করলে মোট প্রভাব পাওয়া যায়, কিন্তু কোনটা কাজে লাগল তা জানা যায় না।
+> দুটি prompt edit আর একটি retrieval পরিবর্তন একসাথে করলে মোট প্রভাব পাওয়া যায়, কিন্তু কোনটা কাজে লাগল তা জানা যায় না।
 
 **✅ প্রতিটি production request-এ retrieve করা chunk id আর জোড়া লাগানো request log করুন**
 

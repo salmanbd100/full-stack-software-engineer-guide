@@ -38,7 +38,7 @@ Performance-এ part-স্তরের সংকেত আক্ষরিক �
 - **INP কেন FID-এর চেয়ে কঠিন, জানেন?** কারণ এটা প্রতিটি interaction-কে paint পর্যন্ত পুরো পথ মাপে, তাই session-এর যেকোনো
   জায়গায় একটি long task আপনাকে fail করাতে পারে। এটাই প্রশ্নটির বর্তমান রূপ, আর এটা ভালোভাবে ছাঁকে।
 - **Lab নাকি field?** Lighthouse একটি simulated device-কে score দেয়। Chrome User Experience Report বলে সত্যিকারের user-রা
-  কী পেয়েছেন। একটি senior উত্তর দুটোই ব্যবহার করে, আর জানে যে একটি lab run INP একেবারেই মাপতে পারে না।
+  কী পেয়েছেন। একটি senior উত্তর দুটিই ব্যবহার করে, আর জানে যে একটি lab run INP একেবারেই মাপতে পারে না।
 - **কী bundle-কে আবার বড় হতে দেয় না?** এমন একটি budget যা build fail করায়, কোনো optimisation week নয়। যে candidate-রা এর
   মধ্য দিয়ে গেছেন, তাঁরা উত্তর দেন একটি CI gate আর PR-এ একটি size-change comment দিয়ে।
 

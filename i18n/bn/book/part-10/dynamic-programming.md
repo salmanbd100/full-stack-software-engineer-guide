@@ -16,7 +16,7 @@ model: "claude-opus-5-5 (Claude Code)"
 Dynamic programming হলো এমন recursion, যেটা মনে রাখে। সাধারণ `fib(50)` লাখ লাখ বার `fib(30)` আবার হিসাব করে।
 প্রথমবারেই প্রতিটি উত্তর লিখে রাখলে এটা linear হয়ে যায়। পুরো technique এই বদলটুকুই।
 
-দুটি property থাকতেই হবে। Code লেখার আগে দুটোই মুখে বলে যাচাই করে নেওয়া ভালো:
+দুটি property থাকতেই হবে। Code লেখার আগে দুটিই মুখে বলে যাচাই করে নেওয়া ভালো:
 
 | Property                 | মানে                                                              | কখন খাটে না                                       |
 | ------------------------ | ------------------------------------------------------------------ | ------------------------------------------------ |
@@ -106,7 +106,7 @@ function coinChangeBottomUp(coins: number[], amount: number): number {
 | **Space** | Memo, সাথে `O(depth)` stack | শুধু table |
 | **ঝুঁকি** | গভীর input-এ stack overflow | এমন state পূরণ করা, যেগুলো কেউ কখনো পড়ে না |
 
-দুটোই একই algorithm। যেটাতে recurrence দেখা যায় সেটা লিখুন, তারপর জিজ্ঞেস করলে রূপান্তর করুন।
+দুটিই একই algorithm। যেটাতে recurrence দেখা যায় সেটা লিখুন, তারপর জিজ্ঞেস করলে রূপান্তর করুন।
 
 ### Array গুটিয়ে আনা
 
@@ -140,7 +140,7 @@ trigger-টা জানুন — **recurrence কত পেছন পর্য
 | --------------- | ----------------------------------------- | -------------------------------------- | ----------------------------------------------- |
 | **Linear**      | `dp[i]` — প্রথম `i`টি item-এর উত্তর   | আগের নির্দিষ্ট কয়েকটি entry      | Climbing Stairs, House Robber, Coin Change      |
 | **Grid**        | `dp[r][c]` — ওই cell-এর উত্তর           | ওপরের cell আর বাঁয়ের cell | Unique Paths, Minimum Path Sum, Edit Distance   |
-| **Subsequence** | `dp[i][j]` — দুটি sequence-এর ওপর, অথবা `i`-তে শেষ হওয়া `dp[i]` | শেষ দুটো মেলে কি না       | Longest Common Subsequence, LIS, Palindromes    |
+| **Subsequence** | `dp[i][j]` — দুটি sequence-এর ওপর, অথবা `i`-তে শেষ হওয়া `dp[i]` | শেষ দুটি মেলে কি না       | Longest Common Subsequence, LIS, Palindromes    |
 | **Knapsack**    | `dp[i][capacity]`                          | Item-টি নিন, অথবা বাদ দিন              | Partition Equal Subset Sum, Target Sum          |
 
 Shape চিনতে পারলে state পাওয়া যায়, আর state থেকে পাওয়া যায় loop-এর সীমা। একটি line লেখার আগেই কাজের বেশিরভাগ
@@ -231,7 +231,7 @@ two-dimensional template, যার variation হলো অন্য বেশ�
 
 ## 🔑 মূল শিক্ষা
 
-- DP-র জন্য overlapping subproblems **আর** optimal substructure দুটোই লাগে। দুটো না থাকলে এটা ভুল tool।
+- DP-র জন্য overlapping subproblems **আর** optimal substructure দুটিই লাগে। দুটি না থাকলে এটা ভুল tool।
 - আসল কাজ হলো state-এর নাম দেওয়া — `dp[i]`-এর একটি নিখুঁত মানে দাঁড়িয়ে গেলে recurrence নিজেই চলে আসে।
 - Memoisation আর tabulation একই algorithm। যেটাতে recurrence দেখা যায়, সেটা বেছে নিন।
 - Recurrence যদি শুধু এক বা দুটি entry পেছনে পৌঁছায়, array গুটিয়ে `O(1)` space-এ নামান।
@@ -249,14 +249,14 @@ memory যোগ করছেন। আর optimal substructure, যাতে �
 
 যখন fill order-এর চেয়ে recurrence দেখা সহজ, তখন memoisation লিখুন। Interview-এর চাপে বেশিরভাগ সময় সেটাই হয়:
 recursion বলুন, একটি cache যোগ করুন, ব্যস। Tabulation-এ যান যখন input এত গভীর যে call stack overflow করবে, অথবা
-যখন `O(1)`-space-এর গুটানো version চান, যেটা loop হিসেবে অনেক বেশি স্বাভাবিক। দুটো একই value হিসাব করে।
+যখন `O(1)`-space-এর গুটানো version চান, যেটা loop হিসেবে অনেক বেশি স্বাভাবিক। দুটি একই value হিসাব করে।
 Memoisation শুধু পৌঁছানো যায় এমন state-এ যায়, আর tabulation পুরো table পূরণ করে।
 
 **Q: State কী হবে, সেটা কীভাবে ঠিক করবেন?**
 
 জিজ্ঞেস করুন একটি subproblem-এর উত্তর কীসের ওপর নির্ভর করে, আর প্রতিটি বদলাতে থাকা পরিমাণকে একটি করে dimension
 বানান। উত্তর যদি শুধু কতগুলো item বিবেচনা করেছেন তার ওপর নির্ভর করে, state হলো `dp[i]`। যদি বাকি capacity-র ওপরও
-নির্ভর করে, তাহলে `dp[i][capacity]`। চার বা তার বেশি dimension লাগলে সাধারণত বোঝায়, এর ভেতরের কিছু একটা বাকিগুলো
+নির্ভর করে, তাহলে `dp[i][capacity]`। চার বা তার বেশি dimension লাগলে সাধারণত বোঝায়, এর ভেতরের কিছু একটি বাকিগুলো
 থেকেই বের করা যায়।
 
 **Q: এমন একটি problem দিন, যেখানে greedy ব্যর্থ হয় আর DP সফল হয়, আর কারণটা বলুন।**

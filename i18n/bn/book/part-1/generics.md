@@ -100,7 +100,7 @@ const age: FormField<number> = { value: 0, touched: false };
 
 ### Inference
 
-TypeScript call থেকেই type argument infer করে, তাই আপনাকে কদাচিৎ লিখতে হয়। স্পষ্টভাবে একটা দিন তখন, যখন
+TypeScript call থেকেই type argument infer করে, তাই আপনাকে কদাচিৎ লিখতে হয়। স্পষ্টভাবে একটি দিন তখন, যখন
 infer করার মতো কিছু নেই — যেমন একটি parameter, যেটা শুধু return type-এ আসে:
 
 ```typescript
@@ -189,7 +189,7 @@ generic return type compiler-কে শুধু বলে কী ধরে ন�
 
 **Q: `(obj: object, key: string): unknown`-এর তুলনায় `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` কী সুবিধা দেয়?**
 
-দুটো জিনিস। Object-এ নেই এমন একটি key runtime-এ `undefined` ফেরত না দিয়ে compile-এই fail করে। আর return
+দুটি জিনিস। Object-এ নেই এমন একটি key runtime-এ `undefined` ফেরত না দিয়ে compile-এই fail করে। আর return
 type হয় ঠিক সেই property-র type, তাই call site-এ কোনো cast বা narrowing লাগে না।
 
 ## এরপর কী পড়বেন

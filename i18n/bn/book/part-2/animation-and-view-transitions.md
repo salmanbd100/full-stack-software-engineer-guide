@@ -7,7 +7,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 # Animation ও View Transition {#ch-animation-and-view-transitions}
 
-> জানুন কোন property-গুলো browser বিনা খরচে animate করতে পারে, আর একটি page-এর দুটো state-ই নিজে না ধরে রেখে কীভাবে একটি থেকে অন্যটিতে animate করবেন।
+> জানুন কোন property-গুলো browser বিনা খরচে animate করতে পারে, আর একটি page-এর দুটি state-ই নিজে না ধরে রেখে কীভাবে একটি থেকে অন্যটিতে animate করবেন।
 
 **এই অধ্যায়ে:** rendering-এর চারটি ধাপ · শুধু compositor-এর property · Web Animations API · View Transitions API · reduced motion একটি requirement · jank-এর checklist
 
@@ -17,7 +17,7 @@ model: "claude-opus-5-5 (Claude Code)"
 Browser চারটি ধাপে render করে: style, layout, paint আর composite। একটি property animate করলে প্রতিটি frame-এ সেই
 property-র ধাপ আর তার পরের প্রতিটি ধাপ আবার চলে।
 
-`transform` আর `opacity` হলো সেই দুটো property, যেগুলো compositor (browser-এর যে অংশ screen-এ layer-গুলো জোড়া
+`transform` আর `opacity` হলো সেই দুটি property, যেগুলো compositor (browser-এর যে অংশ screen-এ layer-গুলো জোড়া
 দেয়) নিজে নিজেই বদলাতে পারে। বাকি সবকিছু layout বা paint-কে আবার frame budget-এর ভেতরে টেনে আনে। 60fps-এ পুরো
 budget হলো 16.7 millisecond, আগে থেকে চলা যেকোনো JavaScript সহ।
 
@@ -44,7 +44,7 @@ flowchart LR
 | `transform`, `opacity` | শুধু composite | কার্যত বিনা খরচে — GPU একটি আগে থেকে থাকা layer সরায় |
 | `filter` | Composite, একটি শর্তসহ | নিজে সস্তা, কিন্তু প্রতি frame-এ নতুন layer বাধ্য করলে দামি |
 
-ব্যবহারিক নিয়ম: **`transform` আর `opacity` animate করুন, আর বাকি সবকিছু এই দুটো দিয়ে প্রকাশ করুন।**
+ব্যবহারিক নিয়ম: **`transform` আর `opacity` animate করুন, আর বাকি সবকিছু এই দুটি দিয়ে প্রকাশ করুন।**
 একটি element সরানো মানে `translate`, `left` নয়। বড় করা মানে `scale`, `width` নয়।
 
 ### Motion declare করা
@@ -71,11 +71,11 @@ object আপনি উল্টাতে, pause করতে বা cancel ক�
 ### View transition
 
 View transition যে সমস্যার সমাধান করে, সেটা ownership-এর। একটি page-এর এক state থেকে অন্য state-এ animate করতে
-হলে দুটো state-ই একসঙ্গে DOM-এ রাখতে হয়। মানে পুরোনো list আর নতুন list, বা ছোট image আর বড়টি। প্রতিটি framework
+হলে দুটি state-ই একসঙ্গে DOM-এ রাখতে হয়। মানে পুরোনো list আর নতুন list, বা ছোট image আর বড়টি। প্রতিটি framework
 এর জন্য নিজস্ব যন্ত্রপাতি বানিয়েছে।
 
 এর বদলে browser কাজটা করতে পারে। `startViewTransition` page-এর একটি snapshot নেয়, DOM update চালায়, আবার
-snapshot নেয়, আর দুটোর মধ্যে cross-fade করে:
+snapshot নেয়, আর দুটির মধ্যে cross-fade করে:
 
 ```typescript
 // The callback does the ordinary DOM update. The browser animates the difference.
@@ -117,7 +117,7 @@ Cross-document transition একই ধারণা একটি সাধার
 | একটি element-এ hover, focus, open/close | একটি CSS transition | Declarative, interrupt করা যায়, JavaScript লাগে না |
 | Loop করা বা একাধিক ধাপের একটি sequence | CSS keyframe | Sequence-টি stylesheet-এরই অংশ |
 | Gesture বা code-এর state দিয়ে চালিত motion | Web Animations API | আপনাকে উল্টাতে, pause আর cancel করতে হয় |
-| একটি list, একটি route বা একটি detail view-এর দুটো state | View transition | Browser দুটো state ধরে রাখে, তাই আপনাকে রাখতে হয় না |
+| একটি list, একটি route বা একটি detail view-এর দুটি state | View transition | Browser দুটি state ধরে রাখে, তাই আপনাকে রাখতে হয় না |
 | কয়েকটির বেশি element সরানো যেকোনো কিছু | শুধু `transform` আর `opacity` | একমাত্র এই জুটিই compositor-এ থাকে |
 
 ### Reduced motion কোনো ঐচ্ছিক বাড়তি জিনিস নয়
@@ -155,13 +155,13 @@ value-তে animate করুন।
 
 **❌ একটি view transition-কে page-level effect হিসেবে দেখা।** যে element-গুলো থেকে যায়, সেগুলোতে
 `view-transition-name` না দিলে সবকিছু cross-fade হয়। সেটা একটি সম্পর্ক নয়, একটি ঝলকানি মনে হয়। এই API-এর আসল
-মূল্য হলো browser-কে বলে দেওয়া কোন দুটো element একই জিনিস।
+মূল্য হলো browser-কে বলে দেওয়া কোন দুটি element একই জিনিস।
 
 ## 🔑 মূল শিক্ষা
 
 - Browser চারটি ধাপে render করে, আর একটি property animate করলে প্রতিটি frame-এ তার ধাপ আর তার পরের সবকিছু আবার
   চলে।
-- `transform` আর `opacity` হলো একমাত্র দুটো property, যেগুলো compositor নিজে animate করতে পারে। Motion এই দুটো
+- `transform` আর `opacity` হলো একমাত্র দুটি property, যেগুলো compositor নিজে animate করতে পারে। Motion এই দুটি
   দিয়েই প্রকাশ করুন।
 - Web Animations API আছে এমন motion-এর জন্য, যেটাকে উল্টাতে, pause বা cancel করতে হয়। বাকি সবকিছুর জন্য CSS
   ভালো।
@@ -180,9 +180,9 @@ sibling-দের জন্যও, layout আবার চালায়। য
 
 **Q: View Transitions API আসলে আপনার জন্য কী করে?**
 
-এটা দুটো state-ই ধরে রাখে। একটি page-এর দুটো সংস্করণের মধ্যে animate করা মানে সাধারণত নতুন DOM render হওয়ার সময়
+এটা দুটি state-ই ধরে রাখে। একটি page-এর দুটি সংস্করণের মধ্যে animate করা মানে সাধারণত নতুন DOM render হওয়ার সময়
 পুরোনো DOM বাঁচিয়ে রাখা। এটাই কঠিন অংশ, আর এ কারণেই animation library-গুলো বড়। Browser আপনার update-এর আগে আর
-পরে snapshot নেয়, আর পার্থক্যটা animate করে। `view-transition-name` তাকে বলে দেয় দুটো snapshot-এর কোন element-গুলো
+পরে snapshot নেয়, আর পার্থক্যটা animate করে। `view-transition-name` তাকে বলে দেয় দুটি snapshot-এর কোন element-গুলো
 একই object, যাতে সে সেগুলোকে fade না করে সরাতে পারে।
 
 **Q: Interface-কে বিভ্রান্তিকর না করে আপনি `prefers-reduced-motion` কীভাবে সামলান?**
@@ -201,6 +201,6 @@ runtime পাঠায় না।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Container Query ও Cascade Layer](#ch-container-queries-and-layers) — বাকি দুটো feature, যেগুলো একটি workaround-এর জায়গা নিয়েছে
+- [Chapter ?? — Container Query ও Cascade Layer](#ch-container-queries-and-layers) — বাকি দুটি feature, যেগুলো একটি workaround-এর জায়গা নিয়েছে
 - [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — যেখানে drop হওয়া frame একটি সংখ্যা হয়ে দেখা দেয়, যার দায় কারও ঘাড়ে পড়ে
 - [Chapter ?? — Accessibility কেন, আর আইন কী বলে](#ch-accessibility-and-the-law) — কেন reduced motion সৌজন্য নয়, একটি requirement

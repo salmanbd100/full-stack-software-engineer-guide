@@ -15,9 +15,9 @@ model: "claude-opus-5-5 (Claude Code)"
 
 প্রতিটি injection vulnerability আসলে একই bug, শুধু আলাদা পোশাকে — SQL, NoSQL, command, path বা template, যা-ই
 হোক। **Data এমন একটি string-এ জোড়া লাগানো হয়েছে, যেটাকে অন্য কিছু code হিসেবে interpret করে।** Interpreter আপনার
-উদ্দেশ্য আর attacker-এর উদ্দেশ্য আলাদা করতে পারে না। যতক্ষণে সে string-টি দেখে, ততক্ষণে দুটো দেখতে একই রকম।
+উদ্দেশ্য আর attacker-এর উদ্দেশ্য আলাদা করতে পারে না। যতক্ষণে সে string-টি দেখে, ততক্ষণে দুটি দেখতে একই রকম।
 
-তাই সত্যিকারের defence মাত্র দুটো, আর এরা আসলে আলাদা layer-এ একই defence:
+তাই সত্যিকারের defence মাত্র দুটি, আর এরা আসলে আলাদা layer-এ একই defence:
 
 1. **কখনো concatenation দিয়ে instruction বানাবেন না।** Data এমন একটি channel দিয়ে পাঠান, যেটা interpreter আলাদা
    রাখে: একটি bound parameter, একটি argument array, একটি structured query object।
@@ -163,7 +163,7 @@ function safePath(name: string): string {
 ```
 
 প্রতিটি platform-এ শুধু `path.basename` যথেষ্ট নয়, আর শুধু `startsWith`-কে হারিয়ে দেয় `/var/app/uploads-evil`।
-দুটোই ব্যবহার করুন, এই ক্রমে।
+দুটিই ব্যবহার করুন, এই ক্রমে।
 
 > ⚠️ **Prototype pollution** এই পরিবারের JavaScript-নির্দিষ্ট সদস্য। `__proto__` থাকা একটি JSON body, একটি সরল
 > deep-merge দিয়ে একটি object-এ merge হলে, `Object.prototype`-এ property যোগ করতে পারে, আর পুরো application জুড়ে
@@ -177,7 +177,7 @@ function safePath(name: string): string {
 | Check | কেন |
 | ----- | --- |
 | Size limit, middleware-এ | আপনার code চলার আগেই একটি 5 GB upload একটি denial of service |
-| Magic byte, extension বা `Content-Type` নয় | দুটোই attacker দেয় |
+| Magic byte, extension বা `Content-Type` নয় | দুটিই attacker দেয় |
 | একটি generate করা filename | User-এর দেওয়া নাম অবিশ্বস্ত, আর অন্য নামের সাথে মিলে যেতে পারে |
 | Web root-এর বাইরে রাখা, একটি handler দিয়ে serve করা | নাহলে একটি রাখা `.html` বা `.svg` আপনার origin-এ একটি XSS |
 | Download-এ `Content-Disposition: attachment` আর `nosniff` | Browser-কে এটা render করা থেকে আটকায় |
@@ -196,7 +196,7 @@ Redirect follow করাও বন্ধ করুন, অথবা প্র�
 ## 🔑 মূল শিক্ষা
 
 - প্রতিটি injection হলো এমন কিছুতে জোড়া লাগানো data, যেটাকে অন্য একটি interpreter code হিসেবে parse করে।
-- Value parameterise করুন, আর identifier allowlist করুন। এই দুটোই একমাত্র উপায়, আর এরা সবকিছু কভার করে।
+- Value parameterise করুন, আর identifier allowlist করুন। এই দুটিই একমাত্র উপায়, আর এরা সবকিছু কভার করে।
 - Boundary-তে `.strict()` schema দিয়ে validate করুন। এটা না থাকলে mass assignment এমন field set করে, যেগুলো আপনি কখনো expose করেননি।
 - Argument array সহ `spawn`-এ কোনো shell নেই, তাই command injection-এর থাকার কোনো জায়গা নেই।
 - SSRF-এর জন্য DNS resolution-এর পরে address-স্তরের validation লাগে, সাথে প্রতিটি redirect-এ একই check।

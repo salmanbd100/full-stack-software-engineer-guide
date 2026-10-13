@@ -28,7 +28,7 @@ system design round একটি ছোট backend round নয়। এর ন
 | 02 | [Offline-First Architecture](#ch-offline-first-architecture) | Train-এ বসে কী হয়, আর পরে কীভাবে মিলিয়ে নেয়? |
 | 03 | [Frontend Authentication](#ch-frontend-authentication) | Token কোথায় থাকে, আর client-কে কী জানানো যায়? |
 
-দুটো frontend case study backend-এরটির পাশে বসে আছে, [Part VI — Case Study](#ch-part-system-design-case-studies)-এ:
+দুটি frontend case study backend-এরটির পাশে বসে আছে, [Part VI — Case Study](#ch-part-system-design-case-studies)-এ:
 collaborative editor আর infinite feed। প্রতিটি পুরো framework শুরু থেকে শেষ পর্যন্ত চালায়। Crawler কী দেখে, সেটা
 Part III-এর [Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route)।
 
@@ -48,8 +48,8 @@ Senior হওয়ার সংকেত হলো **প্রতিটি rout
 
 ## পড়ার ক্রম
 
-01 → 02 হলো মেরুদণ্ড। এরা সেই দুটো network সমস্যা cover করে, যেগুলো একটি frontend design উত্তরকে backend-এর উত্তর থেকে
+01 → 02 হলো মেরুদণ্ড। এরা সেই দুটি network সমস্যা cover করে, যেগুলো একটি frontend design উত্তরকে backend-এর উত্তর থেকে
 আলাদা করে। Happy path আঁকা হয়ে গেলে সবচেয়ে সাধারণ পরের প্রশ্ন হলো 03।
 
 **Interview sprint:** `Fundamentals/01`, তারপর এখানকার 01। একটি frontend design round কোনো নির্দিষ্ট domain-এ খোঁচাখুঁচি
-শুরু করার আগে যা জিজ্ঞেস করে, তার বেশিরভাগই এই দুটোতে আছে।
+শুরু করার আগে যা জিজ্ঞেস করে, তার বেশিরভাগই এই দুটিতে আছে।

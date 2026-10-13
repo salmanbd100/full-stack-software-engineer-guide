@@ -160,7 +160,7 @@ member-এর জন্য আলাদা চলে। একটিমাত্
 হলো maintenance-এর খরচ। বিকল্প যদি একটু duplication হয়, duplication-টাই নিন।
 
 > ⚠️ একটি update object-এ `Partial<T>` একটি সত্যিকারের অস্পষ্টতা লুকিয়ে রাখে। `{ bio: undefined }` মানে "field-টি
-> খালি করো", আর `{}` মানে "এটা যেমন আছে থাক"। `Partial` দুটোকে একই type দেয়। API-র কাছে পার্থক্যটা জরুরি হলে,
+> খালি করো", আর `{}` মানে "এটা যেমন আছে থাক"। `Partial` দুটিকে একই type দেয়। API-র কাছে পার্থক্যটা জরুরি হলে,
 > সেটা স্পষ্টভাবে model করুন।
 
 > ⚠️ গভীরভাবে recursive type compiler-এর instantiation limit-এ গিয়ে ঠেকে। এগুলো প্রতিটি build আর editor-এর
@@ -197,7 +197,7 @@ member-এর জন্য আলাদা চলে। একটিমাত্
 
 **Q: কখন আপনি একটি update type-এর জন্য `Partial` ব্যবহার করবেন না?**
 
-যখন "field নেই" আর "field খালি করা হয়েছে" আলাদা করে চেনা দরকার, কারণ `Partial` দুটোকে মিশিয়ে দেয়। আর যখন
+যখন "field নেই" আর "field খালি করা হয়েছে" আলাদা করে চেনা দরকার, কারণ `Partial` দুটিকে মিশিয়ে দেয়। আর যখন
 update-এ কিছু field আবশ্যিক, যেমন optimistic locking-এর জন্য একটি version number।
 `Partial<Pick<T, …>> & { version: number }` সেটা বলে, `Partial<T>` বলে না।
 

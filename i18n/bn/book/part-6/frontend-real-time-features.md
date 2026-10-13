@@ -9,7 +9,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 > এমন একটি client তৈরি করুন, যেটা connection কেটে গেলেও টিকে থাকে, আর সে কী জানে সে সম্পর্কে সত্য বলে।
 
-**এই অধ্যায়ে:** browser-এর দুটো API · backoff আর jitter-সহ reconnection · হারানো message ফিরে পাওয়া · live data render করা · user-এর জন্য UI-কে কী করতেই হবে
+**এই অধ্যায়ে:** browser-এর দুটি API · backoff আর jitter-সহ reconnection · হারানো message ফিরে পাওয়া · live data render করা · user-এর জন্য UI-কে কী করতেই হবে
 
 ## 💡 মূল ধারণা
 
@@ -21,7 +21,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## কীভাবে কাজ করে
 
-Browser-এ দুটো API আছে, আর এরা আপনার হয়ে সমান পরিমাণ কাজ করে না।
+Browser-এ দুটি API আছে, আর এরা আপনার হয়ে সমান পরিমাণ কাজ করে না।
 
 **`WebSocket` — bidirectional, আর reconnection আপনাকেই বানাতে হবে:**
 
@@ -60,7 +60,7 @@ Transport-এর সিদ্ধান্ত আগের ধাপের। *Cl
 | Chat, comment, presence | Optimistic append, acknowledgement এলে reconcile | Latency-ই পুরো feature; rollback সস্তা |
 | দাম, metric, dashboard | শেষ জানা value render করুন, সাথে একটি staleness indicator | আত্মবিশ্বাসের সাথে দেখানো ভুল সংখ্যা, label করা stale সংখ্যার চেয়ে খারাপ |
 | Order status, payment state | শুধু push-এর ওপর কখনো ভরসা নয়; পেলেই refetch | Correctness latency-কে হারায়; push শুধু reload করার একটি সংকেত |
-| Collaborative document | CRDT বা server-ordered operation, কখনো last-write-wins নয় | দুটো offline edit-কেই টিকে থাকতে হবে |
+| Collaborative document | CRDT বা server-ordered operation, কখনো last-write-wins নয় | দুটি offline edit-কেই টিকে থাকতে হবে |
 
 ## Backoff আর jitter-সহ reconnection
 
@@ -105,7 +105,7 @@ socket.addEventListener("message", (event: MessageEvent<string>) => {
 });
 ```
 
-দুটো বৈশিষ্ট্য এটাকে নিরাপদ করে। `apply`-কে হতে হবে **idempotent**, কারণ catch-up fetch আর live stream একে অপরের ওপর পড়বে আর একই event দুবার deliver করবে। আর `lastEventId` সামনে এগোয় শুধু event apply হওয়ার পরে, তাই apply-এর মাঝপথে crash হলে event-টি বাদ না পড়ে আবার replay হয়।
+দুটি বৈশিষ্ট্য এটাকে নিরাপদ করে। `apply`-কে হতে হবে **idempotent**, কারণ catch-up fetch আর live stream একে অপরের ওপর পড়বে আর একই event দুবার deliver করবে। আর `lastEventId` সামনে এগোয় শুধু event apply হওয়ার পরে, তাই apply-এর মাঝপথে crash হলে event-টি বাদ না পড়ে আবার replay হয়।
 
 SSE-তে একই mechanism বিনা খরচে পান: browser reconnect-এর সময় `Last-Event-ID` পাঠায়, আর server সেখান থেকে আবার শুরু করে।
 
@@ -161,7 +161,7 @@ function useLiveFeed(roomId: string): { events: FeedEvent[]; connected: boolean 
 - Reconnection-এর জন্য লাগে jitter-সহ exponential backoff, attempt-এর কোনো সীমা ছাড়া, আর reset শুধু একটি সফল open-এ।
 - Catch up মানে শেষ apply করা event id থেকে refetch করা, আর এটা কাজ করে শুধু তখন, যখন একটি event apply করা idempotent।
 - Connection state-এর জায়গা UI-তে — live দেখতে একটি stale view, স্পষ্টভাবে ভাঙা view-এর চেয়ে খারাপ।
-- Render rate আর client buffer দুটোরই সীমা দিন; একটি দীর্ঘজীবী tab হলো ব্যস্ত room-এর অপেক্ষায় থাকা একটি memory leak।
+- Render rate আর client buffer দুটিরই সীমা দিন; একটি দীর্ঘজীবী tab হলো ব্যস্ত room-এর অপেক্ষায় থাকা একটি memory leak।
 
 ## Interview-এর প্রশ্ন
 
@@ -179,7 +179,7 @@ Socket দিয়ে নয়। Client শেষ যে event id apply ক�
 
 **Q: একটি live feed-কে page-এর মান নামিয়ে দেওয়া থেকে কীভাবে আটকাবেন?**
 
-দুটো সীমা। Rendering throttle করুন: message buffer করুন আর একটি interval বা animation frame-এ flush করুন, কারণ সেকেন্ডে পঞ্চাশটি update কেউ দেখে না। আর পুরোনো event evict করে client buffer-এর সীমা দিন। নাহলে ব্যস্ত room-এ খোলা রাখা একটি tab বাড়তে বাড়তে আটকে যায়। দুটোই demo-তে ঠিক দেখায়, আর আসল traffic-এর এক ঘণ্টা পরে fail করে।
+দুটি সীমা। Rendering throttle করুন: message buffer করুন আর একটি interval বা animation frame-এ flush করুন, কারণ সেকেন্ডে পঞ্চাশটি update কেউ দেখে না। আর পুরোনো event evict করে client buffer-এর সীমা দিন। নাহলে ব্যস্ত room-এ খোলা রাখা একটি tab বাড়তে বাড়তে আটকে যায়। দুটিই demo-তে ঠিক দেখায়, আর আসল traffic-এর এক ঘণ্টা পরে fail করে।
 
 **Q: কখন client-এ একেবারেই socket ব্যবহার করবেন না?**
 

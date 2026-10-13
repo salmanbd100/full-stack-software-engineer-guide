@@ -70,7 +70,7 @@ streaming event আর caching এখনো provider-ভেদে আলাদ�
 
 ### Timeout, কারণ default-টা কোনো timeout-ই নয়
 
-বেশিরভাগ HTTP client-এর default হলো কোনো timeout নেই, বা দুই মিনিট। User-এর সামনের model call-এর জন্য দুটোই ভুল।
+বেশিরভাগ HTTP client-এর default হলো কোনো timeout নেই, বা দুই মিনিট। User-এর সামনের model call-এর জন্য দুটিই ভুল।
 একটি reasoning model সত্যিই নব্বই সেকেন্ড ভাবতে পারে, আর একজন user দশ সেকেন্ডও অপেক্ষা করবে না।
 
 ```typescript

@@ -17,7 +17,7 @@ Latency হলো একটি request কতক্ষণ নেয়। Throug
 চলে। Batching throughput বাড়ায় আর latency যোগ করে। একটি queue throughput রক্ষা করে, আর তার একেবারে পেছনে যে
 অপেক্ষা করছে তার ক্ষতি করে।
 
-Load বাড়ার সাথে দুটো সংখ্যাকেই তাদের target-এর ভেতরে রাখার উপায় হলো scalability। এটা এমন কোনো গুণ নয় যেটা
+Load বাড়ার সাথে দুটি সংখ্যাকেই তাদের target-এর ভেতরে রাখার উপায় হলো scalability। এটা এমন কোনো গুণ নয় যেটা
 যোগ করা যায়। এটা lever-এর একটি সিঁড়ি, আর প্রতিটি ধাপ আগেরটার চেয়ে টাকায় সস্তা কিন্তু জটিলতায় দামি। সিঁড়িটা এমন:
 measure করুন, বড় machine কিনুন, state সরান, machine যোগ করুন, তারপর database-এর সমস্যা ছোট করুন। ক্লাসিক ভুল হলো
 সরাসরি শেষ ধাপে লাফ দেওয়া, আর এমন একটি database shard করা যেটা একটি cache দিয়েই আরও দুই বছর চলত।
@@ -105,7 +105,7 @@ function bottleneck(m: InstanceMetrics): string {
 ### Stateless হওয়া
 
 Scale out তখনই কাজ করে, যখন যেকোনো server যেকোনো request-এর উত্তর দিতে পারে। যে server local state ধরে রাখে, যেমন
-memory-তে session বা disk-এ upload, সেটা বদলযোগ্য নয়। দ্বিতীয় একটি যোগ করলে আপনি পান দুটো আধা-কার্যকর system,
+memory-তে session বা disk-এ upload, সেটা বদলযোগ্য নয়। দ্বিতীয় একটি যোগ করলে আপনি পান দুটি আধা-কার্যকর system,
 একটি বড় system নয়।
 
 **❌ এমন state, যেটা পরের request খুঁজে পায় না:**
@@ -152,7 +152,7 @@ processor-এর অনেক আগেই এর queue depth বা p99 latency
 
 ### Database scale করা
 
-Database সবার শেষে saturate হয় আর সবচেয়ে বেশি ক্ষতি করে, কারণ সেখানে "আরেকটা যোগ করো" নিজে থেকে কাজ করে না।
+Database সবার শেষে saturate হয় আর সবচেয়ে বেশি ক্ষতি করে, কারণ সেখানে "আরেকটি যোগ করো" নিজে থেকে কাজ করে না।
 
 ```mermaid
 flowchart LR
@@ -164,7 +164,7 @@ flowchart LR
 
 **প্রতিটি ধাপ পরেরটার জন্য সময় কেনে; sharding-ই একমাত্র ধাপ যেটা সস্তায় ফেরানো যায় না।**
 
-দুটো তথ্য হাতে রাখুন। Replica পিছিয়ে থাকে, load-এর মধ্যে কয়েক সেকেন্ড, তাই write-এর ঠিক পরের read-কে primary-তে
+দুটি তথ্য হাতে রাখুন। Replica পিছিয়ে থাকে, load-এর মধ্যে কয়েক সেকেন্ড, তাই write-এর ঠিক পরের read-কে primary-তে
 যেতে হবে। আর connection limit তাড়াতাড়ি কামড় দেয়। দশটি করে connection-সহ একশোটি app instance একটি default
 PostgreSQL setup (100 connection) দশ বার ফুরিয়ে ফেলে।
 

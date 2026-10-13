@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-আজ একটি JavaScript server সাজানোর দুটো উপায় আছে। **Express** দীর্ঘ সময় চলা একটি Node process। এটা একটি
+আজ একটি JavaScript server সাজানোর দুটি উপায় আছে। **Express** দীর্ঘ সময় চলা একটি Node process। এটা একটি
 function-এর list ক্রম অনুযায়ী চালায়, একটি mutable `req` আর `res`-এর ওপর। **Hono** হলো একটি function, যেটা একটি
 Web `Request` নিয়ে একটি Web `Response` দেয়। Browser-এর `fetch` ঠিক এই object-গুলোই ব্যবহার করে। তাই Hono Node-এ
 চলে, আবার Cloudflare Workers-এর মতো edge runtime-এও চলে।
@@ -79,7 +79,7 @@ function errorHandler(err: unknown, req: Request, res: Response, next: NextFunct
 Handler ঠিক করে *কী* ভুল হয়েছে। একমাত্র error handler-টি ঠিক করে status code আর body।
 
 > ⚠️ **যা বদলাতে থাকে:** দশ বছর 4.x-এর পর Express 5 এসেছে 2024-এ, আর বেশিরভাগ tutorial এখনো 4.x-এর। টেকসই
-> নীতি হলো, Express একটি middleware list। নিচের দুটো পরিবর্তনই upgrade-এর সময় আসল code ভাঙে।
+> নীতি হলো, Express একটি middleware list। নিচের দুটি পরিবর্তনই upgrade-এর সময় আসল code ভাঙে।
 
 | Express 5-এ পরিবর্তন | ফলাফল |
 | ------------------- | ----------- |
@@ -117,7 +117,7 @@ export default app;
 ```
 
 `c` হলো context: request, response helper, binding আর প্রতি-request state। কোনো mutable `req` আর `res` জোড়া নেই।
-Handler তার response *return* করে, তাই দুটো middleware একটি field নিয়ে লড়াই করতে পারে না।
+Handler তার response *return* করে, তাই দুটি middleware একটি field নিয়ে লড়াই করতে পারে না।
 
 **Route-গুলো chain করুন, তাহলে `hc` server-এর type থেকে একটি typed client বানিয়ে দেয়:**
 

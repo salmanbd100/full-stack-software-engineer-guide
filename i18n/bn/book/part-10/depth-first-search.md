@@ -18,7 +18,7 @@ Depth-first search একবার পথ ধরলে সেটাতেই ল
 যেটায় ঘটনাচক্রে কোনো cycle নেই —
 [Chapter ?? — Binary Tree Traversal](#ch-binary-tree-traversal) দেখুন।
 
-গঠনটা সাধারণ graph হয়ে গেলে দুটো জিনিস বদলায়:
+গঠনটা সাধারণ graph হয়ে গেলে দুটি জিনিস বদলায়:
 
 - **একটি node-এ দুবার পৌঁছানো যায়**, তাই একটি visited set লাগে, নইলে একই কাজ বারবার হয়।
 - **Path ঘুরে আগের জায়গায় ফিরতে পারে**, তাই ওই set ছাড়া recursion কখনো শেষ হয় না।
@@ -97,7 +97,7 @@ function numIslands(grid: string[][]): number {
 // Time: O(rows × cols), Space: O(rows × cols) worst-case stack on a grid that is all land
 ```
 
-এই code-এর দুটো অভ্যাস সব জায়গায় খাটে:
+এই code-এর দুটি অভ্যাস সব জায়গায় খাটে:
 
 - **সব বাতিলের শর্ত ওপরে একটিই guard-এ গুটিয়ে আনুন।** Call-এর জায়গায় bounds check করলে একই শর্তের চারটি copy হয়।
   আর যেটা ভুলে যাবেন, সেটাই throw করবে।
@@ -173,7 +173,7 @@ function dfsIterative(graph: Graph, start: number): number[] {
 ```
 
 ⚠️ Iterative version-এ একই node stack-এ একাধিকবার থাকতে পারে। তাই visited check push-এর সাথে (বা push-এর বদলে)
-**pop-এর সময়েও** করতে হবে। শুধু push-এর আগে check করা ভুল নয়, কিন্তু দুটো মিশিয়ে ফেলা ভুল।
+**pop-এর সময়েও** করতে হবে। শুধু push-এর আগে check করা ভুল নয়, কিন্তু দুটি মিশিয়ে ফেলা ভুল।
 
 ## কখন ব্যবহার করবেন
 
@@ -188,9 +188,9 @@ function dfsIterative(graph: Graph, start: number): number[] {
 | Weighted shortest path                                     | Dijkstra        | সাধারণ DFS বা BFS কোনোটাই weight সামলায় না    |
 
 Cycle detection-ই সবচেয়ে বেশি আসার সম্ভাবনা থাকা রূপভেদ, কারণ Course Schedule একটি প্রচলিত প্রশ্ন। প্রতি node-এ একটি
-নয়, দুটো boolean লাগে: বর্তমান recursion stack-এ থাকা node-এর জন্য `visiting`, আর পুরোপুরি explore করা node-এর
+নয়, দুটি boolean লাগে: বর্তমান recursion stack-এ থাকা node-এর জন্য `visiting`, আর পুরোপুরি explore করা node-এর
 জন্য `visited`। একটি `visiting` node-এ পৌঁছানো মানে cycle। একটি `visited` node-এ পৌঁছানো মানে শুধু শেষ হয়ে যাওয়া
-একটি subgraph-এ যাওয়ার দ্বিতীয় একটি পথ। একটি flag দুটোকে গুলিয়ে ফেলে, আর এমন cycle report করে যার অস্তিত্বই নেই।
+একটি subgraph-এ যাওয়ার দ্বিতীয় একটি পথ। একটি flag দুটিকে গুলিয়ে ফেলে, আর এমন cycle report করে যার অস্তিত্বই নেই।
 Topological sort এর ওপরেই দাঁড়ায় —
 [Chapter ?? — Graph Algorithm](#ch-graph-algorithms) দেখুন।
 
@@ -282,7 +282,7 @@ complexity-কে `O(V + E)`-তে নামিয়ে আনে।
 
 Node-এ ঢোকার সাথে সাথে, তার neighbour-দের ওপর iterate করার আগে। Recursive call return করার পরে mark করলে,
 A → B → A cycle-এ A-তে দ্বিতীয় visit ঘটে যখন A তখনো unmarked, আর recursion চিরকাল চলতে থাকে। `visited.has()`
-check আর `visited.add()` function-এর প্রথম দুটো line হওয়া উচিত।
+check আর `visited.add()` function-এর প্রথম দুটি line হওয়া উচিত।
 
 **Q: কখন BFS-ই সঠিক পছন্দ?**
 
@@ -294,12 +294,12 @@ check আর `visited.add()` function-এর প্রথম দুটো line �
 
 প্রতিটি node-কে তিনটি state দিন: unvisited, বর্তমান recursion stack-এ আছে, আর পুরোপুরি explore করা। বর্তমান stack-এ
 থাকা একটি node-এ পৌঁছানো মানে একটি back edge, অর্থাৎ cycle। পুরোপুরি explore করা একটি node-এ পৌঁছানো মানে শুধু
-আগেই শেষ করা একটি subgraph-এ ঢোকার দ্বিতীয় পথ, তাতে কোনো সমস্যা নেই। দুটোকে একটি flag-এ মিশিয়ে ফেলাই চিরাচরিত
+আগেই শেষ করা একটি subgraph-এ ঢোকার দ্বিতীয় পথ, তাতে কোনো সমস্যা নেই। দুটিকে একটি flag-এ মিশিয়ে ফেলাই চিরাচরিত
 ভুল উত্তর, যেটা একটি acyclic diamond-এ cycle report করে।
 
 **Q: DFS আর backtracking-এর পার্থক্য কী?**
 
-Backtracking হলো একটি নির্দিষ্ট graph-এর বদলে *candidate solution*-এর একটি space-এর ওপর DFS, দুটো সংযোজন সহ:
+Backtracking হলো একটি নির্দিষ্ট graph-এর বদলে *candidate solution*-এর একটি space-এর ওপর DFS, দুটি সংযোজন সহ:
 ফেরার পথে state আগের অবস্থায় ফিরিয়ে আনা হয়, আর যে branch থেকে বৈধ উত্তর আসা সম্ভব নয়, সেটা সাথে সাথে prune করা
 হয়। Path Sum II হলো সীমানার উদাহরণ — একটি সত্যিকারের tree-এর ওপর DFS, কিন্তু push/pop-এর এমন নিয়মে, যে পড়তে
 backtracking-এর মতো লাগে।

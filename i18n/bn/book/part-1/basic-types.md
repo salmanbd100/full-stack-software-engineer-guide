@@ -13,19 +13,19 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-TypeScript-এর type system থাকে compile time-এ, আর runtime-এ মিলিয়ে যায়। এই একটা তথ্যই এর গড়ন
+TypeScript-এর type system থাকে compile time-এ, আর runtime-এ মিলিয়ে যায়। এই একটি তথ্যই এর গড়ন
 ব্যাখ্যা করে। Code চলার আগে এটা আপনার code সম্পর্কে অনেক কিছু প্রমাণ করতে পারে। চলার সময় কিছুই না।
 তাই ভালো TypeScript type বসায় সেখানে, যেখানে compiler নিজে সেটা বের করতে পারে না: function-এর সীমানায়
 আর বাইরে থেকে আসা data-য়। বাকি জায়গায় এটা চুপ থাকে, কারণ inference উত্তরটা আগেই জানে।
 
-"এই পাঁচটা মানের একটা" — এটা কীভাবে model করবেন, সেটাও ঠিক করে এই একই তথ্য। একটি literal union থাকে
-শুধু compile time-এ। একটি `as const` object হলো সাধারণ একটা object, যার ওপর iterate করা যায়। একটি
+"এই পাঁচটি মানের একটি" — এটা কীভাবে model করবেন, সেটাও ঠিক করে এই একই তথ্য। একটি literal union থাকে
+শুধু compile time-এ। একটি `as const` object হলো সাধারণ একটি object, যার ওপর iterate করা যায়। একটি
 `enum` হলো generate করা code। বেছে নিন এই প্রশ্নে: runtime-এ মানগুলো আপনার লাগবে কি না।
 
 ## কীভাবে কাজ করে
 
-`number` integer আর float দুটোই ধরে। `bigint` এর সঙ্গে মেশে না। `null` মানে ইচ্ছাকৃত অনুপস্থিতি, আর
-`undefined` মানে এখনো set হয়নি। এই দুটোর কোনো অর্থ থাকে `strictNullChecks`-এর কারণেই। এটা ছাড়া এরা
+`number` integer আর float দুটিই ধরে। `bigint` এর সঙ্গে মেশে না। `null` মানে ইচ্ছাকৃত অনুপস্থিতি, আর
+`undefined` মানে এখনো set হয়নি। এই দুটির কোনো অর্থ থাকে `strictNullChecks`-এর কারণেই। এটা ছাড়া এরা
 সব type-এ বসে যায়, আর compiler সবচেয়ে সাধারণ runtime error-টাই ধরতে পারে না।
 
 ### Annotation বনাম inference
@@ -90,7 +90,7 @@ function parseRow(row: string): [id: number, name: string] {
 type EventHandler<T = void> = (event: T) => void; // a named function type keeps prop signatures readable
 ```
 
-### "এই মানগুলোর একটা" বলার তিনটি উপায়
+### "এই মানগুলোর একটি" বলার তিনটি উপায়
 
 **একটি literal union-এর কোনো খরচ নেই, আর আপনার API যে string পাঠায় তার সঙ্গে মিলে যায়:**
 
@@ -100,7 +100,7 @@ setRole(1, 'admin'); // ✅
 setRole(1, 'superuser'); // ❌ not a valid role
 ```
 
-**একটি `as const` object একটাই declaration থেকে list আর type দুটোই দেয়:**
+**একটি `as const` object একটিই declaration থেকে list আর type দুটিই দেয়:**
 
 ```typescript
 const OrderStatus = {
@@ -137,8 +137,8 @@ log('INFO', 'started'); // ❌ string enums are nominal
 > স্থায়ী নিয়মটা এই flag-গুলোর চেয়ে বেশিদিন টিকবে। যে রূপ build time-এ মিলিয়ে যায়, সেটাই বেছে নিন।
 > Runtime object-এর দাম দিন শুধু তখন, যখন মানগুলোর ওপর iterate করা দরকার।
 
-একটি numeric enum এখনো একটা ক্ষেত্রে মানায়: **bitwise flag**, যেমন `Permission.Read | Permission.Write`।
-সেখানে type-টা ইচ্ছা করেই খোলা রাখা হয়। অন্য সব জায়গায় এই খোলা থাকাটা একটা bug। যেকোনো number বসে যায়,
+একটি numeric enum এখনো একটি ক্ষেত্রে মানায়: **bitwise flag**, যেমন `Permission.Read | Permission.Write`।
+সেখানে type-টা ইচ্ছা করেই খোলা রাখা হয়। অন্য সব জায়গায় এই খোলা থাকাটা একটি bug। যেকোনো number বসে যায়,
 তাই `setStatus(99)` compile হয়ে যায়।
 
 ## কখন ব্যবহার করবেন
@@ -149,13 +149,13 @@ log('INFO', 'started'); // ❌ string enums are nominal
 | একটি parameter, বা export করা return type        | স্পষ্ট annotation              | এটাই contract; inference থাকলে এটা সরে যেতে পারে       |
 | একটি `fetch` body, `JSON.parse`, `postMessage`    | `unknown` আর একটি type guard   | Shape-টা runtime-এর তথ্য, compile time-এর নয়          |
 | একটি ছোট নির্দিষ্ট সেট, শুধু type-এর জায়গায় ব্যবহৃত | Literal union                  | কোনো runtime খরচ নেই, আর API-র string-এর সঙ্গে মেলে   |
-| যে মানগুলোর ওপর iterate করতে হবে                  | `as const` object              | দুই স্তরের জন্য একটাই source of truth                 |
+| যে মানগুলোর ওপর iterate করতে হবে                  | `as const` object              | দুই স্তরের জন্য একটিই source of truth                 |
 | আগে থেকেই enum-ভরা একটি codebase                  | বিদ্যমান style-টাই রাখুন       | অর্ধেক-শেষ migration-এর চেয়ে সামঞ্জস্য ভালো          |
 
 ## সাধারণ ভুল
 
 **❌ Error চুপ করাতে `any` ব্যবহার করা।** `any` যে expression ছোঁয়, তার সবটায় ছড়িয়ে পড়ে। ফলে একটি
-annotation পুরো একটা call path জুড়ে checking বন্ধ করে দিতে পারে। Type না জানলে `unknown` ব্যবহার করুন।
+annotation পুরো একটি call path জুড়ে checking বন্ধ করে দিতে পারে। Type না জানলে `unknown` ব্যবহার করুন।
 
 **❌ ভুল করে একটি literal-কে widen করা:**
 
@@ -165,7 +165,7 @@ const method = 'GET'; // ✅ inferred as 'GET'
 ```
 
 **❌ List দুবার declare করা।** আলাদা একটি `ROLES` array-এর পাশে একটি `type Role = 'admin' | 'user'`
-রাখলে দুটো একসময় আলাদা হয়ে যাবে। একটা থেকে অন্যটা derive করুন:
+রাখলে দুটি একসময় আলাদা হয়ে যাবে। একটি থেকে অন্যটা derive করুন:
 `const ROLES = ['admin', 'user'] as const; type Role = (typeof ROLES)[number];`
 
 **❌ `as const` ভুলে যাওয়া।** এটা ছাড়া `{ Pending: 'pending' }`-এর property type হয় `string`, আর
@@ -190,7 +190,7 @@ derive করা union ভেঙে `string` হয়ে যায়।
 
 **Q: `any` আর `unknown`-এর পার্থক্য কী?**
 
-দুটোই যেকোনো মান গ্রহণ করে। `any` যেকোনো operation-ও করতে দেয়। ফলে সেই মান আর তা থেকে আসা সবকিছুর
+দুটিই যেকোনো মান গ্রহণ করে। `any` যেকোনো operation-ও করতে দেয়। ফলে সেই মান আর তা থেকে আসা সবকিছুর
 type checking বন্ধ হয়ে যায়। `unknown` narrow না করা পর্যন্ত কিছুই করতে দেয় না। সীমানায় ঠিক এটাই চান।
 যে validation আপনার এমনিতেই লেখা উচিত, compiler সেটা লিখতে বাধ্য করে।
 
@@ -208,7 +208,7 @@ union মেটায়। বাকিটা মেটায় একটি `
 
 **Q: যে codebase-এ আগে থেকে enum আছে, সেখানে কখন সেগুলো রেখে দেবেন?**
 
-যখন সেগুলো সামঞ্জস্য রেখে আর ব্যাপকভাবে ব্যবহৃত হচ্ছে। আংশিক migration একটা ধারণার জন্য দুটো convention
+যখন সেগুলো সামঞ্জস্য রেখে আর ব্যাপকভাবে ব্যবহৃত হচ্ছে। আংশিক migration একটি ধারণার জন্য দুটি convention
 রেখে যায়। তাতে যে বিভ্রান্তি হয়, তার দাম enum-এর byte-এর চেয়ে বেশি। কোনো module এমনিতেই নতুন করে লেখা
 হলে তখন migrate করুন।
 

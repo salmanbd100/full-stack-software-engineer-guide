@@ -25,8 +25,8 @@ Component-ও একই ধারণা মেনে চলে। একটি *
 আপনি এটাকে অন্য যেকোনো কিছুর মতোই prop হিসেবে পাঠান। Svelte 4-এর slot ছিল একটি আলাদা mechanism। Snippet সেটা সরিয়ে দেয়।
 
 > ⚠️ **যা বদলাতে থাকে:** rune আর snippet Svelte 5-এর। Svelte 4-এর `let` reactivity, `$:` statement,
-> `writable` store আর `<slot />` legacy mode-এ এখনো compile হয়। বাস্তব codebase-এ দুটোই থাকে, আর search-এর
-> ফলাফলে দুটো মিশে যায়। যে নীতি টিকে থাকবে: reactivity *declare করা* হয়, আর Svelte 5 সেটা value-এর ওপর declare করে।
+> `writable` store আর `<slot />` legacy mode-এ এখনো compile হয়। বাস্তব codebase-এ দুটিই থাকে, আর search-এর
+> ফলাফলে দুটি মিশে যায়। যে নীতি টিকে থাকবে: reactivity *declare করা* হয়, আর Svelte 5 সেটা value-এর ওপর declare করে।
 
 ## কীভাবে কাজ করে
 
@@ -57,7 +57,7 @@ Component-ও একই ধারণা মেনে চলে। একটি *
 stale হিসেবে চিহ্নিত করে, আর পরের বার কেউ এটা পড়লে আবার হিসাব করে। একাধিক statement-এর হিসাবের জন্য
 `$derived.by` ব্যবহার করুন।
 
-### `$state` deep, আর তার একটা খরচ আছে
+### `$state` deep, আর তার একটি খরচ আছে
 
 Object বা array-এর ওপর `$state` একটি **proxy** return করে। Nested property বদলানো reactive, তাই
 `form.address.city = city` সরাসরি কাজ করে, কোনো spread বা setter ছাড়াই।
@@ -118,7 +118,7 @@ Svelte 5-এ **default-ভাবে কোনো prop two-way নয়**। Par
 ### Snippet: `children` আর নামযুক্ত snippet prop
 
 একটি component-এর tag-এর মাঝের content আসে একটি `children` prop হিসেবে। Tag-এর ভেতরে declare করা একটি snippet
-সেই নামের একটি prop হয়ে যায়। দুটো মিলে `<slot />` আর named slot-এর জায়গা নেয়।
+সেই নামের একটি prop হয়ে যায়। দুটি মিলে `<slot />` আর named slot-এর জায়গা নেয়।
 
 **একটি panel, যার header বাধ্যতামূলক আর footer ঐচ্ছিক:**
 

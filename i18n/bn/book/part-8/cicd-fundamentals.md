@@ -14,7 +14,7 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 Pipeline হলো এমন একটি machine, যেটা একটি commit-কে promote করার মতো একটি artefact-এ পরিণত করে। তারপর বাকি সময়টা
-সে প্রমাণ করার চেষ্টা করে যে artefact-টি অনিরাপদ। দুটো অর্ধেকই গুরুত্বপূর্ণ। যদি এটা প্রতিটি environment-এর জন্য
+সে প্রমাণ করার চেষ্টা করে যে artefact-টি অনিরাপদ। দুটি অর্ধেকই গুরুত্বপূর্ণ। যদি এটা প্রতিটি environment-এর জন্য
 আলাদা artefact build করে, তাহলে আপনি যেটা test করেছেন সেটা আর যেটা ship করেছেন সেটা এক নয়। যদি উত্তর দিতে চল্লিশ
 মিনিট লাগে, developer-রা commit জমিয়ে একসঙ্গে পাঠান আর result পড়া বন্ধ করে দেন। সেটা pipeline না থাকারই সমান,
 শুধু আরও দামি।
@@ -73,7 +73,7 @@ deploy-prod:
     - docker build -t app:prod .      # build #2 — a different image
 ```
 
-দুটো build-এর মাঝে transitive dependency, base image আর build tool — সবই সরে যায়। Staging-এ আপনি যে image validate
+দুটি build-এর মাঝে transitive dependency, base image আর build tool — সবই সরে যায়। Staging-এ আপনি যে image validate
 করেছেন, user-দের যে image serve করছে সেটা সেটা নয়।
 
 ✅ **একবার build, তারপর promote:**
@@ -208,7 +208,7 @@ CI সবচেয়ে ভালো কাজ করে প্রতিদি�
 
 **Q: Continuous Delivery আর Continuous Deployment-এর মধ্যে পার্থক্য কী?**
 
-দুটোই pipeline-কে deploy করার মতো অবস্থা পর্যন্ত automate করে। Continuous Delivery-তে production deploy-এর জন্য
+দুটিই pipeline-কে deploy করার মতো অবস্থা পর্যন্ত automate করে। Continuous Delivery-তে production deploy-এর জন্য
 একটি manual approval লাগে। প্রক্রিয়া পুরোপুরি automated হলেও, কখন release হবে তা team বেছে নেয়। Continuous
 Deployment সেই gate সরিয়ে দেয়, তাই যে commit সব stage pass করে সেটাই ship হয়। এর জন্য অনেক বেশি শক্ত automated
 testing, monitoring আর automatic rollback লাগে, কারণ user-দের আগে কোনো মানুষ change-টি দেখেন না। বেশিরভাগ
@@ -216,7 +216,7 @@ enterprise আর regulated team Continuous Delivery বেছে নেয়�
 
 **Q: একটি artefact কেন শুধু একবারই build করা উচিত?**
 
-কারণ প্রতিটি environment-এর জন্য আবার build করলে আলাদা bytes তৈরি হয়। দুটো build-এর মাঝে transitive dependency,
+কারণ প্রতিটি environment-এর জন্য আবার build করলে আলাদা bytes তৈরি হয়। দুটি build-এর মাঝে transitive dependency,
 base image আর build tool সরে যায়, তাই staging-এ test করা artefact আর production-এরটা এক নয়। একবার build করুন, আর
 commit SHA দিয়ে tag করা একটি immutable artefact promote করুন। তাহলে test যা ship হয় তার ওপরই খাটে, আর একটি চলমান
 container থেকে একটি commit পর্যন্ত একটি পরিষ্কার trail পাওয়া যায়। এটা দ্রুতও, কারণ build-এর দাম প্রতিটি
@@ -224,7 +224,7 @@ environment-এ নয়, একবারই দিতে হয়।
 
 **Q: Test মুছে না দিয়ে একটি CI pipeline দ্রুত রাখেন কীভাবে?**
 
-Stage-গুলো সস্তা-আগে ক্রমে সাজান, যাতে failure আগে ধরা পড়ে, আর স্বাধীন job-গুলো একটার পর একটা না চালিয়ে parallel-এ
+Stage-গুলো সস্তা-আগে ক্রমে সাজান, যাতে failure আগে ধরা পড়ে, আর স্বাধীন job-গুলো একটির পর একটি না চালিয়ে parallel-এ
 চালান। Lockfile-কে key করে dependency আর build layer cache করুন। বড় suite-গুলো কয়েকটি runner-এ shard করুন। সত্যিই
 দামি suite-গুলো pull request-এর path থেকে সরিয়ে দিন, যেমন প্রতিটি push-এ নয়, `main`-এ merge হলে পুরো end-to-end।
 একই branch-এর পুরোনো run-গুলো cancel করুন। যে সংখ্যাটা রক্ষা করতে হবে, সেটা হলো pull request-এর feedback-এ দশ

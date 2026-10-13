@@ -19,7 +19,7 @@ model: "claude-opus-5-5 (Claude Code)"
 | -- | ------- | --------------- |
 | 01 | [SQL-এর মূল কথা ও Schema Design](#ch-sql-fundamentals) | আপনি কি query-টি লিখতে পারেন, আর invalid data store করা অসম্ভব করে দিতে পারেন? |
 | 02 | [Index, Query Plan, ORM ও Migration](#ch-indexes) | এই `WHERE` clause কোন index ব্যবহার করে, আর traffic চলা অবস্থায় schema কীভাবে বদলাবেন? |
-| 03 | [Transaction ও Concurrency](#ch-sql-transactions) | দুটো request-কে একে অপরের ওপর overwrite করা থেকে কী আটকায়? |
+| 03 | [Transaction ও Concurrency](#ch-sql-transactions) | দুটি request-কে একে অপরের ওপর overwrite করা থেকে কী আটকায়? |
 
 ## Interviewer-রা যা যাচাই করেন
 

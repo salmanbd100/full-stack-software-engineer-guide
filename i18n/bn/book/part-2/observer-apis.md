@@ -87,7 +87,7 @@ resize.observe(chart);
 ### MutationObserver
 
 যে DOM আপনার নিয়ন্ত্রণে নেই, তার জন্য এটা ব্যবহার করুন। যেমন third-party widget, rich-text editor, বা কোনো extension-এর
-inject করা content। আপনার নিজের component-এর ভেতরে উত্তর হলো state। সেখানে mutation observer থাকা মানে কিছু একটা
+inject করা content। আপনার নিজের component-এর ভেতরে উত্তর হলো state। সেখানে mutation observer থাকা মানে কিছু একটি
 ভুল হয়েছে।
 
 ### PerformanceObserver
@@ -156,7 +156,7 @@ callback-এ batch করে দেয়। এক হাজার instance ম
 
 **Q: একই কাজ করা scroll listener-এর চেয়ে `IntersectionObserver` কেন দ্রুত?**
 
-দুটো কারণ। প্রথমত, scroll handler প্রতিটি scroll event-এ main thread-এ চলে, কোনো সীমা পার হোক বা না হোক। দ্বিতীয়ত,
+দুটি কারণ। প্রথমত, scroll handler প্রতিটি scroll event-এ main thread-এ চলে, কোনো সীমা পার হোক বা না হোক। দ্বিতীয়ত,
 এটা সাধারণত `getBoundingClientRect()` call করে, যেটা browser-কে উত্তর দেওয়ার আগে layout flush করতে বাধ্য করে।
 Observer, browser যেখানে পারে, intersection test-টি main thread-এর বাইরে করে, আর আগেই হিসাব করা geometry দেয়।
 Handler rendering-এর সাথে প্রতিযোগিতা করে; observer-কে rendering নিজেই জানায়।

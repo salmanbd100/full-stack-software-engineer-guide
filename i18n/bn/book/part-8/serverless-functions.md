@@ -110,7 +110,7 @@ Cold start হলো ওপরের init ধাপটি, যেটা এক�
 **যা আসলে সাহায্য করে, মোটামুটি প্রভাবের ক্রমে:**
 
 - **Function-টি bundle করুন।** একটি 40 MB `node_modules` tree load করতে handler চালানোর চেয়ে বেশি খরচ হয়।
-- **Module scope-এ কম কাজ করুন।** Init-এর সময় তিনটি secret একটার পর একটা fetch করলে প্রতিটি cold start-এ সেই সময় যোগ হয়।
+- **Module scope-এ কম কাজ করুন।** Init-এর সময় তিনটি secret একটির পর একটি fetch করলে প্রতিটি cold start-এ সেই সময় যোগ হয়।
 - **Function-কে private network-এ রাখবেন না**, যদি না এর ভেতরের কিছুতে পৌঁছানো বাধ্যতামূলক হয়।
 - **Instance pre-warm করুন**, latency-সংবেদনশীল কোনো path-এর জন্য। এটা কাজ করে, আর আপনি অলস capacity-র জন্য টাকা দেন।
 
@@ -179,15 +179,15 @@ concurrency-ও ধরে রাখে। ✅ Timeout বাস্তবসম�
 **Q: Cold start-এ আসলে কী ঘটে, আর কোন অংশগুলোতে আপনি প্রভাব ফেলতে পারেন?**
 
 Handler call হওয়ার আগে platform একটি sandbox provision করে, runtime শুরু করে, আপনার bundle load করে, আর আপনার
-module-scope code চালায়। প্রথম দুটো platform-এর, আর শুধু pre-warming এগুলো এড়ায়। শেষ দুটো আপনার। Bundle size
+module-scope code চালায়। প্রথম দুটি platform-এর, আর শুধু pre-warming এগুলো এড়ায়। শেষ দুটি আপনার। Bundle size
 load time ঠিক করে। Module scope-এ আপনি যা-ই করেন, যেমন secret fetch করা, client তৈরি করা বা config পড়া, তা প্রতিটি
 cold start-এ যোগ হয়। একটি private network attach করার খরচ প্রায়ই এই সবকিছুর যোগফলের চেয়েও বেশি।
 
 **Q: Serverless function কেন database ভেঙে ফেলে, আর এ নিয়ে আপনি কী করেন?**
 
 পুরোনো model প্রতি instance-এ একটি request চালায়, তাই concurrency আর connection-এর সংখ্যা একসঙ্গে বাড়ে। কয়েকশো
-instance-এর একটি spike কয়েকশো connection খোলে, আর database নতুনগুলো প্রত্যাখ্যান করে। সমাধানগুলো একটার ওপর
-আরেকটা যোগ হয়। Client module scope-এ তৈরি করুন, যাতে request-গুলোর মধ্যে এটা পুনরায় ব্যবহার হয়। Database-এর
+instance-এর একটি spike কয়েকশো connection খোলে, আর database নতুনগুলো প্রত্যাখ্যান করে। সমাধানগুলো একটির ওপর
+আরেকটি যোগ হয়। Client module scope-এ তৈরি করুন, যাতে request-গুলোর মধ্যে এটা পুনরায় ব্যবহার হয়। Database-এর
 সামনে একটি connection pooler রাখুন, আর function-এর concurrency-র সীমা দিন। Workload হঠাৎ হঠাৎ বাড়লে একটি
 HTTP-ভিত্তিক data API বেছে নিন।
 

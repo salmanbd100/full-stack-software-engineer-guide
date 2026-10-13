@@ -33,11 +33,11 @@ endpoint। 2023-এর তুলনায় streaming এখন অনেক �
 ## Interviewer-রা যা যাচাই করেন
 
 এই part-এর senior signal হলো: **এমন API design করেন, যেটা frontend সত্যিই ভালোভাবে ব্যবহার করতে পারে, আর জানেন query কেন
-ধীর।** দুটো অর্ধেকই গুরুত্বপূর্ণ, আর candidate-দের সাধারণত একটিই থাকে:
+ধীর।** দুটি অর্ধেকই গুরুত্বপূর্ণ, আর candidate-দের সাধারণত একটিই থাকে:
 
 - **এমন একটি endpoint design করতে পারেন, যেটাকে client-এর এড়িয়ে চলতে হবে না?** Over-fetching, বারবার আসা-যাওয়ার
   round-trip, আর এমন pagination যেটা একটি row insert হলে ভেঙে যায় — এগুলো API design-এর ব্যর্থতা। এরা সবাই এসে পড়ে
-  frontend-এর ঘাড়ে। আপনি গ্রহীতার দিকে ছিলেন, আর এখানে সেটা একটা সুবিধা — কাজে লাগান।
+  frontend-এর ঘাড়ে। আপনি গ্রহীতার দিকে ছিলেন, আর এখানে সেটা একটি সুবিধা — কাজে লাগান।
 - **Event loop-কে কি একটি সীমাবদ্ধতা হিসেবে বোঝেন?** একটি thread। বড় একটি body-র synchronous JSON parse process-এর
   বাকি প্রতিটি request আটকে দেয়। Node-এর এই প্রশ্নটাই আলাদা করে তাঁদের, যাঁরা একটি service চালিয়েছেন, তাঁদের থেকে
   যাঁরা শুধু একটি লিখেছেন।
@@ -51,7 +51,7 @@ endpoint। 2023-এর তুলনায় streaming এখন অনেক �
 | প্রশ্ন | Mid-এর উত্তর | Senior-এর উত্তর |
 | ----- | ---------- | ------------- |
 | "REST নাকি GraphQL?" | "GraphQL, এটা বেশি flexible" | "কতগুলো client, তাদের data-র চাহিদা কতটা আলাদা, schema-র মালিক কে, আর HTTP caching-এর কী হয়" |
-| "এই endpoint-টা ধীর" | "একটা index যোগ করুন" | "আগে `EXPLAIN ANALYZE` — আর plan-এর এই line-টাই সমস্যা" |
+| "এই endpoint-টা ধীর" | "একটি index যোগ করুন" | "আগে `EXPLAIN ANALYZE` — আর plan-এর এই line-টাই সমস্যা" |
 | "Session নাকি JWT?" | "JWT, এগুলো stateless" | "Stateless scale করে কিন্তু revoke করা যায় না; সিদ্ধান্তটা এই trade-ই নেয়, আর refresh-token rotation দিয়ে তার কিছুটা ফিরে পাওয়া যায়" |
 
 ## পড়ার ক্রম

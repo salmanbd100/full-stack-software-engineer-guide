@@ -52,7 +52,7 @@ function inorder(node: TreeNode | null, out: number[] = []): number[] {
 // Time: O(n) — every node visited once. Space: O(h) for the call stack
 ```
 
-Preorder দুটো call-এর আগে push করে। Postorder দুটোর পরে push করে। আর কিছুই বদলায় না।
+Preorder দুটি call-এর আগে push করে। Postorder দুটির পরে push করে। আর কিছুই বদলায় না।
 
 Space হলো `O(h)`, `O(n)` নয় — `h` হলো height। Balanced tree-তে সেটা `O(log n)`। আর যে degenerate tree আসলে
 ছদ্মবেশে একটি linked list, তাতে সেটা `O(n)`। Input যথেষ্ট গভীর হলে stack overflow হয়। Interviewer-রা ঠিক এই পার্থক্যটা
@@ -237,7 +237,7 @@ Invariant প্রতিটি node-এ খাটে, তাই বৈশিষ
 **Q: একটি tree-এর height হিসাব করতে কোন traversal, আর কেন?**
 
 Postorder। একটি node-এর height তার children-এর মধ্যে লম্বাটির height-এর চেয়ে এক বেশি। তাই node উত্তর দেওয়ার আগে
-দুটো child-ই সমাধান হতে হবে। Preorder node-টিকে visit করত, যখন তার children তখনো অজানা। যেকোনো bottom-up
+দুটি child-ই সমাধান হতে হবে। Preorder node-টিকে visit করত, যখন তার children তখনো অজানা। যেকোনো bottom-up
 aggregate-এর জন্য এটা ভুল দিক।
 
 **Q: Recursion ছাড়া কীভাবে traverse করবেন, আর কখন সেটা জরুরি?**
@@ -264,8 +264,8 @@ check করা যে একটি inorder traversal কঠোরভাবে �
 
 Preorder আপনাকে root আগে দেয়। তাই অনুপস্থিত children-এর জন্য null marker থাকলে গঠনটা দ্ব্যর্থহীন — একটি value
 পড়ুন, recursive-ভাবে তার left subtree বানান, তারপর right। Inorder একা root চিনিয়ে দেয় না। তাই দ্ব্যর্থতা দূর করতে
-এর দ্বিতীয় একটি traversal (preorder বা postorder) লাগে। এ কারণেই "দুটো traversal থেকে construct করুন" প্রশ্নে সবসময়
-inorder-এর সাথে অন্য দুটোর একটি জোড়া দেওয়া থাকে।
+এর দ্বিতীয় একটি traversal (preorder বা postorder) লাগে। এ কারণেই "দুটি traversal থেকে construct করুন" প্রশ্নে সবসময়
+inorder-এর সাথে অন্য দুটির একটি জোড়া দেওয়া থাকে।
 
 ## এরপর কী পড়বেন
 

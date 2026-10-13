@@ -47,9 +47,9 @@ const [filters, setFilters] = useQueryStates({
 setFilters({ page: 2 }); // updates only `page`, leaves the rest of the URL alone
 ```
 
-এখান থেকে দুটো design নিয়ম আসে।
+এখান থেকে দুটি design নিয়ম আসে।
 
-**Default যেন URL-এ না দেখা যায়।** প্রথম visit-এ `?page=1&sort=newest` শুধুই আবর্জনা। এতে একটি view-র জন্য দুটো
+**Default যেন URL-এ না দেখা যায়।** প্রথম visit-এ `?page=1&sort=newest` শুধুই আবর্জনা। এতে একটি view-র জন্য দুটি
 URL তৈরি হয়, আর caching ও search engine-এর signal ভাগ হয়ে যায়। কোনো param তার default-এর সমান হলে সেটা মুছে দিন।
 
 **অচেনা value-তে crash নয়, fallback হবে।** `?sort=banana` থেকে `?sort=newest` মাত্র এক keystroke দূরে। একটি
@@ -150,10 +150,10 @@ CDN ভাঙে। Param-গুলোকে identifier আর enumeration-এ �
 ✅ User আর bot যা খুশি পাঠাবে। Fallback সহ একটি union বা number-এ parse করুন।
 
 **❌ URL-এ default লিখে দেওয়া।**
-✅ একটি view-র জন্য দুটো URL caching আর search signal ভাগ করে দেয়, আর দেখতেও অযত্নের মনে হয়।
+✅ একটি view-র জন্য দুটি URL caching আর search signal ভাগ করে দেয়, আর দেখতেও অযত্নের মনে হয়।
 
 **❌ একই value URL-এ আর একটি store-এ রাখা।**
-✅ সত্যের দুটো উৎস, যেগুলো back button চাপার পর আলাদা কথা বলে। URL জেতে। বাকি সব এখান থেকে বের করুন।
+✅ সত্যের দুটি উৎস, যেগুলো back button চাপার পর আলাদা কথা বলে। URL জেতে। বাকি সব এখান থেকে বের করুন।
 
 **❌ Share করা যায় এমন link-এ এমন identifier রাখা, যেটা তথ্য ফাঁস করে।**
 ✅ URL যে প্রতিটি ধাপ পেরোয়, সেটাই এটাকে log করে। একে public ধরে নিন।
@@ -182,8 +182,8 @@ overwrite করে। Write-টি কয়েকশো millisecond debounce-�
 
 **Q: একই value URL আর একটি store দুই জায়গাতেই থাকলে কী ভাঙে?**
 
-দুটো আলাদা কথা বলে। Back button চাপলে URL বদলায়, আপনার setter-এর মধ্য দিয়ে না গিয়েই। Store পুরোনো value রেখে দেয়,
-আর page দুটোর মিশেল দেখায়। URL-কে সত্যের উৎস বানান আর বাকি সব এখান থেকে বের করুন, নয়তো value-টি URL থেকে পুরোপুরি
+দুটি আলাদা কথা বলে। Back button চাপলে URL বদলায়, আপনার setter-এর মধ্য দিয়ে না গিয়েই। Store পুরোনো value রেখে দেয়,
+আর page দুটির মিশেল দেখায়। URL-কে সত্যের উৎস বানান আর বাকি সব এখান থেকে বের করুন, নয়তো value-টি URL থেকে পুরোপুরি
 বাইরে রাখুন।
 
 **Q: Server-এ search param পড়ার খরচ কী?**

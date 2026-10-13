@@ -103,7 +103,7 @@ message-এ পরিণত করে।
 
 ### Slot — নামওয়ালা children
 
-`children` আপনাকে একটি ফাঁকা জায়গা দেয়। একটি component-এ যখন দুটো বা তিনটি নির্দিষ্ট region থাকে, সেগুলো prop
+`children` আপনাকে একটি ফাঁকা জায়গা দেয়। একটি component-এ যখন দুটি বা তিনটি নির্দিষ্ট region থাকে, সেগুলো prop
 হিসেবে নিন।
 
 ```tsx
@@ -182,7 +182,7 @@ function useControllable<T>(value: T | undefined, defaultValue: T): [T, (next: T
 | পরিস্থিতি                                              | Pattern              |
 | ------------------------------------------------------- | -------------------- |
 | একটি region বদলায়                                       | `children`           |
-| দুটো বা তিনটি নির্দিষ্ট region বদলায়                         | Slot prop           |
+| দুটি বা তিনটি নির্দিষ্ট region বদলায়                         | Slot prop           |
 | কয়েকটি অংশ state share করে, layout caller-এর       | Compound component  |
 | Behaviour share হয়, markup নয়                      | একটি custom hook        |
 | Markup বদলায় আর component-এর নিজের state-এর ওপর নির্ভর করে  | একটি render prop        |
@@ -194,7 +194,7 @@ function useControllable<T>(value: T | undefined, defaultValue: T): [T, (next: T
 যেগুলো caller markup হিসেবে প্রকাশ করতে চেয়েছিল। **✅ একটি `footer` slot নিন, আর তাদের কিছুই না পাঠাতে দিন।**
 
 **❌ প্রথম tool হিসেবে context।** Context সেই value-র জন্য, যেটা পুরো একটি subtree-র দরকার, যেমন theme, বর্তমান
-user, বা ওপরের tabs state। দুটো component-এর মধ্য দিয়ে একটি prop পাঠানো prop drilling নয়। সেটা একটি prop মাত্র।
+user, বা ওপরের tabs state। দুটি component-এর মধ্য দিয়ে একটি prop পাঠানো prop drilling নয়। সেটা একটি prop মাত্র।
 শুরুতেই context ধরলে এমন component তৈরি হয়, যেগুলো অন্য কোথাও render করা যায় না।
 
 **❌ Memoise না করা context value:**
@@ -217,7 +217,7 @@ Props type-এ `ref` declare করুন, আর সেটা পাস কর�
 - `children` default tool, আর parent-এর তৈরি children wrapper-এর state বদলালে re-render হয় না।
 - Compound component context-এর মাধ্যমে state share করে, আর layout-এর নিয়ন্ত্রণ caller-এর হাতে থাকে।
 - Logic share করার জন্য hook render prop-কে সরিয়ে দিয়েছে। Render prop টিকে আছে শুধু সেখানে, যেখানে markup নিজেই internal state-এর ওপর নির্ভর করে।
-- Default হিসেবে uncontrolled রাখুন, controlled-এর option দিন, আর কখনো একটি component-কে runtime-এ দুটোর মধ্যে বদলাতে দেবেন না।
+- Default হিসেবে uncontrolled রাখুন, controlled-এর option দিন, আর কখনো একটি component-কে runtime-এ দুটির মধ্যে বদলাতে দেবেন না।
 
 ## Interview-এর প্রশ্ন
 

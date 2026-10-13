@@ -36,16 +36,16 @@ framework-টি নিজেই। এগুলো দেখায় App Route
 
 Next.js-এর নিজস্ব দুটি প্রশ্ন, Part III-এর শুরুর পাতায় থাকা part-স্তরের signal-গুলোর ওপরে:
 
-- **"এই page stale কেন?"** উত্তরটা একটা chain ধরে এগোয় — fetch, cache entry, revalidation key, আর তার সামনের
+- **"এই page stale কেন?"** উত্তরটা একটি chain ধরে এগোয় — fetch, cache entry, revalidation key, আর তার সামনের
   CDN। যে candidate শুধু default ব্যবহার করেছেন, তিনি লক্ষণ বর্ণনা করেন। যে candidate একটি content site ship
   করেছেন, তিনি layer-টির নাম বলেন।
-- **"একজন user-কে সরাসরি ওই Server Action call করা থেকে কী আটকায়?"** কিছুই না। এটা একটা public endpoint, যার
+- **"একজন user-কে সরাসরি ওই Server Action call করা থেকে কী আটকায়?"** কিছুই না। এটা একটি public endpoint, যার
   নাম generate করা। Authorisation আর validation action-এর ভেতরেই থাকবে, প্রতিবার। App Router code-এ সবচেয়ে
   সাধারণ security finding হলো এমন একটি Server Action-কে বিশ্বাস করা, শুধু এই কারণে যে সেটা তার component-এর পাশে বসে আছে।
 
 ## পড়ার ক্রম
 
-01 → 05 ক্রমানুসারে পড়ুন। 02-এর caching model 04-এর rendering-এর সিদ্ধান্তগুলো ব্যাখ্যা করে, আর 03 দুটোই ধরে নেয়।
+01 → 05 ক্রমানুসারে পড়ুন। 02-এর caching model 04-এর rendering-এর সিদ্ধান্তগুলো ব্যাখ্যা করে, আর 03 দুটিই ধরে নেয়।
 অধ্যায় 06 আর 07 আলাদাভাবে দাঁড়িয়ে থাকে, যেকোনো ক্রমে পড়া যায়।
 
 **Interview sprint:** 01 → 02 → 03 → 04। Round-এ জিজ্ঞেস করা হয় rendering আর caching নিয়ে। Job-এ জিজ্ঞেস করা হয়

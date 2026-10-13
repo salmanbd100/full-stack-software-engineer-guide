@@ -85,5 +85,5 @@ eval-এর ফাঁক হিসেবে দেখা।**
 পড়ুন।
 
 **Interview sprint:** `Foundations/01`, `Integration/03`–`04`, `RAG/01`, `Production/01`, তারপর
-[Interview-এ AI](#ch-ai-in-interviews)। এতে আছে mental model, সবসময় আসা দুটো mechanics, যে সিদ্ধান্ত বেশিরভাগ team ভুল
+[Interview-এ AI](#ch-ai-in-interviews)। এতে আছে mental model, সবসময় আসা দুটি mechanics, যে সিদ্ধান্ত বেশিরভাগ team ভুল
 করে, বাজারে যে skill-এর ঘাটতি, আর round-টার নিজের গঠন।

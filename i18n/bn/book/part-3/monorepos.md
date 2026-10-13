@@ -9,7 +9,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 > Task graph declare করে, ঠিক input-গুলো hash করে, আর শুধু যা বদলেছে তা চালিয়ে একটি বড় repository build করা সস্তা করুন।
 
-**এই অধ্যায়ে:** দুটো graph · workspace জোড়া লাগানো · cache key-তে কী যায় · environment variable-এর ফাঁদ · শুধু affected অংশ চালানো · publish করা
+**এই অধ্যায়ে:** দুটি graph · workspace জোড়া লাগানো · cache key-তে কী যায় · environment variable-এর ফাঁদ · শুধু affected অংশ চালানো · publish করা
 
 ## 💡 মূল ধারণা
 
@@ -21,25 +21,25 @@ Task graph ছাড়া একটি monorepo প্রতিটি পরি
 আর continuous integration বারোটিই build আর test করে। এটা আলাদা আলাদা repository-র চেয়ে নিশ্চিতভাবে খারাপ। এ কারণেই
 "আমরা monorepo চেষ্টা করেছিলাম, খুব ধীর ছিল" এত পরিচিত গল্প।
 
-সমাধান হলো এমন একটি build system, যেটা দুটো প্রশ্নের উত্তর দিতে পারে: **কোনটা কোনটার আগে চলতে হবে**, আর **ঠিক এই
-কাজটা কি আগেই করা হয়েছে?** এই অধ্যায়ের বাকিটা এই দুটো প্রশ্ন নিয়েই।
+সমাধান হলো এমন একটি build system, যেটা দুটি প্রশ্নের উত্তর দিতে পারে: **কোনটা কোনটার আগে চলতে হবে**, আর **ঠিক এই
+কাজটা কি আগেই করা হয়েছে?** এই অধ্যায়ের বাকিটা এই দুটি প্রশ্ন নিয়েই।
 
 > ⚠️ **যা বদলাতে থাকে:** configuration-এর নামগুলো বদলাতেই থাকে। Turborepo 2 `pipeline`-এর নাম বদলে `tasks` করেছে,
 > `outputMode`-কে করেছে `outputLogs`, `dotEnv` key-গুলো বাদ দিয়েছে, আর cache directory সরিয়েছে। Nx-ও প্রায় একই
-> হারে তার project configuration-এর রূপ বদলায়। দুটো tool-ই একই টেকসই নীতি মেনে চলে। Cache আপনার declare করা
+> হারে তার project configuration-এর রূপ বদলায়। দুটি tool-ই একই টেকসই নীতি মেনে চলে। Cache আপনার declare করা
 > input-গুলোর ওপর content-addressed: এর key হলো সেগুলোর একটি hash। তাই যে cache-এ hit হওয়ার কথা, সেখানে miss হলে
 > বুঝবেন একটি input declare করা হয়নি।
 
 ## কীভাবে কাজ করে
 
-### একটি নয়, দুটো graph
+### একটি নয়, দুটি graph
 
 | Graph | Edge | যে প্রশ্নের উত্তর দেয় |
 | ----- | ----- | ------- |
 | **Package graph** | `packages/ui` নির্ভর করে `packages/tokens`-এর ওপর | এটা বদলালে কী কী প্রভাবিত হয়? |
 | **Task graph** | `web#build` নির্ভর করে `ui#build`-এর ওপর | এগুলো কোন ক্রমে চলতে পারে? |
 
-Package graph আসে `package.json` file থেকে। Task graph আপনি declare করেন। দুটো সম্পর্কিত, কিন্তু অভিন্ন নয়:
+Package graph আসে `package.json` file থেকে। Task graph আপনি declare করেন। দুটি সম্পর্কিত, কিন্তু অভিন্ন নয়:
 `test` upstream `build`-এর ওপর নির্ভর করতে পারে, upstream `test`-এর ওপর নির্ভর না করেই।
 
 **এটা declare করা:**
@@ -114,7 +114,7 @@ Hit হলে tool রেকর্ড করা output আর log আবার �
 একটি production build-এর cache থেকে serve হতে পারে। এবার ধরুন একটি variable output **বদলায় না**, কিন্তু key-তে
 *আছে*। তাহলে প্রতিটি machine-এর hash আলাদা হয়, আর কখনো কিছু hit হয় না।
 
-দুটো setting এই দুই ক্ষেত্রকে আলাদা করে:
+দুটি setting এই দুই ক্ষেত্রকে আলাদা করে:
 
 ```json
 {
@@ -222,7 +222,7 @@ identifier, মানে কখনো hit হবে না। একটি undec
 
 **Q: একটি staging deployment production configuration নিয়ে বেরিয়েছে। একটি build cache কীভাবে এটা ঘটায়?**
 
-যে variable environment বেছে নেয়, সেটা task-এর `env` তালিকায় ছিল না। তাই দুটো build-এর hash একই হয়েছে, আর cache
+যে variable environment বেছে নেয়, সেটা task-এর `env` তালিকায় ছিল না। তাই দুটি build-এর hash একই হয়েছে, আর cache
 staging-কে production-এর artefact serve করেছে। Output বদলায় এমন যেকোনো কিছু cache key-তে থাকতে হবে। যা বদলায় না,
 বিশেষ করে credential, সেটা key-কে প্রভাবিত না করে pass through হওয়া উচিত।
 

@@ -28,7 +28,7 @@ React code review round-এ এই বিষয়টিই interviewer-কে �
 
 ### Derived state আসলে state নয়
 
-একটি value যদি props আর state থেকে হিসাব করা যায়, তাহলে render-এর সময়ই হিসাব করুন। এটা store করা মানে দুটো
+একটি value যদি props আর state থেকে হিসাব করা যায়, তাহলে render-এর সময়ই হিসাব করুন। এটা store করা মানে দুটি
 source of truth রাখা, যেগুলোকে ভবিষ্যতের কোনো edit একে অপরের থেকে আলাদা করে দিতে পারে।
 
 **❌ একটি total হালনাগাদ রাখার জন্য effect:**
@@ -42,7 +42,7 @@ useEffect(() => {
 }, [items]);
 ```
 
-প্রতিটি পরিবর্তনে দুটো render। আর প্রথম render এমন একটি total paint করে, যেটা list-এর সাথে মেলে না।
+প্রতিটি পরিবর্তনে দুটি render। আর প্রথম render এমন একটি total paint করে, যেটা list-এর সাথে মেলে না।
 
 **✅ হিসাব করে ফেলুন:**
 
@@ -78,7 +78,7 @@ Browser আগে পুরোনো value paint করে, তারপর effe
 
 ### Event logic-এর জায়গা event handler
 
-একটি effect বলতে পারে না সে *কেন* চলল। উত্তর যদি হয় "কারণ user কিছু একটা করেছে", তাহলে code-টির জায়গা সেখানে,
+একটি effect বলতে পারে না সে *কেন* চলল। উত্তর যদি হয় "কারণ user কিছু একটি করেছে", তাহলে code-টির জায়গা সেখানে,
 যেখানে সেই কাজটি handle করা হয়েছে।
 
 **❌ একটি purchase, যেটা দুবার fire হয়:**
@@ -109,7 +109,7 @@ effect। করা হলো handler।
 
 ### বাইরের data-র জায়গা `useSyncExternalStore`
 
-একটি browser API-কে effect দিয়ে state-এ পড়ার দুটো খরচ আছে। প্রথম render ভুল value দেখায়। আর dependency array
+একটি browser API-কে effect দিয়ে state-এ পড়ার দুটি খরচ আছে। প্রথম render ভুল value দেখায়। আর dependency array
 বদলালেই subscription আবার subscribe করে।
 
 **❌ Subscribe করুন, তারপর state-এ copy করুন:**
@@ -151,8 +151,8 @@ application-এ এর জায়গা একটি query library।
 
 | Code-টি চলা উচিত…                       | কোথায় রাখবেন            | ভুল হওয়ার লক্ষণ                        |
 | ------------------------------------------- | -------------------- | ----------------------------------------- |
-| কারণ একটি value হিসাব করা যায়             | Render body      | দুটো state, যাদের মিলে থাকতেই হবে                |
-| কারণ user কিছু একটা করেছে              | Event handler    | একটি boolean flag, যেটা একটি effect নজরে রাখে       |
+| কারণ একটি value হিসাব করা যায়             | Render body      | দুটি state, যাদের মিলে থাকতেই হবে                |
+| কারণ user কিছু একটি করেছে              | Event handler    | একটি boolean flag, যেটা একটি effect নজরে রাখে       |
 | কারণ অন্য একটি record দেখানো হচ্ছে   | একটি `key` prop         | `setX("")` call-এর একটি list                |
 | কারণ component-টি screen-এ আছে          | `useEffect`          | —                                         |
 | কারণ data React-এর বাইরে থাকে            | `useSyncExternalStore` | একটি effect, যেটা একটি value state-এ copy করে |
@@ -199,7 +199,7 @@ component-টি একটি নির্দিষ্ট state-এ screen-এ �
 **Q: একটি filtered list state-এ রেখে effect-এ update করলে সমস্যা কী?**
 
 এটা একটি দ্বিতীয় source of truth তৈরি করে, যেটা প্রথমটির সাথে অমিল হতে পারে। এর খরচ একটি বাড়তি render-ও, যেখানে
-screen এমন একটি filtered list দেখায় যেটা data-র সাথে মেলে না। Render-এর সময় হিসাব করলে দুটো কখনো আলাদা হতে পারে
+screen এমন একটি filtered list দেখায় যেটা data-র সাথে মেলে না। Render-এর সময় হিসাব করলে দুটি কখনো আলাদা হতে পারে
 না। Profiling যদি দেখায় filter-টি সত্যিই ভারী, তাহলে `useMemo` এটাকে render-এর ভেতরেই রাখে, পরে নয়।
 
 **Q: Development-এ আপনার effect দুবার fire হয়। এটা কি bug?**
@@ -211,7 +211,7 @@ subtree-টি remount করবে। সমাধান হলো এমন �
 
 **Q: `useEffect`-এ fetch করা কখন এখনো সঠিক উত্তর?**
 
-কদাচিৎ, আর সেটা সরাসরি বলে দেওয়াই ভালো। এক-দুটো request সহ ছোট client-only application-এ এটা কাজ করে। কিন্তু
+কদাচিৎ, আর সেটা সরাসরি বলে দেওয়াই ভালো। এক-দুটি request সহ ছোট client-only application-এ এটা কাজ করে। কিন্তু
 এটা আপনাকে কোনো deduplication, caching, revalidation দেয় না, আর আপনি নিজে যতটুকু লেখেন তার বাইরে কোনো cancellation-ও
 দেয় না। Server-rendered framework-এ fetch-এর জায়গা server। Client-heavy application-এ এর জায়গা এমন একটি query
 library, যেটা এই চারটি সমস্যা আগেই সমাধান করেছে।

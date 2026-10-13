@@ -72,7 +72,7 @@ export const load: PageLoad = async ({ data, fetch }) => {
 | Return value | যেকোনো কিছু, class-সহ | `devalue` দিয়ে serialise করা যায় এমন: JSON, সঙ্গে `Date`, `Map`, `Set`, `BigInt`, `RegExp` |
 | Promise stream করতে পারে | না | হ্যাঁ |
 
-দুটোই থাকলে **server load আগে চলে**, আর তার ফলাফল universal load-এ `data` হিসেবে আসে।
+দুটিই থাকলে **server load আগে চলে**, আর তার ফলাফল universal load-এ `data` হিসেবে আসে।
 কীভাবে বাছবেন: যা কোনো credential ফাঁস করতে পারে বা database connection খুলতে পারে, তা `.server.ts`-এ যায়।
 বাকিটার জায়গা `+page.ts`-এ। তাহলে client-side navigation সেটা সরাসরি fetch করতে পারে, আপনার server ঘুরে
 round trip ছাড়াই।
@@ -195,7 +195,7 @@ resolve করে, আর SvelteKit-কে invalidation-এর জন্য depe
 
 Code নিরাপদে browser-এ পৌঁছাতে পারে কিনা। `+page.ts` bundle হয়, আর পরের navigation-গুলোতে client-এ চলে,
 তাই এটা secret রাখতে বা database connection খুলতে পারে না। `+page.server.ts` কখনো server ছাড়ে না, কিন্তু
-প্রতিটি client navigation-এ একটি round trip খরচ করে। দুটোই থাকলে server load আগে চলে, আর SvelteKit তার
+প্রতিটি client navigation-এ একটি round trip খরচ করে। দুটিই থাকলে server load আগে চলে, আর SvelteKit তার
 ফলাফল universal-টিকে দেয়।
 
 **Q: SvelteKit load-এ streaming কীভাবে কাজ করে, আর tradeoff কী?**

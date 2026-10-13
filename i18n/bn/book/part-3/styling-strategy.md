@@ -26,7 +26,7 @@ CSS-এর একটিই global namespace, আর একটি cascade, যে
 
 ## কীভাবে কাজ করে
 
-তিনটি পরিবার, আর এদের একটির ওপর এখন এমন একটি কঠিন সীমাবদ্ধতা আছে, যা বাকি দুটোর নেই।
+তিনটি পরিবার, আর এদের একটির ওপর এখন এমন একটি কঠিন সীমাবদ্ধতা আছে, যা বাকি দুটির নেই।
 
 | পরিবার | বলবৎ করে | Scoping mechanism | খরচ পড়ে |
 | ------ | ----------- | ----------------- | ------------- |
@@ -36,9 +36,9 @@ CSS-এর একটিই global namespace, আর একটি cascade, যে
 
 ### Naming convention, আর কেন এগুলো ম্লান হলো
 
-BEM প্রতিটি class-কে একটি block, একটি element আর একটি modifier দেয়, যেমন `.card__title--featured`। দুটো file
+BEM প্রতিটি class-কে একটি block, একটি element আর একটি modifier দেয়, যেমন `.card__title--featured`। দুটি file
 সংঘর্ষে যেতে পারে না, আর specificity সমতল থাকে। ITCSS stylesheet এমনভাবে সাজায়, যাতে সাধারণ rule specific rule-এর
-আগে load হয়। দুটোই কাজ করে, আর দুটোর দুর্বলতা একটাই: **এগুলো চুক্তি, mechanism নয়।** কেউ `.nav ul li a.active`
+আগে load হয়। দুটিই কাজ করে, আর দুটির দুর্বলতা একটিই: **এগুলো চুক্তি, mechanism নয়।** কেউ `.nav ul li a.active`
 লিখলে কিছুই fail করে না, তাই বড় team-এ কেউ না কেউ একসময় লেখেনই।
 
 পুরোনো code পড়ার জন্য, আর একটি interview উত্তরের জন্য এগুলো এখনো গুরুত্বপূর্ণ। একটি পদ্ধতি cascade-এর সাথে লড়ার
@@ -145,7 +145,7 @@ function Panel() {
 **✅ এটা module scope-এ define করুন**, যেখানে এটা একবার তৈরি হয়। নয়তো বদলাতে থাকা অংশটি একটি custom property-তে
 সরান আর rule-টি static রাখুন।
 
-**❌ "Tailwind বনাম CSS Modules"-কেই পুরো প্রশ্ন ধরে নেওয়া।** দুটোই zero-runtime, আর দুটোই একই token ব্যবহার করে।
+**❌ "Tailwind বনাম CSS Modules"-কেই পুরো প্রশ্ন ধরে নেওয়া।** দুটিই zero-runtime, আর দুটিই একই token ব্যবহার করে।
 একটি team layout-এর জন্য utility আর জটিল একটি component-এর জন্য module ব্যবহার করতে পারে, আর বেশিরভাগ বড় codebase
 শেষে সেখানেই পৌঁছায়। যে উত্তর নম্বর পায়, সেটা আগে সীমাবদ্ধতার নাম বলে, তারপর বাছে। সীমাবদ্ধতা হলো server-এর সীমানা,
 performance budget বা team-এর আকার।
@@ -164,7 +164,7 @@ performance budget বা team-এর আকার।
   styling-এর নয়।
 - Design token-এর জায়গা custom property-তে, কোনো framework-এর config-এ নয়, কারণ এগুলো framework-এর চেয়ে বেশিদিন
   টেকে।
-- Utility-first আর component-scoped CSS পরস্পরবিরোধী নয়। বড় codebase সাধারণত একটি token set-এর ওপর দুটোই চালায়।
+- Utility-first আর component-scoped CSS পরস্পরবিরোধী নয়। বড় codebase সাধারণত একটি token set-এর ওপর দুটিই চালায়।
 
 ## Interview-এর প্রশ্ন
 

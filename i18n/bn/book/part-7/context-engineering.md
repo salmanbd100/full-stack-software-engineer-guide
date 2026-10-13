@@ -20,7 +20,7 @@ Prompt engineering জিজ্ঞেস করে, *model-কে আমি ক�
 দৃষ্টিভঙ্গি বদলেছে, কারণ কাজটাই বদলে গেছে। 2023-এর একটি feature হাতে লেখা একটি prompt পাঠাত। 2026-এর একটি
 feature request তৈরি করে একটি system prompt, tool definition, conversation history, কয়েকটি retrieve করা document
 আর একটি user message দিয়ে। এর বেশিরভাগই code runtime-এ বেছে নেয়, এমন বিপুল material থেকে যা কখনো পুরোটা ধরবে না।
-কেউ এটা হাতে লেখে না। প্রতিটি request-এ কিছু একটা সিদ্ধান্ত নেয়, আর সেই সিদ্ধান্তকারীই system-এর ওপর সবচেয়ে বেশি
+কেউ এটা হাতে লেখে না। প্রতিটি request-এ কিছু একটি সিদ্ধান্ত নেয়, আর সেই সিদ্ধান্তকারীই system-এর ওপর সবচেয়ে বেশি
 প্রভাব ফেলা component।
 
 > Model-এর memory-র সমস্যা নেই। আপনার assembly step-এর বরাদ্দের সমস্যা আছে।
@@ -161,7 +161,7 @@ Window বড় হলেই সেটা ভরতে হবে, এমন ন
 Prompt engineering হলো সেই শব্দচয়ন নিয়ে, যা আপনি সরাসরি নিয়ন্ত্রণ করেন। Context engineering হলো সেই assembly step
 নিয়ে, যা প্রতিটি request-এ চলে। কোন document retrieve হলো? History-র কতটা টিকে রইল? সবকিছু কোন ক্রমে গেল, আর উত্তরের
 জন্য কত token বাকি রইল? 2026-এর একটি feature-এ window-এর বেশিরভাগ code বেছে নেয়, কোনো মানুষ লেখে না। তাই মান আর
-খরচ — দুটোই থাকে বাছাইয়ের logic-এ।
+খরচ — দুটিই থাকে বাছাইয়ের logic-এ।
 
 **Q: Traffic বদলায়নি, কোনো deploy হয়নি, তবু প্রতি request-এর খরচ দ্বিগুণ হয়ে গেছে। কোথায় দেখবেন?**
 

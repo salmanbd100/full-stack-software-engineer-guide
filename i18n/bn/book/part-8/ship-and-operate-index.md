@@ -25,11 +25,11 @@ administration এই বইয়ের বিষয় নয়।
 
 ## Interviewer-রা যা যাচাই করেন
 
-এই part-এর senior সংকেত হলো **change-এর দায়িত্ব production পর্যন্ত নেওয়া, ফেরার পথসহ।** দুটো প্রশ্ন প্রতিটি
+এই part-এর senior সংকেত হলো **change-এর দায়িত্ব production পর্যন্ত নেওয়া, ফেরার পথসহ।** দুটি প্রশ্ন প্রতিটি
 section জুড়ে চলে, আর প্রতিটি section index নিজের প্রশ্ন যোগ করে।
 
 - **যেখানে log in করতে পারেন না, সেটা debug করতে পারেন?** Shell ছাড়া একটি distroless image, একটি cold start হওয়া
-  function, একটি average-এর পেছনে লুকিয়ে থাকা p99। একটি system চালানো আর বানানো দুটো আলাদা দক্ষতা।
+  function, একটি average-এর পেছনে লুকিয়ে থাকা p99। একটি system চালানো আর বানানো দুটি আলাদা দক্ষতা।
 - **Credential কোথা থেকে আসে?** Repository secret-এ রাখা দীর্ঘমেয়াদি cloud key এখনো সবচেয়ে সাধারণ finding।
   প্রত্যাশিত উত্তর হলো স্বল্পমেয়াদি OIDC token।
 
@@ -39,7 +39,7 @@ section জুড়ে চলে, আর প্রতিটি section index �
 | ----- | ---------- | ------------- |
 | "আপনি কীভাবে deploy করেন?" | "Pipeline প্রতিটি environment-এর জন্য build আর deploy করে" | "একবার build করুন, artefact-টি promote করুন — প্রতিটি stage-এ নতুন build মানে staging অন্য কিছু test করেছে" |
 | "আপনি কীভাবে roll back করেন?" | "আমরা শুধু deploy-টি roll back করি" | "Code roll back হয়; একটি drop করা column, consume হয়ে যাওয়া message আর পাঠানো email হয় না। আমাদের এর কোনগুলো আছে, সেটা এই" |
-| "Production-এ কিছু একটা ভেঙেছে" | "আমি log দেখব" | "আগে route অনুযায়ী p99, কারণ average এটা লুকিয়ে রাখে — তারপর slow path-এর trace, তারপর log" |
+| "Production-এ কিছু একটি ভেঙেছে" | "আমি log দেখব" | "আগে route অনুযায়ী p99, কারণ average এটা লুকিয়ে রাখে — তারপর slow path-এর trace, তারপর log" |
 
 ## পড়ার ক্রম
 

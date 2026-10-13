@@ -157,7 +157,7 @@ test("the users endpoint still returns the shape we parse", async ({ request }) 
 API অনেক team ব্যবহার করলে এটা লাভজনক, আর একই team দুই দিক ship করলে বাড়াবাড়ি।
 
 > ⚠️ **যা বদলাতে থাকে:** contract-testing tool ঘনঘন বদলায়, আর OpenAPI বা GraphQL schema থেকে generate করা client
-> এখন তাদের কাজের বড় অংশ করে দেয়। টেকসই নীতিটা হলো, mock আপনার অনুমান, আর কিছু একটাকে সেটা provider-এর বাস্তবতার
+> এখন তাদের কাজের বড় অংশ করে দেয়। টেকসই নীতিটা হলো, mock আপনার অনুমান, আর কিছু একটিকে সেটা provider-এর বাস্তবতার
 > সাথে তুলনা করতেই হবে। API যদি একই repo-তে end-to-end typed হয়, তাহলে compiler-ই সেটা করে — দেখুন
 > [Chapter ?? — GraphQL, tRPC ও Typed API বাছাই](#ch-graphql)।
 

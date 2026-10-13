@@ -57,7 +57,7 @@ route এড়াতে design বাঁকাবেন না। কেউ ব
 `PUT` বদলে দেয়: `{ "name": "Ada", "email": "ada@x.com" }`-সহ `PUT /users/123` `phone` মুছে দেয়।
 `{ "name": "Ada" }`-সহ `PATCH /users/123` বাকি field-গুলোতে হাত দেয় না। `{ "views": "+1" }`-এর একটি patch প্রতিটি call-এ
 আলাদা ফল দেয়। এজন্যই specification প্রতিশ্রুতি দিতে পারে না যে `PATCH` idempotent। একটি সাধারণ `$set` patch
-বাস্তবে idempotent। দুটো কথাই বলুন।
+বাস্তবে idempotent। দুটি কথাই বলুন।
 
 ### Status code
 
@@ -79,7 +79,7 @@ route এড়াতে design বাঁকাবেন না। কেউ ব
 | একটি field মুছে ফেলা, নাম বা type বদলানো        | ✅ হ্যাঁ     | একজন client আজ এটা পড়ে; `"5"` থেকে `5` হলে parser fail করে  |
 | একটি optional request field-কে required করা | ✅ হ্যাঁ     | চালু caller-রা validation-এ আটকে যায়                    |
 | একটি enum-এ নতুন value যোগ করা                  | ⚠️ সাধারণত | `default` ছাড়া একটি client `switch` কোনো case-এ ধরে না    |
-| Validation কড়া করা, বা একটি default বদলানো | ✅ হ্যাঁ     | দুটোই bug fix-এর মতো দেখায়, আর চুপচাপ caller ভাঙে |
+| Validation কড়া করা, বা একটি default বদলানো | ✅ হ্যাঁ     | দুটিই bug fix-এর মতো দেখায়, আর চুপচাপ caller ভাঙে |
 
 ## কখন ব্যবহার করবেন
 
@@ -119,7 +119,7 @@ interface ProblemDetails {
 
 Offset সবচেয়ে প্রচলিত বাছাই, আর scale-এ ভুল বাছাই। `OFFSET 1000000` এখনো database-কে দশ লাখ row হেঁটে পার হয়ে ফেলে
 দিতে বাধ্য করে। আরও খারাপ, user page করার সময় একটি row insert হলে সবকিছু সরে যায় — সে item 20 দুবার দেখে আর item 21
-কখনো দেখে না। Keyset pagination দুটোই ঠিক করে:
+কখনো দেখে না। Keyset pagination দুটিই ঠিক করে:
 
 **একটি opaque cursor-সহ keyset pagination:**
 
@@ -156,12 +156,12 @@ Server একটি atomic Redis `SET NX` দিয়ে সেটা দখল
 আগে এগুলো চেষ্টা করুন। প্রতিটিই নতুন version ছাড়া একটি পরিবর্তন ship করে:
 
 - **যোগ করুন, বদলাবেন না।** `name`-এর পাশাপাশি `firstName` আর `lastName` ship করুন, আর `name`-কে deprecated চিহ্নিত করুন।
-- **আগে বাড়ান, তারপর ছাঁটুন।** দুটো field-ই লিখুন, client-দের migrate করুন, পরে পুরনো field মুছে দিন — zero-downtime
+- **আগে বাড়ান, তারপর ছাঁটুন।** দুটি field-ই লিখুন, client-দের migrate করুন, পরে পুরনো field মুছে দিন — zero-downtime
   database migration-এর একই pattern।
 
 ভাঙা যখন এড়ানো যায় না, **major** version path-এ রাখুন: `/v1/users`, কখনো `/v1.2.3` নয়। এটা log-এ দেখা যায়, আর load
 balancer-এ route করা যায়। Header বেশি খাঁটি REST, কিন্তু debug করার সময় চোখে পড়ে না। Service নয়, shape version
-করুন। `/v1` আর `/v2` একটি service layer ভাগ করে নেয়, দুটো presenter-সহ, যারা একই `User`-কে নিজ নিজ shape-এ map করে।
+করুন। `/v1` আর `/v2` একটি service layer ভাগ করে নেয়, দুটি presenter-সহ, যারা একই `User`-কে নিজ নিজ shape-এ map করে।
 প্রতি version-এ service duplicate করলেই একটি bug fix শুধু একটিতে গিয়ে পড়ে।
 
 Contract generate করুন; কখনো হাতে লিখবেন না। প্রতিটি request একবার একটি Zod schema হিসেবে define করুন, আর সেখান থেকে

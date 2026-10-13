@@ -18,7 +18,7 @@ runes আর TypeScript-এ, পাশে একটি Sanity studio। আর �
 এই বইকে যে বিশেষ দক্ষতাগুলো রূপ দিয়েছে, সেগুলো হলো enterprise-scale architecture, WCAG accessibility, web
 performance আর state management।
 
-এই পটভূমির কারণেই দুটো সিদ্ধান্ত পাঠকের চোখে পড়বে।
+এই পটভূমির কারণেই দুটি সিদ্ধান্ত পাঠকের চোখে পড়বে।
 
 **বইটি কেন frontend-heavy।** বইটি লেখা হয়েছে সেই role-এর জন্য, যেটা লেখক নিজে করেন। এমন একজন, যিনি frontend-এর
 পুরোটার দায়িত্ব নেন। তাঁর কাছে আশা করা হয়, backend-এ, system design round-এ, আর এখন AI feature-এও তিনি
@@ -29,7 +29,7 @@ performance আর state management।
 **তিনটি framework-এর একটি কেন Svelte।** সংখ্যার হিসাবেই Svelte জায়গাটা পায়। বছরের পর বছর developer-satisfaction
 survey-তে Svelte শীর্ষে বা তার কাছাকাছি থেকেছে। কিন্তু বইতে এটা আছে কারণ এটা লেখকের প্রতিদিনের stack। ওই অংশটাই
 এই বইয়ের সবচেয়ে হাতে-কলমে লেখা অংশ। যে framework দিয়ে আপনি সোমবারে ship করেন, তাকে নিয়ে লেখা আর যেটার শুধু
-docs পড়েছেন, তাকে নিয়ে লেখা — দুটো পড়তে আলাদা লাগে।
+docs পড়েছেন, তাকে নিয়ে লেখা — দুটি পড়তে আলাদা লাগে।
 
 AI UX অধ্যায়গুলোও একই কারণে আছে, শুধু উল্টো দিক থেকে। AI engineering-এর বই লেখেন backend আর machine-learning-এর
 মানুষেরা। তাই interface layer — latency, generative UI, citation আর trust, model refuse করলে বা time out হলে

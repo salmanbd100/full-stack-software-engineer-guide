@@ -13,12 +13,12 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-Performance আর error tracking আসলে একই যন্ত্র। দুটোই উত্তর দেয় "আসল user-দের সাথে আসলে কী ঘটেছে"। দুটোই browser-এ
-সংগ্রহ হয়, আর এমন কিছুতে পাঠানো হয় যেটা আপনি বানাননি। আর একই তিনটি field ছাড়া দুটোই অকেজো: **কোন release, কোন
+Performance আর error tracking আসলে একই যন্ত্র। দুটিই উত্তর দেয় "আসল user-দের সাথে আসলে কী ঘটেছে"। দুটিই browser-এ
+সংগ্রহ হয়, আর এমন কিছুতে পাঠানো হয় যেটা আপনি বানাননি। আর একই তিনটি field ছাড়া দুটিই অকেজো: **কোন release, কোন
 user, কোন page**।
 
-দুটো এক অধ্যায়ে, কারণ আকর্ষণীয় failure-গুলো একে অপরের সাথে জড়ানো। Deploy-এর পর INP-তে spike আর unhandled
-rejection-এ spike আসলে একই incident, দুবার বর্ণনা করা। দুটো আলাদাভাবে wire করলে আপনি পান দুটো dashboard, যেগুলো
+দুটি এক অধ্যায়ে, কারণ আকর্ষণীয় failure-গুলো একে অপরের সাথে জড়ানো। Deploy-এর পর INP-তে spike আর unhandled
+rejection-এ spike আসলে একই incident, দুবার বর্ণনা করা। দুটি আলাদাভাবে wire করলে আপনি পান দুটি dashboard, যেগুলো
 কেউ মিলিয়ে দেখে না।
 
 অস্বস্তিকর অর্ধেকটা হলো, এই সব data browser ছেড়ে চলে যায়। Session replay মানে কেউ আপনার product ব্যবহার করছে, তার
@@ -36,7 +36,7 @@ vendor-এর database-এ।
 | INP মাপতে পারে | হ্যাঁ | না — কেউ interact করছে না |
 | CI-তে কাজের | না — traffic লাগে | হ্যাঁ, আর gate করার মতো যথেষ্ট deterministic |
 
-আপনার দুটোই লাগবে, আর ভাগটা পরিষ্কার: **lab data pull request gate করে, field data বলে কী নিয়ে কাজ করবেন।** যে
+আপনার দুটিই লাগবে, আর ভাগটা পরিষ্কার: **lab data pull request gate করে, field data বলে কী নিয়ে কাজ করবেন।** যে
 team-এর শুধু lab data আছে, সে একটি simulated profile-এর জন্য optimise করে। যে team-এর শুধু field data আছে, সে জানে
 site slow, কিন্তু কেন তা বলতে পারে না।
 
@@ -137,7 +137,7 @@ address মানে personal data, যার হিসাব এখন আপ�
 > একটি deny-list ব্যর্থ হয় প্রথম যেদিন কেউ একটি form field যোগ করে। Checkout-এর একটি replay card input capture করে,
 > যদি না আপনি আগে থেকে থামিয়ে রাখেন। আর "আমরা এটা deny-list-এ যোগ করব" কোনো plan নয়।
 
-### Sampling, কারণ দুটো budget-ই সীমিত
+### Sampling, কারণ দুটি budget-ই সীমিত
 
 একটি error service প্রতি event-এ bill করে, আর একজন মানুষ প্রতি issue ধরে triage করে।
 
@@ -185,7 +185,7 @@ Alerting-এর নিয়মকানুন [Chapter ?? — Metrics, Dashboar
 ✅ প্রথম দিন থেকেই attribution build ব্যবহার করুন।
 
 ❌ **কোনো `unhandledrejection` listener নেই।** বেশিরভাগ ব্যর্থ `fetch` call চুপচাপ থাকে।
-✅ দুটো window listener-ই রাখুন, সাথে framework boundary আর explicit capture।
+✅ দুটি window listener-ই রাখুন, সাথে framework boundary আর explicit capture।
 
 ❌ **Report-এ কোনো release version নেই।** প্রতিটি deploy baseline reset করে, আর কিছুই কখনো "নতুন" হয় না।
 ✅ Release stamp করুন, আর মিলিয়ে source map upload করুন।

@@ -47,7 +47,7 @@ flowchart TD
 
 **একটি offline-first application-এ একটি write।** Interface কখনো network-এর জন্য অপেক্ষা করে না, আর server acknowledge না করা পর্যন্ত কিছুই outbox ছাড়ে না।
 
-দুটো বৈশিষ্ট্য এটাকে নিরাপদ করে। Queue-তে থাকা প্রতিটি write একটি **client-generated idempotency key** বহন করে, তাই অস্পষ্ট একটি failure-এর পর retry কোনো duplicate তৈরি করতে পারে না। আর entry outbox ছাড়ে শুধু acknowledgement পেলে, পাঠানোর সময় কখনো নয়।
+দুটি বৈশিষ্ট্য এটাকে নিরাপদ করে। Queue-তে থাকা প্রতিটি write একটি **client-generated idempotency key** বহন করে, তাই অস্পষ্ট একটি failure-এর পর retry কোনো duplicate তৈরি করতে পারে না। আর entry outbox ছাড়ে শুধু acknowledgement পেলে, পাঠানোর সময় কখনো নয়।
 
 ## কখন ব্যবহার করবেন
 
@@ -101,14 +101,14 @@ async function flush(queue: PendingWrite[]): Promise<void> {
 
 ## Conflict strategy বাছাই
 
-একই `baseVersion`-এর বিপরীতে দুটো edit-ই একটি conflict। প্রতিটি offline design-এর একটি উত্তর লাগে, আর "last write wins" একটি আসল উত্তর, যতক্ষণ আপনি এর খরচটা বলেন।
+একই `baseVersion`-এর বিপরীতে দুটি edit-ই একটি conflict। প্রতিটি offline design-এর একটি উত্তর লাগে, আর "last write wins" একটি আসল উত্তর, যতক্ষণ আপনি এর খরচটা বলেন।
 
 | Strategy | Resolution | খরচ | মানানসই |
 | -------- | ---------- | ---- | ---- |
 | Last write wins | সবচেয়ে বড় timestamp টিকে থাকে | অন্য edit-টি নীরবে বাদ দেয় | Single-user data, ঝুঁকি কম |
 | Server wins | Local edit বাদ যায় | User যে কাজ গৃহীত হতে দেখেছেন, তা হারান | বেশিরভাগ সময় শুধু পড়া reference data |
 | Field-level merge | প্রতি field-এ, প্রতিটির সবচেয়ে নতুন value | এমন record তৈরি করতে পারে, যা কেউ লেখেনি | স্বাধীন field-যুক্ত form |
-| User-কে জিজ্ঞেস করা | দুটোই দেখান, তাঁকে বাছতে দিন | বাধা দেয়, আর একটি আসল interface লাগে | বিরল, উচ্চমূল্যের conflict |
+| User-কে জিজ্ঞেস করা | দুটিই দেখান, তাঁকে বাছতে দিন | বাধা দেয়, আর একটি আসল interface লাগে | বিরল, উচ্চমূল্যের conflict |
 | CRDT | গঠনগতভাবেই merge হয় | একটি নতুন data model আর library | Collaborative text আর list |
 
 Clock skew (device-এর clock-গুলো যখন মেলে না) "সবচেয়ে বড় timestamp"-কে শোনার চেয়ে কম নির্ভরযোগ্য করে। ভুল clock-ওয়ালা একটি device প্রতিটি conflict-এ জেতে বা হারে। Client timestamp-এর চেয়ে server-assigned version number ভালো tiebreaker।
@@ -129,7 +129,7 @@ Collaborative editing-এর উত্তর প্রায় সবসময�
 ❌ **একটি cache-কে offline strategy হিসেবে দেখা।** Read কাজ করে, প্রথম write উধাও হয়ে যায়।
 ✅ আগে outbox design করুন; read cache সহজ অংশ।
 
-❌ **Idempotency key ছাড়া retry করা।** একটি অস্পষ্ট timeout দুটো record হয়ে যায়।
+❌ **Idempotency key ছাড়া retry করা।** একটি অস্পষ্ট timeout দুটি record হয়ে যায়।
 ✅ প্রথম চেষ্টার আগে client-এ key তৈরি করুন, আর প্রতিটি retry-তে সেটাই আবার ব্যবহার করুন।
 
 ❌ **Queue parallel-এ flush করা।** একটি delete সেই create-এর আগে পৌঁছায়, যার ওপর সে নির্ভর করে।
@@ -161,11 +161,11 @@ Collaborative editing-এর উত্তর প্রায় সবসময�
 
 **Q: কখন offline-first তৈরি করতে অস্বীকার করবেন?**
 
-যখন write পরে রাখা সম্ভব নয়। একটি seat booking, একটি payment নেওয়া বা stock কমানো — এগুলো উদাহরণ। এগুলো queue করা মানে user-কে বলা যে কিছু একটা হয়ে গেছে, যখন সেই প্রতিশ্রুতি দেওয়ার কোনো অধিকার আমার নেই। Failure তখন ঘণ্টাখানেক পরে দেখা দেয়, যখন এর খরচ অনেক বেশি। এগুলোর জন্য আমি shell cache করে রাখব যাতে application তবুও load হয়, আর একটি সৎ message দিয়ে action-টি আটকে দেব।
+যখন write পরে রাখা সম্ভব নয়। একটি seat booking, একটি payment নেওয়া বা stock কমানো — এগুলো উদাহরণ। এগুলো queue করা মানে user-কে বলা যে কিছু একটি হয়ে গেছে, যখন সেই প্রতিশ্রুতি দেওয়ার কোনো অধিকার আমার নেই। Failure তখন ঘণ্টাখানেক পরে দেখা দেয়, যখন এর খরচ অনেক বেশি। এগুলোর জন্য আমি shell cache করে রাখব যাতে application তবুও load হয়, আর একটি সৎ message দিয়ে action-টি আটকে দেব।
 
 **Q: Last-write-wins সহজ। এতে সমস্যা কী?**
 
-কিছুই না, যদি data single-user হয় আর আপনি খরচটা বলেন: দুটো edit-এর একটি বাদ যায়, আর কাউকে জানানো হয় না। যে failure মানুষ কম করে দেখে, সেটা clock skew। Tiebreaker যদি client timestamp হয়, ভুল clock-ওয়ালা একটি device যে conflict-এই থাকুক, প্রতিটিতে জেতে বা হারে। আমি timestamp-এর বদলে server-assigned version ব্যবহার করব, আর collaborative যেকোনো কিছুর জন্য একটি CRDT-তে চলে যাব।
+কিছুই না, যদি data single-user হয় আর আপনি খরচটা বলেন: দুটি edit-এর একটি বাদ যায়, আর কাউকে জানানো হয় না। যে failure মানুষ কম করে দেখে, সেটা clock skew। Tiebreaker যদি client timestamp হয়, ভুল clock-ওয়ালা একটি device যে conflict-এই থাকুক, প্রতিটিতে জেতে বা হারে। আমি timestamp-এর বদলে server-assigned version ব্যবহার করব, আর collaborative যেকোনো কিছুর জন্য একটি CRDT-তে চলে যাব।
 
 ## এরপর কী পড়বেন
 

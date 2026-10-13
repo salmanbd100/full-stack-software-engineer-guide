@@ -14,10 +14,10 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 কিছু কাজ একটি request আর একটি response-এর মধ্যে ধরে না। হয় খুব ধীর, নয়তো এর জন্য কেউ অপেক্ষা করে না। বের হওয়ার
-দুটো পথ আছে। আপনি **request-এর পেছনে কাজটি queue করতে পারেন**, আর "হয়ে গেছে"-র বদলে "গ্রহণ করা হয়েছে" উত্তর দিতে
+দুটি পথ আছে। আপনি **request-এর পেছনে কাজটি queue করতে পারেন**, আর "হয়ে গেছে"-র বদলে "গ্রহণ করা হয়েছে" উত্তর দিতে
 পারেন। অথবা ফলাফল তৈরি হলে একটি দীর্ঘস্থায়ী connection দিয়ে **ফলাফলটি push করে ফেরত পাঠাতে পারেন**।
 
-দুটোই user-এর সঙ্গে চুক্তি বদলে দেয়। Queue নিজে থেকেই spike শুষে নেয় আর retry করে, কিন্তু কাজটি দুবার ঘটতে পারে,
+দুটিই user-এর সঙ্গে চুক্তি বদলে দেয়। Queue নিজে থেকেই spike শুষে নেয় আর retry করে, কিন্তু কাজটি দুবার ঘটতে পারে,
 আর caller আর জানে না সেটা কখন শেষ হলো। ধরে রাখা connection millisecond-এর মধ্যে খবর পৌঁছায়, কিন্তু এটা একটি
 process-এর, তাই প্রতিটি নতুন server broadcast-কে আরও কঠিন করে।
 
@@ -39,7 +39,7 @@ RabbitMQ আর SQS হলো work queue, SNS হলো pub/sub, আর Kafka �
 পরীক্ষাটি: **ফলাফলের ওপর ভিত্তি করে কি response বদলায়?** Order record লেখা আর card charge করা synchronous থাকে,
 কারণ UI এদের ওপর নির্ভর করে। Confirmation email করে না, তাই সেটা queue করুন।
 
-**গ্রহণ, তারপর জানানো — handler দুটো সস্তা কাজ করে আর return করে:**
+**গ্রহণ, তারপর জানানো — handler দুটি সস্তা কাজ করে আর return করে:**
 
 ```typescript
 interface JobAccepted { jobId: string; statusUrl: string }
@@ -228,7 +228,7 @@ chat বা collaborative cursor।
 **Q: অনেক server জুড়ে real-time connection কীভাবে scale করেন?**
 
 প্রতিটি server একটি shared pub/sub channel-এ subscribe করে আর message নিজের socket-গুলোতে deliver করে। এতে
-broadcast ঠিক হয়, কিন্তু দুটো ফাঁক থেকে যায়। Broker পাঠিয়ে ভুলে যায়, তাই durability আসে database থেকে। আবার
+broadcast ঠিক হয়, কিন্তু দুটি ফাঁক থেকে যায়। Broker পাঠিয়ে ভুলে যায়, তাই durability আসে database থেকে। আবার
 প্রতিটি message প্রতিটি server-এ পৌঁছায়, যা কয়েক ডজন node-এর ঘরে scale করা থামিয়ে দেয়। এর পরে room অনুযায়ী
 shard করুন, বা একটি managed service কিনুন।
 

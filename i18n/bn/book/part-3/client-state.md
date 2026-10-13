@@ -16,7 +16,7 @@ model: "claude-opus-5-5 (Claude Code)"
 Server state আর form state নিজেদের library পেয়ে গেলে, বাকি থাকে সামান্যই: একটি theme, একটি খোলা panel, একটি row।
 
 এই অবশিষ্টাংশের জন্য প্রশ্ন কখনো "কোন library" নয়। প্রশ্ন হলো **এই value-কে কতদূর যেতে হবে?** উত্তরটা একে চারটি
-ধাপের একটিতে বসায়। প্রথম ধাপের ওপরের প্রতিটি ধাপের খরচ আছে: re-render, indirection, বা দুটোই। নিচ থেকে শুরু করুন,
+ধাপের একটিতে বসায়। প্রথম ধাপের ওপরের প্রতিটি ধাপের খরচ আছে: re-render, indirection, বা দুটিই। নিচ থেকে শুরু করুন,
 আর ওপরে উঠুন শুধু তখন, যখন একটি আসল প্রয়োজন আপনাকে বাধ্য করে।
 
 ভেতরে ভেতরে প্রতিটি store একই তিনটি কাজ করে। একটি value ধরে রাখে, কে সেটা পড়ছে তার হিসাব রাখে, আর write হলে তাদের
@@ -29,7 +29,7 @@ Server state আর form state নিজেদের library পেয়ে গ
 | ধাপ | নাগাল | খরচ | কখন ব্যবহার করবেন |
 | ---- | ----- | ---- | -------- |
 | **`useState`** | একটি component | কিছু না | Value যেখানে declare করা, সেখানেই ব্যবহার হয় |
-| **Parent-এ তুলে দেওয়া** | একটি subtree | Prop drilling | দুটো sibling-এর এটা দরকার, আর parent কাছেই |
+| **Parent-এ তুলে দেওয়া** | একটি subtree | Prop drilling | দুটি sibling-এর এটা দরকার, আর parent কাছেই |
 | **Context** | একটি subtree, drilling ছাড়া | প্রতিটি consumer re-render হয় | Value কদাচিৎ বদলায় |
 | **একটি store** | যেকোনো জায়গা | একটি dependency, আর React-এর বাইরে state | ঘন ঘন update, বা সত্যিকারের global নাগাল |
 
@@ -130,7 +130,7 @@ quantity.set(3); // renders 300 — price was not recomputed, and no tree was di
 Runtime computation-টি **চালিয়ে** dependency খুঁজে পায়। কিছুই declare করা হয় না, তাই কিছু ভুলভাবে declare হওয়ারও
 সুযোগ নেই।
 
-দুটো বৈশিষ্ট্য একটি signal library-কে একটি event emitter আর callback-এর একটি `Set`-এর চেয়ে বেশি মূল্যবান করে:
+দুটি বৈশিষ্ট্য একটি signal library-কে একটি event emitter আর callback-এর একটি `Set`-এর চেয়ে বেশি মূল্যবান করে:
 
 - **Glitch-মুক্ত propagation।** `price` আর `quantity` একসঙ্গে update করুন, আর একটি সরল emitter নতুন `price`-এর
   সঙ্গে পুরোনো `total` দেখাতে পারে। Signal dependency-র ক্রমে evaluate করে, তাই কেউ সেই আধা-update হওয়া state দেখে
@@ -179,7 +179,7 @@ type Checkout =
 
 | পরিস্থিতি | বাছাই |
 | --------- | ------ |
-| দুটো sibling component যে value share করে | সবচেয়ে কাছের parent-এ তুলে দিন |
+| দুটি sibling component যে value share করে | সবচেয়ে কাছের parent-এ তুলে দিন |
 | Theme, locale, একটি client instance | Context |
 | কয়েক ডজন derived value সহ একটি editor | Atom, বা আপনার framework-এর signal |
 | একটি বড় team, যারা একটি বাধ্যতামূলক pattern চায় | Redux Toolkit |
@@ -193,7 +193,7 @@ type Checkout =
 ✅ এগুলো derive করুন। জমা রাখা একটি total সত্যের দ্বিতীয় উৎস, যেটা প্রথমটির সঙ্গে একসময় মিলবে না।
 
 **❌ একটি signal-কে আরেকটিতে copy করতে একটি effect ব্যবহার করা।**
-✅ এটা ধীর পথে লেখা একটি derived value, যেখানে একটি সময় থাকে যখন দুটো মেলে না। একটি computed ব্যবহার করুন। এটা
+✅ এটা ধীর পথে লেখা একটি derived value, যেখানে একটি সময় থাকে যখন দুটি মেলে না। একটি computed ব্যবহার করুন। এটা
 [Chapter ?? — useEffect, আর কখন এটা ব্যবহার করবেন না](#ch-when-not-to-use-effect)-এর একই ভুল।
 
 ## 🔑 মূল শিক্ষা
@@ -219,7 +219,7 @@ Context-এর কোনো subscription নেই, তাই provider value-এ
 
 **Q: Glitch কী, আর এটা কেন গুরুত্বপূর্ণ?**
 
-একজন consumer এমন একটি value দেখে, যা পুরোনো আর নতুন input মিশিয়ে derive করা। এটা ঘটে যখন দুটো dependency update
+একজন consumer এমন একটি value দেখে, যা পুরোনো আর নতুন input মিশিয়ে derive করা। এটা ঘটে যখন দুটি dependency update
 হয়, আর notification-এর ক্রম dependency-র ক্রম নয়। Signal library dependency-র ক্রমে evaluate করে, তাই এটা ঘটতে
 পারে না। একটি emitter আর একটি callback list দিয়ে বানানো store-এ সাধারণত পারে।
 

@@ -16,7 +16,7 @@ model: "claude-opus-5-5 (Claude Code)"
 Big O কোনো পরিমাপ নয়। এটা **growth** নিয়ে একটি দাবি — input বড় হলে কাজের কী হয়। Constant আর lower-order term
 বাদ পড়ে যায়, কারণ `n` বড় হওয়ার অনেক আগেই সেগুলোর গুরুত্ব ফুরিয়ে যায়। এজন্যই `O(3n² + 500n)` আসলে শুধু `O(n²)`।
 
-Interview-এ এর ব্যবহার তত্ত্বের চেয়ে সংকীর্ণ। আপনি bound প্রমাণ করছেন না। আপনি দুটো কাজ করছেন: আপনার code-এর খরচ
+Interview-এ এর ব্যবহার তত্ত্বের চেয়ে সংকীর্ণ। আপনি bound প্রমাণ করছেন না। আপনি দুটি কাজ করছেন: আপনার code-এর খরচ
 কত তা বলা, আর খেয়াল করা যে প্রশ্নে ছাপা constraint আগেই বলে দিয়েছে কত খরচ চলবে।
 
 > `n ≤ 10⁵`-এর একটি constraint সাজসজ্জা নয়। এটা `O(n²)` বাদ দেয় আর `O(n log n)` রেখে দেয়। কিছু লেখার আগেই এটা
@@ -116,8 +116,8 @@ Recursion-এর গভীরতাই candidate-রা ভুলে যান�
 | আকৃতি                        | Recurrence               | Complexity   | উদাহরণ         |
 | ---------------------------- | ------------------------ | ------------ | --------------- |
 | একটি recursive call, `n − 1`  | `T(n) = T(n−1) + O(1)`   | `O(n)`       | Factorial       |
-| দুটো call, `n − 1`           | `T(n) = 2T(n−1) + O(1)`  | `O(2ⁿ)`      | Naive Fibonacci |
-| দুটো call, অর্ধেক, linear join | `T(n) = 2T(n/2) + O(n)`  | `O(n log n)` | Merge sort      |
+| দুটি call, `n − 1`           | `T(n) = 2T(n−1) + O(1)`  | `O(2ⁿ)`      | Naive Fibonacci |
+| দুটি call, অর্ধেক, linear join | `T(n) = 2T(n/2) + O(n)`  | `O(n log n)` | Merge sort      |
 | একটি call, অর্ধেক               | `T(n) = T(n/2) + O(1)`   | `O(log n)`   | Binary search   |
 
 ## কখন ব্যবহার করবেন
@@ -170,7 +170,7 @@ function sumTo(n: number): number {
 }
 ```
 
-**দুটো আলাদা variable-কে এক করে ফেলা:**
+**দুটি আলাদা variable-কে এক করে ফেলা:**
 
 ```typescript
 // ❌ O(n × m) reported as O(n) "after dropping lower terms"

@@ -42,7 +42,7 @@ push করা।
   pagination তা করে না। কেন, সেটা জানাই আসল প্রশ্ন।
 - **REST নাকি GraphQL — কীসের ভিত্তিতে?** ভালো উত্তর client-এর বৈচিত্র্য, over-fetching, caching আর schema-র
   মালিকানার কথা বলে। "GraphQL বেশি flexible" বললে হয় না।
-- **কোথায় rate-limit করেন?** In-process counter দুটো instance হওয়ার মুহূর্তেই ভেঙে যায়।
+- **কোথায় rate-limit করেন?** In-process counter দুটি instance হওয়ার মুহূর্তেই ভেঙে যায়।
 - **আপনার typed API কি production-এ type-safe?** TypeScript build-এর সময় inference যাচাই করে, আপনার working tree-র
   বিপরীতে। ভালো উত্তর সেই failure-এর নাম বলে, যেখানে deploy করা server client-এর চেয়ে পিছিয়ে থাকে।
 

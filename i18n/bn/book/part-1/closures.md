@@ -19,8 +19,8 @@ JavaScript-এ scope হলো **lexical**। মানে, কোনো variabl
 
 **Closure** এই নিয়ম থেকেই আসে। Function যে scope-এর ভেতরে লেখা, সেই scope-টা সে সঙ্গে নিয়ে ঘোরে। যতদিন
 function বেঁচে আছে, scope-ও ততদিন বেঁচে থাকে, বাইরের function return করে গেলেও। Closure-এর প্রায় সব প্রশ্নের
-উত্তর একটা কথায় লুকিয়ে আছে: closure **value-র copy রাখে না, reference রাখে**। তাই একই variable-এর ওপর দুটো
-closure থাকলে দুটোই একই value দেখে। পরে value বদলালে সেই বদল দুটোর কাছেই পৌঁছায়।
+উত্তর একটি কথায় লুকিয়ে আছে: closure **value-র copy রাখে না, reference রাখে**। তাই একই variable-এর ওপর দুটি
+closure থাকলে দুটিই একই value দেখে। পরে value বদলালে সেই বদল দুটির কাছেই পৌঁছায়।
 
 ## কীভাবে কাজ করে
 
@@ -39,7 +39,7 @@ closure(); // 'still here' — outer has returned, but its scope has not been co
 ```
 
 `outer`-এর call frame শেষ, তবু garbage collector `message`-কে মুছতে পারে না। কারণ return হওয়া function-টা সেই
-scope-টা ধরে রেখেছে। পুরো ব্যাপারটা এটুকুই। এরপর যা আসছে, সবই এই একটা জিনিসের ব্যবহার।
+scope-টা ধরে রেখেছে। পুরো ব্যাপারটা এটুকুই। এরপর যা আসছে, সবই এই একটি জিনিসের ব্যবহার।
 
 ### Hoisting আর temporal dead zone
 
@@ -59,13 +59,13 @@ scope-টা ধরে রেখেছে। পুরো ব্যাপার�
 
 | ধরন             | কীভাবে লেখে                 | Hoist হয়?                 | নিজের `this` | `new` চলে  |
 | --------------- | -------------------------- | ------------------------- | ---------- | ---------- |
-| **Declaration** | `function f() {}`          | ✅ নাম **আর** body দুটোই    | ✅          | ✅          |
+| **Declaration** | `function f() {}`          | ✅ নাম **আর** body দুটিই    | ✅          | ✅          |
 | **Expression**  | `const f = function () {}` | শুধু binding (TDZ-এ থাকে)  | ✅          | ✅          |
 | **Arrow**       | `const f = () => {}`       | শুধু binding (TDZ-এ থাকে)  | ❌ Lexical  | ❌          |
 
 Arrow function-এর নিজের `this` নেই, `arguments` নেই, `prototype`-ও নেই, আর `new` দিয়ে একে call করা যায় না।
 `this` না থাকাটাই এর আসল সুবিধা: method-এর ভেতরে লেখা callback ওই method-এর `this`-ই দেখে।
-[Chapter ?? — `this` Keyword](#ch-this-keyword) দেখুন। আরেকটা কথা: default parameter কাজ করে শুধু
+[Chapter ?? — `this` Keyword](#ch-this-keyword) দেখুন। আরেকটি কথা: default parameter কাজ করে শুধু
 `undefined` এলে, `null` এলে নয়।
 
 ### Private state
@@ -86,7 +86,7 @@ b.increment(); // 1 — each call made its own `count`
 
 ### Factory আর memoisation
 
-**Factory** এমন একটা function return করে, যে তার configuration আগে থেকেই ধরে রেখেছে। **Memoiser** তার cache
+**Factory** এমন একটি function return করে, যে তার configuration আগে থেকেই ধরে রেখেছে। **Memoiser** তার cache
 রাখে closure-এর ভেতরে, তাই বাইরে থেকে কেউ সেটা নষ্ট করতে পারে না।
 
 ```typescript
@@ -107,7 +107,7 @@ function memoize<Args extends unknown[], R>(fn: (...args: Args) => R): (...args:
 }
 ```
 
-React hooks আসলে এই pattern-ই, সঙ্গে একটা scheduler জুড়ে দেওয়া। Component-এর ভেতরের handler সেই render-এর props
+React hooks আসলে এই pattern-ই, সঙ্গে একটি scheduler জুড়ে দেওয়া। Component-এর ভেতরের handler সেই render-এর props
 আর state ধরে রাখে, যে render-এ সে তৈরি হয়েছিল। এ কারণেই `useEffect`-এর ভেতরে stale closure পুরনো value পড়ে।
 
 ## কখন ব্যবহার করবেন
@@ -131,10 +131,10 @@ for (var i = 0; i < 3; i++) {
 // 3, 3, 3
 ```
 
-`var` function-scoped, তাই পুরো loop-এ `i` আছে মাত্র একটা। তিনটে closure-ই সেই একটা i-এর reference ধরে রাখে।
-আর তিনটেই চলে loop শেষ হওয়ার পরে, যখন i ইতিমধ্যে 3 হয়ে গেছে।
+`var` function-scoped, তাই পুরো loop-এ `i` আছে মাত্র একটি। তিনটি closure-ই সেই একটি i-এর reference ধরে রাখে।
+আর তিনটিই চলে loop শেষ হওয়ার পরে, যখন i ইতিমধ্যে 3 হয়ে গেছে।
 
-**✅ `let` প্রতিটা iteration-এ নতুন binding বানায়, তাই প্রতিটা closure পায় নিজের আলাদা i:**
+**✅ `let` প্রতিটি iteration-এ নতুন binding বানায়, তাই প্রতিটি closure পায় নিজের আলাদা i:**
 
 ```typescript
 for (let i = 0; i < 3; i++) {
@@ -146,7 +146,7 @@ for (let i = 0; i < 3; i++) {
 **❌ Object-এর method হিসেবে arrow function।** Arrow তার `this` নেয় চারপাশের scope থেকে, আর সেটা object নয়।
 Method shorthand লিখুন, যেমন `onClick(): void { ... }`, তাহলে `this` হবে receiver নিজেই।
 
-**❌ দরকার একটা value, অথচ closure ধরে রেখেছে পুরো container।** Closure শুধু তার পড়া variable-গুলো নয়, *পুরো*
+**❌ দরকার একটি value, অথচ closure ধরে রেখেছে পুরো container।** Closure শুধু তার পড়া variable-গুলো নয়, *পুরো*
 scope-টাই বাঁচিয়ে রাখে:
 
 ```typescript
@@ -166,21 +166,21 @@ function tidy(): () => void {
 closure element-টাকে DOM থেকে সরে যাওয়ার পরেও memory-তে আটকে রাখে।
 
 > ⚠️ Closure leak সবচেয়ে বেশি ভোগায় অনেকক্ষণ খোলা থাকা single-page app-এ। সেখানে component হাজারবার mount আর
-> unmount হয়, আর প্রতিটা আটকে থাকা handler একটা করে পুরো scope ধরে রাখে। অনুমান না করে heap snapshot নিয়ে profile করুন।
+> unmount হয়, আর প্রতিটি আটকে থাকা handler একটি করে পুরো scope ধরে রাখে। অনুমান না করে heap snapshot নিয়ে profile করুন।
 
 ## 🔑 মূল শিক্ষা
 
 - Scope lexical: কে call করছে তা নয়, code কোথায় লেখা সেটাই আসল। খোঁজ সবসময় ভেতর থেকে বাইরের দিকে যায়।
 - `var` function-scoped, আর আগে পড়লে `undefined` দেয়। `let` আর `const` block-scoped, TDZ-এ পড়লে error throw করে।
-- Closure মানে একটা function আর তার জন্মের scope, যে scope function return করার পরেও বেঁচে থাকে।
-- Closure value নয়, reference ধরে রাখে। এজন্যই একটা shared `var` থেকে loop-এর bug-টা হয়।
+- Closure মানে একটি function আর তার জন্মের scope, যে scope function return করার পরেও বেঁচে থাকে।
+- Closure value নয়, reference ধরে রাখে। এজন্যই একটি shared `var` থেকে loop-এর bug-টা হয়।
 - Closure পুরো scope আটকে রাখতে পারে, তাই container না ধরে শুধু দরকারি value-টা আলাদা করে নিন।
 
 ## Interview-এর প্রশ্ন
 
 **Q: Scope chain ব্যাপারটা বুঝিয়ে বলুন।**
 
-প্রতিটা function যে scope-এ define হয়েছে, তার একটা reference রাখে। কোনো নাম খুঁজতে engine আগে দেখে বর্তমান
+প্রতিটি function যে scope-এ define হয়েছে, তার একটি reference রাখে। কোনো নাম খুঁজতে engine আগে দেখে বর্তমান
 scope-এ, তারপর parent-এ, এভাবে ওপরে module scope পর্যন্ত। প্রথম যেখানে পায়, সেটাই নেয়। Chain-টা ঠিক হয়ে যায়
 function যেখানে লেখা, সেখানেই। তাই function-টা অন্য কেউ call করলেও সে পড়ে তার পাশে লেখা variable-গুলোই।
 
@@ -192,8 +192,8 @@ Block-এ ঢোকা থেকে শুরু করে সেখানকা
 
 **Q: `setTimeout` দেওয়া `var` loop কেন শেষ value-টা তিনবার print করে?**
 
-`var` function-scoped, তাই loop-এ `i` মাত্র একটা। প্রতিটা callback সেই i-এর reference ধরে রাখে, copy নয়।
-Callback-গুলো চলে loop শেষ হওয়ার পরে, তাই তিনটেই পড়ে 3। `let` দিলে প্রতিটা iteration-এ নতুন binding তৈরি হয়,
+`var` function-scoped, তাই loop-এ `i` মাত্র একটি। প্রতিটি callback সেই i-এর reference ধরে রাখে, copy নয়।
+Callback-গুলো চলে loop শেষ হওয়ার পরে, তাই তিনটিই পড়ে 3। `let` দিলে প্রতিটি iteration-এ নতুন binding তৈরি হয়,
 আর সমস্যাটা থাকে না।
 
 **Q: Closure থেকে memory leak হয় কীভাবে?**
@@ -204,8 +204,8 @@ Closure যে variable-গুলো পড়ে, engine শুধু সেগ
 
 **Q: Closure-এর বদলে কখন `#private` class field ব্যবহার করবেন?**
 
-যখন object-টা আগে থেকেই class, তাতে কয়েকটা method আছে, আর instance তৈরি হয় অনেক। Closure দিয়ে privacy নিলে
-প্রতিটা instance-এর প্রতিটা method-এর জন্য আলাদা function object লাগে। Class না থাকলে, কিংবা `this` পুরোপুরি
+যখন object-টা আগে থেকেই class, তাতে কয়েকটি method আছে, আর instance তৈরি হয় অনেক। Closure দিয়ে privacy নিলে
+প্রতিটি instance-এর প্রতিটি method-এর জন্য আলাদা function object লাগে। Class না থাকলে, কিংবা `this` পুরোপুরি
 এড়াতে চাইলে, closure-ই ভালো।
 
 ## এরপর কী পড়বেন

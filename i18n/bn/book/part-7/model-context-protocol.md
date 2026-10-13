@@ -48,7 +48,7 @@ client-দের কাছ থেকে tool definition জড়ো করে, 
 
 এই ভাগটা গুরুত্বপূর্ণ, আর লোকে প্রায়ই এটা মিস করে। Tool চালায় model, আর tool-এর effect থাকতে পারে।
 Resource চালায় application, আর সেটা read-only: একটি file, একটি table, একটি document। **একটি resource attach
-করা আর model-কে একটি tool call করতে দেওয়া এক জিনিস নয়।** দুটো গুলিয়ে ফেললে একটি read-only integration
+করা আর model-কে একটি tool call করতে দেওয়া এক জিনিস নয়।** দুটি গুলিয়ে ফেললে একটি read-only integration
 এমন write access পেয়ে যায়, যেটা কেউ review করেনি।
 
 ### Transport
@@ -91,14 +91,14 @@ try {
 }
 ```
 
-ওই snippet-এ দুটো জিনিস খেয়াল করার মতো। Tool **runtime-এ discover হয়**, তাই আপনার application-এর দুটো
+ওই snippet-এ দুটি জিনিস খেয়াল করার মতো। Tool **runtime-এ discover হয়**, তাই আপনার application-এর দুটি
 deploy-এর মাঝে একটি server তার দেওয়া জিনিস বদলে ফেলতে পারে। এতে iteration সহজ হয়, আর এটাই কারণ যে
 যেটার ওপর আপনি নির্ভর করেন, তার version pin করবেন। আরেকটি বিষয়: spread দিয়ে tool set merge করলে পরের
 server চুপচাপ আগের server-এর একই নামের tool-কে override করে দেয়। এগুলোকে namespace করুন (প্রতিটি নামের
 আগে তার server-এর নাম বসান)।
 
 > ⚠️ **যা বদলাতে থাকে:** এই অধ্যায়টি **MCP revision 2025-11-25** অনুযায়ী লেখা। Specification আর client
-> package দুটোই কয়েক মাসের মধ্যে বদলায়। SSE transport এর মধ্যেই legacy, streamable HTTP-র পক্ষে। যে নীতি
+> package দুটিই কয়েক মাসের মধ্যে বদলায়। SSE transport এর মধ্যেই legacy, streamable HTTP-র পক্ষে। যে নীতি
 > টিকে থাকবে, তা হলো তিনটি primitive আর client/server ভাগ। Implement করার আগে বর্তমান revision দেখে নিন।
 
 ### কখন একটি বানানো সার্থক
@@ -127,7 +127,7 @@ server চুপচাপ আগের server-এর একই নামের t
 - **একটি local server-এর কাছে user-এর permission থাকে।** একজন developer-এর machine থেকে চালু করা `stdio`
   server সেই developer যা পড়তে পারেন সবই পড়তে পারে, disk-এ থাকা credential-সহ।
 - **Server জোড়া দিলে তাদের নাগালও জোড়া লাগে।** যে server private data পড়ে, আর যে server public-এ post
-  করতে পারে, দুটো মিলে একটি exfiltration পথ তৈরি হয়, যেটা কোনোটার একার নেই।
+  করতে পারে, দুটি মিলে একটি exfiltration পথ তৈরি হয়, যেটা কোনোটার একার নেই।
 
 ## কখন ব্যবহার করবেন
 
@@ -163,7 +163,7 @@ server চুপচাপ আগের server-এর একই নামের t
 
 - MCP ঠিক করে দেয় tool নিজেদের কীভাবে বর্ণনা করবে, আর N×M integration-কে N+M-এ পরিণত করে।
 - একটি host প্রতি server-এ একটি client চালায়। Model সাধারণ tool definition দেখে, protocol সম্পর্কে কিছুই জানে না।
-- Tool চালায় model, আর সেটা কাজ করতে পারে। Resource চালায় application, আর সেটা read-only। দুটো গুলিয়ে ফেলবেন না।
+- Tool চালায় model, আর সেটা কাজ করতে পারে। Resource চালায় application, আর সেটা read-only। দুটি গুলিয়ে ফেলবেন না।
 - Third-party server-এর tool description হলো অবিশ্বস্ত prompt text, যা আপনার model-এ পৌঁছায়।
 - কয়েকটি application-এর একই integration দরকার হলে server বানান; না হলে tool code-এ define করুন।
 
@@ -188,14 +188,14 @@ IDE আর একটি support tool-এর কথা ভাবুন। তখ�
 এর tool description হলো prompt text, যা সরাসরি model-এর context-এ যায়। একটি server নিরীহ দেখতে একটি tool-কে
 লুকানো instruction দিয়ে বর্ণনা করতে পারে। সেগুলো model-কে conversation-এর অন্য জায়গার data পাচার করতে
 চালিত করে। Server-এর source code review করলে এটা ধরা পড়ে না, কারণ payload থাকে description-এ। Server জোড়া
-দেওয়া এর আরও ধারালো রূপ। একটি private data পড়ে আর একটি বাইরে post করতে পারে, দুটো মিলে এমন একটি
+দেওয়া এর আরও ধারালো রূপ। একটি private data পড়ে আর একটি বাইরে post করতে পারে, দুটি মিলে এমন একটি
 exfiltration পথ তৈরি করে, যেটা কোনোটার একার নেই।
 
 **Q: Tool আর resource-এর পার্থক্য কী, আর সেটা কেন গুরুত্বপূর্ণ?**
 
 Tool invoke করে model, আর tool-এর side effect থাকতে পারে। Resource হলো content, যেটা application attach করা
 বেছে নেয়, URI দিয়ে চিহ্নিত আর read-only। পার্থক্যটা ঠিক করে নিয়ন্ত্রণ কার হাতে। Resource attach করা মানে
-model কী দেখবে, তা application ঠিক করছে। Tool expose করা মানে model-কে কাজ করার ক্ষমতা দেওয়া। দুটোকে এক
+model কী দেখবে, তা application ঠিক করছে। Tool expose করা মানে model-কে কাজ করার ক্ষমতা দেওয়া। দুটিকে এক
 রকম ধরলে একটি read-only integration এমন write access পেয়ে যায়, যেটা কেউ অনুমোদন করেনি।
 
 **Q: একটি MCP server-এর মাধ্যমে একটি tool call fail করছে। কোথায় খুঁজবেন?**

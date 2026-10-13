@@ -14,11 +14,11 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 Main thread তিনটি কাজ করে: আপনার JavaScript চালায়, layout আর paint হিসাব করে, আর input-এ সাড়া দেয়।
-এটা কাজগুলো করে একটা একটা করে। যে function 300 millisecond চলে, সেটা 300 millisecond ধরে সবকিছু block করে।
+এটা কাজগুলো করে একটি একটি করে। যে function 300 millisecond চলে, সেটা 300 millisecond ধরে সবকিছু block করে।
 একটি tap কিছুই করে না, একটি animation একটি frame আটকে রাখে, আর page ভাঙা মনে হয়। আসলেই ভাঙা।
 
 একটি worker হলো দ্বিতীয় একটি thread, যার নিজস্ব JavaScript engine আছে আর DOM-এ কোনো access নেই। আপনি তাকে একটি
-message পাঠান, সে কাজটা করে, আর একটি result ফেরত পাঠায়। Main thread তখন সেই দুটো কাজের জন্য খালি থাকে, যা শুধু
+message পাঠান, সে কাজটা করে, আর একটি result ফেরত পাঠায়। Main thread তখন সেই দুটি কাজের জন্য খালি থাকে, যা শুধু
 সে-ই করতে পারে: rendering, আর user-কে সাড়া দেওয়া।
 
 > Worker কোনো কিছুকে দ্রুততর করে না। এটা দামি কাজটাকে এমন জায়গায় ঘটায়, যেখানে কেউ অপেক্ষা করছে না।
@@ -104,7 +104,7 @@ const rows: number = await api.parseCsv(rawText);
 ### INP-এর সঙ্গে সম্পর্ক
 
 INP (Interaction to Next Paint) একটি interaction আর পরের frame-এর মধ্যে সবচেয়ে খারাপ দেরিটা মাপে।
-Long task-ই প্রধান কারণ। দুটো fix আসলে একই fix, ভিন্ন মাপে: **yield করুন**, অথবা **সরিয়ে দিন**।
+Long task-ই প্রধান কারণ। দুটি fix আসলে একই fix, ভিন্ন মাপে: **yield করুন**, অথবা **সরিয়ে দিন**।
 `scheduler.yield()` দিয়ে একটি task ভাগ করলে browser টুকরোগুলোর মাঝে input সামলাতে পারে।
 Worker-এ সরালে এটা main thread থেকে পুরোপুরি চলে যায়। কাজ যখন এত বড় যে yield করতে কয়েক ডজন টুকরো লাগবে, তখন
 worker ব্যবহার করুন।
@@ -135,7 +135,7 @@ component প্রতিটি mount-এ একটি worker তৈরি ক�
 
 ## 🔑 মূল শিক্ষা
 
-- Main thread আপনার JavaScript চালায়, layout আর paint করে, আর input সামলায়, একটা একটা করে। তাই একটি লম্বা
+- Main thread আপনার JavaScript চালায়, layout আর paint করে, আর input সামলায়, একটি একটি করে। তাই একটি লম্বা
   function মানে একটি জমে যাওয়া interface।
 - Worker-এর কোনো DOM নেই, তাই এটা শুধু হিসাবের কাজের জন্য উপযুক্ত: parsing, indexing, image আর crypto-র কাজ।
 - Message structured-clone করা হয়, যেটা main thread-এ সত্যিকারের সময় খরচ করে। বড় payload-এর জন্য
@@ -147,7 +147,7 @@ component প্রতিটি mount-এ একটি worker তৈরি ক�
 
 **Q: একটি 20 MB CSV upload করলে একটি table আধা সেকেন্ডের জন্য জমে যায়। Fix-টি ধাপে ধাপে বলুন।**
 
-আগে profile করুন। নিশ্চিত হন যে long task-টি parse, 50,000 row render করা নয়। এদের fix আলাদা, আর ভুলটা করলে একটা
+আগে profile করুন। নিশ্চিত হন যে long task-টি parse, 50,000 row render করা নয়। এদের fix আলাদা, আর ভুলটা করলে একটি
 দিন নষ্ট হয়। যদি parse হয়, সেটাকে একটি module worker-এ সরান। File-টি একটি `ArrayBuffer` transferable হিসেবে পাঠান,
 যাতে main thread-কে clone-এর খরচ দিতে না হয়। শুধু view-এর যা দরকার তা ফেরত দিন: row-গুলোর দৃশ্যমান page, parse
 করা পুরোটা নয়। যদি rendering আসল সমস্যা হয়, table-টি virtualise করুন, আর তখন worker কিছুই বদলায় না।
@@ -171,7 +171,7 @@ object হিসেবে পৌঁছায়। DOM node একেবার�
 INP হলো একটি interaction আর তার সাড়া দেওয়া frame-এর মধ্যের দেরি। সাধারণ কারণ হলো main thread আটকে রাখা একটি long
 task। Worker task-টিকে ওই thread থেকে পুরোপুরি সরিয়ে দেয়, তাই browser পরের frame-এই interaction সামলায়। ছোট কাজের
 জন্য বিকল্প হলো yield করা। এটা একটি long task-কে টুকরো টুকরো করে, আর browser টুকরোগুলোর মাঝে input সামলায়। একই
-লক্ষ্য, দুটো মাপ।
+লক্ষ্য, দুটি মাপ।
 
 ## এরপর কী পড়বেন
 

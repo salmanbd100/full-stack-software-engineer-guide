@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-Feed-এর কোনো শেষ নেই, আর device-এর সীমা আছে। দুটো আলাদা budget একসাথে ঠিক রাখতে হয়, আর দুটো গুলিয়ে ফেলাই পরিচিত
+Feed-এর কোনো শেষ নেই, আর device-এর সীমা আছে। দুটি আলাদা budget একসাথে ঠিক রাখতে হয়, আর দুটি গুলিয়ে ফেলাই পরিচিত
 ভুল। **Network budget** হলো আপনি কতটা data fetch করেন। **Render budget** হলো কতগুলো DOM node আছে। "Load more"
 শুধু প্রথমটা নিয়ে কাজ করে। দুই হাজার post-এর পর page ধীর হয়, কারণ *document-এর ভেতরে* দুই হাজার post আছে, JSON বড়
 ছিল বলে নয়। তাই design DOM-এ row-এর একটি সরে যাওয়া window রাখে। সে scroll position-কেও data হিসেবে দেখে, যা

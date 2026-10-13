@@ -47,7 +47,7 @@ Term-গুলো বর্ণানুক্রমে সাজানো। য
 
 **Cache invalidation** — একটি cache করা entry কখন ভুল হয়ে গেছে, তা ঠিক করা। Caching-এর কঠিন অর্ধেক। [Caching ও Asset Delivery](#ch-asset-delivery)
 
-**CAP theorem** — Network partition-এর সময় একটি distributed store consistency অথবা availability রক্ষা করতে পারে, দুটো একসাথে নয়। [Reliability, Consistency ও CAP](#ch-consistency-and-cap)
+**CAP theorem** — Network partition-এর সময় একটি distributed store consistency অথবা availability রক্ষা করতে পারে, দুটি একসাথে নয়। [Reliability, Consistency ও CAP](#ch-consistency-and-cap)
 
 **CDN** — Edge server-এর একটি network, যেটা user-এর কাছাকাছি থেকে cache করা response দেয়। [Content Delivery Networks](#ch-cdn)
 

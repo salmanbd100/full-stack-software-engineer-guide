@@ -140,7 +140,7 @@ const html: string = `<script>window.__STATE__ = ${safeJson(state)};</script>`;
 একটি iframe থেকে আসা `postMessage` বা `location.hash`-এর একটি value কখনো আপনার server-এ পৌঁছায় না। Review করার মতো
 কোনো server handler নেই, তাই check হতে পারে একমাত্র browser-এই।
 
-**একটি `postMessage` handler-এর দুটো check লাগে:**
+**একটি `postMessage` handler-এর দুটি check লাগে:**
 
 ```typescript
 window.addEventListener("message", (event: MessageEvent) => {

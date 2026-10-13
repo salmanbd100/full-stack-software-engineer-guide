@@ -9,11 +9,11 @@ model: "claude-opus-5-5 (Claude Code)"
 
 > একটি component-কে style করুন তাকে যতটুকু জায়গা দেওয়া হয়েছে সেই অনুযায়ী, window-এর size অনুযায়ী নয়। আর `!important` ছাড়াই specificity-র লড়াই জিতুন।
 
-**এই অধ্যায়ে:** viewport কেন সবসময় ভুল input ছিল · container query · container unit · cascade layer · third-party CSS-এর ক্রম ঠিক করা · দুটো ভুল
+**এই অধ্যায়ে:** viewport কেন সবসময় ভুল input ছিল · container query · container unit · cascade layer · third-party CSS-এর ক্রম ঠিক করা · দুটি ভুল
 
 ## 💡 মূল ধারণা
 
-2023 সালে দুটো feature এসেছে, আর প্রতিটি একটি পুরোনো workaround-এর জায়গা নিয়েছে। দুটোই একই ধরনের কাজ করে। এরা
+2023 সালে দুটি feature এসেছে, আর প্রতিটি একটি পুরোনো workaround-এর জায়গা নিয়েছে। দুটিই একই ধরনের কাজ করে। এরা
 আপনাকে একটি কথা একবার, ওপরে বলতে দেয়। নিচের প্রতিটি rule-এ সেটা আর রক্ষা করতে হয় না।
 
 **Container query** বদলে দেয় একটি component কীসের ওপর সাড়া দেয়। Media query window সম্পর্কে প্রশ্ন করে, কিন্তু
@@ -22,14 +22,14 @@ browser কীভাবে conflict মেটায়। এগুলো ছা
 বাড়াতে থাকে। Layer থাকলে আপনি stylesheet-গুলোর ক্রম একবার declare করেন। তখন specificity (একটি selector-এর ওজন)
 শুধু একটি layer-এর *ভেতরের* লড়াই ঠিক করে।
 
-> দুটো feature-ই একটি সিদ্ধান্তকে আলাদা আলাদা rule থেকে সরিয়ে stylesheet-এর ওপরে একটি declaration-এ নিয়ে যায়।
+> দুটি feature-ই একটি সিদ্ধান্তকে আলাদা আলাদা rule থেকে সরিয়ে stylesheet-এর ওপরে একটি declaration-এ নিয়ে যায়।
 > সেজন্যই এরা syntax নয়, architecture।
 
 ## কীভাবে কাজ করে
 
 ### Container query
 
-একটি component যে element-এর ভেতরে বসে আছে, সেটাকে query করে। শর্ত একটাই: সেই element-কে নিজেকে container
+একটি component যে element-এর ভেতরে বসে আছে, সেটাকে query করে। শর্ত একটিই: সেই element-কে নিজেকে container
 হিসেবে declare করতে হবে।
 
 **একটি container declare করা আর সেটাকে query করা:**
@@ -60,7 +60,7 @@ component-টি কোথায় বসানো হয়েছে।
 | ---- | ------------------------ | -------- |
 | `cqw` / `cqh` | width / height | Component-এর ভেতরে `vw` / `vh` |
 | `cqi` / `cqb` | inline size / block size | Writing-mode-এর জন্য নিরাপদ সংস্করণ, আর এটাই বেছে নেওয়া উচিত |
-| `cqmin` / `cqmax` | দুটোর মধ্যে ছোটটি / বড়টি | Viewport unit দিয়ে বানানো একটি clamp |
+| `cqmin` / `cqmax` | দুটির মধ্যে ছোটটি / বড়টি | Viewport unit দিয়ে বানানো একটি clamp |
 
 > ⚠️ **একটি container নিজেকে query করতে পারে না।** `container-type: inline-size` একটি element-কে তার
 > descendant-দের জন্য query target বানায়, তার নিজের rule-এর জন্য নয়। এটা containment-ও তৈরি করে। Contained axis-এ
@@ -70,7 +70,7 @@ component-টি কোথায় বসানো হয়েছে।
 ### Cascade layer
 
 `@layer` আপনাকে এমন একটি ক্রম দেয়, যেটা specificity-কে হারায়। পরের layer-এর একটি rule আগের layer-এর rule-কে
-হারায়, **দুটোর যেটাই যত specific হোক না কেন**।
+হারায়, **দুটির যেটাই যত specific হোক না কেন**।
 
 **ক্রমটা একবার, ওপরে declare করা:**
 
@@ -114,7 +114,7 @@ Layer-এর বাইরের style প্রতিটি layer-কে হা�
 | Page-level layout: এক column না দুই | একটি media query | এখানে viewport-ই আসলে input |
 | এমন একটি third-party stylesheet import করা, যেটা আপনি edit করতে পারেন না | Import-এর ওপর `@layer` | এর specificity আর আপনার সঙ্গে প্রতিযোগিতা করে না |
 | এমন একটি utility class, যেটাকে সবসময় জিততে হবে | সবার শেষে declare করা একটি utilities layer | `!important`-এর তর্ক চিরতরে শেষ হয় |
-| অন্য team-রা ব্যবহার করে এমন একটি design system | দুটোই, সঙ্গে custom property | কে কাকে override করবে, layer-এর ক্রমই তার চুক্তি |
+| অন্য team-রা ব্যবহার করে এমন একটি design system | দুটিই, সঙ্গে custom property | কে কাকে override করবে, layer-এর ক্রমই তার চুক্তি |
 
 **এমন একটি import-কে layer-এ রাখা, যেটা আপনার নিয়ন্ত্রণে নেই:**
 
@@ -129,7 +129,7 @@ Layer-এর বাইরের style প্রতিটি layer-কে হা�
 এটা behaviour বদলায়। এটা declare করুন অল্প কয়েকটি element-এ, যেগুলো আসল layout slot। যেমন grid cell,
 sidebar আর modal body। নিচে নামার পথে প্রতিটি `div`-এ declare করবেন না।
 
-**❌ `container-type: size` বেছে নেওয়া।** এটা দুটো axis-ই contain করে। Element তার height নেয় নিজের rule থেকে,
+**❌ `container-type: size` বেছে নেওয়া।** এটা দুটি axis-ই contain করে। Element তার height নেয় নিজের rule থেকে,
 content থেকে নয়। তাই content বাড়লে সেটা চুপচাপ overflow করে।
 প্রায় সবসময় আপনার দরকার `inline-size`।
 
@@ -145,12 +145,12 @@ content থেকে নয়। তাই content বাড়লে সেট
 
 - একটি media query window সম্পর্কে প্রশ্ন করে। একটি container query প্রশ্ন করে component-কে আসলে যে জায়গা
   দেওয়া হয়েছে তা নিয়ে। একটি reusable component-এর ঠিক এটাই দরকার।
-- `container-type: inline-size` হলো নিরাপদ default। `size` দুটো axis-ই contain করে আর content-নির্ভর height
+- `container-type: inline-size` হলো নিরাপদ default। `size` দুটি axis-ই contain করে আর content-নির্ভর height
   ভেঙে দেয়।
 - Cascade layer declare করা ক্রম দিয়ে conflict মেটায়, specificity-র ওপরে। তাই এক class-এর একটি utility তিন
   class-এর একটি component rule-কে হারাতে পারে design অনুযায়ী, `!important` দিয়ে নয়।
 - Layer-এর বাইরের CSS প্রতিটি layer-কে হারায়। এ কারণেই একটি পুরোনো codebase-এ layer চালু করা নিরাপদ।
-- দুটো feature-ই একটি সিদ্ধান্তকে আলাদা আলাদা rule থেকে সরিয়ে stylesheet-এর ওপরে একটি declaration-এ নিয়ে যায়।
+- দুটি feature-ই একটি সিদ্ধান্তকে আলাদা আলাদা rule থেকে সরিয়ে stylesheet-এর ওপরে একটি declaration-এ নিয়ে যায়।
 
 ## Interview-এর প্রশ্ন
 
@@ -158,8 +158,8 @@ content থেকে নয়। তাই content বাড়লে সেট
 
 Card-টি viewport-এর ওপর সাড়া দিচ্ছে, যেখানে তার উচিত নিজের slot-এর ওপর সাড়া দেওয়া। Slot-টিকে
 `container-type: inline-size` দিন, আর card-এর breakpoint-গুলো `@container` query হিসেবে নতুন করে লিখুন। মানুষ আরও
-দুটো উত্তর দেয়: একটি `variant="compact"` prop, অথবা এমন একটি page-level media query যেটা জানে sidebar আছে। দুটোই
-layout-এর জ্ঞান component-এর ভেতরে বা page-এর ভেতরে ঠেলে দেয়। আর পরের বার কেউ card-টি নতুন কোথাও বসালেই দুটোই
+দুটি উত্তর দেয়: একটি `variant="compact"` prop, অথবা এমন একটি page-level media query যেটা জানে sidebar আছে। দুটিই
+layout-এর জ্ঞান component-এর ভেতরে বা page-এর ভেতরে ঠেলে দেয়। আর পরের বার কেউ card-টি নতুন কোথাও বসালেই দুটিই
 কাজ করা বন্ধ করে দেয়।
 
 **Q: Cascade layer এমন কোন সমস্যার সমাধান করে, যেটা BEM করেনি?**
@@ -167,7 +167,7 @@ layout-এর জ্ঞান component-এর ভেতরে বা page-এ�
 BEM সমঝোতার মাধ্যমে specificity সমান রাখে। কিছুই এটা বাধ্য করে না, আর আপনার নিজের না লেখা CSS-এর ব্যাপারে এটা
 কিছুই করে না। Layer ক্রমটাকে একটি declaration-এ পরিণত করে, যেটা browser বাধ্য করে। একটি `vendor` layer-এ import
 করা third-party stylesheet আপনার component-দের ছাড়িয়ে যেতে পারে না, তার selector যত specific-ই হোক। BEM হলো নাম
-নিয়ে একটি convention, আর layer হলো precedence নিয়ে একটি mechanism। বেশিরভাগ codebase দুটোই চায়।
+নিয়ে একটি convention, আর layer হলো precedence নিয়ে একটি mechanism। বেশিরভাগ codebase দুটিই চায়।
 
 **Q: Specificity আর `!important`-এর তুলনায় cascade layer কোথায় বসে?**
 

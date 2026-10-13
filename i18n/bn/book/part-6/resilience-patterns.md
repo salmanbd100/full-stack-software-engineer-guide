@@ -97,7 +97,7 @@ stateDiagram-v2
 | Setting            | যুক্তিসঙ্গত শুরু        | কেন                                             |
 | ------------------ | --------------------- | ----------------------------------------------- |
 | Failure threshold  | একটি rolling window-এ 50% | Count নয়, একটি rate — শান্ত service-এ count ভুল করে trip করে |
-| Minimum volume     | 20 request           | দুটোর মধ্যে দুটো ব্যর্থতা কোনো প্রমাণ নয়         |
+| Minimum volume     | 20 request           | দুটির মধ্যে দুটি ব্যর্থতা কোনো প্রমাণ নয়         |
 | Open duration      | 30 s                  | Restart-এর জন্য যথেষ্ট লম্বা, দ্রুত সেরে উঠতে যথেষ্ট ছোট |
 | Half-open probe   | 1                     | বেশি probe এখনো ভঙ্গুর একটি service-কে আবার ভাসিয়ে দেয় |
 
@@ -125,7 +125,7 @@ function tryAcquire(name: string): boolean {
 }
 ```
 
-Limit-গুলো অগ্রাধিকার প্রকাশ করে। Analytics দুটো slot পায়, কারণ analytics হারানো গ্রহণযোগ্য, payment হারানো নয়।
+Limit-গুলো অগ্রাধিকার প্রকাশ করে। Analytics দুটি slot পায়, কারণ analytics হারানো গ্রহণযোগ্য, payment হারানো নয়।
 
 ### Load shedding আর degradation
 

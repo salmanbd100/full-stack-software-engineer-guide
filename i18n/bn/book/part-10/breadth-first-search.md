@@ -60,7 +60,7 @@ function shortestPath(graph: Graph, start: number, goal: number): number {
 // Time: O(V + E), Space: O(V)
 ```
 
-ওই code-এর দুটো সিদ্ধান্ত মুখে বলে যুক্তি দেওয়ার মতো।
+ওই code-এর দুটি সিদ্ধান্ত মুখে বলে যুক্তি দেওয়ার মতো।
 
 **Enqueue-এর সময় visited mark করুন।** এর বদলে dequeue-এর সময় mark করলে, যে node-এর দিকে তিনটি neighbour
 নির্দেশ করে, সেটা একবারও process হওয়ার আগে তিনবার queue-তে ঢোকে। উত্তর ঠিক থাকে, কিন্তু dense graph-এ queue

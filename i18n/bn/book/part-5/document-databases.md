@@ -14,7 +14,7 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 একটি relational database প্রতিটি তথ্য একবারই রাখে। দরকারি আকারটা সে read-এর সময় join দিয়ে আবার তৈরি করে।
-এই অধ্যায়ের দুটো store সেটা ছেড়ে দেয়, আর প্রত্যেকে বদলে কিছু একটা পায়।
+এই অধ্যায়ের দুটি store সেটা ছেড়ে দেয়, আর প্রত্যেকে বদলে কিছু একটি পায়।
 
 একটি **document database** সেই আকারটাই রাখে, যেটা application পড়ে। Variant আর image সহ একটি product page একটি
 fetch, চারটি table-এর join নয়। দাম হলো duplication। একটি value দশ হাজার document-এ copy হলে, সব copy একসাথে মিলিয়ে
@@ -85,7 +85,7 @@ Multi-document transaction আছে, কিন্তু এর জন্য এ
 
 ### Embed নাকি reference
 
-একটি post তার comment-গুলো একটি array-তে রাখতে পারে, তাহলে এক read-এ দুটোই আসে। অথবা comment-গুলো নিজস্ব
+একটি post তার comment-গুলো একটি array-তে রাখতে পারে, তাহলে এক read-এ দুটিই আসে। অথবা comment-গুলো নিজস্ব
 collection-এ থাকতে পারে, একটি indexed `postId` সহ। Access pattern-ই ঠিক করে।
 
 | সংকেত | Embed | Reference |
@@ -104,11 +104,11 @@ collection-এ থাকতে পারে, একটি indexed `postId` স�
 
 সবচেয়ে কাজের মাঝামাঝি পথ হলো **extended reference**। যে দুই-তিনটি field আপনি সবসময় দেখান, সেগুলো copy করুন, যেমন
 `customer: { _id, name }`, আর বাকিটার জন্য reference রাখুন। এতে hot read path থেকে join সরে যায়। দাম হলো rename-এর
-পরে একটি পুরনো নাম, তাই কোনো একটা কিছুকে copy-গুলো update করতে হবে।
+পরে একটি পুরনো নাম, তাই কোনো একটি কিছুকে copy-গুলো update করতে হবে।
 
 ### Redis: memory-তে, একটি thread-এ
 
-দুটো তথ্য Redis-কে ব্যাখ্যা করে। **Memory-তে** মানে microsecond-এর read, আর একটি কঠিন size limit: RAM। **Single
+দুটি তথ্য Redis-কে ব্যাখ্যা করে। **Memory-তে** মানে microsecond-এর read, আর একটি কঠিন size limit: RAM। **Single
 threaded** মানে প্রতিটি command একা চলে, তাই প্রতিটি atomic। এই কারণেই counter, lock আর queue সেখানে থাকে। এর মানে
 এটাও যে একটি ধীর command বাকি সব client-কে আটকে দেয়। এক million key-এর ওপর `KEYS *` পুরো server-কে থামিয়ে দেয়।
 
@@ -186,7 +186,7 @@ Senior-দের default হলো Postgres-কে system of record রাখা
 **✅ `SCAN` ব্যবহার করুন,** যেটা ছোট ছোট ধাপে key-গুলো ঘুরে দেখে, অথবা যে key-গুলোর তালিকা দরকার, সেগুলোর একটি set রাখুন।
 
 **❌ একটি Redis lock-কে guarantee ভাবা।** `SET key value NX EX 30` একটি lease, mutex নয়। Holder expiry পেরিয়ে
-থেমে থাকলে, দুটো process-ই ভাবে lock তাদের হাতে।
+থেমে থাকলে, দুটি process-ই ভাবে lock তাদের হাতে।
 **✅ এটা best-effort coordination-এর জন্য ব্যবহার করুন,** আর সুরক্ষিত operation-টিকে idempotent করুন।
 
 ## 🔑 মূল শিক্ষা

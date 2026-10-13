@@ -181,7 +181,7 @@ dependency-র 18 মাসে কোনো release নেই**। এগুল�
 | কয়েকটি product বা brand | একটি published package, token set হিসেবে theme | একটি পরিবর্তন সব জায়গায় পৌঁছায় |
 | Design language এখনো বদলাচ্ছে | আগে token ship করুন, component পরে | Value বদলানো সস্তা; component নয় |
 | যেকোনো dependency-র patch বা minor | Automate করুন | Review-এর খরচ ঝুঁকির চেয়ে বেশি |
-| Framework major, দুটো পিছিয়ে | Feature-এর কাজ থামিয়ে এটা schedule করুন | প্রতিটি নতুন release ফাঁক আরো বাড়ায় |
+| Framework major, দুটি পিছিয়ে | Feature-এর কাজ থামিয়ে এটা schedule করুন | প্রতিটি নতুন release ফাঁক আরো বাড়ায় |
 | বড় একটি unmaintained dependency | Wrap করুন, তারপর বদলানোর পরিকল্পনা করুন | বড় package-এর fork চিরস্থায়ী হয়ে যায় |
 
 ## সাধারণ ভুল
@@ -220,7 +220,7 @@ input, dialog। Team-রা migrate করে component ধরে, app ধর�
 
 **Q: আপনার সবচেয়ে বেশি ব্যবহৃত component-এর একটি prop-এর নাম বদলাতে হবে। আপনি এটা কীভাবে ship করবেন?**
 
-পুরো একটি major version ধরে দুটো নামই গ্রহণ করুন। পুরনোটি development-এ warning দেয় আর type-এ `@deprecated` বহন করে,
+পুরো একটি major version ধরে দুটি নামই গ্রহণ করুন। পুরনোটি development-এ warning দেয় আর type-এ `@deprecated` বহন করে,
 যাতে editor সেটা চিহ্নিত করে। একটি codemod আর একটি migration guide ship করুন, আর আগের major-এর জন্য একটি support
 window ঘোষণা করুন। একটি পরিষ্কার break technically ঠিক, কিন্তু তাতে আপনার system fork হয়ে যায়।
 

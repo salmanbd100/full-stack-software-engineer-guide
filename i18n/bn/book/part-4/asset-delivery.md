@@ -112,7 +112,7 @@ browser কিছুই দেখায় না। User upload-এর জন�
 
 ### Font: কোন ব্যর্থতা পাবেন, বেছে নিন
 
-একটি web font load হওয়ার সময় browser-কে কিছু একটা দেখাতেই হয়। `font-display` ব্যর্থতার ধরনটি বেছে নেয়।
+একটি web font load হওয়ার সময় browser-কে কিছু একটি দেখাতেই হয়। `font-display` ব্যর্থতার ধরনটি বেছে নেয়।
 
 | Value | Behaviour | খরচ |
 | ----- | --------- | ----- |
@@ -121,7 +121,7 @@ browser কিছুই দেখায় না। User upload-এর জন�
 | `optional` | Web font প্রায় 100 ms-এর মধ্যে এলেই শুধু ব্যবহার হয় | কোনোটাই নয়, কিন্তু ধীর connection-এ হয়তো কখনো দেখাই যাবে না |
 
 `swap` default পছন্দ, কারণ একটি reflow সরানো যায়, কিন্তু একটি ফাঁকা page নয়। Reflow হয় কারণ fallback আর web font-এর মাপ
-আলাদা। তাই দুটোর মাপ এক করুন।
+আলাদা। তাই দুটির মাপ এক করুন।
 
 **একটি subset variable font, সাথে মেলানো metrics-এর একটি fallback:**
 
@@ -213,7 +213,7 @@ release boot করতেই থাকবেন।
 **Q: একজন user বলছেন app একটি পুরনো version-এ আটকে আছে, আর reload করলেও কাজ হচ্ছে না। আপনি প্রথমে কী দেখবেন?**
 
 একটি service worker, যা update-এর কোনো পথ ছাড়া একটি cached shell serve করছে। এটাই একমাত্র স্তর, যেখানে bug device-এ থাকে আর
-server থেকে purge করা যায় না। দ্বিতীয় সন্দেহভাজন হলো লম্বা `max-age` দিয়ে cache করা HTML। দুটোই কয়েক সেকেন্ডে দেখে নিন:
+server থেকে purge করা যায় না। দ্বিতীয় সন্দেহভাজন হলো লম্বা `max-age` দিয়ে cache করা HTML। দুটিই কয়েক সেকেন্ডে দেখে নিন:
 document-এর response header, আর কোনো service worker register করা আছে কিনা।
 
 **Q: কখন আপনি CDN-এ একটি API response cache করবেন না?**
@@ -224,7 +224,7 @@ document-এর response header, আর কোনো service worker register ক
 
 **Q: দেরিতে আসা একটি font কেন শুধু দেখতে খারাপ লাগার সমস্যা নয়, বরং একটি Core Web Vitals সমস্যা?**
 
-দুটো option-ই একটি metric-এর খরচ করে। Block করলে text লুকিয়ে থাকে, যা LCP পিছিয়ে দেয় যদি সেটাই সবচেয়ে বড় element হয়। Swap
+দুটি option-ই একটি metric-এর খরচ করে। Block করলে text লুকিয়ে থাকে, যা LCP পিছিয়ে দেয় যদি সেটাই সবচেয়ে বড় element হয়। Swap
 করলে text reflow হয়, যা CLS। Fix হলো `swap`, সাথে override করা metrics-এর একটি fallback, যাতে swap glyph বদলায় কিন্তু line-এর
 সংখ্যা নয়।
 

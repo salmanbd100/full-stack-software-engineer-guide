@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-Model stateless: দুটো call-এর মাঝে সে কিছুই মনে রাখে না। প্রতিটি memory আসলে এমন কিছু, যা আপনার code আবার
+Model stateless: দুটি call-এর মাঝে সে কিছুই মনে রাখে না। প্রতিটি memory আসলে এমন কিছু, যা আপনার code আবার
 window-এ ঢুকিয়ে দিয়েছে। তাই memory হলো **storage আর selection-এর একটি সমস্যা, যার দায় আপনার।** এর তিনটি অংশ,
 যেগুলো মানুষ গুলিয়ে ফেলে: এই turn-এ model কী দেখছে, compaction-এর পরে কী টিকে থাকে, আর পরের সপ্তাহেও কী সত্য থাকবে।
 
@@ -217,7 +217,7 @@ Compaction। পরের একটি step-এর summary ঠিক করে�
 ব্যবহার হয়নি। এটা সরাতে কোনো model call লাগে না। Summarise করতে একটি call লাগে, আর কোনটা জরুরি ছিল তা একটি
 model-কে ঠিক করতে দেওয়া হয়। আমি একটি marker রেখে দিই, যাতে agent জানে যে সে result-টি আবার fetch করতে পারে।
 
-**Q: একটি retry যাতে দুটো email না পাঠায়, সেটা কীভাবে আটকাবেন?**
+**Q: একটি retry যাতে দুটি email না পাঠায়, সেটা কীভাবে আটকাবেন?**
 
 Run id, step number আর tool name দিয়ে তৈরি একটি idempotency key দিয়ে। Downstream-এ এটা retry-কে একটি no-op-এ পরিণত
 করে। Key-টি derive করতে হবে, generate নয়, কারণ retry-তে নতুন key দিলে উদ্দেশ্যটাই ব্যর্থ হয়। Downstream-এ idempotency

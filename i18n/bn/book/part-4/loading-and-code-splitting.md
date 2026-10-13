@@ -37,7 +37,7 @@ third-party script, যাকে আপনি শুধু নিয়ন্ত
 > ⚠️ **LCP image কখনো lazy-load করবেন না।** Hero-তে `loading="lazy"` ঠিক সেই resource-টিকে পিছিয়ে দেয়, যার জন্য metric
 > অপেক্ষা করে। এটা নিজের হাতে তৈরি করা সবচেয়ে সাধারণ performance regression।
 
-দুটোতেই `width` আর `height` রাখুন। Box-এর জায়গা না রেখে একটি image defer করলে load-এর সমস্যা layout-shift-এর সমস্যায়
+দুটিতেই `width` আর `height` রাখুন। Box-এর জায়গা না রেখে একটি image defer করলে load-এর সমস্যা layout-shift-এর সমস্যায়
 বদলে যায়। দেখুন [Chapter ?? — Core Web Vitals](#ch-core-web-vitals)।
 
 ### Route-ই স্বাভাবিক split point

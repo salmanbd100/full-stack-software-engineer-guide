@@ -15,11 +15,11 @@ model: "claude-opus-5-5 (Claude Code)"
 
 একটি App Router application-এর সদর দরজা অনেকগুলো। একটি page render, একটি Server Action, একটি Route Handler আর
 একটি client fetch — সবাই database-এর একই row-তে পৌঁছাতে পারে। অথচ এরা একই request pipeline শেয়ার করে না। তাই
-একটি check নিশ্চিতভাবে চলবে, এমন জায়গা একটাই: **যে code row-টি পড়ে**।
+একটি check নিশ্চিতভাবে চলবে, এমন জায়গা একটিই: **যে code row-টি পড়ে**।
 
 ফলে authentication তিনটি layer-এ ভাগ হয়ে যায়, আর তিনটির কাজ আলাদা। Proxy layer তাদের redirect করে, যাদের এখানে
 থাকার কথা স্পষ্টতই নয়। Render layer ঠিক করে কী দেখানো হবে। Data layer ঠিক করে কী করা যাবে — প্রতিবার, কোনো
-ব্যতিক্রম ছাড়া। শুধু শেষেরটিই security। প্রথম দুটো user experience।
+ব্যতিক্রম ছাড়া। শুধু শেষেরটিই security। প্রথম দুটি user experience।
 
 ```mermaid
 flowchart LR
@@ -44,7 +44,7 @@ flowchart LR
 
 ### Session নাকি token
 
-দুটোই শেষ পর্যন্ত একটি `httpOnly` cookie হয়। পার্থক্য হলো, server তার সিদ্ধান্ত বদলাতে পারে কি না।
+দুটিই শেষ পর্যন্ত একটি `httpOnly` cookie হয়। পার্থক্য হলো, server তার সিদ্ধান্ত বদলাতে পারে কি না।
 
 | | Database session | Signed token (JWT) |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ export async function getInvoice(id: string) {
 }
 ```
 
-এখানে দুটো জিনিস কাজ করে। React-এর `cache()` **একটি request-এর ভেতরে** `verifySession`-কে deduplicate করে। ফলে
+এখানে দুটি জিনিস কাজ করে। React-এর `cache()` **একটি request-এর ভেতরে** `verifySession`-কে deduplicate করে। ফলে
 একটি layout, তিনটি component আর একটি action মিলে চারবার নয়, একবার verify করে। আর ownership-এর শর্তটি থাকে
 `where` clause-এ। যে query অন্য কারও row return করতেই পারে না, সেখানে ভুলে যাওয়ার মতো কোনো check থাকে না।
 

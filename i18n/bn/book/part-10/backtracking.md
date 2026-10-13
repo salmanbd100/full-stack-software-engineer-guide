@@ -29,7 +29,7 @@ un-choose → pop it back off
 ```
 
 > Backtracking আর brute force-এর পার্থক্য হলো **pruning**। 8×8 board-এ N-Queens-এর সম্ভাব্য placement
-> 4,426,165,368টি, আর solution 92টি। দুটো queen একে অপরকে আক্রমণ করার সাথে সাথে একটি আংশিক board বাতিল করাই
+> 4,426,165,368টি, আর solution 92টি। দুটি queen একে অপরকে আক্রমণ করার সাথে সাথে একটি আংশিক board বাতিল করাই
 > একটি অসম্ভব search-কে মুহূর্তের কাজে পরিণত করে।
 
 ## কীভাবে কাজ করে
@@ -57,7 +57,7 @@ function subsets(nums: number[]): number[][] {
 // Time: O(n × 2ⁿ) — 2ⁿ subsets, each costing O(n) to copy. Space: O(n) excluding the output
 ```
 
-দুটো line-এ মনোযোগ দেওয়া দরকার।
+দুটি line-এ মনোযোগ দেওয়া দরকার।
 
 `results.push([...current])` অবশ্যই একটি copy হতে হবে। `current` নিজেকে push করলে এমন একটি array-এর reference জমা
 হয়, যেটা `pop()` একটু পরেই mutate করবে। ফলে `results`-এর প্রতিটি entry শেষে একই খালি array হয়ে যায়। Backtracking-এর
@@ -164,7 +164,7 @@ function subsetsWithDup(nums: number[]): number[][] {
 ```
 
 `i > start` হলো আসল শর্ত। প্রতিটি পুনরাবৃত্তি সরাসরি skip করলে `[2, 2]`-ও বাদ পড়ত, যেটা একটি বৈধ subset। নিয়মটা হলো:
-একটি duplicate value দুটো sibling branch-এর *শুরুর* বাছাই হতে পারবে না, কারণ সেই branch-গুলো হুবহু একই tree তৈরি
+একটি duplicate value দুটি sibling branch-এর *শুরুর* বাছাই হতে পারবে না, কারণ সেই branch-গুলো হুবহু একই tree তৈরি
 করত।
 
 ## কখন ব্যবহার করবেন
@@ -265,7 +265,7 @@ Code লেখার আগে complexity বলুন। এই problem-গু�
 
 **Q: Backtracking আর DFS-এর পার্থক্য কী?**
 
-Backtracking হলো একটি বিদ্যমান graph-এর বদলে আংশিক candidate solution-এর একটি tree-এর ওপর DFS, দুটো সংযোজন সহ:
+Backtracking হলো একটি বিদ্যমান graph-এর বদলে আংশিক candidate solution-এর একটি tree-এর ওপর DFS, দুটি সংযোজন সহ:
 recursion গুটিয়ে আসার সময় shared state আগের অবস্থায় ফেরানো হয়, আর যে branch থেকে বৈধ উত্তর আসা সম্ভব নয়, সেটা
 সাথে সাথে ছেড়ে দেওয়া হয়। Graph-এ সাধারণ DFS-এ ফেরানোর মতো কিছু নেই, কারণ traversal graph-টিকে বদলায় না।
 
@@ -280,12 +280,12 @@ push করলে একটি pointer জমা হয়। তাই output-�
 `i + 1` মানে প্রতিটি recursive level শুধু সদ্য বেছে নেওয়া element-এর পরের element-গুলোই বিবেচনা করতে পারে। তাই
 প্রতিটি subset ঠিক একবার তৈরি হয়, আর সবসময় বাড়তে থাকা index-এর ক্রমে — কোনো পুনর্বিন্যাস নেই। Permutation-এ প্রতিটি
 position-এ প্রতিটি অব্যবহৃত element পাওয়া যেতে হয়, তাই loop 0 থেকে আবার শুরু হয়, আর start index-এর জায়গা নেয়
-একটি `used` array। Permutation-এ ক্রম গুরুত্বপূর্ণ, subset-এ নয় — দুটো রূপ ঠিক এটাই প্রকাশ করে।
+একটি `used` array। Permutation-এ ক্রম গুরুত্বপূর্ণ, subset-এ নয় — দুটি রূপ ঠিক এটাই প্রকাশ করে।
 
 **Q: Input-এ duplicate থাকলে কীভাবে সামলাবেন?**
 
 Sort করুন, যাতে সমান value-গুলো পাশাপাশি থাকে। তারপর একটি level-এর মধ্যে আগেরটার সমান যেকোনো element skip করুন,
-যদি না সেটা ওই level-এর প্রথম বাছাই হয় — অর্থাৎ `i > start` শর্ত। এতে দুটো sibling branch একই value দিয়ে শুরু
+যদি না সেটা ওই level-এর প্রথম বাছাই হয় — অর্থাৎ `i > start` শর্ত। এতে দুটি sibling branch একই value দিয়ে শুরু
 হয়ে হুবহু একই subtree তৈরি করতে পারে না। আবার একটি branch ধরে নিচে একটি value দুবার ব্যবহার করাও চলে, যেটা বৈধ।
 
 **Q: কখন এর বদলে dynamic programming ব্যবহার করবেন?**

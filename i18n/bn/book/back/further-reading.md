@@ -25,7 +25,7 @@ model: "claude-opus-5-5 (Claude Code)"
 | **Practice** | প্রশ্নের bank আর mock interview | সবার শেষে ব্যবহার করুন, ফাঁকগুলো খুঁজে বের করতে। এটা রোগ নির্ণয়ের পরীক্ষা, syllabus নয় |
 
 নিচের প্রতিটি part কয়েকটি entry পায়, পুরো একটি গ্রন্থতালিকা নয়। চল্লিশটা link-এর তালিকা কেউ খোলে না। কোনো part-এ
-পড়ার মতো জিনিস একটাই থাকলে, সেটা একটাই পায়।
+পড়ার মতো জিনিস একটিই থাকলে, সেটা একটিই পায়।
 
 > ⚠️ **তালিকা অধ্যায়ের চেয়ে দ্রুত পুরোনো হয়।** URL সরে যায়, course বন্ধ হয়ে যায়, আর একটি "2025 edition" 2028 নাগাদ
 > লজ্জার বিষয় হয়ে দাঁড়ায়। প্রতিটি entry-র নিচে টেকসই পরামর্শটা হলো: **আগে vendor-এর নিজের docs-এ যান**, আর তৃতীয় পক্ষের
@@ -77,7 +77,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 | Resource | কেন এটা |
 | -------- | ------------ |
-| [React docs](https://react.dev/) | নতুন করে লেখা docs সত্যিই ভালো। "Escape Hatches" আর "You Might Not Need an Effect" — এই দুটো page বেশিরভাগ senior candidate পড়েননি |
+| [React docs](https://react.dev/) | নতুন করে লেখা docs সত্যিই ভালো। "Escape Hatches" আর "You Might Not Need an Effect" — এই দুটি page বেশিরভাগ senior candidate পড়েননি |
 | [Next.js docs](https://nextjs.org/docs) | App Router-এর caching page-গুলো সেই version মিলিয়ে পড়ুন, যেটা আপনি আসলে চালাচ্ছেন। এগুলো একাধিকবার বদলেছে |
 | [Svelte docs](https://svelte.dev/docs/svelte/overview) আর [SvelteKit docs](https://svelte.dev/docs/kit/introduction) | Svelte 5-এ rune mental model বদলে দিয়েছে। এর আগে লেখা যেকোনো কিছু বিভ্রান্তিকর |
 | [Svelte tutorial](https://svelte.dev/tutorial) | Interactive tutorial-টি। এখানে এক ঘণ্টা, Svelte নিয়ে এক সপ্তাহ পড়ার সমান |
@@ -91,7 +91,7 @@ model: "claude-opus-5-5 (Claude Code)"
 | Resource | কেন এটা |
 | -------- | ------------ |
 | [web.dev — Web Vitals](https://web.dev/articles/vitals) | সংজ্ঞা, threshold, আর কোন জিনিস আসলে প্রতিটি metric-কে নড়ায় |
-| [Chrome UX Report](https://developer.chrome.com/docs/crux) | Field data, lab data নয়। দুটোর পার্থক্য interview-এর একটি সাধারণ follow-up প্রশ্ন |
+| [Chrome UX Report](https://developer.chrome.com/docs/crux) | Field data, lab data নয়। দুটির পার্থক্য interview-এর একটি সাধারণ follow-up প্রশ্ন |
 | [OWASP Top Ten](https://owasp.org/www-project-top-ten/) | প্রতিটি security প্রশ্ন সরাসরি বা পরোক্ষভাবে এই তালিকা থেকেই আসে |
 | [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/) | Top Ten ঝুঁকিটা বলে, এগুলো সমাধানটা বলে। CSP, XSS prevention আর JWT sheet-গুলো নিজেদের জায়গা অর্জন করেছে |
 | [Testing Library](https://testing-library.com/) | এর guiding principle page-টাই আসল যুক্তি, শুধু API নয় |
@@ -103,13 +103,13 @@ model: "claude-opus-5-5 (Claude Code)"
 | Resource | কেন এটা |
 | -------- | ------------ |
 | [Node.js API docs](https://nodejs.org/docs/latest/api/) | সরাসরি stream, worker thread আর `async_hooks` page-এ যান। একজন frontend engineer-এর Node আর একজন backend engineer-এর Node-এর পার্থক্য এগুলোই |
-| [*Designing Data-Intensive Applications*](https://dataintensive.net/) — Martin Kleppmann | Part V আর VI দুটোরই depth বই। এই তালিকা থেকে একটা বই পড়লে, এটাই পড়ুন |
+| [*Designing Data-Intensive Applications*](https://dataintensive.net/) — Martin Kleppmann | Part V আর VI দুটিরই depth বই। এই তালিকা থেকে একটি বই পড়লে, এটাই পড়ুন |
 | [Use The Index, Luke](https://use-the-index-luke.com/) | বিনামূল্যে। একটি query কেন ধীর, তার সবচেয়ে ভালো ব্যাখ্যা, যেকোনো জায়গার চেয়ে |
 | [PostgreSQL docs](https://www.postgresql.org/docs/current/) | Database manual হিসেবে অস্বাভাবিক রকম ভালো লেখা। Index আর transaction isolation-এর অধ্যায়গুলোই পড়ার মতো |
 | [Redis docs](https://redis.io/docs/latest/) | Caching আর rate-limiting অধ্যায়ের জন্য |
 | [RFC 9110 — HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html) | Status code আর method-এর আসল সংজ্ঞা, যার ওপর API design-এর তর্কগুলো দাঁড়িয়ে থাকে |
 | [OAuth 2.1](https://oauth.net/2.1/) আর [How OpenID Connect Works](https://openid.net/developers/how-connect-works/) | Auth-এর ব্যাখ্যা তাদের কাছ থেকে, যারা এর specification লেখে — কিছু বিক্রি করতে চাওয়া কোনো identity vendor-এর কাছ থেকে নয় |
-| [Express](https://expressjs.com/) আর [NestJS](https://docs.nestjs.com/) | Part V-এর উদাহরণগুলো যে দুটো framework-এর docs ধরে নেয় |
+| [Express](https://expressjs.com/) আর [NestJS](https://docs.nestjs.com/) | Part V-এর উদাহরণগুলো যে দুটি framework-এর docs ধরে নেয় |
 | [GraphQL — Learn](https://graphql.org/learn/) | কোনোটাই ship না করেও GraphQL বনাম REST নিয়ে একটি অবস্থান নেওয়ার মতো যথেষ্ট |
 
 ## Part VI — System Design
@@ -129,7 +129,7 @@ model: "claude-opus-5-5 (Claude Code)"
 | Resource | কেন এটা |
 | -------- | ------------ |
 | [DeepLearning.AI short courses](https://www.deeplearning.ai/short-courses/) | প্রতিটি এক ঘণ্টার, বিনামূল্যে, আর vendor-দের সঙ্গে মিলে তৈরি। RAG, evaluation আর agent course-গুলো প্রায় হুবহু Part VII-এর সঙ্গে মেলে |
-| [Claude API docs](https://docs.claude.com/) আর [OpenAI platform docs](https://platform.openai.com/docs) | দুটোই পড়ুন। Interview-এ প্রশ্ন আসে সমস্যার আকার নিয়ে। দুটো API একই সমস্যা আলাদাভাবে সমাধান করছে — এটা দেখাই আকারটা শেখায় |
+| [Claude API docs](https://docs.claude.com/) আর [OpenAI platform docs](https://platform.openai.com/docs) | দুটিই পড়ুন। Interview-এ প্রশ্ন আসে সমস্যার আকার নিয়ে। দুটি API একই সমস্যা আলাদাভাবে সমাধান করছে — এটা দেখাই আকারটা শেখায় |
 | [AI SDK](https://ai-sdk.dev/docs/introduction) | Part VII-এর উদাহরণগুলো যে TypeScript layer ব্যবহার করে। এর streaming আর tool-calling page-গুলোই ব্যবহারিক মূল অংশ |
 | [Model Context Protocol](https://modelcontextprotocol.io/) | Tool সংযোগের standard। এটা কী, আর কোন সমস্যা দূর করে, তা জানুন |
 | ["Building effective agents"](https://www.anthropic.com/engineering/building-effective-agents) — Anthropic | ছোট। Vendor-এর লেখা, কিন্তু অস্বাভাবিক রকম hype-মুক্ত। কখন agent বানানো উচিত নয়, তার সবচেয়ে পরিষ্কার বক্তব্য |

@@ -34,7 +34,7 @@ Sec-WebSocket-Version: 13
 Origin: https://app.example.com
 ```
 
-`101`-এর পরে connection আর HTTP-তে কথা বলে না। এর দুটো ফল বারবার সামনে আসে:
+`101`-এর পরে connection আর HTTP-তে কথা বলে না। এর দুটি ফল বারবার সামনে আসে:
 
 - **Handshake-এ cookie পাঠানো হয়**, আর browser WebSocket-এ CORS **প্রয়োগ করে না**। একটি ক্ষতিকর page user-এর cookie নিয়ে আপনার server-এ socket খুলতে পারে। তাই server-কে নিজেই `Origin` যাচাই করতে হবে।
 - **Middleware চলে না।** আপনার Express auth, rate limiter, validator আর logger HTTP path-এ বসে আছে। Upgrade হওয়া socket এর সবকিছু এড়িয়ে যায়। তাই এর প্রতিটি দায়িত্ব socket layer-এ আবার তৈরি করতে হয়।
@@ -77,7 +77,7 @@ app.get("/events", requireAuth, async (req, res) => {
 });
 ```
 
-দুটো ফাঁদ আছে। HTTP/1.1-এ browser প্রতি origin-এ ছয়টি connection দেয়, আর একটি SSE stream পুরো জীবন ধরে একটি
+দুটি ফাঁদ আছে। HTTP/1.1-এ browser প্রতি origin-এ ছয়টি connection দেয়, আর একটি SSE stream পুরো জীবন ধরে একটি
 দখল করে রাখে। HTTP/2 এই সীমা তুলে দেয়। আর যে proxy buffer করে, সে buffer ভরা না হওয়া পর্যন্ত আপনার event আটকে
 রাখে। তাই `no-transform` আর নিয়মিত comment ping ঐচ্ছিক নয়।
 
@@ -169,12 +169,12 @@ io.use((socket, next) => {
 
 Room হলো একটি server-এ থাকা socket id-এর একটি set। "Document 42 যারা দেখছে, তাদের সবাই"-এর জন্য এটাই সঠিক abstraction।
 
-`socket.join()` একটি socket-কে একটি room-এ যোগ করে। দুটোতে join করুন: document বা channel-এর জন্য `room:<id>`, আর
+`socket.join()` একটি socket-কে একটি room-এ যোগ করে। দুটিতে join করুন: document বা channel-এর জন্য `room:<id>`, আর
 একজন user-এর সব device-এর জন্য `user:<id>`। তারপর `io.to(room).emit()` সবার কাছে পৌঁছায়,
 `socket.to(room).emit()` sender ছাড়া সবার কাছে পৌঁছায়, আর `io.to(`user:${id}`).emit()`
 একজন user-এর সব tab-এ পৌঁছায়।
 
-`user:<id>` room-ই সেই pattern, যেটা মনে রাখতে হবে। মানুষের তিনটে tab আর একটা phone খোলা থাকে। Socket নয়, user-কে address করাই notification-কে সঠিকভাবে আচরণ করায়।
+`user:<id>` room-ই সেই pattern, যেটা মনে রাখতে হবে। মানুষের তিনটি tab আর একটি phone খোলা থাকে। Socket নয়, user-কে address করাই notification-কে সঠিকভাবে আচরণ করায়।
 
 ## একাধিক Instance জুড়ে Broadcast
 
@@ -190,7 +190,7 @@ io.adapter(createAdapter(pubClient, subClient));
 io.to(`room:${roomId}`).emit("message", payload);
 ```
 
-দুটো জিনিস adapter আপনাকে **দেয় না**। Redis Pub/Sub fire-and-forget, তাই durability আসতে হবে আপনার database থেকে। আর HTTP long-polling fallback চালু রাখলে sticky session এখনো লাগবে, কারণ সেই আলাদা request-গুলোকে একই pod-এ পৌঁছাতে হবে।
+দুটি জিনিস adapter আপনাকে **দেয় না**। Redis Pub/Sub fire-and-forget, তাই durability আসতে হবে আপনার database থেকে। আর HTTP long-polling fallback চালু রাখলে sticky session এখনো লাগবে, কারণ সেই আলাদা request-গুলোকে একই pod-এ পৌঁছাতে হবে।
 
 ## Backpressure আর মৃত Connection
 
@@ -204,7 +204,7 @@ if (ws.bufferedAmount > 1_000_000) {
 }
 ```
 
-High-frequency data-র জন্য **queue না করে coalesce করুন**: প্রতিটি key-এর শুধু সর্বশেষ value রাখুন, আর একটি interval-এ flush করুন। একটি live price feed-এর কাছে বর্তমান দামটাই দরকারি, আপনি যে বারোটা miss করেছেন সেগুলো নয়।
+High-frequency data-র জন্য **queue না করে coalesce করুন**: প্রতিটি key-এর শুধু সর্বশেষ value রাখুন, আর একটি interval-এ flush করুন। একটি live price feed-এর কাছে বর্তমান দামটাই দরকারি, আপনি যে বারোটি miss করেছেন সেগুলো নয়।
 
 **মৃত connection-এর জন্য heartbeat লাগে।** যে client-এর power চলে যায়, সে কোনো close frame পাঠায় না। ফলে server socket আর তার memory চিরকাল ধরে রাখে। Socket.IO default-ভাবে ping করে (`pingInterval`, `pingTimeout`)। সাধারণ `ws`-এ আপনি নিজে ping frame পাঠান, আর যে socket pong miss করে তাকে বাদ দেন।
 
@@ -228,7 +228,7 @@ High-frequency data-র জন্য **queue না করে coalesce করু
 
 - Upgrade প্রতিটি HTTP middleware এড়িয়ে যায়। তাই validation, authorisation, rate limiting আর logging সবই socket-এ আবার তৈরি করতে হয়।
 - Handshake-এ authenticate করুন, তারপর নিয়মিত revalidate করুন, কারণ দীর্ঘস্থায়ী connection স্বল্পস্থায়ী token-এর চেয়ে বেশিদিন বাঁচে।
-- Room-এর উচিত user-কে address করা, socket-কে নয়, কারণ মানুষ একসাথে কয়েকটা device খোলা রাখে।
+- Room-এর উচিত user-কে address করা, socket-কে নয়, কারণ মানুষ একসাথে কয়েকটি device খোলা রাখে।
 - Pub/sub adapter একাধিক instance জুড়ে broadcast সঠিক করে, কিন্তু কোনো durability যোগ করে না। সেটা এখনো database-এর দায়িত্ব।
 - যে client তাল মেলাতে পারে না, সে সীমাহীন memory leak। তাই outbound buffer-এর দিকে নজর রাখুন আর high-frequency data coalesce করুন।
 
@@ -240,7 +240,7 @@ High-frequency data-র জন্য **queue না করে coalesce করু
 
 **Q: একটি socket কীভাবে authenticate করেন, আর কোথায় ভুল হয়?**
 
-Handshake-এর `auth` payload-এ একটি token, যেটা server connection গ্রহণ করার আগে middleware-এ verify হয়। Query string-এ নয়, কারণ সেটা log-এ চলে যায়। দুটো জিনিস ভুল হয়। Connection token-এর চেয়ে বেশিদিন বাঁচে, তাই নিয়মিত revalidation আর disconnect লাগে। আর browser WebSocket-এ CORS প্রয়োগ করে না, তাই যেকোনো origin একটি cookie-authenticated socket খুলতে পারে। Token এটা এড়িয়ে যায়, কারণ browser নিজে থেকে কিছু পাঠায় না।
+Handshake-এর `auth` payload-এ একটি token, যেটা server connection গ্রহণ করার আগে middleware-এ verify হয়। Query string-এ নয়, কারণ সেটা log-এ চলে যায়। দুটি জিনিস ভুল হয়। Connection token-এর চেয়ে বেশিদিন বাঁচে, তাই নিয়মিত revalidation আর disconnect লাগে। আর browser WebSocket-এ CORS প্রয়োগ করে না, তাই যেকোনো origin একটি cookie-authenticated socket খুলতে পারে। Token এটা এড়িয়ে যায়, কারণ browser নিজে থেকে কিছু পাঠায় না।
 
 **Q: দশটি pod জুড়ে প্রতিটি client-এর কাছে একটি broadcast কীভাবে পৌঁছাবেন?**
 

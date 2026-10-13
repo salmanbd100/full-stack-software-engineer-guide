@@ -155,9 +155,9 @@ migration-এর ভেতরের backfill যতক্ষণ চলে, ত�
 
 ### আগে expand, তারপর contract
 
-একটি deploy-এর সময় পুরোনো আর নতুন code একসাথে চলে, তাই দুটোকেই মাঝামাঝি অবস্থার schema-র সাথে কাজ করতে হবে।
+একটি deploy-এর সময় পুরোনো আর নতুন code একসাথে চলে, তাই দুটিকেই মাঝামাঝি অবস্থার schema-র সাথে কাজ করতে হবে।
 
-**দুটো name column-কে একটি দিয়ে বদলানো:**
+**দুটি name column-কে একটি দিয়ে বদলানো:**
 
 ```sql
 -- 1. EXPAND: add the new column, nullable, so no table rewrite.
@@ -179,7 +179,7 @@ ALTER TABLE users DROP COLUMN first_name, DROP COLUMN last_name;
 | ------ | ------ | ---------- |
 | একটি index যোগ করা | `CREATE INDEX` কয়েক মিনিট write আটকে রাখে | `CREATE INDEX CONCURRENTLY`, একটি transaction-এর বাইরে |
 | Default-সহ একটি `NOT NULL` column যোগ করা | পুরোনো engine আর volatile default table rewrite করে | Nullable হিসেবে যোগ করুন, backfill করুন, তারপর `SET NOT NULL` |
-| একটি foreign key যোগ করা | Validation দুটো table-ই scan আর lock করে | `ADD CONSTRAINT … NOT VALID`, তারপর `VALIDATE CONSTRAINT` |
+| একটি foreign key যোগ করা | Validation দুটি table-ই scan আর lock করে | `ADD CONSTRAINT … NOT VALID`, তারপর `VALIDATE CONSTRAINT` |
 | একটি column-এর type বদলানো | Exclusive lock-এর অধীনে পুরো rewrite | নতুন column, backfill, swap, drop |
 
 > ⚠️ Live table-এ যেকোনো DDL-এর আগে একটি ছোট `lock_timeout` set করুন। Lock-এর জন্য অপেক্ষা করা একটি migration
@@ -224,7 +224,7 @@ statement পাঠায়। এছাড়া যখন generated plan খ�
 
 **Q: Zero downtime-এ একটি column-এর নাম কীভাবে বদলাবেন?**
 
-Expand আর contract। নতুন column যোগ করুন, এমন code deploy করুন যেটা দুটোতেই লেখে আর নতুনটা থেকে পড়ে, আর batch-এ
+Expand আর contract। নতুন column যোগ করুন, এমন code deploy করুন যেটা দুটিতেই লেখে আর নতুনটা থেকে পড়ে, আর batch-এ
 backfill করুন। যাচাই করুন যে কেউ পুরোনো column পড়ে না, তারপর পরের কোনো release-এ সেটা drop করুন। সরাসরি rename
 করলে deploy চলার সময় তখনো চলতে থাকা প্রতিটি পুরোনো instance ভেঙে যায়।
 

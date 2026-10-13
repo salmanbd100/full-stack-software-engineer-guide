@@ -14,9 +14,9 @@ model: "claude-opus-5-5 (Claude Code)"
 ## 💡 মূল ধারণা
 
 Object-এর shape-এর ক্ষেত্রে `interface` আর `type` প্রায় পুরোপুরি একই কাজ করে। সত্যিকারের পার্থক্য শুধু
-দুটো: **দুবার declare করলে merge হয় শুধু `interface`**, আর **object নয় এমন কিছুর নাম দিতে পারে শুধু
+দুটি: **দুবার declare করলে merge হয় শুধু `interface`**, আর **object নয় এমন কিছুর নাম দিতে পারে শুধু
 `type`** — যেমন একটি union, primitive, tuple বা function signature। লোকে আর যত পার্থক্যের কথা বলে, তার
-সবই হয় style, নয়তো পুরোনো কোনো version-এর খুঁটিনাটি। এই দুটোর ভিত্তিতে সিদ্ধান্ত নিন, আর তর্ক থামান।
+সবই হয় style, নয়তো পুরোনো কোনো version-এর খুঁটিনাটি। এই দুটির ভিত্তিতে সিদ্ধান্ত নিন, আর তর্ক থামান।
 
 ## কীভাবে কাজ করে
 
@@ -30,8 +30,8 @@ interface User {
 }
 ```
 
-যে দুটো modifier সত্যিই ভার বহন করে, সেগুলো হলো `readonly` আর `?`। `readonly` পরে assign করা আটকায়, আর
-`?` key-টাকে optional করে। দুটোই শুধু compile time-এর।
+যে দুটি modifier সত্যিই ভার বহন করে, সেগুলো হলো `readonly` আর `?`। `readonly` পরে assign করা আটকায়, আর
+`?` key-টাকে optional করে। দুটিই শুধু compile time-এর।
 
 ### যা শুধু `type` পারে
 
@@ -57,7 +57,7 @@ interface Request {
 // Request now has both
 ```
 
-Library-র সীমানায় declaration merging একটা feature, আর আপনার নিজের code-এর ভেতরে একটা বিপদ। সেখানে দুটো
+Library-র সীমানায় declaration merging একটি feature, আর আপনার নিজের code-এর ভেতরে একটি বিপদ। সেখানে দুটি
 file যদি চুপচাপ একই type-এ জিনিস যোগ করে, সেটা debug করা কঠিন। একটি duplicate `type` হলো error, আর নিজের
 code-এ সাধারণত আপনি ঠিক এটাই চান।
 
@@ -79,7 +79,7 @@ code-এ সাধারণত আপনি ঠিক এটাই চান।
 
 ### Discriminated union
 
-এটাই এই language-এর সবচেয়ে মূল্যবান pattern। এটা এমন একটি union, যার member-গুলোর একটা field-এ literal
+এটাই এই language-এর সবচেয়ে মূল্যবান pattern। এটা এমন একটি union, যার member-গুলোর একটি field-এ literal
 type থাকে। Compiler সেই field দিয়েই narrow করে।
 
 ```typescript
@@ -96,7 +96,7 @@ function render(state: RequestState<User>): string {
 }
 ```
 
-Optional field-ওয়ালা object-এর চেয়ে এটা নিঃসন্দেহে ভালো। `{ data?: T; error?: string }` দুটোই থাকতে দেয়,
+Optional field-ওয়ালা object-এর চেয়ে এটা নিঃসন্দেহে ভালো। `{ data?: T; error?: string }` দুটিই থাকতে দেয়,
 অথবা কোনোটাই না। আর আপনি কোন state-এ আছেন, compiler সেটা বলতে পারে না।
 
 ### Optional বনাম `| undefined`
@@ -138,7 +138,7 @@ type UpdateUserInput = Partial<CreateUserInput>;
 
 ## সাধারণ ভুল
 
-**❌ Optional field দিয়ে state model করা।** `{ loading?: boolean; data?: T; error?: string }` আটটা
+**❌ Optional field দিয়ে state model করা।** `{ loading?: boolean; data?: T; error?: string }` আটটি
 combination অনুমোদন করে, যার বেশিরভাগই অর্থহীন। একটি discriminated union ঠিক সেই state-গুলোই অনুমোদন
 করে, যেগুলো আসলে আছে।
 
@@ -156,8 +156,8 @@ const user: User = input; // ✅ compiles — no literal, no excess check
 **❌ অভ্যাসবশত object shape-এ `&` ব্যবহার করা।** একটি সংঘর্ষপূর্ণ property `never` হয়ে যায়, আর error
 দেখা দেয় declaration থেকে অনেক দূরে। `extends` সেটা জানায় ঠিক যেখানে আপনি লিখেছেন।
 
-**❌ ভুল করে নিজের interface-গুলো merge করে ফেলা।** একই scope-এ দুটো file `interface Config` declare
-করলে চুপচাপ একটাই type হয়ে যায়। এটা ইচ্ছাকৃত না হলে `type` ব্যবহার করুন, সেটা বরং error দেয়।
+**❌ ভুল করে নিজের interface-গুলো merge করে ফেলা।** একই scope-এ দুটি file `interface Config` declare
+করলে চুপচাপ একটিই type হয়ে যায়। এটা ইচ্ছাকৃত না হলে `type` ব্যবহার করুন, সেটা বরং error দেয়।
 
 ## 🔑 মূল শিক্ষা
 
@@ -178,14 +178,14 @@ signature, mapped আর conditional type।
 
 **Q: Discriminated union কী, আর optional field-এর চেয়ে একে কেন বেছে নেবেন?**
 
-এটা এমন একটি union, যার member-গুলোর একটা field-এ আলাদা আলাদা literal type থাকে। TypeScript সেটা দিয়ে
+এটা এমন একটি union, যার member-গুলোর একটি field-এ আলাদা আলাদা literal type থাকে। TypeScript সেটা দিয়ে
 narrow করে। Optional field সব combination-এর union বর্ণনা করে, তাই compiler
 `{ loading: true, error: 'x' }`-কে বাদ দিতে পারে না। Discriminated রূপে অসম্ভব state লেখাই অসম্ভব হয়ে
 যায়। তারপর narrowing প্রতিটি branch-এ ঠিক field-গুলো দেয়, কোনো cast ছাড়াই।
 
 **Q: TypeScript এই বাড়তি property-টা ধরল না কেন?**
 
-Excess-property checking একটা বিশেষ ক্ষেত্র। এটা খাটে শুধু তখন, যখন একটি object literal সরাসরি একটি
+Excess-property checking একটি বিশেষ ক্ষেত্র। এটা খাটে শুধু তখন, যখন একটি object literal সরাসরি একটি
 typed target-এ assign হয়। মাঝখানে একটি variable-এর মধ্য দিয়ে assign করলে এটা সাধারণ structural check হয়ে
 যায়, আর বাড়তি property সেই check পার হয়ে যায়। Check-টা রাখতে তৈরির জায়গাতেই annotation দিন।
 

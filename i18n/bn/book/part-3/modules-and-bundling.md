@@ -65,7 +65,7 @@ import গত বছর কাজ করত, একটি dependency upgrade-এ
 ### Graph ঠিক করে কী ship হবে
 
 Resolution সফল হলে bundler import-গুলো transitively অনুসরণ করে। একটি entry point থেকে যা কিছু নাগালে পাওয়া যায়,
-সবই bundle-এ থাকে। **নাগালে পাওয়া, ব্যবহৃত নয়**: এ দুটো আলাদা, আর bundle-এর ওজন আসে এই পার্থক্য থেকেই।
+সবই bundle-এ থাকে। **নাগালে পাওয়া, ব্যবহৃত নয়**: এ দুটি আলাদা, আর bundle-এর ওজন আসে এই পার্থক্য থেকেই।
 
 একটি barrel file (একটি `index.ts`, যেটা একটি folder-কে re-export করে) সাধারণত দোষী:
 
@@ -106,11 +106,11 @@ application download করতে হয়। Chunking হলো এর মা�
 | প্রতিটি route-এ কম অব্যবহৃত code | ছোট chunk |
 | Deploy-এর পরেও ভালো cache reuse | কম বদলায় আর ঘন ঘন বদলায় এমন code-এর মধ্যে স্থির সীমানা |
 
-মানুষ তৃতীয় লক্ষ্যটা ভুলে যায়। ধরুন একটি shared chunk-এ আপনার dependency আর application code দুটোই আছে। তাহলে
+মানুষ তৃতীয় লক্ষ্যটা ভুলে যায়। ধরুন একটি shared chunk-এ আপনার dependency আর application code দুটিই আছে। তাহলে
 প্রতিটি deploy dependency-গুলোকেও invalidate করে। আর ফিরে আসা user-রা এমন একটি library আবার download করেন, যেটা
 বদলায়নি।
 
-দুটো chunk সীমানা আপনি না চাইলেও থাকে। একটি **dynamic import**, যেমন `import('./Editor')`, সবসময় একটি split
+দুটি chunk সীমানা আপনি না চাইলেও থাকে। একটি **dynamic import**, যেমন `import('./Editor')`, সবসময় একটি split
 point, কারণ call হওয়ার আগে এর target কারও লাগে না। আর বেশিরভাগ bundler `node_modules`-কে source থেকে আলাদা করে,
 ওপরের caching-এর কারণে। এর বাইরে সবকিছুই configuration, যা একটি performance কৌশল হিসেবে আলোচনা করা হয়েছে
 [Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting)-এ।
@@ -197,7 +197,7 @@ declaration, যা execution-এর আগেই resolve হয়। তাই
 **Q: কোথায় chunk split করবেন, সেটা কীভাবে ঠিক করবেন?**
 
 Default থেকে শুরু করুন: dynamic import আর একটি vendor split। তারপর দেখুন, একটি deploy-এর পর ফিরে আসা একজন user কী
-আবার download করেন। Application code আর dependency একই chunk-এ থাকলে প্রতিটি release দুটোকেই invalidate করে। Code
+আবার download করেন। Application code আর dependency একই chunk-এ থাকলে প্রতিটি release দুটিকেই invalidate করে। Code
 আলাদা করুন কত ঘন ঘন বদলায় তা দিয়ে, feature দিয়ে নয়। এর বেশি tune করুন শুধু সামনে একটি bundle report রেখে।
 
 ## এরপর কী পড়বেন

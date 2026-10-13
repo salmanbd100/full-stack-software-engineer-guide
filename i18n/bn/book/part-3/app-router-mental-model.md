@@ -120,7 +120,7 @@ export default function RootLayout({
 `(.)` একই segment স্তরে intercept করে, `(..)` এক স্তর ওপরে, আর `(...)` root থেকে। এগুলো folder নয়, segment গোনে,
 আর মানুষ ঠিক এই জায়গাতেই ভুল করে।
 
-দুটো মিলে photo-modal pattern তৈরি হয়। একটি thumbnail-এ click করলে gallery-র ওপর `/photos/3` একটি modal হিসেবে
+দুটি মিলে photo-modal pattern তৈরি হয়। একটি thumbnail-এ click করলে gallery-র ওপর `/photos/3` একটি modal হিসেবে
 খোলে। একই URL paste করলে পুরো page render হয়। একটি সতর্কতাই সব ভার বহন করে: **modal বন্ধ করুন `router.back()`
 দিয়ে**, কখনো `router.push()` দিয়ে নয়। Push একটি history entry যোগ করে, তাই back button সেই modal আবার খোলে,
 যেটা user এইমাত্র বন্ধ করেছেন।
@@ -178,7 +178,7 @@ shell-এর হয়, তাহলে সেটা fetch করুন সে�
 
 **Q: `layout.tsx` আর `template.tsx`-এর পার্থক্য কী?**
 
-দুটোই নিচের segment-কে মুড়ে রাখে। একটি layout একটিই instance, যা তার ভেতরের navigation-গুলোর মধ্যে টিকে থাকে।
+দুটিই নিচের segment-কে মুড়ে রাখে। একটি layout একটিই instance, যা তার ভেতরের navigation-গুলোর মধ্যে টিকে থাকে।
 ফলে state, scroll position আর effect সবই টিকে থাকে। একটি template প্রতিটি navigation-এ remount হয়। Layout হলো
 default। Template সেই সংকীর্ণ ক্ষেত্রগুলোর জন্য, যেখানে remount হওয়াটাই উদ্দেশ্য, যেমন একটি enter animation আবার
 চালানো বা প্রতি route-এ একটি effect আবার চালানো।

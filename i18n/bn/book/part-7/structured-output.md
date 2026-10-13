@@ -17,9 +17,9 @@ Model-এর output যখন কোনো মানুষের বদলে co
 জানা type, একটি contract। **Schema-constrained generation আপনাকে সেই shape নির্ভরযোগ্যভাবে দেয়। কিন্তু এটা syntax-কে
 বাঁধে, সত্যকে নয়।** একদম valid একটি object-এর ভেতরেও একটি hallucinated (বানানো) invoice number থাকতে পারে।
 
-তাই কাজটা দুই ভাগে ভাগ হয়, আর দুটো গুলিয়ে ফেলাই এই ক্ষেত্রে সবচেয়ে সাধারণ ভুল। Constrained decoding guarantee দেয়
+তাই কাজটা দুই ভাগে ভাগ হয়, আর দুটি গুলিয়ে ফেলাই এই ক্ষেত্রে সবচেয়ে সাধারণ ভুল। Constrained decoding guarantee দেয়
 যে JSON parse হবে আর schema-র সঙ্গে মিলবে। আপনার boundary-তে validation guarantee দেয় যে value-গুলো এমন, যার ওপর আপনার
-system কাজ করতে পারে। দুটোই দরকার, আর দুটো আলাদা জিনিস ধরে।
+system কাজ করতে পারে। দুটিই দরকার, আর দুটি আলাদা জিনিস ধরে।
 
 > Schema একটি type system, fact checker নয়। এটা বলে field-টা আছে। Value-টা যে সত্যি, তা বলে না।
 
@@ -62,7 +62,7 @@ output.severity; // typed as 'low' | 'medium' | 'high'
 ওই schema-র দুটি খুঁটিনাটি আসল কাজ করে। SDK `.describe()`-কে schema-র অংশ হিসেবে model-এর কাছে পাঠায়।
 এটা একটি field-এর সঙ্গে জোড়া prompt text, আর একটি value-কে দিক দেখানোর সবচেয়ে সস্তা উপায়। `confident` boolean
 model-কে সন্দেহ জানানোর একটি বৈধ উপায় দেয়। এটা না থাকলে অনিশ্চিত model-কে একটি বিশ্বাসযোগ্য value বানাতেই হয়, কারণ
-schema ওই জায়গায় কিছু একটা চায়।
+schema ওই জায়গায় কিছু একটি চায়।
 
 > ⚠️ **যা বদলাতে থাকে:** এখানে AI SDK 7-এর surface হলো `generateText` আর
 > `streamText`-এ `Output.object({ schema })`। কড়া schema adherence-এর provider support model-ভেদে আলাদা। টেকসই নীতি হলো,
@@ -89,7 +89,7 @@ Field ধরে violation গুনলে এটা একটি `try`/`catch` �
 ### Repair loop, আর তার খরচ
 
 Validation fail করলে error-টা দ্বিতীয় চেষ্টার জন্য ফেরত পাঠালে প্রায়ই কাজ হয়। কিন্তু এতে সেই request-এর খরচ আর
-latency দুটোই দ্বিগুণ হয়।
+latency দুটিই দ্বিগুণ হয়।
 
 ```mermaid
 flowchart TD

@@ -109,7 +109,7 @@ function UserPage({ id }: { id: string }) {
 }
 ```
 
-কিছু একটা বলবৎ করলে তবেই layering টেকে। বাস্তবে সেটা একটি ESLint rule (`import/no-restricted-paths`) বা আপনার
+কিছু একটি বলবৎ করলে তবেই layering টেকে। বাস্তবে সেটা একটি ESLint rule (`import/no-restricted-paths`) বা আপনার
 monorepo tool-এর boundary plugin, code review-এর কোনো অভ্যাস নয়।
 
 ### Clean architecture

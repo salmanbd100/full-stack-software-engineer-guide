@@ -21,7 +21,7 @@ Operating system সেই tree assistive technology-র কাছে expose ক
 প্রায় প্রতিটি accessibility bug হলো আপনি যা বোঝাতে চেয়েছিলেন আর ওই tree-তে যা পৌঁছেছে, তার মধ্যে অমিল। একটি
 `<div onclick>` এমন একটি node তৈরি করে যার কোনো role নেই, কোনো name নেই, তাই announce করার কিছু নেই, focus করার
 কিছু নেই। একটি icon button এমন node তৈরি করে যার role আছে কিন্তু name ফাঁকা। এটা "button" হিসেবে announce হয়, আর
-user-কে অনুমান করতে হয়। কোনো bug-ই browser window-এ দেখা যায় না, অথচ tree-তে দুটোই স্পষ্ট।
+user-কে অনুমান করতে হয়। কোনো bug-ই browser window-এ দেখা যায় না, অথচ tree-তে দুটিই স্পষ্ট।
 
 > Screen reader কী "বলবে" তা নিয়ে যুক্তি দেওয়া বন্ধ করুন। Tree খুলুন আর node-টি পড়ুন। এটা একটি data
 > structure, কোনো black box নয়।
@@ -165,7 +165,7 @@ form control ধরে লাফিয়ে যান। তাই document-এ
 <button aria-hidden="true">Next</button>
 ```
 
-**✅ হয় দুটো tree থেকেই সরান, নয়তো কোনোটা থেকেই না**
+**✅ হয় দুটি tree থেকেই সরান, নয়তো কোনোটা থেকেই না**
 
 ```html
 <button hidden>Next</button>
@@ -192,7 +192,7 @@ form control ধরে লাফিয়ে যান। তাই document-এ
 - Accessible name একটি নির্দিষ্ট ক্রমে compute হয়: `aria-labelledby`, তারপর `aria-label`, তারপর native labelling, তারপর text content, তারপর `title`।
 - যেখানে দৃশ্যমান text আছে, name সেখান থেকেই নিন। Screen-এর সঙ্গে না মেলা একটি `aria-label` voice control ভেঙে দেয়।
 - `aria-hidden` একটি node-কে tree থেকে লুকায়, কিন্তু focus করার সুযোগ রেখে দেয়। Keyboard user-কে আটকে ফেলার এটাই সবচেয়ে সাধারণ উপায়।
-- Landmark আর heading level হলো navigation, তাই নামহীন একটি `<section>` আর বাদ পড়া একটি heading — দুটোই user-দের page-এর ভেতর দিয়ে একটি পথ কেড়ে নেয়।
+- Landmark আর heading level হলো navigation, তাই নামহীন একটি `<section>` আর বাদ পড়া একটি heading — দুটিই user-দের page-এর ভেতর দিয়ে একটি পথ কেড়ে নেয়।
 
 ## Interview-এর প্রশ্ন
 
@@ -208,12 +208,12 @@ form control ধরে লাফিয়ে যান। তাই document-এ
 
 অগ্রাধিকারের ক্রমে: `aria-labelledby`, `aria-label`, `<label for>` বা `alt`-এর মতো native labelling, তারপর element-এর
 নিজের text content, তারপর শেষ ভরসা হিসেবে `title`। বাস্তব নিয়ম হলো দৃশ্যমান text-এর দিকে নির্দেশ করা
-`aria-labelledby`-কে অগ্রাধিকার দেওয়া। লেখা একটি `aria-label` user যা দেখেন তাকে override করে। দুটো না মিললে এটা
+`aria-labelledby`-কে অগ্রাধিকার দেওয়া। লেখা একটি `aria-label` user যা দেখেন তাকে override করে। দুটি না মিললে এটা
 voice control ভেঙে দেয়, আর কেউ button-এর text বদলানোর সঙ্গে সঙ্গেই এটা সরে যায়।
 
 **Q: `hidden`, `aria-hidden` আর `inert`-এর মধ্যে পার্থক্য কী?**
 
-`hidden` আর `display: none` element-টিকে screen আর tree দুটো থেকেই সরিয়ে দেয়, তাই এটা দৃশ্যমানও নয়, focus-ও
+`hidden` আর `display: none` element-টিকে screen আর tree দুটি থেকেই সরিয়ে দেয়, তাই এটা দৃশ্যমানও নয়, focus-ও
 করা যায় না। `aria-hidden="true"` এটাকে শুধু tree থেকে সরায়। এটা দৃশ্যমান থাকে, focus-ও করা যায়। একটি button-এ এটা
 keyboard user-দের এমন একটি control-এ আটকে ফেলে, যার announce করার কিছু নেই। `inert` element-টিকে tree-তে রাখে,
 কিন্তু interactive নয় আর focus করা যায় না এমন করে দেয়। খোলা modal-এর পেছনের page-এর জন্য ঠিক এটাই চাই।

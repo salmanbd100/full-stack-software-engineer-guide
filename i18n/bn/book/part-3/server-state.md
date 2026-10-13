@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-একটি query cache হলো একটি **key** থেকে একটি **value আর দুটো ঘড়ি**-র map।
+একটি query cache হলো একটি **key** থেকে একটি **value আর দুটি ঘড়ি**-র map।
 
 Key হলো data-র ঠিকানা। প্রথম ঘড়ি ঠিক করে value কখন *stale*: এতটা পুরোনো যে পরের যে component এটা চাইবে, সে
 একটি background refetch চালু করবে। দ্বিতীয়টি ঠিক করে value কখন *garbage*: এতক্ষণ ব্যবহার হয়নি যে library এটাকে
@@ -29,7 +29,7 @@ Library বাকি যা করে, সবই এই কাঠামো থ�
 
 ## কীভাবে কাজ করে
 
-### দুটো ঘড়ি
+### দুটি ঘড়ি
 
 | | `staleTime` | `gcTime` |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ miss নয়।
 
 ### Mutation, আর কেন assign না করে invalidate করবেন
 
-একটি write-এর পরে cache ভুল। এটা ঠিক করার দুটো উপায় আছে, আর দুটো এক নয়।
+একটি write-এর পরে cache ভুল। এটা ঠিক করার দুটি উপায় আছে, আর দুটি এক নয়।
 
 **Invalidate:** প্রভাবিত key-গুলোকে stale চিহ্নিত করুন, আর library-কে refetch করতে দিন। Server source of truth
 থাকে, তাই derived field, হিসাব করা total আর একই সময়ে অন্য user-দের পরিবর্তন — সব ঠিকঠাক ফিরে আসে।
@@ -154,7 +154,7 @@ like, একটি reorder। Payment-এর জন্য কখনো নয়
 | Client-side-এ infinite scroll বা paginate | হ্যাঁ |
 | দূরের component-গুলোর মধ্যে একটি fetch share করা | হ্যাঁ |
 
-যে pattern দুটোকে মেলায়: server-এ fetch করুন, সেই result দিয়ে cache hydrate করুন (seed করুন), আর client-কে দায়িত্ব
+যে pattern দুটিকে মেলায়: server-এ fetch করুন, সেই result দিয়ে cache hydrate করুন (seed করুন), আর client-কে দায়িত্ব
 নিতে দিন। প্রথম paint-এ কোনো request লাগে না, আর এরপর সবকিছু স্বাভাবিকভাবে চলে। Framework-এর দিকটা দেখতে
 [Chapter ?? — Data Fetching ও Caching](#ch-nextjs-data-and-caching) দেখুন।
 
@@ -171,7 +171,7 @@ like, একটি reorder। Payment-এর জন্য কখনো নয়
 ## সাধারণ ভুল
 
 **❌ Query key থেকে একটি variable বাদ দেওয়া।**
-✅ Request-এর প্রতিটি input key-তে থাকবে। নইলে দুটো আলাদা request একটি cache entry share করে, আর একে অপরকে
+✅ Request-এর প্রতিটি input key-তে থাকবে। নইলে দুটি আলাদা request একটি cache entry share করে, আর একে অপরকে
 overwrite করে।
 
 **❌ Edit করার জন্য query result-কে local state-এ copy করা।**

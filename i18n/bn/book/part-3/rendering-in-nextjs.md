@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-পুরনো প্রশ্ন ছিল "এই page কি static, না dynamic?", আর প্রতিটি route-এর জন্য একটাই উত্তর। Page-এর কোনো অংশের
+পুরনো প্রশ্ন ছিল "এই page কি static, না dynamic?", আর প্রতিটি route-এর জন্য একটিই উত্তর। Page-এর কোনো অংশের
 request লাগলে, যেমন header-এ একটি নাম বা cart-এর count, পুরো page dynamic হয়ে যেত। যে marketing hero ছয় মাসে
 বদলায়নি, সেটাও প্রতিটি visit-এ নতুন করে render হতো।
 

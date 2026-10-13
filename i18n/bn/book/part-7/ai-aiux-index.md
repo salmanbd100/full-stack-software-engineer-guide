@@ -48,5 +48,5 @@ state, bug নয়।** Perceived performance আর error boundary নিয�
 
 01 → 02। 01 ধরে নেয় যে আপনি Prompt Injection অধ্যায়ের security boundary জানেন, তাই পারলে সেটা আগে পড়ুন।
 
-**Interview sprint:** দুটোই। Latency আর failure-এর design হলো সেই জিনিস, যা একজন frontend-heavy candidate বলতে পারেন,
+**Interview sprint:** দুটিই। Latency আর failure-এর design হলো সেই জিনিস, যা একজন frontend-heavy candidate বলতে পারেন,
 আর loop-এ অন্য কেউ বলবেন না।

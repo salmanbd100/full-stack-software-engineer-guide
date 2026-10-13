@@ -53,7 +53,7 @@ hunk (বদলানো line-এর একটি block) ধরে ধরে য
 
 ### Merge আর Rebase Graph-এর সঙ্গে আলাদা আলাদা কাজ করে
 
-দুটোই একটি branch-এর কাজ আরেকটিতে নিয়ে আসে। পার্থক্য হলো, কাজ শেষে graph-টি দেখতে কেমন হয়।
+দুটিই একটি branch-এর কাজ আরেকটিতে নিয়ে আসে। পার্থক্য হলো, কাজ শেষে graph-টি দেখতে কেমন হয়।
 
 | দিক                    | Merge                          | Rebase                                    |
 | ----------------------- | ------------------------------ | ----------------------------------------- |
@@ -65,7 +65,7 @@ hunk (বদলানো line-এর একটি block) ধরে ধরে য
 Rebase একটি rewrite। শুধু আপনার নিজের branch-এ এটা ঠিক আছে, আর যে branch একজন সহকর্মী pull করেছেন সেখানে
 ধ্বংসাত্মক।
 
-Conflict কোনো error নয়। এর মানে দুটো commit একই line বদলেছে, আর Git আন্দাজ করবে না। File-টি edit করুন, "resolved"
+Conflict কোনো error নয়। এর মানে দুটি commit একই line বদলেছে, আর Git আন্দাজ করবে না। File-টি edit করুন, "resolved"
 বোঝাতে সেটা stage করুন, আর commit করুন। অথবা ফিরে যেতে `git merge --abort` চালান।
 
 ### Remote
@@ -151,7 +151,7 @@ reword f0a1b2c test(auth): add callback tests
 drop   c3d4e5f debug logging
 ```
 
-`squash` আর `fixup` দুটোই একটি commit-কে তার ওপরেরটির মধ্যে ভাঁজ করে দেয়। `fixup` তার message ফেলে দেয়। Rebase
+`squash` আর `fixup` দুটিই একটি commit-কে তার ওপরেরটির মধ্যে ভাঁজ করে দেয়। `fixup` তার message ফেলে দেয়। Rebase
 edit-এর জায়গা থেকে পরের প্রতিটি commit নতুন করে লেখে। তাই pull request খোলার আগেই এটা করুন।
 
 `git cherry-pick <hash>` ছোট tool। এটা একটি commit-কে আপনি যে branch-এ আছেন তাতে copy করে, নতুন একটি hash সহ।

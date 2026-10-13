@@ -54,7 +54,7 @@ function binarySearch(nums: number[], target: number): number {
 // Time: O(log n), Space: O(1)
 ```
 
-দুটো খুঁটিনাটি সঠিকতার দায়িত্ব নেয়। Inclusive bound-সহ `low <= high` মানে loop তখনই বের হয়, যখন range সত্যিই
+দুটি খুঁটিনাটি সঠিকতার দায়িত্ব নেয়। Inclusive bound-সহ `low <= high` মানে loop তখনই বের হয়, যখন range সত্যিই
 খালি। আর `mid + 1` / `mid - 1` অগ্রগতি নিশ্চিত করে — দুই element-এর range-এ `low = mid` চিরকাল loop করে।
 
 ### Rotated sorted array
@@ -108,7 +108,7 @@ function findMin(nums: number[]): number {
 ```
 
 ⚠️ খেয়াল করুন, loop-এর শর্ত বদলে `low < high` হয়েছে, আর `mid - 1`-এর বদলে `high = mid`। এটা **boundary খোঁজার**
-রূপ, আর এটা ওপরের value খোঁজার template থেকে আলাদা একটি template। দুটো মিশিয়ে ফেললে — `low <= high` সাথে
+রূপ, আর এটা ওপরের value খোঁজার template থেকে আলাদা একটি template। দুটি মিশিয়ে ফেললে — `low <= high` সাথে
 `high = mid` — infinite loop হয়।
 
 ### একটি boundary খোঁজা
@@ -140,7 +140,7 @@ function searchRange(nums: number[], target: number): [number, number] {
 ```
 
 যে invariant মুখে বলতে হবে: **`low`-এর নিচের সবকিছু উত্তর দেয় না, `high` থেকে ওপরের সবকিছু উত্তর দেয় হ্যাঁ।**
-দুটো যেখানে মেলে, সেই index-টাই boundary। প্রতিটি boundary problem হলো এই function-টাই, শুধু predicate আলাদা।
+দুটি যেখানে মেলে, সেই index-টাই boundary। প্রতিটি boundary problem হলো এই function-টাই, শুধু predicate আলাদা।
 
 ### Answer space-এর ওপর binary search
 
@@ -177,7 +177,7 @@ monotonicity-ই একমাত্র পূর্বশর্ত — pile-গ�
 | "Sorted, কিন্তু rotated"                                        | Sorted-half test         | একটি অর্ধেক সবসময় ঠিকঠাক sorted       |
 | "First", "last", "insertion point", "smallest index where…" | `lowerBound` রূপ        | Boundary, equality নয়                   |
 | সস্তা feasibility check-সহ "সর্বনিম্ন X, যাতে…"       | Answer space-এ search  | Predicate monotonic, data নয় |
-| একটি sorted matrix                                             | একটি সমতল array হিসেবে ধরুন, বা একটি কোণ থেকে হাঁটুন | দুটোই `O(log n)` বা `O(m + n)` |
+| একটি sorted matrix                                             | একটি সমতল array হিসেবে ধরুন, বা একটি কোণ থেকে হাঁটুন | দুটিই `O(log n)` বা `O(m + n)` |
 | Unsorted array, একটিমাত্র query                                | Linear scan              | একবার search করতে sort করলে খরচ বেশি        |
 | Unsorted array, অনেক query                                | একবার sort, তারপর প্রতিটিতে binary search | Sort-এর খরচ amortise হয়          |
 | Duplicate আর একটি rotated array                              | Binary search নেমে `O(n)` হয় | `[2,2,2,0,2]`-এ midpoint কোনো তথ্য দেয় না |
@@ -252,7 +252,7 @@ predicate নিয়ে, array নিয়ে নয়।
 
 - Binary search-এর দরকার একটি monotonic predicate, sorted array নয় — এটাই একে "modified" বানায়।
 - `low + Math.floor((high - low) / 2)` ব্যবহার করুন, আর পরীক্ষা করা midpoint সবসময় `mid ± 1` দিয়ে বাদ দিন।
-- Value search হলো `high = mid - 1`-সহ `while (low <= high)`। Boundary search হলো `high = mid`-সহ `while (low < high)`। দুটো মেশাবেন না।
+- Value search হলো `high = mid - 1`-সহ `while (low <= high)`। Boundary search হলো `high = mid`-সহ `while (low < high)`। দুটি মেশাবেন না।
 - Rotated array-তে অন্তত একটি অর্ধেক ঠিকঠাক sorted থাকে। `nums[low] <= nums[mid]` দিয়ে সেটা খুঁজুন।
 - সস্তা feasibility check-সহ "সর্বনিম্ন X, যাতে…" হলো answer space-এর ওপর একটি binary search।
 
@@ -262,14 +262,14 @@ predicate নিয়ে, array নিয়ে নয়।
 
 Inclusive bound-সহ value search-এর জন্য: target থাকলে, সেটা সবসময় `[low, high]`-এর ভেতরে থাকে। প্রতিটি branch শুধু
 সেই element-গুলো সরায়, যেগুলো target হতে পারে না, আর range খালি হলে loop শেষ হয়। Boundary search-এর জন্য: `low`-এর
-নিচের সবকিছু predicate-এ ব্যর্থ হয়, আর `high` থেকে ওপরের সবকিছু সেটা মানে। তাই দুটো যেখানে মেলে, সেই index-টাই
+নিচের সবকিছু predicate-এ ব্যর্থ হয়, আর `high` থেকে ওপরের সবকিছু সেটা মানে। তাই দুটি যেখানে মেলে, সেই index-টাই
 boundary। এটা বলতে পারাই যুক্তি দিয়ে বের করা solution-কে মুখস্থ করা solution থেকে আলাদা করে।
 
 **Q: `high = mid`-সহ `while (low <= high)` কেন চিরকাল loop করে?**
 
-যখন `low === high`, তখন `mid` দুটোর সমান। `high = mid` set করলে কিছুই বদলায় না, শর্ত সত্যই থাকে, আর loop ঘুরতেই
+যখন `low === high`, তখন `mid` দুটির সমান। `high = mid` set করলে কিছুই বদলায় না, শর্ত সত্যই থাকে, আর loop ঘুরতেই
 থাকে। Inclusive-bound রূপে range ছোট করতে হবে `mid - 1` বা `mid + 1` দিয়ে। `high = mid` রূপের দরকার exclusive শর্ত
-`low < high`, যেটা দুটো মিলতেই বের হয়ে যায়।
+`low < high`, যেটা দুটি মিলতেই বের হয়ে যায়।
 
 **Q: আগে rotation point না খুঁজে কীভাবে একটি rotated sorted array-তে search করবেন?**
 
@@ -285,7 +285,7 @@ Sorted-half test আর নিষ্পত্তিমূলক থাকে ন
 
 **Q: কোন problem answer space-এর ওপর binary search চায়, কীভাবে চিনবেন?**
 
-দুটো সংকেত একসাথে: প্রশ্নটা একটি অবস্থান নয়, একটি minimum বা maximum value চায়। আর "value `x` কি কাজ করে?" যাচাই
+দুটি সংকেত একসাথে: প্রশ্নটা একটি অবস্থান নয়, একটি minimum বা maximum value চায়। আর "value `x` কি কাজ করে?" যাচাই
 করা সরাসরি optimum খোঁজার চেয়ে অনেক সস্তা। তারপর নিশ্চিত হন predicate-টি monotonic — `x` কাজ করলে তার চেয়ে বড়
 (বা ছোট) প্রতিটি value-ও কাজ করে। Koko Eating Bananas, Split Array Largest Sum আর Capacity To Ship Packages — সবগুলোর
 গড়ন একই।

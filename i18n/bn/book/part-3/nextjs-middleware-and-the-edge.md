@@ -72,7 +72,7 @@ export function proxy(request: NextRequest): NextResponse | undefined {
 এটা আসল check হতে পারে না। একটি cookie উপস্থিত থেকেও invalid হতে পারে। সরাসরি call করা একটি Server Action
 pattern-এর সঙ্গে নাও মিলতে পারে। আর ঠিকমতো যাচাই করতে আপনার সবচেয়ে ব্যস্ত path-এ একটি round trip খরচ হয়।
 
-**আসল check-এর জায়গা যেখানে data পড়া হয়**: Server Component-এ, Server Action-এ, বা দুটোই যে data access
+**আসল check-এর জায়গা যেখানে data পড়া হয়**: Server Component-এ, Server Action-এ, বা দুটিই যে data access
 layer call করে সেখানে। একই নিয়মের mutation-এর অংশটি আছে [Chapter ?? — Server Action](#ch-server-actions)-এ।
 
 ### Dynamic না হয়েও personalisation
@@ -92,7 +92,7 @@ Edge runtime একটি ছোট JavaScript runtime, যেটা user-দে
 | ---------------- | --------------------------------------- | ------------------------------------ |
 | Cold start       | খুব ছোট                              | বড়, আর বেশিরভাগ সময় warm    |
 | User থেকে দূরত্ব | কাছে                                   | এক বা কয়েকটি region                 |
-| Data থেকে দূরত্ব | সাধারণত দূরে — database-এর একটাই ঠিকানা | সাধারণত একই জায়গায়                   |
+| Data থেকে দূরত্ব | সাধারণত দূরে — database-এর একটিই ঠিকানা | সাধারণত একই জায়গায়                   |
 | API surface      | শুধু Web API — `fs` নেই, crypto সীমিত | সবকিছু, আর প্রতিটি npm package    |
 | সবচেয়ে ভালো যেখানে          | Header আর cookie-র সিদ্ধান্ত, redirect  | Rendering, database-এর কাজ, ভারী logic |
 
@@ -116,7 +116,7 @@ print করে, সেটাই deployment-এর চুক্তি।
 
 Container-এর জন্য `output: 'standalone'` set করুন। এটা server-এর যেসব file লাগে, সেগুলো trace করে একটি folder-এ
 রাখে, `server.js` entry point-সহ। **এটা `.next/static` আর `public/` বাদ দেয়**, কারণ আপনি হয়তো
-সেগুলো একটি CDN থেকে serve করবেন। দুটোই নিজে image-এ copy করুন, নইলে app চালু হবে, কিন্তু style ছাড়া দেখাবে।
+সেগুলো একটি CDN থেকে serve করবেন। দুটিই নিজে image-এ copy করুন, নইলে app চালু হবে, কিন্তু style ছাড়া দেখাবে।
 
 ### দ্বিতীয় instance-এ cache ভেঙে যায়
 
@@ -217,7 +217,7 @@ package সেখানে চলে না। তাই rendering আর read-�
 
 **Q: Prerendering না ছেড়ে কীভাবে দেশ অনুযায়ী আলাদা pricing page serve করবেন?**
 
-Request layer-এ country header পড়ুন, আর `/uk/pricing` বা `/us/pricing`-এ rewrite করুন। দুটোই
+Request layer-এ country header পড়ুন, আর `/uk/pricing` বা `/us/pricing`-এ rewrite করুন। দুটিই
 prerender করা থাকে, আর CDN থেকে serve করা যায়। Page-এর ভেতরে header পড়লে প্রতিটি visitor-এর জন্য সেটা dynamic হয়ে যেত।
 
 **Q: Load balancer-এর পেছনে incremental regeneration কেন ভুল হয়?**

@@ -19,7 +19,7 @@ alert rule শুধু সেটা পড়ে।
 
 বেশিরভাগ team যে collector-এ স্থির হয়, সেটা Prometheus। Grafana হলো আঁকার layer, আর এটা কোনো metric data store করে
 না। এ কারণেই একটি dashboard container, database আর log-এর data একই time axis-এ রাখতে পারে। Alert-ও লেখা হয় PromQL-এ
-(Prometheus-এর query language), তাই একটি খারাপ query খারাপ graph আর খারাপ page — দুটোই তৈরি করে।
+(Prometheus-এর query language), তাই একটি খারাপ query খারাপ graph আর খারাপ page — দুটিই তৈরি করে।
 
 > ⚠️ **যা বদলাতে থাকে:** Prometheus 3.8-এ native histogram stable হয়েছে, আর Grafana-র alerting version 8-এ নতুন করে
 > বানানো হয়েছে। টেকসই নীতিগুলো হলো একটি text endpoint থেকে pull-ভিত্তিক সংগ্রহ, cardinality-র সঙ্গে বাড়া storage-এর
@@ -100,7 +100,7 @@ label-টি `labeldrop` করুন। একটি managed service-এ এক
 একটি দামি expression একটি schedule-এ আগে থেকেই হিসাব করে রাখুন, তারপর সস্তা ফলাফলটি query করুন। এটা ব্যবহার করুন যখন
 একটি panel ধীর, যখন একটি expression বারবার আসে, বা যখন একটি alert-কে দ্রুত evaluate হতে হবে।
 
-**একটি recording rule, যা dashboard আর alert দুটোই পড়ে:**
+**একটি recording rule, যা dashboard আর alert দুটিই পড়ে:**
 
 ```yaml
 groups:
@@ -153,7 +153,7 @@ panel-টি ওপরে-বাঁয়ে রাখুন। প্রতি�
 | ---- | ----------- |
 | **জরুরি** — এখনই ঠিক করতে হবে, আগামীকাল নয় | এটাকে একটি ticket বানান |
 | **করণীয়** — একজন মানুষ এ নিয়ে কিছু করতে পারেন | System ঠিক করুন, নয়তো response automate করুন |
-| **বাস্তব** — সত্যিই কিছু একটা ভাঙা | Threshold ঠিক করুন, নয়তো alert delete করুন |
+| **বাস্তব** — সত্যিই কিছু একটি ভাঙা | Threshold ঠিক করুন, নয়তো alert delete করুন |
 
 Monitoring-এর আসল failure mode হলো alert fatigue, coverage-এর অভাব নয়। একবার একটি team শিখে যায় যে বেশিরভাগ page
 শুধু noise, আসল incident-এ সাড়া দেওয়া ধীর হয়ে যায়। কেউ সেটা দেখে না, কারণ dashboard-গুলো তখনও খুঁটিয়ে বানানো দেখায়।
@@ -175,7 +175,7 @@ severity রাখুন: **critical** page করে, **warning** একটি 
 
 একটি স্থির threshold একটি খারাপ পছন্দে বাধ্য করে। ছোট window প্রতিটি সামান্য ওঠানামায় page করে। বড় window একটি আসল
 outage ধরতে দেরি করে। Burn-rate alerting নজর রাখে **error budget কত দ্রুত খরচ হচ্ছে** তার ওপর, আর fire করে শুধু
-তখনই, যখন একটি ছোট window *আর* একটি বড় window দুটোই সীমা ছাড়ায়।
+তখনই, যখন একটি ছোট window *আর* একটি বড় window দুটিই সীমা ছাড়ায়।
 
 | Burn rate | Budget খরচ | কতক্ষণের মধ্যে ধরা পড়ে | Severity |
 | --------- | --------------- | ------------- | -------- |
@@ -207,7 +207,7 @@ threshold-এর তুলনায় value, ব্যবহারকারী�
 
 বাস্তবে alerting-এর সবচেয়ে সাধারণ ব্যর্থতা হলো এমন একটি alarm, যা পুরো একটি outage জুড়ে চুপ ছিল। App নিজে যে counter
 পাঠায়, তার ওপর বসানো alarm-এর app মরে গেলে তুলনা করার কিছুই থাকে না। Metric-টি সীমা ছাড়ায় না, বরং অস্তিত্বই হারায়।
-দুটি সমাধান, আর আপনার দুটোই দরকার:
+দুটি সমাধান, আর আপনার দুটিই দরকার:
 
 - Rule-টি এমনভাবে configure করুন যাতে **data না থাকাটাই সীমা ছাড়ানো** ধরা হয়। Default খুব কমই আপনি যা চান তা।
 - **App-এর বাইরে** থাকা কিছুর ওপরও alert দিন: load balancer-এর target health, edge-এ 5xx, বা একটি external
@@ -274,7 +274,7 @@ Memory traffic নয়, cardinality-কে অনুসরণ করে, ক�
 **Q: Burn-rate alerting ব্যাখ্যা করুন।**
 
 এটা একটি স্থির error rate-এর ওপর নয়, error budget কত দ্রুত খরচ হচ্ছে তার ওপর alert দেয়, আর দুটি window check করে।
-শুধু ছোট window সামান্য ওঠানামায় page করে। শুধু বড় window ধীর। দুটোই সীমা ছাড়ালে তবেই fire করলে ত্রিশ সেকেন্ডের
+শুধু ছোট window সামান্য ওঠানামায় page করে। শুধু বড় window ধীর। দুটিই সীমা ছাড়ালে তবেই fire করলে ত্রিশ সেকেন্ডের
 spike উপেক্ষিত হয়, কিন্তু টানা চলা একটি ব্যর্থতা কয়েক মিনিটেই ধরা পড়ে। 14.4× burn page করে, আর 3× একটি ticket
 খোলে।
 

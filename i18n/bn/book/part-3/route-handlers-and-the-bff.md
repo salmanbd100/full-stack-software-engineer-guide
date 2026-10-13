@@ -18,7 +18,7 @@ layer নেই। Argument একটি `Request`, return value একটি `R
 
 আকর্ষণীয় প্রশ্নটা কখনোই এই নয় যে Next.js একটি API serve *করতে পারে* কি না। পারে। প্রশ্ন হলো **এই endpoint কে
 call করে**। একটি Server Component সরাসরি আপনার database-এর সঙ্গে কথা বলতে পারে। আপনার নিজের form একটি Server
-Action দিয়ে mutation করতে পারে। দুটোরই কোনো URL লাগে না। একটি endpoint তখনই তার জায়গা পায়, যখন caller এমন কিছু
+Action দিয়ে mutation করতে পারে। দুটিরই কোনো URL লাগে না। একটি endpoint তখনই তার জায়গা পায়, যখন caller এমন কিছু
 যা আপনার নিয়ন্ত্রণে নেই: একটি webhook, একটি mobile app, একটি partner, অথবা অন্য কারও page-এর একটি `<script>`।
 
 > ⚠️ **যা বদলাতে থাকে:** `GET` handler-এর caching দুবার বদলেছে। Next.js 14-এ এটা default-এ cache হতো, আর 15-এ
@@ -49,7 +49,7 @@ export async function GET(
 Server Component-এর মতো একই environment-এ চলে, তাই `cookies()`, `headers()` আর Node API সবই কাজ করে। কিন্তু এখানে
 কোনো React DOM নেই, তাই এখানে কিছুই render হয় না।
 
-**একটি `route.ts` আর একটি `page.tsx` একই segment শেয়ার করতে পারে না।** দুটোই একই URL দাবি করে, তাই Next.js জোড়াটিকে
+**একটি `route.ts` আর একটি `page.tsx` একই segment শেয়ার করতে পারে না।** দুটিই একই URL দাবি করে, তাই Next.js জোড়াটিকে
 বাতিল করে। Endpoint-গুলো তাদের নিজস্ব একটি path-এর নিচে রাখুন।
 
 ### একটি `GET` cache করা
@@ -102,7 +102,7 @@ stack দিয়ে আপনার নিজের server-এ একটি ca
 | Response গড়ে দেওয়া   | Screen যে বারোটি field render করে সেগুলো return করুন, নব্বইটি নয়     |
 | Protocol অনুবাদ      | Upstream-এ gRPC বা SOAP, browser-এ JSON                           |
 
-Next.js ভালো BFF হয়। যে code response গড়ে আর যে code সেটা render করে, দুটো একই repository-তে থাকে, একসঙ্গে review
+Next.js ভালো BFF হয়। যে code response গড়ে আর যে code সেটা render করে, দুটি একই repository-তে থাকে, একসঙ্গে review
 হয়, একসঙ্গে deploy হয়। Screen-এর আরেকটি field দরকার হলে একটি pull request দুই প্রান্তই বদলায়।
 
 ### আর কোথায় এটা থামে
@@ -114,7 +114,7 @@ Next.js ভালো BFF হয়। যে code response গড়ে আর �
 | ----------------------------------------------- | -------------------------------------------------------- |
 | এখন তিনটি client endpoint-টি ব্যবহার করে          | এটা একটি product API, BFF নয় — এটাকে নিজস্ব service দিন    |
 | কাজ request-এর চেয়ে বেশি টেকে — job, retry, queue  | Serverless request handler ভুল runtime                    |
-| দীর্ঘস্থায়ী connection: socket, subscription       | Request/response platform-এ bill আর timeout দুটোই খারাপ    |
+| দীর্ঘস্থায়ী connection: socket, subscription       | Request/response platform-এ bill আর timeout দুটিই খারাপ    |
 | ভারী CPU, বা নিজস্ব scaling-ওয়ালা একটি database   | এটা আপনার page rendering থেকে আলাদাভাবে scale হওয়া উচিত   |
 | বাইরের consumer-দের versioning আর একটি SLA দরকার  | সেটা একটি contract, আর contract-এর একজন owner দরকার         |
 
@@ -144,7 +144,7 @@ Next.js ভালো BFF হয়। যে code response গড়ে আর �
 **❌ ধরে নেওয়া যে পাশাপাশি থাকা মানেই সুরক্ষা।** Endpoint-টি অন্য যেকোনো URL-এর মতোই public। একই session check, একই
 validation, একই rate limit।
 
-**❌ `page.tsx`-এর পাশে `route.ts` রাখা।** দুটো একই path-এ সংঘর্ষ করে। Endpoint-গুলোকে `/api` বা নিজস্ব একটি
+**❌ `page.tsx`-এর পাশে `route.ts` রাখা।** দুটি একই path-এ সংঘর্ষ করে। Endpoint-গুলোকে `/api` বা নিজস্ব একটি
 segment-এর নিচে রাখুন।
 
 **❌ BFF-কে product API হয়ে যেতে দেওয়া।** অন্য team-রা এর ওপর নির্ভর করতে শুরু করলে, আপনার frontend release তাদের

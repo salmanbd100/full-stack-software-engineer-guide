@@ -18,7 +18,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 | জিজ্ঞেস করুন                        | কারণ                                                       |
 | -------------------------- | ------------------------------------------------------------- |
-| **Directed** নাকি undirected? | দুটোর মধ্যে cycle detection পুরোপুরি আলাদা             |
+| **Directed** নাকি undirected? | দুটির মধ্যে cycle detection পুরোপুরি আলাদা             |
 | **Weighted** নাকি unweighted? | Unweighted shortest path হলো BFS; weighted-এর জন্য Dijkstra লাগে       |
 | **Connected**, নাকি component-এ ভাগ করা? | হয়তো প্রতিটি unvisited node থেকে traversal শুরু করতে হবে |
 | এতে কি **cycle** থাকতে পারে?   | ঠিক করে visited set ঐচ্ছিক নাকি অপরিহার্য          |
@@ -28,7 +28,7 @@ Traversal নিজে অন্য জায়গায় আছে — [Chap
 সাথে সেই structure, যেটা traversal-কে পুরোপুরি সরিয়ে দেয়।
 
 > বেশিরভাগ graph প্রশ্ন চারটি shape-এর একটি: **dependency মেনে জিনিস সাজানো** (topological sort),
-> **সবচেয়ে সস্তা route** (Dijkstra), **এই দুটো কি connected** (Union-Find), অথবা **explore করা** (DFS/BFS)।
+> **সবচেয়ে সস্তা route** (Dijkstra), **এই দুটি কি connected** (Union-Find), অথবা **explore করা** (DFS/BFS)।
 
 ## কীভাবে কাজ করে
 
@@ -151,7 +151,7 @@ settle হয়ে যাওয়া node-কে আরও সস্তা ক
 
 ### Union-Find — traversal ছাড়া connectivity
 
-যখন প্রশ্নটা শুধু "এই দুটো কি একই group-এ", তখন traversal দরকারের চেয়ে বেশি যন্ত্রপাতি। Union-Find প্রতিটি
+যখন প্রশ্নটা শুধু "এই দুটি কি একই group-এ", তখন traversal দরকারের চেয়ে বেশি যন্ত্রপাতি। Union-Find প্রতিটি
 group-এর জন্য একটি representative রাখে, আর প্রায় constant time-এ উত্তর দেয়।
 
 ```typescript
@@ -189,8 +189,8 @@ class DisjointSet {
 // find and union: O(α(n)) amortised — effectively constant. Space: O(n)
 ```
 
-দুটো optimisation-ই লাগে। Path compression ছাড়া `find` এমন একটি chain ধরে হাঁটে, যেটা `O(n)` লম্বা হতে পারে।
-Union by rank ছাড়া chain-গুলো প্রথম জায়গাতেই তৈরি হয়। দুটো মিলে inverse-Ackermann bound দেয়, যেটা memory-তে আঁটে
+দুটি optimisation-ই লাগে। Path compression ছাড়া `find` এমন একটি chain ধরে হাঁটে, যেটা `O(n)` লম্বা হতে পারে।
+Union by rank ছাড়া chain-গুলো প্রথম জায়গাতেই তৈরি হয়। দুটি মিলে inverse-Ackermann bound দেয়, যেটা memory-তে আঁটে
 এমন যেকোনো input-এর জন্য 5-এর নিচে।
 
 `union`-এর return value-ই Redundant Connection-কে তিন line-এর problem বানায়: প্রথম যে edge `false` return করে,
@@ -208,7 +208,7 @@ Union by rank ছাড়া chain-গুলো প্রথম জায়গ
 | সবচেয়ে সস্তা route, negative weight চলবে               | Bellman-Ford             | `O(V × E)`             |
 | **সব** pair-এর মধ্যে সবচেয়ে সস্তা route                  | Floyd-Warshall           | `O(V³)`                |
 | কতগুলো connected component                          | প্রতিটি unvisited node থেকে DFS, অথবা Union-Find | `O(V + E)` |
-| এই দুটো কি connected — edge আসতে থাকার সাথে বারবার জিজ্ঞেস করা | Union-Find            | প্রতি query-তে `O(α(n))`    |
+| এই দুটি কি connected — edge আসতে থাকার সাথে বারবার জিজ্ঞেস করা | Union-Find            | প্রতি query-তে `O(α(n))`    |
 
 **Undirected** graph-এ cycle detection-এর row-টাই সবচেয়ে বেশি ভুল হয়। সেখানে আগে visit করা node-এ পৌঁছানো
 cycle নয় — প্রতিটি edge দুই দিকেই চলে, তাই আপনি যে node থেকে এইমাত্র এলেন সেটা সবসময় দেখবেন। হয় parent track করে
@@ -295,7 +295,7 @@ constraint-ই দেখায় আপনি বুঝেছেন Dijkstra �
 - Adjacency list বানান, আর graph undirected হলে **দুই** দিকেই push করুন।
 - Kahn's algorithm একই pass-এ topological order দেয় আর cycle ধরে — output ছোট হলে মানে cycle আছে।
 - Dijkstra BFS-এর queue-কে min-heap দিয়ে বদলায়, আর non-negative weight চায়। Negative edge মানে Bellman-Ford।
-- Union-Find কার্যত constant time-এ connectivity-র উত্তর দেয়, কিন্তু এর path compression আর union by rank **দুটোই** লাগে।
+- Union-Find কার্যত constant time-এ connectivity-র উত্তর দেয়, কিন্তু এর path compression আর union by rank **দুটিই** লাগে।
 
 ## Interview-এর প্রশ্ন
 
@@ -329,7 +329,7 @@ invariant ভেঙে যায়, আর উত্তর ভুল হতে 
 
 **Q: কখন DFS বা BFS-এর বদলে Union-Find ব্যবহার করবেন?**
 
-যখন প্রশ্নটা পুরোপুরি connectivity নিয়ে, আর edge ধীরে ধীরে আসে: "এই দুটো কি connected", "কোন edge একটি cycle তৈরি
+যখন প্রশ্নটা পুরোপুরি connectivity নিয়ে, আর edge ধীরে ধীরে আসে: "এই দুটি কি connected", "কোন edge একটি cycle তৈরি
 করে", "এখন কতগুলো group"। Union-Find আবার traverse না করে প্রতিটির উত্তর কার্যত constant time-এ দেয়, যেখানে DFS-এ
 প্রতি query-তে `O(V + E)` খরচ হতো। যখন path, distance বা একটি ক্রম দরকার, তখন DFS-ই ঠিক tool — Union-Find group
 চেনে, route নয়।

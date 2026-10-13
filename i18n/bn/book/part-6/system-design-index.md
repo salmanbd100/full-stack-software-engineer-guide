@@ -42,7 +42,7 @@ dashboard-এর কথাও জিজ্ঞেস করা হয়। ও�
 ## Interviewer-রা যা যাচাই করেন
 
 এই part-এর senior সংকেত হলো **round-টি নিজে চালানো — requirement স্পষ্ট করা, assumption বলা, trade-off-এর পক্ষে
-যুক্তি দেওয়া।** লক্ষ করুন, ওই তালিকায় কী নেই: "সঠিক" architecture-এ পৌঁছানো। দুটো অভ্যাস এটা বয়ে নিয়ে যায়।
+যুক্তি দেওয়া।** লক্ষ করুন, ওই তালিকায় কী নেই: "সঠিক" architecture-এ পৌঁছানো। দুটি অভ্যাস এটা বয়ে নিয়ে যায়।
 প্রথমত, আপনার assumption জোরে বলুন, যাতে interviewer সহজেই আপনাকে শুধরে দিতে পারেন। দ্বিতীয়ত, estimate করুন:
 queries per second, বছরে storage আর bandwidth একটি diagram-কে একটি design-এ পরিণত করে।
 

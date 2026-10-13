@@ -25,7 +25,7 @@ suite-এর ওপর অবিশ্বাস করতে শেখায়�
 | 04 | [Playwright দিয়ে End-to-End, Visual ও Contract Testing](#ch-end-to-end-testing) | কোন browser test তাদের runtime-এর দাম ফেরত দেয়, আর যে failure একটি assertion প্রকাশ করতে পারে না, তার কী হবে? |
 | 05 | [Accessibility Testing](#ch-testing-accessibility) | CI-তে কী gate করা যায়, আর কী হাতে করতে হয়? |
 
-অধ্যায় 05-ই বইয়ে accessibility test করার একমাত্র জায়গা। Method, CI gate আর দুটো manual pass এর অধীনে, তাই অন্য
+অধ্যায় 05-ই বইয়ে accessibility test করার একমাত্র জায়গা। Method, CI gate আর দুটি manual pass এর অধীনে, তাই অন্য
 অধ্যায়গুলো আবার না বলে এর দিকে ইঙ্গিত করে।
 
 ## Interviewer-রা যা যাচাই করেন

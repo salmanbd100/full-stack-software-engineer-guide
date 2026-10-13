@@ -13,7 +13,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-একটি service boundary একটি প্রতিশ্রুতি। এটা বলে, code-এর দুটো অংশ আলাদাভাবে বদলানো, deploy আর scale করা যায়।
+একটি service boundary একটি প্রতিশ্রুতি। এটা বলে, code-এর দুটি অংশ আলাদাভাবে বদলানো, deploy আর scale করা যায়।
 প্রতিশ্রুতিটি ব্যয়বহুল। একটি function call হয়ে যায় network call, যা ব্যর্থ হতে পারে। একটি transaction হয়ে যায়
 distributed workflow। একটি schema change হয়ে যায় team-দের মধ্যে দর-কষাকষি।
 
@@ -44,13 +44,13 @@ Interview-এ default উত্তর হলো **পরিষ্কার ভ�
 
 | লক্ষণ | এটা কী ইঙ্গিত দেয় |
 | ------ | ---------------- |
-| দুটো অংশ সবসময় একসঙ্গে deploy হয় | boundary **নয়** — এরা একই জিনিস |
+| দুটি অংশ সবসময় একসঙ্গে deploy হয় | boundary **নয়** — এরা একই জিনিস |
 | আলাদা একগুচ্ছ বিশেষ্য আর নিয়ম | একটি bounded context, যেমন order, payment বা catalogue |
 | আলাদা ধরনের scaling | Image processing, search indexing, report তৈরি |
 | নিজস্ব roadmap-সহ আলাদা একটি team | আপনি পরিকল্পনা করুন বা না করুন, Conway's law এই রেখা টানবেই |
 
 > ⚠️ যে boundary-তে দুই দিকেই একটি synchronous call লাগে, সেটা boundary নয়। প্রতিটি request-এ একে অপরকে call
-> করা দুটো service আসলে network জুড়ে ছড়িয়ে থাকা একটি function call।
+> করা দুটি service আসলে network জুড়ে ছড়িয়ে থাকা একটি function call।
 
 **Layer-এর আকারে ভাগ করা হলো ক্লাসিক ভুল।** একটি "database service", একটি "API service" আর একটি "logic service"
 মানে প্রতিটি feature তিনটিকেই ছোঁয়। কোনোটাই আলাদাভাবে deploy হতে পারে না।
@@ -91,9 +91,9 @@ interface OrderPlaced {
 প্রতিটি service নিজের store-এর মালিক, আর অন্য কোনো service সেটা সরাসরি পড়ে না। এটাই একটি boundary-কে বাস্তব করে।
 Shared database মানে shared schema, আর shared schema মানে চিরকাল সমন্বিত deploy।
 
-দাম হলো, service জুড়ে join আর transaction উধাও হয়ে যায়। দুটো service-এর data একটি page-এ দেখাতে, সেটা একটি
+দাম হলো, service জুড়ে join আর transaction উধাও হয়ে যায়। দুটি service-এর data একটি page-এ দেখাতে, সেটা একটি
 BFF-এ (backend for frontend, নিচে আলোচনা করা হয়েছে) জোড়া লাগান। Service জুড়ে query করতে, event থেকে একটি read
-model বানান। দুটো service একসঙ্গে update করতে, একটি **saga** ব্যবহার করুন: local transaction-এর একটি chain,
+model বানান। দুটি service একসঙ্গে update করতে, একটি **saga** ব্যবহার করুন: local transaction-এর একটি chain,
 প্রত্যেকটির সঙ্গে একটি **compensating action**, যা সেটাকে ফিরিয়ে নেয়।
 
 ```mermaid
@@ -142,7 +142,7 @@ gateway cluster-এর সামনে থাকে, আর বড় একট�
 Web, mobile আর partner-দের serve করা একটি gateway একটি shared bottleneck হয়ে যায়। প্রতিটি client আলাদা আকার চায়।
 **BFF হলো প্রতি client type-এ একটি gateway**, যার মালিক সেই team, যারা ওই client-এর মালিক।
 
-**একই order service-এর ওপর দুটো BFF:**
+**একই order service-এর ওপর দুটি BFF:**
 
 ```typescript
 // Mobile BFF — only the fields the app renders
@@ -163,7 +163,7 @@ async function getWebOrder(orderId: string): Promise<FullOrderDetail> {
 ```
 
 খরচটা বাস্তব। তিনটি BFF মানে তিনটি deploy, আর একটি shared change তিন জায়গায় গিয়ে পড়ে। BFF এর দাম উশুল করে যখন
-client-দের চাহিদা সত্যিই আলাদা হয়ে যায়, যখন একটি client দুটো field কম চায় তখন নয়।
+client-দের চাহিদা সত্যিই আলাদা হয়ে যায়, যখন একটি client দুটি field কম চায় তখন নয়।
 
 ## কখন ব্যবহার করবেন
 
@@ -198,7 +198,7 @@ Distribution-এর সব খরচ, স্বাধীনতার কিছ�
 ## 🔑 মূল শিক্ষা
 
 - একটি service boundary স্বাধীন deploy আর scaling এনে দেয়, আর বিনিময়ে network failure, eventual consistency আর schema নিয়ে দর-কষাকষির দাম নেয়।
-- Domain আর team অনুযায়ী ভাগ করুন, কখনো technical layer অনুযায়ী নয়, আর যে দুটো service সারাক্ষণ একে অপরকে call করে, তাদের এক করুন।
+- Domain আর team অনুযায়ী ভাগ করুন, কখনো technical layer অনুযায়ী নয়, আর যে দুটি service সারাক্ষণ একে অপরকে call করে, তাদের এক করুন।
 - প্রতি service-এ একটি database একটি boundary-কে বাস্তব করে, আর compensating step-সহ saga সেই service-জোড়া transaction-এর জায়গা নেয়, যা এটা সরিয়ে দেয়।
 - Gateway তার hop-এর দাম উশুল করে auth, limit, TLS আর routing একবারে নিজের হাতে নিয়ে, আর business logic ঢুকলেই উশুল করা থামে।
 - Client-দের চাহিদা সত্যিই আলাদা হলে উত্তর BFF, আর এর খরচ প্রতি client type-এ আরও একটি deployable।
@@ -211,7 +211,7 @@ Distribution-এর সব খরচ, স্বাধীনতার কিছ�
 আটকে থাকে। তারপর data দেখুন। আলাদা করা অংশটিকে যদি প্রতিটি request-এ মূল database-এ ফিরে যেতে হয়, seam ভুল জায়গায়।
 একটি service আলাদা করুন, আর পরেরটির কথা ভাবার আগে প্রমাণ করুন boundary টিকে আছে।
 
-**Q: দুটো service-কে atomically update হতে হবে। আপনি কী করবেন?**
+**Q: দুটি service-কে atomically update হতে হবে। আপনি কী করবেন?**
 
 মেনে নিন যে distributed transaction পাওয়া যাবে না, আর একটি saga ব্যবহার করুন। প্রতিটি service locally commit করে
 আর একটি event publish করে, আর প্রতিটি ধাপের একটি compensating action থাকে। ফলটা শুরুতেই বলে দিন। একটি দৃশ্যমান
@@ -231,7 +231,7 @@ Load balancer একটি service-এর replica-গুলোর মধ্য�
 
 **Q: Gateway এখন একটি single point of failure। এ নিয়ে আপনি কী করবেন?**
 
-একে stateless রাখুন, যাতে scale out করা যায়, আর অন্তত দুটো availability zone জুড়ে active-active চালান। Route
+একে stateless রাখুন, যাতে scale out করা যায়, আর অন্তত দুটি availability zone জুড়ে active-active চালান। Route
 table memory-তে cache করুন, যাতে config store-এর outage edge-কে নামিয়ে না দেয়। তারপর প্রতি upstream-এ circuit
 breaker যোগ করুন, যাতে gateway শুধু তার সবচেয়ে দুর্বল service-এর সমান নির্ভরযোগ্য না হয়।
 

@@ -46,7 +46,7 @@ architecture-এ একবার, প্রতি request-এ একবার �
 | একসাথে অনেক customer record | চুক্তিগত আর regulatory ঝুঁকি |
 | সমাধান না হওয়া security finding | Exploit করার মতো একটি দুর্বলতা ফাঁস করে দেয় |
 
-যেকোনো filter-এর চেয়ে দুটো কাঠামোগত প্রতিকার বেশি গুরুত্বপূর্ণ। **আপনি আসলে কোন tier-এ আছেন, যাচাই করুন।** একই
+যেকোনো filter-এর চেয়ে দুটি কাঠামোগত প্রতিকার বেশি গুরুত্বপূর্ণ। **আপনি আসলে কোন tier-এ আছেন, যাচাই করুন।** একই
 product-এর consumer আর business tier প্রায়ই training আর retention নিয়ে আলাদা প্রতিশ্রুতি দেয়। Regulated কাজের
 জন্য কিছু deployment inference রাখে আপনার নিজের cloud account আর audit trail-এর ভেতরে। এগুলো boundary নিয়ে শুধু
 প্রতিশ্রুতি দেয় না, boundary-টাকেই সরিয়ে আনে।

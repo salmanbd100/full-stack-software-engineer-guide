@@ -66,7 +66,7 @@ export type InviteInput = z.infer<typeof inviteSchema>;
 
 > ⚠️ **যা বদলাতে থাকে:** Zod 4 string format-গুলোকে top-level function-এ সরিয়েছে (`z.email()` এসেছে
 > `z.string().email()`-এর জায়গায়), আর error-issue type-গুলো নতুন করে সাজিয়েছে। যে ধারণা টিকে থাকে, সেটা হলো একটি
-> schema, যা runtime validation আর একটি static type দুটোই তৈরি করে। Call-এর syntax বদলাতেই থাকবে। একই চুক্তি মানে
+> schema, যা runtime validation আর একটি static type দুটিই তৈরি করে। Call-এর syntax বদলাতেই থাকবে। একই চুক্তি মানে
 > এমন অন্য validator একটি resolver-এর পেছনে বসিয়ে বদলে নেওয়া যায়।
 
 **Form-এর দিক:**
@@ -117,7 +117,7 @@ Validation-এর *সময়* একটি user-experience সিদ্ধা
 Server action বদলায় submit handler কোথায় থাকে, validation-এর কী দরকার তা নয়। Form একটি server function-এ post
 করে। সেই function একই schema চালায়, আর field error-গুলো data হিসেবে return করে।
 
-এই pattern-এর সঙ্গে দুটো বৈশিষ্ট্য আসে। Form **JavaScript ছাড়াই কাজ করে**, কারণ এটা একটি আসল form, যা একটি আসল
+এই pattern-এর সঙ্গে দুটি বৈশিষ্ট্য আসে। Form **JavaScript ছাড়াই কাজ করে**, কারণ এটা একটি আসল form, যা একটি আসল
 endpoint-এ post করে। আর এটা যে error দেখায়, সেগুলো server-এর, তাই দুই পাশে অমিল হতে পারে না।
 
 দাম হলো প্রতিটি validation-এ একটি round trip। তাই বেশিরভাগ production form client-এও schema চালায়, আর server-কে
@@ -178,7 +178,7 @@ field-গুলো merge করুন।
 
 - Form state নকশাগতভাবেই invalid, আর এ কারণেই এটা application state-এ থাকে না।
 - Uncontrolled input প্রতিটি keystroke-এ re-render এড়ায়। Controlled field ব্যবহার করুন শুধু যেখানে value live দরকার।
-- Form আর endpoint দুটোই যে একটি schema import করে, সেটা runtime check আর static type দুটোই তৈরি করে।
+- Form আর endpoint দুটিই যে একটি schema import করে, সেটা runtime check আর static type দুটিই তৈরি করে।
 - প্রথম blur-এর পরে validate করুন, তারপর live। `onTouched` সেই mode, যা user-রা আশা করেন।
 - Client validation হলো user experience। Server validation হলো সঠিকতা, আর এটা কখনো ঐচ্ছিক নয়।
 
@@ -193,7 +193,7 @@ field-গুলো merge করুন।
 **Q: Server-ও যখন validate করে, তখন validation কোথায় থাকা উচিত?**
 
 দুই জায়গাতেই, একটি schema থেকে। Client-এর copy user-কে round trip ছাড়াই সঙ্গে সঙ্গে feedback দেয়। Server-এর copy
-থাকে, কারণ যে কেউ client-কে পুরোপুরি এড়িয়ে যেতে পারে। একটি schema module share করলে দুটোর অমিল বন্ধ হয়, আর তা থেকে
+থাকে, কারণ যে কেউ client-কে পুরোপুরি এড়িয়ে যেতে পারে। একটি schema module share করলে দুটির অমিল বন্ধ হয়, আর তা থেকে
 TypeScript type infer করলে তৃতীয় একটি copy-ও লাগে না।
 
 **Q: কখন একটি validation error দেখাবেন, সেটা কীভাবে ঠিক করেন?**

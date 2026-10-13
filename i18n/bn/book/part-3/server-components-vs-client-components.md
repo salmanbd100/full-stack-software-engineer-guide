@@ -9,7 +9,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 > সীমারেখাটা টানুন, ঠিক কী কী সেটা পার হতে পারে তা বলুন, আর ব্যাখ্যা করুন কেন `'use client'` প্রতি file-এর একটি switch নয়।
 
-**এই অধ্যায়ে:** দুটো environment, একটি tree · কী serialise হয় · module graph বনাম render tree · boundary পার করে children পাঠানো · boundary পার করে promise পাঠানো
+**এই অধ্যায়ে:** দুটি environment, একটি tree · কী serialise হয় · module graph বনাম render tree · boundary পার করে children পাঠানো · boundary পার করে promise পাঠানো
 
 ## 💡 মূল ধারণা
 
@@ -18,12 +18,12 @@ re-render হয় না।** এটা database পড়তে পারে,
 JavaScript পাঠায় না, শুধু ফলাফলটা পাঠায়। **Client Component** সাধারণ React: state, effect, event handler, browser
 API, আর একটি bundle, যেটা user download করেন।
 
-দুটো একে অপরের বিকল্প নয়। এরা মিলে একটি tree তৈরি করে, আর আসল engineering-এর মজাটা পুরোটাই জোড়ার জায়গায়।
+দুটি একে অপরের বিকল্প নয়। এরা মিলে একটি tree তৈরি করে, আর আসল engineering-এর মজাটা পুরোটাই জোড়ার জায়গায়।
 2026–27-এর senior loop-এ এটাই সবচেয়ে বেশি জিজ্ঞেস করা frontend প্রশ্ন। যে উত্তর নম্বর পায়, সেটা *boundary* নিয়ে
 কথা বলে, কোনটা বেশি দ্রুত তা নিয়ে নয়।
 
 > ⚠️ **লক্ষ্য বদলাচ্ছে।** Server Component payload-এর format, আর একটি framework directive-গুলো কীভাবে লেখে, React 18
-> আর React 19-এর মধ্যে বদলেছে। স্থায়ী নীতিটা বদলায় না: দুটো environment, একটি tree, আর দুইয়ের মধ্যে যা কিছু পার হয়,
+> আর React 19-এর মধ্যে বদলেছে। স্থায়ী নীতিটা বদলায় না: দুটি environment, একটি tree, আর দুইয়ের মধ্যে যা কিছু পার হয়,
 > সেটাকে লিখে ফেলা আর পাঠানো সহ্য করতে হবে।
 
 ## কীভাবে কাজ করে
@@ -74,7 +74,7 @@ Server Component থেকে Client Component-এ যাওয়া props payl
 | Server Function — যেগুলো `'use server'` দিয়ে চিহ্নিত            | —                                                    |
 
 Function ব্যর্থ হয়, কারণ code-এর কোনো serialised রূপ নেই। React render-এর সময় throw করে। এটাই সঠিক আচরণ, কিন্তু
-প্রথমবার error-টা বিভ্রান্তিকর লাগে। দুটো সঠিক সমাধান আছে। Data নিচে পাঠান আর handler-টি Client Component-এর ভেতরে
+প্রথমবার error-টা বিভ্রান্তিকর লাগে। দুটি সঠিক সমাধান আছে। Data নিচে পাঠান আর handler-টি Client Component-এর ভেতরে
 define করুন। অথবা একটি **Server Function** পাঠান, যেটাকে React code হিসেবে নয়, একটি reference হিসেবে serialise করে।
 
 ### Boundary পার করে একটি promise পাঠানো
@@ -171,7 +171,7 @@ Server হলো default। Client-এ যান তখনই, যখন এম�
 **✅ বরং একটি Server Function পাঠান**, অথবা id-টি পাঠান আর handler-এর দায়িত্ব Client Component-কে দিন।
 
 **❌ UI-এর যা লাগে, তার চেয়ে অনেক বেশি serialise করা।** Boundary পার হওয়া প্রতিটি prop HTML response-এ কিছু byte,
-*আর* client-এর জন্য parse করার কাজ। দুটো field পড়ার জন্য 200 field-এর একটি record পাঠানো আসলে একটি payload সমস্যা,
+*আর* client-এর জন্য parse করার কাজ। দুটি field পড়ার জন্য 200 field-এর একটি record পাঠানো আসলে একটি payload সমস্যা,
 সুবিধার ছদ্মবেশে।
 
 **❌ ধরে নেওয়া যে একটি Server Component পরে interactive হতে পারবে।** এর কোনো state নেই, আর এটা কখনো re-render হয় না।
@@ -191,7 +191,7 @@ Server হলো default। Client-এ যান তখনই, যখন এম�
 **Q: Server Component থেকে Client Component-এ prop হিসেবে একটি function পাঠানো যায় না কেন?**
 
 Boundary পার হওয়া props payload-এ serialise হয়ে network দিয়ে পাঠানো হয়। Function-এর কোনো serialised রূপ নেই, তাই
-React render-এর সময় throw করে। দুটো সমাধান আছে। Data নিচে পাঠান আর handler-টি Client Component-এর ভেতরে define
+React render-এর সময় throw করে। দুটি সমাধান আছে। Data নিচে পাঠান আর handler-টি Client Component-এর ভেতরে define
 করুন। অথবা একটি Server Function পাঠান, যেটাকে React code হিসেবে নয়, client call করতে পারে এমন একটি reference
 হিসেবে serialise করে।
 

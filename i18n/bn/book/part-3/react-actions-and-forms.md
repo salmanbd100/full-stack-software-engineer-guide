@@ -184,7 +184,7 @@ export async function updateName(name: string): Promise<Result> {
 **❌ Form-এর পাশে `useFormStatus`।** এটা এর *ওপরের* form পড়ে। একই component-এ এটা চিরকাল `false` return করে, আর
 কিছুই disable হয় না।
 
-**❌ অভ্যাসের বশে `onSubmit` আর `preventDefault` রেখে দেওয়া।** ওই পথে hydration-এর আগের replay আর automatic reset দুটোই
+**❌ অভ্যাসের বশে `onSubmit` আর `preventDefault` রেখে দেওয়া।** ওই পথে hydration-এর আগের replay আর automatic reset দুটিই
 হাতছাড়া হয়। আপনি আবার হাতে pending state লেখায় ফিরে যান।
 
 **❌ ব্যর্থতার কোনো ব্যবস্থা ছাড়া optimistic update।** Rollback automatic। ব্যাখ্যাটা নয়। যে message চুপচাপ উধাও হয়ে

@@ -151,7 +151,7 @@ Streaming কোনো error ছাড়াই ভেঙে ফেলা অস
 | পুরো response cache করে এমন platform দিয়ে serve করা | Output ঠিক, কিন্তু streaming নেই |
 
 যাচাই করতে একটি command-ই যথেষ্ট। Route-টিতে `curl -N` চালান আর দেখুন byte-গুলো দলে দলে আসে কি না। সবকিছু একবারে
-এলে, আপনার code আর terminal-এর মাঝখানে কিছু একটা buffer করছে।
+এলে, আপনার code আর terminal-এর মাঝখানে কিছু একটি buffer করছে।
 
 ## কখন ব্যবহার করবেন
 
@@ -216,7 +216,7 @@ render-এর ওপরে middleware-এ বসে।
 
 Deploy করা URL-এ `curl -N` দিয়ে request করুন, আর দেখুন byte-গুলো আলাদা আলাদা দলে আসছে কি না। যাচাই করুন response
 chunked transfer ব্যবহার করছে, `Content-Length` নয়। Field data-র TTFB-কে সবচেয়ে ধীর query-র সময়ের সাথে তুলনা করুন।
-দুটো মিলে গেলে, পথের কোথাও কিছু একটা response buffer করছে।
+দুটি মিলে গেলে, পথের কোথাও কিছু একটি response buffer করছে।
 
 ## এরপর কী পড়বেন
 

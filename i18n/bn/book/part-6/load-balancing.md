@@ -15,7 +15,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 Load balancer কয়েকটি server-কে একটি logical service-এ পরিণত করে। Client-রা একটি নামেই call করে, আর কোন machine
 উত্তর দেবে তা balancer ঠিক করে। Scaling-এর বাকি প্রতিটি পদক্ষেপ এই ধাপের ওপর নির্ভর করে। দ্বিতীয় একটি server কোনো
-কাজে আসে না, যতক্ষণ না কিছু একটা তাকে traffic পাঠাতে রাজি হয়।
+কাজে আসে না, যতক্ষণ না কিছু একটি তাকে traffic পাঠাতে রাজি হয়।
 
 মজার অংশটা বণ্টন নয়। মজার অংশটা failure handling। এমন একটি balancer ভাবুন, যেটা traffic সমানভাবে ছড়ায়, কিন্তু একটি
 মৃত node টের পেতে নব্বই সেকেন্ড নেয়। এটা আপনাকে availability কিনে দেয়নি। এটা কিনে দিয়েছে একটি ধীর outage।
@@ -40,7 +40,7 @@ Layer ঠিক করে, request-এর কতটা balancer পড়তে 
 | **কখন ব্যবহার করবেন** | Raw TCP, microsecond-এ মাপা latency budget | HTTP service, microservice-এ path-ভিত্তিক routing |
 
 Web-এর কাজে layer 7-ই default। আপনি একটি millisecond ছাড়েন, আর বিনিময়ে `/api/*` একটি service-এ আর `/images/*`
-আরেকটিতে পাঠাতে পারেন, client না জেনেই যে দুটো আছে।
+আরেকটিতে পাঠাতে পারেন, client না জেনেই যে দুটি আছে।
 
 ### Routing algorithm
 
@@ -51,7 +51,7 @@ Web-এর কাজে layer 7-ই default। আপনি একটি millise
 | **Least connections** | যে server-এ সবচেয়ে কম open connection | একেবারে ভিন্ন সময়ের request — upload, WebSocket |
 | **IP hash** | Client IP যে server-এ map হয় | হালকা session affinity, যখন এর চেয়ে ভালো কিছু নেই |
 
-**যে দুটো প্রায় প্রতিটি ক্ষেত্র সামলায়:**
+**যে দুটি প্রায় প্রতিটি ক্ষেত্র সামলায়:**
 
 ```typescript
 interface Server { url: string; weight: number; activeConnections: number; healthy: boolean }
@@ -91,7 +91,7 @@ app.get("/health", async (_req, res) => {
 });
 ```
 
-**✅ দুটো endpoint, দুটো আলাদা প্রশ্নের উত্তর দিচ্ছে:**
+**✅ দুটি endpoint, দুটি আলাদা প্রশ্নের উত্তর দিচ্ছে:**
 
 ```typescript
 // Liveness: is the process alive? Nothing external, so a dependency blip degrades

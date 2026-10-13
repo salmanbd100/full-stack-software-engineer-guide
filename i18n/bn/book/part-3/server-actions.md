@@ -118,9 +118,9 @@ parameter এজন্যই আছে।
 
 ### Next.js আপনার হয়ে যা করে
 
-দুটো সুরক্ষা বিনামূল্যে আসে। এগুলো যে আছে তা জানার চেয়ে এদের সীমা জানা বেশি জরুরি।
+দুটি সুরক্ষা বিনামূল্যে আসে। এগুলো যে আছে তা জানার চেয়ে এদের সীমা জানা বেশি জরুরি।
 
-- **CSRF** (cross-site request forgery)। Next.js `Origin` header-কে `Host`-এর সাথে তুলনা করে, আর দুটো আলাদা হলে
+- **CSRF** (cross-site request forgery)। Next.js `Origin` header-কে `Host`-এর সাথে তুলনা করে, আর দুটি আলাদা হলে
   request প্রত্যাখ্যান করে। এমন reverse proxy-র পেছনে, যেটা host rewrite করে, এটা আবার চালু করতে
   `serverActions.allowedOrigins` set করুন। এটা check করে request কোথা থেকে এসেছে। এটা authentication নয়।
 - **Closure encryption।** একটি action তার component থেকে যে variable-গুলো capture করে, client-এ পাঠানোর আগে Next.js

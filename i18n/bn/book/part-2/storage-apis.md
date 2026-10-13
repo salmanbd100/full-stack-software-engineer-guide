@@ -17,8 +17,8 @@ Browser দুই ধরনের সাধারণ storage দেয়। **W
 `sessionStorage`। এটা একটি ছোট, synchronous, শুধু string রাখা key-value cache। **IndexedDB** একটি asynchronous
 database, যেটা পুরো object রাখে, সেগুলোকে index করে, আর কয়েকশো megabyte ধরে রাখতে পারে।
 
-কোনোটাই security boundary নয়। আপনার page-এর যেকোনো script দুটোই পড়তে পারে। আর কোনোটারই টিকে থাকার নিশ্চয়তা
-নেই, কারণ storage-এর চাপে browser যেকোনোটাকে evict (মুছে) করতে পারে। তাই দুটোর জন্য নিয়ম একই। Value হারালে যদি
+কোনোটাই security boundary নয়। আপনার page-এর যেকোনো script দুটিই পড়তে পারে। আর কোনোটারই টিকে থাকার নিশ্চয়তা
+নেই, কারণ storage-এর চাপে browser যেকোনোটাকে evict (মুছে) করতে পারে। তাই দুটির জন্য নিয়ম একই। Value হারালে যদি
 app ভেঙে যায়, বা ফাঁস হলে যদি সমস্যা হয়, তাহলে সেটা অন্য কোথাও রাখুন।
 
 ```typescript
@@ -26,13 +26,13 @@ localStorage.setItem("theme", "dark");
 const theme: string | null = localStorage.getItem("theme"); // "dark", or null if missing
 ```
 
-> ⚠️ **যা বদলাতে থাকে:** browser-গুলো এখন storage-কে top-level site অনুযায়ী ভাগ করে। তাই দুটো আলাদা parent site-এ
-> embed করা একই origin দুটো আলাদা store দেখে। Eviction-এর নিয়মও browser ভেদে আলাদা, আর বদলাতে থাকে। টেকসই নীতি
+> ⚠️ **যা বদলাতে থাকে:** browser-গুলো এখন storage-কে top-level site অনুযায়ী ভাগ করে। তাই দুটি আলাদা parent site-এ
+> embed করা একই origin দুটি আলাদা store দেখে। Eviction-এর নিয়মও browser ভেদে আলাদা, আর বদলাতে থাকে। টেকসই নীতি
 > হলো, এটা same-origin storage, যার কোনো security boundary নেই আর টিকে থাকার কোনো প্রতিশ্রুতি নেই।
 
 ## কীভাবে কাজ করে
 
-### দুটো web storage object
+### দুটি web storage object
 
 | Feature | `localStorage` | `sessionStorage` |
 | ------- | -------------- | ---------------- |
@@ -146,7 +146,7 @@ const recent: Note[] = await db.getAllFromIndex("notes", "by-updatedAt", IDBKeyR
 | প্রয়োজন | বেছে নিন | কেন |
 | ---- | ---- | --- |
 | Theme, ভাষা, একটি ছোট preference | `localStorage` | ছোট, হারালে ক্ষতি নেই, প্রতিটি tab-এ দরকার |
-| এই tab-এর form draft বা wizard state | `sessionStorage` | একই form পূরণ করা দুটো tab-এর মধ্যে সংঘর্ষ হওয়া চলবে না |
+| এই tab-এর form draft বা wizard state | `sessionStorage` | একই form পূরণ করা দুটি tab-এর মধ্যে সংঘর্ষ হওয়া চলবে না |
 | ~5 MB-এর বেশি, query, বা `Blob` | IndexedDB | Asynchronous, indexed, binary data রাখে |
 | Offline record আর pending write-এর একটি queue | IndexedDB | শুধু এরই transaction আছে |
 | যে HTTP response একটি service worker আবার চালায় | Cache API | `Request` দিয়ে key করা, একটি `Response` return করে |
@@ -182,7 +182,7 @@ thread-এ পড়ে, আর একটি drop হওয়া frame হি�
 
 ## 🔑 মূল শিক্ষা
 
-- Page-এর প্রতিটি script web storage আর IndexedDB পড়তে পারে, আর browser দুটোকেই evict করতে পারে। তাই কোনোটাই secret বা অপূরণীয় data রাখে না।
+- Page-এর প্রতিটি script web storage আর IndexedDB পড়তে পারে, আর browser দুটিকেই evict করতে পারে। তাই কোনোটাই secret বা অপূরণীয় data রাখে না।
 - `localStorage` সব tab ভাগ করে, আর tab বন্ধ হলেও থেকে যায়। `sessionStorage` একটি tab-এর, আর tab-এর সঙ্গেই মরে যায়।
 - `storage` event প্রতিটি tab-এ পৌঁছায়, শুধু যে tab value লিখেছে সেটা ছাড়া।
 - IndexedDB asynchronous, কারণ synchronous disk access page-কে জমিয়ে দিত। ~5 MB-এর বেশি হলে, binary data, query বা offline write-এর জন্য এটা তার খরচের যোগ্য।
@@ -192,7 +192,7 @@ thread-এ পড়ে, আর একটি drop হওয়া frame হি�
 
 **Q: `localStorage` আর `sessionStorage`-এর পার্থক্য কী?**
 
-দুটোই origin-এর scope-এ থাকা key-value store। `localStorage` মুছে না দেওয়া পর্যন্ত থাকে, আর প্রতিটি tab এটা ভাগ
+দুটিই origin-এর scope-এ থাকা key-value store। `localStorage` মুছে না দেওয়া পর্যন্ত থাকে, আর প্রতিটি tab এটা ভাগ
 করে। `sessionStorage` tab বন্ধ হলে মুছে যায়, আর শুধু সেই tab-এরই থাকে। তাই form draft-এর জন্য এটা ঠিক। শুধু
 `localStorage` `storage` event fire করে, তাই শুধু এটাই cross-tab sync চালায়।
 

@@ -66,7 +66,7 @@ flowchart TD
 তা index করে, আর page-টিকে পরে একটি headless render-এর জন্য queue-তে রাখে। পরে মানে কয়েক মিনিট বা কয়েক দিন,
 তাদের নিজেদের সময়সূচিতে।
 
-এর থেকে দুটো জিনিস আসে। যে link শুধু JavaScript চলার পরে থাকে, সেগুলো দেরিতে খুঁজে পাওয়া যায়। তাই একটি
+এর থেকে দুটি জিনিস আসে। যে link শুধু JavaScript চলার পরে থাকে, সেগুলো দেরিতে খুঁজে পাওয়া যায়। তাই একটি
 client-rendered category page তার নিচের প্রতিটি product-কে পিছিয়ে দেয়। যে content শুধু JavaScript চলার পরে
 থাকে, সেটা দেরিতে index হয়। একটি খবর, একটি চাকরির post বা একটি live price-এর জন্য এটা মারাত্মক।
 
@@ -84,7 +84,7 @@ client-rendered category page তার নিচের প্রতিটি pr
 | -------- | --------------------- | -------------------------- |
 | **SSG** | সব content আর link | আদর্শ |
 | **ISR** | সব content আর link | আদর্শ; প্রশ্ন শুধু staleness নিয়ে |
-| **SSR** | সব content আর link | ঠিক আছে, তবে ওপরের দুটোর চেয়ে দামি |
+| **SSR** | সব content আর link | ঠিক আছে, তবে ওপরের দুটির চেয়ে দামি |
 | **PPR** | Shell, তারপর stream হওয়া অংশ | ঠিক আছে, যদি index-যোগ্য text shell-এ থাকে |
 | **CSR** | একটি ফাঁকা shell | শুধু সেই route-এর জন্য, যা কিছুই index করবে না |
 
@@ -106,7 +106,7 @@ static বা ISR। **Static build-এ কাজ চলে গেলেও "SEO
 | `/reports/[id]` | প্রতিটি tenant-এর জন্য আলাদা | একদম না | নেই | প্রতিটি tenant-এর জন্য | **SSR** |
 | `/status` | সবাই | 30 সেকেন্ড | নেই | একটি | **ISR**, 30 s |
 
-Interviewer-রা দুটো row ধরে টানেন। `/search` একেবারেই cache হয় না। Key অসীম হলে প্রতিটি request miss করে, তাই
+Interviewer-রা দুটি row ধরে টানেন। `/search` একেবারেই cache হয় না। Key অসীম হলে প্রতিটি request miss করে, তাই
 cache কোনো লাভ ছাড়াই খরচ বাড়ায়। `/dashboard` *ইচ্ছা করে* client-rendered। কোনো crawler নেই, কোনো shared HTML
 নেই। সেখানে SSR প্রতিটি view-এ একটি function call-এর খরচ নেয়, এমন একটি page-এর জন্য যেটা কখনো আবার ব্যবহার
 করা যাবে না।
@@ -136,7 +136,7 @@ Canonical link server-rendered head-এ set করুন, route-এর নিজ
 প্রতিটি route-এর জন্য আলাদা strategy বিনামূল্যে আসে না। আসে বলে ভান করাই এই উত্তরের দুর্বল সংস্করণ।
 
 - **এক codebase-এ data fetch-এর দুই রকম গড়ন।** Static route build-এর সময় fetch করে। Dynamic route প্রতিটি
-  request-এ fetch করে। Shared component-কে দুটোতেই চলতে হয়, তাই data সাধারণত props হিসেবে আসে, hook থেকে নয়।
+  request-এ fetch করে। Shared component-কে দুটিতেই চলতে হয়, তাই data সাধারণত props হিসেবে আসে, hook থেকে নয়।
 - **Cache-এর সঠিকতা review-এর একটি বিষয় হয়ে যায়।** যে bug আসলে গুরুত্বপূর্ণ, সেটা হলো একটি personalised value
   একটি cache করা page-এ leak করা। যা কিছু cookie, header বা session পড়ে, সেটাকে dynamic অংশের ভেতরে থাকতে হবে।
 

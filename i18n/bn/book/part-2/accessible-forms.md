@@ -17,7 +17,7 @@ Form-এই accessibility-র ব্যর্থতায় টাকা খর
 আপনার company টাকা পায়। Form আবার accessibility-র সবচেয়ে নিয়মবদ্ধ অংশও। অল্প কয়েকটি নিয়ম, প্রতিটি field-এ প্রয়োগ
 করলে, প্রায় সবকিছু ধরে ফেলে।
 
-দুটো ধারণাই এর বেশিরভাগ বহন করে। প্রথমত, **প্রতিটি control-এর একটি programmatic label লাগে**, শুধু পাশে বসে থাকা কিছু
+দুটি ধারণাই এর বেশিরভাগ বহন করে। প্রথমত, **প্রতিটি control-এর একটি programmatic label লাগে**, শুধু পাশে বসে থাকা কিছু
 লেখা নয়। Code-এর এই association একটি screen reader-কে focus-এর সময় field-টি ঘোষণা করতে দেয়। এটা label-এ click করলে
 cursor-কে field-এ নিয়ে যেতেও দেয়। দ্বিতীয়ত, **একটি error-কে একসঙ্গে তিনটি জিনিস হতে হয়**: দেখা দিলেই ঘোষিত, তার
 field-এর সঙ্গে যুক্ত, আর এতটা নির্দিষ্ট যে তার ভিত্তিতে কিছু করা যায়। "Invalid input" এর একটিও মেটায় না।
@@ -83,14 +83,14 @@ value দেবে, নাকি সংরক্ষিত একটি। এট
 
 ### Error contract
 
-একটি error message-কে চারটি জিনিস মেটাতে হয়। বেশিরভাগ implementation একটি বা দুটো পারে।
+একটি error message-কে চারটি জিনিস মেটাতে হয়। বেশিরভাগ implementation একটি বা দুটি পারে।
 
 | Requirement | কীভাবে | Criterion |
 | --- | --- | --- |
 | দেখা দিলেই ঘোষিত | Live region, অথবা একটি summary-তে focus সরানো | 4.1.3 |
 | তার field-এর সঙ্গে যুক্ত | Message-কে নির্দেশ করা `aria-describedby` | 3.3.1 |
 | Invalid হিসেবে চিহ্নিত | Input-এ `aria-invalid="true"` | 3.3.1 |
-| কিছু করার মতো নির্দিষ্ট | কী ভুল **আর** কী গ্রহণযোগ্য, দুটোই বলুন | 3.3.3 |
+| কিছু করার মতো নির্দিষ্ট | কী ভুল **আর** কী গ্রহণযোগ্য, দুটিই বলুন | 3.3.3 |
 
 ```html
 <label for="pw">New password</label>
@@ -160,11 +160,11 @@ pattern-এ থিতু হয়েছে, আর এটা সবার জ�
 
 | পরিস্থিতি | বেছে নিন | কেন |
 | --- | --- | --- |
-| যেকোনো একক control | `<label for>` | একমাত্র association, যেটা click target আর ঘোষণা দুটোই দেয় |
+| যেকোনো একক control | `<label for>` | একমাত্র association, যেটা click target আর ঘোষণা দুটিই দেয় |
 | Radio, checkbox set, কয়েক অংশের field | `<fieldset>` আর `<legend>` | Group-এর নাম প্রতিটি control-এর আগে বসে |
 | শুধু একটি icon-ওয়ালা search field | `aria-label`, অথবা visually-hidden label-এর লেখা | নির্দেশ করার মতো কোনো দৃশ্যমান label নেই |
 | একটি field validation-এ fail করেছে | `aria-invalid`, সঙ্গে `aria-describedby` | Field-স্তরের, focus-এ ঘোষিত |
-| একটি submit কয়েকটি error নিয়ে fail করেছে | Link-সহ focus করা summary | এক জায়গায় সংখ্যা আর পথ দুটোই দেয় |
+| একটি submit কয়েকটি error নিয়ে fail করেছে | Link-সহ focus করা summary | এক জায়গায় সংখ্যা আর পথ দুটিই দেয় |
 | একটি async submit সফল হয়েছে | `role="status"` | Cursor কেড়ে না নিয়ে নিশ্চিত করে |
 
 ## সাধারণ ভুল
@@ -211,14 +211,14 @@ pattern-এ থিতু হয়েছে, আর এটা সবার জ�
 **Q: একটি validation error accessible-ভাবে কীভাবে জানাবেন?**
 
 চারটি জিনিস একসঙ্গে। `aria-describedby` message-কে field-এর সঙ্গে যুক্ত করে, আর field-টি `aria-invalid="true"` দিয়ে
-চিহ্নিত হয়। লেখাটা বলে কী গ্রহণযোগ্য, শুধু কিছু একটা ভুল তা নয়। আর error দেখা দিলেই ঘোষিত হয়। একটি একক field-স্তরের
+চিহ্নিত হয়। লেখাটা বলে কী গ্রহণযোগ্য, শুধু কিছু একটি ভুল তা নয়। আর error দেখা দিলেই ঘোষিত হয়। একটি একক field-স্তরের
 error-এর জন্য একটি live region ব্যবহার করুন, অথবা ব্যর্থ submit-এ একটি error summary-তে focus সরান। Summary প্রতিটি
 সমস্যাকে তার field-এর একটি link হিসেবে তালিকাভুক্ত করে। এতে keyboard user-রা খোঁজাখুঁজির বদলে একটি পথ পান।
 
 **Q: Validation কখন চালানো উচিত?**
 
 Field-স্তরের যাচাই blur-এ, আর পুরো যাচাই submit-এ। প্রতিটি keystroke-এ validate করলে user প্রথম অক্ষর লেখার সময়েই
-"invalid email" ঘোষিত হয়। একটি live region-এ এটা অসত্য আর গোলমেলে, দুটোই। Typing-এর সময় ইতিবাচক feedback ঠিক আছে,
+"invalid email" ঘোষিত হয়। একটি live region-এ এটা অসত্য আর গোলমেলে, দুটিই। Typing-এর সময় ইতিবাচক feedback ঠিক আছে,
 যেমন একটি strength meter বা বাকি character-এর সংখ্যা। শুধু প্রতিটি character-এ এটা ঘোষণা করবেন না।
 
 **Q: `autocomplete` attribute সুবিধার চেয়ে বেশি একটি accessibility-র বিষয় কেন?**
@@ -233,7 +233,7 @@ manager-এর সঙ্গে লড়াই করে, যার ওপর us
 এটা AA level-এ 3.3.8 Accessible Authentication যোগ করেছে। Login করতে কোনো cognitive function test লাগা চলবে না। Paste
 কাজ করতে হবে, password manager আটকানো যাবে না, আর যেকোনো ধাঁধা-ধাঁচের যাচাইয়ের একটি বিকল্প পথ লাগবে। এর পাশাপাশি,
 3.3.7 Redundant Entry বলে একটি flow একই তথ্য দুবার চাইতে পারবে না। এটা সেই ক্ষেত্র, যেখানে billing address delivery
-address-এর পুনরাবৃত্তি করে। দুটোই এত সাম্প্রতিক যে বেশিরভাগ চালু checkout এগুলোতে fail করে।
+address-এর পুনরাবৃত্তি করে। দুটিই এত সাম্প্রতিক যে বেশিরভাগ চালু checkout এগুলোতে fail করে।
 
 ## এরপর কী পড়বেন
 

@@ -17,7 +17,7 @@ Service worker হলো একটি script, যেটা browser আপনা�
 নিজের লেখা একটি proxy-র মতো। প্রতিটি tab বন্ধ হয়ে গেলেও এটা টিকে থাকে, আর প্রতিটি request কী ফেরত দেবে তা এটাই
 ঠিক করে।
 
-এই শেষ ক্ষমতাটাই এটাকে কাজের আর বিপজ্জনক, দুটোই করে তোলে। একবার একটি worker install হলে browser আগে তাকেই
+এই শেষ ক্ষমতাটাই এটাকে কাজের আর বিপজ্জনক, দুটিই করে তোলে। একবার একটি worker install হলে browser আগে তাকেই
 জিজ্ঞেস করে। তাই একটি খারাপ worker এমন একজন user-কে ভাঙা build দিতে পারে, যাঁর সেটা মোছার কোনো উপায় নেই।
 
 > Service worker এমন code, যেটা আপনি একবার deploy করেন আর সহজে ফেরত নিতে পারেন না। Caching design করার আগে
@@ -64,7 +64,7 @@ stateDiagram-v2
   Controlling --> [*]: unregister()
 ```
 
-**Lifecycle, `waiting` থেকে বেরোনোর দুটো পথসহ।**
+**Lifecycle, `waiting` থেকে বেরোনোর দুটি পথসহ।**
 
 **Install আর activate, যে রূপে এরা সবসময় থাকে:**
 
@@ -143,7 +143,7 @@ Network first-এর একটি timeout লাগে। ত্রিশ সে
 | -------- | ------ | --- |
 | `/assets/app.a91f3c.js` | Cache first, কখনো expire নয় | Content বদলালে নামের hash বদলায় |
 | যেকোনো navigation request | Network first, 3s timeout, offline page | একটি পুরোনো document user-দের একটি পুরোনো build-এ আটকে রাখে |
-| `GET /api/dashboard` | Stale-while-revalidate, সঙ্গে একটি "last updated" label | কিছু একটা দেখান, আর তার বয়স নিয়ে সৎ থাকুন |
+| `GET /api/dashboard` | Stale-while-revalidate, সঙ্গে একটি "last updated" label | কিছু একটি দেখান, আর তার বয়স নিয়ে সৎ থাকুন |
 | `POST /api/orders` | Network only | Payment-এ চুপচাপ retry একটি defect |
 | একটি update আজই user-দের কাছে পৌঁছাতে হবে | `skipWaiting()`, সঙ্গে একটি reload | Tab বন্ধ হওয়ার অপেক্ষা না করেই নতুন worker activate হয় |
 | শুধু পড়ার জন্য content site | কোনো service worker নয় | সঠিক cache header-সহ একটি CDN কাজটা করে, update-এর কোনো ঝুঁকি ছাড়াই |
@@ -224,7 +224,7 @@ evict করে। প্রতিটি cache-কে entry-র সংখ্য�
 **Q: `skipWaiting()` আর `clients.claim()`-এর পার্থক্য কী?**
 
 `skipWaiting()` একটি নতুন worker-কে আগেভাগেই `waiting` থেকে বের করে আনে। `clients.claim()` একটি active worker-কে
-এখন খোলা page-গুলোর নিয়ন্ত্রণ নিতে বাধ্য করে। সাধারণত আপনি দুটোই চান, তারপর একটি reload। Claim করা page-গুলো
+এখন খোলা page-গুলোর নিয়ন্ত্রণ নিতে বাধ্য করে। সাধারণত আপনি দুটিই চান, তারপর একটি reload। Claim করা page-গুলো
 এখনো আগের build-এর JavaScript চালাচ্ছে।
 
 **Q: একটি dashboard-এর প্রতিটি request-এর জন্য আপনি কোন strategy বেছে নেবেন, ধাপে ধাপে বলুন।**

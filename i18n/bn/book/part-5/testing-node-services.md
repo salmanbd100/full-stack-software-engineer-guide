@@ -17,7 +17,7 @@ Testing-এর মূল নিয়মকানুন Part IV-এর [Chapter 
 pyramid, arrange-act-assert, double-এর পরিভাষা, কখন TDD করবেন। এখানে সেগুলো হুবহু খাটে। এই অধ্যায় শুধু
 server-এ কী আলাদা, তা নিয়ে।
 
-আলাদা দুটো জিনিস। প্রথমত, **একটি service-এর বেশিরভাগ behaviour থাকে database আর HTTP boundary-র সাথে তার
+আলাদা দুটি জিনিস। প্রথমত, **একটি service-এর বেশিরভাগ behaviour থাকে database আর HTTP boundary-র সাথে তার
 integration-এ**, তার pure function-এ নয়। তাই backend pyramid একটি UI-এর pyramid-এর চেয়ে বেশি চ্যাপ্টা।
 দ্বিতীয়ত, **একটি service-এর dependency হলো process, component নয়**: একটি database, একটি queue, একটি payment
 provider। এগুলোকে কীভাবে substitute করবেন, সেটাই ঠিক করে আপনার suite-এর কতটুকু চালানোর যোগ্য।
@@ -212,7 +212,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' })); // Catch unexpe
 
 **Q: একটি service-এ কী unit test করেন না?**
 
-যে controller শুধু একটি request-কে একটি service call-এ অনুবাদ করে, আর database mock করা যেকোনো query। দুটোই
+যে controller শুধু একটি request-কে একটি service call-এ অনুবাদ করে, আর database mock করা যেকোনো query। দুটিই
 assert করে যে code যেভাবে লেখা, সেভাবেই লেখা। এগুলো refactor-এ ভাঙে, আর behaviour ভুল হলেও সবুজ থাকে। এগুলোর
 জায়গা আসল database আর আসল HTTP layer-এর বিরুদ্ধে চলা test-এ।
 

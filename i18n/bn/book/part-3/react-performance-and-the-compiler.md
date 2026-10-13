@@ -13,8 +13,8 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## 💡 মূল ধারণা
 
-"React ধীর" কখনো একটি সমস্যা নয়। দুটো কারণ React-এর বাইরে থাকে: অতিরিক্ত JavaScript আসা, আর এমন request যেগুলো
-একে অপরের জন্য অপেক্ষা করে। React-এর ভেতরে আপনার হাতে দুটো lever আছে, আর সেগুলো আলাদা কাজ করে।
+"React ধীর" কখনো একটি সমস্যা নয়। দুটি কারণ React-এর বাইরে থাকে: অতিরিক্ত JavaScript আসা, আর এমন request যেগুলো
+একে অপরের জন্য অপেক্ষা করে। React-এর ভেতরে আপনার হাতে দুটি lever আছে, আর সেগুলো আলাদা কাজ করে।
 
 | Lever                   | কী করে                                     | Tool                                  |
 | ----------------------- | ------------------------------------------------ | ------------------------------------------ |
@@ -34,7 +34,7 @@ lever ছোঁয়ার আগেই বলতে পারেন, একট
 ### একটি re-render-এর খরচ
 
 একটি re-render-এর তিনটি phase। Render component-টিকে call করে, reconcile নতুন tree-কে পুরোনোটার সাথে diff করে, আর
-commit পার্থক্যগুলো DOM-এ বসায়। যে component একই output নিয়ে re-render হয়, সে তবু প্রথম দুটোর দাম দেয়। সেটা
+commit পার্থক্যগুলো DOM-এ বসায়। যে component একই output নিয়ে re-render হয়, সে তবু প্রথম দুটির দাম দেয়। সেটা
 সাধারণত সস্তা। ব্যয়বহুল হয়, যখন শত শত component প্রতিটি keystroke-এ এটা করে, বা যখন তাদের একটি পথে দশ হাজার row
 sort করে।
 
@@ -61,7 +61,7 @@ function Parent({ name }: { name: string }) {
 **Compiler চালু থাকলে source একই থাকে, আর child-টি re-render হওয়া বন্ধ করে।** Compiler দেখে যে `name` বদলায়নি।
 সে `ExpensiveChild` call না করে আগের বার বানানো element-টিই আবার ব্যবহার করে।
 
-প্রতিটি component-এর জন্য দুটো directive এটা নিয়ন্ত্রণ করে। `"use memo"` একটি component বা hook-কে opt in করায়,
+প্রতিটি component-এর জন্য দুটি directive এটা নিয়ন্ত্রণ করে। `"use memo"` একটি component বা hook-কে opt in করায়,
 file ধরে ধরে গ্রহণ করার জন্য। `"use no memo"` একটিকে বাদ দেয়, compiler-এর সন্দেহজনক কোনো bug আলাদা করার সাময়িক
 উপায় হিসেবে।
 
@@ -117,13 +117,13 @@ return (
 );
 ```
 
-এখানে দুটো lever মিলে যায়: deferral তখনই কাজে আসে, যখন `Results` memoise করা থাকে, হাতে বা compiler দিয়ে।
+এখানে দুটি lever মিলে যায়: deferral তখনই কাজে আসে, যখন `Results` memoise করা থাকে, হাতে বা compiler দিয়ে।
 
 | প্রশ্ন                          | `useTransition`              | `useDeferredValue`                    |
 | --------------------------------- | ---------------------------- | ------------------------------------- |
 | State update কি আপনার হাতে?      | ✅ হ্যাঁ — আপনি `setState` call করেন  | ❌ না — value একটি prop হিসেবে আসে    |
 | আপনি কী চিহ্নিত করেন?                 | Update                   | Value                             |
-| Pending flag                      | Built in — `isPending`       | দুটো value তুলনা করে বের করুন |
+| Pending flag                      | Built in — `isPending`       | দুটি value তুলনা করে বের করুন |
 
 মোটা দাগের নিয়ম: **setter আপনার হলে transition ব্যবহার করুন; শুধু value আপনার হলে সেটা defer করুন।**
 
@@ -136,7 +136,7 @@ return (
 | একটি render-এ 300 ms লাগে                     | প্রথম render কখনো cache হয় না; transition শুধু এটাকে সরিয়ে দেয়      |
 | 5,000 row scroll করলে আটকে আটকে চলে               | কাজটা সত্যিকারের; সমাধান হলো কাজটা না করা (virtualisation)        |
 
-বাস্তব application-এ প্রথম দুটোরই আধিপত্য। আগে এগুলো ঠিক করুন: bundle ভাগ করুন, request parallel করুন।
+বাস্তব application-এ প্রথম দুটিরই আধিপত্য। আগে এগুলো ঠিক করুন: bundle ভাগ করুন, request parallel করুন।
 
 ### সবকিছুর আগে profiling
 
@@ -189,7 +189,7 @@ React প্রতিটি render-এ একটি নতুন component type 
 
 ## 🔑 মূল শিক্ষা
 
-- ধীর একটি React screen-এর দুটো lever-এর একটি লাগে: memoisation দিয়ে কম কাজ, অথবা transition দিয়ে কাজের schedule।
+- ধীর একটি React screen-এর দুটি lever-এর একটি লাগে: memoisation দিয়ে কম কাজ, অথবা transition দিয়ে কাজের schedule।
 - React Compiler memoisation automate করে, কিন্তু Rules of React ভাঙে এমন যেকোনো component সে চুপচাপ বাদ দেয়।
 - `useTransition` এমন একটি update চিহ্নিত করে, যেটা আপনি trigger করেন। `useDeferredValue` এমন একটি value চিহ্নিত করে, যেটা আপনার হাতে দেওয়া হয়েছে।
 - কোনো lever-ই bundle size বা network waterfall ছোঁয় না, অথচ বাস্তবের বেশিরভাগ ধীরগতির কারণ এগুলোই।
@@ -212,7 +212,7 @@ React-এর বাইরে থেকে প্রতিবার নতুন 
 **Q: `useTransition` নাকি `useDeferredValue`?**
 
 নির্ভর করে state update আপনার হাতে কি না তার ওপর। আপনি যদি `setState` call করেন, সেটা `startTransition`-এ wrap
-করুন আর `isPending` ব্যবহার করুন। Value যদি parent বা একটি store থেকে আসে, সেটা defer করুন আর দুটো value তুলনা
+করুন আর `isPending` ব্যবহার করুন। Value যদি parent বা একটি store থেকে আসে, সেটা defer করুন আর দুটি value তুলনা
 করে pending state বের করুন। যেভাবেই হোক, ভারী child-টিকে memoise করা থাকতে হবে, নইলে জরুরি pass এটাকে এমনিতেই
 render করে।
 
@@ -233,7 +233,7 @@ measurement-সহ।
 
 যখন value-টি কোনো render-এর অংশ নয়, যেমন একটি non-React library-কে দেওয়া একটি stable object, বা এমন একটি ভারী
 result যেটা একটি effect-কে খাওয়ায়। আর এমন একটি component-এ, যেটা compiler compile করতে পারে না আর আপনি এখনো ঠিক
-করতে পারছেন না। দুটোতেই কারণ জানিয়ে একটি comment থাকা উচিত, কারণ default উত্তর এখন "লিখবেন না"।
+করতে পারছেন না। দুটিতেই কারণ জানিয়ে একটি comment থাকা উচিত, কারণ default উত্তর এখন "লিখবেন না"।
 
 ## এরপর কী পড়বেন
 

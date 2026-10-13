@@ -9,11 +9,11 @@ model: "claude-opus-5-5 (Claude Code)"
 
 > একটি page-এর কোন অংশ দেরিতে আসতে পারে আর কোন অংশ ব্যর্থ হতে পারে, তা ঠিক করুন, আর প্রতিটির জন্য এক জোড়া boundary বসান।
 
-**এই অধ্যায়ে:** দুটো boundary, দুই ধরনের ব্যর্থতা · network দিয়ে streaming SSR · error boundary যা ধরে না · boundary কোথায় বসাবেন · hydration mismatch
+**এই অধ্যায়ে:** দুটি boundary, দুই ধরনের ব্যর্থতা · network দিয়ে streaming SSR · error boundary যা ধরে না · boundary কোথায় বসাবেন · hydration mismatch
 
 ## 💡 মূল ধারণা
 
-React-এ দুটো boundary আছে, আর এরা ভাইবোনের মতো। একটি **Suspense boundary** ধরে "এখনো তৈরি নয়"। একটি **error
+React-এ দুটি boundary আছে, আর এরা ভাইবোনের মতো। একটি **Suspense boundary** ধরে "এখনো তৈরি নয়"। একটি **error
 boundary** ধরে "ব্যর্থ হয়েছে"। কোনোটাই data fetch করে না বা bug ঠিক করে না। প্রতিটি শুধু ঘোষণা করে, তার বদলে user
 কী দেখবেন, আর তার বাইরের সবকিছুকে চলতে দেয়।
 
@@ -25,11 +25,11 @@ tree-কে unmount করে দেয়। এগুলো থাকলে, �
 
 ## কীভাবে কাজ করে
 
-### দুটো boundary, একটি region
+### দুটি boundary, একটি region
 
-যে region data load করে, সেটা loading, loaded বা failed হতে পারে, তাই সাধারণত এটা দুটো boundary-ই পায়।
+যে region data load করে, সেটা loading, loaded বা failed হতে পারে, তাই সাধারণত এটা দুটি boundary-ই পায়।
 
-**একটি region, দুটো boundary:**
+**একটি region, দুটি boundary:**
 
 ```tsx
 <ErrorBoundary fallback={<ChartUnavailable />}>
@@ -67,7 +67,7 @@ render করতে বলে। হয় একটু দেরিতে স�
 
 ### Error boundary নিজে
 
-Error boundary এখনো একটি class component। এর যে দুটো lifecycle method লাগে, তাদের কোনো hook সমতুল্য নেই। প্রতিটি
+Error boundary এখনো একটি class component। এর যে দুটি lifecycle method লাগে, তাদের কোনো hook সমতুল্য নেই। প্রতিটি
 codebase-এ আপনি এটা একবার লেখেন, অথবা `react-error-boundary` package ব্যবহার করেন।
 
 **একটি ন্যূনতম boundary:**
@@ -116,7 +116,7 @@ Event handler-এর ক্ষেত্রটা মানুষকে অবা
 
 ### Client-এ Suspense
 
-Load হওয়ার পরেও দুটো boundary কাজ করে। React 19-এর `use(promise)` promise settle না হওয়া পর্যন্ত suspend করে, আর
+Load হওয়ার পরেও দুটি boundary কাজ করে। React 19-এর `use(promise)` promise settle না হওয়া পর্যন্ত suspend করে, আর
 সবচেয়ে কাছের Suspense fallback দেখা যায়। Promise reject হলে সবচেয়ে কাছের error boundary দায়িত্ব নেয়।
 
 **একটি streamed promise পড়া:**
@@ -200,7 +200,7 @@ boundary। কোথায় বসাবেন, সেই সিদ্ধা�
 - একটি Suspense boundary ধরে "এখনো তৈরি নয়", আর একটি error boundary ধরে "ব্যর্থ হয়েছে"। কোনোটাই কিছু fetch বা ঠিক করে না।
 - Streaming SSR প্রথমে shell পাঠায়, আর প্রতিটি boundary-র data resolve হলে তার HTML বসিয়ে দেয়, hydration-এর আগেই।
 - একটি error boundary এর নিচের rendering, lifecycle আর effect-এর error ধরে — event handler, timer বা নিজের render কখনো নয়।
-- User যে region-গুলোকে আলাদা হিসেবে দেখেন, সেগুলোর চারপাশে দুটো boundary-ই বসান, error boundary-কে Suspense boundary-র বাইরে রেখে।
+- User যে region-গুলোকে আলাদা হিসেবে দেখেন, সেগুলোর চারপাশে দুটি boundary-ই বসান, error boundary-কে Suspense boundary-র বাইরে রেখে।
 - একটি hydration mismatch React-কে client-এ subtree আবার render করতে বাধ্য করে, আর অবৈধ HTML nesting data-র মতোই প্রায়ই এর কারণ হয়।
 
 ## Interview-এর প্রশ্ন

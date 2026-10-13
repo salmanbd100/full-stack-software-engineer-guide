@@ -148,8 +148,8 @@ request id, বা অস্থির ক্রমে থাকা একটি 
 
 **Routing আর cascade।** Intent classification আর schema-বাঁধা extraction ছোট model-এ ভালোই চলে। Frontier
 model রেখে দিন খোলামেলা reasoning আর লম্বা tool chain-এর জন্য। একটি **cascade** সস্তা model চালায়, ফলাফল যাচাই করে,
-আর ব্যর্থ হলে ওপরের model-এ পাঠায়। আগে escalation rate মাপুন। ওপরে পাঠানো প্রতিটি request দুটো call-এর দামই দেয়
-আর দুটোর জন্যই অপেক্ষা করে। তাই হার বেশি হলে সাশ্রয় খেয়ে ফেলে, আর latency বাড়ায়।
+আর ব্যর্থ হলে ওপরের model-এ পাঠায়। আগে escalation rate মাপুন। ওপরে পাঠানো প্রতিটি request দুটি call-এর দামই দেয়
+আর দুটির জন্যই অপেক্ষা করে। তাই হার বেশি হলে সাশ্রয় খেয়ে ফেলে, আর latency বাড়ায়।
 
 **Batching আর streaming।** Batch API সাধারণত দেরিতে পাওয়া ফলাফলের জন্য দাম অর্ধেক করে দেয়, তাই রাতের backfill
 সেখানেই যায়। **Streaming কোনো টাকা বাঁচায় না**, শুধু তখন ছাড়া, যখন একজন user একটি ভুল উত্তর আগেভাগে থামিয়ে দেন।
@@ -170,7 +170,7 @@ function costOf(span: LlmSpan, price: Price): number {
 ```
 
 এটা `userId` অনুযায়ী যোগ করুন, আর গড় নয়, percentile হিসেবে track করুন। p99 user-এর খরচ median-এর পঞ্চাশ গুণ হতে
-পারে। ভদ্রভাবে সীমা টানা একটি per-user token budget bill আর service, দুটোকেই রক্ষা করে।
+পারে। ভদ্রভাবে সীমা টানা একটি per-user token budget bill আর service, দুটিকেই রক্ষা করে।
 
 ## কখন ব্যবহার করবেন
 
@@ -217,13 +217,13 @@ cache-read token, model version, prompt version, finish reason আর খরচ�
 
 Cache hit rate। সবচেয়ে সাধারণ কারণ হলো একটি prefix, যেটা cache হওয়া বন্ধ করেছে। Interpolate করা একটি timestamp
 বা নতুন ক্রমে সাজানো একটি tool list-ই এর জন্য যথেষ্ট। এরপর assemble করা token সংখ্যা, কারণ corpus বাড়ার সাথে
-retrieve করা context-ও বাড়ে। এই দুটো বাদ না দেওয়া পর্যন্ত আমি model-এ হাত দেব না, কারণ downgrade সবখানে quality-র
+retrieve করা context-ও বাড়ে। এই দুটি বাদ না দেওয়া পর্যন্ত আমি model-এ হাত দেব না, কারণ downgrade সবখানে quality-র
 দাম নেয়।
 
 **Q: সস্তা model-এর cascade কখন ভালো ধারণা?**
 
 যখন সস্তা model সাধারণত সফল হয়, আর একটি নির্ভরযোগ্য যাচাই আছে, যেমন schema validation। আগে escalation rate
-মাপুন। প্রতিটি escalation দুটো call-এরই দাম দেয়। তাই cascade টাকা বাঁচায় শুধু ততক্ষণ, যতক্ষণ সস্তা call-গুলোর
+মাপুন। প্রতিটি escalation দুটি call-এরই দাম দেয়। তাই cascade টাকা বাঁচায় শুধু ততক্ষণ, যতক্ষণ সস্তা call-গুলোর
 খরচ এড়ানো strong-model call-গুলোর চেয়ে কম। মোটামুটি বিশ শতাংশের নিচে এটা বড় সাশ্রয়।
 
 ## এরপর কী পড়বেন

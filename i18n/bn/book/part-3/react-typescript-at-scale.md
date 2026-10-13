@@ -29,7 +29,7 @@ narrow করে। বড় একটি React codebase থেকে এই �
 
 ## কীভাবে কাজ করে
 
-### Props দুটো file-এর মধ্যে একটি contract
+### Props দুটি file-এর মধ্যে একটি contract
 
 ```tsx
 interface UserCardProps {
@@ -126,7 +126,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 `item` ছাড়া `dispatch({ type: "add" })` compile হবে না, `type`-এ typo থাকলেও না।
 
-দুটো `useState` annotation জেনে রাখা ভালো। যখন `null` আসল type-কে লুকিয়ে ফেলে, তখন annotate করুন। খালি array-ও
+দুটি `useState` annotation জেনে রাখা ভালো। যখন `null` আসল type-কে লুকিয়ে ফেলে, তখন annotate করুন। খালি array-ও
 annotate করুন, কারণ `useState([])` widen হয়ে `never[]` হয়ে যায়, আর তাতে কখনো কিছু যোগ করা যায় না।
 
 ```tsx
@@ -181,7 +181,7 @@ case handle করে, যেটা অসম্ভব হওয়া উচি
 
 ### Server boundary পেরিয়ে type দেওয়া
 
-React 19-এর দুটো ধারণার typing-এর নিয়ম আছে, যেগুলো শুধু server/client ভাগের কারণেই আছে।
+React 19-এর দুটি ধারণার typing-এর নিয়ম আছে, যেগুলো শুধু server/client ভাগের কারণেই আছে।
 
 **একটি Client Component-এ ঢোকা props-কে serialisable হতে হবে।** Server Component থেকে render করা একটি Client
 Component-এ TypeScript খুশিমনে `onSave: () => void` মেনে নেবে, কিন্তু runtime-এ এটা fail করে। Type system
@@ -250,7 +250,7 @@ version দেখে নিন।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি props interface দুটো file-এর মধ্যে একটি contract। এটা explicit-ভাবে annotate করুন, আর `React.FC` বাদ দিন।
+- একটি props interface দুটি file-এর মধ্যে একটি contract। এটা explicit-ভাবে annotate করুন, আর `React.FC` বাদ দিন।
 - `status`-এর ওপর একটি discriminated union সেই অসম্ভব combination-গুলো সরিয়ে দেয়, যেগুলো boolean flag তৈরি করে।
 - একটি action union, সাথে একটি `never` default, প্রতিটি invalid dispatch-কে একটি compile error-এ পরিণত করে।
 - একটি context-এর default `undefined` দিন আর accessor hook-এ throw করুন, যাতে consumer-দের কখনো এটা handle করতে না হয়।

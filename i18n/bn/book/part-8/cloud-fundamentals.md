@@ -73,7 +73,7 @@ function, বা একটি managed product। মইয়ের প্রত
 
 Provider **cloud-টি** সুরক্ষিত রাখে: ভবন, hardware, hypervisor, আর তার managed service-গুলোর ভেতরের অংশ। আপনি
 সুরক্ষিত রাখেন **এর ভেতরে যা রাখেন**: আপনার data, আপনার access control, আপনার code, আর যে operating system আপনি
-নিজের কাছে রাখার সিদ্ধান্ত নিয়েছেন। দুটো জিনিস প্রতিটি ধাপেই আপনার থাকে, আর প্রায় সব সত্যিকারের breach সেখানেই ঘটে:
+নিজের কাছে রাখার সিদ্ধান্ত নিয়েছেন। দুটি জিনিস প্রতিটি ধাপেই আপনার থাকে, আর প্রায় সব সত্যিকারের breach সেখানেই ঘটে:
 
 - **আপনার data** — আপনি কী classify, encrypt, retain আর delete করেন
 - **আপনার access control** — কার হাতে কোন key, আর সেটা কতটা সংকীর্ণ
@@ -216,7 +216,7 @@ object storage-এ, hashed আর চিরকালের জন্য cached�
 ## সাধারণ ভুল
 
 ❌ **একটি availability zone-এ deploy করা।** দ্বিতীয় একটি zone-এর খরচ কম, আর availability-তে এর চেয়ে বড় লাভ আর
-নেই। ✅ অন্তত দুটোতে চালান।
+নেই। ✅ অন্তত দুটিতে চালান।
 
 ❌ **অভ্যাসবশে region বাছাই করা।** `us-east-1` tutorial-এর default, আর residency নিয়ম আছে এমন একটি ইউরোপীয়
 product-এর জন্য ভুল উত্তর। ✅ আগে user, তারপর আইন, তারপর দাম দেখে বাছুন।
@@ -270,7 +270,7 @@ Browser API-এর কাছে permission চায়। API user-কে autho
 
 **Q: একটি deploy-এর পর user-রা পুরোনো JavaScript পাচ্ছে। কী ভুল হলো, আর কীভাবে ঠিক করবেন?**
 
-দুটো সম্ভাব্য কারণ আছে। Asset-এর filename বদলায়নি, তাই edge এখনো পুরোনো byte serve করছে। অথবা যে HTML এগুলোকে
+দুটি সম্ভাব্য কারণ আছে। Asset-এর filename বদলায়নি, তাই edge এখনো পুরোনো byte serve করছে। অথবা যে HTML এগুলোকে
 reference করে, সেটা বেশি সময় cached থাকছে। Content hash করে asset filename-এ বসান, যাতে প্রতিটি build নতুন URL
 তৈরি করে, আর সেগুলো চিরকালের জন্য cache করুন। HTML-কে একটি ছোট `s-maxage` দিন, আর শুধু সেটাকেই purge করুন।
 

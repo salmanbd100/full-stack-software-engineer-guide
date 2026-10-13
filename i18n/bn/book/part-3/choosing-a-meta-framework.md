@@ -47,7 +47,7 @@ model আর deployment target**। একটি meta-framework আসলে এ
 | **SvelteKit 2** | Server rendering, client hydration | `load` function, আর write-এর জন্য form action | ছোট bundle, কম framework-আনুষ্ঠানিকতা, আর যে team authoring model-কে মূল্য দেয় |
 | **Astro 5** | Static, ইচ্ছামতো island সহ | Build বা request-এর সময় component-level fetching | Content-নির্ভর site, যেখানে interactivity-র কিছু island আছে |
 
-সৎ সারকথা: **একটি application-এর জন্য Next.js আর SvelteKit দুটোই ঠিক উত্তর, আর team-ই সমতা ভাঙে। একটি content
+সৎ সারকথা: **একটি application-এর জন্য Next.js আর SvelteKit দুটিই ঠিক উত্তর, আর team-ই সমতা ভাঙে। একটি content
 site-এর জন্য Astro একটি আলাদা, আর সাধারণত ভালো, tool।**
 
 ### আসল পার্থক্য data loading-এ
@@ -69,7 +69,7 @@ export async function loader({ params }: { params: { id: string } }) {
 }
 ```
 
-দুটোই server-এ fetch করে। পার্থক্য হলো **waterfall (যে request-গুলো একটি আরেকটির জন্য অপেক্ষা করে) কোথায় তৈরি
+দুটিই server-এ fetch করে। পার্থক্য হলো **waterfall (যে request-গুলো একটি আরেকটির জন্য অপেক্ষা করে) কোথায় তৈরি
 হতে পারে**। Component-level fetching co-location সহজ করে, আর ভুল করে nested waterfall তৈরি করাও সহজ করে।
 Route-level loading request-এর তালিকাকে স্পষ্ট করে, আর default-এ parallel রাখে। দাম হলো, একটি component নিজের
 data নিজে চাইতে পারে না।
@@ -104,9 +104,9 @@ Interview-এ এই tradeoff-টির নামই বলতে হবে। �
 
 ### Migration-এর প্রশ্ন
 
-কেউ ফাঁকা পাতায় framework বাছাই করে না। সবাই বাছাই করে পেছনে একটি চালু application নিয়ে। দুটো পথ কাজ করে।
+কেউ ফাঁকা পাতায় framework বাছাই করে না। সবাই বাছাই করে পেছনে একটি চালু application নিয়ে। দুটি পথ কাজ করে।
 প্রথমটি **route ধরে ধরে strangle করা**: একটি proxy-র পেছনে নতুন framework কিছু path serve করে, আর পুরোনোটি বাকিগুলো।
-দ্বিতীয়টি **component ধরে ধরে strangle করা**: shared অংশগুলো custom element হিসেবে ship হয়, যা দুটো stack-ই
+দ্বিতীয়টি **component ধরে ধরে strangle করা**: shared অংশগুলো custom element হিসেবে ship হয়, যা দুটি stack-ই
 mount করতে পারে। একটি switchover তারিখ ধরে parallel rewrite কাজ করে না।
 
 ## সাধারণ ভুল
@@ -130,8 +130,8 @@ mount করতে পারে। একটি switchover তারিখ ধ�
   আর সিদ্ধান্তের ভার সেগুলোর ওপর থাকা উচিত নয়।
 - Rendering model-গুলো কাছাকাছি চলে এসেছে, তাই আসল পার্থক্য data loading-এ। Component-level fetching co-locate করে,
   আর waterfall-এর ঝুঁকি আনে। Route-level loading স্পষ্ট, আর default-এ parallel।
-- Server-first বনাম client-first, আর data-loading pattern — এই দুটো সিদ্ধান্ত সস্তায় ফেরানো যায় না।
-- Application-এর জন্য Next.js আর SvelteKit দুটোরই পক্ষে যুক্তি দেওয়া যায়, আর team-ই সমতা ভাঙে। Content-নির্ভর
+- Server-first বনাম client-first, আর data-loading pattern — এই দুটি সিদ্ধান্ত সস্তায় ফেরানো যায় না।
+- Application-এর জন্য Next.js আর SvelteKit দুটিরই পক্ষে যুক্তি দেওয়া যায়, আর team-ই সমতা ভাঙে। Content-নির্ভর
   site-এর জন্য Astro একটি আলাদা tool।
 - Migration সফল হয় route ধরে ধরে বা component ধরে ধরে strangle করে, আর ব্যর্থ হয় parallel rewrite হিসেবে।
 
@@ -139,7 +139,7 @@ mount করতে পারে। একটি switchover তারিখ ধ�
 
 **Q: আপনি একটি নতুন product application শুরু করছেন। Next.js নাকি SvelteKit?**
 
-দুটোই কাজ করে, তাই উত্তরটা হতে হবে team আর সীমাবদ্ধতা নিয়ে, framework নিয়ে নয়। যা আসলে আলাদা, তার নাম বলুন:
+দুটিই কাজ করে, তাই উত্তরটা হতে হবে team আর সীমাবদ্ধতা নিয়ে, framework নিয়ে নয়। যা আসলে আলাদা, তার নাম বলুন:
 data-loading model, deployment-এর গল্প, আর যে ecosystem আপনার লাগবে তার আকার। তারপর বলুন কোনটা আপনার সিদ্ধান্ত
 ঠিক করবে। Team যদি React-এ ship করে থাকে আর product-এর একটি বড় third-party ecosystem লাগে, তাহলে Next.js। Team
 যদি ছোট runtime আর কম framework-আনুষ্ঠানিকতাকে মূল্য দেয়, আর SvelteKit-এর অভিজ্ঞতা থাকে, তাহলে SvelteKit। যে
@@ -154,10 +154,10 @@ Styling, bundler আর বেশিরভাগ library একটি codemod-�
 
 **Q: পাঁচ বছরের পুরোনো একটি client-rendered application-কে কীভাবে একটি server-first framework-এ migrate করবেন?**
 
-Route ধরে ধরে, একটি proxy-র পেছনে। নতুন framework একটি path-এর মালিক, পুরোনো application বাকি সবকিছুর, আর দুটো
+Route ধরে ধরে, একটি proxy-র পেছনে। নতুন framework একটি path-এর মালিক, পুরোনো application বাকি সবকিছুর, আর দুটি
 স্বাধীনভাবে ship হয়। শুরু করুন কম ঝুঁকির, বেশি মূল্যের একটি route দিয়ে — সাধারণত একটি marketing বা detail page,
-যেখানে SEO বা LCP-র লাভ সত্যিকারের। Shared component এমন এক জায়গায় রাখুন, যা দুটো stack-ই ব্যবহার করতে পারে।
-আমি একটি switchover তারিখ ধরে parallel rewrite করতাম না। সেটা চলার সময় feature-এর কাজ থামে না, আর দুটো version
+যেখানে SEO বা LCP-র লাভ সত্যিকারের। Shared component এমন এক জায়গায় রাখুন, যা দুটি stack-ই ব্যবহার করতে পারে।
+আমি একটি switchover তারিখ ধরে parallel rewrite করতাম না। সেটা চলার সময় feature-এর কাজ থামে না, আর দুটি version
 আলাদা দিকে সরে যায়।
 
 **Q: কখন একটি meta-framework পুরোপুরি ভুল বাছাই?**

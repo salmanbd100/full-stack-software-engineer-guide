@@ -69,7 +69,7 @@ function shardIndex(key: string, shardCount: number): number {
 
 ### Consistent hashing
 
-Consistent hashing modulo সরিয়ে দেয়। Key আর shard দুটোই একটি ring-এ বসে, আর একটি key তার থেকে clockwise প্রথম
+Consistent hashing modulo সরিয়ে দেয়। Key আর shard দুটিই একটি ring-এ বসে, আর একটি key তার থেকে clockwise প্রথম
 shard-এর। নতুন shard শুধু তার প্রতিবেশীর কাছ থেকে key নেয়, তাই মোটামুটি `1/N` data সরে। প্রতিটি shard ring-এর অনেক
 বিন্দুতেও বসে। এই **virtual node**-গুলো ভাগগুলো সমান রাখে।
 
@@ -117,7 +117,7 @@ Shard key ছাড়া query হলো **scatter-gather**। এটা সব
 ### একটি shard-এর ভেতরে transaction
 
 একটি shard-এর ভেতরে সাধারণ transaction এখনো কাজ করে। **Read committed** সঠিক default, আর PostgreSQL-এরও এটাই।
-এর ফাঁক হলো **lost update**। দুটো request প্রত্যেকে একটি value পড়ে, বদলায় আর আবার লেখে: দুটোই 100 পড়ে, দুটোই 50
+এর ফাঁক হলো **lost update**। দুটি request প্রত্যেকে একটি value পড়ে, বদলায় আর আবার লেখে: দুটিই 100 পড়ে, দুটিই 50
 লেখে, আর একটি পরিবর্তন হারিয়ে যায়। Balance আর stock-এর ক্ষেত্রে এটা গুরুত্বপূর্ণ।
 
 **হিসাবটা database-কেই করতে দিন, একটি conditional statement-এ:**
@@ -138,14 +138,14 @@ Conflict কদাচিৎ হলে এটা মানানসই। **Pessi
 
 | প্রয়োজন | উত্তর |
 | --- | --- |
-| একটি shard-এ দুটো write | একটি সাধারণ transaction — key এমনভাবে বাছুন, যাতে দুটো একসাথে পড়ে |
-| দুটো shard-এ দুটো write | কিছু store এটা support করে, latency-র খরচে; বেশিরভাগ করে না |
-| দুটো service-এ দুটো write | একটি **saga**: local transaction-এর একটি শিকল, প্রতিটির একটি compensation |
+| একটি shard-এ দুটি write | একটি সাধারণ transaction — key এমনভাবে বাছুন, যাতে দুটি একসাথে পড়ে |
+| দুটি shard-এ দুটি write | কিছু store এটা support করে, latency-র খরচে; বেশিরভাগ করে না |
+| দুটি service-এ দুটি write | একটি **saga**: local transaction-এর একটি শিকল, প্রতিটির একটি compensation |
 | একটি write-এর সাথে পাঠানো message | **Outbox**: event-টি একই local transaction-এ লিখুন |
 
 **Two-phase commit** network জুড়ে lock ধরে রাখে, আর coordinator মারা গেলে সবাইকে আটকে দেয়। **Saga** এর বদলে
 প্রতিটি ধাপ locally commit করে। তিন নম্বর ধাপ fail করলে এটা দুই আর এক নম্বর ধাপের compensation চালায়, যেমন একটি
-refund। একটি row লেখা আর একটি message publish করার মাঝে crash হলে দুটোর একটি হারায়। **Outbox** এটা ঠিক করে: event-টি
+refund। একটি row লেখা আর একটি message publish করার মাঝে crash হলে দুটির একটি হারায়। **Outbox** এটা ঠিক করে: event-টি
 একই transaction-এ একটি table-এ লিখুন, আর একটি relay সেটা publish করে।
 
 **Outbox আর idempotent consumer একসাথে:**
@@ -190,10 +190,10 @@ async function onOrderPlaced(db: Db, event: OutboxEvent): Promise<void> {
 ❌ **সাধারণ modulo hashing।** প্রথমবার shard যোগ করলেই এটা ভাঙে, ঠিক যখন এটা সবচেয়ে বেশি দরকার।
 ✅ শুরু থেকেই virtual node-সহ consistent hashing।
 
-❌ **ধরে নেওয়া যে transaction এখনো কাজ করে।** দুটো shard জুড়ে একটি write আর atomic নয়। ✅ Key এমনভাবে বাছুন, যাতে
+❌ **ধরে নেওয়া যে transaction এখনো কাজ করে।** দুটি shard জুড়ে একটি write আর atomic নয়। ✅ Key এমনভাবে বাছুন, যাতে
 atomic যা কিছু, সব একটি shard-এ থাকে, আর বাকিটার জন্য saga ব্যবহার করুন।
 
-❌ **আগে write, তারপর publish।** দুটোর মাঝে crash হলে event হারায়, অথবা একটি ভুতুড়ে event চলে যায়। ✅ একই
+❌ **আগে write, তারপর publish।** দুটির মাঝে crash হলে event হারায়, অথবা একটি ভুতুড়ে event চলে যায়। ✅ একই
 transaction-এ একটি outbox-এ লিখুন।
 
 ## 🔑 মূল শিক্ষা
@@ -223,7 +223,7 @@ row কখনো না সরে আর write সবচেয়ে নতু�
 Decrement-টি একটি statement-এ conditional আর atomic করুন, আর affected row শূন্য হলে sold out ধরুন। Payment শেষ হওয়া
 পর্যন্ত stock ধরে রাখতে হলে expiry-সহ reserve-then-confirm-এ যান। Payment call চলাকালীন database lock ধরে রাখা চলে না।
 
-**Q: একটি order service আর একটি payment service দুটোকেই সফল হতে হবে। আপনি কি two-phase commit ব্যবহার করবেন?**
+**Q: একটি order service আর একটি payment service দুটিকেই সফল হতে হবে। আপনি কি two-phase commit ব্যবহার করবেন?**
 
 না। Two-phase commit network জুড়ে lock ধরে রাখে, আর coordinator fail করলে সবাইকে আটকে দেয়। একটি saga ব্যবহার করুন:
 প্রতিটি service locally commit করে, আর একটি failure refund-এর মতো compensation চালায়। প্রতিটি ধাপ একটি outbox দিয়ে

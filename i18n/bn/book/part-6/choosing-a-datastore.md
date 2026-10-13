@@ -18,9 +18,9 @@ correctness-এর জন্য write-এর খরচ দেয়। Key-value
 সম্পর্কিত data একসাথে রাখার জন্য join ছেড়ে দেয়। তাই প্রশ্নটা কখনোই "কোনটা সেরা" নয়। প্রশ্ন হলো "কোন trade-off-গুলো
 এই system সবচেয়ে বেশি যা করে, তার সাথে মেলে"।
 
-বাছাই হয়ে গেলে আপনি data একাধিক machine-এ copy করেন। এটাই **replication**, আর এটা দুটো আলাদা জিনিস দেয়।
+বাছাই হয়ে গেলে আপনি data একাধিক machine-এ copy করেন। এটাই **replication**, আর এটা দুটি আলাদা জিনিস দেয়।
 **Durability** মানে একটি machine হারালে data হারায় না। **Read capacity** মানে কয়েকটি machine query-র উত্তর দিতে
-পারে। এর খরচ একটাই: একই মুহূর্তে copy-গুলো কখনো হুবহু এক থাকে না, তাই কেউ এমন value পড়তে পারে যেটা ইতিমধ্যে পুরোনো।
+পারে। এর খরচ একটিই: একই মুহূর্তে copy-গুলো কখনো হুবহু এক থাকে না, তাই কেউ এমন value পড়তে পারে যেটা ইতিমধ্যে পুরোনো।
 
 > Relational-ই default, আর সেটা ছাড়তে হলে এক বাক্যের একটি কারণ লাগে। "হয়তো scale করতে হবে" সেই বাক্য নয়।
 
@@ -90,7 +90,7 @@ flowchart LR
 
 **প্রতিটি তথ্যের মালিক একটি store; বাকিগুলো সেখান থেকে derive করা, আর আবার তৈরি করা যায়।**
 
-দুটো store যদি একই তথ্যের মালিকানা দাবি করে, তারা ধীরে ধীরে আলাদা হয়ে যায়, আর কোনটা ঠিক তা কিছুই আপনাকে
+দুটি store যদি একই তথ্যের মালিকানা দাবি করে, তারা ধীরে ধীরে আলাদা হয়ে যায়, আর কোনটা ঠিক তা কিছুই আপনাকে
 বলে না। একটিতে write করুন, বাকিগুলো derive করুন।
 
 ### Leader আর topology
@@ -123,7 +123,7 @@ millisecond, আর replica rebuild হওয়ার সময় কয়ে
 | ---------------- | ------------------------------------------- | --------------------------------------- |
 | Read-your-writes | "আমি save করলাম, কিন্তু save হয়নি"            | কিছুক্ষণের জন্য সেই user-কে leader-এ পাঠান    |
 | Monotonic reads  | একটি value দেখা দেয়, তারপর refresh করলে উধাও   | একটি session-কে একটি replica-য় আটকে রাখুন            |
-| Causal order     | যে comment-এর উত্তর, তার আগেই reply দেখা যায় | দুটোই একই replica থেকে পড়ুন         |
+| Causal order     | যে comment-এর উত্তর, তার আগেই reply দেখা যায় | দুটিই একই replica থেকে পড়ুন         |
 
 **Lag কতটা সহ্য করা যায়, সেই অনুযায়ী read route করা:**
 
@@ -147,7 +147,7 @@ Leader মারা গেলে আপনি একটি replica-কে promot
 position-ওয়ালা replica বাছেন, আর client-দের সেটার দিকে পাঠান। তারপর নিশ্চিত করেন যে পুরোনো leader আর leader
 হিসেবে ফিরে আসতে **পারবে না**।
 
-> ⚠️ মানুষ এই শেষ ধাপটাই ভুলে যায়। পুরোনো leader সেরে উঠে যদি এখনো নিজেকে primary ভাবে, দুটো node write নেয়
+> ⚠️ মানুষ এই শেষ ধাপটাই ভুলে যায়। পুরোনো leader সেরে উঠে যদি এখনো নিজেকে primary ভাবে, দুটি node write নেয়
 > আর data দুই ভাগ হয়ে যায়। এটাই **split brain**। Fencing এটা ঠেকায়: একটি ক্রমশ বাড়তে থাকা term number, যেটা
 > storage প্রতিটি write-এ যাচাই করে। Fencing ছাড়া automatic failover data হারায়।
 
@@ -194,7 +194,7 @@ Replica সামলায় একটি machine বা zone মারা য�
 - Access pattern থেকে শুরু করুন, কারণ প্রতিটি non-relational store-এ primary key-ই query plan।
 - Relational-ই default, আর সেটা ছাড়তে access shape বা write volume নিয়ে নির্দিষ্ট কারণ লাগে।
 - প্রতিটি তথ্যের মালিক ঠিক একটি store, আর বাকি প্রতিটি copy একটি projection, যেটা আবার তৈরি করা যায়।
-- Replication durability আর read capacity দেয়, আর দুটোর বদলেই staleness নেয়।
+- Replication durability আর read capacity দেয়, আর দুটির বদলেই staleness নেয়।
 - Asynchronous failover এখনো না পাঠানো প্রতিটি write হারায়, আর fencing ছাড়া failover split brain-এর ঝুঁকি তৈরি করে।
 
 ## Interview-এর প্রশ্ন

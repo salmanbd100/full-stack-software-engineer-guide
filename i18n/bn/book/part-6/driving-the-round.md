@@ -26,7 +26,7 @@ search scope-এর বাইরে, তাই আমি এই trade-off নি
 
 ## কীভাবে কাজ করে
 
-**RADIO** হলো চলার ক্রম। এটাই একমাত্র framework নয়। কিন্তু এটা সবচেয়ে সাধারণ দুটো ব্যর্থতা থেকে বাঁচায়:
+**RADIO** হলো চলার ক্রম। এটাই একমাত্র framework নয়। কিন্তু এটা সবচেয়ে সাধারণ দুটি ব্যর্থতা থেকে বাঁচায়:
 requirement জানার আগেই design শুরু করা, আর আসল মজার অংশে পৌঁছানোর আগেই সময় শেষ হয়ে যাওয়া।
 
 | ধাপ | পুরো নাম       | আপনি যা দেন                                                    | মিনিট |
@@ -173,7 +173,7 @@ local state। শুরুতেই এদের নাম বললে deep di
 | Theme, locale, feature flag    | Context         | অনেকে পড়ে, প্রায় কেউই লেখে না                              |
 | Session, cart, খোলা modal       | একটি client store | যে screen তৈরি করেছে, তার চেয়ে বেশি দিন বাঁচে                  |
 | Server যার মালিক এমন যেকোনো কিছু  | একটি query cache | এটা একটি *copy*, আর copy-র দরকার invalidation, reducer নয়    |
-| Filter, tab, pagination        | URL             | নইলে back button আর শেয়ার করা link দুটোই মিথ্যা বলে            |
+| Filter, tab, pagination        | URL             | নইলে back button আর শেয়ার করা link দুটিই মিথ্যা বলে            |
 
 চতুর্থ সারিটি senior উত্তরকে আলাদা করে। Global store-এ রাখা server data একটি cache, যেটা কাউকে হাতে invalidate
 করতে হবে, চিরকাল। পঞ্চম সারিটি সবচেয়ে সস্তায় পাওয়া নম্বর: একটি সিদ্ধান্তে deep link, back button আর refresh

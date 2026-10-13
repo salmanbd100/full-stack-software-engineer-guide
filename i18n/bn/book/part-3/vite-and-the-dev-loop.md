@@ -9,11 +9,11 @@ model: "claude-opus-5-5 (Claude Code)"
 
 > ব্যাখ্যা করুন, dev server কেন সঙ্গে সঙ্গে চালু হয় আর build কেন হয় না। আর benchmark নয়, compatibility দেখে bundler বেছে নিন।
 
-**এই অধ্যায়ে:** দুটো program, একটি config · unbundled dev server আর HMR · environment variable inline হয়ে যায় · bundler-গুলো কেন Rust-এ নতুন করে লেখা হলো · দ্রুততর bundler কী ঠিক করে না
+**এই অধ্যায়ে:** দুটি program, একটি config · unbundled dev server আর HMR · environment variable inline হয়ে যায় · bundler-গুলো কেন Rust-এ নতুন করে লেখা হলো · দ্রুততর bundler কী ঠিক করে না
 
 ## 💡 মূল ধারণা
 
-একটি dev server আর একটি production build ঠিক উল্টো দুটো সমস্যার সমাধান করে।
+একটি dev server আর একটি production build ঠিক উল্টো দুটি সমস্যার সমাধান করে।
 
 Dev server localhost-এ একজন developer-কে serve করে। একটি request-এর খরচ প্রায় শূন্য, আর code কয়েক সেকেন্ড পরপর
 বদলায়। এর উচিত **প্রতিটি পরিবর্তনে যতটা সম্ভব কম কাজ করা**।
@@ -21,12 +21,12 @@ Dev server localhost-এ একজন developer-কে serve করে। এক
 Build একটি সত্যিকারের network-এ প্রত্যেক user-কে serve করে। প্রতিটি request-এ একটি round trip লাগে, আর output একবার
 লেখা হয়, পড়া হয় লক্ষবার। এর উচিত **শুরুতেই যতটা সম্ভব বেশি কাজ করে ফেলা**।
 
-Vite-এর মূল অন্তর্দৃষ্টি ছিল, এ দুটোকে একই program বলে ভান করা বন্ধ করা। Development-এ এটা একেবারেই bundle করে না।
+Vite-এর মূল অন্তর্দৃষ্টি ছিল, এ দুটিকে একই program বলে ভান করা বন্ধ করা। Development-এ এটা একেবারেই bundle করে না।
 Browser native ESM দিয়ে module চায়, আর Vite চাহিদামতো সেগুলো transform করে। নিচের Rust-এ নতুন করে লেখা tool-গুলো
 আরও এগিয়ে যায়: একটি rebuild-এর খরচ হয় যা _বদলেছে_ তার সমান, যা আছে তার সমান নয়।
 
 > ⚠️ **যা বদলাতে থাকে:** এটা বইয়ের সবচেয়ে দ্রুত বদলানো কোণ। Vite 2–7 development-এ esbuild আর build-এ Rollup ব্যবহার
-> করত। Vite 8 দুটোকেই **Rolldown**-এ এক করেছে, যেটা Rollup-compatible plugin-সহ একটি Rust bundler। Next.js-এর ভেতরে
+> করত। Vite 8 দুটিকেই **Rolldown**-এ এক করেছে, যেটা Rollup-compatible plugin-সহ একটি Rust bundler। Next.js-এর ভেতরে
 > default হলো Turbopack, আর Rspack-এর লক্ষ্য Webpack build। Default, stability status আর benchmark আবার বদলাবে, তাই
 > নিজের version দেখে নিন। যে ধারণাগুলো টিকে থাকবে: development-এ কম কাজ, build-এ বেশি। আর bundler বেছে নিন **সেটা কোন
 > ecosystem রক্ষা করে** তা দেখে।
@@ -90,9 +90,9 @@ value-ও export করে। Framework plugin সেটা hot-swap করত�
 ### Plugin আর environment variable
 
 Vite plugin হলো বাড়তি hook-সহ Rollup plugin, তাই Rollup-এর জন্য লেখা একটি plugin সাধারণত কোনো বদল ছাড়াই কাজ করে।
-মূল hook-গুলো হলো `resolveId`, `load` আর `transform`। দুটো field ক্রম নিয়ন্ত্রণ করে, আর এগুলো ভুল করাই একটি plugin
+মূল hook-গুলো হলো `resolveId`, `load` আর `transform`। দুটি field ক্রম নিয়ন্ত্রণ করে, আর এগুলো ভুল করাই একটি plugin
 "কিছুই করে না" হওয়ার সাধারণ কারণ। `enforce: 'pre' | 'post'` একটি plugin-কে core plugin-গুলোর সাপেক্ষে বসায়।
-`apply: 'serve' | 'build'` এটাকে দুটো program-এর একটিতে সীমাবদ্ধ করে।
+`apply: 'serve' | 'build'` এটাকে দুটি program-এর একটিতে সীমাবদ্ধ করে।
 
 `VITE_` prefix-যুক্ত variable client code-এর কাছে `import.meta.env.VITE_*` হিসেবে খোলা থাকে। Prefix-টি একটি নিরাপত্তার
 গেট: environment-এর বাকি সবকিছু bundle-এর বাইরে থাকে। এই value-গুলো **build-এর সময় বদলে বসানো হয়**, runtime-এ পড়া
@@ -104,7 +104,7 @@ Vite plugin হলো বাড়তি hook-সহ Rollup plugin, তাই Ro
 
 ### নিচের স্তরটা কেন Rust-এ নতুন করে লেখা হলো
 
-কারণ দুটো, আর আকর্ষণীয়টা "JavaScript-এর চেয়ে Rust দ্রুত" নয়।
+কারণ দুটি, আর আকর্ষণীয়টা "JavaScript-এর চেয়ে Rust দ্রুত" নয়।
 
 **Parallelism।** Module parse আর transform করা পুরোপুরি parallel করা যায়: প্রতিটি file স্বাধীন, তাই কাজ পরিষ্কারভাবে
 ভাগ হয়ে যায়। একটি single-threaded JavaScript process machine-এর অন্য core-গুলো ব্যবহার করতে পারে না।
@@ -186,7 +186,7 @@ integration-এ production build চালান, শুধু release-এর �
 
 ## 🔑 মূল শিক্ষা
 
-- Dev server আর build দুটো আলাদা program: একদিকে প্রতিটি পরিবর্তনে সবচেয়ে কম কাজ, অন্যদিকে শুরুতেই সবচেয়ে বেশি কাজ।
+- Dev server আর build দুটি আলাদা program: একদিকে প্রতিটি পরিবর্তনে সবচেয়ে কম কাজ, অন্যদিকে শুরুতেই সবচেয়ে বেশি কাজ।
 - Development unbundled native ESM serve করে, আর HMR import graph ধরে ওপরে হাঁটে update গ্রহণ করে এমন একটি module-এর খোঁজে।
 - `VITE_` variable build-এর সময় inline হয়, তাই এগুলো public, আর বদলাতে হলে rebuild লাগে।
 - Rust এনে দিয়েছে সত্যিকারের parallelism আর একটি incremental cache, যাতে rebuild-এর খরচ পরিবর্তনের আকার অনুসরণ করে।
@@ -206,7 +206,7 @@ HMR বদলানো file থেকে ওপরের দিকে হাঁ�
 entry point-এ পৌঁছায়, আর Vite পুরো reload করে। সাধারণ কারণ হলো একটি component-এর পাশে export করা একটি constant।
 সেটাকে তার নিজের module-এ সরালেই ঠিক হয়।
 
-**Q: কিছু একটা development-এ কাজ করে কিন্তু production build-এ ভেঙে যায়। কোথা থেকে শুরু করবেন?**
+**Q: কিছু একটি development-এ কাজ করে কিন্তু production build-এ ভেঙে যায়। কোথা থেকে শুরু করবেন?**
 
 Dev আর build-এর মাঝের ফাঁক থেকে। Development unbundled module serve করে, কোনো tree shaking বা minification ছাড়া।
 Build তিনটিই করে। Vite 8-এর আগে এটা আলাদা CommonJS interop-সহ একটি আলাদা bundler-ও ব্যবহার করত। খুঁজুন এমন একটি

@@ -16,7 +16,7 @@ model: "claude-opus-5-5 (Claude Code)"
 
 ## কীভাবে ব্যবহার করবেন
 
-আগে জোরে জোরে উত্তর দিন, তারপর মিলিয়ে দেখুন। এই দুটো অর্ধেক। প্রথমটা বাদ দিলেই পাঠক নিজেকে তৈরি মনে করেন, আর
+আগে জোরে জোরে উত্তর দিন, তারপর মিলিয়ে দেখুন। এই দুটি অর্ধেক। প্রথমটা বাদ দিলেই পাঠক নিজেকে তৈরি মনে করেন, আর
 তারপর interview-এর ঘরে গিয়ে আটকে যান।
 
 1. **জোরে উত্তর দিন, নব্বই সেকেন্ডের মধ্যে।** আপনি যা চিনতে পারেন আর যা বলতে পারেন, তার ফাঁকটাই interview loop
@@ -30,7 +30,7 @@ model: "claude-opus-5-5 (Claude Code)"
 যে part-এর আশি শতাংশ প্রশ্নের উত্তর আপনি জোরে দিতে পারেন, সেটার revision থামাতে পারেন। যেটায় অর্ধেকের কম পান,
 সেটা ঠিকমতো পড়তে হবে, আবার চোখ বুলিয়ে নয়।
 
-> ⚠️ **এগুলো সেই প্রশ্ন নয়, যা আপনাকে জিজ্ঞেস করা হবে।** এগুলো সেই প্রশ্ন, যার উত্তর বইটি দেয় — দুটো আলাদা সেট।
+> ⚠️ **এগুলো সেই প্রশ্ন নয়, যা আপনাকে জিজ্ঞেস করা হবে।** এগুলো সেই প্রশ্ন, যার উত্তর বইটি দেয় — দুটি আলাদা সেট।
 > তালিকাটা মুখস্থ করা এর ভুল ব্যবহার। প্রতিটি প্রশ্ন একটি ব্যাখ্যা নতুন করে গড়ে তোলার সংকেত। Interview-এ প্রশ্নটা
 > আসবে অন্য শব্দে মোড়া হয়ে।
 
@@ -104,7 +104,7 @@ _15টি অধ্যায়ে 53টি প্রশ্ন।_
   - কখন ইচ্ছা করে SOLID উপেক্ষা করবেন?
 - **[TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript)**
   - Payment provider-এর ওপর এই `switch`-টি বড় হতেই থাকছে। কী করবেন?
-  - Decorator, proxy আর adapter-এর পার্থক্য কী? সবগুলোই তো কিছু একটা wrap করে।
+  - Decorator, proxy আর adapter-এর পার্থক্য কী? সবগুলোই তো কিছু একটি wrap করে।
   - কখন একটি pattern ভুল উত্তর?
 
 ## Part II — Browser Platform
@@ -288,7 +288,7 @@ _34টি অধ্যায়ে 148টি প্রশ্ন।_
   - একটি value হিসাব করার জন্য `$effect` কেন ভুল হাতিয়ার?
   - Svelte 5-এর update model React-এর থেকে কীভাবে আলাদা, আর তাতে কি কিছু যায় আসে?
   - এমন একটি table component কীভাবে বানাবেন, যেখানে caller প্রতিটি row নিজে render করতে পারে?
-  - কখন কিছু একটা component না হয়ে snippet হবে?
+  - কখন কিছু একটি component না হয়ে snippet হবে?
 - **[SvelteKit-এ Routing ও Loading](#ch-sveltekit-routing-and-loading)**
   - Data loading `+page.ts`-এ হবে নাকি `+page.server.ts`-এ, কী দিয়ে ঠিক হয়?
   - একটি SvelteKit load-এ streaming কীভাবে কাজ করে, আর tradeoff কী?
@@ -362,7 +362,7 @@ _34টি অধ্যায়ে 148টি প্রশ্ন।_
 - **[Vite, Rust Bundler ও Dev Loop](#ch-vite-and-the-dev-loop)**
   - একটি বড় application-এ Vite dev server কেন সঙ্গে সঙ্গে চালু হয়?
   - একটি file save করলে কখনো কখনো পুরো page কেন reload হয়?
-  - কিছু একটা development-এ কাজ করে, কিন্তু production build-এ ভাঙে। কোথা থেকে শুরু করবেন?
+  - কিছু একটি development-এ কাজ করে, কিন্তু production build-এ ভাঙে। কোথা থেকে শুরু করবেন?
   - Bundler-গুলোকে optimise না করে কেন Rust-এ নতুন করে লেখা হলো?
   - আপনার production build সফল, কিন্তু application একটি type error-এ crash করে। কীভাবে?
   - Build speed-এর জন্য আপনার team Webpack ছাড়তে চায়। প্রথমে কী জিজ্ঞেস করবেন?
@@ -395,7 +395,7 @@ _15টি অধ্যায়ে 62টি প্রশ্ন।_
   - কখন micro-frontend-কে না বলবেন?
   - React কেন সব remote জুড়ে singleton হতেই হবে, আর না হলে কী ভাঙে?
   - Production-এ একটি remote down। User কী দেখেন?
-  - দুটো micro-frontend বর্তমান user-কে কীভাবে share করে?
+  - দুটি micro-frontend বর্তমান user-কে কীভাবে share করে?
 - **[Design System, Dependency ও Upgrade](#ch-design-systems-at-scale)**
   - যে চল্লিশটি team-এর প্রত্যেকের নিজস্ব component আছে, তাদের মধ্যে একটি design system কীভাবে আনবেন?
   - আপনার সবচেয়ে বেশি ব্যবহৃত component-এর একটি prop-এর নাম বদলাতে হবে। কীভাবে ship করবেন?
@@ -493,7 +493,7 @@ _15টি অধ্যায়ে 61টি প্রশ্ন।_
   - GraphQL-এ N+1 সমস্যা কী, আর এটা কেন গঠনগত?
   - একটি GraphQL API-তে কীভাবে rate limit করবেন?
   - একটি tRPC API কি production-এ type-safe?
-  - একটি mobile app, একটি web app আর দুটো partner-এর আপনার API লাগবে। GraphQL, tRPC নাকি REST?
+  - একটি mobile app, একটি web app আর দুটি partner-এর আপনার API লাগবে। GraphQL, tRPC নাকি REST?
 - **[Rate Limiting](#ch-rate-limiting)**
   - Fixed window-এ সমস্যা কী?
   - অনেকগুলো server জুড়ে সঠিকভাবে কীভাবে গুনবেন?
@@ -512,7 +512,7 @@ _15টি অধ্যায়ে 61টি প্রশ্ন।_
   - একটি `LEFT JOIN` শুধু মিলে যাওয়া row ফেরত দিচ্ছে। কেন?
   - প্রতিটি group থেকে ওপরের তিনটি row কীভাবে পাবেন?
   - কখন denormalise করবেন?
-  - একই room-এর জন্য দুটো overlapping booking কীভাবে ঠেকাবেন?
+  - একই room-এর জন্য দুটি overlapping booking কীভাবে ঠেকাবেন?
 - **[Index, Query Plan, ORM ও Migration](#ch-indexes)**
   - আপনার `(user_id, status, created_at)`-এর ওপর একটি index আছে। কোন query-গুলো এটা ব্যবহার করে?
   - একটি query-র index আছে, তবু ধীর। কী check করবেন?
@@ -590,7 +590,7 @@ _18টি অধ্যায়ে 70টি প্রশ্ন।_
   - অনেকগুলো server জুড়ে real-time connection কীভাবে scale করবেন?
 - **[Service Boundary ও API Gateway](#ch-service-boundaries)**
   - একটি monolith কোথায় ভাঙবেন, কীভাবে ঠিক করবেন?
-  - দুটো service-কে atomically update করতে হবে। কী করবেন?
+  - দুটি service-কে atomically update করতে হবে। কী করবেন?
   - কখন microservice ভুল উত্তর?
   - একটি API gateway আর একটি load balancer-এর পার্থক্য কী?
   - Gateway এখন একটি single point of failure। এ নিয়ে কী করবেন?
@@ -608,7 +608,7 @@ _18টি অধ্যায়ে 70টি প্রশ্ন।_
   - কখন shard করবেন, আর তার বদলে কী করবেন?
   - একটি ভালো shard key কীসে হয়?
   - দুজন user একই সময়ে শেষ item-টি কিনছেন। Overselling কীভাবে ঠেকাবেন?
-  - একটি order service আর একটি payment service দুটোকেই সফল হতে হবে। আপনি কি two-phase commit ব্যবহার করবেন?
+  - একটি order service আর একটি payment service দুটিকেই সফল হতে হবে। আপনি কি two-phase commit ব্যবহার করবেন?
 - **[Frontend-এ Real-Time Feature](#ch-frontend-real-time-features)**
   - 30 সেকেন্ড offline থাকার পর একটি client reconnect করে। সে কীভাবে বাকিটা ধরে ফেলে?
   - Reconnection-এ কেন jitter লাগে?
@@ -694,7 +694,7 @@ _20টি অধ্যায়ে 95টি প্রশ্ন।_
   - আপনার কোম্পানির 400 পাতার internal documentation আছে। Assistant-টি design করুন।
   - উত্তর হিসেবে "কোনোটাই না" দেখতে কেমন?
   - Permission এই সিদ্ধান্তে কীভাবে প্রভাব ফেলে?
-  - দুটোই কি ব্যবহার করা যায়?
+  - দুটিই কি ব্যবহার করা যায়?
 - **[Ingestion ও Chunking](#ch-ingestion-and-chunking)**
   - একটি chunk কত বড় হওয়া উচিত?
   - Embedding model-এর চেয়ে chunking কেন বেশি গুরুত্বপূর্ণ?
@@ -704,7 +704,7 @@ _20টি অধ্যায়ে 95টি প্রশ্ন।_
 - **[Embedding, Vector Store ও Retrieval](#ch-retrieval)**
   - 0.82 cosine similarity আপনাকে কী বলে?
   - pgvector নাকি একটি আলাদা vector database?
-  - Vector, keyword, নাকি দুটোই?
+  - Vector, keyword, নাকি দুটিই?
   - Retriever যা পারে না, একটি reranker তা কী করে?
   - একজন user যা দেখতে পারেন, retrieval-কে কীভাবে শুধু তার মধ্যে সীমিত রাখবেন?
 - **[Agent আসলে কী, আর কখন একাধিক Agent লাগে](#ch-what-an-agent-actually-is)**
@@ -716,7 +716,7 @@ _20টি অধ্যায়ে 95টি প্রশ্ন।_
 - **[Memory, State ও দীর্ঘ সময়ের কাজ](#ch-durability-and-long-running-work)**
   - আপনার agent প্রথম message-এর একটি শর্ত ভুলে গেছে। কী ভুল হয়েছিল?
   - দশ step পরে একটি agent-এর window ভরে যায়। Summarise করবেন, নাকি আগে অন্য কিছু?
-  - একটি retry যাতে দুটো email না পাঠায়, কীভাবে ঠেকাবেন?
+  - একটি retry যাতে দুটি email না পাঠায়, কীভাবে ঠেকাবেন?
   - একটি destructive step-এর জন্য human approval কীভাবে implement করবেন?
 - **[Eval, Retrieval Metric ও Error Analysis](#ch-evals)**
   - একটি prompt change আসলেই উন্নতি এনেছে, কীভাবে জানবেন?
@@ -862,7 +862,7 @@ _7টি অধ্যায়ে 31টি প্রশ্ন।_
 - **[ব্যাখ্যা করা ও জোরে জোরে ভাবা](#ch-thinking-aloud)**
   - কতটা clarify করা বেশি হয়ে যায়?
   - দশ মিনিট পরে বুঝলেন আপনার পদ্ধতি কাজ করবে না। কী বলবেন?
-  - দুটো option-ই চান এমন একজন product manager-কে একটি technical trade-off কীভাবে ব্যাখ্যা করবেন?
+  - দুটি option-ই চান এমন একজন product manager-কে একটি technical trade-off কীভাবে ব্যাখ্যা করবেন?
   - আপনার ব্যাখ্যার মাঝপথে interviewer স্পষ্টতই আপনার design-এর সঙ্গে একমত নন। কী করবেন?
   - বাড়িয়ে না বলে, আবার নিজেকে হারিয়ে না ফেলে, team-এর কাজ নিয়ে কীভাবে কথা বলবেন?
 - **[লিখিত Communication](#ch-written-communication)**
