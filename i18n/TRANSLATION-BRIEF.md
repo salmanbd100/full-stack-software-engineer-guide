@@ -26,6 +26,36 @@ Never write into `i18n/bn/` by hand.
 - Keep the author's tone: direct, a little dry, opinionated. Do not add politeness the English does
   not have, and do not soften a warning
 
+## Write Bangla, not translated English
+
+The owner's verdict on the first full pass (#128, 2026-10-13): **it reads robotic.** A reader should
+feel they are reading a book written in Bangla. Translate the meaning of each paragraph, then write
+it the way you would explain it out loud. These are the habits that gave the first pass away:
+
+| Translationese | Write instead | Why |
+| -------------- | ------------- | --- |
+| `একটি` before every noun, copying "a/an" | Drop it, or use `একটা` / `-টা` / `-টি` only where Bangla needs a count | Bangla has no article. `একটি closure প্রশ্ন` is English grammar |
+| English sentence order: `TDZ সেটাকে একটি stack trace-এ পরিণত করে` | Rebuild the sentence: `TDZ থাকলে সেখানেই error হয়, আর stack trace দোষী line-টা দেখিয়ে দেয়` | Bangla puts the verb last and prefers cause → effect |
+| Stiff verbs: `পরিণত করে`, `গণ্য হয়`, `নির্ধারণ করে`, `প্রদান করে`, `সম্পন্ন হয়` | `হয়ে যায়`, `ধরা হয়`, `ঠিক হয়`, `দেয়`, `শেষ হয়` | Nobody talks like a government notice |
+| `সে` for an engine, browser or function | Repeat the noun, or restructure | `সে` is for people; it sounds like a literal "it" |
+| English verb + `করা` where Bangla has a verb: `Read করলে` | `পড়তে গেলে` | Keep English for terms, not for everyday verbs |
+| One English sentence → one Bangla sentence, always | Merge or split freely; add `মানে`, `তাই`, `কারণ`, `ফলে`, `আসলে`, `তবু` | Connectives are what make Bangla prose flow |
+| Abstract nouns: `পার্থক্য দুই জায়গায়: …` stays fine; `ব্যবহারের ক্ষেত্রে`, `এর মাধ্যমে` piled up | Say it with a verb: `ব্যবহার করলে`, `দিয়ে` | Noun stacks are the main source of the robotic feel |
+| `কখনো নয়` / `উল্টোটা কখনো নয়` copied from "never the reverse" | Say the whole thought: `কিন্তু বাইরের code ভেতরেরটা দেখতে পায় না` | Elliptical English does not survive translation |
+
+**Test before `--write`:** read the page aloud in your head. If a sentence only makes sense once you
+picture the English behind it, rewrite it.
+
+**`-টা` and `-টি`:** prefer `-টা` and `একটা` in explanation, the way people speak. `-টি` is fine in
+headings and tables. Do not mix both on the same noun in one paragraph.
+
+**Inline code and natural Bangla:** the validator counts backtick spans, so mention an identifier in
+backticks exactly as often as the English does. A repeat mention that the English leaves out can be
+written plainly (`i-এর reference`), which also reads better.
+
+**Reference page:** `i18n/bn/book/part-1/closures.md` was re-translated to this standard on
+2026-10-13. Match it.
+
 ## What stays in English
 
 - **Technical terms a Bangladeshi engineer says in English at work**, written in Latin script:
@@ -93,6 +123,7 @@ The same sections recur in every chapter. Always translate them this way:
 | `frontend-heavy` | `frontend-heavy` — stays English, the book's own subtitle term |
 | `boundary` (Server Component, error, service) | `boundary` — stays English |
 | `hot` / `cold` (key, path, cache, start) | `hot` / `cold` — stay English: `hot key`, `cold start` |
+| `warm` / `warm up` (cache, chunk, instance) | `warm` / `warm up` — stay English, like hot and cold: `chunk warm করে রাখুন`. Not গরম |
 | `**Interview sprint:**` | `**Interview sprint:**` — stays English, a named route through the book |
 
 Heading anchors such as `{#ch-closures}` stay exactly as they are. So do HTML comments such as
@@ -102,5 +133,5 @@ Heading anchors such as `{#ch-closures}` stay exactly as they are. So do HTML co
 
 Two pages set the house style. When in doubt, match them:
 
-- `i18n/bn/book/part-1/closures.md` — a full chapter, with every standard section
+- `i18n/bn/book/part-1/closures.md` — a full chapter, with every standard section (re-translated to the natural standard, 2026-10-13)
 - `i18n/bn/book/part-8/ship-observability-index.md` — a section index
