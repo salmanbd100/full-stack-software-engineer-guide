@@ -5,7 +5,7 @@
 > needs amending in the decision log at the bottom. Nothing gets changed silently.
 >
 > **Status:** Locked · **Version:** 1.11 · **Date:** 2026-10-12
-> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — Phases 9–10 cut the manuscript to the 903-page edition; Phase 11 adds the Bangla web edition.
+> **Companion:** [IMPROVEMENT-PLAN.md](./IMPROVEMENT-PLAN.md) — the open items of Phase 11, the Bangla web edition. Phases 0–11's finished items are archived in `Archive/planning/`.
 
 ---
 

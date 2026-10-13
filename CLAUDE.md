@@ -12,7 +12,7 @@ Two files govern the work. Read them before any substantial change:
 | File                    | Role                                                                                                                   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **`BOOK-SPEC.md`**      | The locked contract — nine parts, line budgets, out-of-scope list, twelve non-negotiables. **The authority.** If a request contradicts it, say so |
-| **`IMPROVEMENT-PLAN.md`** | **Phases 9–11 — items #95–#130.** Phase 9 cut the book to a 903-page edition and rewrote the prose in simple English. Phase 10 got it ready to print: copyright page, covers, facts re-stamped for 2027, a final rebuild. Phase 11 (open) adds the Bangla web edition. **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop. Phases 0–8 are finished and archived in `Archive/planning/improvement-plan-phases-0-8.md` |
+| **`IMPROVEMENT-PLAN.md`** | **Open work only — Phase 11, the Bangla web edition: #128 and #130.** **Its "How to Resume" section at the top is the operating protocol — read it first.** _"continue"_ means: find the first unchecked `- [ ]`, do that one item, verify it against its "Done when", tick the box, update both counters, stop. Finished items are archived whole in `Archive/planning/`: Phases 0–8 in `improvement-plan-phases-0-8.md`, Phases 9–11 (the 903-page cut, plain English, the print edition, the Bangla build and translation) in `improvement-plan-phases-9-11.md` |
 
 ## Writing or Editing Documentation
 
@@ -39,7 +39,7 @@ stop.** Those are archived deliberately, not missing.
 
 ```
 ├── BOOK-SPEC.md         # the contract — read first
-├── IMPROVEMENT-PLAN.md  # the plan — Phases 9–10, the cut, plain English, the print edition
+├── IMPROVEMENT-PLAN.md  # the plan — open items only (Phase 11, the Bangla web edition)
 ├── Frontend/            # JavaScript, TypeScript, HtmlCss, Accessibility, BrowserAPIs, ModernStack
 │                        #   (React, Next.js, Svelte), Architecture, Security, Testing, WebPerformance
 ├── Backend/             # Node.js, SQL, NoSQL, API, Security — plus DesignPatterns (Part I)
