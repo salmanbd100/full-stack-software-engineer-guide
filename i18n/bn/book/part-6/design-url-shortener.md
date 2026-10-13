@@ -1,7 +1,7 @@
 ---
 sourceHash: "3a4d2d17a477dc6042c15640c350147af6bb2e057c805e971b2be39029062c09"
 title: "একটি URL Shortener Design করুন"
-translatedAt: "2026-10-12T12:25:23.134Z"
+translatedAt: "2026-10-12T12:29:49.184Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
@@ -199,7 +199,7 @@ Range আগে থেকে বরাদ্দ করুন। একটি coo
 round trip, আর কোনো collision check লাগে না। একমাত্র খরচ হলো instance মারা গেলে নষ্ট হওয়া id, যা 3.5 trillion-এর
 সামনে কিছুই না।
 
-**Q: Deploy-এর পর cache ঠান্ডা, আর store ভেঙে পড়ল। কী ভুল হয়েছিল?**
+**Q: Deploy-এর পর cache cold, আর store ভেঙে পড়ল। কী ভুল হয়েছিল?**
 
 প্রতিটি request একই মুহূর্তে miss হয়ে গিয়েছিল। ফলে store পুরো প্রতি সেকেন্ডে 100,000 read নিল, যার জন্য তাকে
 কখনো মাপা হয়নি। সমাধান তিনটি। Warm-up: instance traffic নেওয়ার আগে শীর্ষ code-গুলো replay করে। Request
