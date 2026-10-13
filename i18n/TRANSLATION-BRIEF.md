@@ -83,6 +83,9 @@ The same sections recur in every chapter. Always translate them this way:
 | `## What Interviewers Probe For` | `## Interviewer-রা যা যাচাই করেন` |
 | `## Chapters` | `## অধ্যায়গুলো` |
 | `## Reading Order` | `## পড়ার ক্রম` |
+| `## Problems to Practise` | `## অনুশীলনের জন্য Problem` |
+| `Difficulty` (table column) | `কঠিনতা`; Easy / Medium / Hard and LeetCode problem names stay English |
+| `## Reference Tables` | `## Reference Table` |
 | `**In this chapter:**` | `**এই অধ্যায়ে:**` |
 | `> ⚠️ **Moving target:**` | `> ⚠️ **যা বদলাতে থাকে:**` |
 | `Durable principle` | `টেকসই নীতি` |
