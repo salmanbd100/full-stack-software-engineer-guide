@@ -91,3 +91,18 @@
 #app .vp-doc div[class*="language-"] code {
   font-size: 15px;
 }
+
+/* --- Bangla edition (#127) --------------------------------------------- */
+
+/* The portfolio has no Bengali face, so this extends its type in the same spirit: Noto Sans
+   Bengali, loaded in config.ts, sits after the Latin face, so the English terms the
+   translation keeps stay in the site's own type and only the Bengali script falls through.
+   Bengali conjuncts and vowel signs stack above and below the line, so it gets more lead. */
+:root:lang(bn) {
+  --vp-font-family-base: "Inter", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+}
+
+#app:lang(bn) .vp-doc p,
+#app:lang(bn) .vp-doc li {
+  line-height: 1.85;
+}

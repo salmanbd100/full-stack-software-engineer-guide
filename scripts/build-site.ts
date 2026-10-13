@@ -16,9 +16,16 @@
  *
  * Nothing here is hand-maintained. Every page is copied from the manuscript at build time,
  * so a chapter edit reaches the site on the next run and the two can never drift.
+ *
+ * ## The Bangla edition — #127
+ *
+ * After the English pass, every page is written again under `site/bn/book/`. The body comes
+ * from the translation cache in `i18n/bn/` when its `sourceHash` still matches the English;
+ * otherwise the page carries the English with a notice on top. So the switch works for every
+ * page whatever the cache holds, and an edited chapter never shows a translation of the old text.
  */
 
-import { mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import {
   COMPANION_PART,
@@ -30,10 +37,36 @@ import {
 } from "./lib/book.ts";
 import { isIndex, routeFor, slugFor } from "./lib/site.ts";
 import { STORE_URL } from "./lib/store.ts";
+import { hashSource, readTranslation } from "./lib/translate.ts";
 
 const ROOT: string = process.cwd();
 const SITE: string = join(ROOT, "site");
 const PAGES: string = join(SITE, "book");
+const PAGES_BN: string = join(SITE, "bn", "book");
+const CACHE_BN: string = join(ROOT, "i18n", "bn");
+const TITLES_BN: Record<string, string> = JSON.parse(readFileSync(join(ROOT, "i18n", "titles.bn.json"), "utf8"));
+
+// The part names the Bangla sidebar groups under, worded as the part openers in
+// i18n/titles.bn.json word them.
+const PART_NAMES_BN: Readonly<Record<number, string>> = {
+  1: "ভিত্তি",
+  2: "Browser Platform",
+  3: "আধুনিক Frontend Stack",
+  4: "বড় পরিসরে Frontend",
+  5: "Frontend Engineer-দের জন্য Backend",
+  6: "System Design",
+  7: "AI Engineering",
+  8: "Ship ও Operate",
+  9: "মানুষের স্তর",
+  10: "পরিশিষ্ট — DSA Pattern",
+};
+
+const FALLBACK_NOTICE_BN: string =
+  "> ⚠️ এই অধ্যায়ের বাংলা অনুবাদ এখনও হালনাগাদ হয়নি — নিচে ইংরেজি সংস্করণ দেওয়া হলো।";
+
+const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
+const toBnDigits = (n: number | string): string => String(n).replace(/\d/g, (d: string) => BN_DIGITS[Number(d)]);
+const fromBnDigits = (s: string): string => s.replace(/[০-৯]/g, (d: string) => String(BN_DIGITS.indexOf(d)));
 
 // ---------------------------------------------------------------------------
 // Page bodies
@@ -48,10 +81,10 @@ const XREF = /\[([^\]]+)\]\(#ch-([a-z0-9-]+)\)/g;
  * chapter is published, so a slug with no route is a broken reference: it keeps its name
  * rather than shipping a dead link, and lint:docs is what catches it.
  */
-function rewriteLinks(body: string, routes: Map<string, string>): string {
+function rewriteLinks(body: string, routes: Map<string, string>, prefix = ""): string {
   return body.replace(XREF, (_match: string, text: string, slug: string) => {
     const route: string | undefined = routes.get(slug);
-    return route === undefined ? `**${text}**` : `[${text}](${route})`;
+    return route === undefined ? `**${text}**` : `[${text}](${prefix}${route})`;
   });
 }
 
@@ -79,6 +112,7 @@ const routes = new Map<string, string>();
 for (const doc of docs) routes.set(slugFor(doc), routeFor(doc, slugFor(doc)));
 
 rmSync(PAGES, { recursive: true, force: true });
+rmSync(PAGES_BN, { recursive: true, force: true });
 
 interface SidebarItem {
   text: string;
@@ -90,8 +124,6 @@ interface SidebarGroup {
   items: SidebarItem[];
 }
 
-const groups = new Map<string, SidebarGroup>();
-
 // Counted, not typed — every number the site states about the book comes from here.
 const questionCount: number = docs.reduce(
   (n: number, d: Doc) => n + (d.body.match(/^\*\*Q: /gm)?.length ?? 0),
@@ -101,42 +133,90 @@ const questionCount: number = docs.reduce(
 // so the site and the index can never state two different numbers.
 const chapterCount: number = docs.filter((d: Doc) => /^\*\*Q: /m.test(d.body)).length;
 
-for (const doc of docs) {
-  const slug: string = slugFor(doc);
-  const route: string = routes.get(slug)!;
-  const title: string = doc.fm.title ?? slug;
+interface Locale {
+  dir: string;
+  prefix: string;
+  front: string;
+  back: string;
+  part: (n: number) => string;
+}
 
-  let body: string = rewriteLinks(tidyChapterRefs(doc.body), routes);
+const LOCALES: Record<"en" | "bn", Locale> = {
+  en: {
+    dir: PAGES,
+    prefix: "",
+    front: "Before You Start",
+    back: "Reference",
+    part: (n: number) => (n === COMPANION_PART ? PART_NAMES[n] : `Part ${n} — ${PART_NAMES[n]}`),
+  },
+  bn: {
+    dir: PAGES_BN,
+    prefix: "/bn",
+    front: "শুরুর আগে",
+    back: "রেফারেন্স",
+    part: (n: number) => (n === COMPANION_PART ? PART_NAMES_BN[n] : `Part ${toBnDigits(n)} — ${PART_NAMES_BN[n]}`),
+  },
+};
+
+function writePage(locale: Locale, doc: Doc, title: string, source: string): void {
+  let body: string = rewriteLinks(tidyChapterRefs(source), routes, locale.prefix);
   // The H1 is carried by the generated front matter, so drop the one in the source —
   // VitePress would otherwise render the title twice.
   body = body.replace(/^#\s+.*$/m, "").replace(/^\n+/, "");
 
-  const file: string = join(PAGES, `${route.slice("/book/".length)}.md`);
+  const file: string = join(locale.dir, `${routes.get(slugFor(doc))!.slice("/book/".length)}.md`);
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, `${frontMatterFor(doc, title)}\n${body}`);
-
-  // Book 2's question index is back matter of Book 2 (#95a), so it sits with the DSA
-  // pages rather than as a second "Interview Question Index" under Reference.
-  const part: number = doc.part === 0 && volumeOf(doc) === "companion" ? COMPANION_PART : doc.part;
-  const key: string =
-    part === 0 ? (matterFor(doc) === "front" ? "front" : "back") : `part-${part}`;
-  const heading: string =
-    part === 0
-      ? matterFor(doc) === "front"
-        ? "Before You Start"
-        : "Reference"
-      : part === COMPANION_PART
-        ? PART_NAMES[part]
-        : `Part ${part} — ${PART_NAMES[part]}`;
-
-  if (!groups.has(key)) groups.set(key, { text: heading, collapsed: true, items: [] });
-  groups.get(key)!.items.push({ text: title, link: route });
 }
 
-const order: string[] = ["front", ...Object.keys(PART_NAMES).map((p: string) => `part-${p}`), "back"];
-const sidebar: SidebarGroup[] = order
-  .filter((k: string) => groups.has(k))
-  .map((k: string) => groups.get(k)!);
+function sidebarFor(locale: Locale, titleOf: (doc: Doc) => string): SidebarGroup[] {
+  const groups = new Map<string, SidebarGroup>();
+  for (const doc of docs) {
+    // Book 2's question index is back matter of Book 2 (#95a), so it sits with the DSA
+    // pages rather than as a second "Interview Question Index" under Reference.
+    const part: number = doc.part === 0 && volumeOf(doc) === "companion" ? COMPANION_PART : doc.part;
+    const key: string = part === 0 ? (matterFor(doc) === "front" ? "front" : "back") : `part-${part}`;
+    const heading: string = part === 0 ? (key === "front" ? locale.front : locale.back) : locale.part(part);
+
+    if (!groups.has(key)) groups.set(key, { text: heading, collapsed: true, items: [] });
+    groups.get(key)!.items.push({ text: titleOf(doc), link: `${locale.prefix}${routes.get(slugFor(doc))!}` });
+  }
+  const order: string[] = ["front", ...Object.keys(PART_NAMES).map((p: string) => `part-${p}`), "back"];
+  return order.filter((k: string) => groups.has(k)).map((k: string) => groups.get(k)!);
+}
+
+const enTitle = (doc: Doc): string => doc.fm.title ?? slugFor(doc);
+
+for (const doc of docs) writePage(LOCALES.en, doc, enTitle(doc), doc.body);
+
+// The Bangla pass. A page is translated only while its cache entry was made from the English
+// that is in the manuscript now; anything else falls back, with the notice saying so.
+const bnState = { translated: 0, stale: 0, missing: 0 };
+const bnTitles = new Map<Doc, string>();
+
+for (const doc of docs) {
+  const route: string = routes.get(slugFor(doc))!;
+  const cacheFile: string = join(CACHE_BN, `${route.slice(1)}.md`);
+  const cached = existsSync(cacheFile) ? readTranslation(readFileSync(cacheFile, "utf8")) : null;
+
+  if (cached && cached.meta.sourceHash === hashSource(doc.body)) {
+    bnState.translated++;
+    const title: string = TITLES_BN[slugFor(doc)] ?? cached.meta.title;
+    bnTitles.set(doc, title);
+    writePage(LOCALES.bn, doc, title, cached.body);
+  } else {
+    bnState[cached ? "stale" : "missing"]++;
+    const title: string = TITLES_BN[slugFor(doc)] ?? enTitle(doc);
+    bnTitles.set(doc, title);
+    const body: string = doc.body.replace(/^(#\s+.*\n)/m, `$1\n${FALLBACK_NOTICE_BN}\n`);
+    writePage(LOCALES.bn, doc, title, body);
+  }
+}
+
+const sidebar = {
+  en: sidebarFor(LOCALES.en, enTitle),
+  bn: sidebarFor(LOCALES.bn, (doc: Doc) => bnTitles.get(doc)!),
+};
 
 writeFileSync(join(SITE, ".vitepress", "sidebar.json"), `${JSON.stringify(sidebar, null, 2)}\n`);
 
@@ -150,21 +230,22 @@ writeFileSync(join(SITE, ".vitepress", "sidebar.json"), `${JSON.stringify(sideba
 // and the symptom of a wrong store URL is a "Buy the book" button that goes nowhere on
 // launch day. So they are not generated — they are checked.
 
-const HAND_WRITTEN: readonly string[] = ["index.md", "building-this-book.md", ".vitepress/config.ts"];
+const HAND_WRITTEN: readonly string[] = ["index.md", "bn/index.md", "building-this-book.md", ".vitepress/config.ts"];
 const drift: string[] = [];
 
 for (const rel of HAND_WRITTEN) {
-  const text: string = readFileSync(join(SITE, rel), "utf8");
+  // Bengali digits are read as their values, so "৭৩৪টি" is checked like "734".
+  const text: string = fromBnDigits(readFileSync(join(SITE, rel), "utf8"));
   // Both directions: the leftover placeholder is drift, and so is a file that has lost the
   // real address, since a guard that only looks for the old URL passes any new one.
   if (/https:\/\/leanpub\.com/.test(text)) drift.push(`${rel}: still links to the leanpub.com placeholder`);
   if (!text.includes(STORE_URL)) drift.push(`${rel}: has no link to ${STORE_URL}, the URL lib/store.ts names`);
-  for (const stated of text.match(/(\d[\d,]{2,})\s+interview questions/g) ?? []) {
+  for (const stated of text.match(/(\d[\d,]{2,})(\s+interview questions|টি (ইন্টারভিউ|Interview-এর) প্রশ্ন)/g) ?? []) {
     if (Number(stated.replace(/\D/g, "")) !== questionCount) {
       drift.push(`${rel}: says "${stated}", the manuscript has ${questionCount}`);
     }
   }
-  for (const stated of text.match(/(\d[\d,]{2,})\s+chapters/g) ?? []) {
+  for (const stated of text.match(/(\d[\d,]{2,})(\s+chapters|টি অধ্যায়)/g) ?? []) {
     if (Number(stated.replace(/\D/g, "")) !== chapterCount) {
       drift.push(`${rel}: says "${stated}", the manuscript has ${chapterCount}`);
     }
@@ -179,7 +260,17 @@ if (drift.length > 0) {
 }
 
 // A landing page for /book/, so the section has a front door rather than only a sidebar.
-const contents: string[] = [
+function writeContents(dir: string, groups: SidebarGroup[], head: string[]): void {
+  const lines: string[] = [...head];
+  for (const group of groups) {
+    lines.push(`## ${group.text}`, "");
+    for (const item of group.items) lines.push(`- [${item.text}](${item.link})`);
+    lines.push("");
+  }
+  writeFileSync(join(dir, "index.md"), `${lines.join("\n")}\n`);
+}
+
+writeContents(PAGES, sidebar.en, [
   "---",
   'title: "Contents"',
   'description: "Every part and chapter of The Senior Full Stack Handbook and Book 2: DSA Patterns."',
@@ -190,16 +281,24 @@ const contents: string[] = [
   "Nine parts, Book 2: DSA Patterns, and the reference pages. The whole book is free to read",
   `here — ${chapterCount} chapters and ${questionCount} interview questions.`,
   "",
-];
-for (const group of sidebar) {
-  contents.push(`## ${group.text}`, "");
-  for (const item of group.items) contents.push(`- [${item.text}](${item.link})`);
-  contents.push("");
-}
-writeFileSync(join(PAGES, "index.md"), `${contents.join("\n")}\n`);
+]);
+
+writeContents(PAGES_BN, sidebar.bn, [
+  "---",
+  'title: "সূচিপত্র"',
+  'description: "The Senior Full Stack Handbook আর Book 2: DSA Patterns-এর প্রতিটি part ও অধ্যায়।"',
+  "---",
+  "",
+  "# সূচিপত্র",
+  "",
+  "নয়টি part, Book 2: DSA Patterns, আর রেফারেন্সের পাতাগুলো। পুরো বইটা এখানে বিনামূল্যে পড়া যায় —",
+  `${toBnDigits(chapterCount)}টি অধ্যায় আর ${toBnDigits(questionCount)}টি Interview-এর প্রশ্ন।`,
+  "",
+]);
 
 const chapters: number = docs.filter((d: Doc) => d.part !== 0 && !isIndex(d)).length;
 console.log(
-  `\n🌐 build-site — ${docs.length} pages into site/book/ ` +
-    `(${chapters} chapters, ${sidebar.length} sidebar groups)\n`,
+  `\n🌐 build-site — ${docs.length} pages into site/book/ and site/bn/book/ ` +
+    `(${chapters} chapters, ${sidebar.en.length} sidebar groups)` +
+    `\n   বাংলা: ${bnState.translated} translated / ${bnState.stale} stale / ${bnState.missing} missing\n`,
 );

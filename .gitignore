@@ -13,3 +13,6 @@ site/.vitepress/cache/
 site/.vitepress/dist/
 site/.vitepress/sidebar.json
 .vercel
+
+# Bangla web edition (#127) — generated from the i18n/bn/ cache
+site/bn/book/
