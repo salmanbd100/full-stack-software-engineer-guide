@@ -1,22 +1,22 @@
 ---
 sourceHash: "84bc3d0f1776a1779a47c45867e7afa9f53348f672bf1817542dd95c9c1b6866"
 title: "Event Loop"
-translatedAt: "2026-10-12T07:46:42.778Z"
+translatedAt: "2026-10-13T12:13:13.787Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Event Loop {#ch-event-loop}
 
-> একটি asynchronous code ঠিক কোন ক্রমে log করবে, সেটা আগে থেকে বলুন, আর কেন সেটাও বলুন।
+> একটি asynchronous code ঠিক কোন ক্রমে log করবে, আগে থেকে বলে দিন, আর কেন সেটাও।
 
-**এই অধ্যায়ে:** call stack · task আর microtask queue · microtask কেন task-কে starve করে · `setTimeout(fn, 0)` · rendering আর frame budget
+**এই অধ্যায়ে:** call stack · task আর microtask queue · microtask কেন task-কে না খাইয়ে রাখে · `setTimeout(fn, 0)` · rendering আর frame budget
 
 ## 💡 মূল ধারণা
 
-JavaScript একটি thread-এ, একটি call stack নিয়ে চলে। Asynchronous কাজ JavaScript নিজে একদমই চালায় না। Host
-(browser, বা Node.js) সেটা করে, আর একটি callback একটি queue-তে রেখে দেয়। পরের বার কী চলবে, তা বেছে নেওয়ার
-নিয়মটাই event loop। এর একটিই রূপ মুখস্থ রাখার মতো: **সব synchronous code চালাও, তারপর পুরো microtask queue খালি
-করো, তারপর ঠিক একটি task নাও।** Interview-এর প্রতিটি ক্রম-ধাঁধা আসলে এই বাক্যটিরই প্রয়োগ।
+JavaScript চলে একটি thread-এ, একটি call stack নিয়ে। Asynchronous কাজ JavaScript নিজে চালায়ই না। কাজটা করে host
+(browser, বা Node.js), তারপর একটি callback queue-তে রেখে দেয়। এরপর কী চলবে, তা বেছে নেওয়ার নিয়মটাই event loop।
+এর একটি রূপ মুখস্থ রাখার মতো: **সব synchronous code চালাও, তারপর পুরো microtask queue খালি করো, তারপর ঠিক একটি
+task নাও।** Interview-এ ক্রম নিয়ে যত ধাঁধা আসে, সবই এই বাক্যটা প্রয়োগ করে মেলে।
 
 ## কীভাবে কাজ করে
 
@@ -30,14 +30,14 @@ flowchart TD
     E --> A
 ```
 
-**Loop-এর একটি পাক: সব microtask, তারপর হয়তো একটি paint, তারপর একটিমাত্র task।**
+**Loop-এর এক পাক: সব microtask, তারপর হয়তো একবার paint, তারপর একটিমাত্র task।**
 
-| Queue         | কী থাকে                                                               | প্রতি পাকে কয়টি    |
+| Queue         | কী থাকে                                                                 | এক পাকে কয়টি |
 | ------------- | --------------------------------------------------------------------- | ----------------- |
-| **Microtask** | `.then`/`.catch`/`.finally`, আবার চালু হওয়া `await`, `queueMicrotask`, `MutationObserver` | **সবগুলো**   |
-| **Task**      | `setTimeout`, `setInterval`, I/O, event, `setImmediate` (Node.js)      | **ঠিক একটি**     |
+| **Microtask** | `.then`/`.catch`/`.finally`, আবার শুরু হওয়া `await`, `queueMicrotask`, `MutationObserver` | **সবগুলো**   |
+| **Task**      | `setTimeout`, `setInterval`, I/O, event, `setImmediate` (Node.js)     | **ঠিক একটি**   |
 
-### প্রচলিত ক্রম
+### চেনা ক্রমটা
 
 ```typescript
 console.log('1 script start');
@@ -54,10 +54,10 @@ console.log('4 script end');
 // 2 setTimeout   ← then one task
 ```
 
-`0`-এর কোনো গুরুত্ব নেই। সবার শেষে schedule করা microtask-ও সবার আগে schedule করা task-এর আগে চলে, কারণ দুটি
-queue আসলে একই queue নয়।
+`0`-এর এখানে কোনো ভূমিকা নেই। সবার শেষে schedule করা microtask-ও সবার আগে schedule করা task-এর আগে চলে, কারণ
+দুটি queue আসলে একটি queue নয়।
 
-### Task থেকে queue করা microtask পরের task-এর আগে চলে
+### Task-এর ভেতর থেকে queue করা microtask পরের task-এর আগেই চলে
 
 ```typescript
 setTimeout((): void => {
@@ -72,11 +72,11 @@ setTimeout((): void => console.log('task B'), 0);
 // task B
 ```
 
-### Microtask কেন task-কে starve করতে পারে
+### Microtask কেন task-কে না খাইয়ে রাখতে পারে
 
-যে microtask আরেকটি microtask queue করে, সেটা একই drain-এ যোগ হয়। Queue খালি না হওয়া পর্যন্ত loop এগোয় না। তাই
-নিজেকে বারবার schedule করা একটি microtask page-কে আটকে দেয়। কোনো timer চলে না, কোনো input আসে না, কোনো paint
-হয় না:
+যে microtask আরেকটি microtask queue করে, সেটাও একই খালি করার পালায় যোগ হয়। Queue খালি না হওয়া পর্যন্ত loop
+এগোয় না। তাই নিজেকে বারবার schedule করা একটি microtask পুরো page আটকে দেয়: কোনো timer নেই, কোনো input নেই,
+কোনো paint নেই:
 
 ```typescript
 function starve(): void {
@@ -84,14 +84,14 @@ function starve(): void {
 }
 ```
 
-`setTimeout` দিয়ে recursion ঠিক উল্টো আচরণ করে। প্রতিটি callback আলাদা task, তাই মাঝখানে browser render করার
+`setTimeout` দিয়ে recursion করলে হয় ঠিক উল্টো। প্রতিটি callback আলাদা একটি task, তাই মাঝখানে browser render করার
 সুযোগ পায়।
 
 ### Rendering আর frame budget
 
-Browser শুধু দুটি task-এর মাঝখানে paint করতে পারে। একটি task-এর মাঝপথে, বা microtask drain চলার সময়, কখনো paint
-করে না। সেকেন্ডে 60 frame হলে পুরো পাকের জন্য সময় থাকে মোটামুটি **16 milliseconds**। একটিমাত্র 50 ms-এর
-synchronous function তিনটি frame ফেলে দেয়। Profiler-এ "janky" বলতে এটাই বোঝায়।
+Browser paint করতে পারে শুধু দুটি task-এর মাঝখানে। একটি task-এর মাঝপথে বা microtask খালি করার সময় কখনো paint হয় না।
+প্রতি সেকেন্ডে 60 frame হলে পুরো এক পাকের জন্য সময় মোটামুটি **16 millisecond**। মাত্র একটি 50 ms-এর synchronous
+function তিনটি frame ফেলে দেয়। Profiler-এ "janky" বলতে এটাই বোঝায়।
 
 ```typescript
 // ❌ one long task — the tab is frozen for three seconds
@@ -103,33 +103,33 @@ while (Date.now() - start < 3000) {
 
 ## কখন ব্যবহার করবেন
 
-| আপনি যা চান                                          | কী বেছে নেবেন                          | কেন                                                 |
-| --------------------------------------------------- | ------------------------------------- | --------------------------------------------------- |
-| বর্তমান code-এর পরে, কিন্তু paint-এর আগে চালাতে         | `queueMicrotask` বা `Promise.resolve().then` | Rendering-এর আগেই microtask drain হয়        |
-| আগে browser-কে paint আর input handle করতে দিতে       | `setTimeout(fn, 0)`                   | পাকটা ছেড়ে দেয়। একটি microtask তা করত না             |
-| পরের frame-এর সঙ্গে মিলিয়ে কাজ করতে                   | `requestAnimationFrame`               | Paint-এর ঠিক আগে চলে, frame-এর timestamp সহ          |
-| লম্বা একটি computation main thread থেকে দূরে রাখতে    | একটি Web Worker                       | Chunking jank লুকায়। Worker সেটা দূর করে              |
+| আপনি যা চান                                     | কী ব্যবহার করবেন                             | কেন                                              |
+| -------------------------------------------- | ------------------------------------- | ------------------------------------------------ |
+| বর্তমান code-এর পরে, কিন্তু paint-এর আগে চালাতে | `queueMicrotask` বা `Promise.resolve().then` | Rendering-এর আগেই microtask খালি হয়          |
+| আগে browser-কে paint আর input সামলাতে দিতে | `setTimeout(fn, 0)`                 | পালাটা ছেড়ে দেয়; microtask সেটা করত না            |
+| পরের frame-এর সঙ্গে মিলিয়ে কাজ করতে          | `requestAnimationFrame`               | Paint-এর ঠিক আগে চলে, frame-এর timestamp সহ |
+| লম্বা হিসাব main thread থেকে দূরে রাখতে | একটি Web Worker                         | টুকরো করলে jank ঢাকা পড়ে; worker সেটা দূর করে          |
 
-লম্বা একটি কাজ chunk করতে কাজটাকে টুকরো করুন, আর প্রতি টুকরোর মাঝে একটি `setTimeout(resolve, 0)` `await` করুন।
-Yield-টা **অবশ্যই** একটি task হতে হবে। আগে থেকেই resolve হওয়া promise await করলে একটি microtask queue হয়। Loop
-এগোনোর আগে সেটা drain করে ফেলে, তাই কিছুই paint হয় না।
+লম্বা কাজ টুকরো করতে কাজটা ভাগ করুন, আর প্রতি দুই ভাগের মাঝে একটি `setTimeout(resolve, 0)` `await` করুন। এই বিরতি
+**অবশ্যই** একটি task হতে হবে। আগে থেকে resolved promise await করলে queue হয় একটি microtask। Loop এগোনোর আগেই সেটা খালি
+করে ফেলে, তাই কিছুই paint হয় না।
 
 ## সাধারণ ভুল
 
-**❌ `setTimeout(fn, 0)`-কে "এখনই চালাও" ধরে নেওয়া।** এর মানে "একটি task queue করো"। সেই task সব synchronous code
-আর প্রতিটি অপেক্ষমাণ microtask-এর জন্য অপেক্ষা করে। Browser nested timer-কে মোটামুটি 4 ms-এ clamp করে, আর
-background tab-এ জোরেশোরে throttle করে।
+**❌ `setTimeout(fn, 0)`-কে "এখনই চালাও" ভাবা।** এর মানে "একটি task queue করো"। সেই task অপেক্ষা করে সব
+synchronous code আর প্রতিটি বাকি microtask-এর জন্য। তার ওপর browser nested timer-কে মোটামুটি 4 ms-এর নিচে নামতে
+দেয় না, আর background tab-এ সেগুলো ভীষণ ধীর করে দেয়।
 
-**❌ ধরে নেওয়া যে `await` চারপাশের code-কে অপেক্ষা করায়।** `await` নিজের function-কে থামায় আর নিয়ন্ত্রণ loop-কে
-ফিরিয়ে দেয়। একসঙ্গে শুরু হওয়া দুটি async function একে অপরের মধ্যে জড়িয়ে চলে:
+**❌ ধরে নেওয়া যে `await` চারপাশের code-কেও অপেক্ষা করায়।** `await` থামায় শুধু নিজের function-কে, আর নিয়ন্ত্রণ
+ফিরিয়ে দেয় loop-কে। একসঙ্গে শুরু হওয়া দুটি async function তাই একে অপরের ফাঁকে ফাঁকে চলে:
 
 ```typescript
 void task1(); // logs 'start', suspends
 void task2(); // logs 'start', suspends — before task1 resumes
 ```
 
-**❌ আশা করা যে state update একই পাকে দেখা যাবে।** React 19-এ মানটি একটি `const`, যা ওই render-এর closure ধরে
-রেখেছে। তাই handler থেকে schedule করা কিছুই নতুন মানটি দেখতে পায় না:
+**❌ আশা করা যে state update একই পাকেই দেখা যাবে।** React 19-এ value-টা একটি `const`, যা সেই render-এর closure
+ধরে রেখেছে। তাই handler থেকে schedule করা কোনো কিছুই নতুন value দেখতে পায় না:
 
 ```tsx
 const handleClick = (): void => {
@@ -139,46 +139,46 @@ const handleClick = (): void => {
 };
 ```
 
-Re-render পরে হয়, একটি নতুন closure নিয়ে। পরের মান যখন বর্তমান মানের ওপর নির্ভর করে, তখন updater রূপটি ব্যবহার
-করুন, `setCount((c) => c + 1)`।
+Re-render হয় পরে, নতুন closure নিয়ে। পরের value বর্তমানটার ওপর নির্ভর করলে updater রূপটা ব্যবহার করুন,
+`setCount((c) => c + 1)`।
 
-**❌ "Yield" করতে microtask ব্যবহার করা।** Loop এগোনোর আগে microtask drain করে। তাই একটি loop-এর ভেতরে resolve
-হওয়া promise await করলে কিছুই yield হয় না, আর rendering তবুও আটকে থাকে।
+**❌ "বিরতি" দিতে microtask ব্যবহার করা।** Loop এগোনোর আগে microtask খালি করে ফেলে। তাই loop-এর ভেতরে resolved
+promise await করলে কোনো বিরতিই হয় না, আর rendering তখনো আটকে থাকে।
 
-> ⚠️ Node.js-এ এমন কিছু বাড়তি phase আছে, যা browser-এ নেই। `process.nextTick` অন্য microtask-এর আগে drain হয়, আর
-> `setImmediate` timer থেকে আলাদা একটি phase। Synchronous → microtask → task ক্রমটা তবুও ঠিক থাকে। শুধু task
-> phase-এর ভেতরের খুঁটিনাটি আলাদা।
+> ⚠️ Node.js-এ কিছু বাড়তি phase আছে, যা browser-এ নেই। `process.nextTick` অন্য microtask-এর আগেই খালি হয়, আর
+> `setImmediate` timer থেকে আলাদা একটি phase। তবু synchronous → microtask → task ক্রমটা একই থাকে। তফাত শুধু
+> task phase-এর ভেতরের খুঁটিনাটিতে।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি thread, একটি stack: async callback host queue করে, আপনার code-এর সঙ্গে একসঙ্গে কখনো চলে না।
-- প্রতিটি পাক **পুরো** microtask queue drain করে, কিন্তু task নেয় শুধু **একটি**।
+- একটি thread, একটি stack: async callback host queue করে, আপনার code-এর সঙ্গে একই সময়ে কখনো চলে না।
+- প্রতিটি পাক **পুরো** microtask queue খালি করে, কিন্তু task নেয় মাত্র **একটি**।
 - Task-কে যত delay-ই দেওয়া হোক, microtask সবসময় আগে চলে।
-- Browser শুধু task-এর মাঝখানে paint করতে পারে, তাই লম্বা synchronous function frame ফেলে দেয়।
-- সত্যিই yield করতে একটি task queue করুন — একটি microtask loop-কে এগোনোর সুযোগ দেয় না।
+- Browser paint করতে পারে শুধু task-এর মাঝখানে, তাই লম্বা synchronous function frame ফেলে দেয়।
+- সত্যিকারের বিরতি দিতে task queue করুন; microtask loop-কে এগোনোর সুযোগ দেয় না।
 
 ## Interview-এর প্রশ্ন
 
-**Q: এটা কী log করবে — `setTimeout(() => log('A'), 0)`, তারপর `Promise.resolve().then(() => log('B'))`?**
+**Q: এটা কী log করবে: `setTimeout(() => log('A'), 0)`, তারপর `Promise.resolve().then(() => log('B'))`?**
 
-আগে `B`, তারপর `A`। Promise callback একটি microtask, আর timer callback একটি task। Synchronous script শেষ হলে loop
-একটিও task নেওয়ার আগে প্রতিটি microtask drain করে। তাই শূন্য millisecond-এর timer তবুও দ্বিতীয় হয়।
+আগে `B`, তারপর `A`। Promise-এর callback একটি microtask, আর timer-এর callback একটি task। Synchronous script শেষ হলে
+loop একটি task ধরার আগে প্রতিটি microtask খালি করে। তাই শূন্য millisecond-এর timer-ও আসে দ্বিতীয় হয়ে।
 
-**Q: Synchronous-ভাবে কিছুই আটকে না রাখলেও একটি page কীভাবে freeze হতে পারে?**
+**Q: Synchronous ভাবে কিছুই আটকে না থাকলেও একটি page কীভাবে জমে যেতে পারে?**
 
-যে microtask আরেকটি microtask schedule করে, সেটা page-কে freeze করতে পারে। Loop এগোনোর আগে queue পুরো খালি করে।
-তাই নিজেকে বারবার schedule করা একটি promise chain কোনো task চলতে বা কোনো frame paint হতে দেয় না। `setTimeout`
-দিয়ে recursion এটা এড়ায়, কারণ প্রতিটি callback নিজেই একটি আলাদা task।
+যে microtask আরেকটি microtask schedule করে, সেটাই page জমিয়ে দিতে পারে। Loop এগোনোর আগে queue পুরো খালি করে। তাই
+নিজেকে বারবার schedule করা promise chain কোনো task-কে চলতে বা কোনো frame-কে paint হতে দেয় না। `setTimeout` দিয়ে
+recursion করলে এটা হয় না, কারণ প্রতিটি callback তখন নিজেই একটি task।
 
-**Q: কখন আপনি `setTimeout` দিয়ে কাজ chunk না করে একটি Web Worker বেছে নেবেন?**
+**Q: কখন `setTimeout` দিয়ে কাজ টুকরো না করে Web Worker নেবেন?**
 
-যখন কাজটা সত্যিই CPU-ভারী, আর পরিষ্কারভাবে মাঝপথে থামানো যায় না। উদাহরণ: একটি বড় file parse করা, একটি diff চালানো,
-বা image process করা। Chunking jank দূর করে না, ছড়িয়ে দেয়, আর বাড়তি coordination code যোগ করে। একটি worker
-কাজটাকে পুরোপুরি main thread থেকে সরিয়ে নেয়। এর খরচ হলো structured-clone message passing (thread-এর মধ্যে data
-কপি করা), আর DOM-এ কোনো access থাকে না।
+যখন কাজটা সত্যিই CPU-ভারী, আর মাঝপথে পরিষ্কারভাবে থামানো যায় না। যেমন বড় একটি file parse করা, diff চালানো, বা
+image process করা। টুকরো করলে jank দূর হয় না, শুধু ছড়িয়ে পড়ে, আর সমন্বয়ের code বাড়ে। Worker কাজটাকে main
+thread থেকে পুরোপুরি সরিয়ে নেয়। দাম হলো structured-clone দিয়ে message পাঠানো (thread-এর মধ্যে data copy করা), আর
+DOM-এ হাত দেওয়ার উপায় না থাকা।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Promise, Async/Await ও Error](#ch-promises-async) — যে microtask উৎপাদকগুলো আপনি সবচেয়ে বেশি ব্যবহার করেন
-- [Chapter ?? — Scope ও Closure](#ch-closures) — একটি পিছিয়ে দেওয়া callback কেন ঠিক ওই মানটাই দেখে
-- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — frame budget, ব্যবহারকারীর দিক থেকে একটি metric হিসেবে মাপা
+- [Chapter ?? — Promise, Async/Await ও Error](#ch-promises-async) — যেসব জিনিস থেকে সবচেয়ে বেশি microtask তৈরি হয়
+- [Chapter ?? — Scope ও Closure](#ch-closures) — পিছিয়ে দেওয়া callback ঠিক ওই value-টাই কেন দেখে
+- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — user যা টের পান, সেই metric হিসেবে frame budget-এর মাপ

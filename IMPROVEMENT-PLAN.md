@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-13 · **Progress:** 1 / 28
+**Last updated:** 2026-10-13 · **Progress:** 2 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -130,7 +130,7 @@ These items do not block #130, which can be done at any time. The site already s
 
 ---
 
-### - [ ] 128a. Natural Bangla: Front matter and Part 1 (1 of 2) `M`
+### - [x] 128a. Natural Bangla: Front matter and Part 1 (1 of 2) `M` — ✅ **done 2026-10-13**
 
 11 pages, about 1720 Bangla lines:
 
@@ -138,6 +138,17 @@ These items do not block #130, which can be done at any time. The site already s
 
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
+
+**Delivered:**
+
+- All 11 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Every one passed the validator on the first attempt
+- The two front-matter pages now use their mapped titles from `i18n/titles.bn.json` in the `#` heading
+  (the first pass left `# Preface` and `# How to Read This Book` in English)
+- One deliberate adaptation: the Preface's "the spelling is British" now reads as the *English*
+  edition's spelling, since the sentence is otherwise false of a Bangla page
+- No brief changes. Counting words follow the `-টি` rule; no `দুটো`/`তিনটে`/`পাঁচটা` in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
 
 ---
 
@@ -453,5 +464,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 1/28 | 🟡 In progress |
-| **Total** | **28** | **1/28** | **4%** |
+| 11 | 128 · 128a–128z · 130 | 2/28 | 🟡 In progress |
+| **Total** | **28** | **2/28** | **7%** |
