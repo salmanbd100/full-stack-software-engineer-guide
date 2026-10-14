@@ -1,38 +1,36 @@
 ---
 sourceHash: "bd8d06ac7fc752feb8ccd996e74600df03814160d8447ad7fcc92f9a933edae6"
 title: "Container Query ও Cascade Layer"
-translatedAt: "2026-10-12T12:08:34.493Z"
+translatedAt: "2026-10-14T04:49:55.251Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Container Query ও Cascade Layer {#ch-container-queries-and-layers}
 
-> একটি component-কে style করুন তাকে যতটুকু জায়গা দেওয়া হয়েছে সেই অনুযায়ী, window-এর size অনুযায়ী নয়। আর `!important` ছাড়াই specificity-র লড়াই জিতুন।
+> Component-কে style দিন window-এর মাপ দেখে নয়, তাকে যে জায়গা দেওয়া হয়েছে তা দেখে। আর `!important` ছাড়াই specificity-র লড়াই জিতুন।
 
-**এই অধ্যায়ে:** viewport কেন সবসময় ভুল input ছিল · container query · container unit · cascade layer · third-party CSS-এর ক্রম ঠিক করা · দুটি ভুল
+**এই অধ্যায়ে:** viewport কেন সবসময়ই ভুল input ছিল · container query · container unit · cascade layer · third-party CSS-এর ক্রম ঠিক করা · দুটি ভুল
 
 ## 💡 মূল ধারণা
 
-2023 সালে দুটি feature এসেছে, আর প্রতিটি একটি পুরোনো workaround-এর জায়গা নিয়েছে। দুটিই একই ধরনের কাজ করে। এরা
-আপনাকে একটি কথা একবার, ওপরে বলতে দেয়। নিচের প্রতিটি rule-এ সেটা আর রক্ষা করতে হয় না।
+2023-এ দুটি feature এসেছে, আর প্রত্যেকে একটা পুরনো workaround-এর জায়গা নিয়েছে। দুটি একই ধরনের কাজ করে। নিচের
+প্রতিটি rule-এ কোনো কথা বারবার রক্ষা না করে, সেটা একবার, ওপরে বলে দেওয়া যায়।
 
-**Container query** বদলে দেয় একটি component কীসের ওপর সাড়া দেয়। Media query window সম্পর্কে প্রশ্ন করে, কিন্তু
-component window-এ থাকে না। সে থাকে একটি sidebar, একটি modal বা একটি grid cell-এ। **Cascade layer** বদলে দেয়
-browser কীভাবে conflict মেটায়। এগুলো ছাড়া যে লম্বা selector লিখেছে, সে-ই জেতে। তাই team-গুলো ক্রমাগত selector
-বাড়াতে থাকে। Layer থাকলে আপনি stylesheet-গুলোর ক্রম একবার declare করেন। তখন specificity (একটি selector-এর ওজন)
-শুধু একটি layer-এর *ভেতরের* লড়াই ঠিক করে।
+**Container query** বদলে দেয় component কীসে সাড়া দেবে। Media query window-এর কথা জিজ্ঞেস করে, কিন্তু component
+window-এ থাকে না। থাকে sidebar-এ, modal-এ বা grid-এর কোনো cell-এ। **Cascade layer** বদলে দেয় browser সংঘাত কীভাবে
+মেটায়। এটা না থাকলে যে লম্বা selector লিখেছে সে জেতে, তাই team-গুলো ক্রমাগত বাড়াতেই থাকে। এটা থাকলে stylesheet-এর
+ক্রম একবার declare করে দেন। Specificity (selector-এর ওজন) তখন শুধু একটা layer-এর *ভেতরের* লড়াই মেটায়।
 
-> দুটি feature-ই একটি সিদ্ধান্তকে আলাদা আলাদা rule থেকে সরিয়ে stylesheet-এর ওপরে একটি declaration-এ নিয়ে যায়।
-> সেজন্যই এরা syntax নয়, architecture।
+> দুটি feature-ই আলাদা আলাদা rule থেকে সিদ্ধান্ত সরিয়ে stylesheet-এর মাথায় একটি declaration-এ নিয়ে আসে। এজন্যই
+> এগুলো syntax নয়, architecture।
 
 ## কীভাবে কাজ করে
 
 ### Container query
 
-একটি component যে element-এর ভেতরে বসে আছে, সেটাকে query করে। শর্ত একটিই: সেই element-কে নিজেকে container
-হিসেবে declare করতে হবে।
+Component যে element-এর ভেতরে বসে, সেই element নিজেকে container ঘোষণা করলে component তাকে query করতে পারে।
 
-**একটি container declare করা আর সেটাকে query করা:**
+**Container declare করা আর query করা:**
 
 ```css
 /* The parent opts in. `inline-size` means "measure the width only". */
@@ -50,27 +48,25 @@ browser কীভাবে conflict মেটায়। এগুলো ছা
 }
 ```
 
-এখন একই card একই page-এ একটি 900px main column-এ আর একটি 280px sidebar-এ বসতে পারে। দুই জায়গাতেই সে ঠিক
-দেখায়। কোনো prop লাগে না, JavaScript দিয়ে মাপতে হয় না, আর এমন কোনো page-level breakpoint লাগে না যেটা জানে
-component-টি কোথায় বসানো হয়েছে।
+একই card এখন একই পাতায় 900px-এর main column-এ আর 280px-এর sidebar-এ বসতে পারে, দুই জায়গাতেই ঠিকঠাক। কোনো prop
+লাগে না, JavaScript দিয়ে মাপতে হয় না, আর component কোথায় বসানো হয়েছে জানে এমন page-level breakpoint-ও লাগে না।
 
-**Container query unit** viewport-এর বদলে container-এর সাপেক্ষে মাপে:
+**Container query unit** মাপে viewport-এর বদলে container-এর সঙ্গে তুলনা করে:
 
 | Unit | Container-এর কীসের 1% | কীসের জায়গা নেয় |
 | ---- | ------------------------ | -------- |
 | `cqw` / `cqh` | width / height | Component-এর ভেতরে `vw` / `vh` |
-| `cqi` / `cqb` | inline size / block size | Writing-mode-এর জন্য নিরাপদ সংস্করণ, আর এটাই বেছে নেওয়া উচিত |
-| `cqmin` / `cqmax` | দুটির মধ্যে ছোটটি / বড়টি | Viewport unit দিয়ে বানানো একটি clamp |
+| `cqi` / `cqb` | inline size / block size | Writing mode বদলালেও নিরাপদ রূপ, আর এটাই নেওয়া উচিত |
+| `cqmin` / `cqmax` | দুটির মধ্যে ছোটটা / বড়টা | Viewport unit দিয়ে বানানো clamp |
 
-> ⚠️ **একটি container নিজেকে query করতে পারে না।** `container-type: inline-size` একটি element-কে তার
-> descendant-দের জন্য query target বানায়, তার নিজের rule-এর জন্য নয়। এটা containment-ও তৈরি করে। Contained axis-এ
-> element আর তার content থেকে নিজের size ঠিক করে না। তাই explicit height ছাড়া একটি `container-type: size`
-> element collapse করে যায়।
+> ⚠️ **Container নিজেকে query করতে পারে না।** `container-type: inline-size` একটা element-কে তার descendant-দের
+> জন্য query-র target বানায়, তার নিজের rule-এর জন্য নয়। এটা containment-ও তৈরি করে। Contain করা অক্ষে element
+> আর তার content দেখে নিজের মাপ ঠিক করে না। তাই স্পষ্ট height ছাড়া `container-type: size` দেওয়া element চুপসে যায়।
 
 ### Cascade layer
 
-`@layer` আপনাকে এমন একটি ক্রম দেয়, যেটা specificity-কে হারায়। পরের layer-এর একটি rule আগের layer-এর rule-কে
-হারায়, **দুটির যেটাই যত specific হোক না কেন**।
+`@layer` এমন একটা ক্রম দেয়, যা specificity-কে হারায়। পরের layer-এর rule আগের layer-এর rule-কে হারায়, **দুটির
+specificity যা-ই হোক**।
 
 **ক্রমটা একবার, ওপরে declare করা:**
 
@@ -89,8 +85,8 @@ component-টি কোথায় বসানো হয়েছে।
 }
 ```
 
-এ কারণেই `!important` ছাড়াই একটি utility class নির্ভরযোগ্য হয়। আপনি utility layer সবার শেষে declare করেন। তাই
-এক class-এর একটি utility তিন class-এর একটি component rule-কে অবস্থানের জোরে হারায়।
+এজন্যই `!important` ছাড়াই utility class-এর ওপর ভরসা করা যায়। Utility layer সবশেষে declare করেন, তাই এক class-এর
+utility অবস্থানের জোরেই তিন class-এর component rule-কে হারায়।
 
 **Layer-সহ cascade, browser যে ক্রমে মেটায়:**
 
@@ -103,20 +99,20 @@ flowchart TD
 
 **Cascade-এ layer-এর জায়গা: specificity-র ওপরে, importance-এর নিচে।**
 
-Layer-এর বাইরের style প্রতিটি layer-কে হারায়। এটা ইচ্ছাকৃত। এর মানে, একটি পুরোনো codebase-এ layer যোগ করলে
-আগে থেকে থাকা layer-ছাড়া CSS ভাঙতে পারে না। আবার এই rule-টাই মানুষকে অবাক করে।
+Layer ছাড়া style প্রতিটি layer-কে হারায়। এটা ইচ্ছাকৃত। এর মানে, পুরনো codebase-এ layer যোগ করলে আগে থেকে থাকা
+layer-ছাড়া CSS ভাঙতে পারে না। আবার এই নিয়মটাই লোককে অবাক করে।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি | কী নেবেন | কেন |
+| পরিস্থিতি | কী ব্যবহার করবেন | কেন |
 | --------- | --------- | --- |
-| বিভিন্ন width-এর slot-এ ব্যবহৃত একটি component | Container query | Component-কে আর জানতে হয় না সে কোথায় বসানো হয়েছে |
-| Page-level layout: এক column না দুই | একটি media query | এখানে viewport-ই আসলে input |
-| এমন একটি third-party stylesheet import করা, যেটা আপনি edit করতে পারেন না | Import-এর ওপর `@layer` | এর specificity আর আপনার সঙ্গে প্রতিযোগিতা করে না |
-| এমন একটি utility class, যেটাকে সবসময় জিততে হবে | সবার শেষে declare করা একটি utilities layer | `!important`-এর তর্ক চিরতরে শেষ হয় |
-| অন্য team-রা ব্যবহার করে এমন একটি design system | দুটিই, সঙ্গে custom property | কে কাকে override করবে, layer-এর ক্রমই তার চুক্তি |
+| নানা চওড়া জায়গায় ব্যবহার হওয়া component | Container query | Component-কে আর জানতে হয় না সে কোথায় বসানো |
+| পাতার layout: এক column নাকি দুই | Media query | এখানে viewport-ই সত্যিকারের input |
+| এমন third-party stylesheet import করা, যা বদলাতে পারবেন না | Import-এ `@layer` | তার specificity আর আপনারটার সঙ্গে পাল্লা দেয় না |
+| এমন utility class, যাকে সবসময় জিততে হবে | সবশেষে declare করা utilities layer | `!important`-এর তর্ক চিরতরে মিটে যায় |
+| অন্য team-রা ব্যবহার করে এমন design system | দুটিই, সঙ্গে custom property | কে কাকে override করবে, তার চুক্তি হলো layer-এর ক্রম |
 
-**এমন একটি import-কে layer-এ রাখা, যেটা আপনার নিয়ন্ত্রণে নেই:**
+**নিয়ন্ত্রণে নেই এমন import-কে layer-এ রাখা:**
 
 ```css
 /* Everything in the file lands in the `vendor` layer, whatever its own specificity. */
@@ -125,66 +121,65 @@ Layer-এর বাইরের style প্রতিটি layer-কে হা�
 
 ## সাধারণ ভুল
 
-**❌ প্রতিটি wrapper-কে container বানানো।** `container-type` containment তৈরি করে। Containment-এর খরচ আছে, আর
-এটা behaviour বদলায়। এটা declare করুন অল্প কয়েকটি element-এ, যেগুলো আসল layout slot। যেমন grid cell,
-sidebar আর modal body। নিচে নামার পথে প্রতিটি `div`-এ declare করবেন না।
+**❌ প্রতিটি wrapper-কে container বানানো।** `container-type` containment তৈরি করে, আর containment-এর খরচ আছে, আচরণও
+বদলায়। এটা declare করুন অল্প কয়েকটি element-এ, যেগুলো সত্যিকারের layout slot, যেমন grid cell, sidebar আর modal-এর
+body। নিচে নামার পথে প্রতিটি `div`-এ দেবেন না।
 
-**❌ `container-type: size` বেছে নেওয়া।** এটা দুটি axis-ই contain করে। Element তার height নেয় নিজের rule থেকে,
-content থেকে নয়। তাই content বাড়লে সেটা চুপচাপ overflow করে।
-প্রায় সবসময় আপনার দরকার `inline-size`।
+**❌ `container-type: size` নেওয়া।** এটা দুটি অক্ষই contain করে। Element তার height নেয় content থেকে নয়, নিজের
+rule থেকে, তাই content বাড়লে চুপচাপ overflow হয়।
+প্রায় সবসময় যেটা চান, সেটা `inline-size`।
 
-**❌ যে file layer ব্যবহার করে, সেখানেই layer declare করা।** যদি `@layer` ক্রমের statement একটি component file-এ
-থাকে, তাহলে ক্রম নির্ভর করে bundler কোন file আগে বসিয়েছে তার ওপর। Layer ঠিক এই এলোমেলো ভাবটাই দূর করতে এসেছে।
-পুরো ক্রম একবার declare করুন, entry stylesheet-এ, অন্য সবকিছুর আগে।
+**❌ যে file layer ব্যবহার করে, সেখানেই layer declare করা।** `@layer`-এর ক্রমের statement যদি কোনো component file-এ
+থাকে, তাহলে ক্রম নির্ভর করে bundler কোন file আগে বসিয়েছে তার ওপর। Layer আছেই ঠিক এই এলোমেলোভাব দূর করতে। পুরো ক্রম
+একবার declare করুন entry stylesheet-এ, সবকিছুর আগে।
 
-**❌ ধরে নেওয়া যে layer `!important`-কে হারায়।** Browser layer-এর ক্রমের আগে importance মেটায়।
-`!important` declaration-এর ক্ষেত্রে layer-এর ক্রম *উল্টে* যায়, তাই সবচেয়ে আগের layer জেতে। `!important` ব্যবহার
-করা একটি reset layer একটি important utility-কে হারাবে। প্রায় কেউই এটা আশা করে না।
+**❌ ধরে নেওয়া যে layer `!important`-কে হারায়।** Browser layer-এর ক্রমের আগে importance মেটায়। `!important`
+declaration-এর বেলায় layer-এর ক্রম *উল্টে যায়*, তাই সবচেয়ে আগের layer জেতে। Reset layer-এ `!important` থাকলে সেটা
+important utility-কে হারিয়ে দেবে, আর এটা প্রায় কেউই আশা করেন না।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি media query window সম্পর্কে প্রশ্ন করে। একটি container query প্রশ্ন করে component-কে আসলে যে জায়গা
-  দেওয়া হয়েছে তা নিয়ে। একটি reusable component-এর ঠিক এটাই দরকার।
-- `container-type: inline-size` হলো নিরাপদ default। `size` দুটি axis-ই contain করে আর content-নির্ভর height
+- Media query জিজ্ঞেস করে window-এর কথা। Container query জিজ্ঞেস করে component-কে আসলে যে জায়গা দেওয়া হয়েছে তার
+  কথা, আর reusable component-এর দরকার সেটাই।
+- নিরাপদ default হলো `container-type: inline-size`। `size` দুটি অক্ষই contain করে, আর content অনুযায়ী height
   ভেঙে দেয়।
-- Cascade layer declare করা ক্রম দিয়ে conflict মেটায়, specificity-র ওপরে। তাই এক class-এর একটি utility তিন
-  class-এর একটি component rule-কে হারাতে পারে design অনুযায়ী, `!important` দিয়ে নয়।
-- Layer-এর বাইরের CSS প্রতিটি layer-কে হারায়। এ কারণেই একটি পুরোনো codebase-এ layer চালু করা নিরাপদ।
-- দুটি feature-ই একটি সিদ্ধান্তকে আলাদা আলাদা rule থেকে সরিয়ে stylesheet-এর ওপরে একটি declaration-এ নিয়ে যায়।
+- Cascade layer সংঘাত মেটায় declare করা ক্রম দিয়ে, specificity-র ওপরে। তাই এক class-এর utility তিন class-এর
+  component rule-কে হারাতে পারে design-এর জোরে, `!important` দিয়ে নয়।
+- Layer ছাড়া CSS প্রতিটি layer-কে হারায়, আর সেজন্যই পুরনো codebase-এ layer চালু করা নিরাপদ।
+- দুটি feature-ই আলাদা আলাদা rule থেকে সিদ্ধান্ত সরিয়ে stylesheet-এর মাথায় একটি declaration-এ নিয়ে আসে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি card component sidebar-এ ভুল দেখায়, কিন্তু main column-এ ঠিক দেখায়। আপনি কীভাবে ঠিক করবেন?**
+**Q: একটা card component sidebar-এ ভুল দেখায়, কিন্তু main column-এ ঠিক। কীভাবে ঠিক করবেন?**
 
-Card-টি viewport-এর ওপর সাড়া দিচ্ছে, যেখানে তার উচিত নিজের slot-এর ওপর সাড়া দেওয়া। Slot-টিকে
-`container-type: inline-size` দিন, আর card-এর breakpoint-গুলো `@container` query হিসেবে নতুন করে লিখুন। মানুষ আরও
-দুটি উত্তর দেয়: একটি `variant="compact"` prop, অথবা এমন একটি page-level media query যেটা জানে sidebar আছে। দুটিই
-layout-এর জ্ঞান component-এর ভেতরে বা page-এর ভেতরে ঠেলে দেয়। আর পরের বার কেউ card-টি নতুন কোথাও বসালেই দুটিই
-কাজ করা বন্ধ করে দেয়।
+Card-এর সাড়া দেওয়ার কথা তার slot-এ, অথচ সে সাড়া দিচ্ছে viewport-এ। Slot-কে `container-type: inline-size` দিন, আর
+card-এর breakpoint-গুলো `@container` query হিসেবে আবার লিখুন। লোকে আরও দুটি উত্তর দেয়: একটা `variant="compact"`
+prop, বা এমন page-level media query, যা জানে sidebar আছে। দুটিই layout-এর জ্ঞান component-এ বা পাতায় ঠেলে দেয়। আর
+পরের বার কেউ card-টা নতুন কোথাও বসালেই দুটিই অচল হয়ে যায়।
 
-**Q: Cascade layer এমন কোন সমস্যার সমাধান করে, যেটা BEM করেনি?**
+**Q: BEM যে সমস্যা মেটায়নি, cascade layer তার কোনটা মেটায়?**
 
-BEM সমঝোতার মাধ্যমে specificity সমান রাখে। কিছুই এটা বাধ্য করে না, আর আপনার নিজের না লেখা CSS-এর ব্যাপারে এটা
-কিছুই করে না। Layer ক্রমটাকে একটি declaration-এ পরিণত করে, যেটা browser বাধ্য করে। একটি `vendor` layer-এ import
-করা third-party stylesheet আপনার component-দের ছাড়িয়ে যেতে পারে না, তার selector যত specific-ই হোক। BEM হলো নাম
-নিয়ে একটি convention, আর layer হলো precedence নিয়ে একটি mechanism। বেশিরভাগ codebase দুটিই চায়।
+BEM specificity সমান রাখে শুধু সবার সম্মতিতে। কেউ এটা বাধ্য করে না, আর যে CSS আপনি লেখেননি, তার ব্যাপারে BEM কিছুই
+করে না। Layer ক্রমটাকে এমন একটা declaration বানায়, যা browser নিজে মানায়। `vendor` layer-এ import করা third-party
+stylesheet আপনার component-কে ছাড়িয়ে যেতে পারে না, তার selector যত নির্দিষ্টই হোক। BEM নামের ব্যাপারে একটা রীতি,
+আর layer অগ্রাধিকারের ব্যাপারে একটা ব্যবস্থা। বেশিরভাগ codebase-এর দুটিই দরকার।
 
 **Q: Specificity আর `!important`-এর তুলনায় cascade layer কোথায় বসে?**
 
-প্রথমে origin আর importance, তারপর layer-এর ক্রম, তারপর একটি layer-এর ভেতরে specificity, তারপর source order।
-তাই পরের layer আগের layer-কে হারায়, specificity যা-ই হোক, আর layer-এর বাইরের style সব layer-কে হারায়। ফাঁদটা হলো,
-`!important` layer-এর ক্রম উল্টে দেয়, তাই *প্রথম* layer-এর একটি important declaration জেতে। এ কারণেই একটি reset
-layer-এর ভেতরে `!important` একটি ফাঁদ।
+আগে origin আর importance, তারপর layer-এর ক্রম, তারপর layer-এর ভেতরে specificity, তারপর source order। তাই পরের
+layer আগেরটাকে হারায়, specificity যা-ই হোক, আর layer ছাড়া style সব layer-কে হারায়। ফাঁদটা হলো, `!important`
+layer-এর ক্রম উল্টে দেয়, তাই *প্রথম* layer-এর important declaration জেতে। এজন্যই reset layer-এর ভেতরে
+`!important` একটা ফাঁদ।
 
-**Q: কখন container query ভুল tool?**
+**Q: কখন container query ভুল জিনিস?**
 
-যখন আপনি যা style করছেন সেটা সত্যিই viewport-এর ওপর নির্ভর করে। যেমন page-level-এ এক column না দুই column-এর
-সিদ্ধান্ত, ছোট screen-এ বদলে যাওয়া একটি fixed header, বা এমন কিছু যেটা খালি জায়গার বদলে device-এর সক্ষমতার ওপর
-নির্ভর করে। Container query একটি container-এর সীমানা পেরিয়ে ওপরের দিকেও দেখতে পারে না। তাই যে rule-কে পুরো page
-সম্পর্কে জানতে হয়, সেটা এখনো একটি media query-তেই থাকা উচিত।
+যখন যাকে style দিচ্ছেন, সেটা সত্যিই viewport-এর ওপর নির্ভর করে। যেমন পাতা এক column হবে নাকি দুই, ছোট screen-এ
+বদলে যাওয়া fixed header, বা এমন কিছু, যা ফাঁকা জায়গা নয়, device-এর ক্ষমতা দেখে চলে। তা ছাড়া container query
+container-এর boundary পেরিয়ে ওপরের দিকে তাকাতে পারে না। তাই যে rule-কে পুরো পাতার কথা জানতে হয়, তার জায়গা এখনো
+media query-তেই।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Advanced CSS](#ch-advanced-css) — custom property, `:has()` আর subgrid, 2023 থেকে আসা বাকি সবকিছু
-- [Chapter ?? — Styling Strategy](#ch-styling-strategy) — কোন styling পদ্ধতি এই feature-গুলো বহন করে, আর একটি runtime library-র খরচ কত
-- [Chapter ?? — Design System, Dependency ও Upgrade](#ch-design-systems-at-scale) — যেখানে layer-এর ক্রম team-দের মধ্যে একটি চুক্তি হয়ে ওঠে
+- [Chapter ?? — Advanced CSS](#ch-advanced-css) — custom property, `:has()` আর subgrid, 2023-এর পর আসা বাকিগুলো
+- [Chapter ?? — Styling Strategy](#ch-styling-strategy) — কোন styling পদ্ধতি এই feature-গুলো বয়ে নেয়, আর runtime library-র খরচ কত
+- [Chapter ?? — Design System, Dependency ও Upgrade](#ch-design-systems-at-scale) — যেখানে layer-এর ক্রম team-দের মধ্যে চুক্তি হয়ে যায়

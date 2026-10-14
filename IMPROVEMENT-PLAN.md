@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-14 · **Progress:** 3 / 28
+**Last updated:** 2026-10-14 · **Progress:** 4 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -175,7 +175,7 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 ---
 
-### - [ ] 128c. Natural Bangla: Part 2 (1 of 2) `M`
+### - [x] 128c. Natural Bangla: Part 2 (1 of 2) `M` — ✅ **done 2026-10-14**
 
 10 pages, about 1773 Bangla lines:
 
@@ -183,6 +183,17 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
+
+**Delivered:**
+
+- All 10 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Nine passed on the first attempt; `semantic-html` was refused once for
+  one extra `` `<div>` `` span (a repeat mention the English leaves implicit) and passed once that
+  mention was written plainly
+- The two part-index headings now use their mapped titles (`Part II — Browser Platform`,
+  `Part II — Browser API`) rather than the English
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা` or `পরিণত করে` in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
 
 ---
 
@@ -476,5 +487,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 3/28 | 🟡 In progress |
-| **Total** | **28** | **3/28** | **11%** |
+| 11 | 128 · 128a–128z · 130 | 4/28 | 🟡 In progress |
+| **Total** | **28** | **4/28** | **14%** |

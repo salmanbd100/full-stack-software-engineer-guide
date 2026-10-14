@@ -1,51 +1,50 @@
 ---
 sourceHash: "4afe78c16821633ea91ec97aa4264c9b45c3a1addd49b392f7d142f31bab578a"
 title: "Web Storage ও IndexedDB"
-translatedAt: "2026-10-12T12:10:22.893Z"
+translatedAt: "2026-10-14T04:51:44.247Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Web Storage ও IndexedDB {#ch-storage-apis}
 
-> localStorage, sessionStorage আর IndexedDB-এর মধ্যে ভেবেচিন্তে বেছে নিন, আর জানুন কেন এদের কোনোটাতেই token রাখা উচিত নয়।
+> localStorage, sessionStorage আর IndexedDB-র মধ্যে জেনে-বুঝে বাছাই করুন, আর জেনে রাখুন কেন এদের কোনোটাতেই token রাখা উচিত নয়।
 
-**এই অধ্যায়ে:** localStorage বনাম sessionStorage · cross-tab `storage` event · quota আর eviction · কখন IndexedDB তার জটিলতার যোগ্য · transaction আর migration
+**এই অধ্যায়ে:** localStorage বনাম sessionStorage · tab জুড়ে `storage` event · quota আর eviction · কখন IndexedDB-র জটিলতা পোষায় · transaction আর migration
 
 ## 💡 মূল ধারণা
 
-Browser দুই ধরনের সাধারণ storage দেয়। **Web storage** মানে `localStorage` আর
-`sessionStorage`। এটা একটি ছোট, synchronous, শুধু string রাখা key-value cache। **IndexedDB** একটি asynchronous
-database, যেটা পুরো object রাখে, সেগুলোকে index করে, আর কয়েকশো megabyte ধরে রাখতে পারে।
+Browser সাধারণ storage দেয় দুই রকম। **Web storage** মানে `localStorage` আর `sessionStorage`। এটা ছোট,
+synchronous, শুধু string রাখে এমন key-value cache। **IndexedDB** একটা asynchronous database, যা পুরো object রাখে,
+index করে, আর কয়েকশো megabyte ধরে রাখতে পারে।
 
-কোনোটাই security boundary নয়। আপনার page-এর যেকোনো script দুটিই পড়তে পারে। আর কোনোটারই টিকে থাকার নিশ্চয়তা
-নেই, কারণ storage-এর চাপে browser যেকোনোটাকে evict (মুছে) করতে পারে। তাই দুটির জন্য নিয়ম একই। Value হারালে যদি
-app ভেঙে যায়, বা ফাঁস হলে যদি সমস্যা হয়, তাহলে সেটা অন্য কোথাও রাখুন।
+কোনোটাই security boundary নয়। আপনার পাতার যেকোনো script দুটিই পড়তে পারে। আর কোনোটাই টিকে থাকবে, এমন নিশ্চয়তা
+নেই, কারণ storage-এর চাপে browser যেকোনোটাকে evict (মুছে) করতে পারে। তাই দুটির নিয়ম একই। Value হারালে যদি app
+ভাঙে, বা ফাঁস হলে যদি ক্ষতি হয়, তাহলে তার জায়গা অন্য কোথাও।
 
 ```typescript
 localStorage.setItem("theme", "dark");
 const theme: string | null = localStorage.getItem("theme"); // "dark", or null if missing
 ```
 
-> ⚠️ **যা বদলাতে থাকে:** browser-গুলো এখন storage-কে top-level site অনুযায়ী ভাগ করে। তাই দুটি আলাদা parent site-এ
-> embed করা একই origin দুটি আলাদা store দেখে। Eviction-এর নিয়মও browser ভেদে আলাদা, আর বদলাতে থাকে। টেকসই নীতি
-> হলো, এটা same-origin storage, যার কোনো security boundary নেই আর টিকে থাকার কোনো প্রতিশ্রুতি নেই।
+> ⚠️ **যা বদলাতে থাকে:** browser এখন top-level site ধরে storage ভাগ করে, তাই দুটি আলাদা parent site-এ embed করা একই
+> origin দুটি আলাদা store দেখে। Eviction-এর নিয়মও browser ভেদে আলাদা, আর বদলাতেই থাকে। টেকসই নীতি হলো, এটা
+> same-origin storage, যার কোনো security boundary নেই, আর টিকে থাকার কোনো প্রতিশ্রুতিও নেই।
 
 ## কীভাবে কাজ করে
 
-### দুটি web storage object
+### Web storage-এর দুটি object
 
-| Feature | `localStorage` | `sessionStorage` |
+| বৈশিষ্ট্য | `localStorage` | `sessionStorage` |
 | ------- | -------------- | ---------------- |
-| **আয়ু** | যতক্ষণ না কিছু এটা মুছে দেয় | Tab বন্ধ হওয়া পর্যন্ত |
-| **Scope** | Origin-এর প্রতিটি tab ভাগ করে | শুধু একটি tab |
-| **Cross-tab event** | ✅ `storage` fire করে | ❌ না |
-| **Size** | প্রতি origin-এ ~5–10 MB | প্রতি origin-এ ~5–10 MB |
+| **আয়ু** | কেউ মুছে না দেওয়া পর্যন্ত | Tab বন্ধ হওয়া পর্যন্ত |
+| **পরিধি** | Origin-এর সব tab ভাগ করে নেয় | শুধু একটি tab |
+| **Tab জুড়ে event** | ✅ `storage` fire করে | ❌ না |
+| **আকার** | Origin প্রতি ~5–10 MB | Origin প্রতি ~5–10 MB |
 
-Value সবসময় string, তাই object-গুলো `JSON`-এর মধ্য দিয়ে যায়। Parse-এর জন্য একটি `try`/`catch` লাগে। একজন user,
-বা আপনার নিজের app-এর একটি পুরোনো version, invalid JSON রেখে যেতে পারে। আর start-up-এ একটি uncaught parse error
-পুরো page নামিয়ে দেয়।
+Value সবসময় string, তাই object-কে `JSON` হয়ে যেতে হয়। Parse করার সময় `try`/`catch` লাগে। User, বা আপনার নিজের
+app-এর পুরনো কোনো version, ভুল JSON রেখে যেতে পারে, আর start-up-এ ধরা না পড়া parse error পুরো পাতাটাই ফেলে দেয়।
 
-**একটি typed wrapper, যেটা call site থেকে আনুষ্ঠানিকতা সরিয়ে দেয়:**
+**একটা typed wrapper, যাতে call-এর জায়গায় আনুষ্ঠানিকতা লাগে না:**
 
 ```typescript
 class TypedStorage<T> {
@@ -67,10 +66,10 @@ class TypedStorage<T> {
 }
 ```
 
-### Cross-tab sync
+### Tab জুড়ে sync
 
-একটি `localStorage` write একই origin-এর **অন্য** tab-গুলোতে একটি `storage` event fire করে। যে tab পরিবর্তনটা
-করেছে, সেখানে এটা fire হয় না। Interviewer-রা ঠিক এই খুঁটিনাটি নিয়েই প্রশ্ন করেন।
+`localStorage`-এ লিখলে একই origin-এর **অন্য** tab-গুলোতে `storage` event fire হয়। যে tab বদলটা করেছে, সেখানে হয়
+না। Interviewer-রা জিজ্ঞেস করেন ঠিক এই খুঁটিনাটিটাই।
 
 ```typescript
 window.addEventListener("storage", (e: StorageEvent): void => {
@@ -78,32 +77,31 @@ window.addEventListener("storage", (e: StorageEvent): void => {
 });
 ```
 
-এটা দিয়ে theme sync আর একসঙ্গে প্রতিটি tab থেকে logout করা যায়। যে message পাঠানো tab-এও পৌঁছানো উচিত, তার জন্য
-`BroadcastChannel` সহজতর tool।
+Theme sync আর একসঙ্গে সব tab থেকে logout, দুটিই এতে হয়ে যায়। যে message পাঠানো tab-টাতেও পৌঁছানো দরকার, তার জন্য
+`BroadcastChannel` বেশি সহজ।
 
 ### Quota আর eviction
 
-Quota ছাড়িয়ে যাওয়া একটি write `QuotaExceededError` throw করে। Private browsing storage পুরোপুরি বন্ধ করে দিতে পারে।
-তাই একটি `try`-এর ভেতরে write করাই একমাত্র নির্ভরযোগ্য availability check। `navigator.storage.estimate()`
-web storage, IndexedDB আর Cache API মিলিয়ে আসল ব্যবহার জানায়। এতে limit কাছে আসছে কি না দেখা যায়।
-`navigator.storage.persist()` browser-কে evict না করতে অনুরোধ করে, কিন্তু এটা একটি অনুরোধ, প্রতিশ্রুতি নয়।
+Quota ছাড়িয়ে লিখতে গেলে `QuotaExceededError` throw হয়। Private browsing-এ storage পুরো বন্ধও থাকতে পারে, তাই
+storage আছে কিনা জানার একমাত্র নির্ভরযোগ্য উপায় `try`-এর ভেতরে একবার লিখে দেখা। `navigator.storage.estimate()` web
+storage, IndexedDB আর Cache API মিলিয়ে আসল ব্যবহার জানায়। তাতে limit এগিয়ে আসছে কিনা দেখা যায়।
+`navigator.storage.persist()` browser-কে evict না করার অনুরোধ করে, কিন্তু সেটা অনুরোধ, প্রতিশ্রুতি নয়।
 
-### কখন IndexedDB তার জটিলতার যোগ্য
+### কখন IndexedDB-র জটিলতা পোষায়
 
-IndexedDB ব্যবহার করা ঝামেলার, আর এই ঝামেলার একটিই কারণ। Storage থাকে disk-এ, আর main thread-এ একটি synchronous
-disk read rendering আর input-কে জমিয়ে দেয়। তাই প্রতিটি IndexedDB operation একটি request return করে, আর উত্তর
-দেয় পরে।
+IndexedDB ব্যবহার করা ঝামেলার, আর ঝামেলার কারণ একটাই। Storage থাকে disk-এ, আর main thread-এ synchronous disk read
+হলে rendering আর input দুটিই জমে যায়। তাই IndexedDB-র প্রতিটি operation একটা request return করে, উত্তর দেয় পরে।
 
-| শব্দ | অর্থ |
+| শব্দ | মানে |
 | ---- | ------- |
-| **Object store** | একটি table-এর মতো — এক ধরনের object রাখে |
-| **Key** | প্রতিটি record-এর অনন্য ID, একটি `keyPath` বা `autoIncrement` থেকে |
-| **Index** | একটি property-র ওপর দ্বিতীয় একটি lookup, যেমন `by-updatedAt` |
-| **Transaction** | একটি `readonly` বা `readwrite` scope, যেটা একসঙ্গে commit বা roll back হয় |
-| **Version** | একটি সংখ্যা। Schema পরিবর্তন হয় শুধু এটা বাড়লে |
+| **Object store** | Table-এর মতো — একই ধরনের object রাখে |
+| **Key** | প্রতিটি record-এর আলাদা ID, `keyPath` বা `autoIncrement` থেকে |
+| **Index** | কোনো property ধরে দ্বিতীয় একটা lookup, যেমন `by-updatedAt` |
+| **Transaction** | `readonly` বা `readwrite` একটা পরিধি, যা একসঙ্গে commit বা rollback হয় |
+| **Version** | একটা সংখ্যা। Schema বদলায় শুধু এটা বাড়লেই |
 
-Production-এ প্রায় কেউই raw event-ভিত্তিক API ব্যবহার করে না। `idb` wrapper একই model-কে promise আর TypeScript
-generic-এর পেছনে রাখে।
+Production-এ কাঁচা event-ভিত্তিক API প্রায় কেউই ব্যবহার করেন না। `idb` wrapper একই model-কে promise আর TypeScript
+generics-এর পেছনে রাখে।
 
 **`idb` দিয়ে open, migrate আর query করা:**
 
@@ -135,94 +133,94 @@ const since: number = Date.now() - 86_400_000;
 const recent: Note[] = await db.getAllFromIndex("notes", "by-updatedAt", IDBKeyRange.lowerBound(since));
 ```
 
-`oldVersion` check-গুলোই migration pattern। প্রতিটি ধাপ একবার, ক্রম অনুযায়ী চলে। তাই যে user তিনটি release বাদ
-দিয়েছেন, তিনিও বর্তমান schema-তে পৌঁছান।
+`oldVersion` check-গুলোই migration-এর pattern। প্রতিটি ধাপ একবার করে, ক্রম মেনে চলে, তাই তিনটি release বাদ দেওয়া
+user-ও বর্তমান schema-তে পৌঁছে যান।
 
-> ⚠️ একটি transaction commit হয়, যখন তার event-loop turn শেষ হয়। মাঝখানে একটি `fetch`-কে `await` করলে
-> transaction বন্ধ হয়ে যায়, আর পরের IndexedDB call throw করে। আগে fetch করুন, তারপর transaction খুলুন।
+> ⚠️ Event loop-এর পালা শেষ হলেই transaction commit হয়। মাঝখানে কোনো `fetch`-এর জন্য `await` করলে transaction বন্ধ
+> হয়ে যায়, আর পরের IndexedDB call throw করে। আগে fetch করুন, তারপর transaction খুলুন।
 
 ## কখন ব্যবহার করবেন
 
-| প্রয়োজন | বেছে নিন | কেন |
+| দরকার | কী নেবেন | কেন |
 | ---- | ---- | --- |
-| Theme, ভাষা, একটি ছোট preference | `localStorage` | ছোট, হারালে ক্ষতি নেই, প্রতিটি tab-এ দরকার |
-| এই tab-এর form draft বা wizard state | `sessionStorage` | একই form পূরণ করা দুটি tab-এর মধ্যে সংঘর্ষ হওয়া চলবে না |
-| ~5 MB-এর বেশি, query, বা `Blob` | IndexedDB | Asynchronous, indexed, binary data রাখে |
-| Offline record আর pending write-এর একটি queue | IndexedDB | শুধু এরই transaction আছে |
-| যে HTTP response একটি service worker আবার চালায় | Cache API | `Request` দিয়ে key করা, একটি `Response` return করে |
-| Token, ব্যক্তিগত data, যেকোনো সংবেদনশীল কিছু | **এদের কোনোটাই নয়** | একটি `HttpOnly` cookie, যেটা script পড়তে পারে না |
+| Theme, ভাষা, ছোট কোনো পছন্দ | `localStorage` | ছোট, হারালে ক্ষতি নেই, প্রতিটি tab-এ চাই |
+| এই tab-এর form draft বা wizard-এর state | `sessionStorage` | একই form পূরণ করা দুটি tab-এ যেন ধাক্কা না লাগে |
+| ~5 MB-এর বেশি, query, বা `Blob` | IndexedDB | Asynchronous, index করা, binary data রাখে |
+| Offline record আর বাকি থাকা write-এর queue | IndexedDB | Transaction আছে শুধু এরই |
+| Service worker যে HTTP response আবার দেয় | Cache API | Key হিসেবে `Request`, ফেরত দেয় `Response` |
+| Token, ব্যক্তিগত data, স্পর্শকাতর যেকোনো কিছু | **এদের কোনোটাই নয়** | `HttpOnly` cookie, যা script পড়তে পারে না |
 
 ## সাধারণ ভুল
 
-**❌ ভুল — `localStorage`-এ একটি token:**
+**❌ ভুল — `localStorage`-এ token:**
 
 ```typescript
 // One injected script sends this to an attacker.
 localStorage.setItem("authToken", "eyJhbGci...");
 ```
 
-**✅ সঠিক — এমন একটি cookie, যেটা JavaScript পড়তে পারে না:**
+**✅ ঠিক — এমন cookie, যা JavaScript পড়তে পারে না:**
 
 ```typescript
 // Set by the server, never by client code:
 // Set-Cookie: session=...; HttpOnly; Secure; SameSite=Lax
 ```
 
-প্রথম line-টি তিনভাবে ব্যর্থ হয়। একটি XSS এটা সরাসরি পড়ে ফেলে। এটা disk-এ plain text হিসেবে বসে থাকে। আর এর
-কোনো expiry নেই, তাই ভুলে যাওয়া একটি token চিরকাল বেঁচে থাকে।
+প্রথম line তিনভাবে ব্যর্থ। XSS সরাসরি এটা পড়ে ফেলে। এটা disk-এ সাধারণ লেখা হিসেবে পড়ে থাকে। আর এর কোনো মেয়াদ
+নেই, তাই ভুলে যাওয়া token চিরকাল বেঁচে থাকে।
 
-**❌ ভুল — একটি hot path-এ web storage পড়া।** API-টি synchronous। Scroll-এর সময় একটি বড় `JSON.parse` main
-thread-এ পড়ে, আর একটি drop হওয়া frame হিসেবে দেখা দেয়।
+**❌ ভুল — hot path-এ web storage পড়া।** API-টা synchronous। Scroll-এর সময় বড় একটা `JSON.parse` main thread-এ পড়ে,
+আর একটা frame পড়ে যাওয়া হিসেবে দেখা দেয়।
 
-**❌ ভুল — `upgrade`-এর বাইরে schema বদলানো।** অন্য কোথাও `createObjectStore` throw করে। নতুন store বা index মানেই
-একটি version বাড়ানো, প্রতিবার।
+**❌ ভুল — `upgrade`-এর বাইরে schema বদলানো।** অন্য কোথাও `createObjectStore` call করলে throw করে। নতুন store বা
+index মানে প্রতিবারই version বাড়ানো।
 
-**❌ ভুল — যা ফেরত আসে তার ওপর ভরসা করা।** User-রা DevTools-এ প্রতিটি store edit করতে পারেন। আপনি যে shape-এর
-ওপর নির্ভর করেন, সেটা validate করুন, ঠিক যেমন একটি server response করতেন।
+**❌ ভুল — যা ফেরত আসে তা বিশ্বাস করা।** User DevTools-এ প্রতিটি store edit করতে পারেন। যে shape-এর ওপর নির্ভর করেন,
+সেটা যাচাই করুন, ঠিক server response-এর মতো।
 
 ## 🔑 মূল শিক্ষা
 
-- Page-এর প্রতিটি script web storage আর IndexedDB পড়তে পারে, আর browser দুটিকেই evict করতে পারে। তাই কোনোটাই secret বা অপূরণীয় data রাখে না।
-- `localStorage` সব tab ভাগ করে, আর tab বন্ধ হলেও থেকে যায়। `sessionStorage` একটি tab-এর, আর tab-এর সঙ্গেই মরে যায়।
-- `storage` event প্রতিটি tab-এ পৌঁছায়, শুধু যে tab value লিখেছে সেটা ছাড়া।
-- IndexedDB asynchronous, কারণ synchronous disk access page-কে জমিয়ে দিত। ~5 MB-এর বেশি হলে, binary data, query বা offline write-এর জন্য এটা তার খরচের যোগ্য।
-- Schema পরিবর্তন হয় শুধু upgrade handler-এর ভেতরে। Transaction-এর ভেতরে অসম্পর্কিত কাজ await করলে transaction বন্ধ হয়ে যায়।
+- পাতার প্রতিটি script web storage আর IndexedDB পড়তে পারে, আর browser দুটিকেই evict করতে পারে, তাই কোনোটাতেই গোপন বা অপূরণীয় data রাখা চলে না।
+- `localStorage` সব tab ভাগ করে নেয় আর tab বন্ধ হলেও থেকে যায়। `sessionStorage` একটি tab-এর, tab-এর সঙ্গেই মরে।
+- `storage` event সেই tab ছাড়া বাকি সব tab-এ পৌঁছায়, যেটা value লিখেছে।
+- IndexedDB asynchronous, কারণ synchronous disk access পাতাকে জমিয়ে দিত। এর খরচ পোষায় ~5 MB-এর বেশি হলে, binary data, query বা offline write-এর জন্য।
+- Schema বদলায় শুধু upgrade handler-এর ভেতরে। ভেতরে অসম্পর্কিত কাজের জন্য await করলে transaction বন্ধ হয়ে যায়।
 
 ## Interview-এর প্রশ্ন
 
 **Q: `localStorage` আর `sessionStorage`-এর পার্থক্য কী?**
 
-দুটিই origin-এর scope-এ থাকা key-value store। `localStorage` মুছে না দেওয়া পর্যন্ত থাকে, আর প্রতিটি tab এটা ভাগ
-করে। `sessionStorage` tab বন্ধ হলে মুছে যায়, আর শুধু সেই tab-এরই থাকে। তাই form draft-এর জন্য এটা ঠিক। শুধু
-`localStorage` `storage` event fire করে, তাই শুধু এটাই cross-tab sync চালায়।
+দুটিই origin-এর পরিধিতে key-value store। `localStorage` না মোছা পর্যন্ত থাকে, আর সব tab ভাগ করে নেয়।
+`sessionStorage` tab বন্ধ হলে মুছে যায়, আর শুধু সেই tab-এর, তাই form draft-এর জন্য এটাই ঠিক। `storage` event fire
+করে শুধু `localStorage`, তাই tab জুড়ে sync চালায় শুধু সেটাই।
 
-**Q: একজন user একটি tab-এ logout করলেন। বাকি খোলা tab-গুলো কীভাবে জানবে?**
+**Q: User এক tab-এ logout করলেন। বাকি খোলা tab-গুলো কীভাবে জানবে?**
 
-Logout-এর সময় `localStorage`-এ একটি marker লিখুন। Origin-এর বাকি প্রতিটি tab-এ `storage` event fire হয়, আর প্রতিটি
-tab নিজের state মুছে redirect করে। যে tab লিখেছে, সে কোনো event পায় না, তাই সে নিজের logout সরাসরি সামলায়।
-`BroadcastChannel` একই কাজ করে, আরও পরিচ্ছন্ন একটি message API দিয়ে। যেভাবেই করুন, server-কেও session শেষ করতে
-হবে, কারণ ঘুমিয়ে থাকা একটি tab event শুনতে পাবে না।
+Logout-এর সময় `localStorage`-এ একটা চিহ্ন লিখুন। Origin-এর বাকি প্রতিটি tab-এ `storage` event fire হয়, আর প্রতিটি
+tab নিজের state মুছে redirect করে। যে tab লিখেছে, সে কোনো event পায় না, তাই নিজের logout সে সরাসরি সামলায়।
+`BroadcastChannel` একই কাজ করে আরও পরিষ্কার message API দিয়ে। যেভাবেই করুন, server-কেও session শেষ করতে হবে, কারণ
+ঘুমিয়ে থাকা tab event শুনবে না।
 
-**Q: কখন আপনি `localStorage`-এর বদলে IndexedDB বেছে নেবেন?**
+**Q: কখন `localStorage`-এর বদলে IndexedDB বেছে নেবেন?**
 
-যখন চারটি জিনিসের যেকোনো একটি সত্য। আপনি কয়েক megabyte-এর বেশি রাখছেন, object-এর field-এর ওপর query করছেন,
-`Blob`-এর মতো binary data রাখছেন, অথবা একটি read এত বড় যে synchronous-ভাবে চললে একটি frame খরচ হতো। হাতে গোনা
-কয়েকটি ছোট string-এর জন্য IndexedDB হলো লাভহীন জটিলতা।
+চারটি শর্তের যেকোনো একটি খাটলে। কয়েক megabyte-এর বেশি রাখছেন, object-এর field ধরে query করছেন, `Blob`-এর মতো
+binary data রাখছেন, বা কোনো read এত বড় যে synchronous হলে একটা frame খেয়ে ফেলত। অল্প কয়েকটি ছোট string-এর জন্য
+IndexedDB মানে কোনো লাভ ছাড়া জটিলতা।
 
-**Q: IndexedDB schema migration কীভাবে কাজ করে?**
+**Q: IndexedDB-র schema migration কীভাবে কাজ করে?**
 
-প্রতিটি database-এর একটি version থাকে। বড় সংখ্যা দিয়ে খুললে upgrade handler fire হয়, আর প্রতিটি schema পরিবর্তন
-সেখানেই করতে হয়। পুরোনো version অনুযায়ী branch করলে প্রতিটি ধাপ একবার আর ক্রম অনুযায়ী চলে। তাই কয়েকটি release
-পিছিয়ে থাকা একজন user-ও বর্তমান schema-তে পৌঁছান।
+প্রতিটি database-এর একটা version আছে। বড় সংখ্যা দিয়ে খুললে upgrade handler fire হয়, আর schema-র প্রতিটি বদল সেখানেই
+করতে হয়। পুরনো version দেখে branch করলে প্রতিটি ধাপ একবার করে, ক্রম মেনে চলে, তাই কয়েকটি release পিছিয়ে থাকা user-ও
+বর্তমান schema-তে পৌঁছান।
 
-**Q: Quota-তে পৌঁছালে কী হয়?**
+**Q: Quota ছুঁয়ে ফেললে কী হয়?**
 
-Write `QuotaExceededError` throw করে। তাই যে store বাড়তে পারে, তার একটি `try`/`catch` আর একটি cleanup pass লাগে।
-যেমন একটি TTL (time-to-live) sweep, বা least-recently-used removal। `navigator.storage.estimate()`
-আপনাকে limit-এ পৌঁছানোর আগেই সেটা দেখতে দেয়, সব store মিলিয়ে একসঙ্গে।
+Write `QuotaExceededError` throw করে। তাই যে store বাড়তে পারে, তার `try`/`catch` আর একটা পরিষ্কারের ধাপ লাগে, যেমন TTL
+(time-to-live) ধরে ঝাড়ু দেওয়া, বা সবচেয়ে কম সম্প্রতি ব্যবহার হওয়াগুলো সরানো। `navigator.storage.estimate()` দিয়ে
+limit-এ পৌঁছানোর আগেই তা দেখা যায়, সব store মিলিয়ে একসঙ্গে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Cookie ও SameSite](#ch-cookies-same-site) — session token কোথায় থাকা উচিত, আর `SameSite` আসলে কী রক্ষা করে
+- [Chapter ?? — Cookie ও SameSite](#ch-cookies-same-site) — session token-এর জায়গা কোথায়, আর `SameSite` আসলে কী রক্ষা করে
 - [Chapter ?? — Service Worker, Caching ও Offline](#ch-service-workers) — Cache API, আর IndexedDB-তে থাকা offline write queue
-- [Chapter ?? — XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention) — যে attack-এর কারণে token-এর নিয়মটি গুরুত্বপূর্ণ
+- [Chapter ?? — XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention) — যে attack-এর কারণে token-এর নিয়মটা গুরুত্বপূর্ণ

@@ -1,26 +1,26 @@
 ---
 sourceHash: "71bf06c200fb21e1bbac12822fd03a3dded75703aab4e20b6f2ed6a747c46042"
 title: "Cookie ও SameSite"
-translatedAt: "2026-10-12T07:52:55.065Z"
+translatedAt: "2026-10-14T04:52:40.611Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Cookie ও SameSite {#ch-cookies-same-site}
 
-> এমন একটি cookie set করুন, যেটা attacker পড়তে বা আবার পাঠাতে পারে না — আর প্রতিটি attribute কেন বেছেছেন, তা ব্যাখ্যা করুন।
+> এমন cookie set করুন, যা attacker পড়তেও পারবে না, আবার পাঠাতেও পারবে না। আর প্রতিটি attribute কেন বেছেছেন, তা ব্যাখ্যা করুন।
 
-**এই অধ্যায়ে:** cookie-এর attribute · `SameSite` Strict, Lax আর None · SameSite কীভাবে CSRF-কে দুর্বল করে · auth-এর জন্য cookie বনাম localStorage
+**এই অধ্যায়ে:** cookie-র attribute · `SameSite` Strict, Lax আর None · SameSite কীভাবে CSRF-কে ভোঁতা করে · auth-এর জন্য cookie বনাম localStorage
 
 ## 💡 মূল ধারণা
 
-Cookie হলো ছোট একটু data, যেটা server browser-কে রেখে দিতে বলে। এরপর browser সেটা **না চাইতেই প্রতিটি মিলে যাওয়া
-request-এর সাথে জুড়ে দেয়**। এই একটি আচরণই অধ্যায়ের দুই অর্ধেককে ব্যাখ্যা করে। এ কারণেই cookie session বহন করে।
-আবার এ কারণেই cross-site request forgery আদৌ সম্ভব। যে attacker আপনার cookie পড়তে পারে না, সে-ও browser-কে দিয়ে
-সেটা পাঠিয়ে নিতে পারে।
+Cookie হলো ছোট একটুকরো data, যা server browser-কে রেখে দিতে বলে। তারপর browser সেটা **না চাইতেই মিলে যাওয়া প্রতিটি
+request-এ** জুড়ে দেয়। এই একটি আচরণ দিয়েই অধ্যায়ের দুটি অর্ধেক ব্যাখ্যা হয়ে যায়। Cookie session বয়ে নিয়ে যায় এই
+কারণে, আর cross-site request forgery-র অস্তিত্বও এই কারণেই। যে attacker আপনার cookie পড়তে পারে না, সে-ও browser-কে
+দিয়ে সেটা পাঠিয়ে নিতে পারে।
 
-তাই `Set-Cookie` line-এর প্রতিটি attribute একই প্রশ্নের উত্তর দেয়: *browser এটা কখন পাঠাবে?* `HttpOnly`-এর উত্তর
-"JavaScript-কে কখনো নয়", `Secure`-এর উত্তর "plain text-এ কখনো নয়", আর `SameSite`-এর উত্তর "অন্য কারও page থেকে
-কখনো নয়"। এগুলো ভেবেচিন্তে বেছে নেওয়াই পুরো দক্ষতা।
+তাই `Set-Cookie` line-এর প্রতিটি attribute একই প্রশ্নের উত্তর দেয়: *browser কখন এটা পাঠাবে?* `HttpOnly`-এর উত্তর
+"JavaScript-কে কখনো না", `Secure`-এর উত্তর "খোলা লেখায় কখনো না", আর `SameSite`-এর উত্তর "অন্য কারও পাতা থেকে কখনো
+না"। জেনে-বুঝে এগুলো বাছাই করাই পুরো দক্ষতা।
 
 ```text
 # Server response
@@ -30,14 +30,14 @@ Set-Cookie: sessionId=abc123; Path=/; HttpOnly; Secure; SameSite=Strict
 Cookie: sessionId=abc123
 ```
 
-Cookie ছোট, প্রায় 4 KB, আর প্রতিটি request-এর সাথে যায়। তাই এটা storage-এর পদ্ধতি নয়, session-এর পদ্ধতি। যে data
-server-এর দরকার নেই, সেটার জায়গা web storage-এ।
+Cookie ছোট, প্রায় 4 KB, আর প্রতিটি request-এর সঙ্গে যায়। তাই এটা storage-এর ব্যবস্থা নয়, session-এর ব্যবস্থা। যে
+data server-এর লাগে না, তার জায়গা web storage-এ।
 
-> ⚠️ **যা বদলাতে থাকে:** এই অধ্যায়ের অন্য যেকোনো অংশের চেয়ে third-party cookie policy বেশি বদলেছে।
-> Safari আর Firefox default-ভাবে third-party cookie block করে। Chrome একটি phase-out ঘোষণা করেছিল, দুবার পিছিয়েছে,
-> তারপর default deprecation পুরোপুরি বাদ দিয়েছে। Embedded flow চালু রাখার অনুমোদিত উপায় এখন `Partitioned` (CHIPS)
-> আর Storage Access API। টেকসই নীতি হলো: নিচের attribute-গুলো স্থির, কিন্তু *third-party context-এ cookie set করার
-> অনুমতি* স্থির নয়। তাই এমন login flow কখনো বানাবেন না, যেটা এর ওপর নির্ভর করে।
+> ⚠️ **যা বদলাতে থাকে:** এই অধ্যায়ের অন্য যেকোনো অংশের চেয়ে বেশি বদলেছে third-party cookie-র নীতি। Safari আর Firefox
+> default-এ third-party cookie আটকায়। Chrome এগুলো তুলে দেওয়ার ঘোষণা দিয়েছিল, দুবার পিছিয়েছে, তারপর default
+> deprecation-টাই বাদ দিয়েছে। Embed করা flow চালু রাখার অনুমোদিত উপায় এখন `Partitioned` (CHIPS) আর Storage Access
+> API। টেকসই নীতি হলো, নিচের attribute-গুলো স্থির, কিন্তু *third-party প্রসঙ্গে cookie set করার অনুমতি* স্থির নয়। তাই
+> এমন login flow কখনো বানাবেন না, যা এর ওপর নির্ভর করে।
 
 ## কীভাবে কাজ করে
 
@@ -45,44 +45,44 @@ server-এর দরকার নেই, সেটার জায়গা web 
 
 | Attribute | কী করে |
 |-----------|--------------|
-| `Path=/` | যে URL prefix-এ cookie পাঠানো হয় (default: বর্তমান path) |
-| `Domain=example.com` | এই domain আর এর সব subdomain-এ পাঠায়। ঠিক ওই host-এ সীমিত রাখতে এটা বাদ দিন। |
-| `Max-Age=3600` | সেকেন্ডে আয়ু (`Expires`-এর চেয়ে এটাই ভালো) |
-| `Expires=<date>` | নির্দিষ্ট মেয়াদ শেষের তারিখ। `Max-Age`/`Expires` না থাকলে = session cookie (browser বন্ধ হলে শেষ)। |
+| `Path=/` | কোন URL prefix-এ cookie পাঠানো হবে (default: বর্তমান path) |
+| `Domain=example.com` | এই domain আর তার সব subdomain-এ পাঠায়। না দিলে শুধু ঠিক ওই host-এ যায়। |
+| `Max-Age=3600` | আয়ু, second-এ (`Expires`-এর চেয়ে এটাই ভালো) |
+| `Expires=<date>` | মেয়াদ শেষের নির্দিষ্ট তারিখ। `Max-Age`/`Expires` কোনোটাই না থাকলে session cookie (browser বন্ধ হলেই শেষ)। |
 | `Secure` | শুধু HTTPS-এ পাঠানো হয় |
-| `HttpOnly` | `document.cookie` থেকে access করা **যায় না** — XSS দিয়ে token চুরির বিরুদ্ধে সবচেয়ে বড় একক সুরক্ষা |
+| `HttpOnly` | `document.cookie` থেকে **পড়া যায় না** — XSS দিয়ে token চুরির বিরুদ্ধে একক সবচেয়ে বড় সুরক্ষা |
 | `SameSite=Strict\|Lax\|None` | Cross-site-এ পাঠানো নিয়ন্ত্রণ করে (নিচে দেখুন) |
 
 **যে default-গুলো জানা দরকার:**
 
-- Chromium browser **`SameSite` ছাড়া** cookie-কে `SameSite=Lax` হিসেবে ধরে। Firefox আর Safari তা করে না, তাই সবসময়
-  স্পষ্টভাবে set করুন।
-- `SameSite=None`-এর জন্য `Secure` **বাধ্যতামূলক**, নইলে cookie reject হয়।
-- `HttpOnly` শুধু server set করতে পারে — JavaScript থেকে নয়।
+- **`SameSite` ছাড়া** cookie-কে Chromium browser `SameSite=Lax` ধরে। Firefox আর Safari তা ধরে না, তাই সবসময় স্পষ্ট
+  করে দিন।
+- `SameSite=None` দিলে `Secure` **দিতেই হবে**, নইলে cookie বাতিল হয়ে যায়।
+- `HttpOnly` set করতে পারে শুধু server — JavaScript থেকে নয়।
 
 ### `SameSite`: Strict, Lax আর None
 
-Request অন্য site থেকে এলে browser cookie পাঠাবে কি না, তা `SameSite` ঠিক করে।
+Request অন্য site থেকে এলে browser cookie পাঠাবে কিনা, তা ঠিক করে `SameSite`।
 
 | Value | Same-site request | অন্য site থেকে top-level navigation | Cross-site AJAX / iframe |
 |-------|-------------------|----------------------------------------|--------------------------|
-| `Strict` | ✅ পাঠায় | ❌ পাঠায় না | ❌ পাঠায় না |
-| `Lax` (Chromium-এর default) | ✅ পাঠায় | ✅ পাঠায় (শুধু GET) | ❌ পাঠায় না |
-| `None` | ✅ পাঠায় | ✅ পাঠায় | ✅ পাঠায় (`Secure` লাগে) |
+| `Strict` | ✅ যায় | ❌ যায় না | ❌ যায় না |
+| `Lax` (Chromium-এর default) | ✅ যায় | ✅ যায় (শুধু GET) | ❌ যায় না |
+| `None` | ✅ যায় | ✅ যায় | ✅ যায় (`Secure` লাগে) |
 
-**কোনটা বেছে নেবেন:**
+**কোনটা বাছবেন:**
 
-| পরিস্থিতি | ব্যবহার করুন |
+| পরিস্থিতি | কী দেবেন |
 |----------|-----|
 | সাধারণ web app-এর session cookie | `Lax` |
-| Banking, admin, "destructive" operation | `Strict` |
+| Banking, admin, "ধ্বংসাত্মক" operation | `Strict` |
 | Third-party iframe / cross-site auth (SSO) | `None` + `Secure` |
 
-> `Strict` "email-এ link-এ click করুন, logged in অবস্থায় পৌঁছান" flow ভেঙে দেয়, কারণ প্রথম navigation-এ browser cookie পাঠায় না। `Lax` সেটা চালু রাখে, আবার cross-site POST-ও block করে।
+> `Strict` থাকলে "email-এর link-এ click করে logged in অবস্থায় পৌঁছানো" flow ভেঙে যায়, কারণ প্রথম navigation-এ browser cookie পাঠায় না। `Lax` সেটা চালু রাখে, আবার cross-site POST-ও আটকায়।
 
-### CSRF, আর `SameSite` কীভাবে একে দুর্বল করে
+### CSRF, আর `SameSite` কীভাবে একে ভোঁতা করে
 
-**Cross-site request forgery** (CSRF) ঘটে কারণ browser নিজে থেকেই cookie পাঠায়। Attacker একজন logged-in user-কে ধোঁকা দিয়ে অন্য site থেকে একটি request করিয়ে নেয়:
+**Cross-site request forgery** (CSRF) ঘটে কারণ browser নিজে থেকেই cookie পাঠায়। Attacker logged-in একজন user-কে ভুলিয়ে অন্য site থেকে একটা request পাঠিয়ে নেয়:
 
 ```html
 <!-- On attacker.com — runs while the victim is logged in to bank.com -->
@@ -93,14 +93,14 @@ Request অন্য site থেকে এলে browser cookie পাঠাব�
 <script>f.submit();</script>
 ```
 
-`SameSite` ছাড়া browser bank-এর session cookie পাঠিয়ে দেয়, আর transfer সফল হয়।
+`SameSite` না থাকলে browser bank-এর session cookie পাঠিয়ে দেয়, আর টাকা পাঠানো হয়ে যায়।
 
-**`SameSite` প্রথম সুরক্ষা:**
+**প্রথম সুরক্ষা `SameSite`:**
 
-- `SameSite=Lax` cross-site POST block করে → form-submit attack শেষ
-- `SameSite=Strict` সব cross-site পাঠানো block করে
+- `SameSite=Lax` cross-site POST আটকায় → form submit-এর attack শেষ
+- `SameSite=Strict` cross-site-এ সব পাঠানো আটকায়
 
-**Defence in depth-এর জন্য একটি CSRF token যোগ করুন:**
+**স্তরে স্তরে সুরক্ষার জন্য একটা CSRF token যোগ করুন:**
 
 ```typescript
 // Server: issue token tied to the session
@@ -115,12 +115,12 @@ await fetch("/transfer", {
 });
 ```
 
-> CSRF cookie পড়ে সেটা একটি header-এ ফেরত পাঠানোকে বলে **double-submit cookie** pattern। Same-origin policy attacker-এর page-কে আপনার cookie পড়তে দেয় না, তাই সে header নকল করতে পারে না।
+> CSRF cookie পড়ে সেটা header-এ আবার পাঠানোকে বলে **double-submit cookie** pattern। Same-origin policy attacker-এর পাতাকে আপনার cookie পড়তে দেয় না, তাই সে header নকল করতে পারে না।
 
 ### JavaScript থেকে পড়া আর লেখা
 
-`document.cookie` বিখ্যাতভাবেই অসুবিধাজনক। Read করলে একটি লম্বা string ফেরত আসে, যেটা parse করতে হয়। আর write হলো
-পুরো একটি attribute line। এটা দিয়ে `HttpOnly` set করা যায় না। এটা ইচ্ছাকৃত, আর আসল কথাও এটাই।
+`document.cookie` বিখ্যাতভাবেই অসুবিধাজনক। পড়লে পাওয়া যায় একটা লম্বা string, যা parse করতে হয়, আর লিখতে হয় পুরো
+একটা attribute line। এখান থেকে `HttpOnly` set করা যায় না। এটা design অনুযায়ীই, আর আসল কথাও সেটাই।
 
 ```typescript
 document.cookie = "theme=dark; Path=/; Max-Age=31536000; SameSite=Lax"; // write
@@ -131,17 +131,17 @@ document.cookie = "theme=; Path=/; Max-Age=0"; // delete, by expiring it
 
 | বিষয় | HttpOnly Cookie | localStorage |
 |---------|----------------|--------------|
-| **XSS token পড়ে** | ❌ সম্ভব নয় (JS access করতে পারে না) | ✅ খুব সহজ |
-| **CSRF** | ✅ সম্ভব — `SameSite` + token দিয়ে কমান | ❌ সম্ভব নয় (হাতে পাঠাতে হয়) |
-| **প্রতিটি request-এর সাথে যায়** | ✅ Automatic | ❌ Header দিয়ে হাতে |
-| **Cross-domain SSO** | কাজ করে (`SameSite=None; Secure` দিয়ে) | ঝামেলার |
+| **XSS token পড়ে ফেলে** | ❌ সম্ভব নয় (JS পড়তে পারে না) | ✅ খুবই সহজ |
+| **CSRF** | ✅ সম্ভব — `SameSite` + token দিয়ে ঠেকান | ❌ সম্ভব নয় (হাতে পাঠাতে হয়) |
+| **প্রতিটি request-এর সঙ্গে যায়** | ✅ নিজে থেকেই | ❌ Header দিয়ে হাতে |
+| **Cross-domain SSO** | চলে (`SameSite=None; Secure` সহ) | ঝামেলার |
 
-**Interview-এর জন্য তৈরি উত্তর:** XSS, CSRF-এর চেয়ে অনেক বেশি সাধারণ, আর HttpOnly cookie একে অকেজো করে দেয়। Session-এর জন্য HttpOnly cookie ব্যবহার করুন, আর `SameSite=Lax` সাথে একটি token দিয়ে CSRF থেকে রক্ষা করুন।
+**Interview-এর জন্য তৈরি উত্তর:** CSRF-এর চেয়ে XSS অনেক বেশি ঘটে, আর HttpOnly cookie একে অকেজো করে দেয়। Session-এর জন্য HttpOnly cookie নিন, আর CSRF ঠেকান `SameSite=Lax` আর একটা token দিয়ে।
 
 ### Split-token pattern
 
-বেশিরভাগ interviewer এই উত্তরটাই শুনতে চান। দীর্ঘমেয়াদি refresh token রাখুন একটি `HttpOnly` cookie-তে, আর
-স্বল্পমেয়াদি access token রাখুন memory-তে।
+বেশিরভাগ interviewer এই উত্তরটাই শোনার অপেক্ষায় থাকেন। দীর্ঘ মেয়াদের refresh token রাখুন একটা `HttpOnly` cookie-তে,
+আর অল্প মেয়াদের access token রাখুন memory-তে।
 
 ```typescript
 // --- SERVER (Express) ---
@@ -186,75 +186,72 @@ async function api(url: string, init: RequestInit = {}): Promise<Response> {
 
 **কেন এটা কাজ করে:**
 
-- Access token কখনো storage ছোঁয় না। XSS এটা memory থেকে নিতে পারে শুধু **page খোলা থাকা অবস্থায়**, যা ক্ষতি সীমিত রাখে।
-- Refresh token HttpOnly → XSS এটা একেবারেই পড়তে পারে না।
-- Refresh cookie-তে `SameSite=Strict` `/auth/refresh`-এ CSRF block করে।
+- Access token কখনো storage ছোঁয় না। XSS এটা memory থেকে নিতে পারে শুধু **পাতা খোলা থাকা অবস্থায়**, তাই ক্ষতি সীমিত থাকে।
+- Refresh token HttpOnly → XSS একে পড়তেই পারে না।
+- Refresh cookie-তে `SameSite=Strict` থাকায় `/auth/refresh`-এ CSRF আটকে যায়।
 
-### Consent
+### সম্মতি
 
-GDPR আর CCPA অনুযায়ী, user রাজি হওয়ার আগে আপনি শুধু **একান্ত প্রয়োজনীয়** cookie set করতে পারেন। যেমন session,
-CSRF token আর একটি load-balancer cookie। Preference, analytics আর marketing cookie-র জন্য আগে opt-in consent লাগে।
-Banner-এ Accept, Reject আর Customise থাকে, আগে থেকে কিছুই tick করা থাকে না। এর পেছনের script-গুলো load হয় শুধু
-user বেছে নেওয়ার পরে।
+GDPR আর CCPA অনুযায়ী user রাজি হওয়ার আগে শুধু **একেবারে অপরিহার্য** cookie set করা যায়। যেমন session, CSRF token
+আর load balancer-এর cookie। পছন্দ, analytics আর marketing-এর cookie-র জন্য আগে opt-in সম্মতি লাগে। Banner-এ থাকে
+Accept, Reject আর Customise, কোনো কিছুতে আগে থেকে টিক দেওয়া থাকে না। আর তার পেছনের script load হয় শুধু বাছাইয়ের পরে।
 
 ## সাধারণ ভুল
 
-**❌ কিছু একটি চালু করতে `SameSite=None` set করা।** এই value সুরক্ষাটা বন্ধ করে দেয়। এটা ঠিক শুধু তখনই, যখন cookie-কে
-সত্যিই third-party context-এ যেতে হয়। একটি request "cookie পাঠাচ্ছিল না" বলে যদি এটা ব্যবহার করেন, তাহলে প্রতিটি
-request থেকে CSRF সুরক্ষা সরিয়ে দিচ্ছেন।
+**❌ কিছু একটা চালু করতে `SameSite=None` দেওয়া।** এই value সুরক্ষাটাই বন্ধ করে দেয়। এটা ঠিক শুধু তখন, যখন cookie-কে
+সত্যিই third-party প্রসঙ্গে যেতে হয়। কোনো request "cookie পাঠাচ্ছিল না" বলে এটা দিলে, প্রতিটি request থেকে CSRF-এর
+সুরক্ষা সরিয়ে ফেলেন।
 
-**❌ `SameSite=None`-এর সাথে `Secure` বাদ দেওয়া।** Browser cookie-টি সরাসরি reject করে। এটা সাধারণত cookie bug হিসেবে
-নয়, authentication bug হিসেবে ধরা পড়ে।
+**❌ `SameSite=None`-এর সঙ্গে `Secure` না দেওয়া।** Browser cookie-টা সরাসরি বাতিল করে দেয়। এটা সাধারণত cookie-র bug
+হিসেবে নয়, authentication-এর bug হিসেবে দেখা দেয়।
 
-**❌ অভ্যাসবশত `Domain=example.com` set করা।** এটা cookie-কে প্রতিটি subdomain পর্যন্ত ছড়িয়ে দেয়, attacker যেটায়
-পা রাখতে পেরেছে সেটাসহ। কোনো subdomain-এর সত্যিই cookie দরকার না হলে `Domain` বাদ দিন।
+**❌ অভ্যাসবশে `Domain=example.com` দেওয়া।** এতে cookie ছড়িয়ে পড়ে প্রতিটি subdomain-এ, attacker যেটায় পা রাখতে পেরেছে
+সেটাতেও। কোনো subdomain-এর সত্যিই cookie-টা না লাগলে `Domain` দেবেন না।
 
-**❌ Cookie-কেই পুরো CSRF সুরক্ষা ভাবা।** `SameSite=Lax` cross-site POST block করে, কিন্তু এটা browser-এর আচরণ।
-পুরোনো browser, বা attacker-এর নিয়ন্ত্রণে থাকা same-site subdomain, তবুও ঢুকে পড়ে। Double-submit token দ্বিতীয় স্তর,
-বিকল্প নয়।
+**❌ Cookie-কেই CSRF-এর পুরো সুরক্ষা ভাবা।** `SameSite=Lax` cross-site POST আটকায়, কিন্তু এটা browser-এর আচরণ। পুরনো
+browser, বা attacker-এর দখলে থাকা same-site subdomain, এখনো ঢুকে পড়ে। Double-submit token দ্বিতীয় স্তর, বিকল্প নয়।
 
-**❌ Consent-এর আগে analytics load করা আর পরে জিজ্ঞেস করা।** আগে থেকে tick করা box consent নয়, আর যে banner এর পেছনের
-script আগেই চালিয়ে দিয়েছে, সেটাও নয়।
+**❌ সম্মতির আগেই analytics load করে পরে জিজ্ঞেস করা।** আগে থেকে টিক দেওয়া box সম্মতি নয়, যে banner পেছনের script
+আগেই চালিয়ে দিয়েছে সেটাও নয়।
 
 ## 🔑 মূল শিক্ষা
 
-- Browser প্রতিটি মিলে যাওয়া request-এ নিজে থেকেই cookie জুড়ে দেয়। এ কারণে cookie session-এর জন্য কাজ করে, আবার
-  এ কারণেই CSRF সম্ভব।
-- Session cookie-র জন্য সবচেয়ে গুরুত্বপূর্ণ attribute হলো `HttpOnly`, কারণ XSS একে হারাতে পারে না।
-- বেশিরভাগ application-এর জন্য সঠিক উত্তর `SameSite=Lax`। শুধু Chromium এটা default-ভাবে প্রয়োগ করে, তাই স্পষ্টভাবে
-  set করুন। `Strict` email-এর link-এ click করার flow ভেঙে দেয়। `None`-এর জন্য `Secure` লাগে, আর এটা সুরক্ষা বন্ধ
-  করে দেয়।
-- Credential ভাগ করুন: refresh token একটি `HttpOnly` cookie-তে, access token memory-তে। তাহলে XSS বড়জোর একটি
-  স্বল্পমেয়াদি value পায়।
-- Consent-এর আগে শুধু একান্ত প্রয়োজনীয় cookie set করা যায়, আর আগে থেকে tick করা box consent নয়।
+- Browser মিলে যাওয়া প্রতিটি request-এ নিজে থেকেই cookie জুড়ে দেয়। এজন্যই session-এ cookie কাজ করে, আবার এজন্যই
+  CSRF সম্ভব।
+- Session cookie-র জন্য সবচেয়ে জরুরি attribute `HttpOnly`, কারণ XSS একে হারাতে পারে না।
+- বেশিরভাগ application-এর ঠিক উত্তর `SameSite=Lax`। Default-এ এটা খাটায় শুধু Chromium, তাই স্পষ্ট করে দিন।
+  `Strict` email-এর link-এ click করার flow ভেঙে দেয়। `None`-এর জন্য `Secure` লাগে, আর এটা সুরক্ষা বন্ধ করে দেয়।
+- Credential ভাগ করুন: refresh token `HttpOnly` cookie-তে, access token memory-তে। তাহলে XSS বড়জোর একটা অল্প
+  মেয়াদের value পায়।
+- সম্মতির আগে set করা যায় শুধু একেবারে অপরিহার্য cookie, আর আগে থেকে টিক দেওয়া box সম্মতি নয়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: `SameSite=Strict` বনাম `Lax` বনাম `None` বুঝিয়ে বলুন।**
+**Q: `SameSite=Strict`, `Lax` আর `None` বুঝিয়ে বলুন।**
 
-- **`Strict`**: শুধু same-site request-এ পাঠানো হয়। সবচেয়ে নিরাপদ, কিন্তু cross-site UX ভেঙে দেয়, কারণ email-এর link session বহন করবে না।
-- **`Lax`**: same-site request, সাথে top-level GET navigation। Chromium-এর default, আর সাধারণ app-এর জন্য ভালো ভারসাম্য।
-- **`None`**: প্রতিটি request-এ পাঠানো হয়, cross-site iframe আর AJAX-সহ। Embedded third-party flow-এর জন্য দরকার। অবশ্যই `Secure`-এর সাথে জোড়া দিতে হবে।
+- **`Strict`**: যায় শুধু same-site request-এ। সবচেয়ে নিরাপদ, কিন্তু cross-site UX ভেঙে দেয়, কারণ email থেকে আসা link session বয়ে আনে না।
+- **`Lax`**: same-site request, সঙ্গে top-level GET navigation। Chromium-এর default, আর সাধারণ app-এর জন্য ভালো ভারসাম্য।
+- **`None`**: প্রতিটি request-এ যায়, cross-site iframe আর AJAX-সহ। Embed করা third-party flow-এর জন্য দরকার। সঙ্গে `Secure` দিতেই হবে।
 
-**Q: Auth cookie-র জন্য `Secure`-এর চেয়ে `HttpOnly` কেন বেশি গুরুত্বপূর্ণ?**
+**Q: Auth cookie-র জন্য `Secure`-এর চেয়ে `HttpOnly` কেন বেশি জরুরি?**
 
-`HttpOnly` JavaScript-কে cookie পড়তে দেয় না। এটা XSS-নির্ভর token চুরি থামায়, আর XSS হলো সবচেয়ে সাধারণ web attack। `Secure` শুধু network path-এ থাকা attacker থেকে রক্ষা করে, যেটা HTTPS এমনিতেই মূলত সমাধান করে দেয়। দুটিই চান, কিন্তু `HttpOnly`-এর লাভ বড়।
+`HttpOnly` JavaScript-কে cookie পড়তে দেয় না। তাতে XSS দিয়ে token চুরি থামে, আর web-এ সবচেয়ে বেশি ঘটা attack হলো XSS। `Secure` শুধু network-এর পথে বসে থাকা attacker থেকে রক্ষা করে, যা HTTPS এমনিতেই অনেকটা মিটিয়ে দেয়। দুটিই চান, কিন্তু বড় লাভ `HttpOnly`-তে।
 
 **Q: `SameSite` কীভাবে CSRF ঠেকায়?**
 
-CSRF নির্ভর করে এর ওপর যে attacker-এর page আপনার site-এ request trigger করলে browser নিজে থেকেই user-এর session cookie পাঠিয়ে দেয়। `SameSite=Lax` cross-site POST, PUT আর DELETE block করে, আর CSRF ঠিক সেখানেই থাকে। Attacker-এর request cookie ছাড়াই আপনার server-এ পৌঁছায়। User-কে logged out মনে হয়, আর action ব্যর্থ হয়।
+CSRF নির্ভর করে এর ওপর যে, attacker-এর পাতা আপনার site-এ request পাঠালে browser নিজে থেকেই user-এর session cookie পাঠিয়ে দেবে। `SameSite=Lax` cross-site POST, PUT আর DELETE আটকায়, আর CSRF থাকে ঠিক সেখানেই। Attacker-এর request cookie ছাড়াই আপনার server-এ পৌঁছায়। User-কে logged out দেখায়, আর কাজটা ব্যর্থ হয়।
 
 **Q: JWT কেন `localStorage`-এ রাখবেন না?**
 
-Page-এর যেকোনো script `localStorage` পড়তে পারে। একটিমাত্র XSS, এমনকি compromised একটি npm dependency থেকে এলেও, token পড়ে বাইরে পাঠিয়ে দিতে পারে। HttpOnly cookie JavaScript-এর কাছে অদৃশ্য। একই XSS তবুও আপনার API call করতে পারে, কারণ browser নিজে থেকেই cookie পাঠায়। কিন্তু দীর্ঘমেয়াদি credential-টি **চুরি করতে পারে না**।
+পাতার যেকোনো script `localStorage` পড়তে পারে। একটিমাত্র XSS, এমনকি দূষিত হয়ে যাওয়া কোনো npm dependency থেকে এলেও, token পড়ে বাইরে পাঠিয়ে দিতে পারে। HttpOnly cookie JavaScript-এর চোখে অদৃশ্য। সেই XSS তখনো আপনার API call করতে পারে, কারণ browser নিজে থেকেই cookie পাঠায়। কিন্তু দীর্ঘ মেয়াদের credential-টা নিজে **চুরি করতে পারে না**।
 
 **Q: `app.example.com` আর `api.example.com` জুড়ে auth কীভাবে করবেন?**
 
-Cookie `Domain=example.com` দিয়ে set করুন, যাতে দুটি subdomain-ই এটা পায়। `Secure` ব্যবহার করুন, আর `SameSite=Lax`, বা cross-site flow না লাগলে `Strict`। API যদি সম্পূর্ণ আলাদা registrable domain-এ থাকে, তাহলে `SameSite=None; Secure` আর `credentials: "include"` সহ CORS লাগবে।
+Cookie set করুন `Domain=example.com` দিয়ে, যাতে দুটি subdomain-ই এটা পায়। `Secure` দিন, আর `SameSite=Lax`, বা cross-site flow না লাগলে `Strict`। API যদি পুরোপুরি আলাদা registrable domain-এ থাকে, তাহলে লাগবে `SameSite=None; Secure`, আর `credentials: "include"` সহ CORS।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Web Storage ও IndexedDB](#ch-storage-apis) — বিকল্পটি, আর কেন এই তর্কে সে হেরে যায়
-- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — forgery সুরক্ষার server-এর অর্ধেক
-- [Chapter ?? — Content Security Policy ও Security Header](#ch-content-security-policy) — অন্য যে header-গুলো attack শুরু
-  হওয়ার আগেই একটি পুরো শ্রেণি বন্ধ করে দেয়
+- [Chapter ?? — Web Storage ও IndexedDB](#ch-storage-apis) — বিকল্পটা, আর এই তর্কে কেন সেটা হারে
+- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — জালিয়াতি ঠেকানোর server-এর দিকটা
+- [Chapter ?? — Content Security Policy ও Security Header](#ch-content-security-policy) — বাকি header-গুলো, যা attack শুরুর
+  আগেই পুরো এক শ্রেণির পথ বন্ধ করে দেয়
