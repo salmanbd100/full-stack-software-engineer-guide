@@ -32,6 +32,42 @@
   --vp-c-brand-soft: rgba(58, 152, 180, 0.16);
 }
 
+/* --- Nav bar ----------------------------------------------------------- */
+
+/* VitePress never lets the nav title shrink, and "The Senior Full Stack Handbook" plus
+   search and the hamburger need 373px — so any phone narrower than that (most Android
+   phones are 360px) scrolled sideways. Below the tablet breakpoint it wraps onto two lines
+   instead; the 64px bar has room for both. */
+@media (max-width: 767px) {
+  #app .VPNavBar .title {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  #app .VPNavBarTitle .title {
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+/* VitePress swaps the hamburger for the inline links at 768px, but six links beside the
+   title need about 1180px — below that they ran off the right edge (and scrolled the page
+   on a portrait tablet). Keep the hamburger and its full-screen menu until they fit. */
+@media (min-width: 768px) and (max-width: 1179px) {
+  #app .VPNavBarMenu,
+  #app .VPNavBarExtra {
+    display: none;
+  }
+
+  #app .VPNavBarHamburger {
+    display: flex;
+  }
+
+  #app .VPNavScreen {
+    display: block;
+  }
+}
+
 /* --- Measure ----------------------------------------------------------- */
 
 #app .VPDoc.has-aside .content-container {
