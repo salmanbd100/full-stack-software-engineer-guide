@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-13 · **Progress:** 2 / 28
+**Last updated:** 2026-10-14 · **Progress:** 3 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -152,7 +152,7 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 ---
 
-### - [ ] 128b. Natural Bangla: Front matter and Part 1 (2 of 2) `M`
+### - [x] 128b. Natural Bangla: Front matter and Part 1 (2 of 2) `M` — ✅ **done 2026-10-14**
 
 9 pages, about 1729 Bangla lines:
 
@@ -160,6 +160,18 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
+
+**Delivered:**
+
+- All 9 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Eight passed on the first attempt; `advanced-types` was refused once for
+  one extra `` `Pick` `` span (a repeat mention the English leaves implicit) and passed once it was
+  written plainly
+- Numbers stay in Western grouping (`200,000`, not the Bangla lakh form `2,00,000`)
+- SOLID and pattern section headings (`Single Responsibility (SRP)`, `Strategy`, `Observer`, …) stay in
+  English, since they are the names engineers use; the surrounding prose is Bangla
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা` or `পরিণত করে` in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
 
 ---
 
@@ -464,5 +476,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 2/28 | 🟡 In progress |
-| **Total** | **28** | **2/28** | **7%** |
+| 11 | 128 · 128a–128z · 130 | 3/28 | 🟡 In progress |
+| **Total** | **28** | **3/28** | **11%** |

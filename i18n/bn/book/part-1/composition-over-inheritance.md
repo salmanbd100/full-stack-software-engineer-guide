@@ -1,29 +1,29 @@
 ---
 sourceHash: "442c6a6c8b227fbdf7d7e369757d3406d5298cd978b567fcc55c32444f500f09"
 title: "OOP ও Inheritance-এর বদলে Composition"
-translatedAt: "2026-10-12T07:46:02.402Z"
+translatedAt: "2026-10-14T04:33:49.666Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
-# OOP এবং Inheritance-এর বদলে Composition {#ch-composition-over-inheritance}
+# OOP ও Inheritance-এর বদলে Composition {#ch-composition-over-inheritance}
 
-> চারটি স্তম্ভকে তাদের খরচ দিয়ে ব্যাখ্যা করুন। চতুর্থ স্তরে গিয়ে একটি hierarchy কেন আর কাজ করে না, সেটা বলুন। আর কোন আকারগুলো তার জায়গা নেয়, সেটা দেখান।
+> চারটি pillar ব্যাখ্যা করুন তাদের খরচ দিয়ে, বলুন চতুর্থ স্তরে গিয়ে hierarchy কেন আর কাজ করে না, আর দেখান কোন আকার তার জায়গা নেয়।
 
 **এই অধ্যায়ে:** state আর তার নিয়ম · `private` বনাম `#` · structural polymorphism · গভীর hierarchy-র খরচ · has-a, dependency injection আর higher-order function
 
 ## 💡 মূল ধারণা
 
-Object-oriented programming একটি প্রশ্নের উত্তর দেয়: **state কোথায় থাকে, আর কে সেটা বদলাতে পারে?**
-একটি object-এর উত্তর হলো "এখানে, আর শুধু এই method-গুলোর মাধ্যমে"। Encapsulation, inheritance, polymorphism
-আর abstraction — সবই এই উত্তর থেকে আসে।
+Object-oriented programming একটিমাত্র প্রশ্নের উত্তর দেয়: **state কোথায় থাকে, আর কে তা বদলাতে পারে?** Object-এর
+উত্তর: "এখানে, আর শুধু এই method-গুলো দিয়ে।" Encapsulation, inheritance, polymorphism আর abstraction, সবই
+এই উত্তর থেকে আসে।
 
-Inheritance হলো সেই স্তম্ভ, যেটা ভুল পথে যায়। এটা একটি subclass-কে তার পূর্বপুরুষদের সব কাজের সঙ্গে বেঁধে দেয়,
-এমনকি যে অংশগুলো সে কখনো চায়নি সেগুলোর সঙ্গেও। Composition একটি object-কে শুধু সেই interface-গুলোর সঙ্গে বাঁধে,
-যেগুলো সে চায়। "Composition বেছে নিন" কথাটা রুচির ব্যাপার নয়। কোন পরিবর্তনগুলো নিরাপদ থাকে, এটা তার ব্যাপার।
+গোলমাল বাধায় inheritance। এটা subclass-কে তার পূর্বপুরুষদের সব কাজের সঙ্গে বেঁধে ফেলে, এমনকি যে অংশ সে কখনো
+চায়নি সেটার সঙ্গেও। Composition একটি object-কে বাঁধে শুধু সেই interface-গুলোর সঙ্গে, যেগুলো সে চেয়ে নেয়।
+"Composition বেছে নিন" কথাটা রুচির ব্যাপার নয়। কোন বদলগুলো নিরাপদ থাকে, ব্যাপারটা সেটা নিয়ে।
 
 ## কীভাবে কাজ করে
 
-### Object মানে state আর তার নিয়ম
+### Object মানে state, সঙ্গে তার নিয়ম
 
 ```typescript
 class Report {
@@ -43,41 +43,41 @@ class Report {
 }
 ```
 
-"Title কখনো খালি হবে না" — এই নিয়মটা ঠিক সেই field-এর পাশে বসে, যেটাকে সে রক্ষা করে। তাই কোনো caller এটা ভাঙতে
-পারে না। Audit trail ভুলে যাওয়ার উপায় নেই, কারণ title বদলানোর একমাত্র পথটাই পরিবর্তনটা record করে।
+"Title কখনো খালি হবে না" নিয়মটা বসে আছে ঠিক সেই field-এর পাশে, যাকে সে পাহারা দেয়। তাই কোনো caller এটা ভাঙতে
+পারে না। Audit trail-ও ভুলে যাওয়ার উপায় নেই, কারণ title বদলানোর একমাত্র পথটাই বদলটা লিখে রাখে।
 
 ### `private` আসলে কী বোঝায়
 
-| Modifier           | কে নিশ্চিত করে              | কে দেখতে পায়                   |
+| Modifier           | কে আটকায়                  | কে দেখতে পায়                  |
 | ------------------ | -------------------------- | ---------------------------- |
 | `public` (default) | —                          | সবাই                         |
-| `protected`        | Compiler                   | Class আর তার subclass-গুলো    |
-| `private`          | **শুধু compiler**           | Class                        |
-| `#field`           | **JavaScript runtime**     | Class, runtime-এও             |
+| `protected`        | Compiler                   | Class আর তার subclass         |
+| `private`          | **শুধু compiler**          | Class                        |
+| `#field`           | **JavaScript runtime**     | Class, runtime-এও            |
 
-তৃতীয় সারিটাই interview-এর প্রশ্ন। `(s as any).token` runtime-এ একটি `private` field-এ পৌঁছে যায়।
-`s.#secret` একটি `SyntaxError`, যেটা কোনো cast দিয়ে এড়ানো যায় না। সাধারণ design boundary-র জন্য `private` ব্যবহার
-করুন। যখন কোনো value খারাপ আচরণ করা code-এর কাছেও ফাঁস হওয়া চলবে না, তখন `#` ব্যবহার করুন। যেমন এমন একটি token,
-যেটায় কোনো third-party script পৌঁছে যেতে পারে।
+Interview-এর প্রশ্নটা ওই তৃতীয় row-তেই। `(s as any).token` runtime-এ ঠিকই `private` field-এ পৌঁছে যায়।
+`s.#secret` হলো `SyntaxError`, কোনো cast দিয়ে একে হারানো যায় না। সাধারণ design boundary-র জন্য `private` দিন।
+`#` দিন তখন, যখন value-টা গোলমেলে code-এর কাছেও ফাঁস হওয়া চলবে না, যেমন এমন token, যেটা third-party script-এর
+নাগালে যেতে পারে।
 
-> ⚠️ **প্রতিটি field-এর জন্য একটি getter আর setter মানেই encapsulation নয়।** প্রতিটি private field-এর যদি একটি
-> public জোড়া থাকে, তাহলে object-টা শুধু বাড়তি code-সহ একটি data-র থলি। Setter তখনই তার জায়গা পায়, যখন সে
-> validate করে, normalise করে বা record করে।
+> ⚠️ **প্রতিটি field-এর জন্য getter আর setter মানেই encapsulation নয়।** প্রতিটি private field-এর যদি একটা করে
+> public জোড়া থাকে, তাহলে object-টা আসলে বাড়তি code সহ data-র একটা থলে। Setter তখনই কাজের, যখন সেটা যাচাই করে,
+> normalise করে, বা লিখে রাখে।
 
 ### Polymorphism conditional সরিয়ে দেয়
 
-Caller একটি আকারের ওপর নির্ভর করে, কোনো concrete type-এর ওপর নয়। তাই নতুন implementation এলে caller-কে বদলাতে
-হয় না। TypeScript **structural**: সঠিক member-ওয়ালা যেকোনো object একটি interface পূরণ করে, `implements` থাকুক বা
-না থাকুক।
+Caller নির্ভর করে একটা shape-এর ওপর, কোনো নির্দিষ্ট type-এর ওপর নয়। তাই নতুন implementation এলে caller-এ হাত
+দিতে হয় না। TypeScript **structural**: ঠিক member-গুলো থাকলেই যেকোনো object একটি interface মেনে নেয়,
+`implements` লেখা থাকুক বা না থাকুক।
 
-| রূপ             | Mechanism                                        | কখন resolve হয়     |
+| রূপ            | কীভাবে কাজ করে                                    | কখন ঠিক হয়      |
 | -------------- | ------------------------------------------------ | --------------- |
-| **Subtype**    | একাধিক implementation-ওয়ালা একটি interface        | Runtime-এ        |
-| **Parametric** | Generics — `Repository<T>` যেকোনো `T`-এর জন্য কাজ করে | Compile time-এ   |
-| **Structural** | সঠিক আকারের যেকোনো object type-এ মিলে যায়          | Compile time-এ   |
+| **Subtype**    | একটি interface, তার কয়েকটি implementation         | Runtime-এ       |
+| **Parametric** | Generics — `Repository<T>` যেকোনো `T`-এর জন্য চলে | Compile-time-এ  |
+| **Structural** | ঠিক shape থাকলেই যেকোনো object type-এ খাপ খায়    | Compile-time-এ  |
 
-Abstraction-এর জন্য interface বেছে নিন। Abstract class-এর দিকে তখনই যান, যখন implementation-গুলো সত্যিকারের
-behaviour ভাগ করে। সাধারণ ক্ষেত্রটা হলো ধাপগুলোর একটি নির্দিষ্ট ক্রম, যার একটি ধাপ খোলা রাখা: **template method**।
+Abstraction-এর জন্য interface-ই ভালো। Abstract class তখনই নিন, যখন implementation-গুলো সত্যিই কোনো আচরণ ভাগ করে।
+সাধারণত সেটা হয় ধাপের একটা নির্দিষ্ট ক্রম, যার একটি ধাপ খোলা রাখা: **template method**।
 
 ### গভীর hierarchy-র খরচ
 
@@ -94,18 +94,18 @@ class ContractRegionalManager extends RegionalManager {
 }
 ```
 
-ওই override-টা Liskov substitution principle ভাঙে। এই নীতি বলে, parent যেখানে কাজ করে, subtype-কেও সেখানে কাজ
-করতে হবে। যে code-এর হাতে একটি `Manager` আছে, সেটা এখন এমন কারণে fail করতে পারে, যেটা সে দেখতেই পায় না।
+ওই override Liskov substitution principle ভাঙে। নীতিটা বলে, parent যেখানে চলে, subtype-কেও সেখানে চলতে হবে। এখন
+`Manager` হাতে থাকা code এমন কারণে ব্যর্থ হতে পারে, যা সে দেখতেই পায় না।
 
 | খরচ                              | দেখতে কেমন                                                                 |
 | -------------------------------- | -------------------------------------------------------------------------- |
-| **ভঙ্গুর base class**             | `Employee`-এ একটি পরিবর্তন এমন class ভেঙে দেয়, যেগুলো তার লেখক কখনো খোলেনইনি |
-| **Behaviour খুঁজে পাওয়া কঠিন**     | "`work` আসলে কোথায় চলে?" — জানতে চারটি file লাগে                            |
-| **শুধু একটি axis**                 | একটি class-এর parent একটিই, তাই role × contract × region-এর প্রতিটি মিশ্রণের জন্য একটি করে class লাগে |
+| **ভঙ্গুর base class**            | `Employee`-এ একটা বদল এমন class ভেঙে দেয়, যা তার লেখক কখনো খুলেও দেখেননি    |
+| **আচরণ খুঁজে পাওয়া কঠিন**         | "`work` আসলে চলে কোথায়?" জানতে চারটি file ঘাঁটতে হয়                      |
+| **শুধু একটি অক্ষ**                | Class-এর parent একটাই, তাই role × contract × region-এর প্রতিটি মিশ্রণে একটি করে class লাগে |
 
-### Is-a-এর বদলে has-a
+### Is-a-র বদলে has-a
 
-Composition প্রতিটি axis-কে আলাদা value হিসেবে model করে। তারপর object-কে শুধু তার দরকারি value-গুলো দেয়।
+Composition প্রতিটি অক্ষকে আলাদা একটি value হিসেবে ধরে, আর object-কে দেয় শুধু যেগুলো তার দরকার।
 
 ```typescript
 interface ApprovalRights {
@@ -127,12 +127,12 @@ class Staff {
 const contractor = new Staff('Priya', { canApprove: () => false }); // any mix, no class per mix
 ```
 
-Behaviour এখন একটি value। আপনি এটাকে runtime-এ বদলাতে পারেন, আলাদা করে test করতে পারেন, আবার ব্যবহার করতে
-পারেন। একটি superclass এই তিনটির কোনোটাই দেয় না।
+আচরণটা এখন একটা value। Runtime-এ বদলে দিতে পারেন, আলাদা করে test করতে পারেন, আবার ব্যবহারও করতে পারেন।
+Superclass এই তিনটির একটিও দেয় না।
 
-### Dependency injection হলো নিয়ম-মানা composition
+### Dependency injection মানে নিয়ম মেনে composition
 
-একটি class তার দরকারি collaborator-গুলো ঘোষণা করে। তারপর সেগুলো তাকে দিয়ে দেওয়া হয়, সে নিজে বানায় না।
+Class নিজে collaborator বানায় না। কী কী লাগবে, সেটা declare করে, আর সেগুলো তার হাতে তুলে দেওয়া হয়।
 
 ```typescript
 class ReportService {
@@ -150,85 +150,84 @@ class ReportService {
 }
 ```
 
-পুরো যুক্তিটাই testing। ধরুন `ReportService` নিজের database client নিজেই বানাত, আর `new Date()` call করত। তাহলে
-"একদিন পরে কি একটি report stale হয়ে যায়?" — এটা test করতে একটি database আর একটি time machine লাগত। দুটিই inject
-করা থাকলে test হলো দুটি object literal। কোনো class লাগে না, কোনো mocking library-ও লাগে না।
+পুরো যুক্তিটাই testing। ধরুন `ReportService` নিজেই তার database client বানাত আর
+`new Date()` call করত। তাহলে "একদিন পরে কি report stale হয়ে যায়?" test করতে লাগত একটা database আর একটা time
+machine। দুটিই inject করা থাকলে test-এ লাগে মাত্র দুটি object literal। কোনো class লাগে না, mocking library-ও না।
 
-Cross-cutting concern হলো এমন বিষয়, যেটা অনেক handler ভাগ করে নেয়, যেমন logging বা auth। Stateless concern-এর
-জন্য একটি **higher-order function**-ও composition। `withAuth(withLogging(getReport))` একটি handler-কে দুবার মোড়ায়।
-এটাই class ছাড়া decorator pattern।
+যে concern অনেক handler ভাগ করে নেয়, যেমন logging বা auth, তাকে বলে cross-cutting concern। এর মধ্যে যেগুলো
+stateless, সেগুলোর জন্য **higher-order function**-ও composition। `withAuth(withLogging(getReport))` একটি
+handler-কে দুবার মোড়ায়। এটা class ছাড়া decorator pattern।
 
-> ⚠️ **সবকিছু inject করাও একটি আলাদা দুর্গন্ধ।** নয়টি dependency-ওয়ালা একটি constructor আপনাকে বলছে যে class-টা
-> নয়টি কাজ করে। Wiring নয়, class-টা ঠিক করুন।
+> ⚠️ **সবকিছু inject করাও একটা দুর্গন্ধ।** নয়টি dependency-ওয়ালা constructor আসলে বলছে, class-টা নয়টি কাজ করে।
+> Wiring নয়, class-টাকে ঠিক করুন।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                          | বেছে নিন                       | কেন                                               |
+| পরিস্থিতি                                       | কী বেছে নেবেন                 | কেন                                               |
 | ------------------------------------------------ | ----------------------------- | ------------------------------------------------- |
-| সত্যিকারের "is a", স্থির, এক বা দুই স্তর             | Inheritance                   | ভাগ করা code-টা বাস্তব, আর আলাদা হয়ে যাওয়ার সম্ভাবনা কম |
-| একটি নির্দিষ্ট algorithm, যার একটি ধাপ বদলায়         | Inheritance (template method) | ক্রমটাই হলো ভাগ করা জিনিস                           |
-| Behaviour একাধিক axis-এ বদলায়                     | Composition                   | Single inheritance দুটি axis প্রকাশ করতে পারে না     |
-| বদলানো যায় এমন behaviour, বা আলাদা করে test          | Composition আর injection      | একটি field বদলান; একটি collaborator পাঠিয়ে দিন      |
-| একটি subclass কোনো method override করে কিছুই করবে না | Composition                   | ওই override হলো একটি Liskov লঙ্ঘন, যেটা ধরা পড়ার অপেক্ষায় |
+| সত্যিকারের "is a", স্থির, এক বা দুই স্তর             | Inheritance                   | ভাগ করা code সত্যিই আছে, আর আলাদা হয়ে যাওয়ার সম্ভাবনা কম |
+| নির্দিষ্ট algorithm, যার একটি ধাপ বদলায়           | Inheritance (template method) | ধাপের ক্রমটাই ভাগ করা জিনিস                        |
+| আচরণ একাধিক অক্ষে বদলায়                          | Composition                   | Single inheritance দুটি অক্ষ প্রকাশ করতে পারে না     |
+| বদলানো যায় এমন আচরণ, বা আলাদা করে test             | Composition আর injection      | একটা field বদলান; collaborator বাইরে থেকে দিন       |
+| Subclass এমন override লিখবে, যা কিছুই করে না       | Composition                   | ওই override একটা Liskov লঙ্ঘন, ধরা পড়ার অপেক্ষায় |
 
-Framework-এর base class আর error hierarchy হলো যুক্তিসংগত inheritance। একটি উদাহরণ হলো
-`class NotFoundError extends HttpError`। নিয়মটা হলো: inheritance উত্তর দেয় "এগুলো behaviour ভাগ করে",
-কখনোই "এগুলো কিছু field ভাগ করে" নয়।
+Framework-এর base class আর error hierarchy-তে inheritance যুক্তিসঙ্গত। যেমন
+`class NotFoundError extends HttpError`। নিয়মটা হলো: inheritance উত্তর দেয় "এরা একই আচরণ ভাগ করে" প্রশ্নের,
+"এদের কয়েকটি field একই" প্রশ্নের কখনো নয়।
 
 ## সাধারণ ভুল
 
-❌ **রক্তশূন্য (anaemic) object।** Public field, আর সেগুলো বদলানোর জন্য একটি আলাদা service — এটা class syntax-এ
-লেখা procedural code।
-✅ নিয়মটা যে state-কে রক্ষা করে, তার পাশেই রাখুন। তাহলে কোনো invalid object বানানোই যাবে না।
+❌ **রক্তশূন্য object।** Public field, আর সেগুলো বদলানোর জন্য আলাদা একটা service — এটা class-এর syntax-এ লেখা
+procedural code।
+✅ নিয়মটা রাখুন সেই state-এর পাশে, যাকে সে পাহারা দেয়, যাতে ভুল object বানানোই না যায়।
 
-❌ **একটি helper method আবার ব্যবহারের জন্য inherit করা।** Subclass এখন parent-এর পুরো surface বয়ে বেড়ায়।
-✅ Helper-টাকে একটি module-এ বা একটি inject করা collaborator-এ সরিয়ে দিন।
+❌ **একটা helper method আবার ব্যবহার করতে inherit করা।** Subclass-কে তখন parent-এর পুরো surface বয়ে বেড়াতে হয়।
+✅ Helper-টা কোনো module-এ বা inject করা collaborator-এ সরিয়ে দিন।
 
-❌ **শুরু থেকেই সবকিছুর জন্য একটি interface।** একটি interface-এর পেছনে একটিই implementation মানে শুধু
-indirection।
-✅ দ্বিতীয় implementation এলে interface যোগ করুন, অথবা যখন সেটাই test-কে সম্ভব করে।
+❌ **শুরু থেকেই সবকিছুর জন্য interface।** একটিমাত্র implementation-এর সামনে interface মানে শুধু বাড়তি ঘুরপথ।
+✅ Interface যোগ করুন দ্বিতীয় implementation এলে, বা যখন সেটা ছাড়া test করাই যায় না।
 
-❌ **Injection-এর বদলে service locator।** যে class `container.get('db')` call করে, সে আবার তার dependency-গুলো
-লুকিয়ে ফেলে।
-✅ Dependency-টা constructor parameter হিসেবে নিন, যাতে signature-টাই সেটা document করে।
+❌ **Injection-এর বদলে service locator।** যে class `container.get('db')` call করে, সে আবার তার dependency লুকিয়ে
+ফেলে।
+✅ Dependency নিন constructor parameter হিসেবে, যাতে signature দেখেই সেটা বোঝা যায়।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি object state আর সেই state-এর নিয়মগুলো এক জায়গায় রাখে। প্রতিটি স্তম্ভ এখান থেকেই আসে।
-- TypeScript-এর `private` একটি compile-time check, যেটা একটি cast দিয়েই এড়ানো যায়। `#field` নিশ্চিত করে runtime।
-- TypeScript structural, তাই সঠিক আকারের যেকোনো object একটি interface পূরণ করে। এতে test double সস্তা হয়।
-- Behaviour একাধিক axis-এ বদলালে hierarchy ভেঙে পড়ে, কারণ একটি class-এর parent ঠিক একটিই।
-- Dependency injection হলো collaborator-দের ওপর composition প্রয়োগ। এর লাভ হলো এমন একটি unit, যেটা infrastructure ছাড়াই test করা যায়।
+- Object state আর সেই state-এর নিয়ম এক জায়গায় রাখে। প্রতিটি pillar আসে এখান থেকেই।
+- TypeScript-এর `private` compile-time-এর check, একটা cast-ই একে হারিয়ে দেয়। `#field` আটকায় runtime।
+- TypeScript structural, তাই ঠিক shape-এর যেকোনো object interface মেনে নেয়। Test double বানানো তাই সস্তা।
+- আচরণ একাধিক অক্ষে বদলালে hierarchy ভেঙে পড়ে, কারণ class-এর parent ঠিক একটাই।
+- Dependency injection হলো collaborator-এর ওপর composition, আর এর লাভ হলো infrastructure ছাড়াই test করা যায় এমন unit।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি TypeScript class-এ `private` আর `#`-এর পার্থক্য কী?**
+**Q: TypeScript class-এ `private` আর `#`-এর পার্থক্য কী?**
 
-Compiler `private` নিশ্চিত করে, তারপর JavaScript থেকে সেটা মুছে ফেলে। তাই `any`-তে একটি cast runtime-এ field-টায়
-পৌঁছে যায়। `#` হলো JavaScript-এর private field, যেটা runtime নিশ্চিত করে। বাইরে থেকে এটা পড়া একটি syntax error।
-Design boundary-র জন্য `private`, আর value ফাঁস হওয়া চলবে না এমন ক্ষেত্রে `#` ব্যবহার করুন।
+`private` আটকায় compiler, তারপর JavaScript থেকে সেটা মুছে ফেলে। তাই `any`-তে cast করলে runtime-এ field-টায় পৌঁছানো
+যায়। `#` হলো JavaScript-এর private field, যেটা runtime নিজে আটকায়। বাইরে থেকে পড়তে গেলে syntax error হয়। Design
+boundary-র জন্য `private` নিন, আর value ফাঁস হওয়া চলবে না এমন জায়গায় `#`।
 
-**Q: "Inheritance-এর বদলে composition বেছে নিন" — কেন?**
+**Q: "Inheritance-এর চেয়ে composition ভালো" — কেন?**
 
-Inheritance আপনাকে পূর্বপুরুষদের সব কাজের সঙ্গে বেঁধে দেয়, অথচ সাধারণত আপনার দরকার ছিল behaviour-এর একটি টুকরো।
-Composition সেই টুকরোটার একটি নাম দেয় আর সেটাকে বদলানো যায় এমন করে তোলে। প্রতিটি অংশকে আলাদা করে test করার
-সুযোগও রাখে। তবে সত্যিকারের "is a"-র ক্ষেত্রে, যেখানে ভাগ করা code একটি স্থির algorithm, inheritance এখনো জেতে।
+Inheritance আপনাকে পূর্বপুরুষদের সব কাজের সঙ্গে বেঁধে ফেলে, অথচ সাধারণত আপনার দরকার ছিল আচরণের একটা টুকরো।
+Composition সেই টুকরোটার নাম দেয় আর তাকে বদলানোর মতো করে রাখে। প্রতিটি অংশকে আলাদা করে test করাও যায়। তবে
+সত্যিকারের "is a", যার ভাগ করা code একটা স্থির algorithm, সেখানে inheritance এখনো জেতে।
 
-**Q: এমন একটি ক্ষেত্র দেখান, যেখানে inheritance-ই সঠিক সিদ্ধান্ত।**
+**Q: এমন একটা উদাহরণ দেখান, যেখানে inheritance-ই ঠিক সিদ্ধান্ত।**
 
-Template method: একটি নির্দিষ্ট ক্রম, যার একটি ধাপ বদলায়। যেমন আগে validate, তারপর deliver, যেখানে শুধু delivery
-channel অনুযায়ী আলাদা। ভাগ করা জিনিসটা হলো *ক্রম*। একটি interface এটা প্রকাশ করতে পারে না, আর composition প্রতিটি
-implementation-এ এটা বারবার লিখত। Error hierarchy হলো অন্য সৎ ক্ষেত্রটা।
+Template method: ধাপের একটা নির্দিষ্ট ক্রম, যার একটি ধাপ বদলায়। যেমন আগে validate, তারপর deliver, আর শুধু
+deliver-এর ধরন channel অনুযায়ী আলাদা। ভাগ করা জিনিসটা হলো *ক্রম*। Interface এটা প্রকাশ করতে পারে না, আর
+composition দিলে প্রতিটি implementation-এ ক্রমটা আবার লিখতে হতো। আরেকটি সৎ উদাহরণ error hierarchy।
 
 **Q: TypeScript structurally typed। এতে কী বদলায়?**
 
-Substitutability নির্ভর করে আকারের ওপর, declaration-এর ওপর নয়। Test double আর adapter সস্তা হয়ে যায়, কারণ একটি
-object literal-ই একটি dependency পূরণ করতে পারে। কিন্তু একই আকারের দুটি সম্পর্কহীন type-ও তখন একটির জায়গায় আরেকটি
-বসানো যায়, আর এতে একটি আসল bug লুকিয়ে থাকতে পারে। যখন nominal behaviour দরকার, অর্থাৎ type মেলে নাম দিয়ে, তখন
-বের হওয়ার পথ হলো একটি branded type (একটি অনন্য tag field যোগ করা type)।
+একটার জায়গায় আরেকটা বসানো যাবে কিনা, তা ঠিক হয় shape দেখে, declaration দেখে নয়। Test double আর adapter সস্তা
+হয়ে যায়, কারণ একটা object literal-ই dependency-র চাহিদা মেটাতে পারে। কিন্তু একই shape-এর দুটি সম্পর্কহীন type-ও
+তখন অদলবদল করা যায়, আর তাতে সত্যিকারের bug চাপা পড়তে পারে। Nominal আচরণ চাইলে, মানে type মিলবে নাম দেখে, তখন
+বেরোনোর পথ branded type (এমন type, যাতে আলাদা একটা tag field যোগ করা থাকে)।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — SOLID নীতি](#ch-solid-principles) — dependency inversion আর Liskov, নিয়ম হিসেবে বলা
-- [Chapter ?? — TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript) — strategy আর decorator, যেগুলো আসলে নাম-দেওয়া composition
+- [Chapter ?? — SOLID নীতি](#ch-solid-principles) — dependency inversion আর Liskov, নিয়ম হিসেবে লেখা
+- [Chapter ?? — TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript) — strategy আর decorator, মানে নাম দেওয়া composition
 - [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries) — একই ধারণা, পুরো system-এর মাপে

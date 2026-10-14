@@ -1,22 +1,22 @@
 ---
 sourceHash: "23c60b55be56d49729cb4b920f2e00e78de6c85fe6f9511dca4f2eb084c368c1"
 title: "TypeScript Generics"
-translatedAt: "2026-10-12T07:46:50.349Z"
+translatedAt: "2026-10-14T04:29:52.180Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # TypeScript Generics {#ch-generics}
 
-> একটি function একবার লিখুন, আর caller-এর নিখুঁত type পুরো পথ জুড়ে ধরে রাখুন।
+> Function একবার লিখুন, আর caller-এর আসল type-টা শুরু থেকে শেষ পর্যন্ত অটুট রাখুন।
 
 **এই অধ্যায়ে:** generic function · generic interface · `extends` দিয়ে constraint · inference · কখন generic বাড়াবাড়ি
 
 ## 💡 মূল ধারণা
 
-Generic হলো type-গুলোর মধ্যে একটি **সম্পর্ক**, "যেকোনো type"-এর placeholder নয়। `T[] → T` বলে, যে element
-type বেরিয়ে আসছে, সেটা ঢোকা element type-ই। পুরো মূল্যটাই এই সম্পর্কে। Caller-এর concrete type call-এর
-পরেও টিকে থাকে, তাই `first([1, 2])` হয় `number | undefined`, `any` নয়। যে type parameter একটি signature-এ
-মাত্র একবার আসে, সেটা কোনো সম্পর্ক প্রকাশ করে না। প্রায় নিশ্চিতভাবেই সেটা ভুল হাতিয়ার।
+Generic হলো type-গুলোর মধ্যে একটা **সম্পর্ক**, "যেকোনো type"-এর জায়গা ভরাট করার কিছু নয়। `T[] → T` বলছে, যে
+element type ভেতরে ঢুকেছে, বেরোবেও সেই type। পুরো লাভটা এই সম্পর্কেই। Call-এর পরেও caller-এর আসল type টিকে
+থাকে, তাই `first([1, 2])`-এর type হয় `number | undefined`, `any` নয়। Signature-এ কোনো type parameter মাত্র একবার
+এলে সেটা কোনো সম্পর্কই বোঝায় না। তখন প্রায় নিশ্চিতভাবেই আপনি ভুল জিনিস হাতে নিয়েছেন।
 
 ## কীভাবে কাজ করে
 
@@ -34,7 +34,7 @@ function first<T>(arr: readonly T[]): T | undefined {
 first([1, 2]).toUpperCase(); // ❌ number has no toUpperCase — caught
 ```
 
-দুই বা তার বেশি parameter একাধিক জায়গার মধ্যে সম্পর্ক প্রকাশ করে:
+দুই বা ততোধিক parameter থাকলে একাধিক জায়গার মধ্যে সম্পর্ক বোঝানো যায়:
 
 ```typescript
 function mapArray<T, U>(arr: readonly T[], transform: (item: T) => U): U[] {
@@ -44,7 +44,7 @@ function mapArray<T, U>(arr: readonly T[], transform: (item: T) => U): U[] {
 const names = mapArray(users, (u) => u.name); // string[] — U inferred from the callback
 ```
 
-### Generic interface ও class
+### Generic interface আর class
 
 ```typescript
 interface Repository<T> {
@@ -56,12 +56,13 @@ interface Repository<T> {
 class UserRepository implements Repository<User> {} // T is fixed once, for every member
 ```
 
-Interface-এ parameter-এর নাম একবার দিলে প্রতিটি member সামঞ্জস্যপূর্ণ থাকে। `create` ভুল করে
-`findById`-এর থেকে আলাদা কোনো entity নিতে পারে না।
+Parameter-এর নাম interface-এ একবার দিলে প্রতিটি member একই type মেনে চলে। ফলে `create` ভুল করেও `findById`-এর
+থেকে আলাদা কোনো entity নিতে পারে না।
 
 ### Constraint
 
-`extends` ঠিক করে দেয়, একটি type parameter কী হতে পারে। এর জন্যই ভেতরে মানটা আসলে ব্যবহার করা যায়:
+`extends` ঠিক করে দেয় type parameter কী কী হতে পারবে। এটা থাকলেই function-এর ভেতরে value-টা সত্যিকারভাবে কাজে
+লাগানো যায়:
 
 ```typescript
 // without the constraint, `item.name` would not compile
@@ -70,8 +71,7 @@ function logName<T extends { name: string }>(item: T): void {
 }
 ```
 
-দৈনন্দিন code-এ সবচেয়ে গুরুত্বপূর্ণ constraint হলো `keyof`, কারণ এটা property access-কে type-safe
-করে:
+রোজকার code-এ সবচেয়ে কাজের constraint হলো `keyof`, কারণ এটা property পড়াকে type-safe করে দেয়:
 
 ```typescript
 function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
@@ -83,8 +83,8 @@ getProperty(user, 'name'); // string
 getProperty(user, 'nope'); // ❌ not a key of user
 ```
 
-Return type-টা খেয়াল করুন: `T[K]`, একটি **indexed access type**, সব value type-এর union নয়। এজন্যই
-`getProperty(user, 'id')` হয় `number`, `number | string` নয়।
+Return type-টা খেয়াল করুন: `T[K]`, যাকে বলে **indexed access type**। এটা সব value type-এর union নয়। এজন্যই
+`getProperty(user, 'id')`-এর type হয় `number`, `number | string` নয়।
 
 ### Default
 
@@ -100,8 +100,8 @@ const age: FormField<number> = { value: 0, touched: false };
 
 ### Inference
 
-TypeScript call থেকেই type argument infer করে, তাই আপনাকে কদাচিৎ লিখতে হয়। স্পষ্টভাবে একটি দিন তখন, যখন
-infer করার মতো কিছু নেই — যেমন একটি parameter, যেটা শুধু return type-এ আসে:
+TypeScript call দেখেই type argument বের করে নেয়, তাই এগুলো খুব কমই নিজে লিখতে হয়। নিজে দিতে হয় তখন, যখন বের
+করার মতো কিছু নেই। যেমন, parameter-টা শুধু return type-এ আছে:
 
 ```typescript
 async function fetchJson<T>(url: string): Promise<T> {
@@ -113,21 +113,21 @@ async function fetchJson<T>(url: string): Promise<T> {
 const user = await fetchJson<User>('/api/users/1'); // nothing in the args reveals T
 ```
 
-এই signature কী **করে না**, সেটা পরিষ্কার জেনে রাখুন: body-টা যে একটি `User`, তা এটা validate করে না।
-`fetchJson<T>` হলো generic-এর পোশাক পরা একটি assertion। যে সীমানা আপনার নিয়ন্ত্রণে নেই, সেখানে এর সঙ্গে
-একটি runtime schema check জুড়ে দিন।
+তবে এই signature যা করে **না**, সেটা পরিষ্কার জেনে রাখুন: body-টা সত্যিই `User` কিনা, তা এটা যাচাই করে না।
+`fetchJson<T>` আসলে generic-এর পোশাক পরা একটা assertion। যে boundary আপনার নিয়ন্ত্রণে নেই, সেখানে এর সঙ্গে
+runtime-এ schema check জুড়ে দিন।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                        | যা ব্যবহার করবেন              | কেন                                              |
+| পরিস্থিতি                                        | কী ব্যবহার করবেন               | কেন                                              |
 | ------------------------------------------------ | ----------------------------- | ------------------------------------------------ |
-| Return type একটি argument-এর type-এর ওপর নির্ভর করে | একটি generic function       | সম্পর্কটাই আসল কথা                               |
-| একাধিক entity-তে পুনর্ব্যবহৃত একটি container বা wrapper | একটি generic interface বা class | একটি declaration প্রতিটি member-কে সামঞ্জস্যপূর্ণ রাখে |
-| Key দিয়ে property access                         | `K extends keyof T`, ফেরত দেয় `T[K]` | Typo fail করে; ঠিক value type-টাই ফিরে আসে |
-| একই shape নেয় এমন কয়েকটি function              | একটি সাধারণ `interface` parameter | প্রকাশ করার মতো কোনো সম্পর্ক নেই — generic শুধু গোলমাল বাড়ায় |
-| Type-হীন বাইরের data                             | `unknown` আর validation       | এখানে generic শুধু assert করে, check করে না      |
+| Return type নির্ভর করে argument-এর type-এর ওপর    | Generic function              | সম্পর্কটাই তো আসল কথা                            |
+| নানা entity-তে বারবার ব্যবহার হওয়া container বা wrapper | Generic interface বা class | একটি declaration-এ সব member একই নিয়মে চলে       |
+| Key দিয়ে property পড়া                           | `K extends keyof T`, return করে `T[K]` | Typo থাকলে compile হয় না; value-র আসল type ফেরত আসে |
+| একই shape নেয় এমন কয়েকটি function               | সাধারণ `interface` parameter  | বোঝানোর মতো কোনো সম্পর্ক নেই — generic শুধু ঝামেলা বাড়ায় |
+| Type ছাড়া বাইরের data                           | `unknown`, সঙ্গে validation   | এখানে generic শুধু ধরে নেয়, যাচাই করে না          |
 
-**একটি `Result` type হলো সেই সাধারণ ক্ষেত্র, যেটা মুখস্থ রাখার মতো:**
+**`Result` type সবচেয়ে বেশি কাজে আসে, এটা মনে রাখার মতো:**
 
 ```typescript
 type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
@@ -143,56 +143,56 @@ async function safeAsync<T>(fn: () => Promise<T>): Promise<Result<T>> {
 
 ## সাধারণ ভুল
 
-**❌ একবার ব্যবহৃত একটি type parameter।** এটা কিছুর সঙ্গে কিছুর সম্পর্ক তৈরি করে না:
+**❌ একবারই ব্যবহার হওয়া type parameter।** এটা কোনো কিছুর সঙ্গে কোনো কিছুর সম্পর্ক বোঝায় না:
 
 ```typescript
 function log<T>(value: T): void {} // ❌ identical to (value: unknown): void
 ```
 
-**❌ `any` দিয়ে constrain করা।** `<T extends any>` কিছুই constrain করে না। হয় constraint ছাড়া রাখুন,
-নয়তো যে shape আসলে ব্যবহার করেন, সেটা দিয়ে constrain করুন।
+**❌ `any` দিয়ে constraint দেওয়া।** `<T extends any>` আসলে কিছুই আটকায় না। হয় constraint ছাড়াই রাখুন, নয়তো
+যে shape সত্যিই ব্যবহার করছেন, সেটাই constraint হিসেবে দিন।
 
-**❌ Union-এর বদলে generic ব্যবহার করা।** Function যদি ঠিক তিনটি জানা type সামলায়, তাহলে
-`string | number | Date` সেটা সোজাসুজি বলে দেয়। Generic বোঝায় যে এটা যেকোনো কিছুর জন্য চলে।
+**❌ Union-এর জায়গায় generic লেখা।** Function যদি ঠিক তিনটি জানা type সামলায়, তাহলে `string | number | Date`
+সোজাসুজি সেটাই বলে। Generic দেখলে মনে হয়, এটা যেকোনো type-এর জন্য চলবে।
 
-**❌ `fetchJson<User>()`-কে validation ভাবা।** Type argument compiler-কে বলে কী ধরে নিতে হবে, আর payload
-কেউ check করে না। একটি "পুরোপুরি typed" codebase-ও production-এ `undefined is not an object` throw করে —
-সবচেয়ে সাধারণ কারণ এটাই।
+**❌ `fetchJson<User>()`-কে validation ভাবা।** Type argument compiler-কে শুধু বলে কী ধরে নিতে হবে, payload কেউ
+যাচাই করে না। "পুরোপুরি typed" codebase-ও production-এ `undefined is not an object` throw করে সবচেয়ে বেশি
+এই কারণেই।
 
-**❌ অতিরিক্ত parameter দেওয়া।** একটি function-এ চারটি type parameter মানে signature খুব বেশি কাজ করছে।
-একে ভাগ করুন, অথবা একটি concrete type নিন।
+**❌ অতিরিক্ত parameter।** একটি function-এ চারটি type parameter মানে signature-টা বেশি কাজ করছে। হয় ভেঙে ফেলুন,
+নয়তো একটা নির্দিষ্ট type নিন।
 
-> ⚠️ Compile time-এ generic মুছে যায়। Runtime-এ `T`-এর ওপর branch করার কোনো উপায় নেই, `new T()` নেই,
-> `typeof T`-ও নেই। Runtime-এ যা থাকতেই হবে, সেটা একটি value হিসেবে পাঠাতে হবে।
+> ⚠️ Compile-এর সময় generic মুছে যায়। Runtime-এ `T` দেখে branch করার উপায় নেই, `new T()` নেই,
+> `typeof T`-ও নেই। Runtime-এ যা লাগবে, তা value হিসেবে পাঠাতেই হবে।
 
 ## 🔑 মূল শিক্ষা
 
-- Generic type-গুলোর মধ্যে একটি সম্পর্ক প্রকাশ করে; একবার ব্যবহৃত parameter কিছুই প্রকাশ করে না।
-- Function body-র ভেতরে type parameter-কে ব্যবহারযোগ্য করে তোলে `extends`।
-- `T[K]` ফেরত দেওয়া `K extends keyof T` হলো type-safe property access-এর pattern।
-- Type argument infer হয় argument থেকে — লিখুন শুধু সেখানে, যেখানে কিছুই infer হয় না।
-- Generic return type একটি assertion, validation নয়; বাইরের data runtime-এ check করুন।
+- Generic type-গুলোর মধ্যে সম্পর্ক বোঝায়; একবার ব্যবহার হওয়া parameter কিছুই বোঝায় না।
+- `extends` থাকলেই function-এর body-তে type parameter কাজে লাগানো যায়।
+- `K extends keyof T` দিয়ে `T[K]` return করাই type-safe ভাবে property পড়ার pattern।
+- Type argument আসে argument থেকে inference করে — নিজে লিখুন শুধু যেখানে inference হয় না।
+- Generic return type একটা assertion, validation নয়; বাইরের data runtime-এ যাচাই করুন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি generic-কে কীভাবে constrain করবেন, আর কেন সেটা দরকার হতে পারে?**
+**Q: Generic-এ constraint কীভাবে দেন, আর এটা দরকার হয় কেন?**
 
-`extends` দিয়ে। Constraint ছাড়া compiler `T` সম্পর্কে কিছুই জানে না, তাই এর কোনো property পড়তে বা
-method call করতে পারবেন না। `T extends { id: number }` `item.id` ব্যবহার করতে দেয়;
-`K extends keyof T` একটি key argument-কে শুধু বিদ্যমান key-তে সীমাবদ্ধ রাখে।
+`extends` দিয়ে। Constraint না থাকলে compiler `T` সম্পর্কে কিছুই জানে না, তাই তার কোনো property পড়া বা method
+call করা যায় না। `T extends { id: number }` দিলে `item.id` পড়া যায়।
+`K extends keyof T` দিলে key argument শুধু সেই key-গুলোই নিতে পারে, যেগুলো আসলে আছে।
 
-**Q: কখন generic ভুল হাতিয়ার?**
+**Q: কখন generic ভুল সমাধান?**
 
-যখন type parameter একবারই আসে — মানে এটা কোনো সম্পর্ক প্রকাশ করে না, আর `unknown`-ই যথেষ্ট। যখন
-type-গুলোর সেট ছোট আর জানা — সেখানে union বেশি পরিষ্কার। আর যখন আসল প্রয়োজন runtime validation, কারণ
-generic return type compiler-কে শুধু বলে কী ধরে নিতে হবে।
+যখন type parameter মাত্র একবার আসে। তখন এটা কোনো সম্পর্ক বোঝায় না, `unknown` দিয়েই কাজ চলে। যখন type-এর
+সংখ্যা কম আর জানা, তখন union বেশি পরিষ্কার। আর যখন আসল দরকার runtime validation, কারণ generic return type
+compiler-কে শুধু বলে কী ধরে নিতে হবে।
 
-**Q: `(obj: object, key: string): unknown`-এর তুলনায় `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` কী সুবিধা দেয়?**
+**Q: `(obj: object, key: string): unknown`-এর চেয়ে `function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]` বাড়তি কী দেয়?**
 
-দুটি জিনিস। Object-এ নেই এমন একটি key runtime-এ `undefined` ফেরত না দিয়ে compile-এই fail করে। আর return
-type হয় ঠিক সেই property-র type, তাই call site-এ কোনো cast বা narrowing লাগে না।
+দুটি জিনিস। Object-এ নেই এমন key দিলে runtime-এ `undefined` ফেরত না এসে compile-ই হয় না। আর return type হয় ঠিক
+সেই property-র type, তাই call-এর জায়গায় কোনো cast বা narrowing লাগে না।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — TypeScript-এর Advanced ও Utility Type](#ch-advanced-types) — standard library যে generic-গুলো আগে থেকেই দেয়, আর তাদের পেছনের conditional ও mapped type
-- [Chapter ?? — TypeScript Type Guard](#ch-type-guards) — generic যা শুধু ধরে নেয়, সেটা validate করা
+- [Chapter ?? — TypeScript-এর Advanced ও Utility Type](#ch-advanced-types) — standard library যে generic আগে থেকেই দিয়ে রেখেছে, আর তাদের পেছনের conditional ও mapped type
+- [Chapter ?? — TypeScript Type Guard](#ch-type-guards) — generic যা শুধু ধরে নেয়, তা যাচাই করা

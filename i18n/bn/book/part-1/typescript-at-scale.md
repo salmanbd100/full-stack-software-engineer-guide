@@ -1,61 +1,60 @@
 ---
 sourceHash: "7b4b4356972ab2cbaeed5475c6dfbe414715fd865a322e8895af72f15aefb8f7"
 title: "বড় পরিসরে TypeScript"
-translatedAt: "2026-10-12T07:47:23.741Z"
+translatedAt: "2026-10-14T04:32:29.998Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # বড় পরিসরে TypeScript {#ch-typescript-at-scale}
 
-> এমন codebase-এ `strict` চালু করুন, যেটা কখনো এর জন্য লেখা হয়নি। Annotation-এর বদলে `satisfies` ব্যবহার করুন। জানুন কখন একটি type যা দেয়, তার চেয়ে বেশি খরচ করছে।
+> এমন codebase-এ `strict` চালু করুন, যেটা কখনো এর কথা ভেবে লেখা হয়নি। Annotation-এর জায়গায় `satisfies` ব্যবহার করুন। আর বুঝতে শিখুন, কখন একটি type যা দেয় তার চেয়ে বেশি খরচ করছে।
 
-**এই অধ্যায়ে:** ভাষা বনাম engineering · এক flag করে `strict`-এ migrate করা · `satisfies` আর এটা কী ঠিক করে · module resolution আর `verbatimModuleSyntax` · কখন থামবেন
+**এই অধ্যায়ে:** ভাষা বনাম engineering · একটি একটি flag করে `strict`-এ migrate করা · `satisfies` আর এটা কী সমস্যা মেটায় · module resolution আর `verbatimModuleSyntax` · কখন থামবেন
 
 ## 💡 মূল ধারণা
 
-অধ্যায় 01 থেকে 07 হলো ভাষা। এই অধ্যায়টি **engineering**: codebase যখন বড়, পুরোনো আর অনেকের মধ্যে ভাগ করা,
-তখন কী বদলায়। সেই অবস্থায় প্রতিটি প্রশ্ন expressiveness নিয়ে নয়, খরচ নিয়ে।
-একটি বেশি নিখুঁত type বেশি bug ধরে, আর check করতে বেশি সময় নেয়। একটি বেশি চালাক type বেশি bug ধরে, আর পরের
-মানুষটির পড়তে বেশি সময় নেয়। একটি senior উত্তর কখনো "যতটা সম্ভব নিখুঁত করো" নয়। Senior উত্তর হলো জানা যে একটি
-type কোন error-গুলো কিনে দেয়, আর কত দামে।
+Chapter 01 থেকে 07 পর্যন্ত ছিল ভাষাটা নিয়ে। এই অধ্যায় **engineering** নিয়ে: codebase বড়, পুরনো আর অনেকের হাতে
+থাকলে কী বদলায়। তখন প্রতিটি প্রশ্নই হয়ে দাঁড়ায় খরচের প্রশ্ন, কী কী প্রকাশ করা যায় তার নয়। আরও নিখুঁত type বেশি
+bug ধরে, কিন্তু check হতে সময় বেশি নেয়। আরও চালাক type-ও বেশি bug ধরে, কিন্তু পরের মানুষটার পড়তে সময় বেশি লাগে।
+Senior-এর উত্তর কখনো "যতটা সম্ভব নিখুঁত করো" নয়। Senior জানেন, একটি type কোন error-গুলো ধরে দেয়, আর তার দাম কত।
 
-বাকি অর্ধেক হলো, একটি বড় codebase প্রায় কখনোই শুরু থেকে `strict` থাকে না। সেখানে পৌঁছায় migration-এর মাধ্যমে।
-Interviewer-রা প্রায় নিশ্চিতভাবেই এমন একটি plan চান, যেটা "চালু করে 4,000 error ঠিক করো" নয়।
+বাকি অর্ধেক কথা হলো, বড় codebase প্রায় কখনোই শুরু থেকে `strict` থাকে না। সেখানে পৌঁছাতে হয় migration করে। আর
+interviewer-রা প্রায় নিয়ম করেই এমন একটা plan চান, যেটা "চালু করে 4,000 error ঠিক করো" নয়।
 
 ## কীভাবে কাজ করে
 
-### `strict` হলো সাতটি flag, আর এগুলো এক এক করে চালু হয়
+### `strict` আসলে সাতটি flag, আর এগুলো চালু হয় একটি একটি করে
 
-`"strict": true` একটি group চালু করে। একটি চলমান codebase-এ পুরো group একসঙ্গে চালু করলে হাজার হাজার error আসে,
-আর সেগুলো পার হওয়ার কোনো পথ থাকে না। Flag-গুলো এক এক করে চালু করলে এমন কয়েকটি কাজ তৈরি হয়, যেগুলো আপনি শেষ
-করতে পারবেন।
+`"strict": true` একটা পুরো দল চালু করে। পুরনো codebase-এ পুরো দলটা একসঙ্গে চালু করলে হাজার হাজার error আসে, আর
+সেগুলো পার হওয়ার কোনো পথ থাকে না। একটি একটি করে চালু করলে পাওয়া যায় কয়েকটি আলাদা কাজ, যেগুলো শেষ করা যায়।
 
 | Flag | কী ধরে | Migration-এর খরচ |
 | ---- | --------------- | -------------- |
-| `noImplicitAny` | Type ছাড়া parameter আর member | বেশি — কিন্তু আসল লাভ এখানেই |
-| `strictNullChecks` | `null` আর `undefined`, এমনভাবে ব্যবহার করা যেন তারা নেই | সবচেয়ে বেশি, আর সবচেয়ে বেশি bug ধরা পড়ে |
-| `strictFunctionTypes` | Callback-এ unsound parameter variance | কম |
+| `noImplicitAny` | Type ছাড়া parameter আর member | বেশি — তবে আসল লাভ এখানেই |
+| `strictNullChecks` | `null` আর `undefined`, যেন ওরা নেই এমনভাবে ব্যবহার | সবচেয়ে বেশি, আর bug-ও সবচেয়ে বেশি ধরা পড়ে |
+| `strictFunctionTypes` | Callback-এ ভুল parameter variance | কম |
 | `strictBindCallApply` | `bind`/`call`/`apply` দিয়ে ভুল argument | কম |
-| `strictPropertyInitialization` | Class field, যেগুলো কখনো assign হয়নি | কম, আর বেশিরভাগ পুরোনো code-এ |
+| `strictPropertyInitialization` | কখনো assign না হওয়া class field | কম, মূলত পুরনো code-এ |
 | `noImplicitThis` | অজানা type-এর `this` | কম |
-| `useUnknownInCatchVariables` | `catch (e)`-কে `any` হিসেবে ধরা | কম, আর যান্ত্রিক কাজ |
+| `useUnknownInCatchVariables` | `catch (e)`-কে `any` ধরা | কম, আর কাজটা যান্ত্রিক |
 
-**যে ক্রম কাজ করে:** আগে কম খরচের চারটি flag, কারণ এগুলো দ্রুত জয়, আর আত্মবিশ্বাস তৈরি করে। তারপর
-`noImplicitAny`। তারপর সবশেষে `strictNullChecks`, একা, কারণ এটাই আসল bug সামনে আনে, আর মনোযোগ চায়।
+**যে ক্রমে কাজ হয়:** আগে কম খরচের চারটি flag, কারণ এগুলো দ্রুত জেতা যায় আর ভরসা বাড়ে। তারপর `noImplicitAny`।
+সবশেষে আলাদা করে `strictNullChecks`, কারণ সত্যিকারের bug বের করে এটাই, তাই এতে মনোযোগ লাগে।
 
-যে codebase এর জন্যও বেশি বড়, তার বেরোনোর পথ হলো `strict: true`, সঙ্গে প্রতিটি file-এ suppression। কিন্তু এর সঙ্গে
-একটি ratchet থাকতেই হবে: এমন একটি সংখ্যা, যেটা কমতে পারে, কখনো বাড়তে পারে না। একটি CI check যোগ করুন, যেটা
-`// @ts-nocheck` বা `// @ts-expect-error` থাকা file-গুলো গোনে, আর **সংখ্যা বাড়লে fail করে।** যে সংখ্যা শুধু কমতে
-পারে, সেটাই একটি migration শেষ করায়। Gate ছাড়া একটি suppression তালিকা শুধু বাড়তেই থাকে।
+Codebase যদি এর জন্যও বেশি বড় হয়, তাহলে বেরোনোর পথ হলো `strict: true`, সঙ্গে file ধরে ধরে suppression। কিন্তু
+এর সঙ্গে একটা ratchet থাকতেই হবে: এমন একটা সংখ্যা, যা কমতে পারে, কখনো বাড়তে পারে না। CI-তে একটা check যোগ
+করুন, যা গোনে কতগুলো file-এ `// @ts-nocheck` বা `// @ts-expect-error` আছে, আর **সংখ্যা বাড়লে fail করে।** যে
+সংখ্যা শুধু কমতেই পারে, সেটাই migration শেষ করায়। Gate ছাড়া suppression-এর তালিকা শুধু বাড়ে।
 
-`strict`-এর বাইরে দুটি কাজের flag আছে। `noUncheckedIndexedAccess` দিলে `arr[i]` থেকে `T | undefined` আসে।
-এটাই সত্য, কিন্তু loop-ভরা code-এ এটা অনেক গোলমাল করে। `exactOptionalPropertyTypes` "নেই" আর "আছে, কিন্তু
-`undefined`"-কে আলাদা করে, আর এটা সাধারণ spread pattern ভেঙে দেয়। দুটিই opt-in, কারণ খরচটা সত্যিকারের।
+`strict`-এর বাইরেও দুটি কাজের flag আছে। `noUncheckedIndexedAccess` দিলে `arr[i]`-এর type হয় `T | undefined`।
+সেটাই সত্যি, কিন্তু loop-ভরা code-এ বড্ড কোলাহল করে। `exactOptionalPropertyTypes` "নেই" আর "আছে, কিন্তু
+`undefined`"-কে আলাদা করে, আর এতে spread-এর চেনা pattern-গুলো ভাঙে। দুটিই নিজে থেকে চালু করতে হয়, কারণ খরচটা
+সত্যি।
 
-### `satisfies` widen না করে check করে
+### `satisfies` যাচাই করে, কিন্তু type চওড়া করে না
 
-`satisfies` এসেছে TypeScript 4.9-এ, আর configuration object-এর type কীভাবে দেওয়া হয়, সেটা বদলে দিয়েছে।
-Interviewer-রা এটা নিয়ে প্রশ্ন করেন, কারণ এটা কেন আছে, সেই কারণটা সূক্ষ্ম।
+`satisfies` এসেছে TypeScript 4.9-এ, আর configuration object-এর type লেখার ধরনটাই বদলে দিয়েছে। Interviewer-রা
+এটা জিজ্ঞেস করেন, কারণ এটা কেন আছে সেই কারণটা সূক্ষ্ম।
 
 ```typescript
 type Route = { path: string; auth: boolean };
@@ -77,36 +76,36 @@ routes.hoem; // Error: property does not exist
 type RouteName = keyof typeof routes; // "home" | "admin"
 ```
 
-এক লাইনে পার্থক্য: **annotation হলো variable-টি কী, সেই বিষয়ে একটি দাবি; `satisfies` হলো value-টি মানছে কি না,
-সেই check।** Annotation দিলে আপনি validation পান, আর key-গুলো হারান। `satisfies` দিলে দুটিই পান, আর
-`keyof typeof` একটি ব্যবহারযোগ্য union হয়ে যায়। তাই route table, theme token, feature-flag map আর permission
-তালিকার জন্য এটাই ঠিক হাতিয়ার। একই যুক্তি শুধু `as const`-এর বিরুদ্ধেও খাটে, যেটা literal রাখে কিন্তু কিছুই check
-করে না। Readonly-ও চাইলে `as const satisfies T` একটি সঠিক জোড়া।
+পার্থক্যটা এক কথায়: **annotation হলো variable-টা কী, সে সম্পর্কে একটা দাবি; `satisfies` হলো value-টা নিয়ম মানছে
+কিনা তার যাচাই।** Annotation দিলে validation পান, কিন্তু key-গুলো হারান। `satisfies` দিলে দুটিই পান, আর
+`keyof typeof` একটা কাজে লাগার মতো union হয়ে যায়। তাই route table, theme token, feature-flag map আর permission
+list-এর জন্য এটাই ঠিক জিনিস। শুধু `as const`-এর বিরুদ্ধেও একই যুক্তি: এটা literal রাখে, কিন্তু কিছুই যাচাই করে
+না। Readonly-ও চাইলে `as const satisfies T` একটা ঠিকঠাক জোড়া।
 
 ### Module resolution, আর যে flag চমক থামায়
 
-Module resolution হলো সেই জায়গা, যেখানে locally compile হওয়া একটি project CI-তে fail করে। অথবা যেখানে একটি
-import bundler-এ কাজ করে, কিন্তু `tsc`-এ করে না।
+Local-এ compile হওয়া project CI-তে ভাঙে, বা bundler-এ কাজ করা import `tsc`-তে করে না, এসবের জায়গা module
+resolution।
 
-| `moduleResolution` | কীসের জন্য |
+| `moduleResolution` | কোথায় ব্যবহার করবেন |
 | ------------------ | ------- |
-| `bundler` | Vite, esbuild, webpack দিয়ে build হওয়া যেকোনো কিছু — bundler-রা আসলে যা করে, তার সঙ্গে মেলে |
-| `nodenext` | যে code Node সরাসরি চালায়, যেখানে `package.json` `exports` আর extension বাধ্যতামূলক |
-| `node10` | শুধু legacy। এটা `exports` map-এর পুরোপুরি আগের |
+| `bundler` | Vite, esbuild, webpack দিয়ে build হওয়া সবকিছু — bundler আসলে যা করে, তার সঙ্গে মেলে |
+| `nodenext` | যে code Node সরাসরি চালায়, যেখানে `package.json`-এর `exports` আর extension মানতেই হয় |
+| `node10` | শুধু পুরনো code-এ। `exports` map আসার আগের জিনিস এটা |
 
-`verbatimModuleSyntax`, যেটা TypeScript 5.0-তে যোগ হয়েছে, সেটা ব্যাখ্যা করতে পারা দরকার। শুধু type হিসেবে ব্যবহার
-হওয়া যেকোনো কিছুর জন্য এটা `import type` বাধ্যতামূলক করে, তারপর import-গুলো হুবহু যেমন লেখা, তেমনই emit করে। এটা
-ছাড়া compiler নিজে ঠিক করে কোন import elide করবে (output থেকে বাদ দেবে)। একটি value import, যেটা ঘটনাচক্রে শুধু
-একটি type position-এ ব্যবহার হয়েছে, সেটা উধাও হয়ে যায়, আর তার side effect-ও সঙ্গে যায়। এই flag সেই বাদ দেওয়াকে
-source-এ নিয়ে আসে, যেখানে review-তে সেটা চোখে পড়ে।
+যে flag-টা ব্যাখ্যা করতে পারা দরকার, সেটা `verbatimModuleSyntax`, এসেছে TypeScript 5.0-তে। শুধু type হিসেবে
+ব্যবহার হওয়া সবকিছুর জন্য এটা `import type` বাধ্যতামূলক করে, তারপর import-গুলো ঠিক যেমন লেখা তেমনই emit করে। এটা
+না থাকলে কোন import elide হবে (মানে output থেকে বাদ পড়বে), তা compiler নিজে ঠিক করে। যে value import ঘটনাচক্রে
+শুধু type-এর জায়গায় ব্যবহার হয়েছে, সেটা উধাও হয়ে যায়, সঙ্গে তার side effect-ও। এই flag মুছে ফেলার সিদ্ধান্তটা
+source-এ নিয়ে আসে, যেখানে review-এ সেটা চোখে পড়ে।
 
-`skipLibCheck` আর project reference হলো build-time আলোচনার অংশ, যেটা আছে
-[Chapter ?? — বড় পরিসরে Type-Checking ও Linting](#ch-type-checking-and-linting)-এ। সেই অধ্যায় ব্যাখ্যা করে, type
-checking কেন parallel হয় না, আর একটি project graph এ নিয়ে কী করে।
+`skipLibCheck` আর project reference build-time-এর আলোচনার অংশ, সেটা আছে
+[Chapter ?? — বড় পরিসরে Type-Checking ও Linting](#ch-type-checking-and-linting)-এ। Type checking কেন parallel
+হয় না, আর project graph তাতে কী করে, সেই অধ্যায় সেটা ব্যাখ্যা করে।
 
-### Declaration file, যখন একটি লিখতেই হয়
+### Declaration file, যখন নিজেকেই লিখতে হয়
 
-আপনি যত `.d.ts` file লেখেন, তার বেশিরভাগ একটি untyped dependency বা একটি non-code import-এর জন্য।
+নিজে যত `.d.ts` file লিখবেন, তার বেশিরভাগই হবে type ছাড়া কোনো dependency বা code নয় এমন কোনো import-এর জন্য।
 
 ```typescript
 // types/untyped-lib.d.ts — a minimal, honest shim
@@ -119,14 +118,14 @@ declare module "legacy-charts" {
 }
 ```
 
-একটি shim-এর নিয়ম: **শুধু যা call করেন, সেটুকুরই type দিন, আর সঠিকভাবে দিন।** যে shim আন্দাজে পুরো library
-declare করে, সেটা type না থাকার চেয়েও খারাপ। কারণ এখন compiler আত্মবিশ্বাসের সঙ্গে একটি ভুল জিনিসে সায় দেয়।
-যাচাই না করা এক জায়গায় `any` একটি বানানো signature-এর চেয়ে বেশি সৎ। একটি wildcard module, যেমন
-`declare module "*.svg"` যেটা একটি `string` export করে, asset-এর ক্ষেত্রে একই নিয়ম খাটায়।
+Shim-এর নিয়ম: **শুধু যা call করেন তার type দিন, আর সেটা নির্ভুল দিন।** যে shim আন্দাজে পুরো library declare করে,
+সেটা type না থাকার চেয়েও খারাপ। কারণ compiler তখন আত্মবিশ্বাসের সঙ্গে একটা ভুলকে সমর্থন করে। যাচাই না করা এক
+জায়গায় `any` রাখা বানানো signature-এর চেয়ে বেশি সৎ। Wildcard module, যেমন `string` export করা
+`declare module "*.svg"`, asset-এর বেলায় একই নিয়ম খাটায়।
 
-### যখন type যা দেয়, তার চেয়ে বেশি খরচ করতে শুরু করে
+### যখন type যা দেয় তার চেয়ে বেশি খরচ করতে শুরু করে
 
-Type-স্তরের হিসাব সত্যিকারের হিসাব। এটা single-threaded, আর প্রতিটি check-এ আবার চলে।
+Type-এর স্তরে হিসাবও সত্যিকারের হিসাব। এটা single-threaded, আর প্রতিটি check-এ আবার চলে।
 
 ```typescript
 // ❌ A recursive conditional over a large union: compiles, and slowly.
@@ -138,88 +137,88 @@ type DeepPaths<T, Prefix extends string = ""> = {
 // ✅ Generate the union from the runtime source instead, or accept `string`.
 ```
 
-তিনটি লক্ষণ দেখায় যে একটি type তার মূল্য পেরিয়ে গেছে, আর প্রতিটির একটি সস্তা উত্তর আছে:
+তিনটি লক্ষণ বলে দেয় একটি type তার মূল্য ছাড়িয়ে গেছে, আর প্রতিটির একটা সস্তা সমাধান আছে:
 
-| লক্ষণ | সস্তা উত্তর |
+| লক্ষণ | সস্তা সমাধান |
 | ------ | ------------------ |
-| একটি file-এ editor autocomplete কয়েক সেকেন্ড নেয় | Type-টি সরল করুন, বা file-টি ভাগ করুন |
-| Team-এ শুধু একজনই এটা বদলাতে পারেন | একটি validated runtime schema, যেখান থেকে type infer করা হয় |
-| Error message হলো চল্লিশ লাইনের nested conditional | একটি সরু type, আর boundary-তে একটি runtime check |
+| একটি file-এ editor-এর autocomplete আসতে কয়েক second লাগে | Type সহজ করুন, বা file ভাগ করুন |
+| Team-এ শুধু একজনই এটা বদলাতে পারেন | যাচাই করা runtime schema, type বের হবে তা থেকে |
+| Error message চল্লিশ line-এর nested conditional | আরও সরু type, আর boundary-তে runtime check |
 
-শেষ সারিটিই সাধারণ বেরোনোর পথ। একটি schema validator একটিমাত্র declaration থেকে আপনাকে একটি runtime check **আর**
-একটি inferred type দেয়। সাধারণত সেটা type system-এ একই জিনিস প্রমাণ করার চেয়ে ভালো। কোন type ধীর, সেটা নিয়ে
-আন্দাজ নয়, প্রমাণ দরকার হলে `tsc --generateTrace` ব্যবহার করুন।
+শেষ row-টাই সাধারণ মুক্তির পথ। Schema validator একটি declaration থেকেই runtime check **আর** inference করা type
+দুটিই দেয়। Type system-এ একই জিনিস প্রমাণ করার চেয়ে সেটা সাধারণত ভালো। কোন type ধীর, তা আন্দাজে নয়, প্রমাণ দিয়ে
+জানতে চাইলে `tsc --generateTrace` ব্যবহার করুন।
 
-> ⚠️ **যা বদলাতে থাকে:** TypeScript প্রতি কয়েকটি release-এ compiler flag যোগ করে আর নাম বদলায়। আর native
-> port এই section-এর পেছনের performance-এর হিসাব বদলে দেয়। স্থায়ী নীতিটা টিকে থাকে: type-স্তরের কাজ
-> single-threaded, আর প্রতিটি check-এ আবার চলে, তাই নিখুঁততার একটি মাপা যায় এমন দাম আছে।
+> ⚠️ **যা বদলাতে থাকে:** কয়েকটি release পরপরই TypeScript compiler flag যোগ করে বা নাম বদলায়, আর native port এই
+> অংশের performance-এর হিসাবটাই বদলে দিচ্ছে। তবে টেকসই নীতিটা থাকে: type-এর স্তরের কাজ single-threaded আর প্রতিটি
+> check-এ আবার চলে, তাই নিখুঁততার একটা মাপা যায় এমন দাম আছে।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | কী করবেন | কেন |
 | --------- | -- | --- |
-| একটি বড় codebase, যেটা `strict`-এ নেই | সস্তা চারটি flag, তারপর `noImplicitAny`, তারপর `strictNullChecks` | প্রতিটি ধাপ শেষ হয়; পুরো group হয় না |
-| এমন migration, যেটা কয়েক মাস চলবে | `strict`, সঙ্গে গোনা একটি opt-out তালিকা, যেটা শুধু ছোট হতে পারে | Ratchet ছাড়া তালিকাটি স্থায়ী হয়ে যায় |
-| একটি route table, theme বা flag map | `satisfies` | Validation, আর literal key-গুলোও |
-| এমন discriminated union, যেটা সব জায়গায় narrow করতে চান | একটি annotation | এখানে আপনি চওড়া type-টিই চান |
-| Network বা file boundary পার হওয়া data | Type infer করা একটি runtime schema | Compiler যা দেখেনি, তা check করতে পারে না |
-| একটি untyped dependency | শুধু যা call করেন, সেটুকু ঢাকা একটি shim | বানানো signature `any`-এর চেয়েও খারাপ |
-| এমন type, যেটা আর কেউ edit করতে পারে না | মুছে ফেলুন, আর runtime-এ validate করুন | Maintenance-এর খরচ ধরা bug-এর চেয়ে বেশি হয়ে গেছে |
+| বড় codebase, `strict`-এ নেই | সস্তা চারটি flag, তারপর `noImplicitAny`, তারপর `strictNullChecks` | প্রতিটি ধাপ শেষ হয়; পুরো দল একসঙ্গে হয় না |
+| মাসের পর মাস চলবে এমন migration | `strict`, সঙ্গে গোনা হয় এমন opt-out তালিকা, যা শুধু ছোট হতে পারে | Ratchet না থাকলে তালিকা চিরস্থায়ী হয়ে যায় |
+| Route table, theme বা flag map | `satisfies` | Validation আর literal key দুটিই |
+| এমন discriminated union, যা সব জায়গায় narrow করতে চান | Annotation | এখানে চওড়া type-টাই চাই |
+| Network বা file-এর boundary পার হওয়া data | Runtime schema, type বের হবে তা থেকে | Compiler যা দেখেনি, তা যাচাই করতে পারে না |
+| Type ছাড়া dependency | শুধু যা call করেন, ততটুকুর shim | বানানো signature `any`-এর চেয়েও খারাপ |
+| এমন type, যা আর কেউ বদলাতে পারে না | মুছে ফেলুন, runtime-এ যাচাই করুন | যত bug ধরেছে, রক্ষণাবেক্ষণের খরচ তার চেয়ে বেশি |
 
 ## সাধারণ ভুল
 
-❌ **একটি বড় codebase জুড়ে এক commit-এ `strict: true` চালু করা।** হাজার হাজার error, পার হওয়ার কোনো পথ নেই, আর
-branch-টি পরিত্যক্ত হয়।
-✅ এক সময়ে একটি flag, সবচেয়ে সস্তাটা আগে, `strictNullChecks` সবশেষে আর একা।
+❌ **বড় codebase-এ এক commit-এই `strict: true` চালু করা।** হাজার হাজার error, পার হওয়ার কোনো পথ নেই, শেষে
+branch-টাই ফেলে রাখা হয়।
+✅ একটি একটি flag, সবচেয়ে সস্তাটা আগে, `strictNullChecks` সবশেষে আর আলাদা করে।
 
-❌ **Gate ছাড়া একটি `@ts-nocheck` suppression তালিকা।** এটা শুধু বাড়তেই থাকে।
-✅ CI-তে suppression-গুলো গুনুন, আর সংখ্যা বাড়লে fail করুন।
+❌ **Gate ছাড়া `@ts-nocheck`-এর suppression তালিকা।** এটা শুধু বাড়তেই থাকে।
+✅ CI-তে suppression গুনুন, সংখ্যা বাড়লে fail করান।
 
-❌ **একটি configuration object-কে `Record<string, T>` দিয়ে annotate করা।** Key-গুলো `string`-এ widen হয়ে যায়, আর
+❌ **Configuration object-এ `Record<string, T>` annotation দেওয়া।** Key-গুলো চওড়া হয়ে `string` হয়ে যায়, আর
 typo আর error থাকে না।
-✅ `satisfies`, যেটা মানছে কি না check করে, আর literal key-গুলো রেখে দেয়।
+✅ `satisfies`, যেটা নিয়ম মানছে কিনা যাচাই করে আর literal key-গুলো রেখে দেয়।
 
-❌ **একটি পুরো untyped library ঢেকে হাতে লেখা একটি `.d.ts`।** এখন compiler আন্দাজের পক্ষে সাক্ষী দেয়।
-✅ শুধু যে অংশটুকু call করেন, সেটুকু declare করুন; বাকিটা সত্যিই unknown থাকুক।
+❌ **Type ছাড়া পুরো library-র জন্য হাতে লেখা `.d.ts`।** Compiler তখন আন্দাজের জামিনদার হয়ে যায়।
+✅ শুধু যতটুকু call করেন, ততটুকু declare করুন; বাকিটা সত্যিই unknown থাকুক।
 
-❌ **Data যখন network থেকে আসে, তখন type system-এ একটি invariant প্রমাণ করা।** Type মুছে যায়, তাই runtime-এ সেই
-নিশ্চয়তা থাকেই না।
-✅ Boundary-তে validate করুন, আর schema থেকে type infer করুন।
+❌ **Data network থেকে আসছে, অথচ invariant প্রমাণ করছেন type system-এ।** Type মুছে যায়, তাই runtime-এ সেই
+নিশ্চয়তার কোনো অস্তিত্বই নেই।
+✅ Boundary-তে যাচাই করুন, আর type বের করুন schema থেকে।
 
 ## 🔑 মূল শিক্ষা
 
-- `strict` হলো সাতটি flag, আর একটি চলমান codebase সেগুলো এক এক করে চালু করে migrate করে।
-- একটি migration-এর এমন একটি suppression সংখ্যা দরকার, যেটা শুধু কমতে পারে; gate ছাড়া opt-out তালিকা স্থায়ী হয়ে যায়।
-- Annotation হলো variable সম্পর্কে একটি দাবি, আর এটা variable-কে widen করে; `satisfies` হলো একটি check, যেটা literal type রেখে দেয়।
-- `verbatimModuleSyntax` শুধু-type বাদ দেওয়াকে compiler-এর সিদ্ধান্ত না রেখে source-এ স্পষ্ট করে।
-- Type-স্তরের হিসাব single-threaded, আর প্রতিটি check-এ আবার চলে, তাই একটি চালাক type-এর মাপা যায় এমন দাম আছে।
+- `strict` আসলে সাতটি flag, আর পুরনো codebase migrate করে এগুলো একটি একটি করে চালু করে।
+- Migration-এ এমন suppression count লাগে, যা শুধু কমতে পারে; gate না থাকলে opt-out তালিকা চিরস্থায়ী হয়।
+- Annotation variable সম্পর্কে একটা দাবি, আর তা type চওড়া করে; `satisfies` একটা check, যা literal type রেখে দেয়।
+- `verbatimModuleSyntax` থাকলে type-only import মুছে ফেলার ব্যাপারটা compiler-এর সিদ্ধান্ত না থেকে source-এ স্পষ্ট হয়।
+- Type-এর স্তরের হিসাব single-threaded আর প্রতিটি check-এ আবার চলে, তাই চালাক type-এর একটা মাপা যায় এমন দাম আছে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি 200,000 লাইনের codebase-কে আপনি কীভাবে `strict`-এ নেবেন?**
+**Q: 200,000 line-এর একটি codebase-কে কীভাবে `strict`-এ আনবেন?**
 
 এক commit-এ নয়। `strict` হলো সাতটি flag, তাই আমি আগে সস্তা চারটি চালু করব:
 `strictFunctionTypes`, `strictBindCallApply`, `noImplicitThis` আর `useUnknownInCatchVariables`। তারপর
-`noImplicitAny`, তারপর একা `strictNullChecks`, কারণ এটাই আসল bug সামনে আনে।
-এটাও যদি বেশি বড় হয়, তাহলে আমি প্রতিটি file-এ suppression সহ `strict: true` ব্যবহার করব, সঙ্গে একটি CI check, যাতে
-সংখ্যাটা শুধু কমে। Gate-টাই আসল অংশ। এটা ছাড়া বাদ দেওয়ার তালিকা স্থায়ী হয়ে যায়।
+`noImplicitAny`, তারপর আলাদা করে `strictNullChecks`, কারণ সত্যিকারের bug বের করে এটাই।
+এটাও যদি বেশি বড় হয়, তাহলে `strict: true` দেব, সঙ্গে file ধরে suppression, আর CI-তে একটা check, যাতে সংখ্যাটা
+শুধু কমে। আসল জিনিস হলো gate। এটা না থাকলে বাদ দেওয়ার তালিকা চিরস্থায়ী হয়ে যায়।
 
-**Q: `satisfies` এমন কী করে, যা একটি type annotation করে না?**
+**Q: Type annotation যা করে না, `satisfies` তা কী করে?**
 
-এটা value-টিকে type-এর সঙ্গে check করে, widen না করে। একটি annotation বলে variable-টি *কী*, তাই
-`Record<string, Route>` entry-গুলো validate করে, তারপর নির্দিষ্ট key-গুলো ফেলে দেয়। একটি lookup-এ typo তখন আর
-error থাকে না। `satisfies` একইভাবে validate করে, আর literal type রেখে দেয়, তাই `keyof typeof` key-গুলোর একটি
-সত্যিকারের union দেয়। এজন্যই এটা route table আর permission map-এর সঙ্গে মানায়।
+Type চওড়া না করেই value-টাকে type-এর সঙ্গে মিলিয়ে দেখে। Annotation বলে variable-টা *কী*, তাই
+`Record<string, Route>` entry-গুলো যাচাই করে, তারপর নির্দিষ্ট key-গুলো ফেলে দেয়। Lookup-এ typo থাকলে সেটা আর
+error থাকে না। `satisfies` একইভাবে যাচাই করে, কিন্তু literal type রেখে দেয়, তাই
+`keyof typeof` থেকে key-গুলোর সত্যিকারের union পাওয়া যায়। এজন্যই route table আর permission map-এ এটা মানানসই।
 
-**Q: Type কখন বেশি দামি হয়ে গেছে?**
+**Q: কখন বুঝবেন type বেশি খরুচে হয়ে গেছে?**
 
-যখন একটি file-এ editor ধীর হয়ে যায়, যখন শুধু একজনই একটি type নিরাপদে বদলাতে পারেন, বা যখন একটি অমিল থেকে
-চল্লিশ লাইনের এমন error আসে, যেটা কেউ পড়তে পারে না। তিনটিই বলে, type-টি যা কিনে দেয়, তার সীমা পেরিয়ে গেছে।
-সাধারণ বিকল্প হলো একটি runtime schema। একটিমাত্র declaration একটি runtime check আর একটি inferred type দুটিই
-দেয়। Boundary পার হওয়া যেকোনো কিছুর জন্য সেটা বেশি নিরাপদ, আর maintain করা অনেক সস্তা।
+যখন একটি file-এ editor ধীর হয়ে যায়, যখন শুধু একজনই কোনো type নিরাপদে বদলাতে পারেন, বা যখন একটা অমিলের জন্য
+চল্লিশ line-এর error আসে যা কেউ পড়তে পারে না। তিনটিই বলে, type যা দেয় তা ছাড়িয়ে গেছে। সাধারণত এর বদলে আসে
+runtime schema। একটি declaration থেকেই runtime check আর inference করা type দুটিই পাওয়া যায়। Boundary পার হওয়া
+যেকোনো কিছুর জন্য এটা বেশি নিরাপদ, আর রক্ষণাবেক্ষণও অনেক সস্তা।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — TypeScript-এর Advanced ও Utility Type](#ch-advanced-types) — type-স্তরের সেই feature-গুলো, যাদের দাম এই অধ্যায় হিসাব করে
-- [Chapter ?? — বড় পরিসরে Type-Checking ও Linting](#ch-type-checking-and-linting) — project reference, আর whole-program check-কে critical path থেকে দূরে রাখা
-- [Chapter ?? — বড় পরিসরে React ও TypeScript](#ch-react-typescript-at-scale) — একই শৃঙ্খলা props, state আর server boundary-তে প্রয়োগ
+- [Chapter ?? — TypeScript-এর Advanced ও Utility Type](#ch-advanced-types) — type-এর স্তরের যে feature-গুলোর দাম এই অধ্যায় হিসাব করেছে
+- [Chapter ?? — বড় পরিসরে Type-Checking ও Linting](#ch-type-checking-and-linting) — project reference, আর পুরো program-এর check-কে critical path থেকে সরিয়ে রাখা
+- [Chapter ?? — বড় পরিসরে React ও TypeScript](#ch-react-typescript-at-scale) — একই নিয়ম props, state আর server boundary-তে

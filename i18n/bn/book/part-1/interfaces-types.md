@@ -1,22 +1,22 @@
 ---
 sourceHash: "89301ca7f4edee2d3dbd512ff4dc25ce7b968c535d7e6cd0e9ef7cc5b2089bcd"
 title: "Interface ও Type Alias"
-translatedAt: "2026-10-12T07:46:50.125Z"
+translatedAt: "2026-10-14T04:29:17.188Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Interface ও Type Alias {#ch-interfaces-types}
 
-> `interface` আর `type`-এর মধ্যে বেছে নিন সেই দুটি ভিত্তিতে, যেখানে এরা সত্যিই আলাদা — পছন্দের ভিত্তিতে নয়।
+> `interface` আর `type`-এর মধ্যে বাছাই করুন সেই দুটি জায়গা দেখে, যেখানে এরা সত্যিই আলাদা। পছন্দ দিয়ে নয়।
 
-**এই অধ্যায়ে:** declaration merging · union ও primitive · extend বনাম intersect · optional বনাম `undefined`
+**এই অধ্যায়ে:** declaration merging · union আর primitive · extend বনাম intersect · optional বনাম `undefined`
 
 ## 💡 মূল ধারণা
 
-Object-এর shape-এর ক্ষেত্রে `interface` আর `type` প্রায় পুরোপুরি একই কাজ করে। সত্যিকারের পার্থক্য শুধু
-দুটি: **দুবার declare করলে merge হয় শুধু `interface`**, আর **object নয় এমন কিছুর নাম দিতে পারে শুধু
-`type`** — যেমন একটি union, primitive, tuple বা function signature। লোকে আর যত পার্থক্যের কথা বলে, তার
-সবই হয় style, নয়তো পুরোনো কোনো version-এর খুঁটিনাটি। এই দুটির ভিত্তিতে সিদ্ধান্ত নিন, আর তর্ক থামান।
+Object-এর shape লেখার বেলায় `interface` আর `type` প্রায় পুরোপুরি একই কাজ করে। আসল পার্থক্য মাত্র দুটি।
+দুবার declare করলে **merge হয় শুধু `interface`**। আর object নয় এমন কিছুকে নাম দিতে পারে **শুধু `type`**, যেমন
+union, primitive, tuple বা function signature। লোকে আর যত পার্থক্যের কথা বলে, সেগুলো হয় style-এর ব্যাপার, নয়তো
+পুরনো version-এর খুঁটিনাটি। এই দুটি দেখে সিদ্ধান্ত নিন, তর্ক ওখানেই থামান।
 
 ## কীভাবে কাজ করে
 
@@ -30,8 +30,8 @@ interface User {
 }
 ```
 
-যে দুটি modifier সত্যিই ভার বহন করে, সেগুলো হলো `readonly` আর `?`। `readonly` পরে assign করা আটকায়, আর
-`?` key-টাকে optional করে। দুটিই শুধু compile time-এর।
+যে দুটি modifier সত্যিই কাজের, সেগুলো হলো `readonly` আর `?`। `readonly` থাকলে পরে আর assign করা যায় না, আর
+`?` key-টাকে optional করে দেয়। দুটিই শুধু compile-time-এ কাজ করে।
 
 ### যা শুধু `type` পারে
 
@@ -57,30 +57,30 @@ interface Request {
 // Request now has both
 ```
 
-Library-র সীমানায় declaration merging একটি feature, আর আপনার নিজের code-এর ভেতরে একটি বিপদ। সেখানে দুটি
-file যদি চুপচাপ একই type-এ জিনিস যোগ করে, সেটা debug করা কঠিন। একটি duplicate `type` হলো error, আর নিজের
-code-এ সাধারণত আপনি ঠিক এটাই চান।
+Library-র boundary-তে declaration merging একটা সুবিধা। কিন্তু নিজের code-এ এটা বিপদ: দুটি file চুপচাপ একই
+type-এ কিছু যোগ করলে debug করা কঠিন হয়ে যায়। একই নামে দুবার `type` লিখলে error হয়, আর নিজের code-এ সাধারণত
+সেটাই চাওয়া।
 
-| ক্ষমতা                            | `interface` | `type` |
+| ক্ষমতা                           | `interface` | `type` |
 | --------------------------------- | ----------- | ------ |
 | Object shape                       | ✅           | ✅      |
 | Union, primitive, tuple            | ❌           | ✅      |
-| Mapped ও conditional type          | ❌           | ✅      |
+| Mapped আর conditional type        | ❌           | ✅      |
 | Declaration merging                | ✅           | ❌      |
 | `extends`                          | ✅           | `&` দিয়ে |
-| Class-এ `implements`               | ✅           | ✅      |
+| Class-এ `implements`              | ✅           | ✅      |
 
 ### Extend বনাম intersect
 
-`interface Product extends BaseEntity` আর `type Product = BaseEntity & { … }` আলাদা পথে একই shape-এ
-পৌঁছায়। `extends` চলতে চলতেই compatibility check করে, তাই একটি সংঘর্ষপূর্ণ property declaration-এই error
-দেয়। `&` তা করে না। সংঘর্ষ হলে চুপচাপ `never` type-এর একটি member তৈরি হয়, যেটা পরে fail করে assignment-এ।
-তাই `extends`-এর error message ভালো, আর object shape-এর জন্য এটাকে বেছে নেওয়ার কারণও এটাই।
+`interface Product extends BaseEntity` আর `type Product = BaseEntity & { … }` দুটিই একই shape-এ পৌঁছায়, তবে আলাদা
+পথে। `extends` চলতে চলতেই মিল আছে কিনা যাচাই করে, তাই কোনো property-তে গরমিল থাকলে error হয় declaration-এই।
+`&` তা করে না। গরমিল হলে চুপচাপ সেই member-এর type হয়ে যায় `never`, আর error আসে পরে, assign করার সময়। তাই
+`extends`-এর error message ভালো, আর object shape-এর জন্য একে বেছে নেওয়ার কারণও এটাই।
 
 ### Discriminated union
 
-এটাই এই language-এর সবচেয়ে মূল্যবান pattern। এটা এমন একটি union, যার member-গুলোর একটি field-এ literal
-type থাকে। Compiler সেই field দিয়েই narrow করে।
+ভাষাটার সবচেয়ে কাজের pattern এটাই। এটা এমন একটি union, যার প্রতিটি member-এ একটি করে literal type-এর field
+থাকে, আর compiler সেই field দেখে type narrow করে।
 
 ```typescript
 type RequestState<T> =
@@ -96,8 +96,8 @@ function render(state: RequestState<User>): string {
 }
 ```
 
-Optional field-ওয়ালা object-এর চেয়ে এটা নিঃসন্দেহে ভালো। `{ data?: T; error?: string }` দুটিই থাকতে দেয়,
-অথবা কোনোটাই না। আর আপনি কোন state-এ আছেন, compiler সেটা বলতে পারে না।
+Optional field দিয়ে বানানো object-এর চেয়ে এটা সবদিক থেকে ভালো। `{ data?: T; error?: string }`-এ দুটিই থাকতে পারে,
+আবার কোনোটাই না-ও থাকতে পারে। আপনি এখন কোন state-এ আছেন, compiler তা বলতে পারে না।
 
 ### Optional বনাম `| undefined`
 
@@ -114,22 +114,21 @@ const b: B = {}; // ❌ Property 'age' is missing
 const b2: B = { age: undefined }; // ✅
 ```
 
-সত্যিই optional data-র জন্য `?` ব্যবহার করুন। `| undefined` ব্যবহার করুন তখন, যখন caller-কে field-টা
-স্বীকার করতেই হবে — যেমন একটি patch object-এ, যেখানে "পাঠানো হয়নি" আর "ফাঁকা পাঠানো হয়েছে" আলাদা জিনিস।
-`exactOptionalPropertyTypes` আরও এক ধাপ এগোয়: এটা `?` field-কে স্পষ্টভাবে দেওয়া `undefined` গ্রহণ করতে
-দেয় না।
+ডেটা সত্যিই optional হলে `?` দিন। আর caller-কে field-টার কথা মাথায় রাখতে বাধ্য করতে চাইলে দিন `| undefined`।
+যেমন patch object-এ "পাঠানোই হয়নি" আর "খালি পাঠানো হয়েছে" দুটি আলাদা কথা। `exactOptionalPropertyTypes` আরও
+এক ধাপ এগোয়: এটা চালু থাকলে `?` field-এ সরাসরি `undefined` বসানো যায় না।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                      | যা ব্যবহার করবেন                | কেন                                              |
+| পরিস্থিতি                                      | কী ব্যবহার করবেন                 | কেন                                              |
 | ---------------------------------------------- | ------------------------------- | ------------------------------------------------ |
-| একটি object shape, বিশেষ করে যেটা অন্যরা extend করে | `interface`                  | সংঘর্ষে ভালো error; library augmentation-এর জন্য merge হয় |
-| একটি union, tuple, primitive alias বা function type | `type`                       | `interface` এগুলো প্রকাশ করতে পারে না            |
-| পরস্পরকে বাদ দেয় এমন state                      | `type`-গুলোর একটি discriminated union | কোন field আছে, compiler তা প্রমাণ করে      |
-| Third-party type-এ একটি field যোগ করা            | `interface` declaration merging  | একমাত্র পদ্ধতি যেটা কাজ করে                     |
-| একটি derive করা shape — omit, pick, partial      | utility type-সহ `type`           | Source type-এর সঙ্গে তাল মিলিয়ে চলে             |
+| Object shape, বিশেষ করে যেটা অন্যরা extend করবে  | `interface`                     | গরমিলে error ভালো আসে; library augment করতে merge হয় |
+| Union, tuple, primitive alias বা function type   | `type`                          | `interface` এগুলো লিখতেই পারে না                  |
+| এমন state, যেগুলো একসঙ্গে থাকতে পারে না         | `type` দিয়ে discriminated union | কোন field আছে, compiler তা প্রমাণ করে দেয়         |
+| Third-party type-এ field যোগ করা                | `interface` declaration merging  | কাজ করে শুধু এই একটি উপায়েই                     |
+| অন্য type থেকে বানানো shape — omit, pick, partial | Utility type সহ `type`          | মূল type বদলালে এটাও সঙ্গে সঙ্গে বদলায়          |
 
-**Input-গুলো আবার না লিখে model থেকে derive করা:**
+**Input-এর type আবার নতুন করে না লিখে model থেকে বের করে নেওয়া:**
 
 ```typescript
 type CreateUserInput = Omit<User, 'id' | 'createdAt'> & { password: string };
@@ -138,59 +137,57 @@ type UpdateUserInput = Partial<CreateUserInput>;
 
 ## সাধারণ ভুল
 
-**❌ Optional field দিয়ে state model করা।** `{ loading?: boolean; data?: T; error?: string }` আটটি
-combination অনুমোদন করে, যার বেশিরভাগই অর্থহীন। একটি discriminated union ঠিক সেই state-গুলোই অনুমোদন
-করে, যেগুলো আসলে আছে।
+**❌ Optional field দিয়ে state বানানো।** `{ loading?: boolean; data?: T; error?: string }` আটটি combination মেনে
+নেয়, যার বেশিরভাগেরই কোনো মানে নেই। Discriminated union শুধু সেই state-গুলোই মানে, যেগুলো আসলে আছে।
 
-**❌ Key-এর নাম না দিতে index signature ব্যবহার করা।** `{ [key: string]: string }` সেই object-এর সব
-autocomplete আর typo check ছেড়ে দেয়। `Record<'submit' | 'cancel', string>` সেগুলো রেখে দেয়।
+**❌ Key-র নাম না দিতে index signature লেখা।** `{ [key: string]: string }` লিখলে সেই object-এ autocomplete আর
+typo ধরার সুবিধা পুরোটাই হারান। `Record<'submit' | 'cancel', string>` লিখলে দুটিই থাকে।
 
-**❌ ধরে নেওয়া যে interface বাড়তি property ধরবে।** Excess-property checking খাটে শুধু একটি নতুন object
-literal-এ। আগে একটি variable-এর মধ্য দিয়ে assign করুন, বাড়তি field কারও নজরে না পড়েই পার হয়ে যাবে:
+**❌ ধরে নেওয়া যে interface বাড়তি property ধরবেই।** Excess-property check চলে শুধু সদ্য লেখা object literal-এ।
+আগে একটি variable-এ রেখে তারপর assign করলে বাড়তি field কারও চোখে না পড়েই পার হয়ে যায়:
 
 ```typescript
 const input = { id: 1, name: 'a', typo: true };
 const user: User = input; // ✅ compiles — no literal, no excess check
 ```
 
-**❌ অভ্যাসবশত object shape-এ `&` ব্যবহার করা।** একটি সংঘর্ষপূর্ণ property `never` হয়ে যায়, আর error
-দেখা দেয় declaration থেকে অনেক দূরে। `extends` সেটা জানায় ঠিক যেখানে আপনি লিখেছেন।
+**❌ অভ্যাসবশে object shape-এ `&` লেখা।** গরমিল থাকা property হয়ে যায় `never`, আর error দেখা দেয় declaration
+থেকে অনেক দূরে। `extends` error দেখায় ঠিক যেখানে লিখেছেন, সেখানেই।
 
-**❌ ভুল করে নিজের interface-গুলো merge করে ফেলা।** একই scope-এ দুটি file `interface Config` declare
-করলে চুপচাপ একটিই type হয়ে যায়। এটা ইচ্ছাকৃত না হলে `type` ব্যবহার করুন, সেটা বরং error দেয়।
+**❌ ভুল করে নিজের interface merge করে ফেলা।** একই scope-এ দুটি file `interface Config` declare করলে সেগুলো
+চুপচাপ একটি type হয়ে যায়। এটা ইচ্ছাকৃত না হলে `type` লিখুন, তাহলে merge না হয়ে error হবে।
 
 ## 🔑 মূল শিক্ষা
 
-- Declaration জুড়ে merge হয় শুধু `interface`; union, tuple, primitive বা function-এর নাম দিতে পারে শুধু `type`।
-- Object shape-এর জন্য `&`-এর বদলে `extends` বেছে নিন — সংঘর্ষ ধরা পড়ে declaration-এই।
-- একটি discriminated union দিয়ে compiler প্রমাণ করতে পারে, প্রতিটি state-এ কোন field আছে।
-- `?` মানে key-টা না-ও থাকতে পারে; `| undefined` মানে key-টা থাকতেই হবে, কিন্তু তার মান set না-ও হতে পারে।
-- Excess-property checking চলে শুধু নতুন object literal-এ, variable-এর মধ্য দিয়ে assign করলে নয়।
+- একাধিক declaration merge হয় শুধু `interface`-এর; union, tuple, primitive বা function-কে নাম দিতে পারে শুধু `type`।
+- Object shape-এ `&`-এর চেয়ে `extends` ভালো, কারণ গরমিল ধরা পড়ে declaration-এই।
+- Discriminated union থাকলে compiler প্রমাণ করে দিতে পারে, কোন state-এ কোন field আছে।
+- `?` মানে key-টা না-ও থাকতে পারে; `| undefined` মানে key থাকতেই হবে, শুধু তার value set না-ও হতে পারে।
+- Excess-property check চলে শুধু সদ্য লেখা object literal-এ, variable হয়ে assign হলে চলে না।
 
 ## Interview-এর প্রশ্ন
 
 **Q: কখন `type`-এর বদলে `interface` ব্যবহার করবেন?**
 
-Object shape-এর জন্য, বিশেষ করে যেগুলো অন্য code extend করে বা কোনো library-র ব্যবহারকারী augment করে।
-`extends` সংঘর্ষের error আরও পরিষ্কারভাবে দেয়। আর third-party type-এ field যোগ করার একমাত্র উপায় হলো
-declaration merging। Object shape নয় এমন সবকিছুর জন্য `type` ব্যবহার করুন: union, tuple, function
-signature, mapped আর conditional type।
+Object shape-এর জন্য, বিশেষ করে যেটা অন্য code extend করবে বা library-র user augment করবে। `extends`-এ গরমিলের
+error পরিষ্কার আসে, আর third-party type-এ field যোগ করার একমাত্র উপায় declaration merging। Object shape নয় এমন
+সবকিছুর জন্য `type` ব্যবহার করুন: union, tuple, function signature, mapped আর conditional type।
 
-**Q: Discriminated union কী, আর optional field-এর চেয়ে একে কেন বেছে নেবেন?**
+**Q: Discriminated union কী, আর optional field-এর চেয়ে এটা ভালো কেন?**
 
-এটা এমন একটি union, যার member-গুলোর একটি field-এ আলাদা আলাদা literal type থাকে। TypeScript সেটা দিয়ে
-narrow করে। Optional field সব combination-এর union বর্ণনা করে, তাই compiler
-`{ loading: true, error: 'x' }`-কে বাদ দিতে পারে না। Discriminated রূপে অসম্ভব state লেখাই অসম্ভব হয়ে
-যায়। তারপর narrowing প্রতিটি branch-এ ঠিক field-গুলো দেয়, কোনো cast ছাড়াই।
+এটা এমন একটি union, যার member-গুলোর একটি করে common field আছে, আর সেই field-এর literal type প্রতিটিতে আলাদা।
+TypeScript সেটা দেখেই narrow করে। Optional field আসলে সব combination-এর union বোঝায়, তাই compiler
+`{ loading: true, error: 'x' }`-কে বাদ দিতে পারে না। Discriminated union-এ অসম্ভব state লেখাই যায় না। তারপর
+narrow করলে প্রতিটি branch-এ ঠিক field-গুলো পাওয়া যায়, কোনো cast লাগে না।
 
 **Q: TypeScript এই বাড়তি property-টা ধরল না কেন?**
 
-Excess-property checking একটি বিশেষ ক্ষেত্র। এটা খাটে শুধু তখন, যখন একটি object literal সরাসরি একটি
-typed target-এ assign হয়। মাঝখানে একটি variable-এর মধ্য দিয়ে assign করলে এটা সাধারণ structural check হয়ে
-যায়, আর বাড়তি property সেই check পার হয়ে যায়। Check-টা রাখতে তৈরির জায়গাতেই annotation দিন।
+Excess-property check একটা বিশেষ নিয়ম। এটা চলে শুধু তখন, যখন object literal সরাসরি কোনো typed target-এ assign
+হয়। মাঝখানে একটি variable থাকলে সেটা সাধারণ structural check হয়ে যায়, আর সেখানে বাড়তি property আটকায় না। Check
+রাখতে চাইলে object যেখানে তৈরি করছেন, সেখানেই type annotate করুন।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — TypeScript Generics](#ch-generics) — এই shape-গুলোকে বিভিন্ন type-এ পুনর্ব্যবহারযোগ্য করা
+- [Chapter ?? — TypeScript Generics](#ch-generics) — এই shape-গুলোকে নানা type-এ আবার ব্যবহার করা
 - [Chapter ?? — TypeScript-এর Advanced ও Utility Type](#ch-advanced-types) — `Omit`, `Pick` আর `Partial` বিস্তারিত
-- [Chapter ?? — TypeScript Type Guard](#ch-type-guards) — সীমানায় একটি discriminated union narrow করা
+- [Chapter ?? — TypeScript Type Guard](#ch-type-guards) — boundary-তে discriminated union narrow করা

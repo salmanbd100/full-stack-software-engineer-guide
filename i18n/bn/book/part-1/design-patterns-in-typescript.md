@@ -1,48 +1,48 @@
 ---
 sourceHash: "2706f06f3a93553fd951af6033a3756e96cec9e3b24a597c5164e5b826645f03"
 title: "TypeScript-এ Design Pattern"
-translatedAt: "2026-10-12T07:47:38.589Z"
+translatedAt: "2026-10-14T04:35:31.298Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # TypeScript-এ Design Pattern {#ch-design-patterns-in-typescript}
 
-> Pattern-এর আগে সমস্যাটার নাম বলুন। আর জানুন, এখানে কোন classic pattern-গুলো ছোট হয়ে একটি function-এ পরিণত হয়।
+> Pattern-এর আগে সমস্যার নাম বলুন, আর জেনে রাখুন কোন classic pattern এই ভাষায় ছোট হতে হতে একটা function হয়ে যায়।
 
-**এই অধ্যায়ে:** strategy · observer · factory · adapter · decorator · builder · যে pattern-গুলো TypeScript আপনাকে আগেই দিয়ে রেখেছে
+**এই অধ্যায়ে:** strategy · observer · factory · adapter · decorator · builder · যে pattern-গুলো TypeScript আগে থেকেই দিয়ে রেখেছে
 
 ## 💡 মূল ধারণা
 
-Pattern হলো বারবার ঘটা একটি সমস্যার নাম, আর তার একটি পরীক্ষিত ভালো সমাধান। নামটাই সবচেয়ে কম মূল্যবান অংশ।
-নম্বর পাওয়া যায় আগে সমস্যাটা বলে: *"প্রতিবার নতুন payment provider যোগ করলে এই switch-এ একটি করে branch বাড়ে,
-আর প্রতিটি branch একই function-এ হাত দেয়।"*
+Pattern হলো বারবার ফিরে আসা একটা সমস্যার নাম, আর তার একটা পরীক্ষিত সমাধান। এর মধ্যে নামটাই সবচেয়ে কম দামি। নম্বর
+আসে আগে সমস্যাটা বলতে পারলে: *"নতুন payment provider যোগ করলেই এই switch-এ একটা করে branch বাড়ে, আর প্রতিটি
+branch একই function-এ হাত দেয়।"*
 
-বেশিরভাগ candidate উত্তরের দ্বিতীয় অর্ধেকটা মিস করেন: **TypeScript, Java নয়**। Gang of Four-এর বেশ কিছু pattern
-আছে এমন একটি সীমাবদ্ধতা এড়ানোর জন্য, যেটা এই ভাষায় নেই। একটি singleton হলো একটি module। একটি strategy সাধারণত
-একটি function। একটি observer প্রায়ই একটি `EventTarget`। ভাষায় mechanism আগে থেকেই থাকলেও class hierarchy বানানো —
-এটা mid-level-এর লক্ষণ।
+বেশিরভাগ candidate উত্তরের দ্বিতীয় অর্ধেকটা ধরতে পারেন না: **TypeScript, Java নয়**। Gang of Four-এর বেশ কয়েকটি
+pattern আছে এমন সীমাবদ্ধতা এড়াতে, যা এই ভাষার নেই-ই। Singleton আসলে একটা module। Strategy সাধারণত একটা
+function। Observer প্রায়ই একটা `EventTarget`। ভাষায় যে ব্যবস্থা আগে থেকেই আছে, তার জন্য class hierarchy বানানো
+দেখলেই বোঝা যায় candidate mid-level।
 
-## কোন সমস্যা, কোন Pattern
+## কোন সমস্যায় কোন Pattern
 
-| আপনার আসল সমস্যা | Pattern | TypeScript-এর নিজস্ব রূপ |
+| আসলে যে সমস্যাটা আছে | Pattern | TypeScript-এর নিজস্ব রূপ |
 | --- | --- | --- |
-| একটির জায়গায় আরেকটি বসানো যায় এমন কয়েকটি algorithm | **Strategy** | `Record<Kind, Fn>` |
-| একটি event-এ অনেক কিছুকে সাড়া দিতে হবে | **Observer** | `EventTarget`, একটি emitter, একটি signal |
-| কোন class বানাতে হবে, তা input-এর ওপর নির্ভর করে | **Factory** | একটি union return করা function |
-| একটি external API-র আকার ভুল | **Adapter** | একটি wrapper module |
-| মূলটা edit না করে behaviour যোগ করা | **Decorator** | একটি higher-order function |
-| একটি constructor-এর parameter বেড়ে আটটি হয়েছে | **Builder** | সাধারণত একটি options object |
-| একটিই instance, সবার মধ্যে ভাগ করা | **Singleton** | একটি module-level `const` |
+| অদলবদল করা যায় এমন কয়েকটি algorithm | **Strategy** | `Record<Kind, Fn>` |
+| একটি event-এ অনেক কিছুর সাড়া দিতে হবে | **Observer** | `EventTarget`, একটা emitter, একটা signal |
+| কোন class বানানো হবে, তা input-এর ওপর নির্ভর করে | **Factory** | Union return করা একটা function |
+| বাইরের API-র shape ভুল | **Adapter** | একটা wrapper module |
+| মূল code না বদলে আচরণ যোগ করা | **Decorator** | একটা higher-order function |
+| Constructor-এ parameter বেড়ে আটটি হয়েছে | **Builder** | সাধারণত একটা options object |
+| একটিই instance, সবাই ভাগ করে | **Singleton** | Module-level একটা `const` |
 
-ডানদিকের column-টা উড়িয়ে দেওয়ার জন্য নয়। এটা হলো "এখানে আপনি এটা কীভাবে implement করবেন" প্রশ্নের উত্তর।
-এটা হাতের কাছে থাকলেই বোঝা যায়, আপনি শুধু catalogue জানেন, নাকি সত্যিই ব্যবহার করেছেন।
+ডানের column-টা pattern-কে উড়িয়ে দেওয়া নয়। "এখানে এটা কীভাবে implement করবেন" প্রশ্নের উত্তর ওটাই। এই উত্তর
+তৈরি থাকলেই বোঝা যায়, আপনি catalogue শুধু জানেন না, ব্যবহারও করেছেন।
 
 ## Strategy
 
-প্রতিটি algorithm-কে এমনভাবে মুড়ে দিন, যাতে caller কোনটা কোনটা না জেনেই সেগুলো বদলাতে পারে।
+প্রতিটি algorithm-কে এমনভাবে মুড়ে রাখুন, যাতে caller কোনটা কোনটা না জেনেই অদলবদল করতে পারে।
 
-শুরুর অবস্থা হলো একটি `shippingCost` function, যেটা একটি `method` string-এর ওপর branch করে। প্রতিটি নতুন option
-এটাকে edit করে, আর প্রতিটি edit আগে থেকে থাকা branch-গুলোকে ঝুঁকিতে ফেলে।
+শুরুটা একটা `shippingCost` function, যেটা একটা `method` string দেখে branch করে। প্রতিটি নতুন option-এ এটা edit
+করতে হয়, আর প্রতিটি edit আগের branch-গুলোকে ঝুঁকিতে ফেলে।
 
 ```typescript
 // ✅ One algorithm per entry. Adding a method adds a key, not an edit.
@@ -61,16 +61,16 @@ function shippingCost(order: Order, method: Method): number {
 }
 ```
 
-`satisfies` (TypeScript 4.9 এবং পরের version) এখানে আসল কাজটা করছে। এটা প্রতিটি entry-কে `ShippingRate`-এর সঙ্গে
-মিলিয়ে দেখে, আবার literal key-এর নামগুলোও রেখে দেয়। তাই `Method` হয় `string`-এর বদলে আসল method-গুলোর একটি union।
-ফলে অজানা একটি method runtime-এ throw হওয়ার বদলে compile error হয়ে যায়।
+এখানে `satisfies` (TypeScript 4.9 ও পরের version) সত্যিকারের কাজ করছে। এটা প্রতিটি entry-কে
+`ShippingRate`-এর সঙ্গে মিলিয়ে দেখে, আবার literal key-র নামগুলোও রেখে দেয়। তাই `Method` হয় আসল method-গুলোর
+union, `string` নয়। ফলে অজানা method দিলে runtime-এ throw না হয়ে compile error হয়।
 
-> ⚠️ **যে দুটি branch কখনো বদলায় না, তাদের এর দরকার নেই।** সেখানে একটি map-এর চেয়ে `if` বেশি পরিষ্কার। Pattern-টা
-> তখনই তার দাম তোলে, যখন সেটটা বাড়ে বা পছন্দটা configuration থেকে আসে।
+> ⚠️ **কখনো বদলায় না এমন দুটি branch-এর জন্য এটা লাগে না।** সেখানে map-এর চেয়ে `if` বেশি পরিষ্কার। Pattern-টা
+> কাজে আসে শুধু তখন, যখন তালিকা বাড়তে থাকে বা বাছাইটা আসে configuration থেকে।
 
 ## Observer
 
-Source-কে না জানিয়েই অনেক কিছুকে একটি event-এ সাড়া দিতে দিন।
+Source না জেনেই অনেক কিছু যেন একটা event-এ সাড়া দিতে পারে।
 
 ```typescript
 class TypedEmitter<Events extends Record<string, unknown>> {
@@ -85,27 +85,27 @@ class TypedEmitter<Events extends Record<string, unknown>> {
 }
 ```
 
-`on` থেকে unsubscribe function return করা — এই খুঁটিনাটিটা নকল করার মতো। যে observer সরানো যায় না, দীর্ঘ সময় চলা
-front end-এ সেটাই সবচেয়ে সাধারণ memory leak। Subscribe করার সময়েই `on` যখন clean-up function হাতে দিয়ে দেয়, তখন
-কেউ সেটা call করতে ভুলে গেলে একজন reviewer সেটা দেখতে পান।
+নকল করার মতো খুঁটিনাটি হলো `on` থেকে unsubscribe function return করা। দীর্ঘক্ষণ চলা front end-এ সবচেয়ে চেনা
+memory leak হলো এমন observer, যাকে সরানো যায় না। Subscribe করার সময়েই `on` যদি clean-up function হাতে তুলে দেয়,
+তাহলে কেউ সেটা call করতে ভুলে গেলে reviewer দেখতে পান।
 
-> ⚠️ **Synchronously emit করা মানে একটি ধীর listener publisher-কে আটকে দেয়।** Listener-গুলো ক্রমানুসারে চলবে,
-> parallel-এ চলবে, নাকি একটি queue-তে — সেটা ভেবেচিন্তে ঠিক করুন, আর type-এর নামেই সেটা বলে দিন।
+> ⚠️ **Synchronously emit করলে একটা ধীর listener পুরো publisher-কে আটকে দেয়।** Listener-গুলো পরপর চলবে, একসঙ্গে
+> চলবে, নাকি queue-তে যাবে, তা জেনে-বুঝে ঠিক করুন, আর type-এর নামেই সেটা বলে দিন।
 
 ## Factory
 
-কোন implementation বানানো হবে, সেই সিদ্ধান্তটা এক জায়গায় সরিয়ে আনুন।
+কোন implementation বানানো হবে, সেই সিদ্ধান্ত এক জায়গায় নিয়ে আসুন।
 
-একটি `createExporter(format)` function `'csv' | 'xlsx' | 'pdf'`-এর ওপর switch করে আর একটি `Exporter` return করে।
-পুরো pattern এটুকুই: caller-রা একটি format চায়, কখনো কোনো class-এর নাম দেখে না।
+একটা `createExporter(format)` function `'csv' | 'xlsx' | 'pdf'`-এর ওপর switch করে একটা `Exporter` return করে।
+Pattern বলতে এটুকুই: caller একটা format চায়, কোনো class-এর নাম কখনো দেখে না।
 
-কীভাবে বানাতে হয়, সেই জ্ঞান থাকে এক জায়গায়। `createExporter` call করা কেউ জানে না যে PDF-এর জন্য font লাগে। সেটা
-বদলালে একটি function বদলায়। `default` না থাকাটা ইচ্ছাকৃত। Union-এ একটি format যোগ করুন, আর TypeScript compile
-time-এই function-টাকে non-exhaustive বলে চিহ্নিত করবে।
+কীভাবে বানাতে হয়, সেই জ্ঞান থাকে এক জায়গায়। `createExporter` যে call করছে, সে জানেই না PDF-এর জন্য font লাগে।
+এটা বদলালে বদলায় একটিমাত্র function। `default` না থাকাটা ইচ্ছাকৃত। Union-এ নতুন format যোগ করলে TypeScript
+compile-time-এই জানিয়ে দেয় যে function-টা আর exhaustive নয়।
 
 ## Adapter
 
-যে interface আপনার নিয়ন্ত্রণে নেই, সেটাকে আপনার code যে interface আশা করে, তার সঙ্গে মিলিয়ে দিন।
+যে interface আপনার নিয়ন্ত্রণে নেই, সেটাকে আপনার code-এর চাওয়া interface-এর সঙ্গে খাপ খাওয়ান।
 
 ```typescript
 // The shape your application wants.
@@ -122,12 +122,12 @@ export const vendorGateway: PaymentGateway = {
 };
 ```
 
-ওই vendor সম্পর্কে প্রতিটি ধারণা এখন একটি file-এ। Vendor বদলানো মানে একটি দ্বিতীয় adapter আর wiring-এর এক লাইন।
-Unit test-গুলো কখনো vendor-কে ছোঁয়নি, কারণ সেগুলো `PaymentGateway`-এর বিপরীতে লেখা।
+ওই vendor সম্পর্কে যত অনুমান, সব এখন একটি file-এ। Vendor বদলাতে লাগে দ্বিতীয় একটা adapter আর wiring-এর এক line।
+Unit test-গুলো vendor-কে কখনো ছোঁয়নি, কারণ সেগুলো লেখা হয়েছিল `PaymentGateway`-এর ওপর।
 
 ## Decorator
 
-কোনো কিছুকে edit না করে তার চারপাশে behaviour যোগ করুন। TypeScript-এ এটা সাধারণত একটি function, class নয়।
+কোনো কিছু edit না করে তার চারপাশে আচরণ যোগ করা। TypeScript-এ এটা সাধারণত একটা function, class নয়।
 
 ```typescript
 type Handler = (req: Request) => Promise<Response>;
@@ -148,56 +148,55 @@ const withTiming =
 const handler = withTiming('report')(withRetry(3)(fetchReport));
 ```
 
-ক্রম গুরুত্বপূর্ণ, আর পড়তে হয় ভেতর থেকে বাইরে। Retry মোড়ায় fetch-কে, আর timing মোড়ায় retry-কে। তাই metric-টা তিনটি
-attempt-ই ধরে। প্রতিটি attempt-এর আলাদা timing পেতে এদের জায়গা বদলে দিন। কেন — সেটা ব্যাখ্যা করাই পরের প্রশ্ন।
+ক্রম গুরুত্বপূর্ণ, আর পড়তে হয় ভেতর থেকে বাইরে। Retry মোড়ায় fetch-কে, আর timing মোড়ায় retry-কে, তাই metric-এ
+তিনটি চেষ্টাই ধরা পড়ে। উল্টে দিলে প্রতিটি চেষ্টার আলাদা timing পাবেন। কেন, সেটা ব্যাখ্যা করাই পরের প্রশ্ন।
 
 ## Builder
 
-জানা দরকার, তবে যতটা শেখানো হয় তার চেয়ে কম ব্যবহার করা উচিত। Builder তখনই তার জায়গা পায়, যখন বানানোটা সত্যিই
-ধাপে ধাপে হয়, আর শেষ ধাপের আগ পর্যন্ত object-টা invalid থাকে। উদাহরণ: জোড়া লাগানো হচ্ছে এমন একটি query, বা একটি
-multipart request। কখনো কখনো আসল সমস্যা হলো "এই constructor-এর parameter অনেক বেশি"। তখন default-সহ একটি
-destructured options object বেশি সহজ। এর field-গুলোর নাম থাকে, সেগুলো optional আর check করা হয়, আর maintain করার
-জন্য কোনো builder class থাকে না।
+জানা দরকার, তবে যত শেখানো হয় তত ব্যবহারের দরকার নেই। Builder তখনই কাজের, যখন object বানানো সত্যিই ধাপে ধাপে হয়,
+আর শেষ ধাপের আগে object-টা অচল। যেমন জোড়া লাগানো হচ্ছে এমন একটা query, বা একটা multipart request। অনেক সময়
+আসল সমস্যা হলো "এই constructor-এ parameter বড্ড বেশি"। তখন default সহ destructure করা options object বেশি সহজ।
+তার field-গুলোর নাম থাকে, optional হয়, check হয়, আর রক্ষণাবেক্ষণের জন্য কোনো builder class থাকে না।
 
 ## সাধারণ ভুল
 
-❌ **সমস্যার আগে pattern-এর নাম বলা।** "আমি একটি strategy ব্যবহার করব" এমন একটি প্রশ্নের উত্তর দেয়, যেটা কেউ করেনি।
-✅ যে পরিবর্তনটা বারবার ঘটছে, সেটা বর্ণনা করুন। তারপর এমন structure প্রস্তাব করুন, যেটা সেটাকে শুষে নেয়।
+❌ **সমস্যার আগে pattern-এর নাম বলা।** "আমি strategy ব্যবহার করব" এমন প্রশ্নের উত্তর, যা কেউ করেনি।
+✅ যে বদলটা বারবার আসছে, আগে সেটা বলুন, তারপর এমন structure প্রস্তাব করুন, যা সেই বদল সামলে নেয়।
 
-❌ **Static `getInstance`-ওয়ালা একটি singleton class।** ES module আগে থেকেই singleton। Module-এর body একবারই চলে, আর
-প্রতিটি importer একই export ভাগ করে নেয়।
-✅ একটি `const` export করুন। Class-এর দিকে তখনই যান, যখন test-এ instance-টা সত্যিই বদলাতে হয়।
+❌ **Static `getInstance` সহ singleton class।** ES module নিজেই singleton। Module-এর body একবারই চলে, আর যে-ই
+import করুক, সবাই একই export পায়।
+✅ একটা `const` export করুন। Class নিন শুধু তখন, যখন test-এ instance-টা সত্যিই বদলাতে হয়।
 
 ## 🔑 মূল শিক্ষা
 
-- আগে বারবার ঘটা পরিবর্তনটা বলুন। Pattern হলো উত্তরের দ্বিতীয় অর্ধেক, কখনোই প্রথম নয়।
-- TypeScript-এ strategy সাধারণত function-এর একটি typed record, আর `satisfies` key-গুলোকে একটি check করা union হিসেবে রাখে।
-- Observer-এর `on` থেকে unsubscribe function return করুন, কারণ ভুলে যাওয়া listener-ই হলো চিরচেনা leak।
-- এই ভাষায় বেশ কিছু classic pattern (singleton, decorator, facade) হয়ে যায় একটি module, একটি function আর একটি export।
+- আগে বলুন কোন বদলটা বারবার আসছে। Pattern উত্তরের দ্বিতীয় অর্ধেক, কখনো প্রথম নয়।
+- TypeScript-এ strategy সাধারণত function-এর একটা typed record, আর `satisfies` key-গুলোকে check হওয়া union হিসেবে রাখে।
+- Observer-এর `on` থেকে unsubscribe function return করুন, কারণ ভুলে যাওয়া listener-ই সবচেয়ে চেনা leak।
+- এই ভাষায় কয়েকটি classic pattern (singleton, decorator, facade) হয়ে যায় একটা module, একটা function আর একটা export।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Payment provider-এর ওপর এই `switch`-টা শুধু বাড়ছেই। আপনি কী করবেন?**
+**Q: Payment provider-এর ওপর এই `switch` বড় হয়েই চলেছে। আপনি কী করবেন?**
 
-আগে বলুন, এই বাড়তে থাকার খরচ কী। প্রতিটি provider একই function edit করে, তাই প্রতিটি পরিবর্তন বাকিগুলোকে ঝুঁকিতে
-ফেলে, আর file-টায় merge conflict জমে। তারপর একটি strategy প্রস্তাব করুন: provider দিয়ে key করা একটি record, প্রতিটি
-implementation-এর জন্য একটি entry। তখন নতুন provider যোগ করা মানে একটি entry যোগ করা। TypeScript-এ আমি `satisfies`
-ব্যবহার করতাম, যাতে key-এর union record থেকেই আসে, আর caller কোনো অজানা provider পাঠাতে না পারে।
+আগে বলব এই বেড়ে চলার খরচ কী। প্রতিটি provider একই function edit করে, তাই প্রতিটি বদল বাকিগুলোকে ঝুঁকিতে ফেলে,
+আর file-টায় merge conflict লেগেই থাকে। তারপর strategy প্রস্তাব করব: provider-কে key ধরে একটা record, প্রতিটি
+implementation-এর জন্য একটি করে entry। তখন নতুন provider মানে শুধু নতুন একটা entry। TypeScript-এ আমি
+`satisfies` ব্যবহার করব, যাতে key-র union আসে record থেকেই, আর caller অজানা provider পাঠাতে না পারে।
 
-**Q: Decorator, proxy আর adapter-এর পার্থক্য কী? সবগুলোই তো কিছু একটিকে মোড়ায়।**
+**Q: Decorator, proxy আর adapter-এর পার্থক্য কী? তিনটিই তো কিছু একটাকে মোড়ায়।**
 
-উদ্দেশ্য — আর interviewer উদ্দেশ্যটাই যাচাই করছেন। Decorator একই interface রেখে behaviour যোগ করে। Proxy একই
-interface রাখে আর *access* নিয়ন্ত্রণ করে: lazily, remotely, বা একটি cache দিয়ে। Adapter ইচ্ছে করে interface-টা
-*বদলে দেয়*, যাতে একটি অমিল জিনিস খাপ খায়। আকার একই, কারণ তিনটি আলাদা।
+উদ্দেশ্যে, আর interviewer যাচাই করছেন ঠিক সেটাই। Decorator একই interface রেখে আচরণ যোগ করে। Proxy-ও একই
+interface রাখে, কিন্তু নিয়ন্ত্রণ করে *access*: lazy ভাবে, remote থেকে, বা cache দিয়ে। Adapter জেনে-বুঝে
+interface-টাই *বদলে দেয়*, যাতে বেমানান জিনিসও খাপ খায়। আকার এক, কারণ তিনটি আলাদা।
 
-**Q: কখন একটি pattern ভুল উত্তর?**
+**Q: কখন pattern ভুল উত্তর?**
 
-যখন implementation একটিই, আর দ্বিতীয়টার কোনো প্রমাণ নেই। প্রতিটি pattern indirection দিয়ে flexibility কেনে, আর
-indirection-এর দাম আপনি প্রতিবার পড়ার সময় দেন। সৎ উত্তর হলো, আমি আগে সরাসরি code লিখতাম। দ্বিতীয় case এলে structure
-যোগ করতাম। তখনই আমি অবশেষে জানি, abstraction-টা দেখতে কেমন হওয়া উচিত।
+যখন implementation একটাই, আর দ্বিতীয়টা আসার কোনো লক্ষণ নেই। প্রতিটি pattern নমনীয়তা কেনে ঘুরপথের বিনিময়ে, আর
+সেই ঘুরপথের দাম দিতে হয় প্রতিবার code পড়ার সময়। সৎ উত্তর হলো, আমি আগে সরাসরি code লিখব। Structure যোগ করব দ্বিতীয়
+case এলে। তখনই আসলে প্রথমবার বোঝা যায়, abstraction-টা দেখতে কেমন হওয়া উচিত।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — SOLID নীতি](#ch-solid-principles) — open/closed আর dependency inversion, যেগুলো এই pattern-গুলোর বেশিরভাগই implement করে
+- [Chapter ?? — SOLID নীতি](#ch-solid-principles) — open/closed আর dependency inversion, এই pattern-গুলোর বেশিরভাগ যা বাস্তবে আনে
 - [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries) — একই ধারণা, পুরো system-এর মাপে
-- [Chapter ?? — OOP ও Inheritance-এর বদলে Composition](#ch-composition-over-inheritance) — ওপরের function-রূপগুলো এখানে কেন class-রূপগুলোর চেয়ে ভালো
+- [Chapter ?? — OOP ও Inheritance-এর বদলে Composition](#ch-composition-over-inheritance) — ওপরের function রূপগুলো কেন এখানে class রূপকে হারায়

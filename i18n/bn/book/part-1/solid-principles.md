@@ -1,33 +1,32 @@
 ---
 sourceHash: "033612f43e6432d8fc2486e7b585fcae814f0a525dc9c4e36f8e10fe7aef03aa"
 title: "SOLID নীতি"
-translatedAt: "2026-10-12T07:46:54.815Z"
+translatedAt: "2026-10-14T04:34:44.582Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # SOLID নীতি {#ch-solid-principles}
 
-> পাঁচটি নীতি সেখানে প্রয়োগ করুন, যেখানে সেগুলো কাজে লাগে। যেখানে লাগে না, সেখানে খরচটার নাম বলুন।
+> পাঁচটি নীতি খাটান সেখানে, যেখানে এরা কাজে আসে। আর যেখানে আসে না, সেখানে খরচটা নাম ধরে বলুন।
 
 **এই অধ্যায়ে:** single responsibility · open/closed · Liskov substitution · interface segregation · dependency inversion
 
 ## 💡 মূল ধারণা
 
-SOLID হলো পাঁচটি design নীতি, যার লক্ষ্য এমন code, যেটা ভয় ছাড়াই বদলানো যায়। Interview-এ এটা সবচেয়ে বেশি
-জিজ্ঞেস করা design বিষয়, আর সাধারণত সবচেয়ে খারাপ উত্তর পাওয়া বিষয়ও। Acronym-টা মুখস্থ বলা সহজ; প্রয়োগ করা
-সহজ নয়। পাঁচটি সমান কাজের নয়। **Dependency inversion আর single responsibility আপনার প্রতিদিনের code লেখার ধরন
-বদলে দেয়।** Liskov আর interface segregation-এর পরিসর ছোট। আর open/closed হলো এদের মধ্যে সবচেয়ে বেশি ভুলভাবে
-উদ্ধৃত।
+SOLID হলো পাঁচটি design নীতি, যার লক্ষ্য এমন code, যা ভয় না পেয়ে বদলানো যায়। Interview-এ design নিয়ে সবচেয়ে বেশি
+জিজ্ঞেস করা হয় এটাই, আর সাধারণত সবচেয়ে খারাপ উত্তরও আসে এখানেই। Acronym মুখস্থ বলা সহজ, খাটানো সহজ নয়। পাঁচটি
+নীতি সমান কাজের নয়। **Dependency inversion আর single responsibility রোজ আপনার code লেখার ধরন বদলে দেয়।** Liskov
+আর interface segregation-এর পরিধি ছোট। আর open/closed নিয়ে সবচেয়ে বেশি ভুল উদ্ধৃতি হয়।
 
-> **একটি শক্ত উত্তরকে যা আলাদা করে:** আগে smell, তারপর সমাধান, তারপর খরচ। এর প্রতিটি নীতিকেই অতিরিক্ত প্রয়োগ
-> করে এক-method-এর interface-এর একটি গোলকধাঁধা বানানো যায়। এটা মুখে বলাই senior-এর সংকেত।
+> **জোরালো উত্তরকে যা আলাদা করে:** আগে দুর্গন্ধ, তারপর সমাধান, তারপর খরচ। এর প্রতিটি নীতি মাত্রা ছাড়িয়ে খাটালে
+> এক method-এর interface-এর গোলকধাঁধা তৈরি হয়। সেটা মুখে বলতে পারাই senior-এর লক্ষণ।
 
 ## Single Responsibility (SRP)
 
-> একটি class-এর বদলানোর কারণ থাকবে একটি, এবং শুধু একটিই।
+> একটি class-এর বদলানোর কারণ থাকবে একটি, আর শুধু একটিই।
 
-**"একটি দায়িত্ব" কথাটা অস্পষ্ট; "বদলানোর একটি কারণ" যাচাই করা যায়।** আরও ধারালো করে বললে: একটি module একজন
-*actor*-এর কাছে জবাবদিহি করবে। Actor মানে মানুষের এমন একটি দল, যারা একটি পরিবর্তন চাইতে পারে।
+**"একটি দায়িত্ব" কথাটা অস্পষ্ট; "বদলানোর একটি কারণ" যাচাই করা যায়।** আরও ধারালো করে বললে: একটি module জবাব দেবে
+একজন *actor*-কে। Actor মানে মানুষের এমন একটি দল, যারা বদলের অনুরোধ করতে পারে।
 
 ```typescript
 // ❌ Three actors, three reasons to change, one class.
@@ -39,24 +38,23 @@ async function register(email: string, password: string): Promise<void> {
 }
 ```
 
-সমাধান হলো তিনটি collaborator: একটি `UserRepository`, একটি `PasswordHasher` আর একটি `EmailSender`। আপনি এগুলো
-একটি `UserRegistration` class-এ পাঠান, যেটা শুধু এগুলোকে জোড়া লাগায়। প্রত্যেকটার বদলানোর কারণ একটি, আর
-validation-এর নিয়মটা আলাদাভাবে test করা যায়।
+সমাধান তিনটি collaborator: `UserRepository`, `PasswordHasher` আর `EmailSender`। এগুলো পাঠিয়ে দেন একটি
+`UserRegistration` class-এ, যার কাজ শুধু এদের জোড়া দেওয়া। প্রতিটির বদলানোর কারণ একটি, আর validation-এর নিয়মটা
+আলাদা করে test করা যায়।
 
-⚠️ **ব্যর্থতার রূপটা হলো উল্টো চরম।** `UserEmailValidator`, `UserEmailNormalizer`,
-`UserEmailComparer` — একটি string-এর জন্য তিনটি class। SRP বদলানোর কারণ নিয়ে, লাইনের সংখ্যা নিয়ে নয়। দুটি
-জিনিস যদি সবসময় একসঙ্গে বদলায়, তাহলে সেগুলো একসঙ্গেই থাকা উচিত।
+⚠️ **ব্যর্থতা আসে উল্টো দিকের বাড়াবাড়ি থেকে।** `UserEmailValidator`, `UserEmailNormalizer`,
+`UserEmailComparer` — একটি string-এর জন্য তিনটি class। SRP বদলের কারণ নিয়ে, line গোনা নিয়ে নয়। দুটি জিনিস যদি
+সবসময় একসঙ্গে বদলায়, তাহলে ওরা একসঙ্গেই থাকবে।
 
 ## Open/Closed (OCP)
 
 > Extension-এর জন্য খোলা, modification-এর জন্য বন্ধ।
 
-**মূল কথা "কখনো কোনো file edit করবেন না" নয়।** মূল কথা হলো, একটি *নতুন case* যোগ করতে গিয়ে যেন এমন code
-edit করতে না হয়, যেটা আগে থেকেই কাজ করছে আর test করা আছে।
+**কথাটা "কখনো file edit করবেন না" নয়।** কথাটা হলো, *নতুন case* যোগ করতে গিয়ে এমন code বদলাতে হবে না, যা আগে
+থেকেই কাজ করছে আর test হয়ে আছে।
 
-Smell-টা হলো এমন একটি function, যেটা একটি `format` string-এর ওপর switch করে আর প্রতি quarter-এ একটি করে
-branch বাড়ায়। প্রতিটি edit আগে থেকে কাজ করা branch-গুলোকে ঝুঁকিতে ফেলে, আর প্রতিবার পুরো file-টা আবার test
-করতে হয়।
+দুর্গন্ধটা চেনা: একটা function একটা `format` string দেখে switch করে, আর প্রতি quarter-এ তাতে একটা branch বাড়ে।
+প্রতিটি edit চালু branch-গুলোকে ঝুঁকিতে ফেলে, আর প্রতিবার পুরো file আবার test করতে হয়।
 
 ```typescript
 // ✅ New formats are added, never edited in.
@@ -80,58 +78,58 @@ class ExportRegistry {
 }
 ```
 
-PDF export যোগ করা মানে একটি object লেখা আর সেটা register করা। আগের কিছুতেই হাত দিতে হয় না।
+PDF export যোগ করতে এখন শুধু একটি object লিখে register করলেই হয়। আগের কিছুতে হাত দিতে হয় না।
 
-> ⚠️ **এটা Strategy, নীতির দিক থেকে দেখা।** OCP হলো লক্ষ্য। Strategy, factory আর decorator হলো mechanism।
-> দেখুন [Chapter ?? — TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript)।
+> ⚠️ **নীতির দিক থেকে দেখলে এটাই Strategy।** OCP হলো লক্ষ্য। Strategy, factory আর decorator হলো সেখানে পৌঁছানোর
+> উপায়। দেখুন [Chapter ?? — TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript)।
 
-একটি `switch` মানেই আপনা থেকে লঙ্ঘন নয়। কিছু case-এর সেট সত্যিই নির্দিষ্ট, যেমন HTTP method বা চারটি log level।
-সেখানে exhaustiveness check-সহ একটি `switch` একটি registry-র চেয়ে ভালো, কারণ compiler যাচাই করে যে আপনি সবকিছু
-handle করেছেন। OCP সেই axis-গুলোর ক্ষেত্রে প্রযোজ্য, যেগুলো সত্যিই বদলায়।
+`switch` থাকলেই নীতি ভাঙা হয়ে যায় না। কিছু case-এর তালিকা সত্যিই স্থির, যেমন HTTP method বা চারটি log level।
+সেখানে exhaustiveness check সহ `switch` registry-র চেয়ে ভালো, কারণ সব case handle হয়েছে কিনা compiler নিজেই
+যাচাই করে। OCP খাটে শুধু সেই অক্ষে, যা সত্যিই বদলায়।
 
 ## Liskov Substitution (LSP)
 
-> যেখানে base type আশা করা হয়, সেখানে একটি subtype ব্যবহার করা যাবে — caller টেরই পাবে না।
+> Base type যেখানে আশা করা হয়, subtype-কেও সেখানে ব্যবহার করা যাবে, আর caller টেরও পাবে না।
 
-এটা **behaviour নিয়ে, signature নিয়ে নয়**। TypeScript type যাচাই করে; contract যাচাই করতে পারেন শুধু আপনি।
+এটা **আচরণ নিয়ে, signature নিয়ে নয়**। Type যাচাই করে TypeScript; contract যাচাই করতে পারেন শুধু আপনি।
 
-Rectangle/Square হলো পাঠ্যবইয়ের উদাহরণ। একটি `Square` তার বাহুগুলো সমান রাখে। তাই যে caller width আর height
-আলাদাভাবে set করে, তাকে সে ভেঙে দেয়, যদিও type-গুলো মিলে যায়।
+Rectangle/Square-এর উদাহরণটা পাঠ্যবইয়ের। `Square` তার বাহুগুলো সমান রাখে। তাই যে caller width আর height আলাদা
+আলাদা set করে, তাকে এটা ভেঙে দেয়, যদিও type-গুলো দিব্যি মিলে যায়।
 
-আপনি বাস্তবে যে রূপটার মুখোমুখি হবেন, সেটা আলাদা। একটি `Storage` interface `write` আর `delete`-এর প্রতিশ্রুতি দেয়,
-আর একটি `ReadOnlyArchiveStorage` দুটিই implement করে error throw করে। এটা compile হয় আর interface-টা পূরণ করে।
-আবার base contract মেনে লেখা প্রতিটি caller-কেও ভেঙে দেয়।
+আপনি বাস্তবে যেটার মুখোমুখি হবেন, সেটা অন্যরকম। একটা `Storage` interface `write` আর `delete`-এর কথা দেয়, আর
+`ReadOnlyArchiveStorage` দুটিই implement করে throw করে। Compile হয়, interface-ও মেনে চলে। আবার base contract
+মেনে লেখা প্রতিটি caller-কেও ভেঙে দেয়।
 
-সমাধান ভালো error message নয়, ভালো interface। Read আর write আলাদা করুন — এটাই ISP। তাহলে একটি archive সোজা
-কথায় `WritableStorage` নয়।
+সমাধান ভালো error message নয়, ভালো interface। Read আর write আলাদা করে দিন, সেটাই ISP। তাহলে archive সোজাসুজি
+`WritableStorage`-ই নয়।
 
-একটি subtype তার input থেকে বেশি দাবি করতে পারে না (precondition শক্ত করা)। তার result নিয়ে কম প্রতিশ্রুতিও দিতে
-পারে না (postcondition দুর্বল করা)। কোনো invariant ভাঙতে পারে না, বা এমন exception throw করতে পারে না, যেটা base type
-কখনো ঘোষণা করেনি। TypeScript এই চারটির একটিও যাচাই করে না।
+Subtype তার input-এর কাছে বেশি দাবি করতে পারবে না (precondition কড়া করা), আর ফলাফল নিয়ে কম কথা দিতে পারবে না
+(postcondition ঢিলে করা)। কোনো invariant ভাঙতে পারবে না, আর base type যে exception কখনো declare করেনি, তা throw
+করতে পারবে না। এই চারটির একটিও TypeScript যাচাই করে না।
 
-> ⚠️ বেশিরভাগ LSP লঙ্ঘন হলো substitutability-র জন্য নয়, code reuse-এর জন্য ব্যবহার করা inheritance। যখন "is a"
-> কথায় সত্যি কিন্তু behaviour-এ নয়, তখন composition ব্যবহার করুন।
+> ⚠️ বেশিরভাগ LSP লঙ্ঘনের মূলে আছে inheritance, যেটা নেওয়া হয়েছিল একটার জায়গায় আরেকটা বসানোর জন্য নয়, code আবার
+> ব্যবহারের জন্য। "Is a" কথায় খাটে কিন্তু আচরণে খাটে না, এমন হলে composition নিন।
 
 ## Interface Segregation (ISP)
 
-> কোনো client-কে এমন method-এর ওপর নির্ভর করতে বাধ্য করা উচিত নয়, যেটা সে ব্যবহার করে না।
+> কোনো client-কে এমন method-এর ওপর নির্ভর করতে বাধ্য করা যাবে না, যা সে ব্যবহারই করে না।
 
-ছয়-method-এর একটি `Repository<T>` একটি append-only audit log-কে `delete` implement করতে বাধ্য করে। এটা implement
-করার একমাত্র উপায় হলো throw করা, আর সেটা একটি LSP লঙ্ঘনও।
+ছয় method-এর একটা `Repository<T>` শুধু-যোগ-করা-যায় এমন audit log-কেও `delete` implement করতে বাধ্য করে। সেটা
+implement করার একমাত্র উপায় throw করা, আর সেটা একই সঙ্গে LSP লঙ্ঘনও।
 
-এটাকে `Readable<T>`, `Writable<T>` আর `Deletable`-এ ভাগ করুন। তখন একটি audit log ঘোষণা করে
-`implements Readable<AuditEntry>, Writable<AuditEntry>`, আর type নিজেই বলে দেয় "append-only"।
+একে ভেঙে `Readable<T>`, `Writable<T>` আর `Deletable` করুন। তখন audit log declare করে
+`implements Readable<AuditEntry>, Writable<AuditEntry>`, আর type নিজেই বলে দেয় "শুধু যোগ করা যায়"।
 
-**পরিচ্ছন্নতার বাইরেও:** ছয়-method-এর interface-এর একজন consumer-কে বদলাতে হয়, যখন ছয়টির যেকোনো একটি বদলায়।
-তার test-কেও ছয়টিই stub করতে হয়। সরু interface মানে সরু test double আর ছোট blast radius। তবে থামুন সুসংহত
-role-এ গিয়ে, প্রতি interface-এ একটি method-এ নয়।
+**গোছানো দেখানোর বাইরেও লাভ আছে:** ছয় method-এর interface যে ব্যবহার করে, ছয়টির যেকোনোটা বদলালে তাকেও বদলাতে হয়।
+তার test-এও ছয়টিরই stub লাগে। Interface সরু হলে test double সরু হয়, আর কোনো বদলের ধাক্কাও কম জায়গায় লাগে। তবে
+থামুন সুসংহত role-এ এসে, প্রতিটি interface-এ একটি method পর্যন্ত যাবেন না।
 
 ## Dependency Inversion (DIP)
 
-> উঁচু স্তরের module নিচু স্তরের module-এর ওপর নির্ভর করবে না। দুটিই abstraction-এর ওপর নির্ভর করবে।
+> উঁচু স্তরের module নিচু স্তরের module-এর ওপর নির্ভর করবে না। দুটিই নির্ভর করবে abstraction-এর ওপর।
 
-**এটাই সেই নীতি, যেটা আপনার code সবচেয়ে বেশি বদলায়**, আর মানুষ সাধারণত এটা উল্টো করে ব্যাখ্যা করে। Inversion-টা
-হলো *interface-এর মালিক কে*, সেই প্রশ্নে।
+**আপনার code সবচেয়ে বেশি বদলায় এই নীতিই**, আর লোকে সাধারণত এটা উল্টো করে বোঝায়। Inversion-টা আসলে *interface-এর
+মালিক কে*, তা নিয়ে।
 
 ```typescript
 // Defined by the consumer, in domain language — this is the inversion.
@@ -153,55 +151,55 @@ class OrderService {
 class StripeGateway implements PaymentGateway {} // SDK calls here
 ```
 
-**যে খুঁটিনাটি মানুষ মিস করে:** `PaymentGateway` থাকে `OrderService`-এর সঙ্গে, Stripe adapter-এর সঙ্গে নয়। এটাই একে
-inversion বানায়: domain আকারটা ঠিক করে, আর vendor-রা নিজেদের মানিয়ে নেয়। Interface-টা infrastructure layer-এ রাখলে
-আপনি শুধু একটি file যোগ করলেন।
+**যে খুঁটিনাটি লোকে খেয়াল করে না:** `PaymentGateway` থাকে `OrderService`-এর সঙ্গে, Stripe adapter-এর সঙ্গে নয়।
+Inversion বলা হয় এই কারণেই: shape ঠিক করে domain, আর vendor-রা তার সঙ্গে নিজেদের মানিয়ে নেয়। Interface-টা
+infrastructure layer-এ রাখলে আপনি শুধু একটা বাড়তি file যোগ করেছেন।
 
-এতে তিনটি জিনিস পাওয়া যায়। Unit test একটি সাধারণ object ব্যবহার করে, কোনো network লাগে না। Vendor বদলালে হাত দিতে হয়
-একটি adapter আর wiring-এর এক লাইনে। Domain যেকোনো framework-এ নিয়ে যাওয়া যায়।
+এতে তিনটি জিনিস পাওয়া যায়। Unit test চলে সাধারণ একটা object দিয়ে, network ছাড়াই। Vendor বদলালে হাত পড়ে একটি
+adapter-এ আর wiring-এর এক line-এ। আর domain যেকোনো framework-এ নিয়ে যাওয়া যায়।
 
-> **DIP মানে DI নয়।** DIP হলো নীতি: এমন abstraction-এর ওপর নির্ভর করুন, যার মালিক আপনি। DI (dependency injection)
-> হলো পৌঁছে দেওয়ার mechanism: সেটা পাঠিয়ে দিন। একটি concrete class inject করলে DI পূরণ হয়, কিন্তু DIP পুরোপুরি
-> ভাঙে। দেখুন
+> **DIP আর DI এক জিনিস নয়।** DIP হলো নীতি: এমন abstraction-এর ওপর নির্ভর করুন, যার মালিক আপনি। DI (dependency
+> injection) হলো পৌঁছে দেওয়ার উপায়: বাইরে থেকে পাঠিয়ে দিন। একটি concrete class inject করলে DI মানা হয়, কিন্তু DIP
+> পুরোপুরি ভাঙা হয়। দেখুন
 > [Chapter ?? — OOP ও Inheritance-এর বদলে Composition](#ch-composition-over-inheritance)।
 
 ## SOLID যখন ভুল পথে যায়
 
-প্রতিটি নীতির একটি অতিরিক্ত-প্রয়োগের রূপ আছে। Interviewer-রা ঠিক এগুলোর নাম শুনতে চান:
+প্রতিটি নীতির একটা বাড়াবাড়ি রূপ আছে, আর interviewer-রা কান পেতে থাকেন সেগুলোর নাম আপনি বলতে পারেন কিনা:
 
-| অতিরিক্ত প্রয়োগের রূপ | ফলাফল |
+| বাড়াবাড়ি রূপ | ফল |
 | --------------- | ------ |
-| SRP → প্রতি method-এ একটি class | একটি request অনুসরণ করতে বারোটি file |
-| OCP → প্রতিটি axis-এর জন্য একটি abstraction | দুটি case-এর জন্য একটি plugin architecture, যেগুলো কখনো বদলায়নি |
-| ISP → প্রতি interface-এ একটি method | একটি collaborator-কে বর্ণনা করতে দশটি interface |
-| DIP → প্রতি class-এ একটি interface | ঠিক একটি implementation-ওয়ালা indirection, চিরকালের জন্য |
+| SRP → প্রতিটি method-এর জন্য একটি class | একটি request বুঝতে বারোটি file ঘাঁটতে হয় |
+| OCP → প্রতিটি অক্ষের জন্য একটি abstraction | এমন দুটি case-এর জন্য plugin architecture, যারা কখনো বদলায়নি |
+| ISP → প্রতিটি interface-এ একটি method | একটি collaborator-কে বর্ণনা করতে দশটি interface |
+| DIP → প্রতিটি class-এর জন্য একটি interface | চিরকাল ঠিক একটি implementation-ওয়ালা ঘুরপথ |
 
-**যে নিয়ম এটাকে সৎ রাখে:** একটি নীতি তখনই প্রয়োগ করুন, যখন আপনি বলতে পারেন সেটা কোন পরিবর্তনকে সস্তা করে।
-"পরের quarter-এ আমাদের দ্বিতীয় একটি payment provider লাগবে" — এটা একটি কারণ। "এটা বেশি SOLID" — এটা কারণ নয়।
+**যে নিয়ম এটাকে সৎ রাখে:** নীতি তখনই খাটান, যখন বলতে পারেন এটা কোন বদলকে সস্তা করছে। "পরের quarter-এ আমাদের
+দ্বিতীয় payment provider লাগবে" একটা কারণ। "এটা বেশি SOLID" কোনো কারণ নয়।
 
 ## 🔑 মূল শিক্ষা
 
-- প্রতিদিনের কাজের বেশিরভাগ মূল্য আসে dependency inversion আর single responsibility থেকে। বাকি তিনটির পরিসর ছোট।
-- Single responsibility হলো কে পরিবর্তন চাইতে পারে, সেটা নিয়ে। একটি class-এ কয়টা method আছে, সেটা নিয়ে নয়।
-- Open/closed হলো লক্ষ্য। Strategy, factory আর decorator হলো সেখানে পৌঁছানোর mechanism। Exhaustiveness check-সহ একটি নির্দিষ্ট `switch` লঙ্ঘন নয়।
-- দ্বিতীয় case এলে এই নীতিগুলোর দিকে refactor করুন। শুরু থেকেই এগুলো দিয়ে শুরু করলে এমন এক-method-এর interface তৈরি হয়, যেগুলো কেউ পড়ে না।
+- রোজকার কাজের বেশিরভাগ লাভ আসে dependency inversion আর single responsibility থেকে। বাকি তিনটির পরিধি ছোট।
+- Single responsibility হলো কে বদলের অনুরোধ করতে পারে তা নিয়ে, class-এ কয়টি method আছে তা নিয়ে নয়।
+- Open/closed একটা লক্ষ্য, আর strategy, factory ও decorator সেখানে পৌঁছানোর উপায়। Exhaustiveness check সহ স্থির `switch` নীতি ভাঙে না।
+- এই নীতিগুলোর দিকে refactor করুন দ্বিতীয় case এলে। শুরুতেই এগুলো দিয়ে শুরু করলে এমন এক method-এর interface তৈরি হয়, যা কেউ পড়ে না।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি বাস্তব উদাহরণ দিয়ে SRP ব্যাখ্যা করুন।**
+**Q: একটা বাস্তব উদাহরণ দিয়ে SRP বুঝিয়ে বলুন।**
 
-বদলানোর একটি কারণ — আরও ভালোভাবে বললে, একজন *actor*। ধরুন একটি registration method input validate করে, password hash করে, database-এ লেখে আর একটি welcome email পাঠায়। এটা product, security, DBA আর marketing — চারটি দলের কাছে জবাবদিহি করে। তাই চারটি দলের যেকোনোটা এটাকে বদলাতে বাধ্য করতে পারে। এটাকে একটি repository, একটি hasher আর একটি mailer-এ ভাগ করুন। এখন একটি email template বদলালে password hashing ভাঙতে পারে না। আর আমি কোনো database ছাড়াই validation-এর নিয়মটা test করতে পারি।
+বদলানোর একটি কারণ, আরও ভালো করে বললে একজন *actor*। ধরুন একটা registration method input validate করে, password hash করে, database-এ লেখে আর welcome email পাঠায়। এটা জবাব দেয় product, security, DBA আর marketing-কে, মানে চারটি দলের যেকোনোটা একে বদলাতে বাধ্য করতে পারে। একে ভেঙে repository, hasher আর mailer করুন। তখন email template বদলালে password hashing ভাঙতে পারে না, আর validation-এর নিয়মটা database ছাড়াই test করতে পারি।
 
-**Q: আপনি বাস্তবে দেখেছেন এমন একটি Liskov লঙ্ঘনের উদাহরণ দিন।**
+**Q: নিজের চোখে দেখা একটা Liskov লঙ্ঘনের উদাহরণ দিন।**
 
-একটি read-only storage implementation, যার `write` আর `delete` throw করে। এটা interface পূরণ করে আর ঠিকঠাক compile হয়, কিন্তু base contract মেনে লেখা প্রতিটি caller-কে ভেঙে দেয়। আসল সমস্যা ছিল interface-টা। Read আর write আলাদা হওয়া উচিত ছিল, তাহলে একটি read-only backend সোজা কথায় writable হতো না। বেশিরভাগ LSP লঙ্ঘন শেষ পর্যন্ত দেখা যায় substitutability-র জন্য নয়, reuse-এর জন্য ব্যবহার করা inheritance।
+একটা read-only storage implementation, যার `write` আর `delete` throw করে। Interface মেনে চলে, দিব্যি compile হয়, কিন্তু base contract মেনে লেখা প্রতিটি caller-কে ভেঙে দেয়। আসল সমস্যা ছিল interface-এ। Read আর write আলাদা থাকা উচিত ছিল, তাহলে read-only backend সোজাসুজি writable হতোই না। বেশিরভাগ LSP লঙ্ঘন শেষে দেখা যায় এমন inheritance, যা নেওয়া হয়েছিল code আবার ব্যবহারের জন্য, একটার জায়গায় আরেকটা বসানোর জন্য নয়।
 
-**Q: কখন আপনি ইচ্ছে করে SOLID উপেক্ষা করবেন?**
+**Q: কখন জেনে-বুঝে SOLID উপেক্ষা করবেন?**
 
-যখন যে পরিবর্তন থেকে এটা রক্ষা করে, সেটা আসছেই না। একটি implementation-ওয়ালা interface, যার দ্বিতীয়টা দেখা যাচ্ছে না, এমন একটি option-এর জন্য maintenance খরচ করায়, যেটা কেউ ব্যবহার করবে না। প্রতি method-এ একটি class একটি request-কে গুপ্তধন খোঁজার খেলায় পরিণত করে। আমি একটি নীতি তখনই প্রয়োগ করি, যখন বলতে পারি সেটা কোন পরিবর্তনকে সস্তা করে। বলতে না পারলে আমি সহজ code লিখি, আর দ্বিতীয় case সত্যিই এলে refactor করি।
+যে বদলের বিরুদ্ধে এটা সুরক্ষা দেয়, সেই বদল যখন আসছেই না। একটিমাত্র implementation-ওয়ালা interface, যার দ্বিতীয়টা দিগন্তেও নেই, এমন একটা সুযোগের জন্য রক্ষণাবেক্ষণের খরচ চাপায় যা কেউ ব্যবহার করবে না। প্রতিটি method-এর জন্য একটি class একটা request-কে গুপ্তধন খোঁজার খেলা বানিয়ে ফেলে। আমি নীতি খাটাই তখনই, যখন বলতে পারি এটা কোন বদলকে সস্তা করছে। বলতে না পারলে সহজ code লিখি, আর দ্বিতীয় case সত্যিই এলে refactor করি।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript) — যে mechanism-গুলো এই নীতিগুলো implement করে
-- [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries) — পুরো একটি system-এ dependency inversion-এর প্রয়োগ
+- [Chapter ?? — TypeScript-এ Design Pattern](#ch-design-patterns-in-typescript) — যে উপায়গুলো দিয়ে এই নীতিগুলো বাস্তবে আসে
+- [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries) — পুরো system-এ dependency inversion
 - [Chapter ?? — OOP ও Inheritance-এর বদলে Composition](#ch-composition-over-inheritance) — Liskov লঙ্ঘন আসলে কোথা থেকে আসে
