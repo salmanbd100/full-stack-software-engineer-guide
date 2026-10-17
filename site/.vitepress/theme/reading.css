@@ -68,6 +68,34 @@
   }
 }
 
+/* LanguageSwitch.vue replaces VitePress's language menu in all three places it draws one:
+   the bar, the "…" flyout and the full-screen menu. The switch sits in the bar from the
+   tablet breakpoint up, and in the full-screen menu below it, where the bar has no room. */
+#app .VPNavBarTranslations,
+#app .VPNavBarExtra .translations,
+#app .VPNavScreenTranslations {
+  display: none;
+}
+
+#app .language-switch-bar {
+  display: none;
+  margin-left: 16px;
+}
+
+#app .language-switch-screen {
+  margin-top: 24px;
+}
+
+@media (min-width: 768px) {
+  #app .language-switch-bar {
+    display: inline-flex;
+  }
+
+  #app .language-switch-screen {
+    display: none;
+  }
+}
+
 /* --- Measure ----------------------------------------------------------- */
 
 #app .VPDoc.has-aside .content-container {
