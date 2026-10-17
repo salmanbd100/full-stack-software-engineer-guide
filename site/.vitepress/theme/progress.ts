@@ -88,19 +88,24 @@ export async function load(): Promise<void> {
   }
 }
 
-export async function signIn(name: string, email: string): Promise<boolean> {
+/** "invalid" is the reader's to fix; "unavailable" is the server's — the dialog says which. */
+export async function signIn(
+  name: string,
+  email: string,
+): Promise<"ok" | "invalid" | "unavailable"> {
   const response = await fetch(API(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email }),
   }).catch(() => null);
-  if (!response?.ok) return false;
+  if (response?.status === 400) return "invalid";
+  if (!response?.ok) return "unavailable";
 
   const result = (await response.json()) as { name: string; done: string[] };
   progress.profile = { name: result.name, email: email.trim().toLowerCase() };
   progress.done = new Set(result.done);
   writeProfile(progress.profile);
-  return true;
+  return "ok";
 }
 
 export function signOut(): void {

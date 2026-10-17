@@ -16,3 +16,8 @@ site/.vitepress/sidebar.json
 
 # Bangla web edition (#127) — generated from the i18n/bn/ cache
 site/bn/book/
+
+# secrets — the Upstash keys for api/progress.ts live in Vercel, and `vercel env pull` writes them here
+.env
+.env.*
+!.env.example

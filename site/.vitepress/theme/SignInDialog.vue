@@ -14,7 +14,7 @@ const dialog = ref<HTMLDialogElement | null>(null);
 const name = ref("");
 const email = ref("");
 const pending = ref(false);
-const failed = ref(false);
+const failed = ref<"invalid" | "unavailable" | null>(null);
 
 const text = computed(() =>
   localeIndex.value === "bn"
@@ -25,7 +25,8 @@ const text = computed(() =>
         email: "ইমেল",
         submit: "শুরু করুন",
         notice: "অগ্রগতি সংরক্ষণের জন্য আপনার নাম আর ইমেল রাখা হয়। এগুলো দিয়ে আর কিছু করা হয় না।",
-        error: "সাইন ইন করা যায়নি। নাম আর ইমেল দেখে আবার চেষ্টা করুন।",
+        invalid: "সাইন ইন করা যায়নি। নাম আর ইমেল দেখে আবার চেষ্টা করুন।",
+        unavailable: "এই মুহূর্তে অগ্রগতি সংরক্ষণ করা যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।",
         read: `${total}টির মধ্যে ${completed.value}টি অধ্যায় পড়া হয়েছে।`,
         signOut: "সাইন আউট",
         close: "বন্ধ করুন",
@@ -37,7 +38,8 @@ const text = computed(() =>
         email: "Email",
         submit: "Start tracking",
         notice: "Your name and email are stored to save your progress. Nothing else is done with them.",
-        error: "Could not sign in. Check your name and email and try again.",
+        invalid: "Could not sign in. Check your name and email and try again.",
+        unavailable: "Progress cannot be saved right now. Please try again later.",
         read: `${completed.value} of ${total} chapters read.`,
         signOut: "Sign out",
         close: "Close",
@@ -54,11 +56,11 @@ watch(
 
 async function submit() {
   pending.value = true;
-  failed.value = false;
-  const ok = await signIn(name.value, email.value);
+  failed.value = null;
+  const result = await signIn(name.value, email.value);
   pending.value = false;
-  if (ok) progress.dialogOpen = false;
-  else failed.value = true;
+  if (result === "ok") progress.dialogOpen = false;
+  else failed.value = result;
 }
 
 function leave() {
@@ -102,7 +104,7 @@ function leave() {
           <span>{{ text.email }}</span>
           <input v-model="email" type="email" autocomplete="email" required />
         </label>
-        <p v-if="failed" class="error" role="alert">{{ text.error }}</p>
+        <p v-if="failed" class="error" role="alert">{{ text[failed] }}</p>
         <div class="actions">
           <button type="button" class="secondary" @click="progress.dialogOpen = false">
             {{ text.close }}
