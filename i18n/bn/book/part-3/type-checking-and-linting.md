@@ -1,63 +1,63 @@
 ---
 sourceHash: "e3f08fa2c99e0736677b041e7121f0caaceb9af3931465d68aea6e60ea5fa56f"
 title: "বড় পরিসরে Type-Checking ও Linting"
-translatedAt: "2026-10-12T12:15:15.970Z"
+translatedAt: "2026-10-17T01:40:34.221Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # বড় পরিসরে Type-Checking ও Linting {#ch-type-checking-and-linting}
 
-> মানুষ যে তিনটি কাজ একসাথে চালায়, সেগুলো আলাদা করুন, আর whole-program কাজটা critical path থেকে সরিয়ে রাখুন।
+> মানুষ যে তিনটি কাজ এক করে চালায়, সেগুলো আলাদা করুন, আর পুরো program জুড়ে চলা কাজটাকে critical path থেকে সরিয়ে রাখুন।
 
-**এই অধ্যায়ে:** তিনটি কাজ, তিনটি খরচ · project reference · `skipLibCheck` · type-aware rule আর তার খরচ · Biome আর Oxlint · কী একটি merge আটকায়
+**এই অধ্যায়ে:** তিনটি কাজ, তিন রকম খরচ · project reference · `skipLibCheck` · type-aware rule আর তার খরচ · Biome আর Oxlint · merge আটকায় কী
 
 ## 💡 মূল ধারণা
 
-"Code quality"-র নামে তিনটি আলাদা কাজ একসাথে বাঁধা পড়ে। এদের খরচ একেবারেই আলাদা।
+"Code quality" নামের নিচে তিনটি আলাদা কাজ একসঙ্গে বাঁধা থাকে। অথচ তাদের খরচে আকাশ-পাতাল তফাত।
 
-**Formatting** syntactic। এটা একটি file পড়ে, বাকি সব উপেক্ষা করে, আর সাথে সাথে শেষ হয়।
+**Formatting** syntactic। একটি file পড়ে, বাকি সব উপেক্ষা করে, আর মুহূর্তেই শেষ হয়।
 
-**Linting** হলো pattern matching। বেশিরভাগ rule একটি file পড়ে আর দ্রুত শেষ হয়। অল্প কিছু rule-এর পুরো program
-লাগে, আর সেগুলোর খরচ type-checking-এর সমান।
+**Linting** হলো pattern মেলানো। বেশিরভাগ rule একটি file পড়ে আর দ্রুত শেষ হয়। অল্প কিছু rule-এর পুরো program লাগে,
+আর সেগুলোর খরচ type-checking-এর সমান।
 
-**Type-checking** semantic আর whole-program। এই call-টি valid কি না জানতে, এটা যে type-গুলো ছোঁয় সেগুলোর প্রতিটি
-resolve করতে হয়, transitively। একে per-file করা যায় না, আর বাদও দেওয়া যায় না।
-[Chapter ?? — Vite, Rust Bundler ও Dev Loop](#ch-vite-and-the-dev-loop) যেমন ব্যাখ্যা করে, bundler type
-check না করেই সেগুলো মুছে ফেলে।
+**Type-checking** semantic, আর পুরো program জুড়ে চলে। একটি call valid কি না জানতে হলে, সেটা যত type ছোঁয়, সবগুলো
+transitively resolve করতে হয়। এটা file ধরে ধরে করা যায় না, আবার বাদও দেওয়া যায় না।
+[Chapter ?? — Vite, Rust Bundler ও Dev Loop](#ch-vite-and-the-dev-loop)-এ যেমন বলা হয়েছে, bundler type যাচাই না
+করেই মুছে ফেলে।
 
-প্রায় প্রতিটি ধীর pipeline-এ এই তিনটির একটি এমন কাজ করে, যা অন্যটির। নয়তো whole-program কাজটি দরকারের চেয়ে বেশিবার
-চলে।
+প্রায় প্রতিটি ধীর pipeline-এ এই তিনটির একটি এমন কাজ করে, যা আসলে আরেকটির। নয়তো পুরো program-এর কাজটা দরকারের চেয়ে
+বেশিবার চলে।
 
-> ⚠️ **যা বদলাতে থাকে:** এই অধ্যায়ের দুই অংশই native language-এর দিকে যাচ্ছে। July 2026-এ release হওয়া
-> TypeScript 7 হলো Go-তে port করা compiler। এটা প্রায় দশ গুণ দ্রুত check করে, আংশিকভাবে আলাদা thread-এ একাধিক
-> checker চালিয়ে। Rust linter-গুলো এখনো তাদের না-থাকা type-aware rule-গুলো যোগ করছে। আপনার version কী support
-> করে, দেখে নিন। টেকসই অংশটি হলো খরচের model: implementation যে-ই লিখুক, whole-program কাজ দামি।
+> ⚠️ **যা বদলাতে থাকে:** এই অধ্যায়ের দুই অংশই native ভাষার দিকে যাচ্ছে। July 2026-এ বেরোনো TypeScript 7 হলো Go-তে
+> port করা compiler। এটা প্রায় দশ গুণ দ্রুত check করে, আংশিকভাবে কয়েকটি checker আলাদা thread-এ চালিয়ে। Rust
+> linter-গুলো এখনো তাদের না থাকা type-aware rule যোগ করছে। আপনার version কী support করে, দেখে নিন। টেকসই অংশটা হলো
+> খরচের model: implementation যে-ই লিখুক, পুরো program জুড়ে চলা কাজ দামি।
 
 ## কীভাবে কাজ করে
 
 ### Type-checking কেন parallel হয় না
 
-একটি linter হাজারটা file আটটি core-এ ভাগ করে দিতে পারে। একটি type-checker এটা পরিষ্কারভাবে পারে না। File A check
-করতে A যা যা import করে, তার সবকিছুর resolve করা type লাগে। এই প্রয়োজনগুলো সেই একই graph তৈরি করে, যেটা bundler
-হেঁটে দেখে। TypeScript 7 সত্যিই checker-গুলো parallel-এ চালায়, কিন্তু প্রত্যেকটিকে তার ছোঁয়া shared import-গুলো
-নিজেই resolve করতে হয়। তাই linter-এর তুলনায় বেশি core দিয়ে লাভ কম হয়।
+Linter হাজারটা file আটটি core-এ ভাগ করে দিতে পারে। Type-checker সেটা পরিষ্কারভাবে পারে না। File A check করতে হলে
+A যা কিছু import করে, তার সবগুলোর resolve হওয়া type লাগে। এই প্রয়োজনগুলো মিলে সেই একই graph তৈরি হয়, যেটা ধরে
+bundler হাঁটে। TypeScript 7 checker-গুলো parallel-এ চালায় ঠিকই, কিন্তু প্রতিটি checker-কে যে shared import ছোঁয়,
+সেগুলো আবার resolve করতে হয়। তাই linter-এর তুলনায় বেশি core থেকে লাভ কম।
 
-তিনটি lever আছে, মূল্যের ক্রমে।
+হাতে তিনটি lever আছে, গুরুত্বের ক্রমে।
 
-**`skipLibCheck: true`।** এটা ছাড়া compiler `node_modules`-এর প্রতিটি `.d.ts` file check করে: হাজার হাজার
+**`skipLibCheck: true`।** এটা না থাকলে compiler `node_modules`-এর প্রতিটি `.d.ts` file check করে: হাজার হাজার
 declaration, যেগুলো আপনি লেখেননি আর ঠিকও করতে পারবেন না। প্রায় প্রতিটি আসল project এটা চালু রাখে।
 
-**`incremental: true`।** Compiler একটি `.tsbuildinfo` file লেখে, যেখানে থাকে সে কী check করেছে। পরের run তখন
-শুধু যা বদলেছে তা আবার check করে। Continuous integration-এ ওই file cache করুন, নইলে লাভটা শুধু developer-দের
-machine-এই থাকে।
+**`incremental: true`।** Compiler একটি `.tsbuildinfo` file লেখে, যেখানে থাকে কী কী check হয়েছে। পরের run-এ
+শুধু বদলানো অংশ আবার check হয়। Continuous integration-এ ওই file cache করুন, নইলে লাভটা থাকে শুধু developer-দের
+machine-এ।
 
-**Project reference।** আসল scaling mechanism, আর বেশিরভাগ team যেটার দিকে কখনো হাত বাড়ায় না।
+**Project reference।** আসল scaling-এর কৌশল এটাই, আর বেশিরভাগ team কখনো এটা ব্যবহার করে না।
 
-### Project reference, আর কেন এরা আকৃতি বদলে দেয়
+### Project reference, আর কেন এটা কাঠামো বদলে দেয়
 
-সাধারণত একটি application check করা মানে, এটা যে package-গুলো import করে, তাদের প্রতিটির source আবার check করা।
-Project reference এর জায়গা নেয়। প্রতিটি project একবার compile হয়ে `.d.ts` **declaration file** তৈরি করে।
-Downstream project-গুলো source-এর বদলে declaration পড়ে।
+সাধারণত একটি application check করা মানে, সেটা যত package import করে, সবগুলোর source আবার check করা। Project
+reference এটা বদলে দেয়। প্রতিটি project একবার compile হয়ে `.d.ts` **declaration file** তৈরি করে। Downstream
+project-গুলো source-এর বদলে সেই declaration পড়ে।
 
 ```json
 // packages/web/tsconfig.json
@@ -67,133 +67,134 @@ Downstream project-গুলো source-এর বদলে declaration পড়
 }
 ```
 
-এরপর `tsc --build` reference graph হেঁটে প্রতিটি project একবার check করে, dependency-র ক্রমে। যে project-এর build
-info এখনো valid, সেটা বাদ দেয়, আর স্বাধীন project-গুলো parallel-এ চালাতে পারে।
+এরপর `tsc --build` reference graph ধরে হাঁটে, আর dependency-র ক্রমে প্রতিটি project একবার করে check করে। যে project-এর
+build info এখনো valid, সেটা বাদ দেয়, আর স্বাধীন project-গুলো parallel-এ চালাতে পারে।
 
-খরচটা আসল। প্রতিটি reference করা project-এর `composite: true` লাগে, আর declaration emit করতে হয়। এটা downstream-এর
-কোনো কিছুর সাথে আর circular reference রাখতে পারে না। শেষ নিয়মটি সাধারণত একটি সুবিধা, যেটা দেখতে ঝামেলার মতো। এটা
-package-এর সীমানাগুলোকে acyclic হতে বাধ্য করে, যেটা আগে থেকেই হওয়া উচিত ছিল। কাজের একক হয়ে যায় package,
-repository নয়। [Chapter ?? — Monorepo](#ch-monorepos)-এর task graph build-এর জন্য একই পরিবর্তন আনে।
+খরচটা সত্যিকারের। Reference করা প্রতিটি project-এ `composite: true` লাগে, আর declaration emit করতে হয়। Downstream-এর
+কোনো কিছুর সঙ্গে circular reference-ও আর রাখা যায় না। এই শেষ নিয়মটা দেখতে ঝামেলা মনে হলেও সাধারণত আসলে সুবিধা।
+এতে package-এর boundary-গুলো acyclic হতে বাধ্য হয়, যেটা এমনিতেই হওয়া উচিত ছিল। কাজের একক তখন repository নয়,
+package। [Chapter ?? — Monorepo](#ch-monorepos)-এর task graph build-এর ক্ষেত্রে ঠিক এই বদলটাই আনে।
 
 ### দুই ধরনের lint rule
 
 | | Syntactic rule | Type-aware rule |
 | --- | --- | --- |
-| **পড়ে** | একটি file-এর syntax tree | পুরো type graph |
-| **উদাহরণ** | অব্যবহৃত variable, import-এর ক্রম, hook dependency array | Floating promise, অনিরাপদ `any` ছড়িয়ে পড়া, অপ্রয়োজনীয় conditional |
-| **খরচ** | প্রতি file-এ কয়েক millisecond, parallel | আবারও type-checking-এর সমান দামি |
+| **কী পড়ে** | একটি file-এর syntax tree | পুরো type graph |
+| **উদাহরণ** | অব্যবহৃত variable, import-এর ক্রম, hook-এর dependency array | Floating promise, unsafe `any` ছড়িয়ে পড়া, অপ্রয়োজনীয় conditional |
+| **খরচ** | প্রতি file-এ কয়েক millisecond, parallel | Type-checking-এর সমান দামি, আরেকবার |
 | **Parallel হয়** | হ্যাঁ | না |
 
-"Linting-এ আট মিনিট কেন লাগে" — এই table তার উত্তর। একটি type-aware preset linter-কে দিয়ে দ্বিতীয় একটি পূর্ণ type
-program বানায়। আপনি এখন দুবার type-check করছেন।
+"Linting-এ আট মিনিট লাগে কেন", তার উত্তর এই table। Type-aware preset চালু করলে linter-কে দ্বিতীয় একটি পূর্ণ type
+program তৈরি করতে হয়। মানে আপনি এখন দুবার type-check করছেন।
 
-ব্যবহারিক ব্যবস্থাটি হলো ভাগ করা:
+বাস্তবে কাজের ব্যবস্থাটা হলো ভাগ করে নেওয়া:
 
-- **একটি দ্রুত Rust linter — Biome বা Oxlint — প্রতিটি file-এ, প্রতিটি commit-এ।** Syntactic rule, অব্যবহৃত code,
-  import-এর পরিচ্ছন্নতা, framework rule। Pre-commit hook হওয়ার মতো দ্রুত।
-- **ছোট, ভেবেচিন্তে বাছা কিছু type-aware rule**, continuous integration-এ type check-এর পাশে একবার চালানো। Preset
-  চালু না করে সেগুলো বাছুন, যেগুলো আসল bug ধরে। Await না করা promise সবচেয়ে জোরালো উদাহরণ।
+- **দ্রুত একটি Rust linter — Biome বা Oxlint — প্রতিটি file-এ, প্রতিটি commit-এ।** Syntactic rule, অব্যবহৃত code,
+  import-এর পরিচ্ছন্নতা, framework-এর rule। Pre-commit hook হওয়ার মতো দ্রুত।
+- **ছোট, ভেবেচিন্তে বাছা কিছু type-aware rule**, continuous integration-এ type check-এর পাশাপাশি একবার চালানো।
+  পুরো preset চালু না করে সেগুলো বাছুন, যেগুলো আসল bug ধরে। Await না করা promise এর সবচেয়ে বড় উদাহরণ।
 
-### Formatting linting নয়
+### Formatting আর linting এক নয়
 
-কোনো lint rule whitespace নিয়ে হওয়া উচিত নয়। Formatting deterministic আর machine দিয়ে ঠিক করা যায়, তাই এটা কখনো
-কোনো মানুষের কাছে পৌঁছানো বা build fail করানো উচিত নয়:
+কোনো lint rule whitespace নিয়ে হওয়া উচিত নয়। Formatting deterministic, আর machine নিজেই ঠিক করতে পারে, তাই এটা কখনো
+মানুষের কাছে পৌঁছানো বা build fail করানো উচিত নয়:
 
 | কোথায় | কী করবেন |
 | ----- | ---------- |
 | Editor | Save করলেই format |
 | Pre-commit | Stage করা file format করুন |
-| Continuous integration | Check করুন, আর ঠিক করার হুবহু command দিয়ে fail করুন — নয়তো ঠিক করে push করুন |
-| Code review | কখনো না। একটি ফাঁকা line নিয়ে comment মানে process-এর ব্যর্থতা |
+| Continuous integration | যাচাই করুন, আর ঠিক করার হুবহু command দিয়ে fail করুন — অথবা ঠিক করে push করুন |
+| Code review | কখনো না। ফাঁকা line নিয়ে comment মানে process-এর ব্যর্থতা |
 
-Biome একটি binary-তেই formatting আর linting করে। এতে দুটি tool-এর মাঝের configuration-এর জোড়া সরে যায়, যেটা এক
-দশক ধরে তর্ক বাধিয়েছে।
+Biome formatting আর linting এক binary-তেই করে। এতে দুটি tool-এর মাঝের configuration-এর জোড়টা আর থাকে না, যেটা নিয়ে
+এক দশক ধরে তর্ক চলেছে।
 
-### কী একটি merge আটকায়
+### Merge আটকায় কী
 
-সবকিছুকে block করতে হবে না। একটি কাজের default:
+সবকিছুকে block করতে হবে না। কাজের একটি default:
 
-| Check | Merge block করে | কেন |
+| Check | Merge আটকায় | কেন |
 | ----- | -------------- | --- |
-| Formatting | হ্যাঁ, auto-fix করে | বিনা খরচে, আর diff-এর আবর্জনা ঠেকায় |
-| দ্রুত lint rule | হ্যাঁ | কয়েক সেকেন্ড, আসল ভুল ধরে |
-| প্রভাবিত project-এ `tsc --build` | **হ্যাঁ** | আর কিছুই type validate করে না |
-| Type-aware lint rule | হ্যাঁ, যদি set ছোট হয় | নইলে type-check দ্বিগুণ হয় |
-| পুরো repository-র type check | প্রতি রাতে | শুধু প্রভাবিত অংশে চালানোর ফলে জমা হওয়া বিচ্যুতি ধরে |
-| Dependency আর licence audit | প্রতি রাতে, শুধু alert | Pull request author-এর সমস্যা নয় |
+| Formatting | হ্যাঁ, নিজে থেকেই ঠিক হয় | খরচ নেই, আর diff-এর গোলমাল ঠেকায় |
+| দ্রুত lint rule | হ্যাঁ | কয়েক সেকেন্ড লাগে, আসল ভুল ধরে |
+| Affected project-এ `tsc --build` | **হ্যাঁ** | আর কিছুই type যাচাই করে না |
+| Type-aware lint rule | হ্যাঁ, যদি set ছোট হয় | নইলে type-check দ্বিগুণ হয়ে যায় |
+| পুরো repository-র type check | রাতে | Affected-only run থেকে যে অমিল জমে, তা ধরে |
+| Dependency আর licence audit | রাতে, শুধু alert | এটা pull request-এর author-এর সমস্যা নয় |
 
-বাস্তবে দুটি নিয়ম পার্থক্য গড়ে দেয়। **প্রতিটি check নিজস্ব job-এ চালান**, যাতে একটি লাল pipeline "build failed" না
-বলে আসল সমস্যাটির নাম বলে। আর **শুধু প্রভাবিত package-এ চালান**, পুরো sweep একটি schedule-এ।
+বাস্তবে দুটি নিয়ম বড় পার্থক্য গড়ে দেয়। **প্রতিটি check নিজের আলাদা job-এ চালান**, যাতে pipeline লাল হলে "build
+failed" না বলে আসল সমস্যার নাম বলে। আর **এগুলো শুধু affected package-এ চালান**, পুরোটার sweep রাখুন schedule-এ।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | যা করবেন |
 | --------- | -- |
-| একটি application, কয়েকশো file | `skipLibCheck` সহ `tsc --noEmit`। এর বেশি কিছু লাগে না |
-| Shared package সহ একটি monorepo | Project reference আর `tsc --build` |
-| Lint-এ কয়েক মিনিট লাগছে | Syntactic আর type-aware আলাদা করুন; প্রথমটি একটি Rust linter-এ সরান |
-| নতুন repository শুরু করছেন | Formatting আর দ্রুত rule-এর জন্য Biome, সাথে ছোট একটি type-aware set |
-| বিদ্যমান বড় একটি ESLint configuration | আগে syntactic rule-গুলো migrate করুন; type-aware-গুলোই কঠিন অংশ |
+| একটি application, কয়েকশো file | `skipLibCheck` সহ `tsc --noEmit`। আর কিছু লাগে না |
+| Shared package সহ monorepo | Project reference আর `tsc --build` |
+| Lint-এ কয়েক মিনিট লাগে | Syntactic আর type-aware আলাদা করুন; প্রথমটা Rust linter-এ সরান |
+| নতুন repository শুরু | Formatting আর দ্রুত rule-এর জন্য Biome, সঙ্গে ছোট একটি type-aware set |
+| আগে থেকে থাকা বড় ESLint configuration | আগে syntactic rule-গুলো migrate করুন; কঠিন অংশ type-aware-গুলো |
 
 ## সাধারণ ভুল
 
-**❌ সবুজ build মানেই type ঠিক আছে — এমন বিশ্বাস করা।**
-✅ Bundler এগুলো মুছে ফেলেছে। একমাত্র `tsc`-ই check করেছে।
+**❌ Build সবুজ মানেই type ঠিক আছে, এমন ভরসা করা।**
+✅ Bundler type মুছে ফেলেছে। যাচাই করেছে একমাত্র `tsc`।
 
-**❌ পুরো type-aware lint preset চালু করা, কারণ শুনতে পুঙ্খানুপুঙ্খ লাগে।**
-✅ এমন rule পেতে আপনি সবচেয়ে দামি check দ্বিগুণ করেছেন, যেগুলো কেউ পড়ে না। যেগুলো bug ধরে, সেগুলো বাছুন।
+**❌ শুনতে পুঙ্খানুপুঙ্খ লাগে বলে পুরো type-aware lint preset চালু করা।**
+✅ সবচেয়ে দামি check দ্বিগুণ করেছেন, এমন rule পাওয়ার জন্য যেগুলো কেউ পড়ে না। যেগুলো bug ধরে, সেগুলো বাছুন।
 
 **❌ Continuous integration-এ `--fix` চালিয়ে ফলাফল commit করা।**
-✅ এখন pipeline code লিখছে। Local-এ চালানোর command দিয়ে fail করুন, নয়তো শুধু formatting ঠিক করুন, আলাদা একটি
-step-এ।
+✅ তাহলে pipeline নিজেই code লিখছে। Local-এ চালানোর command দিয়ে fail করুন, অথবা শুধু formatting ঠিক করুন, আলাদা
+ধাপে।
 
-**❌ কঠোরতার জন্য `skipLibCheck` বন্ধ করা।**
-✅ এখন আপনি এমন dependency-র type error-এ আটকে আছেন, যেগুলো edit করতে পারবেন না।
+**❌ কড়াকড়ির জন্য `skipLibCheck` বন্ধ করা।**
+✅ এখন এমন dependency-র type error-এ আটকে থাকবেন, যেগুলো আপনি edit করতে পারেন না।
 
-**❌ Run-গুলোর মধ্যে `.tsbuildinfo` cache না করা।**
-✅ Incremental checking কিছুই করছে না। প্রতিটি run একটি cold run।
+**❌ দুই run-এর মাঝে `.tsbuildinfo` cache না করা।**
+✅ Incremental checking তাহলে কিছুই করছে না। প্রতিটি run একেবারে শূন্য থেকে শুরু হয়।
 
 **❌ Pull request-এ formatting review করা।**
-✅ এটা automate করুন। Whitespace-এ মানুষের মনোযোগ একটি brace সোজা করার সবচেয়ে দামি উপায়।
+✅ এটা automate করুন। Whitespace-এ মানুষের মনোযোগ খরচ করা একটি brace সোজা করার সবচেয়ে দামি উপায়।
 
 ## 🔑 মূল শিক্ষা
 
-- Formatting, linting আর type-checking-এর খরচ আলাদা। এগুলোকে এক ধরলে pipeline ধীর হয়।
-- Type-checking whole-program, আর একে shard করা যায় না। `skipLibCheck`, incremental build আর project reference হলো lever।
-- Project reference source-এর বদলে declaration file পড়ে package-কে checking-এর একক বানায়।
-- Type-aware lint rule-এর খরচ হলো দ্বিতীয় একটি পূর্ণ type-check। এগুলো ভেবেচিন্তে চালু করুন, preset হিসেবে নয়।
-- `tsc` ছাড়া আর কিছুই type validate করে না, তাই এটাকেই merge আটকাতে হবে।
+- Formatting, linting আর type-checking-এর খরচ আলাদা। তিনটিকে এক ভাবলে pipeline ধীর হয়।
+- Type-checking পুরো program জুড়ে চলে, ভাগ করা যায় না। Lever হলো `skipLibCheck`, incremental build আর project reference।
+- Project reference source-এর বদলে declaration file পড়ে, ফলে check করার একক হয়ে যায় package।
+- Type-aware lint rule-এর খরচ আরেকটি পূর্ণ type-check। Preset হিসেবে নয়, ভেবেচিন্তে চালু করুন।
+- `tsc` ছাড়া আর কিছুই type যাচাই করে না, তাই merge আটকানোর দায়িত্ব এর।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Linting যেভাবে parallel করা যায়, type-checking কেন সেভাবে করা যায় না?**
+**Q: Linting যেভাবে parallel করা যায়, type-checking সেভাবে করা যায় না কেন?**
 
-কারণ একটি file check করতে তার import করা সবকিছুর resolve করা type লাগে, transitively। এটা একটি dependency graph-এর
-ওপর whole-program analysis, per-file pass নয়। একে parallel করতে, graph-টিকে ঘোষিত সীমানাসহ project-এ কাটুন। তখন
-প্রতিটি একবার check হয়, আর downstream project-গুলো এর source-এর বদলে declaration file পড়ে।
+কারণ একটি file check করতে হলে সেটা যা কিছু import করে, transitively তার সবগুলোর resolve হওয়া type লাগে। এটা
+dependency graph-এর ওপর পুরো program জুড়ে analysis, file ধরে ধরে একটি pass নয়। Parallel করতে হলে graph-টাকে ঘোষণা
+করা boundary সহ কয়েকটি project-এ কাটুন। তাহলে প্রতিটি project একবার check হয়, আর downstream project-গুলো source-এর
+বদলে তার declaration file পড়ে।
 
-**Q: Project reference একটি বড় TypeScript codebase-কে কীভাবে দ্রুত করে?**
+**Q: বড় TypeScript codebase-এ project reference কীভাবে গতি বাড়ায়?**
 
-প্রতিটি project compile হয়ে `.d.ts` file তৈরি করে আর নিজের build info রেখে দেয়। Consumer-রা source আবার check না
-করে ওই declaration-এর বিপরীতে type-check করে। তাই compiler অপরিবর্তিত project পুরোপুরি বাদ দেয়, আর স্বাধীন
-project-গুলো parallel-এ চালায়। দাম হলো `composite: true`, emit করা declaration, আর একটি acyclic package graph, যেটা
-বেশিরভাগ codebase-এর আগে থেকেই থাকা উচিত।
+প্রতিটি project compile হয়ে `.d.ts` file তৈরি করে, আর নিজের build info রেকর্ড করে রাখে। যারা ব্যবহার করে, তারা source
+আবার check না করে ওই declaration-এর বিপরীতে type-check করে। ফলে compiler না বদলানো project পুরোপুরি বাদ দেয়, আর
+স্বাধীন project-গুলো parallel-এ চালায়। দাম হলো `composite: true`, declaration emit করা, আর acyclic package graph,
+যেটা বেশিরভাগ codebase-এর এমনিতেই থাকা উচিত।
 
-**Q: Continuous integration-এ linting-এ আট মিনিট লাগে। প্রথমে কী দেখবেন?**
+**Q: Continuous integration-এ linting-এ আট মিনিট লাগছে। প্রথমে কী দেখবেন?**
 
-Type-aware rule চালু আছে কি না। এগুলো একটি পূর্ণ type program বানায়, তাই linter repository-টি দ্বিতীয়বার
-type-check করছে। Configuration ভাগ করুন। সবকিছুর ওপর একটি দ্রুত Rust linter-এ syntactic rule চালান। ছোট, ভেবেচিন্তে
-বাছা type-aware rule-এর set একবার চালান, type check-এর পাশে। তারপর দেখুন lint সব package-এ নয়, শুধু প্রভাবিত
+Type-aware rule চালু আছে কি না। ওগুলো পূর্ণ একটি type program তৈরি করে, মানে linter পুরো repository দ্বিতীয়বার
+type-check করছে। Configuration ভাগ করুন। Syntactic rule সবকিছুর ওপর দ্রুত একটি Rust linter-এ চালান। ছোট, ভেবেচিন্তে
+বাছা type-aware rule-এর set চালান একবার, type check-এর পাশাপাশি। তারপর দেখুন lint সব package-এ নয়, শুধু affected
 package-এ চলছে কি না।
 
-**Q: কী একটি merge block করা উচিত, আর কী নয়?**
+**Q: কী merge আটকাবে, আর কী আটকাবে না?**
 
-Formatting, দ্রুত lint rule আর প্রভাবিত package-এ type check block করা উচিত। এগুলো সস্তা, আর আসল সমস্যা ধরে।
-পুরো repository-র type check, dependency audit আর licence scan একটি schedule-এ চালানো উচিত, আর কাউকে alert করা উচিত।
-এগুলো এমন কারণে fail করে, যেটা pull request author ঘটাননি আর ঠিকও করতে পারবেন না।
+Formatting, দ্রুত lint rule আর affected package-এ type check আটকাবে। এগুলো সস্তা, আর আসল সমস্যা ধরে। পুরো repository-র
+type check, dependency audit আর licence scan চলবে schedule-এ, আর কাউকে alert দেবে। এগুলো এমন কারণে fail করে, যেটা
+pull request-এর author ঘটাননি আর ঠিকও করতে পারবেন না।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Monorepo](#ch-monorepos) — এই check-গুলোর জন্যই শুধু প্রভাবিত অংশে চালানো আর caching
+- [Chapter ?? — Monorepo](#ch-monorepos) — এই check-গুলোর জন্যই affected-only run আর caching
 - [Chapter ?? — বড় পরিসরে React ও TypeScript](#ch-react-typescript-at-scale) — যে type pattern-গুলো check হচ্ছে
-- [Chapter ?? — CI/CD-র মূল কথা](#ch-cicd-fundamentals) — একটি pipeline-এ এই gate-গুলো কোথায় বসে
+- [Chapter ?? — CI/CD-র মূল কথা](#ch-cicd-fundamentals) — pipeline-এ এই gate-গুলো কোথায় বসে

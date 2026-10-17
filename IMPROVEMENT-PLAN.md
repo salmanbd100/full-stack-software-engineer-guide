@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-17 · **Progress:** 6 / 28
+**Last updated:** 2026-10-17 · **Progress:** 11 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -247,7 +247,7 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 ---
 
-### - [ ] 128f. Natural Bangla: Part 3 (2 of 5) `M`
+### - [x] 128f. Natural Bangla: Part 3 (2 of 5) `M` — ✅ **done 2026-10-17**
 
 8 pages, about 1717 Bangla lines:
 
@@ -256,9 +256,20 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 8 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with #128g–#128j, one subagent per batch. Seven passed
+  on the first attempt; `react-typescript-at-scale` was refused once for two extra spans (repeat
+  mentions of `` `React.FC` `` and `` `children` ``) and passed once those were written plainly
+- Three `সে` used of things (the compiler, a Server Action) were rewritten after the write
+- "Moving target" callouts read `**যা বদলাতে থাকে**`. Partial Prerendering's "holes" are `ফাঁকা জায়গা`
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`, `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128g. Natural Bangla: Part 3 (3 of 5) `M`
+### - [x] 128g. Natural Bangla: Part 3 (3 of 5) `M` — ✅ **done 2026-10-17**
 
 9 pages, about 1702 Bangla lines:
 
@@ -267,9 +278,20 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 9 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. All nine passed on the first attempt
+- Headings use their mapped titles. Framework terms (middleware, edge, cold start, `warm`, BFF, Route
+  Handler, rune, snippet, load, form action, hydration, islands, resumability, the rendering
+  acronyms) stay in English
+- Section-index tables use the column headers `অধ্যায়` and `কোন প্রশ্নের উত্তর দেয়`
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`, `পরিণত করে`, গরম or `সে` for things in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128h. Natural Bangla: Part 3 (4 of 5) `M`
+### - [x] 128h. Natural Bangla: Part 3 (4 of 5) `M` — ✅ **done 2026-10-17**
 
 8 pages, about 1562 Bangla lines:
 
@@ -278,9 +300,21 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 8 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. All eight passed on the first attempt
+- `সে` used of things in four pages (`client-state`, `choosing-per-route`, `edge-vs-origin-rendering`,
+  `modern-stack-state-management-index`) was rewritten and re-written through `--write`. The
+  demonstrative `সে বিষয়ে` stays
+- State terms (stale, cache, invalidate, store, atom, selector, signal) stay in English. The
+  client-state "ladder" and its "rungs" are `মই` and `ধাপ`
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`, `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128i. Natural Bangla: Part 3 (5 of 5) `M`
+### - [x] 128i. Natural Bangla: Part 3 (5 of 5) `M` — ✅ **done 2026-10-17**
 
 8 pages, about 1558 Bangla lines:
 
@@ -289,9 +323,20 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 8 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. All eight passed on the first attempt
+- Tooling terms (bundler, tree shaking, HMR, dev server, monorepo, workspace, task graph, remote
+  cache, barrel file, chunk, source map, CSS Modules, design token) stay in English
+- "Verdict" columns read `রায়`; "durable principle" is `টেকসই নীতি`. `গরমিল` became `অমিল`, so a
+  search for গরম stays clean
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা` or `পরিণত করে` in the batch; `সে` only for people
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128j. Natural Bangla: Part 4 (1 of 2) `M`
+### - [x] 128j. Natural Bangla: Part 4 (1 of 2) `M` — ✅ **done 2026-10-17**
 
 10 pages, about 1771 Bangla lines:
 
@@ -299,6 +344,18 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
+
+**Delivered:**
+
+- All 10 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. All ten passed on the first attempt
+- Performance and architecture terms (micro-frontend, design system, Core Web Vitals, LCP/INP/CLS,
+  code splitting, CDN, remote/shell, token, codemod, budget, `warm`) stay in English
+- "Security theatre" is `নিরাপত্তার অভিনয়`; "load-bearing" is `ভার বহনকারী`. In the AI-review
+  version-drift row the inline-code order (`FID` before `INP`) is kept to satisfy the validator
+- Every `সে` used of a thing was rewritten. No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`,
+  `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
 
 ---
 
@@ -515,5 +572,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 6/28 | 🟡 In progress |
-| **Total** | **28** | **6/28** | **21%** |
+| 11 | 128 · 128a–128z · 130 | 11/28 | 🟡 In progress |
+| **Total** | **28** | **11/28** | **39%** |

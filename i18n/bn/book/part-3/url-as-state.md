@@ -1,36 +1,37 @@
 ---
 sourceHash: "28aa627b61d282c3ed46742ae2050c7a239e571fba15cb50769351a4438c75b9"
 title: "State হিসেবে URL"
-translatedAt: "2026-10-12T12:13:55.205Z"
+translatedAt: "2026-10-17T01:35:28.181Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # State হিসেবে URL {#ch-url-as-state}
 
-> একজন user যে view input share করতে চাইবেন, তার সবটাই address bar-এ রাখুন। Typed রাখুন, আর history-র একটি ভেবেচিন্তে ঠিক করা নীতি রাখুন।
+> User শেয়ার করতে চাইবে এমন প্রতিটি view input address bar-এ রাখুন, type সহ, আর history নিয়ে একটি ভেবেচিন্তে নেওয়া নীতি মেনে।
 
-**এই অধ্যায়ে:** URL কোন কাজে ভালো · param parse আর serialise করা · push বনাম replace · update throttle করা · server-এ param পড়া · URL-এ কী কখনো রাখা যাবে না
+**এই অধ্যায়ে:** URL কোন কাজে ভালো · param parse আর serialise করা · push বনাম replace · update throttle করা · server-এ param পড়া · URL-এ যা কখনো রাখা যাবে না
 
 ## 💡 মূল ধারণা
 
-URL এমন একটি state container, যার একটি user interface আগে থেকেই আছে। এর একটি back button আছে, একটি forward button
-আছে, একটি share action, একটি bookmark আর একটি edit field আছে। আপনার লেখা কোনো store এগুলো কখনো বিনা খরচে পাবে না।
+URL এমন একটি state container, যার user interface আগে থেকেই তৈরি। এতে back button আছে, forward button আছে, share
+করার ব্যবস্থা আছে, bookmark আছে, edit করার জায়গাও আছে। আপনি নিজে যত store-ই লিখুন, এগুলো কোনোটাই বিনা খরচে
+পাবে না।
 
-Application state-এর মধ্যে এটাই একমাত্র অংশ, যেটা user *দেখতে* পান। এটা একটি feature, আবার একটি সীমাও। এখানে যা
-রাখবেন, তা public, edit করা যায়, আর এতটা টেকসই যে একসময় support ticket-এ গিয়ে পৌঁছায়।
+Application state-এর মধ্যে শুধু এটাই user *দেখতে* পায়। এটা সুবিধাও, সীমাও। এখানে যা রাখবেন তা public, edit করা
+যায়, আর এত দিন টিকে থাকে যে শেষে support ticket-এ গিয়ে পৌঁছায়।
 
-কোনো value এখানে রাখা উচিত কি না, তার পরীক্ষা এক বাক্যের: **কেউ যদি এই link একটি message-এ paste করেন, প্রাপক কি
-একই view দেখবেন?** Filter, sort order, page number, খোলা tab, select করা row: হ্যাঁ। Hover state, scroll position,
-অর্ধেক খোলা menu: না।
+কোনো value এখানে রাখার মতো কি না, সেটা যাচাইয়ের প্রশ্ন একটিই: **কেউ link-টা message-এ paste করলে যে পাবে, সে কি
+একই view দেখবে?** Filter, sort order, page number, খোলা tab, select করা row: হ্যাঁ। Hover state, scroll position,
+আধখোলা menu: না।
 
 ## কীভাবে কাজ করে
 
 ### URL-এর সবকিছুই string
 
-Search param-এর কোনো type নেই। প্রতিটি value-র ঢোকার পথে একটি parser আর বেরোনোর পথে একটি serialiser লাগে। প্রতিটি
-parse fail করতে পারে, কারণ user-রা URL edit করেন।
+Search param-এর কোনো type নেই। ঢোকার সময় প্রতিটি value-র parser লাগে, আর বেরোনোর সময় serialiser। আর প্রতিটি
+parse ব্যর্থ হতে পারে, কারণ user-রা URL নিজেরা edit করে।
 
-**`nuqs` দিয়ে default সহ typed param:**
+**`nuqs` দিয়ে typed param, default সহ:**
 
 ```typescript
 import { useQueryStates, parseAsInteger, parseAsString, parseAsStringLiteral } from 'nuqs';
@@ -47,35 +48,35 @@ const [filters, setFilters] = useQueryStates({
 setFilters({ page: 2 }); // updates only `page`, leaves the rest of the URL alone
 ```
 
-এখান থেকে দুটি design নিয়ম আসে।
+এখান থেকে দুটি নকশার নিয়ম আসে।
 
-**Default যেন URL-এ না দেখা যায়।** প্রথম visit-এ `?page=1&sort=newest` শুধুই আবর্জনা। এতে একটি view-র জন্য দুটি
-URL তৈরি হয়, আর caching ও search engine-এর signal ভাগ হয়ে যায়। কোনো param তার default-এর সমান হলে সেটা মুছে দিন।
+**Default value URL-এ দেখানো উচিত নয়।** প্রথম visit-এ `?page=1&sort=newest` শুধু বাড়তি জঞ্জাল। এতে একই view-এর
+দুটি URL তৈরি হয়, আর caching ও search engine-এর signal দুই ভাগ হয়ে যায়। Param-এর value default-এর সমান হলে
+সেটা মুছে দিন।
 
-**অচেনা value-তে crash নয়, fallback হবে।** `?sort=banana` থেকে `?sort=newest` মাত্র এক keystroke দূরে। একটি
-literal union-এর বিপরীতে parse করুন, আর default-এ ফিরে যান। String-কে বিশ্বাস করবেন না।
+**অচেনা value এলে crash নয়, default-এ ফিরে যেতে হবে।** `?sort=banana` থেকে `?sort=newest` মাত্র একটি keystroke
+দূরে। Literal union-এর বিপরীতে parse করুন, না মিললে default নিন। String-টাকে বিশ্বাস করবেন না।
 
 ### Push নাকি replace
 
-প্রতিটি URL update হয় একটি history entry, নয়তো একটি overwrite। ভুলটা বাছলে back button দুই দিকের যেকোনো একদিকে
-ভেঙে যায়।
+প্রতিটি URL update হয় নতুন history entry, নয়তো overwrite। ভুল বাছলে back button দুই দিকের যেকোনো একদিকে ভেঙে যায়।
 
 | পরিবর্তন | Mode | কেন |
 | ------ | ---- | --- |
-| Page number, tab, একটি detail view খোলা | **push** | User এটাকে navigation মনে করেন, আর আশা করেন back দিলে এটা undo হবে |
-| Slider টানা, search box-এ type করা | **replace** | নইলে চল্লিশবার back চাপতে হবে |
-| একটি dropdown থেকে filter apply করা | **push** | একটি ইচ্ছাকৃত action, একটি history entry |
+| Page number, tab, detail view খোলা | **push** | User এটাকে navigation ভাবে, আর আশা করে back চাপলে এটা ফিরে যাবে |
+| Slider টানা, search box-এ টাইপ করা | **replace** | নইলে চল্লিশবার back চাপতে হবে |
+| Dropdown থেকে filter বসানো | **push** | একটি ভেবেচিন্তে করা কাজ, একটি history entry |
 | Mount-এর সময় state ফিরিয়ে আনা | **replace** | এটা কখনো navigation ছিলই না |
 
-যে ব্যর্থতার সাথে সবার দেখা হয়েছে: এমন একটি search box, যেটা প্রতিটি keystroke-এ push করে। Page ছেড়ে যেতে হলে
-যতগুলো অক্ষর type করেছেন, ততবার back চাপতে হয়।
+এই ভুলটা সবাই দেখেছে: এমন search box, যেটা প্রতিটি keystroke-এ push করে। Page ছেড়ে যেতে হলে যত অক্ষর টাইপ
+করেছেন, ততবার back চাপতে হয়।
 
 ### Write throttle করা
 
-`replace` দিয়েও প্রতিটি keystroke-এ URL লেখা খরুচে। এটা router-কে নাড়া দেয়। যেসব framework-এ param বদলালে
-server-এ একটি round trip হয়, সেখানে প্রতিটি অক্ষরে একটি round trip পান।
+`replace` দিলেও প্রতিটি keystroke-এ URL লেখা দামি। এতে router নড়ে ওঠে। যে framework-এ param বদলালে server-এ
+round trip হয়, সেখানে প্রতি অক্ষরে একটি round trip।
 
-সমাধান হলো input-কে local-ভাবে controlled রাখা, আর URL write-কে throttle বা debounce করা। Debounce typing থামা
+সমাধান হলো input-টাকে local-ভাবে controlled রাখা, আর URL-এ লেখাটা throttle বা debounce করা। Debounce টাইপ থামা
 পর্যন্ত অপেক্ষা করে:
 
 ```typescript
@@ -85,115 +86,115 @@ const [q, setQ] = useQueryState('q', {
 });
 ```
 
-Input responsive থাকে, কারণ DOM value সাথে সাথে update হয়। URL, আর এর ওপর নির্ভর করা যেকোনো fetch, user থামলে
-পিছু ধরে।
+Input সঙ্গে সঙ্গে সাড়া দেয়, কারণ DOM-এর value তখনই update হয়। URL, আর সেটা যে fetch চালায়, তারা পিছিয়ে থেকে
+ধরে ফেলে user থামলে।
 
-### Shallow কি না: এটা কি refetch করবে?
+### Shallow কি না: এতে কি refetch হবে?
 
-Client নিজেই একটি URL update সামলাতে পারে। আবার update-টি server-এ ফিরে গিয়ে নতুন param দিয়ে route-টি re-render-ও
-করাতে পারে। Framework-গুলো এটা একটি `shallow` flag হিসেবে দেয়, আর এটা একটি আসল সিদ্ধান্ত:
+URL update client নিজেই সামলাতে পারে। আবার update-টা server-এ ফিরে গিয়ে নতুন param দিয়ে route-টা re-render-ও
+করাতে পারে। Framework-গুলো এটা দেয় `shallow` flag হিসেবে, আর এটা সত্যিকারের একটি সিদ্ধান্ত:
 
-- **Shallow:** client-এর কাছে যা দরকার তা আগেই আছে, তাই update শুধু একটি re-render। আগে থেকে load করা data-র ওপর
-  client-side filter-এর জন্য এটা ঠিক।
-- **Shallow নয়:** server নতুন param দিয়ে re-render করে। যখন param-ই query চালায়, তখন এটা ঠিক। একটি আসল dataset-এর
+- **Shallow:** দরকারি সবকিছু client-এর কাছে আগেই আছে, তাই update মানে শুধু একটি re-render। আগে থেকে load হওয়া
+  data-র ওপর client-side filter-এর জন্য এটাই ঠিক।
+- **Shallow নয়:** নতুন param দিয়ে server re-render করে। Param যখন query চালায়, তখন এটাই ঠিক। আসল dataset-এর
   ওপর search, pagination আর filtering-এ সাধারণত এটাই হয়।
 
-দ্বিতীয় option-টির কারণেই URL state server rendering-এর সাথে এত ভালো মেলে। Param-গুলো server render-এর input,
-তাই paste করা একটি link একেবারে প্রথম response-এই সঠিক page দেয়, কোনো client fetch ছাড়াই। এতে search engine-ও ওই
-route-গুলো index করতে পারে। [Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route)
-দেখুন।
+দ্বিতীয় পথটার জন্যই URL state আর server rendering এত ভালো মেলে। Param-গুলো server render-এর input, তাই paste
+করা link একদম প্রথম response-এই ঠিক page দেয়, client-এ কোনো fetch ছাড়াই। এতে search engine-ও ওই route-গুলো
+index করতে পারে। দেখুন
+[Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route)।
 
 ### Server-এ param পড়া
 
-Param request-এর সাথেই আসে, তাই প্রথম render-ই সঠিক হতে পারে। প্রথমে default view দেখিয়ে তারপর filter করা view-তে
-লাফ দেওয়ার কোনো ঝলকানি থাকে না।
+Param যেহেতু request-এর সঙ্গেই আসে, প্রথম render-ই ঠিক হতে পারে। Default view এক ঝলক দেখিয়ে তারপর filter করা
+view-তে লাফ দেওয়ার ব্যাপার থাকে না।
 
-খরচটা হলো: বেশিরভাগ framework-এ search parameter পড়লে route dynamic হয়ে যায়। Response এখন request-এর ওপর
-নির্ভর করে, তাই এটা পুরোপুরি static হতে পারে না। Search page-এর জন্য এই tradeoff ঠিক। Tracking parameter সহ
-একটি marketing page-এর জন্য এটা ভুল, আর সেটা
-[Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route)-এর বিষয়।
+খরচটা হলো: বেশিরভাগ framework-এ search parameter পড়লেই route dynamic হয়ে যায়। Response এখন request-এর ওপর
+নির্ভর করে, তাই সেটা পুরোপুরি static হতে পারে না। Search page-এর জন্য এই tradeoff ঠিক। কিন্তু tracking parameter
+আসা marketing page-এর জন্য ভুল, আর সেই ক্ষেত্রটা আলোচনা করা হয়েছে
+[Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route)-এ।
 
-### URL-এ কী কখনো রাখা যাবে না
+### URL-এ যা কখনো রাখা যাবে না
 
-মানুষ যতটা ভাবে, URL তার চেয়ে অনেক দূর যায়। Server, proxy আর analytics এগুলো log-এ লেখে। `Referer` header এগুলো
-third-party script-এর কাছে পাঠায়। Shared machine-এ browser history এগুলো রেখে দেয়, আর মানুষ এগুলো ticket-এ paste
-করে।
+URL মানুষের ধারণার চেয়ে অনেক দূর যায়। Server, proxy আর analytics সেটা log-এ লিখে রাখে। `Referer` header সেটা
+third-party script-এর কাছে পাঠিয়ে দেয়। Shared machine-এ browser history সেটা রেখে দেয়, আর মানুষ সেটা ticket-এ
+paste করে।
 
 | কখনো নয় | কারণ |
 | ----- | ------- |
 | Token, session identifier, password reset code | সব জায়গায় log হয়, forward হয়, cache হয় |
-| ব্যক্তিগত data — email address, account number | একই কারণ, আর সাধারণত এটা compliance লঙ্ঘন |
-| বড় payload — পুরো একটি result set, serialise করা একটি form | দৈর্ঘ্যের সীমা আছে, আর data সরে গেলে link কাজ করা বন্ধ করে |
-| অন্য param থেকে বের করা যায় এমন কিছু | এমন জায়গায় সত্যের দ্বিতীয় উৎস, যেটা user edit করতে পারেন |
+| ব্যক্তিগত data — email address, account number | একই সমস্যা, আর সাধারণত এটা compliance ভঙ্গ |
+| বড় payload — পুরো result set, serialise করা form | দৈর্ঘ্যের সীমা আছে, আর data সরে গেলে link কাজ করা বন্ধ করে |
+| অন্য param থেকে বের করা যায় এমন কিছু | এমন জায়গায় দ্বিতীয় source of truth, যেটা user edit করতে পারে |
 
-Browser, proxy আর server মিলিয়ে URL দৈর্ঘ্যের ব্যবহারিক সীমা কয়েক হাজার অক্ষর। প্রথমে সাধারণত browser নয়, একটি
-CDN ভাঙে। Param-গুলোকে identifier আর enumeration-এ সীমিত রাখুন।
+Browser, proxy আর server মিলিয়ে URL-এর দৈর্ঘ্যের বাস্তব সীমা কয়েক হাজার অক্ষর। সাধারণত সবার আগে ভাঙে CDN,
+browser নয়। Param-এ শুধু identifier আর enumeration রাখুন।
 
 ## কখন ব্যবহার করবেন
 
-| State | URL-এ? |
+| State | URL-এ রাখবেন? |
 | ----- | ----------- |
 | Search query, filter, sort, pagination | **হ্যাঁ** |
 | Active tab, select করা row, খোলা detail panel | **হ্যাঁ** |
-| একটি report-এর date range | **হ্যাঁ** |
+| Report-এর date range | **হ্যাঁ** |
 | Map-এর centre আর zoom | **হ্যাঁ**, throttle করে |
-| Sidebar collapse করা, theme | না — client state, প্রতিটি device-এ persist করা |
-| Draft form value | না — form state |
-| Fetch করা result নিজেই | না — server state, param দিয়ে key করা |
+| Sidebar collapse, theme | না — client state, প্রতি device-এ persist করা |
+| Form-এর draft value | না — form state |
+| Fetch করা ফলাফল নিজেই | না — server state, param দিয়ে key করা |
 
 ## সাধারণ ভুল
 
-**❌ প্রতিটি keystroke-এ একটি history entry push করা।**
-✅ Replace করুন, আর throttle করুন। Back button কোনো keystroke log নয়।
+**❌ প্রতিটি keystroke-এ history entry push করা।**
+✅ Replace করুন, আর throttle করুন। Back button keystroke-এর log নয়।
 
-**❌ Parse না করে param পড়া।**
-✅ User আর bot যা খুশি পাঠাবে। Fallback সহ একটি union বা number-এ parse করুন।
+**❌ Parse না করেই param পড়া।**
+✅ User আর bot যা খুশি পাঠাবে। Fallback সহ union বা number-এ parse করুন।
 
-**❌ URL-এ default লিখে দেওয়া।**
-✅ একটি view-র জন্য দুটি URL caching আর search signal ভাগ করে দেয়, আর দেখতেও অযত্নের মনে হয়।
+**❌ URL-এ default value লেখা।**
+✅ একই view-এর দুটি URL caching আর search signal দুই ভাগ করে দেয়, আর দেখতেও অযত্নের মনে হয়।
 
-**❌ একই value URL-এ আর একটি store-এ রাখা।**
-✅ সত্যের দুটি উৎস, যেগুলো back button চাপার পর আলাদা কথা বলে। URL জেতে। বাকি সব এখান থেকে বের করুন।
+**❌ একই value URL-এ আর store-এ দুই জায়গায় রাখা।**
+✅ দুটি source of truth, back button চাপলেই যাদের মধ্যে অমিল হয়। URL-ই জিতবে। বাকি সব সেখান থেকে derive করুন।
 
-**❌ Share করা যায় এমন link-এ এমন identifier রাখা, যেটা তথ্য ফাঁস করে।**
-✅ URL যে প্রতিটি ধাপ পেরোয়, সেটাই এটাকে log করে। একে public ধরে নিন।
+**❌ শেয়ার করার link-এ এমন identifier রাখা, যেটা তথ্য ফাঁস করে।**
+✅ URL যেখান দিয়ে যায়, সেখানেই log হয়। একে public ধরে নিন।
 
 ## 🔑 মূল শিক্ষা
 
-- URL হলো share করা যায়, edit করা যায়, টেকসই একটি state, যার সাথে back button আগে থেকেই লাগানো।
-- প্রতিটি param একটি string, তাই প্রতিটির একটি parser, একটি default আর আবর্জনার জন্য একটি fallback লাগে।
-- ইচ্ছাকৃত navigation-এর জন্য push, একটানা adjustment-এর জন্য replace, আর write-গুলো throttle করুন।
-- Server-এ param পড়লে প্রথম render সঠিক হয়, তবে খরচ হিসেবে route dynamic হয়ে যায়।
-- URL সব জায়গায় log হয়। এতে কখনো token, ব্যক্তিগত data বা বড় payload রাখবেন না।
+- URL হলো শেয়ার করা যায়, edit করা যায়, টিকে থাকে এমন state, যার সঙ্গে back button আগে থেকেই জোড়া।
+- প্রতিটি param string, তাই প্রতিটির জন্য parser, default আর আজেবাজে value-র fallback লাগে।
+- ভেবেচিন্তে করা navigation-এ push, টানা adjust করার সময় replace, আর write throttle করুন।
+- Server-এ param পড়লে প্রথম render ঠিক হয়, তবে বিনিময়ে route dynamic হয়ে যায়।
+- URL সব জায়গায় log হয়। Token, ব্যক্তিগত data বা বড় payload কখনো URL-এ রাখবেন না।
 
 ## Interview-এর প্রশ্ন
 
-**Q: কোন state URL-এ থাকা উচিত?**
+**Q: কোন state URL-এ রাখা উচিত?**
 
-যা একজন user share করতে, bookmark করতে বা back button দিয়ে পৌঁছাতে চাইবেন: search query, filter, sort,
-pagination, active tab, select করা item। পরীক্ষাটা হলো, link paste করলে প্রেরকের view আবার দেখা যাওয়া উচিত কি না।
-অল্পক্ষণের interface state আর সংবেদনশীল যেকোনো কিছু বাইরে থাকে।
+User যা শেয়ার করতে, bookmark করতে বা back button দিয়ে ফিরে পেতে চাইবে, সবই: search query, filter, sort,
+pagination, active tab, select করা item। যাচাইয়ের প্রশ্নটা হলো, link paste করলে কি পাঠানো মানুষের view-টাই আবার
+তৈরি হওয়া উচিত? ক্ষণস্থায়ী interface state আর স্পর্শকাতর যেকোনো কিছু বাইরে থাকবে।
 
-**Q: একটি search box যেন back button নষ্ট না করে, সেটা কীভাবে ঠেকাবেন?**
+**Q: Search box যেন back button নষ্ট না করে, সেটা কীভাবে ঠেকাবেন?**
 
-URL update-এর জন্য push নয়, replace ব্যবহার করুন। তখন typing প্রতিটি অক্ষরে নতুন entry যোগ না করে বর্তমান entry-টি
-overwrite করে। Write-টি কয়েকশো millisecond debounce-ও করুন। Input value local রাখুন, যাতে URL পিছু ধরার সময়ও
-এটা responsive থাকে।
+URL update-এ push নয়, replace ব্যবহার করুন। তাহলে টাইপ করলে প্রতি অক্ষরে নতুন entry যোগ না হয়ে বর্তমান entry-টাই
+overwrite হয়। সঙ্গে write-টা কয়েকশো millisecond debounce করুন। Input-এর value local রাখুন, যাতে URL পিছিয়ে
+থাকলেও input সঙ্গে সঙ্গে সাড়া দেয়।
 
-**Q: একই value URL আর একটি store দুই জায়গাতেই থাকলে কী ভাঙে?**
+**Q: একই value URL আর store দুই জায়গাতেই থাকলে কী ভাঙে?**
 
-দুটি আলাদা কথা বলে। Back button চাপলে URL বদলায়, আপনার setter-এর মধ্য দিয়ে না গিয়েই। Store পুরোনো value রেখে দেয়,
-আর page দুটির মিশেল দেখায়। URL-কে সত্যের উৎস বানান আর বাকি সব এখান থেকে বের করুন, নয়তো value-টি URL থেকে পুরোপুরি
-বাইরে রাখুন।
+দুটির মধ্যে অমিল হয়। Back button চাপলে URL বদলায়, কিন্তু আপনার setter-এর মধ্য দিয়ে যায় না। Store পুরনো value
+ধরে রাখে, আর page-এ দুটির মিশ্রণ দেখা যায়। URL-কেই source of truth বানান আর বাকি সব সেখান থেকে derive করুন,
+নয়তো value-টা URL থেকে পুরোপুরি বাদ দিন।
 
 **Q: Server-এ search param পড়ার খরচ কী?**
 
-Route dynamic হয়ে যায়। Response এখন request-এর ওপর নির্ভর করে, তাই এটা static cache থেকে serve করা যায় না। একটি
-search বা filter page-এর জন্য এটা ঠিক, যেখানে param-ই তো query। কিন্তু প্রায় static একটি page, যেটায় ঘটনাচক্রে একটি
-campaign tracking parameter আসে, সেখানে এটা ভুল।
+Route dynamic হয়ে যায়। Response এখন request-এর ওপর নির্ভর করে, তাই static cache থেকে serve করা যায় না। Search
+বা filter page-এর জন্য এটা ঠিক, কারণ সেখানে param-ই তো query। কিন্তু প্রায় static এমন page-এ, যেখানে ঘটনাচক্রে
+campaign tracking parameter আসে, এটা ভুল।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — চার ধরনের State](#ch-four-kinds-of-state) — অন্য category-গুলোর মধ্যে এটা কোথায় বসে
-- [Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route) — param-এর রকমফের, canonical URL আর duplicate indexing
+- [Chapter ?? — চার ধরনের State](#ch-four-kinds-of-state) — বাকি ধরনগুলোর মধ্যে এই ধরনটা কোথায় বসে
+- [Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route) — param-এর variant, canonical URL আর duplicate indexing
 - [Chapter ?? — SvelteKit-এ Routing ও Loading](#ch-sveltekit-routing-and-loading) — server load function-এর input হিসেবে param

@@ -1,34 +1,34 @@
 ---
 sourceHash: "1c58ba7303b6135732e68a5c0a41ed17f3d1624ccc31780c213b0040462d03fa"
 title: "Route Handler ও BFF"
-translatedAt: "2026-10-12T07:52:57.358Z"
+translatedAt: "2026-10-17T01:36:06.448Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Route Handler ও BFF {#ch-route-handlers-and-the-bff}
 
-> একটি endpoint কোন caller-দের সেবা দেয় তা জানলে, আপনি এটাও জানবেন যে সেটা আদৌ আপনার Next.js app-এ থাকা উচিত কি না।
+> কোনো endpoint কাদের জন্য, সেটা জানলেই বুঝবেন সেটা আদৌ আপনার Next.js app-এ থাকা উচিত কি না।
 
-**এই অধ্যায়ে:** Route Handler কী · কখন action বেশি ভালো tool · backend-for-frontend pattern · Next.js 16-এ একটি `GET` cache করা · কোথায় Next.js আর আপনার backend থাকে না
+**এই অধ্যায়ে:** Route Handler কী · কখন action বেশি ভালো · backend-for-frontend pattern · Next.js 16-এ `GET` cache করা · কোথায় গিয়ে Next.js আর আপনার backend থাকে না
 
 ## 💡 মূল ধারণা
 
-Route Handler হলো `route.ts` নামের একটি file, যেটা HTTP method-এর নামে function export করে। এর ওপরে কোনো framework
-layer নেই। Argument একটি `Request`, return value একটি `Response`, আর মাঝখানের সবকিছু আপনার।
+Route Handler হলো `route.ts` নামের একটি file, যা HTTP method-এর নামে function export করে। এর ওপরে কোনো framework
+layer নেই। Argument একটি `Request`, return value একটি `Response`, আর মাঝখানে যা আছে সবই আপনার।
 
-আকর্ষণীয় প্রশ্নটা কখনোই এই নয় যে Next.js একটি API serve *করতে পারে* কি না। পারে। প্রশ্ন হলো **এই endpoint কে
-call করে**। একটি Server Component সরাসরি আপনার database-এর সঙ্গে কথা বলতে পারে। আপনার নিজের form একটি Server
-Action দিয়ে mutation করতে পারে। দুটিরই কোনো URL লাগে না। একটি endpoint তখনই তার জায়গা পায়, যখন caller এমন কিছু
-যা আপনার নিয়ন্ত্রণে নেই: একটি webhook, একটি mobile app, একটি partner, অথবা অন্য কারও page-এর একটি `<script>`।
+আসল প্রশ্ন কখনোই এটা নয় যে Next.js API serve *করতে পারে* কি না। পারে। প্রশ্ন হলো **এই endpoint কে call করে**।
+Server Component সরাসরি আপনার database-এর সঙ্গে কথা বলতে পারে, আর আপনার নিজের form Server Action দিয়ে mutation
+করতে পারে। কারও URL লাগে না। Endpoint-এর দরকার পড়ে তখনই, যখন caller এমন কিছু যা আপনার নিয়ন্ত্রণে নেই: webhook,
+mobile app, partner, কিংবা অন্যের page-এ বসানো `<script>`।
 
-> ⚠️ **যা বদলাতে থাকে:** `GET` handler-এর caching দুবার বদলেছে। Next.js 14-এ এটা default-এ cache হতো, আর 15-এ
-> default-এ cache হতো না। 16-এর Cache Components-এ একটি `GET` prerender হয়, যদি না সেটা runtime data ছোঁয়। আর একটি
-> helper-এর ওপর `use cache` `dynamic = 'force-static'`-এর জায়গা নেয়। স্থায়ী নীতি: caching opt-in, আর cache করা
-> প্রতিটি জিনিসের এমন একটি key দরকার, যেটা আপনি invalidate করতে পারেন।
+> ⚠️ **যা বদলাতে থাকে:** `GET` handler-এর caching দুবার বদলেছে। Next.js 14-এ default ছিল cached, 15-এ default
+> uncached। 16-এর Cache Components-এ `GET` prerender হয়, যদি না সেটা runtime data ছোঁয়। আর helper-এ `use cache`
+> দিলে `dynamic = 'force-static'`-এর আর দরকার হয় না। টেকসই নীতি: caching নিজে থেকে চালু করতে হয়, আর cache করা
+> প্রতিটি জিনিসের এমন key লাগে, যা invalidate করা যায়।
 
 ## কীভাবে কাজ করে
 
-### File-টি
+### File
 
 ```typescript
 // app/api/invoices/[id]/route.ts
@@ -45,16 +45,16 @@ export async function GET(
 }
 ```
 
-`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` আর `OPTIONS` support করা হয়, প্রতিটির জন্য একটি export। Handler একটি
-Server Component-এর মতো একই environment-এ চলে, তাই `cookies()`, `headers()` আর Node API সবই কাজ করে। কিন্তু এখানে
-কোনো React DOM নেই, তাই এখানে কিছুই render হয় না।
+`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` আর `OPTIONS` support করে, প্রতিটির জন্য একটি export। Handler চলে
+Server Component-এর মতো একই environment-এ, তাই `cookies()`, `headers()` আর Node API সবই চলে। তবে React DOM নেই,
+তাই এখানে কিছুই render হয় না।
 
-**একটি `route.ts` আর একটি `page.tsx` একই segment শেয়ার করতে পারে না।** দুটিই একই URL দাবি করে, তাই Next.js জোড়াটিকে
-বাতিল করে। Endpoint-গুলো তাদের নিজস্ব একটি path-এর নিচে রাখুন।
+**একই segment-এ `route.ts` আর `page.tsx` থাকতে পারে না।** দুটিই একই URL দাবি করে, তাই Next.js জোড়াটা বাতিল করে
+দেয়। Endpoint-গুলো রাখুন তাদের নিজস্ব path-এ।
 
-### একটি `GET` cache করা
+### `GET` cache করা
 
-Directive-টি export করা handler-এর ওপর বসানো যায় না, তাই cache করা কাজটি একটি helper-এ সরে যায়:
+Directive export করা handler-এর ওপর বসানো যায় না, তাই cache করা কাজটা চলে যায় একটি helper-এ:
 
 ```typescript
 // app/api/rates/route.ts
@@ -72,125 +72,125 @@ async function getRates(): Promise<Rate[]> {
 }
 ```
 
-Tag-টি এটাকে maintain করা সহজ করে। যে action একটি rate বদলায়, সেটা `revalidateTag("rates")` call করে। আর তাতেই
-endpoint invalidate হয়, কাউকে URL মনে রাখতে হয় না। খুঁটিনাটি আছে
+Tag থাকায় এটা maintain করা সহজ। যে action rate বদলায়, সেটা `revalidateTag("rates")` call করে। তাতেই endpoint
+invalidate হয়ে যায়, কাউকে URL মনে রাখতে হয় না। খুঁটিনাটি আছে
 [Chapter ?? — Data Fetching ও Caching](#ch-nextjs-data-and-caching)-এ।
 
 ### Handler, action, নাকি কোনোটাই না
 
-| Caller হলো…                              | ব্যবহার করুন               | কারণ                                         |
-| --------------------------------------- | ------------------------ | ------------------------------------------- |
-| Page render করা একটি Server Component    | কিছুই না — সরাসরি query    | নিজের কাছে একটি round trip দিয়ে কিছুই পাওয়া যায় না |
-| আপনার নিজের UI-এর একটি form বা button      | একটি Server Action         | Progressive enhancement, নাম দেওয়ার মতো কোনো endpoint নেই |
-| একটি third-party webhook                 | একটি Route Handler         | তারা একটি URL-এ request পাঠায়, form নয়         |
-| একটি mobile app বা partner integration    | একটি Route Handler         | একটি স্থির contract, versioned আর documented  |
-| Update-এর জন্য poll করা একটি client component | একটি Route Handler         | এর একটি URL আর একটি cache header লাগে          |
-| একটি cron বা scheduled job                | একটি Route Handler         | বাইরে থেকে আসা একটি request-এ trigger হয়        |
+| Caller যদি হয়…                           | ব্যবহার করুন                | কারণ                                          |
+| --------------------------------------- | ------------------------ | -------------------------------------------- |
+| Page render করা একটি Server Component    | কিছুই না — সরাসরি query    | নিজের কাছে round trip দিয়ে কোনো লাভ নেই        |
+| আপনার নিজের UI-এর form বা button         | Server Action            | Progressive enhancement, endpoint-এর নাম দিতে হয় না |
+| Third-party webhook                     | Route Handler            | তারা একটি URL-এ request পাঠায়, form নয়         |
+| Mobile app বা partner integration       | Route Handler            | স্থির একটি contract, versioned আর documented   |
+| Update-এর জন্য poll করা client component | Route Handler            | এর লাগে একটি URL আর একটি cache header           |
+| Cron বা scheduled job                   | Route Handler            | বাইরে থেকে আসা request-এ চালু হয়               |
 
-Candidate-রা প্রথম row-টিই ভুল করেন। একটি Server Component-এর ভেতরে `fetch('/api/invoices')` আপনার নিজের network
-stack দিয়ে আপনার নিজের server-এ একটি call পাঠায়। আর সেটা এমন একটি query চালায়, যেটা component নিজেই চালাতে পারত।
+Candidate-রা ভুল করেন প্রথম row-টায়। Server Component-এর ভেতরে `fetch('/api/invoices')` call যায় আপনার নিজের
+server-এই, আপনার নিজের network stack ঘুরে। আর চালায় এমন একটি query, যা component নিজেই চালাতে পারত।
 
 ### Backend-for-frontend আসলে কী
 
-একটি BFF হলো **একটি** client-এর জন্য গড়া API, যার মালিক সেই client বানানো team। এটা একটি user interface আর তার
-পেছনের service-গুলোর মাঝখানে বসে। চারটি কাজ করে এটা নিজের জায়গা পাকা করে:
+BFF হলো **একটিমাত্র** client-এর মাপে বানানো API, যার মালিক সেই client বানানো team। এটা বসে user interface আর তার
+পেছনের service-গুলোর মাঝখানে। এর জায়গা পাকা হয় চারটি কাজ করে:
 
-| কাজ                  | উদাহরণ                                                          |
+| কাজ                  | উদাহরণ                                                              |
 | -------------------- | ---------------------------------------------------------------- |
-| Aggregation          | Mobile link-এ ছয়টি service call-এর বদলে একটি dashboard call       |
-| Credential লুকানো    | Upstream API key server-এ থাকে, bundle-এ কখনো যায় না               |
-| Response গড়ে দেওয়া   | Screen যে বারোটি field render করে সেগুলো return করুন, নব্বইটি নয়     |
-| Protocol অনুবাদ      | Upstream-এ gRPC বা SOAP, browser-এ JSON                           |
+| Aggregation          | Mobile link-এ ছয়টি service call-এর বদলে dashboard-এর একটি call       |
+| Credential লুকানো    | Upstream API key থাকে server-এ, কখনো bundle-এ যায় না                |
+| Response-এর আকার ঠিক করা | Screen যে বারোটি field দেখায় সেগুলোই ফেরত দিন, নব্বইটি নয়          |
+| Protocol translation | Upstream-এ gRPC বা SOAP, browser-এ JSON                            |
 
-Next.js ভালো BFF হয়। যে code response গড়ে আর যে code সেটা render করে, দুটি একই repository-তে থাকে, একসঙ্গে review
-হয়, একসঙ্গে deploy হয়। Screen-এর আরেকটি field দরকার হলে একটি pull request দুই প্রান্তই বদলায়।
+Next.js ভালো BFF বানায়। Response-এর আকার ঠিক করার code আর render করার code থাকে একই repository-তে, review হয় একসঙ্গে,
+deploy-ও হয় একসঙ্গে। Screen-এ নতুন একটি field লাগলে একটি pull request-এই দুই দিক বদলে যায়।
 
 ### আর কোথায় এটা থামে
 
-একই coupling-টিই এর দাম। একটি BFF frontend-এর বিষয়, frontend-এর schedule-এ release হয়। যে কাজ এই ছাঁচে মেলে না,
-তাকে এর ভেতরে ঠেলে দেওয়া উচিত নয়।
+এই একই coupling-ই এর দাম। BFF frontend-এর বিষয়, release হয় frontend-এর schedule-এ। যে কাজ এই ছাঁচে খাপ খায় না,
+সেটা জোর করে এখানে ঢোকানো উচিত নয়।
 
-| Signal                                          | এর মানে                                                  |
+| লক্ষণ                                             | এর মানে                                                     |
 | ----------------------------------------------- | -------------------------------------------------------- |
-| এখন তিনটি client endpoint-টি ব্যবহার করে          | এটা একটি product API, BFF নয় — এটাকে নিজস্ব service দিন    |
-| কাজ request-এর চেয়ে বেশি টেকে — job, retry, queue  | Serverless request handler ভুল runtime                    |
-| দীর্ঘস্থায়ী connection: socket, subscription       | Request/response platform-এ bill আর timeout দুটিই খারাপ    |
-| ভারী CPU, বা নিজস্ব scaling-ওয়ালা একটি database   | এটা আপনার page rendering থেকে আলাদাভাবে scale হওয়া উচিত   |
-| বাইরের consumer-দের versioning আর একটি SLA দরকার  | সেটা একটি contract, আর contract-এর একজন owner দরকার         |
+| এখন তিনটি client endpoint-টা ব্যবহার করে           | এটা product API, BFF নয় — এটাকে নিজস্ব service দিন          |
+| কাজ request-এর পরেও চলে — job, retry, queue       | Serverless request handler এর জন্য ভুল runtime            |
+| দীর্ঘস্থায়ী connection: socket, subscription       | Request/response platform-এ bill আর timeout দুটিই বাজে      |
+| ভারী CPU, বা নিজস্ব scaling-ওয়ালা database         | এটা page rendering থেকে আলাদাভাবে scale হওয়া উচিত           |
+| বাইরের consumer-দের versioning আর SLA লাগে         | সেটা একটি contract, আর contract-এর মালিক লাগে              |
 
-> ⚠️ আপনি যে endpoint-ই যোগ করুন, সেটা একটি public URL। আপনার component-এর পাশে থাকা এটাকে রক্ষা করে না। Body
-> validate করুন, আপনার page-গুলো যে data access layer ব্যবহার করে সেখানেই session check করুন, আর unauthenticated
-> যেকোনো কিছুতে rate limit বসান।
+> ⚠️ যে endpoint-ই যোগ করুন, সেটা একটি public URL। Component-এর পাশে থাকলেই সেটা সুরক্ষিত হয়ে যায় না। Body
+> validate করুন, আপনার page-গুলো যে data access layer ব্যবহার করে সেখানেই session check করুন, আর authenticate না
+> করা সবকিছুর rate limit দিন।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                          | বেছে নিন                                       |
+| পরিস্থিতি                                         | বেছে নিন                                      |
 | ------------------------------------------------ | -------------------------------------------- |
-| Stripe বা GitHub আপনাকে একটি event post করে         | Route Handler, signature যাচাই করে             |
-| আপনার নিজের form একটি mutation submit করে          | Server Action                                 |
-| একটি React Native app-এর একই data দরকার           | Versioned path-সহ Route Handler               |
-| একটি progress bar-এর জন্য server-sent event        | একটি stream return করা Route Handler           |
-| চার মিনিট লাগা একটি রাতের report                    | App-এর বাইরে একটি worker বা queue              |
-| একটি page-এর জন্য তিনটি internal service একত্র করা   | Server Component, বা client-এর দরকার হলে একটি Route Handler |
+| Stripe বা GitHub আপনাকে event পাঠায়               | Route Handler, signature verify করে           |
+| আপনার নিজের form mutation submit করে              | Server Action                                 |
+| React Native app-এর একই data লাগে                 | Versioned path-সহ Route Handler               |
+| Progress bar-এর জন্য server-sent event            | Stream return করা Route Handler               |
+| চার মিনিট লাগে এমন nightly report                  | App-এর বাইরে worker বা queue                  |
+| এক page-এর জন্য তিনটি internal service জোড়া লাগানো | Server Component, আর client-এর লাগলে Route Handler |
 
 ## সাধারণ ভুল
 
-**❌ একটি Server Component থেকে নিজের Route Handler call করা।** তার বদলে function-টি import করুন। HTTP hop latency
-বাড়ায়, type safety হারায়, আর framework-এর caching থেকে query-টি লুকিয়ে ফেলে।
+**❌ Server Component থেকে নিজের Route Handler call করা।** তার বদলে function-টা import করুন। HTTP hop latency বাড়ায়,
+type safety হারায়, আর framework-এর caching থেকে query-টা আড়ালে চলে যায়।
 
-**❌ প্রতিটি form-এর জন্য একটি Route Handler লেখা।** UI থেকে trigger হওয়া mutation-এর জন্যই Server Action আছে, আর
-সেটা JavaScript ছাড়াও কাজ করে। Caller বাইরের হলে তবেই endpoint-এর দিকে যান।
+**❌ প্রতিটি form-এর জন্য Route Handler লেখা।** UI থেকে চালু হওয়া mutation-এর জন্যই Server Action আছে, আর সেটা
+JavaScript ছাড়াও চলে। Endpoint-এর কাছে যান যখন caller বাইরের কেউ।
 
-**❌ ধরে নেওয়া যে পাশাপাশি থাকা মানেই সুরক্ষা।** Endpoint-টি অন্য যেকোনো URL-এর মতোই public। একই session check, একই
-validation, একই rate limit।
+**❌ পাশাপাশি থাকা মানেই সুরক্ষা, এমন ধরে নেওয়া।** Endpoint অন্য যেকোনো URL-এর মতোই public। একই session check,
+একই validation, একই rate limit লাগবে।
 
-**❌ `page.tsx`-এর পাশে `route.ts` রাখা।** দুটি একই path-এ সংঘর্ষ করে। Endpoint-গুলোকে `/api` বা নিজস্ব একটি
-segment-এর নিচে রাখুন।
+**❌ `page.tsx`-এর পাশে `route.ts` রাখা।** দুটি একই path-এ সংঘর্ষ করে। Endpoint-গুলো রাখুন `/api`-এর নিচে, বা
+নিজস্ব কোনো segment-এ।
 
-**❌ BFF-কে product API হয়ে যেতে দেওয়া।** অন্য team-রা এর ওপর নির্ভর করতে শুরু করলে, আপনার frontend release তাদের
-outage-এর ঝুঁকি হয়ে দাঁড়ায়। দ্বিতীয় consumer-এর সময়ই এটাকে আলাদা করুন, পঞ্চমটির সময় নয়।
+**❌ BFF-কে product API হয়ে যেতে দেওয়া।** অন্য team-গুলো এর ওপর নির্ভর করতে শুরু করলে আপনার প্রতিটি frontend
+release তাদের outage-এর ঝুঁকি হয়ে দাঁড়ায়। দ্বিতীয় consumer আসতেই আলাদা করুন, পঞ্চমটা পর্যন্ত অপেক্ষা করবেন না।
 
-**❌ Handler-এ দীর্ঘ job চালানো।** Serverless platform একটি timeout চাপিয়ে দেয় আর wall-clock time ধরে bill করে। কাজটি
-enqueue করুন আর একটি id return করুন।
+**❌ Handler-এ দীর্ঘ job চালানো।** Serverless platform timeout বেঁধে দেয়, আর bill করে wall-clock time ধরে। কাজটা
+queue-তে দিন, আর একটি id ফেরত দিন।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি Route Handler হলো সাধারণ `Request` ঢোকে, `Response` বেরোয় — framework শুধু routing যোগ করে, আর কিছু নয়।
-- Caller আপনার application-এর বাইরে হলে endpoint যোগ করুন। নইলে সরাসরি query করুন বা একটি Server Action ব্যবহার করুন।
-- একটি BFF ঠিক একটি client-এর জন্য aggregate করে, credential লুকায়, response গড়ে দেয় আর protocol অনুবাদ করে।
-- দ্বিতীয় স্বাধীন consumer-ই signal যে endpoint-টিকে তার নিজস্ব service-এ সরিয়ে নিতে হবে।
-- `GET` caching একটি `use cache` helper দিয়ে opt-in, আর tag দিলে একটি mutation নাম ধরে সেটা invalidate করতে পারে।
+- Route Handler মানে সাদামাটা `Request` ঢোকে, `Response` বের হয়। Framework শুধু routing যোগ করে, আর কিছু না।
+- Caller আপনার application-এর বাইরের হলে endpoint যোগ করুন। নইলে সরাসরি query করুন বা Server Action ব্যবহার করুন।
+- BFF ঠিক একটি client-এর জন্য aggregate করে, credential লুকায়, response-এর আকার ঠিক করে আর protocol translate করে।
+- দ্বিতীয় স্বাধীন consumer আসা মানেই endpoint-টাকে আলাদা service-এ সরানোর সময়।
+- `GET` caching চালু করতে হয় `use cache` helper দিয়ে, আর tag দিলে mutation নাম ধরে সেটা invalidate করতে পারে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি Next.js application আদৌ কখন একটি Route Handler expose করবে?**
+**Q: Next.js application-এর আদৌ কখন Route Handler expose করা উচিত?**
 
-যখন caller এমন কিছু, যেটা আপনি render করেন না। Webhook, mobile client, partner integration, cron trigger আর polling
-client — সবার একটি URL দরকার। আপনার নিজের page-গুলোর দরকার নেই। একটি Server Component সরাসরি database query করতে
-পারে, আর একটি Server Action আপনার নিজের UI থেকে আসা mutation কোনো endpoint ছাড়াই সামলায়।
+যখন caller এমন কিছু, যা আপনি render করেন না। Webhook, mobile client, partner integration, cron trigger আর poll
+করা client, সবার একটি URL লাগে। আপনার নিজের page-এর লাগে না। Server Component সরাসরি database query করতে পারে,
+আর আপনার নিজের UI-এর mutation Server Action সামলে নেয়, কোনো endpoint ছাড়াই।
 
 **Q: Backend-for-frontend কী, আর এর দাম কী?**
 
-একটি client-এর জন্য গড়া একটি API, যার মালিক সেই client-এর team। এটা কয়েকটি upstream call-কে একটিতে মেলায়,
-credential server-এ রাখে, আর screen যে field-গুলো ব্যবহার করে শুধু সেগুলোই return করে। দাম হলো coupling। এটা
-frontend-এর release schedule-এ ship হয় আর frontend-এর traffic-এর সঙ্গে scale হয়। তাই দ্বিতীয় কোনো স্বাধীন consumer
-এলেই এটা আসলে ভুল পোশাক পরা একটি product API।
+একটিমাত্র client-এর মাপে বানানো API, যার মালিক সেই client-এর team। এটা কয়েকটি upstream call-কে একটিতে মেলায়,
+credential server-এ রাখে, আর screen যে field-গুলো ব্যবহার করে শুধু সেগুলোই ফেরত দেয়। দাম হলো coupling। এটা ship
+হয় frontend-এর release schedule-এ, scale হয় frontend-এর traffic-এর সঙ্গে। তাই দ্বিতীয় কোনো স্বাধীন consumer এলেই
+বুঝবেন, এটা আসলে ভুল পোশাক পরা একটি product API।
 
 **Q: Form submission-এর জন্য Route Handler নাকি Server Action?**
 
-Server Action। এটা server-এ চলে, এমন কোনো public URL ছাড়া যার নাম আপনাকে দিতে হয়। JavaScript load হওয়ার আগেও এটা
-কাজ করে, কারণ এটা একটি আসল form submission। Router-এর revalidation-এর সঙ্গেও এটা কাজ করে। একই কাজের জন্য Route
-Handler মানে fetch, serialisation আর error handling হাতে লেখা। তার ওপর secure করার জন্য একটি endpoint-ও থেকে যায়।
+Server Action। এটা server-এ চলে, নাম দিতে হয় এমন কোনো public URL ছাড়াই। JavaScript load হওয়ার আগেও চলে, কারণ
+এটা সত্যিকারের form submission। Router-এর revalidation-এর সঙ্গেও মিলে কাজ করে। একই কাজে Route Handler নিলে fetch,
+serialisation আর error handling সব হাতে লিখতে হয়। তার ওপর secure করার মতো একটি endpoint-ও থেকে যায়।
 
 **Q: Backend-এর কাজের জন্য Next.js কখন ভুল জায়গা?**
 
-যখন কাজটি একটি request-এর মধ্যে আঁটে না। Background job, queue, retry, দীর্ঘস্থায়ী socket আর ভারী CPU — সবই একটি
-serverless request handler-এ বেমানান, যেখানে wall-clock time ধরে timeout আর bill হয়। অন্য signal-টি সাংগঠনিক। কয়েকটি
-team endpoint-টি ব্যবহার করতে শুরু করলে এর versioning, একটি SLA আর একজন owner দরকার। Marketing site-এর সঙ্গে deploy
-হলে এগুলোর কোনোটাই টেকে না।
+যখন কাজটা একটি request-এর ভেতরে আঁটে না। Background job, queue, retry, দীর্ঘস্থায়ী socket আর ভারী CPU, এগুলোর
+কোনোটাই serverless request handler-এ ভালো বসে না, কারণ সেখানে সময় মাপা হয় আর bill হয় wall-clock time ধরে। অন্য
+লক্ষণটা প্রতিষ্ঠানগত। কয়েকটি team endpoint ব্যবহার করতে শুরু করলে versioning, SLA আর একজন মালিক লাগে। Marketing
+site-এর সঙ্গে deploy হলে এর কোনোটাই টেকে না।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Server Action](#ch-server-actions) — যে mutation path-এ কোনো endpoint লাগে না
 - [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — public হওয়ার পর contract design করা
-- [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries) — অন্য edge-গুলোর মধ্যে একটি BFF কোথায় বসে
+- [Chapter ?? — Service Boundary ও API Gateway](#ch-service-boundaries) — অন্য edge-গুলোর মাঝে BFF কোথায় বসে

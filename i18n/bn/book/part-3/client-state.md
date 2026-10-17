@@ -1,56 +1,57 @@
 ---
 sourceHash: "4d4c3a2e6f0c8d3564701ea11e2355d475e338fcc4170b9e1a93865494e2714a"
 title: "Client State ও Signal"
-translatedAt: "2026-10-12T12:12:02.903Z"
+translatedAt: "2026-10-17T01:40:35.700Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Client State ও Signal {#ch-client-state}
 
-> State-কে মইয়ের ওপরের ধাপে তুলুন শুধু তখনই, যখন কিছু আপনাকে বাধ্য করে। আর আপনার ব্যবহার করা প্রতিটি store-এর ভেতরের signal graph-টি চিনে নিন।
+> কোনো state-কে মইয়ের ওপরের ধাপে তুলুন শুধু তখন, যখন কিছু একটা আপনাকে বাধ্য করে। আর যেকোনো store-এর ভেতরে লুকিয়ে থাকা signal graph-টা চিনে নিন।
 
-**এই অধ্যায়ে:** চারটি ধাপ · Context কেন সবকিছু re-render করায় · Zustand, Jotai আর Redux · সবার ভিত্তি হিসেবে signal · signal যা ঠিক করে না
+**এই অধ্যায়ে:** চারটি ধাপ · Context কেন সবকিছু re-render করে · Zustand, Jotai আর Redux · সবার মূলে থাকা primitive হিসেবে signal · signal যা সমাধান করে না
 
 ## 💡 মূল ধারণা
 
-Server state আর form state নিজেদের library পেয়ে গেলে, বাকি থাকে সামান্যই: একটি theme, একটি খোলা panel, একটি row।
+Server state আর form state যখন নিজেদের library পেয়ে যায়, তখন বাকি থাকে সামান্যই: একটি theme, একটি খোলা panel,
+একটি row।
 
-এই অবশিষ্টাংশের জন্য প্রশ্ন কখনো "কোন library" নয়। প্রশ্ন হলো **এই value-কে কতদূর যেতে হবে?** উত্তরটা একে চারটি
-ধাপের একটিতে বসায়। প্রথম ধাপের ওপরের প্রতিটি ধাপের খরচ আছে: re-render, indirection, বা দুটিই। নিচ থেকে শুরু করুন,
-আর ওপরে উঠুন শুধু তখন, যখন একটি আসল প্রয়োজন আপনাকে বাধ্য করে।
+এই বাকিটুকুর জন্য প্রশ্ন কখনো "কোন library" নয়। প্রশ্ন হলো **এই value-কে কত দূর যেতে হবে?** উত্তরটাই একে চারটি
+ধাপের কোনো একটিতে বসায়। প্রথম ধাপের ওপরের প্রতিটি ধাপের দাম আছে: re-render, ঘুরপথ, কিংবা দুটিই। নিচ থেকে শুরু করুন,
+আর ওপরে উঠুন শুধু তখন, যখন সত্যিকারের কোনো প্রয়োজন আপনাকে বাধ্য করে।
 
 ভেতরে ভেতরে প্রতিটি store একই তিনটি কাজ করে। একটি value ধরে রাখে, কে সেটা পড়ছে তার হিসাব রাখে, আর write হলে তাদের
-জানায়। Signal এই pattern-টিকে একটি primitive বানিয়ে দেয়।
+খবর দেয়। Signal এই pattern-টাকেই একটি primitive বানিয়ে দেয়।
 
 ## কীভাবে কাজ করে
 
 ### চারটি ধাপ
 
-| ধাপ | নাগাল | খরচ | কখন ব্যবহার করবেন |
-| ---- | ----- | ---- | -------- |
-| **`useState`** | একটি component | কিছু না | Value যেখানে declare করা, সেখানেই ব্যবহার হয় |
-| **Parent-এ তুলে দেওয়া** | একটি subtree | Prop drilling | দুটি sibling-এর এটা দরকার, আর parent কাছেই |
+| ধাপ | কত দূর পৌঁছায় | খরচ | কখন ব্যবহার করবেন |
+| --- | ------------- | --- | ---------------- |
+| **`useState`** | একটি component | নেই | Value যেখানে declare করা, সেখানেই ব্যবহার হয় |
+| **Parent-এ তুলে দেওয়া** | একটি subtree | Prop drilling | দুটি sibling-এর এটা লাগে, আর parent কাছেই |
 | **Context** | একটি subtree, drilling ছাড়া | প্রতিটি consumer re-render হয় | Value কদাচিৎ বদলায় |
-| **একটি store** | যেকোনো জায়গা | একটি dependency, আর React-এর বাইরে state | ঘন ঘন update, বা সত্যিকারের global নাগাল |
+| **Store** | যেকোনো জায়গায় | একটি dependency, আর React-এর বাইরের state | ঘন ঘন update, বা সত্যিই global নাগাল |
 
-বেশিরভাগ value কখনো প্রথম ধাপ ছাড়ে না। Interview-এ যে সংকেত দেখা হয়, সেটা হলো একটি value কেন তার ধাপে বসে আছে,
-তা বলতে পারা।
+বেশিরভাগ value কখনো প্রথম ধাপ ছেড়ে বেরোয় না। Interview-এ যা দেখা হয় তা হলো, একটি value কেন তার ধাপে বসে আছে, সেটা
+আপনি বলতে পারেন কি না।
 
-### Context পৌঁছে দেয়, জমা রাখে না
+### Context পৌঁছে দেয়, ধরে রাখে না
 
-Context prop drilling-এর সমাধান করে। এটা একটি subtree-তে একটি value *পৌঁছে দেয়*। এর কোনো subscription model নেই।
-তাই provider-এর value-এর identity বদলালে **প্রতিটি consumer re-render হয়**, এমনকি যদি সে বদলানো কিছুই না পড়ে।
+Context prop drilling-এর সমাধান করে। এটা একটি subtree-তে value *পৌঁছে দেয়*। এর কোনো subscription model নেই। তাই
+provider-এর value-এর identity বদলালে **প্রতিটি consumer re-render হয়**, এমনকি যেটা বদলায়নি এমন কিছু পড়লেও।
 
-নিয়ম: **context ভাগ করুন কত ঘন ঘন বদলায় তা দেখে, কী নিয়ে তা দেখে নয়।** Login-এ বদলানো একটি user আর প্রতিটি
-click-এ বদলানো একটি sidebar flag আলাদা provider-এ থাকা উচিত। Context মানায় একটি theme, একটি locale, বা একটি
-client-এর handle-এ। ঘন ঘন বদলানো value-তে মানায় না।
+নিয়মটা হলো: **context ভাগ করুন কত ঘন ঘন বদলায় তা দেখে, কী নিয়ে তা দেখে নয়।** Login-এ বদলানো user আর প্রতিটি click-এ
+বদলানো sidebar flag আলাদা provider-এ থাকা উচিত। Context মানায় theme, locale বা কোনো client-এর handle-এর জন্য।
+ঘন ঘন বদলানো value-এর জন্য মানায় না।
 
 ### Zustand: একটি store, selector দিয়ে subscription
 
-Zustand state রাখে React-এর বাইরে। প্রতিটি component একটি slice-এ subscribe করে। যে component
-`sidebarOpen` select করে, অন্য কোনো field বদলালে সেটা re-render হয় না। Context এটা পারে না।
+Zustand state রাখে React-এর বাইরে। প্রতিটি component একটি slice-এ subscribe করে। যে component `sidebarOpen` select
+করে, অন্য field বদলালে সেটা re-render হয় না। Context এটা পারে না।
 
-**একটি typed Zustand store:**
+**Type-সহ একটি Zustand store:**
 
 ```typescript
 import { create } from 'zustand';
@@ -70,15 +71,14 @@ export const useUiStore = create<UiStore>()((set) => ({
 const open = useUiStore((s) => s.sidebarOpen);
 ```
 
-> ⚠️ **Zustand 5-এ selector-এর output স্থির হতে হবে।** ধরুন একটি selector প্রতিটি call-এ একটি নতুন object return
-> করে, যেমন `(s) => ({ a: s.a, b: s.b })`। এটা বারবার re-render ঘটায়, আর "maximum update depth exceeded" throw
-> করতে পারে। প্রতিটি call-এ একটি value select করুন, বা selector-টিকে `zustand/react/shallow` থেকে `useShallow`
-> দিয়ে wrap করুন।
+> ⚠️ **Zustand 5-এ selector-এর output স্থির হতে হবে।** ধরুন একটি selector প্রতিটি call-এ নতুন object return করে,
+> যেমন `(s) => ({ a: s.a, b: s.b })`। এতে বারবার re-render হয়, আর "maximum update depth exceeded" throw করতে পারে।
+> প্রতিটি call-এ একটি করে value select করুন, অথবা selector-টা `zustand/react/shallow`-এর `useShallow` দিয়ে মুড়ে দিন।
 
 ### Jotai আর Redux Toolkit
 
-Jotai কাজ করে উল্টো দিক থেকে। আপনি ছোট ছোট atom declare করেন, আর সেগুলো জোড়া লাগান। Derived atom তার dependency
-থেকে আবার হিসাব করে। একটি component শুধু সেই atom-গুলোর জন্য re-render হয়, যেগুলো সে পড়ে।
+Jotai কাজ করে উল্টো দিক থেকে। আপনি ছোট ছোট atom declare করেন, তারপর সেগুলো জোড়া লাগান। Derived atom তার dependency
+থেকে আবার হিসাব হয়। Component re-render হয় শুধু সেই atom-গুলোর জন্য, যেগুলো component-টা পড়ে।
 
 **Jotai atom হিসেবে derived state:**
 
@@ -96,26 +96,26 @@ const visibleItemsAtom = atom((get) =>
 const visible = useAtomValue(visibleItemsAtom);
 ```
 
-Atom মানায় টুকরো টুকরো, অনেক বেশি derived state-এ: একটি editor, একটি canvas, একটি filter panel। ছোট একটি shared
-store-এ এরা কম মানায়, কারণ পুরো জিনিসটার গড়ন বিভিন্ন file-এ ছড়িয়ে থাকে।
+Atom মানায় টুকরো টুকরো, অনেক derive করা state-এ: editor, canvas, filter panel। ছোট shared store-এ ততটা মানায় না,
+কারণ পুরো জিনিসটার আকার অনেকগুলো file-এ ছড়িয়ে থাকে।
 
-Redux Toolkit আর default নয়। তিনটি ক্ষেত্রে এটা এখনো জেতে: এমন একটি বড় team, যার একটি বাধ্যতামূলক নিয়ম দরকার;
-action log আবার চালিয়ে time-travel debugging; আর একটি সত্যিকারের middleware pipeline। এগুলো না থাকলে boilerplate
-এমন একটি খরচ, যার বিনিময়ে সমান কোনো লাভ নেই।
+Redux Toolkit এখন আর default নয়। তবু তিনটি ক্ষেত্রে এটাই জেতে: বড় team, যার একটি বাধ্যতামূলক নিয়ম লাগে; action log
+replay করে time-travel debugging; আর সত্যিকারের middleware pipeline। এগুলো না থাকলে boilerplate শুধু খরচ, বদলে
+কিছুই পাওয়া যায় না।
 
 ### Signal: প্রতিটি store-এর নিচের primitive
 
-Zustand track করা read-কে বলে selector, আর আপনি সেটা হাতে লেখেন। Jotai container-টিকে বলে atom, আর read আপনার হয়ে
-track করে। Svelte 5 একে বলে `$state`, Solid বলে signal, Vue বলে ref। Signal pattern-টিকে স্পষ্ট করে, তিনটি
+Zustand tracked read-কে বলে selector, আর সেটা আপনাকে নিজে লিখতে হয়। Jotai container-কে বলে atom, আর read-এর হিসাব
+নিজেই রাখে। Svelte 5 একে বলে `$state`, Solid বলে signal, Vue বলে ref। Signal pattern-টাকে স্পষ্ট করে, তিনটি
 primitive দিয়ে।
 
-| Primitive | কী ধরে রাখে | কখন আবার হিসাব করে | আপনি আগে থেকে যা ব্যবহার করেন |
-| --------- | ----- | ---------- | ------------------------ |
-| **Signal** | একটি writable value | কখনো না — আপনি set করেন | `useState`, একটি store field, `$state` |
-| **Computed** | একটি derived value | Lazy-ভাবে, একটি dependency বদলানোর পরে | `useMemo`, একটি selector, `$derived` |
-| **Effect** | কিছু না | Dependency বদলানোর পরে | `useEffect`, `$effect` |
+| Primitive | কী রাখে | কখন আবার হিসাব হয় | যার সঙ্গে আপনি আগেই পরিচিত |
+| --------- | ------ | ---------------- | ------------------------ |
+| **Signal** | লেখা যায় এমন value | কখনো না — আপনি set করেন | `useState`, store-এর field, `$state` |
+| **Computed** | Derived value | অলসভাবে, কোনো dependency বদলানোর পরে | `useMemo`, selector, `$derived` |
+| **Effect** | কিছুই না | Dependency বদলানোর পরে | `useEffect`, `$effect` |
 
-**গড়নটা, কোনো একটি library-র ওপর নির্ভর না করে:**
+**কাঠামোটা, কোনো নির্দিষ্ট library ছাড়া:**
 
 ```typescript
 const price = signal(100);
@@ -127,42 +127,40 @@ effect(() => renderTotal(total())); // renders 200
 quantity.set(3); // renders 300 — price was not recomputed, and no tree was diffed
 ```
 
-Runtime computation-টি **চালিয়ে** dependency খুঁজে পায়। কিছুই declare করা হয় না, তাই কিছু ভুলভাবে declare হওয়ারও
-সুযোগ নেই।
+Runtime dependency খুঁজে পায় computation-টা **চালিয়ে**। কিছুই declare করা নেই, তাই ভুল করে declare করার সুযোগও নেই।
 
-দুটি বৈশিষ্ট্য একটি signal library-কে একটি event emitter আর callback-এর একটি `Set`-এর চেয়ে বেশি মূল্যবান করে:
+দুটি বৈশিষ্ট্যের কারণে signal library একটি event emitter আর callback-এর একটি `Set`-এর চেয়ে বেশি দামি:
 
-- **Glitch-মুক্ত propagation।** `price` আর `quantity` একসঙ্গে update করুন, আর একটি সরল emitter নতুন `price`-এর
-  সঙ্গে পুরোনো `total` দেখাতে পারে। Signal dependency-র ক্রমে evaluate করে, তাই কেউ সেই আধা-update হওয়া state দেখে
-  না। হাতে বানানো store এখানে ভুল করে, আর bug-গুলো দেখতে race condition-এর মতো।
-- **Lazy, cache করা derivation।** একটি computed নিজেকে dirty চিহ্নিত করে, আর পরের read-এ একবার আবার হিসাব করে। Derive
-  করা সস্তা হয়ে যায়, তাই কেউ একটি derived value-কে সত্যের দ্বিতীয় উৎস হিসেবে জমা রাখতে প্রলুব্ধ হয় না।
+- **Glitch-মুক্ত propagation।** `price` আর `quantity` একসঙ্গে update করলে সাদামাটা emitter নতুন `price`-এর পাশে
+  পুরনো `total` দেখাতে পারে। Signal dependency-র ক্রম মেনে হিসাব করে, তাই কেউ সেই আধা-update হওয়া state দেখে না।
+  নিজে হাতে বানানো store এখানে ভুল করে, আর সেই bug-গুলো দেখতে race condition-এর মতো।
+- **অলস, cache করা derivation।** Computed নিজেকে dirty চিহ্নিত করে, আর পরের read-এ একবারই আবার হিসাব হয়। Derive করা
+  সস্তা হয়ে যায়, তাই কেউ derived value-কে সত্যের দ্বিতীয় উৎস হিসেবে store করার লোভ পায় না।
 
-> ⚠️ **যা বদলাতে থাকে:** একটি TC39 proposal signal-কে JavaScript-এর ভেতরেই যোগ করতে চায়। এটা এখনো প্রাথমিক পর্যায়ে,
-> এর API স্থির নয়, আর এটা হয়তো কখনো ship হবে না। আপনার framework-এর primitive ব্যবহার করুন, প্রস্তাবিত গড়ন নয়।
-> যে ধারণা টিকে থাকে, সেটা হলো graph: container, track করা read, জানানো write, lazy derivation। এটা প্রতিটি
-> implementation-এ খাটে।
+> ⚠️ **যা বদলাতে থাকে:** TC39-এর একটি proposal JavaScript-এই signal যোগ করতে চায়। এটা এখনও শুরুর দিকে, API স্থির
+> নয়, আর হয়তো কখনো ship হবে না। Proposal-এর আকার নয়, আপনার framework-এর primitive ব্যবহার করুন। টেকসই ধারণা হলো
+> graph-টা: container, tracked read, খবর দেওয়া write, অলস derivation। প্রতিটি implementation-এ এটাই খাটে।
 
-React signal গ্রহণ করেনি। Concurrent rendering-কে render বাতিল করে আবার চালাতে হয়, আর যে subscription আগেই DOM-এ
-লিখে ফেলেছে, সেটা আবার চালানো যায় না। React তার বদলে একটি memoising compiler ship করেছে।
+React signal নেয়নি। Concurrent rendering-কে render মাঝপথে ফেলে দিয়ে আবার চালাতে হয়, আর যে subscription ইতিমধ্যে
+DOM-এ লিখে ফেলেছে, তাকে আবার চালানো যায় না। তার বদলে React ship করেছে memoise করা একটি compiler।
 
 ### Signal যা সমাধান করে না
 
-Signal একটি **client state** primitive। এটা চার ধরনের state-এর একটি ঢাকে।
+Signal একটি **client state** primitive। চার ধরনের state-এর মধ্যে এটা একটিকেই সামলায়।
 
-| ধরন | Signal কি সাহায্য করে? |
-| ---- | ---------------- |
-| **Client state** | হ্যাঁ — এরা এটাই |
-| **Form state** | সামান্য। কঠিন অংশ হলো validation-এর সময় আর submission |
-| **URL state** | না। URL নিজেই container; একটি signal শুধু তার প্রতিফলন হতে পারে |
-| **Server state** | **না।** কোনো staleness policy নেই, deduplication নেই, retry নেই, invalidation নেই |
+| ধরন | Signal কি কাজে আসে? |
+| --- | ----------------- |
+| **Client state** | হ্যাঁ — এটা ঠিক এর জন্যই |
+| **Form state** | সামান্য। কঠিন অংশগুলো হলো validation-এর সময় আর submission |
+| **URL state** | না। URL নিজেই container; signal শুধু তার প্রতিচ্ছবি রাখতে পারে |
+| **Server state** | **না।** Staleness policy নেই, deduplication নেই, retry নেই, invalidation নেই |
 
-### একাধিক ধাপের flow একটি state, পাঁচটি boolean নয়
+### কয়েক ধাপের flow মানে একটি state, পাঁচটি boolean নয়
 
-`isLoading`, `isError`, `isSubmitting` আর `isSuccess` সহ একটি wizard-এর ষোলোটি combination আছে। আসল মাত্র চারটি,
-কিন্তু বাকিগুলোতেও পৌঁছানো যায়। তার বদলে একটি status-কে discriminated union হিসেবে রাখুন:
+`isLoading`, `isError`, `isSubmitting` আর `isSuccess` থাকা একটি wizard-এর combination ষোলোটি। আসল মাত্র চারটি, কিন্তু
+বাকিগুলোতেও পৌঁছানো সম্ভব। তার বদলে একটি status রাখুন, discriminated union হিসেবে:
 
-**একটি status, যাতে অসম্ভব combination থাকতেই না পারে:**
+**একটি status, তাই অসম্ভব combination তৈরিই হতে পারে না:**
 
 ```typescript
 type Checkout =
@@ -172,71 +170,71 @@ type Checkout =
   | { status: 'success'; orderId: string };
 ```
 
-যে reducer বর্তমান status-এর ওপর switch করে, সে অর্থহীন event উপেক্ষা করে। তখন `success`-এর পরে দ্বিতীয় একটি
-`SUBMIT` কিছুই করে না, মনে রাখার মতো কোনো guard clause ছাড়াই।
+যে reducer বর্তমান status দেখে switch করে, সেটা অর্থহীন event উপেক্ষা করে। ফলে `success`-এর পরে দ্বিতীয় একটি
+`SUBMIT` কিছুই করে না, আর মনে রাখার মতো কোনো guard clause-ও লাগে না।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি | বাছাই |
-| --------- | ------ |
-| দুটি sibling component যে value share করে | সবচেয়ে কাছের parent-এ তুলে দিন |
-| Theme, locale, একটি client instance | Context |
-| কয়েক ডজন derived value সহ একটি editor | Atom, বা আপনার framework-এর signal |
-| একটি বড় team, যারা একটি বাধ্যতামূলক pattern চায় | Redux Toolkit |
-| Svelte, Solid বা Vue | Framework-এর signal — এরাই স্বাভাবিক state layer |
-| একটি checkout বা onboarding flow | একটি discriminated-union status |
-| API থেকে fetch করা যেকোনো কিছু | এর কোনোটাই নয় — [Chapter ?? — TanStack Query দিয়ে Server State](#ch-server-state) দেখুন |
+| পরিস্থিতি | যা বেছে নেবেন |
+| --------- | ------------ |
+| দুটি sibling component-এর shared value | সবচেয়ে কাছের parent-এ তুলে দিন |
+| Theme, locale, কোনো client instance | Context |
+| কয়েক ডজন derived value-ওয়ালা editor | Atom, বা আপনার framework-এর signal |
+| বড় team, যে একটি বাধ্যতামূলক pattern চায় | Redux Toolkit |
+| Svelte, Solid বা Vue | Framework-এর signal — ওটাই সেখানে স্বাভাবিক state layer |
+| Checkout বা onboarding flow | Discriminated union হিসেবে একটি status |
+| API থেকে fetch করা যেকোনো কিছু | এর কোনোটাই নয় — দেখুন [Chapter ?? — TanStack Query দিয়ে Server State](#ch-server-state) |
 
 ## সাধারণ ভুল
 
-**❌ Derived value জমা রাখা।**
-✅ এগুলো derive করুন। জমা রাখা একটি total সত্যের দ্বিতীয় উৎস, যেটা প্রথমটির সঙ্গে একসময় মিলবে না।
+**❌ Derived value store করা।**
+✅ Derive করুন। Store করা total সত্যের দ্বিতীয় একটি উৎস, যা একসময় প্রথমটার সঙ্গে মিলবে না।
 
-**❌ একটি signal-কে আরেকটিতে copy করতে একটি effect ব্যবহার করা।**
-✅ এটা ধীর পথে লেখা একটি derived value, যেখানে একটি সময় থাকে যখন দুটি মেলে না। একটি computed ব্যবহার করুন। এটা
-[Chapter ?? — useEffect, আর কখন এটা ব্যবহার করবেন না](#ch-when-not-to-use-effect)-এর একই ভুল।
+**❌ Effect দিয়ে একটি signal আরেকটিতে copy করা।**
+✅ এটা আসলে ধীর পথে লেখা derived value, মাঝে এমন একটি সময় থাকে যখন দুটি মেলে না। Computed ব্যবহার করুন। এটা
+[Chapter ?? — useEffect, আর কখন এটা ব্যবহার করবেন না](#ch-when-not-to-use-effect)-এর ভুলটাই।
 
 ## 🔑 মূল শিক্ষা
 
-- Server, form আর URL state বাদ দেওয়ার পরে যা থাকে, সেটাই client state। এটা সাধারণত ছোট, আর সাধারণত local।
-- Context value পৌঁছে দেয়, কিন্তু এর কোনো subscription নেই, তাই প্রতিটি পরিবর্তনে প্রতিটি consumer re-render হয়।
-- Zustand subscribe করে প্রতিটি selector ধরে, Jotai প্রতিটি atom ধরে, আর Redux তার জায়গা পায় বড় পরিসরে নিয়ম বজায় রাখার জন্য।
-- প্রতিটি store একটি আংশিক signal graph: একটি container, একটি track করা read, আর একটি write যেটা জানায়।
-- Signal শুধু client state-এর সমাধান করে। Server data-র এখনো staleness আর invalidation সহ একটি cache দরকার।
+- Server, form আর URL state বাদ দিলে যা থাকে, সেটাই client state। সাধারণত তা ছোট, আর সাধারণত local।
+- Context value পৌঁছে দেয়, কিন্তু subscription নেই, তাই প্রতিটি বদলে প্রতিটি consumer re-render হয়।
+- Zustand subscribe করে selector ধরে, Jotai atom ধরে, আর বড় পরিসরে নিয়ম চাপানোর জন্য Redux তার জায়গা ধরে রাখে।
+- প্রতিটি store আসলে একটি আংশিক signal graph: একটি container, একটি tracked read, আর খবর দেওয়া একটি write।
+- Signal শুধু client state সমাধান করে। Server-এর data-র এখনও staleness আর invalidation-সহ cache লাগে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: কখন আপনি একটি state library-র বদলে Context ব্যবহার করবেন?**
+**Q: কখন state library-র বদলে Context ব্যবহার করবেন?**
 
-এমন value-এর জন্য, যা অনেক জায়গায় পড়া হয় আর কদাচিৎ বদলায়: একটি theme, একটি locale, একটি client-এর handle।
-Context-এর কোনো subscription নেই, তাই provider value-এর identity বদলালে প্রতিটি consumer re-render হয়। Login-এ বদলালে
-এর কোনো খরচ নেই। প্রতিটি keystroke-এ বদলালে খরচ অনেক।
+এমন value-র জন্য, যা অনেক জায়গায় পড়া হয় কিন্তু কদাচিৎ বদলায়: theme, locale, কোনো client-এর handle। Context-এর
+subscription নেই, তাই provider-এর value-এর identity বদলালে প্রতিটি consumer re-render হয়। Login-এ বদলালে এর কোনো
+খরচ নেই, প্রতিটি keystroke-এ বদলালে খরচ অনেক।
 
-**Q: একজন React developer যে শব্দগুলো আগে থেকে ব্যবহার করেন, সেগুলো দিয়ে signal কী?**
+**Q: React developer যা আগে থেকেই ব্যবহার করেন, সেই ভাষায় signal কী?**
 
-একটি `useState`, যার read track হয়; একটি `useMemo`, যে নিজের dependency নিজেই জানে; আর একটি `useEffect`, যার
-ভুল করার মতো কোনো dependency array নেই। Runtime read দেখে দেখে graph বানায়, আপনার লেখা একটি list-কে বিশ্বাস না করে।
+এমন একটি `useState`, যার read-এর হিসাব রাখা হয়; এমন একটি `useMemo`, যে নিজের dependency নিজেই জানে; আর এমন একটি
+`useEffect`, যার dependency array-ই নেই, তাই ভুল করারও কিছু নেই। আপনার লেখা কোনো list-এর ওপর ভরসা না করে runtime
+read দেখে দেখে graph বানায়।
 
 **Q: Glitch কী, আর এটা কেন গুরুত্বপূর্ণ?**
 
-একজন consumer এমন একটি value দেখে, যা পুরোনো আর নতুন input মিশিয়ে derive করা। এটা ঘটে যখন দুটি dependency update
-হয়, আর notification-এর ক্রম dependency-র ক্রম নয়। Signal library dependency-র ক্রমে evaluate করে, তাই এটা ঘটতে
-পারে না। একটি emitter আর একটি callback list দিয়ে বানানো store-এ সাধারণত পারে।
+কোনো consumer এমন একটি value দেখে, যা পুরনো আর নতুন input মিশিয়ে derive করা। এটা হয় যখন দুটি dependency update হয়,
+আর খবর দেওয়ার ক্রম dependency-র ক্রম মানে না। Signal library dependency-র ক্রম মেনে হিসাব করে, তাই এটা হতে পারে না।
+Emitter আর callback list দিয়ে বানানো store-এ সাধারণত হতে পারে।
 
-**Q: Signal কি TanStack Query-র জায়গা নেয়?**
+**Q: Signal কি TanStack Query-র জায়গা নিয়ে নেয়?**
 
-না। একটি signal একটি পরিবর্তন ছড়িয়ে দেয়। Staleness, deduplication, retry, invalidation বা focus-এ refetch নিয়ে এর
-কোনো মত নেই। Value যেটাই ধরে রাখুক, server data-র এগুলো সবই দরকার। এ কারণেই প্রতিটি signal ecosystem-এর নিজস্ব
-query library আছে।
+না। Signal একটি বদল ছড়িয়ে দেয়, ব্যস। Staleness, deduplication, retry, invalidation বা focus-এ refetch নিয়ে এর কোনো
+মত নেই। Value যে-ই ধরে রাখুক, server-এর data-র এগুলো সবই লাগে। এজন্যই প্রতিটি signal ecosystem-এর নিজস্ব query
+library আছে।
 
-**Q: আপনার team সব client state Redux-এ নিতে চায়। আপনি কি নেবেন?**
+**Q: আপনার team সব client state Redux-এ সরাতে চায়। আপনি কি রাজি হবেন?**
 
-সম্ভবত না। Fetch করা data-র জায়গা একটি query cache, আর বেশিরভাগ value-এর জায়গা `useState`। Redux ঠিক, যখন team-এর
-একটি নিয়ম, action replay বা একটি middleware pipeline দরকার। এগুলো না থাকলে এটা এমন boilerplate, যার বিনিময়ে সমান
-কোনো লাভ নেই।
+সম্ভবত না। Fetch করা data-র জায়গা query cache-এ, আর বেশিরভাগ value-র জায়গা `useState`-এ। Redux ঠিক তখন, যখন team-এর
+একটি নিয়ম, action replay বা middleware pipeline লাগে। এগুলো না থাকলে এটা শুধু boilerplate, বদলে কিছুই পাওয়া যায় না।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — চার ধরনের State](#ch-four-kinds-of-state) — যে শ্রেণিবিভাগ এই অধ্যায় ধরে নেয়
-- [Chapter ?? — Runes Model, Component ও Snippet](#ch-svelte-runes) — একটি framework-এর প্রধান API হিসেবে signal
-- [Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler) — এই অধ্যায় যে re-render খরচের কথা বারবার বলে
+- [Chapter ?? — চার ধরনের State](#ch-four-kinds-of-state) — এই অধ্যায় যে ভাগ ধরে নিয়ে চলে
+- [Chapter ?? — Runes Model, Component ও Snippet](#ch-svelte-runes) — framework-এর প্রধান API হিসেবে signal
+- [Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler) — এই অধ্যায় বারবার যে re-render-এর খরচের কথা বলে

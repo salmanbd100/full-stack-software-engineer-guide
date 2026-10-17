@@ -1,40 +1,39 @@
 ---
 sourceHash: "6885d88097fcca0a2751acefac6df9f1fa03d0f0e27ce3377a09d20a826cd06b"
 title: "Action ও Form"
-translatedAt: "2026-10-12T07:53:38.596Z"
+translatedAt: "2026-10-17T01:34:20.724Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Action ও Form {#ch-react-actions-and-forms}
 
-> এমন একটি form submit করুন, যেটা hydration-এর আগেই কাজ করে, নিজের pending state নিজেই জানায়, আর server যেটাকে বিশ্বাস করতে পারে না।
+> এমন form submit করুন, যা hydration-এর আগেই কাজ করে, নিজের pending state নিজেই জানায়, আর যাকে server কখনো বিশ্বাস করে না।
 
-**এই অধ্যায়ে:** Action কী · `<form action>` · `useActionState` · `useFormStatus` · `useOptimistic` · Server Function আর তার security
+**এই অধ্যায়ে:** Action আসলে কী · `<form action>` · `useActionState` · `useFormStatus` · `useOptimistic` · Server Function আর তার security
 
 ## 💡 মূল ধারণা
 
-আগে একটি React application-এর প্রতিটি mutation-এর জন্য হাতে লেখা state-এর একই চারটি টুকরো লাগত: submitting, error,
-result, আর request চলাকালীন একটি optimistic value। সবাই এগুলো লিখত, প্রত্যেকে একটু আলাদাভাবে, আর বেশিরভাগ মানুষ race
-condition-গুলো ভুল করত।
+আগে React app-এর প্রতিটি mutation-এ একই চারটি state হাতে লিখতে হতো: submitting, error, result, আর request
+চলার সময়ের optimistic value। সবাই এগুলো লিখত, প্রত্যেকে একটু আলাদাভাবে। আর বেশিরভাগই race condition-এ ভুল করত।
 
-React 19 এটাকে একটি first-class ধারণা বানিয়েছে। **Action হলো একটি async function, যেটা React একটি transition-এর
-ভেতরে চালায়**, আর React আপনার হয়ে এর pending state ট্র্যাক করে। একটিকে form-এর `action` prop-এ দিন, আর form-টি আবার
-একটি আসল submission হয়ে যায়। আপনার JavaScript load হওয়ার আগেই এটা কাজ করে।
+React 19 এটাকে framework-এরই অংশ বানিয়ে দিয়েছে। **Action হলো এমন async function, যা React একটি transition-এর
+ভেতরে চালায়**, আর তার pending state React নিজেই track করে। Form-এর `action` prop-এ একটি Action দিলে form আবার
+সত্যিকারের submission হয়ে যায়। আপনার JavaScript load হওয়ার আগেই সেটা কাজ করে।
 
-> Senior পর্যায়ের আসল কথাটা hook-গুলো নয়। আসল কথা হলো, প্রথম second-এ, hydration শেষ হওয়ার আগে submit করা একটি
-> form হারিয়ে যায় না, আবার চালানো হয়।
+> Senior-লেভেলের আসল কথা hook-গুলো নয়। আসল কথা হলো, hydration শেষ হওয়ার আগে, প্রথম সেকেন্ডেই কেউ form submit
+> করলে সেটা হারিয়ে যায় না, পরে আবার চালানো হয়।
 
-> ⚠️ **লক্ষ্য বদলাচ্ছে:** এখানকার নামগুলো ইতিমধ্যে একবার বদলেছে। `useFormState` হয়েছে `useActionState`, আর React-এর
-> নিজের documentation Server Action-এর নাম বদলে Server Function রেখেছে। ধরে নিন hook-এর surface আরও কিছুদিন থিতু হতে
-> থাকবে। স্থায়ী নীতিটা নিচে আছে, আর সেটা বদলানোর ক্ষমতা React-এর নেই: একটি `<form>` JavaScript ছাড়াই post করে। তাই
-> একটি Action যা কিছু যোগ করে, সবই এমন একটি submission-এর ওপরে enhancement, যেটা আগে থেকেই কাজ করে।
+> ⚠️ **যা বদলাতে থাকে:** এখানকার নামগুলো এর মধ্যেই একবার বদলেছে। `useFormState` হয়ে গেছে
+> `useActionState`, আর React-এর নিজের documentation Server Action-এর নাম বদলে Server Function রেখেছে। Hook-গুলো
+> আরও কিছুদিন থিতু হতে থাকবে, ধরে নিন। কিন্তু নিচের টেকসই নীতিটা বদলানোর ক্ষমতা React-এর নেই: JavaScript ছাড়াই
+> `<form>` post হয়। তাই Action যা কিছু যোগ করে, সবই এমন একটি submission-এর ওপর বাড়তি সুবিধা, যা আগে থেকেই কাজ করে।
 
 ## কীভাবে কাজ করে
 
 ### `<form action={fn}>`
 
-URL-এর বদলে একটি function দিন। React এটাকে `FormData` দিয়ে call করে, একটি transition-এর ভেতরে, কোনো
-`preventDefault` ছাড়াই। সফল হলে এটা আপনার হয়ে একটি uncontrolled form reset করে দেয়।
+URL-এর বদলে একটি function দিন। React সেটা call করে `FormData` দিয়ে, একটি transition-এর ভেতরে, আর
+`preventDefault` লাগে না। সফল হলে uncontrolled form-টা React নিজেই reset করে দেয়।
 
 ```tsx
 function Search() {
@@ -52,13 +51,13 @@ function Search() {
 }
 ```
 
-আলাদা আলাদা button `formAction` দিয়ে এটা override করতে পারে। এভাবেই একটি form-এ একটি hidden field আর একটি branch
-ছাড়াই একটি "Publish" আর একটি "Save draft" button থাকতে পারে।
+আলাদা আলাদা button `formAction` দিয়ে এটা override করতে পারে। এভাবেই একটি form-এ "Publish" আর "Save draft"
+দুটি button রাখা যায়, hidden field বা branch ছাড়াই।
 
 ### `useActionState` — result আর pending flag
 
-এটা একটি action-কে wrap করে, যাতে React এর return করা শেষ value-টি রেখে দেয়। Signature-টি হলো submission-গুলোর ওপর
-একটি reducer: function-টি আগের state আর form data পায়।
+এটা একটি action-কে মুড়ে দেয়, যাতে action-এর শেষ return করা value React মনে রাখে। Signature-টা আসলে submission-এর
+ওপর একটি reducer: function পায় আগের state আর form data।
 
 ```tsx
 interface FormState {
@@ -84,13 +83,13 @@ function UpdateName() {
 }
 ```
 
-Error throw না করে return করাটা ইচ্ছাকৃত। Return করা value server থেকে serialisation পার হয়ে টিকে থাকে। এটা ব্যর্থতাকে
-render tree-তেও রাখে, error boundary-তে নয়।
+Error throw না করে return করাটা ইচ্ছে করে করা। Return করা value server থেকে serialise হয়ে নিরাপদে আসে। তা ছাড়া
+failure-টা error boundary-তে না গিয়ে render tree-তেই থাকে।
 
-### `useFormStatus` — একটি child থেকে pending state
+### `useFormStatus` — child থেকে pending state
 
-এটা `react-dom` থেকে import করুন, `react` থেকে নয়। এটা এর **ওপরের** সবচেয়ে কাছের `<form>`-এর status পড়ে। এটাই একটি
-shared submit button সম্ভব করে।
+এটা import করুন `react-dom` থেকে, `react` থেকে নয়। এটা পড়ে নিজের **ওপরে** থাকা সবচেয়ে কাছের `<form>`-এর status।
+এ কারণেই সবার জন্য একটি shared submit button বানানো সম্ভব হয়।
 
 ```tsx
 "use client";
@@ -102,13 +101,14 @@ export function SubmitButton({ children }: { children: ReactNode }) {
 }
 ```
 
-> ⚠️ `useFormStatus`-কে form-এর একটি **child**-এ থাকতে হবে, কখনো সেই component-এ নয়, যেটা `<form>` element render
-> করে। একই component-এ এটা সবসময় `pending: false` জানায়। কোনো warning নেই, আর button-টি কখনো disable হয় না।
+> ⚠️ `useFormStatus` রাখতে হবে form-এর কোনো **child**-এ। যে component `<form>` element render করে, সেখানে রাখলে
+> চলবে না। একই component-এ রাখলে এটা সবসময় `pending: false` দেয়। কোনো warning আসে না, button-টা শুধু কখনো
+> disable হয় না।
 
-### `useOptimistic` — ঘটার আগেই ফলাফল দেখানো
+### `useOptimistic` — ঘটার আগেই ফল দেখানো
 
-Action চলার সময় render করার জন্য React-কে একটি অস্থায়ী value দিন। Action settle হলে React optimistic value বাদ দিয়ে
-আসল state দেখায়।
+Action চলার সময় render করার জন্য React-কে একটি অস্থায়ী value দিন। Action শেষ হলে React optimistic value-টা ফেলে
+দিয়ে আসল state দেখায়।
 
 ```tsx
 function Thread({ messages, sendMessage }: ThreadProps) {
@@ -132,21 +132,21 @@ function Thread({ messages, sendMessage }: ThreadProps) {
 }
 ```
 
-Rollback automatic: action throw করলে React আসল state-এ ফিরে যায়। User-কে জানানোটা automatic *নয়*। সেটা এখনো আপনার
-কাজ।
+Rollback নিজে থেকেই হয়: action throw করলে React আসল state-এ ফিরে যায়। কিন্তু user-কে জানানোটা নিজে থেকে হয় *না*।
+সেটা এখনো আপনার কাজ।
 
 ### Progressive enhancement
 
-Action-ওয়ালা একটি form একটি form-ই। Hydration-এর আগে, যখন React এখনো HTML-এ জুড়ে বসেনি, browser এটা submit করে।
-Hydration শেষ হলে React সেই submission আবার চালায়। HTML আসা আর JavaScript চলার মাঝখানে কিছুই হারায় না। আসল network-এ
-আসল user-রা ঠিক এই সময়টাতেই click করেন।
+Action-ওয়ালা form আসলে একটি সাধারণ form-ই। Hydration-এর আগে, মানে React যখন HTML-এর সঙ্গে এখনো যুক্ত হয়নি,
+browser নিজেই form-টা submit করে। Hydration শেষ হলে React সেই submission আবার চালায়। HTML আসা আর JavaScript
+চলার মাঝখানে কিছুই হারায় না। আর আসল network-এ আসল user ঠিক এই সময়েই click করে।
 
-এটা তখনই খাটে, যখন form-টি named input-সহ একটি আসল `<form>`। `onClick`-ওয়ালা একটি `<div>`-এ এর কিছুই নেই।
+এটা খাটে শুধু তখনই, যখন form সত্যিকারের `<form>`, আর input-গুলোর নাম আছে। `onClick` দেওয়া `<div>` এর কিছুই পায় না।
 
 ### Server Function
 
-`'use server'` দিয়ে চিহ্নিত একটি function server-এ চলে, আর আপনি এটাকে prop হিসেবে client-এর হাতে দিতে পারেন। React
-এটাকে একটি **reference** হিসেবে serialise করে। Client call করার জন্য একটি generated endpoint পায়।
+`'use server'` চিহ্ন দেওয়া function চলে server-এ, আর সেটা prop হিসেবে client-কে দেওয়া যায়। React একে serialise
+করে একটি **reference** হিসেবে। Client পায় call করার জন্য একটি generated endpoint।
 
 ```tsx
 "use server";
@@ -161,75 +161,74 @@ export async function updateName(name: string): Promise<Result> {
 }
 ```
 
-খেয়াল করুন, প্রথম তিনটি line আসলে কী। **একটি Server Function হলো একটি generated নামওয়ালা public HTTP endpoint।**
-যে কেউ যেকোনো argument দিয়ে এটা call করতে পারে। Authentication, authorisation আর validation এর ভেতরেই থাকা উচিত,
-প্রতিবার। একটি component-এর সাথে একই file-এ থাকা কোনো access control নয়।
+প্রথম তিনটি line আসলে কী, খেয়াল করুন। **Server Function হলো generated নামওয়ালা একটি public HTTP endpoint।** যে
+কেউ যেকোনো argument দিয়ে একে call করতে পারে। তাই authentication, authorisation আর validation প্রতিবার এর ভেতরেই
+থাকবে। Component-এর সঙ্গে একই file-এ থাকা কোনো access control নয়।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                        | কী ব্যবহার করবেন                                    |
-| ------------------------------------------------- | --------------------------------------------- |
-| কিছু mutate করে এমন যেকোনো form                   | `<form action>` — কখনো `onSubmit` আর fetch নয় |
-| Result বা error দেখাতে হবে           | `useActionState`                              |
-| একটি design system-এ একটি reusable submit button       | Button-এর ভেতরে `useFormStatus`                 |
-| Chat, like, toggle — যেখানে latency টের পাওয়া যায়      | `useOptimistic`                               |
-| Submit-এর আগে জটিল client-side validation      | একটি form library, নিচে একটি action-সহ      |
-| Form ছাড়া একটি mutation — একটি delete icon           | Async call-এর চারপাশে `startTransition`        |
+| পরিস্থিতি                                         | কী ব্যবহার করবেন                               |
+| ------------------------------------------------ | --------------------------------------------- |
+| যেকোনো form, যা কিছু বদলায়                       | `<form action>` — `onSubmit` আর fetch কখনো নয় |
+| Result বা error দেখাতে হবে                        | `useActionState`                              |
+| Design system-এ বারবার ব্যবহারের submit button    | Button-এর ভেতরে `useFormStatus`                |
+| Chat, like, toggle — যেখানে latency চোখে পড়ে     | `useOptimistic`                               |
+| Submit-এর আগে জটিল client-side validation       | Form library, নিচে একটি action সহ              |
+| Form ছাড়া mutation — যেমন delete icon           | Async call-এর চারপাশে `startTransition`        |
 
 ## সাধারণ ভুল
 
-**❌ একটি Server Function-এর caller-কে বিশ্বাস করা।** এটা একটি endpoint। Argument validate করুন আর session যাচাই
-করুন function-এর ভেতরে, যে component button render করে সেখানে নয়।
+**❌ Server Function-এর caller-কে বিশ্বাস করা।** এটা একটি endpoint। Argument validate করুন আর session check করুন
+function-এর ভেতরেই, button render করা component-এ নয়।
 
-**❌ Form-এর পাশে `useFormStatus`।** এটা এর *ওপরের* form পড়ে। একই component-এ এটা চিরকাল `false` return করে, আর
+**❌ Form-এর পাশে `useFormStatus`।** এটা পড়ে নিজের *ওপরের* form। একই component-এ রাখলে চিরকাল `false` দেয়, আর
 কিছুই disable হয় না।
 
-**❌ অভ্যাসের বশে `onSubmit` আর `preventDefault` রেখে দেওয়া।** ওই পথে hydration-এর আগের replay আর automatic reset দুটিই
-হাতছাড়া হয়। আপনি আবার হাতে pending state লেখায় ফিরে যান।
+**❌ অভ্যাসবশে `onSubmit` আর `preventDefault` রেখে দেওয়া।** এ পথে hydration-এর আগের replay আর automatic reset,
+দুটিই হারান। আবার সেই হাতে pending state লেখার যুগে ফিরে যান।
 
-**❌ ব্যর্থতার কোনো ব্যবস্থা ছাড়া optimistic update।** Rollback automatic। ব্যাখ্যাটা নয়। যে message চুপচাপ উধাও হয়ে
-যায়, সেটা পাঠাতে এক second লাগা message-এর চেয়েও খারাপ।
+**❌ Fail করলে কী হবে, তা না ভেবে optimistic update।** Rollback নিজে থেকে হয়, কিন্তু ব্যাখ্যা হয় না। পাঠাতে এক
+সেকেন্ড লাগা message-এর চেয়ে চুপচাপ উধাও হয়ে যাওয়া message অনেক খারাপ।
 
-**❌ অভ্যাসবশত সব জায়গায় controlled input।** Action `FormData` পড়ে, তাই `name` attribute-ওয়ালা uncontrolled input-ই
-যথেষ্ট। এগুলোই form-কে hydration-এর আগে কাজ করায়।
+**❌ অভ্যাসবশে সব জায়গায় controlled input।** Action পড়ে `FormData`, তাই `name` attribute দেওয়া uncontrolled
+input-ই যথেষ্ট। Hydration-এর আগে form কাজ করে এগুলোর জোরেই।
 
 ## 🔑 মূল শিক্ষা
 
-- Action হলো একটি async function, যেটা React একটি transition-এ চালায়, আর আপনার হয়ে pending state ট্র্যাক করে।
-- `<form action>`-এ কোনো `preventDefault` লাগে না, সফল হলে reset হয়, আর hydration-এর আগে submit হলে আবার চালানো হয়।
-- `useActionState` শেষ result আর একটি pending flag return করে। `useFormStatus` একটি child থেকে সেই pending state পড়ে।
-- `useOptimistic` ব্যর্থ হলে automatic rollback করে, কিন্তু user-কে জানানো এখনো আপনার কাজ।
-- একটি Server Function একটি public endpoint। এর ভেতরেই authenticate, authorise আর validate করুন।
+- Action হলো async function, যা React একটি transition-এ চালায় আর তার pending state নিজেই track করে।
+- `<form action>`-এ `preventDefault` লাগে না, সফল হলে reset হয়, আর hydration-এর আগে submit হলে পরে আবার চলে।
+- `useActionState` দেয় শেষ result আর একটি pending flag। `useFormStatus` সেই pending state পড়ে child থেকে।
+- `useOptimistic` fail করলে নিজেই rollback করে, কিন্তু user-কে জানানো এখনো আপনার কাজ।
+- Server Function একটি public endpoint। Authenticate, authorise আর validate করুন এর ভেতরেই।
 
 ## Interview-এর প্রশ্ন
 
-**Q: `onSubmit` আর `fetch` যা দিত না, React 19 আপনাকে তা কী দেয়?**
+**Q: `onSubmit` আর `fetch` যা দিত না, React 19 তার বাইরে কী দেয়?**
 
-Pending state, automatic reset, আর transition-এর semantics, যেটা page-কে responsive রাখে। কিন্তু যেটা আসলে গুরুত্বপূর্ণ,
-সেটা progressive enhancement। একটি `action`-ওয়ালা form hydration-এর আগেই কাজ করে, আর ওই সময়ে করা একটি submission
-React হারিয়ে না ফেলে আবার চালায়। ধীর device-এ ওই সময়টা কয়েক second স্থায়ী হয়, আর ঠিক তখনই অধৈর্য user-রা click
-করেন।
+Pending state, automatic reset, আর transition-এর আচরণ, যাতে page responsive থাকে। তবে আসল জিনিস progressive
+enhancement। `action` দেওয়া form hydration-এর আগেই কাজ করে, আর ওই সময়ে করা submission React হারিয়ে না ফেলে
+পরে আবার চালায়। ধীর device-এ এই সময়টা কয়েক সেকেন্ড, আর অধৈর্য user ঠিক তখনই click করে।
 
-**Q: একটি design system-এর জন্য এমন একটি submit button কীভাবে বানাবেন, যেটা জানে কখন submit হচ্ছে?**
+**Q: Design system-এর জন্য এমন submit button কীভাবে বানাবেন, যে জানে কখন submit চলছে?**
 
-Button component-এর ভেতরে `useFormStatus`। এটা tree-তে এর ওপরের সবচেয়ে কাছের form পড়ে, তাই button-এর কোনো props
-লাগে না, form থেকে কোনো wiring-ও লাগে না। ফাঁদটা হলো: এটাকে `<form>`-এর একটি child হতে হবে। Form element render করে
-এমন একই component-এ call করলে এটা চিরকাল `pending: false` জানায়, কোনো warning ছাড়াই।
+Button component-এর ভেতরে `useFormStatus`। এটা tree-তে নিজের ওপরের সবচেয়ে কাছের form পড়ে, তাই button-এ কোনো
+prop লাগে না, form থেকে কিছু জোড়াও লাগে না। ফাঁদটা হলো: এটাকে `<form>`-এর child হতেই হবে। Form element render
+করা component-এই call করলে এটা চিরকাল `pending: false` দেয়, কোনো warning ছাড়াই।
 
-**Q: একজন user-কে যেকোনো argument দিয়ে সরাসরি আপনার Server Function call করা থেকে কী আটকায়?**
+**Q: কেউ সরাসরি যেকোনো argument দিয়ে আপনার Server Function call করলে কী আটকায়?**
 
-কিছুই না। এটা একটি generated নামওয়ালা public endpoint-এ compile হয়, আর client এর একটি reference পায়। প্রতিটি Server
-Function-এর নিজস্ব session check, authorisation check আর input validation লাগে, ঠিক একটি route handler-এর মতো। যে
-component এটা call করে, তার পাশে রাখাটা developer-দের সুবিধা, কোনো security boundary নয়।
+কিছুই না। এটা compile হয়ে generated নামের একটি public endpoint হয়, আর client তার একটি reference পায়। তাই
+প্রতিটি Server Function-এর নিজস্ব session check, authorisation check আর input validation লাগে, ঠিক route handler-এর
+মতো। যে component call করে তার পাশে রাখাটা developer-এর সুবিধা, security boundary নয়।
 
-**Q: কখন optimistic update ভুল পছন্দ?**
+**Q: Optimistic update কখন ভুল সিদ্ধান্ত?**
 
-যখন ভুল হওয়াটা ব্যয়বহুল বা ব্যাখ্যা করা কঠিন। একটি পাঠানো message বা toggle করা like দেখানো ঠিক আছে। ব্যর্থ হওয়া
-message user বোঝেন। কিন্তু server রাজি হওয়ার আগে একটি সম্পন্ন payment, একটি নিশ্চিত booking বা একটি মুছে ফেলা record
-দেখানো ঠিক নয়। সংশোধন আসে তখন, যখন user এগিয়ে গেছেন আর যা দেখেছেন তার ভিত্তিতে কাজ করে ফেলেছেন।
+যখন ভুল হওয়ার দাম বেশি, বা ভুলটা বোঝানো কঠিন। পাঠানো message বা দেওয়া like আগে দেখানো ঠিক আছে, message fail
+করলে user সেটা বোঝে। কিন্তু server রাজি হওয়ার আগেই completed payment, confirmed booking বা deleted record দেখানো
+ঠিক নয়। সংশোধন যখন আসে, user ততক্ষণে এগিয়ে গেছে, আর যা দেখেছে তার ভিত্তিতে কাজও করে ফেলেছে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler) — যে mechanism-এর ওপর Action তৈরি
-- [Chapter ?? — Server Component ও Client Component](#ch-server-components-vs-client-components) — একটি function reference কীভাবে boundary পার হয়
-- [Chapter ?? — Form State](#ch-form-state) — validation, schema আর এগুলো কোথায় চলে
+- [Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler) — যে mechanism-এর ওপর Action দাঁড়িয়ে
+- [Chapter ?? — Server Component ও Client Component](#ch-server-components-vs-client-components) — function reference কীভাবে boundary পার হয়
+- [Chapter ?? — Form State](#ch-form-state) — validation, schema, আর সেগুলো কোথায় চলে

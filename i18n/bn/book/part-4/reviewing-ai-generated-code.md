@@ -1,52 +1,52 @@
 ---
 sourceHash: "fd9498869926821149fd265d5d6c2998d1fbfad46edc6b7b5cb598e2bed6794c"
 title: "AI-এর লেখা Code Review"
-translatedAt: "2026-10-12T12:15:05.045Z"
+translatedAt: "2026-10-17T01:38:55.028Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # AI-এর লেখা Code Review {#ch-reviewing-ai-generated-code}
 
-> Generated code-এ যেসব defect স্বভাবগতভাবে বেশি দেখা যায়, সেগুলো ধরুন — যেগুলো compile হয়, পড়তে ভালো লাগে, আর এমন কিছু নিয়ে ভুল যা শুধু আপনার codebase জানে।
+> Generate করা code-এ যে ধরনের defect বিশেষ করে থাকে, সেগুলো ধরুন: যা compile হয়, পড়তে ভালো লাগে, অথচ এমন কিছু নিয়ে ভুল, যা শুধু আপনার codebase জানে।
 
-**এই অধ্যায়ে:** generated code কীভাবে অন্যভাবে ব্যর্থ হয় · তিনটি defect যা দেখামাত্র চেনা উচিত · একটি generated diff-কে যে প্রশ্নগুলো করবেন · gate-কে মনোযোগ থেকে automation-এ সরানো
+**এই অধ্যায়ে:** generate করা code কীভাবে অন্যভাবে ভাঙে · তিনটি defect, যা দেখামাত্র চেনা উচিত · generate করা diff-কে যে প্রশ্নগুলো করবেন · মনোযোগের ভরসা ছেড়ে automation-এ gate বসানো
 
 ## 💡 মূল ধারণা
 
-মানুষের লেখা code ব্যর্থ হয় সেখানে, যেখানে author বিভ্রান্ত ছিলেন। সাধারণত diff-এই সেটা দেখা যায়: নামগুলো অস্পষ্ট হয়ে
-যায়, comment-গুলো আত্মরক্ষামূলক হয়ে ওঠে, edge case বাদ পড়ে কারণ author সেটা কখনো ভাবেননি। Review কাজ করে কারণ
-বিভ্রান্তি চিহ্ন রেখে যায়।
+মানুষের লেখা code ভাঙে সেখানে, যেখানে লেখক বিভ্রান্ত ছিলেন। সাধারণত diff দেখেই সেটা বোঝা যায়: নামগুলো অস্পষ্ট হয়ে
+আসে, comment-গুলো আত্মরক্ষার সুরে লেখা, আর কোনো edge case বাদ পড়েছে, কারণ লেখক সেটার কথা ভাবেনইনি। Review কাজ করে,
+কারণ বিভ্রান্তি চিহ্ন রেখে যায়।
 
-Generated code কোনো চিহ্ন রাখে না। একটি model তাকে দেওয়া prompt-এর সবচেয়ে সম্ভাব্য সমাধান তৈরি করে। আপনার codebase যা
-জানে, তার প্রায় কিছুই সেই prompt-এ ছিল না: কোন component memoise করা, কোন route critical path-এ আছে, কোন field-কে
-server বিশ্বাস করে না। তাই output হয় **স্থানীয়ভাবে বিশ্বাসযোগ্য আর সামগ্রিকভাবে ভুল**। এর syntax ঠিক, গড়ন idiomatic,
-নামগুলো আত্মবিশ্বাসী। আবার prompt-এ যে একটি জিনিস ছিল না, সেটা নিয়ে এর একটি ভাঙা ধারণাও আছে।
+Generate করা code কোনো চিহ্ন রাখে না। Model তাকে দেওয়া prompt-এর সবচেয়ে সম্ভাব্য সমাধানটা লেখে। আর সেই prompt-এ আপনার
+codebase-এর জানা প্রায় কিছুই ছিল না: কোন component memoise করা, কোন route critical path-এ, কোন field-কে server বিশ্বাস করে
+না। তাই output-টা **নিজের জায়গায় বিশ্বাসযোগ্য, পুরো system-এর হিসেবে ভুল**। Syntax ঠিক, গড়ন idiomatic, নামগুলোও
+আত্মবিশ্বাসী। আবার এর মধ্যেই একটি ভাঙা ধারণা থাকে, ঠিক সেই জিনিস নিয়ে, যা prompt-এ ছিল না।
 
-> Review সরে যায় *"author কি এটা বুঝেছিলেন?"* থেকে *"এই file-এর বাইরে থাকা কোন invariant এটা চুপচাপ ভেঙে
-> দিয়েছে?"*-তে
+> Review-এর প্রশ্ন বদলে যায়: *"লেখক কি এটা বুঝেছিলেন?"* থেকে *"এই file-এর বাইরে থাকা কোন invariant এটা চুপচাপ
+> ভেঙে দিল?"*
 
 ## কীভাবে কাজ করে
 
-### Generated code আসলে কোথায় ব্যর্থ হয়
+### Generate করা code আসলে কোথায় ভাঙে
 
-Model যত উন্নত হোক, defect-এর শ্রেণিগুলো একই থাকে, কারণ সবগুলো আসে একই অনুপস্থিত input থেকে: এমন context যা model-এর
-কাছে কখনো ছিল না।
+Model যত ভালোই হোক, defect-এর ধরনগুলো একই থাকে, কারণ সবগুলোই আসে একই অনুপস্থিত input থেকে: সেই context, যা model কখনো
+পায়নি।
 
-| Defect-এর শ্রেণি | Model কেন এটা তৈরি করে | দেখতে কেমন |
+| Defect-এর ধরন | Model কেন এটা লেখে | দেখতে কেমন |
 | ------------ | ----------------------- | ------------------ |
-| **Reference identity** | একটি snippet-এ render-এর হার দেখা যায় না | প্রতিটি render-এ নতুন object, array বা function literal |
-| **অর্থের দিক থেকে ভুল ARIA** | Training corpus validate হওয়া ARIA-তে ভরা | যে element-এর আগে থেকেই `role` আছে, তাতে আবার একটি; role নেই এমন কিছুর ওপর label |
-| **বিশ্বাসযোগ্য-দেখতে security** | আত্মরক্ষামূলক-দেখতে code প্রচুর আছে | একটি regex "sanitiser"; এমন validation যা গুরুত্বপূর্ণ field পর্যন্ত পৌঁছায়ই না |
-| **বানানো API surface** | পুরনো major-এ থাকা option এখনো corpus-এ আছে | এমন config key যা নেই, বা দুই release আগে নাম বদলেছে |
-| **যে test fail করতে পারে না** | Corpus-এ সবচেয়ে বেশি থাকে pass করা test | যে unit test হচ্ছে সেটাই mock করা; assertion শুধু mock-টাই আবার বলে |
-| **Version drift** | Training data-য় নতুন pattern-এর চেয়ে পুরনো pattern বেশি | `getServerSideProps`, class component, `INP`-এর বদলে `FID` |
+| **Reference identity** | ছোট একটি snippet-এ বোঝা যায় না component কতবার render হয় | প্রতিটি render-এ নতুন object, array বা function literal |
+| **মানে ভুল এমন ARIA** | Training corpus ভরা এমন ARIA-তে, যা validate হয় | যে element-এর আগেই role আছে, তাতে আবার `role`; role নেই এমন কিছুতে label |
+| **দেখতে নিরাপদ security** | আত্মরক্ষামূলক চেহারার code corpus-এ প্রচুর | Regex দিয়ে বানানো "sanitiser"; এমন validation, যা আসল জরুরি field পর্যন্ত পৌঁছায়ই না |
+| **বানানো API** | পুরনো major-এর option-গুলো এখনো corpus-এ আছে | এমন config key, যার অস্তিত্বই নেই, বা দুই release আগে নাম বদলেছে |
+| **যে test ফেল করতে পারে না** | Corpus-এ সবচেয়ে বেশি থাকে pass করা test | যে unit test হচ্ছে, সেটাই mock করা; assertion শুধু mock-টাই আবার বলে |
+| **Version drift** | Training data-য় পুরনো pattern নতুনগুলোর চেয়ে সংখ্যায় বেশি | `getServerSideProps`, class component, `FID`, যেখানে থাকার কথা `INP` |
 
-এখানে grep সত্যিকারের একজন reviewer। আগে `role=`, `aria-`, `dangerouslySetInnerHTML`, `any`, `as ` আর প্রতিটি নতুন
-lockfile entry-র hit-গুলো পড়ুন। ছয়টি search ওই তালিকার বড় একটি অংশ ধরে ফেলে।
+এখানে grep সত্যিকারের একজন reviewer। আগে পড়ুন `role=`, `aria-`, `dangerouslySetInnerHTML`, `any`, `as ` আর প্রতিটি নতুন
+lockfile entry-র hit-গুলো। ছয়টি search-এই ওপরের তালিকার বড় একটি অংশ ধরা পড়ে।
 
-### প্রথম defect — যেখানে কিছু identity দেখে key করে, সেখানে নতুন reference
+### প্রথম defect — যেখানে কিছু identity দেখে চলে, সেখানে নতুন reference
 
-**❌ যা আসে, "add chart to dashboard" নামের একটি pull request-এ:**
+**❌ "Dashboard-এ chart যোগ" নামের pull request-এ যা আসে:**
 
 ```tsx
 export function Dashboard({ points }: { points: Point[] }) {
@@ -66,17 +66,16 @@ export function Dashboard({ points }: { points: Point[] }) {
 }
 ```
 
-`Chart` `React.memo`-তে wrap করা, কারণ কেউ এটা measure করেছিলেন আর এটা দামি ছিল। Generated version-টি page-এর অন্য
-কোথাও প্রতিটি keystroke-এ এটাকে re-render করে। কিছুই fail করে না। Chart-টি শুধু আবার ধীর হয়ে যায়, ঠিক করার ছয় মাস
-পরে।
+`Chart` `React.memo`-তে মোড়া, কারণ কেউ একজন মেপে দেখেছিলেন এটা ব্যয়বহুল। Generate করা version-এ page-এর অন্য কোথাও প্রতিটি
+keystroke-এ chart আবার render হয়। কিছুই ফেল করে না। ঠিক করার ছয় মাস পরে chart-টা শুধু আবার ধীর হয়ে যায়।
 
-> ⚠️ React Compiler 1.0 চালু থাকা একটি React 19 codebase-এ, compiler যেসব component compile করে তার ভেতরে এই শ্রেণির
-> অনেকটাই সরিয়ে দেয়। পুরোপুরি গ্রহণ করা একটি codebase-এ এই diff ক্ষতিকর নয়। তিনটি ক্ষেত্রে এটা সাহায্য করে না: file-টি
-> compile হয় না (আংশিক গ্রহণ স্বাভাবিক), value-টি React-এর বাইরে তৈরি হয়, অথবা consumer নিজেই identity দেখে key করে,
-> যেমন একটি `Map`। টেকসই প্রশ্নটি "এটা কি গোছানো" নয়, বরং **"এই reference কে ব্যবহার করে, আর এটা বদলালে কি তার কিছু
-> যায় আসে?"**
+> ⚠️ React Compiler 1.0 চালু থাকা React 19 codebase-এ compiler নিজের compile করা component-গুলোর ভেতরে এই ধরনের অনেকটাই
+> সরিয়ে দেয়। Compiler পুরোপুরি নেওয়া codebase-এ এই diff ক্ষতিহীন। তিনটি ক্ষেত্রে এটা কাজে আসে না: file-টা compile হয়
+> না (আংশিকভাবে নেওয়াটাই স্বাভাবিক), value-টা React-এর বাইরে তৈরি হয়, কিংবা যে জিনিসটা value-টা ব্যবহার করে, সেটা নিজেই identity দেখে চলে,
+> যেমন একটি `Map`। টেকসই প্রশ্নটা "এটা কি পরিপাটি" নয়, বরং **"এই reference কে ব্যবহার করে, আর reference বদলালে তার কিছু
+> যায় আসে কি?"**
 
-### দ্বিতীয় defect — যে ARIA validate হয় আর মিথ্যা বলে
+### দ্বিতীয় defect — যে ARIA validate হয়, অথচ মিথ্যা বলে
 
 **❌ যা আসে:**
 
@@ -93,12 +92,12 @@ export function Dashboard({ points }: { points: Point[] }) {
 </button>;
 ```
 
-Model যে ARIA attribute যোগ করে, তার প্রতিটি হলো **এমন behaviour সম্পর্কে একটি দাবি, যা সে লেখেনি**। `role="button"`
-প্রতিশ্রুতি দেয় focus পাওয়ার, Enter আর Space দিয়ে activate হওয়ার, আর একটি disabled state-এর। একটি native `<button>`
-তিনটিই দেয়। একটি `<div>` একটিও দেয় না, আর linter দুই ক্ষেত্রেই খুশি থাকে কারণ markup বৈধ। নিয়মটি ছোট। Generated code
-যদি একটি `role` যোগ করে, জিজ্ঞেস করুন এটা কোন native element-এর নকল করছে, আর সেই element-টিই কেন ব্যবহার করা হয়নি।
+Model যে ARIA attribute-ই যোগ করে, সেটা **এমন আচরণের দাবি, যা model লেখেনি**। `role="button"` প্রতিশ্রুতি দেয় focus করা যাবে,
+Enter আর Space-এ চালু হবে, আর একটি disabled অবস্থা থাকবে। Native `<button>` তিনটিই দেয়। `<div>` কোনোটাই দেয় না, অথচ
+দুই ক্ষেত্রেই linter খুশি, কারণ markup বৈধ। নিয়মটা ছোট। Generate করা code যদি `role` যোগ করে, জিজ্ঞেস করুন এটা কোন
+native element-এর নকল করছে, আর সেই element-টাই কেন ব্যবহার করা হলো না।
 
-### তৃতীয় defect — security-র অভিনয়
+### তৃতীয় defect — নিরাপত্তার অভিনয়
 
 **❌ যা আসে:**
 
@@ -108,114 +107,113 @@ function sanitise(html: string): string {
 }
 ```
 
-Onerror handler, `javascript:` URL, SVG payload আর nested tag — সবই এটা পেরিয়ে যায়। তবু function-এর নাম পরের reviewer-কে
-বলে এটা নিরাপদ। Blocklist browser-এর কাছে হারে। একটি allowlist sanitiser ব্যবহার করুন, অথবা HTML render করাই বন্ধ করুন।
+Onerror handler, `javascript:` URL, SVG payload আর nested tag, সবই এটা পেরিয়ে যায়। তবু function-এর নাম দেখে পরের reviewer
+ভাবেন এটা নিরাপদ। Blocklist browser-এর কাছে হারে। Allowlist sanitiser ব্যবহার করুন, নয়তো HTML render-ই করবেন না।
 দেখুন [Chapter ?? — XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention)।
 
-সাধারণ রূপটির একটি নাম দিন, কারণ এই শ্রেণিটিই সবচেয়ে বেশি production-এ পৌঁছায়। এটা হলো **এমন code যা দেখতে একটি
-control-এর মতো, কিন্তু আসলে কোনো control implement করে না।** যে validation body check করে কিন্তু session নয়। যে rate
-limiter এমন একটি header দিয়ে key করা, যা client নিজে set করে। যে check শুধু client-এ চলে।
+এর সাধারণ রূপটার নাম দিন, কারণ এই ধরনটাই সবচেয়ে বেশি production-এ পৌঁছায়। এটা হলো **এমন code, যা দেখতে নিরাপত্তার
+ব্যবস্থার মতো, কিন্তু আসলে কোনো ব্যবস্থা নয়।** যে validation body দেখে, session দেখে না। যে rate limiter-এর key এমন
+header, যা client নিজেই বসায়। যে check চলে শুধু client-এ।
 
-### একটি generated diff-কে যে তিনটি প্রশ্ন করবেন
+### Generate করা diff-কে যে তিনটি প্রশ্ন করবেন
 
-প্রতিটি line পড়ার চেয়ে author-কে এগুলো জিজ্ঞেস করা দ্রুত, আর এটা chat-এও কাজ করে:
+প্রতিটি line পড়ার চেয়ে লেখককে এগুলো জিজ্ঞেস করা দ্রুত, আর chat-এও চলে:
 
-1. **এই file-এর বাইরে এটা কী ধরে নেয়?** Render-এর হার, API response-এর আকার, একটি value বিশ্বাসযোগ্য কিনা। Defect প্রায়
-   সবসময় এখানেই থাকে।
-2. **কোন অংশগুলো আপনি যাচাই করেছেন, আর কীভাবে?** "আমি চালিয়ে দেখেছি" আর "আমি ওই option-এর docs পড়েছি" — দুটি আলাদা
-   উত্তর। অপরিচিত API surface-এ আপনি দ্বিতীয়টিই খুঁজছেন।
-3. **এটা ভুল হলে কোন test সেটা ধরত?** উত্তর না থাকলে block-টি review হয়নি। এটা শুধু গ্রহণ করা হয়েছে।
+1. **এই file-এর বাইরের কী কী এটা ধরে নিয়েছে?** Render কতবার হয়, API response-এর shape, কোনো value বিশ্বাসযোগ্য কি না।
+   Defect প্রায় সবসময় এখানেই থাকে।
+2. **কোন অংশগুলো যাচাই করেছেন, আর কীভাবে?** "চালিয়ে দেখেছি" আর "ওই option-এর docs পড়েছি" আলাদা উত্তর। অচেনা API-র
+   ক্ষেত্রে আপনি দ্বিতীয়টাই খুঁজছেন।
+3. **এটা ভুল হলে কোন test ধরত?** উত্তর না থাকলে block-টা review হয়নি, শুধু মেনে নেওয়া হয়েছে।
 
-যে author প্রথম প্রশ্নের উত্তর দিতে পারেন না, তিনি একটি পরিবর্তন নয়, একটি prompt ship করেছেন। Stack Overflow থেকে কপি
-করা উত্তরের ক্ষেত্রে team আগেই একই সীমারেখা টেনেছে।
+যে লেখক প্রথম প্রশ্নের উত্তর দিতে পারেন না, তিনি একটি prompt ship করেছেন, কোনো বদল নয়। Stack Overflow থেকে copy করা
+উত্তর নিয়েও team আগেই ঠিক এই সীমারেখা টেনেছিল।
 
-### Gate-কে মনোযোগ থেকে automation-এ সরান
+### মনোযোগের ভরসা ছেড়ে automation-এ gate বসান
 
-এই অংশটি architecture-এর, শিষ্টাচারের নয়। Generated code দ্রুত আসে, বড় diff-এ আসে, আর reviewer-এর মনোযোগ সেই তালে
-বাড়ে না। মোটামুটি 400 changed line পার হলে reviewer-রা আস্থার ভিত্তিতে approve করেন, যেমনটা
-[Chapter ?? — Branching, Review ও Repository Strategy](#ch-branching-and-review-workflow) ব্যাখ্যা করে। তাই ওপরের
-প্রতিটি defect শ্রেণির দায়িত্ব একটি machine-কে নিতে হবে:
+এই অংশটা শিষ্টাচারের নয়, architecture-এর। Generate করা code আসে দ্রুত, আর বড় diff নিয়ে। Reviewer-এর মনোযোগ সেই
+তালে বাড়ে না। মোটামুটি 400 line বদলের পরে reviewer-রা ভরসার ওপর approve করেন, যেমনটা
+[Chapter ?? — Branching, Review ও Repository Strategy](#ch-branching-and-review-workflow) দেখায়। তাই ওপরের প্রতিটি
+defect-এর ধরনের দায়িত্ব নিতে একটি machine লাগে:
 
-| Defect-এর শ্রেণি | যে gate আসলে টেকে |
+| Defect-এর ধরন | যে gate আসলে আটকায় |
 | ------------ | ---------------------------- |
 | Reference identity | `eslint-plugin-react-hooks`, আর CI-তে একটি performance budget |
-| ARIA semantics | `eslint-plugin-jsx-a11y` আর একটি axe run — কোনোটাই ভুল `role` ধরে না, তাই manual pass রেখে দিন |
+| ARIA-র মানে | `eslint-plugin-jsx-a11y` আর একটি axe run — কোনোটাই ভুল `role` ধরে না, তাই হাতে দেখার ধাপটা রাখুন |
 | Security | একটি `dangerouslySetInnerHTML` lint rule, একটি CSP, আর dependency scanning |
-| বানানো API | `strict` TypeScript, আর diff-এ কোনো `any` বা unchecked `as` নয় |
-| Test করা যায় না এমন test | গুরুত্বপূর্ণ module-গুলোতে mutation testing, অথবা review-এ code ভেঙে দেখার অভ্যাস |
+| বানানো API | `strict` TypeScript, আর diff-এ কোনো `any` বা যাচাই না করা `as` নেই |
+| যে test ফেল করে না | জরুরি module-গুলোতে mutation testing, কিংবা review-এ code ভেঙে দেখার অভ্যাস |
 | Version drift | Codemod, আর প্রতিটি deprecated pattern-এর জন্য একটি lint rule |
 
-এর কোনোটাই নতুন tooling নয়। নতুন হলো **অনুপাত**। যে team তার বেশিরভাগ code হাতে লেখে, সে একটি পাতলা gate চালিয়ে review-এর
-ওপর ভরসা করতে পারে। যে team-এর অর্ধেক diff generated, সে পারে না। Senior পদক্ষেপ হলো defect rate সেটা প্রমাণ করার আগেই
+এর কোনোটাই নতুন tool নয়। নতুন হলো **অনুপাত**। যে team বেশিরভাগ code হাতে লেখে, তারা পাতলা একটি gate রেখে review-এর ওপর
+ভরসা করতে পারে। যে team-এর diff-এর অর্ধেক generate করা, তারা পারে না। Senior-এর কাজ হলো defect rate প্রমাণ করে দেওয়ার আগেই
 কথাটা বলা।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | কীভাবে review করবেন | কেন |
 | --------- | ---------------- | --- |
-| পড়ার মতো test সহ একটি leaf utility | স্বাভাবিক review | ক্ষতির পরিধি ছোট, আর test যাচাই করা যায় |
-| Auth, টাকা বা migration ছোঁয় এমন যেকোনো কিছু | Line ধরে ধরে, untrusted input হিসেবে | এখানে বিশ্বাসযোগ্য-দেখতে হওয়াটাই ব্যর্থতার ধরন |
-| একটি generated test | আগে assertion পড়ুন, তারপর code ভাঙুন | যে test fail করতে পারে না, সেটা test না থাকার চেয়েও খারাপ |
-| Generated ARIA বা i18n | Manual pass, সবসময় | Lint syntax check করে; এ দুটি ব্যর্থ হয় অর্থে |
-| অপরিচিত API বা config key | আপনার install করা version-এর docs-এর সাথে মিলিয়ে দেখুন | বানানো option এখানেই এসে পড়ে |
-| একটি বড় generated refactor | ভাগ করতে ফেরত পাঠান | 400 line-এর বেশি হলে কেউই কিছু review করছে না |
+| পড়ে বোঝা যায় এমন test-সহ একটি leaf utility | স্বাভাবিক review | ক্ষতির সীমা ছোট, আর test-টা যাচাই করা যায় |
+| Auth, টাকা বা migration ছুঁয়ে যায় এমন যেকোনো কিছু | Line ধরে ধরে, untrusted input-এর মতো | এখানে দেখতে ঠিক লাগাটাই আসল বিপদ |
+| Generate করা test | আগে assertion পড়ুন, তারপর code ভেঙে দেখুন | যে test ফেল করতে পারে না, সেটা test না থাকার চেয়েও খারাপ |
+| Generate করা ARIA বা i18n | সবসময় হাতে দেখুন | Lint syntax দেখে; এই দুটিই ভুল হয় মানে-তে |
+| অচেনা API বা config key | আপনার install করা version-এর docs-এর সঙ্গে মিলিয়ে নিন | বানানো option এখানেই এসে পড়ে |
+| Generate করা বড় refactor | ভাগ করে আনতে ফেরত পাঠান | 400 line-এর বেশি হলে কেউই আসলে কিছু review করছে না |
 
-> ⚠️ **যা বদলাতে থাকে:** কোন model code লিখেছে, আর সেটা কতটা ভালো, তা কয়েক মাস পরপর বদলায়। ওপরের defect শ্রেণিগুলো
-> অনেক ধীরে বদলায়, কারণ এগুলো আসে অনুপস্থিত context থেকে, model-এর মান থেকে নয়। টেকসই নীতি: **একটি model ততটাই
-> আত্মবিশ্বাসী, training data-য় একটি pattern যতটা সাধারণ — আপনার codebase-এর জন্য সেটা কতটা ঠিক, তার অনুপাতে নয়।**
+> ⚠️ **যা বদলাতে থাকে:** কোন model code লিখল, আর সেটা কতটা ভালো, তা কয়েক মাস পরপর বদলায়। ওপরের defect-এর ধরনগুলো বদলায়
+> অনেক ধীরে, কারণ এগুলো আসে context না থাকা থেকে, model-এর মান থেকে নয়। টেকসই নীতি: **model-এর আত্মবিশ্বাস নির্ভর করে
+> training data-য় pattern-টা কতটা সাধারণ তার ওপর, আপনার codebase-এর জন্য সেটা কতটা ঠিক তার ওপর নয়।**
 
 ## সাধারণ ভুল
 
-❌ **Test pass করছে বলে বেশি নরমভাবে review করা।** Generated test আর generated code একই ভুল ধারণা ভাগ করে নেয়, তাই
-তারা একে অপরের সাথে একমত হয়।
-✅ একমত হওয়াটা নয়, ধারণাটা review করুন। Implementation ভেঙে দিন আর নিশ্চিত হোন যে একটি test লাল হচ্ছে।
+❌ **Test pass করছে বলে নরমভাবে review করা।** Generate করা test আর generate করা code একই ভুল ধারণা ভাগ করে, তাই একে অপরের
+সঙ্গে মিলে যায়।
+✅ মিলটা নয়, ধারণাটা review করুন। Implementation ভেঙে দেখুন কোনো test লাল হয় কি না।
 
-❌ **Generated বলেই একটি পরিবর্তন বাতিল করা।** উৎস কোনো defect নয়। Tool ছাড়া team-এর চেয়ে tool সহ team দ্রুত হলেই এই
-অবস্থান হেরে যায়।
-✅ Code review করুন। নিজের code-কে যে মানদণ্ডে রাখেন, এটাকেও সেই মানদণ্ডে রাখুন — যা বেশি উঁচু, আলাদা নয়।
+❌ **Generate করা বলেই কোনো বদল বাতিল করা।** কোথা থেকে এসেছে, সেটা defect নয়। Tool হাতে team যখন tool ছাড়ার চেয়ে দ্রুত,
+তখনই এই অবস্থান হেরে যায়।
+✅ Code-টা review করুন। নিজের code-কে যে মানে ধরেন, এটাকেও সেই মানে ধরুন। মানটা বেশি, আলাদা নয়।
 
-❌ **Review-এ author-কে "AI এটা লিখেছে" বলতে দেওয়া।** এতে দায়িত্ব এমন কিছুর ওপর চলে যায়, যাকে আপনি পাল্টা প্রশ্ন করতে
-পারেন না।
-✅ Pull request-এ যার নাম, তিনিই এর প্রতিটি line-এর মালিক, যে line কেউ type করেনি সেগুলোসহ।
+❌ **Review-এ লেখককে "AI লিখেছে" বলতে দেওয়া।** এতে মালিকানা চলে যায় এমন কিছুর কাছে, যাকে পাল্টা প্রশ্ন করা যায় না।
+✅ Pull request-এ যার নাম, প্রতিটি line-এর মালিক তিনিই, যে line কেউ type করেনি সেগুলোরও।
 
-❌ **আরো মন দিয়ে পড়ে সীমারেখা ধরে রাখার চেষ্টা।** মনোযোগ একমাত্র input যা generation-এর গতির সাথে বাড়ে না।
-✅ একই review comment প্রথমবার দুবার লিখলেই সেটাকে একটি lint rule-এ পরিণত করুন।
+❌ **আরও মন দিয়ে পড়ে মান ধরে রাখার চেষ্টা।** Generation-এর গতির সঙ্গে যে একটি জিনিস বাড়ে না, তা হলো মনোযোগ।
+✅ একই review comment দ্বিতীয়বার লিখতেই সেটাকে একটি lint rule বানিয়ে ফেলুন।
 
 ## 🔑 মূল শিক্ষা
 
-- Generated code ব্যর্থ হয় সেখানে, যেখানে prompt-এ context ছিল না, author যেখানে বিভ্রান্ত ছিলেন সেখানে নয়। তাই এটা
-  স্বাভাবিক লক্ষণ না রেখেই ব্যর্থ হয়।
-- স্থায়ী defect শ্রেণিগুলো হলো reference identity, অর্থের দিক থেকে ভুল ARIA, security-র অভিনয়, বানানো API surface,
-  যে test fail করতে পারে না, আর version drift।
-- Model যে ARIA attribute লেখে, তার প্রতিটি এমন behaviour সম্পর্কে একটি দাবি, যা সে implement করেনি।
-- জিজ্ঞেস করুন code নিজের file-এর বাইরে কী ধরে নেয়, author কী যাচাই করেছেন, আর এটা ভুল হলে কোন test সেটা ধরত।
-- Reviewer-এর মনোযোগ generation-এর গতির সাথে বাড়ে না। প্রতিটি বারবার ফিরে আসা defect-কে একটি lint rule, একটি type,
-  বা একটি CI check হতে হবে।
+- Generate করা code ভাঙে সেখানে, যেখানে prompt-এ context ছিল না, লেখক বিভ্রান্ত ছিলেন বলে নয়। তাই এটা ভাঙে চেনা চিহ্ন
+  না রেখেই।
+- টেকসই defect-এর ধরনগুলো: reference identity, মানে ভুল এমন ARIA, নিরাপত্তার অভিনয়, বানানো API, যে test ফেল করতে পারে না,
+  আর version drift।
+- Model যে ARIA attribute-ই লেখে, সেটা এমন আচরণের দাবি, যা model implement করেনি।
+- জিজ্ঞেস করুন code-টা নিজের file-এর বাইরে কী ধরে নিয়েছে, লেখক কী যাচাই করেছেন, আর এটা ভুল হলে কোন test ধরত।
+- Reviewer-এর মনোযোগ generation-এর গতির সঙ্গে বাড়ে না। বারবার ফিরে আসা প্রতিটি defect-কে lint rule, type বা CI check
+  বানাতে হবে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: যে pull request-এর বেশিরভাগ একটি assistant লিখেছে, তাতে আপনি কী খোঁজেন?**
+**Q: যে pull request-এর বেশিরভাগ assistant লিখেছে, তাতে আপনি কী খোঁজেন?**
 
-যেকোনো review-এ যা খুঁজি, সেগুলোই, সাথে generated code যেসব শ্রেণির defect-প্রবণ সেগুলো। খুঁজুন এমন নতুন reference,
-যেখানে কিছু identity দেখে memoise বা cache করে। খুঁজুন এমন ARIA, যা validate হয় কিন্তু এমন behaviour-এর প্রতিশ্রুতি দেয়
-যা code implement করে না, আর এমন validation যা দেখতে control-এর মতো কিন্তু আসলে control নয়। তারপর author-কে একটি প্রশ্ন
-করুন: এটা system-এর বাকি অংশ সম্পর্কে কী ধরে নেয়? Defect সাধারণত সেখানেই থাকে, কারণ prompt ঠিক ওটাই বহন করতে পারেনি।
+যেকোনো review-এ যা খুঁজি, তা-ই, সঙ্গে generate করা code-এর চেনা ধরনগুলো। খুঁজি এমন নতুন reference, যেখানে কিছু identity
+দেখে memoise বা cache করে। খুঁজি এমন ARIA, যা validate হয়, কিন্তু এমন আচরণের প্রতিশ্রুতি দেয় যা code implement করে না।
+আর এমন validation, যা দেখতে নিরাপত্তার ব্যবস্থার মতো, অথচ আসলে তা নয়। তারপর লেখককে একটি প্রশ্ন করি: এটা বাকি system
+সম্পর্কে কী ধরে নিয়েছে? Defect সাধারণত সেখানেই থাকে, কারণ prompt ঠিক ওই জিনিসটাই বয়ে আনতে পারেনি।
 
-**Q: একটি team-এর velocity বেড়েছে, আর তার সাথে defect rate-ও বেড়েছে। আপনি কী বদলাবেন?**
+**Q: একটি team-এর velocity বেড়েছে, সঙ্গে defect rate-ও বেড়েছে। আপনি কী বদলাবেন?**
 
-Review-এর মানদণ্ড নয়, কারণ ব্যর্থ হচ্ছে ঠিক সেটাই। আমি বারবার ফিরে আসা দুই-তিনটি defect খুঁজে বের করে প্রতিটির দায়িত্ব
-একটি machine-কে দেব। মানে একটি lint rule, একটি কড়া type, একটি axe run (একটি automated accessibility check), বা CI-তে একটি
-performance budget। তখন review-এর সময় যায় সেই জিনিসে, যা machine বিচার করতে পারে না: পরিবর্তনটি আদৌ ঠিক পরিবর্তন কিনা।
-যে measurement দেখবেন তা হলো production-এ পৌঁছানো defect, প্রতি pull request-এ review comment নয়।
+Review-এর মান নয়, কারণ ব্যর্থ হচ্ছে তো সেটাই। আমি বারবার ফিরে আসা দুই-তিনটি defect খুঁজে বের করব, আর প্রতিটির দায়িত্ব দেব
+একটি machine-কে। মানে একটি lint rule, আরও কড়া একটি type, একটি axe run (accessibility-র automated check), কিংবা CI-তে
+একটি performance budget। তখন review-এর সময় যায় সেই প্রশ্নে, যা machine বিচার করতে পারে না: বদলটা ঠিক বদল কি না। নজর
+রাখার মতো সংখ্যা হলো production-এ পৌঁছানো defect, pull request-প্রতি review comment নয়।
 
-**Q: কখন আপনি generated code-এর বাড়তি review-এর জন্য গতি কমাবেন না?**
+**Q: কখন generate করা code-এর জন্য বাড়তি review করে গতি কমাবেন না?**
 
-যখন ক্ষতির পরিধি ছোট আর feedback দ্রুত, যেমন একটি leaf utility, একটি styling পরিবর্তন বা একটি ফেলে দেওয়ার মতো script।
-সেখানে সতর্ক review-এর খরচ bug-এর চেয়ে বেশি। বাঁচানো মনোযোগ আমি বরং auth, payment আর data-migration path-এ খরচ করব।
-সেখানে বিশ্বাসযোগ্য-কিন্তু-ভুল ঠিক ব্যর্থতার ধরন, আর পরের কোনো ধাপ সেটা ধরবে না।
+যখন ক্ষতির সীমা ছোট আর feedback দ্রুত, যেমন একটি leaf utility, styling-এর বদল, বা ফেলে দেওয়ার মতো একটি script। সেখানে
+যত্ন নিয়ে review করার খরচ bug-এর চেয়ে বেশি। বাঁচানো মনোযোগ আমি বরং দেব auth, payment আর data-migration-এর path-এ।
+দেখতে ঠিক অথচ ভুল, এটাই সেখানকার আসল বিপদ, আর পরে কোথাও কিছু সেটা ধরবে না।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler) — reference-identity-র কোন defect compiler সরিয়ে দেয়, আর কোনগুলো রেখে দেয়
-- [Chapter ?? — ARIA, আর কখন এটা ব্যবহার করবেন না](#ch-aria) — কেন একটি native element প্রতিবার একটি সঠিক `role`-কেও হারায়
-- [Chapter ?? — Branching, Review ও Repository Strategy](#ch-branching-and-review-workflow) — এই অধ্যায় যে review mechanics ধরে নেয়, diff-এর আকার কেন review-এর মান ঠিক করে তা সহ
+- [Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler) — compiler কোন reference-identity defect সরায়, আর কোনগুলো রেখে দেয়
+- [Chapter ?? — ARIA, আর কখন এটা ব্যবহার করবেন না](#ch-aria) — সঠিক `role`-এর চেয়েও native element কেন সবসময় ভালো
+- [Chapter ?? — Branching, Review ও Repository Strategy](#ch-branching-and-review-workflow) — এই অধ্যায় যে review-এর কলকবজা জানা ধরে নেয়, diff-এর আকার কেন review-এর মান ঠিক করে তা-সহ

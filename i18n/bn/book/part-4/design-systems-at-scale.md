@@ -1,41 +1,41 @@
 ---
 sourceHash: "a79171aef5ef33818c61e58a7a2d5bcfe05196efd3e23fb789b3ba0610c97d6e"
 title: "Design System, Dependency ও Upgrade"
-translatedAt: "2026-10-12T12:15:01.073Z"
+translatedAt: "2026-10-17T01:37:35.489Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Design System, Dependency ও Upgrade {#ch-design-systems-at-scale}
 
-> এমন shared code publish করুন যা চল্লিশটি team গ্রহণ করতে পারে, আর বাকি সবার code-এর পাশাপাশি নিজের codebase-কে upgrade করার মতো অবস্থায় রাখুন।
+> এমন shared code publish করুন, যা চল্লিশটি team নিতে পারে। আর নিজের codebase-কে বাকি সবার code-এর সঙ্গে upgrade করার মতো রাখুন।
 
-**এই অধ্যায়ে:** token, component আর theming · যে code আপনি publish করেন তার versioning · যে code আপনি ব্যবহার করেন তার দাম · নিরাপদ update-গুলো automate করা · একটি major-কে migration হিসেবে চালানো
+**এই অধ্যায়ে:** token, component আর theming · নিজের publish করা code-এর version · ব্যবহার করা code-এর দাম · নিরাপদ update-গুলো automate করা · major upgrade-কে migration হিসেবে চালানো
 
 ## 💡 মূল ধারণা
 
-প্রতিটি frontend shared code-এর একটি শিকলের মাঝখানে বসে থাকে। এর কিছুটা আপনি publish করেন, যেমন একটি design
-system। এর অনেক বেশি অংশ আপনি ব্যবহার করেন, যেমন React, একটি router আর একটি form library। দুই দিকই একটি নিয়ম মানে:
-**অন্য পক্ষ আপনার contract-এর ওপর নির্ভর করে, আর সেই contract হলো version number।**
+প্রতিটি frontend shared code-এর একটি শিকলের মাঝখানে বসে থাকে। এর কিছুটা আপনি publish করেন, যেমন design system। আর
+অনেক বেশি অংশ আপনি ব্যবহার করেন, যেমন React, একটি router, একটি form library। দুই দিকেই নিয়ম একটি: **অন্য পক্ষ
+আপনার contract-এর ওপর নির্ভর করে, আর সেই contract হলো version number।**
 
-একটি design system brand বা focus-style-এর একটি পরিবর্তন একবারে করে দেয়, চল্লিশবার নয়। এটা ব্যর্থ হয় যখন কেউ
-এতে upgrade করে না, অথবা যখন এটা migration-এর কোনো পথ না দিয়ে team-গুলোকে ভেঙে দেয়।
+Design system থাকলে brand বা focus style-এর বদল চল্লিশবার নয়, একবারই করতে হয়। এটা ব্যর্থ হয় যখন কেউ এতে upgrade
+করে না, কিংবা যখন এটা migration-এর পথ না দিয়েই team-গুলোর code ভেঙে দেয়।
 
-ব্যবহারকারীর দিকে, একটি upgrade-এর খরচ ঠিক হয় **আপনি কতদিন অপেক্ষা করেছেন** তা দিয়ে, diff-এর আকার দিয়ে নয়। React-এর
-একটি minor, যে সপ্তাহে আসে সেই সপ্তাহেই নিলে, শুধু একটি lockfile পরিবর্তন। তিন বছর পরে সেটা আসে একটি bundler major
-আর চারটি পরিত্যক্ত package সঙ্গে নিয়ে। Senior-দের দক্ষতা হলো upgrade-গুলোকে ছোট রাখা, নিয়মিত রাখা, আর কখনো সব
-একসাথে জমতে না দেওয়া।
+ব্যবহারের দিকে, upgrade-এর খরচ ঠিক হয় **আপনি কতদিন অপেক্ষা করেছেন** তা দিয়ে, diff কত বড় তা দিয়ে নয়। React-এর একটি
+minor release যে সপ্তাহে আসে, সে সপ্তাহেই নিলে সেটা শুধু lockfile-এর বদল। তিন বছর পরে নিলে সেটা আসে bundler-এর একটি
+major আর চারটি পরিত্যক্ত package সঙ্গে নিয়ে। Senior-এর দক্ষতা হলো upgrade-গুলো ছোট রাখা, নিয়মিত করা, আর কখনো সব
+একসঙ্গে জমতে না দেওয়া।
 
 ## কীভাবে কাজ করে
 
-একটি design system-এর তিনটি স্তর: **token** (value-গুলো), **component** (code) আর **docs** (কখন কোনটা ব্যবহার
-করবেন)। Token-ই একমাত্র স্তর যা native app আর email template-ও ব্যবহার করতে পারে।
+Design system-এর তিনটি layer: **token** (value), **component** (code) আর **docs** (কখন কোনটা ব্যবহার করবেন)। এর মধ্যে
+শুধু token-ই native app আর email template-ও ব্যবহার করতে পারে।
 
 ### Design token
 
-Token design-এর সিদ্ধান্তগুলোকে data হিসেবে রাখে। **Primitive** token-এর নাম হয় সেটা কী, তা দিয়ে। **Semantic**
-token-এর নাম হয় সেটা কীসের জন্য, তা দিয়ে।
+Token design-এর সিদ্ধান্তগুলো data হিসেবে রাখে। **Primitive** token-এর নাম হয় সেটা কী, তা দিয়ে। **Semantic** token-এর
+নাম হয় সেটা কীসের জন্য, তা দিয়ে।
 
-**Primitive থেকে semantic তৈরি হয়, আর component শুধু semantic দেখে:**
+**Primitive থেকে semantic তৈরি হয়, আর component দেখে শুধু semantic:**
 
 ```typescript
 const palette = {
@@ -54,15 +54,15 @@ export const tokens = {
 } as const;
 ```
 
-একটি sub-brand বা high-contrast theme-এর জন্য আপনি `actionPrimary`-কে অন্য একটি primitive-এর দিকে ঘুরিয়ে দিতে
-পারেন। যে component সরাসরি `blue500`-কে reference করে, সেটাকে একেবারেই re-theme করা যায় না।
+কোনো sub-brand বা high-contrast theme-এর জন্য `actionPrimary`-কে অন্য একটি primitive-এর দিকে ঘুরিয়ে দিতে পারেন। কিন্তু
+যে component সরাসরি `blue500` ব্যবহার করে, তার theme আর বদলানোই যায় না।
 
-### Component contract আর theming
+### Component-এর contract আর theming
 
-একজন consumer **props**-এর ওপর নির্ভর করে, markup-এর ওপর নয়। Surface ছোট আর typed রাখুন। Accessible behaviour
-component-এর ভেতরেই রাখুন, যাতে কোনো consumer সেটা ভুলে যেতে না পারে।
+ব্যবহারকারী নির্ভর করেন **props**-এর ওপর, markup-এর ওপর নয়। Surface ছোট আর typed রাখুন। Accessibility-র আচরণ
+component-এর ভেতরেই রাখুন, যাতে কোনো ব্যবহারকারী সেটা ভুলে যেতে না পারেন।
 
-**একটি button, যার accessibility component-এর ভেতরেই থাকে:**
+**এমন একটি button, যার accessibility component-এর ভেতরেই থাকে:**
 
 ```tsx
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -79,41 +79,41 @@ export function Button({ variant = "primary", loading = false, disabled, childre
 }
 ```
 
-`ButtonHTMLAttributes` extend করলে consumer-রা `type`, `form` আর `onFocus` বিনা খরচে পেয়ে যায়। Theme semantic
-token বদলায়, component code কখনো নয়। CSS custom property এটা কোনো re-render ছাড়াই করে: `:root` light theme ধরে রাখে
-আর `[data-theme="dark"]` সেটাকে override করে। React context-এ রাখা theme বদলালে প্রতিটি themed component re-render
-হয়।
+`ButtonHTMLAttributes` extend করলে ব্যবহারকারীরা `type`, `form` আর `onFocus` বিনা খরচে পেয়ে যান। Theme বদলায় semantic
+token, component-এর code কখনো নয়। CSS custom property দিয়ে এটা হয় কোনো re-render ছাড়াই: `:root`-এ থাকে light theme, আর
+`[data-theme="dark"]` সেটাকে override করে। Theme যদি React context-এ রাখা হয়, তবে theme বদলালেই theme ব্যবহার করা
+প্রতিটি component re-render হয়।
 
-### যে code আপনি publish করেন তার versioning
+### নিজের publish করা code-এর version
 
-একটি design system হলো একটি published package, যার একটি API আছে। Semantic versioning-ই contract, আর একটি major
-version-এর তিনটি জিনিস লাগে, নইলে team-রা সেটা নেবে না।
+Design system হলো API-সহ একটি publish করা package। Semantic versioning হলো contract। আর major version-এর সঙ্গে তিনটি
+জিনিস লাগে, নইলে team-গুলো সেটা নেবে না।
 
-| Version bump | অর্থ | Consumer-দের প্রতি আপনার দায় |
+| Version bump | মানে | ব্যবহারকারীদের যা দিতে হবে |
 | ------------ | ----- | ---------------------- |
-| Patch | Bug fix, API-তে কোনো পরিবর্তন নেই | কিছু না |
+| Patch | Bug fix, API-তে কোনো বদল নেই | কিছুই না |
 | Minor | নতুন component বা নতুন optional prop | Changelog-এ একটি entry |
-| Major | Prop-এর নাম বদল, component সরানো, default বদল | একটি migration guide, একটি codemod, আর একটি deprecation period |
+| Major | Prop-এর নাম বদল, component বাদ, default বদল | Migration guide, একটি codemod, আর deprecation-এর একটি সময়সীমা |
 
-React থাকবে `peerDependencies`-এ, যাতে tree-তে consumer-এর copy-টিই একমাত্র React হয়।
-[Chapter ?? — Micro-Frontend](#ch-micro-frontends) একই singleton নিয়মের মুখোমুখি হয় অন্য দিক থেকে।
+React রাখতে হবে `peerDependencies`-এ, যাতে tree-তে React বলতে থাকে শুধু ব্যবহারকারীর copy-টা।
+[Chapter ?? — Micro-Frontend](#ch-micro-frontends) একই singleton নিয়মে পৌঁছায়, অন্য দিক থেকে।
 
-### যে code আপনি ব্যবহার করেন তার দাম
+### ব্যবহার করা code-এর দাম
 
-একটি dependency হলো অন্য কারো release schedule অনুসরণ করার একটি স্থায়ী প্রতিশ্রুতি। প্রতিটি package একটি tier-এ
-পড়ে, আর প্রতিটি tier-এর policy আলাদা।
+Dependency মানে অন্য কারো release-এর সময়সূচির সঙ্গে তাল রাখার একটি স্থায়ী প্রতিশ্রুতি। প্রতিটি package কোনো একটি
+স্তরে পড়ে, আর প্রতিটি স্তরের policy আলাদা।
 
-| Tier | উদাহরণ | বদলানোর খরচ | Policy |
+| স্তর | উদাহরণ | বদলানোর খরচ | Policy |
 | ---- | -------- | ---------------- | ------ |
 | **Framework** | React, router, bundler, Node | কয়েক মাস | কখনো এক major-এর বেশি পিছিয়ে পড়বেন না |
-| **Load-bearing** | Data fetching, form, chart, auth SDK | কয়েক সপ্তাহ | Wrap করুন, যাতে বদলাতে গেলে একটি file-এ হাত পড়ে |
-| **Leaf utility** | Date formatting, `clsx` | কয়েক ঘণ্টা | Automatically update করুন, অথবা মুছে ফেলুন |
-| **আপনার নিজের** | Design system, shared config | আপনার নিয়ন্ত্রণে | ওপরের versioning contract মেনে চলুন |
+| **ভার বহনকারী** | Data fetching, form, chart, auth SDK | কয়েক সপ্তাহ | Wrap করুন, যাতে বদলাতে হলে একটি file-এ হাত দিতে হয় |
+| **Leaf utility** | Date formatting, `clsx` | কয়েক ঘণ্টা | Automatically update করুন, নয়তো মুছে ফেলুন |
+| **নিজের** | Design system, shared config | আপনার নিয়ন্ত্রণে | ওপরের versioning contract মেনে চলুন |
 
-ঝামেলা বাধায় মাঝের tier। যে form library কেউ wrap করেনি, সেটা প্রতিটি screen-এ ঢুকে পড়ে। বাস্তবে সেটা একটি
-framework হয়ে যায়, কিন্তু framework-এর কোনো support guarantee ছাড়াই।
+ঝামেলা বাধায় মাঝের স্তরটা। যে form library কেউ wrap করেনি, সেটা প্রতিটি screen-এ ঢুকে পড়ে। বাস্তবে সেটা একটি
+framework হয়ে যায়, অথচ framework-এর কোনো support-এর নিশ্চয়তা তাতে নেই।
 
-**একটি load-bearing dependency wrap করুন, যাতে ক্ষতির পরিধি একটি file-এ সীমিত থাকে:**
+**ভার বহনকারী dependency wrap করুন, যাতে ক্ষতির সীমা একটি file:**
 
 ```typescript
 import { track as vendorTrack } from "@vendor/analytics";
@@ -129,15 +129,14 @@ export function track(event: AnalyticsEvent): void {
 }
 ```
 
-এখন দুশো call site নির্ভর করে `AnalyticsEvent`-এর ওপর, যেটা আপনার নিজের। Vendor বদলালে শুধু একটি file নতুন করে লিখতে
-হয়।
+এখন দুশোটি call site নির্ভর করে `AnalyticsEvent`-এর ওপর, যার মালিক আপনি। Vendor বদলালে নতুন করে লিখতে হয় একটি file।
 
 ### নিরাপদ update-গুলো automate করা
 
-Patch আর minor update-ই সংখ্যায় সবচেয়ে বেশি, কিন্তু ঝুঁকিতে সবচেয়ে কম। হাতে review করলে এগুলো জমে যায়। তাই যা কিছু
-non-breaking, সব automate করুন, group করুন, আর major-গুলো একজন মানুষের কাছে পাঠান।
+Update-এর বেশিরভাগই patch আর minor, আর এদের ঝুঁকি সামান্য। হাতে review করলে এগুলো জমে পাহাড় হয়। তাই যা কিছু ভাঙে না,
+সব automate করুন, group করুন, আর major-গুলো পাঠান একজন মানুষের কাছে।
 
-**একটি Renovate policy, যা update type আর dependency type দেখে route করে:**
+**এমন একটি Renovate policy, যা update-এর ধরন আর dependency-র ধরন দেখে পথ ঠিক করে:**
 
 ```json
 {
@@ -151,93 +150,93 @@ non-breaking, সব automate করুন, group করুন, আর major-গ
 }
 ```
 
-Dev dependency production-এ পৌঁছাতে পারে না, তাই এগুলো group করলে ত্রিশটি pull request একটিতে নেমে আসে।
-Release-age delay supply-chain ঝুঁকি সীমিত রাখে ([Chapter ?? — GitHub Actions ও Pipeline Security](#ch-github-actions))।
+Dev dependency production-এ পৌঁছাতে পারে না, তাই এদের group করলে ত্রিশটি pull request একটিতে নেমে আসে। Release-age-এর
+দেরিটুকু supply-chain-এর ঝুঁকি কমায় ([Chapter ?? — GitHub Actions ও Pipeline Security](#ch-github-actions))।
 
-> ⚠️ **যা বদলাতে থাকে:** এগুলো Renovate 41-এর configuration key, আর Dependabot তার grouping option-গুলো অন্যভাবে
-> লেখে। টেকসই নীতি হলো, automation সিদ্ধান্ত নেয় **update type আর dependency type** দেখে, আর automerge তখনই নিরাপদ
-> যখন test suite সেটাকে আটকে রাখে। বর্তমান key-এর নামগুলো যাচাই করে নিন।
+> ⚠️ **যা বদলাতে থাকে:** এগুলো Renovate 41-এর configuration key, আর Dependabot তার grouping option-গুলো অন্যভাবে লেখে।
+> টেকসই নীতি হলো: automation সিদ্ধান্ত নেয় **update-এর ধরন আর dependency-র ধরন** দেখে, আর automerge তখনই নিরাপদ, যখন
+> test suite তাকে পাহারা দেয়। Key-এর এখনকার নাম মিলিয়ে নিন।
 
-### একটি major-কে migration হিসেবে চালানো
+### Major upgrade-কে migration হিসেবে চালানো
 
-একটি framework major একটি project, শুধু একটি bump নয়। তিনটি অভ্যাস দুই সপ্তাহের একটি migration-কে একটি পরিত্যক্ত
-branch থেকে আলাদা করে:
+Framework-এর major upgrade একটি project, শুধু version বাড়ানো নয়। দুই সপ্তাহে শেষ হওয়া migration আর পরিত্যক্ত branch-এর
+মধ্যে পার্থক্য গড়ে দেয় তিনটি অভ্যাস:
 
-- **Code লেখার আগে peer dependency audit করুন।** পুরনো major-এ pin করা একটি unmaintained package সবকিছু আটকে দেয়।
-  সেটা প্রথম দিনেই খুঁজে বের করুন, তৃতীয় সপ্তাহে নয়।
-- **ধাপে ধাপে land করুন।** একটি route-এ, একটি flag-এর পেছনে, বা একটি workspace package-এ ship করুন। সব-বা-কিছুই-না
-  ধরনের branch যত দ্রুত এগোয়, তার চেয়ে দ্রুত conflict জমায়।
-- **Cleanup-এর জন্য সময় রাখুন।** "অস্থায়ী" shim-এর কারণেই একটি codebase বছরের পর বছর একই library-র দুটি version
+- **Code লেখার আগে peer dependency audit করুন।** পুরনো major-এ আটকে থাকা, রক্ষণাবেক্ষণহীন একটি package-ই সবকিছু আটকে
+  দেয়। তৃতীয় সপ্তাহে নয়, প্রথম দিনেই সেটা খুঁজে বের করুন।
+- **ধাপে ধাপে merge করুন।** প্রথমে একটি route-এ ship করুন, একটি flag-এর পেছনে, কিংবা একটি workspace package-এ। সব-নয়তো-কিছুই-না
+  ধরনের branch-এ যত দ্রুত কাজ এগোয়, তার চেয়ে দ্রুত conflict জমে।
+- **Cleanup-এর সময় আগেই ঠিক করে রাখুন।** "সাময়িক" shim-এর কারণেই একটি codebase বছরের পর বছর একই library-র দুটি version
   চালায়।
 
-তারপর upgrade debt-কে একটি সংখ্যা দিন। Track করুন **কত major পিছিয়ে**, **dependency-র median বয়স**, আর **যেসব direct
-dependency-র 18 মাসে কোনো release নেই**। এগুলো error budget-এর পাশে রাখুন, যেখানে এগুলোর জন্য বাজেট মেলে।
+তারপর upgrade-এর ঋণকে একটি সংখ্যা দিন। Track করুন **কতগুলো major পিছিয়ে**, **dependency-র median বয়স**, আর **কতগুলো
+direct dependency-র 18 মাসে কোনো release নেই**। এগুলো রাখুন error budget-এর পাশে, যেখানে এদের জন্য বাজেট মেলে।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি | যা করবেন | কেন |
+| পরিস্থিতি | কী করবেন | কেন |
 | --------- | ------- | --- |
-| একটি product, একটি team | একটি shared components folder | Published package বাড়তি বোঝা |
-| কয়েকটি product বা brand | একটি published package, token set হিসেবে theme | একটি পরিবর্তন সব জায়গায় পৌঁছায় |
-| Design language এখনো বদলাচ্ছে | আগে token ship করুন, component পরে | Value বদলানো সস্তা; component নয় |
+| একটি product, একটি team | একটি shared components folder | Publish করা package এখানে বাড়তি বোঝা |
+| কয়েকটি product বা brand | Publish করা package, theme হিসেবে token set | একটি বদল সব জায়গায় পৌঁছায় |
+| Design language এখনো বদলাচ্ছে | আগে token ship করুন, component আটকে রাখুন | Value বদলানো সস্তা, component নয় |
 | যেকোনো dependency-র patch বা minor | Automate করুন | Review-এর খরচ ঝুঁকির চেয়ে বেশি |
-| Framework major, দুটি পিছিয়ে | Feature-এর কাজ থামিয়ে এটা schedule করুন | প্রতিটি নতুন release ফাঁক আরো বাড়ায় |
-| বড় একটি unmaintained dependency | Wrap করুন, তারপর বদলানোর পরিকল্পনা করুন | বড় package-এর fork চিরস্থায়ী হয়ে যায় |
+| Framework major, দুটি পিছিয়ে | Feature-এর কাজ থামিয়ে এর সময় ঠিক করুন | প্রতিটি নতুন release দূরত্বটা আরও বাড়ায় |
+| বড়, রক্ষণাবেক্ষণহীন dependency | Wrap করুন, তারপর বদলানোর পরিকল্পনা করুন | বড় package-এর fork চিরকালের জন্য থেকে যায় |
 
 ## সাধারণ ভুল
 
-❌ **Component-এ primitive token reference করা।** একটি button-এ `blue500` থাকা মানে button-টিকে re-theme করা যাবে না।
-✅ Component শুধু semantic token পড়ে। Semantic token primitive-এর দিকে নির্দেশ করে।
+❌ **Component-এ primitive token ব্যবহার।** Button-এ `blue500` থাকা মানে button-টার theme আর বদলানো যাবে না।
+✅ Component পড়বে শুধু semantic token। Semantic token দেখাবে primitive-এর দিকে।
 
-❌ **Accessibility-কে consumer-এর কাজ ধরে নেওয়া।** যে `Dialog` focus trap করে না, সেটা প্রতিটি app-এ ভাঙা অবস্থায় ship হয়।
-✅ Focus, keyboard handling আর role component-এর ভেতরে থাকে, আর সেখানেই test করা হয়।
+❌ **Accessibility-কে ব্যবহারকারীর দায়িত্ব ভাবা।** যে `Dialog` focus আটকে রাখে না, সেটা প্রতিটি app-এ ভাঙা অবস্থায় ship হয়।
+✅ Focus, keyboard handling আর role থাকবে component-এর ভেতরে, আর test-ও হবে সেখানেই।
 
-❌ **Minor version-এ breaking change।** একটি prop-এর নাম বদলালে প্রতিটি consumer ভেঙে যায়, আর upgrade-এর ওপর আস্থা নষ্ট হয়।
-✅ Major version, deprecation period, codemod।
+❌ **Minor version-এ breaking change।** একটি prop-এর নাম বদলালেই সব ব্যবহারকারীর code ভাঙে, আর upgrade-এর ওপর আস্থা চলে যায়।
+✅ Major version, deprecation-এর সময়সীমা, codemod।
 
-❌ **তিন মাস পরপর একটি "dependency week"।** Upgrade একসাথে জমিয়ে করলে সেই coupling আবার তৈরি হয়, যা এগুলোকে দামি করে।
-✅ Automation দিয়ে নিয়মিত ছোট update, আর প্রতিটি major আলাদা করে schedule করা।
+❌ **তিন মাস পরপর একটি "dependency সপ্তাহ"।** Upgrade জমিয়ে একসঙ্গে করলে সেই জট আবার তৈরি হয়, যা upgrade-কে ব্যয়বহুল করে।
+✅ Automation দিয়ে নিয়মিত ছোট update, আর প্রতিটি major-এর জন্য আলাদা সময়।
 
 ❌ **Pipeline সবুজ হলেই upgrade শেষ ধরে নেওয়া।** Shim আর skip করা test তখনো রয়ে গেছে।
-✅ প্রতিটি migration একটি cleanup pull request দিয়ে শেষ করুন, যা shim-গুলো নাম ধরে মুছে দেয়।
+✅ প্রতিটি migration শেষ করুন একটি cleanup pull request দিয়ে, যা নাম ধরে ধরে shim-গুলো মুছে দেয়।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি design system হলো token, component আর docs, আর component শুধু semantic token দেখতে পারে।
-- Published API হলো props, তাই semantic versioning আর একটি migration path মিলেই আসল contract।
-- Upgrade-এর খরচ ঠিক হয় আপনি কতদিন অপেক্ষা করেছেন তা দিয়ে, পরিবর্তনের আকার দিয়ে নয়।
-- প্রতিটি dependency-র একটি tier আছে, আর leaf utility-র ওপরের যেকোনো কিছু আপনার নিজের wrapper-এর পেছনে থাকা উচিত।
-- Patch automerge করা তখনই যুক্তিসঙ্গত, যখন merge আটকে রাখে test suite।
+- Design system মানে token, component আর docs, আর component দেখতে পারে শুধু semantic token।
+- Publish করা API হলো props, তাই আসল contract হলো semantic versioning আর সঙ্গে migration-এর পথ।
+- Upgrade-এর খরচ ঠিক করে আপনি কতদিন অপেক্ষা করেছেন, বদলটা কত বড় তা নয়।
+- প্রতিটি dependency কোনো একটি স্তরে পড়ে, আর leaf utility-র ওপরের যেকোনো কিছু আপনার নিজের wrapper-এর পেছনে থাকা উচিত।
+- Patch automerge করার পক্ষে যুক্তি টেকে তখনই, যখন merge-এর পাহারায় থাকে test suite।
 
 ## Interview-এর প্রশ্ন
 
-**Q: চল্লিশটি team, যাদের প্রত্যেকের নিজস্ব component আছে, তাদের মধ্যে আপনি কীভাবে একটি design system চালু করবেন?**
+**Q: চল্লিশটি team, যাদের প্রত্যেকের নিজের component আছে, তাদের মধ্যে design system আনবেন কীভাবে?**
 
-একবারে সব নয়। আগে token ship করুন CSS variable হিসেবে, কারণ team-রা এক বিকেলেই এগুলো গ্রহণ করতে পারে, আর এগুলো
-colour আর spacing-এর অমিল ঠিক করে দেয়। তারপর সবচেয়ে বেশি ব্যবহৃত component-গুলো একটি একটি করে publish করুন: button,
-input, dialog। Team-রা migrate করে component ধরে, app ধরে নয়। একবারে সব বদলের জন্য চল্লিশটি team-কে একই sprint বেছে
+একবারে সব নয়। আগে CSS variable হিসেবে token ship করুন। Team-গুলো এক বিকেলেই এগুলো নিতে পারে, আর এতে colour আর spacing-এর
+এলোমেলো ভাব ঠিক হয়ে যায়। তারপর সবচেয়ে বেশি ব্যবহার হওয়া component-গুলো একটি একটি করে publish করুন: button, input,
+dialog। Team-গুলো migrate করে component ধরে, পুরো app ধরে নয়। এক ধাক্কায় সব বদলাতে হলে চল্লিশটি team-কে একই sprint বেছে
 নিতে হয়, তাই সেটা কখনো ঘটে না।
 
-**Q: আপনার সবচেয়ে বেশি ব্যবহৃত component-এর একটি prop-এর নাম বদলাতে হবে। আপনি এটা কীভাবে ship করবেন?**
+**Q: সবচেয়ে বেশি ব্যবহার হওয়া component-এর একটি prop-এর নাম বদলাতে হবে। কীভাবে ship করবেন?**
 
-পুরো একটি major version ধরে দুটি নামই গ্রহণ করুন। পুরনোটি development-এ warning দেয় আর type-এ `@deprecated` বহন করে,
-যাতে editor সেটা চিহ্নিত করে। একটি codemod আর একটি migration guide ship করুন, আর আগের major-এর জন্য একটি support
-window ঘোষণা করুন। একটি পরিষ্কার break technically ঠিক, কিন্তু তাতে আপনার system fork হয়ে যায়।
+পুরো একটি major version ধরে দুটি নামই নিন। পুরনো নামটা development-এ warning দেবে, আর type-এ `@deprecated` থাকবে, যাতে
+editor সেটা চিহ্নিত করে। একটি codemod আর একটি migration guide ship করুন, আর আগের major কতদিন support পাবে তা জানিয়ে দিন।
+এক ঝটকায় ভেঙে দেওয়া technically ঠিক, কিন্তু তাতে লোকে আপনার system fork করে নেয়।
 
-**Q: কখন একটি design system ভুল বিনিয়োগ?**
+**Q: কখন design system ভুল বিনিয়োগ?**
 
-যখন design language এখনো বদলাচ্ছে। Component সিদ্ধান্তগুলোকে code-এ বেঁধে ফেলে, তাই আগেভাগে বানালে team-রা প্রথম
-version-কে পাশ কাটানোর পরে সেগুলো আবার বানাতে হয়। Token আগে ship করুন, কারণ value বদলানো সস্তা। Language স্থির করার
-মতো হলে তবেই component বানান।
+যখন design language এখনো বদলাচ্ছে। Component সিদ্ধান্তগুলো ধরে রাখে, তাই আগেভাগে বানালে team-গুলো প্রথম version-কে পাশ
+কাটিয়ে কাজ চালানোর পরে আবার বানাতে হয়। Token আগে ship করুন, কারণ value বদলানো সস্তা। Component-এর জন্য অপেক্ষা করুন,
+যতদিন না language-টা স্থির করার মতো হয়।
 
-**Q: একটি team বলছে তারা React upgrade করতে পারবে না, কারণ "অনেক কিছু ভেঙে যাবে"। আপনি কীভাবে আসল অবস্থা বের করবেন?**
+**Q: একটি team বলছে তারা React upgrade করতে পারবে না, কারণ "অনেক কিছু ভেঙে যাবে"। আসল অবস্থা বের করবেন কীভাবে?**
 
-Code দিয়ে নয়, peer-dependency audit দিয়ে শুরু করুন। দেখুন কোন direct dependency-গুলোর target major-এর জন্য release
-আছে। সাধারণত দুই-তিনটি package সত্যিই আটকায়, বাকিটা codemod-এর কাজ। এতে একটি সীমাহীন ভয় নাম দেওয়া কিছু task-এর
-তালিকায় পরিণত হয়, যেগুলো schedule করা যায়।
+Code দিয়ে নয়, শুরু করুন peer dependency audit দিয়ে। দেখুন কোন direct dependency-গুলোর target major-এর জন্য release আছে।
+সাধারণত দুই-তিনটি package সত্যিই আটকায়, বাকিটা codemod-এর কাজ। এতে সীমাহীন একটি ভয় হয়ে যায় নাম দেওয়া কিছু কাজের
+তালিকা, যার সময় ঠিক করা যায়।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Micro-Frontend](#ch-micro-frontends) — যেখানে একটি shared system-ই পাঁচটি team-কে আলাদা পথে যেতে দেয় না
-- [Chapter ?? — GitHub Actions ও Pipeline Security](#ch-github-actions) — lockfile, provenance আর সেই supply-chain control, যার ওপর automation নির্ভর করে
-- [Chapter ?? — Branching, Review ও Repository Strategy](#ch-branching-and-review-workflow) — একটি dependency-র একটিমাত্র version রাখা আদৌ সম্ভব কিনা
+- [Chapter ?? — Micro-Frontend](#ch-micro-frontends) — যেখানে shared system-ই পাঁচটি team-কে আলাদা পথে যেতে দেয় না
+- [Chapter ?? — GitHub Actions ও Pipeline Security](#ch-github-actions) — lockfile, provenance আর supply-chain-এর নিয়ন্ত্রণ, যার ওপর automation নির্ভর করে
+- [Chapter ?? — Branching, Review ও Repository Strategy](#ch-branching-and-review-workflow) — একটি dependency-র একটিই version রাখা আদৌ সম্ভব কি না

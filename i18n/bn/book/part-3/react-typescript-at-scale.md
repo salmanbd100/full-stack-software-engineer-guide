@@ -1,35 +1,34 @@
 ---
 sourceHash: "6e39a5254f676715f040f6a6f4779f9ac0316fb43103fbe040ecb6fce7ed09ac"
 title: "বড় পরিসরে React ও TypeScript"
-translatedAt: "2026-10-12T12:11:04.134Z"
+translatedAt: "2026-10-17T01:36:14.944Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # বড় পরিসরে React ও TypeScript {#ch-react-typescript-at-scale}
 
-> Props, state, ref আর context-এ এমনভাবে type দিন, যাতে ভুল state লেখাই না যায়, আর একশোটা component-ও refactor করার মতো থাকে।
+> Props, state, ref আর context এমনভাবে type করুন, যাতে ভুল state লেখাই না যায়, আর একশো component-ও নিশ্চিন্তে refactor করা যায়।
 
-**এই অধ্যায়ে:** contract হিসেবে props · এমন state যেটা invalid হতে পারে না · generic component · ref আর context · server boundary-তে type দেওয়া
+**এই অধ্যায়ে:** contract হিসেবে props · যে state কখনো invalid হতে পারে না · generic component · ref আর context · server boundary type করা
 
 ## 💡 মূল ধারণা
 
-একটি React component একটি function, তাই component-এ type দেওয়া মানে একটি function-এ type দেওয়া: props-এর নাম দিন,
-return-এর নাম দিন। এটুকু যান্ত্রিক কাজ। যে codebase scale করে আর যেটা শুধু compile হয়, তাদের পার্থক্য হলো *আপনি
-কী model করতে বেছে নেন*।
+React component আসলে একটি function, তাই component type করা মানে function type করা: props-এর নাম দিন, return-এর
+নাম দিন। এটুকু যান্ত্রিক কাজ। যে codebase বড় হলেও টেকে, আর যে শুধু compile হয়, তাদের পার্থক্য হলো *আপনি কী
+model করবেন বলে ঠিক করেন*।
 
-সবচেয়ে বেশি লাভ দেয় যে পদক্ষেপ, সেটা হলো invalid state-কে প্রকাশের অযোগ্য করে দেওয়া। তিনটি স্বাধীন field হিসেবে
-`{ loading, data, error }` আটটি combination বর্ণনা করে। চারটি অর্থহীন, যেমন error আর data-সহ loading, আর প্রতিটি
-consumer-কে আটটির বিরুদ্ধেই সতর্ক থাকতে হয়। একটি discriminated union বর্ণনা করে চারটি, আর compiler ঠিক একটিতে
-narrow করে। বড় একটি React codebase থেকে এই একটি পরিবর্তন যত defensive branch সরায়, অন্য কোনো typing সিদ্ধান্ত তত
-সরায় না।
+সবচেয়ে বেশি লাভ দেয় একটি কৌশল: invalid state-কে প্রকাশ করাই অসম্ভব করে দেওয়া। `{ loading, data, error }` তিনটি
+স্বাধীন field হিসেবে রাখলে আটটি combination হয়। তার চারটি অর্থহীন, যেমন একই সঙ্গে loading, error আর data। আর
+প্রতিটি consumer-কে আটটির বিরুদ্ধেই সাবধান থাকতে হয়। Discriminated union-এ combination মাত্র চারটি, আর compiler
+ঠিক একটিতে narrow করে। বড় React codebase থেকে defensive branch সরাতে অন্য কোনো typing সিদ্ধান্ত এর ধারেকাছেও আসে না।
 
-> ⚠️ **যা বদলাতে থাকে:** React 19 `ref`-কে একটি সাধারণ prop বানিয়েছে, তাই `forwardRef` অপ্রয়োজনীয় আর deprecation-এর
-> পথে। `@types/react`-এর major version-এর মধ্যে hook-এর typing-ও বদলায়। স্থায়ী নীতিটি হলো: props একটি typed
-> contract, আর hook হলো generic function। Helper-এর নামগুলো এর চারপাশে বদলায়।
+> ⚠️ **যা বদলাতে থাকে:** React 19-এ `ref` একটি সাধারণ prop হয়ে গেছে, তাই `forwardRef` এখন বাড়তি, আর deprecated
+> হওয়ার পথে। `@types/react`-এর major version বদলালে hook-এর typing-ও বদলায়। টেকসই নীতি: props হলো typed contract,
+> আর hook হলো generic function। Helper-গুলোর নাম এর চারপাশে বদলাতে থাকে।
 
 ## কীভাবে কাজ করে
 
-### Props দুটি file-এর মধ্যে একটি contract
+### Props হলো দুটি file-এর মধ্যে contract
 
 ```tsx
 interface UserCardProps {
@@ -49,17 +48,17 @@ function UserCard({ name, avatarUrl, onEdit }: UserCardProps) {
 }
 ```
 
-`React.FC`-এর বদলে explicit props interface-সহ একটি সাধারণ function বেছে নিন। এটা আগে `children` ধরে নিত, এটা
-generic component আটকায়, আর এখন যেহেতু আর ধরে নেয় না, তাই এটা কিছুই যোগ করে না।
+`React.FC`-এর বদলে explicit props interface দেওয়া সাধারণ function লিখুন। React.FC আগে নিজে থেকেই `children`
+ধরে নিত, generic component আটকে দেয়, আর এখন যেহেতু children আর ধরে না, তাই কিছুই যোগ করে না।
 
-| প্রয়োজন                                | Type                                                    |
+| দরকার                                | Type                                                    |
 | ----------------------------------- | ------------------------------------------------------- |
-| Child হিসেবে render করা যায় এমন যেকোনো কিছু       | `React.ReactNode`                                       |
-| একটি render prop বা একটি slot              | `(item: T) => React.ReactNode`                          |
-| সাথে সব native attribute-ও        | `extends React.ButtonHTMLAttributes<HTMLButtonElement>` |
-| ভেতরের element-এর একটি ref      | `ref?: React.Ref<HTMLButtonElement>` — React 19-এ একটি সাধারণ prop |
+| Child হিসেবে render করা যায় এমন সবকিছু | `React.ReactNode`                                       |
+| Render prop বা slot                  | `(item: T) => React.ReactNode`                          |
+| সব native attribute-ও                | `extends React.ButtonHTMLAttributes<HTMLButtonElement>` |
+| ভেতরের element-এর ref               | `ref?: React.Ref<HTMLButtonElement>` — React 19-এ সাধারণ prop |
 
-**Native props extend করাই একটি design-system component-কে ব্যবহারযোগ্য করে:**
+**Native props extend করলেই design-system component সত্যিই ব্যবহারযোগ্য হয়:**
 
 ```tsx
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -77,13 +76,13 @@ function Button({ variant = "primary", loading, children, ...rest }: ButtonProps
 }
 ```
 
-প্রতিটি native attribute, যেমন `type`, `aria-label` বা `onFocus`, কাজ করতে থাকে আর check-ও হয়।
+`type`, `aria-label` বা `onFocus`-এর মতো প্রতিটি native attribute কাজ করতেই থাকে, আর type check-ও হয়।
 
-Event-এর জন্য `React.MouseEvent<HTMLButtonElement>`, `React.ChangeEvent<HTMLInputElement>` আর
-`React.FormEvent<HTMLFormElement>` ব্যবহার করুন। `currentTarget` পড়ুন, যার type হলো সেই element যেটায় handler
-লাগানো আছে। `target` হলো আসলে যেটায় click হয়েছে, তাই এর type ঢিলেঢালা।
+Event-এর জন্য ব্যবহার করুন `React.MouseEvent<HTMLButtonElement>`, `React.ChangeEvent<HTMLInputElement>` আর
+`React.FormEvent<HTMLFormElement>`। পড়ুন `currentTarget`, কারণ এর type হলো যে element-এ handler লাগানো সেটাই।
+`target` হলো আসলে যেটায় click পড়েছে, তাই এর type ঢিলেঢালা।
 
-### এমন state, যেটা invalid হতে পারে না
+### যে state কখনো invalid হতে পারে না
 
 ```tsx
 // ❌ Eight combinations, four of them meaningless
@@ -97,8 +96,8 @@ type RequestState =
   | { status: "error"; message: string };
 ```
 
-Union থাকলে `status === "success"` না হওয়া পর্যন্ত `state.data`-র অস্তিত্বই থাকে না। তাই "loading চলাকালীন data
-render করা" bug-টি code review-এর comment না হয়ে একটি compile error হয়ে যায়।
+Union থাকলে `status === "success"` না হওয়া পর্যন্ত `state.data`-র অস্তিত্বই নেই। ফলে "loading চলার সময় data
+render করা" bug-টা code review-এর comment না হয়ে সরাসরি compile error হয়ে যায়।
 
 একই ধারণা `useReducer`-এ দুবার লাভ দেয়, কারণ প্রতিটি dispatch-এ action union check হয়:
 
@@ -124,10 +123,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 ```
 
-`item` ছাড়া `dispatch({ type: "add" })` compile হবে না, `type`-এ typo থাকলেও না।
+`item` ছাড়া `dispatch({ type: "add" })` compile হবে না, আর `type`-এ বানান ভুল হলেও হবে না।
 
-দুটি `useState` annotation জেনে রাখা ভালো। যখন `null` আসল type-কে লুকিয়ে ফেলে, তখন annotate করুন। খালি array-ও
-annotate করুন, কারণ `useState([])` widen হয়ে `never[]` হয়ে যায়, আর তাতে কখনো কিছু যোগ করা যায় না।
+`useState`-এর দুটি annotation জেনে রাখা ভালো। `null` আসল type লুকিয়ে ফেললে annotate করুন। খালি array-ও annotate
+করুন, কারণ `useState([])` চওড়া হয়ে `never[]` হয়ে যায়, আর তাতে কখনো কিছু যোগ করা যায় না।
 
 ```tsx
 const [count, setCount] = useState(0);                 // inferred: number
@@ -138,8 +137,8 @@ const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
 ### Generic component
 
-একটি generic component caller-এর হুবহু type-টি শেষ পর্যন্ত বয়ে নিয়ে যায়। এর ফলেই একটি `List` application-এর
-প্রতিটি entity-র কাজে লাগে।
+Generic component caller-এর হুবহু type শুরু থেকে শেষ পর্যন্ত ধরে রাখে। এ কারণেই একটি `List` দিয়ে application-এর
+সব entity চালানো যায়।
 
 ```tsx
 interface ListProps<T> {
@@ -157,9 +156,9 @@ function List<T>({ items, getKey, renderItem }: ListProps<T>) {
 ```
 
 Custom hook-এও একই যুক্তি খাটে। `useFetch<User>(url)` যদি
-`{ data: User | null; status: RequestState["status"] }` return করে, তাহলে caller কোনো cast ছাড়াই একটি typed value
-পায়। খেয়াল করুন এটা কী **করে না**। Type argument response-এর shape assert করে। এটা check করে না। Boundary-তে
-validate করুন — [Chapter ?? — TypeScript Type Guard](#ch-type-guards) দেখুন।
+`{ data: User | null; status: RequestState["status"] }` return করে, caller কোনো cast ছাড়াই typed value পায়।
+তবে এটা কী করে **না**, সেটা খেয়াল করুন। Type argument response-এর shape দাবি করে, যাচাই করে না। Boundary-তে
+validate করুন — দেখুন [Chapter ?? — TypeScript Type Guard](#ch-type-guards)।
 
 ### প্রতিটি consumer-এ `| undefined` ছাড়া context
 
@@ -175,19 +174,19 @@ function useAuth(): AuthContextValue {
 }
 ```
 
-Throw করা accessor hook-টিই প্রতিটি consumer থেকে `| undefined` সরিয়ে দেয়। এটা না থাকলে প্রতিটি component এমন একটি
-case handle করে, যেটা অসম্ভব হওয়া উচিত। React 19-এ provider হলো context নিজেই: `<AuthContext value={auth}>`, আর
-`.Provider` এখন optional।
+Throw করা accessor hook-ই প্রতিটি consumer থেকে `| undefined` সরিয়ে দেয়। এটা না থাকলে প্রতিটি component-কে এমন
+একটি case সামলাতে হয়, যা হওয়ারই কথা নয়। React 19-এ context নিজেই provider:
+`<AuthContext value={auth}>`, আর `.Provider` এখন ঐচ্ছিক।
 
-### Server boundary পেরিয়ে type দেওয়া
+### Server boundary পার হওয়া type
 
-React 19-এর দুটি ধারণার typing-এর নিয়ম আছে, যেগুলো শুধু server/client ভাগের কারণেই আছে।
+React 19-এর দুটি ধারণার typing নিয়ম আছে, যা শুধু server/client ভাগের কারণেই তৈরি।
 
-**একটি Client Component-এ ঢোকা props-কে serialisable হতে হবে।** Server Component থেকে render করা একটি Client
-Component-এ TypeScript খুশিমনে `onSave: () => void` মেনে নেবে, কিন্তু runtime-এ এটা fail করে। Type system
-boundary-টি model করে না, তাই শৃঙ্খলা রাখার দায় আপনার। যে props এটা পার হয়, সেগুলো data, সাথে Server Function।
+**Client Component-এ ঢোকা props serialisable হতে হবে।** Server Component থেকে render করা Client Component-এ
+TypeScript দিব্যি `onSave: () => void` মেনে নেবে, কিন্তু runtime-এ সেটা fail করে। Type system boundary-টা model
+করে না, তাই নিয়ম মানার দায় আপনার। যে props boundary পার হয়, সেগুলো data, সঙ্গে Server Function।
 
-**Action-এর একটি নির্দিষ্ট shape আছে,** আর state-এ type দেওয়াই error path-কে নিরাপদ করে:
+**Action-এর shape নির্দিষ্ট,** আর state type করলেই error-এর পথটা নিরাপদ হয়:
 
 ```tsx
 interface FormState {
@@ -205,30 +204,29 @@ const [state, submitAction, isPending] = useActionState<FormState, FormData>(
 );
 ```
 
-`FormData`-র value হলো `string | File | null`, কখনোই আপনার চাওয়া shape নয়। একটি runtime schema parse এগুলোকে একটি
-typed object-এ পরিণত করে। একই parse হাতে বানানো একটি request-কে আপনার database পর্যন্ত পৌঁছাতেও দেয় না।
+`FormData`-র value হলো `string | File | null`, আপনি যে shape চান তা কখনোই নয়। Runtime-এ schema parse করলে সেগুলো
+typed object হয়ে যায়। একই parse হাতে বানানো request-কেও আপনার database পর্যন্ত পৌঁছাতে দেয় না।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                       | কী ব্যবহার করবেন                                | কেন                                            |
-| ---------------------------------------------- | ---------------------------------------- | ---------------------------------------------- |
-| একটি component, যেটা একটি native element wrap করে           | `extends …HTMLAttributes<T>`             | প্রতিটি native prop typed থাকে আর পাস করা যায়   |
-| Loading আর error state-সহ async data        | `status`-এর ওপর একটি discriminated union        | অসম্ভব combination-গুলোর অস্তিত্বই আর থাকে না       |
-| কয়েকটি value, যেগুলো একসাথে বদলায়             | Action union-সহ `useReducer`         | Invalid dispatch compile হয় না              |
-| একটি component, বিভিন্ন entity type-এ পুনর্ব্যবহৃত        | একটি generic component বা hook               | Caller-এর type callback পর্যন্ত টিকে থাকে     |
-| অনেক component-এর পড়া shared state            | Context, সাথে একটি throw করা accessor hook     | Consumer-দের কখনো undefined case handle করতে হয় না       |
-| Network বা form থেকে আসা data          | আগে একটি runtime schema, তারপর type            | Type মুছে যায়; boundary-তে একটি সত্যিকারের check লাগে    |
+| পরিস্থিতি                                        | কী ব্যবহার করবেন                         | কেন                                              |
+| ---------------------------------------------- | ---------------------------------------- | ------------------------------------------------ |
+| Native element-কে মোড়া component              | `extends …HTMLAttributes<T>`             | প্রতিটি native prop typed থাকে, পাঠানোও যায়      |
+| Loading আর error state সহ async data           | `status`-এর ওপর discriminated union      | অসম্ভব combination-গুলোর অস্তিত্বই থাকে না       |
+| কয়েকটি value, যারা একসঙ্গে বদলায়               | Action union সহ `useReducer`              | ভুল dispatch compile-ই হয় না                     |
+| এক component, অনেক ধরনের entity-তে               | Generic component বা hook                 | Caller-এর type callback পর্যন্ত টিকে থাকে        |
+| অনেক component যে shared state পড়ে            | Context, সঙ্গে throw করা accessor hook    | Consumer-কে কখনো undefined case সামলাতে হয় না    |
+| Network বা form থেকে আসা data                  | আগে runtime schema, তারপর type            | Type মুছে যায়; boundary-তে সত্যিকারের check লাগে |
 
 ## সাধারণ ভুল
 
 **❌ Type argument ছাড়া `useState([])`।** এটা `never[]` infer করে, তাই কখনো কিছু যোগ করা যায় না।
 
-**❌ `React.FC<Props>`।** এটা আগে একটি implicit `children` যোগ করত, এটা generic component আটকায়, আর annotate করা
-সাধারণ function যা দেয় না, এমন কিছুই এটা দেয় না।
+**❌ `React.FC<Props>`।** আগে এটা গোপনে `children` যোগ করত, generic component আটকে দেয়, আর annotate করা সাধারণ
+function যা দেয় না এমন কিছুই দেয় না।
 
-**❌ `createContext({} as AuthContextValue)`।** Cast-এর কারণে provider না থাকলে সেটা ধরা যায় না, তাই ব্যর্থতাটা একটি
-child-এর গভীরে `undefined is not a function` হিসেবে বেরিয়ে আসে। Default হিসেবে `undefined` দিন, আর accessor-এ
-throw করুন।
+**❌ `createContext({} as AuthContextValue)`।** এই cast-এর কারণে provider না থাকলেও ধরা যায় না। ফলে ভুলটা ধরা পড়ে
+কোনো child-এর গভীরে `undefined is not a function` হয়ে। Default `undefined` রাখুন, আর accessor-এ throw করুন।
 
 **❌ যেখানে union দরকার, সেখানে boolean flag:**
 
@@ -239,53 +237,53 @@ const [isError, setIsError] = useState(false);
 const [data, setData] = useState<User | null>(null);
 ```
 
-এখন প্রতিটি consumer নিজের মতো অনুমান লেখে, কোন combination-গুলো আসল। একটি union এদের সবার জায়গা নেয়।
+এখন প্রতিটি consumer নিজের মতো অনুমান লেখে, কোন combination-গুলো আসল। একটি union দিয়ে এর সবগুলো বাদ দেওয়া যায়।
 
-**❌ React 19-এও `forwardRef` লেখা।** `ref` এখন একটি সাধারণ prop। Wrapper একটি বাড়তি স্তর যোগ করে, আর এটা deprecate
-হবে। যে codebase এখনো React 18-এ আছে, সেখানে `forwardRef<HTMLInputElement, Props>` এখনো সঠিক, তাই কিছু বদলানোর আগে
-version দেখে নিন।
+**❌ React 19-এও `forwardRef` লেখা।** `ref` এখন সাধারণ prop। Wrapper একটি বাড়তি স্তর যোগ করে, আর deprecated হবে।
+যে codebase এখনো React 18-এ, সেখানে `forwardRef<HTMLInputElement, Props>` ঠিকই আছে, তাই কিছু বদলানোর আগে version
+দেখে নিন।
 
-**❌ Type argument-কে validation মনে করা।** `await res.json() as User` একটি assertion, check নয়। Compiler প্রশ্ন করা
-বন্ধ করে দেয়, আর runtime পরে টের পায়, এমন একটি component-এ যেটা নিজেকে ব্যাখ্যা করতে পারে না।
+**❌ Type argument-কে validation ভাবা।** `await res.json() as User` একটি assertion, check নয়। Compiler প্রশ্ন করা
+বন্ধ করে দেয়, আর runtime ব্যাপারটা টের পায় পরে, এমন কোনো component-এ যে নিজের ভুল ব্যাখ্যা করতে পারে না।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি props interface দুটি file-এর মধ্যে একটি contract। এটা explicit-ভাবে annotate করুন, আর `React.FC` বাদ দিন।
-- `status`-এর ওপর একটি discriminated union সেই অসম্ভব combination-গুলো সরিয়ে দেয়, যেগুলো boolean flag তৈরি করে।
-- একটি action union, সাথে একটি `never` default, প্রতিটি invalid dispatch-কে একটি compile error-এ পরিণত করে।
-- একটি context-এর default `undefined` দিন আর accessor hook-এ throw করুন, যাতে consumer-দের কখনো এটা handle করতে না হয়।
-- Runtime-এ type মুছে যায়। Network বা form boundary পার হওয়া data একটি সত্যিকারের schema parse দিয়ে validate করুন।
+- Props interface দুটি file-এর মধ্যে contract। এটা explicit annotate করুন, আর `React.FC` বাদ দিন।
+- `status`-এর ওপর discriminated union boolean flag-এর তৈরি অসম্ভব combination-গুলো সরিয়ে দেয়।
+- Action union আর `never` default মিলে প্রতিটি ভুল dispatch-কে compile error বানিয়ে দেয়।
+- Context-এর default `undefined` রাখুন আর accessor hook-এ throw করুন, তাহলে consumer-কে এটা সামলাতে হয় না।
+- Runtime-এ type মুছে যায়। Network বা form boundary পার হওয়া data সত্যিকারের schema parse দিয়ে validate করুন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Async state-কে `loading`, `data` আর `error` field হিসেবে না রেখে union হিসেবে model করবেন কেন?**
+**Q: Async state-কে `loading`, `data` আর `error` field-এর বদলে union হিসেবে model করবেন কেন?**
 
-তিনটি স্বাধীন field আটটি combination বর্ণনা করে, আর তার মধ্যে মাত্র চারটি অর্থপূর্ণ। তাই প্রতিটি consumer এমন state-এর
-জন্য defensive branch লেখে, যেগুলো ঘটতেই পারে না, আর একদিন তাদের একটি ভুল করে। `status`-এর ওপর একটি union একটিমাত্র
-variant-এ narrow করে, তাই request সফল হওয়ার পরেই কেবল `data`-তে পৌঁছানো যায়। Invalid state-গুলো আর handle করতে হয়
-না, কারণ সেগুলো আর প্রকাশই করা যায় না।
+তিনটি স্বাধীন field আটটি combination তৈরি করে, যার মাত্র চারটি অর্থপূর্ণ। ফলে প্রতিটি consumer এমন state-এর জন্য
+defensive branch লেখে, যা ঘটতেই পারে না, আর একদিন কেউ একটায় ভুল করে। `status`-এর ওপর union একটিমাত্র variant-এ
+narrow করে, তাই request সফল হওয়ার পরেই কেবল `data` পাওয়া যায়। Invalid state আর সামলাতে হয় না, কারণ সেগুলো
+প্রকাশ করাই আর সম্ভব নয়।
 
-**Q: `useReducer`-এর action-কে discriminated union হিসেবে type দিলে কী লাভ হয়?**
+**Q: `useReducer`-এর action-কে discriminated union হিসেবে type করলে কী লাভ?**
 
-প্রতিটি dispatch union-এর সাথে check হয়, তাই একটি field বাদ পড়লে বা action-এর নামে typo থাকলে call site-এই fail করে।
-Reducer-এর ভেতরে `type`-এর ওপর switch করলে action narrow হয়, তাই শুধু সেই variant-এর field-গুলোই পাওয়া যায়।
-`default` branch-এ action-টিকে `never`-এ assign করলে নতুন যোগ করা একটি action নীরব no-op না হয়ে একটি build failure
-হয়ে যায়।
+প্রতিটি dispatch union-এর সঙ্গে মিলিয়ে check হয়, তাই কোনো field বাদ পড়লে বা action-এর নামে বানান ভুল হলে call
+site-এই fail করে। Reducer-এর ভেতরে `type` দিয়ে switch করলে action narrow হয়, ফলে শুধু ওই variant-এর field-গুলোই
+পাওয়া যায়। `default` branch-এ action-কে `never`-তে assign করলে নতুন যোগ করা action চুপচাপ কিছু না করে থাকে না,
+build fail করায়।
 
-**Q: একটি context-এর default খালি object cast না করে `undefined` কেন দেবেন?**
+**Q: খালি object cast না করে context-এর default `undefined` রাখবেন কেন?**
 
-Cast-এর কারণে অনুপস্থিত provider দেখতে আসলটার মতোই লাগে। তখন ব্যর্থতাটা একটি child component-এর ভেতরে একটি বিভ্রান্তিকর
-runtime error হিসেবে বেরিয়ে আসে। `undefined` এমন একটি state, যেটা accessor hook ধরতে পারে আর একটি পরিষ্কার message-এ
-পরিণত করতে পারে। Narrowing-এর ফলে প্রতিটি consumer একটি non-optional value-ও পায়।
+Cast করলে provider না থাকা আর আসল provider থাকা দেখতে একই রকম হয়। তখন ভুলটা ধরা পড়ে কোনো child component-এর
+ভেতরে বিভ্রান্তিকর runtime error হয়ে। `undefined` এমন একটি state, যা accessor hook ধরতে পারে আর পরিষ্কার message-এ
+বদলে দিতে পারে। Narrowing-এর ফলে প্রতিটি consumer non-optional value-ও পায়।
 
-**Q: TypeScript কি আপনাকে একটি Server Component থেকে একটি Client Component-এ function পাঠাতে বাধা দেয়?**
+**Q: Server Component থেকে Client Component-এ function পাঠানো কি TypeScript আটকায়?**
 
-না, আর এটাই ফাঁদ। Type system-এর কাছে server/client boundary-র কোনো model নেই। তাই code compile হয়, তারপর render-এর
-সময় fail করে, যখন React prop-টি serialise করার চেষ্টা করে। নিয়মটা লেখককেই মনে রাখতে হয়: যা ওই boundary পার হয়,
-তা data, বা একটি Server Function, আর কিছু নয়।
+না, আর ফাঁদটা এখানেই। Server/client boundary-র কোনো model type system-এ নেই। তাই code compile হয়ে যায়, তারপর
+render-এর সময় React যখন prop-টা serialise করতে যায়, তখন fail করে। নিয়মটা লেখককেই মনে রাখতে হয়: ওই boundary পার
+হয় শুধু data, অথবা Server Function, আর কিছু নয়।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Server Component ও Client Component](#ch-server-components-vs-client-components) — boundary কী পার হতে দেয়
 - [Chapter ?? — TypeScript Generics](#ch-generics) — generic component আর hook-এর পেছনের mechanism
-- [Chapter ?? — TypeScript Type Guard](#ch-type-guards) — একটি typed fetch যা শুধু ধরে নেয়, সেটা validate করা
+- [Chapter ?? — TypeScript Type Guard](#ch-type-guards) — typed fetch যা শুধু ধরে নেয়, তা যাচাই করা

@@ -1,38 +1,38 @@
 ---
 sourceHash: "356695d4312610a21761b6e94ef65893c2b9704d27eca9e51da1b1ab9614d0af"
 title: "Data Fetching ও Caching"
-translatedAt: "2026-10-12T07:53:21.285Z"
+translatedAt: "2026-10-17T01:38:10.718Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Data Fetching ও Caching {#ch-nextjs-data-and-caching}
 
-> একটি request ঠিক কোথায় যায়, তার উত্তর কতক্ষণ বেঁচে থাকে, আর কী সেটাকে ভুল করে — প্রথম "এই page stale কেন" ticket আসার আগেই বলতে পারুন।
+> প্রথম "এই page stale কেন" ticket আসার আগেই ঠিক করে বলুন: request কোথায় যায়, উত্তর কতক্ষণ বাঁচে, আর কীসে সেটা ভুল হয়ে যায়।
 
-**এই অধ্যায়ে:** Server Component-এ fetch করা · request memoisation · `use cache` · lifetime আর tag · invalidation · waterfall
+**এই অধ্যায়ে:** Server Component-এ fetch · request memoisation · `use cache` · lifetime আর tag · invalidation · waterfall
 
 ## 💡 মূল ধারণা
 
-Next.js 16 default উল্টে দিয়েছে। Data fetching **dynamic, যদি না আপনি ইচ্ছা করে cache করেন**, আর caching হলো একটি
-directive, যেটা আপনি সেই function-এর পাশে লেখেন, যার এটা দরকার। Version 13 আর 14 default-ভাবে `fetch` cache করত।
-ফলে অনেক team "cache" শব্দটা একবারও না লিখে একটি stale page ship করেছে। App Router নিয়ে এটাই ছিল সবচেয়ে বেশি
-report করা সমস্যা।
+Next.js 16 default-টা উল্টে দিয়েছে। Data fetching **dynamic, যদি না আপনি ইচ্ছে করে cache করেন**, আর caching হলো
+একটি directive, যা আপনি যে function-এর দরকার তার পাশেই লেখেন। Version 13 আর 14 default-ভাবে `fetch` cache করত।
+ফলে অনেক team "cache" শব্দটা একবারও না লিখে stale page ship করেছে। App Router নিয়ে এটাই ছিল সবচেয়ে বেশি রিপোর্ট
+হওয়া সমস্যা।
 
-বাকি সবকিছু মিলে যায়, যদি একটি cache entry-কে তিন column-এর একটি row হিসেবে ভাবেন: **একটি key**, **একটি
-lifetime**, আর **একটি tag, যা দিয়ে এটা মুছে ফেলা যায়**। যেকোনো একটি বাদ পড়লে আপনি একটি অনুমেয় আকারের caching bug
-পাবেন। Key না থাকলে সব user একটি entry share করে। Lifetime না থাকলে এটা চিরকাল stale থাকে। Tag না থাকলে ঠিক
-করার একমাত্র উপায় একটি redeploy।
+Cache entry-কে তিন column-এর একটি row হিসেবে ভাবলে বাকি সব বোঝা যায়: **একটি key**, **একটি lifetime**, আর **একটি
+tag, যা দিয়ে entry মুছে ফেলা যায়**। যেকোনো একটি বাদ পড়লেই এমন caching bug হয়, যার চেহারা আগে থেকেই বলা যায়।
+Key না থাকলে সব user একটি entry share করে। Lifetime না থাকলে চিরকাল stale থাকে। Tag না থাকলে ঠিক করার একমাত্র
+উপায় redeploy।
 
-> ⚠️ **যা বদলাতে থাকে:** caching-এর নিয়ম Next.js 15-এ বদলেছে, 16-এ আবার বদলেছে। `unstable_cache` আর
-> `experimental.ppr` চলে গেছে, তাদের জায়গা নিয়েছে `cacheComponents` আর `use cache`। স্থায়ী নীতি হলো ওপরের তিনটি
-> column: একটি key, একটি lifetime, আর ইচ্ছা করে invalidate করার একটি উপায়।
+> ⚠️ **যা বদলাতে থাকে:** caching-এর নিয়ম বদলেছে Next.js 15-এ, আবার 16-এ। `unstable_cache` আর
+> `experimental.ppr` আর নেই, তাদের জায়গা নিয়েছে `cacheComponents` আর `use cache`। টেকসই নীতি হলো ওপরের তিনটি
+> column: একটি key, একটি lifetime, আর ইচ্ছেমতো invalidate করার একটি উপায়।
 
 ## কীভাবে কাজ করে
 
-### Data যেখানে, fetch সেখানে
+### Data যেখানে, fetch সেখানেই
 
-একটি Server Component সরাসরি database query করতে পারে। লেখার মতো কোনো API layer নেই, browser থেকে কোনো round
-trip নেই, আর client-এ পৌঁছাতে হবে এমন কোনো secret নেই।
+Server Component সরাসরি database query করতে পারে। আলাদা API layer লিখতে হয় না, browser থেকে round trip হয় না,
+আর কোনো secret client পর্যন্ত পৌঁছাতে হয় না।
 
 ```tsx
 export default async function UsersPage() {
@@ -41,13 +41,13 @@ export default async function UsersPage() {
 }
 ```
 
-Route Handler সেই caller-দের জন্য, যাদের আপনি নিয়ন্ত্রণ করেন না, যেমন একটি mobile client, একটি webhook বা কোনো
-third party। শুধু একটি Server Component call করবে বলে একটি বানালে অকারণে একটি round trip যোগ হয়।
+Route Handler তাদের জন্য, যাদের caller আপনার নিয়ন্ত্রণে নেই, যেমন mobile client, webhook বা third party। শুধু
+Server Component call করবে বলে একটা বানালে অকারণে একটি round trip বাড়ে।
 
 ### Request memoisation
 
-একটি render pass-এর ভেতরে React `cache()`-এ মোড়ানো একই রকম call-গুলো deduplicate করে, আর Next.js একই রকম
-`fetch` call-এর জন্য একই কাজ করে। তিনটি component প্রত্যেকে current user চাইতে পারে, তবু query চলে একটিই।
+একটি render pass-এর ভেতরে `cache()`-এ মোড়া একই রকম call-গুলো React একবারই চালায়, আর একই রকম `fetch` call-এর
+বেলায় Next.js-ও তাই করে। তিনটি component আলাদাভাবে current user চাইতে পারে, অথচ query চলে মাত্র একবার।
 
 ```tsx
 import { cache } from "react";
@@ -55,12 +55,12 @@ import { cache } from "react";
 export const getUser = cache(async (id: string) => db.user.findUnique({ where: { id } }));
 ```
 
-এটা per-request, কোনো স্থায়ী cache নয়। এর ফলে আপনি data props দিয়ে নিচে পাঠানোর বদলে যেখানে ব্যবহার হয় সেখানেই
-fetch করতে পারেন। গভীর component tree-তে data fetching-কে সুস্থ রাখে এটাই।
+এটা প্রতিটি request-এর জন্য আলাদা, দীর্ঘস্থায়ী cache নয়। এর ফলে data props দিয়ে নিচে পাঠানোর বদলে যেখানে
+ব্যবহার হয় সেখানেই fetch করা যায়। গভীর component tree-তে data fetching এভাবেই সামলানোর মতো থাকে।
 
-### `use cache` — ইচ্ছা করে caching
+### `use cache` — ইচ্ছে করে caching
 
-একবার চালু করুন, তারপর কী cache হবে তা চিহ্নিত করুন।
+একবার চালু করুন, তারপর যা cache হবে তা চিহ্নিত করুন।
 
 ```typescript
 // next.config.ts
@@ -69,7 +69,7 @@ const nextConfig: NextConfig = { cacheComponents: true };
 export default nextConfig;
 ```
 
-Directive-টি তিনটি scope-এ কাজ করে: একটি function, একটি component, বা একটি পুরো file, যেখানে প্রতিটি export
+Directive-টা তিনটি পরিসরে কাজ করে: একটি function, একটি component, অথবা পুরো একটি file, যার প্রতিটি export
 `async`।
 
 ```tsx
@@ -83,14 +83,14 @@ async function getProduct(id: string) {
 }
 ```
 
-**Next.js আপনার জন্য key তৈরি করে** function-এর identity, তার serialise করা যায় এমন argument, তার capture করা
-closure value আর build ID থেকে। Build ID মানে একটি deploy সবকিছু invalidate করে। Argument মানে
-`getProduct("a")` আর `getProduct("b")` আলাদা entry, আর আপনাকে কোনো key লিখতে হয় না। এর আরও মানে, একটি argument
-pass করতে ভুলে গেলে দুজন user একটি entry share করবেন।
+**Key-টা Next.js নিজেই বানায়**: function-এর identity, তার serialisable argument, closure-এ ধরা value, আর build ID
+দিয়ে। Build ID থাকায় deploy করলেই সব invalidate হয়। Argument থাকায় `getProduct("a")` আর `getProduct("b")`
+আলাদা entry, আর আপনাকে কোনো key লিখতে হয় না। এর মানে এটাও যে, কোনো argument পাঠাতে ভুলে গেলে দুজন user একটি
+entry share করে।
 
 ### Lifetime
 
-`cacheLife` একটি নামযুক্ত profile নেয় — `minutes`, `hours`, `days`, `weeks`, `max` — অথবা একটি explicit object।
+`cacheLife` নেয় একটি নামওয়ালা profile — `minutes`, `hours`, `days`, `weeks`, `max` — অথবা একটি explicit object।
 
 ```tsx
 cacheLife({
@@ -100,17 +100,17 @@ cacheLife({
 });
 ```
 
-তিনটি সংখ্যা তিনটি আলাদা প্রশ্নের উত্তর দেয়। এগুলো গুলিয়ে ফেলাই সাধারণত "শেষমেশ update হয়েছে, কিন্তু যখন
-ভেবেছিলাম তখন নয়"-এর কারণ। `stale` হলো user যতটা সহ্য করেন। `revalidate` হলো আপনার origin যতটা সহ্য করে।
-`expire` হলো সেই সীমা, যার পরে data সোজাসুজি ভুল।
+তিনটি সংখ্যা তিনটি আলাদা প্রশ্নের উত্তর দেয়। এগুলো গুলিয়ে ফেলাই "শেষমেশ update হলো, কিন্তু যখন ভেবেছিলাম তখন
+নয়"-এর সাধারণ কারণ। `stale` হলো user কতটা মেনে নেয়। `revalidate` হলো আপনার origin কতটা মেনে নেয়। `expire`
+হলো সেই সীমা, যার পরে data সোজাসুজি ভুল।
 
 ### Invalidation
 
-| Function                       | প্রভাব                                                     | কখন ব্যবহার করবেন                                     |
+| Function                       | কী হয়                                                       | কখন ব্যবহার করবেন                              |
 | ------------------------------ | ---------------------------------------------------------- | -------------------------------------------- |
-| `revalidateTag(tag, profile)`  | Stale চিহ্নিত করে; background-এ refresh করে                    | পরের visitor নতুন data দেখতে পারেন           |
-| `updateTag(tag)`               | সঙ্গে সঙ্গে invalidate করে — একই request নতুন data দেখে  | যে user এইমাত্র পরিবর্তন করলেন, তাঁকে সেটা দেখতে হবে |
-| `revalidatePath(path)`         | Tag-এর বদলে route ধরে invalidate করে                     | একটি ভোঁতা হাতিয়ার; tag-ই ভালো               |
+| `revalidateTag(tag, profile)`  | Stale চিহ্নিত করে; background-এ refresh করে                | পরের visitor নতুন data দেখলেই চলবে           |
+| `updateTag(tag)`               | সঙ্গে সঙ্গে invalidate — একই request-ই নতুন data দেখে        | যে user এইমাত্র বদলাল, তাকে সেটা দেখতেই হবে  |
+| `revalidatePath(path)`         | Tag-এর বদলে route ধরে invalidate করে                        | ভোঁতা অস্ত্র; tag-ই ভালো                       |
 
 ```tsx
 "use server";
@@ -122,13 +122,13 @@ export async function updateProduct(id: string, data: FormData) {
 }
 ```
 
-পার্থক্যটা user দেখতে পান। একজন user নিজের profile edit করার পর `revalidateTag` call করুন, তিনি page-এ ফিরে এসে
-পুরনো নাম দেখবেন। এটা bug-এর মতো দেখায়, যদিও cache ঠিকঠাক কাজ করছে।
+পার্থক্যটা user চোখেই দেখতে পায়। User নিজের profile edit করার পরে `revalidateTag` call করলে, page-এ ফিরে এসে সে
+পুরনো নামটাই দেখে। Cache ঠিকঠাক কাজ করলেও এটা bug-এর মতো দেখায়।
 
-### Cache-এর ভেতরে যা যেতে পারে না
+### Cache-এর ভেতরে যা রাখা যায় না
 
-`cookies()`, `headers()` আর `searchParams` `use cache`-এর ভেতরে পাওয়া যায় না। এগুলো request data, আর একটি
-cache entry এমন কিছুর ওপর নির্ভর করতে পারে না, যা তার key-তে নেই।
+`use cache`-এর ভেতরে `cookies()`, `headers()` আর `searchParams` পাওয়া যায় না। এগুলো request data, আর cache entry
+এমন কিছুর ওপর নির্ভর করতে পারে না, যা তার key-তে নেই।
 
 ```tsx
 // ❌ Request data inside a cached function
@@ -150,16 +150,16 @@ async function CachedProfile({ sessionId }: { sessionId: string }) {
 }
 ```
 
-`"use cache: private"` সেই ক্ষেত্রগুলোর জন্য, যেখানে ওই refactor সম্ভব নয়। এটা shared entry-র বদলে প্রতি user-এর জন্য
-একটি entry বানায়। এটা ইচ্ছা করে ব্যবহার করুন, error চুপ করাতে নয়।
+`"use cache: private"` সেই ক্ষেত্রগুলোর জন্য, যেখানে ওই refactor সম্ভব নয়। এটা shared entry-র বদলে প্রতিটি user-এর
+জন্য আলাদা entry বানায়। জেনে-বুঝে ব্যবহার করুন, শুধু error চুপ করাতে নয়।
 
-প্রতিটি call-এ বদলায় এমন value-গুলোর একই সমস্যা আছে, আরও নিঃশব্দ রূপে। `use cache`-এর ভেতরে `Math.random()` আর
-`Date.now()` একবারই চলে, entry তৈরির সময়। পরের প্রতিটি পাঠক সেই value-ই দেখেন।
+যে value প্রতিটি call-এ বদলায়, তাদেরও একই সমস্যা, শুধু আরও চুপচাপ। `use cache`-এর ভেতরে `Math.random()` আর
+`Date.now()` চলে একবারই, entry তৈরির সময়। পরে যে-ই পড়ুক, সেই value-টাই দেখে।
 
 ### Waterfall
 
-সবচেয়ে ব্যয়বহুল caching ভুলটা আসলে কোনো caching ভুলই নয়। এটা একটি waterfall: এমন request, যেগুলো একটি আরেকটির
-জন্য অপেক্ষা করে। পরপর তিনটি `await` মানে তিনটি round trip, cache হোক বা না হোক।
+সবচেয়ে দামি caching ভুলটা আসলে caching-এর ভুলই নয়। সেটা waterfall: এমন request, যারা একে অপরের জন্য অপেক্ষা করে।
+পরপর তিনটি `await` মানে তিনটি round trip, cache থাকুক বা না থাকুক।
 
 ```tsx
 // ❌ 300 ms, in series
@@ -171,76 +171,74 @@ const stats = await getStats(id);
 const [user, posts, stats] = await Promise.all([getUser(id), getPosts(id), getStats(id)]);
 ```
 
-Request-গুলো যখন সত্যিই স্বাধীন আর একটি ধীর, তখন অপেক্ষাই করবেন না। ধীরটিকে তার নিজস্ব Suspense boundary-র পেছনে
-রাখুন, আর page-এর বাকিটা render হতে দিন।
+Request-গুলো সত্যিই একে অপরের ওপর নির্ভর না করলে, আর একটি ধীর হলে, অপেক্ষাই করবেন না। ধীরটাকে তার নিজের Suspense
+boundary-র পেছনে রাখুন, আর page-এর বাকিটা render হতে দিন।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                       | যা ব্যবহার করবেন                                          |
+| পরিস্থিতি                                          | কী ব্যবহার করবেন                                      |
 | ----------------------------------------------- | --------------------------------------------------- |
-| আপনার নিয়ন্ত্রণে থাকা একটি page-এর data পড়া              | Server Component-এ সরাসরি fetch              |
-| একই data কয়েকটি component-এর দরকার       | `cache()`, আর প্রতিটিতে call করুন                       |
-| এমন data, যা সবার জন্য একই               | একটি `cacheLife` profile সহ `use cache`              |
-| এমন data, যা একটি mutation সঙ্গে সঙ্গে দেখাবে    | যে action এটা বদলেছে, তার ভেতরে `updateTag`           |
-| এমন data, যা পরিবর্তনের পর একটু পিছিয়ে থাকতে পারে        | `revalidateTag`                                     |
-| Cookie বা header থেকে আসা যেকোনো কিছু         | Cache-এর বাইরে, argument হিসেবে pass করা         |
-| Mobile app বা webhook-এর জন্য একটি endpoint        | একটি Route Handler                                     |
+| আপনার নিয়ন্ত্রণের কোনো page-এর data পড়া          | সরাসরি Server Component-এ fetch                     |
+| একই data কয়েকটি component-এর দরকার               | `cache()`, আর প্রতিটিতে call করুন                    |
+| সবার জন্য একই data                                | `cacheLife` profile সহ `use cache`                  |
+| Mutation-এর পরপরই যে data বদলে দেখাতে হবে         | যে action বদলাল, তার ভেতরে `updateTag`              |
+| বদলের পরে একটু পিছিয়ে থাকলেও চলে এমন data        | `revalidateTag`                                     |
+| Cookie বা header থেকে বের করা যেকোনো কিছু         | Cache-এর বাইরে, argument হিসেবে পাঠানো               |
+| Mobile app বা webhook-এর জন্য endpoint             | Route Handler                                       |
 
 ## সাধারণ ভুল
 
-**❌ Cache করা function-এ কোনো tag নেই।** কোনো এক সময় এটা ভুল হবেই। তখন ঠিক করার উপায় বাকি থাকে দুটি: lifetime
-শেষ হওয়ার অপেক্ষা, বা একটি deploy ship করা।
+**❌ Cache করা function-এ কোনো tag নেই।** কোনো এক সময় এটা ভুল হবেই। তখন হাতে থাকে শুধু দুটি উপায়: lifetime শেষ
+হওয়ার অপেক্ষা, অথবা deploy।
 
-**❌ Per-user data একটি shared tag-এর অধীনে cache করা।** একজন user-এর dashboard আরেকজনকে serve হয়। Value যদি
-user অনুযায়ী বদলায়, তাহলে user-কে key-তে থাকতেই হবে। এটা argument হিসেবে pass করুন, ভেতরে cookie পড়ে নয়।
+**❌ প্রতিটি user-এর data shared tag-এর নিচে cache করা।** এক user-এর dashboard আরেকজনের কাছে চলে যায়। Value যদি
+user অনুযায়ী বদলায়, তাহলে user-কে key-তে থাকতেই হবে। ভেতরে cookie না পড়ে argument হিসেবে পাঠান।
 
-**❌ যেখানে user নিজের edit দেখার আশা করেন, সেখানে `revalidateTag`।** Background revalidation মানে save করার পরের
-redirect-এ এখনো পুরনো value দেখায়। `updateTag`-ই এটা ঠিক করে।
+**❌ User যেখানে নিজের edit দেখার আশা করে, সেখানে `revalidateTag`।** Background revalidation মানে save করার পরের
+redirect-এও পুরনো value দেখায়। এটা ঠিক করে `updateTag`।
 
-**❌ `dynamic = "force-dynamic"` দিয়ে staleness ঠিক করা।** এটা কাজ করে, কিন্তু পুরো route-এর caching বন্ধ করে দেয়,
-যে অংশগুলো ঠিক ছিল সেগুলোসহ। Bug ছিল একটি অনুপস্থিত tag। Fix-এর দাম হলো page-এর static shell।
+**❌ `dynamic = "force-dynamic"` দিয়ে staleness ঠিক করা।** কাজ করে, কিন্তু পুরো route-এর caching বন্ধ হয়ে যায়,
+যে অংশগুলো ঠিক ছিল সেগুলোরও। Bug ছিল একটি হারানো tag। আর সমাধানের দাম দিতে হলো page-এর static shell দিয়ে।
 
-**❌ পরপর এমন await, যেগুলো একটি আরেকটির ওপর নির্ভর করে না।** ঠিক করা সস্তা, আর সাধারণত trace-এর সবচেয়ে বড়
-সংখ্যা।
+**❌ একে অপরের ওপর নির্ভর না করা পরপর await।** ঠিক করা সস্তা, আর সাধারণত trace-এ এটাই সবচেয়ে বড় সংখ্যা।
 
 ## 🔑 মূল শিক্ষা
 
-- Next.js 16 default-ভাবে dynamic; caching opt-in, `use cache` আর `cacheComponents` দিয়ে।
-- প্রতিটি cache entry-র একটি key, একটি lifetime আর একটি tag দরকার — যেটা নেই, সেটাই বলে দেয় আপনি কোন bug পাবেন।
-- Cache key argument আর closure থেকে আপনা-আপনি তৈরি হয়, তাই per-user data argument হিসেবে pass করতেই হবে।
-- `updateTag` একই request-এর ভেতরে refresh করে; `revalidateTag` পরের visitor-এর জন্য refresh করে।
-- Request memoisation প্রতি render-এর deduplication, cache নয় — এর ফলে data যেখানে ব্যবহার হয়, সেখানেই fetch করা যায়।
+- Next.js 16 default-ভাবে dynamic; caching নিজে চালু করতে হয় `use cache` আর `cacheComponents` দিয়ে।
+- প্রতিটি cache entry-র লাগে একটি key, একটি lifetime আর একটি tag — কোনটা নেই, তা দেখেই বলা যায় কোন bug হবে।
+- Cache key নিজে থেকেই তৈরি হয় argument আর closure থেকে, তাই প্রতিটি user-এর data argument হিসেবেই পাঠাতে হবে।
+- `updateTag` একই request-এর মধ্যেই refresh করে; `revalidateTag` refresh করে পরের visitor-এর জন্য।
+- Request memoisation প্রতিটি render-এ duplicate বাদ দেয়, এটা cache নয় — এর ফলে data যেখানে ব্যবহার হয় সেখানেই fetch করা যায়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি `use cache` function-এর ভেতরে কেন `cookies()` পড়া যায় না?**
+**Q: `use cache` function-এর ভেতরে `cookies()` পড়া যায় না কেন?**
 
-Cache key তৈরি হয় function-এর argument আর closure থেকে, আর cookie এর কোনোটাই নয়। Cookie-র ওপর নির্ভরশীল একটি
-entry এমন একটি key-র অধীনে বসবে, যেটা cookie-র কথা বলেই না। তখন প্রথম user-এর data দ্বিতীয়জনকে serve হবে। সমাধান
-হলো caller component-এ cookie পড়া আর value-টি pass করা। এতে সেটা key-তে চলে আসে।
+Cache key তৈরি হয় function-এর argument আর closure থেকে, আর cookie এর কোনোটাই নয়। Cookie-র ওপর নির্ভর করা entry
+এমন একটি key-র নিচে থাকত, যাতে cookie-র উল্লেখই নেই। তখন প্রথম user-এর data চলে যেত দ্বিতীয় user-এর কাছে।
+সমাধান হলো call করা component-এ cookie পড়ে value-টা পাঠিয়ে দেওয়া। তাতে সেটা key-তে ঢুকে যায়।
 
 **Q: `revalidateTag` নাকি `updateTag`?**
 
-এটা নির্ভর করে, যিনি পরিবর্তনটা করলেন, তাঁকে ফলাফল দেখতে হবে কি না। `updateTag` একই request-এর ভেতরে invalidate
-করে, তাই যে user save করে redirect হন, তিনি নিজের edit দেখেন। `revalidateTag` entry-টিকে stale চিহ্নিত করে, আর
-পুরনো copy serve করতে করতে background-এ refresh করে। অন্যরা শিগগিরই পড়বেন এমন content-এর জন্য এটা ঠিক, কিন্তু
-user-এর নিজের write-এর জন্য ভুল।
+নির্ভর করে, যিনি বদলটা করলেন তাঁকে ফল দেখতে হবে কি না তার ওপর। `updateTag` একই request-এর মধ্যে invalidate করে,
+তাই save করে redirect হওয়া user নিজের edit দেখতে পান। `revalidateTag` entry-কে stale চিহ্নিত করে, পুরনো copy
+দেখাতে দেখাতে background-এ refresh করে। অন্যরা শিগগির পড়বে এমন content-এর জন্য এটা ঠিক, কিন্তু user-এর নিজের
+লেখার জন্য ভুল।
 
-**Q: একটি page stale। কোথায় সমস্যা, কীভাবে বের করবেন?**
+**Q: একটি page stale। কোথায় সমস্যা, তা কীভাবে বের করবেন?**
 
-Layer-গুলো ক্রমানুসারে ধরে এগোন। Function-টি আদৌ cache হয় কি? তার `cacheLife` কী? এর কোনো tag আছে কি? সেই tag-এর
-জন্য কেউ `revalidateTag` call করে কি? সামনে কোনো CDN কি নিজের copy ধরে রাখছে? প্রতিটি layer-এর fix আলাদা, আর layer-টির
-নাম বলাই উত্তর। "আমি caching বন্ধ করে দেব" দেখায় যে আপনি কখনো layer-গুলো আলাদা করেননি।
+Layer ধরে ধরে ক্রমানুসারে এগোন। Function-টা আদৌ cache হচ্ছে কি? এর `cacheLife` কী? এতে কোনো tag আছে? ওই tag-এর
+জন্য কেউ `revalidateTag` call করে? সামনে কোনো CDN কি নিজের copy ধরে রেখেছে? প্রতিটি layer-এর সমাধান আলাদা, আর
+layer-টার নাম বলাই উত্তর। "আমি caching বন্ধ করে দেব" বললে বোঝা যায়, আপনি কখনো layer-গুলো আলাদা করে দেখেননি।
 
-**Q: কখন একটি read-এর সঠিক জায়গা Server Component নয়, Route Handler?**
+**Q: কখন read-এর জন্য Server Component-এর বদলে Route Handler ঠিক জায়গা?**
 
-যখন caller আপনার নিজের rendering pass নয়। একটি mobile client, একটি third-party integration, একটি webhook, বা GET-এ
-HTTP caching দরকার এমন যেকোনো কিছু একটি Route Handler পায়। একটি Server Component call করবে বলে একটি বানালে একটি
-network hop, একটি serialisation ধাপ আর secure করার মতো একটি endpoint যোগ হয়। আর এত কিছু এমন data-র জন্য, যেটা
-component সরাসরি query করতে পারত।
+যখন caller আপনার নিজের rendering pass নয়। Mobile client, third-party integration, webhook, অথবা GET-এ HTTP caching
+লাগে এমন যেকোনো কিছু Route Handler পায়। Server Component call করবে বলে একটা বানালে বাড়ে একটি network hop, একটি
+serialisation ধাপ, আর secure করার মতো আরেকটি endpoint। সবই এমন data পেতে, যা component সরাসরি query করতে পারত।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Next.js-এ Rendering](#ch-rendering-in-nextjs) — cache করা আর dynamic content কীভাবে একটি route share করে
+- [Chapter ?? — Next.js-এ Rendering](#ch-rendering-in-nextjs) — cached আর dynamic content কীভাবে একই route share করে
 - [Chapter ?? — Server Action](#ch-server-actions) — invalidation আসলে কোথা থেকে call হয়
 - [Chapter ?? — Caching ও Asset Delivery](#ch-asset-delivery) — এই সবকিছুর সামনে বসে থাকা CDN layer

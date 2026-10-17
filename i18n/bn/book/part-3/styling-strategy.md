@@ -1,53 +1,53 @@
 ---
 sourceHash: "d0480eeeac33c78e08545817c955ea258ac9a9905b5a8f2f52fc5eeee0383475"
 title: "Styling Strategy"
-translatedAt: "2026-10-12T12:16:07.818Z"
+translatedAt: "2026-10-17T01:40:26.184Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Styling Strategy {#ch-styling-strategy}
 
-> Tailwind-এর প্রশ্নে আসল tradeoff দিয়ে যুক্তি দিন, আর জানুন কোন styling পদ্ধতিগুলো একটি Server Component বাতিল করে দেয়।
+> Tailwind-এর প্রশ্নে তর্ক করুন আসল tradeoff নিয়ে, আর জেনে রাখুন Server Component কোন styling পদ্ধতিগুলো বাতিল করে দেয়।
 
-**এই অধ্যায়ে:** যে একটি সমস্যা প্রতিটি পদ্ধতি সমাধান করে · naming, utility, scoped file · runtime CSS-in-JS-এর খরচ · server-এর সীমানা · সিদ্ধান্তের নিয়ম
+**এই অধ্যায়ে:** প্রতিটি পদ্ধতি যে একটিমাত্র সমস্যার সমাধান করে · naming, utility, scoped file · runtime CSS-in-JS-এর খরচ · server boundary · সিদ্ধান্তের নিয়ম
 
 ## 💡 মূল ধারণা
 
-CSS-এর একটিই global namespace, আর একটি cascade, যেটা পুরস্কার দেয় সবচেয়ে specific selector যে লেখে তাকে। গত পনেরো
-বছরের প্রতিটি styling পদ্ধতি এই একটি তথ্যেরই উত্তর। পার্থক্য শুধু **উত্তরটা কে বলবৎ করে**: একটি naming convention,
-একটি build step, নাকি language নিজেই।
+CSS-এর namespace মাত্র একটি, global, আর cascade সুবিধা দেয় তাকেই, যে সবচেয়ে specific selector লেখে। গত পনেরো বছরের
+প্রতিটি styling পদ্ধতি এই একটি সত্যেরই জবাব। পার্থক্য শুধু **জবাবটা কে মানতে বাধ্য করে** তাতে: একটি naming
+convention, একটি build ধাপ, নাকি ভাষা নিজেই।
 
-কিছু না করলে প্রতিটি team একই ব্যর্থতায় পৌঁছায়। Cascade-এর লড়াই জিততে selector লম্বা হতে থাকে, আর সেই লড়াই থামাতে
-`!important` হাজির হয়। কেউ একটি class মুছতে সাহস পায় না, কারণ কেউ জানে না এটা কোথায় ব্যবহার হচ্ছে। নিচের প্রতিটি
-পদ্ধতি এই ব্যর্থতাকে অসম্ভব করে, আর প্রত্যেকে তার দাম নেয় আলাদা জায়গায়।
+কিছু না করলে প্রতিটি team শেষে একই ব্যর্থতায় পৌঁছায়। Cascade-এর লড়াই জিততে selector লম্বা হতে থাকে, আর লড়াই থামাতে
+হাজির হয় `!important`। কোনো class মোছার সাহস কারও হয় না, কারণ সেটা কোথায় ব্যবহার হয়েছে কেউ খুঁজে বের করতে পারে না।
+নিচের প্রতিটি পদ্ধতি এই ব্যর্থতাকে অসম্ভব করে দেয়, আর প্রতিটি তার দাম নেয় আলাদা জায়গায়।
 
-> কেউ সৌন্দর্য নিয়ে তর্ক করছে না। তর্কটা হলো খরচ কোথায় পড়বে: markup-এ, stylesheet-এ, bundle-এ, নাকি render-এর
+> তর্কটা সৌন্দর্য নিয়ে নয়। তর্কটা খরচ কোথায় গিয়ে পড়ে তা নিয়ে: markup-এ, stylesheet-এ, bundle-এ, নাকি render-এর
 > সময়।
 
 ## কীভাবে কাজ করে
 
-তিনটি পরিবার, আর এদের একটির ওপর এখন এমন একটি কঠিন সীমাবদ্ধতা আছে, যা বাকি দুটির নেই।
+তিনটি পরিবার, আর তাদের একটির ওপর এখন এমন একটি কড়া সীমা আছে, যা বাকি দুটির নেই।
 
-| পরিবার | বলবৎ করে | Scoping mechanism | খরচ পড়ে |
+| পরিবার | কে মানতে বাধ্য করে | Scoping-এর কৌশল | খরচ যেখানে পড়ে |
 | ------ | ----------- | ----------------- | ------------- |
-| **Naming convention** — BEM, ITCSS | শৃঙ্খলা আর review | মানুষের মেনে চলা একটি naming নিয়ম | Review-তে, আর প্রথম যে engineer এটা উপেক্ষা করেন তাঁর ওপর |
-| **Utility-first** — Tailwind CSS 4 | Framework-এর class set | Scope করার কিছু নেই; class-গুলো এক কাজের | Markup-এর পাঠযোগ্যতায় |
-| **Component-scoped** — CSS Modules, vanilla-extract, Emotion | Build, নয়তো runtime | প্রতিটি component-এ একটি hash করা class name | Build step-এ, আর runtime library-র ক্ষেত্রে প্রতিটি render-এ |
+| **Naming convention** — BEM, ITCSS | শৃঙ্খলা আর review | মানুষের মেনে চলা একটি নামকরণের নিয়ম | Review-এ, আর প্রথম যে engineer নিয়মটা উপেক্ষা করে তার ঘাড়ে |
+| **Utility-first** — Tailwind CSS 4 | Framework-এর class-এর set | Scope করার কিছুই নেই; প্রতিটি class-এর কাজ একটিই | Markup পড়ার সুবিধায় |
+| **Component-scoped** — CSS Modules, vanilla-extract, Emotion | Build, অথবা runtime | প্রতিটি component-এর জন্য একটি hash করা class name | Build ধাপে, আর runtime library হলে প্রতিটি render-এ |
 
-### Naming convention, আর কেন এগুলো ম্লান হলো
+### Naming convention, আর কেন এগুলো পিছিয়ে পড়ল
 
-BEM প্রতিটি class-কে একটি block, একটি element আর একটি modifier দেয়, যেমন `.card__title--featured`। দুটি file
-সংঘর্ষে যেতে পারে না, আর specificity সমতল থাকে। ITCSS stylesheet এমনভাবে সাজায়, যাতে সাধারণ rule specific rule-এর
-আগে load হয়। দুটিই কাজ করে, আর দুটির দুর্বলতা একটিই: **এগুলো চুক্তি, mechanism নয়।** কেউ `.nav ul li a.active`
-লিখলে কিছুই fail করে না, তাই বড় team-এ কেউ না কেউ একসময় লেখেনই।
+BEM প্রতিটি class-কে দেয় একটি block, একটি element আর একটি modifier, যেমন `.card__title--featured`। দুটি file-এর
+মধ্যে সংঘাত হতে পারে না, আর specificity সমান থাকে। ITCSS stylesheet এমনভাবে সাজায়, যাতে সাধারণ rule আগে load হয়, আর
+নির্দিষ্টগুলো পরে। দুটিই কাজ করে, আর দুটিরই একই দুর্বলতা: **এগুলো চুক্তি, কোনো mechanism নয়।** কেউ
+`.nav ul li a.active` লিখলে কিছুই fail করে না, তাই বড় team-এ কেউ না কেউ একদিন ঠিকই লেখে।
 
-পুরোনো code পড়ার জন্য, আর একটি interview উত্তরের জন্য এগুলো এখনো গুরুত্বপূর্ণ। একটি পদ্ধতি cascade-এর সাথে লড়ার
-*কারণ* সরিয়ে দেয়। এই অধ্যায়ের বাকিটা সেই পদ্ধতিগুলো নিয়ে, যেগুলো লড়ার *সামর্থ্যই* সরিয়ে দেয়।
+পুরনো code পড়তে, আর interview-এর একটি উত্তরের জন্য এগুলো এখনো জরুরি। একটি পদ্ধতি cascade-এর সঙ্গে লড়ার *কারণটা*
+সরিয়ে দেয়। এই অধ্যায়ের বাকিটা সেই পদ্ধতিগুলো নিয়ে, যেগুলো লড়ার *ক্ষমতাটাই* কেড়ে নেয়।
 
 ### Utility-first
 
-একটি utility class একটি কাজ করে, যেমন `p-4`, `text-sm` বা `flex`। Component-এর সংখ্যার সাথে stylesheet আর বাড়ে না,
-কারণ প্রতিটি component-এর জন্য আলাদা CSS লিখতে হয় না। তার বদলে বাড়ে markup।
+একটি utility class একটিই কাজ করে, যেমন `p-4`, `text-sm` বা `flex`। Component বাড়লেও stylesheet আর বাড়ে না, কারণ
+component ধরে ধরে CSS লিখতেই হয় না। বদলে বাড়ে markup।
 
 **Tailwind CSS 4 configuration-কে CSS-এর ভেতরেই নিয়ে এসেছে:**
 
@@ -62,9 +62,9 @@ BEM প্রতিটি class-কে একটি block, একটি element 
 }
 ```
 
-Syntax-এর চেয়ে output বেশি গুরুত্বপূর্ণ। `@theme` compile হয়ে `:root`-এ `--color-brand-500` হয়, তাই যেকোনো
-stylesheet, যেকোনো component আর এই page-এর অন্য যেকোনো পদ্ধতি token-গুলো পড়তে পারে। **Custom property হিসেবে
-design token — এখানেই প্রতিটি পদ্ধতি মিলিত হয়।** Team এরপর যে framework-ই বাছুক, এগুলো টিকে থাকে।
+Syntax-এর চেয়ে output বেশি জরুরি। `@theme` compile হয়ে `:root`-এ `--color-brand-500` হয়, তাই যেকোনো stylesheet,
+যেকোনো component, আর এই page-এর অন্য যেকোনো পদ্ধতি token-গুলো পড়তে পারে। **Custom property হিসেবে design token-ই
+সেই জায়গা, যেখানে সব পদ্ধতি এসে মেলে।** Team এরপর যে framework-ই বাছুক, এগুলো টিকে থাকে।
 
 ### Component-scoped
 
@@ -79,9 +79,9 @@ export function Card({ title }: { title: string }) {
 }
 ```
 
-CSS-in-JS এই ধারণাকে সেই style-গুলো পর্যন্ত টেনে নেয়, যেগুলো props-এর ওপর নির্ভর করে। যে ভাগটা গুরুত্বপূর্ণ, তা হলো
-**CSS কখন তৈরি হয়**। একটি runtime library browser-এ, component render হওয়ার সময় stylesheet বানায়। একটি build-time
-library কিছু ship হওয়ার আগেই হুবহু একই stylesheet তৈরি করে, আর bundle-এ কোনো library রেখে যায় না।
+CSS-in-JS এই ধারণাটাকেই নিয়ে যায় props-নির্ভর style পর্যন্ত। যে ভাগটা জরুরি, তা হলো **CSS কখন তৈরি হয়**। Runtime
+library browser-এ component render হওয়ার সময় stylesheet তৈরি করে। Build-time library কিছু ship হওয়ার আগেই হুবহু সেই
+stylesheet তৈরি করে ফেলে, আর bundle-এ কোনো library রেখে যায় না।
 
 **Build-time, typed token সহ:**
 
@@ -98,38 +98,39 @@ export const title = style({
 
 ## কখন ব্যবহার করবেন
 
-Server Component-এর সীমানাই এটাকে পছন্দের বিষয় থেকে একটি সীমাবদ্ধতায় পরিণত করেছে।
+Server Component boundary-ই এই প্রশ্নকে পছন্দের ব্যাপার থেকে বাধ্যবাধকতায় নিয়ে গেছে।
 
-একটি runtime CSS-in-JS library *render করার সময়* style তৈরি করে, তাই যেখানেই একটি styled component render হয়,
-সেখানে এর runtime লাগে। React Server Component server-এ render হয় আর কোনো JavaScript ship করে না। তাই প্রতিটি styled
-component-কে `'use client'` চিহ্নিত করতে হয়, আর সেটা তার পুরো subtree-কে সাথে নিয়ে সীমানা পার করায়। একটি page-এর
-দুই component গভীরে গিয়েই styling library app-এর architecture ঠিক করে ফেলেছে।
+Runtime CSS-in-JS library style তৈরি করে *render চলার সময়*, তাই যেখানেই কোনো styled component render হয়, সেখানে
+তার runtime লাগে। React Server Component render হয় server-এ, আর কোনো JavaScript ship করে না। ফলে প্রতিটি styled
+component-কে `'use client'` mark করতে হয়, আর তাতে তার পুরো subtree boundary পেরিয়ে client-এ চলে যায়। Page-এর মাত্র
+দুই স্তর গভীরে গিয়েই styling library ঠিক করে ফেলেছে app-এর architecture।
 
-| পরিস্থিতি | বাছুন | কেন |
+| পরিস্থিতি | যা বাছবেন | কেন |
 | --------- | ------ | --- |
-| React 19 Server Component, বা Next.js App Router | Tailwind, CSS Modules বা vanilla-extract | কোনো runtime নেই, তাই কিছুই জোর করে client সীমানা পার হয় না |
-| অনেক team ব্যবহার করে এমন একটি design system | Custom property হিসেবে token, সাথে CSS Modules | চুক্তিটা token, framework নয় |
-| কড়া performance budget-এর product UI | Utility-first | Stylesheet আর বাড়ে না; maintain করার মতো কোনো styling layer নেই |
-| Client-heavy একটি SPA-তে সত্যিকারের dynamic style | Emotion | Prop interpolation সরাসরি, আর app ইতিমধ্যেই JavaScript-নির্ভর |
-| বিদ্যমান একটি styled-components codebase | থাকুন, যদি না profiling অন্য কথা বলে | Migration আসল কাজ, আর library এখনো চলে |
+| React 19 Server Components, বা Next.js App Router | Tailwind, CSS Modules বা vanilla-extract | Runtime নেই, তাই কিছুকেই জোর করে client boundary পার করাতে হয় না |
+| অনেক team ব্যবহার করে এমন design system | Custom property হিসেবে token, সঙ্গে CSS Modules | Contract হলো token, framework নয় |
+| কড়া performance budget-এর product UI | Utility-first | Stylesheet আর বাড়ে না; রক্ষণাবেক্ষণের মতো কোনো styling layer নেই |
+| Client-ভারী SPA-তে সত্যিই dynamic style | Emotion | Props interpolation সরাসরি করা যায়, আর app এমনিতেই JavaScript-নির্ভর |
+| আগে থেকে styled-components-এ লেখা codebase | যেমন আছে থাকুন, যদি না profiling অন্য কথা বলে | Migration সত্যিকারের পরিশ্রম, আর library এখনো চলে |
 
-> ⚠️ **যা বদলাতে থাকে:** styled-components 2024-এ maintenance mode-এ গেছে। Tailwind v4-এ CSS-first
-> configuration-এ গেছে। Recommended zero-runtime library প্রতি এক-দুই বছরে বদলায়। টেকসই নীতিটি বদলায় না: render-এর
-> সময় করা কাজ প্রতিটি render-এ হয়, user-এর device-এ। সেই কাজ build-এর সময়ে সরানো সবসময় সম্ভব, আর সবসময় সস্তা।
+> ⚠️ **যা বদলাতে থাকে:** styled-components 2024-এ maintenance mode-এ গেছে। Tailwind v4-এ CSS-first configuration-এ
+> চলে গেছে। সুপারিশ করা zero-runtime library প্রতি এক-দুই বছরে বদলায়। টেকসই নীতিটা বদলায় না: render-এর সময় যে
+> কাজ হয়, তা প্রতিটি render-এ হয়, user-এর device-এ। সেই কাজ build time-এ সরিয়ে নেওয়া সবসময় সম্ভব, আর সবসময়
+> সস্তা।
 
 ### Runtime CSS-in-JS-এর আসল খরচ
 
-তিনটি আলাদা খরচ। Interviewer-রা সাধারণত মাঝেরটি শুনতে চান।
+তিনটি আলাদা খরচ। Interviewer-রা সাধারণত মাঝেরটা শুনতে চান।
 
 - **Bundle:** একটিও style লেখার আগেই 7–15 KB gzipped।
-- **Render:** template parse করা, hash করা আর rule insert করা। Interpolate করা value বদলায় এমন প্রতিটি re-render-এ
-  এটা আবার হয়, আর এটা চলে user-এর device-এ, আপনার নয়।
-- **Payload:** server-rendered HTML সংগ্রহ করা `<style>` block বহন করে। Document বাড়ে render করা tree-র আকারের সাথে,
-  design system-এর আকারের সাথে নয়।
+- **Render:** template parse করা, hash করা, আর rule বসানো। Interpolate করা value বদলায় এমন প্রতিটি re-render-এ এটা
+  আবার হয়, আর চলে user-এর device-এ, আপনার নয়।
+- **Payload:** server-rendered HTML সংগ্রহ করা `<style>` block বহন করে। Document বাড়ে render হওয়া tree-এর আকারের
+  সঙ্গে, design system-এর আকারের সঙ্গে নয়।
 
 ## সাধারণ ভুল
 
-**❌ একটি component body-র ভেতরে styled component define করা।**
+**❌ Component-এর body-র ভেতরে styled component define করা।**
 
 ```tsx
 import styled from "@emotion/styled";
@@ -142,63 +143,63 @@ function Panel() {
 }
 ```
 
-**✅ এটা module scope-এ define করুন**, যেখানে এটা একবার তৈরি হয়। নয়তো বদলাতে থাকা অংশটি একটি custom property-তে
-সরান আর rule-টি static রাখুন।
+**✅ এটা module scope-এ define করুন**, যেখানে এটা একবারই তৈরি হয়। অথবা যে অংশটা বদলায়, সেটা একটি custom property-তে
+সরিয়ে দিন, আর rule-টা static রাখুন।
 
 **❌ "Tailwind বনাম CSS Modules"-কেই পুরো প্রশ্ন ধরে নেওয়া।** দুটিই zero-runtime, আর দুটিই একই token ব্যবহার করে।
-একটি team layout-এর জন্য utility আর জটিল একটি component-এর জন্য module ব্যবহার করতে পারে, আর বেশিরভাগ বড় codebase
-শেষে সেখানেই পৌঁছায়। যে উত্তর নম্বর পায়, সেটা আগে সীমাবদ্ধতার নাম বলে, তারপর বাছে। সীমাবদ্ধতা হলো server-এর সীমানা,
-performance budget বা team-এর আকার।
+একটি team layout-এর জন্য utility আর জটিল component-এর জন্য module ব্যবহার করতে পারে, আর বেশিরভাগ বড় codebase শেষে
+সেখানেই পৌঁছায়। যে উত্তর নম্বর পায়, সেটা আগে সীমাবদ্ধতার নাম বলে, তারপর বাছে। সীমাবদ্ধতা হলো server boundary,
+performance budget, বা team-এর আকার।
 
-**❌ Design token-এর মালিকানা styling পদ্ধতিকে দিয়ে দেওয়া।** ধরুন brand-এর রং শুধু একটি Tailwind config-এ আছে, বা
-শুধু একটি TypeScript theme object-এ। তাহলে পরের framework migration মানে নতুন করে লেখা। Token-গুলো custom property
-হিসেবে declare করুন, তাহলে এই page-এর প্রতিটি পদ্ধতি এগুলো পড়তে পারবে।
+**❌ Design token-এর মালিকানা styling পদ্ধতির হাতে ছেড়ে দেওয়া।** ধরুন brand colour আছে শুধু একটি Tailwind config-এ,
+অথবা শুধু একটি TypeScript theme object-এ। তাহলে পরের framework migration মানে পুরোটা নতুন করে লেখা। Token ঘোষণা করুন
+custom property হিসেবে, তাহলে এই page-এর প্রতিটি পদ্ধতি সেগুলো পড়তে পারবে।
 
 ## 🔑 মূল শিক্ষা
 
-- প্রতিটি styling পদ্ধতি একটি সমস্যারই উত্তর দেয়, global namespace। পার্থক্য হলো উত্তরটা একজন মানুষ, build নাকি
-  runtime বলবৎ করে।
-- Runtime CSS-in-JS-এর খরচ হলো bundle size, প্রতি render-এর কাজ আর বড় একটি server-rendered document। Build-time
-  library একই CSS তৈরি করে আর পেছনে কিছু রেখে যায় না।
-- একটি runtime styling library tree-র নিচে `'use client'` চাপিয়ে দেয়। এটা একটি architecture-এর সিদ্ধান্ত নেয়,
-  styling-এর নয়।
-- Design token-এর জায়গা custom property-তে, কোনো framework-এর config-এ নয়, কারণ এগুলো framework-এর চেয়ে বেশিদিন
+- প্রতিটি styling পদ্ধতি একটিই সমস্যার জবাব দেয়, global namespace। পার্থক্য হলো জবাবটা মানতে বাধ্য করে মানুষ, build,
+  নাকি runtime।
+- Runtime CSS-in-JS-এর খরচ bundle size, প্রতি render-এর কাজ আর বড় server-rendered document। Build-time library একই
+  CSS তৈরি করে, আর পেছনে কিছু রেখে যায় না।
+- Runtime styling library tree-এর নিচ পর্যন্ত `'use client'` চাপিয়ে দেয়। এটা styling-এর নয়, architecture-এর
+  সিদ্ধান্ত নিয়ে ফেলে।
+- Design token-এর জায়গা custom property-তে, framework-এর config-এ নয়, কারণ token framework-এর চেয়ে বেশি দিন
   টেকে।
-- Utility-first আর component-scoped CSS পরস্পরবিরোধী নয়। বড় codebase সাধারণত একটি token set-এর ওপর দুটিই চালায়।
+- Utility-first আর component-scoped CSS পরস্পরের বিপরীত নয়। বড় codebase সাধারণত একই token set-এর ওপর দুটিই
+  চালায়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি team একটি Next.js App Router project-এ styled-components যোগ করতে চায়। আপনি কী বলবেন?**
+**Q: একটি team Next.js App Router project-এ styled-components যোগ করতে চায়। আপনি কী বলবেন?**
 
-বলব যে এটা কাজ করে, আর এর খরচ styling-এর চেয়ে বেশি। একটি runtime library render-এর সময় CSS তৈরি করে, তাই প্রতিটি
-styled component-এর `'use client'` লাগে। সেটা তার subtree-কে সাথে নিয়ে server tree থেকে বের করে আনে, আর bundle বাড়ে
-এমন একটি কারণে, যার সাথে feature-এর কোনো সম্পর্ক নেই। CSS Modules বা vanilla-extract কোনো runtime ছাড়াই style লেখার
-একই উপায় দেয়। Codebase যদি ইতিমধ্যে সব জায়গায় styled-components চালায়, তাহলে থেকে যাওয়ার পক্ষে যুক্তি আছে। নতুন
-একটি App Router project-এ এটা যোগ করার পক্ষে নেই।
+বলব যে এটা চলে, কিন্তু এর খরচ styling-এর চেয়ে বেশি। Runtime library render-এর সময় CSS তৈরি করে, তাই প্রতিটি styled
+component-এর `'use client'` লাগে। তাতে তার subtree-ও server tree থেকে বেরিয়ে আসে, আর bundle বাড়ে এমন কারণে, যার
+সঙ্গে feature-এর কোনো সম্পর্ক নেই। CSS Modules বা vanilla-extract একইভাবে style লেখার সুযোগ দেয়, কোনো runtime ছাড়া।
+Codebase যদি আগে থেকেই সব জায়গায় styled-components চালায়, তাহলে সেটা রেখে দেওয়ার পক্ষে যুক্তি আছে। কিন্তু নতুন App
+Router project-এ এটা যোগ করার পক্ষে কোনো যুক্তি নেই।
 
-**Q: Utility-first CSS আসলে কোথায় আপনার সাশ্রয় করে, আর কোথায় খরচ করায়?**
+**Q: Utility-first CSS আসলে কোথায় বাঁচায়, আর কোথায় খরচ করায়?**
 
-এটা আপনাকে naming থেকে বাঁচায়। Component-first CSS-এর দামি অংশ rule লেখা নয়। দামি হলো প্রতিটি visual variant-এর
-জন্য একটি নাম বানানো, তারপর design বদলানোর সাথে নামটিকে সত্য রাখা। Utility সেই কাজটি সরিয়ে দেয়, আর component-এর
-সংখ্যার সাথে stylesheet আর বাড়ে না। খরচ হলো ঘন markup আর onboarding-এর একটি আসল ধাপ। এটা maintenance খরচের তর্ক,
-keystroke-এর নয়।
+বাঁচায় নামকরণের কাজ। Component-first CSS-এ দামি অংশটা rule লেখা নয়। দামি হলো প্রতিটি visual variant-এর জন্য একটি নাম
+বানানো, আর design বদলাতে থাকলে নামটাকে সত্য রাখা। Utility এই কাজটাই সরিয়ে দেয়, আর component বাড়লেও stylesheet আর
+বাড়ে না। খরচ হলো ঘন markup, আর নতুন কাউকে শেখানোর একটি সত্যিকারের ধাপ। তর্কটা রক্ষণাবেক্ষণের খরচ নিয়ে, keystroke
+নিয়ে নয়।
 
-**Q: Design token সাধারণত একটি TypeScript object না হয়ে custom property কেন হয়?**
+**Q: Design token সাধারণত TypeScript object না হয়ে custom property হয় কেন?**
 
-কারণ প্রতিটি layer একসাথে একটি custom property পড়তে পারে: একটি utility framework, একটি CSS Module, একটি inline style,
-আর এমন একটি third-party component, যে আপনার build সম্পর্কে কিছুই জানে না। একটি TypeScript token object শুধু সেই code
-পড়তে পারে, যে এটা import করে। তাই bundle-এর বাইরের কিছুর একটি রং দরকার হওয়ামাত্র এটা design system-কে দুই ভাগ করে
-ফেলে। Custom property runtime-এও বদলায়। দ্বিতীয় একটি stylesheet ship না করেই theming আর dark mode এভাবেই কাজ করে।
+কারণ custom property সব layer একসঙ্গে পড়তে পারে: utility framework, CSS Module, inline style, এমনকি এমন third-party
+component, যে আপনার build সম্পর্কে কিছুই জানে না। TypeScript token object পড়তে পারে কেবল সেই code, যেটা সেটা import
+করে। তাই bundle-এর বাইরের কোনো কিছুর colour লাগলেই design system দুই ভাগ হয়ে যায়। Custom property runtime-এও বদলায়।
+Theming আর dark mode এভাবেই দ্বিতীয় stylesheet ship না করে কাজ করে।
 
-**Q: কখন আপনি কোনো styling framework-ই ব্যবহার করবেন না?**
+**Q: কখন কোনো styling framework-ই ব্যবহার করবেন না?**
 
-যখন surface ছোট আর সীমাবদ্ধতা হলো payload, যেমন একটি marketing page, একটি embedded widget বা একটি email template।
-Custom property সহ কয়েকশো line হাতে লেখা CSS byte-এর হিসাবে যেকোনো framework-কে হারায়, আর এর maintain করার মতো
-কোনো upgrade path নেই। একটি framework নিজের জায়গা অর্জন করে তখন, যখন কয়েকজন একসাথে style লেখেন আর naming ভাঙতে শুরু
-করে।
+যখন জায়গাটা ছোট আর সীমাবদ্ধতা payload, যেমন marketing page, embedded widget বা email template। Custom property সহ
+কয়েকশো line হাতে লেখা CSS byte-এর হিসাবে যেকোনো framework-কে হারায়, আর এর কোনো upgrade path রক্ষণাবেক্ষণ করতে হয় না।
+Framework তার জায়গা অর্জন করে তখন, যখন কয়েকজন একই সময়ে style লেখে আর নামকরণ ভেঙে পড়তে শুরু করে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Server Component ও Client Component](#ch-server-components-vs-client-components) — যে সীমানা runtime styling library বাতিল করে দেয়
-- [Chapter ?? — Design System, Dependency ও Upgrade](#ch-design-systems-at-scale) — token-এর চুক্তি আসলে কোথায় ঠিক হয়
-- [Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting) — একটি আসল build-এ একটি styling library-র খরচ কীভাবে দেখবেন
+- [Chapter ?? — Server Component ও Client Component](#ch-server-components-vs-client-components) — যে boundary runtime styling library বাতিল করে দেয়
+- [Chapter ?? — Design System, Dependency ও Upgrade](#ch-design-systems-at-scale) — token-এর contract আসলে যেখানে ঠিক হয়
+- [Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting) — আসল build-এ styling library-র খরচ কীভাবে দেখবেন

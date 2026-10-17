@@ -1,65 +1,65 @@
 ---
 sourceHash: "7494e23d1f021d797535cfe553f53a8c330a2b11c8949d4be9c909aa5eb46695"
 title: "Part IV — বড় পরিসরে Frontend"
-translatedAt: "2026-10-12T12:16:50.045Z"
+translatedAt: "2026-10-17T01:34:46.715Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Part IV — বড় পরিসরে Frontend
 
-Part III হলো কীভাবে বানাবেন। Part IV হলো কীভাবে বানাবেন চল্লিশজন engineer, চার বছরের ইতিহাস, আর এমন একটি
-performance budget নিয়ে, যার জন্য কাউকে জবাবদিহি করতে হয়। পার্থক্যটা কাঠিন্যে নয়। এখন প্রতিটি সিদ্ধান্তের সাথে একটি
-migration path আসে, আর ভুল সিদ্ধান্তের দাম শুধু আপনি নন, পুরো একটি team দেয়।
+Part III শেখায় কীভাবে বানাতে হয়। Part IV শেখায় সেটাই কীভাবে বানাবেন চল্লিশজন engineer নিয়ে, চার বছরের পুরনো
+code-এর ওপর, আর এমন performance budget মেনে, যার জন্য কাউকে জবাব দিতে হয়। পার্থক্যটা কঠিনতায় নয়। এখন প্রতিটি
+সিদ্ধান্তের সঙ্গে একটি migration-এর পথ জুড়ে থাকে। আর ভুল সিদ্ধান্তের দাম শুধু আপনি দেন না, পুরো team দেয়।
 
-চারটি section কী যুক্তি দেয়, সেটা এখান থেকেই ঠিক হয়। Architecture হলো এমন সীমানা নিয়ে, যেগুলো এক বছর পরেও সরাতে
-পারবেন। Performance হলো budget নিয়ে, কারণ যে সংখ্যার কোনো মালিক নেই, সেটা সরে যায়। এর মধ্যে আছে **INP** (input-এ
-page কত দ্রুত সাড়া দেয়)। এটা 2024-এ FID-এর জায়গা নিয়েছে, আর প্রকাশিত অনেক লেখা এখনো এটা ভুল বলে। Security হলো
-browser-এর threat model, কোনো checklist নয়। Testing হলো কোন layer প্রতিটি test-এর যোগ্য, তা নিয়ে, কারণ team প্রতিটি
-commit-এ, চিরকাল, suite-এর দাম দেয়।
+চারটি অংশের যুক্তিও এখান থেকেই আসে। Architecture হলো এমন boundary, যা এক বছর পরেও সরানো যায়। Performance হলো
+budget, কারণ যে সংখ্যার কোনো মালিক নেই, সেটা ধীরে ধীরে খারাপ হতে থাকে। এর মধ্যে আছে **INP** (input পেলে page কত
+দ্রুত সাড়া দেয়)। 2024-এ INP এসেছে FID-এর জায়গায়, আর প্রকাশিত অনেক লেখা এখনো এটা ভুল বলে। Security মানে browser-এর
+threat model, checklist নয়। Testing-এর প্রশ্ন হলো কোন test কোন layer-এ থাকার যোগ্য, কারণ suite-এর খরচ team প্রতিটি
+commit-এ দেয়, চিরকাল।
 
-এখানে একটি অধ্যায় আছে, যেটা ছাপা অবস্থায় প্রায় কোথাও নেই: **AI-generated code review করা**। কাজটায় এখন এই review-এর
-দক্ষতা লাগে। এর মানে, generate করা এমন object literal ধরা, যেটা চুপচাপ memoisation ভেঙে দেয়, বা এমন ARIA attribute,
-যার syntax valid কিন্তু অর্থ ভুল।
+এখানে একটি অধ্যায় আছে, যার মতো লেখা ছাপা বইয়ে প্রায় নেই: **AI-এর লেখা code review**। কাজটায় এখন এই review-এর
+দক্ষতা লাগে। মানে ধরতে পারা, কোথায় generate করা object literal চুপচাপ memoisation ভেঙে দিচ্ছে, কিংবা কোন ARIA
+attribute-এর syntax ঠিক, অথচ মানে ভুল।
 
-## Section-গুলো
+## অংশগুলো
 
-| Section                                                     | অধ্যায় | কী আছে                                                      |
-| ------------------------------------------------------------ | -------- | -------------------------------------------------------------------- |
-| [Frontend Architecture](#ch-frontend-architecture-index)     | 4        | Pattern, micro-frontend, design system আর upgrade, AI code review |
-| [Web Performance](#ch-frontend-web-performance-index)        | 4        | Core Web Vitals, loading আর budget, caching আর delivery, measurement |
-| [Frontend Security](#ch-frontend-security-index)             | 2        | XSS আর untrusted input, CSP আর security header                   |
-| [Frontend Testing](#ch-frontend-testing-index)               | 5        | Strategy, Vitest আর RTL, integration, Playwright, accessibility    |
+| অংশ | অধ্যায় | কী নিয়ে |
+| --- | ------ | ------- |
+| [Frontend Architecture](#ch-frontend-architecture-index) | 4 | Pattern, micro-frontend, design system আর upgrade, AI code review |
+| [Web Performance](#ch-frontend-web-performance-index) | 4 | Core Web Vitals, loading আর budget, caching আর delivery, measurement |
+| [Frontend Security](#ch-frontend-security-index) | 2 | XSS আর untrusted input, CSP আর security header |
+| [Frontend Testing](#ch-frontend-testing-index) | 5 | Strategy, Vitest আর RTL, integration, Playwright, accessibility |
 
 ## Interviewer-রা যা যাচাই করেন
 
-এই part-এর senior signal হলো: **feature নয়, budget, সীমানা আর migration path দিয়ে ভাবেন।** চারটি section জুড়েই
-তিনটি প্রশ্ন চলে। প্রতিটি section index নিজের প্রশ্নও যোগ করে।
+এই অংশে senior হওয়ার লক্ষণ হলো **feature নয়, budget, boundary আর migration-এর পথ নিয়ে ভাবা।** চারটি অংশ জুড়েই
+তিনটি প্রশ্ন ঘুরে ফিরে আসে। প্রতিটি অংশের index নিজের প্রশ্নও যোগ করে।
 
-- **সংখ্যাটা কী, আর এর মালিক কে?** "Site-টা ধীর লাগে" কোনো problem statement নয়। Search route-এ 340 ms-এর একটি
-  p75 INP, যার মালিক search ship করা team — এটা একটি problem statement।
-- **এই সিদ্ধান্ত থেকে কীভাবে বেরোবেন?** Micro-frontend, একটি design system, একটি state library, একটি test
-  framework: প্রত্যেকটি গ্রহণ করা সহজ, ছাড়া দামি। Senior উত্তর ঢোকার পথের আগে বেরোনোর পথের নাম বলে।
-- **Untrusted string-টি কোথায় যায়?** প্রশ্নটা "আপনি কি input sanitise করেন" নয়। প্রশ্ন হলো value কোথায় data থেকে
-  markup, একটি URL বা একটি style-এ পার হয়। ওই সীমানাই client-side security-র পুরোটা।
+- **সংখ্যাটা কত, আর এর মালিক কে?** "Site-টা ধীর লাগে" কোনো problem statement নয়। Search route-এ p75 INP 340 ms, আর
+  এর মালিক search ship করা team: এটা problem statement।
+- **এই সিদ্ধান্ত থেকে বের হবেন কীভাবে?** Micro-frontend, design system, state library, test framework: প্রতিটিই নেওয়া
+  সহজ, ছাড়া ব্যয়বহুল। Senior উত্তর ঢোকার আগেই বের হওয়ার রাস্তা বলে দেয়।
+- **Untrusted string-টা কোথায় যায়?** প্রশ্নটা "আপনি input sanitise করেন কি না" নয়। প্রশ্ন হলো value-টা কোথায় data থেকে
+  markup, URL বা style-এ ঢুকে পড়ে। Client-side security বলতে পুরোটাই এই boundary।
 
 **একই প্রশ্নে mid বনাম senior:**
 
-| প্রশ্ন | Mid উত্তর | Senior উত্তর |
-| ----- | ---------- | ------------- |
-| "এটা কীভাবে দ্রুত করবেন?" | "Lazy-load আর memoise করব" | আগে মাপেন, কোন vital সরেছে তার নাম বলেন, আর budget এখন কত তা বলেন |
-| "আপনি কি micro-frontend ব্যবহার করবেন?" | "এতে team-গুলো স্বাধীনভাবে deploy করতে পারে" | Coordination-এর খরচ, duplicate runtime, আর যে দুটি শর্তে এটা লাভজনক |
-| "কতটা test করা উচিত?" | "80% coverage লক্ষ্য রাখুন" | প্রতিটি layer কোন ব্যর্থতা ধরার জন্য আছে, আর কেন সংখ্যাটা লক্ষ্য নয়, একটি ফলাফল |
+| প্রশ্ন | Mid-এর উত্তর | Senior-এর উত্তর |
+| ----- | ----------- | -------------- |
+| "এটা দ্রুত করবেন কীভাবে?" | "Lazy-load আর memoise করব" | আগে measure করেন, কোন vital বদলেছে তার নাম বলেন, আর এখন budget কত তা জানান |
+| "Micro-frontend ব্যবহার করবেন?" | "এতে team-গুলো আলাদা করে deploy করতে পারে" | Coordination-এর খরচ, দুবার চলা runtime, আর যে দুটি শর্তে এটা লাভজনক হয় |
+| "কতটা test করা উচিত?" | "80% coverage-এর লক্ষ্য রাখুন" | প্রতিটি layer কোন failure ধরতে আছে, আর সংখ্যাটা কেন লক্ষ্য নয়, ফলাফল |
 
 ## পড়ার ক্রম
 
-আগে Architecture — এটা সীমানার সেই শব্দভান্ডার ঠিক করে, যেটা বাকি তিনটি section ব্যবহার করে। এরপর performance,
-security আর testing একে অপরের ওপর নির্ভর করে না।
+আগে Architecture। Boundary নিয়ে যে শব্দগুলো বাকি তিনটি অংশ ব্যবহার করে, সেগুলো এখানেই ঠিক হয়। এরপর Performance,
+security আর testing যেকোনো ক্রমে পড়তে পারেন, একটি আরেকটির ওপর নির্ভর করে না।
 
-**Interview sprint:** Architecture 01 আর 02 · Performance 01 আর 02 · Security 01 আর 02 · Testing 01। পনেরোটি অধ্যায়ের
-সাতটি, আর Testing 01-ই সেই অধ্যায়, যেটা বাকি উত্তরগুলো শুনতে কেমন লাগে তা বদলে দেয়।
+**Interview sprint:** Architecture 01 আর 02 · Performance 01 আর 02 · Security 01 আর 02 · Testing 01। পনেরোটি
+অধ্যায়ের মধ্যে সাতটি। আর বাকি উত্তরগুলো কেমন শোনাবে, তা বদলে দেয় Testing 01।
 
-**System design round-এর আগে পুরোটা পড়ুন:** performance section। Frontend system design-এর প্রশ্ন আসলে একটি diagram
-জোড়া performance-এর প্রশ্ন।
+**System design round-এর আগে পুরোটা পড়ুন:** performance অংশটা। Frontend system design-এর প্রশ্ন আসলে performance-এর
+প্রশ্ন, সঙ্গে একটি diagram।
 
-> ⚠️ **Caching তিনটি part-এ আসে, আর সেটা ইচ্ছাকৃত।** Browser storage-এর mechanics Part II-তে। CDN আর cache header
-> এখানে। Server-side আর database caching Part VI-তে। প্রত্যেকটি একই শব্দ নিয়ে আলাদা একটি প্রশ্নের উত্তর দেয়।
+> ⚠️ **Caching তিনটি Part-এ এসেছে, আর সেটা ইচ্ছে করেই।** Browser storage কীভাবে কাজ করে, তা Part II-তে। CDN আর
+> cache header এখানে। Server-side আর database caching Part VI-এ। একই শব্দ নিয়ে প্রতিটি আলাদা প্রশ্নের উত্তর দেয়।

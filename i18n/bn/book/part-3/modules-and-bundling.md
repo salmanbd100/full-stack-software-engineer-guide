@@ -1,29 +1,29 @@
 ---
 sourceHash: "533b28917ce8a26d57a5d3a4c1c539211facd563450fb665f7b0b05f95215309"
 title: "Module ও Bundling"
-translatedAt: "2026-10-12T07:52:15.430Z"
+translatedAt: "2026-10-17T01:36:40.853Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Module ও Bundling {#ch-modules-and-bundling}
 
-> একটি bundler কী করে, তা চারটি ধাপে বর্ণনা করুন। আর ব্যাখ্যা করুন, একটিমাত্র import কেন একটি library-র অর্ধেক টেনে আনল।
+> Bundler কী করে তা চার ধাপে বলুন, আর ব্যাখ্যা করুন একটি import কেন অর্ধেক library টেনে আনল।
 
-**এই অধ্যায়ে:** চারটি ধাপ · resolution আর bare specifier · module graph · graph partitioning হিসেবে chunking · ESM কেন এটা সম্ভব করল · source map
+**এই অধ্যায়ে:** চারটি ধাপ · resolution আর bare specifier · module graph · graph ভাগ করাই chunking · ESM কেন এটা সম্ভব করল · source map
 
 ## 💡 মূল ধারণা
 
-একটি bundler চারটি কাজ করে, এই ক্রমে:
+Bundler ক্রমানুসারে চারটি কাজ করে:
 
-**Resolve** — প্রতিটি import specifier-কে disk-এর একটি file-এ পরিণত করা। **Load আর transform** — প্রতিটি file পড়া,
-আর browser বোঝে এমন কিছুতে রূপান্তর করা। **Graph তৈরি** — import-গুলো অনুসরণ করা, যতক্ষণ না নতুন কিছু আর নাগালে
-আসে। **Chunk emit** — সেই graph-কে কয়েকটি file-এ ভাগ করে লিখে ফেলা।
+**Resolve** — প্রতিটি import specifier-কে disk-এর একটি file-এ মিলিয়ে দেয়। **Load আর transform** — প্রতিটি file পড়ে
+এমন কিছুতে বদলায়, যা browser বোঝে। **Graph তৈরি** — import ধরে ধরে এগোয়, যতক্ষণ না নতুন কিছু পৌঁছানোর বাকি থাকে।
+**Chunk emit** — সেই graph-কে কয়েকটি file-এ ভাগ করে লিখে ফেলে।
 
-Bundler-এর প্রায় প্রতিটি সমস্যাই এই চারটি ধাপের কোনো একটির ব্যর্থতা। প্রায়ই error message অন্য একটি ধাপের নাম
-বলে। "Module not found" হলো resolution। "Unexpected token" হলো transformation। "এটা আমার bundle-এ কেন?" হলো
-graph। "চল্লিশটা chunk কেন?" হলো emission।
+Bundler-এর প্রায় সব সমস্যাই এই চার ধাপের কোনো একটির ব্যর্থতা। অনেক সময় error message অন্য ধাপের নাম বলে। "Module
+not found" হলো resolution। "Unexpected token" হলো transformation। "এটা আমার bundle-এ কেন?" হলো graph। "চল্লিশটি
+chunk কেন?" হলো emission।
 
-আগে ধাপটির নাম ঠিক করুন। তাহলে দুই ঘণ্টার build তদন্ত দশ মিনিটের কাজ হয়ে যায়।
+আগে ধাপটার নাম ঠিক করুন। তাহলে দুই ঘণ্টার build তদন্ত দশ মিনিটে শেষ হয়।
 
 ## কীভাবে কাজ করে
 
@@ -39,35 +39,34 @@ flowchart LR
   E --> F[Emit files<br/>plus source maps]
 ```
 
-**Graph বন্ধ না হওয়া পর্যন্ত resolution আর loading ঘুরতে থাকে। Emission হয় একবারই।**
+**Graph বন্ধ না হওয়া পর্যন্ত resolution আর loading বারবার ঘোরে; emission হয় একবারই।**
 
 ### Resolution, আর bare specifier কেন কঠিন
 
-`./utils` একটি relative path। Resolver একটির পর একটি extension জুড়ে দেখে, যতক্ষণ না একটি file পায়। `react` হলো
-একটি **bare specifier**, আর browser-এর কাছে এর জন্য কোনো নিয়ম নেই। Bundler-কে directory tree ধরে ওপরে উঠতে হয়,
-`node_modules`-এ খুঁজতে খুঁজতে। তারপর সে ওই package-এর `package.json` পড়ে ঠিক করে, আসলে কোন file বোঝানো হয়েছে।
+`./utils` একটি relative path। Resolver একের পর এক extension জুড়ে দেখে, যতক্ষণ না file পায়। `react` হলো
+**bare specifier**, আর browser-এর কাছে এর কোনো নিয়ম নেই। Bundler-কে directory tree বেয়ে ওপরে উঠে
+`node_modules`-এ খুঁজতে হয়। তারপর সেই package-এর `package.json` পড়ে ঠিক করতে হয়, আসলে কোন file-এর কথা বলা হচ্ছে।
 
-শেষের এই অংশটাই resolution-এর বেশিরভাগ চমকের কারণ। কারণ একটি package একটি import-এর জন্য কয়েকটি entry point
-declare করতে পারে:
+Resolution-এর বেশিরভাগ চমক আসে এই শেষ অংশ থেকে। কারণ একটি package একই import-এর জন্য কয়েকটি entry point ঘোষণা করতে পারে:
 
-| Field | কখন বেছে নেওয়া হয় |
+| Field | কখন বাছা হয় |
 | ----- | ----------- |
 | `exports` | আধুনিক resolver-এ, আর এটা **বাকি সবকিছুকে override করে** |
-| `main` | পুরোনো fallback, সাধারণত CommonJS |
-| `module` | ESM build-এর জন্য পুরোনো একটি convention |
-| `browser` | Browser-এর জন্য নির্দিষ্ট একটি বদল |
+| `main` | পুরনো fallback, সাধারণত CommonJS |
+| `module` | ESM build-এর জন্য পুরনো রীতি |
+| `browser` | Browser-এর জন্য আলাদা বদলি |
 | `exports`-এর ভেতরের condition | `import` / `require` / `node` / `browser` / `development` |
 
-একটি `exports` map একটি **দেয়ালও**: এটা যে file-এর তালিকা দেয় না, সেটা আপনি import করতে পারবেন না। তাই যে deep
-import গত বছর কাজ করত, একটি dependency upgrade-এর পর সেটা ভেঙে যেতে পারে। এটা আপনার build-এর bug নয়। Package-এর
-লেখক এমন একটি দরজা বন্ধ করেছেন, যেটা তিনি কখনো খোলা রাখতে চাননি।
+`exports` map একটি **দেয়াল**ও বটে: এতে যে file-এর নাম নেই, সেটা import করা যায় না। তাই গত বছর যে deep import চলত,
+dependency upgrade-এর পরে সেটা ব্যর্থ হতে পারে। এটা আপনার build-এর bug নয়। Package-এর author এমন একটি দরজা বন্ধ
+করেছেন, যেটা খোলা রাখার ইচ্ছে তাঁর কখনো ছিল না।
 
-### Graph ঠিক করে কী ship হবে
+### কী ship হবে, তা ঠিক করে graph
 
-Resolution সফল হলে bundler import-গুলো transitively অনুসরণ করে। একটি entry point থেকে যা কিছু নাগালে পাওয়া যায়,
-সবই bundle-এ থাকে। **নাগালে পাওয়া, ব্যবহৃত নয়**: এ দুটি আলাদা, আর bundle-এর ওজন আসে এই পার্থক্য থেকেই।
+Resolution সফল হলে bundler import ধরে ধরে transitively এগোয়। Entry point থেকে যা কিছুতে পৌঁছানো যায়, সবই bundle-এ
+ঢোকে। **পৌঁছানো যায় মানেই ব্যবহার হয় না।** দুটি আলাদা জিনিস, আর bundle-এর ওজন আসে এই পার্থক্য থেকেই।
 
-একটি barrel file (একটি `index.ts`, যেটা একটি folder-কে re-export করে) সাধারণত দোষী:
+সাধারণত দোষী হয় barrel file (এমন একটি `index.ts`, যেটা পুরো folder re-export করে):
 
 ```typescript
 // components/index.ts — re-exports forty components
@@ -79,128 +78,127 @@ export * from './DataGrid'; // pulls in a charting dependency
 import { Button } from '../components';
 ```
 
-যা নাগালে আছে কিন্তু ব্যবহৃত নয়, সেটা সরিয়ে ফেলাই tree shaking। এটা কাজ করতে static import আর সৎ side-effect
-metadata লাগে। এর খুঁটিনাটি আছে
-[Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting)-এ। এখানে যেটা জরুরি: bundler
-আগে graph তৈরি করে, পরে ছাঁটাই করে। যে graph অনেক দূর পর্যন্ত পৌঁছায়, সেখানে ছাঁটাই খুব বেশি সাহায্য করতে পারে না।
+যা পৌঁছানো যায় কিন্তু ব্যবহার হয় না, তা বাদ দেওয়াই tree shaking। এটা কাজ করতে static import আর সৎ side-effect
+metadata লাগে। খুঁটিনাটি আছে
+[Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting)-এ। এখানে যেটা জরুরি: bundler আগে graph তৈরি করে, পরে
+ছাঁটাই করে। Graph যদি বেশি দূর পর্যন্ত পৌঁছে যায়, তাহলে ছাঁটাই করে খুব বেশি লাভ হয় না।
 
 ### ESM কেন সম্ভাবনার সীমা বদলে দিল
 
-CommonJS resolve হয় runtime-এ। `require()` একটি function call, এর argument হিসাব করে বের করা যায়, আর program
-চলার সময় export-গুলো আবার assign করা যায়। একটি CommonJS module কী export করে, তা চালিয়ে না দেখে bundler জানতে
-পারে না।
+CommonJS resolve হয় runtime-এ। `require()` একটি function call, তার argument হিসাব করে বের করা যায়, আর program চলার
+সময় export নতুন করে assign করা যায়। ফলে CommonJS module চালিয়ে না দেখে bundler জানতে পারে না সেটা কী export করে।
 
-ES module **statically analysable**। Import আর export হলো নির্দিষ্ট নামের hoisted declaration, যেগুলো কোনো code
-চলার আগেই resolve হয়। এটাই tree shaking, নিরাপদ cross-module inlining আর নির্ভরযোগ্য chunking-কে আদৌ সম্ভব করে।
-এ কারণেই এই section-এর প্রতিটি tool ESM ধরে নেয়, আর CommonJS-কে একটি compatibility-র বিষয় হিসেবে দেখে।
+ES module **statically analyse করা যায়**। Import আর export হলো নির্দিষ্ট নামের hoist হওয়া declaration, যেগুলো কোনো
+code চলার আগেই resolve হয়। এ কারণেই tree shaking, নিরাপদে এক module-এর code আরেকটিতে inline করা, আর নির্ভরযোগ্য
+chunking আদৌ সম্ভব হয়। এই অংশের প্রতিটি tool ESM ধরে নেয়, আর CommonJS-কে দেখে compatibility-র ব্যাপার হিসেবে,
+সেটাও এই কারণে।
 
-### Chunking মানে graph partitioning
+### Graph ভাগ করাই chunking
 
-প্রতিটি module-এর জন্য একটি করে file emit করলে শত শত request হয়। একটিমাত্র file emit করলে login page দেখতেই পুরো
-application download করতে হয়। Chunking হলো এর মাঝামাঝি সমাধান। এটা একটি সত্যিকারের optimisation সমস্যা, যার তিনটি
-পরস্পরবিরোধী লক্ষ্য:
+প্রতি module-এ একটি করে file emit করলে request হয় শত শত। আবার একটিমাত্র file emit করলে login page দেখতেই পুরো
+application download করতে হয়। Chunking এই দুইয়ের মাঝামাঝি একটি আপস। এটা সত্যিকারের optimisation সমস্যা, যেখানে
+তিনটি লক্ষ্য একে অপরের বিরুদ্ধে টানে:
 
-| লক্ষ্য | যেদিকে টানে |
+| লক্ষ্য | কোন দিকে টানে |
 | ---- | ------------- |
 | কম request | বড় chunk |
-| প্রতিটি route-এ কম অব্যবহৃত code | ছোট chunk |
-| Deploy-এর পরেও ভালো cache reuse | কম বদলায় আর ঘন ঘন বদলায় এমন code-এর মধ্যে স্থির সীমানা |
+| প্রতি route-এ কম অব্যবহৃত code | ছোট chunk |
+| Deploy-এর পরেও cache ভালোভাবে কাজে লাগা | কম বদলানো আর ঘন ঘন বদলানো code-এর মধ্যে স্থির boundary |
 
-মানুষ তৃতীয় লক্ষ্যটা ভুলে যায়। ধরুন একটি shared chunk-এ আপনার dependency আর application code দুটিই আছে। তাহলে
-প্রতিটি deploy dependency-গুলোকেও invalidate করে। আর ফিরে আসা user-রা এমন একটি library আবার download করেন, যেটা
-বদলায়নি।
+তৃতীয় লক্ষ্যটা মানুষ ভুলে যায়। ধরুন একটি shared chunk-এ আপনার dependency আর application code দুটিই আছে। তাহলে
+প্রতিটি deploy dependency-গুলোকেও invalidate করে, আর ফিরে আসা user-রা এমন library আবার download করে, যেটা
+একটুও বদলায়নি।
 
-দুটি chunk সীমানা আপনি না চাইলেও থাকে। একটি **dynamic import**, যেমন `import('./Editor')`, সবসময় একটি split
-point, কারণ call হওয়ার আগে এর target কারও লাগে না। আর বেশিরভাগ bundler `node_modules`-কে source থেকে আলাদা করে,
-ওপরের caching-এর কারণে। এর বাইরে সবকিছুই configuration, যা একটি performance কৌশল হিসেবে আলোচনা করা হয়েছে
+দুটি chunk boundary আপনি না চাইলেও থাকে। **Dynamic import**, যেমন `import('./Editor')`, সবসময় split point, কারণ
+call হওয়ার আগে তার target-এর দরকার পড়ে না। আর ওপরের caching-এর কারণে বেশিরভাগ bundler source থেকে
+`node_modules` আলাদা রাখে। এর বাইরে সবকিছু configuration, যেটা performance technique হিসেবে আলোচনা করা হয়েছে
 [Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting)-এ।
 
-### Source map, আর এর খরচ
+### Source map, আর তার খরচ
 
-একটি source map emit করা file-এর অবস্থানগুলোকে আপনার source-এ ফিরিয়ে map করে। এটা না থাকলে production-এর একটি
-stack trace দেখায় `main-a3f9.js`-এর column 41,209।
+Source map emit হওয়া file-এর অবস্থানগুলোকে আপনার source-এর সঙ্গে মিলিয়ে দেয়। এটা না থাকলে production-এর stack trace
+দেখায় `main-a3f9.js`-এর column 41,209।
 
-সিদ্ধান্তটা এগুলো তৈরি করবেন কি না তা নয়, বরং এগুলো কোথায় থাকবে:
+সিদ্ধান্তটা এগুলো তৈরি করবেন কি না, তা নয়। সিদ্ধান্ত হলো এগুলো কোথায় থাকবে:
 
-| বিকল্প | Production-এ debug করা যায় | User-রা source দেখতে পান |
+| বিকল্প | Production-এ debug করা যায় | User-রা source দেখতে পায় |
 | ------ | ------------------------ | ----------------------- |
-| Bundle-এর ভেতরে inline | হ্যাঁ | **হ্যাঁ** — আর bundle অনেক বড় হয় |
-| আলাদা file, public-ভাবে serve করা | হ্যাঁ | **হ্যাঁ**, যে-ই দেখতে চায় |
+| Bundle-এর ভেতরেই inline | হ্যাঁ | **হ্যাঁ** — আর bundle অনেক বড় হয়ে যায় |
+| আলাদা file, public-ভাবে serve করা | হ্যাঁ | **হ্যাঁ**, যে খুঁজবে তার কাছেই |
 | আলাদা file, শুধু error tracking-এ upload করা | হ্যাঁ, error tool-এ | না |
 | কিছুই না | না | না |
 
-বেশিরভাগ product-এর জন্য উত্তর তৃতীয় সারিটি: map তৈরি করুন, build-এর সময় error reporter-এ upload করুন, আর CDN-এ
-deploy করবেন না।
+বেশিরভাগ product-এর উত্তর তৃতীয় row: map তৈরি করুন, build-এর সময় error reporter-এ upload করুন, আর CDN-এ deploy
+করবেন না।
 
 ## কখন ব্যবহার করবেন
 
-Bundle করবেন কি না, সেটা আর আপনার বেছে নেওয়ার বিষয় নয়। প্রতিটি framework-এর সাথেই একটি bundler আসে। আপনি যা বেছে
-নেন:
+Bundle করবেন কি না, সেই প্রশ্ন আর নেই। প্রতিটি framework-এর সঙ্গেই bundler আসে। আপনি যা বাছাই করেন:
 
 | সিদ্ধান্ত | পরামর্শ |
 | -------- | -------- |
-| Application code-এ barrel file | এড়িয়ে চলুন। যে module জিনিসটা define করে, সেখান থেকে import করুন |
+| Application code-এ barrel file | এড়িয়ে চলুন। জিনিসটা যে module-এ define করা, সেখান থেকে import করুন |
 | Publish করা package-এ barrel file | শুধু `sideEffects: false` আর প্রতি file-এর export থাকলে |
-| হাতে chunk configuration | শুধু একটি bundle report পড়ার পরে। Default-গুলো এখন ভালো |
-| নিজের publish করা library bundle করা | ESM ship করুন, `exports` আর `sideEffects` declare করুন, dependency bundle করবেন না |
-| Source map | সবসময় তৈরি করুন। Error tracking-এ upload করুন, public-ভাবে serve করবেন না |
+| হাতে chunk configuration | শুধু bundle report পড়ার পরে। Default এখন ভালো |
+| নিজের publish করা library bundle করা | ESM ship করুন, `exports` আর `sideEffects` ঘোষণা করুন, dependency bundle করবেন না |
+| Source map | সবসময় তৈরি করুন; error tracking-এ upload করুন, public-ভাবে serve করবেন না |
 
 ## সাধারণ ভুল
 
-**❌ Import line পরিপাটি রাখতে barrel থেকে import করা।**
-✅ এটা পুরো barrel-এ পৌঁছায়। যে module define করে, সেখান থেকে import করুন।
+**❌ Import-এর line গোছানো রাখতে barrel থেকে import করা।**
+✅ এতে পুরো barrel-এ পৌঁছে যায়। যে module-এ define করা, সেখান থেকে import করুন।
 
-**❌ ধরে নেওয়া যে একটি অব্যবহৃত import বিনা খরচের।**
-✅ এটা বিনা খরচের শুধু তখনই, যখন module-এর কোনো side effect নেই আর package সেটা ঘোষণা করে। নইলে এটা ship হয়।
+**❌ ধরে নেওয়া যে অব্যবহৃত import-এর কোনো খরচ নেই।**
+✅ খরচ নেই কেবল তখন, যখন module-এর কোনো side effect নেই আর package নিজে সেটা বলে দেয়। নইলে সেটা ship হয়।
 
-**❌ একটি package-এর ভেতরের অংশে deep import করা।**
-✅ একটি `exports` map একটি patch release-এই সেই path সরিয়ে দিতে পারে। Public entry point ব্যবহার করুন।
+**❌ Package-এর ভেতরের অংশে deep import করা।**
+✅ `exports` map একটি patch release-এই সেই path সরিয়ে দিতে পারে। Public entry point ব্যবহার করুন।
 
-**❌ Bundle size-এর মোট সংখ্যা পড়ে থেমে যাওয়া।**
-✅ মোট সংখ্যা বলে না কোন route কীসের খরচ দেয়। প্রতি chunk-এর report পড়ুন, আর সবচেয়ে বড় chunk-এর ভেতরের module
-attribution দেখুন।
+**❌ Bundle-এর মোট size দেখে থেমে যাওয়া।**
+✅ মোট সংখ্যা বলে না কোন route কীসের দাম দিচ্ছে। Chunk ধরে report পড়ুন, আর সবচেয়ে বড় chunk-এর ভেতরে কোন module
+কতটা জায়গা নিয়েছে তা দেখুন।
 
 **❌ Build তৈরি করেছে বলেই source map CDN-এ publish করা।**
-✅ এতে আপনার source publish হয়ে যায়। বদলে এগুলো error tracker-এ upload করুন।
+✅ তাতে আপনার source-ই publish হয়ে যায়। এর বদলে error tracker-এ upload করুন।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি bundler resolve করে, transform করে, graph তৈরি করে, আর chunk emit করে। এর error সাধারণত ভুল ধাপের নাম বলে।
-- একটি package-এর `exports` map ঠিক করে একটি import কোন file বোঝায়, আর যা তালিকায় নেই তা নিষিদ্ধ করে।
-- একটি entry point থেকে যা কিছু নাগালে পাওয়া যায়, সবই ship হয়। নাগালে পাওয়া আর ব্যবহৃত হওয়া এক জিনিস নয়।
-- ES module statically analysable। এটাই tree shaking আর নির্ভরযোগ্য chunking সম্ভব করে।
-- Chunking-এ request-এর সংখ্যা, অব্যবহৃত code আর deploy-এর পরের cache reuse — এই তিনটির মধ্যে আপস করতে হয়।
+- Bundler resolve করে, transform করে, graph তৈরি করে, আর chunk emit করে। এর error সাধারণত ভুল ধাপের নাম বলে।
+- Import আসলে কোন file বোঝায়, তা ঠিক করে package-এর `exports` map, আর তালিকার বাইরে সবকিছু নিষেধ করে।
+- Entry point থেকে যা কিছুতে পৌঁছানো যায়, সবই ship হয়। পৌঁছানো যাওয়া আর ব্যবহার হওয়া এক জিনিস নয়।
+- ES module statically analyse করা যায়, আর সে কারণেই tree shaking আর নির্ভরযোগ্য chunking সম্ভব হয়।
+- Chunking-এ request-এর সংখ্যা, অব্যবহৃত code আর deploy-এর পরে cache-এর পুনর্ব্যবহারের মধ্যে ভারসাম্য রাখতে হয়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি bundler আসলে কী করে?**
+**Q: Bundler আসলে কী করে?**
 
-চারটি ধাপ। প্রতিটি import specifier-কে একটি file-এ resolve করে, bare specifier-এর জন্য package-এর `exports`
-condition প্রয়োগ করে। প্রতিটি file load আর transform করে: TypeScript, JSX, CSS। Import অনুসরণ করে একটি module graph
-তৈরি করে। তারপর সেই graph-কে chunk-এ ভাগ করে source map-সহ emit করে। বেশিরভাগ build failure এই চারটির কোনো একটি
-ধাপ, আর error message প্রায়ই অন্য একটির নাম বলে।
+চারটি ধাপ। প্রতিটি import specifier-কে একটি file-এ resolve করে, bare specifier হলে package-এর `exports` condition
+মেনে। প্রতিটি file load করে transform করে: TypeScript, JSX, CSS। Import ধরে ধরে একটি module graph তৈরি করে। তারপর
+সেই graph-কে chunk-এ ভাগ করে source map সহ emit করে। বেশিরভাগ build failure এই চার ধাপের কোনো একটিতে হয়, আর error
+message প্রায়ই অন্য ধাপের নাম বলে।
 
-**Q: একটিমাত্র import bundle-এ 300 KB যোগ করেছে। কেন, সেটা কীভাবে খুঁজে বের করবেন?**
+**Q: একটিমাত্র import bundle-এ 300 KB যোগ করেছে। কারণ কীভাবে খুঁজবেন?**
 
-যে chunk বড় হয়েছে, তার ভেতরের module attribution-এর জন্য bundle report পড়ুন, আর import path ধরে পেছনে আপনার source
-পর্যন্ত যান। সাধারণ উত্তর একটি barrel file। চল্লিশটা component re-export করে এমন একটি index থেকে একটি component
-import করুন, আর আপনি চল্লিশটাতেই পৌঁছে যাবেন। Package যে module-গুলোকে side-effect-free ঘোষণা করেনি, tree shaking
-সেগুলো সরাতে পারে না। সমাধান হলো যে module define করে, সেখান থেকে import করা।
+যে chunk বড় হয়েছে, bundle report-এ তার ভেতরে কোন module কতটা নিয়েছে তা দেখুন, আর import path ধরে পিছিয়ে আপনার
+source পর্যন্ত যান। সাধারণত উত্তর একটি barrel file। চল্লিশটি component re-export করা index থেকে একটি component
+import করলেই চল্লিশটিতেই পৌঁছে যান। Package যে module-গুলোকে side-effect-free ঘোষণা করেনি, tree shaking সেগুলো বাদ
+দিতে পারে না। সমাধান হলো যে module-এ define করা, সেখান থেকেই import করা।
 
-**Q: Tree shaking কেন শুধু ES module আসার পরেই কার্যকর হলো?**
+**Q: Tree shaking কেবল ES module আসার পরেই কেন কাজের হলো?**
 
-CommonJS runtime-এ resolve হয়। `require()` যেকোনো expression নেয়, আর code export আবার assign করতে পারে। তাই একটি
-module কী export করে, তা চালিয়ে না দেখে bundler জানতে পারে না। ESM-এর import আর export হলো নির্দিষ্ট নামের static
-declaration, যা execution-এর আগেই resolve হয়। তাই tool প্রমাণ করতে পারে যে একটি binding কখনো পড়া হয় না, আর সেটা
-মুছে দিতে পারে।
+CommonJS resolve হয় runtime-এ। `require()` যেকোনো expression নেয়, আর code export নতুন করে assign করতে পারে। তাই
+module না চালিয়ে bundler জানতে পারে না সেটা কী export করে। ESM-এর import আর export হলো নির্দিষ্ট নামের static
+declaration, যেগুলো code চলার আগেই resolve হয়। ফলে tool প্রমাণ করতে পারে যে একটি binding কখনো পড়া হয় না, আর
+সেটা মুছে ফেলতে পারে।
 
-**Q: কোথায় chunk split করবেন, সেটা কীভাবে ঠিক করবেন?**
+**Q: Chunk কোথায় ভাগ করবেন, তা কীভাবে ঠিক করবেন?**
 
-Default থেকে শুরু করুন: dynamic import আর একটি vendor split। তারপর দেখুন, একটি deploy-এর পর ফিরে আসা একজন user কী
-আবার download করেন। Application code আর dependency একই chunk-এ থাকলে প্রতিটি release দুটিকেই invalidate করে। Code
-আলাদা করুন কত ঘন ঘন বদলায় তা দিয়ে, feature দিয়ে নয়। এর বেশি tune করুন শুধু সামনে একটি bundle report রেখে।
+Default থেকে শুরু করুন: dynamic import আর vendor split। তারপর দেখুন deploy-এর পরে ফিরে আসা user কী কী আবার
+download করে। Application code আর dependency একই chunk-এ থাকলে প্রতিটি release দুটিকেই invalidate করে। Code ভাগ
+করুন কত ঘন ঘন বদলায় তা দেখে, feature দেখে নয়। আরও tune করুন কেবল সামনে bundle report রেখে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Vite, Rust Bundler ও Dev Loop](#ch-vite-and-the-dev-loop) — development-এ এই চারটি ধাপ কীভাবে আলাদা আচরণ করে
+- [Chapter ?? — Vite, Rust Bundler ও Dev Loop](#ch-vite-and-the-dev-loop) — development-এ এই চারটি ধাপ কীভাবে অন্যরকম আচরণ করে
 - [Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting) — tree shaking, minification আর compression বিস্তারিত
