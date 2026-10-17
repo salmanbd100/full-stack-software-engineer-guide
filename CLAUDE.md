@@ -85,7 +85,11 @@ are gitignored, and `site/` is in `EXCLUDED_DIRS` so the generated copies never 
 part's budget. Only `site/index.md`, `site/building-this-book.md` (the developer guide to this build and the
 portfolio connection — web only, never in the PDF or EPUB) `site/.vitepress/config.ts` and `site/.vitepress/theme/`
 (a wider measure, larger type and the portfolio's teal brand colour, web only) are written by hand; `site/public/` holds the
-portfolio's favicons. It
+portfolio's favicons. The theme also carries the **reading-progress tracker**: a checkbox per
+sidebar entry (`ProgressSidebarItem.vue`, a copy of VitePress's internal `VPSidebarItem.vue` swapped in
+by a `vite.resolve.alias` in `config.ts` — re-diff it on every VitePress upgrade), a progress bar in the
+nav, and a name-and-email sign-in. Progress is stored by `api/progress.ts`, a Vercel function over
+Upstash Redis (`readers`, `reader:{email}`, `done:{email}`), keyed by email with no verification. It
 publishes **the whole book** — BOOK-SPEC decision #24, which replaced #17's one sample chapter per part.
 It is served at `www.salmanrahman.com/handbook/` (`base` in `config.ts`): the `salman-portfolio`
 Next.js app rewrites `/handbook/*` to this repo's own Vercel project (`senior-full-stack-handbook`).

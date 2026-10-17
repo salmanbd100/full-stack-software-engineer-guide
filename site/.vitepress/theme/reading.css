@@ -96,6 +96,28 @@
   }
 }
 
+/* ReadingProgress.vue follows the language switch: in the bar from the tablet breakpoint up,
+   in the full-screen menu below it. */
+#app .reading-progress-bar {
+  display: none;
+  margin-left: 16px;
+}
+
+#app .reading-progress-screen {
+  display: flex;
+  margin-top: 24px;
+}
+
+@media (min-width: 768px) {
+  #app .reading-progress-bar {
+    display: inline-flex;
+  }
+
+  #app .reading-progress-screen {
+    display: none;
+  }
+}
+
 /* --- Measure ----------------------------------------------------------- */
 
 #app .VPDoc.has-aside .content-container {

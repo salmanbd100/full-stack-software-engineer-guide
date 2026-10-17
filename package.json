@@ -44,5 +44,8 @@
     "typescript": "7",
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.39.0"
   }
 }
