@@ -138,6 +138,10 @@ interface Locale {
   prefix: string;
   front: string;
   back: string;
+  overview: string;
+  // Sidebar-only labels, by slug — for a title that is right inside its own volume but
+  // collides with another entry once both volumes share one sidebar.
+  labels: Readonly<Record<string, string>>;
   part: (n: number) => string;
 }
 
@@ -147,6 +151,8 @@ const LOCALES: Record<"en" | "bn", Locale> = {
     prefix: "",
     front: "Before You Start",
     back: "Reference",
+    overview: "Overview",
+    labels: { "dsa-question-index": "DSA Question Index" },
     part: (n: number) => (n === COMPANION_PART ? PART_NAMES[n] : `Part ${n} — ${PART_NAMES[n]}`),
   },
   bn: {
@@ -154,6 +160,8 @@ const LOCALES: Record<"en" | "bn", Locale> = {
     prefix: "/bn",
     front: "শুরুর আগে",
     back: "রেফারেন্স",
+    overview: "পরিচিতি",
+    labels: { "dsa-question-index": "DSA প্রশ্নের সূচি" },
     part: (n: number) => (n === COMPANION_PART ? PART_NAMES_BN[n] : `Part ${toBnDigits(n)} — ${PART_NAMES_BN[n]}`),
   },
 };
@@ -169,6 +177,13 @@ function writePage(locale: Locale, doc: Doc, title: string, source: string): voi
   writeFileSync(file, `${frontMatterFor(doc, title)}\n${body}`);
 }
 
+// The group heading already names the part, so "Part I — " on every entry under it is noise,
+// and the part opener — whose title is the heading itself — reads as the part's overview.
+function sidebarLabel(locale: Locale, title: string, heading: string): string {
+  const bare: string = title.replace(/^Part [IVX]+ — /, "");
+  return heading === bare || heading.endsWith(` — ${bare}`) ? locale.overview : bare;
+}
+
 function sidebarFor(locale: Locale, titleOf: (doc: Doc) => string): SidebarGroup[] {
   const groups = new Map<string, SidebarGroup>();
   for (const doc of docs) {
@@ -179,7 +194,10 @@ function sidebarFor(locale: Locale, titleOf: (doc: Doc) => string): SidebarGroup
     const heading: string = part === 0 ? (key === "front" ? locale.front : locale.back) : locale.part(part);
 
     if (!groups.has(key)) groups.set(key, { text: heading, collapsed: true, items: [] });
-    groups.get(key)!.items.push({ text: titleOf(doc), link: `${locale.prefix}${routes.get(slugFor(doc))!}` });
+    groups.get(key)!.items.push({
+      text: locale.labels[slugFor(doc)] ?? sidebarLabel(locale, titleOf(doc), heading),
+      link: `${locale.prefix}${routes.get(slugFor(doc))!}`,
+    });
   }
   const order: string[] = ["front", ...Object.keys(PART_NAMES).map((p: string) => `part-${p}`), "back"];
   return order.filter((k: string) => groups.has(k)).map((k: string) => groups.get(k)!);

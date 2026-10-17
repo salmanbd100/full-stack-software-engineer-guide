@@ -160,6 +160,24 @@ export default withMermaid(
           },
         ],
       },
+      // vitepress-plugin-mermaid pre-bundles mermaid's dependencies by bare name, which pnpm
+      // does not hoist, so in dev the browser was handed CommonJS dayjs and fastdom and the
+      // whole app failed to mount. Pre-bundling mermaid itself converts all of them at once.
+      // The production build is unaffected.
+      optimizeDeps: {
+        include: ["mermaid"],
+      },
+      // `vitepress dev` cannot run api/progress.ts, so in development the API is forwarded to
+      // `vercel dev` on its default port. Production never sees this — the function is served
+      // alongside the static build there.
+      server: {
+        proxy: {
+          [`${BASE}api`]: {
+            target: "http://localhost:3000",
+            rewrite: (path: string) => path.slice(BASE.length - 1),
+          },
+        },
+      },
     },
   }),
 );

@@ -21,3 +21,4 @@ site/bn/book/
 .env
 .env.*
 !.env.example
+.env*
