@@ -1,48 +1,48 @@
 ---
 sourceHash: "d698b547091ee93edb58825682d2103657da83912efae0995b447d4b5ec5b904"
 title: "Keyboard ও Focus Management"
-translatedAt: "2026-10-12T12:12:08.527Z"
+translatedAt: "2026-10-17T01:03:05.760Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Keyboard ও Focus Management {#ch-keyboard-and-focus}
 
-> পুরো interface keyboard দিয়ে পৌঁছানোর মতো করুন, আর page বদলায় এমন প্রতিটি action-এর পর focus কোনো যুক্তিসঙ্গত জায়গায় রাখুন।
+> পুরো interface keyboard দিয়ে ব্যবহারযোগ্য করুন। আর page বদলে দেয় এমন প্রতিটি কাজের পরে focus কোনো যুক্তিসঙ্গত জায়গায় রাখুন।
 
-**এই অধ্যায়ে:** focus হলো keyboard-এর cursor · tab order আর `tabindex` · দৃশ্যমান focus · `<dialog>` আর `inert` দিয়ে modal · একটি action-এর পর focus · composite widget
+**এই অধ্যায়ে:** focus মানে keyboard-এর cursor · tab order আর `tabindex` · দৃশ্যমান focus · `<dialog>` আর `inert` দিয়ে modal · কোনো কাজের পরে focus · composite widget
 
 ## 💡 মূল ধারণা
 
-Focus হলো keyboard user-এর cursor। Keyboard accessibility-র সবকিছু আসে একে এভাবে দেখা থেকেই। এটা কোথায় আছে, তা আপনি
-সবসময় দেখতে পান, আর এটা page-এর সঙ্গে মিলিয়ে একটি ক্রমে সরে। Screen-এ যা আছে তা বদলায় এমন যেকোনো action-এর পর,
-**কাউকে না কাউকে ঠিক করতে হয় এটা কোথায় যাবে।** সেই সিদ্ধান্ত বাদ দিলে browser একটি খারাপ সিদ্ধান্ত নেয়। সাধারণত সে
-focus-কে document-এর একেবারে ওপরে পাঠিয়ে দেয়, আর user-কে ফিরে আসতে আবার header-এর ভেতর দিয়ে tab করতে হয়।
+Focus হলো keyboard user-এর cursor। একে cursor হিসেবে দেখলেই keyboard accessibility-র বাকি সব বোঝা যায়। Focus কোথায় আছে
+তা সবসময় দেখা যায়, আর এটা এমন ক্রমে সরে, যা page-এর সঙ্গে মেলে। আর screen-এ যা আছে তা বদলে দেয় এমন যেকোনো কাজের পরে,
+**focus কোথায় যাবে তা কাউকে ঠিক করতেই হয়।** আপনি সিদ্ধান্ত না নিলে browser একটি খারাপ সিদ্ধান্ত নেয়। সাধারণত focus পাঠিয়ে
+দেয় document-এর একদম ওপরে, আর user-কে আগের জায়গায় ফিরতে আবার header-এর ভেতর দিয়ে tab করতে হয়।
 
-এটাই সেই accessibility ক্ষেত্র, যেটা সবচেয়ে বেশি মানুষকে সাহায্য করে। Screen reader user, শুধু keyboard ব্যবহারকারী,
-আর হাত কাঁপা বা RSI (repetitive strain injury) আছে এমন user — সবাই এর ওপর নির্ভর করেন। আপনার নিজের product-এর power
-user-রাও এটা ভালো হলে সঙ্গে সঙ্গে টের পান।
+Accessibility-র মধ্যে এই অংশটাই সবচেয়ে বেশি মানুষের কাজে লাগে। Screen reader user, শুধু keyboard ব্যবহার করা user, আর কাঁপুনি
+বা RSI (repetitive strain injury) আছে এমন user, সবাই এর ওপর নির্ভর করেন। আপনার নিজের product-এর power user-রাও এটা ভালো হলে
+সঙ্গে সঙ্গে টের পান।
 
-> দুটি প্রশ্ন বেশিরভাগ ত্রুটি ধরে ফেলে। আমি কি এটা keyboard দিয়ে করতে পারি? করার পর focus কোথায়?
+> দুটি প্রশ্নেই বেশিরভাগ defect ধরা পড়ে। এটা কি keyboard দিয়ে করা যায়? করার পরে focus কোথায়?
 
 ## কীভাবে কাজ করে
 
 ### Tab order DOM-কে অনুসরণ করে
 
-Browser document-এর ক্রম থেকে tab sequence বানায়, শুধু focusable element-গুলো নিয়ে। এর থেকে আসে একটি শক্ত নিয়ম আর
-একটি ছোট শব্দভান্ডার।
+Browser tab-এর ক্রম বানায় document-এর ক্রম ধরে, শুধু focus করা যায় এমন element নিয়ে। এখান থেকে আসে একটি কড়া নিয়ম আর
+ছোট একটি শব্দভান্ডার।
 
-| Value | Behaviour | কখন ব্যবহার করবেন |
+| Value | আচরণ | কখন ব্যবহার করবেন |
 | --- | --- | --- |
-| কোনো `tabindex` নেই | শুধু স্বাভাবিকভাবে focusable element | সবসময় default |
-| `tabindex="0"` | Focusable, DOM-এর ক্রমে | যে custom control-এ পৌঁছানো যেতে হবে |
-| `tabindex="-1"` | Script দিয়ে focusable, Tab এড়িয়ে যায় | একটি action-এর পর focus-এর target |
-| `tabindex="1"` ও তার বেশি | **সবকিছুর আগে লাফিয়ে যায়** | কখনো না |
+| কোনো `tabindex` নেই | শুধু স্বাভাবিকভাবে focus করা যায় এমন element | সবসময় এটাই default |
+| `tabindex="0"` | Focus করা যায়, DOM-এর ক্রমে | এমন custom control, যেখানে পৌঁছাতে হবে |
+| `tabindex="-1"` | Script দিয়ে focus করা যায়, Tab এড়িয়ে যায় | কোনো কাজের পরে focus-এর গন্তব্য |
+| `tabindex="1"` বা তার বেশি | **সবকিছুর আগে লাফিয়ে চলে যায়** | কখনোই না |
 
-একটি positive `tabindex` element-টিকে পুরো স্বাভাবিক ক্রমের সামনে টেনে আনে। তখন markup বদলালেই sequence সরে যায়, আর
-কেন, সেটা কারও মনে থাকে না। Tab order ভুল হলে **DOM-এর ক্রম ঠিক করুন**। CSS-এর `order` আর `grid-area` focus সরায় না।
-একটি page দেখতে যুক্তিসঙ্গত হলেও কেন এলোমেলোভাবে tab করে, তার সবচেয়ে সাধারণ কারণ এটাই।
+Positive `tabindex` element-টাকে পুরো স্বাভাবিক ক্রমের সামনে টেনে আনে। তারপর markup বদলালেই ক্রমটা এলোমেলো হয়ে যায়, আর কেন
+এমন হলো তা কারও মনে থাকে না। Tab order ভুল হলে **DOM-এর ক্রম ঠিক করুন**। CSS `order` আর `grid-area` focus সরায় না। Page
+দেখতে ঠিকঠাক অথচ tab করলে এদিক-ওদিক লাফায়, এর সবচেয়ে সাধারণ কারণ এটাই।
 
-### Focus দৃশ্যমান হতে হবে
+### Focus দেখা যেতে হবে
 
 ```css
 /* ❌ Removes the only cursor a keyboard user has. A 2.4.7 failure. */
@@ -55,18 +55,17 @@ Browser document-এর ক্রম থেকে tab sequence বানায�
 }
 ```
 
-মানুষ outline মুছে ফেলে, কারণ mouse click-এ এটা দেখা যায়। `:focus-visible` ঠিক সেই কারণেই আছে। Browser-এর নিজের
-heuristic সমস্যাটা আগেই সমাধান করে, তাই `outline: none`-এর পক্ষে আর কোনো যুক্তি থাকে না।
+মানুষ outline মুছে দেয়, কারণ mouse click করলেও সেটা দেখা যায়। `:focus-visible` ঠিক এই কারণেই আছে। Browser-এর নিজের হিসাবই
+সমস্যাটা মিটিয়ে দেয়, তাই `outline: none`-এর পক্ষে আর কোনো যুক্তি থাকে না।
 
-দুটি খুঁটিনাটি জানার মতো। প্রথমত, **1.4.11 indicator-এর জন্য পাশের রঙের তুলনায় 3 : 1 contrast চায়**, যেটা একটি
-অস্পষ্ট এক-pixel-এর রেখাকে বাতিল করে দেয়। ওপরের 2 px, 3 : 1 ring-টি এসেছে 2.4.13 Focus Appearance থেকে। সেই criterion
-AAA, কিন্তু একটি design system-এর জন্য এটাই ব্যবহারিক মানদণ্ড। দ্বিতীয়ত, **2.4.11 Focus Not Obscured** WCAG 2.2-এ AA
-level-এ নতুন। একটি sticky header বা cookie bar focus করা element-কে পুরোপুরি ঢেকে দিতে পারবে না। Audit-এ গিয়ে আবিষ্কার
-না করে focusable content-এ `scroll-margin-top` যোগ করুন।
+দুটি খুঁটিনাটি জানা দরকার। প্রথমত, **1.4.11 চায় 3 : 1 contrast**, পাশের রঙের তুলনায় indicator-এর জন্য। তাই হালকা এক pixel-এর
+line চলবে না। ওপরের 2 px, 3 : 1 ring-টা এসেছে 2.4.13 Focus Appearance থেকে। সেই criterion AAA, কিন্তু design system-এর জন্য
+বাস্তবে এটাই মান হওয়া উচিত। দ্বিতীয়ত, **2.4.11 Focus Not Obscured** WCAG 2.2-এ AA level-এ নতুন। Sticky header বা cookie
+bar focused element-কে পুরোপুরি ঢাকতে পারবে না। Audit-এ গিয়ে জানার বদলে focus করা যায় এমন content-এ `scroll-margin-top` দিন।
 
 ### Skip link, এখনো
 
-বড় header-ওয়ালা একটি page-এ প্রথম Tab stop-টি user-কে content-এ পৌঁছাতে দেওয়া উচিত।
+বড় header-ওয়ালা page-এ প্রথম Tab-এই user-কে content-এ পৌঁছানোর সুযোগ দিতে হবে।
 
 ```html
 <a class="skip-link" href="#main">Skip to content</a>
@@ -74,13 +73,13 @@ level-এ নতুন। একটি sticky header বা cookie bar focus ক
 <main id="main" tabindex="-1">…</main>
 ```
 
-Target-এ `tabindex="-1"` গুরুত্বপূর্ণ। এটা না থাকলে কিছু browser viewport সরায়, কিন্তু focus নয়, তাই পরের Tab আবার
-header থেকে চলতে থাকে। Focus না হওয়া পর্যন্ত link-টি দৃশ্যত লুকানো থাকতে পারে, কিন্তু focus হলে এটাকে দৃশ্যমান হতেই হবে।
+গন্তব্যে `tabindex="-1"` থাকা জরুরি। না থাকলে কিছু browser viewport সরায়, কিন্তু focus সরায় না, ফলে পরের Tab আবার header
+থেকেই চলে। Focus না পাওয়া পর্যন্ত link-টা চোখের আড়ালে থাকতে পারে, কিন্তু focus পেলে দেখা যেতেই হবে।
 
 ### Modal: native element আপনার হয়ে চারটি কাজ করে
 
-একটি dialog user-কে চারটি behaviour দিতে বাধ্য। Focus ভেতরে যায়, Tab ভেতরেই থাকে, Escape বন্ধ করে, আর যেটা এটাকে
-খুলেছিল focus সেখানে ফিরে যায়। `showModal()`-সহ `<dialog>` চারটির মধ্যে তিনটি দেয়, সঙ্গে একটি inert background।
+User-এর কাছে dialog-এর দায় চারটি আচরণ। Focus ভেতরে যায়, Tab ভেতরেই থাকে, Escape চাপলে বন্ধ হয়, আর যে জিনিস dialog খুলেছিল,
+focus সেখানে ফিরে যায়। `showModal()`-সহ `<dialog>` চারটির তিনটি দেয়, সঙ্গে inert একটি background।
 
 ```typescript
 const dialog = document.querySelector<HTMLDialogElement>('#confirm')!;
@@ -95,34 +94,33 @@ function openConfirm(trigger: HTMLElement): void {
 }
 ```
 
-ভেতরে যে element-এর focus পাওয়া উচিত, তাতে `autofocus` যোগ করুন। সাধারণত সেটা প্রথম input, অথবা একটি destructive
-confirmation-এ সবচেয়ে নিরাপদ button। **2027-এ হাতে বানানো একটি focus trap বোঝায় যে কেউ ভুল element বেছে নিয়েছেন।**
-এটা প্রায় সবসময় সূক্ষ্মভাবে ভুলও হয়। Shadow DOM, iframe আর dynamically যোগ হওয়া content — সবই focusable selector-এর
-একটি `querySelectorAll`-কে হারিয়ে দেয়।
+ভেতরে যে element-এর focus পাওয়ার কথা, তাতে `autofocus` দিন। সাধারণত সেটা প্রথম input, অথবা কিছু মুছে ফেলার confirmation-এ
+সবচেয়ে নিরাপদ button। **2027 সালে হাতে বানানো focus trap মানে কেউ ভুল element বেছে নিয়েছেন।** আর সেটা প্রায় সবসময়ই সূক্ষ্মভাবে
+ভুল হয়। Shadow DOM, iframe আর পরে যোগ হওয়া content, সবই focus করা যায় এমন selector-এর `querySelectorAll`-কে হারিয়ে দেয়।
 
-যেখানে modal সঠিক pattern নয়, যেমন একটি side panel বা একটি mega-menu, সেখানে `inert` নিজেই আটকে রাখার কাজটা করে। একটি
-inert element-এ focus করা, click করা বা assistive technology দিয়ে পড়া যায় না।
+যেখানে pattern-টা modal নয়, যেমন side panel বা mega-menu, সেখানে `inert` একাই আটকে রাখার কাজটা করে। Inert element focus করা
+যায় না, click করা যায় না, assistive technology পড়তেও পারে না।
 
 ```typescript
 // Everything outside the panel becomes non-interactive and unfocusable.
 document.querySelector<HTMLElement>('#app')!.inert = true;
 ```
 
-### একটি action-এর পর focus কোথায় যায়
+### কোনো কাজের পরে focus কোথায় যায়
 
-এই সিদ্ধান্তটাই একটি চলনসই implementation-কে একটি ভালো implementation থেকে আলাদা করে।
+এই সিদ্ধান্তই চলনসই implementation আর ভালো implementation-কে আলাদা করে।
 
-| Action | Focus যাওয়া উচিত | কেন |
+| কাজ | Focus যাওয়া উচিত | কেন |
 | --- | --- | --- |
-| Dialog খোলে | এর ভেতরে, প্রথম control বা heading-এ | নইলে Tab overlay-এর পেছনে চলতে থাকে |
-| Dialog বন্ধ হয় | Trigger-এ ফিরে | User-কে তাঁর জায়গায় ফিরিয়ে দেয় |
-| একটি row delete হয় | পরের row-তে, অথবা খালি হলে list-এর heading-এ | Trigger আর নেই |
-| একটি wizard-এর ধাপ এগোয় | নতুন ধাপের heading-এ, `tabindex="-1"` দিয়ে | পরিবর্তনটা ঘোষণা করে আর Tab-কে সঠিক জায়গায় রাখে |
-| Client-side route change | নতুন view-এর `<h1>` বা `<main>`-এ | Client-side navigation-এ কিছুই focus সরায় না |
-| Async result আসে | **কোথাও না** — একটি live region-এ ঘোষণা করুন | User যা শুরু করেননি, তার জন্য focus সরানো বিরক্তিকর |
+| Dialog খোলে | ভেতরে, প্রথম control-এ বা heading-এ | নইলে Tab overlay-এর পেছনে চলতে থাকে |
+| Dialog বন্ধ হয় | Trigger-এ ফিরে | User নিজের জায়গায় ফিরে যান |
+| একটি row মুছে ফেলা হয় | পরের row-এ, list খালি হলে list-এর heading-এ | Trigger আর নেই |
+| Wizard-এর পরের ধাপে যাওয়া | নতুন ধাপের heading-এ, `tabindex="-1"` দিয়ে | বদলটা announce হয়, আর Tab ঠিক জায়গা থেকে চলে |
+| Client-side route বদল | নতুন view-এর `<h1>` বা `<main>`-এ | Client-side navigation-এ কিছুই focus সরায় না |
+| Async result আসে | **কোথাও না** — live region-এ announce করুন | User যা শুরু করেননি, তার জন্য focus সরানো শত্রুতার শামিল |
 
-Single-page application প্রায়ই route-change-এর row-টি বাদ দেয়। একটি আসল navigation focus-কে document-এ reset করে।
-Client-side route change তা করে না, তাই user আগের page-এ যেখানে ছিলেন, সেখান থেকেই tab করতে থাকেন।
+Single-page application প্রায় নিয়মিত route বদলের row-টা বাদ দেয়। আসল navigation focus-কে document-এ ফিরিয়ে আনে। Client-side
+route বদল তা করে না, ফলে user আগের page-এ যেখানে ছিলেন, সেখান থেকেই tab করে চলেন।
 
 ```typescript
 // Run on route change: move focus, do not scroll-jack, and let the heading be announced.
@@ -133,102 +131,100 @@ function focusNewView(): void {
 }
 ```
 
-### Composite widget-এর নিজস্ব key model আছে
+### Composite widget-এর নিজের key model আছে
 
-একটি tab list, toolbar, tree বা grid-এর ভেতরে Tab দিয়ে navigation হয় না। Widget-টি **একটিই** Tab stop, আর arrow key
-এর ভেতরে চলাফেরা করায়। এই pattern-গুলোর user-রা এটাই আশা করেন।
+Tab list, toolbar, tree বা grid-এর ভেতরে Tab দিয়ে চলাফেরা হয় না। পুরো widget-টা **একটি** Tab stop, আর ভেতরে চলাফেরা হয় arrow
+key দিয়ে। এসব pattern-এর user-রা এটাই আশা করেন।
 
 | কৌশল | কীভাবে কাজ করে | কোথায় মানায় |
 | --- | --- | --- |
-| **Roving `tabindex`** | ঠিক একটি child-এর `tabindex="0"`, বাকিদের `-1`; arrow key এটাকে সরায় | Tabs, toolbar, radio-ধাঁচের group |
-| **`aria-activedescendant`** | DOM focus container-এই থাকে; attribute-টি active child-এর নাম বলে | Combobox, বড় listbox |
+| **Roving `tabindex`** | ঠিক একটি child-এর `tabindex="0"`, বাকিদের `-1`; arrow key সেটাকে সরায় | Tabs, toolbar, radio-ধাঁচের group |
+| **`aria-activedescendant`** | DOM focus container-এই থাকে; attribute-টা active child-এর নাম বলে | Combobox, বড় listbox |
 
-Trade-off-টা এই। Roving `tabindex` আপনাকে আসল DOM focus দেয়, তাই `:focus-visible` styling আর native scrolling কাজ করে।
-`aria-activedescendant` typing-কে input-এই রাখে, আর এই কারণেই একটি combobox-এর এটা লাগে।
+আপসটা এরকম। Roving `tabindex` সত্যিকারের DOM focus দেয়, তাই `:focus-visible`-এর styling আর native scrolling কাজ করে।
+`aria-activedescendant` typing-কে input-এই রাখে, আর এজন্যই combobox-এ এটা লাগে।
 
-> ⚠️ WCAG 2.2 AA level-এ 2.5.7 Dragging Movements যোগ করেছে। Drag করে ক্রম বদলানো যেকোনো কিছুর একটি single-pointer
-> বিকল্প লাগে। একটি drag-and-drop list-কে একটি keyboard পথ দিন, যেমন Move up, Move down, বা cut আর paste। এতে
-> criterion-টিও মেটে, প্রতিটি keyboard user-এর প্রয়োজনও মেটে।
+> ⚠️ WCAG 2.2 AA level-এ 2.5.7 Dragging Movements যোগ করেছে। Drag করে ক্রম বদলানো যায় এমন সবকিছুর single-pointer বিকল্প
+> লাগে। Drag-and-drop list-কে keyboard-এর একটি পথ দিন, যেমন Move up, Move down, বা cut আর paste। তাতে criterion-ও পূরণ হয়,
+> প্রত্যেক keyboard user-এর কাজও চলে।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি | বেছে নিন | কেন |
+| পরিস্থিতি | কী বেছে নেবেন | কেন |
 | --- | --- | --- |
-| একটি blocking dialog | `showModal()`-সহ `<dialog>` | Focus আটকে রাখা, inert background আর Escape — সবই native |
-| একটি non-modal panel, যেটা তবু page আটকাবে | বাকি অংশে `inert` | একটি trap-এর বদলে একটি attribute |
-| Tab order দৃশ্যমান ক্রমের সঙ্গে মেলে না | DOM-এর ক্রম বদলান | CSS-এর ক্রম কখনো focus সরায় না |
-| APG list-এর একটি custom widget | Roving `tabindex` বা `aria-activedescendant` | Tab widget থেকে বেরিয়ে যায়; arrow ভেতরে চলাফেরা করায় |
-| User চাননি এমন একটি background result | Focus নয়, একটি live region | Focus কেড়ে নিলে user তাঁর জায়গা হারান |
+| Interaction আটকে রাখা dialog | `showModal()`-সহ `<dialog>` | Focus আটকে রাখা, inert background আর Escape, সবই native |
+| Modal নয় এমন panel, যা তবু page আটকাবে | বাকি অংশে `inert` | Trap-এর বদলে একটিই attribute |
+| Tab order দেখার ক্রমের সঙ্গে মেলে না | DOM-এর ক্রম বদলান | CSS-এর ক্রম কখনো focus সরায় না |
+| APG list-এর কোনো custom widget | Roving `tabindex` বা `aria-activedescendant` | Tab widget থেকে বেরিয়ে যায়; arrow ভেতরে চলে |
+| User চাননি এমন background result | Focus নয়, live region | Focus কেড়ে নিলে user নিজের জায়গা হারান |
 
 ## সাধারণ ভুল
 
-**❌ কোনো বিকল্প ছাড়া `outline: none`**
+**❌ কোনো বিকল্প ছাড়াই `outline: none`**
 
-> একমাত্র keyboard cursor-টিই সরিয়ে ফেলা হলো। আপত্তি যদি mouse-এর ring নিয়ে হয়, `:focus-visible` সেটা আগেই ঠিক করেছে।
+> Keyboard-এর একমাত্র cursor-টাই মুছে ফেলা হলো। আপত্তি যদি mouse-এর ring নিয়ে হয়, `:focus-visible` সেটা আগেই মিটিয়ে দিয়েছে।
 
-**❌ ক্রম "ঠিক" করতে একটি positive `tabindex`**
+**❌ ক্রম "ঠিক" করতে positive `tabindex`**
 
-> এটা element-টিকে পুরো document-এর আগে লাফিয়ে দেয়, আর markup বদলাতে বদলাতে sequence নষ্ট হয়ে যায়। বরং element-টি
+> এটা element-টাকে পুরো document-এর আগে লাফিয়ে নিয়ে যায়, আর markup বদলাতে বদলাতে ক্রমটা পচে যায়। তার বদলে element-টাই
 > সরান।
 
-**❌ Focus ফেরত না দিয়ে dialog বন্ধ করা**
+**❌ Focus না ফিরিয়ে dialog বন্ধ করা**
 
-> Focus document-এ পড়ে যায়, তাই user-কে আগের জায়গায় ফিরতে page-এর ওপর থেকে tab করতে হয়।
+> Focus গিয়ে পড়ে document-এ, ফলে user-কে আগের জায়গায় ফিরতে page-এর একদম ওপর থেকে tab করতে হয়।
 
 **❌ প্রতিটি async update-এ focus সরানো**
 
-> Focus কেড়ে নেওয়া একটি toast typing-এ বাধা দেয়। এটা polite-ভাবে ঘোষণা করুন, আর cursor-কে নিজের জায়গায় থাকতে দিন।
+> যে toast focus কেড়ে নেয়, সেটা typing-এর মাঝখানে বাধা দেয়। ভদ্রভাবে announce করুন, cursor-কে ছেড়ে দিন।
 
-**✅ Pull request খোলার আগে নিজের feature-এর ভেতর দিয়ে tab করে দেখা**
+**✅ Pull request খোলার আগে নিজের feature-এ tab করে দেখা**
 
-> দুই মিনিট, কোনো tooling নেই, আর এটা যেকোনো automated rule set-এর চেয়ে বেশি আসল ত্রুটি ধরে।
+> দুই মিনিট, কোনো tool লাগে না, আর যেকোনো automated rule set-এর চেয়ে বেশি আসল defect ধরা পড়ে।
 
 ## 🔑 মূল শিক্ষা
 
-- Tab order আসে DOM থেকে, তাই শুধু `tabindex="0"` আর `tabindex="-1"` নিরাপদ। CSS দিয়ে ক্রম বদলালে focus কখনো সরে না।
-- `:focus-visible` keyboard user-দের একটি ring দেয়, mouse click-এ না দেখিয়ে। তাই outline সরানোর আর কোনো কারণ থাকে না।
-- `showModal()`-সহ `<dialog>` দেয় focus আটকে রাখা, একটি inert background আর Escape। Trigger-এ focus ফেরত দেওয়া এখনো আপনার কাজ।
-- Screen-এ যা আছে তা বদলায় এমন প্রতিটি action-এর জন্য focus কোথায় নামবে, সে বিষয়ে একটি স্পষ্ট সিদ্ধান্ত লাগে, বিশেষ করে client-side route change-এ।
-- Tabs, toolbar আর combobox-এর ভেতরে widget-টি একটিই Tab stop, আর arrow key এর ভেতরে navigate করে, roving `tabindex` বা `aria-activedescendant` দিয়ে।
+- Tab order আসে DOM থেকে, তাই নিরাপদ শুধু `tabindex="0"` আর `tabindex="-1"`। CSS দিয়ে ক্রম বদলালে focus কখনো সরে না।
+- `:focus-visible` keyboard user-কে ring দেখায়, কিন্তু mouse click-এ দেখায় না, তাই outline মোছার আর কোনো কারণ নেই।
+- `showModal()`-সহ `<dialog>` focus আটকে রাখে, background inert করে আর Escape সামলায়। Trigger-এ focus ফিরিয়ে দেওয়া তবু আপনার কাজ।
+- Screen-এ যা আছে তা বদলে দেয় এমন প্রতিটি কাজের পরে focus কোথায় পড়বে, তা স্পষ্ট করে ঠিক করতে হয়, বিশেষ করে client-side route বদলে।
+- Tabs, toolbar আর combobox-এর ভেতরে widget-টা একটি Tab stop, আর ভেতরে arrow key দিয়ে চলাফেরা হয়, roving `tabindex` বা `aria-activedescendant` দিয়ে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Focus outline সরিয়ে ফেলায় সমস্যা কী, আর তার বদলে আপনি কী করেন?**
+**Q: Focus outline মুছে দেওয়ায় সমস্যা কী, আর তার বদলে কী করবেন?**
 
-এটা মুছে দেয় সেই একমাত্র চিহ্ন, যা দিয়ে একজন keyboard user বোঝেন তিনি কোথায় আছেন। এতে 2.4.7 fail করে, আর product mouse
-ছাড়া ব্যবহারের অযোগ্য হয়ে যায়। মানুষ এটা সরায়, কারণ mouse click-এ ring দেখা যায়, আর `:focus-visible` ঠিক সেটাই আগে
-থেকে সমাধান করে: browser keyboard ব্যবহারে ring দেখায়, pointer-এর ক্ষেত্রে লুকায়। আমি এটাও যাচাই করব যে এটা পাশের রঙের
-তুলনায় 3 : 1 মেটায় কি না। একটি অস্পষ্ট outline review পার হয়ে যায়, আর audit-এ fail করে।
+এতে keyboard user কোথায় আছেন, তার একমাত্র চিহ্নটাই মুছে যায়। এটা 2.4.7-এ ফেল করে, আর mouse ছাড়া product-টা অচল হয়ে যায়।
+মানুষ এটা মোছে, কারণ mouse click-এও ring দেখা যায়, আর `:focus-visible` ঠিক সেই সমস্যাই মিটিয়ে দিয়েছে: keyboard ব্যবহারে
+browser ring দেখায়, pointer-এ লুকায়। পাশের রঙের তুলনায় এটা 3 : 1 মানে কি না, সেটাও যাচাই করব। হালকা outline review পার হয়ে
+যায়, কিন্তু audit-এ ফেল করে।
 
-**Q: একটি dialog খোলে, আর Tab তার পেছনের page-এর ভেতর দিয়ে চলতেই থাকে। কী হচ্ছে?**
+**Q: একটি dialog খোলে, অথচ Tab তার পেছনের page-এর ভেতর দিয়ে চলতেই থাকে। কী হচ্ছে?**
 
-কিছুই focus-কে dialog-এর ভেতরে সরায়নি, আর কিছুই background-কে inert করেনি। এটা একটি styled overlay, modal নয়।
-`<dialog>` আর `showModal()` দিলে browser focus ভেতরে নিয়ে যায়, পেছনের সবকিছু inert করে, আর Escape-এ বন্ধ হয়। Markup
-বদলানো না গেলে, page container-এ `inert` হলো সবচেয়ে ছোট সঠিক fix। যেভাবেই হোক, বন্ধ হওয়ার সময় trigger-এ focus ফেরত
-দেওয়াটা আমি যোগ করব, কারণ সেটা কিছুই আপনার হয়ে করে না।
+কিছুই focus-কে dialog-এর ভেতরে সরায়নি, আর কিছুই background-কে inert করেনি। এটা style করা একটি overlay, modal নয়। `<dialog>`
+আর `showModal()` দিলে browser focus ভেতরে নেয়, পেছনের সবকিছু inert করে, আর Escape-এ বন্ধ করে। Markup বদলানো না গেলে page-এর
+container-এ `inert` দেওয়াই সবচেয়ে ছোট সঠিক সমাধান। যেভাবেই হোক, বন্ধ করার সময় trigger-এ focus ফিরিয়ে দেওয়াটা যোগ করব, কারণ
+এটা কেউ আপনার হয়ে করে না।
 
-**Q: User একটি table থেকে একটি row delete করার পর focus কোথায় যাওয়া উচিত?**
+**Q: User table থেকে একটি row মুছে ফেললে focus কোথায় যাওয়া উচিত?**
 
-"কোথাও না" নয়, যেটা default-এ ঘটে। Trigger চলে গেছে, তাই focus body-তে পড়ে যায়। সাধারণত পরের row-এর action button
-সঠিক। মুছে ফেলা row-টি শেষটা হলে আগের row ব্যবহার করুন, আর list এখন খালি হলে table-এর heading। আমি একটি polite live
-region-এ deletion-টাও ঘোষণা করব। শুধু focus সরালেই একজন screen reader user জানতে পারেন না কী ঘটেছে।
+"কোথাও না" নয়, অথচ default-এ ঠিক সেটাই হয়। Trigger আর নেই, তাই focus গিয়ে পড়ে body-তে। সাধারণত পরের row-এর action button-ই
+ঠিক জায়গা। মোছা row-টা শেষেরটা হলে আগের row, আর list খালি হয়ে গেলে table-এর heading। মুছে ফেলার কথাটা একটি polite live
+region-এও announce করব। শুধু focus সরালে screen reader user জানতে পারেন না কী ঘটল।
 
-**Q: একটি single-page application-এ keyboard navigation কীভাবে আলাদা?**
+**Q: Single-page application-এ keyboard navigation কীভাবে আলাদা?**
 
-একটি আসল navigation focus-কে নতুন document-এর ওপরে reset করে। Client-side route change তা করে না, তাই user এমন একটি
-link-এ focus করা অবস্থায় থাকেন, যেটা আর layout-এ নেই। সমাধান হলো route change-এ focus-কে নতুন view-এর heading-এ সরানো,
-`tabindex="-1"` দিয়ে। এতে tab sequence সঠিক জায়গায় বসে, আর নতুন page-এর title ঘোষিত হয়। একটি SPA সবচেয়ে বেশি বাদ দেয়
-এই অংশটাই।
+আসল navigation নতুন document-এর একদম ওপরে focus ফিরিয়ে আনে। Client-side route বদল তা করে না, ফলে user-এর focus থেকে যায় এমন
+একটি link-এ, যা layout-এ আর নেই। সমাধান হলো route বদলালে focus নতুন view-এর heading-এ সরানো, `tabindex="-1"` দিয়ে। তাতে tab-এর
+ক্রম ঠিক জায়গা থেকে শুরু হয়, আর নতুন page-এর title announce হয়। SPA সবচেয়ে বেশি এই অংশটাই বাদ দেয়।
 
-**Q: কখন Tab-এর বদলে arrow key দিয়ে navigate করা উচিত?**
+**Q: কখন Tab নয়, arrow key দিয়ে navigate করা উচিত?**
 
-একটি composite widget-এর ভেতরে, যেমন tabs, একটি toolbar, একটি menu, একটি tree বা একটি grid। পুরো widget-টি একটিই Tab
-stop হওয়া উচিত, যাতে একজন keyboard user এক চাপে এটা পেরিয়ে যেতে পারেন। Arrow এর ভেতরে চলাফেরা করায়। আমি একটি roving
-`tabindex` ব্যবহার করব, যাতে DOM focus আসল হয় আর `:focus-visible` কাজ করে। ব্যতিক্রম হলো combobox। সেখানে
-`aria-activedescendant` highlight সরলেও typing-কে input-এই রাখে।
+Composite widget-এর ভেতরে, যেমন tabs, toolbar, menu, tree বা grid। পুরো widget-টা হওয়া উচিত একটি Tab stop, যাতে keyboard user
+এক চাপেই এটা পার হয়ে যেতে পারেন। ভেতরে চলে arrow। আমি roving `tabindex` ব্যবহার করব, যাতে DOM focus সত্যিকারের হয় আর
+`:focus-visible` কাজ করে। ব্যতিক্রম combobox। সেখানে highlight সরলেও `aria-activedescendant` typing-কে input-এই রাখে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — ARIA, আর কখন এটা ব্যবহার করবেন না](#ch-aria) — ওই composite widget-গুলোর যে role লাগে
-- [Chapter ?? — Accessible Form ও Error Message](#ch-accessible-forms) — validation-এর সময় focus আর ঘোষণা
+- [Chapter ?? — ARIA, আর কখন এটা ব্যবহার করবেন না](#ch-aria) — এসব composite widget-এর যে role লাগে
+- [Chapter ?? — Accessible Form ও Error Message](#ch-accessible-forms) — validation-এর সময় focus আর announcement
 - [Chapter ?? — Accessibility Testing](#ch-testing-accessibility) — keyboard pass, আর automation কেন এটা ধরতে পারে না

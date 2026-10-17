@@ -1,33 +1,34 @@
 ---
 sourceHash: "ed34bcd11b78073850f497a11908f6e6db1740095f3b8977d80bbc812a1911ae"
 title: "Web Worker ও Main Thread"
-translatedAt: "2026-10-12T12:11:04.230Z"
+translatedAt: "2026-10-17T00:56:49.271Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Web Worker ও Main Thread {#ch-web-workers}
 
-> যে কাজ input আটকে দেয়, সেটাকে input সামলানো thread থেকে সরিয়ে দিন, আর জানুন সীমানা পেরিয়ে data পাঠাতে কত খরচ হয়।
+> যে কাজ input আটকে দেয়, সেটা input সামলানোর thread থেকে সরিয়ে দিন। আর data এপার-ওপার পাঠাতে কত খরচ, সেটাও জেনে রাখুন।
 
-**এই অধ্যায়ে:** আসলে কী block করে · worker model · structured clone আর transferable · Comlink · কখন worker ভুল উত্তর · INP-এর সঙ্গে সম্পর্ক
+**এই অধ্যায়ে:** আসলে কী block করে · worker model · structured clone আর transferable · Comlink · কখন worker ভুল সমাধান · INP-এর সঙ্গে সম্পর্ক
 
 ## 💡 মূল ধারণা
 
-Main thread তিনটি কাজ করে: আপনার JavaScript চালায়, layout আর paint হিসাব করে, আর input-এ সাড়া দেয়।
-এটা কাজগুলো করে একটি একটি করে। যে function 300 millisecond চলে, সেটা 300 millisecond ধরে সবকিছু block করে।
-একটি tap কিছুই করে না, একটি animation একটি frame আটকে রাখে, আর page ভাঙা মনে হয়। আসলেই ভাঙা।
+Main thread-এর কাজ তিনটি: আপনার JavaScript চালানো, layout হিসাব করে paint করা, আর input-এ সাড়া দেওয়া।
+এই তিনটি কাজ চলে একটার পর একটা। কোনো function 300 millisecond ধরে চললে বাকি সব 300 millisecond আটকে থাকে।
+Tap করলে কিছু হয় না, animation একটি frame-এ থেমে যায়, আর page দেখে মনে হয় ভেঙে গেছে। আসলে ভেঙেই গেছে।
 
-একটি worker হলো দ্বিতীয় একটি thread, যার নিজস্ব JavaScript engine আছে আর DOM-এ কোনো access নেই। আপনি তাকে একটি
-message পাঠান, সে কাজটা করে, আর একটি result ফেরত পাঠায়। Main thread তখন সেই দুটি কাজের জন্য খালি থাকে, যা শুধু
-সে-ই করতে পারে: rendering, আর user-কে সাড়া দেওয়া।
+Worker হলো দ্বিতীয় একটি thread। তার নিজের JavaScript engine আছে, কিন্তু DOM-এ হাত দিতে পারে না। আপনি message
+পাঠান, worker কাজটা করে result ফেরত পাঠায়। ফলে main thread খালি থাকে সেই দুটি কাজের জন্য, যা শুধু main thread-ই করতে
+পারে: render করা আর user-কে সাড়া দেওয়া।
 
-> Worker কোনো কিছুকে দ্রুততর করে না। এটা দামি কাজটাকে এমন জায়গায় ঘটায়, যেখানে কেউ অপেক্ষা করছে না।
+> Worker কোনো কিছু দ্রুত করে না। ভারী কাজটা শুধু এমন জায়গায় সরিয়ে দেয়, যেখানে কেউ তার জন্য অপেক্ষা করে
+> বসে নেই।
 
 ## কীভাবে কাজ করে
 
-একটি worker হলো আলাদা global scope-সহ একটি আলাদা script। আপনি যা পাঠান, তা ছাড়া কিছুই ভাগ করা হয় না।
+Worker একটি আলাদা script, তার global scope-ও আলাদা। আপনি যা পাঠান, তার বাইরে কিছুই shared নয়।
 
-**একটি worker চালু করা আর তার সঙ্গে কথা বলা:**
+**Worker চালু করা আর তার সঙ্গে কথা বলা:**
 
 ```typescript
 // The module worker form — `type: "module"` allows `import` inside the worker.
@@ -48,17 +49,17 @@ self.onmessage = (event: MessageEvent<{ csv: string }>) => {
 };
 ```
 
-### সীমানা পেরোনোর খরচ
+### Boundary পার হওয়ার খরচ
 
-Message ভাগ করা হয় না, copy করা হয়, **structured clone algorithm** দিয়ে (message-এর জন্য browser-এর deep copy)।
-সেই copy দুই দিকেই সত্যিকারের কাজ, আর এটা ঘটে main thread-এ। তাই একটি worker-কে 50 MB-এর একটি array পাঠানোর
-খরচ, যে হিসাবটা আপনি সরিয়েছেন তার চেয়েও বেশি হতে পারে।
+Message shared হয় না, copy হয়। Copy হয় **structured clone algorithm** দিয়ে, মানে message-এর জন্য browser-এর
+নিজস্ব deep copy। এই copy দুই পাশেই সত্যিকারের কাজ, আর সেটা হয় main thread-এ। তাই worker-এ 50 MB-এর একটি array
+পাঠাতে যে খরচ, তা সরিয়ে দেওয়া হিসাবের চেয়েও বেশি হতে পারে।
 
-| Mechanism | খরচ | কখন ব্যবহার করবেন |
-| --------- | ---- | -------- |
-| `postMessage(object)` | পুরো structured clone, দুই দিকেই | ছোট message — parameter আর result |
+| পদ্ধতি | খরচ | কখন ব্যবহার করবেন |
+| ------ | --- | ---------------- |
+| `postMessage(object)` | দুই পাশেই পুরো structured clone | ছোট message — parameter আর result |
 | Transferable (`ArrayBuffer`, `ImageBitmap`) | প্রায় শূন্য; ownership সরে যায় | বড় binary payload |
-| `SharedArrayBuffer` | শূন্য copy, সত্যিকারের shared memory | ভারী সংখ্যাভিত্তিক কাজ, আর শুধু সঠিক COOP/COEP header থাকলে |
+| `SharedArrayBuffer` | কোনো copy নেই, memory সত্যিই shared | ভারী সংখ্যার হিসাব, আর শুধু ঠিক COOP/COEP header থাকলে |
 
 **Copy না করে transfer করা:**
 
@@ -67,14 +68,15 @@ Message ভাগ করা হয় না, copy করা হয়, **struct
 worker.postMessage({ buffer }, [buffer]);
 ```
 
-Structured clone বেশিরভাগ জিনিস সামলায়: object, array, `Map`, `Set`, `Date`, `ArrayBuffer`, এমনকি cyclic
-reference-ও। এটা function, class identity বা DOM node সামলাতে পারে না। একটি class instance পৌঁছায় একটি plain
-object হিসেবে, method-গুলো ছাড়া। মানুষ প্রথমে এই ব্যর্থতাতেই পড়ে।
+Structured clone বেশিরভাগ জিনিসই সামলায়: object, array, `Map`, `Set`, `Date`, `ArrayBuffer`, এমনকি cyclic
+reference-ও। কিন্তু function, class-এর পরিচয় আর DOM node সামলাতে পারে না। Class instance পৌঁছায় সাধারণ object
+হয়ে, method-গুলো হারিয়ে। মানুষ প্রথমে এই সমস্যাতেই পড়ে।
 
-### সহনীয় করে তোলা
+### কাজটা সহনীয় করা
 
-Raw `postMessage` একটি function call-কে একটি protocol-এ পরিণত করে: একটি id, একটি message type, একটি listener, আর
-pending promise-গুলোর একটি map। Comlink এটাকে একটি proxy-তে মুড়ে দেয়, তাই worker-কে একটি async module-এর মতো দেখায়।
+সরাসরি `postMessage` দিয়ে কাজ করলে একটি function call পুরো protocol হয়ে যায়: একটি id, message-এর type, একটি
+listener, আর অপেক্ষায় থাকা promise-এর একটি map। Comlink এসব একটি proxy-র ভেতরে মুড়ে দেয়, তাই worker-টাকে
+একটি async module-এর মতো দেখায়।
 
 ```typescript
 import * as Comlink from "comlink";
@@ -89,92 +91,90 @@ const rows: number = await api.parseCsv(rawText);
 
 ## কখন ব্যবহার করবেন
 
-পরীক্ষাটা "এটা কি ধীর" নয়, বরং **"এটা কি একটি frame block করে, আর এটা কি DOM ছাড়া চলতে পারে"**।
+প্রশ্নটা "এটা কি ধীর" নয়। প্রশ্ন হলো **"এটা কি frame আটকায়, আর DOM ছাড়া কি এটা চলতে পারে"**।
 
 | কাজ | Worker? | কেন |
-| ---- | ------- | --- |
-| একটি বড় CSV, JSON বা log file parse করা | ✅ | একটি string-এর ওপর শুধু হিসাব, DOM নেই |
-| Image resize, canvas filter, video frame | ✅ | Transferable payload, সত্যিই দামি |
-| Search indexing, fuzzy matching, diffing | ✅ | CPU-bound আর interrupt করা যায় |
-| Cryptography, compression, WASM workload | ✅ | ক্লাসিক উদাহরণ |
-| Data fetch করা | ❌ | `fetch` আগে থেকেই main thread-এর বাইরে; শুধু parsing আপনার দায় |
-| DOM ছোঁয় এমন যেকোনো কিছু | ❌ | Worker-এ কোনো DOM নেই |
-| ~5ms-এর কম কাজ | ❌ | Message-এর আসা-যাওয়ার খরচ কাজের চেয়ে বেশি |
+| --- | ------- | --- |
+| বড় CSV, JSON বা log file parse করা | ✅ | String-এর ওপর শুধু হিসাব, DOM লাগে না |
+| Image resize, canvas filter, video frame | ✅ | Payload transfer করা যায়, আর কাজটা সত্যিই ভারী |
+| Search indexing, fuzzy matching, diffing | ✅ | CPU-bound, আর মাঝপথে থামানো যায় |
+| Cryptography, compression, WASM-এর কাজ | ✅ | একদম ক্লাসিক উদাহরণ |
+| Data fetch করা | ❌ | `fetch` এমনিতেই main thread-এর বাইরে চলে; আপনার ভাগে শুধু parse করাটা |
+| DOM-এ হাত দেয় এমন যেকোনো কাজ | ❌ | Worker-এ DOM নেই |
+| ~5ms-এর কম সময়ের কাজ | ❌ | Message-এর আসা-যাওয়াতেই কাজের চেয়ে বেশি খরচ |
 
 ### INP-এর সঙ্গে সম্পর্ক
 
-INP (Interaction to Next Paint) একটি interaction আর পরের frame-এর মধ্যে সবচেয়ে খারাপ দেরিটা মাপে।
-Long task-ই প্রধান কারণ। দুটি fix আসলে একই fix, ভিন্ন মাপে: **yield করুন**, অথবা **সরিয়ে দিন**।
-`scheduler.yield()` দিয়ে একটি task ভাগ করলে browser টুকরোগুলোর মাঝে input সামলাতে পারে।
-Worker-এ সরালে এটা main thread থেকে পুরোপুরি চলে যায়। কাজ যখন এত বড় যে yield করতে কয়েক ডজন টুকরো লাগবে, তখন
-worker ব্যবহার করুন।
+INP (Interaction to Next Paint) মাপে কোনো interaction আর তার পরের frame-এর মধ্যে সবচেয়ে বড় দেরিটা। এর প্রধান
+কারণ long task। সমাধান দুটি, আসলে একই সমাধান দুই মাপে: **yield** করুন, নয়তো **সরিয়ে দিন**।
+`scheduler.yield()` দিয়ে task ভাগ করলে টুকরোগুলোর ফাঁকে ফাঁকে browser input সামলাতে পারে। Worker-এ সরালে task-টা
+main thread থেকে পুরোপুরি চলে যায়। কাজ এত বড় যে yield করতে কয়েক ডজন টুকরো লাগবে, তখন worker নিন।
 
-> ⚠️ **Worker বিনা খরচের নয়।** প্রতিটি একটি সত্যিকারের thread, নিজস্ব heap-সহ, কিছু করার আগেই কয়েক megabyte।
-> প্রতি ধরনের কাজের জন্য একটি তৈরি করুন আর রেখে দিন, অথবা একটি ছোট pool ব্যবহার করুন। প্রতিটি call-এর জন্য
-> একটি তৈরি করবেন না।
+> ⚠️ **Worker বিনা খরচে আসে না।** প্রতিটি worker সত্যিকারের thread, তার নিজের heap আছে। কিছু করার আগেই কয়েক
+> megabyte খরচ। প্রতিটি ধরনের কাজের জন্য একটি করে worker চালু করে রেখে দিন, অথবা ছোট একটি pool রাখুন।
+> প্রতিটি call-এ নতুন worker বানাবেন না।
 
 ## সাধারণ ভুল
 
-**❌ এমন কাজ সরানো, যেটা কখনো সমস্যাই ছিল না।** আগে profile করুন। বেশিরভাগ "ধীর" page ধীর rendering, layout
-thrash বা একটি 2 MB bundle-এর কারণে, আর worker এর কোনোটাতেই সাহায্য করে না। Trace আপনাকে বলে দেয় long task-টি
-আপনার function, নাকি browser-এর layout।
+**❌ এমন কাজ সরানো, যেটা কখনো সমস্যাই ছিল না।** আগে profile করুন। বেশিরভাগ "ধীর" page ধীর হয় rendering, layout
+thrash বা 2 MB-এর bundle-এর কারণে। এর কোনোটাতেই worker কাজে আসে না। Trace দেখলেই বোঝা যায় long task-টা আপনার
+function, নাকি browser-এর layout।
 
-**❌ পুরো object graph পাঠানো।** Worker-এর যা দরকার তা পাঠান, আর caller-এর যা দরকার তা ফেরত দিন।
-এমন একটি worker কল্পনা করুন, যেটা পুরো application state পায় আর একটি পুরো copy ফেরত দেয়। এটা main thread-এ দুবার
-clone-এর খরচ দেয়, ঠিক সেই thread-এ যেটাকে আপনি রক্ষা করতে চাইছিলেন।
+**❌ পুরো object graph পাঠিয়ে দেওয়া।** Worker-এর যতটুকু লাগে ততটুকু পাঠান, caller-এর যতটুকু লাগে ততটুকু ফেরত দিন।
+ভাবুন, একটি worker পুরো application state নেয়, আর ফেরত দেয় তার পুরো একটি copy। তাহলে clone-এর খরচ main thread-এ
+দুবার দিতে হয়। আর সেটা সেই thread, যাকে বাঁচাতেই আপনি worker এনেছিলেন।
 
-**❌ Class instance টিকে থাকবে বলে আশা করা।** Structured clone data copy করে, prototype নয়। Plain object পাঠান, আর
-method দরকার হলে অন্য দিকে আবার object-এ রূপ দিন।
+**❌ ধরে নেওয়া যে class instance টিকে থাকবে।** Structured clone data copy করে, prototype নয়। সাধারণ object
+পাঠান। Method লাগলে অন্য পাশে গিয়ে আবার object বানিয়ে নিন।
 
-**❌ `terminate()` ভুলে যাওয়া।** একটি worker বেঁচে থাকে যতক্ষণ না তাকে terminate করা হয় বা page unload হয়। যে
-component প্রতিটি mount-এ একটি worker তৈরি করে আর কখনো terminate করে না, সে প্রতিবার একটি thread leak করে।
+**❌ `terminate()` ভুলে যাওয়া।** Worker বেঁচে থাকে যতক্ষণ না তাকে terminate করা হয় বা page unload হয়। যে
+component প্রতিবার mount হলে একটি worker বানায় আর কখনো terminate করে না, তাতে প্রতিবার একটি করে thread leak হয়।
 
-**❌ ধরে নেওয়া যে `SharedArrayBuffer` পাওয়া যাবে।** এর জন্য cross-origin isolation লাগে, যেটা `COOP`
-আর `COEP` header দিয়ে চালু হয়। এগুলো চালু করলে third-party embed আর analytics ভেঙে যেতে পারে। এটা code-এর
-সিদ্ধান্ত নয়, deployment-এর সিদ্ধান্ত।
+**❌ ধরে নেওয়া যে `SharedArrayBuffer` পাওয়া যাবেই।** এর জন্য cross-origin isolation লাগে, যা চালু হয় `COOP`
+আর `COEP` header দিয়ে। এগুলো চালু করলে third-party embed আর analytics ভেঙে যেতে পারে। তাই এটা code-এর নয়,
+deployment-এর সিদ্ধান্ত।
 
 ## 🔑 মূল শিক্ষা
 
-- Main thread আপনার JavaScript চালায়, layout আর paint করে, আর input সামলায়, একটি একটি করে। তাই একটি লম্বা
-  function মানে একটি জমে যাওয়া interface।
-- Worker-এর কোনো DOM নেই, তাই এটা শুধু হিসাবের কাজের জন্য উপযুক্ত: parsing, indexing, image আর crypto-র কাজ।
-- Message structured-clone করা হয়, যেটা main thread-এ সত্যিকারের সময় খরচ করে। বড় payload-এর জন্য
-  `ArrayBuffer` copy না করে transfer করুন।
-- সীমানা পেরোনোর সময় class instance তার prototype হারায়, আর function একেবারেই পেরোতে পারে না।
-- প্রতিটি worker নিজস্ব heap-সহ একটি thread: pool করুন, আবার ব্যবহার করুন, আর teardown-এ terminate করুন।
+- Main thread আপনার JavaScript চালায়, layout আর paint করে, আর input সামলায়, একটার পর একটা। তাই একটি লম্বা
+  function মানেই জমে যাওয়া interface।
+- Worker-এ DOM নেই, তাই শুধু হিসাবের কাজেই worker মানায়: parse করা, indexing, image আর crypto-র কাজ।
+- Message structured clone হয়, আর তাতে main thread-এ সত্যিকারের সময় খরচ হয়। বড় payload হলে copy না করে
+  `ArrayBuffer` transfer করুন।
+- Boundary পার হলে class instance তার prototype হারায়, আর function তো পার হতেই পারে না।
+- প্রতিটি worker একটি thread, যার নিজের heap আছে: pool করুন, আবার ব্যবহার করুন, আর teardown-এ terminate করুন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি 20 MB CSV upload করলে একটি table আধা সেকেন্ডের জন্য জমে যায়। Fix-টি ধাপে ধাপে বলুন।**
+**Q: 20 MB-এর একটি CSV upload করলে একটি table আধা second জমে থাকে। সমাধানটা ধাপে ধাপে বলুন।**
 
-আগে profile করুন। নিশ্চিত হন যে long task-টি parse, 50,000 row render করা নয়। এদের fix আলাদা, আর ভুলটা করলে একটি
-দিন নষ্ট হয়। যদি parse হয়, সেটাকে একটি module worker-এ সরান। File-টি একটি `ArrayBuffer` transferable হিসেবে পাঠান,
-যাতে main thread-কে clone-এর খরচ দিতে না হয়। শুধু view-এর যা দরকার তা ফেরত দিন: row-গুলোর দৃশ্যমান page, parse
-করা পুরোটা নয়। যদি rendering আসল সমস্যা হয়, table-টি virtualise করুন, আর তখন worker কিছুই বদলায় না।
+আগে profile করুন। নিশ্চিত হোন long task-টা parse করা, 50,000 row render করা নয়। দুটির সমাধান আলাদা, আর ভুলটা
+করলে একটি দিন নষ্ট। যদি parse-ই হয়, সেটা একটি module worker-এ সরিয়ে দিন। File-টা `ArrayBuffer` transferable
+হিসেবে পাঠান, যাতে main thread-কে clone-এর খরচ দিতে না হয়। ফেরত দিন শুধু view-এর যা লাগে: row-এর দৃশ্যমান page-টা,
+পুরো parse করা data নয়। আর আসল সমস্যা যদি rendering হয়, table-টা virtualise করুন। সেখানে worker কিছুই বদলায় না।
 
-**Q: Worker-এর সীমানা কী পেরোতে পারে আর কী পারে না?**
+**Q: Worker boundary পার হতে পারে কী, আর পারে না কী?**
 
-Structured clone plain data সামলায়: object, array, `Map`, `Set`, `Date`, typed array, আর cyclic
-reference। এটা function বহন করতে পারে না, আর prototype ফেলে দেয়, তাই একটি class instance method ছাড়া plain
-object হিসেবে পৌঁছায়। DOM node একেবারেই পেরোতে পারে না। বড় binary data clone না করে transfer করুন।
-এতে ownership সরে যায়, আর পাঠানো দিকে buffer-টি আর ব্যবহার করা যায় না।
+Structured clone সাধারণ data সামলায়: object, array, `Map`, `Set`, `Date`, typed array, আর cyclic reference। Function
+নিতে পারে না, আর prototype ফেলে দেয়। তাই class instance পৌঁছায় method ছাড়া সাধারণ object হয়ে। DOM node একেবারেই পার
+হতে পারে না। বড় binary data clone না করে transfer করুন। তাতে ownership সরে যায়, আর পাঠানোর পাশে buffer-টা আর ব্যবহার
+করা যায় না।
 
-**Q: কখন একটি ধীর interaction-এর জন্য worker ভুল উত্তর?**
+**Q: ধীর interaction-এর জন্য worker কখন ভুল সমাধান?**
 
-যখন কাজটা ছোট, যখন এটা DOM ছোঁয়, অথবা যখন bottleneck scripting নয়, rendering। প্রায় পাঁচ millisecond-এর কম
-হলে আসা-যাওয়ার খরচ কাজের চেয়ে বেশি। আর অনেক "janky" page janky হয় layout thrash বা মাত্রাতিরিক্ত বড় bundle-এর
-কারণে। Worker এর কোনোটাতেই সাহায্য করতে পারে না। একটি যোগ করলে শুধু আসল কারণটা একটি জটিলতর architecture-এর পেছনে
-লুকিয়ে যায়।
+যখন কাজটা ছোট, যখন সেটা DOM-এ হাত দেয়, অথবা যখন আটকে থাকার কারণ scripting নয়, rendering। প্রায় পাঁচ millisecond-এর
+কম কাজে আসা-যাওয়ার খরচই কাজের চেয়ে বেশি। আর অনেক "janky" page janky হয় layout thrash বা বিশাল bundle-এর কারণে।
+এর কোনোটাতেই worker সাহায্য করতে পারে না। Worker যোগ করলে শুধু আসল কারণটা আরও জটিল architecture-এর আড়ালে চাপা পড়ে।
 
-**Q: কাজ worker-এ সরানোর সঙ্গে INP-এর সম্পর্ক কী?**
+**Q: Worker-এ কাজ সরানোর সঙ্গে INP-এর সম্পর্ক কী?**
 
-INP হলো একটি interaction আর তার সাড়া দেওয়া frame-এর মধ্যের দেরি। সাধারণ কারণ হলো main thread আটকে রাখা একটি long
-task। Worker task-টিকে ওই thread থেকে পুরোপুরি সরিয়ে দেয়, তাই browser পরের frame-এই interaction সামলায়। ছোট কাজের
-জন্য বিকল্প হলো yield করা। এটা একটি long task-কে টুকরো টুকরো করে, আর browser টুকরোগুলোর মাঝে input সামলায়। একই
-লক্ষ্য, দুটি মাপ।
+INP হলো কোনো interaction আর তার জবাবে আসা frame-এর মধ্যের দেরি। সাধারণত কারণ হয় main thread আটকে রাখা একটি long task।
+Worker সেই task-টা ওই thread থেকে পুরোপুরি সরিয়ে দেয়, ফলে browser পরের frame-এই interaction সামলাতে পারে। ছোট কাজের
+জন্য বিকল্প হলো yield করা। তাতে একটি long task টুকরো টুকরো হয়, আর টুকরোগুলোর ফাঁকে browser input সামলায়। লক্ষ্য একই,
+শুধু মাপ দুই রকম।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Event Loop](#ch-event-loop) — একটি লম্বা function কেন সবকিছু block করে, বিস্তারিতভাবে
-- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — INP, আর একটি long task সংখ্যাটার কী করে
-- [Chapter ?? — Observer API](#ch-observer-apis) — প্রতিটি frame-এ কাজ করা বন্ধ করার অন্য উপায়
+- [Chapter ?? — Event Loop](#ch-event-loop) — একটি লম্বা function কেন সবকিছু আটকে দেয়, বিস্তারিত
+- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — INP, আর long task সেই সংখ্যার কী করে
+- [Chapter ?? — Observer API](#ch-observer-apis) — প্রতিটি frame-এ কাজ না করার আরেকটি উপায়

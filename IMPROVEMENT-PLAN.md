@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-14 · **Progress:** 4 / 28
+**Last updated:** 2026-10-17 · **Progress:** 5 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -197,7 +197,7 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 ---
 
-### - [ ] 128d. Natural Bangla: Part 2 (2 of 2) `M`
+### - [x] 128d. Natural Bangla: Part 2 (2 of 2) `M` — ✅ **done 2026-10-17**
 
 9 pages, about 1886 Bangla lines:
 
@@ -205,6 +205,20 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
+
+**Delivered:**
+
+- All 9 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Eight passed on the first attempt; `accessibility-tree` was refused once
+  for one missing `` `div` `` span (written plainly in the Bangla) and passed once the backticks
+  were restored
+- Law and standard names (European Accessibility Act, WCAG success-criterion titles such as
+  `2.4.11 Focus Not Obscured`), ARIA pattern names and dates such as `28 June 2025` stay in English,
+  since they are what an audit or procurement form uses; the prose around them is Bangla
+- Country and language names in `i18n-fundamentals` are in Bangla (জার্মান, রুশ, আরবি); the quoted
+  English example sentences stay English, because they are the thing being translated
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`, `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
 
 ---
 
@@ -487,5 +501,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 4/28 | 🟡 In progress |
-| **Total** | **28** | **4/28** | **14%** |
+| 11 | 128 · 128a–128z · 130 | 5/28 | 🟡 In progress |
+| **Total** | **28** | **5/28** | **18%** |

@@ -1,38 +1,38 @@
 ---
 sourceHash: "239fb75c6e5fd2cec385310b9a2570dde28e1f5b93eacda235c1866d4cae414b"
 title: "Service Worker, Caching ও Offline"
-translatedAt: "2026-10-12T12:11:48.145Z"
+translatedAt: "2026-10-17T00:57:39.934Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Service Worker, Caching ও Offline {#ch-service-workers}
 
-> এমন একটি service worker ship করুন, যেটা আপনি update করতে পারেন। প্রতিটি request-এর জন্য একটি caching strategy বেছে নিন, আর ঠিক করে বলুন কখন একটি নতুন version দায়িত্ব নেয়।
+> এমন service worker ship করুন, যেটা update করা যায়। প্রতিটি request-এর জন্য আলাদা caching strategy বেছে নিন, আর নতুন version ঠিক কখন দায়িত্ব নেবে, সেটা স্পষ্ট করে বলে দিন।
 
 **এই অধ্যায়ে:** lifecycle · scope আর `fetch` · পাঁচটি caching strategy · কোনো tab আটকে না ফেলে update ship করা · kill switch
 
 ## 💡 মূল ধারণা
 
-Service worker হলো একটি script, যেটা browser আপনার page-এর বাইরে রাখে। এটা app আর network-এর মাঝখানে বসে, আপনার
-নিজের লেখা একটি proxy-র মতো। প্রতিটি tab বন্ধ হয়ে গেলেও এটা টিকে থাকে, আর প্রতিটি request কী ফেরত দেবে তা এটাই
-ঠিক করে।
+Service worker এমন একটি script, যেটা browser আপনার page-এর বাইরে রেখে দেয়। App আর network-এর মাঝখানে এটা
+বসে থাকে, অনেকটা নিজের হাতে লেখা একটি proxy-র মতো। সব tab বন্ধ হয়ে গেলেও এটা টিকে থাকে, আর প্রতিটি request
+কী ফেরত পাবে, তা এটাই ঠিক করে।
 
-এই শেষ ক্ষমতাটাই এটাকে কাজের আর বিপজ্জনক, দুটিই করে তোলে। একবার একটি worker install হলে browser আগে তাকেই
-জিজ্ঞেস করে। তাই একটি খারাপ worker এমন একজন user-কে ভাঙা build দিতে পারে, যাঁর সেটা মোছার কোনো উপায় নেই।
+এই শেষ ক্ষমতাটাই একে একসঙ্গে কাজের আর বিপজ্জনক করে তোলে। Worker একবার install হয়ে গেলে browser আগে তাকেই
+জিজ্ঞেস করে। ফলে খারাপ একটি worker user-কে ভাঙা build দেখাতে পারে, আর user-এর হাতে সেটা মোছার কোনো উপায় থাকে না।
 
-> Service worker এমন code, যেটা আপনি একবার deploy করেন আর সহজে ফেরত নিতে পারেন না। Caching design করার আগে
-> update-এর পথ design করুন।
+> Service worker এমন code, যা একবার deploy করলে সহজে ফিরিয়ে নেওয়া যায় না। Caching design করার আগে update-এর
+> পথটা design করুন।
 
-> ⚠️ **যা বদলাতে থাকে:** platform-এর চেয়ে tooling অনেক দ্রুত বদলায়। Workbox major version-এর সঙ্গে তার
-> strategy-গুলোর নাম বদলায়, আর framework plugin-গুলো তাদের তৈরি করা worker বদলায়। টেকসই নীতি হলো নিচের
-> lifecycle: install, wait, activate। আর worker যে-ই তৈরি করুক, update-এর পথ আপনার দায়িত্ব।
+> ⚠️ **যা বদলাতে থাকে:** platform-এর চেয়ে tooling অনেক দ্রুত বদলায়। Workbox major version বদলালেই তার
+> strategy-গুলোর নাম বদলায়, আর framework plugin-গুলো যে worker তৈরি করে, সেটাও বদলে যায়। টেকসই নীতি হলো নিচের
+> lifecycle: install, wait, activate। আর worker যে-ই তৈরি করুক, update-এর পথের দায় আপনার।
 
 ## কীভাবে কাজ করে
 
-Page worker-কে register করে। তারপর worker নিজের global scope-এ চলে, কোনো DOM, কোনো
-`window` আর কোনো synchronous storage ছাড়া।
+Page worker-কে register করে। এরপর worker চলে নিজের global scope-এ। সেখানে DOM নেই, `window` নেই, synchronous
+storage-ও নেই।
 
-**Register করা, শুধু যেখানে এটা কাজ করতে পারে:**
+**Register করা, শুধু যেখানে কাজ করতে পারে:**
 
 ```typescript
 // Service workers need HTTPS. localhost is exempt, so development still works.
@@ -44,14 +44,14 @@ if ("serviceWorker" in navigator) {
 }
 ```
 
-একটি worker চারটি ধাপের মধ্য দিয়ে যায়। দ্বিতীয়টিতেই বেশিরভাগ production incident ঘটে।
+একটি worker চারটি ধাপ পার হয়। Production-এর বেশিরভাগ ঝামেলা হয় দ্বিতীয় ধাপে।
 
-| ধাপ | Event | এতে আপনি কী করেন |
-| ----- | ----- | ----------------- |
-| Installing | `install` | App shell precache করুন। Handler reject করলে worker বাতিল হয়ে যায় |
-| Waiting | — | কিছুই না। যতক্ষণ কোনো tab পুরোনো worker-এর নিয়ন্ত্রণে আছে, worker অপেক্ষা করে |
-| Activating | `activate` | আগের version-গুলোর cache মুছে দিন |
-| Controlling | `fetch`, `message`, `push` | Request-এর উত্তর দিন |
+| ধাপ | Event | এই ধাপে আপনি কী করেন |
+| --- | ----- | ------------------- |
+| Installing | `install` | App shell precache করুন। Handler reject করলে worker-টা বাতিল হয়ে যায় |
+| Waiting | — | কিছুই না। পুরনো worker-এর অধীনে কোনো tab খোলা থাকলে নতুনটা অপেক্ষা করে |
+| Activating | `activate` | আগের version-গুলোর cache মুছে ফেলুন |
+| Controlling | `fetch`, `message`, `push` | Request-এর জবাব দিন |
 
 ```mermaid
 stateDiagram-v2
@@ -64,9 +64,9 @@ stateDiagram-v2
   Controlling --> [*]: unregister()
 ```
 
-**Lifecycle, `waiting` থেকে বেরোনোর দুটি পথসহ।**
+**Lifecycle, সঙ্গে `waiting` থেকে বেরোনোর দুটি পথ।**
 
-**Install আর activate, যে রূপে এরা সবসময় থাকে:**
+**Install আর activate, যে চেহারায় এরা সবসময় লেখা হয়:**
 
 ```typescript
 declare const self: ServiceWorkerGlobalScope;
@@ -88,29 +88,29 @@ self.addEventListener("activate", (event: ExtendableEvent): void => {
 });
 ```
 
-### Scope ঠিক করে এটা কী intercept করতে পারে
+### Scope ঠিক করে কী intercept করা যাবে
 
-একটি worker সেই directory আর তার নিচের সবকিছু নিয়ন্ত্রণ করে, যেখান থেকে তাকে serve করা হয়েছে। `/js/sw.js` নিয়ন্ত্রণ
-করে `/js/*`, আর কিছু নয়। একটি service worker "কাজ করে না"-র সবচেয়ে সাধারণ কারণ এটাই। এটাকে origin root থেকে serve
-করুন, অথবা scope বড় করতে `Service-Worker-Allowed: /` পাঠান।
+Worker যে directory থেকে serve হয়, সেটা আর তার নিচের সবকিছু তার নিয়ন্ত্রণে থাকে। `/js/sw.js` নিয়ন্ত্রণ করে
+`/js/*`, তার বাইরে কিছু নয়। Service worker "কাজ করছে না" অভিযোগের সবচেয়ে সাধারণ কারণ এটাই। হয় worker-টা origin-এর
+root থেকে serve করুন, নয়তো scope বড় করতে `Service-Worker-Allowed: /` পাঠান।
 
 ### পাঁচটি caching strategy
 
-`fetch`-এর ভেতরে `event.respondWith` আপনাকে একটি response তৈরি করতে বাধ্য করে। এটা call না করলে request অক্ষত
-অবস্থায় network-এ যায়। যে request নিয়ে আপনার কোনো মত নেই, তার জন্য এটাই সঠিক default।
+`fetch`-এর ভেতরে `event.respondWith` call করলে একটি response দেওয়ার দায় আপনার। Call না করলে request কোনো
+হাত না পড়েই network-এ চলে যায়। যে request নিয়ে আপনার কোনো মতামত নেই, তার জন্য এটাই ঠিক default।
 
-প্রতিটি strategy গতির বিনিময়ে পুরোনো data মেনে নেয়। কোনো সঠিক strategy নেই, আছে শুধু request-এর সঙ্গে strategy-র
-সঠিক জোড়া।
+প্রতিটি strategy গতির বদলে কিছুটা পুরনো data মেনে নেয়। কোনো একটি strategy সবসময় ঠিক নয়। ঠিক হলো প্রতিটি
+request-এর সঙ্গে মানানসই strategy জোড়া দেওয়া।
 
-| Strategy | কোথা থেকে পড়ে | Offline-এ serve করে | কীসের জন্য |
-| -------- | ----- | -------------- | ------- |
-| **Cache first** | Cache, miss হলে তবেই network | হ্যাঁ | Hash করা asset, font, versioned image |
-| **Network first** | Network, ব্যর্থ হলে cache | শেষ ভালো copy | HTML document, যা কিছু হালনাগাদ থাকতেই হবে |
-| **Stale-while-revalidate** | এখনই cache, পেছনে refresh | হ্যাঁ | Avatar, thumbnail, feed, অগুরুত্বপূর্ণ read |
-| **Cache only** | Cache, কখনো network নয় | হ্যাঁ | Precache করা offline page |
-| **Network only** | Network, কোনো cache নয় | না | Analytics, payment, side effect আছে এমন যেকোনো কিছু |
+| Strategy | কোথা থেকে পড়ে | Offline-এ দেখায় | কিসের জন্য |
+| -------- | ------------- | --------------- | --------- |
+| **Cache first** | Cache থেকে, না পেলে তবেই network | হ্যাঁ | Hash করা asset, font, version দেওয়া image |
+| **Network first** | Network থেকে, ব্যর্থ হলে cache | শেষ ভালো copy | HTML document, যা কিছু সবসময় হালনাগাদ থাকতে হবে |
+| **Stale-while-revalidate** | এখনই cache থেকে, পেছনে চুপচাপ refresh | হ্যাঁ | Avatar, thumbnail, feed, কম গুরুত্বপূর্ণ read |
+| **Cache only** | শুধু cache, কখনো network নয় | হ্যাঁ | Precache করা offline page |
+| **Network only** | শুধু network, কোনো cache নেই | না | Analytics, payment, side effect আছে এমন যেকোনো কিছু |
 
-**Stale-while-revalidate — যেটা মুখস্থ জানা দরকার:**
+**Stale-while-revalidate — এটা মুখস্থ রাখার মতো:**
 
 ```typescript
 async function staleWhileRevalidate(request: Request, cacheName: string): Promise<Response> {
@@ -128,31 +128,31 @@ async function staleWhileRevalidate(request: Request, cacheName: string): Promis
 }
 ```
 
-Network first-এর একটি timeout লাগে। ত্রিশ সেকেন্ড ঝুলে থাকা একটি request পাঁচ মিনিট পুরোনো একটি copy-র চেয়ে খারাপ।
-`navigator.onLine` এখানে সাহায্য করে না: এটা জানায় একটি network interface আছে কি না, request সফল হচ্ছে কি না তা নয়।
-`fetch`-এ `AbortSignal.timeout(3000)` পাস করুন, আর throw করলে cache-এ ফিরে যান।
+Network first-এর জন্য timeout লাগে। ত্রিশ second ঝুলে থাকা request-এর চেয়ে পাঁচ মিনিট পুরনো copy অনেক ভালো।
+এখানে `navigator.onLine` কোনো কাজে আসে না: এটা শুধু বলে network interface আছে কি না, request সফল হচ্ছে কি না
+সেটা নয়। `fetch`-এ `AbortSignal.timeout(3000)` দিন, আর error throw হলে cache-এ ফিরে যান।
 
-**Response যায় Cache API-তে, record যায় IndexedDB-তে।** Cache API URL দিয়ে key করা `Request`/`Response`
-জোড়া রাখে। Application data, আর offline-এ করা write-এর যেকোনো queue-র জন্য IndexedDB-র transaction আর index
-লাগে। Offline write queue নিজেই একটি design-এর প্রশ্ন, যেখানে ক্রমানুসারে replay আর idempotency key আছে। Part VI
-এটাকে সেভাবেই দেখে।
+**Response রাখুন Cache API-তে, record রাখুন IndexedDB-তে।** Cache API URL দিয়ে `Request`/`Response` জোড়া রাখে।
+Application data, আর offline অবস্থায় করা write-এর যেকোনো queue, তার জন্য লাগে IndexedDB-র transaction আর index।
+Offline write queue নিজেই একটি design-এর প্রশ্ন, যেখানে ক্রম মেনে replay আর idempotency key লাগে। Part VI
+বিষয়টাকে সেভাবেই দেখে।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি | বেছে নিন | কেন |
-| -------- | ------ | --- |
-| `/assets/app.a91f3c.js` | Cache first, কখনো expire নয় | Content বদলালে নামের hash বদলায় |
-| যেকোনো navigation request | Network first, 3s timeout, offline page | একটি পুরোনো document user-দের একটি পুরোনো build-এ আটকে রাখে |
-| `GET /api/dashboard` | Stale-while-revalidate, সঙ্গে একটি "last updated" label | কিছু একটি দেখান, আর তার বয়স নিয়ে সৎ থাকুন |
-| `POST /api/orders` | Network only | Payment-এ চুপচাপ retry একটি defect |
-| একটি update আজই user-দের কাছে পৌঁছাতে হবে | `skipWaiting()`, সঙ্গে একটি reload | Tab বন্ধ হওয়ার অপেক্ষা না করেই নতুন worker activate হয় |
-| শুধু পড়ার জন্য content site | কোনো service worker নয় | সঠিক cache header-সহ একটি CDN কাজটা করে, update-এর কোনো ঝুঁকি ছাড়াই |
+| পরিস্থিতি | কী বেছে নেবেন | কেন |
+| --------- | ------------ | --- |
+| `/assets/app.a91f3c.js` | Cache first, কখনো expire নয় | Content বদলালে নামের hash-ও বদলায় |
+| যেকোনো navigation request | Network first, 3s timeout, offline page | পুরনো document user-কে পুরনো build-এ আটকে রাখে |
+| `GET /api/dashboard` | Stale-while-revalidate, সঙ্গে "শেষ update" label | কিছু একটা দেখান, আর সেটা কত পুরনো তা সৎভাবে বলুন |
+| `POST /api/orders` | Network only | Payment চুপচাপ আবার চেষ্টা করা মানেই defect |
+| আজকের মধ্যেই update user-এর কাছে পৌঁছাতে হবে | `skipWaiting()`, সঙ্গে reload | Tab বন্ধ হওয়ার অপেক্ষা না করেই নতুন worker activate হয় |
+| শুধু পড়ার content site | কোনো service worker নয় | ঠিক cache header দেওয়া CDN-ই কাজটা করে, update-এর কোনো ঝুঁকি ছাড়া |
 
-> ⚠️ `skipWaiting()` এমন একটি page-এর নিচে নতুন worker activate করে, যেটা এখনো পুরোনো JavaScript চালাচ্ছে। নতুন
-> worker যদি একটি নতুন asset manifest serve করে, পুরোনো page যে lazy chunk চায় সেটা হয়তো আর নেই। এর সঙ্গে একটি
-> reload জুড়ে দিন, অথবা এর বদলে user-কে prompt করুন।
+> ⚠️ `skipWaiting()` নতুন worker activate করে এমন page-এর নিচে, যেটা তখনো পুরনো JavaScript চালাচ্ছে। নতুন worker
+> যদি নতুন asset manifest serve করে, পুরনো page যে lazy chunk চাইবে, সেটা হয়তো আর নেই। তাই এর সঙ্গে reload দিন,
+> নয়তো user-কে জিজ্ঞেস করুন।
 
-**আগে prompt, তারপর reload — এই update-ই নিরাপদ default:**
+**আগে জিজ্ঞেস, তারপর reload — এই update-ই নিরাপদ default:**
 
 ```typescript
 const reg: ServiceWorkerRegistration = await navigator.serviceWorker.register("/sw.js");
@@ -186,7 +186,7 @@ navigator.serviceWorker.addEventListener("controllerchange", (): void => {
 event.respondWith(caches.match(event.request).then((c) => c ?? fetch(event.request)));
 ```
 
-**✅ সঠিক — navigation-এর জন্য network first:**
+**✅ ঠিক — navigation-এর জন্য network first:**
 
 ```typescript
 if (event.request.mode === "navigate") {
@@ -194,52 +194,51 @@ if (event.request.mode === "navigate") {
 }
 ```
 
-Document হলো সেই file, যেটা বাকি প্রতিটি file-এর নাম বলে। এটাকে cache থেকে serve করলে পুরো app একটি পুরোনো
-version-এ আটকে যায়।
+Document সেই file, যা বাকি সব file-এর নাম বলে দেয়। সেটা cache থেকে দিলে পুরো app পুরনো version-এ আটকে যায়।
 
-**❌ ভুল — বেরোনোর কোনো পথ নেই।** Unregister-এর পথ না থাকলে একটি caching bug ঠিক করার একমাত্র উপায় হলো প্রত্যেক user-এর
-site data মুছে ফেলা। Deploy করা যায় এমন একটি kill switch রাখুন। এটা এমন একটি worker, যার `install` handler
-`self.registration.unregister()` call করে, প্রতিটি cache মুছে দেয় আর তার client-দের reload করে। Interviewer জিজ্ঞেস
-করার আগেই এর কথা বলা একটি শক্তিশালী senior সংকেত।
+**❌ ভুল — বেরোনোর কোনো পথ নেই।** Unregister করার পথ না থাকলে caching-এর bug ঠিক করার একমাত্র উপায় হলো প্রত্যেক
+user-এর নিজে site data মুছে ফেলা। Deploy করা যায় এমন একটি kill switch রাখুন। এটা এমন একটি worker, যার `install`
+handler `self.registration.unregister()` call করে, সব cache মুছে দেয়, আর তার client-গুলো reload করে। Interviewer
+জিজ্ঞেস করার আগেই এর কথা বললে senior হিসেবে জোরালো ছাপ পড়ে।
 
-**❌ ভুল — সীমাহীন একটি cache।** Eviction ছাড়া প্রতিটি `cache.put` বাড়তেই থাকে, যতক্ষণ না browser পুরো origin-কে
-evict করে। প্রতিটি cache-কে entry-র সংখ্যা বা বয়স দিয়ে সীমিত করুন।
+**❌ ভুল — সীমাহীন cache।** Eviction ছাড়া প্রতিটি `cache.put`-এ cache বাড়তেই থাকে, যতক্ষণ না browser পুরো
+origin-টাই evict করে দেয়। প্রতিটি cache-এর entry সংখ্যা বা বয়সের একটি সীমা দিন।
 
 ## 🔑 মূল শিক্ষা
 
-- Service worker হলো আপনার deploy করা একটি proxy, আর আপনি ইচ্ছা করে বদলে না দেওয়া পর্যন্ত এটা পুরোনো version-ই serve করতে থাকে।
-- পুরোনো worker-এর নিয়ন্ত্রণে থাকা প্রতিটি tab বন্ধ না হওয়া পর্যন্ত নতুন worker অপেক্ষা করে। এ কারণেই মনে হতে পারে একটি fix ship হয়নি।
-- Scope হলো সেই directory, যেখান থেকে worker file serve করা হয়। তাই `/js/`-এর নিচের একটি worker শুধু `/js/` নিয়ন্ত্রণ করে।
-- প্রতিটি request-এর জন্য একটি caching strategy বেছে নিন। Cache first শুধু সেখানে, যেখানে content-এর সঙ্গে URL বদলায়, আর document-এর জন্য network first।
-- প্রতিটি production service worker-এর এমন একটি unregister-এর পথ দরকার, যেটা আপনি এক commit-এ deploy করতে পারেন।
+- Service worker আপনার deploy করা একটি proxy। আপনি ইচ্ছে করে বদলে না দেওয়া পর্যন্ত এটা পুরনো version-ই দিতে থাকে।
+- পুরনো worker-এর অধীনে থাকা সব tab বন্ধ না হওয়া পর্যন্ত নতুন worker অপেক্ষা করে। এজন্যই মনে হতে পারে fix ship হয়নি।
+- Worker file যে directory থেকে serve হয়, সেটাই তার scope। তাই `/js/`-এর নিচের worker শুধু `/js/` নিয়ন্ত্রণ করে।
+- প্রতিটি request-এর জন্য আলাদা caching strategy বেছে নিন। Cache first শুধু সেখানে, যেখানে content বদলালে URL-ও বদলায়। Document-এর জন্য network first।
+- Production-এর প্রতিটি service worker-এর এমন একটি unregister পথ লাগে, যা এক commit-এই deploy করা যায়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: আপনি এক ঘণ্টা আগে একটি fix ship করেছেন, তবু user-রা এখনো bug-টির কথা জানাচ্ছেন। কী হয়েছে?**
+**Q: এক ঘণ্টা আগে fix ship করেছেন, অথচ user-রা এখনো bug-টা পাচ্ছেন। কী হয়েছে?**
 
-তাঁদের tab এখনো আগের worker-এর নিয়ন্ত্রণে, তাই নতুনটি `waiting`-এ আটকে আছে। Activation নিয়ন্ত্রণে থাকা প্রতিটি tab
-বন্ধ হওয়ার জন্য অপেক্ষা করে, আর একটি pinned tab কখনো বন্ধ হয় না। সমাধান হলো একটি update prompt, যেটা waiting worker-কে
-`SKIP_WAITING` post করে আর `controllerchange`-এ reload করে।
+তাঁদের tab এখনো আগের worker-এর নিয়ন্ত্রণে, তাই নতুনটা `waiting`-এ আটকে আছে। নিয়ন্ত্রণে থাকা সব tab বন্ধ না হওয়া
+পর্যন্ত activation অপেক্ষা করে, আর pin করা tab কখনো বন্ধই হয় না। সমাধান হলো একটি update prompt, যা অপেক্ষায় থাকা
+worker-কে `SKIP_WAITING` পাঠায় আর `controllerchange` হলে reload করে।
 
 **Q: `skipWaiting()` আর `clients.claim()`-এর পার্থক্য কী?**
 
-`skipWaiting()` একটি নতুন worker-কে আগেভাগেই `waiting` থেকে বের করে আনে। `clients.claim()` একটি active worker-কে
-এখন খোলা page-গুলোর নিয়ন্ত্রণ নিতে বাধ্য করে। সাধারণত আপনি দুটিই চান, তারপর একটি reload। Claim করা page-গুলো
-এখনো আগের build-এর JavaScript চালাচ্ছে।
+`skipWaiting()` নতুন worker-কে আগেভাগেই `waiting` থেকে বের করে আনে। `clients.claim()` একটি active worker-কে
+এখন খোলা page-গুলোর নিয়ন্ত্রণ নিতে বলে। সাধারণত দুটিই লাগে, তারপর একটি reload। কারণ claim করা page-গুলো তখনো আগের
+build-এর JavaScript চালাচ্ছে।
 
-**Q: একটি dashboard-এর প্রতিটি request-এর জন্য আপনি কোন strategy বেছে নেবেন, ধাপে ধাপে বলুন।**
+**Q: একটি dashboard-এর প্রতিটি request-এর জন্য কোন strategy বাছবেন, বুঝিয়ে বলুন।**
 
-Hash করা JavaScript আর CSS পায় cache first, কোনো expiry ছাড়া। Document পায় network first, একটি ছোট timeout আর
-একটি precache করা offline page-সহ। Widget data পায় stale-while-revalidate, তার timestamp দেখিয়ে, কারণ সামান্য পুরোনো
-সংখ্যা একটি spinner-এর চেয়ে ভালো। Mutation সরাসরি network-এ যায়।
+Hash করা JavaScript আর CSS পাবে cache first, কোনো expiry ছাড়া। Document পাবে network first, ছোট timeout আর precache
+করা একটি offline page সহ। Widget-এর data পাবে stale-while-revalidate, সঙ্গে timestamp দেখানো। কারণ spinner-এর চেয়ে
+একটু পুরনো সংখ্যাও ভালো। Mutation সরাসরি network-এ যাবে।
 
-**Q: কখন আপনি service worker একেবারেই ব্যবহার করবেন না?**
+**Q: কখন আপনি service worker একদমই ব্যবহার করবেন না?**
 
-যখন offline বা install-এর কোনো প্রয়োজন নেই। Service worker এমন একটি deploy-এর পথ যোগ করে, যেটা frontend-এর অন্য
-যেকোনো কিছুর চেয়ে roll back করা কঠিন। CDN-এ HTTP caching বেশিরভাগ গতি দেয়, পুরোনো data-র কোনো ঝুঁকি ছাড়াই। এটা
-invalidate করাও অনেক সহজ।
+যখন offline বা install-এর কোনো দরকার নেই। Service worker এমন একটি deploy পথ যোগ করে, যা frontend-এর অন্য যেকোনো
+কিছুর চেয়ে rollback করা কঠিন। CDN-এ HTTP caching দিয়েই গতির বেশিরভাগটা পাওয়া যায়, পুরনো data-র ঝুঁকি ছাড়াই। আর
+সেটা invalidate করাও অনেক সহজ।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Offline-First Architecture](#ch-offline-first-architecture) — write queue, conflict সামলানো আর sync, একটি design-এর প্রশ্ন হিসেবে
-- [Chapter ?? — Web Storage ও IndexedDB](#ch-storage-apis) — quota, eviction আর সেই store, যেখানে write queue থাকে
+- [Chapter ?? — Offline-First Architecture](#ch-offline-first-architecture) — write queue, conflict সামলানো আর sync, design-এর প্রশ্ন হিসেবে
+- [Chapter ?? — Web Storage ও IndexedDB](#ch-storage-apis) — quota, eviction, আর যে store-এ write queue থাকে
