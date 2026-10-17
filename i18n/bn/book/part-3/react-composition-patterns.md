@@ -1,37 +1,35 @@
 ---
 sourceHash: "7ffda0f562f99ff2d8a3e19744a8aa177f34d8ee22d6176c5143b1d979fec805"
 title: "Component Composition Pattern"
-translatedAt: "2026-10-12T12:09:19.726Z"
+translatedAt: "2026-10-17T01:10:39.514Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Component Composition Pattern {#ch-react-composition-patterns}
 
-> এমন একটি component API design করুন, যেটা দশম feature request-এর পরেও টিকে থাকে, দশম boolean prop না বাড়িয়ে।
+> এমন component API design করুন, যা দশম feature request-এর পরেও টিকে থাকে, দশম boolean prop না গজিয়েই।
 
 **এই অধ্যায়ে:** default হিসেবে `children` · compound component · slot · React 19-এ render prop · controlled বনাম uncontrolled
 
 ## 💡 মূল ধারণা
 
-প্রতিটি reusable component একই দর-কষাকষি করে। Caller কতটা ঠিক করবে, আর আপনি তার হয়ে কতটা ঠিক করে দেবেন? এক দিকে
-ভুল করলে component-টি অনমনীয় হয়ে যায়, তাই caller-রা এটাকে fork করে। অন্য দিকে ভুল করলে এটা চল্লিশটা prop-ওয়ালা
-একটি configuration format হয়ে দাঁড়ায়।
+প্রতিটি reusable component একই আপস করে। Caller কতটুকু ঠিক করবেন, আর আপনি তাঁর হয়ে কতটুকু ঠিক করে দেবেন? এক দিকে ভুল করলে component
+অনমনীয় হয়ে যায়, আর caller-রা তার fork বানান। অন্য দিকে ভুল করলে সেটা চল্লিশটি prop-এর একটি configuration format হয়ে দাঁড়ায়।
 
-Composition এখান থেকে বের হওয়ার পথ। প্রতিটি variation-এর জন্য prop যোগ করবেন না। **যে অংশটা বদলায়, সেটা caller-কেই
-পাঠাতে দিন।** Component behaviour নিজের কাছে রাখে: state, keyboard handling, accessibility। যে অংশগুলো আলাদা,
-সেগুলো সে caller-এর হাতে ফিরিয়ে দেয়।
+বেরোনোর পথ composition। প্রতিটি রকমফেরের জন্য একটি করে prop যোগ করবেন না। **যে অংশটা বদলায়, সেটা caller-কেই পাঠাতে দিন।**
+Component নিজের কাছে রাখে আচরণ: state, keyboard সামলানো, accessibility। আর যে অংশগুলো আলাদা, সেগুলো ফিরিয়ে দেয়।
 
-> একটি component-এর composition লাগবে, তার লক্ষণ হলো এমন একটি boolean, যেটা শুধু markup লুকানোর জন্যই আছে:
-> `showIcon`, `withFooter`, `isCompact`। প্রতিটি এমন একটি সিদ্ধান্ত, যেটা caller নিতে চেয়েছিল কিন্তু পারেনি।
+> Component-এর composition লাগবে, তার লক্ষণ হলো এমন boolean, যা আছে শুধু markup লুকানোর জন্য: `showIcon`, `withFooter`, `isCompact`।
+> প্রতিটিই এমন একটি সিদ্ধান্ত, যা caller নিতে চেয়েছিলেন কিন্তু পারেননি।
 
 ## কীভাবে কাজ করে
 
 ### `children`-ই default উত্তর
 
-`children` হিসেবে markup পাঠালে বেশিরভাগ case-এর সমাধান হয়ে যায়। এর একটি performance-এর দিকও আছে, যেটা মানুষ
-খেয়াল করে না। Children তৈরি করে *parent*, তাই wrapper-এর ভেতরে state বদলালে সেগুলো re-render হয় না।
+Markup-কে `children` হিসেবে পাঠালে বেশিরভাগ ক্ষেত্রই মিটে যায়। এর performance-এর একটি গুণও আছে, যা মানুষ খেয়াল করে না। Children বানায়
+*parent*, তাই wrapper-এর ভেতরের state বদলালে সেগুলো re-render হয় না।
 
-**একটি wrapper, যার state সে যা wrap করে তা ছুঁতে পারে না:**
+**এমন wrapper, যার state তার মোড়ানো জিনিসে হাত দিতে পারে না:**
 
 ```tsx
 interface CollapsibleProps {
@@ -50,13 +48,13 @@ function Collapsible({ title, children }: CollapsibleProps) {
 }
 ```
 
-`open` toggle করলে `Collapsible` re-render হয়। `children` re-render হয় না, কারণ সেই element-টি যে call করেছে
-সে আগেই বানিয়ে রেখেছে। `memo`-র দিকে হাত বাড়ানোর চেয়ে এই restructuring ভালো কাজ করে।
+`open` toggle করলে `Collapsible` re-render হয়। কিন্তু `children` re-render হয় না, কারণ সেই element যিনি call করেছেন তিনিই আগে বানিয়ে
+রেখেছেন। `memo`-র দিকে হাত বাড়ানোর চেয়ে এই কাঠামো বদলটাই বেশি কাজের।
 
 ### Compound component
 
-যখন কয়েকটি অংশকে state share করতে হয় কিন্তু layout caller নিয়ন্ত্রণ করে, তখন component-এর একটি ছোট পরিবার
-expose করুন, যারা context-এর মাধ্যমে একে অপরের সাথে কথা বলে।
+যখন কয়েকটি অংশকে state ভাগ করে নিতে হয়, কিন্তু layout নিয়ন্ত্রণ করেন caller, তখন ছোট একটি component-পরিবার দিন, যারা context দিয়ে নিজেদের
+মধ্যে কথা বলে।
 
 ```tsx
 interface TabsContextValue {
@@ -97,14 +95,12 @@ Tabs.Panel = function Panel({ id, children }: { id: string; children: ReactNode 
 };
 ```
 
-Design যেভাবে চায়, caller markup সেভাবে সাজায়। কোন tab selected, সেটা তবু `Tabs`-এর হাতেই থাকে। `useTabs`-এ
-throw করা error-টি গুরুত্বপূর্ণ। এটা "provider-এর বাইরে ব্যবহার"-কে একটি নীরব `null` থেকে ভুলের জায়গাতেই একটি
-message-এ পরিণত করে।
+Design যেমন চায়, caller markup সেভাবে সাজান। তবু কোন tab বাছাই করা, তার মালিক `Tabs`-ই থাকে। `useTabs`-এর throw করা error-টা জরুরি।
+"Provider-এর বাইরে ব্যবহার" হলে চুপচাপ একটি `null` না পেয়ে ঠিক ভুলের জায়গাতেই একটি message পাওয়া যায়।
 
-### Slot — নামওয়ালা children
+### Slot — নাম দেওয়া children
 
-`children` আপনাকে একটি ফাঁকা জায়গা দেয়। একটি component-এ যখন দুটি বা তিনটি নির্দিষ্ট region থাকে, সেগুলো prop
-হিসেবে নিন।
+`children` দেয় একটিমাত্র ফাঁকা জায়গা। Component-এর দুই-তিনটি নির্দিষ্ট অংশ থাকলে সেগুলো prop হিসেবে নিন।
 
 ```tsx
 interface PageProps {
@@ -124,16 +120,16 @@ function Page({ header, sidebar, children }: PageProps) {
 }
 ```
 
-Svelte একে বলে snippet, Vue বলে named slot। React-এ এর জন্য কোনো API-ই লাগে না। Element হলো value, তাই একটি
-prop একটি element ধরে রাখতে পারে।
+Svelte একে বলে snippet, Vue বলে named slot। React-এ এর জন্য কোনো API-ই লাগে না। Element নিজেই value, তাই একটি prop একটি element ধরে
+রাখতে পারে।
 
 ### Hook আসার পরে render prop
 
-*Logic* share করার জন্য hook render prop-কে সরিয়ে দিয়েছে। একটি `useHover` hook সব দিক থেকেই একটি `<Hover>`
-component-এর চেয়ে ভালো: বাড়তি কোনো tree node নেই, nesting নেই, আর type-গুলো পরিষ্কারভাবে বেরিয়ে আসে।
+*Logic* ভাগ করার কাজে hook render prop-এর জায়গা নিয়েছে। `<Hover>` component-এর চেয়ে একটি `useHover` hook সব দিক থেকে ভালো: tree-তে
+বাড়তি কোনো node নেই, nesting নেই, আর type-ও পরিষ্কার আসে।
 
-Render prop টিকে আছে একটি কাজের জন্য। Component এমন কিছুর মালিক, যেটা caller-কে **আলাদাভাবে render** করতে হবে,
-আর যে অংশটা বদলায়, সেটা এমন value-র ওপর নির্ভর করে যা শুধু component-এর কাছেই আছে।
+Render prop টিকে আছে একটি কাজের জন্য। Component এমন কিছুর মালিক, যা caller-কে **ভিন্নভাবে render** করতে হয়, আর বদলানো অংশটা এমন value-র
+ওপর নির্ভর করে যা শুধু component-এর কাছেই আছে।
 
 ```tsx
 interface VirtualListProps<T> {
@@ -148,23 +144,23 @@ function VirtualList<T>({ items, rowHeight, renderRow }: VirtualListProps<T>) {
 }
 ```
 
-Windowing (শুধু দৃশ্যমান row-গুলো render করা) component-এর হাতে। Row caller-এর হাতে। একটি hook এটা প্রকাশ করতে
-পারে না, কারণ share করা value-টি internal state থেকে তৈরি markup।
+Windowing-এর মালিক component (শুধু দৃশ্যমান row-গুলো render করা)। Row-এর মালিক caller। Hook দিয়ে এটা প্রকাশ করা যায় না, কারণ ভাগ করা
+value-টা ভেতরের state থেকে বানানো markup।
 
 ### Controlled বনাম uncontrolled
 
-একটি component **controlled**, যখন তার value-র মালিক parent, আর সে value-টি prop হিসেবে ফিরিয়ে দেয়। Component
-**uncontrolled**, যখন সে নিজের state নিজেই রাখে আর শুধু পরিবর্তনগুলো জানায়।
+Component **controlled**, যখন তার value-র মালিক parent আর সেটা prop হিসেবে ফিরিয়ে দেয়। **Uncontrolled**, যখন component নিজের state রাখে
+আর শুধু বদলের খবর দেয়।
 
-| প্রশ্ন                              | Uncontrolled           | Controlled                        |
-| ------------------------------------- | ---------------------- | --------------------------------- |
-| Value কার কাছে থাকে                   | Component          | Parent                        |
-| Edit চলাকালীন parent-কে এটা পড়তে হবে      | ❌ শুধু change-এ      | ✅ সবসময়                          |
-| Parent-কে এটা reset বা preset করতে হবে    | ❌ একটি `key` লাগে       | ✅ Prop set করুন                    |
-| Caller-এর খরচ                    | কিছুই নয়                   | প্রতিবার state আর একটি handler   |
+| প্রশ্ন | Uncontrolled | Controlled |
+| ----- | ----------- | ---------- |
+| Value কার কাছে থাকে | Component-এর | Parent-এর |
+| Edit চলার মাঝখানে parent-এর পড়া দরকার | ❌ শুধু বদলের সময় | ✅ সবসময় |
+| Parent-এর reset বা আগে থেকে বসানো দরকার | ❌ `key` লাগে | ✅ Prop বসিয়ে দিন |
+| Caller-এর খরচ | কিছুই না | প্রতিবার state আর একটি handler |
 
-Default হিসেবে uncontrolled রাখুন, আর controlled একটি option হিসেবে দিন। সাধারণ রূপটি uncontrolled case-এর জন্য
-`defaultValue` নেয়, আর controlled case-এর জন্য `value`। `value` পাঠানো হয়েছে কি না, সেটাই mode ঠিক করে।
+Default রাখুন uncontrolled, আর controlled দিন বিকল্প হিসেবে। প্রচলিত চেহারায় uncontrolled ক্ষেত্রের জন্য নেওয়া হয় `defaultValue`, আর controlled-এর
+জন্য `value`। `value` পাঠানো হয়েছে কি না, তা দিয়েই mode ঠিক হয়।
 
 ```tsx
 function useControllable<T>(value: T | undefined, defaultValue: T): [T, (next: T) => void] {
@@ -174,28 +170,28 @@ function useControllable<T>(value: T | undefined, defaultValue: T): [T, (next: T
 }
 ```
 
-> ⚠️ একটি component-কে runtime-এ mode বদলাতে দেবেন না। `undefined` থেকে একটি আসল `value`-তে গেলে জীবনের
-> মাঝপথে state-এর মালিক বদলে যায়, আর React এ নিয়ে warning দেয়। প্রথম render-এ একবারই ঠিক করুন।
+> ⚠️ Runtime-এ component-কে mode বদলাতে দেবেন না। `undefined` থেকে সত্যিকারের একটি `value`-এ গেলে জীবনের মাঝপথে state-এর মালিক বদলে যায়,
+> আর React এ নিয়ে warning দেয়। একবারই ঠিক করুন, প্রথম render-এ।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                              | Pattern              |
-| ------------------------------------------------------- | -------------------- |
-| একটি region বদলায়                                       | `children`           |
-| দুটি বা তিনটি নির্দিষ্ট region বদলায়                         | Slot prop           |
-| কয়েকটি অংশ state share করে, layout caller-এর       | Compound component  |
-| Behaviour share হয়, markup নয়                      | একটি custom hook        |
-| Markup বদলায় আর component-এর নিজের state-এর ওপর নির্ভর করে  | একটি render prop        |
-| Value বদলানোর সাথে সাথে parent-কে সেটা পড়তে বা set করতে হবে     | Controlled           |
+| পরিস্থিতি | Pattern |
+| --------- | ------- |
+| একটি অংশ বদলায় | `children` |
+| দুই-তিনটি নির্দিষ্ট অংশ বদলায় | Slot prop |
+| কয়েকটি অংশ state ভাগ করে, layout caller-এর | Compound component |
+| আচরণ ভাগ হয়, markup নয় | একটি custom hook |
+| Markup বদলায়, আর সেটা component-এর নিজের state-এর ওপর নির্ভর করে | একটি render prop |
+| Value বদলানোর সময়েই parent-কে পড়তে বা বসাতে হয় | Controlled |
 
 ## সাধারণ ভুল
 
-**❌ প্রতিটি variation-এর জন্য একটি boolean।** `<Card compact bordered showFooter hideAvatar />` হলো চারটি সিদ্ধান্ত,
-যেগুলো caller markup হিসেবে প্রকাশ করতে চেয়েছিল। **✅ একটি `footer` slot নিন, আর তাদের কিছুই না পাঠাতে দিন।**
+**❌ প্রতিটি রকমফেরের জন্য একটি boolean।** `<Card compact bordered showFooter hideAvatar />` হলো চারটি সিদ্ধান্ত, যা caller markup হিসেবে
+বলতে চেয়েছিলেন। **✅ একটি `footer` slot নিন, আর তাঁদের কিছু না পাঠানোর সুযোগ দিন।**
 
-**❌ প্রথম tool হিসেবে context।** Context সেই value-র জন্য, যেটা পুরো একটি subtree-র দরকার, যেমন theme, বর্তমান
-user, বা ওপরের tabs state। দুটি component-এর মধ্য দিয়ে একটি prop পাঠানো prop drilling নয়। সেটা একটি prop মাত্র।
-শুরুতেই context ধরলে এমন component তৈরি হয়, যেগুলো অন্য কোথাও render করা যায় না।
+**❌ প্রথম tool হিসেবে context।** Context সেসব value-র জন্য, যা পুরো একটি subtree-র লাগে, যেমন theme, বর্তমান user, বা ওপরের tabs state।
+দুটি component-এর ভেতর দিয়ে একটি prop পাঠানো prop drilling নয়। সেটা স্রেফ একটি prop। আগেভাগে context-এর দিকে হাত বাড়ালে এমন component তৈরি
+হয়, যা অন্য কোথাও render করা যায় না।
 
 **❌ Memoise না করা context value:**
 
@@ -204,52 +200,49 @@ user, বা ওপরের tabs state। দুটি component-এর মধ�
 <TabsContext value={{ active, select: setActive }}>{children}</TabsContext>;
 ```
 
-প্রতিটি parent render-এ প্রতিটি consumer re-render হয়। **✅ Value-টির ওপর `useMemo`**, যেমন `Tabs`-এর উদাহরণে।
-যেখানে React Compiler চালু আছে, সেখানে এই memo সে আপনার হয়ে লিখে দেয়। যেভাবেই হোক, এটা কেন আছে তা জানুন —
-[Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler) দেখুন।
+Parent-এর প্রতিটি render-এ প্রতিটি consumer re-render হয়। **✅ Value-তে `useMemo`**, যেমন `Tabs`-এর উদাহরণে। React Compiler চালু থাকলে
+এই memo compiler নিজেই লিখে দেয়। দুই ক্ষেত্রেই জানুন এটা কেন আছে — দেখুন
+[Chapter ?? — Performance, Transition ও Compiler](#ch-react-performance-and-the-compiler)।
 
-**❌ `forwardRef`-এর দিকে হাত বাড়ানো।** React 19-এ `ref` একটি সাধারণ prop, আর `forwardRef` deprecation-এর পথে।
-Props type-এ `ref` declare করুন, আর সেটা পাস করে দিন।
+**❌ `forwardRef`-এর দিকে হাত বাড়ানো।** React 19-এ `ref` একটি সাধারণ prop, আর `forwardRef` deprecation-এর পথে। Props-এর type-এ `ref`
+ঘোষণা করুন, আর সেটা পাঠিয়ে দিন।
 
 ## 🔑 মূল শিক্ষা
 
-- Composition configuration-এর বদলে markup নেয়: বদলানো অংশটা বর্ণনা করতে prop না দিয়ে, caller-কে অংশটাই পাঠাতে দিন।
-- `children` default tool, আর parent-এর তৈরি children wrapper-এর state বদলালে re-render হয় না।
-- Compound component context-এর মাধ্যমে state share করে, আর layout-এর নিয়ন্ত্রণ caller-এর হাতে থাকে।
-- Logic share করার জন্য hook render prop-কে সরিয়ে দিয়েছে। Render prop টিকে আছে শুধু সেখানে, যেখানে markup নিজেই internal state-এর ওপর নির্ভর করে।
-- Default হিসেবে uncontrolled রাখুন, controlled-এর option দিন, আর কখনো একটি component-কে runtime-এ দুটির মধ্যে বদলাতে দেবেন না।
+- Composition configuration-এর বদলে markup নেয়: বদলানো অংশটা বর্ণনা করতে prop না দিয়ে caller-কে সেটাই পাঠাতে দিন।
+- `children` হলো default tool, আর parent-এর বানানো children wrapper-এর state বদলালে re-render হয় না।
+- Compound component context দিয়ে state ভাগ করে, আর layout-এর নিয়ন্ত্রণ caller-এর হাতে থাকে।
+- Logic ভাগ করার কাজে hook render prop-এর জায়গা নিয়েছে; render prop টিকে আছে শুধু সেখানে, যেখানে markup নিজেই ভেতরের state-এর ওপর নির্ভর করে।
+- Default uncontrolled রাখুন, controlled-এর সুযোগ দিন, আর runtime-এ component-কে কখনো দুটির মধ্যে বদলাতে দেবেন না।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একজন designer আপনার Card-এর পঞ্চম একটি variant চাইলেন। কখন আরেকটি prop ভুল উত্তর?**
+**Q: একজন designer আপনার Card-এর পঞ্চম variant চাইলেন। কখন আরেকটি prop ভুল উত্তর?**
 
-যখন prop-টি শুধু markup চালু বা বন্ধ করার জন্যই আছে। প্রতিটি `showX` boolean component-এর সম্ভাব্য state-এর
-সংখ্যা গুণ করে বাড়ায়। এটা design-এর একটি সিদ্ধান্তকে, যে সিদ্ধান্তটা নিচ্ছে তার কাছ থেকে সরিয়েও নেয়। `header`,
-`footer` বা `actions`-এর মতো একটি slot ওই সব variant-কে একটি API-তে গুটিয়ে আনে। তখন পরের variant-এর জন্য কোনো
-পরিবর্তনই লাগে না। Prop রাখুন behaviour আর data-র জন্য, আর markup দিন caller-কে।
+যখন prop-টা আছে শুধু markup চালু বা বন্ধ করতে। প্রতিটি `showX` boolean component-এর সম্ভাব্য অবস্থার সংখ্যা গুণ করে বাড়ায়। আবার design-এর
+সিদ্ধান্তও যিনি নিচ্ছেন তাঁর কাছ থেকে সরিয়ে আনে। `header`, `footer` বা `actions`-এর মতো একটি slot এই সব variant একটি API-তে গুটিয়ে আনে।
+তখন পরের variant-এর জন্য কিছুই বদলাতে হয় না। Props রাখুন আচরণ আর data-র জন্য, markup দিন caller-এর হাতে।
 
-**Q: Compound component নাকি একটি props object — কীভাবে বেছে নেন?**
+**Q: Compound component, নাকি একটি props object — কীভাবে বাছবেন?**
 
-Props object ঠিক, যখন shape নির্দিষ্ট আর layout নিয়ে caller-এর কোনো মত নেই। Compound component ঠিক, যখন caller-কে
-অংশগুলো সাজাতে হয়, বা অংশের set-টি খোলা, যেমন tab, menu আর table-এ। খরচ হলো একটি context, আর ভুল ব্যবহারে একটি
-runtime error। লাভ হলো, design team API পরিবর্তন ছাড়াই markup নতুন করে সাজাতে পারে।
+Props object ঠিক, যখন চেহারা নির্দিষ্ট আর layout নিয়ে caller-এর কোনো মত নেই। Compound component ঠিক, যখন অংশগুলো caller-কে সাজাতে হয়, বা
+অংশের সংখ্যা খোলা, যেমন tabs, menu আর table। খরচ একটি context, আর ভুল ব্যবহারে একটি runtime error। লাভ হলো, design team API না বদলেই markup
+নতুন করে সাজাতে পারে।
 
-**Q: Render prop কি অচল হয়ে গেছে?**
+**Q: Render prop কি সেকেলে হয়ে গেছে?**
 
-Logic share করার জন্য, হ্যাঁ। একটি hook একই কাজ করে বাড়তি element ছাড়া, nesting ছাড়া, আর আরও ভালো type দিয়ে।
-কিন্তু এখনো এটাই সঠিক tool, যখন component এমন state-এর মালিক যেটা caller-কে আলাদাভাবে render করতে হয়। একটি
-virtualised list ধরুন: কোন row-গুলো থাকবে, তা component ঠিক করে, আর একটি row দেখতে কেমন, তা caller ঠিক করে।
-একটি hook সেই value return করতে পারে না, কারণ এটা internal state থেকে বানানো markup।
+Logic ভাগ করার জন্য, হ্যাঁ। Hook একই কাজ করে কোনো বাড়তি element ছাড়া, nesting ছাড়া, আর আরও ভালো type দিয়ে। কিন্তু যখন component এমন state-এর
+মালিক, যা caller-কে ভিন্নভাবে render করতে হয়, তখনো এটাই ঠিক tool। Virtualised list-এর কথা ধরুন: কোন row থাকবে তা ঠিক করে component, আর একটি
+row দেখতে কেমন তা ঠিক করেন caller। Hook সেই value return করতে পারে না, কারণ সেটা ভেতরের state থেকে বানানো markup।
 
-**Q: Memoise না করা context value কেন সমস্যা, আর কখন এটা আর সমস্যা থাকে না?**
+**Q: Memoise না করা context value সমস্যা কেন, আর কখন আর সমস্যা থাকে না?**
 
-Provider প্রতিটি render-এ একটি নতুন object তৈরি করে। তাই প্রতিটি consumer একটি বদলে যাওয়া value দেখে আর
-re-render হয়, এমনকি ভেতরের data হুবহু এক হলেও। Value-টি memoise করলে এটা ঠিক হয়ে যায়। React Compiler ব্যবহার
-করলে সে এই memoisation আপনার হয়ে বসিয়ে দেয়, কিন্তু যুক্তিটা তবু আপনার নিজের হতে হবে। যে component থেকে compiler
-opt out করেছে, সেটায় সে সাহায্য করতে পারে না, আর reviewer-রা এখনো এটা জিজ্ঞেস করেন।
+Provider প্রতিটি render-এ নতুন একটি object বানায়। ফলে প্রতিটি consumer value বদলেছে দেখে re-render হয়, নিচের data হুবহু এক হলেও। Value
+memoise করলে এটা মিটে যায়। React Compiler ব্যবহার করলে compiler নিজেই সেই memoisation বসিয়ে দেয়, কিন্তু যুক্তিটা তবু আপনার জানা থাকতে হবে।
+যে component compiler-এর আওতা থেকে বাদ পড়েছে, সেখানে compiler কিছু করতে পারে না, আর reviewer-রা এখনো জিজ্ঞেস করেন।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — React-এর Mental Model](#ch-react-mental-model) — `children` কেন একটি re-render এড়িয়ে যায়
 - [Chapter ?? — Server Component ও Client Component](#ch-server-components-vs-client-components) — boundary পেরিয়ে composition, যেখানে `children` কাঠামোর অংশ হয়ে যায়
-- [Chapter ?? — বড় পরিসরে React ও TypeScript](#ch-react-typescript-at-scale) — generic component আর slot prop-এ type দেওয়া
+- [Chapter ?? — বড় পরিসরে React ও TypeScript](#ch-react-typescript-at-scale) — generic component আর slot prop-এর type দেওয়া

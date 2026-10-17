@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-17 · **Progress:** 5 / 28
+**Last updated:** 2026-10-17 · **Progress:** 6 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -222,7 +222,7 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 ---
 
-### - [ ] 128e. Natural Bangla: Part 3 (1 of 5) `M`
+### - [x] 128e. Natural Bangla: Part 3 (1 of 5) `M` — ✅ **done 2026-10-17**
 
 8 pages, about 1556 Bangla lines:
 
@@ -230,6 +230,20 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
+
+**Delivered:**
+
+- All 8 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Seven passed on the first attempt;
+  `server-components-vs-client-components` was refused once for one extra `` `Footer` `` span (a
+  repeat mention the English leaves implicit) and passed once it was written plainly
+- React API and concept names (Server Component, Suspense boundary, Server Function, `'use client'`,
+  hydration, transition) stay in English, as the brief's term list does for React itself
+- A pass for `সে` used of things (component, effect, compiler) found six in this batch and two in
+  #128d's `i18n-fundamentals` and `aria`; all eight were rewritten and re-written through `--write`.
+  First-pass pages later in Part 3 still have them; their own batches will replace those
+- No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`, `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
 
 ---
 
@@ -501,5 +515,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 5/28 | 🟡 In progress |
-| **Total** | **28** | **5/28** | **18%** |
+| 11 | 128 · 128a–128z · 130 | 6/28 | 🟡 In progress |
+| **Total** | **28** | **6/28** | **21%** |
