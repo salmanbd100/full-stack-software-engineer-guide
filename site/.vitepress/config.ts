@@ -10,6 +10,7 @@
  * It is served at www.salmanrahman.com/handbook/: the portfolio rewrites that path to this
  * site's own Vercel project, which redeploys on every push to main (`vercel.json`).
  */
+import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 import sidebar from "./sidebar.json" with { type: "json" };
@@ -147,5 +148,18 @@ export default withMermaid(
     },
 
     ignoreDeadLinks: false,
+
+    // The sidebar's reading-progress checkboxes: VitePress's own sidebar item, swapped for a
+    // copy that carries one. Re-diff the copy on every VitePress upgrade.
+    vite: {
+      resolve: {
+        alias: [
+          {
+            find: /^.*\/VPSidebarItem\.vue$/,
+            replacement: fileURLToPath(new URL("./theme/ProgressSidebarItem.vue", import.meta.url)),
+          },
+        ],
+      },
+    },
   }),
 );
