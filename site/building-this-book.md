@@ -1,12 +1,12 @@
 ---
 title: "How This Book Is Built"
-description: "How one repository of markdown becomes a PDF, an EPUB and this website — and how the website reaches www.salmanrahman.com/handbook."
+description: "How one repository of markdown becomes a PDF, an EPUB and this website in English and Bangla — and how the website reaches www.salmanrahman.com/handbook."
 outline: [2, 3]
 ---
 
 # How This Book Is Built
 
-> One repository of markdown files becomes a print-ready PDF, a valid EPUB and this website. This page shows how, step by step, so you can build it yourself.
+> One repository of markdown files becomes a print-ready PDF, a valid EPUB and this website, in English and Bangla. This page shows how, step by step, so you can build it yourself.
 
 This page is for developers. It exists only on the web — the build skips the `site/` folder, so it is never bound into the PDF or the EPUB.
 
@@ -20,7 +20,8 @@ Every chapter is a markdown file. One TypeScript module reads them all and decid
 flowchart TD
     MD["Chapters as markdown<br/>Frontend/ Backend/ AI/ DSA/ …"] --> LB["scripts/lib/book.ts<br/>loadBook()"]
     LB --> CC["collect-chapters.ts<br/>build/book.md"]
-    LB --> BS["build-site.ts<br/>site/book/**"]
+    LB --> BS["build-site.ts<br/>site/book/** + site/bn/book/**"]
+    BN["i18n/bn/<br/>Bangla cache"] --> BS
     CC --> PD["pandoc + Lua filters"]
     PD --> TX["tectonic (LaTeX)"]
     TX --> PDF["PDF"]
@@ -35,7 +36,7 @@ flowchart TD
 | ------ | ------- | -------- | -------------- |
 | PDF, both volumes | `pnpm book:pdf`, `pnpm book:companion` | `build/*.pdf` | pandoc, tectonic, mermaid-cli |
 | EPUB, both volumes | `pnpm book:epub`, `pnpm book:companion` | `build/*.epub` | pandoc, mermaid-cli, epubcheck (optional) |
-| Website | `pnpm site:build` | `site/.vitepress/dist` | Node and pnpm only |
+| Website, English and Bangla | `pnpm site:build` | `site/.vitepress/dist` | Node and pnpm only |
 
 ## Build It Yourself
 
@@ -97,7 +98,10 @@ The end of each build prints three checks. **Read them — silence is the failur
 ```bash
 pnpm site:dev        # live preview at http://localhost:5173/handbook/
 pnpm site:build      # static build into site/.vitepress/dist
+vercel dev           # the same site plus the api/ folder, for the progress tracker
 ```
+
+`vercel dev` needs the Vercel CLI (`pnpm add -g vercel`), the project linked once with `vercel link`, and its environment variables pulled with `vercel env pull .env.local`.
 
 ## How a Chapter Is Written
 
@@ -180,12 +184,13 @@ The EPUB uses the same collected file and the same classifier. Instead of LaTeX 
 1. It calls the same `loadBook()`.
 2. It writes each page to `site/book/<route>.md`. Front and back matter go under `front/` and `back/`, and chapters under `part-N/<slug>`.
 3. It rewrites every `#ch-slug` link into a site route.
-4. It writes `site/.vitepress/sidebar.json`, grouped by part.
-5. It checks the hand-written pages (this one, the home page and the config). The build fails if any of them states a count of chapters or interview questions that no longer matches the manuscript.
+4. It writes every page a second time under `site/bn/book/`, from the Bangla cache in `i18n/bn/` (see below).
+5. It writes `site/.vitepress/sidebar.json`, grouped by part, with an English and a Bangla sidebar.
+6. It checks the hand-written pages (this one, both home pages and the config). The build fails if any of them states a count of chapters or interview questions that no longer matches the manuscript.
 
-The generated files are in `.gitignore`. Only the home page, this page, `site/.vitepress/config.ts` and the reading theme in `site/.vitepress/theme/` are written by hand. The theme widens the text column and raises the type size — web only, the print design never sees it.
+The generated files are in `.gitignore`. Only the two home pages (`site/index.md` and `site/bn/index.md`), this page, `site/.vitepress/config.ts` and the theme in `site/.vitepress/theme/` are written by hand. The theme widens the text column, raises the type size, adds the EN/BN switch beside the dark-mode toggle and adds the reading-progress tracker — web only, the print design never sees it.
 
-VitePress then builds the static site. Three settings in `config.ts` matter:
+VitePress then builds the static site. Four settings in `config.ts` matter:
 
 **`site/.vitepress/config.ts` (excerpt):**
 
@@ -195,11 +200,52 @@ export default withMermaid(
     base: "/handbook/", // every URL, asset and sidebar link gets this prefix
     cleanUrls: true, // /book/part-1/closures, not closures.html
     ignoreDeadLinks: false, // a broken link fails the build
+    locales: {
+      root: { label: "English", lang: "en-GB" },
+      bn: { label: "বাংলা", lang: "bn-BD", link: "/bn/" }, // the Bangla edition
+    },
   }),
 );
 ```
 
 `withMermaid` comes from `vitepress-plugin-mermaid`. It draws the diagrams in the browser, so the website needs no Chromium at build time.
+
+## The Bangla Edition
+
+Every page of the website also exists in Bangla, at `/handbook/bn/`. The EN/BN switch in the nav bar opens the same page in the other language.
+
+The pages are translated by Claude, in Claude Code sessions. No script calls a model, and no API key is needed anywhere. The translations are committed to `i18n/bn/`, which works as a cache:
+
+| Step | Command | What happens |
+| ---- | ------- | ------------ |
+| Find the work | `pnpm site:translate --list` | Lists every page that is missing or stale |
+| Get the English | `pnpm site:translate --source=<route>` | Prints the page with its code fences masked, so a translator cannot change code |
+| Store the Bangla | `pnpm site:translate --write=<route> --from=bn.md` | Puts the fences back, validates the page and writes it to `i18n/bn/`. A page that fails validation is refused |
+| Check it | `pnpm site:translate --check` | Fails if any cached page is stale or invalid |
+
+Each cached page records a SHA-256 hash of the English it came from. Edit a chapter and the hash no longer matches, so only that page goes stale. A stale or missing page is never a 404: the Bangla site shows the English with a short notice until the page is translated again.
+
+The validator checks that code, inline code, link targets, Mermaid source and the `**Q: **` markers come back byte for byte. Chapter titles never come from the translator. They come from `i18n/titles.bn.json`, so the sidebar and every cross-reference agree on what a chapter is called. The rules for the Bangla itself — natural spoken Bangla, short sentences, technical terms kept in English — are in `i18n/TRANSLATION-BRIEF.md`.
+
+Bangla text is set in Noto Sans Bengali from Google Fonts, with more line height than English, because Bengali vowel signs stack above and below the line.
+
+## Tracking Reading Progress
+
+A reader can tick each chapter in the sidebar once they have read it. The nav bar shows the share of the book that is ticked, as a bar and a percentage. Nothing shows until the reader gives a name and an email.
+
+| Piece | File | Job |
+| ----- | ---- | --- |
+| The store | `site/.vitepress/theme/progress.ts` | The profile, the ticked slugs and the percentage, shared by everything below |
+| The checkboxes | `site/.vitepress/theme/ProgressSidebarItem.vue` | A copy of VitePress's sidebar item with a checkbox added. `config.ts` swaps it in with a Vite alias |
+| The bar | `site/.vitepress/theme/ReadingProgress.vue` | "Track progress" when signed out, the bar when signed in |
+| The form | `site/.vitepress/theme/SignInDialog.vue` | Name and email, and a line saying both are stored |
+| The API | `api/progress.ts` | A Vercel function that reads and writes Upstash Redis |
+
+The record is keyed by email, so it follows the reader to another device. There is no email check: anyone who types an address sees its ticks. That is fine for a reading list, and it keeps sign-in to one form. A tick is stored without the `/bn` prefix, so the English and Bangla editions share one record.
+
+> ⚠️ The sidebar item is a VitePress internal. On every VitePress upgrade, compare `ProgressSidebarItem.vue` with VitePress's own `VPSidebarItem.vue` and carry the changes over.
+
+The API is served at `/handbook/api/progress`, through the same rewrites as every page. It needs the Upstash Redis integration on the Vercel project, which sets the `KV_REST_API_URL` and `KV_REST_API_TOKEN` variables. To see who has signed up, run `SMEMBERS readers` in the Upstash console. Plain `pnpm site:dev` serves no `api/` folder, so the checkboxes save nothing there. Use `vercel dev` to try the whole flow locally.
 
 ## Connecting the Book to www.salmanrahman.com
 
@@ -224,7 +270,7 @@ This split is what makes updates automatic. Pushing to the book repository rebui
 
 `vercel.json` at the root of the book repository tells Vercel how to build it:
 
-**`vercel.json`:**
+**`vercel.json` (excerpt):**
 
 ```json
 {
@@ -297,8 +343,9 @@ flowchart LR
 
 **A push is the trigger. A failed build never replaces a working site.**
 
-- **GitHub Actions** (`.github/workflows/lint-docs.yml`) runs the chapter lint, the code-sample compiler, the index check, the tests and the full site build on every push and pull request. A broken link fails the pull request.
-- **Vercel** builds every push. A pull request gets its own preview URL; `main` goes to production.
+- **GitHub Actions** (`.github/workflows/lint-docs.yml`) runs the chapter lint, the chapter-numbering check, the index check, the code-sample compiler, the full site build, the version and stale-term checks, the plan check, the tests and the collector on every push and pull request. A broken link fails the pull request.
+- **Vercel** builds every push. A pull request gets its own preview URL; `main` goes to production. It deploys `api/progress.ts` with the site, as a function.
+- **The Bangla cache is not rebuilt.** A chapter edit makes its Bangla page stale until someone translates it again and commits `i18n/bn/`.
 - **The PDF and EPUB are not built in CI or on Vercel.** They need the LaTeX toolchain, so you build them locally with `pnpm book:build`.
 
 ### 4. Test the connection locally
@@ -324,6 +371,9 @@ Then open `http://localhost:3000/handbook`.
 | `pnpm index:check` | The interview-question index is out of date with the chapters |
 | `pnpm number:chapters --check` | A `chapter` number disagrees with the section order |
 | `pnpm check:versions --check` | A claim that depends on a version does not name the version |
+| `pnpm check:stale --check` | A term with no correct present-tense use is still in the book |
+| `pnpm plan:check` | The improvement plan's counters disagree with its checkboxes |
+| `pnpm site:translate --check` | A Bangla page is stale or fails validation (run by hand, not in CI) |
 | `pnpm test` | The book model or a script's command-line behaviour changed |
 | `pnpm site:build` | A link on the website points nowhere |
 
@@ -339,7 +389,9 @@ The two baselines can only go down. A count that rises fails the build. A count 
 | "not found in resource path" | pandoc ran from the wrong folder | Use the `pnpm` scripts — they run from the repository root |
 | `(p. ??)` in the PDF | A `#ch-` link names a slug no chapter has | Fix the slug; `pnpm lint:docs --rule=broken-link` lists them all |
 | The site build fails on a count | A hand-written page states an old number | Use the number the error message gives |
+| A Bangla page shows English with a notice | The English changed after it was translated | `pnpm site:translate --list`, then translate and `--write` it |
+| The progress tracker cannot sign in | No Upstash database on the project, or `pnpm site:dev`, which has no `api/` | Add Upstash Redis in Vercel; use `vercel dev` locally |
 
 ## Read the Book
 
-All 166 chapters and all 734 interview questions are free here — start with the [Preface](/book/front/preface), or go to the [Contents](/book/). The author's site is [www.salmanrahman.com](https://www.salmanrahman.com/).
+All 166 chapters and all 734 interview questions are free here — start with the [Preface](/book/front/preface), or go to the [Contents](/book/). To read in Bangla, start at the [Bangla home page](/bn/). The author's site is [www.salmanrahman.com](https://www.salmanrahman.com/).
