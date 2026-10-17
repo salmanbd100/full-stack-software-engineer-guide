@@ -1,41 +1,41 @@
 ---
 sourceHash: "f89343f69f0fe5d8288051c05d8124d5e18779ca6b87e0ec6c899ceecd996eed"
 title: "Design Round চালানো, Backend ও Frontend"
-translatedAt: "2026-10-12T12:20:48.498Z"
+translatedAt: "2026-10-17T14:00:13.367Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Design Round চালানো, Backend ও Frontend {#ch-driving-the-round}
 
-> Design round-কে এমন একটি আলোচনা হিসেবে চালান যেটা আপনি নেতৃত্ব দেন, উত্তর দেওয়ার কোনো quiz হিসেবে নয় — backend হোক বা frontend।
+> Design round-কে প্রশ্নোত্তরের quiz ভাববেন না। এটা একটি আলোচনা, যা আপনি নিজে চালাবেন, backend হোক বা frontend।
 
-**এই অধ্যায়ে:** round-টি কী মাপে · RADIO framework · অস্পষ্ট prompt-কে requirement-এ পরিণত করা · frontend round-এ নম্বর কীভাবে আলাদাভাবে দেওয়া হয় · ব্যর্থ হওয়ার সাধারণ ধরন
+**এই অধ্যায়ে:** round আসলে কী মাপে · RADIO framework · অস্পষ্ট prompt থেকে requirement বের করা · frontend round-এ নম্বর কেন অন্যভাবে দেওয়া হয় · কোথায় কোথায় ভুল হয়
 
 ## 💡 মূল ধারণা
 
-Design round-এর কোনো সঠিক উত্তর নেই। URL shortener কীভাবে বানাতে হয়, interviewer আগে থেকেই জানেন। তিনি দেখছেন
-আপনি এক লাইনের একটি prompt নিয়ে কীভাবে তার সীমানা টানেন, কাজ করে এমন কিছু প্রস্তাব করেন, আর তার খরচ নিয়ে সৎভাবে
+Design round-এর কোনো সঠিক উত্তর নেই। URL shortener কীভাবে বানাতে হয়, interviewer তা আগে থেকেই জানেন। তিনি দেখছেন,
+এক লাইনের একটি prompt পেয়ে আপনি কীভাবে তার সীমানা টানেন, কাজ চলে এমন কিছু প্রস্তাব করেন, আর তার খরচ নিয়ে সৎভাবে
 যুক্তি দেন।
 
-যে candidate বলেন "আমি user ID দিয়ে shard করব" আর থেমে যান, তিনি একটি উত্তর দিয়েছেন। যে candidate যোগ করেন
-"এতে per-user read এক hop-এ হয়, আর global search হয়ে যায় scatter-gather (প্রতিটি shard-এ পাঠানো একটি query)। কিন্তু
-search scope-এর বাইরে, তাই আমি এই trade-off নিচ্ছি", তিনি বিচারবুদ্ধি দেখিয়েছেন।
+যে candidate বলেন "আমি user ID দিয়ে shard করব" আর থেমে যান, তিনি শুধু একটি উত্তর দিয়েছেন। আরেকজন যোগ করেন: "এতে
+একজন user-এর read এক hop-এ হয়ে যায়, কিন্তু global search হয়ে যায় scatter-gather, মানে query যায় প্রতিটি shard-এ। তবে
+search scope-এর বাইরে, তাই এই trade আমি নিচ্ছি।" দ্বিতীয়জন বিচারবুদ্ধি দেখিয়েছেন।
 
-> Round-টি মাপে আপনি একটি খোলা সমস্যাকে কীভাবে **সংকুচিত** করেন। প্রতিটি senior signal আসলে সংকুচিত করারই একটি রূপ:
-> scope ঠিক করা, estimation, trade-off-এর ভাষা, কখন থামতে হবে তা জানা।
+> Round মাপে, একটি খোলা সমস্যাকে আপনি কীভাবে **ছোট করে আনেন**। Senior-এর প্রতিটি লক্ষণই কোনো না কোনোভাবে এই ছোট
+> করে আনা: scope ঠিক করা, estimation, trade-off-এর ভাষা, আর কখন থামতে হয় তা জানা।
 
 ## কীভাবে কাজ করে
 
-**RADIO** হলো চলার ক্রম। এটাই একমাত্র framework নয়। কিন্তু এটা সবচেয়ে সাধারণ দুটি ব্যর্থতা থেকে বাঁচায়:
-requirement জানার আগেই design শুরু করা, আর আসল মজার অংশে পৌঁছানোর আগেই সময় শেষ হয়ে যাওয়া।
+**RADIO** হলো কাজের ক্রম। এটাই একমাত্র framework নয়। কিন্তু সবচেয়ে পরিচিত দুটি ভুল থেকে এটা বাঁচায়: requirement জানার
+আগেই design শুরু করা, আর আসল মজার অংশে পৌঁছানোর আগেই সময় ফুরিয়ে যাওয়া।
 
-| ধাপ | পুরো নাম       | আপনি যা দেন                                                    | মিনিট |
-| --- | ------------- | ------------------------------------------------------------ | ----- |
-| R   | Requirements  | Functional তালিকা, non-functional target, স্পষ্টভাবে বাদ দেওয়া scope | 8–10  |
-| A   | Architecture  | একটি box diagram আর তার ভেতর দিয়ে request-এর পথ                  | 10–12 |
-| D   | Data model    | Entity, key, আর প্রতিটির পেছনের store                           | 6–8   |
-| I   | Interface     | তিন-চারটি endpoint বা event, পুরো API নয়                        | 4–6   |
-| O   | Optimisations | Bottleneck, caching, scaling, failure handling               | 10–15 |
+| ধাপ | পুরো নাম | আপনি যা দেবেন | মিনিট |
+| --- | ------- | ------------ | ----- |
+| R | Requirements | Functional তালিকা, non-functional লক্ষ্য, কী বাদ দিলেন তা স্পষ্ট করে | 8–10 |
+| A | Architecture | একটি box diagram, আর তার ভেতর দিয়ে request-এর পথ | 10–12 |
+| D | Data model | Entity, key, আর প্রতিটির পেছনের store | 6–8 |
+| I | Interface | তিন-চারটি endpoint বা event, পুরো API নয় | 4–6 |
+| O | Optimisations | Bottleneck, caching, scaling, failure সামলানো | 10–15 |
 
 **একটি round-এর প্রবাহ:**
 
@@ -48,44 +48,43 @@ flowchart LR
   O -.->|"new constraint"| A
 ```
 
-**RADIO একটি চলার ক্রম, একমুখী রাস্তা নয় — O-তে পাওয়া একটি bottleneck প্রায়ই আপনাকে A-তে ফেরত পাঠায়।**
+**RADIO কাজের ক্রম, একমুখী রাস্তা নয়। O ধাপে কোনো bottleneck পেলে প্রায়ই আবার A-তে ফিরে যেতে হয়।**
 
 ### R — Requirements
 
-**Functional** — একজন user কী করতে পারেন। তিন-চারটি ক্রিয়াতেই সীমাবদ্ধ রাখুন: "message post করা, feed পড়া,
-একজন user-কে follow করা।" এর বাইরের যেকোনো কিছুর নাম বলুন, আর জোরে বলে বাদ দিন। যেমন: "আপনি না চাইলে search আর
-direct message scope-এর বাইরে।"
+**Functional** মানে user কী কী করতে পারেন। তিন-চারটি কাজের মধ্যে রাখুন: "message post করা, feed পড়া, কোনো user-কে
+follow করা।" এর বাইরে যা আছে, তার নাম বলুন আর জোরে বলেই বাদ দিন। যেমন: "আপনি না চাইলে search আর direct message
+scope-এর বাইরে রাখছি।"
 
-**Non-functional** — যে গুণগুলো architecture বদলে দেয়। এর মধ্যে চারটি এত বেশি গুরুত্বপূর্ণ যে প্রতিবার জিজ্ঞেস
-করা উচিত:
+**Non-functional** মানে সেই গুণগুলো, যা architecture বদলে দেয়। চারটি এত প্রায়ই গুরুত্বপূর্ণ যে প্রতিবারই জিজ্ঞেস করবেন:
 
-| গুণ           | যে প্রশ্নটি করবেন                                 | Design কেন বদলায়                        |
-| ------------ | --------------------------------------------- | ------------------------------------ |
-| Scale        | Daily active user, প্রতি সেকেন্ডে request         | এক box না fleet, সেটা ঠিক করে          |
-| Latency      | Hot path-এর p99 target কত?                     | Caching আর data locality ঠিক করে      |
-| Consistency  | একজন user কি পাঁচ সেকেন্ড stale data দেখতে পারেন? | Replication আর store বাছাই ঠিক করে     |
-| Availability | এটা দশ মিনিট down থাকলে কী হয়?                  | Redundancy আর failover ঠিক করে        |
+| গুণ | কী জিজ্ঞেস করবেন | Design কেন বদলায় |
+| --- | -------------- | ---------------- |
+| Scale | দৈনিক active user কত, সেকেন্ডে কতটি request | এক machine না fleet, তা ঠিক হয় |
+| Latency | Hot path-এর p99 লক্ষ্য কত? | Caching আর data কোথায় থাকবে, তা ঠিক হয় |
+| Consistency | একজন user কি পাঁচ সেকেন্ড stale data দেখলে চলবে? | Replication আর কোন store, তা ঠিক হয় |
+| Availability | দশ মিনিট এটা বন্ধ থাকলে কী হবে? | Redundancy আর failover ঠিক হয় |
 
-**Scale** হলো সংখ্যাটা। শুরুতেই একটি traffic-এর সংখ্যা নিন, আর বাকিটা সেখান থেকে হিসাব করুন। দেখুন
-[Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation)।
+**Scale** হলো সংখ্যা। শুরুতেই traffic-এর একটি সংখ্যা জেনে নিন, বাকিটা সেখান থেকে হিসাব করুন।
+[Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation) দেখুন।
 
-> ⚠️ কখনো চুপচাপ কোনো requirement বানিয়ে নেবেন না। বলুন "আমি ধরে নিচ্ছি 10 million daily active user আর
-> 100:1 read-to-write ratio — ভুল হলে থামাবেন।" যে assumption আপনি ঘোষণা করেন, সেটা একটি design সিদ্ধান্ত।
-> যে assumption আপনি লুকান, সেটা একটি ভুল, যা ধরা পড়ার অপেক্ষায় আছে।
+> ⚠️ চুপচাপ কোনো requirement বানিয়ে নেবেন না। বলুন: "ধরে নিচ্ছি দৈনিক 10 million active user, আর read-write অনুপাত
+> 100:1। ভুল হলে থামিয়ে দিন।" যে assumption ঘোষণা করেন, সেটা একটি design সিদ্ধান্ত। যেটা লুকিয়ে রাখেন, সেটা একটি ভুল,
+> ধরা পড়ার অপেক্ষায়।
 
 ### A — Architecture
 
-Request যে ক্রমে যায়, সেই ক্রমে box আঁকুন: client → edge → application → data। কোনো requirement দাবি করলে তবেই
-box যোগ করুন। যে box-এর পক্ষে আপনি যুক্তি দিতে পারবেন না, interviewer ঠিক সেটার পক্ষেই যুক্তি চাইবেন।
+Request যে ক্রমে চলে, box-ও সেই ক্রমে আঁকুন: client → edge → application → data। কোনো requirement দাবি করলে তবেই
+একটি box যোগ করুন। যে box-এর পক্ষে যুক্তি দিতে পারবেন না, interviewer ঠিক সেটার যুক্তিই জানতে চাইবেন।
 
-তারপর diagram-এর ভেতর দিয়ে একটি write আর একটি read জোরে বলে trace করুন। Round-এর সবচেয়ে মূল্যবান দুই মিনিট এটাই।
-ছবির দিকে যতক্ষণই তাকিয়ে থাকুন, এর চেয়ে দ্রুত বাদ পড়া component খুঁজে পাবেন না।
+এরপর diagram-এর ভেতর দিয়ে একটি write আর একটি read জোরে বলে অনুসরণ করুন। Round-এর সবচেয়ে দামি দুই মিনিট এগুলোই।
+ছবির দিকে যতক্ষণই তাকিয়ে থাকুন, এর চেয়ে দ্রুত কোনো অনুপস্থিত component চোখে পড়বে না।
 
 ### D — Data model
 
-প্রতিটি entity-র জন্য দরকারি field, primary key, access pattern আর store বলুন। চারটি column, পুরো schema নয়।
+প্রতিটি entity-র জন্য বলুন: গুরুত্বপূর্ণ field, primary key, access pattern আর store। চারটি column, পুরো schema নয়।
 
-**একটি feed service, round আসলে যে রূপে চায়:**
+**একটি feed service, ঠিক যে রূপে round-এ চাওয়া হয়:**
 
 ```typescript
 interface Post {
@@ -100,53 +99,53 @@ interface Post {
 type PostKey = { authorId: string; postId: string };
 ```
 
-Key-টাই design। কেন এটা বেছে নিলেন, আর এটা কোন query-কে ব্যয়বহুল করে, তা বলুন।
+Key-টাই design। কেন এটা বেছে নিলেন, আর কোন query এতে ব্যয়বহুল হয়ে যায়, তা বলুন।
 
 ### I — Interface
 
-তিন-চারটি operation। এদের নাম দিন, দরকারি parameter-গুলো বলুন, আর প্রতিটি synchronous কি না বলুন। আপনি দেখাচ্ছেন
-যে box-গুলোর একটি contract আছে, OpenAPI লিখছেন না।
+তিন-চারটি operation। নাম বলুন, গুরুত্বপূর্ণ parameter-গুলো দিন, আর প্রতিটি synchronous কি না জানান। আপনি দেখাচ্ছেন যে
+box-গুলোর মধ্যে একটি contract আছে। OpenAPI লিখতে বসেননি।
 
 ### O — Optimisations
 
-Senior signal এখানেই থাকে। প্রতিবার একই ক্রমে কাজ করুন:
+Senior-এর লক্ষণ আসলে থাকে এখানেই। প্রতিবার একই ক্রমে কাজ করুন:
 
-1. **Bottleneck-এর নাম বলুন।** আপনার estimate করা scale-এ কোন component সবার আগে saturate হয়?
-2. **কাজ করে এমন সবচেয়ে সস্তা জিনিস দিয়ে ঠিক করুন।** সাধারণত একটি cache বা একটি async queue, rewrite নয়।
-3. **সমাধানের খরচ বলুন।** Cache latency কেনে আর দাম দেয় staleness দিয়ে। Queue throughput কেনে আর দাম দেয়
-   eventual consistency আর একটি নতুন failure mode দিয়ে।
-4. **একটি failure সামলান।** যে component হারালে সবচেয়ে বেশি ক্ষতি, সেটা বেছে নিন, আর সেটা মরে গেলে কী হয় তা বলুন।
+1. **Bottleneck-এর নাম বলুন।** যে scale estimate করেছেন, তাতে কোন component সবার আগে ভরে যায়?
+2. **কাজ চলে এমন সবচেয়ে সস্তা উপায়ে ঠিক করুন।** সাধারণত একটি cache বা async queue, পুরো rewrite নয়।
+3. **সমাধানের দাম বলুন।** Cache latency কমায়, দাম দেয় staleness দিয়ে। Queue throughput বাড়ায়, দাম দেয় eventual
+   consistency আর একটি নতুন failure mode দিয়ে।
+4. **একটি failure সামলান।** যে component হারালে সবচেয়ে বেশি ক্ষতি, সেটা বেছে নিন, আর সেটা মারা গেলে কী হয় তা বলুন।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি                                       | যা করবেন                                     | কেন                                         |
-| --------------------------------------------- | ------------------------------------------ | ------------------------------------------ |
-| Prompt এক লাইনের ("design Twitter")            | পুরো 10 মিনিট R-এ দিন                        | Scope-টাই আসল সমস্যা                        |
-| Prompt আগে থেকেই scope করা আর বিস্তারিত           | R-কে 4 মিনিটে নামান, সময়টা O-তে দিন            | Interviewer গভীরতা চান, scope ঠিক করা নয়     |
-| Interviewer বারবার নতুন চাহিদা যোগ করছেন         | প্রতিটি একটি দৃশ্যমান "scope-এর বাইরে" তালিকায় রাখুন | জোরে বলে সময়ের budget রক্ষা করে            |
-| 30 মিনিট পার, এখনো data model-এ                 | I বাদ দিন, সরাসরি O-তে যান                    | সবচেয়ে বেশি signal O-তে                      |
-| Prompt একটি client application                 | RADIO রাখুন, কিন্তু frontend box-টি খুলুন        | Frontend round boundary দেখে নম্বর দেয়       |
+| পরিস্থিতি | কী করবেন | কেন |
+| -------- | ------- | --- |
+| Prompt এক লাইনের ("Twitter design করুন") | R-এ পুরো 10 মিনিট দিন | Scope-টাই আসল সমস্যা |
+| Prompt আগে থেকেই scope করা, বিস্তারিত | R-কে 4 মিনিটে নামিয়ে আনুন, সময়টা O-তে দিন | Interviewer গভীরতা চান, scope ঠিক করা নয় |
+| Interviewer বারবার নতুন চাহিদা যোগ করছেন | প্রতিটি সবার চোখের সামনে একটি "scope-এর বাইরে" তালিকায় লিখুন | জোরে বলেই সময়ের budget রক্ষা হয় |
+| 30 মিনিট চলে গেছে, এখনো data model-এ | I বাদ দিয়ে সরাসরি O-তে যান | সবচেয়ে বেশি লক্ষণ থাকে O-তে |
+| Prompt একটি client application | RADIO রাখুন, কিন্তু frontend box-টা খুলুন | Frontend round boundary দেখে নম্বর দেয় |
 
 ## Frontend Round
 
-Backend round-এ নম্বর দেওয়া হয় **capacity** দেখে — দশ million user-এ shard, queue আর replica। Frontend round-এ
-নম্বর দেওয়া হয় **boundary** দেখে। Component-গুলো কোথায় ভাগ করলেন? প্রতিটি state কোথায় থাকে? Page কাজের
-হওয়ার আগে browser কী download করে? Network fail করলে user কী দেখেন?
+Backend round-এ নম্বর দেওয়া হয় **capacity** দেখে: দশ million user-এ shard, queue আর replica। Frontend round-এ নম্বর
+দেওয়া হয় **boundary** দেখে। Component-গুলো কোথায় ভাগ করলেন? প্রতিটি state কোথায় থাকে? Page কাজের হওয়ার আগে browser
+কী কী download করে? Network ব্যর্থ হলে user কী দেখেন?
 
-Load-এর সংখ্যা তখনো গুরুত্বপূর্ণ, কিন্তু সেগুলো একটি rendering strategy ঠিক করে, shard key নয়। সাধারণ ভুল হলো
-React-এর শব্দ দিয়ে সাজানো একটি backend round: "frontend" লেখা একটি box, যেটা কখনো খোলা হয় না।
+Load-এর সংখ্যা এখানেও গুরুত্বপূর্ণ, কিন্তু সেগুলো ঠিক করে rendering strategy, shard key নয়। সাধারণ ভুল হলো React-এর
+শব্দ দিয়ে সাজানো একটি backend round: "frontend" লেখা একটি box, যেটা কখনো খোলাই হয় না।
 
-RADIO তখনো খাটে। শুধু ধাপগুলো যা দেয় তা বদলায়:
+RADIO এখানেও খাটে। শুধু প্রতিটি ধাপে আপনি অন্য জিনিস দেন:
 
-| ধাপ | Frontend round-এ আপনি যা দেন                                        |
-| --- | ---------------------------------------------------------------- |
-| R   | নিচের চারটি constraint, সাথে একটি LCP বা interaction target          |
-| A   | Client-এর চারটি layer, আর প্রতিটি route-এর জন্য একটি rendering strategy |
-| D   | প্রতিটি state কোথায় থাকে — সবচেয়ে মূল্যবান দশ মিনিট                    |
-| I   | Client-এর দরকারি API-এর রূপ, auth boundary, retry                    |
-| O   | Performance budget, loading, error আর empty state, accessibility   |
+| ধাপ | Frontend round-এ আপনি যা দেবেন |
+| --- | ---------------------------- |
+| R | নিচের চারটি constraint, সঙ্গে একটি LCP বা interaction লক্ষ্য |
+| A | Client-এর চারটি layer, আর প্রতিটি route-এর জন্য একটি rendering strategy |
+| D | প্রতিটি state কোথায় থাকে। এটাই সবচেয়ে দামি দশ মিনিট |
+| I | Client-এর যে API shape দরকার, auth boundary, retry |
+| O | Performance budget, loading, error আর empty state, accessibility |
 
-**যে requirement-গুলোর architecture-এ প্রভাব আছে:**
+**যে requirement-গুলোর প্রভাব architecture পর্যন্ত যায়:**
 
 ```typescript
 interface DesignConstraints {
@@ -157,81 +156,82 @@ interface DesignConstraints {
 }
 ```
 
-Framework, CSS-এর পদ্ধতি আর component library হলো পছন্দের ব্যাপার। এটা বলাটাই নিজে একটি signal।
+Framework, CSS-এর পদ্ধতি আর component library হলো পছন্দের ব্যাপার। এটা মুখে বলাটাই একটি লক্ষণ।
 
-A ধাপে frontend box-টিকে চারটি layer-এ খুলুন। **Delivery**: CDN, rendering strategy, cache header। **App shell**:
-routing, error আর loading boundary। **Data layer**: query cache, transport, retry। **Component tree**: boundary আর
-local state। শুরুতেই এদের নাম বললে deep dive-এর একটি লক্ষ্য তৈরি হয়।
+A ধাপে frontend box-টা খুলে চারটি layer দেখান। **Delivery**: CDN, rendering strategy, cache header। **App shell**:
+routing, error আর loading boundary। **Data layer**: query cache, transport, retry। **Component tree**: boundary আর local
+state। আগেভাগে এগুলোর নাম বললে পরে গভীরে যাওয়ার সময় একটি নির্দিষ্ট লক্ষ্য থাকে।
 
 ### State কোথায় থাকবে, তা ঠিক করা
 
-প্রতিটি state-এর একটি সঠিক জায়গা আছে। ভুল জায়গা থেকেই bug আসে।
+প্রতিটি state-এর একটি সঠিক জায়গা আছে। ভুল জায়গায় রাখলেই bug আসে।
 
-| State                          | যেখানে থাকে       | অন্য কোথাও কেন নয়                                           |
-| ------------------------------ | --------------- | --------------------------------------------------------- |
-| একটি form field-এর value        | Component state | ওপরে তুললে প্রতিটি keystroke-এ tree re-render হয়           |
-| Theme, locale, feature flag    | Context         | অনেকে পড়ে, প্রায় কেউই লেখে না                              |
-| Session, cart, খোলা modal       | একটি client store | যে screen তৈরি করেছে, তার চেয়ে বেশি দিন বাঁচে                  |
-| Server যার মালিক এমন যেকোনো কিছু  | একটি query cache | এটা একটি *copy*, আর copy-র দরকার invalidation, reducer নয়    |
-| Filter, tab, pagination        | URL             | নইলে back button আর শেয়ার করা link দুটিই মিথ্যা বলে            |
+| State | কোথায় থাকে | অন্য কোথাও কেন নয় |
+| ----- | --------- | ----------------- |
+| Form field-এর value | Component state | ওপরে তুললে প্রতিটি keystroke-এ পুরো tree re-render হয় |
+| Theme, locale, feature flag | Context | অনেকে পড়ে, লেখা হয় প্রায় কখনোই না |
+| Session, cart, খোলা modal | একটি client store | যে screen তৈরি করেছে, তার চেয়ে বেশিদিন বাঁচে |
+| Server যা কিছুর মালিক | একটি query cache | এটা একটি *copy*, আর copy-র দরকার invalidation, reducer নয় |
+| Filter, tab, pagination | URL | নইলে back button আর শেয়ার করা link, দুটিই ভুল জিনিস দেখায় |
 
-চতুর্থ সারিটি senior উত্তরকে আলাদা করে। Global store-এ রাখা server data একটি cache, যেটা কাউকে হাতে invalidate
-করতে হবে, চিরকাল। পঞ্চম সারিটি সবচেয়ে সস্তায় পাওয়া নম্বর: একটি সিদ্ধান্তে deep link, back button আর refresh
-তিনটিই ঠিক হয়ে যায়।
+চতুর্থ সারিটাই senior উত্তরকে আলাদা করে। Global store-এ server data রাখা মানে এমন একটি cache, যা কাউকে চিরকাল হাতে
+হাতে invalidate করতে হবে। পঞ্চম সারি থেকে সবচেয়ে সস্তায় নম্বর পাওয়া যায়: একটি সিদ্ধান্তেই deep link, back button আর
+refresh, তিনটিই ঠিক হয়ে যায়।
 
 ## সাধারণ ভুল
 
-❌ **সমাধান দিয়ে শুরু করা।** "তাহলে আমরা Kafka আর Cassandra ব্যবহার করব, আর সামনে Redis বসাব।" এটা এমন প্রশ্নের
-উত্তর দেয় যেটা কেউ করেনি। Scale জানার আগে নেওয়া সিদ্ধান্তে এটা আপনাকে আটকে ফেলে।
-✅ Load-এর রূপ দিয়ে শুরু করুন: "এটা কি read-heavy? 100:1 আর 10k rps-এ আমি caching আর read replica-র ওপর ভর দেব,
-আর সম্ভবত sharding এড়াতে পারব।"
+❌ **সমাধান দিয়ে শুরু করা।** "তাহলে আমরা Kafka আর Cassandra ব্যবহার করব, সামনে Redis বসাব।" এটা এমন প্রশ্নের উত্তর, যা
+কেউ জিজ্ঞেস করেনি। আর scale জানার আগেই নেওয়া সিদ্ধান্তে আপনাকে আটকে ফেলে।
+✅ Load-এর ধরন দিয়ে শুরু করুন: "এটা কি read-heavy? 100:1 অনুপাত আর 10k rps হলে আমি caching আর read replica-র ওপর ভরসা
+করব, sharding সম্ভবত এড়ানো যাবে।"
 
-❌ **Request path ছাড়া box।** নয়টি component আর একটিও trace করা request নেই — এটা একটি ছবি, design নয়।
-✅ সবসময় একটি write আর একটি read trace করুন।
+❌ **Request-এর পথ ছাড়া box।** নয়টি component, অথচ একটি request-ও অনুসরণ করা হয়নি: এটা ছবি, design নয়।
+✅ সবসময় একটি write আর একটি read অনুসরণ করুন।
 
-❌ **পুরো app-এর জন্য একটিই rendering strategy।** Catalogue page আর dashboard-এর চাহিদা একেবারে উল্টো।
-✅ প্রতিটি route-এর জন্য আলাদা বাছুন — দেখুন [Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route)।
+❌ **পুরো app-এর জন্য একটিই rendering strategy।** Catalogue page আর dashboard-এর দরকার একেবারে উল্টো।
+✅ Route ধরে ধরে বেছে নিন। [Chapter ?? — প্রতিটি Route-এর জন্য Rendering Strategy বাছাই, SEO সহ](#ch-choosing-per-route) দেখুন।
 
-❌ **কোনো error, empty বা loading state নেই।** Data fetch করে এমন প্রতিটি design-এ আরও তিনটি screen থাকে।
-✅ Fetch আঁকার সময়ই এদের নাম বলুন, আর keyboard ও focus handling-এর কথা একবার নিজে থেকেই বলুন।
+❌ **Error, empty বা loading state না রাখা।** Data fetch করা প্রতিটি design-এ আরও তিনটি screen থাকে।
+✅ Fetch আঁকার সময়েই এগুলোর নাম বলুন। আর কেউ জিজ্ঞেস না করলেও keyboard আর focus সামলানোর কথা একবার বলুন।
 
 ## 🔑 মূল শিক্ষা
 
-- Round মাপে আপনি একটি খোলা সমস্যাকে কীভাবে সংকুচিত করেন, কোনো architecture মনে আছে কি না তা নয়।
-- RADIO requirement-কে design-এর আগে রাখে, আর optimisation-এর জন্য সময় রাখে, যেখানে বেশিরভাগ signal থাকে।
-- প্রতিটি assumption জোরে বলতে হবে, কারণ ঘোষণা করা assumption একটি সিদ্ধান্ত, আর লুকানোটা একটি ভুল।
-- Frontend round-এ নম্বর আসে boundary আর state-এর জায়গা দেখে, আর চারটি constraint এর design বদলায়: scale, discoverability, real-time আর offline।
-- প্রতিটি "it depends" শেষ করুন সেই সংখ্যা বা শর্ত দিয়ে যেটা সিদ্ধান্ত নেয়, আর প্রতিটি পছন্দের খরচ বলুন।
+- Round মাপে একটি খোলা সমস্যাকে আপনি কীভাবে ছোট করে আনেন। কোনো architecture মনে আছে কি না, তা নয়।
+- RADIO requirement-কে design-এর আগে রাখে, আর optimisation-এর জন্য সময় বাঁচিয়ে রাখে। বেশিরভাগ লক্ষণ থাকে সেখানেই।
+- প্রতিটি assumption জোরে বলতে হবে। ঘোষণা করা assumption একটি সিদ্ধান্ত, লুকানো assumption একটি ভুল।
+- Frontend round-এ নম্বর আসে boundary আর state কোথায় রাখলেন তা থেকে। চারটি constraint এর design বদলায়: scale,
+  discoverability, real-time আর offline।
+- প্রতিটি "নির্ভর করে" শেষ করুন সেই সংখ্যা বা শর্ত দিয়ে, যা উত্তরটা ঠিক করে। আর প্রতিটি পছন্দের দাম বলুন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: আপনার হাতে 45 মিনিট, আর prompt হলো "design Instagram"। প্রথম পাঁচ মিনিট কী করবেন?**
+**Q: হাতে 45 মিনিট, prompt হলো "Instagram design করুন"। প্রথম পাঁচ মিনিটে কী করবেন?**
 
-Product-টি এক বাক্যে আবার বলুন। Functional scope জোরে বলে মিলিয়ে নিন — photo upload, feed দেখা, user-কে follow
-করা — আর কী বাদ দিলেন তার নাম বলুন, যেমন stories, search আর direct message। তারপর একটি scale-এর সংখ্যা আর একটি
-consistency requirement চেয়ে নিন বা ধরে নিন। এখনো কিছু আঁকা হয় না।
+এক বাক্যে product-টা নিজের ভাষায় বলুন। Functional scope জোরে বলে একমত হয়ে নিন: photo upload করা, feed দেখা, কোনো
+user-কে follow করা। আর কী বাদ দিলেন তার নাম বলুন, যেমন story, search আর direct message। এরপর scale-এর একটি সংখ্যা আর
+consistency-র একটি requirement জিজ্ঞেস করুন, বা ধরে নিন। এখনো কিছু আঁকা হয় না।
 
-**Q: Scale নিয়ে interviewer বলছেন "যা খুশি ধরে নিন"। আপনি কী করবেন?**
+**Q: Scale নিয়ে interviewer বললেন "যা খুশি ধরে নিন"। কী করবেন?**
 
-একটি সংখ্যা বাছুন, সেটা বলুন, আর আবার জিজ্ঞেস না করে সেখান থেকে হিসাব করুন। দশ million daily active user,
-100:1 read-to-write ratio আর 3× peak multiplier প্রায় যেকোনো consumer product-এ মানায়। আসল কথা হলো সংখ্যাটা
-দৃশ্যমান, যাতে আপনারা দুজনেই একই target-এর বিপরীতে design করেন।
+একটি সংখ্যা বেছে নিন, বলে দিন, আর আবার জিজ্ঞেস না করে সেখান থেকে হিসাব করুন। দৈনিক দশ million active user, 100:1
+read-write অনুপাত আর 3× peak multiplier প্রায় যেকোনো consumer product-এ মানিয়ে যায়। আসল কথা হলো সংখ্যাটা সবার চোখের
+সামনে থাকে, তাই দুজনেই একই লক্ষ্য ধরে design করেন।
 
-**Q: Frontend round-এ state কোথায় যায়, আর আপনি কীভাবে ঠিক করেন?**
+**Q: Frontend round-এ state কোথায় যায়, আর সেটা কীভাবে ঠিক করেন?**
 
-জিজ্ঞেস করুন কে এটা লেখে, আর এটা screen-এর চেয়ে কতদিন বেশি বাঁচে। Form field local, কারণ ওপরে তুললে প্রতিটি
-keystroke-এ একটি re-render-এর খরচ। Cart যায় client store-এ, কারণ এটা navigation পেরিয়ে টিকে থাকে। Server-এর মালিকানার
-data যায় query cache-এ, কারণ এটা একটি copy, যার আসল সমস্যা invalidation। Filter আর tab যায় URL-এ, যাতে refresh আর
-back button কাজ করতে থাকে।
+জিজ্ঞেস করুন, কে এটা লেখে, আর screen চলে যাওয়ার পরও এটা কতদিন বাঁচে। Form field local, কারণ ওপরে তুললে প্রতিটি
+keystroke-এ একটি re-render-এর খরচ। Cart যায় client store-এ, কারণ navigation-এর পরেও এটা থাকে। Server-এর মালিকানার data
+যায় query cache-এ, কারণ এটা একটি copy, আর এর আসল সমস্যা invalidation। Filter আর tab যায় URL-এ, যাতে refresh আর back
+button ঠিকমতো কাজ করে।
 
-**Q: কখন আপনি RADIO ক্রম মেনে চলবেন না?**
+**Q: কখন RADIO ক্রম মেনে চলবেন না?**
 
-যখন prompt-এ আগে থেকেই requirement থাকে, বা "এটাকে offline-এ কাজ করতে হবে"-এর মতো একটি constraint দিয়ে শুরু হয়।
-তখন আসল কাজ architecture আর optimisation-এ। Requirement সংক্ষেপ করুন, যেখানে signal সেখানে সময় দিন, আর বলুন যে আপনি
-সেটাই করছেন।
+যখন prompt-এই requirement দেওয়া থাকে, বা শুরুতেই কোনো constraint থাকে, যেমন "এটা offline-এ চলতে হবে"। তখন আসল কাজ
+architecture আর optimisation-এ। Requirement ধাপ ছোট করুন, সময়টা দিন যেখানে লক্ষণগুলো আছে, আর বলে দিন যে আপনি এটাই
+করছেন।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation) — যে সংখ্যাগুলো R ধাপকে বাস্তব করে
-- [Chapter ?? — Scalability, Latency ও Throughput](#ch-scalability) — O ধাপে যে সিঁড়ি বেয়ে ওঠেন
-- [Chapter ?? — একটি Infinite Feed Design করুন](#ch-design-infinite-feed) — শুরু থেকে শেষ পর্যন্ত প্রয়োগ করা frontend round
+- [Chapter ?? — Back-of-Envelope Estimation](#ch-back-of-envelope-estimation) — যে সংখ্যাগুলো R ধাপকে বাস্তব করে তোলে
+- [Chapter ?? — Scalability, Latency ও Throughput](#ch-scalability) — O ধাপে যে মই বেয়ে ওঠেন
+- [Chapter ?? — একটি Infinite Feed Design করুন](#ch-design-infinite-feed) — শুরু থেকে শেষ পর্যন্ত একটি frontend round

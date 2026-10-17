@@ -1,55 +1,55 @@
 ---
 sourceHash: "8feb8b734218de3f9ca53bd0eb1676e1e9a856eeae46d24eab243abb779074e0"
 title: "XSS প্রতিরোধ ও অবিশ্বস্ত Input"
-translatedAt: "2026-10-12T12:14:54.202Z"
+translatedAt: "2026-10-17T14:00:08.493Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # XSS প্রতিরোধ ও অবিশ্বস্ত Input {#ch-xss-prevention}
 
-> ঠিক সেই জায়গাটা খুঁজে বের করুন, যেখানে একটি অবিশ্বস্ত string markup, URL, script বা style হয়ে যায়, আর সেখানে তাকে data হিসেবেই রাখুন।
+> ঠিক কোন জায়গায় একটি অবিশ্বস্ত string markup, URL, script বা style হয়ে যায়, সেটা খুঁজে বের করুন। তারপর নিশ্চিত করুন, সেখানে string-টা data হয়েই থাকে।
 
-**এই অধ্যায়ে:** তিন ধরনের XSS · যে চার জায়গায় একটি string code হয়ে যায় · rich HTML sanitise করা আর React কোথায় থামে · যে input শুধু browser দেখে · client check বনাম আসল control
+**এই অধ্যায়ে:** XSS-এর তিন ধরন · যে চার জায়গায় string code হয়ে যায় · rich HTML sanitise করা, আর React কোথায় থামে · যে input শুধু browser দেখে · client-এর check বনাম আসল control
 
 ## 💡 মূল ধারণা
 
-**Cross-Site Scripting (XSS)** একজন attacker-কে অন্য একজন user-এর browser-এ নিজের JavaScript চালাতে দেয়। Script-টি
-চলে victim-এর session নিয়ে। এটা page পড়তে পারে, user হয়ে request পাঠাতে পারে, বা user যা দেখেন তা বদলে দিতে পারে।
+**Cross-Site Scripting (XSS)** দিয়ে attacker অন্য user-এর browser-এ নিজের JavaScript চালাতে পারে। Script-টা চলে
+ভুক্তভোগীর session নিয়ে। তাই page পড়তে পারে, user সেজে request পাঠাতে পারে, বা user যা দেখছেন তা বদলে দিতে পারে।
 
-মূল কারণ সবসময় একই। **একটি অবিশ্বস্ত string data থেকে পার হয়ে এমন কিছুতে ঢোকে, যেটা browser interpret করে**:
-markup, একটি URL, একটি script, বা একটি style। প্রতিরোধ মানে প্রতিটি পারাপারে একটি প্রশ্ন করা: _এখানে browser এই
-string দিয়ে কী করে?_ String-টি কোথা থেকে এসেছে, তার চেয়ে বেশি গুরুত্বপূর্ণ সেটা কোথায় গিয়ে পড়ে।
+মূল কারণ সবসময় একই। **একটি অবিশ্বস্ত string data থেকে বেরিয়ে এমন কিছুতে ঢুকে পড়ে, যা browser interpret করে**:
+markup, URL, script বা style। প্রতিরোধ মানে প্রতিটি এমন জায়গায় একটিই প্রশ্ন করা: _এখানে browser এই string দিয়ে কী
+করবে?_ String-টা কোথা থেকে এল, তার চেয়ে অনেক বেশি জরুরি সেটা গিয়ে পড়ছে কোথায়।
 
 ## কীভাবে কাজ করে
 
-### তিনটি ধরন
+### তিন ধরন
 
-| ধরন          | Payload কোথায় থাকে                      | উদাহরণ trigger                    |
+| ধরন          | Payload কোথায় থাকে                      | কীভাবে চালু হয়, উদাহরণ                    |
 | ------------- | -------------------------------------------- | ---------------------------------- |
-| **Reflected** | Request-এ, response-এ আবার ফেরত আসে  | Phishing email-এ বানানো একটি link |
-| **Stored**    | আপনার database-এ save করা, অনেক user-কে serve করা | একটি ক্ষতিকর blog comment           |
+| **Reflected** | Request-এ, response-এ আবার ফিরে আসে  | Phishing email-এ বানানো একটি link |
+| **Stored**    | আপনার database-এ জমা থাকে, অনেক user-এর কাছে যায় | ক্ষতিকর একটি blog comment           |
 | **DOM-based** | কখনো server-এ পৌঁছায় না                     | `innerHTML = location.hash`        |
 
-Stored প্রতিটি visitor-এর জন্য চলে, কোনো link-এ click করতে হয় না। DOM-based ধরা সবচেয়ে কঠিন: payload কখনো
-server log-এ বা WAF (web application firewall)-এ দেখা যায় না।
+Stored XSS প্রতিটি visitor-এর জন্য চলে, কাউকে কোনো link-এ click করতে হয় না। DOM-based ধরা সবচেয়ে কঠিন: payload কখনো
+server log বা WAF (web application firewall)-এ দেখা দেয় না।
 
-### চারটি পারাপার
+### চারটি সীমানা
 
-**প্রতিটি পারাপারের নিজস্ব defence লাগে, কারণ browser-এর আলাদা আলাদা অংশ প্রতিটিকে parse করে।**
+**প্রতিটি সীমানার জন্য আলাদা প্রতিরক্ষা লাগে, কারণ প্রতিটি parse করে browser-এর আলাদা একটি অংশ।**
 
-| পারাপার   | নিরাপদ default                            | যখন এড়ানো যায় না               |
+| সীমানা   | নিরাপদ default                            | এড়ানো না গেলে               |
 | ---------- | --------------------------------------- | -------------------------------------- |
 | **Markup** | `textContent`, JSX text                 | DOMPurify দিয়ে sanitise করুন                |
-| **URL**    | `encodeURIComponent` দিয়ে বানান         | Scheme allowlist করুন, বা শুধু path নিন  |
+| **URL**    | `encodeURIComponent` দিয়ে বানান         | Scheme allowlist করুন, অথবা শুধু path নিন  |
 | **Script** | String থেকে কখনো code বানাবেন না           | Embed করা JSON-এ `<`, `>`, `&` escape করুন  |
-| **Style**  | User input CSS-এর বাইরে রাখুন              | একটি নির্দিষ্ট class name-এর set-এ map করুন      |
+| **Style**  | User input CSS থেকে দূরে রাখুন              | Class name-এর একটি নির্দিষ্ট set-এ map করুন      |
 
-## যেখানে একটি String Markup হয়ে যায়
+## যেখানে String Markup হয়ে যায়
 
-Bug শুরু হয় এমন একটি **source** থেকে, যেটা attacker নিয়ন্ত্রণ করে। এটা গিয়ে পড়ে একটি **sink**-এ, অর্থাৎ এমন একটি
-API, যেটা HTML parse করে: `innerHTML`, `outerHTML`, `insertAdjacentHTML` বা `document.write`।
+Bug শুরু হয় এমন একটি **source** থেকে, যা attacker-এর হাতে। সেখান থেকে string গিয়ে পড়ে একটি **sink**-এ, মানে এমন
+API-তে, যা HTML parse করে: `innerHTML`, `outerHTML`, `insertAdjacentHTML` বা `document.write`।
 
-**ক্লাসিক DOM-based bug, আর তার সমাধান:**
+**চিরাচরিত DOM-based bug, আর তার fix:**
 
 ```typescript
 const name: string = new URLSearchParams(location.search).get("name") ?? "";
@@ -60,11 +60,11 @@ el.textContent = `Hi, ${name}!`; // ✅ treated as text, never parsed
 
 ### যে rich HTML আপনি লেখেননি
 
-একটি CMS body-কে HTML হিসেবেই render হতে হবে, তাই encoding একে ভেঙে ফেলবে। আপনার লাগবে **sanitisation**: HTML
-parse করে, যা কিছু চলতে পারে তা ফেলে দেওয়া। DOMPurify-ই standard। Upload করা SVG-ও এখানে পড়ে, কারণ একটি SVG
-script বহন করতে পারে। Upload দেখান `<img>` দিয়ে, কখনো DOM-এ text হিসেবে পড়ে নয়।
+CMS-এর body HTML হিসেবেই render হতে হবে, তাই encode করলে সেটা ভেঙে যাবে। এখানে লাগে **sanitisation**: HTML parse
+করে, যা কিছু চলতে পারে, সব ফেলে দেওয়া। এর standard হলো DOMPurify। Upload করা SVG-ও এই দলে পড়ে, কারণ SVG-র ভেতরে
+script থাকতে পারে। Upload করা file দেখান `<img>` দিয়ে, কখনো text হিসেবে পড়ে DOM-এ বসিয়ে নয়।
 
-**একটি allowlist দিয়ে sanitise করুন:**
+**Allowlist দিয়ে sanitise করুন:**
 
 ```typescript
 import DOMPurify from "dompurify";
@@ -76,14 +76,14 @@ const clean: string = DOMPurify.sanitize(dirty, {
 // <img src=x onerror=alert(1)> loses its onerror; <script> is removed
 ```
 
-> ⚠️ **শুধু save-এর সময় নয়, render-এর সময় sanitise করুন।** Data আপনার database-এ পৌঁছায় import, অন্য endpoint
-> আর পুরনো row-এর মধ্য দিয়ে। শুধু render path-ই সবটা দেখে।
+> ⚠️ **শুধু save-এর সময় নয়, render-এর সময়েও sanitise করুন।** Import, অন্য endpoint আর পুরনো row দিয়েও data আপনার
+> database-এ ঢোকে। সব data দেখতে পায় শুধু render-এর পথ।
 
-### React কোথায় আপনাকে রক্ষা করা বন্ধ করে
+### React কোথায় আর রক্ষা করে না
 
-JSX text হিসেবে render হওয়া প্রতিটি value React escape করে। এতে বেশিরভাগ markup পারাপার cover হয়, কিন্তু এগুলো নয়।
+JSX text হিসেবে render হওয়া প্রতিটি value React escape করে। এতে markup-এর বেশিরভাগ সীমানা ঢাকা পড়ে, কিন্তু এগুলো নয়।
 
-**Escape hatch-গুলো:**
+**ফাঁকফোকরগুলো:**
 
 ```tsx
 import DOMPurify from "dompurify";
@@ -98,17 +98,17 @@ function SafeLink({ url, children }: { url: string; children: React.ReactNode })
 }
 ```
 
-`dangerouslySetInnerHTML` escaping এড়িয়ে যায়, তাই আগে sanitise করুন। User input থেকে আসা একটি URL-এর scheme
-allowlist করতে হবে। তৃতীয় অন্ধ জায়গা হলো অজানা props spread করা (`{...userControlled}`), যাতে attacker
-attribute বেছে নিতে পারে।
+`dangerouslySetInnerHTML` escaping এড়িয়ে যায়, তাই আগে sanitise করুন। User input থেকে আসা URL-এর scheme allowlist
+করতে হবে। তৃতীয় অন্ধ জায়গা হলো অজানা props spread করা (`{...userControlled}`)। এতে attribute কোনটা হবে, তা
+attacker-ই ঠিক করে দিতে পারে।
 
-## যেখানে একটি String URL বা Script হয়ে যায়
+## যেখানে String URL বা Script হয়ে যায়
 
-**URL।** `href` বা `location`-এ একটি `javascript:` URL আসলে code। Query string থেকে নেওয়া একটি পূর্ণ URL হলো একটি
-**open redirect**। আপনার domain একটি phishing page-কে নিজের নাম ধার দেয়। Link filter এটা পার করে দেয়, কারণ প্রথম
+**URL।** `href` বা `location`-এ `javascript:` URL মানেই code। Query string থেকে আসা পুরো URL হলো **open
+redirect**। আপনার domain তখন একটি phishing page-কে নিজের নাম ধার দেয়। Link filter-ও এটা পার হতে দেয়, কারণ প্রথম
 hop সত্যিই আপনার site।
 
-**URL নয়, একটি path নিন:**
+**URL নয়, path নিন:**
 
 ```typescript
 function safeNext(raw: string | null): string {
@@ -119,11 +119,11 @@ function safeNext(raw: string | null): string {
 location.href = safeNext(new URLSearchParams(location.search).get("next"));
 ```
 
-`//evil.com` protocol-relative, তাই এটাও reject হয়। অন্য origin লাগলে hostname-এর একটি allowlist রাখুন।
+`//evil.com` protocol-relative, তাই এটাও বাতিল হয়। অন্য origin লাগলে hostname-এর একটি allowlist রাখুন।
 
-**Script।** String দিয়ে `eval`, `new Function` আর `setTimeout` data-কে code-এ পরিণত করে, তাই string এগুলো থেকে দূরে
-রাখুন। সূক্ষ্ম ক্ষেত্রটা হলো hydration-এর জন্য page-এ serialise করা state। একজন attacker একটি JSON string-এর ভেতর
-থেকে `</script>` দিয়ে tag বন্ধ করে দিতে পারে।
+**Script।** `eval`, `new Function` আর string দেওয়া `setTimeout` data-কে code বানিয়ে দেয়, তাই এগুলোতে string
+দেবেন না। সূক্ষ্ম ঘটনাটা হলো hydration-এর জন্য page-এর ভেতরে serialise করা state। JSON string-এর ভেতর থেকেই
+attacker `</script>` দিয়ে tag বন্ধ করে দিতে পারে।
 
 **HTML-এ embed করার আগে JSON escape করুন:**
 
@@ -137,10 +137,10 @@ const html: string = `<script>window.__STATE__ = ${safeJson(state)};</script>`;
 
 ## যে Input শুধু Browser দেখে
 
-একটি iframe থেকে আসা `postMessage` বা `location.hash`-এর একটি value কখনো আপনার server-এ পৌঁছায় না। Review করার মতো
-কোনো server handler নেই, তাই check হতে পারে একমাত্র browser-এই।
+Iframe থেকে আসা `postMessage` বা `location.hash`-এর value কখনো আপনার server-এ পৌঁছায় না। Review করার মতো কোনো
+server handler নেই, তাই check হতে পারে একমাত্র browser-এ।
 
-**একটি `postMessage` handler-এর দুটি check লাগে:**
+**`postMessage` handler-এ দুটি check লাগে:**
 
 ```typescript
 window.addEventListener("message", (event: MessageEvent) => {
@@ -152,15 +152,16 @@ window.addEventListener("message", (event: MessageEvent) => {
 });
 ```
 
-Origin-কে একটি হুবহু string-এর সাথে তুলনা করুন: `includes("example.com")` পার হয়ে যায় `example.com.attacker.net`-এর
-জন্যও। পাঠানোর সময় target origin-এর নাম দিন। `postMessage(data, "*")` চলে যায় যে page frame-টি ধরে আছে, তার কাছে।
+Origin মেলান হুবহু একটি string-এর সঙ্গে: `includes("example.com")` লিখলে `example.com.attacker.net`-ও পার পেয়ে যায়।
+পাঠানোর সময় target origin-এর নাম দিন। `postMessage(data, "*")` চলে যায় frame-টা যে page-এর ভেতরে আছে, সেই page-এ,
+সেটা যা-ই হোক।
 
-## Client Check বনাম আসল Control
+## Client-এর Check বনাম আসল Control
 
-Browser-এ validation হলো user experience। যে কেউ `curl` দিয়ে API call করতে পারে, তাই server enforce করে, আর client
-শুধু দ্রুত feedback দেয়।
+Browser-এ validation হলো user experience-এর ব্যাপার। যে কেউ `curl` দিয়ে API call করতে পারে। তাই নিয়ম enforce করে
+server, আর client শুধু দ্রুত feedback দেয়।
 
-**Form আর endpoint-এর জন্য একটি schema:**
+**Form আর endpoint-এর জন্য একটিই schema:**
 
 ```typescript
 import { z } from "zod";
@@ -174,65 +175,65 @@ const parsed = contactSchema.safeParse(req.body); // on the server, this is the 
 if (!parsed.success) res.status(400).json(parsed.error.issues);
 ```
 
-Form তার resolver-এর মধ্য দিয়ে একই schema ব্যবহার করে, তাই limit-গুলো আলাদা হয়ে যেতে পারে না। File check-ও একইভাবে
-কাজ করে। `file.type` extension দেখে করা একটি অনুমান, তাই server তবুও size আর magic byte check করে।
+Form তার resolver দিয়ে একই schema ব্যবহার করে, তাই দুই দিকের সীমা আলাদা হয়ে যেতে পারে না। File-এর check-ও একইভাবে
+কাজ করে। `file.type` extension দেখে করা একটি অনুমান মাত্র, তাই size আর magic bytes server-কে তবু check করতে হয়।
 
 ## কখন ব্যবহার করবেন
 
 | অবিশ্বস্ত input                               | বেছে নিন                         | কেন                                     |
 | --------------------------------------- | ------------------------------ | --------------------------------------- |
-| CMS বা editor থেকে আসল HTML          | Allowlist দিয়ে sanitise করা   | Encoding markup নষ্ট করে দেবে       |
-| একটি URL বা redirect target                | Scheme allowlist, বা শুধু path | Encoding `javascript:` থামায় না    |
-| Page-এ পড়া একটি message বা fragment  | হুবহু origin check আর একটি schema | কোনো server এটা কখনো দেখবে না             |
+| CMS বা editor থেকে আসা আসল HTML          | Allowlist দিয়ে sanitise করা   | Encode করলে markup নষ্ট হয়ে যাবে       |
+| URL বা redirect-এর target                | Scheme allowlist, অথবা শুধু path | Encoding `javascript:` থামায় না    |
+| Page-এর ভেতরে পড়া message বা fragment  | হুবহু origin check আর একটি schema | কোনো server এটা কখনো দেখবে না             |
 
-**Backstop layer-গুলো।** একটি **Content Security Policy** inject করা script চলতে দেয় না। **Trusted Types**
-`innerHTML`-কে সাধারণ string reject করায়, তাই প্রতিটি sanitiser call একটি policy-র মধ্য দিয়ে যায় (2026 পর্যন্ত শুধু
-Chromium-এ)। একটি **`HttpOnly`** session cookie মানে, যে script চলেও যায়, সে token পড়তে পারে না।
+**পেছনের সুরক্ষার স্তর।** **Content Security Policy** inject করা script চলতে দেয় না। **Trusted Types** থাকলে
+`innerHTML` সাধারণ string নেয় না, তাই প্রতিটি sanitiser call একটি policy দিয়েই যায় (2026 পর্যন্ত শুধু Chromium-এ)।
+আর session cookie **`HttpOnly`** হলে, কোনো script চলে গেলেও token পড়তে পারে না।
 
 ## সাধারণ ভুল
 
-❌ **ঢোকার সময় input filter করা, আর বেরোনোর সময় তাকে বিশ্বাস করা।**
-✅ যেখানে string ব্যবহার হয়, সেখানে encode বা sanitise করুন। শুধু সেই জায়গাটাই context জানে।
+❌ **ঢোকার সময় input filter করা, আর বেরোনোর সময় সেটাকে বিশ্বাস করা।**
+✅ যেখানে string ব্যবহার হচ্ছে, সেখানেই encode বা sanitise করুন। Context জানে শুধু সেই জায়গাটাই।
 
-❌ **iframe-টি আপনার, তাই `event.data`-কে বিশ্বাস করা।** যে কেউ আপনার page frame করে তাতে post করতে পারে।
-✅ হুবহু origin check করুন, তারপর payload একটি schema-র বিপরীতে parse করুন।
+❌ **Iframe আপনার নিজের, তাই `event.data`-কে বিশ্বাস করা।** যে কেউ আপনার page frame করে তাতে post করতে পারে।
+✅ হুবহু origin check করুন, তারপর payload-টা একটি schema দিয়ে parse করুন।
 
 ## 🔑 মূল শিক্ষা
 
-- XSS ঘটে যেখানে একটি অবিশ্বস্ত string পার হয়ে markup, URL, script বা style-এ ঢোকে, আর প্রতিটি পারাপারের নিজস্ব defence লাগে।
-- `textContent` আর JSX text নিরাপদ। `innerHTML`, `dangerouslySetInnerHTML`, `javascript:` URL আর spread props নয়।
-- এড়ানো যায় না এমন HTML render-এর সময় DOMPurify দিয়ে sanitise করুন, আর যেকোনো redirect-এর জন্য পূর্ণ URL নয়, একটি path নিন।
-- `postMessage` payload আর URL fragment কখনো server-এ পৌঁছায় না, তাই browser-কেই হুবহু origin আর shape check করতে হবে।
-- Client validation হলো user experience। একটি schema share করুন, যাতে server-এর check — আসল control — এর থেকে আলাদা হয়ে না যায়।
+- অবিশ্বস্ত string যেখানে markup, URL, script বা style-এ ঢুকে পড়ে, XSS সেখানেই হয়। আর প্রতিটি সীমানার জন্য আলাদা প্রতিরক্ষা লাগে।
+- `textContent` আর JSX text নিরাপদ। `innerHTML`, `dangerouslySetInnerHTML`, `javascript:` URL আর spread করা props নিরাপদ নয়।
+- যে HTML এড়ানো যায় না, তা render-এর সময় DOMPurify দিয়ে sanitise করুন। আর যেকোনো redirect-এ পুরো URL নয়, path নিন।
+- `postMessage`-এর payload আর URL fragment কখনো server-এ পৌঁছায় না, তাই হুবহু origin আর data-র shape browser-কেই check করতে হবে।
+- Client-এর validation হলো user experience। একটিই schema share করুন, যাতে server-এর check, মানে আসল control, এর থেকে সরে যেতে না পারে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Encoding নাকি sanitisation — কখন কোনটা ব্যবহার করবেন?**
+**Q: Encoding নাকি sanitisation — কোনটা কখন ব্যবহার করবেন?**
 
-Encoding বিশেষ character-কে text-এ পরিণত করে (`<` হয়ে যায় `&lt;`)। Plain text হিসেবে দেখানো যেকোনো কিছুর জন্য এটা
-ব্যবহার করুন। Sanitisation HTML parse করে, আর যা চলতে পারে তা সরিয়ে দেয়। এটা শুধু আসল HTML-এর জন্য ব্যবহার করুন,
-যেমন CMS content, একটি allowlist সহ।
+Encoding বিশেষ character-গুলোকে text বানিয়ে দেয় (`<` হয়ে যায় `&lt;`)। Plain text হিসেবে যা দেখানো হয়, তার জন্য
+এটাই। Sanitisation HTML parse করে, আর যা চলতে পারে তা সরিয়ে দেয়। এটা ব্যবহার করুন শুধু আসল HTML-এর জন্য, যেমন CMS-এর
+content, আর allowlist দিয়ে।
 
-**Q: React কীভাবে XSS প্রতিরোধ করে, আর কোথায় এটা যথেষ্ট নয়?**
+**Q: React কীভাবে XSS আটকায়, আর কোথায় ঘাটতি থেকে যায়?**
 
-JSX text হিসেবে render হওয়া প্রতিটি value React escape করে। এটা `dangerouslySetInnerHTML`, `href` বা `src`-এ user-এর
-URL, বা spread props রক্ষা করে না। সমাধান: sanitise করুন, scheme allowlist করুন, আর যা আপনি বানাননি তা কখনো spread
-করবেন না।
+JSX text হিসেবে render হওয়া প্রতিটি value React escape করে। কিন্তু `dangerouslySetInnerHTML`, `href` বা `src`-এ
+user-এর দেওয়া URL, কিংবা spread করা props-কে রক্ষা করে না। সমাধান: sanitise করুন, scheme allowlist করুন, আর যা
+আপনি নিজে বানাননি, তা কখনো spread করবেন না।
 
-**Q: একজন সহকর্মী একটি analytics widget-এর জন্য একটি `postMessage` listener যোগ করেছেন। Review-তে আপনি কী check করবেন?**
+**Q: একজন সহকর্মী একটি analytics widget-এর জন্য `postMessage` listener যোগ করেছেন। Review-এ কী দেখবেন?**
 
-`event.data` ছোঁয়ার আগে handler `event.origin`-কে একটি হুবহু origin-এর সাথে তুলনা করে কি না। Payload destructure
-না করে একটি schema-র বিপরীতে parse করা হয় কি না। আর পাঠানোর দিক `postMessage(data, "*")` ব্যবহার করে না তো, যেটা
-frame ধরে থাকা যেকোনো page-এ broadcast করে।
+`event.data` ছোঁয়ার আগে handler `event.origin`-কে হুবহু একটি origin-এর সঙ্গে মেলাচ্ছে কি না। Payload destructure
+না করে একটি schema দিয়ে parse করা হচ্ছে কি না। আর পাঠানোর দিকে `postMessage(data, "*")` ব্যবহার হচ্ছে না তো,
+কারণ সেটা frame-টা যে page-এই থাকুক, তার কাছেই broadcast করে।
 
-**Q: আপনার team প্রতিটি `innerHTML` ঠিক না করে CSP-র ওপর ভরসা করতে চায়। আপনি কি রাজি হবেন?**
+**Q: আপনার team প্রতিটি `innerHTML` ঠিক না করে CSP-র ওপর ভরসা করতে চায়। আপনি কি একমত হবেন?**
 
-না। CSP হলো দ্বিতীয় layer। একটি encoding ফসকে গেলে এটা inject করা code চলতে দেয় না, কিন্তু `'unsafe-inline'` বা
-একটি বড় allowlist দিয়ে একে সহজেই দুর্বল করা যায়। Sink-গুলো ঠিক করুন, তারপর CSP আর Trusted Types যোগ করুন, যাতে
-একটি ভুলই মারাত্মক না হয়।
+না। CSP হলো দ্বিতীয় স্তর। কোথাও encoding ফসকে গেলে inject করা code চলতে দেয় না, কিন্তু `'unsafe-inline'` বা
+ঢালাও allowlist দিয়ে একে দুর্বল করে ফেলা সহজ। আগে sink-গুলো ঠিক করুন, তারপর CSP আর Trusted Types যোগ করুন, যাতে
+একটি ভুলই সর্বনাশ ডেকে না আনে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Content Security Policy ও Security Header](#ch-content-security-policy) — যে layer একটি সফল injection-এর ক্ষতি সীমিত করে
-- [Chapter ?? — Input Validation ও Injection](#ch-backend-input-validation) — shared schema-র server-এর অর্ধেক, যেখানে stored XSS থামানো হয়
-- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — কেন একটি `HttpOnly` cookie একটি সফল injection-এর ক্ষতি সীমিত করে, আর অন্য cross-origin boundary-টি
+- [Chapter ?? — Content Security Policy ও Security Header](#ch-content-security-policy) — যে স্তর সফল injection-এর ক্ষতি সীমিত রাখে
+- [Chapter ?? — Input Validation ও Injection](#ch-backend-input-validation) — shared schema-র server-এর দিক, যেখানে stored XSS থামানো হয়
+- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — `HttpOnly` cookie কেন সফল injection-এর ক্ষতি কমায়, আর অন্য cross-origin boundary-টি

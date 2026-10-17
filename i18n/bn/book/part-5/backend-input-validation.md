@@ -1,44 +1,44 @@
 ---
 sourceHash: "9a13ec28733900e8a7912687f07b0269e1526c24a7219d08952813496de1f355"
 title: "Input Validation ও Injection"
-translatedAt: "2026-10-12T12:22:28.787Z"
+translatedAt: "2026-10-17T14:06:21.753Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Input Validation ও Injection {#ch-backend-input-validation}
 
-> Boundary-তে একটি schema দিয়ে validate করুন, আর data-কে কখনো code-এর সাথে না মিশিয়ে প্রতিটি injection-এর ধরন বন্ধ করুন।
+> Boundary-তে schema দিয়ে validate করুন, আর data-কে কখনো code-এর সঙ্গে না মিশিয়ে injection-এর প্রতিটি শ্রেণি বন্ধ করুন।
 
 **এই অধ্যায়ে:** validation বনাম sanitisation · allowlist · Zod দিয়ে schema validation · SQL আর NoSQL injection · command injection আর path traversal · file upload আর SSRF
 
 ## 💡 মূল ধারণা
 
-প্রতিটি injection vulnerability আসলে একই bug, শুধু আলাদা পোশাকে — SQL, NoSQL, command, path বা template, যা-ই
-হোক। **Data এমন একটি string-এ জোড়া লাগানো হয়েছে, যেটাকে অন্য কিছু code হিসেবে interpret করে।** Interpreter আপনার
-উদ্দেশ্য আর attacker-এর উদ্দেশ্য আলাদা করতে পারে না। যতক্ষণে সে string-টি দেখে, ততক্ষণে দুটি দেখতে একই রকম।
+Injection-এর প্রতিটি vulnerability আসলে একই bug, শুধু আলাদা পোশাকে — SQL, NoSQL, command, path বা template, যা-ই হোক।
+**Data জোড়া দেওয়া হয়েছে এমন একটি string-এ, যাকে অন্য কিছু code হিসেবে পড়ে।** Interpreter বুঝতে পারে না কোনটা আপনার
+উদ্দেশ্য আর কোনটা attacker-এর। String যখন interpreter-এর হাতে পৌঁছায়, তখন দুটি দেখতে হুবহু এক।
 
-তাই সত্যিকারের defence মাত্র দুটি, আর এরা আসলে আলাদা layer-এ একই defence:
+তাই আসল প্রতিরক্ষা মাত্র দুটি, আর দুটিই আসলে একই প্রতিরক্ষা, শুধু আলাদা layer-এ:
 
-1. **কখনো concatenation দিয়ে instruction বানাবেন না।** Data এমন একটি channel দিয়ে পাঠান, যেটা interpreter আলাদা
-   রাখে: একটি bound parameter, একটি argument array, একটি structured query object।
-2. **Boundary-তে validate করুন**, এমন একটি schema-র বিপরীতে, যেটা বর্ণনা করে আপনি কী গ্রহণ করেন, যাতে অপ্রত্যাশিত
-   যেকোনো কিছু কোনো interpreter-এ পৌঁছানোর আগেই reject হয়ে যায়।
+1. **Instruction কখনো string জোড়া দিয়ে বানাবেন না।** Data পাঠান এমন একটি পথে, যা interpreter আলাদা করে রাখে: bound
+   parameter, argument array, structured query object।
+2. **Boundary-তে validate করুন** এমন একটি schema-র সঙ্গে মিলিয়ে, যা বলে আপনি কী নেবেন। তাহলে অপ্রত্যাশিত যেকোনো কিছু কোনো
+   interpreter-এর কাছে পৌঁছানোর আগেই বাতিল হয়ে যায়।
 
-Validation হলো প্রথম সারি, আর parameterisation হলো guarantee। কোনোটাই অন্যটার জায়গা নেয় না।
+Validation প্রথম সারির প্রতিরক্ষা, আর parameterisation হলো নিশ্চয়তা। একটি আরেকটির জায়গা নিতে পারে না।
 
 ## Validation বনাম Sanitisation
 
 | | Validation | Sanitisation |
 | --- | ---------- | ------------ |
-| কী করে | নিয়মের সাথে না মেলা input reject করে | Input-কে নিরাপদ করার জন্য বদলে দেয় |
-| ফলাফল | 400, কারণ সহ | বদলে যাওয়া data |
-| পছন্দ করুন | ✅ প্রায় সবসময় | শুধু যেখানে rich input নিতেই হবে — HTML |
+| কী করে | নিয়মের সঙ্গে না মেলা input বাতিল করে | Input বদলে দিয়ে নিরাপদ করে |
+| ফল | 400, সঙ্গে কারণ | বদলে যাওয়া data |
+| কোনটা বাছবেন | ✅ প্রায় সবসময় | শুধু যেখানে rich input নিতেই হয় — HTML |
 
-Reject করাকেই বেছে নিন। Sanitisation user যা পাঠিয়েছেন, তা চুপচাপ বদলে দেয়। এতে bug ধরা কঠিন হয়, আর "নিরাপদ" মানে
-কী, তা নিয়ে আপনি আন্দাজের ওপর থাকেন।
+বাতিল করাকেই আগে বাছুন। Sanitisation চুপচাপ user-এর পাঠানো জিনিস বদলে দেয়। এতে bug-এর কারণ খুঁজে পাওয়া কঠিন হয়, আর
+"নিরাপদ" মানে কী, তা নিয়ে আপনাকে আন্দাজ করতে হয়।
 
-**Allowlist, কখনো blocklist নয়।** একটি blocklist খারাপ জিনিসগুলোর তালিকা করে, আর attacker-এর দরকার শুধু এমন একটি
-জিনিস, যেটা আপনি ভাবেননি।
+**Allowlist, কখনো blocklist নয়।** Blocklist-এ থাকে কী কী খারাপ, আর attacker-এর দরকার শুধু এমন একটি জিনিস, যা আপনার
+মাথায় আসেনি।
 
 ```typescript
 // ❌ Blocklist: a guessing game you cannot win
@@ -50,8 +50,8 @@ const Slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80);
 
 ## Boundary-তে Schema Validation
 
-প্রতিটি endpoint-এর জন্য একটি schema, যেকোনো handler logic চলার আগেই validate করা। Zod সাধারণ পছন্দ, কারণ
-TypeScript type-টি একই declaration থেকে আসে।
+প্রতিটি endpoint-এর জন্য একটি schema, আর handler-এর কোনো logic চলার আগেই সেটা validate হয়। Zod-ই বেশি ব্যবহার হয়, কারণ
+TypeScript type-টাও আসে একই declaration থেকে।
 
 ```typescript
 const CreateOrder = z.object({
@@ -80,9 +80,9 @@ export function validate<T extends z.ZodTypeAny>(schema: T, part: 'body' | 'quer
 }
 ```
 
-`.strict()` হলো সবচেয়ে জরুরি line। এটা না থাকলে একটি request এমন একটি object-এ `{ role: 'admin' }` বা
-`{ isVerified: true }` বয়ে আনতে পারে, যেটা আপনি একটি database write-এ spread করেন। এটাই **mass assignment**।
-কখনো একটি request body-কে model-এ spread করবেন না। Field-গুলোর নাম ধরে লিখুন।
+সবচেয়ে জরুরি line হলো `.strict()`। এটা না থাকলে request `{ role: 'admin' }` বা `{ isVerified: true }` বয়ে নিয়ে আসতে
+পারে এমন একটি object-এ, যা আপনি spread করে database write-এ দিচ্ছেন। একে বলে **mass assignment**। Request body কখনো
+model-এ spread করবেন না। Field-গুলোর নাম ধরে ধরে লিখুন।
 
 ## SQL Injection
 
@@ -95,14 +95,14 @@ const rows = await db.query(`SELECT * FROM users WHERE id = ${req.params.id}`);
 const rows = await db.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
 ```
 
-Parameterisation মানে escaping নয়। Value statement-এর বাইরে দিয়ে যায়, তাই attacker-এর ভেঙে বেরোনোর মতো কোনো string
-থাকে না। একটি ORM বা query builder default-ভাবেই parameterise করে, যেটা security-তে সত্যিকারের লাভ। কিন্তু
-`prisma.$queryRawUnsafe` আর তার সমতুল্যগুলো আবার সেটা থেকে বেরিয়ে আসে।
+Parameterisation মানে escaping নয়। Value যায় statement-এর বাইরে দিয়ে, তাই attacker-এর ভেঙে বেরোনোর মতো কোনো string-ই
+থাকে না। ORM বা query builder default হিসেবেই parameterise করে, আর security-র দিক থেকে এটা সত্যিকারের লাভ। কিন্তু
+`prisma.$queryRawUnsafe` আর তার মতো অন্যগুলো সেই সুরক্ষা থেকে আবার বেরিয়ে আসে।
 
 ### যা parameterise করা যায় না
 
-Identifier, যেমন table আর column-এর নাম, statement-এরই অংশ, value নয়। Sort direction-ও তাই। সেখানে placeholder
-চলে না, তাই একমাত্র নিরাপদ পথ হলো একটি allowlist।
+Table বা column-এর নামের মতো identifier statement-এরই অংশ, value নয়। Sort-এর দিকও তাই। সেখানে placeholder বসানো যায় না,
+তাই একমাত্র নিরাপদ পথ allowlist।
 
 ```typescript
 const SORTABLE = { createdAt: 'created_at', total: 'total', status: 'status' } as const;
@@ -115,18 +115,16 @@ function orderBy(field: string, dir: string): string {
 }
 ```
 
-`LIKE` pattern হলো আরেকটি ক্ষেত্র। Value parameterised, কিন্তু তার ভেতরের `%` আর `_` wildcard। Input যদি আক্ষরিক
-হওয়ার কথা হয়, তাহলে bind করার আগে এগুলো escape করুন।
+আরেকটি ক্ষেত্র `LIKE` pattern। Value parameterise করা থাকে, কিন্তু তার ভেতরের `%` আর `_` wildcard। Input যদি হুবহু
+অক্ষর হিসেবে ধরার কথা হয়, তাহলে bind করার আগে এগুলো escape করুন।
 
-**Defence in depth**: application-এর database user-কে শুধু ততটুকু privilege দিন, যতটুকু তার দরকার। মানে কোনো
-`DROP` নয়, কোনো `CREATE` নয়, আর যে table সে কখনো পড়ে না, তাতে কোনো access নয়। তখন একটি সফল injection অনেক কম ক্ষতি
-করে।
+**Defence in depth**: application-এর database user-কে শুধু ততটুকু privilege দিন, যতটুকু তার লাগে। মানে `DROP` নয়,
+`CREATE` নয়, আর যে table কখনো পড়ে না তাতে কোনো access নয়। তাহলে injection সফল হলেও ক্ষতি অনেক কম হয়।
 
 ## NoSQL, Command আর Path Injection
 
-**NoSQL injection** কাজ করে object দিয়ে, string দিয়ে নয়। `qs` parser (Express 4-এর default)
-`?filter[$ne]=null`-কে `{ $ne: null }`-এ পরিণত করে, আর একটি JSON body-ও এমন একটি বয়ে আনতে পারে, ফলে একটি query একটি
-operator পেয়ে যায়।
+**NoSQL injection** কাজ করে object দিয়ে, string দিয়ে নয়। `qs` parser (Express 4-এর default) `?filter[$ne]=null`-কে
+বানিয়ে দেয় `{ $ne: null }`, আর JSON body-ও এমন একটি object বয়ে আনতে পারে। ফলে query-র হাতে এসে পড়ে একটি operator।
 
 ```typescript
 // ❌ req.body.password may be the object { $ne: null }, matching any user
@@ -136,10 +134,10 @@ await users.findOne({ email: req.body.email, password: req.body.password });
 const Login = z.object({ email: z.string().email(), password: z.string().min(8) });
 ```
 
-`z.string()` একটি object reject করে — পুরো সমাধান এটুকুই। Mongoose schema অনুযায়ী cast করে, তাই এর অনেকটাই আটকায়,
+`z.string()` object বাতিল করে দেয়, আর পুরো সমাধান এটুকুই। Mongoose schema অনুযায়ী cast করে, তাই এর অনেকটাই আটকায়।
 কিন্তু raw driver আটকায় না।
 
-**Command injection** আসে একটি shell থেকে।
+**Command injection** আসে shell থেকে।
 
 ```typescript
 // ❌ exec runs a shell: filename `a.jpg; rm -rf /` executes both
@@ -149,7 +147,7 @@ exec(`convert ${filename} out.png`);
 spawn('convert', [filename, 'out.png']);
 ```
 
-**Path traversal** আসে একটি filename-কে বিশ্বাস করা থেকে।
+**Path traversal** আসে filename-কে বিশ্বাস করা থেকে।
 
 ```typescript
 const UPLOADS = '/var/app/uploads';
@@ -162,74 +160,72 @@ function safePath(name: string): string {
 }
 ```
 
-প্রতিটি platform-এ শুধু `path.basename` যথেষ্ট নয়, আর শুধু `startsWith`-কে হারিয়ে দেয় `/var/app/uploads-evil`।
-দুটিই ব্যবহার করুন, এই ক্রমে।
+সব platform-এ শুধু `path.basename` যথেষ্ট নয়, আর শুধু `startsWith`-কে হারিয়ে দেয় `/var/app/uploads-evil`। দুটিই ব্যবহার
+করুন, এই ক্রমে।
 
-> ⚠️ **Prototype pollution** এই পরিবারের JavaScript-নির্দিষ্ট সদস্য। `__proto__` থাকা একটি JSON body, একটি সরল
-> deep-merge দিয়ে একটি object-এ merge হলে, `Object.prototype`-এ property যোগ করতে পারে, আর পুরো application জুড়ে
-> আচরণ বদলে দিতে পারে। Attacker-এর আকার দেওয়া map-এর জন্য `Object.create(null)` ব্যবহার করুন, validation-এর সময়
-> `__proto__`, `constructor` আর `prototype` key reject করুন, আর কখনো নিজে হাতে deep merge লিখবেন না।
+> ⚠️ এই পরিবারের JavaScript-এর নিজস্ব সদস্য হলো **prototype pollution**। `__proto__`-ওয়ালা একটি JSON body কাঁচা হাতে লেখা
+> deep-merge দিয়ে কোনো object-এ মেশালে `Object.prototype`-এ property যোগ হয়ে যেতে পারে, আর পুরো application-এর আচরণ
+> বদলে যায়। Attacker-এর বানানো shape-এর map-এর জন্য `Object.create(null)` ব্যবহার করুন, validation-এর সময় `__proto__`,
+> `constructor` আর `prototype` key বাতিল করুন, আর কখনো নিজে হাতে deep merge লিখবেন না।
 
-## File আর Outbound URL
+## File আর বাইরের URL
 
 **File upload** validate করতে হবে content দেখে, নাম দেখে নয়।
 
 | Check | কেন |
 | ----- | --- |
-| Size limit, middleware-এ | আপনার code চলার আগেই একটি 5 GB upload একটি denial of service |
-| Magic byte, extension বা `Content-Type` নয় | দুটিই attacker দেয় |
-| একটি generate করা filename | User-এর দেওয়া নাম অবিশ্বস্ত, আর অন্য নামের সাথে মিলে যেতে পারে |
-| Web root-এর বাইরে রাখা, একটি handler দিয়ে serve করা | নাহলে একটি রাখা `.html` বা `.svg` আপনার origin-এ একটি XSS |
-| Download-এ `Content-Disposition: attachment` আর `nosniff` | Browser-কে এটা render করা থেকে আটকায় |
+| Size-এর সীমা, middleware-এ | 5 GB-এর upload আপনার code চলার আগেই denial of service |
+| Magic byte, extension বা `Content-Type` নয় | দুটিই attacker-এর দেওয়া |
+| নিজেদের বানানো filename | User-এর দেওয়া নাম অবিশ্বস্ত, আর অন্য file-এর নামের সঙ্গে মিলে যেতে পারে |
+| Web root-এর বাইরে রাখা, handler দিয়ে serve করা | নইলে store করা `.html` বা `.svg` আপনার origin-এ একটি XSS |
+| Download-এ `Content-Disposition: attachment` আর `nosniff` | Browser-কে file-টা render করতে দেয় না |
 
-**Server-side request forgery** হলো এমন একটি URL-এর validation, যেটা আপনি fetch করতে যাচ্ছেন। User-এর দেওয়া একটি
-URL `169.254.169.254`-এর (cloud metadata endpoint) দিকে নির্দেশ করতে পারে, বা এমন একটি internal service-এর দিকে, যেটা
-network-এ অবস্থানকে বিশ্বাস করে।
+**Server-side request forgery** মানে এমন একটি URL validate করা, যা আপনি fetch করতে যাচ্ছেন। User-এর দেওয়া URL তাক করতে
+পারে `169.254.169.254`-এ (cloud metadata endpoint), বা এমন কোনো internal service-এ, যা network-এ অবস্থান দেখেই বিশ্বাস করে।
 
-Check-টি হতে হবে **resolve হওয়া address**-এর ওপর, hostname-এর ওপর নয়। URL parse করুন, আর `http:` আর `https:` ছাড়া
-অন্য যেকোনো protocol reject করুন। Hostname নিজে resolve করুন, private আর link-local range reject করুন, আর সেই pin করা
-address-এ connect করুন। নাহলে একটি দ্বিতীয় DNS lookup একটি internal address return করতে পারে (DNS rebinding)।
+Check করতে হবে **resolve হওয়া address**-এর ওপর, hostname-এর ওপর নয়। URL parse করুন, আর `http:` ও `https:` ছাড়া অন্য যেকোনো
+protocol বাতিল করুন। Hostname নিজে resolve করুন, private আর link-local range বাতিল করুন, আর সেই নির্দিষ্ট address-এই connect
+করুন। নইলে দ্বিতীয় DNS lookup একটি internal address ফেরত দিতে পারে (DNS rebinding)।
 
-Redirect follow করাও বন্ধ করুন, অথবা প্রতিটি hop-এ আবার validate করুন। `127.0.0.1`-এ redirect করা একটি public URL
+Redirect অনুসরণ করাও বন্ধ রাখুন, অথবা প্রতিটি hop-এ আবার validate করুন। যে public URL `127.0.0.1`-এ redirect করে, সেটা
 শুরুতে একবারের check-কে হারিয়ে দেয়।
 
 ## 🔑 মূল শিক্ষা
 
-- প্রতিটি injection হলো এমন কিছুতে জোড়া লাগানো data, যেটাকে অন্য একটি interpreter code হিসেবে parse করে।
-- Value parameterise করুন, আর identifier allowlist করুন। এই দুটিই একমাত্র উপায়, আর এরা সবকিছু কভার করে।
-- Boundary-তে `.strict()` schema দিয়ে validate করুন। এটা না থাকলে mass assignment এমন field set করে, যেগুলো আপনি কখনো expose করেননি।
-- Argument array সহ `spawn`-এ কোনো shell নেই, তাই command injection-এর থাকার কোনো জায়গা নেই।
-- SSRF-এর জন্য DNS resolution-এর পরে address-স্তরের validation লাগে, সাথে প্রতিটি redirect-এ একই check।
+- প্রতিটি injection মানে data জোড়া দেওয়া হয়েছে এমন কিছুতে, যা অন্য একটি interpreter code হিসেবে parse করে।
+- Value parameterise করুন, identifier allowlist করুন। বিকল্প শুধু এই দুটি, আর এতেই সব ঢাকা পড়ে।
+- Boundary-তে `.strict()` schema দিয়ে validate করুন। এটা না থাকলে mass assignment এমন field সেট করে, যা আপনি কখনো খোলেননি।
+- Argument array-সহ `spawn`-এ কোনো shell নেই, তাই command injection-এর থাকার কোনো জায়গাই নেই।
+- SSRF আটকাতে DNS resolve হওয়ার পরে address ধরে validate করতে হয়, আর প্রতিটি redirect-এ একই check।
 
 ## Interview-এর প্রশ্ন
 
 **Q: Escaping-এর চেয়ে parameterisation কেন বেশি নিরাপদ?**
 
-কারণ value কখনো statement-এর অংশ হয় না। Driver query text আর value আলাদা channel দিয়ে পাঠায়, তাই database statement
-একবারই parse করে, আর value-তে যা-ই থাকুক, সেটাকে data হিসেবে দেখে। Escaping একটি string-এর ভেতরে metacharacter
-নিষ্ক্রিয় করার চেষ্টা করে, যেটা নির্ভর করে character set, quoting mode আর প্রতিটি edge case ঠিকঠাক হওয়ার ওপর।
+কারণ value কখনো statement-এর অংশ হয় না। Driver query-র লেখা আর value আলাদা পথে পাঠায়, তাই database statement একবারই
+parse করে, আর value-তে যা-ই থাকুক সেটাকে data হিসেবেই ধরে। Escaping একটি string-এর ভেতরের metacharacter নিষ্ক্রিয় করার
+চেষ্টা করে। সেটা নির্ভর করে character set, quoting mode আর প্রতিটি edge case ঠিকঠাক ধরার ওপর।
 
-**Q: একটি endpoint parameterised, তবুও injectable। কীভাবে?**
+**Q: একটি endpoint parameterised, তবু injectable। কীভাবে?**
 
-প্রায় নিশ্চিতভাবেই একটি identifier: একটি sort column, একটি table-এর নাম, বা একটি direction, যেটা statement-এ
-interpolate করা হয়েছে, কারণ সেখানে placeholder চলে না। সমাধান হলো একটি allowlist, যেটা request-এর value-কে জানা
-নিরাপদ column-এর নামে map করে, আর sort direction request থেকে না নিয়ে একটি নির্দিষ্ট জোড়া থেকে বেছে নেওয়া হয়।
+প্রায় নিশ্চিতভাবেই একটি identifier: sort column, table-এর নাম, বা sort-এর দিক statement-এ সরাসরি বসানো হয়েছে, কারণ সেখানে
+placeholder চলে না। সমাধান হলো একটি allowlist, যা request-এর value-কে জানা-নিরাপদ column-এর নামে map করে। আর sort-এর দিক
+request থেকে না নিয়ে নির্দিষ্ট দুটি বিকল্পের একটি থেকে বেছে নেওয়া হয়।
 
-**Q: কোনো SQL string না থাকলে NoSQL injection কীভাবে কাজ করে?**
+**Q: SQL string-ই যদি না থাকে, NoSQL injection কাজ করে কীভাবে?**
 
-Operator object দিয়ে। `qs`-এর মতো একটি query parser `filter[$ne]=null`-কে `{ $ne: null }`-এ পরিণত করে।
-তখন `req.query` থেকে বানানো একটি query একটি value-র জায়গায় একটি operator পায়, আর
-`{ password: { $ne: null } }` প্রতিটি user-এর সাথে মিলে যায়। Driver-এ পৌঁছানোর আগে field-টি একটি string কি না, তা
-validate করলেই এটা বন্ধ হয়।
+Operator object দিয়ে। `qs`-এর মতো query parser `filter[$ne]=null`-কে বানিয়ে দেয় `{ $ne: null }`। তখন `req.query` থেকে
+বানানো query যেখানে value আশা করছিল, সেখানে পায় একটি operator, আর `{ password: { $ne: null } }` প্রতিটি user-এর সঙ্গে মিলে
+যায়। Driver-এ পৌঁছানোর আগে field-টা string কি না যাচাই করলেই ফুটোটা বন্ধ হয়।
 
 **Q: শুধু validation কি যথেষ্ট?**
 
-না, আর এটাকে guarantee ধরে নেওয়াটাই ভুল। Validation হলো প্রথম সারি: এটা স্পষ্টতই ভুল আকারকে আগেভাগে reject করে, আর
-একটি কাজের error দেয়। Guarantee হলো, data কখনো code হয় না: parameterised statement, argument array, allowlist করা
-identifier। নিখুঁত schema আর একটিমাত্র concatenated query থাকা একটি service-ও injectable।
+না, আর validation-কে নিশ্চয়তা ভাবাটাই ভুল। Validation প্রথম সারির প্রতিরক্ষা: স্পষ্টতই ভুল shape আগেভাগে বাতিল করে, আর কাজের
+একটি error দেয়। নিশ্চয়তা হলো data কখনো code হয় না: parameterised statement, argument array, allowlist করা identifier।
+নিখুঁত schema-ওয়ালা service-এও একটি জোড়া দেওয়া query থাকলে সেটা injectable।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth) — আকারকে বিশ্বাস করার পরে, কে কাজ করতে পারবে তা validate করা
+- [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth) — shape-কে বিশ্বাস করার পরে, কে কাজটা করতে পারবে তা যাচাই করা
 - [Chapter ?? — SQL-এর মূল কথা ও Schema Design](#ch-sql-fundamentals) — যে statement-গুলো parameterise করা হচ্ছে
-- [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — একই schema, প্রকাশিত contract হিসেবে আবার ব্যবহার করা
+- [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — একই schema, প্রকাশিত contract হিসেবে আবার ব্যবহার

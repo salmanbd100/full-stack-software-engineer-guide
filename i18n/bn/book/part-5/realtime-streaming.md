@@ -1,28 +1,28 @@
 ---
 sourceHash: "e787c5b9387ebbbcfb6d0bfc29a1a2e0b1604112ef85bcc0426d378906d0feae"
 title: "Real-Time ও Streaming API"
-translatedAt: "2026-10-12T12:20:03.950Z"
+translatedAt: "2026-10-17T14:06:13.449Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Real-Time ও Streaming API {#ch-realtime-streaming}
 
-> সঠিক transport দিয়ে client-এ push করুন, আর HTTP middleware আগে যে guarantee-গুলো দিত, সেগুলো socket-এর ওপর
-> আবার তৈরি করুন।
+> ঠিক transport দিয়ে client-এর কাছে push করুন, আর HTTP middleware আগে যে নিশ্চয়তাগুলো দিত, সেগুলো socket-এর ওপর
+> আবার গড়ে তুলুন।
 
-**এই অধ্যায়ে:** SSE আর HTTP streaming · upgrade কী কী এড়িয়ে যায় · typed, validated socket server · handshake auth আর revalidation · একাধিক instance জুড়ে broadcast · backpressure
+**এই অধ্যায়ে:** SSE আর HTTP streaming · upgrade কী কী এড়িয়ে যায় · typed, validated socket server · handshake-এ auth আর পুনর্যাচাই · একাধিক instance জুড়ে broadcast · backpressure
 
 ## 💡 মূল ধারণা
 
-WebSocket হলো একটি TCP connection, যেটা খোলা থাকে। এটা দুই দিকেই message বহন করে, প্রতি message-এ মোটামুটি দুই byte framing লাগে। Server আগে কথা বলতে পারে, যেটা HTTP একেবারেই পারে না।
+WebSocket হলো খোলা থাকা একটি TCP connection, যা দুই দিকেই message বয়ে নেয়, প্রতিটি message-এ framing মাত্র মোটামুটি দুই byte। Server আগে কথা বলতে পারে, যা HTTP-তে একেবারেই সম্ভব নয়।
 
-দামটা হলো, আপনি stateless ছেড়ে stateful-এ যাচ্ছেন: server এখন প্রতিটি client-এর state ধরে রাখে। প্রতিটি connection একটি client-কে একটি process-এ আটকে রাখে। ফলে load balancing, deploy আর scaling সবই কঠিন হয়ে যায়।
+দামটা হলো, stateless ছেড়ে stateful হওয়া: server এখন প্রতিটি client-এর state ধরে রাখে। প্রতিটি connection একজন client-কে একটি process-এ আটকে দেয়, ফলে load balancing, deploy আর scaling, সবই কঠিন হয়ে যায়।
 
-এই অধ্যায় **server-এর দিক** নিয়ে: কীভাবে একটি socket server সঠিকভাবে বানাবেন। তার আগের প্রশ্নটা একটি design-এর সিদ্ধান্ত। এই feature-এর কি আদৌ socket লাগে, নাকি SSE বা polling-ই যথেষ্ট? সেটা [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues)-এর বিষয়। Protocol এখনো ঠিক না হলে আগে সেটা পড়ুন।
+এই অধ্যায় **server-এর দিক** নিয়ে: কীভাবে ঠিকভাবে বানাবেন। তার আগের প্রশ্নটা design-এর সিদ্ধান্ত। এই feature-এর কি আদৌ socket লাগে, নাকি SSE বা polling-এই চলে? সেটা আছে [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues)-এ। Protocol এখনো ঠিক না হলে আগে সেটা পড়ুন।
 
 ## কীভাবে কাজ করে
 
-WebSocket শুরু হয় একটি HTTP request হিসেবে, যেটা protocol বদলাতে চায়।
+WebSocket-এর জীবন শুরু হয় একটি HTTP request দিয়ে, যা protocol বদলাতে চায়।
 
 ```http
 GET /ws HTTP/1.1
@@ -36,26 +36,26 @@ Origin: https://app.example.com
 
 `101`-এর পরে connection আর HTTP-তে কথা বলে না। এর দুটি ফল বারবার সামনে আসে:
 
-- **Handshake-এ cookie পাঠানো হয়**, আর browser WebSocket-এ CORS **প্রয়োগ করে না**। একটি ক্ষতিকর page user-এর cookie নিয়ে আপনার server-এ socket খুলতে পারে। তাই server-কে নিজেই `Origin` যাচাই করতে হবে।
-- **Middleware চলে না।** আপনার Express auth, rate limiter, validator আর logger HTTP path-এ বসে আছে। Upgrade হওয়া socket এর সবকিছু এড়িয়ে যায়। তাই এর প্রতিটি দায়িত্ব socket layer-এ আবার তৈরি করতে হয়।
+- **Cookie handshake-এর সঙ্গে যায়**, অথচ browser WebSocket-এ CORS প্রয়োগ **করে না**। কোনো ক্ষতিকর page user-এর cookie নিয়ে আপনার server-এ socket খুলতে পারে, তাই server-কে নিজেই `Origin` যাচাই করতে হবে।
+- **Middleware চলে না।** আপনার Express-এর auth, rate limiter, validator আর logger বসে আছে HTTP-র পথে। Upgrade হওয়া socket এর সবটাই এড়িয়ে যায়, তাই প্রতিটি দায়িত্ব socket-এর স্তরে নতুন করে গড়তে হয়।
 
-সবসময় `wss://` ব্যবহার করুন। Intercepting proxy সাধারণ `ws://` ভেঙে দেয়, আর path-এ থাকা যে কেউ সেটা পড়তে পারে।
+সবসময় `wss://` ব্যবহার করুন। মাঝপথের proxy সাধারণ `ws://` ভেঙে দেয়, আর পথে থাকা যে কেউ সেটা পড়তে পারে।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | Socket server বানাবেন? |
 | --------- | ---------------------- |
 | Client ঘন ঘন message পাঠায় — chat, cursor, gameplay | **হ্যাঁ** |
-| Server push করে, client শুধু শোনে | না — SSE সাধারণ HTTP, আর চালাতে অনেক কম খরচ |
-| "মোটামুটি 30 সেকেন্ডের মধ্যে fresh" হলেই চলে | না — poll করুন |
-| হাজার হাজার concurrent connection আর ছোট team | কিনে নেওয়ার কথা ভাবুন — Ably, Pusher, AWS API Gateway WebSockets |
+| Server push করে, client শুধু শোনে | না — SSE সাধারণ HTTP, আর চালাতে খরচ অনেক কম |
+| "মোটামুটি 30 সেকেন্ডের মধ্যে নতুন" হলেই চলে | না — poll করুন |
+| হাজার হাজার concurrent connection, অথচ team ছোট | কিনে নেওয়ার কথা ভাবুন — Ably, Pusher, AWS API Gateway WebSockets |
 
 ## Server-Sent Events আর HTTP Streaming
 
-Socket ধরার আগে দেখুন, এক দিকের যোগাযোগই যথেষ্ট কি না। **SSE** হলো `text/event-stream`-এর একটি দীর্ঘস্থায়ী HTTP
-response। Browser-এর `EventSource` আপনার হয়ে reconnection আর last-event-id replay সামলায়। এটা সাধারণ HTTP,
-তাই আপনার auth middleware, rate limiter আর logging সবই খাটে। WebSocket-এর তুলনায় চালানোর দিক থেকে এটাই এর
-সবচেয়ে বড় সুবিধা।
+Socket-এর দিকে হাত বাড়ানোর আগে দেখুন, এক দিকের যোগাযোগেই চলে কি না। **SSE** হলো `text/event-stream`-এর একটি দীর্ঘজীবী
+HTTP response, আর browser-এর `EventSource` আপনার হয়ে reconnection আর last-event-id থেকে replay সামলায়। এটা সাধারণ
+HTTP, তাই আপনার auth middleware, rate limiter আর logging সবই খাটে। WebSocket-এর তুলনায় চালানোর দিক থেকে এটাই এর সবচেয়ে
+বড় সুবিধা।
 
 ```typescript
 app.get("/events", requireAuth, async (req, res) => {
@@ -77,19 +77,19 @@ app.get("/events", requireAuth, async (req, res) => {
 });
 ```
 
-দুটি ফাঁদ আছে। HTTP/1.1-এ browser প্রতি origin-এ ছয়টি connection দেয়, আর একটি SSE stream পুরো জীবন ধরে একটি
-দখল করে রাখে। HTTP/2 এই সীমা তুলে দেয়। আর যে proxy buffer করে, সে buffer ভরা না হওয়া পর্যন্ত আপনার event আটকে
-রাখে। তাই `no-transform` আর নিয়মিত comment ping ঐচ্ছিক নয়।
+দুটি ফাঁদ আছে। HTTP/1.1-এ browser প্রতি origin-এ ছয়টি connection দেয়, আর একটি SSE stream সারা জীবন একটি ধরে রাখে।
+HTTP/2-এ এই সীমা নেই। আর যেকোনো buffer করা proxy আপনার event আটকে রাখে, যতক্ষণ না তার buffer ভরে। তাই `no-transform`
+আর নিয়মিত comment ping ঐচ্ছিক নয়।
 
-**Token-by-token response stream করা**, যে রূপ একটি AI feature-এর লাগে, একই mechanism, শুধু contract-টা আরও
-সহজ। Response খোলা রাখুন, আর server যেমন যেমন chunk তৈরি করে, তেমন লিখে দিন। Client-এর typed event আর
-resumability লাগলে SSE বেছে নিন। শুধু text লাগলে একটি সাধারণ chunked response বেছে নিন। সেই stream-এর client
-আর product-এর অর্ধেক হলো first-token target, cancellation, আর connection মারা গেলে আংশিক উত্তর ধরে রাখা।
-[Chapter ?? — Streaming Response](#ch-streaming-responses) দেখুন।
+**Token ধরে ধরে response stream করা**, যে আকার AI feature-এর দরকার, একই কৌশল, শুধু contract আরও সহজ। Response খোলা
+রাখুন, আর server যেমন যেমন chunk বানায়, লিখে দিন। Client-এর typed event আর resumability লাগলে SSE বেছে নিন। শুধু
+text লাগলে সাধারণ chunked response। ওই stream-এর client আর product-এর দিক হলো first-token-এর লক্ষ্য, cancellation, আর
+connection মরে গেলেও আংশিক উত্তর রেখে দেওয়া। দেখুন
+[Chapter ?? — Streaming Response](#ch-streaming-responses)।
 
-## একটি Typed Server
+## Typed Server
 
-Socket.IO সাধারণ `ws`-এর চেয়ে বেশি দেয়: reconnection, room, acknowledgement আর একটি polling fallback। Event-গুলো type করুন, না হলে boundary-তে সব guarantee হারাবেন।
+Socket.IO সাধারণ `ws`-এর চেয়ে বেশি দেয়: reconnection, room, acknowledgement আর polling fallback। Event-গুলোর type দিন, নইলে boundary-তে প্রতিটি নিশ্চয়তা হারাবেন।
 
 ```typescript
 // ── Event contracts, shared with the client ───────────────────────
@@ -133,7 +133,7 @@ io.on("connection", (socket) => {
 });
 ```
 
-> ⚠️ **WebSocket message হলো untrusted input, ঠিক একটি HTTP body-র মতো।** এটা আপনার validation middleware এড়িয়ে এসেছে, তাই প্রতিটি handler-এর ভেতরে validate আর authorise করুন। বাস্তবে সবচেয়ে সাধারণ WebSocket vulnerability হলো connect-এর সময় একবার auth যাচাই করে আর কখনো না করা।
+> ⚠️ **WebSocket message অবিশ্বস্ত input, ঠিক HTTP body-র মতো।** এটা আপনার validation middleware এড়িয়ে এসেছে, তাই প্রতিটি handler-এর ভেতরে validate আর authorise করুন। বাস্তবে WebSocket-এর সবচেয়ে চেনা দুর্বলতা হলো, auth যাচাই হয় connect-এর সময় একবার, তারপর আর কখনো নয়।
 
 ## Authentication
 
@@ -157,28 +157,27 @@ io.use((socket, next) => {
 });
 ```
 
-**Token expiry হলো সূক্ষ্ম সমস্যা।** একটি connection যে token দিয়ে খোলা হয়েছিল, তার চেয়ে বেশিদিন বাঁচতে পারে। 15 মিনিটের একটি JWT যদি ছয় ঘণ্টা socket খোলা রাখে, তাহলে পৌনে ছয় ঘণ্টা unauthenticated access পাওয়া যায়।
+**Token-এর মেয়াদ শেষ হওয়াই সূক্ষ্ম সমস্যা।** Connection যে token দিয়ে খোলা হয়েছিল, তার চেয়ে বেশি দিন বাঁচতে পারে। 15 মিনিটের একটি JWT যদি ছয় ঘণ্টা ধরে socket খোলা রাখে, তাহলে পৌনে ছয় ঘণ্টা unauthenticated access থাকে।
 
-সমাধান হলো একটি interval-এ নিয়মিত যাচাই। Session revalidate করুন, আর সেটা ব্যর্থ হলে একটি
-`SESSION_EXPIRED` error emit করে `socket.disconnect(true)` call করুন। `disconnect`-এ timer clear করুন, যাতে
-সেটা socket-এর চেয়ে বেশিদিন না বাঁচে।
+সমাধান হলো নির্দিষ্ট বিরতিতে যাচাই। Session আবার যাচাই করুন, আর ব্যর্থ হলে একটি `SESSION_EXPIRED` error emit করে
+`socket.disconnect(true)` call করুন। `disconnect`-এ timer মুছে দিন, যাতে সেটা socket-এর চেয়ে বেশি দিন না বাঁচে।
 
-`auth`-এ রাখা token `Origin` সমস্যাও পুরোপুরি এড়িয়ে যায়। Browser নিজে থেকে কিছু পাঠায় না, তাই একটি শত্রুভাবাপন্ন page-এর কাছে replay করার মতো কোনো credential থাকে না।
+`auth`-এ token রাখলে `Origin`-এর সমস্যাও পুরোপুরি এড়ানো যায়। Browser নিজে থেকে কিছুই পাঠায় না, তাই শত্রুভাবাপন্ন page-এর হাতে replay করার মতো কোনো credential থাকে না।
 
-## Room আর নির্দিষ্ট লক্ষ্যে Broadcast
+## Room আর লক্ষ্য করে Broadcast
 
-Room হলো একটি server-এ থাকা socket id-এর একটি set। "Document 42 যারা দেখছে, তাদের সবাই"-এর জন্য এটাই সঠিক abstraction।
+Room হলো একটি server-এর কিছু socket id-র set। "Document 42 যারা দেখছেন, সবাই", এর জন্য এটাই ঠিক abstraction।
 
-`socket.join()` একটি socket-কে একটি room-এ যোগ করে। দুটিতে join করুন: document বা channel-এর জন্য `room:<id>`, আর
-একজন user-এর সব device-এর জন্য `user:<id>`। তারপর `io.to(room).emit()` সবার কাছে পৌঁছায়,
-`socket.to(room).emit()` sender ছাড়া সবার কাছে পৌঁছায়, আর `io.to(`user:${id}`).emit()`
-একজন user-এর সব tab-এ পৌঁছায়।
+`socket.join()` একটি socket-কে room-এ যোগ করে। দুটিতে join করান: document বা channel-এর জন্য `room:<id>`, আর একজন
+user-এর সব device-এর জন্য `user:<id>`। তারপর `io.to(room).emit()` পৌঁছায় সবার কাছে,
+`socket.to(room).emit()` পৌঁছায় পাঠানো জন ছাড়া সবার কাছে, আর `io.to(`user:${id}`).emit()`
+পৌঁছায় একজন user-এর সব tab-এ।
 
-`user:<id>` room-ই সেই pattern, যেটা মনে রাখতে হবে। মানুষের তিনটি tab আর একটি phone খোলা থাকে। Socket নয়, user-কে address করাই notification-কে সঠিকভাবে আচরণ করায়।
+মনে রাখার মতো pattern হলো `user:<id>` room। মানুষের তিনটি tab আর একটি phone খোলা থাকে। Socket নয়, user-কে লক্ষ্য করলেই notification ঠিকঠাক আচরণ করে।
 
 ## একাধিক Instance জুড়ে Broadcast
 
-একটি instance শুধু নিজের socket-গুলো ধরে রাখে, অন্যগুলোর কথা কিছুই জানে না। তাই pod 1 থেকে করা broadcast কখনো room-এর সেই অর্ধেকের কাছে পৌঁছায় না, যারা pod 2-তে বসে আছে। Topology কেন এভাবে আচরণ করে আর এর খরচ কী, তা [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues)-এ আছে। Wiring অল্পই:
+একটি instance শুধু নিজের socket-গুলো ধরে রাখে, বাকিদের সম্পর্কে কিছুই জানে না। তাই pod 1 থেকে broadcast করলে room-এর যে অর্ধেক pod 2-তে বসে আছে, তাদের কাছে কখনো পৌঁছায় না। Topology কেন এভাবে আচরণ করে, আর তার খরচ কী, তা আছে [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues)-এ। জোড়া লাগানোর কাজটুকু ছোট:
 
 ```typescript
 const pubClient = createClient({ url: process.env.REDIS_URL });
@@ -190,11 +189,11 @@ io.adapter(createAdapter(pubClient, subClient));
 io.to(`room:${roomId}`).emit("message", payload);
 ```
 
-দুটি জিনিস adapter আপনাকে **দেয় না**। Redis Pub/Sub fire-and-forget, তাই durability আসতে হবে আপনার database থেকে। আর HTTP long-polling fallback চালু রাখলে sticky session এখনো লাগবে, কারণ সেই আলাদা request-গুলোকে একই pod-এ পৌঁছাতে হবে।
+দুটি জিনিস adapter আপনাকে **দেয় না**। Redis Pub/Sub ছুড়ে দিয়ে ভুলে যায়, তাই durability আসতে হবে আপনার database থেকে। আর HTTP long-polling fallback চালু রাখলে sticky session এখনো লাগে, কারণ সেই আলাদা আলাদা request-গুলোকে একই pod-এ পৌঁছাতে হয়।
 
-## Backpressure আর মৃত Connection
+## Backpressure আর মরা Connection
 
-**ধীর consumer মানেই memory leak।** Client যত দ্রুত পড়তে পারে, তার চেয়ে দ্রুত emit করলে message আপনার process-এ queue হয়ে জমে।
+**ধীর consumer মানে memory leak।** Client যত দ্রুত পড়তে পারে, তার চেয়ে দ্রুত emit করলে message জমতে থাকে আপনার process-এ।
 
 ```typescript
 // ws exposes the socket's outbound buffer — drop or disconnect when it grows.
@@ -204,57 +203,57 @@ if (ws.bufferedAmount > 1_000_000) {
 }
 ```
 
-High-frequency data-র জন্য **queue না করে coalesce করুন**: প্রতিটি key-এর শুধু সর্বশেষ value রাখুন, আর একটি interval-এ flush করুন। একটি live price feed-এর কাছে বর্তমান দামটাই দরকারি, আপনি যে বারোটি miss করেছেন সেগুলো নয়।
+ঘন ঘন আসা data-র জন্য **queue না করে একত্র করুন**: প্রতিটি key-এর শুধু সর্বশেষ value রাখুন, আর নির্দিষ্ট বিরতিতে পাঠিয়ে দিন। Live price feed-এর দরকার বর্তমান দাম, ফসকে যাওয়া বারোটি দাম নয়।
 
-**মৃত connection-এর জন্য heartbeat লাগে।** যে client-এর power চলে যায়, সে কোনো close frame পাঠায় না। ফলে server socket আর তার memory চিরকাল ধরে রাখে। Socket.IO default-ভাবে ping করে (`pingInterval`, `pingTimeout`)। সাধারণ `ws`-এ আপনি নিজে ping frame পাঠান, আর যে socket pong miss করে তাকে বাদ দেন।
+**মরা connection ধরতে heartbeat লাগে।** বিদ্যুৎ চলে গেলে client কোনো close frame পাঠায় না, তাই server socket আর তার memory চিরকাল ধরে রাখে। Socket.IO default হিসেবে ping করে (`pingInterval`, `pingTimeout`)। সাধারণ `ws`-এ আপনি নিজে ping frame পাঠান, আর যে socket pong দেয় না, তাকে বাদ দেন।
 
-সাধারণ `ws`-এ pattern হলো জীবিত socket-এর একটি set। `pong` এলে socket-কে alive হিসেবে চিহ্নিত করুন। প্রতি 30 সেকেন্ডে,
-আগের round থেকে যে socket এখনো চিহ্নহীন, তাকে terminate করুন, তারপর আবার ping করুন।
+সাধারণ `ws`-এ pattern হলো জীবিত socket-গুলোর একটি set। `pong` এলে socket-কে জীবিত চিহ্নিত করুন। প্রতি 30 সেকেন্ডে,
+আগের দফা থেকে যে socket এখনো চিহ্নহীন, তাকে terminate করুন, তারপর আবার ping করুন।
 
-**প্রতি socket-এও rate limit করুন।** একটি connection সেকেন্ডে হাজার হাজার message পাঠাতে পারে। [Chapter ?? — Rate Limiting](#ch-rate-limiting)-এর token bucket আবার ব্যবহার করুন, IP-র বদলে `socket.data.userId`-কে key করে।
+**Socket-প্রতিও rate limit দিন।** একটি connection সেকেন্ডে হাজার হাজার message পাঠাতে পারে। [Chapter ?? — Rate Limiting](#ch-rate-limiting)-এর token bucket আবার ব্যবহার করুন, তবে IP নয়, `socket.data.userId`-এর ওপর key করে।
 
 ## সাধারণ ভুল
 
-❌ **শুধু একবার, connect-এর সময় authorise করা।** যে client বৈধভাবে একটি room-এ join করেছিল, তার access হয়তো এর মধ্যে চলে গেছে।
+❌ **শুধু একবার, connect-এর সময় authorise করা।** যে client বৈধভাবে room-এ ঢুকেছিল, তার access হয়তো এর মধ্যে চলে গেছে।
 ✅ প্রতিটি handler-এর ভেতরে, প্রতিটি message-এ permission যাচাই করুন।
 
-❌ **একটি pod থেকে broadcast করে কাজ শেষ ধরে নেওয়া।** Development-এ এটা কাজ করে, কারণ সেখানে একটিই pod।
-✅ দ্বিতীয় instance আসার আগেই একটি pub/sub adapter যোগ করুন, পরে নয়।
+❌ **এক pod থেকে broadcast করে কাজ শেষ ভাবা।** Development-এ চলে, কারণ সেখানে pod একটিই।
+✅ দ্বিতীয় instance আসার আগেই pub/sub adapter যোগ করুন, পরে নয়।
 
-❌ **Socket-কেই delivery guarantee ধরে নেওয়া।** প্রতিটি deploy সব connection ফেলে দেয়।
-✅ Database-এ persist করুন, আর client-দের HTTP দিয়ে ফাঁকটুকু recover করতে দিন।
+❌ **Socket-কেই delivery-র নিশ্চয়তা ধরে নেওয়া।** প্রতিটি deploy সব connection ফেলে দেয়।
+✅ Database-এ persist করুন, আর ফাঁকটুকু client-কে HTTP দিয়ে পুষিয়ে নিতে দিন।
 
 ## 🔑 মূল শিক্ষা
 
-- Upgrade প্রতিটি HTTP middleware এড়িয়ে যায়। তাই validation, authorisation, rate limiting আর logging সবই socket-এ আবার তৈরি করতে হয়।
-- Handshake-এ authenticate করুন, তারপর নিয়মিত revalidate করুন, কারণ দীর্ঘস্থায়ী connection স্বল্পস্থায়ী token-এর চেয়ে বেশিদিন বাঁচে।
-- Room-এর উচিত user-কে address করা, socket-কে নয়, কারণ মানুষ একসাথে কয়েকটি device খোলা রাখে।
-- Pub/sub adapter একাধিক instance জুড়ে broadcast সঠিক করে, কিন্তু কোনো durability যোগ করে না। সেটা এখনো database-এর দায়িত্ব।
-- যে client তাল মেলাতে পারে না, সে সীমাহীন memory leak। তাই outbound buffer-এর দিকে নজর রাখুন আর high-frequency data coalesce করুন।
+- Upgrade HTTP middleware-এর প্রতিটি অংশ এড়িয়ে যায়, তাই validation, authorisation, rate limiting আর logging, সবই socket-এর ওপর নতুন করে গড়তে হয়।
+- Handshake-এ authenticate করুন, তারপর নিয়মিত পুনর্যাচাই করুন, কারণ দীর্ঘজীবী connection স্বল্পায়ু token-এর চেয়ে বেশি দিন বাঁচে।
+- Room-এর লক্ষ্য হওয়া উচিত user, socket নয়, কারণ মানুষ একসঙ্গে কয়েকটি device খোলা রাখেন।
+- Pub/sub adapter একাধিক instance জুড়ে broadcast ঠিক করে, কিন্তু কোনো durability যোগ করে না। সেটা এখনো database-এর দায়িত্ব।
+- তাল রাখতে না পারা client মানে সীমাহীন memory leak। তাই outbound buffer-এর ওপর নজর রাখুন, আর ঘন ঘন আসা data একত্র করুন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: আপনি কি WebSocket message validate করেন?**
+**Q: WebSocket message কি validate করেন?**
 
-হ্যাঁ, প্রতিটি। Upgrade সব HTTP middleware এড়িয়ে যায়, তাই কেউ payload validate করেনি, rate limit যাচাই করেনি বা action authorise করেনি। Authorisation-ও connection প্রতি নয়, message প্রতি হতে হবে, কারণ যে client বৈধভাবে একটি room-এ join করেছিল, তার access হয়তো এর মধ্যে চলে গেছে। শুধু connect-এর সময় auth হলো ক্লাসিক WebSocket vulnerability।
+হ্যাঁ, প্রতিটি। Upgrade সব HTTP middleware এড়িয়ে যায়, তাই payload কেউ validate করেনি, rate limit কেউ যাচাই করেনি, action-ও কেউ authorise করেনি। Authorisation-ও হতে হবে connection-প্রতি নয়, message-প্রতি, কারণ যে client বৈধভাবে room-এ ঢুকেছিল, তার access হয়তো এর মধ্যে চলে গেছে। শুধু connect-এর সময় auth হলো WebSocket-এর ক্লাসিক দুর্বলতা।
 
-**Q: একটি socket কীভাবে authenticate করেন, আর কোথায় ভুল হয়?**
+**Q: Socket কীভাবে authenticate করবেন, আর কী কী ভুল হতে পারে?**
 
-Handshake-এর `auth` payload-এ একটি token, যেটা server connection গ্রহণ করার আগে middleware-এ verify হয়। Query string-এ নয়, কারণ সেটা log-এ চলে যায়। দুটি জিনিস ভুল হয়। Connection token-এর চেয়ে বেশিদিন বাঁচে, তাই নিয়মিত revalidation আর disconnect লাগে। আর browser WebSocket-এ CORS প্রয়োগ করে না, তাই যেকোনো origin একটি cookie-authenticated socket খুলতে পারে। Token এটা এড়িয়ে যায়, কারণ browser নিজে থেকে কিছু পাঠায় না।
+Handshake-এর `auth` payload-এ একটি token, যা server connection নেওয়ার আগেই middleware-এ যাচাই হয়। Query string-এ নয়, কারণ সেটা log-এ চলে যায়। দুটি জিনিস ভুল হয়। Connection token-এর চেয়ে বেশি দিন বাঁচে, তাই নিয়মিত পুনর্যাচাই আর disconnect লাগে। আর browser WebSocket-এ CORS প্রয়োগ করে না, তাই যেকোনো origin cookie দিয়ে authenticated socket খুলতে পারে। Token থাকলে সেটা এড়ানো যায়, কারণ browser নিজে থেকে কিছুই পাঠায় না।
 
-**Q: দশটি pod জুড়ে প্রতিটি client-এর কাছে একটি broadcast কীভাবে পৌঁছাবেন?**
+**Q: দশটি pod জুড়ে প্রতিটি client-এর কাছে broadcast কীভাবে পৌঁছাবেন?**
 
-একটি pub/sub adapter দিয়ে (Socket.IO-র জন্য Redis), যাতে প্রতিটি pod প্রতিটি broadcast পায় আর নিজের socket-গুলোতে পৌঁছে দেয়। Long-polling fallback চালু থাকলে sticky session এখনো লাগবে। Adapter কোনো durability দেয় না, কারণ Redis Pub/Sub fire-and-forget। আর প্রতিটি message প্রতিটি pod-এ ছড়িয়ে যায়, সেই pod-এ প্রাসঙ্গিক socket থাকুক বা না থাকুক। কয়েক ডজন pod-এর কাছাকাছি গিয়ে এটা আর scale করে না।
+একটি pub/sub adapter দিয়ে (Socket.IO-র জন্য Redis), যাতে প্রতিটি pod প্রতিটি broadcast পায়, আর নিজের socket-গুলোতে পৌঁছে দেয়। Long-polling fallback চালু থাকলে sticky session এখনো লাগে। Adapter কোনো durability দেয় না, কারণ Redis Pub/Sub ছুড়ে দিয়ে ভুলে যায়। আর প্রতিটি message প্রতিটি pod-এ ছড়িয়ে পড়ে, সেই pod-এ প্রাসঙ্গিক socket থাকুক বা না থাকুক। কয়েক ডজন pod-এর কাছাকাছি গিয়ে এটা আর scale করে না।
 
-**Q: কখন আপনি socket server একেবারেই বানাবেন না?**
+**Q: কখন socket server একেবারেই বানাবেন না?**
 
-যখন traffic এক দিকের। SSE আপনার HTTP middleware, auth আর logging রেখে দেয়, আর browser আপনার হয়ে reconnection
-সামলায়। যখন "ত্রিশ সেকেন্ডের মধ্যে fresh" হলেই চলে, তখন যেকোনো stateful জিনিসের চেয়ে polling চালানো সস্তা। আর
-ছোট team নিয়ে কয়েক দশ হাজার concurrent connection পেরিয়ে গেলে, একটি managed service fan-out sharding আর
-deploy draining-কে আপনার মালিকানা থেকে সরিয়ে দেয়।
+যখন traffic এক দিকের। SSE আপনার HTTP middleware, auth আর logging রেখে দেয়, আর browser নিজেই reconnection সামলায়। যখন
+"ত্রিশ সেকেন্ডের মধ্যে নতুন" হলেই চলে, তখন stateful যেকোনো কিছুর চেয়ে polling চালানো সস্তা। আর ছোট team-এ কয়েক
+হাজার concurrent connection ছাড়িয়ে গেলে managed service নিলে fan-out sharding আর deploy-এর সময় connection খালি করার
+দায়িত্ব আর আপনার থাকে না।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues) — এই feature-এর আদৌ socket লাগে কি না, আর connection topology কীভাবে scale করে
-- [Chapter ?? — Frontend-এ Real-Time Feature](#ch-frontend-real-time-features) — client-এর অর্ধেক: reconnection, jitter-সহ backoff, আর miss হওয়া message recover করা
-- [Chapter ?? — Rate Limiting](#ch-rate-limiting) — যে token bucket এই অধ্যায় প্রতি socket-এ আবার ব্যবহার করে
+- [Chapter ?? — Frontend-এ Real-Time Feature](#ch-frontend-real-time-features) — client-এর দিক: reconnection, jitter-সহ backoff, আর ফসকে যাওয়া message ফিরে পাওয়া
+- [Chapter ?? — Rate Limiting](#ch-rate-limiting) — এই অধ্যায় socket-প্রতি যে token bucket আবার ব্যবহার করে

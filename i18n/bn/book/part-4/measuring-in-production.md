@@ -1,47 +1,48 @@
 ---
 sourceHash: "03b1ac4b294b4893ae9b43f1660c849457e55504c3150facd8b4e5a8943c81be"
 title: "Production-এ মাপা"
-translatedAt: "2026-10-12T12:13:55.183Z"
+translatedAt: "2026-10-17T13:59:03.690Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Production-এ মাপা {#ch-measuring-in-production}
 
-> এমন field data সংগ্রহ করুন, যা দিয়ে performance আর error debug করা যায় — user-এর data vendor-এর কাছে না পাঠিয়ে, আর noise-এ না ডুবে।
+> এমন field data সংগ্রহ করুন, যা দিয়ে performance আর error debug করা যায়। তবে user-এর data vendor-এর কাছে পাঠিয়ে দেবেন না, আর noise-এ ডুবেও যাবেন না।
 
-**এই অধ্যায়ে:** field বনাম lab, আর কোনটা কী দেখতে পায় না · `web-vitals` আর attribution · error আপনার কাছে পৌঁছানোর চারটি পথ · যে context একটি bug ঠিক করায় · redaction আর sampling · frontend SLO হিসেবে crash-free session
+**এই অধ্যায়ে:** field বনাম lab, আর দুটির কোনটি কী দেখতে পায় না · `web-vitals` আর attribution · error যে চার জায়গা দিয়ে আপনার কাছে আসে · যে context থাকলে bug ঠিক হয় · redaction আর sampling · frontend-এর SLO হিসেবে crash-free session
 
 ## 💡 মূল ধারণা
 
-Performance আর error tracking আসলে একই যন্ত্র। দুটিই উত্তর দেয় "আসল user-দের সাথে আসলে কী ঘটেছে"। দুটিই browser-এ
-সংগ্রহ হয়, আর এমন কিছুতে পাঠানো হয় যেটা আপনি বানাননি। আর একই তিনটি field ছাড়া দুটিই অকেজো: **কোন release, কোন
-user, কোন page**।
+Performance tracking আর error tracking আসলে একই যন্ত্র। দুটিই উত্তর দেয় "সত্যিকারের user-দের সঙ্গে আসলে কী
+হয়েছিল"। দুটিই browser-এ সংগ্রহ হয়, আর পাঠানো হয় এমন কোনো জায়গায়, যা আপনি বানাননি। আর একই তিনটি field
+ছাড়া দুটিই অকেজো: **কোন release, কোন user, কোন page**।
 
-দুটি এক অধ্যায়ে, কারণ আকর্ষণীয় failure-গুলো একে অপরের সাথে জড়ানো। Deploy-এর পর INP-তে spike আর unhandled
-rejection-এ spike আসলে একই incident, দুবার বর্ণনা করা। দুটি আলাদাভাবে wire করলে আপনি পান দুটি dashboard, যেগুলো
-কেউ মিলিয়ে দেখে না।
+দুটিকে এক অধ্যায়ে রাখার কারণ, আকর্ষণীয় failure-গুলো একটির সঙ্গে আরেকটি জড়ানো। Deploy-এর পরে INP-এর spike আর
+unhandled rejection-এর spike আসলে একই incident, দুবার বর্ণনা করা। দুটিকে আলাদা করে wire করলে পাবেন দুটি
+dashboard, যেগুলো কেউ কখনো মিলিয়ে দেখে না।
 
-অস্বস্তিকর অর্ধেকটা হলো, এই সব data browser ছেড়ে চলে যায়। Session replay মানে কেউ আপনার product ব্যবহার করছে, তার
-একটি recording। একে privacy-র সিদ্ধান্ত না ভেবে শুধু technical সিদ্ধান্ত ভাবলে, শেষে card number গিয়ে পড়ে একটি
-vendor-এর database-এ।
+অস্বস্তির দিকটা হলো, এই সব data browser ছেড়ে বেরিয়ে যায়। Session replay মানে কেউ আপনার product ব্যবহার করছে,
+তার একটি recording। এটাকে privacy-র নয়, শুধু technical সিদ্ধান্ত ভাবলে একদিন দেখবেন vendor-এর database-এ card
+number জমে আছে।
 
 ## কীভাবে কাজ করে
 
 ### Field আর lab আলাদা প্রশ্নের উত্তর দেয়
 
-| | Field (আসল user) | Lab (একটি scripted load) |
+| | Field (সত্যিকারের user) | Lab (script দিয়ে চালানো load) |
 | --- | --- | --- |
-| যা জানায় | আপনার সমস্যা আছে কি না, আর কার জন্য | কেন, একটি waterfall আর trace সহ |
+| যা জানায় | সমস্যা আছে কি না, আর কার জন্য | কেন আছে, waterfall আর trace সহ |
 | Device আর network | User-দের যা আছে | আপনার বেছে নেওয়া একটি profile |
-| INP মাপতে পারে | হ্যাঁ | না — কেউ interact করছে না |
-| CI-তে কাজের | না — traffic লাগে | হ্যাঁ, আর gate করার মতো যথেষ্ট deterministic |
+| INP মাপা যায় | হ্যাঁ | না — কেউ তো interact করছে না |
+| CI-তে কাজে লাগে | না — traffic লাগে | হ্যাঁ, আর gate করার মতো যথেষ্ট deterministic |
 
-আপনার দুটিই লাগবে, আর ভাগটা পরিষ্কার: **lab data pull request gate করে, field data বলে কী নিয়ে কাজ করবেন।** যে
-team-এর শুধু lab data আছে, সে একটি simulated profile-এর জন্য optimise করে। যে team-এর শুধু field data আছে, সে জানে
-site slow, কিন্তু কেন তা বলতে পারে না।
+দুটিই লাগবে, আর ভাগটা পরিষ্কার: **lab data pull request-কে gate করে, field data বলে কোন কাজটা ধরবেন।** যে team-এর
+কাছে শুধু lab data আছে, তারা একটি simulated profile-এর জন্য optimise করে। যাদের কাছে শুধু field data, তারা জানে
+site ধীর, কিন্তু কেন, সেটা বলতে পারে না।
 
-একমাত্র কঠিন পার্থক্য INP। Lab run-এ কোনো interaction নেই, তাই Lighthouse এর বদলে Total Blocking Time দেখায়। তাই
-INP ঠিক করতে field data *লাগবেই*। দেখুন [Chapter ?? — Core Web Vitals](#ch-core-web-vitals)।
+একটিই কঠিন পার্থক্য আছে, সেটা INP। Lab run-এ কোনো interaction হয় না, তাই Lighthouse তার জায়গায় Total
+Blocking Time দেখায়। ফলে INP ঠিক করতে field data *লাগবেই*।
+[Chapter ?? — Core Web Vitals](#ch-core-web-vitals) দেখুন।
 
 ### Vitals সংগ্রহ, আর attribution build
 
@@ -59,10 +60,10 @@ function report(metric: Metric): void {
 [onLCP, onINP, onCLS, onTTFB].forEach((collect) => collect(report));
 ```
 
-> ⚠️ **`onFID` আর নেই।** FID 2024-এ অবসরে গেছে, আর library থেকে সরিয়ে ফেলা হয়েছে। যে code বা article এটা
-> ব্যবহার করে, সেটা শুধু একটি metric-এর নামের চেয়ে বেশি পুরনো।
+> ⚠️ **`onFID` আর নেই।** FID 2024-এ অবসরে গেছে, library থেকেও সরানো হয়েছে। যে code বা লেখা এখনও এটা ব্যবহার
+> করে, সেটা শুধু একটি metric-এর নামে নয়, আরও অনেক দিক দিয়েই পুরনো।
 
-শুধু একটি value বলে যে সমস্যা আছে। **Attribution build** বলে কোথায়:
+শুধু value দেখে জানবেন সমস্যা আছে। **Attribution build** বলে দেয় সমস্যাটা কোথায়:
 
 ```typescript
 import { onINP, onLCP } from "web-vitals/attribution";
@@ -72,9 +73,9 @@ onINP((m) => report({ ...m, target: m.attribution.interactionTarget }));
 ```
 
 এতে "p75 INP 480 ms" হয়ে যায় "p75 INP 480 ms, reports table-এর filter dropdown-এ"। শুরু থেকেই attribution
-সংগ্রহ করুন। পরে যোগ করলে data-র জন্য আরও এক সপ্তাহ অপেক্ষা করতে হয়।
+সংগ্রহ করুন। পরে যোগ করলে data-র জন্য আরও এক সপ্তাহ বসে থাকতে হবে।
 
-Vitals যা cover করে না, তার জন্য `PerformanceObserver` browser-এর নিজের timeline দেখে:
+Vitals যা ধরে না, তার জন্য `PerformanceObserver` browser-এর নিজের timeline-এ নজর রাখে:
 
 ```typescript
 // Long tasks are the direct cause of poor INP — over 50 ms cannot be interrupted.
@@ -85,16 +86,16 @@ new PerformanceObserver((list) => {
 }).observe({ type: "longtask", buffered: true });
 ```
 
-### Error আপনার কাছে পৌঁছানোর চারটি পথ
+### যে চার জায়গা দিয়ে error আপনার কাছে আসতে পারে
 
-যেকোনো একটি বাদ দিলে, একটি পুরো শ্রেণির failure অদৃশ্য হয়ে যায়।
+একটিও বাদ পড়লে পুরো এক ধরনের failure চোখের আড়ালে থেকে যায়।
 
-| উৎস | যা ধরে | এটা ছাড়া যা অদৃশ্য |
+| উৎস | যা ধরে | এটা না থাকলে যা দেখা যায় না |
 | ------ | ------- | -------------------- |
-| Framework error boundary | Render আর commit-এর সময় throw | প্রতিটি render crash |
-| `window.onerror` | Handler, timer, third-party code-এ uncaught error | Handler আর vendor script-এর failure |
-| `unhandledrejection` | `.catch()` ছাড়া reject হওয়া promise | বেশিরভাগ ব্যর্থ `fetch` call |
-| Explicit capture | Handle করা error, যেগুলোর কথা তবুও জানতে চান | Retry আর degraded mode — চুপচাপ থাকা failure-গুলো |
+| Framework-এর error boundary | Render আর commit-এর সময় throw | প্রতিটি render crash |
+| `window.onerror` | Handler, timer আর third-party code-এর uncaught error | Handler আর vendor script-এর failure |
+| `unhandledrejection` | যে promise reject হয়েছে, অথচ `.catch()` নেই | ব্যর্থ `fetch` call-এর বেশিরভাগ |
+| নিজে capture করা | যে error handle করেছেন, তবু জানতে চান | Retry আর degraded mode — যেগুলো চুপচাপ ঘটে |
 
 ```typescript
 window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
@@ -107,127 +108,128 @@ window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => 
 });
 ```
 
-`unhandledrejection`-ই সেটা, যেটা team-রা ভুলে যায়, আর বেশিরভাগ আসল failure সেখানেই পড়ে। `try` ছাড়া একটি `await fetch`
-একটি rejection তৈরি করে, error নয়, তাই `window.onerror` কখনো fire করে না। Render-এর সময়ের অর্ধেকটার জন্য দেখুন
-[Chapter ?? — Suspense, Streaming ও Error Boundary](#ch-suspense-and-streaming)।
+`unhandledrejection`-এর কথাই team-রা ভুলে যায়, অথচ আসল failure-এর বেশিরভাগ এখানেই এসে পড়ে। `try` ছাড়া
+`await fetch` লিখলে error নয়, rejection তৈরি হয়, তাই `window.onerror` কখনো চলেই না। Render-এর সময়ের দিকটার জন্য
+[Chapter ?? — Suspense, Streaming ও Error Boundary](#ch-suspense-and-streaming) দেখুন।
 
-### যে context ঠিক করে একটি bug ঠিক হবে কি না
+### যে context ঠিক করে দেয় bug-টা fix হবে কি না
 
-এগুলো ছাড়া একটি error report শুধু একটি string, যেটা কেউ একজন close করে দেয়।
+এগুলো ছাড়া error report শুধু একটি string, যা কেউ একজন close করে দেয়।
 
-| Field | কেন গুরুত্বপূর্ণ |
+| Field | কেন জরুরি |
 | ----- | -------------- |
-| **Release version** | এটা নতুন কি না। এটা ছাড়া প্রতিটি deploy আপনার baseline reset করে দেয় |
-| **Source map, প্রতি release-এ upload করা** | Minified stack পড়া যায় না। এগুলো private রাখুন, CDN-এ public নয় |
-| **Component stack** | JavaScript stack যখন পারে না, তখন tree-তে failure-টা খুঁজে দেয় |
-| **Breadcrumb** | শেষ কয়েকটি click, navigation আর request — reproduction-এর সবচেয়ে কাছের জিনিস |
-| **একটি user identifier** | "1,200 event"-কে বানায় "তিনজন user, একজন retry loop-এ আটকে" |
+| **Release version** | এটা নতুন কি না, বোঝা যায়। না থাকলে প্রতিটি deploy-এ আপনার baseline নতুন করে শুরু হয় |
+| **প্রতিটি release-এর সঙ্গে upload করা source map** | Minified stack পড়া যায় না। Source map private রাখুন, CDN-এ public করে রাখবেন না |
+| **Component stack** | JavaScript stack যখন পারে না, তখন tree-র কোথায় failure, সেটা দেখায় |
+| **Breadcrumb** | শেষ কয়েকটি click, navigation আর request — reproduction-এর সবচেয়ে কাছাকাছি জিনিস |
+| **User identifier** | "1,200 event"-কে বানিয়ে দেয় "তিনজন user, যার একজন retry loop-এ আটকে" |
 | **Browser আর device** | Long tail-এর বেশিরভাগ error একটি engine বা একটি পুরনো version-এর |
 
-**একটি identifier, পরিচয় নয়।** ক্ষতিগ্রস্ত মানুষ গোনার জন্য `user.id`-ই যথেষ্ট। Error service-এ একটি নাম আর একটি email
-address মানে personal data, যার হিসাব এখন আপনাকে দিতে হবে।
+**Identifier, পরিচয় নয়।** আক্রান্ত মানুষ গুনতে `user.id`-ই যথেষ্ট। Error service-এ নাম আর email address রাখলে
+সেটা personal data, যার হিসাব এখন আপনাকে দিতে হবে।
 
-### Browser ছাড়ার আগেই, browser-এ redact করুন
+### বেরিয়ে যাওয়ার আগে, browser-এই redact করুন
 
-প্রতিটি সিরিয়াস client একটি before-send hook দেয়। এটা ব্যবহার করুন: data তখনও আপনার, এমন শেষ জায়গা এটাই।
-`/token|password|secret|authorization|email|card/i`-এর সাথে মেলে এমন যেকোনো query parameter বা header সরিয়ে ফেলুন।
-**Query string-ই সবচেয়ে সাধারণ অনিচ্ছাকৃত leak**, কারণ token প্রায়ই URL-এ চলে যায়, তারপর error report-এ।
+ভালো সব client-এ একটি before-send hook থাকে। সেটা ব্যবহার করুন, কারণ data তখনো আপনার হাতে, এটাই শেষ সুযোগ।
+`/token|password|secret|authorization|email|card/i`-এর সঙ্গে মেলে এমন সব query parameter আর header ফেলে দিন।
+**অসাবধানে data ফাঁস হওয়ার সবচেয়ে সাধারণ পথ হলো query string**। কারণ token প্রায়ই URL-এ চলে যায়, আর সেখান থেকে
+error report-এ।
 
-> ⚠️ **Session replay default-ভাবে mask করুন, আর জেনেবুঝে unmask করুন।** একটি allow-list নিরাপদ দিকে ব্যর্থ হয়।
-> একটি deny-list ব্যর্থ হয় প্রথম যেদিন কেউ একটি form field যোগ করে। Checkout-এর একটি replay card input capture করে,
-> যদি না আপনি আগে থেকে থামিয়ে রাখেন। আর "আমরা এটা deny-list-এ যোগ করব" কোনো plan নয়।
+> ⚠️ **Session replay ডিফল্টে mask করে রাখুন, আর জেনে-বুঝে unmask করুন।** Allow-list ব্যর্থ হলেও নিরাপদ থাকে।
+> Deny-list ব্যর্থ হয় প্রথম যেদিন কেউ নতুন form field যোগ করে। আগে থেকে না আটকালে checkout-এর replay card-এর
+> input ধরে ফেলবে। আর "আমরা এটা deny-list-এ যোগ করে দেব" কোনো পরিকল্পনা নয়।
 
-### Sampling, কারণ দুটি budget-ই সীমিত
+### Sampling, কারণ দুই ধরনের budget-ই সীমিত
 
-একটি error service প্রতি event-এ bill করে, আর একজন মানুষ প্রতি issue ধরে triage করে।
+Error service টাকা নেয় প্রতিটি event-এর জন্য, আর একজন মানুষ triage করে প্রতিটি issue ধরে।
 
 | Signal | Rate | কেন |
 | ------ | ---- | --- |
-| Error | 100% | এগুলো বিরল, আর বিরলটাই আকর্ষণীয় |
-| Performance trace | 1–10% | নিরবচ্ছিন্ন আর ব্যয়বহুল; একটি sample statistically যথেষ্ট |
+| Error | 100% | এগুলো কম ঘটে, আর কম ঘটা error-টাই আকর্ষণীয় |
+| Performance trace | 1–10% | অবিরাম আসে আর খরচ বেশি; statistics-এর হিসাবে একটি sample-ই যথেষ্ট |
 | Session replay, সব session | ~1% | Storage আর privacy-র খরচ |
-| Session replay, error থাকা session | 100% | আপনি আসলে চান শুধু সেই session, যেটা ভেঙেছে |
+| Session replay, যে session-এ error হয়েছে | 100% | আপনি আসলে শুধু সেই session-টাই চান, যেটা ভেঙেছে |
 
-বেশিরভাগ noise আপনার code-এর নয়: script inject করা browser extension, bot traffic, আর `ResizeObserver
-loop completed with undelivered notifications`, যেটা সাধারণত ক্ষতিকর নয়। Triage-এ নয়, client-এই filter করুন,
-আর যে event-এর stack-এ আপনার নিজের origin-এর একটি frame-ও নেই, সেটা বাদ দিন।
+বেশিরভাগ noise আপনার code থেকে আসে না। আসে browser extension-এর ঢোকানো script, bot traffic, আর `ResizeObserver
+loop completed with undelivered notifications` থেকে, যেটা সাধারণত ক্ষতিকর নয়। Triage-এ না করে client-এই filter
+করুন। যে event-এর stack-এ আপনার নিজের origin-এর একটিও frame নেই, সেটা ফেলে দিন।
 
-### Event count নয়, user-এর ওপর প্রভাব দেখে alert করুন
+### Event-এর সংখ্যায় নয়, user-এর ওপর প্রভাবে alert দিন
 
-Retry loop-এ আটকে থাকা একজন user-এর 500 event-এর spike কোনো incident নয়। পাঁচজন user checkout করতে পারছে না —
-সেটা incident।
+Retry loop-এ আটকে থাকা একজন user থেকে 500 event-এর spike কোনো incident নয়। পাঁচজন user checkout করতে না
+পারলে, সেটা incident।
 
 | Indicator | Target | Window |
 | --------- | ------ | ------ |
 | কোনো fatal error ছাড়া session | 99.5% | 24 h |
-| Checkout শুরু → সম্পন্ন | 97% | 1 h |
+| Checkout শুরু → শেষ | 97% | 1 h |
 | p75 LCP 2.5 s-এর নিচে | 90% | 24 h |
 
-**সবার আগে যে frontend metric ধরবেন, তা হলো crash-free session**, কারণ এটা traffic দিয়ে normalise করে। একটি কাঁচা
-error count ব্যস্ত দিনে spike করে, আর growth-এর আড়ালে একটি regression লুকিয়ে ফেলে। একটি rate এর কোনোটাই করে না।
-Alerting-এর নিয়মকানুন [Chapter ?? — Metrics, Dashboard ও Alerting](#ch-metrics-and-dashboards)-এ আছে, আর এখানেও
-তা হুবহু খাটে।
+**Frontend-এ সবার আগে যে metric ধরবেন, সেটা crash-free session**, কারণ এটা traffic দিয়ে normalise করা। শুধু error
+গুনলে ব্যস্ত দিনে সংখ্যাটা লাফিয়ে ওঠে, আর growth-এর আড়ালে regression লুকিয়ে যায়। Rate-এ এর কোনোটাই হয় না।
+Alerting-এর নিয়মকানুন [Chapter ?? — Metrics, Dashboard ও Alerting](#ch-metrics-and-dashboards)-এ আছে, আর
+এখানেও সেগুলো হুবহু খাটে।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | কী ব্যবহার করবেন | কেন |
 | --------- | --------- | --- |
-| "Site কি slow?" | Field data, device অনুযায়ী ভাগ করা | আপনার laptop 75th percentile নয় |
-| "এই page কেন slow?" | একটি lab run — trace আর waterfall | Deterministic, আর খুঁটিয়ে দেখা যায় |
-| খারাপ INP, কিন্তু কোথায় তা জানা নেই | Attribution build | Interaction target-এর নাম বলে দেয় |
-| এমন regression, যেটা শুধু CI-তে দেখা যায় | Lab, pipeline-এ | এটা দিয়ে pull request gate করুন |
-| এমন crash, যেটা কেউ reproduce করতে পারে না | Breadcrumb, আর সেই session-এর replay | Repro-র সবচেয়ে কাছের জিনিস |
-| এরপর কী ঠিক করবেন, তা ঠিক করা | ক্ষতিগ্রস্ত user-এর সংখ্যা, event count নয় | পরিমাণ নয়, প্রভাব |
+| "Site কি ধীর?" | Field data, device অনুযায়ী ভাগ করে | আপনার laptop 75th percentile নয় |
+| "এই page ধীর কেন?" | Lab run — trace আর waterfall | Deterministic, খুঁটিয়ে দেখা যায় |
+| INP খারাপ, কিন্তু কোথায় তা জানা নেই | Attribution build | কোন element-এ interaction, তার নাম বলে দেয় |
+| এমন regression, যা শুধু CI-তে দেখা যায় | Lab, pipeline-এর ভেতরে | Pull request-কে এর ওপর gate করুন |
+| এমন crash, যা কেউ reproduce করতে পারছে না | Breadcrumb, আর সেই session-এর replay | Repro-র সবচেয়ে কাছের জিনিস |
+| এরপর কী fix করবেন, সেই সিদ্ধান্ত | কতজন user আক্রান্ত, event-এর সংখ্যা নয় | পরিমাণ নয়, প্রভাব |
 
 ## সাধারণ ভুল
 
-❌ **Attribution ছাড়া vitals সংগ্রহ করা।** আপনি জানেন সমস্যা আছে, কিন্তু কোথায় তা জানেন না।
+❌ **Attribution ছাড়া vitals সংগ্রহ করা।** সমস্যা আছে জানবেন, কিন্তু কোথায় তা জানবেন না।
 ✅ প্রথম দিন থেকেই attribution build ব্যবহার করুন।
 
-❌ **কোনো `unhandledrejection` listener নেই।** বেশিরভাগ ব্যর্থ `fetch` call চুপচাপ থাকে।
-✅ দুটি window listener-ই রাখুন, সাথে framework boundary আর explicit capture।
+❌ **`unhandledrejection` listener না রাখা।** ব্যর্থ `fetch` call-এর বেশিরভাগই তখন চুপচাপ থাকে।
+✅ Window-এর দুটি listener-ই রাখুন, সঙ্গে framework boundary আর নিজে capture করা।
 
-❌ **Report-এ কোনো release version নেই।** প্রতিটি deploy baseline reset করে, আর কিছুই কখনো "নতুন" হয় না।
-✅ Release stamp করুন, আর মিলিয়ে source map upload করুন।
+❌ **Report-এ release version না থাকা।** প্রতিটি deploy-এ baseline নতুন করে শুরু হয়, আর কিছুই কখনো "নতুন" থাকে না।
+✅ Release-এর ছাপ দিন, আর মিলিয়ে source map upload করুন।
 
-❌ **Session replay default-ভাবে unmasked।** প্রথম যে form যোগ করবেন, সেটাই leak করবে।
-✅ সবকিছু mask করুন, নির্দিষ্ট field জেনেবুঝে unmask করুন।
+❌ **ডিফল্টে unmask করা session replay।** প্রথম যে form যোগ করবেন, সেটাই data ফাঁস করবে।
+✅ সব mask করুন, নির্দিষ্ট field জেনে-বুঝে unmask করুন।
 
-❌ **Error count দেখে alert করা।** এটা যতটা health track করে, ততটাই traffic track করে।
-✅ Crash-free session আর completion rate দেখে alert করুন।
+❌ **Error-এর সংখ্যায় alert দেওয়া।** সংখ্যাটা যতটা health দেখায়, ততটাই traffic দেখায়।
+✅ Crash-free session আর completion rate-এ alert দিন।
 
 ## 🔑 মূল শিক্ষা
 
-- Lab data pull request gate করে, আর field data বলে কী নিয়ে কাজ করবেন। INP শুধু field-এই থাকে।
-- Attribution build-ই একটি খারাপ metric-কে একটি নির্দিষ্ট element বা interaction-এ পরিণত করে।
-- পুরো error coverage-এর জন্য চারটি capture point লাগে, আর সাধারণত `unhandledrejection`-টাই বাদ পড়ে।
-- Release version আর upload করা source map-ই একটি minified production stack-কে আদৌ কাজের বানায়।
-- শুরু করার frontend SLO (service-level objective) হলো crash-free session, কারণ একটি rate traffic-এর সাথে নড়ে না।
+- Lab data pull request-কে gate করে, আর field data বলে কোন কাজটা ধরবেন। INP শুধু field-এই আছে।
+- খারাপ metric-কে একটি নির্দিষ্ট element বা interaction-এর নামে নিয়ে আসে attribution build।
+- পুরো error coverage-এর জন্য চারটি capture point লাগে, আর সাধারণত বাদ পড়ে `unhandledrejection`।
+- Release version আর upload করা source map থাকলেই কেবল minified production stack কোনো কাজে লাগে।
+- শুরু করার মতো frontend SLO (service-level objective) হলো crash-free session, কারণ rate traffic-এর সঙ্গে ওঠানামা করে না।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Lighthouse site-কে 95 দিচ্ছে, আর user-রা বলছে site slow। কে ঠিক?**
+**Q: Lighthouse site-কে 95 দিচ্ছে, অথচ user-রা বলছেন site ধীর। কে ঠিক?**
 
-User-রা। Lighthouse হলো একটি device profile-এ একটি scripted load। এটা INP মাপতেই পারে না, কারণ কেউ page-এর সাথে
-interact করে না। 75th percentile-এর field data বাস্তবতা বর্ণনা করে। সাধারণত এটা দেখাবে যে সমস্যাটা load নয়, বরং
-mid-range phone-এ responsiveness। Lab run তবুও কাজের, কিন্তু রায় দেওয়ার জন্য নয়, diagnosis-এর জন্য।
+User-রা। Lighthouse হলো একটি device profile-এ script দিয়ে চালানো একটিমাত্র load। Lighthouse INP মাপতেই পারে না, কারণ
+page-এর সঙ্গে কেউ interact করছে না। বাস্তবতা দেখায় 75th percentile-এর field data। সাধারণত সেখানে দেখা যায়, সমস্যা
+load-এ নয়, মাঝারি দামের phone-এ responsiveness-এ। Lab run তবু কাজের, তবে রায় দেওয়ার জন্য নয়, কারণ খোঁজার জন্য।
 
-**Q: একটি error report triage করার মতো হতে হলে তাতে কী থাকা দরকার?**
+**Q: Error report triage করার যোগ্য হতে হলে তাতে কী থাকতে হবে?**
 
-Release version, upload করা source map থেকে পড়ার মতো একটি stack, route, আর একটি user identifier। Identifier দিয়ে আপনি
-event নয়, ক্ষতিগ্রস্ত মানুষ গুনতে পারেন। পারলে breadcrumb যোগ করুন: throw-এর আগের click আর request-গুলোই reproduction-এর
-সবচেয়ে কাছের জিনিস। বিশেষ করে release version ছাড়া, আপনি একটি নতুন regression আর মাসের পর মাস ধরে fail করতে থাকা
-কিছুর পার্থক্য বুঝতে পারবেন না।
+Release version, upload করা source map থেকে পড়ার মতো stack, route, আর একটি user identifier। Identifier থাকলে
+event নয়, আক্রান্ত মানুষ গোনা যায়। পারলে breadcrumb যোগ করুন: throw-এর আগের click আর request-গুলোই reproduction-এর
+সবচেয়ে কাছের জিনিস। বিশেষ করে release version না থাকলে বুঝতে পারবেন না, এটা নতুন regression, নাকি মাসের পর মাস
+ধরে ব্যর্থ হয়ে চলা কিছু।
 
-**Q: এখানে privacy-র ঝুঁকি কী, আর এ নিয়ে আপনি কী করেন?**
+**Q: এখানে privacy-র ঝুঁকি কী, আর তা নিয়ে কী করবেন?**
 
-যা কিছু সংগ্রহ হয়, সব browser ছেড়ে একটি third party-র কাছে যায়, আর session replay হলো কেউ আপনার product ব্যবহার করছে,
-তার recording। প্রথমত, একটি before-send hook-এ redact করুন, যাতে শেষ সিদ্ধান্তটা আপনার দিকেই হয়। Replay input
-default-ভাবে mask করুন, আর নির্দিষ্ট field জেনেবুঝে unmask করুন। নাম বা email নয়, একটি opaque user id পাঠান। আর
-sensitive query parameter সরিয়ে ফেলুন: URL-এ token-ই সবচেয়ে সাধারণ অনিচ্ছাকৃত leak।
+যা কিছু সংগ্রহ করা হয়, সব browser ছেড়ে third party-র কাছে যায়। আর session replay মানে কেউ আপনার product ব্যবহার
+করছে, তার recording। প্রথমত, before-send hook-এ redact করুন, যাতে শেষ সিদ্ধান্তটা আপনার দিকেই হয়। Replay-র input
+ডিফল্টে mask করুন, নির্দিষ্ট field জেনে-বুঝে unmask করুন। নাম বা email নয়, একটি opaque user id পাঠান। আর
+সংবেদনশীল query parameter ফেলে দিন: অসাবধানে data ফাঁসের সবচেয়ে সাধারণ পথ URL-এর ভেতরের token।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — এই অধ্যায় যে metric-গুলো সংগ্রহ করে, আর প্রতিটি সংখ্যার মানে
+- [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) — এই অধ্যায় যে metric-গুলো সংগ্রহ করে, আর প্রতিটি সংখ্যার মানে কী
 - [Chapter ?? — Loading, Code Splitting ও Bundle Budget](#ch-loading-and-code-splitting) — lab-এর দিকের gate, যেটা এই field data দিয়ে calibrate করা উচিত
 - [Chapter ?? — Observability ও Cost Engineering](#ch-observability) — একই নিয়মকানুন, server-এর দিকে

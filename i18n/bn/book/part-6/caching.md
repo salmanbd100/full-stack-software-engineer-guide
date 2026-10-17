@@ -1,31 +1,31 @@
 ---
 sourceHash: "c8ccbfedf9aed509611a750f76894cf01b5803dd8fd5e2ee4c039dfd7d2f6c1b"
 title: "Caching"
-translatedAt: "2026-10-12T12:26:46.100Z"
+translatedAt: "2026-10-17T13:58:53.812Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Caching {#ch-caching}
 
-> Cache-কে ঠিক layer-এ রাখুন, একটি hit ratio-র দাম কত তা জানুন, আর প্রতিটি entry কীভাবে ভুল হয়ে যায় তার একটি উত্তর তৈরি রাখুন।
+> Cache রাখুন ঠিক layer-এ, hit ratio-র দাম কত তা জানুন, আর প্রতিটি entry কীভাবে ভুল হয়ে যায় তার একটি উত্তর তৈরি রাখুন।
 
 **এই অধ্যায়ে:** capacity-র গুণক হিসেবে hit ratio · চারটি pattern · কী cache করবেন না · stampede · warm-up আর TTL jitter
 
 ## 💡 মূল ধারণা
 
-Cache এমন data-র একটি copy রাখে, যা তৈরি করতে খরচ বেশি, এমন জায়গায় যেখান থেকে পড়া সস্তা। পুরো mechanism এটুকুই।
-হিসাবটাই একে system design-এর সবচেয়ে শক্তিশালী চাল বানায়। Cache database-কে দ্রুত করে না। বেশিরভাগ request-কে
-database পর্যন্ত পৌঁছাতেই দেয় না।
+যে data তৈরি করতে খরচ বেশি, cache তার একটি copy এমন জায়গায় রাখে যেখান থেকে পড়া সস্তা। পুরো কৌশলটা এটুকুই।
+কিন্তু হিসাবটা করলে বোঝা যায়, system design-এ এর চেয়ে জোরালো চাল খুব কম আছে। Cache database-কে দ্রুত করে না।
+বেশিরভাগ request-কে database পর্যন্ত পৌঁছাতেই দেয় না।
 
-এতে দেখার ভঙ্গি বদলে যায়। Caching কোনো performance-এর কৌশল নয়, যা পরে যোগ করবেন। এটা capacity-র একটি
-সিদ্ধান্ত, যা server কেনার আগেই নিতে হয়। কঠিন অংশটা কখনোই store করা ছিল না। কঠিন হলো জানা, store করা copy-টি কখন
-আর সত্য নেই।
+তাই ব্যাপারটা অন্যভাবে দেখতে হয়। Caching পরে জুড়ে দেওয়ার মতো কোনো performance-এর কৌশল নয়। এটা capacity-র
+সিদ্ধান্ত, যা server কেনার আগেই নিতে হয়। কঠিন অংশটা কখনো জমিয়ে রাখা ছিল না। কঠিন হলো বোঝা, জমানো copy-টা কখন
+থেকে আর সত্যি নেই।
 
 ## কীভাবে কাজ করে
 
-### যে হিসাব একে যুক্তিসঙ্গত করে
+### যে হিসাব একে ন্যায্য করে
 
-Hit ratio হলো hit-এর সংখ্যাকে মোট lookup দিয়ে ভাগ করা। আর আসল গুরুত্ব origin-এ যা পৌঁছায় সেই সংখ্যার:
+Hit ratio মানে মোট lookup-এর মধ্যে কতগুলো hit। আসল ব্যাপার হলো origin-এর কাছে শেষ পর্যন্ত কতগুলো পৌঁছায়:
 
 ```text
 10,000 req/s with no cache        -> 10,000 database queries/s
@@ -33,21 +33,20 @@ Hit ratio হলো hit-এর সংখ্যাকে মোট lookup দি�
 10,000 req/s at 95% hit ratio     ->    500 database queries/s
 ```
 
-90% থেকে 95%-এ গেলে database-এর load অর্ধেক হয়ে যায়। Curve-টির আকারই এমন। এ কারণেই প্রায় প্রতিবার
-"hit ratio বাড়ান" "একটি replica যোগ করুন"-কে হারিয়ে দেয়। 50%-এর নিচে cache তার জটিলতার দাম তুলতে পারে না। হয়
-TTL খুব ছোট, নয়তো working set-এর (সক্রিয় ব্যবহারে থাকা key-গুলো) জন্য cache খুব ছোট, নয়তো data সত্যিই
-পুনরাবৃত্ত হয় না।
+90% থেকে 95%-এ গেলে database-এর load অর্ধেক হয়ে যায়। Curve-টা এমনই, আর এ কারণেই "hit ratio বাড়ান" প্রায় সবসময়
+"আরেকটি replica যোগ করুন"-কে হারিয়ে দেয়। 50%-এর নিচে cache তার জটিলতার দাম তুলতে পারে না। তখন হয় TTL খুব ছোট,
+নয়তো working set-এর (যে key-গুলো সক্রিয়ভাবে ব্যবহার হচ্ছে) তুলনায় cache খুব ছোট, নয়তো data আসলেই বারবার আসে না।
 
 ### চারটি pattern
 
-| Pattern | Cache-এ কে লেখে | Consistency | কখন ব্যবহার করবেন |
+| Pattern | Cache-এ কে লেখে | Consistency | কখন বেছে নেবেন |
 | --- | --- | --- | --- |
-| **Cache-aside** | Application, miss হলে | Eventual | Read-heavy, সাধারণ কাজ — default |
-| **Read-through** | Cache নিজেই, miss হলে | Eventual | Miss-এর logic প্রতিটি caller-এ নয়, এক জায়গায় চান |
-| **Write-through** | Application দুটিতেই লেখে | Read-after-write-এ strong | Write কম, আর stale read গ্রহণযোগ্য নয় |
-| **Write-behind** | Cache asynchronously flush করে | Eventual, আর crash হলে data হারায় | Write-heavy counter আর metric |
+| **Cache-aside** | Application, miss হলে | Eventual | পড়া বেশি, সাধারণ কাজ — এটাই default |
+| **Read-through** | Cache নিজেই, miss হলে | Eventual | Miss-এর logic প্রতিটি caller-এ না রেখে এক জায়গায় রাখতে চান |
+| **Write-through** | Application দুই জায়গাতেই লেখে | Write-এর পরের read-এ strong | লেখা কম, আর stale read কোনোভাবেই চলবে না |
+| **Write-behind** | Cache asynchronously flush করে | Eventual, crash হলে data হারায় | লেখা বেশি এমন counter আর metric |
 
-**Cache-aside, সঙ্গে যে invalidation অবশ্যই থাকতে হবে:**
+**Cache-aside, সঙ্গে তার অবশ্যই-লাগবে invalidation:**
 
 ```typescript
 interface CacheClient {
@@ -90,34 +89,34 @@ async function updateProduct(
 }
 ```
 
-### কী cache করবেন, আর কী নয়
+### কী cache করবেন, আর কী করবেন না
 
-সিদ্ধান্তটা দুটি প্রশ্নে: কতবার পড়া হয়, আর কত দ্রুত বদলায়।
+সিদ্ধান্তটা দুটি প্রশ্নের: data কত ঘন ঘন পড়া হয়, আর কত দ্রুত বদলায়।
 
-| Data | Read | বদলায় | রায় |
+| Data | পড়া হয় | বদলায় | রায় |
 | --- | --- | --- | --- |
-| Product catalogue | বেশি | কদাচিৎ | Cache করুন, 5–30 min TTL, update-এ evict |
-| Homepage aggregation | বেশি | কদাচিৎ | Cache করুন, 1–5 min TTL — query-টি ব্যয়বহুল, উত্তরটি সবার জন্য এক |
-| User profile | বেশি | মাঝে মাঝে | প্রতি user-এ cache, 5–15 min, update-এ evict |
-| Live price বা stock level | বেশি | সারাক্ষণ | Cache করবেন না — কয়েক সেকেন্ডেই stale, আর ভুল হওয়া ধীর হওয়ার চেয়ে খারাপ |
-| একজন user-এর balance বা order state | মাঝারি | মাঝে মাঝে | Shared cache-এ কখনো নয়; শুধু per-user key, ছোট TTL |
-| One-time token | একবার | — | লাভ কিছু নেই; cache read মানে leak হওয়ার দ্বিতীয় একটি জায়গা |
+| Product catalogue | অনেক | কদাচিৎ | Cache করুন, 5–30 min TTL, update হলে evict |
+| Homepage-এর aggregation | অনেক | কদাচিৎ | Cache করুন, 1–5 min TTL — query দামি, উত্তর সবার জন্য একই |
+| User profile | অনেক | মাঝে মাঝে | প্রতি user-এর আলাদা cache, 5–15 min, update হলে evict |
+| Live দাম বা stock-এর পরিমাণ | অনেক | সারাক্ষণ | Cache করবেন না — কয়েক সেকেন্ডেই stale, আর ভুল উত্তর ধীর উত্তরের চেয়ে খারাপ |
+| User-এর balance বা order-এর অবস্থা | মাঝারি | মাঝে মাঝে | Shared cache-এ কখনো নয়; শুধু প্রতি user-এর key, ছোট TTL |
+| একবারের token | একবার | — | লাভ কিছু নেই; cache-এ রাখলে leak হওয়ার আরেকটি জায়গা তৈরি হয় |
 
 ### Eviction আর store বাছাই
 
-Memory ভরে গেলে কিছু একটি সরাতে হয়। **LRU** (সবচেয়ে কম সম্প্রতি ব্যবহৃতটা evict করা) ঠিক default।
-এর জন্য Redis-এ `maxmemory-policy allkeys-lru` দরকার: শুধু `maxmemory` set করা থাকলে সে বরং write reject করে।
-**LFU** (সবচেয়ে কম বার ব্যবহৃত) জেতে দীর্ঘ সময় চলা cache-এ, যেখানে hot set স্থির, আর সাম্প্রতিকতা ভুল পথে নেয়।
-TTL expiry আসলে eviction নয়। এটা আপনার ঘোষণা, একটি copy কতক্ষণ ভুল থাকতে পারে।
+Memory ভরে গেলে কিছু একটা সরাতেই হয়। **LRU** (সবচেয়ে কম সম্প্রতি ব্যবহৃতটা সরাও) ঠিক default।
+Redis-এ এর জন্য `maxmemory-policy allkeys-lru` লাগে। শুধু `maxmemory` set করলে Redis পুরনো key না সরিয়ে নতুন write
+ফিরিয়ে দেয়। **LFU** (সবচেয়ে কম বার ব্যবহৃত) জেতে অনেকদিন চলা cache-এ, যেখানে hot set স্থির থাকে আর সাম্প্রতিকতা
+ভুল দিকে নিয়ে যায়। TTL-এ expire হওয়া আসলে eviction নয়। এটা আপনার ঘোষণা, একটি copy কতক্ষণ ভুল থাকতে পারে।
 
-নতুন system-এর জন্য Redis default cache store। এতে string-এর বাইরেও data structure আছে, replication,
-clustering আর persistence আছে। Memcached জেতে শুধু চরম scale-এ বিশুদ্ধ key-value কাজের raw throughput-এ, আর
-বাকি সবকিছু ছেড়ে দেয়।
+নতুন system-এ default cache store হলো Redis। String ছাড়াও এতে data structure আছে, replication আছে, clustering
+আর persistence আছে। Memcached জেতে শুধু একটি জায়গায়: বিশাল scale-এ খাঁটি key-value কাজে raw throughput।
+বাকি সব সুবিধা সেখানে ছেড়ে দিতে হয়।
 
 ### Stampede
 
-একটি hot key expire হলে, চলমান প্রতিটি request একই মুহূর্তে miss করে, আর সবাই একসঙ্গে database-এ গিয়ে পড়ে।
-দুটি প্রতিরক্ষা আছে, আর তারা একসঙ্গে কাজ করে:
+কোনো hot key expire হলে সেই মুহূর্তে চলতে থাকা সব request একসঙ্গে miss করে, আর সবাই একসঙ্গে database-এ গিয়ে পড়ে।
+বাঁচার উপায় দুটি, আর দুটি একসঙ্গেই কাজ করে:
 
 ```typescript
 // 1. Jitter, so related keys stop expiring in the same second.
@@ -144,82 +143,82 @@ async function getWithLock(cache: CacheClient, db: DatabaseClient, productId: st
 }
 ```
 
-> ⚠️ Deploy আসলে ছদ্মবেশী stampede। নতুন instance ঠান্ডা local cache নিয়ে শুরু হয়। Shared cache-ও যদি flush
-> হয়ে থাকে, traffic-এর প্রথম মিনিটের পুরোটাই database-এ যায়। Peak সময়ে ঠিক সেই মুহূর্তেই সেটা ভেঙে পড়ে।
+> ⚠️ Deploy আসলে ছদ্মবেশী stampede। নতুন instance চালু হয় cold local cache নিয়ে। Shared cache-ও যদি flush হয়ে থাকে,
+> তাহলে traffic-এর প্রথম মিনিটটা পুরোটাই যায় database-এ। Peak সময়ে ঠিক সেই মুহূর্তেই database ভেঙে পড়ে।
 
 ### Deploy-এর সময় warm-up
 
-যে অল্প কয়েকটি key-তে hit হবে বলে জানেন, সেগুলো ভরে নিন: homepage-এর query, feature flag, configuration
-blob। এটা করুন একটি **readiness gate** হিসেবে, cutover-এর পরে background task হিসেবে নয়। যে instance cache
-গরম হওয়ার আগেই traffic নেয়, সে তার প্রথম সব request database-এ পাঠায়। Rolling deploy প্রতিটি instance-এর
-জন্য একবার করে এটা পুনরাবৃত্তি করে।
+যে কয়েকটি key-তে hit হবে বলে আপনি জানেন, সেগুলো আগেই ভরে রাখুন: homepage-এর query, feature flag, configuration-এর
+blob। কাজটা করুন **readiness gate** হিসেবে, cutover-এর পরে background task হিসেবে নয়। Cache warm হওয়ার আগেই যে
+instance traffic নেয়, তার প্রথম সব request যায় database-এ। Rolling deploy-এ প্রতিটি instance-এর জন্য একই ঘটনা
+একবার করে ঘটে।
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি | Cache কোথায় যায় |
+| পরিস্থিতি | Cache কোথায় বসবে |
 | --- | --- |
-| একই query হাজার হাজার user-কে serve করে | Shared cache, entity অনুযায়ী key, মিনিটের TTL |
-| ব্যয়বহুল aggregation, এক মিনিটের দেরি সহ্য করা যায় | Shared cache, ছোট TTL, invalidation লাগে না |
-| একটি session-এ বারবার পড়া per-user data | Per-user key, ছোট TTL, write-এ evict |
-| Unauthenticated client-কে public response | আরও বাইরে — CDN, আপনার cache নয় |
-| যে data-কে একদম ঠিক হতেই হবে | Cache নয়; index বা read replica দিয়ে সমাধান করুন |
+| একই query হাজার হাজার user-কে সার্ভ করে | Shared cache, entity দিয়ে key, TTL কয়েক মিনিট |
+| দামি aggregation, এক মিনিট দেরি চলে | Shared cache, ছোট TTL, invalidation লাগে না |
+| Session-এ বারবার পড়া প্রতি user-এর data | প্রতি user-এর key, ছোট TTL, write হলে evict |
+| Unauthenticated client-এর জন্য public response | আরও বাইরে — CDN-এ, আপনার cache-এ নয় |
+| যে data একদম ঠিক হতেই হবে | Cache নয়; index বা read replica দিয়ে সমাধান করুন |
 
 ## সাধারণ ভুল
 
-❌ **TTL নেই।** Expiry ছাড়া একটি key, invalidation path একবার miss করলেই, চিরকালের জন্য stale। ✅ সবসময়
-একটি TTL set করুন, উদার হলেও। এটা সেই invalidation-এর backstop, যেটা আপনি ভুলে গেছেন।
+❌ **TTL নেই।** Expiry ছাড়া key-কে invalidation একবার miss করলেই সেটা চিরকাল stale থাকে। ✅ সবসময় TTL দিন,
+বড় হলেও। আপনি যে invalidation লিখতে ভুলে গেছেন, TTL তার শেষ ভরসা।
 
-❌ **Per-user data-র জন্য shared key।** `cart:latest` একজন customer-এর basket পরের জনকে serve করে। ✅ User বা
-entity-র id key-তে যায়, সবসময়।
+❌ **প্রতি user-এর data-র জন্য shared key।** `cart:latest` একজন customer-এর basket পরের জনকে দেখিয়ে দেয়। ✅ Key-তে
+user বা entity-র id সবসময় থাকবে।
 
-❌ **কোথাও invalidate না করা।** Read path লেখা হয়েছে, write path হয়নি, আর update দেখা দিতে পুরো একটি TTL লাগে।
-✅ Eviction-এর জায়গা write-এর একই function-এ।
+❌ **কোথাও invalidate না করা।** Read path লেখা হয়েছে, write path হয়নি, তাই update দেখা দিতে পুরো একটি TTL লাগে।
+✅ Eviction থাকবে write-এর একই function-এর ভেতরে।
 
-❌ **Cache-কে store হিসেবে ব্যবহার করা।** Redis restart হয়। Data যদি database-এও না থাকে, সেটা স্রেফ হারিয়ে
-যায়। ✅ Cache-এর সবকিছু source of truth থেকে আবার তৈরি করা যেতে হবে।
+❌ **Cache-কে store ভাবা।** Redis restart হয়। Data যদি database-এও না থাকে, তাহলে সেটা স্রেফ হারিয়ে যায়।
+✅ Cache-এ যা আছে, সবই source of truth থেকে আবার বানানো যেতে হবে।
 
-❌ **Deploy-এর সময় set করা একই রকম TTL।** প্রতিটি key একই সেকেন্ডে expire হয়, আর stampede-টা নিজেরই ডেকে আনা।
+❌ **Deploy-এর সময় সব key-তে একই TTL।** সব key একই সেকেন্ডে expire হয়, আর stampede-টা আপনি নিজেই ডেকে আনেন।
 ✅ দশ শতাংশ jitter দিন।
 
 ## 🔑 মূল শিক্ষা
 
-- Cache একটি capacity-র গুণক: hit ratio 90% থেকে 95% হলে database-এ পৌঁছানো load অর্ধেক হয়।
-- Cache-aside আর TTL বেশিরভাগ system-এর জন্য যথেষ্ট। এটা কাজ না করলে তবেই অন্য pattern-এর দিকে যান।
-- Invalidation-এর দায় write path-এর। শুধু read path লিখলে এভাবেই stale data ship হয়।
-- Hit ratio 50%-এর নিচে হলে cache যা বাঁচায় তার চেয়ে বেশি খরচ করে। TTL, size, বা key ঠিক করুন।
-- TTL-এ jitter দিন আর hot key গরম করে রাখুন, নইলে একটি deploy পুরো load একসঙ্গে database-এর হাতে তুলে দেবে।
+- Cache capacity-র গুণক: hit ratio 90% থেকে 95% হলে database-এ পৌঁছানো load অর্ধেক হয়।
+- বেশিরভাগ system-এর জন্য cache-aside আর TTL-ই যথেষ্ট। অন্য pattern তখনই ধরুন, যখন এটা কাজ করে না।
+- Invalidation-এর দায় write path-এর। শুধু read path লিখলেই stale data production-এ চলে যায়।
+- Hit ratio 50%-এর নিচে হলে cache যত বাঁচায় তার চেয়ে বেশি খরচ করায়। TTL, size বা key ঠিক করুন।
+- TTL-এ jitter দিন আর hot key-গুলো warm করে রাখুন। নাহলে deploy একবারে পুরো load database-এর ঘাড়ে চাপিয়ে দেবে।
 
 ## Interview-এর প্রশ্ন
 
 **Q: কোন caching pattern দিয়ে শুরু করবেন, আর কেন?**
 
-Cache-aside। Application প্রথমে cache দেখে, miss হলে database-এ যায়, আর যা পেল তা cache-এ লেখে। এতে cache
-write path-এর বাইরে থাকে, তাই cache outage latency-র ক্ষতি করে, correctness-এর নয়। এটা শুধু তা-ই cache করে,
-যা আসলে পড়া হয়। খরচ হলো, প্রতিটি caller-কে invalidation মনে রাখতে হয়। এ কারণেই eviction-এর জায়গা update
+Cache-aside। Application আগে cache দেখে, miss হলে database-এ যায়, আর যা পেল তা cache-এ লিখে রাখে। Cache থাকে
+write path-এর বাইরে, তাই cache বন্ধ হয়ে গেলে latency খারাপ হয়, কিন্তু ফল ভুল হয় না। আর cache-এ ওঠে শুধু সেটুকুই,
+যা আসলে পড়া হয়। দামটা হলো, প্রতিটি caller-কে invalidation-এর কথা মনে রাখতে হয়। এজন্যই eviction থাকা উচিত update
 function-এর ভেতরে, call site-এ নয়।
 
-**Q: TTL কীভাবে ঠিক করেন?**
+**Q: TTL কত হবে, তা কীভাবে ঠিক করেন?**
 
-শুরু করুন data কতটা ভুল হওয়ার অনুমতি আছে তা থেকে, কতক্ষণ cache করতে চান তা থেকে নয়। পাঁচ মিনিট stale একটি
-product listing ঠিক আছে। একটি account balance কোনো TTL-এই cache করার মতো নয়। তারপর hit ratio দেখুন। এটা কম হলে,
-TTL key-গুলোকে আবার ব্যবহারের আগেই expire করে দিচ্ছে। Write-এ explicit eviction থাকলে নিরাপদে লম্বা TTL চালাতে
-পারেন। তখন TTL আর freshness-এর প্রধান mechanism থাকে না, backstop হয়ে যায়।
+শুরু করুন data কতটা ভুল থাকতে পারে সেখান থেকে, কতক্ষণ cache করতে চান সেখান থেকে নয়। পাঁচ মিনিট পুরনো product
+listing চলে। Account balance কোনো TTL-এই cache করা যায় না। তারপর hit ratio দেখুন। কম হলে বুঝবেন, key আবার
+ব্যবহার হওয়ার আগেই TTL তাকে expire করে দিচ্ছে। Write হলে সরাসরি evict করলে লম্বা TTL নিরাপদে রাখা যায়। তখন
+TTL আর freshness-এর মূল উপায় থাকে না, শুধু শেষ ভরসা হয়ে থাকে।
 
-**Q: একটি hot key expire হলো আর database ভেঙে পড়ল। কী ঘটেছে, আর আপনি কী করবেন?**
+**Q: একটি hot key expire হলো, আর database ভেঙে পড়ল। কী ঘটেছে, আর আপনি কী করবেন?**
 
-Cache stampede। একসঙ্গে চলা প্রতিটি request একই মুহূর্তে miss করেছে আর সবাই একসঙ্গে origin-এ গেছে। তিনটি
-সমাধান খাটে। একটি lock শুধু একটি request-কে recompute করতে দেয়, বাকিরা অপেক্ষা করে বা stale serve করে। Jitter
-দেওয়া TTL সম্পর্কিত key-গুলোকে একই সেকেন্ডে expire হতে দেয় না। আর পরিচিত hot key আগে থেকে গরম করে রাখলে,
-deploy traffic পাঠানোর আগে ঠান্ডা instance-গুলো সুরক্ষিত থাকে।
+এটা cache stampede। একসঙ্গে চলা সব request একই মুহূর্তে miss করেছে, আর সবাই মিলে origin-এ গেছে। তিনটি সমাধান
+কাজে লাগে। Lock রাখলে মাত্র একটি request নতুন করে হিসাব করে, বাকিরা অপেক্ষা করে বা stale data দেয়। TTL-এ jitter
+দিলে সম্পর্কিত key-গুলো একই সেকেন্ডে expire হয় না। আর জানা hot key-গুলো আগে থেকে warm করে রাখলে deploy traffic
+পাঠানোর আগেই cold instance সুরক্ষিত থাকে।
 
-**Q: কখন caching ভুল উত্তর?**
+**Q: Caching কখন ভুল সমাধান?**
 
-যখন data পড়ার চেয়ে দ্রুত বদলায়, বা পড়ার মুহূর্তেই একদম ঠিক হতে হবে। আবার যখন traffic-এ কোনো পুনরাবৃত্তি নেই।
-প্রতিটি request অনন্য হলে প্রতিটি lookup-ই miss, আর আপনি এমন কিছু store করার দাম দেন, যা আর কেউ চায় না। তখন
-আসল সমাধান সাধারণত একটি index, একটি read replica, বা একটি সস্তা query।
+যখন data যত ঘন ঘন পড়া হয় তার চেয়ে দ্রুত বদলায়, অথবা পড়ার মুহূর্তেই একদম ঠিক হতে হয়। আবার traffic-এ কোনো
+পুনরাবৃত্তি না থাকলেও। প্রতিটি request আলাদা হলে প্রতিটি lookup-ই miss, আর আপনি টাকা দিয়ে এমন জিনিস জমাচ্ছেন যা
+কেউ আর চাইবে না। তখন আসল সমাধান সাধারণত একটি index, একটি read replica, বা আরও সস্তা একটি query।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Content Delivery Network](#ch-cdn) — একই ধারণা, edge-এ সরিয়ে নেওয়া
-- [Chapter ?? — Non-Relational Store বাছাই: Document ও Redis](#ch-document-databases) — store নিজে, আর get ও set-এর বাইরের structure
+- [Chapter ?? — Non-Relational Store বাছাই: Document ও Redis](#ch-document-databases) — store নিজে, আর get-set ছাড়িয়ে তার data structure
 - [Chapter ?? — Caching ও Asset Delivery](#ch-asset-delivery) — user-এর সবচেয়ে কাছের layer

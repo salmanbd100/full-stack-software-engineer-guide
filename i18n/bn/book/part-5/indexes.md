@@ -1,63 +1,63 @@
 ---
 sourceHash: "caca59d3378021947b691eaa9e882b14fa42b1eccb64a477702e6c0e477fb814"
 title: "Index, Query Plan, ORM ও Migration"
-translatedAt: "2026-10-12T12:23:07.774Z"
+translatedAt: "2026-10-17T14:01:14.743Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Index, Query Plan, ORM ও Migration {#ch-indexes}
 
-> আপনার ORM আসলে কোন SQL পাঠায় তা দেখুন, তার plan পড়ুন, আর downtime ছাড়া একটি live schema বদলান।
+> ORM আসলে কোন SQL পাঠায় তা দেখুন, তার plan পড়ুন, আর downtime ছাড়াই চালু schema বদলান।
 
-**এই অধ্যায়ে:** একটি B-tree কী পারে আর কী পারে না · ORM যে query-গুলো লুকিয়ে রাখে · `EXPLAIN ANALYZE` পড়া · connection pooling · expand-then-contract migration
+**এই অধ্যায়ে:** B-tree কী পারে আর কী পারে না · ORM যে query-গুলো আড়ালে রাখে · `EXPLAIN ANALYZE` পড়া · connection pooling · expand-then-contract migration
 
 ## 💡 মূল ধারণা
 
-Index হলো কয়েকটি column-এর একটি sorted copy, যার সাথে প্রতিটি row-এ ফিরে যাওয়ার একটি pointer থাকে। একটি sorted
-list তার sort key-এর একটি **prefix**-এর ওপর equality আর range প্রশ্নের উত্তর দিতে পারে, আর কিছু নয়। তাই
-`WHERE lower(email) = $1` `email`-এর ওপরের index ব্যবহার করতে পারে না: index `email` store করে, `lower(email)` নয়।
+Index হলো কয়েকটি column-এর সাজানো একটি copy, যার প্রতিটি entry আসল row-এর দিকে pointer রাখে। সাজানো তালিকা তার sort
+key-এর একটি **prefix**-এর ওপর equality আর range-এর প্রশ্নের উত্তর দিতে পারে, এর বাইরে আর কিছু নয়। তাই
+`WHERE lower(email) = $1` `email`-এর index ব্যবহার করতে পারে না: index-এ রাখা আছে `email`, `lower(email)` নয়।
 
-এসবের ওপরে বসে থাকে একটি ORM। এটা row-কে object-এ map করে আর আপনার হয়ে SQL লেখে। এতে অনেক boilerplate বাঁচে।
-কিন্তু এটা সেই জিনিসটাই লুকিয়ে রাখে, যেটা আপনার সবচেয়ে বেশি দেখা দরকার: **আপনার code কতগুলো query পাঠায়, আর
-প্রতিটির খরচ কত।** যে property access দেখতে বিনামূল্যে মনে হয়, সেটা একটি round trip। একটি migration tool সঠিক SQL
-লিখেও আপনার পুরো table lock করে ফেলতে পারে।
+এসবের ওপরে বসে থাকে ORM। ORM row-কে object-এ রূপ দেয় আর আপনার হয়ে SQL লিখে দেয়। এতে অনেক boilerplate বাঁচে।
+কিন্তু যেটা আপনার সবচেয়ে বেশি দেখা দরকার, সেটাই আড়ালে চলে যায়: **আপনার code কয়টি query পাঠায়, আর প্রতিটির খরচ
+কত।** যে property পড়া বিনা খরচের মনে হয়, সেটা আসলে database পর্যন্ত একটি round trip। আর migration tool এমন সঠিক
+SQL লিখতে পারে, যা আপনার পুরো table lock করে দেয়।
 
-তাই রুটিন 90% query ORM-কে লিখতে দিন। যে SQL চলেছে, তার plan সবসময় পড়ুন। Schema এমন ধাপে বদলান, যেটা পুরোনো আর
-নতুন দুই code-ই সামলাতে পারে।
+তাই রুটিন 90% query ORM-কে লিখতে দিন। যে SQL চলেছে, তার plan সবসময় পড়ুন। আর schema বদলান এমন ধাপে ধাপে, যাতে পুরনো
+আর নতুন দুই code-ই টিকে থাকে।
 
-> ⚠️ **যা বদলাতে থাকে:** Prisma, Drizzle আর TypeORM সবাই major version-এর মধ্যে নিজেদের query API বদলায়, আর
-> Prisma নিজের engine architecture একাধিকবার বদলেছে। টেকসই নীতিটা হলো, generated SQL অবশ্যই দেখা যেতে হবে, আর
-> একটি schema পরিবর্তন তখনো চলতে থাকা code-এর জন্য নিরাপদ হতে হবে। Method-এর নাম বদলাবে।
+> ⚠️ **যা বদলাতে থাকে:** Prisma, Drizzle আর TypeORM প্রতিটি major version-এ query API বদলায়, আর Prisma তার engine-এর
+> architecture একাধিকবার বদলেছে। টেকসই নীতি হলো: generated SQL চোখে দেখা যেতে হবে, আর schema-র পরিবর্তন তখনও চলতে
+> থাকা code-এর জন্য নিরাপদ হতে হবে। Method-এর নাম বদলাবেই।
 
 ## কীভাবে কাজ করে
 
-### Composite column-এর ক্রমই আসল খেলা
+### Composite index-এ column-এর ক্রমই আসল খেলা
 
-Default B-tree প্রায় সব ক্ষেত্র cover করে। GIN হলো `jsonb`, array আর full-text-এর ওপর containment-এর জন্য।
-`(a, b, c)`-এর ওপর একটি B-tree হলো একটি list, যেটা প্রথমে `a`, তারপর `b`, তারপর `c` দিয়ে sorted। এ থেকেই আসে
-**leftmost prefix rule**: index শুধু সেই query-কে সাহায্য করে, যেটা এর column-গুলোর একটি prefix-কে সীমিত করে।
+প্রায় সব ক্ষেত্রেই default B-tree যথেষ্ট। GIN লাগে `jsonb`, array আর full-text-এ কিছু আছে কি না খুঁজতে। `(a, b, c)`-এর
+ওপর B-tree হলো একটি তালিকা, যা সাজানো আগে `a` দিয়ে, তারপর `b`, তারপর `c`। এখান থেকেই আসে **leftmost prefix rule**:
+index শুধু সেই query-র কাজে লাগে, যা তার column-গুলোর একটি prefix-এর ওপর শর্ত দেয়।
 
-**একজন user-এর order history-র জন্য একটি composite index:**
+**User-এর order history-র জন্য একটি composite index:**
 
 ```sql
 CREATE INDEX idx_orders_user_status_created ON orders (user_id, status, created_at DESC);
 ```
 
-| Query predicate | Index ব্যবহার করে? |
+| Query-র শর্ত | Index ব্যবহার হয়? |
 | --------------- | --------------- |
-| `user_id = 1 AND status = 'paid' ORDER BY created_at DESC` | ✅ পুরোপুরি, আর sort বিনামূল্যে |
-| `user_id = 1` | ✅ এক column-এর একটি prefix |
-| `status = 'paid'` | ❌ প্রথম column বাদ দেয় |
+| `user_id = 1 AND status = 'paid' ORDER BY created_at DESC` | ✅ পুরোপুরি, আর sort বিনা খরচে |
+| `user_id = 1` | ✅ এক column-এর prefix |
+| `status = 'paid'` | ❌ প্রথম column-টাই বাদ পড়েছে |
 | `user_id = 1 AND created_at > $1` | ⚠️ আংশিক: `user_id` ব্যবহার করে, তারপর filter করে |
 
-তাই **আগে equality column, তারপর range বা sort column রাখুন।** একটি range তার ডান দিকের কোনো কিছুতে index-এর
-সাহায্য বন্ধ করে দেয়। একটি range-এর ভেতরের row-গুলো তার পরের column-এর হিসেবে ক্রমানুসারে থাকে না।
+তাই **আগে equality-র column, তারপর range বা sort-এর column।** Range থাকলে তার ডান দিকের কোনো column-এ index আর
+সাহায্য করে না। কারণ range-এর ভেতরের row-গুলো পরের column ধরে সাজানো থাকে না।
 
 ### Covering আর partial index
 
-একটি **covering** index query-র দরকারি প্রতিটি column ধরে রাখে। Database শুধু index থেকেই উত্তর দেয়, table কখনো
-ছোঁয় না। এটাকে বলে index-only scan। একটি **partial** index শুধু সেই row-গুলো ধরে, যেগুলো আপনি query করেন। তাই এটা
-ছোট, আর update রাখা সস্তা।
+**Covering** index-এ query-র দরকারি সব column থাকে। Database শুধু index থেকেই উত্তর দেয়, table ছোঁয়ই না। একে বলে
+index-only scan। **Partial** index-এ থাকে শুধু সেই row-গুলো, যেগুলো আপনি query করেন। তাই সেটা ছোট, আর হালনাগাদ রাখাও
+সস্তা।
 
 **Covering আর partial index:**
 
@@ -69,13 +69,13 @@ CREATE INDEX idx_orders_cover ON orders (user_id, created_at DESC) INCLUDE (tota
 CREATE INDEX idx_orders_pending ON orders (created_at) WHERE status = 'pending';
 ```
 
-প্রতিটি index-এর দাম দিতে হয় write-এ: প্রতিটি `INSERT`, `UPDATE` আর `DELETE` সবগুলো index update করে।
+প্রতিটি index-এর দাম দিতে হয় write-এর সময়: প্রতিটি `INSERT`, `UPDATE` আর `DELETE` সবগুলো index update করে।
 
-## আপনার ORM যে Query পাঠায়
+## ORM যে query পাঠায়
 
-একটি ORM আপনাকে schema থেকে type দেয়, আর default-ভাবে parameterised query দেয়। বিনিময়ে এর SQL কখনো কখনো
-optimal থেকে অনেক দূরে থাকে। Prisma নিজের schema language ব্যবহার করে। Drizzle schema রাখে TypeScript-এ, আর দেখতে
-SQL-এর মতো। কোনটা বেছে নিচ্ছেন, তার চেয়ে বেশি জরুরি কোন SQL বেরিয়ে আসছে তা জানা।
+ORM schema থেকে type দেয়, আর default হিসেবে parameterised query দেয়। বিনিময়ে তার SQL কখনো কখনো একেবারেই ভালো হয় না।
+Prisma নিজস্ব schema language ব্যবহার করে। Drizzle schema রাখে TypeScript-এ, আর দেখতে অনেকটা SQL-এর মতো। কোনটা বাছছেন
+তার চেয়ে বেশি জরুরি, শেষে কোন SQL বেরোয় তা জানা।
 
 **N+1, আর তার সমাধান:**
 
@@ -90,9 +90,9 @@ for (const post of posts) {
 const withAuthors = await prisma.post.findMany({ take: 20, include: { author: true } });
 ```
 
-`include` হলো সমাধান, আবার পরের ফাঁদও। তিনটি one-to-many relation include করলে join তাদের row সংখ্যার গুণফল
-return করে। যে page-এর 20টি row return করার কথা, সেটা 4,000টি fetch করে, আর ORM memory-তে সেগুলোর duplicate
-বাদ দেয়। এমন হলে আলাদা আলাদা query পাঠান, আর ফলাফলগুলো জোড়া লাগান। GraphQL-এ একটি `DataLoader` ঠিক এটাই করে।
+`include` সমাধান, আবার পরের ফাঁদও। তিনটি one-to-many relation include করলে join ফেরত দেয় তাদের row-সংখ্যার গুণফল।
+যে page-এ 20টি row আসার কথা, সেখানে আসে 4,000, আর ORM memory-তে বসে duplicate বাদ দেয়। এমন হলে আলাদা আলাদা query
+পাঠান, আর ফলগুলো জোড়া দিন। GraphQL-এ `DataLoader` ঠিক এই কাজটাই করে।
 
 **শুধু দরকারি column select করুন:**
 
@@ -104,19 +104,19 @@ const rows = await prisma.post.findMany({
 });
 ```
 
-**Development-এ query logging চালু করুন।** এটাই ORM-এর একক সবচেয়ে কাজের setting। SQL দেখতে না পেলে আপনি সেটা
-review করতে পারবেন না, আর তার ওপর `EXPLAIN` চালাতেও পারবেন না।
+**Development-এ query logging চালু করুন।** ORM-এর সবচেয়ে কাজের setting এটাই। SQL দেখতে না পেলে সেটা review করতে
+পারবেন না, তার ওপর `EXPLAIN`-ও চালাতে পারবেন না।
 
 ### Connection pooling
 
-Database-এর একটি কঠিন connection limit আছে। একটি pool কয়েকটি connection বারবার ব্যবহার করে, সাধারণত প্রতি
-instance-এ 10–20টি। হিসাবটায় মানুষ ধরা খায়। 10-এর pool নিয়ে চল্লিশটি serverless instance 100-এর limit-এর বিপরীতে
-400টি connection খোলে। Autoscaled app-এর একটি external pooler লাগে, যেমন PgBouncer, transaction mode-এ। সেই mode
-`SET`, advisory lock আর `LISTEN`-এর মতো session feature ভেঙে দেয়।
+Database-এর connection-এর একটি কড়া সীমা আছে। Pool অল্প কয়েকটি connection বারবার ব্যবহার করে, সাধারণত প্রতি instance-এ
+10–20টি। হিসাবটাতেই মানুষ ধরা খায়। চল্লিশটি serverless instance, প্রতিটিতে 10-এর pool — মোট 400 connection, অথচ সীমা
+100। Autoscale হওয়া app-এ বাইরের একটি pooler লাগে, যেমন PgBouncer, transaction mode-এ। এই mode-এ `SET`, advisory
+lock আর `LISTEN`-এর মতো session-এর feature কাজ করে না।
 
-## একটি Plan পড়া
+## Plan পড়া
 
-`EXPLAIN` planner-এর ইচ্ছা দেখায়। `EXPLAIN ANALYZE` query-টি চালায় আর কী ঘটেছে তা দেখায়।
+`EXPLAIN` দেখায় planner কী করতে চায়। `EXPLAIN ANALYZE` query-টা চালায় আর দেখায় আসলে কী হলো।
 
 **ORM-এর log করা query planner দিয়ে চালান:**
 
@@ -127,37 +127,38 @@ EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM orders WHERE user_id = 42 ORDER BY crea
 | Node | মানে | চিন্তার বিষয় |
 | ---- | ----- | ------- |
 | `Seq Scan` | প্রতিটি row পড়ে | ছোট table-এ ঠিক আছে, বড় table-এ সমস্যা |
-| `Index Scan` / `Index Only Scan` | Index lookup, table fetch-সহ বা ছাড়া | ভালো / সবচেয়ে ভালো |
-| `Nested Loop` | প্রতিটি outer row-এর জন্য একবার করে inner দিকটা খোঁজে | Outer row-এর estimate ভুল হলে খারাপ |
+| `Index Scan` / `Index Only Scan` | Index-এ খোঁজে, table থেকে আনতে হয় বা হয় না | ভালো / সবচেয়ে ভালো |
+| `Nested Loop` | বাইরের প্রতিটি row-এর জন্য একবার করে ভেতরের দিকে খোঁজে | বাইরের row-এর আন্দাজ ভুল হলে খারাপ |
 
-তিনটি সংখ্যা সবচেয়ে গুরুত্বপূর্ণ:
+তিনটি সংখ্যা সবচেয়ে জরুরি:
 
-- **Estimated `rows` বনাম `actual`।** দশ গুণ ফারাক মানে statistics পুরোনো। `ANALYZE` চালান, আর সেই estimate থেকে
-  নেওয়া প্রতিটি সিদ্ধান্তে অবিশ্বাস করুন।
-- **`loops`।** 10,000 বার চলা একটি সস্তা node সস্তা নয়। গুণ করুন।
-- **`Rows Removed by Filter`।** বড় সংখ্যা মানে index এমন row খুঁজে পেয়েছে, যেগুলো predicate পরে ফেলে দিয়েছে।
-  Index-এ একটি column নেই।
+- **আনুমানিক `rows` বনাম `actual`।** দশ গুণ ফারাক মানে statistics পুরনো। `ANALYZE` চালান, আর সেই আন্দাজের ভিত্তিতে নেওয়া
+  প্রতিটি সিদ্ধান্তে সন্দেহ করুন।
+- **`loops`।** যে node সস্তা, কিন্তু 10,000 বার চলে, সেটা সস্তা নয়। গুণ করে দেখুন।
+- **`Rows Removed by Filter`।** সংখ্যাটা বড় মানে index যে row-গুলো খুঁজে পেয়েছে, শর্ত পরে সেগুলো ফেলে দিয়েছে। Index-এ একটি
+  column কম আছে।
 
 ### যে সমাধানগুলো কাজ করে
 
-- **Predicate-কে indexable করুন।** Expression-টি index করুন, `CREATE INDEX … ON users (lower(email))`,
-  অথবা value-টি normalised করে store করুন। `created_at::date = $1`-এর বদলে একটি range তুলনা করুন।
-- **`OFFSET`-এর বদলে keyset pagination ব্যবহার করুন।** `OFFSET 100000` 100,000টি row পড়ে আর ফেলে দেয়।
-- **N+1-কে batch করুন।** সবচেয়ে সাধারণ "slow query" হলো 200 বার চলা একটি দ্রুত query।
-- **অব্যবহৃত index drop করুন।** একটি business cycle জুড়ে `pg_stat_user_indexes`-এ শূন্য `idx_scan` মানে শুধুই write-এর খরচ।
+- **শর্তটাকে index-যোগ্য করুন।** Expression-এর ওপর index দিন, `CREATE INDEX … ON users (lower(email))`, অথবা value
+  normalise করে store করুন। `created_at::date = $1`-এর বদলে একটি range-এর সঙ্গে তুলনা করুন।
+- **`OFFSET`-এর বদলে keyset pagination।** `OFFSET 100000` 100,000টি row পড়ে ফেলে দেয়।
+- **N+1-কে batch করুন।** সবচেয়ে সাধারণ "slow query" আসলে একটি দ্রুত query, যা 200 বার চলে।
+- **অব্যবহৃত index drop করুন।** পুরো একটি business cycle জুড়ে `pg_stat_user_indexes`-এ `idx_scan` শূন্য মানে সেটা শুধুই
+  write-এর খরচ।
 
-## Live অবস্থায় Schema বদলানো
+## চালু অবস্থায় schema বদলানো
 
-Migration হলো একটি versioned, ক্রমানুসারে সাজানো schema পরিবর্তন, যেটা code-এর সাথে commit করা হয়। যেটা ইতিমধ্যে
-কোথাও চলেছে, সেটা কখনো edit করবেন না। **Production-এ সামনে এগিয়ে ঠিক করুন**: যে `down` migration একটি drop করা
-column ফিরিয়ে আনে, সেটা data ফিরিয়ে আনে না। আর data backfill-কে schema migration-এর বাইরে রাখুন, কারণ একটি
-migration-এর ভেতরের backfill যতক্ষণ চলে, ততক্ষণ lock ধরে রাখে।
+Migration হলো version দেওয়া, ক্রম মেনে চলা একটি schema পরিবর্তন, যা code-এর সঙ্গে commit হয়। যে migration কোথাও একবার
+চলেছে, সেটা আর কখনো edit করবেন না। **Production-এ সামনের দিকে ঠিক করুন**: drop করা column ফিরিয়ে আনা `down` migration
+data ফেরত আনে না। আর data backfill schema migration-এর বাইরে রাখুন, কারণ migration-এর ভেতরের backfill যতক্ষণ চলে,
+ততক্ষণ lock ধরে রাখে।
 
 ### আগে expand, তারপর contract
 
-একটি deploy-এর সময় পুরোনো আর নতুন code একসাথে চলে, তাই দুটিকেই মাঝামাঝি অবস্থার schema-র সাথে কাজ করতে হবে।
+Deploy-এর সময় পুরনো আর নতুন code একসঙ্গে চলে। তাই মাঝামাঝি অবস্থার schema-তে দুটিকেই কাজ করতে হবে।
 
-**দুটি name column-কে একটি দিয়ে বদলানো:**
+**নামের দুটি column-এর জায়গায় একটি:**
 
 ```sql
 -- 1. EXPAND: add the new column, nullable, so no table rewrite.
@@ -175,61 +176,61 @@ ALTER TABLE users DROP COLUMN first_name, DROP COLUMN last_name;
 
 ### যে চারটি পরিবর্তনে সাবধান থাকতে হয়
 
-| পরিবর্তন | ঝুঁকি | নিরাপদ পথ |
+| পরিবর্তন | বিপদ | নিরাপদ পথ |
 | ------ | ------ | ---------- |
-| একটি index যোগ করা | `CREATE INDEX` কয়েক মিনিট write আটকে রাখে | `CREATE INDEX CONCURRENTLY`, একটি transaction-এর বাইরে |
-| Default-সহ একটি `NOT NULL` column যোগ করা | পুরোনো engine আর volatile default table rewrite করে | Nullable হিসেবে যোগ করুন, backfill করুন, তারপর `SET NOT NULL` |
-| একটি foreign key যোগ করা | Validation দুটি table-ই scan আর lock করে | `ADD CONSTRAINT … NOT VALID`, তারপর `VALIDATE CONSTRAINT` |
-| একটি column-এর type বদলানো | Exclusive lock-এর অধীনে পুরো rewrite | নতুন column, backfill, swap, drop |
+| Index যোগ করা | `CREATE INDEX` কয়েক মিনিট write আটকে রাখে | Transaction-এর বাইরে `CREATE INDEX CONCURRENTLY` |
+| Default-সহ একটি `NOT NULL` column যোগ করা | পুরনো engine-এ, আর volatile default থাকলে, পুরো table আবার লেখা হয় | আগে nullable যোগ করুন, backfill করুন, তারপর `SET NOT NULL` |
+| Foreign key যোগ করা | Validation দুটি table-ই scan করে আর lock করে | আগে `ADD CONSTRAINT … NOT VALID`, তারপর `VALIDATE CONSTRAINT` |
+| Column-এর type বদলানো | Exclusive lock নিয়ে পুরো table আবার লেখা | নতুন column, backfill, swap, তারপর drop |
 
-> ⚠️ Live table-এ যেকোনো DDL-এর আগে একটি ছোট `lock_timeout` set করুন। Lock-এর জন্য অপেক্ষা করা একটি migration
-> তার পেছনে প্রতিটি query-কে queue-তে আটকে দেয়। এভাবেই এক line-এর একটি `ALTER TABLE` outage হয়ে যায়।
+> ⚠️ চালু table-এ যেকোনো DDL-এর আগে একটি ছোট `lock_timeout` সেট করুন। যে migration lock-এর জন্য অপেক্ষা করছে, তার
+> পেছনে প্রতিটি query লাইনে দাঁড়িয়ে যায়। এভাবেই এক line-এর `ALTER TABLE` থেকে outage হয়।
 
 ## সাধারণ ভুল
 
-**❌ প্রতিটি column আলাদাভাবে index করা।** ✅ সঠিক ক্রমের একটি composite index তিনটির চেয়ে ভালো।
+**❌ প্রতিটি column-এ আলাদা আলাদা index।** ✅ ঠিক ক্রমে একটি composite index তিনটি আলাদা index-এর চেয়ে ভালো।
 
-**❌ Typed বলে ORM-কে বিশ্বাস করা।** Type round trip নিয়ে কিছুই বলে না। ✅ SQL log করুন আর তার plan পড়ুন।
+**❌ ORM typed বলে তাকে বিশ্বাস করা।** Round trip নিয়ে type কিছুই বলে না। ✅ SQL log করুন, আর তার plan পড়ুন।
 
-**❌ বড় table-এ এক statement-এ backfill।** এটা lock ধরে রাখে, WAL ফুলিয়ে দেয়, আর মাঝপথে time out হতে পারে।
-✅ বিরতিসহ একটি সীমিত loop-এ batch করে চালান।
+**❌ বড় table-এ এক statement-এ backfill।** এটা lock ধরে রাখে, WAL ফুলিয়ে দেয়, আর মাঝপথে timeout হতে পারে। ✅ সীমিত
+loop-এ batch করে চালান, মাঝে মাঝে বিরতি দিয়ে।
 
 ## 🔑 মূল শিক্ষা
 
-- Index হলো একটি sorted copy, তাই এটা তার sort key-এর একটি prefix নিয়ে প্রশ্নের উত্তর দেয়, আর কিছু নয়।
-- একটি ORM-এর আসল খরচ হলো লুকোনো round trip আর row-এর বিস্ফোরণ, তাই development-এ generated SQL log করুন।
-- `EXPLAIN ANALYZE`-এ estimated আর actual row-এর মধ্যে বড় ফারাকই সাধারণত আসল আবিষ্কার।
-- Pool size গুণ instance সংখ্যা অবশ্যই database-এর connection limit-এর নিচে থাকতে হবে।
-- যেকোনো breaking schema পরিবর্তনের নিরাপদ ক্রম হলো expand, backfill, deploy, তারপর contract।
+- Index একটি সাজানো copy, তাই সেটা শুধু তার sort key-এর prefix নিয়ে প্রশ্নের উত্তর দেয়, আর কিছুর নয়।
+- ORM-এর আসল খরচ আড়ালের round trip আর row-এর বিস্ফোরণ, তাই development-এ generated SQL log করুন।
+- `EXPLAIN ANALYZE`-এ আনুমানিক আর আসল row-এর মধ্যে বড় ফারাকই সাধারণত আসল খবর।
+- Pool size গুণ instance-এর সংখ্যা database-এর connection সীমার নিচে থাকতে হবে।
+- যেকোনো breaking schema পরিবর্তনের নিরাপদ ক্রম: expand, backfill, deploy, তারপর contract।
 
 ## Interview-এর প্রশ্ন
 
-**Q: আপনার `(user_id, status, created_at)`-এর ওপর একটি index আছে। কোন query-গুলো এটা ব্যবহার করে?**
+**Q: `(user_id, status, created_at)`-এর ওপর একটি index আছে। কোন query-গুলো এটা ব্যবহার করে?**
 
-যেকোনো query, যেটা একটি leftmost prefix-কে সীমিত করে: শুধু `user_id`, `status`-সহ `user_id`, বা তিনটিই। তিনটি থাকলে
-`ORDER BY created_at` বিনামূল্যে, কারণ index আগে থেকেই সেই ক্রমে আছে। শুধু `status`-এর ওপর একটি query এটা ব্যবহার
-করতে পারে না। `created_at`-এর ওপর range-সহ `user_id` প্রথম column ব্যবহার করে, তারপর filter করে।
+যে query বাঁ দিক থেকে একটি prefix-এর ওপর শর্ত দেয়: শুধু `user_id`, `user_id` আর `status`, বা তিনটিই। তিনটি থাকলে
+`ORDER BY created_at` বিনা খরচে হয়, কারণ index আগে থেকেই সেই ক্রমে সাজানো। শুধু `status`-এর ওপর query এটা ব্যবহার
+করতে পারে না। `user_id`-এর সঙ্গে `created_at`-এর range থাকলে প্রথম column-টা ব্যবহার হয়, তারপর filter চলে।
 
-**Q: একটি query-র index আছে, তবুও ধীর। কী যাচাই করবেন?**
+**Q: Query-তে index আছে, তবু ধীর। কী কী দেখবেন?**
 
-আগে plan। সাধারণ কারণ হলো index করা column-এর ওপর একটি function বা cast, বা পুরোনো statistics, যেটা একটি খারাপ row
-estimate আর একটি nested loop দেয়। অথবা index এত বেশি row-এর সাথে মেলে যে planner যথার্থভাবেই এটা উপেক্ষা করে।
-বড় `Rows Removed by Filter` মানে index-এ এমন একটি column নেই, যেটা predicate-এর দরকার।
+আগে plan। সাধারণ কারণগুলো হলো index করা column-এর ওপর কোনো function বা cast, কিংবা পুরনো statistics, যা row-এর ভুল
+আন্দাজ দেয় আর nested loop বেছে নেয়। অথবা index এত বেশি row-এর সঙ্গে মেলে যে planner ঠিকভাবেই সেটা উপেক্ষা করে।
+`Rows Removed by Filter` বড় হলে বুঝবেন, শর্তের যে column দরকার, index-এ সেটা নেই।
 
 **Q: কখন ORM ছেড়ে raw SQL-এ নামবেন?**
 
-Window function বা recursive CTE-সহ analytical query-র জন্য, আর এমন bulk কাজের জন্য, যেখানে ORM প্রতি row-এ একটি
-statement পাঠায়। এছাড়া যখন generated plan খারাপ আর API দিয়ে সেটা বদলানো যায় না। Raw SQL parameterised রাখুন,
+Window function বা recursive CTE-ওয়ালা analytical query-র জন্য, আর এমন bulk কাজে, যেখানে ORM প্রতি row-এর জন্য একটি
+করে statement পাঠায়। তা ছাড়া যখন generated plan খারাপ, আর API দিয়ে সেটা বদলানো যায় না। Raw SQL-ও parameterised রাখুন,
 আর একটি typed function-এর পেছনে রাখুন।
 
-**Q: Zero downtime-এ একটি column-এর নাম কীভাবে বদলাবেন?**
+**Q: Zero downtime-এ column-এর নাম কীভাবে বদলাবেন?**
 
-Expand আর contract। নতুন column যোগ করুন, এমন code deploy করুন যেটা দুটিতেই লেখে আর নতুনটা থেকে পড়ে, আর batch-এ
-backfill করুন। যাচাই করুন যে কেউ পুরোনো column পড়ে না, তারপর পরের কোনো release-এ সেটা drop করুন। সরাসরি rename
-করলে deploy চলার সময় তখনো চলতে থাকা প্রতিটি পুরোনো instance ভেঙে যায়।
+Expand আর contract করে। নতুন column যোগ করুন, এমন code deploy করুন যা দুটিতেই লেখে আর নতুনটা থেকে পড়ে, আর batch-এ
+backfill করুন। পুরনো column আর কেউ পড়ছে না নিশ্চিত হয়ে পরের release-এ সেটা drop করুন। সরাসরি rename করলে deploy-এর
+সময় তখনও চলতে থাকা প্রতিটি পুরনো instance ভেঙে যায়।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — SQL-এর মূল কথা ও Schema Design](#ch-sql-fundamentals) — যে schema-র সেবায় এই index আর migration
-- [Chapter ?? — Node.js Performance, Stream ও Scaling](#ch-nodejs-performance) — application-এর দিক থেকে ধীর query খুঁজে বের করা
+- [Chapter ?? — SQL-এর মূল কথা ও Schema Design](#ch-sql-fundamentals) — এই index আর migration যে schema-র জন্য
+- [Chapter ?? — Node.js Performance, Stream ও Scaling](#ch-nodejs-performance) — application-এর দিক থেকে slow query খুঁজে বের করা
 - [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — API layer-এ expand আর contract

@@ -1,34 +1,34 @@
 ---
 sourceHash: "54a390bb45e0a2a828ef7e51d03d56ec68a7de92a47323befcb282cf9d3c1fe7"
 title: "OAuth, OIDC ও Authorisation"
-translatedAt: "2026-10-12T12:22:28.574Z"
+translatedAt: "2026-10-17T14:05:19.660Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # OAuth, OIDC ও Authorisation {#ch-oauth}
 
-> PKCE সহ authorisation code flow-টি ধাপে ধাপে দেখুন, তারপর ঠিক করুন signed-in user কী করতে পারবেন — server-এ, object-এর বিপরীতে।
+> PKCE-সহ authorisation code flow ধাপে ধাপে বুঝিয়ে বলুন, তারপর ঠিক করুন sign in করা user কী করতে পারবেন — server-এ, আর object ধরে।
 
-**এই অধ্যায়ে:** PKCE সহ authorisation code · OAuth বনাম OIDC বনাম JWT · RBAC, ABAC আর ACL · route নয়, object check করা · scope কেন permission নয়
+**এই অধ্যায়ে:** PKCE-সহ authorisation code · OAuth বনাম OIDC বনাম JWT · RBAC, ABAC আর ACL · route নয়, object যাচাই · scope কেন permission নয়
 
 ## 💡 মূল ধারণা
 
-প্রতিটি request-কে দুটি প্রশ্ন রক্ষা করে। **Authentication** জিজ্ঞেস করে, *আপনি কে?* **Authorisation** জিজ্ঞেস করে,
-*এই জিনিসটার ওপর আপনি কি এটা করতে পারেন?* এরা আলাদাভাবে ব্যর্থ হয়, আর আলাদা জায়গায়।
+প্রতিটি request-কে রক্ষা করে দুটি প্রশ্ন। **Authentication** জানতে চায় *আপনি কে?* **Authorisation** জানতে চায় *আপনি কি
+এই জিনিসটার ওপর এই কাজটা করতে পারেন?* দুটি আলাদা ভাবে, আলাদা জায়গায় ব্যর্থ হয়।
 
-**OAuth** একজন user-কে password শেয়ার না করেই একটি application-কে তার data-তে সীমিত access দিতে দেয়। এটা উত্তর দেয়
-"এই application কী করতে পারবে?" **OpenID Connect (OIDC)** তার ওপরে একটি `id_token` যোগ করে, আর উত্তর দেয় "এই user
-কে?" Login-এর জন্য খালি OAuth একটি পরিচিত ভুল: একটি access token permission প্রমাণ করে, কে সেটা দিয়েছে তা নয়।
+**OAuth** দিয়ে একজন user password না দিয়েই কোনো application-কে তার data-য় সীমিত access দিতে পারেন। এটা উত্তর দেয়
+"এই application কী করতে পারে?" **OpenID Connect (OIDC)** তার ওপরে একটি `id_token` যোগ করে, আর উত্তর দেয় "এই user কে?"
+Login-এর জন্য শুধু OAuth ব্যবহার করা একটি চেনা ভুল: access token প্রমাণ করে অনুমতি আছে, কিন্তু অনুমতিটা কে দিয়েছে তা নয়।
 
-Authentication **request**-এর অংশ, তাই একটি middleware এটা set করতে পারে। Authorisation **request আর object
-দুটির একসাথে** অংশ, তাই শুধু একটি route guard এটা ঠিক করতে পারে না। প্রতিটি check থাকে server-এ। একটি button
-লুকানো হলো user experience, security নয়।
+Authentication **request**-এর বিষয়, তাই একটি middleware-ই সেটা সেট করে দিতে পারে। Authorisation **request আর object
+দুটির একসঙ্গে** বিষয়, তাই শুধু route guard দিয়ে সেটা ঠিক করা যায় না। প্রতিটি check থাকে server-এ। Button লুকানো user
+experience, security নয়।
 
-> ⚠️ **যা বদলাতে থাকে:** OAuth 2.1 PKCE-কে বাধ্যতামূলক করে, আর implicit ও password grant সরিয়ে দেয়। টেকসই নীতি:
-> credential যায় back-channel দিয়ে (server থেকে server), আর code বাঁধা থাকে সেই client-এর সাথে, যে এটা চেয়েছিল।
-> Grant-এর নাম আর endpoint বদলাতেই থাকবে।
+> ⚠️ **যা বদলাতে থাকে:** OAuth 2.1 PKCE বাধ্যতামূলক করে, আর implicit ও password grant তুলে দেয়। টেকসই নীতি: credential
+> যায় back-channel দিয়ে (server থেকে server), আর code বাঁধা থাকে সেই client-এর সঙ্গে, যে সেটা চেয়েছিল। Grant-এর নাম আর
+> endpoint বদলাতেই থাকবে।
 
-## PKCE সহ Authorisation Code
+## PKCE-সহ Authorisation Code
 
 ```mermaid
 sequenceDiagram
@@ -43,13 +43,13 @@ sequenceDiagram
   A->>C: "6. access_token, refresh_token, id_token"
 ```
 
-**Authorisation code flow। Browser পার হয় শুধু code। Token কখনো হয় না।**
+**Authorisation code flow। Browser পেরোয় শুধু code। Token কখনো পেরোয় না।**
 
-বাড়তি round trip-টিই আসল কথা। ধাপ 3-এর code একটি URL-এ যায়, তাই এটা history আর log-এ জমা হয়। একা এটা অকেজো:
-এটা redeem করতে client secret বা PKCE verifier লাগে।
+বাড়তি round trip-টাই আসল কথা। ধাপ 3-এর code যায় URL-এ, তাই সেটা history আর log-এ জমা হয়। শুধু code দিয়ে কিছুই হয় না:
+সেটা ভাঙাতে client secret বা PKCE verifier লাগে।
 
-**PKCE** (Proof Key for Code Exchange) code-টিকে বাঁধে তার সাথে, যে flow শুরু করেছিল। Client আগে পাঠায়
-`SHA256(verifier)`, আর পরে খালি `verifier`, তাই শুধু code হাতে থাকা একজন চোর ব্যর্থ হয়।
+**PKCE** (Proof Key for Code Exchange) code-কে বেঁধে দেয় তার সঙ্গে, যে flow শুরু করেছে। Client আগে পাঠায় `SHA256(verifier)`,
+পরে আসল `verifier`। তাই যে চোরের হাতে শুধু code আছে, সে ব্যর্থ হয়।
 
 **Flow শুরু করা আর callback সামলানো:**
 
@@ -90,34 +90,34 @@ export async function handleCallback(req: Request, res: Response): Promise<void>
 }
 ```
 
-> ⚠️ Provider-এর access বা refresh token কখনো frontend-এ পাঠাবেন না। এগুলো server-side রাখুন, encrypted, আপনার
-> নিজের session-এর key দিয়ে। একটি provider refresh token একটি password-এর মতোই সংবেদনশীল।
+> ⚠️ Provider-এর access বা refresh token কখনো frontend-এ পাঠাবেন না। সেগুলো server-এ রাখুন, encrypt করে, আপনার নিজের
+> session-এর key ধরে। Provider-এর refresh token password-এর মতোই স্পর্শকাতর।
 
-## Grant, Token আর যে Check-গুলো জরুরি
+## Grant, Token, আর যে Check-গুলো জরুরি
 
 | Grant | কীসের জন্য | অবস্থা |
 | ----- | --- | ------ |
-| **Authorisation code + PKCE** | Web app, SPA, mobile | ✅ সবকিছুর জন্য default |
+| **Authorisation code + PKCE** | Web app, SPA, mobile | ✅ সব কিছুর default |
 | **Client credentials** | Service থেকে service, কোনো user নেই | ✅ Machine auth-এর জন্য সঠিক |
-| **Implicit** | একটি পুরনো SPA workaround | ❌ 2.1-এ সরানো হয়েছে — URL fragment-এ token |
-| **Resource owner password** | App নিজেই password নেয় | ❌ 2.1-এ সরানো হয়েছে — কোনো delegation নেই, provider-এর MFA নেই |
+| **Implicit** | পুরনো SPA-র একটি জোড়াতালি | ❌ 2.1-এ বাদ — token থাকে URL fragment-এ |
+| **Resource owner password** | App নিজেই password নেয় | ❌ 2.1-এ বাদ — delegation নেই, provider-এর MFA নেই |
 
-**OAuth** একটি authorisation framework, **OIDC** একটি identity layer, আর একটি **JWT** শুধু একটি token-এর
-*format*। যে opaque access token আপনি lookup করেন, সেটা প্রায়ই JWT-র চেয়ে ভালো, কারণ সেটা revoke করা যায়।
+**OAuth** একটি authorisation framework, **OIDC** একটি identity layer, আর **JWT** শুধু token-এর একটি *format*। যে opaque
+access token আপনি lookup করে দেখেন, সেটা প্রায়ই JWT-র চেয়ে ভালো, কারণ সেটা revoke করা যায়।
 
-- ✅ **সবসময় `state` validate করুন।** এটা না থাকলে একজন attacker তার provider account-কে victim-এর session-এর সাথে জুড়ে দেয়।
-- ✅ **Redirect URI একটি নির্দিষ্ট allowlist-এর সাথে মেলান।** `*.example.com`-এর মতো একটি wildcard যেকোনো subdomain takeover-কে চুরি হওয়া code-এ পরিণত করে।
-- ✅ **`id_token` verify করুন।** Provider-এর JWKS দিয়ে signature check করুন, তারপর `iss`, `aud`, `exp` আর `nonce`।
+- ✅ **সবসময় `state` যাচাই করুন।** এটা না থাকলে attacker তার নিজের provider account victim-এর session-এর সঙ্গে জুড়ে দেয়।
+- ✅ **Redirect URI মেলান হুবহু একটি allowlist-এর সঙ্গে।** `*.example.com`-এর মতো wildcard থাকলে যেকোনো subdomain takeover মানেই code চুরি।
+- ✅ **`id_token` verify করুন।** Provider-এর JWKS দিয়ে signature যাচাই করুন, তারপর `iss`, `aud`, `exp` আর `nonce`।
 
 ## Authorisation: তিনটি Model
 
-| Model | কী দেখে ঠিক করে | কোথায় মানায় |
+| Model | কীসের ভিত্তিতে ঠিক করে | কোথায় মানায় |
 | ----- | ------------ | ---- |
-| **RBAC** — role-ভিত্তিক | User-এর role | বেশিরভাগ app; ছোট, স্থির permission set |
-| **ABAC** — attribute-ভিত্তিক | User, resource আর context-এর attribute | "নিজের department", "শুধু অফিস সময়ে" |
-| **ACL** — access control list | প্রতিটি object-এর জন্য grant-এর একটি তালিকা | User-দের মধ্যে sharing: document, folder, calendar |
+| **RBAC** — role-based | User-এর role | বেশিরভাগ app; ছোট, স্থির permission-এর set |
+| **ABAC** — attribute-based | User, resource আর context-এর attribute | "নিজের department", "শুধু অফিসের সময়ে" |
+| **ACL** — access control list | প্রতিটি object-এর নিজস্ব অনুমতির তালিকা | User-দের মধ্যে sharing: document, folder, calendar |
 
-**ঠিকভাবে করা RBAC:** role map হয় permission-এ, আর code check করে permission — কখনো role নয়।
+**RBAC, ঠিকভাবে করা:** role থেকে permission-এ map হয়, আর code যাচাই করে permission — কখনো role নয়।
 
 ```typescript
 type Permission = 'order:read' | 'order:write' | 'order:refund';
@@ -139,15 +139,15 @@ export function requirePermission(permission: Permission): RequestHandler {
 }
 ```
 
-Handler-গুলোর মধ্যে ছড়ানো `if (user.role === 'admin')` হলো anti-pattern: একটি নতুন role মানে প্রতিটি conditional
-audit করা। কোনো requirement "নিজের" বা "শুধু যখন" বললে ABAC-এর দিকে যান।
+Handler-জুড়ে ছড়িয়ে থাকা `if (user.role === 'admin')` হলো anti-pattern: নতুন একটি role এলেই প্রতিটি শর্ত খুঁজে খুঁজে দেখতে
+হয়। কোনো requirement-এ "নিজের" বা "শুধু যখন" কথাটা থাকলে ABAC-এর দিকে যান।
 
-## Route নয়, Object Check করুন
+## Route নয়, Object যাচাই করুন
 
-একটি valid token সহ `GET /orders/9`-কেও check করতে হবে যে order 9 caller-এর নিজের। এটা বাদ পড়লে সেটা
-**broken object-level authorisation**। এটা OWASP-এর এক নম্বর API ঝুঁকি, আর আসলে শুধু একটি হারিয়ে যাওয়া `WHERE` clause।
+Valid token থাকলেও `GET /orders/9`-এ যাচাই করতে হবে যে order 9 সত্যিই caller-এর। এটা বাদ পড়লে হয় **broken object-level
+authorisation**। এটা OWASP-এর তালিকায় API-র এক নম্বর ঝুঁকি, অথচ আসলে শুধু একটি `WHERE` clause বাদ পড়া।
 
-**Check-টিকে query-র অংশ করুন:**
+**Check-টাকে query-রই অংশ করুন:**
 
 ```typescript
 // ❌ Route guard only. Any authenticated user reads any order.
@@ -166,75 +166,76 @@ app.get('/orders/:id', requireAuth, requirePermission('order:read'), async (req,
 });
 ```
 
-একটি multi-tenant system-এ, একটি বাদ পড়া `tenantId` একজন customer-এর data অন্যজনের কাছে leak করে। Defence-গুলো, সবচেয়ে দুর্বলটা আগে:
+Multi-tenant system-এ একটি `tenantId` বাদ পড়লেই এক customer-এর data আরেক customer-এর কাছে চলে যায়। প্রতিরক্ষাগুলো, সবচেয়ে
+দুর্বলটা আগে:
 
-| পদ্ধতি | Guarantee | খরচ |
+| পদ্ধতি | নিশ্চয়তা | খরচ |
 | -------- | --------- | ---- |
-| নিয়ম মেনে প্রতিটি query-তে `tenantId` | নেই — একবার বাদ পড়লেই breach | বিনা খরচে, আর যথেষ্ট নয় |
-| একটি repository layer, যেটা `tenantId` যোগ করে | কোনো handler এটা ছাড়া query বানাতে পারে না | Maintain করার জন্য একটি layer |
-| Postgres-এ row-level security (RLS) | Database cross-tenant read অস্বীকার করে | প্রতিটি connection-এ একটি session variable; transaction pooling-এর সাথে ঝামেলার |
+| রীতি মেনে প্রতিটি query-তে `tenantId` | কিছুই না — একবার বাদ পড়লেই breach | বিনা খরচে, আর যথেষ্ট নয় |
+| একটি repository layer, যা `tenantId` যোগ করে দেয় | কোনো handler এটা ছাড়া query বানাতে পারে না | রক্ষণাবেক্ষণের জন্য একটি বাড়তি layer |
+| Postgres-এ row-level security (RLS) | Database নিজেই অন্য tenant-এর data পড়তে দেয় না | প্রতিটি connection-এ একটি session variable; transaction pooling-এর সঙ্গে ঝামেলার |
 
-## OAuth Scope Permission নয়
+## OAuth Scope মানে Permission নয়
 
-একটি scope বলে, একটি **application** user-এর হয়ে কী চাইতে পারে। একটি permission বলে, **user** কী করতে পারেন।
-`orders:write` সহ একটি token-এর মানে এই নয় যে এই user এই order-এ write করতে পারেন।
+Scope বলে একটি **application** user-এর হয়ে কী চাইতে পারে। Permission বলে **user** নিজে কী করতে পারেন। `orders:write`-ওয়ালা
+token থাকা মানে এই নয় যে এই user এই order-এ লিখতে পারেন।
 
-**দুটিই check করুন, ক্রম মেনে:**
+**দুটিই যাচাই করুন, এই ক্রমে:**
 
 ```typescript
 if (!token.scope.includes('orders:write')) return res.status(403).json({ error: { code: 'insufficient_scope' } });
 if (!(await canEdit(req.user, order))) return res.status(403).json({ error: { code: 'forbidden' } });
 ```
 
-Permission হিসেবে ব্যবহার করা একটি scope একটি integration-কে যেকোনো order-এ write করতে দেয়, মালিক যে-ই হোক। কয়েক
-ডজন rule পেরিয়ে গেলে, বা যখন service-গুলোকে একমত হতে হয়, rule-গুলো OPA বা Cedar-এর মতো একটি policy engine-এ সরিয়ে নিন।
+Scope-কে permission হিসেবে ব্যবহার করলে একটি integration যেকোনো order-এ লিখতে পারে, মালিক যে-ই হোক। কয়েক ডজনের বেশি নিয়ম
+হয়ে গেলে, বা কয়েকটি service-কে একই নিয়মে একমত হতে হলে, নিয়মগুলো OPA বা Cedar-এর মতো একটি policy engine-এ সরিয়ে নিন।
 
 ## সাধারণ ভুল
 
-- ❌ **Client-এর দেওয়া `tenantId` বা `userId`-কে বিশ্বাস করা।** ✅ দুটিই verified session বা token থেকে নিন।
+- ❌ **Client-এর পাঠানো `tenantId` বা `userId` বিশ্বাস করা।** ✅ দুটিই নিন verify করা session বা token থেকে।
 - ❌ **Client-এ সিদ্ধান্ত নেওয়া।** ✅ UX-এর জন্য button লুকান, তারপর প্রতিটি check server-এ আবার করুন।
-- ❌ **Fail open করা।** ✅ Policy lookup-এ error হলে deny করুন। একটি permissive default একটি vulnerability।
+- ❌ **Error হলে দরজা খুলে দেওয়া।** ✅ Policy lookup-এ error হলে অনুমতি দেবেন না। ঢিলেঢালা default নিজেই একটি vulnerability।
 
 ## 🔑 মূল শিক্ষা
 
-- OAuth উত্তর দেয় একটি application কী করতে পারবে, OIDC-র `id_token` উত্তর দেয় user কে, আর আপনার নিজের authorisation ঠিক করে সেই user কী ছুঁতে পারবেন।
-- PKCE সহ authorisation code-ই ব্যবহার করার একমাত্র flow, আর `state` ও PKCE আলাদা কাজ করে, তাই দুটিই লাগবে।
-- Provider-এর token server-এই থাকে। Browser কখনো শুধু আপনার নিজের session ধরে রাখে।
-- Tenant আর owner-কে query-তে রাখুন, যাতে একটি ভুলে যাওয়া check সবকিছু নয়, কিছুই return না করে।
-- একটি OAuth scope application-কে সীমিত করে, user-কে নয়, তাই scope check করুন, তারপর object-এর ওপর user-এর permission।
+- কোনো application কী করতে পারে, তার উত্তর দেয় OAuth। User কে, তার উত্তর দেয় OIDC-র `id_token`। আর সেই user কী ছুঁতে পারবেন, ঠিক করে আপনার নিজের authorisation।
+- ব্যবহার করার মতো flow একটিই: PKCE-সহ authorisation code। `state` আর PKCE আলাদা কাজ করে, তাই দুটিই লাগে।
+- Provider-এর token থাকে server-এ। Browser-এর হাতে থাকে শুধু আপনার নিজের session।
+- Tenant আর owner query-তেই রাখুন, যাতে কোনো check ভুলে গেলে সব নয়, কিছুই ফেরত না আসে।
+- OAuth scope application-কে সীমিত করে, user-কে নয়। তাই আগে scope যাচাই করুন, তারপর object-এর ওপর user-এর permission।
 
 ## Interview-এর প্রশ্ন
 
-**Q: PKCE সহ authorisation code flow-টি আমাকে ধাপে ধাপে বুঝিয়ে বলুন।**
+**Q: PKCE-সহ authorisation code flow ধাপে ধাপে বুঝিয়ে বলুন।**
 
-App তার client id, scope, একটি random `state` আর একটি PKCE challenge নিয়ে redirect করে। User sign in করেন, আর server
-একটি স্বল্পস্থায়ী code নিয়ে redirect করে ফেরত পাঠায়। Backend code, verifier আর client secret দিয়ে token নেয়, server
-থেকে server। Code browser পার হয়। Token হয় না।
+App redirect করে তার client id, scope, random একটি `state` আর একটি PKCE challenge দিয়ে। User sign in করেন, আর server অল্প
+মেয়াদের একটি code দিয়ে আবার redirect করে ফেরত পাঠায়। এরপর backend code, verifier আর client secret দিয়ে token নেয়, server
+থেকে server-এ। Code browser পেরোয়। Token পেরোয় না।
 
-**Q: `state` কীসের জন্য, আর এটা কি PKCE-র মতোই?**
+**Q: `state` কীসের জন্য, আর সেটা কি PKCE-র মতোই?**
 
-না। `state` হলো flow-টির জন্য CSRF protection। এটা session-এ রাখা একটি random value, যেটা callback-এ মিলতে হবে, যাতে
-একজন attacker কোনো victim-কে দিয়ে attacker-এর code দিয়ে একটি flow শেষ করাতে না পারে। PKCE একটি চুরি হওয়া code অন্য
-কাউকে redeem করতে দেয় না। OAuth 2.1 confidential client-এর জন্যও PKCE বাধ্যতামূলক করে।
+না। `state` হলো flow-এর CSRF প্রতিরক্ষা। এটা session-এ রাখা একটি random value, যা callback-এ মিলতেই হবে। ফলে attacker
+victim-কে দিয়ে attacker-এর নিজের code-ওয়ালা flow শেষ করাতে পারে না। PKCE আটকায় যাতে চুরি করা code অন্য কেউ ভাঙাতে না
+পারে। OAuth 2.1 confidential client-এর জন্যও PKCE বাধ্যতামূলক করে।
 
-**Q: Broken object-level authorisation কী, আর structure দিয়ে কীভাবে এটা আটকাবেন?**
+**Q: Broken object-level authorisation কী, আর কাঠামোগতভাবে কীভাবে আটকাবেন?**
 
-Caller authenticated, আর তার role সাধারণভাবে action-টির অনুমতি দেয়, কিন্তু কেউ check করে না যে এই object-টি তার।
-তখন URL-এ একটি id বদলালেই অন্য কারো data পড়া যায়। সমাধান হলো মালিকানাকে query-র অংশ করা, একটি repository layer বা
-row-level security দিয়ে, যাতে একটি বাদ পড়া check কোনো row return না করে।
+Caller authenticated, আর তার role সাধারণভাবে কাজটার অনুমতি দেয়, কিন্তু কেউ যাচাই করে না যে এই object-টা তার। তখন URL-এ
+একটি id বদলালেই অন্য কারও data পড়া যায়। সমাধান হলো ownership-কে query-রই অংশ করা, একটি repository layer বা row-level
+security দিয়ে, যাতে check বাদ পড়লে কোনো row ফেরত না আসে।
 
-**Q: যে resource user দেখতে পারেন না, তার জন্য 403 নাকি 404?**
+**Q: যে resource user দেখতে পারবেন না, তার জন্য 403 নাকি 404?**
 
-404, যখন caller-এর জানা উচিত নয় যে এটা আছে। Sequential id-তে একটি 403 একজন attacker-কে আপনার data গুনতে দেয়। 403,
-যখন তারা আগে থেকেই জানেন এটা আছে, যেমন একটি team document, যেটা তারা পড়তে পারেন কিন্তু edit করতে পারেন না।
+Caller-এর যদি জানাই উচিত না হয় যে resource-টা আছে, তাহলে 404। ক্রমিক id-তে 403 দিলে attacker আপনার data গুনে ফেলতে পারে।
+403 তখন, যখন তিনি আগে থেকেই জানেন যে সেটা আছে, যেমন দলের একটি document, যা তিনি পড়তে পারেন কিন্তু edit করতে পারেন না।
 
-**Q: কখন আপনি ABAC বা একটি policy engine-এর দিকে যাবেন না?**
+**Q: কখন ABAC বা policy engine-এর দিকে যাবেন না?**
 
-যখন permission ছোট আর স্থির, তখন RBAC নিয়ে ভাবা আর audit করা সহজ। একটি policy engine তার খরচ পুষিয়ে দেয়, যখন
-rule code-এর চেয়ে দ্রুত বদলায়, বা কয়েকটি service-কে একমত হতে হয়। একটি team আর এক ডজন rule-এর জন্য এটা সামান্য লাভের
-বিনিময়ে একটি network hop আর একটি নতুন ভাষা যোগ করে।
+Permission ছোট আর স্থির হলে RBAC নিয়ে ভাবা আর audit করা সহজ। Policy engine-এর খরচ পোষায় তখন, যখন নিয়ম code-এর চেয়ে দ্রুত
+বদলায়, বা কয়েকটি service-কে একমত হতে হয়। একটি দল আর এক ডজন নিয়মের জন্য এটা একটি বাড়তি network hop আর নতুন একটি
+language যোগ করে, অথচ লাভ সামান্য।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — callback-এর পরে আপনি যে session issue করেন, আর যে cookie সেটা ধরে রাখে তাকে রক্ষা করা
-- [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — status code-এর map-এ 403 আর 404 কোথায় বসে
+- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — callback-এর পরে আপনি যে session issue করেন, আর যে cookie সেটা ধরে রাখে তার সুরক্ষা
+- [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — status code-এর মানচিত্রে 403 আর 404-এর জায়গা

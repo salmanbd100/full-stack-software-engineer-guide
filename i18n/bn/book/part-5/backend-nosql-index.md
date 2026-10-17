@@ -1,39 +1,38 @@
 ---
 sourceHash: "c270cd4408d96d985e2925145e29e43893fbf7f4789eb9113ad0b2c776b47eb1"
 title: "Part V — NoSQL ও Caching"
-translatedAt: "2026-10-12T12:21:21.838Z"
+translatedAt: "2026-10-17T14:03:27.430Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Part V — NoSQL ও Caching
 
-দুটি store নিয়ে একটি অধ্যায়, যেগুলো বেছে নেওয়া হয়েছে কত ঘন ঘন দেখা যায় তা দেখে। অনেক product codebase-এ
-MongoDB আছে। প্রায় প্রতিটি production service-এর কোথাও না কোথাও Redis আছে।
+দুটি store নিয়ে একটি অধ্যায়, বাছা হয়েছে কতবার এদের দেখা মেলে তা দেখে। অনেক product codebase-এ MongoDB আছে। আর প্রায়
+প্রতিটি production service-এর কোথাও না কোথাও Redis আছে।
 
-অধ্যায়টি পুরো সময় তুলনা করে চলে। একটি document store নিজের গুণেই জানার মতো। আর এটা কী ছেড়ে দেয়, সেটা
-ব্যাখ্যা করতে পারাও দেখায় যে আপনি relational model বোঝেন।
+পুরো অধ্যায় জুড়ে তুলনা চলে। Document store নিজের গুণেই জানার মতো। তবে সেটা কী ছেড়ে দেয় তা বুঝিয়ে বলতে পারলে বোঝা যায়
+যে relational model-ও আপনি বোঝেন।
 
 ## অধ্যায়গুলো
 
 | #  | অধ্যায় | কোন প্রশ্নের উত্তর দেয় |
 | -- | ------- | --------------- |
-| 01 | [Non-Relational Store বাছাই: Document ও Redis](#ch-document-databases) | Document model কী এনে দেয়, কোন Redis structure মানায়, আর কখন Postgres-ই এখনো উত্তর? |
+| 01 | [Non-Relational Store বাছাই: Document ও Redis](#ch-document-databases) | Document model কী এনে দেয়, কোন Redis structure মানায়, আর কখন উত্তর এখনও Postgres? |
 
-Aggregation pipeline আর shard-key-র খুঁটিনাটি ইচ্ছা করেই বাদ রাখা হয়েছে। প্রথমটি একজন MongoDB
-specialist-এর দক্ষতা। দ্বিতীয়টি এক স্তর ওপরের বিষয়, [Chapter ?? — Datastore বাছাই ও তার Replication](#ch-choosing-a-datastore)
+Aggregation pipeline আর shard key-এর খুঁটিনাটি ইচ্ছে করেই বাদ রাখা হয়েছে। প্রথমটি MongoDB specialist-এর দক্ষতা।
+দ্বিতীয়টির জায়গা এক স্তর ওপরে, [Chapter ?? — Datastore বাছাই ও তার Replication](#ch-choosing-a-datastore)
 আর [Chapter ?? — বড় পরিসরে Sharding ও Transaction](#ch-sharding)-এ, যেখানে এগুলো command নয়, সিদ্ধান্ত।
 
 ## Interviewer-রা যা যাচাই করেন
 
-- **Embed নাকি reference।** উত্তর আসতে হবে access pattern আর বৃদ্ধির সীমা থেকে, একটি entity diagram থেকে
-  নয়। 16 MB document limit "সীমাহীন"-কে একটি কঠিন constraint বানিয়ে দেয়।
-- **কী atomic।** একটি single document, সবসময়। এর চেয়ে বড় কিছুতে একটি explicit transaction লাগে, আর নিয়মিত
-  সেগুলো লাগা একটি modelling-এর সংকেত।
-- **Pub/Sub বনাম Streams।** একটি design-এর কারণেই message হারায়। অন্যটি হারায় না। Job queue-এর জন্য ভুলটা
-  বেছে নেওয়া একটি সাধারণ ভুল।
-- **Redis কি system of record।** না, আর এ বিষয়ে পরিষ্কার থাকা এর command জানার চেয়ে বেশি গুরুত্বপূর্ণ।
+- **Embed নাকি reference।** উত্তর আসতে হবে access pattern আর কতটা বাড়তে পারে তার সীমা থেকে, entity diagram থেকে নয়।
+  16 MB-এর document সীমা "সীমাহীন"-কে একটি কড়া constraint বানিয়ে দেয়।
+- **কী atomic।** একটি document, সবসময়। এর চেয়ে বড় কিছু হলে আলাদা করে transaction লাগে, আর নিয়মিত সেটা লাগা মানে
+  modelling-এ গোলমাল আছে।
+- **Pub/Sub বনাম Streams।** একটি design অনুযায়ীই message হারায়। অন্যটি হারায় না। Job queue-র জন্য ভুলটা বেছে নেওয়া খুব
+  সাধারণ ভুল।
+- **Redis কি system of record।** না। আর Redis-এর command জানার চেয়ে এই ব্যাপারে স্পষ্ট থাকা বেশি জরুরি।
 
 ## পড়ার ক্রম
 
-একটিই অধ্যায়, আর সেটা interview sprint-এ আছে। Embed-নাকি-reference-এর বিচার আর Redis structure বাছাই — এই
-দুটিই সবচেয়ে বেশি সামনে আসে।
+একটিই অধ্যায়, আর সেটা interview sprint-এ আছে। সবচেয়ে বেশি আসে দুটি প্রশ্ন: embed নাকি reference, আর কোন Redis structure।

@@ -1,29 +1,29 @@
 ---
 sourceHash: "55b851ba05b6e1c3eaf58ba7fec4645d7a17bcb26356a5ed63294d9205168128"
 title: "Node.js Event Loop, Async ও Error"
-translatedAt: "2026-10-12T12:17:11.763Z"
+translatedAt: "2026-10-17T14:00:04.956Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Node.js Event Loop, Async ও Error {#ch-event-loop-async}
 
-> ব্যাখ্যা করুন একটি thread কীভাবে হাজার হাজার connection সামলায়, সেই line-টার নাম বলুন যেটা সবাইকে আটকে দেয়, আর ঠিক করুন কোন failure-এর উত্তর দেবেন আর কোনটার জন্য restart করবেন।
+> একটি thread কীভাবে হাজার হাজার connection সামলায়, তা ব্যাখ্যা করুন। কোন line সবাইকে আটকে দেয়, সেটা চিহ্নিত করুন। আর ঠিক করুন, কোন failure-এ উত্তর দেবেন আর কোনটায় process restart করবেন।
 
-**এই অধ্যায়ে:** loop-এর phase-গুলো · microtask বনাম macrotask · যে concurrency scale করে · operational বনাম programmer error · পরিচ্ছন্নভাবে crash আর shutdown
+**এই অধ্যায়ে:** loop-এর phase · microtask বনাম macrotask · যে concurrency scale করে · operational বনাম programmer error · ঠিকভাবে crash আর shutdown
 
 ## 💡 মূল ধারণা
 
-Node আপনার JavaScript **একটি thread-এ** চালায়। এটা দ্রুত থাকে, কারণ সেই thread কখনো অপেক্ষা করে না। একটি query, একটি
-file read বা একটি HTTP call চলে যায় operating system-এ, বা ছোট একটি thread pool-এ। Result তৈরি হলে Node আপনার callback
-চালায়। এটা parallel নয়, শুধু কখনো অলস বসে থাকে না। এর দুটি ফল আছে। **Inline যেকোনো CPU কাজ সবাইকে আটকে দেয়:** একটি
-200 ms-এর JSON parse প্রতিটি খোলা request-এ 200 ms যোগ করে। আর **একটি process প্রতিটি user-কে সেবা দেয়**, তাই যে error
-আপনি ব্যাখ্যা করতে পারেন না, তার মানে সবার জন্য অজানা state। নিরাপদ উত্তর হলো সেটা log করে restart করা।
+Node আপনার JavaScript চালায় **একটি thread-এ**। তবু দ্রুত থাকে, কারণ সেই thread কখনো অপেক্ষা করে না। Query, file
+পড়া বা HTTP call চলে যায় operating system-এর কাছে, নয়তো ছোট একটি thread pool-এ। ফল তৈরি হলে Node আপনার callback
+চালায়। মানে Node parallel নয়, শুধু কখনো বসে থাকে না। এর দুটি ফল আছে। **Inline যে CPU-র কাজই করুন, তা সবাইকে আটকে
+দেয়:** 200 ms-এর একটি JSON parse খোলা প্রতিটি request-এ 200 ms যোগ করে। আর **একটি process-ই সব user-কে serve করে**,
+তাই যে error-এর ব্যাখ্যা নেই, তার মানে সবার জন্যই অজানা state। নিরাপদ পথ হলো log করে restart করা।
 
 ## কীভাবে কাজ করে
 
-Event loop হলো phase-গুলোর একটি নির্দিষ্ট চক্র। প্রতিটি phase তার নিজের callback queue খালি করে। একটি server তার জীবনের
-বেশিরভাগ সময় কাটায় **poll**-এ, I/O-র জন্য অপেক্ষা করে। **Timers** মেয়াদ শেষ হওয়া `setTimeout` callback চালায়, আর
-**check** চালায় `setImmediate`।
+Event loop হলো কয়েকটি phase-এর একটি নির্দিষ্ট চক্র। প্রতিটি phase নিজের callback queue খালি করে। একটি server জীবনের
+বেশিরভাগ সময় কাটায় **poll**-এ, I/O-র অপেক্ষায়। **Timers** চালায় মেয়াদ ফুরানো `setTimeout` callback, আর **check**
+চালায় `setImmediate`।
 
 **Loop-এর phase-গুলো:**
 
@@ -36,14 +36,14 @@ flowchart LR
   E --> A
 ```
 
-**Event loop-এর একটি পাক। প্রতিটি তীরের মাঝে Node microtask queue খালি করে।**
+**Event loop-এর এক পাক। প্রতিটি তীরের মাঝে Node microtask queue খালি করে নেয়।**
 
-### Microtask সবকিছুর আগে
+### Microtask সবার আগে
 
-দুটি queue phase-গুলোর **বাইরে** থাকে, আর প্রতিটি callback-এর পরে খালি হয়: আগে `process.nextTick`, তারপর promise
-reaction।
+দুটি queue phase-গুলোর **বাইরে** থাকে, আর প্রতিটি callback-এর পরে খালি হয়: প্রথমে `process.nextTick`, তারপর
+promise reaction।
 
-**ক্রম, একেবারে শুরু থেকে:**
+**ক্রম, cold start থেকে:**
 
 ```typescript
 setTimeout((): void => console.log('1 timeout'), 0);
@@ -56,24 +56,25 @@ console.log('5 sync');
 // Sync code runs before the loop even starts its first turn.
 ```
 
-> ⚠️ Recursive `process.nextTick` loop-কে অভুক্ত রাখে, কারণ তার queue কখনো খালি হয় না। Recursive `setImmediate` প্রতিটি
-> পাকের মাঝে জায়গা ছেড়ে দেয়, তাই নিরাপদ।
+> ⚠️ Recursive `process.nextTick` loop-কে না খাইয়ে রাখে, কারণ তার queue কখনো খালি হয় না। Recursive
+> `setImmediate` প্রতি পাকের মাঝে loop-কে জায়গা ছেড়ে দেয়, তাই সেটা নিরাপদ।
 
-### Thread pool ছোট আর ভাগাভাগি করা
+### Thread pool ছোট, আর সবাই মিলে ব্যবহার করে
 
-`fs`, `dns.lookup`, `zlib` আর `crypto.pbkdf2` libuv-এর **চারটি thread**-এর pool ভাগ করে নেয় (libuv হলো Node-এর নিচের C
-library)। পঞ্চম একটি ধীর `bcrypt.hash` অপেক্ষা করে। Socket এটা ব্যবহার করে না। `UV_THREADPOOL_SIZE` দিয়ে এটা বাড়ানো যায়।
+`fs`, `dns.lookup`, `zlib` আর `crypto.pbkdf2` সবাই libuv-এর **চারটি thread**-এর pool ভাগ করে নেয় (libuv হলো Node-এর
+নিচের C library)। পঞ্চম ধীর `bcrypt.hash`-কে অপেক্ষা করতে হয়। Socket এই pool ব্যবহার করে না। `UV_THREADPOOL_SIZE`
+দিয়ে pool বড় করা যায়।
 
 ## কখন ব্যবহার করবেন
 
-| আপনার আছে | কী ব্যবহার করবেন | কেন |
+| আপনার কাছে আছে | কী ব্যবহার করবেন | কেন |
 | -------- | --- | --- |
-| স্বাধীন call, সবগুলোকে সফল হতে হবে | `Promise.all` | N-টা নয়, একটি round trip-এর সমান latency |
-| স্বাধীন call, আংশিক failure চলবে | `Promise.allSettled` | প্রতিটি result আর প্রতিটি কারণ পান |
-| একাধিক source, প্রথম উত্তরই জেতে | `Promise.race` | Timeout আর hedged request |
-| বড় একটি list, একটি shared downstream | Bounded pool | আপনার নিজের fan-out থেকে database-কে রক্ষা করে |
+| পরস্পর-নিরপেক্ষ call, সবগুলোকেই সফল হতে হবে | `Promise.all` | Latency লাগে একটি round trip-এর সমান, N-টির নয় |
+| পরস্পর-নিরপেক্ষ call, কয়েকটি ব্যর্থ হলেও চলে | `Promise.allSettled` | প্রতিটি ফল আর প্রতিটি ব্যর্থতার কারণ হাতে পান |
+| কয়েকটি উৎস, যার উত্তর আগে আসে সেটাই জেতে | `Promise.race` | Timeout আর hedged request |
+| বড় একটি তালিকা, downstream একটিই | সীমিত pool | আপনার নিজের fan-out থেকে database-কে বাঁচায় |
 
-**Bounded concurrency — যে pattern বেশিরভাগ মানুষ ভুল করে:**
+**সীমিত concurrency — যে pattern বেশিরভাগ মানুষ ভুল করেন:**
 
 ```typescript
 async function mapLimit<T, R>(
@@ -95,21 +96,21 @@ async function mapLimit<T, R>(
 }
 ```
 
-5,000টি id দিয়ে `Promise.all(ids.map(fetchUser))` 5,000টি socket খোলে আর connection pool শেষ করে ফেলে।
-`mapLimit(ids, 10, fetchUser)` খোলে দশটি।
+5,000টি id নিয়ে `Promise.all(ids.map(fetchUser))` চালালে 5,000টি socket খোলে, আর connection pool ফাঁকা হয়ে যায়।
+`mapLimit(ids, 10, fetchUser)` খোলে মাত্র দশটি।
 
 ## দুই ধরনের Error
 
-Node service-এর প্রতিটি error দুই ধরনের একটি। এদের আলাদা করতে পারা থেকেই পুরো design আসে।
+Node service-এর প্রতিটি error দুই ধরনের একটি। এ দুটিকে আলাদা করে চিনতে পারলেই পুরো design দাঁড়িয়ে যায়।
 
-| ধরন | উদাহরণ | প্রতিক্রিয়া |
+| ধরন | উদাহরণ | কী করবেন |
 | ---- | ------- | -------- |
-| **Operational** | Row পাওয়া যায়নি, token-এর মেয়াদ শেষ, provider timeout করেছে | Request-এর উত্তর দিন আর চালু থাকুন |
-| **Programmer** | `undefined`-এর property, ভাঙা invariant, ভুল config key | Log করুন, তারপর process-কে মরতে দিন আর restart করুন |
+| **Operational** | Row পাওয়া যায়নি, token-এর মেয়াদ শেষ, provider timeout করেছে | Request-এর উত্তর দিন, process চালু রাখুন |
+| **Programmer** | `undefined`-এর property, ভাঙা invariant, ভুল config key | Log করুন, তারপর process মরতে দিন আর restart হতে দিন |
 
-একটি bug-কে operational ধরলে আপনি ঘণ্টার পর ঘণ্টা নষ্ট response দেন। Crash করলে কয়েক সেকেন্ডে restart হয়।
+Bug-কে operational ধরে নিলে ঘণ্টার পর ঘণ্টা নষ্ট response পাঠাতে থাকবেন। Crash করলে কয়েক সেকেন্ডেই restart হয়ে যায়।
 
-**একটি typed error base:**
+**Typed error-এর base:**
 
 ```typescript
 export class AppError extends Error {
@@ -133,15 +134,15 @@ export class UpstreamError extends AppError {
 }
 ```
 
-`status` আর `code` একটি handler-কে প্রতিটি error-এর উত্তর দিতে দেয়। `expose` throw-এর সময়েই ঠিক করে message-টা পাঠানো
-নিরাপদ কি না, কারণ upstream message-এ একটি hostname বা connection string থাকতে পারে।
+`status` আর `code` থাকায় একটি handler-ই সব error-এর উত্তর দিতে পারে। Message পাঠানো নিরাপদ কি না, `expose` তা ঠিক
+করে throw করার সময়েই। কারণ upstream-এর message-এ hostname বা connection string থাকতে পারে।
 
 ### সবকিছুর জন্য একটি handler
 
-Express প্রতিটি error একটি চার-argument-এর middleware-এ পাঠায়। Express 5-এ, একটি `async` handler থেকে reject হওয়া
-promise নিজে থেকেই সেখানে পৌঁছায়। Express 4-এ পৌঁছায় না, আর request ঝুলে থাকে।
+Express প্রতিটি error পাঠায় চার argument-এর একটি middleware-এ। Express 5-এ `async` handler-এর rejected promise
+নিজে থেকেই সেখানে পৌঁছায়। Express 4-এ পৌঁছায় না, ফলে request ঝুলে থাকে।
 
-**একমাত্র error handler, প্রতিটি route-এর পরে register করা:**
+**একমাত্র error handler, সব route-এর পরে register করা:**
 
 ```typescript
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction): void => {
@@ -159,14 +160,14 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction): void =
 });
 ```
 
-অচেনা error default-ভাবে 500 আর একটি সাধারণ message পায়। এটা একটি bug, আর bug তথ্য ফাঁস করে।
+অচেনা error হলে default হিসেবে 500 আর সাধারণ একটি message যায়। ওটা bug, আর bug-এর message থেকে তথ্য ফাঁস হয়।
 
-### পরিচ্ছন্নভাবে crash আর shutdown
+### ঠিকভাবে crash আর shutdown
 
-Unhandled rejection হলো এমন একটি promise, যেটা fail করেছে অথচ কেউ শুনছিল না। Node 15 থেকে এটা default-ভাবে process
-crash করায়। এটা রেখে দিন, আর handler যোগ করুন শুধু আগে log করার জন্য।
+Unhandled rejection হলো এমন promise, যা ব্যর্থ হয়েছে কিন্তু কেউ শুনছিল না। Node 15 থেকে এতে default হিসেবে process
+crash করে। এটা বদলাবেন না। Handler যোগ করুন শুধু আগে log করার জন্য।
 
-**Process-level handler আর graceful shutdown:**
+**Process-স্তরের handler আর graceful shutdown:**
 
 ```typescript
 process.on('unhandledRejection', (reason: unknown): void => {
@@ -187,54 +188,55 @@ function shutdown(code: number): void {
 }
 ```
 
-> ⚠️ এই handler-গুলো আছে **log করে exit করার** জন্য, কখনো recover করার জন্য নয়। Uncaught exception-এর পরে একটি
-> transaction খোলা থাকতে পারে, বা একটি lock ধরা থাকতে পারে। পরের request সেই অর্ধেক-প্রয়োগ হওয়া state দেখবে।
+> ⚠️ এই handler-গুলো আছে **log করে বেরিয়ে যাওয়ার** জন্য, কখনো recover করার জন্য নয়। Uncaught exception-এর পরে
+> হয়তো কোনো transaction খোলা আছে, বা কোনো lock ধরা আছে। পরের request সেই আধা-প্রয়োগ হওয়া state দেখবে।
 
 ## সাধারণ ভুল
 
-**❌ Request handler-এ inline CPU কাজ।** `map` আর `join` দিয়ে 200k-row-এর CSV বানাতে 400 ms লাগে, আর বাকি প্রতিটি
-request অপেক্ষা করে। **✅ এটা stream করুন**, যাতে প্রতিটি chunk loop-কে জায়গা ছেড়ে দেয়, বা worker thread-এ সরিয়ে দিন।
-প্রতি request-এ মোটামুটি 10 ms-এর বেশি টানা CPU কাজ loop-এর বাইরে থাকা উচিত।
+**❌ Request handler-এর ভেতরে inline CPU-র কাজ।** `map` আর `join` দিয়ে 200k row-এর CSV বানাতে 400 ms লাগে, আর
+বাকি সব request অপেক্ষায় থাকে। **✅ Stream করুন**, যাতে প্রতিটি chunk-এর পরে loop জায়গা পায়, নয়তো worker thread-এ
+সরিয়ে দিন। একটি request-এ মোটামুটি 10 ms-এর বেশি টানা CPU-র কাজ হলে সেটা loop থেকে সরানো উচিত।
 
-**❌ এমন `catch`, যেটা log করে কাজ চালিয়ে যায়।** Order save হয়নি, অথচ client 200 পায়।
-**✅ রূপান্তর করে আবার throw করুন** `throw new UpstreamError('orders', e)` দিয়ে, যাতে handler উত্তর দেয়।
+**❌ এমন `catch`, যা log করে চুপচাপ এগিয়ে যায়।** Order save হয়নি, অথচ client পায় 200। **✅ অনুবাদ করে আবার
+throw করুন**, যেমন `throw new UpstreamError('orders', e)`, যাতে handler উত্তরটা দেয়।
 
-**❌ ভুলে যাওয়া `await`।** Response পাঠানোর পরে error-টা একটি unhandled rejection হয়ে যায়।
+**❌ ভুলে যাওয়া `await`।** Response চলে যাওয়ার পরে error-টা unhandled rejection হয়ে দাঁড়ায়।
 `@typescript-eslint/no-floating-promises` চালু করুন।
 
 ## 🔑 মূল শিক্ষা
 
-- Node-এর গতি আসে নিজের thread-এ কখনো অপেক্ষা না করা থেকে, parallelism থেকে নয়।
-- প্রতিটি callback-এর পরে microtask খালি হয়, আগে `process.nextTick`, তারপর promise।
-- বড় একটি list-এর ওপর সীমাহীন `Promise.all` হলো আপনার database-এর ওপর নিজের হাতে করা denial of service।
-- Operational error উত্তর পায়, আর programmer error পায় একটি log line আর একটি restart।
-- Process-level handler আছে log করে পরিচ্ছন্নভাবে shutdown করার জন্য, কখনো ভাঙা process বাঁচিয়ে রাখার জন্য নয়।
+- Node-এর গতি parallelism থেকে আসে না, আসে নিজের thread-এ কখনো অপেক্ষা না করা থেকে।
+- প্রতিটি callback-এর পরে microtask খালি হয়: আগে `process.nextTick`, তারপর promise।
+- বড় তালিকার ওপর সীমাহীন `Promise.all` মানে নিজের database-এর ওপর নিজেই denial of service চালানো।
+- Operational error পায় উত্তর, আর programmer error পায় একটি log line আর restart।
+- Process-স্তরের handler আছে log করে ঠিকভাবে বন্ধ হওয়ার জন্য, ভাঙা process বাঁচিয়ে রাখার জন্য কখনো নয়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Node single-threaded, তাহলে এটা 10,000 concurrent connection কীভাবে সামলায়?**
+**Q: Node single-threaded, তাহলে 10,000টি concurrent connection কীভাবে সামলায়?**
 
-JavaScript একটি thread-এ চলে, কিন্তু অপেক্ষাটা চলে না। Node প্রতিটি socket `epoll` (Linux) বা `kqueue` (macOS)-এ register
-করে, আর OS জানায় কোনগুলো প্রস্তুত। Node শুধু সেই callback-গুলো চালায়, তাই সীমাটা file descriptor আর memory, thread নয়।
+JavaScript চলে একটি thread-এ, কিন্তু অপেক্ষাটা ওই thread-এ হয় না। Node প্রতিটি socket `epoll` (Linux) বা `kqueue`
+(macOS)-এ register করে, আর কোনগুলো তৈরি, তা OS জানিয়ে দেয়। Node শুধু সেগুলোর callback চালায়। তাই সীমা ঠিক হয় file
+descriptor আর memory দিয়ে, thread দিয়ে নয়।
 
 **Q: কোনটা আগে log হয় — `setTimeout(fn, 0)` নাকি `setImmediate(fn)`?**
 
-Synchronous code থেকে সাধারণত `setTimeout` জেতে, কিন্তু Node এর নিশ্চয়তা দেয় না। একটি I/O callback-এর ভেতর থেকে সবসময়
-`setImmediate` জেতে, কারণ **poll**-এর পরেই আসে **check**।
+Synchronous code থেকে ডাকলে সাধারণত `setTimeout` জেতে, তবে Node এর নিশ্চয়তা দেয় না। I/O callback-এর ভেতর থেকে ডাকলে
+সবসময় `setImmediate` জেতে, কারণ **poll**-এর পরেই আসে **check**।
 
-**Q: একটি `uncaughtException`-এর পরে কি process বাঁচিয়ে রাখা উচিত?**
+**Q: `uncaughtException`-এর পরে কি process চালু রাখা উচিত?**
 
-না। একটি transaction খোলা থাকতে পারে, বা একটি cache অর্ধেক লেখা, তাই state অজানা। পূর্ণ context-সহ log করুন, নতুন
-connection নেওয়া বন্ধ করুন, চলমান কাজকে অল্প সময় শেষ হতে দিন, তারপর non-zero দিয়ে exit করুন।
+না। হয়তো কোনো transaction খোলা, বা cache আধা লেখা, তাই state অজানা। পুরো context দিয়ে log করুন, নতুন connection নেওয়া
+বন্ধ করুন, চলতি কাজকে অল্প সময় দিন শেষ করতে, তারপর non-zero code দিয়ে exit করুন।
 
-**Q: কাজটা async না করে কখন worker thread-এ সরাবেন?**
+**Q: কখন কাজটা async না বানিয়ে worker thread-এ সরাবেন?**
 
-শুধু যখন কাজটা CPU-bound, যেমন parsing, image resize বা hashing। CPU কাজকে `async` চিহ্নিত করলে কিছুই বদলায় না, কারণ
-সেটা তখনো সেই একটি thread-এই চলে। Worker-এর খরচ আছে startup time আর message copy-তে, তাই এটা লাভজনক শুধু প্রতি task-এ
-কয়েক millisecond-এর বেশি হলে।
+শুধু যখন কাজটা CPU-bound, যেমন parsing, image resize বা hashing। CPU-র কাজকে `async` লিখলে কিছুই বদলায় না, কারণ
+সেটা তখনো ওই একটি thread-এই চলে। Worker-এর খরচ আছে: চালু হতে সময় লাগে, message copy করতে হয়। তাই প্রতিটি task-এ কয়েক
+millisecond-এর বেশি লাগলে তবেই এটা লাভজনক।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Promise, Async/Await ও Error](#ch-promises-async) — rejection-এর ভাষাগত নিয়ম, যার ওপর এই অধ্যায় দাঁড়িয়ে
-- [Chapter ?? — Node.js Performance, Stream ও Scaling](#ch-nodejs-performance) — blocking call খুঁজে বের করা, আর প্রতিটি core ব্যবহার করা
-- [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — এমন একটি error shape, যেটা client parse করতে পারে
+- [Chapter ?? — Node.js Performance, Stream ও Scaling](#ch-nodejs-performance) — blocking call খুঁজে বের করা, আর প্রতিটি core কাজে লাগানো
+- [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices) — error-এর একটিই shape, যা client parse করতে পারে

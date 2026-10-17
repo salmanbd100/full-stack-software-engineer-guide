@@ -1,44 +1,45 @@
 ---
 sourceHash: "bfb580351b7b09d39a388053c03fa597a5255c027c7b8b640baa785448e61232"
 title: "Testing Strategy"
-translatedAt: "2026-10-12T12:16:49.760Z"
+translatedAt: "2026-10-17T14:02:21.365Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Testing Strategy {#ch-testing-strategy}
 
-> কোন জিনিস কোন layer-এ test করবেন তা ঠিক করুন, তারপর suite-কে এতটা দ্রুত আর সৎ রাখুন, যাতে এক বছর পরেও মানুষ এটা চালায়।
+> কোন স্তরে কী test করবেন, তা ঠিক করুন। তারপর suite-টাকে এতটা দ্রুত আর সৎ রাখুন, যাতে এক বছর পরেও মানুষ সেটা চালায়।
 
-**এই অধ্যায়ে:** চারটি layer আর প্রতিটির খরচ · pyramid বনাম trophy · test double · coverage কী বলে আর কী বলে না · কেন suite পরিত্যক্ত হয়
+**এই অধ্যায়ে:** চারটি স্তর আর প্রতিটির খরচ · pyramid বনাম trophy · test double · coverage কী বলে আর কী বলে না · suite কেন পরিত্যক্ত হয়
 
 ## 💡 মূল ধারণা
 
-একটি test suite হলো একটি **budget**, কোনো গুণ নয়। প্রতিটি test প্রতিটি push-এ runtime আর প্রতিটি refactor-এ
-maintenance খরচ করে। বিনিময়ে এটা কিছুটা আত্মবিশ্বাস কেনে। Strategy মানে ঠিক করা, কোন test তাদের দামের যোগ্য।
+Test suite একটি **budget**, কোনো গুণ নয়। প্রতিটি test প্রতিবার push-এ runtime খরচ করে, আর প্রতিবার refactor-এ
+maintenance। বিনিময়ে কিছুটা আত্মবিশ্বাস কেনে। Strategy মানে ঠিক করা, কোন test তার দামের যোগ্য।
 
-Team-রা এটা দুটি বিপরীত উপায়ে ভুল করে। এক team হাজার হাজার unit test লেখে, যেগুলো internal নিয়ে assert করে। প্রতিটি
-refactor একশোটা test ভাঙে, আর product কাজ করে কি না, তা কেউ জানতে পারে না। অন্য team শুধু end-to-end test লেখে।
-Suite চল্লিশ মিনিট নেয়, সপ্তাহে দুবার এলোমেলোভাবে fail করে, আর skip হয়ে যায়। দুই team-ই শেষে পায় এমন একটি suite,
-যেটা কেউ বিশ্বাস করে না, আর সেটা কোনো suite না থাকারই সমান।
+Team-রা এখানে দুইভাবে ভুল করে, আর দুটি ভুল একে অন্যের উল্টো। একটি team হাজার হাজার unit test লেখে, যেগুলো ভেতরের
+খুঁটিনাটির ওপর assert করে। প্রতিটি refactor-এ একশোটি test ভাঙে, আর product কাজ করছে কি না, কেউ জানতে পারে না। অন্য
+team শুধু end-to-end test লেখে। Suite চলতে চল্লিশ মিনিট লাগে, সপ্তাহে দুবার এলোমেলোভাবে fail করে, আর লোকে সেটা
+এড়িয়ে যায়। দুই team-এর হাতেই শেষে থাকে এমন suite, যেটা কেউ বিশ্বাস করে না। আর সেটা suite না থাকারই সমান।
 
-তাই কাজের প্রশ্নটা কখনো "আমরা কি যথেষ্ট test করছি" নয়। প্রশ্নটা হলো **এই নির্দিষ্ট ঝুঁকিটা কোন layer-এ সবচেয়ে সস্তায় ধরা পড়ে।**
+তাই কাজের প্রশ্নটা কখনো "আমরা কি যথেষ্ট test করছি" নয়। প্রশ্নটা হলো **এই নির্দিষ্ট ঝুঁকিটা কোন স্তরে সবচেয়ে
+সস্তায় ধরা পড়ে।**
 
 ## কীভাবে কাজ করে
 
-### চারটি layer, চারটি দাম
+### চারটি স্তর, চারটি দাম
 
-| Layer | পরিধি | গতি | যা ধরে | কখন ভাঙে |
+| স্তর | পরিধি | গতি | যা ধরে | কখন ভাঙে |
 | ----- | ----- | ----- | ------- | ----------- |
-| **Static** | Type আর lint | তাৎক্ষণিক | ভুল shape, বাদ পড়া case | কদাচিৎ — এটাই সবচেয়ে সস্তা layer |
-| **Unit** | একটি function | Millisecond | Logic আর edge case | আপনি function-এর internal বদলালে |
-| **Component/integration** | নকল network সহ একটি flow | এক second-এর কম | Wiring, state, user-এর দেখা behaviour | User-এর দেখা behaviour বদলালে |
-| **End-to-end** | আসল browser-এ আসল app | কয়েক second থেকে কয়েক মিনিট | অন্য layer-গুলো যা নকল করে, তার সবকিছু | যেকোনো কিছুতে — এমনকি কিছু না হলেও |
+| **Static** | Type আর lint | সঙ্গে সঙ্গে | ভুল shape, বাদ পড়া case | কদাচিৎ — এটাই সবচেয়ে সস্তা স্তর |
+| **Unit** | একটি function | Millisecond | Logic আর edge case | Function-এর ভেতরটা বদলালে |
+| **Component/integration** | নকল network সহ একটি flow | এক সেকেন্ডের কম | Wiring, state, user যা দেখেন সেই behaviour | User যা দেখেন সেই behaviour বদলালে |
+| **End-to-end** | আসল browser-এ আসল app | কয়েক সেকেন্ড থেকে কয়েক মিনিট | অন্য স্তরগুলো যা কিছু নকল করে, সব | যেকোনো কিছুতে — এমনকি কোনো কারণ ছাড়াই |
 
-Compiler হলো সেই layer, যেটা মানুষ গুনতে ভুলে যায়। `tsc` check করা একটি prop contract-এর কোনো test-ই লাগে না। একশোটা
-type-level গ্যারান্টির প্রতি push-এ কোনো খরচ নেই। যে test এমন কিছু check করে, যা type system আগেই প্রমাণ করে, সেটা
-নিছক বাড়তি বোঝা।
+Compiler-কে মানুষ স্তর হিসেবে গুনতে ভুলে যায়। `tsc` যে prop contract check করে, তার জন্য কোনো test-ই লাগে না।
+একশোটি type-level নিশ্চয়তার জন্য প্রতি push-এ কোনো খরচ নেই। Type system যা ইতিমধ্যে প্রমাণ করে, সেটা আবার check
+করা test পুরোটাই বাড়তি বোঝা।
 
-**একটি layer বেছে নেওয়া:**
+**স্তর বেছে নেওয়া:**
 
 ```text
 Pure logic or a calculation?      → unit
@@ -47,41 +48,41 @@ A journey that loses money if broken? → end-to-end
 A data shape or a contract?         → the type checker
 ```
 
-সেই সিদ্ধান্তের React version-এর জন্য (component, `renderHook` বা একটি আসল build), দেখুন [Chapter ?? — Test লেখা: Vitest ও React Testing Library](#ch-vitest)।
+এই সিদ্ধান্তের React সংস্করণের জন্য (component, `renderHook` নাকি আসল build), দেখুন [Chapter ?? — Test লেখা: Vitest ও React Testing Library](#ch-vitest)।
 
 ### Pyramid বনাম trophy
 
-দুটি shape-ই বলে "সস্তা layer বেশি, দামি layer কম"। মাঝখানটা কোথায় বসে, তা নিয়ে তাদের মতভেদ।
+দুটি আকারই বলে, "সস্তা স্তর বেশি, দামি স্তর কম"। দ্বিমত শুধু মাঝখানটা কোথায় বসবে, তা নিয়ে।
 
 | | Pyramid | Trophy |
 | --- | ------- | ------ |
 | **ভার** | বেশিরভাগ unit, কিছু integration, অল্প E2E | বেশিরভাগ integration, তারপর unit, তারপর static, অল্প E2E |
 | **ধরে নেয়** | ঝুঁকি logic-এ | ঝুঁকি wiring-এ |
-| **মানায়** | Pricing engine, parser, data pipeline | UI-ভারী product, যেখানে interaction-ই behaviour |
+| **মানায়** | Pricing engine, parser, data pipeline | UI-প্রধান product, যেখানে interaction-ই behaviour |
 
-Frontend-এর জন্য সাধারণত trophy-ই ঠিক, আর কেন, তা আপনার বলতে পারা উচিত। একটি সাধারণ React application-এ logic কম,
-wiring অনেক বেশি। Bug থাকে সেই loading state-এ, যেটা কখনো clear হয় না, সেই form-এ, যেটা দুবার submit হয়, সেই error
-path-এ, যেটা কেউ render করেনি। তিনটিই integration-level failure, আর একটি reducer-এর unit test এগুলো দেখতে পায় না।
+Frontend-এর জন্য সাধারণত trophy-ই ঠিক, আর কেন, সেটা আপনার বলতে পারা উচিত। সাধারণ একটি React application-এ logic
+কম, wiring অনেক। Bug থাকে এমন loading state-এ, যা কখনো সরে না; এমন form-এ, যা দুবার submit হয়; এমন error path-এ,
+যা কেউ render করে দেখেনি। তিনটিই integration স্তরের failure, আর reducer-এর unit test এগুলো দেখতে পায় না।
 
 ### Test double, আর আপনার আসলে কোনটা দরকার
 
-একটি **double** একটি আসল dependency-র জায়গায় দাঁড়ায়। Interviewer-রা প্রায়ই এই শব্দগুলো নিয়ে জিজ্ঞেস করেন। যে
-পার্থক্যটা গুরুত্বপূর্ণ, তা হলো double যাচাই করে কি না, তাকে কীভাবে call করা হয়েছে।
+**Double** একটি আসল dependency-র জায়গায় দাঁড়ায়। Interviewer-রা প্রায়ই এর শব্দগুলো নিয়ে জিজ্ঞেস করেন। যে পার্থক্যটা
+আসলে জরুরি, তা হলো double তাকে কীভাবে call করা হয়েছে, সেটা যাচাই করে কি না।
 
 | Double | উদ্দেশ্য | Call যাচাই করে |
 | ------ | ------- | -------------- |
-| **Stub** | আগে থেকে ঠিক করা data return করে, যাতে test এগোতে পারে | ❌ |
-| **Spy** | একটি আসল function-কে wrap করে, আর call record করে | ✅ |
-| **Mock** | এমন একটি double, যার expectation-এর ওপর আপনি assert করেন | ✅ |
-| **Fake** | একটি কাজ করা সরলীকৃত implementation — একটি in-memory store | ❌ |
+| **Stub** | আগে থেকে ঠিক করা data দেয়, যাতে test এগোতে পারে | ❌ |
+| **Spy** | একটি আসল function-কে মুড়ে রাখে, আর call-গুলো লিখে রাখে | ✅ |
+| **Mock** | এমন double, যার expectation-এর ওপর আপনি assert করেন | ✅ |
+| **Fake** | কাজ করে এমন সরল implementation — যেমন in-memory store | ❌ |
 
-**যে নিয়ম বেশিরভাগ খারাপ test আটকায়: যা আপনার নিজের নয়, শুধু তারই double বানান।** Network, clock, randomness,
-একটি payment gateway। নিজের component, hook আর utility-র double বানালে একটি integration test হয়ে যায় mock-গুলোর test।
-আসল integration ভাঙা থাকলেও এটা দিব্যি pass করে।
+**যে নিয়মে বেশিরভাগ খারাপ test আটকায়: যা আপনার নিজের নয়, শুধু সেটাই double করুন।** Network, clock, randomness,
+payment gateway। নিজের component, hook আর utility double করলে integration test হয়ে যায় mock-গুলোর test। আসল
+integration ভাঙা থাকলেও সেটা দিব্যি pass করে।
 
-### Coverage execution মাপে, সঠিকতা নয়
+### Coverage মাপে কোন code চলেছে, ঠিক কি না তা নয়
 
-Coverage বলে কোন line-গুলো চলেছে। একটি assertion একটি bug ধরত কি না, তা এটা বলতে পারে না।
+Coverage বলে কোন line চলেছে। কোনো assertion একটি bug ধরতে পারত কি না, তা বলতে পারে না।
 
 ```typescript
 function divide(a: number, b: number): number {
@@ -94,25 +95,25 @@ it("divides", () => {
 // divide(10, 0) returns Infinity and is never tested.
 ```
 
-Branch coverage বেশি কাজের সংখ্যা, কারণ এটা না চলা line নয়, না নেওয়া path-এর নাম বলে। যেকোনোটা ব্যবহার করুন একটি
-**খোঁজার যন্ত্র** হিসেবে: "কোন error path কেউ test করেনি?" কখনো এটাকে target বানাবেন না। একটি coverage target পূরণের
-সবচেয়ে সস্তা উপায় হলো তুচ্ছ code test করা।
+Branch coverage বেশি কাজের সংখ্যা, কারণ এটা না-চলা line নয়, না-নেওয়া path-এর নাম বলে। যেটাই ব্যবহার করুন, করুন
+**খুঁজে বের করার যন্ত্র** হিসেবে: "কোন error path কেউ test করেনি?" Target হিসেবে কখনো নয়। Coverage target পূরণ
+করার সবচেয়ে সস্তা উপায় হলো তুচ্ছ code test করা।
 
-> ⚠️ CI-তে একটি coverage threshold নিশ্চিতভাবে সংখ্যা বাড়ানোর জন্য লেখা test তৈরি করে। যদি execution count নয়,
-> একটি quality signal চান, তাহলে mutation testing-ই সৎ উপায়। দেখুন
+> ⚠️ CI-তে coverage threshold থাকলে নিশ্চিতভাবেই এমন test আসে, যা শুধু সংখ্যা বাড়াতে লেখা। কোন code চলল তার হিসাব
+> নয়, যদি quality-র signal চান, তাহলে সৎ উপায় হলো mutation testing। দেখুন
 > [Chapter ?? — Playwright দিয়ে End-to-End, Visual ও Contract Testing](#ch-end-to-end-testing)।
 
-### একটি flaky test-এর চারটি কারণ
+### Flaky test-এর চারটি কারণ
 
-একটি flaky test code না বদলেই pass আর fail করে। এটা একটি অনুপস্থিত test-এর চেয়েও বেশি ক্ষতি করে, কারণ এটা team-কে
-failure পড়ার বদলে pipeline আবার চালাতে শেখায়।
+Flaky test code না বদলেও কখনো pass করে, কখনো fail। এটা test না থাকার চেয়েও বেশি ক্ষতি করে, কারণ team তখন failure
+পড়ার বদলে pipeline আবার চালাতে শেখে।
 
-| কারণ | Flaky version | সমাধান |
+| কারণ | Flaky সংস্করণ | সমাধান |
 | ----- | ----------------- | ------- |
-| **Timing** | Assert করার আগে একটি নির্দিষ্ট `setTimeout` | `await screen.findBy...`, যেটা ঠিক যতক্ষণ দরকার ততক্ষণ অপেক্ষা করে |
-| **Shared state** | একটি module-level object, যেটা দুটি test বদলায় | একটি factory, যেটা প্রতি test-এ নতুন data return করে |
-| **আসল network** | একটি live API call | Request interception — দেখুন [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) |
-| **Randomness** | `Math.random()`, `Date.now()` | Seed করুন, বা `vi.setSystemTime()` দিয়ে clock থামিয়ে দিন |
+| **Timing** | Assert করার আগে নির্দিষ্ট একটি `setTimeout` | `await screen.findBy...`, যা ঠিক যতক্ষণ দরকার ততক্ষণই অপেক্ষা করে |
+| **Shared state** | Module-level একটি object, যা দুটি test বদলায় | এমন factory, যা প্রতিটি test-কে নতুন data দেয় |
+| **আসল network** | Live API call | Request interception — দেখুন [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) |
+| **Randomness** | `Math.random()`, `Date.now()` | Seed দিন, অথবা `vi.setSystemTime()` দিয়ে clock থামিয়ে রাখুন |
 
 ```typescript
 // ❌ Arbitrary wait — passes locally, fails on a loaded CI runner
@@ -122,77 +123,76 @@ setTimeout(() => expect(screen.getByText("Saved")).toBeInTheDocument(), 1000);
 expect(await screen.findByText("Saved")).toBeInTheDocument();
 ```
 
-প্রতিটি test-কে একা, আর যেকোনো ক্রমে pass করতে হবে। Isolation কোনো শৌখিনতা নয়। যে suite-এর test-গুলো execution-এর
-ক্রমের ওপর নির্ভর করে, সেটা parallel-এ চলতে পারে না, আর তাতে এটা এত slow হয় যে skip হয়ে যায়।
+প্রতিটি test-কে একা চালালেও pass করতে হবে, যেকোনো ক্রমে চালালেও। Isolation কোনো বিলাসিতা নয়। যে suite-এর test
+চলার ক্রমের ওপর নির্ভর করে, সেটা parallel-এ চলতে পারে না। ফলে এত ধীর হয়ে যায় যে লোকে এড়িয়ে যায়।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | কোথায় test করবেন | কেন |
 | --------- | ------- | --- |
-| বারোটি edge case সহ একটি currency formatter | Unit | একশোটা case-এর খরচ শূন্য |
-| এমন একটি form, যেটা validate করে, submit করে আর একটি error দেখায় | Integration | আসল bug-গুলো এখানেই থাকে |
-| Login, checkout, signup | End-to-end, আর শুধু এগুলোই | Failure-এ টাকা খরচ হয়; তিনটি test-এর জন্য slow হওয়া মেনে নেওয়া যায় |
-| একটি prop বা API response-এর shape | Type checker | প্রতিটি build-এ আগে থেকেই বিনামূল্যে |
-| একটি design token বা spacing পরিবর্তন | Visual regression, assertion নয় | Assert করে "ঠিক দেখাচ্ছে"-তে পৌঁছানো যায় না |
-| Production-এ সদ্য report হওয়া একটি bug | আগে একটি fail করা unit বা integration test | এটা fix প্রমাণ করে, আর regression থামায় |
+| বারোটি edge case সহ একটি currency formatter | Unit | একশোটি case-এরও কোনো খরচ নেই |
+| এমন form, যা validate করে, submit করে আর error দেখায় | Integration | আসল bug এখানেই থাকে |
+| Login, checkout, signup | End-to-end, আর শুধু এগুলোই | Failure মানে টাকার ক্ষতি; তিনটি test-এর জন্য ধীরগতি মেনে নেওয়া যায় |
+| Prop বা API response-এর shape | Type checker | প্রতিটি build-এ এমনিতেই বিনা খরচে হয় |
+| Design token বা spacing-এর বদল | Visual regression, assertion নয় | Assert করে "দেখতে ঠিক আছে" পর্যন্ত পৌঁছানো যায় না |
+| Production-এ এইমাত্র report হওয়া একটি bug | আগে একটি fail করা unit বা integration test | এটা fix প্রমাণ করে, আর regression আটকায় |
 
 ## সাধারণ ভুল
 
-❌ **Implementation detail test করা।** Internal state বা একটি hook-এর return value নিয়ে assert করা মানে, behaviour
-না বদলালেও প্রতিটি refactor test ভাঙে।
-✅ User যা দেখতে পায়, তা নিয়ে assert করুন। তখন test শুধু আসল কিছু ভাঙলেই fail করে।
+❌ **Implementation-এর খুঁটিনাটি test করা।** ভেতরের state বা hook-এর return value-র ওপর assert করলে behaviour
+না বদলালেও প্রতিটি refactor-এ test ভাঙে।
+✅ User যা দেখতে পান, তার ওপর assert করুন। তাহলে test fail করবে শুধু সত্যিই কিছু ভাঙলে।
 
 ❌ **অতিরিক্ত mock করা।** নিজের component আর utility বদলে দিলে test হয় double-গুলোর।
-✅ Network, clock আর third party-র double বানান। নিজের সবকিছু আসল রাখুন।
+✅ Network, clock আর third party double করুন। নিজের যা কিছু, সব আসল রাখুন।
 
-❌ **Quality gate হিসেবে একটি coverage threshold।** Getter test করলেই এটা পূরণ হয়ে যায়।
-✅ Untested branch খুঁজতে coverage ব্যবহার করুন, আর gate করুন suite pass করার ওপর।
+❌ **Quality gate হিসেবে coverage threshold।** Getter test করলেই সেটা পূরণ হয়ে যায়।
+✅ Untested branch খুঁজতে coverage ব্যবহার করুন, আর gate রাখুন suite pass করার ওপর।
 
-❌ **একটি flaky test সহ্য করা।** একটি flake সবাইকে pipeline আবার চালাতে শেখায়। তখন পুরো suite একটি signal হিসেবে
-কাজ করা বন্ধ করে দেয়।
-✅ সেদিনই ঠিক করুন বা quarantine করুন। Flake-কে একটি কারণসহ bug হিসেবে দেখুন।
+❌ **Flaky test সহ্য করা।** একটি flake সবাইকে pipeline আবার চালাতে শেখায়। তারপর পুরো suite আর signal হিসেবে কাজ করে না।
+✅ সেদিনই ঠিক করুন, নয়তো quarantine করুন। Flake-কে এমন একটি bug হিসেবে দেখুন, যার একটি কারণ আছে।
 
-❌ **গভীর `describe` nesting আর অস্পষ্ট নাম।** চারটি block-এর ভেতরে `it("works")` রাত 2টায় fail করলে আপনাকে কিছুই
+❌ **গভীর `describe` nesting আর অস্পষ্ট নাম।** চারটি block-এর ভেতরে `it("works")` রাত দুটায় fail করলে কিছুই
 বলে না।
-✅ এক বা দুই স্তর, আর এমন একটি নাম, যেটা শর্ত আর প্রত্যাশিত ফল বলে।
+✅ এক বা দুই স্তর, আর এমন নাম, যাতে শর্ত আর প্রত্যাশিত ফল দুটিই লেখা।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি test suite হলো একটি budget: প্রতিটি layer-এর একটি দাম আছে, আর strategy মানে সেটা সেখানে খরচ করা, যেখানে ঝুঁকি ধরা সবচেয়ে সস্তা।
-- Type checker একটি testing layer, আর সবচেয়ে সস্তাটা — এটা যা আগেই প্রমাণ করে, তা test করবেন না।
-- UI-ভারী frontend-এ trophy shape জেতে, কারণ bug থাকে logic-এ নয়, wiring-এ।
-- শুধু যা আপনার নিজের নয়, তারই double বানান; নিজের code-এর double বানালে test হয় double-গুলোর।
-- Coverage মাপে কোন line চলেছে, কখনো এটা নয় যে একটি bug ধরা পড়ত কি না।
+- Test suite একটি budget: প্রতিটি স্তরের একটি দাম আছে, আর strategy মানে যেখানে ঝুঁকি সবচেয়ে সস্তায় ধরা পড়ে, সেখানে খরচ করা।
+- Type checker-ও একটি testing স্তর, আর সবচেয়ে সস্তা — যা এটা ইতিমধ্যে প্রমাণ করে, তা test করবেন না।
+- UI-প্রধান frontend-এ trophy আকারই জেতে, কারণ bug থাকে logic-এ নয়, wiring-এ।
+- শুধু যা আপনার নিজের নয়, তা double করুন; নিজের code double করলে test হয় double-গুলোর।
+- Coverage মাপে কোন line চলেছে, কখনো এটা নয় যে কোনো bug ধরা পড়ত কি না।
 
 ## Interview-এর প্রশ্ন
 
-**Q: কোনো কিছু unit test পাবে নাকি integration test, তা কীভাবে ঠিক করেন?**
+**Q: কোনো কিছুর জন্য unit test হবে নাকি integration test, সেটা কীভাবে ঠিক করেন?**
 
-ঝুঁকিটা আসলে কোথায়, তা জিজ্ঞেস করে। অনেক edge case সহ pure logic unit test হিসেবে cover করা সবচেয়ে সস্তা, কারণ একশোটা
-case millisecond-এ চলে। Wiring bug শুধু তখনই দেখা যায়, যখন অংশগুলো একসাথে চলে: যে state clear হয় না, যে error path
-কেউ render করেনি, যে request দুবার fire হয়। তাই এগুলোর জায়গা integration layer। একটি সাধারণ React app-এ ঝুঁকির
-বেশিরভাগটাই এটা। এ কারণেই integration layer সবচেয়ে বেশি ভার পায়।
+ঝুঁকিটা আসলে কোথায়, সেটা জিজ্ঞেস করে। অনেক edge case সহ বিশুদ্ধ logic unit test-এ সবচেয়ে সস্তায় ঢাকা যায়, কারণ
+একশোটি case millisecond-এ চলে যায়। Wiring-এর bug দেখা দেয় শুধু তখন, যখন অংশগুলো একসঙ্গে চলে: যে state সরে না, যে
+error path কেউ render করেনি, যে request দুবার যায়। তাই এগুলোর জায়গা integration স্তরে। সাধারণ একটি React app-এ ঝুঁকির
+বেশিরভাগ এটাই। সে কারণেই integration স্তর সবচেয়ে বেশি ভার পায়।
 
-**Q: আপনার suite 25 মিনিট নেয়, আর মানুষ এটা ছাড়াই merge করছে। আপনি কী করবেন?**
+**Q: আপনার suite চলতে 25 মিনিট লাগে, আর লোকে সেটা ছাড়াই merge করছে। কী করবেন?**
 
-আগে খুঁজে বের করুন সময়টা কোথায় যাচ্ছে। উত্তর প্রায় সবসময় কয়েকটি end-to-end test, যেগুলো এমন জিনিস cover করে, যা একটি
-integration test ধরতে পারত। সেগুলো এক layer নিচে নামান। E2E রাখুন সেই journey-গুলোর জন্য, যেগুলোর failure-এ টাকা খরচ
-হয়। নিশ্চিত করুন বাকিগুলো parallel-এ চলতে পারে, যার মানে সাধারণত shared state ঠিক করা। দ্রুত আর বিশ্বস্ত suite পুঙ্খানুপুঙ্খ
-কিন্তু skip হওয়া suite-কে হারায়।
+আগে খুঁজে বের করুন সময়টা কোথায় যায়। উত্তর প্রায় সবসময় অল্প কয়েকটি end-to-end test, যেগুলো এমন জিনিস ঢাকে, যা
+integration test-ই ধরতে পারত। সেগুলোকে এক স্তর নিচে নামিয়ে দিন। E2E রাখুন শুধু সেই journey-গুলোর জন্য, যাদের
+failure মানে টাকার ক্ষতি। বাকিগুলো যেন parallel-এ চলতে পারে, তা নিশ্চিত করুন। সাধারণত এর মানে shared state ঠিক করা।
+সব ঢাকা অথচ এড়িয়ে যাওয়া suite-এর চেয়ে দ্রুত আর বিশ্বস্ত suite ভালো।
 
 **Q: 100% coverage কি লক্ষ্য রাখার মতো?**
 
-না, আর শেষ অংশটা কঠিন বলে নয়। Coverage চলা line গোনে, ধরা bug নয়। কোনো অর্থপূর্ণ assertion ছাড়া একটি test coverage
-বাড়ায়, কিন্তু কিছুই ধরে না। CI-তে একটি threshold নিশ্চিতভাবে ঠিক এমন test-ই তৈরি করে। Untested error path খুঁজতে
-coverage কাজের। Test একটি defect ধরত কি না, সেটা আসলে মাপে mutation testing।
+না, আর শেষের অংশটুকু কঠিন বলে নয়। Coverage গোনে কোন line চলেছে, কোন bug ধরা পড়েছে তা নয়। অর্থপূর্ণ কোনো
+assertion ছাড়া একটি test coverage বাড়ায়, কিন্তু কিছুই ধরে না। CI-তে threshold থাকলে নিশ্চিতভাবেই ঠিক এই রকম test
+আসে। Untested error path খুঁজতে coverage কাজের। Test আসলে কোনো defect ধরত কি না, তা মাপে mutation testing।
 
-**Q: কখন আপনি test লিখবেন না?**
+**Q: কখন test লিখবেন না?**
 
-যখন type checker আগেই এটা প্রমাণ করে, বা যখন assertion শুধু implementation-টাই আবার বলবে। এছাড়া যখন জিনিসটা সত্যিই
-visual: "spacing ঠিক দেখাচ্ছে" হলো visual regression-এর কাজ, assertion-এর নয়। জানা অল্প আয়ুর throwaway code-এর
-ক্ষেত্রেও একই কথা। এটা সৎভাবে বলা এমন একটি standard-এর ভান করার চেয়ে ভালো, যেটা কেউ বজায় রাখবে না।
+যখন type checker ইতিমধ্যে সেটা প্রমাণ করে, অথবা assertion শুধু implementation-টাই আবার বলবে। আর যখন জিনিসটা সত্যিই
+চোখে দেখার: "spacing ঠিক দেখাচ্ছে" হলো visual regression-এর কাজ, assertion-এর নয়। অল্প দিনের জন্য লেখা, ফেলে দেওয়ার
+মতো code-এর বেলাতেও একই কথা। এটা সৎভাবে বলা ভালো, এমন একটি standard-এর ভান করার চেয়ে, যা কেউ বজায় রাখবে না।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Test লেখা: Vitest ও React Testing Library](#ch-vitest) — এই section-এর প্রতিটি উদাহরণ যে runner আর query API ব্যবহার করে
-- [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — যে layer সবচেয়ে বেশি ভার পাওয়ার যোগ্য বলে এই অধ্যায় যুক্তি দেয়
+- [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — এই অধ্যায়ের মতে যে স্তর সবচেয়ে বেশি ভার পাওয়ার যোগ্য

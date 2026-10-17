@@ -1,45 +1,45 @@
 ---
 sourceHash: "988605ca416ef6ecb960b8375a20a63712294342176c778d53ea17111930fe35"
 title: "Queue, Async কাজ ও WebSocket"
-translatedAt: "2026-10-12T12:26:46.563Z"
+translatedAt: "2026-10-17T14:00:57.376Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Queue, Async কাজ ও WebSocket {#ch-message-queues}
 
-> কাজকে request path থেকে সরিয়ে দিন, worker-কে দুবার চালানোর মতো নিরাপদ করুন, আর ফলাফল এমন একটি connection দিয়ে ফেরত পাঠান, যা একাধিক server-এ টিকে থাকে।
+> কাজটা request path থেকে সরিয়ে দিন, worker-কে দুবার চালালেও যেন ক্ষতি না হয় তা নিশ্চিত করুন, আর ফলাফল ফেরত পাঠান এমন connection দিয়ে, যা একাধিক server-এও টিকে থাকে।
 
-**এই অধ্যায়ে:** queue বনাম pub/sub বনাম log · delivery guarantee আর idempotent worker · retry আর back-pressure · WebSocket, SSE না polling · ধরে রাখা connection scale করা আর fan-out
+**এই অধ্যায়ে:** queue বনাম pub/sub বনাম log · delivery guarantee আর idempotent worker · retry আর back-pressure · WebSocket, SSE নাকি polling · ধরে রাখা connection আর fan-out-কে scale করা
 
 ## 💡 মূল ধারণা
 
-কিছু কাজ একটি request আর একটি response-এর মধ্যে ধরে না। হয় খুব ধীর, নয়তো এর জন্য কেউ অপেক্ষা করে না। বের হওয়ার
-দুটি পথ আছে। আপনি **request-এর পেছনে কাজটি queue করতে পারেন**, আর "হয়ে গেছে"-র বদলে "গ্রহণ করা হয়েছে" উত্তর দিতে
-পারেন। অথবা ফলাফল তৈরি হলে একটি দীর্ঘস্থায়ী connection দিয়ে **ফলাফলটি push করে ফেরত পাঠাতে পারেন**।
+কিছু কাজ একটি request আর একটি response-এর মধ্যে আঁটে না। হয় কাজটা খুব ধীর, নয়তো কেউ তার জন্য অপেক্ষা করে না।
+বেরোনোর পথ দুটি। আপনি **কাজটা request-এর পেছনে queue করতে পারেন**, আর "হয়ে গেছে"-র বদলে উত্তর দিতে পারেন "গ্রহণ করা হলো"।
+অথবা কাজ শেষ হলে **ফলাফলটা ফেরত push করতে পারেন** দীর্ঘক্ষণ খোলা থাকা কোনো connection দিয়ে।
 
-দুটিই user-এর সঙ্গে চুক্তি বদলে দেয়। Queue নিজে থেকেই spike শুষে নেয় আর retry করে, কিন্তু কাজটি দুবার ঘটতে পারে,
-আর caller আর জানে না সেটা কখন শেষ হলো। ধরে রাখা connection millisecond-এর মধ্যে খবর পৌঁছায়, কিন্তু এটা একটি
-process-এর, তাই প্রতিটি নতুন server broadcast-কে আরও কঠিন করে।
+দুটিই user-এর সঙ্গে চুক্তিটা বদলে দেয়। Queue হঠাৎ চাপ সামলে নেয়, নিজেই retry করে। কিন্তু কাজটা দুবার হয়ে যেতে পারে, আর
+caller আর জানে না কাজ কখন শেষ হলো। ধরে রাখা connection খবর পৌঁছে দেয় কয়েক millisecond-এ। কিন্তু connection-টা একটি
+process-এর, তাই প্রতিটি নতুন server যোগ করলে broadcast আরও কঠিন হয়।
 
 ## কীভাবে কাজ করে
 
-### তিনটি আকার, প্রায়ই গুলিয়ে ফেলা হয়
+### তিনটি গড়ন, প্রায়ই গুলিয়ে ফেলা হয়
 
-| আকার          | Delivery                                    | Message-এর আয়ু                  | কীসের জন্য                             |
+| গড়ন          | Delivery                                    | Message কতদিন থাকে                  | কাজে লাগে                             |
 | -------------- | ------------------------------------------- | ----------------------------- | ----------------------------------- |
-| **Work queue** | প্রতিটি message একজন consumer পায়              | Acknowledgement-এর পর delete হয় | Task: email পাঠানো, image resize করা     |
-| **Pub/sub**    | প্রতিটি subscriber একটি copy পায়                | Deliver হলেই বাদ               | আগ্রহী service-গুলোকে জানানো       |
-| **Event log**  | প্রতিটি consumer group পুরো stream পড়ে | কয়েক দিন রাখা হয়, replay করা যায় | Event sourcing, analytics, rebuild |
+| **Work queue** | প্রতিটি message পায় একটি consumer              | Acknowledgement-এর পরে মুছে যায় | Task: email পাঠানো, image resize    |
+| **Pub/sub**    | প্রতিটি subscriber একটি করে copy পায়                | Deliver হলেই বাদ               | আগ্রহী service-গুলোকে জানানো        |
+| **Event log**  | প্রতিটি consumer group পুরো stream পড়ে | কয়েকদিন রাখা হয়, replay করা যায় | Event sourcing, analytics, নতুন করে বানানো |
 
-RabbitMQ আর SQS হলো work queue, SNS হলো pub/sub, আর Kafka হলো log। **নির্ণায়ক প্রশ্ন হলো replay।** এক দিন ভেঙে
-থাকা একটি consumer-কে যদি যা miss করেছে তা ধরে ফেলতে হয়, আপনার একটি log দরকার। নইলে queue সহজ আর সস্তা।
+RabbitMQ আর SQS হলো work queue, SNS হলো pub/sub, আর Kafka হলো log। **সিদ্ধান্তের প্রশ্নটা replay।** একদিন ধরে নষ্ট থাকা
+consumer-কে যদি যা মিস করেছে তা ধরে ফেলতে হয়, তাহলে log লাগবে। নাহলে queue সহজ, আর সস্তাও।
 
-### Request path-এর বাইরে কী যাবে
+### কী request path-এর বাইরে থাকা উচিত
 
-পরীক্ষাটি: **ফলাফলের ওপর ভিত্তি করে কি response বদলায়?** Order record লেখা আর card charge করা synchronous থাকে,
-কারণ UI এদের ওপর নির্ভর করে। Confirmation email করে না, তাই সেটা queue করুন।
+পরীক্ষাটা হলো: **ফলাফলের ওপর কি response বদলায়?** Order-এর record লেখা আর card-এ charge করা synchronous থাকে, কারণ UI
+সেগুলোর ওপর নির্ভর করে। Confirmation email-এর ওপর UI নির্ভর করে না, তাই সেটা queue করুন।
 
-**গ্রহণ, তারপর জানানো — handler দুটি সস্তা কাজ করে আর return করে:**
+**আগে গ্রহণ, পরে খবর — handler দুটি সস্তা কাজ করে return করে:**
 
 ```typescript
 interface JobAccepted { jobId: string; statusUrl: string }
@@ -52,22 +52,22 @@ async function requestExport(userId: string, queue: Queue, store: JobStore): Pro
 }
 ```
 
-Enqueue করার **আগে** job record লিখুন। Enqueue ব্যর্থ হলেও client-এর হাতে retry করার জন্য একটি ID থাকে। ক্রম উল্টে
-দিলে একটি worker এমন job তুলে নিতে পারে, যার record এখনো নেই। এরপর client ফলাফল জানে `statusUrl` poll করে, বা একটি
-push channel-এ শুনে, যা নিচে আলোচনা করা হয়েছে।
+Enqueue করার **আগে** job record লিখুন। Enqueue ব্যর্থ হলেও client-এর হাতে retry করার মতো একটি ID থাকে। ক্রম উল্টে দিলে
+worker এমন job তুলে নিতে পারে, যার record এখনো তৈরিই হয়নি। এরপর client ফলাফল জানে `statusUrl` poll করে, অথবা push
+channel-এ শুনে। সেটা নিচে আছে।
 
 ### Delivery guarantee আর idempotent worker
 
-| Guarantee     | আসলে কী ঘটে                               | খরচ                                                   |
+| Guarantee     | আসলে কী হয়                               | দাম                                                   |
 | ------------- | ------------------------------------------------- | ------------------------------------------------------ |
-| At most once  | পাঠিয়ে ভুলে যাওয়া; message হারাতে পারে             | শুধু telemetry-র জন্য গ্রহণযোগ্য                          |
-| At least once | Acknowledge না হওয়া পর্যন্ত আবার deliver হয়; duplicate হয় | Consumer-কে idempotent হতে হবে                        |
-| Exactly once  | শুধু একটি broker-এর নিজস্ব transaction-এর ভেতরে          | Throughput আর জটিলতা; আপনার side effect কখনো এর আওতায় পড়ে না |
+| At most once  | পাঠিয়ে ভুলে যাওয়া; message হারাতে পারে             | শুধু telemetry-র জন্য চলে                          |
+| At least once | Acknowledge না হওয়া পর্যন্ত বারবার আসে; duplicate হয় | Consumer-কে idempotent হতেই হবে                        |
+| Exactly once  | শুধু একটি broker-এর নিজের transaction-এর ভেতরে          | Throughput আর জটিলতা; আপনার side effect কখনো এর আওতায় আসে না |
 
-**At least once** ধরে নিন। একটি broker আর একটি payment provider জুড়ে "exactly once" অর্জন করা যায় না।
-Side effect ঘটে যাওয়ার পরেও acknowledgement হারিয়ে যেতে পারে।
+ধরে নিন **at least once**। Broker আর payment provider জুড়ে "exactly once" পাওয়া সম্ভব নয়। Side effect ঘটে যাওয়ার পরেও
+acknowledgement হারিয়ে যেতে পারে।
 
-**একটি idempotent worker, business fact-এর ওপর key করা:**
+**Business-এর তথ্য দিয়ে key করা একটি idempotent worker:**
 
 ```typescript
 interface Processed { has(key: string): Promise<boolean>; add(key: string): Promise<void> }
@@ -81,16 +81,16 @@ async function handleCharge(msg: { orderId: string }, seen: Processed): Promise<
 }
 ```
 
-এই ক্রমে বেছে নিন: স্বাভাবিকভাবেই idempotent একটি operation (চূড়ান্ত state-এর একটি `PUT`), তারপর downstream যে
-idempotency key মেনে চলে, তারপর এটার মতো একটি processed-set। Processed-set-এ side effect আর record-এর মধ্যে
-একটি race আছে, তাই এটা ব্যবহার করুন শুধু যখন এর চেয়ে ভালো কিছু নেই।
+এই ক্রমে বেছে নিন: আগে এমন operation যা স্বভাবতই idempotent (চূড়ান্ত অবস্থার একটি `PUT`), তারপর downstream যে idempotency
+key মেনে চলে, তারপর এখানকার মতো একটি processed-set। Processed-set-এ side effect আর record-এর মধ্যে race থাকে, তাই এর চেয়ে
+ভালো কিছু না থাকলেই শুধু এটা ব্যবহার করুন।
 
 ### Retry, dead letter আর back-pressure
 
-Exponential backoff **আর jitter** দিয়ে retry করুন। Jitter ছাড়া প্রতিটি ব্যর্থ message একই মুহূর্তে retry করে, আর
-সেরে ওঠা service-টিকে আবার ফেলে দেয়। Timeout, 503 আর 429 retry করুন (`Retry-After` মেনে চলুন)। ভুল গঠনের message
-আর business rejection সরাসরি একটি **dead letter queue**-তে পাঠান। এতে কিছু জমলেই alert দিন, আর মূল message-টি তার
-error-সহ রেখে দিন, যাতে replay করা যায়।
+Retry করুন exponential backoff **আর jitter** দিয়ে। Jitter না থাকলে ব্যর্থ সব message একই মুহূর্তে retry করে, আর সেরে উঠতে থাকা
+service-টাকে আবার ফেলে দেয়। Timeout, 503 আর 429-এ retry করুন (`Retry-After` মেনে চলুন)। ভুল গড়নের message আর business-এর
+কারণে প্রত্যাখ্যান সোজা পাঠান **dead letter queue**-তে। তাতে কিছু জমলেই alert দিন, আর মূল message-টা তার error-সহ রেখে দিন,
+যাতে replay করা যায়।
 
 ```mermaid
 flowchart LR
@@ -101,34 +101,34 @@ flowchart LR
   M -->|"still rising"| R["Reject or shed<br/>at the producer"]
 ```
 
-**যে queue চিরকাল বাড়তে থাকে, সেটা ধীরে ধীরে ব্যর্থ হতে থাকা একটি system; consumer scale করুন, তারপর producer-এ load ফেলে দিন।**
+**যে queue চিরকাল বাড়তেই থাকে, সেটা ধীরে ধীরে ভেঙে পড়া একটি system; আগে consumer scale করুন, তারপর producer-এর দিকে চাপ কমান।**
 
-শুধু depth নয়, **সবচেয়ে পুরোনো message-এর বয়স** দেখে alert দিন। দশ সেকেন্ডে খালি হয়ে যাওয়া দশ লাখ message
-সুস্থ। পঞ্চাশটি message, যার সবচেয়ে পুরোনোটি এক ঘণ্টা আগের, মানে একটি consumer আটকে গেছে।
+Alert দিন **সবচেয়ে পুরনো message-এর বয়স** দেখে, শুধু depth দেখে নয়। দশ সেকেন্ডে খালি হয়ে যাওয়া দশ লাখ message সুস্থ লক্ষণ।
+কিন্তু পঞ্চাশটি message, যার সবচেয়ে পুরনোটা এক ঘণ্টা আগের, মানে কোনো consumer আটকে গেছে।
 
-### ফলাফল push করে ফেরত পাঠানো
+### ফলাফল ফেরত push করা
 
-"Real-time" একটি requirement, technology নয়। Server-কে না জিজ্ঞেস করা অবস্থাতেই client-কে কিছু জানাতে হবে। তিনটি
-transport এটা পূরণ করে, খুবই আলাদা দামে।
+"Real-time" একটি চাহিদা, কোনো technology নয়। Server-কে না জিজ্ঞেস করলেও client-কে কিছু জানাতে হবে। তিনটি transport এটা
+পূরণ করে, তবে দাম একেবারে আলাদা।
 
 | | **WebSocket** | **SSE** | **Polling** |
 | --- | --- | --- | --- |
-| দিক | Bidirectional | Server → client | Client জিজ্ঞেস করে |
-| Protocol | `101` upgrade-এর পর নিজস্ব protocol | সাধারণ HTTP | সাধারণ HTTP |
-| Reconnect | আপনাকে বানাতে হয় | ✅ স্বয়ংক্রিয়, `Last-Event-ID` replay | প্রযোজ্য নয় |
-| Proxy, CDN, HTTP/2 | ⚠️ প্রায়ই config লাগে; compression হারায় | ✅ শুধু HTTP | ✅ |
-| Server-এর খরচ | প্রতি client-এ একটি ধরে রাখা connection | প্রতি client-এ একটি ধরে রাখা connection | ওঠানামা করে, কিন্তু stateless |
+| দিক | দুই দিকেই | Server → client | Client জিজ্ঞেস করে |
+| Protocol | `101` upgrade-এর পরে নিজস্ব protocol | সাধারণ HTTP | সাধারণ HTTP |
+| Reconnect | আপনাকে বানাতে হয় | ✅ নিজে থেকেই, `Last-Event-ID` দিয়ে replay | প্রযোজ্য নয় |
+| Proxy, CDN, HTTP/2 | ⚠️ প্রায়ই config লাগে; compression হারায় | ✅ স্রেফ HTTP | ✅ |
+| Server-এর খরচ | প্রতি client-এ একটি ধরে রাখা connection | প্রতি client-এ একটি ধরে রাখা connection | মাঝে মাঝে লাফায়, কিন্তু stateless |
 
-**নির্ণায়ক প্রশ্ন: client-ও কি ঘন ঘন message পাঠায়?** হ্যাঁ হলে আপনার একটি socket দরকার, আর stateful
-infrastructure মেনে নিতে হবে। না হলে আপনি একদিকে push করছেন, আর সাধারণ HTTP সেটা আগেই করে। তিনটির মধ্যে SSE সবচেয়ে
-কম ব্যবহৃত। Job progress, notification আর token stream, সবকটির জায়গা এখানেই।
+**সিদ্ধান্তের প্রশ্ন: client-ও কি ঘন ঘন message পাঠায়?** পাঠালে socket লাগবে, আর stateful infrastructure মেনে নিতে হবে। না
+পাঠালে আপনি এক দিকে push করছেন, আর সাধারণ HTTP সেটা আগে থেকেই পারে। তিনটির মধ্যে SSE সবচেয়ে কম ব্যবহার হয়। Job-এর
+অগ্রগতি, notification আর token stream, সবই SSE-তে মানায়।
 
-> ⚠️ **HTTP/1.1-এর সতর্কতা:** browser HTTP/1.1-এ প্রতি origin-এ প্রায় ছয়টি connection-এর সীমা রাখে, তাই SSE
-> stream ধরে রাখা কয়েকটি tab একে অপরকে বঞ্চিত করে। HTTP/2-তে তারা একটি connection share করে, আর সমস্যাটা চলে যায়।
+> ⚠️ **HTTP/1.1-এর সতর্কতা:** browser HTTP/1.1-এ প্রতি origin-এ মোটামুটি ছয়টি connection-এর বেশি খোলে না, তাই SSE stream
+> ধরে রাখা কয়েকটি tab একে অপরকে আটকে দেয়। HTTP/2-তে সবাই একটি connection ভাগ করে, আর সমস্যাটা চলে যায়।
 
 ### Stateful connection-এর সমস্যা
 
-একটি ধরে রাখা connection ঠিক একটি process-এর। Scaling-এর প্রতিটি অসুবিধা এখান থেকেই আসে।
+ধরে রাখা connection ঠিক একটি process-এর। Scaling-এর সব ঝামেলা এখান থেকেই আসে।
 
 ```mermaid
 flowchart LR
@@ -139,101 +139,100 @@ flowchart LR
     P1 -. broadcast lost .-> X(("Clients C and D<br/>never receive it"))
 ```
 
-**Client A একটি room-এ emit করে। Pod 2 room-এর অর্ধেক ধরে রাখে, আর এ ব্যাপারে কখনো শোনে না।**
+**Client A একটি room-এ message পাঠায়। Room-এর অর্ধেক আছে Pod 2-তে, আর Pod 2 খবরটা কখনো পায় না।**
 
-সমাধান হলো একটি pub/sub broker, যাতে প্রতিটি pod subscribe করে। প্রতিটি pod বাইরে যাওয়া message একটি shared
-channel-এ publish করে, আর যা পায় তা নিজের socket-গুলোতে deliver করে। সাধারণত Redis Pub/Sub বেছে নেওয়া হয়।
+সমাধান হলো এমন একটি pub/sub broker, যাতে প্রতিটি pod subscribe করে। প্রতিটি pod বাইরে যাওয়া message একটি shared channel-এ
+publish করে, আর যা পায় তা নিজের socket-গুলোতে পৌঁছে দেয়। সাধারণত বেছে নেওয়া হয় Redis Pub/Sub।
 
-| বিষয়                 | Scale-এ এর মানে কী                                                                                  |
+| চিন্তার বিষয়                 | বড় scale-এ এর মানে                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| **Fan-out-এর খরচ**        | প্রতিটি message প্রতিটি pod-এ পৌঁছায়। কয়েক ডজন pod পেরোলে channel-কে room অনুযায়ী shard করুন                        |
-| **Durability নেই**       | Disconnected pod যা miss করেছে, Redis Pub/Sub তা ফেলে দেয়, তাই source of truth হলো database               |
-| **Deploy মানেই outage** | একটি rolling deploy একটি pod-এর সব socket একসঙ্গে ফেলে দেয়। নতুন connection নেওয়া বন্ধ করুন, client-দের reconnect করতে বলুন, তারপর ধাপে ধাপে exit করুন |
-| **Capacity**            | প্রতি Node.js process-এ প্রায় 50k idle socket; CPU-র আগে memory ফুরিয়ে যায়                                   |
+| **Fan-out-এর খরচ**        | প্রতিটি message প্রতিটি pod-এ পৌঁছায়। কয়েক ডজন pod পেরোলে channel-কে room ধরে shard করুন                        |
+| **Durability নেই**       | Disconnect থাকা pod যা মিস করেছে, Redis Pub/Sub তা ফেলে দেয়, তাই source of truth হলো database               |
+| **Deploy মানেই outage** | Rolling deploy একটি pod-এর সব socket একসঙ্গে ফেলে দেয়। নতুন connection নেওয়া বন্ধ করুন, client-দের reconnect করতে বলুন, তারপর ধাপে ধাপে বন্ধ করুন |
+| **Capacity**            | প্রতি Node.js process-এ মোটামুটি 50k অলস socket; CPU-র আগেই memory ফুরিয়ে যায়                                   |
 
-**কখন কিনবেন, তা জানুন।** একটি managed service (Ably, Pusher, AWS API Gateway WebSockets) connection scaling,
-sharding আর draining আপনার team-এর কাঁধ থেকে নামিয়ে দেয়। "আমি এটা কিনতাম" একটি senior উত্তর, যদি আপনি খরচটা বলতে
-পারেন: প্রতি connection-এর দাম, আর আপনার সবচেয়ে latency-সংবেদনশীল path-এ একটি vendor।
+**কখন কিনবেন, তা জানুন।** Managed service (Ably, Pusher, AWS API Gateway WebSockets) connection-এর scaling, sharding আর
+draining-এর দায় আপনার team-এর কাঁধ থেকে নামিয়ে দেয়। "আমি এটা কিনতাম" senior-এর মতো উত্তর, যদি দামটা বলতে পারেন: প্রতি
+connection-এর দাম, আর আপনার সবচেয়ে latency-সংবেদনশীল path-এ একটি vendor।
 
 ### Fan-out
 
-Notification হলো fan-out-এর ক্লাসিক সমস্যা: একটি event হাজার হাজার delivery হয়ে যায়।
+Notification হলো fan-out-এর ক্লাসিক সমস্যা: একটি event থেকে হাজার হাজার delivery।
 
 | Pattern          | কীভাবে                                                         | কখন ব্যবহার করবেন                                         |
 | ---------------- | ----------------------------------------------------------- | ------------------------------------------------ |
-| Fan-out on write | Publish-এর সময় প্রাপকের list ছড়িয়ে দিন, প্রত্যেকের জন্য একটি message | প্রাপকের list ছোট আর read ঘন ঘন হয় |
-| Fan-out on read  | Event একবার store করুন, প্রতিটি user চাইলে তখন ছড়িয়ে দিন            | প্রাপকের list বিশাল (celebrity-র সমস্যা) |
-| Hybrid           | সাধারণ account-এর জন্য write-side, ব্যতিক্রমগুলোর জন্য read-side  | বাস্তব system-এ, প্রায় সবসময়                      |
+| Fan-out on write | Publish-এর সময়েই প্রাপকের তালিকা খুলে ফেলা, প্রত্যেকের জন্য একটি message | প্রাপকের তালিকা ছোট, আর read ঘন ঘন হয় |
+| Fan-out on read  | Event একবার রাখা, প্রতিটি user চাইলে তখন খোলা            | প্রাপকের তালিকা বিশাল (celebrity problem) |
+| Hybrid           | সাধারণ account-এর জন্য write-side, ব্যতিক্রমগুলোর জন্য read-side  | বাস্তবের system-এ, প্রায় সবসময়                      |
 
-প্রতিটি fan-out-এ business event-এর ওপর key করা **deduplication** দরকার, যাতে একটি redelivery কখনো একটি push দুবার
-না পাঠায়। এতে **প্রতি channel-এ rate limit**-ও দরকার, কারণ provider-রা দশ লাখ email-এর একটি burst reject করে।
+প্রতিটি fan-out-এ business event দিয়ে key করা **deduplication** লাগে, যাতে redelivery-তে push কখনো দুবার না যায়। লাগে
+**প্রতি channel-এর rate limit**-ও, কারণ provider-রা হঠাৎ দশ লাখ email-এর ঝাপটা ফিরিয়ে দেয়।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি                                      | বেছে নিন                     | কেন                                    |
 | ---------------------------------------------- | -------------------------- | -------------------------------------- |
 | Background task, প্রতি message-এ একটি worker       | Work queue (SQS, RabbitMQ) | কাজ করে এমন সবচেয়ে সহজ জিনিস              |
-| Consumer-দের history replay করতে হবে                  | Event log (Kafka)          | Retention আর offset-ই এর feature  |
-| Caller-এর এখনই উত্তর দরকার                | Queue নয়                   | এখানে async শুধু একটি polling-এর সমস্যা যোগ করে |
-| Server push করে, client শোনে — progress, alert | SSE                      | একটি দিক, আর proxy এটা সামলায়   |
-| Client ঘন ঘন পাঠায় — chat, cursor, editing    | WebSocket                  | সত্যিই bidirectional                |
-| "30 সেকেন্ডের মধ্যে fresh" হলেই চলে              | Polling                    | Stateless, cacheable, চালানো খুবই সহজ   |
+| Consumer-কে history replay করতে হবে                  | Event log (Kafka)          | Retention আর offset-ই এখানে আসল সুবিধা  |
+| Caller-এর উত্তর এখনই চাই                | Queue নয়                   | এখানে async শুধু একটি polling-এর সমস্যা যোগ করে |
+| Server push করে, client শোনে — অগ্রগতি, alert | SSE                      | এক দিক, আর proxy সেটা সামলাতে পারে   |
+| Client ঘন ঘন পাঠায় — chat, cursor, editing    | WebSocket                  | সত্যিই দুই দিকের                |
+| "30 সেকেন্ডের মধ্যে টাটকা" হলেই চলে              | Polling                    | Stateless, cache করা যায়, চালানো খুব সহজ   |
 
 ## সাধারণ ভুল
 
-❌ **এমন worker, যা দুবার চালানো নিরাপদ নয়।** Message পেলেই কোনো key ছাড়া card charge করলে দুবার charge হবে। এটা
-সাধারণত ঘটে একটি incident-এর সময়, যখন redelivery-র সম্ভাবনা সবচেয়ে বেশি।
-✅ `Idempotency-Key: order-8821` পাঠান, যাতে একটি redelivery মূল charge-টিই ফেরত দেয়।
+❌ **এমন worker, যা দুবার চালানো নিরাপদ নয়।** কোনো key ছাড়া message পেলেই card-এ charge করলে charge দুবার হবে। সাধারণত
+এটা ঘটে incident-এর সময়, যখন redelivery-র সম্ভাবনা সবচেয়ে বেশি।
+✅ `Idempotency-Key: order-8821` পাঠান, যাতে redelivery-তে আগের charge-টাই ফেরত আসে।
 
-❌ **Feature-এর নাম "live" বলে socket-এর দিকে হাত বাড়ানো।** বেশিরভাগ live feature একদিকে push করে।
-✅ জিজ্ঞেস করুন client কিছু পাঠায় কি না। না পাঠালে SSE ব্যবহার করুন।
+❌ **Feature-এর নাম "live" বলেই socket ধরা।** বেশিরভাগ live feature এক দিকে push করে।
+✅ জিজ্ঞেস করুন, client কি কিছু পাঠায়? না পাঠালে SSE ব্যবহার করুন।
 
-❌ **একটি instance-এর ওপর broadcast design করা।** Development-এ চলে, দ্বিতীয় pod-এ ব্যর্থ হয়।
-✅ প্রথম খসড়া থেকেই একাধিক process ধরে নিন, আর event broker-এর বাইরে persist করুন।
+❌ **একটি instance-এর ওপর broadcast design করা।** Development-এ চলে, দ্বিতীয় pod আসতেই ভেঙে যায়।
+✅ প্রথম খসড়া থেকেই ধরে নিন process একাধিক, আর event broker-এর বাইরে persist করুন।
 
 ## 🔑 মূল শিক্ষা
 
-- Queue কাজ কখন ঘটে তাকে কখন চাওয়া হয়েছিল তা থেকে আলাদা করে, আর user-এর সঙ্গে চুক্তি "হয়ে গেছে" থেকে "গ্রহণ করা হয়েছে"-তে বদলায়।
-- At-least-once delivery ধরে নিন আর প্রতিটি consumer-কে idempotent করুন, message-এর ওপর নয়, business fact-এর ওপর key করে।
-- সবচেয়ে পুরোনো message-এর বয়স দেখে alert দিন, কারণ শুধু depth একটি আটকে যাওয়া consumer-কে লুকিয়ে রাখে।
-- WebSocket বেছে নিন শুধু যখন client ঘন ঘন message পাঠায়। নইলে SSE বা polling চালাতে অনেক কম খরচ।
-- একটি ধরে রাখা connection একটি process-এর, তাই server জুড়ে broadcast-এর জন্য একটি pub/sub broker লাগে, আর durability-র জন্য তবুও database লাগে।
+- Queue কাজ কখন হবে আর কখন চাওয়া হয়েছিল, এই দুটিকে আলাদা করে দেয়। User-এর সঙ্গে চুক্তি "হয়ে গেছে" থেকে বদলে হয় "গ্রহণ করা হলো"।
+- ধরে নিন delivery at-least-once, আর প্রতিটি consumer-কে idempotent করুন, message দিয়ে নয়, business-এর তথ্য দিয়ে key করে।
+- Alert দিন সবচেয়ে পুরনো message-এর বয়স দেখে, কারণ শুধু depth দেখলে আটকে যাওয়া consumer চোখে পড়ে না।
+- WebSocket বেছে নিন শুধু তখনই, যখন client ঘন ঘন message পাঠায়। নাহলে SSE বা polling চালাতে খরচ অনেক কম।
+- ধরে রাখা connection একটি process-এর, তাই server জুড়ে broadcast করতে pub/sub broker লাগে, আর durability-র জন্য তখনও database লাগে।
 
 ## Interview-এর প্রশ্ন
 
 **Q: আপনার consumer একই message দুবার process করে। Bug-টা কার?**
 
-কারোরই নয়। At-least-once delivery এটা নিশ্চিত করে, কারণ কাজ সফল হওয়ার পরেও acknowledgement হারিয়ে যেতে পারে।
-Consumer-কে idempotent হতে হবে: স্বাভাবিকভাবে idempotent একটি operation, downstream যে idempotency key মেনে চলে,
-বা business identifier-এর ওপর key করা একটি processed-set।
+কারও না। At-least-once delivery এটাই নিশ্চিত করে, কারণ কাজ সফল হওয়ার পরেও acknowledgement হারিয়ে যেতে পারে। Consumer-কে
+idempotent হতে হবে: স্বভাবতই idempotent কোনো operation, downstream যে idempotency key মানে, অথবা business identifier দিয়ে key
+করা একটি processed-set।
 
-**Q: কখন SQS-এর বদলে Kafka বাছবেন?**
+**Q: SQS-এর বদলে কখন Kafka বেছে নেবেন?**
 
-যখন consumer-দের replay করতে হয়, যখন কয়েকটি consumer group একই stream পড়ে, বা যখন একটি partition-এর ভেতরের ক্রম
-গুরুত্বপূর্ণ। সাধারণ background task-এর জন্য SQS সহজ আর সস্তা। Job queue-র জন্য Kafka মানে এমন feature-এর জন্য
-একটি cluster চালানো, যা আপনি ব্যবহারই করেন না।
+যখন consumer-দের replay করতে হয়, যখন কয়েকটি consumer group একই stream পড়ে, অথবা যখন partition-এর ভেতরে ক্রম গুরুত্বপূর্ণ।
+সাধারণ background task-এর জন্য SQS সহজ আর সস্তা। Job queue-র জন্য Kafka মানে এমন feature-এর জন্য cluster চালানো, যা আপনি
+ব্যবহারই করেন না।
 
-**Q: একটি ধীর endpoint-এর জন্য কখন queue ভুল উত্তর?**
+**Q: ধীর endpoint-এর সমাধান হিসেবে queue কখন ভুল?**
 
-যখন caller-এর এগোতে ফলাফলটি দরকার। একটি ধীর call-কে job আর polling-এ পরিণত করলে latency দূর হয় না, শুধু সরে যায়।
-সঙ্গে যোগ হয় একটি job store, একটি status endpoint আর একটি client state machine। আগে ধীর কাজটি ঠিক করুন, আর queue
-করুন শুধু তখন, যখন কেউ অপেক্ষা করছে না।
+যখন caller-কে এগোতে হলে ফলাফলটা লাগে। ধীর call-কে job আর polling বানালে latency দূর হয় না, শুধু জায়গা বদলায়। সঙ্গে যোগ হয়
+একটি job store, একটি status endpoint আর client-এর একটি state machine। আগে ধীর কাজটা ঠিক করুন, আর queue করুন শুধু তখন,
+যখন কেউ অপেক্ষা করছে না।
 
-**Q: Browser-এ job progress stream করতে WebSocket না SSE?**
+**Q: Browser-এ job-এর অগ্রগতি stream করতে WebSocket নাকি SSE?**
 
-SSE। Progress একদিকে যায়। SSE সাধারণ HTTP, তাই proxy আর HTTP/2 multiplexing কাজ করে, আর browser নিজে থেকেই
-`Last-Event-ID` replay-সহ reconnect করে। WebSocket তার খরচ উশুল করে শুধু যখন traffic সত্যিই bidirectional, যেমন
-chat বা collaborative cursor।
+SSE। অগ্রগতি যায় এক দিকে। SSE সাধারণ HTTP, তাই proxy আর HTTP/2 multiplexing কাজ করে, আর browser `Last-Event-ID` দিয়ে replay
+করে নিজে থেকেই reconnect করে। WebSocket তার খরচের যোগ্য হয় শুধু তখন, যখন traffic সত্যিই দুই দিকের, যেমন chat বা
+collaborative cursor।
 
-**Q: অনেক server জুড়ে real-time connection কীভাবে scale করেন?**
+**Q: অনেক server জুড়ে real-time connection কীভাবে scale করবেন?**
 
-প্রতিটি server একটি shared pub/sub channel-এ subscribe করে আর message নিজের socket-গুলোতে deliver করে। এতে
-broadcast ঠিক হয়, কিন্তু দুটি ফাঁক থেকে যায়। Broker পাঠিয়ে ভুলে যায়, তাই durability আসে database থেকে। আবার
-প্রতিটি message প্রতিটি server-এ পৌঁছায়, যা কয়েক ডজন node-এর ঘরে scale করা থামিয়ে দেয়। এর পরে room অনুযায়ী
-shard করুন, বা একটি managed service কিনুন।
+প্রতিটি server একটি shared pub/sub channel-এ subscribe করে, আর message পৌঁছে দেয় নিজের socket-গুলোতে। এতে broadcast ঠিক হয়,
+কিন্তু দুটি ফাঁক থেকে যায়। Broker পাঠিয়ে ভুলে যায়, তাই durability আসে database থেকে। আর প্রতিটি message প্রতিটি server-এ
+পৌঁছায়, ফলে কয়েক ডজন node-এর কাছাকাছি গিয়ে scaling থেমে যায়। তার পরে room ধরে shard করুন, অথবা managed service কিনুন।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Real-Time ও Streaming API](#ch-realtime-streaming) — SSE আর WebSocket-এর পেছনের server code: typed event, authentication, room
-- [Chapter ?? — Resilience Pattern](#ch-resilience-patterns) — একটি worker যে call করে, তার চারপাশে timeout, retry আর circuit breaker
-- [Chapter ?? — একটি Infinite Feed Design করুন](#ch-design-infinite-feed) — fan-out on write বনাম on read, শুরু থেকে শেষ পর্যন্ত করে দেখানো
+- [Chapter ?? — Resilience Pattern](#ch-resilience-patterns) — worker যে call করে, তার চারপাশে timeout, retry আর circuit breaker
+- [Chapter ?? — একটি Infinite Feed Design করুন](#ch-design-infinite-feed) — fan-out on write বনাম on read, শুরু থেকে শেষ পর্যন্ত

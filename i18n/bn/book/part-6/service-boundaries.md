@@ -1,76 +1,76 @@
 ---
 sourceHash: "1b007f0350d4a1681901f2595044c467cb848926e41a62f92136ad999049cc6c"
 title: "Service Boundary ও API Gateway"
-translatedAt: "2026-10-12T12:26:46.794Z"
+translatedAt: "2026-10-17T14:01:57.993Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Service Boundary ও API Gateway {#ch-service-boundaries}
 
-> Service-গুলোর মধ্যে রেখা টানুন সেখানে, যেখানে data আর team আগে থেকেই আছে, আর তাদের সামনের edge-কে পাতলা রাখুন।
+> Service-এর মাঝের রেখাটা টানুন সেখানে, যেখানে data আর team আগে থেকেই ভাগ হয়ে আছে, আর তাদের সামনের edge-টা পাতলা রাখুন।
 
-**এই অধ্যায়ে:** monolith বনাম service · seam খুঁজে বের করা · request, event আর saga · gateway কীসের মালিক · backend-for-frontend pattern
+**এই অধ্যায়ে:** monolith বনাম service · জোড়ের জায়গা খোঁজা · request, event আর saga · gateway কোন দায় নেয় · backend-for-frontend pattern
 
 ## 💡 মূল ধারণা
 
-একটি service boundary একটি প্রতিশ্রুতি। এটা বলে, code-এর দুটি অংশ আলাদাভাবে বদলানো, deploy আর scale করা যায়।
-প্রতিশ্রুতিটি ব্যয়বহুল। একটি function call হয়ে যায় network call, যা ব্যর্থ হতে পারে। একটি transaction হয়ে যায়
-distributed workflow। একটি schema change হয়ে যায় team-দের মধ্যে দর-কষাকষি।
+Service boundary একটি প্রতিশ্রুতি। এর মানে, দুই টুকরো code আলাদাভাবে বদলানো, deploy করা আর scale করা যাবে। কিন্তু
+প্রতিশ্রুতিটার দাম অনেক। Function call হয়ে যায় network call, যা ব্যর্থ হতে পারে। একটি transaction হয়ে যায় distributed
+workflow। Schema-র একটি পরিবর্তন হয়ে যায় team-দের মধ্যে দর কষাকষি।
 
-API gateway সেই সিদ্ধান্তের অন্য দিক। এটা service-গুলোর সামনে দাঁড়ায়, আর একবারেই route, authenticate আর
-rate-limit করে। Business logic ভেতরে ঢোকার আগ পর্যন্ত এটা ভালো চুক্তি।
+API gateway এই সিদ্ধান্তের অন্য দিক। Gateway service-গুলোর সামনে দাঁড়িয়ে routing, authentication আর rate limiting একবারেই
+সেরে দেয়। Business logic ভেতরে ঢোকার আগ পর্যন্ত এটা ভালো চুক্তি।
 
-> একটি system ভাগ করা technical সিদ্ধান্ত হওয়ার আগে একটি সমন্বয়ের সিদ্ধান্ত। একটি boundary-র দুই পাশেরই মালিক
-> যদি একটি team হয়, সেই boundary আপনাকে কিছুই এনে দেয় না।
+> System ভাগ করা আগে coordination-এর সিদ্ধান্ত, তারপর technical সিদ্ধান্ত। Boundary-র দুই দিকই যদি একই team-এর হয়, তাহলে
+> সেই boundary আপনাকে কিছুই দেয় না।
 
 ## কীভাবে কাজ করে
 
-### Monolith না service
+### Monolith নাকি service
 
 | | Modular monolith | Service |
 | --- | ---------------- | -------- |
-| Deploy | একটি artefact, হয় সব নয় কিছুই না | প্রতিটি service আলাদাভাবে |
-| ব্যর্থতা | একটি exception, process-এর ভেতরে | Network call, যা timeout হয় |
-| Data | একটি database, সত্যিকারের transaction | প্রত্যেকের একটি store, service জুড়ে কোনো transaction নেই |
-| Scaling | সবকিছু একসঙ্গে scale হয় | গরম অংশটি একা scale হয় |
-| কার জন্য ঠিক | কয়েক ডজন engineer-এর কম বেশিরভাগ system | স্বাধীন team, বা খুবই আলাদা workload |
+| Deploy | একটি artefact, হয় সব নয়তো কিছুই না | প্রতিটি service আলাদাভাবে |
+| Failure | একটি exception, process-এর ভেতরেই | Network call, যার timeout হয় |
+| Data | একটি database, আসল transaction | প্রত্যেকের নিজের store, service জুড়ে কোনো transaction নেই |
+| Scaling | সবকিছু একসঙ্গে scale হয় | শুধু hot অংশটা আলাদা করে scale হয় |
+| কার জন্য ঠিক | কয়েক ডজনের কম engineer-এর বেশিরভাগ system | স্বাধীন team, অথবা একেবারে ভিন্ন ধরনের workload |
 
-Interview-এ default উত্তর হলো **পরিষ্কার ভেতরের boundary-সহ একটি modular monolith**, তারপর যে একটি module এটা
-অর্জন করেছে, সেটাকে আলাদা করা। "Microservices" দিয়ে শুরু করলে সেটা একটি résumé-র মতো শোনায়।
+Interview-এ default উত্তর হলো **স্পষ্ট ভেতরের boundary-সহ একটি modular monolith**, তারপর শুধু সেই module-টা আলাদা করা, যেটা
+এর যোগ্য হয়েছে। শুরুতেই "microservices" বললে মনে হয় résumé পড়ছেন।
 
-### Seam খুঁজে বের করা
+### জোড়ের জায়গা খোঁজা
 
-ভালো boundary আসে domain থেকে, technical layer থেকে নয়। ভাগ করুন **যা একসঙ্গে বদলায়** তা অনুযায়ী।
+ভালো boundary আসে domain থেকে, technical layer থেকে নয়। ভাগ করুন **যা একসঙ্গে বদলায়** তা দেখে।
 
-| লক্ষণ | এটা কী ইঙ্গিত দেয় |
+| লক্ষণ | এর ইঙ্গিত |
 | ------ | ---------------- |
-| দুটি অংশ সবসময় একসঙ্গে deploy হয় | boundary **নয়** — এরা একই জিনিস |
-| আলাদা একগুচ্ছ বিশেষ্য আর নিয়ম | একটি bounded context, যেমন order, payment বা catalogue |
-| আলাদা ধরনের scaling | Image processing, search indexing, report তৈরি |
-| নিজস্ব roadmap-সহ আলাদা একটি team | আপনি পরিকল্পনা করুন বা না করুন, Conway's law এই রেখা টানবেই |
+| দুটি অংশ সবসময় একসঙ্গে deploy হয় | Boundary **নয়** — আসলে এরা একটিই জিনিস |
+| নিজস্ব noun আর নিয়মের একটি আলাদা সেট | একটি bounded context, যেমন order, payment বা catalogue |
+| Scale হওয়ার আলাদা ধরন | Image processing, search indexing, report তৈরি |
+| নিজস্ব roadmap-সহ আলাদা একটি team | Conway's law এই রেখা টানবেই, আপনি পরিকল্পনা করুন বা না করুন |
 
-> ⚠️ যে boundary-তে দুই দিকেই একটি synchronous call লাগে, সেটা boundary নয়। প্রতিটি request-এ একে অপরকে call
-> করা দুটি service আসলে network জুড়ে ছড়িয়ে থাকা একটি function call।
+> ⚠️ যে boundary-তে দুই দিক থেকেই synchronous call লাগে, সেটা boundary নয়। প্রতিটি request-এ একে অপরকে call করা দুটি
+> service আসলে network জুড়ে ছড়িয়ে দেওয়া একটি function call।
 
-**Layer-এর আকারে ভাগ করা হলো ক্লাসিক ভুল।** একটি "database service", একটি "API service" আর একটি "logic service"
-মানে প্রতিটি feature তিনটিকেই ছোঁয়। কোনোটাই আলাদাভাবে deploy হতে পারে না।
+**Layer ধরে ভাগ করা ক্লাসিক ভুল।** "Database service", "API service" আর "logic service" থাকলে প্রতিটি feature-কে তিনটিই
+ছুঁতে হয়। কোনোটাই আলাদা করে deploy হতে পারে না।
 
-### Request না event
+### Request নাকি event
 
 | | Synchronous request | Event |
 | --- | ------------------- | ----- |
 | Coupling | Caller callee-কে চেনে | Publisher subscriber-দের চেনে না |
-| ব্যর্থতা | Caller সঙ্গে সঙ্গে দেখে | Broker retry করে; caller-এর কিছু হয় না |
+| Failure | Caller সঙ্গে সঙ্গে টের পায় | Broker retry করে; caller-এর কিছু হয় না |
 | Consistency | তাৎক্ষণিক | Eventual |
-| Latency | পুরো chain-এর যোগফল | Producer সঙ্গে সঙ্গে return করে |
+| Latency | পুরো chain-এর যোগফল | Producer সঙ্গে সঙ্গেই return করে |
 
-Request ব্যবহার করুন **যখন caller-এর response দিতে উত্তরটি দরকার**। Order confirm করার আগে stock দেখা একটি
-request। Receipt email করা একটি event।
+Request ব্যবহার করুন **যখন উত্তর দিতে caller-এর ওই answer-টা লাগে**। Order confirm করার আগে stock দেখা একটি request।
+Receipt email করা একটি event।
 
-**Critical path-এ সর্বোচ্চ একটি synchronous hop রাখুন।** প্রতিটি 99.9% availability-র তিনটি chain করা call মিলে
-দেয় 99.7%, আর তাদের latency যোগ হয়।
+**Critical path-এ synchronous hop রাখুন বড়জোর একটি।** প্রত্যেকটি 99.9% availability-র তিনটি call পরপর জুড়লে মোট হয় 99.7%,
+আর তাদের latency যোগ হতে থাকে।
 
-**এমন একটি event, যা subscriber-দের যা দরকার তা বহন করে:**
+**এমন event, যাতে subscriber-দের যা দরকার তা থাকে:**
 
 ```typescript
 // Past tense, immutable, self-contained.
@@ -84,17 +84,17 @@ interface OrderPlaced {
 }
 ```
 
-শুধু একটি ID-ওয়ালা event প্রতিটি subscriber-কে ফিরে call করতে বাধ্য করে, যা coupling ফিরিয়ে আনে।
+শুধু ID থাকা event প্রতিটি subscriber-কে ফিরে call করতে বাধ্য করে, আর তাতে coupling আবার ফিরে আসে।
 
-### প্রতি service-এ একটি database, আর saga
+### প্রতি service-এ database, আর saga
 
-প্রতিটি service নিজের store-এর মালিক, আর অন্য কোনো service সেটা সরাসরি পড়ে না। এটাই একটি boundary-কে বাস্তব করে।
-Shared database মানে shared schema, আর shared schema মানে চিরকাল সমন্বিত deploy।
+প্রতিটি service নিজের store-এর মালিক, আর অন্য কোনো service সেটা সরাসরি পড়ে না। এটাই boundary-কে সত্যিকারের করে তোলে।
+Shared database মানে shared schema, আর shared schema মানে চিরকাল মিলিয়ে deploy করা।
 
-দাম হলো, service জুড়ে join আর transaction উধাও হয়ে যায়। দুটি service-এর data একটি page-এ দেখাতে, সেটা একটি
-BFF-এ (backend for frontend, নিচে আলোচনা করা হয়েছে) জোড়া লাগান। Service জুড়ে query করতে, event থেকে একটি read
-model বানান। দুটি service একসঙ্গে update করতে, একটি **saga** ব্যবহার করুন: local transaction-এর একটি chain,
-প্রত্যেকটির সঙ্গে একটি **compensating action**, যা সেটাকে ফিরিয়ে নেয়।
+দামটা হলো, service জুড়ে join আর transaction আর থাকে না। দুটি service-এর data এক page-এ দেখাতে হলে BFF-এ (backend for
+frontend, নিচে আছে) জুড়ে নিন। Service জুড়ে query করতে event থেকে একটি read model বানান। দুটি service একসঙ্গে update করতে
+**saga** ব্যবহার করুন: local transaction-এর একটি chain, যার প্রতিটি ধাপের একটি **compensating action** থাকে, যা ধাপটাকে
+উল্টে দেয়।
 
 ```mermaid
 flowchart LR
@@ -106,41 +106,41 @@ flowchart LR
   B2 --> A2
 ```
 
-**একটি checkout saga: প্রতিটি সামনের ধাপের একটি বিপরীত আছে, আর saga ঠিক ততটাই নির্ভরযোগ্য, যতটা সেই বিপরীতগুলো।**
+**একটি checkout saga: প্রতিটি সামনের ধাপের একটি উল্টো ধাপ আছে, আর saga ঠিক ততটাই নির্ভরযোগ্য, যতটা ওই উল্টো ধাপগুলো।**
 
-Saga-র **কোনো isolation নেই**। অন্য request অর্ধেক শেষ হওয়া state দেখতে পারে, তাই UI-এর একটি pending status
-দরকার। Compensation rollback-ও নয়: refund একটি নতুন transaction। Two-phase commit সমাধান নয়, কারণ এটা network
-জুড়ে lock ধরে রাখে। ছোট flow choreograph করা যায়, যেখানে প্রতিটি service event-এ সাড়া দেয়। প্রায় চার ধাপ পেরোলে,
-ধাপগুলো চালানো একটি orchestrator বেশি পরিষ্কার।
+Saga-র **কোনো isolation নেই**। অন্য request অর্ধেক-শেষ অবস্থাটা দেখতে পারে, তাই UI-তে একটি pending status লাগে।
+Compensation rollback-ও নয়: refund একটি নতুন transaction। Two-phase commit সমাধান নয়, কারণ সেটা network জুড়ে lock ধরে রাখে।
+ছোট flow choreograph করা যায়, যেখানে প্রতিটি service event-এ সাড়া দেয়। মোটামুটি চারটি ধাপের বেশি হলে একটি orchestrator
+দিয়ে ধাপগুলো চালানো বেশি পরিষ্কার।
 
 ### Edge-এ gateway
 
-Gateway না থাকলে, প্রতিটি client প্রতিটি service-এর address জানে, আর প্রতিটি service নিজের মতো করে token যাচাই করে
-আর traffic সীমিত করে। Gateway এটা একবারেই করে, একটি config store-এ রাখা route table থেকে।
+Gateway না থাকলে প্রতিটি client প্রতিটি service-এর address জানে, আর প্রতিটি service নিজের মতো করে token যাচাই করে আর traffic
+সীমিত করে। Gateway কাজটা একবারেই করে, একটি config store-এ রাখা route table থেকে।
 
-| বিষয় | Gateway কী করে |
+| চিন্তার বিষয় | Gateway কী করে |
 | ------- | --------------------- |
-| Authentication | Token একবার validate করে আর একটি যাচাই করা identity header এগিয়ে দেয় |
-| Rate limiting | Edge-এই reject করে, কোনো service compute খরচ করার আগে |
-| TLS | একবার terminate করে; network-এর ভেতরে সাধারণ HTTP |
-| Routing | `/api/orders/*`-কে order service-এ map করে; client শুধু একটি URL জানে |
+| Authentication | Token একবার যাচাই করে, আর যাচাই করা identity header সামনে পাঠায় |
+| Rate limiting | Edge-এই ফিরিয়ে দেয়, কোনো service compute খরচ করার আগে |
+| TLS | একবারই terminate করে; network-এর ভেতরে সাধারণ HTTP |
+| Routing | `/api/orders/*`-কে order service-এ পাঠায়; client-রা চেনে একটি URL |
 
 | | Load balancer | API gateway | Service mesh |
 | --- | ------------- | ----------- | ------------ |
-| কাদের মধ্যে route করে | **একটি** service-এর replica-গুলো | **আলাদা আলাদা** service, path অনুযায়ী | Service, hop-এর পর hop |
+| কাদের মধ্যে route করে | **একটি** service-এর replica-দের মধ্যে | path ধরে **আলাদা আলাদা** service-এ | Service-দের মধ্যে, প্রতিটি hop-এ |
 | Traffic | যেকোনো | North–south: client থেকে cluster | East–west: service থেকে service |
-| কীসের মালিক | Load ছড়ানো, health check | Auth, quota, TLS, routing | mTLS, retry, প্রতি hop-এর tracing |
+| দায়িত্ব | Load ছড়িয়ে দেওয়া, health check | Auth, quota, TLS, routing | mTLS, retry, প্রতি hop-এর tracing |
 
-Interviewer-রা ইচ্ছে করেই এদের গুলিয়ে ফেলেন। এরা একসঙ্গে কাজ করে। সাধারণত একটি L4 load balancer একটি stateless
-gateway cluster-এর সামনে থাকে, আর বড় একটি estate mesh যোগ করে।
+Interviewer-রা ইচ্ছে করেই এগুলো গুলিয়ে দেন। এরা একসঙ্গে কাজ করে। সাধারণত একটি L4 load balancer থাকে একটি stateless gateway
+cluster-এর সামনে, আর বড় estate-এ এর সঙ্গে mesh যোগ হয়।
 
-> ⚠️ Gateway হলো কর্তৃত্বপূর্ণ limit, একমাত্র নয়। ভেতরের caller-রা একে পুরোপুরি এড়িয়ে যায়, তাই যে service-কে
-> কিছুতেই চাপে ডুবতে দেওয়া যাবে না, defence in depth হিসেবে তার নিজস্ব limit-ও দরকার।
+> ⚠️ Gateway-র limit-টাই প্রধান, কিন্তু একমাত্র নয়। ভেতরের caller-রা gateway পুরোপুরি এড়িয়ে যায়। তাই যে service-কে
+> কোনোভাবেই চাপে ভেঙে পড়তে দেওয়া যাবে না, defence in depth হিসেবে তার নিজেরও limit লাগে।
 
 ### Backend for frontend
 
-Web, mobile আর partner-দের serve করা একটি gateway একটি shared bottleneck হয়ে যায়। প্রতিটি client আলাদা আকার চায়।
-**BFF হলো প্রতি client type-এ একটি gateway**, যার মালিক সেই team, যারা ওই client-এর মালিক।
+Web, mobile আর partner, সবাইকে একটি gateway সার্ভ করলে সেটা সবার জন্য একটি bottleneck হয়ে যায়। প্রতিটি client চায় আলাদা গড়ন।
+**BFF হলো প্রতি ধরনের client-এর জন্য একটি করে gateway**, আর তার মালিক সেই team, যে ওই client-এর মালিক।
 
 **একই order service-এর ওপর দুটি BFF:**
 
@@ -162,81 +162,81 @@ async function getWebOrder(orderId: string): Promise<FullOrderDetail> {
 }
 ```
 
-খরচটা বাস্তব। তিনটি BFF মানে তিনটি deploy, আর একটি shared change তিন জায়গায় গিয়ে পড়ে। BFF এর দাম উশুল করে যখন
-client-দের চাহিদা সত্যিই আলাদা হয়ে যায়, যখন একটি client দুটি field কম চায় তখন নয়।
+খরচটা সত্যি। তিনটি BFF মানে তিনটি deploy, আর একটি shared পরিবর্তন তিন জায়গায় গিয়ে পড়ে। BFF সেই খরচের যোগ্য হয় যখন client-দের
+চাহিদা সত্যিই আলাদা দিকে যায়, কোনো client দুটি field কম চাইলে নয়।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | কী করবেন | কেন |
 | --------- | -- | --- |
-| ~20 জনের কম engineer, একটি product | Modular monolith | ভাগ করার খরচ লাভের চেয়ে বেশি |
-| আলাদা ধরনের scaling-এর একটি workload | শুধু সেই service-টি আলাদা করুন | সবচেয়ে পরিষ্কার কারণ |
-| Deploy নিয়ে team-রা একে অপরকে আটকে রাখছে | Team-এর রেখা ধরে ভাগ করুন | স্বাধীনতাই আসল product |
-| এমন flow, যা কয়েকটি service update করবে | স্পষ্ট compensation-সহ saga | কোনো distributed transaction নেই |
-| বাইরের client-ওয়ালা কয়েকটি service | API gateway | বারবার লেখা auth আর limit-এর দাম আপনি আগেই দিচ্ছেন |
-| খুবই আলাদা আকার চাওয়া client | প্রতি client type-এ একটি BFF | একটি আকার একটি client-এর সক্রিয় ক্ষতি করে |
+| মোটামুটি 20-এর কম engineer, একটি product | Modular monolith | ভাগ করার খরচ তার লাভের চেয়ে বেশি |
+| Scale হওয়ার আলাদা ধরনের একটি workload | শুধু ওই service-টা আলাদা করুন | এর চেয়ে স্পষ্ট কারণ আর হয় না |
+| Deploy নিয়ে team-রা একে অপরকে আটকে দিচ্ছে | Team-এর সীমানা ধরে ভাগ করুন | স্বাধীনতাই আসল product |
+| এমন flow, যাকে কয়েকটি service update করতে হয় | স্পষ্ট compensation-সহ saga | Distributed transaction বলে কিছু নেই |
+| বাইরের client-সহ কয়েকটি service | API gateway | Auth আর limit-এর পুনরাবৃত্তি এর মধ্যেই আপনার খরচ বাড়াচ্ছে |
+| এমন client, যাদের একেবারে ভিন্ন গড়ন লাগে | প্রতি ধরনের client-এর জন্য একটি BFF | একটি গড়ন কোনো একটি client-এর সরাসরি ক্ষতি করছে |
 
 ## সাধারণ ভুল
 
-**❌ Distributed monolith।** আটটি service, যাদের একসঙ্গে deploy করতেই হয়, কারণ তাদের contract একই তালে বদলায়।
-Distribution-এর সব খরচ, স্বাধীনতার কিছুই নেই।
+**❌ Distributed monolith।** আটটি service, যাদের একসঙ্গে deploy করতেই হয়, কারণ তাদের contract একসঙ্গে বদলায়। Distribution-এর
+সব খরচ আছে, স্বাধীনতার কিছুই নেই।
 
-**✅ একটি বলা কারণের জন্য আলাদা করা একটি service।** "Image processing CPU-bound আর হঠাৎ হঠাৎ চাপ আসে, তাই এটা
-আলাদাভাবে scale হয়, আর এর ব্যর্থতা checkout-কে ছোঁয় না।"
+**✅ ঘোষিত একটি কারণে একটি service আলাদা করা।** "Image processing CPU-bound আর হঠাৎ হঠাৎ চাপ বাড়ে, তাই এটা আলাদা করে scale হয়,
+আর এর failure checkout-কে ছোঁয় না।"
 
-**❌ Service-গুলোর মধ্যে shared database।** একটি schema migration হয়ে যায় একাধিক team-এর ঘটনা। প্রতিটি service
-নিজের store-এর মালিক হওয়া উচিত, আর অন্যরা সেটা পড়বে তার API বা event দিয়ে।
+**❌ Service-দের মধ্যে shared database।** একটি schema migration হয়ে যায় একাধিক team-এর অনুষ্ঠান। প্রতিটি service নিজের store-এর
+মালিক হবে, আর অন্যরা সেটা পড়বে তার API বা event দিয়ে।
 
-**❌ Gateway-তে business logic**, যেমন discount-এর নিয়ম বা entitlement check। এখন প্রতিটি team মিলে সবচেয়ে
-গুরুত্বপূর্ণ shared component-টি বদলায়।
+**❌ Gateway-তে business logic**, যেমন discount-এর নিয়ম বা entitlement check। তখন সবচেয়ে গুরুত্বপূর্ণ shared component-টা
+সব team মিলে একসঙ্গে বদলায়।
 
-**✅ Gateway route করে আর রক্ষা করে।** Aggregation থাকে এর পেছনের একটি service বা একটি GraphQL layer-এ।
+**✅ Gateway route করে আর সুরক্ষা দেয়।** Aggregation থাকে তার পেছনের কোনো service বা GraphQL layer-এ।
 
-> ⚠️ Timeout বা circuit breaker ছাড়া একটি upstream gateway-র connection জমিয়ে তোলে। তখন একটি ধীর service পুরো
-> edge-কে সাড়াহীন করে দিতে পারে। প্রতিটি upstream-কে তার নিজস্ব timeout আর breaker দিন।
+> ⚠️ Timeout বা circuit breaker ছাড়া upstream থাকলে gateway-তে connection জমতে থাকে। তখন একটি ধীর service পুরো edge-কে
+> অচল করে দিতে পারে। প্রতিটি upstream-কে নিজস্ব timeout আর breaker দিন।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি service boundary স্বাধীন deploy আর scaling এনে দেয়, আর বিনিময়ে network failure, eventual consistency আর schema নিয়ে দর-কষাকষির দাম নেয়।
-- Domain আর team অনুযায়ী ভাগ করুন, কখনো technical layer অনুযায়ী নয়, আর যে দুটি service সারাক্ষণ একে অপরকে call করে, তাদের এক করুন।
-- প্রতি service-এ একটি database একটি boundary-কে বাস্তব করে, আর compensating step-সহ saga সেই service-জোড়া transaction-এর জায়গা নেয়, যা এটা সরিয়ে দেয়।
-- Gateway তার hop-এর দাম উশুল করে auth, limit, TLS আর routing একবারে নিজের হাতে নিয়ে, আর business logic ঢুকলেই উশুল করা থামে।
-- Client-দের চাহিদা সত্যিই আলাদা হলে উত্তর BFF, আর এর খরচ প্রতি client type-এ আরও একটি deployable।
+- Service boundary আলাদা deploy আর scaling এনে দেয়, আর বিনিময়ে নেয় network failure, eventual consistency আর schema নিয়ে দর কষাকষি।
+- ভাগ করুন domain আর team ধরে, technical layer ধরে কখনো নয়। যে দুটি service সারাক্ষণ একে অপরকে call করে, তাদের এক করে ফেলুন।
+- প্রতি service-এ database boundary-কে সত্যিকারের করে, আর service জুড়ে যে transaction হারায়, তার জায়গা নেয় compensating ধাপসহ saga।
+- Gateway তার hop-এর দাম তোলে auth, limit, TLS আর routing একবারে সামলে। Business logic ঢুকলেই সেই দাম আর ওঠে না।
+- Client-দের চাহিদা সত্যিই আলাদা হলে উত্তর BFF, আর তার খরচ প্রতি ধরনের client-এ আরেকটি deployable।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি monolith কোথায় ভাগ করবেন, তা কীভাবে ঠিক করেন?**
+**Q: Monolith কোথায় ভাগ করবেন, তা কীভাবে ঠিক করেন?**
 
-এমন একটি অংশ খুঁজুন, যা আলাদা গতিতে বদলায়, আলাদাভাবে scale করে, বা এমন একটি team-এর, যারা বাকি সবার release-এ
-আটকে থাকে। তারপর data দেখুন। আলাদা করা অংশটিকে যদি প্রতিটি request-এ মূল database-এ ফিরে যেতে হয়, seam ভুল জায়গায়।
-একটি service আলাদা করুন, আর পরেরটির কথা ভাবার আগে প্রমাণ করুন boundary টিকে আছে।
+এমন অংশ খুঁজুন, যা আলাদা গতিতে বদলায়, আলাদাভাবে scale হয়, অথবা এমন team-এর, যে বাকি সবার release-এ আটকে থাকে। তারপর data
+দেখুন। আলাদা করা অংশটাকে যদি প্রতিটি request-এ মূল database-এ ফিরে হাত দিতে হয়, তাহলে জোড়ের জায়গাটা ভুল। একটি service
+আলাদা করুন, আর পরেরটার কথা ভাবার আগে প্রমাণ করুন boundary-টা টিকছে।
 
-**Q: দুটি service-কে atomically update হতে হবে। আপনি কী করবেন?**
+**Q: দুটি service-কে atomic-ভাবে update করতে হবে। কী করবেন?**
 
-মেনে নিন যে distributed transaction পাওয়া যাবে না, আর একটি saga ব্যবহার করুন। প্রতিটি service locally commit করে
-আর একটি event publish করে, আর প্রতিটি ধাপের একটি compensating action থাকে। ফলটা শুরুতেই বলে দিন। একটি দৃশ্যমান
-সময় থাকে, যখন system অর্ধেক update হয়ে আছে, তাই user-এর সামনের model-এ একটি pending state দরকার।
+মেনে নিন distributed transaction পাওয়া যাবে না, আর saga ব্যবহার করুন। প্রতিটি service locally commit করে event publish করে,
+আর প্রতিটি ধাপের একটি compensating action থাকে। ফলাফলটা শুরুতেই বলে দিন। এমন একটি সময় থাকে, যখন system-টা অর্ধেক update
+হয়ে আছে আর সেটা দেখা যায়। তাই user যে model দেখেন, তাতে একটি pending অবস্থা লাগে।
 
-**Q: কখন microservices ভুল উত্তর?**
+**Q: Microservices কখন ভুল সমাধান?**
 
-যখন team একটি। যে স্বাধীনতা কেনা হচ্ছে তা সাংগঠনিক, তাই একটি team network failure, distributed debugging আর
-deployment matrix-এর বিনিময়ে কিছুই পায় না। জোর দিয়ে মানানো ভেতরের boundary-সহ একটি modular monolith design-এর
-বেশিরভাগ সুবিধা পায়, আর পরে, যখন কারণ থাকে, ভাগ করা যায়।
+যখন team একটিই। যে স্বাধীনতা কেনা হচ্ছে, সেটা organisational। তাই network failure, distributed debugging আর deployment matrix-এর
+বিনিময়ে একটি team কিছুই পায় না। ভেতরের boundary কড়াভাবে মানা একটি modular monolith design-এর বেশিরভাগ সুবিধা দেয়, আর পরে
+কারণ এলে ভাগ করা যায়।
 
 **Q: API gateway আর load balancer-এর পার্থক্য কী?**
 
-Load balancer একটি service-এর replica-গুলোর মধ্যে traffic ছড়ায়, L4 বা L7-এ। Gateway L7-এ কাজ করে আর path অনুযায়ী
-আলাদা আলাদা service-এর মধ্যে route করে। এটা auth, rate limit আর request shaping-এরও মালিক। এরা একসঙ্গে কাজ করে:
-সাধারণত একটি L4 load balancer একটি stateless gateway cluster-এর সামনে বসে।
+Load balancer একটি service-এর replica-দের মধ্যে traffic ছড়িয়ে দেয়, L4 বা L7-এ। Gateway কাজ করে L7-এ, আর path ধরে আলাদা আলাদা
+service-এ route করে। Auth, rate limit আর request shaping-ও তার দায়িত্ব। এরা একসঙ্গে কাজ করে: সাধারণত একটি L4 load balancer
+বসে থাকে একটি stateless gateway cluster-এর সামনে।
 
-**Q: Gateway এখন একটি single point of failure। এ নিয়ে আপনি কী করবেন?**
+**Q: Gateway এখন single point of failure। এ নিয়ে কী করবেন?**
 
-একে stateless রাখুন, যাতে scale out করা যায়, আর অন্তত দুটি availability zone জুড়ে active-active চালান। Route
-table memory-তে cache করুন, যাতে config store-এর outage edge-কে নামিয়ে না দেয়। তারপর প্রতি upstream-এ circuit
-breaker যোগ করুন, যাতে gateway শুধু তার সবচেয়ে দুর্বল service-এর সমান নির্ভরযোগ্য না হয়।
+এটাকে stateless রাখুন, যাতে scale out করা যায়, আর অন্তত দুটি availability zone জুড়ে active-active চালান। Route table memory-তে
+cache করুন, যাতে config store বন্ধ হলেও edge না পড়ে। তারপর প্রতি upstream-এ circuit breaker যোগ করুন, যাতে gateway-র
+নির্ভরযোগ্যতা তার সবচেয়ে দুর্বল service-এর সমান না হয়ে যায়।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues) — যে transport service-গুলোর মধ্যে event বহন করে
-- [Chapter ?? — Resilience Pattern](#ch-resilience-patterns) — boundary পেরোনো প্রতিটি call-এর জন্য timeout আর circuit breaker
+- [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues) — service-দের মধ্যে event বয়ে নেওয়া transport
+- [Chapter ?? — Resilience Pattern](#ch-resilience-patterns) — boundary পার হওয়া প্রতিটি call-এর জন্য timeout আর circuit breaker
 - [Chapter ?? — Rate Limiting](#ch-rate-limiting) — gateway-র quota check-এর পেছনের algorithm আর atomic counter

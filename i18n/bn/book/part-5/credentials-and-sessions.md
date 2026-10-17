@@ -1,42 +1,42 @@
 ---
 sourceHash: "adce5dc32e64efe5f336eb866600c20799c71291766e28ce985b22aa619acddf"
 title: "Credential, Session, CORS ও CSRF"
-translatedAt: "2026-10-12T12:22:28.354Z"
+translatedAt: "2026-10-17T14:04:28.126Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Credential, Session, CORS ও CSRF {#ch-credentials-and-sessions}
 
-> একটি password নিরাপদে রাখুন, একটি নির্দিষ্ট কারণ দেখিয়ে session আর token-এর মধ্যে বাছাই করুন, আর যে cookie সেটা বহন করে, তাকে রক্ষা করুন।
+> Password নিরাপদে store করুন, session আর token-এর মধ্যে একটি স্পষ্ট কারণ দেখিয়ে বাছুন, আর যে cookie সেটা বয়ে নেয় তাকে রক্ষা করুন।
 
-**এই অধ্যায়ে:** password hash করা · session বনাম JWT · refresh token আর সেগুলো কোথায় থাকে · CSRF কীভাবে cookie-র পিঠে চড়ে · CORS কেন কোনো defence নয়
+**এই অধ্যায়ে:** password hash করা · session বনাম JWT · refresh token, আর সেটা কোথায় থাকে · CSRF কীভাবে cookie-র পিঠে চড়ে · CORS কেন প্রতিরক্ষা নয়
 
 ## 💡 মূল ধারণা
 
-Authentication দুটি সমস্যা: **user কে, তা প্রমাণ করা**, একবার, আর পরের প্রতিটি request-এ **সেটা মনে রাখা**।
-Password আপনি কখনো রাখেন না — রাখেন শুধু একটি ধীর, একমুখী hash। Session বা token আপনি issue করেন, আর design-এর
-প্রশ্ন হলো, আপনি এখনো সেটা revoke করতে পারেন কি না।
+Authentication আসলে দুটি সমস্যা: **user কে তা প্রমাণ করা**, একবার, আর পরের প্রতিটি request-এ **সেটা মনে রাখা**।
+Password আপনি কখনো store করেন না — শুধু ধীর, একমুখী একটি hash রাখেন। Session বা token আপনি issue করেন, আর design-এর
+প্রশ্ন হলো পরে সেটা revoke করতে পারবেন কি না।
 
-সেই credential একবার cookie হয়ে গেলে browser নিজে থেকেই সেটা পাঠায়। **CSRF** হলো সেই attack, যেটা ওই cookie-র
-পিঠে চড়ে। **CORS** হলো browser-এর সেই নিয়ম, যেটাকে মানুষ এর বিরুদ্ধে একটি defence ভেবে গুলিয়ে ফেলে। এরা একে অপরের
-উল্টো: CORS ঠিক করে কে আপনার response *পড়তে* পারবে, CSRF হলো কে আপনার write *ঘটাতে* পারবে, তা নিয়ে।
+Credential একবার cookie হয়ে গেলে browser নিজে থেকেই সেটা পাঠায়। **CSRF** হলো সেই আক্রমণ, যা ওই cookie-র পিঠে চড়ে।
+**CORS** হলো browser-এর সেই নিয়ম, যাকে মানুষ এর বিরুদ্ধে প্রতিরক্ষা ভেবে ভুল করে। দুটি আসলে উল্টো জিনিস: আপনার response
+কে *পড়তে* পারবে, তা ঠিক করে CORS। আর আপনার write কে *ঘটাতে* পারবে, সেটা CSRF-এর প্রশ্ন।
 
-> ⚠️ **যা বদলাতে থাকে:** hardware যত দ্রুত হয়, recommended hashing algorithm আর তার setting তত বাড়ে। এখনকার
-> সংখ্যাগুলো থাকে OWASP-এর cheat sheet-এ, কোনো বইয়ে নয়। টেকসই নীতি: attacker-এর GPU-র সামনে hash-কে ধীরই থাকতে
-> হবে, তাই আপনি নিয়মিত সময় ধরে setting বাড়ান।
+> ⚠️ **যা বদলাতে থাকে:** hardware যত দ্রুত হয়, hashing-এর প্রস্তাবিত algorithm আর তার setting তত ওপরে ওঠে। হালনাগাদ
+> সংখ্যা থাকে OWASP-এর cheat sheet-এ, বইয়ে নয়। টেকসই নীতি: attacker-এর GPU-র কাছে hash-কে ধীর থাকতেই হবে, তাই নিয়মিত
+> setting বাড়ান।
 
 ## কীভাবে কাজ করে
 
-### একটি password রাখা
+### Password store করা
 
-এমন একটি function-এর value রাখুন, যেটা ইচ্ছা করেই ধীর আর যেটাকে উল্টানো যায় না। General-purpose hash এখানে ব্যর্থ।
-একটি GPU সেকেন্ডে কয়েকশো কোটি SHA-256 hash হিসাব করে, তাই একটি leak হওয়া table কয়েক মিনিটেই crack হয়ে যায়।
+এমন একটি function-এর value store করুন, যা ইচ্ছে করেই ধীর আর যাকে উল্টানো যায় না। সাধারণ কাজের hash এখানে ব্যর্থ। একটি
+GPU সেকেন্ডে কয়েকশো কোটি SHA-256 hash হিসাব করে, তাই ফাঁস হওয়া একটি table কয়েক মিনিটেই ভেঙে ফেলা যায়।
 
 | Algorithm | রায় | মন্তব্য |
 | --------- | ------- | ----- |
 | **Argon2id** | ✅ প্রথম পছন্দ | Memory-hard, তাই GPU তার সুবিধা হারায় |
-| **bcrypt** | ✅ এখনো ঠিক আছে | ভালোভাবে বোঝা, কিন্তু 72 byte-এ input চুপচাপ কেটে ফেলে |
-| SHA-256, MD5, SHA-1 | ❌ কখনো নয় | Design অনুযায়ীই দ্রুত — পুরো সমস্যাটা এটাই |
+| **bcrypt** | ✅ এখনও ঠিক আছে | ভালোভাবে বোঝা, কিন্তু 72 byte-এর পরে input চুপচাপ কেটে ফেলে |
+| SHA-256, MD5, SHA-1 | ❌ কখনোই না | Design অনুযায়ীই দ্রুত — পুরো সমস্যা এটাই |
 
 **Argon2id দিয়ে hash করা:**
 
@@ -52,12 +52,11 @@ const OPTIONS: argon2.Options = {
 export const hashPassword = (plain: string): Promise<string> => argon2.hash(plain, OPTIONS);
 ```
 
-Setting-গুলো hash string-এর ভেতরেই থাকে, তাই আপনি সেগুলো বাড়াতে পারেন, আর প্রতিটি user-কে পরের login-এ rehash
-করতে পারেন।
+Setting-গুলো hash string-এর ভেতরেই থাকে। তাই setting বাড়িয়ে প্রতিটি user-এর পরের login-এ আবার hash করে নিতে পারেন।
 
 ### Login endpoint
 
-**কোন account আছে তা leak না করে login:**
+**কোন account আছে, তা ফাঁস না করে login:**
 
 ```typescript
 async function login(email: string, password: string): Promise<Session> {
@@ -79,17 +78,17 @@ async function login(email: string, password: string): Promise<Session> {
 }
 ```
 
-Login-এ account আর source IP দুটি ধরেই rate limit করুন ([Chapter ?? — Rate Limiting](#ch-rate-limiting))।
+Login-এ rate limit দিন account আর source IP দুটির ওপরই ([Chapter ?? — Rate Limiting](#ch-rate-limiting))।
 
 ### Session বনাম JWT
 
-একটি **session** server-এ state রাখে, আর client-কে একটি opaque id দেয়, একটি random key। এটা revoke করা মানে একটি
-delete। একটি **JWT** state-কে একটি signed token-এ রাখে, তাই কোনো lookup নেই, আর revoke করার জন্য delete করার মতো কিছুও
-নেই। JWT "বেশি secure" নয়। এটা **stateless**, যেটা scale এনে দেয়, আর তার দাম revocation।
+**Session** state রাখে server-এ, আর client-কে দেয় একটি অস্বচ্ছ id, মানে random একটি key। Revoke করা মানে শুধু delete।
+**JWT** state রাখে signed একটি token-এর ভেতরে, তাই কিছু খুঁজতে হয় না, আবার revoke করতে চাইলে মোছার মতোও কিছু নেই। JWT
+"বেশি নিরাপদ" নয়। এটা **stateless**, যা scale এনে দেয়, আর বিনিময়ে revocation কেড়ে নেয়।
 
 > ⚠️ **JWT-তে কখনো গোপন কিছু রাখবেন না।** Payload হলো base64url — encoding, encryption নয়।
 
-**Sign আর verify করা:**
+**Sign আর verify:**
 
 ```typescript
 const opts = { issuer: 'api.example.com', audience: 'app.example.com' };
@@ -99,14 +98,14 @@ const token = jwt.sign({ sub: user.id, role: user.role }, SECRET, { expiresIn: '
 const claims = jwt.verify(token, SECRET, { algorithms: ['HS256'], ...opts }) as Claims;
 ```
 
-`algorithms` pin করলে `alg: none` আর algorithm confusion আটকে যায়। দুটিই token-এর নিজের header-কে বিশ্বাস করে,
-যেটা attacker-এর নিয়ন্ত্রণে।
+`algorithms` নির্দিষ্ট করে দিলে `alg: none` আর algorithm confusion আটকায়। দুটিই token-এর নিজের header-কে বিশ্বাস করে, অথচ
+সেই header attacker-এর হাতে।
 
 ### Refresh token
 
-একটি ছোট access token একটি leak-এর ক্ষতি সীমিত রাখে। দীর্ঘস্থায়ী refresh token-টিই হলো সংবেদনশীল।
+ছোট মেয়াদের access token ফাঁস হলে ক্ষতি সীমিত থাকে। স্পর্শকাতর হলো দীর্ঘ মেয়াদের refresh token।
 
-**Reuse detection সহ rotation:**
+**Reuse ধরে ফেলার ব্যবস্থাসহ rotation:**
 
 ```typescript
 async function refresh(presented: string): Promise<Tokens> {
@@ -123,35 +122,34 @@ async function refresh(presented: string): Promise<Tokens> {
 }
 ```
 
-শুধু একটি hash রাখুন, যাতে একটি database leak কোনো চালু session তুলে না দেয়। প্রতিটি ব্যবহারে rotate করুন। একটি
-ব্যবহৃত token ফিরে এলে বুঝবেন, একটি পুরনো copy বাইরে ঘুরছে, তাই পুরো family revoke করুন।
+শুধু hash store করুন, তাহলে database ফাঁস হলেও কোনো চালু session হাতে চলে যায় না। প্রতিবার ব্যবহারে rotate করুন। একবার
+ব্যবহার হওয়া token আবার ফিরে এলে বুঝবেন একটি পুরনো copy বাইরে ঘুরছে, তাই পুরো family revoke করুন।
 
 ### Credential কোথায় থাকে
 
 | জায়গা | XSS | CSRF | রায় |
 | -------- | --- | ---- | ------- |
 | `localStorage` | ❌ যেকোনো script পড়তে পারে | ✅ নিজে থেকে পাঠানো হয় না | ❌ এড়িয়ে চলুন |
-| JavaScript variable | ⚠️ Reload-এ হারিয়ে যায় | ✅ | ✅ শুধু access token |
-| `HttpOnly` cookie | ✅ Script পড়তে পারে না | ❌ নিজে থেকে পাঠানো হয় | ✅ একটি CSRF defence সহ |
+| JavaScript variable | ⚠️ Reload করলে হারিয়ে যায় | ✅ | ✅ শুধু access token-এর জন্য |
+| `HttpOnly` cookie | ✅ Script পড়তে পারে না | ❌ নিজে থেকে পাঠানো হয় | ✅ CSRF প্রতিরক্ষার সঙ্গে |
 
-`localStorage` থাকলে, একটি XSS bug এমন একটি account takeover, যেটা fix-এর পরেও টিকে থাকে। একটি `HttpOnly` cookie
-সেটার বদলে CSRF নেয়, যার একটি সম্পূর্ণ defence আছে। Cookie-র attribute-গুলো নিজেই আছে
-[Chapter ?? — Cookie ও SameSite](#ch-cookies-same-site)-এ।
+`localStorage`-এ রাখলে একটি XSS bug মানে account takeover, যা bug ঠিক করার পরেও টিকে থাকে। `HttpOnly` cookie এর বদলে
+আনে CSRF, যার পুরো প্রতিরক্ষা আছে। Cookie-র attribute-গুলো আছে [Chapter ?? — Cookie ও SameSite](#ch-cookies-same-site)-এ।
 
 ### CSRF কীভাবে cookie-র পিঠে চড়ে
 
-`bank.example.com`-এ logged in একজন user `evil.com`-এ যান। সেটা নিজে থেকে একটি form submit করে
-`bank.example.com/transfer`-এ, browser cookie জুড়ে দেয়, আর transfer হয়ে যায়। Attacker কখনো response পড়ে না, আর
-তার দরকারও ছিল না। **Credential নিজে থেকে পাঠানো হয়।** একটি `Authorization` header-এর token হয় না। এই কারণেই header
-token থেকে cookie-তে সরে গেলে CSRF ফিরে আসে।
+`bank.example.com`-এ login করা একজন user `evil.com`-এ যান। সেই page নিজে থেকেই `bank.example.com/transfer`-এ একটি form
+submit করে, browser cookie জুড়ে দেয়, আর transfer হয়ে যায়। Attacker কখনো response পড়ে না, আর তার দরকারও ছিল না।
+**Credential নিজে থেকে পাঠানো হয়।** `Authorization` header-এর token নিজে থেকে যায় না। এ কারণেই header token থেকে cookie-তে
+সরলে CSRF ফিরে আসে।
 
-**প্রথম defence হলো `SameSite=Lax`:** একটি cross-site `POST` আর cookie বহন করে না। কোনো `GET` state বদলালে এটা
-ব্যর্থ হয়। তাই [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices)-এর
-"`GET` never writes" একটি security control।
+**প্রথম প্রতিরক্ষা `SameSite=Lax`:** cross-site `POST`-এর সঙ্গে আর cookie যায় না। কিন্তু কোনো `GET` state বদলালে এটা কাজ
+করে না। তাই [Chapter ?? — REST Best Practice ও Versioning](#ch-rest-best-practices)-এর "`GET` কখনো write করে না"
+নিয়মটা আসলে একটি security control।
 
-**দ্বিতীয় defence হলো এমন একটি token, যেটা attacker পড়তে পারে না।** Server একটি পড়া যায় এমন cookie-তে একটি random
-value set করে, আর client সেটা একটি header-এ ফেরত পাঠায়। একটি cross-site page browser-কে দিয়ে cookie পাঠাতে পারে,
-কিন্তু same-origin policy তাকে header বানানোর জন্য value-টি পড়তে দেয় না।
+**দ্বিতীয় প্রতিরক্ষা এমন একটি token, যা attacker পড়তে পারে না।** Server পড়া যায় এমন একটি cookie-তে random একটি value
+সেট করে, আর client সেটা একটি header-এ ফেরত পাঠায়। Cross-site page browser-কে দিয়ে cookie পাঠাতে পারে, কিন্তু same-origin
+policy-র কারণে value-টা পড়ে header বানাতে পারে না।
 
 **Double-submit check:**
 
@@ -173,10 +171,10 @@ export const csrf: RequestHandler = (req, res, next) => {
 
 ### CORS আসলে কী করে
 
-একটি origin হলো **scheme + host + port**। Same-origin policy `evil.com`-কে আপনার response *পড়া* থেকে আটকায়, আর CORS
-হলো সেই উপায়, যেটা দিয়ে আপনার server বিশ্বস্ত origin-গুলোর জন্য এটা শিথিল করে। Browser এটা enforce করে response-এর
-ওপর: request সাধারণত চলে যায়, তারপর reply লুকিয়ে ফেলা হয়। তাই একটি "CORS error"-এর পাশেই এমন একটি row থাকতে পারে,
-যেটা লেখা হয়ে গেছে। JSON body একটি preflight `OPTIONS` request ঘটায়, তাই `maxAge` set করুন।
+Origin মানে **scheme + host + port**। Same-origin policy `evil.com`-কে আপনার response *পড়তে* দেয় না, আর CORS দিয়ে আপনার
+server বিশ্বস্ত origin-এর জন্য সেই নিয়ম শিথিল করে। Browser এটা মানায় response-এর ওপর: request সাধারণত চলেই যায়, তারপর
+উত্তরটা লুকিয়ে রাখা হয়। তাই "CORS error"-এর পাশেই এমন একটি row থাকতে পারে, যা লেখা হয়ে গেছে। JSON body থাকলে আগে একটি
+preflight `OPTIONS` request যায়, তাই `maxAge` সেট করুন।
 
 **নিরাপদে CORS configure করা:**
 
@@ -193,51 +191,51 @@ app.use(cors({
 }));
 ```
 
-`Vary: Origin` পাঠান, নাহলে একটি CDN এক origin-এর header অন্য origin-কে serve করে। Credential সহ
-`Allow-Origin: *` browser reject করে, কিন্তু request-এর `Origin` প্রতিফলিত করাও একই ফাঁক। ওটা browser মেনে নেয়।
+`Vary: Origin` পাঠান, নইলে CDN এক origin-এর header আরেক origin-কে দিয়ে দেয়। Credential-সহ `Allow-Origin: *` browser
+ফিরিয়ে দেয়, কিন্তু request-এর `Origin` হুবহু ফেরত পাঠানোও একই ফুটো। আর সেটা browser মেনে নেয়।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | বেছে নিন | কেন |
 | --------- | ------ | --- |
-| একটি web app, একটি backend | **একটি `HttpOnly` cookie-তে session** + `SameSite=Lax` | সহজ, revoke করা যায়, scale-এর কোনো সমস্যা নেই |
-| অনেক service এমন token verify করে, যেগুলো তারা issue করেনি | `RS256` সহ JWT | কোনো shared session store নেই |
-| তাৎক্ষণিক revocation একটি কঠিন শর্ত | Session, বা JWT সাথে একটি `jti` denylist | শুধু একটি JWT revoke করা যায় না |
-| Frontend আর API আলাদা origin-এ | একটি নির্দিষ্ট allowlist সহ CORS | কখনো `Origin` প্রতিফলিত করবেন না |
+| একটি web app, একটি backend | **`HttpOnly` cookie-তে session** + `SameSite=Lax` | সহজ, revoke করা যায়, scale-এর কোনো সমস্যা নেই |
+| অনেক service, যারা নিজেরা issue করেনি এমন token verify করে | `RS256`-সহ JWT | Shared session store লাগে না |
+| সঙ্গে সঙ্গে revoke করা কড়া শর্ত | Session, অথবা JWT আর একটি `jti` denylist | শুধু JWT revoke করা যায় না |
+| Frontend আর API আলাদা origin-এ | হুবহু মেলানো allowlist-সহ CORS | কখনো `Origin` ফেরত পাঠাবেন না |
 
 ## 🔑 মূল শিক্ষা
 
-- Password hashing-কে ইচ্ছা করেই ধীর আর tune করার যোগ্য হতে হবে, আর Argon2id এখনকার প্রথম পছন্দ।
-- Session বনাম JWT-র লেনদেন হলো statelessness বনাম revocation, security-র কোনো পার্থক্য নয়।
-- Refresh token hash করে রাখুন, প্রতিটি ব্যবহারে rotate করুন, আর reuse হলে পুরো family revoke করুন।
-- Cookie নিজে থেকে পাঠানো হয়, তাই cookie-ভিত্তিক session-এর `SameSite` লাগে, আর যেখানে সেটা যথেষ্ট নয়, সেখানে একটি CSRF token।
-- CORS CSRF আটকাতে পারে না, কারণ request তো চলেই যায়, আর attacker-এর কখনো response-এর দরকার হয় না।
+- Password hashing-কে ইচ্ছে করেই ধীর আর setting বদলানোর যোগ্য হতে হবে, আর এখনকার প্রথম পছন্দ Argon2id।
+- Session বনাম JWT-র লেনদেন statelessness বনাম revocation, security-র কোনো ফারাক নয়।
+- Refresh token hash করে store করুন, প্রতিবার ব্যবহারে rotate করুন, আর reuse ধরা পড়লে পুরো family revoke করুন।
+- Cookie নিজে থেকে পাঠানো হয়, তাই cookie-ভিত্তিক session-এ `SameSite` লাগে, আর যেখানে তাতে কুলায় না সেখানে CSRF token।
+- CORS CSRF আটকাতে পারে না, কারণ request তো চলেই যায়, আর attacker-এর response-এর দরকারই নেই।
 
 ## Interview-এর প্রশ্ন
 
 **Q: Session নাকি JWT?**
 
-Session, যদি না statelessness সত্যিই দরকার হয়: একটি সাশ্রয়ী lookup, আর revocation মানে একটি delete। JWT তখনই তার
-জায়গা পায়, যখন কয়েকটি service এমন token verify করে, যেগুলো তারা issue করেনি, বা কোনো cookie jar নেই।
+Session, যদি না statelessness সত্যিই দরকার হয়: একটি lookup-এর খরচ সহজেই বহন করা যায়, আর revoke মানে শুধু delete। JWT তখন
+কাজে লাগে, যখন কয়েকটি service এমন token verify করে যা তারা নিজেরা issue করেনি, অথবা কোনো cookie jar নেই।
 
-**Q: একটি JWT কীভাবে revoke করবেন?**
+**Q: JWT কীভাবে revoke করবেন?**
 
-কড়াভাবে বললে, পারবেন না। Access token ছোট রাখুন আর server-side refresh token revoke করুন, তাতে একটি access token-এর
-আয়ুর মধ্যেই session শেষ হয়। তাৎক্ষণিক revocation-এর জন্য Redis-এ একটি `jti` denylist রাখুন, আর মেনে নিন যে lookup
-ফিরে এসেছে।
+কঠোরভাবে বললে, পারবেন না। Access token-এর মেয়াদ ছোট রাখুন, আর server-এর দিকের refresh token revoke করুন। তাহলে একটি
+access token-এর মেয়াদের মধ্যেই session শেষ হয়। সঙ্গে সঙ্গে revoke চাইলে Redis-এ একটি `jti` denylist রাখুন, আর মেনে নিন
+যে lookup আবার ফিরে এল।
 
-**Q: CORS কি আপনার API-কে রক্ষা করে?**
+**Q: CORS কি আপনার API রক্ষা করে?**
 
-না। এটা একটি server-কে একটি cross-origin script-কে response পড়তে দেওয়ার অনুমতি দিতে দেয়, আর browser সেটা enforce
-করে request চলে যাওয়ার পরে। Browser নয় এমন client এটাকে উপেক্ষা করে, আর একটি cross-site form post যেভাবেই হোক write
-করে ফেলে। API-কে রক্ষা করে authentication আর authorisation।
+না। CORS server-কে দিয়ে একটি cross-origin script-কে response পড়ার অনুমতি দেওয়ায়, আর browser সেটা মানায় request চলে যাওয়ার
+পরে। Browser নয় এমন client এটা উপেক্ষা করে, আর cross-site form post যেভাবেই হোক লিখে ফেলে। API রক্ষা করে authentication আর
+authorisation।
 
-**Q: `SameSite=Lax` set করা আছে। আপনার কি এখনো CSRF token লাগবে?**
+**Q: `SameSite=Lax` সেট করা আছে। তবু কি CSRF token লাগবে?**
 
-প্রায়ই না। `Lax`-ই মূল defence। Token যোগ করুন যদি কোনো `GET` state বদলায়, কোনো cookie-কে `SameSite=None` হতে
-হয়, বা কোনো অবিশ্বস্ত sibling subdomain cookie set করতে পারে। তখন সেগুলো session-এর সাথে sign করুন।
+প্রায়ই লাগে না। মূল প্রতিরক্ষা `Lax`। Token যোগ করুন যদি কোনো `GET` state বদলায়, কোনো cookie-কে `SameSite=None` রাখতেই হয়,
+বা অবিশ্বস্ত কোনো sibling subdomain cookie সেট করতে পারে। তখন token-গুলো session-এর সঙ্গে sign করে বেঁধে দিন।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth) — login-কে একটি identity provider-এর হাতে দেওয়া, তারপর কে কী করতে পারবে তা ঠিক করা
-- [Chapter ?? — XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention) — যে attack `localStorage`-এর token-কে মারাত্মক করে তোলে
+- [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth) — login-এর দায়িত্ব identity provider-কে দেওয়া, তারপর কে কী করতে পারবে তা ঠিক করা
+- [Chapter ?? — XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention) — যে আক্রমণ `localStorage`-এর token-কে মারাত্মক করে তোলে

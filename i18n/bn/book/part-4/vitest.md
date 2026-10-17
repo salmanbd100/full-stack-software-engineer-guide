@@ -1,32 +1,32 @@
 ---
 sourceHash: "95cc48e7a840b78e386e6a7d26a395533f2be11c2de64a6619318b1fd071ff8e"
 title: "Test লেখা: Vitest ও React Testing Library"
-translatedAt: "2026-10-12T12:17:29.416Z"
+translatedAt: "2026-10-17T14:03:05.582Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Test লেখা: Vitest ও React Testing Library {#ch-vitest}
 
-> Runner একবার set up করুন, একজন user যেভাবে খোঁজেন সেভাবে query করুন, আর mock করুন শুধু boundary-তে।
+> Runner একবার set up করুন, user যেভাবে খোঁজেন সেভাবে query করুন, আর mock করুন শুধু boundary-তে।
 
-**এই অধ্যায়ে:** কেন runner build config share করে · query আর তাদের priority · `userEvent` আর অপেক্ষা ছাড়া async · mock আর fake timer · snapshot আর তার ফাঁদ
+**এই অধ্যায়ে:** runner কেন build config share করে · query আর তাদের অগ্রাধিকার · `userEvent`, আর wait ছাড়া async · mock আর fake timer · snapshot আর তার ফাঁদ
 
 ## 💡 মূল ধারণা
 
-**Vitest test চালায় application-এর নিজের build pipeline দিয়ে।** এটা একই Vite config, plugin আর alias পড়ে, তাই
-test-এ code ঠিক build-এর মতোই আচরণ করে। নিজস্ব transform থাকা একটি runner আপনাকে সবচেয়ে খারাপ ধরনের bug দেয়: test
-pass করে, আর build fail করে।
+**Vitest test চালায় application-এর নিজের build pipeline দিয়ে।** একই Vite config, plugin আর alias পড়ে, তাই test-এ
+code ঠিক build-এর মতোই আচরণ করে। নিজস্ব transform থাকা runner আপনাকে সবচেয়ে খারাপ ধরনের bug দেয়: test pass করে,
+অথচ build fail করে।
 
-**Testing Library আপনাকে component-এ কোনো access দেয় না।** কোনো instance নেই, state নেই, props নেই: শুধু DOM, আর
-একজন user-এর হাতে যা থাকে, যেমন text, role আর label। যে test implementation detail দেখতে পায় না, সেটা behaviour একই
-রাখা প্রতিটি refactor-এ টিকে থাকে। আর যেহেতু সবচেয়ে ভালো query-গুলো accessibility query, যে component query করা কঠিন,
-সেটা সাধারণত একটি screen reader-এর জন্যও কঠিন।
+**Testing Library আপনাকে component-এর ভেতরে ঢুকতে দেয় না।** Instance নেই, state নেই, props নেই: আছে শুধু DOM, আর
+user-এর হাতে যা থাকে, যেমন text, role আর label। যে test implementation-এর খুঁটিনাটি দেখতে পায় না, সেটা এমন প্রতিটি
+refactor-এ টিকে যায়, যেখানে behaviour একই থাকে। আর সবচেয়ে ভালো query-গুলো যেহেতু accessibility query, তাই যে
+component query করা কঠিন, সেটা সাধারণত screen reader-এর জন্যও কঠিন।
 
 ## কীভাবে কাজ করে
 
 ### Config আর setup, একবারই লেখা
 
-**Build config-এর পাশে runner config, আর প্রতিটি test file-এর আগে এটা যে setup file চালায়:**
+**Build config-এর পাশে runner config, আর প্রতিটি test file-এর আগে যে setup file চলে:**
 
 ```typescript
 // vitest.config.ts
@@ -53,24 +53,25 @@ afterEach(() => {
 });
 ```
 
-Setup file-এ reset রাখলে isolation অভ্যাস নয়, default হয়ে যায়। jsdom (JavaScript-এ লেখা একটি DOM) প্রতি file-এ
-startup time খরচ করে। যে codebase-এ বেশিরভাগই pure logic, সেটা `node` default হিসেবে রাখলে দ্রুত চলে।
+Setup file-এ reset রাখলে isolation অভ্যাসের ব্যাপার থাকে না, default হয়ে যায়। jsdom (JavaScript-এ লেখা একটি DOM)
+প্রতিটি file-এ startup-এর সময় নেয়। যে codebase-এ বেশিরভাগই বিশুদ্ধ logic, সেখানে default হিসেবে `node` দিলে test
+দ্রুত চলে।
 
-> ⚠️ **যা বদলাতে থাকে:** Vitest 2025-এ 4.x-এ পৌঁছেছে। Browser mode একটি provider package-এ সরে গেছে, আর
-> `workspace` file হয়ে গেছে main config-এর একটি `projects` field। টেকসই নীতি হলো, runner build-এর transform আর
-> resolution উত্তরাধিকার সূত্রে পায়। কোনো config copy করার আগে তার বর্তমান shape check করুন।
+> ⚠️ **যা বদলাতে থাকে:** 2025-এ Vitest 4.x-এ পৌঁছেছে। Browser mode চলে গেছে আলাদা একটি provider package-এ, আর
+> `workspace` file হয়ে গেছে মূল config-এর একটি `projects` field। টেকসই নীতি হলো, runner build-এর transform আর
+> resolution উত্তরাধিকারসূত্রে পায়। কোনো config copy করার আগে তার বর্তমান shape দেখে নিন।
 
-### Query: prefix আর priority
+### Query: prefix আর অগ্রাধিকার
 
 Element না থাকলে কী হবে, তা ঠিক করে prefix।
 
-| Variant    | Element না থাকলে          | Async | কীসের জন্য                            |
+| ধরন    | Element না থাকলে          | Async | কখন ব্যবহার করবেন                            |
 | ---------- | ------------------------ | ----- | ---------------------------------- |
-| `getBy…`   | DOM print করে throw করে | না    | এটা এখনই থাকার কথা       |
-| `queryBy…` | `null` return করে           | না    | কিছু একটি **নেই**, তা assert করা  |
-| `findBy…`  | Timeout-এর পর throw করে | হ্যাঁ   | একটি promise resolve হওয়ার পর এটা দেখা দেয় |
+| `getBy…`   | DOM print করে throw করে | না    | এখনই থাকার কথা       |
+| `queryBy…` | `null` return করে           | না    | কিছু যে **নেই**, সেটা assert করতে  |
+| `findBy…`  | Timeout-এর পরে throw করে | হ্যাঁ   | কোনো promise resolve হওয়ার পরে দেখা দেয় |
 
-**Priority-র ক্রমে query — প্রথম যেটা কাজ করে, সেখানেই থামুন:**
+**অগ্রাধিকারের ক্রমে query — প্রথম যেটা কাজ করে, সেখানেই থামুন:**
 
 ```tsx
 screen.getByRole("button", { name: /submit/i }); // 1. how a screen reader finds it
@@ -78,12 +79,12 @@ screen.getByLabelText(/email/i); // 2. form fields, by their label
 screen.getByTestId("chart-canvas"); // 3. last resort: a canvas has nothing accessible
 ```
 
-এই ক্রম style-এর ব্যাপার নয়। Assistive technology role আর label-ই ব্যবহার করে, তাই একটি role query fail করা সাধারণত
-মানে markup ভুল। Fail করলে output পড়ুন: এটা page-এর প্রতিটি role তার accessible name সহ list করে।
+এই ক্রম style-এর ব্যাপার নয়। Assistive technology role আর label-ই ব্যবহার করে, তাই role query fail করলে সাধারণত
+বুঝতে হবে markup ভুল। Fail করলে output-টা পড়ুন: তাতে page-এর প্রতিটি role তার accessible name সহ তালিকা করা থাকে।
 
-### `userEvent` একটি interaction সম্পন্ন করে
+### `userEvent` পুরো একটি interaction করে
 
-**`fireEvent` একটি event dispatch করে; `userEvent` একজন user-এর ঘটানো পুরো sequence চালায়:**
+**`fireEvent` একটি event dispatch করে; `userEvent` চালায় user-এর ঘটানো পুরো ধারাবাহিকতা:**
 
 ```tsx
 it("submits the search term", async () => {
@@ -98,13 +99,13 @@ it("submits the search term", async () => {
 });
 ```
 
-`userEvent` একটি disabled বা hidden element-এ click করতেও অস্বীকার করে। একটি disabled button-এ `fireEvent.click`
-তবুও fire করে, আর bug ship হয়ে যায়। Async output-এর জন্য `findBy` element দেখা না দেওয়া পর্যন্ত poll করে। একটি
-`getBy`-এর চারপাশে `waitFor` একই জিনিস, শুধু error আরও খারাপ। ওটা একটি count-এর জন্য রাখুন।
+`userEvent` disabled বা hidden element-এ click করতেও রাজি হয় না। Disabled button-এ `fireEvent.click` তবু event
+চালিয়ে দেয়, আর bug ship হয়ে যায়। Async output-এর জন্য `findBy` বারবার দেখে, যতক্ষণ না element দেখা দেয়। একটি
+`getBy`-কে `waitFor`-এ মুড়ে দিলেও একই কাজ হয়, শুধু error message আরও খারাপ। ওটা রাখুন কোনো সংখ্যা গোনার জন্য।
 
-### Provider tree-এর জন্য একটি custom render
+### Provider tree-র জন্য একটিই custom render
 
-**একটি shared render, যাতে provider setup file থেকে file-এ আলাদা হয়ে যেতে না পারে:**
+**একটিই shared render, যাতে file ভেদে provider setup আলাদা হয়ে না যায়:**
 
 ```tsx
 // test-utils.tsx
@@ -126,13 +127,13 @@ export * from "@testing-library/react";
 export { customRender as render };
 ```
 
-### Mock বসে boundary-তে
+### Mock থাকে boundary-তে
 
-`vi.fn()` হলো একটি double, যেটা আপনি pass করেন। `vi.spyOn(obj, "method")` আসল function রেখে দেয়, আর তার call record
-করে। Module mock-এ বেশি সাবধান হতে হয়, কারণ **`vi.mock` file-এর প্রতিটি import-এর ওপরে hoist হয়**। এর factory আগে
-চলে, তাই file-এর body-তে define করা কোনো variable এটা ব্যবহার করতে পারে না।
+`vi.fn()` হলো একটি double, যা আপনি নিজে পাঠিয়ে দেন। `vi.spyOn(obj, "method")` আসল function-টাই রাখে, আর তার
+call-গুলো লিখে রাখে। Module mock-এ বেশি সাবধান হতে হয়, কারণ **`vi.mock` file-এর প্রতিটি import-এর ওপরে hoist হয়**।
+এর factory সবার আগে চলে, তাই file-এর body-তে define করা কোনো variable এটা ব্যবহার করতে পারে না।
 
-**একটি partial module mock, যেটা একটি export বদলায় আর বাকিগুলো রেখে দেয়:**
+**আংশিক module mock, যা একটি export বদলায়, বাকিগুলো রেখে দেয়:**
 
 ```typescript
 import { vi } from "vitest";
@@ -143,10 +144,10 @@ vi.mock("./utils", async (importOriginal) => {
 });
 ```
 
-একটি whole-module mock অন্য প্রতিটি export-কে `undefined` বানিয়ে দেয়। Network call-এর জন্য module mock করবেনই না:
-request intercept করুন, যাতে fetch layer আর error handling তবুও চলে।
+পুরো module mock করলে বাকি প্রতিটি export হয়ে যায় `undefined`। Network call-এর জন্য module mock করবেনই না: request
+intercept করুন, যাতে fetch layer আর error handling তবু চলে।
 
-### Clock-এর জন্য অপেক্ষা না করে, তাকে নিয়ন্ত্রণ করুন
+### Clock-এর জন্য অপেক্ষা না করে clock নিয়ন্ত্রণ করুন
 
 **Fake timer দিয়ে একটি retry test:**
 
@@ -162,75 +163,75 @@ it("retries after the backoff window", async () => {
 });
 ```
 
-Async version ব্যবহার করুন। একটি timer যে promise callback schedule করে, সেগুলো তখনই চলে, যখন microtask-ও flush হয়।
-Expiry আছে এমন যেকোনো কিছুর জন্য `vi.setSystemTime()` `Date.now()`-কে থামিয়ে রাখে।
+Async সংস্করণটি ব্যবহার করুন। Timer যে promise callback schedule করে, সেগুলো চলে শুধু তখনই, যখন microtask-ও flush
+হয়। মেয়াদ শেষ হওয়ার ব্যাপার আছে এমন যেকোনো কিছুর জন্য `vi.setSystemTime()` `Date.now()`-কে থামিয়ে রাখে।
 
 ### Snapshot, আর তার ফাঁদ
 
-ছোট, স্থির output-এর জন্য snapshot মানায়, যেমন একটি formatted error string। বড় একটি snapshot প্রতিটি সম্পর্কহীন
-পরিবর্তনে fail করে, না পড়েই `-u` দিয়ে আবার তৈরি হয়, আর তারপর কিছুই assert করে না। `toMatchInlineSnapshot` বেছে নিন,
-যাতে প্রত্যাশিত value সেখানে থাকে, যেখানে একজন reviewer diff দেখেন।
+ছোট আর স্থির output-এর জন্য snapshot মানানসই, যেমন format করা একটি error string। বড় snapshot প্রতিটি সম্পর্কহীন
+বদলে fail করে, কেউ না পড়েই `-u` দিয়ে আবার বানিয়ে ফেলে, আর তারপর সেটা কিছুই assert করে না।
+`toMatchInlineSnapshot` ব্যবহার করুন, যাতে প্রত্যাশিত value এমন জায়গায় থাকে, যেখানে reviewer diff দেখতে পান।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি                                   | বেছে নিন                          | কেন                                           |
 | ------------------------------------------- | ------------------------------- | --------------------------------------------- |
-| একটি Vite, React, Svelte বা Next.js project    | Vitest                          | এটা build config আবার ব্যবহার করে                    |
-| একটি component-এর দৃশ্যমান behaviour             | Vitest-এ Testing Library       | দ্রুত, আর user যা দেখেন তা নিয়ে assert করে        |
-| নিজস্ব কোনো UI নেই এমন একটি hook                | `renderHook`                    | একটি host component-এর চেয়ে সস্তা                 |
-| Layout, focus ring, আসল scrolling         | Browser mode বা Playwright      | jsdom-এর কোনো layout engine নেই                    |
-| একাধিক page জুড়ে একটি পুরো journey                | Playwright                      | Routing আর একটি আসল build-ই এখানে test হয়   |
+| Vite, React, Svelte বা Next.js project    | Vitest                          | Build config আবার ব্যবহার করে                    |
+| Component-এর চোখে দেখা যায় এমন behaviour             | Vitest-এর ভেতরে Testing Library       | দ্রুত, আর user যা দেখেন তার ওপরই assert করে        |
+| এমন hook, যার নিজের কোনো UI নেই                | `renderHook`                    | Host component-এর চেয়ে সস্তা                 |
+| Layout, focus ring, আসল scrolling         | Browser mode বা Playwright      | jsdom-এ কোনো layout engine নেই                    |
+| কয়েকটি page জুড়ে পুরো একটি journey                | Playwright                      | এখানে test হয় routing আর আসল build   |
 
 ## সাধারণ ভুল
 
-❌ **অনুপস্থিতি assert করতে `getBy`।** Assertion চলার আগেই এটা throw করে।
-✅ `queryBy` `null` return করে, ঠিক যেটা `not.toBeInTheDocument()`-এর দরকার।
+❌ **কিছু নেই, তা assert করতে `getBy`।** Assertion চলার আগেই এটা throw করে।
+✅ `queryBy` `null` return করে, আর `not.toBeInTheDocument()`-এর ঠিক এটাই দরকার।
 
-❌ **Role query fail করেছে বলে `getByTestId`।** Query আপনাকে বলছিল যে control-টির কোনো নাম নেই।
-✅ Label ঠিক করুন। Test id রাখুন এমন content-এর জন্য, যেখানে query করার মতো accessible কিছু নেই।
+❌ **Role query fail করেছে বলে `getByTestId`।** Query আসলে বলছিল, control-টার কোনো নাম নেই।
+✅ Label ঠিক করুন। Test id রাখুন শুধু সেই content-এর জন্য, যাতে query করার মতো accessible কিছুই নেই।
 
-❌ **একটি `userEvent` call-এ `await` বাদ পড়া।** React re-render করার আগেই assertion চলে যায়।
-✅ প্রতিটি interaction `await` করুন, আর প্রতি test-এ একবার `userEvent.setup()` call করুন।
+❌ **`userEvent` call-এ `await` বাদ পড়া।** React আবার render করার আগেই assertion চলে যায়।
+✅ প্রতিটি interaction-এ `await` দিন, আর প্রতিটি test-এ একবার `userEvent.setup()` call করুন।
 
 ## 🔑 মূল শিক্ষা
 
-- Vitest application-এর নিজের Vite pipeline-এ চলে, তাই test আর build code-কে একইভাবে দেখে।
-- Testing Library শুধু DOM দেখায়, আর এ কারণেই এর test refactor-এ টিকে থাকে।
-- Query priority assistive technology যা ব্যবহার করে তা অনুসরণ করে, তাই একটি fail করা role query সাধারণত একটি markup bug।
-- `vi.mock` প্রতিটি import-এর ওপরে hoist হয়, তাই এর factory local variable-এর ওপর close করতে পারে না।
-- Cleanup, mock reset আর real timer setup file-এ রাখুন, যাতে isolation default হয়।
+- Vitest চলে application-এর নিজের Vite pipeline-এ, তাই test আর build code-কে একইভাবে দেখে।
+- Testing Library শুধু DOM দেখায়, আর সে কারণেই এর test refactor-এ টিকে যায়।
+- Query-র অগ্রাধিকার assistive technology যা ব্যবহার করে তা মেনে চলে, তাই role query fail করা সাধারণত markup-এর bug।
+- `vi.mock` প্রতিটি import-এর ওপরে hoist হয়, তাই এর factory local variable ধরে রাখতে পারে না।
+- Cleanup, mock reset আর real timer রাখুন setup file-এ, যাতে isolation default হয়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি নতুন project-এ Jest-এর বদলে Vitest কেন বেছে নেবেন?**
+**Q: নতুন project-এ Jest-এর বদলে Vitest কেন বেছে নেবেন?**
 
-এটা project-এর নিজের Vite config ব্যবহার করে, তাই test আর build একমত থাকে। এতে এক শ্রেণির মিথ্যা pass দূর হয়। API
-Jest-এর সাথে মেলে, তাই বদলানো সস্তা। যে project Vite দিয়ে build হয় না, সেখানে যুক্তিটা অনেক দুর্বল।
+এটা project-এর নিজের Vite config ব্যবহার করে, তাই test আর build একমত থাকে। এতে এক ধরনের ভুয়া pass পুরোপুরি দূর হয়।
+API Jest-এর মতোই, তাই বদলানোর খরচ কম। যে project Vite দিয়ে build হয় না, সেখানে যুক্তিটা অনেক দুর্বল।
 
-**Q: Testing Library কেন আপনাকে component state-এ access দিতে অস্বীকার করে?**
+**Q: Testing Library কেন component-এর state-এ ঢুকতে দেয় না?**
 
-যে test internal পড়তে পারে, সে সেগুলো নিয়ে assert করবেই। তখন behaviour না বদলালেও প্রতিটি refactor test ভাঙে। DOM-এ
-সীমাবদ্ধ একটি test শুধু তখনই fail করে, যখন user যা দেখেন তা বদলায়। খরচ হলো, pure internal logic বের করে এনে আলাদাভাবে
-unit-test করতে হয়।
+যে test ভেতরের জিনিস পড়তে পারে, সেটা তার ওপরই assert করবে। তখন behaviour না বদলালেও প্রতিটি refactor-এ test ভাঙে।
+যে test শুধু DOM পর্যন্ত সীমিত, সেটা fail করে শুধু তখন, যখন user যা দেখেন তা বদলায়। খরচ হলো, বিশুদ্ধ ভেতরের logic
+আলাদা করে বের করে আলাদাভাবে unit test করতে হয়।
 
-**Q: কখন `getByTestId` গ্রহণযোগ্য?**
+**Q: `getByTestId` কখন চলে?**
 
-যখন element-এ query করার মতো accessible কিছু নেই, যেমন একটি chart canvas। Accessible name নেই এমন একটি control পার
-হতে এটা কখনো ব্যবহার করবেন না। সেখানে fail করা query একটি আসল ত্রুটি, আর test id সেটা লুকিয়ে ফেলে।
+যখন element-এ query করার মতো accessible কিছু নেই, যেমন chart-এর canvas। Accessible name নেই এমন control পার হতে
+এটা কখনো ব্যবহার করবেন না। সেখানে fail করা query-টা একটি আসল defect, আর test id সেটা লুকিয়ে ফেলে।
 
-**Q: একটি test একা pass করে, আর suite-এ fail করে। কোথায় খুঁজবেন?**
+**Q: একটি test একা চালালে pass করে, suite-এ চালালে fail করে। কোথায় খুঁজবেন?**
 
-Leak হওয়া state, তিনটি জায়গার একটিতে: module scope-এ shared data, কখনো clear না করা mock history, বা চালু রেখে দেওয়া
-fake timer। তিনটিই setup file-এ ঠিক করুন, প্রতি test-এ নয়। তবুও fail করলে, একটি worker দিয়ে চালান, যাতে ক্রমের ওপর
-নির্ভরতা আর parallelism-কে আলাদা করে চেনা যায়।
+ফাঁস হয়ে যাওয়া state-এ, তিনটি জায়গার কোনো একটিতে: module scope-এর shared data, কখনো clear না করা mock history, বা
+চালু রেখে দেওয়া fake timer। তিনটিই ঠিক করুন setup file-এ, প্রতিটি test-এ আলাদা করে নয়। তবু fail করলে একটি worker
+দিয়ে চালান, তাতে বোঝা যাবে সমস্যা ক্রমের ওপর নির্ভরতা, নাকি parallelism।
 
-**Q: কখন একটি module mock ভুল যন্ত্র?**
+**Q: Module mock কখন ভুল tool?**
 
-যখন আপনি আসলে network নকল করছেন। একটি module mock প্রমাণ করে আপনার code একটি function call করেছে, কোন request বেরিয়েছে
-তা নয়। এটা fetch layer আর error handling-ও এড়িয়ে যায়। Request intercept করলে সেই code test হয়, যেটা production-এ চলে।
+যখন আপনি আসলে network নকল করছেন। Module mock প্রমাণ করে আপনার code একটি function call করেছে, কোন request বেরিয়েছে
+তা নয়। Fetch layer আর error handling-ও এতে বাদ পড়ে যায়। Request intercept করলে test হয় সেই code-এর, যা production-এ চলে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — একই query, একটি intercept করা network-এর বিপরীতে
-- [Chapter ?? — Accessibility Testing](#ch-testing-accessibility) — যেখানে role query একটি conformance check হয়ে যায়
+- [Chapter ?? — Frontend Integration Testing](#ch-frontend-integration-testing) — একই query, intercept করা network-এর বিপরীতে
+- [Chapter ?? — Accessibility Testing](#ch-testing-accessibility) — যেখানে role query হয়ে যায় conformance check
 - [Chapter ?? — Testing Strategy](#ch-testing-strategy) — এই অধ্যায়ের isolation-এর নিয়মগুলো যেখান থেকে আসে

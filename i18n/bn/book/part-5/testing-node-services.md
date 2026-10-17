@@ -1,48 +1,48 @@
 ---
 sourceHash: "35a8855af35360a3b284e0b260e8f1083e5fa31850bf5199bf89e93cef53f74e"
 title: "Node Service Testing"
-translatedAt: "2026-10-12T12:21:21.407Z"
+translatedAt: "2026-10-17T13:59:01.234Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Node Service Testing {#ch-testing-node-services}
 
-> বেশিরভাগ ভার দিন সেই test-গুলোর ওপর, যেগুলো আসল HTTP layer পেরিয়ে আসল database-এ যায়। আর সেগুলোকে isolated রাখুন, যাতে দ্রুত থাকে।
+> বেশিরভাগ ভরসা রাখুন সেই test-গুলোর ওপর, যেগুলো আসল HTTP layer পেরিয়ে আসল database পর্যন্ত যায়। আর সেগুলোকে একটি আরেকটি থেকে আলাদা রাখুন, যাতে দ্রুত চলে।
 
-**এই অধ্যায়ে:** backend pyramid কেন বেশি চ্যাপ্টা · কী unit test করবেন · module mocking-এর বদলে injection · container-এ আসল database · isolation, factory আর third party
+**এই অধ্যায়ে:** backend-এর pyramid কেন বেশি চ্যাপ্টা · কী unit test করবেন · module mocking-এর বদলে injection · container-এ আসল database · isolation, factory আর third party
 
 ## 💡 মূল ধারণা
 
-Testing-এর মূল নিয়মকানুন Part IV-এর [Chapter ?? — Testing Strategy](#ch-testing-strategy)-এ আছে:
-pyramid, arrange-act-assert, double-এর পরিভাষা, কখন TDD করবেন। এখানে সেগুলো হুবহু খাটে। এই অধ্যায় শুধু
-server-এ কী আলাদা, তা নিয়ে।
+Testing-এর নিয়মকানুন Part IV-এর [Chapter ?? — Testing Strategy](#ch-testing-strategy)-এ আছে:
+pyramid, arrange-act-assert, test double-এর পরিভাষা, কখন TDD করবেন। এখানেও সেগুলো হুবহু খাটে। এই অধ্যায়ের
+বিষয় শুধু server-এ কী আলাদা।
 
-আলাদা দুটি জিনিস। প্রথমত, **একটি service-এর বেশিরভাগ behaviour থাকে database আর HTTP boundary-র সাথে তার
-integration-এ**, তার pure function-এ নয়। তাই backend pyramid একটি UI-এর pyramid-এর চেয়ে বেশি চ্যাপ্টা।
-দ্বিতীয়ত, **একটি service-এর dependency হলো process, component নয়**: একটি database, একটি queue, একটি payment
-provider। এগুলোকে কীভাবে substitute করবেন, সেটাই ঠিক করে আপনার suite-এর কতটুকু চালানোর যোগ্য।
+আলাদা দুটি জিনিস। প্রথমত, **service-এর বেশিরভাগ আচরণ থাকে database আর HTTP boundary-র সঙ্গে তার যোগাযোগে**,
+pure function-এ নয়। তাই backend-এর pyramid UI-এর চেয়ে চ্যাপ্টা। দ্বিতীয়ত, **service-এর dependency হলো আলাদা
+process, component নয়**: database, queue, payment provider। এগুলোর জায়গায় কী বসাবেন, তার ওপরই ঠিক হয় আপনার
+suite-এর কতটা আসলে চালানোর মতো।
 
-ফলাফল: যে logic সত্যিই অনেক branch-ওয়ালা, সেটা unit test করুন, আর wiring-এর দায়িত্ব দিন আসল boundary পেরোনো
-test-কে। যে controller-এর unit test database, logger আর clock mock করে, সেটা আসলে আপনার mock-গুলোকেই test
-করে।
+ফলে যে logic-এ সত্যিই অনেক branch আছে, সেটা unit test করুন। আর wiring ঠিক আছে কি না, সেটা দেখুক আসল boundary
+পেরিয়ে যাওয়া test। Database, logger আর clock সব mock করে controller-এর unit test লিখলে আপনি আসলে নিজের mock-গুলোকেই
+test করছেন।
 
 ## কখন ব্যবহার করবেন
 
-| Behaviour | কোথায় test করবেন | কেন |
+| আচরণ | কোথায় test করবেন | কেন |
 | --------- | ------- | --- |
-| Branch-ওয়ালা business rule — pricing, eligibility, state transition | Unit | Combination-গুলোই ঝুঁকি, আর সেগুলো গুনে ফেলা সস্তা |
-| Pure transformation, validation schema, error translation | Unit | Deterministic, কোনো I/O নেই, দ্রুত |
-| Routing, middleware-এর ক্রম, serialisation, status code | Integration | আসল stack চললেই কেবল সত্যি |
-| যেকোনো query, আর যেকোনো transaction | Integration | Mock করা ORM শুধু বলে, আপনি যে code লিখেছেন সেটাই লিখেছেন |
-| যে controller একটি request পড়ে একটি method call করে | কোনোটাই নয় | ভুল হওয়ার মতো কোনো branch নেই |
-| হাতে গোনা কয়েকটি গুরুত্বপূর্ণ user journey | End-to-end | মিনিট লাগে আর flaky — শুধু কয়েকটির জন্যই এর মূল্য আছে |
+| Branch-ওয়ালা business rule — pricing, eligibility, state transition | Unit | ঝুঁকি থাকে combination-গুলোতে, আর সেগুলো গুনে গুনে লেখা সস্তা |
+| Pure transformation, validation schema, error translation | Unit | ফল নির্দিষ্ট, I/O নেই, দ্রুত |
+| Routing, middleware-এর ক্রম, serialisation, status code | Integration | আসল stack না চললে এগুলো আসল নয় |
+| যেকোনো query, যেকোনো transaction | Integration | Mock করা ORM শুধু বলে দেয় যে আপনি যা লিখেছেন তা-ই লিখেছেন |
+| যে controller request পড়ে একটি method call করে | কোনোটিই না | ভুল হওয়ার মতো কোনো branch নেই |
+| হাতে গোনা কয়েকটি জরুরি user journey | End-to-end | কয়েক মিনিট লাগে, আর মাঝে মাঝে অকারণে fail করে — তাই অল্প কয়েকটির জন্যই এটা পোষায় |
 
 ## কীভাবে কাজ করে
 
 ### Module mocking-এর চেয়ে injection ভালো
 
-একটি function সরাসরি যে dependency-র কাছে হাত বাড়ায়, সেটা আপনাকে mock করতেই হবে। আর যে dependency
-parameter হিসেবে আসে, সেটা তিন line-এ substitute করা যায়।
+Function যে dependency সরাসরি নিজে টেনে আনে, প্রতিটিকে আপনাকে mock করতে হবে। আর যে dependency parameter হিসেবে
+আসে, সেটা বদলাতে তিন line লাগে।
 
 ```typescript
 // The version that reaches for db, stripe and logger directly needs vi.mock on three
@@ -62,23 +62,23 @@ export async function chargeOrder(deps: Deps, orderId: string): Promise<void> {
 }
 ```
 
-`vi.mock` আর `jest.mock` hoisted হয় (file-এর একেবারে ওপরে সরে যায়), module-scoped, আর ক্রমের ওপর নির্ভরশীল।
-এ কারণেই বিভ্রান্তিকর test failure-এর সবচেয়ে সাধারণ উৎস এরাই। যখন code বদলাতে পারবেন না, তখন এগুলো ব্যবহার
-করুন, যেমন call chain-এর গভীরে import করা একটি third-party module। Default হিসেবে নয়।
+`vi.mock` আর `jest.mock` hoisted হয় (মানে file-এর একদম ওপরে সরে যায়), module-scoped, আর ক্রমের ওপর নির্ভর
+করে। এ কারণেই test-এর সবচেয়ে বিভ্রান্তিকর failure-গুলো সাধারণত এদের থেকেই আসে। Code বদলাতে না পারলে এগুলো
+ব্যবহার করুন, যেমন call chain-এর অনেক গভীরে import করা কোনো third-party module। কিন্তু default হিসেবে নয়।
 
-Non-determinism-এর ক্ষেত্রেও একই যুক্তি খাটে। একটি `clock` আর একটি `idGenerator` inject করতে প্রতিটির জন্য
-একটি করে parameter লাগে, আর এতে এক পুরো শ্রেণির মাঝে মাঝে ঘটা failure দূর হয়। কিছু code-এর গঠন আপনি বদলাতে
-পারবেন না: retry, debounce, scheduler। সেখানে fake timer ব্যবহার করুন আর clock এগিয়ে দিন। আসল delay ছোট
-করবেন না, কারণ ছোট করা schedule production-এ চলা schedule নয়।
+Non-determinism-এর ক্ষেত্রেও একই যুক্তি। একটি `clock` আর একটি `idGenerator` inject করতে খরচ মাত্র একটি করে
+parameter, অথচ মাঝে মাঝে fail করা test-এর পুরো একটি শ্রেণি এতে দূর হয়। কিছু code-এর গঠন বদলানো যায় না: retry,
+debounce, scheduler। সেখানে fake timer দিয়ে clock এগিয়ে দিন। আসল delay ছোট করবেন না, কারণ ছোট করা schedule
+production-এর schedule নয়।
 
-> ⚠️ একটি query unit test করার জন্য নিজের database layer mock করা হলো সবচেয়ে বেশি খরচের, সবচেয়ে কম মূল্যের
-> test। এটা শুধু assert করে যে আপনার code ORM-কে সেভাবেই call করে, যেভাবে আপনি লিখেছেন। Query ভুল হলেও এটা
-> pass করে, আর যখনই refactor করেন, ভেঙে যায়।
+> ⚠️ Query unit test করার জন্য নিজের database layer mock করা হলো সবচেয়ে দামি আর সবচেয়ে কম কাজের test।
+> এটা শুধু যাচাই করে যে আপনার code ORM-কে ঠিক সেভাবেই call করছে, যেভাবে আপনি লিখেছেন। Query ভুল হলেও test
+> pass করে, আর refactor করলেই ভেঙে যায়।
 
-### আসল HTTP layer পেরিয়ে
+### আসল HTTP layer দিয়ে
 
-`supertest` app-কে process-এর ভেতরেই mount করে আর একটি আসল socket দিয়ে চালায়। ফলে middleware, parser, error
-handler আর status code সবই পরীক্ষা হয়।
+`supertest` app-টাকে একই process-এ চালায় আর আসল socket দিয়ে request পাঠায়। ফলে middleware, parser, error
+handler আর status code সবই আসলে চলে।
 
 ```typescript
 it('creates an order and returns 201 with a Location header', async () => {
@@ -96,16 +96,16 @@ it('creates an order and returns 201 with a Location header', async () => {
 });
 ```
 
-প্রতিটি endpoint-এর জন্য নকল করার মতো আকার হলো তিনটি test: **একটি সফল, একটি reject হওয়া input, একটি reject
-হওয়া caller।** এই তিনটি মিলে happy path, validation boundary আর authorisation boundary cover করে। এর মধ্যে
-mass assignment-ও পড়ে, যেখানে একটি request এমন field পাঠায় যেটা তার set করার কথা নয়, যেমন
-`status: 'paid'`। Schema-কে অচেনা key-টি নাম ধরে reject করতে হবে।
+প্রতিটি endpoint-এর জন্য তিনটি test-এর ছাঁচটা অনুসরণ করার মতো: **একটি সফল request, একটি বাতিল হওয়া input, একটি
+বাতিল হওয়া caller।** এই তিনটিতেই happy path, validation boundary আর authorisation boundary ঢাকা পড়ে। Mass
+assignment-ও এর মধ্যে আসে, মানে request এমন কোনো field পাঠায় যা সেট করার অধিকার তার নেই, যেমন
+`status: 'paid'`। Schema-কে অচেনা key-টা নাম ধরে বাতিল করতে হবে।
 
 ### নকল নয়, আসল database
 
-Postgres-এর বদলে SQLite, বা আসল MongoDB-র বদলে in-memory MongoDB বসালে আপনি অন্য একটি engine test করছেন।
-তার type আলাদা, constraint-এর আচরণ আলাদা, transaction আর locking-এর semantics আলাদা। Integration test-এর
-অস্তিত্বই ঠিক এই পার্থক্যগুলো ধরার জন্য। ফলে suite pass করে, অথচ production ভেঙে যায়।
+Postgres-এর জায়গায় SQLite, বা আসল MongoDB-র জায়গায় in-memory MongoDB বসালে আপনি অন্য একটি engine test করছেন।
+তার type আলাদা, constraint-এর আচরণ আলাদা, transaction আর locking-এর নিয়মও আলাদা। Integration test আছেই ঠিক এই
+পার্থক্যগুলো ধরার জন্য। নকল engine দিলে suite pass করে, আর production ভাঙে।
 
 ```typescript
 // One container per suite run. Testcontainers owns the lifecycle.
@@ -120,37 +120,35 @@ beforeAll(async () => {
 afterAll(() => container.stop());
 ```
 
-আসল migration চালানো জরুরি। যে migration একটি খালি database-এ fail করে, সেটা production-এও fail করবে, আর
-এখানেই আপনি সেটা জানতে পারেন।
+আসল migration চালানো জরুরি। খালি database-এ যে migration fail করে, production-এও সেটা fail করবে। আর সেটা
+আপনি জানতে পারেন এখানেই।
 
-### Isolation-ই পুরো সমস্যা
+### আসল সমস্যা isolation
 
-যে integration suite ধীর আর অনির্ভরযোগ্য, প্রায় সবসময়ই সেখানে test-গুলো একে অপরের data দেখতে পায়।
-Isolation ঠিক করুন, তাহলে এটা প্রতিটি commit-এ চালানোর মতো দ্রুত হয়ে যাবে।
+যে integration suite ধীর আর অনির্ভরযোগ্য, প্রায় সবসময় দেখা যায় সেখানে test-গুলো একে অপরের data দেখতে পায়।
+Isolation ঠিক করুন, তাহলে suite এত দ্রুত হবে যে প্রতিটি commit-এ চালানো যাবে।
 
-| Strategy | গতি | Isolation | কখন ব্যবহার করবেন |
+| কৌশল | গতি | Isolation | কখন ব্যবহার করবেন |
 | -------- | ----- | --------- | -------- |
-| **প্রতি test-এ একটি transaction, rollback করা** | ✅ সবচেয়ে দ্রুত | ✅ সম্পূর্ণ | Test-এর অধীন code নিজের transaction নিজে সামলায় না |
-| **Test-এর মাঝে table truncate করা** | ⚠️ মোটামুটি | ✅ সম্পূর্ণ | Default পছন্দ; সহজ আর অনুমানযোগ্য |
-| **প্রতি worker-এ একটি schema বা database** | ⚠️ Setup ধীর | ✅ সম্পূর্ণ | Suite parallel-এ চালানো |
-| **শুধু test-এর তৈরি করা জিনিস delete করা** | ✅ দ্রুত | ❌ ভঙ্গুর | কখনো না — একটি row বাদ পড়লেই পরের test fail করে |
+| **প্রতি test-এ একটি transaction, শেষে rollback** | ✅ সবচেয়ে দ্রুত | ✅ পুরোপুরি | Test-এর অধীন code নিজে transaction চালায় না |
+| **প্রতি test-এর মাঝে table truncate** | ⚠️ মোটামুটি | ✅ পুরোপুরি | Default পছন্দ; সহজ, আর কী হবে আগে থেকে জানা |
+| **প্রতি worker-এ আলাদা schema বা database** | ⚠️ Setup ধীর | ✅ পুরোপুরি | Suite parallel-এ চালালে |
+| **শুধু test-এর বানানো row delete** | ✅ দ্রুত | ❌ ভঙ্গুর | কখনোই না — একটি row বাদ পড়লেই পরের test fail করে |
 
-`afterEach`-এ একটি statement সবকিছু পরিষ্কার করে: `pg_tables` থেকে migration ledger বাদে `public`-এর সব table
-select করুন, তারপর `TRUNCATE "a", "b", … RESTART IDENTITY CASCADE`। `CASCADE` foreign key সামলায়, আর
-`RESTART IDENTITY` sequence reset করে, যাতে id অনুমানযোগ্য থাকে।
+`afterEach`-এ একটি statement-ই সব পরিষ্কার করে দেয়: `pg_tables` থেকে `public`-এর সব table বেছে নিন, শুধু
+migration ledger বাদ দিয়ে। তারপর `TRUNCATE "a", "b", … RESTART IDENTITY CASCADE`। `CASCADE` foreign key
+সামলায়, আর `RESTART IDENTITY` sequence আবার শুরু থেকে গোনায়, তাই id আগে থেকে আন্দাজ করা যায়।
 
-Rollback আরও দ্রুত, তবে একটি সমস্যা আছে। Test-এর অধীন code যদি নিজের transaction খোলে, তাহলে এখন আপনার একটি
-nested transaction তৈরি হলো। তখন আপনি যে behaviour test করছেন, সেটা production-এর behaviour নয়। Truncation
-এই প্রশ্নটাই এড়িয়ে যায়।
+Rollback আরও দ্রুত, কিন্তু একটি ফাঁদ আছে। Test-এর অধীন code নিজে transaction খুললে আপনি nested transaction
+পেয়ে যান। তখন যে আচরণ test করছেন, সেটা আর production-এর আচরণ নয়। Truncate করলে এই প্রশ্নই ওঠে না।
 
-> ⚠️ কখনো একটি test suite-কে shared development বা staging database-এর দিকে তাক করবেন না। Test hook-এর
-> `TRUNCATE` অনেক আসল data মুছে দিয়েছে। Connection string অবশ্যই আসতে হবে suite-এর নিজের চালু করা একটি
-> container থেকে।
+> ⚠️ Test suite কখনো shared development বা staging database-এর দিকে তাক করবেন না। Test hook-এর
+> `TRUNCATE` অনেক আসল data মুছে দিয়েছে। Connection string আসতে হবে সেই container থেকে, যেটা suite নিজে চালু করেছে।
 
 ### Factory আর third party
 
-Factory একটি valid object তৈরি করে, আর test যে field-গুলো নিয়ে মাথা ঘামায়, সেগুলোর override নেয়। দরকারি দুই
-line চোখের সামনে থাকে, আর বিশটা required field লুকিয়ে থাকে:
+Factory একটি valid object বানায়, আর test যে field-গুলো নিয়ে ভাবে সেগুলো override করার সুযোগ দেয়। জরুরি দুটি
+line চোখের সামনে থাকে, আর বাধ্যতামূলক বিশটি field আড়ালে থাকে:
 
 ```typescript
 export async function makeOrder(over: Partial<Order> = {}): Promise<Order> {
@@ -165,11 +163,11 @@ export async function makeOrder(over: Partial<Order> = {}): Promise<Order> {
 }
 ```
 
-Shared seed file-এর বদলে factory বেছে নিন। Seed file হলো global state: প্রতিটি test এর ওপর নির্ভর করে, কেউ
-এটা নিরাপদে বদলাতে পারে না, আর একটি test পড়ে বোঝা যায় না data দেখতে কেমন।
+Shared seed file-এর বদলে factory ব্যবহার করুন। Seed file হলো global state: সব test তার ওপর নির্ভর করে, কেউ
+নিরাপদে সেটা বদলাতে পারে না, আর test পড়ে বোঝা যায় না data দেখতে কেমন।
 
-Third party-র ক্ষেত্রে নিজের client mock না করে HTTP boundary-তে intercept করুন। তাহলে client-এর request তৈরি
-আর error handling-ও test-এর আওতায় থাকে।
+Third party-র ক্ষেত্রে নিজের client mock না করে HTTP boundary-তে request আটকান। তাহলে client কীভাবে request
+বানায় আর error সামলায়, সেটাও test-এর আওতায় থাকে।
 
 ```typescript
 // MSW intercepts at the network boundary, so the real client code runs.
@@ -181,57 +179,56 @@ const server = setupServer(
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' })); // Catch unexpected calls.
 ```
 
-`onUnhandledRequest: 'error'` হলো সেই setting, যেটা রেখে দিতে হবে। এটা ছাড়া, যে test অপ্রত্যাশিতভাবে internet-এ
-পৌঁছে যায়, সেটা local-এ pass করে আর CI-তে fail করে।
+`onUnhandledRequest: 'error'` setting-টা রেখে দিন। এটা না থাকলে যে test অপ্রত্যাশিতভাবে internet-এ চলে যায়,
+সেটা local-এ pass করে আর CI-তে fail করে।
 
 ## সাধারণ ভুল
 
-**❌ Implementation-এর ওপর assert করা।** `expect(repo.find).toHaveBeenCalledWith(...)` প্রতিটি refactor-এ
-ভাঙে, আর behaviour ভুল হলেও pass করে। যেখানে পারেন, ফলাফলের ওপর assert করুন।
+**❌ Implementation-এর ওপর assert করা।** `expect(repo.find).toHaveBeenCalledWith(...)` প্রতিটি refactor-এ ভাঙে,
+আর আচরণ ভুল হলেও pass করে। যেখানে পারেন, ফলাফলের ওপর assert করুন।
 
-**❌ API response-এর snapshot নেওয়া।** প্রতিটি field-এর পরিবর্তন একটি snapshot update হয়ে যায়, যেটা কেউ পড়ে না।
-যে field-গুলো contract তৈরি করে, সেগুলোর ওপর assert করুন।
+**❌ API response-এর snapshot নেওয়া।** প্রতিটি field বদলালেই snapshot update করতে হয়, যা কেউ পড়ে না।
+Contract যে field-গুলো দিয়ে তৈরি, শুধু সেগুলোর ওপর assert করুন।
 
-**❌ Test-এর মাঝে shared mutable state।** একটি module-level array বা একটি seed করা record, যেটা একটি test
-বদলে দেয়, suite-কে ক্রমের ওপর নির্ভরশীল করে তোলে, আর সেটা শুধু CI-তেই fail করবে।
+**❌ Test-এর মধ্যে shared mutable state।** Module-level কোনো array, বা seed করা কোনো record, যা একটি test বদলে
+দেয় — এতে suite ক্রমের ওপর নির্ভরশীল হয়ে পড়ে। আর fail করবে শুধু CI-তে।
 
-**❌ 100% coverage-এর পেছনে ছোটা।** Coverage হলো untested branch খোঁজার একটি ন্যূনতম মাপকাঠি, লক্ষ্য নয়।
-একটি শতাংশ পূরণের জন্য লেখা suite getter test করে। যে suite error-এর *message* text-এর ওপর assert করে, সেটা
-লেখার পরিবর্তনেই ভাঙে। যে আকার আপনি প্রতিশ্রুতি দিয়েছেন, সেটা assert করুন: status, code, এটা expose করা
-নিরাপদ কি না।
+**❌ 100% coverage-এর পেছনে ছোটা।** Coverage হলো test না হওয়া branch খুঁজে পাওয়ার একটি নিচের সীমা, লক্ষ্য নয়।
+শতাংশ পূরণ করতে লেখা suite getter test করে। যে suite error-এর *message*-এর লেখা মিলিয়ে দেখে, সেটা ভাষা
+বদলালেই ভাঙে। আপনি যে shape-এর প্রতিশ্রুতি দিয়েছেন, সেটাই assert করুন: status, code, বাইরে দেখানো নিরাপদ কি না।
 
 ## 🔑 মূল শিক্ষা
 
-- Backend pyramid frontend-এর চেয়ে বেশি চ্যাপ্টা, কারণ বেশিরভাগ behaviour থাকে integration-এ, pure function-এ নয়।
-- Dependency-কে parameter বানালে module mocking-এর দরকার থাকে না, আর সেটাই বিভ্রান্তিকর failure-এর প্রধান উৎস।
-- নিজের data layer mock করলে এমন test তৈরি হয়, যেটা query ভাঙা থাকলেও pass করে।
-- Container-এ আসল database engine ব্যবহার করুন, আসল migration দিয়ে migrate করা।
-- ধীরগতি আর flakiness প্রায় সবসময় shared state থেকে আসে। Test-এর মাঝে truncate করুন, বা প্রতি worker-এ একটি schema ব্যবহার করুন।
+- Backend-এর pyramid frontend-এর চেয়ে চ্যাপ্টা, কারণ বেশিরভাগ আচরণ থাকে integration-এ, pure function-এ নয়।
+- Dependency parameter হিসেবে দিলে module mocking-এর দরকার পড়ে না, আর বিভ্রান্তিকর failure-এর মূল উৎস সেটাই।
+- নিজের data layer mock করলে এমন test হয়, যা query ভাঙা থাকলেও pass করে।
+- Container-এ আসল database engine চালান, আর আসল migration দিয়ে সেটা তৈরি করুন।
+- ধীর গতি আর অকারণ failure প্রায় সবসময় shared state থেকে আসে। Test-এর মাঝে truncate করুন, বা প্রতি worker-এ আলাদা schema দিন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি service-এ কী unit test করেন না?**
+**Q: Service-এ কী unit test করবেন না?**
 
-যে controller শুধু একটি request-কে একটি service call-এ অনুবাদ করে, আর database mock করা যেকোনো query। দুটিই
-assert করে যে code যেভাবে লেখা, সেভাবেই লেখা। এগুলো refactor-এ ভাঙে, আর behaviour ভুল হলেও সবুজ থাকে। এগুলোর
-জায়গা আসল database আর আসল HTTP layer-এর বিরুদ্ধে চলা test-এ।
+যে controller শুধু request-কে একটি service call-এ অনুবাদ করে, আর database mock করা যেকোনো query। দুটিই শুধু
+যাচাই করে যে code যেভাবে লেখা, সেভাবেই লেখা আছে। Refactor করলে ভাঙে, আর আচরণ ভুল হলেও সবুজ থাকে। এগুলোর জায়গা
+আসল database আর আসল HTTP layer-এর বিরুদ্ধে চালানো test-এ।
 
-**Q: Dependency injection নাকি `vi.mock`?**
+**Q: Dependency injection, নাকি `vi.mock`?**
 
-যেখানে code আমার, সেখানে injection। Parameter হিসেবে পাঠানো একটি fake object স্পষ্ট, type-checked, আর এতে
-hoisting বা module-registry-র কোনো আচরণ নিয়ে ভাবতে হয় না। `vi.mock` সেই module-গুলোর জন্য, যেগুলোর গঠন আমি
-বদলাতে পারি না, যেমন কয়েক স্তর নিচে import করা একটি third-party client। এটা ব্যতিক্রম হওয়া উচিত। Import-এর
-ক্রমের ওপর নির্ভর করে fail করা test-এর সাধারণ কারণ module mock।
+Code যেখানে আমার নিজের, সেখানে injection। Parameter হিসেবে দেওয়া fake object স্পষ্ট, type-check হয়, আর তাতে
+hoisting বা module registry নিয়ে মাথা ঘামাতে হয় না। `vi.mock` সেই module-এর জন্য, যার গঠন আমি বদলাতে পারি না,
+যেমন কয়েক স্তর নিচে import করা কোনো third-party client। এটা ব্যতিক্রম হওয়া উচিত। Import-এর ক্রমের ওপর নির্ভর করে
+যে test fail করে, তার পেছনে সাধারণত module mock-ই থাকে।
 
-**Q: একটি integration suite-কে কীভাবে isolated রেখেও দ্রুত রাখেন?**
+**Q: Integration suite isolated রেখেও দ্রুত রাখবেন কীভাবে?**
 
-Isolation বাদ না দিয়ে সেটাকে সস্তা করে। প্রতি test-এ একটি transaction, শেষে rollback করা, সবচেয়ে দ্রুত। কিন্তু
-যে code নিজের transaction নিজে সামলায়, তার সাথে এটা গোলমাল করে। তাই `CASCADE` আর `RESTART IDENTITY` দিয়ে
-প্রতিটি table truncate করাই নির্ভরযোগ্য default। Parallelism-এর জন্য প্রতিটি worker-কে নিজের schema দিন, যাতে
-isolation test file প্রতি না হয়ে worker প্রতি হয়।
+Isolation বাদ না দিয়ে সেটাকে সস্তা করে। প্রতি test-এ একটি transaction খুলে শেষে rollback করা সবচেয়ে দ্রুত।
+কিন্তু যে code নিজে transaction চালায়, তার সঙ্গে এটা গোলমাল করে। তাই `CASCADE` আর `RESTART IDENTITY` দিয়ে সব
+table truncate করাই নির্ভরযোগ্য default। Parallel-এ চালাতে চাইলে প্রতিটি worker-কে আলাদা schema দিন, তাহলে
+isolation হয় worker ধরে, test file ধরে নয়।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Testing Strategy](#ch-testing-strategy) — pyramid, AAA আর double-এর পরিভাষা
-- [Chapter ?? — Transaction ও Concurrency](#ch-sql-transactions) — একটি আসল engine যে semantics দেয়
-- [Chapter ?? — Playwright দিয়ে End-to-End, Visual ও Contract Testing](#ch-end-to-end-testing) — browser layer, আর কেন এগুলো কম থাকা উচিত
+- [Chapter ?? — Testing Strategy](#ch-testing-strategy) — pyramid, AAA আর test double-এর পরিভাষা
+- [Chapter ?? — Transaction ও Concurrency](#ch-sql-transactions) — আসল engine আপনাকে যে নিয়মগুলো দেয়
+- [Chapter ?? — Playwright দিয়ে End-to-End, Visual ও Contract Testing](#ch-end-to-end-testing) — browser layer, আর কেন এমন test অল্প থাকা উচিত
