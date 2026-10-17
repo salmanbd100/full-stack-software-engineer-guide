@@ -1,15 +1,3 @@
----
-title: The Senior Full Stack Handbook
-part: 0
-chapter: 0
-slug: book-index
-level: intermediate # beginner | intermediate | advanced
-reading_time: 2
-updated: 2026-10-18
-tags: []
-in_book: false
----
-
 # The Senior Full Stack Handbook
 
 **Frontend-heavy engineering for 2027: fundamentals, the modern stack, system design and AI**
