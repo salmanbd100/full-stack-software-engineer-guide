@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-19 · **Progress:** 27 / 28
+**Last updated:** 2026-10-19 · **Progress:** 28 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -758,7 +758,7 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 ---
 
-### - [ ] 130. Document it, deploy it, and check it live `S`
+### - [x] 130. Document it, deploy it, and check it live `S` — ✅ **done 2026-10-19**
 
 - **`CLAUDE.md`:** add `site:translate` to Scripts, and point at `i18n/TRANSLATION-BRIEF.md`. In the
   web-edition paragraph, say that `i18n/bn/` is a generated cache (hand-fix a page only if you accept
@@ -772,6 +772,24 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 **Done when:** `www.salmanrahman.com/handbook/bn/` is live. The switcher works there, and a Bangla
 chapter loads with its font. `pnpm plan:check` passes.
+
+**Delivered:**
+
+- **`CLAUDE.md`:** `pnpm site:translate` and its flags are in Scripts, pointing at
+  `i18n/TRANSLATION-BRIEF.md` and `i18n/titles.bn.json`. The web-edition paragraph says `i18n/bn/` is
+  a committed, generated cache keyed by a SHA-256 of the English (hand-fix only if a re-translation may
+  overwrite it), that `site/bn/book/**` is generated and gitignored, and that `site/bn/index.md` is
+  hand-written and guarded by `HAND_WRITTEN`. "Writing or Editing Documentation" now says to run
+  `pnpm site:translate --list` after a chapter edit, translate the stale pages and commit the cache
+- **`site/building-this-book.md`:** it already had a Bangla Edition section; it now says the Bangla is
+  machine-translated by Claude and reviewed against the brief, and that the PDF and EPUB stay English
+- Pushed to `main` as `5729230` (#128p–#128z) and `e976436` (docs). The Git-connected Vercel project
+  deployed it; the new Part IX text was live about 90 seconds after the push
+- **Checked live:** `www.salmanrahman.com/handbook/bn/` returns 200 (after a 308 from `/bn/` to
+  `/bn`) with `lang="bn-BD"`. On `/handbook/bn/book/part-9/thinking-aloud`, Noto Sans Bengali is
+  loaded and `document.fonts.check` passes, and the EN/BN switch opens
+  `/handbook/book/part-9/thinking-aloud` in `en-GB`
+- `pnpm lint:docs` (no regression), `pnpm test` (57 pass), `pnpm site:build` and `pnpm plan:check` pass
 
 ---
 
@@ -799,5 +817,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 27/28 | 🟡 In progress |
-| **Total** | **28** | **27/28** | **96%** |
+| 11 | 128 · 128a–128z · 130 | 28/28 | ✅ Done |
+| **Total** | **28** | **28/28** | **100%** |
